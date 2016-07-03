@@ -21,16 +21,21 @@ Then, download, and run:
 
 Features:
 ============================================
+Reproduces results from
+ - sakov'2008 (ETKF,DEnKF,EnKF benchmarks, LA/L40)
+ - sakov'2012 (approximately iETKF)
+ - bocquet'2012 (EnKF-N)
+ - TODO: bocquet'2015 (EnKF-N)
+ - TODO: raanes'2014 (Sqrt model noise methods)	
+ - TODO: bocquet'2014 (EnKS-N)
+
 Many
  - methods
  - models
  - diagnostics
 
 
-
-
-- Highly modular
-- Highly modular
+Highly modular.
 
 Efficient.
 E.g. Lorenz-96 uses native vectorization (i.e. fast numpy),  but no parallelization.

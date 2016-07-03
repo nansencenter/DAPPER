@@ -34,6 +34,7 @@ def randn(shape=(1,)): return np.random.normal(0,1,shape)
 # Use LCG for all randn
 #randn = myrandn
 
+def rand(shape=(1,)): return np.random.uniform(0,1,shape)
 
 # Makeshift randcorr (which is missing from rogues)
 def randcov(m):

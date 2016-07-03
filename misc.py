@@ -11,6 +11,10 @@ def vec2list2(vec):
 def is1d(a):
   """ Works for list and row/column arrays and matrices"""
   return np.sum(asarray(asarray(a).shape) > 1) <= 1
+
+def tp(a):
+  """Tranpose 1d vector"""
+  return a[np.newaxis].T
         
 def anom(E):
   mu = mean(E,0)
