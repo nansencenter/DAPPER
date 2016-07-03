@@ -27,11 +27,12 @@ other = {'name': os.path.basename(__file__)}
 
 params = OSSE(f,h,t,X0,**other)
 
+####################
+# Suggested tuning
+####################
 
-# EnKF
-# N = 40
-# infl = 1.10
-# rot = False
-# AMethod = 'Sqrt'
-
-
+#cfg.N = 40
+#cfg.infl    = 1.10
+#cfg.rot     = False
+#cfg.AMethod = 'Sqrt'
+#method      = EnKF

@@ -30,14 +30,35 @@ other = {'name': os.path.basename(__file__)}
 
 params = OSSE(f,h,t,X0,**other)
 
-# # rmse_a = 0.22
-# N = 40
-# #infl = 1.045 # Requires BurnIn inflation too
-# infl = 1.06
-# AMethod = 'PertObs'
 
-# # rmse_a = 0.175
-# N = 40
-# infl = 1.01
-# AMethod = 'Sqrt'
-# rot = True
+
+####################
+# Suggested tuning
+####################
+
+#cfg.N = 40
+
+# rmse_a = 0.22
+#cfg.infl    = 1.045 # Requires BurnIn inflation too
+#cfg.infl    = 1.06
+#cfg.AMethod = 'PertObs non-transposed'
+#method      = EnKF
+
+# rmse_a = 0.175
+#cfg.infl    = 1.01
+#cfg.AMethod = 'Sqrt'
+#cfg.rot     = True
+#method      = EnKF
+
+# rmse_a = 0.18
+#cfg.infl    = 1.01
+#cfg.AMethod = 'DEnKF'
+#method      = EnKF
+
+# rmse_a = 0.17
+#cfg.infl    = 1.01
+#cfg.AMethod = 'Sqrt'
+#cfg.rot     = True
+#cfg.iMax    = 10
+#method      = iEnKF
+

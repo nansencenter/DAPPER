@@ -28,21 +28,19 @@ from common import *
 np.random.seed(5)
 #LCG(5)
 
-cfg = Settings()
 
 ############################
-# L3_sak12
+# OSSE setup
 ############################
 from mods.L3.sak12 import params
+f,h,chrono,X0 = params.f, params.h, params.t, params.X0
 
-# rmse_a = ? (sak: 0.82)
-#cfg.N       = 3
-#cfg.infl    = 1.30 # Not well-tuned coz resuls too variable
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = False
-#method      = EnKF
+############################
+# DA setup
+############################
+cfg = Settings()
 
-# rmse_a = 0.63 (sak 0.65)
+# Expected rmse_a = 0.63 (sak 0.65)
 cfg.N       = 10
 cfg.infl    = 1.02
 cfg.AMethod = 'Sqrt'
@@ -51,82 +49,27 @@ method      = EnKF
 #cfg.iMax    = 10
 #method      = iEnKF # rmse_a = 0.31
 
-############################
-# L3_v23
-############################
-#from mods.L3.m23 import params
-
-## rmse_a = 0.205
-#cfg.N       = 10
-#cfg.infl    = 1.00001
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = False
-#method      = EnKF
-
-# rmse_a = 0.185
-#cfg.N       = 10
-#cfg.infl    = 1.00001
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = False
-#cfg.iMax    = 10
-#method      = iEnKF
-
-
-
-############################
-# L40_sak08
-############################
 #from mods.L40.sak08 import params
-
+## Expected rmse_a = 0.175
 #cfg.N = 40
-
-# rmse_a = 0.22
-#cfg.infl    = 1.045 # Requires BurnIn inflation too
-#cfg.infl    = 1.06
-#cfg.AMethod = 'PertObs non-transposed'
-#method      = EnKF
-
-# rmse_a = 0.175
 #cfg.infl    = 1.01
 #cfg.AMethod = 'Sqrt'
 #cfg.rot     = True
 #method      = EnKF
 
-# rmse_a = 0.18
-#cfg.infl    = 1.01
-#cfg.AMethod = 'DEnKF'
-#method      = EnKF
-
-# rmse_a = 0.17
-#cfg.infl    = 1.01
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = True
-#cfg.iMax    = 10
-#method      = iEnKF
 
 ############################
-# L40_v23
+# Generate synthetic truth/obs
 ############################
-#from mods.L40.m23 import params
 
-#cfg.N = 40
-#cfg.infl    = 1.10
-#cfg.rot     = False
-#cfg.AMethod = 'Sqrt'
-#method      = EnKF
-
-
-############################
-# Generate synthetic truth and obs
-############################
-f,h,chrono,X0 = params.f, params.h, params.t, params.X0
-
+# truth
 xx = zeros((chrono.K+1,f.m))
 xx[0,:] = X0.sample(1)
 for k,kObs,t,dt in chrono.forecast_range:
   D = sqrt(dt)*f.noise.sample(1)
   xx[k,:] = f.model(xx[k-1,:],t-dt,dt) + D
 
+# obs
 yy = zeros((chrono.KObs+1,h.m))
 for k,t in enumerate(chrono.ttObs):
   yy[k,:] = h.model(xx[chrono.kkObs[k],:],t) + h.noise.sample(1)
@@ -150,3 +93,5 @@ print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMSV: {:8.5f}'\
 ############################
 plot_diagnostics_dashboard(xx,s,chrono,cfg.N,dim=2)
 plot_3D_trajectory(xx[:,:3],s,chrono)
+
+
