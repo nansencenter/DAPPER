@@ -90,7 +90,7 @@ class CovMat:
       for i in range(m):
         U[sInds[i],i] = 1
         d[i] = data[sInds[i]]
-    else: raise ValueError
+    else: raise TypeError
 
     self.C  = C
     self.U  = U

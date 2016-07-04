@@ -60,7 +60,7 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
       KG = A.T @ mrdiv(Y, C)
       E  = E + KG@dy - 0.5*(KG@Y.T).T
     else:
-      raise ValueError
+      raise TypeError
     E = inflate_ens(E,cfg.infl)
     #if t<BurnIn:
       #E = inflate_ens(E,1.0 + 0.2*(BurnIn-t)/BurnIn)

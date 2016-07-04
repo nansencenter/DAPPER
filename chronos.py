@@ -50,12 +50,12 @@ class Chronology:
         dt = dtObs/dkObs
       elif T and dkObs and KObs:
         dt = T/(KObs+1)/dkObs
-      else: raise KeyError('Unable to interpret time setup')
+      else: raise TypeError('Unable to interpret time setup')
     if not dkObs:
       if dtObs:
         dkObs = round(dtObs/dt)
         assert abs(dtObs - dkObs*dt) < dt*1e-9
-      else: raise KeyError('Unable to interpret time setup')
+      else: raise TypeError('Unable to interpret time setup')
     assert(isinstance(dkObs,int))
     if not K:
       if T:
@@ -64,7 +64,7 @@ class Chronology:
         assert abs(T - K*dt) < dt*1e-9
       elif KObs:
         K = dkObs*(KObs+1)
-      else: raise KeyError('Unable to interpret time setup')
+      else: raise TypeError('Unable to interpret time setup')
     K = int(ceil(K/dkObs)*dkObs)
 
     # "State variables"
