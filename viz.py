@@ -144,7 +144,7 @@ def plot_3D_trajectory(xx,stats,chrono,Kplot=None):
   ax3 = fig.add_subplot(111, projection='3d')
 
   if Kplot is None:
-    Kplot = estimate_good_plot_length(xx.T.flatten(),chrono)
+    Kplot = estimate_good_plot_length(xx.ravel(order='F'),chrono)
   pkk = chrono.kk[chrono.kk<=Kplot]
 
   ax3.plot   (xx[pkk    ,0],xx[pkk    ,1],xx[pkk    ,2],c='k',label='Truth'   )
@@ -188,7 +188,7 @@ def plot_diagnostics_dashboard(xx,stats,chrono,N,dim=0,Kplot=None):
   ax.set_xlabel('time (t)')
 
   ax = plt.subplot(4,1,4)
-  integer_hist(s.rh.flatten(),N,alpha=0.5)
+  integer_hist(s.rh.ravel(),N,alpha=0.5)
 
 
 def integer_hist(E,N,**kwargs):
