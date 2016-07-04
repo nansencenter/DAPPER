@@ -68,6 +68,8 @@ Sugar:
 * X-platform random number generator
 * Chronology/Ticker
 * CovMat class (input flexibility, / overloading, lazy eval)
+* Live plotting with on/off toggle
+* Intelligent defaults (e.g. plot length estimated from acf)
 
 
 Alternatives:
@@ -118,6 +120,7 @@ TODO
 * iEnKS-N
 * Models come with their own viz specification
 * Toggle LivePlot **on Windows**
+* Should observations return copy? e.g. x[:,obsInds].copy()
 * 
 * Add before/after analysis plots
 * 
@@ -153,4 +156,7 @@ Changelog / Fixes:
 * OLD: Many global namespace imports: from <package> import func1, func2
 
 
-
+Outreach:
+---------------
+* http://stackoverflow.com/a/38191145/38281
+* http://stackoverflow.com/a/37861878/38281
