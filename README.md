@@ -158,3 +158,9 @@ Changelog / Fixes:
 * OLD: Mathematical (and standard) litterature var. names (i.e. h, R, P, E, A)
 * OLD: Many global namespace imports: from <package> import func1, func2
 
+
+Outreach:
+---------------
+* http://stackoverflow.com/a/38191145/38281
+* http://stackoverflow.com/a/37861878/38281
+>>>>>>> 017a62c5e7d3bcab53eaf7b9477aae1b7681df47
