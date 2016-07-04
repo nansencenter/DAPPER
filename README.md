@@ -8,7 +8,8 @@
 ![EnKF - Lorenz'63](./figs/l63_ens_animated.gif)
 
 
- - Author: Patrick N. Raanes
+ - Developed at the Nansen centre 
+ - Contributors: Patrick N. Raanes, Maxime Tondeur
  - Licence: See licence.txt
 
 Installation:
@@ -98,6 +99,29 @@ Implementation choices:
  - should not modify in-place.
  - should take ensembles as input.
    (hence forecast parallelization is in users's hands)
+
+TODO
+============================================
+ - LA model
+ - PartFilt
+ - ExtKF
+ - Climatology
+ - 1D model from workshop that preserves some quantity
+ - 2D model
+ - average obs and truth rank hist
+ - iEnKS-N
+ - Models come with their own viz specification
+ - 
+ - Add before/after analysis plots
+ - 
+ - Truncate SVD at 95 or 99% (evensen)
+ - unify matrix vs array (e.g. randn)
+ - vs 1d array (e.g. xx[:,0] in L3.dxdt)
+ - avoid y  = yy[:,kObs].reshape((p,1))
+ - Take advantage of pass-by-ref
+ - Decide on conflicts np vs math vs sp
+ - prevent CovMat from being updated
+
 
 
 Changelog / Fixes:

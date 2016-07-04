@@ -3,28 +3,6 @@
 ############################
 from common import *
 
-# TODO: LA model
-# TODO: PartFilt
-# TODO: ExtKF
-# TODO: Climatology
-# TODO: 1D model from workshop that preserves some quantity
-# TODO: 2D model
-# TODO: average obs and truth rank hist
-# TODO: iEnKS-N
-# TODO: Models come with their own viz specification
-#
-# TODO: Add before/after analysis plots
-#
-# TODO: Truncate SVD at 95 or 99% (evensen)
-#
-# TODO: unify matrix vs array (e.g. randn)
-#       vs 1d array (e.g. xx[:,0] in L3.dxdt)
-#       avoid y  = yy[:,kObs].reshape((p,1))
-# TODO: Take advantage of pass-by-ref
-# TODO: Decide on conflicts np vs math vs sp
-#
-# TODO: prevent CovMat from being updated
-
 np.random.seed(5)
 #LCG(5)
 
