@@ -8,7 +8,7 @@
 ![EnKF - Lorenz'63](./figs/l63_ens_animated.gif)
 
 * DAPPER is a platform for quality-controlled "twin experiments", where you
-  * Specify your model
+  * Specify your model (must support ensemble input)
   * Generate a synthetic truth
   * Generate synthetic obs
   * Benchmark different DA methods
