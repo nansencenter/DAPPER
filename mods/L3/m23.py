@@ -27,7 +27,7 @@ h = {
     'noise': GaussRV(C=2,m=p)
     }
 
-other = {'name': os.path.basename(__file__)}
+other = {'name': os.path.relpath(__file__,'mods/')}
 
 params = OSSE(f,h,t,X0,**other)
 
