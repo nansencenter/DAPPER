@@ -26,13 +26,13 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
 
         C  = Y@Y.T + R.C*(N-1)
         KG = A*mrdiv(Y.T, C)
-        D  = center(h.noise.sample(N)).T
+        D  = center(hnoise.sample(N)).T
         dE = KG @ ( y + D - hE )
         dE = asarray(dE.T)
         E  = asarray(E.T)
       else:
         C  = Y.T @ Y + R.C*(N-1)
-        D  = center(h.noise.sample(N))
+        D  = center(hnoise.sample(N))
         KG = A.T @ mrdiv(Y, C)
         dE = (KG @ ( y + D - hE ).T).T
         #KG = mldiv(C,Y.T) @ A
