@@ -59,6 +59,10 @@ def find_1st_ind(xx):
   except StopIteration:
     return None
 
+def equi_spaced_integers(m,p):
+  """Provide a range of p equispaced integers between 0 and m-1"""
+  return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
+
 class Stats:
   """Contains and computes peformance stats."""
   # TODO: Include skew/kurt?
@@ -119,11 +123,17 @@ def fit_acf_by_AR1(acf_empir,L=None):
   neg_ind = find_1st_ind(array(acf_empir)<=0)
   if neg_ind is not None:
     acf_empir = acf_empir[:neg_ind]
+  if len(acf_empir) == 1:
+    return 0
   return mean_ratio(acf_empir)
 
 def estimate_corr_length(xx):
+  """ See mods.LA.fundamentals: homogeneous_1D_cov()
+  for some math explanation"""
   acovf = auto_cov(xx,10)
   a     = fit_acf_by_AR1(acovf)
+  if a == 0:
+    return 0
   return 1/log(1/a)
 
 def series_mean_with_conf(xx):
