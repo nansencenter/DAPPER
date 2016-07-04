@@ -22,6 +22,7 @@ class LivePlot:
     #ens_props = {'color': 0.6*cwhite} # 0.7*cblue
 
     self.fg  = plt.figure(21,figsize=(8,8))
+    self.fg.clf()
     set_figpos('E (mac)')
 
     self.ax  = plt.subplot(211)
@@ -48,6 +49,7 @@ class LivePlot:
 
     
     fg3 = plt.figure(23,figsize=(8,6))
+    fg3.clf()
     set_figpos('NE (mac)')
 
     ax3      = fg3.add_subplot(111,projection='3d')
