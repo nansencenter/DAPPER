@@ -117,6 +117,7 @@ TODO
 * average obs and truth rank hist
 * iEnKS-N
 * Models come with their own viz specification
+* Toggle LivePlot **on Windows**
 * 
 * Add before/after analysis plots
 * 

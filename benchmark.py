@@ -6,26 +6,20 @@ from common import *
 np.random.seed(5)
 #LCG(5)
 
-
 ############################
-# OSSE setup
-############################
-from mods.L3.sak12 import params
-f,h,chrono,X0 = params.f, params.h, params.t, params.X0
-
-############################
-# DA setup
+# Setup
 ############################
 cfg = Settings()
 
-# Expected rmse_a = 0.63 (sak 0.65)
-cfg.N       = 10
-cfg.infl    = 1.02
-cfg.AMethod = 'Sqrt'
-cfg.rot     = True
-method      = EnKF
-#cfg.iMax    = 10
-#method      = iEnKF # rmse_a = 0.31
+#from mods.L3.sak12 import params
+## Expected rmse_a = 0.63 (sak 0.65)
+#cfg.N       = 10
+#cfg.infl    = 1.02
+#cfg.AMethod = 'Sqrt'
+#cfg.rot     = True
+#method      = EnKF
+##cfg.iMax    = 10
+##method      = iEnKF # rmse_a = 0.31
 
 #from mods.L40.sak08 import params
 ## Expected rmse_a = 0.175
@@ -35,10 +29,19 @@ method      = EnKF
 #cfg.rot     = True
 #method      = EnKF
 
+from mods.LA.even2009 import params
+# Expected rmse_a = 0.175
+cfg.N       = 52
+cfg.infl    = 1.01
+cfg.AMethod = 'PertObs'
+cfg.rot     = False
+method      = EnKF
+
 
 ############################
 # Generate synthetic truth/obs
 ############################
+f,h,chrono,X0 = params.f, params.h, params.t, params.X0
 
 # truth
 xx = zeros((chrono.K+1,f.m))

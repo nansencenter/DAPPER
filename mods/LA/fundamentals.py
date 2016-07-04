@@ -1,18 +1,22 @@
-import numpy as np
+
+from common import *
+
 from scipy.linalg import circulant
 from numpy import abs, sign, eye, ceil
 
 def Fmat(m,c,dx,dt):
-  # m  - System size
-  # c  - Velocity of wave. Wave travels to the rigth for c>0.
-  # dx - Grid spacing
-  # dt - Time step
-  #
-  # CFL condition
-  # Note that the 1st Ord Upwind scheme (i.e. F and dFdx) is exact
-  # (vis-a-vis the analytic solution) for dt = abs(dx/c). 
-  # In this case it corresponds to circshift. This has little bearing on
-  # DA purposes, however.
+  """
+  m  - System size
+  c  - Velocity of wave. Wave travels to the rigth for c>0.
+  dx - Grid spacing
+  dt - Time step
+  
+  CFL condition
+  Note that the 1st Ord Upwind scheme (i.e. F and dFdx) is exact
+  (vis-a-vis the analytic solution) for dt = abs(dx/c). 
+  In this case it corresponds to circshift. This has little bearing on
+  DA purposes, however.
+  """
   assert(abs(c*dt/dx) <= 1)
   # 1st order explicit upwind scheme
   row1     = np.zeros(m)
@@ -23,20 +27,21 @@ def Fmat(m,c,dx,dt):
   F        = eye(m) + (dt/dx*abs(c))*L
   return F
 
+
 def basis(m,k):
   """
   m - state vector length
   k - max wavenumber (wavelengths to fit into interval 1:m)
   """
   mm = arange(1,m+1) / m
-  kk = np.arange(k+1) # Wavenumbers
+  kk = arange(k+1) # Wavenumbers
   aa = rand(k+1)      # Amplitudes
   pp = rand(k+1)      # Phases
 
-  s  = aa @ np.sin(2*pi*tp(kk) * (tp(pp) + mm))
+  s  = aa @ np.sin(2*pi*(tp(kk) * mm + tp(pp)))
 
   #% Normalise
-  sd = np.std(s)
+  sd = np.std(s,ddof=1)
   #if m >= (2*k + 1)
       #% See analytic_normzt.m
       #sd = sqrt(sum(aa(2:end).^2)*(m/2)/(m-1));
@@ -44,16 +49,62 @@ def basis(m,k):
 
   return s
 
+# Initialization as suggested by sakov'2008 "implications of...",
+# (but with some minor differences).
 def X0pat(m,k,N):
-  """ Generate N basis vectors """
+  """ Generate N basis vectors.
+  Example:
+  > E = X0pat(100,4,5)
+  > plt.plot(E.T)
+  """
   sample = zeros((N,m))
   for n in range(N):
     sample[n,:] = basis(m,k)
 
-  #% Note: Each sample is centered -- Not the ensemble (in each dimension)
+  # Note: Each sample is centered
+  # -- Not the ensemble as a whole.
   sample = asmatrix(sample)
   sample = sample - np.mean(sample,1)
   sample = asarray(sample)
   return sample 
+
+
+
+# Initialization as suggested by evensen'2009
+def homogeneous_1D_cov(m,d,kind='Expo'):
+  """
+  Generate initial correlations for Linear Advection experiment.
+  d - decorr length, where the unit distance = m(i)-m(i-1) for all i
+  """
+  from mods.L40.fundamentals import mirrored_half_range
+  row1 = mirrored_half_range(m)
+
+  # If the correlation function is strictly non-negative,
+  # the correlation length is often defined as the area under
+  # the normailsed correlation function (ie. corr(0) = 1).
+  #
+  # This can be motivated by looking at the exponential correlation function,
+  #         corr(h) = exp(-h/d).
+  # The area under the curve (from 0 to infty) equals d, which is also
+  # the point where the initial tangent hits the abscissa.
+  #
+  # For the gaussian correlation function,
+  #         corr(h) = exp(-h^2/a^2)
+  # the area under the curve equals sqrt(pi*a^2)/2.
+  # Thus we should set a^2 = 4/pi*d^2 ~= d^2.
+
+  if kind is 'Gauss':
+    # Gaussian covariance
+    nugget = 1e-5
+    a = 2/sqrt(pi)*d
+    C = nugget*eye(m) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
+  elif kind is 'Expo':
+    # Exponential covariance
+    nugget = 1e-2;
+    C = nugget*eye(m) + (1-nugget)*np.exp(-sla.toeplitz(row1/d));
+  else: raise KeyError
+
+  return C
+
 
   
