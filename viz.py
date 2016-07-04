@@ -39,7 +39,8 @@ class OnlinePlot:
 
     ax2 = plt.subplot(212)
     A   = anom(E)[0]
-    self.eE, = ax2.plot(sqrt(eigh(A @ A.T)[0][-min(N-1,m):]))
+    # TODO: Very wasteful (e.g. LA: m=1000)
+    self.eE, = ax2.plot(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
     ax2.set_xlabel('Sing. value index')
     ax2.set_yscale('log')
     ax2.set_ylim([1e-3,1e1])
@@ -91,7 +92,7 @@ class OnlinePlot:
     plt.pause(0.01)
 
     A = anom(E)[0]
-    self.eE.set_ydata(sqrt(eigh(A @ A.T)[0][-min(N-1,m):]))
+    self.eE.set_ydata(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
 
     fg3 = plt.figure(23)
     self.sx._offsets3d = juggle_axes(*vec2list2(self.xx[k,:3]),'z')
