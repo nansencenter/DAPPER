@@ -1,7 +1,31 @@
+# Random variables
+
 from common import *
 
 
-class GaussRV:
+class RV:
+  def __init__(self,sampling_func=None,m=None):
+    #self.pdf = None
+    #self.cdf = None
+    #self.sample_file = None
+    self.sampling_func = sampling_func
+    self.m = m
+    self.is0 = False
+    # TODO: vs is_random in GaussRV
+
+  def sample(self,N):
+    if self.is0:
+      E = zeros(self.m, N)
+    elif self.sampling_func:
+      return self.sampling_func(N)
+    #elif self.cdf:
+      ## multivariate CDF sampling
+    #elif self.pdf:
+      ## A-R sampling
+
+
+
+class GaussRV(RV):
   def __init__(self,mu=0,C=0,m=None):
     # Set mu
     assert is1d(mu)
@@ -46,27 +70,6 @@ class GaussRV:
 
   def __repr__(self):
       return self.__str__()
-
-    
-
-class RV:
-  def __init__(self,data):
-    self.pdf = None
-    self.cdf = None
-    self.sampling_func = None
-    self.sample_file = None
-  #...
-  def sample(self,N):
-    if self.is0:
-      E = zeros(self.m, N)
-    elif self.sampling_func:
-      return self.sampling_func(N)
-    elif self.cdf:
-      pass
-      # multivariate CDF sampling
-    elif self.pdf:
-      pass
-      # A-R sampling
 
 
 

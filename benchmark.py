@@ -11,15 +11,15 @@ np.random.seed(5)
 ############################
 cfg = Settings()
 
-from mods.L3.sak12 import params
-# Expected rmse_a = 0.63 (sak 0.65)
-cfg.N       = 10
-cfg.infl    = 1.02
-cfg.AMethod = 'Sqrt'
-cfg.rot     = True
-method      = EnKF
-#cfg.iMax    = 10
-#method      = iEnKF # rmse_a = 0.31
+#from mods.L3.sak12 import params
+## Expected rmse_a = 0.63 (sak 0.65)
+#cfg.N       = 10
+#cfg.infl    = 1.02
+#cfg.AMethod = 'Sqrt'
+#cfg.rot     = True
+#method      = EnKF
+##cfg.iMax    = 10
+##method      = iEnKF # rmse_a = 0.31
 
 #from mods.L40.sak08 import params
 ## Expected rmse_a = 0.175
@@ -29,13 +29,13 @@ method      = EnKF
 #cfg.rot     = True
 #method      = EnKF
 
-#from mods.LA.even2009 import params
-## Expected rmse_a = 0.175
-#cfg.N       = 100
-#cfg.infl    = 1.01
-#cfg.AMethod = 'PertObs'
-#cfg.rot     = False
-#method      = EnKF
+from mods.LA.even2009 import params
+# Expected rmse_a = 0.175
+cfg.N       = 100
+cfg.infl    = 1.01
+cfg.AMethod = 'PertObs'
+cfg.rot     = False
+method      = EnKF
 
 
 ############################

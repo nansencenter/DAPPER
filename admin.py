@@ -16,7 +16,8 @@ class Operator:
 
 class OSSE:
   def __init__(self,f,h,t,X0,**kwargs):
-    if not isinstance(X0,GaussRV):
+    if not isinstance(X0,RV):
+      # TODO: Pass through RV instead?
       X0 = GaussRV(**X0)
     if not isinstance(f,Operator):
       f = Operator(**f)

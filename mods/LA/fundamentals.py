@@ -3,7 +3,10 @@ from common import *
 
 from scipy.linalg import circulant
 from numpy import abs, sign, eye, ceil
+from scipy import sparse
 
+# Alternative: np.roll(x,1,axis=x.ndim-1),
+# but this is more general (has dt,dx,c).
 def Fmat(m,c,dx,dt):
   """
   m  - System size
@@ -25,18 +28,19 @@ def Fmat(m,c,dx,dt):
   row1[0]  = -1
   L        = circulant(row1)
   F        = eye(m) + (dt/dx*abs(c))*L
+  F        = sparse.dia_matrix(F)
   return F
 
 
-def basis(m,k):
+def basis_vector(m,k):
   """
   m - state vector length
   k - max wavenumber (wavelengths to fit into interval 1:m)
   """
   mm = arange(1,m+1) / m
   kk = arange(k+1) # Wavenumbers
-  aa = rand(k+1)      # Amplitudes
-  pp = rand(k+1)      # Phases
+  aa = rand(k+1)   # Amplitudes
+  pp = rand(k+1)   # Phases
 
   s  = aa @ np.sin(2*pi*(tp(kk) * mm + tp(pp)))
 
@@ -51,18 +55,22 @@ def basis(m,k):
 
 # Initialization as suggested by sakov'2008 "implications of...",
 # (but with some minor differences).
-def X0pat(m,k,N):
-  """ Generate N basis vectors.
+def sinusoidal_sample(m,k,N):
+  """ Generate N basis vectors, and center them.
+  The centring is not naturally a part of the basis generation,
+  but serves to avoid the initial transitory regime
+  if the model is dissipative(, and more ?).
+
   Example:
-  > E = X0pat(100,4,5)
+  > E = sinusoidal_sample(100,4,5)
   > plt.plot(E.T)
   """
   sample = zeros((N,m))
   for n in range(N):
-    sample[n,:] = basis(m,k)
+    sample[n,:] = basis_vector(m,k)
 
-  # Note: Each sample is centered
-  # -- Not the ensemble as a whole.
+  # Note: Each sample member is centered
+  # -- Not the sample as a whole.
   sample = asmatrix(sample)
   sample = sample - np.mean(sample,1)
   sample = asarray(sample)
