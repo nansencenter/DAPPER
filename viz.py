@@ -49,11 +49,11 @@ class OnlinePlot:
     fg3 = plt.figure(23,figsize=(8,6))
     set_figpos('NE (mac)')
 
-    ax3 = fg3.add_subplot(111,projection='3d')
+    ax3      = fg3.add_subplot(111,projection='3d')
     self.sx  = ax3.scatter(*xx[0,:3]  ,s=30,c='k'      )
     self.sE  = ax3.scatter(*E[: ,:3].T,s=10,**ens_props)
 
-    tail_k  = int(1/dt)
+    tail_k       = max([2,int(1/dt)])
     self.tail_xx = ones((tail_k,3)) * xx[0,:3] # init
     self.ltx,    = ax3.plot(*self.tail_xx.T)
 
@@ -65,7 +65,7 @@ class OnlinePlot:
       lEn, = ax3.plot(*self.tail_E[:,n,:].squeeze().T,**ens_props)
       self.ltE.append(lEn)
 
-    ax3.axis('off')
+    #ax3.axis('off')
     ax3.set_xlim([-20,20])
     ax3.set_ylim([-20,20])
     ax3.set_zlim([-20,20])
