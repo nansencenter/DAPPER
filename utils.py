@@ -26,6 +26,19 @@ def set_np_linewidth():
 
 
 
+#stackoverflow.com/q/292095
+#stackoverflow.com/a/25442391/38281
+import select
+def heardEnter():
+  i,o,e = select.select([sys.stdin],[],[],0.0001)
+  for s in i:
+    if s == sys.stdin:
+      input = sys.stdin.readline()
+      return True
+  return False
+
+
+
 
 
 

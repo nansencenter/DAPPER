@@ -77,7 +77,7 @@ def EnKF(params,cfg,xx,yy):
 
   stats = Stats(params)
   stats.assess(E,xx,0)
-  o_plt = OnlinePlot(params,E,stats,xx,yy)
+  o_plt = LivePlot(params,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -90,7 +90,7 @@ def EnKF(params,cfg,xx,yy):
       stats.copy_paste(s_now,kObs)
 
     stats.assess(E,xx,k)
-    #o_plt.update(E,k)
+    o_plt.update(E,k)
   return stats
 
 
@@ -142,7 +142,7 @@ def iEnKF(params,cfg,xx,yy):
   stats = Stats(params)
   stats.assess(E,xx,0)
   stats.iters = zeros(chrono.KObs)
-  o_plt = OnlinePlot(params,E,stats,xx,yy)
+  o_plt = LivePlot(params,E,stats,xx,yy)
 
   for kObs in progbar(range(chrono.KObs)):
     xb0 = mean(E,0)

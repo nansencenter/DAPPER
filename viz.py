@@ -5,9 +5,7 @@ from common import *
 
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 
-
-
-class OnlinePlot:
+class LivePlot:
   def __init__(self,params,E,stats,xx,yy):
     N,m = E.shape
     dt = params.t.dt
@@ -16,6 +14,9 @@ class OnlinePlot:
     self.stats  = stats
     self.xx     = xx
     self.yy     = yy
+
+    self.is_on  = False
+    print('Press <Enter> to toggle live plot')
 
     ens_props = {} # yields rainbow
     #ens_props = {'color': 0.6*cwhite} # 0.7*cblue
@@ -74,6 +75,12 @@ class OnlinePlot:
 
 
   def update(self,E,k):
+
+    if heardEnter():
+      self.is_on = not self.is_on
+    if not self.is_on:
+      return
+
     N,m = E.shape
     ii  = range(1,m+1)
     stats = self.stats
