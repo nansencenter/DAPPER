@@ -64,7 +64,9 @@ What it can't do:
 Sugar:
 ------------------------------------------------
 * Progressbar
-* Confidence interval on times series with automatic correction for its autocorrelation (e.g. rmse)
+* Confidence interval on times series (e.g. rmse) with
+	* automatic correction for autocorrelation 
+	* significant digits printing
 * X-platform random number generator
 * Chronology/Ticker
 * CovMat class (input flexibility, / overloading, lazy eval)
@@ -131,6 +133,7 @@ TODO
 * Take advantage of pass-by-ref
 * Decide on conflicts np vs math vs sp
 * prevent CovMat from being updated
+* Doc models
 
 
 
