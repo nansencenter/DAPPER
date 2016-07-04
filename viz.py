@@ -122,6 +122,17 @@ class LivePlot:
     
 
 
+def estimate_good_plot_length(xx,chrono):
+  L = estimate_corr_length(xx)
+  if L is not 0:
+    K = round2sigfig(100*L,2)
+  else:
+    K = chrono.K/10
+  K = max(K,chrono.dtObs)
+  return K
+
+
+
 def plot_3D_trajectory(xx,stats,chrono,Kplot=None):
   """ xx: array with (exactly) 3 columns."""
   s = stats
@@ -131,7 +142,7 @@ def plot_3D_trajectory(xx,stats,chrono,Kplot=None):
   ax3 = fig.add_subplot(111, projection='3d')
 
   if Kplot is None:
-    Kplot = round2sigfig(30 * estimate_corr_length(xx.T.flatten()), 2)
+    Kplot = estimate_good_plot_length(xx.T.flatten(),chrono)
   pkk = chrono.kk[chrono.kk<=Kplot]
 
   ax3.plot   (xx[pkk    ,0],xx[pkk    ,1],xx[pkk    ,2],c='k',label='Truth'   )
@@ -149,7 +160,7 @@ def plot_diagnostics_dashboard(xx,stats,chrono,N,dim=0,Kplot=None):
   ax = plt.subplot(4,1,1)
 
   if Kplot is None:
-    Kplot = round2sigfig(100 * estimate_corr_length(xx[:,dim]),2)
+    Kplot = estimate_good_plot_length(xx[:,dim],chrono)
   tt     = chrono.tt
   kkObs  = chrono.kkObs
   kk     = chrono.kk
