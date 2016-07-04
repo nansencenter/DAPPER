@@ -15,6 +15,13 @@ def is1d(a):
 def tp(a):
   """Tranpose 1d vector"""
   return a[np.newaxis].T
+
+def atmost_2d(func):
+  """Decorator to make functions work for 0,1,or 2-dim input.
+  Requires that the 1st argument be the one of interest."""
+  def wrapr(x,*kargs,**kwargs):
+    return func(np.atleast_2d(x),*kargs,**kwargs).squeeze()
+  return wrapr
         
 def anom(E):
   mu = mean(E,0)
