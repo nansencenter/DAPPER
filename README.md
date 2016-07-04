@@ -7,7 +7,7 @@
 
 ![EnKF - Lorenz'63](./figs/l63_ens_animated.gif)
 
-* Quality-controlled templates for "twin experiments", where you
+* DAPPER is a platform for quality-controlled "twin experiments", where you
   * Specify your model
   * Generate a synthetic truth
   * Generate synthetic obs
@@ -72,7 +72,7 @@ Sugar:
 
 Alternatives:
 ------------------------------------------------
-### Big
+##### Big
 * DART        (NCAR)
 * SANGOMA     (Liege/CNRS/Nersc/Reading/Delft)
 * PDAF        (Nerger)
@@ -81,12 +81,12 @@ Alternatives:
 * PyOSSE      (Edinburgh)
 * ?           (DHI)
 
-#### Medium
+##### Medium
 * FilterPy    (R. Labbe)
 * PyIT        (CIPR)
 * Datum       (Raanes)
     
-#### Small
+##### Small
 * EnKF-Matlab (Sakov)
 * IEnKS code  (Bocquet)
 * pyda        (Hickman)
