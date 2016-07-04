@@ -48,6 +48,7 @@ from utils import *
 from misc import *
 from viz import *
 from chronos import *
+from matrices import *
 from randvars import *
 from admin import *
 from DA_algos import *
