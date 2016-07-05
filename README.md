@@ -102,9 +102,16 @@ Implementation choices:
 * On-line vs off-line stats and diagnostics
 * Matrix class for syntax and broadcasting
 
+How to insert new model
+------------------------------------------------
+* Make a new dir: DAPPER/mods/**your_mod**
+* See other examples, e.g. DAPPER/mods/L3/sak12.py
+* Make sure that your model (and obs operator) support
+  **ensemble input**
+* To begin with, try **small** initial perturbations.
+  Big and sharp (white) might cause your model to blow up!
 
 ##### Models f, h
-* to be defined in model file
 * should not modify in-place.
 * should take ensembles as input.
    (hence forecast parallelization is in users's hands)
@@ -116,6 +123,7 @@ TODO
 * ExtKF
 * Climatology
 * Localization
+* add_noise()
 * 1D model from workshop that preserves some quantity
 * 2D model
 * average obs and truth rank hist

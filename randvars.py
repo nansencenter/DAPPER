@@ -5,6 +5,8 @@ from common import *
 
 class RV:
   def __init__(self,sampling_func=None,m=None):
+    # TODO: rename sampling_func to func
+    # TODO: rename sampling_file to file
     #self.pdf = None
     #self.cdf = None
     #self.sample_file = None
@@ -18,12 +20,15 @@ class RV:
       E = zeros(self.m, N)
     elif self.sampling_func:
       return self.sampling_func(N)
+    # TODO:
     #elif self.cdf:
       ## multivariate CDF sampling
     #elif self.pdf:
       ## A-R sampling
+    # TODO: sample_file ==> pdf, cdf (empirical)
 
 
+# TODO:  UniRV
 
 class GaussRV(RV):
   def __init__(self,mu=0,C=0,m=None):
