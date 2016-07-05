@@ -102,6 +102,11 @@ Implementation choices:
 * On-line vs off-line stats and diagnostics
 * Matrix class for syntax and broadcasting
 
+
+How to make a new experiment
+------------------------------------------------
+* View "Perfect Model Experiment Overview" section of http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
+
 How to insert new model
 ------------------------------------------------
 * Make a new dir: DAPPER/mods/**your_mod**
