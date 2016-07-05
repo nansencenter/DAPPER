@@ -1,8 +1,16 @@
 # A mix of Evensen'2009 and sakov'2008
 
+# NB: Since there is no noise, and the system is stable,
+#     the benchmarks obtained from this configuration
+#     - go to zero as T-->infty
+#     - are highly dependent on the initial error.
+
+# Doc: Consider deeply the ensemble subspace,
+# and the model's stability.
+
 from common import *
 
-from mods.LA.fundamentals import sinusoidal_sample, Fmat, homogeneous_1D_cov
+from mods.LA.fundamentals import sinusoidal_sample, Fmat
 
 m = 1000
 p = 4
@@ -30,10 +38,6 @@ f = {
 wnum  = 25
 X0 = RV(sampling_func = lambda N: \
     sqrt(5)/10 * sinusoidal_sample(m,wnum,N))
-
-# TODO: Don't think this is quite right
-#X0 = GaussRV(C=homogeneous_1D_cov(m,m/1,kind='Gauss'))
-
 
 @atmost_2d
 def hmod(E,t):

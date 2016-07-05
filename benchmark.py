@@ -29,8 +29,13 @@ cfg = Settings()
 #cfg.rot     = True
 #method      = EnKF
 
-from mods.LA.small import params
-cfg.N = 100
+from mods.LA.raanes2014 import params
+# Expected rmse_a = 0.3
+cfg.N         = 30
+cfg.infl      = 3.4
+cfg.AMethod   = 'PertObs'
+cfg.rot       = False
+cfg.da_method = EnKF
 
 ############################
 # Generate synthetic truth/obs
