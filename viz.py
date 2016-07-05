@@ -182,8 +182,8 @@ def plot_diagnostics_dashboard(xx,stats,chrono,N,dim=0,Kplot=None):
   ax.set_ylabel('RMS Err and Var')
 
   ax = plt.subplot(4,1,3)
-  plt.plot(tt[pkkObs], s.trK[:len(pkkObs)],'k',lw=2)
-  ax.set_ylim(0,np.percentile(s.trK[:len(pkkObs)],99.6))
+  plt.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2)
+  ax.set_ylim(0,np.percentile(s.trHK[:len(pkkObs)],99.6))
   ax.set_ylabel('trace(K)')
   ax.set_xlabel('time (t)')
 

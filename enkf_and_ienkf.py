@@ -1,7 +1,10 @@
 from common import *
-
+    
 
 def EnKF_analysis(E,hE,hnoise,y,cfg):
+    if 'non-transposed' in cfg.AMethod:
+      return EnKF_analysis_NT(E,hE,hnoise,y,cfg)
+
     R = hnoise.C
     N = cfg.N
 
@@ -13,37 +16,22 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
     dy = y - hx
 
     if 'PertObs' in cfg.AMethod:
-      if 'non-transposed' in cfg.AMethod:
-        E  = asmatrix(E).T
-        hE = asmatrix(hE).T
-
-        mu = mean(E,1)
-        A  = E - mu
-        hx = mean(hE,1)
-        y  = y.reshape((h.m,1))
-        dy = y - hx
-        Y  = hE-hx
-
-        C  = Y@Y.T + R.C*(N-1)
-        KG = A*mrdiv(Y.T, C)
-        D  = center(hnoise.sample(N)).T
-        dE = KG @ ( y + D - hE )
-        dE = asarray(dE.T)
-        E  = asarray(E.T)
-      else:
-        C  = Y.T @ Y + R.C*(N-1)
-        D  = center(hnoise.sample(N))
-        KG = A.T @ mrdiv(Y, C)
-        dE = (KG @ ( y + D - hE ).T).T
-        #KG = mldiv(C,Y.T) @ A
-        #dE = ( y + D - hE ) @ KG
-      E = E + dE
+      C  = Y.T @ Y + R.C*(N-1)
+      D  = center(hnoise.sample(N))
+      YC = mrdiv(Y, C)
+      KG = A.T @ YC
+      dE = (KG @ ( y + D - hE ).T).T
+      #KG = mldiv(C,Y.T) @ A
+      #dE = ( y + D - hE ) @ KG
+      HK = Y.T @ YC
+      E  = E + dE
     elif 'Sqrt' in cfg.AMethod:
       if 'explicit' in cfg.AMethod:
         # Implementation using inv (in ens space)
         Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
         T  = sqrtm(Pw) * sqrt(N-1)
         KG = R.inv @ Y.T @ Pw @ A
+        HK = R.inv @ Y.T @ Pw @ Y
       elif 'svd' in cfg.AMethod:
         # Implementation using svd of Y
         raise NotImplementedError
@@ -52,6 +40,7 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
         d,V= eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
         T  = V@diag(d**(-0.5))@V.T * sqrt(N-1)
         KG = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ A
+        HK = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
       if cfg.rot:
         T = genOG_1(N) @ T
       E = mu + dy@KG + T@A
@@ -65,7 +54,35 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
     #if t<BurnIn:
       #E = inflate_ens(E,1.0 + 0.2*(BurnIn-t)/BurnIn)
 
-    stat = {'trK': trace(KG)}
+    stat = {'trHK': trace(HK)/hnoise.m}
+    return E, stat
+
+
+def EnKF_analysis_NT(E,hE,hnoise,y,cfg):
+    R = hnoise.C
+    N = cfg.N
+
+    E  = asmatrix(E).T
+    hE = asmatrix(hE).T
+
+    mu = mean(E,1)
+    A  = E - mu
+    hx = mean(hE,1)
+    y  = y.reshape((hnoise.m,1))
+    dy = y - hx
+    Y  = hE-hx
+
+    C  = Y@Y.T + R.C*(N-1)
+    YC = mrdiv(Y.T, C)
+    KG = A@YC
+    HK = Y@YC
+    D  = center(hnoise.sample(N)).T
+    dE = KG @ ( y + D - hE )
+    E  = E + dE
+    E  = asarray(E.T)
+    E  = inflate_ens(E,cfg.infl)
+
+    stat = {'trHK': trace(HK)/hnoise.m}
     return E, stat
 
 
@@ -169,8 +186,9 @@ def iEnKF(params,cfg,xx,yy):
       if np.linalg.norm(dw) < N*1e-4:
         break
 
+    HK = R.inv @ Y.T @ Pw @ Y
+    stats.trHK[kObs]  = trace(HK/h.noise.m)
     stats.iters[kObs] = iteration+1
-    stats.trK[kObs]   = trace(R.inv@(Y.T@(Pw@A0)))
 
     if cfg.rot:
       T = genOG_1(N) @ T

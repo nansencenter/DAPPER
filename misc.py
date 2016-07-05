@@ -84,7 +84,7 @@ class Stats:
     self.err  = zeros((K+1,m))
     self.rmsv = zeros(K+1)
     self.rmse = zeros(K+1)
-    self.trK  = zeros(KObs+1)
+    self.trHK = zeros(KObs+1)
     self.rh   = zeros((K+1,m))
 
   def assess(self,E,x,k):
