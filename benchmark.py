@@ -74,4 +74,4 @@ print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMSV: {:8.5f}'\
 plot_diagnostics_dashboard(xx,s,chrono,cfg.N,dim=2)
 plot_3D_trajectory(xx[:,:3],s,chrono)
 
-
+plt.waitforbuttonpress()
