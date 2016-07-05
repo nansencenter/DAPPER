@@ -29,14 +29,8 @@ cfg = Settings()
 #cfg.rot     = True
 #method      = EnKF
 
-from mods.LA.even2009 import params
-# Expected rmse_a = 0.175
-cfg.N       = 100
-cfg.infl    = 1.01
-cfg.AMethod = 'PertObs'
-cfg.rot     = False
-method      = EnKF
-
+from mods.LA.small import params
+cfg.N = 100
 
 ############################
 # Generate synthetic truth/obs
@@ -58,7 +52,7 @@ for k,t in enumerate(chrono.ttObs):
 ############################
 # Assimilate
 ############################
-s = method(params,cfg,xx,yy)
+s = Assimilate(params,cfg,xx,yy)
 
 
 ############################
