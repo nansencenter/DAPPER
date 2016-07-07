@@ -234,3 +234,20 @@ def set_figpos(case):
     else:
       sys.exit('Position not defined')
   
+
+@atmost_2d
+def plt_vbars(xx,y1y2=None,*kargs,**kwargs):
+  if y1y2 == None:
+    y1y2 = plt.ylim()
+  yy = np.tile(asmatrix(y1y2).ravel().T,(1,len(xx)))
+  xx = np.tile(xx,(2,1))
+  plt.plot(xx,yy,*kargs,**kwargs)
+
+@atmost_2d
+def plt_hbars(yy,x1x2=None,*kargs,**kwargs):
+  if x1x2 == None:
+    x1x2 = plt.xlim()
+  xx = np.tile(asmatrix(x1x2).ravel().T,(1,len(yy)))
+  yy = np.tile(yy,(2,1))
+  plt.plot(xx,yy,*kargs,**kwargs)
+
