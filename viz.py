@@ -133,68 +133,72 @@ def estimate_good_plot_length(xx,chrono):
   K = max(K,chrono.dtObs)
   return K
 
+def get_plot_inds(chrono,Kplot,Tplot,xx):
+  if Kplot is None:
+    if Tplot:
+      Kplot = find_1st_ind(chrono.tt >= Tplot)
+    else:
+      Kplot = estimate_good_plot_length(xx,chrono)
+  kkObs  = chrono.kkObs
+  plot_kk    = chrono.kk[chrono.kk<=Kplot]
+  plot_kkObs = kkObs[kkObs<=Kplot]
+  return plot_kk, plot_kkObs
 
 
-def plot_3D_trajectory(xx,stats,chrono,Kplot=None):
+def plot_3D_trajectory(xx,stats,chrono,\
+    Kplot=None,Tplot=None):
   """ xx: array with (exactly) 3 columns."""
   s = stats
 
-  fig = plt.figure(14)
+  plt.figure(14).clf()
   set_figpos('SE')
-  ax3 = fig.add_subplot(111, projection='3d')
 
-  if Kplot is None:
-    Kplot = estimate_good_plot_length(xx.ravel(order='F'),chrono)
-  pkk = chrono.kk[chrono.kk<=Kplot]
+  kk = get_plot_inds(chrono,Kplot,Tplot,xx.ravel(order='F'))[0]
 
-  ax3.plot   (xx[pkk    ,0],xx[pkk    ,1],xx[pkk    ,2],c='k',label='Truth'   )
-  ax3.plot   (s.mu[pkk  ,0],s.mu[pkk  ,1],s.mu[pkk  ,2],c='b',label='Ens.mean')
-  ax3.scatter(xx[0      ,0],xx[0      ,1],xx[0      ,2],s=40 ,c='g'           )
-  ax3.scatter(xx[pkk[-1],0],xx[pkk[-1],1],xx[pkk[-1],2],s=40 ,c='r'           )
+  ax3 = fg.add_subplot(111, projection='3d')
+  ax3.plot   (xx[kk    ,0],xx[kk    ,1],xx[kk    ,2],c='k',label='Truth'   )
+  ax3.plot   (s.mu[kk  ,0],s.mu[kk  ,1],s.mu[kk  ,2],c='b',label='Ens.mean')
+  ax3.scatter(xx[0     ,0],xx[0     ,1],xx[0     ,2],s=40 ,c='g'           )
+  ax3.scatter(xx[kk[-1],0],xx[kk[-1],1],xx[kk[-1],2],s=40 ,c='r'           )
   ax3.legend()
 
 
-def plot_diagnostics_dashboard(xx,stats,chrono,N,dim=0,Kplot=None):
+def plot_diagnostics_dashboard(xx,stats,chrono,N, \
+    dim=0,Kplot=None,Tplot=None):
   s  = stats
 
-  plt.figure(12,figsize=(8,8))
+  fg = plt.figure(12,figsize=(8,8)).clf()
   set_figpos('NE')
-  ax = plt.subplot(4,1,1)
 
-  if Kplot is None:
-    Kplot = estimate_good_plot_length(xx[:,dim],chrono)
-  tt     = chrono.tt
-  kkObs  = chrono.kkObs
-  kk     = chrono.kk
-  pkk    = kk<=Kplot
-  pkkObs = kkObs[kkObs<=Kplot]
+  pkk,pkkObs = get_plot_inds(chrono,Kplot,Tplot,xx[:,dim])
+  tt = chrono.tt
 
-  plt.plot(tt[pkk],xx[pkk  ,dim],'k',lw=2,        label='Truth')
-  plt.plot(tt[pkk],s.mu[pkk,dim],'g',lw=1,ls='--',label='Ens. mean')
-  ax.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
-  #plt.plot(kkObs,yy[:,dim],'k*')
-  ax.legend()
+  ax_d = plt.subplot(4,1,1)
+  ax_d.plot(tt[pkk],xx[pkk  ,dim],'k',lw=2,        label='Truth')
+  ax_d.plot(tt[pkk],s.mu[pkk,dim],'g',lw=1,ls='--',label='Ens. mean')
+  ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
+  ax_d.legend()
 
-  ax = plt.subplot(4,1,2)
-  plt.plot(tt[pkk], s.rmse[pkk],'k',lw=2)
-  plt.fill_between(tt[pkk], s.rmsv[pkk],alpha=0.4)
-  ax.set_ylim(0,np.percentile(s.rmse[pkk],99))
-  ax.set_ylabel('RMS Err and Var')
+  ax_e = plt.subplot(4,1,2)
+  ax_e.plot(tt[pkk], s.rmse[pkk],'k',lw=2)
+  ax_e.fill_between(tt[pkk], s.rmsv[pkk],alpha=0.4)
+  ax_e.set_ylim(0,np.percentile(s.rmse[pkk],99))
+  ax_e.set_ylabel('RMS Err and Var')
 
-  ax = plt.subplot(4,1,3)
-  plt.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2)
-  ax.set_ylim(0,np.percentile(s.trHK[:len(pkkObs)],99.6))
-  ax.set_ylabel('trace(K)')
-  ax.set_xlabel('time (t)')
+  ax_K = plt.subplot(4,1,3)
+  ax_K.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2)
+  ax_K.set_ylim(0,np.percentile(s.trHK[:len(pkkObs)],99.6))
+  ax_K.set_ylabel('trace(K)')
+  ax_K.set_xlabel('time (t)')
 
-  ax = plt.subplot(4,1,4)
+  ax_H = plt.subplot(4,1,4)
   integer_hist(s.rh[chrono.kkBI,:].ravel(),N,alpha=0.5)
 
 
 def integer_hist(E,N,**kwargs):
   """Histogram for integers."""
   ax = plt.gca()
-  plt.hist(E,bins=N+1, range=(-0.5,N+0.5),normed=1,**kwargs)
+  ax.hist(E,bins=N+1,range=(-0.5,N+0.5),normed=1,**kwargs)
   ax.set_xlim(np.min(E)-0.5,np.max(E)+0.5)
 
 

@@ -79,7 +79,7 @@ print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMSV: {:8.5f}'\
 ############################
 # Plot
 ############################
-plot_diagnostics_dashboard(xx,s,chrono,cfg.N,dim=2)
-plot_3D_trajectory(xx[:,:3],s,chrono)
+plot_diagnostics_dashboard(xx,s,chrono,cfg.N,dim=2,Tplot=20)
+plot_3D_trajectory(xx[:,:3],s,chrono,Tplot=12)
 
 #plt.waitforbuttonpress()
