@@ -135,7 +135,7 @@ class LivePlot:
 
     plt.pause(0.01)
     #input("Press Enter to continue...")
-    fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=70)
+    #fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=70)
     
 
 
