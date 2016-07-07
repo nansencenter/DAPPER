@@ -58,7 +58,9 @@ def round2(num,prec=1.0):
   return np.multiply(prec,np.rint(np.divide(num,prec)))
 
 def round2sigfig(x,nfig=1):
-  return round2(x,10**round(np.log10(x)-nfig))
+  signs = np.sign(x)
+  x *= signs
+  return signs*round2(x,10**np.round(np.log10(x)-nfig))
 
 
 def find_1st_ind(xx):

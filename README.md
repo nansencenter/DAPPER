@@ -71,7 +71,8 @@ Sugar:
 * Chronology/Ticker
 * CovMat class (input flexibility, / overloading, lazy eval)
 * Live plotting with on/off toggle
-* Intelligent defaults (e.g. plot length estimated from acf)
+* Intelligent defaults (e.g. plot duration estimated from acf,
+    axis limits esitmated from percentiles)
 
 
 Alternatives:

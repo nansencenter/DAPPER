@@ -69,9 +69,8 @@ class LivePlot:
       self.ltE.append(lEn)
 
     #ax3.axis('off')
-    ax3.set_xlim([-20,20])
-    ax3.set_ylim([-20,20])
-    ax3.set_zlim([-20,20])
+    for i in range(3):
+      set_ilim(ax3,i,xx,1.7)
 
     plt.pause(0.01)
 
@@ -122,6 +121,16 @@ class LivePlot:
     #input("Press Enter to continue...")
     #fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=100)
     
+
+
+def set_ilim(ax,i,data,zoom=1.0):
+  Min  = np.min(data[:,i])
+  Max  = np.max(data[:,i])
+  lims = round2sigfig([Min, Max])
+  lims = inflate_ens(lims,1/zoom)
+  if i is 0: ax.set_xlim(lims)
+  if i is 1: ax.set_ylim(lims)
+  if i is 2: ax.set_zlim(lims)
 
 
 def estimate_good_plot_length(xx,chrono):
