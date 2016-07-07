@@ -60,12 +60,12 @@ class LivePlot:
     set_figpos('NE (mac)')
 
     ax3      = fg3.add_subplot(111,projection='3d')
-    self.sx  = ax3.scatter(*xx[0,:3]  ,s=30,c='k'      )
+    self.sx  = ax3.scatter(*xx[0,:3]  ,s=300,c='y',marker=(5, 1))
     self.sE  = ax3.scatter(*E[: ,:3].T,s=10,**ens_props)
 
     tail_k       = max([2,int(1/dt)])
     self.tail_xx = ones((tail_k,3)) * xx[0,:3] # init
-    self.ltx,    = ax3.plot(*self.tail_xx.T)
+    self.ltx,    = ax3.plot(*self.tail_xx.T,'b',lw=4)
 
     self.tail_E  = zeros((tail_k,N,3))
     for k in range(tail_k):
@@ -135,7 +135,7 @@ class LivePlot:
 
     plt.pause(0.01)
     #input("Press Enter to continue...")
-    #fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=100)
+    fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=70)
     
 
 

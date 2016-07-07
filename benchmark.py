@@ -11,15 +11,17 @@ np.random.seed(5)
 ############################
 cfg = Settings()
 
-#from mods.L3.sak12 import params
-## Expected rmse_a = 0.63 (sak 0.65)
-#cfg.N       = 10
-#cfg.infl    = 1.02
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = True
-#method      = EnKF
-##cfg.iMax    = 10
-##method      = iEnKF # rmse_a = 0.31
+from mods.L3.sak12 import params
+# Expected rmse_a = 0.63 (sak 0.65)
+cfg.N       = 10
+cfg.infl    = 1.02
+cfg.AMethod = 'Sqrt'
+cfg.rot     = True
+method      = EnKF
+#cfg.iMax    = 10
+#method      = iEnKF # rmse_a = 0.31
+
+params.t = Chronology(0.01,dkObs=27,T=4**3,BurnIn=4)
 
 #from mods.L40.sak08 import params
 ## Expected rmse_a = 0.175
@@ -37,13 +39,13 @@ cfg = Settings()
 #method      = EnKF
 
 
-from mods.LA.raanes2014 import params
-# Expected rmse_a = 0.3
-cfg.N         = 30
-cfg.infl      = 3.4
-cfg.AMethod   = 'PertObs'
-cfg.rot       = False
-cfg.da_method = EnKF
+#from mods.LA.raanes2014 import params
+## Expected rmse_a = 0.3
+#cfg.N         = 30
+#cfg.infl      = 3.4
+#cfg.AMethod   = 'PertObs'
+#cfg.rot       = False
+#cfg.da_method = EnKF
 
 ############################
 # Generate synthetic truth/obs

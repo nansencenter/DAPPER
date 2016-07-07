@@ -5,7 +5,7 @@
     |___/_/ \_\_| |_| |___|_|_\
 
 
-![EnKF - Lorenz'63](./figs/l63_ens_animated.gif)
+![EnKF - Lorenz'63](./figs/Lor63_ens_anim_2.gif)
 
 * DAPPER is a platform for quality-controlled "twin experiments", where you
   * Specify your model (must support ensemble input)
