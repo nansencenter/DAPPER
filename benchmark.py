@@ -24,7 +24,7 @@ cfg = Settings()
 from mods.L40.sak08 import params
 # Expected rmse_a = 0.175
 cfg.N = 40
-cfg.infl    = 1.05
+cfg.infl    = 1.01
 cfg.AMethod = 'Sqrt'
 cfg.rot     = True
 method      = EnKF

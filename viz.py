@@ -21,7 +21,7 @@ class LivePlot:
     ens_props = {} # yields rainbow
     #ens_props = {'color': 0.6*cwhite} # 0.7*cblue
 
-    self.fg  = plt.figure(21,figsize=(8,8))
+    self.fg = plt.figure(21,figsize=(8,8))
     self.fg.clf()
     set_figpos('E (mac)')
 
@@ -31,7 +31,7 @@ class LivePlot:
 
     #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
     self.ks  = 3.0
-    self.cE  = self.ax.fill_between(ii, \
+    self.CI  = self.ax.fill_between(ii, \
         stats.mu[0,:] - self.ks*sqrt(stats.var[0,:]), \
         stats.mu[0,:] + self.ks*sqrt(stats.var[0,:]), \
         alpha=0.4,label=(str(self.ks) + ' sigma'))
@@ -42,7 +42,7 @@ class LivePlot:
     ax2 = plt.subplot(212)
     A   = anom(E)[0]
     # TODO: Very wasteful (e.g. LA: m=1000)
-    self.eE, = ax2.plot(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
+    self.ews, = ax2.plot(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
     ax2.set_xlabel('Sing. value index')
     ax2.set_yscale('log')
     ax2.set_ylim([1e-3,1e1])
@@ -87,21 +87,21 @@ class LivePlot:
     ii  = range(1,m+1)
     stats = self.stats
     
-    plt.figure(21)
+    fg2 = plt.figure(21)
     self.lmu.set_ydata(stats.mu[k,:])
-    self.lx.set_ydata(self.xx[k,:])
+    self.lx .set_ydata(self.xx[k,:])
 
     #for i,l in enumerate(lE):
       #l.set_ydata(E[i,:])
-    self.cE.remove()
-    self.cE  = self.ax.fill_between(ii, \
+    self.CI.remove()
+    self.CI  = self.ax.fill_between(ii, \
         stats.mu[k,:] - self.ks*sqrt(stats.var[k,:]), \
         stats.mu[k,:] + self.ks*sqrt(stats.var[k,:]), alpha=0.4)
 
     plt.pause(0.01)
 
     A = anom(E)[0]
-    self.eE.set_ydata(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
+    self.ews.set_ydata(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
 
     fg3 = plt.figure(23)
     self.sx._offsets3d = juggle_axes(*vec2list2(self.xx[k,:3]),'z')
@@ -155,7 +155,7 @@ def plot_3D_trajectory(xx,stats,chrono,\
 
   kk = get_plot_inds(chrono,Kplot,Tplot,xx.ravel(order='F'))[0]
 
-  ax3 = fg.add_subplot(111, projection='3d')
+  ax3 = plt.subplot(111, projection='3d')
   ax3.plot   (xx[kk    ,0],xx[kk    ,1],xx[kk    ,2],c='k',label='Truth'   )
   ax3.plot   (s.mu[kk  ,0],s.mu[kk  ,1],s.mu[kk  ,2],c='b',label='Ens.mean')
   ax3.scatter(xx[0     ,0],xx[0     ,1],xx[0     ,2],s=40 ,c='g'           )
