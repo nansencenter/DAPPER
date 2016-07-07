@@ -61,11 +61,10 @@ A         = 1/10 * anom(A)[0] / sqrt(NQ)
 Q         = A.T @ A
 
 #TODO:
-# **Instead of** the above, generate huge (N) sample,
+# Instead of the above, generate huge (N) sample,
 # compute its cov, so that:
-#load average_sinusoidal_cov.datafile
-#Q = GaussRV(C = X0pat_cov)
-## F.noise.chol = tsqrt(A*A',2*wnumQ)
+#Q = load average_sinusoidal_cov.datafile
+#Q = GaussRV(chol = sqrtm(Q))
 
 
 damp = 0.98;

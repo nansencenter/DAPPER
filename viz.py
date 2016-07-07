@@ -188,7 +188,7 @@ def plot_diagnostics_dashboard(xx,stats,chrono,N,dim=0,Kplot=None):
   ax.set_xlabel('time (t)')
 
   ax = plt.subplot(4,1,4)
-  integer_hist(s.rh.ravel(),N,alpha=0.5)
+  integer_hist(s.rh[chrono.kkBI,:].ravel(),N,alpha=0.5)
 
 
 def integer_hist(E,N,**kwargs):

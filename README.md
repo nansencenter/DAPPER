@@ -105,7 +105,7 @@ Implementation choices:
 
 How to make a new experiment
 ------------------------------------------------
-* View "Perfect Model Experiment Overview" section of http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
+* For understanding: view "Perfect Model Experiment Overview" section of http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
 
 How to insert new model
 ------------------------------------------------
