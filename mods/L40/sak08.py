@@ -17,12 +17,18 @@ f = {
     }
 
 
-X0 = GaussRV(*typical_init_params(m))
+mu0,P0 = typical_init_params(m)
+X0 = GaussRV(mu0, 0.01*P0)
 
 p = m
+obsInds = equi_spaced_integers(m,p)
+@atmost_2d
+def hmod(E,t):
+  return E[:,obsInds]
+
 h = {
     'm': p,
-    'model': lambda x,t: x,
+    'model': hmod,
     'noise': GaussRV(C=1*eye(p))
     }
  

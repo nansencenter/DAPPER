@@ -15,8 +15,9 @@ def step(x0, t, dt):
 
 # Only strictly valid for m=40 ?
 def typical_init_params(m):
+  """Approximate (3 terms of acf) climatology"""
   mu0 = 2.34*np.ones(m)
-  # Auto-corr-function
+  # Auto-cov-function
   acf = lambda i: 0.0 + 14*(i==0) + 0.9*(i==1) - 4.7*(i==2) - 1.2*(i==3)
   P0  = circulant(acf(mirrored_half_range(m)))
   return mu0, P0

@@ -18,7 +18,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from numpy import sqrt, abs, floor, ceil, prod, \
     mean, \
     linspace, arange, reshape, \
-    pi, log, \
+    pi, log, sin, cos, tan, \
     array, asarray, matrix, asmatrix, \
     eye, zeros, ones, diag, \
     trace, \
