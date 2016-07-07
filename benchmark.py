@@ -21,13 +21,13 @@ cfg = Settings()
 ##cfg.iMax    = 10
 ##method      = iEnKF # rmse_a = 0.31
 
-from mods.L40.sak08 import params
-# Expected rmse_a = 0.175
-cfg.N = 40
-cfg.infl    = 1.01
-cfg.AMethod = 'Sqrt'
-cfg.rot     = True
-method      = EnKF
+#from mods.L40.sak08 import params
+## Expected rmse_a = 0.175
+#cfg.N = 40
+#cfg.infl    = 1.01
+#cfg.AMethod = 'Sqrt'
+#cfg.rot     = True
+#method      = EnKF
 
 #from mods.L40.spectral_obs import params
 #cfg.N = 40
@@ -37,13 +37,13 @@ method      = EnKF
 #method      = EnKF
 
 
-#from mods.LA.raanes2014 import params
-## Expected rmse_a = 0.3
-#cfg.N         = 30
-#cfg.infl      = 3.4
-#cfg.AMethod   = 'PertObs'
-#cfg.rot       = False
-#cfg.da_method = EnKF
+from mods.LA.raanes2014 import params
+# Expected rmse_a = 0.3
+cfg.N         = 30
+cfg.infl      = 3.4
+cfg.AMethod   = 'PertObs'
+cfg.rot       = False
+cfg.da_method = EnKF
 
 ############################
 # Generate synthetic truth/obs
@@ -79,7 +79,7 @@ print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMSV: {:8.5f}'\
 ############################
 # Plot
 ############################
-plot_diagnostics_dashboard(xx,s,chrono,cfg.N,dim=2,Tplot=20)
-plot_3D_trajectory(xx[:,:3],s,chrono,Tplot=12)
+plot_diagnostics_dashboard(xx,s,chrono,cfg.N,dim=2)
+plot_3D_trajectory(xx[:,:3],s,chrono)
 
 #plt.waitforbuttonpress()

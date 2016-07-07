@@ -9,7 +9,7 @@ class LivePlot:
   def __init__(self,params,E,stats,xx,yy):
     N,m = E.shape
     dt = params.t.dt
-    ii  = range(1,m+1)
+    ii  = range(m)
 
     self.stats  = stats
     self.xx     = xx
@@ -27,7 +27,7 @@ class LivePlot:
 
     self.ax  = plt.subplot(211)
     self.lmu,= plt.plot(ii,stats.mu[0,:],'b',lw=2,ls='-',label='Ens mean'  )
-    self.lx ,= plt.plot(ii,xx[0      ,:],'k',lw=3,ls='-',label='Truth mean')
+    self.lx ,= plt.plot(ii,xx[0      ,:],'k',lw=3,ls='-',label='Truth')
 
     #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
     self.ks  = 3.0
@@ -36,12 +36,19 @@ class LivePlot:
         stats.mu[0,:] + self.ks*sqrt(stats.var[0,:]), \
         alpha=0.4,label=(str(self.ks) + ' sigma'))
 
+    if hasattr(params.h,'plot'):
+      self.yplot = params.h.plot
+      self.obs = params.h.plot(yy[0,:])
+      self.obs.set_label('Obs')
+      self.obs.set_visible('off')
+
     self.ax.legend()
     self.ax.set_xlabel('State index')
 
     ax2 = plt.subplot(212)
     A   = anom(E)[0]
     # TODO: Very wasteful (e.g. LA: m=1000)
+    # Do as Sakov, and use fft?
     self.ews, = ax2.plot(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
     ax2.set_xlabel('Sing. value index')
     ax2.set_yscale('log')
@@ -75,7 +82,7 @@ class LivePlot:
     plt.pause(0.01)
 
 
-  def update(self,E,k):
+  def update(self,E,k,kObs):
 
     if heardEnter():
       self.is_on = not self.is_on
@@ -83,7 +90,7 @@ class LivePlot:
       return
 
     N,m = E.shape
-    ii  = range(1,m+1)
+    ii  = range(m)
     stats = self.stats
     
     fg2 = plt.figure(21)
@@ -96,6 +103,15 @@ class LivePlot:
     self.CI  = self.ax.fill_between(ii, \
         stats.mu[k,:] - self.ks*sqrt(stats.var[k,:]), \
         stats.mu[k,:] + self.ks*sqrt(stats.var[k,:]), alpha=0.4)
+
+    plt.sca(self.ax)
+    if hasattr(self,'obs'):
+      try:
+        self.obs.remove()
+      except Exception:
+        pass
+      if kObs is not None:
+        self.obs = self.yplot(self.yy[kObs,:])
 
     plt.pause(0.01)
 

@@ -1,7 +1,7 @@
 from common import *
 
 class Operator:
-  def __init__(self,m,model=None,noise=None):
+  def __init__(self,m,model=None,noise=None,**kwargs):
     self.m = m
 
     if model is None:
@@ -13,6 +13,9 @@ class Operator:
     if noise is 0:
       noise = GaussRV(0,m=m)
     self.noise = noise
+
+    for key, value in kwargs.items():
+      setattr(self, key, value)
 
 class OSSE:
   def __init__(self,f,h,t,X0,**kwargs):

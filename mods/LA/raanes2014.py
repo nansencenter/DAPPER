@@ -31,10 +31,16 @@ tseq = Chronology(dt=1,dkObs=5,T=500,BurnIn=60)
 def hmod(E,t):
   return E[:,obsInds]
 
+def yplot(y):
+  lh = plt.plot(obsInds,y,'g*',MarkerSize=8)[0]
+  plt.pause(0.8)
+  return lh
+
 h = {
     'm': p,
     'model': hmod,
-    'noise': GaussRV(C=0.01*eye(p))
+    'noise': GaussRV(C=0.01*eye(p)),
+    'plot' : yplot,
     }
 
 

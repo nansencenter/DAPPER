@@ -58,7 +58,7 @@
 # In conclusion, we will use the harmonic functions.
 #
 # 
-# PS: It appears that we were wrong concerning the 2^n case.
+# Update: It appears that we were wrong concerning the 2^n case.
 # That is, sine/cosine functions do not yield only +/- 1's for n>2
 # The question then remains (to be proven combinatorically?)
 # if the +/- 1 matrices exist for dim>4
@@ -78,24 +78,48 @@ from mods.L40.sak08 import *
 # observations are noisy.
 p = 12
 
-xx = linspace(-1,1,m+1)[1:]
 
 mu0,P0 = typical_init_params(m)
 X0 = GaussRV(mu0, 0.01*P0)
 
-H = zeros((p,m))
-H[0,:] = 1/sqrt(2)
-for k in range(-(p//2),(p+1)//2):
-  ind = 2*abs(k) - (k<0)
-  H[ind,:] = sin(pi*k*xx + pi/4)
+def make_H(p,m):
+  xx = linspace(-1,1,m+1)[1:]
+  H = zeros((p,m))
+  H[0,:] = 1/sqrt(2)
+  for k in range(-(p//2),(p+1)//2):
+    ind = 2*abs(k) - (k<0)
+    H[ind,:] = sin(pi*k*xx + pi/4)
+  H /= sqrt(m/2)
+  return H
+
+H = make_H(p,m)
 #plt.figure(1).gca().matshow(H)
 #plt.figure(2).gca().matshow(H @ H.T)
-H /= sqrt(m/2)
+
+
+# "raw" obs plotting
+#if p<=m:
+  #Hinv = H.T
+#else:
+  #Hinv = sla.pinv2(H)
+#def yplot(y):
+  #lh = plt.plot(y @ Hinv.T,'g')[0]
+  #return lh
+
+# "implicit" (interpolated sine/cosine) obs plotting
+Hplot = make_H(p,max(p,201))
+Hplot_inv = Hplot.T
+def yplot(y):
+  x = y @ Hplot_inv.T
+  ii = linspace(0,m-1,len(x))
+  lh = plt.plot(ii,x,'g')[0]
+  return lh
 
 h = {
     'm': p,
     'model': lambda x,t: x @ H.T,
-    'noise': GaussRV(C=0.01*eye(p))
+    'noise': GaussRV(C=0.01*eye(p)),
+    'plot' : yplot,
     }
 
 other = {'name': os.path.relpath(__file__,'mods/')}

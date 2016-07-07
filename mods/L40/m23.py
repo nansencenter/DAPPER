@@ -20,7 +20,8 @@ p = m
 h = {
     'm': p,
     'model': lambda x,t: x,
-    'noise': GaussRV(C=0.1*eye(p))
+    'noise': GaussRV(C=0.1*eye(p)),
+    'plot' : lambda y: plt.plot(y,'g')[0]
     }
  
 other = {'name': os.path.relpath(__file__,'mods/')}

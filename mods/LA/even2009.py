@@ -42,11 +42,17 @@ X0 = RV(sampling_func = lambda N: \
 @atmost_2d
 def hmod(E,t):
   return E[:,obsInds]
+def yplot(y):
+  lh = plt.plot(obsInds,y,'g*',MarkerSize=8)[0]
+  plt.pause(0.8)
+  return lh
+
 
 h = {
     'm': p,
     'model': hmod,
-    'noise': GaussRV(C=0.01*eye(p))
+    'noise': GaussRV(C=0.01*eye(p)),
+    'plot' : yplot,
     }
  
 other = {'name': os.path.relpath(__file__,'mods/')}

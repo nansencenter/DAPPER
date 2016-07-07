@@ -107,7 +107,7 @@ def EnKF(params,cfg,xx,yy):
       stats.copy_paste(s_now,kObs)
 
     stats.assess(E,xx,k)
-    o_plt.update(E,k)
+    o_plt.update(E,k,kObs)
   return stats
 
 
@@ -199,7 +199,7 @@ def iEnKF(params,cfg,xx,yy):
       E  = f.model(E,t-dt,dt)
       E += sqrt(dt)*f.noise.sample(N)
       stats.assess(E,xx,k)
-      #o_plt.update(E,k)
+      #o_plt.update(E,k,kObs)
       
 
     # TODO: It would be beneficial to do another

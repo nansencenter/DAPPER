@@ -26,10 +26,18 @@ obsInds = equi_spaced_integers(m,p)
 def hmod(E,t):
   return E[:,obsInds]
 
+#yplot = lambda y: plt.plot(y,'g*',MarkerSize=15)[0]
+#yplot = lambda y: plt.plot(y,'g')[0]
+def yplot(y):
+  lh = plt.plot(y,'g')[0]
+  #plt.pause(0.8)
+  return lh
+
 h = {
     'm': p,
     'model': hmod,
-    'noise': GaussRV(C=1*eye(p))
+    'noise': GaussRV(C=1*eye(p)),
+    'plot' : yplot
     }
  
 other = {'name': os.path.relpath(__file__,'mods/')}
