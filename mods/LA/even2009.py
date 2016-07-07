@@ -64,3 +64,9 @@ params = OSSE(f,h,tseq,X0,**other)
 ####################
 # Suggested tuning
 ####################
+# Not carefully tuned
+#cfg.N         = 100
+#cfg.infl      = 1.02
+#cfg.AMethod   = 'PertObs'
+#cfg.rot       = False
+#cfg.da_method = EnKF
