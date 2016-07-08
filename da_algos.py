@@ -112,6 +112,73 @@ def EnKF_analysis_NT(E,hE,hnoise,y,cfg):
     return E, stat
 
 
+def EnKF_N(params,cfg,xx,yy):
+  """
+  Finite-size EnKF (EnKF-N).
+  Corresponding to version ql2 of Datum.
+  Not optimized.
+  """
+
+  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+
+  N = cfg.N
+  E = X0.sample(N)
+
+  # TODO: Do something about this. Also for PartFilt
+  #Rm12 = inv(h.noise.C.cholL)
+  Rm12 = h.noise.C.transform_by(lambda x: 1/np.sqrt(x))
+
+  stats = Stats(params)
+  stats.assess(E,xx,0)
+  o_plt = LivePlot(params,E,stats,xx,yy)
+
+  def diagz(s,l1):
+    # TODO: Very incomplete vis-a-vis datum
+    s[s<1e-4] = 0
+    d = 1 + (l1*s)**2
+    return d
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    E  = f.model(E,t-dt,dt)
+    E += sqrt(dt)*f.noise.sample(N)
+
+    if kObs is not None:
+      hE = h.model(E,t)
+      y  = yy[kObs,:]
+
+      R = h.noise.C
+
+      mu = mean(E,0)
+      A  = E - mu
+
+      hx = mean(hE,0)
+      Y  = hE-hx
+      dy = y - hx
+
+      d,V= eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
+      T  = V@diag(d**(-0.5))@V.T * sqrt(N-1)
+      KG = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ A
+      HK = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
+
+      V,s,U = sla.svd( Y @ Rm12 )
+      Pw   = V @ diag( ( s**2 + (N-1) )**(-1.0) ) @ V.T
+      T    = V @ diag( ( s**2 + (N-1) )**(-0.5) ) @ V.T * sqrt(N-1)
+
+      if cfg.rot:
+        T = genOG_1(N) @ T
+      T *= cfg.infl
+      w = ((dy @ R.inv.T) @ Y) @ Pw
+      E = mu + w@A +  T@A
+
+      E = mu + dy@KG + T@A
+      E = inflate_ens(E,cfg.infl)
+
+      HK = R.inv @ Y.T @ Pw @ Y # Not checked if correct
+      stats.trHK[kObs] = trace(HK)/h.noise.m
+
+    stats.assess(E,xx,k)
+    o_plt.update(E,k,kObs)
+  return stats
 
 
 
