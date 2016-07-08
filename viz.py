@@ -18,8 +18,8 @@ class LivePlot:
     self.is_on  = False
     print('Press <Enter> to toggle live plot')
 
-    ens_props = {} # yields rainbow
-    #ens_props = {'color': 0.6*cwhite} # 0.7*cblue
+    #ens_props = {} # yields rainbow
+    ens_props = {'color': 0.6*cwhite} # 0.7*cblue
 
     self.fg = plt.figure(21,figsize=(8,8))
     self.fg.clf()
@@ -210,14 +210,16 @@ def plot_diagnostics_dashboard(xx,stats,chrono,N, \
   ax_e.set_ylim(0,np.percentile(s.rmse[pkk],99))
   ax_e.set_ylabel('RMS Err and Var')
 
-  ax_K = plt.subplot(4,1,3)
-  ax_K.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2)
-  ax_K.set_ylim(0,np.percentile(s.trHK[:len(pkkObs)],99.6))
-  ax_K.set_ylabel('trace(K)')
-  ax_K.set_xlabel('time (t)')
+  if not all(s.trHK[:] == 0):
+    ax_K = plt.subplot(4,1,3)
+    ax_K.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2)
+    ax_K.set_ylim(0,np.percentile(s.trHK[:len(pkkObs)],99.6))
+    ax_K.set_ylabel('trace(K)')
+    ax_K.set_xlabel('time (t)')
 
-  ax_H = plt.subplot(4,1,4)
-  integer_hist(s.rh[chrono.kkBI,:].ravel(),N,alpha=0.5)
+  if not all(s.rh[-1,:] == 0):
+    ax_H = plt.subplot(4,1,4)
+    integer_hist(s.rh[chrono.kkBI,:].ravel(),N,alpha=0.5)
 
 
 def integer_hist(E,N,**kwargs):

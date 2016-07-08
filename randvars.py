@@ -66,6 +66,10 @@ class GaussRV(RV):
       D = randn((N,self.m)) @ self.C.cholU
     return self.mu + D
 
+  @property
+  def is_deterministic(self):
+    return not self.is_random
+
   def __str__(self):
     s = []
     printable = ['mu','C']

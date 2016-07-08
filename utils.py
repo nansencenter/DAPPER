@@ -22,7 +22,7 @@ except ImportError:
 from os import popen
 def set_np_linewidth():
   rows, columns = popen('stty size', 'r').read().split()
-  np.set_printoptions(linewidth=int(columns))
+  np.set_printoptions(linewidth=int(columns)-1)
 
 
 

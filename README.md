@@ -27,13 +27,15 @@ Then, download, and run:
 
 Features:
 ------------------------------------------------
-Reproduces results from
-* sakov'2008 (ETKF,DEnKF,EnKF benchmarks, LA/L40)
+Reproduces benchmark results from
+* sakov'2008 (ETKF,DEnKF,EnKF) with LA model and Lorenz'96
 * sakov'2012 (approximately iETKF)
 * bocquet'2012 (EnKF-N)
-* TODO: bocquet'2015 (EnKF-N)
-* TODO: raanes'2014 (Sqrt model noise methods)	
+* raanes'2014 (Sqrt model noise methods)	
+* raanes'2016 (Thesis: Particle filter, ExtKF, 3D-Var)
+* TODO: raanes'2015 (EnKS vs EnRTS)	
 * TODO: bocquet'2014 (EnKS-N)
+* TODO: bocquet'2015 (EnKF-N)
 
 Many
 * methods

@@ -73,40 +73,6 @@ def equi_spaced_integers(m,p):
   """Provide a range of p equispaced integers between 0 and m-1"""
   return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
 
-class Stats:
-  """Contains and computes peformance stats."""
-  # TODO: Include skew/kurt?
-  def __init__(self,params):
-    self.params = params
-    m    = params.f.m
-    K    = params.t.K
-    KObs = params.t.KObs
-    #
-    self.mu   = zeros((K+1,m))
-    self.var  = zeros((K+1,m))
-    self.err  = zeros((K+1,m))
-    self.rmsv = zeros(K+1)
-    self.rmse = zeros(K+1)
-    self.trHK = zeros(KObs+1)
-    self.rh   = zeros((K+1,m))
-
-  def assess(self,E,x,k):
-    assert(type(E) is np.ndarray)
-    N,m           = E.shape
-    self.mu[k,:]  = mean(E,0)
-    A             = E - self.mu[k,:]
-    self.var[k,:] = np.sum(A**2,0) / (N-1)
-    self.err[k,:] = self.mu[k,:] - x[k,:]
-    self.rmsv[k]  = sqrt(mean(self.var[k,:]))
-    self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
-    Ex_sorted     = np.sort(np.vstack((E,x[k,:])),axis=0,kind='heapsort')
-    self.rh[k,:]  = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
-
-  def copy_paste(self,s,kObs):
-    for key,val in s.items():
-      getattr(self,key)[kObs] = val
-
-
 def auto_cov(xx,L=5):
     """Auto covariance function.
     For scalar time series.
@@ -115,8 +81,9 @@ def auto_cov(xx,L=5):
     acovf = [np.cov(xx[:N-i], xx[i:])[0,1] for i in range(L)]
     return acovf
 
-def geometric_mean(xx):
-  return np.exp(mean(log(xx)))
+#def geometric_mean(xx):
+  #return np.exp(mean(log(xx)))
+geometric_mean = ss.mstats.gmean
 
 def mean_ratio(xx):
   return geometric_mean([xx[i]/xx[i-1] for i in range(1,len(xx))])

@@ -117,12 +117,14 @@ class CovMat:
 
   @property
   def cholL(self):
-    #return sla.cholesky(self.C,lower=True)
+    # L = sla.cholesky(self.C,lower=True)
+    # C = L @ L.T
     return self.ssqrt
 
   @property
   def cholU(self):
-    #return sla.cholesky(self.C,lower=False)
+    # U = sla.cholesky(self.C,lower=False)
+    # C = U.T @ U
     return self.ssqrt
 
   def __str__(self):
