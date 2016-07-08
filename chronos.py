@@ -15,7 +15,7 @@ class Chronology:
   kk:    0      1      2      3      4      5      K
          |------|------|------|------|------|------|
   kObs:  No     No     0      No     1      No     KObs
-  kkObs:               1             3             5
+  kkObs:               2             4             6
                        <----dkObs----->
 
   I.e. no obs at 0 coz it doesn't fit with convention,

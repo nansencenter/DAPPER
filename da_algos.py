@@ -114,6 +114,7 @@ def EnKF_analysis_NT(E,hE,hnoise,y,cfg):
 
 
 
+
 # TODO: MOD ERROR?
 # TODO: It would be beneficial to do another (prior-regularized)
 # analysis at the end, after forecasting the E0 analysis.
@@ -323,7 +324,81 @@ def resample(E,w,N,fnoise, \
 
 
 def EnsCheat(params,cfg,xx,yy):
-  pass
+  """Ensemble method that cheats: it knows the truth.
+  Nevertheless, its error will not be 0, because the truth may be outside of the ensemble subspace.
+  This method is just to provide a baseline for comparison with other methods.
+  It may very well beat the particle filter with N=infty.
+  NB: The forecasts (and their rmse) are given by the standard EnKF.
+  """
+
+  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+
+  E = X0.sample(cfg.N)
+
+  stats = Stats(params)
+  stats.assess(E,xx,0)
+  o_plt = LivePlot(params,E,stats,xx,yy)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    E  = f.model(E,t-dt,dt)
+    E += sqrt(dt)*f.noise.sample(cfg.N)
+
+    if kObs is not None:
+      # Regular EnKF analysis
+      hE = h.model(E,t)
+      y  = yy[kObs,:]
+      E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg)
+      stats.copy_paste(s_now,kObs)
+
+      # Cheating (only used for stats)
+      w,res,_,_ = sla.lstsq(E.T, xx[k,:])
+      if not res.size:
+        res = 0
+      res = sqrt(res/params.f.m) * ones(params.f.m)
+      opt = w @ E
+
+    stats.assess_ext(opt,res,xx,k)
+    o_plt.update(E,k,kObs)
+  return stats
+
+def D3Var(params,cfg,xx,yy):
+  """
+  3D-Var.
+  """
+  #TODO: Take into account the dtObs/decorr time of the system,
+  #and do the analysis with some smaller P than that of climatology.
+
+  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+
+  dkObs = chrono.dkObs
+  R     = h.noise.C.C
+
+  mu0   = np.mean(xx,0)
+  A0    = xx - mu0
+  P0    = (A0.T @ A0) / (xx.shape[0] - 1)
+
+  mu = X0.mu
+
+  # Pre-compute Kalman gain
+  #dHdx = f.tlm
+  #H    = dHdx(np.nan,mu0).T # TODO: .T ?
+  H    = eye(h.m)
+  KG   = mrdiv(P0 @ H.T, (H@P0@H.T) + R)
+  Pa   = (eye(f.m) - KG@H) @ P0
+
+  stats = Stats(params)
+  stats.assess_ext(mu, sqrt(diag(P0)), xx, 0)
+  stats.trHK[:] = trace(H@KG)/h.noise.m
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    mu = f.model(mu,t-dt,dt)
+    next_kobs = chrono.kkObs[find_1st_ind(chrono.kkObs >= k)]
+    P  = Pa + (P0-Pa)*(1 - (next_kobs-k)/dkObs)
+    if kObs is not None:
+      y  = yy[kObs,:]
+      mu = mu0 + KG @ (y - H@mu0)
+    stats.assess_ext(mu,sqrt(diag(P)),xx,k)
+  return stats
 
 
 def ExtKF(params,cfg,xx,yy):
@@ -370,6 +445,14 @@ class Stats:
     self.mu[k,:]  = w @ E
     A             = E - self.mu[k,:]
     self.var[k,:] = w @ A**2
+    self.err[k,:] = self.mu[k,:] - x[k,:]
+    self.rmsv[k]  = sqrt(mean(self.var[k,:]))
+    self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
+
+  def assess_ext(self,mu,ss,x,k):
+    m             = len(mu)
+    self.mu[k,:]  = mu
+    self.var[k,:] = ss**2
     self.err[k,:] = self.mu[k,:] - x[k,:]
     self.rmsv[k]  = sqrt(mean(self.var[k,:]))
     self.rmse[k]  = sqrt(mean(self.err[k,:]**2))

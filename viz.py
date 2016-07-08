@@ -200,7 +200,7 @@ def plot_diagnostics_dashboard(xx,stats,chrono,N, \
 
   ax_d = plt.subplot(4,1,1)
   ax_d.plot(tt[pkk],xx[pkk  ,dim],'k',lw=2,        label='Truth')
-  ax_d.plot(tt[pkk],s.mu[pkk,dim],'g',lw=1,ls='--',label='Ens. mean')
+  ax_d.plot(tt[pkk],s.mu[pkk,dim],'g',lw=1,ls='--',label='DA estim.')
   ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
   ax_d.legend()
 

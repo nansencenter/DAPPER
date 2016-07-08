@@ -11,27 +11,31 @@ np.random.seed(5)
 ############################
 cfg = Settings()
 
-from mods.L3.sak12 import params
-## Expected rmse_a = 0.63 (sak 0.65)
-#cfg.N         = 10
-#cfg.infl      = 1.02
-#cfg.AMethod   = 'Sqrt'
-#cfg.rot       = True
-##cfg.da_method = EnKF
-#
-#cfg.da_method = iEnKF # rmse_a = 0.31
-#cfg.iMax      = 10
-cfg.da_method = PartFilt # rmse_a = 0.275 (N=4000)
-cfg.N         = 800
-cfg.NER       = 0.1
+#from mods.L3.sak12 import params
+### Expected rmse_a = 0.63 (sak 0.65)
+##cfg.N         = 10
+##cfg.infl      = 1.02
+##cfg.AMethod   = 'Sqrt'
+##cfg.rot       = True
+###cfg.da_method = EnKF
+##
+##cfg.da_method = iEnKF # rmse_a = 0.31
+##cfg.iMax      = 10
+#cfg.da_method = PartFilt # rmse_a = 0.275 (N=4000)
+#cfg.N         = 800
+#cfg.NER       = 0.1
 
-#from mods.L40.sak08 import params
-## Expected rmse_a = 0.175
-#cfg.N         = 40
-#cfg.infl      = 1.01
-#cfg.AMethod   = 'Sqrt'
-#cfg.rot       = True
-#cfg.da_method = EnKF
+from mods.L40.sak08 import params
+# Expected rmse_a = 0.175
+cfg.N         = 40
+cfg.infl      = 1.01
+cfg.AMethod   = 'Sqrt'
+cfg.rot       = True
+cfg.da_method = EnKF
+
+#cfg.da_method = EnsCheat
+#cfg.da_method = D3Var
+
 
 ##from mods.L40.spectral_obs import params
 #cfg.N         = 40
@@ -82,7 +86,7 @@ print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMSV: {:8.5f}'\
 ############################
 # Plot
 ############################
-plot_diagnostics_dashboard(xx,s,chrono,cfg.N,dim=2)
+plot_diagnostics_dashboard(xx,s,chrono,cfg.N,dim=2,Tplot=10)
 plot_3D_trajectory(xx[:,:3],s,chrono)
 
 #plt.waitforbuttonpress()
