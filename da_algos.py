@@ -356,35 +356,51 @@ def EnsCheat(params,cfg,xx,yy):
         res = 0
       res = sqrt(res/params.f.m) * ones(params.f.m)
       opt = w @ E
+      # NB: It is also interesting to center E
+      #     on the optimal solution.
+      #E   = opt + E - mean(E,0)
 
     stats.assess_ext(opt,res,xx,k)
     o_plt.update(E,k,kObs)
   return stats
 
+
 def D3Var(params,cfg,xx,yy):
   """
   3D-Var.
   """
-  #TODO: Take into account the dtObs/decorr time of the system,
-  #and do the analysis with some smaller P than that of climatology.
-
   f,h,chrono,X0 = params.f, params.h, params.t, params.X0
 
   dkObs = chrono.dkObs
   R     = h.noise.C.C
+  #dHdx = f.tlm
+  #H    = dHdx(np.nan,mu0).T # TODO: .T ?
+  H    = eye(h.m)
 
   mu0   = np.mean(xx,0)
   A0    = xx - mu0
   P0    = (A0.T @ A0) / (xx.shape[0] - 1)
-
-  mu = X0.mu
-
+  if not hasattr(cfg, 'infl'):
+    cfg.infl = 1.0
+    ## NOT WORKING
+    #from scipy.optimize import fsolve
+    ##Take into account the dtObs/decorr_time of the system,
+    ##by scaling P0 (from the climatology) by infl
+    ##so that the error reduction of the analysis (trHK) approximately
+    ##matches the error growth in the forecast (1-a^dkObs).
+    #acovf = auto_cov(xx.ravel(order='F'))
+    #a     = fit_acf_by_AR1(acovf)
+    #def L_minus_R(infl):
+      #KGs = mrdiv((infl*P0) @ H.T, (H@(infl*P0)@H.T) + R)
+      #return trace(H@KGs)/h.noise.m - (1 - a**dkObs)
+    #cfg.infl = fsolve(L_minus_R, 0.9)
+  P0 *= cfg.infl
+    
   # Pre-compute Kalman gain
-  #dHdx = f.tlm
-  #H    = dHdx(np.nan,mu0).T # TODO: .T ?
-  H    = eye(h.m)
   KG   = mrdiv(P0 @ H.T, (H@P0@H.T) + R)
   Pa   = (eye(f.m) - KG@H) @ P0
+
+  mu = X0.mu
 
   stats = Stats(params)
   stats.assess_ext(mu, sqrt(diag(P0)), xx, 0)

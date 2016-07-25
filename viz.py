@@ -188,7 +188,7 @@ def plot_3D_trajectory(xx,stats,chrono,\
   ax3.legend()
 
 
-def plot_diagnostics_dashboard(xx,stats,chrono,N, \
+def plot_time_series(xx,stats,chrono, \
     dim=0,Kplot=None,Tplot=None):
   s  = stats
 
@@ -198,35 +198,58 @@ def plot_diagnostics_dashboard(xx,stats,chrono,N, \
   pkk,pkkObs = get_plot_inds(chrono,Kplot,Tplot,xx[:,dim])
   tt = chrono.tt
 
-  ax_d = plt.subplot(4,1,1)
-  ax_d.plot(tt[pkk],xx[pkk  ,dim],'k',lw=2,        label='Truth')
-  ax_d.plot(tt[pkk],s.mu[pkk,dim],'g',lw=1,ls='--',label='DA estim.')
+  ax_d = plt.subplot(3,1,1)
+  ax_d.plot(tt[pkk],xx[pkk  ,dim],'k',lw=3,label='Truth')
+  ax_d.plot(tt[pkk],s.mu[pkk,dim],'b',lw=2,label='DA estim.',alpha=0.6)
   ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
   ax_d.legend()
+  ax_d.set_xticklabels([])
 
-  ax_e = plt.subplot(4,1,2)
-  ax_e.plot(tt[pkk], s.rmse[pkk],'k',lw=2)
-  ax_e.fill_between(tt[pkk], s.rmsv[pkk],alpha=0.4)
-  ax_e.set_ylim(0,np.percentile(s.rmse[pkk],99))
-  ax_e.set_ylabel('RMS Err and Var')
-
-  if not all(s.trHK[:] == 0):
-    ax_K = plt.subplot(4,1,3)
+  has_been_computed = not all(s.trHK[:] == 0)
+  if has_been_computed:
+    ax_K = plt.subplot(3,1,2)
     ax_K.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2)
-    ax_K.set_ylim(0,np.percentile(s.trHK[:len(pkkObs)],99.6))
-    ax_K.set_ylabel('trace(K)')
-    ax_K.set_xlabel('time (t)')
+    ylim = 1.1 * np.percentile(s.trHK[:len(pkkObs)],99.6)
+    ax_K.set_ylim(0,ylim)
+    ax_K.set_ylabel('trace(H K)')
+    ax_K.set_xticklabels([])
 
-  if not all(s.rh[-1,:] == 0):
-    ax_H = plt.subplot(4,1,4)
-    integer_hist(s.rh[chrono.kkBI,:].ravel(),N,alpha=0.5)
+  ax_e = plt.subplot(3,1,3)
+  ax_e.plot(tt[pkk], s.rmse[pkk],'k',lw=2,label='Err')
+  ax_e.fill_between(tt[pkk], s.rmsv[pkk],alpha=0.4,label='Var') 
+  ylim = np.percentile(s.rmse[pkk],99)
+  ylim = 1.1*np.max([ylim, np.max(s.rmsv[pkk])])
+  ax_e.set_ylim(0,ylim)
+  ax_e.set_ylabel('RMS')
+  ax_e.legend()
+  ax_e.set_xlabel('time (t)')
 
 
-def integer_hist(E,N,**kwargs):
+
+def integer_hist(E,N,centrd=False,**kwargs):
   """Histogram for integers."""
   ax = plt.gca()
-  ax.hist(E,bins=N+1,range=(-0.5,N+0.5),normed=1,**kwargs)
-  ax.set_xlim(np.min(E)-0.5,np.max(E)+0.5)
+  rnge = (-0.5,N+0.5) if centrd else (0,N+1)
+  ax.hist(E,bins=N+1,range=rnge,normed=1,**kwargs)
+  ax.set_xlim(rnge)
+
+def plot_rh(xx,stats,chrono,N,dims=None):
+  if not dims:
+    m = xx.shape[1]
+    dims = arange(xx.shape[1])
+    d_text = '(averaged over all dims)'
+  else:
+    d_text = '(dims: ' + str(dims) + ')'
+
+  has_been_computed = not all(stats.rh[-1,:] == 0)
+  if has_been_computed:
+    fg = plt.figure(13,figsize=(8,5)).clf()
+    set_figpos('NE')
+    ax_H = plt.subplot(111)
+    ax_H.set_title('Rank histogram ' + d_text)
+    ax_H.set_ylabel('frequency of occurance\n (of truth in interval n)')
+    ax_H.set_xlabel('ensemble member index (n)')
+    integer_hist(stats.rh[chrono.kkBI,:].ravel(),N,alpha=0.5)
 
 
 

@@ -38,10 +38,11 @@ class OSSE:
 # Serves as dot-references dict
 class Settings:
   def __init__(self):
-    # Defaults. Should be manually overwritten after init.
-    self.infl = 1.0
-    self.da_method = EnKF
-    self.AMethod = 'PertObs'
+    # Dont use defaults coz: explicit is better than implicit
+    #self.infl = 1.0
+    #self.da_method = EnKF
+    #self.AMethod = 'PertObs'
+    pass
 
 def Assimilate(params,cfg,xx,yy):
   args = locals()

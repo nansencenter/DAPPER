@@ -91,7 +91,7 @@ def mean_ratio(xx):
 def fit_acf_by_AR1(acf_empir,L=None):
   """
   Fit an empirical acf by the acf of an AR1 process.
-  acf_empir: a-corr-f or a-cov-f.
+  acf_empir: auto-corr/cov-function.
   L: length of ACF to use in AR(1) fitting
   """
   if L is None:
@@ -105,13 +105,18 @@ def fit_acf_by_AR1(acf_empir,L=None):
   return mean_ratio(acf_empir)
 
 def estimate_corr_length(xx):
-  """ See mods.LA.fundamentals: homogeneous_1D_cov()
-  for some math explanation"""
+  """
+  For explanation, see mods.LA.fundamentals: homogeneous_1D_cov().
+  Also note that, for exponential corr function, as assumed here,
+  corr(L) = exp(-1) = ca 0.368
+  """
   acovf = auto_cov(xx,10)
   a     = fit_acf_by_AR1(acovf)
   if a == 0:
-    return 0
-  return 1/log(1/a)
+    L = 0
+  else:
+    L = 1/log(1/a)
+  return L
 
 def series_mean_with_conf(xx):
   """
