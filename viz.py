@@ -26,7 +26,7 @@ class LivePlot:
     set_figpos('E (mac)')
 
     self.ax  = plt.subplot(211)
-    self.lmu,= plt.plot(ii,stats.mu[0,:],'b',lw=2,ls='-',label='Ens mean'  )
+    self.lmu,= plt.plot(ii,stats.mu[0,:],'b',lw=2,ls='-',label='Ens.mean'  )
     self.lx ,= plt.plot(ii,xx[0      ,:],'k',lw=3,ls='-',label='Truth')
 
     #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
