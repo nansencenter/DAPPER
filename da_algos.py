@@ -9,7 +9,7 @@ def EnKF(params,cfg,xx,yy):
 
   stats = Stats(params)
   stats.assess(E,xx,0)
-  o_plt = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -22,7 +22,7 @@ def EnKF(params,cfg,xx,yy):
       stats.copy_paste(s_now,kObs)
 
     stats.assess(E,xx,k)
-    o_plt.update(E,k,kObs)
+    lplot.update(E,k,kObs)
   return stats
 
 
@@ -55,20 +55,25 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
         # Implementation using inv (in ens space)
         Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
         T  = sqrtm(Pw) * sqrt(N-1)
-        KG = R.inv @ Y.T @ Pw @ A
+        #KG = R.inv @ Y.T @ Pw @ A
         HK = R.inv @ Y.T @ Pw @ Y
       elif 'svd' in cfg.AMethod:
-        # Implementation using svd of Y
-        raise NotImplementedError
+        # Implementation using svd of Y R^{-1/2}
+        V,s,U = sla.svd( Y @ Rm12 ) # TODO: Rm12 remembered by covmat
+        Pw    = V @ diag( ( s**2 + (N-1) )**(-1.0) ) @ V.T
+        T     = V @ diag( ( s**2 + (N-1) )**(-0.5) ) @ V.T * sqrt(N-1)
+        HK    = R.inv @ Y.T @ Pw @ Y # Not checked if correct
       else:
         # Implementation using eig. val.
         d,V= eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
         T  = V@diag(d**(-0.5))@V.T * sqrt(N-1)
-        KG = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ A
+        #KG = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ A
+        Pw = V@diag(d**(-1.0))@V.T
         HK = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
       if cfg.rot:
         T = genOG_1(N) @ T
-      E = mu + dy@KG + T@A
+      w = ( (dy @ R.inv) @ Y.T) @ Pw
+      E = mu + w@A + T@A
     elif 'DEnKF' is cfg.AMethod:
       C  = Y.T @ Y + R.C*(N-1)
       KG = A.T @ mrdiv(Y, C)
@@ -84,7 +89,10 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
 
 
 def EnKF_analysis_NT(E,hE,hnoise,y,cfg):
-    """Version: Non-Transposed. Purpose: debugging the other ones."""
+    """
+    Version: Non-Transposed.
+    Purpose: debugging the other ones.
+    """
     R = hnoise.C
     N = cfg.N
 
@@ -130,7 +138,7 @@ def EnKF_N(params,cfg,xx,yy):
 
   stats = Stats(params)
   stats.assess(E,xx,0)
-  o_plt = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,E,stats,xx,yy)
 
   def diagz(s,l1):
     # TODO: Very incomplete vis-a-vis datum
@@ -155,29 +163,21 @@ def EnKF_N(params,cfg,xx,yy):
       Y  = hE-hx
       dy = y - hx
 
-      d,V= eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
-      T  = V@diag(d**(-0.5))@V.T * sqrt(N-1)
-      KG = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ A
-      HK = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
-
       V,s,U = sla.svd( Y @ Rm12 )
-      Pw   = V @ diag( ( s**2 + (N-1) )**(-1.0) ) @ V.T
-      T    = V @ diag( ( s**2 + (N-1) )**(-0.5) ) @ V.T * sqrt(N-1)
+      Pw    = V @ diag( ( s**2 + (N-1) )**(-1.0) ) @ V.T
+      T     = V @ diag( ( s**2 + (N-1) )**(-0.5) ) @ V.T * sqrt(N-1)
+      HK    = R.inv @ Y.T @ Pw @ Y # Not checked if correct
 
       if cfg.rot:
         T = genOG_1(N) @ T
       T *= cfg.infl
-      w = ((dy @ R.inv.T) @ Y) @ Pw
-      E = mu + w@A +  T@A
+      w = ((dy @ R.inv.T) @ Y.T) @ Pw
+      E = mu + w@A + T@A
 
-      E = mu + dy@KG + T@A
-      E = inflate_ens(E,cfg.infl)
-
-      HK = R.inv @ Y.T @ Pw @ Y # Not checked if correct
       stats.trHK[kObs] = trace(HK)/h.noise.m
 
     stats.assess(E,xx,k)
-    o_plt.update(E,k,kObs)
+    lplot.update(E,k,kObs)
   return stats
 
 
@@ -194,7 +194,7 @@ def iEnKF(params,cfg,xx,yy):
   stats = Stats(params)
   stats.assess(E,xx,0)
   stats.iters = zeros(chrono.KObs+1)
-  o_plt = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,E,stats,xx,yy)
 
   for kObs in progbar(range(chrono.KObs+1)):
     xb0 = mean(E,0)
@@ -234,7 +234,7 @@ def iEnKF(params,cfg,xx,yy):
       E  = f.model(E,t-dt,dt)
       E += sqrt(dt)*f.noise.sample(N)
       stats.assess(E,xx,k)
-      #o_plt.update(E,k,kObs)
+      #lplot.update(E,k,kObs)
       
   return stats
 
@@ -295,7 +295,7 @@ def PartFilt(params,cfg,xx,yy):
   stats.nResamples = 0
   stats.assess(E,xx,0)
 
-  o_plt = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -334,7 +334,7 @@ def PartFilt(params,cfg,xx,yy):
         stats.nResamples += 1
 
     stats.assess_w(E,xx,k,w=w)
-    o_plt.update(E,k,kObs)
+    lplot.update(E,k,kObs)
   return stats
 
 
@@ -404,7 +404,7 @@ def EnsCheat(params,cfg,xx,yy):
 
   stats = Stats(params)
   stats.assess(E,xx,0)
-  o_plt = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -425,7 +425,7 @@ def EnsCheat(params,cfg,xx,yy):
       opt = w @ E
 
     stats.assess_ext(opt,res,xx,k)
-    o_plt.update(E,k,kObs)
+    lplot.update(E,k,kObs)
   return stats
 
 def D3Var(params,cfg,xx,yy):

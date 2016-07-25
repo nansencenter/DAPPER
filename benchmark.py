@@ -29,9 +29,12 @@ from mods.L40.sak08 import params
 # Expected rmse_a = 0.175
 cfg.N         = 40
 cfg.infl      = 1.01
-cfg.AMethod   = 'Sqrt'
+cfg.AMethod   = 'Sqrt svd'
 cfg.rot       = True
-cfg.da_method = EnKF
+#cfg.da_method = EnKF
+#
+cfg.N         = 38 # better for debug
+#cfg.da_method = EnKF_N
 
 #cfg.da_method = EnsCheat
 #cfg.da_method = D3Var
