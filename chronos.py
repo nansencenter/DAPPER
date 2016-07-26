@@ -97,6 +97,14 @@ class Chronology:
   def ttObs(self):
     return self.kkObs * self.dt
 
+  # TODO: Include for other variables as well.
+  # TODO: Reverse T_ and T notation
+  @property
+  def T_(self):
+    return self.T
+  @T_.setter
+  def T_(self,value):
+    self.__init__(dt=self.dt,dkObs=self.dkObs,T=value,BurnIn=self.BurnIn)
 
   @property
   def forecast_range(self):
