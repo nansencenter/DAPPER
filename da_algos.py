@@ -59,10 +59,17 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
         HK = R.inv @ Y.T @ Pw @ Y
       elif 'svd' in cfg.AMethod:
         # Implementation using svd of Y R^{-1/2}
-        V,s,U = sla.svd( Y @ Rm12 ) # TODO: Rm12 remembered by covmat
-        Pw    = V @ diag( ( s**2 + (N-1) )**(-1.0) ) @ V.T
-        T     = V @ diag( ( s**2 + (N-1) )**(-0.5) ) @ V.T * sqrt(N-1)
-        HK    = R.inv @ Y.T @ Pw @ Y # Not checked if correct
+        V,s,_ = sla.svd( Y @ R.m12.T , full_matrices=False)
+        Pw    = ( V * ( s**2 + (N-1) )**(-1.0) ) @ V.T
+        T     = ( V * ( s**2 + (N-1) )**(-0.5) ) @ V.T * sqrt(N-1)
+        HK    = R.inv @ Y.T @ Pw @ Y
+        #s  = Rm12 @ dy  / sqrt(N-1)
+        #S  = Rm12 @ Y.T / sqrt(N-1)
+        #_,Sig,V_T = sla.svd(S)
+        #V = V_T.T
+        #d = diagz(Sig,N,l1)
+        #G = (V*d**(-1.0))@V.T # = Pw/(N-1)
+        #T = (V*d**(-0.5))@V.T
       else:
         # Implementation using eig. val.
         d,V= eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
@@ -72,7 +79,7 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
         HK = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
       if cfg.rot:
         T = genOG_1(N) @ T
-      w = ( (dy @ R.inv) @ Y.T) @ Pw
+      w =  dy @ R.inv @ Y.T @ Pw
       E = mu + w@A + T@A
     elif 'DEnKF' is cfg.AMethod:
       C  = Y.T @ Y + R.C*(N-1)
@@ -120,6 +127,19 @@ def EnKF_analysis_NT(E,hE,hnoise,y,cfg):
     return E, stat
 
 
+
+def pad0(arr,length,val=0):
+  return np.append(arr,val*zeros(length-len(arr)))
+
+def diagz(s,length,l1=1.0,eps=0):
+  if eps:
+    s[s<eps] = 0
+  d  = pad0((l1*s)**2, length)
+  d += 1
+  return d
+
+from scipy.optimize import minimize_scalar as minzs
+
 def EnKF_N(params,cfg,xx,yy):
   """
   Finite-size EnKF (EnKF-N).
@@ -132,19 +152,20 @@ def EnKF_N(params,cfg,xx,yy):
   N = cfg.N
   E = X0.sample(N)
 
-  # TODO: Do something about this. Also for PartFilt
-  #Rm12 = inv(h.noise.C.cholL)
-  Rm12 = h.noise.C.transform_by(lambda x: 1/np.sqrt(x))
+
+  eN = (N+1)/N;              # Effect of unknown mean
+  g  = 1                     # Nullity of anomalies matrix # TODO: For N>m ?
+  LB = sqrt((N-1)/(N+g)*eN); # Lower bound for lambda^1    # TODO: Updated with g. Correct?
+  clog = (N+g)/(N-1);        # Coeff in front of log term
+  mode = eN/clog;            # Mode of prior for lambda
+
+  Rm12 = h.noise.C.m12
+  Ri   = h.noise.C.inv
 
   stats = Stats(params)
   stats.assess(E,xx,0)
+  stats.infl = zeros(chrono.KObs+1)
   lplot = LivePlot(params,E,stats,xx,yy)
-
-  def diagz(s,l1):
-    # TODO: Very incomplete vis-a-vis datum
-    s[s<1e-4] = 0
-    d = 1 + (l1*s)**2
-    return d
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -154,8 +175,6 @@ def EnKF_N(params,cfg,xx,yy):
       hE = h.model(E,t)
       y  = yy[kObs,:]
 
-      R = h.noise.C
-
       mu = mean(E,0)
       A  = E - mu
 
@@ -163,15 +182,39 @@ def EnKF_N(params,cfg,xx,yy):
       Y  = hE-hx
       dy = y - hx
 
-      V,s,U = sla.svd( Y @ Rm12 )
-      Pw    = V @ diag( ( s**2 + (N-1) )**(-1.0) ) @ V.T
-      T     = V @ diag( ( s**2 + (N-1) )**(-0.5) ) @ V.T * sqrt(N-1)
-      HK    = R.inv @ Y.T @ Pw @ Y # Not checked if correct
+      V,s,U_T = sla.svd( Y @ Rm12.T)
+
+      # Find inflation
+      du      = U_T @ (Rm12 @ dy)
+      d       = lambda l: pad0( (l*s)**2, h.m ) + (N-1)
+      PR      = sum(s**2)/(N-1)
+      rescl   = sqrt(mode**(1/(1+PR)))
+      J       = lambda l: du @ (du/d(l)) \
+                + (1/rescl)*eN/l**2 + rescl*clog*log(l**2)
+      l1      = minzs(J, bounds=(LB, 1e2), method='bounded').x
+      stats.infl[kObs] = l1
+
+      # Inflate prior
+      A *= l1
+      Y *= l1
+
+      # Compute ETKF (sym sqrt) update
+      d       = lambda l: pad0( (l*s)**2, N ) + (N-1)
+      Pw      = (V * d(l1)**(-1.0)) @ V.T
+      HK      = Ri @ Y.T @ Pw @ Y
+      w       = dy@Ri@Y.T@Pw
+      T       = (V * d(l1)**(-0.5)) @ V.T * sqrt(N-1)
+
+      # TODO: Use Hessian adjustment ?
+      #zeta    = (N-1)/l1**2
+      #Hess    = Y@Ri@Y.T + zeta*eye(N)
+      ##- 2*zeta**2/(N+g)*np.outer(w,w)
+      #_T = funm_psd(Hess, lambda x: x**(-0.5))
+      # TODO: Why _T ≠ T ?
 
       if cfg.rot:
         T = genOG_1(N) @ T
       T *= cfg.infl
-      w = ((dy @ R.inv.T) @ Y.T) @ Pw
       E = mu + w@A + T@A
 
       stats.trHK[kObs] = trace(HK)/h.noise.m
@@ -254,7 +297,7 @@ def iEnKF_analysis(w,dy,Y,hnoise,cfg):
       T    = funm_psd(hess, lambda x: x**(-0.5)) * sqrt(N-1)
       Tinv = funm_psd(hess, np.sqrt) / sqrt(N-1)
     elif 'svd' in cfg.AMethod:
-      # Implementation using svd of Y
+      # Implementation using svd of Y # TODO: sort out .T !!!
       raise NotImplementedError
     else:
       # Implementation using eig. val.
@@ -287,8 +330,7 @@ def PartFilt(params,cfg,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  #Rm12 = inv(h.noise.C.cholL)
-  Rm12 = h.noise.C.transform_by(lambda x: 1/np.sqrt(x))
+  Rm12 = h.noise.C.m12
 
   stats            = Stats(params)
   stats.N_eff      = zeros(chrono.KObs+1)
@@ -525,6 +567,10 @@ class Stats:
     self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
 
   def copy_paste(self,s,kObs):
+    """
+    Load s into stats object at kObs.
+    Avoids having to pass kObs into enkf_analysis (e.g.).
+    """
     for key,val in s.items():
       getattr(self,key)[kObs] = val
 
