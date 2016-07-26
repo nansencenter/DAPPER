@@ -115,6 +115,10 @@ class CovMat:
   def inv(self):
     return self.transform_by(lambda x: 1/x)
 
+  @lazy_property
+  def m12(self):
+    return self.transform_by(lambda x: 1/np.sqrt(x),'econ')
+
   @property
   def cholL(self):
     # L = sla.cholesky(self.C,lower=True)
