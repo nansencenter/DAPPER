@@ -6,6 +6,9 @@ from common import *
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 
 class LivePlot:
+  """
+  Live plotting functionality.
+  """
   def __init__(self,params,E,stats,xx,yy):
     N,m = E.shape
     dt = params.t.dt
@@ -14,6 +17,7 @@ class LivePlot:
     self.stats  = stats
     self.xx     = xx
     self.yy     = yy
+    self.params = params
 
     self.is_on  = False
     print('Press <Enter> to toggle live plot')
@@ -21,8 +25,12 @@ class LivePlot:
     #ens_props = {} # yields rainbow
     ens_props = {'color': 0.6*cwhite} # 0.7*cblue
 
-    self.fg = plt.figure(21,figsize=(8,8))
-    self.fg.clf()
+
+    #####################
+    # Amplitudes
+    #####################
+    fg = plt.figure(21,figsize=(8,8))
+    fg.clf()
     set_figpos('E (mac)')
 
     self.ax  = plt.subplot(211)
@@ -54,7 +62,10 @@ class LivePlot:
     ax2.set_yscale('log')
     ax2.set_ylim([1e-3,1e1])
 
-    
+
+    #####################
+    # 3D phase space
+    #####################
     fg3 = plt.figure(23,figsize=(8,6))
     fg3.clf()
     set_figpos('NE (mac)')
@@ -79,6 +90,34 @@ class LivePlot:
     for i in range(3):
       set_ilim(ax3,i,xx,1.7)
 
+
+    #####################
+    # Diagnostics
+    #####################
+    fgd = plt.figure(24,figsize=(8,6))
+    fgd.clf()
+    set_figpos('SW (mac)')
+
+    chrono = params.t
+    self.Kplot = estimate_good_plot_length(xx.ravel(order='F'),chrono)
+    self.Kplot /= 4
+    pkk = arange(self.Kplot).astype(int)
+    ptt = chrono.tt[pkk]
+
+    self.ax_e = plt.subplot(211)
+    self.le,  = self.ax_e.plot(ptt,stats.rmse[pkk],'k',lw=2,alpha=1.0,label='Error')
+    self.lv,  = self.ax_e.plot(ptt,stats.rmsv[pkk],'b',lw=2,alpha=0.6,label='Spread')
+    self.ax_e.set_ylabel('RMS')
+    self.ax_e.legend()
+    self.ax_e.set_xticklabels([])
+
+    self.ax_i = plt.subplot(212)
+    self.ls,  = self.ax_i.plot(ptt,stats.skew[pkk],'g',lw=2,alpha=1.0,label='Skew')
+    self.lk,  = self.ax_i.plot(ptt,stats.kurt[pkk],'r',lw=2,alpha=1.0,label='Kurt')
+    self.ax_i.legend()
+    self.ax_i.set_xlabel('time (t)')
+
+
     plt.pause(0.01)
 
 
@@ -93,6 +132,9 @@ class LivePlot:
     ii  = range(m)
     stats = self.stats
     
+    #####################
+    # Amplitudes
+    #####################
     fg2 = plt.figure(21)
     self.lmu.set_ydata(stats.mu[k,:])
     self.lx .set_ydata(self.xx[k,:])
@@ -118,6 +160,9 @@ class LivePlot:
     A = anom(E)[0]
     self.ews.set_ydata(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
 
+    #####################
+    # 3D phase space
+    #####################
     fg3 = plt.figure(23)
     self.sx._offsets3d = juggle_axes(*vec2list2(self.xx[k,:3]),'z')
     self.sE._offsets3d = juggle_axes(*E[:,:3].T,'z')
@@ -132,6 +177,40 @@ class LivePlot:
     for n in range(N):
       self.ltE[n].set_data(self.tail_E[:,n,0],self.tail_E[:,n,1])
       self.ltE[n].set_3d_properties(self.tail_E[:,n,2])
+
+    #####################
+    # Diagnostics
+    #####################
+    def update_ylim(data,ax,min0=True):
+      ymax = -np.inf
+      for d in data:
+        ymax = np.maximum(ymax, 1.1 * np.percentile(d,99))
+      if ymax is not ax.get_ylim()[1]:
+        ax.set_ylim(0,ymax)
+      if not min0:
+        ymin = +np.inf
+        for d in data:
+          ymin = np.min(ymin, - 1.1 * np.percentile(-d,99))
+        if ymin is not ax.get_ylim()[0]:
+          ax.set_ylim(ymin,ymax)
+
+    fg3 = plt.figure(24)
+    pkk = arange(self.Kplot)
+    if k > self.Kplot:
+      pkk += (k-self.Kplot)
+    pkk = pkk.astype(int)
+    ptt = self.params.t.tt[pkk]
+
+    self.le.set_data(ptt,stats.rmse[pkk])
+    self.lv.set_data(ptt,stats.rmsv[pkk])
+    self.ax_e.set_xlim(ptt[0],ptt[-1])
+    update_ylim([stats.rmse[pkk],stats.rmsv[pkk]], self.ax_e)
+    
+    self.ls.set_data(ptt,stats.skew[pkk])
+    self.lk.set_data(ptt,stats.kurt[pkk])
+    self.ax_i.set_xlim(ptt[0],ptt[-1])
+    update_ylim([stats.skew[pkk],stats.kurt[pkk]], self.ax_i,min0=False)
+
 
     plt.pause(0.01)
     #input("Press Enter to continue...")
@@ -164,7 +243,7 @@ def get_plot_inds(chrono,Kplot,Tplot,xx):
       Kplot = find_1st_ind(chrono.tt >= Tplot)
     else:
       Kplot = estimate_good_plot_length(xx,chrono)
-  kkObs  = chrono.kkObs
+  kkObs      = chrono.kkObs
   plot_kk    = chrono.kk[chrono.kk<=Kplot]
   plot_kkObs = kkObs[kkObs<=Kplot]
   return plot_kk, plot_kkObs
@@ -215,8 +294,8 @@ def plot_time_series(xx,stats,chrono, \
     ax_K.set_xticklabels([])
 
   ax_e = plt.subplot(3,1,3)
-  ax_e.plot(tt[pkk], s.rmse[pkk],'k',lw=2,label='Err')
-  ax_e.fill_between(tt[pkk], s.rmsv[pkk],alpha=0.4,label='Var') 
+  ax_e.plot(        tt[pkk], s.rmse[pkk],'k',lw=2,label='Error')
+  ax_e.fill_between(tt[pkk], s.rmsv[pkk],alpha=0.4,label='Spread') 
   ylim = np.percentile(s.rmse[pkk],99)
   ylim = 1.1*np.max([ylim, np.max(s.rmsv[pkk])])
   ax_e.set_ylim(0,ylim)

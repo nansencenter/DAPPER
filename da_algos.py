@@ -548,6 +548,8 @@ class Stats:
     #
     self.mu   = zeros((K+1,m))
     self.var  = zeros((K+1,m))
+    self.skew = zeros(K+1)
+    self.kurt = zeros(K+1)
     self.err  = zeros((K+1,m))
     self.rmsv = zeros(K+1)
     self.rmse = zeros(K+1)
@@ -559,7 +561,9 @@ class Stats:
     N,m           = E.shape
     self.mu[k,:]  = mean(E,0)
     A             = E - self.mu[k,:]
-    self.var[k,:] = np.sum(A**2,0) / (N-1)
+    self.var[k,:] = sum(A**2,0) / (N-1)
+    self.skew[k]  = mean( sum(A**3,0)/N / self.var[k,:]**(3/2) )
+    self.kurt[k]  = mean( sum(A**4,0)/N / self.var[k,:]**2 - 3 )
     self.err[k,:] = self.mu[k,:] - x[k,:]
     self.rmsv[k]  = sqrt(mean(self.var[k,:]))
     self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
