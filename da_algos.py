@@ -152,7 +152,7 @@ def EnKF_N(params,cfg,xx,yy):
   N = cfg.N
   E = X0.sample(N)
 
-
+  # EnKF-N constants
   eN = (N+1)/N;              # Effect of unknown mean
   g  = 1                     # Nullity of anomalies matrix # TODO: For N>m ?
   LB = sqrt((N-1)/(N+g)*eN); # Lower bound for lambda^1    # TODO: Updated with g. Correct?
@@ -182,7 +182,7 @@ def EnKF_N(params,cfg,xx,yy):
       Y  = hE-hx
       dy = y - hx
 
-      V,s,U_T = sla.svd( Y @ Rm12.T)
+      V,s,U_T = sla.svd( Y @ Rm12.T )
 
       # Find inflation
       du      = U_T @ (Rm12 @ dy)
@@ -201,23 +201,24 @@ def EnKF_N(params,cfg,xx,yy):
       # Compute ETKF (sym sqrt) update
       d       = lambda l: pad0( (l*s)**2, N ) + (N-1)
       Pw      = (V * d(l1)**(-1.0)) @ V.T
-      HK      = Ri @ Y.T @ Pw @ Y
       w       = dy@Ri@Y.T@Pw
       T       = (V * d(l1)**(-0.5)) @ V.T * sqrt(N-1)
 
-      # TODO: Use Hessian adjustment ?
-      #zeta    = (N-1)/l1**2
-      #Hess    = Y@Ri@Y.T + zeta*eye(N)
-      ##- 2*zeta**2/(N+g)*np.outer(w,w)
-      #_T = funm_psd(Hess, lambda x: x**(-0.5))
-      # TODO: Why _T ≠ T ?
+      # NB: Use Hessian adjustment ?
+      # Replace sqrtm_psd with something like Woodbury?
+      # zeta    = (N-1)/l1**2
+      # Hess    = Y@Ri@Y.T + zeta*eye(N) \
+      #           - 2*zeta**2/(N+g)*np.outer(w,w)
+      # T       = funm_psd(Hess, lambda x: x**(-0.5)) * sqrt(N-1)
 
       if cfg.rot:
         T = genOG_1(N) @ T
       T *= cfg.infl
+
       E = mu + w@A + T@A
 
-      stats.trHK[kObs] = trace(HK)/h.noise.m
+      # see docs/trHK.jpg
+      stats.trHK[kObs] = sum( s*( (l1*s)**2 + (N-1) )**(-1.0)*s ) / h.noise.m
 
     stats.assess(E,xx,k)
     lplot.update(E,k,kObs)

@@ -35,9 +35,9 @@ cfg.AMethod   = 'Sqrt svd'
 cfg.rot       = True
 cfg.da_method = EnKF
 #
-cfg.N         = 38 # better for debug
-cfg.infl      = 1.0
-cfg.da_method = EnKF_N
+#cfg.N         = 38 # better for debug
+#cfg.infl      = 1.0
+#cfg.da_method = EnKF_N
 
 #cfg.da_method = EnsCheat
 #cfg.da_method = D3Var
