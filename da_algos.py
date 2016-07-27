@@ -184,17 +184,20 @@ def EnKF_N(params,cfg,xx,yy):
 
       V,s,U_T = sla.svd( Y @ Rm12.T )
 
-      # Find inflation
-      du      = U_T @ (Rm12 @ dy)
-      d       = lambda l: pad0( (l*s)**2, h.m ) + (N-1)
-      PR      = sum(s**2)/(N-1)
-      rescl   = sqrt(mode**(1/(1+PR)))
-      J       = lambda l: du @ (du/d(l)) \
-                + (1/rescl)*eN/l**2 + rescl*clog*log(l**2)
-      l1      = minzs(J, bounds=(LB, 1e2), method='bounded').x
+      # Find inflation factor.
+      du   = U_T @ (Rm12 @ dy)
+      d    = lambda l: pad0( (l*s)**2, h.m ) + (N-1)
+      PR   = sum(s**2)/(N-1)
+      fctr = sqrt(mode**(1/(1+PR)))
+      J    = lambda l: (du/d(l)) @ du \
+             + (1/fctr)*eN/l**2 + fctr*clog*log(l**2)
+      l1   = minzs(J, bounds=(LB, 1e2), method='bounded').x
       stats.infl[kObs] = l1
 
-      # Inflate prior
+      # Inflate prior.
+      # This is strictly equivalent to using zeta formulations.
+      # With the Hessian adjustment, it's also equivalent to
+      # the primal EnKF-N (in the Gaussian case).
       A *= l1
       Y *= l1
 

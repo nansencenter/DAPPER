@@ -28,20 +28,21 @@ cfg = Settings()
 
 from mods.L40.sak08 import params
 params.t.T_ = 4**3
-# Expected rmse_a = 0.175
-cfg.N         = 40
-cfg.infl      = 1.01
-cfg.AMethod   = 'Sqrt svd'
-cfg.rot       = True
-cfg.da_method = EnKF
 #
-#cfg.N         = 38 # better for debug
-#cfg.infl      = 1.0
-#cfg.da_method = EnKF_N
+# Expected rmse_a = 0.175
+#cfg.N         = 40
+#cfg.infl      = 1.01
+#cfg.AMethod   = 'Sqrt svd'
+#cfg.rot       = True
+#cfg.da_method = EnKF
+#
+cfg.da_method = EnKF_N
+cfg.N         = 38
+cfg.infl      = 1.0
+cfg.rot       = True
 
 #cfg.da_method = EnsCheat
 #cfg.da_method = D3Var
-
 
 #from mods.L40.spectral_obs import params
 #cfg.N         = 40
