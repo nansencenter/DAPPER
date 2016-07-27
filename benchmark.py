@@ -27,13 +27,18 @@ cfg = Settings()
 #cfg.NER       = 0.1
 
 from mods.L40.sak08 import params
+params.t.T_ = 4**3
 # Expected rmse_a = 0.175
 cfg.N         = 40
 cfg.infl      = 1.01
-cfg.AMethod   = 'Sqrt'
+cfg.AMethod   = 'Sqrt svd'
 cfg.rot       = True
 cfg.da_method = EnKF
 #
+cfg.N         = 38 # better for debug
+cfg.infl      = 1.0
+cfg.da_method = EnKF_N
+
 #cfg.da_method = EnsCheat
 #cfg.da_method = D3Var
 
@@ -62,8 +67,7 @@ f,h,chrono,X0 = params.f, params.h, params.t, params.X0
 xx = zeros((chrono.K+1,f.m))
 xx[0,:] = X0.sample(1)
 for k,kObs,t,dt in chrono.forecast_range:
-  D = sqrt(dt)*f.noise.sample(1)
-  xx[k,:] = f.model(xx[k-1,:],t-dt,dt) + D
+  xx[k,:] = f.model(xx[k-1,:],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
 
 # obs
 yy = zeros((chrono.KObs+1,h.m))

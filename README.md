@@ -45,12 +45,16 @@ Many
 
 Highly modular.
 
-Efficient.
+Efficient
 E.g. Lorenz-96 uses native vectorization (i.e. fast numpy),  but no parallelization.
 
 Very explicit and readable.
 
 Consistency checks (e.g. time).
+
+For -N stuff, compared to Boc's code, DAPPER
+* uses more matrix decompositions (efficiency),
+* allows for non-diag R.
 
 
 What it can't do:
@@ -103,7 +107,21 @@ Implementation choices:
 ------------------------------------------------
 * Uses python version >= 3.5
 * On-line vs off-line stats and diagnostics
-* Matrix class for syntax and broadcasting
+* NEW: Use N-by-m ndarrays. Pros:
+    * Python default
+        * speed of (row-by-row) access, especially for models
+        * ordering of random numbers
+    * numpy sometimes returns ndarrays even when input is matrix
+    * works well with ens space formulea,
+        * e.g. 
+        * yields beneficial operator precedence without (). E.g. dy@Ri@Y.T@Pw
+    * Bocquet's choice
+    * Broadcasting
+    * Avoids reshape's and asmatrix
+* OLD: Use m-by-N matrix class. Pros:
+    * Litterature uses m-by-N
+    * Matrix class allowss desired broadcasting
+    * Deprecated: syntax (* vs @)
 
 
 How to make a new experiment

@@ -5,8 +5,7 @@ from common import *
 
 from mods.L40.fundamentals import step, typical_init_params
 
-#T = 4**6
-T = 4**3
+T = 4**5
 t = Chronology(0.05,dkObs=1,T=T,BurnIn=20)
 
 m = 40
