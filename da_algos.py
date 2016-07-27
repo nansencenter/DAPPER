@@ -41,57 +41,68 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
     dy = y - hx
 
     if 'PertObs' in cfg.AMethod:
-      C  = Y.T @ Y + R.C*(N-1)
-      D  = center(hnoise.sample(N))
-      YC = mrdiv(Y, C)
-      KG = A.T @ YC
-      dE = (KG @ ( y + D - hE ).T).T
-      #KG = mldiv(C,Y.T) @ A
-      #dE = ( y + D - hE ) @ KG
-      HK = Y.T @ YC
-      E  = E + dE
+        # Uses perturbed observations (burgers'98)
+        C  = Y.T @ Y + R.C*(N-1)
+        D  = center(hnoise.sample(N))
+        YC = mrdiv(Y, C)
+        KG = A.T @ YC
+        HK = Y.T @ YC
+        dE = (KG @ ( y + D - hE ).T).T
+        # Without transposing A:
+        #KG = mldiv(C,Y.T) @ A
+        #dE = ( y + D - hE ) @ KG
+        E  = E + dE
     elif 'Sqrt' in cfg.AMethod:
-      if 'explicit' in cfg.AMethod:
-        # Implementation using inv (in ens space)
-        Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
-        T  = sqrtm(Pw) * sqrt(N-1)
-        #KG = R.inv @ Y.T @ Pw @ A
-        HK = R.inv @ Y.T @ Pw @ Y
-      elif 'svd' in cfg.AMethod:
-        # Implementation using svd of Y R^{-1/2}
-        V,s,_ = sla.svd( Y @ R.m12.T , full_matrices=False)
-        Pw    = ( V * ( s**2 + (N-1) )**(-1.0) ) @ V.T
-        T     = ( V * ( s**2 + (N-1) )**(-0.5) ) @ V.T * sqrt(N-1)
-        HK    = R.inv @ Y.T @ Pw @ Y
-        #s  = Rm12 @ dy  / sqrt(N-1)
-        #S  = Rm12 @ Y.T / sqrt(N-1)
-        #_,Sig,V_T = sla.svd(S)
-        #V = V_T.T
-        #d = diagz(Sig,N,l1)
-        #G = (V*d**(-1.0))@V.T # = Pw/(N-1)
-        #T = (V*d**(-0.5))@V.T
-      else:
-        # Implementation using eig. val.
-        d,V= eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
-        T  = V@diag(d**(-0.5))@V.T * sqrt(N-1)
-        #KG = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ A
-        Pw = V@diag(d**(-1.0))@V.T
-        HK = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
-      if cfg.rot:
-        T = genOG_1(N) @ T
-      w =  dy @ R.inv @ Y.T @ Pw
-      E = mu + w@A + T@A
+        # Uses symmetric square root (ETKF)
+        if 'explicit' in cfg.AMethod:
+          # Implementation using inv (in ens space)
+          Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
+          T  = sqrtm(Pw) * sqrt(N-1)
+          HK = R.inv @ Y.T @ Pw @ Y
+          #KG = R.inv @ Y.T @ Pw @ A
+        elif 'svd' in cfg.AMethod:
+          # Implementation using svd of Y R^{-1/2}
+          V,s,_ = sla.svd( Y @ R.m12.T , full_matrices=False)
+          d     = s**2 + (N-1)
+          Pw    = ( V * d**(-1.0) ) @ V.T
+          T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
+          trHK  = sum(  d**(-1.0)*s**2 ) # see docs/trHK.jpg
+        elif 'sS' in cfg.AMethod:
+          # Same as SVD, but with an initial sqrt(N-1) rescaling.
+          s     = R.m12 @ dy  / sqrt(N-1)
+          S     = Y @ R.m12.T / sqrt(N-1)
+          V,s,_ = sla.svd(S, full_matrices=False)
+          d     = s**2 + 1
+          Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
+          T     = ( V * d**(-0.5) )@V.T
+          trHK  = sum(  d**(-1.0)*s**2 )
+        else:
+          # Implementation using eig. val. decomp.
+          d,V   = eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
+          T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
+          Pw    = V@diag(d**(-1.0))@V.T
+          HK    = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
+        if cfg.rot:
+          T = genOG_1(N) @ T
+        w = dy @ R.inv @ Y.T @ Pw
+        E = mu + w@A + T@A
     elif 'DEnKF' is cfg.AMethod:
-      C  = Y.T @ Y + R.C*(N-1)
-      KG = A.T @ mrdiv(Y, C)
-      E  = E + KG@dy - 0.5*(KG@Y.T).T
+        # Uses "Deterministic EnKF" (sakov'08)
+        C  = Y.T @ Y + R.C*(N-1)
+        KG = A.T @ mrdiv(Y, C)
+        E  = E + KG@dy - 0.5*(KG@Y.T).T
     else:
-      raise TypeError
+        raise TypeError
     E = inflate_ens(E,cfg.infl)
     #if t<BurnIn:
       #E = inflate_ens(E,1.0 + 0.2*(BurnIn-t)/BurnIn)
 
-    stat = {'trHK': trace(HK)/hnoise.m}
+    # Diagnostic: relative influence of observations
+    if 'HK' in locals():
+      stat = {'trHK': trace(HK)/hnoise.m}
+    else:
+      stat = {'trHK': trHK/hnoise.m}
+
     return E, stat
 
 
@@ -128,23 +139,12 @@ def EnKF_analysis_NT(E,hE,hnoise,y,cfg):
 
 
 
-def pad0(arr,length,val=0):
-  return np.append(arr,val*zeros(length-len(arr)))
-
-def diagz(s,length,l1=1.0,eps=0):
-  if eps:
-    s[s<eps] = 0
-  d  = pad0((l1*s)**2, length)
-  d += 1
-  return d
-
 from scipy.optimize import minimize_scalar as minzs
 
 def EnKF_N(params,cfg,xx,yy):
   """
   Finite-size EnKF (EnKF-N).
   Corresponding to version ql2 of Datum.
-  Not optimized.
   """
 
   f,h,chrono,X0 = params.f, params.h, params.t, params.X0
@@ -220,8 +220,7 @@ def EnKF_N(params,cfg,xx,yy):
 
       E = mu + w@A + T@A
 
-      # see docs/trHK.jpg
-      stats.trHK[kObs] = sum( s*( (l1*s)**2 + (N-1) )**(-1.0)*s ) / h.noise.m
+      stats.trHK[kObs] = sum(((l1*s)**2 + (N-1))**(-1.0)*s**2)/h.noise.m
 
     stats.assess(E,xx,k)
     lplot.update(E,k,kObs)

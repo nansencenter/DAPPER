@@ -23,6 +23,11 @@ def atmost_2d(func):
     answer = func(np.atleast_2d(x),*kargs,**kwargs)
     if answer is not None: return answer.squeeze()
   return wrapr
+
+def pad0(arr,length,val=0):
+  return np.append(arr,val*zeros(length-len(arr)))
+
+
         
 def anom(E):
   mu = mean(E,0)

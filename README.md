@@ -19,9 +19,9 @@
 
 Installation:
 ------------------------------------------------
-Requires python3.5, with scipy.
+Requires python3.5 with scipy.
 
-Then, download, and run:
+Then, download DAPPER, and run:
 
     > python benchmarks.py
 
