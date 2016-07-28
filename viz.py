@@ -5,6 +5,7 @@ from common import *
 
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 
+
 class LivePlot:
   """
   Live plotting functionality.
@@ -19,8 +20,10 @@ class LivePlot:
     self.yy     = yy
     self.params = params
 
-    self.is_on  = False
-    print('Press <Enter> to toggle live plot')
+    self.is_on     = False
+    self.is_paused = False
+    print('Press <Enter> to toggle live plot ON/OFF.')
+    print('Press <Space> then <Enter> to pause.')
 
     #ens_props = {} # yields rainbow
     ens_props = {'color': 0.6*cwhite} # 0.7*cblue
@@ -29,8 +32,8 @@ class LivePlot:
     #####################
     # Amplitudes
     #####################
-    fg = plt.figure(21,figsize=(8,8))
-    fg.clf()
+    self.fga = plt.figure(21,figsize=(8,8))
+    self.fga.clf()
     set_figpos('E (mac)')
 
     self.ax  = plt.subplot(211)
@@ -66,11 +69,12 @@ class LivePlot:
     #####################
     # 3D phase space
     #####################
-    fg3 = plt.figure(23,figsize=(8,6))
-    fg3.clf()
+    self.fg3 = plt.figure(23,figsize=(8,6))
+    self.fg3.clf()
     set_figpos('NE (mac)')
 
-    ax3      = fg3.add_subplot(111,projection='3d')
+    ax3      = self.fg3.add_subplot(111,projection='3d')
+    self.ax3 = ax3
     self.sx  = ax3.scatter(*xx[0,:3]  ,s=300,c='y',marker=(5, 1))
     self.sE  = ax3.scatter(*E[: ,:3].T,s=10,**ens_props)
 
@@ -94,8 +98,8 @@ class LivePlot:
     #####################
     # Diagnostics
     #####################
-    fgd = plt.figure(24,figsize=(8,6))
-    fgd.clf()
+    self.fgd = plt.figure(24,figsize=(8,6))
+    self.fgd.clf()
     set_figpos('SW (mac)')
 
     chrono = params.t
@@ -123,10 +127,26 @@ class LivePlot:
 
   def update(self,E,k,kObs):
 
-    if heardEnter():
-      self.is_on = not self.is_on
+    if self.is_paused:
+      ch = getch()
+      while ch not in [' ','\r']:
+        ch = getch()
+      if '\r' in ch:
+        self.is_paused = False
+
+    key = poll_input()
+    if key is not None:
+      if key == '\n':
+        self.is_on = not self.is_on
+      elif key == ' \n':
+        self.is_on = True
+        self.is_paused = not self.is_paused
+        print("Press <Space> to step. Press <Enter> to resume.")
     if not self.is_on:
       return
+
+
+    open_figns = plt.get_fignums()
 
     N,m = E.shape
     ii  = range(m)
@@ -135,87 +155,91 @@ class LivePlot:
     #####################
     # Amplitudes
     #####################
-    fg2 = plt.figure(21)
-    self.lmu.set_ydata(stats.mu[k,:])
-    self.lx .set_ydata(self.xx[k,:])
+    if plt.fignum_exists(self.fga.number):
+      plt.figure(self.fga.number)
+      self.lmu.set_ydata(stats.mu[k,:])
+      self.lx .set_ydata(self.xx[k,:])
 
-    #for i,l in enumerate(lE):
-      #l.set_ydata(E[i,:])
-    self.CI.remove()
-    self.CI  = self.ax.fill_between(ii, \
-        stats.mu[k,:] - self.ks*sqrt(stats.var[k,:]), \
-        stats.mu[k,:] + self.ks*sqrt(stats.var[k,:]), alpha=0.4)
+      #for i,l in enumerate(lE):
+        #l.set_ydata(E[i,:])
+      self.CI.remove()
+      self.CI  = self.ax.fill_between(ii, \
+          stats.mu[k,:] - self.ks*sqrt(stats.var[k,:]), \
+          stats.mu[k,:] + self.ks*sqrt(stats.var[k,:]), alpha=0.4)
 
-    plt.sca(self.ax)
-    if hasattr(self,'obs'):
-      try:
-        self.obs.remove()
-      except Exception:
-        pass
-      if kObs is not None:
-        self.obs = self.yplot(self.yy[kObs,:])
+      plt.sca(self.ax)
+      if hasattr(self,'obs'):
+        try:
+          self.obs.remove()
+        except Exception:
+          pass
+        if kObs is not None:
+          self.obs = self.yplot(self.yy[kObs,:])
 
-    plt.pause(0.01)
+      A = anom(E)[0]
+      self.ews.set_ydata(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
 
-    A = anom(E)[0]
-    self.ews.set_ydata(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
+      plt.pause(0.01)
 
     #####################
     # 3D phase space
     #####################
-    fg3 = plt.figure(23)
-    self.sx._offsets3d = juggle_axes(*vec2list2(self.xx[k,:3]),'z')
-    self.sE._offsets3d = juggle_axes(*E[:,:3].T,'z')
+    if plt.fignum_exists(self.fg3.number):
+      plt.figure(self.fg3.number)
+      self.sx._offsets3d = juggle_axes(*vec2list2(self.xx[k,:3]),'z')
+      self.sE._offsets3d = juggle_axes(*E[:,:3].T,'z')
 
-    self.tail_xx = np.roll(self.tail_xx,1,axis=0)
-    self.tail_xx[0,:] = self.xx[k,:3]
-    self.ltx.set_data(self.tail_xx[:,0],self.tail_xx[:,1])
-    self.ltx.set_3d_properties(self.tail_xx[:,2])
+      self.tail_xx = np.roll(self.tail_xx,1,axis=0)
+      self.tail_xx[0,:] = self.xx[k,:3]
+      self.ltx.set_data(self.tail_xx[:,0],self.tail_xx[:,1])
+      self.ltx.set_3d_properties(self.tail_xx[:,2])
 
-    self.tail_E = np.roll(self.tail_E,1,axis=0)
-    self.tail_E[0,:,:] = E[:,:3]
-    for n in range(N):
-      self.ltE[n].set_data(self.tail_E[:,n,0],self.tail_E[:,n,1])
-      self.ltE[n].set_3d_properties(self.tail_E[:,n,2])
+      self.tail_E = np.roll(self.tail_E,1,axis=0)
+      self.tail_E[0,:,:] = E[:,:3]
+      for n in range(N):
+        self.ltE[n].set_data(self.tail_E[:,n,0],self.tail_E[:,n,1])
+        self.ltE[n].set_3d_properties(self.tail_E[:,n,2])
 
+      plt.pause(0.01)
+      #self.fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=70)
+    
     #####################
     # Diagnostics
     #####################
-    def update_ylim(data,ax,min0=True):
-      ymax = -np.inf
-      for d in data:
-        ymax = np.maximum(ymax, 1.1 * np.percentile(d,99))
-      if ymax is not ax.get_ylim()[1]:
-        ax.set_ylim(0,ymax)
-      if not min0:
-        ymin = +np.inf
-        for d in data:
-          ymin = np.min(ymin, - 1.1 * np.percentile(-d,99))
-        if ymin is not ax.get_ylim()[0]:
-          ax.set_ylim(ymin,ymax)
+    if plt.fignum_exists(self.fgd.number):
+      plt.figure(self.fgd.number)
+      pkk = arange(self.Kplot)
+      if k > self.Kplot:
+        pkk += (k-self.Kplot)
+      pkk = pkk.astype(int)
+      ptt = self.params.t.tt[pkk]
 
-    fg3 = plt.figure(24)
-    pkk = arange(self.Kplot)
-    if k > self.Kplot:
-      pkk += (k-self.Kplot)
-    pkk = pkk.astype(int)
-    ptt = self.params.t.tt[pkk]
+      self.le.set_data(ptt,stats.rmse[pkk])
+      self.lv.set_data(ptt,stats.rmsv[pkk])
+      self.ax_e.set_xlim(ptt[0],ptt[-1])
+      update_ylim([stats.rmse[pkk],stats.rmsv[pkk]], self.ax_e,Min=0)
+      
+      self.ls.set_data(ptt,stats.skew[pkk])
+      self.lk.set_data(ptt,stats.kurt[pkk])
+      self.ax_i.set_xlim(ptt[0],ptt[-1])
+      update_ylim([stats.skew[pkk],stats.kurt[pkk]], self.ax_i)
 
-    self.le.set_data(ptt,stats.rmse[pkk])
-    self.lv.set_data(ptt,stats.rmsv[pkk])
-    self.ax_e.set_xlim(ptt[0],ptt[-1])
-    update_ylim([stats.rmse[pkk],stats.rmsv[pkk]], self.ax_e)
+      plt.pause(0.01)
+
     
-    self.ls.set_data(ptt,stats.skew[pkk])
-    self.lk.set_data(ptt,stats.kurt[pkk])
-    self.ax_i.set_xlim(ptt[0],ptt[-1])
-    update_ylim([stats.skew[pkk],stats.kurt[pkk]], self.ax_i,min0=False)
 
-
-    plt.pause(0.01)
-    #input("Press Enter to continue...")
-    #fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=70)
-    
+def update_ylim(data,ax,Min=None,Max=None):
+  maxv = minv = -np.inf
+  for d in data:
+    minv, maxv = np.maximum([minv, maxv], \
+        1.1 * array([-1, 1]) * np.percentile(d,[1,99]))
+  minv *= -1
+  if Max is not None:
+    maxv = Max
+  if Min is not None:
+    minv = Min
+  if (minv, maxv) != ax.get_ylim():
+    ax.set_ylim(minv,maxv)
 
 
 def set_ilim(ax,i,data,zoom=1.0):

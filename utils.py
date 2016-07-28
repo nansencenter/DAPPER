@@ -27,19 +27,37 @@ def set_np_linewidth():
 
 
 #stackoverflow.com/q/292095
-#stackoverflow.com/a/25442391/38281
 import select
-def heardEnter():
+def poll_input():
   i,o,e = select.select([sys.stdin],[],[],0.0001)
-  for s in i:
+  for s in i: # Only happens if <Enter> has been pressed
     if s == sys.stdin:
-      input = sys.stdin.readline()
-      return True
-  return False
+      return sys.stdin.readline()
+  return None
 
+# Can't get thread solution working (in combination with getch()):
+# stackoverflow.com/a/25442391/38281
 
-
-
-
-
+# stackoverflow.com/a/21659588/38281
+# (Wait for) any key:
+def _find_getch():
+    try:
+        import termios
+    except ImportError:
+        # Non-POSIX. Return msvcrt's (Windows') getch.
+        import msvcrt
+        return msvcrt.getch
+    # POSIX system. Create and return a getch that manipulates the tty.
+    import sys, tty
+    def _getch():
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+    return _getch
+getch = _find_getch()
 
