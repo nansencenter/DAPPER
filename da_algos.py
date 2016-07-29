@@ -477,9 +477,26 @@ def EnsCheat(params,cfg,xx,yy):
   return stats
 
 
+def Climatology(params,cfg,xx,yy):
+  """
+  A baseline/reference method.
+  """
+  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+
+  mu0   = np.mean(xx,0)
+  A0    = xx - mu0
+  P0    = (A0.T @ A0) / (xx.shape[0] - 1)
+
+  stats = Stats(params)
+  stats.assess_ext(mu0, sqrt(diag(P0)), xx, 0)
+  for k,_,_,_ in progbar(chrono.forecast_range):
+    stats.assess_ext(mu0,sqrt(diag(P0)),xx,k)
+  return stats
+
 def D3Var(params,cfg,xx,yy):
   """
-  3D-Var.
+  3D-Var -- a baseline/reference method.
+  A mix between Climatology() and the Extended KF.
   """
   f,h,chrono,X0 = params.f, params.h, params.t, params.X0
 
@@ -530,7 +547,47 @@ def D3Var(params,cfg,xx,yy):
 
 
 def ExtKF(params,cfg,xx,yy):
-  pass
+  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+
+  R = h.noise.C.C
+  Q = f.noise.C.C
+
+  mu = X0.mu
+  P  = X0.C.C
+
+  stats = Stats(params)
+  stats.assess_ext(mu, sqrt(diag(P)), xx, 0)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    
+    F = f.TLM(mu,t-dt,dt) 
+    # "EKF for the mean". It's probably best to leave this commented
+    # out because the benefit is negligable compared to the additional
+    # cost incurred in estimating the Hessians.
+    # HessCov = zeros(m,1);
+    # for k = 1:m
+    #   HessianF_k = hessianest(@(x) submat(F(t,dt,x), k), X(:,iT-1))
+    #   HessCov(k) = sum(sum( HessianF_k .* P(:,:,iT-1) ))
+    # end
+    # X(:,iT) = X(:,iT) + 1/2*HessCov;
+
+    mu = f.model(mu,t-dt,dt)
+    P  = F@P@F.T + dt*Q
+
+    if kObs is not None:
+      # NB: Inflation
+      P *= cfg.infl
+
+      H  = h.TLM(mu,t)
+      KG = mrdiv(P @ H.T, H@P@H.T + R)
+      y  = yy[kObs,:]
+      mu = mu + KG@(y - h.model(mu,t))
+      KH = KG@H
+      P  = (eye(f.m) - KH) @ P
+      stats.trHK[kObs] = trace(KH)/f.m
+
+    stats.assess_ext(mu,sqrt(diag(P)),xx,k)
+  return stats
 
 
 

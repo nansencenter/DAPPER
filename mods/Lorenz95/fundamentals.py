@@ -1,13 +1,29 @@
 import numpy as np
 from scipy.linalg import circulant
-from misc import rk4
+from misc import rk4, is1d
 
 def lr(x,n,axis=1):
   return np.roll(x,-n,axis=axis)
 
 def dxdt(x,F):
-  a = x.ndim-1
+  a = x.ndim-1 # axis
   return np.multiply(lr(x,1,a)-lr(x,-2,a),lr(x,-1,a)) - x + F
+
+def dfdx(x,t,dt):
+  """
+  Jacobian of x + dt*dxdt.
+  """
+  assert is1d(x)
+  m  = len(x)
+  F  = np.zeros((m,m))
+  md = lambda i: np.mod(i,m)
+  for i in range(m):
+    F[i,i]       = - dt + 1
+    F[i,   i-2 ] = - dt * x[i-1]
+    F[i,md(i+1)] = + dt * x[i-1]
+    F[i,   i-1 ] =   dt *(x[md(i+1)]-x[i-2])
+  #F *= 1.0 # inflate?
+  return F
 
 def step(x0, t, dt):
   return rk4(lambda t,x: dxdt(x,8.0),x0,np.nan,dt)

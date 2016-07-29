@@ -3,7 +3,7 @@
 
 from common import *
 
-from mods.Lorenz95.fundamentals import step, typical_init_params
+from mods.Lorenz95.fundamentals import step, dfdx, typical_init_params
 
 T = 4**5
 t = Chronology(0.05,dkObs=1,T=T,BurnIn=20)
@@ -12,6 +12,7 @@ m = 40
 f = {
     'm': m,
     'model': lambda x,t,dt: step(x,t,dt),
+    'TLM'  : dfdx,
     'noise': 0
     }
 
@@ -25,6 +26,10 @@ obsInds = equi_spaced_integers(m,p)
 def hmod(E,t):
   return E[:,obsInds]
 
+H = zeros((p,m))
+for i,j in enumerate(obsInds):
+  H[i,j] = 1.0
+
 #yplot = lambda y: plt.plot(y,'g*',MarkerSize=15)[0]
 #yplot = lambda y: plt.plot(y,'g')[0]
 def yplot(y):
@@ -35,6 +40,7 @@ def yplot(y):
 h = {
     'm': p,
     'model': hmod,
+    'TLM'  : lambda x,t: H,
     'noise': GaussRV(C=1*eye(p)),
     'plot' : yplot
     }
