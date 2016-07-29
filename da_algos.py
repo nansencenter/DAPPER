@@ -26,6 +26,53 @@ def EnKF(params,cfg,xx,yy):
   return stats
 
 
+def EnKS(params,cfg,xx,yy):
+  """EnKS"""
+
+  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+
+  def reshape_to(E):
+    K,N,m = E.shape
+    return E.transpose([1,0,2]).reshape((N,K*m))
+  def reshape_fr(E,m):
+    N,Km = E.shape
+    K = Km/m
+    return E.reshape((N,K,m)).transpose([1,0,2])
+
+  # Avoid inflating smoothed estimates
+  # (even though a little would be good)
+  cfg.infl, _infl = 1.0, cfg.infl
+  # TODO: Should also avoid rotations
+
+  E = zeros((chrono.K+1,cfg.N,f.m))
+  E[0,:,:] = X0.sample(cfg.N)
+
+  stats = Stats(params)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    E[k,:,:]  = f.model(E[k-1,:,:],t-dt,dt)
+    E[k,:,:] += sqrt(dt)*f.noise.sample(cfg.N)
+
+    if kObs is not None:
+      kLag  = find_1st_ind(chrono.tt >= t-cfg.tLag)
+      kkLag = range(kLag, k+1)
+      ELag  = E[kkLag,:,:]
+
+      hE = h.model(E[k,:,:],t)
+      y  = yy[kObs,:]
+
+      ELag = reshape_to(ELag)
+      ELag,s_now = EnKF_analysis(ELag,hE,h.noise,y,cfg)
+      stats.copy_paste(s_now,kObs)
+      E[kkLag,:,:] = reshape_fr(ELag,f.m)
+      E[k,:,:] = inflate_ens(E[k,:,:],_infl)
+
+  cfg.infl = _infl
+  for k in range(chrono.K+1):
+    stats.assess(E[k,:,:],xx,k)
+  return stats
+
+
 def EnKF_analysis(E,hE,hnoise,y,cfg):
     if 'non-transposed' in cfg.AMethod:
       return EnKF_analysis_NT(E,hE,hnoise,y,cfg)
