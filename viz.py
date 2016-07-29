@@ -37,7 +37,7 @@ class LivePlot:
     set_figpos('E (mac)')
 
     self.ax  = plt.subplot(211)
-    self.lmu,= plt.plot(ii,stats.mu[0,:],'b',lw=2,ls='-',label='Ens.mean'  )
+    self.lmu,= plt.plot(ii,stats.mu[0,:],'b',lw=2,ls='-',label='Ens.mean')
     self.lx ,= plt.plot(ii,xx[0      ,:],'k',lw=3,ls='-',label='Truth')
 
     #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
@@ -216,12 +216,12 @@ class LivePlot:
 
       self.le.set_data(ptt,stats.rmse[pkk])
       self.lv.set_data(ptt,stats.rmsv[pkk])
-      self.ax_e.set_xlim(ptt[0],ptt[-1])
+      self.ax_e.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
       update_ylim([stats.rmse[pkk],stats.rmsv[pkk]], self.ax_e,Min=0)
       
       self.ls.set_data(ptt,stats.skew[pkk])
       self.lk.set_data(ptt,stats.kurt[pkk])
-      self.ax_i.set_xlim(ptt[0],ptt[-1])
+      self.ax_i.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
       update_ylim([stats.skew[pkk],stats.kurt[pkk]], self.ax_i)
 
       plt.pause(0.01)
