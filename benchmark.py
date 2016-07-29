@@ -38,8 +38,12 @@ params.t.T_ = 4**3
 cfg.N         = 40
 cfg.infl      = 1.01
 cfg.AMethod   = 'Sqrt'
-cfg.rot       = True
+cfg.rot       = False
 cfg.da_method = EnKF
+#
+#cfg.tLag      = 2.2
+#cfg.rot       = False
+#cfg.da_method = EnKS;
 #
 #cfg.da_method = EnKF_N
 #cfg.N         = 38

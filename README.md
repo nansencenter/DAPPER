@@ -17,7 +17,7 @@
   * Maxime Tondeur
 * Licence: See licence.txt
 
-Installation:
+Installation
 ------------------------------------------------
 Requires python3.5 with scipy.
 
@@ -25,18 +25,48 @@ Then, download DAPPER, and run:
 
     > python benchmarks.py
 
-Features:
-------------------------------------------------
-Reproduces benchmark results from
-* sakov'2008 (ETKF,DEnKF,EnKF) with LA model and Lorenz'96
-* sakov'2012 (approximately iETKF)
-* bocquet'2012 (EnKF-N)
-* raanes'2014 (Sqrt model noise methods)	
-* raanes'2016 (Thesis: Particle filter, ExtKF, 3D-Var)
-* TODO: bocquet'2015 (EnKF-N)
-* TODO: raanes'2015 (EnKS vs EnRTS)	
-* TODO: bocquet'2014 (EnKS-N)
+Methods
+------------
+* EnKF (Perturbed-Obs,ETKF,DEnKF)
+* EnKF-N
+* EnKS
+* iterative versions of the above
+    (as in Bocquet/Sakov litterature)
+* Extended KF
+* Particle filter (bootstrap)
+* 3D-Var
+* Climatology
 
+
+Models
+------------
+Specs (template: Sakov's EnKF package):
+
+Model name | Linear? | Phys.dim. | state len. | model subspace dim.
+---------- | ------- | --------- | ---------- | ---------------------
+LA         | Yes     | 1D        |  1000      |  51
+Lorenz63   | No      | 0D        |  3         |  2+
+Lorenz95   | No      | 1D        |  40        |  13+
+Lorenz95   | No      | 2x 1D     |  80        |  ?
+MAOOAM     | No      | 2x 1D     |  36        |  ?
+
+
+#### How to add a new model
+* Make a new dir: DAPPER/mods/**your_mod**
+* See other examples, e.g. DAPPER/mods/Lorenz63/sak12.py
+* Make sure that your model (and obs operator) support
+    * **ensemble input**
+      (allowing forecast parallelization is in users's hands)
+    * should not modify in-place.
+    * the same applies for the observation operator/model
+* To begin with, try **small** initial perturbations.
+  Big and sharp (white) might cause your model to blow up!
+* Nice read: "Perfect Model Experiment Overview" section of
+    http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
+
+
+Features
+------------------------------------------------
 Many
 * visualizations 
 * diagnostics
@@ -58,44 +88,8 @@ For -N stuff, compared to Boc's code, DAPPER
 * allows for non-diag R.
 -->
 
-Models
-------------
-Specs (template: Sakov's EnKF package):
 
-Model name | Linear? | Phys.dim. | state len. | model subspace dim.
----------- | ------- | --------- | ---------- | ---------------------
-LA         | Yes     | 1D        |  1000      |  51
-Lorenz63   | No      | 0D        |  3         |  about 2
-Lorenz95   | No      | 1D        |  40        |  13+
-Lorenz95   | No      | 2x 1D     |  80        |  ?
-MAOOAM     | No      | 2x 1D     |  36        |  ?
-
-
-## How to add a new model
-* Make a new dir: DAPPER/mods/**your_mod**
-* See other examples, e.g. DAPPER/mods/Lorenz63/sak12.py
-* Make sure that your model (and obs operator) support
-    * **ensemble input**
-      (allowing forecast parallelization is in users's hands)
-    * should not modify in-place.
-    * the same applies for the observation operator/model
-* To begin with, try **small** initial perturbations.
-  Big and sharp (white) might cause your model to blow up!
-* Nice read: "Perfect Model Experiment Overview" section of http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
-
-
-
-What it can't do:
-------------------------------------------------
-* Store full ensembles (could write to file)
-* Run different DA methods concurrently (i.e. step-by-step)
-     allowing for online (visual or console) comparison
-* Time-dependent noises and length changes in state/obs
-     (but it does support autonomous f and h)
-* Non-uniform time sequences
-
-
-Sugar:
+Sugar
 ------------------------------------------------
 * Progressbar
 * Confidence interval on times series (e.g. rmse) with
@@ -109,7 +103,17 @@ Sugar:
     axis limits esitmated from percentiles)
 
 
-Implementation choices:
+What it can't do
+------------------------------------------------
+* Store full ensembles (could write to file)
+* Run different DA methods concurrently (i.e. step-by-step)
+     allowing for online (visual or console) comparison
+* Time-dependent noises and length changes in state/obs
+     (but it does support autonomous f and h)
+* Non-uniform time sequences
+
+
+Implementation choices
 ------------------------------------------------
 * Uses python version >= 3.5
 * On-line vs off-line stats and diagnostics
@@ -130,7 +134,7 @@ Implementation choices:
     * Deprecated: syntax (* vs @)
 
 
-Alternatives:
+Alternatives
 ------------------------------------------------
 ##### Big
 * DART        (NCAR)
@@ -155,15 +159,14 @@ Alternatives:
 TODO
 ------------------------------------------------
 * iEnKS-N
-* ExtKF
 * Localization
 * add_noise()
-* Add before/after analysis plots
+* before/after analysis viz
 * 1D model from workshop that preserves some quantity
 * 2D model
 * Doc models
-   
-* Should observations return copy? e.g. x[:,obsInds].copy()
+
+* Should (direct) observations return copy? e.g. x[:,obsInds].copy()
 * Take advantage of pass-by-ref
 * Decide on conflicts np vs math vs sp
 
@@ -173,7 +176,7 @@ TODO
 * prevent CovMat from being updated
 
 
-"Outreach":
+"Outreach"
 ---------------
 * http://stackoverflow.com/a/38191145/38281
 * http://stackoverflow.com/a/37861878/38281
