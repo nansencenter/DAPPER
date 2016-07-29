@@ -1,5 +1,5 @@
 
-# L40 is highly sensitive to large gradients.
+# Lorenz95 is highly sensitive to large gradients.
 # Therefore, if we only observe every 4th (e.g.) state component,
 # the members might "blow up" during the forecast,
 # because the assimilation created large gradients.
@@ -48,7 +48,7 @@
 # 
 # Another basis is the harmonic (sine/cosine) functions. Advantages:
 #  - will be orthogonal when evaluated on 40 discrete equidistant points.
-#  - the domain of L40 is periodic: as are sine/cosine.
+#  - the domain of Lorenz95 is periodic: as are sine/cosine.
 #  - (conjecture) in the 2^n dim. case, it yields a matrix of +/- 1's.
 #  - nice "spectral/frequency" interpretation of each observation.
 # Disadvatages:
@@ -68,7 +68,7 @@
 # Am I missing something?
 
 
-from mods.L40.sak08 import *
+from mods.Lorenz95.sak08 import *
 
 # The (m-p) highest frequency observation modes are
 # left out of H below.

@@ -84,7 +84,7 @@ def homogeneous_1D_cov(m,d,kind='Expo'):
   Generate initial correlations for Linear Advection experiment.
   d - decorr length, where the unit distance = m(i)-m(i-1) for all i
   """
-  from mods.L40.fundamentals import mirrored_half_range
+  from mods.Lorenz95.fundamentals import mirrored_half_range
   row1 = mirrored_half_range(m)
 
   # If the correlation function is strictly non-negative,

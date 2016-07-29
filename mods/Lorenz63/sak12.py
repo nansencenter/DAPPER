@@ -3,7 +3,7 @@
 
 from common import *
 
-from mods.L3.fundamentals import step
+from mods.Lorenz63.fundamentals import step
 
 m = 3
 p = m

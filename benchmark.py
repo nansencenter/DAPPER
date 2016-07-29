@@ -11,7 +11,7 @@ np.random.seed(5)
 ############################
 cfg = Settings()
 
-#from mods.L3.sak12 import params
+#from mods.Lorenz63.sak12 import params
 # Expected rmse_a = 0.63 (sak 0.65)
 #cfg.da_method = EnKF
 #cfg.N         = 10
@@ -26,7 +26,7 @@ cfg = Settings()
 #cfg.N         = 800
 #cfg.NER       = 0.1
 
-from mods.L40.sak08 import params
+from mods.Lorenz95.sak08 import params
 params.t.T_ = 4**3
 #
 # Expected rmse_a = 0.175
@@ -44,7 +44,7 @@ cfg.da_method = EnKF
 #cfg.da_method = EnsCheat
 #cfg.da_method = D3Var
 
-#from mods.L40.spectral_obs import params
+#from mods.Lorenz95.spectral_obs import params
 #cfg.N         = 40
 #cfg.infl      = 1.005
 #cfg.AMethod   = 'Sqrt'
