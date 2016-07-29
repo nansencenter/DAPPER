@@ -33,28 +33,56 @@ Reproduces benchmark results from
 * bocquet'2012 (EnKF-N)
 * raanes'2014 (Sqrt model noise methods)	
 * raanes'2016 (Thesis: Particle filter, ExtKF, 3D-Var)
+* TODO: bocquet'2015 (EnKF-N)
 * TODO: raanes'2015 (EnKS vs EnRTS)	
 * TODO: bocquet'2014 (EnKS-N)
-* TODO: bocquet'2015 (EnKF-N)
 
 Many
-* methods
-* models
+* visualizations 
 * diagnostics
 
 
-Highly modular.
+Also:
+* Highly modular.
+* Balance between efficiency and readability.
+* Consistency checks (e.g. time).
 
-Efficient
-E.g. Lorenz-96 uses native vectorization (i.e. fast numpy),  but no parallelization.
+<!---
+E.g. Lorenz-96 uses native vectorization (i.e. fast numpy),
+  but no parallelization.
+-->
 
-Very explicit and readable.
-
-Consistency checks (e.g. time).
-
+<!---
 For -N stuff, compared to Boc's code, DAPPER
 * uses more matrix decompositions (efficiency),
 * allows for non-diag R.
+-->
+
+Models
+------------
+Specs (template: Sakov's EnKF package):
+
+Model name | Linear? | Phys.dim. | state len. | model subspace dim.
+---------- | ------- | --------- | ---------- | ---------------------
+LA         | Yes     | 1D        |  1000      |  51
+Lorenz63   | No      | 0D        |  3         |  about 2
+Lorenz95   | No      | 1D        |  40        |  13+
+Lorenz95   | No      | 2x 1D     |  80        |  ?
+MAOOAM     | No      | 2x 1D     |  36        |  ?
+
+
+## How to add a new model
+* Make a new dir: DAPPER/mods/**your_mod**
+* See other examples, e.g. DAPPER/mods/Lorenz63/sak12.py
+* Make sure that your model (and obs operator) support
+    * **ensemble input**
+      (allowing forecast parallelization is in users's hands)
+    * should not modify in-place.
+    * the same applies for the observation operator/model
+* To begin with, try **small** initial perturbations.
+  Big and sharp (white) might cause your model to blow up!
+* Nice read: "Perfect Model Experiment Overview" section of http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
+
 
 
 What it can't do:
@@ -81,6 +109,27 @@ Sugar:
     axis limits esitmated from percentiles)
 
 
+Implementation choices:
+------------------------------------------------
+* Uses python version >= 3.5
+* On-line vs off-line stats and diagnostics
+* NEW: Use N-by-m ndarrays. Pros:
+    * Python default
+        * speed of (row-by-row) access, especially for models
+        * ordering of random numbers
+    * numpy sometimes returns ndarrays even when input is matrix
+    * works well with ens space formulea,
+        * e.g. 
+        * yields beneficial operator precedence without (). E.g. dy@Ri@Y.T@Pw
+    * Bocquet's choice
+    * Broadcasting
+    * Avoids reshape's and asmatrix
+* OLD: Use m-by-N matrix class. Pros:
+    * Litterature uses m-by-N
+    * Matrix class allowss desired broadcasting
+    * Deprecated: syntax (* vs @)
+
+
 Alternatives:
 ------------------------------------------------
 ##### Big
@@ -103,97 +152,28 @@ Alternatives:
 * pyda        (Hickman)
 
 
-Implementation choices:
-------------------------------------------------
-* Uses python version >= 3.5
-* On-line vs off-line stats and diagnostics
-* NEW: Use N-by-m ndarrays. Pros:
-    * Python default
-        * speed of (row-by-row) access, especially for models
-        * ordering of random numbers
-    * numpy sometimes returns ndarrays even when input is matrix
-    * works well with ens space formulea,
-        * e.g. 
-        * yields beneficial operator precedence without (). E.g. dy@Ri@Y.T@Pw
-    * Bocquet's choice
-    * Broadcasting
-    * Avoids reshape's and asmatrix
-* OLD: Use m-by-N matrix class. Pros:
-    * Litterature uses m-by-N
-    * Matrix class allowss desired broadcasting
-    * Deprecated: syntax (* vs @)
-
-
-How to make a new experiment
-------------------------------------------------
-* For understanding: view "Perfect Model Experiment Overview" section of http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
-
-How to insert new model
-------------------------------------------------
-* Make a new dir: DAPPER/mods/**your_mod**
-* See other examples, e.g. DAPPER/mods/L3/sak12.py
-* Make sure that your model (and obs operator) support
-  **ensemble input**
-* To begin with, try **small** initial perturbations.
-  Big and sharp (white) might cause your model to blow up!
-
-##### Models f, h
-* should not modify in-place.
-* should take ensembles as input.
-   (hence forecast parallelization is in users's hands)
-
 TODO
 ------------------------------------------------
-* LA model
-* PartFilt
+* iEnKS-N
 * ExtKF
-* Climatology
 * Localization
 * add_noise()
+* Add before/after analysis plots
 * 1D model from workshop that preserves some quantity
 * 2D model
-* average obs and truth rank hist
-* iEnKS-N
-* Models come with their own viz specification
-* Toggle LivePlot **on Windows**
+* Doc models
+   
 * Should observations return copy? e.g. x[:,obsInds].copy()
-* 
-* Add before/after analysis plots
-* 
+* Take advantage of pass-by-ref
+* Decide on conflicts np vs math vs sp
+
 * Truncate SVD at 95 or 99% (evensen)
 * unify matrix vs array (e.g. randn)
 * vs 1d array (e.g. xx[:,0] in L3.dxdt)
-* avoid y  = yy[:,kObs].reshape((p,1))
-* Take advantage of pass-by-ref
-* Decide on conflicts np vs math vs sp
 * prevent CovMat from being updated
-* Doc models
 
 
-
-Changelog / Fixes:
-------------------------------------------------
-* Circular import (when using common * in all files)?
-* Forgot sqrt(dt) for mod noise
-* array vs matrix broadcasting
-* Reproduce matlab: +D or -D (obs pert.)
-* Reproduce matlab: myrandn in RVs and EnsUpdateGlob
-* Reproduce matlab: reset LCG seed after EnsUpdateGlob
-* Migrating from global variables to parameter lists (classes) 
-* Matrix --> Array: Too troublesome to always assert that
-   we're dealing with matrices coz numpy tends to return arrays
-* Row vs column-major ordering:
-  * By conforming to python's row-major ordering
-  with the ensemble (i.e. one row <--> one member), we get
-  correct ordering random samples
-  (i.e. adding a new member doesn't change previous draws) 
-  * correct broadcasting with ensemble manipulations
-     * avoid reshaping yy[:,k]
-* OLD: Mathematical (and standard) litterature var. names (i.e. h, R, P, E, A)
-* OLD: Many global namespace imports: from <package> import func1, func2
-
-
-Outreach:
+"Outreach":
 ---------------
 * http://stackoverflow.com/a/38191145/38281
 * http://stackoverflow.com/a/37861878/38281
