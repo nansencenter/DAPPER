@@ -3,7 +3,7 @@
 
 from common import *
 
-from mods.Lorenz63.fundamentals import step
+from mods.Lorenz63.fundamentals import step, dfdx
 
 m = 3
 p = m
@@ -14,8 +14,9 @@ t = Chronology(0.01,dkObs=25,T=T,BurnIn=4)
 
 m = 3
 f = {
-    'm': m,
+    'm'    : m,
     'model': lambda x,t,dt: step(x,t,dt),
+    'TLM'  : dfdx,
     'noise': 0
     }
 
@@ -23,8 +24,9 @@ mu0 = array([1.509, -1.531, 25.46])
 X0 = GaussRV(C=2,mu=mu0)
 
 h = {
-    'm': p,
+    'm'    : p,
     'model': lambda x,t: x,
+    'TLM'  : lambda x,t: eye(3),
     'noise': GaussRV(C=2,m=p)
     }
 

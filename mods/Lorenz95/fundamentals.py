@@ -22,7 +22,6 @@ def dfdx(x,t,dt):
     F[i,   i-2 ] = - dt * x[i-1]
     F[i,md(i+1)] = + dt * x[i-1]
     F[i,   i-1 ] =   dt *(x[md(i+1)]-x[i-2])
-  #F *= 1.0 # inflate?
   return F
 
 def step(x0, t, dt):

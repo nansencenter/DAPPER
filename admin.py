@@ -46,7 +46,6 @@ class Settings:
 
 def Assimilate(params,cfg,xx,yy):
   args = locals()
-  # do stuff
   return cfg.da_method(**args)
 
 

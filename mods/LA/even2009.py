@@ -28,6 +28,7 @@ def step(x,t,dt):
 f = {
     'm': m,
     'model': step,
+    'TLM'  : Fm,
     'noise': 0
     }
 
@@ -47,10 +48,14 @@ def yplot(y):
   plt.pause(0.8)
   return lh
 
+H = zeros((p,m))
+for i,j in enumerate(obsInds):
+  H[i,j] = 1.0
 
 h = {
     'm': p,
     'model': hmod,
+    'TLM'  : lambda x,t: H,
     'noise': GaussRV(C=0.01*eye(p)),
     'plot' : yplot,
     }
