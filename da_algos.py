@@ -67,10 +67,50 @@ def EnKS(params,cfg,xx,yy):
       E[kkLag,:,:] = reshape_fr(ELag,f.m)
       E[k,:,:] = inflate_ens(E[k,:,:],_infl)
 
+  for k in progbar(range(chrono.K+1),desc='Assessing'):
+    stats.assess(E[k,:,:],xx,k)
+
   cfg.infl = _infl
-  for k in range(chrono.K+1):
+  return stats
+
+
+def EnRTS(params,cfg,xx,yy):
+  """EnRTS (Rauch-Tung-Striebel)"""
+
+  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+
+  E  = zeros((chrono.K+1,cfg.N,f.m))
+  Ef = E.copy()
+  E[0,:,:] = X0.sample(cfg.N)
+
+  stats = Stats(params)
+
+  # Forward pass
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    E[k,:,:]  = f.model(E[k-1,:,:],t-dt,dt)
+    E[k,:,:] += sqrt(dt)*f.noise.sample(cfg.N)
+    Ef[k,:,:] = E[k,:,:]
+
+    if kObs is not None:
+      hE = h.model(E[k,:,:],t)
+      y  = yy[kObs,:]
+      E[k,:,:],s_now = EnKF_analysis(E[k,:,:],hE,h.noise,y,cfg)
+      stats.copy_paste(s_now,kObs)
+
+  for k in progbar(range(chrono.K)[::-1],desc='Backward'):
+    A  = anom(E[k,:,:])[0]
+    Af = anom(Ef[k+1,:,:])[0]
+
+    # TODO: make it tinv( , 0.99)
+    J = sla.pinv2(Af) @ A
+    J *= cfg.cntr
+    
+    E[k,:,:] += ( E[k+1,:,:] - Ef[k+1,:,:] ) @ J
+
+  for k in progbar(range(chrono.K+1),desc='Assessing'):
     stats.assess(E[k,:,:],xx,k)
   return stats
+
 
 
 def EnKF_analysis(E,hE,hnoise,y,cfg):

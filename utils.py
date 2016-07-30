@@ -15,9 +15,13 @@ def myprogbar(itrble, desc='Prog.'):
 
 try:
   import tqdm
-  progbar = lambda inds: tqdm.tqdm(inds, desc="Assim.", leave=1)
+  #progbar = lambda inds: tqdm.tqdm(inds, desc="Assim.", leave=1)
+  def progbar(inds, desc="Assim.",leave=1):
+    return tqdm.tqdm(inds,desc=desc,leave=leave)
 except ImportError:
   progbar = lambda inds: myprogbar(inds, desc="Assim.")
+  #def progbar(inds, desc="Assim.",leave=1):
+    #return myprogbar(inds,desc)
 
 from os import popen
 def set_np_linewidth():

@@ -32,7 +32,7 @@ Method name                     | Literature RMSE results reproduced
 ------------------------------- | ---------------------------------------
 EnKF (Stoch., ETKF, DEnKF)      | sakov'2008 ("deterministic")
 EnKF-N                          | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
-EnKS                            | raanes'2015 ("EnRTS and EnKS")
+EnKS, EnRTS                     | raanes'2015 ("EnRTS and EnKS")
 Iterative versions of the above | sakov'2012 ("an iterative"), TODO: bocquet'2014
 Extended KF                     | raanes'2016 thesis
 Particle filter (bootstrap)     | "
