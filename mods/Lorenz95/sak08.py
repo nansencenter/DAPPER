@@ -84,3 +84,24 @@ params = OSSE(f,h,t,X0,**other)
 
 #cfg.da_method = ExtKF; cfg.infl = 1.05
 
+
+
+# params.t.T     = 4**4
+# params.t.dkObs = 3
+# #
+# #cfg.N          = 20
+# ##cfg.infl       = 1.02 # dkObs = 1
+# ##cfg.infl       = 1.10 # dkObs = 3
+# ##cfg.infl       = 1.40 # dkObs = 5
+# #cfg.AMethod    = 'Sqrt'
+# #cfg.rot        = False
+# #cfg.da_method  = EnKF
+# #
+# cfg.da_method = EnKF_N
+# cfg.N         = 20
+# cfg.infl      = 1.0
+# cfg.rot       = False
+# #
+# #params.t.dt    = 0.01
+# #params.t.dkObs = 1
+
