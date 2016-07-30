@@ -27,27 +27,19 @@ Then, download DAPPER, and run:
 
 Methods
 ------------
-* EnKF (Perturbed-Obs,ETKF,DEnKF)
-* EnKF-N
-* EnKS
-* iterative versions of the above
-    (as in Bocquet/Sakov litterature)
-* Extended KF
-* Particle filter (bootstrap)
-* 3D-Var
-* Climatology
 
-<!---
-Reproduces benchmark results from
-sakov'2008 (ETKF,DEnKF,EnKF) with LA model and Lorenz'96
-sakov'2012 (approximately iETKF)
-bocquet'2012 (EnKF-N)
-TODO: raanes'2014 (Sqrt model noise methods)
-raanes'2015 (EnKF,EnKS)
-raanes'2016 (Thesis: Particle filter, ExtKF, 3D-Var)
-bocquet'2015 (EnKF-N)
-TODO: bocquet'2014 (EnKS-N)
--->
+Method name                     | Literature RMSE results reproduced
+------------------------------- | ---------------------------------------
+EnKF (Stoch., ETKF, DEnKF)      | sakov'2008 ("deterministic")
+EnKF-N                          | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
+EnKS                            | raanes'2015 ("EnRTS and EnKS")
+Iterative versions of the above | sakov'2012 ("an iterative"), TODO: bocquet'2014
+Extended KF                     | raanes'2016 thesis
+Particle filter (bootstrap)     | "
+3D-Var                          | "
+Climatology                     | "
+TODO: Sqrt model noise methods  | raanes'2014 ("sqrt model noise")
+
 
 Models
 ------------
@@ -75,7 +67,7 @@ MAOOAM      | No      | 2x 1D     |  36        |  ?
     http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
 
 
-Features
+Additional features
 ------------------------------------------------
 Many
 * visualizations 
@@ -98,9 +90,7 @@ For -N stuff, compared to Boc's code, DAPPER
 * allows for non-diag R.
 -->
 
-
-Sugar
-------------------------------------------------
+####Sugar:
 * Progressbar
 * Confidence interval on times series (e.g. rmse) with
 	* automatic correction for autocorrelation 

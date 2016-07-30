@@ -40,11 +40,28 @@ from mods.Lorenz95.sak08 import params
 #cfg.rot       = True
 #cfg.da_method = EnKF
 #
-#cfg.N         = 20
-#cfg.infl      = 1.04
-#cfg.AMethod   = 'Sqrt'
-#cfg.rot       = False
-#cfg.da_method = EnKF
+
+
+
+params.t.T     = 4**4
+params.t.dkObs = 1
+#
+#cfg.N          = 20
+##cfg.infl       = 1.02 # dkObs = 1
+##cfg.infl       = 1.10 # dkObs = 3
+##cfg.infl       = 1.40 # dkObs = 5
+#cfg.AMethod    = 'Sqrt'
+#cfg.rot        = False
+#cfg.da_method  = EnKF
+#
+cfg.da_method = EnKF_N
+cfg.N         = 20
+cfg.infl      = 1.0
+cfg.rot       = False
+#
+#params.t.dt    = 0.01
+#params.t.dkObs = 1
+
 
 #cfg.da_method = Climatology
 #cfg.da_method = D3Var
@@ -76,8 +93,6 @@ from mods.Lorenz95.sak08 import params
 #cfg.AMethod   = 'PertObs'
 #cfg.rot       = False
 #cfg.da_method = EnKF
-
-params.t.T = 4**3
 
 ############################
 # Generate synthetic truth/obs
