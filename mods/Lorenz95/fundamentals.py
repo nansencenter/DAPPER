@@ -41,3 +41,6 @@ def mirrored_half_range(m):
   return np.roll(np.abs(np.arange(m) - m//2), (m+1)//2)
   #return np.concatenate((range((m+1)//2), range(m//2,0,-1)))
 
+
+
+
