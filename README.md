@@ -37,6 +37,17 @@ Methods
 * 3D-Var
 * Climatology
 
+<!---
+Reproduces benchmark results from
+sakov'2008 (ETKF,DEnKF,EnKF) with LA model and Lorenz'96
+sakov'2012 (approximately iETKF)
+bocquet'2012 (EnKF-N)
+TODO: raanes'2014 (Sqrt model noise methods)
+raanes'2015 (EnKF,EnKS)
+raanes'2016 (Thesis: Particle filter, ExtKF, 3D-Var)
+bocquet'2015 (EnKF-N)
+TODO: bocquet'2014 (EnKS-N)
+-->
 
 Models
 ------------
@@ -55,7 +66,7 @@ MAOOAM      | No      | 2x 1D     |  36        |  ?
 * See other examples, e.g. DAPPER/mods/Lorenz63/sak12.py
 * Make sure that your model (and obs operator) support
     * **ensemble input**
-      (allowing forecast parallelization is in users's hands)
+      (hence forecast parallelization is in users's hands)
     * should not modify in-place.
     * the same applies for the observation operator/model
 * To begin with, try **small** initial perturbations.

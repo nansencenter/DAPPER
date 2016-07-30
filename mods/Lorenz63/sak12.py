@@ -53,3 +53,13 @@ params = OSSE(f,h,t,X0,**other)
 #method      = EnKF
 #cfg.iMax    = 10
 #method      = iEnKF # rmse_a = 0.31
+
+
+#cfg.da_method = PartFilt # rmse_a = 0.275 (N=4000)
+#cfg.N         = 800
+#cfg.NER       = 0.1
+
+#params.t.dkObs = 10
+#cfg.da_method = ExtKF
+#cfg.infl = 1.05
+

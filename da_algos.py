@@ -241,6 +241,9 @@ def EnKF_N(params,cfg,xx,yy):
       l1   = minzs(J, bounds=(LB, 1e2), method='bounded').x
       stats.infl[kObs] = l1
 
+      # Turns it into the ETKF
+      #l1 = 1.0
+
       # Inflate prior.
       # This is strictly equivalent to using zeta formulations.
       # With the Hessian adjustment, it's also equivalent to

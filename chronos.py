@@ -67,16 +67,18 @@ class Chronology:
       else: raise TypeError('Unable to interpret time setup')
     K = int(ceil(K/dkObs)*dkObs)
 
-    # "State variables"
-    self.dt       = dt
-    self.dkObs    = dkObs
-    self.K        = K
+    # "State vars"
+    self._dt      = dt
+    self._dkObs   = dkObs
+    self._K       = K
 
+    # TODO: Prevent these from being written
     self.kk      = arange(K+1)
     self.kkObs   = self.kk[dkObs::dkObs]
 
+    # TODO: Prevent these from being written
     self.dtObs    = dkObs*dt
-    self.T        = dt*K
+    #self.T        = dt*K
     self.KObs     = int(K/dkObs)-1
     assert self.KObs == len(self.kkObs)-1
 
@@ -90,6 +92,27 @@ class Chronology:
     self.kkObsBI = self.kkObs[self.kObsBI:]
     self.ttObsBI = self.ttObs[self.kObsBI:]
 
+  # "State vars"
+  @property
+  def dt(self):
+    return self._dt
+  @dt.setter
+  def dt(self,value):
+    self.__init__(dt=value,dkObs=self.dkObs,K=self.K,BurnIn=self.BurnIn)
+  @property
+  def dkObs(self):
+    return self._dkObs
+  @dkObs.setter
+  def dkObs(self,value):
+    self.__init__(dt=self.dt,dkObs=value,K=self.K,BurnIn=self.BurnIn)
+  @property
+  def K(self):
+    return self._K
+  @K.setter
+  def K(self,value):
+    self.__init__(dt=self.dt,dkObs=self.dkObs,K=value,BurnIn=self.BurnIn)
+
+  # Read-only
   @property
   def tt(self):
     return self.kk * self.dt
@@ -97,13 +120,12 @@ class Chronology:
   def ttObs(self):
     return self.kkObs * self.dt
 
-  # TODO: Include for other variables as well.
-  # TODO: Reverse T_ and T notation
+  # Read/write (but non-state var)
   @property
-  def T_(self):
-    return self.T
-  @T_.setter
-  def T_(self,value):
+  def T(self):
+    return self.dt*self.K
+  @T.setter
+  def T(self,value):
     self.__init__(dt=self.dt,dkObs=self.dkObs,T=value,BurnIn=self.BurnIn)
 
   @property

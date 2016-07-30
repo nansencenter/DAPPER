@@ -81,3 +81,6 @@ params = OSSE(f,h,t,X0,**other)
 #cfg.iMax    = 10
 #method      = iEnKF
 
+
+#cfg.da_method = ExtKF; cfg.infl = 1.05
+

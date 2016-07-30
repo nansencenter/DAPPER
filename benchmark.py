@@ -32,28 +32,25 @@ cfg = Settings()
 
 
 from mods.Lorenz95.sak08 import params
-params.t.T_ = 4**3
 #
 # Expected rmse_a = 0.175
-cfg.N         = 40
-cfg.infl      = 1.01
-cfg.AMethod   = 'Sqrt'
-cfg.rot       = False
-cfg.da_method = EnKF
-#
-#cfg.tLag      = 2.2
-#cfg.rot       = False
-#cfg.da_method = EnKS;
-#
-#cfg.da_method = EnKF_N
-#cfg.N         = 38
-#cfg.infl      = 1.0
+#cfg.N         = 40
+#cfg.infl      = 1.01
+#cfg.AMethod   = 'Sqrt'
 #cfg.rot       = True
+#cfg.da_method = EnKF
+#
+#cfg.N         = 20
+#cfg.infl      = 1.04
+#cfg.AMethod   = 'Sqrt'
+#cfg.rot       = False
+#cfg.da_method = EnKF
 
 #cfg.da_method = Climatology
 #cfg.da_method = D3Var
 #cfg.da_method = ExtKF; cfg.infl = 1.05
 #cfg.da_method = EnsCheat
+
 
 #from mods.Lorenz95.spectral_obs import params
 #cfg.N         = 40
@@ -61,6 +58,16 @@ cfg.da_method = EnKF
 #cfg.AMethod   = 'Sqrt'
 #cfg.rot       = False
 #cfg.da_method = EnKF
+
+
+#from mods.Lorenz95.m33 import params
+#cfg.N         = 25
+#cfg.infl      = 1.08
+#cfg.AMethod   = 'Sqrt'
+#cfg.rot       = False
+#cfg.tLag      = 2.2
+#cfg.da_method = EnKS
+
 
 #from mods.LA.raanes2014 import params
 # Expected rmse_a = 0.3
@@ -70,6 +77,7 @@ cfg.da_method = EnKF
 #cfg.rot       = False
 #cfg.da_method = EnKF
 
+params.t.T = 4**3
 
 ############################
 # Generate synthetic truth/obs
