@@ -69,9 +69,20 @@ params = OSSE(f,h,tseq,X0,**other)
 ####################
 # Suggested tuning
 ####################
+
 # Not carefully tuned
 #cfg.N         = 100
 #cfg.infl      = 1.02
 #cfg.AMethod   = 'PertObs'
 #cfg.rot       = False
 #cfg.da_method = EnKF
+
+# Expected rmse_a = 0.3
+#cfg.N         = 30
+#cfg.infl      = 3.4
+#cfg.AMethod   = 'PertObs'
+#cfg.rot       = False
+#cfg.da_method = EnKF
+
+# NB: Note how inflation is not necessary
+# for good rmse performance.

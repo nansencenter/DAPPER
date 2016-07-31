@@ -15,4 +15,6 @@ params.name = os.path.relpath(__file__,'mods/')
 #cfg.rot       = False
 #cfg.tLag      = 2.0
 #cfg.da_method = EnKS
-
+#
+#cfg.cntr      = 0.99
+#cfg.da_method = EnRTS

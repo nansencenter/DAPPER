@@ -46,7 +46,7 @@ Models
 
 Model name  | Linear? | Phys.dim. | State len. | Model subspace dim.
 ----------- | ------- | --------- | ---------- | ---------------------
-LA          | Yes     | 1D        |  1000      |  51
+Linear Adv. | Yes     | 1D        |  1000      |  51
 Lorenz63    | No      | 0D        |  3         |  2+
 Lorenz95    | No      | 1D        |  40        |  13+
 Lorenz95_2s | No      | 2x 1D     |  256 + 8   |  ?
@@ -146,11 +146,12 @@ Alternatives
 * ?           (DHI)
 
 ##### Medium
+* DAPPER      (Raanes)
 * FilterPy    (R. Labbe)
 * PyIT        (CIPR)
-* Datum       (Raanes)
     
 ##### Small
+* Datum       (Raanes)
 * EnKF-Matlab (Sakov)
 * IEnKS code  (Bocquet)
 * pyda        (Hickman)

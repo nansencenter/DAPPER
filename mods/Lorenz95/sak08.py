@@ -55,25 +55,26 @@ params = OSSE(f,h,t,X0,**other)
 # Suggested tuning
 ####################
 
-#cfg.N = 40
 
+# Reproduce Sakov'2008 "deterministic"
+#cfg.N = 40
 # rmse_a = 0.22
-#cfg.infl    = 1.045 # Requires BurnIn inflation too
 #cfg.infl    = 1.06
+#cfg.infl    = 1.045 # Requires BurnIn inflation too
 #cfg.AMethod = 'PertObs non-transposed'
 #method      = EnKF
-
+#
 # rmse_a = 0.175
 #cfg.infl    = 1.01
 #cfg.AMethod = 'Sqrt'
 #cfg.rot     = True
 #method      = EnKF
-
+#
 # rmse_a = 0.18
 #cfg.infl    = 1.01
 #cfg.AMethod = 'DEnKF'
 #method      = EnKF
-
+#
 # rmse_a = 0.17
 #cfg.infl    = 1.01
 #cfg.AMethod = 'Sqrt'
@@ -86,7 +87,9 @@ params = OSSE(f,h,t,X0,**other)
 
 
 
+# Reproduce Bocquet'2015 "expanding"
 # params.t.T     = 4**4
+# params.t.dt    = 0.05
 # params.t.dkObs = 3
 # #
 # #cfg.N          = 20

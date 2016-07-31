@@ -51,8 +51,9 @@ params = OSSE(f,h,t,X0,**other)
 #cfg.AMethod = 'Sqrt'
 #cfg.rot     = True
 #method      = EnKF
-#cfg.iMax    = 10
+#
 #method      = iEnKF # rmse_a = 0.31
+#cfg.iMax    = 10
 
 
 #cfg.da_method = PartFilt # rmse_a = 0.275 (N=4000)

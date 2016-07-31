@@ -31,14 +31,13 @@ cfg = Settings()
 #cfg.infl = 1.05
 
 
-#from mods.Lorenz95.sak08 import params
+from mods.Lorenz95.sak08 import params
 #
-# Expected rmse_a = 0.175
-#cfg.N         = 40
-#cfg.infl      = 1.01
-#cfg.AMethod   = 'Sqrt'
-#cfg.rot       = True
-#cfg.da_method = EnKF
+cfg.N         = 38
+cfg.infl      = 1.01
+cfg.AMethod   = 'Sqrt'
+cfg.rot       = True
+cfg.da_method = EnKF
 #
 #cfg.da_method = Climatology
 #cfg.da_method = D3Var
@@ -46,32 +45,10 @@ cfg = Settings()
 #cfg.da_method = EnsCheat
 
 #from mods.Lorenz95.spectral_obs import params
-#cfg.N         = 40
-#cfg.infl      = 1.005
-#cfg.AMethod   = 'Sqrt'
-#cfg.rot       = False
-#cfg.da_method = EnKF
-
-
-from mods.Lorenz95.m33 import params
-params.t.T = 4**3
-cfg.N         = 25
-cfg.infl      = 1.08
-cfg.AMethod   = 'Sqrt'
-cfg.rot       = False
-#cfg.tLag      = 2.2
-#cfg.da_method = EnKS
-cfg.cntr      = 0.99
-cfg.da_method = EnRTS
-
+#from mods.Lorenz95.m33 import params
 
 #from mods.LA.raanes2014 import params
-# Expected rmse_a = 0.3
-#cfg.N         = 30
-#cfg.infl      = 3.4
-#cfg.AMethod   = 'PertObs'
-#cfg.rot       = False
-#cfg.da_method = EnKF
+
 
 ############################
 # Generate synthetic truth/obs
