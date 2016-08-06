@@ -57,13 +57,14 @@ class LivePlot:
     self.ax.set_xlabel('State index')
 
     ax2 = plt.subplot(212)
-    A   = anom(E)[0]
-    # TODO: Very wasteful (e.g. LA: m=1000)
-    # Do as Sakov, and use fft?
-    self.ews, = ax2.plot(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
+    self.lmf, = ax2.plot(1+arange(m),abs(stats.umisf[0,:]),           'k',lw=2,label='Error')
+    sprd = stats.svals[0,:]
+    self.lew, = ax2.plot(1+arange(len(sprd)),sprd,'b',lw=2,label='Spread',alpha=0.9)
     ax2.set_xlabel('Sing. value index')
     ax2.set_yscale('log')
-    ax2.set_ylim([1e-3,1e1])
+    ax2.set_ylim(bottom=1e-5)
+    ax2.legend()
+    #ax2.set_ylim([1e-3,1e1])
 
 
     #####################
@@ -176,8 +177,8 @@ class LivePlot:
         if kObs is not None:
           self.obs = self.yplot(self.yy[kObs,:])
 
-      A = anom(E)[0]
-      self.ews.set_ydata(sqrt(np.maximum(0,eigh(A @ A.T)[0][-min(N-1,m):])))
+      self.lew.set_ydata(stats.svals[k,:])
+      self.lmf.set_ydata(abs(stats.umisf[k,:]))
 
       plt.pause(0.01)
 
@@ -336,24 +337,38 @@ def integer_hist(E,N,centrd=False,**kwargs):
   ax.hist(E,bins=N+1,range=rnge,normed=1,**kwargs)
   ax.set_xlim(rnge)
 
-def plot_rh(xx,stats,chrono,N,dims=None):
+def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
+  if not hasattr(cfg,'N'):
+    return
+  m = xx.shape[1]
   if not dims:
-    m = xx.shape[1]
-    dims = arange(xx.shape[1])
+    dims = arange(m)
     d_text = '(averaged over all dims)'
   else:
     d_text = '(dims: ' + str(dims) + ')'
 
   has_been_computed = not all(stats.rh[-1,:] == 0)
   if has_been_computed:
-    fg = plt.figure(13,figsize=(8,5)).clf()
+    fg = plt.figure(13,figsize=(8,6)).clf()
     set_figpos('NE')
-    ax_H = plt.subplot(111)
+
+    ax_H = plt.subplot(211)
     ax_H.set_title('Rank histogram ' + d_text)
     ax_H.set_ylabel('frequency of occurance\n (of truth in interval n)')
     ax_H.set_xlabel('ensemble member index (n)')
-    integer_hist(stats.rh[chrono.kkBI,:].ravel(),N,alpha=0.5)
+    ax_H.set_position([0.125,0.6, 0.78, 0.34])
+    integer_hist(stats.rh[chrono.kkBI,:].ravel(),cfg.N,alpha=0.5)
 
+    ax_s = plt.subplot(212)
+    ax_s.set_xlabel('Sing. value index')
+    ax_s.set_ylabel('RMS')
+    ax_s.plot(1+arange(m),mean(abs(stats.umisf),0),'k',lw=2, label='Error')
+    sprd = mean(stats.svals,0)
+    ax_s.fill_between(1+arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.4,label='Spread')
+    ax_s.set_title('Spectral error comparison')
+    ax_s.set_yscale('log')
+    ax_s.set_ylim(bottom=1e-5*sum(sprd))
+    ax_s.legend()
 
 
 def set_figpos(case):

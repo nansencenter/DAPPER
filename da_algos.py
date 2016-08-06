@@ -7,7 +7,7 @@ def EnKF(params,cfg,xx,yy):
 
   E = X0.sample(cfg.N)
 
-  stats = Stats(params)
+  stats = Stats(params,cfg)
   stats.assess(E,xx,0)
   lplot = LivePlot(params,E,stats,xx,yy)
 
@@ -20,6 +20,14 @@ def EnKF(params,cfg,xx,yy):
       y  = yy[kObs,:]
       E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg)
       stats.copy_paste(s_now,kObs)
+
+      # Spectral inflation
+      if hasattr(cfg,'mv_infl'):
+        A,mu = anom(E)
+        V,s,UT = svd(A,full_matrices=False)
+        s *= cfg.mv_infl
+        A = (V*s) @ UT
+        E = mu + A
 
     stats.assess(E,xx,k)
     lplot.update(E,k,kObs)
@@ -47,7 +55,7 @@ def EnKS(params,cfg,xx,yy):
   E = zeros((chrono.K+1,cfg.N,f.m))
   E[0,:,:] = X0.sample(cfg.N)
 
-  stats = Stats(params)
+  stats = Stats(params,cfg)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E[k,:,:]  = f.model(E[k-1,:,:],t-dt,dt)
@@ -83,7 +91,7 @@ def EnRTS(params,cfg,xx,yy):
   Ef = E.copy()
   E[0,:,:] = X0.sample(cfg.N)
 
-  stats = Stats(params)
+  stats = Stats(params,cfg)
 
   # Forward pass
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -249,7 +257,7 @@ def EnKF_N(params,cfg,xx,yy):
   Rm12 = h.noise.C.m12
   Ri   = h.noise.C.inv
 
-  stats = Stats(params)
+  stats = Stats(params,cfg)
   stats.assess(E,xx,0)
   stats.infl = zeros(chrono.KObs+1)
   lplot = LivePlot(params,E,stats,xx,yy)
@@ -327,7 +335,7 @@ def iEnKF(params,cfg,xx,yy):
   N = cfg.N
 
   E = X0.sample(N)
-  stats = Stats(params)
+  stats = Stats(params,cfg)
   stats.assess(E,xx,0)
   stats.iters = zeros(chrono.KObs+1)
   lplot = LivePlot(params,E,stats,xx,yy)
@@ -425,7 +433,7 @@ def PartFilt(params,cfg,xx,yy):
 
   Rm12 = h.noise.C.m12
 
-  stats            = Stats(params)
+  stats            = Stats(params,cfg)
   stats.N_eff      = zeros(chrono.KObs+1)
   stats.nResamples = 0
   stats.assess(E,xx,0)
@@ -537,7 +545,7 @@ def EnsCheat(params,cfg,xx,yy):
 
   E = X0.sample(cfg.N)
 
-  stats = Stats(params)
+  stats = Stats(params,cfg)
   stats.assess(E,xx,0)
   lplot = LivePlot(params,E,stats,xx,yy)
 
@@ -577,7 +585,7 @@ def Climatology(params,cfg,xx,yy):
   A0    = xx - mu0
   P0    = (A0.T @ A0) / (xx.shape[0] - 1)
 
-  stats = Stats(params)
+  stats = Stats(params,cfg)
   stats.assess_ext(mu0, sqrt(diag(P0)), xx, 0)
   for k,_,_,_ in progbar(chrono.forecast_range):
     stats.assess_ext(mu0,sqrt(diag(P0)),xx,k)
@@ -621,7 +629,7 @@ def D3Var(params,cfg,xx,yy):
 
   mu = X0.mu
 
-  stats = Stats(params)
+  stats = Stats(params,cfg)
   stats.assess_ext(mu, sqrt(diag(P0)), xx, 0)
   stats.trHK[:] = trace(H@KG)/h.noise.m
 
@@ -645,7 +653,7 @@ def ExtKF(params,cfg,xx,yy):
   mu = X0.mu
   P  = X0.C.C
 
-  stats = Stats(params)
+  stats = Stats(params,cfg)
   stats.assess_ext(mu, sqrt(diag(P)), xx, 0)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -687,35 +695,78 @@ def ExtKF(params,cfg,xx,yy):
 class Stats:
   """Contains and computes peformance stats."""
   # TODO: Include skew/kurt?
-  def __init__(self,params):
+  def __init__(self,params,cfg):
     self.params = params
     m    = params.f.m
     K    = params.t.K
     KObs = params.t.KObs
+    N    = cfg.N
+    m_Nm = np.minimum(m,N)
     #
-    self.mu   = zeros((K+1,m))
-    self.var  = zeros((K+1,m))
-    self.skew = zeros(K+1)
-    self.kurt = zeros(K+1)
-    self.err  = zeros((K+1,m))
-    self.rmsv = zeros(K+1)
-    self.rmse = zeros(K+1)
-    self.trHK = zeros(KObs+1)
-    self.rh   = zeros((K+1,m))
+    self.mu    = zeros((K+1,m))
+    self.var   = zeros((K+1,m))
+    self.svals = zeros((K+1,m_Nm))
+    self.umisf = zeros((K+1,m))
+    self.smisf = zeros(K+1)
+    self.ldet  = zeros(K+1)
+    self.logp  = zeros(K+1)
+    self.logp_r= zeros(K+1)
+    self.skew  = zeros(K+1)
+    self.kurt  = zeros(K+1)
+    self.err   = zeros((K+1,m))
+    self.rmsv  = zeros(K+1)
+    self.rmse  = zeros(K+1)
+    self.trHK  = zeros(KObs+1)
+    self.rh    = zeros((K+1,m))
 
   def assess(self,E,x,k):
     assert(type(E) is np.ndarray)
-    N,m           = E.shape
-    self.mu[k,:]  = mean(E,0)
-    A             = E - self.mu[k,:]
-    self.var[k,:] = sum(A**2,0) / (N-1)
-    self.skew[k]  = mean( sum(A**3,0)/N / self.var[k,:]**(3/2) )
-    self.kurt[k]  = mean( sum(A**4,0)/N / self.var[k,:]**2 - 3 )
-    self.err[k,:] = self.mu[k,:] - x[k,:]
-    self.rmsv[k]  = sqrt(mean(self.var[k,:]))
-    self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
-    Ex_sorted     = np.sort(np.vstack((E,x[k,:])),axis=0,kind='heapsort')
-    self.rh[k,:]  = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
+    N,m             = E.shape
+    self.mu[k,:]    = mean(E,0)
+    A               = E - self.mu[k,:]
+    self.var[k,:]   = sum(A**2,0) / (N-1)
+    self.skew[k]    = mean( sum(A**3,0)/N / self.var[k,:]**(3/2) )
+    self.kurt[k]    = mean( sum(A**4,0)/N / self.var[k,:]**2 - 3 )
+    self.err[k,:]   = x[k,:] - self.mu[k,:]
+    self.rmsv[k]    = sqrt(mean(self.var[k,:]))
+    self.rmse[k]    = sqrt(mean(self.err[k,:]**2))
+
+
+
+    V,s,UT          = svd(A)
+    s              /= sqrt(N-1)
+    self.svals[k]   = s
+    s               = s[s>1e-4]
+    r               = np.minimum(len(s),5)
+    s               = s[:r]
+
+    # Full-joint Gaussian log score
+    #alpha           = 1/20*mean(s)
+    alpha           = 1e-2*sum(s)
+    # Truncating s by alpha doesnt work:
+    #s               = s[s>alpha]
+    #r               = len(s)
+    s2_full         = array(list(s**2) + [alpha]*(m-r))
+    ldet            = sum(log(s2_full)) / m
+    umisf           = UT @ self.err[k,:]
+    nmisf           = (s2_full)**(-1/2) * umisf
+    logp            = ldet + sum(nmisf**2)
+    self.umisf[k,:] = umisf
+    self.smisf[k]   = sum(nmisf**2)/m
+    self.ldet[k]    = ldet/m
+    self.logp[k]    = logp/m
+
+    # Reduced-Joint Gaussian log score
+    ldet            = log(prod(s**2))
+    nmisf           = s**(-1) * (UT[:r,:] @ self.err[k,:])
+    logp_r          = sum(nmisf**2) + ldet
+    self.logp_r[k]  = logp_r/r
+
+    # TODO: Marginal (make it non-G?) log score
+
+    # Rank histogram
+    Ex_sorted       = np.sort(np.vstack((E,x[k,:])),axis=0,kind='heapsort')
+    self.rh[k,:]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
 
   def assess_w(self,E,x,k,w):
     assert(type(E) is np.ndarray)
