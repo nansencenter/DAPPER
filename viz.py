@@ -329,6 +329,16 @@ def plot_time_series(xx,stats,chrono, \
   ax_e.set_xlabel('time (t)')
 
 
+  fgH = plt.figure(16,figsize=(6,5)).clf()
+  m = xx.shape[1]
+  plt.contourf(1+arange(m),tt[pkk],xx[pkk,:])
+  plt.colorbar()
+  ax = plt.gca()
+  ax.set_title('Hovmoller diagram')
+  ax.set_xlabel('Dimension index (i)')
+  ax.set_ylabel('Time (t)')
+
+
 
 def integer_hist(E,N,centrd=False,**kwargs):
   """Histogram for integers."""
@@ -336,6 +346,7 @@ def integer_hist(E,N,centrd=False,**kwargs):
   rnge = (-0.5,N+0.5) if centrd else (0,N+1)
   ax.hist(E,bins=N+1,range=rnge,normed=1,**kwargs)
   ax.set_xlim(rnge)
+
 
 def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
   if not hasattr(cfg,'N'):
@@ -347,21 +358,24 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
   else:
     d_text = '(dims: ' + str(dims) + ')'
 
-  has_been_computed = not all(stats.rh[-1,:] == 0)
+  fgE = plt.figure(15,figsize=(8,6)).clf()
+  ax_r = plt.subplot(211)
+  ax_r.set_xlabel('Dimension index')
+  ax_r.set_ylabel('Time-average magnitude')
+  ax_r.plot(1+arange(m),mean(abs(stats.err),0),'k',lw=2, label='Error')
+  sprd = mean(sqrt(stats.var),0) # NOT exactly RMSV
+  ax_r.fill_between(1+arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.4,label='Spread')
+  ax_r.set_title('Dimensional error comparison')
+  ax_r.set_yscale('log')
+  ax_r.set_ylim(bottom=1e-5*sum(sprd))
+  ax_r.legend()
+  ax_r.set_position([0.125,0.6, 0.78, 0.34])
+
+  ax_s = plt.subplot(212)
+  has_been_computed = not all(stats.umisf[-1,:] == 0)
   if has_been_computed:
-    fg = plt.figure(13,figsize=(8,6)).clf()
-    set_figpos('NE')
-
-    ax_H = plt.subplot(211)
-    ax_H.set_title('Rank histogram ' + d_text)
-    ax_H.set_ylabel('frequency of occurance\n (of truth in interval n)')
-    ax_H.set_xlabel('ensemble member index (n)')
-    ax_H.set_position([0.125,0.6, 0.78, 0.34])
-    integer_hist(stats.rh[chrono.kkBI,:].ravel(),cfg.N,alpha=0.5)
-
-    ax_s = plt.subplot(212)
     ax_s.set_xlabel('Sing. value index')
-    ax_s.set_ylabel('RMS')
+    ax_s.set_ylabel('Time-average magnitude')
     ax_s.plot(1+arange(m),mean(abs(stats.umisf),0),'k',lw=2, label='Error')
     sprd = mean(stats.svals,0)
     ax_s.fill_between(1+arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.4,label='Spread')
@@ -369,6 +383,28 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
     ax_s.set_yscale('log')
     ax_s.set_ylim(bottom=1e-5*sum(sprd))
     ax_s.legend()
+
+
+  fg = plt.figure(13,figsize=(8,6)).clf()
+  set_figpos('NE')
+  #
+  has_been_computed = not all(stats.rh[-1,:] == 0)
+  if has_been_computed:
+    ax_H = plt.subplot(211)
+    ax_H.set_title('Rank histogram ' + d_text)
+    ax_H.set_ylabel('Freq. of occurence\n (of truth in interval n)')
+    ax_H.set_xlabel('ensemble member index (n)')
+    ax_H.set_position([0.125,0.6, 0.78, 0.34])
+    integer_hist(stats.rh[chrono.kkBI,:].ravel(),cfg.N,alpha=0.5)
+
+    ax_R = plt.subplot(212)
+    #ax_R.set_title('RMSE histogram')
+    ax_R.set_ylabel('Num. of occurence')
+    ax_R.set_xlabel('RMSE value')
+    ax_R.hist(stats.rmse[chrono.kkBI],alpha=0.5,bins=30,normed=0)
+  
+
+  
 
 
 def set_figpos(case):

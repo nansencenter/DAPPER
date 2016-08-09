@@ -166,6 +166,7 @@ TODO
 * 1D model from workshop that preserves some quantity
 * 2D model
 * Doc models
+* Hovmoller diagram
 
 * Should (direct) observations return copy? e.g. x[:,obsInds].copy()
 * Take advantage of pass-by-ref
