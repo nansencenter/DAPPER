@@ -711,6 +711,7 @@ class Stats:
     self.ldet  = zeros(K+1)
     self.logp  = zeros(K+1)
     self.logp_r= zeros(K+1)
+    self.logp_m= zeros(K+1)
     self.skew  = zeros(K+1)
     self.kurt  = zeros(K+1)
     self.err   = zeros((K+1,m))
@@ -757,12 +758,16 @@ class Stats:
     self.logp[k]    = logp/m
 
     # Reduced-Joint Gaussian log score
-    ldet            = log(prod(s**2))
+    ldet            = sum(log(s**2))
     nmisf           = s**(-1) * (UT[:r,:] @ self.err[k,:])
     logp_r          = sum(nmisf**2) + ldet
     self.logp_r[k]  = logp_r/r
 
-    # TODO: Marginal (make it non-G?) log score
+    # Marginal (make it non-G?) log score
+    ldet            = sum(log(self.var[k]))
+    nmisf           = self.var[k]**(-1/2) * self.err[k,:]
+    logp_m          = sum(nmisf**2) + ldet
+    self.logp_m[k]  = logp_m/m
 
     # Rank histogram
     Ex_sorted       = np.sort(np.vstack((E,x[k,:])),axis=0,kind='heapsort')

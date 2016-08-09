@@ -21,6 +21,8 @@ from mods.Lorenz95.fundamentals import lr
 # Typically dt0bs = 0.01 and dt = dtObs/10.
 # But for EnKF (full system) they use dt = dtObs coz
 # "numerical stiffness disappears when fast processes are removed".
+#
+# Also see mitchell2014
 
 nX= 8  # of X
 J = 32 # of Y per X 

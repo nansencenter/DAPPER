@@ -33,8 +33,8 @@ cfg = Settings()
 
 #from mods.Lorenz95.sak08 import params
 ##
-#cfg.N         = 38
-#cfg.infl      = 1.02
+#cfg.N         = 24
+#cfg.infl      = 1.018
 #cfg.AMethod   = 'Sqrt'
 #cfg.rot       = True
 #cfg.da_method = EnKF
@@ -49,13 +49,12 @@ cfg = Settings()
 
 from mods.LA.raanes2014 import params
 cfg.N         = 30
-cfg.infl      = 1.01
-#cfg.infl      = 3.4 # Why is rmse performance so insensitive to inflation
+cfg.infl      = 3.4 # Why is rmse performance so insensitive to inflation
 cfg.AMethod   = 'PertObs'
 cfg.rot       = False
 cfg.da_method = EnKF
 
-#params.t.T = 4**3.5
+#params.t.T = 4**4
 
 
 ############################
@@ -91,10 +90,12 @@ print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMSV: {:8.5f}'\
     #.format(*series_mean_with_conf(s.smisf[chrono.kkObsBI])))
 #print('Mean analysis ldet: {: 8.5f} +/- {:<5g}' \
     #.format(*series_mean_with_conf(s.ldet[chrono.kkObsBI])))
-print('Mean analysis logp: {: 8.5f} +/- {:<5g}' \
+print('Mean analysis  GLS: {: 8.5f} +/- {:<5g}' \
     .format(*series_mean_with_conf(s.logp[chrono.kkObsBI])))
-print('Mean analys logp_r: {: 8.5f} +/- {:<5g}' \
+print('Mean analysis RGLS: {: 8.5f} +/- {:<5g}' \
     .format(*series_mean_with_conf(s.logp_r[chrono.kkObsBI])))
+print('Mean analysis MGLS: {: 8.5f} +/- {:<5g}' \
+    .format(*series_mean_with_conf(s.logp_m[chrono.kkObsBI])))
 
 ############################
 # Plot
