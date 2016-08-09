@@ -732,8 +732,13 @@ class Stats:
     self.rmsv[k]    = sqrt(mean(self.var[k,:]))
     self.rmse[k]    = sqrt(mean(self.err[k,:]**2))
 
+    # Marginal log score
+    ldet            = sum(log(self.var[k]))
+    nmisf           = self.var[k]**(-1/2) * self.err[k,:]
+    logp_m          = sum(nmisf**2) + ldet
+    self.logp_m[k]  = logp_m/m
 
-
+    # Preparation for log score
     V,s,UT          = svd(A)
     s              /= sqrt(N-1)
     self.svals[k]   = s
@@ -762,12 +767,6 @@ class Stats:
     nmisf           = s**(-1) * (UT[:r,:] @ self.err[k,:])
     logp_r          = sum(nmisf**2) + ldet
     self.logp_r[k]  = logp_r/r
-
-    # Marginal (make it non-G?) log score
-    ldet            = sum(log(self.var[k]))
-    nmisf           = self.var[k]**(-1/2) * self.err[k,:]
-    logp_m          = sum(nmisf**2) + ldet
-    self.logp_m[k]  = logp_m/m
 
     # Rank histogram
     Ex_sorted       = np.sort(np.vstack((E,x[k,:])),axis=0,kind='heapsort')
