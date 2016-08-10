@@ -705,6 +705,7 @@ class Stats:
     #
     self.mu    = zeros((K+1,m))
     self.var   = zeros((K+1,m))
+    self.mad   = zeros((K+1,m))
     self.svals = zeros((K+1,m_Nm))
     self.umisf = zeros((K+1,m))
     self.smisf = zeros(K+1)
@@ -725,7 +726,8 @@ class Stats:
     N,m             = E.shape
     self.mu[k,:]    = mean(E,0)
     A               = E - self.mu[k,:]
-    self.var[k,:]   = sum(A**2,0) / (N-1)
+    self.var[k,:]   = sum(A**2  ,0) / (N-1)
+    self.mad[k,:]   = sum(abs(A),0) / (N-1)
     self.skew[k]    = mean( sum(A**3,0)/N / self.var[k,:]**(3/2) )
     self.kurt[k]    = mean( sum(A**4,0)/N / self.var[k,:]**2 - 3 )
     self.err[k,:]   = x[k,:] - self.mu[k,:]

@@ -360,14 +360,14 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
 
   fgE = plt.figure(15,figsize=(8,6)).clf()
   ax_r = plt.subplot(211)
-  ax_r.set_xlabel('Dimension index')
+  ax_r.set_xlabel('Component index')
   ax_r.set_ylabel('Time-average magnitude')
   ax_r.plot(1+arange(m),mean(abs(stats.err),0),'k',lw=2, label='Error')
-  sprd = mean(sqrt(stats.var),0) # NOT exactly RMSV
+  sprd = mean(stats.mad,0)
   ax_r.fill_between(1+arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.4,label='Spread')
-  ax_r.set_title('Dimensional error comparison')
-  ax_r.set_yscale('log')
-  ax_r.set_ylim(bottom=1e-5*sum(sprd))
+  ax_r.set_title('Element-wise error comparison')
+  #ax_r.set_yscale('log')
+  ax_r.set_ylim(bottom=mean(sprd)/10)
   ax_r.legend()
   ax_r.set_position([0.125,0.6, 0.78, 0.34])
 
@@ -381,7 +381,7 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
     ax_s.fill_between(1+arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.4,label='Spread')
     ax_s.set_title('Spectral error comparison')
     ax_s.set_yscale('log')
-    ax_s.set_ylim(bottom=1e-5*sum(sprd))
+    ax_s.set_ylim(bottom=1e-4*sum(sprd))
     ax_s.legend()
 
 
