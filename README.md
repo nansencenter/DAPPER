@@ -4,22 +4,31 @@
     | |) / _ \|  _/  _/ _||   /
     |___/_/ \_\_| |_| |___|_|_\
 
+Data Assimilation Platform in Python for Experimental Reasearch
 
 ![EnKF - Lorenz'63](./figs/Lor63_ens_anim_2.gif)
 
-* DAPPER is a platform for "twin experiments", where you
-  * Specify your model (must support ensemble input)
-  * Generate a synthetic truth
-  * Generate synthetic obs
-  * Benchmark different DA methods
+* DAPPER lets you benchmark data assimilation (DA) methods
+* The typical set-up is a "twin experiment", where you
+  * specify a
+      * dynamic model 
+      * observational model 
+  * use these to generate a synthetic
+      * "truth"
+      * and observations thereof
+  * assess how different DA methods
+      perform in estimating the truth
+* Licence: See licence.txt
+
+<!---
 * Developed at the Nansen centre. Contributors:
   * Patrick N. Raanes
   * Maxime Tondeur
-* Licence: See licence.txt
+-->
 
 Installation
 ------------------------------------------------
-Requires python3.5 with scipy.
+Prerequisite: python3.5 with scipy.
 
 Then, download DAPPER, and run:
 
