@@ -32,7 +32,7 @@ Prerequisite: python3.5 with scipy.
 
 Then, download DAPPER, and run:
 
-    > python benchmarks.py
+    > python -i benchmarks.py
 
 Methods
 ------------
@@ -169,14 +169,11 @@ Alternatives
 
 TODO
 ------------------------------------------------
-* iEnKS-N
 * Localization
 * add_noise()
-* before/after analysis viz
-* 1D model from workshop that preserves some quantity
+* 1D model preserving some quantity (aside from L95)
 * 2D model
 * Doc models
-* Hovmoller diagram
 
 * Should (direct) observations return copy? e.g. x[:,obsInds].copy()
 * Take advantage of pass-by-ref

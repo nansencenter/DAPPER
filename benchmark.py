@@ -81,16 +81,12 @@ print('Mean analysis RMSE: {: 8.5f} +/- {:<5g},    RMV: {:8.5f}'\
     .format(*series_mean_with_conf(s.rmse[chrono.kkObsBI]),mean(s.rmv[chrono.kkObsBI])))
 print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMV: {:8.5f}'\
     .format(*series_mean_with_conf(s.rmse[chrono.kkObsBI-1]),mean(s.rmv[chrono.kkObsBI-1])))
-#print('Mean analysis misf: {: 8.5f} +/- {:<5g}' \
-    #.format(*series_mean_with_conf(s.smisf[chrono.kkObsBI])))
-#print('Mean analysis ldet: {: 8.5f} +/- {:<5g}' \
-    #.format(*series_mean_with_conf(s.ldet[chrono.kkObsBI])))
 print('Mean analysis MGSL: {: 8.5f} +/- {:<5g}' \
     .format(*series_mean_with_conf(s.logp_m[chrono.kkObsBI])))
-print('Mean analysis  GLS: {: 8.5f} +/- {:<5g}' \
-    .format(*series_mean_with_conf(s.logp[chrono.kkObsBI])))
-print('Mean analysis RGLS: {: 8.5f} +/- {:<5g}' \
-    .format(*series_mean_with_conf(s.logp_r[chrono.kkObsBI])))
+#print('Mean analysis  GLS: {: 8.5f} +/- {:<5g}' \
+    #.format(*series_mean_with_conf(s.logp[chrono.kkObsBI])))
+#print('Mean analysis RGLS: {: 8.5f} +/- {:<5g}' \
+    #.format(*series_mean_with_conf(s.logp_r[chrono.kkObsBI])))
 
 ############################
 # Plot
@@ -98,5 +94,3 @@ print('Mean analysis RGLS: {: 8.5f} +/- {:<5g}' \
 plot_time_series(xx,s,chrono,dim=2)
 plot_ens_stats(xx,s,chrono,cfg)
 plot_3D_trajectory(xx[:,:3],s,chrono)
-
-#plt.waitforbuttonpress()
