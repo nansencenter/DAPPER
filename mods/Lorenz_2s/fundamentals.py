@@ -48,7 +48,7 @@ def dxdt(x):
   # X vars
   d[:,:nX] = np.multiply(lr(X,1,a)-lr(X,-2,a),lr(X,-1,a)) - X + F
   for i in range(nX):
-    d[:,i] += -h*c/b * np.sum(Y[:,iiY[i,:]],1)
+    d[:,i] += -h*c/b * np.sum(Y[:,iiY[i]],1)
   # Y vars
   d[:,nX:] = -c*b*np.multiply(lr(Y,2,a)-lr(Y,-1,a),lr(Y,1,a)) - c*Y \
       + h*c/b * X[:,iiX]

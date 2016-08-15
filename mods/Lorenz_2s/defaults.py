@@ -55,7 +55,7 @@ params = OSSE(f,h,t,X0,**other)
 # 
 # # truth
 # xx = zeros((chrono.K+1,f.m))
-# xx[0,:] = X0.sample(1)
+# xx[0] = X0.sample(1)
 # 
 # fg = plt.figure(1)
 # fg.clf()
@@ -66,7 +66,7 @@ params = OSSE(f,h,t,X0,**other)
 # ax.set_ylim(-5,15)
 # 
 # for k,_,t,dt in progbar(chrono.forecast_range):
-#   xx[k,:] = f.model(xx[k-1,:],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
+#   xx[k] = f.model(xx[k-1],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
 # 
 #   lhX.set_ydata(xx[k,circ])
 #   lhY.set_ydata(xx[k,8:])

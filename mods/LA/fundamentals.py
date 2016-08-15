@@ -67,7 +67,7 @@ def sinusoidal_sample(m,k,N):
   """
   sample = zeros((N,m))
   for n in range(N):
-    sample[n,:] = basis_vector(m,k)
+    sample[n] = basis_vector(m,k)
 
   # Note: Each sample member is centered
   # -- Not the sample as a whole.

@@ -85,10 +85,10 @@ X0 = GaussRV(mu0, 0.01*P0)
 def make_H(p,m):
   xx = linspace(-1,1,m+1)[1:]
   H = zeros((p,m))
-  H[0,:] = 1/sqrt(2)
+  H[0] = 1/sqrt(2)
   for k in range(-(p//2),(p+1)//2):
     ind = 2*abs(k) - (k<0)
-    H[ind,:] = sin(pi*k*xx + pi/4)
+    H[ind] = sin(pi*k*xx + pi/4)
   H /= sqrt(m/2)
   return H
 

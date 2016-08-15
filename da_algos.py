@@ -17,7 +17,7 @@ def EnKF(params,cfg,xx,yy):
 
     if kObs is not None:
       hE = h.model(E,t)
-      y  = yy[kObs,:]
+      y  = yy[kObs]
       E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg)
       stats.copy_paste(s_now,kObs)
 
@@ -45,30 +45,30 @@ def EnKS(params,cfg,xx,yy):
   # TODO: Should also avoid rotations
 
   E = zeros((chrono.K+1,cfg.N,f.m))
-  E[0,:,:] = X0.sample(cfg.N)
+  E[0,:] = X0.sample(cfg.N)
 
   stats = Stats(params,cfg)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E[k,:,:]  = f.model(E[k-1,:,:],t-dt,dt)
-    E[k,:,:] += sqrt(dt)*f.noise.sample(cfg.N)
+    E[k,:]  = f.model(E[k-1,:],t-dt,dt)
+    E[k,:] += sqrt(dt)*f.noise.sample(cfg.N)
 
     if kObs is not None:
       kLag  = find_1st_ind(chrono.tt >= t-cfg.tLag)
       kkLag = range(kLag, k+1)
-      ELag  = E[kkLag,:,:]
+      ELag  = E[kkLag,:]
 
-      hE = h.model(E[k,:,:],t)
-      y  = yy[kObs,:]
+      hE = h.model(E[k,:],t)
+      y  = yy[kObs]
 
       ELag = reshape_to(ELag)
       ELag,s_now = EnKF_analysis(ELag,hE,h.noise,y,cfg)
       stats.copy_paste(s_now,kObs)
-      E[kkLag,:,:] = reshape_fr(ELag,f.m)
-      E[k,:,:] = inflate_ens(E[k,:,:],_infl)
+      E[kkLag,:] = reshape_fr(ELag,f.m)
+      E[k,:] = inflate_ens(E[k,:],_infl)
 
   for k in progbar(range(chrono.K+1),desc='Assessing'):
-    stats.assess(E[k,:,:],xx,k)
+    stats.assess(E[k,:],xx,k)
 
   cfg.infl = _infl
   return stats
@@ -81,34 +81,34 @@ def EnRTS(params,cfg,xx,yy):
 
   E  = zeros((chrono.K+1,cfg.N,f.m))
   Ef = E.copy()
-  E[0,:,:] = X0.sample(cfg.N)
+  E[0,:] = X0.sample(cfg.N)
 
   stats = Stats(params,cfg)
 
   # Forward pass
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E[k,:,:]  = f.model(E[k-1,:,:],t-dt,dt)
-    E[k,:,:] += sqrt(dt)*f.noise.sample(cfg.N)
-    Ef[k,:,:] = E[k,:,:]
+    E[k,:]  = f.model(E[k-1,:],t-dt,dt)
+    E[k,:] += sqrt(dt)*f.noise.sample(cfg.N)
+    Ef[k,:] = E[k,:]
 
     if kObs is not None:
-      hE = h.model(E[k,:,:],t)
-      y  = yy[kObs,:]
-      E[k,:,:],s_now = EnKF_analysis(E[k,:,:],hE,h.noise,y,cfg)
+      hE = h.model(E[k,:],t)
+      y  = yy[kObs]
+      E[k,:],s_now = EnKF_analysis(E[k,:],hE,h.noise,y,cfg)
       stats.copy_paste(s_now,kObs)
 
   for k in progbar(range(chrono.K)[::-1],desc='Backward'):
-    A  = anom(E[k,:,:])[0]
-    Af = anom(Ef[k+1,:,:])[0]
+    A  = anom(E[k,:])[0]
+    Af = anom(Ef[k+1,:])[0]
 
     # TODO: make it tinv( , 0.99)
     J = sla.pinv2(Af) @ A
     J *= cfg.cntr
     
-    E[k,:,:] += ( E[k+1,:,:] - Ef[k+1,:,:] ) @ J
+    E[k,:] += ( E[k+1,:] - Ef[k+1,:] ) @ J
 
   for k in progbar(range(chrono.K+1),desc='Assessing'):
-    stats.assess(E[k,:,:],xx,k)
+    stats.assess(E[k,:],xx,k)
   return stats
 
 
@@ -260,7 +260,7 @@ def EnKF_N(params,cfg,xx,yy):
 
     if kObs is not None:
       hE = h.model(E,t)
-      y  = yy[kObs,:]
+      y  = yy[kObs]
 
       mu = mean(E,0)
       A  = E - mu
@@ -349,7 +349,7 @@ def iEnKF(params,cfg,xx,yy):
       hx = mean(hE,0)
       Y  = hE-hx
       Y  = Tinv @ Y
-      y  = yy[kObs,:]
+      y  = yy[kObs]
       dy = y - hx
 
       dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,cfg)
@@ -438,7 +438,7 @@ def PartFilt(params,cfg,xx,yy):
 
     if kObs is not None:
       hE = h.model(E,t)
-      y  = yy[kObs,:]
+      y  = yy[kObs]
       innovs = hE - y
       innovs = innovs @ Rm12.T
 
@@ -491,7 +491,7 @@ def resample(E,w,N,fnoise, \
 
   if kind is 'Multinomial':
     idx = np.random.choice(N_b,N,replace=True,p=w)
-    E   = E[idx,:]
+    E   = E[idx]
 
     if fnoise.is_deterministic:
       #If no forward noise: we need to add some.
@@ -548,12 +548,12 @@ def EnsCheat(params,cfg,xx,yy):
     if kObs is not None:
       # Regular EnKF analysis
       hE = h.model(E,t)
-      y  = yy[kObs,:]
+      y  = yy[kObs]
       E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg)
       stats.copy_paste(s_now,kObs)
 
       # Cheating (only used for stats)
-      w,res,_,_ = sla.lstsq(E.T, xx[k,:])
+      w,res,_,_ = sla.lstsq(E.T, xx[k])
       if not res.size:
         res = 0
       res = sqrt(res/params.f.m) * ones(params.f.m)
@@ -630,7 +630,7 @@ def D3Var(params,cfg,xx,yy):
     next_kobs = chrono.kkObs[find_1st_ind(chrono.kkObs >= k)]
     P  = Pa + (P0-Pa)*(1 - (next_kobs-k)/dkObs)
     if kObs is not None:
-      y  = yy[kObs,:]
+      y  = yy[kObs]
       mu = mu0 + KG @ (y - H@mu0)
     stats.assess_ext(mu,sqrt(diag(P)),xx,k)
   return stats
@@ -670,7 +670,7 @@ def ExtKF(params,cfg,xx,yy):
 
       H  = h.TLM(mu,t)
       KG = mrdiv(P @ H.T, H@P@H.T + R)
-      y  = yy[kObs,:]
+      y  = yy[kObs]
       mu = mu + KG@(y - h.model(mu,t))
       KH = KG@H
       P  = (eye(f.m) - KH) @ P
@@ -716,19 +716,19 @@ class Stats:
   def assess(self,E,x,k):
     assert(type(E) is np.ndarray)
     N,m             = E.shape
-    self.mu[k,:]    = mean(E,0)
-    A               = E - self.mu[k,:]
-    self.var[k,:]   = sum(A**2  ,0) / (N-1)
-    self.mad[k,:]   = sum(abs(A),0) / (N-1)
-    self.skew[k]    = mean( sum(A**3,0)/N / self.var[k,:]**(3/2) )
-    self.kurt[k]    = mean( sum(A**4,0)/N / self.var[k,:]**2 - 3 )
-    self.err[k,:]   = x[k,:] - self.mu[k,:]
-    self.rmv[k]    = sqrt(mean(self.var[k,:]))
-    self.rmse[k]    = sqrt(mean(self.err[k,:]**2))
+    self.mu[k]    = mean(E,0)
+    A               = E - self.mu[k]
+    self.var[k]   = sum(A**2  ,0) / (N-1)
+    self.mad[k]   = sum(abs(A),0) / (N-1)
+    self.skew[k]    = mean( sum(A**3,0)/N / self.var[k]**(3/2) )
+    self.kurt[k]    = mean( sum(A**4,0)/N / self.var[k]**2 - 3 )
+    self.err[k]   = x[k] - self.mu[k]
+    self.rmv[k]    = sqrt(mean(self.var[k]))
+    self.rmse[k]    = sqrt(mean(self.err[k]**2))
 
     # Marginal log score
     ldet            = sum(log(self.var[k]))
-    nmisf           = self.var[k]**(-1/2) * self.err[k,:]
+    nmisf           = self.var[k]**(-1/2) * self.err[k]
     logp_m          = sum(nmisf**2) + ldet
     self.logp_m[k]  = logp_m/m
 
@@ -748,42 +748,42 @@ class Stats:
     #r               = len(s)
     s2_full         = array(list(s**2) + [alpha]*(m-r))
     ldet            = sum(log(s2_full)) / m
-    umisf           = UT @ self.err[k,:]
+    umisf           = UT @ self.err[k]
     nmisf           = (s2_full)**(-1/2) * umisf
     logp            = ldet + sum(nmisf**2)
-    self.umisf[k,:] = umisf
+    self.umisf[k] = umisf
     self.smisf[k]   = sum(nmisf**2)/m
     self.ldet[k]    = ldet/m
     self.logp[k]    = logp/m
 
     # Reduced-Joint Gaussian log score
     ldet            = sum(log(s**2))
-    nmisf           = s**(-1) * (UT[:r,:] @ self.err[k,:])
+    nmisf           = s**(-1) * (UT[:r] @ self.err[k])
     logp_r          = sum(nmisf**2) + ldet
     self.logp_r[k]  = logp_r/r
 
     # Rank histogram
-    Ex_sorted       = np.sort(np.vstack((E,x[k,:])),axis=0,kind='heapsort')
-    self.rh[k,:]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
+    Ex_sorted       = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
+    self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
 
   def assess_w(self,E,x,k,w):
     assert(type(E) is np.ndarray)
     assert(abs(sum(w)-1) < 1e-5)
     N,m           = E.shape
-    self.mu[k,:]  = w @ E
-    A             = E - self.mu[k,:]
-    self.var[k,:] = w @ A**2
-    self.err[k,:] = self.mu[k,:] - x[k,:]
-    self.rmv[k]  = sqrt(mean(self.var[k,:]))
-    self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
+    self.mu[k]  = w @ E
+    A             = E - self.mu[k]
+    self.var[k] = w @ A**2
+    self.err[k] = self.mu[k] - x[k]
+    self.rmv[k]  = sqrt(mean(self.var[k]))
+    self.rmse[k]  = sqrt(mean(self.err[k]**2))
 
   def assess_ext(self,mu,ss,x,k):
     m             = len(mu)
-    self.mu[k,:]  = mu
-    self.var[k,:] = ss**2
-    self.err[k,:] = self.mu[k,:] - x[k,:]
-    self.rmv[k]  = sqrt(mean(self.var[k,:]))
-    self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
+    self.mu[k]  = mu
+    self.var[k] = ss**2
+    self.err[k] = self.mu[k] - x[k]
+    self.rmv[k]  = sqrt(mean(self.var[k]))
+    self.rmse[k]  = sqrt(mean(self.err[k]**2))
 
   def copy_paste(self,s,kObs):
     """

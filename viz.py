@@ -37,19 +37,19 @@ class LivePlot:
     set_figpos('E (mac)')
 
     self.ax  = plt.subplot(211)
-    self.lmu,= plt.plot(ii,stats.mu[0,:],'b',lw=2,ls='-',label='Ens.mean')
-    self.lx ,= plt.plot(ii,xx[0      ,:],'k',lw=3,ls='-',label='Truth')
+    self.lmu,= plt.plot(ii,stats.mu[0],'b',lw=2,ls='-',label='Ens.mean')
+    self.lx ,= plt.plot(ii,xx[0      ],'k',lw=3,ls='-',label='Truth')
 
     #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
     self.ks  = 3.0
     self.CI  = self.ax.fill_between(ii, \
-        stats.mu[0,:] - self.ks*sqrt(stats.var[0,:]), \
-        stats.mu[0,:] + self.ks*sqrt(stats.var[0,:]), \
+        stats.mu[0] - self.ks*sqrt(stats.var[0]), \
+        stats.mu[0] + self.ks*sqrt(stats.var[0]), \
         alpha=0.4,label=(str(self.ks) + ' sigma'))
 
     if hasattr(params.h,'plot'):
       self.yplot = params.h.plot
-      self.obs = params.h.plot(yy[0,:])
+      self.obs = params.h.plot(yy[0])
       self.obs.set_label('Obs')
       self.obs.set_visible('off')
 
@@ -57,8 +57,8 @@ class LivePlot:
     self.ax.set_xlabel('State index')
 
     ax2 = plt.subplot(212)
-    self.lmf, = ax2.plot(1+arange(m),abs(stats.umisf[0,:]),           'k',lw=2,label='Error')
-    sprd = stats.svals[0,:]
+    self.lmf, = ax2.plot(1+arange(m),abs(stats.umisf[0]),           'k',lw=2,label='Error')
+    sprd = stats.svals[0]
     self.lew, = ax2.plot(1+arange(len(sprd)),sprd,'b',lw=2,label='Spread',alpha=0.9)
     ax2.set_xlabel('Sing. value index')
     ax2.set_yscale('log')
@@ -85,10 +85,10 @@ class LivePlot:
 
     self.tail_E  = zeros((tail_k,N,3))
     for k in range(tail_k):
-      self.tail_E[k,:,:] = E[:,:3]
+      self.tail_E[k,:] = E[:,:3]
     self.ltE = []
     for n in range(N):
-      lEn, = ax3.plot(*self.tail_E[:,n,:].squeeze().T,**ens_props)
+      lEn, = ax3.plot(*self.tail_E[:,n].squeeze().T,**ens_props)
       self.ltE.append(lEn)
 
     #ax3.axis('off')
@@ -158,15 +158,15 @@ class LivePlot:
     #####################
     if plt.fignum_exists(self.fga.number):
       plt.figure(self.fga.number)
-      self.lmu.set_ydata(stats.mu[k,:])
-      self.lx .set_ydata(self.xx[k,:])
+      self.lmu.set_ydata(stats.mu[k])
+      self.lx .set_ydata(self.xx[k])
 
       #for i,l in enumerate(lE):
-        #l.set_ydata(E[i,:])
+        #l.set_ydata(E[i])
       self.CI.remove()
       self.CI  = self.ax.fill_between(ii, \
-          stats.mu[k,:] - self.ks*sqrt(stats.var[k,:]), \
-          stats.mu[k,:] + self.ks*sqrt(stats.var[k,:]), alpha=0.4)
+          stats.mu[k] - self.ks*sqrt(stats.var[k]), \
+          stats.mu[k] + self.ks*sqrt(stats.var[k]), alpha=0.4)
 
       plt.sca(self.ax)
       if hasattr(self,'obs'):
@@ -175,10 +175,10 @@ class LivePlot:
         except Exception:
           pass
         if kObs is not None:
-          self.obs = self.yplot(self.yy[kObs,:])
+          self.obs = self.yplot(self.yy[kObs])
 
-      self.lew.set_ydata(stats.svals[k,:])
-      self.lmf.set_ydata(abs(stats.umisf[k,:]))
+      self.lew.set_ydata(stats.svals[k])
+      self.lmf.set_ydata(abs(stats.umisf[k]))
 
       plt.pause(0.01)
 
@@ -191,12 +191,12 @@ class LivePlot:
       self.sE._offsets3d = juggle_axes(*E[:,:3].T,'z')
 
       self.tail_xx = np.roll(self.tail_xx,1,axis=0)
-      self.tail_xx[0,:] = self.xx[k,:3]
+      self.tail_xx[0] = self.xx[k,:3]
       self.ltx.set_data(self.tail_xx[:,0],self.tail_xx[:,1])
       self.ltx.set_3d_properties(self.tail_xx[:,2])
 
       self.tail_E = np.roll(self.tail_E,1,axis=0)
-      self.tail_E[0,:,:] = E[:,:3]
+      self.tail_E[0,:] = E[:,:3]
       for n in range(N):
         self.ltE[n].set_data(self.tail_E[:,n,0],self.tail_E[:,n,1])
         self.ltE[n].set_3d_properties(self.tail_E[:,n,2])
@@ -331,7 +331,7 @@ def plot_time_series(xx,stats,chrono, \
 
   fgH = plt.figure(16,figsize=(6,5)).clf()
   m = xx.shape[1]
-  plt.contourf(1+arange(m),tt[pkk],xx[pkk,:])
+  plt.contourf(1+arange(m),tt[pkk],xx[pkk])
   plt.colorbar()
   ax = plt.gca()
   ax.set_title('Hovmoller diagram')
@@ -372,7 +372,7 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
   ax_r.set_position([0.125,0.6, 0.78, 0.34])
 
   ax_s = plt.subplot(212)
-  has_been_computed = not all(stats.umisf[-1,:] == 0)
+  has_been_computed = not all(stats.umisf[-1] == 0)
   if has_been_computed:
     ax_s.set_xlabel('Sing. value index')
     ax_s.set_ylabel('Time-average magnitude')
@@ -388,14 +388,14 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
   fg = plt.figure(13,figsize=(8,6)).clf()
   set_figpos('NE')
   #
-  has_been_computed = not all(stats.rh[-1,:] == 0)
+  has_been_computed = not all(stats.rh[-1] == 0)
   if has_been_computed:
     ax_H = plt.subplot(211)
     ax_H.set_title('Rank histogram ' + d_text)
     ax_H.set_ylabel('Freq. of occurence\n (of truth in interval n)')
     ax_H.set_xlabel('ensemble member index (n)')
     ax_H.set_position([0.125,0.6, 0.78, 0.34])
-    integer_hist(stats.rh[chrono.kkBI,:].ravel(),cfg.N,alpha=0.5)
+    integer_hist(stats.rh[chrono.kkBI].ravel(),cfg.N,alpha=0.5)
 
     ax_R = plt.subplot(212)
     #ax_R.set_title('RMSE histogram')

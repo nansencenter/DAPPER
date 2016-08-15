@@ -137,6 +137,7 @@ Implementation choices
     * Bocquet's choice
     * Broadcasting
     * Avoids reshape's and asmatrix
+    * Fewer indices: [k,:] becomes [k]
 * OLD: Use m-by-N matrix class. Pros:
     * Litterature uses m-by-N
     * Matrix class allowss desired broadcasting
