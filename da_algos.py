@@ -21,14 +21,6 @@ def EnKF(params,cfg,xx,yy):
       E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg)
       stats.copy_paste(s_now,kObs)
 
-      # Spectral inflation
-      if hasattr(cfg,'mv_infl'):
-        A,mu = anom(E)
-        V,s,UT = svd(A,full_matrices=False)
-        s *= cfg.mv_infl
-        A = (V*s) @ UT
-        E = mu + A
-
     stats.assess(E,xx,k)
     lplot.update(E,k,kObs)
   return stats
