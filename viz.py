@@ -111,7 +111,7 @@ class LivePlot:
 
     self.ax_e = plt.subplot(211)
     self.le,  = self.ax_e.plot(ptt,stats.rmse[pkk],'k',lw=2,alpha=1.0,label='Error')
-    self.lv,  = self.ax_e.plot(ptt,stats.rmsv[pkk],'b',lw=2,alpha=0.6,label='Spread')
+    self.lv,  = self.ax_e.plot(ptt,stats.rmv[pkk],'b',lw=2,alpha=0.6,label='Spread')
     self.ax_e.set_ylabel('RMS')
     self.ax_e.legend()
     self.ax_e.set_xticklabels([])
@@ -216,9 +216,9 @@ class LivePlot:
       ptt = self.params.t.tt[pkk]
 
       self.le.set_data(ptt,stats.rmse[pkk])
-      self.lv.set_data(ptt,stats.rmsv[pkk])
+      self.lv.set_data(ptt,stats.rmv[pkk])
       self.ax_e.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
-      update_ylim([stats.rmse[pkk],stats.rmsv[pkk]], self.ax_e,Min=0)
+      update_ylim([stats.rmse[pkk],stats.rmv[pkk]], self.ax_e,Min=0)
       
       self.ls.set_data(ptt,stats.skew[pkk])
       self.lk.set_data(ptt,stats.kurt[pkk])
@@ -320,9 +320,9 @@ def plot_time_series(xx,stats,chrono, \
 
   ax_e = plt.subplot(3,1,3)
   ax_e.plot(        tt[pkk], s.rmse[pkk],'k',lw=2,label='Error')
-  ax_e.fill_between(tt[pkk], s.rmsv[pkk],alpha=0.4,label='Spread') 
+  ax_e.fill_between(tt[pkk], s.rmv[pkk],alpha=0.4,label='Spread') 
   ylim = np.percentile(s.rmse[pkk],99)
-  ylim = 1.1*np.max([ylim, np.max(s.rmsv[pkk])])
+  ylim = 1.1*np.max([ylim, np.max(s.rmv[pkk])])
   ax_e.set_ylim(0,ylim)
   ax_e.set_ylabel('RMS')
   ax_e.legend()

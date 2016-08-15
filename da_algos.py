@@ -716,7 +716,7 @@ class Stats:
     self.skew  = zeros(K+1)
     self.kurt  = zeros(K+1)
     self.err   = zeros((K+1,m))
-    self.rmsv  = zeros(K+1)
+    self.rmv  = zeros(K+1)
     self.rmse  = zeros(K+1)
     self.trHK  = zeros(KObs+1)
     self.rh    = zeros((K+1,m))
@@ -731,7 +731,7 @@ class Stats:
     self.skew[k]    = mean( sum(A**3,0)/N / self.var[k,:]**(3/2) )
     self.kurt[k]    = mean( sum(A**4,0)/N / self.var[k,:]**2 - 3 )
     self.err[k,:]   = x[k,:] - self.mu[k,:]
-    self.rmsv[k]    = sqrt(mean(self.var[k,:]))
+    self.rmv[k]    = sqrt(mean(self.var[k,:]))
     self.rmse[k]    = sqrt(mean(self.err[k,:]**2))
 
     # Marginal log score
@@ -782,7 +782,7 @@ class Stats:
     A             = E - self.mu[k,:]
     self.var[k,:] = w @ A**2
     self.err[k,:] = self.mu[k,:] - x[k,:]
-    self.rmsv[k]  = sqrt(mean(self.var[k,:]))
+    self.rmv[k]  = sqrt(mean(self.var[k,:]))
     self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
 
   def assess_ext(self,mu,ss,x,k):
@@ -790,7 +790,7 @@ class Stats:
     self.mu[k,:]  = mu
     self.var[k,:] = ss**2
     self.err[k,:] = self.mu[k,:] - x[k,:]
-    self.rmsv[k]  = sqrt(mean(self.var[k,:]))
+    self.rmv[k]  = sqrt(mean(self.var[k,:]))
     self.rmse[k]  = sqrt(mean(self.err[k,:]**2))
 
   def copy_paste(self,s,kObs):

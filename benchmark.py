@@ -77,10 +77,10 @@ s = Assimilate(params,cfg,xx,yy)
 ############################
 # Report averages
 ############################
-print('Mean analysis RMSE: {: 8.5f} +/- {:<5g},    RMSV: {:8.5f}'\
-    .format(*series_mean_with_conf(s.rmse[chrono.kkObsBI]),mean(s.rmsv[chrono.kkObsBI])))
-print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMSV: {:8.5f}'\
-    .format(*series_mean_with_conf(s.rmse[chrono.kkObsBI-1]),mean(s.rmsv[chrono.kkObsBI-1])))
+print('Mean analysis RMSE: {: 8.5f} +/- {:<5g},    RMV: {:8.5f}'\
+    .format(*series_mean_with_conf(s.rmse[chrono.kkObsBI]),mean(s.rmv[chrono.kkObsBI])))
+print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMV: {:8.5f}'\
+    .format(*series_mean_with_conf(s.rmse[chrono.kkObsBI-1]),mean(s.rmv[chrono.kkObsBI-1])))
 #print('Mean analysis misf: {: 8.5f} +/- {:<5g}' \
     #.format(*series_mean_with_conf(s.smisf[chrono.kkObsBI])))
 #print('Mean analysis ldet: {: 8.5f} +/- {:<5g}' \
