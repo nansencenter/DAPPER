@@ -4,9 +4,9 @@
     | |) / _ \|  _/  _/ _||   /
     |___/_/ \_\_| |_| |___|_|_\
 
-Data Assimilation Platform in Python for Experimental Reasearch
+(Data Assimilation Platform in Python for Experimental Research)
 
-![EnKF - Lorenz'63](./figs/Lor63_ens_anim_2.gif)
+![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
 
 * DAPPER lets you benchmark data assimilation (DA) methods
 * The typical set-up is a "twin experiment", where you
