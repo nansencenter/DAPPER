@@ -85,7 +85,7 @@ class LivePlot:
 
     self.tail_E  = zeros((tail_k,N,3))
     for k in range(tail_k):
-      self.tail_E[k,:] = E[:,:3]
+      self.tail_E[k] = E[:,:3]
     self.ltE = []
     for n in range(N):
       lEn, = ax3.plot(*self.tail_E[:,n].squeeze().T,**ens_props)
@@ -196,7 +196,7 @@ class LivePlot:
       self.ltx.set_3d_properties(self.tail_xx[:,2])
 
       self.tail_E = np.roll(self.tail_E,1,axis=0)
-      self.tail_E[0,:] = E[:,:3]
+      self.tail_E[0] = E[:,:3]
       for n in range(N):
         self.ltE[n].set_data(self.tail_E[:,n,0],self.tail_E[:,n,1])
         self.ltE[n].set_3d_properties(self.tail_E[:,n,2])

@@ -45,30 +45,30 @@ def EnKS(params,cfg,xx,yy):
   # TODO: Should also avoid rotations
 
   E = zeros((chrono.K+1,cfg.N,f.m))
-  E[0,:] = X0.sample(cfg.N)
+  E[0] = X0.sample(cfg.N)
 
   stats = Stats(params,cfg)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E[k,:]  = f.model(E[k-1,:],t-dt,dt)
-    E[k,:] += sqrt(dt)*f.noise.sample(cfg.N)
+    E[k]  = f.model(E[k-1],t-dt,dt)
+    E[k] += sqrt(dt)*f.noise.sample(cfg.N)
 
     if kObs is not None:
       kLag  = find_1st_ind(chrono.tt >= t-cfg.tLag)
       kkLag = range(kLag, k+1)
-      ELag  = E[kkLag,:]
+      ELag  = E[kkLag]
 
-      hE = h.model(E[k,:],t)
+      hE = h.model(E[k],t)
       y  = yy[kObs]
 
       ELag = reshape_to(ELag)
       ELag,s_now = EnKF_analysis(ELag,hE,h.noise,y,cfg)
       stats.copy_paste(s_now,kObs)
-      E[kkLag,:] = reshape_fr(ELag,f.m)
-      E[k,:] = inflate_ens(E[k,:],_infl)
+      E[kkLag] = reshape_fr(ELag,f.m)
+      E[k] = inflate_ens(E[k],_infl)
 
   for k in progbar(range(chrono.K+1),desc='Assessing'):
-    stats.assess(E[k,:],xx,k)
+    stats.assess(E[k],xx,k)
 
   cfg.infl = _infl
   return stats
@@ -81,34 +81,34 @@ def EnRTS(params,cfg,xx,yy):
 
   E  = zeros((chrono.K+1,cfg.N,f.m))
   Ef = E.copy()
-  E[0,:] = X0.sample(cfg.N)
+  E[0] = X0.sample(cfg.N)
 
   stats = Stats(params,cfg)
 
   # Forward pass
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E[k,:]  = f.model(E[k-1,:],t-dt,dt)
-    E[k,:] += sqrt(dt)*f.noise.sample(cfg.N)
-    Ef[k,:] = E[k,:]
+    E[k]  = f.model(E[k-1],t-dt,dt)
+    E[k] += sqrt(dt)*f.noise.sample(cfg.N)
+    Ef[k] = E[k]
 
     if kObs is not None:
-      hE = h.model(E[k,:],t)
+      hE = h.model(E[k],t)
       y  = yy[kObs]
-      E[k,:],s_now = EnKF_analysis(E[k,:],hE,h.noise,y,cfg)
+      E[k],s_now = EnKF_analysis(E[k],hE,h.noise,y,cfg)
       stats.copy_paste(s_now,kObs)
 
   for k in progbar(range(chrono.K)[::-1],desc='Backward'):
-    A  = anom(E[k,:])[0]
-    Af = anom(Ef[k+1,:])[0]
+    A  = anom(E[k])[0]
+    Af = anom(Ef[k+1])[0]
 
     # TODO: make it tinv( , 0.99)
     J = sla.pinv2(Af) @ A
     J *= cfg.cntr
     
-    E[k,:] += ( E[k+1,:] - Ef[k+1,:] ) @ J
+    E[k] += ( E[k+1] - Ef[k+1] ) @ J
 
   for k in progbar(range(chrono.K+1),desc='Assessing'):
-    stats.assess(E[k,:],xx,k)
+    stats.assess(E[k],xx,k)
   return stats
 
 

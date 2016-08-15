@@ -31,13 +31,13 @@ cfg = Settings()
 #cfg.infl = 1.05
 
 
-#from mods.Lorenz95.sak08 import params
+from mods.Lorenz95.sak08 import params
 #
-#cfg.N         = 24
-#cfg.infl      = 1.018
-#cfg.AMethod   = 'Sqrt'
-#cfg.rot       = True
-#cfg.da_method = EnKF
+cfg.N         = 24
+cfg.infl      = 1.018
+cfg.AMethod   = 'Sqrt'
+cfg.rot       = True
+cfg.da_method = EnKF
 #
 #cfg.da_method = Climatology
 #cfg.da_method = D3Var
@@ -47,14 +47,9 @@ cfg = Settings()
 #from mods.Lorenz95.spectral_obs import params
 #from mods.Lorenz95.m33 import params
 
-from mods.LA.raanes2014 import params
-cfg.N         = 30
-cfg.infl      = 3.4 # Why is rmse performance so insensitive to inflation
-cfg.AMethod   = 'PertObs'
-cfg.rot       = False
-cfg.da_method = EnKF
+#from mods.LA.raanes2014 import params
 
-#params.t.T = 4**3
+params.t.T = 4**3
 
 
 ############################
