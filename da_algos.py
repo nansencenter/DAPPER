@@ -18,8 +18,11 @@ def EnKF(params,cfg,xx,yy):
     if kObs is not None:
       hE = h.model(E,t)
       y  = yy[kObs]
-      E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg)
+      E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg.AMethod)
       stats.copy_paste(s_now,kObs)
+      post_process(E,cfg)
+      #if t<BurnIn:
+        #E = inflate_ens(E,1.0 + 0.2*(BurnIn-t)/BurnIn)
 
     stats.assess(E,xx,k)
     lplot.update(E,k,kObs)
@@ -39,11 +42,6 @@ def EnKS(params,cfg,xx,yy):
     K = Km/m
     return E.reshape((N,K,m)).transpose([1,0,2])
 
-  # Avoid inflating smoothed estimates
-  # (even though a little would be good)
-  cfg.infl, _infl = 1.0, cfg.infl
-  # TODO: Should also avoid rotations
-
   E = zeros((chrono.K+1,cfg.N,f.m))
   E[0] = X0.sample(cfg.N)
 
@@ -62,15 +60,14 @@ def EnKS(params,cfg,xx,yy):
       y  = yy[kObs]
 
       ELag = reshape_to(ELag)
-      ELag,s_now = EnKF_analysis(ELag,hE,h.noise,y,cfg)
+      ELag,s_now = EnKF_analysis(ELag,hE,h.noise,y,cfg.AMethod)
       stats.copy_paste(s_now,kObs)
       E[kkLag] = reshape_fr(ELag,f.m)
-      E[k] = inflate_ens(E[k],_infl)
+      post_process(E[k],cfg)
 
   for k in progbar(range(chrono.K+1),desc='Assessing'):
     stats.assess(E[k],xx,k)
 
-  cfg.infl = _infl
   return stats
 
 
@@ -94,8 +91,9 @@ def EnRTS(params,cfg,xx,yy):
     if kObs is not None:
       hE = h.model(E[k],t)
       y  = yy[kObs]
-      E[k],s_now = EnKF_analysis(E[k],hE,h.noise,y,cfg)
+      E[k],s_now = EnKF_analysis(E[k],hE,h.noise,y,cfg.AMethod)
       stats.copy_paste(s_now,kObs)
+      post_process(E[k],cfg)
 
   for k in progbar(range(chrono.K)[::-1],desc='Backward'):
     A  = anom(E[k])[0]
@@ -113,12 +111,12 @@ def EnRTS(params,cfg,xx,yy):
 
 
 
-def EnKF_analysis(E,hE,hnoise,y,cfg):
-    if 'non-transposed' in cfg.AMethod:
-      return EnKF_analysis_NT(E,hE,hnoise,y,cfg)
+def EnKF_analysis(E,hE,hnoise,y,AMethod):
+    if 'non-transposed' in AMethod:
+      return EnKF_analysis_NT(E,hE,hnoise,y,AMethod)
 
     R = hnoise.C
-    N = cfg.N
+    N,m = E.shape
 
     mu = mean(E,0)
     A  = E - mu
@@ -127,7 +125,7 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
     Y  = hE-hx
     dy = y - hx
 
-    if 'PertObs' in cfg.AMethod:
+    if 'PertObs' in AMethod:
         # Uses perturbed observations (burgers'98)
         C  = Y.T @ Y + R.C*(N-1)
         D  = center(hnoise.sample(N))
@@ -139,22 +137,22 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
         #KG = mldiv(C,Y.T) @ A
         #dE = ( y + D - hE ) @ KG
         E  = E + dE
-    elif 'Sqrt' in cfg.AMethod:
+    elif 'Sqrt' in AMethod:
         # Uses symmetric square root (ETKF)
-        if 'explicit' in cfg.AMethod:
+        if 'explicit' in AMethod:
           # Implementation using inv (in ens space)
           Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
           T  = sqrtm(Pw) * sqrt(N-1)
           HK = R.inv @ Y.T @ Pw @ Y
           #KG = R.inv @ Y.T @ Pw @ A
-        elif 'svd' in cfg.AMethod:
+        elif 'svd' in AMethod:
           # Implementation using svd of Y R^{-1/2}
           V,s,_ = sla.svd( Y @ R.m12.T , full_matrices=False)
           d     = s**2 + (N-1)
           Pw    = ( V * d**(-1.0) ) @ V.T
           T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
           trHK  = sum(  d**(-1.0)*s**2 ) # see docs/trHK.jpg
-        elif 'sS' in cfg.AMethod:
+        elif 'sS' in AMethod:
           # Same as SVD, but with an initial sqrt(N-1) rescaling.
           s     = R.m12 @ dy  / sqrt(N-1)
           S     = Y @ R.m12.T / sqrt(N-1)
@@ -169,20 +167,15 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
           T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
           Pw    = V@diag(d**(-1.0))@V.T
           HK    = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
-        if cfg.rot:
-          T = genOG_1(N) @ T
         w = dy @ R.inv @ Y.T @ Pw
         E = mu + w@A + T@A
-    elif 'DEnKF' is cfg.AMethod:
+    elif 'DEnKF' is AMethod:
         # Uses "Deterministic EnKF" (sakov'08)
         C  = Y.T @ Y + R.C*(N-1)
         KG = A.T @ mrdiv(Y, C)
         E  = E + KG@dy - 0.5*(KG@Y.T).T
     else:
         raise TypeError
-    E = inflate_ens(E,cfg.infl)
-    #if t<BurnIn:
-      #E = inflate_ens(E,1.0 + 0.2*(BurnIn-t)/BurnIn)
 
     # Diagnostic: relative influence of observations
     if 'HK' in locals():
@@ -193,13 +186,13 @@ def EnKF_analysis(E,hE,hnoise,y,cfg):
     return E, stat
 
 
-def EnKF_analysis_NT(E,hE,hnoise,y,cfg):
+def EnKF_analysis_NT(E,hE,hnoise,y,AMethod):
     """
     Version: Non-Transposed.
     Purpose: debugging the other ones.
     """
     R = hnoise.C
-    N = cfg.N
+    N,m = E.shape
 
     E  = asmatrix(E).T
     hE = asmatrix(hE).T
@@ -219,7 +212,6 @@ def EnKF_analysis_NT(E,hE,hnoise,y,cfg):
     dE = KG @ ( y + D - hE )
     E  = E + dE
     E  = asarray(E.T)
-    E  = inflate_ens(E,cfg.infl)
 
     stat = {'trHK': trace(HK)/hnoise.m}
     return E, stat
@@ -352,7 +344,7 @@ def iEnKF(params,cfg,xx,yy):
       y  = yy[kObs]
       dy = y - hx
 
-      dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,cfg)
+      dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,cfg.AMethod)
       w  -= dw
       if np.linalg.norm(dw) < N*1e-4:
         break
@@ -375,21 +367,21 @@ def iEnKF(params,cfg,xx,yy):
   return stats
 
 
-def iEnKF_analysis(w,dy,Y,hnoise,cfg):
+def iEnKF_analysis(w,dy,Y,hnoise,AMethod):
   N = len(w)
   R = hnoise.C
 
   grad = (N-1)*w      - Y @ (R.inv @ dy)
   hess = (N-1)*eye(N) + Y @ R.inv @ Y.T
 
-  if cfg.AMethod is 'PertObs':
+  if AMethod is 'PertObs':
     raise NotImplementedError
-  elif 'Sqrt' in cfg.AMethod:
-    if 'naive' in cfg.AMethod:
+  elif 'Sqrt' in AMethod:
+    if 'naive' in AMethod:
       Pw   = funm_psd(hess, np.reciprocal)
       T    = funm_psd(hess, lambda x: x**(-0.5)) * sqrt(N-1)
       Tinv = funm_psd(hess, np.sqrt) / sqrt(N-1)
-    elif 'svd' in cfg.AMethod:
+    elif 'svd' in AMethod:
       # Implementation using svd of Y # TODO: sort out .T !!!
       raise NotImplementedError
     else:
@@ -398,7 +390,7 @@ def iEnKF_analysis(w,dy,Y,hnoise,cfg):
       Pw   = V@diag(d**(-1.0))@V.T
       T    = V@diag(d**(-0.5))@V.T * sqrt(N-1)
       Tinv = V@diag(d**(+0.5))@V.T / sqrt(N-1)
-  elif cfg.AMethod is 'DEnKF':
+  elif AMethod is 'DEnKF':
     raise NotImplementedError
   else:
     raise NotImplementedError
@@ -549,8 +541,9 @@ def EnsCheat(params,cfg,xx,yy):
       # Regular EnKF analysis
       hE = h.model(E,t)
       y  = yy[kObs]
-      E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg)
+      E,s_now = EnKF_analysis(E,hE,h.noise,y,cfg.AMethod)
       stats.copy_paste(s_now,kObs)
+      post_process(E,cfg)
 
       # Cheating (only used for stats)
       w,res,_,_ = sla.lstsq(E.T, xx[k])
@@ -599,21 +592,22 @@ def D3Var(params,cfg,xx,yy):
   mu0   = np.mean(xx,0)
   A0    = xx - mu0
   P0    = (A0.T @ A0) / (xx.shape[0] - 1)
-  if not hasattr(cfg, 'infl'):
-    cfg.infl = 1.0
-    ## NOT WORKING
-    #from scipy.optimize import fsolve
-    ##Take into account the dtObs/decorr_time of the system,
-    ##by scaling P0 (from the climatology) by infl
-    ##so that the error reduction of the analysis (trHK) approximately
-    ##matches the error growth in the forecast (1-a^dkObs).
-    #acovf = auto_cov(xx.ravel(order='F'))
-    #a     = fit_acf_by_AR1(acovf)
-    #def L_minus_R(infl):
-      #KGs = mrdiv((infl*P0) @ H.T, (H@(infl*P0)@H.T) + R)
-      #return trace(H@KGs)/h.noise.m - (1 - a**dkObs)
-    #cfg.infl = fsolve(L_minus_R, 0.9)
-  P0 *= cfg.infl
+  ## NOT WORKING
+  #from scipy.optimize import fsolve
+  ##Take into account the dtObs/decorr_time of the system,
+  ##by scaling P0 (from the climatology) by infl
+  ##so that the error reduction of the analysis (trHK) approximately
+  ##matches the error growth in the forecast (1-a^dkObs).
+  #acovf = auto_cov(xx.ravel(order='F'))
+  #a     = fit_acf_by_AR1(acovf)
+  #def L_minus_R(infl):
+    #KGs = mrdiv((infl*P0) @ H.T, (H@(infl*P0)@H.T) + R)
+    #return trace(H@KGs)/h.noise.m - (1 - a**dkObs)
+  #cfg.infl = fsolve(L_minus_R, 0.9)
+  try:
+    P0 *= cfg.infl
+  except AttributeError:
+    pass
     
   # Pre-compute Kalman gain
   KG   = mrdiv(P0 @ H.T, (H@P0@H.T) + R)
@@ -792,4 +786,31 @@ class Stats:
     """
     for key,val in s.items():
       getattr(self,key)[kObs] = val
+
+
+
+
+
+        
+def post_process(E,cfg):
+  """
+  Inflate, Rotate.
+
+  To avoid recomputing/recombining anomalies, this should be inside EnKF_analysis(),
+  but for readability it is nicer to keep it as a separate function,
+  also since it avoids inflating/rotationg smoothed states (for the EnKS).
+  """
+  A, mu = anom(E)
+  N,m = E.shape
+  T = eye(N)
+  try:
+    T = cfg.infl * T
+  except AttributeError:
+    pass
+  if getattr(cfg,'rot',False):
+    T = genOG_1(N) @ T
+  E[:] = mu + T@A
+
+
+
 
