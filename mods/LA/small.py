@@ -7,7 +7,7 @@
 
 from common import *
 
-from mods.LA.fundamentals import Fmat, homogeneous_1D_cov
+from mods.LA.core import Fmat, homogeneous_1D_cov
 
 m = 100
 p = 4

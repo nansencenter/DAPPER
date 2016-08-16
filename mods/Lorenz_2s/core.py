@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import circulant
 from misc import rk4, is1d, atmost_2d
 
-from mods.Lorenz95.fundamentals import lr
+from mods.Lorenz95.core import lr
 
 
 ####################################
@@ -59,7 +59,7 @@ def step(x0, t, dt):
   return rk4(lambda t,x: dxdt(x),x0,np.nan,dt)
 
 
-from mods.Lorenz95.fundamentals import typical_init_params
+from mods.Lorenz95.core import typical_init_params
 mu0,_P0 = typical_init_params(nX)
 mu0 = np.hstack([mu0, np.zeros(nX*J)])
 P0 = np.eye(m)

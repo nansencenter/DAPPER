@@ -3,7 +3,7 @@
 
 from common import *
 
-from mods.Lorenz95.fundamentals import step, dfdx, typical_init_params
+from mods.Lorenz95.core import step, dfdx, typical_init_params
 
 T = 4**5
 t = Chronology(0.05,dkObs=1,T=T,BurnIn=20)

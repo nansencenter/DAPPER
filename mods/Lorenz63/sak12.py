@@ -3,7 +3,7 @@
 
 from common import *
 
-from mods.Lorenz63.fundamentals import step, dfdx
+from mods.Lorenz63.core import step, dfdx
 
 m = 3
 p = m

@@ -12,7 +12,7 @@ seed(sd0)
 # Set-up
 ############################
 from mods.Lorenz95.sak08 import setup
-from mods.Lorenz95.fundamentals import dxdt
+from mods.Lorenz95.core import dxdt
 
 def model(F):
   def model_inner(x0,t,dt):

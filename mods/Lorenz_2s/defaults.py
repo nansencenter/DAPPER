@@ -2,7 +2,7 @@
 
 from common import *
 
-from mods.Lorenz_2s.fundamentals import step, nX,J,m, mu0,P0
+from mods.Lorenz_2s.core import step, nX,J,m, mu0,P0
 
 t = Chronology(0.001,dkObs=10,T=4**2,BurnIn=2)
 

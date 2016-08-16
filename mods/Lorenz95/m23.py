@@ -1,7 +1,7 @@
 # For ?
 from common import *
 
-from mods.Lorenz95.fundamentals import step, typical_init_params
+from mods.Lorenz95.core import step, typical_init_params
 
 #T = 4**6
 T = 4**3

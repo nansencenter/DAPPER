@@ -17,7 +17,7 @@
 
 from common import *
 
-from mods.LA.fundamentals import sinusoidal_sample, Fmat
+from mods.LA.core import sinusoidal_sample, Fmat
 
 m = 1000;
 p = 40;
