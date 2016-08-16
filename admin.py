@@ -37,9 +37,8 @@ class OSSE:
     for key, value in kwargs.items():
       setattr(self, key, value)
 
-# TODO: rename to DAM
 # TODO: Similarly: rsr params -r setup
-class Settings:
+class DAM:
   """Container for DA Method settings."""
   def __init__(self,da_method,**kwargs):
     # Careful with defaults -- explicit is better than implicit!
@@ -50,7 +49,7 @@ class Settings:
 
 class DAM_list(list):
   def add(self,*kargs,**kwargs):
-    self.append(Settings(*kargs,**kwargs))
+    self.append(DAM(*kargs,**kwargs))
 
 def simulate(params):
   """Generate synthetic truth and observations"""

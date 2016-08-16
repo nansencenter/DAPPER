@@ -13,7 +13,7 @@ np.random.seed(5)
 
 #from mods.Lorenz63.sak12 import params
 # Expected rmse_a = 0.63 (sak 0.65)
-#cfg           = Settings(EnKF)
+#cfg           = DAM(EnKF)
 #cfg.N         = 10
 #cfg.infl      = 1.02
 #cfg.AMethod   = 'Sqrt'
@@ -22,26 +22,26 @@ np.random.seed(5)
 #cfg.da_method = iEnKF # rmse_a = 0.31
 #cfg.iMax      = 10
 #
-#cfg           = Settings(PartFilt) # rmse_a = 0.275 (N=4000)
+#cfg           = DAM(PartFilt) # rmse_a = 0.275 (N=4000)
 #cfg.N         = 800
 #cfg.NER       = 0.1
 #
 #params.t.dkObs = 10
-#cfg = Settings(ExtKF, infl = 1.05)
+#cfg = DAM(ExtKF, infl = 1.05)
 
 
 from mods.Lorenz95.sak08 import params
 #
-cfg           = Settings(EnKF)
+cfg           = DAM(EnKF)
 cfg.N         = 24
 cfg.infl      = 1.018
 cfg.AMethod   = 'Sqrt'
 cfg.rot       = True
 #
-#cfg = Settings(Climatology)
-#cfg = Settings(D3Var)
-#cfg = Settings(ExtKF, infl = 1.05)
-#cfg = Settings(EnsCheat)
+#cfg = DAM(Climatology)
+#cfg = DAM(D3Var)
+#cfg = DAM(ExtKF, infl = 1.05)
+#cfg = DAM(EnsCheat)
 
 #from mods.Lorenz95.spectral_obs import params
 #from mods.Lorenz95.m33 import params
