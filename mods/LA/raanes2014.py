@@ -87,7 +87,7 @@ f = {
 
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-params = OSSE(f,h,tseq,X0,**other)
+setup = OSSE(f,h,tseq,X0,**other)
 
 
 ####################

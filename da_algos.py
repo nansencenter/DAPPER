@@ -1,16 +1,16 @@
 from common import *
     
 
-def EnKF(params,cfg,xx,yy):
+def EnKF(setup,cfg,xx,yy):
   """EnKF"""
 
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   E = X0.sample(cfg.N)
 
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
   stats.assess(E,xx,0)
-  lplot = LivePlot(params,cfg,E,stats,xx,yy)
+  lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -30,10 +30,10 @@ def EnKF(params,cfg,xx,yy):
   return stats
 
 
-def EnKS(params,cfg,xx,yy):
+def EnKS(setup,cfg,xx,yy):
   """EnKS"""
 
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   def reshape_to(E):
     K,N,m = E.shape
@@ -46,7 +46,7 @@ def EnKS(params,cfg,xx,yy):
   E = zeros((chrono.K+1,cfg.N,f.m))
   E[0] = X0.sample(cfg.N)
 
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E[k]  = f.model(E[k-1],t-dt,dt)
@@ -72,16 +72,16 @@ def EnKS(params,cfg,xx,yy):
   return stats
 
 
-def EnRTS(params,cfg,xx,yy):
+def EnRTS(setup,cfg,xx,yy):
   """EnRTS (Rauch-Tung-Striebel)"""
 
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   E  = zeros((chrono.K+1,cfg.N,f.m))
   Ef = E.copy()
   E[0] = X0.sample(cfg.N)
 
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
 
   # Forward pass
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -221,13 +221,13 @@ def EnKF_analysis_NT(E,hE,hnoise,y,AMethod):
 
 from scipy.optimize import minimize_scalar as minzs
 
-def EnKF_N(params,cfg,xx,yy):
+def EnKF_N(setup,cfg,xx,yy):
   """
   Finite-size EnKF (EnKF-N).
   Corresponding to version ql2 of Datum.
   """
 
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   N = cfg.N
   E = X0.sample(N)
@@ -242,10 +242,10 @@ def EnKF_N(params,cfg,xx,yy):
   Rm12 = h.noise.C.m12
   Ri   = h.noise.C.inv
 
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
   stats.assess(E,xx,0)
   stats.infl = zeros(chrono.KObs+1)
-  lplot = LivePlot(params,cfg,E,stats,xx,yy)
+  lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -311,16 +311,16 @@ def EnKF_N(params,cfg,xx,yy):
 # TODO: MOD ERROR?
 # TODO: It would be beneficial to do another (prior-regularized)
 # analysis at the end, after forecasting the E0 analysis.
-def iEnKF(params,cfg,xx,yy):
+def iEnKF(setup,cfg,xx,yy):
   """Loosely adapted from Bocquet ienks code and bocquet2014iterative."""
-  f,h,chrono,X0,R = params.f, params.h, params.t, params.X0, params.h.noise.C
+  f,h,chrono,X0,R = setup.f, setup.h, setup.t, setup.X0, setup.h.noise.C
   N = cfg.N
 
   E = X0.sample(N)
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
   stats.assess(E,xx,0)
   stats.iters = zeros(chrono.KObs+1)
-  lplot = LivePlot(params,cfg,E,stats,xx,yy)
+  lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
   for kObs in progbar(range(chrono.KObs+1)):
     xb0 = mean(E,0)
@@ -399,7 +399,7 @@ def iEnKF_analysis(w,dy,Y,hnoise,AMethod):
 
 
 import numpy.ma as ma
-def PartFilt(params,cfg,xx,yy):
+def PartFilt(setup,cfg,xx,yy):
   """
   Particle filter ≡ Sequential importance (re)sampling (SIS/SIR).
   This is the bootstrap version: the proposal density being just
@@ -407,7 +407,7 @@ def PartFilt(params,cfg,xx,yy):
   Resampling method: Multinomial.
   """
 
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   N = cfg.N
   E = X0.sample(N)
@@ -415,12 +415,12 @@ def PartFilt(params,cfg,xx,yy):
 
   Rm12 = h.noise.C.m12
 
-  stats            = Stats(params,cfg)
+  stats            = Stats(setup,cfg)
   stats.N_eff      = zeros(chrono.KObs+1)
   stats.nResamples = 0
   stats.assess(E,xx,0)
 
-  lplot = LivePlot(params,cfg,E,stats,xx,yy)
+  lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -515,7 +515,7 @@ def resample(E,w,N,fnoise, \
 
 
 
-def EnsCheat(params,cfg,xx,yy):
+def EnsCheat(setup,cfg,xx,yy):
   """Ensemble method that cheats: it knows the truth.
   Nevertheless, its error will not be 0, because the truth may be outside of the ensemble subspace.
   This method is just to provide a baseline for comparison with other methods.
@@ -523,13 +523,13 @@ def EnsCheat(params,cfg,xx,yy):
   NB: The forecasts (and their rmse) are given by the standard EnKF.
   """
 
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   E = X0.sample(cfg.N)
 
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
   stats.assess(E,xx,0)
-  lplot = LivePlot(params,cfg,E,stats,xx,yy)
+  lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -547,7 +547,7 @@ def EnsCheat(params,cfg,xx,yy):
       w,res,_,_ = sla.lstsq(E.T, xx[k])
       if not res.size:
         res = 0
-      res = sqrt(res/params.f.m) * ones(params.f.m)
+      res = sqrt(res/setup.f.m) * ones(setup.f.m)
       opt = w @ E
       # NB: It is also interesting to center E
       #     on the optimal solution.
@@ -558,28 +558,28 @@ def EnsCheat(params,cfg,xx,yy):
   return stats
 
 
-def Climatology(params,cfg,xx,yy):
+def Climatology(setup,cfg,xx,yy):
   """
   A baseline/reference method.
   """
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   mu0   = np.mean(xx,0)
   A0    = xx - mu0
   P0    = (A0.T @ A0) / (xx.shape[0] - 1)
 
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
   stats.assess_ext(mu0, sqrt(diag(P0)), xx, 0)
   for k,_,_,_ in progbar(chrono.forecast_range):
     stats.assess_ext(mu0,sqrt(diag(P0)),xx,k)
   return stats
 
-def D3Var(params,cfg,xx,yy):
+def D3Var(setup,cfg,xx,yy):
   """
   3D-Var -- a baseline/reference method.
   A mix between Climatology() and the Extended KF.
   """
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   dkObs = chrono.dkObs
   R     = h.noise.C.C
@@ -613,7 +613,7 @@ def D3Var(params,cfg,xx,yy):
 
   mu = X0.mu
 
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
   stats.assess_ext(mu, sqrt(diag(P0)), xx, 0)
   stats.trHK[:] = trace(H@KG)/h.noise.m
 
@@ -628,8 +628,8 @@ def D3Var(params,cfg,xx,yy):
   return stats
 
 
-def ExtKF(params,cfg,xx,yy):
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+def ExtKF(setup,cfg,xx,yy):
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   R = h.noise.C.C
   Q = f.noise.C.C
@@ -637,7 +637,7 @@ def ExtKF(params,cfg,xx,yy):
   mu = X0.mu
   P  = X0.C.C
 
-  stats = Stats(params,cfg)
+  stats = Stats(setup,cfg)
   stats.assess_ext(mu, sqrt(diag(P)), xx, 0)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):

@@ -32,7 +32,7 @@ h = {
 
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-params = OSSE(f,h,t,X0,**other)
+setup = OSSE(f,h,t,X0,**other)
 
 ####################
 # Suggested tuning
@@ -60,7 +60,7 @@ params = OSSE(f,h,t,X0,**other)
 #cfg.N         = 800
 #cfg.NER       = 0.1
 
-#params.t.dkObs = 10
+#setup.t.dkObs = 10
 #cfg.da_method = ExtKF
 #cfg.infl = 1.05
 

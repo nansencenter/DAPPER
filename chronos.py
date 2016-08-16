@@ -160,7 +160,7 @@ class Ticker:
   """ Iterator over kk, AND kkObs,
   the latter being handled without repeated look-ups.
   Includes __len__ for progressbar usage.
-  Provides additional params: k,dt."""
+  Provides additional setup: k,dt."""
   def __init__(self, tt, kkObs):
     self.tt  = tt
     self.kkO = kkObs

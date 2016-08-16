@@ -39,7 +39,7 @@ h = {
  
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-params = OSSE(f,h,t,X0,**other)
+setup = OSSE(f,h,t,X0,**other)
 
 
 
@@ -47,9 +47,9 @@ params = OSSE(f,h,t,X0,**other)
 
 # from common import *
 # 
-# from mods.Lorenz_2s.defaults import params
+# from mods.Lorenz_2s.defaults import setup
 # 
-# f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+# f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 # 
 # 
 # 

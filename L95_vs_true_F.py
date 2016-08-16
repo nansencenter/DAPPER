@@ -11,7 +11,7 @@ seed(sd0)
 ############################
 # Set-up
 ############################
-from mods.Lorenz95.sak08 import params
+from mods.Lorenz95.sak08 import setup
 from mods.Lorenz95.fundamentals import dxdt
 
 def model(F):
@@ -19,7 +19,7 @@ def model(F):
     return rk4(lambda t,x: dxdt(x,F),x0,t,dt)
   return model_inner
 
-params.t.T = 4**3
+setup.t.T = 4**3
 
 F_DA    = 8.0
 F_range = arange(5,12+1)
@@ -49,12 +49,12 @@ for i,F_true in enumerate(F_range):
   print('\nF_true: ', F_true)
   for j in range(nRepeat):
     seed(sd0 + j)
-    params.f.model = model(F=F_true)
-    xx,yy          = simulate(params)
-    params.f.model = model(F=F_DA)
+    setup.f.model = model(F=F_true)
+    xx,yy          = simulate(setup)
+    setup.f.model = model(F=F_DA)
     for k,cfg in enumerate(DAMs):
       seed(sd0 + j)
-      stats     = assimilate(params,cfg,xx,yy)
+      stats     = assimilate(setup,cfg,xx,yy)
       ss[i,j,k] = stats.average_after_burn()
     print_table(ss[i,j])
   avrg = average_each_field(ss[i],axis=0)

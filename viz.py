@@ -10,15 +10,15 @@ class LivePlot:
   """
   Live plotting functionality.
   """
-  def __init__(self,params,cfg,E,stats,xx,yy):
+  def __init__(self,setup,cfg,E,stats,xx,yy):
     N,m = E.shape
-    dt = params.t.dt
+    dt = setup.t.dt
     ii  = range(m)
 
     self.stats  = stats
     self.xx     = xx
     self.yy     = yy
-    self.params = params
+    self.setup = setup
 
     self.is_available = cfg.liveplotting
     if not self.is_available:
@@ -50,9 +50,9 @@ class LivePlot:
         stats.mu[0] + self.ks*sqrt(stats.var[0]), \
         alpha=0.4,label=(str(self.ks) + ' sigma'))
 
-    if hasattr(params.h,'plot'):
-      self.yplot = params.h.plot
-      self.obs = params.h.plot(yy[0])
+    if hasattr(setup.h,'plot'):
+      self.yplot = setup.h.plot
+      self.obs = setup.h.plot(yy[0])
       self.obs.set_label('Obs')
       self.obs.set_visible('off')
 
@@ -106,7 +106,7 @@ class LivePlot:
     self.fgd.clf()
     set_figpos('SW (mac)')
 
-    chrono = params.t
+    chrono = setup.t
     self.Kplot = estimate_good_plot_length(xx.ravel(order='F'),chrono)
     self.Kplot /= 4
     pkk = arange(self.Kplot).astype(int)
@@ -218,7 +218,7 @@ class LivePlot:
       if k > self.Kplot:
         pkk += (k-self.Kplot)
       pkk = pkk.astype(int)
-      ptt = self.params.t.tt[pkk]
+      ptt = self.setup.t.tt[pkk]
 
       self.le.set_data(ptt,stats.rmse[pkk])
       self.lv.set_data(ptt,stats.rmv[pkk])

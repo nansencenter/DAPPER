@@ -4,11 +4,11 @@ from common import *
 class Stats:
   """Contains and computes peformance stats."""
   # TODO: Include skew/kurt?
-  def __init__(self,params,cfg):
-    self.params = params
-    m    = params.f.m
-    K    = params.t.K
-    KObs = params.t.KObs
+  def __init__(self,setup,cfg):
+    self.setup = setup
+    m    = setup.f.m
+    K    = setup.t.K
+    KObs = setup.t.KObs
     #
     self.mu    = zeros((K+1,m))
     self.var   = zeros((K+1,m))
@@ -112,7 +112,7 @@ class Stats:
       getattr(self,key)[kObs] = val
 
   def average_after_burn(self):
-    t    = self.params.t
+    t    = self.setup.t
     kk_a = t.kkObsBI                   # analysis time > BurnIn
     kk_f = t.kkObsBI-1                 # forecast      > BurnIn
     kk_u = t.kk                        # all times     > BurnIn

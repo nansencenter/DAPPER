@@ -1,14 +1,14 @@
 
 from common import *
 
-from mods.Lorenz95.sak08 import params
+from mods.Lorenz95.sak08 import setup
 
-params.t = Chronology(0.01,dkObs=15,T=4**5,BurnIn=20)
-params.name = os.path.relpath(__file__,'mods/')
+setup.t = Chronology(0.01,dkObs=15,T=4**5,BurnIn=20)
+setup.name = os.path.relpath(__file__,'mods/')
 
 
 # Reproduce raanes'2014 ("EnRTS and EnKS")
-#from mods.Lorenz95.m33 import params
+#from mods.Lorenz95.m33 import setup
 #cfg.N         = 25
 #cfg.infl      = 1.08
 #cfg.AMethod   = 'Sqrt'

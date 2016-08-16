@@ -47,7 +47,7 @@ h = {
  
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-params = OSSE(f,h,t,X0,**other)
+setup = OSSE(f,h,t,X0,**other)
 
 
 
@@ -88,9 +88,9 @@ params = OSSE(f,h,t,X0,**other)
 
 
 # Reproduce Bocquet'2015 "expanding"
-# params.t.T     = 4**4
-# params.t.dt    = 0.05
-# params.t.dkObs = 3
+# setup.t.T     = 4**4
+# setup.t.dt    = 0.05
+# setup.t.dkObs = 3
 # #
 # #cfg.N          = 20
 # ##cfg.infl       = 1.02 # dkObs = 1
@@ -105,6 +105,6 @@ params = OSSE(f,h,t,X0,**other)
 # cfg.infl      = 1.0
 # cfg.rot       = False
 # #
-# #params.t.dt    = 0.01
-# #params.t.dkObs = 1
+# #setup.t.dt    = 0.01
+# #setup.t.dkObs = 1
 

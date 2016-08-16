@@ -124,7 +124,7 @@ h = {
 
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-params = OSSE(f,h,t,X0,**other)
+setup = OSSE(f,h,t,X0,**other)
 
 
 ####################

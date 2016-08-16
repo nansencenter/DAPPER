@@ -11,7 +11,7 @@ np.random.seed(5)
 # Setup
 ############################
 
-#from mods.Lorenz63.sak12 import params
+#from mods.Lorenz63.sak12 import setup
 # Expected rmse_a = 0.63 (sak 0.65)
 #cfg           = DAM(EnKF)
 #cfg.N         = 10
@@ -26,11 +26,11 @@ np.random.seed(5)
 #cfg.N         = 800
 #cfg.NER       = 0.1
 #
-#params.t.dkObs = 10
+#setup.t.dkObs = 10
 #cfg = DAM(ExtKF, infl = 1.05)
 
 
-from mods.Lorenz95.sak08 import params
+from mods.Lorenz95.sak08 import setup
 #
 cfg           = DAM(EnKF)
 cfg.N         = 24
@@ -43,34 +43,34 @@ cfg.rot       = True
 #cfg = DAM(ExtKF, infl = 1.05)
 #cfg = DAM(EnsCheat)
 
-#from mods.Lorenz95.spectral_obs import params
-#from mods.Lorenz95.m33 import params
+#from mods.Lorenz95.spectral_obs import setup
+#from mods.Lorenz95.m33 import setup
 
-#from mods.LA.raanes2014 import params
+#from mods.LA.raanes2014 import setup
 
 
 ############################
 # Common
 ############################
-params.t.T = 4**3
+setup.t.T = 4**3
 cfg.liveplotting = True
 
 
 ############################
 # Generate synthetic truth/obs
 ############################
-xx,yy = simulate(params)
+xx,yy = simulate(setup)
 
 ############################
 # Assimilate
 ############################
-s = assimilate(params,cfg,xx,yy)
+s = assimilate(setup,cfg,xx,yy)
 
 
 ############################
 # Report averages
 ############################
-chrono = params.t
+chrono = setup.t
 kk_a = chrono.kkObsBI
 kk_f = chrono.kkObsBI-1
 print('Mean analysis RMSE: {: 8.5f} ± {:<5g},    RMV: {:8.5f}'

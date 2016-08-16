@@ -37,7 +37,6 @@ class OSSE:
     for key, value in kwargs.items():
       setattr(self, key, value)
 
-# TODO: Similarly: rsr params -r setup
 class DAM:
   """Container for DA Method settings."""
   def __init__(self,da_method,**kwargs):
@@ -51,9 +50,9 @@ class DAM_list(list):
   def add(self,*kargs,**kwargs):
     self.append(DAM(*kargs,**kwargs))
 
-def simulate(params):
+def simulate(setup):
   """Generate synthetic truth and observations"""
-  f,h,chrono,X0 = params.f, params.h, params.t, params.X0
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   # truth
   xx = zeros((chrono.K+1,f.m))
@@ -69,7 +68,7 @@ def simulate(params):
   return xx,yy
 
 
-def assimilate(params,cfg,xx,yy):
+def assimilate(setup,cfg,xx,yy):
   """Call cfg.da_method(), passing along all arguments."""
   args = locals()
   return cfg.da_method(**args)
