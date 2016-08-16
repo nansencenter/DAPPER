@@ -10,7 +10,7 @@ class LivePlot:
   """
   Live plotting functionality.
   """
-  def __init__(self,params,E,stats,xx,yy):
+  def __init__(self,params,cfg,E,stats,xx,yy):
     N,m = E.shape
     dt = params.t.dt
     ii  = range(m)
@@ -20,6 +20,9 @@ class LivePlot:
     self.yy     = yy
     self.params = params
 
+    self.is_available = cfg.liveplotting
+    if not self.is_available:
+      return
     self.is_on     = False
     self.is_paused = False
     print('Press <Enter> to toggle live plot ON/OFF.')
@@ -127,6 +130,8 @@ class LivePlot:
 
 
   def update(self,E,k,kObs):
+    if not self.is_available:
+      return
 
     if self.is_paused:
       ch = getch()
@@ -458,4 +463,23 @@ def plt_hbars(yy,x1x2=None,*kargs,**kwargs):
   xx = np.tile(asmatrix(x1x2).ravel().T,(1,len(yy)))
   yy = np.tile(yy,(2,1))
   plt.plot(xx,yy,*kargs,**kwargs)
+
+
+
+
+def print_averages(DAMs,avrgs,*statnames):
+  headr = ' '*17
+  for sname in statnames:
+    headr += '{0: >8} ±'.format(sname) + ' '*7
+  print(headr)
+  for k,meth in enumerate(DAMs):
+    line = '{0: <16}'.format(meth.da_method.__name__)
+    for sname in statnames:
+      val = avrgs[k][sname]
+      if type(val) is val_with_conf:
+        line += '{0: >9.4f} {1: <6g} '.format(val.val,round2sigfig(val.conf))
+      else:
+        line += '{0: >9.4f} {1: <6g} '.format(val[0],val[1])
+    print(line)
+
 

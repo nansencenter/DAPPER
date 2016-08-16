@@ -2,6 +2,8 @@
 
 from common import *
 
+seed = np.random.seed
+
 def LCG(seed=-1):
   """
   (Unit) random number generator for X-platform use

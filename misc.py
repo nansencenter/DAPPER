@@ -63,6 +63,8 @@ def round2(num,prec=1.0):
   return np.multiply(prec,np.rint(np.divide(num,prec)))
 
 def round2sigfig(x,nfig=1):
+  if x == 0:
+    return x
   signs = np.sign(x)
   x *= signs
   return signs*round2(x,10**np.round(np.log10(x)-nfig))
@@ -123,33 +125,46 @@ def estimate_corr_length(xx):
     L = 1/log(1/a)
   return L
 
+
+# TODO: Use this
+class val_with_conf:
+  def __init__(self,val,conf):
+    self.val  = val
+    self.conf = conf
+  def __str__(self):
+    return str(self.val) + ' ±' + str(round2sigfig(self.conf))
+  def __repr__(self):
+    return str(self.__dict__)
+
 def series_mean_with_conf(xx):
   """
   Compute series mean.
   Also provide confidence of mean,
   as estimated from its correlation-corrected variance.
   """
-  mu = np.mean(xx)
-  # Estimate (fit) ACF
-  # Empirical auto cov function (ACF)
+  mu    = np.mean(xx)
   acovf = auto_cov(xx,5)
-  a = fit_acf_by_AR1(acovf)
-  v = acovf[0]
-  # If xx[k] where independent of xx[k-1],
-  # then std_of_mu is the end of the story.
-  # The following corrects for the correlation in the time series.
-  #
-  # See stats.stackexchange.com/q/90062
-  # c = np.sum([(N-k)*a**k for k in range(1,N)])
-  # But this series is analytically tractable:
-  N = len(xx)
-  c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
-  confidence_correction = 1 + 2/N * c
-  #
-  var_of_mu = v/N
-  var_of_mu_decorr = var_of_mu * confidence_correction
+  N     = len(xx)
+  v     = acovf[0]
+  v    /= N
+  if v < 1e-10*mu:
+    v = 0
+  else:
+    # Estimate (fit) ACF
+    # Empirical auto cov function (ACF)
+    a = fit_acf_by_AR1(acovf)
+    # If xx[k] where independent of xx[k-1],
+    # then std_of_mu is the end of the story.
+    # The following corrects for the correlation in the time series.
+    #
+    # See stats.stackexchange.com/q/90062
+    # c = np.sum([(N-k)*a**k for k in range(1,N)])
+    # But this series is analytically tractable:
+    c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
+    confidence_correction = 1 + 2/N * c
+    v*= confidence_correction
   #sig_fig_std = float('%.1g' % sqrt(decorr_var_of_mu))
-  return mu, round2sigfig(sqrt(var_of_mu_decorr))
+  return mu, round2sigfig(sqrt(v))
 
 
 

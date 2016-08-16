@@ -1,5 +1,6 @@
 from common import *
     
+
 def EnKF(params,cfg,xx,yy):
   """EnKF"""
 
@@ -9,7 +10,7 @@ def EnKF(params,cfg,xx,yy):
 
   stats = Stats(params,cfg)
   stats.assess(E,xx,0)
-  lplot = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,cfg,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -244,7 +245,7 @@ def EnKF_N(params,cfg,xx,yy):
   stats = Stats(params,cfg)
   stats.assess(E,xx,0)
   stats.infl = zeros(chrono.KObs+1)
-  lplot = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,cfg,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -296,11 +297,8 @@ def EnKF_N(params,cfg,xx,yy):
       #           - 2*zeta**2/(N+g)*np.outer(w,w)
       # T       = funm_psd(Hess, lambda x: x**(-0.5)) * sqrt(N-1)
 
-      if cfg.rot:
-        T = genOG_1(N) @ T
-      T *= cfg.infl
-
       E = mu + w@A + T@A
+      post_process(E,cfg)
 
       stats.trHK[kObs] = sum(((l1*s)**2 + (N-1))**(-1.0)*s**2)/h.noise.m
 
@@ -322,7 +320,7 @@ def iEnKF(params,cfg,xx,yy):
   stats = Stats(params,cfg)
   stats.assess(E,xx,0)
   stats.iters = zeros(chrono.KObs+1)
-  lplot = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,cfg,E,stats,xx,yy)
 
   for kObs in progbar(range(chrono.KObs+1)):
     xb0 = mean(E,0)
@@ -422,7 +420,7 @@ def PartFilt(params,cfg,xx,yy):
   stats.nResamples = 0
   stats.assess(E,xx,0)
 
-  lplot = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,cfg,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -531,7 +529,7 @@ def EnsCheat(params,cfg,xx,yy):
 
   stats = Stats(params,cfg)
   stats.assess(E,xx,0)
-  lplot = LivePlot(params,E,stats,xx,yy)
+  lplot = LivePlot(params,cfg,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -686,13 +684,10 @@ class Stats:
     m    = params.f.m
     K    = params.t.K
     KObs = params.t.KObs
-    N    = cfg.N
-    m_Nm = np.minimum(m,N)
     #
     self.mu    = zeros((K+1,m))
     self.var   = zeros((K+1,m))
     self.mad   = zeros((K+1,m))
-    self.svals = zeros((K+1,m_Nm))
     self.umisf = zeros((K+1,m))
     self.smisf = zeros(K+1)
     self.ldet  = zeros(K+1)
@@ -702,10 +697,14 @@ class Stats:
     self.skew  = zeros(K+1)
     self.kurt  = zeros(K+1)
     self.err   = zeros((K+1,m))
-    self.rmv  = zeros(K+1)
+    self.rmv   = zeros(K+1)
     self.rmse  = zeros(K+1)
-    self.trHK  = zeros(KObs+1)
     self.rh    = zeros((K+1,m))
+    self.trHK  = zeros(KObs+1)
+    if hasattr(cfg,'N'):
+      N    = cfg.N
+      m_Nm = np.minimum(m,N)
+      self.svals = zeros((K+1,m_Nm))
 
   def assess(self,E,x,k):
     assert(type(E) is np.ndarray)
@@ -786,6 +785,26 @@ class Stats:
     """
     for key,val in s.items():
       getattr(self,key)[kObs] = val
+
+  def average_after_burn(self):
+    t    = self.params.t
+    kk_a = t.kkObsBI                   # analysis time > BurnIn
+    kk_f = t.kkObsBI-1                 # forecast      > BurnIn
+    kk_u = t.kk                        # all times     > BurnIn
+    kk_O = arange(t.kObsBI, t.KObs+1)  # all obs times > BurnIn
+    avrg = dict()
+    for key,val in vars(self).items():
+      if type(val) is np.ndarray:
+        if is1d(val):
+          if len(val) == t.K+1:
+            avrg[key + '_a'] = series_mean_with_conf(val[kk_a])
+            avrg[key + '_f'] = series_mean_with_conf(val[kk_f])
+            avrg[key + '_u'] = series_mean_with_conf(val[kk_u])
+          elif len(val) == t.KObs+1:
+            avrg[key] = series_mean_with_conf(val[kk_O])
+    return avrg
+
+      
 
 
 

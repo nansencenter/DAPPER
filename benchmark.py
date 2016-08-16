@@ -6,6 +6,7 @@ from common import *
 np.random.seed(5)
 #LCG(5)
 
+
 ############################
 # Setup
 ############################
@@ -49,7 +50,12 @@ cfg.da_method = EnKF
 
 #from mods.LA.raanes2014 import params
 
+
+############################
+# Common
+############################
 params.t.T = 4**3
+#cfg.liveplotting = True
 
 
 ############################
@@ -68,25 +74,28 @@ yy = zeros((chrono.KObs+1,h.m))
 for k,t in enumerate(chrono.ttObs):
   yy[k] = h.model(xx[chrono.kkObs[k]],t) + h.noise.sample(1)
 
+
 ############################
 # Assimilate
 ############################
-s = Assimilate(params,cfg,xx,yy)
+s = assimilate(params,cfg,xx,yy)
 
 
 ############################
 # Report averages
 ############################
-print('Mean analysis RMSE: {: 8.5f} +/- {:<5g},    RMV: {:8.5f}'\
-    .format(*series_mean_with_conf(s.rmse[chrono.kkObsBI]),mean(s.rmv[chrono.kkObsBI])))
-print('Mean forecast RMSE: {: 8.5f} +/- {:<5g},    RMV: {:8.5f}'\
-    .format(*series_mean_with_conf(s.rmse[chrono.kkObsBI-1]),mean(s.rmv[chrono.kkObsBI-1])))
-print('Mean analysis MGSL: {: 8.5f} +/- {:<5g}' \
-    .format(*series_mean_with_conf(s.logp_m[chrono.kkObsBI])))
-#print('Mean analysis  GLS: {: 8.5f} +/- {:<5g}' \
-    #.format(*series_mean_with_conf(s.logp[chrono.kkObsBI])))
-#print('Mean analysis RGLS: {: 8.5f} +/- {:<5g}' \
-    #.format(*series_mean_with_conf(s.logp_r[chrono.kkObsBI])))
+kk_a = chrono.kkObsBI
+kk_f = chrono.kkObsBI-1
+print('Mean analysis RMSE: {: 8.5f} ± {:<5g},    RMV: {:8.5f}'
+    .format(*series_mean_with_conf(s.rmse[kk_a]),mean(s.rmv[kk_a])))
+print('Mean forecast RMSE: {: 8.5f} ± {:<5g},    RMV: {:8.5f}'
+    .format(*series_mean_with_conf(s.rmse[kk_f]),mean(s.rmv[kk_f])))
+print('Mean analysis MGSL: {: 8.5f} ± {:<5g}'
+    .format(*series_mean_with_conf(s.logp_m[kk_a])))
+#print('Mean analysis  GLS: {: 8.5f} ± {:<5g}'
+    #.format(*series_mean_with_conf(s.logp[kk_a])))
+#print('Mean analysis RGLS: {: 8.5f} ± {:<5g}'
+    #.format(*series_mean_with_conf(s.logp_r[kk_a])))
 
 ############################
 # Plot
