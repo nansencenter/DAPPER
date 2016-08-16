@@ -467,19 +467,3 @@ def plt_hbars(yy,x1x2=None,*kargs,**kwargs):
 
 
 
-def print_averages(DAMs,avrgs,*statnames):
-  headr = ' '*17
-  for sname in statnames:
-    headr += '{0: >8} ±'.format(sname) + ' '*7
-  print(headr)
-  for k,meth in enumerate(DAMs):
-    line = '{0: <16}'.format(meth.da_method.__name__)
-    for sname in statnames:
-      val = avrgs[k][sname]
-      if type(val) is val_with_conf:
-        line += '{0: >9.4f} {1: <6g} '.format(val.val,round2sigfig(val.conf))
-      else:
-        line += '{0: >9.4f} {1: <6g} '.format(val[0],val[1])
-    print(line)
-
-

@@ -46,10 +46,13 @@ cblue  = array([0,0,1])
 from stoch import *
 from utils import *
 from misc import *
+from series import *
+from stats import *
 from viz import *
 from chronos import *
 from matrices import *
 from randvars import *
+from stats import *
 from da_algos import *
 from admin import *
 

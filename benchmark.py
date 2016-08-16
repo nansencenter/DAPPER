@@ -10,11 +10,10 @@ np.random.seed(5)
 ############################
 # Setup
 ############################
-cfg = Settings()
 
 #from mods.Lorenz63.sak12 import params
 # Expected rmse_a = 0.63 (sak 0.65)
-#cfg.da_method = EnKF
+#cfg           = Settings(EnKF)
 #cfg.N         = 10
 #cfg.infl      = 1.02
 #cfg.AMethod   = 'Sqrt'
@@ -23,27 +22,26 @@ cfg = Settings()
 #cfg.da_method = iEnKF # rmse_a = 0.31
 #cfg.iMax      = 10
 #
-#cfg.da_method = PartFilt # rmse_a = 0.275 (N=4000)
+#cfg           = Settings(PartFilt) # rmse_a = 0.275 (N=4000)
 #cfg.N         = 800
 #cfg.NER       = 0.1
 #
 #params.t.dkObs = 10
-#cfg.da_method = ExtKF
-#cfg.infl = 1.05
+#cfg = Settings(ExtKF, infl = 1.05)
 
 
 from mods.Lorenz95.sak08 import params
 #
+cfg           = Settings(EnKF)
 cfg.N         = 24
 cfg.infl      = 1.018
 cfg.AMethod   = 'Sqrt'
 cfg.rot       = True
-cfg.da_method = EnKF
 #
-#cfg.da_method = Climatology
-#cfg.da_method = D3Var
-#cfg.da_method = ExtKF; cfg.infl = 1.05
-#cfg.da_method = EnsCheat
+#cfg = Settings(Climatology)
+#cfg = Settings(D3Var)
+#cfg = Settings(ExtKF, infl = 1.05)
+#cfg = Settings(EnsCheat)
 
 #from mods.Lorenz95.spectral_obs import params
 #from mods.Lorenz95.m33 import params
@@ -55,25 +53,13 @@ cfg.da_method = EnKF
 # Common
 ############################
 params.t.T = 4**3
-#cfg.liveplotting = True
+cfg.liveplotting = True
 
 
 ############################
 # Generate synthetic truth/obs
 ############################
-f,h,chrono,X0 = params.f, params.h, params.t, params.X0
-
-# truth
-xx = zeros((chrono.K+1,f.m))
-xx[0] = X0.sample(1)
-for k,_,t,dt in chrono.forecast_range:
-  xx[k] = f.model(xx[k-1],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
-
-# obs
-yy = zeros((chrono.KObs+1,h.m))
-for k,t in enumerate(chrono.ttObs):
-  yy[k] = h.model(xx[chrono.kkObs[k]],t) + h.noise.sample(1)
-
+xx,yy = simulate(params)
 
 ############################
 # Assimilate
@@ -84,6 +70,7 @@ s = assimilate(params,cfg,xx,yy)
 ############################
 # Report averages
 ############################
+chrono = params.t
 kk_a = chrono.kkObsBI
 kk_f = chrono.kkObsBI-1
 print('Mean analysis RMSE: {: 8.5f} ± {:<5g},    RMV: {:8.5f}'
@@ -92,10 +79,6 @@ print('Mean forecast RMSE: {: 8.5f} ± {:<5g},    RMV: {:8.5f}'
     .format(*series_mean_with_conf(s.rmse[kk_f]),mean(s.rmv[kk_f])))
 print('Mean analysis MGSL: {: 8.5f} ± {:<5g}'
     .format(*series_mean_with_conf(s.logp_m[kk_a])))
-#print('Mean analysis  GLS: {: 8.5f} ± {:<5g}'
-    #.format(*series_mean_with_conf(s.logp[kk_a])))
-#print('Mean analysis RGLS: {: 8.5f} ± {:<5g}'
-    #.format(*series_mean_with_conf(s.logp_r[kk_a])))
 
 ############################
 # Plot
