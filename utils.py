@@ -65,3 +65,10 @@ def _find_getch():
     return _getch
 getch = _find_getch()
 
+
+cwhite = array([1,1,1])
+cred   = array([1,0,0])
+cgreen = array([0,1,0])
+cblue  = array([0,0,1])
+
+

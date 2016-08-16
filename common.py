@@ -38,11 +38,6 @@ from time import sleep
 # From DAPPER
 ######################
 
-cwhite = array([1,1,1])
-cred   = array([1,0,0])
-cgreen = array([0,1,0])
-cblue  = array([0,0,1])
-
 from stoch import *
 from utils import *
 from misc import *

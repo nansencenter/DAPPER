@@ -50,6 +50,11 @@ class DAM_list(list):
   def add(self,*kargs,**kwargs):
     self.append(DAM(*kargs,**kwargs))
 
+def assimilate(setup,cfg,xx,yy):
+  """Call cfg.da_method(), passing along all arguments."""
+  args = locals()
+  return cfg.da_method(**args)
+
 def simulate(setup):
   """Generate synthetic truth and observations"""
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
@@ -66,13 +71,6 @@ def simulate(setup):
     yy[k] = h.model(xx[chrono.kkObs[k]],t) + h.noise.sample(1)
 
   return xx,yy
-
-
-def assimilate(setup,cfg,xx,yy):
-  """Call cfg.da_method(), passing along all arguments."""
-  args = locals()
-  return cfg.da_method(**args)
-
 
 class Bunch(dict):
   def __init__(self,**kw):
