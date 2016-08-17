@@ -50,14 +50,14 @@ for i,F_true in enumerate(F_range):
   for j in range(nRepeat):
     seed(sd0 + j)
     setup.f.model = model(F=F_true)
-    xx,yy          = simulate(setup)
+    xx,yy         = simulate(setup)
     setup.f.model = model(F=F_DA)
-    for k,cfg in enumerate(DAMs):
+    for k,method in enumerate(DAMs):
       seed(sd0 + j)
-      stats     = assimilate(setup,cfg,xx,yy)
+      stats     = assimilate(setup,method,xx,yy)
       ss[i,j,k] = stats.average_after_burn()
     print_table(ss[i,j])
   avrg = average_each_field(ss[i],axis=0)
-  print('')
+  print('Average over',nRepeat,'repetitions:')
   print_table(avrg)
 

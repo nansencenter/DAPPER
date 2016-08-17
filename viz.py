@@ -310,7 +310,8 @@ def plot_time_series(xx,stats,chrono, \
   ax_d = plt.subplot(3,1,1)
   ax_d.plot(tt[pkk],xx[pkk  ,dim],'k',lw=3,label='Truth')
   ax_d.plot(tt[pkk],s.mu[pkk,dim],'b',lw=2,label='DA estim.',alpha=0.6)
-  ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
+  #ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
+  ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
   ax_d.legend()
   ax_d.set_xticklabels([])
 
@@ -425,6 +426,8 @@ def set_figpos(case):
       fmw.setGeometry(640, 45, 640, 365)
     elif case.startswith('SE'):
       fmw.setGeometry(640, 431, 640, 365)
+    elif case.startswith('SW'):
+      fmw.setGeometry(0, 431, 640, 365)
     elif case.startswith('E '):
       fmw.setGeometry(640, 45, 640, 751)
     else:
