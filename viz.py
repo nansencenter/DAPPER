@@ -285,7 +285,7 @@ def plot_3D_trajectory(xx,stats,chrono,\
   s = stats
 
   plt.figure(14).clf()
-  set_figpos('SE')
+  set_figpos('2311 mac')
 
   kk = get_plot_inds(chrono,Kplot,Tplot,xx.ravel(order='F'))[0]
 
@@ -302,7 +302,7 @@ def plot_time_series(xx,stats,chrono, \
   s  = stats
 
   fg = plt.figure(12,figsize=(8,8)).clf()
-  set_figpos('NE')
+  set_figpos('1313 mac')
 
   pkk,pkkObs = get_plot_inds(chrono,Kplot,Tplot,xx[:,dim])
   tt = chrono.tt
@@ -336,6 +336,7 @@ def plot_time_series(xx,stats,chrono, \
 
 
   fgH = plt.figure(16,figsize=(6,5)).clf()
+  set_figpos('2312 mac')
   m = xx.shape[1]
   plt.contourf(1+arange(m),tt[pkk],xx[pkk])
   plt.colorbar()
@@ -365,6 +366,7 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
     d_text = '(dims: ' + str(dims) + ')'
 
   fgE = plt.figure(15,figsize=(8,6)).clf()
+  set_figpos('2321 mac')
   ax_r = plt.subplot(211)
   ax_r.set_xlabel('Component index')
   ax_r.set_ylabel('Time-average magnitude')
@@ -392,7 +394,7 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
 
 
   fg = plt.figure(13,figsize=(8,6)).clf()
-  set_figpos('NE')
+  set_figpos('2322 mac')
   #
   has_been_computed = not all(stats.rh[-1] == 0)
   if has_been_computed:
@@ -412,45 +414,6 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
 
   
 
-
-def set_figpos(case):
-  if 'Qt4Agg' is not matplotlib.get_backend():
-    return
-  fmw = plt.get_current_fig_manager().window
-  w = fmw.width()
-  h = fmw.height()
-  x = fmw.x()
-  y = fmw.y()
-  if 'mac' in case:
-    if case.startswith('NE'):
-      fmw.setGeometry(640, 45, 640, 365)
-    elif case.startswith('SE'):
-      fmw.setGeometry(640, 431, 640, 365)
-    elif case.startswith('SW'):
-      fmw.setGeometry(0, 431, 640, 365)
-    elif case.startswith('E '):
-      fmw.setGeometry(640, 45, 640, 751)
-    else:
-      sys.exit('Position not defined')
-  else:
-    if case.startswith('NE'):
-      Cx = 1922
-      Cy = -720
-      w = 700
-      h = 900
-      fmw.setGeometry(Cx-w,Cy-h,w,h) # x,y,w,h
-    elif case.startswith('SE'):
-      Cx = 1922
-      Cy = 0
-      h = 500
-      w = 700
-      fmw.setGeometry(Cx-w,Cy-h,w,h)
-    elif case.startswith('E '):
-      fmw.setGeometry(642, -1418, 716, 1418)
-    else:
-      sys.exit('Position not defined')
-  
-
 @atmost_2d
 def plt_vbars(xx,y1y2=None,*kargs,**kwargs):
   if y1y2 == None:
@@ -467,6 +430,80 @@ def plt_hbars(yy,x1x2=None,*kargs,**kwargs):
   yy = np.tile(yy,(2,1))
   plt.plot(xx,yy,*kargs,**kwargs)
 
+
+
+
+
+def set_figpos(loc):
+  """
+  Place figure on screen, where 'loc' can be either
+    NW, E, ...
+  or
+    4 digits (as str or int) to define grid m,n,i,j.
+  Append the string 'mac' to place on mac monitor.
+  Only works with both:
+   - Patrick's monitor setup (Dell with Mac central-below)
+   - Qt4Agg backend.
+  """
+  if 'Qt4Agg' is not matplotlib.get_backend():
+    return
+  fmw = plt.get_current_fig_manager().window
+
+  # Current values
+  #w_now = fmw.width()
+  #h_now = fmw.height()
+  #x_now = fmw.x()
+  #y_now = fmw.y()
+
+  # Constants
+  Dell_w = 2560
+  Dell_h = 1440
+  Mac_w  = 2560
+  Mac_h  = 1600
+  # Why is Mac monitor scaled by 1/2 ?
+  Mac_w  /= 2
+  Mac_h  /= 2
+  sysbar = 44
+  winbar = 44 # coz window bars not computed by X11 forwarding ?
+
+  loc = str(loc)
+  if 'mac' in loc:
+    x0 = Dell_w/4
+    y0 = Dell_h+sysbar
+    w0 = Mac_w
+    h0 = Mac_h-sysbar
+  else:
+    x0 = 0
+    y0 = 0
+    w0 = Dell_w
+    h0 = Dell_h
+  
+  # Def place function with offsets
+  def place(x,y,w,h):
+    fmw.setGeometry(x0+x,y0+y,w,h)
+
+  if not loc[:4].isnumeric():
+    if loc.startswith('NW'):
+      loc = '2211'
+    elif loc.startswith('SW'):
+      loc = '2221'
+    elif loc.startswith('NE'):
+      loc = '2211'
+    elif loc.startswith('SE'):
+      loc = '2221'
+    elif loc.startswith('W'):
+      loc = '1211'
+    elif loc.startswith('E'):
+      loc = '1212'
+    elif loc.startswith('S'):
+      loc = '2121'
+    elif loc.startswith('N'):
+      loc = '2111'
+
+  # Place
+  m,n,i,j = [int(x) for x in loc[:4]]
+  assert m>=i>0 and n>=j>0
+  place((j-1)*w0/n,(i-1)*(h0-winbar)/m,w0/n,h0/m)
 
 
 

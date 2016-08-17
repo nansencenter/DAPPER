@@ -15,6 +15,11 @@ import matplotlib.pyplot as plt
 plt.ion()
 from mpl_toolkits.mplot3d import Axes3D
 
+# With Qt4Agg backend plt.pause() causes warning. Ignore.
+import warnings
+import matplotlib.cbook
+warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
+
 from numpy import sqrt, abs, floor, ceil, prod, \
     mean, \
     linspace, arange, reshape, \
