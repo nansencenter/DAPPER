@@ -8,6 +8,8 @@ import sys
 import os.path
 import importlib
 
+assert sys.version_info >= (3,5)
+
 import matplotlib
 #matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt

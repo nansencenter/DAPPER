@@ -22,8 +22,7 @@ def model(F):
 setup.t.T = 4**3
 
 F_DA    = 8.0
-F_range = arange(5,12+1)
-F_range = arange(8,9)
+F_range = arange(5,12+1)[inds]
 
 ############################
 # DA methods
@@ -35,14 +34,14 @@ DAMs.add(D3Var)
 DAMs.add(ExtKF,infl=1.05)
 DAMs.add(EnKF_N,N=24,rot=True)
 
-print_table = lambda x: print_averages(DAMs,x,
-    'rmse_a','rmv_a','logp_m_a')
+def print_table(x):
+  print_averages(DAMs,x, 'rmse_a','rmv_a','logp_m_a')
 
 
 ############################
 # Assimilate
 ############################
-nRepeat = 3
+nRepeat = 2
 ss = np.empty((len(F_range),nRepeat,len(DAMs)),dict)
 
 for i,F_true in enumerate(F_range):
@@ -61,3 +60,4 @@ for i,F_true in enumerate(F_range):
   print('Average over',nRepeat,'repetitions:')
   print_table(avrg)
 
+save_data(save_path,inds,F_range=F_range,ss=ss,xx=xx,yy=yy)

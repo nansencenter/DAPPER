@@ -37,7 +37,8 @@ class OSSE:
     for key, value in kwargs.items():
       setattr(self, key, value)
 
-class DAM:
+from json import JSONEncoder
+class DAM(JSONEncoder):
   """Container for DA Method settings."""
   def __init__(self,da_method,**kwargs):
     # Careful with defaults -- explicit is better than implicit!
@@ -46,7 +47,7 @@ class DAM:
     for key, value in kwargs.items():
       setattr(self, key, value)
 
-class DAM_list(list):
+class DAM_list(list,JSONEncoder):
   def add(self,*kargs,**kwargs):
     self.append(DAM(*kargs,**kwargs))
 

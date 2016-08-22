@@ -37,7 +37,7 @@ class LivePlot:
     #####################
     self.fga = plt.figure(21,figsize=(8,8))
     self.fga.clf()
-    set_figpos('E (mac)')
+    set_figpos('2311')
 
     self.ax  = plt.subplot(211)
     self.lmu,= plt.plot(ii,stats.mu[0],'b',lw=2,ls='-',label='Ens.mean')
@@ -75,7 +75,7 @@ class LivePlot:
     #####################
     self.fg3 = plt.figure(23,figsize=(8,6))
     self.fg3.clf()
-    set_figpos('NE (mac)')
+    set_figpos('2321')
 
     ax3      = self.fg3.add_subplot(111,projection='3d')
     self.ax3 = ax3
@@ -104,7 +104,7 @@ class LivePlot:
     #####################
     self.fgd = plt.figure(24,figsize=(8,6))
     self.fgd.clf()
-    set_figpos('SW (mac)')
+    set_figpos('2312')
 
     chrono = setup.t
     self.Kplot = estimate_good_plot_length(xx.ravel(order='F'),chrono)
@@ -503,7 +503,8 @@ def set_figpos(loc):
   # Place
   m,n,i,j = [int(x) for x in loc[:4]]
   assert m>=i>0 and n>=j>0
-  place((j-1)*w0/n,(i-1)*(h0-winbar)/m,w0/n,h0/m)
+  fudge = winbar/m
+  place((j-1)*w0/n, (i-1)*h0/m+fudge/m, w0/n, h0/m-fudge)
 
 
 
