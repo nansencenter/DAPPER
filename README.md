@@ -49,6 +49,9 @@ Particle filter (bootstrap)     | "
 Climatology                     | "
 TODO: Sqrt model noise methods  | raanes'2014 ("sqrt model noise")
 
+#### How to add a new method
+Just add it to `da_algos.py`, using the others in there as templates.
+(TODO: split `da_algos.py` into multiple files.)
 
 Models
 ------------
@@ -71,10 +74,22 @@ Shallow Water | No      | 2D        |  xx        |  ?             | Gharamti
       (hence forecast parallelization is in users's hands)
     * should not modify in-place.
     * the same applies for the observation operator/model
-* To begin with, try **small** initial perturbations.
-  Big and sharp (white) might cause your model to blow up!
+* To begin with, test whether the model works
+    * on 1 realization
+    * on several realizations (simultaneously)
+* Thereafter, try assimilating using
+    * a big ensemble
+    * a safe (e.g. 1.2) inflation value
+    * small initial perturbations
+      (big/sharp noises might cause model blow up)
+    * very large observation noise (free run)
+    * or very small observation noise (perfectly observed system)
+
+<!---
 * Nice read: "Perfect Model Experiment Overview" section of
     http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
+
+-->
 
 
 Additional features
