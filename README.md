@@ -174,6 +174,7 @@ TODO
 * add_noise()
 * 1D model preserving some quantity (aside from L95)
 * 2D model
+* KdVB model? (Zupanski 2006)
 * Doc models
 
 * Should (direct) observations return copy? e.g. x[:,obsInds].copy()

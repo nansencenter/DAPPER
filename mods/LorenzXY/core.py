@@ -39,20 +39,49 @@ iiY = np.arange(J*nX).reshape((nX,J))
 def dxdt(x):
   a = 1 # axis
 
-  # Split X,Y
+  # Split into X,Y
   X = x[:,:nX]
   Y = x[:,nX:]
   assert Y.shape[1] == J*X.shape[1]
 
   d = np.zeros_like(x)
-  # X vars
+  # dX/dt -- same as "uncoupled" Lorenz-95
   d[:,:nX] = np.multiply(lr(X,1,a)-lr(X,-2,a),lr(X,-1,a)) - X + F
+  # Add in coupling from Y vars
   for i in range(nX):
     d[:,i] += -h*c/b * np.sum(Y[:,iiY[i]],1)
-  # Y vars
+  # dY/dt
   d[:,nX:] = -c*b*np.multiply(lr(Y,2,a)-lr(Y,-1,a),lr(Y,1,a)) - c*Y \
       + h*c/b * X[:,iiX]
   return d
+
+def dfdx(x,t,dt):
+  """
+  Jacobian of x + dt*dxdt.
+  """
+  assert is1d(x)
+  F  = np.zeros((m,m))
+  # X
+  md = lambda i: np.mod(i,nX)
+  for i in range(nX):
+    # wrt. X
+    F[i,i]         = - dt + 1
+    F[i,md(i-2)]   = - dt * x[md(i-1)]
+    F[i,md(i+1)]   = + dt * x[md(i-1)]
+    F[i,md(i-1)]   =   dt *(x[md(i+1)]-x[md(i-2)])
+    # wrt. Y
+    F[i,nX+iiY[i]] = dt * -h*c/b
+  # Y
+  md = lambda i: nX + np.mod(i-nX,nX*J)
+  for i in range(nX,(J+1)*nX):
+    # wrt. Y
+    F[i,i]         = -dt*c + 1
+    F[i,md(i-1)]   = +dt*c*b * x[md(i+1)]
+    F[i,md(i+1)]   = -dt*c*b * (x[md(i+2)]-x[md(i-1)])
+    F[i,md(i+2)]   = -dt*c*b * x[md(i+1)]
+    # wrt. X
+    F[i,iiX[i-nX]] = dt * h*c/b
+  return F
 
 
 def step(x0, t, dt):
