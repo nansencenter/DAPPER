@@ -53,13 +53,14 @@ TODO: Sqrt model noise methods  | raanes'2014 ("sqrt model noise")
 Models
 ------------
 
-Model name  | Linear? | Phys.dim. | State len. | Model subspace dim.
------------ | ------- | --------- | ---------- | ---------------------
-Linear Adv. | Yes     | 1D        |  1000      |  51
-Lorenz63    | No      | 0D        |  3         |  2+
-Lorenz95    | No      | 1D        |  40        |  13+
-Lorenz95_2s | No      | 2x 1D     |  256 + 8   |  ca 13?
-MAOOAM      | No      | 2x 1D     |  36        |  ?
+Model name    | Linear? | Phys.dim. | State len. | # of + Lyap    | Thanks to
+-----------   | ------- | --------- | ---------- | -------------- | ----------
+Linear Advect | Yes     | 1D        |  1000      |  51            | Evensen
+Lorenz63      | No      | 0D        |  3         |  2+            | Lorenz/Sakov
+Lorenz95      | No      | 1D        |  40        |  13+           | "
+LorenzXY      | No      | 2x 1D     |  256 + 8   |  ca 13         | Lorenz/Raanes
+MAOOAM        | No      | 2x 1D     |  36        |  ?             | Tondeur / Vannitsen
+Shallow Water | No      | 2D        |  xx        |  ?             | Gharamti
 
 
 #### How to add a new model

@@ -2,7 +2,7 @@
 
 from common import *
 
-from mods.Lorenz_2s.core import step, nX,J,m, mu0,P0
+from mods.LorenzXY.core import step, nX,J,m, mu0,P0
 
 t = Chronology(0.001,dkObs=10,T=4**2,BurnIn=2)
 
@@ -47,7 +47,7 @@ setup = OSSE(f,h,t,X0,**other)
 
 # from common import *
 # 
-# from mods.Lorenz_2s.defaults import setup
+# from mods.LorenzXY.defaults import setup
 # 
 # f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 # 

@@ -42,7 +42,7 @@ def dxdt(x):
   # Split X,Y
   X = x[:,:nX]
   Y = x[:,nX:]
-  assert Y.shape[1] is J*X.shape[1]
+  assert Y.shape[1] == J*X.shape[1]
 
   d = np.zeros_like(x)
   # X vars
