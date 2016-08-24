@@ -37,7 +37,7 @@ class OSSE:
     for key, value in kwargs.items():
       setattr(self, key, value)
 
-from json import JSONEncoder
+from json import JSONEncoder # TODO: Did this do anything?
 class DAM(JSONEncoder):
   """Container for DA Method settings."""
   def __init__(self,da_method,**kwargs):
@@ -46,6 +46,12 @@ class DAM(JSONEncoder):
     self.liveplotting = False
     for key, value in kwargs.items():
       setattr(self, key, value)
+  def __repr__(self):
+    s = 'DAM(' + self.da_method.__name__
+    for key,val in self.__dict__.items():
+      if key != 'da_method':
+        s += ', ' + key + '=' + str(val)
+    return s + ')'
 
 class DAM_list(list,JSONEncoder):
   def add(self,*kargs,**kwargs):
@@ -63,14 +69,12 @@ def simulate(setup):
   # truth
   xx = zeros((chrono.K+1,f.m))
   xx[0] = X0.sample(1)
-  for k,_,t,dt in chrono.forecast_range:
-    xx[k] = f.model(xx[k-1],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
-
   # obs
   yy = zeros((chrono.KObs+1,h.m))
-  for k,t in enumerate(chrono.ttObs):
-    yy[k] = h.model(xx[chrono.kkObs[k]],t) + h.noise.sample(1)
-
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'Truth & Obs'):
+    xx[k] = f.model(xx[k-1],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
+    if kObs is not None:
+      yy[kObs] = h.model(xx[k],t) + h.noise.sample(1)
   return xx,yy
 
 class Bunch(dict):

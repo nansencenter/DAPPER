@@ -57,7 +57,7 @@ for i,F_true in enumerate(F_range):
       ss[i,j,k] = stats.average_after_burn()
     print_table(ss[i,j])
   avrg = average_each_field(ss[i],axis=0)
-  print('Average over',nRepeat,'repetitions:')
+  print('\nAverage over',nRepeat,'repetitions:')
   print_table(avrg)
 
 save_data(save_path,inds,F_range=F_range,ss=ss,xx=xx,yy=yy)

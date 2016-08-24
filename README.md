@@ -63,7 +63,6 @@ Lorenz63      | No      | 0D        |  3         |  2+            | Lorenz/Sakov
 Lorenz95      | No      | 1D        |  40        |  13+           | "
 LorenzXY      | No      | 2x 1D     |  256 + 8   |  ca 13         | Lorenz/Raanes
 MAOOAM        | No      | 2x 1D     |  36        |  ?             | Tondeur / Vannitsen
-Shallow Water | No      | 2D        |  xx        |  ?             | Gharamti
 
 
 #### How to add a new model
@@ -82,6 +81,8 @@ Shallow Water | No      | 2D        |  xx        |  ?             | Gharamti
     * a safe (e.g. 1.2) inflation value
     * small initial perturbations
       (big/sharp noises might cause model blow up)
+		* small(er) integrational time step
+			(assimilation might create instabilities)
     * very large observation noise (free run)
     * or very small observation noise (perfectly observed system)
 

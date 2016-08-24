@@ -30,13 +30,13 @@ np.random.seed(5)
 #cfg = DAM(ExtKF, infl = 1.05)
 
 
-from mods.Lorenz95.sak08 import setup
-#
-cfg           = DAM(EnKF)
-cfg.N         = 24
-cfg.infl      = 1.018
-cfg.AMethod   = 'Sqrt'
-cfg.rot       = True
+#from mods.Lorenz95.sak08 import setup
+##
+#cfg           = DAM(EnKF)
+#cfg.N         = 24
+#cfg.infl      = 1.018
+#cfg.AMethod   = 'Sqrt'
+#cfg.rot       = True
 #
 #cfg = DAM(Climatology)
 #cfg = DAM(D3Var)
@@ -52,14 +52,15 @@ cfg.rot       = True
 ############################
 # Common
 ############################
-setup.t.T = 4**3
 cfg.liveplotting = True
+setup.t.T = 4**3
 
 
 ############################
 # Generate synthetic truth/obs
 ############################
 xx,yy = simulate(setup)
+
 
 ############################
 # Assimilate
@@ -79,6 +80,7 @@ print('Mean forecast RMSE: {: 8.5f} ± {:<5g},    RMV: {:8.5f}'
     .format(*series_mean_with_conf(s.rmse[kk_f]),mean(s.rmv[kk_f])))
 print('Mean analysis MGSL: {: 8.5f} ± {:<5g}'
     .format(*series_mean_with_conf(s.logp_m[kk_a])))
+
 
 ############################
 # Plot

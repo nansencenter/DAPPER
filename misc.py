@@ -17,8 +17,13 @@ def tp(a):
   return a[np.newaxis].T
 
 def atmost_2d(func):
-  """Decorator to make functions work for 0,1,or 2-dim input.
-  Requires that the 1st argument be the one of interest."""
+  """
+  Decorator to make functions that work on 2-dim input
+  work for (all of) 0,1, or 2-dim input.
+  Requires that the 1st argument be the one of interest.
+  It does not work in every case (typically not recursively),
+  and should be used with caution.
+  """
   def wrapr(x,*kargs,**kwargs):
     answer = func(np.atleast_2d(x),*kargs,**kwargs)
     if answer is not None: return answer.squeeze()
@@ -67,8 +72,12 @@ def round2sigfig(x,nfig=1):
     return x
   signs = np.sign(x)
   x *= signs
-  return signs*round2(x,10**np.round(np.log10(x)-nfig))
+  return signs*round2(x,10**np.floor(np.log10(x)-nfig+1))
 
+def validate_int(x):
+  x_int = int(x)
+  assert np.isclose(x,x_int)
+  return x_int
 
 def find_1st_ind(xx):
   try:

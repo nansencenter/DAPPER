@@ -33,6 +33,8 @@ class Stats:
 
   def assess(self,E,x,k):
     assert(type(E) is np.ndarray)
+    if not np.all(np.isfinite(E)):
+      raise RuntimeError('The ensemble has inf\'s or nan\'s in it.')
     N,m             = E.shape
     self.mu[k]    = mean(E,0)
     A               = E - self.mu[k]

@@ -28,6 +28,9 @@ def set_np_linewidth():
   rows, columns = popen('stty size', 'r').read().split()
   np.set_printoptions(linewidth=int(columns)-1)
 
+# To raise exception on warning
+#import warnings
+#warnings.filterwarnings('error')
 
 #stackoverflow.com/q/292095
 import select

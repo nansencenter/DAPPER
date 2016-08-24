@@ -12,7 +12,7 @@ def EnKF(setup,cfg,xx,yy):
   stats.assess(E,xx,0)
   lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'EnKF'):
     E  = f.model(E,t-dt,dt)
     E += sqrt(dt)*f.noise.sample(cfg.N)
 
@@ -48,7 +48,7 @@ def EnKS(setup,cfg,xx,yy):
 
   stats = Stats(setup,cfg)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'EnKS'):
     E[k]  = f.model(E[k-1],t-dt,dt)
     E[k] += sqrt(dt)*f.noise.sample(cfg.N)
 
@@ -84,7 +84,7 @@ def EnRTS(setup,cfg,xx,yy):
   stats = Stats(setup,cfg)
 
   # Forward pass
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'EnRTS-->'):
     E[k]  = f.model(E[k-1],t-dt,dt)
     E[k] += sqrt(dt)*f.noise.sample(cfg.N)
     Ef[k] = E[k]
@@ -96,7 +96,7 @@ def EnRTS(setup,cfg,xx,yy):
       stats.copy_paste(s_now,kObs)
       post_process(E[k],cfg)
 
-  for k in progbar(range(chrono.K)[::-1],desc='Backward'):
+  for k in progbar(range(chrono.K)[::-1],'EnRTS<--'):
     A  = anom(E[k])[0]
     Af = anom(Ef[k+1])[0]
 
@@ -247,7 +247,7 @@ def EnKF_N(setup,cfg,xx,yy):
   stats.infl = zeros(chrono.KObs+1)
   lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'EnKF-N'):
     E  = f.model(E,t-dt,dt)
     E += sqrt(dt)*f.noise.sample(N)
 
@@ -322,7 +322,7 @@ def iEnKF(setup,cfg,xx,yy):
   stats.iters = zeros(chrono.KObs+1)
   lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
-  for kObs in progbar(range(chrono.KObs+1)):
+  for kObs in progbar(range(chrono.KObs+1),'iEnKF'):
     xb0 = mean(E,0)
     A0  = E - xb0
     # Init
@@ -422,7 +422,7 @@ def PartFilt(setup,cfg,xx,yy):
 
   lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'PartFilt'):
     E  = f.model(E,t-dt,dt)
     E += sqrt(dt)*f.noise.sample(N)
 
@@ -515,7 +515,7 @@ def resample(E,w,N,fnoise, \
 
 
 
-def EnsCheat(setup,cfg,xx,yy):
+def EnCheat(setup,cfg,xx,yy):
   """Ensemble method that cheats: it knows the truth.
   Nevertheless, its error will not be 0, because the truth may be outside of the ensemble subspace.
   This method is just to provide a baseline for comparison with other methods.
@@ -531,7 +531,7 @@ def EnsCheat(setup,cfg,xx,yy):
   stats.assess(E,xx,0)
   lplot = LivePlot(setup,cfg,E,stats,xx,yy)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'EnCheat'):
     E  = f.model(E,t-dt,dt)
     E += sqrt(dt)*f.noise.sample(cfg.N)
 
@@ -570,7 +570,7 @@ def Climatology(setup,cfg,xx,yy):
 
   stats = Stats(setup,cfg)
   stats.assess_ext(mu0, sqrt(diag(P0)), xx, 0)
-  for k,_,_,_ in progbar(chrono.forecast_range):
+  for k,_,_,_ in progbar(chrono.forecast_range,'Climatology'):
     stats.assess_ext(mu0,sqrt(diag(P0)),xx,k)
   return stats
 
@@ -617,7 +617,7 @@ def D3Var(setup,cfg,xx,yy):
   stats.assess_ext(mu, sqrt(diag(P0)), xx, 0)
   stats.trHK[:] = trace(H@KG)/h.noise.m
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'3D-Var'):
     mu = f.model(mu,t-dt,dt)
     next_kobs = chrono.kkObs[find_1st_ind(chrono.kkObs >= k)]
     P  = Pa + (P0-Pa)*(1 - (next_kobs-k)/dkObs)
@@ -640,7 +640,7 @@ def ExtKF(setup,cfg,xx,yy):
   stats = Stats(setup,cfg)
   stats.assess_ext(mu, sqrt(diag(P)), xx, 0)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'ExtKF'):
     
     F = f.TLM(mu,t-dt,dt) 
     # "EKF for the mean". It's probably best to leave this commented

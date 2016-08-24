@@ -98,7 +98,11 @@ class Chronology:
     return self._dt
   @dt.setter
   def dt(self,value):
-    self.__init__(dt=value,dkObs=self.dkObs,K=self.K,BurnIn=self.BurnIn)
+    dkObs_new = self.dkObs * self.dt/value
+    if not np.isclose(int(dkObs_new), dkObs_new):
+      raise ValueError('New value is amgiguous with respect to dkObs')
+    dkObs_new = int(dkObs_new)
+    self.__init__(dt=value,dkObs=dkObs_new,K=self.K,BurnIn=self.BurnIn)
   @property
   def dkObs(self):
     return self._dkObs

@@ -26,7 +26,7 @@ class LivePlot:
     self.is_on     = False
     self.is_paused = False
     print('Press <Enter> to toggle live plot ON/OFF.')
-    print('Press <Space> then <Enter> to pause.')
+    print('Press <Space> and then <Enter> to pause.')
 
     #ens_props = {} # yields rainbow
     ens_props = {'color': 0.6*cwhite} # 0.7*cblue
@@ -63,6 +63,7 @@ class LivePlot:
     self.lmf, = ax2.plot(1+arange(m),abs(stats.umisf[0]),           'k',lw=2,label='Error')
     sprd = stats.svals[0]
     self.lew, = ax2.plot(1+arange(len(sprd)),sprd,'b',lw=2,label='Spread',alpha=0.9)
+    plt.subplots_adjust(hspace=0.3)
     ax2.set_xlabel('Sing. value index')
     ax2.set_yscale('log')
     ax2.set_ylim(bottom=1e-5)
@@ -107,9 +108,8 @@ class LivePlot:
     set_figpos('2312')
 
     chrono = setup.t
-    self.Kplot = estimate_good_plot_length(xx.ravel(order='F'),chrono)
-    self.Kplot /= 4
-    pkk = arange(self.Kplot).astype(int)
+    self.Kplot = estimate_good_plot_length(xx,chrono)
+    pkk = arange(self.Kplot)
     ptt = chrono.tt[pkk]
 
     self.ax_e = plt.subplot(211)
@@ -124,6 +124,23 @@ class LivePlot:
     self.lk,  = self.ax_i.plot(ptt,stats.kurt[pkk],'r',lw=2,alpha=1.0,label='Kurt')
     self.ax_i.legend()
     self.ax_i.set_xlabel('time (t)')
+
+    #####################
+    # User-defined state
+    #####################
+    if hasattr(setup.f,'plot'):
+      self.fgu = plt.figure(25,figsize=(8,8))
+      self.fgu.clf()
+      set_figpos('2322')
+
+      self.axu1 = plt.subplot(211)
+      self.setter_truth = setup.f.plot(xx[0])
+      self.axu1.set_title('Truth')
+
+      self.axu2 = plt.subplot(212)
+      plt.subplots_adjust(hspace=0.3)
+      self.setter_mean = setup.f.plot(stats.mu[0])
+      self.axu2.set_title('Mean')
 
 
     plt.pause(0.01)
@@ -232,6 +249,15 @@ class LivePlot:
 
       plt.pause(0.01)
 
+
+    #####################
+    # User-defined state
+    #####################
+    if hasattr(self,'fgu'):
+      plt.figure(self.fgu.number)
+      self.setter_truth(self.xx[k])
+      self.setter_mean(stats.mu[k])
+      plt.pause(0.01)
     
 
 def update_ylim(data,ax,Min=None,Max=None):
@@ -240,6 +266,9 @@ def update_ylim(data,ax,Min=None,Max=None):
     minv, maxv = np.maximum([minv, maxv], \
         1.1 * array([-1, 1]) * np.percentile(d,[1,99]))
   minv *= -1
+  if minv == maxv:
+    minv = np.min(d)
+    maxv = np.max(d)
   if Max is not None:
     maxv = Max
   if Min is not None:
@@ -258,24 +287,21 @@ def set_ilim(ax,i,data,zoom=1.0):
   if i is 2: ax.set_zlim(lims)
 
 
-def estimate_good_plot_length(xx,chrono):
-  L = estimate_corr_length(xx)
-  if L is not 0:
-    K = round2sigfig(100*L,2)
-  else:
-    K = chrono.K/10
-  K = max(K,chrono.dtObs)
+def estimate_good_plot_length(xx,chrono,scale=80):
+  if xx.ndim == 2:
+    xx = xx.ravel(order='F')
+  K = scale * estimate_corr_length(xx)
+  K = int(min(max(K,chrono.dkObs),chrono.K))
+  T = round2sigfig(chrono.tt[K],2)
+  K = find_1st_ind(chrono.tt >= T)
   return K
 
 def get_plot_inds(chrono,Kplot,Tplot,xx):
   if Kplot is None:
-    if Tplot:
-      Kplot = find_1st_ind(chrono.tt >= Tplot)
-    else:
-      Kplot = estimate_good_plot_length(xx,chrono)
-  kkObs      = chrono.kkObs
-  plot_kk    = chrono.kk[chrono.kk<=Kplot]
-  plot_kkObs = kkObs[kkObs<=Kplot]
+    if Tplot: Kplot = find_1st_ind(chrono.tt >= Tplot)
+    else:     Kplot = estimate_good_plot_length(xx,chrono)
+  plot_kk    = chrono.kk[:Kplot+1]
+  plot_kkObs = chrono.kkObs[chrono.kkObs<=Kplot]
   return plot_kk, plot_kkObs
 
 
@@ -287,7 +313,7 @@ def plot_3D_trajectory(xx,stats,chrono,\
   plt.figure(14).clf()
   set_figpos('2311 mac')
 
-  kk = get_plot_inds(chrono,Kplot,Tplot,xx.ravel(order='F'))[0]
+  kk = get_plot_inds(chrono,Kplot,Tplot,xx)[0]
 
   ax3 = plt.subplot(111, projection='3d')
   ax3.plot   (xx[kk    ,0],xx[kk    ,1],xx[kk    ,2],c='k',label='Truth'   )
@@ -297,9 +323,9 @@ def plot_3D_trajectory(xx,stats,chrono,\
   ax3.legend()
 
 
-def plot_time_series(xx,stats,chrono, \
+def plot_time_series(xx,stats,chrono,
     dim=0,Kplot=None,Tplot=None):
-  s  = stats
+  s = stats
 
   fg = plt.figure(12,figsize=(8,8)).clf()
   set_figpos('1313 mac')
@@ -308,7 +334,7 @@ def plot_time_series(xx,stats,chrono, \
   tt = chrono.tt
 
   ax_d = plt.subplot(3,1,1)
-  ax_d.plot(tt[pkk],xx[pkk  ,dim],'k',lw=3,label='Truth')
+  ax_d.plot(tt[pkk],xx  [pkk,dim],'k',lw=3,label='Truth')
   ax_d.plot(tt[pkk],s.mu[pkk,dim],'b',lw=2,label='DA estim.',alpha=0.6)
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
   ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
@@ -325,8 +351,8 @@ def plot_time_series(xx,stats,chrono, \
     ax_K.set_xticklabels([])
 
   ax_e = plt.subplot(3,1,3)
-  ax_e.plot(        tt[pkk], s.rmse[pkk],'k',lw=2,label='Error')
-  ax_e.fill_between(tt[pkk], s.rmv[pkk],alpha=0.4,label='Spread') 
+  ax_e.plot(        tt[pkk], s.rmse[pkk],'k',lw=2 ,label='Error')
+  ax_e.fill_between(tt[pkk], s.rmv [pkk],alpha=0.4,label='Spread') 
   ylim = np.percentile(s.rmse[pkk],99)
   ylim = 1.1*np.max([ylim, np.max(s.rmv[pkk])])
   ax_e.set_ylim(0,ylim)
@@ -377,7 +403,8 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
   #ax_r.set_yscale('log')
   ax_r.set_ylim(bottom=mean(sprd)/10)
   ax_r.legend()
-  ax_r.set_position([0.125,0.6, 0.78, 0.34])
+  #ax_r.set_position([0.125,0.6, 0.78, 0.34])
+  plt.subplots_adjust(hspace=0.3)
 
   ax_s = plt.subplot(212)
   has_been_computed = not all(stats.umisf[-1] == 0)
@@ -402,13 +429,15 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
     ax_H.set_title('Rank histogram ' + d_text)
     ax_H.set_ylabel('Freq. of occurence\n (of truth in interval n)')
     ax_H.set_xlabel('ensemble member index (n)')
-    ax_H.set_position([0.125,0.6, 0.78, 0.34])
+    #ax_H.set_position([0.125,0.6, 0.78, 0.34])
+    plt.subplots_adjust(hspace=0.5)
     integer_hist(stats.rh[chrono.kkBI].ravel(),cfg.N,alpha=0.5)
 
     ax_R = plt.subplot(212)
     #ax_R.set_title('RMSE histogram')
     ax_R.set_ylabel('Num. of occurence')
-    ax_R.set_xlabel('RMSE value')
+    ax_R.set_xlabel('RMSE')
+    ax_R.set_title('Histogram of RMSE values')
     ax_R.hist(stats.rmse[chrono.kkBI],alpha=0.5,bins=30,normed=0)
   
 

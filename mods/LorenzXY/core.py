@@ -8,7 +8,7 @@ from mods.Lorenz95.core import lr
 ####################################
 # Lorenz95 two-scale/layer version
 ####################################
-# See Wilks 2005 "effects..." and Hanna Arnold's thesis.
+# See Wilks 2005 "effects..."
 # X:  large amp, low frequency vars: convective events
 # Y:  small amp, high frequency vars: large-scale synoptic events
 
@@ -18,11 +18,14 @@ from mods.Lorenz95.core import lr
 # while the truth is simulated by the full system.
 #
 # See berry2014linear for EnKF application.
-# Typically dt0bs = 0.01 and dt = dtObs/10.
-# But for EnKF (full system) they use dt = dtObs coz
+# Typically dt0bs = 0.01 and dt = dtObs/10 for truth.
+# But for EnKF they use dt = dtObs coz
 # "numerical stiffness disappears when fast processes are removed".
 #
-# Also see mitchell2014
+# Wilks2005 uses dt=1e-4 with RK4 for the full model,
+# and dt=5e-3 with RK2 for the forecast/truncated model.
+#
+# Also see mitchell2014 and Hanna Arnold's thesis.
 
 nX= 8  # of X
 J = 32 # of Y per X 
@@ -37,8 +40,6 @@ iiX = (np.arange(J*nX)/J).astype(int)
 iiY = np.arange(J*nX).reshape((nX,J))
 @atmost_2d
 def dxdt(x):
-  a = 1 # axis
-
   # Split into X,Y
   X = x[:,:nX]
   Y = x[:,nX:]
@@ -46,12 +47,12 @@ def dxdt(x):
 
   d = np.zeros_like(x)
   # dX/dt -- same as "uncoupled" Lorenz-95
-  d[:,:nX] = np.multiply(lr(X,1,a)-lr(X,-2,a),lr(X,-1,a)) - X + F
+  d[:,:nX] = np.multiply(lr(X,1)-lr(X,-2),lr(X,-1)) - X + F
   # Add in coupling from Y vars
   for i in range(nX):
     d[:,i] += -h*c/b * np.sum(Y[:,iiY[i]],1)
   # dY/dt
-  d[:,nX:] = -c*b*np.multiply(lr(Y,2,a)-lr(Y,-1,a),lr(Y,1,a)) - c*Y \
+  d[:,nX:] = -c*b*np.multiply(lr(Y,2)-lr(Y,-1),lr(Y,1)) - c*Y \
       + h*c/b * X[:,iiX]
   return d
 
@@ -84,12 +85,54 @@ def dfdx(x,t,dt):
   return F
 
 
-def step(x0, t, dt):
-  return rk4(lambda t,x: dxdt(x),x0,np.nan,dt)
+@atmost_2d
+def dxdt_trunc(x):
+  "truncated dxdt: slow variables (X) only"
+  assert x.shape[1] == nX
+  return np.multiply(lr(x,1)-lr(x,-2),lr(x,-1)) - x + F
+
+def dxdt_det(x):
+  """
+  Truncated dxdt: slow variables (X) only.
+  Deterministic parameterization of fast variables (Y)
+  """
+  d = dxdt_trunc(x) #@atmost_2d included here
+  # Parameterization tuned (by Wilks) for following values.
+  assert np.all([nX==8,J==32,F==20,c==10,b==10,h==1])
+  d -= 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
+  return d
+
+def dxdt_bad(x):
+  """
+  Truncated dxdt: slow variables (X) only.
+  Y parameterized by constant forcing. Should be worse that dxdt_det()
+  """
+  d = dxdt_trunc(x) #@atmost_2d included here
+  assert np.all([nX==8,J==32,F==20,c==10,b==10,h==1])
+  d -= 5.5
+  return d
 
 
-from mods.Lorenz95.core import typical_init_params
-mu0,_P0 = typical_init_params(nX)
-mu0 = np.hstack([mu0, np.zeros(nX*J)])
-P0 = np.eye(m)
-P0[:nX,:nX] = _P0
+#@atmost_2d
+#def dxdt_ar1(x):
+  # Wilks: benefit of including stochastic noise negligible
+  # unless its temporal auto-corr is taken into account (as AR(1))
+  # (but spatial auto-corr can be neglected).
+  #
+  # But, using "persistent variables" to get autocorrelation
+  # wont work, coz RK4 calls dxdt multiple (4) times,
+  # thus generating new (but correlated) noise instances for
+  # the same time step.
+  # Moreover, I the noise should scale with sqrt(dt),
+  # which won't happen if you put it into dxdt.
+  # => stochastic parameterizations is the remit of add_noise().
+
+  #phi_1 = 0.984
+  #phi_c = (1-phi**2)**0.5
+  #sig   = 1.99
+
+  #d  = dxdt_d(x)
+  #w  = phi*w + sig*phi_c*randn(x.shape)
+  #d += w
+
+  #return d

@@ -4,8 +4,9 @@ def auto_cov(xx,L=5):
     """Auto covariance function.
     For scalar time series.
     L: lags (offsets) for which to compute acf."""
+    assert is1d(xx)
     N = len(xx)
-    acovf = [np.cov(xx[:N-i], xx[i:])[0,1] for i in range(L)]
+    acovf = array([np.cov(xx[:N-i], xx[i:])[0,1] for i in range(L)])
     return acovf
 
 #def geometric_mean(xx):
@@ -37,7 +38,8 @@ def estimate_corr_length(xx):
   Also note that, for exponential corr function, as assumed here,
   corr(L) = exp(-1) = ca 0.368
   """
-  acovf = auto_cov(xx,10)
+  assert is1d(xx)
+  acovf = auto_cov(xx,min(100,len(xx)))
   a     = fit_acf_by_AR1(acovf)
   if a == 0:
     L = 0
@@ -63,7 +65,7 @@ def series_mean_with_conf(xx):
   as estimated from its correlation-corrected variance.
   """
   mu    = np.mean(xx)
-  if all(xx == mu):
+  if np.allclose(xx,mu):
     return mu, 0
   acovf = auto_cov(xx,5)
   N     = len(xx)

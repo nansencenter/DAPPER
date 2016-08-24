@@ -10,7 +10,7 @@ t = Chronology(0.05,dkObs=1,T=T,BurnIn=20)
 
 m = 40
 f = {
-    'm': m,
+    'm'    : m,
     'model': lambda x,t,dt: step(x,t,dt),
     'TLM'  : dfdx,
     'noise': 0
@@ -38,7 +38,7 @@ def yplot(y):
   return lh
 
 h = {
-    'm': p,
+    'm'    : p,
     'model': hmod,
     'TLM'  : lambda x,t: H,
     'noise': GaussRV(C=1*eye(p)),
