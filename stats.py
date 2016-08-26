@@ -2,7 +2,14 @@ from common import *
 
 
 class Stats:
-  """Contains and computes peformance stats."""
+  """
+  Contains and computes peformance stats.
+  """
+
+  # Skip heavy computations (of level n)
+  # if m > MAX_m_LEVEL_n
+  MAX_m_LEVEL_3 = 10**3
+
   # TODO: Include skew/kurt?
   def __init__(self,setup,cfg):
     self.setup = setup
@@ -35,75 +42,76 @@ class Stats:
     assert(type(E) is np.ndarray)
     if not np.all(np.isfinite(E)):
       raise RuntimeError('The ensemble has inf\'s or nan\'s in it.')
-    N,m             = E.shape
-    self.mu[k]    = mean(E,0)
-    A               = E - self.mu[k]
-    self.var[k]   = sum(A**2  ,0) / (N-1)
-    self.mad[k]   = sum(abs(A),0) / (N-1)
-    self.skew[k]    = mean( sum(A**3,0)/N / self.var[k]**(3/2) )
-    self.kurt[k]    = mean( sum(A**4,0)/N / self.var[k]**2 - 3 )
-    self.err[k]   = x[k] - self.mu[k]
-    self.rmv[k]    = sqrt(mean(self.var[k]))
-    self.rmse[k]    = sqrt(mean(self.err[k]**2))
+    N,m          = E.shape
+    self.mu[k]   = mean(E,0)
+    A            = E - self.mu[k]
+    self.var[k]  = sum(A**2  ,0) / (N-1)
+    self.mad[k]  = sum(abs(A),0) / (N-1)
+    self.skew[k] = mean( sum(A**3,0)/N / self.var[k]**(3/2) )
+    self.kurt[k] = mean( sum(A**4,0)/N / self.var[k]**2 - 3 )
+    self.err[k]  = x[k] - self.mu[k]
+    self.rmv[k]  = sqrt(mean(self.var[k]))
+    self.rmse[k] = sqrt(mean(self.err[k]**2))
 
     # Marginal log score
-    ldet            = sum(log(self.var[k]))
-    nmisf           = self.var[k]**(-1/2) * self.err[k]
-    logp_m          = sum(nmisf**2) + ldet
-    self.logp_m[k]  = logp_m/m
+    ldet           = sum(log(self.var[k]))
+    nmisf          = self.var[k]**(-1/2) * self.err[k]
+    logp_m         = sum(nmisf**2) + ldet
+    self.logp_m[k] = logp_m/m
 
     # Preparation for log score
-    V,s,UT          = svd(A)
-    s              /= sqrt(N-1)
-    self.svals[k]   = s
-    s               = s[s>1e-4]
-    r               = np.minimum(len(s),5)
-    s               = s[:r]
+    if m <= Stats.MAX_m_LEVEL_3:
+      V,s,UT         = svd(A)
+      s             /= sqrt(N-1)
+      self.svals[k]  = s
+      s              = s[s>1e-4]
+      r              = np.minimum(len(s),5)
+      s              = s[:r]
 
-    # Full-joint Gaussian log score
-    #alpha           = 1/20*mean(s)
-    alpha           = 1e-2*sum(s)
-    # Truncating s by alpha doesnt work:
-    #s               = s[s>alpha]
-    #r               = len(s)
-    s2_full         = array(list(s**2) + [alpha]*(m-r))
-    ldet            = sum(log(s2_full)) / m
-    umisf           = UT @ self.err[k]
-    nmisf           = (s2_full)**(-1/2) * umisf
-    logp            = ldet + sum(nmisf**2)
-    self.umisf[k] = umisf
-    self.smisf[k]   = sum(nmisf**2)/m
-    self.ldet[k]    = ldet/m
-    self.logp[k]    = logp/m
+      # Full-joint Gaussian log score
+      #alpha           = 1/20*mean(s)
+      alpha           = 1e-2*sum(s)
+      # Truncating s by alpha doesnt work:
+      #s               = s[s>alpha]
+      #r               = len(s)
+      s2_full         = array(list(s**2) + [alpha]*(m-r))
+      ldet            = sum(log(s2_full)) / m
+      umisf           = UT @ self.err[k]
+      nmisf           = (s2_full)**(-1/2) * umisf
+      logp            = ldet + sum(nmisf**2)
+      self.umisf[k] = umisf
+      self.smisf[k]   = sum(nmisf**2)/m
+      self.ldet[k]    = ldet/m
+      self.logp[k]    = logp/m
 
-    # Reduced-Joint Gaussian log score
-    ldet            = sum(log(s**2))
-    nmisf           = s**(-1) * (UT[:r] @ self.err[k])
-    logp_r          = sum(nmisf**2) + ldet
-    self.logp_r[k]  = logp_r/r
+      # Reduced-Joint Gaussian log score
+      ldet            = sum(log(s**2))
+      nmisf           = s**(-1) * (UT[:r] @ self.err[k])
+      logp_r          = sum(nmisf**2) + ldet
+      self.logp_r[k]  = logp_r/r
 
     # Rank histogram
-    Ex_sorted       = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
+    Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
     self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
 
   def assess_w(self,E,x,k,w):
     assert(type(E) is np.ndarray)
     assert(abs(sum(w)-1) < 1e-5)
-    N,m           = E.shape
-    self.mu[k]  = w @ E
-    A             = E - self.mu[k]
-    self.var[k] = w @ A**2
-    self.err[k] = self.mu[k] - x[k]
+    N,m          = E.shape
+    self.mu[k]   = w @ E
+    A            = E - self.mu[k]
+    self.var[k]  = w @ A**2
+    self.err[k]  = self.mu[k] - x[k]
     self.rmv[k]  = sqrt(mean(self.var[k]))
-    self.rmse[k]  = sqrt(mean(self.err[k]**2))
+    self.rmse[k] = sqrt(mean(self.err[k]**2))
 
   def assess_ext(self,mu,ss,x,k):
-    m             = len(mu)
-    self.mu[k]  = mu
-    self.var[k] = ss**2
-    self.err[k] = self.mu[k] - x[k]
+    m            = len(mu)
+    self.mu[k]   = mu
+    self.var[k]  = ss**2
+    self.err[k]  = self.mu[k] - x[k]
     self.rmv[k]  = sqrt(mean(self.var[k]))
-    self.rmse[k]  = sqrt(mean(self.err[k]**2))
+    self.rmse[k] = sqrt(mean(self.err[k]**2))
 
   def copy_paste(self,s,kObs):
     """

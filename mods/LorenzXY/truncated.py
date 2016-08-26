@@ -3,8 +3,11 @@
 from common import *
 
 from mods.LorenzXY.core import nX,J,m, dxdt_trunc, dxdt_det, dxdt_bad
+from mods.LorenzXY.defaults import setup as setup_full
 
-t = Chronology(dt=0.005,dtObs=0.01,T=4**3,BurnIn=6)
+T = 4**3
+setup_full.t.T = T
+t = Chronology(dt=0.005,dtObs=0.01,T=T,BurnIn=6)
 
 f = {
     'm'    : nX,

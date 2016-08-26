@@ -565,6 +565,8 @@ def Climatology(setup,cfg,xx,yy):
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   mu0   = np.mean(xx,0)
+  if xx.size > 1e5:
+    raise RuntimeError("Too big")
   A0    = xx - mu0
   P0    = (A0.T @ A0) / (xx.shape[0] - 1)
 
@@ -573,6 +575,7 @@ def Climatology(setup,cfg,xx,yy):
   for k,_,_,_ in progbar(chrono.forecast_range,'Climatology'):
     stats.assess_ext(mu0,sqrt(diag(P0)),xx,k)
   return stats
+
 
 def D3Var(setup,cfg,xx,yy):
   """

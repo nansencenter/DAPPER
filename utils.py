@@ -125,15 +125,14 @@ def parse_parrallelization_args():
   inds   = [int(x) for x in inds]
   return save_path, inds
 
-
 from subprocess import call
-from time import time
+import time
 def parallelize(script,inds,max_workers=4):
   save_path  = save_dir(script)
   v          = find_last_v(save_path) + 1
   v          = 'v' + str(v)
   save_path += v
-  tmp        = 'tmp_' + v + '_t' + str(time())[-2:]
+  tmp        = 'tmp_' + v + '_t' + str(time.time())[-2:]
   with open(tmp,'w') as f:
     f.write('# Auto-generated for experiment parallelization.\n\n')
     f.write('source ~/.screenrc\n\n')
@@ -155,3 +154,22 @@ def save_data(path,inds,**kwargs):
 
 
 
+
+#import time
+class Timer():
+  """
+  Usage:
+  with Timer('<description>'):
+    do_stuff()
+  """
+  def __init__(self, name=None):
+      self.name = name
+
+  def __enter__(self):
+      self.tstart = time.time()
+
+  def __exit__(self, type, value, traceback):
+      pass # Turn off timer messages
+      #if self.name:
+          #print('[%s]' % self.name, end='')
+      #print('Elapsed: %s' % (time.time() - self.tstart))
