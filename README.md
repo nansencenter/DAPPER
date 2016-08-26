@@ -56,23 +56,24 @@ Just add it to `da_algos.py`, using the others in there as templates.
 Models
 ------------
 
-Model name    | Linear? | Phys.dim. | State len. | # of + Lyap    | Thanks to
------------   | ------- | --------- | ---------- | -------------- | ----------
-Linear Advect | Yes     | 1D        |  1000      |  51            | Evensen
-Lorenz63      | No      | 0D        |  3         |  2+            | Lorenz/Sakov
-Lorenz95      | No      | 1D        |  40        |  13+           | "
-LorenzXY      | No      | 2x 1D     |  256 + 8   |  ca 13         | Lorenz/Raanes
-MAOOAM        | No      | 2x 1D     |  36        |  ?             | Tondeur / Vannitsen
+Model name    | Linear? | Phys.dim. | State len.  | # of + Lyap    | Thanks to
+-----------   | ------- | --------- | ----------- | -------------- | ----------
+Linear Advect | Yes     | 1D        | 1000        |  51            | Evensen
+Lorenz63      | No      | 0D        | 3           |  2+            | Lorenz/Sakov
+Lorenz95      | No      | 1D        | 40          |  13+           | "
+LorenzXY      | No      | 2x 1D     | 256 + 8     |  ca 13         | Lorenz/Raanes
+MAOOAM        | No      | 2x 1D     | 36          |  ?             | Tondeur/Vannitsen
+Barotropic    | No      | 2D        | 256^2 ≈ 60k |  ?             | J.Penn/Raanes
 
 
 #### How to add a new model
-* Make a new dir: DAPPER/mods/**your_mod**
-* See other examples, e.g. DAPPER/mods/Lorenz63/sak12.py
+* Make a new dir: `DAPPER/mods/`**your_mod**
+    * Remember to include the empty file `__init__.py`
+    * See other examples, e.g. `DAPPER/mods/Lorenz63/sak12.py`
 * Make sure that your model (and obs operator) support
-    * **ensemble input**
-      (hence forecast parallelization is in users's hands)
     * should not modify in-place.
     * the same applies for the observation operator/model
+    * ensemble input
 * To begin with, test whether the model works
     * on 1 realization
     * on several realizations (simultaneously)
@@ -104,11 +105,13 @@ Also:
 * Highly modular.
 * Balance between efficiency and readability.
 * Consistency checks (e.g. time).
-
-<!---
-E.g. Lorenz-96 uses native vectorization (i.e. fast numpy),
-  but no parallelization.
--->
+* Parallelization
+    * Forecast parallelization is possible since
+        the (user-implemented) model has access to the full ensemble.
+    * A light-weight alternative (see e.g. Lorenz95):
+        native vectorization (again by having access to full ensemble).
+    * (Independent) experiments can also run in parallel.
+        Auto-config provided by `utils.py:parallelize()`.
 
 <!---
 For -N stuff, compared to Boc's code, DAPPER
