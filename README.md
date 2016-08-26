@@ -18,6 +18,10 @@
       * and observations thereof
   * assess how different DA methods
       perform in estimating the truth
+* DAPPER is like a *set of templates* (not a framework);
+    do not hesitate make your own scripts and functions
+    (instead of squeezing everything into standardized configuration files).
+
 * Licence: See licence.txt
 
 <!---
@@ -28,42 +32,48 @@
 
 Installation
 ------------------------------------------------
-Prerequisite: python3.5 with scipy.
+Prerequisite: python3.5+ with scipy (e.g. from [anaconda](https://www.continuum.io/downloads))
 
-Then, download DAPPER, and run:
+Then, download DAPPER, `cd` to its directory, and run:
 
     > python -i benchmarks.py
 
 Methods
 ------------
 
-Method name                     | Literature RMSE results reproduced
-------------------------------- | ---------------------------------------
-EnKF (Stoch., ETKF, DEnKF)      | sakov'2008 ("deterministic")
-EnKF-N                          | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
-EnKS, EnRTS                     | raanes'2015 ("EnRTS and EnKS")
-Iterative versions of the above | sakov'2012 ("an iterative"), TODO: bocquet'2014
-Extended KF                     | raanes'2016 thesis
-Particle filter (bootstrap)     | "
-3D-Var                          | "
-Climatology                     | "
-TODO: Sqrt model noise methods  | raanes'2014 ("sqrt model noise")
+Method name                        | Literature RMSE results reproduced
+-----------------------------------| ---------------------------------------
+EnKF (Stoch., DEnKF, ETKF)         | sakov'2008 ("deterministic")
+EnKF-N                             | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
+EnKS, EnRTS                        | raanes'2015 ("EnRTS and EnKS")
+Iterative versions of the above    | sakov'2012 ("an iterative"), TODO: bocquet'2014
+LETKF, local & serial EAKF         |
+Extended KF                        | raanes'2016 thesis
+Particle filter (bootstrap)        | "
+3D-Var                             | "
+Climatology                        | "
+TODO: Sqrt model noise methods     | raanes'2014 ("sqrt model noise")
 
 #### How to add a new method
 Just add it to `da_algos.py`, using the others in there as templates.
 (TODO: split `da_algos.py` into multiple files.)
 
+<!---
+Caution: If a method does not implement (e.g.) cfg.rot,
+it does not necessarily warn the user, but will fail silently.
+-->
+
 Models
 ------------
 
-Model name    | Linear? | Phys.dim. | State len.  | # of + Lyap    | Thanks to
------------   | ------- | --------- | ----------- | -------------- | ----------
-Linear Advect | Yes     | 1D        | 1000        |  51            | Evensen
-Lorenz63      | No      | 0D        | 3           |  2+            | Lorenz/Sakov
-Lorenz95      | No      | 1D        | 40          |  13+           | "
-LorenzXY      | No      | 2x 1D     | 256 + 8     |  ca 13         | Lorenz/Raanes
-MAOOAM        | No      | 2x 1D     | 36          |  ?             | Tondeur/Vannitsen
-Barotropic    | No      | 2D        | 256^2 ≈ 60k |  ?             | J.Penn/Raanes
+Model name  | Linear? | Phys.dim. | State len.  | # Lyap>0 | Thanks to
+----------- | ------- | --------- | ----------- | -------- | ----------
+Lin. Advect.| Yes     | 1D        | 1000        |  51      | Evensen
+Lorenz63    | No      | 0D        | 3           |  2+      | Lorenz/Sakov
+Lorenz95    | No      | 1D        | 40          |  13+     | "
+LorenzXY    | No      | 2x 1D     | 256 + 8     |  ca 13   | Lorenz/Raanes
+MAOOAM      | No      | 2x 1D     | 36          |  ?       | Tondeur/Vannitsen
+Barotropic  | No      | 2D        | 256^2 ≈ 60k |  ?       | J.Penn/Raanes
 
 
 #### How to add a new model
@@ -71,9 +81,9 @@ Barotropic    | No      | 2D        | 256^2 ≈ 60k |  ?             | J.Penn/Ra
     * Remember to include the empty file `__init__.py`
     * See other examples, e.g. `DAPPER/mods/Lorenz63/sak12.py`
 * Make sure that your model (and obs operator) support
+    * 2D-array (i.e. ensemble) and 1D-array (single realization) input
+        (can typically be handled by @atmost_2d wrapper).
     * should not modify in-place.
-    * the same applies for the observation operator/model
-    * ensemble input
 * To begin with, test whether the model works
     * on 1 realization
     * on several realizations (simultaneously)
@@ -189,21 +199,21 @@ Alternatives
 
 TODO
 ------------------------------------------------
-* Localization
 * add_noise()
+* Truncate SVD at 95 or 99% (evensen)
+
+* Doc models
 * 1D model preserving some quantity (aside from L95)
 * 2D model
 * KdVB model? (Zupanski 2006)
-* Doc models
 
 * Should (direct) observations return copy? e.g. x[:,obsInds].copy()
 * Take advantage of pass-by-ref
 * Decide on conflicts np vs math vs sp
 
-* Truncate SVD at 95 or 99% (evensen)
 * unify matrix vs array (e.g. randn)
 * vs 1d array (e.g. xx[:,0] in L3.dxdt)
-* prevent CovMat from being updated
+* Read-only CovMat from being updated
 
 
 "Outreach"
