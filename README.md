@@ -30,9 +30,9 @@ Installation
 ------------------------------------------------
 Prerequisite: python3.5+ with scipy (e.g. from [anaconda](https://www.continuum.io/downloads))
 
-Then, download DAPPER, `cd` to its directory, and run:
+Download, extract, and `cd` to DAPPER. Then run:
 
-    > python -i benchmarks.py
+    > python -i benchmark.py
 
 Methods
 ------------
@@ -184,7 +184,7 @@ Implementation choices
     * Bocquet's choice
     * Broadcasting
     * Avoids reshape's and asmatrix
-    * Fewer indices: [k,:] becomes [k]
+    * Fewer indices: [:,k] becomes [k]
 * OLD: Use m-by-N matrix class. Pros:
     * Litterature uses m-by-N
     * Matrix class allowss desired broadcasting

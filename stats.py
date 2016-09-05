@@ -167,6 +167,9 @@ def print_averages(DAMs,avrgs,*statnames):
   for sname in statnames:
     headr += '{0: >8} ±'.format(sname) + ' '*7
   print(headr)
+  if not isinstance(DAMs,list):
+    DAMs  = [DAMs]
+    avrgs = [avrgs]
   for k,meth in enumerate(DAMs):
     line = '{0: <16}'.format(meth.da_method.__name__)
     for sname in statnames:

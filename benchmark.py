@@ -1,3 +1,5 @@
+# Example script including several setups and DA methods.
+
 ############################
 # Preamble
 ############################
@@ -47,7 +49,7 @@ cfg = DAM(EnKF,'DEnKF',N=40, infl=1.01)                 # 0.18
 # Common
 ############################
 cfg.liveplotting = True
-setup.t.T        = 4**4
+setup.t.T        = 4**3
 
 
 ############################
@@ -59,27 +61,16 @@ xx,yy = simulate(setup)
 ############################
 # Assimilate
 ############################
-s = assimilate(setup,cfg,xx,yy)
-
-
-############################
-# Report averages
-############################
-chrono = setup.t
-kk_a = chrono.kkObsBI
-kk_f = chrono.kkObsBI-1
-print('Mean analysis RMSE: {: 8.5f} ± {:<5g},    RMV: {:8.5f}'
-    .format(*series_mean_with_conf(s.rmse[kk_a]),mean(s.rmv[kk_a])))
-print('Mean forecast RMSE: {: 8.5f} ± {:<5g},    RMV: {:8.5f}'
-    .format(*series_mean_with_conf(s.rmse[kk_f]),mean(s.rmv[kk_f])))
-print('Mean analysis MGSL: {: 8.5f} ± {:<5g}'
-    .format(*series_mean_with_conf(s.logp_m[kk_a])))
+stats = assimilate(setup,cfg,xx,yy)
+avrgs = stats.average_after_burn()
+print_averages(cfg,avrgs)
 
 
 ############################
 # Plot
 ############################
-plot_time_series(xx,s,chrono,dim=2)
-plot_ens_stats(xx,s,chrono,cfg)
-plot_3D_trajectory(xx[:,:3],s,chrono)
+chrono = setup.t
+plot_time_series  (xx      ,stats,chrono, dim=2)
+plot_ens_stats    (xx      ,stats,chrono, cfg)
+plot_3D_trajectory(xx[:,:3],stats,chrono)
 
