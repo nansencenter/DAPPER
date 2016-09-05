@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import circulant
-from misc import rk4, is1d
+from aux.misc import rk4, is1d
 
 def lr(x,n,axis=1):
   return np.roll(x,-n,axis=axis)

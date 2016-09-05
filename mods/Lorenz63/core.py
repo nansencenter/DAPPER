@@ -1,5 +1,5 @@
 import numpy as np
-from misc import rk4, is1d
+from aux.misc import rk4, is1d
 from common import atmost_2d
 
 @atmost_2d

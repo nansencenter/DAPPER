@@ -45,16 +45,15 @@ from time import sleep
 # From DAPPER
 ######################
 
-from stoch import *
-from utils import *
-from misc import *
-from series import *
+from aux.stoch import *
+from aux.utils import *
+from aux.misc import *
+from aux.series import *
 from stats import *
-from viz import *
-from chronos import *
-from matrices import *
-from randvars import *
-from stats import *
+from aux.viz import *
+from aux.chronos import *
+from aux.matrices import *
+from aux.randvars import *
 from da_algos import *
-from admin import *
+from aux.admin import *
 
