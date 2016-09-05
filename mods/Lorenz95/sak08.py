@@ -79,8 +79,8 @@ setup.locf = loc_wrapper
 
 #cfg = DAM(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # rmse_a = 0.17
 
-#cfg = DAM(LETKF,N=6,rot=True,infl=1.04,locf=setup.locf(6,'x2y'))
-#cfg = DAM(LETKF,'approx',N=8,rot=True,infl=1.30,locf=setup.locf(6,'x2y'))
+#cfg = DAM(LETKF,N=6,rot=True,infl=1.04,locf=setup.locf(4,'x2y'))
+#cfg = DAM(LETKF,'approx',N=8,rot=True,infl=1.25,locf=setup.locf(4,'x2y'))
 #cfg = DAM(SL_EAKF,N=6,rot=True,infl=1.07,locf=setup.locf(6,'y2x'))
 #
 #cfg = DAM(Climatology)

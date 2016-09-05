@@ -301,7 +301,7 @@ def SL_EAKF(setup,cfg,xx,yy):
         dy2   = su*dyj/n # (mean is absorbed in dyj)
         Y2    = alpha*Yj
 
-        # TODO: Should one use sqrt(coeff) ? Sakov doesn't.
+        # Localize
         local, coeffs = cfg.locf(j)
         if len(local) == 0: continue
         Regr  = (A[:,local]*coeffs).T @ Yj/sum(Yj**2)
@@ -355,11 +355,11 @@ def LETKF(setup,cfg,xx,yy):
       yR = (yy[kObs] - hx) @ Rm12.T
 
       for i in range(f.m):
-        # Setup local obs
-        iObs, icoeffs = cfg.locf(i)
-        if len(iObs) == 0: continue
-        iY  = YR[:,iObs] * icoeffs
-        idy = yR[iObs]   * icoeffs
+        # Localize
+        local, coeffs = cfg.locf(i)
+        if len(local) == 0: continue
+        iY  = YR[:,local] * sqrt(coeffs)
+        idy = yR[local]   * sqrt(coeffs)
 
         # Do analysis
         AMethod = getattr(cfg,'AMethod','default')
@@ -378,7 +378,7 @@ def LETKF(setup,cfg,xx,yy):
           dmu = P*(AY/(n*B))@idy
         elif AMethod is 'default':
           # Non-Approximate
-          if len(iObs) < N:
+          if len(local) < N:
             # SVD version
             V,sd,_ = sla.svd(iY, full_matrices=False)
             d      = sd**2 + (N-1)
