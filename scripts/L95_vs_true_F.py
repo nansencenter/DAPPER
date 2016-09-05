@@ -14,15 +14,15 @@ seed(sd0)
 from mods.Lorenz95.sak08 import setup
 from mods.Lorenz95.core import dxdt
 
+setup.t.T = 4**3
+
 def model(F):
   def wrapped(x0,t,dt):
     return rk4(lambda t,x: dxdt(x,F),x0,t,dt)
   return wrapped
 
-setup.t.T = 4**3
-
 F_DA    = 8.0
-F_range = arange(5,12+1)[inds]
+F_range = arange(5,12+1)
 
 ############################
 # DA methods
