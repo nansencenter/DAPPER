@@ -77,8 +77,8 @@ def EnRTS(setup,cfg,xx,yy):
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
-  E  = zeros((chrono.K+1,cfg.N,f.m))
-  Ef = E.copy()
+  E    = zeros((chrono.K+1,cfg.N,f.m))
+  Ef   = E.copy()
   E[0] = X0.sample(cfg.N)
 
   stats = Stats(setup,cfg)
@@ -134,12 +134,11 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod):
         KG = A.T @ YC
         HK = Y.T @ YC
         dE = (KG @ ( y + D - hE ).T).T
-        # Without transposing A:
-        #KG = mldiv(C,Y.T) @ A
-        #dE = ( y + D - hE ) @ KG
         E  = E + dE
     elif 'Sqrt' in AMethod:
-        # Uses symmetric square root (ETKF)
+        # Uses a symmetric square root (ETKF)
+        # to deterministically transform the ensemble.
+        # The various versions below differ only numerically.
         if 'explicit' in AMethod:
           # Implementation using inv (in ens space)
           Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
@@ -154,14 +153,14 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod):
           T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
           trHK  = sum(  d**(-1.0)*s**2 ) # see docs/trHK.jpg
         elif 'sS' in AMethod:
-          # Same as SVD, but with an initial sqrt(N-1) rescaling.
-          s     = R.m12 @ dy  / sqrt(N-1)
+          # Same as 'svd', but initially rescaled by sqrt(N-1)
+          s     = dy@ R.m12.T / sqrt(N-1)
           S     = Y @ R.m12.T / sqrt(N-1)
-          V,s,_ = sla.svd(S, full_matrices=False)
-          d     = s**2 + 1
+          V,sd,_= sla.svd(S, full_matrices=False)
+          d     = sd**2 + 1
           Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
           T     = ( V * d**(-0.5) )@V.T
-          trHK  = sum(  d**(-1.0)*s**2 )
+          trHK  = sum(  d**(-1.0)*sd**2 )
         else:
           # Implementation using eig. val. decomp.
           d,V   = eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
@@ -170,10 +169,32 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod):
           HK    = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
         w = dy @ R.inv @ Y.T @ Pw
         E = mu + w@A + T@A
+    elif 'Serial' in AMethod:
+        # Observations assimilated one-at-a-time.
+        # Even though it's derived as "serial ETKF",
+        # it's not equivalent to 'Sqrt' for the full ensemble,
+        # although it does yield the same mean/cov.
+        # See DAPPER/Misc/batch_vs_serial.py for more details.
+        inds = serial_inds(AMethod, y, R, A)
+        s = dy@ R.m12.T / sqrt(N-1)
+        S = Y @ R.m12.T / sqrt(N-1)
+        T = eye(N)
+        for j in inds:
+          # Possibility: re-compute Sj by non-lin h.
+          Sj = S[:,j]
+          Dj = Sj@Sj + 1
+          Tj = np.outer(Sj, Sj /  (Dj + sqrt(Dj)))
+          T -= Tj @ T
+          S -= Tj @ S
+        GS   = S.T @ T
+        E    = mu + s@GS@A + T@A
+        trHK = trace(R.m12.T@GS@Y)/sqrt(N-1) # Correct?
     elif 'DEnKF' is AMethod:
         # Uses "Deterministic EnKF" (sakov'08)
         C  = Y.T @ Y + R.C*(N-1)
-        KG = A.T @ mrdiv(Y, C)
+        YC = mrdiv(Y, C)
+        KG = A.T @ YC
+        HK = Y.T @ YC
         E  = E + KG@dy - 0.5*(KG@Y.T).T
     else:
         raise TypeError
@@ -218,9 +239,175 @@ def EnKF_analysis_NT(E,hE,hnoise,y,AMethod):
     return E, stat
 
 
+def serial_inds(AMethod, y, cvR, A):
+  if 'mono' in AMethod:
+    # Not robust?
+    inds = arange(len(y))
+  elif 'sorted' in AMethod:
+    dC = diag(cvR.C)
+    if np.all(dC == dC[0]):
+      # Sorty by P
+      dC   = np.sum(A*A,0)/(N-1)
+    inds = np.argsort(dC)
+  else: # Default: random ordering
+    inds = np.random.permutation(len(y))
+  return inds
+  
+
+def SL_EAKF(setup,cfg,xx,yy):
+  """
+  Serial, covariance-localized EAKF.
+  Used without localization, this should be equivalent
+  (full ensemble equality) to the EnKF 'Serial'.
+  See DAPPER/Misc/batch_vs_serial.py for some details.
+  """
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+
+  N = cfg.N
+  n = N-1
+  E = X0.sample(N)
+
+  R    = h.noise
+  Rm12 = h.noise.C.m12
+  #Ri   = h.noise.C.inv
+
+  stats = Stats(setup,cfg)
+  stats.assess(E,xx,0)
+  lplot = LivePlot(setup,cfg,E,stats,xx,yy)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'SL_EAKF'):
+    E  = f.model(E,t-dt,dt)
+    E += sqrt(dt)*f.noise.sample(N)
+
+    if kObs is not None:
+      y    = yy[kObs]
+      AMet = getattr(cfg,'AMethod','default')
+      inds = serial_inds(AMet, y, R, anom(E)[0])
+          
+      for j in inds:
+        hE = h.model(E,t)
+        hx = mean(hE,0)
+        Y  = (hE - hx).T
+        mu = mean(E ,0)
+        A  = E-mu
+
+        Yj    = Rm12[j,:] @ Y
+        dyj   = Rm12[j,:] @ (y - hx)
+
+        skk   = Yj@Yj
+        su    = 1/( 1/skk + 1/n )
+        alpha = (n/(n+skk))**(0.5)
+
+        dy2   = su*dyj/n # (mean is absorbed in dyj)
+        Y2    = alpha*Yj
+
+        # TODO: Should one use sqrt(coeff) ? Sakov doesn't.
+        local, coeffs = cfg.locf(j)
+        if len(local) == 0: continue
+        Regr  = (A[:,local]*coeffs).T @ Yj/sum(Yj**2)
+        mu[ local] += Regr*dy2
+        A[:,local] += np.outer(Y2 - Yj, Regr)
+
+        # Without localization:
+        #Regr = A.T @ Yj/sum(Yj**2)
+        #mu  += Regr*dy2
+        #A   += np.outer(Y2 - Yj, Regr)
+
+        E = mu + A
+
+      post_process(E,cfg)
+
+      stats.trHK[kObs] = 0
+
+    stats.assess(E,xx,k)
+    lplot.update(E,k,kObs)
+  return stats
+
+
+
+def LETKF(setup,cfg,xx,yy):
+  """
+  Same as EnKF (sqrt), but with localization.
+  """
+
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+
+  N = cfg.N
+  E = X0.sample(N)
+
+  Rm12 = h.noise.C.m12
+
+  stats = Stats(setup,cfg)
+  stats.assess(E,xx,0)
+  lplot = LivePlot(setup,cfg,E,stats,xx,yy)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range,'LETKF'):
+    E  = f.model(E,t-dt,dt)
+    E += sqrt(dt)*f.noise.sample(N)
+
+    if kObs is not None:
+      mu = mean(E,0)
+      A  = E - mu
+
+      hE = h.model(E,t)
+      hx = mean(hE,0)
+      YR = (hE-hx)  @ Rm12.T
+      yR = (yy[kObs] - hx) @ Rm12.T
+
+      for i in range(f.m):
+        # Setup local obs
+        iObs, icoeffs = cfg.locf(i)
+        if len(iObs) == 0: continue
+        iY  = YR[:,iObs] * icoeffs
+        idy = yR[iObs]   * icoeffs
+
+        # Do analysis
+        AMethod = getattr(cfg,'AMethod','default')
+        if AMethod is 'approx':
+          # Approximate alternative, derived by pretending that Y_loc = H @ A_i,
+          # even though the local cropping of Y happens after application of H.
+          # Anyways, with an explicit H, one can apply Woodbury
+          # to go to state space (dim==1), before reverting to HA_i = Y_loc.
+          n   = N-1
+          B   = A[:,i]@A[:,i] / n
+          AY  = A[:,i]@iY
+          BmR = AY@AY.T
+          T2  = (1 + BmR/(B*n**2))**(-1)
+          AT  = sqrt(T2) * A[:,i]
+          P   = T2 * B
+          dmu = P*(AY/(n*B))@idy
+        elif AMethod is 'default':
+          # Non-Approximate
+          if len(iObs) < N:
+            # SVD version
+            V,sd,_ = sla.svd(iY, full_matrices=False)
+            d      = sd**2 + (N-1)
+            Pw     = (V * d**(-1.0)) @ V.T
+            T      = (V * d**(-0.5)) @ V.T * sqrt(N-1)
+          else:
+            # EVD version
+            d,V   = eigh(iY @ iY.T + (N-1)*eye(N))
+            T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
+            Pw    = V@diag(d**(-1.0))@V.T
+          AT  = T@A[:,i]
+          dmu = idy@iY.T@Pw@A[:,i]
+
+        E[:,i] = mu[i] + dmu + AT
+
+      post_process(E,cfg)
+
+      if 'sd' in locals():
+        stats.trHK[kObs] = sum(d**(-1.0) * sd**2)/h.noise.m
+      #else:
+        # nevermind
+
+    stats.assess(E,xx,k)
+    lplot.update(E,k,kObs)
+  return stats
+
+
 
 from scipy.optimize import minimize_scalar as minzs
-
 def EnKF_N(setup,cfg,xx,yy):
   """
   Finite-size EnKF (EnKF-N).
@@ -235,8 +422,8 @@ def EnKF_N(setup,cfg,xx,yy):
   # EnKF-N constants
   eN = (N+1)/N;              # Effect of unknown mean
   g  = 1                     # Nullity of anomalies matrix # TODO: For N>m ?
-  LB = sqrt((N-1)/(N+g)*eN); # Lower bound for lambda^1    # TODO: Updated with g. Correct?
-  clog = (N+g)/(N-1);        # Coeff in front of log term
+  LB = sqrt((N-1)/(N+g)*eN)  # Lower bound for lambda^1    # TODO: Updated with g. Correct?
+  clog = (N+g)/(N-1)         # Coeff in front of log term
   mode = eN/clog;            # Mode of prior for lambda
 
   Rm12 = h.noise.C.m12
@@ -351,11 +538,9 @@ def iEnKF(setup,cfg,xx,yy):
     stats.trHK[kObs]  = trace(HK/h.noise.m)
     stats.iters[kObs] = iteration+1
 
-    if cfg.rot:
-      T = genOG_1(N) @ T
-    T = T*cfg.infl
-
     E = xb0 + w @ A0 + T @ A0
+    post_process(E,cfg)
+
     for k,t,dt in chrono.DAW_range(kObs):
       E  = f.model(E,t-dt,dt)
       E += sqrt(dt)*f.noise.sample(N)
@@ -516,7 +701,8 @@ def resample(E,w,N,fnoise, \
 
 
 def EnCheat(setup,cfg,xx,yy):
-  """Ensemble method that cheats: it knows the truth.
+  """
+  Ensemble method that cheats: it knows the truth.
   Nevertheless, its error will not be 0, because the truth may be outside of the ensemble subspace.
   This method is just to provide a baseline for comparison with other methods.
   It may very well beat the particle filter with N=infty.
@@ -565,15 +751,13 @@ def Climatology(setup,cfg,xx,yy):
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   mu0   = np.mean(xx,0)
-  if xx.size > 1e5:
-    raise RuntimeError("Too big")
   A0    = xx - mu0
-  P0    = (A0.T @ A0) / (xx.shape[0] - 1)
+  P0    = spCovMat(A=A0)
 
   stats = Stats(setup,cfg)
-  stats.assess_ext(mu0, sqrt(diag(P0)), xx, 0)
+  stats.assess_ext(mu0, sqrt(P0.diagonal), xx, 0)
   for k,_,_,_ in progbar(chrono.forecast_range,'Climatology'):
-    stats.assess_ext(mu0,sqrt(diag(P0)),xx,k)
+    stats.assess_ext(mu0,sqrt(P0.diagonal),xx,k)
   return stats
 
 
@@ -588,7 +772,7 @@ def D3Var(setup,cfg,xx,yy):
   R     = h.noise.C.C
   #dHdx = f.tlm
   #H    = dHdx(np.nan,mu0).T # TODO: .T ?
-  H    = eye(h.m)
+  H     = eye(h.m)
 
   mu0   = np.mean(xx,0)
   A0    = xx - mu0
@@ -605,14 +789,12 @@ def D3Var(setup,cfg,xx,yy):
     #KGs = mrdiv((infl*P0) @ H.T, (H@(infl*P0)@H.T) + R)
     #return trace(H@KGs)/h.noise.m - (1 - a**dkObs)
   #cfg.infl = fsolve(L_minus_R, 0.9)
-  try:
+  if hasattr(cfg,'infl'):
     P0 *= cfg.infl
-  except AttributeError:
-    pass
     
   # Pre-compute Kalman gain
-  KG   = mrdiv(P0 @ H.T, (H@P0@H.T) + R)
-  Pa   = (eye(f.m) - KG@H) @ P0
+  KG = mrdiv(P0 @ H.T, (H@P0@H.T) + R)
+  Pa = (eye(f.m) - KG@H) @ P0
 
   mu = X0.mu
 
@@ -649,7 +831,7 @@ def ExtKF(setup,cfg,xx,yy):
     # "EKF for the mean". It's probably best to leave this commented
     # out because the benefit is negligable compared to the additional
     # cost incurred in estimating the Hessians.
-    # HessCov = zeros(m,1);
+    # HessCov = zeros(m,1) 
     # for k = 1:m
     #   HessianF_k = hessianest(@(x) submat(F(t,dt,x), k), X(:,iT-1))
     #   HessCov(k) = sum(sum( HessianF_k .* P(:,:,iT-1) ))
@@ -686,8 +868,8 @@ def post_process(E,cfg):
   also since it avoids inflating/rotationg smoothed states (for the EnKS).
   """
   A, mu = anom(E)
-  N,m = E.shape
-  T = eye(N)
+  N,m   = E.shape
+  T     = eye(N)
   try:
     T = cfg.infl * T
   except AttributeError:

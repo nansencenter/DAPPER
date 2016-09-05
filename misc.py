@@ -8,6 +8,10 @@ def ismat(x):
 def vec2list2(vec):
   return [[x] for x in vec]
 
+def isScal(x):
+  """ Works for list and row/column arrays and matrices"""
+  return np.atleast_1d(x).size == 1
+
 def is1d(a):
   """ Works for list and row/column arrays and matrices"""
   return np.sum(asarray(asarray(a).shape) > 1) <= 1
@@ -34,9 +38,14 @@ def pad0(arr,length,val=0):
 
 
         
-def anom(E):
-  mu = mean(E,0)
-  A  = E - mu
+def anom(E,axis=0):
+  if axis==0:
+    mu = mean(E,0)
+    A  = E - mu
+  elif axis==1:
+    mu = mean(E,1)
+    A  = E - tp(mu)
+  else: raise ValueError
   return A, mu
 
 # Center sample (but maintain its (expected) variance)

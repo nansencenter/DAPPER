@@ -38,29 +38,8 @@ setup = OSSE(f,h,t,X0,**other)
 # Suggested tuning
 ####################
 
-# rmse_a = ? (sak: 0.82)
-#cfg.N       = 3
-#cfg.infl    = 1.30 # Not well-tuned coz resuls too variable
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = False
-#method      = EnKF
-
-# rmse_a = 0.63 (sak 0.65)
-#cfg.N       = 10
-#cfg.infl    = 1.02
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = True
-#method      = EnKF
-#
-#method      = iEnKF # rmse_a = 0.31
-#cfg.iMax    = 10
-
-
-#cfg.da_method = PartFilt # rmse_a = 0.275 (N=4000)
-#cfg.N         = 800
-#cfg.NER       = 0.1
-
-#setup.t.dkObs = 10
-#cfg.da_method = ExtKF
-#cfg.infl = 1.05
-
+#cfg = DAM(EnKF,'Sqrt',N=3 ,infl=1.30)
+#cfg = DAM(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
+#cfg = DAM(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
+#cfg = DAM(PartFilt, N=800, NER=0.1)                      # 0.275 (with N=4000)
+#cfg = DAM(ExtKF, infl = 1.05); setup.t.dkObs = 10 # reduce non-linearity

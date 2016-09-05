@@ -15,9 +15,9 @@ from mods.Lorenz95.sak08 import setup
 from mods.Lorenz95.core import dxdt
 
 def model(F):
-  def model_inner(x0,t,dt):
+  def wrapped(x0,t,dt):
     return rk4(lambda t,x: dxdt(x,F),x0,t,dt)
-  return model_inner
+  return wrapped
 
 setup.t.T = 4**3
 
@@ -33,9 +33,6 @@ DAMs.add(Climatology)
 DAMs.add(D3Var)
 DAMs.add(ExtKF,infl=1.05)
 DAMs.add(EnKF_N,N=24,rot=True)
-
-def print_table(x):
-  print_averages(DAMs,x, 'rmse_a','rmv_a','logp_m_a')
 
 
 ############################
@@ -55,9 +52,9 @@ for i,F_true in enumerate(F_range):
       seed(sd0 + j)
       stats     = assimilate(setup,method,xx,yy)
       ss[i,j,k] = stats.average_after_burn()
-    print_table(ss[i,j])
+    print_averages(DAMs,ss[i,j])
   avrg = average_each_field(ss[i],axis=0)
   print('\nAverage over',nRepeat,'repetitions:')
-  print_table(avrg)
+  print_averages(DAMs,avrg)
 
 save_data(save_path,inds,F_range=F_range,ss=ss,xx=xx,yy=yy)

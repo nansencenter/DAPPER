@@ -162,6 +162,8 @@ def average_each_field(ss,axis=None):
 
 def print_averages(DAMs,avrgs,*statnames):
   headr = ' '*17
+  if not statnames:
+    statnames = ['rmse_a','rmv_a','logp_m_a']
   for sname in statnames:
     headr += '{0: >8} ±'.format(sname) + ' '*7
   print(headr)

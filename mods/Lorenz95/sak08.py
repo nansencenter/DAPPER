@@ -44,10 +44,26 @@ h = {
     'noise': GaussRV(C=1*eye(p)),
     'plot' : yplot
     }
- 
+
+
+from aux.localization import inds_and_coeffs, unravel
+def loc_wrapper(radius,direction=None):
+  iix = arange(m)
+  dIJ = unravel(iix    , m)
+  oIJ = unravel(obsInds, m)
+  if direction is 'x2y':
+    def locf(i):
+      return inds_and_coeffs(dIJ[:,i], oIJ, m, radius)
+  elif direction is 'y2x':
+    def locf(i):
+      return inds_and_coeffs(oIJ[:,i], dIJ, m, radius)
+  else: raise KeyError
+  return locf
+
 other = {'name': os.path.relpath(__file__,'mods/')}
 
 setup = OSSE(f,h,t,X0,**other)
+setup.locf = loc_wrapper
 
 
 
@@ -55,35 +71,22 @@ setup = OSSE(f,h,t,X0,**other)
 # Suggested tuning
 ####################
 
-
 # Reproduce Sakov'2008 "deterministic"
-#cfg.N = 40
-# rmse_a = 0.22
-#cfg.infl    = 1.06
-#cfg.infl    = 1.045 # Requires BurnIn inflation too
-#cfg.AMethod = 'PertObs non-transposed'
-#method      = EnKF
-#
-# rmse_a = 0.175
-#cfg.infl    = 1.01
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = True
-#method      = EnKF
-#
-# rmse_a = 0.18
-#cfg.infl    = 1.01
-#cfg.AMethod = 'DEnKF'
-#method      = EnKF
-#
-# rmse_a = 0.17
-#cfg.infl    = 1.01
-#cfg.AMethod = 'Sqrt'
-#cfg.rot     = True
-#cfg.iMax    = 10
-#method      = iEnKF
+#cfg = DAM(EnKF,'PertObs',N=40, infl=1.06)          # rmse_a = 0.22
+#cfg = DAM(EnKF,'DEnKF',N=40, infl=1.01)            # rmse_a = 0.18
+#cfg = DAM(EnKF,'PertObs',N=28,infl=1.08)           # rmse_a = 0.24
+#cfg = DAM(EnKF,'Sqrt'   ,N=24,infl=1.013,rot=True) # rmse_a = 0.18
 
+#cfg = DAM(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # rmse_a = 0.17
 
-#cfg.da_method = ExtKF; cfg.infl = 1.05
+#cfg = DAM(LETKF,N=6,rot=True,infl=1.04,locf=setup.locf(6,'x2y'))
+#cfg = DAM(LETKF,'approx',N=8,rot=True,infl=1.30,locf=setup.locf(6,'x2y'))
+#cfg = DAM(SL_EAKF,N=6,rot=True,infl=1.07,locf=setup.locf(6,'y2x'))
+#
+#cfg = DAM(Climatology)
+#cfg = DAM(D3Var)
+#cfg = DAM(ExtKF, infl = 1.05)
+#cfg = DAM(EnCheat,'Sqrt',N=24,infl=1.02,rot=True)
 
 
 

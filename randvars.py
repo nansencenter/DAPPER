@@ -42,7 +42,7 @@ class GaussRV(RV):
         assert self.mu.size == m
     # Set C
     self.is_random = True
-    if isinstance(C,CovMat):
+    if isinstance(C,CovMat) or isinstance(C,spCovMat):
       self.C = C
     else:
       if C is 0:
@@ -63,7 +63,7 @@ class GaussRV(RV):
     if not self.is_random:
       D = zeros((N,self.m))
     else:
-      D = randn((N,self.m)) @ self.C.cholU
+      D = randn((N,self.C.rk)) @ self.C.cholU
     return self.mu + D
 
   @property

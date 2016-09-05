@@ -22,9 +22,6 @@ keep = len(DAMs)-1
 DAMs.add(EnKF,infl=1.15)
 DAMs.add(EnKF,infl=1.20)
 
-def print_table(x):
-  print_averages(DAMs,x, 'rmse_a','rmv_a','logp_m_a')
-
 ############################
 # Common settings
 ############################
@@ -46,7 +43,7 @@ for k,method in enumerate(DAMs):
   stats = assimilate(setup_trunc,method,xx,yy)
   ss[k] = stats.average_after_burn()
   if k == keep: kept = stats
-print_table(ss)
+print_averages(DAMs,ss)
 
 
 ############################

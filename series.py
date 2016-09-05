@@ -6,8 +6,29 @@ def auto_cov(xx,L=5):
     L: lags (offsets) for which to compute acf."""
     assert is1d(xx)
     N = len(xx)
-    acovf = array([np.cov(xx[:N-i], xx[i:])[0,1] for i in range(L)])
+    if N<=L:
+      raise ValueError
+    mu = np.mean(xx)
+    acovf = array([
+      sum((xx[:N-i]-mu)*(xx[i:]-mu))/(N-1-i)
+      for i in range(L)])
     return acovf
+
+def auto_cov_periodic(xx,L=5):
+    """
+    Periodic version.
+    Assumes that the length of the signal = its period.
+    """
+    assert is1d(xx)
+    N = len(xx)
+    if N<=L:
+      raise ValueError
+    mu = np.mean(xx)
+    acovf = array([
+      sum(np.roll(xx-mu,i)*(xx-mu))/(N-1)
+      for i in range(L)])
+    return acovf
+
 
 #def geometric_mean(xx):
   #return np.exp(mean(log(xx)))
@@ -39,7 +60,7 @@ def estimate_corr_length(xx):
   corr(L) = exp(-1) = ca 0.368
   """
   assert is1d(xx)
-  acovf = auto_cov(xx,min(100,len(xx)))
+  acovf = auto_cov(xx,min(100,len(xx)-2))
   a     = fit_acf_by_AR1(acovf)
   if a == 0:
     L = 0
@@ -65,10 +86,12 @@ def series_mean_with_conf(xx):
   as estimated from its correlation-corrected variance.
   """
   mu    = np.mean(xx)
+  N     = len(xx)
   if np.allclose(xx,mu):
     return mu, 0
+  if N < 5:
+    return mu, np.nan
   acovf = auto_cov(xx,5)
-  N     = len(xx)
   v     = acovf[0]
   v    /= N
   # Estimate (fit) ACF

@@ -1,5 +1,11 @@
 from common import *
 
+class Printable:
+  def __repr__(self):
+    from pprint import pformat
+    return "<" + type(self).__name__ + "> " + pformat(vars(self), indent=4, width=1)
+
+
 class Operator:
   """Class for operators (models)."""
   def __init__(self,m,model=None,noise=None,**kwargs):
@@ -15,8 +21,8 @@ class Operator:
       noise = GaussRV(0,m=m)
     self.noise = noise
 
-    for key, value in kwargs.items():
-      setattr(self, key, value)
+    # Write the rest of parameters
+    for key, value in kwargs.items(): setattr(self, key, value)
 
 class OSSE:
   """Container for OSSE settings."""
@@ -32,20 +38,32 @@ class OSSE:
       t = Chronology(**t)
     self.X0 = X0
     self.f  = f
+    if h.noise.C.rk != h.noise.C.m:
+      raise ValueError("Rank-deficient R not supported")
     self.h  = h
     self.t  = t
-    for key, value in kwargs.items():
-      setattr(self, key, value)
+    # Write the rest of parameters
+    for key, value in kwargs.items(): setattr(self, key, value)
+
+  def __repr__(self):
+    s = 'OSSE(' + self.name
+    for key,val in self.__dict__.items():
+      if key != 'name':
+        s += '\n' + key + '=' + str(val)
+    return s + ')'
 
 from json import JSONEncoder # TODO: Did this do anything?
 class DAM(JSONEncoder):
-  """Container for DA Method settings."""
-  def __init__(self,da_method,**kwargs):
+  """A fancy dict for the settings of DA Method."""
+  def __init__(self,da_method,*AMethod,**kwargs):
+    self.da_method    = da_method
+    if len(AMethod) == 1:
+      self.AMethod = AMethod[0]
     # Careful with defaults -- explicit is better than implicit!
-    self.da_method = da_method
     self.liveplotting = False
-    for key, value in kwargs.items():
-      setattr(self, key, value)
+    # Write the rest of parameters
+    for key, value in kwargs.items(): setattr(self, key, value)
+
   def __repr__(self):
     s = 'DAM(' + self.da_method.__name__
     for key,val in self.__dict__.items():
