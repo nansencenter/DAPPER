@@ -18,10 +18,6 @@
       * and observations thereof
   * assess how different DA methods
       perform in estimating the truth
-* DAPPER is like a *set of templates* (not a framework);
-    do not hesitate make your own scripts and functions
-    (instead of squeezing everything into standardized configuration files).
-
 * Licence: See licence.txt
 
 <!---
@@ -54,14 +50,6 @@ Particle filter (bootstrap)        | "
 Climatology                        | "
 TODO: Sqrt model noise methods     | raanes'2014 ("sqrt model noise")
 
-#### How to add a new method
-Just add it to `da_algos.py`, using the others in there as templates.
-(TODO: split `da_algos.py` into multiple files.)
-
-<!---
-Caution: If a method does not implement (e.g.) cfg.rot,
-it does not necessarily warn the user, but will fail silently.
--->
 
 Models
 ------------
@@ -74,34 +62,6 @@ Lorenz95    | No      | 1D        | 40          |  13+     | "
 LorenzXY    | No      | 2x 1D     | 256 + 8     |  ca 13   | Lorenz/Raanes
 MAOOAM      | No      | 2x 1D     | 36          |  ?       | Tondeur/Vannitsen
 Barotropic  | No      | 2D        | 256^2 ≈ 60k |  ?       | J.Penn/Raanes
-
-
-#### How to add a new model
-* Make a new dir: `DAPPER/mods/`**your_mod**
-    * Remember to include the empty file `__init__.py`
-    * See other examples, e.g. `DAPPER/mods/Lorenz63/sak12.py`
-* Make sure that your model (and obs operator) support
-    * 2D-array (i.e. ensemble) and 1D-array (single realization) input
-        (can typically be handled by @atmost_2d wrapper).
-    * should not modify in-place.
-* To begin with, test whether the model works
-    * on 1 realization
-    * on several realizations (simultaneously)
-* Thereafter, try assimilating using
-    * a big ensemble
-    * a safe (e.g. 1.2) inflation value
-    * small initial perturbations
-      (big/sharp noises might cause model blow up)
-		* small(er) integrational time step
-			(assimilation might create instabilities)
-    * very large observation noise (free run)
-    * or very small observation noise (perfectly observed system)
-
-<!---
-* Nice read: "Perfect Model Experiment Overview" section of
-    http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
-
--->
 
 
 Additional features
@@ -142,38 +102,6 @@ For -N stuff, compared to Boc's code, DAPPER
     axis limits esitmated from percentiles)
 
 
-What it can't do
-------------------------------------------------
-* Store full ensembles (could write to file)
-* Run different DA methods concurrently (i.e. step-by-step)
-     allowing for online (visual or console) comparison
-* Time-dependent noises and length changes in state/obs
-     (but it does support autonomous f and h)
-* Non-uniform time sequences
-
-
-Implementation choices
-------------------------------------------------
-* Uses python version >= 3.5
-* On-line vs off-line stats and diagnostics
-* NEW: Use N-by-m ndarrays. Pros:
-    * Python default
-        * speed of (row-by-row) access, especially for models
-        * ordering of random numbers
-    * numpy sometimes returns ndarrays even when input is matrix
-    * works well with ens space formulea,
-        * e.g. 
-        * yields beneficial operator precedence without (). E.g. dy@Ri@Y.T@Pw
-    * Bocquet's choice
-    * Broadcasting
-    * Avoids reshape's and asmatrix
-    * Fewer indices: [k,:] becomes [k]
-* OLD: Use m-by-N matrix class. Pros:
-    * Litterature uses m-by-N
-    * Matrix class allowss desired broadcasting
-    * Deprecated: syntax (* vs @)
-
-
 Alternatives
 ------------------------------------------------
 ##### Big
@@ -196,6 +124,81 @@ Alternatives
 * IEnKS code  (Bocquet)
 * pyda        (Hickman)
 
+
+How to
+------------------------------------------------
+DAPPER is like a *set of templates* (not a framework);
+do not hesitate make your own scripts and functions
+(instead of squeezing everything into standardized configuration files).
+
+#### Add a new method
+Just add it to `da_algos.py`, using the others in there as templates.
+(TODO: split `da_algos.py` into multiple files.)
+
+<!---
+Caution: If a feature is requested (e.g. random rotations: cfg.rot = True),
+but the method does not implement it, then the user is not warned.
+-->
+
+#### Add a new model
+* Make a new dir: `DAPPER/mods/`**your_mod**
+    * Remember to include the empty file `__init__.py`
+    * See other examples, e.g. `DAPPER/mods/Lorenz63/sak12.py`
+* Make sure that your model (and obs operator) support
+    * 2D-array (i.e. ensemble) and 1D-array (single realization) input
+        (can typically be handled by @atmost_2d wrapper).
+    * should not modify in-place.
+* To begin with, test whether the model works
+    * on 1 realization
+    * on several realizations (simultaneously)
+* Thereafter, try assimilating using
+    * a big ensemble
+    * a safe (e.g. 1.2) inflation value
+    * small initial perturbations
+      (big/sharp noises might cause model blow up)
+		* small(er) integrational time step
+			(assimilation might create instabilities)
+    * very large observation noise (free run)
+    * or very small observation noise (perfectly observed system)
+
+<!---
+* Nice read: "Perfect Model Experiment Overview" section of
+    http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
+
+-->
+
+
+
+Implementation choices
+------------------------------------------------
+* Uses python3.5+
+* On-line vs off-line stats and diagnostics
+* NEW: Use N-by-m ndarrays. Pros:
+    * Python default
+        * speed of (row-by-row) access, especially for models
+        * ordering of random numbers
+    * numpy sometimes returns ndarrays even when input is matrix
+    * works well with ens space formulea,
+        * e.g. 
+        * yields beneficial operator precedence without (). E.g. dy@Ri@Y.T@Pw
+    * Bocquet's choice
+    * Broadcasting
+    * Avoids reshape's and asmatrix
+    * Fewer indices: [k,:] becomes [k]
+* OLD: Use m-by-N matrix class. Pros:
+    * Litterature uses m-by-N
+    * Matrix class allowss desired broadcasting
+    * Deprecated: syntax (* vs @)
+
+
+What it can't do
+------------------------------------------------
+* Store full ensembles (could write to file)
+* Run different DA methods concurrently (i.e. step-by-step)
+     allowing for online (visual or console) comparison
+* Time-dependent noises and length changes in state/obs
+     (but it does support autonomous f and h)
+* Non-uniform time sequences
 
 TODO
 ------------------------------------------------
