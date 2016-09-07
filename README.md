@@ -59,7 +59,7 @@ Model name  | Linear? | Phys.dim. | State len.  | # Lyap>0 | Thanks to
 Lin. Advect.| Yes     | 1D        | 1000        |  51      | Evensen
 Lorenz63    | No      | 0D        | 3           |  2+      | Lorenz/Sakov
 Lorenz95    | No      | 1D        | 40          |  13+     | "
-LorenzXY    | No      | 2x 1D     | 256 + 8     |  ca 13   | Lorenz/Raanes
+LorenzXY    | No      | 2x 1D     | 256 + 8     |  ≈13     | Lorenz/Raanes
 MAOOAM      | No      | 2x 1D     | 36          |  ?       | Tondeur/Vannitsen
 Barotropic  | No      | 2D        | 256^2 ≈ 60k |  ?       | J.Penn/Raanes
 
@@ -168,6 +168,69 @@ but the method does not implement it, then the user is not warned.
 -->
 
 
+<!---
+DAPPER
+│
+├── benchmark.py
+├── da_algos.py
+├── stats.py
+│
+├── scripts
+│   ├── L95_vs_true_F.py
+│   ├── benchmark_Barotropic.py
+│   └── benchmark_LorenzXY.py
+├── mods
+│   ├── Barotropic
+│   │   ├── C12.npz
+│   │   ├── LICENSE
+│   │   ├── baro_vort_simple.py
+│   │   ├── defaults.py
+│   │   ├── z0_1.npz
+│   ├── LA
+│   │   ├── core.py
+│   │   ├── even2009.py
+│   │   ├── m6.py
+│   │   ├── raanes2014.py
+│   │   └── small.py
+│   ├── Lorenz63
+│   │   ├── core.py
+│   │   ├── m23.py
+│   │   └── sak12.py
+│   ├── Lorenz95
+│   │   ├── core.py
+│   │   ├── m23.py
+│   │   ├── m33.py
+│   │   ├── sak08.py
+│   │   └── spectral_obs.py
+│   ├── LorenzXY
+│   │   ├── core.py
+│   │   ├── defaults.py
+│   │   └── truncated.py
+├── aux
+│   ├── admin.py
+│   ├── chronos.py
+│   ├── localization.py
+│   ├── matrices.py
+│   ├── misc.py
+│   ├── randvars.py
+│   ├── series.py
+│   ├── stoch.py
+│   ├── utils.py
+│   └── viz.py
+├── data
+│   └── figs
+│       └── anims
+│           ├── Lor63_ens_anim.gif
+│           └── Lor63_ens_anim_2.gif
+├── docs
+│   ├── serial_sqrt.jpg
+│   └── trHK.jpg
+│
+├── README.md
+├── common.py
+├── licence.txt
+
+-->
 
 Implementation choices
 ------------------------------------------------
