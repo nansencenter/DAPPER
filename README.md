@@ -4,9 +4,12 @@
     | |) / _ \|  _/  _/ _||   /
     |___/_/ \_\_| |_| |___|_|_\
 
-(Data Assimilation Platform in Python for Experimental Research)
+(Data Assimilation Package in Python for Experimental Research)
 
 ![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
+
+
+![Diagnostics](./data/figs/anims/DAPPER_illust.jpg)
 
 * DAPPER lets you benchmark data assimilation (DA) methods
 * The typical set-up is a "twin experiment", where you
@@ -41,14 +44,14 @@ Method name                        | Literature RMSE results reproduced
 -----------------------------------| ---------------------------------------
 EnKF (Stoch., DEnKF, ETKF)         | sakov'2008 ("deterministic")
 EnKF-N                             | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
-EnKS, EnRTS                        | raanes'2015 ("EnRTS and EnKS")
+EnKS, EnRTS                        | raanes'2016 ("EnRTS and EnKS")
 Iterative versions of the above    | sakov'2012 ("an iterative"), TODO: bocquet'2014
 LETKF, local & serial EAKF         |
 Extended KF                        | raanes'2016 thesis
 Particle filter (bootstrap)        | "
 3D-Var                             | "
 Climatology                        | "
-TODO: Sqrt model noise methods     | raanes'2014 ("sqrt model noise")
+TODO: Sqrt model noise methods     | raanes'2015 ("sqrt model noise")
 
 
 Models
