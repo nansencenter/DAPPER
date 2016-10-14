@@ -8,10 +8,11 @@
 
 ![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
 
+![EnKF - Lorenz'63](./data/figs/anims/DAPPER_illust.jpg)
 
-![Diagnostics](./data/figs/anims/DAPPER_illust.jpg)
 
-* DAPPER lets you benchmark data assimilation (DA) methods
+
+* DAPPER lets you benchmark [data assimilation (DA)](https://sites.google.com/site/patricknraanespro/DA_tut.pdf) methods
 * The typical set-up is a "twin experiment", where you
   * specify a
       * dynamic model 
