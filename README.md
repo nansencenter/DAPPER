@@ -4,32 +4,43 @@
     | |) / _ \|  _/  _/ _||   /
     |___/_/ \_\_| |_| |___|_|_\
 
-(Data Assimilation Package in Python for Experimental Research)
 
+<!---
 ![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
+-->
 
 ![EnKF - Lorenz'63](./data/figs/anims/DAPPER_illust.jpg)
 
 
+DAPPER is a set of templates for benchmarking the performance of
+[data assimilation (DA)](https://sites.google.com/site/patricknraanespro/DA_tut.pdf)
+methods.
+The tests provide experimental support and guidance for new developments in DA.
 
-* DAPPER lets you benchmark [data assimilation (DA)](https://sites.google.com/site/patricknraanespro/DA_tut.pdf) methods
-* The typical set-up is a "twin experiment", where you
-  * specify a
-      * dynamic model 
-      * observational model 
-  * use these to generate a synthetic
-      * "truth"
-      * and observations thereof
-  * assess how different DA methods
-      perform in estimating the truth
-* Licence: See licence.txt
+The typical set-up is a "twin experiment", where you
+* specify a
+	* dynamic model 
+	* observational model 
+* use these to generate a synthetic
+	* "truth"
+	* and observations thereof
+* assess how different DA methods
+	perform in estimating the truth
 
-<!---
-* Developed at the Nansen centre. Contributors:
-  * Patrick N. Raanes
-  * Maxime Tondeur
--->
+DAPPER successfully reproduces numerical results reported in the literature,
+thus safeguarding the quality of its benchmarks.
+Comparative studies are facilitated through its collection of typical test-cases, methods, and statistics.
+It is thus well suited for fundamental DA research.
 
+It is open source and written in Python, and thus easy to adapt and extend to further needs.
+
+It also focuses on code readability, striking a beneficial compromise with efficiency,
+and is therefore well suited for teaching and academic purposes.
+However, its current documentation does not provide a tutorial;
+new users should begin by looking at the code in `benchmark.py`
+and work their way backward.
+
+	
 Installation
 ------------------------------------------------
 Prerequisite: python3.5+ with scipy (e.g. from [anaconda](https://www.continuum.io/downloads))
@@ -75,58 +86,50 @@ Many
 * diagnostics
 
 
-Also:
+And:
 * Highly modular.
-* Balance between efficiency and readability.
-* Consistency checks (e.g. time).
-* Parallelization
+* Parallelizable
     * Forecast parallelization is possible since
         the (user-implemented) model has access to the full ensemble.
     * A light-weight alternative (see e.g. Lorenz95):
-        native vectorization (again by having access to full ensemble).
+        native numpy vectorization (again by having access to full ensemble).
     * (Independent) experiments can also run in parallel.
         Auto-config provided by `utils.py:parallelize()`.
 
-<!---
-For -N stuff, compared to Boc's code, DAPPER
-* uses more matrix decompositions (efficiency),
-* allows for non-diag R.
--->
 
-####Sugar:
+Also has:
 * Progressbar
 * Confidence interval on times series (e.g. rmse) with
 	* automatic correction for autocorrelation 
 	* significant digits printing
 * X-platform random number generator
-* Chronology/Ticker
-* CovMat class (input flexibility, / overloading, lazy eval)
+* Chronology/Ticker with consistency checks
+* CovMat class (input flexibility/overloading, lazy eval)
 * Live plotting with on/off toggle
-* Intelligent defaults (e.g. plot duration estimated from acf,
+* Intelligent defaults (e.g. plot duration estimated from autocorrelation,
     axis limits esitmated from percentiles)
 
 
-Alternatives
+Alternative projects
 ------------------------------------------------
-##### Big
-* DART        (NCAR)
-* SANGOMA     (Liege/CNRS/Nersc/Reading/Delft)
-* PDAF        (Nerger)
-* ERT         (Statoil)
-* OpenDA      (TU Delft)
-* PyOSSE      (Edinburgh)
-* ?           (DHI)
+Sorted by approximate project size.
+DAPPER may be situated somewhere in the middle.
 
-##### Medium
-* DAPPER      (Raanes)
-* FilterPy    (R. Labbe)
-* PyIT        (CIPR)
-    
-##### Small
-* Datum       (Raanes)
-* EnKF-Matlab (Sakov)
-* IEnKS code  (Bocquet)
-* pyda        (Hickman)
+* DART         (NCAR)
+* SANGOMA      (Liege/CNRS/Nersc/Reading/Delft)
+* PDAF         (Nerger)
+* ERT*         (Statoil)
+* OpenDA       (TU Delft)
+* PyOSSE       (Edinburgh)
+* ?            (DHI)
+* FilterPy     (R. Labbe)
+* PyIT         (CIPR)
+* Datum*       (Raanes)
+* EnKF-Matlab* (Sakov)
+* IEnKS code*  (Bocquet)
+* pyda         (Hickman)
+
+*Has been inspirational in the development of DAPPER. 
 
 
 How to
@@ -139,10 +142,6 @@ do not hesitate make your own scripts and functions
 Just add it to `da_algos.py`, using the others in there as templates.
 (TODO: split `da_algos.py` into multiple files.)
 
-<!---
-Caution: If a feature is requested (e.g. random rotations: cfg.rot = True),
-but the method does not implement it, then the user is not warned.
--->
 
 #### Add a new model
 * Make a new dir: `DAPPER/mods/`**your_mod**
@@ -150,7 +149,7 @@ but the method does not implement it, then the user is not warned.
     * See other examples, e.g. `DAPPER/mods/Lorenz63/sak12.py`
 * Make sure that your model (and obs operator) support
     * 2D-array (i.e. ensemble) and 1D-array (single realization) input
-        (can typically be handled by @atmost_2d wrapper).
+        (can typically be handled by `@atmost_2d` wrapper).
     * should not modify in-place.
 * To begin with, test whether the model works
     * on 1 realization
@@ -165,125 +164,57 @@ but the method does not implement it, then the user is not warned.
     * very large observation noise (free run)
     * or very small observation noise (perfectly observed system)
 
-<!---
-* Nice read: "Perfect Model Experiment Overview" section of
-    http://www.image.ucar.edu/DAReS/DART/DART_Starting.php
-
--->
-
-
-<!---
-DAPPER
-│
-├── benchmark.py
-├── da_algos.py
-├── stats.py
-│
-├── scripts
-│   ├── L95_vs_true_F.py
-│   ├── benchmark_Barotropic.py
-│   └── benchmark_LorenzXY.py
-├── mods
-│   ├── Barotropic
-│   │   ├── C12.npz
-│   │   ├── LICENSE
-│   │   ├── baro_vort_simple.py
-│   │   ├── defaults.py
-│   │   ├── z0_1.npz
-│   ├── LA
-│   │   ├── core.py
-│   │   ├── even2009.py
-│   │   ├── m6.py
-│   │   ├── raanes2014.py
-│   │   └── small.py
-│   ├── Lorenz63
-│   │   ├── core.py
-│   │   ├── m23.py
-│   │   └── sak12.py
-│   ├── Lorenz95
-│   │   ├── core.py
-│   │   ├── m23.py
-│   │   ├── m33.py
-│   │   ├── sak08.py
-│   │   └── spectral_obs.py
-│   ├── LorenzXY
-│   │   ├── core.py
-│   │   ├── defaults.py
-│   │   └── truncated.py
-├── aux
-│   ├── admin.py
-│   ├── chronos.py
-│   ├── localization.py
-│   ├── matrices.py
-│   ├── misc.py
-│   ├── randvars.py
-│   ├── series.py
-│   ├── stoch.py
-│   ├── utils.py
-│   └── viz.py
-├── data
-│   └── figs
-│       └── anims
-│           ├── Lor63_ens_anim.gif
-│           └── Lor63_ens_anim_2.gif
-├── docs
-│   ├── serial_sqrt.jpg
-│   └── trHK.jpg
-│
-├── README.md
-├── common.py
-├── licence.txt
-
--->
 
 Implementation choices
 ------------------------------------------------
 * Uses python3.5+
 * On-line vs off-line stats and diagnostics
-* NEW: Use N-by-m ndarrays. Pros:
+* NEW: Use `N-by-m` ndarrays. Pros:
     * Python default
         * speed of (row-by-row) access, especially for models
         * ordering of random numbers
     * numpy sometimes returns ndarrays even when input is matrix
     * works well with ens space formulea,
         * e.g. 
-        * yields beneficial operator precedence without (). E.g. dy@Ri@Y.T@Pw
+        * yields beneficial operator precedence without `()`. E.g. `dy@Ri@Y.T@Pw`
     * Bocquet's choice
     * Broadcasting
     * Avoids reshape's and asmatrix
-    * Fewer indices: [:,k] becomes [k]
+    * Fewer indices: `[:,k]` becomes `[k]`
 * OLD: Use m-by-N matrix class. Pros:
-    * Litterature uses m-by-N
+    * Litterature uses `m-by-N`
     * Matrix class allowss desired broadcasting
-    * Deprecated: syntax (* vs @)
+    * Matrix multiplication through `*` -- Deprecated since python3.5
 
 
 What it can't do
 ------------------------------------------------
 * Store full ensembles (could write to file)
 * Run different DA methods concurrently (i.e. step-by-step)
-     allowing for online (visual or console) comparison
+     allowing for live/online  (graphic or text) comparison
 * Time-dependent noises and length changes in state/obs
      (but it does support autonomous f and h)
 * Non-uniform time sequences
 
 TODO
 ------------------------------------------------
+* CovMat
+		* Unify sparse and dense treatment
+		* Read-only properties
+* Plotting with the new ipython
+* Barotropic model
+		* 
 * add_noise()
 * Truncate SVD at 95 or 99% (evensen)
-
 * Doc models
 * 1D model preserving some quantity (aside from L95)
 * 2D model
 * KdVB model? (Zupanski 2006)
-
 * Should (direct) observations return copy? e.g. x[:,obsInds].copy()
 * Take advantage of pass-by-ref
 * Decide on conflicts np vs math vs sp
-
 * unify matrix vs array (e.g. randn)
 * vs 1d array (e.g. xx[:,0] in L3.dxdt)
-* Read-only CovMat from being updated
 
 
 "Outreach"
