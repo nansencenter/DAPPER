@@ -199,7 +199,7 @@ def print_averages(BAMs,Avrgs,attrkeys=(),statkeys=()):
     statkeys = ['rmse_a','rmv_a','logp_m_a']
 
   # Defaults attributes
-  if   attrkeys == 0: headr = ['root_mtd']
+  if   attrkeys == 0: headr = ['base_da']
   elif attrkeys ==(): headr = list(BAMs.distinct_attrs)
   else:               headr = list(attrkeys)
   mattr = [BAMs.distinct_attrs[key] for key in headr]

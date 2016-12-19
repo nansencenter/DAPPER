@@ -14,7 +14,7 @@ setup.name = os.path.relpath(__file__,'mods/')
 #cfg.upd_a   = 'Sqrt'
 #cfg.rot       = False
 #cfg.tLag      = 2.0
-#cfg.root_mtd = EnKS
+#cfg.base_da = EnKS
 #
 #cfg.cntr      = 0.99
-#cfg.root_mtd = EnRTS
+#cfg.base_da = EnRTS
