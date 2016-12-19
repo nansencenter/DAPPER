@@ -8,9 +8,8 @@ class Stats:
 
   # Skip heavy computations (of level n)
   # if m > MAX_m_LEVEL_n
-  MAX_m_LEVEL_3 = 10**3
+  MAX_m_LEVEL_3 = 10**2
 
-  # TODO: Include skew/kurt?
   def __init__(self,setup,cfg):
     self.setup = setup
     m    = setup.f.m
@@ -32,11 +31,18 @@ class Stats:
     self.rmv   = zeros(K+1)
     self.rmse  = zeros(K+1)
     self.rh    = zeros((K+1,m))
-    self.trHK  = zeros(KObs+1)
+
+    # Ensemble-only init
     if hasattr(cfg,'N'):
       N    = cfg.N
       m_Nm = np.minimum(m,N)
       self.svals = zeros((K+1,m_Nm))
+
+    # Analysis-only init
+    self.trHK  = zeros(KObs+1)
+    # Note that non-default analysis stats
+    # may also be initialized throug at().
+    
 
   def assess(self,E,x,k):
     assert(type(E) is np.ndarray)
@@ -59,8 +65,9 @@ class Stats:
     logp_m         = sum(nmisf**2) + ldet
     self.logp_m[k] = logp_m/m
 
-    # Preparation for log score
-    if m <= Stats.MAX_m_LEVEL_3:
+    # (Experimental) log score
+    if max(m,N) <= Stats.MAX_m_LEVEL_3:
+      # Prep
       V,s,UT         = svd(A)
       s             /= sqrt(N-1)
       self.svals[k]  = s
@@ -94,6 +101,9 @@ class Stats:
     Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
     self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
 
+    return self
+
+
   def assess_w(self,E,x,k,w):
     assert(type(E) is np.ndarray)
     assert(abs(sum(w)-1) < 1e-5)
@@ -104,6 +114,7 @@ class Stats:
     self.err[k]  = self.mu[k] - x[k]
     self.rmv[k]  = sqrt(mean(self.var[k]))
     self.rmse[k] = sqrt(mean(self.err[k]**2))
+    return self
 
   def assess_ext(self,mu,ss,x,k):
     m            = len(mu)
@@ -112,16 +123,21 @@ class Stats:
     self.err[k]  = self.mu[k] - x[k]
     self.rmv[k]  = sqrt(mean(self.var[k]))
     self.rmse[k] = sqrt(mean(self.err[k]**2))
+    return self
 
-  def copy_paste(self,s,kObs):
-    """
-    Load s into stats object at kObs.
-    Avoids having to pass kObs into enkf_analysis (e.g.).
-    """
-    for key,val in s.items():
-      getattr(self,key)[kObs] = val
+  def at(self,kObs):
+    """Provide a write-access method for the analysis frame of index kObs"""
+    def write_at_kObs(**kwargs):
+      for key,val in kwargs.items():
+        if not hasattr(self,key):
+          shape = (self.setup.t.KObs+1,)
+          if isinstance(val,np.ndarray):
+            shape += val.shape
+          setattr(self,key,zeros(shape))
+        getattr(self,key)[kObs] = val # writes by reference ([kObs])
+    return write_at_kObs
 
-  def average_after_burn(self):
+  def average_in_time(self):
     t    = self.setup.t
     kk_a = t.kkObsBI                   # analysis time > BurnIn
     kk_f = t.kkObsBI-1                 # forecast      > BurnIn
@@ -160,25 +176,48 @@ def average_each_field(ss,axis=None):
   return avrg
 
 
-def print_averages(DAMs,avrgs,*statnames):
-  headr = ' '*17
-  if not statnames:
-    statnames = ['rmse_a','rmv_a','logp_m_a']
-  for sname in statnames:
-    headr += '{0: >8} ±'.format(sname) + ' '*7
-  print(headr)
-  if not isinstance(DAMs,list):
-    DAMs  = [DAMs]
-    avrgs = [avrgs]
-  for k,meth in enumerate(DAMs):
-    line = '{0: <16}'.format(meth.da_method.__name__)
-    for sname in statnames:
-      val = avrgs[k][sname]
-      if type(val) is val_with_conf:
-        line += '{0: >9.4f} {1: <6g} '.format(val.val,round2sigfig(val.conf))
-      else:
-        line += '{0: >9.4f} {1: <6g} '.format(val[0],val[1])
-    print(line)
+def get_vc(val_conf):
+  if isinstance(val_conf, val_with_conf):
+    v,c = val_conf.val, val_conf.conf
+  else:
+    # TODO: Remove this format (i.e. [0], [1])
+    v,c = val_conf[0], val_conf[1]
+  return v,c
+  
+
+def print_averages(DAMs,Avrgs,attrkeys=(),statkeys=()):
+  """
+  For i in range(len(DAMs)):
+    Print DAMs[i][attrkeys], Avrgs[i][statkeys]
+  """
+  assert isinstance(DAMs,DAM_list)
+
+  # Defaults averages
+  if not statkeys:
+    statkeys = ['rmse_a','rmv_a','logp_m_a']
+
+  # Defaults attributes
+  if   attrkeys == 0: headr = ['da_method']
+  elif attrkeys ==(): headr = list(DAMs.distinct_attrs)
+  else:               headr = list(attrkeys)
+  mattr = [DAMs.distinct_attrs[key] for key in headr]
+
+  # Add separator
+  headr += ['']
+  mattr += [['|']*len(DAMs)]
+
+  # Format stats_with_conf. Use #'s to avoid auto-cropping by tabulate().
+  for key in statkeys:
+    col = ['{0:#>9} ±'.format(key)]
+    for i in range(len(DAMs)):
+      val,conf = get_vc(Avrgs[i][key])
+      col.append('{0:#>9.4f} {1: <6g} '.format(val,round2sigfig(conf)))
+    crop= min([s.count('#') for s in col])
+    col = [s[crop:]         for s in col]
+    headr.append(col[0])
+    mattr.append(col[1:])
+  table = tabulate(mattr, headr).replace('#',' ')
+  print(table)
 
 
 

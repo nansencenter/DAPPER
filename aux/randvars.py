@@ -63,7 +63,10 @@ class GaussRV(RV):
     if not self.is_random:
       D = zeros((N,self.m))
     else:
-      D = randn((N,self.C.rk)) @ self.C.cholU
+      if isinstance(self.C,spCovMat):
+        D = randn((N,self.C.rk)) @ self.C.cholU
+      else:
+        D = randn((N,self.m)) @ self.C.cholU
     return self.mu + D
 
   @property

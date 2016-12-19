@@ -52,13 +52,17 @@ class OSSE:
         s += '\n' + key + '=' + str(val)
     return s + ')'
 
-from json import JSONEncoder # TODO: Did this do anything?
-class DAM(JSONEncoder):
+# TODO
+#from json import JSONEncoder
+#class DAM(JSONEncoder):
+class DAM():
   """A fancy dict for the settings of DA Method."""
   def __init__(self,da_method,*AMethod,**kwargs):
-    self.da_method    = da_method
+    self.da_method = da_method
     if len(AMethod) == 1:
       self.AMethod = AMethod[0]
+    elif len(AMethod) > 1:
+      raise KeyError('Only AMethod is a non-keyword option')
     # Careful with defaults -- explicit is better than implicit!
     self.liveplotting = False
     # Write the rest of parameters
@@ -67,13 +71,94 @@ class DAM(JSONEncoder):
   def __repr__(self):
     s = 'DAM(' + self.da_method.__name__
     for key,val in self.__dict__.items():
-      if key != 'da_method':
+      if key == 'da_method': # Included above
+        pass 
+      elif key.startswith('_'):
+        pass 
+      elif key == 'name':
+        if not getattr(self,'_name_auto_gen',False):
+          s += ', ' + key + "='" + ' '.join(val.split()) + "'"
+      else:
         s += ', ' + key + '=' + str(val)
     return s + ')'
 
-class DAM_list(list,JSONEncoder):
+def formatr(x):
+  """Abbreviated formatting"""
+  if hasattr(x,'__name__'): return x.__name__
+  if isinstance(x,bool)   : return '1' if x else '0'
+  if isinstance(x,float)  : return '{0:.5g}'.format(x)
+  if x is None: return ''
+  return str(x)
+
+def typeset(lst,tabulate):
+  """Convert lst elements to string. If tabulate: pad to min fixed width."""
+  ss = list(map(formatr, lst))
+  if tabulate:
+    width = max([len(s)     for s in ss])
+    ss    = [s.ljust(width) for s in ss]
+  return ss
+
+
+class DAM_list(list):
+  """List containing DAM's"""
   def add(self,*kargs,**kwargs):
-    self.append(DAM(*kargs,**kwargs))
+    """Append a DAM to list"""
+    cfg = DAM(*kargs,**kwargs)
+    self.append(cfg)
+    self.set_distinct_names() # care about repeated overhead?
+
+
+  def assign_names(self,ow=False):
+    """Assign distinct_names to the individual DAM's. If ow: do_overwrite."""
+    for name,cfg in zip(self.distinct_names,self):
+      if ow or not getattr(cfg,'name',None):
+        cfg.name = name
+        cfg._name_auto_gen = True
+
+  def set_distinct_names(self,tabulate=True):
+    """Generate a set of distinct names for DAM's."""
+    self.distinct_attrs = {}
+    self.common_attrs   = {}
+
+    # Init names by da_method
+    names = ['']*len(self)
+    # Find all keys
+    keys = {}
+    for cfg in self:
+      keys |= cfg.__dict__.keys()
+    keys -= {'name'}
+    keys  = list(keys)
+    # Partition attributes into distinct and common
+    for key in keys:
+      vals = [getattr(cfg,key,None) for cfg in self]
+      if all(v == vals[0] for v in vals):
+        self.common_attrs[key] = vals[0]
+      else:
+        self.distinct_attrs[key] = vals
+    # Sort
+    def sf(item):
+      ordering = ['da_method','N','AMethod','infl','rot']
+      try:    return ordering.index(item[0])
+      except: return 99
+    self.distinct_attrs = OrderedDict(sorted(self.distinct_attrs.items(), key=sf))
+    # Process attributes into strings
+    for key,vals in self.distinct_attrs.items():
+      key   = ' ' + key[:2] + (key[-1] if len(key)>1 else '') + ':'
+      lbls  = [(' '*len(key) if tabulate else '') if v is None else key for v in vals]
+      vals  = typeset(vals,tabulate)
+      names = [''.join(x) for x in zip(names,lbls,vals)]
+
+    # Assign to DAM_list
+    self.distinct_names = names
+   
+  def __repr__(self):
+    headr = self.distinct_attrs.keys()
+    mattr = self.distinct_attrs.values()
+    s     = tabulate(mattr, headr)
+    s    += "\n---\nAll: " + str(self.common_attrs)
+    return s
+
+    
 
 def assimilate(setup,cfg,xx,yy):
   """Call cfg.da_method(), passing along all arguments."""
@@ -87,12 +172,14 @@ def simulate(setup):
   # truth
   xx = zeros((chrono.K+1,f.m))
   xx[0] = X0.sample(1)
+
   # obs
   yy = zeros((chrono.KObs+1,h.m))
-  for k,kObs,t,dt in progbar(chrono.forecast_range,'Truth & Obs'):
+  for k,kObs,t,dt in progbar(chrono.forecast_range,desc='Truth & Obs'):
     xx[k] = f.model(xx[k-1],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
     if kObs is not None:
       yy[kObs] = h.model(xx[k],t) + h.noise.sample(1)
+
   return xx,yy
 
 class Bunch(dict):
@@ -115,6 +202,7 @@ def dyn_import_all_2(modpath,namespace):
     dyn_import_all_2(modpath,globals())"""
   exec('from ' + modpath + ' import *',namespace)
   # Alternatively
+  #import importlib
   #modm = importlib.import_module(modpath)
   #namespace.update(modm.__dict__)
   # NB: __dict__ contains a lot of defaults

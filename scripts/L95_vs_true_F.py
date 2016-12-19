@@ -20,8 +20,9 @@ def model(F):
   return wrapped
 
 F_DA    = 8.0
-F_range = arange(5,12+1)
+F_range = arange(8,9)
 
+setup.t.T = 4**2.5
 ############################
 # DA methods
 ############################
@@ -30,13 +31,18 @@ DAMs = DAM_list()
 DAMs.add(Climatology)
 DAMs.add(D3Var)
 DAMs.add(ExtKF,infl=1.05)
-DAMs.add(EnKF_N,N=24,rot=True)
+DAMs.add(EnKF,'PertObs',N=24,infl=1.25)
+#DAMs.add(EnKF,'Sqrt',N=24,infl=1.25)
+#DAMs.add(EnKF_NT,N=24,infl=1.25)
+#DAMs.add(EnKF_N,N=24,rot=True)
 
+DAMs.set_distinct_names(tabulate=False)
+DAMs.assign_names()
 
 ############################
 # Assimilate
 ############################
-nRepeat = 2
+nRepeat = 1
 ss = np.empty((len(F_range),nRepeat,len(DAMs)),dict)
 
 for i,F_true in enumerate(F_range):
@@ -49,10 +55,10 @@ for i,F_true in enumerate(F_range):
     for k,method in enumerate(DAMs):
       seed(sd0 + j)
       stats     = assimilate(setup,method,xx,yy)
-      ss[i,j,k] = stats.average_after_burn()
+      ss[i,j,k] = stats.average_in_time()
     print_averages(DAMs,ss[i,j])
   avrg = average_each_field(ss[i],axis=0)
-  print('\nAverage over',nRepeat,'repetitions:')
+  print_blue('\nAverage over',nRepeat,'repetitions:')
   print_averages(DAMs,avrg)
 
-save_data(save_path,inds,F_range=F_range,ss=ss,xx=xx,yy=yy)
+#save_data(save_path,inds,F_range=F_range,ss=ss,xx=xx,yy=yy)

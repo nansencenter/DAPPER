@@ -33,7 +33,7 @@ def hmod(E,t):
 
 def yplot(y):
   lh = plt.plot(obsInds,y,'g*',MarkerSize=8)[0]
-  plt.pause(0.8)
+  #plt.pause(0.8)
   return lh
 
 h = {
@@ -94,8 +94,11 @@ setup = OSSE(f,h,tseq,X0,**other)
 # Suggested tuning
 ####################
 ## Expected rmse_a = 0.3
-#cfg.N         = 30
-#cfg.infl      = 3.4 # Why is rmse performance so insensitive to inflation
-#cfg.AMethod   = 'PertObs'
-#cfg.rot       = False
-#cfg.da_method = EnKF
+#cfg = DAM(EnKF,'PertObs',N=30,infl=3.2)
+# infl=1 yields approx optimal rmse, even though then rmv << rmse.
+# Also try PertObs, N=60 with infl=1.00, and 1.80.
+# Why is rmse so INsensitive to inflation for PertObs?
+#
+# Providing **no truncation** is used in Sqrt-Core,
+# then EnKF_Sqrt with N>m and infl=1.0 yields rmse==rmv, and the rmse is optimal.
+#cfg = DAM(EnKF_Sqrt,N=60,infl=1.0)

@@ -49,10 +49,12 @@ def anom(E,axis=0):
   return A, mu
 
 # Center sample (but maintain its (expected) variance)
-def center(E):
+def center(E,rescale=True):
   N = E.shape[0]
   A = E - mean(E,0)
-  return sqrt(N/(N-1)) * A
+  if rescale:
+    A *= sqrt(N/(N-1))
+  return A
 
 def inflate_ens(E,factor):
   A, mu = anom(E)
@@ -98,4 +100,37 @@ def equi_spaced_integers(m,p):
   """Provide a range of p equispaced integers between 0 and m-1"""
   return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
 
+
+def tsvd(A, threshold=0.99, avoid_pathological=False):
+  """Truncated svd"""
+  m,n    = A.shape
+  U,s,VT = sla.svd(A, full_matrices = False)
+
+  if not avoid_pathological:
+    r = sum(np.cumsum(s)/sum(s) <= threshold)
+  else:
+    raise NotImplementedError
+    # Consider the pathological case of A = Id(400).
+    # Then, if using tsvd(A,0.99), then
+    # A_reconstruced will be Id(400) except with zeros on last 4 diags.
+    # This should typically be avoided.
+    # TODO: How? In Datum, I used:
+    #r = sum(np.cumsum(s)/sum(s) < (1 - (1-threshold)/sqrt(m*n)))
+    #r+= 1 # Hence use strict inequality above
+  
+  U  = U[:,:r]
+  VT = VT[:r]
+  s  = s[:r]
+  return U,s,VT
+  
+def recompose(U,s,VT):
+  """
+  A == recompose(tsvd(A,1)).
+  Also see: sla.diagsvd().
+  """
+  return (U * s) @ VT
+
+def tinv(A,*kargs,**kwargs):
+  U,s,VT = tsvd(A,*kargs,**kwargs)
+  return (VT.T * s**(-1.0)) @ U.T
 

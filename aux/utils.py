@@ -2,7 +2,11 @@
 
 from common import *
 
-def myprogbar(itrble, desc='Prog.'):
+#########################################
+# Progressbar
+#########################################
+def noobar(itrble, desc):
+  """Simple progress bar. To be used if tqdm not installed."""
   L  = len(itrble)
   print('{}: {: >2d}'.format(desc,0),end='')
   for k,i in enumerate(itrble):
@@ -14,23 +18,37 @@ def myprogbar(itrble, desc='Prog.'):
     sys.stdout.flush()
 
 try:
-  import tqdm
-  #progbar = lambda inds: tqdm.tqdm(inds, desc="Assim.", leave=1)
-  def progbar(inds, desc="Assim.",leave=1):
-    return tqdm.tqdm(inds,desc=desc,leave=leave)
+  # Get progbar description by inspecting caller function.
+  import inspect
+  def pdesc(desc):
+    if desc is not None:
+      return desc
+    #try:
+      #stackoverflow.com/q/15608987
+      #DAM_name  = inspect.stack()[2].frame.f_locals['cfg'].name
+    #except (KeyError, AttributeError):
+    #stackoverflow.com/a/900404
+    DAM_name  = inspect.stack()[2].function
+    return DAM_name 
 except ImportError:
-  #progbar = lambda inds: myprogbar(inds, desc="Assim.")
-  def progbar(inds, desc="Assim.",leave=1):
-    return myprogbar(inds,desc)
+  def pdesc(desc): 
+    return desc or "Prog."
 
-from os import popen
-def set_np_linewidth():
-  rows, columns = popen('stty size', 'r').read().split()
-  np.set_printoptions(linewidth=int(columns)-1)
+# Define progbar as tqdm or noobar
+try:
+  import tqdm
+  def progbar(inds, desc=None, leave=1):
+    return tqdm.tqdm(inds,desc=pdesc(desc),leave=leave)
+except ImportError:
+  def progbar(inds, desc=None, leave=1):
+    return noobar(inds,desc=pdesc(desc))
 
-# To raise exception on warning
-#import warnings
-#warnings.filterwarnings('error')
+
+
+
+#########################################
+# Console input / output
+#########################################
 
 #stackoverflow.com/q/292095
 import select
@@ -86,10 +104,57 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def print_blue(*kargs):
+  s = ' '.join([str(k) for k in kargs])
+  print(bcolors.OKBLUE + s + bcolors.ENDC)
 
-####################
+
+
+try:
+  from tabulate import tabulate as tabulate_orig
+  def _tabulate(data,headr):
+    data  = list(map(list, zip(*data))) # Transpose
+    inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds
+    return tabulate_orig(data,headr,showindex=inds)
+except ImportError:
+  # pandas more common than tabulate, but slower to import
+  import pandas
+  pandas.options.display.width = None # Auto-adjust linewidth
+  pandas.options.display.colheader_justify = 'center'
+  def _tabulate(data,headr):
+    df = pandas.DataFrame.from_items([i for i in zip(headr,data)])
+    return df.__repr__()
+
+def tabulate(data,headr=(),formatters=()):
+  """Pre-processor for tabulate().
+  data:  list-of-lists, whose 'rows' will be printed as columns.
+         This coincides with the output of Dict.values().
+  headr: list or tuple.
+  If 'data' is a dict, then the keys will be the headr.
+  formatter: define formats to apply before relaying to pandas.
+        Default: attr.__name__ (when applicable).
+  Example:
+  >>> print(tabulate(DAMs.distinct_attrs))
+  """
+
+  if hasattr(data,'keys'):
+    headr = list(data)
+    data  = data.values()
+
+  if not formatters:
+    formatters = ({
+        'test'  : lambda x: hasattr(x,'__name__'),
+        'format': lambda x: x.__name__
+        },)
+  for f in formatters:
+    data = [[f['format'](j) for j in row] if f['test'](row[0]) else row for row in data]
+
+  return _tabulate(data, headr)
+
+
+#########################################
 # Writing / Loading
-####################
+#########################################
 
 import glob, re
 def find_last_v(dirpath):
@@ -169,7 +234,7 @@ class Timer():
       self.tstart = time.time()
 
   def __exit__(self, type, value, traceback):
-      pass # Turn off timer messages
-      #if self.name:
-          #print('[%s]' % self.name, end='')
-      #print('Elapsed: %s' % (time.time() - self.tstart))
+      #pass # Turn off timer messages
+      if self.name:
+          print('[%s]' % self.name, end='')
+      print('Elapsed: %s' % (time.time() - self.tstart))

@@ -64,9 +64,6 @@ setup = OSSE(f,h,t,X0,**other)
 # Not optimized at all:
 #from mods.LorenzXY.defaults import setup
 #setup.t.dt = 0.005
-#cfg           = DAM(EnKF)
-#cfg.N         = 100
-#cfg.AMethod   = 'Sqrt'
-#cfg.rot       = True
+#cfg           = DAM(EnKF,'Sqrt',N=100,rot=True)
 #cfg.infl      = 1.01 # for p = nX
 #cfg.infl      = 1.15 # for p = m

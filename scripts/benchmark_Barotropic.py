@@ -38,7 +38,7 @@ xx,yy = simulate(setup)
 for k,method in enumerate(DAMs):
   seed(sd0)
   stats = assimilate(setup,method,xx,yy)
-  ss[k] = stats.average_after_burn()
+  ss[k] = stats.average_in_time()
   if getattr(method,'keep',False): kept.append(stats)
 print_averages(DAMs,ss)
 

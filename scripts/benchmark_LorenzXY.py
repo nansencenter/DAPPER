@@ -41,7 +41,7 @@ xx    = xx[::ratio_dt,:setup_trunc.f.m]
 for k,method in enumerate(DAMs):
   seed(sd0)
   stats = assimilate(setup_trunc,method,xx,yy)
-  ss[k] = stats.average_after_burn()
+  ss[k] = stats.average_in_time()
   if k == keep: kept = stats
 print_averages(DAMs,ss)
 

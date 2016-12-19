@@ -73,7 +73,8 @@ class CovMat:
       C    = data
       m    = data.shape[0]
       d,U  = eigh(data)
-      d    = np.maximum(d,0)
+      #d    = np.maximum(d,0)
+      d    = np.where(d<1e-10,0,d)
       rk   = (d>0).sum()
     elif kind is 'diag':
       data  = asarray(data)

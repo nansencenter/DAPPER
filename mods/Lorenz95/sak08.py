@@ -1,5 +1,7 @@
 # Reproduce results from
 # table1 of sakov et al "DEnKF" (2008)
+# This setup is also used in several other papers
+# (bocquet2012"combining",bocquet2015"expanding", raanes2016"EnRTS", ...)
 
 from common import *
 

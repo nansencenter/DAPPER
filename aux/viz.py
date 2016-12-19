@@ -114,7 +114,7 @@ class LivePlot:
 
     self.ax_e = plt.subplot(211)
     self.le,  = self.ax_e.plot(ptt,stats.rmse[pkk],'k',lw=2,alpha=1.0,label='Error')
-    self.lv,  = self.ax_e.plot(ptt,stats.rmv[pkk],'b',lw=2,alpha=0.6,label='Spread')
+    self.lv,  = self.ax_e.plot(ptt,stats.rmv [pkk],'b',lw=2,alpha=0.6,label='Spread')
     self.ax_e.set_ylabel('RMS')
     self.ax_e.legend()
     self.ax_e.set_xticklabels([])
