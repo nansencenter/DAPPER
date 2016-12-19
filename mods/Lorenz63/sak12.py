@@ -38,8 +38,8 @@ setup = OSSE(f,h,t,X0,**other)
 # Suggested tuning
 ####################
 
-#cfg = DAM(EnKF,'Sqrt',N=3 ,infl=1.30)
-#cfg = DAM(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
-#cfg = DAM(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
-#cfg = DAM(PartFilt, N=800, NER=0.1)                      # 0.275 (with N=4000)
-#cfg = DAM(ExtKF, infl = 1.05); setup.t.dkObs = 10 # reduce non-linearity
+#cfg = BAM(EnKF,'Sqrt',N=3 ,infl=1.30)
+#cfg = BAM(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
+#cfg = BAM(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
+#cfg = BAM(PartFilt, N=800, NER=0.1)                      # 0.275 (with N=4000)
+#cfg = BAM(ExtKF, infl = 1.05); setup.t.dkObs = 10 # reduce non-linearity

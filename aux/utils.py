@@ -25,11 +25,11 @@ try:
       return desc
     #try:
       #stackoverflow.com/q/15608987
-      #DAM_name  = inspect.stack()[2].frame.f_locals['cfg'].name
+      #BAM_name  = inspect.stack()[2].frame.f_locals['cfg'].name
     #except (KeyError, AttributeError):
     #stackoverflow.com/a/900404
-    DAM_name  = inspect.stack()[2].function
-    return DAM_name 
+    BAM_name  = inspect.stack()[2].function
+    return BAM_name 
 except ImportError:
   def pdesc(desc): 
     return desc or "Prog."
@@ -136,7 +136,7 @@ def tabulate(data,headr=(),formatters=()):
   formatter: define formats to apply before relaying to pandas.
         Default: attr.__name__ (when applicable).
   Example:
-  >>> print(tabulate(DAMs.distinct_attrs))
+  >>> print(tabulate(BAMs.distinct_attrs))
   """
 
   if hasattr(data,'keys'):

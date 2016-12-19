@@ -54,8 +54,8 @@ class OSSE:
 
 # TODO
 #from json import JSONEncoder
-#class DAM(JSONEncoder):
-class DAM():
+#class BAM(JSONEncoder):
+class BAM():
   """A fancy dict for the settings of DA Method."""
   def __init__(self,base_methd,*upd_a,**kwargs):
     self.base_methd = base_methd
@@ -69,7 +69,7 @@ class DAM():
     for key, value in kwargs.items(): setattr(self, key, value)
 
   def __repr__(self):
-    s = 'DAM(' + self.base_methd.__name__
+    s = 'BAM(' + self.base_methd.__name__
     for key,val in self.__dict__.items():
       if key == 'base_methd': # Included above
         pass 
@@ -99,24 +99,24 @@ def typeset(lst,tabulate):
   return ss
 
 
-class DAM_list(list):
-  """List containing DAM's"""
+class BAM_list(list):
+  """List containing BAM's"""
   def add(self,*kargs,**kwargs):
-    """Append a DAM to list"""
-    cfg = DAM(*kargs,**kwargs)
+    """Append a BAM to list"""
+    cfg = BAM(*kargs,**kwargs)
     self.append(cfg)
     self.set_distinct_names() # care about repeated overhead?
 
 
   def assign_names(self,ow=False):
-    """Assign distinct_names to the individual DAM's. If ow: do_overwrite."""
+    """Assign distinct_names to the individual BAM's. If ow: do_overwrite."""
     for name,cfg in zip(self.distinct_names,self):
       if ow or not getattr(cfg,'name',None):
         cfg.name = name
         cfg._name_auto_gen = True
 
   def set_distinct_names(self,tabulate=True):
-    """Generate a set of distinct names for DAM's."""
+    """Generate a set of distinct names for BAM's."""
     self.distinct_attrs = {}
     self.common_attrs   = {}
 
@@ -148,7 +148,7 @@ class DAM_list(list):
       vals  = typeset(vals,tabulate)
       names = [''.join(x) for x in zip(names,lbls,vals)]
 
-    # Assign to DAM_list
+    # Assign to BAM_list
     self.distinct_names = names
    
   def __repr__(self):

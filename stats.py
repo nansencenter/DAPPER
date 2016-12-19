@@ -185,12 +185,12 @@ def get_vc(val_conf):
   return v,c
   
 
-def print_averages(DAMs,Avrgs,attrkeys=(),statkeys=()):
+def print_averages(BAMs,Avrgs,attrkeys=(),statkeys=()):
   """
-  For i in range(len(DAMs)):
-    Print DAMs[i][attrkeys], Avrgs[i][statkeys]
+  For i in range(len(BAMs)):
+    Print BAMs[i][attrkeys], Avrgs[i][statkeys]
   """
-  assert isinstance(DAMs,DAM_list)
+  assert isinstance(BAMs,BAM_list)
 
   # Defaults averages
   if not statkeys:
@@ -198,18 +198,18 @@ def print_averages(DAMs,Avrgs,attrkeys=(),statkeys=()):
 
   # Defaults attributes
   if   attrkeys == 0: headr = ['base_methd']
-  elif attrkeys ==(): headr = list(DAMs.distinct_attrs)
+  elif attrkeys ==(): headr = list(BAMs.distinct_attrs)
   else:               headr = list(attrkeys)
-  mattr = [DAMs.distinct_attrs[key] for key in headr]
+  mattr = [BAMs.distinct_attrs[key] for key in headr]
 
   # Add separator
   headr += ['']
-  mattr += [['|']*len(DAMs)]
+  mattr += [['|']*len(BAMs)]
 
   # Format stats_with_conf. Use #'s to avoid auto-cropping by tabulate().
   for key in statkeys:
     col = ['{0:#>9} ±'.format(key)]
-    for i in range(len(DAMs)):
+    for i in range(len(BAMs)):
       val,conf = get_vc(Avrgs[i][key])
       col.append('{0:#>9.4f} {1: <6g} '.format(val,round2sigfig(conf)))
     crop= min([s.count('#') for s in col])
