@@ -75,14 +75,14 @@ setup = OSSE(f,h,tseq,X0,**other)
 #cfg.infl      = 1.02
 #cfg.upd_a   = 'PertObs'
 #cfg.rot       = False
-#cfg.base_methd = EnKF
+#cfg.base_m = EnKF
 
 # Expected rmse_a = 0.3
 #cfg.N         = 30
 #cfg.infl      = 3.4
 #cfg.upd_a   = 'PertObs'
 #cfg.rot       = False
-#cfg.base_methd = EnKF
+#cfg.base_m = EnKF
 
 # NB: Note how inflation is not necessary
 # for good rmse performance.
