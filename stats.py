@@ -190,7 +190,9 @@ def print_averages(BAMs,Avrgs,attrkeys=(),statkeys=()):
   For i in range(len(BAMs)):
     Print BAMs[i][attrkeys], Avrgs[i][statkeys]
   """
-  assert isinstance(BAMs,BAM_list)
+  if isinstance(BAMs,BAM):
+    BAMs  = BAM_list(BAMs)
+    Avrgs = [Avrgs]
 
   # Defaults averages
   if not statkeys:

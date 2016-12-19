@@ -101,11 +101,26 @@ def typeset(lst,tabulate):
 
 class BAM_list(list):
   """List containing BAM's"""
-  def add(self,*kargs,**kwargs):
+  def __init__(self,bam=None):
+    """Init. Empty or a BAM or a list of BAMs"""
+    if bam != None:
+      if isinstance(bam, BAM):
+        self._add_BAM(bam)
+      # TODO: Doesn't work ( doesn't change len(self) )
+      #if isinstance(bam, BAM_list):
+        #self.__dict__ = bam.__dict__
+      else: raise NotImplementedError
+    else:
+      pass
+
+  def _add_BAM(self,bam):
     """Append a BAM to list"""
-    cfg = BAM(*kargs,**kwargs)
-    self.append(cfg)
+    self.append(bam)
     self.set_distinct_names() # care about repeated overhead?
+  def add(self,*kargs,**kwargs):
+    """Declare and append a BAM"""
+    cfg = BAM(*kargs,**kwargs)
+    self._add_BAM(cfg)
 
 
   def assign_names(self,ow=False):
@@ -131,7 +146,7 @@ class BAM_list(list):
     # Partition attributes into distinct and common
     for key in keys:
       vals = [getattr(cfg,key,None) for cfg in self]
-      if all(v == vals[0] for v in vals):
+      if len(self)==1 or all(v == vals[0] for v in vals):
         self.common_attrs[key] = vals[0]
       else:
         self.distinct_attrs[key] = vals
@@ -147,15 +162,16 @@ class BAM_list(list):
       lbls  = [(' '*len(key) if tabulate else '') if v is None else key for v in vals]
       vals  = typeset(vals,tabulate)
       names = [''.join(x) for x in zip(names,lbls,vals)]
-
     # Assign to BAM_list
     self.distinct_names = names
    
   def __repr__(self):
-    headr = self.distinct_attrs.keys()
-    mattr = self.distinct_attrs.values()
-    s     = tabulate(mattr, headr)
-    s    += "\n---\nAll: " + str(self.common_attrs)
+    if len(self):
+      headr = self.distinct_attrs.keys()
+      mattr = self.distinct_attrs.values()
+      s     = tabulate(mattr, headr)
+      s    += "\n---\nAll: " + str(self.common_attrs)
+    else: s = "BAM_list()"
     return s
 
     
