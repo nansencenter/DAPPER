@@ -103,9 +103,9 @@ setup.locf = loc_wrapper
 # ##cfg.infl       = 1.40 # dkObs = 5
 # #cfg.upd_a    = 'Sqrt'
 # #cfg.rot        = False
-# #cfg.base_m  = EnKF
+# #cfg.root_mtd  = EnKF
 # #
-# cfg.base_m = EnKF_N
+# cfg.root_mtd = EnKF_N
 # cfg.N         = 20
 # cfg.infl      = 1.0
 # cfg.rot       = False

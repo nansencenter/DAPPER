@@ -57,8 +57,8 @@ class OSSE:
 #class BAM(JSONEncoder):
 class BAM():
   """A fancy dict for the settings of DA Method."""
-  def __init__(self,base_m,*upd_a,**kwargs):
-    self.base_m = base_m
+  def __init__(self,root_mtd,*upd_a,**kwargs):
+    self.root_mtd = root_mtd
     if len(upd_a) == 1:
       self.upd_a = upd_a[0]
     elif len(upd_a) > 1:
@@ -69,9 +69,9 @@ class BAM():
     for key, value in kwargs.items(): setattr(self, key, value)
 
   def __repr__(self):
-    s = 'BAM(' + self.base_m.__name__
+    s = 'BAM(' + self.root_mtd.__name__
     for key,val in self.__dict__.items():
-      if key == 'base_m': # Included above
+      if key == 'root_mtd': # Included above
         pass 
       elif key.startswith('_'):
         pass 
@@ -135,7 +135,7 @@ class BAM_list(list):
     self.distinct_attrs = {}
     self.common_attrs   = {}
 
-    # Init names by base_m
+    # Init names by root_mtd
     names = ['']*len(self)
     # Find all keys
     keys = {}
@@ -152,7 +152,7 @@ class BAM_list(list):
         self.distinct_attrs[key] = vals
     # Sort
     def sf(item):
-      ordering = ['base_m','N','upd_a','infl','rot']
+      ordering = ['root_mtd','N','upd_a','infl','rot']
       try:    return ordering.index(item[0])
       except: return 99
     self.distinct_attrs = OrderedDict(sorted(self.distinct_attrs.items(), key=sf))
@@ -177,9 +177,9 @@ class BAM_list(list):
     
 
 def assimilate(setup,cfg,xx,yy):
-  """Call cfg.base_m(), passing along all arguments."""
+  """Call cfg.root_mtd(), passing along all arguments."""
   args = locals()
-  return cfg.base_m(**args)
+  return cfg.root_mtd(**args)
 
 def simulate(setup):
   """Generate synthetic truth and observations"""
