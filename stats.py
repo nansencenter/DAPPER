@@ -197,7 +197,7 @@ def print_averages(DAMs,Avrgs,attrkeys=(),statkeys=()):
     statkeys = ['rmse_a','rmv_a','logp_m_a']
 
   # Defaults attributes
-  if   attrkeys == 0: headr = ['da_method']
+  if   attrkeys == 0: headr = ['base_methd']
   elif attrkeys ==(): headr = list(DAMs.distinct_attrs)
   else:               headr = list(attrkeys)
   mattr = [DAMs.distinct_attrs[key] for key in headr]

@@ -57,8 +57,8 @@ class OSSE:
 #class DAM(JSONEncoder):
 class DAM():
   """A fancy dict for the settings of DA Method."""
-  def __init__(self,da_method,*upd_a,**kwargs):
-    self.da_method = da_method
+  def __init__(self,base_methd,*upd_a,**kwargs):
+    self.base_methd = base_methd
     if len(upd_a) == 1:
       self.upd_a = upd_a[0]
     elif len(upd_a) > 1:
@@ -69,9 +69,9 @@ class DAM():
     for key, value in kwargs.items(): setattr(self, key, value)
 
   def __repr__(self):
-    s = 'DAM(' + self.da_method.__name__
+    s = 'DAM(' + self.base_methd.__name__
     for key,val in self.__dict__.items():
-      if key == 'da_method': # Included above
+      if key == 'base_methd': # Included above
         pass 
       elif key.startswith('_'):
         pass 
@@ -120,7 +120,7 @@ class DAM_list(list):
     self.distinct_attrs = {}
     self.common_attrs   = {}
 
-    # Init names by da_method
+    # Init names by base_methd
     names = ['']*len(self)
     # Find all keys
     keys = {}
@@ -137,7 +137,7 @@ class DAM_list(list):
         self.distinct_attrs[key] = vals
     # Sort
     def sf(item):
-      ordering = ['da_method','N','upd_a','infl','rot']
+      ordering = ['base_methd','N','upd_a','infl','rot']
       try:    return ordering.index(item[0])
       except: return 99
     self.distinct_attrs = OrderedDict(sorted(self.distinct_attrs.items(), key=sf))
@@ -161,9 +161,9 @@ class DAM_list(list):
     
 
 def assimilate(setup,cfg,xx,yy):
-  """Call cfg.da_method(), passing along all arguments."""
+  """Call cfg.base_methd(), passing along all arguments."""
   args = locals()
-  return cfg.da_method(**args)
+  return cfg.base_methd(**args)
 
 def simulate(setup):
   """Generate synthetic truth and observations"""
