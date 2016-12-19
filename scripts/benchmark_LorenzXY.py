@@ -26,7 +26,7 @@ BAMs.add(EnKF,infl=1.20)
 # Common settings
 ############################
 for method in BAMs:
-  if method.base_da is EnKF:
+  if method.top_da is EnKF:
     method.N       = 7
     method.upd_a = 'Sqrt'
     method.rot     = True
