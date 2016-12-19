@@ -11,7 +11,7 @@ setup.name = os.path.relpath(__file__,'mods/')
 #from mods.Lorenz95.m33 import setup
 #cfg.N         = 25
 #cfg.infl      = 1.08
-#cfg.AMethod   = 'Sqrt'
+#cfg.upd_a   = 'Sqrt'
 #cfg.rot       = False
 #cfg.tLag      = 2.0
 #cfg.da_method = EnKS

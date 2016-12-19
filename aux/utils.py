@@ -112,6 +112,8 @@ def print_blue(*kargs):
 
 try:
   from tabulate import tabulate as tabulate_orig
+  # TODO: How to avoid hardcode changing MIN_PADDING = 2
+  #       in tabulate source code?
   def _tabulate(data,headr):
     data  = list(map(list, zip(*data))) # Transpose
     inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds

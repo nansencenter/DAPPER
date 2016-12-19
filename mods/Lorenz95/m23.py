@@ -35,5 +35,5 @@ setup = OSSE(f,h,t,X0,**other)
 #cfg.N = 40
 #cfg.infl    = 1.10
 #cfg.rot     = False
-#cfg.AMethod = 'Sqrt'
+#cfg.upd_a = 'Sqrt'
 #method      = EnKF

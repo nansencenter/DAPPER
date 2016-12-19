@@ -73,14 +73,14 @@ setup = OSSE(f,h,tseq,X0,**other)
 # Not carefully tuned
 #cfg.N         = 100
 #cfg.infl      = 1.02
-#cfg.AMethod   = 'PertObs'
+#cfg.upd_a   = 'PertObs'
 #cfg.rot       = False
 #cfg.da_method = EnKF
 
 # Expected rmse_a = 0.3
 #cfg.N         = 30
 #cfg.infl      = 3.4
-#cfg.AMethod   = 'PertObs'
+#cfg.upd_a   = 'PertObs'
 #cfg.rot       = False
 #cfg.da_method = EnKF
 

@@ -101,7 +101,7 @@ setup.locf = loc_wrapper
 # ##cfg.infl       = 1.02 # dkObs = 1
 # ##cfg.infl       = 1.10 # dkObs = 3
 # ##cfg.infl       = 1.40 # dkObs = 5
-# #cfg.AMethod    = 'Sqrt'
+# #cfg.upd_a    = 'Sqrt'
 # #cfg.rot        = False
 # #cfg.da_method  = EnKF
 # #

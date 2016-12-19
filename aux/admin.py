@@ -57,12 +57,12 @@ class OSSE:
 #class DAM(JSONEncoder):
 class DAM():
   """A fancy dict for the settings of DA Method."""
-  def __init__(self,da_method,*AMethod,**kwargs):
+  def __init__(self,da_method,*upd_a,**kwargs):
     self.da_method = da_method
-    if len(AMethod) == 1:
-      self.AMethod = AMethod[0]
-    elif len(AMethod) > 1:
-      raise KeyError('Only AMethod is a non-keyword option')
+    if len(upd_a) == 1:
+      self.upd_a = upd_a[0]
+    elif len(upd_a) > 1:
+      raise KeyError('Only upd_a is a non-keyword option')
     # Careful with defaults -- explicit is better than implicit!
     self.liveplotting = False
     # Write the rest of parameters
@@ -137,7 +137,7 @@ class DAM_list(list):
         self.distinct_attrs[key] = vals
     # Sort
     def sf(item):
-      ordering = ['da_method','N','AMethod','infl','rot']
+      ordering = ['da_method','N','upd_a','infl','rot']
       try:    return ordering.index(item[0])
       except: return 99
     self.distinct_attrs = OrderedDict(sorted(self.distinct_attrs.items(), key=sf))

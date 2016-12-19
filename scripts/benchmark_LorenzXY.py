@@ -28,7 +28,7 @@ DAMs.add(EnKF,infl=1.20)
 for method in DAMs:
   if method.da_method is EnKF:
     method.N       = 7
-    method.AMethod = 'Sqrt'
+    method.upd_a = 'Sqrt'
     method.rot     = True
 
 ############################

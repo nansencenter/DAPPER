@@ -23,7 +23,7 @@ def EnKF(setup,cfg,xx,yy):
     if kObs is not None:
       hE = h.model(E,t)
       y  = yy[kObs]
-      E  = EnKF_analysis(E,hE,h.noise,y,cfg.AMethod,stats.at(kObs))
+      E  = EnKF_analysis(E,hE,h.noise,y,cfg.upd_a,stats.at(kObs))
       post_process(E,cfg)
 
     stats.assess(E,xx,k)
@@ -115,7 +115,7 @@ def EnKS(setup,cfg,xx,yy):
       y        = yy[kObs]
 
       ELag     = reshape_to(ELag)
-      ELag     = EnKF_analysis(ELag,hE,h.noise,y,cfg.AMethod,stats.at(kObs))
+      ELag     = EnKF_analysis(ELag,hE,h.noise,y,cfg.upd_a,stats.at(kObs))
       E[kkLag] = reshape_fr(ELag,f.m)
       post_process(E[k],cfg)
 
@@ -181,7 +181,7 @@ def EnRTS(setup,cfg,xx,yy):
     if kObs is not None:
       hE   = h.model(E[k],t)
       y    = yy[kObs]
-      E[k] = EnKF_analysis(E[k],hE,h.noise,y,cfg.AMethod,stats.at(kObs))
+      E[k] = EnKF_analysis(E[k],hE,h.noise,y,cfg.upd_a,stats.at(kObs))
       post_process(E[k],cfg)
 
   # Backward pass
@@ -201,7 +201,7 @@ def EnRTS(setup,cfg,xx,yy):
 
 
 
-def EnKF_analysis(E,hE,hnoise,y,AMethod,statFrame):
+def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
     R = hnoise.C
     N,m = E.shape
 
@@ -212,7 +212,7 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod,statFrame):
     Y  = hE-hx
     dy = y - hx
 
-    if 'PertObs' in AMethod:
+    if 'PertObs' in upd_a:
         # Uses perturbed observations (burgers'98)
         C  = Y.T @ Y + R.C*(N-1)
         D  = center(hnoise.sample(N))
@@ -221,17 +221,17 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod,statFrame):
         HK = Y.T @ YC
         dE = (KG @ ( y + D - hE ).T).T
         E  = E + dE
-    elif 'Sqrt' in AMethod:
+    elif 'Sqrt' in upd_a:
         # Uses a symmetric square root (ETKF)
         # to deterministically transform the ensemble.
         # The various versions below differ only numerically.
-        if 'explicit' in AMethod:
+        if 'explicit' in upd_a:
           # Implementation using inv (in ens space)
           Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
           T  = sqrtm(Pw) * sqrt(N-1)
           HK = R.inv @ Y.T @ Pw @ Y
           #KG = R.inv @ Y.T @ Pw @ A
-        elif 'sS' in AMethod:
+        elif 'sS' in upd_a:
           # Same as 'svd', but initially rescaled by sqrt(N-1)
           s     = dy@ R.m12.T / sqrt(N-1)
           S     = Y @ R.m12.T / sqrt(N-1)
@@ -240,7 +240,7 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod,statFrame):
           Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
           T     = ( V * d**(-0.5) )@V.T
           trHK  = sum(  d**(-1.0)*sd**2 )
-        elif 'eig' in AMethod:
+        elif 'eig' in upd_a:
           # Implementation using eig. val. decomp.
           d,V   = eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
           T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
@@ -256,13 +256,13 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod,statFrame):
           trHK  = sum(  d**(-1.0)*s**2 ) # see docs/trHK.jpg
         w = dy @ R.inv @ Y.T @ Pw
         E = mu + w@A + T@A
-    elif 'Serial' in AMethod:
+    elif 'Serial' in upd_a:
         # Observations assimilated one-at-a-time.
         # Even though it's derived as "serial ETKF",
         # it's not equivalent to 'Sqrt' for the full ensemble,
         # although it does yield the same mean/cov.
         # See DAPPER/Misc/batch_vs_serial.py for more details.
-        inds = serial_inds(AMethod, y, R, A)
+        inds = serial_inds(upd_a, y, R, A)
         s = dy@ R.m12.T / sqrt(N-1)
         S = Y @ R.m12.T / sqrt(N-1)
         T = eye(N)
@@ -276,7 +276,7 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod,statFrame):
         GS   = S.T @ T
         E    = mu + s@GS@A + T@A
         trHK = trace(R.m12.T@GS@Y)/sqrt(N-1) # Correct?
-    elif 'DEnKF' is AMethod:
+    elif 'DEnKF' is upd_a:
         # Uses "Deterministic EnKF" (sakov'08)
         C  = Y.T @ Y + R.C*(N-1)
         YC = mrdiv(Y, C)
@@ -295,11 +295,11 @@ def EnKF_analysis(E,hE,hnoise,y,AMethod,statFrame):
     return E
 
 
-def serial_inds(AMethod, y, cvR, A):
-  if 'mono' in AMethod:
+def serial_inds(upd_a, y, cvR, A):
+  if 'mono' in upd_a:
     # Not robust?
     inds = arange(len(y))
-  elif 'sorted' in AMethod:
+  elif 'sorted' in upd_a:
     dC = diag(cvR.C)
     if np.all(dC == dC[0]):
       # Sorty by P
@@ -335,7 +335,7 @@ def SL_EAKF(setup,cfg,xx,yy):
 
     if kObs is not None:
       y    = yy[kObs]
-      AMet = getattr(cfg,'AMethod','default')
+      AMet = getattr(cfg,'upd_a','default')
       inds = serial_inds(AMet, y, R, anom(E)[0])
           
       for j in inds:
@@ -411,8 +411,8 @@ def LETKF(setup,cfg,xx,yy):
         idy = yR[local]   * sqrt(coeffs)
 
         # Do analysis
-        AMethod = getattr(cfg,'AMethod','default')
-        if AMethod is 'approx':
+        upd_a = getattr(cfg,'upd_a','default')
+        if upd_a is 'approx':
           # Approximate alternative, derived by pretending that Y_loc = H @ A_i,
           # even though the local cropping of Y happens after application of H.
           # Anyways, with an explicit H, one can apply Woodbury
@@ -425,7 +425,7 @@ def LETKF(setup,cfg,xx,yy):
           AT  = sqrt(T2) * A[:,i]
           P   = T2 * B
           dmu = P*(AY/(n*B))@idy
-        elif AMethod is 'default':
+        elif upd_a is 'default':
           # Non-Approximate
           if len(local) < N:
             # SVD version
@@ -578,7 +578,7 @@ def iEnKF(setup,cfg,xx,yy):
       y  = yy[kObs]
       dy = y - hx
 
-      dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,cfg.AMethod)
+      dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,cfg.upd_a)
       w  -= dw
       if np.linalg.norm(dw) < N*1e-4:
         break
@@ -599,21 +599,21 @@ def iEnKF(setup,cfg,xx,yy):
   return stats
 
 
-def iEnKF_analysis(w,dy,Y,hnoise,AMethod):
+def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
   N = len(w)
   R = hnoise.C
 
   grad = (N-1)*w      - Y @ (R.inv @ dy)
   hess = (N-1)*eye(N) + Y @ R.inv @ Y.T
 
-  if AMethod is 'PertObs':
+  if upd_a is 'PertObs':
     raise NotImplementedError
-  elif 'Sqrt' in AMethod:
-    if 'naive' in AMethod:
+  elif 'Sqrt' in upd_a:
+    if 'naive' in upd_a:
       Pw   = funm_psd(hess, np.reciprocal)
       T    = funm_psd(hess, lambda x: x**(-0.5)) * sqrt(N-1)
       Tinv = funm_psd(hess, np.sqrt) / sqrt(N-1)
-    elif 'svd' in AMethod:
+    elif 'svd' in upd_a:
       # Implementation using svd of Y # TODO: sort out .T !!!
       raise NotImplementedError
     else:
@@ -622,7 +622,7 @@ def iEnKF_analysis(w,dy,Y,hnoise,AMethod):
       Pw   = V@diag(d**(-1.0))@V.T
       T    = V@diag(d**(-0.5))@V.T * sqrt(N-1)
       Tinv = V@diag(d**(+0.5))@V.T / sqrt(N-1)
-  elif AMethod is 'DEnKF':
+  elif upd_a is 'DEnKF':
     raise NotImplementedError
   else:
     raise NotImplementedError
@@ -867,7 +867,7 @@ def EnCheat(setup,cfg,xx,yy):
       # Regular EnKF analysis
       hE = h.model(E,t)
       y  = yy[kObs]
-      E  = EnKF_analysis(E,hE,h.noise,y,cfg.AMethod,stats.at(kObs))
+      E  = EnKF_analysis(E,hE,h.noise,y,cfg.upd_a,stats.at(kObs))
       post_process(E,cfg)
 
       # Cheating (only used for stats)

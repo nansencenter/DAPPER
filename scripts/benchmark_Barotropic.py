@@ -16,9 +16,9 @@ setup.t.T = 20
 
 DAMs = DAM_list()
 DAMs.add(Climatology)
-DAMs.add(EnKF,infl=1.15,keep=True,AMethod='Sqrt')
+DAMs.add(EnKF,infl=1.15,keep=True,upd_a='Sqrt')
 DAMs.add(LETKF  ,infl=1.10,locf=setup.locf(100,'x2y'),keep=True)
-#DAMs.add(LETKF,infl=1.10,locf=setup.locf(10,'x2y'),AMethod='approx',keep=True)
+#DAMs.add(LETKF,infl=1.10,locf=setup.locf(10,'x2y'),upd_a='approx',keep=True)
 #DAMs.add(SL_EAKF,infl=1.0,locf=setup.locf(10,'y2x'),keep=True)
 
 ############################
