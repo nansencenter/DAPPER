@@ -94,11 +94,11 @@ setup = OSSE(f,h,tseq,X0,**other)
 # Suggested tuning
 ####################
 ## Expected rmse_a = 0.3
-#cfg = BAM(EnKF,'PertObs',N=30,infl=3.2)
+#config = DAC(EnKF,'PertObs',N=30,infl=3.2)
 # infl=1 yields approx optimal rmse, even though then rmv << rmse.
 # Also try PertObs, N=60 with infl=1.00, and 1.80.
 # Why is rmse so INsensitive to inflation for PertObs?
 #
 # Providing **no truncation** is used in Sqrt-Core,
 # then EnKF_Sqrt with N>m and infl=1.0 yields rmse==rmv, and the rmse is optimal.
-#cfg = BAM(EnKF_Sqrt,N=60,infl=1.0)
+#config = DAC(EnKF_Sqrt,N=60,infl=1.0)

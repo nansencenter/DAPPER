@@ -14,40 +14,40 @@ from mods.Barotropic.defaults  import setup
 
 setup.t.T = 20
 
-BAMs = BAM_list()
-BAMs.add(Climatology)
-BAMs.add(EnKF,infl=1.15,keep=True,upd_a='Sqrt')
-BAMs.add(LETKF  ,infl=1.10,locf=setup.locf(100,'x2y'),keep=True)
-#BAMs.add(LETKF,infl=1.10,locf=setup.locf(10,'x2y'),upd_a='approx',keep=True)
-#BAMs.add(SL_EAKF,infl=1.0,locf=setup.locf(10,'y2x'),keep=True)
+cfgs = DAC_list()
+cfgs.add(Climatology)
+cfgs.add(EnKF,infl=1.15,keep=True,upd_a='Sqrt')
+cfgs.add(LETKF  ,infl=1.10,locf=setup.locf(100,'x2y'),keep=True)
+#cfgs.add(LETKF,infl=1.10,locf=setup.locf(10,'x2y'),upd_a='approx',keep=True)
+#cfgs.add(SL_EAKF,infl=1.0,locf=setup.locf(10,'y2x'),keep=True)
 
 ############################
 # Common settings
 ############################
-for method in BAMs:
+for method in cfgs:
   method.N       = 20
   method.rot     = False
 
 ############################
 # Assimilate
 ############################
-ss   = np.empty(len(BAMs),dict)
+ss   = np.empty(len(cfgs),dict)
 kept = []
 
 xx,yy = simulate(setup)
-for k,method in enumerate(BAMs):
+for k,method in enumerate(cfgs):
   seed(sd0)
   stats = assimilate(setup,method,xx,yy)
   ss[k] = stats.average_in_time()
   if getattr(method,'keep',False): kept.append(stats)
-print_averages(BAMs,ss)
+print_averages(cfgs,ss)
 
 
 ############################
 # Plot
 ############################
 k=0
-for method in BAMs:
+for method in cfgs:
   if getattr(method,'keep',False):
     stats = kept[k]
     k += 1

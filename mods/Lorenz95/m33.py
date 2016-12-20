@@ -9,12 +9,12 @@ setup.name = os.path.relpath(__file__,'mods/')
 
 # Reproduce raanes'2014 ("EnRTS and EnKS")
 #from mods.Lorenz95.m33 import setup
-#cfg.N         = 25
-#cfg.infl      = 1.08
-#cfg.upd_a   = 'Sqrt'
-#cfg.rot       = False
-#cfg.tLag      = 2.0
-#cfg.top_da = EnKS
+#config.N         = 25
+#config.infl      = 1.08
+#config.upd_a   = 'Sqrt'
+#config.rot       = False
+#config.tLag      = 2.0
+#config.da_driver = EnKS
 #
-#cfg.cntr      = 0.99
-#cfg.top_da = EnRTS
+#config.cntr      = 0.99
+#config.da_driver = EnRTS

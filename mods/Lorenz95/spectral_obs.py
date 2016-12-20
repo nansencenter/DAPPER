@@ -130,9 +130,9 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-#cfg.N = 40
-#cfg.infl    = 1.005
-#cfg.upd_a = 'Sqrt'
-#cfg.rot     = False
+#config.N = 40
+#config.infl    = 1.005
+#config.upd_a = 'Sqrt'
+#config.rot     = False
 #method      = EnKF
 

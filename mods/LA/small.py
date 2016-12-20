@@ -50,4 +50,4 @@ setup = OSSE(f,h,tseq,X0,**other)
 # Suggested tuning
 ####################
 
-#cfg.N = 100
+#config.N = 100

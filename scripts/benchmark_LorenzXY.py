@@ -14,19 +14,19 @@ from mods.LorenzXY.truncated import setup as setup_trunc
 ratio_dt = validate_int(setup_trunc.t.dt / setup_full.t.dt)
 #
 
-BAMs = BAM_list()
-BAMs.add(Climatology)
-BAMs.add(D3Var)
-BAMs.add(EnKF,infl=1.10,liveplotting=True)
-keep = len(BAMs)-1
-BAMs.add(EnKF,infl=1.15)
-BAMs.add(EnKF,infl=1.20)
+cfgs = DAC_list()
+cfgs.add(Climatology)
+cfgs.add(D3Var)
+cfgs.add(EnKF,infl=1.10,liveplotting=True)
+keep = len(cfgs)-1
+cfgs.add(EnKF,infl=1.15)
+cfgs.add(EnKF,infl=1.20)
 
 ############################
 # Common settings
 ############################
-for method in BAMs:
-  if method.top_da is EnKF:
+for method in cfgs:
+  if method.da_driver is EnKF:
     method.N       = 7
     method.upd_a = 'Sqrt'
     method.rot     = True
@@ -34,25 +34,25 @@ for method in BAMs:
 ############################
 # Assimilate
 ############################
-ss = np.empty(len(BAMs),dict)
+ss = np.empty(len(cfgs),dict)
 
 xx,yy = simulate(setup_full)
 xx    = xx[::ratio_dt,:setup_trunc.f.m]
-for k,method in enumerate(BAMs):
+for k,method in enumerate(cfgs):
   seed(sd0)
   stats = assimilate(setup_trunc,method,xx,yy)
   ss[k] = stats.average_in_time()
   if k == keep: kept = stats
-print_averages(BAMs,ss)
+print_averages(cfgs,ss)
 
 
 ############################
 # Plot
 ############################
-cfg    = BAMs[keep]
+config    = cfgs[keep]
 chrono = setup_trunc.t
 plot_time_series(xx,kept,chrono,dim=2)
-plot_ens_stats(xx,kept,chrono,cfg)
+plot_ens_stats(xx,kept,chrono,config)
 plot_3D_trajectory(xx[:,:3],kept,chrono)
 
 

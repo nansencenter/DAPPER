@@ -10,7 +10,7 @@ class LivePlot:
   """
   Live plotting functionality.
   """
-  def __init__(self,setup,cfg,E,stats,xx,yy):
+  def __init__(self,setup,config,E,stats,xx,yy):
     N,m = E.shape
     dt = setup.t.dt
     ii  = range(m)
@@ -20,7 +20,7 @@ class LivePlot:
     self.yy     = yy
     self.setup = setup
 
-    self.is_available = cfg.liveplotting
+    self.is_available = config.liveplotting
     if not self.is_available:
       return
     self.is_on     = False
@@ -389,8 +389,8 @@ def integer_hist(E,N,centrd=False,**kwargs):
 def not_available_text(ax,fs=20):
   ax.text(0.5,0.5,'[Not available]',fontsize=fs,va='center',ha='center')
 
-def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
-  if not hasattr(cfg,'N'):
+def plot_ens_stats(xx,stats,chrono,config,dims=None):
+  if not hasattr(config,'N'):
     return
   m = xx.shape[1]
   if not dims:
@@ -445,7 +445,7 @@ def plot_ens_stats(xx,stats,chrono,cfg,dims=None):
   plt.subplots_adjust(hspace=0.5)
   #ax_H.set_position([0.125,0.6, 0.78, 0.34])
   if has_been_computed:
-    integer_hist(stats.rh[chrono.kkBI].ravel(),cfg.N,alpha=0.5)
+    integer_hist(stats.rh[chrono.kkBI].ravel(),config.N,alpha=0.5)
   else:
     not_available_text(ax_H)
 

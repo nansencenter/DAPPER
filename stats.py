@@ -10,7 +10,7 @@ class Stats:
   # if m > MAX_m_LEVEL_n
   MAX_m_LEVEL_3 = 10**2
 
-  def __init__(self,setup,cfg):
+  def __init__(self,setup,config):
     self.setup = setup
     m    = setup.f.m
     K    = setup.t.K
@@ -33,8 +33,8 @@ class Stats:
     self.rh    = zeros((K+1,m))
 
     # Ensemble-only init
-    if hasattr(cfg,'N'):
-      N    = cfg.N
+    if hasattr(config,'N'):
+      N    = config.N
       m_Nm = np.minimum(m,N)
       self.svals = zeros((K+1,m_Nm))
 
@@ -185,13 +185,13 @@ def get_vc(val_conf):
   return v,c
   
 
-def print_averages(BAMs,Avrgs,attrkeys=(),statkeys=()):
+def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   """
-  For i in range(len(BAMs)):
-    Print BAMs[i][attrkeys], Avrgs[i][statkeys]
+  For i in range(len(cfgs)):
+    Print cfgs[i][attrkeys], Avrgs[i][statkeys]
   """
-  if isinstance(BAMs,BAM):
-    BAMs  = BAM_list(BAMs)
+  if isinstance(cfgs,DAC):
+    cfgs  = DAC_list(cfgs)
     Avrgs = [Avrgs]
 
   # Defaults averages
@@ -199,19 +199,19 @@ def print_averages(BAMs,Avrgs,attrkeys=(),statkeys=()):
     statkeys = ['rmse_a','rmv_a','logp_m_a']
 
   # Defaults attributes
-  if   attrkeys == 0: headr = ['top_da']
-  elif attrkeys ==(): headr = list(BAMs.distinct_attrs)
+  if   attrkeys == 0: headr = ['da_driver']
+  elif attrkeys ==(): headr = list(cfgs.distinct_attrs)
   else:               headr = list(attrkeys)
-  mattr = [BAMs.distinct_attrs[key] for key in headr]
+  mattr = [cfgs.distinct_attrs[key] for key in headr]
 
   # Add separator
   headr += ['|']
-  mattr += [['|']*len(BAMs)]
+  mattr += [['|']*len(cfgs)]
 
   # Format stats_with_conf. Use #'s to avoid auto-cropping by tabulate().
   for key in statkeys:
     col = ['{0:#>9} ±'.format(key)]
-    for i in range(len(BAMs)):
+    for i in range(len(cfgs)):
       val,conf = get_vc(Avrgs[i][key])
       col.append('{0:#>9.4f} {1: <6g} '.format(val,round2sigfig(conf)))
     crop= min([s.count('#') for s in col])

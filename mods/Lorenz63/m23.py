@@ -36,17 +36,17 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 
 ## rmse_a = 0.205
-#cfg.N       = 10
-#cfg.infl    = 1.00001
-#cfg.upd_a = 'Sqrt'
-#cfg.rot     = False
+#config.N       = 10
+#config.infl    = 1.00001
+#config.upd_a = 'Sqrt'
+#config.rot     = False
 #method      = EnKF
 
 # rmse_a = 0.185
-#cfg.N       = 10
-#cfg.infl    = 1.00001
-#cfg.upd_a = 'Sqrt'
-#cfg.rot     = False
-#cfg.iMax    = 10
+#config.N       = 10
+#config.infl    = 1.00001
+#config.upd_a = 'Sqrt'
+#config.rot     = False
+#config.iMax    = 10
 #method      = iEnKF
 

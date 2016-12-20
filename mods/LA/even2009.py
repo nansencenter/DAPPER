@@ -71,18 +71,18 @@ setup = OSSE(f,h,tseq,X0,**other)
 ####################
 
 # Not carefully tuned
-#cfg.N         = 100
-#cfg.infl      = 1.02
-#cfg.upd_a   = 'PertObs'
-#cfg.rot       = False
-#cfg.top_da = EnKF
+#config.N         = 100
+#config.infl      = 1.02
+#config.upd_a   = 'PertObs'
+#config.rot       = False
+#config.da_driver = EnKF
 
 # Expected rmse_a = 0.3
-#cfg.N         = 30
-#cfg.infl      = 3.4
-#cfg.upd_a   = 'PertObs'
-#cfg.rot       = False
-#cfg.top_da = EnKF
+#config.N         = 30
+#config.infl      = 3.4
+#config.upd_a   = 'PertObs'
+#config.rot       = False
+#config.da_driver = EnKF
 
 # NB: Note how inflation is not necessary
 # for good rmse performance.
