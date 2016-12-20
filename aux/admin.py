@@ -98,20 +98,19 @@ def typeset(lst,do_tab):
     ss    = [s.ljust(width) for s in ss]
   return ss
 
-
 class BAM_list(list):
   """List containing BAM's"""
-  def __init__(self,bam=None):
+  def __init__(self,*args):
     """Init. Empty or a BAM or a list of BAMs"""
-    if bam != None:
-      if isinstance(bam, BAM):
-        self._add_BAM(bam)
-      # TODO: Doesn't work ( doesn't change len(self) )
-      #if isinstance(bam, BAM_list):
-        #self.__dict__ = bam.__dict__
-      else: raise NotImplementedError
-    else:
-      pass
+    if args != ():
+      for bam in args:
+        if isinstance(bam, BAM):
+          self._add_BAM(bam)
+        elif isinstance(bam, BAM_list):
+          assert len(args)==1
+          for b in bam: self._add_BAM(b)
+        else: raise NotImplementedError
+    #else: pass
 
   def _add_BAM(self,bam):
     """Append a BAM to list"""
@@ -122,21 +121,11 @@ class BAM_list(list):
     cfg = BAM(*kargs,**kwargs)
     self._add_BAM(cfg)
 
-
-  def assign_names(self,ow=False):
-    """Assign distinct_names to the individual BAM's. If ow: do_overwrite."""
-    for name,cfg in zip(self.distinct_names,self):
-      if ow or not getattr(cfg,'name',None):
-        cfg.name = name
-        cfg._name_auto_gen = True
-
-  def set_distinct_names(self,do_tab=True):
+  def set_distinct_names(self):
     """Generate a set of distinct names for BAM's."""
     self.distinct_attrs = {}
     self.common_attrs   = {}
 
-    # Init names by top_da
-    names = ['']*len(self)
     # Find all keys
     keys = {}
     for cfg in self:
@@ -146,7 +135,7 @@ class BAM_list(list):
     # Partition attributes into distinct and common
     for key in keys:
       vals = [getattr(cfg,key,None) for cfg in self]
-      if len(self)==1 or all(v == vals[0] for v in vals):
+      if all(v == vals[0] for v in vals) and len(self)>1:
         self.common_attrs[key] = vals[0]
       else:
         self.distinct_attrs[key] = vals
@@ -156,11 +145,15 @@ class BAM_list(list):
       try:    return ordering.index(item[0])
       except: return 99
     self.distinct_attrs = OrderedDict(sorted(self.distinct_attrs.items(), key=sf))
-    # Process attributes into strings
-    for key,vals in self.distinct_attrs.items():
-      key   = ' ' + key[:2] + (key[-1] if len(key)>1 else '') + ':'
-      lbls  = [(' '*len(key) if do_tab else '') if v is None else key for v in vals]
-      vals  = typeset(vals,do_tab)
+    # Process attributes into strings 
+    names = ['']*len(self) # Init
+    for i,(key,vals) in enumerate(self.distinct_attrs.items()):
+      if i==0:
+        key = ''
+      else:
+        key = ' ' + key[:2] + (key[-1] if len(key)>1 else '') + ':'
+      lbls  = [' '*len(key) if v is None else key for v in vals]
+      vals  = typeset(vals,do_tab=True)
       names = [''.join(x) for x in zip(names,lbls,vals)]
     # Assign to BAM_list
     self.distinct_names = names
@@ -169,11 +162,19 @@ class BAM_list(list):
     if len(self):
       headr = self.distinct_attrs.keys()
       mattr = self.distinct_attrs.values()
-      s     = tabulate2(mattr, headr)
+      s     = tabulate(mattr, headr)
       s    += "\n---\nAll: " + str(self.common_attrs)
     else: s = "BAM_list()"
     return s
 
+  def assign_names(self,ow=False,do_tab=True):
+    """Assign distinct_names to the individual BAM's. If ow: do_overwrite."""
+    for name,cfg in zip(self.distinct_names,self):
+      if ow or not getattr(cfg,'name',None):
+        if not do_tab:
+          name = ' '.join(name.split())
+        cfg.name = name
+        cfg._name_auto_gen = True
     
 
 def assimilate(setup,cfg,xx,yy):

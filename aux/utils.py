@@ -111,12 +111,12 @@ def print_blue(*kargs):
 
 
 try:
-  import tabulate
-  tabulate.MIN_PADDING = 0
+  import tabulate as tabulate_orig
+  tabulate_orig.MIN_PADDING = 0
   def _tabulate(data,headr):
     data  = list(map(list, zip(*data))) # Transpose
     inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds
-    return tabulate.tabulate(data,headr,showindex=inds)
+    return tabulate_orig.tabulate(data,headr,showindex=inds)
 except ImportError:
   # pandas more common than tabulate, but slower to import
   import pandas
@@ -126,7 +126,7 @@ except ImportError:
     df = pandas.DataFrame.from_items([i for i in zip(headr,data)])
     return df.__repr__()
 
-def tabulate2(data,headr=(),formatters=()):
+def tabulate(data,headr=(),formatters=()):
   """Pre-processor for tabulate().
   data:  list-of-lists, whose 'rows' will be printed as columns.
          This coincides with the output of Dict.values().
@@ -135,7 +135,7 @@ def tabulate2(data,headr=(),formatters=()):
   formatter: define formats to apply before relaying to pandas.
         Default: attr.__name__ (when applicable).
   Example:
-  >>> print(tabulate2(BAMs.distinct_attrs))
+  >>> print(tabulate(BAMs.distinct_attrs))
   """
 
   if hasattr(data,'keys'):

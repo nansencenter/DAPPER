@@ -23,6 +23,7 @@ F_DA    = 8.0
 F_range = arange(8,9)
 
 setup.t.T = 4**2.5
+
 ############################
 # DA methods
 ############################
@@ -31,13 +32,12 @@ BAMs = BAM_list()
 BAMs.add(Climatology)
 BAMs.add(D3Var)
 BAMs.add(ExtKF,infl=1.05)
-BAMs.add(EnKF,'Sqrt',N=24,infl=1.25)
+BAMs.add(EnKF,'PertObs',N=24,infl=1.25)
 #BAMs.add(EnKF,'Sqrt',N=24,infl=1.25)
 #BAMs.add(EnKF_NT,N=24,infl=1.25)
 #BAMs.add(EnKF_N,N=24,rot=True)
 
-BAMs.set_distinct_names()
-BAMs.assign_names()
+#BAMs.assign_names()
 
 ############################
 # Assimilate

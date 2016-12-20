@@ -208,7 +208,7 @@ def print_averages(BAMs,Avrgs,attrkeys=(),statkeys=()):
   headr += ['|']
   mattr += [['|']*len(BAMs)]
 
-  # Format stats_with_conf. Use #'s to avoid auto-cropping by tabulate2().
+  # Format stats_with_conf. Use #'s to avoid auto-cropping by tabulate().
   for key in statkeys:
     col = ['{0:#>9} ±'.format(key)]
     for i in range(len(BAMs)):
@@ -218,7 +218,7 @@ def print_averages(BAMs,Avrgs,attrkeys=(),statkeys=()):
     col = [s[crop:]         for s in col]
     headr.append(col[0])
     mattr.append(col[1:])
-  table = tabulate2(mattr, headr).replace('#',' ')
+  table = tabulate(mattr, headr).replace('#',' ')
   print(table)
 
 
