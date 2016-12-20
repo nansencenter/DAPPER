@@ -90,10 +90,10 @@ def formatr(x):
   if x is None: return ''
   return str(x)
 
-def typeset(lst,tabulate):
-  """Convert lst elements to string. If tabulate: pad to min fixed width."""
+def typeset(lst,do_tab):
+  """Convert lst elements to string. If do_tab: pad to min fixed width."""
   ss = list(map(formatr, lst))
-  if tabulate:
+  if do_tab:
     width = max([len(s)     for s in ss])
     ss    = [s.ljust(width) for s in ss]
   return ss
@@ -130,7 +130,7 @@ class BAM_list(list):
         cfg.name = name
         cfg._name_auto_gen = True
 
-  def set_distinct_names(self,tabulate=True):
+  def set_distinct_names(self,do_tab=True):
     """Generate a set of distinct names for BAM's."""
     self.distinct_attrs = {}
     self.common_attrs   = {}
@@ -159,8 +159,8 @@ class BAM_list(list):
     # Process attributes into strings
     for key,vals in self.distinct_attrs.items():
       key   = ' ' + key[:2] + (key[-1] if len(key)>1 else '') + ':'
-      lbls  = [(' '*len(key) if tabulate else '') if v is None else key for v in vals]
-      vals  = typeset(vals,tabulate)
+      lbls  = [(' '*len(key) if do_tab else '') if v is None else key for v in vals]
+      vals  = typeset(vals,do_tab)
       names = [''.join(x) for x in zip(names,lbls,vals)]
     # Assign to BAM_list
     self.distinct_names = names
@@ -169,7 +169,7 @@ class BAM_list(list):
     if len(self):
       headr = self.distinct_attrs.keys()
       mattr = self.distinct_attrs.values()
-      s     = tabulate(mattr, headr)
+      s     = tabulate2(mattr, headr)
       s    += "\n---\nAll: " + str(self.common_attrs)
     else: s = "BAM_list()"
     return s

@@ -5,7 +5,7 @@ import os.path
 
 from time import sleep
 
-from tabulate import tabulate
+#from tabulate import tabulate
 
 from collections import OrderedDict
 

@@ -36,7 +36,7 @@ BAMs.add(EnKF,'Sqrt',N=24,infl=1.25)
 #BAMs.add(EnKF_NT,N=24,infl=1.25)
 #BAMs.add(EnKF_N,N=24,rot=True)
 
-BAMs.set_distinct_names(tabulate=False)
+BAMs.set_distinct_names()
 BAMs.assign_names()
 
 ############################
