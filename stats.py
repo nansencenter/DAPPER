@@ -45,25 +45,18 @@ class Stats:
     
 
   def assess(self,E,x,k):
-    assert(type(E) is np.ndarray)
-    if not np.all(np.isfinite(E)):
-      raise RuntimeError('The ensemble has inf\'s or nan\'s in it.')
+    """Ensemble assessment method."""
+    assert np.all(np.isfinite(E))
+
     N,m          = E.shape
     self.mu[k]   = mean(E,0)
     A            = E - self.mu[k]
     self.var[k]  = sum(A**2  ,0) / (N-1)
+    self.derivative(k,x)
+    self.MGLS(k)
     self.mad[k]  = sum(abs(A),0) / (N-1)
     self.skew[k] = mean( sum(A**3,0)/N / self.var[k]**(3/2) )
     self.kurt[k] = mean( sum(A**4,0)/N / self.var[k]**2 - 3 )
-    self.err[k]  = x[k] - self.mu[k]
-    self.rmv[k]  = sqrt(mean(self.var[k]))
-    self.rmse[k] = sqrt(mean(self.err[k]**2))
-
-    # Marginal log score
-    ldet           = sum(log(self.var[k]))
-    nmisf          = self.var[k]**(-1/2) * self.err[k]
-    logp_m         = sum(nmisf**2) + ldet
-    self.logp_m[k] = logp_m/m
 
     # (Experimental) log score
     if max(m,N) <= Stats.MAX_m_LEVEL_3:
@@ -103,27 +96,41 @@ class Stats:
 
     return self
 
-
   def assess_w(self,E,x,k,w):
+    """Particle filter (weighted/importance sample) assessment method."""
     assert(type(E) is np.ndarray)
     assert(abs(sum(w)-1) < 1e-5)
     N,m          = E.shape
     self.mu[k]   = w @ E
     A            = E - self.mu[k]
     self.var[k]  = w @ A**2
-    self.err[k]  = self.mu[k] - x[k]
-    self.rmv[k]  = sqrt(mean(self.var[k]))
-    self.rmse[k] = sqrt(mean(self.err[k]**2))
+    self.derivative(k,x)
+    self.MGLS(k)
     return self
 
   def assess_ext(self,mu,ss,x,k):
+    """Kalman filter (Gaussian) assessment method."""
     m            = len(mu)
     self.mu[k]   = mu
     self.var[k]  = ss**2
+    self.derivative(k,x)
+    self.MGLS(k)
+    return self
+
+  def derivative(self,k,x):
+    """Stats that are in common an dderive from the other stats."""
     self.err[k]  = self.mu[k] - x[k]
     self.rmv[k]  = sqrt(mean(self.var[k]))
     self.rmse[k] = sqrt(mean(self.err[k]**2))
-    return self
+    
+  def MGLS(self,k):
+    # Marginal Gaussian Log Score.
+    m              = len(self.err[k])
+    ldet           = sum(log(self.var[k]))
+    nmisf          = self.var[k]**(-1/2) * self.err[k]
+    logp_m         = sum(nmisf**2) + ldet
+    self.logp_m[k] = logp_m/m
+
 
   def at(self,kObs):
     """Provide a write-access method for the analysis frame of index kObs"""
