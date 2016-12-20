@@ -19,11 +19,6 @@ class Stats:
     self.mu    = zeros((K+1,m))
     self.var   = zeros((K+1,m))
     self.mad   = zeros((K+1,m))
-    self.umisf = zeros((K+1,m))
-    self.smisf = zeros(K+1)
-    self.ldet  = zeros(K+1)
-    self.logp  = zeros(K+1)
-    self.logp_r= zeros(K+1)
     self.logp_m= zeros(K+1)
     self.skew  = zeros(K+1)
     self.kurt  = zeros(K+1)
@@ -57,39 +52,6 @@ class Stats:
     self.mad[k]  = sum(abs(A),0) / (N-1)
     self.skew[k] = mean( sum(A**3,0)/N / self.var[k]**(3/2) )
     self.kurt[k] = mean( sum(A**4,0)/N / self.var[k]**2 - 3 )
-
-    # (Experimental) log score
-    if max(m,N) <= Stats.MAX_m_LEVEL_3:
-      # Prep
-      V,s,UT         = svd(A)
-      s             /= sqrt(N-1)
-      self.svals[k]  = s
-      s              = s[s>1e-4]
-      r              = np.minimum(len(s),5)
-      s              = s[:r]
-
-      # Full-joint Gaussian log score
-      #alpha           = 1/20*mean(s)
-      alpha           = 1e-2*sum(s)
-      # Truncating s by alpha doesnt work:
-      #s               = s[s>alpha]
-      #r               = len(s)
-      s2_full         = array(list(s**2) + [alpha]*(m-r))
-      ldet            = sum(log(s2_full)) / m
-      umisf           = UT @ self.err[k]
-      nmisf           = (s2_full)**(-1/2) * umisf
-      logp            = ldet + sum(nmisf**2)
-      self.umisf[k] = umisf
-      self.smisf[k]   = sum(nmisf**2)/m
-      self.ldet[k]    = ldet/m
-      self.logp[k]    = logp/m
-
-      # Reduced-Joint Gaussian log score
-      ldet            = sum(log(s**2))
-      nmisf           = s**(-1) * (UT[:r] @ self.err[k])
-      logp_r          = sum(nmisf**2) + ldet
-      self.logp_r[k]  = logp_r/r
-
     # Rank histogram
     Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
     self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
