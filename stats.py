@@ -142,21 +142,13 @@ def average_each_field(ss,axis=None):
     avrg[i] = dict()
     for key in keys:
       avrg[i][key] = val_with_conf(
-          val  = np.mean([s_ij[key][0] for s_ij in row]),
-          conf = np.mean([s_ij[key][1] for s_ij in row])/sqrt(N))
+          val  = np.mean([s_ij[key].val  for s_ij in row]),
+          conf = np.mean([s_ij[key].conf for s_ij in row])/sqrt(N))
       # NB: This is a rudimentary averaging of confidence intervals
-      # Should be checked against var avrg[i][key].val
+      # Should be checked against var of avrg[i][key].val
+      # TODO: Operator-overload val_with_conf for addition, mean, etc. ?
   return avrg
 
-
-def get_vc(val_conf):
-  if isinstance(val_conf, val_with_conf):
-    v,c = val_conf.val, val_conf.conf
-  else:
-    # TODO: Remove this format (i.e. [0], [1])
-    v,c = val_conf[0], val_conf[1]
-  return v,c
-  
 
 def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   """
@@ -185,7 +177,8 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   for key in statkeys:
     col = ['{0:#>9} ±'.format(key)]
     for i in range(len(cfgs)):
-      val,conf = get_vc(Avrgs[i][key])
+      val  = Avrgs[i][key].val
+      conf = Avrgs[i][key].conf
       col.append('{0:#>9.4f} {1: <6g} '.format(val,round2sigfig(conf)))
     crop= min([s.count('#') for s in col])
     col = [s[crop:]         for s in col]

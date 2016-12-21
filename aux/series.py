@@ -69,13 +69,14 @@ def estimate_corr_length(xx):
   return L
 
 
-# TODO: Use this
-class val_with_conf:
+class val_with_conf():
   def __init__(self,val,conf):
     self.val  = val
     self.conf = conf
   def __str__(self):
-    return str(self.val) + ' ±' + str(round2sigfig(self.conf))
+    conf = round2sigfig(self.conf)
+    nsig = floor(np.log10(conf))
+    return str(round2(self.val,10**(nsig))) + ' ±' + str(conf)
   def __repr__(self):
     return str(self.__dict__)
 
@@ -88,9 +89,9 @@ def series_mean_with_conf(xx):
   mu    = np.mean(xx)
   N     = len(xx)
   if np.allclose(xx,mu):
-    return mu, 0
+    return val_with_conf(mu, 0)
   if N < 5:
-    return mu, np.nan
+    return val_with_conf(mu, np.nan)
   acovf = auto_cov(xx,5)
   v     = acovf[0]
   v    /= N
@@ -108,6 +109,7 @@ def series_mean_with_conf(xx):
   confidence_correction = 1 + 2/N * c
   v*= confidence_correction
   #sig_fig_std = float('%.1g' % sqrt(decorr_var_of_mu))
-  return mu, round2sigfig(sqrt(v))
+  vc = val_with_conf(mu, round2sigfig(sqrt(v)))
+  return vc
 
 
