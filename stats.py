@@ -8,7 +8,7 @@ class Stats:
 
   # Skip heavy computations (of level n)
   # if m > MAX_m_LEVEL_n
-  MAX_m_LEVEL_3 = 10**2
+  MAX_m_LEVEL_3 = 10**3
 
   def __init__(self,setup,config):
     self.setup = setup
@@ -25,7 +25,7 @@ class Stats:
     self.err   = zeros((K+1,m))
     self.rmv   = zeros(K+1)
     self.rmse  = zeros(K+1)
-    self.rh    = zeros((K+1,m))
+    self.rh    = zeros((K+1,m)).astype(int)
 
     # Ensemble-only init
     if hasattr(config,'N'):
@@ -48,16 +48,15 @@ class Stats:
   def assess_w(self,E,x,k,w=None):
     """Particle filter (weighted/importance) assessment."""
     N,m          = E.shape
-    w            = 1/N*ones(N) if w==None else w
+    w            = 1/N*ones(N) if (w is None) else w
     assert np.all(np.isfinite(E))
     assert(abs(sum(w)-1) < 1e-5)
 
-    
     self.w[k]    = w
     self.mu[k]   = w @ E
     A            = E - self.mu[k]
     self.var[k]  = w @ A**2
-    var_unbiased = 1/(1 - w@w) # Scaling "sample variance" into "unbiased estimator"
+    var_unbiased = 1/(1 - w@w) # equal to N/(N-1) if w=ones(N)/N.
     self.var[k] *= var_unbiased
 
     if max(m,N) <= Stats.MAX_m_LEVEL_3:

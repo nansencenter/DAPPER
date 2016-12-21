@@ -457,8 +457,11 @@ def plot_ens_stats(xx,stats,chrono,config):
       # Weigh ranks by inverse of particle weight. Why? Coz, with correct
       # importance weights, the "expected value" histogram is then flat.
       # Potential improvement: interpolate weights between particles.
+      KBI= len(chrono.kkBI)
       w  = stats.w[chrono.kkBI]
-      w  = array([w[ranks[:,i]] for i in range(m)]).T.ravel()
+      w  = np.hstack([w, ones((KBI,1))/N]) # define weights rank N+1
+      w  = array([ w[arange(KBI),ranks[arange(KBI),i]] for i in range(m)])
+      w  = w.T.ravel()
       w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
       w  = 1/w
       integer_hist(ranks.ravel(),N,weights=w,alpha=0.5)
