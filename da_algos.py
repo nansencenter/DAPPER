@@ -688,7 +688,7 @@ def PartFilt(setup,config,xx,yy):
         w = 1/N*ones(N)
         stats.nResamples += 1
 
-    stats.assess_w(E,xx,k,w=w)
+    stats.assess(E,xx,k,w=w)
     lplot.update(E,k,kObs)
   return stats
 
@@ -777,7 +777,7 @@ def PF_EnKF(setup,config,xx,yy):
         stats.Neo = (getattr(stats,'Neo',0)*stats.nResamples + N_eff)/(stats.nResamples+1)
         stats.nResamples += 1
 
-    stats.assess_w(E,xx,k,w=w)
+    stats.assess(E,xx,k,w=w)
     lplot.update(E,k,kObs)
   return stats
 

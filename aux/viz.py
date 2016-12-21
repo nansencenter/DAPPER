@@ -441,7 +441,7 @@ def plot_ens_stats(xx,stats,chrono,config):
   #
   has_been_computed = not all(stats.rh[-1] == 0)
   ax_H = plt.subplot(211)
-  ax_H.set_title('(Average, marginal) rank histogram')
+  ax_H.set_title('(Average of marginal) rank histogram')
   ax_H.set_ylabel('Freq. of occurence\n (of truth in interval n)')
   ax_H.set_xlabel('ensemble member index (n)')
   plt.subplots_adjust(hspace=0.5)
@@ -454,7 +454,7 @@ def plot_ens_stats(xx,stats,chrono,config):
       integer_hist(ranks.ravel(),N,alpha=0.5)
     else:
       # Experimental: weighted rank histogram.
-      # Weigh ranks by inverse of particle weight. Why? Coz, with correct
+      # Weight ranks by inverse of particle weight. Why? Coz, with correct
       # importance weights, the "expected value" histogram is then flat.
       # Potential improvement: interpolate weights between particles.
       KBI= len(chrono.kkBI)

@@ -23,6 +23,7 @@ F_DA    = 8.0
 F_range = arange(8,9)
 
 setup.t.T = 4**2.5
+nRepeat   = 1
 
 ############################
 # DA methods
@@ -32,17 +33,18 @@ cfgs = DAC_list()
 cfgs.add(Climatology)
 cfgs.add(D3Var)
 cfgs.add(ExtKF,infl=1.05)
-cfgs.add(EnKF,'PertObs',N=24,infl=1.25)
+cfgs.add(EnKF_N,N=24,rot=True)
+
+# Not tuned
+#cfgs.add(EnKF,'PertObs',N=24,infl=1.25)
 #cfgs.add(EnKF,'Sqrt',N=24,infl=1.25)
 #cfgs.add(EnKF_NT,N=24,infl=1.25)
-#cfgs.add(EnKF_N,N=24,rot=True)
 
 #cfgs.assign_names()
 
 ############################
 # Assimilate
 ############################
-nRepeat = 1
 ss = np.empty((len(F_range),nRepeat,len(cfgs)),dict)
 
 for i,F_true in enumerate(F_range):

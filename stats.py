@@ -6,9 +6,9 @@ class Stats:
   Contains and computes peformance stats.
   """
 
-  # Skip heavy computations (of level n)
-  # if m > MAX_m_LEVEL_n
-  MAX_m_LEVEL_3 = 10**3
+  # Omit heavy computations
+  Comp_Threshold_3 = 41
+
 
   def __init__(self,setup,config):
     self.setup = setup
@@ -41,12 +41,8 @@ class Stats:
     # may also be initialized throug at().
     
 
-  def assess(self,E,x,k):
-    """Ensemble assessment method."""
-    return self.assess_w(E,x,k)
-
-  def assess_w(self,E,x,k,w=None):
-    """Particle filter (weighted/importance) assessment."""
+  def assess(self,E,x,k,w=None):
+    """Ensemble and Particle filter (weighted/importance) assessment."""
     N,m          = E.shape
     w            = 1/N*ones(N) if (w is None) else w
     assert np.all(np.isfinite(E))
@@ -59,25 +55,23 @@ class Stats:
     var_unbiased = 1/(1 - w@w) # equal to N/(N-1) if w=ones(N)/N.
     self.var[k] *= var_unbiased
 
-    if max(m,N) <= Stats.MAX_m_LEVEL_3:
+    if sqrt(m*N) <= Stats.Comp_Threshold_3:
       V,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
       s             *= sqrt(var_unbiased) # Makes s^2 unbiased
-      #s             /= sqrt(N-1)         # For A un-weighted
       self.svals[k]  = s
       umisf          = UT @ self.err[k]
 
       # For each state dim [i], compute rank of truth (x) among the ensemble (E)
       Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
       self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
-      # TODO: Mean/Median skewness
 
-    # Use naive, "empirical measure" formulae. Also see doc/unbiased_skew_kurt.jpg
-    self.mad[k]  = w @ abs(A)                            # Mean abs deviations
+    # For simplicity, use naive, "empirical measure" formulae.
+    # See doc/unbiased_skew_kurt.jpg.
     self.skew[k] = mean( w @ A**3 / self.var[k]**(3/2) ) # Skewness (normalized)
     self.kurt[k] = mean( w @ A**4 / self.var[k]**2 - 3 ) # "Excess" kurtosis
+    self.mad[k]  = w @ abs(A)                            # Mean abs deviations
 
-    self.derivatives(k,x)
-
+    self.derivative_stats(k,x)
     return self
 
   def assess_ext(self,mu,ss,x,k):
@@ -85,10 +79,10 @@ class Stats:
     m            = len(mu)
     self.mu[k]   = mu
     self.var[k]  = ss**2
-    self.derivatives(k,x)
+    self.derivative_stats(k,x)
     return self
 
-  def derivatives(self,k,x):
+  def derivative_stats(self,k,x):
     """Stats that apply for both _w and _ext paradigms and derive from the other stats."""
     self.err[k]  = self.mu[k] - x[k]
     self.rmv[k]  = sqrt(mean(self.var[k]))

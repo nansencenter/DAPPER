@@ -13,9 +13,9 @@ np.random.seed(5)
 
 from mods.Lorenz63.sak12 import setup
 #config = DAC(EnKF,'Sqrt',N=3 ,infl=1.30)
-#config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
+config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 #config = DAC(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
-config = DAC(PartFilt, N=800, NER=0.1)                      # 0.275 (with N=4000)
+#config = DAC(PartFilt, N=800, NER=0.1)                      # 0.275 (with N=4000)
 #config = DAC(ExtKF, infl = 1.05); setup.t.dkObs = 10 # reduce non-linearity
 
 
@@ -55,7 +55,7 @@ config = DAC(PartFilt, N=800, NER=0.1)                      # 0.275 (with N=4000
 # Common
 ############################
 config.liveplotting = False
-setup.t.T        = 4**5.0
+setup.t.T        = 4**3.0
 
 
 ############################
