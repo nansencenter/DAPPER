@@ -31,7 +31,9 @@ class Stats:
     if hasattr(config,'N'):
       N    = config.N
       m_Nm = np.minimum(m,N)
+      self.w     = zeros((K+1,N))
       self.svals = zeros((K+1,m_Nm))
+      self.umisf = zeros((K+1,m_Nm))
 
     # Analysis-only init
     self.trHK  = zeros(KObs+1)
@@ -41,49 +43,58 @@ class Stats:
 
   def assess(self,E,x,k):
     """Ensemble assessment method."""
+    return self.assess_w(E,x,k)
+
+  def assess_w(self,E,x,k,w=None):
+    """Particle filter (weighted/importance) assessment."""
+    N,m          = E.shape
+    w            = 1/N*ones(N) if w==None else w
     assert np.all(np.isfinite(E))
-
-    N,m          = E.shape
-    self.mu[k]   = mean(E,0)
-    A            = E - self.mu[k]
-    self.var[k]  = sum(A**2  ,0) / (N-1)
-    self.derivative(k,x)
-    self.MGLS(k)
-    self.mad[k]  = sum(abs(A),0) / (N-1)
-    self.skew[k] = mean( sum(A**3,0)/N / self.var[k]**(3/2) )
-    self.kurt[k] = mean( sum(A**4,0)/N / self.var[k]**2 - 3 )
-    # Rank histogram
-    Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
-    self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
-
-    return self
-
-  def assess_w(self,E,x,k,w):
-    """Particle filter (weighted/importance sample) assessment method."""
-    assert(type(E) is np.ndarray)
     assert(abs(sum(w)-1) < 1e-5)
-    N,m          = E.shape
+
+    
+    self.w[k]    = w
     self.mu[k]   = w @ E
     A            = E - self.mu[k]
     self.var[k]  = w @ A**2
-    self.derivative(k,x)
-    self.MGLS(k)
+    var_unbiased = 1/(1 - w@w) # Scaling "sample variance" into "unbiased estimator"
+    self.var[k] *= var_unbiased
+
+    if max(m,N) <= Stats.MAX_m_LEVEL_3:
+      V,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
+      s             *= sqrt(var_unbiased) # Makes s^2 unbiased
+      #s             /= sqrt(N-1)         # For A un-weighted
+      self.svals[k]  = s
+      umisf          = UT @ self.err[k]
+
+      # For each state dim [i], compute rank of truth (x) among the ensemble (E)
+      Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
+      self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
+      # TODO: Mean/Median skewness
+
+    # Use naive, "empirical measure" formulae. Also see doc/unbiased_skew_kurt.jpg
+    self.mad[k]  = w @ abs(A)                            # Mean abs deviations
+    self.skew[k] = mean( w @ A**3 / self.var[k]**(3/2) ) # Skewness (normalized)
+    self.kurt[k] = mean( w @ A**4 / self.var[k]**2 - 3 ) # "Excess" kurtosis
+
+    self.derivatives(k,x)
+
     return self
 
   def assess_ext(self,mu,ss,x,k):
-    """Kalman filter (Gaussian) assessment method."""
+    """Kalman filter (Gaussian) assessment."""
     m            = len(mu)
     self.mu[k]   = mu
     self.var[k]  = ss**2
-    self.derivative(k,x)
-    self.MGLS(k)
+    self.derivatives(k,x)
     return self
 
-  def derivative(self,k,x):
-    """Stats that are in common an dderive from the other stats."""
+  def derivatives(self,k,x):
+    """Stats that apply for both _w and _ext paradigms and derive from the other stats."""
     self.err[k]  = self.mu[k] - x[k]
     self.rmv[k]  = sqrt(mean(self.var[k]))
     self.rmse[k] = sqrt(mean(self.err[k]**2))
+    self.MGLS(k)
     
   def MGLS(self,k):
     # Marginal Gaussian Log Score.

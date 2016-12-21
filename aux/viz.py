@@ -378,26 +378,28 @@ def plot_time_series(xx,stats,chrono,
 
 
 
-def integer_hist(E,N,centrd=False,**kwargs):
+def integer_hist(E,N,centrd=False,weights=None,**kwargs):
   """Histogram for integers."""
   ax = plt.gca()
   rnge = (-0.5,N+0.5) if centrd else (0,N+1)
-  ax.hist(E,bins=N+1,range=rnge,normed=1,**kwargs)
+  ax.hist(E,bins=N+1,range=rnge,normed=1,weights=weights,**kwargs)
   ax.set_xlim(rnge)
 
 
 def not_available_text(ax,fs=20):
   ax.text(0.5,0.5,'[Not available]',fontsize=fs,va='center',ha='center')
 
-def plot_ens_stats(xx,stats,chrono,config,dims=None):
+def plot_ens_stats(xx,stats,chrono,config):
   if not hasattr(config,'N'):
     return
   m = xx.shape[1]
-  if not dims:
-    dims = arange(m)
-    d_text = '(averaged over all dims)'
-  else:
-    d_text = '(dims: ' + str(dims) + ')'
+
+  # TODO
+  #if not dims:
+    #dims = arange(m)
+    #d_text = '(averaged over all dims)'
+  #else:
+    #d_text = '(dims: ' + str(dims) + ')'
 
   fgE = plt.figure(15,figsize=(8,6)).clf()
   set_figpos('2321 mac')
@@ -439,13 +441,27 @@ def plot_ens_stats(xx,stats,chrono,config,dims=None):
   #
   has_been_computed = not all(stats.rh[-1] == 0)
   ax_H = plt.subplot(211)
-  ax_H.set_title('Rank histogram ' + d_text)
+  ax_H.set_title('(Average, marginal) rank histogram')
   ax_H.set_ylabel('Freq. of occurence\n (of truth in interval n)')
   ax_H.set_xlabel('ensemble member index (n)')
   plt.subplots_adjust(hspace=0.5)
   #ax_H.set_position([0.125,0.6, 0.78, 0.34])
   if has_been_computed:
-    integer_hist(stats.rh[chrono.kkBI].ravel(),config.N,alpha=0.5)
+    N     = config.N
+    ranks = stats.rh[chrono.kkBI]
+    if (stats.w[0]==1/N).all() and (stats.w[-1]==1/N).all():
+      # Ensemble rank histogram
+      integer_hist(ranks.ravel(),N,alpha=0.5)
+    else:
+      # Experimental: weighted rank histogram.
+      # Weigh ranks by inverse of particle weight. Why? Coz, with correct
+      # importance weights, the "expected value" histogram is then flat.
+      # Potential improvement: interpolate weights between particles.
+      w  = stats.w[chrono.kkBI]
+      w  = array([w[ranks[:,i]] for i in range(m)]).T.ravel()
+      w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
+      w  = 1/w
+      integer_hist(ranks.ravel(),N,weights=w,alpha=0.5)
   else:
     not_available_text(ax_H)
 
