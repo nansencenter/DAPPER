@@ -101,36 +101,69 @@ def equi_spaced_integers(m,p):
   return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
 
 
-def tsvd(A, threshold=0.99, avoid_pathological=False):
-  """Truncated svd"""
-  m,n    = A.shape
-  U,s,VT = sla.svd(A, full_matrices = False)
 
-  if not avoid_pathological:
-    r = sum(np.cumsum(s)/sum(s) <= threshold)
-  else:
-    raise NotImplementedError
-    # Consider the pathological case of A = Id(400).
-    # Then, if using tsvd(A,0.99), then
-    # A_reconstruced will be Id(400) except with zeros on last 4 diags.
-    # This should typically be avoided.
-    # TODO: How? In Datum, I used:
-    #r = sum(np.cumsum(s)/sum(s) < (1 - (1-threshold)/sqrt(m*n)))
-    #r+= 1 # Hence use strict inequality above
-  
-  U  = U[:,:r]
-  VT = VT[:r]
-  s  = s[:r]
+
+
+
+
+
+def tsvd(A, threshold=0.99, avoid_pathological=True):
+  """
+  Truncated svd.
+  Also automates flag: full_matrices.
+  threshold: if
+   - float, < 1.0 then "rank" = lowest number such that the
+                                "energy" retained >= threshold
+   - int,  >= 1   then "rank" = threshold
+  avoid_pathological: avoid truncating (e.g.) the identity matrix.
+                      NB: only applies for float threshold.
+  """
+
+  m,nn = A.shape
+  full_matrices = False
+
+  # Assume number of components requested
+  if isinstance(threshold,int):
+    assert threshold >= 1
+    r = threshold
+    assert r <= max(m,nn)
+    if r > min(m,nn):
+      full_matrices = True
+    avoid_pathological = False
+
+  # SVD
+  U,s,VT = sla.svd(A, full_matrices)
+
+  # Assume proportion requested
+  if isinstance(threshold,float):
+    assert threshold <= 1.0
+    if threshold < 1.0:
+      r = sum(np.cumsum(s)/sum(s) < threshold)
+      r += 1 # Hence the strict inequality above
+      if avoid_pathological:
+        # If not avoid_pathological, then the last 4 diag. entries of
+        # reconst( *tsvd(eye(400),0.99) )
+        # will be zero. This is probably not intended.
+        r += sum(np.isclose(s[r-1], s[r:]))
+    else:
+      r = len(s)
+
+  # Truncate
+  U  = U [:,:r]
+  VT = VT[  :r]
+  s  = s [  :r]
   return U,s,VT
   
-def recompose(U,s,VT):
+def reconst(U,s,VT):
   """
-  A == recompose(tsvd(A,1)).
+  Reconstruct matrix from svd. Supports truncated svd's.
+  A == reconst(*tsvd(A,1.0)).
   Also see: sla.diagsvd().
   """
   return (U * s) @ VT
 
 def tinv(A,*kargs,**kwargs):
+  """Inverse based on truncated svd."""
   U,s,VT = tsvd(A,*kargs,**kwargs)
   return (VT.T * s**(-1.0)) @ U.T
 

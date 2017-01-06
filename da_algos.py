@@ -17,8 +17,8 @@ def EnKF(setup,config,xx,yy):
 
   # Loop
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*f.noise.sample(N)
+    E = f.model(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
       hE = h.model(E,t)
@@ -45,8 +45,8 @@ def EnKF_NT(setup,config,xx,yy):
   lplot = LivePlot(setup,config,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*f.noise.sample(N)
+    E = f.model(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
       hE = h.model(E,t)
@@ -103,8 +103,8 @@ def EnKS(setup,config,xx,yy):
   stats = Stats(setup,config)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E[k]  = f.model(E[k-1],t-dt,dt)
-    E[k] += sqrt(dt)*f.noise.sample(N)
+    E[k] = f.model(E[k-1],t-dt,dt)
+    E[k] = add_noise(E[k], dt, f.noise, config)
 
     if kObs is not None:
       kLag     = find_1st_ind(chrono.tt >= t-config.tLag)
@@ -125,39 +125,6 @@ def EnKS(setup,config,xx,yy):
   return stats
 
 
-def EnKF_Sqrt(setup,config,xx,yy):
-  """EnKF with Sqrt analysis and Sqrt(core) forecast.
-  Temporary solution until making add_noise()."""
-
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
-
-  E     = X0.sample(N)
-  stats = Stats(setup,config).assess(E,xx,0)
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
-
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E    = f.model(E,t-dt,dt)
-
-    A,mu = anom(E)
-    Q12  = f.noise.C.ssqrt
-    Ainv = tinv(A.T,1.00) # 0.95
-    # NB: threshold = 1.0 is optimal for LA when using N>m and Sqrt_eig,
-    #     but catastrophic for N<m or Sqrt_svd.
-    Qa12 = Ainv@Q12
-    T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
-    E    = mu + T@A
-
-    if kObs is not None:
-      hE = h.model(E,t)
-      y  = yy[kObs]
-      E  = EnKF_analysis(E,hE,h.noise,y,'Sqrt eig',stats.at(kObs))
-      post_process(E,config)
-
-    stats.assess(E,xx,k)
-    lplot.update(E,k,kObs)
-  return stats
-
-
 def EnRTS(setup,config,xx,yy):
   """
   EnRTS (Rauch-Tung-Striebel) smoother.
@@ -175,7 +142,7 @@ def EnRTS(setup,config,xx,yy):
   # Forward pass
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E[k]  = f.model(E[k-1],t-dt,dt)
-    E[k] += sqrt(dt)*f.noise.sample(N)
+    E[k]  = add_noise(E[k], dt, f.noise, config)
     Ef[k] = E[k]
 
     if kObs is not None:
@@ -198,6 +165,76 @@ def EnRTS(setup,config,xx,yy):
   for k in progbar(range(chrono.K+1),desc='Assessing'):
     stats.assess(E[k],xx,k)
   return stats
+
+
+
+def add_noise(E, dt, noise, config):
+  """
+  Treatment of additive noise for ensembles.
+  """
+  method = getattr(config,'fnoise_treatm','stoch')
+
+  N,m  = E.shape
+  A,mu = anom(E)
+  Q12  = noise.C.ssqrt
+  Q    = noise.C.C
+
+  if method == 'Stoch':
+    E += sqrt(dt)*noise.sample(N)
+  elif method == 'none':
+    pass
+  elif method == 'Mult-1':
+    # TODO: Not working properly? only for LA?
+    varE   = np.var(E)
+    ratio  = (varE + sum(dt*diag(Q)))/varE;
+    E      = mu + sqrt(ratio)*A
+    E      = reconst(*tsvd(E,0.999)) # Explained in Datum
+  elif method == 'Mult-m':
+    # TODO: Not working properly? only for LA?
+    varE   = np.var(E,axis=0)
+    ratios = sqrt( (varE + dt*diag(Q))/varE );
+    E      = mu + A*ratios
+    E      = reconst(*tsvd(E,0.999)) # Explained in Datum
+  elif method == 'Sqrt-Core':
+    #if N>m: # "Left-multiplying" form
+      #P = A.T @ A /(N-1)
+      #L = funm_psd(eye(m) + dt*mrdiv(Q,P), np.sqrt)
+      #A = A @ L.T
+    #else:
+    Ainv = tinv(A.T,threshold=0.9999)
+    # NB: Numerical issues.
+    #     threshold = 1.0 is optimal (as ExtKF) for LA when
+    #     N>51 and upd_a = 'Sqrt eig',
+    #     but it may be catastrophic for N<51 or 'Sqrt svd'.
+    Qa12 = Ainv@Q12
+    T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
+    A    = T@A
+    E = mu + A
+  elif method == 'Sqrt-Dep':
+    Ainv = tinv(A.T,threshold=0.9999)
+    Qa12 = Ainv@Q12
+    T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
+    A    = T@A
+    E = mu + A
+
+    # Q_hat12: reuse svd for both inversion and projection.
+    Q_hat12      = A.T @ Qa12
+    U,s,VT       = tsvd(Q_hat12,0.99)
+    Q_hat12_inv  = (VT.T * s**(-1.0)) @ U.T
+    Q_hat12_proj = VT.T@VT
+    
+    rQ = Q12.shape[1]
+
+    # Calc D_til
+    Z      = Q12 - Q_hat12
+    D_hat  = A.T@(T-eye(N))
+    Xi_hat = Q_hat12_inv @ D_hat
+    Xi_til = (eye(rQ) - Q_hat12_proj)@randn((rQ,N))
+    D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
+    E     += D_til.T
+  else:
+    raise KeyError('No such method')
+  return E
 
 
 
@@ -231,6 +268,14 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
           T  = sqrtm(Pw) * sqrt(N-1)
           HK = R.inv @ Y.T @ Pw @ Y
           #KG = R.inv @ Y.T @ Pw @ A
+        elif 'svd' in upd_a:
+          # Implementation using svd of Y R^{-1/2}.
+          # Works well both for N<m and N>m.
+          V,s,_ = sla.svd( Y @ R.m12.T , full_matrices=False)
+          d     = s**2 + (N-1)
+          Pw    = ( V * d**(-1.0) ) @ V.T
+          T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
+          trHK  = sum(  d**(-1.0)*s**2 ) # see docs/trHK.jpg
         elif 'sS' in upd_a:
           # Same as 'svd', but initially rescaled by sqrt(N-1)
           s     = dy@ R.m12.T / sqrt(N-1)
@@ -240,20 +285,12 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
           Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
           T     = ( V * d**(-0.5) )@V.T
           trHK  = sum(  d**(-1.0)*sd**2 )
-        elif 'eig' in upd_a:
+        else: # 'eig' in upd_a:
           # Implementation using eig. val. decomp.
           d,V   = eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
           T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
           Pw    = V@diag(d**(-1.0))@V.T
           HK    = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
-        else:
-          # Implementation using svd of Y R^{-1/2}.
-          # Works well both for N<m and N>m.
-          V,s,_ = sla.svd( Y @ R.m12.T , full_matrices=False)
-          d     = s**2 + (N-1)
-          Pw    = ( V * d**(-1.0) ) @ V.T
-          T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
-          trHK  = sum(  d**(-1.0)*s**2 ) # see docs/trHK.jpg
         w = dy @ R.inv @ Y.T @ Pw
         E = mu + w@A + T@A
     elif 'Serial' in upd_a:
@@ -330,8 +367,8 @@ def SL_EAKF(setup,config,xx,yy):
   lplot = LivePlot(setup,config,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*f.noise.sample(N)
+    E = f.model(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
       y    = yy[kObs]
@@ -391,8 +428,8 @@ def LETKF(setup,config,xx,yy):
   lplot = LivePlot(setup,config,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*f.noise.sample(N)
+    E = f.model(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
       mu = mean(E,0)
@@ -483,8 +520,8 @@ def EnKF_N(setup,config,xx,yy):
   lplot = LivePlot(setup,config,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*f.noise.sample(N)
+    E = f.model(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
       hE = h.model(E,t)
@@ -568,8 +605,8 @@ def iEnKF(setup,config,xx,yy):
     for iteration in range(config.iMax):
       E = xb0 + w @ A0 + T @ A0
       for t,k,dt in chrono.DAW_range(kObs):
-        E  = f.model(E,t-dt,dt)
-        E += sqrt(dt)*f.noise.sample(N)
+        E = f.model(E,t-dt,dt)
+        E = add_noise(E, dt, f.noise, config)
   
       hE = h.model(E,t)
       hx = mean(hE,0)
@@ -591,8 +628,8 @@ def iEnKF(setup,config,xx,yy):
     post_process(E,config)
 
     for k,t,dt in chrono.DAW_range(kObs):
-      E  = f.model(E,t-dt,dt)
-      E += sqrt(dt)*f.noise.sample(N)
+      E = f.model(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, config)
       stats.assess(E,xx,k)
       #lplot.update(E,k,kObs)
       
@@ -653,8 +690,8 @@ def PartFilt(setup,config,xx,yy):
   lplot = LivePlot(setup,config,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*f.noise.sample(N)
+    E = f.model(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
       hE = h.model(E,t)
@@ -860,8 +897,8 @@ def EnCheat(setup,config,xx,yy):
   lplot = LivePlot(setup,config,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*f.noise.sample(N)
+    E = f.model(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
       # Regular EnKF analysis

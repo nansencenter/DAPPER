@@ -55,7 +55,7 @@ config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 # Common
 ############################
 config.liveplotting = False
-setup.t.T        = 4**3.0
+setup.t.T        = 4**5.5
 
 
 ############################

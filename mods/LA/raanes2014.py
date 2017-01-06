@@ -31,6 +31,10 @@ tseq = Chronology(dt=1,dkObs=5,T=500,BurnIn=60)
 def hmod(E,t):
   return E[:,obsInds]
 
+H = zeros((p,m))
+for i,j in enumerate(obsInds):
+  H[i,j] = 1.0
+
 def yplot(y):
   lh = plt.plot(obsInds,y,'g*',MarkerSize=8)[0]
   #plt.pause(0.8)
@@ -39,14 +43,10 @@ def yplot(y):
 h = {
     'm': p,
     'model': hmod,
+    'TLM'  : lambda x,t: H,
     'noise': GaussRV(C=0.01*eye(p)),
     'plot' : yplot,
     }
-
-
-wnum  = 25
-X0 = RV(sampling_func = lambda N: \
-    sqrt(5)/10 * sinusoidal_sample(m,wnum,N))
 
 
 
@@ -73,6 +73,8 @@ Q         = A.T @ A
 #Q = GaussRV(chol = sqrtm(Q))
 
 
+X0 = GaussRV(C = 5*Q)
+
 damp = 0.98;
 Fm = Fmat(m,-1,1,tseq.dt)
 def step(x,t,dt):
@@ -82,6 +84,7 @@ def step(x,t,dt):
 f = {
     'm': m,
     'model': lambda x,t,dt: damp * step(x,t,dt),
+    'TLM'  : lambda x,t,dt: damp * Fm,
     'noise': GaussRV(C = Q),
     }
 

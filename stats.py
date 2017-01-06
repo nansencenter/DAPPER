@@ -52,12 +52,12 @@ class Stats:
     self.mu[k]   = w @ E
     A            = E - self.mu[k]
     self.var[k]  = w @ A**2
-    var_unbiased = 1/(1 - w@w) # equal to N/(N-1) if w=ones(N)/N.
-    self.var[k] *= var_unbiased
+    unbias_var   = 1/(1 - w@w) # equal to N/(N-1) if w=ones(N)/N.
+    self.var[k] *= unbias_var
 
     if sqrt(m*N) <= Stats.Comp_Threshold_3:
       V,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
-      s             *= sqrt(var_unbiased) # Makes s^2 unbiased
+      s             *= sqrt(unbias_var) # Makes s^2 unbiased
       self.svals[k]  = s
       umisf          = UT @ self.err[k]
 
@@ -65,7 +65,7 @@ class Stats:
       Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
       self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
 
-    # For simplicity, use naive, "empirical measure" formulae.
+    # For simplicity, use naive (and biased) formulae, derived from "empirical measure".
     # See doc/unbiased_skew_kurt.jpg.
     self.skew[k] = mean( w @ A**3 / self.var[k]**(3/2) ) # Skewness (normalized)
     self.kurt[k] = mean( w @ A**4 / self.var[k]**2 - 3 ) # "Excess" kurtosis
