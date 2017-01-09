@@ -11,9 +11,9 @@ np.random.seed(5)
 # Setup
 ############################
 
-from mods.Lorenz63.sak12 import setup
+#from mods.Lorenz63.sak12 import setup
 #config = DAC(EnKF,'Sqrt',N=3 ,infl=1.30)
-config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
+#config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 #config = DAC(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
 #config = DAC(PartFilt, N=800, NER=0.1)                      # 0.275 (with N=4000)
 #config = DAC(ExtKF, infl = 1.05); setup.t.dkObs = 10 # reduce non-linearity
@@ -47,8 +47,9 @@ config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 # -- Get suggested tuning from setup files --
 #from mods.LorenzXY.defaults import setup
 # -- Get suggested tuning from setup files --
-#from mods.LA.raanes2014 import setup
+from mods.LA.raanes2015 import setup
 # -- Get suggested tuning from setup files --
+config = DAC(EnKF,'Sqrt',fnoise_treatm='Sqrt-Add-Z',N=30,infl=1.0)
 
 
 ############################

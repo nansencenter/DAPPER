@@ -171,6 +171,8 @@ def EnRTS(setup,config,xx,yy):
 def add_noise(E, dt, noise, config):
   """
   Treatment of additive noise for ensembles.
+  Settings for reproducing literature benchmarks may be found in
+  mods/LA/raanes2015.py
   """
   method = getattr(config,'fnoise_treatm','stoch')
 
@@ -184,15 +186,13 @@ def add_noise(E, dt, noise, config):
   elif method == 'none':
     pass
   elif method == 'Mult-1':
-    # TODO: Not working properly? only for LA?
-    varE   = np.var(E)
-    ratio  = (varE + sum(dt*diag(Q)))/varE;
+    varE   = sum(np.var(E,axis=0,ddof=1))
+    ratio  = (varE + sum(dt*diag(Q)))/varE
     E      = mu + sqrt(ratio)*A
     E      = reconst(*tsvd(E,0.999)) # Explained in Datum
   elif method == 'Mult-m':
-    # TODO: Not working properly? only for LA?
     varE   = np.var(E,axis=0)
-    ratios = sqrt( (varE + dt*diag(Q))/varE );
+    ratios = sqrt( (varE + dt*diag(Q))/varE )
     E      = mu + A*ratios
     E      = reconst(*tsvd(E,0.999)) # Explained in Datum
   elif method == 'Sqrt-Core':
@@ -210,6 +210,14 @@ def add_noise(E, dt, noise, config):
     T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
     A    = T@A
     E = mu + A
+  elif method == 'Sqrt-Add-Z':
+    Ainv = tinv(A.T,threshold=0.9999)
+    Qa12 = Ainv@Q12
+    T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
+    A    = T@A
+    E    = mu + A
+    Z  = Q12 - A.T@Qa12
+    E += sqrt(dt)*(Z@randn((Z.shape[1],N))).T
   elif method == 'Sqrt-Dep':
     Ainv = tinv(A.T,threshold=0.9999)
     Qa12 = Ainv@Q12
@@ -506,11 +514,11 @@ def EnKF_N(setup,config,xx,yy):
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
 
   # EnKF-N constants
-  eN = (N+1)/N;              # Effect of unknown mean
+  eN = (N+1)/N               # Effect of unknown mean
   g  = 1                     # Nullity of anomalies matrix # TODO: For N>m ?
   LB = sqrt((N-1)/(N+g)*eN)  # Lower bound for lambda^1    # TODO: Updated with g. Correct?
   clog = (N+g)/(N-1)         # Coeff in front of log term
-  mode = eN/clog;            # Mode of prior for lambda
+  mode = eN/clog             # Mode of prior for lambda
 
   Rm12 = h.noise.C.m12
   Ri   = h.noise.C.inv
@@ -1013,7 +1021,7 @@ def ExtKF(setup,config,xx,yy):
     #   HessianF_k = hessianest(@(x) submat(F(t,dt,x), k), X(:,iT-1))
     #   HessCov(k) = sum(sum( HessianF_k .* P(:,:,iT-1) ))
     # end
-    # X(:,iT) = X(:,iT) + 1/2*HessCov;
+    # X(:,iT) = X(:,iT) + 1/2*HessCov 
 
     mu = f.model(mu,t-dt,dt)
     P  = F@P@F.T + dt*Q

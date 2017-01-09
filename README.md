@@ -59,11 +59,11 @@ EnKF-N                             | bocquet'2012 ("combining"), bocquet'2015 ("
 EnKS, EnRTS                        | raanes'2016 ("EnRTS and EnKS")
 Iterative versions of the above    | sakov'2012 ("an iterative"), TODO: bocquet'2014
 LETKF, local & serial EAKF         |
+Sqrt. model noise methods          | raanes'2015 ("sqrt model noise")
 Extended KF                        | raanes'2016 thesis
 Particle filter (bootstrap)        | "
 3D-Var                             | "
 Climatology                        | "
-TODO: Sqrt model noise methods     | raanes'2015 ("sqrt model noise")
 
 
 Models

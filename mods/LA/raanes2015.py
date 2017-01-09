@@ -1,7 +1,7 @@
 # Reproduce results from fig2
-# of raanes'2014 "extending sqrt method to model noise"
+# of raanes'2015 "extending sqrt method to model noise"
 
-# Lessons:
+# Warnings:
 # - Multidim. multiplicative noise incorporation
 #   has a tendency to go awry.
 # - The main reason is that it changes the ensemble subspace,
@@ -9,11 +9,6 @@
 # - There are also some very strong, regular correlation
 #   patters that arise when dt=1 (dt = c*dx).
 # - It also happens if X0pat does not use centering.
-
-# TODO: Why is rmse performance so insensitive to inflation?
-# For N=30, infl=3.4 yields correct rmsV (compared to rmse),
-# but the rmse performance is actually slightly worse than
-# with infl=1.0, which yields hugely underestimated rmse.
 
 from common import *
 
@@ -93,15 +88,30 @@ other = {'name': os.path.relpath(__file__,'mods/')}
 setup = OSSE(f,h,tseq,X0,**other)
 
 
+
 ####################
 # Suggested tuning
 ####################
+
 ## Expected rmse_a = 0.3
 #config = DAC(EnKF,'PertObs',N=30,infl=3.2)
-# infl=1 yields approx optimal rmse, even though then rmv << rmse.
-# Also try PertObs, N=60 with infl=1.00, and 1.80.
+# TODO:
+# But infl=1 yields approx optimal rmse, even though then rmv << rmse.
 # Why is rmse so INsensitive to inflation for PertObs?
-#
-# Providing **no truncation** is used in Sqrt-Core,
+# Similar case, but with N=60: infl=1.00, and 1.80.
+
+
+# Providing ** no truncation ** is used in Sqrt-Core,
 # then EnKF_Sqrt with N>m and infl=1.0 yields rmse==rmv, and the rmse is optimal.
 #config = DAC(EnKF_Sqrt,N=60,infl=1.0)
+
+
+# Reproduce raanes'2015 "extending sqrt method to model noise":
+# config = DAC(EnKF,'Sqrt',fnoise_treatm='XXX',N=30,infl=1.0),
+# where XXX is one of:
+# - Stoch
+# - Mult-1
+# - Mult-m
+# - Sqrt-Core
+# - Sqrt-Add-Z
+# - Sqrt-Dep

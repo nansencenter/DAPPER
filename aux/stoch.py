@@ -45,3 +45,11 @@ def rand(shape=(1,)): return np.random.uniform(0,1,shape)
 #def rand(*kargs):
   #raise Warning('Using barebones LCG random numbers')
   #return myrand(*kargs)
+# NB: To get equality with Datum, consider removing randomness altogether.
+#     OR, to use LCG(), uncomment the above re-labellings,
+#     and in Datum rename utils/myrand{,n}.m to utils/rand{,n}.m.
+#     Also remember to reset seeds, and that in Datum:
+#     - propagation (of truth) is fully completed before observation.
+#     - observations are done from back to front.
+#     - it seems that (somewhere?) a single draw is burnt
+#       after x0 and before propagation (a little unsure...).
