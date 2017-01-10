@@ -105,9 +105,30 @@ def equi_spaced_integers(m,p):
 
 
 
+def pad0(ss,N):
+  out = zeros(N)
+  out[:len(ss)] = ss
+  return out
 
 
-def tsvd(A, threshold=0.99, avoid_pathological=True):
+def svd0(A):
+  """
+  Compute the 
+   - full    svd if nrows > ncols
+   - reduced svd otherwise.
+  This is the reverse of Matlab's svd(A,0),
+  in keeping with DAPPER convention of transposing ensemble matrices.
+  It also contrasts with scipy.linalg's svd and Matlab's svd(A,'econ'),
+  both of which always compute the reduced svd.
+  """
+  m,n = A.shape
+  if m>n:
+    return sla.svd(A, full_matrices=True)
+  else:
+    return sla.svd(A, full_matrices=False)
+
+
+def tsvd(A, threshold=0.99999, avoid_pathological=True):
   """
   Truncated svd.
   Also automates flag: full_matrices.

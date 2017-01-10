@@ -46,6 +46,7 @@ class Stats:
     N,m          = E.shape
     w            = 1/N*ones(N) if (w is None) else w
     assert np.all(np.isfinite(E))
+    assert np.all(np.isreal(E))
     assert(abs(sum(w)-1) < 1e-5)
 
     self.w[k]    = w

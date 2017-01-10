@@ -11,6 +11,11 @@ np.random.seed(5)
 # Setup
 ############################
 
+
+#from mods.Lorenz63.sak12 import setup
+#setup.f.noise = GaussRV(C = 0.1*eye(3))
+#config = DAC(EnKF,'Sqrt',N=4,fnoise_treatm='Sqrt-Core',infl=1.30)
+
 #from mods.Lorenz63.sak12 import setup
 #config = DAC(EnKF,'Sqrt',N=3 ,infl=1.30)
 #config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
@@ -48,15 +53,14 @@ np.random.seed(5)
 #from mods.LorenzXY.defaults import setup
 # -- Get suggested tuning from setup files --
 from mods.LA.raanes2015 import setup
-# -- Get suggested tuning from setup files --
-config = DAC(EnKF,'Sqrt',fnoise_treatm='Sqrt-Add-Z',N=30,infl=1.0)
+config = DAC(EnKF,'Sqrt svd',fnoise_treatm='Sqrt-Core',N=55,infl=1.0)
 
 
 ############################
 # Common
 ############################
 config.liveplotting = False
-setup.t.T        = 4**5.5
+setup.t.T        = 4**4.5
 
 
 ############################

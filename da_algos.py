@@ -24,6 +24,7 @@ def EnKF(setup,config,xx,yy):
       hE = h.model(E,t)
       y  = yy[kObs]
       E  = EnKF_analysis(E,hE,h.noise,y,config.upd_a,stats.at(kObs))
+
       post_process(E,config)
 
     stats.assess(E,xx,k)
@@ -174,14 +175,32 @@ def add_noise(E, dt, noise, config):
   Settings for reproducing literature benchmarks may be found in
   mods/LA/raanes2015.py
   """
-  method = getattr(config,'fnoise_treatm','stoch')
+  method = getattr(config,'fnoise_treatm','Stoch')
 
   N,m  = E.shape
   A,mu = anom(E)
   Q12  = noise.C.ssqrt
   Q    = noise.C.C
 
+  def sqrt_core():
+    T    = np.nan
+    Qa12 = np.nan
+    A2   = A.copy() # Instead of using: nonlocal A, which changes A
+    # in outside scope as well. NB: This is a bug in Datum!
+    if N<=m:
+      Ainv = tinv(A2.T)
+      Qa12 = Ainv@Q12
+      T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
+      A2   = T@A2
+    else: # "Left-multiplying" form
+      P = A2.T @ A2 /(N-1)
+      L = funm_psd(eye(m) + dt*mrdiv(Q,P), np.sqrt)
+      A2= A2 @ L.T
+    E = mu + A2
+    return E, T, Qa12
+
   if method == 'Stoch':
+    # In-place addition works (also) for empty [] noise sample.
     E += sqrt(dt)*noise.sample(N)
   elif method == 'none':
     pass
@@ -196,54 +215,33 @@ def add_noise(E, dt, noise, config):
     E      = mu + A*ratios
     E      = reconst(*tsvd(E,0.999)) # Explained in Datum
   elif method == 'Sqrt-Core':
-    #if N>m: # "Left-multiplying" form
-      #P = A.T @ A /(N-1)
-      #L = funm_psd(eye(m) + dt*mrdiv(Q,P), np.sqrt)
-      #A = A @ L.T
-    #else:
-    Ainv = tinv(A.T,threshold=0.9999)
-    # NB: Numerical issues.
-    #     threshold = 1.0 is optimal (as ExtKF) for LA when
-    #     N>51 and upd_a = 'Sqrt eig',
-    #     but it may be catastrophic for N<51 or 'Sqrt svd'.
-    Qa12 = Ainv@Q12
-    T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
-    A    = T@A
-    E = mu + A
+    E = sqrt_core()[0]
   elif method == 'Sqrt-Add-Z':
-    Ainv = tinv(A.T,threshold=0.9999)
-    Qa12 = Ainv@Q12
-    T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
-    A    = T@A
-    E    = mu + A
-    Z  = Q12 - A.T@Qa12
-    E += sqrt(dt)*(Z@randn((Z.shape[1],N))).T
+    E, _, Qa12 = sqrt_core()
+    if N<=m:
+      Z  = Q12 - A.T@Qa12
+      E += sqrt(dt)*(Z@randn((Z.shape[1],N))).T
   elif method == 'Sqrt-Dep':
-    Ainv = tinv(A.T,threshold=0.9999)
-    Qa12 = Ainv@Q12
-    T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
-    A    = T@A
-    E = mu + A
-
-    # Q_hat12: reuse svd for both inversion and projection.
-    Q_hat12      = A.T @ Qa12
-    U,s,VT       = tsvd(Q_hat12,0.99)
-    Q_hat12_inv  = (VT.T * s**(-1.0)) @ U.T
-    Q_hat12_proj = VT.T@VT
-    
-    rQ = Q12.shape[1]
-
-    # Calc D_til
-    Z      = Q12 - Q_hat12
-    D_hat  = A.T@(T-eye(N))
-    Xi_hat = Q_hat12_inv @ D_hat
-    Xi_til = (eye(rQ) - Q_hat12_proj)@randn((rQ,N))
-    D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
-    E     += D_til.T
+    E, T, Qa12 = sqrt_core()
+    if N<=m:
+      # Q_hat12: reuse svd for both inversion and projection.
+      Q_hat12      = A.T @ Qa12
+      U,s,VT       = tsvd(Q_hat12,0.99)
+      Q_hat12_inv  = (VT.T * s**(-1.0)) @ U.T
+      Q_hat12_proj = VT.T@VT
+      # TODO: Make sqrt-core use chol instead of ssqrt factor of Q.
+      # Then tsvd(Q_hat12) will be faster for LA where rQ=51.
+      rQ = Q12.shape[1]
+      # Calc D_til
+      Z      = Q12 - Q_hat12
+      D_hat  = A.T@(T-eye(N))
+      Xi_hat = Q_hat12_inv @ D_hat
+      Xi_til = (eye(rQ) - Q_hat12_proj)@randn((rQ,N))
+      D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
+      E     += D_til.T
   else:
     raise KeyError('No such method')
   return E
-
 
 
 def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
@@ -271,6 +269,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
         # to deterministically transform the ensemble.
         # The various versions below differ only numerically.
         if 'explicit' in upd_a:
+          # Not recommended.
           # Implementation using inv (in ens space)
           Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
           T  = sqrtm(Pw) * sqrt(N-1)
@@ -278,21 +277,21 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
           #KG = R.inv @ Y.T @ Pw @ A
         elif 'svd' in upd_a:
           # Implementation using svd of Y R^{-1/2}.
-          # Works well both for N<m and N>m.
-          V,s,_ = sla.svd( Y @ R.m12.T , full_matrices=False)
-          d     = s**2 + (N-1)
+          V,s,_ = svd0(Y @ R.m12.T)
+          d     = pad0(s**2,N) + (N-1)
           Pw    = ( V * d**(-1.0) ) @ V.T
           T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
-          trHK  = sum(  d**(-1.0)*s**2 ) # see docs/trHK.jpg
+          trHK  = sum( (s**2+(N-1))**(-1.0) * s**2 ) # see docs/trHK.jpg
         elif 'sS' in upd_a:
-          # Same as 'svd', but initially rescaled by sqrt(N-1)
-          s     = dy@ R.m12.T / sqrt(N-1)
+          # Same as 'svd', but with slightly different notation
+          # (sometimes used by Sakov) using the normalization sqrt(N-1).
+          #z    = dy@ R.m12.T / sqrt(N-1)
           S     = Y @ R.m12.T / sqrt(N-1)
-          V,sd,_= sla.svd(S, full_matrices=False)
-          d     = sd**2 + 1
+          V,s,_ = svd0(S)
+          d     = pad0(s**2,N) + 1
           Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
           T     = ( V * d**(-0.5) )@V.T
-          trHK  = sum(  d**(-1.0)*sd**2 )
+          trHK  = sum(  (s**2 + 1)**(-1.0)*s**2 ) # see docs/trHK.jpg
         else: # 'eig' in upd_a:
           # Implementation using eig. val. decomp.
           d,V   = eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
@@ -304,11 +303,11 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
     elif 'Serial' in upd_a:
         # Observations assimilated one-at-a-time.
         # Even though it's derived as "serial ETKF",
-        # it's not equivalent to 'Sqrt' for the full ensemble,
+        # it's not equivalent to 'Sqrt' for the actual ensemble,
         # although it does yield the same mean/cov.
         # See DAPPER/Misc/batch_vs_serial.py for more details.
         inds = serial_inds(upd_a, y, R, A)
-        s = dy@ R.m12.T / sqrt(N-1)
+        z = dy@ R.m12.T / sqrt(N-1)
         S = Y @ R.m12.T / sqrt(N-1)
         T = eye(N)
         for j in inds:
@@ -319,7 +318,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
           T -= Tj @ T
           S -= Tj @ S
         GS   = S.T @ T
-        E    = mu + s@GS@A + T@A
+        E    = mu + z@GS@A + T@A
         trHK = trace(R.m12.T@GS@Y)/sqrt(N-1) # Correct?
     elif 'DEnKF' is upd_a:
         # Uses "Deterministic EnKF" (sakov'08)
