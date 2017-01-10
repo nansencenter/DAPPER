@@ -24,7 +24,6 @@ def EnKF(setup,config,xx,yy):
       hE = h.model(E,t)
       y  = yy[kObs]
       E  = EnKF_analysis(E,hE,h.noise,y,config.upd_a,stats.at(kObs))
-
       post_process(E,config)
 
     stats.assess(E,xx,k)
@@ -473,8 +472,8 @@ def LETKF(setup,config,xx,yy):
           # Non-Approximate
           if len(local) < N:
             # SVD version
-            V,sd,_ = sla.svd(iY, full_matrices=False)
-            d      = sd**2 + (N-1)
+            V,sd,_ = svd0(iY)
+            d      = pad0(sd**2,N) + (N-1)
             Pw     = (V * d**(-1.0)) @ V.T
             T      = (V * d**(-0.5)) @ V.T * sqrt(N-1)
           else:
@@ -497,7 +496,6 @@ def LETKF(setup,config,xx,yy):
     stats.assess(E,xx,k)
     lplot.update(E,k,kObs)
   return stats
-
 
 
 from scipy.optimize import minimize_scalar as minzs
@@ -587,8 +585,6 @@ def EnKF_N(setup,config,xx,yy):
 
 
 
-# TODO: It would be beneficial to do another (prior-regularized)
-# analysis at the end, after forecasting the E0 analysis.
 def iEnKF(setup,config,xx,yy):
   """
   Loosely adapted from Bocquet ienks code and bocquet2014iterative.
@@ -640,6 +636,8 @@ def iEnKF(setup,config,xx,yy):
       stats.assess(E,xx,k)
       #lplot.update(E,k,kObs)
       
+    # TODO: It would be beneficial to do another (prior-regularized)
+    # analysis at the end, after forecasting the E0 analysis.
   return stats
 
 
