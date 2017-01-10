@@ -5,7 +5,8 @@
 ############################
 from common import *
 
-np.random.seed(5)
+sd0 = 5
+seed(sd0)
 
 ############################
 # Setup
@@ -63,6 +64,8 @@ setup.t.T        = 4**3.5
 ############################
 # Generate synthetic truth/obs
 ############################
+
+seed(sd0)
 xx,yy = simulate(setup)
 
 
