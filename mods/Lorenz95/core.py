@@ -9,20 +9,24 @@ def dxdt(x,F):
   a = x.ndim-1 # axis
   return np.multiply(lr(x,1,a)-lr(x,-2,a),lr(x,-1,a)) - x + F
 
+def TLM(x,t):
+  """Tangent linear model"""
+  assert is1d(x)
+  m    = len(x)
+  TLM  = np.zeros((m,m))
+  md   = lambda i: np.mod(i,m)
+  for i in range(m):
+    TLM[i,i]       = -1.0
+    TLM[i,   i-2 ] = -x[i-1]
+    TLM[i,md(i+1)] = +x[i-1]
+    TLM[i,   i-1 ] = x[md(i+1)]-x[i-2]
+  return TLM
+
 def dfdx(x,t,dt):
   """
   Jacobian of x + dt*dxdt.
   """
-  assert is1d(x)
-  m  = len(x)
-  F  = np.zeros((m,m))
-  md = lambda i: np.mod(i,m)
-  for i in range(m):
-    F[i,i]       = - dt + 1
-    F[i,   i-2 ] = - dt * x[i-1]
-    F[i,md(i+1)] = + dt * x[i-1]
-    F[i,   i-1 ] =   dt *(x[md(i+1)]-x[i-2])
-  return F
+  return np.eye(len(x)) + dt*TLM(x,t)
 
 def step(x0, t, dt):
   return rk4(lambda t,x: dxdt(x,8.0),x0,np.nan,dt)
