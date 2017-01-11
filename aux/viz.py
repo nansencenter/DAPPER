@@ -41,7 +41,7 @@ class LivePlot:
 
     self.ax  = plt.subplot(211)
     self.lmu,= plt.plot(ii,stats.mu[0],'b',lw=2,ls='-',label='Ens.mean')
-    self.lx ,= plt.plot(ii,xx[0      ],'k',lw=3,ls='-',label='Truth')
+    self.lx ,= plt.plot(ii,      xx[0],'k',lw=3,ls='-',label='Truth')
 
     #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
     self.ks  = 3.0
@@ -60,8 +60,9 @@ class LivePlot:
     self.ax.set_xlabel('State index')
 
     ax2 = plt.subplot(212)
-    self.lmf, = ax2.plot(1+arange(m),abs(stats.umisf[0]),           'k',lw=2,label='Error')
-    sprd = stats.svals[0]
+    msft = abs(stats.umisf[0])
+    sprd =     stats.svals[0]
+    self.lmf, = ax2.plot(1+arange(len(msft)),msft,'k',lw=2,label='Error')
     self.lew, = ax2.plot(1+arange(len(sprd)),sprd,'b',lw=2,label='Spread',alpha=0.9)
     plt.subplots_adjust(hspace=0.3)
     ax2.set_xlabel('Sing. value index')
@@ -425,8 +426,9 @@ def plot_ens_stats(xx,stats,chrono,config):
   ax_s.set_ylabel('Time-average magnitude')
   ax_s.set_title('Spectral error comparison')
   if has_been_computed:
-    ax_s.plot(1+arange(m),mean(abs(stats.umisf),0),'k',lw=2, label='Error')
+    msft = mean(abs(stats.umisf),0)
     sprd = mean(stats.svals,0)
+    ax_s.plot(        1+arange(len(msft)),              msft,'k',lw=2, label='Error')
     ax_s.fill_between(1+arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.4,label='Spread')
     ax_s.set_yscale('log')
     ax_s.set_ylim(bottom=1e-4*sum(sprd))

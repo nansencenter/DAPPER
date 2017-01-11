@@ -56,16 +56,6 @@ class Stats:
     unbias_var   = 1/(1 - w@w) # equal to N/(N-1) if w=ones(N)/N.
     self.var[k] *= unbias_var
 
-    if sqrt(m*N) <= Stats.Comp_Threshold_3:
-      V,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
-      s             *= sqrt(unbias_var) # Makes s^2 unbiased
-      self.svals[k]  = s
-      umisf          = UT @ self.err[k]
-
-      # For each state dim [i], compute rank of truth (x) among the ensemble (E)
-      Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
-      self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
-
     # For simplicity, use naive (and biased) formulae, derived from "empirical measure".
     # See doc/unbiased_skew_kurt.jpg.
     self.skew[k] = mean( w @ A**3 / self.var[k]**(3/2) ) # Skewness (normalized)
@@ -73,6 +63,17 @@ class Stats:
     self.mad[k]  = w @ abs(A)                            # Mean abs deviations
 
     self.derivative_stats(k,x)
+
+    if sqrt(m*N) <= Stats.Comp_Threshold_3:
+      V,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
+      s             *= sqrt(unbias_var) # Makes s^2 unbiased
+      self.svals[k]  = s
+      self.umisf[k]  = UT @ self.err[k]
+
+      # For each state dim [i], compute rank of truth (x) among the ensemble (E)
+      Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
+      self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
+
     return self
 
   def assess_ext(self,mu,ss,x,k):

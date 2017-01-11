@@ -58,7 +58,7 @@ config = DAC(EnKF_N,N=24,rot=True)
 # Common
 ############################
 config.liveplotting = False
-setup.t.T        = 4**3.5
+setup.t.T           = 4**3.5
 
 
 ############################
