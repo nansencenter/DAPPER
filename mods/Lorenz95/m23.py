@@ -10,7 +10,7 @@ t = Chronology(0.05,dkObs=3,T=T,BurnIn=20)
 m = 40
 f = {
     'm': m,
-    'model': lambda x,t,dt: step(x,t,dt),
+    'model': step,
     'noise': GaussRV(C=3e-2 * eye(m))
     }
 

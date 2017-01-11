@@ -13,7 +13,7 @@ t = Chronology(0.05,dkObs=1,T=T,BurnIn=20)
 m = 40
 f = {
     'm'    : m,
-    'model': lambda x,t,dt: step(x,t,dt),
+    'model': step,
     'TLM'  : dfdx,
     'noise': 0
     }
@@ -66,6 +66,7 @@ other = {'name': os.path.relpath(__file__,'mods/')}
 
 setup = OSSE(f,h,t,X0,**other)
 setup.locf = loc_wrapper
+
 
 
 
