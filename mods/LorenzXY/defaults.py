@@ -24,7 +24,7 @@ def plot_state(x):
 f = {
     'm'    : m,
     'model': lambda x0,t0,dt: rk4(lambda t,x: dxdt(x),x0,np.nan,dt),
-    'TLM'  : dfdx,
+    jacob'  : dfdx,
     'noise': 0,
     'plot' : plot_state
     }
@@ -48,7 +48,7 @@ for i,j in enumerate(obsInds):
 h = {
     'm'    : p,
     'model': hmod,
-    'TLM'  : lambda x,t: H,
+    jacob'  : lambda x,t: H,
     'noise': GaussRV(C=0.1*eye(p)),
     }
  
