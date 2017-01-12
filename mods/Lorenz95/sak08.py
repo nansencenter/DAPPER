@@ -14,7 +14,7 @@ m = 40
 f = {
     'm'    : m,
     'model': step,
-    jacob'  : dfdx,
+    'TLM'  : dfdx,
     'noise': 0
     }
 
@@ -42,7 +42,7 @@ def yplot(y):
 h = {
     'm'    : p,
     'model': hmod,
-    jacob'  : lambda x,t: H,
+    'TLM'  : lambda x,t: H,
     'noise': GaussRV(C=1*eye(p)),
     'plot' : yplot
     }

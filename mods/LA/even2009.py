@@ -28,7 +28,7 @@ def step(x,t,dt):
 f = {
     'm': m,
     'model': step,
-    jacob'  : Fm,
+    'TLM'  : Fm,
     'noise': 0
     }
 
@@ -55,7 +55,7 @@ for i,j in enumerate(obsInds):
 h = {
     'm': p,
     'model': hmod,
-    jacob'  : lambda x,t: H,
+    'TLM'  : lambda x,t: H,
     'noise': GaussRV(C=0.01*eye(p)),
     'plot' : yplot,
     }

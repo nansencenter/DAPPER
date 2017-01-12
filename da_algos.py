@@ -780,7 +780,7 @@ def PF_EnKF(setup,config,xx,yy):
       YC = mldiv(C, Y.T)
       KG = YC @ A
 
-      JH   = hjacob(mu,t)
+      JH   = h.TLM(mu,t)
       Sig2 = (eye(f.m) - KG.T*JH)*Q*(eye(f.m) - KG.T*JH).T + KG.T*R*KG
       Sig2 *= infl_q
       Sigm1= funm_psd(Sig2, lambda x: x**(-0.5))
@@ -954,7 +954,7 @@ def D3Var(setup,config,xx,yy):
 
   dkObs = chrono.dkObs
   R     = h.noise.C.C
-  #dHdx = fjacob
+  #dHdx = f.TLM
   #H    = dHdx(np.nan,mu0).T # TODO: .T ?
   H     = eye(h.m)
 
@@ -1009,7 +1009,7 @@ def ExtKF(setup,config,xx,yy):
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     
-    F = fjacob(mu,t-dt,dt) 
+    F = f.TLM(mu,t-dt,dt) 
     # "EKF for the mean". It's probably best to leave this commented
     # out because the benefit is negligable compared to the additional
     # cost incurred in estimating the Hessians.
@@ -1027,7 +1027,7 @@ def ExtKF(setup,config,xx,yy):
       # NB: Inflation
       P *= config.infl
 
-      H  = hjacob(mu,t)
+      H  = h.TLM(mu,t)
       KG = mrdiv(P @ H.T, H@P@H.T + R)
       y  = yy[kObs]
       mu = mu + KG@(y - h.model(mu,t))

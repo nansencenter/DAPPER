@@ -16,7 +16,7 @@ m = 3
 f = {
     'm'    : m,
     'model': lambda x,t,dt: step(x,t,dt),
-    jacob'  : dfdx,
+    'TLM'  : dfdx,
     'noise': 0
     }
 
@@ -26,7 +26,7 @@ X0 = GaussRV(C=2,mu=mu0)
 h = {
     'm'    : p,
     'model': lambda x,t: x,
-    jacob'  : lambda x,t: eye(3),
+    'TLM'  : lambda x,t: eye(3),
     'noise': GaussRV(C=2,m=p)
     }
 
