@@ -38,7 +38,7 @@ def yplot(y):
 h = {
     'm': p,
     'model': hmod,
-    'TLM'  : lambda x,t: H,
+    'jacob': lambda x,t: H,
     'noise': GaussRV(C=0.01*eye(p)),
     'plot' : yplot,
     }
@@ -79,7 +79,7 @@ def step(x,t,dt):
 f = {
     'm': m,
     'model': lambda x,t,dt: damp * step(x,t,dt),
-    'TLM'  : lambda x,t,dt: damp * Fm,
+    'jacob': lambda x,t,dt: damp * Fm,
     'noise': GaussRV(C = Q),
     }
 
