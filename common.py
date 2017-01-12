@@ -35,7 +35,11 @@ import numpy.linalg as nla
 import scipy.stats as ss
 
 
-from scipy.linalg import sqrtm, inv, eigh, svd
+
+from scipy.linalg import svd
+#from scipy.linalg import eig # Necessitates np.real_if_close().
+from numpy.linalg import eig 
+from scipy.linalg import sqrtm, inv, eigh
 
 
 from numpy import sqrt, abs, floor, ceil, prod, \

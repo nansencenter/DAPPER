@@ -43,7 +43,6 @@ config = DAC(EnKF_N,N=24,rot=True)
 #config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,locf=setup.locf(6,'y2x'))
 
 
-
 #from mods.Lorenz95.spectral_obs import setup
 # -- Get suggested tuning from setup files --
 #from mods.Lorenz95.m33 import setup

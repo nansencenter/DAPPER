@@ -66,12 +66,23 @@ def mrdiv(b,A):
 def mldiv(A,b):
   return nla.solve(A,b)
 
+
+
 def rk4(f, x0, t, dt):
+  """4-th order Runge-Kutta (approximate ODE solver)."""
   k1 = dt * f(t      , x0)
   k2 = dt * f(t+dt/2., x0+k1/2.)
   k3 = dt * f(t+dt/2., x0+k2/2.)
   k4 = dt * f(t+dt   , x0+k3)
   return x0 + (k1 + 2.*(k2 + k3) + k4)/6.0
+
+def integrate_TLM(M,dt):
+  """The resolvent: integral of du/dt = TLM u, with u0 = eye."""
+  Lambda,V  = np.linalg.eig(M)
+  resolvent = (V * np.exp(dt*Lambda)) @ np.linalg.inv(V)
+  return np.real_if_close(resolvent, tol=10000)
+
+
 
 def round2(num,prec=1.0):
   """Round with specific precision.

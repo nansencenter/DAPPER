@@ -3,20 +3,19 @@
 
 import numpy as np
 from scipy.linalg import circulant
-from aux.misc import rk4, is1d
+from aux.misc import rk4, integrate_TLM, is1d
 
   
 def dxdt(x,Force):
   a = x.ndim-1
-  def s(x,n):
-    return np.roll(x,-n,axis=a)
+  s = lambda x,n: np.roll(x,-n,axis=a)
   return np.multiply(s(x,1)-s(x,-2), s(x,-1)) - x + Force
 
 def step(x0, t, dt, Force=8.0):
   return rk4(lambda t,x: dxdt(x,Force), x0, np.nan, dt)
 
 
-def TLM(x,t):
+def TLM(x):
   """Tangent linear model"""
   assert is1d(x)
   m    = len(x)
@@ -30,9 +29,10 @@ def TLM(x,t):
   return TLM
 
 def dfdx(x,t,dt):
-  """Jacobian of x + dt*dxdt."""
-  return np.eye(len(x)) + dt*TLM(x,t)
-
+  """Integral of TLM. Jacobian of step."""
+  resolvent = np.eye(len(x)) + dt*TLM(x) # Approximate
+  #resolvent = integrate_TLM(TLM(x),dt)   # Exact
+  return resolvent
 
 def typical_init_params(m):
   """
