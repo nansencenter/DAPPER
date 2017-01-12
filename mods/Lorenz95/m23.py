@@ -9,7 +9,7 @@ t = Chronology(0.05,dkObs=3,T=T,BurnIn=20)
 
 m = 40
 f = {
-    'm': m,
+    'm'    : m,
     'model': step,
     'noise': GaussRV(C=3e-2 * eye(m))
     }
@@ -18,7 +18,7 @@ X0 = GaussRV(*typical_init_params(m))
 
 p = m
 h = {
-    'm': p,
+    'm'    : p,
     'model': lambda x,t: x,
     'noise': GaussRV(C=0.1*eye(p)),
     'plot' : lambda y: plt.plot(y,'g')[0]

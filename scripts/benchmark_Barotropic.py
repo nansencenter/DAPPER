@@ -3,8 +3,7 @@
 ############################
 from common import *
 
-sd0 = 5
-np.random.seed(sd0)
+sd0 = seed(5)
 
 ############################
 # Setup

@@ -2,7 +2,11 @@
 
 from common import *
 
-seed = np.random.seed
+#seed = np.random.seed
+def seed(i):
+  """Seed random number generator. Return input (for one-liners)."""
+  np.random.seed(i)
+  return i
 
 def LCG(seed=-1):
   """

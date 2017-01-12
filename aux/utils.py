@@ -118,7 +118,7 @@ try:
     inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds
     return tabulate_orig.tabulate(data,headr,showindex=inds)
 except ImportError:
-  # pandas more common than tabulate, but slower to import
+  # pandas more widespread than tabulate, but slower to import
   import pandas
   pandas.options.display.width = None # Auto-adjust linewidth
   pandas.options.display.colheader_justify = 'center'
