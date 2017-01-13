@@ -11,12 +11,16 @@ from collections import OrderedDict
 ##################################
 # Interactive plotting settings
 ##################################
-import matplotlib
+import matplotlib as mpl
 #matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 #plt.switch_backend('Qt4Agg')
 plt.ion()
 from mpl_toolkits.mplot3d import Axes3D
+
+#plt.style.use('ggplot') fivethirtyeight, bmh
+import seaborn as sns
+
 
 # With Qt4Agg backend plt.pause() causes warning. Ignore.
 import warnings

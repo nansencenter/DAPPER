@@ -51,7 +51,7 @@ for method in cfgs:
     stats = kept[k]
     k += 1
     plot_time_series(xx,stats,setup.t,dim=2)
-    plot_ens_stats(xx,stats,setup.t,method)
+    plot_err_compons(xx,stats,setup.t,method)
     plot_3D_trajectory(xx[:,:3],stats,setup.t)
 
 

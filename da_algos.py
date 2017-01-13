@@ -922,7 +922,7 @@ def EnCheat(setup,config,xx,yy):
       #     on the optimal solution.
       #E   = opt + E - mean(E,0)
 
-    stats.assess_ext(opt,res,xx,k)
+    #stats.assess_ext(opt,res,xx,k) # TODO: changed assess_ext input
     lplot.update(E,k,kObs)
   return stats
 
@@ -939,9 +939,9 @@ def Climatology(setup,config,xx,yy):
   A0    = xx - mu0
   P0    = spCovMat(A=A0)
 
-  stats = Stats(setup,config).assess_ext(mu0, sqrt(P0.diagonal), xx, 0)
+  stats = Stats(setup,config).assess_ext(mu0, P0, xx, 0)
   for k,_,_,_ in progbar(chrono.forecast_range):
-    stats.assess_ext(mu0,sqrt(P0.diagonal),xx,k)
+    stats.assess_ext(mu0,P0,xx,k)
   return stats
 
 
@@ -982,7 +982,7 @@ def D3Var(setup,config,xx,yy):
 
   mu = X0.mu
 
-  stats = Stats(setup,config).assess_ext(mu, sqrt(diag(P0)), xx, 0)
+  stats = Stats(setup,config).assess_ext(mu, P0, xx, 0)
   stats.trHK[:] = trace(H@KG)/h.noise.m
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -992,7 +992,7 @@ def D3Var(setup,config,xx,yy):
     if kObs is not None:
       y  = yy[kObs]
       mu = mu0 + KG @ (y - H@mu0)
-    stats.assess_ext(mu,sqrt(diag(P)),xx,k)
+    stats.assess_ext(mu,P,xx,k)
   return stats
 
 
@@ -1005,7 +1005,7 @@ def ExtKF(setup,config,xx,yy):
   mu = X0.mu
   P  = X0.C.C
 
-  stats = Stats(setup,config).assess_ext(mu, sqrt(diag(P)), xx, 0)
+  stats = Stats(setup,config).assess_ext(mu, P, xx, 0)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     
@@ -1036,7 +1036,7 @@ def ExtKF(setup,config,xx,yy):
 
       stats.trHK[kObs] = trace(KH)/f.m
 
-    stats.assess_ext(mu,sqrt(diag(P)),xx,k)
+    stats.assess_ext(mu,P,xx,k)
   return stats
 
 

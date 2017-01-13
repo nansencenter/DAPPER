@@ -320,11 +320,12 @@ def plot_3D_trajectory(xx,stats,chrono,\
   kk = get_plot_inds(chrono,Kplot,Tplot,xx)[0]
 
   ax3 = plt.subplot(111, projection='3d')
-  ax3.plot   (xx[kk    ,0],xx[kk    ,1],xx[kk    ,2],c='k',label='Truth'   )
-  ax3.plot   (s.mu[kk  ,0],s.mu[kk  ,1],s.mu[kk  ,2],c='b',label='Ens.mean')
-  ax3.scatter(xx[0     ,0],xx[0     ,1],xx[0     ,2],s=40 ,c='g'           )
-  ax3.scatter(xx[kk[-1],0],xx[kk[-1],1],xx[kk[-1],2],s=40 ,c='r'           )
+  ax3.plot   (xx[kk    ,0],xx[kk    ,1],xx[kk    ,2],c='k',label='Truth')
+  ax3.plot   (s.mu[kk  ,0],s.mu[kk  ,1],s.mu[kk  ,2],label='DA estim.')
+  ax3.scatter(xx[0     ,0],xx[0     ,1],xx[0     ,2],s=40 ,c='g')
+  ax3.scatter(xx[kk[-1],0],xx[kk[-1],1],xx[kk[-1],2],s=40 ,c='r')
   ax3.legend()
+  ax3.set_axis_bgcolor('w')
 
 
 def plot_time_series(xx,stats,chrono,
@@ -339,7 +340,7 @@ def plot_time_series(xx,stats,chrono,
 
   ax_d = plt.subplot(3,1,1)
   ax_d.plot(tt[pkk],xx  [pkk,dim],'k',lw=3,label='Truth')
-  ax_d.plot(tt[pkk],s.mu[pkk,dim],'b',lw=2,label='DA estim.',alpha=0.6)
+  ax_d.plot(tt[pkk],s.mu[pkk,dim],lw=2,label='DA estim.',alpha=1.0)
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
   ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
   ax_d.legend()
@@ -358,7 +359,7 @@ def plot_time_series(xx,stats,chrono,
 
   ax_e = plt.subplot(3,1,3)
   ax_e.plot(        tt[pkk], s.rmse[pkk],'k',lw=2 ,label='Error')
-  ax_e.fill_between(tt[pkk], s.rmv [pkk],alpha=0.4,label='Spread') 
+  ax_e.fill_between(tt[pkk], s.rmv [pkk],alpha=0.7,label='Spread') 
   ylim = np.percentile(s.rmse[pkk],99)
   ylim = 1.1*np.max([ylim, np.max(s.rmv[pkk])])
   ax_e.set_ylim(0,ylim)
@@ -366,11 +367,12 @@ def plot_time_series(xx,stats,chrono,
   ax_e.legend()
   ax_e.set_xlabel('time (t)')
 
-
+  cm = mpl.colors.ListedColormap(sns.color_palette("BrBG", 256)) # RdBu_r
+  #cm = plt.get_cmap('BrBG')
   fgH = plt.figure(16,figsize=(6,5)).clf()
   set_figpos('2312 mac')
   m = xx.shape[1]
-  plt.contourf(1+arange(m),tt[pkk],xx[pkk])
+  plt.contourf(1+arange(m),tt[pkk],xx[pkk],cmap=cm)
   plt.colorbar()
   ax = plt.gca()
   ax.set_title("Hovmoller diagram (of 'Truth')")
@@ -390,9 +392,17 @@ def integer_hist(E,N,centrd=False,weights=None,**kwargs):
 def not_available_text(ax,fs=20):
   ax.text(0.5,0.5,'[Not available]',fontsize=fs,va='center',ha='center')
 
-def plot_ens_stats(xx,stats,chrono,config):
-  if not hasattr(config,'N'):
-    return
+def plot_err_compons(xx,stats,chrono,config):
+  """
+  Plot components of the error.
+  Note: it was chosen to plot(ii, mean_in_time(abs(err_i))),
+        and thus the corresponding spread measure is MAD.
+        If one chose instead: plot(ii, std_in_time(err_i)),
+        then the corrensopnding spread measure would have been std.
+        This choice was made in part because (wrt subplot 2)
+        the singular values (svals) correspond to rotated MADs,
+        and because rms(umisf) seems to convoluted for interpretation.
+  """
   m = xx.shape[1]
 
   # TODO
@@ -407,15 +417,16 @@ def plot_ens_stats(xx,stats,chrono,config):
   ax_r = plt.subplot(211)
   ax_r.set_xlabel('Component index')
   ax_r.set_ylabel('Time-average magnitude')
-  ax_r.plot(1+arange(m),mean(abs(stats.err),0),'k',lw=2, label='Error')
+  ax_r.plot(arange(m),mean(abs(stats.err),0),'k',lw=2, label='Error')
   sprd = mean(stats.mad,0)
   if m<10**3:
-    ax_r.fill_between(1+arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.4,label='Spread')
+    ax_r.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
   else:
-    ax_r.plot(1+arange(len(sprd)),sprd,alpha=0.4,label='Spread')
+    ax_r.plot(arange(len(sprd)),sprd,alpha=0.7,label='Spread')
   ax_r.set_title('Element-wise error comparison')
   #ax_r.set_yscale('log')
   ax_r.set_ylim(bottom=mean(sprd)/10)
+  ax_r.set_xlim(right=m-1)
   ax_r.legend()
   #ax_r.set_position([0.125,0.6, 0.78, 0.34])
   plt.subplots_adjust(hspace=0.45)
@@ -428,11 +439,12 @@ def plot_ens_stats(xx,stats,chrono,config):
   if has_been_computed:
     msft = mean(abs(stats.umisf),0)
     sprd = mean(stats.svals,0)
-    ax_s.plot(        1+arange(len(msft)),              msft,'k',lw=2, label='Error')
-    ax_s.fill_between(1+arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.4,label='Spread')
+    ax_s.plot(        arange(len(msft)),              msft,'k',lw=2, label='Error')
+    ax_s.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
     ax_s.set_yscale('log')
     ax_s.set_ylim(bottom=1e-4*sum(sprd))
     ax_s.legend()
+    ax_s.set_xlim(right=m-1)
   else:
     not_available_text(ax_s)
 
@@ -453,7 +465,7 @@ def plot_ens_stats(xx,stats,chrono,config):
     ranks = stats.rh[chrono.kkBI]
     if (stats.w[0]==1/N).all() and (stats.w[-1]==1/N).all():
       # Ensemble rank histogram
-      integer_hist(ranks.ravel(),N,alpha=0.5)
+      integer_hist(ranks.ravel(),N,alpha=0.7)
     else:
       # Experimental: weighted rank histogram.
       # Weight ranks by inverse of particle weight. Why? Coz, with correct
@@ -466,7 +478,7 @@ def plot_ens_stats(xx,stats,chrono,config):
       w  = w.T.ravel()
       w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
       w  = 1/w
-      integer_hist(ranks.ravel(),N,weights=w,alpha=0.5)
+      integer_hist(ranks.ravel(),N,weights=w,alpha=0.7)
   else:
     not_available_text(ax_H)
 
@@ -475,11 +487,12 @@ def plot_ens_stats(xx,stats,chrono,config):
   ax_R.set_ylabel('Num. of occurence')
   ax_R.set_xlabel('RMSE')
   ax_R.set_title('Histogram of RMSE values')
-  ax_R.hist(stats.rmse[chrono.kkBI],alpha=0.5,bins=30,normed=0)
+  ax_R.hist(stats.rmse[chrono.kkBI],alpha=0.7,bins=30,normed=0)
   
 
   
 
+# TODO: ax.axvline(prob, linestyle='--', color='black')
 @atmost_2d
 def plt_vbars(xx,y1y2=None,*kargs,**kwargs):
   if y1y2 == None:

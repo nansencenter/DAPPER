@@ -51,7 +51,7 @@ print_averages(cfgs,ss)
 config    = cfgs[keep]
 chrono = setup_trunc.t
 plot_time_series(xx,kept,chrono,dim=2)
-plot_ens_stats(xx,kept,chrono,config)
+plot_err_compons(xx,kept,chrono,config)
 plot_3D_trajectory(xx[:,:3],kept,chrono)
 
 

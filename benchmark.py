@@ -80,6 +80,6 @@ print_averages(config,avrgs)
 ############################
 chrono = setup.t
 plot_time_series  (xx      ,stats,chrono, dim=2)
-plot_ens_stats    (xx      ,stats,chrono, config)
-#plot_3D_trajectory(xx[:,:3],stats,chrono)
+plot_err_compons  (xx      ,stats,chrono, config)
+plot_3D_trajectory(xx[:,:3],stats,chrono)
 
