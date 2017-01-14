@@ -22,7 +22,7 @@ mpl.rcParams['toolbar'] = 'None'
 #plt.style.use('ggplot') 'fivethirtyeight', 'bmh'
 import seaborn as sns
 sns.set_color_codes()
-sns.set_style({'image.cmap': 'BrBG'})
+sns.set_style({'image.cmap': 'BrBG', 'legend.frameon': True})
 
 
 # With Qt4Agg backend plt.pause() causes warning. Ignore.

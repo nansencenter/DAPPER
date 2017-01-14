@@ -78,8 +78,8 @@ print_averages(config,avrgs)
 ############################
 # Plot
 ############################
-chrono = setup.t
-plot_time_series  (xx      ,stats,chrono, dim=2)
-plot_err_compons  (xx      ,stats,chrono, config)
-plot_3D_trajectory(xx[:,:3],stats,chrono)
+plot_time_series   (stats,xx,dim=2)
+plot_3D_trajectory (stats,xx,dims=4)
+plot_err_components(stats)
+plot_rank_histogram(stats)
 

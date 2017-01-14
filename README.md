@@ -9,7 +9,7 @@
 ![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
 -->
 
-![EnKF - Lorenz'63](./data/figs/anims/DAPPER_illust.jpg)
+![EnKF - Lorenz'63](./data/figs/anims/DAPPER_illust_v2.jpg)
 
 
 DAPPER is a set of templates for benchmarking the performance of

@@ -20,7 +20,6 @@ class Stats:
     self.var   = zeros((K+1,m))     # Variances
     self.mad   = zeros((K+1,m))     # Mean abs deviations
     self.err   = zeros((K+1,m))     # Error (mu-truth)
-    self.rh    = zeros((K+1,m),int) # Rank histogram
     self.logp_m= zeros(K+1)         # Marginal, Gaussian Log score
     self.skew  = zeros(K+1)         # Skewness
     self.kurt  = zeros(K+1)         # Kurtosis
@@ -32,7 +31,9 @@ class Stats:
       # Ensemble-only init
       N    = config.N
       m_Nm = np.minimum(m,N)
-      self.w = zeros((K+1,N))       # Likelihood weights
+      self.w  = zeros((K+1,N))      # Likelihood weights
+      self.rh = zeros((K+1,m),int)  # Rank histogram
+      #self.N  = N                  # Use w.shape[1] instead
     else:
       m_Nm = m
     self.svals = zeros((K+1,m_Nm))  # Principal component (SVD) scores
@@ -61,8 +62,8 @@ class Stats:
     self.mad[k]  = w @ abs(A)  # Mean abs deviations
 
     # For simplicity, use naive (and biased) formulae, derived from "empirical measure".
-    # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
     # See doc/unbiased_skew_kurt.jpg.
+    # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
     self.skew[k] = mean( w @ A**3 / self.var[k]**(3/2) )
     self.kurt[k] = mean( w @ A**4 / self.var[k]**2 - 3 )
 
@@ -87,7 +88,8 @@ class Stats:
     m           = len(mu)
     self.mu[k]  = mu
     self.var[k] = diag(P)
-    self.mad[k] = sqrt(self.var[k])*sqrt(2/pi) # Ratio MAD/STD 4 Gaussians
+    self.mad[k] = sqrt(self.var[k])*sqrt(2/pi)
+    # ... because sqrt(2/pi) = ratio MAD/STD for Gaussians
 
     self.derivative_stats(k,x)
 

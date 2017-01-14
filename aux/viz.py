@@ -318,31 +318,40 @@ def get_plot_inds(chrono,Kplot,Tplot,xx):
   return plot_kk, plot_kkObs
 
 
-def plot_3D_trajectory(xx,stats,chrono,\
-    Kplot=None,Tplot=None):
-  """ xx: array with (exactly) 3 columns."""
-  s = stats
+def plot_3D_trajectory(stats,xx,dims=0,Kplot=None,Tplot=None):
+  if isinstance(dims,int):
+    dims = dims + arange(3)
+  assert len(dims)==3
+
+  chrono = stats.setup.t
+  kk = get_plot_inds(chrono,Kplot,Tplot,xx)[0]
+  T  = chrono.tt[kk[-1]]
+
+  xx = xx      [kk][:,dims]
+  mu = stats.mu[kk][:,dims]
 
   plt.figure(14).clf()
   set_figpos('2311 mac')
-
-  kk = get_plot_inds(chrono,Kplot,Tplot,xx)[0]
-
   ax3 = plt.subplot(111, projection='3d')
-  ax3.plot   (xx[kk    ,0],xx[kk    ,1],xx[kk    ,2],c='k',label='Truth')
-  ax3.plot   (s.mu[kk  ,0],s.mu[kk  ,1],s.mu[kk  ,2],label='DA estim.')
-  ax3.scatter(xx[0     ,0],xx[0     ,1],xx[0     ,2],s=40 ,c='g')
-  ax3.scatter(xx[kk[-1],0],xx[kk[-1],1],xx[kk[-1],2],s=40 ,c='r')
-  ax3.legend()
+
+  ax3.plot   (xx[:,0] ,xx[:,1] ,xx[:,2] ,c='k',label='Truth')
+  ax3.plot   (mu[:,0] ,mu[:,1] ,mu[:,2] ,c='b',label='DA estim.')
+  ax3.scatter(xx[0 ,0],xx[0 ,1],xx[0 ,2],c='g',s=40)
+  ax3.scatter(xx[-1,0],xx[-1,1],xx[-1,2],c='r',s=40)
+  ax3.set_title('Phase space trajectory up to t={:.2g}'.format(T))
+  ax3.set_xlabel('dim ' + str(dims[0]))
+  ax3.set_ylabel('dim ' + str(dims[1]))
+  ax3.set_zlabel('dim ' + str(dims[2]))
+  ax3.legend(frameon=False)
   ax3.set_axis_bgcolor('w')
   # Don't do the following, coz it also needs the white grid,
   # which I can't get working for 3d.
   #for i in 'xyz': eval('ax3.w_' + i + 'axis.set_pane_color(sns_bg)')
 
 
-def plot_time_series(xx,stats,chrono,
-    dim=0,Kplot=None,Tplot=None):
-  s = stats
+def plot_time_series(stats,xx,dim=0,Kplot=None,Tplot=None):
+  s      = stats
+  chrono = stats.setup.t
 
   fg = plt.figure(12,figsize=(8,8)).clf()
   set_figpos('1313 mac')
@@ -354,7 +363,8 @@ def plot_time_series(xx,stats,chrono,
   ax_d.plot(tt[pkk],xx  [pkk,dim],'k',lw=3,label='Truth')
   ax_d.plot(tt[pkk],s.mu[pkk,dim],lw=2,label='DA estim.',alpha=1.0)
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
-  ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
+  #ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
+  ax_d.set_ylabel('dim ' + str(dim))
   ax_d.legend()
   ax_d.set_xticklabels([])
 
@@ -362,7 +372,7 @@ def plot_time_series(xx,stats,chrono,
   ax_K.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2,label='tr(HK)')
   ax_K.plot(tt[pkkObs], s.skew[:len(pkkObs)],'g',lw=2,label='Skew')
   ax_K.plot(tt[pkkObs], s.kurt[:len(pkkObs)],'r',lw=2,label='Kurt')
-  ax_K.legend(frameon=True)
+  ax_K.legend()
   ax_K.set_xticklabels([])
 
   ax_e = plt.subplot(3,1,3)
@@ -409,7 +419,7 @@ def integer_hist(E,N,centrd=False,weights=None,**kwargs):
 def not_available_text(ax,fs=20):
   ax.text(0.5,0.5,'[Not available]',fontsize=fs,va='center',ha='center')
 
-def plot_err_compons(xx,stats,chrono,config):
+def plot_err_components(stats):
   """
   Plot components of the error.
   Note: it was chosen to plot(ii, mean_in_time(abs(err_i))),
@@ -420,15 +430,17 @@ def plot_err_compons(xx,stats,chrono,config):
         the singular values (svals) correspond to rotated MADs,
         and because rms(umisf) seems to convoluted for interpretation.
   """
-  m = xx.shape[1]
+  s      = stats
+  chrono = stats.setup.t
+  m      = s.mu.shape[1]
 
-  fgE = plt.figure(15,figsize=(8,6)).clf()
+  fgE = plt.figure(15,figsize=(8,8)).clf()
   set_figpos('2321 mac')
-  ax_r = plt.subplot(211)
+  ax_r = plt.subplot(311)
   ax_r.set_xlabel('Element index (i)')
   ax_r.set_ylabel('Time-average magnitude')
-  ax_r.plot(arange(m),mean(abs(stats.err),0),'k',lw=2, label='Error')
-  sprd = mean(stats.mad,0)
+  ax_r.plot(arange(m),mean(abs(s.err),0),'k',lw=2, label='Error')
+  sprd = mean(s.mad,0)
   if m<10**3:
     ax_r.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
   else:
@@ -439,16 +451,16 @@ def plot_err_compons(xx,stats,chrono,config):
   ax_r.set_xlim(right=m-1); add_endpoint_xtick(ax_r)
   ax_r.legend()
   #ax_r.set_position([0.125,0.6, 0.78, 0.34])
-  plt.subplots_adjust(hspace=0.45)
+  plt.subplots_adjust(hspace=0.55)
 
-  ax_s = plt.subplot(212)
-  has_been_computed = not all(stats.umisf[-1] == 0)
+  ax_s = plt.subplot(312)
+  has_been_computed = not all(s.umisf[-1] == 0)
   ax_s.set_xlabel('Principal component index')
   ax_s.set_ylabel('Time-average magnitude')
   ax_s.set_title('Spectral error comparison')
   if has_been_computed:
-    msft = mean(abs(stats.umisf),0)
-    sprd = mean(stats.svals,0)
+    msft = mean(abs(s.umisf),0)
+    sprd = mean(s.svals,0)
     ax_s.plot(        arange(len(msft)),              msft,'k',lw=2, label='Error')
     ax_s.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
     ax_s.set_yscale('log')
@@ -459,21 +471,35 @@ def plot_err_compons(xx,stats,chrono,config):
     not_available_text(ax_s)
 
 
+  ax_R = plt.subplot(313)
+  ax_R.set_ylabel('Num. of occurence')
+  ax_R.set_xlabel('RMSE')
+  ax_R.set_title('Histogram of RMSE values')
+  ax_R.hist(s.rmse[chrono.kkBI],alpha=1.0,bins=30,normed=0)
 
-  fg = plt.figure(13,figsize=(8,6)).clf()
+
+def plot_rank_histogram(stats):
+  chrono = stats.setup.t
+
+  has_been_computed = not all(stats.rh[-1] == 0)
+
+  def are_uniform(w):
+    """Test inital & final weights, not intermediate (for speed)."""
+    (w[0]==1/N).all() and (w[-1]==1/N).all()
+
+  fg = plt.figure(13,figsize=(8,4)).clf()
   set_figpos('2322 mac')
   #
-  has_been_computed = not all(stats.rh[-1] == 0)
-  ax_H = plt.subplot(211)
+  ax_H = plt.subplot(111)
   ax_H.set_title('(Average of marginal) rank histogram')
   ax_H.set_ylabel('Freq. of occurence\n (of truth in interval n)')
   ax_H.set_xlabel('ensemble member index (n)')
-  plt.subplots_adjust(hspace=0.5)
-  #ax_H.set_position([0.125,0.6, 0.78, 0.34])
+  ax_H.set_position([0.125,0.15, 0.78, 0.75])
   if has_been_computed:
-    N     = config.N
     ranks = stats.rh[chrono.kkBI]
-    if (stats.w[0]==1/N).all() and (stats.w[-1]==1/N).all():
+    m     = ranks.shape[1]
+    N     = stats.w.shape[1]
+    if are_uniform(stats.w):
       # Ensemble rank histogram
       integer_hist(ranks.ravel(),N,alpha=1.0)
     else:
@@ -483,7 +509,7 @@ def plot_err_compons(xx,stats,chrono,config):
       # Potential improvement: interpolate weights between particles.
       KBI= len(chrono.kkBI)
       w  = stats.w[chrono.kkBI]
-      w  = np.hstack([w, ones((KBI,1))/N]) # define weights rank N+1
+      w  = np.hstack([w, ones((KBI,1))/N]) # define weights for rank N+1
       w  = array([ w[arange(KBI),ranks[arange(KBI),i]] for i in range(m)])
       w  = w.T.ravel()
       w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
@@ -491,13 +517,6 @@ def plot_err_compons(xx,stats,chrono,config):
       integer_hist(ranks.ravel(),N,weights=w,alpha=1.0)
   else:
     not_available_text(ax_H)
-
-  ax_R = plt.subplot(212)
-  #ax_R.set_title('RMSE histogram')
-  ax_R.set_ylabel('Num. of occurence')
-  ax_R.set_xlabel('RMSE')
-  ax_R.set_title('Histogram of RMSE values')
-  ax_R.hist(stats.rmse[chrono.kkBI],alpha=1.0,bins=30,normed=0)
   
 
   
