@@ -4,16 +4,6 @@ from common import *
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 
 
-# RGB constants
-cblue,cgreen,cred,cmagenta,cyellow,ccyan = array(sns.color_palette())
-sns_bg = array([0.9176, 0.9176, 0.9490])
-#cred   = array([1,0,0])
-#cgreen = array([0,1,0])
-#cblue  = array([0,0,1])
-cwhite = array([1,1,1])
-cblack = array([0,0,0])
-
-
 class LivePlot:
   """
   Live plotting functionality.
@@ -37,7 +27,7 @@ class LivePlot:
     print('Press <Space> and then <Enter> to pause.')
 
     #ens_props = {} # yields rainbow
-    ens_props = {'color': 0.6*cwhite} # 0.7*cblue
+    ens_props = {'color': 0.6*RGBs['w']} # 0.7*RGBs['b']
 
 
     #####################

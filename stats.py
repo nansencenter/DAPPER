@@ -6,7 +6,7 @@ class Stats:
   Contains and computes peformance stats.
   """
 
-  # Omit heavy computations
+  # Adjust this to omit heavy computations
   comp_threshold_3 = 41
 
 

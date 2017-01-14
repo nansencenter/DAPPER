@@ -9,29 +9,6 @@ from collections import OrderedDict
 
 
 ##################################
-# Interactive plotting settings
-##################################
-import matplotlib as mpl
-#matplotlib.use('Qt4Agg')
-import matplotlib.pyplot as plt
-#plt.switch_backend('Qt4Agg')
-plt.ion()
-
-mpl.rcParams['toolbar'] = 'None'
-
-#plt.style.use('ggplot') 'fivethirtyeight', 'bmh'
-import seaborn as sns
-sns.set_color_codes()
-sns.set_style({'image.cmap': 'BrBG', 'legend.frameon': True})
-
-
-# With Qt4Agg backend plt.pause() causes warning. Ignore.
-import warnings
-import matplotlib.cbook
-warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
-
-
-##################################
 # Scientific
 ##################################
 import numpy as np
@@ -57,6 +34,42 @@ from numpy import sqrt, abs, floor, ceil, prod, \
     eye, zeros, ones, diag, \
     trace, \
     dot
+
+
+
+##################################
+# Interactive plotting settings
+##################################
+import matplotlib as mpl
+#matplotlib.use('Qt4Agg')
+import matplotlib.pyplot as plt
+#plt.switch_backend('Qt4Agg')
+plt.ion()
+
+mpl.rcParams['toolbar'] = 'None'
+
+# Color set up
+try:
+  import seaborn as sns
+  sns.set_style({'image.cmap': 'BrBG', 'legend.frameon': True})
+  sns_bg = array([0.9176, 0.9176, 0.9490])
+  sns.set_color_codes()
+except ImportError:
+  # TODO: Provide suggestion to install?
+  #plt.style.use('ggplot') # 'fivethirtyeight', 'bmh'
+  mpl.rcParams['image.cmap'] = 'BrBG'
+
+RGBs = {'w': array([1,1,1]), 'k': array([0,0,0])}
+for c in 'bgrmyc':
+  RGBs[c] = array(mpl.colors.colorConverter.to_rgb(c))
+
+
+# With Qt4Agg backend plt.pause() causes warning. Ignore.
+import warnings
+import matplotlib.cbook
+warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
+
+
 
 ##################################
 # Setup DAPPER namespace
