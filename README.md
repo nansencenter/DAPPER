@@ -1,9 +1,18 @@
 
-     ___   _   ___ ___ ___ ___ 
-    |   \ /_\ | _ \ _ \ __| _ \
-    | |) / _ \|  _/  _/ _||   /
-    |___/_/ \_\_| |_| |___|_|_\
+<!---
+!      ___   _   ___ ___ ___ ___ 
+!     |   \ /_\ | _ \ _ \ __| _ \
+!     | |) / _ \|  _/  _/ _||   /
+!     |___/_/ \_\_| |_| |___|_|_\
+! 
+! 
+-->
 
+DAPPER is a set of templates for benchmarking the performance of
+[data assimilation (DA)](https://sites.google.com/site/patricknraanespro/DA_tut.pdf)
+methods.
+The tests provide experimental support and guidance for new developments in DA.
+The screenshot illustrates the default diagnostics.
 
 <!---
 ![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
@@ -11,11 +20,6 @@
 
 ![EnKF - Lorenz'63](./data/figs/anims/DAPPER_illust_v2.jpg)
 
-
-DAPPER is a set of templates for benchmarking the performance of
-[data assimilation (DA)](https://sites.google.com/site/patricknraanespro/DA_tut.pdf)
-methods.
-The tests provide experimental support and guidance for new developments in DA.
 
 The typical set-up is a "twin experiment", where you
 * specify a
