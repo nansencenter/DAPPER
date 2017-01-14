@@ -4,6 +4,16 @@ from common import *
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 
 
+# RGB constants
+cblue,cgreen,cred,cmagenta,cyellow,ccyan = array(sns.color_palette())
+sns_bg = array([0.9176, 0.9176, 0.9490])
+#cred   = array([1,0,0])
+#cgreen = array([0,1,0])
+#cblue  = array([0,0,1])
+cwhite = array([1,1,1])
+cblack = array([0,0,0])
+
+
 class LivePlot:
   """
   Live plotting functionality.
@@ -97,6 +107,7 @@ class LivePlot:
     #ax3.axis('off')
     for i in range(3):
       set_ilim(ax3,i,xx,1.7)
+    ax3.set_axis_bgcolor('w')
 
 
     #####################
@@ -373,7 +384,7 @@ def plot_time_series(xx,stats,chrono,
   plt.colorbar()
   ax = plt.gca()
   ax.set_title("Hovmoller diagram (of 'Truth')")
-  ax.set_xlabel('Element index [i]')
+  ax.set_xlabel('Element index (i)')
   ax.set_ylabel('Time (t)')
   add_endpoint_xtick(ax)
 
@@ -414,7 +425,7 @@ def plot_err_compons(xx,stats,chrono,config):
   fgE = plt.figure(15,figsize=(8,6)).clf()
   set_figpos('2321 mac')
   ax_r = plt.subplot(211)
-  ax_r.set_xlabel('Element index [i]')
+  ax_r.set_xlabel('Element index (i)')
   ax_r.set_ylabel('Time-average magnitude')
   ax_r.plot(arange(m),mean(abs(stats.err),0),'k',lw=2, label='Error')
   sprd = mean(stats.mad,0)
