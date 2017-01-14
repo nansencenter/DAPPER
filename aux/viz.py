@@ -1,8 +1,6 @@
-# TODO: Do something about figure/subplot/graphic handles
-# TODO: obs plotting
-
 from common import *
 
+#from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 
 
@@ -62,8 +60,8 @@ class LivePlot:
     ax2 = plt.subplot(212)
     msft = abs(stats.umisf[0])
     sprd =     stats.svals[0]
-    self.lmf, = ax2.plot(1+arange(len(msft)),msft,'k',lw=2,label='Error')
-    self.lew, = ax2.plot(1+arange(len(sprd)),sprd,'b',lw=2,label='Spread',alpha=0.9)
+    self.lmf, = ax2.plot(arange(len(msft)),msft,'k',lw=2,label='Error')
+    self.lew, = ax2.plot(arange(len(sprd)),sprd,'b',lw=2,label='Spread',alpha=0.9)
     plt.subplots_adjust(hspace=0.3)
     ax2.set_xlabel('Sing. value index')
     ax2.set_yscale('log')
@@ -326,6 +324,9 @@ def plot_3D_trajectory(xx,stats,chrono,\
   ax3.scatter(xx[kk[-1],0],xx[kk[-1],1],xx[kk[-1],2],s=40 ,c='r')
   ax3.legend()
   ax3.set_axis_bgcolor('w')
+  # Don't do the following, coz it also needs the white grid,
+  # which I can't get working for 3d.
+  #for i in 'xyz': eval('ax3.w_' + i + 'axis.set_pane_color(sns_bg)')
 
 
 def plot_time_series(xx,stats,chrono,
@@ -346,16 +347,12 @@ def plot_time_series(xx,stats,chrono,
   ax_d.legend()
   ax_d.set_xticklabels([])
 
-  has_been_computed = not all(s.trHK[:] == 0)
   ax_K = plt.subplot(3,1,2)
-  ax_K.set_ylabel('trace(H K)')
+  ax_K.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2,label='tr(HK)')
+  ax_K.plot(tt[pkkObs], s.skew[:len(pkkObs)],'g',lw=2,label='Skew')
+  ax_K.plot(tt[pkkObs], s.kurt[:len(pkkObs)],'r',lw=2,label='Kurt')
+  ax_K.legend(frameon=True)
   ax_K.set_xticklabels([])
-  if has_been_computed:
-    ax_K.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2)
-    ylim = 1.1 * np.percentile(s.trHK[:len(pkkObs)],99.6)
-    ax_K.set_ylim(0,ylim)
-  else:
-    not_available_text(ax_K)
 
   ax_e = plt.subplot(3,1,3)
   ax_e.plot(        tt[pkk], s.rmse[pkk],'k',lw=2 ,label='Error')
@@ -367,18 +364,27 @@ def plot_time_series(xx,stats,chrono,
   ax_e.legend()
   ax_e.set_xlabel('time (t)')
 
-  cm = mpl.colors.ListedColormap(sns.color_palette("BrBG", 256)) # RdBu_r
+  #cm = mpl.colors.ListedColormap(sns.color_palette("BrBG", 256)) # RdBu_r
   #cm = plt.get_cmap('BrBG')
   fgH = plt.figure(16,figsize=(6,5)).clf()
   set_figpos('2312 mac')
   m = xx.shape[1]
-  plt.contourf(1+arange(m),tt[pkk],xx[pkk],cmap=cm)
+  plt.contourf(arange(m),tt[pkk],xx[pkk],25)
   plt.colorbar()
   ax = plt.gca()
   ax.set_title("Hovmoller diagram (of 'Truth')")
-  ax.set_xlabel('Dimension index (i)')
+  ax.set_xlabel('Element index [i]')
   ax.set_ylabel('Time (t)')
+  add_endpoint_xtick(ax)
 
+
+def add_endpoint_xtick(ax):
+  xF = ax.get_xlim()[1]
+  ticks = ax.get_xticks()
+  if ticks[-1] > xF:
+    ticks = ticks[:-1]
+  ticks = np.append(ticks, xF)
+  ax.set_xticks(ticks)
 
 
 def integer_hist(E,N,centrd=False,weights=None,**kwargs):
@@ -405,17 +411,10 @@ def plot_err_compons(xx,stats,chrono,config):
   """
   m = xx.shape[1]
 
-  # TODO
-  #if not dims:
-    #dims = arange(m)
-    #d_text = '(averaged over all dims)'
-  #else:
-    #d_text = '(dims: ' + str(dims) + ')'
-
   fgE = plt.figure(15,figsize=(8,6)).clf()
   set_figpos('2321 mac')
   ax_r = plt.subplot(211)
-  ax_r.set_xlabel('Component index')
+  ax_r.set_xlabel('Element index [i]')
   ax_r.set_ylabel('Time-average magnitude')
   ax_r.plot(arange(m),mean(abs(stats.err),0),'k',lw=2, label='Error')
   sprd = mean(stats.mad,0)
@@ -426,14 +425,14 @@ def plot_err_compons(xx,stats,chrono,config):
   ax_r.set_title('Element-wise error comparison')
   #ax_r.set_yscale('log')
   ax_r.set_ylim(bottom=mean(sprd)/10)
-  ax_r.set_xlim(right=m-1)
+  ax_r.set_xlim(right=m-1); add_endpoint_xtick(ax_r)
   ax_r.legend()
   #ax_r.set_position([0.125,0.6, 0.78, 0.34])
   plt.subplots_adjust(hspace=0.45)
 
   ax_s = plt.subplot(212)
   has_been_computed = not all(stats.umisf[-1] == 0)
-  ax_s.set_xlabel('Sing. value index')
+  ax_s.set_xlabel('Principal component index')
   ax_s.set_ylabel('Time-average magnitude')
   ax_s.set_title('Spectral error comparison')
   if has_been_computed:
@@ -443,8 +442,8 @@ def plot_err_compons(xx,stats,chrono,config):
     ax_s.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
     ax_s.set_yscale('log')
     ax_s.set_ylim(bottom=1e-4*sum(sprd))
+    ax_s.set_xlim(right=m-1); add_endpoint_xtick(ax_s)
     ax_s.legend()
-    ax_s.set_xlim(right=m-1)
   else:
     not_available_text(ax_s)
 
@@ -465,7 +464,7 @@ def plot_err_compons(xx,stats,chrono,config):
     ranks = stats.rh[chrono.kkBI]
     if (stats.w[0]==1/N).all() and (stats.w[-1]==1/N).all():
       # Ensemble rank histogram
-      integer_hist(ranks.ravel(),N,alpha=0.7)
+      integer_hist(ranks.ravel(),N,alpha=1.0)
     else:
       # Experimental: weighted rank histogram.
       # Weight ranks by inverse of particle weight. Why? Coz, with correct
@@ -478,7 +477,7 @@ def plot_err_compons(xx,stats,chrono,config):
       w  = w.T.ravel()
       w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
       w  = 1/w
-      integer_hist(ranks.ravel(),N,weights=w,alpha=0.7)
+      integer_hist(ranks.ravel(),N,weights=w,alpha=1.0)
   else:
     not_available_text(ax_H)
 
@@ -487,31 +486,10 @@ def plot_err_compons(xx,stats,chrono,config):
   ax_R.set_ylabel('Num. of occurence')
   ax_R.set_xlabel('RMSE')
   ax_R.set_title('Histogram of RMSE values')
-  ax_R.hist(stats.rmse[chrono.kkBI],alpha=0.7,bins=30,normed=0)
+  ax_R.hist(stats.rmse[chrono.kkBI],alpha=1.0,bins=30,normed=0)
   
 
   
-
-# TODO: ax.axvline(prob, linestyle='--', color='black')
-@atmost_2d
-def plt_vbars(xx,y1y2=None,*kargs,**kwargs):
-  if y1y2 == None:
-    y1y2 = plt.ylim()
-  yy = np.tile(asmatrix(y1y2).ravel().T,(1,len(xx)))
-  xx = np.tile(xx,(2,1))
-  plt.plot(xx,yy,*kargs,**kwargs)
-
-@atmost_2d
-def plt_hbars(yy,x1x2=None,*kargs,**kwargs):
-  if x1x2 == None:
-    x1x2 = plt.xlim()
-  xx = np.tile(asmatrix(x1x2).ravel().T,(1,len(yy)))
-  yy = np.tile(yy,(2,1))
-  plt.plot(xx,yy,*kargs,**kwargs)
-
-
-
-
 
 def set_figpos(loc):
   """

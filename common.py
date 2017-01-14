@@ -16,10 +16,22 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 #plt.switch_backend('Qt4Agg')
 plt.ion()
-from mpl_toolkits.mplot3d import Axes3D
 
-#plt.style.use('ggplot') fivethirtyeight, bmh
+mpl.rcParams['toolbar'] = 'None'
+
+#plt.style.use('ggplot') 'fivethirtyeight', 'bmh'
 import seaborn as sns
+sns.set_color_codes()
+sns.set_style({'image.cmap': 'BrBG'})
+# RGB constants
+cblue,cgreen,cred,cmagenta,cyellow,ccyan = sns.color_palette()
+sns_bg = (0.9176, 0.9176, 0.9490)
+#cred   = array([1,0,0])
+#cgreen = array([0,1,0])
+#cblue  = array([0,0,1])
+cwhite = (1,1,1)
+cblack = (0,0,0)
+
 
 
 # With Qt4Agg backend plt.pause() causes warning. Ignore.
@@ -56,7 +68,7 @@ from numpy import sqrt, abs, floor, ceil, prod, \
     dot
 
 ##################################
-# From DAPPER
+# Setup DAPPER namespace
 ##################################
 
 from aux.utils import *

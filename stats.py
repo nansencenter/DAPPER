@@ -61,9 +61,10 @@ class Stats:
     self.mad[k]  = w @ abs(A)  # Mean abs deviations
 
     # For simplicity, use naive (and biased) formulae, derived from "empirical measure".
+    # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
     # See doc/unbiased_skew_kurt.jpg.
-    self.skew[k] = mean( w @ A**3 / self.var[k]**(3/2) ) # Skewness (normalized)
-    self.kurt[k] = mean( w @ A**4 / self.var[k]**2 - 3 ) # "Excess" kurtosis
+    self.skew[k] = mean( w @ A**3 / self.var[k]**(3/2) )
+    self.kurt[k] = mean( w @ A**4 / self.var[k]**2 - 3 )
 
     self.derivative_stats(k,x)
 

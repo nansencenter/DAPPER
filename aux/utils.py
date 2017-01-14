@@ -86,12 +86,6 @@ def _find_getch():
 getch = _find_getch()
 
 
-# RGB constants
-cwhite = array([1,1,1])
-cred   = array([1,0,0])
-cgreen = array([0,1,0])
-cblue  = array([0,0,1])
-
 # Terminal color codes. Use:
 # print(bcolors.WARNING + "Warning: test" + bcolors.ENDC)
 class bcolors:
