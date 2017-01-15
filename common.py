@@ -26,27 +26,22 @@ from numpy.linalg import eig
 from scipy.linalg import sqrtm, inv, eigh
 
 
+# TODO: consider set(dir(np)).intersection(set(dir(__builtin__)))
 from numpy import sqrt, abs, floor, ceil, prod, \
     sum, mean, \
     linspace, arange, reshape, \
     pi, log, sin, cos, tan, sign, \
     array, asarray, matrix, asmatrix, \
-    eye, zeros, ones, diag, \
-    trace, \
-    dot
-
+    eye, zeros, ones, diag, trace \
 
 
 ##################################
 # Interactive plotting settings
 ##################################
 import matplotlib as mpl
-#matplotlib.use('Qt4Agg')
+mpl.use('TkAgg') # has geometry(placement), but is uglier than MacOSX
 import matplotlib.pyplot as plt
-#plt.switch_backend('Qt4Agg')
 plt.ion()
-
-mpl.rcParams['toolbar'] = 'None'
 
 # Color set up
 try:
@@ -68,6 +63,9 @@ for c in 'bgrmyc':
 import warnings
 import matplotlib.cbook
 warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
+
+# With TkAgg backend this causes warning.
+#mpl.rcParams['toolbar'] = 'None'
 
 
 

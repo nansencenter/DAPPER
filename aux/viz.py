@@ -321,7 +321,7 @@ def plot_3D_trajectory(stats,xx,dims=0,Kplot=None,Tplot=None):
   mu = stats.mu[kk][:,dims]
 
   plt.figure(14).clf()
-  set_figpos('2311 mac')
+  set_figpos('3321 mac')
   ax3 = plt.subplot(111, projection='3d')
 
   ax3.plot   (xx[:,0] ,xx[:,1] ,xx[:,2] ,c='k',label='Truth')
@@ -378,15 +378,16 @@ def plot_time_series(stats,xx,dim=0,Kplot=None,Tplot=None):
   #cm = mpl.colors.ListedColormap(sns.color_palette("BrBG", 256)) # RdBu_r
   #cm = plt.get_cmap('BrBG')
   fgH = plt.figure(16,figsize=(6,5)).clf()
-  set_figpos('2312 mac')
+  set_figpos('3311 mac')
+  axH = plt.subplot(111)
   m = xx.shape[1]
   plt.contourf(arange(m),tt[pkk],xx[pkk],25)
   plt.colorbar()
-  ax = plt.gca()
-  ax.set_title("Hovmoller diagram (of 'Truth')")
-  ax.set_xlabel('Element index (i)')
-  ax.set_ylabel('Time (t)')
-  add_endpoint_xtick(ax)
+  axH.set_position([0.125, 0.20, 0.62, 0.70])
+  axH.set_title("Hovmoller diagram (of 'Truth')")
+  axH.set_xlabel('Dimension index (i)')
+  axH.set_ylabel('Time (t)')
+  add_endpoint_xtick(axH)
 
 
 def add_endpoint_xtick(ax):
@@ -425,9 +426,9 @@ def plot_err_components(stats):
   m      = s.mu.shape[1]
 
   fgE = plt.figure(15,figsize=(8,8)).clf()
-  set_figpos('2321 mac')
+  set_figpos('1312 mac')
   ax_r = plt.subplot(311)
-  ax_r.set_xlabel('Element index (i)')
+  ax_r.set_xlabel('Dimension index (i)')
   ax_r.set_ylabel('Time-average magnitude')
   ax_r.plot(arange(m),mean(abs(s.err),0),'k',lw=2, label='Error')
   sprd = mean(s.mad,0)
@@ -478,7 +479,7 @@ def plot_rank_histogram(stats):
     (w[0]==1/N).all() and (w[-1]==1/N).all()
 
   fg = plt.figure(13,figsize=(8,4)).clf()
-  set_figpos('2322 mac')
+  set_figpos('3331 mac')
   #
   ax_H = plt.subplot(111)
   ax_H.set_title('(Average of marginal) rank histogram')
@@ -508,9 +509,20 @@ def plot_rank_histogram(stats):
   else:
     not_available_text(ax_H)
   
-
+def show_figs(fignums=None):
+  if fignums == None:
+    fignums = plt.get_fignums()
+  try:
+    fignums = list(fignums)
+  except:
+    fignums = [fignums]
+  for f in fignums:
+    plt.figure(f)
+    fmw = plt.get_current_fig_manager().window
+    fmw.attributes('-topmost',1) # Bring to front, but
+    fmw.attributes('-topmost',0) # don't keep in front
   
-
+import getpass
 def set_figpos(loc):
   """
   Place figure on screen, where 'loc' can be either
@@ -522,66 +534,68 @@ def set_figpos(loc):
    - Patrick's monitor setup (Dell with Mac central-below)
    - Qt4Agg backend.
   """
-  if 'Qt4Agg' is not matplotlib.get_backend():
+  if matplotlib.get_backend() != 'TkAgg' \
+      or getpass.getuser() != 'pataan': 
     return
   fmw = plt.get_current_fig_manager().window
 
-  # Current values
-  #w_now = fmw.width()
-  #h_now = fmw.height()
-  #x_now = fmw.x()
-  #y_now = fmw.y()
-
-  # Constants
-  Dell_w = 2560
-  Dell_h = 1440
-  Mac_w  = 2560
-  Mac_h  = 1600
-  # Why is Mac monitor scaled by 1/2 ?
-  Mac_w  /= 2
-  Mac_h  /= 2
-  sysbar = 44
-  winbar = 44 # coz window bars not computed by X11 forwarding ?
-
   loc = str(loc)
-  if 'mac' in loc:
-    x0 = Dell_w/4
-    y0 = Dell_h+sysbar
-    w0 = Mac_w
-    h0 = Mac_h-sysbar
-  else:
-    x0 = 0
-    y0 = 0
-    w0 = Dell_w
-    h0 = Dell_h
+
+  # Qt4Agg only:
+  #  # Current values 
+  #  w_now = fmw.width()
+  #  h_now = fmw.height()
+  #  x_now = fmw.x()
+  #  y_now = fmw.y()
+  #  # Constants 
+  #  Dell_w = 2560
+  #  Dell_h = 1440
+  #  Mac_w  = 2560
+  #  Mac_h  = 1600
+  #  # Why is Mac monitor scaled by 1/2 ?
+  #  Mac_w  /= 2
+  #  Mac_h  /= 2
+  #  if 'mac' in loc:
+  #    x0 = Dell_w/4
+  #    y0 = Dell_h+44
+  #    w0 = Mac_w
+  #    h0 = Mac_h-44
+  #  else:
+  #    x0 = 0
+  #    y0 = 0
+  #    w0 = Dell_w
+  #    h0 = Dell_h
+
+  # TkAgg
+  x0 = 0
+  y0 = 0
+  w0 = 1280
+  h0 = 752
   
   # Def place function with offsets
   def place(x,y,w,h):
-    fmw.setGeometry(x0+x,y0+y,w,h)
+    #fmw.setGeometry(x0+x,y0+y,w,h) # For Qt4Agg
+    geo = str(int(w)) + 'x' + str(int(h)) + \
+        '+' + str(int(x)) + '+' + str(int(y))
+    fmw.geometry(newGeometry=geo) # For TkAgg
 
   if not loc[:4].isnumeric():
-    if loc.startswith('NW'):
-      loc = '2211'
-    elif loc.startswith('SW'):
-      loc = '2221'
-    elif loc.startswith('NE'):
-      loc = '2211'
-    elif loc.startswith('SE'):
-      loc = '2221'
-    elif loc.startswith('W'):
-      loc = '1211'
-    elif loc.startswith('E'):
-      loc = '1212'
-    elif loc.startswith('S'):
-      loc = '2121'
-    elif loc.startswith('N'):
-      loc = '2111'
+    if   loc.startswith('NW'): loc = '2211'
+    elif loc.startswith('SW'): loc = '2221'
+    elif loc.startswith('NE'): loc = '2212'
+    elif loc.startswith('SE'): loc = '2222'
+    elif loc.startswith('W' ): loc = '1211'
+    elif loc.startswith('E' ): loc = '1212'
+    elif loc.startswith('S' ): loc = '2121'
+    elif loc.startswith('N' ): loc = '2111'
 
   # Place
   m,n,i,j = [int(x) for x in loc[:4]]
   assert m>=i>0 and n>=j>0
-  fudge = winbar/m
-  place((j-1)*w0/n, (i-1)*h0/m+fudge/m, w0/n, h0/m-fudge)
-
+  h0   -= (m-1)*25
+  yoff  = 25*(i-1)
+  if i>1:
+    yoff += 25
+  place((j-1)*w0/n, yoff + (i-1)*h0/m, w0/n, h0/m)
 
 

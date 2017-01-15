@@ -12,7 +12,7 @@ DAPPER is a set of templates for benchmarking the performance of
 [data assimilation (DA)](https://sites.google.com/site/patricknraanespro/DA_tut.pdf)
 methods.
 The tests provide experimental support and guidance for new developments in DA.
-The screenshot illustrates the default diagnostics.
+The screenshot below illustrates the default diagnostics.
 
 <!---
 ![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
