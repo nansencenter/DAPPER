@@ -1,11 +1,11 @@
+# This file holds global imports and settings
+
 import sys
 assert sys.version_info >= (3,5)
-
 import os.path
-
 from time import sleep
-
 from collections import OrderedDict
+
 
 ##################################
 # Scientific
@@ -49,11 +49,14 @@ def install_warn(import_err):
   name = name.split("'")[1]
   warnings.warn(install_msg(name))
 
+
 ##################################
 # Interactive plotting settings
 ##################################
 import matplotlib as mpl
-mpl.use('TkAgg') # has geometry(placement), but is uglier than MacOSX
+mpl.use('TkAgg')
+# TkAgg has geometry(placement), but
+# MacOSX is prettier, more stable, & faster (notable in LivePlot)
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -81,11 +84,9 @@ warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 #mpl.rcParams['toolbar'] = 'None'
 
 
-
 ##################################
 # Setup DAPPER namespace
 ##################################
-
 from aux.utils import *
 from aux.misc import *
 from aux.chronos import *

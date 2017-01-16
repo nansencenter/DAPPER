@@ -176,18 +176,15 @@ Implementation choices
 * NEW: Use `N-by-m` ndarrays. Pros:
     * Python default
         * speed of (row-by-row) access, especially for models
-        * ordering of random numbers
-    * numpy sometimes returns ndarrays even when input is matrix
-    * works well with ens space formulea,
-        * e.g. 
-        * yields beneficial operator precedence without `()`. E.g. `dy@Ri@Y.T@Pw`
-    * Bocquet's choice
-    * Broadcasting
-    * Avoids reshape's and asmatrix
-    * Fewer indices: `[:,k]` becomes `[k]`
+        * same as default ordering of random numbers
+    * numpy *might* return ndarrays even when input is matrix
+    * works well with ens space formulae,
+      and yields beneficial operator precedence without `()`. E.g. `dy@Ri@Y.T@Pw`
+    * Avoids reshape's and recasting (asmatrix)
+    * Fewer indices: `[n,:]` yields same as `[n]`
 * OLD: Use m-by-N matrix class. Pros:
     * Litterature uses `m-by-N`
-    * Matrix class allowss desired broadcasting
+    * Facilitates desired broadcasting
     * Matrix multiplication through `*` -- Deprecated since python3.5
 
 
@@ -203,22 +200,13 @@ What it can't do
 TODO
 ------------------------------------------------
 * CovMat
-		* Unify sparse and dense treatment
-		* Read-only properties
-* Plotting with the new ipython
-* Barotropic model
-		* 
-* add_noise()
-* Truncate SVD at 95 or 99% (evensen)
-* Doc models
-* 1D model preserving some quantity (aside from L95)
-* 2D model
-* KdVB model? (Zupanski 2006)
-* Should (direct) observations return copy? e.g. x[:,obsInds].copy()
-* Take advantage of pass-by-ref
-* Decide on conflicts np vs math vs sp
-* unify matrix vs array (e.g. randn)
-* vs 1d array (e.g. xx[:,0] in L3.dxdt)
+     * Unify sparse and dense treatment
+     * Read-only properties
+* Models
+    * Improve doc
+    * Barotropic
+    * convservational 1D model (aside from L95)
+    * KdVB (Zupanski 2006)
 
 
 "Outreach"

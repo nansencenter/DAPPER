@@ -17,8 +17,8 @@ class RV:
       E = zeros(self.m, N)
     elif self.func:
       return self.func(N)
-    # TODO:
-    #elif self.cdf:
+    
+    #elif self.cdf: # TODO:
       ## multivariate CDF sampling
     #elif self.pdf:
       ## A-R sampling

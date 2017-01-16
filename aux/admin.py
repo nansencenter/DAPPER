@@ -52,8 +52,8 @@ class OSSE:
         s += '\n' + key + '=' + str(val)
     return s + ')'
 
-# TODO
-#from json import JSONEncoder
+
+# TODO: from json import JSONEncoder
 #class DAC(JSONEncoder):
 class DAC():
   """A fancy dict for DA Configuarations (settings)."""

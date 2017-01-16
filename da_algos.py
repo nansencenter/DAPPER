@@ -887,6 +887,7 @@ def resample(E,w,N,noise, \
 
 def EnCheat(setup,config,xx,yy):
   """
+  A baseline/reference method.
   Ensemble method that cheats: it knows the truth.
   Nevertheless, its error will not be 0, because the truth may be outside of the ensemble subspace.
   This method is just to provide a baseline for comparison with other methods.
@@ -915,13 +916,13 @@ def EnCheat(setup,config,xx,yy):
       w,res,_,_ = sla.lstsq(E.T, xx[k])
       if not res.size:
         res = 0
-      res = sqrt(res/setup.f.m) * ones(setup.f.m)
+      res = diag((res/setup.f.m) * ones(setup.f.m))
       opt = w @ E
       # NB: It is also interesting to center E
       #     on the optimal solution.
       #E   = opt + E - mean(E,0)
 
-    #stats.assess_ext(opt,res,xx,k) # TODO: changed assess_ext input
+    stats.assess_ext(opt,res,xx,k)
     lplot.update(E,k,kObs)
   return stats
 
@@ -953,9 +954,10 @@ def D3Var(setup,config,xx,yy):
 
   dkObs = chrono.dkObs
   R     = h.noise.C.C
-  #dHdx = f.jacob
-  #H    = dHdx(np.nan,mu0).T # TODO: .T ?
-  H     = eye(h.m)
+  H     = h.jacob(np.nan, np.nan)
+  # Dirty hack: use nan's to generate errors,
+  # coz we don't want support time-dependent H,
+  # coz then we can't pre-compute KG.
 
   mu0   = mean(xx,0)
   A0    = xx - mu0
@@ -996,6 +998,14 @@ def D3Var(setup,config,xx,yy):
 
 
 def ExtKF(setup,config,xx,yy):
+  """
+  The extended Kalman filter.
+  A baseline/reference method.
+  If everything is linear-Gaussian, this provides the exact solution
+  to the Bayesian filtering equations.
+  Inflation must be specified
+  (in the linear-Gaussian case it should be set to 1.0)."
+  """
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   R = h.noise.C.C
