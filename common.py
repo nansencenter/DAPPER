@@ -23,7 +23,7 @@ from scipy.linalg import svd
 from numpy.linalg import eig 
 from scipy.linalg import sqrtm, inv, eigh
 
-
+# NB: sum() and abs() will shadow __builtin__ versions.
 from numpy import \
     sqrt, abs, floor, ceil, \
     pi, log, log10, exp, sin, cos, tan, \
@@ -31,8 +31,6 @@ from numpy import \
     array, asarray, asmatrix, \
     linspace, arange, reshape, \
     eye, zeros, ones, diag, trace
-
-# TODO: max, min
 
 
 ##################################

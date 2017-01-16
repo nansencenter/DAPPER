@@ -45,28 +45,23 @@ h = {
 
 
 
-# sinusoidal_sample() can be replicated by a
-# covariance matrix approach.
-# However, for strict equivalence one would have to use
-# uniform random numbers to multiply with
-# the covariance (cholesky factor).
-# This approach has a prescribed covariance matrix,
-# and so it can be treated in the ensemble in interesting ways,
-# (ie. not just additive sampling).
-# But, for efficiency, only a m-by-rank cholesky factor
-# should be specified.
-wnumQ     = 25
-NQ        = 2000 # should be at least 2*wnumQ+1
-A         = sinusoidal_sample(m,wnumQ,NQ)
-A         = 1/10 * anom(A)[0] / sqrt(NQ)
-Q         = A.T @ A
-
-#TODO:
-# Instead of the above, generate huge (N) sample,
-# compute its cov, so that:
-#Q = load average_sinusoidal_cov.datafile
-#Q = GaussRV(chol = sqrtm(Q))
-
+# Instead of sampling model noise from sinusoidal_sample(),
+# we will replicate it below by a covariance matrix approach.
+# But, for strict equivalence, one would have to use
+# uniform (i.e. not Gaussian) random numbers.
+wnumQ = 25
+fname = 'data/LA_Q_wnum' + str(wnumQ) + '.npz'
+try:
+  # Load pre-generated
+  Q = np.load(fname)['Q']
+except FileNotFoundError:
+  # First-time use
+  NQ        = 20000; assert (2*wnumQ+1) < NQ
+  A         = sinusoidal_sample(m,wnumQ,NQ)
+  A         = 1/10 * anom(A)[0] / sqrt(NQ)
+  Q         = A.T @ A
+  np.savez(fname, Q=Q)
+# TODO: for efficiency, use cholesky factor.
 
 X0 = GaussRV(C = 5*Q)
 
@@ -95,9 +90,9 @@ setup = OSSE(f,h,tseq,X0,**other)
 
 ## Expected rmse_a = 0.3
 #config = DAC(EnKF,'PertObs',N=30,infl=3.2)
-# TODO:
+#
 # But infl=1 yields approx optimal rmse, even though then rmv << rmse.
-# Why is rmse so INsensitive to inflation for PertObs?
+# TODO: Why is rmse so INsensitive to inflation for PertObs?
 # Similar case, but with N=60: infl=1.00, and 1.80.
 
 
