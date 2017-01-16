@@ -5,8 +5,8 @@ from common import *
 class Chronology:
   """
   Time schedules with consistency checks.
-  Uses integer records => tt[k] == k*dt.
-  Uses generators      => time series may be arbitrarily long.
+  Uses int records => tt[k] == k*dt.
+  Uses generators  => time series may be arbitrarily long.
 
   Example:
                        <----dtObs---->
@@ -21,24 +21,20 @@ class Chronology:
   Note: no obs at 0 by convention, which is hardcorded in DA code,
         whose cycling starts by the forecast.
 
-  Identities:
+  Identities (subject to precision):
     len(kk)    == len(tt)    == K   +1
     len(kkObs) == len(ttObs) == KObs+1
   and
-    kkObs[0]  == dkObs == dtObs/dt == K/(KObs+1)
-    kkObs[-1] == K     == T/dt
-    KObs      == T/dtObs-1
+    kkObs[0]   == dkObs      == dtObs/dt == K/(KObs+1)
+    kkObs[-1]  == K          == T/dt
+    KObs       == T/dtObs-1
+
+  These attributes may be set (altered) after init: dt, dkObs, K, T.
+  Other attributes may not, due to ambiguity
+  (e.g. should dtObs*=2 yield a doubling of T too?)
 
   Future: Support non-equi-spaced time seq.
   """
-
-  #TODO:
-  #The variables are not protected, but should not be changed,
-  #nor are they implemented as properties.
-  #=> changes requires reinitialization the constructor.
-  #Why: the ambiguity involved in e.g.
-  #">>> chrono.dtObs = 2*chrono.dtObs"
-  #is too big. Should T also be doubled?
 
   def __init__(self,dt=None,dtObs=None,T=None,BurnIn=-1, \
       dkObs=None,KObs=None,K=None):
@@ -76,19 +72,11 @@ class Chronology:
     self._dkObs   = dkObs
     self._K       = K
 
-    # TODO: Prevent these from being written
-    self.kk      = arange(K+1)
-    self.kkObs   = self.kk[dkObs::dkObs]
-
-    # TODO: Prevent these from being written
-    self.dtObs    = dkObs*dt
-    #self.T        = dt*K
-    self.KObs     = int(K/dkObs)-1
-    assert self.KObs == len(self.kkObs)-1
-
     if self.T <= BurnIn:
       raise ValueError('BurnIn > T')
     self.BurnIn = BurnIn
+
+    assert len(self.kkObs) == self.KObs+1
 
 
   ######################################
@@ -118,8 +106,32 @@ class Chronology:
     self.__init__(dt=self.dt,dkObs=self.dkObs,K=value,BurnIn=self.BurnIn)
 
   ######################################
+  # Read/write (though not state var)
+  ######################################
+  @property
+  def T(self):
+    return self.dt*self.K
+  @T.setter
+  def T(self,value):
+    self.__init__(dt=self.dt,dkObs=self.dkObs,T=value,BurnIn=self.BurnIn)
+
+  ######################################
   # Read-only
   ######################################
+  @property
+  def dtObs(self):
+    return self.dkObs*self.dt
+  @property
+  def KObs(self):
+    return int(self.K/self.dkObs)-1
+
+  @property
+  def kk(self):
+    return arange(self.K+1)
+  @property
+  def kkObs(self):
+    return self.kk[self.dkObs::self.dkObs]
+
   @property
   def tt(self):
     return self.kk * self.dt
@@ -136,28 +148,23 @@ class Chronology:
     return self.kkObs[self.ttObs > self.BurnIn]
 
   ######################################
-  # Read/write (but non-state var)
-  ######################################
-  @property
-  def T(self):
-    return self.dt*self.K
-  @T.setter
-  def T(self,value):
-    self.__init__(dt=self.dt,dkObs=self.dkObs,T=value,BurnIn=self.BurnIn)
-
-  ######################################
-  # Tools
+  # Other
   ######################################
   @property
   def forecast_range(self):
-    """"Fancy version of range(1,K+1), also providing t, dt, and kObs."""
+    """"
+    Fancy version of range(1,K+1),
+    also providing t, dt, and kObs.
+    """
     tckr = Ticker(self.tt,self.kkObs)
     next(tckr)
     return tckr
 
   def DAW_range(self,kObs):
-    """The range of the kObs-th data assimilation window (DAW).
-    Also yields t and dt."""
+    """
+    The range (in kk) of the kObs-th data assimilation window (DAW).
+    Also yields t and dt.
+    """
     for k in kObs * self.dkObs + arange(1,self.dkObs+1):
       t  = self.tt[k]
       dt = t - self.tt[k-1]
@@ -176,10 +183,13 @@ class Chronology:
 
 
 class Ticker:
-  """ Iterator over kk, AND kkObs,
-  the latter being handled without repeated look-ups.
+  """
+  Iterator over kk and kkObs, yielding (k,kObs,t,dt).
   Includes __len__ for progressbar usage.
-  Provides additional setup: k,dt."""
+
+  kObs = kkObs.index(k), or None otherwise,
+  but computed without this repeated look-up operation.
+  """
   def __init__(self, tt, kkObs):
     self.tt  = tt
     self.kkO = kkObs
