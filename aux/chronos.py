@@ -127,12 +127,12 @@ class Chronology:
   def ttObs(self):
     return self.kkObs * self.dt
 
-  # Burn In. Note: uses > (strict inequality)
+  # Burn In. NB: uses > (strict inequality)
   @property
-  def kkBI(self):
+  def kk_BI(self):
     return self.kk[self.tt > self.BurnIn]
   @property
-  def kkObsBI(self):
+  def kkObs_BI(self):
     return self.kkObs[self.ttObs > self.BurnIn]
 
   ######################################

@@ -491,7 +491,7 @@ def plot_err_components(stats):
   ax_R.set_ylabel('Num. of occurence')
   ax_R.set_xlabel('RMSE')
   ax_R.set_title('Histogram of RMSE values')
-  ax_R.hist(s.rmse[chrono.kkBI],alpha=1.0,bins=30,normed=0)
+  ax_R.hist(s.rmse[chrono.kk_BI],alpha=1.0,bins=30,normed=0)
 
 
 def plot_rank_histogram(stats):
@@ -512,7 +512,7 @@ def plot_rank_histogram(stats):
   ax_H.set_xlabel('ensemble member index (n)')
   ax_H.set_position([0.125,0.15, 0.78, 0.75])
   if has_been_computed:
-    ranks = stats.rh[chrono.kkBI]
+    ranks = stats.rh[chrono.kk_BI]
     m     = ranks.shape[1]
     N     = stats.w.shape[1]
     if are_uniform(stats.w):
@@ -523,10 +523,10 @@ def plot_rank_histogram(stats):
       # Weight ranks by inverse of particle weight. Why? Coz, with correct
       # importance weights, the "expected value" histogram is then flat.
       # Potential improvement: interpolate weights between particles.
-      KBI= len(chrono.kkBI)
-      w  = stats.w[chrono.kkBI]
-      w  = np.hstack([w, ones((KBI,1))/N]) # define weights for rank N+1
-      w  = array([ w[arange(KBI),ranks[arange(KBI),i]] for i in range(m)])
+      w  = stats.w[chrono.kk_BI]
+      K  = len(w)
+      w  = np.hstack([w, ones((K,1))/N]) # define weights for rank N+1
+      w  = array([ w[arange(K),ranks[arange(K),i]] for i in range(m)])
       w  = w.T.ravel()
       w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
       w  = 1/w

@@ -130,10 +130,10 @@ class Stats:
 
   def average_in_time(self):
     t    = self.setup.t
-    kk_a = t.kkObsBI                   # analysis time > BurnIn
-    kk_f = t.kkObsBI-1                 # forecast      > BurnIn
-    kk_u = t.kk                        # all times     > BurnIn
-    kk_O = arange(t.kObsBI, t.KObs+1)  # all obs times > BurnIn
+    kk_a = t.kkObs_BI                   # analysis time > BurnIn
+    kk_f = t.kkObs_BI-1                 # forecast      > BurnIn
+    kk_u = t.kk_BI                      # all times     > BurnIn 
+    kk_O = t.ttObs > t.BurnIn
     avrg = dict()
     for key,val in vars(self).items():
       if type(val) is np.ndarray:
@@ -141,7 +141,6 @@ class Stats:
           if len(val) == t.K+1:
             avrg[key + '_a'] = series_mean_with_conf(val[kk_a])
             avrg[key + '_f'] = series_mean_with_conf(val[kk_f])
-            avrg[key + '_u'] = series_mean_with_conf(val[kk_u])
           elif len(val) == t.KObs+1:
             avrg[key] = series_mean_with_conf(val[kk_O])
     return avrg
