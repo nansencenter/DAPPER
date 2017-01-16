@@ -3,39 +3,43 @@
 from common import *
 
 class Chronology:
-  """Time ledgers with consistency checks.
-
+  """
+  Time schedules with consistency checks.
   Uses integer records => tt[k] == k*dt.
-  Uses generators => time series may be arbitrarily long.
+  Uses generators      => time series may be arbitrarily long.
 
   Example:
-                       <-----dtObs----->
-                <---dt--->
+                       <----dtObs---->
+                <--dt-->
   tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
   kk:    0      1      2      3      4      5      K
          |------|------|------|------|------|------|
-  kObs:  No     No     0      No     1      No     KObs
+  kObs:  N      N      0      N      1      N      KObs
   kkObs:               2             4             6
-                       <----dkObs----->
+                       <----dkObs---->
 
-  I.e. no obs at 0 coz it doesn't fit with convention,
-  which is hardcorded in DA code,
-  whose cycling conventionally starts by forecasting.
+  Note: no obs at 0 by convention, which is hardcorded in DA code,
+        whose cycling starts by the forecast.
 
   Identities:
-    len(kk)    = len(tt)    = K   +1
-    len(kkObs) = len(ttObs) = KObs+1
+    len(kk)    == len(tt)    == K   +1
+    len(kkObs) == len(ttObs) == KObs+1
   and
-    kkObs[0]  = dkObs = dtObs/dt = T/(KObs+1)
-    kkObs[-1] = K     = T/dt
-    KObs      = T/dtObs-1
+    kkObs[0]  == dkObs == dtObs/dt == K/(KObs+1)
+    kkObs[-1] == K     == T/dt
+    KObs      == T/dtObs-1
 
-  The variables are not protected, but should not be changed,
-  nor are they implemented as properties.
-  => changes requires reinitialization the constructor.
-  Why: the ambiguity involved in e.g. >>> tseq.dtObs = 2*tseq.dtObs
-  is too big. Should T also be doubled?
+  Future: Support non-equi-spaced time seq.
   """
+
+  #TODO:
+  #The variables are not protected, but should not be changed,
+  #nor are they implemented as properties.
+  #=> changes requires reinitialization the constructor.
+  #Why: the ambiguity involved in e.g.
+  #">>> chrono.dtObs = 2*chrono.dtObs"
+  #is too big. Should T also be doubled?
+
   def __init__(self,dt=None,dtObs=None,T=None,BurnIn=-1, \
       dkObs=None,KObs=None,K=None):
 
@@ -82,17 +86,14 @@ class Chronology:
     self.KObs     = int(K/dkObs)-1
     assert self.KObs == len(self.kkObs)-1
 
-    # Burn In
-    if self.T <= BurnIn: raise ValueError('BurnIn > T')
-    self.BurnIn  = BurnIn
-    self.kBI     = find_1st_ind(self.tt    > self.BurnIn)
-    self.kObsBI  = find_1st_ind(self.ttObs > self.BurnIn)
-    self.ttBI    = self.tt[self.kBI:]
-    self.kkBI    = self.kk[self.kBI:]
-    self.kkObsBI = self.kkObs[self.kObsBI:]
-    self.ttObsBI = self.ttObs[self.kObsBI:]
+    if self.T <= BurnIn:
+      raise ValueError('BurnIn > T')
+    self.BurnIn = BurnIn
 
-  # "State vars"
+
+  ######################################
+  # "State vars". Can be set (changed).
+  ######################################
   @property
   def dt(self):
     return self._dt
@@ -116,7 +117,9 @@ class Chronology:
   def K(self,value):
     self.__init__(dt=self.dt,dkObs=self.dkObs,K=value,BurnIn=self.BurnIn)
 
+  ######################################
   # Read-only
+  ######################################
   @property
   def tt(self):
     return self.kk * self.dt
@@ -124,7 +127,17 @@ class Chronology:
   def ttObs(self):
     return self.kkObs * self.dt
 
+  # Burn In. Note: uses > (strict inequality)
+  @property
+  def kkBI(self):
+    return self.kk[self.tt > self.BurnIn]
+  @property
+  def kkObsBI(self):
+    return self.kkObs[self.ttObs > self.BurnIn]
+
+  ######################################
   # Read/write (but non-state var)
+  ######################################
   @property
   def T(self):
     return self.dt*self.K
@@ -132,10 +145,12 @@ class Chronology:
   def T(self,value):
     self.__init__(dt=self.dt,dkObs=self.dkObs,T=value,BurnIn=self.BurnIn)
 
+  ######################################
+  # Tools
+  ######################################
   @property
   def forecast_range(self):
-    """"Fancy version of range(1,K+1),
-    which also provides t, dt, and kObs"""
+    """"Fancy version of range(1,K+1), also providing t, dt, and kObs."""
     tckr = Ticker(self.tt,self.kkObs)
     next(tckr)
     return tckr
