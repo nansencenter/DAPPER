@@ -108,8 +108,8 @@ class LivePlot:
     set_figpos('2312')
 
     chrono = setup.t
-    self.Kplot = estimate_good_plot_length(xx,chrono)
-    pkk = arange(self.Kplot)
+    self.K = estimate_good_plot_length(xx,chrono,mult=80)
+    pkk = arange(self.K)
     ptt = chrono.tt[pkk]
 
     self.ax_e = plt.subplot(211)
@@ -231,9 +231,9 @@ class LivePlot:
     #####################
     if plt.fignum_exists(self.fgd.number):
       plt.figure(self.fgd.number)
-      pkk = arange(self.Kplot)
-      if k > self.Kplot:
-        pkk += (k-self.Kplot)
+      pkk = arange(self.K)
+      if k > self.K:
+        pkk += (k-self.K)
       pkk = pkk.astype(int)
       ptt = self.setup.t.tt[pkk]
 
@@ -261,6 +261,7 @@ class LivePlot:
     
 
 def update_ylim(data,ax,Min=None,Max=None):
+  """Update ylims intelligently. Better to use mpl function? (which?)"""
   maxv = minv = -np.inf
   for d in data:
     minv, maxv = np.maximum([minv, maxv], \
@@ -278,6 +279,7 @@ def update_ylim(data,ax,Min=None,Max=None):
 
 
 def set_ilim(ax,i,data,zoom=1.0):
+  """Set bounds (taken from data) on axis i.""" 
   Min  = np.min(data[:,i])
   Max  = np.max(data[:,i])
   lims = round2sigfig([Min, Max])
@@ -287,34 +289,52 @@ def set_ilim(ax,i,data,zoom=1.0):
   if i is 2: ax.set_zlim(lims)
 
 
-def estimate_good_plot_length(xx,chrono,scale=80):
+def estimate_good_plot_length(xx,chrono,mult):
+  """Estimate good length for plotting stuff
+  from the time scale of the system.
+  Provide sensible fall-backs."""
   if xx.ndim == 2:
+    # If mult-dim, then average over dims (by ravel)....
+    # But for inhomogeneous variables, it is important
+    # to subtract the mean first!
+    xx = xx - mean(xx,axis=0)
     xx = xx.ravel(order='F')
   try:
-    K = scale * estimate_corr_length(xx)
+    K = mult * estimate_corr_length(xx)
   except ValueError:
     K = 0
   K = int(min(max(K,chrono.dkObs),chrono.K))
-  T = round2sigfig(chrono.tt[K],2)
+  T = round2sigfig(chrono.tt[K],2) # Could return T; T>tt[-1]
   K = find_1st_ind(chrono.tt >= T)
-  return K
+  if K: return K
+  else: return chrono.K
 
-def get_plot_inds(chrono,Kplot,Tplot,xx):
-  if Kplot is None:
-    if Tplot: Kplot = find_1st_ind(chrono.tt >= Tplot)
-    else:     Kplot = estimate_good_plot_length(xx,chrono)
-  plot_kk    = chrono.kk[:Kplot+1]
-  plot_kkObs = chrono.kkObs[chrono.kkObs<=Kplot]
+def get_plot_inds(chrono,xx,mult,K=None,T=None):
+  """
+  Def subset of kk for plotting, from one of
+   - K
+   - T
+   - mult * auto-correlation length of xx
+  """
+  if K is None:
+    if T: K = find_1st_ind(chrono.tt >= T)
+    else: K = estimate_good_plot_length(xx,chrono,mult)
+  plot_kk    = chrono.kk[:K+1]
+  plot_kkObs = chrono.kkObs[chrono.kkObs<=K]
   return plot_kk, plot_kkObs
 
 
-def plot_3D_trajectory(stats,xx,dims=0,Kplot=None,Tplot=None):
+def plot_3D_trajectory(stats,xx,dims=0,**kwargs):
+  """
+  Plot 3D phase-space trajectory.
+  kwargs forwarded to get_plot_inds().
+  """
   if isinstance(dims,int):
     dims = dims + arange(3)
   assert len(dims)==3
 
   chrono = stats.setup.t
-  kk = get_plot_inds(chrono,Kplot,Tplot,xx)[0]
+  kk = get_plot_inds(chrono,xx,mult=100,**kwargs)[0]
   T  = chrono.tt[kk[-1]]
 
   xx = xx      [kk][:,dims]
@@ -328,7 +348,7 @@ def plot_3D_trajectory(stats,xx,dims=0,Kplot=None,Tplot=None):
   ax3.plot   (mu[:,0] ,mu[:,1] ,mu[:,2] ,c='b',label='DA estim.')
   ax3.scatter(xx[0 ,0],xx[0 ,1],xx[0 ,2],c='g',s=40)
   ax3.scatter(xx[-1,0],xx[-1,1],xx[-1,2],c='r',s=40)
-  ax3.set_title('Phase space trajectory up to t={:.2g}'.format(T))
+  ax3.set_title('Phase space trajectory up to t={:<5.2f}'.format(T))
   ax3.set_xlabel('dim ' + str(dims[0]))
   ax3.set_ylabel('dim ' + str(dims[1]))
   ax3.set_zlabel('dim ' + str(dims[2]))
@@ -339,14 +359,18 @@ def plot_3D_trajectory(stats,xx,dims=0,Kplot=None,Tplot=None):
   #for i in 'xyz': eval('ax3.w_' + i + 'axis.set_pane_color(sns_bg)')
 
 
-def plot_time_series(stats,xx,dim=0,Kplot=None,Tplot=None):
+def plot_time_series(stats,xx,dim=0,**kwargs):
+  """
+  Plot time series of various statistics.
+  kwargs forwarded to get_plot_inds().
+  """
   s      = stats
   chrono = stats.setup.t
 
   fg = plt.figure(12,figsize=(8,8)).clf()
   set_figpos('1313 mac')
 
-  pkk,pkkObs = get_plot_inds(chrono,Kplot,Tplot,xx[:,dim])
+  pkk,pkkObs = get_plot_inds(chrono,xx[:,dim],mult=80,**kwargs)
   tt = chrono.tt
 
   ax_d = plt.subplot(3,1,1)
@@ -391,6 +415,7 @@ def plot_time_series(stats,xx,dim=0,Kplot=None,Tplot=None):
 
 
 def add_endpoint_xtick(ax):
+  """Useful when xlim(right) is e.g. 39 (instead of 40)."""
   xF = ax.get_xlim()[1]
   ticks = ax.get_xticks()
   if ticks[-1] > xF:
@@ -510,6 +535,7 @@ def plot_rank_histogram(stats):
     not_available_text(ax_H)
   
 def show_figs(fignums=None):
+  """Move all fig windows to top"""
   if fignums == None:
     fignums = plt.get_fignums()
   try:
@@ -522,6 +548,7 @@ def show_figs(fignums=None):
     fmw.attributes('-topmost',1) # Bring to front, but
     fmw.attributes('-topmost',0) # don't keep in front
   
+
 import getpass
 def set_figpos(loc):
   """

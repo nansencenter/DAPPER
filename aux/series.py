@@ -7,7 +7,7 @@ def auto_cov(xx,L=5):
     assert is1d(xx)
     N = len(xx)
     if N<=L:
-      raise ValueError
+      raise ValueError('L (=len(ACF)) must be <= len(xx)')
     mu = np.mean(xx)
     acovf = array([
       sum((xx[:N-i]-mu)*(xx[i:]-mu))/(N-1-i)
@@ -21,8 +21,6 @@ def auto_cov_periodic(xx,L=5):
     """
     assert is1d(xx)
     N = len(xx)
-    if N<=L:
-      raise ValueError
     mu = np.mean(xx)
     acovf = array([
       sum(np.roll(xx-mu,i)*(xx-mu))/(N-1)
