@@ -192,7 +192,10 @@ def reconst(U,s,VT):
   return (U * s) @ VT
 
 def tinv(A,*kargs,**kwargs):
-  """Inverse based on truncated svd."""
+  """
+  Inverse based on truncated svd.
+  Also see sla.pinv2().
+  """
   U,s,VT = tsvd(A,*kargs,**kwargs)
   return (VT.T * s**(-1.0)) @ U.T
 

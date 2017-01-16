@@ -85,7 +85,7 @@ def EnKS(setup,config,xx,yy):
   EnKS.
   The only difference to the EnKF is the management of the lag and the reshapings.
   Settings for reproducing literature benchmarks may be found in
-  mods/Lorenz95/sak08.py
+  mods/Lorenz95/m33.py
   """
 
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
@@ -95,7 +95,7 @@ def EnKS(setup,config,xx,yy):
     return E.transpose([1,0,2]).reshape((N,K*m))
   def reshape_fr(E,m):
     N,Km = E.shape
-    K    = Km/m
+    K    = Km//m
     return E.reshape((N,K,m)).transpose([1,0,2])
 
   E     = zeros((chrono.K+1,N,f.m))
@@ -129,7 +129,7 @@ def EnRTS(setup,config,xx,yy):
   """
   EnRTS (Rauch-Tung-Striebel) smoother.
   Settings for reproducing literature benchmarks may be found in
-  mods/Lorenz95/sak08.py
+  mods/Lorenz95/m33.py
   """
 
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
@@ -156,8 +156,7 @@ def EnRTS(setup,config,xx,yy):
     A  = anom(E[k])[0]
     Af = anom(Ef[k+1])[0]
 
-    # TODO: make it tinv( , 0.99)
-    J = sla.pinv2(Af) @ A
+    J = tinv(Af) @ A
     J *= config.cntr
     
     E[k] += ( E[k+1] - Ef[k+1] ) @ J
@@ -651,12 +650,12 @@ def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
   if upd_a is 'PertObs':
     raise NotImplementedError
   elif 'Sqrt' in upd_a:
-    if 'naive' in upd_a:
+    if 'explicit' in upd_a:
       Pw   = funm_psd(hess, np.reciprocal)
       T    = funm_psd(hess, lambda x: x**(-0.5)) * sqrt(N-1)
       Tinv = funm_psd(hess, sqrt) / sqrt(N-1)
     elif 'svd' in upd_a:
-      # Implementation using svd of Y # TODO: sort out .T !!!
+      # Implementation using svd of Y
       raise NotImplementedError
     else:
       # Implementation using eig. val.
@@ -834,18 +833,19 @@ def GGM(setup,config,xx,yy):
   """
 
 
-def resample(E,w,N,fnoise, \
+def resample(E,w,N,noise, \
     do_mu_corr=False,do_var_corr=False,kind='Multinomial'):
   """
   Resampling function for the particle filter.
   N can be different from E.shape[0] in case some particles
   have been elimintated.
+  Note: anomalies (and thus cov) are weighted,
+  and also computed based on a weighted mean.
   """
+  assert(abs(sum(w)-1) < 1e-5)
+
   N_b,m = E.shape
 
-  # TODO A_b should be computed using weighted mean?
-  # In DATUM, it wasn't.
-  # Same question arises for Stats assessment.
   mu_b  = w@E
   A_b   = E - mu_b
   ss_b  = sqrt(w @ A_b**2)
@@ -854,7 +854,7 @@ def resample(E,w,N,fnoise, \
     idx = np.random.choice(N_b,N,replace=True,p=w)
     E   = E[idx]
 
-    if fnoise.is_deterministic:
+    if noise.is_deterministic:
       #If no forward noise: we need to add some.
       #Especially in the case of N >> m.
       #Use ss_b (which is precomputed, and weighted)?
@@ -864,7 +864,7 @@ def resample(E,w,N,fnoise, \
     N_eff = 1/(w@w)
     if N_eff<2:
       N_eff = 2
-    ub = 1/(1 - 1/N_eff)
+    ub = 1/(1 - 1/N_eff) # unbias-ing factor
     A  = tp(sqrt(ub*w)) * A_b
     A  = randn((N,N)) @ A
     E  = mu_b + A
@@ -874,7 +874,6 @@ def resample(E,w,N,fnoise, \
   # do_mu/var_corr compensates for this in the mean and variance.
   A_a,mu_a = anom(E)
   if do_mu_corr:
-    # TODO: Debug
     mu_a = mu_b
   if do_var_corr:
     var_b = sum(ss_b**2)/m

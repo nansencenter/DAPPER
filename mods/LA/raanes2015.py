@@ -56,12 +56,17 @@ try:
   Q = np.load(fname)['Q']
 except FileNotFoundError:
   # First-time use
-  NQ        = 20000; assert (2*wnumQ+1) < NQ
+  NQ        = 20000; # Must have NQ > (2*wnumQ+1)
   A         = sinusoidal_sample(m,wnumQ,NQ)
   A         = 1/10 * anom(A)[0] / sqrt(NQ)
   Q         = A.T @ A
   np.savez(fname, Q=Q)
-# TODO: for efficiency, use cholesky factor.
+
+# TODO: Make GaussRV support init by chol,
+#       test reproducibility, insert into loaded file.
+#U,s,_ = tsvd(Q)
+#Q12   = U*sqrt(s)
+#X0    = GaussRV(C12 = sqrt(5)*Q12)
 
 X0 = GaussRV(C = 5*Q)
 
@@ -94,12 +99,6 @@ setup = OSSE(f,h,tseq,X0,**other)
 # But infl=1 yields approx optimal rmse, even though then rmv << rmse.
 # TODO: Why is rmse so INsensitive to inflation for PertObs?
 # Similar case, but with N=60: infl=1.00, and 1.80.
-
-
-# Providing ** no truncation ** is used in Sqrt-Core,
-# then EnKF_Sqrt with N>m and infl=1.0 yields rmse==rmv, and the rmse is optimal.
-#config = DAC(EnKF_Sqrt,N=60,infl=1.0)
-
 
 # Reproduce raanes'2015 "extending sqrt method to model noise":
 # config = DAC(EnKF,'Sqrt',fnoise_treatm='XXX',N=30,infl=1.0),

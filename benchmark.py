@@ -22,13 +22,13 @@ sd0 = seed(5)
 #config = DAC(PartFilt, N=1000, NER=0.1)
 
 
-from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
+#from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)
 #config = DAC(ExtKF, infl = 1.05)
 #config = DAC(EnCheat,'Sqrt',N=24,infl=1.02,rot=True)
 #
-config = DAC(EnKF,'PertObs',N=40,infl=1.06)            # 0.22
+#config = DAC(EnKF,'PertObs',N=40,infl=1.06)            # 0.22
 #config = DAC(EnKF,'DEnKF  ',N=40,infl=1.01)            # 0.18
 #config = DAC(EnKF,'PertObs',N=28,infl=1.08)            # 0.24
 #config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
@@ -41,6 +41,9 @@ config = DAC(EnKF,'PertObs',N=40,infl=1.06)            # 0.22
 #config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,locf=setup.locf(4,'x2y'))
 #config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,locf=setup.locf(6,'y2x'))
 
+from mods.Lorenz95.m33 import setup
+config = DAC(EnKS ,'Sqrt',N=25,infl=1.08,rot=False,tLag=2.0)
+#config = DAC(EnRTS,'Sqrt',N=25,infl=1.08,rot=False,cntr=0.99)
 
 #from mods.Lorenz95.spectral_obs import setup
 # -- Get suggested tuning from setup files --

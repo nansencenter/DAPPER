@@ -9,12 +9,5 @@ setup.name = os.path.relpath(__file__,'mods/')
 
 # Reproduce raanes'2015 ("EnRTS and EnKS")
 #from mods.Lorenz95.m33 import setup
-#config.N         = 25
-#config.infl      = 1.08
-#config.upd_a   = 'Sqrt'
-#config.rot       = False
-#config.tLag      = 2.0
-#config.da_driver = EnKS
-#
-#config.cntr      = 0.99
-#config.da_driver = EnRTS
+#config = DAC(EnKS ,'Sqrt',N=25,infl=1.08,rot=False,tLag=2.0)
+#config = DAC(EnRTS,'Sqrt',N=25,infl=1.08,rot=False,cntr=0.99)
