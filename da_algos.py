@@ -939,9 +939,9 @@ def Climatology(setup,config,xx,yy):
   A0    = xx - mu0
   P0    = spCovMat(A=A0)
 
-  stats = Stats(setup,config).assess_ext(mu0, P0, xx, 0)
+  stats = Stats(setup,config).assess_ext(mu0, P0.C, xx, 0)
   for k,_,_,_ in progbar(chrono.forecast_range):
-    stats.assess_ext(mu0,P0,xx,k)
+    stats.assess_ext(mu0,P0.C,xx,k)
   return stats
 
 
