@@ -25,7 +25,7 @@ def distance_nD(centr, domain, shape, periodic=True):
   cIJ = centr.reshape((-1,1))
   dIJ = domain
 
-  delta = np.abs(cIJ - dIJ)
+  delta = abs(cIJ - dIJ)
   if periodic:
     shape = shape[:,np.newaxis]
     delta = numpy.where(delta>shape/2, shape-delta, delta)

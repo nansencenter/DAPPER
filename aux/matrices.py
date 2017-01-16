@@ -107,7 +107,7 @@ class CovMat:
 
   @lazy_property
   def ssqrt(self):
-    return self.transform_by(np.sqrt,'econ')
+    return self.transform_by(sqrt,'econ')
 
   @lazy_property
   def inv(self):
@@ -115,7 +115,7 @@ class CovMat:
 
   @lazy_property
   def m12(self):
-    return self.transform_by(lambda x: 1/np.sqrt(x),'econ')
+    return self.transform_by(lambda x: 1/sqrt(x),'econ')
 
   @property
   def cholL(self):
@@ -224,11 +224,11 @@ class spCovMat():
 
   @lazy_property
   def ssqrt(self):
-    return self.transform_by(np.sqrt)
+    return self.transform_by(sqrt)
 
   @lazy_property
   def m12(self):
-    return self.transform_by(lambda x: 1/np.sqrt(x))
+    return self.transform_by(lambda x: 1/sqrt(x))
 
   @property
   def cholL(self):
@@ -237,9 +237,9 @@ class spCovMat():
     d  = self._d
     U  = self._U
     if self.is_sprs:
-      return U @ sprs.diags(np.sqrt(d))
+      return U @ sprs.diags(sqrt(d))
     else:
-      return U * np.sqrt(d)
+      return U * sqrt(d)
 
   @property
   def cholU(self):
@@ -287,7 +287,7 @@ def funm_psd(a, fun, check_finite=False):
   Adapted from sla.funm() doc.
   e.g.
   def sqrtm_psd(A):
-    return funm_psd(A, np.sqrt)
+    return funm_psd(A, sqrt)
   """
   w, v = eigh(a, check_finite=check_finite)
   w = np.maximum(w, 0)

@@ -39,7 +39,7 @@ from common import *
 # The Non-Lin-Transf is a composite of familiar func's
 NLT  = lambda x: sqrt(2)*ss.norm.ppf(ss.chi2.cdf(x**2,1))
 Lin  = lambda x: sqrt(2)*x
-aprx = lambda x: sqrt(2)*(-0.40 + 0.88*np.abs(zz) + 0.23*np.log(zz**2))
+aprx = lambda x: sqrt(2)*(-0.40 + 0.88*abs(zz) + 0.23*np.log(zz**2))
 # aprx found by fitting a + b|x| + c log x²
 
 def normalize(xx):

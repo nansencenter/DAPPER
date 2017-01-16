@@ -189,11 +189,11 @@ def add_noise(E, dt, noise, config):
     if N<=m:
       Ainv = tinv(A2.T)
       Qa12 = Ainv@Q12
-      T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), np.sqrt)
+      T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), sqrt)
       A2   = T@A2
     else: # "Left-multiplying" form
       P = A2.T @ A2 /(N-1)
-      L = funm_psd(eye(m) + dt*mrdiv(Q,P), np.sqrt)
+      L = funm_psd(eye(m) + dt*mrdiv(Q,P), sqrt)
       A2= A2 @ L.T
     E = mu + A2
     return E, T, Qa12
@@ -654,7 +654,7 @@ def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
     if 'naive' in upd_a:
       Pw   = funm_psd(hess, np.reciprocal)
       T    = funm_psd(hess, lambda x: x**(-0.5)) * sqrt(N-1)
-      Tinv = funm_psd(hess, np.sqrt) / sqrt(N-1)
+      Tinv = funm_psd(hess, sqrt) / sqrt(N-1)
     elif 'svd' in upd_a:
       # Implementation using svd of Y # TODO: sort out .T !!!
       raise NotImplementedError
@@ -848,7 +848,7 @@ def resample(E,w,N,fnoise, \
   # Same question arises for Stats assessment.
   mu_b  = w@E
   A_b   = E - mu_b
-  ss_b  = np.sqrt(w @ A_b**2)
+  ss_b  = sqrt(w @ A_b**2)
 
   if kind is 'Multinomial':
     idx = np.random.choice(N_b,N,replace=True,p=w)
@@ -879,7 +879,7 @@ def resample(E,w,N,fnoise, \
   if do_var_corr:
     var_b = np.sum(ss_b**2)/m
     var_a = np.sum(A_a**2) /(N*m)
-    A_a  *= np.sqrt(var_b/var_a)
+    A_a  *= sqrt(var_b/var_a)
   E = mu_a + A_a
     
   return E

@@ -24,13 +24,16 @@ from numpy.linalg import eig
 from scipy.linalg import sqrtm, inv, eigh
 
 
-# TODO: consider set(dir(np)).intersection(set(dir(__builtin__)))
-from numpy import sqrt, abs, floor, ceil, prod, \
+from numpy import \
+    sqrt, abs, floor, ceil, prod, \
     sum, mean, \
     linspace, arange, reshape, \
     pi, log, sin, cos, tan, sign, \
     array, asarray, matrix, asmatrix, \
-    eye, zeros, ones, diag, trace \
+    eye, zeros, ones, diag, trace
+
+# TODO: consider set(dir(np)).intersection(set(dir(__builtin__)))
+#abs all any bool complex float int max min object round str sum
 
 
 ##################################
