@@ -31,7 +31,7 @@ f = {
 
 from mods.Lorenz95.core import typical_init_params
 mu0 = zeros(nX*(J+1))
-P0  = np.eye(m)
+P0  = eye(m)
 mu0[:nX],P0[:nX,:nX] = typical_init_params(nX)
 X0  = GaussRV(mu0, 0.01*P0)
 

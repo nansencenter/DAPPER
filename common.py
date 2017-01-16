@@ -25,15 +25,14 @@ from scipy.linalg import sqrtm, inv, eigh
 
 
 from numpy import \
-    sqrt, abs, floor, ceil, prod, \
-    sum, mean, \
+    sqrt, abs, floor, ceil, \
+    pi, log, log10, exp, sin, cos, tan, \
+    sum, mean, prod, \
+    array, asarray, asmatrix, \
     linspace, arange, reshape, \
-    pi, log, sin, cos, tan, sign, \
-    array, asarray, matrix, asmatrix, \
     eye, zeros, ones, diag, trace
 
-# TODO: consider set(dir(np)).intersection(set(dir(__builtin__)))
-#abs all any bool complex float int max min object round str sum
+# TODO: max, min
 
 
 ##################################

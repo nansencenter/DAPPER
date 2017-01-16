@@ -133,7 +133,7 @@ def high_wn_filter(phit):
     """Applies the high wavenumber filter of smith et al 2002"""
     filter_dec = -np.log(1.+2.*pi/nk)/((nk-kcut)**filter_exp)
     filter_idx = np.abs(ksq/(dk*dk)) >= kcut**2.
-    phit[filter_idx] *= np.exp(filter_dec*(np.sqrt(ksq[filter_idx]/(dk*dk))-kcut)**filter_exp)
+    phit[filter_idx] *= exp(filter_dec*(np.sqrt(ksq[filter_idx]/(dk*dk))-kcut)**filter_exp)
     
 def forcing_spatial_mask(phi):    
    """TODO: Make spatial mask for forcing"""
@@ -227,7 +227,7 @@ kcut = 30.
 
 # Spectral Filter as per [Arbic and Flierl, 2003]
 wvx = np.sqrt((k*dx)**2 + (l*dy)**2)
-spectral_filter = np.exp(-23.6*(wvx-0.65*pi)**4)
+spectral_filter = exp(-23.6*(wvx-0.65*pi)**4)
 spectral_filter[wvx <= 0.65*pi] = 1.0
 
 
@@ -282,7 +282,7 @@ def integrator(xt,t0,dt_tot):
     numr        = ksq.shape[0]*ksq.shape[1]
     r_amp       = rstream.rand(numr).reshape(ksq.shape)[idx]
     r_phs       = rstream.rand(numr).reshape(ksq.shape)[idx]
-    forcet[idx] = 0.5*amp*(r_amp - 0.5)*np.exp(1j*2.*pi*r_phs)
+    forcet[idx] = 0.5*amp*(r_amp - 0.5)*exp(1j*2.*pi*r_phs)
 
     c = 999
 

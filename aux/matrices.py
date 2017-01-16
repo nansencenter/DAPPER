@@ -155,7 +155,7 @@ class spCovMat():
 
     is_sprs  = False
     if E is not None:
-      mu       = np.mean(E,0)
+      mu       = mean(E,0)
       A        = E - mu
     if A is not None:
       N        = A.shape[0]

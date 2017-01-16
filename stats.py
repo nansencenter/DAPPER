@@ -159,8 +159,8 @@ def average_each_field(ss,axis=None):
     avrg[i] = dict()
     for key in keys:
       avrg[i][key] = val_with_conf(
-          val  = np.mean([s_ij[key].val  for s_ij in row]),
-          conf = np.mean([s_ij[key].conf for s_ij in row])/sqrt(N))
+          val  = mean([s_ij[key].val  for s_ij in row]),
+          conf = mean([s_ij[key].conf for s_ij in row])/sqrt(N))
       # NB: This is a rudimentary averaging of confidence intervals
       # Should be checked against variance of avrg[i][key].val
   return avrg

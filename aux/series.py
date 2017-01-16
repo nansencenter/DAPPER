@@ -8,7 +8,7 @@ def auto_cov(xx,L=5):
     N = len(xx)
     if N<=L:
       raise ValueError('L (=len(ACF)) must be <= len(xx)')
-    mu = np.mean(xx)
+    mu = mean(xx)
     acovf = array([
       sum((xx[:N-i]-mu)*(xx[i:]-mu))/(N-1-i)
       for i in range(L)])
@@ -21,7 +21,7 @@ def auto_cov_periodic(xx,L=5):
     """
     assert is1d(xx)
     N = len(xx)
-    mu = np.mean(xx)
+    mu = mean(xx)
     acovf = array([
       sum(np.roll(xx-mu,i)*(xx-mu))/(N-1)
       for i in range(L)])
@@ -29,7 +29,7 @@ def auto_cov_periodic(xx,L=5):
 
 
 #def geometric_mean(xx):
-  #return np.exp(mean(log(xx)))
+  #return exp(mean(log(xx)))
 geometric_mean = ss.mstats.gmean
 
 def mean_ratio(xx):
@@ -73,7 +73,7 @@ class val_with_conf():
     self.conf = conf
   def __str__(self):
     conf = round2sigfig(self.conf)
-    nsig = floor(np.log10(conf))
+    nsig = floor(log10(conf))
     return str(round2(self.val,10**(nsig))) + ' ±' + str(conf)
   def __repr__(self):
     return str(self.__dict__)
@@ -84,7 +84,7 @@ def series_mean_with_conf(xx):
   Also provide confidence of mean,
   as estimated from its correlation-corrected variance.
   """
-  mu    = np.mean(xx)
+  mu    = mean(xx)
   N     = len(xx)
   if np.allclose(xx,mu):
     return val_with_conf(mu, 0)
@@ -101,7 +101,7 @@ def series_mean_with_conf(xx):
   # The following corrects for the correlation in the time series.
   #
   # See stats.stackexchange.com/q/90062
-  # c = np.sum([(N-k)*a**k for k in range(1,N)])
+  # c = sum([(N-k)*a**k for k in range(1,N)])
   # But this series is analytically tractable:
   c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
   confidence_correction = 1 + 2/N * c

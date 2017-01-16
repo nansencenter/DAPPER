@@ -35,14 +35,14 @@ def distance_nD(centr, domain, shape, periodic=True):
 
 def dist2coeff(dists, radius, tag=TAG):
   """Compute coefficients corresponding to a distances."""
-  coeffs = np.zeros(dists.shape)
+  coeffs = zeros(dists.shape)
 
   if tag == 'Gauss':
     R = radius
-    coeffs = np.exp(-0.5 * (dists/R)**2)
+    coeffs = exp(-0.5 * (dists/R)**2)
   elif tag == 'Exp':
     R = radius
-    coeffs = np.exp(-0.5 * (dists/R)**3)
+    coeffs = exp(-0.5 * (dists/R)**3)
   elif tag == 'Cubic':
     R            = radius * 1.8676
     inds         = dists <= R

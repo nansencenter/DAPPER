@@ -2,9 +2,6 @@
 
 from common import *
 
-def ismat(x):
-  return (type(x) is np.matrixlib.defmatrix.matrix)
-
 def vec2list2(vec):
   return [[x] for x in vec]
 
@@ -14,7 +11,7 @@ def isScal(x):
 
 def is1d(a):
   """ Works for list and row/column arrays and matrices"""
-  return np.sum(asarray(asarray(a).shape) > 1) <= 1
+  return sum(asarray(asarray(a).shape) > 1) <= 1
 
 def tp(a):
   """Tranpose 1d vector"""
@@ -79,7 +76,7 @@ def rk4(f, x0, t, dt):
 def integrate_TLM(M,dt):
   """The resolvent: integral of du/dt = TLM u, with u0 = eye."""
   Lambda,V  = np.linalg.eig(M)
-  resolvent = (V * np.exp(dt*Lambda)) @ np.linalg.inv(V)
+  resolvent = (V * exp(dt*Lambda)) @ np.linalg.inv(V)
   return np.real_if_close(resolvent, tol=10000)
 
 
@@ -94,7 +91,7 @@ def round2sigfig(x,nfig=1):
     return x
   signs = np.sign(x)
   x *= signs
-  return signs*round2(x,10**np.floor(np.log10(x)-nfig+1))
+  return signs*round2(x,10**floor(log10(x)-nfig+1))
 
 def validate_int(x):
   x_int = int(x)

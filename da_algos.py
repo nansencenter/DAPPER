@@ -345,8 +345,8 @@ def serial_inds(upd_a, y, cvR, A):
   elif 'sorted' in upd_a:
     dC = diag(cvR.C)
     if np.all(dC == dC[0]):
-      # Sorty by P
-      dC   = np.sum(A*A,0)/(N-1)
+      # Sort y by P
+      dC = sum(A*A,0)/(N-1)
     inds = np.argsort(dC)
   else: # Default: random ordering
     inds = np.random.permutation(len(y))
@@ -704,8 +704,8 @@ def PartFilt(setup,config,xx,yy):
       innovs = hE - y
       innovs = innovs @ Rm12.T
 
-      #naninds = np.isnan(np.sum(E,1))
-      lklhds  = np.exp(-0.5 * np.sum(innovs**2, axis=1)) # *constant
+      #naninds = np.isnan(sum(E,1))
+      lklhds  = np.exp(-0.5 * sum(innovs**2, axis=1)) # *constant
       #lklhds[naninds] = 0
       lklhds = lklhds/mean(lklhds)/N # Avoid numerical error
       #%lklhds(lklhds==0) = min(lklhds(lklhds~=0))
@@ -713,13 +713,13 @@ def PartFilt(setup,config,xx,yy):
       #%w(w==0) = max(max(w)/N,1e-20)
       w /= sum(w)
 
-      #log_lklhds = np.sum(innovs**2, axis=1) # +constant
+      #log_lklhds = sum(innovs**2, axis=1) # +constant
       #w          = ma.masked_values(w,0)
       #log_w      = -2*log(w) + log_lklhds
       #log_w      = ma.masked_invalid(log_w)
       #log_w     -= log_w.mean() # avoid numerical error
       #w          = np.exp(-0.5*log_w)
-      #w         /= np.sum(w)
+      #w         /= sum(w)
       #w          = w.filled(0)
 
       N_eff = 1/(w@w)
@@ -803,11 +803,11 @@ def PF_EnKF(setup,config,xx,yy):
       lnd = (y - h.model(E,t)) @ Rm12T
 
       # New weights
-      nrm2 = lambda w: np.sum(w**2, axis=1)
+      nrm2 = lambda w: sum(w**2, axis=1)
       w = -2*log(w) + nrm2(lnd) + nrm2(pnd) - nrm2(qnd)
       w = w - min(w) - 10 # Should calibrate via realmax/min
       w = np.exp(-0.5*w)
-      w = w/np.sum(w)
+      w = w/sum(w)
 
       N_eff = 1/(w@w)
       stats.at(kObs)(N_eff=N_eff)
@@ -877,8 +877,8 @@ def resample(E,w,N,fnoise, \
     # TODO: Debug
     mu_a = mu_b
   if do_var_corr:
-    var_b = np.sum(ss_b**2)/m
-    var_a = np.sum(A_a**2) /(N*m)
+    var_b = sum(ss_b**2)/m
+    var_a = sum(A_a**2) /(N*m)
     A_a  *= sqrt(var_b/var_a)
   E = mu_a + A_a
     
@@ -935,7 +935,7 @@ def Climatology(setup,config,xx,yy):
   """
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
-  mu0   = np.mean(xx,0)
+  mu0   = mean(xx,0)
   A0    = xx - mu0
   P0    = spCovMat(A=A0)
 
@@ -958,7 +958,7 @@ def D3Var(setup,config,xx,yy):
   #H    = dHdx(np.nan,mu0).T # TODO: .T ?
   H     = eye(h.m)
 
-  mu0   = np.mean(xx,0)
+  mu0   = mean(xx,0)
   A0    = xx - mu0
   P0    = (A0.T @ A0) / (xx.shape[0] - 1)
   ## NOT WORKING
