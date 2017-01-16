@@ -7,7 +7,6 @@ from time import sleep
 
 from collections import OrderedDict
 
-
 ##################################
 # Scientific
 ##################################
@@ -17,7 +16,6 @@ import numpy.random
 import scipy.linalg as sla
 import numpy.linalg as nla
 import scipy.stats as ss
-
 
 
 from scipy.linalg import svd
@@ -36,6 +34,22 @@ from numpy import sqrt, abs, floor, ceil, prod, \
 
 
 ##################################
+# Installation suggestion 
+##################################
+import warnings
+def install_msg(package):
+  return "Could not find package '" + package + "' " + \
+      "for importing and using fall-back utilities instead. " + \
+      "We recommend installing '" + package + \
+      "' (using pip or conda, etc...) " + \
+      'to improve the functionality of DAPPER.'
+def install_warn(import_err):
+  name = import_err.args[0]
+  #name = name.split('No module named ')[1]
+  name = name.split("'")[1]
+  warnings.warn(install_msg(name))
+
+##################################
 # Interactive plotting settings
 ##################################
 import matplotlib as mpl
@@ -49,8 +63,8 @@ try:
   sns.set_style({'image.cmap': 'BrBG', 'legend.frameon': True})
   sns_bg = array([0.9176, 0.9176, 0.9490])
   sns.set_color_codes()
-except ImportError:
-  # TODO: Provide suggestion to install?
+except ImportError as err:
+  install_warn(err)
   #plt.style.use('ggplot') # 'fivethirtyeight', 'bmh'
   mpl.rcParams['image.cmap'] = 'BrBG'
 
@@ -60,7 +74,6 @@ for c in 'bgrmyc':
 
 
 # With Qt4Agg backend plt.pause() causes warning. Ignore.
-import warnings
 import matplotlib.cbook
 warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 

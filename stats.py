@@ -162,8 +162,7 @@ def average_each_field(ss,axis=None):
           val  = np.mean([s_ij[key].val  for s_ij in row]),
           conf = np.mean([s_ij[key].conf for s_ij in row])/sqrt(N))
       # NB: This is a rudimentary averaging of confidence intervals
-      # Should be checked against var of avrg[i][key].val
-      # TODO: Operator-overload val_with_conf for addition, mean, etc. ?
+      # Should be checked against variance of avrg[i][key].val
   return avrg
 
 

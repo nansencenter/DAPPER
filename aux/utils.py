@@ -30,7 +30,8 @@ try:
     #stackoverflow.com/a/900404
     DAC_name  = inspect.stack()[2].function
     return DAC_name 
-except ImportError:
+except ImportError as err:
+  install_warn(err)
   def pdesc(desc): 
     return desc or "Prog."
 
@@ -39,7 +40,8 @@ try:
   import tqdm
   def progbar(inds, desc=None, leave=1):
     return tqdm.tqdm(inds,desc=pdesc(desc),leave=leave)
-except ImportError:
+except ImportError as err:
+  install_warn(err)
   def progbar(inds, desc=None, leave=1):
     return noobar(inds,desc=pdesc(desc))
 
@@ -86,6 +88,7 @@ def _find_getch():
 getch = _find_getch()
 
 
+
 # Terminal color codes. Use:
 # print(bcolors.WARNING + "Warning: test" + bcolors.ENDC)
 class bcolors:
@@ -111,7 +114,8 @@ try:
     data  = list(map(list, zip(*data))) # Transpose
     inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds
     return tabulate_orig.tabulate(data,headr,showindex=inds)
-except ImportError:
+except ImportError as err:
+  install_warn(err)
   # pandas more widespread than tabulate, but slower to import
   import pandas
   pandas.options.display.width = None # Auto-adjust linewidth

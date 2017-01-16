@@ -4,31 +4,28 @@ from common import *
 
 
 class RV:
-  def __init__(self,sampling_func=None,m=None):
-    # TODO: rename sampling_func to func
-    # TODO: rename sampling_file to file
+  def __init__(self,func=None,m=None):
     #self.pdf = None
     #self.cdf = None
     #self.sample_file = None
-    self.sampling_func = sampling_func
+    self.func = func
     self.m = m
-    self.is0 = False
-    # TODO: vs is_random in GaussRV
-
+    self.is0 = False # TODO: vs is_random in GaussRV
+    
   def sample(self,N):
     if self.is0:
       E = zeros(self.m, N)
-    elif self.sampling_func:
-      return self.sampling_func(N)
+    elif self.func:
+      return self.func(N)
     # TODO:
     #elif self.cdf:
       ## multivariate CDF sampling
     #elif self.pdf:
       ## A-R sampling
-    # TODO: sample_file ==> pdf, cdf (empirical)
+    # sample_file ==> pdf, cdf (empirical)
 
 
-# TODO:  UniRV
+# TODO: UniRV
 
 class GaussRV(RV):
   def __init__(self,mu=0,C=0,m=None):
