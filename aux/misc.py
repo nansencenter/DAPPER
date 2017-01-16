@@ -148,15 +148,15 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
                       NB: only applies for float threshold.
   """
 
-  m,nn = A.shape
+  m,n = A.shape
   full_matrices = False
 
   # Assume number of components requested
   if isinstance(threshold,int):
     assert threshold >= 1
     r = threshold
-    assert r <= max(m,nn)
-    if r > min(m,nn):
+    assert r <= max((m,n))
+    if r > min((m,n)):
       full_matrices = True
     avoid_pathological = False
 

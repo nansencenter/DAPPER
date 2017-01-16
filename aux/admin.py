@@ -186,12 +186,11 @@ def simulate(setup):
   """Generate synthetic truth and observations"""
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
-  # truth
-  xx = zeros((chrono.K+1,f.m))
+  # init
+  xx    = zeros((chrono.K+1,f.m))
   xx[0] = X0.sample(1)
+  yy    = zeros((chrono.KObs+1,h.m))
 
-  # obs
-  yy = zeros((chrono.KObs+1,h.m))
   for k,kObs,t,dt in progbar(chrono.forecast_range,desc='Truth & Obs'):
     xx[k] = f.model(xx[k-1],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
     if kObs is not None:

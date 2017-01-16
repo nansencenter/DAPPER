@@ -710,7 +710,7 @@ def PartFilt(setup,config,xx,yy):
       lklhds = lklhds/mean(lklhds)/N # Avoid numerical error
       #%lklhds(lklhds==0) = min(lklhds(lklhds~=0))
       w *= lklhds
-      #%w(w==0) = max(max(w)/N,1e-20)
+      #%w(w==0) = max([max(w)/N,1e-20])
       w /= sum(w)
 
       #log_lklhds = sum(innovs**2, axis=1) # +constant

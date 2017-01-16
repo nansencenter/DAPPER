@@ -23,9 +23,9 @@ from scipy.linalg import svd
 from numpy.linalg import eig 
 from scipy.linalg import sqrtm, inv, eigh
 
-# NB: sum() and abs() will shadow __builtin__ versions.
+# NB: shadow __builtin__ versions: sum(), abs()
 from numpy import \
-    sqrt, abs, floor, ceil, \
+    sqrt, abs, floor, ceil, max, min, \
     pi, log, log10, exp, sin, cos, tan, \
     sum, mean, prod, \
     array, asarray, asmatrix, \

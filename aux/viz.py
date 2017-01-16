@@ -303,7 +303,7 @@ def estimate_good_plot_length(xx,chrono,mult):
     K = mult * estimate_corr_length(xx)
   except ValueError:
     K = 0
-  K = int(min(max(K,chrono.dkObs),chrono.K))
+  K = int(min([max([K,chrono.dkObs]),chrono.K]))
   T = round2sigfig(chrono.tt[K],2) # Could return T; T>tt[-1]
   K = find_1st_ind(chrono.tt >= T)
   if K: return K

@@ -58,7 +58,7 @@ def estimate_corr_length(xx):
   corr(L) = exp(-1) = ca 0.368
   """
   assert is1d(xx)
-  acovf = auto_cov(xx,min(100,len(xx)-2))
+  acovf = auto_cov(xx,min([100,len(xx)-2]))
   a     = fit_acf_by_AR1(acovf)
   if a == 0:
     L = 0
