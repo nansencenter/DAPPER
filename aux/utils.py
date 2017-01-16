@@ -162,8 +162,8 @@ def find_last_v(dirpath):
   ls = glob.glob(dirpath+'v*.npz')
   if ls == []:
     return 0
-  #v = np.max([int(x.split(dirpath)[1].split('v')[1].split('_')[0]) for x in ls])
-  v = np.max([int(re.search(dirpath + 'v([1-9]*).*\.npz',x).group(1)) for x in ls])
+  #v = max([int(x.split(dirpath)[1].split('v')[1].split('_')[0]) for x in ls])
+  v = max([int(re.search(dirpath + 'v([1-9]*).*\.npz',x).group(1)) for x in ls])
   return v
 
 def rel_name(filepath,rel_to='./'):

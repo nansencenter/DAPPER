@@ -268,8 +268,8 @@ def update_ylim(data,ax,Min=None,Max=None):
         1.1 * array([-1, 1]) * np.percentile(d,[1,99]))
   minv *= -1
   if minv == maxv:
-    minv = np.min(d)
-    maxv = np.max(d)
+    minv = min(d)
+    maxv = max(d)
   if Max is not None:
     maxv = Max
   if Min is not None:
@@ -280,8 +280,8 @@ def update_ylim(data,ax,Min=None,Max=None):
 
 def set_ilim(ax,i,data,zoom=1.0):
   """Set bounds (taken from data) on axis i.""" 
-  Min  = np.min(data[:,i])
-  Max  = np.max(data[:,i])
+  Min  = min(data[:,i])
+  Max  = max(data[:,i])
   lims = round2sigfig([Min, Max])
   lims = inflate_ens(lims,1/zoom)
   if i is 0: ax.set_xlim(lims)
@@ -393,7 +393,7 @@ def plot_time_series(stats,xx,dim=0,**kwargs):
   ax_e.plot(        tt[pkk], s.rmse[pkk],'k',lw=2 ,label='Error')
   ax_e.fill_between(tt[pkk], s.rmv [pkk],alpha=0.7,label='Spread') 
   ylim = np.percentile(s.rmse[pkk],99)
-  ylim = 1.1*np.max([ylim, np.max(s.rmv[pkk])])
+  ylim = 1.1*max([ylim, max(s.rmv[pkk])])
   ax_e.set_ylim(0,ylim)
   ax_e.set_ylabel('RMS')
   ax_e.legend()

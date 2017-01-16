@@ -10,7 +10,7 @@ def unravel(inds, shape, order='C'):
 
   IJ = asarray(np.unravel_index(inds, shape, order=order))
   for i,d in enumerate(IJ):
-    assert np.max(d) < shape[i]
+    assert max(d) < shape[i]
   return IJ
 
 def distance_nD(centr, domain, shape, periodic=True):
