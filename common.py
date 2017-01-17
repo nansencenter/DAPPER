@@ -1,4 +1,4 @@
-# This file holds global imports and settings
+# This file holds global (DAPPER-wide) imports and settings
 
 import sys
 assert sys.version_info >= (3,5)
@@ -20,10 +20,10 @@ import scipy.stats as ss
 
 from scipy.linalg import svd
 #from scipy.linalg import eig # Necessitates np.real_if_close().
-from numpy.linalg import eig 
+from numpy.linalg import eig
 from scipy.linalg import sqrtm, inv, eigh
 
-# NB: shadowing __builtin__'s: sum, abs, min, max
+# NB: shadows __builtin__'s: sum, abs, min, max
 from numpy import \
     sqrt, abs, floor, ceil, max, min, \
     pi, log, log10, exp, sin, cos, tan, \
@@ -53,10 +53,16 @@ def install_warn(import_err):
 ##################################
 # Interactive plotting settings
 ##################################
+def user_is_patrick():
+  import getpass
+  return getpass.getuser() == 'pataan'
+
+# Choose graphics backend.
 import matplotlib as mpl
-mpl.use('TkAgg')
-# TkAgg has geometry(placement), but
-# MacOSX is prettier, more stable, & faster (notable in LivePlot)
+if user_is_patrick():
+  #mpl.use('Qt4Agg') # deprecated
+  #mpl.use('TkAgg')  # has geometry(placement)
+  mpl.use('MacOSX') # more pretty, stable, fast (notable in LivePlot)
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -75,13 +81,13 @@ RGBs = {'w': array([1,1,1]), 'k': array([0,0,0])}
 for c in 'bgrmyc':
   RGBs[c] = array(mpl.colors.colorConverter.to_rgb(c))
 
-
-# With Qt4Agg backend plt.pause() causes warning. Ignore.
+# With TkAgg/Qt4Agg backend this causes warning.
 import matplotlib.cbook
 warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 
-# With TkAgg backend this causes warning.
+# With TkAgg/Qt4Agg backend this causes warning.
 #mpl.rcParams['toolbar'] = 'None'
+#warnings.filterwarnings("ignore",category=UserWarning)
 
 
 ##################################

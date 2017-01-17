@@ -1,5 +1,5 @@
 
-<!---
+<!--
 !      ___   _   ___ ___ ___ ___ 
 !     |   \ /_\ | _ \ _ \ __| _ \
 !     | |) / _ \|  _/  _/ _||   /
@@ -14,7 +14,7 @@ methods.
 The tests provide experimental support and guidance for new developments in DA.
 The screenshot below illustrates the default diagnostics.
 
-<!---
+<!--
 ![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
 -->
 
@@ -124,8 +124,8 @@ DAPPER may be situated somewhere in the middle.
 * PDAF         (Nerger)
 * ERT*         (Statoil)
 * OpenDA       (TU Delft)
+* MIKE         (DHI)
 * PyOSSE       (Edinburgh)
-* ?            (DHI)
 * FilterPy     (R. Labbe)
 * PyIT         (CIPR)
 * Datum*       (Raanes)
@@ -172,25 +172,23 @@ Just add it to `da_algos.py`, using the others in there as templates.
 Implementation choices
 ------------------------------------------------
 * Uses python3.5+
-* On-line vs off-line stats and diagnostics
 * NEW: Use `N-by-m` ndarrays. Pros:
     * Python default
         * speed of (row-by-row) access, especially for models
         * same as default ordering of random numbers
-    * numpy *might* return ndarrays even when input is matrix
-    * works well with ens space formulae,
-      and yields beneficial operator precedence without `()`. E.g. `dy@Ri@Y.T@Pw`
-    * Avoids reshape's and recasting (asmatrix)
+    * numpy *might* return `ndarrays` even when input is matrix
+    * less transposing for for ens-space formulae
+    * beneficial operator precedence without `()`. E.g. `dy @ Rinv @ Y.T @ Pw` (where `dy` is a vector)
+    * Avoids reshape's and recasting (`asmatrix`)
     * Fewer indices: `[n,:]` yields same as `[n]`
-* OLD: Use m-by-N matrix class. Pros:
+* OLD: Use `m-by-N` matrix class. Pros:
     * Litterature uses `m-by-N`
     * Facilitates desired broadcasting
-    * Matrix multiplication through `*` -- Deprecated since python3.5
+    * Matrix multiplication through `*` -- since python3.5 can just use `@`
 
 
 What it can't do
 ------------------------------------------------
-* Store full ensembles (could write to file)
 * Run different DA methods concurrently (i.e. step-by-step)
      allowing for live/online  (graphic or text) comparison
 * Time-dependent noises and length changes in state/obs

@@ -549,20 +549,18 @@ def show_figs(fignums=None):
     fmw.attributes('-topmost',0) # don't keep in front
   
 
-import getpass
 def set_figpos(loc):
   """
   Place figure on screen, where 'loc' can be either
     NW, E, ...
   or
     4 digits (as str or int) to define grid m,n,i,j.
-  Append the string 'mac' to place on mac monitor.
-  Only works with both:
-   - Patrick's monitor setup (Dell with Mac central-below)
-   - Qt4Agg backend.
   """
-  if matplotlib.get_backend() != 'TkAgg' \
-      or getpass.getuser() != 'pataan': 
+
+  #Only works with both:
+   #- Patrick's monitor setup (Dell with Mac central-below)
+   #- TkAgg backend. (Previously: Qt4Agg)
+  if not user_is_patrick or mpl.get_backend() != 'TkAgg':
     return
   fmw = plt.get_current_fig_manager().window
 
@@ -582,6 +580,7 @@ def set_figpos(loc):
   #  # Why is Mac monitor scaled by 1/2 ?
   #  Mac_w  /= 2
   #  Mac_h  /= 2
+  # Append the string 'mac' to place on mac monitor.
   #  if 'mac' in loc:
   #    x0 = Dell_w/4
   #    y0 = Dell_h+44
