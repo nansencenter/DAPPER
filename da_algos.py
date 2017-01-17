@@ -85,7 +85,7 @@ def EnKS(setup,config,xx,yy):
   EnKS.
   The only difference to the EnKF is the management of the lag and the reshapings.
   Settings for reproducing literature benchmarks may be found in
-  mods/Lorenz95/m33.py
+  mods/Lorenz95/raanes2016.py
   """
 
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
@@ -129,7 +129,7 @@ def EnRTS(setup,config,xx,yy):
   """
   EnRTS (Rauch-Tung-Striebel) smoother.
   Settings for reproducing literature benchmarks may be found in
-  mods/Lorenz95/m33.py
+  mods/Lorenz95/raanes2016.py
   """
 
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N

@@ -44,7 +44,7 @@ config = DAC(EnKF_N,N=24,rot=True)
 
 #from mods.Lorenz95.spectral_obs import setup
 # -- Get suggested tuning from setup files --
-#from mods.Lorenz95.m33 import setup
+#from mods.Lorenz95.raanes2016 import setup
 # -- Get suggested tuning from setup files --
 #from mods.LorenzXY.defaults import setup
 # -- Get suggested tuning from setup files --
