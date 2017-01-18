@@ -37,7 +37,7 @@ cfgs.add(EnKF_N,N=24,rot=True)
 # Not tuned
 #cfgs.add(EnKF,'PertObs',N=24,infl=1.25)
 #cfgs.add(EnKF,'Sqrt',N=24,infl=1.25)
-#cfgs.add(EnKF_NT,N=24,infl=1.25)
+#cfgs.add(EnKF_tp,N=24,infl=1.25)
 
 #cfgs.assign_names()
 

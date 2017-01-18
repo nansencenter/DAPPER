@@ -61,8 +61,8 @@ def user_is_patrick():
 import matplotlib as mpl
 if user_is_patrick():
   #mpl.use('Qt4Agg') # deprecated
-  #mpl.use('TkAgg')  # has geometry(placement)
-  mpl.use('MacOSX') # more pretty, stable, fast (notable in LivePlot)
+  mpl.use('TkAgg')  # has geometry(placement)
+  #mpl.use('MacOSX') # more pretty, stable, fast (notable in LivePlot)
 import matplotlib.pyplot as plt
 plt.ion()
 

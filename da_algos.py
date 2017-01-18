@@ -30,7 +30,7 @@ def EnKF(setup,config,xx,yy):
     lplot.update(E,k,kObs)
   return stats
 
-def EnKF_NT(setup,config,xx,yy):
+def EnKF_tp(setup,config,xx,yy):
   """
   EnKF using 'non-transposed' analysis equations,
   where E is m-by-N, as is convention in EnKF litterature.

@@ -21,9 +21,8 @@ def atmost_2d(func):
   """
   Decorator to make functions that work on 2-dim input
   work for (all of) 0,1, or 2-dim input.
-  Requires that the 1st argument be the one of interest.
-  It does not work in every case (typically not recursively),
-  and should be used with caution.
+  Requires that the func's 1st argument be the one in question.
+  Does not always work (e.g. recursion). Use with caution.
   """
   def wrapr(x,*kargs,**kwargs):
     answer = func(np.atleast_2d(x),*kargs,**kwargs)
@@ -36,14 +35,9 @@ def pad0(arr,length,val=0):
 
         
 def anom(E,axis=0):
-  if axis==0:
-    mu = mean(E,0)
-    A  = E - mu
-  elif axis==1:
-    mu = mean(E,1)
-    A  = E - tp(mu)
-  else: raise ValueError
-  return A, mu
+  mu = mean(E,axis=axis, keepdims=True)
+  A  = E - mu
+  return A, mu.squeeze()
 
 # Center sample (but maintain its (expected) variance)
 def center(E,rescale=True):
