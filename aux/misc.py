@@ -17,6 +17,7 @@ def tp(a):
   """Tranpose 1d vector"""
   return a[np.newaxis].T
 
+# TODO: review useage. Replace by ens_compatible()?
 def atmost_2d(func):
   """
   Decorator to make functions that work on 2-dim input

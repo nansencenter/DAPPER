@@ -20,16 +20,16 @@ f = {
 
 
 mu0,P0 = typical_init_params(m)
-X0 = GaussRV(mu0, 0.01*P0)
+X0     = GaussRV(mu0, 0.01*P0)
 
-p = m
-obsInds = equi_spaced_integers(m,p)
-@atmost_2d
+p  = m
+jj = equi_spaced_integers(m,p)
+@ens_compatible
 def hmod(E,t):
-  return E[:,obsInds]
+  return E[jj]
 
 H = zeros((p,m))
-for i,j in enumerate(obsInds):
+for i,j in enumerate(jj):
   H[i,j] = 1.0
 
 #yplot = lambda y: plt.plot(y,'g*',MarkerSize=15)[0]
@@ -51,8 +51,8 @@ h = {
 from aux.localization import inds_and_coeffs, unravel
 def loc_wrapper(radius,direction=None):
   iix = arange(m)
-  dIJ = unravel(iix    , m)
-  oIJ = unravel(obsInds, m)
+  dIJ = unravel(iix, m)
+  oIJ = unravel(jj , m)
   if direction is 'x2y':
     def locf(i):
       return inds_and_coeffs(dIJ[:,i], oIJ, m, radius)

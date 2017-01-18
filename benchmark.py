@@ -25,7 +25,7 @@ sd0 = seed(5)
 from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)
-config = DAC(ExtKF, infl = 1.05)
+#config = DAC(ExtKF, infl = 1.05)
 #config = DAC(EnCheat,'Sqrt',N=24,infl=1.02,rot=True)
 #
 #config = DAC(EnKF,'PertObs',N=40,infl=1.06)            # 0.22
@@ -33,7 +33,7 @@ config = DAC(ExtKF, infl = 1.05)
 #config = DAC(EnKF,'PertObs',N=28,infl=1.08)            # 0.24
 #config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
 #
-#config = DAC(EnKF_N,N=24,rot=True)
+config = DAC(EnKF_N,N=24,rot=True)
 #
 #config = DAC(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # 0.17
 #
