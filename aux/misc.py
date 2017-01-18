@@ -29,6 +29,12 @@ def atmost_2d(func):
     if answer is not None: return answer.squeeze()
   return wrapr
 
+def ens_compatible(func):
+  """Tranpose before and after."""
+  def wrapr(x,*kargs,**kwargs):
+    return func(x.T,*kargs,**kwargs).T
+  return wrapr
+
 def pad0(arr,length,val=0):
   return np.append(arr,val*zeros(length-len(arr)))
 
@@ -67,11 +73,26 @@ def rk4(f, x0, t, dt):
   k4 = dt * f(t+dt   , x0+k3)
   return x0 + (k1 + 2.*(k2 + k3) + k4)/6.0
 
-def integrate_TLM(M,dt):
-  """The resolvent: integral of du/dt = TLM u, with u0 = eye."""
-  Lambda,V  = np.linalg.eig(M)
-  resolvent = (V * exp(dt*Lambda)) @ np.linalg.inv(V)
-  return np.real_if_close(resolvent, tol=10000)
+def integrate_TLM(M,dt,method='approx'):
+  """
+  Returns the resolvent: The Jacobian of the step
+    (i.e. the integral of du/dt = TLM u, with u0 = eye).
+  method:
+   - 'analytic': would be exact if the TLM were constant
+   - 'approx'  : derived from the forward-euler scheme.
+  NB: 'analytic' typically requries higher inflation in the ExtKF.
+  """
+  if method == 'analytic':
+    Lambda,V  = np.linalg.eig(M)
+    resolvent = (V * exp(dt*Lambda)) @ np.linalg.inv(V)
+    resolvent = np.real_if_close(resolvent, tol=10000)
+  elif method.lower().startswith('approx'):
+    ndim      = M.shape[0]
+    resolvent = eye(ndim) + dt*M
+  else:
+    raise ValueError
+  return resolvent
+    
 
 
 

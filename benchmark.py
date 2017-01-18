@@ -11,9 +11,9 @@ sd0 = seed(5)
 # Setup
 ############################
 
-from mods.Lorenz63.sak12 import setup                        # Expected RMSE_a:
+#from mods.Lorenz63.sak12 import setup                        # Expected RMSE_a:
 #config = DAC(EnKF,'Sqrt', N=3 ,infl=1.30)
-config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
+#config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 #config = DAC(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
 #config = DAC(PartFilt,    N=800,NER=0.1)                    # 0.275 (with N=4000)
 #config = DAC(ExtKF, infl=1.05); setup.t.dkObs = 10 # reduce non-linearity
@@ -22,10 +22,10 @@ config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 #config = DAC(PartFilt, N=1000, NER=0.1)
 
 
-#from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
+from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)
-#config = DAC(ExtKF, infl = 1.05)
+config = DAC(ExtKF, infl = 1.05)
 #config = DAC(EnCheat,'Sqrt',N=24,infl=1.02,rot=True)
 #
 #config = DAC(EnKF,'PertObs',N=40,infl=1.06)            # 0.22
@@ -56,7 +56,7 @@ config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 # Common
 ############################
 config.liveplotting = False
-setup.t.T           = 4**3.5
+setup.t.T           = 4**2.5
 
 
 ############################

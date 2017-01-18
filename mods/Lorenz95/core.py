@@ -30,9 +30,8 @@ def TLM(x):
 
 def dfdx(x,t,dt):
   """Integral of TLM. Jacobian of step."""
-  resolvent = np.eye(len(x)) + dt*TLM(x) # Approximate
-  #resolvent = integrate_TLM(TLM(x),dt)   # Exact
-  return resolvent
+  # method='analytic' is a substantial upgrade for Lor95 
+  return integrate_TLM(TLM(x),dt,method='analytic')
 
 def typical_init_params(m):
   """

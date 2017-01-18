@@ -497,7 +497,7 @@ def plot_err_components(stats):
 def plot_rank_histogram(stats):
   chrono = stats.setup.t
 
-  has_been_computed = not all(stats.rh[-1] == 0)
+  has_been_computed = hasattr(stats,'rh')
 
   def are_uniform(w):
     """Test inital & final weights, not intermediate (for speed)."""

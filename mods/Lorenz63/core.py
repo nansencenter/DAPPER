@@ -1,27 +1,34 @@
 import numpy as np
 from aux.misc import rk4, is1d
-from common import atmost_2d
+from common import ens_compatible, integrate_TLM
 
-@atmost_2d
+# Constants
+sig = 10.0; rho = 28.0; beta = 8.0/3
+
+@ens_compatible
 def dxdt(x):
-  fx = np.zeros_like(x)
-  fx[:,0] = 10.0*(x[:,1] - x[:,0])
-  fx[:,1] = 28.0*x[:,0] - x[:,1] - x[:,0]*x[:,2]
-  fx[:,2] = x[:,0]*x[:,1] - (8.0/3)*x[:,2]
-  return fx
-
-def dfdx(x,t,dt):
   """
-  Jacobian of x + dt*dxdt.
+  Same as dxdt(), but with transposing in wrapper.
   """
-  assert is1d(x)
-  m  = len(x)
-  F  = np.eye(3) + dt*np.array([
-    [-10, 10, 0],
-    [28-x[2], -1, -x[0]],
-    [x[1], x[0], -8/3]])
-  return F
+  d    = np.zeros_like(x)
+  d[0] = sig*(x[1] - x[0])
+  d[1] = rho*x[0] - x[1] - x[0]*x[2]
+  d[2] = x[0]*x[1] - beta*x[2]
+  return d
 
 def step(x0, t0, dt):
     return rk4(lambda t,x: dxdt(x), x0, np.nan, dt)
 
+def TLM(x):
+  """Tangent linear model"""
+  assert is1d(x)
+  x,y,z = x
+  TLM=np.array(
+      [[-sig, sig, 0],
+      [rho-z, -1, -x],
+      [y, x, -beta]])
+  return TLM
+
+def dfdx(x,t,dt):
+  """Integral of TLM. Jacobian of step."""
+  return integrate_TLM(TLM(x),dt,method='approx')
