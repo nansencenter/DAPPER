@@ -106,6 +106,15 @@ def print_blue(*kargs):
   print(bcolors.OKBLUE + s + bcolors.ENDC)
 
 
+# Local np.set_printoptions. stackoverflow.com/a/2891805/38281
+import contextlib
+@contextlib.contextmanager
+def printoptions(*args, **kwargs):
+    original = np.get_printoptions()
+    np.set_printoptions(*args, **kwargs)
+    yield 
+    np.set_printoptions(**original)
+
 
 try:
   import tabulate as tabulate_orig

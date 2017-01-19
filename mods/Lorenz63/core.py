@@ -7,13 +7,11 @@ sig = 10.0; rho = 28.0; beta = 8.0/3
 
 @ens_compatible
 def dxdt(x):
-  """
-  Same as dxdt(), but with transposing in wrapper.
-  """
-  d    = np.zeros_like(x)
-  d[0] = sig*(x[1] - x[0])
-  d[1] = rho*x[0] - x[1] - x[0]*x[2]
-  d[2] = x[0]*x[1] - beta*x[2]
+  d     = np.zeros_like(x)
+  x,y,z = x
+  d[0]  = sig*(y - x)
+  d[1]  = rho*x - y - x*z
+  d[2]  = x*y - beta*z
   return d
 
 def step(x0, t0, dt):

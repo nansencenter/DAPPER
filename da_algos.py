@@ -1003,10 +1003,12 @@ def ExtKF(setup,config,xx,yy):
   A baseline/reference method.
   If everything is linear-Gaussian, this provides the exact solution
   to the Bayesian filtering equations.
-  Inflation must be specified
-  (in the linear-Gaussian case it should be set to 1.0)."
+  Inflation may be specified (should be 1.0 in lin-Gauss case).
   """
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+
+  infl = getattr(config,'infl',1.0)
+  
 
   R = h.noise.C.C
   Q = f.noise.C.C
@@ -1033,8 +1035,7 @@ def ExtKF(setup,config,xx,yy):
     P  = F@P@F.T + dt*Q
 
     if kObs is not None:
-      # NB: Inflation
-      P *= config.infl
+      P *= infl
 
       H  = h.jacob(mu,t)
       KG = mrdiv(P @ H.T, H@P@H.T + R)

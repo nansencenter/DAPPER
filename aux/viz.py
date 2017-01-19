@@ -317,7 +317,7 @@ def get_plot_inds(chrono,xx,mult,K=None,T=None):
    - mult * auto-correlation length of xx
   """
   if K is None:
-    if T: K = find_1st_ind(chrono.tt >= T)
+    if T: K = find_1st_ind(chrono.tt >= min((T,chrono.T)))
     else: K = estimate_good_plot_length(xx,chrono,mult)
   plot_kk    = chrono.kk[:K+1]
   plot_kkObs = chrono.kkObs[chrono.kkObs<=K]
@@ -497,7 +497,7 @@ def plot_err_components(stats):
 def plot_rank_histogram(stats):
   chrono = stats.setup.t
 
-  has_been_computed = hasattr(stats,'rh')
+  has_been_computed = hasattr(stats,'rh') and not all(stats.rh[-1]==0)
 
   def are_uniform(w):
     """Test inital & final weights, not intermediate (for speed)."""
