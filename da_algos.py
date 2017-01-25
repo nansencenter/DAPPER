@@ -1010,13 +1010,17 @@ def ExtKF(setup,config,xx,yy):
   A baseline/reference method.
   If everything is linear-Gaussian, this provides the exact solution
   to the Bayesian filtering equations.
-  Inflation may be specified (should be 1.0 in lin-Gauss case).
+
+  Inflation ('infl') may be specified.
+  It defaults to 1.0, which is ideal in the lin-Gauss case.
+  It is applied at each dt, with infl_per_dt := inlf**(dt), so that 
+  infl_per_unit_time == infl.
+  Specifying it this way (per unit time) means less tuning.
   """
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
 
   infl = getattr(config,'infl',1.0)
   
-
   R = h.noise.C.C
   Q = f.noise.C.C
 
@@ -1028,22 +1032,16 @@ def ExtKF(setup,config,xx,yy):
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     
     F = f.jacob(mu,t-dt,dt) 
-    # "EKF for the mean". It's probably best to leave this commented
-    # out because the benefit is negligable compared to the additional
-    # cost incurred in estimating the Hessians.
-    # HessCov = zeros(m,1) 
+    # "EKF for the mean". Rarely worth the effort. Matlab code:
     # for k = 1:m
     #   HessianF_k = hessianest(@(x) submat(F(t,dt,x), k), X(:,iT-1))
     #   HessCov(k) = sum(sum( HessianF_k .* P(:,:,iT-1) ))
-    # end
     # X(:,iT) = X(:,iT) + 1/2*HessCov 
 
     mu = f.model(mu,t-dt,dt)
-    P  = F@P@F.T + dt*Q
+    P  = infl**(dt)*(F@P@F.T) + dt*Q
 
     if kObs is not None:
-      P *= infl
-
       H  = h.jacob(mu,t)
       KG = mrdiv(P @ H.T, H@P@H.T + R)
       y  = yy[kObs]

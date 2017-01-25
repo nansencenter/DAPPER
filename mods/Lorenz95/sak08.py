@@ -88,7 +88,7 @@ setup.locf = loc_wrapper
 #
 #config = DAC(Climatology)
 #config = DAC(D3Var)
-#config = DAC(ExtKF, infl = 1.05)
+#config = DAC(ExtKF, infl = 6)
 #config = DAC(EnCheat,'Sqrt',N=24,infl=1.02,rot=True)
 
 

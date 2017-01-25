@@ -3,7 +3,7 @@
 from common import *
 
 #seed = np.random.seed
-def seed(i):
+def seed(i=None):
   """Seed random number generator. Return input (for one-liners)."""
   if i==0:
     warnings.warn('''

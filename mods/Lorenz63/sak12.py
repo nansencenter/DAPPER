@@ -8,9 +8,7 @@ from mods.Lorenz63.core import step, dfdx
 m = 3
 p = m
 
-#T = 4**6
-T = 4**4
-t = Chronology(0.01,dkObs=25,T=T,BurnIn=4)
+t = Chronology(0.01,dkObs=25,T=4**5,BurnIn=4)
 
 m = 3
 f = {
@@ -42,4 +40,4 @@ setup = OSSE(f,h,t,X0,**other)
 #config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 #config = DAC(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
 #config = DAC(PartFilt, N=800, NER=0.1)                      # 0.275 (with N=4000)
-#config = DAC(ExtKF, infl = 1.05); setup.t.dkObs = 10 # reduce non-linearity
+#config = DAC(ExtKF, infl = 1.5); setup.t.dkObs = 10 # reduce non-linearity

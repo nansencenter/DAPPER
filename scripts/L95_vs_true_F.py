@@ -31,7 +31,7 @@ nRepeat   = 2
 cfgs = DAC_list()
 cfgs.add(Climatology)
 cfgs.add(D3Var)
-cfgs.add(ExtKF,infl=1.05)
+cfgs.add(ExtKF,infl=6)
 cfgs.add(EnKF_N,N=24,rot=True)
 
 # Not tuned
