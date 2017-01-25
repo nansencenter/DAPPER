@@ -42,7 +42,7 @@ class Chronology:
     assert 3 == [dt,dtObs,T,dkObs,KObs,K].count(None) , \
         'Chronology is specified using exactly 3 parameters.'
 
-    # Reduce all to dt,dkObs,K
+    # Reduce all to "state vars" dt,dkObs,K
     if not dt:
       if T and K:
         dt = T/K
@@ -173,7 +173,7 @@ class Chronology:
   def __str__(self):
     s = []
     printable = ['K','KObs','dtObs','dt','T','BurnIn']
-    w = 4 + max(len(s) for s in printable)
+    w = 4 + max([len(s) for s in printable])
     for k in printable:
       s.append('{0:>{1}}: '.format(k,w) + str(getattr(self,k)))
     return '\n'.join(s)

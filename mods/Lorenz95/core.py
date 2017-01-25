@@ -1,18 +1,18 @@
-# Note how everything is ndim-agnostic.
-# TLM is also agnostic about forcing.
+# Note: everything is ndim-agnostic.
 
 import numpy as np
 from scipy.linalg import circulant
 from aux.misc import rk4, integrate_TLM, is1d
 
-  
-def dxdt(x,Force):
+Force = 8.0
+
+def dxdt(x):
   a = x.ndim-1
   s = lambda x,n: np.roll(x,-n,axis=a)
   return np.multiply(s(x,1)-s(x,-2), s(x,-1)) - x + Force
 
-def step(x0, t, dt, Force=8.0):
-  return rk4(lambda t,x: dxdt(x,Force), x0, np.nan, dt)
+def step(x0, t, dt):
+  return rk4(lambda t,x: dxdt(x), x0, np.nan, dt)
 
 
 def TLM(x):
@@ -32,6 +32,7 @@ def dfdx(x,t,dt):
   """Integral of TLM. Jacobian of step."""
   # method='analytic' is a substantial upgrade for Lor95 
   return integrate_TLM(TLM(x),dt,method='analytic')
+
 
 def typical_init_params(m):
   """

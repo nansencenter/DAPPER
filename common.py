@@ -38,11 +38,10 @@ from numpy import \
 ##################################
 import warnings
 def install_msg(package):
-  return "Could not find package '" + package + "' " + \
-      "for importing and using fall-back utilities instead. " + \
-      "We recommend installing '" + package + \
-      "' (using pip or conda, etc...) " + \
-      'to improve the functionality of DAPPER.'
+  return """
+  Could not find (import) package '{0}'. Using fall-back.
+  [But we recommend installing '{0}' (using pip or conda, etc...)
+  to improve the functionality of DAPPER.]""".format(package)
 def install_warn(import_err):
   name = import_err.args[0]
   #name = name.split('No module named ')[1]
@@ -59,12 +58,19 @@ def user_is_patrick():
 
 # Choose graphics backend.
 import matplotlib as mpl
-if user_is_patrick():
-  #mpl.use('Qt4Agg') # deprecated
-  mpl.use('TkAgg')  # has geometry(placement)
-  #mpl.use('MacOSX') # more pretty, stable, fast (notable in LivePlot)
+from IPython import get_ipython
+if 'zmq' in str(type(get_ipython())).lower():
+  # notebook frontent
+  mpl.use('nbAgg') # interactive
+else:
+  # terminal frontent
+  if user_is_patrick():
+    #mpl.use('Qt4Agg') # deprecated
+    mpl.use('TkAgg')  # has geometry(placement)
+    #mpl.use('MacOSX') # more pretty, stable, fast (notable in LivePlot)
 import matplotlib.pyplot as plt
 plt.ion()
+
 
 # Color set up
 try:

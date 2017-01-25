@@ -5,6 +5,12 @@ from common import *
 #seed = np.random.seed
 def seed(i):
   """Seed random number generator. Return input (for one-liners)."""
+  if i==0:
+    warnings.warn('''
+    A seed of 0 is not a good idea. Use seed > 1.'
+    [A convenient seed repetition system is to use
+    seed_k = k*seed_0 for experiment k. But if seed_0 is 0,
+    then all seed_k will be the same (0).]''')
   np.random.seed(i)
   return i
 

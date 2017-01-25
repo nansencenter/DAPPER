@@ -67,7 +67,7 @@ def mldiv(A,b):
 
 
 def rk4(f, x0, t, dt):
-  """4-th order Runge-Kutta (approximate ODE solver)."""
+  """Runge-Kutta 4-th order (approximate ODE solver)."""
   k1 = dt * f(t      , x0)
   k2 = dt * f(t+dt/2., x0+k1/2.)
   k3 = dt * f(t+dt/2., x0+k2/2.)
@@ -76,22 +76,29 @@ def rk4(f, x0, t, dt):
 
 def integrate_TLM(M,dt,method='approx'):
   """
-  Returns the resolvent: The Jacobian of the step
-    (i.e. the integral of du/dt = TLM u, with u0 = eye).
+  Returns the resolvent, i.e. (equivalently)
+   - the Jacobian of the step func.
+   - the integral of dU/dt = M@U, with U0=eye.
+  Note that M (the TLM) is assumed constant.
+
   method:
-   - 'analytic': would be exact if the TLM were constant
+   - 'analytic': exact (assuming TLM is constant).
    - 'approx'  : derived from the forward-euler scheme.
+   - 'rk4'     : higher-precision approx.
   NB: 'analytic' typically requries higher inflation in the ExtKF.
   """
   if method == 'analytic':
     Lambda,V  = np.linalg.eig(M)
     resolvent = (V * exp(dt*Lambda)) @ np.linalg.inv(V)
-    resolvent = np.real_if_close(resolvent, tol=10000)
-  elif method.lower().startswith('approx'):
-    ndim      = M.shape[0]
-    resolvent = eye(ndim) + dt*M
+    resolvent = np.real_if_close(resolvent, tol=10**5)
   else:
-    raise ValueError
+    I = eye(M.shape[0])
+    if method == 'rk4':
+      resolvent = rk4(lambda t,U: M@U, I, np.nan, dt)
+    elif method.lower().startswith('approx'):
+      resolvent = I + dt*M
+    else:
+      raise ValueError
   return resolvent
     
 

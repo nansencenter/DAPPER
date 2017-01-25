@@ -723,13 +723,16 @@ def PartFilt(setup,config,xx,yy):
 
       N_eff = 1/(w@w)
       stats.at(kObs)(N_eff=N_eff)
-      # Resample
+      # Resample. But assess stats 1st.
+      stats.assess(E,xx,k,w=w)
       if N_eff < N*config.NER:
         E = resample(E, w, N, f.noise)
         w = 1/N*ones(N)
         stats.nResamples += 1
 
-    stats.assess(E,xx,k,w=w)
+    if not kObs:
+      # already computed in analysis step.
+      stats.assess(E,xx,k,w=w)
     lplot.update(E,k,kObs)
   return stats
 
@@ -957,7 +960,8 @@ def D3Var(setup,config,xx,yy):
   H     = h.jacob(np.nan, np.nan)
   # Dirty hack: use nan's to generate errors,
   # coz we don't want support time-dependent H,
-  # coz then we can't pre-compute KG.
+  # coz then we can't pre-compute KG,
+  # and the code for forecast-P becomes convoluted.
 
   mu0   = mean(xx,0)
   A0    = xx - mu0
@@ -988,8 +992,11 @@ def D3Var(setup,config,xx,yy):
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     mu = f.model(mu,t-dt,dt)
+
+    # Estimation of P: linear interpolation of Pa and P0.
     next_kobs = chrono.kkObs[find_1st_ind(chrono.kkObs >= k)]
-    P  = Pa + (P0-Pa)*(1 - (next_kobs-k)/dkObs)
+    P = Pa + (P0-Pa)*(1 - (next_kobs-k)/dkObs)
+
     if kObs is not None:
       y  = yy[kObs]
       mu = mu0 + KG @ (y - H@mu0)

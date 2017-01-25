@@ -83,8 +83,8 @@ class Stats:
 
   def assess_ext(self,mu,P,x,k):
     """Kalman filter (Gaussian) assessment."""
-    assert np.all(np.isfinite(mu))
-    assert np.all(np.isreal(mu))
+    assert np.all(np.isfinite(mu)) and np.all(np.isfinite(P))
+    assert np.all(np.isreal(mu))   and np.all(np.isreal(P))
     m           = len(mu)
     self.mu[k]  = mu
     self.var[k] = diag(P)

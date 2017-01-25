@@ -46,7 +46,7 @@ class OSSE:
     for key, value in kwargs.items(): setattr(self, key, value)
 
   def __repr__(self):
-    s = 'OSSE(' + self.name
+    s = 'OSSE(' + getattr(self,'name','')
     for key,val in self.__dict__.items():
       if key != 'name':
         s += '\n' + key + '=' + str(val)
@@ -159,6 +159,10 @@ class DAC_list(list):
     self.distinct_names = names
    
   def __repr__(self):
+    # TODO: In case of pop,del,append, then set_distinct_names() will
+    # not have been called and common/distinct_attrs will not be updated.
+    # Must do so manually... Or make them properties.
+    self.set_distinct_names()
     if len(self):
       headr = self.distinct_attrs.keys()
       mattr = self.distinct_attrs.values()
