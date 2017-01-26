@@ -947,59 +947,77 @@ def Climatology(setup,config,xx,yy):
     stats.assess_ext(mu0,P0.C,xx,k)
   return stats
 
-
 def D3Var(setup,config,xx,yy):
   """
   3D-Var -- a baseline/reference method.
   A mix between Climatology() and the Extended KF.
   """
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-
+  infl  = getattr(config,'infl',1.0)
   dkObs = chrono.dkObs
   R     = h.noise.C.C
-  H     = h.jacob(np.nan, np.nan)
-  # Dirty hack: use nan's to generate errors,
-  # coz we don't want support time-dependent H,
-  # coz then we can't pre-compute KG,
-  # and the code for forecast-P becomes convoluted.
 
   mu0   = mean(xx,0)
   A0    = xx - mu0
-  P0    = (A0.T @ A0) / (xx.shape[0] - 1)
-  ## NOT WORKING
-  #from scipy.optimize import fsolve
-  ##Take into account the dtObs/decorr_time of the system,
-  ##by scaling P0 (from the climatology) by infl
-  ##so that the error reduction of the analysis (trHK) approximately
-  ##matches the error growth in the forecast (1-a^dkObs).
-  #acovf = auto_cov(xx.ravel(order='F'))
-  #a     = fit_acf_by_AR1(acovf)
-  #def L_minus_R(infl):
-    #KGs = mrdiv((infl*P0) @ H.T, (H@(infl*P0)@H.T) + R)
-    #return trace(H@KGs)/h.noise.m - (1 - a**dkObs)
-  #config.infl = fsolve(L_minus_R, 0.9)
-  if hasattr(config,'infl'):
-    P0 *= config.infl
-    
-  # Pre-compute Kalman gain
-  KG = mrdiv(P0 @ H.T, (H@P0@H.T) + R)
-  Pa = (eye(f.m) - KG@H) @ P0
+  P0    = (A0.T @ A0) * (infl/(xx.shape[0] - 1))
 
-  mu = X0.mu
+  # The uncertainty estimate P is only computed
+  # for the sake of the stats, and not for actual DA.
+  # Even though it should be beneficial to use P instead of P0
+  # in the mu update, that is beyond our scope.
+  # I.e. the actual DA only relies on P0.
+  P     = P0    # estimate
+  r     = dkObs # intra-DAW counter
+  # Experimental:
+  L       = estimate_corr_length(A0.ravel(order='F'))
+  max_amp = 2*P0 # var(mu-truth) = 2 P0
+  def saw_tooth(Pa,rho):
+    """A sigmoid fitted to decorrelation length (L), Pa, and P0."""
+    # See doc/saw_tooth.jpg
+    sigmoid = lambda t: 1/(1+exp(-t))
+    inv_sig = lambda u: log(u/(1-u))
+    shift   = inv_sig(trace(Pa)/trace(max_amp))
+    dC      = 0.1 # Correlation increment for comparing corr funcs.
+    L_ratio = 2*inv_sig(dC/2) / log(dC)
+    fudge   = 1/5.5
+    scale   = fudge*dkObs/L*L_ratio
+    return max_amp*sigmoid(shift + scale*rho)
 
+  # Try to detect whether KG may be pre-computed by
+  # relying on NaN's to trigger errors (if H is time-dep).
+  try:
+    H  = h.jacob(np.nan, np.nan)
+    KG = mrdiv(P0@H.T, H@P0@H.T+R)
+    Pa = (eye(f.m) - KG@H) @ P0
+    stats.trHK[:] = trace(KG@H)/f.m
+    pre_computed_KG = True
+  except Exception:
+    pre_computed_KG = False
+
+  # Init
+  mu    = X0.mu
   stats = Stats(setup,config).assess_ext(mu, P0, xx, 0)
-  stats.trHK[:] = trace(H@KG)/h.noise.m
-
+  
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     mu = f.model(mu,t-dt,dt)
 
-    # Estimation of P: linear interpolation of Pa and P0.
-    next_kobs = chrono.kkObs[find_1st_ind(chrono.kkObs >= k)]
-    P = Pa + (P0-Pa)*(1 - (next_kobs-k)/dkObs)
-
     if kObs is not None:
-      y  = yy[kObs]
-      mu = mu0 + KG @ (y - H@mu0)
+      r = 0
+      y = yy[kObs]
+      if not pre_computed_KG:
+        H  = h.jacob(mu0,t)
+        KG = mrdiv(P0@H.T, H@P0@H.T+R)
+        KH = KG@H
+        Pa = (eye(f.m) - KH) @ P0
+        stats.trHK[kObs] = trace(KH)/f.m
+      mu = mu0 + KG@(y - h.model(mu0,t))
+
+    if r<dkObs:
+      # Interpolate P between Pa and P0.
+      #P = Pa + (max_amp-Pa)*r/dkObs
+      P = saw_tooth(Pa,r/dkObs)
+    r += 1
+
     stats.assess_ext(mu,P,xx,k)
   return stats
 
