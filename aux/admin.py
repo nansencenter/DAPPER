@@ -103,28 +103,34 @@ class DAC_list(list):
   def __init__(self,*args):
     """Init. Empty or a DAC or a list of cfgs"""
     if args != ():
-      for bam in args:
-        if isinstance(bam, DAC):
-          self._add_DAC(bam)
-        elif isinstance(bam, DAC_list):
+      for dac in args:
+        if isinstance(dac, DAC):
+          self.append(dac)
+        elif isinstance(dac, DAC_list):
           assert len(args)==1
-          for b in bam: self._add_DAC(b)
+          for b in dac: self.append(b)
         else: raise NotImplementedError
     #else: pass
 
-  def _add_DAC(self,bam):
-    """Append a DAC to list"""
-    self.append(bam)
-    self.set_distinct_names() # care about repeated overhead?
   def add(self,*kargs,**kwargs):
-    """Declare and append a DAC"""
-    config = DAC(*kargs,**kwargs)
-    self._add_DAC(config)
+    self.append(DAC(*kargs,**kwargs))
+  def ins(self,index,*kargs,**kwargs):
+    self.insert(index,DAC(*kargs,**kwargs))
+
+  @property
+  def distinct_attrs(self):
+    return self.set_distinct_names()[0]
+  @property
+  def common_attrs(self):
+    return self.set_distinct_names()[1]
+  @property
+  def distinct_names(self):
+    return self.set_distinct_names()[2]
 
   def set_distinct_names(self):
     """Generate a set of distinct names for DAC's."""
-    self.distinct_attrs = {}
-    self.common_attrs   = {}
+    distinct_attrs = {}
+    common_attrs   = {}
 
     # Find all keys
     keys = {}
@@ -136,18 +142,18 @@ class DAC_list(list):
     for key in keys:
       vals = [getattr(config,key,None) for config in self]
       if all(v == vals[0] for v in vals) and len(self)>1:
-        self.common_attrs[key] = vals[0]
+        common_attrs[key] = vals[0]
       else:
-        self.distinct_attrs[key] = vals
+        distinct_attrs[key] = vals
     # Sort
     def sf(item):
       ordering = ['da_driver','N','upd_a','infl','rot']
       try:    return ordering.index(item[0])
       except: return 99
-    self.distinct_attrs = OrderedDict(sorted(self.distinct_attrs.items(), key=sf))
+    distinct_attrs = OrderedDict(sorted(distinct_attrs.items(), key=sf))
     # Process attributes into strings 
     names = ['']*len(self) # Init
-    for i,(key,vals) in enumerate(self.distinct_attrs.items()):
+    for i,(key,vals) in enumerate(distinct_attrs.items()):
       if i==0:
         key = ''
       else:
@@ -155,24 +161,24 @@ class DAC_list(list):
       lbls  = [' '*len(key) if v is None else key for v in vals]
       vals  = typeset(vals,do_tab=True)
       names = [''.join(x) for x in zip(names,lbls,vals)]
-    # Assign to DAC_list
-    self.distinct_names = names
+    return distinct_attrs, common_attrs, names
    
   def __repr__(self):
-    # TODO: In case of pop,del,append, then set_distinct_names() will
-    # not have been called and common/distinct_attrs will not be updated.
-    # Must do so manually... Or make them properties.
-    self.set_distinct_names()
+    distinct = self.distinct_attrs
+    distinct.pop('liveplotting',None)
     if len(self):
-      headr = self.distinct_attrs.keys()
-      mattr = self.distinct_attrs.values()
+      headr = distinct.keys()
+      mattr = distinct.values()
       s     = tabulate(mattr, headr)
       s    += "\n---\nAll: " + str(self.common_attrs)
     else: s = "DAC_list()"
     return s
 
   def assign_names(self,ow=False,do_tab=True):
-    """Assign distinct_names to the individual DAC's. If ow: do_overwrite."""
+    """
+    Assign distinct_names to the individual DAC's.
+    If ow: do_overwrite.
+    """
     for name,config in zip(self.distinct_names,self):
       if ow or not getattr(config,'name',None):
         if not do_tab:
