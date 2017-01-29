@@ -11,9 +11,9 @@ sd0 = seed(5)
 # Setup
 ############################
 
-#from mods.Lorenz63.sak12 import setup                        # Expected RMSE_a:
+from mods.Lorenz63.sak12 import setup                        # Expected RMSE_a:
 #config = DAC(EnKF,'Sqrt', N=3 ,infl=1.30)
-#config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
+config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 #config = DAC(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
 #config = DAC(PartFilt,    N=800,NER=0.1)                    # 0.275 (with N=4000)
 #config = DAC(ExtKF, infl=1.5); setup.t.dkObs = 10 # reduce non-linearity
@@ -22,7 +22,7 @@ sd0 = seed(5)
 #config = DAC(PartFilt, N=1000, NER=0.1)
 
 
-from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
+#from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)
 #config = DAC(ExtKF, infl = 6)
@@ -33,7 +33,7 @@ from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(EnKF,'PertObs',N=28,infl=1.08)            # 0.24
 #config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
 #
-config = DAC(EnKF_N,N=24,rot=True)
+#config = DAC(EnKF_N,N=24,rot=True)
 #
 #config = DAC(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # 0.17
 #
@@ -49,14 +49,15 @@ config = DAC(EnKF_N,N=24,rot=True)
 #from mods.LorenzXY.defaults import setup
 # -- Get suggested tuning from setup files --
 #from mods.LA.raanes2015 import setup
+#config = DAC(EnKF,'PertObs',N=30,infl=3.2)
 # -- Get suggested tuning from setup files --
 
 
 ############################
 # Common
 ############################
-config.liveplotting = False
-setup.t.T           = 4**2.5
+config.liveplotting = True
+setup.t.T           = 4**3.5
 
 
 ############################
@@ -78,6 +79,9 @@ print_averages(config,avrgs)
 ############################
 # Plot
 ############################
+
+sys.exit(0)
+
 plot_time_series   (stats,xx,dim=2)
 plot_3D_trajectory (stats,xx)
 plot_err_components(stats)

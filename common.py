@@ -5,6 +5,7 @@ assert sys.version_info >= (3,5)
 import os.path
 from time import sleep
 from collections import OrderedDict
+import warnings
 
 
 ##################################
@@ -36,7 +37,6 @@ from numpy import \
 ##################################
 # Installation suggestion 
 ##################################
-import warnings
 def install_msg(package):
   return """
   Could not find (import) package '{0}'. Using fall-back.
@@ -66,8 +66,8 @@ else:
   # terminal frontent
   if user_is_patrick():
     #mpl.use('Qt4Agg') # deprecated
-    mpl.use('TkAgg')  # has geometry(placement)
-    #mpl.use('MacOSX') # more pretty, stable, fast (notable in LivePlot)
+    #mpl.use('TkAgg')  # has geometry(placement)
+    mpl.use('MacOSX') # more pretty, stable, fast (notable in LivePlot)
 import matplotlib.pyplot as plt
 plt.ion()
 

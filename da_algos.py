@@ -950,7 +950,8 @@ def Climatology(setup,config,xx,yy):
 def D3Var(setup,config,xx,yy):
   """
   3D-Var -- a baseline/reference method.
-  A mix between Climatology() and the Extended KF.
+  Uses the Kalman filter equations,
+  but with a prior from the Climatology.
   """
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   infl  = getattr(config,'infl',1.0)
@@ -1026,6 +1027,7 @@ def ExtKF(setup,config,xx,yy):
   """
   The extended Kalman filter.
   A baseline/reference method.
+
   If everything is linear-Gaussian, this provides the exact solution
   to the Bayesian filtering equations.
 
@@ -1046,6 +1048,7 @@ def ExtKF(setup,config,xx,yy):
   P  = X0.C.C
 
   stats = Stats(setup,config).assess_ext(mu, P, xx, 0)
+  lplot = LivePlot(setup,config,None,stats,xx,yy,P=P)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     
@@ -1060,6 +1063,7 @@ def ExtKF(setup,config,xx,yy):
     P  = infl**(dt)*(F@P@F.T) + dt*Q
 
     if kObs is not None:
+      lplot.insert_forecast(mu)
       H  = h.jacob(mu,t)
       KG = mrdiv(P @ H.T, H@P@H.T + R)
       y  = yy[kObs]
@@ -1070,6 +1074,7 @@ def ExtKF(setup,config,xx,yy):
       stats.trHK[kObs] = trace(KH)/f.m
 
     stats.assess_ext(mu,P,xx,k)
+    lplot.update(None,k,kObs,P=P)
   return stats
 
 

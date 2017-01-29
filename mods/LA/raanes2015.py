@@ -31,7 +31,7 @@ for i,j in enumerate(obsInds):
   H[i,j] = 1.0
 
 def yplot(y):
-  lh = plt.plot(obsInds,y,'g*',MarkerSize=8)[0]
+  lh = plt.plot(obsInds,y,'g*',ms=8)[0]
   #plt.pause(0.8)
   return lh
 

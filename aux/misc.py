@@ -131,7 +131,23 @@ def equi_spaced_integers(m,p):
   """Provide a range of p equispaced integers between 0 and m-1"""
   return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
 
-
+def circulant_ACF(C,do_abs=False):
+  """
+  Compute the ACF of C,
+  assuming it is the cov/corr matrix
+  of a 1D periodic domain.
+  """
+  m    = len(C)
+  #cols = np.flipud(sla.circulant(arange(m)[::-1]))
+  cols = sla.circulant(arange(m))
+  ACF  = zeros(m)
+  for i in range(m):
+    row = C[i,cols[i]]
+    if do_abs:
+      row = abs(row)
+    ACF += row
+    # Note: this actually also accesses masked values in C.
+  return ACF/m
 
 
 
