@@ -1,10 +1,3 @@
-import numpy as np
-from scipy.linalg import circulant
-from aux.misc import rk4, is1d, atmost_2d
-
-from mods.Lorenz95.core import lr
-
-
 ####################################
 # Lorenz95 two-scale/layer version
 ####################################
@@ -26,6 +19,12 @@ from mods.Lorenz95.core import lr
 # and dt=5e-3 with RK2 for the forecast/truncated model.
 #
 # Also see mitchell2014 and Hanna Arnold's thesis.
+
+import numpy as np
+from scipy.linalg import circulant
+from aux.misc import rk4, is1d, atmost_2d
+
+from mods.Lorenz95.core import lr
 
 nX= 8  # of X
 J = 32 # of Y per X 

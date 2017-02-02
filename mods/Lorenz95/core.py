@@ -1,4 +1,22 @@
-# Note: everything is ndim-agnostic.
+# "Lorenz-95" (or 96) model.
+# 
+# A summary for the purpose of DA is provided in section 3.5
+# of thesis found at
+# ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
+#
+# Note: implementation is ndim-agnostic.
+#
+# Note: the model integration is unstable (--> infinity)
+# in the presence of large peaks in amplitude,
+# Example: x = [0,-30,0,30]; step(x,dt=0.05,recursion=4).
+# This may be occasioned by the Kalman analysis update,
+# especially if the system is only partially observed.
+# Is this effectively a CFL condition? Could be addressed by:
+#  - post-processing,
+#  - modifying the step() function, e.g.:
+#    - crop amplitude
+#    - or lowering dt
+#    - using an implicit time stepping scheme instead of rk4
 
 import numpy as np
 from scipy.linalg import circulant
