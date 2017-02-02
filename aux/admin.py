@@ -187,31 +187,13 @@ class DAC_list(list):
         config._name_auto_gen = True
     
 
-def assimilate(setup,config,xx,yy):
-  """Call config.da_driver(), passing along all arguments."""
-  args = locals()
-  return config.da_driver(**args)
-
-def simulate(setup):
-  """Generate synthetic truth and observations"""
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-
-  # init
-  xx    = zeros((chrono.K+1,f.m))
-  xx[0] = X0.sample(1)
-  yy    = zeros((chrono.KObs+1,h.m))
-
-  for k,kObs,t,dt in progbar(chrono.forecast_range,desc='Truth & Obs'):
-    xx[k] = f.model(xx[k-1],t-dt,dt) + sqrt(dt)*f.noise.sample(1)
-    if kObs is not None:
-      yy[kObs] = h.model(xx[k],t) + h.noise.sample(1)
-
-  return xx,yy
 
 class Bunch(dict):
   def __init__(self,**kw):
     dict.__init__(self,kw)
     self.__dict__ = self
+
+
 
 # DEPRECATED
 import inspect
