@@ -2,9 +2,27 @@
 
 from common import *
 
-#seed = np.random.seed
 def seed(i=None):
-  """Seed random number generator. Return input (for one-liners)."""
+  """
+  Seed random number generator.
+  If i==None, then the clock is used to seed.
+
+  This (suboptimal) wrapper returns a seed,
+  which can be used as a stored state (through re-seeding).
+  It does not allow getting the state (as a seed), however,
+  becose the mapping seed-->state is not surjective.
+
+  Example
+  In : sd = seed(42); randn()
+  Out: array([ 0.49671415])
+
+  In : seed(sd); randn()
+  Out: array([ 0.49671415])
+  """
+  if i==None:
+    np.random.seed() # Init by clock.
+    state = np.random.get_state()
+    i     = state[1][0] # Set seed to state[0]
   if i==0:
     warnings.warn('''
     A seed of 0 is not a good idea. Use seed > 1.'
@@ -16,7 +34,7 @@ def seed(i=None):
 
 def LCG(seed=-1):
   """
-  (Unit) random number generator for X-platform use
+  (Unit) psuedo-random number generator for X-platform use
   (since code is easy to translate).
   "Linear congruential generator"
   Should be burnt-in by running it a few times.
