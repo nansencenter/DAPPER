@@ -31,16 +31,23 @@ The typical set-up is a "twin experiment", where you
 * assess how different DA methods
 	perform in estimating the truth
 
-DAPPER successfully reproduces numerical results reported in the literature,
-thus safeguarding the quality of its benchmarks.
-Comparative studies are facilitated through its collection of typical test-cases, methods, and statistics.
-It is thus well suited for fundamental DA research.
+DAPPER makes the numerical investigation of DA methods accessible
+through its variety of typical test-cases and statistics.
+It reproduces numerical results reported in the literature,
+which safeguards the quality of its benchmarks.
+Comparative studies are facilitated by its collection of baseline methods
+as well as its tools to manage experimental settings, averages, and random numbers,
+all of which assist in ensuring that the results are neither spurious nor frivolous.
+It is open source, written in Python, and focuses on code readability;
+this promotes the reproduction and dissemination of the underlying science,
+and makes it easy to adapt and extend to further needs.
+In summary, it is well suited for conducting fundamental DA research
+as well as teaching purposes.
 
-It is open source and written in Python, and thus easy to adapt and extend to further needs.
+To some extent, DAPPER sacrifices efficiency to gain the advantages listed above.
+I.e. it is not designed for the assimilation of real data in operational models.
 
-It also focuses on code readability, striking a beneficial compromise with efficiency,
-and is therefore well suited for teaching and academic purposes.
-However, its current documentation does not provide a tutorial;
+The current documentation does not provide a tutorial;
 new users should begin by looking at the code in `benchmark.py`
 and work their way backward.
 
