@@ -6,6 +6,7 @@ import os.path
 from time import sleep
 from collections import OrderedDict
 import warnings
+import traceback
 
 
 ##################################
@@ -47,6 +48,9 @@ def install_warn(import_err):
   #name = name.split('No module named ')[1]
   name = name.split("'")[1]
   warnings.warn(install_msg(name))
+
+# Raise error on warning
+#warnings.filterwarnings('error',category=RuntimeWarning)
 
 
 ##################################
@@ -109,5 +113,6 @@ from aux.matrices import *
 from aux.randvars import *
 from aux.admin import *
 from stats import *
+from convenience import *
 from da_algos import *
 
