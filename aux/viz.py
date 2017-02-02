@@ -34,11 +34,12 @@ class LivePlot:
     if not self.is_available: return
     self.is_on     = False
     self.is_paused = False
+    print('Initializing liveplotting...')
     print('Press <Enter> to toggle live plot ON/OFF.')
     print('Press <Space> and then <Enter> to pause.')
 
     #ens_props = {} yields rainbow
-    ens_props = {'color': 0.6*RGBs['w']}
+    ens_props = {'color': 0.6*RGBs['w'],'alpha':0.3}
 
 
     #####################
@@ -216,15 +217,15 @@ class LivePlot:
     ptt = chrono.tt[pkk]
 
     self.ax_e = plt.subplot(211)
-    self.le,  = self.ax_e.plot(ptt,stats.rmse[pkk],'k',lw=2,alpha=1.0,label='Error')
-    self.lv,  = self.ax_e.plot(ptt,stats.rmv [pkk],'b',lw=2,alpha=0.6,label='Spread')
+    self.le,  = self.ax_e.plot(ptt,stats.rmse[pkk],'k',lw=2,label='Error')
+    self.lv,  = self.ax_e.plot(ptt,stats.rmv [pkk],'b',lw=2,label='Spread',alpha=0.6)
     self.ax_e.set_ylabel('RMS')
     self.ax_e.legend()
     self.ax_e.set_xticklabels([])
 
     self.ax_i = plt.subplot(212)
-    self.ls,  = self.ax_i.plot(ptt,stats.skew[pkk],'g',lw=2,alpha=1.0,label='Skew')
-    self.lk,  = self.ax_i.plot(ptt,stats.kurt[pkk],'r',lw=2,alpha=1.0,label='Kurt')
+    self.ls,  = self.ax_i.plot(ptt,stats.skew[pkk],'g',lw=2,label='Skew')
+    self.lk,  = self.ax_i.plot(ptt,stats.kurt[pkk],'r',lw=2,label='Kurt')
     self.ax_i.legend()
     self.ax_i.set_xlabel('time (t)')
 
@@ -282,7 +283,7 @@ class LivePlot:
     
   def insert_forecast(self,mu):
     """Plot amplitudes of forecast state"""
-    if not self.is_available and self.is_on: return
+    if not self.is_available or not self.is_on: return
     if plt.fignum_exists(self.fga.number):
       ii,wrap = setup_wrapping(len(mu))
       plt.figure(self.fga.number)
@@ -496,6 +497,12 @@ def set_ilim(ax,i,data,zoom=1.0):
   if i is 1: ax.set_ylim(lims)
   if i is 2: ax.set_zlim(lims)
 
+def set_ilabel(ax,i):
+  if i is 0: ax.set_xlabel('x')
+  if i is 1: ax.set_ylabel('y')
+  if i is 2: ax.set_zlabel('z')
+
+
 
 def estimate_good_plot_length(xx,chrono,mult):
   """Estimate good length for plotting stuff
@@ -583,7 +590,7 @@ def plot_time_series(stats,xx,dim=0,**kwargs):
 
   ax_d = plt.subplot(3,1,1)
   ax_d.plot(tt[pkk],xx  [pkk,dim],'k',lw=3,label='Truth')
-  ax_d.plot(tt[pkk],s.mu[pkk,dim],lw=2,label='DA estim.',alpha=1.0)
+  ax_d.plot(tt[pkk],s.mu[pkk,dim],lw=2,label='DA estim.')
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
   ax_d.set_ylabel('dim ' + str(dim))
@@ -699,7 +706,7 @@ def plot_err_components(stats):
   ax_R.set_ylabel('Num. of occurence')
   ax_R.set_xlabel('RMSE')
   ax_R.set_title('Histogram of RMSE values')
-  ax_R.hist(s.rmse[chrono.kk_BI],alpha=1.0,bins=30,normed=0)
+  ax_R.hist(s.rmse[chrono.kk_BI],bins=30,normed=0)
 
 
 def plot_rank_histogram(stats):
@@ -725,7 +732,7 @@ def plot_rank_histogram(stats):
     N     = stats.w.shape[1]
     if are_uniform(stats.w):
       # Ensemble rank histogram
-      integer_hist(ranks.ravel(),N,alpha=1.0)
+      integer_hist(ranks.ravel(),N)
     else:
       # Experimental: weighted rank histogram.
       # Weight ranks by inverse of particle weight. Why? Coz, with correct
@@ -738,7 +745,7 @@ def plot_rank_histogram(stats):
       w  = w.T.ravel()
       w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
       w  = 1/w
-      integer_hist(ranks.ravel(),N,weights=w,alpha=1.0)
+      integer_hist(ranks.ravel(),N,weights=w)
   else:
     not_available_text(ax_H)
   

@@ -47,7 +47,7 @@ cfgs.add(EnKF_N,N=24,rot=True)
 ss = np.empty((len(F_range),nRepeat,len(cfgs)),dict)
 
 for i,F_true in enumerate(F_range):
-  print_blue('\nF_true: ', F_true)
+  print_c('\nF_true: ', F_true)
   for j in range(nRepeat):
     seed(sd0 + j)
     setup.f.model = model(F=F_true)
@@ -59,7 +59,7 @@ for i,F_true in enumerate(F_range):
       ss[i,j,k] = stats.average_in_time()
     print_averages(cfgs,ss[i,j])
   avrg = average_each_field(ss[i],axis=0)
-  print_blue('Average over',nRepeat,'repetitions:')
+  print_c('Average over',nRepeat,'repetitions:')
   print_averages(cfgs,avrg)
 
 #save_data(save_path,inds,F_range=F_range,ss=ss,xx=xx,yy=yy)

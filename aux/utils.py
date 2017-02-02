@@ -90,20 +90,22 @@ getch = _find_getch()
 
 
 # Terminal color codes. Use:
-# print(bcolors.WARNING + "Warning: test" + bcolors.ENDC)
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+termcolors={
+    'blue'      : '\033[94m',
+    'green'     : '\033[92m',
+    'OKblue'    : '\033[94m',
+    'OKgreen'   : '\033[92m',
+    'WARNING'   : '\033[93m',
+    'FAIL'      : '\033[91m',
+    'ENDC'      : '\033[0m' ,
+    'header'    : '\033[95m',
+    'bold'      : '\033[1m' ,
+    'underline' : '\033[4m' ,
+}
 
-def print_blue(*kargs):
+def print_c(*kargs,color='blue'):
   s = ' '.join([str(k) for k in kargs])
-  print(bcolors.OKBLUE + s + bcolors.ENDC)
+  print(termcolors[color] + s + termcolors['ENDC'])
 
 
 # Local np.set_printoptions. stackoverflow.com/a/2891805/38281

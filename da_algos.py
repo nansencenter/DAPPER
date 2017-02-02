@@ -673,7 +673,6 @@ def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
 
 
 
-import numpy.ma as ma
 def PartFilt(setup,config,xx,yy):
   """
   Particle filter ≡ Sequential importance (re)sampling (SIS/SIR).
@@ -702,29 +701,34 @@ def PartFilt(setup,config,xx,yy):
       y  = yy[kObs]
       innovs = hE - y
       innovs = innovs @ Rm12.T
+      # Actual (not log) weights are needed for assessment and resampling.
+      # But, ∃ at least 2 reasons to work in "log space".
+      # - Normalization: will fail if sum==0 (if all innov's are large).
+      # - Num. precision: lklhd*w should have better prec in log space.
+      logL   = -0.5 * sum(innovs**2, axis=1)
+      logL  -= logL.max()    # Avoid numerical error
+      logw   = log(w) + logL # Bayes' rule
+      w      = exp(logw)
+      w     /= sum(w)
 
-      #naninds = np.isnan(sum(E,1))
-      lklhds  = np.exp(-0.5 * sum(innovs**2, axis=1)) # *constant
-      #lklhds[naninds] = 0
-      lklhds = lklhds/mean(lklhds)/N # Avoid numerical error
-      #%lklhds(lklhds==0) = min(lklhds(lklhds~=0))
-      w *= lklhds
-      #%w(w==0) = max([max(w)/N,1e-20])
-      w /= sum(w)
+      # Assess stats immediately after Bayes.
+      stats.assess(E,xx,k,w=w)
+      
+      # Resample w==0 particles. TODO: Test with L63 to make sure. 
+      # Note: this is rigorous. 
+      # inds0 = w==0
+      # N0    = sum(inds0)
+      # if N0>0:
+      #   inds1     = np.logical_not(inds0)
+      #   E[inds0]  = resample(E[inds1], w[inds1], N0, f.noise)
+      #   w[inds0]  = 1/N
+      #   w[inds1] *= (N-N0)/N
 
-      #log_lklhds = sum(innovs**2, axis=1) # +constant
-      #w          = ma.masked_values(w,0)
-      #log_w      = -2*log(w) + log_lklhds
-      #log_w      = ma.masked_invalid(log_w)
-      #log_w     -= log_w.mean() # avoid numerical error
-      #w          = np.exp(-0.5*log_w)
-      #w         /= sum(w)
-      #w          = w.filled(0)
+      # Not very helpful?: w(w==0) = max([max(w)/N,1e-20])
 
+      # Resample (all particles) if N_effective < threshold.
       N_eff = 1/(w@w)
       stats.at(kObs)(N_eff=N_eff)
-      # Resample. But assess stats 1st.
-      stats.assess(E,xx,k,w=w)
       if N_eff < N*config.NER:
         E = resample(E, w, N, f.noise)
         w = 1/N*ones(N)

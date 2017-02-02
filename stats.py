@@ -57,9 +57,14 @@ class Stats:
     self.mu[k]   = w @ E
     A            = E - self.mu[k]
     self.var[k]  = w @ A**2
-    unbias_var   = 1/(1 - w@w) # equal to N/(N-1) if w=ones(N)/N.
-    self.var[k] *= unbias_var
     self.mad[k]  = w @ abs(A)  # Mean abs deviations
+
+    unbias_var   = 1/(1 - w@w) # =N/(N-1) if w==ones(N)/N.
+    if (1-w.max()) < 1e-10:
+      # Don't do in case of weights collapse
+      unbias_var = 1
+    self.var[k] *= unbias_var
+    
 
     # For simplicity, use naive (and biased) formulae, derived from "empirical measure".
     # See doc/unbiased_skew_kurt.jpg.
@@ -170,6 +175,9 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   """
   For i in range(len(cfgs)):
     Print cfgs[i][attrkeys], Avrgs[i][statkeys]
+  - attrkeys: list of attributes to include.
+      - if 0: only print da_driver.
+  - statkeys: list of statistics to include.
   """
   if isinstance(cfgs,DAC):
     cfgs  = DAC_list(cfgs)
@@ -183,6 +191,10 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   if   attrkeys == 0: headr = ['da_driver']
   elif attrkeys ==(): headr = list(cfgs.distinct_attrs)
   else:               headr = list(attrkeys)
+
+  excld = ['liveplotting']
+  headr = [x for x in headr if x not in excld]
+  
   mattr = [cfgs.distinct_attrs[key] for key in headr]
 
   # Add separator
@@ -195,7 +207,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
     for i in range(len(cfgs)):
       val  = Avrgs[i][key].val
       conf = Avrgs[i][key].conf
-      col.append('{0:#>9.4f} {1: <6g} '.format(val,round2sigfig(conf)))
+      col.append('{0:#>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
     crop= min([s.count('#') for s in col])
     col = [s[crop:]         for s in col]
     headr.append(col[0])
