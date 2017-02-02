@@ -74,6 +74,23 @@ def rk4(f, x0, t, dt):
   k4 = dt * f(t+dt   , x0+k3)
   return x0 + (k1 + 2.*(k2 + k3) + k4)/6.0
 
+def make_recursive(func):
+  """
+  Return a version of func() whose 2nd argument (k)
+  is the number of times to times apply func on its output.
+  Example:
+    def step(x,t,dt): ...
+    step_k = make_recursive(step)
+    x[k]   = step_k(x0,k,t=NaN,dt)[-1]
+  """
+  def fun_k(x0,k,*args,**kwargs):
+    xx    = zeros((k+1,len(x0)))
+    xx[0] = x0
+    for i in range(k):
+      xx[i+1] = func(xx[i],*args,**kwargs)
+    return xx
+  return fun_k
+
 def integrate_TLM(M,dt,method='approx'):
   """
   Returns the resolvent, i.e. (equivalently)
