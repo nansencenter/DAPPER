@@ -36,7 +36,7 @@ through its variety of typical test-cases and statistics.
 It reproduces numerical results reported in the literature,
 which safeguards the quality of its benchmarks.
 Comparative studies are facilitated by its collection of baseline methods
-as well as its tools to manage experimental settings, averages, and random numbers,
+and its tools to manage experimental settings, averages, and random numbers,
 all of which assist in ensuring that the results are neither frivolous nor spurious.
 It is open source, written in Python, and focuses on code readability;
 this promotes the reproduction and dissemination of the underlying science,
