@@ -80,15 +80,15 @@ Climatology                        | "
 Models
 ------------
 
-Model name  | Linear? | Phys.dim. | State len.  | # Lyap>=0 | Thanks to
------------ | ------- | --------- | ----------- | --------- | ----------
-Lin. Advect.| Yes     | 1D        | 1000        |  51       | Evensen
-Lorenz63    | No      | 0D        | 3           |  2+       | Lorenz/Sakov
-Lorenz84    | No      | 0D        | 3           |  2+       | Lorenz/Raanes
-Lorenz95    | No      | 1D        | 40          |  13+      | Lorenz/Sakov
-LorenzXY    | No      | 2x 1D     | 256 + 8     |  ≈13      | Lorenz/Raanes
-MAOOAM      | No      | 2x 1D     | 36          |  ?        | Tondeur/Vannitsen
-Barotropic  | No      | 2D        | 256^2 ≈ 60k |  ?        | J.Penn/Raanes
+Model name  | Linear? | Phys.dim. | State len.  | # Lyap≥0 | Thanks to
+----------- | ------- | --------- | ----------- | -------- | ----------
+Lin. Advect.| Yes     | 1D        | 1000        |  51      | Evensen
+Lorenz63    | No      | 0D        | 3           |  2       | Lorenz/Sakov
+Lorenz84    | No      | 0D        | 3           |  2       | Lorenz/Raanes
+Lorenz95    | No      | 1D        | 40          |  13      | Lorenz/Sakov
+LorenzXY    | No      | 2x 1D     | 256 + 8     |  ≈13     | Lorenz/Raanes
+MAOOAM      | No      | 2x 1D     | 36          |  ?       | Tondeur/Vannitsen
+Barotropic  | No      | 2D        | 256^2 ≈ 60k |  ?       | J.Penn/Raanes
 
 
 Additional features
