@@ -35,7 +35,7 @@ def TLM(x):
   x,y,z = x
   TLM=np.array(
       [[-a   , -2*y , -2*z],
-      [y-b*z , -1   , -b*x],
+      [y-b*z , x-1  , -b*x],
       [b*y+z , b*x  , x-1]])
   return TLM
 
