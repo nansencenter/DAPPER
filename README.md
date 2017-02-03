@@ -37,7 +37,7 @@ It reproduces numerical results reported in the literature,
 which safeguards the quality of its benchmarks.
 Comparative studies are facilitated by its collection of baseline methods
 as well as its tools to manage experimental settings, averages, and random numbers,
-all of which assist in ensuring that the results are neither spurious nor frivolous.
+all of which assist in ensuring that the results are neither frivolous nor spurious.
 It is open source, written in Python, and focuses on code readability;
 this promotes the reproduction and dissemination of the underlying science,
 and makes it easy to adapt and extend to further needs.
@@ -80,14 +80,15 @@ Climatology                        | "
 Models
 ------------
 
-Model name  | Linear? | Phys.dim. | State len.  | # Lyap>0 | Thanks to
------------ | ------- | --------- | ----------- | -------- | ----------
-Lin. Advect.| Yes     | 1D        | 1000        |  51      | Evensen
-Lorenz63    | No      | 0D        | 3           |  2+      | Lorenz/Sakov
-Lorenz95    | No      | 1D        | 40          |  13+     | "
-LorenzXY    | No      | 2x 1D     | 256 + 8     |  ≈13     | Lorenz/Raanes
-MAOOAM      | No      | 2x 1D     | 36          |  ?       | Tondeur/Vannitsen
-Barotropic  | No      | 2D        | 256^2 ≈ 60k |  ?       | J.Penn/Raanes
+Model name  | Linear? | Phys.dim. | State len.  | # Lyap>=0 | Thanks to
+----------- | ------- | --------- | ----------- | --------- | ----------
+Lin. Advect.| Yes     | 1D        | 1000        |  51       | Evensen
+Lorenz63    | No      | 0D        | 3           |  2+       | Lorenz/Sakov
+Lorenz84    | No      | 0D        | 3           |  2+       | Lorenz/Raanes
+Lorenz95    | No      | 1D        | 40          |  13+      | Lorenz/Sakov
+LorenzXY    | No      | 2x 1D     | 256 + 8     |  ≈13      | Lorenz/Raanes
+MAOOAM      | No      | 2x 1D     | 36          |  ?        | Tondeur/Vannitsen
+Barotropic  | No      | 2D        | 256^2 ≈ 60k |  ?        | J.Penn/Raanes
 
 
 Additional features
@@ -118,7 +119,7 @@ Also has:
 * CovMat class (input flexibility/overloading, lazy eval)
 * Live plotting with on/off toggle
 * Intelligent defaults (e.g. plot duration estimated from autocorrelation,
-    axis limits esitmated from percentiles)
+    axis limits estimated from percentiles)
 
 
 Alternative projects
@@ -189,7 +190,7 @@ Implementation choices
     * Avoids reshape's and recasting (`asmatrix`)
     * Fewer indices: `[n,:]` yields same as `[n]`
 * OLD: Use `m-by-N` matrix class. Pros:
-    * Litterature uses `m-by-N`
+    * Literature uses `m-by-N`
     * Facilitates desired broadcasting
     * Matrix multiplication through `*` -- since python3.5 can just use `@`
 
@@ -210,7 +211,7 @@ TODO
 * Models
     * Improve doc
     * Barotropic
-    * convservational 1D model (aside from L95)
+    * conversational 1D model (aside from L95)
     * KdVB (Zupanski 2006)
 
 
