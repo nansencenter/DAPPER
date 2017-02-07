@@ -5,19 +5,29 @@ CUTOFF   = 1e-3
 TAG      = 'GC'
 
 def unravel(inds, shape, order='C'):
+  """
+  Compute (i,j) subscripts of
+  the ravelled (i.e. vectorized) <inds>
+  of a <shape> matrix.
+
+  Note that unravelling is slow, and should only be done once.
+  By contrast, the dist/coeff computations are faster,
+  but could require much memory to pre-compute
+  and so should be computed on the fly.
+  """
   inds  = np.atleast_1d(inds)
   shape = np.atleast_1d(shape)
 
   IJ = asarray(np.unravel_index(inds, shape, order=order))
-  for i,d in enumerate(IJ):
-    assert max(d) < shape[i]
+
+  for i,dim in enumerate(IJ): assert max(dim) < shape[i]
   return IJ
 
 def distance_nD(centr, domain, shape, periodic=True):
   """
   Euclidian distance between centr and domain,
   both of which are indices of x.ravel(order='C'),
-  where x the specified shape.
+  where x.shape==<shape>.
   Vectorized for multiple domain pts.
   """
   shape = np.atleast_1d(shape)
@@ -76,15 +86,19 @@ def dist2coeff(dists, radius, tag=TAG):
 def inds_and_coeffs(centr, domain, domain_shape,
     radius, cutoff=CUTOFF, tag=TAG):
   """
-  inds   = the **indices of** domain that "close to" centr.
+  Returns:
+  inds   = the **indices of** domain that "close to" centr,
+           such that the local domain is: domain[inds].
   coeffs = the corresponding coefficients.
-  Note that the local domain is: domain[inds].
   """
   dists  = distance_nD(centr, domain, domain_shape)
 
   coeffs = dist2coeff(dists, radius, tag)
 
+  # Truncate with cut-off
   inds   = arange(len(dists))[coeffs > cutoff]
   coeffs = coeffs[inds]
+
   return inds, coeffs
+
 

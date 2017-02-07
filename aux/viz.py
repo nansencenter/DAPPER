@@ -50,33 +50,36 @@ class LivePlot:
     set_figpos('2311')
 
 
-    self.ax     = plt.subplot(311)
-    self.lx,    = plt.plot(ii,wrap(xx[0]),'k',lw=3,ls='-',label='Truth')
-    self.lmu,   = plt.plot(ii,wrap(mu[0]),'b',lw=2,ls='-',label='DA estim.')
-    self.fcast, = plt.plot(ii,wrap(mu[0]),'r',lw=1,ls='-',label='forecast')
+    ax = plt.subplot(311)
+    if m<2000:
+      self.lx,    = plt.plot(ii,wrap(xx[0]),'k',lw=3,ls='-',label='Truth')
+      self.lmu,   = plt.plot(ii,wrap(mu[0]),'b',lw=2,ls='-',label='DA estim.')
+      self.fcast, = plt.plot(ii,wrap(mu[0]),'r',lw=1,ls='-',label='forecast')
 
-    #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
-    self.ks  = 2.0
-    self.CI  = self.ax.fill_between(ii, \
-        wrap(mu[0] - self.ks*sqrt(stats.var[0])), \
-        wrap(mu[0] + self.ks*sqrt(stats.var[0])), \
-        alpha=0.4,label=(str(self.ks) + ' sigma'))
+      #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
+      self.ks  = 2.0
+      self.CI  = ax.fill_between(ii, \
+          wrap(mu[0] - self.ks*sqrt(stats.var[0])), \
+          wrap(mu[0] + self.ks*sqrt(stats.var[0])), \
+          alpha=0.4,label=(str(self.ks) + ' sigma'))
 
-    if hasattr(setup.h,'plot'):
-      # tmp
-      self.yplot = setup.h.plot
-      self.obs = setup.h.plot(yy[0])
-      self.obs.set_label('Obs')
-      #self.obs.set_visible(False)
-    
-    self.ax.legend()
-    #self.ax.xaxis.tick_top()
-    #self.ax.xaxis.set_label_position('top') 
-    self.ax.set_xlabel('State index')
-    self.ax.set_xlim((ii[0],ii[-1]))
-    tcks = self.ax.get_xticks()
-    tcks = tcks[np.logical_and(tcks >= ii[0], tcks <= ii[-1])]
-    tcks = tcks.astype(int)
+      if hasattr(setup.h,'plot'):
+        # tmp
+        self.yplot = setup.h.plot
+        self.obs = setup.h.plot(yy[0])
+        self.obs.set_label('Obs')
+        #self.obs.set_visible(False)
+      
+      ax.legend()
+      #ax.xaxis.tick_top()
+      #ax.xaxis.set_label_position('top') 
+      ax.set_xlabel('State index')
+      ax.set_xlim((ii[0],ii[-1]))
+      tcks = ax.get_xticks()
+      tcks = tcks[np.logical_and(tcks >= ii[0], tcks <= ii[-1])]
+      tcks = tcks.astype(int)
+
+      self.ax = ax
 
     # TODO: Spectral plot
     #axS = plt.subplot(412)
@@ -84,59 +87,60 @@ class LivePlot:
 
     # Correlation plot. Inspired by seaborn.heatmap.
     axC = plt.subplot(312)
-    divdr = make_axes_locatable(axC)
-    # Append axes to the right for colorbar
-    cax = divdr.append_axes("bottom", size="10%", pad=0.05)
-    if E is not None:
-      C = np.cov(E,rowvar=False)
-    else:
-      assert P is not None
-      C = P.copy()
-    std = sqrt(diag(C))
-    C  /= std[:,None]
-    C  /= std[None,:]
-    mask = np.zeros_like(C, dtype=np.bool)
-    mask[np.tril_indices_from(mask)] = True
-    C2 = np.ma.masked_where(mask, C)[::-1]
-    try:
-      cmap = sns.diverging_palette(220,10,as_cmap=True)
-    except NameError:
-      cmap = plt.get_cmap('coolwarm')
-    # Log-transform cmap, but not internally in matplotlib,
-    # to avoid transforming the colorbar too.
-    trfm = colors.SymLogNorm(linthresh=0.2,linscale=0.2,vmin=-1, vmax=1)
-    cmap = cmap(trfm(linspace(-1,1,cmap.N)))
-    cmap = colors.ListedColormap(cmap)
-    #VM  = max(abs(np.percentile(C2,[1,99])))
-    VM   = 1.0
-    mesh = axC.pcolormesh(C2,cmap=cmap,vmin=-VM,vmax=VM)
-    axC.figure.colorbar(mesh,cax=cax,orientation='horizontal')
-    plt.box(False)
-    axC.yaxis.tick_right()
-    axC.set_yticks(m-tcks-0.5)
-    axC.set_yticklabels([str(x) for x in tcks])
-    axC.set_xticklabels([])
-    cax.set_xlabel('Correlation')
-    axC.set_axis_bgcolor('w')
-    
+    if m<400:
+      divdr = make_axes_locatable(axC)
+      # Append axes to the right for colorbar
+      cax = divdr.append_axes("bottom", size="10%", pad=0.05)
+      if E is not None:
+        C = np.cov(E,rowvar=False)
+      else:
+        assert P is not None
+        C = P.copy()
+      std = sqrt(diag(C))
+      C  /= std[:,None]
+      C  /= std[None,:]
+      mask = np.zeros_like(C, dtype=np.bool)
+      mask[np.tril_indices_from(mask)] = True
+      C2 = np.ma.masked_where(mask, C)[::-1]
+      try:
+        cmap = sns.diverging_palette(220,10,as_cmap=True)
+      except NameError:
+        cmap = plt.get_cmap('coolwarm')
+      # Log-transform cmap, but not internally in matplotlib,
+      # to avoid transforming the colorbar too.
+      trfm = colors.SymLogNorm(linthresh=0.2,linscale=0.2,vmin=-1, vmax=1)
+      cmap = cmap(trfm(linspace(-1,1,cmap.N)))
+      cmap = colors.ListedColormap(cmap)
+      #VM  = max(abs(np.percentile(C2,[1,99])))
+      VM   = 1.0
+      mesh = axC.pcolormesh(C2,cmap=cmap,vmin=-VM,vmax=VM)
+      axC.figure.colorbar(mesh,cax=cax,orientation='horizontal')
+      plt.box(False)
+      axC.yaxis.tick_right()
+      axC.set_yticks(m-tcks-0.5)
+      axC.set_yticklabels([str(x) for x in tcks])
+      axC.set_xticklabels([])
+      cax.set_xlabel('Correlation')
+      axC.set_axis_bgcolor('w')
+      
 
-    acf = circulant_ACF(C)
-    ac6 = circulant_ACF(C,do_abs=True)
-    ax5 = inset_axes(axC,width="30%",height="60%",loc=3)
-    l5, = ax5.plot(arange(m), acf,     label='auto-corr')
-    l6, = ax5.plot(arange(m), ac6, label='abs(")')
-    ax5.set_xticklabels([])
-    ax5.set_yticks([0,1] + list(ax5.get_yticks()[[0,-1]]))
-    ax5.set_ylim(top=1)
-    ax5.legend(frameon=False,loc=1)
-    #ax5.text(m/2-.5,0.9,'Auto corr.',va='center',ha='center')
+      acf = circulant_ACF(C)
+      ac6 = circulant_ACF(C,do_abs=True)
+      ax5 = inset_axes(axC,width="30%",height="60%",loc=3)
+      l5, = ax5.plot(arange(m), acf,     label='auto-corr')
+      l6, = ax5.plot(arange(m), ac6, label='abs(")')
+      ax5.set_xticklabels([])
+      ax5.set_yticks([0,1] + list(ax5.get_yticks()[[0,-1]]))
+      ax5.set_ylim(top=1)
+      ax5.legend(frameon=False,loc=1)
+      #ax5.text(m/2-.5,0.9,'Auto corr.',va='center',ha='center')
 
-    self.axC = axC
-    self.ax5 = ax5
-    self.mask = mask
-    self.mesh = mesh
-    self.l5 = l5
-    self.l6 = l6
+      self.axC = axC
+      self.ax5 = ax5
+      self.mask = mask
+      self.mesh = mesh
+      self.l5 = l5
+      self.l6 = l6
     
 
 
@@ -307,49 +311,50 @@ class LivePlot:
     #####################
     if plt.fignum_exists(self.fga.number):
 
+      plt.figure(self.fga.number)
       t = self.setup.t.tt[k]
       self.fga.suptitle('t[k]={:<5.2f}, k={:<d}'.format(t,k))
 
-      plt.figure(self.fga.number)
-      self.lmu.set_ydata(wrap(mu[k]))
-      self.lx .set_ydata(wrap(self.xx[k]))
+      if hasattr(self,'ax'):
+        self.lmu.set_ydata(wrap(mu[k]))
+        self.lx .set_ydata(wrap(self.xx[k]))
 
-      if kObs is None:
-        self.fcast.set_visible(False)
+        if kObs is None:
+          self.fcast.set_visible(False)
 
-      #for i,l in enumerate(lE):
-        #l.set_ydata(E[i])
-      self.CI.remove()
-      self.CI  = self.ax.fill_between(ii, \
-          wrap(mu[k] - self.ks*sqrt(stats.var[k])), \
-          wrap(mu[k] + self.ks*sqrt(stats.var[k])), alpha=0.4)
+        #for i,l in enumerate(lE):
+          #l.set_ydata(E[i])
+        self.CI.remove()
+        self.CI  = self.ax.fill_between(ii, \
+            wrap(mu[k] - self.ks*sqrt(stats.var[k])), \
+            wrap(mu[k] + self.ks*sqrt(stats.var[k])), alpha=0.4)
 
-      plt.sca(self.ax)
-      if hasattr(self,'obs'):
-        try:
-          self.obs.remove()
-        except Exception:
-          pass
-        if kObs is not None:
-          self.obs = self.yplot(self.yy[kObs])
+        plt.sca(self.ax)
+        if hasattr(self,'obs'):
+          try:
+            self.obs.remove()
+          except Exception:
+            pass
+          if kObs is not None:
+            self.obs = self.yplot(self.yy[kObs])
 
+      if hasattr(self,'axC'):
+        if E is not None:
+          C = np.cov(E,rowvar=False)
+        else:
+          assert P is not None
+          C = P.copy()
+        std = sqrt(diag(C))
+        C  /= std[:,None]
+        C  /= std[None,:]
+        C2 = np.ma.masked_where(self.mask, C)[::-1]
+        self.mesh.set_array(C2.ravel())
 
-      if E is not None:
-        C = np.cov(E,rowvar=False)
-      else:
-        assert P is not None
-        C = P.copy()
-      std = sqrt(diag(C))
-      C  /= std[:,None]
-      C  /= std[None,:]
-      C2 = np.ma.masked_where(self.mask, C)[::-1]
-      self.mesh.set_array(C2.ravel())
-
-      acf = circulant_ACF(C)
-      ac6 = circulant_ACF(C,do_abs=True)
-      self.l5.set_ydata(acf)
-      self.l6.set_ydata(ac6)
-      update_ylim([acf, ac6], self.ax5)
+        acf = circulant_ACF(C)
+        ac6 = circulant_ACF(C,do_abs=True)
+        self.l5.set_ydata(acf)
+        self.l6.set_ydata(ac6)
+        update_ylim([acf, ac6], self.ax5)
 
 
       if self.do_spectral_error:

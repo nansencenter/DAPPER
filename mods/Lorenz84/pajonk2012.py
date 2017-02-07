@@ -24,7 +24,7 @@ f = {
     'noise': 0
     }
 
-X0  = GaussRV(C=1,m=m)
+X0  = GaussRV(C=0.01,m=m) # Decreased from Pajonk's C=1.
 
 h = {
     'm'    : p,
@@ -40,6 +40,8 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-#cfgs.add(ExtKF,infl=5)
-#cfgs.add(EnKF ,'Sqrt',N=3,infl=1.01)
+#cfgs.add(ExtKF,infl=2)
+#cfgs.add(EnKF,'Sqrt',N=3,infl=1.01)
+#cfgs.add(PartFilt, N=100, NER=0.4)
+#cfgs.add(PartFilt, N=1000, NER=0.1)
 

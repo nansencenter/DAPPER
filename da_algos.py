@@ -4,6 +4,10 @@ from common import *
 def EnKF(setup,config,xx,yy):
   """
   The EnKF.
+
+  Ref: Evensen, Geir. (2009):
+  "The ensemble Kalman filter for combined state and parameter estimation."
+
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/sak08.py
   """
@@ -83,6 +87,10 @@ def EnKF_tp(setup,config,xx,yy):
 def EnKS(setup,config,xx,yy):
   """
   EnKS.
+
+  Ref: Evensen, Geir. (2009):
+  "The ensemble Kalman filter for combined state and parameter estimation."
+
   The only difference to the EnKF is the management of the lag and the reshapings.
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/raanes2016.py
@@ -128,6 +136,10 @@ def EnKS(setup,config,xx,yy):
 def EnRTS(setup,config,xx,yy):
   """
   EnRTS (Rauch-Tung-Striebel) smoother.
+
+  Ref: Raanes, Patrick Nima. (2016):
+  "On the ensemble Rauch‐Tung‐Striebel smoother..."
+
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/raanes2016.py
   """
@@ -174,6 +186,8 @@ def add_noise(E, dt, noise, config):
   mods/LA/raanes2015.py
   """
   method = getattr(config,'fnoise_treatm','Stoch')
+
+  if not noise.is_random: return E
 
   N,m  = E.shape
   A,mu = anom(E)
@@ -326,7 +340,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
         HK = Y.T @ YC
         E  = E + KG@dy - 0.5*(KG@Y.T).T
     else:
-        raise TypeError
+      raise TypeError("No analysis update method found: '" + upd_a + "'.") 
 
     # Diagnostic: relative influence of observations
     if 'trHK' in locals():
@@ -355,6 +369,10 @@ def serial_inds(upd_a, y, cvR, A):
 def SL_EAKF(setup,config,xx,yy):
   """
   Serial, covariance-localized EAKF.
+
+  Ref: Karspeck, Alicia R., and Jeffrey L. Anderson. (2007):
+  "Experimental implementation of an ensemble adjustment filter..."
+
   Used without localization, this should be equivalent
   (full ensemble equality) to the EnKF 'Serial'.
   See DAPPER/Misc/batch_vs_serial.py for some details.
@@ -380,34 +398,39 @@ def SL_EAKF(setup,config,xx,yy):
       AMet = getattr(config,'upd_a','default')
       inds = serial_inds(AMet, y, R, anom(E)[0])
           
-      for j in inds:
+      locf_at = h.loc_f(config.loc_rad, 'y2x', t)
+      for i,j in enumerate(inds):
         hE = h.model(E,t)
         hx = mean(hE,0)
         Y  = (hE - hx).T
         mu = mean(E ,0)
         A  = E-mu
 
+        # Update j-th component of observed ensemble
         Yj    = Rm12[j,:] @ Y
         dyj   = Rm12[j,:] @ (y - hx)
-
+        #
         skk   = Yj@Yj
         su    = 1/( 1/skk + 1/n )
         alpha = (n/(n+skk))**(0.5)
-
+        #
         dy2   = su*dyj/n # (mean is absorbed in dyj)
         Y2    = alpha*Yj
 
+        if skk<1e-9: continue
+
+        # Update state (regression), with localization
         # Localize
-        local, coeffs = config.locf(j)
+        local, coeffs = locf_at(j)
         if len(local) == 0: continue
-        Regr  = (A[:,local]*coeffs).T @ Yj/sum(Yj**2)
-        mu[ local] += Regr*dy2
-        A[:,local] += np.outer(Y2 - Yj, Regr)
+        Regression    = (A[:,local]*coeffs).T @ Yj/sum(Yj**2)
+        mu[ local]   += Regression*dy2
+        A[:,local]   += np.outer(Y2 - Yj, Regression)
 
         # Without localization:
-        #Regr = A.T @ Yj/sum(Yj**2)
-        #mu  += Regr*dy2
-        #A   += np.outer(Y2 - Yj, Regr)
+        #Regression = A.T @ Yj/sum(Yj**2)
+        #mu        += Regression*dy2
+        #A         += np.outer(Y2 - Yj, Regression)
 
         E = mu + A
 
@@ -422,6 +445,9 @@ def SL_EAKF(setup,config,xx,yy):
 def LETKF(setup,config,xx,yy):
   """
   Same as EnKF (sqrt), but with localization.
+
+  Ref: Hunt, Brian R., Eric J. Kostelich, and Istvan Szunyogh. (2007):
+  "Efficient data assimilation for spatiotemporal chaos..."
   """
 
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
@@ -445,9 +471,10 @@ def LETKF(setup,config,xx,yy):
       YR = (hE-hx)  @ Rm12.T
       yR = (yy[kObs] - hx) @ Rm12.T
 
+      locf_at = h.loc_f(config.loc_rad, 'x2y', t)
       for i in range(f.m):
         # Localize
-        local, coeffs = config.locf(i)
+        local, coeffs = locf_at(i)
         if len(local) == 0: continue
         iY  = YR[:,local] * sqrt(coeffs)
         idy = yR[local]   * sqrt(coeffs)
@@ -502,6 +529,10 @@ def EnKF_N(setup,config,xx,yy):
   """
   Finite-size EnKF (EnKF-N).
   Corresponding to version ql2 of Datum.
+
+  Ref: Bocquet, Marc, Patrick N. Raanes, and Alexis Hannart. (2015):
+  "Expanding the validity of the ensemble Kalman filter..."
+
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/sak08.py
   mods/Lorenz95/sak12.py
@@ -586,7 +617,12 @@ def EnKF_N(setup,config,xx,yy):
 
 def iEnKF(setup,config,xx,yy):
   """
-  Loosely adapted from Bocquet ienks code and bocquet2014iterative.
+  Iterative EnKS.
+
+  Loosely adapted from Bocquet ienks code and 
+  Ref:.Bocquet, Marc, and Pavel Sakov. (2014):
+  "An iterative ensemble Kalman smoother."
+
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/sak08.py
   mods/Lorenz95/sak12.py

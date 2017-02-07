@@ -163,7 +163,7 @@ def tabulate(data,headr=(),formatters=()):
 
 
 #########################################
-# Writing / Loading
+# Writing / Loading Independent experiments
 #########################################
 
 import glob, re
@@ -229,6 +229,48 @@ def save_data(path,inds,**kwargs):
 
 
 
+#########################################
+# Multiprocessing
+#########################################
+NPROC = 4
+import multiprocessing, signal
+from functools import partial
+def multiproc_map(func,xx,**kwargs):
+  """
+  Multiprocessing.
+  Basically a wrapper for multiprocessing.pool.map(). Deals with
+   - additional, fixed arguments.
+   - KeyboardInterruption (python bug?)
+  """
+  # stackoverflow.com/a/35134329/38281
+  orig = signal.signal(signal.SIGINT, signal.SIG_IGN)
+  pool = multiprocessing.Pool(NPROC)
+  signal.signal(signal.SIGINT, orig)
+  try:
+    f   = partial(func,**kwargs) # stackoverflow.com/a/5443941/38281
+    res = pool.map_async(f, xx)
+    res = res.get(60)
+  except KeyboardInterrupt as e:
+    # Not sure why, but something this hangs,
+    # so we repeat the try-block to catch another interrupt.
+    try:
+      traceback.print_tb(e.__traceback__)
+      pool.terminate()
+      sys.exit(0)
+    except KeyboardInterrupt as e2:
+      traceback.print_tb(e2.__traceback__)
+      pool.terminate()
+      sys.exit(0)
+  else:
+    pool.close()
+  pool.join()
+  return res
+
+
+
+#########################################
+# Tic-toc
+#########################################
 
 #import time
 class Timer():

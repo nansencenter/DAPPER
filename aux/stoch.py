@@ -10,7 +10,7 @@ def seed(i=None):
   This (suboptimal) wrapper returns a seed,
   which can be used as a stored state (through re-seeding).
   It does not allow getting the state (as a seed), however,
-  becose the mapping seed-->state is not surjective.
+  because the mapping seed-->state is not surjective.
 
   Example
   In : sd = seed(42); randn()
