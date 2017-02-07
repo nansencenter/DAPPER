@@ -1,0 +1,7 @@
+%% Copyright (C) 2008 Pavel Sakov
+%% 
+%% This file is part of EnKF-Matlab. EnKF-Matlab is a free software. See 
+%% LICENSE for details.
+
+This directory contains code for QG (quasi-geostrophic) model.
+To learn about the model, see README and code in f90 directory.
