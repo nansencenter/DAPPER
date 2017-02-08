@@ -750,17 +750,15 @@ def PartFilt(setup,config,xx,yy):
       # Assess stats immediately after Bayes.
       stats.assess(E,xx,k,w=w)
       
-      # Resample w==0 particles. TODO: Test with L63 to make sure. 
-      # Note: this is rigorous. 
-      # inds0 = w==0
-      # N0    = sum(inds0)
-      # if N0>0:
-      #   inds1     = np.logical_not(inds0)
-      #   E[inds0]  = resample(E[inds1], w[inds1], N0, f.noise)
-      #   w[inds0]  = 1/N
-      #   w[inds1] *= (N-N0)/N
-
-      # Not very helpful?: w(w==0) = max([max(w)/N,1e-20])
+      # Resample w==0 particles (does not create bias)
+      if getattr(config,'w0_res',False):
+        inds0 = w==0
+        N0    = sum(inds0)
+        if N0>0:
+          inds1     = np.logical_not(inds0)
+          E[inds0]  = resample(E[inds1], w[inds1], N0, f.noise)
+          w[inds0]  = 1/N
+          w[inds1] *= (N-N0)/N
 
       # Resample (all particles) if N_effective < threshold.
       N_eff = 1/(w@w)

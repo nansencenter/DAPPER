@@ -579,7 +579,7 @@ def plot_3D_trajectory(stats,xx,dims=0,**kwargs):
   #for i in 'xyz': eval('ax3.w_' + i + 'axis.set_pane_color(sns_bg)')
 
 
-def plot_time_series(stats,xx,dim=0,**kwargs):
+def plot_time_series(stats,xx,dim=0,hov=False,**kwargs):
   """
   Plot time series of various statistics.
   kwargs forwarded to get_plot_inds().
@@ -619,19 +619,21 @@ def plot_time_series(stats,xx,dim=0,**kwargs):
   ax_e.legend()
   ax_e.set_xlabel('time (t)')
 
-  #cm = mpl.colors.ListedColormap(sns.color_palette("BrBG", 256)) # RdBu_r
-  #cm = plt.get_cmap('BrBG')
-  fgH = plt.figure(16,figsize=(6,5)).clf()
-  set_figpos('3311 mac')
-  axH = plt.subplot(111)
-  m = xx.shape[1]
-  plt.contourf(arange(m),tt[pkk],xx[pkk],25)
-  plt.colorbar()
-  axH.set_position([0.125, 0.20, 0.62, 0.70])
-  axH.set_title("Hovmoller diagram (of 'Truth')")
-  axH.set_xlabel('Dimension index (i)')
-  axH.set_ylabel('Time (t)')
-  add_endpoint_xtick(axH)
+
+  if hov:
+    #cm = mpl.colors.ListedColormap(sns.color_palette("BrBG", 256)) # RdBu_r
+    #cm = plt.get_cmap('BrBG')
+    fgH = plt.figure(16,figsize=(6,5)).clf()
+    set_figpos('3311 mac')
+    axH = plt.subplot(111)
+    m = xx.shape[1]
+    plt.contourf(arange(m),tt[pkk],xx[pkk],25)
+    plt.colorbar()
+    axH.set_position([0.125, 0.20, 0.62, 0.70])
+    axH.set_title("Hovmoller diagram (of 'Truth')")
+    axH.set_xlabel('Dimension index (i)')
+    axH.set_ylabel('Time (t)')
+    add_endpoint_xtick(axH)
 
 
 def add_endpoint_xtick(ax):

@@ -11,18 +11,18 @@ sd0 = seed(5)
 # DA Configurations
 ############################
 
-#from mods.Lorenz63.sak12 import setup                        # Expected RMSE_a:
-#config = DAC(EnKF,'Sqrt', N=3 ,infl=1.30)
-#config = DAC(EnKF ,'Sqrt',N=10,infl=1.02,rot=True)          # 0.63 (sak: 0.65)
-#config = DAC(iEnKF,'Sqrt',N=10,infl=1.02,rot=True,iMax=10)  # 0.31
-#config = DAC(PartFilt,    N=800,NER=0.1)                    # 0.275 (with N=4000)
-#config = DAC(ExtKF, infl=1.5); setup.t.dkObs = 10 # reduce non-linearity
-#
-#config = DAC(EnKF ,'PertObs',N=500,infl=0.95,rot=False)
-#config = DAC(PartFilt, N=1000, NER=0.1)
+#from mods.Lorenz63.sak12 import setup                          # Expected RMSE_a:
+#config = DAC(Climatology)                                      # 8.5
+#config = DAC(D3Var)                                            # 1.26
+#config = DAC(ExtKF, infl=90);                                  # 0.87
+#config = DAC(EnKF,'Sqrt',    N=3 , infl=1.30)                  # 
+#config = DAC(EnKF ,'Sqrt',   N=10, infl=1.02,rot=True)         # 0.63 (sak: 0.65)
+#config = DAC(EnKF ,'PertObs',N=500,infl=0.95,rot=False)        # 0.56
+#config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
+#config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4000)
 
 
-#from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
+from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)
 #config = DAC(ExtKF, infl = 6)
@@ -37,9 +37,9 @@ sd0 = seed(5)
 #
 #config = DAC(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # 0.17
 #
-#config = DAC(LETKF,         N=6,rot=True,infl=1.04,locf=setup.locf(4,'x2y'))
-#config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,locf=setup.locf(4,'x2y'))
-#config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,locf=setup.locf(6,'y2x'))
+#config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
+#config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,loc_rad=4)
+#config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,loc_rad=6)
 
 
 #from mods.Lorenz95.spectral_obs import setup
@@ -50,20 +50,20 @@ sd0 = seed(5)
 # -- Get suggested tuning from setup files --
 
 
-# TODO: Expect 26 it/s for truth, and 9 it/s for EnKF. Undo?
-from mods.QG.sak08 import setup
-#config = DAC(EnKF,'PertObs',N=25,infl=1.10)
-#config = DAC(LETKF,N=25,infl=1.06,loc_rad=10.0)
-#config = DAC(LETKF,'approx',N=25,infl=1.06,locf=setup.locf(10,'x2y'))
-config = DAC(SL_EAKF,N=25,infl=1.03,loc_rad=10)
+# # TODO: Expect 26 it/s for truth, and 9 it/s for EnKF. Undo?
+# from mods.QG.sak08 import setup
+# #config = DAC(EnKF,'PertObs',N=25,infl=1.10)
+# #config = DAC(LETKF,N=25,infl=1.06,loc_rad=10.0)
+# #config = DAC(LETKF,'approx',N=25,infl=1.06,locf=setup.locf(10,'x2y'))
+# config = DAC(SL_EAKF,N=25,infl=1.03,loc_rad=10)
 
 
 
 ############################
 # Common
 ############################
-config.liveplotting = True
-#setup.t.T           = 4**3.5
+#config.liveplotting = False
+setup.t.T           = 4**4.0
 
 
 ############################
@@ -85,8 +85,8 @@ print_averages(config,avrgs)
 ############################
 # Plot
 ############################
-plot_time_series   (stats,xx,dim=1000)
-plot_3D_trajectory (stats,xx,dims=1000)
-# plot_err_components(stats)
-# plot_rank_histogram(stats)
+plot_time_series   (stats,xx)
+plot_3D_trajectory (stats,xx)
+plot_err_components(stats)
+plot_rank_histogram(stats)
 

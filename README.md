@@ -174,6 +174,7 @@ DAPPER may be situated somewhere in the middle.
 
 * DART         (NCAR)
 * SANGOMA      (Liege/CNRS/Nersc/Reading/Delft)
+* Verdandi     (INRIA)
 * PDAF         (Nerger)
 * ERT*         (Statoil)
 * OpenDA       (TU Delft)

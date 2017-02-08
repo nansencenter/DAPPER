@@ -17,7 +17,7 @@ cfgs.add(Climatology)
 #cfgs.add(D3Var)
 #cfgs.add(ExtKF,infl=8)
 #cfgs.add(EnKF ,'Sqrt',N=100,rot=True,infl=1.01)
-cfgs.add(EnKF_N ,N=4)
+cfgs.add(EnKF_N,N=4)
 #cfgs.add(PartFilt, N=100, NER=0.4)
 #cfgs.add(PartFilt, N=1000, NER=0.1)
 

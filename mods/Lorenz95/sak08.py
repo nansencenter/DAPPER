@@ -22,6 +22,8 @@ f = {
 mu0,P0 = typical_init_params(m)
 X0     = GaussRV(mu0, 0.01*P0)
 
+
+
 p  = m
 jj = equi_spaced_integers(m,p)
 @ens_compatible
@@ -39,34 +41,33 @@ def yplot(y):
   #plt.pause(0.8)
   return lh
 
+
+from aux.localization import inds_and_coeffs, unravel
+dIJ = unravel(arange(m), m)
+oIJ = unravel(jj , m)
+def locf(radius,direction,t):
+  if direction is 'x2y':
+    def locf_at(i):
+      return inds_and_coeffs(dIJ[:,i], oIJ, m, radius)
+  elif direction is 'y2x':
+    def locf_at(i):
+      return inds_and_coeffs(oIJ[:,i], dIJ, m, radius)
+  else: raise KeyError
+  return locf_at
+
+
 h = {
     'm'    : p,
     'model': hmod,
     'jacob': lambda x,t: H,
     'noise': GaussRV(C=1*eye(p)),
-    'plot' : yplot
+    'plot' : yplot,
+    'loc_f': locf,
     }
 
 
-from aux.localization import inds_and_coeffs, unravel
-def loc_wrapper(radius,direction=None):
-  iix = arange(m)
-  dIJ = unravel(iix, m)
-  oIJ = unravel(jj , m)
-  if direction is 'x2y':
-    def locf(i):
-      return inds_and_coeffs(dIJ[:,i], oIJ, m, radius)
-  elif direction is 'y2x':
-    def locf(i):
-      return inds_and_coeffs(oIJ[:,i], dIJ, m, radius)
-  else: raise KeyError
-  return locf
-
 other = {'name': os.path.relpath(__file__,'mods/')}
-
 setup = OSSE(f,h,t,X0,**other)
-setup.locf = loc_wrapper
-
 
 
 
