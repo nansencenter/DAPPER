@@ -85,8 +85,8 @@ print_averages(config,avrgs)
 ############################
 # Plot
 ############################
-plot_time_series   (stats,xx)
-plot_3D_trajectory (stats,xx)
+plot_time_series   (stats)
+plot_3D_trajectory (stats)
 plot_err_components(stats)
 plot_rank_histogram(stats)
 

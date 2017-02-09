@@ -48,10 +48,10 @@ print_averages(cfgs,ss)
 ############################
 # Plot
 ############################
-config    = cfgs[keep]
+config = cfgs[keep]
 chrono = setup_trunc.t
-plot_time_series(xx,kept,chrono,dim=2)
-plot_err_components(xx,kept,chrono,config)
-plot_3D_trajectory(xx[:,:3],kept,chrono)
+plot_time_series(kept,dim=2)
+plot_err_components(kept)
+plot_3D_trajectory(kept)
 
 

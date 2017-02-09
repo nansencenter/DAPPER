@@ -44,8 +44,8 @@ print_averages(cfgs,avrgs)
 ############################
 # Plot
 ############################
-plot_time_series   (stats[-1],xx,dim=2)
-plot_3D_trajectory (stats[-1],xx)
+plot_time_series   (stats[-1],dim=2)
+plot_3D_trajectory (stats[-1])
 plot_err_components(stats[-1])
 plot_rank_histogram(stats[-1])
 

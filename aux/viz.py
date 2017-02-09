@@ -551,6 +551,7 @@ def estimate_good_plot_length(xx,chrono,mult):
   """Estimate good length for plotting stuff
   from the time scale of the system.
   Provide sensible fall-backs."""
+  t = chrono
   if xx.ndim == 2:
     # If mult-dim, then average over dims (by ravel)....
     # But for inhomogeneous variables, it is important
@@ -561,11 +562,11 @@ def estimate_good_plot_length(xx,chrono,mult):
     K = mult * estimate_corr_length(xx)
   except ValueError:
     K = 0
-  K = int(min([max([K,chrono.dkObs]),chrono.K]))
-  T = round2sigfig(chrono.tt[K],2) # Could return T; T>tt[-1]
-  K = find_1st_ind(chrono.tt >= T)
+  K = int(min([max([K,t.dkObs]),t.K]))
+  T = round2sigfig(t.tt[K],2) # Could return T; T>tt[-1]
+  K = find_1st_ind(t.tt >= T)
   if K: return K
-  else: return chrono.K
+  else: return t.K
 
 def get_plot_inds(chrono,xx,mult,K=None,T=None):
   """
@@ -574,15 +575,16 @@ def get_plot_inds(chrono,xx,mult,K=None,T=None):
    - T
    - mult * auto-correlation length of xx
   """
+  t = chrono
   if K is None:
-    if T: K = find_1st_ind(chrono.tt >= min((T,chrono.T)))
-    else: K = estimate_good_plot_length(xx,chrono,mult)
-  plot_kk    = chrono.kk[:K+1]
-  plot_kkObs = chrono.kkObs[chrono.kkObs<=K]
+    if T: K = find_1st_ind(t.tt >= min((T,t.T)))
+    else: K = estimate_good_plot_length(xx,t,mult)
+  plot_kk    = t.kk[:K+1]
+  plot_kkObs = t.kkObs[t.kkObs<=K]
   return plot_kk, plot_kkObs
 
 
-def plot_3D_trajectory(stats,xx,dims=0,**kwargs):
+def plot_3D_trajectory(stats,dims=0,**kwargs):
   """
   Plot 3D phase-space trajectory.
   kwargs forwarded to get_plot_inds().
@@ -591,7 +593,9 @@ def plot_3D_trajectory(stats,xx,dims=0,**kwargs):
     dims = dims + arange(3)
   assert len(dims)==3
 
+  xx     = stats.xx
   chrono = stats.setup.t
+
   kk = get_plot_inds(chrono,xx,mult=100,**kwargs)[0]
   T  = chrono.tt[kk[-1]]
 
@@ -617,12 +621,13 @@ def plot_3D_trajectory(stats,xx,dims=0,**kwargs):
   #for i in 'xyz': eval('ax3.w_' + i + 'axis.set_pane_color(sns_bg)')
 
 
-def plot_time_series(stats,xx,dim=0,hov=False,**kwargs):
+def plot_time_series(stats,dim=0,hov=False,**kwargs):
   """
   Plot time series of various statistics.
   kwargs forwarded to get_plot_inds().
   """
   s      = stats
+  xx     = stats.xx
   chrono = stats.setup.t
 
   fg = plt.figure(12,figsize=(8,8)).clf()
