@@ -23,6 +23,8 @@ def unravel(inds, shape, order='C'):
   for i,dim in enumerate(IJ): assert max(dim) < shape[i]
   return IJ
 
+
+# TODO: Can replace by from scipy.spatial.distance ?
 def distance_nD(centr, domain, shape, periodic=True):
   """
   Euclidian distance between centr and domain,

@@ -723,8 +723,9 @@ def PartFilt(setup,config,xx,yy):
 
   E = X0.sample(N)
   w = 1/N *ones(N)
-  stats            = Stats(setup,config).assess(E,xx,0)
-  stats.nResamples = 0
+
+  stats              = Stats(setup,config).assess(E,xx,0)
+  stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
 
   lplot = LivePlot(setup,config,E,stats,xx,yy)
 
@@ -766,7 +767,7 @@ def PartFilt(setup,config,xx,yy):
       if N_eff < N*config.NER:
         E = resample(E, w, N, f.noise)
         w = 1/N*ones(N)
-        stats.nResamples += 1
+        stats.did_resample[kObs] = True
 
     if not kObs:
       # already computed in analysis step.
@@ -795,8 +796,8 @@ def PF_EnKF(setup,config,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  stats            = Stats(setup,config).assess(E,xx,0)
-  stats.nResamples = 0
+  stats              = Stats(setup,config).assess(E,xx,0)
+  stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
 
   lplot = LivePlot(setup,config,E,stats,xx,yy)
 
@@ -850,14 +851,16 @@ def PF_EnKF(setup,config,xx,yy):
       w = w/sum(w)
 
       N_eff = 1/(w@w)
+      N_res = sum(stats.did_resample)
+      
       stats.at(kObs)(N_eff=N_eff)
       # Resample
       if N_eff < N*config.NER:
         # NB: Must includte rescaling on f.noise if kind=Gaussian
         E = resample(E, w, N, f.noise, kind='Multinomial')
         w = 1/N*ones(N)
-        stats.Neo = (getattr(stats,'Neo',0)*stats.nResamples + N_eff)/(stats.nResamples+1)
-        stats.nResamples += 1
+        stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
+        stats.did_resample[kObs] = True
 
     stats.assess(E,xx,k,w=w)
     lplot.update(E,k,kObs)

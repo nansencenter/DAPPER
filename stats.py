@@ -176,7 +176,8 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   For i in range(len(cfgs)):
     Print cfgs[i][attrkeys], Avrgs[i][statkeys]
   - attrkeys: list of attributes to include.
-      - if 0: only print da_driver.
+      - if -1: only print da_driver.
+      - if  0: print distinct_attrs
   - statkeys: list of statistics to include.
   """
   if isinstance(cfgs,DAC):
@@ -188,26 +189,32 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
     statkeys = ['rmse_a','rmv_a','logp_m_a']
 
   # Defaults attributes
-  if   attrkeys == 0: headr = ['da_driver']
-  elif attrkeys ==(): headr = list(cfgs.distinct_attrs)
-  else:               headr = list(attrkeys)
+  if not attrkeys:       headr = list(cfgs.distinct_attrs)
+  elif   attrkeys == -1: headr = ['da_driver']
+  else:                  headr = list(attrkeys)
 
+  # Filter excld
   excld = ['liveplotting']
   headr = [x for x in headr if x not in excld]
   
+  # Get attribute values
   mattr = [cfgs.distinct_attrs[key] for key in headr]
 
   # Add separator
   headr += ['|']
   mattr += [['|']*len(cfgs)]
 
+  # Get stats.
   # Format stats_with_conf. Use #'s to avoid auto-cropping by tabulate().
   for key in statkeys:
     col = ['{0:#>9} ±'.format(key)]
     for i in range(len(cfgs)):
-      val  = Avrgs[i][key].val
-      conf = Avrgs[i][key].conf
-      col.append('{0:#>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
+      try:
+        val  = Avrgs[i][key].val
+        conf = Avrgs[i][key].conf
+        col.append('{0:#>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
+      except KeyError:
+        col.append(' '*16)
     crop= min([s.count('#') for s in col])
     col = [s[crop:]         for s in col]
     headr.append(col[0])

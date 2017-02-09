@@ -37,7 +37,7 @@ from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #
 #config = DAC(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # 0.17
 #
-#config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
+config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
 #config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,loc_rad=4)
 #config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,loc_rad=6)
 
@@ -63,7 +63,7 @@ from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 # Common
 ############################
 #config.liveplotting = False
-setup.t.T           = 4**4.0
+setup.t.T           = 4**3.5
 
 
 ############################
