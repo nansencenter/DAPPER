@@ -16,8 +16,7 @@ def EnKF(setup,config,xx,yy):
 
   # Init
   E     = X0.sample(N)
-  stats = Stats(setup,config).assess(E,xx,0)
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
 
   # Loop
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -30,8 +29,7 @@ def EnKF(setup,config,xx,yy):
       E  = EnKF_analysis(E,hE,h.noise,y,config.upd_a,stats.at(kObs))
       post_process(E,config)
 
-    stats.assess(E,xx,k)
-    lplot.update(E,k,kObs)
+    stats.assess(k,E=E,kObs=kObs)
   return stats
 
 def EnKF_tp(setup,config,xx,yy):
@@ -45,8 +43,7 @@ def EnKF_tp(setup,config,xx,yy):
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
 
   E     = X0.sample(N)
-  stats = Stats(setup,config).assess(E,xx,0)
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -79,8 +76,7 @@ def EnKF_tp(setup,config,xx,yy):
 
       post_process(E,config)
 
-    stats.assess(E,xx,k)
-    lplot.update(E,k,kObs)
+    stats.assess(k,E=E,kObs=kObs)
   return stats
 
 
@@ -108,7 +104,7 @@ def EnKS(setup,config,xx,yy):
 
   E     = zeros((chrono.K+1,N,f.m))
   E[0]  = X0.sample(N)
-  stats = Stats(setup,config)
+  stats = Stats(setup,config,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E[k] = f.model(E[k-1],t-dt,dt)
@@ -128,7 +124,7 @@ def EnKS(setup,config,xx,yy):
       post_process(E[k],config)
 
   for k in progbar(range(chrono.K+1),desc='Assessing'):
-    stats.assess(E[k],xx,k)
+    stats.assess(k,E=E[k])
 
   return stats
 
@@ -149,7 +145,7 @@ def EnRTS(setup,config,xx,yy):
   E     = zeros((chrono.K+1,N,f.m))
   Ef    = E.copy()
   E[0]  = X0.sample(N)
-  stats = Stats(setup,config)
+  stats = Stats(setup,config,xx,yy)
 
   # Forward pass
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -174,7 +170,7 @@ def EnRTS(setup,config,xx,yy):
     E[k] += ( E[k+1] - Ef[k+1] ) @ J
 
   for k in progbar(range(chrono.K+1),desc='Assessing'):
-    stats.assess(E[k],xx,k)
+    stats.assess(k,E=E[k])
   return stats
 
 
@@ -386,8 +382,7 @@ def SL_EAKF(setup,config,xx,yy):
   #Ri   = h.noise.C.inv
 
   E     = X0.sample(N)
-  stats = Stats(setup,config).assess(E,xx,0)
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -436,8 +431,7 @@ def SL_EAKF(setup,config,xx,yy):
 
       post_process(E,config)
 
-    stats.assess(E,xx,k)
-    lplot.update(E,k,kObs)
+    stats.assess(k,E=E,kObs=kObs)
   return stats
 
 
@@ -455,8 +449,7 @@ def LETKF(setup,config,xx,yy):
   Rm12 = h.noise.C.m12
 
   E     = X0.sample(N)
-  stats = Stats(setup,config).assess(E,xx,0)
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -519,8 +512,7 @@ def LETKF(setup,config,xx,yy):
       #else:
         # nevermind
 
-    stats.assess(E,xx,k)
-    lplot.update(E,k,kObs)
+    stats.assess(k,E=E,kObs=kObs)
   return stats
 
 
@@ -551,8 +543,7 @@ def EnKF_N(setup,config,xx,yy):
   Ri   = h.noise.C.inv
 
   E     = X0.sample(N)
-  stats = Stats(setup,config).assess(E,xx,0)
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -609,8 +600,7 @@ def EnKF_N(setup,config,xx,yy):
 
       stats.trHK[kObs] = sum(((l1*s)**2 + (N-1))**(-1.0)*s**2)/h.noise.m
 
-    stats.assess(E,xx,k)
-    lplot.update(E,k,kObs)
+    stats.assess(k,E=E,kObs=kObs)
   return stats
 
 
@@ -630,8 +620,7 @@ def iEnKF(setup,config,xx,yy):
   f,h,chrono,X0,N,R = setup.f, setup.h, setup.t, setup.X0, config.N, setup.h.noise.C
 
   E     = X0.sample(N)
-  stats = Stats(setup,config).assess(E,xx,0)
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
 
   for kObs in progbar(range(chrono.KObs+1)):
     xb0 = mean(E,0)
@@ -668,8 +657,7 @@ def iEnKF(setup,config,xx,yy):
     for k,t,dt in chrono.DAW_range(kObs):
       E = f.model(E,t-dt,dt)
       E = add_noise(E, dt, f.noise, config)
-      stats.assess(E,xx,k)
-      #lplot.update(E,k,kObs)
+      stats.assess(k,E)
       
     # TODO: It would be beneficial to do another (prior-regularized)
     # analysis at the end, after forecasting the E0 analysis.
@@ -724,10 +712,9 @@ def PartFilt(setup,config,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  stats              = Stats(setup,config).assess(E,xx,0)
+  stats              = Stats(setup,config,xx,yy).assess(0,E=E)
   stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
 
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -749,7 +736,7 @@ def PartFilt(setup,config,xx,yy):
       w     /= sum(w)
 
       # Assess stats immediately after Bayes.
-      stats.assess(E,xx,k,w=w)
+      stats.assess(k,E=E,w=w,kObs=kObs)
       
       # Resample w==0 particles (does not create bias)
       if getattr(config,'w0_res',False):
@@ -771,8 +758,7 @@ def PartFilt(setup,config,xx,yy):
 
     if not kObs:
       # already computed in analysis step.
-      stats.assess(E,xx,k,w=w)
-    lplot.update(E,k,kObs)
+      stats.assess(k,E=E,w=w,kObs=kObs)
   return stats
 
 def PF_EnKF(setup,config,xx,yy):
@@ -796,10 +782,9 @@ def PF_EnKF(setup,config,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  stats              = Stats(setup,config).assess(E,xx,0)
+  stats              = Stats(setup,config,xx,yy).assess(0,E=E)
   stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
 
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
 
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -862,8 +847,7 @@ def PF_EnKF(setup,config,xx,yy):
         stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
         stats.did_resample[kObs] = True
 
-    stats.assess(E,xx,k,w=w)
-    lplot.update(E,k,kObs)
+    stats.assess(k,E=E,w=w,kObs=kObs)
   return stats
 
 
@@ -942,8 +926,7 @@ def EnCheat(setup,config,xx,yy):
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
 
   E     = X0.sample(N)
-  stats = Stats(setup,config).assess(E,xx,0)
-  lplot = LivePlot(setup,config,E,stats,xx,yy)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -966,8 +949,7 @@ def EnCheat(setup,config,xx,yy):
       #     on the optimal solution.
       #E   = opt + E - mean(E,0)
 
-    stats.assess_ext(opt,res,xx,k)
-    lplot.update(E,k,kObs)
+    stats.assess(k,mu=opt,Cov=res,kObs=kObs)
   return stats
 
 
@@ -983,9 +965,9 @@ def Climatology(setup,config,xx,yy):
   A0    = xx - mu0
   P0    = spCovMat(A=A0)
 
-  stats = Stats(setup,config).assess_ext(mu0, P0.C, xx, 0)
+  stats = Stats(setup,config,xx,yy).assess(0,mu=mu0,Cov=P0.C)
   for k,_,_,_ in progbar(chrono.forecast_range):
-    stats.assess_ext(mu0,P0.C,xx,k)
+    stats.assess(k,mu=mu0,Cov=P0.C)
   return stats
 
 def D3Var(setup,config,xx,yy):
@@ -1038,7 +1020,7 @@ def D3Var(setup,config,xx,yy):
 
   # Init
   mu    = X0.mu
-  stats = Stats(setup,config).assess_ext(mu, P0, xx, 0)
+  stats = Stats(setup,config,xx,yy).assess(0,mu=mu,Cov=P0)
   
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     mu = f.model(mu,t-dt,dt)
@@ -1060,7 +1042,7 @@ def D3Var(setup,config,xx,yy):
       P = saw_tooth(Pa,r/dkObs)
     r += 1
 
-    stats.assess_ext(mu,P,xx,k)
+    stats.assess(k,mu=mu,Cov=P,kObs=kObs)
   return stats
 
 
@@ -1088,8 +1070,7 @@ def ExtKF(setup,config,xx,yy):
   mu = X0.mu
   P  = X0.C.C
 
-  stats = Stats(setup,config).assess_ext(mu, P, xx, 0)
-  lplot = LivePlot(setup,config,None,stats,xx,yy,P=P)
+  stats = Stats(setup,config,xx,yy).assess(0,mu=mu,Cov=P)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     
@@ -1104,7 +1085,6 @@ def ExtKF(setup,config,xx,yy):
     P  = infl**(dt)*(F@P@F.T) + dt*Q
 
     if kObs is not None:
-      lplot.insert_forecast(mu)
       H  = h.jacob(mu,t)
       KG = mrdiv(P @ H.T, H@P@H.T + R)
       y  = yy[kObs]
@@ -1114,8 +1094,7 @@ def ExtKF(setup,config,xx,yy):
 
       stats.trHK[kObs] = trace(KH)/f.m
 
-    stats.assess_ext(mu,P,xx,k)
-    lplot.update(None,k,kObs,P=P)
+    stats.assess(k,mu=mu,Cov=P)
   return stats
 
 

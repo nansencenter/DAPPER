@@ -7,14 +7,18 @@ class Stats:
   """
 
   # Adjust this to omit heavy computations
-  comp_threshold_3 = 41
+  comp_threshold_3 = 51
 
 
-  def __init__(self,setup,config):
-    self.setup = setup
-    m    = setup.f.m
-    K    = setup.t.K
-    KObs = setup.t.KObs
+  def __init__(self,setup,config,xx,yy):
+    self.setup  = setup
+    self.config = config
+    self.xx     = xx
+    self.yy     = yy
+    m    = setup.f.m    ; assert m   ==xx.shape[1]
+    K    = setup.t.K    ; assert K   ==xx.shape[0]-1
+    p    = setup.h.m    ; assert p   ==yy.shape[1]
+    KObs = setup.t.KObs ; assert KObs==yy.shape[0]-1
     #
     self.mu    = zeros((K+1,m))     # Mean
     self.var   = zeros((K+1,m))     # Variances
@@ -34,7 +38,9 @@ class Stats:
       self.w  = zeros((K+1,N))      # Likelihood weights
       self.rh = zeros((K+1,m),int)  # Rank histogram
       #self.N  = N                  # Use w.shape[1] instead
+      self.is_ens = True
     else:
+      self.is_ens = False
       m_Nm = m
     self.svals = zeros((K+1,m_Nm))  # Principal component (SVD) scores
     self.umisf = zeros((K+1,m_Nm))  # Error in component directions
@@ -43,15 +49,37 @@ class Stats:
     self.trHK  = zeros(KObs+1)
     # Note that non-default analysis stats
     # may also be initialized throug at().
-    
 
-  def assess(self,E,x,k,w=None):
+
+    
+    
+  def assess(self,k,E=None,w=None,mu=None,Cov=None,kObs=None):
+    """Wrapper for assess_ens/ext and liveplotting."""
+    if E is not None:
+        self.assess_ens(k,kObs,E,w)
+        if k==0:
+          self.lplot = LivePlot(self,E=E)
+        else:
+          self.lplot.update(k,kObs,E=E)
+    else:
+        assert mu is not None
+        self.assess_ext(k,kObs,mu,Cov)
+        if k==0:
+          self.lplot = LivePlot(self,P=Cov)
+        else:
+          self.lplot.update(k,kObs,P=Cov)
+    return self # For daisy-chaining
+
+
+  def assess_ens(self,k,kObs,E,w=None):
     """Ensemble and Particle filter (weighted/importance) assessment."""
     N,m          = E.shape
     w            = 1/N*ones(N) if (w is None) else w
     assert np.all(np.isfinite(E))
     assert np.all(np.isreal(E))
     assert(abs(sum(w)-1) < 1e-5)
+
+    x = self.xx[k]
 
     self.w[k]    = w
     self.mu[k]   = w @ E
@@ -81,16 +109,18 @@ class Stats:
       self.umisf[k]  = UT @ self.err[k]
 
       # For each state dim [i], compute rank of truth (x) among the ensemble (E)
-      Ex_sorted     = np.sort(np.vstack((E,x[k])),axis=0,kind='heapsort')
-      self.rh[k]    = [np.where(Ex_sorted[:,i] == x[k,i])[0][0] for i in range(m)]
+      Ex_sorted     = np.sort(np.vstack((E,x)),axis=0,kind='heapsort')
+      self.rh[k]    = [np.where(Ex_sorted[:,i] == x[i])[0][0] for i in range(m)]
 
-    return self
 
-  def assess_ext(self,mu,P,x,k):
+  def assess_ext(self,k,kObs,mu,P):
     """Kalman filter (Gaussian) assessment."""
     assert np.all(np.isfinite(mu)) and np.all(np.isfinite(P))
     assert np.all(np.isreal(mu))   and np.all(np.isreal(P))
     m           = len(mu)
+
+    x = self.xx[k]
+
     self.mu[k]  = mu
     self.var[k] = diag(P)
     self.mad[k] = sqrt(self.var[k])*sqrt(2/pi)
@@ -99,15 +129,14 @@ class Stats:
     self.derivative_stats(k,x)
 
     if m <= Stats.comp_threshold_3:
-      s2,U                = nla.eigh(P) 
+      s2,U                = nla.eigh(P)
       self.svals[k][::-1] = sqrt(np.maximum(s2,0.0))
       self.umisf[k][::-1] = U.T @ self.err[k]
 
-    return self
 
   def derivative_stats(self,k,x):
     """Stats that apply for both _w and _ext paradigms and derive from the other stats."""
-    self.err[k]  = self.mu[k] - x[k]
+    self.err[k]  = self.mu[k] - x
     self.rmv[k]  = sqrt(mean(self.var[k]))
     self.rmse[k] = sqrt(mean(self.err[k]**2))
     self.MGLS(k)
@@ -121,6 +150,7 @@ class Stats:
     self.logp_m[k] = logp_m/m
 
 
+  # TODO: Implement with __getitem__?
   def at(self,kObs):
     """Provide a write-access method for the analysis frame of index kObs"""
     def write_at_kObs(**kwargs):

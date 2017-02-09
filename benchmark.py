@@ -31,13 +31,13 @@ from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(EnKF,'PertObs',N=40,infl=1.06)            # 0.22
 #config = DAC(EnKF,'DEnKF  ',N=40,infl=1.01)            # 0.18
 #config = DAC(EnKF,'PertObs',N=28,infl=1.08)            # 0.24
-#config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
+config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
 #
 #config = DAC(EnKF_N,N=24,rot=True)
 #
 #config = DAC(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # 0.17
 #
-config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
+#config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
 #config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,loc_rad=4)
 #config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,loc_rad=6)
 
@@ -62,7 +62,7 @@ config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
 ############################
 # Common
 ############################
-#config.liveplotting = False
+config.liveplotting = True
 setup.t.T           = 4**3.5
 
 

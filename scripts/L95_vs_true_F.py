@@ -11,12 +11,12 @@ sd0 = seed(5)
 # Set-up
 ############################
 from mods.Lorenz95.sak08 import setup
-from mods.Lorenz95.core import dxdt
+import mods.Lorenz95.core as L95
 
-def model(F):
-  def wrapped(x0,t,dt):
-    return rk4(lambda t,x: dxdt(x,F),x0,t,dt)
-  return wrapped
+#def model(F):
+  #def wrapped(x0,t,dt):
+    #return rk4(lambda t,x: L95.dxdt(x,F),x0,t,dt)
+  #return wrapped
 
 F_DA    = 8.0
 F_range = arange(8,10)
@@ -50,9 +50,9 @@ for i,F_true in enumerate(F_range):
   print_c('\nF_true: ', F_true)
   for j in range(nRepeat):
     seed(sd0 + j)
-    setup.f.model = model(F=F_true)
-    xx,yy         = simulate(setup)
-    setup.f.model = model(F=F_DA)
+    L95.Force = F_true
+    xx,yy     = simulate(setup)
+    L95.Force = F_DA
     for k,method in enumerate(cfgs):
       seed(sd0 + j)
       stats     = assimilate(setup,method,xx,yy)

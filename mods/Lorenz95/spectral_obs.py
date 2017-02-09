@@ -130,9 +130,5 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-#config.N = 40
-#config.infl    = 1.005
-#config.upd_a = 'Sqrt'
-#config.rot     = False
-#method      = EnKF
+#config = DAC(EnKF ,'Sqrt',N=40, infl=1.01)
 

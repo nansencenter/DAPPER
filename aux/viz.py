@@ -7,6 +7,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 
 from matplotlib import colors
+from matplotlib.ticker import MaxNLocator
 
 
 
@@ -14,7 +15,9 @@ class LivePlot:
   """
   Live plotting functionality.
   """
-  def __init__(self,setup,config,E,stats,xx,yy,P=None):
+  def __init__(self,stats,E=None,P=None):
+    setup  = stats.setup
+    config = stats.config
     m   = setup.f.m
     dt  = setup.t.dt
 
@@ -23,8 +26,8 @@ class LivePlot:
     # Store
     self.setup  = setup
     self.stats  = stats
-    self.xx     = xx
-    self.yy     = yy
+    self.xx     = stats.xx ; xx = stats.xx
+    self.yy     = stats.yy ; yy = stats.yy
 
     # Abbreviate
     mu = stats.mu
@@ -39,29 +42,30 @@ class LivePlot:
     print('Press <Space> and then <Enter> to pause.')
 
     #ens_props = {} yields rainbow
-    ens_props = {'color': 0.6*RGBs['w'],'alpha':0.3}
+    ens_props = {'color': 0.7*RGBs['w'],'alpha':0.3}
 
 
     #####################
-    # Amplitudes
+    # Dashboard
     #####################
     self.fga = plt.figure("Dashboard",figsize=(8,8))
     self.fga.clf()
     set_figpos('2311')
 
-
     ax = plt.subplot(311)
     if m<2000:
+      if E is not None and len(E)<4001:
+        self.lE = plt.plot(ii,wrap(E.T),lw=1,**ens_props)
+      else:
+        self.ks  = 2.0
+        self.CI  = ax.fill_between(ii, \
+            wrap(mu[0] - self.ks*sqrt(stats.var[0])), \
+            wrap(mu[0] + self.ks*sqrt(stats.var[0])), \
+            alpha=0.4,label=(str(self.ks) + ' sigma'))
+      
       self.lx,    = plt.plot(ii,wrap(xx[0]),'k',lw=3,ls='-',label='Truth')
       self.lmu,   = plt.plot(ii,wrap(mu[0]),'b',lw=2,ls='-',label='DA estim.')
       self.fcast, = plt.plot(ii,wrap(mu[0]),'r',lw=1,ls='-',label='forecast')
-
-      #lE  = plt.plot(ii,E.T,lw=1,*ens_props)
-      self.ks  = 2.0
-      self.CI  = ax.fill_between(ii, \
-          wrap(mu[0] - self.ks*sqrt(stats.var[0])), \
-          wrap(mu[0] + self.ks*sqrt(stats.var[0])), \
-          alpha=0.4,label=(str(self.ks) + ' sigma'))
 
       if hasattr(setup.h,'plot'):
         # tmp
@@ -75,10 +79,8 @@ class LivePlot:
       #ax.xaxis.set_label_position('top') 
       ax.set_xlabel('State index')
       ax.set_xlim((ii[0],ii[-1]))
+      ax.get_xaxis().set_major_locator(MaxNLocator(integer=True))
       tcks = ax.get_xticks()
-      tcks = tcks[np.logical_and(tcks >= ii[0], tcks <= ii[-1])]
-      tcks = tcks.astype(int)
-
       self.ax = ax
 
     # TODO: Spectral plot
@@ -117,6 +119,8 @@ class LivePlot:
       axC.figure.colorbar(mesh,cax=cax,orientation='horizontal')
       plt.box(False)
       axC.yaxis.tick_right()
+      tcks = tcks[np.logical_and(tcks >= ii[0], tcks <= ii[-1])]
+      tcks = tcks.astype(int)
       axC.set_yticks(m-tcks-0.5)
       axC.set_yticklabels([str(x) for x in tcks])
       axC.set_xticklabels([])
@@ -156,6 +160,7 @@ class LivePlot:
     if self.do_spectral_error:
       self.lmf, = ax2.plot(arange(len(msft)),msft,'k',lw=2,label='Error')
       self.lew, = ax2.plot(arange(len(sprd)),sprd,'b',lw=2,label='Spread',alpha=0.9)
+      ax2.get_xaxis().set_major_locator(MaxNLocator(integer=True))
       ax2.legend()
     else:
       not_available_text(ax2)
@@ -176,20 +181,9 @@ class LivePlot:
     ax3      = self.fg3.add_subplot(111,projection='3d')
     self.ax3 = ax3
 
-    # Truth
-    self.sx      = ax3.scatter(*xx[0,:3],s=300,c='y',marker=(5, 1))
-    # Tail
-    tail_k       = max([2,int(1/dt)])
-    self.tail_xx = ones((tail_k,3)) * xx[0,:3] # init
-    self.ltx,    = ax3.plot(*self.tail_xx.T,'y',lw=4)
+    tail_k = max([2,int(1/dt)])
     
-    if E is None:
-      # Mean
-      self.smu = ax3.scatter(*mu[0,:3],s=100,c='b')
-      # Tail
-      self.tail_mu = ones((tail_k,3)) * mu[0,:3] # init
-      self.ltmu,   = ax3.plot(*self.tail_mu.T,'b',lw=2)
-    else:
+    if E is not None and len(E)<1001:
       # Ensemble
       self.sE = ax3.scatter(*E.T[:3],s=10,**ens_props)
       # Tail
@@ -201,6 +195,18 @@ class LivePlot:
       for n in range(N):
         lEn, = ax3.plot(*self.tail_E[:,n].squeeze().T,**ens_props)
         self.ltE.append(lEn)
+    else:
+      # Mean
+      self.smu = ax3.scatter(*mu[0,:3],s=100,c='b')
+      # Tail
+      self.tail_mu = ones((tail_k,3)) * mu[0,:3] # init
+      self.ltmu,   = ax3.plot(*self.tail_mu.T,'b',lw=2)
+
+    # Truth
+    self.sx      = ax3.scatter(*xx[0,:3],s=300,c='y',marker=(5, 1))
+    # Tail
+    self.tail_xx = ones((tail_k,3)) * xx[0,:3] # init
+    self.ltx,    = ax3.plot(*self.tail_xx.T,'y',lw=4)
 
     #ax3.axis('off')
     for i in range(3):
@@ -251,7 +257,11 @@ class LivePlot:
       self.axu2.set_title('Mean')
 
 
+
+    self.prev_k = 0
     plt.pause(0.01)
+
+
 
   def skip_plotting(self):
     """
@@ -294,7 +304,9 @@ class LivePlot:
       self.fcast.set_ydata(wrap(mu))
       self.fcast.set_visible(True)
 
-  def update(self,E,k,kObs,P=None):
+
+
+  def update(self,k,kObs,E=None,P=None):
     """Plot forecast state"""
     if self.skip_plotting(): return
 
@@ -307,7 +319,7 @@ class LivePlot:
     ii,wrap = setup_wrapping(m)
     
     #####################
-    # Amplitudes
+    # Dashboard
     #####################
     if plt.fignum_exists(self.fga.number):
 
@@ -322,12 +334,17 @@ class LivePlot:
         if kObs is None:
           self.fcast.set_visible(False)
 
-        #for i,l in enumerate(lE):
-          #l.set_ydata(E[i])
-        self.CI.remove()
-        self.CI  = self.ax.fill_between(ii, \
-            wrap(mu[k] - self.ks*sqrt(stats.var[k])), \
-            wrap(mu[k] + self.ks*sqrt(stats.var[k])), alpha=0.4)
+        if hasattr(self,'lE'):
+          w    = stats.w[k]
+          wmax = w.max()
+          for i,l in enumerate(self.lE):
+            l.set_ydata(wrap(E[i]))
+            l.set_alpha((w[i]/wmax).clip(0.1))
+        else:
+          self.CI.remove()
+          self.CI  = self.ax.fill_between(ii, \
+              wrap(mu[k] - self.ks*sqrt(stats.var[k])), \
+              wrap(mu[k] + self.ks*sqrt(stats.var[k])), alpha=0.4)
 
         plt.sca(self.ax)
         if hasattr(self,'obs'):
@@ -337,6 +354,10 @@ class LivePlot:
             pass
           if kObs is not None:
             self.obs = self.yplot(self.yy[kObs])
+
+        update_ylim([mu[k], self.xx[k]], self.ax)
+
+
 
       if hasattr(self,'axC'):
         if E is not None:
@@ -362,7 +383,8 @@ class LivePlot:
         sprd =     stats.svals[k]
         self.lew.set_ydata(sprd)
         self.lmf.set_ydata(msft)
-        update_ylim([stats.svals[k], abs(stats.umisf[k])], self.ax2)
+        update_ylim(msft, self.ax2)
+
 
       plt.pause(0.01)
 
@@ -380,22 +402,39 @@ class LivePlot:
 
     if hasattr(self,'fg3') and plt.fignum_exists(self.fg3.number):
       plt.figure(self.fg3.number)
+
+      # Reset
+      if self.prev_k != (k-1):
+        self.tail_xx  [:] = self.xx[k,:3]
+        if hasattr(self, 'sE'):
+          self.tail_E [:] = E[:,:3]
+        else:
+          self.tail_mu[:] = mu[k,:3]
+
       # Truth
       self.sx._offsets3d = juggle_axes(*vec2list2(self.xx[k,:3]),'z')
       self.tail_xx       = np_popleft(self.tail_xx,self.xx[k,:3])
       update_tail(self.ltx, self.tail_xx)
 
-      if E is None:
+      if hasattr(self, 'sE'):
+        # Ensemble
+        self.sE._offsets3d = juggle_axes(*E.T[:3],'z')
+
+        clrs  = self.sE.get_facecolor()[:,:3]
+        w     = stats.w[k]
+        alpha = (w/w.max()).clip(0.1,0.4)
+        if len(clrs) == 1: clrs = clrs.repeat(len(w),axis=0)
+        self.sE.set_color(np.hstack([clrs, alpha[:,None]]))
+        
+        self.tail_E = np_popleft(self.tail_E,E[:,:3])
+        for n in range(E.shape[0]):
+          update_tail(self.ltE[n],self.tail_E[:,n,:])
+          self.ltE[n].set_alpha(alpha[n])
+      else:
         # Mean
         self.smu._offsets3d = juggle_axes(*vec2list2(mu[k,:3]),'z')
         self.tail_mu        = np_popleft(self.tail_mu,mu[k,:3])
         update_tail(self.ltmu, self.tail_mu)
-      else:
-        # Ensemble
-        self.sE._offsets3d = juggle_axes(*E.T[:3],'z')
-        self.tail_E        = np_popleft(self.tail_E,E[:,:3])
-        for n in range(E.shape[0]):
-          update_tail(self.ltE[n],self.tail_E[:,n,:])
 
       plt.pause(0.01)
 
@@ -435,12 +474,17 @@ class LivePlot:
       self.setter_mean(mu[k])
       plt.pause(0.01)
 
+    self.prev_k = k
+
 def setup_wrapping(m):
-  """Make periodic wrapping indices and function"""
+  """
+  Make periodic indices and a corresponding function
+  (that works for ensemble input).
+  """
   ii  = np.hstack([-0.5, range(m), m-0.5])
-  def wrap(x):
-    mp = (x[0] + x[-1])/2
-    return np.hstack([mp,x,mp])
+  def wrap(E):
+    midpoint = (E[[0],...] + E[[-1],...])/2
+    return np.concatenate((midpoint,E,midpoint),axis=0)
   return ii, wrap
   
 def adjust_position(ax,adjust_extent=False,**kwargs):
@@ -465,28 +509,22 @@ def adjust_position(ax,adjust_extent=False,**kwargs):
 def update_ylim(data,ax,Min=None,Max=None,do_narrow=False):
   """
   Update ylims intelligently.
-  Better to use mpl function? (which?)
+  Better to use mpl.relim() and self.ax.autoscale_view() ?
   """
+  current = ax.get_ylim()
   maxv = minv = -np.inf
   # Find "reasonable" limits, looping over data
   for d in data:
     minv, maxv = np.maximum([minv, maxv], \
         1.1 * array([-1, 1]) * np.percentile(d,[1,99]))
   minv *= -1
-  # Why did I put this?
-  #if minv == maxv:
-    #minv = min(d)
-    #maxv = max(d)
-  current = ax.get_ylim()
   # Allow making limits more narrow?
   if not do_narrow:
     minv = min([minv,current[0]])
     maxv = max([maxv,current[1]])
   # Overrides
-  if Max is not None:
-    maxv = Max
-  if Min is not None:
-    minv = Min
+  if Max is not None: maxv = Max
+  if Min is not None: minv = Min
   # Set (if anything's changed)
   if (minv, maxv) != current and minv != maxv:
     ax.set_ylim(minv,maxv)
@@ -655,7 +693,10 @@ def integer_hist(E,N,centrd=False,weights=None,**kwargs):
 
 
 def not_available_text(ax,fs=20):
-  ax.text(0.5,0.5,'[Not available]',fontsize=fs,va='center',ha='center')
+  ax.text(0.5,0.5,'[Not available]',
+      fontsize=fs,
+      transform=ax.transAxes,
+      va='center',ha='center')
 
 def plot_err_components(stats):
   """
@@ -687,6 +728,7 @@ def plot_err_components(stats):
   #ax_r.set_yscale('log')
   ax_r.set_ylim(bottom=mean(sprd)/10)
   ax_r.set_xlim(right=m-1); add_endpoint_xtick(ax_r)
+  ax_r.get_xaxis().set_major_locator(MaxNLocator(integer=True))
   ax_r.legend()
   #ax_r.set_position([0.125,0.6, 0.78, 0.34])
   plt.subplots_adjust(hspace=0.55)
@@ -704,6 +746,7 @@ def plot_err_components(stats):
     ax_s.set_yscale('log')
     ax_s.set_ylim(bottom=1e-4*sum(sprd))
     ax_s.set_xlim(right=m-1); add_endpoint_xtick(ax_s)
+    ax_s.get_xaxis().set_major_locator(MaxNLocator(integer=True))
     ax_s.legend()
   else:
     not_available_text(ax_s)
