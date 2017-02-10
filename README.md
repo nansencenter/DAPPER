@@ -97,14 +97,6 @@ Additional features
 Many
 * Visualizations 
 * Diagnostics
-* Parallelisation options
-    * Forecast parallelisation is possible since
-        the (user-implemented) model has access to the full ensemble
-        (see `mods/QG/core.py`)
-    * A light-weight alternative (see e.g. `mods/Lorenz95/core.py`):
-        native numpy vectorization (again by having access to full ensemble).
-    * (Independent) experiments can also run in parallel.
-        Auto-config provided by `utils.py:parallelize()`.
 
 
 Also has:
@@ -118,6 +110,14 @@ Also has:
 * Chronology/Ticker with consistency checks
 * Progressbar
 * X-platform random number generator
+* Parallelisation options
+    * Forecast parallelisation is possible since
+        the (user-implemented) model has access to the full ensemble
+        (see `mods/QG/core.py`)
+    * A light-weight alternative (see e.g. `mods/Lorenz95/core.py`):
+        native numpy vectorization (again by having access to full ensemble).
+    * (Independent) experiments can also run in parallel.
+        Auto-config provided by `utils.py:parallelize()`.
 
 
 How to
