@@ -53,7 +53,7 @@ class LivePlot:
     set_figpos('2311')
 
     ax = plt.subplot(311)
-    if m<2000:
+    if m<401:
       if E is not None and len(E)<4001:
         self.lE = plt.plot(ii,wrap(E.T),lw=1,**ens_props)
       else:
@@ -169,6 +169,30 @@ class LivePlot:
     self.fga.subplots_adjust(top=0.95,bottom=0.08,hspace=0.4)
     adjust_position(axC,y0=0.03)
     self.fga.suptitle('t=Init')
+
+
+    #####################
+    # Weight histogram
+    #####################
+    if E is not None and len(E)<1001 and stats.has_w:
+      fgh = plt.figure("Weight histogram",figsize=(8,4))
+      fgh.clf()
+      set_figpos('2321')
+      axh = fgh.add_subplot(111)
+      fgh.subplots_adjust(bottom=.15)
+      hst = axh.hist(stats.w[0])[2]
+      N = len(E)
+      axh.set_xscale('log')
+      xticks = 1/N * 10**arange(-4,log10(N)+1)
+      xtlbls = array(['$10^{'+ str(int(log10(w*N))) + '}$' for w in xticks])
+      xtlbls[xticks==1/N] = '1'
+      axh.set_xticks(xticks)
+      axh.set_xticklabels(xtlbls)
+      axh.set_xlabel('weigth [× N]')
+      axh.set_ylabel('count')
+      self.fgh = fgh
+      self.axh = axh
+      self.hst = hst
 
 
     #####################
@@ -385,7 +409,28 @@ class LivePlot:
         self.lmf.set_ydata(msft)
         update_ylim(msft, self.ax2)
 
+      plt.pause(0.01)
 
+
+    #####################
+    # Weight histogram
+    #####################
+    if kObs and hasattr(self, 'fgh') and plt.fignum_exists(self.fgh.number):
+      plt.figure(self.fgh.number)
+      axh      = self.axh
+      _        = [b.remove() for b in self.hst]
+      w        = stats.w[k]
+      N        = len(w)
+      wmax     = w.max()
+      bins     = exp(linspace(log(1e-5/N), log(1), int(N/20)))
+      counted  = w>bins[0]
+      nC       = sum(counted)
+      nn,_,pp  = axh.hist(w[counted],bins=bins,color='b')
+      self.hst = pp
+      #thresh   = '#(w<$10^{'+ str(int(log10(bins[0]*N))) + '}/N$ )'
+      axh.set_title('N: {:d}.   N_eff: {:.4g}.   Not shown: {:d}. '.\
+          format(N, 1/(w@w), N-nC))
+      update_ylim([nn], axh, do_narrow=True)
       plt.pause(0.01)
 
     #####################
@@ -412,7 +457,7 @@ class LivePlot:
           self.tail_mu[:] = mu[k,:3]
 
       # Truth
-      self.sx._offsets3d = juggle_axes(*vec2list2(self.xx[k,:3]),'z')
+      self.sx._offsets3d = juggle_axes(*tp(self.xx[k,:3]),'z')
       self.tail_xx       = np_popleft(self.tail_xx,self.xx[k,:3])
       update_tail(self.ltx, self.tail_xx)
 
@@ -432,7 +477,7 @@ class LivePlot:
           self.ltE[n].set_alpha(alpha[n])
       else:
         # Mean
-        self.smu._offsets3d = juggle_axes(*vec2list2(mu[k,:3]),'z')
+        self.smu._offsets3d = juggle_axes(*tp(mu[k,:3]),'z')
         self.tail_mu        = np_popleft(self.tail_mu,mu[k,:3])
         update_tail(self.ltmu, self.tail_mu)
 

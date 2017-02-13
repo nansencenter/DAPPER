@@ -712,7 +712,7 @@ def PartFilt(setup,config,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  stats              = Stats(setup,config,xx,yy).assess(0,E=E)
+  stats              = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
   stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
 
 
@@ -782,7 +782,7 @@ def PF_EnKF(setup,config,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  stats              = Stats(setup,config,xx,yy).assess(0,E=E)
+  stats              = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
   stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
 
 

@@ -74,10 +74,17 @@ class Stats:
   def assess_ens(self,k,kObs,E,w=None):
     """Ensemble and Particle filter (weighted/importance) assessment."""
     N,m          = E.shape
-    w            = 1/N*ones(N) if (w is None) else w
+    if w is None:
+      self.has_w = False
+      w          = 1/N
+    else:
+      self.has_w = True
+    if np.isscalar(w):
+      assert w  != 0
+      w          = w*ones(N)
+    assert(abs(sum(w)-1) < 1e-5)
     assert np.all(np.isfinite(E))
     assert np.all(np.isreal(E))
-    assert(abs(sum(w)-1) < 1e-5)
 
     x = self.xx[k]
 

@@ -2,13 +2,6 @@
 
 from common import *
 
-def vec2list2(vec):
-  return [[x] for x in vec]
-
-def isScal(x):
-  """ Works for list and row/column arrays and matrices"""
-  return np.atleast_1d(x).size == 1
-
 def is1d(a):
   """ Works for list and row/column arrays and matrices"""
   return sum(asarray(asarray(a).shape) > 1) <= 1
@@ -35,10 +28,6 @@ def ens_compatible(func):
   def wrapr(x,*kargs,**kwargs):
     return func(x.T,*kargs,**kwargs).T
   return wrapr
-
-def pad0(arr,length,val=0):
-  return np.append(arr,val*zeros(length-len(arr)))
-
 
         
 def anom(E,axis=0):
@@ -173,7 +162,6 @@ def pad0(ss,N):
   out = zeros(N)
   out[:len(ss)] = ss
   return out
-
 
 def svd0(A):
   """
