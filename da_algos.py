@@ -24,12 +24,14 @@ def EnKF(setup,config,xx,yy):
     E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E)
       hE = h.model(E,t)
       y  = yy[kObs]
       E  = EnKF_analysis(E,hE,h.noise,y,config.upd_a,stats.at(kObs))
       post_process(E,config)
 
-    stats.assess(k,E=E,kObs=kObs)
+    stats.assess(k,kObs,E=E)
+
   return stats
 
 def EnKF_tp(setup,config,xx,yy):
@@ -76,13 +78,13 @@ def EnKF_tp(setup,config,xx,yy):
 
       post_process(E,config)
 
-    stats.assess(k,E=E,kObs=kObs)
+    stats.assess(k,kObs,E=E)
   return stats
 
 
 def EnKS(setup,config,xx,yy):
   """
-  EnKS.
+  EnKS (ensemble Kalman smoother)
 
   Ref: Evensen, Geir. (2009):
   "The ensemble Kalman filter for combined state and parameter estimation."
@@ -123,6 +125,8 @@ def EnKS(setup,config,xx,yy):
       E[kkLag] = reshape_fr(ELag,f.m)
       post_process(E[k],config)
 
+  # TODO: Review what happened to stats series with new system
+  config.liveplotting = False
   for k in progbar(range(chrono.K+1),desc='Assessing'):
     stats.assess(k,E=E[k])
 
@@ -169,6 +173,7 @@ def EnRTS(setup,config,xx,yy):
     
     E[k] += ( E[k+1] - Ef[k+1] ) @ J
 
+  config.liveplotting = False
   for k in progbar(range(chrono.K+1),desc='Assessing'):
     stats.assess(k,E=E[k])
   return stats
@@ -600,7 +605,7 @@ def EnKF_N(setup,config,xx,yy):
 
       stats.trHK[kObs] = sum(((l1*s)**2 + (N-1))**(-1.0)*s**2)/h.noise.m
 
-    stats.assess(k,E=E,kObs=kObs)
+    stats.assess(k,kObs,E=E)
   return stats
 
 
@@ -657,7 +662,7 @@ def iEnKF(setup,config,xx,yy):
     for k,t,dt in chrono.DAW_range(kObs):
       E = f.model(E,t-dt,dt)
       E = add_noise(E, dt, f.noise, config)
-      stats.assess(k,E)
+      stats.assess(k,E=E)
       
     # TODO: It would be beneficial to do another (prior-regularized)
     # analysis at the end, after forecasting the E0 analysis.
@@ -736,7 +741,7 @@ def PartFilt(setup,config,xx,yy):
       w     /= sum(w)
 
       # Assess stats immediately after Bayes.
-      stats.assess(k,E=E,w=w,kObs=kObs)
+      stats.assess(k,kObs,E=E,w=w)
       
       # Resample w==0 particles (does not create bias)
       if getattr(config,'w0_res',False):
@@ -758,7 +763,7 @@ def PartFilt(setup,config,xx,yy):
 
     if not kObs:
       # already computed in analysis step.
-      stats.assess(k,E=E,w=w,kObs=kObs)
+      stats.assess(k,kObs,E=E,w=w)
   return stats
 
 def PF_EnKF(setup,config,xx,yy):
@@ -847,7 +852,7 @@ def PF_EnKF(setup,config,xx,yy):
         stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
         stats.did_resample[kObs] = True
 
-    stats.assess(k,E=E,w=w,kObs=kObs)
+    stats.assess(k,kObs,E=E,w=w)
   return stats
 
 
@@ -949,7 +954,7 @@ def EnCheat(setup,config,xx,yy):
       #     on the optimal solution.
       #E   = opt + E - mean(E,0)
 
-    stats.assess(k,mu=opt,Cov=res,kObs=kObs)
+    stats.assess(k,kObs,mu=opt,Cov=res)
   return stats
 
 
@@ -1042,7 +1047,7 @@ def D3Var(setup,config,xx,yy):
       P = saw_tooth(Pa,r/dkObs)
     r += 1
 
-    stats.assess(k,mu=mu,Cov=P,kObs=kObs)
+    stats.assess(k,kObs,mu=mu,Cov=P)
   return stats
 
 
@@ -1094,7 +1099,7 @@ def ExtKF(setup,config,xx,yy):
 
       stats.trHK[kObs] = trace(KH)/f.m
 
-    stats.assess(k,mu=mu,Cov=P)
+    stats.assess(k,kObs,mu=mu,Cov=P)
   return stats
 
 

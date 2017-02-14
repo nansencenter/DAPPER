@@ -338,7 +338,7 @@ class LivePlot:
 
     stats = self.stats
     mu    = stats.mu
-    m     = mu.shape[1]
+    m     = self.xx.shape[1]
 
     ii,wrap = setup_wrapping(m)
     
@@ -761,20 +761,20 @@ def plot_err_components(stats):
   """
   s      = stats
   chrono = stats.setup.t
-  m      = s.mu.shape[1]
+  m      = s.xx.shape[1]
 
   fgE = plt.figure(15,figsize=(8,8)).clf()
   set_figpos('1312 mac')
   ax_r = plt.subplot(311)
   ax_r.set_xlabel('Dimension index (i)')
   ax_r.set_ylabel('Time-average magnitude')
-  ax_r.plot(arange(m),mean(abs(s.err),0),'k',lw=2, label='Error')
-  sprd = mean(s.mad,0)
+  ax_r.plot(arange(m),mean(abs(s.err.a),0),'k',lw=2, label='Error')
+  sprd = mean(s.mad.a,0)
   if m<10**3:
     ax_r.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
   else:
     ax_r.plot(arange(len(sprd)),sprd,alpha=0.7,label='Spread')
-  ax_r.set_title('Element-wise error comparison')
+  ax_r.set_title('Element-wise error comparison (_a)')
   #ax_r.set_yscale('log')
   ax_r.set_ylim(bottom=mean(sprd)/10)
   ax_r.set_xlim(right=m-1); add_endpoint_xtick(ax_r)
@@ -787,10 +787,10 @@ def plot_err_components(stats):
   has_been_computed = not all(s.umisf[-1] == 0)
   ax_s.set_xlabel('Principal component index')
   ax_s.set_ylabel('Time-average magnitude')
-  ax_s.set_title('Spectral error comparison')
+  ax_s.set_title('Spectral error comparison (_a)')
   if has_been_computed:
-    msft = mean(abs(s.umisf),0)
-    sprd = mean(s.svals,0)
+    msft = mean(abs(s.umisf.a),0)
+    sprd = mean(s.svals.a,0)
     ax_s.plot(        arange(len(msft)),              msft,'k',lw=2, label='Error')
     ax_s.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
     ax_s.set_yscale('log')
@@ -805,8 +805,8 @@ def plot_err_components(stats):
   ax_R = plt.subplot(313)
   ax_R.set_ylabel('Num. of occurence')
   ax_R.set_xlabel('RMSE')
-  ax_R.set_title('Histogram of RMSE values')
-  ax_R.hist(s.rmse[chrono.kk_BI],bins=30,normed=0)
+  ax_R.set_title('Histogram of RMSE values (_u)')
+  ax_R.hist(s.rmse.u[chrono.kk_BI],bins=30,normed=0)
 
 
 def plot_rank_histogram(stats):
@@ -822,15 +822,16 @@ def plot_rank_histogram(stats):
   set_figpos('3331 mac')
   #
   ax_H = plt.subplot(111)
-  ax_H.set_title('(Average of marginal) rank histogram')
+  ax_H.set_title('(Average of marginal) rank histogram (_u)')
   ax_H.set_ylabel('Freq. of occurence\n (of truth in interval n)')
   ax_H.set_xlabel('ensemble member index (n)')
   ax_H.set_position([0.125,0.15, 0.78, 0.75])
   if has_been_computed:
-    ranks = stats.rh[chrono.kk_BI]
+    w     = stats.w.u
+    ranks = stats.rh.u[chrono.kk_BI]
     m     = ranks.shape[1]
-    N     = stats.w.shape[1]
-    if are_uniform(stats.w):
+    N     = w.shape[1]
+    if are_uniform(w):
       # Ensemble rank histogram
       integer_hist(ranks.ravel(),N)
     else:
@@ -838,7 +839,7 @@ def plot_rank_histogram(stats):
       # Weight ranks by inverse of particle weight. Why? Coz, with correct
       # importance weights, the "expected value" histogram is then flat.
       # Potential improvement: interpolate weights between particles.
-      w  = stats.w[chrono.kk_BI]
+      w  = w[chrono.kk_BI]
       K  = len(w)
       w  = np.hstack([w, ones((K,1))/N]) # define weights for rank N+1
       w  = array([ w[arange(K),ranks[arange(K),i]] for i in range(m)])

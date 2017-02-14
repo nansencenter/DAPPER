@@ -11,18 +11,18 @@ sd0 = seed(5)
 # DA Configurations
 ############################
 
-#from mods.Lorenz63.sak12 import setup                          # Expected RMSE_a:
+from mods.Lorenz63.sak12 import setup                          # Expected RMSE_a:
 #config = DAC(Climatology)                                      # 8.5
 #config = DAC(D3Var)                                            # 1.26
 #config = DAC(ExtKF, infl=90);                                  # 0.87
 #config = DAC(EnKF,'Sqrt',    N=3 , infl=1.30)                  # 
-#config = DAC(EnKF ,'Sqrt',   N=10, infl=1.02,rot=True)         # 0.63 (sak: 0.65)
+config = DAC(EnKF ,'Sqrt',   N=10, infl=1.02,rot=True)         # 0.63 (sak: 0.65)
 #config = DAC(EnKF ,'PertObs',N=500,infl=0.95,rot=False)        # 0.56
 #config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
 #config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4000)
 
 
-from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
+#from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)
 #config = DAC(ExtKF, infl = 6)
@@ -31,7 +31,7 @@ from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(EnKF,'PertObs',N=40,infl=1.06)            # 0.22
 #config = DAC(EnKF,'DEnKF  ',N=40,infl=1.01)            # 0.18
 #config = DAC(EnKF,'PertObs',N=28,infl=1.08)            # 0.24
-config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
+#config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
 #
 #config = DAC(EnKF_N,N=24,rot=True)
 #
@@ -78,7 +78,7 @@ xx,yy = simulate(setup)
 # Assimilate
 ############################
 stats = assimilate(setup,config,xx,yy)
-avrgs = stats.average_in_time()
+avrgs = stats.av2()
 print_averages(config,avrgs)
 
 

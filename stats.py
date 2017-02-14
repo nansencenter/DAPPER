@@ -1,5 +1,74 @@
 from common import *
 
+class Fseries:
+  """
+  Container for time series from filtering.
+  Stores and categorizes the result as
+   - forecast   (_f)
+   - analysis   (_a)
+   - universial (_u)
+   Data can be accessed through
+    - indexing, with key (k,KObs,'a' [or 'f']) or simply k,
+    - raw, through: .a, .f, .u.
+  """
+  def __init__(self,K,KObs,m,*args,**kwargs):
+
+    self.m = m
+    # Convert int-len to shape-tuple
+    if isinstance(m,int):
+      if m==1: m = ()
+      else:    m = (m,)
+
+    self.a = zeros((KObs+1,)+m, *args, **kwargs)
+    self.f = zeros((KObs+1,)+m, *args, **kwargs)
+    self.u = zeros((K   +1,)+m, *args, **kwargs)
+  
+  @staticmethod
+  def validate_key(key):
+    if \
+        isinstance(key,tuple) and \
+        len(key)==3 and \
+        isinstance(key[2],str):
+          pass
+    else:
+        key = (key,None,'a')
+    return key
+
+  def __getitem__(self,key):
+    k,kObs,fa = self.validate_key(key)
+    if fa == 'f':
+      return self.f[kObs]
+    elif fa == 'a':
+      return self.u[k]
+      #if kObs!=None: # TODO:
+        #assert self.a[kObs] == self.u[k]
+
+  def __setitem__(self,key,item):
+    k,kObs,fa = self.validate_key(key)
+    if fa == 'f':
+      self.f[kObs]   = item
+    elif fa == 'a':
+      self.u[k]      = item
+      if kObs!=None:
+        self.a[kObs] = item
+
+  def __repr__(self):
+    s = []
+    s.append("\nAnalysis (_a):")
+    s.append(self.a.__str__())
+    s.append("\nForecast (_f):")
+    s.append(self.f.__str__())
+    s.append("\nAll (_u):")
+    s.append(self.u.__str__())
+    return '\n'.join(s)
+
+
+def Fseries_convenient(K,KObs):
+  "Provide FSeries constr. with pre-def. K & KObs."
+  def inner(m,*args,**kwargs):
+    return Fseries(K,KObs,m,*args,**kwargs)
+  return inner
+
 
 class Stats:
   """
@@ -19,59 +88,73 @@ class Stats:
     K    = setup.t.K    ; assert K   ==xx.shape[0]-1
     p    = setup.h.m    ; assert p   ==yy.shape[1]
     KObs = setup.t.KObs ; assert KObs==yy.shape[0]-1
+
+
+    fs = Fseries_convenient(K,KObs)
     #
-    self.mu    = zeros((K+1,m))     # Mean
-    self.var   = zeros((K+1,m))     # Variances
-    self.mad   = zeros((K+1,m))     # Mean abs deviations
-    self.err   = zeros((K+1,m))     # Error (mu-truth)
-    self.logp_m= zeros(K+1)         # Marginal, Gaussian Log score
-    self.skew  = zeros(K+1)         # Skewness
-    self.kurt  = zeros(K+1)         # Kurtosis
-    self.rmv   = zeros(K+1)         # Root-mean variance
-    self.rmse  = zeros(K+1)         # Root-mean square error
+    self.mu     = fs(m) # Mean
+    self.var    = fs(m) # Variances
+    self.mad    = fs(m) # Mean abs deviations
+    self.err    = fs(m) # Error (mu-truth)
+    self.logp_m = fs(1) # Marginal, Gaussian Log score
+    self.skew   = fs(1) # Skewness
+    self.kurt   = fs(1) # Kurtosis
+    self.rmv    = fs(1) # Root-mean variance
+    self.rmse   = fs(1) # Root-mean square error
 
     
     if hasattr(config,'N'):
       # Ensemble-only init
       N    = config.N
-      m_Nm = np.minimum(m,N)
-      self.w  = zeros((K+1,N))      # Likelihood weights
-      self.rh = zeros((K+1,m),int)  # Rank histogram
-      #self.N  = N                  # Use w.shape[1] instead
+      # NB: necessary coz isinstance(np.int64,int) fails.
+      # TODO: remove np.min from common.
+      m_Nm = int(np.minimum(m,N))
+      self.w  = fs(N)     # Likelihood weights
+      self.rh = fs(m,int) # Rank histogram
+      #self.N  = N        # Use w.shape[1] instead
       self.is_ens = True
     else:
       self.is_ens = False
       m_Nm = m
-    self.svals = zeros((K+1,m_Nm))  # Principal component (SVD) scores
-    self.umisf = zeros((K+1,m_Nm))  # Error in component directions
+    self.svals = fs(m_Nm) # Principal component (SVD) scores
+    self.umisf = fs(m_Nm) # Error in component directions
 
     # Analysis-only init
-    self.trHK  = zeros(KObs+1)
+    self.trHK  = fs(1)
     # Note that non-default analysis stats
     # may also be initialized throug at().
-
-
     
-    
-  def assess(self,k,E=None,w=None,mu=None,Cov=None,kObs=None):
+
+  def assess(self,k,kObs=None,f_or_a='a',
+      E=None,w=None,mu=None,Cov=None):
     """Wrapper for assess_ens/ext and liveplotting."""
+    key = (k,kObs,f_or_a)
+
+    # Ensemble assessment
     if E is not None:
-        self.assess_ens(k,kObs,E,w)
-        if k==0:
-          self.lplot = LivePlot(self,E=E)
-        else:
-          self.lplot.update(k,kObs,E=E)
+      self.assess_ens(key,E,w)
+      #
+      if k==0:
+        self.lplot = LivePlot(self,E=E)
+      elif f_or_a=='a':
+        self.lplot.update(k,kObs,E=E)
+
+    # Linear-Gaussian assessment
     else:
-        assert mu is not None
-        self.assess_ext(k,kObs,mu,Cov)
-        if k==0:
-          self.lplot = LivePlot(self,P=Cov)
-        else:
-          self.lplot.update(k,kObs,P=Cov)
+      assert mu is not None
+      self.assess_ext(key,mu,Cov)
+      #
+      if k==0:
+        self.lplot = LivePlot(self,P=Cov)
+      elif f_or_a=='a':
+        self.lplot.update(k,kObs,P=Cov)
+
+    if f_or_a=='f':
+      self.lplot.insert_forecast(self.mu[key])
     return self # For daisy-chaining
 
 
-  def assess_ens(self,k,kObs,E,w=None):
+  def assess_ens(self,k,E,w=None):
     """Ensemble and Particle filter (weighted/importance) assessment."""
     N,m          = E.shape
     if w is None:
@@ -86,7 +169,7 @@ class Stats:
     assert np.all(np.isfinite(E))
     assert np.all(np.isreal(E))
 
-    x = self.xx[k]
+    x = self.xx[k[0]]
 
     self.w[k]    = w
     self.mu[k]   = w @ E
@@ -120,13 +203,13 @@ class Stats:
       self.rh[k]    = [np.where(Ex_sorted[:,i] == x[i])[0][0] for i in range(m)]
 
 
-  def assess_ext(self,k,kObs,mu,P):
+  def assess_ext(self,k,mu,P):
     """Kalman filter (Gaussian) assessment."""
     assert np.all(np.isfinite(mu)) and np.all(np.isfinite(P))
     assert np.all(np.isreal(mu))   and np.all(np.isreal(P))
     m           = len(mu)
 
-    x = self.xx[k]
+    x = self.xx[k[0]]
 
     self.mu[k]  = mu
     self.var[k] = diag(P)
@@ -172,21 +255,17 @@ class Stats:
 
   def average_in_time(self):
     t    = self.setup.t
-    kk_a = t.kkObs_BI                   # analysis time > BurnIn
-    kk_f = t.kkObs_BI-1                 # forecast      > BurnIn
-    kk_u = t.kk_BI                      # all times     > BurnIn 
+    kk_u = t.kk_BI
     kk_O = t.ttObs > t.BurnIn
     avrg = dict()
     for key,val in vars(self).items():
-      if type(val) is np.ndarray:
-        if is1d(val):
-          if len(val) == t.K+1:
-            avrg[key + '_a'] = series_mean_with_conf(val[kk_a])
-            avrg[key + '_f'] = series_mean_with_conf(val[kk_f])
-          elif len(val) == t.KObs+1:
-            avrg[key] = series_mean_with_conf(val[kk_O])
+      if isinstance(val,Fseries):
+        if val.m == 1:
+          for sub in ['a','f','u']:
+            kk = kk_u if sub=='u' else kk_O
+            series = getattr(val,sub)[kk]
+            avrg[key+'_'+sub] = series_mean_with_conf(series)
     return avrg
-
       
 
 
