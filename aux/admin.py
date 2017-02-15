@@ -56,22 +56,28 @@ class OSSE:
 # TODO: from json import JSONEncoder
 #class DAC(JSONEncoder):
 class DAC():
-  """A fancy dict for DA Configuarations (settings)."""
+  """
+  A dict for DA Configuarations (settings)
+  with some convenience in its constructor.
+  """
+  # Careful with defaults -- explicit is better than implicit!
   def __init__(self,da_driver,*upd_a,**kwargs):
-    # Careful with defaults -- explicit is better than implicit!
+    # 1st arg: the main method
     self.da_driver = da_driver
-    if len(upd_a) == 1:
+    # [2nd arg]: modifier
+    if len(upd_a) >= 1:
       self.upd_a = upd_a[0]
-    elif len(upd_a) > 1:
-      raise KeyError('Only upd_a is a non-keyword option')
-    # Abbreviations
+      if len(upd_a) > 1:
+        raise KeyError('Only upd_a is a non-keyword option')
+    # Process abbreviations
     abbrevs = [('LP','liveplotting')]
-    for ab in abbrevs:
-      if ab[0] in kwargs:
-        kwargs[ab[1]] = kwargs[ab[0]]
-        del kwargs[ab[0]]
+    for a,b in abbrevs:
+      if a in kwargs:
+        kwargs[b] = kwargs[a]
+        del kwargs[a]
     # Write the rest of parameters
-    for key, value in kwargs.items(): setattr(self, key, value)
+    for key, value in kwargs.items():
+      setattr(self, key, value)
 
   def __repr__(self):
     s = 'DAC(' + self.da_driver.__name__
