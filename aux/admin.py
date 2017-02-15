@@ -58,13 +58,18 @@ class OSSE:
 class DAC():
   """A fancy dict for DA Configuarations (settings)."""
   def __init__(self,da_driver,*upd_a,**kwargs):
+    # Careful with defaults -- explicit is better than implicit!
     self.da_driver = da_driver
     if len(upd_a) == 1:
       self.upd_a = upd_a[0]
     elif len(upd_a) > 1:
       raise KeyError('Only upd_a is a non-keyword option')
-    # Careful with defaults -- explicit is better than implicit!
-    self.liveplotting = False
+    # Abbreviations
+    abbrevs = [('LP','liveplotting')]
+    for ab in abbrevs:
+      if ab[0] in kwargs:
+        kwargs[ab[1]] = kwargs[ab[0]]
+        del kwargs[ab[0]]
     # Write the rest of parameters
     for key, value in kwargs.items(): setattr(self, key, value)
 

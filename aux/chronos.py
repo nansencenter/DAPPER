@@ -141,11 +141,18 @@ class Chronology:
 
   # Burn In. NB: uses > (strict inequality)
   @property
+  def mask_BI(self):
+    return self.tt > self.BurnIn
+  @property
+  def maskObs_BI(self):
+    return self.ttObs > self.BurnIn
+  #
+  @property
   def kk_BI(self):
-    return self.kk[self.tt > self.BurnIn]
+    return self.kk[self.mask_BI]
   @property
   def kkObs_BI(self):
-    return self.kkObs[self.ttObs > self.BurnIn]
+    return self.kkObs[self.maskObs_BI]
 
   ######################################
   # Other

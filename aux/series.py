@@ -110,3 +110,116 @@ def series_mean_with_conf(xx):
   return vc
 
 
+class Fseries:
+  """
+  Container for time series of a statistic from filtering.
+  Data is indexed with key (k,kObs,f_a_u) or simply k.
+  The accessing then categorizes the result as
+    - forecast   (.f, len: KObs+1)
+    - analysis   (.a, len: KObs+1)
+    - universial (.u, len: K+1)
+  When writing .u,
+    - if not store_u: only the current value is stored 
+    - if kObs!=None : also .a is written to.
+  Data may also be accessed through raw attributes
+    - .a, .f, .u.
+  """
+  def __init__(self,chrono,m,store_u=True,**kwargs):
+
+    self.store_u = store_u
+    self.chrono  = chrono
+
+    # Convert int-len to shape-tuple
+    self.m = m # store first
+    if isinstance(m,int):
+      if m==1: m = ()
+      else:    m = (m,)
+
+    self.a   = zeros((chrono.KObs+1,)+m, **kwargs)
+    self.f   = zeros((chrono.KObs+1,)+m, **kwargs)
+    if self.store_u:
+      self.u = zeros((chrono.K   +1,)+m, **kwargs)
+    else:
+      self.tmp   = None
+      self.k_tmp = None
+  
+  @staticmethod
+  def validate_key(key):
+    try:
+      assert isinstance(key,tuple)
+      k,kObs,fa = key
+      assert fa in ['f','a','u']
+    except (AssertionError,ValueError):
+      key = (key,None,'u')
+    return key
+
+  def __getitem__(self,key):
+    k,kObs,fa = self.validate_key(key)
+    if fa == 'f':
+      return self.f[kObs]
+    elif fa == 'a':
+      return self.a[kObs]
+    else:
+      if self.store_u:
+        return self.u[k]
+      else:
+        if self.k_tmp is not k:
+          msg = "Only item [" + str(self.k_tmp) + "] is available from " +\
+              "the universal (.u) series (since store_u=False). " +\
+              "Maybe use analysis (.a) or forecast (.f) arrays instead?"
+          raise KeyError(msg)
+        return self.tmp
+
+  def __setitem__(self,key,item):
+    k,kObs,fa = self.validate_key(key)
+    if fa == 'f':
+      self.f[kObs]   = item
+    elif fa == 'a':  
+      raise KeyError("Write to .a only through .u")
+      # Or is it safe to allow?
+      #self.a[kObs]   = item
+    else:
+      if self.store_u:
+        self.u[k]    = item
+      else:
+        self.k_tmp   = k
+        self.tmp     = item
+      if kObs!=None:
+        # Also set .a
+        self.a[kObs] = item
+
+  def average(self):
+    """
+    Avarage series,
+    but only if it's univariate (scalar).
+    """
+    if self.m > 1:
+      raise NotImplementedError
+    avrg = {}
+    t = self.chrono
+    for sub in ['a','f','u']:
+      if sub=='u':
+        inds = t.kk_BI
+      else:
+        inds = t.maskObs_BI
+      if hasattr(self,sub):
+        series = getattr(self,sub)[inds]
+        avrg[sub] = series_mean_with_conf(series)
+    return avrg
+
+  def __repr__(self):
+    s = []
+    s.append("\nAnalysis (.a):")
+    s.append(self.a.__str__())
+    s.append("\nForecast (.f):")
+    s.append(self.f.__str__())
+    s.append("\nAll (.u):")
+    if self.store_u:
+      s.append(self.u.__str__())
+    else:
+      s.append("Not stored")
+    return '\n'.join(s)
+
+
+
+

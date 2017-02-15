@@ -1,75 +1,5 @@
 from common import *
 
-class Fseries:
-  """
-  Container for time series from filtering.
-  Stores and categorizes the result as
-   - forecast   (_f)
-   - analysis   (_a)
-   - universial (_u)
-   Data can be accessed through
-    - indexing, with key (k,KObs,'a' [or 'f']) or simply k,
-    - raw, through: .a, .f, .u.
-  """
-  def __init__(self,K,KObs,m,*args,**kwargs):
-
-    self.m = m
-    # Convert int-len to shape-tuple
-    if isinstance(m,int):
-      if m==1: m = ()
-      else:    m = (m,)
-
-    self.a = zeros((KObs+1,)+m, *args, **kwargs)
-    self.f = zeros((KObs+1,)+m, *args, **kwargs)
-    self.u = zeros((K   +1,)+m, *args, **kwargs)
-  
-  @staticmethod
-  def validate_key(key):
-    if \
-        isinstance(key,tuple) and \
-        len(key)==3 and \
-        isinstance(key[2],str):
-          pass
-    else:
-        key = (key,None,'a')
-    return key
-
-  def __getitem__(self,key):
-    k,kObs,fa = self.validate_key(key)
-    if fa == 'f':
-      return self.f[kObs]
-    elif fa == 'a':
-      return self.u[k]
-      #if kObs!=None: # TODO:
-        #assert self.a[kObs] == self.u[k]
-
-  def __setitem__(self,key,item):
-    k,kObs,fa = self.validate_key(key)
-    if fa == 'f':
-      self.f[kObs]   = item
-    elif fa == 'a':
-      self.u[k]      = item
-      if kObs!=None:
-        self.a[kObs] = item
-
-  def __repr__(self):
-    s = []
-    s.append("\nAnalysis (_a):")
-    s.append(self.a.__str__())
-    s.append("\nForecast (_f):")
-    s.append(self.f.__str__())
-    s.append("\nAll (_u):")
-    s.append(self.u.__str__())
-    return '\n'.join(s)
-
-
-def Fseries_convenient(K,KObs):
-  "Provide FSeries constr. with pre-def. K & KObs."
-  def inner(m,*args,**kwargs):
-    return Fseries(K,KObs,m,*args,**kwargs)
-  return inner
-
-
 class Stats:
   """
   Contains and computes peformance stats.
@@ -77,7 +7,6 @@ class Stats:
 
   # Adjust this to omit heavy computations
   comp_threshold_3 = 51
-
 
   def __init__(self,setup,config,xx,yy):
     self.setup  = setup
@@ -89,8 +18,11 @@ class Stats:
     p    = setup.h.m    ; assert p   ==yy.shape[1]
     KObs = setup.t.KObs ; assert KObs==yy.shape[0]-1
 
+    # Convenience Fseries constructor
+    def fs(m,**kwargs):
+      store_u = getattr(config,'store_u',True)
+      return Fseries(setup.t, m, store_u=store_u, **kwargs)
 
-    fs = Fseries_convenient(K,KObs)
     #
     self.mu     = fs(m) # Mean
     self.var    = fs(m) # Variances
@@ -102,7 +34,6 @@ class Stats:
     self.rmv    = fs(1) # Root-mean variance
     self.rmse   = fs(1) # Root-mean square error
 
-    
     if hasattr(config,'N'):
       # Ensemble-only init
       N    = config.N
@@ -110,7 +41,7 @@ class Stats:
       # TODO: remove np.min from common.
       m_Nm = int(np.minimum(m,N))
       self.w  = fs(N)     # Likelihood weights
-      self.rh = fs(m,int) # Rank histogram
+      self.rh = fs(m,dtype=int) # Rank histogram
       #self.N  = N        # Use w.shape[1] instead
       self.is_ens = True
     else:
@@ -125,33 +56,36 @@ class Stats:
     # may also be initialized throug at().
     
 
-  def assess(self,k,kObs=None,f_or_a='a',
+  def assess(self,k,kObs=None,f_or_a='u',
       E=None,w=None,mu=None,Cov=None):
     """Wrapper for assess_ens/ext and liveplotting."""
-    key = (k,kObs,f_or_a)
 
-    # Ensemble assessment
-    if E is not None:
-      self.assess_ens(key,E,w)
-      #
-      if k==0:
-        self.lplot = LivePlot(self,E=E)
-      elif f_or_a=='a':
-        self.lplot.update(k,kObs,E=E)
+    LP      = getattr(self.config,'liveplotting',False)
+    store_u = getattr(self.config,'store_u'     ,False)
 
-    # Linear-Gaussian assessment
-    else:
-      assert mu is not None
-      self.assess_ext(key,mu,Cov)
-      #
-      if k==0:
-        self.lplot = LivePlot(self,P=Cov)
-      elif f_or_a=='a':
-        self.lplot.update(k,kObs,P=Cov)
+    if LP or store_u or kObs!=None:
 
-    if f_or_a=='f':
-      self.lplot.insert_forecast(self.mu[key])
-    return self # For daisy-chaining
+      if E is not None:
+        # Ensemble assessment
+        comp  = self.assess_ens
+        parm  = {'E':E,'w':w}
+      else:
+        # Linear-Gaussian assessment
+        assert mu is not None
+        comp = self.assess_ext
+        parm = {'mu':mu,'P':Cov}
+
+      key = (k,kObs,f_or_a)
+      comp(key,**parm)
+
+      if LP:
+        if k==0:
+          self.lplot = LivePlot(self,**parm)
+        elif f_or_a=='u':
+          self.lplot.update(k,kObs,**parm)
+
+    # Return self for daisy-chaining
+    return self 
 
 
   def assess_ens(self,k,E,w=None):
@@ -254,17 +188,19 @@ class Stats:
     return write_at_kObs
 
   def average_in_time(self):
-    t    = self.setup.t
-    kk_u = t.kk_BI
-    kk_O = t.ttObs > t.BurnIn
+    """
+    Avarage all univariate (scalar) time series.
+    """
     avrg = dict()
-    for key,val in vars(self).items():
-      if isinstance(val,Fseries):
-        if val.m == 1:
-          for sub in ['a','f','u']:
-            kk = kk_u if sub=='u' else kk_O
-            series = getattr(val,sub)[kk]
-            avrg[key+'_'+sub] = series_mean_with_conf(series)
+    for key,series in vars(self).items():
+      try:
+        # Compute
+        f_a_u = series.average()
+        # Add the sub-fields as sub-scripted fields
+        for sub in f_a_u:
+          avrg[key+'_'+sub] = f_a_u[sub]
+      except (AttributeError,NotImplementedError):
+        pass
     return avrg
       
 

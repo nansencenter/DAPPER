@@ -15,7 +15,7 @@ class LivePlot:
   """
   Live plotting functionality.
   """
-  def __init__(self,stats,E=None,P=None):
+  def __init__(self,stats,E=None,P=None,**kwargs):
     setup  = stats.setup
     config = stats.config
     m   = setup.f.m
@@ -24,17 +24,15 @@ class LivePlot:
     ii,wrap = setup_wrapping(m)
 
     # Store
-    self.setup  = setup
-    self.stats  = stats
-    self.xx     = stats.xx ; xx = stats.xx
-    self.yy     = stats.yy ; yy = stats.yy
+    self.setup = setup
+    self.stats = stats
+    self.xx    = stats.xx ; xx = stats.xx
+    self.yy    = stats.yy ; yy = stats.yy
 
     # Abbreviate
     mu = stats.mu
 
     # Set up prompts
-    self.is_available = config.liveplotting
-    if not self.is_available: return
     self.is_on     = False
     self.is_paused = False
     print('Initializing liveplotting...')
@@ -53,6 +51,8 @@ class LivePlot:
     set_figpos('2311')
 
     ax = plt.subplot(311)
+
+    # Ensemble/Confidence
     if m<401:
       if E is not None and len(E)<4001:
         self.lE = plt.plot(ii,wrap(E.T),lw=1,**ens_props)
@@ -87,7 +87,7 @@ class LivePlot:
     #axS = plt.subplot(412)
 
 
-    # Correlation plot. Inspired by seaborn.heatmap.
+    # Correlations. Inspired by seaborn.heatmap.
     axC = plt.subplot(312)
     if m<400:
       divdr = make_axes_locatable(axC)
@@ -250,18 +250,40 @@ class LivePlot:
     pkk = arange(self.K)
     ptt = chrono.tt[pkk]
 
-    self.ax_e = plt.subplot(211)
-    self.le,  = self.ax_e.plot(ptt,stats.rmse[pkk],'k',lw=2,label='Error')
-    self.lv,  = self.ax_e.plot(ptt,stats.rmv [pkk],'b',lw=2,label='Spread',alpha=0.6)
-    self.ax_e.set_ylabel('RMS')
-    self.ax_e.legend()
-    self.ax_e.set_xticklabels([])
+    d1 = {
+        'rmse': dict(c='k', lw=2, label='Error'),
+        'rmv' : dict(c='b', lw=2, label='Spread', alpha=0.6),
+      }
+    d2 = {
+        'skew': dict(c='g', lw=2, label='Skew'),
+        'kurt': dict(c='r', lw=2, label='Kurt'),
+      }
 
-    self.ax_i = plt.subplot(212)
-    self.ls,  = self.ax_i.plot(ptt,stats.skew[pkk],'g',lw=2,label='Skew')
-    self.lk,  = self.ax_i.plot(ptt,stats.kurt[pkk],'r',lw=2,label='Kurt')
-    self.ax_i.legend()
-    self.ax_i.set_xlabel('time (t)')
+    def init_with(val):
+      arr    = zeros(self.K)
+      arr[0] = val
+      return arr
+
+    def init_ax(ax,d):
+      for name in d:
+        ds         = dict(plt=d[name]) # assign to 'plt' of new dict
+        d[name]    = ds                # insert new dict
+        ds['data'] = init_with(getattr(stats,name)[0])
+        ds['h'],   = ax.plot(ptt,ds['data'],**ds['plt'])
+      ax.legend()
+      return d
+
+    self.ax_d1 = plt.subplot(211)
+    self.d1    = init_ax(self.ax_d1, d1)
+    self.ax_d1.set_ylabel('RMS')
+    self.ax_d1.legend()
+    self.ax_d1.set_xticklabels([])
+
+    self.ax_d2 = plt.subplot(212)
+    self.d2    = init_ax(self.ax_d2, d2)
+    self.ax_d2.legend()
+    self.ax_d2.set_xlabel('time (t)')
+
 
     #####################
     # User-defined state
@@ -281,7 +303,6 @@ class LivePlot:
       self.axu2.set_title('Mean')
 
 
-
     self.prev_k = 0
     plt.pause(0.01)
 
@@ -292,7 +313,9 @@ class LivePlot:
     Poll user for keypresses.
     Decide on toggling pause/step/plot:
     """
-    if not self.is_available:
+    open_figns = plt.get_fignums()
+    if open_figns == []:
+      self.stats.config.liveplotting = 0
       return True
 
     if self.is_paused:
@@ -317,24 +340,10 @@ class LivePlot:
         print("Press <Space> to step. Press <Enter> to resume.")
     return not self.is_on
 
-    
-    
-  def insert_forecast(self,mu):
-    """Plot amplitudes of forecast state"""
-    if not self.is_available or not self.is_on: return
-    if plt.fignum_exists(self.fga.number):
-      ii,wrap = setup_wrapping(len(mu))
-      plt.figure(self.fga.number)
-      self.fcast.set_ydata(wrap(mu))
-      self.fcast.set_visible(True)
 
-
-
-  def update(self,k,kObs,E=None,P=None):
+  def update(self,k,kObs,E=None,P=None,**kwargs):
     """Plot forecast state"""
     if self.skip_plotting(): return
-
-    #open_figns = plt.get_fignums()
 
     stats = self.stats
     mu    = stats.mu
@@ -352,12 +361,18 @@ class LivePlot:
       self.fga.suptitle('t[k]={:<5.2f}, k={:<d}'.format(t,k))
 
       if hasattr(self,'ax'):
-        self.lmu.set_ydata(wrap(mu[k]))
+        # Truth
         self.lx .set_ydata(wrap(self.xx[k]))
-
+        # Analysis
+        self.lmu.set_ydata(wrap(mu[k]))
+        # Forecast
         if kObs is None:
           self.fcast.set_visible(False)
-
+        else:
+          self.fcast.set_ydata(wrap(mu.f[kObs]))
+          self.fcast.set_visible(True)
+          
+        # Ensemble/Confidence
         if hasattr(self,'lE'):
           w    = stats.w[k]
           wmax = w.max()
@@ -382,7 +397,7 @@ class LivePlot:
         update_ylim([mu[k], self.xx[k]], self.ax)
 
 
-
+      # Correlation
       if hasattr(self,'axC'):
         if E is not None:
           C = np.cov(E,rowvar=False)
@@ -395,6 +410,7 @@ class LivePlot:
         C2 = np.ma.masked_where(self.mask, C)[::-1]
         self.mesh.set_array(C2.ravel())
 
+        # Auto-corr function
         acf = circulant_ACF(C)
         ac6 = circulant_ACF(C,do_abs=True)
         self.l5.set_ydata(acf)
@@ -436,14 +452,9 @@ class LivePlot:
     #####################
     # 3D phase space
     #####################
-
     def update_tail(handle,newdata):
       handle.set_data(newdata[:,0],newdata[:,1])
       handle.set_3d_properties(newdata[:,2])
-    def np_popleft(arr,item):
-      arr    = np.roll(arr,1,axis=0)
-      arr[0] = item
-      return arr
 
     if hasattr(self,'fg3') and plt.fignum_exists(self.fg3.number):
       plt.figure(self.fg3.number)
@@ -458,7 +469,7 @@ class LivePlot:
 
       # Truth
       self.sx._offsets3d = juggle_axes(*tp(self.xx[k,:3]),'z')
-      self.tail_xx       = np_popleft(self.tail_xx,self.xx[k,:3])
+      self.tail_xx       = roll_n_sub(self.tail_xx,self.xx[k,:3])
       update_tail(self.ltx, self.tail_xx)
 
       if hasattr(self, 'sE'):
@@ -471,14 +482,14 @@ class LivePlot:
         if len(clrs) == 1: clrs = clrs.repeat(len(w),axis=0)
         self.sE.set_color(np.hstack([clrs, alpha[:,None]]))
         
-        self.tail_E = np_popleft(self.tail_E,E[:,:3])
+        self.tail_E = roll_n_sub(self.tail_E,E[:,:3])
         for n in range(E.shape[0]):
           update_tail(self.ltE[n],self.tail_E[:,n,:])
           self.ltE[n].set_alpha(alpha[n])
       else:
         # Mean
         self.smu._offsets3d = juggle_axes(*tp(mu[k,:3]),'z')
-        self.tail_mu        = np_popleft(self.tail_mu,mu[k,:3])
+        self.tail_mu        = roll_n_sub(self.tail_mu,mu[k,:3])
         update_tail(self.ltmu, self.tail_mu)
 
       plt.pause(0.01)
@@ -492,20 +503,35 @@ class LivePlot:
     if plt.fignum_exists(self.fgd.number):
       plt.figure(self.fgd.number)
       pkk = arange(self.K)
-      if k > self.K:
+      if k >= self.K:
         pkk += (k-self.K)
       pkk = pkk.astype(int)
       ptt = self.setup.t.tt[pkk]
 
-      self.le.set_data(ptt,stats.rmse[pkk])
-      self.lv.set_data(ptt,stats.rmv[pkk])
-      self.ax_e.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
-      update_ylim([stats.rmse[pkk],stats.rmv[pkk]], self.ax_e,Min=0)
+      def update_ax(ax,dict_outer):
+        for name, d in dict_outer.items():
+          stat = getattr(stats,name)
+          if stat.store_u:
+            d['data'] = stat[pkk]
+          else:
+            new = stat[k]
+            if self.prev_k != (k-1):
+              # Reset display
+              d['data'][:] = 0
+            if k >= self.K:
+              # Rolling display
+              d['data'] = roll_n_sub(d['data'], new,-1)
+            else:
+              # Initial display: append
+              d['data'][k] = new
+          d['h'].set_data(ptt,d['data'])
+          ax.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
+
+      update_ax(self.ax_d1,self.d1)
+      update_ylim([d['data'] for d in self.d1.values()], self.ax_d1, Min=0)
       
-      self.ls.set_data(ptt,stats.skew[pkk])
-      self.lk.set_data(ptt,stats.kurt[pkk])
-      self.ax_i.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
-      update_ylim([stats.skew[pkk],stats.kurt[pkk]], self.ax_i)
+      update_ax(self.ax_d2,self.d2)
+      update_ylim([d['data'] for d in self.d2.values()], self.ax_d2)
 
       plt.pause(0.01)
 
@@ -639,22 +665,32 @@ def plot_3D_trajectory(stats,dims=0,**kwargs):
   assert len(dims)==3
 
   xx     = stats.xx
+  mu     = stats.mu
   chrono = stats.setup.t
 
-  kk = get_plot_inds(chrono,xx,mult=100,**kwargs)[0]
-  T  = chrono.tt[kk[-1]]
+  kk,kkA = get_plot_inds(chrono,xx,mult=100,**kwargs)
 
-  xx = xx      [kk][:,dims]
-  mu = stats.mu[kk][:,dims]
+  if mu.store_u:
+    xx = xx[kk]
+    mu = mu[kk]
+    T  = chrono.tt[kk[-1]]
+  else:
+    xx = xx[kkA]
+    mu = mu.a[:len(kkA)]
+    T  = chrono.tt[kkA[-1]]
 
   plt.figure(14).clf()
   set_figpos('3321 mac')
   ax3 = plt.subplot(111, projection='3d')
 
-  ax3.plot   (xx[:,0] ,xx[:,1] ,xx[:,2] ,c='k',label='Truth')
-  ax3.plot   (mu[:,0] ,mu[:,1] ,mu[:,2] ,c='b',label='DA estim.')
-  ax3.scatter(xx[0 ,0],xx[0 ,1],xx[0 ,2],c='g',s=40)
-  ax3.scatter(xx[-1,0],xx[-1,1],xx[-1,2],c='r',s=40)
+  xx = xx.T[dims]
+  mu = mu.T[dims]
+
+  ax3.plot   (*xx      ,c='k',label='Truth')
+  ax3.plot   (*mu      ,c='b',label='DA estim.')
+  ax3.scatter(*xx[:, 0],c='g',s=40)
+  ax3.scatter(*xx[:,-1],c='r',s=40)
+
   ax3.set_title('Phase space trajectory up to t={:<5.2f}'.format(T))
   ax3.set_xlabel('dim ' + str(dims[0]))
   ax3.set_ylabel('dim ' + str(dims[1]))
@@ -678,12 +714,30 @@ def plot_time_series(stats,dim=0,hov=False,**kwargs):
   fg = plt.figure(12,figsize=(8,8)).clf()
   set_figpos('1313 mac')
 
-  pkk,pkkObs = get_plot_inds(chrono,xx[:,dim],mult=80,**kwargs)
-  tt = chrono.tt
+  kk,kkA = get_plot_inds(chrono,xx[:,dim],mult=80,**kwargs)
+  tt,ttA = chrono.tt[kk], chrono.tt[kkA]
+  KA     = len(kkA)      
+
+  if s.mu.store_u:
+    tt_  = tt 
+    xx   = xx    [kk]
+    mu   = s.mu  [kk]
+    rmse = s.rmse[kk]
+    rmv  = s.rmv [kk]
+  else:
+    tt_  = ttA
+    xx   = xx      [kkA]
+    mu   = s.mu  .a[:KA]
+    rmse = s.rmse.a[:KA]
+    rmv  = s.rmv .a[:KA]
+
+  trKH   = s.trHK.a[:KA]
+  skew   = s.skew.a[:KA]
+  kurt   = s.kurt.a[:KA]
 
   ax_d = plt.subplot(3,1,1)
-  ax_d.plot(tt[pkk],xx  [pkk,dim],'k',lw=3,label='Truth')
-  ax_d.plot(tt[pkk],s.mu[pkk,dim],lw=2,label='DA estim.')
+  ax_d.plot(tt_,xx[:,dim],'k',lw=3,label='Truth')
+  ax_d.plot(tt_,mu[:,dim],    lw=2,label='DA estim.')
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
   ax_d.set_ylabel('dim ' + str(dim))
@@ -691,21 +745,19 @@ def plot_time_series(stats,dim=0,hov=False,**kwargs):
   ax_d.set_xticklabels([])
 
   ax_K = plt.subplot(3,1,2)
-  ax_K.plot(tt[pkkObs], s.trHK[:len(pkkObs)],'k',lw=2,label='tr(HK)')
-  ax_K.plot(tt[pkkObs], s.skew[:len(pkkObs)],'g',lw=2,label='Skew')
-  ax_K.plot(tt[pkkObs], s.kurt[:len(pkkObs)],'r',lw=2,label='Kurt')
+  ax_K.plot(ttA, trKH,'k',lw=2,label='tr(HK)')
+  ax_K.plot(ttA, skew,'g',lw=2,label='Skew')
+  ax_K.plot(ttA, kurt,'r',lw=2,label='Kurt')
   ax_K.legend()
   ax_K.set_xticklabels([])
 
   ax_e = plt.subplot(3,1,3)
-  ax_e.plot(        tt[pkk], s.rmse[pkk],'k',lw=2 ,label='Error')
-  ax_e.fill_between(tt[pkk], s.rmv [pkk],alpha=0.7,label='Spread') 
-  ylim = np.percentile(s.rmse[pkk],99)
-  ylim = 1.1*max([ylim, max(s.rmv[pkk])])
-  ax_e.set_ylim(0,ylim)
+  ax_e.plot(        tt_, rmse,'k',lw=2 ,label='Error')
+  ax_e.fill_between(tt_, rmv ,alpha=0.7,label='Spread') 
+  ax_e.set_ylim(0, 1.1*max([np.percentile(rmse,99), max(rmv)]) )
   ax_e.set_ylabel('RMS')
-  ax_e.legend()
   ax_e.set_xlabel('time (t)')
+  ax_e.legend()
 
 
   if hov:
@@ -714,8 +766,8 @@ def plot_time_series(stats,dim=0,hov=False,**kwargs):
     fgH = plt.figure(16,figsize=(6,5)).clf()
     set_figpos('3311 mac')
     axH = plt.subplot(111)
-    m = xx.shape[1]
-    plt.contourf(arange(m),tt[pkk],xx[pkk],25)
+    m   = xx.shape[1]
+    plt.contourf(arange(m),tt_,xx,25)
     plt.colorbar()
     axH.set_position([0.125, 0.20, 0.62, 0.70])
     axH.set_title("Hovmoller diagram (of 'Truth')")
@@ -754,65 +806,66 @@ def plot_err_components(stats):
   Note: it was chosen to plot(ii, mean_in_time(abs(err_i))),
         and thus the corresponding spread measure is MAD.
         If one chose instead: plot(ii, std_in_time(err_i)),
-        then the corrensopnding spread measure would have been std.
-        This choice was made in part because (wrt subplot 2)
+        then the corresponding measure of spread would have been std.
+        This choice was made in part because (wrt. subplot 2)
         the singular values (svals) correspond to rotated MADs,
         and because rms(umisf) seems to convoluted for interpretation.
   """
-  s      = stats
-  chrono = stats.setup.t
-  m      = s.xx.shape[1]
-
   fgE = plt.figure(15,figsize=(8,8)).clf()
   set_figpos('1312 mac')
+
+  chrono = stats.setup.t
+  m      = stats.xx.shape[1]
+
+  err   = mean( abs(stats.err  .a) ,0)
+  sprd  = mean(     stats.mad  .a  ,0)
+  umsft = mean( abs(stats.umisf.a) ,0)
+  usprd = mean(     stats.svals.a  ,0)
+
   ax_r = plt.subplot(311)
-  ax_r.set_xlabel('Dimension index (i)')
-  ax_r.set_ylabel('Time-average magnitude')
-  ax_r.plot(arange(m),mean(abs(s.err.a),0),'k',lw=2, label='Error')
-  sprd = mean(s.mad.a,0)
+  ax_r.plot(          arange(m),               err,'k',lw=2, label='Error')
   if m<10**3:
-    ax_r.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
+    ax_r.fill_between(arange(m),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
   else:
-    ax_r.plot(arange(len(sprd)),sprd,alpha=0.7,label='Spread')
-  ax_r.set_title('Element-wise error comparison (_a)')
+    ax_r.plot(        arange(m),              sprd,alpha=0.7,label='Spread')
   #ax_r.set_yscale('log')
+  ax_r.set_title('Element-wise error comparison')
+  ax_r.set_xlabel('Dimension index (i)')
+  ax_r.set_ylabel('Time-average (_a) magnitude')
   ax_r.set_ylim(bottom=mean(sprd)/10)
   ax_r.set_xlim(right=m-1); add_endpoint_xtick(ax_r)
   ax_r.get_xaxis().set_major_locator(MaxNLocator(integer=True))
+  plt.subplots_adjust(hspace=0.55) # OR: [0.125,0.6, 0.78, 0.34]
   ax_r.legend()
-  #ax_r.set_position([0.125,0.6, 0.78, 0.34])
-  plt.subplots_adjust(hspace=0.55)
 
   ax_s = plt.subplot(312)
-  has_been_computed = not all(s.umisf[-1] == 0)
   ax_s.set_xlabel('Principal component index')
-  ax_s.set_ylabel('Time-average magnitude')
-  ax_s.set_title('Spectral error comparison (_a)')
+  ax_s.set_ylabel('Time-average (_a) magnitude')
+  ax_s.set_title('Spectral error comparison')
+  has_been_computed = not all(umsft == 0)
   if has_been_computed:
-    msft = mean(abs(s.umisf.a),0)
-    sprd = mean(s.svals.a,0)
-    ax_s.plot(        arange(len(msft)),              msft,'k',lw=2, label='Error')
-    ax_s.fill_between(arange(len(sprd)),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
+    ax_s.plot(        arange(len(umsft)),               umsft,'k',lw=2, label='Error')
+    ax_s.fill_between(arange(len(usprd)),[0]*len(usprd),usprd,alpha=0.7,label='Spread')
     ax_s.set_yscale('log')
-    ax_s.set_ylim(bottom=1e-4*sum(sprd))
+    ax_s.set_ylim(bottom=1e-4*sum(usprd))
     ax_s.set_xlim(right=m-1); add_endpoint_xtick(ax_s)
     ax_s.get_xaxis().set_major_locator(MaxNLocator(integer=True))
     ax_s.legend()
   else:
     not_available_text(ax_s)
 
-
+  rmse = stats.rmse.a[chrono.maskObs_BI]
   ax_R = plt.subplot(313)
-  ax_R.set_ylabel('Num. of occurence')
+  ax_R.hist(rmse,bins=30,normed=0)
+  ax_R.set_ylabel('Num. of occurence (_a)')
   ax_R.set_xlabel('RMSE')
-  ax_R.set_title('Histogram of RMSE values (_u)')
-  ax_R.hist(s.rmse.u[chrono.kk_BI],bins=30,normed=0)
+  ax_R.set_title('Histogram of RMSE values')
 
 
 def plot_rank_histogram(stats):
   chrono = stats.setup.t
 
-  has_been_computed = hasattr(stats,'rh') and not all(stats.rh[-1]==0)
+  has_been_computed = hasattr(stats,'rh') and not all(stats.rh.a[-1]==0)
 
   def are_uniform(w):
     """Test inital & final weights, not intermediate (for speed)."""
@@ -822,13 +875,13 @@ def plot_rank_histogram(stats):
   set_figpos('3331 mac')
   #
   ax_H = plt.subplot(111)
-  ax_H.set_title('(Average of marginal) rank histogram (_u)')
+  ax_H.set_title('(Average of marginal) rank histogram (_a)')
   ax_H.set_ylabel('Freq. of occurence\n (of truth in interval n)')
   ax_H.set_xlabel('ensemble member index (n)')
   ax_H.set_position([0.125,0.15, 0.78, 0.75])
   if has_been_computed:
-    w     = stats.w.u
-    ranks = stats.rh.u[chrono.kk_BI]
+    w     = stats.w.a [chrono.maskObs_BI]
+    ranks = stats.rh.a[chrono.maskObs_BI]
     m     = ranks.shape[1]
     N     = w.shape[1]
     if are_uniform(w):
@@ -839,7 +892,7 @@ def plot_rank_histogram(stats):
       # Weight ranks by inverse of particle weight. Why? Coz, with correct
       # importance weights, the "expected value" histogram is then flat.
       # Potential improvement: interpolate weights between particles.
-      w  = w[chrono.kk_BI]
+      w  = w
       K  = len(w)
       w  = np.hstack([w, ones((K,1))/N]) # define weights for rank N+1
       w  = array([ w[arange(K),ranks[arange(K),i]] for i in range(m)])
@@ -850,6 +903,7 @@ def plot_rank_histogram(stats):
   else:
     not_available_text(ax_H)
   
+
 def show_figs(fignums=None):
   """Move all fig windows to top"""
   if fignums == None:
