@@ -10,7 +10,7 @@ def auto_cov(xx,L=5):
       raise ValueError('L (=len(ACF)) must be <= len(xx)')
     mu = mean(xx)
     acovf = array([
-      sum((xx[:N-i]-mu)*(xx[i:]-mu))/(N-1-i)
+      np.sum((xx[:N-i]-mu)*(xx[i:]-mu))/(N-1-i)
       for i in range(L)])
     return acovf
 
@@ -23,7 +23,7 @@ def auto_cov_periodic(xx,L=5):
     N = len(xx)
     mu = mean(xx)
     acovf = array([
-      sum(np.roll(xx-mu,i)*(xx-mu))/(N-1)
+      np.sum(np.roll(xx-mu,i)*(xx-mu))/(N-1)
       for i in range(L)])
     return acovf
 
@@ -118,6 +118,9 @@ class Fseries:
     - forecast   (.f, len: KObs+1)
     - analysis   (.a, len: KObs+1)
     - universial (.u, len: K+1)
+       - also contains time instances where there are no obs.
+         These intermediates are nice for plotting.
+       - may also be hijacked to store "smoothed" values.
   When writing .u,
     - if not store_u: only the current value is stored 
     - if kObs!=None : also .a is written to.
@@ -143,12 +146,13 @@ class Fseries:
       self.tmp   = None
       self.k_tmp = None
   
-  @staticmethod
-  def validate_key(key):
+  def validate_key(self,key):
     try:
       assert isinstance(key,tuple)
       k,kObs,fa = key
       assert fa in ['f','a','u']
+      if kObs is not None and k != self.chrono.kkObs[kObs]:
+        raise KeyError("kObs indicated, but k!=kkObs[kObs]")
     except (AssertionError,ValueError):
       key = (key,None,'u')
     return key
@@ -175,9 +179,7 @@ class Fseries:
     if fa == 'f':
       self.f[kObs]   = item
     elif fa == 'a':  
-      raise KeyError("Write to .a only through .u")
-      # Or is it safe to allow?
-      #self.a[kObs]   = item
+      self.a[kObs]   = item
     else:
       if self.store_u:
         self.u[k]    = item

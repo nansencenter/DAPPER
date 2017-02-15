@@ -4,7 +4,7 @@ from common import *
 
 def is1d(a):
   """ Works for list and row/column arrays and matrices"""
-  return sum(asarray(asarray(a).shape) > 1) <= 1
+  return np.sum(asarray(asarray(a).shape) > 1) <= 1
 
 def tp(a):
   """Tranpose 1d vector"""
@@ -223,13 +223,13 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
   if isinstance(threshold,float):
     assert threshold <= 1.0
     if threshold < 1.0:
-      r = sum(np.cumsum(s)/sum(s) < threshold)
+      r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
       r += 1 # Hence the strict inequality above
       if avoid_pathological:
         # If not avoid_pathological, then the last 4 diag. entries of
         # reconst( *tsvd(eye(400),0.99) )
         # will be zero. This is probably not intended.
-        r += sum(np.isclose(s[r-1], s[r:]))
+        r += np.sum(np.isclose(s[r-1], s[r:]))
     else:
       r = len(s)
 

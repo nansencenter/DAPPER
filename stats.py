@@ -97,7 +97,7 @@ class Stats:
     if np.isscalar(w):
       assert w  != 0
       w          = w*ones(N)
-    assert(abs(sum(w)-1) < 1e-5)
+    assert(abs(w.sum()-1) < 1e-5)
     assert np.all(np.isfinite(E))
     assert np.all(np.isreal(E))
 
@@ -166,9 +166,9 @@ class Stats:
   def MGLS(self,k):
     # Marginal Gaussian Log Score.
     m              = len(self.err[k])
-    ldet           = sum(log(self.var[k]))
+    ldet           = log(self.var[k]).sum()
     nmisf          = self.var[k]**(-1/2) * self.err[k]
-    logp_m         = sum(nmisf**2) + ldet
+    logp_m         = (nmisf**2).sum() + ldet
     self.logp_m[k] = logp_m/m
 
 
@@ -244,7 +244,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   else:                  headr = list(attrkeys)
 
   # Filter excld
-  excld = ['liveplotting']
+  excld = ['liveplotting','store_u']
   headr = [x for x in headr if x not in excld]
   
   # Get attribute values

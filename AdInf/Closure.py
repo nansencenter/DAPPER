@@ -27,16 +27,16 @@ MC2 = fun(MC)
 m1 = mean(E2)
 A  = E2 - m1
 print('m1: ', m1)
-print('m2: ', sum(A**2,0)/2)
-print('m3: ', sum(A**3,0)/2)
+print('m2: ', np.sum(A**2,0)/2)
+print('m3: ', np.sum(A**3,0)/2)
 
 print()
 
 m1 = mean(MC2)
 A  = MC2 - m1
 print('m1: ', m1)
-print('m2: ', sum(A**2,0)/(N-1))
-print('m3: ', sum(A**3,0)/(N-1))
+print('m2: ', np.sum(A**2,0)/(N-1))
+print('m3: ', np.sum(A**3,0)/(N-1))
 
 
 
@@ -57,14 +57,14 @@ print('m3: ', sum(A**3,0)/(N-1))
 #    N  = len(E)
 #    m1 = mean(E)
 #    A  = E - m1
-#    m2 = sum(A**2,0)/(N-1)
-#    m3 = sum(A**3,0)/(N-1)
+#    m2 = np.sum(A**2,0)/(N-1)
+#    m3 = np.sum(A**3,0)/(N-1)
 #  
 #    Ef  = fun(E)
 #    mf1 = mean(Ef)
 #    #Af  = Ef - mf1
-#    #mf2 = sum(Af**2,0)/(N-1)
-#    #mf3 = sum(Af**3,0)/(N-1)
+#    #mf2 = np.sum(Af**2,0)/(N-1)
+#    #mf3 = np.sum(Af**3,0)/(N-1)
 #  
 #    # Just including a single nonlin constraints => fail to converge
 #    return array([m1, m2-1.0, m3, mf1-5.0])

@@ -52,6 +52,7 @@ def EnKF_tp(setup,config,xx,yy):
     E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E)
       hE = h.model(E,t)
       y  = yy[kObs]
 
@@ -113,6 +114,8 @@ def EnKS(setup,config,xx,yy):
     E[k] = add_noise(E[k], dt, f.noise, config)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E[k])
+
       kLag     = find_1st_ind(chrono.tt >= t-config.tLag)
       kkLag    = range(kLag, k+1)
       ELag     = E[kkLag]
@@ -124,11 +127,10 @@ def EnKS(setup,config,xx,yy):
       ELag     = EnKF_analysis(ELag,hE,h.noise,y,config.upd_a,stats.at(kObs))
       E[kkLag] = reshape_fr(ELag,f.m)
       post_process(E[k],config)
+      stats.assess(k,kObs,'a',E=E[k])
 
-  # TODO: Review what happened to stats series with new system
-  config.liveplotting = False
   for k in progbar(range(chrono.K+1),desc='Assessing'):
-    stats.assess(k,E=E[k])
+    stats.assess(k,None,'u',E=E[k])
 
   return stats
 
@@ -173,7 +175,6 @@ def EnRTS(setup,config,xx,yy):
     
     E[k] += ( E[k+1] - Ef[k+1] ) @ J
 
-  config.liveplotting = False
   for k in progbar(range(chrono.K+1),desc='Assessing'):
     stats.assess(k,E=E[k])
   return stats
@@ -218,8 +219,8 @@ def add_noise(E, dt, noise, config):
   elif method == 'none':
     pass
   elif method == 'Mult-1':
-    varE   = sum(np.var(E,axis=0,ddof=1))
-    ratio  = (varE + sum(dt*diag(Q)))/varE
+    varE   = np.var(E,axis=0,ddof=1).sum()
+    ratio  = (varE + dt*diag(Q).sum())/varE
     E      = mu + sqrt(ratio)*A
     E      = reconst(*tsvd(E,0.999)) # Explained in Datum
   elif method == 'Mult-m':
@@ -294,7 +295,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
           d     = pad0(s**2,N) + (N-1)
           Pw    = ( V * d**(-1.0) ) @ V.T
           T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
-          trHK  = sum( (s**2+(N-1))**(-1.0) * s**2 ) # see docs/trHK.jpg
+          trHK  = np.sum( (s**2+(N-1))**(-1.0) * s**2 ) # see docs/trHK.jpg
         elif 'sS' in upd_a:
           # Same as 'svd', but with slightly different notation
           # (sometimes used by Sakov) using the normalization sqrt(N-1).
@@ -304,7 +305,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
           d     = pad0(s**2,N) + 1
           Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
           T     = ( V * d**(-0.5) )@V.T
-          trHK  = sum(  (s**2 + 1)**(-1.0)*s**2 ) # see docs/trHK.jpg
+          trHK  = np.sum(  (s**2 + 1)**(-1.0)*s**2 ) # see docs/trHK.jpg
         else: # 'eig' in upd_a:
           # Implementation using eig. val. decomp.
           d,V   = eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
@@ -360,7 +361,7 @@ def serial_inds(upd_a, y, cvR, A):
     dC = diag(cvR.C)
     if np.all(dC == dC[0]):
       # Sort y by P
-      dC = sum(A*A,0)/(N-1)
+      dC = np.sum(A*A,0)/(N-1)
     inds = np.argsort(dC)
   else: # Default: random ordering
     inds = np.random.permutation(len(y))
@@ -394,6 +395,7 @@ def SL_EAKF(setup,config,xx,yy):
     E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E)
       y    = yy[kObs]
       AMet = getattr(config,'upd_a','default')
       inds = serial_inds(AMet, y, R, anom(E)[0])
@@ -423,12 +425,12 @@ def SL_EAKF(setup,config,xx,yy):
         # Localize
         local, coeffs = locf_at(j)
         if len(local) == 0: continue
-        Regression    = (A[:,local]*coeffs).T @ Yj/sum(Yj**2)
+        Regression    = (A[:,local]*coeffs).T @ Yj/np.sum(Yj**2)
         mu[ local]   += Regression*dy2
         A[:,local]   += np.outer(Y2 - Yj, Regression)
 
         # Without localization:
-        #Regression = A.T @ Yj/sum(Yj**2)
+        #Regression = A.T @ Yj/np.sum(Yj**2)
         #mu        += Regression*dy2
         #A         += np.outer(Y2 - Yj, Regression)
 
@@ -436,7 +438,7 @@ def SL_EAKF(setup,config,xx,yy):
 
       post_process(E,config)
 
-    stats.assess(k,E=E,kObs=kObs)
+    stats.assess(k,kObs,E=E)
   return stats
 
 
@@ -461,6 +463,7 @@ def LETKF(setup,config,xx,yy):
     E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E)
       mu = mean(E,0)
       A  = E - mu
 
@@ -513,11 +516,11 @@ def LETKF(setup,config,xx,yy):
       post_process(E,config)
 
       if 'sd' in locals():
-        stats.trHK[kObs] = sum(d**(-1.0) * sd**2)/h.noise.m
+        stats.trHK[kObs] = (d**(-1.0) * sd**2).sum()/h.noise.m
       #else:
         # nevermind
 
-    stats.assess(k,E=E,kObs=kObs)
+    stats.assess(k,kObs,E=E)
   return stats
 
 
@@ -555,6 +558,7 @@ def EnKF_N(setup,config,xx,yy):
     E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E)
       hE = h.model(E,t)
       y  = yy[kObs]
 
@@ -570,7 +574,7 @@ def EnKF_N(setup,config,xx,yy):
       # Find inflation factor.
       du   = U_T @ (Rm12 @ dy)
       d    = lambda l: pad0( (l*s)**2, h.m ) + (N-1)
-      PR   = sum(s**2)/(N-1)
+      PR   = (s**2).sum()/(N-1)
       fctr = sqrt(mode**(1/(1+PR)))
       J    = lambda l: (du/d(l)) @ du \
              + (1/fctr)*eN/l**2 + fctr*clog*log(l**2)
@@ -603,7 +607,7 @@ def EnKF_N(setup,config,xx,yy):
       E = mu + w@A + T@A
       post_process(E,config)
 
-      stats.trHK[kObs] = sum(((l1*s)**2 + (N-1))**(-1.0)*s**2)/h.noise.m
+      stats.trHK[kObs] = (((l1*s)**2 + (N-1))**(-1.0)*s**2).sum()/h.noise.m
 
     stats.assess(k,kObs,E=E)
   return stats
@@ -636,9 +640,11 @@ def iEnKF(setup,config,xx,yy):
     T      = eye(N)
     for iteration in range(config.iMax):
       E = xb0 + w @ A0 + T @ A0
-      for t,k,dt in chrono.DAW_range(kObs):
+      for k,t,dt in chrono.DAW_range(kObs):
         E = f.model(E,t-dt,dt)
         E = add_noise(E, dt, f.noise, config)
+      if iteration==0:
+        stats.assess(k,kObs,'f',E=E)
   
       hE = h.model(E,t)
       hx = mean(hE,0)
@@ -662,8 +668,9 @@ def iEnKF(setup,config,xx,yy):
     for k,t,dt in chrono.DAW_range(kObs):
       E = f.model(E,t-dt,dt)
       E = add_noise(E, dt, f.noise, config)
-      stats.assess(k,E=E)
-      
+      stats.assess(k,None,'u',E=E)
+    stats.assess(k,kObs,'a',E=E)
+
     # TODO: It would be beneficial to do another (prior-regularized)
     # analysis at the end, after forecasting the E0 analysis.
   return stats
@@ -726,6 +733,8 @@ def PartFilt(setup,config,xx,yy):
     E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E,w=w)
+
       hE = h.model(E,t)
       y  = yy[kObs]
       innovs = hE - y
@@ -734,11 +743,11 @@ def PartFilt(setup,config,xx,yy):
       # But, ∃ at least 2 reasons to work in "log space".
       # - Normalization: will fail if sum==0 (if all innov's are large).
       # - Num. precision: lklhd*w should have better prec in log space.
-      logL   = -0.5 * sum(innovs**2, axis=1)
+      logL   = -0.5 * np.sum(innovs**2, axis=1)
       logL  -= logL.max()    # Avoid numerical error
       logw   = log(w) + logL # Bayes' rule
       w      = exp(logw)
-      w     /= sum(w)
+      w     /= w.sum()
 
       # Assess stats immediately after Bayes.
       stats.assess(k,kObs,E=E,w=w)
@@ -746,7 +755,7 @@ def PartFilt(setup,config,xx,yy):
       # Resample w==0 particles (does not create bias)
       if getattr(config,'w0_res',False):
         inds0 = w==0
-        N0    = sum(inds0)
+        N0    = inds0.sum()
         if N0>0:
           inds1     = np.logical_not(inds0)
           E[inds0]  = resample(E[inds1], w[inds1], N0, f.noise)
@@ -796,6 +805,8 @@ def PF_EnKF(setup,config,xx,yy):
     E  = f.model(E,t-dt,dt)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E,w=w)
+
       E0 = E.copy()
       hE0= h.model(E0,t)
       DX = infl_q * sqrt(chrono.dtObs)*f.noise.sample(N)
@@ -834,14 +845,14 @@ def PF_EnKF(setup,config,xx,yy):
       lnd = (y - h.model(E,t)) @ Rm12T
 
       # New weights
-      nrm2 = lambda w: sum(w**2, axis=1)
+      nrm2 = lambda w: np.sum(w**2, axis=1)
       w = -2*log(w) + nrm2(lnd) + nrm2(pnd) - nrm2(qnd)
       w = w - w.min() - 10 # Should calibrate via realmax/min
       w = np.exp(-0.5*w)
-      w = w/sum(w)
+      w = w/np.sum(w)
 
       N_eff = 1/(w@w)
-      N_res = sum(stats.did_resample)
+      N_res = np.sum(stats.did_resample)
       
       stats.at(kObs)(N_eff=N_eff)
       # Resample
@@ -857,14 +868,6 @@ def PF_EnKF(setup,config,xx,yy):
 
 
 
-def GGM(setup,config,xx,yy):
-  """
-  "Global Gaussian Mixture".
-  EnKF analysis proposal: q.
-  But instead of weighting by ratio lklhd*(prior/q),
-  it weights prior/prior, assuming lklhd taken care of.
-  """
-
 
 def resample(E,w,N,noise, \
     do_mu_corr=False,do_var_corr=False,kind='Multinomial'):
@@ -875,7 +878,7 @@ def resample(E,w,N,noise, \
   Note: anomalies (and thus cov) are weighted,
   and also computed based on a weighted mean.
   """
-  assert(abs(sum(w)-1) < 1e-5)
+  assert(abs(w.sum()-1) < 1e-5)
 
   N_b,m = E.shape
 
@@ -909,8 +912,8 @@ def resample(E,w,N,noise, \
   if do_mu_corr:
     mu_a = mu_b
   if do_var_corr:
-    var_b = sum(ss_b**2)/m
-    var_a = sum(A_a**2) /(N*m)
+    var_b = (ss_b**2).sum()/m
+    var_a = (A_a**2) .sum()/(N*m)
     A_a  *= sqrt(var_b/var_a)
   E = mu_a + A_a
     
@@ -924,7 +927,7 @@ def EnCheat(setup,config,xx,yy):
   Ensemble method that cheats: it knows the truth.
   Nevertheless, its error will not be 0, because the truth may be outside of the ensemble subspace.
   This method is just to provide a baseline for comparison with other methods.
-  It may very well beat the particle filter with N=infty.
+  It may very well beat the particle filter with N=infinty.
   NB: The forecasts (and their rmse) are given by the standard EnKF.
   """
 
@@ -938,6 +941,8 @@ def EnCheat(setup,config,xx,yy):
     E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',mu=opt,Cov=res)
+
       # Regular EnKF analysis
       hE = h.model(E,t)
       y  = yy[kObs]
@@ -971,8 +976,8 @@ def Climatology(setup,config,xx,yy):
   P0    = spCovMat(A=A0)
 
   stats = Stats(setup,config,xx,yy).assess(0,mu=mu0,Cov=P0.C)
-  for k,_,_,_ in progbar(chrono.forecast_range):
-    stats.assess(k,mu=mu0,Cov=P0.C)
+  for k,kObs,_,_ in progbar(chrono.forecast_range):
+    stats.assess(k,kObs,mu=mu0,Cov=P0.C)
   return stats
 
 def D3Var(setup,config,xx,yy):
@@ -1031,6 +1036,8 @@ def D3Var(setup,config,xx,yy):
     mu = f.model(mu,t-dt,dt)
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',mu=mu0,Cov=P0)
+
       r = 0
       y = yy[kObs]
       if not pre_computed_KG:
@@ -1090,6 +1097,7 @@ def ExtKF(setup,config,xx,yy):
     P  = infl**(dt)*(F@P@F.T) + dt*Q
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',mu=mu,Cov=P)
       H  = h.jacob(mu,t)
       KG = mrdiv(P @ H.T, H@P@H.T + R)
       y  = yy[kObs]

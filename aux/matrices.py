@@ -188,7 +188,7 @@ class spCovMat():
 
     rk = (d > 1e-13*mean(d)).sum()
     if trunc < 1:
-      rk = 1 + find_1st_ind(np.cumsum(d)>=trunc*sum(d))
+      rk = 1 + find_1st_ind(np.cumsum(d)>=trunc*d.sum())
 
     self._U      = U[:,:rk]
     self._d      = d[  :rk]

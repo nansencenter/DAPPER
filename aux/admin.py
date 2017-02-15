@@ -177,6 +177,7 @@ class DAC_list(list):
   def __repr__(self):
     distinct = self.distinct_attrs
     distinct.pop('liveplotting',None)
+    distinct.pop('store_u',None)
     if len(self):
       headr = distinct.keys()
       mattr = distinct.values()

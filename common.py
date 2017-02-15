@@ -26,12 +26,12 @@ from numpy.linalg import eig
 from scipy.linalg import sqrtm, inv, eigh
 
 from numpy import \
-    sqrt, floor, ceil, \
     pi, log, log10, exp, sin, cos, tan, \
-    sum, mean, prod, \
+    sqrt, floor, ceil, \
+    mean, prod, \
     array, asarray, asmatrix, \
     linspace, arange, reshape, \
-    eye, zeros, ones, diag, trace
+    eye, zeros, ones, diag, trace \
 
 
 ##################################

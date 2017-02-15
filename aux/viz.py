@@ -440,7 +440,7 @@ class LivePlot:
       wmax     = w.max()
       bins     = exp(linspace(log(1e-5/N), log(1), int(N/20)))
       counted  = w>bins[0]
-      nC       = sum(counted)
+      nC       = np.sum(counted)
       nn,_,pp  = axh.hist(w[counted],bins=bins,color='b')
       self.hst = pp
       #thresh   = '#(w<$10^{'+ str(int(log10(bins[0]*N))) + '}/N$ )'
@@ -847,7 +847,7 @@ def plot_err_components(stats):
     ax_s.plot(        arange(len(umsft)),               umsft,'k',lw=2, label='Error')
     ax_s.fill_between(arange(len(usprd)),[0]*len(usprd),usprd,alpha=0.7,label='Spread')
     ax_s.set_yscale('log')
-    ax_s.set_ylim(bottom=1e-4*sum(usprd))
+    ax_s.set_ylim(bottom=1e-4*usprd.sum())
     ax_s.set_xlim(right=m-1); add_endpoint_xtick(ax_s)
     ax_s.get_xaxis().set_major_locator(MaxNLocator(integer=True))
     ax_s.legend()
