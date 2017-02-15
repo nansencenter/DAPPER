@@ -20,7 +20,7 @@ def unravel(inds, shape, order='C'):
 
   IJ = asarray(np.unravel_index(inds, shape, order=order))
 
-  for i,dim in enumerate(IJ): assert max(dim) < shape[i]
+  for i,dim in enumerate(IJ): assert dim.max() < shape[i]
   return IJ
 
 

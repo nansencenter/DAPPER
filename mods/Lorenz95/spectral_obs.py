@@ -107,7 +107,7 @@ H = make_H(p,m)
   #return lh
 
 # "implicit" (interpolated sine/cosine) obs plotting
-Hplot = make_H(p,max([p,201]))
+Hplot = make_H(p,max(p,201))
 Hplot_inv = Hplot.T
 def yplot(y):
   x = y @ Hplot_inv.T

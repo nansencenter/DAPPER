@@ -113,7 +113,7 @@ class LivePlot:
       trfm = colors.SymLogNorm(linthresh=0.2,linscale=0.2,vmin=-1, vmax=1)
       cmap = cmap(trfm(linspace(-1,1,cmap.N)))
       cmap = colors.ListedColormap(cmap)
-      #VM  = max(abs(np.percentile(C2,[1,99])))
+      #VM  = abs(np.percentile(C2,[1,99])).max()
       VM   = 1.0
       mesh = axC.pcolormesh(C2,cmap=cmap,vmin=-VM,vmax=VM)
       axC.figure.colorbar(mesh,cax=cax,orientation='horizontal')
@@ -205,7 +205,7 @@ class LivePlot:
     ax3      = self.fg3.add_subplot(111,projection='3d')
     self.ax3 = ax3
 
-    tail_k = max([2,int(1/dt)])
+    tail_k = max(2,int(1/dt))
     
     if E is not None and len(E)<1001:
       # Ensemble
@@ -591,8 +591,8 @@ def update_ylim(data,ax,Min=None,Max=None,do_narrow=False):
   minv *= -1
   # Allow making limits more narrow?
   if not do_narrow:
-    minv = min([minv,current[0]])
-    maxv = max([maxv,current[1]])
+    minv = min(minv,current[0])
+    maxv = max(maxv,current[1])
   # Overrides
   if Max is not None: maxv = Max
   if Min is not None: minv = Min
@@ -603,8 +603,8 @@ def update_ylim(data,ax,Min=None,Max=None,do_narrow=False):
 
 def set_ilim(ax,i,data,zoom=1.0):
   """Set bounds (taken from data) on axis i.""" 
-  Min  = min(data[:,i])
-  Max  = max(data[:,i])
+  Min  = data[:,i].min()
+  Max  = data[:,i].max()
   lims = round2sigfig([Min, Max])
   lims = inflate_ens(lims,1/zoom)
   if i is 0: ax.set_xlim(lims)
@@ -633,7 +633,7 @@ def estimate_good_plot_length(xx,chrono,mult):
     K = mult * estimate_corr_length(xx)
   except ValueError:
     K = 0
-  K = int(min([max([K,t.dkObs]),t.K]))
+  K = int(min(max(K, t.dkObs), t.K))
   T = round2sigfig(t.tt[K],2) # Could return T; T>tt[-1]
   K = find_1st_ind(t.tt >= T)
   if K: return K
@@ -648,7 +648,7 @@ def get_plot_inds(chrono,xx,mult,K=None,T=None):
   """
   t = chrono
   if K is None:
-    if T: K = find_1st_ind(t.tt >= min((T,t.T)))
+    if T: K = find_1st_ind(t.tt >= min(T,t.T))
     else: K = estimate_good_plot_length(xx,t,mult)
   plot_kk    = t.kk[:K+1]
   plot_kkObs = t.kkObs[t.kkObs<=K]
@@ -754,7 +754,7 @@ def plot_time_series(stats,dim=0,hov=False,**kwargs):
   ax_e = plt.subplot(3,1,3)
   ax_e.plot(        tt_, rmse,'k',lw=2 ,label='Error')
   ax_e.fill_between(tt_, rmv ,alpha=0.7,label='Spread') 
-  ax_e.set_ylim(0, 1.1*max([np.percentile(rmse,99), max(rmv)]) )
+  ax_e.set_ylim(0, 1.1*max(np.percentile(rmse,99), rmv.max()) )
   ax_e.set_ylabel('RMS')
   ax_e.set_xlabel('time (t)')
   ax_e.legend()

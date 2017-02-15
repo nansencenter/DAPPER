@@ -836,7 +836,7 @@ def PF_EnKF(setup,config,xx,yy):
       # New weights
       nrm2 = lambda w: sum(w**2, axis=1)
       w = -2*log(w) + nrm2(lnd) + nrm2(pnd) - nrm2(qnd)
-      w = w - min(w) - 10 # Should calibrate via realmax/min
+      w = w - w.min() - 10 # Should calibrate via realmax/min
       w = np.exp(-0.5*w)
       w = w/sum(w)
 

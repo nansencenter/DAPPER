@@ -37,9 +37,7 @@ class Stats:
     if hasattr(config,'N'):
       # Ensemble-only init
       N    = config.N
-      # NB: necessary coz isinstance(np.int64,int) fails.
-      # TODO: remove np.min from common.
-      m_Nm = int(np.minimum(m,N))
+      m_Nm = min(m,N)
       self.w  = fs(N)     # Likelihood weights
       self.rh = fs(m,dtype=int) # Rank histogram
       #self.N  = N        # Use w.shape[1] instead

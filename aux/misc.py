@@ -211,8 +211,8 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
   if isinstance(threshold,int):
     assert threshold >= 1
     r = threshold
-    assert r <= max((m,n))
-    if r > min((m,n)):
+    assert r <= max(m,n)
+    if r > min(m,n):
       full_matrices = True
     avoid_pathological = False
 

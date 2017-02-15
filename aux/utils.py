@@ -103,9 +103,9 @@ termcolors={
     'underline' : '\033[4m' ,
 }
 
-def print_c(*kargs,color='blue'):
+def print_c(*kargs,color='blue',**kwargs):
   s = ' '.join([str(k) for k in kargs])
-  print(termcolors[color] + s + termcolors['ENDC'])
+  print(termcolors[color] + s + termcolors['ENDC'],**kwargs)
 
 
 # Local np.set_printoptions. stackoverflow.com/a/2891805/38281
