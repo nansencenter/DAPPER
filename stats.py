@@ -54,33 +54,57 @@ class Stats:
     # may also be initialized throug at().
     
 
-  def assess(self,k,kObs=None,f_or_a='u',
+  def assess(self,k,kObs=None,f_a_u=None,
       E=None,w=None,mu=None,Cov=None):
-    """Wrapper for assess_ens/ext and liveplotting."""
+    """
+    Common interface for both assess_ens and _ext.
+    f_a_u: One or more of ['f',' a', 'u'], indicating
+           that the result should be stored in (respectively)
+           the forecast/analysis/universal attribute.
+           Defaults: see source code.
+    If 'u' in f_a_u: call/update LivePlot.
+    """
+
+    if k==0: assert kObs is None,\
+        "Should not have any obs at initial time."+\
+        "This very easily yields bugs, and not 'DA convention'."
+
+    # Defaults for f_a_u
+    if f_a_u is None:
+      if kObs is None:
+        f_a_u = 'u'
+      else:
+        f_a_u = 'au'
+    elif f_a_u == 'fau':
+      if kObs is None:
+        f_a_u = 'u'
 
     LP      = getattr(self.config,'liveplotting',False)
     store_u = getattr(self.config,'store_u'     ,False)
 
-    if LP or store_u or kObs!=None:
-
+    if not (LP or store_u) and kObs==None:
+      pass # Skip assessment
+    else:
       if E is not None:
         # Ensemble assessment
-        comp  = self.assess_ens
-        parm  = {'E':E,'w':w}
+        ens_or_ext = self.assess_ens
+        parameters = {'E':E,'w':w}
       else:
         # Linear-Gaussian assessment
         assert mu is not None
-        comp = self.assess_ext
-        parm = {'mu':mu,'P':Cov}
+        ens_or_ext = self.assess_ext
+        parameters = {'mu':mu,'P':Cov}
 
-      key = (k,kObs,f_or_a)
-      comp(key,**parm)
+      # Compute
+      key = (k,kObs,f_a_u)
+      ens_or_ext(key,**parameters)
 
+      # LivePlot
       if LP:
         if k==0:
-          self.lplot = LivePlot(self,**parm)
-        elif f_or_a=='u':
-          self.lplot.update(k,kObs,**parm)
+          self.lplot = LivePlot(self,**parameters)
+        elif 'u' in f_a_u:
+          self.lplot.update(k,kObs,**parameters)
 
     # Return self for daisy-chaining
     return self 
@@ -139,8 +163,8 @@ class Stats:
     """Kalman filter (Gaussian) assessment."""
     assert np.all(np.isfinite(mu)) and np.all(np.isfinite(P))
     assert np.all(np.isreal(mu))   and np.all(np.isreal(P))
-    m           = len(mu)
 
+    m = len(mu)
     x = self.xx[k[0]]
 
     self.mu[k]  = mu
@@ -236,7 +260,8 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
 
   # Defaults averages
   if not statkeys:
-    statkeys = ['rmse_a','rmv_a','logp_m_a']
+    #statkeys = ['rmse_a','rmv_a','logp_m_a']
+    statkeys = ['rmse_f','rmse_a','rmv_a']
 
   # Defaults attributes
   if not attrkeys:       headr = list(cfgs.distinct_attrs)

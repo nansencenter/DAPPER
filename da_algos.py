@@ -160,10 +160,12 @@ def EnRTS(setup,config,xx,yy):
     Ef[k] = E[k]
 
     if kObs is not None:
+      stats.assess(k,kObs,'f',E=E[k])
       hE   = h.model(E[k],t)
       y    = yy[kObs]
       E[k] = EnKF_analysis(E[k],hE,h.noise,y,config.upd_a,stats.at(kObs))
       post_process(E[k],config)
+      stats.assess(k,kObs,'a',E=E[k])
 
   # Backward pass
   for k in progbar(range(chrono.K)[::-1]):
@@ -669,7 +671,7 @@ def iEnKF(setup,config,xx,yy):
       E = f.model(E,t-dt,dt)
       E = add_noise(E, dt, f.noise, config)
       stats.assess(k,None,'u',E=E)
-    stats.assess(k,kObs,'a',E=E)
+    stats.assess(k,kObs,E=E)
 
     # TODO: It would be beneficial to do another (prior-regularized)
     # analysis at the end, after forecasting the E0 analysis.
@@ -977,7 +979,7 @@ def Climatology(setup,config,xx,yy):
 
   stats = Stats(setup,config,xx,yy).assess(0,mu=mu0,Cov=P0.C)
   for k,kObs,_,_ in progbar(chrono.forecast_range):
-    stats.assess(k,kObs,mu=mu0,Cov=P0.C)
+    stats.assess(k,kObs,'fau',mu=mu0,Cov=P0.C)
   return stats
 
 def D3Var(setup,config,xx,yy):

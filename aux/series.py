@@ -115,19 +115,23 @@ class Fseries:
   Container for time series of a statistic from filtering.
   Data is indexed with key (k,kObs,f_a_u) or simply k.
   The accessing then categorizes the result as
-    - forecast   (.f, len: KObs+1)
-    - analysis   (.a, len: KObs+1)
-    - universial (.u, len: K+1)
-       - also contains time instances where there are no obs.
-         These intermediates are nice for plotting.
-       - may also be hijacked to store "smoothed" values.
-  When writing .u,
-    - if not store_u: only the current value is stored 
-    - if kObs!=None : also .a is written to.
-  Data may also be accessed through raw attributes
-    - .a, .f, .u.
+   - forecast   (.f, len: KObs+1)
+   - analysis   (.a, len: KObs+1)
+   - universial (.u, len: K+1)
+     - also contains time instances where there are no obs.
+       These intermediates are nice for plotting.
+     - may also be hijacked to store "smoothed" values.
+  Data may also be accessed through raw attributes [.a, .f, .u].
   """
+
   def __init__(self,chrono,m,store_u=True,**kwargs):
+    """
+    Constructor.
+     - chrono  : a Chronology object.
+     - m       : len (or shape) of items in series. 
+     - store_u : if False: only the current value is stored.
+     - kwargs  : passed on to ndarrays.
+    """
 
     self.store_u = store_u
     self.chrono  = chrono
@@ -148,20 +152,48 @@ class Fseries:
   
   def validate_key(self,key):
     try:
-      assert isinstance(key,tuple)
-      k,kObs,fa = key
-      assert fa in ['f','a','u']
-      if kObs is not None and k != self.chrono.kkObs[kObs]:
+      # Assume key = (k,kObs,fau)
+      if not isinstance(key,tuple):                    raise ValueError
+      k,kObs,fau = key                      #Will also raise ValueError
+      if not isinstance(fau,str):                      raise ValueError
+      if not all([letter in 'fau' for letter in fau]): raise ValueError
+      #
+      if kObs is None:
+        for ltr in 'af':
+          if ltr in fau:
+            raise KeyError("Accessing ."+ltr+" series, but kObs is None.")
+      elif k != self.chrono.kkObs[kObs]:
         raise KeyError("kObs indicated, but k!=kkObs[kObs]")
-    except (AssertionError,ValueError):
+    except ValueError:
+      # Assume key = k
       key = (key,None,'u')
     return key
 
+  def __setitem__(self,key,item):
+    k,kObs,fau = self.validate_key(key)
+    if 'f' in fau:
+      self.f[kObs]   = item
+    if 'a' in fau:
+      self.a[kObs]   = item
+    if 'u' in fau:
+      if self.store_u:
+        self.u[k]    = item
+      else:
+        self.k_tmp   = k
+        self.tmp     = item
+
   def __getitem__(self,key):
-    k,kObs,fa = self.validate_key(key)
-    if fa == 'f':
+    k,kObs,fau = self.validate_key(key)
+
+    # Check consistency. NB: Somewhat time-consuming.
+    for sub in fau[1:]:
+      assert np.all(self[k,kObs,sub] == self[k,kObs,fau[0]]),\
+        "Requested item from multiple ('."+fau+"') series, " +\
+        "But the items are not equal."
+
+    if 'f' in fau:
       return self.f[kObs]
-    elif fa == 'a':
+    elif 'a' in fau:
       return self.a[kObs]
     else:
       if self.store_u:
@@ -174,22 +206,6 @@ class Fseries:
           raise KeyError(msg)
         return self.tmp
 
-  def __setitem__(self,key,item):
-    k,kObs,fa = self.validate_key(key)
-    if fa == 'f':
-      self.f[kObs]   = item
-    elif fa == 'a':  
-      self.a[kObs]   = item
-    else:
-      if self.store_u:
-        self.u[k]    = item
-      else:
-        self.k_tmp   = k
-        self.tmp     = item
-      if kObs!=None:
-        # Also set .a
-        self.a[kObs] = item
-
   def average(self):
     """
     Avarage series,
@@ -199,7 +215,7 @@ class Fseries:
       raise NotImplementedError
     avrg = {}
     t = self.chrono
-    for sub in ['a','f','u']:
+    for sub in 'afu':
       if sub=='u':
         inds = t.kk_BI
       else:
@@ -219,7 +235,7 @@ class Fseries:
     if self.store_u:
       s.append(self.u.__str__())
     else:
-      s.append("Not stored")
+      s.append("store_u == False")
     return '\n'.join(s)
 
 
