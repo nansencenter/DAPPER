@@ -168,9 +168,9 @@ class Stats:
     self.derivative_stats(k,x)
 
     if m <= Stats.comp_threshold_3:
-      s2,U                = nla.eigh(P)
-      self.svals[k][::-1] = sqrt(np.maximum(s2,0.0))
-      self.umisf[k][::-1] = U.T @ self.err[k]
+      s2,U          = nla.eigh(P)
+      self.svals[k] = sqrt(np.maximum(s2,0.0))[::-1]
+      self.umisf[k] = (U.T @ self.err[k])[::-1]
 
 
   def derivative_stats(self,k,x):
@@ -234,7 +234,7 @@ class Stats:
   #   "Convenience array constructor."
   #   t = self.setup.t
   #   # Convert int-len to shape-tuple
-  #   if isinstance(m,int):
+  #   if is_int(m):
   #     if m==1: m = ()
   #     else:    m = (m,)
   #   # Set length
@@ -281,7 +281,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   # Defaults averages
   if not statkeys:
     #statkeys = ['rmse_a','rmv_a','logp_m_a']
-    statkeys = ['rmse_f','rmse_a','rmv_a']
+    statkeys = ['rmse_a','rmv_a','rmse_f']
 
   # Defaults attributes
   if not attrkeys:       headr = list(cfgs.distinct_attrs)

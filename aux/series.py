@@ -138,7 +138,7 @@ class Fseries:
 
     # Convert int-len to shape-tuple
     self.m = m # store first
-    if isinstance(m,int):
+    if is_int(m):
       if m==1: m = ()
       else:    m = (m,)
 
@@ -147,7 +147,7 @@ class Fseries:
     if self.store_u:
       self.u = zeros((chrono.K   +1,)+m, **kwargs)
     else:
-      self.tmp   = None
+      self.tmp   = zeros(m,**kwargs)
       self.k_tmp = None
   
   def validate_key(self,key):
@@ -169,6 +169,17 @@ class Fseries:
       key = (key,None,'u')
     return key
 
+  def split_dims(self,k):
+    if isinstance(k,tuple):
+      k1 = k[1:]
+      k0 = k[0]
+    elif is_int(k):
+      k1 = ...
+      k0 = k
+    else:
+      raise KeyError
+    return k0, k1
+
   def __setitem__(self,key,item):
     k,kObs,fau = self.validate_key(key)
     if 'f' in fau:
@@ -179,8 +190,9 @@ class Fseries:
       if self.store_u:
         self.u[k]    = item
       else:
-        self.k_tmp   = k
-        self.tmp     = item
+        k0, k1       = self.split_dims(k)
+        self.k_tmp   = k0
+        self.tmp[k1] = item
 
   def __getitem__(self,key):
     k,kObs,fau = self.validate_key(key)
@@ -199,12 +211,13 @@ class Fseries:
       if self.store_u:
         return self.u[k]
       else:
-        if self.k_tmp is not k:
+        k0, k1 = self.split_dims(k)
+        if self.k_tmp is not k0:
           msg = "Only item [" + str(self.k_tmp) + "] is available from " +\
               "the universal (.u) series (since store_u=False). " +\
               "Maybe use analysis (.a) or forecast (.f) arrays instead?"
           raise KeyError(msg)
-        return self.tmp
+        return self.tmp[k1]
 
   def average(self):
     """

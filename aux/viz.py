@@ -221,16 +221,16 @@ class LivePlot:
         self.ltE.append(lEn)
     else:
       # Mean
-      self.smu = ax3.scatter(*mu[0,:3],s=100,c='b')
+      self.smu     = ax3.scatter(*mu[0,:3],s=100,c='b')
       # Tail
       self.tail_mu = ones((tail_k,3)) * mu[0,:3] # init
       self.ltmu,   = ax3.plot(*self.tail_mu.T,'b',lw=2)
 
     # Truth
-    self.sx      = ax3.scatter(*xx[0,:3],s=300,c='y',marker=(5, 1))
+    self.sx        = ax3.scatter(*xx[0,:3],s=300,c='y',marker=(5, 1))
     # Tail
-    self.tail_xx = ones((tail_k,3)) * xx[0,:3] # init
-    self.ltx,    = ax3.plot(*self.tail_xx.T,'y',lw=4)
+    self.tail_xx   = ones((tail_k,3)) * xx[0,:3] # init
+    self.ltx,      = ax3.plot(*self.tail_xx.T,'y',lw=4)
 
     #ax3.axis('off')
     for i in range(3):
@@ -266,27 +266,30 @@ class LivePlot:
       #d2['infl'] = dict(c='c', lw=2, label='Infl')
 
     def init_axd(ax,d):
+      out = {}
       def init_arr_with(val):
         arr    = zeros(self.K)
         arr[0] = val
         return arr
       for name in d:
-        ds         = dict(plt=d[name]) # assign to 'plt' of new dict
-        d[name]    = ds                # insert new dict
-        ds['data'] = init_arr_with(getattr(stats,name)[0])
-        ds['h'],   = ax.plot(ptt,ds['data'],**ds['plt'])
-      ax.legend()
-      return d
+        ds        = dict(plt=d[name]) # assign to 'plt' of new dict
+        out[name] = ds                # insert into new dict
+        try:
+          ds['data'] = init_arr_with(getattr(stats,name)[0])
+        except KeyError: 
+          del out[name] # e.g. if Fseries.k_tmp is None
+        else:
+          ds['h'], = ax.plot(ptt,ds['data'],**ds['plt'])
+      if out: ax.legend()
+      return out
 
     self.ax_d1 = plt.subplot(211)
     self.d1    = init_axd(self.ax_d1, d1)
     self.ax_d1.set_ylabel('RMS')
-    self.ax_d1.legend()
     self.ax_d1.set_xticklabels([])
 
     self.ax_d2 = plt.subplot(212)
     self.d2    = init_axd(self.ax_d2, d2)
-    self.ax_d2.legend()
     self.ax_d2.set_xlabel('time (t)')
 
 
@@ -514,6 +517,7 @@ class LivePlot:
       ptt = self.setup.t.tt[pkk]
 
       def update_ax(ax,dict_outer):
+        ax.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
         for name, d in dict_outer.items():
           stat = getattr(stats,name)
           if stat.store_u:
@@ -530,7 +534,6 @@ class LivePlot:
               # Initial display: append
               d['data'][k] = new
           d['h'].set_data(ptt,d['data'])
-          ax.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
 
       update_ax(self.ax_d1,self.d1)
       update_ylim([d['data'] for d in self.d1.values()], self.ax_d1, Min=0)
@@ -665,7 +668,7 @@ def plot_3D_trajectory(stats,dims=0,**kwargs):
   Plot 3D phase-space trajectory.
   kwargs forwarded to get_plot_inds().
   """
-  if isinstance(dims,int):
+  if is_int(dims):
     dims = dims + arange(3)
   assert len(dims)==3
 

@@ -56,7 +56,7 @@ class Chronology:
         dkObs = round(dtObs/dt)
         assert abs(dtObs - dkObs*dt) < dt*1e-9
       else: raise TypeError('Unable to interpret time setup')
-    assert(isinstance(dkObs,int))
+    assert is_int(dkObs)
     if not K:
       if T:
         K = round(T/dt)

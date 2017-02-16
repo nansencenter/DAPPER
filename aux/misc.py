@@ -6,6 +6,9 @@ def is1d(a):
   """ Works for list and row/column arrays and matrices"""
   return np.sum(asarray(asarray(a).shape) > 1) <= 1
 
+def is_int(a):
+  return np.issubdtype(type(a), np.integer)
+
 def tp(a):
   """Tranpose 1d vector"""
   return a[np.newaxis].T
@@ -208,7 +211,7 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
   full_matrices = False
 
   # Assume number of components requested
-  if isinstance(threshold,int):
+  if is_int(threshold):
     assert threshold >= 1
     r = threshold
     assert r <= max(m,n)
