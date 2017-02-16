@@ -42,9 +42,9 @@ It is open source, written in Python, and focuses on code readability;
 this promotes the reproduction and dissemination of the underlying science,
 and makes it easy to adapt and extend to further needs.
 In summary, it is well suited for conducting fundamental DA research
-as well as teaching purposes.
+as well as for teaching purposes.
 
-To some extent, DAPPER sacrifices efficiency to gain the advantages listed above.
+In a trade-off with the above advantages, DAPPER makes some sacrifices of efficiency.
 I.e. it is not designed for the assimilation of real data in operational models.
 
 The current documentation does not provide a tutorial;
