@@ -2,13 +2,20 @@ from common import *
 
 class Stats:
   """
-  Contains and computes peformance stats.
+  Contains and computes statistics of the DA methods.
   """
 
   # Adjust this to omit heavy computations
   comp_threshold_3 = 51
 
   def __init__(self,setup,config,xx,yy):
+    """
+    Init a bunch of stats.
+    Note: the individual stats may very well be allocated & computed
+          elsewhere, and simply added as an attribute to the stats
+          instance. But the most common ones are gathered here.
+    """
+
     self.setup  = setup
     self.config = config
     self.xx     = xx
@@ -44,8 +51,9 @@ class Stats:
     self.svals = fs(m_Nm) # Principal component (SVD) scores
     self.umisf = fs(m_Nm) # Error in component directions
 
-    # Other
-    self.trHK = zeros(KObs+1)
+    # Other. 
+    self.trHK = np.full(KObs+1, nan)
+    self.infl = np.full(KObs+1, nan)
 
   def assess(self,k,kObs=None,f_a_u=None,
       E=None,w=None,mu=None,Cov=None):
@@ -229,7 +237,7 @@ class Stats:
     store_u = getattr(self.config,'store_u',True)
     return Fseries(self.setup.t, m, store_u=store_u, **kwargs)
 
-  # Better to initialize manually (np.zeros...)
+  # Better to initialize manually (np.full...)
   # def new_array(self,f_a_u,m,**kwargs):
   #   "Convenience array constructor."
   #   t = self.setup.t
@@ -243,7 +251,7 @@ class Stats:
   #   elif f_a_u=='u':
   #     K = t.K
   #   #
-  #   return zeros((K+1,)+m,**kwargs)
+  #   return np.full((K+1,)+m,**kwargs)
 
 
 

@@ -110,6 +110,7 @@ def series_mean_with_conf(xx):
   return vc
 
 
+# TODO: Should use pandas instead?
 class Fseries:
   """
   Container for time series of a statistic from filtering.
@@ -122,6 +123,8 @@ class Fseries:
        These intermediates are nice for plotting.
      - may also be hijacked to store "smoothed" values.
   Data may also be accessed through raw attributes [.a, .f, .u].
+  NB: if time series is only from analysis instances (len KObs+1),
+      then you should use a simple np.array instead.
   """
 
   def __init__(self,chrono,m,store_u=True,**kwargs):
@@ -142,12 +145,12 @@ class Fseries:
       if m==1: m = ()
       else:    m = (m,)
 
-    self.a   = zeros((chrono.KObs+1,)+m, **kwargs)
-    self.f   = zeros((chrono.KObs+1,)+m, **kwargs)
+    self.a   = np.full((chrono.KObs+1,)+m, nan, **kwargs)
+    self.f   = np.full((chrono.KObs+1,)+m, nan, **kwargs)
     if self.store_u:
-      self.u = zeros((chrono.K   +1,)+m, **kwargs)
+      self.u = np.full((chrono.K   +1,)+m, nan, **kwargs)
     else:
-      self.tmp   = zeros(m,**kwargs)
+      self.tmp   = np.full(m, nan, **kwargs)
       self.k_tmp = None
   
   def validate_key(self,key):

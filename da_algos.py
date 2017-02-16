@@ -559,7 +559,6 @@ def EnKF_N(setup,config,xx,yy):
 
   E          = X0.sample(N)
   stats      = Stats(setup,config,xx,yy).assess(0,E=E)
-  stats.infl = zeros(chrono.KObs+1)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -638,8 +637,9 @@ def iEnKF(setup,config,xx,yy):
   N, upd_a        = config.N, config.upd_a
 
   E           = X0.sample(N)
-  stats       = Stats(setup,config,xx,yy).assess(0,E=E)
-  stats.iters = zeros(chrono.KObs+1)
+  stats       = Stats(setup,config,xx,yy)
+  stats.iters = np.full(chrono.KObs+1,nan)
+  stats.assess(0,E=E)
 
   for kObs in progbar(range(chrono.KObs+1)):
     xb0 = mean(E,0)
@@ -668,8 +668,7 @@ def iEnKF(setup,config,xx,yy):
       if np.linalg.norm(dw) < N*1e-4:
         break
 
-    HK = R.inv @ Y.T @ Pw @ Y
-    stats.trHK [kObs] = trace(HK/h.noise.m)
+    stats.trHK [kObs] = trace(R.inv @ Y.T @ Pw @ Y)/h.noise.m
     stats.iters[kObs] = iteration+1
 
     E = xb0 + w @ A0 + T @ A0
@@ -679,7 +678,7 @@ def iEnKF(setup,config,xx,yy):
       E = f.model(E,t-dt,dt)
       E = add_noise(E, dt, f.noise, config)
       stats.assess(k,None,'u',E=E)
-    stats.assess(k,kObs,E=E)
+    stats.assess(k,kObs,'a',E=E)
 
     # TODO: It would be beneficial to do another (prior-regularized)
     # analysis at the end, after forecasting the E0 analysis.
@@ -734,9 +733,10 @@ def PartFilt(setup,config,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  stats              = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
-  stats.N_eff        = zeros(chrono.KObs+1)
-  stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
+  stats              = Stats(setup,config,xx,yy)
+  stats.N_eff        = np.full(chrono.KObs+1,nan)
+  stats.did_resample = zeros(chrono.KObs+1,dtype=bool)
+  stats.assess(0,E=E,w=1/N)
 
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -781,7 +781,6 @@ def PartFilt(setup,config,xx,yy):
         w = 1/N*ones(N)
         stats.did_resample[kObs] = True
 
-
     if not kObs: # No overwrite plz
       stats.assess(k,kObs,E=E,w=w)
   return stats
@@ -808,7 +807,7 @@ def PF_EnKF(setup,config,xx,yy):
   w = 1/N *ones(N)
 
   stats              = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
-  stats.N_eff        = zeros(chrono.KObs+1)
+  stats.N_eff        = np.full(chrono.KObs+1, nan)
   stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -987,6 +986,8 @@ def Climatology(setup,config,xx,yy):
   P0    = spCovMat(A=A0)
 
   stats = Stats(setup,config,xx,yy).assess(0,mu=mu0,Cov=P0.C)
+  stats.trHK[:] = 0
+
   for k,kObs,_,_ in progbar(chrono.forecast_range):
     stats.assess(k,kObs,'fau',mu=mu0,Cov=P0.C)
   return stats

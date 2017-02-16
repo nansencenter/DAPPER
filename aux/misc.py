@@ -6,6 +6,7 @@ def is1d(a):
   """ Works for list and row/column arrays and matrices"""
   return np.sum(asarray(asarray(a).shape) > 1) <= 1
 
+# stackoverflow.com/q/37726830
 def is_int(a):
   return np.issubdtype(type(a), np.integer)
 

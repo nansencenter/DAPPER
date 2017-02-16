@@ -244,44 +244,69 @@ class LivePlot:
     self.fgd = plt.figure("Scalar diagnostics",figsize=(8,6))
     self.fgd.clf()
     set_figpos('2312')
+    self.has_checked_presence = False
 
-    chrono = setup.t
-    self.K = estimate_good_plot_length(xx,chrono,mult=80)
-    pkk = arange(self.K)
-    ptt = chrono.tt[pkk]
+    def lin(a,b):
+      def f(x):
+        y = a + b*x
+        return y
+      return f
+
+    def divN():
+      def f(x): return x/N
+      return f
 
     d1 = {
-        'rmse': dict(c='k', lw=2, label='Error'),
-        'rmv' : dict(c='b', lw=2, label='Spread', alpha=0.6),
+        'rmse' : dict(c='k', label='Error'),
+        'rmv'  : dict(c='b', label='Spread', alpha=0.6),
       }
     d2 = {
-        'skew': dict(c='g', lw=2, label='Skew'),
-        'kurt': dict(c='r', lw=2, label='Kurt'),
+        'skew' : dict(c='g', label='Skew'),
+        'kurt' : dict(c='r', label='Kurt'),
+        'infl' : dict(c='c', label='(Infl-1)*10',transf=lin(-10,10)),
+        'N_eff': dict(c='y', label='N_eff/N'    ,transf=divN()),
+        'iters': dict(c='m', label='Iters/2'    ,transf=lin(0,.5)),
+        'trHK' : dict(c='k', label='tr(HK)'),
+        'did_resample': dict(c='k', label='Resampl?'),
       }
 
-    # NB: Requires that
-    #     - assess(0) comes after stats.infl=zeros.
-    #     - gotta do something to get pkkObs
-    #if hasattr(self.stats,'infl'):
-      #d2['infl'] = dict(c='c', lw=2, label='Infl')
+    chrono  = setup.t
+    self.KU = estimate_good_plot_length(xx,chrono,mult=80)
+    self.KA = int(self.KU / chrono.dkObs)
 
-    def init_axd(ax,d):
-      out = {}
-      def init_arr_with(val):
-        arr    = zeros(self.K)
-        arr[0] = val
-        return arr
-      for name in d:
-        ds        = dict(plt=d[name]) # assign to 'plt' of new dict
-        out[name] = ds                # insert into new dict
+    def init_axd(ax,dict_of_dicts):
+      new = {}
+      for name in dict_of_dicts:
+
+        # Make plt settings a sub-dict
+        d = {'plt':dict_of_dicts[name]}
+        # Set default lw
+        if 'lw' not in d['plt']: d['plt']['lw'] = 2
+        # Extract from  plt-dict the 'transf'
         try:
-          ds['data'] = init_arr_with(getattr(stats,name)[0])
-        except KeyError: 
-          del out[name] # e.g. if Fseries.k_tmp is None
+          d['transf'] = d['plt']['transf']
+          del d['plt']['transf']
+        except KeyError:
+          d['transf'] = lambda x: x
+
+        try: stat = getattr(stats,name) # Check if stat is there.
+        # NB: fails e.g. if assess(0) before initializing stat
+        except AttributeError: continue
+        try: val0 = stat[0] # Check ?.
+        # NB: fails e.g. if store_u==False and k_tmp==None (init)
+        except KeyError:       continue
+
+        if isinstance(stat,np.ndarray):
+          d['data'] = np.full(self.KA, nan)
+          tt_       = chrono.ttObs[arange(self.KA)]
         else:
-          ds['h'], = ax.plot(ptt,ds['data'],**ds['plt'])
-      if out: ax.legend()
-      return out
+          d['data'] = np.full(self.KU, nan)
+          tt_       = chrono.tt   [arange(self.KU)]
+        d['data'][0] = d['transf'](val0)
+        d['h'],      = ax.plot(tt_,d['data'],**d['plt'])
+        new[name]    = d
+      if new: ax.legend(loc='upper left')
+      return new
 
     self.ax_d1 = plt.subplot(211)
     self.d1    = init_axd(self.ax_d1, d1)
@@ -510,36 +535,65 @@ class LivePlot:
     #####################
     if plt.fignum_exists(self.fgd.number):
       plt.figure(self.fgd.number)
-      pkk = arange(self.K)
-      if k >= self.K:
-        pkk += (k-self.K)
-      pkk = pkk.astype(int)
-      ptt = self.setup.t.tt[pkk]
 
-      def update_ax(ax,dict_outer):
-        ax.set_xlim(ptt[0],ptt[0] + 1.1 * (ptt[-1]-ptt[0]))
-        for name, d in dict_outer.items():
+      chrono = self.setup.t
+      # Indices with shift
+      kkU    = arange(self.KU) + max(0,k-self.KU)
+      # Indices with step: dkObs
+      kkA    = kkU[0] <= chrono.kkObs
+      kkA   &=           chrono.kkObs <= kkU[-1]
+      # Times
+      ttA    = chrono.ttObs[kkA]
+      ttU    = chrono.tt   [kkU]
+
+
+      def update_axd(ax,dict_of_dicts):
+        ax.set_xlim(ttU[0], ttU[0] + 1.1*(ttU[-1]-ttU[0]))
+
+        for name, d in dict_of_dicts.items():
           stat = getattr(stats,name)
-          if stat.store_u:
-            d['data'] = stat[pkk]
+          if isinstance(stat,np.ndarray):
+            d['data']        = stat[kkA]
+            tt_              = ttA
           else:
-            new = stat[k]
-            if self.prev_k != (k-1):
-              # Reset display
-              d['data'][:] = 0
-            if k >= self.K:
-              # Rolling display
-              d['data'] = roll_n_sub(d['data'], new,-1)
-            else:
-              # Initial display: append
-              d['data'][k] = new
-          d['h'].set_data(ptt,d['data'])
+            tt_              = ttU
+            if stat.store_u:
+              d['data']      = stat[kkU]
+            else: # store .u manually
+              tmp = stat[k]
+              if self.prev_k != (k-1):
+                # Reset display
+                d['data'][:] = nan
+              if k >= self.KU:
+                # Rolling display
+                d['data']    = roll_n_sub(d['data'], tmp, -1)
+              else:
+                # Initial display: append
+                d['data'][k] = tmp
+          d['data'] = d['transf'](d['data'])
+          d['h'].set_data(tt_,d['data'])
 
-      update_ax(self.ax_d1,self.d1)
+      def rm_absent(ax,dict_of_dicts):
+        for name in list(dict_of_dicts):
+          d = dict_of_dicts[name]
+          if not np.any(np.isfinite(d['data'])):
+            d['h'].remove()
+            ax.legend(loc='upper left')
+            del dict_of_dicts[name]
+
+      update_axd(self.ax_d1,self.d1)
       update_ylim([d['data'] for d in self.d1.values()], self.ax_d1, Min=0)
       
-      update_ax(self.ax_d2,self.d2)
-      update_ylim([d['data'] for d in self.d2.values()], self.ax_d2)
+      update_axd(self.ax_d2,self.d2)
+      update_ylim([d['data'] for d in self.d2.values()], self.ax_d2, do_narrow=True)
+
+      # Check which diagnostics are present
+      if (not self.has_checked_presence) and (k>chrono.kkObs[0]):
+        rm_absent(self.ax_d1,self.d1)
+        rm_absent(self.ax_d2,self.d2)
+        self.has_checked_presence = True
+
+
 
       plt.pause(0.01)
 
@@ -553,7 +607,9 @@ class LivePlot:
       self.setter_mean(mu[k])
       plt.pause(0.01)
 
+    # Trackers
     self.prev_k = k
+
 
 def setup_wrapping(m):
   """
@@ -590,13 +646,26 @@ def update_ylim(data,ax,Min=None,Max=None,do_narrow=False):
   Update ylims intelligently.
   Better to use mpl.relim() and self.ax.autoscale_view() ?
   """
+
+  def stretch(a,b,factor):
+    c = (a+b)/2
+    a = c + factor*(a-c) 
+    b = c + factor*(b-c) 
+    return a, b
+
   current = ax.get_ylim()
   maxv = minv = -np.inf
   # Find "reasonable" limits, looping over data
   for d in data:
-    minv, maxv = np.maximum([minv, maxv], \
-        1.1 * array([-1, 1]) * np.percentile(d,[1,99]))
+    d = d[np.isfinite(d)]
+    if len(d):
+      minv, maxv = np.maximum([minv, maxv], \
+          array([-1, 1]) * np.percentile(d,[3,97]))
   minv *= -1
+  minv, maxv = stretch(minv,maxv,1.1)
+  if np.isclose(minv,maxv):
+    maxv += 0.5
+    minv -= 0.5
   # Allow making limits more narrow?
   if not do_narrow:
     minv = min(minv,current[0])

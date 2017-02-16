@@ -26,7 +26,8 @@ from numpy.linalg import eig
 from scipy.linalg import sqrtm, inv, eigh
 
 from numpy import \
-    pi, log, log10, exp, sin, cos, tan, \
+    pi, nan, \
+    log, log10, exp, sin, cos, tan, \
     sqrt, floor, ceil, \
     mean, prod, \
     array, asarray, asmatrix, \
