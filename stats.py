@@ -18,11 +18,7 @@ class Stats:
     p    = setup.h.m    ; assert p   ==yy.shape[1]
     KObs = setup.t.KObs ; assert KObs==yy.shape[0]-1
 
-    # Convenience Fseries constructor
-    def fs(m,**kwargs):
-      store_u = getattr(config,'store_u',True)
-      return Fseries(setup.t, m, store_u=store_u, **kwargs)
-
+    fs          = self.new_Fseries
     #
     self.mu     = fs(m) # Mean
     self.var    = fs(m) # Variances
@@ -48,11 +44,8 @@ class Stats:
     self.svals = fs(m_Nm) # Principal component (SVD) scores
     self.umisf = fs(m_Nm) # Error in component directions
 
-    # Analysis-only init
-    self.trHK  = fs(1)
-    # Note that non-default analysis stats
-    # may also be initialized throug at().
-    
+    # Other
+    self.trHK = zeros(KObs+1)
 
   def assess(self,k,kObs=None,f_a_u=None,
       E=None,w=None,mu=None,Cov=None):
@@ -196,19 +189,6 @@ class Stats:
     self.logp_m[k] = logp_m/m
 
 
-  # TODO: Implement with __getitem__?
-  def at(self,kObs):
-    """Provide a write-access method for the analysis frame of index kObs"""
-    def write_at_kObs(**kwargs):
-      for key,val in kwargs.items():
-        if not hasattr(self,key):
-          shape = (self.setup.t.KObs+1,)
-          if isinstance(val,np.ndarray):
-            shape += val.shape
-          setattr(self,key,zeros(shape))
-        getattr(self,key)[kObs] = val # writes by reference ([kObs])
-    return write_at_kObs
-
   def average_in_time(self):
     """
     Avarage all univariate (scalar) time series.
@@ -216,15 +196,55 @@ class Stats:
     avrg = dict()
     for key,series in vars(self).items():
       try:
-        # Compute
-        f_a_u = series.average()
-        # Add the sub-fields as sub-scripted fields
-        for sub in f_a_u:
-          avrg[key+'_'+sub] = f_a_u[sub]
-      except (AttributeError,NotImplementedError):
+        # Fseries
+        if isinstance(series,Fseries):
+          # Compute
+          f_a_u = series.average()
+          # Add the sub-fields as sub-scripted fields
+          for sub in f_a_u: avrg[key+'_'+sub] = f_a_u[sub]
+        # Array
+        elif isinstance(series,np.ndarray):
+          if series.ndim > 1:
+            raise NotImplementedError
+          t = self.setup.t
+          if len(series) == len(t.kkObs):
+            inds = t.maskObs_BI
+          elif len(series) == len(t.kk):
+            inds = t.kk_BI
+          else:
+            raise ValueError
+          # Compute
+          avrg[key] = series_mean_with_conf(series[inds])
+        # Scalars
+        elif np.isscalar(series):
+          avrg[key] = series
+        else:
+          raise NotImplementedError
+      except NotImplementedError:
         pass
     return avrg
-      
+
+  def new_Fseries(self,m,**kwargs):
+    "Convenience Fseries constructor."
+    store_u = getattr(self.config,'store_u',True)
+    return Fseries(self.setup.t, m, store_u=store_u, **kwargs)
+
+  # Better to initialize manually (np.zeros...)
+  # def new_array(self,f_a_u,m,**kwargs):
+  #   "Convenience array constructor."
+  #   t = self.setup.t
+  #   # Convert int-len to shape-tuple
+  #   if isinstance(m,int):
+  #     if m==1: m = ()
+  #     else:    m = (m,)
+  #   # Set length
+  #   if f_a_u=='a':
+  #     K = t.KObs
+  #   elif f_a_u=='u':
+  #     K = t.K
+  #   #
+  #   return zeros((K+1,)+m,**kwargs)
+
 
 
 def average_each_field(ss,axis=None):

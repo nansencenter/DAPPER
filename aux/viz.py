@@ -259,28 +259,33 @@ class LivePlot:
         'kurt': dict(c='r', lw=2, label='Kurt'),
       }
 
-    def init_with(val):
-      arr    = zeros(self.K)
-      arr[0] = val
-      return arr
+    # NB: Requires that
+    #     - assess(0) comes after stats.infl=zeros.
+    #     - gotta do something to get pkkObs
+    #if hasattr(self.stats,'infl'):
+      #d2['infl'] = dict(c='c', lw=2, label='Infl')
 
-    def init_ax(ax,d):
+    def init_axd(ax,d):
+      def init_arr_with(val):
+        arr    = zeros(self.K)
+        arr[0] = val
+        return arr
       for name in d:
         ds         = dict(plt=d[name]) # assign to 'plt' of new dict
         d[name]    = ds                # insert new dict
-        ds['data'] = init_with(getattr(stats,name)[0])
+        ds['data'] = init_arr_with(getattr(stats,name)[0])
         ds['h'],   = ax.plot(ptt,ds['data'],**ds['plt'])
       ax.legend()
       return d
 
     self.ax_d1 = plt.subplot(211)
-    self.d1    = init_ax(self.ax_d1, d1)
+    self.d1    = init_axd(self.ax_d1, d1)
     self.ax_d1.set_ylabel('RMS')
     self.ax_d1.legend()
     self.ax_d1.set_xticklabels([])
 
     self.ax_d2 = plt.subplot(212)
-    self.d2    = init_ax(self.ax_d2, d2)
+    self.d2    = init_axd(self.ax_d2, d2)
     self.ax_d2.legend()
     self.ax_d2.set_xlabel('time (t)')
 
@@ -731,7 +736,7 @@ def plot_time_series(stats,dim=0,hov=False,**kwargs):
     rmse = s.rmse.a[:KA]
     rmv  = s.rmv .a[:KA]
 
-  trKH   = s.trHK.a[:KA]
+  trKH   = s.trHK  [:KA]
   skew   = s.skew.a[:KA]
   kurt   = s.kurt.a[:KA]
 

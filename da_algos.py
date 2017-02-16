@@ -12,7 +12,9 @@ def EnKF(setup,config,xx,yy):
   mods/Lorenz95/sak08.py
   """
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  # Unpack
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, config.upd_a
 
   # Init
   E     = X0.sample(N)
@@ -23,11 +25,12 @@ def EnKF(setup,config,xx,yy):
     E = f.model(E,t-dt,dt)
     E = add_noise(E, dt, f.noise, config)
 
+    # Analysis update
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E)
       hE = h.model(E,t)
       y  = yy[kObs]
-      E  = EnKF_analysis(E,hE,h.noise,y,config.upd_a,stats.at(kObs))
+      E  = EnKF_analysis(E,hE,h.noise,y,upd_a,stats,kObs)
       post_process(E,config)
 
     stats.assess(k,kObs,E=E)
@@ -95,7 +98,8 @@ def EnKS(setup,config,xx,yy):
   mods/Lorenz95/raanes2016.py
   """
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, config.upd_a
 
   def reshape_to(E):
     K,N,m = E.shape
@@ -124,7 +128,7 @@ def EnKS(setup,config,xx,yy):
       y        = yy[kObs]
 
       ELag     = reshape_to(ELag)
-      ELag     = EnKF_analysis(ELag,hE,h.noise,y,config.upd_a,stats.at(kObs))
+      ELag     = EnKF_analysis(ELag,hE,h.noise,y,upd_a,stats,kObs)
       E[kkLag] = reshape_fr(ELag,f.m)
       post_process(E[k],config)
       stats.assess(k,kObs,'a',E=E[k])
@@ -146,7 +150,8 @@ def EnRTS(setup,config,xx,yy):
   mods/Lorenz95/raanes2016.py
   """
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, config.upd_a
 
   E     = zeros((chrono.K+1,N,f.m))
   Ef    = E.copy()
@@ -163,7 +168,7 @@ def EnRTS(setup,config,xx,yy):
       stats.assess(k,kObs,'f',E=E[k])
       hE   = h.model(E[k],t)
       y    = yy[kObs]
-      E[k] = EnKF_analysis(E[k],hE,h.noise,y,config.upd_a,stats.at(kObs))
+      E[k] = EnKF_analysis(E[k],hE,h.noise,y,upd_a,stats,kObs)
       post_process(E[k],config)
       stats.assess(k,kObs,'a',E=E[k])
 
@@ -260,7 +265,7 @@ def add_noise(E, dt, noise, config):
   return E
 
 
-def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
+def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
     R = hnoise.C
     N,m = E.shape
 
@@ -347,10 +352,8 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,statFrame):
       raise TypeError("No analysis update method found: '" + upd_a + "'.") 
 
     # Diagnostic: relative influence of observations
-    if 'trHK' in locals():
-      statFrame(trHK=trHK/hnoise.m)
-    if 'HK'   in locals():
-      statFrame(trHK=trace(HK)/hnoise.m)
+    if 'trHK' in locals(): stats.trHK[kObs] = trHK     /hnoise.m
+    elif 'HK' in locals(): stats.trHK[kObs] = trace(HK)/hnoise.m
 
     return E
 
@@ -381,7 +384,8 @@ def SL_EAKF(setup,config,xx,yy):
   (full ensemble equality) to the EnKF 'Serial'.
   See DAPPER/Misc/batch_vs_serial.py for some details.
   """
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, config.upd_a
 
   n = N-1
 
@@ -453,7 +457,8 @@ def LETKF(setup,config,xx,yy):
   "Efficient data assimilation for spatiotemporal chaos..."
   """
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, config.upd_a
 
   Rm12 = h.noise.C.m12
 
@@ -552,8 +557,9 @@ def EnKF_N(setup,config,xx,yy):
   Rm12 = h.noise.C.m12
   Ri   = h.noise.C.inv
 
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+  E          = X0.sample(N)
+  stats      = Stats(setup,config,xx,yy).assess(0,E=E)
+  stats.infl = zeros(chrono.KObs+1)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -581,7 +587,6 @@ def EnKF_N(setup,config,xx,yy):
       J    = lambda l: (du/d(l)) @ du \
              + (1/fctr)*eN/l**2 + fctr*clog*log(l**2)
       l1   = minzs(J, bounds=(LB, 1e2), method='bounded').x
-      stats.at(kObs)(infl=l1)
 
       # Turns it into the ETKF
       #l1 = 1.0
@@ -609,6 +614,7 @@ def EnKF_N(setup,config,xx,yy):
       E = mu + w@A + T@A
       post_process(E,config)
 
+      stats.infl[kObs] = l1
       stats.trHK[kObs] = (((l1*s)**2 + (N-1))**(-1.0)*s**2).sum()/h.noise.m
 
     stats.assess(k,kObs,E=E)
@@ -628,10 +634,12 @@ def iEnKF(setup,config,xx,yy):
   mods/Lorenz95/sak08.py
   mods/Lorenz95/sak12.py
   """
-  f,h,chrono,X0,N,R = setup.f, setup.h, setup.t, setup.X0, config.N, setup.h.noise.C
+  f,h,chrono,X0,R = setup.f, setup.h, setup.t, setup.X0, setup.h.noise.C
+  N, upd_a        = config.N, config.upd_a
 
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+  E           = X0.sample(N)
+  stats       = Stats(setup,config,xx,yy).assess(0,E=E)
+  stats.iters = zeros(chrono.KObs+1)
 
   for kObs in progbar(range(chrono.KObs+1)):
     xb0 = mean(E,0)
@@ -655,14 +663,14 @@ def iEnKF(setup,config,xx,yy):
       y  = yy[kObs]
       dy = y - hx
 
-      dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,config.upd_a)
+      dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,upd_a)
       w  -= dw
       if np.linalg.norm(dw) < N*1e-4:
         break
 
     HK = R.inv @ Y.T @ Pw @ Y
-    stats.trHK[kObs]  = trace(HK/h.noise.m)
-    stats.at(kObs)(iters=iteration+1)
+    stats.trHK [kObs] = trace(HK/h.noise.m)
+    stats.iters[kObs] = iteration+1
 
     E = xb0 + w @ A0 + T @ A0
     post_process(E,config)
@@ -727,6 +735,7 @@ def PartFilt(setup,config,xx,yy):
   w = 1/N *ones(N)
 
   stats              = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
+  stats.N_eff        = zeros(chrono.KObs+1)
   stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
 
 
@@ -751,7 +760,7 @@ def PartFilt(setup,config,xx,yy):
       w      = exp(logw)
       w     /= w.sum()
 
-      # Assess stats immediately after Bayes.
+      # Assess stats before resampling
       stats.assess(k,kObs,E=E,w=w)
       
       # Resample w==0 particles (does not create bias)
@@ -766,14 +775,14 @@ def PartFilt(setup,config,xx,yy):
 
       # Resample (all particles) if N_effective < threshold.
       N_eff = 1/(w@w)
-      stats.at(kObs)(N_eff=N_eff)
+      stats.N_eff[kObs] = N_eff
       if N_eff < N*config.NER:
         E = resample(E, w, N, f.noise)
         w = 1/N*ones(N)
         stats.did_resample[kObs] = True
 
-    if not kObs:
-      # already computed in analysis step.
+
+    if not kObs: # No overwrite plz
       stats.assess(k,kObs,E=E,w=w)
   return stats
 
@@ -799,9 +808,8 @@ def PF_EnKF(setup,config,xx,yy):
   w = 1/N *ones(N)
 
   stats              = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
+  stats.N_eff        = zeros(chrono.KObs+1)
   stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
-
-
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -856,7 +864,7 @@ def PF_EnKF(setup,config,xx,yy):
       N_eff = 1/(w@w)
       N_res = np.sum(stats.did_resample)
       
-      stats.at(kObs)(N_eff=N_eff)
+      stats.N_eff[kObs] = N_eff
       # Resample
       if N_eff < N*config.NER:
         # NB: Must includte rescaling on f.noise if kind=Gaussian
@@ -933,7 +941,8 @@ def EnCheat(setup,config,xx,yy):
   NB: The forecasts (and their rmse) are given by the standard EnKF.
   """
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, config.upd_a
 
   E     = X0.sample(N)
   stats = Stats(setup,config,xx,yy).assess(0,E=E)
@@ -948,7 +957,7 @@ def EnCheat(setup,config,xx,yy):
       # Regular EnKF analysis
       hE = h.model(E,t)
       y  = yy[kObs]
-      E  = EnKF_analysis(E,hE,h.noise,y,config.upd_a,stats.at(kObs))
+      E  = EnKF_analysis(E,hE,h.noise,y,upd_a,stats,kObs)
       post_process(E,config)
 
       # Cheating (only used for stats)
