@@ -1,4 +1,4 @@
-# Example script including several setups and DA methods.
+# Example benchmarking script including several setups and DA methods.
 
 ############################
 # Preamble
@@ -12,13 +12,13 @@ sd0 = seed(5)
 ############################
 
 from mods.Lorenz63.sak12 import setup                          # Expected RMSE_a:
-#config = DAC(Climatology)                                      # 8.5
+config = DAC(Climatology)                                      # 8.5
 #config = DAC(D3Var)                                            # 1.26
 #config = DAC(ExtKF, infl=90);                                  # 0.87
 #config = DAC(EnKF,'Sqrt',    N=3 , infl=1.30)                  # 
 #config = DAC(EnKF ,'Sqrt',   N=10, infl=1.02,rot=True)         # 0.63 (sak: 0.65)
 #config = DAC(EnKF ,'PertObs',N=500,infl=0.95,rot=False)        # 0.56
-config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
+#config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
 #config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4000)
 
 
@@ -70,7 +70,6 @@ setup.t.T           = 4**3.5
 ############################
 # Generate synthetic truth/obs
 ############################
-
 seed(sd0)
 xx,yy = simulate(setup)
 
