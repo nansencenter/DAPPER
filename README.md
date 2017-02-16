@@ -82,14 +82,16 @@ Models
 
 Model       | Linear? | Phys.dim. | State len | # Lyap≥0 | Thanks to
 ----------- | ------- | --------- | --------- | -------- | ----------
-Lin. Advect.| Yes     | 1D        | 1000      | 51       | Evensen/Raanes
+Lin. Advect.| Yes     | 1D        | 1000 *    | 51       | Evensen/Raanes
 Lorenz63    | No      | 0D        | 3         | 2        | Lorenz/Sakov
 Lorenz84    | No      | 0D        | 3         | 2        | Lorenz/Raanes
-Lorenz95    | No      | 1D        | 40        | 13       | Lorenz/Raanes
-LorenzXY    | No      | 2x 1D     | 256 + 8   | ≈13      | Lorenz/Raanes
+Lorenz95    | No      | 1D        | 40 *      | 13       | Lorenz/Raanes
+LorenzXY    | No      | 2x 1D     | 256 + 8 * | ≈13      | Lorenz/Raanes
 MAOOAM      | No      | 2x 1D     | 36        | ?        | Tondeur/Vannitsem
 Quasi-Geost | No      | 2D        | 129²≈17k  | ≈135     | Sakov
 Barotropic  | No      | 2D        | 256²≈60k  | ?        | J.Penn/Raanes
+
+*: straightforward to vary.
 
 
 Additional features
@@ -188,7 +190,7 @@ DAPPER may be situated somewhere in the middle.
 * IEnKS code*  (Bocquet)
 * pyda         (Hickman)
 
-*Has been inspirational in the development of DAPPER. 
+*: Has been inspirational in the development of DAPPER. 
 
 
 Implementation choices
@@ -214,10 +216,7 @@ TODO
 * CovMat
      * Unify sparse and dense treatment
      * Read-only properties
-* Make stats 'f', 'a', and 'u'
-* Move LivePlot into stats
-* Complete QG
-* Complete LorenzXY
+* Complete QG, LorenzXY
 * Split `da_algos.py` into multiple files
 * Make tutorial
 
