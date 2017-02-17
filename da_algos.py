@@ -384,8 +384,7 @@ def SL_EAKF(setup,config,xx,yy):
   (full ensemble equality) to the EnKF 'Serial'.
   See DAPPER/Misc/batch_vs_serial.py for some details.
   """
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, config.upd_a
+  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
 
   n = N-1
 
@@ -457,8 +456,7 @@ def LETKF(setup,config,xx,yy):
   "Efficient data assimilation for spatiotemporal chaos..."
   """
 
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, config.upd_a
+  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
 
   Rm12 = h.noise.C.m12
 

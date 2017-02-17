@@ -81,8 +81,9 @@ setup = OSSE(f,h,t,X0,**other)
 #config = DAC(EnKF,'PertObs',N=28,infl=1.08)           # rmse_a = 0.24
 #config = DAC(EnKF,'Sqrt'   ,N=24,infl=1.013,rot=True) # rmse_a = 0.18
 
+# Other
 #config = DAC(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # rmse_a = 0.17
-
+#
 #config = DAC(LETKF,N=6,rot=True,infl=1.04,locf=setup.locf(4,'x2y'))
 #config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,locf=setup.locf(4,'x2y'))
 #config = DAC(SL_EAKF,N=6,rot=True,infl=1.07,locf=setup.locf(6,'y2x'))
@@ -95,23 +96,14 @@ setup = OSSE(f,h,t,X0,**other)
 
 
 # Reproduce Bocquet'2015 "expanding"
-# setup.t.T     = 4**4
-# setup.t.dt    = 0.05
-# setup.t.dkObs = 3
-# #
-# #config.N          = 20
-# ##config.infl       = 1.02 # dkObs = 1
-# ##config.infl       = 1.10 # dkObs = 3
-# ##config.infl       = 1.40 # dkObs = 5
-# #config.upd_a    = 'Sqrt'
-# #config.rot        = False
-# #config.da_driver  = EnKF
-# #
-# config.da_driver = EnKF_N
-# config.N         = 20
-# config.infl      = 1.0
-# config.rot       = False
-# #
-# #setup.t.dt    = 0.01
-# #setup.t.dkObs = 1
+# t = Chronology(0.05,dkObs=3,T=4**4,BurnIn=20)
+# config = DAC(EnKF,'Sqrt',N=20)
+# # config.infl       = 1.02 # dkObs = 1
+# # config.infl       = 1.10 # dkObs = 3
+# # config.infl       = 1.40 # dkObs = 5
+#
+# config = DAC(EnKF_N,'Sqrt',N=20)
+#
+# # Also try quasi-linear regime:
+# t = Chronology(0.01,dkObs=1,T=4**4,BurnIn=20)
 

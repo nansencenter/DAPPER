@@ -41,9 +41,9 @@ class Stats:
       # Ensemble-only init
       N    = config.N
       m_Nm = min(m,N)
-      self.w  = fs(N)     # Likelihood weights
+      self.w  = fs(N)           # Likelihood weights
       self.rh = fs(m,dtype=int) # Rank histogram
-      #self.N  = N        # Use w.shape[1] instead
+      #self.N  = N              # Use w.shape[1] instead
       self.is_ens = True
     else:
       self.is_ens = False
@@ -89,23 +89,23 @@ class Stats:
       if E is not None:
         # Ensemble assessment
         ens_or_ext = self.assess_ens
-        parameters = {'E':E,'w':w}
+        state_prms = {'E':E,'w':w}
       else:
         # Linear-Gaussian assessment
         assert mu is not None
         ens_or_ext = self.assess_ext
-        parameters = {'mu':mu,'P':Cov}
+        state_prms = {'mu':mu,'P':Cov}
 
       # Compute
       key = (k,kObs,f_a_u)
-      ens_or_ext(key,**parameters)
+      ens_or_ext(key,**state_prms)
 
       # LivePlot
       if LP:
         if k==0:
-          self.lplot = LivePlot(self,**parameters)
+          self.lplot = LivePlot(self,**state_prms,only=LP)
         elif 'u' in f_a_u:
-          self.lplot.update(k,kObs,**parameters)
+          self.lplot.update(k,kObs,**state_prms)
 
     # Return self for daisy-chaining
     return self 

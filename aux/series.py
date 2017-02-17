@@ -216,9 +216,12 @@ class Fseries:
       else:
         k0, k1 = self.split_dims(k)
         if self.k_tmp is not k0:
-          msg = "Only item [" + str(self.k_tmp) + "] is available from " +\
-              "the universal (.u) series (since store_u=False). " +\
-              "Maybe use analysis (.a) or forecast (.f) arrays instead?"
+          msg = "Only item [" + str(self.k_tmp) + "] is available from "+\
+          "the universal (.u) series. One possible source of error "+\
+          "is that the data has not been computed for k="+str(k)+". "+\
+          "Another possibility is that it has been cleared; "+\
+          "if so, a fix might be to set store_u=True, "+\
+          "or to use analysis (.a) or forecast (.f) arrays instead."
           raise KeyError(msg)
         return self.tmp[k1]
 
