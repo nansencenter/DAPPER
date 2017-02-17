@@ -25,7 +25,7 @@ class Stats:
     p    = setup.h.m    ; assert p   ==yy.shape[1]
     KObs = setup.t.KObs ; assert KObs==yy.shape[0]-1
 
-    fs          = self.new_Fseries
+    fs          = self.new_FAU_series
     #
     self.mu     = fs(m) # Mean
     self.var    = fs(m) # Variances
@@ -204,8 +204,8 @@ class Stats:
     avrg = dict()
     for key,series in vars(self).items():
       try:
-        # Fseries
-        if isinstance(series,Fseries):
+        # FAU_series
+        if isinstance(series,FAU_series):
           # Compute
           f_a_u = series.average()
           # Add the sub-fields as sub-scripted fields
@@ -232,10 +232,10 @@ class Stats:
         pass
     return avrg
 
-  def new_Fseries(self,m,**kwargs):
-    "Convenience Fseries constructor."
+  def new_FAU_series(self,m,**kwargs):
+    "Convenience FAU_series constructor."
     store_u = getattr(self.config,'store_u',True)
-    return Fseries(self.setup.t, m, store_u=store_u, **kwargs)
+    return FAU_series(self.setup.t, m, store_u=store_u, **kwargs)
 
   # Better to initialize manually (np.full...)
   # def new_array(self,f_a_u,m,**kwargs):

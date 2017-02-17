@@ -111,7 +111,7 @@ def series_mean_with_conf(xx):
 
 
 # TODO: Should use pandas instead?
-class Fseries:
+class FAU_series:
   """
   Container for time series of a statistic from filtering.
   Data is indexed with key (k,kObs,f_a_u) or simply k.
