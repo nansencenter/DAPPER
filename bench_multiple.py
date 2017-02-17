@@ -4,7 +4,7 @@ from common import *
 
 sd0 = seed(3)
 
-from mods.Lorenz84.more_difficult import setup
+from mods.Lorenz84.harder import setup
 setup.t.T = 800
 
 xx,yy = simulate(setup)
@@ -44,7 +44,7 @@ print_averages(cfgs,avrgs)
 ############################
 # Plot
 ############################
-plot_time_series   (stats[-1],dim=2)
+plot_time_series   (stats[-1])
 plot_3D_trajectory (stats[-1])
 plot_err_components(stats[-1])
 plot_rank_histogram(stats[-1])

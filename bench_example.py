@@ -23,7 +23,7 @@ sd0 = seed(5)
 #config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4000)
 
 
-#from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
+from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)
 #config = DAC(ExtKF, infl = 6)
@@ -32,7 +32,7 @@ sd0 = seed(5)
 #config = DAC(EnKF,'PertObs',N=40,infl=1.06)            # 0.22
 #config = DAC(EnKF,'DEnKF  ',N=40,infl=1.01)            # 0.18
 #config = DAC(EnKF,'PertObs',N=28,infl=1.08)            # 0.24
-#config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
+config = DAC(EnKF,'Sqrt   ',N=24,infl=1.02,rot=True)   # 0.18
 #
 #config = DAC(EnKF_N,N=24,rot=True)
 #
@@ -46,9 +46,8 @@ sd0 = seed(5)
 #from mods.Lorenz95.spectral_obs import setup
 #from mods.Lorenz95.raanes2016 import setup
 #from mods.LorenzXY.defaults import setup
-from mods.LA.raanes2015 import setup
-config = DAC(EnKF,'PertObs',N=30,infl=3.2)
-#from mods.Lorenz84.more_difficult import setup
+#from mods.LA.raanes2015 import setup
+#from mods.Lorenz84.harder import setup
 # -- Get suggested tuning from setup files --
 
 
@@ -65,8 +64,8 @@ config = DAC(EnKF,'PertObs',N=30,infl=3.2)
 ############################
 setup.t.T           = 4**3.5
 
-config.liveplotting = False
-config.store_u      = True
+config.liveplotting = True
+config.store_u      = False
 
 
 ############################

@@ -931,14 +931,14 @@ def plot_hovmoller(xx,chrono=None,**kwargs):
 
   if chrono!=None:
     kk,_ = get_plot_inds(xx,chrono,mult=40,**kwargs)
-    inds = chrono.tt[kk]
+    tt   = chrono.tt[kk]
     axH.set_ylabel('Time (t)')
   else:
     pK   = estimate_good_plot_length(xx,mult=40)
-    inds = arange(pK)
+    tt   = arange(pK)
     axH.set_ylabel('Time indices (k)')
 
-  plt.contourf(arange(m),inds,xx[inds],25)
+  plt.contourf(arange(m),tt,xx[kk],25)
   plt.colorbar()
   axH.set_position([0.125, 0.20, 0.62, 0.70])
   axH.set_title("Hovmoller diagram (of 'Truth')")

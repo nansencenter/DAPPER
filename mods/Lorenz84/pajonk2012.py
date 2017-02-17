@@ -3,7 +3,7 @@
 #   "A deterministic filter for non-Gaussian Bayesian estimation—applications to dynamical system estimation with noisy measurements."
 #   Physica D: Nonlinear Phenomena 241.7 (2012): 775-788.
 #
-# More interesting settings: mods.Lorenz84.more_difficult
+# More interesting settings: mods.Lorenz84.harder
 
 from common import *
 
