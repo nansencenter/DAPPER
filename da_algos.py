@@ -757,9 +757,6 @@ def PartFilt(setup,config,xx,yy):
       logw   = log(w) + logL # Bayes' rule
       w      = exp(logw)
       w     /= w.sum()
-
-      # Assess stats before resampling
-      stats.assess(k,kObs,E=E,w=w)
       
       # Resample w==0 particles (does not create bias)
       if getattr(config,'w0_res',False):
@@ -779,8 +776,7 @@ def PartFilt(setup,config,xx,yy):
         w = 1/N*ones(N)
         stats.did_resample[kObs] = True
 
-    if not kObs: # No overwrite plz
-      stats.assess(k,kObs,E=E,w=w)
+    stats.assess(k,kObs,E=E,w=w)
   return stats
 
 def PF_EnKF(setup,config,xx,yy):

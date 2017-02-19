@@ -256,6 +256,9 @@ class LivePlot:
           except KeyError:       continue
 
           if isinstance(stat,np.ndarray):
+            if len(stat) != (chrono.KObs+1): raise TypeError(
+                "Only len=(KObs+1) ndarrays supported " +
+                "[use FAU_series for len=(K+1)]")
             d['data'] = np.full(chrono.pKObs, nan)
             tt_       = chrono.ttObs[arange(chrono.pKObs)]
           else:
@@ -264,7 +267,6 @@ class LivePlot:
           d['data'][0] = d['transf'](val0)
           d['h'],      = ax.plot(tt_,d['data'],**d['plt'])
           new[name]    = d
-        if new: ax.legend(loc='upper left')
         return new
 
       # --------------
@@ -278,16 +280,15 @@ class LivePlot:
       # --------------
       # Plain
       # --------------
-      d2 = {
-          'skew' : dict(c='g', label='Skew'),
-          'kurt' : dict(c='r', label='Kurt'),
-          'infl' : dict(c='c', label='(Infl-1)*10',transf=lin(-10,10)),
-          'N_eff': dict(c='y', label='N_eff/N'    ,transf=divN()),
-          'iters': dict(c='m', label='Iters/2'    ,transf=lin(0,.5)),
-          'trHK' : dict(c='k', label='tr(HK)'),
-          'did_resample': dict(c='k', label='Resampl?'),
-        }
-
+      d2 = OrderedDict([
+          ('skew'         , dict(c='g', label='Skew')),
+          ('kurt'         , dict(c='r', label='Kurt')),
+          ('infl'         , dict(c='c', label='(Infl-1)*10',transf=lin(-10,10))),
+          ('N_eff'        , dict(c='y', label='N_eff/N'    ,transf=divN())),
+          ('iters'        , dict(c='m', label='Iters/2'    ,transf=lin(0,.5))),
+          ('trHK'         , dict(c='k', label='tr(HK)')),
+          ('did_resample' , dict(c='k', label='Resampl?')),
+        ])
 
       self.ax_d1 = plt.subplot(211)
       self.d1    = init_axd(self.ax_d1, d1)
@@ -535,17 +536,14 @@ class LivePlot:
     #####################
     if hasattr(self,'fgd') and plt.fignum_exists(self.fgd.number):
       plt.figure(self.fgd.number)
-
       chrono = self.setup.t
+
       # Indices with shift
       kkU    = arange(chrono.pK) + max(0,k-chrono.pK)
+      ttU    = chrono.tt[kkU]
       # Indices with step: dkObs
       kkA    = kkU[0] <= chrono.kkObs
       kkA   &=           chrono.kkObs <= kkU[-1]
-      # Times
-      ttA    = chrono.ttObs[kkA]
-      ttU    = chrono.tt   [kkU]
-
 
       def update_axd(ax,dict_of_dicts):
         ax.set_xlim(ttU[0], ttU[0] + 1.1*(ttU[-1]-ttU[0]))
@@ -553,8 +551,18 @@ class LivePlot:
         for name, d in dict_of_dicts.items():
           stat = getattr(stats,name)
           if isinstance(stat,np.ndarray):
-            d['data']        = stat[kkA]
-            tt_              = ttA
+            if stat.dtype == 'bool':
+              # Creat "impulse"-style graph
+              tt_            = chrono.ttObs[kkA].repeat(3)
+              d['data']      = stat        [kkA].repeat(3)
+              tt_     [2::3] = nan
+              d['data'][::3] = False
+            else:
+              # Creat "step"-style graph
+              d['data']      = stat        [kkA].repeat(2)
+              tt_            = chrono.ttObs[kkA].repeat(2)
+              right          = tt_[-1] # use ttU[-1] for continuous extrapolation
+              tt_            = np.hstack([ttU[0], tt_[0:-2], right])
           else:
             tt_              = ttU
             if stat.store_u:
@@ -578,17 +586,21 @@ class LivePlot:
           d = dict_of_dicts[name]
           if not np.any(np.isfinite(d['data'])):
             d['h'].remove()
-            ax.legend(loc='upper left')
             del dict_of_dicts[name]
+        if dict_of_dicts:
+          ax.legend(loc='upper left')
 
       update_axd(self.ax_d1,self.d1)
-      update_ylim([d['data'] for d in self.d1.values()], self.ax_d1, Min=0)
-      
       update_axd(self.ax_d2,self.d2)
-      update_ylim([d['data'] for d in self.d2.values()], self.ax_d2, do_narrow=True)
+
+      #if k%(chrono.pK/5) <= 1:
+      update_ylim([d['data'] for d in self.d1.values()], self.ax_d1,
+          bottom=0,      cC=0.2,cE=0.9)
+      update_ylim([d['data'] for d in self.d2.values()], self.ax_d2,
+          Max=4, Min=-4, cC=0.3,cE=0.9)
 
       # Check which diagnostics are present
-      if (not self.has_checked_presence) and (k>chrono.kkObs[0]):
+      if (not self.has_checked_presence) and (k>=chrono.kkObs[0]):
         rm_absent(self.ax_d1,self.d1)
         rm_absent(self.ax_d2,self.d2)
         self.has_checked_presence = True
@@ -663,7 +675,7 @@ class LivePlot:
       #thresh   = '#(w<$10^{'+ str(int(log10(bins[0]*N))) + '}/N$ )'
       axh.set_title('N: {:d}.   N_eff: {:.4g}.   Not shown: {:d}. '.\
           format(N, 1/(w@w), N-nC))
-      update_ylim([nn], axh, do_narrow=True)
+      update_ylim([nn], axh, cC=True)
       plt.pause(0.01)
 
 
@@ -711,10 +723,19 @@ def adjust_position(ax,adjust_extent=False,**kwargs):
   # Set
   ax.set_position(d.values())
 
-def update_ylim(data,ax,Min=None,Max=None,do_narrow=False):
+def update_ylim(data,ax,bottom=None,top=None,Min=-1e20,Max=+1e20,cC=0,cE=1):
   """
-  Update ylims intelligently.
-  Better to use mpl.relim() and self.ax.autoscale_view() ?
+  Update ylim's intelligently, mainly by computing
+  the low/high percentiles of the data.
+  - data: iterable of arrays for computing percentiles.
+  - bottom/top: override values.
+  - Max/Min: bounds.
+  - cE: exansion (widenting) rate ∈ [0,1].
+      Default: 1, which immediately expands to percentile.
+  - cC: compression (narrowing) rate ∈ [0,1].
+      Default: 0, which does not allow compression.
+  Despite being a little involved,
+  the cost of this subroutine is typically not substantial.
   """
 
   def stretch(a,b,factor):
@@ -722,30 +743,45 @@ def update_ylim(data,ax,Min=None,Max=None,do_narrow=False):
     a = c + factor*(a-c) 
     b = c + factor*(b-c) 
     return a, b
-
+  #
+  def worth_updating(a,b,curr):
+    # Note: should depend on cC and cE
+    d = abs(curr[1]-curr[0])
+    lower = abs(a-curr[0]) > 0.002*d
+    upper = abs(b-curr[1]) > 0.002*d
+    return lower and upper
+  #
   current = ax.get_ylim()
-  maxv = minv = -np.inf
-  # Find "reasonable" limits, looping over data
+  # Find "reasonable" limits (by percentiles), looping over data
+  maxv = minv = -np.inf # init
   for d in data:
     d = d[np.isfinite(d)]
     if len(d):
       minv, maxv = np.maximum([minv, maxv], \
-          array([-1, 1]) * np.percentile(d,[3,97]))
+          array([-1, 1]) * np.percentile(d,[1,99]))
   minv *= -1
-  minv, maxv = stretch(minv,maxv,1.1)
+  # Add some stretch
+  minv, maxv = stretch(minv,maxv,1.02)
+  # Pry apart equal values
   if np.isclose(minv,maxv):
     maxv += 0.5
     minv -= 0.5
-  # Allow making limits more narrow?
-  if not do_narrow:
-    minv = min(minv,current[0])
-    maxv = max(maxv,current[1])
+  # Set rate factor as compress or expand factor. 
+  c0 = cC if minv>current[0] else cE
+  c1 = cC if maxv<current[1] else cE
+  # Adjust
+  minv = np.interp(c0, (0,1), (current[0], minv))
+  maxv = np.interp(c1, (0,1), (current[1], maxv))
+  # Bounds
+  maxv = min(Max,maxv)
+  minv = max(Min,minv)
   # Overrides
-  if Max is not None: maxv = Max
-  if Min is not None: minv = Min
+  if top    is not None: maxv = top
+  if bottom is not None: minv = bottom
   # Set (if anything's changed)
-  if (minv, maxv) != current and minv != maxv:
-    ax.set_ylim(minv,maxv)
+  #if worth_updating(minv,maxv,current):
+    #ax.set_ylim(minv,maxv)
+  ax.set_ylim(minv,maxv)
 
 
 def set_ilim(ax,i,data,zoom=1.0):
