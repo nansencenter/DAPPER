@@ -30,6 +30,11 @@ def dxdt(x):
   return np.multiply(s(x,1)-s(x,-2), s(x,-1)) - x + Force
 
 def step(x0, t, dt):
+
+  # NB TODO
+  clip      = abs(x0)>30
+  x0[clip] *= 0.1
+
   return rk4(lambda t,x: dxdt(x), x0, np.nan, dt)
 
 

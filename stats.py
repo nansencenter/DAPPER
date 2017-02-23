@@ -234,7 +234,7 @@ class Stats:
 
   def new_FAU_series(self,m,**kwargs):
     "Convenience FAU_series constructor."
-    store_u = getattr(self.config,'store_u',True)
+    store_u = getattr(self.config,'store_u',False)
     return FAU_series(self.setup.t, m, store_u=store_u, **kwargs)
 
   # Better to initialize manually (np.full...)

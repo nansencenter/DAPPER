@@ -229,9 +229,34 @@ class LivePlot:
         def f(x): return x/N
         return f
 
+      # --------------
+      # RMS
+      # --------------
+      d1 = {
+          'rmse' : dict(c='k', label='Error'),
+          'rmv'  : dict(c='b', label='Spread', alpha=0.6),
+        }
+
+      # --------------
+      # Plain
+      # --------------
+      d2 = OrderedDict([
+          ('skew'         , dict(c='g', label='Skew')),
+          ('kurt'         , dict(c='r', label='Kurt')),
+          ('infl'         , dict(c='c', label='(Infl-1)*10',transf=lin(-10,10))),
+          ('N_eff'        , dict(c='y', label='N_eff/N'    ,transf=divN(),    step=True)),
+          ('iters'        , dict(c='m', label='Iters/2'    ,transf=lin(0,.5), step=True)),
+          ('trHK'         , dict(c='k', label='tr(HK)')),
+          ('did_resample' , dict(c='k', label='Resampl?')),
+        ])
+
       chrono       = setup.t
       chrono.pK    = estimate_good_plot_length(xx,chrono,mult=80)
       chrono.pKObs = int(chrono.pK / chrono.dkObs)
+
+      def raise_field_lvl(dct,fld):
+        dct[fld] = dct['plt'][fld]
+        del dct['plt'][fld]
 
       def init_axd(ax,dict_of_dicts):
         new = {}
@@ -241,12 +266,11 @@ class LivePlot:
           d = {'plt':dict_of_dicts[name]}
           # Set default lw
           if 'lw' not in d['plt']: d['plt']['lw'] = 2
-          # Extract from  plt-dict the 'transf'
-          try:
-            d['transf'] = d['plt']['transf']
-            del d['plt']['transf']
-          except KeyError:
-            d['transf'] = lambda x: x
+          # Extract from  plt-dict 'transf' and 'step' fields
+          try:             raise_field_lvl(d,'transf')
+          except KeyError: d['transf'] = lambda x: x
+          try:             raise_field_lvl(d,'step')
+          except KeyError: pass
 
           try: stat = getattr(stats,name) # Check if stat is there.
           # Fails e.g. if assess(0) before creating stat.
@@ -269,26 +293,6 @@ class LivePlot:
           new[name]    = d
         return new
 
-      # --------------
-      # RMS
-      # --------------
-      d1 = {
-          'rmse' : dict(c='k', label='Error'),
-          'rmv'  : dict(c='b', label='Spread', alpha=0.6),
-        }
-
-      # --------------
-      # Plain
-      # --------------
-      d2 = OrderedDict([
-          ('skew'         , dict(c='g', label='Skew')),
-          ('kurt'         , dict(c='r', label='Kurt')),
-          ('infl'         , dict(c='c', label='(Infl-1)*10',transf=lin(-10,10))),
-          ('N_eff'        , dict(c='y', label='N_eff/N'    ,transf=divN())),
-          ('iters'        , dict(c='m', label='Iters/2'    ,transf=lin(0,.5))),
-          ('trHK'         , dict(c='k', label='tr(HK)')),
-          ('did_resample' , dict(c='k', label='Resampl?')),
-        ])
 
       self.ax_d1 = plt.subplot(211)
       self.d1    = init_axd(self.ax_d1, d1)
@@ -349,26 +353,31 @@ class LivePlot:
     # Weight histogram
     #####################
     if 4 in only:
-      if E is not None and len(E)<1001 and stats.has_w:
-        fgh = plt.figure(4,figsize=(8,4))
-        fgh.clf()
-        win_title(fgh,"Weight histogram")
-        set_figpos('2321')
-        axh = fgh.add_subplot(111)
-        fgh.subplots_adjust(bottom=.15)
-        hst = axh.hist(stats.w[0])[2]
-        N = len(E)
-        axh.set_xscale('log')
-        xticks = 1/N * 10**arange(-4,log10(N)+1)
-        xtlbls = array(['$10^{'+ str(int(log10(w*N))) + '}$' for w in xticks])
-        xtlbls[xticks==1/N] = '1'
-        axh.set_xticks(xticks)
-        axh.set_xticklabels(xtlbls)
-        axh.set_xlabel('weigth [× N]')
-        axh.set_ylabel('count')
-        self.fgh = fgh
-        self.axh = axh
-        self.hst = hst
+      fgh = plt.figure(4,figsize=(8,4))
+      fgh.clf()
+      win_title(fgh,"Weight histogram")
+      set_figpos('2321')
+      axh = fgh.add_subplot(111)
+      fgh.subplots_adjust(bottom=.15)
+      axh.set_xscale('log')
+      axh.set_xlabel('weigth [× N]')
+      axh.set_ylabel('count')
+      if E is not None and stats.has_w:
+        if len(E)<10001:
+          hst = axh.hist(stats.w[0])[2]
+          N   = len(E)
+          xticks = 1/N * 10**arange(-4,log10(N)+1)
+          xtlbls = array(['$10^{'+ str(int(log10(w*N))) + '}$' for w in xticks])
+          xtlbls[xticks==1/N] = '1'
+          axh.set_xticks(xticks)
+          axh.set_xticklabels(xtlbls)
+          self.fgh = fgh
+          self.axh = axh
+          self.hst = hst
+        else:
+          not_available_text(axh,'Not computed (N > threshold)')
+      else: 
+        not_available_text(axh)
 
 
 
@@ -541,7 +550,7 @@ class LivePlot:
       # Indices with shift
       kkU    = arange(chrono.pK) + max(0,k-chrono.pK)
       ttU    = chrono.tt[kkU]
-      # Indices with step: dkObs
+      # Indices for Obs-times
       kkA    = kkU[0] <= chrono.kkObs
       kkA   &=           chrono.kkObs <= kkU[-1]
 
@@ -551,18 +560,20 @@ class LivePlot:
         for name, d in dict_of_dicts.items():
           stat = getattr(stats,name)
           if isinstance(stat,np.ndarray):
-            if stat.dtype == 'bool':
-              # Creat "impulse"-style graph
-              tt_            = chrono.ttObs[kkA].repeat(3)
-              d['data']      = stat        [kkA].repeat(3)
-              tt_     [2::3] = nan
-              d['data'][::3] = False
-            else:
+            tt_              = chrono.ttObs[kkA]
+            d['data']        = stat        [kkA]
+            if d.get('step',False):
               # Creat "step"-style graph
-              d['data']      = stat        [kkA].repeat(2)
-              tt_            = chrono.ttObs[kkA].repeat(2)
+              d['data']      = d['data'].repeat(2)
+              tt_            = tt_      .repeat(2)
               right          = tt_[-1] # use ttU[-1] for continuous extrapolation
               tt_            = np.hstack([ttU[0], tt_[0:-2], right])
+            elif stat.dtype == 'bool':
+              # Creat "impulse"-style graph
+              tt_            = tt_      .repeat(3)
+              d['data']      = d['data'].repeat(3)
+              tt_     [2::3] = nan
+              d['data'][::3] = False
           else:
             tt_              = ttU
             if stat.store_u:
@@ -1000,8 +1011,10 @@ def integer_hist(E,N,centrd=False,weights=None,**kwargs):
   ax.set_xlim(rnge)
 
 
-def not_available_text(ax,fs=20):
-  ax.text(0.5,0.5,'[Not available]',
+def not_available_text(ax,txt=None,fs=20):
+  if txt is None: txt = '[Not available]'
+  else:           txt = '[' + txt + ']'
+  ax.text(0.5,0.5,txt,
       fontsize=fs,
       transform=ax.transAxes,
       va='center',ha='center')

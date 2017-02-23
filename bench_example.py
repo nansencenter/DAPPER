@@ -22,6 +22,7 @@ from mods.Lorenz63.sak12 import setup                          # Expected RMSE_a
 #config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
 config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4000)
 
+#config = DAC(EnKF_N, N=10, rot=True)
 
 #from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
 #config = DAC(Climatology)
@@ -64,7 +65,7 @@ config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4
 ############################
 setup.t.T           = 4**3.5
 
-config.liveplotting = [2]
+config.liveplotting = True
 config.store_u      = False
 
 
