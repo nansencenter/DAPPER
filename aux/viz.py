@@ -241,13 +241,13 @@ class LivePlot:
       # Plain
       # --------------
       d2 = OrderedDict([
-          ('skew'         , dict(c='g', label='Skew')),
-          ('kurt'         , dict(c='r', label='Kurt')),
-          ('infl'         , dict(c='c', label='(Infl-1)*10',transf=lin(-10,10))),
-          ('N_eff'        , dict(c='y', label='N_eff/N'    ,transf=divN(),    step=True)),
-          ('iters'        , dict(c='m', label='Iters/2'    ,transf=lin(0,.5), step=True)),
-          ('trHK'         , dict(c='k', label='tr(HK)')),
-          ('did_resample' , dict(c='k', label='Resampl?')),
+          ('skew'   , dict(c='g', label='Skew')),
+          ('kurt'   , dict(c='r', label='Kurt')),
+          ('infl'   , dict(c='c', label='(Infl-1)*10',transf=lin(-10,10))),
+          ('N_eff'  , dict(c='y', label='N_eff/N'    ,transf=divN(),    step=True)),
+          ('iters'  , dict(c='m', label='Iters/2'    ,transf=lin(0,.5), step=True)),
+          ('trHK'   , dict(c='k', label='tr(HK)')),
+          ('resmpl' , dict(c='k', label='Resampl?')),
         ])
 
       chrono       = setup.t

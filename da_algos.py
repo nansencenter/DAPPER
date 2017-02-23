@@ -731,9 +731,9 @@ def PartFilt(setup,config,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  stats              = Stats(setup,config,xx,yy)
-  stats.N_eff        = np.full(chrono.KObs+1,nan)
-  stats.did_resample = zeros(chrono.KObs+1,dtype=bool)
+  stats        = Stats(setup,config,xx,yy)
+  stats.N_eff  = np.full(chrono.KObs+1,nan)
+  stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
   stats.assess(0,E=E,w=1/N)
 
 
@@ -774,7 +774,7 @@ def PartFilt(setup,config,xx,yy):
       if N_eff < N*config.NER:
         E = resample(E, w, N, f.noise)
         w = 1/N*ones(N)
-        stats.did_resample[kObs] = True
+        stats.resmpl[kObs] = True
 
     stats.assess(k,kObs,E=E,w=w)
   return stats
@@ -800,9 +800,9 @@ def PF_EnKF(setup,config,xx,yy):
   E = X0.sample(N)
   w = 1/N *ones(N)
 
-  stats              = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
-  stats.N_eff        = np.full(chrono.KObs+1, nan)
-  stats.did_resample = np.empty(chrono.KObs+1,dtype=bool)
+  stats        = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
+  stats.N_eff  = np.full(chrono.KObs+1, nan)
+  stats.resmpl = np.empty(chrono.KObs+1,dtype=bool)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
@@ -855,7 +855,7 @@ def PF_EnKF(setup,config,xx,yy):
       w = w/np.sum(w)
 
       N_eff = 1/(w@w)
-      N_res = np.sum(stats.did_resample)
+      N_res = np.sum(stats.resmpl)
       
       stats.N_eff[kObs] = N_eff
       # Resample
@@ -864,7 +864,7 @@ def PF_EnKF(setup,config,xx,yy):
         E = resample(E, w, N, f.noise, kind='Multinomial')
         w = 1/N*ones(N)
         stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
-        stats.did_resample[kObs] = True
+        stats.resmpl[kObs] = True
 
     stats.assess(k,kObs,E=E,w=w)
   return stats
