@@ -22,7 +22,8 @@ import numpy as np
 from scipy.linalg import circulant
 from aux.misc import rk4, integrate_TLM, is1d
 
-Force = 8.0
+Force           = 8.0
+prevent_blow_up = False
 
 def dxdt(x):
   a = x.ndim-1
@@ -31,9 +32,10 @@ def dxdt(x):
 
 def step(x0, t, dt):
 
-  # NB TODO
-  clip      = abs(x0)>30
-  x0[clip] *= 0.1
+  # NB
+  if prevent_blow_up:
+    clip      = abs(x0)>30
+    x0[clip] *= 0.1
 
   return rk4(lambda t,x: dxdt(x), x0, np.nan, dt)
 
