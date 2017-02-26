@@ -8,13 +8,12 @@ from common import *
 def noobar(itrble, desc):
   """Simple progress bar. To be used if tqdm not installed."""
   L  = len(itrble)
-  print('{}: {: >2d}'.format(desc,0),end='')
+  print('{}: {: >2d}'.format(desc,0), end='')
   for k,i in enumerate(itrble):
     yield i
     p = (k+1)/L
     e = '' if k<(L-1) else '\n'
-    print('\b\b\b\b {: >2d}%'.format( \
-        int(100*p)),end=e)
+    print('\b\b\b\b {: >2d}%'.format(int(100*p)), end=e)
     sys.stdout.flush()
 
 try:

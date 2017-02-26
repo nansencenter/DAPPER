@@ -715,7 +715,8 @@ def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
   return dw,Pw,T,Tinv
 
 
-
+# TODO: Why do I get rmse/rmv mismatch for Lor63
+#       with N=4000 whether using Multinom or Residual?
 def PartFilt(setup,config,xx,yy):
   """
   Particle filter ≡ Sequential importance (re)sampling (SIS/SIR).
@@ -724,7 +725,8 @@ def PartFilt(setup,config,xx,yy):
   Resampling method: Multinomial.
   """
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, getattr(config,'upd_a','Multinomial')
 
   Rm12 = h.noise.C.m12
 
@@ -771,8 +773,8 @@ def PartFilt(setup,config,xx,yy):
       # Resample (all particles) if N_effective < threshold.
       N_eff = 1/(w@w)
       stats.N_eff[kObs] = N_eff
-      if N_eff < N*config.NER:
-        E = resample(E, w, N, f.noise)
+      if N_eff <= N*config.NER:
+        E = resample(E, w, N, f.noise, kind=upd_a)
         w = 1/N*ones(N)
         stats.resmpl[kObs] = True
 
@@ -782,12 +784,18 @@ def PartFilt(setup,config,xx,yy):
 def PF_EnKF(setup,config,xx,yy):
   """
   PF with EnKF proposal density: q.
+
   The setting infl_q tries to inflate the proposal density while
   keeping it centered on the EnKF posterior (by inflating both Q12 and R12).
+
+  NB TODO:
   However, testing on L63, I can't get it to work as well as the standard PF,
   exceept with moderately small N, in which case the EnKF is already better.
+
+  Ref: van Leeuven 2009 review
   """
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, getattr(config,'upd_a','Multinomial')
 
   R     = h.noise.C.C
   Rm12T = h.noise.C.m12.T
@@ -859,9 +867,9 @@ def PF_EnKF(setup,config,xx,yy):
       
       stats.N_eff[kObs] = N_eff
       # Resample
-      if N_eff < N*config.NER:
+      if N_eff <= N*config.NER:
         # NB: Must includte rescaling on f.noise if kind=Gaussian
-        E = resample(E, w, N, f.noise, kind='Multinomial')
+        E = resample(E, w, N, f.noise, kind=upd_a)
         w = 1/N*ones(N)
         stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
         stats.resmpl[kObs] = True
@@ -873,51 +881,108 @@ def PF_EnKF(setup,config,xx,yy):
 
 
 def resample(E,w,N,noise, \
-    do_mu_corr=False,do_var_corr=False,kind='Multinomial'):
+    fix_mu=False,fix_var=False,kind='Multinomial'):
   """
   Resampling function for the particle filter.
+
   N can be different from E.shape[0] in case some particles
   have been elimintated.
+
+  Note: (a) resampling methods are beneficial because they discard
+  low-weight particles and reduce the variance of the weights.
+  However, (b) even unbiased/rigorous resampling methods introduce noise;
+  (increases the var of any empirical estimator, see [1], section 3.4).
+  How to unify the seemingly contrary statements of (a) and (b) ?
+  By recognizing that we're in the *sequential/dynamical* setting,
+  and that *future* variance may be expected to be lower by focusing
+  on the high-weight particles which we anticipate will 
+  have more informative (and less variable) future likelihoods.
+
   Note: anomalies (and thus cov) are weighted,
   and also computed based on a weighted mean.
+
+  [1]: Doucet, Johansen, 2009, v1.1:
+    "A Tutorial on Particle Filtering and Smoothing: 
+      Fifteen years later." 
+  [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
   """
   assert(abs(w.sum()-1) < 1e-5)
 
-  N_b,m = E.shape
+  N_o,m = E.shape
 
-  mu_b  = w@E
-  A_b   = E - mu_b
-  ss_b  = sqrt(w @ A_b**2)
+  # Stats of original sample that may get used
+  if \
+      kind is 'Gaussian' or \
+      noise.is_deterministic or \
+      fix_mu or fix_var:
+    mu_o  = w@E
+    A_o   = E - mu_o
+    ss_o  = sqrt(w @ A_o**2)
 
-  if kind is 'Multinomial':
-    idx = np.random.choice(N_b,N,replace=True,p=w)
-    E   = E[idx]
-
-    if noise.is_deterministic:
-      #If no forward noise: we need to add some.
-      #Especially in the case of N >> m.
-      #Use ss_b (which is precomputed, and weighted)?
-      fudge = 4/sqrt(N)
-      E += fudge * randn((N,m)) @ diag(ss_b)
-  elif kind is 'Gaussian':
+  if kind is 'Gaussian':
+    # This is obviously not rigorous/unbiased unless
+    # the actual distribution is Gaussian.
     N_eff = 1/(w@w)
     if N_eff<2:
       N_eff = 2
     ub = 1/(1 - 1/N_eff) # unbias-ing factor
-    A  = tp(sqrt(ub*w)) * A_b
+    A  = tp(sqrt(ub*w)) * A_o
     A  = randn((N,N)) @ A
-    E  = mu_b + A
-  else: raise TypeError
+    E  = mu_o + A
+  else:
+    # The following are all variations on multinomial sampling,
+    # differing in their degree of being stochastic.
+    if kind is 'Multinomial':
+      # van Leeuwen [2] also calls this "probabilistic" resampling
+      idx = np.random.choice(N_o,N,replace=True,p=w)
+    elif kind is 'Residual':
+      # Doucet [1] also calls this "stratified" resampling.
+      # TODO: Verify that this works perfectly (unbiased).
+      w_N   = N_o * w         # upscale
+      w_I   = w_N.astype(int) # integer part
+      w_D   = w_N-w_I         # decimal part
+      # Create duplicate indices for integer parts
+      idx_I = [i*ones(wi,dtype=int) for i,wi in enumerate(w_I)]
+      idx_I = np.concatenate(idx_I)
+      # Multinomial sampling of decimal parts
+      N_I   = w_I.sum() # == len(idx_I)
+      N_D   = N - N_I
+      idx_D = np.random.choice(N_o,N_D,replace=True,p=w_D/w_D.sum())
+      # Concatenate
+      idx   = np.hstack((idx_I,idx_D))
+    elif kind is 'Systematic':
+      # van Leeuwen [2] also calls this "stochastic universal" resampling
+      # TODO: Not working
+      U     = rand(1) / N
+      CDF_a = U + arange(N)/N
+      CDF_o = np.cumsum(w)
+      idx   = CDF_a > CDF_o[:,None]
+      # Find 1st occurance. stackoverflow.com/a/16244044/38281
+      idx   = np.argmax(idx,axis=0)
+    else:
+      raise TypeError
+
+    E = E[idx]
+
+    # In the typical case of of N >> m,
+    # many of the particles will now be identical.
+    # Therefore, if there's no forward noise: we need to add some.
+    # NB: This is ad-hoc and biased!
+    # Suggestion: use ss_o (which is precomputed, and weighted)?
+    if noise.is_deterministic:
+      fudge = 4/sqrt(N)
+      E += fudge * randn((N,m)) @ diag(ss_o)
 
   # While multinomial sampling is unbiased, it does incur sampling error.
-  # do_mu/var_corr compensates for this in the mean and variance.
+  # fix_mu (and fix_var) compensates for this
+  # "in the mean" (and variance).
   A_a,mu_a = anom(E)
-  if do_mu_corr:
-    mu_a = mu_b
-  if do_var_corr:
-    var_b = (ss_b**2).sum()/m
+  if fix_mu:
+    mu_a = mu_o
+  if fix_var:
+    var_o = (ss_o**2).sum()/m
     var_a = (A_a**2) .sum()/(N*m)
-    A_a  *= sqrt(var_b/var_a)
+    A_a  *= sqrt(var_o/var_a)
   E = mu_a + A_a
     
   return E
@@ -1048,7 +1113,7 @@ def D3Var(setup,config,xx,yy):
       y = yy[kObs]
       if not pre_computed_KG:
         H  = h.jacob(mu0,t)
-        KG = mrdiv(P0@H.T, H@P0@H.T+R)
+        KG = mrdiv(P0@H.T, H@P0@H.T + R)
         KH = KG@H
         Pa = (eye(f.m) - KH) @ P0
         stats.trHK[kObs] = trace(KH)/f.m

@@ -7,6 +7,7 @@
 from common import *
 
 sd0 = seed(5)
+#sd0 = seed()
 
 ############################
 # DA Configurations
@@ -20,7 +21,9 @@ from mods.Lorenz63.sak12 import setup                          # Expected RMSE_a
 #config = DAC(EnKF ,'Sqrt',   N=10, infl=1.02,rot=True)         # 0.63 (sak: 0.65)
 #config = DAC(EnKF ,'PertObs',N=500,infl=0.95,rot=False)        # 0.56
 #config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
-config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4000)
+#config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4000)
+
+config = DAC(PartFilt,'Systematic',N=1000,NER=0.9)
 
 #config = DAC(EnKF_N, N=10, rot=True)
 
