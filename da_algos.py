@@ -715,18 +715,15 @@ def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
   return dw,Pw,T,Tinv
 
 
-# TODO: Why do I get rmse/rmv mismatch for Lor63
-#       with N=4000 whether using Multinom or Residual?
 def PartFilt(setup,config,xx,yy):
   """
-  Particle filter ≡ Sequential importance (re)sampling (SIS/SIR).
-  This is the bootstrap version: the proposal density being just
+  Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
+  This is the bootstrap version: the proposal density is just
   q(x_0:t|y_1:t) = p(x_0:t) = p(x_t|x_{t-1}) p(x_0:{t-1}).
-  Resampling method: Multinomial.
   """
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, getattr(config,'upd_a','Multinomial')
+  N, upd_a      = config.N, getattr(config,'upd_a','Systematic')
 
   Rm12 = h.noise.C.m12
 
@@ -766,7 +763,7 @@ def PartFilt(setup,config,xx,yy):
         N0    = inds0.sum()
         if N0>0:
           inds1     = np.logical_not(inds0)
-          E[inds0]  = resample(E[inds1], w[inds1], N0, f.noise)
+          E[inds0]  = resample(E[inds1], w[inds1], f.noise, N0)
           w[inds0]  = 1/N
           w[inds1] *= (N-N0)/N
 
@@ -774,7 +771,7 @@ def PartFilt(setup,config,xx,yy):
       N_eff = 1/(w@w)
       stats.N_eff[kObs] = N_eff
       if N_eff <= N*config.NER:
-        E = resample(E, w, N, f.noise, kind=upd_a)
+        E = resample(E, w, f.noise, kind=upd_a)
         w = 1/N*ones(N)
         stats.resmpl[kObs] = True
 
@@ -795,7 +792,7 @@ def PF_EnKF(setup,config,xx,yy):
   Ref: van Leeuven 2009 review
   """
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, getattr(config,'upd_a','Multinomial')
+  N, upd_a      = config.N, getattr(config,'upd_a','Systematic')
 
   R     = h.noise.C.C
   Rm12T = h.noise.C.m12.T
@@ -869,7 +866,7 @@ def PF_EnKF(setup,config,xx,yy):
       # Resample
       if N_eff <= N*config.NER:
         # NB: Must includte rescaling on f.noise if kind=Gaussian
-        E = resample(E, w, N, f.noise, kind=upd_a)
+        E = resample(E, w, f.noise, kind=upd_a)
         w = 1/N*ones(N)
         stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
         stats.resmpl[kObs] = True
@@ -880,15 +877,23 @@ def PF_EnKF(setup,config,xx,yy):
 
 
 
-def resample(E,w,N,noise, \
-    fix_mu=False,fix_var=False,kind='Multinomial'):
+def resample(E,w,noise=None,N=None,kind='Systematic',
+    fix_mu=False,fix_var=False):
   """
   Resampling function for the particle filter.
 
   Example: see docs/test_resample.py.
 
-  N can be different from E.shape[0] in case some particles
-  have been elimintated.
+  N can be different from E.shape[0]
+  (e.g. in case some particles have been elimintated).
+
+  kind: 'Residual' and 'Systematic' more systematic (less stochastic)
+    variations on 'Multinomial' sampling. 'Systematic' is a little faster.
+    'Gaussian' is rigorous/unbiased unless the actual distribution is Gaussian.
+
+  In the typical case of N >> m, many particles will be identical after resampling.
+  Therefore, if noise.is_deterministic: some noise will be added.
+  NB: This is ad-hoc and biased!
 
   Note: (a) resampling methods are beneficial because they discard
   low-weight particles and reduce the variance of the weights.
@@ -904,26 +909,28 @@ def resample(E,w,N,noise, \
   and also computed based on a weighted mean.
 
   [1]: Doucet, Johansen, 2009, v1.1:
-    "A Tutorial on Particle Filtering and Smoothing: 
-      Fifteen years later." 
+    "A Tutorial on Particle Filtering and Smoothing: Fifteen years later." 
   [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
   """
   assert(abs(w.sum()-1) < 1e-5)
 
   N_o,m = E.shape
 
+  if N is None:
+    N = N_o
+
+  # Decide whether to add noise
+  adhoc_noise = False
+  if noise is not None:
+    adhoc_noise = noise.is_deterministic
+
   # Stats of original sample that may get used
-  if \
-      kind is 'Gaussian' or \
-      noise.is_deterministic or \
-      fix_mu or fix_var:
+  if kind is 'Gaussian' or adhoc_noise or fix_mu or fix_var:
     mu_o  = w@E
     A_o   = E - mu_o
     ss_o  = sqrt(w @ A_o**2)
 
   if kind is 'Gaussian':
-    # This is obviously not rigorous/unbiased unless
-    # the actual distribution is Gaussian.
     N_eff = 1/(w@w)
     if N_eff<2:
       N_eff = 2
@@ -932,8 +939,6 @@ def resample(E,w,N,noise, \
     A  = randn((N,N)) @ A
     E  = mu_o + A
   else:
-    # The following are all variations on multinomial sampling,
-    # differing in their degree of being stochastic.
     if kind is 'Multinomial':
       # van Leeuwen [2] also calls this "probabilistic" resampling
       idx = np.random.choice(N_o,N,replace=True,p=w)
@@ -964,12 +969,8 @@ def resample(E,w,N,noise, \
 
     E = E[idx]
 
-    # In the typical case of of N >> m,
-    # many of the particles will now be identical.
-    # Therefore, if there's no forward noise: we need to add some.
-    # NB: This is ad-hoc and biased!
-    # Suggestion: use ss_o (which is precomputed, and weighted)?
-    if noise.is_deterministic:
+    if adhoc_noise:
+      # Add noise
       fudge = 4/sqrt(N)
       E += fudge * randn((N,m)) @ diag(ss_o)
 
