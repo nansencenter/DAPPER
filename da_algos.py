@@ -735,7 +735,6 @@ def PartFilt(setup,config,xx,yy):
   stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
   stats.assess(0,E=E,w=1/N)
 
-
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
     E = add_noise(E, dt, f.noise, config)
@@ -756,16 +755,6 @@ def PartFilt(setup,config,xx,yy):
       logw   = log(w) + logL # Bayes' rule
       w      = exp(logw)
       w     /= w.sum()
-      
-      # Resample w==0 particles (does not create bias)
-      if getattr(config,'w0_res',False):
-        inds0 = w==0
-        N0    = inds0.sum()
-        if N0>0:
-          inds1     = np.logical_not(inds0)
-          E[inds0]  = resample(E[inds1], w[inds1], f.noise, N0)
-          w[inds0]  = 1/N
-          w[inds1] *= (N-N0)/N
 
       # Resample (all particles) if N_effective < threshold.
       N_eff = 1/(w@w)
