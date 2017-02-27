@@ -6,8 +6,7 @@
 ############################
 from common import *
 
-sd0 = seed(5)
-#sd0 = seed()
+sd0 = seed(5) # or ()
 
 ############################
 # DA Configurations
@@ -68,8 +67,8 @@ config = DAC(PartFilt,'Systematic',N=1000,NER=0.9)
 ############################
 setup.t.T           = 4**3.5
 
-config.liveplotting = True
-config.store_u      = False
+#config.liveplotting = True
+#config.store_u      = True
 
 
 ############################

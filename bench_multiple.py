@@ -1,4 +1,8 @@
 # Illustrate how to benchmark multiple methods
+#
+# Note: if model is very large, you may want to
+# discard the stats object after each run, keeping
+# only the avrgs.
 
 from common import *
 
@@ -31,8 +35,8 @@ for ic,config in enumerate(cfgs):
   #config.liveplotting = True
   seed(sd0+2)
 
-  stats += [assimilate(setup,config,xx,yy)]
-  avrgs += [stats[ic].average_in_time()]
+  stats += [ assimilate(setup,config,xx,yy) ]
+  avrgs += [ stats[ic].average_in_time() ]
 print_averages(cfgs,avrgs)
 
 # Single experiment

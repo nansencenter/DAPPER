@@ -885,6 +885,8 @@ def resample(E,w,N,noise, \
   """
   Resampling function for the particle filter.
 
+  Example: see docs/test_resample.py.
+
   N can be different from E.shape[0] in case some particles
   have been elimintated.
 
@@ -937,8 +939,7 @@ def resample(E,w,N,noise, \
       idx = np.random.choice(N_o,N,replace=True,p=w)
     elif kind is 'Residual':
       # Doucet [1] also calls this "stratified" resampling.
-      # TODO: Verify that this works perfectly (unbiased).
-      w_N   = N_o * w         # upscale
+      w_N   = w*N             # upscale
       w_I   = w_N.astype(int) # integer part
       w_D   = w_N-w_I         # decimal part
       # Create duplicate indices for integer parts
@@ -952,12 +953,11 @@ def resample(E,w,N,noise, \
       idx   = np.hstack((idx_I,idx_D))
     elif kind is 'Systematic':
       # van Leeuwen [2] also calls this "stochastic universal" resampling
-      # TODO: Not working
       U     = rand(1) / N
       CDF_a = U + arange(N)/N
       CDF_o = np.cumsum(w)
-      idx   = CDF_a > CDF_o[:,None]
-      # Find 1st occurance. stackoverflow.com/a/16244044/38281
+      idx   = CDF_a <= CDF_o[:,None]
+      # Find 1st True. stackoverflow.com/a/16244044/
       idx   = np.argmax(idx,axis=0)
     else:
       raise TypeError
