@@ -6,7 +6,7 @@
 ############################
 from common import *
 
-sd0 = seed(5) # or ()
+sd0 = seed() # or ()
 
 ############################
 # DA Configurations
@@ -19,14 +19,11 @@ from mods.Lorenz63.sak12 import setup                          # Expected RMSE_a
 #config = DAC(EnKF,'Sqrt',    N=3 , infl=1.30)                  # 
 #config = DAC(EnKF ,'Sqrt',   N=10, infl=1.02,rot=True)         # 0.63 (sak: 0.65)
 #config = DAC(EnKF ,'PertObs',N=500,infl=0.95,rot=False)        # 0.56
+config = DAC(EnKF_N,         N=10,           rot=True)
 #config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
 #config = DAC(PartFilt,       N=800,NER=0.05)                   # 0.275 (with N=4000)
 
-config = DAC(PartFilt,N=200,NER=1)
-
-#config = DAC(EnKF_N, N=10, rot=True)
-
-#from mods.Lorenz95.sak08 import setup                   # Expected RMSE_a:
+#from mods.Lorenz95.sak08 import setup                 # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)
 #config = DAC(ExtKF, infl = 6)
@@ -44,6 +41,7 @@ config = DAC(PartFilt,N=200,NER=1)
 #config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
 #config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,loc_rad=4)
 #config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,loc_rad=6)
+
 
 
 #from mods.Lorenz95.spectral_obs import setup
@@ -65,7 +63,7 @@ config = DAC(PartFilt,N=200,NER=1)
 ############################
 # Common
 ############################
-setup.t.T           = 4**3.5
+setup.t.T           = 4**5.5
 
 #config.liveplotting = True
 #config.store_u      = True

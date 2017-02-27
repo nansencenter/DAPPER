@@ -349,7 +349,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
         HK = Y.T @ YC
         E  = E + KG@dy - 0.5*(KG@Y.T).T
     else:
-      raise TypeError("No analysis update method found: '" + upd_a + "'.") 
+      raise KeyError("No analysis update method found: '" + upd_a + "'.") 
 
     # Diagnostic: relative influence of observations
     if 'trHK' in locals(): stats.trHK[kObs] = trHK     /hnoise.m
@@ -385,6 +385,8 @@ def SL_EAKF(setup,config,xx,yy):
   See DAPPER/Misc/batch_vs_serial.py for some details.
   """
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  AMet  = getattr(config,'upd_a','default')
+  taper = getattr(config,'taper',None)
 
   n = N-1
 
@@ -402,10 +404,9 @@ def SL_EAKF(setup,config,xx,yy):
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E)
       y    = yy[kObs]
-      AMet = getattr(config,'upd_a','default')
       inds = serial_inds(AMet, y, R, anom(E)[0])
           
-      locf_at = h.loc_f(config.loc_rad, 'y2x', t)
+      locf_at = h.loc_f(config.loc_rad, 'y2x', t, taper)
       for i,j in enumerate(inds):
         hE = h.model(E,t)
         hx = mean(hE,0)
@@ -452,11 +453,16 @@ def LETKF(setup,config,xx,yy):
   """
   Same as EnKF (sqrt), but with localization.
 
+  Settings for reproducing literature benchmarks may be found in
+  mods/Lorenz95/sak08.py
+
   Ref: Hunt, Brian R., Eric J. Kostelich, and Istvan Szunyogh. (2007):
   "Efficient data assimilation for spatiotemporal chaos..."
   """
 
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  upd_a = getattr(config,'upd_a','default')
+  taper = getattr(config,'taper',None)
 
   Rm12 = h.noise.C.m12
 
@@ -477,7 +483,7 @@ def LETKF(setup,config,xx,yy):
       YR = (hE-hx)  @ Rm12.T
       yR = (yy[kObs] - hx) @ Rm12.T
 
-      locf_at = h.loc_f(config.loc_rad, 'x2y', t)
+      locf_at = h.loc_f(config.loc_rad, 'x2y', t, taper)
       for i in range(f.m):
         # Localize
         local, coeffs = locf_at(i)
@@ -486,7 +492,6 @@ def LETKF(setup,config,xx,yy):
         idy = yR[local]   * sqrt(coeffs)
 
         # Do analysis
-        upd_a = getattr(config,'upd_a','default')
         if upd_a is 'approx':
           # Approximate alternative, derived by pretending that Y_loc = H @ A_i,
           # even though the local cropping of Y happens after application of H.
@@ -963,7 +968,7 @@ def resample(E,w,noise=None,N=None,kind=None,
       # Find 1st True. stackoverflow.com/a/16244044/
       idx   = np.argmax(idx,axis=0)
     else:
-      raise TypeError
+      raise KeyError
 
     E = E[idx]
 

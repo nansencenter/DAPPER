@@ -45,13 +45,13 @@ def yplot(y):
 from aux.localization import inds_and_coeffs, unravel
 dIJ = unravel(arange(m), m)
 oIJ = unravel(jj , m)
-def locf(radius,direction,t):
+def locf(radius,direction,t,tag=None):
   if direction is 'x2y':
     def locf_at(i):
-      return inds_and_coeffs(dIJ[:,i], oIJ, m, radius)
+      return inds_and_coeffs(dIJ[:,i], oIJ, m, radius, tag=tag)
   elif direction is 'y2x':
     def locf_at(i):
-      return inds_and_coeffs(oIJ[:,i], dIJ, m, radius)
+      return inds_and_coeffs(oIJ[:,i], dIJ, m, radius, tag=tag)
   else: raise KeyError
   return locf_at
 
@@ -84,14 +84,17 @@ setup = OSSE(f,h,t,X0,**other)
 # Other
 #config = DAC(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # rmse_a = 0.17
 #
-#config = DAC(LETKF,N=6,rot=True,infl=1.04,locf=setup.locf(4,'x2y'))
-#config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,locf=setup.locf(4,'x2y'))
-#config = DAC(SL_EAKF,N=6,rot=True,infl=1.07,locf=setup.locf(6,'y2x'))
+#config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
+#config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,loc_rad=4)
+#config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,loc_rad=6)
 #
 #config = DAC(Climatology)
 #config = DAC(D3Var)
 #config = DAC(ExtKF, infl = 6)
 #config = DAC(EnCheat,'Sqrt',N=24,infl=1.02,rot=True)
+
+# Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6.
+#config = DAC(LETKF,N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')
 
 
 
@@ -106,4 +109,3 @@ setup = OSSE(f,h,t,X0,**other)
 #
 # # Also try quasi-linear regime:
 # t = Chronology(0.01,dkObs=1,T=4**4,BurnIn=20)
-

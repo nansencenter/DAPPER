@@ -45,9 +45,12 @@ def distance_nD(centr, domain, shape, periodic=True):
   return sla.norm(delta,axis=0)
 
 
-def dist2coeff(dists, radius, tag=TAG):
+def dist2coeff(dists, radius, tag=None):
   """Compute coefficients corresponding to a distances."""
   coeffs = zeros(dists.shape)
+
+  if tag is None:
+    tag = TAG
 
   if tag == 'Gauss':
     R = radius
@@ -81,18 +84,23 @@ def dist2coeff(dists, radius, tag=TAG):
     R            = radius
     inds         = dists <= R
     coeffs[inds] = 1
+  else:
+    raise KeyError('No such coeff function.')
 
   return coeffs
 
 
 def inds_and_coeffs(centr, domain, domain_shape,
-    radius, cutoff=CUTOFF, tag=TAG):
+    radius, cutoff=None, tag=None):
   """
   Returns:
   inds   = the **indices of** domain that "close to" centr,
            such that the local domain is: domain[inds].
   coeffs = the corresponding coefficients.
   """
+  if cutoff is None:
+    cutoff = CUTOFF
+
   dists  = distance_nD(centr, domain, domain_shape)
 
   coeffs = dist2coeff(dists, radius, tag)

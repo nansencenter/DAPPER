@@ -69,7 +69,7 @@ EnKF (Stoch., DEnKF, ETKF)         | sakov'2008 ("deterministic")
 EnKF-N                             | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
 EnKS, EnRTS                        | raanes'2016 ("EnRTS and EnKS")
 Iterative versions of the above    | sakov'2012 ("an iterative"), TODO: bocquet'2014
-LETKF, local & serial EAKF         |
+LETKF, local & serial EAKF         | bocquet'2011 ("EnKF-N")
 Sqrt. model noise methods          | raanes'2015 ("sqrt model noise")
 Extended KF                        | raanes'2016 thesis
 Particle filter (bootstrap)        | "
