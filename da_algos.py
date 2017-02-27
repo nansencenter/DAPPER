@@ -206,7 +206,7 @@ def add_noise(E, dt, noise, config):
   def sqrt_core():
     T    = np.nan
     Qa12 = np.nan
-    A2   = A.copy() # Instead of using: nonlocal A, which changes A
+    A2   = A.copy() # Instead of using nonlocal A, which changes A
     # in outside scope as well. NB: This is a bug in Datum!
     if N<=m:
       Ainv = tinv(A2.T)
@@ -720,10 +720,15 @@ def PartFilt(setup,config,xx,yy):
   Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
   This is the bootstrap version: the proposal density is just
   q(x_0:t|y_1:t) = p(x_0:t) = p(x_t|x_{t-1}) p(x_0:{t-1}).
+
+  Ref:
+  [1]: Christopher K. Wikle, L. Mark Berliner, 2006:
+    "A Bayesian tutorial for data assimilation"
+  [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
   """
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, getattr(config,'upd_a','Systematic')
+  N, upd_a      = config.N, getattr(config,'upd_a',None)
 
   Rm12 = h.noise.C.m12
 
@@ -778,10 +783,11 @@ def PF_EnKF(setup,config,xx,yy):
   However, testing on L63, I can't get it to work as well as the standard PF,
   exceept with moderately small N, in which case the EnKF is already better.
 
-  Ref: van Leeuven 2009 review
+  Ref:
+  [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
   """
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, getattr(config,'upd_a','Systematic')
+  N, upd_a      = config.N, getattr(config,'upd_a',None)
 
   R     = h.noise.C.C
   Rm12T = h.noise.C.m12.T
@@ -866,7 +872,7 @@ def PF_EnKF(setup,config,xx,yy):
 
 
 
-def resample(E,w,noise=None,N=None,kind='Systematic',
+def resample(E,w,noise=None,N=None,kind=None,
     fix_mu=False,fix_var=False):
   """
   Resampling function for the particle filter.
@@ -905,13 +911,16 @@ def resample(E,w,noise=None,N=None,kind='Systematic',
 
   N_o,m = E.shape
 
+  # Input parsing
   if N is None:
     N = N_o
-
-  # Decide whether to add noise
-  adhoc_noise = False
+  if kind is None:
+    kind = 'Systematic'
   if noise is not None:
     adhoc_noise = noise.is_deterministic
+  else:
+    adhoc_noise = False
+
 
   # Stats of original sample that may get used
   if kind is 'Gaussian' or adhoc_noise or fix_mu or fix_var:
@@ -983,7 +992,8 @@ def EnCheat(setup,config,xx,yy):
   """
   A baseline/reference method.
   Ensemble method that cheats: it knows the truth.
-  Nevertheless, its error will not be 0, because the truth may be outside of the ensemble subspace.
+  Nevertheless, its error will not necessarily be 0,
+  because the truth may be outside of the ensemble subspace.
   This method is just to provide a baseline for comparison with other methods.
   It may very well beat the particle filter with N=infinty.
   NB: The forecasts (and their rmse) are given by the standard EnKF.
@@ -1000,9 +1010,7 @@ def EnCheat(setup,config,xx,yy):
     E = add_noise(E, dt, f.noise, config)
 
     if kObs is not None:
-      stats.assess(k,kObs,'f',mu=opt,Cov=res)
-
-      # Regular EnKF analysis
+      # Standard EnKF analysis
       hE = h.model(E,t)
       y  = yy[kObs]
       E  = EnKF_analysis(E,hE,h.noise,y,upd_a,stats,kObs)
@@ -1014,9 +1022,8 @@ def EnCheat(setup,config,xx,yy):
         res = 0
       res = diag((res/setup.f.m) * ones(setup.f.m))
       opt = w @ E
-      # NB: It is also interesting to center E
-      #     on the optimal solution.
-      #E   = opt + E - mean(E,0)
+      # NB: Center on the optimal solution?
+      #E += opt - mean(E,0)
 
     stats.assess(k,kObs,mu=opt,Cov=res)
   return stats
