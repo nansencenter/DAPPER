@@ -534,7 +534,32 @@ def LETKF(setup,config,xx,yy):
   return stats
 
 
-from scipy.optimize import minimize_scalar as minzs
+# Notes:
+#  Using scalar minimization:
+#  - don't accept dJdx. Pro: only need J  :-)
+#  - method='bounded' not necessary and slower than 'brent'.
+#  - bracket not necessary either...
+#  Using multivariate minimization: fmin_cg, fmin_bfgs, fmin_ncg
+#  - these also accept dJdx. But only fmin_bfgs approaches
+#    the speed of the scalar minimizers.
+#  Using scalar root-finders:
+#  - brenth(dJ1, LowB, 1e2,     xtol=1e-6) # Same speed as minimmization
+#  - newton(dJ1,1.0, fprime=dJ2, tol=1e-6) # No improvement
+#  - newton(dJ1,1.0, fprime=dJ2, tol=1e-6, fprime2=dJ3) # No improvement
+#  - myNewton(dJ1,dJ2, 1.0) # Significantly faster. Also slightly better CV?
+# => Despite inconvienience of defining analytic derivatives,
+#    myNewton seems like the best option.
+def myNewton(fun,deriv,x0,conf=1.0,xtol=1e-4,itermax=10**4):
+  x       = x0
+  itr     = 0
+  dx      = np.inf
+  while True and xtol<dx and itr<itermax:
+    Jx = fun(x)
+    Dx = deriv(x)
+    dx = Jx/Dx * conf
+    x -= dx
+  return x
+
 def EnKF_N(setup,config,xx,yy):
   """
   Finite-size EnKF (EnKF-N).
@@ -551,17 +576,18 @@ def EnKF_N(setup,config,xx,yy):
   f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
 
   # EnKF-N constants
-  eN = (N+1)/N               # Effect of unknown mean
-  g  = 1                     # Nullity of anomalies matrix # TODO: For N>m ?
-  LB = sqrt((N-1)/(N+g)*eN)  # Lower bound for lambda^1    # TODO: Updated with g. Correct?
-  clog = (N+g)/(N-1)         # Coeff in front of log term
-  mode = eN/clog             # Mode of prior for lambda
+  #g   = max(1,N-h.m)  # TODO
+  g    = 1             # Nullity of Y (obs anom's).
+  eN   = (N+1)/N       # Effect of unknown mean
+  clog = (N+g)/(N-1)   # Coeff in front of log term
+  mode = eN/clog       # Mode of prior for lambda
+  LowB = sqrt(mode)    # Lower bound for lambda^1
 
   Rm12 = h.noise.C.m12
   Ri   = h.noise.C.inv
 
-  E          = X0.sample(N)
-  stats      = Stats(setup,config,xx,yy).assess(0,E=E)
+  E     = X0.sample(N)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E = f.model(E,t-dt,dt)
@@ -583,13 +609,21 @@ def EnKF_N(setup,config,xx,yy):
 
       # Find inflation factor.
       du   = U_T @ (Rm12 @ dy)
-      d    = lambda l: pad0( (l*s)**2, h.m ) + (N-1)
+      dgn  = lambda l: pad0( (l*s)**2, h.m ) + (N-1)
       PR   = (s**2).sum()/(N-1)
       fctr = sqrt(mode**(1/(1+PR)))
-      J    = lambda l: (du/d(l)) @ du \
-             + (1/fctr)*eN/l**2 + fctr*clog*log(l**2)
-      l1   = minzs(J, bounds=(LB, 1e2), method='bounded').x
-
+      J    = lambda l:            np.sum(du**2/dgn(l)) \
+             + (1/fctr)*eN/l**2 \
+             + fctr*clog*log(l**2)
+      #l1  = scipy.optimize.minimize_scalar(J, bracket=(LowB, 1e2), tol=1e-4).x
+      dJ1  = lambda l:   -2*l   * np.sum(pad0(s**2,h.m) * du**2/dgn(l)**2) \
+             + -2*(1/fctr)*eN/l**3 \
+             +  2*fctr*clog  /l
+      dJ2  = lambda l:   8*l**2 * np.sum(pad0(s**4,h.m) * du**2/dgn(l)**3) \
+             +  6*(1/fctr)*eN/l**4 \
+             + -2*fctr*clog  /l**2
+      # Find
+      l1 = myNewton(dJ1,dJ2, 1.0)
       # Turns it into the ETKF
       #l1 = 1.0
 
@@ -601,10 +635,10 @@ def EnKF_N(setup,config,xx,yy):
       Y *= l1
 
       # Compute ETKF (sym sqrt) update
-      d       = lambda l: pad0( (l*s)**2, N ) + (N-1)
-      Pw      = (V * d(l1)**(-1.0)) @ V.T
+      dgn     = lambda l: pad0( (l*s)**2, N ) + (N-1)
+      Pw      = (V * dgn(l1)**(-1.0)) @ V.T
       w       = dy@Ri@Y.T@Pw
-      T       = (V * d(l1)**(-0.5)) @ V.T * sqrt(N-1)
+      T       = (V * dgn(l1)**(-0.5)) @ V.T * sqrt(N-1)
 
       # NB: Use Hessian adjustment ?
       # Replace sqrtm_psd with something like Woodbury?

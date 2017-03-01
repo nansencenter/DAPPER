@@ -33,3 +33,6 @@ def simulate(setup):
 
   return xx,yy
 
+def print_together(*args):
+  "Print stacked 1D arrays."
+  print(np.vstack(args).T)
