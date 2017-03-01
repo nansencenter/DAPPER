@@ -106,7 +106,8 @@ Also has:
 * Confidence interval on times series (e.g. rmse) with
 	* automatic correction for autocorrelation 
 	* significant digits printing
-* CovMat class (input flexibility/overloading, lazy eval)
+* CovMat class (input flexibility/overloading, lazy eval) that facilitates
+    the use of non-diagnoal covariance matrices (whether sparse or full)
 * Intelligent defaults (e.g. plot duration estimated from autocorrelation,
     axis limits estimated from percentiles)
 * Chronology/Ticker with consistency checks

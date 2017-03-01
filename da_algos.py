@@ -549,7 +549,11 @@ def LETKF(setup,config,xx,yy):
 #  - myNewton(dJ1,dJ2, 1.0) # Significantly faster. Also slightly better CV?
 # => Despite inconvienience of defining analytic derivatives,
 #    myNewton seems like the best option.
+# NB: In extreme (or just non-linear h) cases,
+#     the EnKF-N cost function may have multiple minima.
+#     Then: must use more robust root finders!
 def myNewton(fun,deriv,x0,conf=1.0,xtol=1e-4,itermax=10**4):
+  "Simple implementation of Newton root-finding"
   x       = x0
   itr     = 0
   dx      = np.inf
@@ -562,8 +566,11 @@ def myNewton(fun,deriv,x0,conf=1.0,xtol=1e-4,itermax=10**4):
 
 def EnKF_N(setup,config,xx,yy):
   """
-  Finite-size EnKF (EnKF-N).
-  Corresponding to version ql2 of Datum.
+  Finite-size EnKF (EnKF-N) -- dual formulation.
+
+  Dual ≡ Primal if using the Hessian adjustment, and lklhd is Gaussian
+  
+  Note: Implementation corresponds to version ql2 of Datum.
 
   Ref: Bocquet, Marc, Patrick N. Raanes, and Alexis Hannart. (2015):
   "Expanding the validity of the ensemble Kalman filter..."
@@ -573,18 +580,20 @@ def EnKF_N(setup,config,xx,yy):
   mods/Lorenz95/sak12.py
   """
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  # Unpack
+  f,h,chrono,X0  = setup.f, setup.h, setup.t, setup.X0
+  N, primal_Hess = config.N, getattr(config,'Hess',False)
+
+  Rm12 = h.noise.C.m12
+  Ri   = h.noise.C.inv
 
   # EnKF-N constants
-  #g   = max(1,N-h.m)  # TODO
   g    = 1             # Nullity of Y (obs anom's).
+  #g   = max(1,N-h.m)  # TODO
   eN   = (N+1)/N       # Effect of unknown mean
   clog = (N+g)/(N-1)   # Coeff in front of log term
   mode = eN/clog       # Mode of prior for lambda
   LowB = sqrt(mode)    # Lower bound for lambda^1
-
-  Rm12 = h.noise.C.m12
-  Ri   = h.noise.C.inv
 
   E     = X0.sample(N)
   stats = Stats(setup,config,xx,yy).assess(0,E=E)
@@ -605,32 +614,32 @@ def EnKF_N(setup,config,xx,yy):
       Y  = hE-hx
       dy = y - hx
 
-      V,s,U_T = sla.svd( Y @ Rm12.T )
+      V,s,U_T = svd0( Y @ Rm12.T )
 
-      # Find inflation factor.
+      # Make dual cost function (in terms of lambda^1)
+      m_Nm = min(N,h.m)
       du   = U_T @ (Rm12 @ dy)
-      dgn  = lambda l: pad0( (l*s)**2, h.m ) + (N-1)
+      dgn  = lambda l: pad0( (l*s)**2, m_Nm ) + (N-1)
       PR   = (s**2).sum()/(N-1)
       fctr = sqrt(mode**(1/(1+PR)))
       J    = lambda l:            np.sum(du**2/dgn(l)) \
              + (1/fctr)*eN/l**2 \
              + fctr*clog*log(l**2)
       #l1  = scipy.optimize.minimize_scalar(J, bracket=(LowB, 1e2), tol=1e-4).x
-      dJ1  = lambda l:   -2*l   * np.sum(pad0(s**2,h.m) * du**2/dgn(l)**2) \
+      # Derivatives
+      dJ1  = lambda l:   -2*l   * np.sum(pad0(s**2, m_Nm) * du**2/dgn(l)**2) \
              + -2*(1/fctr)*eN/l**3 \
              +  2*fctr*clog  /l
-      dJ2  = lambda l:   8*l**2 * np.sum(pad0(s**4,h.m) * du**2/dgn(l)**3) \
+      dJ2  = lambda l:   8*l**2 * np.sum(pad0(s**4, m_Nm) * du**2/dgn(l)**3) \
              +  6*(1/fctr)*eN/l**4 \
              + -2*fctr*clog  /l**2
-      # Find
+      # Find inflation factor
       l1 = myNewton(dJ1,dJ2, 1.0)
-      # Turns it into the ETKF
+
+      # Turns EnKF-N into ETKF:
       #l1 = 1.0
 
       # Inflate prior.
-      # This is strictly equivalent to using zeta formulations.
-      # With the Hessian adjustment, it's also equivalent to
-      # the primal EnKF-N (in the Gaussian case).
       A *= l1
       Y *= l1
 
@@ -638,15 +647,14 @@ def EnKF_N(setup,config,xx,yy):
       dgn     = lambda l: pad0( (l*s)**2, N ) + (N-1)
       Pw      = (V * dgn(l1)**(-1.0)) @ V.T
       w       = dy@Ri@Y.T@Pw
-      T       = (V * dgn(l1)**(-0.5)) @ V.T * sqrt(N-1)
 
-      # NB: Use Hessian adjustment ?
-      # Replace sqrtm_psd with something like Woodbury?
-      # zeta    = (N-1)/l1**2
-      # Hess    = Y@Ri@Y.T + zeta*eye(N) \
-      #           - 2*zeta**2/(N+g)*np.outer(w,w)
-      # T       = funm_psd(Hess, lambda x: x**(-0.5)) * sqrt(N-1)
-
+      if primal_Hess:
+        zeta  = (N-1)/l1**2
+        Hess  = Y@Ri@Y.T + zeta*eye(N) - 2*zeta**2/(N+g)*np.outer(w,w)
+        T     = funm_psd(Hess, lambda x: x**-.5) * sqrt(N-1) # sqrtm Woodbury?
+      else:
+        T     = (V * dgn(l1)**(-0.5)) @ V.T * sqrt(N-1)
+        
       E = mu + w@A + T@A
       post_process(E,config)
 

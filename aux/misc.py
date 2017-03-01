@@ -184,7 +184,7 @@ def svd0(A):
   Compute the 
    - full    svd if nrows > ncols
    - reduced svd otherwise.
-  This is the reverse of Matlab's svd(A,0),
+  In Matlab: svd(A',0)' ,
   in keeping with DAPPER convention of transposing ensemble matrices.
   It also contrasts with scipy.linalg's svd and Matlab's svd(A,'econ'),
   both of which always compute the reduced svd.
