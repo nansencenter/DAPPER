@@ -551,7 +551,7 @@ def LETKF(setup,config,xx,yy):
 #    myNewton seems like the best option.
 # NB: In extreme (or just non-linear h) cases,
 #     the EnKF-N cost function may have multiple minima.
-#     Then: must use more robust root finders!
+#     Then: must use more robust optimizer!
 def myNewton(fun,deriv,x0,conf=1.0,xtol=1e-4,itermax=10**4):
   "Simple implementation of Newton root-finding"
   x       = x0
@@ -568,7 +568,7 @@ def EnKF_N(setup,config,xx,yy):
   """
   Finite-size EnKF (EnKF-N) -- dual formulation.
 
-  Dual ≡ Primal if using the Hessian adjustment, and lklhd is Gaussian
+  Dual ≡ Primal if using the Hessian adjustment, and lklhd is Gaussian.
   
   Note: Implementation corresponds to version ql2 of Datum.
 
@@ -622,15 +622,15 @@ def EnKF_N(setup,config,xx,yy):
       dgn  = lambda l: pad0( (l*s)**2, m_Nm ) + (N-1)
       PR   = (s**2).sum()/(N-1)
       fctr = sqrt(mode**(1/(1+PR)))
-      J    = lambda l:            np.sum(du**2/dgn(l)) \
+      J    = lambda l:          np.sum(du**2/dgn(l)) \
              + (1/fctr)*eN/l**2 \
              + fctr*clog*log(l**2)
-      #l1  = scipy.optimize.minimize_scalar(J, bracket=(LowB, 1e2), tol=1e-4).x
+      #l1  = sp.optimize.minimize_scalar(J, bracket=(LowB, 1e2), tol=1e-4).x
       # Derivatives
-      dJ1  = lambda l:   -2*l   * np.sum(pad0(s**2, m_Nm) * du**2/dgn(l)**2) \
+      dJ1  = lambda l: -2*l   * np.sum(pad0(s**2, m_Nm) * du**2/dgn(l)**2) \
              + -2*(1/fctr)*eN/l**3 \
              +  2*fctr*clog  /l
-      dJ2  = lambda l:   8*l**2 * np.sum(pad0(s**4, m_Nm) * du**2/dgn(l)**3) \
+      dJ2  = lambda l: 8*l**2 * np.sum(pad0(s**4, m_Nm) * du**2/dgn(l)**3) \
              +  6*(1/fctr)*eN/l**4 \
              + -2*fctr*clog  /l**2
       # Find inflation factor
@@ -818,6 +818,74 @@ def PartFilt(setup,config,xx,yy):
 
     stats.assess(k,kObs,E=E,w=w)
   return stats
+
+
+def PF_QP(setup,config,xx,yy):
+  """
+  Same as PartFilt, except:
+  Projects Q into p largest principal components of forecast cov.
+  """
+
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a, p   = config.N, getattr(config,'upd_a',None),  config.p
+
+  Rm12 = h.noise.C.m12
+
+  E = X0.sample(N)
+  w = 1/N *ones(N)
+
+  stats        = Stats(setup,config,xx,yy)
+  stats.N_eff  = np.full(chrono.KObs+1,nan)
+  stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+  stats.assess(0,E=E,w=1/N)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    E = f.model(E,t-dt,dt)
+     
+    # NOTE: Here's the projection
+    #E = add_noise(E, dt, f.noise, config)
+    mu     = w@E
+    A      = E - mu
+    N_eff  = 1/(w@w)
+    N_eff  = max(N_eff,2)       # ensure N_eff > = 2
+    ub     = 1/(1 - 1/N_eff)    # unbias-ing factor
+    A      = tp(sqrt(ub*w)) * A # scale A by sqrt(w)
+    # Via cov -- faster when N>>m
+    B      = A.T @ A
+    _,U    = eigh(B)
+    UT     = U.T[-p:]
+    # Directly from A
+    #_,_,UT = svd0(A)
+    #UT     = UT[:p]
+    #
+    Proj   = UT.T @ UT
+    E     += sqrt(dt)*f.noise.sample(N) @ Proj
+
+    if kObs is not None:
+      stats.assess(k,kObs,'f',E=E,w=w)
+
+      hE = h.model(E,t)
+      y  = yy[kObs]
+      innovs = hE - y
+      innovs = innovs @ Rm12.T
+      logL   = -0.5 * np.sum(innovs**2, axis=1)
+      logL  -= logL.max()    # Avoid numerical error
+      logw   = log(w) + logL # Bayes' rule
+      w      = exp(logw)
+      w     /= w.sum()
+
+      # Resample (all particles) if N_effective < threshold.
+      N_eff = 1/(w@w)
+      stats.N_eff[kObs] = N_eff
+      if N_eff <= N*config.NER:
+        E = resample(E, w, f.noise, kind=upd_a)
+        w = 1/N*ones(N)
+        stats.resmpl[kObs] = True
+
+    stats.assess(k,kObs,E=E,w=w)
+  return stats
+
+
 
 def PF_EnKF(setup,config,xx,yy):
   """
