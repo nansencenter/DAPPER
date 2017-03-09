@@ -44,7 +44,7 @@ and makes it easy to adapt and extend to further needs.
 In summary, it is well suited for conducting fundamental DA research
 as well as for teaching purposes.
 
-In a trade-off with the above advantages, DAPPER makes some sacrifices of efficiency.
+In a trade-off with the above advantages, DAPPER makes some sacrifices of efficiency and flexibility (generality).
 I.e. it is not designed for the assimilation of real data in operational models.
 
 The current documentation does not provide a tutorial;
@@ -175,6 +175,7 @@ Alternative projects
 Sorted by approximate project size.
 DAPPER may be situated somewhere in the middle.
 
+<!--
 * DART         (NCAR)
 * SANGOMA      (Liege/CNRS/Nersc/Reading/Delft)
 * Verdandi     (INRIA)
@@ -186,12 +187,59 @@ DAPPER may be situated somewhere in the middle.
 * FilterPy     (R. Labbe)
 * DASoftware   (Yue Li, Stanford)
 * PyIT         (CIPR)
+* OAK          (Liège)
+* Siroco       (OMP)
 * Datum*       (Raanes)
 * EnKF-Matlab* (Sakov)
 * IEnKS code*  (Bocquet)
 * pyda         (Hickman)
 
 *: Has been inspirational in the development of DAPPER. 
+-->
+
+
+Name               | Developers           | Purpose (vs. DAPPER)
+------------------ | -------------------- | -----------------------------
+[DART][1]          | NCAR                 | Operational and real-world DA
+[ERT*][2]          | Statoil              | Operational (petroleum) history matching
+[OpenDA][3]        | TU Delft             | Operational and real-world DA DA
+[EMPIRE][4]        | Reading (Met)        | Operational and real-world DA.
+[SANGOMA][5]       | Conglomerate**       | Real-world DA. Unified code repository.
+[Verdandi][6]      | INRIA                | Real-world DA (?)
+[PDAF][7]          | Nerger               | Real-world DA (?)
+[PyOSSE][8]        | Edinburgh, Reading   | Real-world earth-observation planning (?)
+[MIKE][9]          | DHI                  | Real-world oceanographic DA. Commercial?
+[OAK][10]          | Liège                | Real-world oceaonagraphic DA
+[Siroco][11]       | OMP                  | Real-world oceaonagraphic DA
+[FilterPy][12]     | R. Labbe             | Engineering, general intro to Kalman filter
+[DASoftware][13]   | Yue Li, Stanford     | Matlab, large-scale
+[PyIT][14]         | CIPR                 | Real-world petroleum DA (?)
+Datum*             | Raanes               | Matlab, personal DA publications
+[EnKF-Matlab*][15] | Sakov                | Matlab, personal DA publications and intro
+IEnKS code*        | Bocquet              | Python, personal DA publications
+[pyda][16]         | Hickman              | Python, personal DA publications
+
+
+*: Has been inspirational in the development of DAPPER. 
+
+**: Liege/CNRS/NERSC/Reading/Delft
+
+[1]: http://www.image.ucar.edu/DAReS/DART/
+[2]: http://ert.nr.no/ert/index.php/Main_Page
+[3]: http://www.openda.org/
+[4]: http://www.met.reading.ac.uk/~darc/empire/index.php
+[5]: http://www.data-assimilation.net/
+[6]: http://verdandi.sourceforge.net/
+[7]: http://pdaf.awi.de/trac/wiki
+[8]: http://www.geos.ed.ac.uk/~lfeng/
+[9]: http://www.dhigroup.com/
+[10]: http://modb.oce.ulg.ac.be/mediawiki/index.php/Ocean_Assimilation_Kit
+[11]: https://www5.obs-mip.fr/sirocco/assimilation-tools/sequoia-data-assimilation-platform/
+[12]: https://github.com/rlabbe/filterpy
+[13]: https://github.com/judithyueli/DASoftware
+[14]: http://uni.no/en/uni-cipr/
+[15]: http://enkf.nersc.no/
+[16]: http://hickmank.github.io/pyda/
 
 
 Implementation choices
