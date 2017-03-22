@@ -63,18 +63,27 @@ Download, extract, and `cd` to DAPPER. Then run:
 Methods
 ------------
 
-Method name                        | Literature RMSE results reproduced
------------------------------------| ---------------------------------------
-EnKF (Stoch., DEnKF, ETKF)         | sakov'2008 ("deterministic")
-EnKF-N                             | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
-EnKS, EnRTS                        | raanes'2016 ("EnRTS and EnKS")
-Iterative versions of the above    | sakov'2012 ("an iterative"), TODO: bocquet'2014
-LETKF, local & serial EAKF         | bocquet'2011 ("EnKF-N")
-Sqrt. model noise methods          | raanes'2015 ("sqrt model noise")
-Extended KF                        | raanes'2016 thesis
-Particle filter (bootstrap)        | "
-3D-Var                             | "
-Climatology                        | "
+Method name                                 | Literature RMSE results reproduced
+------------------------------------------- | ---------------------------------------
+EnKF <sup>1</sup>                           | sakov'2008 ("deterministic")
+EnKF-N                                      | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
+EnKS, EnRTS                                 | raanes'2016 ("EnRTS and EnKS")
+iEnKF                                       | sakov'2012 ("an iterative")
+LETKF, local & serial EAKF                  | bocquet'2011 ("EnKF-N")
+Sqrt. model noise methods                   | raanes'2015 ("sqrt model noise")
+Extended KF                                 | raanes'2016 thesis
+Particle filter (bootstrap) <sup>2</sup>    | "
+3D-Var                                      | "
+Climatology                                 | "
+
+<sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.)
+
+EnKF-type methods support tuning with inflation and "random, orthogonal rotations".
+
+<sup>2</sup>: Resampling: multinomial (including systematic and residual)
+
+The bootstrap (standard) particle filter supports tuning with "effective-N monitoring",
+"adjusted resampling weights", "annealed prior".
 
 
 Models
@@ -266,6 +275,10 @@ TODO
      * Unify sparse and dense treatment
      * Read-only properties
 * Complete QG, LorenzXY
+* Make lightweight OOP assimilation methods:
+    - replace config by function arguments
+    - return function 'assimilate'
+    - wrapped to catch exceptions and return stats
 * Split `da_algos.py` into multiple files
 * Make tutorial
 
