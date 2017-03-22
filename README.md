@@ -76,14 +76,10 @@ Particle filter (bootstrap) <sup>2</sup>    | "
 3D-Var                                      | "
 Climatology                                 | "
 
-<sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.)
-
-EnKF-type methods support tuning with inflation and "random, orthogonal rotations".
-
-<sup>2</sup>: Resampling: multinomial (including systematic and residual)
-
-The bootstrap (standard) particle filter supports tuning with "effective-N monitoring",
-"adjusted resampling weights", "annealed prior".
+<sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.)  
+EnKF-type methods support tuning with inflation and "random, orthogonal rotations".  
+<sup>2</sup>: Resampling: multinomial (including systematic and residual)  
+The particle filter is tuned with "effective-N monitoring", "adjusted resampling weights", "annealed prior".  
 
 
 Models
@@ -210,24 +206,29 @@ DAPPER may be situated somewhere in the middle.
 Name               | Developers           | Purpose (vs. DAPPER)
 ------------------ | -------------------- | -----------------------------
 [DART][1]          | NCAR                 | Operational and real-world DA
-[ERT*][2]          | Statoil              | Operational (petroleum) history matching
-[OpenDA][3]        | TU Delft             | Operational and real-world DA DA
-[EMPIRE][4]        | Reading (Met)        | Operational and real-world DA.
-[SANGOMA][5]       | Conglomerate**       | Real-world DA. Unified code repository.
-[Verdandi][6]      | INRIA                | Real-world DA (?)
-[PDAF][7]          | Nerger               | Real-world DA (?)
-[PyOSSE][8]        | Edinburgh, Reading   | Real-world earth-observation planning (?)
+[ERT][2]*          | Statoil              | Operational (petroleum) history matching
+[OpenDA][3]        | TU Delft             | Operational and real-world DA
+[EMPIRE][4]        | Reading (Met)        | Operational and real-world DA
+[SANGOMA][5]       | Conglomerate**       | Unified code repository researchers
+[Verdandi][6]      | INRIA                | Real-world biophysical DA
+[PDAF][7]          | Nerger               | Real-world and example DA
+[PyOSSE][8]        | Edinburgh, Reading   | Real-world earth-observation DA
 [MIKE][9]          | DHI                  | Real-world oceanographic DA. Commercial?
 [OAK][10]          | Liège                | Real-world oceaonagraphic DA
 [Siroco][11]       | OMP                  | Real-world oceaonagraphic DA
 [FilterPy][12]     | R. Labbe             | Engineering, general intro to Kalman filter
 [DASoftware][13]   | Yue Li, Stanford     | Matlab, large-scale
 [PyIT][14]         | CIPR                 | Real-world petroleum DA (?)
-Datum*             | Raanes               | Matlab, personal DA publications
-[EnKF-Matlab*][15] | Sakov                | Matlab, personal DA publications and intro
-IEnKS code*        | Bocquet              | Python, personal DA publications
-[pyda][16]         | Hickman              | Python, personal DA publications
+Datum*             | Raanes               | Matlab, personal publications
+[EnKF-Matlab*][15] | Sakov                | Matlab, personal publications and intro
+IEnKS code*        | Bocquet              | Python, personal publications
+[pyda][16]         | Hickman              | Python, personal publications
 
+
+<!--
+Real-world: supports very general models (e.g. time dependent state length, mapping to-from grids, etc.)
+Operational: optimized for speed.
+-->
 
 *: Has been inspirational in the development of DAPPER. 
 
