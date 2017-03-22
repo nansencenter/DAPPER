@@ -793,6 +793,7 @@ def PartFilt(setup,config,xx,yy):
   N, upd_a      = config.N, getattr(config,'upd_a',None)
   rsmpl_root    = getattr(config,'rsmpl_root',1.0)
   prior_root    = getattr(config,'prior_root',1.0)
+  adhoc_noise   = getattr(config,'adhoc_noise',False)
 
   Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
@@ -837,14 +838,14 @@ def PartFilt(setup,config,xx,yy):
       # Resample if N_effective < threshold.
       if N_eff <= N*config.NER:
         if rsmpl_root == 1.0:
-          E,_ = resample(E, w, f.noise, kind=upd_a)
+          E,_ = resample(E, w, f.noise, kind=upd_a, adhoc_noise=adhoc_noise)
           w   = 1/N*ones(N)
         else:
           # Compute factors s such that sw := w**(1/rsmpl_root). 
           s   = ( w**(1/rsmpl_root - 1) ).clip(max=1e100)
           s  /= (s*w).sum()
           sw  = s*w
-          E, idx = resample(E, sw, f.noise, kind=upd_a)
+          E, idx = resample(E, sw, f.noise, kind=upd_a, adhoc_noise=adhoc_noise)
           w   = 1/s[idx]
           w  /= w.sum()
         stats.resmpl[kObs] = True
@@ -957,7 +958,7 @@ def PF_EnKF(setup,config,xx,yy):
 
 
 def resample(E,w,noise=None,N=None,kind=None,
-    fix_mu=False,fix_var=False):
+    fix_mu=False,fix_var=False,adhoc_noise=False):
   """
   Resampling function for the particle filter.
 
@@ -1000,10 +1001,14 @@ def resample(E,w,noise=None,N=None,kind=None,
     N = N_o
   if kind is None:
     kind = 'Systematic'
-  if noise is not None:
-    adhoc_noise = noise.is_deterministic
-  else:
-    adhoc_noise = False
+  if not adhoc_noise:
+    if noise is not None:
+      # Even if adhoc_noise not requested,
+      # we'll need to add it (to avoid exact duplicates).
+      adhoc_noise = noise.is_deterministic
+    else:
+      # allow not specifying the noise for the testing purposes.
+      adhoc_noise = False
 
 
   # Stats of original sample that may get used
