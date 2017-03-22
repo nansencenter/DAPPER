@@ -1,8 +1,11 @@
 # "Lorenz-95" (or 96) model.
 # 
-# A summary for the purpose of DA is provided in section 3.5
-# of thesis found at
+# A summary for the purpose of DA is provided in
+# section 3.5 of thesis found at
 # ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
+#
+# A more detailed summary is given in Chapter 11 of 
+# Majda, Harlim: Filtering Complex Turbulent Systems"
 #
 # Note: implementation is ndim-agnostic.
 #
