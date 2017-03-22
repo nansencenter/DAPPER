@@ -589,7 +589,7 @@ def EnKF_N(setup,config,xx,yy):
 
   # EnKF-N constants
   g    = 1             # Nullity of Y (obs anom's).
-  #g   = max(1,N-h.m)  # TODO
+  #g   = max(1,N-h.m)  # TODO: No good
   eN   = (N+1)/N       # Effect of unknown mean
   clog = (N+g)/(N-1)   # Coeff in front of log term
   mode = eN/clog       # Mode of prior for lambda
@@ -772,12 +772,30 @@ def PartFilt(setup,config,xx,yy):
   [1]: Christopher K. Wikle, L. Mark Berliner, 2006:
     "A Bayesian tutorial for data assimilation"
   [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
+
+  Tuning settings:
+   - NER: Trigger resampling whenever N_eff <= N*NER.
+       If resampling with some variant of 'Multinomial', no systematic bias is introduced.
+   - rsmpl_root: Adjust weights before resampling by this root to mitigate thinning.
+       The outcomes of the resampling are then weighted to maintain un-biased-ness.
+       Ref: [3], section 3.1
+   - prior_root: "Inflate" (anneal) the proposal noise kernels by this root to increase diversity.
+       The weights are updated to maintain un-biased-ness.
+       Ref: [4], section VI-M.2
+
+  [3]: Liu, Chen Longvinenko, 2001:
+    "A theoretical framework for sequential importance sampling with resampling"
+  [4]: Zhe Chen, 2003:
+    "Bayesian Filtering: From Kalman Filters to Particle Filters, and Beyond"
   """
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
+  rsmpl_root    = getattr(config,'rsmpl_root',1.0)
+  prior_root    = getattr(config,'prior_root',1.0)
 
   Rm12 = h.noise.C.m12
+  Q12  = f.noise.C.ssqrt
 
   E = X0.sample(N)
   w = 1/N *ones(N)
@@ -788,8 +806,14 @@ def PartFilt(setup,config,xx,yy):
   stats.assess(0,E=E,w=1/N)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E = f.model(E,t-dt,dt)
-    E = add_noise(E, dt, f.noise, config)
+    E  = f.model(E,t-dt,dt)
+    D  = randn((N,f.m))
+    E += sqrt(dt*prior_root)*(D@Q12.T)
+
+    if prior_root != 1.0:
+      # Evaluate p/q (at each noise realization in D) when q:=p**(1/prior_root).
+      w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/prior_root))
+      w /= w.sum()
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E,w=w)
@@ -808,14 +832,24 @@ def PartFilt(setup,config,xx,yy):
       w      = exp(logw)
       w     /= w.sum()
 
-      # Resample (all particles) if N_effective < threshold.
       N_eff = 1/(w@w)
       stats.N_eff[kObs] = N_eff
+      # Resample if N_effective < threshold.
       if N_eff <= N*config.NER:
-        E = resample(E, w, f.noise, kind=upd_a)
-        w = 1/N*ones(N)
+        if rsmpl_root == 1.0:
+          E,_ = resample(E, w, f.noise, kind=upd_a)
+          w   = 1/N*ones(N)
+        else:
+          # Compute factors s such that sw := w**(1/rsmpl_root). 
+          s   = ( w**(1/rsmpl_root - 1) ).clip(max=1e100)
+          s  /= (s*w).sum()
+          sw  = s*w
+          E, idx = resample(E, sw, f.noise, kind=upd_a)
+          w   = 1/s[idx]
+          w  /= w.sum()
         stats.resmpl[kObs] = True
 
+      post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
 
@@ -878,8 +912,8 @@ def PF_QP(setup,config,xx,yy):
       N_eff = 1/(w@w)
       stats.N_eff[kObs] = N_eff
       if N_eff <= N*config.NER:
-        E = resample(E, w, f.noise, kind=upd_a)
-        w = 1/N*ones(N)
+        E,_ = resample(E, w, f.noise, kind=upd_a)
+        w   = 1/N*ones(N)
         stats.resmpl[kObs] = True
 
     stats.assess(k,kObs,E=E,w=w)
@@ -976,8 +1010,8 @@ def PF_EnKF(setup,config,xx,yy):
       # Resample
       if N_eff <= N*config.NER:
         # NB: Must includte rescaling on f.noise if kind=Gaussian
-        E = resample(E, w, f.noise, kind=upd_a)
-        w = 1/N*ones(N)
+        E,_ = resample(E, w, f.noise, kind=upd_a)
+        w   = 1/N*ones(N)
         stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
         stats.resmpl[kObs] = True
 
@@ -1006,7 +1040,7 @@ def resample(E,w,noise=None,N=None,kind=None,
   NB: This is ad-hoc and biased!
 
   Note: (a) resampling methods are beneficial because they discard
-  low-weight particles and reduce the variance of the weights.
+  low-weight ("doomed") particles and reduce the variance of the weights.
   However, (b) even unbiased/rigorous resampling methods introduce noise;
   (increases the var of any empirical estimator, see [1], section 3.4).
   How to unify the seemingly contrary statements of (a) and (b) ?
@@ -1044,6 +1078,7 @@ def resample(E,w,noise=None,N=None,kind=None,
     ss_o  = sqrt(w @ A_o**2)
 
   if kind is 'Gaussian':
+    idx = nan # to cause errors if used
     N_eff = 1/(w@w)
     if N_eff<2:
       N_eff = 2
@@ -1099,7 +1134,7 @@ def resample(E,w,noise=None,N=None,kind=None,
     A_a  *= sqrt(var_o/var_a)
   E = mu_a + A_a
     
-  return E
+  return E, idx
 
 
 
