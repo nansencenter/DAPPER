@@ -9,7 +9,7 @@ from common import *
 sd0 = seed(4)
 
 from mods.Lorenz95.boc10 import setup
-setup.t.T = 4**5.0
+setup.t.T = 4**4.0
 
 xx,yy = simulate(setup)
 
@@ -19,14 +19,14 @@ xx,yy = simulate(setup)
 cfgs = DAC_list()
 cfgs.add(Climatology)
 #cfgs.add(EnKF_N,N=24,rot=True,infl=1.01)
-#cfgs.add(PartFilt,N=100,NER=0.95,reg=0.5,rsmpl_root=1.7)
+#cfgs.add(PartFilt,N=100,NER=0.95,reg=0.5,wroot=1.7)
 #cfgs.add(iEnKF,'Sqrt', N=12, infl=1.02,rot=True,iMax=10)
 
 N = 100
 for g in [0.5]:
   for r in [1.4, 1.55, 1.7, 1.9]:
     for NER in [0.95]:
-      cfgs.add(PartFilt, N=N, NER=NER, rsmpl_root=r, reg=g)
+      cfgs.add(PartFilt, N=N, NER=NER, wroot=r, reg=g)
 
 ############################
 # Assimilate

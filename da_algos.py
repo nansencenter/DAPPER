@@ -891,7 +891,7 @@ def PartFilt(setup,config,xx,yy):
   Tuning settings:
    - NER: Trigger resampling whenever N_eff <= N*NER.
        If resampling with some variant of 'Multinomial', no systematic bias is introduced.
-   - rsmpl_root: Adjust weights before resampling by this root to mitigate thinning.
+   - wroot: Adjust weights before resampling by this root to mitigate thinning.
        The outcomes of the resampling are then weighted to maintain un-biased-ness.
        Ref: [3], section 3.1
    - prior_root: "Inflate" (anneal) the proposal noise kernels by this root to increase diversity.
@@ -906,7 +906,7 @@ def PartFilt(setup,config,xx,yy):
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
-  rsmpl_root    = getattr(config,'rsmpl_root',1.0)
+  wroot         = getattr(config,'wroot',1.0)
   prior_root    = getattr(config,'prior_root',1.0)
   reg           = getattr(config,'reg',0)
 
@@ -952,17 +952,7 @@ def PartFilt(setup,config,xx,yy):
       stats.N_eff[kObs] = N_eff
       # Resample if N_effective < threshold.
       if N_eff <= N*config.NER:
-        if rsmpl_root == 1.0:
-          E,_ = resample(E, w, f.noise, kind=upd_a, reg=reg)
-          w   = 1/N*ones(N)
-        else:
-          # Compute factors s such that sw := w**(1/rsmpl_root). 
-          s   = ( w**(1/rsmpl_root - 1) ).clip(max=1e100)
-          s  /= (s*w).sum()
-          sw  = s*w
-          E, idx = resample(E, sw, f.noise, kind=upd_a, reg=reg)
-          w   = 1/s[idx]
-          w  /= w.sum()
+        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, wroot=wroot)
         stats.resmpl[kObs] = True
 
       post_process(E,config)
@@ -1061,8 +1051,7 @@ def PF_EnKF(setup,config,xx,yy):
       # Resample
       if N_eff <= N*config.NER:
         # NB: Must includte rescaling on f.noise if kind=Gaussian
-        E,_ = resample(E, w, f.noise, kind=upd_a)
-        w   = 1/N*ones(N)
+        E,w = resample(E, w, f.noise, kind=upd_a)
         stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
         stats.resmpl[kObs] = True
 
@@ -1073,7 +1062,7 @@ def PF_EnKF(setup,config,xx,yy):
 
 
 def resample(E,w,noise=None,N=None,kind=None,
-    fix_mu=False,fix_var=False,reg=0):
+    fix_mu=False,fix_var=False,reg=0.0,wroot=1.0):
   """
   Resampling function for the particle filter.
 
@@ -1132,15 +1121,25 @@ def resample(E,w,noise=None,N=None,kind=None,
   Colr  = tp(sqrt(ub*w)) * A_o
 
   if kind is 'Gaussian':
-    idx = nan # should cause errors if used
-    E   = mu_o + randn((N,N))@Colr
+    assert wroot==1.0
+    w = 1/N*ones(N)
+    E = mu_o + randn((N,N))@Colr
   else:
+    # Compute factors s such that s*w := w**(1/wroot). 
+    if wroot!=1.0:
+      s   = ( w**(1/wroot - 1) ).clip(max=1e100)
+      s  /= (s*w).sum()
+      sw  = s*w
+    else:
+      s   = ones(N)
+      sw  = w
+
     if kind is 'Multinomial':
       # van Leeuwen [2] also calls this "probabilistic" resampling
-      idx = np.random.choice(N_o,N,replace=True,p=w)
+      idx = np.random.choice(N_o,N,replace=True,p=sw)
     elif kind is 'Residual':
       # Doucet [1] also calls this "stratified" resampling.
-      w_N   = w*N             # upscale
+      w_N   = sw*N            # upscale
       w_I   = w_N.astype(int) # integer part
       w_D   = w_N-w_I         # decimal part
       # Create duplicate indices for integer parts
@@ -1156,14 +1155,16 @@ def resample(E,w,noise=None,N=None,kind=None,
       # van Leeuwen [2] also calls this "stochastic universal" resampling
       U     = rand(1) / N
       CDF_a = U + arange(N)/N
-      CDF_o = np.cumsum(w)
+      CDF_o = np.cumsum(sw)
       idx   = CDF_a <= CDF_o[:,None]
       # Find 1st True. stackoverflow.com/a/16244044/
       idx   = np.argmax(idx,axis=0)
     else:
       raise KeyError
 
-    E = E[idx]
+    E  = E[idx]
+    w  = 1/s[idx]
+    w /= w.sum()
 
     # Add noise/jitter
     if reg!=0:
@@ -1186,7 +1187,7 @@ def resample(E,w,noise=None,N=None,kind=None,
   if fix_mu or fix_var:
     E = mu_a + A_a
     
-  return E, idx
+  return E, w
 
 
 
