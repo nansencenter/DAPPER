@@ -70,7 +70,7 @@ def unbias_var(w=None,N_eff=None,avoid_pathological=False):
   wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
   """
   if N_eff is None:
-    N_eff = 1/w@w
+    N_eff = 1/(w@w)
   ub = 1/(1 - 1/N_eff) # =N/(N-1) if w==ones(N)/N.
   if avoid_pathological and (1-w.max()) < 1e-10:
     # Don't do in case of weights collapse

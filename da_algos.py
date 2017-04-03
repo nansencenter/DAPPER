@@ -763,6 +763,118 @@ def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
 
 
 
+import scipy.optimize as opt
+def BnKF(setup,config,xx,yy):
+
+  # Test settings:
+  #from mods.Lorenz95.sak08 import setup
+  #config = DAC(EnKF_N,N=28)
+  #config = DAC(EnKF,'PertObs',N=39,infl=1.06)
+  #config = DAC(BnKF,N=39,infl=1.03)
+
+  # Unpack
+  f,h,chrono,X0  = setup.f, setup.h, setup.t, setup.X0
+
+  Rm12 = h.noise.C.m12
+  Ri   = h.noise.C.inv
+
+  # constants
+  N  = config.N
+  nu = N-1
+
+  invm = lambda x: funm_psd(x, np.reciprocal)
+  IN  = eye(N)
+  Pi1 = np.outer(ones(N),ones(N))/N
+  PiC = IN - Pi1
+
+  # Init
+  bb    = N*ones(N)
+  E     = X0.sample(N)
+  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    E = f.model(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, config)
+
+    if kObs is not None:
+      stats.assess(k,kObs,'f',E=E)
+      hE = h.model(E,t)
+      y  = yy[kObs]
+
+      mu = mean(E,0)
+      A  = E - mu
+
+      hx = mean(hE,0)
+      Y  = hE-hx
+      dy = y - hx
+
+      #  V,s,U_T = svd0( Y @ Rm12.T )
+
+      #  # Compute ETKF (sym sqrt) update
+      #  l1      = 1.0
+      #  dgn     = lambda l: pad0( (l*s)**2, N ) + (N-1)
+      #  Pw      = (V * dgn(l1)**(-1.0)) @ V.T
+      #  w       = dy@Ri@Y.T@Pw
+      #  T       = (V * dgn(l1)**(-0.5)) @ V.T * sqrt(N-1)
+
+      #  E = mu + w@A + T@A
+
+      # Prepare
+      V,s,_  = svd0( Y @ Rm12.T ) 
+      target = invm( Y@Ri@Y.T/nu + eye(N) ) # = nu*Pwn
+
+      dC = np.zeros((N,N))
+      def resulting_Pw(rr):
+        for n in arange(N):
+          dn      = y-hE[n]
+          an      = nu*rr[n]/bb[n]
+          #xn    += A@Y.T @ invm( Y@Y.T + an*R ) @ (y-xn+noise)
+          #Pwn    = invm( Y.T @ Ri @ Y/an + eye(N))/an
+          dgn     = pad0(s**2,N) + an
+          Pwn     = ( V * dgn**(-1.0) ) @ V.T
+          dC[:,n] = IN[:,n] + Pwn@Y@Ri@dn
+        Ca = dC @ PiC @ dC.T
+        return Ca
+
+      def inpT(logr):
+        assert len(logr)==(N-1)
+        rr = np.hstack([exp(logr), N])
+        rr*= np.sum(1/rr)
+        return rr
+
+      def r2(x):
+        rr = inpT(x[:-1])
+        Ca = resulting_Pw(rr)
+        diff = diag(  target - (Ca + x[-1]*Pi1)  )
+        return diff
+
+      x0  = np.hstack([log(N*ones(N-1)), 1])
+      sol = opt.root(r2, x0, method='lm', options={'maxiter':1000})
+      rr_ = inpT(sol.x[:-1])
+
+      #print(inpT(sol.x[:-1]))
+      #print(r2(sol.x))
+
+      # Get PertObs-EnKF
+      #D   = center(h.noise.sample(N))
+      #rr_ = N*ones(N)
+        
+      for n in arange(N):
+        dn      = y-hE[n] # + D[n]
+        an      = nu*rr_[n]/bb[n]
+        dg0     = pad0(s**2,N) + nu
+        dgn     = pad0(s**2,N) + an
+        Pwn     = ( V * dgn**(-1.0) ) @ V.T
+        E[n]   += A.T@Pwn@Y@Ri@dn
+        bb[n]   = mean(dg0/dgn*rr_[n])
+      bb *= np.sum(1/bb)
+
+      post_process(E,config)
+    stats.assess(k,kObs,E=E,w=1/bb) # TODO
+  return stats
+
+
+
 
 
 def PartFilt(setup,config,xx,yy):

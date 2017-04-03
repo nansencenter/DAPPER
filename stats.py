@@ -134,7 +134,8 @@ class Stats:
     self.var[k]  = w @ A**2
     self.mad[k]  = w @ abs(A)  # Mean abs deviations
 
-    self.var[k] *= unbias_var(w,avoid_pathological=True)
+    ub           = unbias_var(w,avoid_pathological=True)
+    self.var[k] *= ub
     
 
     # For simplicity, use naive (and biased) formulae, derived from "empirical measure".
@@ -147,7 +148,7 @@ class Stats:
 
     if sqrt(m*N) <= Stats.comp_threshold_3:
       V,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
-      s             *= sqrt(unbias_var) # Makes s^2 unbiased
+      s             *= sqrt(ub) # Makes s^2 unbiased
       self.svals[k]  = s
       self.umisf[k]  = UT @ self.err[k]
 
