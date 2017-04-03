@@ -535,7 +535,7 @@ def LETKF(setup,config,xx,yy):
 
 
 # Notes:
-#  Using scalar minimization:
+#  Using minimize_scalar:
 #  - don't accept dJdx. Pro: only need J  :-)
 #  - method='bounded' not necessary and slower than 'brent'.
 #  - bracket not necessary either...
@@ -762,6 +762,9 @@ def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
   return dw,Pw,T,Tinv
 
 
+
+
+
 def PartFilt(setup,config,xx,yy):
   """
   Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
@@ -793,13 +796,13 @@ def PartFilt(setup,config,xx,yy):
   N, upd_a      = config.N, getattr(config,'upd_a',None)
   rsmpl_root    = getattr(config,'rsmpl_root',1.0)
   prior_root    = getattr(config,'prior_root',1.0)
-  adhoc_noise   = getattr(config,'adhoc_noise',False)
+  reg           = getattr(config,'reg',0)
 
   Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
 
   E = X0.sample(N)
-  w = 1/N *ones(N)
+  w = 1/N*ones(N)
 
   stats        = Stats(setup,config,xx,yy)
   stats.N_eff  = np.full(chrono.KObs+1,nan)
@@ -838,14 +841,14 @@ def PartFilt(setup,config,xx,yy):
       # Resample if N_effective < threshold.
       if N_eff <= N*config.NER:
         if rsmpl_root == 1.0:
-          E,_ = resample(E, w, f.noise, kind=upd_a, adhoc_noise=adhoc_noise)
+          E,_ = resample(E, w, f.noise, kind=upd_a, reg=reg)
           w   = 1/N*ones(N)
         else:
           # Compute factors s such that sw := w**(1/rsmpl_root). 
           s   = ( w**(1/rsmpl_root - 1) ).clip(max=1e100)
           s  /= (s*w).sum()
           sw  = s*w
-          E, idx = resample(E, sw, f.noise, kind=upd_a, adhoc_noise=adhoc_noise)
+          E, idx = resample(E, sw, f.noise, kind=upd_a, reg=reg)
           w   = 1/s[idx]
           w  /= w.sum()
         stats.resmpl[kObs] = True
@@ -958,7 +961,7 @@ def PF_EnKF(setup,config,xx,yy):
 
 
 def resample(E,w,noise=None,N=None,kind=None,
-    fix_mu=False,fix_var=False,adhoc_noise=False):
+    fix_mu=False,fix_var=False,reg=0):
   """
   Resampling function for the particle filter.
 
@@ -969,11 +972,15 @@ def resample(E,w,noise=None,N=None,kind=None,
 
   kind: 'Residual' and 'Systematic' more systematic (less stochastic)
     variations on 'Multinomial' sampling. 'Systematic' is a little faster.
-    'Gaussian' is rigorous/unbiased unless the actual distribution is Gaussian.
+    'Gaussian' is biased (approximate) unless the actual distribution is Gaussian.
 
-  In the typical case of N >> m, many particles will be identical after resampling.
-  Therefore, if noise.is_deterministic: some noise will be added.
-  NB: This is ad-hoc and biased!
+  After resampling some of the particles will be identical.
+  Therefore, if noise.is_deterministic: some noise must be added.
+  This is adjusted by the regularization 'reg' factor
+  (so-named because Dirac-deltas are approximated  Gaussian kernels),
+  which controls the strength of the jitter.
+  This causes a bias. But, as N-->∞, the reg. bandwidth-->0, i.e. bias-->0.
+  Ref: [3], section 12.2.2.
 
   Note: (a) resampling methods are beneficial because they discard
   low-weight ("doomed") particles and reduce the variance of the weights.
@@ -991,6 +998,9 @@ def resample(E,w,noise=None,N=None,kind=None,
   [1]: Doucet, Johansen, 2009, v1.1:
     "A Tutorial on Particle Filtering and Smoothing: Fifteen years later." 
   [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
+  [3]: Doucet, de Freitas, Gordon, 2001:
+    "Sequential Monte Carlo Methods in Practice"
+
   """
   assert(abs(w.sum()-1) < 1e-5)
 
@@ -1001,31 +1011,17 @@ def resample(E,w,noise=None,N=None,kind=None,
     N = N_o
   if kind is None:
     kind = 'Systematic'
-  if not adhoc_noise:
-    if noise is not None:
-      # Even if adhoc_noise not requested,
-      # we'll need to add it (to avoid exact duplicates).
-      adhoc_noise = noise.is_deterministic
-    else:
-      # allow not specifying the noise for the testing purposes.
-      adhoc_noise = False
-
 
   # Stats of original sample that may get used
-  if kind is 'Gaussian' or adhoc_noise or fix_mu or fix_var:
-    mu_o  = w@E
-    A_o   = E - mu_o
-    ss_o  = sqrt(w @ A_o**2)
+  mu_o  = w@E
+  A_o   = E - mu_o
+  ss_o  = sqrt(w @ A_o**2)
+  ub    = unbias_var(w, avoid_pathological=True)
+  Colr  = tp(sqrt(ub*w)) * A_o
 
   if kind is 'Gaussian':
-    idx = nan # to cause errors if used
-    N_eff = 1/(w@w)
-    if N_eff<2:
-      N_eff = 2
-    ub = 1/(1 - 1/N_eff) # unbias-ing factor
-    A  = tp(sqrt(ub*w)) * A_o
-    A  = randn((N,N)) @ A
-    E  = mu_o + A
+    idx = nan # should cause errors if used
+    E   = mu_o + randn((N,N))@Colr
   else:
     if kind is 'Multinomial':
       # van Leeuwen [2] also calls this "probabilistic" resampling
@@ -1057,14 +1053,17 @@ def resample(E,w,noise=None,N=None,kind=None,
 
     E = E[idx]
 
-    if adhoc_noise:
-      # Add noise
-      fudge = 4/sqrt(N)
-      E += fudge * randn((N,m)) @ diag(ss_o)
+    # Add noise/jitter
+    if reg!=0:
+      bw = N**(-1/(m+4)) # Scott's rule-of-thumb
+      E += reg*bw*(randn((N,N))@Colr)
+      # OLD:
+      #fudge = 4/sqrt(N)
+      #E += fudge * randn((N,m)) @ diag(ss_o)
 
   # While multinomial sampling is unbiased, it does incur sampling error.
-  # fix_mu (and fix_var) compensates for this
-  # "in the mean" (and variance).
+  # fix_mu (and fix_var) compensates for this "in the mean" (and variance).
+  # Warning: while an interesting concept, this is not generally beneficial.
   A_a,mu_a = anom(E)
   if fix_mu:
     mu_a = mu_o
@@ -1072,7 +1071,8 @@ def resample(E,w,noise=None,N=None,kind=None,
     var_o = (ss_o**2).sum()/m
     var_a = (A_a**2) .sum()/(N*m)
     A_a  *= sqrt(var_o/var_a)
-  E = mu_a + A_a
+  if fix_mu or fix_var:
+    E = mu_a + A_a
     
   return E, idx
 

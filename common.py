@@ -115,5 +115,4 @@ from aux.admin import *
 from aux.convenience import *
 from stats import *
 from da_algos import *
-from tmp4 import *
 

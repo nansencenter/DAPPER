@@ -63,12 +63,19 @@ def inflate_ens(E,factor):
   A, mu = anom(E)
   return mu + A*factor
 
-def mrdiv(b,A):
-  return nla.solve(A.T,b.T).T
 
-def mldiv(A,b):
-  return nla.solve(A,b)
-
+def unbias_var(w=None,N_eff=None,avoid_pathological=False):
+  """
+  Compute unbias-ing factor for variance estimation.
+  wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
+  """
+  if N_eff is None:
+    N_eff = 1/w@w
+  ub = 1/(1 - 1/N_eff) # =N/(N-1) if w==ones(N)/N.
+  if avoid_pathological and (1-w.max()) < 1e-10:
+    # Don't do in case of weights collapse
+    ub = 1
+  return ub
 
 
 def rk4(f, x0, t, dt):
@@ -126,6 +133,14 @@ def integrate_TLM(M,dt,method='approx'):
 
 
 
+def mrdiv(b,A):
+  return nla.solve(A.T,b.T).T
+
+def mldiv(A,b):
+  return nla.solve(A,b)
+
+
+
 def round2(num,prec=1.0):
   """Round with specific precision.
   Returns int if prec is int."""
@@ -152,6 +167,14 @@ def find_1st_ind(xx):
 def equi_spaced_integers(m,p):
   """Provide a range of p equispaced integers between 0 and m-1"""
   return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
+
+def direct_obs_matrix(m,obsInds):
+  """for i,j in enumerate(obsInds): H[i,j] = 1.0"""
+  p = len(obsInds)
+  H = zeros((p,m))
+  H[range(p),obsInds] = 1
+  return H
+
 
 def circulant_ACF(C,do_abs=False):
   """

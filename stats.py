@@ -134,11 +134,7 @@ class Stats:
     self.var[k]  = w @ A**2
     self.mad[k]  = w @ abs(A)  # Mean abs deviations
 
-    unbias_var   = 1/(1 - w@w) # =N/(N-1) if w==ones(N)/N.
-    if (1-w.max()) < 1e-10:
-      # Don't do in case of weights collapse
-      unbias_var = 1
-    self.var[k] *= unbias_var
+    self.var[k] *= unbias_var(w,avoid_pathological=True)
     
 
     # For simplicity, use naive (and biased) formulae, derived from "empirical measure".
