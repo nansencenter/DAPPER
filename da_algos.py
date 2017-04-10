@@ -526,7 +526,7 @@ def LETKF(setup,config,xx,yy):
       post_process(E,config)
 
       if 'sd' in locals():
-        stats.trHK[kObs] = (d**(-1.0) * sd**2).sum()/h.noise.m
+        stats.trHK[kObs] = (sd**(-1.0) * sd**2).sum()/h.noise.m
       #else:
         # nevermind
 
@@ -891,24 +891,21 @@ def PartFilt(setup,config,xx,yy):
   Tuning settings:
    - NER: Trigger resampling whenever N_eff <= N*NER.
        If resampling with some variant of 'Multinomial', no systematic bias is introduced.
-   - wroot: Adjust weights before resampling by this root to mitigate thinning.
-       The outcomes of the resampling are then weighted to maintain un-biased-ness.
-       Ref: [3], section 3.1
-   - prior_root: "Inflate" (anneal) the proposal noise kernels by this root to increase diversity.
+   - qroot: "Inflate" (anneal) the proposal noise kernels by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
-       Ref: [4], section VI-M.2
+       Ref: [3], section VI-M.2
 
-  [3]: Liu, Chen Longvinenko, 2001:
-    "A theoretical framework for sequential importance sampling with resampling"
-  [4]: Zhe Chen, 2003:
+  [3]: Zhe Chen, 2003:
     "Bayesian Filtering: From Kalman Filters to Particle Filters, and Beyond"
   """
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
   wroot         = getattr(config,'wroot',1.0)
-  prior_root    = getattr(config,'prior_root',1.0)
+  qroot         = getattr(config,'qroot',1.0)
   reg           = getattr(config,'reg',0)
+  rroot         = getattr(config,'rroot',1.0)
+  nuj           = getattr(config,'nuj',False)
 
   Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
@@ -924,11 +921,11 @@ def PartFilt(setup,config,xx,yy):
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
     D  = randn((N,f.m))
-    E += sqrt(dt*prior_root)*(D@Q12.T)
+    E += sqrt(dt*qroot)*(D@Q12.T)
 
-    if prior_root != 1.0:
-      # Evaluate p/q (at each noise realization in D) when q:=p**(1/prior_root).
-      w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/prior_root))
+    if qroot != 1.0:
+      # Evaluate p/q (at each noise realization in D) when q:=p**(1/qroot).
+      w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
       w /= w.sum()
 
     if kObs is not None:
@@ -952,126 +949,99 @@ def PartFilt(setup,config,xx,yy):
       stats.N_eff[kObs] = N_eff
       # Resample if N_effective < threshold.
       if N_eff <= N*config.NER:
-        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, wroot=wroot)
+        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, wroot=wroot, rroot=rroot, no_uniq_jitter=nuj)
         stats.resmpl[kObs] = True
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
 
-
-
-
-def PF_EnKF(setup,config,xx,yy):
+def OptPF(setup,config,xx,yy):
   """
-  PF with EnKF proposal density: q.
+  "Optimal proposal" particle filter.
+  OR
+  Implicit particle filter.
 
-  The setting infl_q tries to inflate the proposal density while
-  keeping it centered on the EnKF posterior (by inflating both Q12 and R12).
+  Note: Regularization is here added BEFORE Bayes' rule.
 
-  NB TODO:
-  However, testing on L63, I can't get it to work as well as the standard PF,
-  exceept with moderately small N, in which case the EnKF is already better.
-
-  Ref:
-  [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
+  Ref: Bocquet et al. (2010):
+    "Beyond Gaussian statistical modeling in geophysical data assimilation"
   """
+
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
+  Qs            = getattr(config,'Qs',0)
+  reg           = getattr(config,'reg',0)
+  nuj           = getattr(config,'nuj',False)
 
-  R     = h.noise.C.C
-  Rm12T = h.noise.C.m12.T
-
-  Q     = f.noise.C.C     * chrono.dtObs
-  Qm12T = f.noise.C.m12.T / sqrt(chrono.dtObs)
-
-  infl_q = config.infl_q
+  R    = h.noise.C.C
+  Rm12 = h.noise.C.m12
+  Q12  = f.noise.C.ssqrt
 
   E = X0.sample(N)
-  w = 1/N *ones(N)
+  w = 1/N*ones(N)
 
-  stats        = Stats(setup,config,xx,yy).assess(0,E=E,w=1/N)
-  stats.N_eff  = np.full(chrono.KObs+1, nan)
-  stats.resmpl = np.empty(chrono.KObs+1,dtype=bool)
+  stats        = Stats(setup,config,xx,yy)
+  stats.N_eff  = np.full(chrono.KObs+1,nan)
+  stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+  stats.assess(0,E=E,w=1/N)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
+    E += sqrt(dt)*(randn((N,f.m))@Q12.T)
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E,w=w)
 
-      E0 = E.copy()
-      hE0= h.model(E0,t)
-      DX = infl_q * sqrt(chrono.dtObs)*f.noise.sample(N)
-      E += DX
-      hE = h.model(E,t)
-      y  = yy[kObs]
+      y      = yy[kObs]
+      innovs = y - h.model(E,t) # Note: before adding noise
 
-      mu = mean(E,0)
-      A  = E - mu
-      hx = mean(hE,0)
-      Y  = hE-hx
-      C  = Y.T @ Y + R*(N-1)
-      YC = mldiv(C, Y.T)
-      KG = YC @ A
+      mu   = w@E
+      A    = E - mu
+      ub   = unbias_var(w, avoid_pathological=True)
+      bw   = N**(-1/(f.m+4))
+      nrm  = tp(sqrt(Qs*bw*ub*w)) # ≈ 1/sqrt(N-1)
+      E   += sample_quickly_with(nrm*A)[0]
 
-      JH   = h.jacob(mu,t)
-      Sig2 = (eye(f.m) - KG.T*JH)*Q*(eye(f.m) - KG.T*JH).T + KG.T*R*KG
-      Sig2 *= infl_q
-      Sigm1= funm_psd(Sig2, lambda x: x**(-0.5))
+      hE  = h.model(E,t)
+      hx  = w@hE
+      Y   = hE-hx
 
-      DY   = infl_q * h.noise.sample(N)
-      E    = E + ( y + DY - hE )@KG
-      post_process(E,config)
+      D    = center(h.noise.sample(N))
+      C    = (nrm*Y).T @ (nrm*Y) + R
+      dE   = (nrm*A).T @ (nrm*Y) @ mldiv(C,(y-hE+D).T)
+      E    = E + dE.T
 
-      # Sampling probabilities of the EnKF posterior ensemble.
-      #qnd  = ( E - ( E0 + (y-hE0)@KG ) ) @ Sigm1
-      qnd  = DX + ( DY - hE + hE0)@KG
-      qnd  = qnd @ Sigm1
-
-
-      # Transition probabilities of the EnKF posterior members
-      # from the prior ensemble.
-      pnd = (E-E0) @ Qm12T
-
-      # Likelihood. NB: Must use posterior ensmeble
-      lnd = (y - h.model(E,t)) @ Rm12T
-
-      # New weights
-      nrm2 = lambda w: np.sum(w**2, axis=1)
-      w = -2*log(w) + nrm2(lnd) + nrm2(pnd) - nrm2(qnd)
-      w = w - w.min() - 10 # Should calibrate via realmax/min
-      w = np.exp(-0.5*w)
-      w = w/np.sum(w)
+      chi2   = innovs*mldiv(C,innovs.T).T
+      logL   = -0.5 * np.sum(chi2, axis=1)
+      logL  -= logL.max()    # Avoid numerical error
+      logw   = log(w) + logL # Bayes' rule
+      w      = exp(logw)
+      w     /= w.sum()
 
       N_eff = 1/(w@w)
-      N_res = np.sum(stats.resmpl)
-      
       stats.N_eff[kObs] = N_eff
-      # Resample
+      # Resample if N_effective < threshold.
       if N_eff <= N*config.NER:
-        # NB: Must includte rescaling on f.noise if kind=Gaussian
-        E,w = resample(E, w, f.noise, kind=upd_a)
-        stats.Neo = (getattr(stats,'Neo',0)*N_res + N_eff)/(N_res+1)
+        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
         stats.resmpl[kObs] = True
 
+      post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
 
 
-
-
 def resample(E,w,noise=None,N=None,kind=None,
-    fix_mu=False,fix_var=False,reg=0.0,wroot=1.0):
+    fix_mu=False,fix_var=False,reg=0.0,wroot=1.0,rroot=1.0,no_uniq_jitter=False):
   """
   Resampling function for the particle filter.
 
   Example: see docs/test_resample.py.
 
-  N can be different from E.shape[0]
+  - N can be different from E.shape[0]
   (e.g. in case some particles have been elimintated).
 
-  kind: 'Residual' and 'Systematic' more systematic (less stochastic)
+  - kind: 'Residual' and 'Systematic' more systematic (less stochastic)
     variations on 'Multinomial' sampling. 'Systematic' is a little faster.
     'Gaussian' is biased (approximate) unless the actual distribution is Gaussian.
 
@@ -1082,6 +1052,10 @@ def resample(E,w,noise=None,N=None,kind=None,
   which controls the strength of the jitter.
   This causes a bias. But, as N-->∞, the reg. bandwidth-->0, i.e. bias-->0.
   Ref: [3], section 12.2.2.
+
+  - wroot: Adjust weights before resampling by this root to mitigate thinning.
+       The outcomes of the resampling are then weighted to maintain un-biased-ness.
+       Ref: [4], section 3.1
 
   Note: (a) resampling methods are beneficial because they discard
   low-weight ("doomed") particles and reduce the variance of the weights.
@@ -1101,7 +1075,8 @@ def resample(E,w,noise=None,N=None,kind=None,
   [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
   [3]: Doucet, de Freitas, Gordon, 2001:
     "Sequential Monte Carlo Methods in Practice"
-
+  [4]: Liu, Chen Longvinenko, 2001:
+    "A theoretical framework for sequential importance sampling with resampling"
   """
   assert(abs(w.sum()-1) < 1e-5)
 
@@ -1123,7 +1098,7 @@ def resample(E,w,noise=None,N=None,kind=None,
   if kind is 'Gaussian':
     assert wroot==1.0
     w = 1/N*ones(N)
-    E = mu_o + randn((N,N))@Colr
+    E = mu_o + sample_quickly_with(Colr)[0]
   else:
     # Compute factors s such that s*w := w**(1/wroot). 
     if wroot!=1.0:
@@ -1156,9 +1131,9 @@ def resample(E,w,noise=None,N=None,kind=None,
       U     = rand(1) / N
       CDF_a = U + arange(N)/N
       CDF_o = np.cumsum(sw)
-      idx   = CDF_a <= CDF_o[:,None]
-      # Find 1st True. stackoverflow.com/a/16244044/
-      idx   = np.argmax(idx,axis=0)
+      #idx  = CDF_a <= CDF_o[:,None]
+      #idx  = np.argmax(idx,axis=0) # Finds 1st. SO/a/16244044/
+      idx   = np.searchsorted(CDF_o,CDF_a)
     else:
       raise KeyError
 
@@ -1166,17 +1141,27 @@ def resample(E,w,noise=None,N=None,kind=None,
     w  = 1/s[idx]
     w /= w.sum()
 
-    # Add noise/jitter
+    # Add noise jittering
     if reg!=0:
-      bw = N**(-1/(m+4)) # Scott's rule-of-thumb
-      E += reg*bw*(randn((N,N))@Colr)
-      # OLD:
-      #fudge = 4/sqrt(N)
-      #E += fudge * randn((N,m)) @ diag(ss_o)
+      # OLD: E += 4/sqrt(N) * randn((N,m)) @ diag(ss_o)
+      # NEW: Use Scott's rule-of-thumb:
+      bw           = N**(-1/(m+4))
+      scale        = reg*bw*rroot
+      sample, chi2 = sample_quickly_with(Colr)
+      sample      *= scale
+      if no_uniq_jitter:
+        dups  = idx == np.roll(idx,1)
+        dups |= idx == np.roll(idx,-1)
+        E[dups] += sample[dups]
+      else:
+        E += sample
+      if rroot != 1.0:
+        w *= exp(-0.5*chi2*(1 - 1/rroot))
+        w /= w.sum()
 
   # While multinomial sampling is unbiased, it does incur sampling error.
   # fix_mu (and fix_var) compensates for this "in the mean" (and variance).
-  # Warning: while an interesting concept, this is not generally beneficial.
+  # Warning: while an interesting concept, this is likely not beneficial.
   A_a,mu_a = anom(E)
   if fix_mu:
     mu_a = mu_o
@@ -1188,6 +1173,25 @@ def resample(E,w,noise=None,N=None,kind=None,
     E = mu_a + A_a
     
   return E, w
+
+
+def sample_quickly_with(Colour):
+  """Gaussian, coloured sampling in the quickest fashion,
+  which depends on the size of the colouring matrix."""
+  (N,m) = Colour.shape
+  if N > 2*m:
+    cholU  = chol_trunc(Colour.T@Colour)
+    D      = randn((N,cholU.shape[0]))
+    chi2   = np.sum(D**2, axis=1)
+    sample = D@cholU
+  else:
+    chi2_compensate_for_rank = min(m/N,1.0)
+    D      = randn((N,N))
+    chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
+    sample = D@Colour
+  return sample, chi2  
+
+
 
 
 
@@ -1392,16 +1396,21 @@ def post_process(E,config):
   But for readability it is nicer to keep it as a separate function,
   also since it avoids inflating/rotationg smoothed states (for the EnKS).
   """
-  A, mu = anom(E)
-  N,m   = E.shape
-  T     = eye(N)
-  try:
-    T = config.infl * T
-  except AttributeError:
-    pass
-  if getattr(config,'rot',False):
-    T = genOG_1(N) @ T
-  E[:] = mu + T@A
+  infl = getattr(config,'infl',1.0)
+  rot  = getattr(config,'rot' ,False)
+
+  if infl!=1.0 or rot:
+    A, mu = anom(E)
+    N,m   = E.shape
+    T     = eye(N)
+
+    if infl!=1.0:
+      T = infl * T
+
+    if rot:
+      T = genOG_1(N) @ T
+
+    E[:] = mu + T@A
 
 
 
