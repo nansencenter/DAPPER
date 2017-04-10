@@ -63,23 +63,23 @@ Download, extract, and `cd` to DAPPER. Then run:
 Methods
 ------------
 
-Method name                                 | Literature RMSE results reproduced
-------------------------------------------- | ---------------------------------------
-EnKF <sup>1</sup>                           | sakov'2008 ("deterministic")
-EnKF-N                                      | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
-EnKS, EnRTS                                 | raanes'2016 ("EnRTS and EnKS")
-iEnKF                                       | sakov'2012 ("an iterative")
-LETKF, local & serial EAKF                  | bocquet'2011 ("EnKF-N")
-Sqrt. model noise methods                   | raanes'2015 ("sqrt model noise")
-Extended KF                                 | raanes'2016 thesis
-Particle filter (bootstrap) <sup>2</sup>    | "
-3D-Var                                      | "
-Climatology                                 | "
+Method name                                            | Literature RMSE results reproduced
+------------------------------------------------------ | ---------------------------------------
+EnKF <sup>1</sup>                                      | sakov'2008 ("deterministic")
+EnKF-N                                                 | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
+EnKS, EnRTS                                            | raanes'2016 ("EnRTS and EnKS")
+iEnKF                                                  | sakov'2012 ("an iterative")
+LETKF, local & serial EAKF                             | bocquet'2011 ("EnKF-N")
+Sqrt. model noise methods                              | raanes'2015 ("sqrt model noise")
+Particle filter (bootstrap & implicit) <sup>2</sup>    | bocquet'2010 ("beyond Gaussian")
+Extended KF                                            | raanes'2016 thesis
+3D-Var                                                 | "
+Climatology                                            | "
 
-<sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.)  
-EnKF-type methods support tuning with inflation and "random, orthogonal rotations".  
-<sup>2</sup>: Resampling: multinomial (including systematic and residual)  
-The particle filter is tuned with "effective-N monitoring", "adjusted resampling weights", "annealed prior".  
+<sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).  
+Tuned with inflation and "random, orthogonal rotations".  
+<sup>2</sup>: Resampling: multinomial (including systematic and residual).  
+The particle filter is tuned with "effective-N monitoring", "regularization", "adjusted resampling weights", "annealed prior".  
 
 
 Models
@@ -281,6 +281,7 @@ TODO
     - return function 'assimilate'
     - wrapped to catch exceptions and return stats
 * Split `da_algos.py` into multiple files
+* Make full 3D-Var (not opt. int.)
 * Make tutorial
 
 
