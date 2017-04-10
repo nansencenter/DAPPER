@@ -8,6 +8,14 @@ from collections import OrderedDict
 import warnings
 import traceback
 
+# To be used with line_profiler
+import builtins
+try:
+    profile = builtins.profile
+except AttributeError:
+    # No line profiler, provide a pass-through version
+    def profile(func): return func
+
 
 ##################################
 # Scientific
