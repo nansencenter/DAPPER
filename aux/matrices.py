@@ -295,6 +295,21 @@ def funm_psd(a, fun, check_finite=False):
   return (v * w) @ v.T
 
 
-
-
-
+from scipy.linalg.lapack import get_lapack_funcs
+def chol_trunc(C):
+  """
+  Truncate when cholesky() finds a 'leading negative minor'.
+  NB: returns a non-square (rank-by-ndim) matrix.
+  Example:
+    C = E@E.T
+    # sla.cholesky(C) yields error coz of numerical error
+    U = chol_trunc(C)
+    D = C - U.T@U
+  D should be close to machine-precision zero,
+  especially away from the lower-right-hand corner.
+  """
+  potrf, = get_lapack_funcs(('potrf',), (C,))
+  U, info = potrf(C, lower=False, overwrite_a=False, clean=True)
+  if info!=0:
+    U = U[:info]
+  return U
