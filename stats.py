@@ -131,26 +131,42 @@ class Stats:
     self.w[k]    = w
     self.mu[k]   = w @ E
     A            = E - self.mu[k]
-    self.var[k]  = w @ A**2
+
+    # While A**2 is approx as fast as A*A,
+    # A**3 is 10x slower than A**2 (or A**2.0).
+    # => Use A2 = A**2, A3 = A*A2, A4=A*A3.
+    # But, to save memory, only use A_pow.
+    A_pow        = A**2
+
+    self.var[k]  = w @ A_pow
     self.mad[k]  = w @ abs(A)  # Mean abs deviations
 
     ub           = unbias_var(w,avoid_pathological=True)
     self.var[k] *= ub
     
 
-    # For simplicity, use naive (and biased) formulae, derived from "empirical measure".
-    # See doc/unbiased_skew_kurt.jpg.
+    # For simplicity, use naive (biased) formulae, derived
+    # from "empirical measure". See doc/unbiased_skew_kurt.jpg.
     # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
-    self.skew[k] = mean( w @ A**3 / self.var[k]**(3/2) )
-    self.kurt[k] = mean( w @ A**4 / self.var[k]**2 - 3 )
+    A_pow       *= A
+    self.skew[k] = mean( w @ A_pow / self.var[k]**(3/2) )
+    A_pow       *= A # idem.
+    self.kurt[k] = mean( w @ A_pow / self.var[k]**2 - 3 )
 
     self.derivative_stats(k,x)
 
     if sqrt(m*N) <= Stats.comp_threshold_3:
-      V,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
-      s             *= sqrt(ub) # Makes s^2 unbiased
-      self.svals[k]  = s
-      self.umisf[k]  = UT @ self.err[k]
+      if N<=m:
+        _,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
+        s             *= sqrt(ub) # Makes s^2 unbiased
+        self.svals[k]  = s
+        self.umisf[k]  = UT @ self.err[k]
+      else:
+        P              = (A.T * w) @ A
+        s2,U           = eigh(P)
+        s2            *= ub
+        self.svals[k]  = sqrt(s2)[::-1]
+        self.umisf[k]  = U.T[::-1] @ self.err[k]
 
       # For each state dim [i], compute rank of truth (x) among the ensemble (E)
       Ex_sorted     = np.sort(np.vstack((E,x)),axis=0,kind='heapsort')
