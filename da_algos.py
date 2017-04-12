@@ -1157,6 +1157,7 @@ def resample(E,w,noise=None,N=None,kind=None,
       # NEW: Use Scott's rule-of-thumb:
       bw           = N**(-1/(m+4))
       scale        = reg*bw*rroot
+      # Jitter
       if no_uniq_jitter:
         assert kind is 'Systematic'
         dups  = idx == np.roll(idx,1)
@@ -1164,8 +1165,9 @@ def resample(E,w,noise=None,N=None,kind=None,
         sample, chi2 = sample_quickly_with(Colr,N=sum(dups))
         E[dups] += scale*sample
       else:
-        sample, chi2 = sample_quickly_with(Colr)
+        sample, chi2 = sample_quickly_with(Colr,N=E.shape[0])
         E += scale*sample
+      # Compensate for using root
       if rroot != 1.0:
         w *= exp(-0.5*chi2*(1 - 1/rroot))
         w /= w.sum()
