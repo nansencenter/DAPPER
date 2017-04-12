@@ -1206,6 +1206,81 @@ def sample_quickly_with(Colour,N=None):
 
 
 
+def PF3(setup,config,xx,yy):
+  """
+  Idea: sample a bunch from each kernel.
+  => The ones more likely to get picked by resampling are closer to the likelihood.
+
+  Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
+  """
+
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, getattr(config,'upd_a',None)
+  Qs            = getattr(config,'Qs',0)
+  reg           = getattr(config,'reg',0)
+  nuj           = getattr(config,'nuj',False)
+
+  Nm            = getattr(config,'Nm',False)
+
+  Rm12 = h.noise.C.m12
+  Q12  = f.noise.C.ssqrt
+
+  E = X0.sample(N)
+  w = 1/N*ones(N)
+
+  stats        = Stats(setup,config,xx,yy)
+  stats.N_eff  = np.full(chrono.KObs+1,nan)
+  stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+  stats.assess(0,E=E,w=1/N)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    E  = f.model(E,t-dt,dt)
+    E += sqrt(dt)*(randn((N,f.m))@Q12.T)
+
+    if kObs is not None:
+      stats.assess(k,kObs,'f',E=E,w=w)
+      y  = yy[kObs]
+
+      hE = h.model(E,t)
+      innovs = hE - y
+      innovs = innovs @ Rm12.T
+      logL   = -0.5 * np.sum(innovs**2, axis=1)
+      w_     = w.copy()
+      w      = reweight(w,logL=logL)
+
+      N_eff = 1/(w@w)
+      stats.N_eff[kObs] = N_eff
+      # Resample if N_effective < threshold.
+      if N_eff <= N*config.NER:
+        stats.resmpl[kObs] = True
+
+        w    = w_
+
+        mu   = w@E
+        A    = E - mu
+        ub   = unbias_var(w, avoid_pathological=True)
+        bw   = N**(-1/(f.m+4))
+        nrm  = tp(sqrt(Qs*bw*ub*w)) # ≈ 1/sqrt(N-1)
+
+        Em   = E.repeat(Nm,0)
+        wm   = w.repeat(Nm)
+
+        Em  += sample_quickly_with(nrm*A,N=Nm*N)[0]
+
+        hE = h.model(Em,t)
+        innovs = hE - y
+        innovs = innovs @ Rm12.T
+        logL   = -0.5 * np.sum(innovs**2, axis=1)
+        wm     = reweight(wm,logL=logL)
+
+        E,w = resample(Em, wm, f.noise, N=N, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
+
+      post_process(E,config)
+    stats.assess(k,kObs,E=E,w=w)
+  return stats
+
+
+
 def EnCheat(setup,config,xx,yy):
   """
   A baseline/reference method.
