@@ -935,26 +935,37 @@ def PartFilt(setup,config,xx,yy):
       y  = yy[kObs]
       innovs = hE - y
       innovs = innovs @ Rm12.T
-      # Actual (not log) weights are needed for assessment and resampling.
-      # But, ∃ at least 2 reasons to work in "log space".
-      # - Normalization: will fail if sum==0 (if all innov's are large).
-      # - Num. precision: lklhd*w should have better prec in log space.
       logL   = -0.5 * np.sum(innovs**2, axis=1)
-      logL  -= logL.max()    # Avoid numerical error
-      logw   = log(w) + logL # Bayes' rule
-      w      = exp(logw)
-      w     /= w.sum()
+      w      = reweight(w,logL=logL)
 
       N_eff = 1/(w@w)
       stats.N_eff[kObs] = N_eff
       # Resample if N_effective < threshold.
       if N_eff <= N*config.NER:
-        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, wroot=wroot, rroot=rroot, no_uniq_jitter=nuj)
         stats.resmpl[kObs] = True
+        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, wroot=wroot, rroot=rroot, no_uniq_jitter=nuj)
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
+
+def reweight(w,lklhd=None,logL=None):
+  """
+  Do Bayes' rule for the empirical distribution of an importance sample.
+  Do computations in log-space, for at least 2 reasons:
+  - Normalization: will fail if sum==0 (if all innov's are large).
+  - Num. precision: lklhd*w should have better prec in log space.
+  Output is non-log, for the purpose of assessment and resampling.
+  """
+  if lklhd is not None:
+    logL = log(lklhd)
+  logL  -= logL.max()    # Avoid numerical error
+  logw   = log(w) + logL # Bayes' rule
+  w      = exp(logw)
+  w     /= w.sum()
+  return w
+
+
 
 def OptPF(setup,config,xx,yy):
   """
@@ -1014,17 +1025,14 @@ def OptPF(setup,config,xx,yy):
 
       chi2   = innovs*mldiv(C,innovs.T).T
       logL   = -0.5 * np.sum(chi2, axis=1)
-      logL  -= logL.max()    # Avoid numerical error
-      logw   = log(w) + logL # Bayes' rule
-      w      = exp(logw)
-      w     /= w.sum()
+      w      = reweight(w,logL=logL)
 
       N_eff = 1/(w@w)
       stats.N_eff[kObs] = N_eff
       # Resample if N_effective < threshold.
       if N_eff <= N*config.NER:
-        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
         stats.resmpl[kObs] = True
+        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
@@ -1080,6 +1088,8 @@ def resample(E,w,noise=None,N=None,kind=None,
   """
   assert(abs(w.sum()-1) < 1e-5)
 
+  # TODO: Remove unused noise parameter
+
   N_o,m = E.shape
 
   # Input parsing
@@ -1106,7 +1116,7 @@ def resample(E,w,noise=None,N=None,kind=None,
       s  /= (s*w).sum()
       sw  = s*w
     else:
-      s   = ones(N)
+      s   = ones(N_o)
       sw  = w
 
     if kind is 'Multinomial':
@@ -1141,20 +1151,21 @@ def resample(E,w,noise=None,N=None,kind=None,
     w  = 1/s[idx]
     w /= w.sum()
 
-    # Add noise jittering
+    # Add noise (jittering)
     if reg!=0:
       # OLD: E += 4/sqrt(N) * randn((N,m)) @ diag(ss_o)
       # NEW: Use Scott's rule-of-thumb:
       bw           = N**(-1/(m+4))
       scale        = reg*bw*rroot
-      sample, chi2 = sample_quickly_with(Colr)
-      sample      *= scale
       if no_uniq_jitter:
+        assert kind is 'Systematic'
         dups  = idx == np.roll(idx,1)
         dups |= idx == np.roll(idx,-1)
-        E[dups] += sample[dups]
+        sample, chi2 = sample_quickly_with(Colr,N=sum(dups))
+        E[dups] += scale*sample
       else:
-        E += sample
+        sample, chi2 = sample_quickly_with(Colr)
+        E += scale*sample
       if rroot != 1.0:
         w *= exp(-0.5*chi2*(1 - 1/rroot))
         w /= w.sum()
@@ -1175,22 +1186,22 @@ def resample(E,w,noise=None,N=None,kind=None,
   return E, w
 
 
-def sample_quickly_with(Colour):
+def sample_quickly_with(Colour,N=None):
   """Gaussian, coloured sampling in the quickest fashion,
   which depends on the size of the colouring matrix."""
-  (N,m) = Colour.shape
+  (N_,m) = Colour.shape
+  if N is None: N = N_
   if N > 2*m:
     cholU  = chol_trunc(Colour.T@Colour)
     D      = randn((N,cholU.shape[0]))
     chi2   = np.sum(D**2, axis=1)
     sample = D@cholU
   else:
-    chi2_compensate_for_rank = min(m/N,1.0)
-    D      = randn((N,N))
+    chi2_compensate_for_rank = min(m/N_,1.0)
+    D      = randn((N,N_))
     chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
     sample = D@Colour
   return sample, chi2  
-
 
 
 
