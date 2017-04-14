@@ -1210,6 +1210,93 @@ def sample_quickly_with(Colour,N=None):
   return sample, chi2  
 
 
+def PFD(setup,config,xx,yy):
+  """
+  Idea: sample a bunch from each kernel.
+  => The ones more likely to get picked by resampling are closer to the likelihood.
+
+  Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
+  """
+
+  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  N, upd_a      = config.N, getattr(config,'upd_a',None)
+  Qs            = getattr(config,'Qs',0)
+  Qsroot        = getattr(config,'Qsroot',1.0)
+  reg           = getattr(config,'reg',0)
+
+  Nm            = getattr(config,'Nm',False)
+  D_            = None
+
+  Rm12 = h.noise.C.m12
+  Q12  = f.noise.C.ssqrt
+
+  E = X0.sample(N)
+  w = 1/N*ones(N)
+
+  stats        = Stats(setup,config,xx,yy)
+  stats.N_eff  = np.full(chrono.KObs+1,nan)
+  stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+  stats.assess(0,E=E,w=1/N)
+
+  for k,kObs,t,dt in progbar(chrono.forecast_range):
+    E  = f.model(E,t-dt,dt)
+    E += sqrt(dt)*(randn((N,f.m))@Q12.T)
+
+    if kObs is not None:
+      stats.assess(k,kObs,'f',E=E,w=w)
+      y  = yy[kObs]
+
+      hE = h.model(E,t)
+      innovs = hE - y
+      innovs = innovs @ Rm12.T
+      logL   = -0.5 * np.sum(innovs**2, axis=1)
+      w_     = w.copy()
+      w      = reweight(w,logL=logL)
+
+      N_eff = 1/(w@w)
+      stats.N_eff[kObs] = N_eff
+      # Resample if N_effective < threshold.
+      if N_eff <= N*config.NER:
+        stats.resmpl[kObs] = True
+
+        w    = w_
+
+        mu   = w@E
+        A    = E - mu
+        ub   = unbias_var(w, avoid_pathological=True)
+        bw   = N**(-1/(f.m+4))
+        nrm  = tp(sqrt(Qs*bw*ub*w)) # ≈ 1/sqrt(N-1)
+
+        Em   = E.repeat(Nm,0)
+        wm   = w.repeat(Nm)
+        wm  /= wm.sum()
+
+        Colr  = nrm*A
+        cholU = chol_trunc(Colr.T@Colr)
+        rnk   = cholU.shape[0]
+        if D_ is None:
+          D_  = randn((N*Nm,f.m))
+        Em   += D_[:,:rnk]@cholU
+        
+        hE     = h.model(Em,t)
+        innovs = hE - y
+        innovs = innovs @ Rm12.T
+        logL   = -0.5 * np.sum(innovs**2, axis=1)
+        wm     = reweight(wm,logL=logL)
+
+        E,w = resample(Em, wm, f.noise, N=N, kind=upd_a, reg=0)
+
+        # Add noise (jittering)
+        if reg!=0:
+          bw    = N**(-1/(f.m+4))
+          scale = reg*bw
+          D, _  = sample_quickly_with(anom(E)[0]/sqrt(N-1))
+          E    += scale*D
+
+      post_process(E,config)
+    stats.assess(k,kObs,E=E,w=w)
+  return stats
+
 
 
 def EnCheat(setup,config,xx,yy):
