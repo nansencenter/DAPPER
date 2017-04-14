@@ -77,9 +77,13 @@ if 'zmq' in str(type(get_ipython())).lower():
 else:
   # terminal frontent
   if user_is_patrick():
-    #mpl.use('Qt4Agg') # deprecated
-    #mpl.use('TkAgg')  # has geometry(placement)
-    mpl.use('MacOSX') # prettier, stable, fast (notable in LivePlot)
+    from sys import platform
+    if platform == 'darwin':
+      #mpl.use('Qt4Agg') # deprecated
+      #mpl.use('TkAgg')  # has geometry(placement)
+      mpl.use('MacOSX') # prettier, stable, fast (notable in LivePlot)
+    else:
+      pass
 import matplotlib.pyplot as plt
 plt.ion()
 
