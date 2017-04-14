@@ -1223,7 +1223,6 @@ def PFD(setup,config,xx,yy):
 
   Nm            = getattr(config,'Nm',False)
   D_            = None
-  chi2_         = None
 
   Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
@@ -1269,22 +1268,13 @@ def PFD(setup,config,xx,yy):
         wm   = w.repeat(Nm)
         wm  /= wm.sum()
 
-        Colr   = nrm*A
-        cholU  = chol_trunc(Colr.T@Colr)
-        rnk    = cholU.shape[0]
+        Colr  = nrm*A
+        cholU = chol_trunc(Colr.T@Colr)
+        rnk   = cholU.shape[0]
         if D_ is None:
-          D_    = randn((N*Nm,f.m))
-          chi2_ = np.sum(D_**2, axis=1)
-        chi2_compensate_for_rank = min(f.m/rnk,1.0)
-        Em  += D_[:,:rnk]@(sqrt(Qsroot)*cholU)
-        if Qsroot != 1.0:
-          wm *= exp(-0.5*chi2_*(1 - 1/Qsroot))
-          wm /= wm.sum()
-
-        #aux.stoch.use_pre_computed_table_for_randn = True
-        #Em  += sample_quickly_with(nrm*A,N=Nm*N)[0]
-        #aux.stoch.use_pre_computed_table_for_randn = False
-
+          D_  = randn((N*Nm,f.m))
+        Em   += D_[:,:rnk]@cholU
+        
         hE     = h.model(Em,t)
         innovs = hE - y
         innovs = innovs @ Rm12.T
