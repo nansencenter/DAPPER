@@ -6,10 +6,10 @@
 
 from common import *
 
-sd0 = seed(4)
+sd0 = seed(9)
 
 from mods.Lorenz95.boc10 import setup
-setup.t.T = 4**4.0
+setup.t.T = 4**3.5
 
 xx,yy = simulate(setup)
 
@@ -17,16 +17,17 @@ xx,yy = simulate(setup)
 # DA Configurations
 ############################
 cfgs = DAC_list()
-cfgs.add(Climatology)
-#cfgs.add(EnKF_N,N=24,rot=True,infl=1.01)
-#cfgs.add(PartFilt,N=100,NER=0.95,reg=0.5,wroot=1.7)
-#cfgs.add(iEnKF,'Sqrt', N=12, infl=1.02,rot=True,iMax=10)
+#cfgs.add(Climatology)
+#cfgs.add(EnKF,'Sqrt',N=24,rot=True,infl=1.05)
+#cfgs.add(EnKF_N,N=24,rot=True,infl=1.00)
 
-N = 100
-for g in [0.5]:
-  for r in [1.4, 1.55, 1.7, 1.9]:
-    for NER in [0.95]:
-      cfgs.add(PartFilt, N=N, NER=NER, wroot=r, reg=g)
+
+#N = 300
+#for reg in [0.2]:
+  #for Qs in [0.3]:
+    #for NER in [0.2]:
+      #for Nm in [1000]:
+        #cfgs.add(PFD,N=N,NER=NER,reg=reg,Nm=Nm,Qs=Qs,nuj=False)
 
 ############################
 # Assimilate
@@ -40,6 +41,7 @@ for ic,config in enumerate(cfgs):
 
   stats += [ assimilate(setup,config,xx,yy) ]
   avrgs += [ stats[ic].average_in_time() ]
+  print_averages(config, avrgs[-1])
 print_averages(cfgs,avrgs)
 
 # Single experiment

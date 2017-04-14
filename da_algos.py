@@ -916,6 +916,7 @@ def PartFilt(setup,config,xx,yy):
   stats        = Stats(setup,config,xx,yy)
   stats.N_eff  = np.full(chrono.KObs+1,nan)
   stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+  stats.lklhds = zeros((chrono.KObs+1,h.m),dtype=bool)
   stats.assess(0,E=E,w=1/N)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -937,6 +938,8 @@ def PartFilt(setup,config,xx,yy):
       innovs = innovs @ Rm12.T
       logL   = -0.5 * np.sum(innovs**2, axis=1)
       w      = reweight(w,logL=logL)
+
+      stats.innovs[kObs] = innovs
 
       N_eff = 1/(w@w)
       stats.N_eff[kObs] = N_eff
