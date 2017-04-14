@@ -25,9 +25,10 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
+# NB: To  be pretty sure that the particle filter configuration
+# is robust against divergence, must test at least up to T=2000.
 #cfgs.add(EnKF,'Sqrt',N=24,rot=True,infl=1.05)
 #cfgs.add(EnKF_N,N=24,rot=True,infl=1.01)
-#cfgs.add(PartFilt,N=3000,NER=0.05,reg=1.1,nuj=True)   # rmse_a = 0.68
-#cfgs.add(PartFilt,N=5000,NER=0.05,reg=1.0)            # rmse_a = 0.67
-#cfgs.add(PartFilt,N=10000,NER=0.05,reg=0.8)           # rmse_a = 0.51
-#cfgs.add(PartFilt,N=10000,NER=0.05,reg=0.6,rroot=1.4) # rmse_a = 0.53
+#cfgs.add(PartFilt,N=3000,NER=0.20,reg=1.2,nuj=True)   # rmse_a = 0.77
+#cfgs.add(PartFilt,N=5000,NER=0.10,reg=1.1,nuj=True)   # rmse_a = 0.72
+#cfgs.add(PartFilt,N=10000,NER=0.05,reg=0.8,nuj=True)  # rmse_a = 0.45

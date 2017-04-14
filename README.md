@@ -221,6 +221,7 @@ Name               | Developers           | Purpose (vs. DAPPER)
 [PyIT][14]         | CIPR                 | Real-world petroleum DA (?)
 Datum*             | Raanes               | Matlab, personal publications
 [EnKF-Matlab*][15] | Sakov                | Matlab, personal publications and intro
+[EnKF-C][17]       | Sakov                | C, light-weight EnKF, off-line
 IEnKS code*        | Bocquet              | Python, personal publications
 [pyda][16]         | Hickman              | Python, personal publications
 
@@ -250,6 +251,7 @@ Operational: optimized for speed.
 [14]: http://uni.no/en/uni-cipr/
 [15]: http://enkf.nersc.no/
 [16]: http://hickmank.github.io/pyda/
+[17]: https://github.com/sakov/enkf-c
 
 
 Implementation choices
