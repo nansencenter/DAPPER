@@ -40,6 +40,9 @@ setup = OSSE(f,h,t,X0,**other)
 #cfgs.add(PartFilt,N=800,NER=0.2,reg=0.7)      # rmse_a = 0.25
 #cfgs.add(OptPF,   N=100,NER=0.2,reg=1.0,Qs=0.05)
 
+#cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,Nm=100,Qs=0.5,nuj=False) # 0.32
+#cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,Nm=100,Qs=0.7,nuj=False) # 0.42
+
 # Note: contrary to the article, we use, in the EnKF,
 # - inflation instead of additive noise ?
 # - Sqrt      instead of perturbed obs
