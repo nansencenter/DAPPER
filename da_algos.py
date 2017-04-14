@@ -1206,9 +1206,7 @@ def sample_quickly_with(Colour,N=None):
   return sample, chi2  
 
 
-
-
-def PF3(setup,config,xx,yy):
+def PFD(setup,config,xx,yy):
   """
   Idea: sample a bunch from each kernel.
   => The ones more likely to get picked by resampling are closer to the likelihood.
@@ -1223,6 +1221,8 @@ def PF3(setup,config,xx,yy):
   nuj           = getattr(config,'nuj',False)
 
   Nm            = getattr(config,'Nm',False)
+  D_            = None
+  import aux.stoch
 
   Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
@@ -1267,15 +1267,30 @@ def PF3(setup,config,xx,yy):
         Em   = E.repeat(Nm,0)
         wm   = w.repeat(Nm)
 
-        Em  += sample_quickly_with(nrm*A,N=Nm*N)[0]
+        Colr = nrm*A
+        cholU  = chol_trunc(Colr.T@Colr)
+        if D_ is None:
+          D_ = randn((N*Nm,f.m))
+        Em  += D_[:,:cholU.shape[0]]@cholU
 
-        hE = h.model(Em,t)
+        #aux.stoch.use_pre_computed_table_for_randn = True
+        #Em  += sample_quickly_with(nrm*A,N=Nm*N)[0]
+        #aux.stoch.use_pre_computed_table_for_randn = False
+
+        hE     = h.model(Em,t)
         innovs = hE - y
         innovs = innovs @ Rm12.T
         logL   = -0.5 * np.sum(innovs**2, axis=1)
         wm     = reweight(wm,logL=logL)
 
-        E,w = resample(Em, wm, f.noise, N=N, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
+        E,w = resample(Em, wm, f.noise, N=N, kind=upd_a, reg=0)
+
+        # Add noise (jittering)
+        if reg!=0:
+          bw    = N**(-1/(f.m+4))
+          scale = reg*bw
+          D, _  = sample_quickly_with(anom(E)[0]/sqrt(N-1))
+          E    += scale*D
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
