@@ -40,12 +40,15 @@ setup = OSSE(f,h,t,X0,**other)
 #cfgs.add(PartFilt,N=800,NER=0.2,reg=0.7)      # rmse_a = 0.25
 #cfgs.add(OptPF,   N=100,NER=0.2,reg=1.0,Qs=0.05)
 
-#cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,Nm=100,Qs=0.5,nuj=False) # 0.32
-#cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,Nm=100,Qs=0.7,nuj=False) # 0.42
-
 # Note: contrary to the article, we use, in the EnKF,
 # - inflation instead of additive noise ?
 # - Sqrt      instead of perturbed obs
 # - random orthogonal rotations.
 # The PartFilt is also perhaps better tuned?
-# This explains why our benchmarks are superior.
+# This explains why the above benchmarks are superior to article.
+
+#  
+#cfgs.add(PFD     ,N=30, NER=0.4,reg=0.5,Nm=1000,Qs=0.6,nuj=0) # 0.50
+#cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,Nm=100 ,Qs=0.7,nuj=0) # 0.42
+#cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,Nm=100 ,Qs=0.5,nuj=0) # 0.32
+#cfgs.add(PFD     ,N=300,NER=0.2,reg=0.2,Nm=100 ,Qs=0.3,nuj=0) # 0.27

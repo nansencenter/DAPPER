@@ -1218,12 +1218,12 @@ def PFD(setup,config,xx,yy):
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
   Qs            = getattr(config,'Qs',0)
+  Qsroot        = getattr(config,'Qsroot',1.0)
   reg           = getattr(config,'reg',0)
-  nuj           = getattr(config,'nuj',False)
 
   Nm            = getattr(config,'Nm',False)
   D_            = None
-  import aux.stoch
+  chi2_         = None
 
   Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
@@ -1267,12 +1267,19 @@ def PFD(setup,config,xx,yy):
 
         Em   = E.repeat(Nm,0)
         wm   = w.repeat(Nm)
+        wm  /= wm.sum()
 
-        Colr = nrm*A
+        Colr   = nrm*A
         cholU  = chol_trunc(Colr.T@Colr)
+        rnk    = cholU.shape[0]
         if D_ is None:
-          D_ = randn((N*Nm,f.m))
-        Em  += D_[:,:cholU.shape[0]]@cholU
+          D_    = randn((N*Nm,f.m))
+          chi2_ = np.sum(D_**2, axis=1)
+        chi2_compensate_for_rank = min(f.m/rnk,1.0)
+        Em  += D_[:,:rnk]@(sqrt(Qsroot)*cholU)
+        if Qsroot != 1.0:
+          wm *= exp(-0.5*chi2_*(1 - 1/Qsroot))
+          wm /= wm.sum()
 
         #aux.stoch.use_pre_computed_table_for_randn = True
         #Em  += sample_quickly_with(nrm*A,N=Nm*N)[0]
