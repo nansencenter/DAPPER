@@ -1089,6 +1089,8 @@ def resample(E,w,noise=None,N=None,kind=None,
   assert(abs(w.sum()-1) < 1e-5)
 
   # TODO: Remove unused noise parameter
+  # TODO: fix_mu, fix_var. Leave note.
+
 
   N_o,m = E.shape
 
@@ -1099,11 +1101,12 @@ def resample(E,w,noise=None,N=None,kind=None,
     kind = 'Systematic'
 
   # Stats of original sample that may get used
-  mu_o  = w@E
-  A_o   = E - mu_o
-  ss_o  = sqrt(w @ A_o**2)
-  ub    = unbias_var(w, avoid_pathological=True)
-  Colr  = tp(sqrt(ub*w)) * A_o
+  if kind is 'Gaussian' or reg!=0 or fix_mu or fix_var:
+    mu_o  = w@E
+    A_o   = E - mu_o
+    ss_o  = sqrt(w @ A_o**2)
+    ub    = unbias_var(w, avoid_pathological=True)
+    Colr  = tp(sqrt(ub*w)) * A_o
 
   if kind is 'Gaussian':
     assert wroot==1.0
@@ -1153,10 +1156,8 @@ def resample(E,w,noise=None,N=None,kind=None,
 
     # Add noise (jittering)
     if reg!=0:
-      # OLD: E += 4/sqrt(N) * randn((N,m)) @ diag(ss_o)
-      # NEW: Use Scott's rule-of-thumb:
-      bw           = N**(-1/(m+4))
-      scale        = reg*bw*rroot
+      bw    = N**(-1/(m+4)) # Scott's rule-of-thumb
+      scale = reg*bw*sqrt(rroot)
       # Jitter
       if no_uniq_jitter:
         assert kind is 'Systematic'
@@ -1193,7 +1194,7 @@ def sample_quickly_with(Colour,N=None):
   which depends on the size of the colouring matrix."""
   (N_,m) = Colour.shape
   if N is None: N = N_
-  if N > 2*m:
+  if N_ > 2*m:
     cholU  = chol_trunc(Colour.T@Colour)
     D      = randn((N,cholU.shape[0]))
     chi2   = np.sum(D**2, axis=1)
