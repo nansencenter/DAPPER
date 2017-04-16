@@ -901,6 +901,7 @@ def PartFilt(setup,config,xx,yy):
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
+  NER           = config.NER
   wroot         = getattr(config,'wroot',1.0)
   qroot         = getattr(config,'qroot',1.0)
   reg           = getattr(config,'reg',0)
@@ -941,16 +942,21 @@ def PartFilt(setup,config,xx,yy):
 
       stats.innovs[kObs] = innovs
 
-      N_eff = 1/(w@w)
-      stats.N_eff[kObs] = N_eff
-      # Resample if N_effective < threshold.
-      if N_eff <= N*config.NER:
-        stats.resmpl[kObs] = True
+      if trigger_resampling(w,NER,stats,kObs):
         E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, wroot=wroot, rroot=rroot, no_uniq_jitter=nuj)
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
+
+
+def trigger_resampling(w,NER,stats,kObs):
+  "Resample if N_effective <= threshold."
+  N_eff              = 1/(w@w)
+  do_resample        = N_eff <= len(w)*NER
+  stats.N_eff[kObs]  = N_eff
+  stats.resmpl[kObs] = do_resample
+  return do_resample
 
 def reweight(w,lklhd=None,logL=None):
   """
@@ -984,6 +990,7 @@ def OptPF(setup,config,xx,yy):
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
+  NER           = config.NER
   Qs            = getattr(config,'Qs',0)
   reg           = getattr(config,'reg',0)
   nuj           = getattr(config,'nuj',False)
@@ -1030,11 +1037,7 @@ def OptPF(setup,config,xx,yy):
       logL   = -0.5 * np.sum(chi2, axis=1)
       w      = reweight(w,logL=logL)
 
-      N_eff = 1/(w@w)
-      stats.N_eff[kObs] = N_eff
-      # Resample if N_effective < threshold.
-      if N_eff <= N*config.NER:
-        stats.resmpl[kObs] = True
+      if trigger_resampling(w,NER,stats,kObs):
         E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
 
       post_process(E,config)
@@ -1220,6 +1223,7 @@ def PFD(setup,config,xx,yy):
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
+  NER           = config.NER
   m             = f.m
   Qs            = getattr(config,'Qs',0)
   Qsroot        = getattr(config,'Qsroot',1.0)
@@ -1254,12 +1258,7 @@ def PFD(setup,config,xx,yy):
       w_     = w.copy()
       w      = reweight(w,logL=logL)
 
-      N_eff = 1/(w@w)
-      stats.N_eff[kObs] = N_eff
-      # Resample if N_effective < threshold.
-      if N_eff <= N*config.NER:
-        stats.resmpl[kObs] = True
-
+      if trigger_resampling(w,NER,stats,kObs):
         w    = w_
 
         mu   = w@E
