@@ -943,37 +943,11 @@ def PartFilt(setup,config,xx,yy):
       stats.innovs[kObs] = innovs
 
       if trigger_resampling(w,NER,stats,kObs):
-        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, wroot=wroot, rroot=rroot, no_uniq_jitter=nuj)
+        E,w = resample(E, w, kind=upd_a, reg=reg, wroot=wroot, rroot=rroot, no_uniq_jitter=nuj)
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
-
-
-def trigger_resampling(w,NER,stats,kObs):
-  "Resample if N_effective <= threshold."
-  N_eff              = 1/(w@w)
-  do_resample        = N_eff <= len(w)*NER
-  stats.N_eff[kObs]  = N_eff
-  stats.resmpl[kObs] = do_resample
-  return do_resample
-
-def reweight(w,lklhd=None,logL=None):
-  """
-  Do Bayes' rule for the empirical distribution of an importance sample.
-  Do computations in log-space, for at least 2 reasons:
-  - Normalization: will fail if sum==0 (if all innov's are large).
-  - Num. precision: lklhd*w should have better prec in log space.
-  Output is non-log, for the purpose of assessment and resampling.
-  """
-  if lklhd is not None:
-    logL = log(lklhd)
-  logL  -= logL.max()    # Avoid numerical error
-  logw   = log(w) + logL # Bayes' rule
-  w      = exp(logw)
-  w     /= w.sum()
-  return w
-
 
 
 def OptPF(setup,config,xx,yy):
@@ -1038,14 +1012,40 @@ def OptPF(setup,config,xx,yy):
       w      = reweight(w,logL=logL)
 
       if trigger_resampling(w,NER,stats,kObs):
-        E,w = resample(E, w, f.noise, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
+        E,w = resample(E, w, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
 
 
-def resample(E,w,noise=None,N=None,kind=None,
+
+def trigger_resampling(w,NER,stats,kObs):
+  "Resample if N_effective <= threshold."
+  N_eff              = 1/(w@w)
+  do_resample        = N_eff <= len(w)*NER
+  stats.N_eff[kObs]  = N_eff
+  stats.resmpl[kObs] = do_resample
+  return do_resample
+
+def reweight(w,lklhd=None,logL=None):
+  """
+  Do Bayes' rule for the empirical distribution of an importance sample.
+  Do computations in log-space, for at least 2 reasons:
+  - Normalization: will fail if sum==0 (if all innov's are large).
+  - Num. precision: lklhd*w should have better prec in log space.
+  Output is non-log, for the purpose of assessment and resampling.
+  """
+  if lklhd is not None:
+    logL = log(lklhd)
+  logL  -= logL.max()    # Avoid numerical error
+  logw   = log(w) + logL # Bayes' rule
+  w      = exp(logw)
+  w     /= w.sum()
+  return w
+
+
+def resample(E,w,N=None,kind=None,
     fix_mu=False,fix_var=False,reg=0.0,wroot=1.0,rroot=1.0,no_uniq_jitter=False):
   """
   Resampling function for the particle filter.
@@ -1094,7 +1094,6 @@ def resample(E,w,noise=None,N=None,kind=None,
   """
   assert(abs(w.sum()-1) < 1e-5)
 
-  # TODO: Remove unused noise parameter
   # TODO: fix_mu, fix_var. Leave note.
 
 
@@ -1284,7 +1283,7 @@ def PFD(setup,config,xx,yy):
         logL   = -0.5 * np.sum(innovs**2, axis=1)
         wD     = reweight(wD,logL=logL)
 
-        E,w = resample(ED, wD, f.noise, N=N, kind=upd_a, reg=0)
+        E,w = resample(ED, wD, N=N, kind=upd_a, reg=0)
 
         # Add noise (jittering)
         if reg!=0:
