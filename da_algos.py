@@ -933,10 +933,7 @@ def PartFilt(setup,config,xx,yy):
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E,w=w)
 
-      hE = h.model(E,t)
-      y  = yy[kObs]
-      innovs = hE - y
-      innovs = innovs @ Rm12.T
+      innovs = (y - h.model(E,t)) @ Rm12.T
       logL   = -0.5 * np.sum(innovs**2, axis=1)
       w      = reweight(w,logL=logL)
 
@@ -988,8 +985,9 @@ def OptPF(setup,config,xx,yy):
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E,w=w)
 
+      # Note: this here, before adding noise
       y      = yy[kObs]
-      innovs = y - h.model(E,t) # Note: before adding noise
+      innovs = y - h.model(E,t) 
 
       mu   = w@E
       A    = E - mu
@@ -1277,9 +1275,7 @@ def PFD(setup,config,xx,yy):
           DD  = randn((N*xN,m))
         ED   += DD[:,:rnk]@cholU
         
-        hE     = h.model(ED,t)
-        innovs = hE - y
-        innovs = innovs @ Rm12.T
+        innovs = (y - h.model(ED,t)) @ Rm12.T
         logL   = -0.5 * np.sum(innovs**2, axis=1)
         wD     = reweight(wD,logL=logL)
 
