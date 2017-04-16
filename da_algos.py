@@ -916,7 +916,7 @@ def PartFilt(setup,config,xx,yy):
   stats        = Stats(setup,config,xx,yy)
   stats.N_eff  = np.full(chrono.KObs+1,nan)
   stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
-  stats.lklhds = zeros((chrono.KObs+1,h.m),dtype=bool)
+  stats.innovs = np.full((chrono.KObs+1,N,h.m),nan)
   stats.assess(0,E=E,w=1/N)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
@@ -1220,12 +1220,13 @@ def PFD(setup,config,xx,yy):
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   N, upd_a      = config.N, getattr(config,'upd_a',None)
+  m             = f.m
   Qs            = getattr(config,'Qs',0)
   Qsroot        = getattr(config,'Qsroot',1.0)
   reg           = getattr(config,'reg',0)
 
-  Nm            = getattr(config,'Nm',False)
-  D_            = None
+  xN            = getattr(config,'xN',False)
+  DD            = None
 
   Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
@@ -1240,13 +1241,13 @@ def PFD(setup,config,xx,yy):
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*(randn((N,f.m))@Q12.T)
+    E += sqrt(dt)*(randn((N,m))@Q12.T)
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E,w=w)
       y  = yy[kObs]
 
-      hE = h.model(E,t)
+      hE     = h.model(E,t)
       innovs = hE - y
       innovs = innovs @ Rm12.T
       logL   = -0.5 * np.sum(innovs**2, axis=1)
@@ -1264,31 +1265,31 @@ def PFD(setup,config,xx,yy):
         mu   = w@E
         A    = E - mu
         ub   = unbias_var(w, avoid_pathological=True)
-        bw   = N**(-1/(f.m+4))
+        bw   = N**(-1/(m+4))
         nrm  = tp(sqrt(Qs*bw*ub*w)) # ≈ 1/sqrt(N-1)
 
-        Em   = E.repeat(Nm,0)
-        wm   = w.repeat(Nm)
-        wm  /= wm.sum()
+        ED   = E.repeat(xN,0)
+        wD   = w.repeat(xN)
+        wD  /= wD.sum()
 
-        Colr  = nrm*A
-        cholU = chol_trunc(Colr.T@Colr)
+        Color = nrm*A
+        cholU = chol_trunc(Color.T@Color)
         rnk   = cholU.shape[0]
-        if D_ is None:
-          D_  = randn((N*Nm,f.m))
-        Em   += D_[:,:rnk]@cholU
+        if DD is None:
+          DD  = randn((N*xN,m))
+        ED   += DD[:,:rnk]@cholU
         
-        hE     = h.model(Em,t)
+        hE     = h.model(ED,t)
         innovs = hE - y
         innovs = innovs @ Rm12.T
         logL   = -0.5 * np.sum(innovs**2, axis=1)
-        wm     = reweight(wm,logL=logL)
+        wD     = reweight(wD,logL=logL)
 
-        E,w = resample(Em, wm, f.noise, N=N, kind=upd_a, reg=0)
+        E,w = resample(ED, wD, f.noise, N=N, kind=upd_a, reg=0)
 
         # Add noise (jittering)
         if reg!=0:
-          bw    = N**(-1/(f.m+4))
+          bw    = N**(-1/(m+4))
           scale = reg*bw
           D, _  = sample_quickly_with(anom(E)[0]/sqrt(N-1))
           E    += scale*D

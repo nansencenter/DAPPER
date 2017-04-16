@@ -48,7 +48,7 @@ setup = OSSE(f,h,t,X0,**other)
 # This explains why the above benchmarks are superior to article.
 
 #  
-#cfgs.add(PFD     ,N=30, NER=0.4,reg=0.5,Nm=1000,Qs=0.6,nuj=0) # 0.52
-#cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,Nm=100 ,Qs=0.7,nuj=0) # 0.40
-#cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,Nm=100 ,Qs=0.6,nuj=0) # 0.34
-#cfgs.add(PFD     ,N=300,NER=0.2,reg=0.2,Nm=100 ,Qs=0.3,nuj=0) # 0.28
+#cfgs.add(PFD     ,N=30, NER=0.4,reg=0.5,xN=1000,Qs=0.6,nuj=0) # 0.52
+#cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,xN=100 ,Qs=0.7,nuj=0) # 0.40
+#cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,xN=100 ,Qs=0.6,nuj=0) # 0.34
+#cfgs.add(PFD     ,N=300,NER=0.2,reg=0.2,xN=100 ,Qs=0.3,nuj=0) # 0.28
