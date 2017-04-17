@@ -26,7 +26,7 @@ w = w/w.sum()
 # Resaple
 r = resample(tp(q),w,N=int(0.8*N),kind='Residual')
 s = resample(tp(q),w,N=int(0.8*N),kind='Systematic')
-t = resample(tp(q),w,N=int(0.8*N),kind='Multinomial')
+t = resample(tp(q),w,N=int(0.8*N),kind='Stochastic')
 
 XL   = 15
 xx   = linspace(0,XL,201)
@@ -38,7 +38,7 @@ axs[1].hist(q,bins,normed=True,label='Proposal sample and pdf')
 axs[2].hist(q,bins,normed=True,label='Proposal sample - weighted', weights=w)
 axs[3].hist(r,bins,normed=True,label='resmpl: Residual')
 axs[4].hist(s,bins,normed=True,label='resmpl: Systematic')
-axs[5].hist(t,bins,normed=True,label='resmpl: Multinomial')
+axs[5].hist(t,bins,normed=True,label='resmpl: Stochastic')
 
 # Add actual pdfs
 axs[0].plot(xx,pdf(xx,dof),label='pdf: Target')
@@ -49,7 +49,7 @@ axs[6].plot(xx,pdf(xx,dof),c='k',lw=3      ,label='pdf: Target')
 axs[6].plot(xx,qdf(xx,scl),c='k',lw=2      ,label='pdf: Proposal')
 axs[6].plot(xx, kde(r,'c',bw=[0.1]).pdf(xx),label='kde: Residual')
 axs[6].plot(xx, kde(s,'c',bw=[0.1]).pdf(xx),label='kde: Systematic')
-axs[6].plot(xx, kde(t,'c',bw=[0.1]).pdf(xx),label='kde: Multinomial')
+axs[6].plot(xx, kde(t,'c',bw=[0.1]).pdf(xx),label='kde: Stochastic')
 
 
 axs[0].set_yticklabels([])

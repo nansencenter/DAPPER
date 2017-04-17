@@ -1111,14 +1111,19 @@ def regularize(C12,E,idx,no_uniq_jitter):
 
 def resample(w,kind='Systematic',N=None,wroot=1.0):
   """
-  Resampling function for the particle filter.
-  Example: see docs/test_resample.py.
+  Multinomial resampling.
+
+  - kind: 'Systematic', 'Residual' or 'Stochastic'.
+    'Stochastic' corresponds to np.random.choice() or np.random.multinomial().
+    'Systematic' and 'Residual' are more systematic (less stochastic)
+    varaitions of 'Stochastic' sampling.
+    Among the three, 'Systematic' is fastest, introduces the least noise,
+    and brings continuity benefits for localized particle filters,
+    and is therefore generally prefered.
+    Example: see docs/test_resample.py.
 
   - N can be different from len(w)
   (e.g. in case some particles have been elimintated).
-
-  - kind: 'Residual' and 'Systematic' more systematic (less stochastic)
-    variations on 'Multinomial' sampling. 'Systematic' is a little faster.
 
   - wroot: Adjust weights before resampling by this root to mitigate thinning.
        The outcomes of the resampling are then weighted to maintain un-biased-ness.
@@ -1140,7 +1145,6 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
   [3]: Liu, Chen Longvinenko, 2001:
     "A theoretical framework for sequential importance sampling with resampling"
   """
-  # TODO: Rename to multinomial_resampling
   # TODO: Separate out core functionality for clarity
   # TODO: wroot-->adj_root?
 
@@ -1160,7 +1164,7 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
     s   = ones(N_o)
     sw  = w
 
-  if kind is 'Multinomial':
+  if kind is 'Stochastic':
     # van Leeuwen [2] also calls this "probabilistic" resampling
     idx = np.random.choice(N_o,N,replace=True,p=sw)
     # np.random.multinomial is faster (slightly different usage) ?
