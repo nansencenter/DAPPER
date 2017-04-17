@@ -899,13 +899,14 @@ def PartFilt(setup,config,xx,yy):
     "Bayesian Filtering: From Kalman Filters to Particle Filters, and Beyond"
   """
 
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, getattr(config,'upd_a',None)
+  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+  m             = f.m
   NER           = config.NER
-  wroot         = getattr(config,'wroot',1.0)
   qroot         = getattr(config,'qroot',1.0)
+  upd_a         = getattr(config,'upd_a','Systematic') # TODO: let resample handle
+  wroot         = getattr(config,'wroot',1.0)
+  #rroot         = getattr(config,'rroot',1.0)
   reg           = getattr(config,'reg',0)
-  rroot         = getattr(config,'rroot',1.0)
   nuj           = getattr(config,'nuj',False)
 
   Rm12 = h.noise.C.m12
@@ -922,26 +923,32 @@ def PartFilt(setup,config,xx,yy):
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
-    D  = randn((N,f.m))
+    D  = randn((N,m))
     E += sqrt(dt*qroot)*(D@Q12.T)
 
     if qroot != 1.0:
-      # Evaluate p/q (at each noise realization in D) when q:=p**(1/qroot).
+      # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
       w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
       w /= w.sum()
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E,w=w)
 
-      innovs = (y - h.model(E,t)) @ Rm12.T
+      innovs = (yy[kObs] - h.model(E,t)) @ Rm12.T
       logL   = -0.5 * np.sum(innovs**2, axis=1)
       w      = reweight(w,logL=logL)
 
       stats.innovs[kObs] = innovs
 
       if trigger_resampling(w,NER,stats,kObs):
-        E,w = resample(E, w, kind=upd_a, reg=reg, wroot=wroot, rroot=rroot, no_uniq_jitter=nuj)
-
+        C12    = reg*bandw(N,m)*raw_C12(E,w)
+        #C12  *= sqrt(rroot) # Re-include?
+        idx,w  = resample(w, upd_a, wroot=wroot)
+        E,chi2 = regularize(C12,E,idx,nuj)
+        #if rroot != 1.0:
+          # Compensate for rroot
+          #w *= exp(-0.5*chi2*(1 - 1/rroot))
+          #w /= w.sum()
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
@@ -967,7 +974,6 @@ def OptPF(setup,config,xx,yy):
   nuj           = getattr(config,'nuj',False)
 
   R    = h.noise.C.C
-  Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
 
   E = X0.sample(N)
@@ -998,20 +1004,20 @@ def OptPF(setup,config,xx,yy):
 
       hE  = h.model(E,t)
       hx  = w@hE
-      Y   = hE-hx
+      Y   = hE-hx # TODO Weight?
 
-      D    = center(h.noise.sample(N))
-      C    = (nrm*Y).T @ (nrm*Y) + R
-      dE   = (nrm*A).T @ (nrm*Y) @ mldiv(C,(y-hE+D).T)
-      E    = E + dE.T
+      D   = center(h.noise.sample(N))
+      C   = (nrm*Y).T @ (nrm*Y) + R
+      dE  = (nrm*A).T @ (nrm*Y) @ mldiv(C,(y-hE+D).T)
+      E   = E + dE.T
 
       chi2   = innovs*mldiv(C,innovs.T).T
       logL   = -0.5 * np.sum(chi2, axis=1)
       w      = reweight(w,logL=logL)
 
       if trigger_resampling(w,NER,stats,kObs):
-        E,w = resample(E, w, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
-
+        pass
+        #TODO: E,w = resample(E, w, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
@@ -1019,7 +1025,7 @@ def OptPF(setup,config,xx,yy):
 
 
 def trigger_resampling(w,NER,stats,kObs):
-  "Resample if N_effective <= threshold."
+  "Return boolean: N_effective <= threshold."
   N_eff              = 1/(w@w)
   do_resample        = N_eff <= len(w)*NER
   stats.N_eff[kObs]  = N_eff
@@ -1031,10 +1037,11 @@ def reweight(w,lklhd=None,logL=None):
   Do Bayes' rule for the empirical distribution of an importance sample.
   Do computations in log-space, for at least 2 reasons:
   - Normalization: will fail if sum==0 (if all innov's are large).
-  - Num. precision: lklhd*w should have better prec in log space.
+  - Num. precision: lklhd*w should have better precision in log space.
   Output is non-log, for the purpose of assessment and resampling.
   """
   if lklhd is not None:
+    assert logL is None
     logL = log(lklhd)
   logL  -= logL.max()    # Avoid numerical error
   logw   = log(w) + logL # Bayes' rule
@@ -1042,32 +1049,80 @@ def reweight(w,lklhd=None,logL=None):
   w     /= w.sum()
   return w
 
-
-def resample(E,w,N=None,kind=None,
-    fix_mu=False,fix_var=False,reg=0.0,wroot=1.0,rroot=1.0,no_uniq_jitter=False):
+def raw_C12(E,w):
   """
-  Resampling function for the particle filter.
+  Compute the 'raw' matrix-square-root of the ensemble' covariance.
+  The weights are used both for the mean and anomalies (raw sqrt).
 
-  Example: see docs/test_resample.py.
+  Note: anomalies (and thus cov) are weighted,
+  and also computed based on a weighted mean.
+  """
+  mu  = w@E
+  A   = E - mu
+  ub  = unbias_var(w, avoid_pathological=True)
+  C12 = sqrt(ub*w[:,None]) * A
+  return C12
 
-  - N can be different from E.shape[0]
-  (e.g. in case some particles have been elimintated).
+def mask_unique_of_sorted(idx):
+  "NB: returns a mask which is True at [i] iff idx[i] is NOT unique."
+  duplicates  = idx==np.roll(idx,1)
+  duplicates |= idx==np.roll(idx,-1)
+  return duplicates
 
-  - kind: 'Residual' and 'Systematic' more systematic (less stochastic)
-    variations on 'Multinomial' sampling. 'Systematic' is a little faster.
-    'Gaussian' is biased (approximate) unless the actual distribution is Gaussian.
+def bandw(N,m):
+  """"
+  Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
+  Refs: [1] section 12.2.2, and [2] #Rule_of_thumb
+  [1]: Doucet, de Freitas, Gordon, 2001:
+    "Sequential Monte Carlo Methods in Practice"
+  [2] wikipedia.org/wiki/Multivariate_kernel_density_estimation
+  """
+  return N**(-1/(m+4))
 
+
+def regularize(C12,E,idx,no_uniq_jitter):
+  """
   After resampling some of the particles will be identical.
   Therefore, if noise.is_deterministic: some noise must be added.
   This is adjusted by the regularization 'reg' factor
   (so-named because Dirac-deltas are approximated  Gaussian kernels),
   which controls the strength of the jitter.
   This causes a bias. But, as N-->∞, the reg. bandwidth-->0, i.e. bias-->0.
-  Ref: [3], section 12.2.2.
+  Ref: [1], section 12.2.2.
+
+  [1]: Doucet, de Freitas, Gordon, 2001:
+    "Sequential Monte Carlo Methods in Practice"
+  """
+  # Select
+  E = E[idx]
+
+  # Jitter
+  if no_uniq_jitter:
+    dups         = duplicates_of_sorted(idx)
+    sample, chi2 = sample_quickly_with(C12, N=sum(dups))
+    E[dups]     += sample
+  else:
+    sample, chi2 = sample_quickly_with(C12, N=len(E))
+    E           += sample
+
+  return E, chi2
+
+
+def resample(w,kind='Systematic',N=None,wroot=1.0):
+  """
+  Resampling function for the particle filter.
+
+  Example: see docs/test_resample.py.
+
+  - N can be different from len(w)
+  (e.g. in case some particles have been elimintated).
+
+  - kind: 'Residual' and 'Systematic' more systematic (less stochastic)
+    variations on 'Multinomial' sampling. 'Systematic' is a little faster.
 
   - wroot: Adjust weights before resampling by this root to mitigate thinning.
        The outcomes of the resampling are then weighted to maintain un-biased-ness.
-       Ref: [4], section 3.1
+       Ref: [3], section 3.1
 
   Note: (a) resampling methods are beneficial because they discard
   low-weight ("doomed") particles and reduce the variance of the weights.
@@ -1079,122 +1134,75 @@ def resample(E,w,N=None,kind=None,
   on the high-weight particles which we anticipate will 
   have more informative (and less variable) future likelihoods.
 
-  Note: anomalies (and thus cov) are weighted,
-  and also computed based on a weighted mean.
-
   [1]: Doucet, Johansen, 2009, v1.1:
     "A Tutorial on Particle Filtering and Smoothing: Fifteen years later." 
   [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
-  [3]: Doucet, de Freitas, Gordon, 2001:
-    "Sequential Monte Carlo Methods in Practice"
-  [4]: Liu, Chen Longvinenko, 2001:
+  [3]: Liu, Chen Longvinenko, 2001:
     "A theoretical framework for sequential importance sampling with resampling"
   """
+  # TODO: Rename to multinomial_resampling
+  # TODO: Separate out core functionality for clarity
+  # TODO: wroot-->adj_root?
+
   assert(abs(w.sum()-1) < 1e-5)
 
-  # TODO: fix_mu, fix_var. Leave note.
-
-
-  N_o,m = E.shape
-
   # Input parsing
-  if N is None:
+  N_o = len(w)  # N _original
+  if N is None: # N to sample
     N = N_o
-  if kind is None:
-    kind = 'Systematic'
 
-  # Stats of original sample that may get used
-  if kind is 'Gaussian' or reg!=0 or fix_mu or fix_var:
-    mu_o  = w@E
-    A_o   = E - mu_o
-    ss_o  = sqrt(w @ A_o**2)
-    ub    = unbias_var(w, avoid_pathological=True)
-    Colr  = tp(sqrt(ub*w)) * A_o
-
-  if kind is 'Gaussian':
-    assert wroot==1.0
-    w = 1/N*ones(N)
-    E = mu_o + sample_quickly_with(Colr)[0]
+  # Compute factors s such that s*w := w**(1/wroot). 
+  if wroot!=1.0:
+    s   = ( w**(1/wroot - 1) ).clip(max=1e100)
+    s  /= (s*w).sum()
+    sw  = s*w
   else:
-    # Compute factors s such that s*w := w**(1/wroot). 
-    if wroot!=1.0:
-      s   = ( w**(1/wroot - 1) ).clip(max=1e100)
-      s  /= (s*w).sum()
-      sw  = s*w
-    else:
-      s   = ones(N_o)
-      sw  = w
+    s   = ones(N_o)
+    sw  = w
 
-    if kind is 'Multinomial':
-      # van Leeuwen [2] also calls this "probabilistic" resampling
-      idx = np.random.choice(N_o,N,replace=True,p=sw)
-    elif kind is 'Residual':
-      # Doucet [1] also calls this "stratified" resampling.
-      w_N   = sw*N            # upscale
-      w_I   = w_N.astype(int) # integer part
-      w_D   = w_N-w_I         # decimal part
-      # Create duplicate indices for integer parts
-      idx_I = [i*ones(wi,dtype=int) for i,wi in enumerate(w_I)]
-      idx_I = np.concatenate(idx_I)
-      # Multinomial sampling of decimal parts
-      N_I   = w_I.sum() # == len(idx_I)
-      N_D   = N - N_I
-      idx_D = np.random.choice(N_o,N_D,replace=True,p=w_D/w_D.sum())
-      # Concatenate
-      idx   = np.hstack((idx_I,idx_D))
-    elif kind is 'Systematic':
-      # van Leeuwen [2] also calls this "stochastic universal" resampling
-      U     = rand(1) / N
-      CDF_a = U + arange(N)/N
-      CDF_o = np.cumsum(sw)
-      #idx  = CDF_a <= CDF_o[:,None]
-      #idx  = np.argmax(idx,axis=0) # Finds 1st. SO/a/16244044/
-      idx   = np.searchsorted(CDF_o,CDF_a)
-    else:
-      raise KeyError
+  if kind is 'Multinomial':
+    # van Leeuwen [2] also calls this "probabilistic" resampling
+    idx = np.random.choice(N_o,N,replace=True,p=sw)
+  elif kind is 'Residual':
+    # Doucet [1] also calls this "stratified" resampling.
+    w_N   = sw*N            # upscale
+    w_I   = w_N.astype(int) # integer part
+    w_D   = w_N-w_I         # decimal part
+    # Create duplicate indices for integer parts
+    idx_I = [i*ones(wi,dtype=int) for i,wi in enumerate(w_I)]
+    idx_I = np.concatenate(idx_I)
+    # Multinomial sampling of decimal parts
+    N_I   = w_I.sum() # == len(idx_I)
+    N_D   = N - N_I
+    idx_D = np.random.choice(N_o,N_D,replace=True,p=w_D/w_D.sum())
+    # Concatenate
+    idx   = np.hstack((idx_I,idx_D))
+  elif kind is 'Systematic':
+    # van Leeuwen [2] also calls this "stochastic universal" resampling
+    U     = rand(1) / N
+    CDF_a = U + arange(N)/N
+    CDF_o = np.cumsum(sw)
+    #idx  = CDF_a <= CDF_o[:,None]
+    #idx  = np.argmax(idx,axis=0) # Finds 1st. SO/a/16244044/
+    idx   = np.searchsorted(CDF_o,CDF_a)
+  else:
+    raise KeyError
 
-    E  = E[idx]
-    w  = 1/s[idx]
-    w /= w.sum()
+  w  = 1/s[idx] # compensate for above scaling by s
+  w /= w.sum()  # normalize
 
-    # Add noise (jittering)
-    if reg!=0:
-      bw    = N**(-1/(m+4)) # Scott's rule-of-thumb
-      scale = reg*bw*sqrt(rroot)
-      # Jitter
-      if no_uniq_jitter:
-        assert kind is 'Systematic'
-        dups  = idx == np.roll(idx,1)
-        dups |= idx == np.roll(idx,-1)
-        sample, chi2 = sample_quickly_with(Colr,N=sum(dups))
-        E[dups] += scale*sample
-      else:
-        sample, chi2 = sample_quickly_with(Colr,N=E.shape[0])
-        E += scale*sample
-      # Compensate for using root
-      if rroot != 1.0:
-        w *= exp(-0.5*chi2*(1 - 1/rroot))
-        w /= w.sum()
+  return idx, w
 
-  # While multinomial sampling is unbiased, it does incur sampling error.
-  # fix_mu (and fix_var) compensates for this "in the mean" (and variance).
-  # Warning: while an interesting concept, this is likely not beneficial.
-  A_a,mu_a = anom(E)
-  if fix_mu:
-    mu_a = mu_o
-  if fix_var:
-    var_o = (ss_o**2).sum()/m
-    var_a = (A_a**2) .sum()/(N*m)
-    A_a  *= sqrt(var_o/var_a)
-  if fix_mu or fix_var:
-    E = mu_a + A_a
-    
-  return E, w
 
 
 def sample_quickly_with(Colour,N=None):
-  """Gaussian, coloured sampling in the quickest fashion,
-  which depends on the size of the colouring matrix."""
+  """
+  Gaussian, coloured sampling in the quickest fashion,
+  which depends on the size of the colouring matrix.
+  """
+  # TODO: include doc:
+  # colouring matrix [i.e. some 
+  # that yields the most efficient sampling mechanism.
   (N_,m) = Colour.shape
   if N is None: N = N_
   if N_ > 2*m:
@@ -1279,7 +1287,7 @@ def PFD(setup,config,xx,yy):
         logL   = -0.5 * np.sum(innovs**2, axis=1)
         wD     = reweight(wD,logL=logL)
 
-        E,w = resample(ED, wD, N=N, kind=upd_a, reg=0)
+        # TODO: E,w = resample(ED, wD, N=N, kind=upd_a, reg=0)
 
         # Add noise (jittering)
         if reg!=0:
@@ -1360,6 +1368,8 @@ def D3Var(setup,config,xx,yy):
   Uses the Kalman filter equations,
   but with a prior from the Climatology.
   """
+  #TODO: This should be called Optimal Interpolation
+
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
   infl  = getattr(config,'infl',1.0)
   dkObs = chrono.dkObs
