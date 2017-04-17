@@ -32,12 +32,12 @@ The typical set-up is a "twin experiment", where you
 	perform in estimating the truth
 
 DAPPER makes the numerical investigation of DA methods accessible
-through its variety of typical test-cases and statistics.
-It reproduces numerical results reported in the literature,
-which safeguards the quality of its benchmarks.
-Comparative studies are facilitated by its collection of baseline methods
-and its tools to manage experimental settings, averages, and random numbers,
-all of which assist in ensuring that the results are neither frivolous nor spurious.
+through its variety of typical test cases and statistics.
+DAPPER (1) reproduces numerical results (benchmarks) reported in the literature,
+and (2) facilitates comparativ studies through its collection of baseline methods
+and its tools to manage experimental settings, averages, and random numbers.
+The above assist in ensuring that the results are (1) reliable and (2) relevant.
+
 It is open source, written in Python, and focuses on code readability;
 this promotes the reproduction and dissemination of the underlying science,
 and makes it easy to adapt and extend to further needs.
@@ -290,8 +290,7 @@ TODO
 <!--
 "Outreach"
 ---------------
-* https://stackoverflow.com/a/38191145/38281
-* https://stackoverflow.com/a/37861878/38281
-* https://stackoverflow.com/questions/43453707
+* http://stackoverflow.com/a/38191145/38281
+* http://stackoverflow.com/a/37861878/38281
 -->
 

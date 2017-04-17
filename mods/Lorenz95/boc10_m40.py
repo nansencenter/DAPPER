@@ -34,5 +34,9 @@ setup = OSSE(f,h,t,X0,**other)
 #cfgs.add(PartFilt,N=5000,NER=0.10,reg=1.1)                # 0.72
 #cfgs.add(PartFilt,N=10000,NER=0.05,reg=0.8)               # 0.45
 
-#cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=0.8,nuj=0) # 1.05 # Not tested with nuJ=1
-#cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.4,Qs=0.5,nuj=0) # 0.52 # Not tested with nuJ=1
+# Not tested as much as nuj=0 (below), which uses Qs -0.1 compared to these
+#cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=0.8) # 0.72
+#cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.4,Qs=0.5) # 0.51
+# OBSOLETE?
+#cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=0.8,nuj=0) # 1.05
+#cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.4,Qs=0.5,nuj=0) # 0.52
