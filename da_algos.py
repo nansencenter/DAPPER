@@ -960,7 +960,8 @@ def OptPF(setup,config,xx,yy):
   OR
   Implicit particle filter.
 
-  Note: Regularization is here added BEFORE Bayes' rule.
+  Note: Regularization (Qs) is here added BEFORE Bayes' rule.
+  If Qs==0: OptPF should be equal to the bootsrap filter: PartFilt().
 
   Ref: Bocquet et al. (2010):
     "Beyond Gaussian statistical modeling in geophysical data assimilation"
@@ -997,7 +998,7 @@ def OptPF(setup,config,xx,yy):
       innovs = y - h.model(E,t) # before noise
 
       # EnKF-ish update
-      s   = sqrt(Qs*bandw(N,m)) # TODO: bw should be outside sqrt
+      s   = bandw(N,m)*Qs
       As  = s*raw_C12(E,w)
       E  += sample_quickly_with(As)[0]
       hE  = h.model(E,t) # after noise
@@ -1146,7 +1147,6 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
   [3]: Liu, Chen Longvinenko, 2001:
     "A theoretical framework for sequential importance sampling with resampling"
   """
-  # TODO: wroot-->adj_root?
 
   assert(abs(w.sum()-1) < 1e-5)
 
@@ -1272,7 +1272,7 @@ def PFD(setup,config,xx,yy):
 
       if trigger_resampling(w,NER,stats,kObs):
         w    = w_
-        C12_ = sqrt(Qs*bandw(N,m))*raw_C12(E,w) # TODO: bw should be outside sqrt
+        C12_ = Qs*bandw(N,m)*raw_C12(E,w)
 
         ED   = E.repeat(xN,0)
         wD   = w.repeat(xN)
