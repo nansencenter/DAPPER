@@ -941,10 +941,10 @@ def PartFilt(setup,config,xx,yy):
       stats.innovs[kObs] = innovs
 
       if trigger_resampling(w,NER,stats,kObs):
-        C12    = reg*bandw(N,m)*raw_C12(E,w)
+        C12    = raw_C12(E,w)
         #C12  *= sqrt(rroot) # Re-include?
         idx,w  = resample(w, upd_a, wroot=wroot)
-        E,chi2 = regularize(C12,E,idx,nuj)
+        E,chi2 = regularize(C12,E,idx,nuj,scale=reg*bandw(N,m))
         #if rroot != 1.0:
           # Compensate for rroot
           #w *= exp(-0.5*chi2*(1 - 1/rroot))
@@ -966,10 +966,12 @@ def OptPF(setup,config,xx,yy):
     "Beyond Gaussian statistical modeling in geophysical data assimilation"
   """
 
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, getattr(config,'upd_a',None)
+  f,h,chrono,X0, N = setup.f, setup.h, setup.t, setup.X0, config.N
+  upd_a         = getattr(config,'upd_a','Systematic')
+  m             = f.m
   NER           = config.NER
   Qs            = getattr(config,'Qs',0)
+  wroot         = getattr(config,'wroot',1.0)
   reg           = getattr(config,'reg',0)
   nuj           = getattr(config,'nuj',False)
 
@@ -986,7 +988,7 @@ def OptPF(setup,config,xx,yy):
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*(randn((N,f.m))@Q12.T)
+    E += sqrt(dt)*(randn((N,m))@Q12.T)
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E,w=w)
@@ -998,7 +1000,7 @@ def OptPF(setup,config,xx,yy):
       mu   = w@E
       A    = E - mu
       ub   = unbias_var(w, avoid_pathological=True)
-      bw   = N**(-1/(f.m+4))
+      bw   = N**(-1/(m+4))
       nrm  = tp(sqrt(Qs*bw*ub*w)) # ≈ 1/sqrt(N-1)
       E   += sample_quickly_with(nrm*A)[0]
 
@@ -1016,8 +1018,10 @@ def OptPF(setup,config,xx,yy):
       w      = reweight(w,logL=logL)
 
       if trigger_resampling(w,NER,stats,kObs):
-        pass
-        #TODO: E,w = resample(E, w, kind=upd_a, reg=reg, no_uniq_jitter=nuj)
+        C12    = raw_C12(E,w)
+        idx,w  = resample(w, upd_a, wroot=wroot)
+        E,chi2 = regularize(C12,E,idx,nuj,scale=reg*bandw(N,m))
+
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
   return stats
@@ -1080,7 +1084,7 @@ def bandw(N,m):
   return N**(-1/(m+4))
 
 
-def regularize(C12,E,idx,no_uniq_jitter):
+def regularize(C12,E,idx,no_uniq_jitter,scale):
   """
   After resampling some of the particles will be identical.
   Therefore, if noise.is_deterministic: some noise must be added.
@@ -1098,12 +1102,12 @@ def regularize(C12,E,idx,no_uniq_jitter):
 
   # Jitter
   if no_uniq_jitter:
-    dups         = duplicates_of_sorted(idx)
+    dups         = mask_unique_of_sorted(idx)
     sample, chi2 = sample_quickly_with(C12, N=sum(dups))
-    E[dups]     += sample
+    E[dups]     += scale*sample # TODO move scale outside to C12 (due to precision, breaks backwards-equality for bug-testing)
   else:
     sample, chi2 = sample_quickly_with(C12, N=len(E))
-    E           += sample
+    E           += scale*sample
 
   return E, chi2
 
@@ -1227,11 +1231,13 @@ def PFD(setup,config,xx,yy):
   """
 
   f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, getattr(config,'upd_a',None)
+  N, upd_a      = config.N, getattr(config,'upd_a','Systematic')
   NER           = config.NER
   m             = f.m
   Qs            = getattr(config,'Qs',0)
   Qsroot        = getattr(config,'Qsroot',1.0)
+  wroot         = getattr(config,'wroot',1.0)
+  nuj           = getattr(config,'nuj',False)
   reg           = getattr(config,'reg',0)
 
   xN            = getattr(config,'xN',False)
@@ -1287,14 +1293,9 @@ def PFD(setup,config,xx,yy):
         logL   = -0.5 * np.sum(innovs**2, axis=1)
         wD     = reweight(wD,logL=logL)
 
-        # TODO: E,w = resample(ED, wD, N=N, kind=upd_a, reg=0)
-
-        # Add noise (jittering)
-        if reg!=0:
-          bw    = N**(-1/(m+4))
-          scale = reg*bw
-          D, _  = sample_quickly_with(anom(E)[0]/sqrt(N-1))
-          E    += scale*D
+        idx,w  = resample(wD, upd_a, wroot=wroot, N=N)
+        C12    = raw_C12(ED[idx],w) # TODO: compute from w_ ?
+        E,chi2 = regularize(C12,ED,idx,nuj,scale=reg*bandw(N,m))
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
