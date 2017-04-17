@@ -907,7 +907,7 @@ def PartFilt(setup,config,xx,yy):
   wroot         = getattr(config,'wroot',1.0)
   #rroot         = getattr(config,'rroot',1.0)
   reg           = getattr(config,'reg',0)
-  nuj           = getattr(config,'nuj',False)
+  nuj           = getattr(config,'nuj',True)
 
   Rm12 = h.noise.C.m12
   Q12  = f.noise.C.ssqrt
@@ -974,7 +974,7 @@ def OptPF(setup,config,xx,yy):
   Qs            = getattr(config,'Qs',0)
   wroot         = getattr(config,'wroot',1.0)
   reg           = getattr(config,'reg',0)
-  nuj           = getattr(config,'nuj',False)
+  nuj           = getattr(config,'nuj',True)
 
   R    = h.noise.C.C
   Q12  = f.noise.C.ssqrt
@@ -1240,7 +1240,7 @@ def PFD(setup,config,xx,yy):
   Qs            = getattr(config,'Qs',0)
   Qsroot        = getattr(config,'Qsroot',1.0)
   wroot         = getattr(config,'wroot',1.0)
-  nuj           = getattr(config,'nuj',False)
+  nuj           = getattr(config,'nuj',True)
   reg           = getattr(config,'reg',0)
 
   xN            = getattr(config,'xN',False)

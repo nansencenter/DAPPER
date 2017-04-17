@@ -35,10 +35,10 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-#cfgs.add(EnKF,'Sqrt',N=24,rot=True,infl=1.02) # rmse_a = 0.32
-#cfgs.add(PartFilt,N=100,NER=0.2,reg=1.3)      # rmse_a = 0.39
-#cfgs.add(PartFilt,N=800,NER=0.2,reg=0.7)      # rmse_a = 0.25
-#cfgs.add(OptPF,   N=100,NER=0.2,reg=1.0,Qs=0.3)
+#cfgs.add(EnKF,'Sqrt',N=24,rot=True,infl=1.02)   # rmse_a = 0.32
+#cfgs.add(PartFilt,N=100,NER=0.2,reg=1.3)        # rmse_a = 0.35
+#cfgs.add(OptPF,   N=100,NER=0.2,reg=1.0,Qs=0.3) # rmse_a = 0.37
+#cfgs.add(PartFilt,N=800,NER=0.2,reg=0.8)        # rmse_a = 0.25
 
 # Note: contrary to the article, we use, in the EnKF,
 # - inflation instead of additive noise ?
@@ -47,7 +47,12 @@ setup = OSSE(f,h,t,X0,**other)
 # The PartFilt is also perhaps better tuned?
 # This explains why the above benchmarks are superior to article.
 
-#  
+# Not tested as much as nuj=0 (below), which uses Qs -0.1 compared to these
+#cfgs.add(PFD     ,N=30, NER=0.4,reg=0.5,xN=1000,Qs=1.0) # 0.45
+#cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,xN=100 ,Qs=1.1) # 0.36
+#cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,xN=100 ,Qs=1.0) # 0.32
+#cfgs.add(PFD     ,N=300,NER=0.2,reg=0.2,xN=100 ,Qs=0.8) # 0.27
+# OBSOLETE?
 #cfgs.add(PFD     ,N=30, NER=0.4,reg=0.5,xN=1000,Qs=0.9,nuj=0) # 0.52
 #cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,xN=100 ,Qs=1.0,nuj=0) # 0.40
 #cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,xN=100 ,Qs=0.9,nuj=0) # 0.34
