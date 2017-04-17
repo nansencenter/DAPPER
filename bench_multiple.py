@@ -8,8 +8,8 @@ from common import *
 
 sd0 = seed(9)
 
-from mods.Lorenz95.boc10 import setup
-setup.t.T = 4**3.5
+from mods.Lorenz95.boc10_m40 import setup
+setup.t.T = 4**4.0
 
 xx,yy = simulate(setup)
 
@@ -21,13 +21,15 @@ cfgs = DAC_list()
 #cfgs.add(EnKF,'Sqrt',N=24,rot=True,infl=1.05)
 #cfgs.add(EnKF_N,N=24,rot=True,infl=1.00)
 
+cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=0.9,nuj=1) # 1.05
+cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.4,Qs=0.6,nuj=1) # 0.52
 
-#N = 300
-#for reg in [0.2]:
-  #for Qs in [0.3]:
+#N = 100
+#for reg in [0.1]:
+  #for Qs in sqrt([0.6, 0.8, 1.2, 1.8]):
     #for NER in [0.2]:
-      #for Nm in [1000]:
-        #cfgs.add(PFD,N=N,NER=NER,reg=reg,Nm=Nm,Qs=Qs,nuj=False)
+      #for xN in [100]:
+        #cfgs.add(PFD,N=N,NER=NER,reg=reg,xN=xN,Qs=Qs,nuj=True)
 
 ############################
 # Assimilate
