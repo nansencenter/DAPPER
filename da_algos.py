@@ -939,6 +939,7 @@ def PartFilt(setup,config,xx,yy):
       w      = reweight(w,logL=logL)
 
       stats.innovs[kObs] = innovs
+      stats.assess(k,kObs,'a',E=E,w=w)
 
       if trigger_resampling(w,NER,stats,kObs):
         C12    = reg*bandw(N,m)*raw_C12(E,w)
@@ -950,7 +951,7 @@ def PartFilt(setup,config,xx,yy):
           #w *= exp(-0.5*chi2*(1 - 1/rroot))
           #w /= w.sum()
       post_process(E,config)
-    stats.assess(k,kObs,E=E,w=w)
+    stats.assess(k,None,'u',E=E,w=w)
   return stats
 
 
@@ -1012,14 +1013,16 @@ def OptPF(setup,config,xx,yy):
       chi2   = innovs*mldiv(C,innovs.T).T
       logL   = -0.5 * np.sum(chi2, axis=1)
       w      = reweight(w,logL=logL)
+      
       # Resampling
+      stats.assess(k,kObs,'a',E=E,w=w)
       if trigger_resampling(w,NER,stats,kObs):
         C12    = reg*bandw(N,m)*raw_C12(E,w)
         idx,w  = resample(w, upd_a, wroot=wroot)
         E,chi2 = regularize(C12,E,idx,nuj)
 
       post_process(E,config)
-    stats.assess(k,kObs,E=E,w=w)
+    stats.assess(k,None,'u',E=E,w=w)
   return stats
 
 
@@ -1270,6 +1273,7 @@ def PFD(setup,config,xx,yy):
       w_     = w.copy()
       w      = reweight(w,logL=logL)
 
+      stats.assess(k,kObs,'a',E=E,w=w)
       if trigger_resampling(w,NER,stats,kObs):
         w    = w_
         C12_ = Qs*bandw(N,m)*raw_C12(E,w)
@@ -1293,7 +1297,7 @@ def PFD(setup,config,xx,yy):
         E,chi2 = regularize(C12,ED,idx,nuj)
 
       post_process(E,config)
-    stats.assess(k,kObs,E=E,w=w)
+    stats.assess(k,None,'u',E=E,w=w)
   return stats
 
 

@@ -8,7 +8,7 @@ from common import *
 
 sd0 = seed(9)
 
-from mods.Lorenz95.boc10_m40 import setup
+from mods.Lorenz95.boc10 import setup
 setup.t.T = 4**4.0
 
 xx,yy = simulate(setup)
@@ -17,12 +17,11 @@ xx,yy = simulate(setup)
 # DA Configurations
 ############################
 cfgs = DAC_list()
-#cfgs.add(Climatology)
-#cfgs.add(EnKF,'Sqrt',N=24,rot=True,infl=1.05)
-#cfgs.add(EnKF_N,N=24,rot=True,infl=1.00)
 
-cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=0.9,nuj=1) # 1.05
-cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.4,Qs=0.6,nuj=1) # 0.52
+cfgs.add(PartFilt,N=100,NER=0.2,reg=1.3)        # rmse_a = 0.35
+cfgs.add(OptPF,   N=100,NER=0.2,reg=1.0,Qs=0.3) # rmse_a = 0.37
+cfgs.add(PartFilt,N=800,NER=0.2,reg=0.8)        # rmse_a = 0.25
+
 
 #N = 100
 #for reg in [0.1]:
