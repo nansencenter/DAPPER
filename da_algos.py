@@ -992,31 +992,26 @@ def OptPF(setup,config,xx,yy):
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E,w=w)
+      y = yy[kObs]
 
-      # Note: this here, before adding noise
-      y      = yy[kObs]
-      innovs = y - h.model(E,t) 
+      innovs = y - h.model(E,t) # before noise
 
-      mu   = w@E
-      A    = E - mu
-      ub   = unbias_var(w, avoid_pathological=True)
-      bw   = N**(-1/(m+4))
-      nrm  = tp(sqrt(Qs*bw*ub*w)) # ≈ 1/sqrt(N-1)
-      E   += sample_quickly_with(nrm*A)[0]
-
-      hE  = h.model(E,t)
-      hx  = w@hE
-      Y   = hE-hx # TODO Weight?
-
+      # EnKF-ish update
+      s   = sqrt(Qs*bandw(N,m)) # TODO: bw should be outside sqrt
+      As  = s*raw_C12(E,w)
+      E  += sample_quickly_with(As)[0]
+      hE  = h.model(E,t) # after noise
+      Ys  = s*raw_C12(hE,w)
       D   = center(h.noise.sample(N))
-      C   = (nrm*Y).T @ (nrm*Y) + R
-      dE  = (nrm*A).T @ (nrm*Y) @ mldiv(C,(y-hE+D).T)
+      C   = Ys.T@Ys + R
+      dE  = As.T@Ys @ mldiv(C,(y-hE+D).T)
       E   = E + dE.T
 
+      # Importance weighting
       chi2   = innovs*mldiv(C,innovs.T).T
       logL   = -0.5 * np.sum(chi2, axis=1)
       w      = reweight(w,logL=logL)
-
+      # Resampling
       if trigger_resampling(w,NER,stats,kObs):
         C12    = reg*bandw(N,m)*raw_C12(E,w)
         idx,w  = resample(w, upd_a, wroot=wroot)
@@ -1044,13 +1039,15 @@ def reweight(w,lklhd=None,logL=None):
   - Num. precision: lklhd*w should have better precision in log space.
   Output is non-log, for the purpose of assessment and resampling.
   """
+  # Parse inputs
   if lklhd is not None:
     assert logL is None
     logL = log(lklhd)
+
   logL  -= logL.max()    # Avoid numerical error
-  logw   = log(w) + logL # Bayes' rule
-  w      = exp(logw)
-  w     /= w.sum()
+  logw   = log(w) + logL # Bayes' rule in log-space
+  w      = exp(logw)     # non-log
+  w     /= w.sum()       # normalize
   return w
 
 def raw_C12(E,w):
@@ -1115,7 +1112,6 @@ def regularize(C12,E,idx,no_uniq_jitter):
 def resample(w,kind='Systematic',N=None,wroot=1.0):
   """
   Resampling function for the particle filter.
-
   Example: see docs/test_resample.py.
 
   - N can be different from len(w)
@@ -1167,6 +1163,7 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
   if kind is 'Multinomial':
     # van Leeuwen [2] also calls this "probabilistic" resampling
     idx = np.random.choice(N_o,N,replace=True,p=sw)
+    # np.random.multinomial is faster (slightly different usage) ?
   elif kind is 'Residual':
     # Doucet [1] also calls this "stratified" resampling.
     w_N   = sw*N            # upscale
@@ -1199,18 +1196,15 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
 
 
 
-def sample_quickly_with(Colour,N=None):
+def sample_quickly_with(C12,N=None):
   """
-  Gaussian, coloured sampling in the quickest fashion,
-  which depends on the size of the colouring matrix.
+  Gaussian sampling in the quickest fashion,
+  which depends on the size of the colouring matrix 'C12'.
   """
-  # TODO: include doc:
-  # colouring matrix [i.e. some 
-  # that yields the most efficient sampling mechanism.
-  (N_,m) = Colour.shape
+  (N_,m) = C12.shape
   if N is None: N = N_
   if N_ > 2*m:
-    cholU  = chol_trunc(Colour.T@Colour)
+    cholU  = chol_trunc(C12.T@C12)
     D      = randn((N,cholU.shape[0]))
     chi2   = np.sum(D**2, axis=1)
     sample = D@cholU
@@ -1218,7 +1212,7 @@ def sample_quickly_with(Colour,N=None):
     chi2_compensate_for_rank = min(m/N_,1.0)
     D      = randn((N,N_))
     chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
-    sample = D@Colour
+    sample = D@C12
   return sample, chi2  
 
 
@@ -1262,28 +1256,20 @@ def PFD(setup,config,xx,yy):
       stats.assess(k,kObs,'f',E=E,w=w)
       y  = yy[kObs]
 
-      hE     = h.model(E,t)
-      innovs = hE - y
-      innovs = innovs @ Rm12.T
+      innovs = (y - h.model(E,t)) @ Rm12.T
       logL   = -0.5 * np.sum(innovs**2, axis=1)
       w_     = w.copy()
       w      = reweight(w,logL=logL)
 
       if trigger_resampling(w,NER,stats,kObs):
         w    = w_
-
-        mu   = w@E
-        A    = E - mu
-        ub   = unbias_var(w, avoid_pathological=True)
-        bw   = N**(-1/(m+4))
-        nrm  = tp(sqrt(Qs*bw*ub*w)) # ≈ 1/sqrt(N-1)
+        C12_ = sqrt(Qs*bandw(N,m))*raw_C12(E,w) # TODO: bw should be outside sqrt
 
         ED   = E.repeat(xN,0)
         wD   = w.repeat(xN)
         wD  /= wD.sum()
 
-        Color = nrm*A
-        cholU = chol_trunc(Color.T@Color)
+        cholU = chol_trunc(C12_.T@C12_)
         rnk   = cholU.shape[0]
         if DD is None:
           DD  = randn((N*xN,m))
