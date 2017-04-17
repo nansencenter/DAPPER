@@ -941,10 +941,10 @@ def PartFilt(setup,config,xx,yy):
       stats.innovs[kObs] = innovs
 
       if trigger_resampling(w,NER,stats,kObs):
-        C12    = raw_C12(E,w)
+        C12    = reg*bandw(N,m)*raw_C12(E,w)
         #C12  *= sqrt(rroot) # Re-include?
         idx,w  = resample(w, upd_a, wroot=wroot)
-        E,chi2 = regularize(C12,E,idx,nuj,scale=reg*bandw(N,m))
+        E,chi2 = regularize(C12,E,idx,nuj)
         #if rroot != 1.0:
           # Compensate for rroot
           #w *= exp(-0.5*chi2*(1 - 1/rroot))
@@ -1018,9 +1018,9 @@ def OptPF(setup,config,xx,yy):
       w      = reweight(w,logL=logL)
 
       if trigger_resampling(w,NER,stats,kObs):
-        C12    = raw_C12(E,w)
+        C12    = reg*bandw(N,m)*raw_C12(E,w)
         idx,w  = resample(w, upd_a, wroot=wroot)
-        E,chi2 = regularize(C12,E,idx,nuj,scale=reg*bandw(N,m))
+        E,chi2 = regularize(C12,E,idx,nuj)
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
@@ -1084,7 +1084,7 @@ def bandw(N,m):
   return N**(-1/(m+4))
 
 
-def regularize(C12,E,idx,no_uniq_jitter,scale):
+def regularize(C12,E,idx,no_uniq_jitter):
   """
   After resampling some of the particles will be identical.
   Therefore, if noise.is_deterministic: some noise must be added.
@@ -1104,10 +1104,10 @@ def regularize(C12,E,idx,no_uniq_jitter,scale):
   if no_uniq_jitter:
     dups         = mask_unique_of_sorted(idx)
     sample, chi2 = sample_quickly_with(C12, N=sum(dups))
-    E[dups]     += scale*sample # TODO move scale outside to C12 (due to precision, breaks backwards-equality for bug-testing)
+    E[dups]     += sample
   else:
     sample, chi2 = sample_quickly_with(C12, N=len(E))
-    E           += scale*sample
+    E           += sample
 
   return E, chi2
 
@@ -1294,8 +1294,8 @@ def PFD(setup,config,xx,yy):
         wD     = reweight(wD,logL=logL)
 
         idx,w  = resample(wD, upd_a, wroot=wroot, N=N)
-        C12    = raw_C12(ED[idx],w) # TODO: compute from w_ ?
-        E,chi2 = regularize(C12,ED,idx,nuj,scale=reg*bandw(N,m))
+        C12    = reg*bandw(N,m)*raw_C12(ED[idx],w) # TODO: compute from w_ ?
+        E,chi2 = regularize(C12,ED,idx,nuj)
 
       post_process(E,config)
     stats.assess(k,kObs,E=E,w=w)
