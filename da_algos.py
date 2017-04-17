@@ -1123,11 +1123,12 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
     Example: see docs/test_resample.py.
 
   - N can be different from len(w)
-  (e.g. in case some particles have been elimintated).
+    (e.g. in case some particles have been elimintated).
 
-  - wroot: Adjust weights before resampling by this root to mitigate thinning.
-       The outcomes of the resampling are then weighted to maintain un-biased-ness.
-       Ref: [3], section 3.1
+  - wroot: Adjust weights before resampling by this root to
+    promote particle diversity and mitigate thinning.
+    The outcomes of the resampling are then weighted to maintain un-biased-ness.
+    Ref: [3], section 3.1
 
   Note: (a) resampling methods are beneficial because they discard
   low-weight ("doomed") particles and reduce the variance of the weights.
@@ -1145,7 +1146,6 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
   [3]: Liu, Chen Longvinenko, 2001:
     "A theoretical framework for sequential importance sampling with resampling"
   """
-  # TODO: Separate out core functionality for clarity
   # TODO: wroot-->adj_root?
 
   assert(abs(w.sum()-1) < 1e-5)
@@ -1164,13 +1164,24 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
     s   = ones(N_o)
     sw  = w
 
+  # Do the actual resampling
+  idx = _resample(sw,kind,N_o,N)
+
+  w  = 1/s[idx] # compensate for above scaling by s
+  w /= w.sum()  # normalize
+
+  return idx, w
+
+
+def _resample(w,kind,N_o,N):
+  "Core functionality for resample(). See its docstring."
   if kind is 'Stochastic':
     # van Leeuwen [2] also calls this "probabilistic" resampling
-    idx = np.random.choice(N_o,N,replace=True,p=sw)
+    idx = np.random.choice(N_o,N,replace=True,p=w)
     # np.random.multinomial is faster (slightly different usage) ?
   elif kind is 'Residual':
     # Doucet [1] also calls this "stratified" resampling.
-    w_N   = sw*N            # upscale
+    w_N   = w*N             # upscale
     w_I   = w_N.astype(int) # integer part
     w_D   = w_N-w_I         # decimal part
     # Create duplicate indices for integer parts
@@ -1186,19 +1197,13 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
     # van Leeuwen [2] also calls this "stochastic universal" resampling
     U     = rand(1) / N
     CDF_a = U + arange(N)/N
-    CDF_o = np.cumsum(sw)
+    CDF_o = np.cumsum(w)
     #idx  = CDF_a <= CDF_o[:,None]
     #idx  = np.argmax(idx,axis=0) # Finds 1st. SO/a/16244044/
     idx   = np.searchsorted(CDF_o,CDF_a)
   else:
     raise KeyError
-
-  w  = 1/s[idx] # compensate for above scaling by s
-  w /= w.sum()  # normalize
-
-  return idx, w
-
-
+  return idx
 
 def sample_quickly_with(C12,N=None):
   """
