@@ -218,6 +218,7 @@ Name               | Developers           | Purpose (vs. DAPPER)
 [Siroco][11]       | OMP                  | Real-world oceaonagraphic DA
 [FilterPy][12]     | R. Labbe             | Engineering, general intro to Kalman filter
 [DASoftware][13]   | Yue Li, Stanford     | Matlab, large-scale
+[Pomp][18]         | U of Michigan        | R, general state-estimation
 [PyIT][14]         | CIPR                 | Real-world petroleum DA (?)
 Datum*             | Raanes               | Matlab, personal publications
 [EnKF-Matlab*][15] | Sakov                | Matlab, personal publications and intro
@@ -252,6 +253,7 @@ Operational: optimized for speed.
 [15]: http://enkf.nersc.no/
 [16]: http://hickmank.github.io/pyda/
 [17]: https://github.com/sakov/enkf-c
+[18]: https://github.com/kingaa/pomp
 
 
 Implementation choices
@@ -278,6 +280,8 @@ TODO
      * Unify sparse and dense treatment
      * Read-only properties
 * Complete QG, LorenzXY
+* Make Operator callable (`--> .model`) `and __repr__`
+* Insert `fix_mu` and `fix_var` in center
 * Make lightweight OOP assimilation methods:
     - replace config by function arguments
     - return function 'assimilate'
@@ -285,6 +289,7 @@ TODO
 * Split `da_algos.py` into multiple files
 * Make full 3D-Var (not opt. int.)
 * Make tutorial
+
 
 
 <!--
