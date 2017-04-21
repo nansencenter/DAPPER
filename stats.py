@@ -8,25 +8,25 @@ class Stats:
   # Adjust this to omit heavy computations
   comp_threshold_3 = 51
 
-  def __init__(self,setup,config,xx,yy):
+  def __init__(self,config,setup,xx,yy):
     """
-    Init a bunch of stats.
-    Note: the individual stats may very well be allocated & computed
-          elsewhere, and simply added as an attribute to the stats
-          instance. But the most common ones are gathered here.
+    Init the default statistics.
+    Note: you may well allocate & compute individual stats elsewhere,
+          and simply assigne them as an attribute to the stats instance.
     """
 
-    self.setup  = setup
     self.config = config
+    self.setup  = setup
     self.xx     = xx
     self.yy     = yy
+
     m    = setup.f.m    ; assert m   ==xx.shape[1]
     K    = setup.t.K    ; assert K   ==xx.shape[0]-1
     p    = setup.h.m    ; assert p   ==yy.shape[1]
     KObs = setup.t.KObs ; assert KObs==yy.shape[0]-1
 
-    fs          = self.new_FAU_series
-    #
+    # time-series constructor alias
+    fs = self.new_FAU_series 
     self.mu     = fs(m) # Mean
     self.var    = fs(m) # Variances
     self.mad    = fs(m) # Mean abs deviations
@@ -39,21 +39,24 @@ class Stats:
 
     if hasattr(config,'N'):
       # Ensemble-only init
-      N    = config.N
-      m_Nm = min(m,N)
-      self.w  = fs(N)           # Likelihood weights
-      self.rh = fs(m,dtype=int) # Rank histogram
-      #self.N  = N              # Use w.shape[1] instead
       self.is_ens = True
+      N           = config.N
+      m_Nm        = min(m,N)
+      self.w      = fs(N)           # Importance weights
+      self.rh     = fs(m,dtype=int) # Rank histogram
+      #self.N     = N               # Use w.shape[1] instead
     else:
+      # Linear-Gaussian assessment
       self.is_ens = False
-      m_Nm = m
+      m_Nm        = m
+
     self.svals = fs(m_Nm) # Principal component (SVD) scores
     self.umisf = fs(m_Nm) # Error in component directions
 
     # Other. 
     self.trHK = np.full(KObs+1, nan)
     self.infl = np.full(KObs+1, nan)
+
 
   def assess(self,k,kObs=None,f_a_u=None,
       E=None,w=None,mu=None,Cov=None):
@@ -66,9 +69,22 @@ class Stats:
     If 'u' in f_a_u: call/update LivePlot.
     """
 
-    if k==0: assert kObs is None,\
-        "Should not have any obs at initial time."+\
-        "This very easily yields bugs, and not 'DA convention'."
+    # Initial consistency checks.
+    if k==0:
+      if kObs is not None:
+        raise KeyError("Should not have any obs at initial time."+
+            "This very easily leads to bugs, and not 'DA convention'.")
+      if self.is_ens==True:
+        if E is None:
+          raise TypeError("Expected ensemble input, but E is None")
+        if mu is not None:
+          raise TypeError("Expected ensemble input, but mu is not None")
+      else:
+        if E is not None:
+          raise TypeError("Expected mu/Cov input, but E is not None")
+        if mu is None:
+          raise TypeError("Expected ensemble input, but mu is None")
+    
 
     # Defaults for f_a_u
     if f_a_u is None:
@@ -80,19 +96,18 @@ class Stats:
       if kObs is None:
         f_a_u = 'u'
 
-    LP      = getattr(self.config,'liveplotting',False)
-    store_u = getattr(self.config,'store_u'     ,False)
+    LP      = self.config.liveplotting
+    store_u = self.config.store_u
 
     if not (LP or store_u) and kObs==None:
       pass # Skip assessment
     else:
-      if E is not None:
+      if self.is_ens:
         # Ensemble assessment
         ens_or_ext = self.assess_ens
         state_prms = {'E':E,'w':w}
       else:
         # Linear-Gaussian assessment
-        assert mu is not None
         ens_or_ext = self.assess_ext
         state_prms = {'mu':mu,'P':Cov}
 
@@ -106,9 +121,6 @@ class Stats:
           self.lplot = LivePlot(self,**state_prms,only=LP)
         elif 'u' in f_a_u:
           self.lplot.update(k,kObs,**state_prms)
-
-    # Return self for daisy-chaining
-    return self 
 
 
   def assess_ens(self,k,E,w=None):
@@ -247,7 +259,7 @@ class Stats:
 
   def new_FAU_series(self,m,**kwargs):
     "Convenience FAU_series constructor."
-    store_u = getattr(self.config,'store_u',False)
+    store_u = self.config.store_u
     return FAU_series(self.setup.t, m, store_u=store_u, **kwargs)
 
   # Better to initialize manually (np.full...)
@@ -284,59 +296,6 @@ def average_each_field(ss,axis=None):
       # NB: This is a rudimentary averaging of confidence intervals
       # Should be checked against variance of avrg[i][key].val
   return avrg
-
-
-def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
-  """
-  For i in range(len(cfgs)):
-    Print cfgs[i][attrkeys], Avrgs[i][statkeys]
-  - attrkeys: list of attributes to include.
-      - if -1: only print da_driver.
-      - if  0: print distinct_attrs
-  - statkeys: list of statistics to include.
-  """
-  if isinstance(cfgs,DAC):
-    cfgs  = DAC_list(cfgs)
-    Avrgs = [Avrgs]
-
-  # Defaults averages
-  if not statkeys:
-    #statkeys = ['rmse_a','rmv_a','logp_m_a']
-    statkeys = ['rmse_a','rmv_a','rmse_f']
-
-  # Defaults attributes
-  if not attrkeys:       headr = list(cfgs.distinct_attrs)
-  elif   attrkeys == -1: headr = ['da_driver']
-  else:                  headr = list(attrkeys)
-
-  # Filter excld
-  excld = ['liveplotting','store_u']
-  headr = [x for x in headr if x not in excld]
-  
-  # Get attribute values
-  mattr = [cfgs.distinct_attrs[key] for key in headr]
-
-  # Add separator
-  headr += ['|']
-  mattr += [['|']*len(cfgs)]
-
-  # Get stats.
-  # Format stats_with_conf. Use #'s to avoid auto-cropping by tabulate().
-  for key in statkeys:
-    col = ['{0:#>9} ±'.format(key)]
-    for i in range(len(cfgs)):
-      try:
-        val  = Avrgs[i][key].val
-        conf = Avrgs[i][key].conf
-        col.append('{0:#>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
-      except KeyError:
-        col.append(' '*16)
-    crop= min([s.count('#') for s in col])
-    col = [s[crop:]         for s in col]
-    headr.append(col[0])
-    mattr.append(col[1:])
-  table = tabulate(mattr, headr).replace('#',' ')
-  print(table)
 
 
 

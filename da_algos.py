@@ -1497,7 +1497,7 @@ def ExtKF(setup,config,xx,yy):
 
 
 
-def post_process(E,config):
+def post_process(E,infl,rot):
   """
   Inflate, Rotate.
 
@@ -1505,22 +1505,44 @@ def post_process(E,config):
   But for readability it is nicer to keep it as a separate function,
   also since it avoids inflating/rotationg smoothed states (for the EnKS).
   """
-  infl = getattr(config,'infl',1.0)
-  rot  = getattr(config,'rot' ,False)
+  do_infl = infl!=1.0
 
-  if infl!=1.0 or rot:
+  if do_infl or rot:
     A, mu = anom(E)
     N,m   = E.shape
     T     = eye(N)
 
-    if infl!=1.0:
+    if do_infl:
       T = infl * T
 
     if rot:
       T = genOG_1(N) @ T
 
-    E[:] = mu + T@A
+    E = mu + T@A
+    return E
 
 
+@DA_Config
+def template_DA_method(upd_a,N,infl=1.0,rot=False,**kwargs):
+  "Docstring" # TODO: Document this template: template
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+
+    E = X0.sample(N)
+    stats.assess(0,E=E)
+
+    # Loop 
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt) # forecast
+      E = add_noise(E, dt, f.noise, kwargs)
+
+      # Update
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        E  = EnKF_analysis(E,h(E,t),h.noise,yy[kObs],upd_a,stats,kObs)
+        E  = post_process(E,infl,rot)
+
+      stats.assess(k,kObs,E=E)
+  return assimilate
 
 

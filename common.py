@@ -123,8 +123,8 @@ from aux.series import *
 from aux.viz import *
 from aux.matrices import *
 from aux.randvars import *
+from stats import *
 from aux.admin import *
 from aux.convenience import *
-from stats import *
 from da_algos import *
 

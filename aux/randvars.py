@@ -27,7 +27,7 @@ class RV:
 
 # TODO: UniRV
 
-class GaussRV(RV):
+class GaussRV(RV,MLR_Print):
   def __init__(self,mu=0,C=0,m=None):
     # Set mu
     assert is1d(mu)
@@ -70,15 +70,15 @@ class GaussRV(RV):
   def is_deterministic(self):
     return not self.is_random
 
-  def __str__(self):
-    s = []
-    printable = ['mu','C']
-    for k in printable:
-      s.append('{}:\n'.format(k) + str(getattr(self,k)))
-    return '\n'.join(s)
+  #def __str__(self):
+    #s = []
+    #printable = ['mu','C']
+    #for k in printable:
+      #s.append('{}:\n'.format(k) + str(getattr(self,k)))
+    #return '\n'.join(s)
 
-  def __repr__(self):
-      return self.__str__()
+  #def __repr__(self):
+      #return self.__str__()
 
 
 

@@ -16,23 +16,18 @@ def noobar(itrble, desc):
     print('\b\b\b\b {: >2d}%'.format(int(100*p)), end=e)
     sys.stdout.flush()
 
-try:
-  # Get progbar description by inspecting caller function.
-  import inspect
-  def pdesc(desc):
-    if desc is not None:
-      return desc
-    #try:
-      #stackoverflow.com/q/15608987
-      #DAC_name  = inspect.stack()[2].frame.f_locals['config'].name
-    #except (KeyError, AttributeError):
+# Get progbar description by inspecting caller function.
+import inspect
+def pdesc(desc):
+  if desc is not None:
+    return desc
+  try:
+    #stackoverflow.com/q/15608987
+    DAC_name  = inspect.stack()[3].frame.f_locals['name_hook']
+  except (KeyError, AttributeError):
     #stackoverflow.com/a/900404
     DAC_name  = inspect.stack()[2].function
-    return DAC_name 
-except ImportError as err:
-  install_warn(err)
-  def pdesc(desc): 
-    return desc or "Prog."
+  return DAC_name 
 
 # Define progbar as tqdm or noobar
 try:
@@ -143,7 +138,7 @@ def tabulate(data,headr=(),formatters=()):
   formatter: define formats to apply before relaying to pandas.
         Default: attr.__name__ (when applicable).
   Example:
-  >>> print(tabulate(cfgs.distinct_attrs))
+  >>> print(tabulate(cfgs.distinct_attrs()))
   """
 
   if hasattr(data,'keys'):
@@ -159,6 +154,58 @@ def tabulate(data,headr=(),formatters=()):
     data = [[f['format'](j) for j in row] if f['test'](row[0]) else row for row in data]
 
   return _tabulate(data, headr)
+
+
+class MLR_Print:
+  """
+  Multi-Line, Recursive repr (print) functionality.
+  Set class variables to change look:
+   - 'indent': indentation per level
+   - 'ch': character to use for "spine" (e.g. '|' or ' ')
+  """
+  indent=3
+  ch='.'
+
+  # Recursion monitoring.
+  _stack=[]
+  # Don't reference using .__class__ !!!
+  # Coz will use subclass, and different instances of _stack.
+
+  def __repr__(self):
+    NL = '\n' + self.ch + ' '*(self.indent-1)
+
+    # Recursion prevention
+    is_top_level = False
+    if MLR_Print._stack == []:
+      is_top_level = True
+    if self in MLR_Print._stack:
+      return "**Recursion**"
+    MLR_Print._stack += [self]
+
+    # Print self type+name
+    s = "<" + type(self).__name__ + '>'
+    if hasattr(self,'name'):
+      s += ': ' + self.name
+
+    # Print self's variables
+    for key in sorted(vars(self),key=lambda x: x.lower()):
+      if key == 'name': pass
+      else:
+        s += NL + key + ': '
+        t  = repr(getattr(self,key)) # sub-string
+        if '\n' not in t:
+          # Print regularly
+          s += t
+        else:
+          # Activate multi-line printing
+          s +=                NL+' '*self.indent  # first line
+          s += t.replace('\n',NL+' '*self.indent) # other lines
+
+    # Empty _stack when top-level printing finished
+    if is_top_level:
+      MLR_Print._stack = []
+
+    return s
 
 
 #########################################
@@ -289,3 +336,69 @@ class Timer():
       if self.name:
           print('[%s]' % self.name, end='')
       print('Elapsed: %s' % (time.time() - self.tstart))
+
+
+
+
+
+#########################################
+# Misc
+#########################################
+class Bunch(dict):
+  def __init__(self,**kw):
+    dict.__init__(self,kw)
+    self.__dict__ = self
+
+
+def filter_out(orig_list,*unwanted):
+  """
+  Returns new list from orig_list with unwanted removed.
+  Also supports re.search() by inputting a re.compile('patrn') among unwanted.
+  """
+  new = []
+  for word in orig_list:
+    for x in unwanted:
+      try:
+        # Regex compare
+        rm = x.search(word)
+      except AttributeError:
+        # String compare
+        rm = x==word
+      # Insert
+      if rm:
+        break
+    else:
+      new.append(word)
+  return new
+
+def safe_del(dct,*args):
+  "Returns new dct from dct with args removed. Also supports regex."
+  #Non-regex version:
+  #dct = {k:v for k,v in dct.items() if k not in args}
+  out = dct.copy()
+  for key in dct.keys():
+    for arg in args:
+      try:
+        # Regex compare
+        rm = bool(arg.match(key))
+      except AttributeError:
+        # String compare
+        rm = arg==key
+      # Insert in new
+      if rm:
+        del out[key]
+  return out
+
+def select(orig,*args):
+  """
+  Used to forward (pass on) keyword arguments.
+  Pro: returns empty dict if args not found.
+  Con: enforces same name at all levels.
+  Consider other approaches:
+   - a 'safe_get()' which falls-back to some defaults.
+   - using a DFLT class, within which the
+     defaults are stored and accessible for all levels and signatures.
+  """
+  return {key:orig[key] for key in args if key in orig}
+
+
