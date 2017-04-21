@@ -22,7 +22,6 @@ from mods.Lorenz63.sak12 import setup                          # Expected RMSE_a
 #config = DAC(EnKF ,'PertObs',N=500,infl=0.95,rot=False)        # 0.56
 #config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
 
-
 #from mods.Lorenz95.sak08 import setup                 # Expected RMSE_a:
 #config = DAC(Climatology)
 #config = DAC(D3Var)

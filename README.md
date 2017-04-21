@@ -33,12 +33,12 @@ The typical set-up is a "twin experiment", where you
 
 DAPPER makes the numerical investigation of DA methods accessible
 through its variety of typical test cases and statistics.
-DAPPER (1) reproduces numerical results (benchmarks) reported in the literature,
+It (1) reproduces numerical results (benchmarks) reported in the literature,
 and (2) facilitates comparativ studies through its collection of baseline methods
 and its tools to manage experimental settings, averages, and random numbers.
-The above assist in ensuring that the results are (1) reliable and (2) relevant.
+This assists in ensuring that the results are (1) reliable and (2) relevant.
 
-It is open source, written in Python, and focuses on code readability;
+DAPPER is open source, written in Python, and focuses on code readability;
 this promotes the reproduction and dissemination of the underlying science,
 and makes it easy to adapt and extend to further needs.
 In summary, it is well suited for conducting fundamental DA research
@@ -218,6 +218,7 @@ Name               | Developers           | Purpose (vs. DAPPER)
 [Siroco][11]       | OMP                  | Real-world oceaonagraphic DA
 [FilterPy][12]     | R. Labbe             | Engineering, general intro to Kalman filter
 [DASoftware][13]   | Yue Li, Stanford     | Matlab, large-scale
+[Pomp][18]         | U of Michigan        | R, general state-estimation
 [PyIT][14]         | CIPR                 | Real-world petroleum DA (?)
 Datum*             | Raanes               | Matlab, personal publications
 [EnKF-Matlab*][15] | Sakov                | Matlab, personal publications and intro
@@ -252,6 +253,7 @@ Operational: optimized for speed.
 [15]: http://enkf.nersc.no/
 [16]: http://hickmank.github.io/pyda/
 [17]: https://github.com/sakov/enkf-c
+[18]: https://github.com/kingaa/pomp
 
 
 Implementation choices
@@ -278,13 +280,10 @@ TODO
      * Unify sparse and dense treatment
      * Read-only properties
 * Complete QG, LorenzXY
-* Make lightweight OOP assimilation methods:
-    - replace config by function arguments
-    - return function 'assimilate'
-    - wrapped to catch exceptions and return stats
 * Split `da_algos.py` into multiple files
 * Make full 3D-Var (not opt. int.)
 * Make tutorial
+
 
 
 <!--
