@@ -1,7 +1,8 @@
 from common import *
     
 
-def EnKF(setup,config,xx,yy):
+@DA_Config
+def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
   """
   The EnKF.
 
@@ -11,79 +12,75 @@ def EnKF(setup,config,xx,yy):
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/sak08.py
   """
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
-  # Unpack
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, config.upd_a
+    # Init
+    E = X0.sample(N)
+    stats.assess(0,E=E)
 
-  # Init
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+    # Loop
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, kwargs)
 
-  # Loop
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E = f.model(E,t-dt,dt)
-    E = add_noise(E, dt, f.noise, config)
+      # Analysis update
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        E = EnKF_analysis(E,h(E,t),h.noise,yy[kObs],upd_a,stats,kObs)
+        E = post_process(E,infl,rot)
 
-    # Analysis update
-    if kObs is not None:
-      stats.assess(k,kObs,'f',E=E)
-      hE = h.model(E,t)
-      y  = yy[kObs]
-      E  = EnKF_analysis(E,hE,h.noise,y,upd_a,stats,kObs)
-      post_process(E,config)
+      stats.assess(k,kObs,E=E)
+  return assimilate
 
-    stats.assess(k,kObs,E=E)
-
-  return stats
-
-def EnKF_tp(setup,config,xx,yy):
+@DA_Config
+def EnKF_tp(N,infl=1.0,rot=False,**kwargs):
   """
   EnKF using 'non-transposed' analysis equations,
   where E is m-by-N, as is convention in EnKF litterature.
   This is slightly inefficient in our Python implementation,
   but is included for comparison (debugging, etc...).
   """
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
+    E = X0.sample(N)
+    stats.assess(0,E=E)
 
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, kwargs)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E = f.model(E,t-dt,dt)
-    E = add_noise(E, dt, f.noise, config)
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        hE = h(E,t)
+        y  = yy[kObs]
 
-    if kObs is not None:
-      stats.assess(k,kObs,'f',E=E)
-      hE = h.model(E,t)
-      y  = yy[kObs]
+        E  = asmatrix(E).T
+        hE = asmatrix(hE).T
 
-      E  = asmatrix(E).T
-      hE = asmatrix(hE).T
+        mu = mean(E,1)
+        A  = E - mu
+        hx = mean(hE,1)
+        y  = y.reshape((h.m,1))
+        dy = y - hx
+        Y  = hE-hx
 
-      mu = mean(E,1)
-      A  = E - mu
-      hx = mean(hE,1)
-      y  = y.reshape((h.m,1))
-      dy = y - hx
-      Y  = hE-hx
+        C  = Y@Y.T + h.noise.C.C*(N-1)
+        YC = mrdiv(Y.T, C)
+        KG = A@YC
+        HK = Y@YC
+        D  = center(h.noise.sample(N)).T
+        dE = KG @ ( y + D - hE )
+        E  = E + dE
+        E  = asarray(E.T)
 
-      C  = Y@Y.T + h.noise.C.C*(N-1)
-      YC = mrdiv(Y.T, C)
-      KG = A@YC
-      HK = Y@YC
-      D  = center(h.noise.sample(N)).T
-      dE = KG @ ( y + D - hE )
-      E  = E + dE
-      E  = asarray(E.T)
+        stats.trHK[kObs] = trace(HK)/h.m
 
-      stats.trHK[kObs] = trace(HK)/h.m
+        E = post_process(E,infl,rot)
 
-      post_process(E,config)
-
-    stats.assess(k,kObs,E=E)
-  return stats
+      stats.assess(k,kObs,E=E)
+  return assimilate
 
 
 def EnKS(setup,config,xx,yy):
@@ -98,7 +95,7 @@ def EnKS(setup,config,xx,yy):
   mods/Lorenz95/raanes2016.py
   """
 
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
   N, upd_a      = config.N, config.upd_a
 
   def reshape_to(E):
@@ -109,13 +106,12 @@ def EnKS(setup,config,xx,yy):
     K    = Km//m
     return E.reshape((N,K,m)).transpose([1,0,2])
 
-  E     = zeros((chrono.K+1,N,f.m))
-  E[0]  = X0.sample(N)
-  stats = Stats(setup,config,xx,yy)
+  E    = zeros((chrono.K+1,N,f.m))
+  E[0] = X0.sample(N)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E[k] = f.model(E[k-1],t-dt,dt)
-    E[k] = add_noise(E[k], dt, f.noise, config)
+    E[k] = f(E[k-1],t-dt,dt)
+    E[k] = add_noise(E[k], dt, f.noise, kwargs)
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E[k])
@@ -124,13 +120,13 @@ def EnKS(setup,config,xx,yy):
       kkLag    = range(kLag, k+1)
       ELag     = E[kkLag]
 
-      hE       = h.model(E[k],t)
+      hE       = h(E[k],t)
       y        = yy[kObs]
 
       ELag     = reshape_to(ELag)
       ELag     = EnKF_analysis(ELag,hE,h.noise,y,upd_a,stats,kObs)
       E[kkLag] = reshape_fr(ELag,f.m)
-      post_process(E[k],config)
+      E[k]     = post_process(E[k],infl,rot)
       stats.assess(k,kObs,'a',E=E[k])
 
   for k in progbar(range(chrono.K+1),desc='Assessing'):
@@ -150,26 +146,25 @@ def EnRTS(setup,config,xx,yy):
   mods/Lorenz95/raanes2016.py
   """
 
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
   N, upd_a      = config.N, config.upd_a
 
-  E     = zeros((chrono.K+1,N,f.m))
-  Ef    = E.copy()
-  E[0]  = X0.sample(N)
-  stats = Stats(setup,config,xx,yy)
+  E    = zeros((chrono.K+1,N,f.m))
+  Ef   = E.copy()
+  E[0] = X0.sample(N)
 
   # Forward pass
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E[k]  = f.model(E[k-1],t-dt,dt)
-    E[k]  = add_noise(E[k], dt, f.noise, config)
+    E[k]  = f(E[k-1],t-dt,dt)
+    E[k]  = add_noise(E[k], dt, f.noise, kwargs)
     Ef[k] = E[k]
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E[k])
-      hE   = h.model(E[k],t)
+      hE   = h(E[k],t)
       y    = yy[kObs]
       E[k] = EnKF_analysis(E[k],hE,h.noise,y,upd_a,stats,kObs)
-      post_process(E[k],config)
+      E[k] = post_process(E[k],infl,rot)
       stats.assess(k,kObs,'a',E=E[k])
 
   # Backward pass
@@ -376,7 +371,8 @@ def serial_inds(upd_a, y, cvR, A):
   return inds
   
 
-def SL_EAKF(setup,config,xx,yy):
+@DA_Config
+def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
   """
   Serial, covariance-localized EAKF.
 
@@ -387,72 +383,72 @@ def SL_EAKF(setup,config,xx,yy):
   (full ensemble equality) to the EnKF 'Serial'.
   See DAPPER/Misc/batch_vs_serial.py for some details.
   """
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
-  AMet  = getattr(config,'upd_a','default')
-  taper = getattr(config,'taper',None)
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
-  n = N-1
+    n = N-1
 
-  R    = h.noise
-  Rm12 = h.noise.C.m12
-  #Ri   = h.noise.C.inv
+    R    = h.noise
+    Rm12 = h.noise.C.m12
+    #Ri   = h.noise.C.inv
 
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+    E = X0.sample(N)
+    stats.assess(0,E=E)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E = f.model(E,t-dt,dt)
-    E = add_noise(E, dt, f.noise, config)
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, kwargs)
 
-    if kObs is not None:
-      stats.assess(k,kObs,'f',E=E)
-      y    = yy[kObs]
-      inds = serial_inds(AMet, y, R, anom(E)[0])
-          
-      locf_at = h.loc_f(config.loc_rad, 'y2x', t, taper)
-      for i,j in enumerate(inds):
-        hE = h.model(E,t)
-        hx = mean(hE,0)
-        Y  = (hE - hx).T
-        mu = mean(E ,0)
-        A  = E-mu
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        y    = yy[kObs]
+        inds = serial_inds(ordr, y, R, anom(E)[0])
+            
+        locf_at = h.loc_f(loc_rad, 'y2x', t, taper)
+        for i,j in enumerate(inds):
+          hE = h(E,t)
+          hx = mean(hE,0)
+          Y  = (hE - hx).T
+          mu = mean(E ,0)
+          A  = E-mu
 
-        # Update j-th component of observed ensemble
-        Yj    = Rm12[j,:] @ Y
-        dyj   = Rm12[j,:] @ (y - hx)
-        #
-        skk   = Yj@Yj
-        su    = 1/( 1/skk + 1/n )
-        alpha = (n/(n+skk))**(0.5)
-        #
-        dy2   = su*dyj/n # (mean is absorbed in dyj)
-        Y2    = alpha*Yj
+          # Update j-th component of observed ensemble
+          Yj    = Rm12[j,:] @ Y
+          dyj   = Rm12[j,:] @ (y - hx)
+          #
+          skk   = Yj@Yj
+          su    = 1/( 1/skk + 1/n )
+          alpha = (n/(n+skk))**(0.5)
+          #
+          dy2   = su*dyj/n # (mean is absorbed in dyj)
+          Y2    = alpha*Yj
 
-        if skk<1e-9: continue
+          if skk<1e-9: continue
 
-        # Update state (regression), with localization
-        # Localize
-        local, coeffs = locf_at(j)
-        if len(local) == 0: continue
-        Regression    = (A[:,local]*coeffs).T @ Yj/np.sum(Yj**2)
-        mu[ local]   += Regression*dy2
-        A[:,local]   += np.outer(Y2 - Yj, Regression)
+          # Update state (regression), with localization
+          # Localize
+          local, coeffs = locf_at(j)
+          if len(local) == 0: continue
+          Regression    = (A[:,local]*coeffs).T @ Yj/np.sum(Yj**2)
+          mu[ local]   += Regression*dy2
+          A[:,local]   += np.outer(Y2 - Yj, Regression)
 
-        # Without localization:
-        #Regression = A.T @ Yj/np.sum(Yj**2)
-        #mu        += Regression*dy2
-        #A         += np.outer(Y2 - Yj, Regression)
+          # Without localization:
+          #Regression = A.T @ Yj/np.sum(Yj**2)
+          #mu        += Regression*dy2
+          #A         += np.outer(Y2 - Yj, Regression)
 
-        E = mu + A
+          E = mu + A
 
-      post_process(E,config)
+        E = post_process(E,infl,rot)
 
-    stats.assess(k,kObs,E=E)
-  return stats
-
+      stats.assess(k,kObs,E=E)
+  return assimilate
 
 
-def LETKF(setup,config,xx,yy):
+
+@DA_Config
+def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
   """
   Same as EnKF (sqrt), but with localization.
 
@@ -462,79 +458,76 @@ def LETKF(setup,config,xx,yy):
   Ref: Hunt, Brian R., Eric J. Kostelich, and Istvan Szunyogh. (2007):
   "Efficient data assimilation for spatiotemporal chaos..."
   """
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    Rm12 = h.noise.C.m12
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
-  upd_a = getattr(config,'upd_a','default')
-  taper = getattr(config,'taper',None)
+    E = X0.sample(N)
+    stats.assess(0,E=E)
 
-  Rm12 = h.noise.C.m12
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, kwargs)
 
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        mu = mean(E,0)
+        A  = E - mu
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E = f.model(E,t-dt,dt)
-    E = add_noise(E, dt, f.noise, config)
+        hE = h(E,t)
+        hx = mean(hE,0)
+        YR = (hE-hx)  @ Rm12.T
+        yR = (yy[kObs] - hx) @ Rm12.T
 
-    if kObs is not None:
-      stats.assess(k,kObs,'f',E=E)
-      mu = mean(E,0)
-      A  = E - mu
+        locf_at = h.loc_f(loc_rad, 'x2y', t, taper)
+        for i in range(f.m):
+          # Localize
+          local, coeffs = locf_at(i)
+          if len(local) == 0: continue
+          iY  = YR[:,local] * sqrt(coeffs)
+          idy = yR[local]   * sqrt(coeffs)
 
-      hE = h.model(E,t)
-      hx = mean(hE,0)
-      YR = (hE-hx)  @ Rm12.T
-      yR = (yy[kObs] - hx) @ Rm12.T
-
-      locf_at = h.loc_f(config.loc_rad, 'x2y', t, taper)
-      for i in range(f.m):
-        # Localize
-        local, coeffs = locf_at(i)
-        if len(local) == 0: continue
-        iY  = YR[:,local] * sqrt(coeffs)
-        idy = yR[local]   * sqrt(coeffs)
-
-        # Do analysis
-        if upd_a is 'approx':
-          # Approximate alternative, derived by pretending that Y_loc = H @ A_i,
-          # even though the local cropping of Y happens after application of H.
-          # Anyways, with an explicit H, one can apply Woodbury
-          # to go to state space (dim==1), before reverting to HA_i = Y_loc.
-          n   = N-1
-          B   = A[:,i]@A[:,i] / n
-          AY  = A[:,i]@iY
-          BmR = AY@AY.T
-          T2  = (1 + BmR/(B*n**2))**(-1)
-          AT  = sqrt(T2) * A[:,i]
-          P   = T2 * B
-          dmu = P*(AY/(n*B))@idy
-        elif upd_a is 'default':
-          # Non-Approximate
-          if len(local) < N:
-            # SVD version
-            V,sd,_ = svd0(iY)
-            d      = pad0(sd**2,N) + (N-1)
-            Pw     = (V * d**(-1.0)) @ V.T
-            T      = (V * d**(-0.5)) @ V.T * sqrt(N-1)
+          # Do analysis
+          if approx:
+            # Approximate alternative, derived by pretending that Y_loc = H @ A_i,
+            # even though the local cropping of Y happens after application of H.
+            # Anyways, with an explicit H, one can apply Woodbury
+            # to go to state space (dim==1), before reverting to HA_i = Y_loc.
+            n   = N-1
+            B   = A[:,i]@A[:,i] / n
+            AY  = A[:,i]@iY
+            BmR = AY@AY.T
+            T2  = (1 + BmR/(B*n**2))**(-1)
+            AT  = sqrt(T2) * A[:,i]
+            P   = T2 * B
+            dmu = P*(AY/(n*B))@idy
           else:
-            # EVD version
-            d,V   = eigh(iY @ iY.T + (N-1)*eye(N))
-            T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
-            Pw    = V@diag(d**(-1.0))@V.T
-          AT  = T@A[:,i]
-          dmu = idy@iY.T@Pw@A[:,i]
+            # Non-Approximate
+            if len(local) < N:
+              # SVD version
+              V,sd,_ = svd0(iY)
+              d      = pad0(sd**2,N) + (N-1)
+              Pw     = (V * d**(-1.0)) @ V.T
+              T      = (V * d**(-0.5)) @ V.T * sqrt(N-1)
+            else:
+              # EVD version
+              d,V   = eigh(iY @ iY.T + (N-1)*eye(N))
+              T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
+              Pw    = V@diag(d**(-1.0))@V.T
+            AT  = T@A[:,i]
+            dmu = idy@iY.T@Pw@A[:,i]
 
-        E[:,i] = mu[i] + dmu + AT
+          E[:,i] = mu[i] + dmu + AT
 
-      post_process(E,config)
+        E = post_process(E,infl,rot)
 
-      if 'sd' in locals():
-        stats.trHK[kObs] = (sd**(-1.0) * sd**2).sum()/h.noise.m
-      #else:
-        # nevermind
+        if 'sd' in locals():
+          stats.trHK[kObs] = (sd**(-1.0) * sd**2).sum()/h.noise.m
+        #else:
+          # nevermind
 
-    stats.assess(k,kObs,E=E)
-  return stats
+      stats.assess(k,kObs,E=E)
+  return assimilate
 
 
 # Notes:
@@ -567,7 +560,8 @@ def myNewton(fun,deriv,x0,conf=1.0,xtol=1e-4,itermax=10**4):
     x -= dx
   return x
 
-def EnKF_N(setup,config,xx,yy):
+@DA_Config
+def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
   """
   Finite-size EnKF (EnKF-N) -- dual formulation.
 
@@ -582,94 +576,93 @@ def EnKF_N(setup,config,xx,yy):
   mods/Lorenz95/sak08.py
   mods/Lorenz95/sak12.py
   """
+  def assimilate(stats,twin,xx,yy):
+    # Unpack
+    f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
 
-  # Unpack
-  f,h,chrono,X0  = setup.f, setup.h, setup.t, setup.X0
-  N, primal_Hess = config.N, getattr(config,'Hess',False)
+    Rm12 = h.noise.C.m12
+    Ri   = h.noise.C.inv
 
-  Rm12 = h.noise.C.m12
-  Ri   = h.noise.C.inv
+    # EnKF-N constants
+    g    = 1             # Nullity of Y (obs anom's).
+    #g   = max(1,N-h.m)  # TODO: No good
+    eN   = (N+1)/N       # Effect of unknown mean
+    clog = (N+g)/(N-1)   # Coeff in front of log term
+    mode = eN/clog       # Mode of prior for lambda
+    LowB = sqrt(mode)    # Lower bound for lambda^1
 
-  # EnKF-N constants
-  g    = 1             # Nullity of Y (obs anom's).
-  #g   = max(1,N-h.m)  # TODO: No good
-  eN   = (N+1)/N       # Effect of unknown mean
-  clog = (N+g)/(N-1)   # Coeff in front of log term
-  mode = eN/clog       # Mode of prior for lambda
-  LowB = sqrt(mode)    # Lower bound for lambda^1
+    E = X0.sample(N)
+    stats.assess(0,E=E)
 
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, kwargs)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E = f.model(E,t-dt,dt)
-    E = add_noise(E, dt, f.noise, config)
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        hE = h(E,t)
+        y  = yy[kObs]
 
-    if kObs is not None:
-      stats.assess(k,kObs,'f',E=E)
-      hE = h.model(E,t)
-      y  = yy[kObs]
+        mu = mean(E,0)
+        A  = E - mu
 
-      mu = mean(E,0)
-      A  = E - mu
+        hx = mean(hE,0)
+        Y  = hE-hx
+        dy = y - hx
 
-      hx = mean(hE,0)
-      Y  = hE-hx
-      dy = y - hx
+        V,s,U_T = svd0( Y @ Rm12.T )
 
-      V,s,U_T = svd0( Y @ Rm12.T )
+        # Make dual cost function (in terms of lambda^1)
+        m_Nm = min(N,h.m)
+        du   = U_T @ (Rm12 @ dy)
+        dgn  = lambda l: pad0( (l*s)**2, m_Nm ) + (N-1)
+        PR   = (s**2).sum()/(N-1)
+        fctr = sqrt(mode**(1/(1+PR)))
+        J    = lambda l:          np.sum(du**2/dgn(l)) \
+               + (1/fctr)*eN/l**2 \
+               + fctr*clog*log(l**2)
+        #l1  = sp.optimize.minimize_scalar(J, bracket=(LowB, 1e2), tol=1e-4).x
+        # Derivatives
+        dJ1  = lambda l: -2*l   * np.sum(pad0(s**2, m_Nm) * du**2/dgn(l)**2) \
+               + -2*(1/fctr)*eN/l**3 \
+               +  2*fctr*clog  /l
+        dJ2  = lambda l: 8*l**2 * np.sum(pad0(s**4, m_Nm) * du**2/dgn(l)**3) \
+               +  6*(1/fctr)*eN/l**4 \
+               + -2*fctr*clog  /l**2
+        # Find inflation factor
+        l1 = myNewton(dJ1,dJ2, 1.0)
 
-      # Make dual cost function (in terms of lambda^1)
-      m_Nm = min(N,h.m)
-      du   = U_T @ (Rm12 @ dy)
-      dgn  = lambda l: pad0( (l*s)**2, m_Nm ) + (N-1)
-      PR   = (s**2).sum()/(N-1)
-      fctr = sqrt(mode**(1/(1+PR)))
-      J    = lambda l:          np.sum(du**2/dgn(l)) \
-             + (1/fctr)*eN/l**2 \
-             + fctr*clog*log(l**2)
-      #l1  = sp.optimize.minimize_scalar(J, bracket=(LowB, 1e2), tol=1e-4).x
-      # Derivatives
-      dJ1  = lambda l: -2*l   * np.sum(pad0(s**2, m_Nm) * du**2/dgn(l)**2) \
-             + -2*(1/fctr)*eN/l**3 \
-             +  2*fctr*clog  /l
-      dJ2  = lambda l: 8*l**2 * np.sum(pad0(s**4, m_Nm) * du**2/dgn(l)**3) \
-             +  6*(1/fctr)*eN/l**4 \
-             + -2*fctr*clog  /l**2
-      # Find inflation factor
-      l1 = myNewton(dJ1,dJ2, 1.0)
+        # Turns EnKF-N into ETKF:
+        #l1 = 1.0
 
-      # Turns EnKF-N into ETKF:
-      #l1 = 1.0
+        # Inflate prior.
+        A *= l1
+        Y *= l1
 
-      # Inflate prior.
-      A *= l1
-      Y *= l1
+        # Compute ETKF (sym sqrt) update
+        dgn     = lambda l: pad0( (l*s)**2, N ) + (N-1)
+        Pw      = (V * dgn(l1)**(-1.0)) @ V.T
+        w       = dy@Ri@Y.T@Pw
 
-      # Compute ETKF (sym sqrt) update
-      dgn     = lambda l: pad0( (l*s)**2, N ) + (N-1)
-      Pw      = (V * dgn(l1)**(-1.0)) @ V.T
-      w       = dy@Ri@Y.T@Pw
+        if Hess:
+          zeta  = (N-1)/l1**2
+          Hw    = Y@Ri@Y.T + zeta*eye(N) - 2*zeta**2/(N+g)*np.outer(w,w)
+          T     = funm_psd(Hw, lambda x: x**-.5) * sqrt(N-1) # sqrtm Woodbury?
+        else:
+          T     = (V * dgn(l1)**(-0.5)) @ V.T * sqrt(N-1)
+          
+        E = mu + w@A + T@A
+        E = post_process(E,infl,rot)
 
-      if primal_Hess:
-        zeta  = (N-1)/l1**2
-        Hess  = Y@Ri@Y.T + zeta*eye(N) - 2*zeta**2/(N+g)*np.outer(w,w)
-        T     = funm_psd(Hess, lambda x: x**-.5) * sqrt(N-1) # sqrtm Woodbury?
-      else:
-        T     = (V * dgn(l1)**(-0.5)) @ V.T * sqrt(N-1)
-        
-      E = mu + w@A + T@A
-      post_process(E,config)
+        stats.infl[kObs] = l1
+        stats.trHK[kObs] = (((l1*s)**2 + (N-1))**(-1.0)*s**2).sum()/h.noise.m
 
-      stats.infl[kObs] = l1
-      stats.trHK[kObs] = (((l1*s)**2 + (N-1))**(-1.0)*s**2).sum()/h.noise.m
-
-    stats.assess(k,kObs,E=E)
-  return stats
-
+      stats.assess(k,kObs,E=E)
+  return assimilate
 
 
-def iEnKF(setup,config,xx,yy):
+@DA_Config
+def iEnKF(upd_a,N,iMax=10,infl=1.0,rot=False,**kwargs):
   """
   Iterative EnKS.
 
@@ -681,56 +674,55 @@ def iEnKF(setup,config,xx,yy):
   mods/Lorenz95/sak08.py
   mods/Lorenz95/sak12.py
   """
-  f,h,chrono,X0,R = setup.f, setup.h, setup.t, setup.X0, setup.h.noise.C
-  N, upd_a        = config.N, config.upd_a
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0,R = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C
 
-  E           = X0.sample(N)
-  stats       = Stats(setup,config,xx,yy)
-  stats.iters = np.full(chrono.KObs+1,nan)
-  stats.assess(0,E=E)
+    E = X0.sample(N)
+    stats.iters = np.full(chrono.KObs+1,nan)
+    stats.assess(0,E=E)
 
-  for kObs in progbar(range(chrono.KObs+1)):
-    xb0 = mean(E,0)
-    A0  = E - xb0
-    # Init
-    w      = zeros(N)
-    Tinv   = eye(N)
-    T      = eye(N)
-    for iteration in range(config.iMax):
+    for kObs in progbar(range(chrono.KObs+1)):
+      xb0 = mean(E,0)
+      A0  = E - xb0
+      # Init
+      w      = zeros(N)
+      Tinv   = eye(N)
+      T      = eye(N)
+      for iteration in range(iMax):
+        E = xb0 + w @ A0 + T @ A0
+        for k,t,dt in chrono.DAW_range(kObs):
+          E = f(E,t-dt,dt)
+          E = add_noise(E, dt, f.noise, kwargs)
+        if iteration==0:
+          stats.assess(k,kObs,'f',E=E)
+
+        hE = h(E,t)
+        hx = mean(hE,0)
+        Y  = hE-hx
+        Y  = Tinv @ Y
+        y  = yy[kObs]
+        dy = y - hx
+
+        dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,upd_a)
+        w  -= dw
+        if np.linalg.norm(dw) < N*1e-4:
+          break
+
+      stats.trHK [kObs] = trace(R.inv @ Y.T @ Pw @ Y)/h.noise.m
+      stats.iters[kObs] = iteration+1
+
       E = xb0 + w @ A0 + T @ A0
+      E = post_process(E,infl,rot)
+
       for k,t,dt in chrono.DAW_range(kObs):
-        E = f.model(E,t-dt,dt)
-        E = add_noise(E, dt, f.noise, config)
-      if iteration==0:
-        stats.assess(k,kObs,'f',E=E)
-  
-      hE = h.model(E,t)
-      hx = mean(hE,0)
-      Y  = hE-hx
-      Y  = Tinv @ Y
-      y  = yy[kObs]
-      dy = y - hx
+        E = f(E,t-dt,dt)
+        E = add_noise(E, dt, f.noise, kwargs)
+        stats.assess(k,None,'u',E=E)
+      stats.assess(k,kObs,'a',E=E)
 
-      dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,upd_a)
-      w  -= dw
-      if np.linalg.norm(dw) < N*1e-4:
-        break
-
-    stats.trHK [kObs] = trace(R.inv @ Y.T @ Pw @ Y)/h.noise.m
-    stats.iters[kObs] = iteration+1
-
-    E = xb0 + w @ A0 + T @ A0
-    post_process(E,config)
-
-    for k,t,dt in chrono.DAW_range(kObs):
-      E = f.model(E,t-dt,dt)
-      E = add_noise(E, dt, f.noise, config)
-      stats.assess(k,None,'u',E=E)
-    stats.assess(k,kObs,'a',E=E)
-
-    # TODO: It would be beneficial to do another (prior-regularized)
-    # analysis at the end, after forecasting the E0 analysis.
-  return stats
+      # TODO: It would be beneficial to do another (prior-regularized)
+      # analysis at the end, after forecasting the E0 analysis.
+  return assimilate
 
 
 def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
@@ -776,7 +768,7 @@ def BnKF(setup,config,xx,yy):
   #config = DAC(BnKF,N=39,infl=1.03)
 
   # Unpack
-  f,h,chrono,X0  = setup.f, setup.h, setup.t, setup.X0
+  f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
 
   Rm12 = h.noise.C.m12
   Ri   = h.noise.C.inv
@@ -791,17 +783,17 @@ def BnKF(setup,config,xx,yy):
   PiC = IN - Pi1
 
   # Init
-  bb    = N*ones(N)
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+  bb = N*ones(N)
+  E  = X0.sample(N)
+  stats.assess(0,E=E)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E = f.model(E,t-dt,dt)
-    E = add_noise(E, dt, f.noise, config)
+    E = f(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, kwargs)
 
     if kObs is not None:
       stats.assess(k,kObs,'f',E=E)
-      hE = h.model(E,t)
+      hE = h(E,t)
       y  = yy[kObs]
 
       mu = mean(E,0)
@@ -872,15 +864,15 @@ def BnKF(setup,config,xx,yy):
         bb[n]   = mean(dg0/dgn*rr_[n])
       bb *= np.sum(1/bb)
 
-      post_process(E,config)
+      E = post_process(E,infl,rot)
     stats.assess(k,kObs,E=E,w=1/bb) # TODO
   return stats
 
 
 
 
-
-def PartFilt(setup,config,xx,yy):
+@DA_Config
+def PartFilt(N,NER,upd_a='Systematic',qroot=1.0,wroot=1.0,reg=0,nuj=True,**kwargs):
   """
   Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
   This is the bootstrap version: the proposal density is just
@@ -901,64 +893,57 @@ def PartFilt(setup,config,xx,yy):
   [3]: Zhe Chen, 2003:
     "Bayesian Filtering: From Kalman Filters to Particle Filters, and Beyond"
   """
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    m             = f.m
 
-  f,h,chrono,X0,N = setup.f, setup.h, setup.t, setup.X0, config.N
-  m             = f.m
-  NER           = config.NER
-  qroot         = getattr(config,'qroot',1.0)
-  upd_a         = getattr(config,'upd_a','Systematic') # TODO: let resample handle
-  wroot         = getattr(config,'wroot',1.0)
-  #rroot         = getattr(config,'rroot',1.0)
-  reg           = getattr(config,'reg',0)
-  nuj           = getattr(config,'nuj',True)
+    Rm12 = h.noise.C.m12
+    Q12  = f.noise.C.ssqrt
 
-  Rm12 = h.noise.C.m12
-  Q12  = f.noise.C.ssqrt
+    E = X0.sample(N)
+    w = 1/N*ones(N)
 
-  E = X0.sample(N)
-  w = 1/N*ones(N)
+    stats.N_eff  = np.full(chrono.KObs+1,nan)
+    stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+    stats.innovs = np.full((chrono.KObs+1,N,h.m),nan)
+    stats.assess(0,E=E,w=1/N)
 
-  stats        = Stats(setup,config,xx,yy)
-  stats.N_eff  = np.full(chrono.KObs+1,nan)
-  stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
-  stats.innovs = np.full((chrono.KObs+1,N,h.m),nan)
-  stats.assess(0,E=E,w=1/N)
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E  = f(E,t-dt,dt)
+      D  = randn((N,m))
+      E += sqrt(dt*qroot)*(D@Q12.T)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    D  = randn((N,m))
-    E += sqrt(dt*qroot)*(D@Q12.T)
+      if qroot != 1.0:
+        # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
+        w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
+        w /= w.sum()
 
-    if qroot != 1.0:
-      # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
-      w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
-      w /= w.sum()
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E,w=w)
 
-    if kObs is not None:
-      stats.assess(k,kObs,'f',E=E,w=w)
+        innovs = (yy[kObs] - h(E,t)) @ Rm12.T
+        logL   = -0.5 * np.sum(innovs**2, axis=1)
+        w      = reweight(w,logL=logL)
 
-      innovs = (yy[kObs] - h.model(E,t)) @ Rm12.T
-      logL   = -0.5 * np.sum(innovs**2, axis=1)
-      w      = reweight(w,logL=logL)
+        stats.innovs[kObs] = innovs
+        stats.assess(k,kObs,'a',E=E,w=w)
 
-      stats.innovs[kObs] = innovs
-      stats.assess(k,kObs,'a',E=E,w=w)
-
-      if trigger_resampling(w,NER,stats,kObs):
-        C12    = reg*bandw(N,m)*raw_C12(E,w)
-        #C12  *= sqrt(rroot) # Re-include?
-        idx,w  = resample(w, upd_a, wroot=wroot)
-        E,chi2 = regularize(C12,E,idx,nuj)
-        #if rroot != 1.0:
-          # Compensate for rroot
-          #w *= exp(-0.5*chi2*(1 - 1/rroot))
-          #w /= w.sum()
-      post_process(E,config)
-    stats.assess(k,None,'u',E=E,w=w)
-  return stats
+        if trigger_resampling(w,NER,stats,kObs):
+          C12    = reg*bandw(N,m)*raw_C12(E,w)
+          #C12  *= sqrt(rroot) # Re-include?
+          idx,w  = resample(w, upd_a, wroot=wroot)
+          E,chi2 = regularize(C12,E,idx,nuj)
+          #if rroot != 1.0:
+            # Compensate for rroot
+            #w *= exp(-0.5*chi2*(1 - 1/rroot))
+            #w /= w.sum()
+      stats.assess(k,None,'u',E=E,w=w)
+  return assimilate
 
 
-def OptPF(setup,config,xx,yy):
+
+@DA_Config
+def OptPF(N,NER,Qs,upd_a='Systematic',qroot=1.0,wroot=1.0,reg=0,nuj=True,**kwargs):
   """
   "Optimal proposal" particle filter.
   OR
@@ -970,63 +955,55 @@ def OptPF(setup,config,xx,yy):
   Ref: Bocquet et al. (2010):
     "Beyond Gaussian statistical modeling in geophysical data assimilation"
   """
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    m             = f.m
 
-  f,h,chrono,X0, N = setup.f, setup.h, setup.t, setup.X0, config.N
-  upd_a         = getattr(config,'upd_a','Systematic')
-  m             = f.m
-  NER           = config.NER
-  Qs            = getattr(config,'Qs',0)
-  wroot         = getattr(config,'wroot',1.0)
-  reg           = getattr(config,'reg',0)
-  nuj           = getattr(config,'nuj',True)
+    R    = h.noise.C.C
+    Q12  = f.noise.C.ssqrt
 
-  R    = h.noise.C.C
-  Q12  = f.noise.C.ssqrt
+    E = X0.sample(N)
+    w = 1/N*ones(N)
 
-  E = X0.sample(N)
-  w = 1/N*ones(N)
+    stats.N_eff  = np.full(chrono.KObs+1,nan)
+    stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+    stats.assess(0,E=E,w=1/N)
 
-  stats        = Stats(setup,config,xx,yy)
-  stats.N_eff  = np.full(chrono.KObs+1,nan)
-  stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
-  stats.assess(0,E=E,w=1/N)
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E  = f(E,t-dt,dt)
+      E += sqrt(dt)*(randn((N,m))@Q12.T)
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*(randn((N,m))@Q12.T)
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E,w=w)
+        y = yy[kObs]
 
-    if kObs is not None:
-      stats.assess(k,kObs,'f',E=E,w=w)
-      y = yy[kObs]
+        innovs = y - h(E,t) # before noise
 
-      innovs = y - h.model(E,t) # before noise
+        # EnKF-ish update
+        s   = bandw(N,m)*Qs
+        As  = s*raw_C12(E,w)
+        E  += sample_quickly_with(As)[0]
+        hE  = h(E,t) # after noise
+        Ys  = s*raw_C12(hE,w)
+        D   = center(h.noise.sample(N))
+        C   = Ys.T@Ys + R
+        dE  = As.T@Ys @ mldiv(C,(y-hE+D).T)
+        E   = E + dE.T
 
-      # EnKF-ish update
-      s   = bandw(N,m)*Qs
-      As  = s*raw_C12(E,w)
-      E  += sample_quickly_with(As)[0]
-      hE  = h.model(E,t) # after noise
-      Ys  = s*raw_C12(hE,w)
-      D   = center(h.noise.sample(N))
-      C   = Ys.T@Ys + R
-      dE  = As.T@Ys @ mldiv(C,(y-hE+D).T)
-      E   = E + dE.T
+        # Importance weighting
+        chi2   = innovs*mldiv(C,innovs.T).T
+        logL   = -0.5 * np.sum(chi2, axis=1)
+        w      = reweight(w,logL=logL)
+        
+        # Resampling
+        stats.assess(k,kObs,'a',E=E,w=w)
+        if trigger_resampling(w,NER,stats,kObs):
+          C12    = reg*bandw(N,m)*raw_C12(E,w)
+          idx,w  = resample(w, upd_a, wroot=wroot)
+          E,chi2 = regularize(C12,E,idx,nuj)
 
-      # Importance weighting
-      chi2   = innovs*mldiv(C,innovs.T).T
-      logL   = -0.5 * np.sum(chi2, axis=1)
-      w      = reweight(w,logL=logL)
-      
-      # Resampling
-      stats.assess(k,kObs,'a',E=E,w=w)
-      if trigger_resampling(w,NER,stats,kObs):
-        C12    = reg*bandw(N,m)*raw_C12(E,w)
-        idx,w  = resample(w, upd_a, wroot=wroot)
-        E,chi2 = regularize(C12,E,idx,nuj)
-
-      post_process(E,config)
-    stats.assess(k,None,'u',E=E,w=w)
-  return stats
+      stats.assess(k,None,'u',E=E,w=w)
+  return assimilate
 
 
 
@@ -1231,79 +1208,77 @@ def sample_quickly_with(C12,N=None):
   return sample, chi2  
 
 
-def PFD(setup,config,xx,yy):
+
+@DA_Config
+def PFD(N,NER,Qs,xN,upd_a='Systematic',qroot=1.0,wroot=1.0,reg=0,nuj=True,**kwargs):
   """
   Idea: sample a bunch from each kernel.
   => The ones more likely to get picked by resampling are closer to the likelihood.
 
   Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
   """
+  def assimilate(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    m             = f.m
+    DD            = None
 
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
-  N, upd_a      = config.N, getattr(config,'upd_a','Systematic')
-  NER           = config.NER
-  m             = f.m
-  Qs            = getattr(config,'Qs',0)
-  Qsroot        = getattr(config,'Qsroot',1.0)
-  wroot         = getattr(config,'wroot',1.0)
-  nuj           = getattr(config,'nuj',True)
-  reg           = getattr(config,'reg',0)
+    Rm12 = h.noise.C.m12
+    Q12  = f.noise.C.ssqrt
 
-  xN            = getattr(config,'xN',False)
-  DD            = None
+    E = X0.sample(N)
+    w = 1/N*ones(N)
 
-  Rm12 = h.noise.C.m12
-  Q12  = f.noise.C.ssqrt
+    stats.N_eff  = np.full(chrono.KObs+1,nan)
+    stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+    stats.assess(0,E=E,w=1/N)
 
-  E = X0.sample(N)
-  w = 1/N*ones(N)
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E  = f(E,t-dt,dt)
+      E += sqrt(dt)*(randn((N,m))@Q12.T)
 
-  stats        = Stats(setup,config,xx,yy)
-  stats.N_eff  = np.full(chrono.KObs+1,nan)
-  stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
-  stats.assess(0,E=E,w=1/N)
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E,w=w)
+        y  = yy[kObs]
 
-  for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E  = f.model(E,t-dt,dt)
-    E += sqrt(dt)*(randn((N,m))@Q12.T)
-
-    if kObs is not None:
-      stats.assess(k,kObs,'f',E=E,w=w)
-      y  = yy[kObs]
-
-      innovs = (y - h.model(E,t)) @ Rm12.T
-      logL   = -0.5 * np.sum(innovs**2, axis=1)
-      w_     = w.copy()
-      w      = reweight(w,logL=logL)
-
-      stats.assess(k,kObs,'a',E=E,w=w)
-      if trigger_resampling(w,NER,stats,kObs):
-        w    = w_
-        C12_ = Qs*bandw(N,m)*raw_C12(E,w)
-
-        ED   = E.repeat(xN,0)
-        wD   = w.repeat(xN)
-        wD  /= wD.sum()
-
-        cholU = chol_trunc(C12_.T@C12_)
-        rnk   = cholU.shape[0]
-        if DD is None:
-          DD  = randn((N*xN,m))
-        ED   += DD[:,:rnk]@cholU
-        
-        innovs = (y - h.model(ED,t)) @ Rm12.T
+        innovs = (y - h(E,t)) @ Rm12.T
         logL   = -0.5 * np.sum(innovs**2, axis=1)
-        wD     = reweight(wD,logL=logL)
+        w_     = w.copy()
+        w      = reweight(w,logL=logL)
 
-        idx,w  = resample(wD, upd_a, wroot=wroot, N=N)
-        C12    = reg*bandw(N,m)*raw_C12(ED[idx],w) # TODO: compute from w_ ?
-        E,chi2 = regularize(C12,ED,idx,nuj)
+        stats.assess(k,kObs,'a',E=E,w=w)
+        if trigger_resampling(w,NER,stats,kObs):
+          w    = w_
+          C12_ = Qs*bandw(N,m)*raw_C12(E,w)
 
-      post_process(E,config)
-    stats.assess(k,None,'u',E=E,w=w)
-  return stats
+          ED   = E.repeat(xN,0)
+          wD   = w.repeat(xN)
+          wD  /= wD.sum()
+
+          cholU = chol_trunc(C12_.T@C12_)
+          rnk   = cholU.shape[0]
+          if DD is None:
+            DD  = randn((N*xN,m))
+          ED   += DD[:,:rnk]@cholU
+          
+          innovs = (y - h(ED,t)) @ Rm12.T
+          logL   = -0.5 * np.sum(innovs**2, axis=1)
+          wD     = reweight(wD,logL=logL)
+
+          idx,w  = resample(wD, upd_a, wroot=wroot, N=N)
+          C12    = reg*bandw(N,m)*raw_C12(ED[idx],w) # TODO: compute from w_ ?
+          E,chi2 = regularize(C12,ED,idx,nuj)
+
+      stats.assess(k,None,'u',E=E,w=w)
+  return assimilate
 
 
+
+# TODO:
+#@DA_Config
+#def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
+  #def assimilate(stats,twin,xx,yy):
+  #config, getattr
+  #return assimilate
 
 def EnCheat(setup,config,xx,yy):
   """
@@ -1316,28 +1291,28 @@ def EnCheat(setup,config,xx,yy):
   NB: The forecasts (and their rmse) are given by the standard EnKF.
   """
 
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
   N, upd_a      = config.N, config.upd_a
 
-  E     = X0.sample(N)
-  stats = Stats(setup,config,xx,yy).assess(0,E=E)
+  E = X0.sample(N)
+  stats.assess(0,E=E)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    E = f.model(E,t-dt,dt)
-    E = add_noise(E, dt, f.noise, config)
+    E = f(E,t-dt,dt)
+    E = add_noise(E, dt, f.noise, kwargs)
 
     if kObs is not None:
       # Standard EnKF analysis
-      hE = h.model(E,t)
+      hE = h(E,t)
       y  = yy[kObs]
       E  = EnKF_analysis(E,hE,h.noise,y,upd_a,stats,kObs)
-      post_process(E,config)
+      E  = post_process(E,infl,rot)
 
       # Cheating (only used for stats)
       w,res,_,_ = sla.lstsq(E.T, xx[k])
       if not res.size:
         res = 0
-      res = diag((res/setup.f.m) * ones(setup.f.m))
+      res = diag((res/twin.f.m) * ones(twin.f.m))
       opt = w @ E
       # NB: Center on the optimal solution?
       #E += opt - mean(E,0)
@@ -1352,13 +1327,13 @@ def Climatology(setup,config,xx,yy):
   Note that the "climatology" is computed from truth,
   which might be (unfairly) advantageous if this simulation is too short.
   """
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
   mu0   = mean(xx,0)
   A0    = xx - mu0
   P0    = spCovMat(A=A0)
 
-  stats = Stats(setup,config,xx,yy).assess(0,mu=mu0,Cov=P0.C)
+  stats.assess(0,mu=mu0,Cov=P0.C)
   stats.trHK[:] = 0
 
   for k,kObs,_,_ in progbar(chrono.forecast_range):
@@ -1373,7 +1348,7 @@ def D3Var(setup,config,xx,yy):
   """
   #TODO: This should be called Optimal Interpolation
 
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
   infl  = getattr(config,'infl',1.0)
   dkObs = chrono.dkObs
   R     = h.noise.C.C
@@ -1416,11 +1391,11 @@ def D3Var(setup,config,xx,yy):
     pre_computed_KG = False
 
   # Init
-  mu    = X0.mu
-  stats = Stats(setup,config,xx,yy).assess(0,mu=mu,Cov=P0)
+  mu = X0.mu
+  stats.assess(0,mu=mu,Cov=P0)
   
   for k,kObs,t,dt in progbar(chrono.forecast_range):
-    mu = f.model(mu,t-dt,dt)
+    mu = f(mu,t-dt,dt)
 
     if kObs is not None:
       stats.assess(k,kObs,'f',mu=mu0,Cov=P0)
@@ -1433,7 +1408,7 @@ def D3Var(setup,config,xx,yy):
         KH = KG@H
         Pa = (eye(f.m) - KH) @ P0
         stats.trHK[kObs] = trace(KH)/f.m
-      mu = mu0 + KG@(y - h.model(mu0,t))
+      mu = mu0 + KG@(y - h(mu0,t))
 
     if r<dkObs:
       # Interpolate P between Pa and P0.
@@ -1459,7 +1434,7 @@ def ExtKF(setup,config,xx,yy):
   infl_per_unit_time == infl.
   Specifying it this way (per unit time) means less tuning.
   """
-  f,h,chrono,X0 = setup.f, setup.h, setup.t, setup.X0
+  f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
   infl = getattr(config,'infl',1.0)
   
@@ -1469,7 +1444,7 @@ def ExtKF(setup,config,xx,yy):
   mu = X0.mu
   P  = X0.C.C
 
-  stats = Stats(setup,config,xx,yy).assess(0,mu=mu,Cov=P)
+  stats.assess(0,mu=mu,Cov=P)
 
   for k,kObs,t,dt in progbar(chrono.forecast_range):
     
@@ -1480,7 +1455,7 @@ def ExtKF(setup,config,xx,yy):
     #   HessCov(k) = sum(sum( HessianF_k .* P(:,:,iT-1) ))
     # X(:,iT) = X(:,iT) + 1/2*HessCov 
 
-    mu = f.model(mu,t-dt,dt)
+    mu = f(mu,t-dt,dt)
     P  = infl**(dt)*(F@P@F.T) + dt*Q
 
     if kObs is not None:
@@ -1488,7 +1463,7 @@ def ExtKF(setup,config,xx,yy):
       H  = h.jacob(mu,t)
       KG = mrdiv(P @ H.T, H@P@H.T + R)
       y  = yy[kObs]
-      mu = mu + KG@(y - h.model(mu,t))
+      mu = mu + KG@(y - h(mu,t))
       KH = KG@H
       P  = (eye(f.m) - KH) @ P
 
@@ -1542,8 +1517,8 @@ def template_DA_method(upd_a,N,infl=1.0,rot=False,**kwargs):
       # Update
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
-        E  = EnKF_analysis(E,h(E,t),h.noise,yy[kObs],upd_a,stats,kObs)
-        E  = post_process(E,infl,rot)
+        E = EnKF_analysis(E,h(E,t),h.noise,yy[kObs],upd_a,stats,kObs)
+        E = post_process(E,infl,rot)
 
       stats.assess(k,kObs,E=E)
   return assimilate

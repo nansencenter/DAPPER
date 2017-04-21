@@ -18,8 +18,8 @@ xx,yy = simulate(setup)
 # DA Configurations
 ############################
 cfgs  = List_of_Configs()
-cfgs += template_DA_method('Sqrt',3,infl=1.35,fnoise_treatm='Sqrt')
-cfgs += template_DA_method('PertObs',10,infl=1.05,fnoise_treatm='Sqrt')
+cfgs += EnKF('Sqrt',3,infl=1.35,fnoise_treatm='Sqrt')
+cfgs += EnKF('PertObs',10,infl=1.05,fnoise_treatm='Sqrt')
 
 # TODO: infl, rot now explicit params
 

@@ -116,6 +116,7 @@ def DA_Config(da_driver):
         del kwargs[a]
 
     cfg = OrderedDict()
+    i   = 0
     # 1) Insert args into cfg with signature-names.
     for i,val in enumerate(args):
       cfg[f_arg_names[i]] = val
