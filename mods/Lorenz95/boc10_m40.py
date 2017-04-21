@@ -25,18 +25,14 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-# NB: To  be pretty sure that the particle filter configuration
-# is robust against divergence, must test at least up to T=2000.
-#                                                                   # rmse_a 
-#cfgs.add(EnKF,'Sqrt',N=24,rot=True,infl=1.05)
-#cfgs.add(EnKF_N,N=24,rot=True,infl=1.01)
+#                                                          # rmse_a 
+#cfgs.add(EnKF_N,N=24,rot=True,infl=1.01)                  # 0.38
+
+# NB: Particle filter scores very sensitive to rare events => Need T>=2000.
 #cfgs.add(PartFilt,N=3000,NER=0.20,reg=1.2)                # 0.77
 #cfgs.add(PartFilt,N=5000,NER=0.10,reg=1.1)                # 0.72
 #cfgs.add(PartFilt,N=10000,NER=0.05,reg=0.8)               # 0.45
 
-# Not tested as much as nuj=0 (below), which uses Qs -0.1 compared to these
-#cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=0.8) # 0.72
-#cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.4,Qs=0.5) # 0.51
-# OBSOLETE?
-#cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=0.8,nuj=0) # 1.05
-#cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.4,Qs=0.5,nuj=0) # 0.52
+#cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=1.0)  # 0.87
+#cfgs.add(PFD,     N=100, xN=1000,NER=0.3,reg=0.7,Qs=0.9)  # 0.72 Diverges
+#cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.5,Qs=0.6)  # 0.51
