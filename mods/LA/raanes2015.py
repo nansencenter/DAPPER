@@ -1,5 +1,6 @@
-# Reproduce results from fig2
-# of raanes'2015 "extending sqrt method to model noise"
+# Reproduce results from fig2 of
+# Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
+# "Extending the square root method to account for additive forecast noise in ensemble methods."
 
 # Warnings:
 # - Multidim. multiplicative noise incorporation

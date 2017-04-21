@@ -193,6 +193,9 @@ def add_noise(E, dt, noise, config):
   Treatment of additive noise for ensembles.
   Settings for reproducing literature benchmarks may be found in
   mods/LA/raanes2015.py
+
+  Ref: Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
+  "Extending the square root method to account for additive forecast noise in ensemble methods."
   """
   method = getattr(config,'fnoise_treatm','Stoch')
 

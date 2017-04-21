@@ -51,8 +51,15 @@ def anom(E,axis=0):
   A  = E - mu
   return A, mu.squeeze()
 
-# Center sample (but maintain its (expected) variance)
 def center(E,rescale=True):
+  """
+  Center sample,
+  but rescale to maintain its (expected) variance.
+
+  Note: similarly, one could correct a sample's 2nd moment,
+        (on the diagonal, or other some other subset),
+        however this is typically not worth it.
+  """
   N = E.shape[0]
   A = E - mean(E,0)
   if rescale:
