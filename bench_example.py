@@ -19,7 +19,7 @@ from mods.Lorenz63.sak12 import setup                      # Expected RMSE_a:
 #config = EnKF('Sqrt',   N=3 , infl=1.30)                   # Very variable
 #config = EnKF('Sqrt',   N=10, infl=1.02,rot=True)          # 0.63 (sak: 0.65)
 #config = EnKF('PertObs',N=500,infl=0.95,rot=False)         # 0.56
-#config = EnKF_N(        N=10,           rot=True)          # 0.54
+config = EnKF_N(        N=10,           rot=True)          # 0.54
 #config = iEnKF('Sqrt',  N=10, infl=1.02,rot=True,iMax=10)  # 0.31
 
 #from mods.Lorenz95.sak08 import setup                      # Expected RMSE_a:
@@ -35,6 +35,10 @@ from mods.Lorenz63.sak12 import setup                      # Expected RMSE_a:
 #config = LETKF(         N=6,rot=True,infl=1.04,loc_rad=4)  # 0.25
 #config = LETKF(approx=1,N=8,rot=True,infl=1.25,loc_rad=4)  # 0.35
 #config = SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)  # 0.22
+
+#config = EnKS('Sqrt',N=25,infl=1.08,rot=False,tLag=2.0)
+#config = EnRTS('Sqrt',N=25,infl=1.08,rot=False,cntr=0.99)
+
 
 #from mods.Lorenz95.spectral_obs import setup
 #from mods.Lorenz95.raanes2016 import setup
