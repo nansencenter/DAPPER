@@ -52,7 +52,7 @@ class AssimFailedError(RuntimeError):
 
 def raise_AFE(msg,time_index=None):
   if time_index is not None:
-    msg += "time index: " + str(time_index) + ". "
+    msg += "(k,kObs,fau) = " + str(time_index) + ". "
   raise AssimFailedError(msg)
 
 from functools import wraps
@@ -221,7 +221,7 @@ class List_of_Configs(list):
     keys = {}
     for config in self:
       keys |= config.__dict__.keys()
-    keys  = list(keys)
+    keys = list(keys)
 
     # Partition attributes into distinct and common
     for key in keys:
@@ -232,11 +232,17 @@ class List_of_Configs(list):
         dist[key] = vals
 
     # Sort. Do it here so that the same sort is used for
-    # repr(DAC_config) and print_averages().
-    def sf(item):
-      try:    return self.ordering.index(item[0])
-      except: return 99
-    dist = OrderedDict(sorted(dist.items(), key=sf))
+    # repr(List_of_Configs) and print_averages().
+    def sortr(item):
+      key = item[0]
+      try:
+        # Find index in self.ordering.
+        # Do chr(65+) to compare alphabetically,
+        # for keys not in ordering list.
+        return chr(65+self.ordering.index(key))
+      except:
+        return key.upper()
+    dist = OrderedDict(sorted(dist.items(), key=sortr))
 
     return dist, comn
    

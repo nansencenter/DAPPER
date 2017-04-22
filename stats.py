@@ -39,6 +39,7 @@ class Stats:
 
     if hasattr(config,'N'):
       # Ensemble-only init
+      self._had_0v = False
       self._is_ens = True
       N            = config.N
       m_Nm         = min(m,N)
@@ -75,15 +76,13 @@ class Stats:
         raise KeyError("Should not have any obs at initial time."+
             "This very easily leads to bugs, and not 'DA convention'.")
       if self._is_ens==True:
-        if E is None:
-          raise TypeError("Expected ensemble input, but E is None")
-        if mu is not None:
-          raise TypeError("Expected ensemble input, but mu is not None")
+        def rze(a,b,c):
+          raise TypeError("Expected "+a+" input, but "+b+" is "+c+" None")
+        if E is None:      rze("ensemble","E","")
+        if mu is not None: rze("ensemble","my/Cov","not")
       else:
-        if E is not None:
-          raise TypeError("Expected mu/Cov input, but E is not None")
-        if mu is None:
-          raise TypeError("Expected ensemble input, but mu is None")
+        if E is not None:  rze("mu/Cov","E","not")
+        if mu is None:     rze("mu/Cov","mu","")
     
 
     # Defaults for f_a_u
@@ -96,6 +95,8 @@ class Stats:
       if kObs is None:
         f_a_u = 'u'
 
+    key = (k,kObs,f_a_u)
+
     LP      = self.config.liveplotting
     store_u = self.config.store_u
 
@@ -104,16 +105,27 @@ class Stats:
     else:
       if self._is_ens:
         # Ensemble assessment
-        ens_or_ext = self.assess_ens
+        alias = self.assess_ens
         state_prms = {'E':E,'w':w}
       else:
         # Linear-Gaussian assessment
-        ens_or_ext = self.assess_ext
+        alias = self.assess_ext
         state_prms = {'mu':mu,'P':Cov}
 
-      # Compute
-      key = (k,kObs,f_a_u)
-      ens_or_ext(key,**state_prms)
+      with np.errstate(divide='ignore',invalid='ignore'):
+        # Compute
+        alias(key,**state_prms)
+
+      # In case of degeneracy, variance might be 0,
+      # causing warnings in computing skew/kurt/MGLS
+      # (which all normalize by variance).
+      # This should and will yield nan's, but we don't want
+      # the diagnostics computations to cause too many warnings,
+      # so we turned them off above. But we'll manually warn ONCE here.
+      if not self._had_0v and np.allclose(self.var[key],0):
+        self._had_0v = True
+        warnings.warn("Sample variance was 0 at (k,kObs,fau) = " + str(key))
+
 
       # LivePlot
       if LP:

@@ -18,18 +18,11 @@ xx,yy = simulate(setup)
 # DA Configurations
 ############################
 cfgs  = List_of_Configs()
-cfgs += PartFilt(N=100,reg=2.4,NER=0.3)
-cfgs += PartFilt(N=100,reg=2.4,NER=0.9)
-cfgs += PartFilt(N=100,reg=2.4,NER=1.0)
 
-# TODO: infl, rot now explicit params
-
-#N = 100
-#for reg in [0.7,0.8,0.9]:
-  #for Qs in [0.8,0.9,1.0,1.1]:
-    #for NER in [0.3,0.9,1.0]:
-      #for xN in [1000]:
-        #cfgs.add(PFD,N=N,NER=NER,reg=reg,xN=xN,Qs=Qs)
+#cfgs += PFD(N=30,Qs=1.8,xN=1000,reg=0.7,NER=0.2)
+#cfgs += PFD(N=30,Qs=2.0,xN=1000,reg=0.7,NER=0.2)
+cfgs += PFD(N=30,Qs=2.2,xN=1000,reg=0.7,NER=0.2)
+cfgs += PFD(N=30,Qs=2.4,xN=1000,reg=0.7,NER=0.2)
 
 ############################
 # Assimilate

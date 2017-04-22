@@ -24,6 +24,7 @@ from mods.Lorenz63.sak12 import setup                      # Expected RMSE_a:
 #config = PartFilt(      N=100 ,reg=2.4,NER=0.3)            # 0.38
 #config = PartFilt(      N=800 ,reg=0.9,NER=0.2)            # 0.28
 #config = PartFilt(      N=4000,reg=0.7,NER=0.05)           # 0.27
+#config = PFD(xN=1000,   N=30  ,reg=0.7,NER=0.2,Qs=2)       # 0.56
 
 #from mods.Lorenz95.sak08 import setup                      # Expected RMSE_a:
 #config = ExtKF(infl=6)
