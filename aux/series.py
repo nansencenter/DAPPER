@@ -37,7 +37,7 @@ def mean_ratio(xx):
 
 def fit_acf_by_AR1(acf_empir,L=None):
   """
-  Fit an empirical acf by the acf of an AR1 process.
+  Fit an empirical auto cov function (ACF) by that of an AR1 process.
   acf_empir: auto-corr/cov-function.
   L: length of ACF to use in AR(1) fitting
   """
@@ -85,7 +85,7 @@ def series_mean_with_conf(xx):
   """
   mu    = mean(xx)
   N     = len(xx)
-  if np.allclose(xx,mu):
+  if (not np.isfinite(mu)) or np.allclose(xx,mu):
     return val_with_conf(mu, 0)
   if N < 5:
     return val_with_conf(mu, np.nan)
@@ -93,7 +93,6 @@ def series_mean_with_conf(xx):
   v     = acovf[0]
   v    /= N
   # Estimate (fit) ACF
-  # Empirical auto cov function (ACF)
   a = fit_acf_by_AR1(acovf)
   # If xx[k] where independent of xx[k-1],
   # then std_of_mu is the end of the story.

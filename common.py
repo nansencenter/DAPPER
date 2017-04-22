@@ -90,7 +90,9 @@ plt.ion()
 
 # Color set up
 try:
+  olderr = np.geterr() # affected by seaborn (pandas?)
   import seaborn as sns
+  np.seterr(**olderr)  # restore np float error treatment
   sns.set_style({'image.cmap': 'BrBG', 'legend.frameon': True})
   sns_bg = array([0.9176, 0.9176, 0.9490])
   sns.set_color_codes()

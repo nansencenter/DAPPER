@@ -763,9 +763,9 @@ def BnKF(N,infl=1.0,rot=False,**kwargs):
   def assimilate(stats,twin,xx,yy):
     # Test settings:
     #from mods.Lorenz95.sak08 import setup
-    #config = DAC(EnKF_N,N=28)
-    #config = DAC(EnKF,'PertObs',N=39,infl=1.06)
-    #config = DAC(BnKF,N=39,infl=1.03)
+    #config = EnKF_N(N=28)
+    #config = EnKF('PertObs',N=39,infl=1.06)
+    #config = BnKF(N=39,infl=1.03)
 
     # Unpack
     f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
@@ -871,7 +871,7 @@ def BnKF(N,infl=1.0,rot=False,**kwargs):
 
 
 @DA_Config
-def PartFilt(N,NER,upd_a='Systematic',qroot=1.0,wroot=1.0,reg=0,nuj=True,**kwargs):
+def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
   """
   Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
   This is the bootstrap version: the proposal density is just
@@ -942,7 +942,7 @@ def PartFilt(N,NER,upd_a='Systematic',qroot=1.0,wroot=1.0,reg=0,nuj=True,**kwarg
 
 
 @DA_Config
-def OptPF(N,NER,Qs,upd_a='Systematic',qroot=1.0,wroot=1.0,reg=0,nuj=True,**kwargs):
+def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
   """
   "Optimal proposal" particle filter.
   OR
@@ -1022,13 +1022,18 @@ def reweight(w,lklhd=None,logL=None):
   - Num. precision: lklhd*w should have better precision in log space.
   Output is non-log, for the purpose of assessment and resampling.
   """
-  # Parse inputs
-  if lklhd is not None:
-    assert logL is None
-    logL = log(lklhd)
+  # Get log-values.
+  # Use context manager 'errstate' to not warn for log(0) = -inf.
+  # Note: the case when all(w==0) will cause nan's,
+  #       which should cause errors outside.
+  with np.errstate(divide='ignore'):
+    if lklhd is not None:
+      assert logL is None
+      logL = log(lklhd)
+    logw = log(w)        
 
-  logL  -= logL.max()    # Avoid numerical error
-  logw   = log(w) + logL # Bayes' rule in log-space
+  logw   = logw + logL   # Bayes' rule in log-space
+  logw  -= logw.max()    # Avoid numerical error
   w      = exp(logw)     # non-log
   w     /= w.sum()       # normalize
   return w
@@ -1041,9 +1046,14 @@ def raw_C12(E,w):
   Note: anomalies (and thus cov) are weighted,
   and also computed based on a weighted mean.
   """
+  # If weights are degenerate: use unweighted covariance to avoid C=0.
+  if weight_degeneracy(w):
+    w = ones(len(w))/len(w)
+    # PS: 'avoid_pathological' already treated here.
+
   mu  = w@E
   A   = E - mu
-  ub  = unbias_var(w, avoid_pathological=True)
+  ub  = unbias_var(w, avoid_pathological=False)
   C12 = sqrt(ub*w[:,None]) * A
   return C12
 
@@ -1209,7 +1219,7 @@ def sample_quickly_with(C12,N=None):
 
 
 @DA_Config
-def PFD(N,NER,Qs,xN,upd_a='Systematic',qroot=1.0,wroot=1.0,reg=0,nuj=True,**kwargs):
+def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
   """
   Idea: sample a bunch from each kernel.
   => The ones more likely to get picked by resampling are closer to the likelihood.

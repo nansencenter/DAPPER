@@ -10,7 +10,7 @@ sd0 = seed(9)
 
 #from mods.Lorenz95.boc10 import setup
 from mods.Lorenz63.sak12 import setup
-setup.t.T = 4**3.0
+setup.t.T = 4**5.5
 
 xx,yy = simulate(setup)
 
@@ -18,8 +18,9 @@ xx,yy = simulate(setup)
 # DA Configurations
 ############################
 cfgs  = List_of_Configs()
-cfgs += EnKF('Sqrt',3,infl=1.35,fnoise_treatm='Sqrt')
-cfgs += EnKF('PertObs',10,infl=1.05,fnoise_treatm='Sqrt')
+cfgs += PartFilt(N=100,reg=2.4,NER=0.3)
+cfgs += PartFilt(N=100,reg=2.4,NER=0.9)
+cfgs += PartFilt(N=100,reg=2.4,NER=1.0)
 
 # TODO: infl, rot now explicit params
 
@@ -46,7 +47,7 @@ for ic,config in enumerate(cfgs):
 print_averages(cfgs,avrgs)
 
 # Single experiment
-# config = DAC(PartFilt, N=250, NER=0.25)
+# config = PartFilt( N=250, NER=0.25)
 # stats = assimilate(setup,config,xx,yy).average_in_time()
 # print_averages(config, stats)
 

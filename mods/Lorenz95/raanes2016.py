@@ -9,5 +9,5 @@ setup.name = os.path.relpath(__file__,'mods/')
 
 
 #from mods.Lorenz95.raanes2016 import setup
-#config = DAC(EnKS ,'Sqrt',N=25,infl=1.08,rot=False,tLag=2.0)
-#config = DAC(EnRTS,'Sqrt',N=25,infl=1.08,rot=False,cntr=0.99)
+#config = EnKS ('Sqrt',N=25,infl=1.08,rot=False,tLag=2.0)
+#config = EnRTS('Sqrt',N=25,infl=1.08,rot=False,cntr=0.99)

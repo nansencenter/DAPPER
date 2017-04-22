@@ -70,6 +70,8 @@ def inflate_ens(E,factor):
   A, mu = anom(E)
   return mu + A*factor
 
+def weight_degeneracy(w,prec=1e-10):
+  return (1-w.max()) < 1e-10
 
 def unbias_var(w=None,N_eff=None,avoid_pathological=False):
   """
@@ -78,10 +80,10 @@ def unbias_var(w=None,N_eff=None,avoid_pathological=False):
   """
   if N_eff is None:
     N_eff = 1/(w@w)
-  ub = 1/(1 - 1/N_eff) # =N/(N-1) if w==ones(N)/N.
-  if avoid_pathological and (1-w.max()) < 1e-10:
-    # Don't do in case of weights collapse
-    ub = 1
+  if avoid_pathological and weight_degeneracy(w):
+    ub = 1 # Don't do in case of weights collapse
+  else:
+    ub = 1/(1 - 1/N_eff) # =N/(N-1) if w==ones(N)/N.
   return ub
 
 

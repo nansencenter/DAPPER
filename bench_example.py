@@ -13,17 +13,20 @@ sd0 = seed(5) # or ()
 ############################
 
 from mods.Lorenz63.sak12 import setup                      # Expected RMSE_a:
-#config = Climatology()  # Note: no tuning required         # 8.5
-#config = D3Var()        # Note: no tuning required         # 1.26
-#config = ExtKF(infl=90)                                    # 0.87
-#config = EnKF('Sqrt',   N=3 , infl=1.30)                   # Very variable
-#config = EnKF('Sqrt',   N=10, infl=1.02,rot=True)          # 0.63 (sak: 0.65)
-#config = EnKF('PertObs',N=500,infl=0.95,rot=False)         # 0.56
-config = EnKF_N(        N=10,           rot=True)          # 0.54
-#config = iEnKF('Sqrt',  N=10, infl=1.02,rot=True,iMax=10)  # 0.31
+#config = Climatology()  # note no tuning required          # 8.5
+#config = D3Var()        # tuning not stirctly required     # 1.26
+#config = ExtKF(infl=90) # some inflation tuning needed     # 0.87
+#config = EnKF('Sqrt',   N=3 ,  infl=1.30)                  # Very variable
+#config = EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63 (sak: 0.65)
+#config = EnKF('PertObs',N=500, infl=0.95,rot=False)        # 0.56
+#config = EnKF_N(        N=10,            rot=True)         # 0.54
+#config = iEnKF('Sqrt',  N=10,  infl=1.02,rot=True,iMax=10) # 0.31
+#config = PartFilt(      N=100 ,reg=2.4,NER=0.3)            # 0.38
+#config = PartFilt(      N=800 ,reg=0.9,NER=0.2)            # 0.28
+#config = PartFilt(      N=4000,reg=0.7,NER=0.05)           # 0.27
 
 #from mods.Lorenz95.sak08 import setup                      # Expected RMSE_a:
-#config = ExtKF(infl = 6)
+#config = ExtKF(infl=6)
 #config = EnKF(PertObs',N=40,infl=1.06)                     # 0.22
 #config = EnKF(DEnKF  ',N=40,infl=1.01)                     # 0.18
 #config = EnKF(PertObs',N=28,infl=1.08)                     # 0.24
@@ -58,7 +61,7 @@ config = EnKF_N(        N=10,           rot=True)          # 0.54
 ############################
 # Common
 ############################
-setup.t.T           = 4**3.5
+setup.t.T           = 4**4.5
 
 #config.liveplotting = True
 #config.store_u      = True

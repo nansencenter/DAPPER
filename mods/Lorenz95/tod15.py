@@ -55,5 +55,5 @@ setup = OSSE(f,h,t,X0,**other)
 # We obtain better rmse results for the LETKF than the paper.
 # But, of course, the major difference to the paper is that
 # we do not use exponential observation noise, but rather Gaussian.
-#config = DAC(LETKF,N=20,rot=True,infl=1.04,loc_rad=5) # rmse_a = 0.46
+#config = LETKF(N=20,rot=True,infl=1.04,loc_rad=5) # rmse_a = 0.46
 

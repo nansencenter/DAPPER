@@ -39,16 +39,16 @@ class Stats:
 
     if hasattr(config,'N'):
       # Ensemble-only init
-      self.is_ens = True
-      N           = config.N
-      m_Nm        = min(m,N)
-      self.w      = fs(N)           # Importance weights
-      self.rh     = fs(m,dtype=int) # Rank histogram
-      #self.N     = N               # Use w.shape[1] instead
+      self._is_ens = True
+      N            = config.N
+      m_Nm         = min(m,N)
+      self.w       = fs(N)           # Importance weights
+      self.rh      = fs(m,dtype=int) # Rank histogram
+      #self.N      = N               # Use w.shape[1] instead
     else:
       # Linear-Gaussian assessment
-      self.is_ens = False
-      m_Nm        = m
+      self._is_ens = False
+      m_Nm         = m
 
     self.svals = fs(m_Nm) # Principal component (SVD) scores
     self.umisf = fs(m_Nm) # Error in component directions
@@ -74,7 +74,7 @@ class Stats:
       if kObs is not None:
         raise KeyError("Should not have any obs at initial time."+
             "This very easily leads to bugs, and not 'DA convention'.")
-      if self.is_ens==True:
+      if self._is_ens==True:
         if E is None:
           raise TypeError("Expected ensemble input, but E is None")
         if mu is not None:
@@ -102,7 +102,7 @@ class Stats:
     if not (LP or store_u) and kObs==None:
       pass # Skip assessment
     else:
-      if self.is_ens:
+      if self._is_ens:
         # Ensemble assessment
         ens_or_ext = self.assess_ens
         state_prms = {'E':E,'w':w}
@@ -125,18 +125,19 @@ class Stats:
 
   def assess_ens(self,k,E,w=None):
     """Ensemble and Particle filter (weighted/importance) assessment."""
-    N,m          = E.shape
-    if w is None:
-      self.has_w = False
-      w          = 1/N
+    N,m           = E.shape
+    if w is None: 
+      self._has_w = False
+      w           = 1/N
     else:
-      self.has_w = True
+      self._has_w = True
     if np.isscalar(w):
-      assert w  != 0
-      w          = w*ones(N)
-    assert(abs(w.sum()-1) < 1e-5)
-    assert np.all(np.isfinite(E))
-    assert np.all(np.isreal(E))
+      assert w   != 0
+      w           = w*ones(N)
+
+    if abs(w.sum()-1) > 1e-5:      raise_AFE("Weights did not sum to one.")
+    if not np.all(np.isfinite(E)): raise_AFE("Ensemble not finite.")
+    if not np.all(np.isreal(E)):   raise_AFE("Ensemble not Real.")
 
     x = self.xx[k[0]]
 
@@ -177,7 +178,7 @@ class Stats:
         P              = (A.T * w) @ A
         s2,U           = eigh(P)
         s2            *= ub
-        self.svals[k]  = sqrt(s2)[::-1]
+        self.svals[k]  = sqrt(s2.clip(0))[::-1]
         self.umisf[k]  = U.T[::-1] @ self.err[k]
 
       # For each state dim [i], compute rank of truth (x) among the ensemble (E)
@@ -187,8 +188,11 @@ class Stats:
 
   def assess_ext(self,k,mu,P):
     """Kalman filter (Gaussian) assessment."""
-    assert np.all(np.isfinite(mu)) and np.all(np.isfinite(P))
-    assert np.all(np.isreal(mu))   and np.all(np.isreal(P))
+
+    isFinite = np.all(np.isfinite(mu)) and np.all(np.isfinite(P))
+    isReal   = np.all(np.isreal(mu))   and np.all(np.isreal(P))
+    if not isFinite: raise_AFE("Estimates not finite.",k)
+    if not isReal:   raise_AFE("Estimates not Real.",k)
 
     m = len(mu)
     x = self.xx[k[0]]
@@ -228,6 +232,8 @@ class Stats:
     """
     avrg = dict()
     for key,series in vars(self).items():
+      if key.startswith('_'):
+        continue
       try:
         # FAU_series
         if isinstance(series,FAU_series):

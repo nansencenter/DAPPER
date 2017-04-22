@@ -35,14 +35,15 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-#config = DAC(Climatology)                                      # 8.5
-#config = DAC(D3Var)                                            # 1.26
-#config = DAC(ExtKF, infl=90);                                  # 0.87
-#config = DAC(EnKF ,'Sqrt',   N=3 , infl=1.30)                  # Very variable
-#config = DAC(EnKF ,'Sqrt',   N=10, infl=1.02,rot=True)         # 0.63 (sak: 0.65)
-#config = DAC(EnKF_N,         N=10,           rot=True)         # 0.54
-#config = DAC(EnKF ,'PertObs',N=500,infl=0.95,rot=False)        # 0.56
-#config = DAC(iEnKF,'Sqrt',   N=10, infl=1.02,rot=True,iMax=10) # 0.31
-
-#config = DAC(PartFilt,       N=800,NER=0.05)    # NB: Add reg!               # 0.275 (with N=4000)
+#config = Climatology()  # note no tuning required          # 8.5
+#config = D3Var()        # tuning not stirctly required     # 1.26
+#config = ExtKF(infl=90) # some inflation tuning needed     # 0.87
+#config = EnKF('Sqrt',   N=3 ,  infl=1.30)                  # Very variable
+#config = EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63 (sak: 0.65)
+#config = EnKF('PertObs',N=500, infl=0.95,rot=False)        # 0.56
+#config = EnKF_N(        N=10,            rot=True)         # 0.54
+#config = iEnKF('Sqrt',  N=10,  infl=1.02,rot=True,iMax=10) # 0.31
+#config = PartFilt(      N=100 ,reg=2.4,NER=0.3)            # 0.38
+#config = PartFilt(      N=800 ,reg=0.9,NER=0.2)            # 0.28
+#config = PartFilt(      N=4000,reg=0.7,NER=0.05)           # 0.27
 

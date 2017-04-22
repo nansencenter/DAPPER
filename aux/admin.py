@@ -50,6 +50,11 @@ class OSSE(MLR_Print):
 class AssimFailedError(RuntimeError):
     pass
 
+def raise_AFE(msg,time_index=None):
+  if time_index is not None:
+    msg += "time index: " + str(time_index) + ". "
+  raise AssimFailedError(msg)
+
 from functools import wraps
 def DA_Config(da_driver):
   """
@@ -97,9 +102,9 @@ def DA_Config(da_driver):
       # Put assimilate inside try/catch to allow gentle failure
       try:
         assimilate(stats,setup,xx,yy)
-      except AssimFailedError:
-        pass # => return output anyway below
-      # Return statas
+      except AssimFailedError as err:
+        warnings.warn(str(err) + "\n" +
+        "Returning stats object in its current (incompleted) state.")
       return stats
     assim_caller.__doc__ = "Calls assimilate() from " +\
         da_driver.__name__ +", passing it the (output) stats object. " +\
