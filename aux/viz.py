@@ -362,7 +362,7 @@ class LivePlot:
       axh.set_xscale('log')
       axh.set_xlabel('weigth [× N]')
       axh.set_ylabel('count')
-      if E is not None and stats.has_w:
+      if E is not None and stats._has_w:
         if len(E)<10001:
           hst = axh.hist(stats.w[0])[2]
           N   = len(E)

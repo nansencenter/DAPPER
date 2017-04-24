@@ -27,8 +27,10 @@ def atmost_2d(func):
     if answer is not None: return answer.squeeze()
   return wrapr
 
+from functools import wraps
 def ens_compatible(func):
   """Tranpose before and after."""
+  @wraps(func)
   def wrapr(x,*kargs,**kwargs):
     return func(x.T,*kargs,**kwargs).T
   return wrapr

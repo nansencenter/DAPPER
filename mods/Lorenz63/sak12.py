@@ -4,6 +4,7 @@
 from common import *
 
 from mods.Lorenz63.core import step, dfdx
+from aux.utils import Id_op, Id_mat
 
 m = 3
 p = m
@@ -13,7 +14,7 @@ t = Chronology(0.01,dkObs=25,T=4**5,BurnIn=4)
 m = 3
 f = {
     'm'    : m,
-    'model': lambda x,t,dt: step(x,t,dt),
+    'model': step,
     'jacob': dfdx,
     'noise': 0
     }
@@ -23,14 +24,15 @@ X0 = GaussRV(C=2,mu=mu0)
 
 h = {
     'm'    : p,
-    'model': lambda x,t: x,
-    'jacob': lambda x,t: eye(3),
+    'model': Id_op(),
+    'jacob': Id_mat(m),
     'noise': GaussRV(C=2,m=p)
     }
 
 other = {'name': os.path.relpath(__file__,'mods/')}
 
 setup = OSSE(f,h,t,X0,**other)
+
 
 ####################
 # Suggested tuning

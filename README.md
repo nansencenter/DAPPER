@@ -274,6 +274,17 @@ Implementation choices
     * Matrix multiplication through `*` -- since python3.5 can just use `@`
 
 
+<!--
+Conventions:
+* DA_Config, assimilate, stats
+* fau_series
+* E,w,A
+* m-by-N
+* m (ndims), p, chrono
+* xx,yy
+* no obs at 0
+-->
+
 TODO
 ------------------------------------------------
 * CovMat
@@ -291,5 +302,4 @@ TODO
 ---------------
 * http://stackoverflow.com/a/38191145/38281
 * http://stackoverflow.com/a/37861878/38281
--->
-
+* http://stackoverflow.com/questions/43453707

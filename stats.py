@@ -1,6 +1,6 @@
 from common import *
 
-class Stats:
+class Stats(MLR_Print):
   """
   Contains and computes statistics of the DA methods.
   """
@@ -8,6 +8,11 @@ class Stats:
   # Adjust this to omit heavy computations
   comp_threshold_3 = 51
 
+  # Used by MLR_Print
+  excluded  = MLR_Print.excluded + ['setup','config','xx','yy']
+  precision = 3
+  ordr_by_linenum = -1
+ 
   def __init__(self,config,setup,xx,yy):
     """
     Init the default statistics.
@@ -103,6 +108,7 @@ class Stats:
     if not (LP or store_u) and kObs==None:
       pass # Skip assessment
     else:
+      # Prepare assessment call and arguments
       if self._is_ens:
         # Ensemble assessment
         alias = self.assess_ens
@@ -112,8 +118,8 @@ class Stats:
         alias = self.assess_ext
         state_prms = {'mu':mu,'P':Cov}
 
+      # Call assessment
       with np.errstate(divide='ignore',invalid='ignore'):
-        # Compute
         alias(key,**state_prms)
 
       # In case of degeneracy, variance might be 0,
@@ -137,7 +143,11 @@ class Stats:
 
   def assess_ens(self,k,E,w=None):
     """Ensemble and Particle filter (weighted/importance) assessment."""
-    N,m           = E.shape
+    # Unpack
+    N,m = E.shape
+    x = self.xx[k[0]]
+
+    # Process weights
     if w is None: 
       self._has_w = False
       w           = 1/N
@@ -147,11 +157,9 @@ class Stats:
       assert w   != 0
       w           = w*ones(N)
 
-    if abs(w.sum()-1) > 1e-5:      raise_AFE("Weights did not sum to one.")
-    if not np.all(np.isfinite(E)): raise_AFE("Ensemble not finite.")
-    if not np.all(np.isreal(E)):   raise_AFE("Ensemble not Real.")
-
-    x = self.xx[k[0]]
+    if abs(w.sum()-1) > 1e-5:      raise_AFE("Weights did not sum to one.",k)
+    if not np.all(np.isfinite(E)): raise_AFE("Ensemble not finite.",k)
+    if not np.all(np.isreal(E)):   raise_AFE("Ensemble not Real.",k)
 
     self.w[k]    = w
     self.mu[k]   = w @ E
@@ -242,7 +250,7 @@ class Stats:
     """
     Avarage all univariate (scalar) time series.
     """
-    avrg = dict()
+    avrg = AlignedDict()
     for key,series in vars(self).items():
       if key.startswith('_'):
         continue
@@ -279,6 +287,8 @@ class Stats:
     "Convenience FAU_series constructor."
     store_u = self.config.store_u
     return FAU_series(self.setup.t, m, store_u=store_u, **kwargs)
+
+  # TODO: Provide frontend initializer 
 
   # Better to initialize manually (np.full...)
   # def new_array(self,f_a_u,m,**kwargs):

@@ -7,6 +7,7 @@ from time import sleep
 from collections import OrderedDict
 import warnings
 import traceback
+import re
 
 # To be used with line_profiler
 import builtins

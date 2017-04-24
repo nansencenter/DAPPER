@@ -23,25 +23,23 @@ mu0,P0 = typical_init_params(m)
 X0     = GaussRV(mu0, 0.01*P0)
 
 
-
 p  = m
 jj = equi_spaced_integers(m,p)
-@ens_compatible
-def hmod(E,t):
-  return E[jj]
-
-H = zeros((p,m))
+H  = zeros((p,m))
 for i,j in enumerate(jj):
   H[i,j] = 1.0
 
-#yplot = lambda y: plt.plot(y,'g*',MarkerSize=15)[0]
-#yplot = lambda y: plt.plot(y,'g')[0]
+@ens_compatible
+def partial_direct_obs    (x,t): return x[jj]
+def partial_direct_obs_jac(x,t): return H
+
 def yplot(y):
   lh = plt.plot(y,'g')[0]
+  #lh = plt.plot(y,'g*')[0]
   #plt.pause(0.8)
   return lh
 
-
+# Localization setup
 from aux.localization import inds_and_coeffs, unravel
 dIJ = unravel(arange(m), m)
 oIJ = unravel(jj , m)
@@ -58,8 +56,8 @@ def locf(radius,direction,t,tag=None):
 
 h = {
     'm'    : p,
-    'model': hmod,
-    'jacob': lambda x,t: H,
+    'model': partial_direct_obs,
+    'jacob': partial_direct_obs_jac,
     'noise': GaussRV(C=1*eye(p)),
     'plot' : yplot,
     'loc_f': locf,

@@ -156,7 +156,6 @@ class DAC():
       'store_u'     : False,
       }
 
-  import re
   excluded = \
       list(dflts.keys()) +\
       ['assimilate',re.compile('^_')]

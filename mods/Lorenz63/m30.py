@@ -1,20 +1,19 @@
 # Moderate dtObs and non-0 Q.
 
+
 from common import *
 
 from mods.Lorenz63.core import step, dfdx
+from aux.utils import Id_op, Id_mat
 
 m = 3
 p = m
 
-#T = 4**6
-T = 4**4
-t = Chronology(0.01,dkObs=15,T=T,BurnIn=4)
+t = Chronology(0.01,dkObs=15,T=4**4,BurnIn=4)
 
-m = 3
 f = {
     'm'    : m,
-    'model': lambda x,t,dt: step(x,t,dt),
+    'model': step,
     'jacob': dfdx,
     'noise': GaussRV(C=2,m=m)
     }
@@ -24,8 +23,8 @@ X0 = GaussRV(C=0.5,mu=mu0)
 
 h = {
     'm'    : p,
-    'model': lambda x,t: x,
-    'jacob': lambda x,t: eye(3),
+    'model': Id_op(),
+    'jacob': Id_mat(m),
     'noise': GaussRV(C=2,m=p)
     }
 

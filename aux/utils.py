@@ -156,63 +156,134 @@ def tabulate(data,headr=(),formatters=()):
   return _tabulate(data, headr)
 
 
+class Bunch(dict):
+  def __init__(self,**kw):
+    dict.__init__(self,kw)
+    self.__dict__ = self
+
+class AlignedDict(OrderedDict):
+  """Provide aligned-printing for dict."""
+  def __init__(self,*args,**kwargs):
+    super().__init__(*args,**kwargs)
+  def __repr__(self):
+    L = max(len(s) for s in self.keys())
+    s = type(self).__name__ + "(**{\n "
+    for key in self.keys():
+      s += key.rjust(L)+": "+repr(self[key])+",\n "
+    s = s[:-2] + "\n})"
+    return s
+  def _repr_pretty_(self, p, cycle):
+    # Is implemented by OrderedDict, so must overwrite.
+    if cycle: p.text('{...}')
+    else:     p.text(self.__repr__())
+  
+
+
+class NamedFunc():
+  "Provides better repr for functions."
+  def __init__(self,_func,_repr):
+    self._func = _func
+    self._repr = _repr
+  def __call__(self, *args, **kw):
+    return self._func(*args, **kw)
+  def __repr__(self):
+    argnames = self._func.__code__.co_varnames[
+      :self._func.__code__.co_argcount]
+    argnames = "("+",".join(argnames)+")"
+    return "<NamedFunc>"+argnames+": "+self._repr
+
+def Id_op():
+  return NamedFunc(lambda *args: args[0], "Id operator")
+def Id_mat(m):
+  I = np.eye(m)
+  return NamedFunc(lambda x,t: I, "Id("+str(m)+") matrix")
+
+
+def repr_type_and_name(thing):
+  """Print thing's type [and name]"""
+  s = "<" + type(thing).__name__ + '>'
+  if hasattr(thing,'name'):
+    s += ': ' + thing.name
+  return s
+
 class MLR_Print:
   """
   Multi-Line, Recursive repr (print) functionality.
   Set class variables to change look:
    - 'indent': indentation per level
    - 'ch': character to use for "spine" (e.g. '|' or ' ')
+   - 'ordr_by_linenum': 0: alphabetically, 1: linenumbr, -1: reverse
   """
   indent=3
   ch='.'
+  ordr_by_linenum = 0
+
+  # numpy print options
+  threshold=10
+  precision=None
 
   # Recursion monitoring.
-  _stack=[]
-  # Don't reference using .__class__ !!!
-  # Coz will use subclass, and different instances of _stack.
+  _stack=[] # Reference using MLR_Print._stack, ...
+  # not self._stack or self.__class__, which reference sub-class "instance".
+
+  # Reference using self.excluded, to access sub-class "instance".
+  excluded = [] # Don't include in printing
+  excluded.append(re.compile('^_')) # "Private"
+  excluded.append('name') # Treated separately
+
+  included = []
+  aliases  = {}
 
   def __repr__(self):
-    NL = '\n' + self.ch + ' '*(self.indent-1)
+    with printoptions(threshold=self.threshold,precision=self.precision):
+      # new line chars
+      NL = '\n' + self.ch + ' '*(self.indent-1)
 
-    # Recursion prevention
-    is_top_level = False
-    if MLR_Print._stack == []:
-      is_top_level = True
-    if self in MLR_Print._stack:
-      return "**Recursion**"
-    MLR_Print._stack += [self]
+      # Infinite recursion prevention
+      is_top_level = False
+      if MLR_Print._stack == []:
+        is_top_level = True
+      if self in MLR_Print._stack:
+        return "**Recursion**"
+      MLR_Print._stack += [self]
 
-    # Print self type+name
-    s = "<" + type(self).__name__ + '>'
-    if hasattr(self,'name'):
-      s += ': ' + self.name
+      # Use included or filter-out excluded
+      keys = self.included or filter_out(vars(self), *self.excluded)
 
-    # Print self's variables
-    for key in sorted(vars(self),key=lambda x: x.lower()):
-      if key == 'name': pass
-      else:
-        s += NL + key + ': '
-        t  = repr(getattr(self,key)) # sub-string
-        if '\n' not in t:
-          # Print regularly
-          s += t
-        else:
+      # Process attribute repr's
+      txts = {}
+      for key in keys:
+        t = repr(getattr(self,key)) # sub-repr
+        if '\n' in t:
           # Activate multi-line printing
-          s +=                NL+' '*self.indent  # first line
-          s += t.replace('\n',NL+' '*self.indent) # other lines
+          t = t.replace('\n',NL+' '*self.indent) # other lines
+          t = NL+' '*self.indent + t             # first line
+        t = NL + self.aliases.get(key,key) + ': ' + t # key-name
+        txts[key] = t
 
-    # Empty _stack when top-level printing finished
-    if is_top_level:
-      MLR_Print._stack = []
+      def sortr(x):
+        if self.ordr_by_linenum:
+          return self.ordr_by_linenum*txts[x].count('\n')
+        else:
+          return x.lower()
 
-    return s
+      # Assemble string
+      s = repr_type_and_name(self)
+      for key in sorted(txts, key=sortr):
+        s += txts[key]
+
+      # Empty _stack when top-level printing finished
+      if is_top_level:
+        MLR_Print._stack = []
+
+      return s
 
 
 #########################################
 # Writing / Loading Independent experiments
 #########################################
 
-import glob, re
+import glob
 def find_last_v(dirpath):
   if not dirpath.endswith(os.path.sep):
     dirpath += os.path.sep
@@ -344,10 +415,6 @@ class Timer():
 #########################################
 # Misc
 #########################################
-class Bunch(dict):
-  def __init__(self,**kw):
-    dict.__init__(self,kw)
-    self.__dict__ = self
 
 
 def filter_out(orig_list,*unwanted):
