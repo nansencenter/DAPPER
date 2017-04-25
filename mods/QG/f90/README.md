@@ -14,7 +14,6 @@ For DAPPER, only the python module `py_mod` is required. To build it, run:
 
     $ f2py -c utils.f90 parameters.f90 helmholtz.f90 calc.f90 qgflux.f90 qgstep.f90 interface.f90 -m py_mod
 
-
 If you wish, you may build the standalone executable `qg` as well. To do so, run
 
     $ make qg
