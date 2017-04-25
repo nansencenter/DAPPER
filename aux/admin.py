@@ -1,51 +1,47 @@
 from common import *
 
+# TODO: Rename Twin ?
+class OSSE(MLR_Print):
+  """
+  Container for OSSE settings.
+  OSSE: "observing system simulation experiment"
+  """
+  def __init__(self,f,h,t,X0,**kwargs):
+    self.f  = f  if isinstance(f,  Operator)   else Operator  (**f)
+    self.h  = h  if isinstance(h,  Operator)   else Operator  (**h)
+    self.t  = t  if isinstance(t,  Chronology) else Chronology(**t)
+    self.X0 = X0 if isinstance(X0, RV)         else RV        (**X0)
+    # Write the rest of parameters
+    for key, value in kwargs.items():
+      setattr(self, key, value)
+    # Consistency checks
+    if self.h.noise.C.rk != self.h.noise.C.m:
+      raise ValueError("Rank-deficient R not supported.")
 
 class Operator(MLR_Print):
-  """Class for operators (models)."""
+  """
+  Container for operators (models).
+  """
   def __init__(self,m,model=None,noise=None,**kwargs):
     self.m = m
 
     # None => Identity model
     if model is None:
-      model = lambda x,t,dt: x
+      model = Id_op()
+      kwargs['jacob'] = Id_mat(m)
     self.model = model
 
     # None/0 => No noise
-    if noise is None:
-      noise = 0
-    if noise is 0:
+    if not noise:
       noise = GaussRV(0,m=m)
     self.noise = noise
 
-    # Write the rest of parameters
-    for key, value in kwargs.items(): setattr(self, key, value)
+    # Write attributes
+    for key, value in kwargs.items():
+      setattr(self, key, value)
   
   def __call__(self,*args,**kwargs):
     return self.model(*args,**kwargs)
-
-
-class OSSE(MLR_Print):
-  """Container for OSSE settings."""
-  def __init__(self,f,h,t,X0,**kwargs):
-    if not isinstance(X0,RV):
-      # TODO: Pass through RV instead?
-      X0 = GaussRV(**X0)
-    if not isinstance(f,Operator):
-      f = Operator(**f)
-    if not isinstance(h,Operator):
-      h = Operator(**h)
-    if not isinstance(t,Chronology):
-      t = Chronology(**t)
-    self.X0 = X0
-    self.f  = f
-    if h.noise.C.rk != h.noise.C.m:
-      raise ValueError("Rank-deficient R not supported.")
-    self.h  = h
-    self.t  = t
-    # Write the rest of parameters
-    for key, value in kwargs.items():
-      setattr(self, key, value)
 
 
 class AssimFailedError(RuntimeError):

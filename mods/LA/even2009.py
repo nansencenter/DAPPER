@@ -37,8 +37,7 @@ f = {
 # Yet this is not so implausible because sinusoidal_sample()
 # yields (multivariate) uniform (random numbers) -- not Gaussian.
 wnum  = 25
-X0 = RV(sampling_func = lambda N: \
-    sqrt(5)/10 * sinusoidal_sample(m,wnum,N))
+X0 = RV(func= lambda N: sqrt(5)/10 * sinusoidal_sample(m,wnum,N))
 
 @atmost_2d
 def hmod(E,t):

@@ -126,7 +126,7 @@ class CovMat:
       d    = np.where(d<1e-10,0,d)
       rk   = (d>0).sum()
     elif kind is 'diag':
-      data  = asarray(data)
+      data  = array(data)
       assert is1d(data)
       #d,U = eigh(diag(data))
       C     = diag(data)

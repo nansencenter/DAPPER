@@ -12,9 +12,9 @@ sd0 = seed(5) # or ()
 # DA Configurations
 ############################
 
-#from mods.Lorenz63.sak12 import setup                      # Expected RMSE_a:
+from mods.Lorenz63.sak12 import setup                      # Expected RMSE_a:
 #config = Climatology()  # note no tuning required          # 8.5
-#config = D3Var()        # tuning not stirctly required     # 1.26
+config = D3Var()        # tuning not stirctly required     # 1.26
 #config = ExtKF(infl=90) # some inflation tuning needed     # 0.87
 #config = EnKF('Sqrt',   N=3 ,  infl=1.30)                  # Very variable
 #config = EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63 (sak: 0.65)

@@ -1353,6 +1353,7 @@ def Climatology(**kwargs):
   return assimilate
 
 
+#TODO: This should be called Optimal Interpolation
 @DA_Config
 def D3Var(infl=1.0,**kwargs):
   """
@@ -1360,7 +1361,6 @@ def D3Var(infl=1.0,**kwargs):
   Uses the Kalman filter equations,
   but with a prior from the Climatology.
   """
-  #TODO: This should be called Optimal Interpolation
   def assimilate(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
     dkObs = chrono.dkObs
@@ -1369,6 +1369,17 @@ def D3Var(infl=1.0,**kwargs):
     mu0   = mean(xx,0)
     A0    = xx - mu0
     P0    = (A0.T @ A0) * (infl/(xx.shape[0] - 1))
+
+    # Try to detect whether KG may be pre-computed by
+    # relying on NaN's to trigger errors (if H is time-dep).
+    try:
+      H  = h.jacob(np.nan, np.nan)
+      KG = mrdiv(P0@H.T, H@P0@H.T+R)
+      Pa = (eye(f.m) - KG@H) @ P0
+      stats.trHK[:] = trace(KG@H)/f.m
+      pre_computed_KG = True
+    except:
+      pre_computed_KG = False
 
     # The uncertainty estimate P is only computed
     # for the sake of the stats, and not for actual DA.
@@ -1392,21 +1403,10 @@ def D3Var(infl=1.0,**kwargs):
       scale   = fudge*dkObs/L*L_ratio
       return max_amp*sigmoid(shift + scale*rho)
 
-    # Try to detect whether KG may be pre-computed by
-    # relying on NaN's to trigger errors (if H is time-dep).
-    try:
-      H  = h.jacob(np.nan, np.nan)
-      KG = mrdiv(P0@H.T, H@P0@H.T+R)
-      Pa = (eye(f.m) - KG@H) @ P0
-      stats.trHK[:] = trace(KG@H)/f.m
-      pre_computed_KG = True
-    except Exception:
-      pre_computed_KG = False
-
     # Init
     mu = X0.mu
     stats.assess(0,mu=mu,Cov=P0)
-    
+
     for k,kObs,t,dt in progbar(chrono.forecast_range):
       mu = f(mu,t-dt,dt)
 
