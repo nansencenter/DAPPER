@@ -178,15 +178,10 @@ class Chronology:
       yield k, t, dt
 
   def __str__(self):
-    s = []
     printable = ['K','KObs','dtObs','dt','T','BurnIn']
-    w = 4 + max([len(s) for s in printable])
-    for k in printable:
-      s.append('{0:>{1}}: '.format(k,w) + str(getattr(self,k)))
-    return '\n'.join(s)
-
+    return str(AlignedDict([(k, getattr(self,k)) for k in printable]))
   def __repr__(self):
-      return self.__str__()
+    return repr_type_and_name(self) + "\n" + str(self)
 
 
 class Ticker:

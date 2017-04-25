@@ -8,9 +8,8 @@ from common import *
 
 sd0 = seed(9)
 
-#from mods.Lorenz95.boc10 import setup
-from mods.Lorenz63.sak12 import setup
-setup.t.T = 4**5.5
+from mods.QG.sak08 import setup
+setup.t.T = 50
 
 xx,yy = simulate(setup)
 
@@ -19,10 +18,9 @@ xx,yy = simulate(setup)
 ############################
 cfgs  = List_of_Configs()
 
-#cfgs += PFD(N=30,Qs=1.8,xN=1000,reg=0.7,NER=0.2)
-#cfgs += PFD(N=30,Qs=2.0,xN=1000,reg=0.7,NER=0.2)
-cfgs += PFD(N=30,Qs=2.2,xN=1000,reg=0.7,NER=0.2)
-cfgs += PFD(N=30,Qs=2.4,xN=1000,reg=0.7,NER=0.2)
+cfgs += Climatology()
+cfgs += D3Var()
+#cfgs += EnKF('PertObs',N=25,infl=1.10)
 
 ############################
 # Assimilate

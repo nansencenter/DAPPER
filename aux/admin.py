@@ -40,11 +40,12 @@ class OSSE(MLR_Print):
     self.X0 = X0
     self.f  = f
     if h.noise.C.rk != h.noise.C.m:
-      raise ValueError("Rank-deficient R not supported")
+      raise ValueError("Rank-deficient R not supported.")
     self.h  = h
     self.t  = t
     # Write the rest of parameters
-    for key, value in kwargs.items(): setattr(self, key, value)
+    for key, value in kwargs.items():
+      setattr(self, key, value)
 
 
 class AssimFailedError(RuntimeError):
@@ -55,7 +56,6 @@ def raise_AFE(msg,time_index=None):
     msg += "(k,kObs,fau) = " + str(time_index) + ". "
   raise AssimFailedError(msg)
 
-from functools import wraps
 def DA_Config(da_driver):
   """
   Wraps a da_driver to an instance of the DAC (DA Configuration) class.
@@ -78,7 +78,7 @@ def DA_Config(da_driver):
   f_arg_names = da_driver.__code__.co_varnames[
       :da_driver.__code__.co_argcount]
 
-  @wraps(da_driver)
+  @functools.wraps(da_driver)
   def wrapr(*args,**kwargs):
     ############################
     # Validate signature/return

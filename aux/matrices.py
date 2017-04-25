@@ -1,13 +1,13 @@
 from common import *
 
-# Also recommend the package "rogues",
-# which replicates Matlab's matrix gallery.
-
+# Useful matrix to toy with.
 try:
-  from magic_square import magic
+  from Misc.magic_square import magic
 except ImportError:
   pass
 
+# I also recommend the package "rogues",
+# which replicates Matlab's matrix gallery.
 
 def randcov(m):
   """(Makeshift) random cov mat
@@ -23,6 +23,8 @@ def randcorr(m):
   return Dm12@Cov@Dm12
 
 
+
+
 def genOG(m):
   """Generate random orthonormal matrix."""
   Q,R = nla.qr(randn((m,m)))
@@ -31,31 +33,78 @@ def genOG(m):
       Q[:,i] = -Q[:,i]
   return Q
 
-def genOG_1(N):
-  """Random orthonormal mean-preserving matrix.
-  Source: ienks code of Sakov/Bocquet."""
-  e = ones((N,1))
-  V = nla.svd(e)[0] # Basis whose first vector is e
-  Q = genOG(N-1)     # Orthogonal mat
+def genOG_modified(m,opts=(0,1.0)):
+  """
+  genOG with modifications.
+  Caution: although 'degree' ∈ (0,1) for all versions,
+           they're not supposed going to be strictly equivalent.
+  Testing: scripts/sqrt_rotations.py
+  """
+
+  # Parse opts
+  if not opts:
+    # Shot-circuit in case of False or 0
+    return eye(m)
+  elif isinstance(opts,bool):
+    return genOG(m)
+  elif isinstance(opts,float):
+    ver    = 1
+    degree = opts
+  else:
+    ver    = opts[0]
+    degree = opts[1]
+
+  if ver==1:
+    # Only rotate "once in a while"
+    dc = 1/degree # = "while"
+    # Retrieve/store persistent variable
+    counter = getattr(genOG_modified,"counter",0) + 1
+    setattr(genOG_modified,"counter",counter)
+    # Compute rot or skip
+    if np.mod(counter, dc) < 1:
+      Q = genOG(m)
+    else:
+      Q = eye(m)
+  elif ver==2:
+    # Background knowledge
+    # stackoverflow.com/questions/38426349
+    # https://en.wikipedia.org/wiki/Orthogonal_matrix
+    Q   = genOG(m)
+    s,U = sla.eig(Q)
+    s2  = exp(1j*np.angle(s)*degree) # reduce angles
+    Q   = mrdiv(U * s2, U)
+    Q   = Q.real
+  elif ver==3:
+    # Reduce Given's rotations in QR algo
+    raise NotImplementedError
+  elif ver==4:
+    # Introduce correlation between columns of randn((m,m))
+    raise NotImplementedError
+  else:
+    raise KeyError
+  return Q
+
+
+# This is actually very cheap compared to genOG,
+# so caching doesn't help much.
+@functools.lru_cache(maxsize=1)
+def basis_beginning_with_ones(ndim):
+  """Basis whose first vector is ones(ndim)."""
+  e = ones((ndim,1))
+  return nla.svd(e)[0]
+
+def genOG_1(N,opts=()):
+  """
+  Random orthonormal mean-preserving matrix.
+  Source: ienks code of Sakov/Bocquet.
+  """
+  V = basis_beginning_with_ones(N)
+  if opts==():
+    Q = genOG(N-1)
+  else:
+    Q = genOG_modified(N-1,opts)
   return V @ sla.block_diag(1,Q) @ V.T
 
-
-
-# From stackoverflow.com/q/3012421
-class lazy_property(object):
-    '''
-    Lazy evaluation of property.
-    Should represent non-mutable data,
-    as it replaces itself.
-    '''
-    def __init__(self,fget):
-      self.fget = fget
-      self.func_name = fget.__name__
-
-    def __get__(self,obj,cls):
-      value = self.fget(obj)
-      setattr(obj,self.func_name,value)
-      return value
 
 
 

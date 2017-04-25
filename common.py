@@ -8,13 +8,15 @@ from collections import OrderedDict
 import warnings
 import traceback
 import re
+import functools
 
-# To be used with line_profiler
 import builtins
 try:
+    # This will be available if launched as (e.g.)
+    # (bash)$ kernprof -l -v bench_example.py
     profile = builtins.profile
 except AttributeError:
-    # No line profiler, provide a pass-through version
+    # Otherwise: provide a pass-through version.
     def profile(func): return func
 
 

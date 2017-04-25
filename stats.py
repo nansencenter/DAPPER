@@ -128,7 +128,7 @@ class Stats(MLR_Print):
       # This should and will yield nan's, but we don't want
       # the diagnostics computations to cause too many warnings,
       # so we turned them off above. But we'll manually warn ONCE here.
-      if not self._had_0v and np.allclose(self.var[key],0):
+      if not getattr(self,'_had_0v',False) and np.allclose(self.var[key],0):
         self._had_0v = True
         warnings.warn("Sample variance was 0 at (k,kObs,fau) = " + str(key))
 
@@ -206,11 +206,12 @@ class Stats(MLR_Print):
       self.rh[k]    = [np.where(Ex_sorted[:,i] == x[i])[0][0] for i in range(m)]
 
 
+  @profile
   def assess_ext(self,k,mu,P):
     """Kalman filter (Gaussian) assessment."""
 
-    isFinite = np.all(np.isfinite(mu)) and np.all(np.isfinite(P))
-    isReal   = np.all(np.isreal(mu))   and np.all(np.isreal(P))
+    isFinite = np.all(np.isfinite(mu)) # Do not check covariance
+    isReal   = np.all(np.isreal(mu))   # (coz might not be explicitly availble)
     if not isFinite: raise_AFE("Estimates not finite.",k)
     if not isReal:   raise_AFE("Estimates not Real.",k)
 

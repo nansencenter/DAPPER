@@ -156,48 +156,6 @@ def tabulate(data,headr=(),formatters=()):
   return _tabulate(data, headr)
 
 
-class Bunch(dict):
-  def __init__(self,**kw):
-    dict.__init__(self,kw)
-    self.__dict__ = self
-
-class AlignedDict(OrderedDict):
-  """Provide aligned-printing for dict."""
-  def __init__(self,*args,**kwargs):
-    super().__init__(*args,**kwargs)
-  def __repr__(self):
-    L = max(len(s) for s in self.keys())
-    s = type(self).__name__ + "(**{\n "
-    for key in self.keys():
-      s += key.rjust(L)+": "+repr(self[key])+",\n "
-    s = s[:-2] + "\n})"
-    return s
-  def _repr_pretty_(self, p, cycle):
-    # Is implemented by OrderedDict, so must overwrite.
-    if cycle: p.text('{...}')
-    else:     p.text(self.__repr__())
-  
-
-
-class NamedFunc():
-  "Provides better repr for functions."
-  def __init__(self,_func,_repr):
-    self._func = _func
-    self._repr = _repr
-  def __call__(self, *args, **kw):
-    return self._func(*args, **kw)
-  def __repr__(self):
-    argnames = self._func.__code__.co_varnames[
-      :self._func.__code__.co_argcount]
-    argnames = "("+",".join(argnames)+")"
-    return "<NamedFunc>"+argnames+": "+self._repr
-
-def Id_op():
-  return NamedFunc(lambda *args: args[0], "Id operator")
-def Id_mat(m):
-  I = np.eye(m)
-  return NamedFunc(lambda x,t: I, "Id("+str(m)+") matrix")
-
 
 def repr_type_and_name(thing):
   """Print thing's type [and name]"""
@@ -279,6 +237,52 @@ class MLR_Print:
       return s
 
 
+class AlignedDict(OrderedDict):
+  """Provide aligned-printing for dict."""
+  def __init__(self,*args,**kwargs):
+    super().__init__(*args,**kwargs)
+  def __str__(self):
+    L = max(len(s) for s in self.keys())
+    s = " "
+    for key in self.keys():
+      s += key.rjust(L)+": "+repr(self[key])+"\n "
+    s = s[:-2]
+    return s
+  def __repr__(self):
+    return type(self).__name__ + "(**{\n " + str(self).replace("\n",",\n") + "\n})"
+  def _repr_pretty_(self, p, cycle):
+    # Is implemented by OrderedDict, so must overwrite.
+    if cycle: p.text('{...}')
+    else:     p.text(self.__repr__())
+  
+class Bunch(dict):
+  def __init__(self,**kw):
+    dict.__init__(self,kw)
+    self.__dict__ = self
+
+
+
+class NamedFunc():
+  "Provides better repr for functions."
+  def __init__(self,_func,_repr):
+    self._func = _func
+    self._repr = _repr
+  def __call__(self, *args, **kw):
+    return self._func(*args, **kw)
+  def __repr__(self):
+    argnames = self._func.__code__.co_varnames[
+      :self._func.__code__.co_argcount]
+    argnames = "("+",".join(argnames)+")"
+    return "<NamedFunc>"+argnames+": "+self._repr
+
+def Id_op():
+  return NamedFunc(lambda *args: args[0], "Id operator")
+def Id_mat(m):
+  I = np.eye(m)
+  return NamedFunc(lambda x,t: I, "Id("+str(m)+") matrix")
+
+
+
 #########################################
 # Writing / Loading Independent experiments
 #########################################
@@ -351,7 +355,6 @@ def save_data(path,inds,**kwargs):
 #########################################
 NPROC = 4
 import multiprocessing, signal
-from functools import partial
 def multiproc_map(func,xx,**kwargs):
   """
   Multiprocessing.
@@ -364,7 +367,8 @@ def multiproc_map(func,xx,**kwargs):
   pool = multiprocessing.Pool(NPROC)
   signal.signal(signal.SIGINT, orig)
   try:
-    f   = partial(func,**kwargs) # stackoverflow.com/a/5443941/38281
+    # stackoverflow.com/a/5443941/38281
+    f   = functools.partial(func,**kwargs)
     res = pool.map_async(f, xx)
     res = res.get(60)
   except KeyboardInterrupt as e:
@@ -467,5 +471,23 @@ def select(orig,*args):
      defaults are stored and accessible for all levels and signatures.
   """
   return {key:orig[key] for key in args if key in orig}
+
+
+# From stackoverflow.com/q/3012421
+class lazy_property(object):
+    '''
+    Lazy evaluation of property.
+    Should represent non-mutable data,
+    as it replaces itself.
+    '''
+    def __init__(self,fget):
+      self.fget = fget
+      self.func_name = fget.__name__
+
+    def __get__(self,obj,cls):
+      value = self.fget(obj)
+      setattr(obj,self.func_name,value)
+      return value
+
 
 

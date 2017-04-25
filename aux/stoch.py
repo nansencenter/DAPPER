@@ -68,7 +68,6 @@ def rand(shape=(1,)): return np.random.uniform(0,1,shape)
 # By looking up in a table, we gain 3x speed on np.random.normal.
 use_pre_computed_table_for_randn = False
 TableG = np.random.normal(0,1,10**7)
-@profile
 def randn(shape=(1,)):
   if use_pre_computed_table_for_randn:
     N      = np.prod(shape)

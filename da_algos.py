@@ -1,4 +1,8 @@
 from common import *
+
+# TODO:
+# Document @DA_config usage / make template
+# Rename assimilate --> assimilator
     
 
 @DA_Config
@@ -285,7 +289,11 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
     elif 'Sqrt' in upd_a:
         # Uses a symmetric square root (ETKF)
         # to deterministically transform the ensemble.
+        #
         # The various versions below differ only numerically.
+        # EVD is default, # But for large N use SVD version.
+        if upd_a == 'Sqrt' and N>m: upd_a = 'Sqrt svd'
+        #
         if 'explicit' in upd_a:
           # Not recommended.
           # Implementation using inv (in ens space)
@@ -1327,8 +1335,8 @@ def EnCheat(upd_a,N,infl=1.0,rot=False,**kwargs):
 def Climatology(**kwargs):
   """
   A baseline/reference method.
-  Note that the "climatology" is computed from truth,
-  which might be (unfairly) advantageous if this simulation is too short.
+  Note that the "climatology" is computed from truth, which might be
+  (unfairly) advantageous if the simulation is too short (vs mixing time).
   """
   def assimilate(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -1499,33 +1507,10 @@ def post_process(E,infl,rot):
       T = infl * T
 
     if rot:
-      T = genOG_1(N) @ T
+      T = genOG_1(N,rot) @ T
 
     E = mu + T@A
-    return E
+  return E
 
-
-@DA_Config
-def template_DA_method(upd_a,N,infl=1.0,rot=False,**kwargs):
-  "Docstring" # TODO: Document this template: template
-  def assimilate(stats,twin,xx,yy):
-    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-
-    E = X0.sample(N)
-    stats.assess(0,E=E)
-
-    # Loop 
-    for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E = f(E,t-dt,dt) # forecast
-      E = add_noise(E, dt, f.noise, kwargs)
-
-      # Update
-      if kObs is not None:
-        stats.assess(k,kObs,'f',E=E)
-        E = EnKF_analysis(E,h(E,t),h.noise,yy[kObs],upd_a,stats,kObs)
-        E = post_process(E,infl,rot)
-
-      stats.assess(k,kObs,E=E)
-  return assimilate
 
 
