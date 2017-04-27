@@ -81,6 +81,10 @@ class GaussRV(RV,MLR_Print):
   def __init__(self,mu=0,C=0,m=None):
     """Init allowing for shortcut notation."""
 
+    if isinstance(mu,CovMat):
+      raise TypeError("Got a covariance paramter as mu. " +
+      "Use kword syntax (C=...) ?")
+
     # Set mu
     mu = exactly_1d(mu)
     if len(mu)>1:
@@ -93,15 +97,18 @@ class GaussRV(RV,MLR_Print):
         mu = ones(m)*mu
 
     # Set C
-    if not isinstance(C,CM):
+    if isinstance(C,CovMat):
+      if m is None:
+        m = C.m
+    else:
       if C is 0:
-        pass # Assign as is!
+        pass # Assign as pure 0!
       else:
         if np.isscalar(C):
           m = len(mu)
-          C = CM(C*ones(m),'diag')
+          C = CovMat(C*ones(m),'diag')
         else:
-          C = CM(C)
+          C = CovMat(C)
           if m is None:
             m = C.m
 

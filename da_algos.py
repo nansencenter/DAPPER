@@ -195,13 +195,13 @@ def add_noise(E, dt, noise, config):
   Ref: Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
   "Extending the square root method to account for additive forecast noise in ensemble methods."
   """
-  method = getattr(config,'fnoise_treatm','Stoch')
+  method = config.get('fnoise_treatm','Stoch')
 
   if noise.C is 0: return E
 
   N,m  = E.shape
   A,mu = anom(E)
-  Q12  = noise.C.sym_sqrt
+  Q12  = noise.C.Left # Note: not sym_sqrt
   Q    = noise.C.full
 
   def sqrt_core():
@@ -251,8 +251,6 @@ def add_noise(E, dt, noise, config):
       U,s,VT       = tsvd(Q_hat12,0.99)
       Q_hat12_inv  = (VT.T * s**(-1.0)) @ U.T
       Q_hat12_proj = VT.T@VT
-      # TODO: Make sqrt-core use chol instead of ssqrt factor of Q.
-      # Then tsvd(Q_hat12) will be faster for LA where rQ=51.
       rQ = Q12.shape[1]
       # Calc D_til
       Z      = Q12 - Q_hat12
@@ -1335,7 +1333,7 @@ def Climatology(**kwargs):
 
     mu0   = mean(xx,0)
     A0    = xx - mu0
-    P0    = CM(A0,'A')
+    P0    = CovMat(A0,'A')
 
     stats.assess(0,mu=mu0,Cov=P0)
     stats.trHK[:] = 0

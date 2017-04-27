@@ -219,14 +219,14 @@ class Stats(MLR_Print):
     x = self.xx[k[0]]
 
     self.mu[k]  = mu
-    self.var[k] = P.diag if isinstance(P,CM) else diag(P)
+    self.var[k] = P.diag if isinstance(P,CovMat) else diag(P)
     self.mad[k] = sqrt(self.var[k])*sqrt(2/pi)
     # ... because sqrt(2/pi) = ratio MAD/STD for Gaussians
 
     self.derivative_stats(k,x)
 
     if m <= Stats.comp_threshold_3:
-      P             = P.full if isinstance(P,CM) else P
+      P             = P.full if isinstance(P,CovMat) else P
       s2,U          = nla.eigh(P)
       self.svals[k] = sqrt(np.maximum(s2,0.0))[::-1]
       self.umisf[k] = (U.T @ self.err[k])[::-1]

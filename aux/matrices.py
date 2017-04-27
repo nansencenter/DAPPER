@@ -107,201 +107,6 @@ def genOG_1(N,opts=()):
 
 
 
-
-class CovMat:
-  """
-  A symmetric-positive-definite (SPD) matrix (array) class.
-  Also supports semi-definite matrices.
-  """
-  def __init__(self,data,kind='C'):
-    if kind in ('C12','sqrtm','ssqrt'):
-      C = data.dot(data.T)
-      kind = 'C'
-    elif is1d(data) and len(data) > 1:
-      kind = 'diag'
-    if kind is 'C':
-      C    = np.atleast_2d(data)
-      m    = C.shape[0]
-      d,U  = eigh(C)
-      d    = np.where(d<1e-10,0,d)
-      rk   = (d>0).sum()
-    elif kind is 'diag':
-      data  = np.atleast_1d(data)
-      assert data.ndim == 1
-      C     = diag(data)
-      m     = len(data)
-      rk    = (data>0).sum()
-      sInds = np.argsort(data)
-      d,U   = zeros(m), zeros((m,m))
-      for i in range(m):
-        U[sInds[i],i] = 1
-        d[i] = data[sInds[i]]
-    else: raise TypeError
-
-    self.C  = C
-    self.U  = U
-    self.d  = d
-    self.m  = m
-    self.rk = rk
-
-  def transform_by(self,f,decomp='full'):
-    if decomp is 'full':
-      U = self.U
-      d = self.d
-    else:
-      d = self.d[  -self.rk:]
-      U = self.U[:,-self.rk:]
-    return (U * f(d)) @ U.T
-
-  @lazy_property
-  def ssqrt(self):
-    return self.transform_by(sqrt,'econ')
-
-  @lazy_property
-  def inv(self):
-    return self.transform_by(lambda x: 1/x)
-
-  @lazy_property
-  def m12(self):
-    return self.transform_by(lambda x: 1/sqrt(x),'econ')
-
-  @property
-  def cholL(self):
-    # L = sla.cholesky(self.C,lower=True)
-    # C = L @ L.T
-    return self.ssqrt
-
-  @property
-  def cholU(self):
-    # U = sla.cholesky(self.C,lower=False)
-    # C = U.T @ U
-    return self.ssqrt
-
-  def __str__(self):
-    return str(self.C)
-  def __repr__(self):
-      return self.__str__()
-
-
-
-from scipy import sparse as sprs
-class spCovMat():
-  '''
-  Sparse version of CovMat.
-  Careful: if is_sprs it will yield sparse **matrices**,
-           which interpret '*' as dot().
-  '''
-  def __init__(self,object,kind='C',trunc=0.99):
-    """
-    - kind: one of ['C','C12','ssqrtm','E','A','diagnl']
-    """
-    assert 0 < trunc <= 1
-
-    is_sprs  = False
-    if E is not None:
-      mu       = mean(E,0)
-      A        = E - mu
-    if A is not None:
-      N        = A.shape[0]
-      C12      = A.T / sqrt(N-1)
-    if ssqrtm is not None:
-      C12      = ssqrtm
-    if C12 is not None:
-      m        = C12.shape[0]
-      U,d12,VT = svd(C12,full_matrices=False)
-      d        = d12**2
-    elif C is not None:
-      C        = np.atleast_2d(C)
-      m        = C.shape[0]
-      assert     C.shape[1] == m
-      d,U      = eigh(C)
-      d        = np.flipud(d)
-      U        = np.fliplr(U)
-    elif diagnl is not None:
-      is_sprs  = True
-      d        = np.atleast_1d(diagnl)
-      assert     is1d(d)
-      m        = len(d)
-      sInds    = arange(m) if np.all(d == d[0]) else np.argsort(d)[::-1] 
-      d        = d[sInds]
-      U        = sprs.csr_matrix((ones(m),(sInds,arange(m))))
-    else: raise TypeError('Input missing')
-
-    assert np.all(np.isreal(d)) and np.all(d>=0)
-    assert np.all(np.isreal(U))
-
-    rk = (d > 1e-13*mean(d)).sum()
-    if trunc < 1:
-      rk = 1 + find_1st_ind(np.cumsum(d)>=trunc*d.sum())
-
-    self._U      = U[:,:rk]
-    self._d      = d[  :rk]
-    self.m       = m
-    self.rk      = rk
-    self.is_sprs = is_sprs
-
-  def transform_by(self,fun):
-    d  = self._d
-    U  = self._U
-    if self.is_sprs:
-      return (U @ sprs.diags(fun(d))) @ U.T
-    else:
-      return (U * fun(d)) @ U.T
-
-  @lazy_property
-  def diagonal(self):
-    d = zeros(self.m)
-    for i in range(self.m):
-      if self.is_sprs:
-        d[i] = Uii_2 = self._U[i,:].power(2) * self._d
-      else:
-        d[i] = Uii_2 = self._U[i,:]**2       @ self._d
-    return d
-
-  @lazy_property
-  def C(self):
-    return self.transform_by(lambda x: x)
-
-  @lazy_property
-  def inv(self):
-    return self.transform_by(lambda x: 1/x)
-
-  @lazy_property
-  def ssqrt(self):
-    return self.transform_by(sqrt)
-
-  @lazy_property
-  def m12(self):
-    return self.transform_by(lambda x: 1/sqrt(x))
-
-  @property
-  def cholL(self):
-    # with sla.cholesky(self.C,lower=True) as L:
-    #   C = L @ L.T
-    d  = self._d
-    U  = self._U
-    if self.is_sprs:
-      return U @ sprs.diags(sqrt(d))
-    else:
-      return U * sqrt(d)
-
-  @property
-  def cholU(self):
-    # with sla.cholesky(self.C,lower=False) as U:
-    #   C = U.T @ U
-    return self.cholL.T
-
-  def __repr__(self):
-    repr_dict = { k: vars(self)[k] for k in ['m','rk','is_sprs'] }
-    from pprint import pformat
-    s = "<" + type(self).__name__ + ">\n" + pformat(repr_dict, width=1)
-    s += '\ndiagonal: ' + str(self.diagonal)
-    return s
-
-
-
-
-
 def funm_psd(a, fun, check_finite=False):
   """
   Matrix function evaluation for pos-sem-def mat.
@@ -316,6 +121,7 @@ def funm_psd(a, fun, check_finite=False):
   return (v * w) @ v.T
 
 
+# TODO: THIS FAILS sometimes. E.g. Q from mods.LA.raanes2015
 from scipy.linalg.lapack import get_lapack_funcs
 def chol_trunc(C):
   """
@@ -336,7 +142,7 @@ def chol_trunc(C):
 
 
 
-class CM():
+class CovMat():
   """
   Covariance matrix class.
 
@@ -377,6 +183,9 @@ class CM():
       N           = len(data)
       data        = data / sqrt(N-1)
       kind        = 'Right'
+    if kind=='Left':
+      data        = data.T
+      kind        = 'Right'
     if kind=='Right':
       # If a cholesky factor has been input, we will not
       # automatically go for the EVD, seeing as e.g. the
@@ -396,7 +205,7 @@ class CM():
         self._C     = C
         m           = len(C)
         d,V         = eigh(C)
-        d           = CM._clip(d)
+        d           = CovMat._clip(d)
         rk          = (d>0).sum()
         d           =  d  [-rk:][::-1]
         V           = (V.T[-rk:][::-1]).T
@@ -412,7 +221,7 @@ class CM():
           V   = eye(m)
           rk  = m
         else:
-          d   = CM._clip(d)
+          d   = CovMat._clip(d)
           rk  = (d>0).sum()
           idx = np.argsort(d)[::-1]
           d   = d[idx][:rk]
@@ -420,7 +229,8 @@ class CM():
           V   = zeros((m,rk))
           V[nn0, idx[nn0]] = 1
         self._assign_EVD(m,rk,d,V)
-      else: KeyError
+      else:
+        raise KeyError
 
   @staticmethod
   def _clip(d):
@@ -437,7 +247,7 @@ class CM():
       V,s,UT = svd0(self._R)
       m      = UT.shape[1]
       d      = s**2
-      d      = CM._clip(d)
+      d      = CovMat._clip(d)
       rk     = (d>0).sum()
       d      = d [:rk]
       V      = UT[:rk].T
@@ -551,7 +361,7 @@ class CM():
     else:
       # Only compute corners of full matrix
       K  = np.get_printoptions()['edgeitems']
-      s += " Only computing corners:"
+      s += " (only computing corners)"
       if hasattr(self,'_R'):
         U = self.Left[:K ,:] # Upper
         L = self.Left[-K:,:] # Lower
