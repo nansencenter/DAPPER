@@ -109,26 +109,25 @@ def genOG_1(N,opts=()):
 
 
 class CovMat:
-  '''
-  A positive-semi-def matrix class.
-  '''
+  """
+  A symmetric-positive-definite (SPD) matrix (array) class.
+  Also supports semi-definite matrices.
+  """
   def __init__(self,data,kind='C'):
     if kind in ('C12','sqrtm','ssqrt'):
       C = data.dot(data.T)
       kind = 'C'
-    elif is1d(data) and data.size > 1:
+    elif is1d(data) and len(data) > 1:
       kind = 'diag'
     if kind is 'C':
-      C    = data
-      m    = data.shape[0]
-      d,U  = eigh(data)
-      #d    = np.maximum(d,0)
+      C    = np.atleast_2d(data)
+      m    = C.shape[0]
+      d,U  = eigh(C)
       d    = np.where(d<1e-10,0,d)
       rk   = (d>0).sum()
     elif kind is 'diag':
-      data  = array(data)
-      assert is1d(data)
-      #d,U = eigh(diag(data))
+      data  = np.atleast_1d(data)
+      assert data.ndim == 1
       C     = diag(data)
       m     = len(data)
       rk    = (data>0).sum()
@@ -183,6 +182,8 @@ class CovMat:
   def __repr__(self):
       return self.__str__()
 
+
+
 from scipy import sparse as sprs
 class spCovMat():
   '''
@@ -190,16 +191,10 @@ class spCovMat():
   Careful: if is_sprs it will yield sparse **matrices**,
            which interpret '*' as dot().
   '''
-  def __init__(self,C=None,C12=None,ssqrtm=None,E=None,A=None,diagnl=None,trunc=0.99):
-
-    inpt = [C,C12,ssqrtm,E,A,diagnl]
-    has_no_None = False
-    for arg in inpt:
-      if arg is not None:
-        if has_no_None:
-          raise ValueError('Too many inputs')
-        else:
-          has_no_None = True
+  def __init__(self,object,kind='C',trunc=0.99):
+    """
+    - kind: one of ['C','C12','ssqrtm','E','A','diagnl']
+    """
     assert 0 < trunc <= 1
 
     is_sprs  = False
@@ -304,29 +299,6 @@ class spCovMat():
     return s
 
 
-# Rationale: __matmul__ works fine for myCovMat @ ndarray
-# but not ndarray @ myCovMat.
-def cvMult(A,B):
-  is_transposed = False
-  if type(B) is spCovMat and type(A) is np.ndarray:
-    A, B = B, A.T
-    # don't need to tranpose B, coz it's sym.
-    is_transposed = True
-  if type(A) is spCovMat:
-    assert type(B) is np.ndarray
-    U = A._U
-    d = A._d
-    if A.is_sprs:
-      result =  U @ ( sprs.diags(d) @ (U.T @ B) )
-    else:
-      result = (U * d) @ (U.T @ B)
-  else:
-    raise TypeError
-  if is_transposed:
-    result = result.T
-  return result
-
-
 
 
 
@@ -347,18 +319,269 @@ def funm_psd(a, fun, check_finite=False):
 from scipy.linalg.lapack import get_lapack_funcs
 def chol_trunc(C):
   """
-  Truncate when cholesky() finds a 'leading negative minor'.
-  NB: returns a non-square (rank-by-ndim) matrix.
+  Return U such that C - U.T@U is close to machine-precision zero.
+  U is truncated when cholesky() finds a 'leading negative minor'.
+  Thus, U is rectangular, with height ∈ [rank, m].
   Example:
+    E = randn((20,5))
     C = E@E.T
     # sla.cholesky(C) yields error coz of numerical error
     U = chol_trunc(C)
-    D = C - U.T@U
-  D should be close to machine-precision zero,
-  especially away from the lower-right-hand corner.
   """
   potrf, = get_lapack_funcs(('potrf',), (C,))
   U, info = potrf(C, lower=False, overwrite_a=False, clean=True)
   if info!=0:
     U = U[:info]
   return U
+
+
+
+class CM():
+  """
+  Covariance matrix class.
+
+  Convenience constructor.
+
+  Convenience transformations with memoization. E.g. shortcut to
+    if not hasattr(noise.C,'ssqrt'):
+      noise.C.ssqrt = funm_psd(noise.C
+  """
+  # It's mainly about supporting PSD functionality quickly,
+  # not about keeping the memory usage low.
+  # That would require a much more detailed implementation,
+  # possibly using sparse matrices for the eigenvector matrix.
+  # But then you would have the problem that their use involves
+  # the **matrix class**, which treats * as dot.
+  # Of course, one could try to overload +-@/,
+  # but unfortunately there's no right/post-application version of @ and /,
+  # which makes this less interesting.
+
+  def __init__(self,data,kind='full_or_diag'):
+    """
+    The covariance (say P) can be input (specified in the following ways):
+    kind    : data
+    ----------------------
+    'full'  : full m-by-m array (P)
+    'diag'  : diagonal of P (assumed diagonal)
+    'E'     : ensemble (m-by-N) with sample cov P
+    'A'     : as 'E', but pre-centred
+    'Right' : any R such that P = R.T@R (e.g. weighted versions of 'A')
+    'Left'  : any L such that P = L@L.T
+    """
+
+    if kind=='E':
+      mu          = mean(data,0)
+      data        = data - mu
+      kind        = 'A'
+    if kind=='A':
+      N           = len(data)
+      data        = data / sqrt(N-1)
+      kind        = 'Right'
+    if kind=='Right':
+      # If a cholesky factor has been input, we will not
+      # automatically go for the EVD, seeing as e.g. the
+      # diagonal can be computed without it.
+      R           = exactly_2d(data)
+      self._R     = R
+      self._m     = R.shape[1]
+    else:
+      if kind=='full_or_diag':
+        data = np.atleast_1d(data)
+        if data.ndim==1 and len(data) > 1: kind = 'diag'
+        else:                              kind = 'full'
+      if kind=='full':
+        # If full has been imput, then we have memory for an EVD,
+        # which will probably be put to use in the DA.
+        C           = exactly_2d(data)
+        self._C     = C
+        m           = len(C)
+        d,V         = eigh(C)
+        d           = CM._clip(d)
+        rk          = (d>0).sum()
+        d           =  d  [-rk:][::-1]
+        V           = (V.T[-rk:][::-1]).T
+        self._assign_EVD(m,rk,d,V)
+      elif kind=='diag':
+        # With diagonal input, it would be great to use a sparse
+        # (or non-existant) representation of V,
+        # but that would require so much other adaption of other code.
+        d           = exactly_1d(data)
+        self._dg    = d
+        m           = len(d)
+        if np.all(d==d[0]):
+          V   = eye(m)
+          rk  = m
+        else:
+          d   = CM._clip(d)
+          rk  = (d>0).sum()
+          idx = np.argsort(d)[::-1]
+          d   = d[idx][:rk]
+          nn0 = idx<rk
+          V   = zeros((m,rk))
+          V[nn0, idx[nn0]] = 1
+        self._assign_EVD(m,rk,d,V)
+      else: KeyError
+
+  @staticmethod
+  def _clip(d):
+    return np.where(d<1e-8*d.max(),0,d)
+
+  def _assign_EVD(self,m,rk,d,V):
+      self._m   = m
+      self._d   = d
+      self._U   = V
+      self._rk  = rk
+
+  def _do_EVD(self):
+    if not self.has_done_EVD:
+      V,s,UT = svd0(self._R)
+      m      = UT.shape[1]
+      d      = s**2
+      d      = CM._clip(d)
+      rk     = (d>0).sum()
+      d      = d [:rk]
+      V      = UT[:rk].T
+      self._assign_EVD(m,rk,d,V)
+
+  @staticmethod
+  def process_diag(d):
+    return m,rk,d
+
+  @property
+  def m(self):
+    """ndims"""
+    return self._m
+  @property
+  def has_done_EVD(self):
+    """Whether or not eigenvalue decomposition has been done for matrix."""
+    return all([key in vars(self) for key in ['_U','_d','_rk']])
+  @property
+  def ews(self):
+    """Eigenvalues. Only outputs the positive values (i.e. len(ews)==rk)."""
+    self._do_EVD()
+    return self._d
+  @property
+  def V(self):
+    """Eigenvectors, output corresponding to ews."""
+    self._do_EVD()
+    return self._U
+  @property
+  def rk(self):
+    """Rank, i.e. the number of positive eigenvalues."""
+    self._do_EVD()
+    return self._rk
+
+  @lazy_property
+  def Left(self):
+    """L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
+    and that its width is somewhere betwen the rank and m."""
+    if hasattr(self,'_R'):
+      return self._R.T
+    else:
+      return self.V * sqrt(self.ews)
+
+  @lazy_property
+  def Right(self):
+    """R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
+    and that its height is somewhere betwen the rank and m."""
+    if hasattr(self,'_R'):
+      return self._R
+    else:
+      return self.Left.T
+  
+  @property
+  def full(self):
+    "Full covariance matrix"
+    if hasattr(self,'_C'):
+      return self._C
+    else:
+      C = self.Left @ self.Left.T
+    self._C = C
+    return C
+
+  @property
+  def diag(self):
+    "Diagonal of covariance matrix"
+    if hasattr(self,'_dg'):
+      dg = self._dg
+    elif hasattr(self,'_C'):
+      dg = diag(self._C)
+    else:
+      dg = (self.Left**2).sum(axis=1)
+    self._dg = dg
+    return dg
+
+  def transform_by(self,fun):
+    "Generalize scalar function to covariance matrix via Taylor expansion."
+    return (self.V * fun(self.ews)) @ self.V.T
+  
+  @lazy_property
+  def sym_sqrt(self):
+    "S such that C = S@S, where S is square."
+    return self.transform_by(sqrt)
+
+  @lazy_property
+  def sym_sqrt_inv(self):
+    "S such that C^{-1} = S@S, where S is square."
+    return self.transform_by(lambda x: 1/sqrt(x))
+
+  @lazy_property
+  def pinv(self):
+    "Pseudo-inverse. Also consider using truncated inverse (tinv)."
+    return self.transform_by(lambda x: 1/x)
+
+  @lazy_property
+  def inv(self):
+    if self.m != self.rk:
+      raise RuntimeError("Matrix is rank deficient, "+
+          "and cannot be inverted. Use .tinv() instead?")
+    return self.pinv
+
+  def __repr__(self):
+    s  = "\nm: " + str(self.m)
+    s += "\nrk: "
+    if self.has_done_EVD:
+      s += str(self.rk)
+    else:
+      s += "<=" + str(self.Right.shape[0])
+    s += "\nfull:"
+    if hasattr(self,'_C') or np.get_printoptions()['threshold'] > self.m**2:
+      # We can afford to compute full matrix
+      t = "\n" + str(self.full)
+    else:
+      # Only compute corners of full matrix
+      K  = np.get_printoptions()['edgeitems']
+      s += " Only computing corners:"
+      if hasattr(self,'_R'):
+        U = self.Left[:K ,:] # Upper
+        L = self.Left[-K:,:] # Lower
+      else:
+        U = self.V[:K ,:] * sqrt(self.ews)
+        L = self.V[-K:,:] * sqrt(self.ews)
+
+      # Corners
+      NW = U@U.T
+      NE = U@L.T
+      SW = L@U.T
+      SE = L@L.T
+      
+      # Concatenate corners. Fill "cross" between them with nan's
+      N  = np.hstack([NW,nan*ones((K,1)),NE])
+      S  = np.hstack([SW,nan*ones((K,1)),SE])
+      All= np.vstack([N ,nan*ones(2*K+1),S])
+
+      with printoptions(threshold=0):
+        t = "\n" + str(All)
+    s += t.replace("\n","\n  ")
+
+    with printoptions(threshold=0):
+      s += "\ndiag:\n" + "   " + str(self.diag)
+
+    s = repr_type_and_name(self) + s.replace("\n","\n   ")
+    return s
+
+
+
+
+
+

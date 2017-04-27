@@ -15,17 +15,19 @@ f = {
 
 X0 = GaussRV(m=m, C=0.001)
 
-obsInds = arange(0,m,2)
-p       = len(obsInds)
-@atmost_2d
-def hmod(E,t): return E[:,obsInds]
-H = direct_obs_matrix(m,obsInds)
+
+jj = arange(0,m,2)
+p  = len(jj)
+H  = direct_obs_matrix(m,jj)
+@ens_compatible
+def partial_direct_obs    (x,t): return x[jj]
+def partial_direct_obs_jac(x,t): return H
 h = {
     'm'    : p,
-    'model': hmod,
-    'jacob': lambda x,t: H,
-    'noise': GaussRV(C=1.5*eye(p)),
-    'plot' : lambda y: plt.plot(obsInds,y,'g*',ms=8)[0]
+    'model': partial_direct_obs,
+    'jacob': partial_direct_obs_jac,
+    'noise': 1.5,
+    'plot' : lambda y: plt.plot(jj,y,'g*',ms=8)[0]
     }
  
 other = {'name': os.path.relpath(__file__,'mods/')}

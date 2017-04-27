@@ -24,7 +24,7 @@ X0 = GaussRV(C=2,mu=mu0)
 h = {
     'm'    : p,
     'model': Id_op(),
-    'noise': GaussRV(C=2,m=p)
+    'noise': 2,
     }
 
 

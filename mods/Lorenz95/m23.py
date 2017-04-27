@@ -11,7 +11,7 @@ m = 40
 f = {
     'm'    : m,
     'model': step,
-    'noise': GaussRV(C=3e-2 * eye(m))
+    'noise': 3e-2,
     }
 
 X0 = GaussRV(*typical_init_params(m))
@@ -20,7 +20,7 @@ p = m
 h = {
     'm'    : p,
     'model': lambda x,t: x,
-    'noise': GaussRV(C=0.1*eye(p)),
+    'noise': 0.1,
     'plot' : lambda y: plt.plot(y,'g')[0]
     }
  

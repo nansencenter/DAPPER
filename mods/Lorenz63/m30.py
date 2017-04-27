@@ -15,7 +15,7 @@ f = {
     'm'    : m,
     'model': step,
     'jacob': dfdx,
-    'noise': GaussRV(C=2,m=m)
+    'noise': 2,
     }
 
 mu0 = array([1.509, -1.531, 25.46])
@@ -25,12 +25,13 @@ h = {
     'm'    : p,
     'model': Id_op(),
     'jacob': Id_mat(m),
-    'noise': GaussRV(C=2,m=p)
+    'noise': 2,
     }
 
 other = {'name': os.path.relpath(__file__,'mods/')}
 
 setup = OSSE(f,h,t,X0,**other)
+
 
 ####################
 # Suggested tuning

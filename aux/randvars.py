@@ -3,52 +3,55 @@
 from common import *
 
 
-class RV:
+class RV(MLR_Print):
   "Class to represent random variables."
   def __init__(self,m,**kwargs):
     """
      - m    <int>     : ndim
      - is0  <bool>    : if True, the random variable is identically 0
-     - func <func(N)> : use this sampling function
-     - file <str>     : draw from file
+     - func <func(N)> : use this sampling function. Example:
+                        RV(m=4,func=lambda N: rand((N,4))
+     - file <str>     : draw from file. Example:
+                        RV(m=4,file='data/tmp.npz')
     The following kwords (versions) are available,
     but should not be used for anything serious (use instead subclasses, like GaussRV).
-     - icdf <func(x)> : marginal/independent  "inverse transform" sampling
-     - cdf <func(x)>  : as icdf, but with inv-cdf approximate, from interpolation 
+     - icdf <func(x)> : marginal/independent  "inverse transform" sampling. Example:
+                        RV(m=4,icdf = scipy.stats.norm.ppf)
+     - cdf <func(x)>  : as icdf, but with approximate icdf, from interpolation. Example:
+                        RV(m=4,cdf = scipy.stats.norm.cdf)
      - pdf  <func(x)> : "acceptance-rejection" sampling
+                        Not implemented.
     """
-    # NB: Do not implement "forward to GaussRV constructor"
-    # e.g. to handle case of: args=(0,) or (3,).
-    # This is better left to <Operator>, which also knows ndims.
     self.m = m
     for key, value in kwargs.items():
       setattr(self, key, value)
     
   def sample(self,N):
-    if getattr(self,is0,False):
+    if getattr(self,'is0',False):
       # Identically 0
       E = zeros((N,self.m))
-    elif hasattr(self,func):
+    elif hasattr(self,'func'):
       # Provided by function
       E = self.func(N)
-    elif hasattr(self,file):
+    elif hasattr(self,'file'):
       # Provided by numpy file with sample
       data = np.load(self.file)
       sample = data['sample']
+      N0     = len(sample)
       if 'w' in data:
         w = data['w']
       else:
-        w = ones(N)/N
-      idx = np.random.choice(len(sample),N,replace=True,p=w)
+        w = ones(N0)/N0
+      idx = np.random.choice(N0,N,replace=True,p=w)
       E   = sample[idx]
-    elif hasattr(self,icdf):
+    elif hasattr(self,'icdf'):
       # Independent "inverse transform" sampling
-      icdf = np.vectorize(icdf)
-      uu   = rand((N,m))
+      icdf = np.vectorize(self.icdf)
+      uu   = rand((N,self.m))
       E    = icdf(uu)
-    elif hasattr(self,cdf):
+    elif hasattr(self,'cdf'):
       # Like above, but with inv-cdf approximate, from interpolation
-      if not hasattr(self,icdf_interp):
+      if not hasattr(self,'icdf_interp'):
         # Define inverse-cdf
         from scipy.interpolate import interp1d
         from scipy.optimize import fsolve
@@ -59,9 +62,9 @@ class RV:
         uu     = np.vectorize(cdf)(xx)
         icdf   = interp1d(uu,xx)
         self.icdf_interp = np.vectorize(icdf)
-      uu = rand((N,m))
+      uu = rand((N,self.m))
       E  = self.icdf_interp(uu)
-    elif hasattr(self,pdf):
+    elif hasattr(self,'pdf'):
       # "acceptance-rejection" sampling
       raise NotImplementedError
     else:
@@ -69,52 +72,65 @@ class RV:
     assert self.m == E.shape[1]
     return E
 
-# TODO: UniRV
-# TODO: ExpoRV # use for Nerger
-# TODO: TruncGaussRV # for Abhi
-
 class GaussRV(RV,MLR_Print):
+  """Multivariate, Gaussian (Normal) random variables."""
+
+  # Used by MLR_Print
+  ordr_by_linenum = +1
+
   def __init__(self,mu=0,C=0,m=None):
-    "Init allowing for shortcut notation."
+    """Init allowing for shortcut notation."""
 
     # Set mu
-    mu = np.atleast_1d(mu)
-    assert mu.ndim == 1
-    if m is not None:
-      if len(mu)==1 and m>1:
-        mu = mu * ones(m)
+    mu = exactly_1d(mu)
+    if len(mu)>1:
+      if m is None:
+        m = len(mu)
       else:
         assert len(mu) == m
+    else:
+      if m is not None:
+        mu = ones(m)*mu
 
     # Set C
-    self.is_random = True
-    if (not isinstance(C,CovMat)) and (not isinstance(C,spCovMat)):
+    if not isinstance(C,CM):
       if C is 0:
-        self.is_random = False # TODO: Also check for None or zero array?
-      if np.isscalar(C):
-        C = CovMat(C*np.ones(len(mu)),'diag')
+        pass # Assign as is!
       else:
-        C = CovMat(C)
+        if np.isscalar(C):
+          m = len(mu)
+          C = CM(C*ones(m),'diag')
+        else:
+          C = CM(C)
+          if m is None:
+            m = C.m
 
-    # Revise mu
-    if len(mu) == 1 and C.m > 1:
-      mu = mu * ones(C.m)
-    else:
-      assert len(mu) == C.m
+    # Validation
+    if len(mu) not in (1,m):
+      raise TypeError("Inconsistent shapes of (m,mu,C)")
+    if m is None:
+      raise TypeError("Could not deduce the value of m")
+    try:
+      if m!=C.m:
+        raise TypeError("Inconsistent shapes of (m,mu,C)")
+    except AttributeError:
+      pass
+    
 
     # Assign
-    self.m  = len(mu)
+    self.m  = m
     self.mu = mu
     self.C  = C
 
   def sample(self,N):
-    if not self.is_random:
+    if self.C is 0:
       D = zeros((N,self.m))
     else:
-      if isinstance(self.C,spCovMat):
-        D = randn((N,self.C.rk)) @ self.C.cholU
-      else:
-        D = randn((N,self.m)) @ self.C.cholU
+      R = self.C.Right
+      D = randn((N,len(R))) @ R
     return self.mu + D
 
 
+# TODO: UniRV
+# TODO: ExpoRV # for Nerger
+# TODO: TruncGaussRV # for Abhi

@@ -70,7 +70,7 @@ def EnKF_tp(N,infl=1.0,rot=False,**kwargs):
         dy = y - hx
         Y  = hE-hx
 
-        C  = Y@Y.T + h.noise.C.C*(N-1)
+        C  = Y@Y.T + h.noise.C.full*(N-1)
         YC = mrdiv(Y.T, C)
         KG = A@YC
         HK = Y@YC
@@ -197,18 +197,18 @@ def add_noise(E, dt, noise, config):
   """
   method = getattr(config,'fnoise_treatm','Stoch')
 
-  if not noise.is_random: return E
+  if noise.C is 0: return E
 
   N,m  = E.shape
   A,mu = anom(E)
-  Q12  = noise.C.ssqrt
-  Q    = noise.C.C
+  Q12  = noise.C.sym_sqrt
+  Q    = noise.C.full
 
   def sqrt_core():
-    T    = np.nan
-    Qa12 = np.nan
-    A2   = A.copy() # Instead of using nonlocal A, which changes A
-    # in outside scope as well. NB: This is a bug in Datum!
+    T    = np.nan # cause error if used
+    Qa12 = np.nan # cause error if used
+    A2   = A.copy() # Instead of using (the implicitly nonlocal) A,
+    # which changes A outside as well. NB: This is a bug in Datum!
     if N<=m:
       Ainv = tinv(A2.T)
       Qa12 = Ainv@Q12
@@ -279,7 +279,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
 
     if 'PertObs' in upd_a:
         # Uses perturbed observations (burgers'98)
-        C  = Y.T @ Y + R.C*(N-1)
+        C  = Y.T @ Y + R.full*(N-1)
         D  = center(hnoise.sample(N))
         YC = mrdiv(Y, C)
         KG = A.T @ YC
@@ -303,7 +303,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
           #KG = R.inv @ Y.T @ Pw @ A
         elif 'svd' in upd_a:
           # Implementation using svd of Y R^{-1/2}.
-          V,s,_ = svd0(Y @ R.m12.T)
+          V,s,_ = svd0(Y @ R.sym_sqrt_inv.T)
           d     = pad0(s**2,N) + (N-1)
           Pw    = ( V * d**(-1.0) ) @ V.T
           T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
@@ -311,8 +311,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
         elif 'sS' in upd_a:
           # Same as 'svd', but with slightly different notation
           # (sometimes used by Sakov) using the normalization sqrt(N-1).
-          #z    = dy@ R.m12.T / sqrt(N-1)
-          S     = Y @ R.m12.T / sqrt(N-1)
+          S     = Y @ R.sym_sqrt_inv.T / sqrt(N-1)
           V,s,_ = svd0(S)
           d     = pad0(s**2,N) + 1
           Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
@@ -333,8 +332,8 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
         # although it does yield the same mean/cov.
         # See DAPPER/Misc/batch_vs_serial.py for more details.
         inds = serial_inds(upd_a, y, R, A)
-        z = dy@ R.m12.T / sqrt(N-1)
-        S = Y @ R.m12.T / sqrt(N-1)
+        z = dy@ R.sym_sqrt_inv.T / sqrt(N-1)
+        S = Y @ R.sym_sqrt_inv.T / sqrt(N-1)
         T = eye(N)
         for j in inds:
           # Possibility: re-compute Sj by non-lin h.
@@ -345,10 +344,10 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
           S -= Tj @ S
         GS   = S.T @ T
         E    = mu + z@GS@A + T@A
-        trHK = trace(R.m12.T@GS@Y)/sqrt(N-1) # Correct?
+        trHK = trace(R.sym_sqrt_inv.T@GS@Y)/sqrt(N-1) # Correct?
     elif 'DEnKF' is upd_a:
         # Uses "Deterministic EnKF" (sakov'08)
-        C  = Y.T @ Y + R.C*(N-1)
+        C  = Y.T @ Y + R.full*(N-1)
         YC = mrdiv(Y, C)
         KG = A.T @ YC
         HK = Y.T @ YC
@@ -368,7 +367,7 @@ def serial_inds(upd_a, y, cvR, A):
     # Not robust?
     inds = arange(len(y))
   elif 'sorted' in upd_a:
-    dC = diag(cvR.C)
+    dC = cvR.diag
     if np.all(dC == dC[0]):
       # Sort y by P
       dC = np.sum(A*A,0)/(N-1)
@@ -396,8 +395,7 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
     n = N-1
 
     R    = h.noise
-    Rm12 = h.noise.C.m12
-    #Ri   = h.noise.C.inv
+    Rm12 = h.noise.C.sym_sqrt_inv
 
     E = X0.sample(N)
     stats.assess(0,E=E)
@@ -467,7 +465,7 @@ def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
   """
   def assimilate(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    Rm12 = h.noise.C.m12
+    Rm12 = h.noise.C.sym_sqrt_inv
 
     E = X0.sample(N)
     stats.assess(0,E=E)
@@ -587,7 +585,7 @@ def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
     # Unpack
     f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
 
-    Rm12 = h.noise.C.m12
+    Rm12 = h.noise.C.sym_sqrt_inv
     Ri   = h.noise.C.inv
 
     # EnKF-N constants
@@ -778,7 +776,7 @@ def BnKF(N,infl=1.0,rot=False,**kwargs):
     # Unpack
     f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
 
-    Rm12 = h.noise.C.m12
+    Rm12 = h.noise.C.sym_sqrt_inv
     Ri   = h.noise.C.inv
 
     # constants
@@ -902,10 +900,7 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
   """
   def assimilate(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    m             = f.m
-
-    Rm12 = h.noise.C.m12
-    Q12  = f.noise.C.ssqrt
+    m, Rm12       = f.m, h.noise.C.sym_sqrt_inv
 
     E = X0.sample(N)
     w = 1/N*ones(N)
@@ -916,14 +911,15 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
     stats.assess(0,E=E,w=1/N)
 
     for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E  = f(E,t-dt,dt)
-      D  = randn((N,m))
-      E += sqrt(dt*qroot)*(D@Q12.T)
+      E = f(E,t-dt,dt)
+      if f.noise.C is not 0:
+        D  = randn((N,m))
+        E += sqrt(dt*qroot)*(D@f.noise.C.sym_sqrt.T)
 
-      if qroot != 1.0:
-        # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
-        w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
-        w /= w.sum()
+        if qroot != 1.0:
+          # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
+          w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
+          w /= w.sum()
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E,w=w)
@@ -964,10 +960,7 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
   """
   def assimilate(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    m             = f.m
-
-    R    = h.noise.C.C
-    Q12  = f.noise.C.ssqrt
+    m, R          = f.m, h.noise.C.full
 
     E = X0.sample(N)
     w = 1/N*ones(N)
@@ -977,8 +970,9 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
     stats.assess(0,E=E,w=1/N)
 
     for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E  = f(E,t-dt,dt)
-      E += sqrt(dt)*(randn((N,m))@Q12.T)
+      E = f(E,t-dt,dt)
+      if f.noise.C is not 0:
+        E += sqrt(dt)*(randn((N,m))@f.noise.C.sym_sqrt.T)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E,w=w)
@@ -1236,22 +1230,20 @@ def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**
   """
   def assimilate(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    m             = f.m
-    DD            = None
+    m, Rm12       = f.m, h.noise.C.sym_sqrt_inv
 
-    Rm12 = h.noise.C.m12
-    Q12  = f.noise.C.ssqrt
-
-    E = X0.sample(N)
-    w = 1/N*ones(N)
+    DD = None
+    E  = X0.sample(N)
+    w  = 1/N*ones(N)
 
     stats.N_eff  = np.full(chrono.KObs+1,nan)
     stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
     stats.assess(0,E=E,w=1/N)
 
     for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E  = f(E,t-dt,dt)
-      E += sqrt(dt)*(randn((N,m))@Q12.T)
+      E = f(E,t-dt,dt)
+      if f.noise.C is not 0:
+        E += sqrt(dt)*(randn((N,m))@f.noise.C.sym_sqrt.T)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E,w=w)
@@ -1343,13 +1335,13 @@ def Climatology(**kwargs):
 
     mu0   = mean(xx,0)
     A0    = xx - mu0
-    P0    = spCovMat(A=A0)
+    P0    = CM(A0,'A')
 
-    stats.assess(0,mu=mu0,Cov=P0.C)
+    stats.assess(0,mu=mu0,Cov=P0)
     stats.trHK[:] = 0
 
     for k,kObs,_,_ in progbar(chrono.forecast_range):
-      stats.assess(k,kObs,'fau',mu=mu0,Cov=P0.C)
+      stats.assess(k,kObs,'fau',mu=mu0,Cov=P0)
   return assimilate
 
 
@@ -1364,7 +1356,7 @@ def D3Var(infl=1.0,**kwargs):
   def assimilate(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
     dkObs = chrono.dkObs
-    R     = h.noise.C.C
+    R     = h.noise.C.full
 
     mu0   = mean(xx,0)
     A0    = xx - mu0
@@ -1450,12 +1442,12 @@ def ExtKF(infl=1.0,**kwargs):
   """
   def assimilate(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    
-    R = h.noise.C.C
-    Q = f.noise.C.C
+
+    R  = h.noise.C.full
+    Q  = 0 if f.noise.C==0 else f.noise.C.full
 
     mu = X0.mu
-    P  = X0.C.C
+    P  = X0.C.full
 
     stats.assess(0,mu=mu,Cov=P)
 

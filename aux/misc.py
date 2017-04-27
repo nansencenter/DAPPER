@@ -14,6 +14,15 @@ def tp(a):
   """Tranpose 1d vector"""
   return a[np.newaxis].T
 
+def exactly_1d(a):
+  a = np.atleast_1d(a)
+  assert a.ndim==1
+  return a
+def exactly_2d(a):
+  a = np.atleast_2d(a)
+  assert a.ndim==2
+  return a
+
 # TODO: review useage. Replace by ens_compatible()?
 def atmost_2d(func):
   """
@@ -22,6 +31,7 @@ def atmost_2d(func):
   Requires that the func's 1st argument be the one in question.
   Does not always work (e.g. recursion). Use with caution.
   """
+  @functools.wraps(func)
   def wrapr(x,*kargs,**kwargs):
     answer = func(np.atleast_2d(x),*kargs,**kwargs)
     if answer is not None: return answer.squeeze()
@@ -232,7 +242,7 @@ def svd0(A):
 def tsvd(A, threshold=0.99999, avoid_pathological=True):
   """
   Truncated svd.
-  Also automates flag: full_matrices.
+  Also automates 'full_matrices' flag.
   threshold: if
    - float, < 1.0 then "rank" = lowest number such that the
                                 "energy" retained >= threshold

@@ -14,9 +14,9 @@ class OSSE(MLR_Print):
     # Write the rest of parameters
     for key, value in kwargs.items():
       setattr(self, key, value)
-    # Consistency checks
-    if self.h.noise.C.rk != self.h.noise.C.m:
-      raise ValueError("Rank-deficient R not supported.")
+    # Validation
+    if self.h.noise.C==0 or self.h.noise.C.rk!=self.h.noise.C.m:
+        raise ValueError("Rank-deficient R not supported.")
 
 class Operator(MLR_Print):
   """
@@ -32,9 +32,14 @@ class Operator(MLR_Print):
     self.model = model
 
     # None/0 => No noise
-    if not noise:
-      noise = GaussRV(0,m=m)
-    self.noise = noise
+    if isinstance(noise,RV):
+      self.noise = noise
+    else:
+      if not noise: noise = 0
+      if np.isscalar(noise):
+        self.noise = GaussRV(C=noise,m=m)
+      else:
+        self.noise = GaussRV(C=noise)
 
     # Write attributes
     for key, value in kwargs.items():

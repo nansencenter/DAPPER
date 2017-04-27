@@ -280,7 +280,7 @@ Conventions:
 * fau_series
 * E,w,A
 * m-by-N
-* m (ndims), p, chrono
+* m (not ndims coz thats like 2 for matrices), p, chrono
 * xx,yy
 * no obs at 0
 -->

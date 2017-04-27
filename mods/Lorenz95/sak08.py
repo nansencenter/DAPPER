@@ -25,18 +25,13 @@ X0     = GaussRV(mu0, 0.01*P0)
 
 p  = m
 jj = equi_spaced_integers(m,p)
-H  = zeros((p,m))
-for i,j in enumerate(jj):
-  H[i,j] = 1.0
-
+H  = direct_obs_matrix(m,jj)
 @ens_compatible
 def partial_direct_obs    (x,t): return x[jj]
 def partial_direct_obs_jac(x,t): return H
 
 def yplot(y):
   lh = plt.plot(y,'g')[0]
-  #lh = plt.plot(y,'g*')[0]
-  #plt.pause(0.8)
   return lh
 
 # Localization setup
@@ -58,7 +53,7 @@ h = {
     'm'    : p,
     'model': partial_direct_obs,
     'jacob': partial_direct_obs_jac,
-    'noise': GaussRV(C=1*eye(p)),
+    'noise': 1, # shortcut for GaussRV(C=CovMat(eye(p)))
     'plot' : yplot,
     'loc_f': locf,
     }

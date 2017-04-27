@@ -4,7 +4,6 @@
 from common import *
 
 from mods.Lorenz63.core import step, dfdx
-from aux.utils import Id_op, Id_mat
 
 m = 3
 p = m
@@ -26,7 +25,7 @@ h = {
     'm'    : p,
     'model': Id_op(),
     'jacob': Id_mat(m),
-    'noise': GaussRV(C=2,m=p)
+    'noise': 2, # shortcut for GaussRV(C=CovMat(2*eye(p)))
     }
 
 other = {'name': os.path.relpath(__file__,'mods/')}
