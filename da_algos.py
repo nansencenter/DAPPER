@@ -1,10 +1,5 @@
 from common import *
 
-# TODO:
-# Document @DA_config usage / make template
-# Rename assimilate --> assimilator
-    
-
 @DA_Config
 def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
   """
@@ -16,7 +11,7 @@ def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/sak08.py
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     # Init
@@ -35,7 +30,7 @@ def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
         E = post_process(E,infl,rot)
 
       stats.assess(k,kObs,E=E)
-  return assimilate
+  return assimilator
 
 @DA_Config
 def EnKF_tp(N,infl=1.0,rot=False,**kwargs):
@@ -45,7 +40,7 @@ def EnKF_tp(N,infl=1.0,rot=False,**kwargs):
   This is slightly inefficient in our Python implementation,
   but is included for comparison (debugging, etc...).
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     E = X0.sample(N)
@@ -84,7 +79,7 @@ def EnKF_tp(N,infl=1.0,rot=False,**kwargs):
         E = post_process(E,infl,rot)
 
       stats.assess(k,kObs,E=E)
-  return assimilate
+  return assimilator
 
 
 @DA_Config
@@ -99,7 +94,7 @@ def EnKS(upd_a,N,tLag,infl=1.0,rot=False,**kwargs):
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/raanes2016.py
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     def reshape_to(E):
@@ -135,7 +130,7 @@ def EnKS(upd_a,N,tLag,infl=1.0,rot=False,**kwargs):
 
     for k in progbar(range(chrono.K+1),desc='Assessing'):
       stats.assess(k,None,'u',E=E[k])
-  return assimilate
+  return assimilator
 
 
 @DA_Config
@@ -149,7 +144,7 @@ def EnRTS(upd_a,N,cntr,infl=1.0,rot=False,**kwargs):
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/raanes2016.py
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     E    = zeros((chrono.K+1,N,f.m))
@@ -182,7 +177,7 @@ def EnRTS(upd_a,N,cntr,infl=1.0,rot=False,**kwargs):
 
     for k in progbar(range(chrono.K+1),desc='Assessing'):
       stats.assess(k,E=E[k])
-  return assimilate
+  return assimilator
 
 
 
@@ -324,7 +319,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
         w = dy @ R.inv @ Y.T @ Pw
         E = mu + w@A + T@A
     elif 'Serial' in upd_a:
-        # Observations assimilated one-at-a-time.
+        # Observations assimilator one-at-a-time.
         # Even though it's derived as "serial ETKF",
         # it's not equivalent to 'Sqrt' for the actual ensemble,
         # although it does yield the same mean/cov.
@@ -387,7 +382,7 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
   (full ensemble equality) to the EnKF 'Serial'.
   See DAPPER/Misc/batch_vs_serial.py for some details.
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     n = N-1
@@ -446,7 +441,7 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
         E = post_process(E,infl,rot)
 
       stats.assess(k,kObs,E=E)
-  return assimilate
+  return assimilator
 
 
 
@@ -461,7 +456,7 @@ def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
   Ref: Hunt, Brian R., Eric J. Kostelich, and Istvan Szunyogh. (2007):
   "Efficient data assimilation for spatiotemporal chaos..."
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
     Rm12 = h.noise.C.sym_sqrt_inv
 
@@ -530,7 +525,7 @@ def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
           # nevermind
 
       stats.assess(k,kObs,E=E)
-  return assimilate
+  return assimilator
 
 
 # Notes:
@@ -579,7 +574,7 @@ def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
   mods/Lorenz95/sak08.py
   mods/Lorenz95/sak12.py
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     # Unpack
     f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
 
@@ -661,7 +656,7 @@ def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
         stats.trHK[kObs] = (((l1*s)**2 + (N-1))**(-1.0)*s**2).sum()/h.noise.m
 
       stats.assess(k,kObs,E=E)
-  return assimilate
+  return assimilator
 
 
 @DA_Config
@@ -677,7 +672,7 @@ def iEnKF(upd_a,N,iMax=10,infl=1.0,rot=False,**kwargs):
   mods/Lorenz95/sak08.py
   mods/Lorenz95/sak12.py
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0,R = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C
 
     E = X0.sample(N)
@@ -725,7 +720,7 @@ def iEnKF(upd_a,N,iMax=10,infl=1.0,rot=False,**kwargs):
 
       # TODO: It would be beneficial to do another (prior-regularized)
       # analysis at the end, after forecasting the E0 analysis.
-  return assimilate
+  return assimilator
 
 
 def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
@@ -764,7 +759,7 @@ def iEnKF_analysis(w,dy,Y,hnoise,upd_a):
 @DA_Config
 def BnKF(N,infl=1.0,rot=False,**kwargs):
   import scipy.optimize as opt
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     # Test settings:
     #from mods.Lorenz95.sak08 import setup
     #cfgs += EnKF_N(N=28)
@@ -869,7 +864,7 @@ def BnKF(N,infl=1.0,rot=False,**kwargs):
 
         E = post_process(E,infl,rot)
       stats.assess(k,kObs,E=E,w=1/bb) # TODO
-  return assimilate
+  return assimilator
 
 
 
@@ -896,7 +891,7 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
   [3]: Zhe Chen, 2003:
     "Bayesian Filtering: From Kalman Filters to Particle Filters, and Beyond"
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
     m, Rm12       = f.m, h.noise.C.sym_sqrt_inv
 
@@ -939,7 +934,7 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
             #w *= exp(-0.5*chi2*(1 - 1/rroot))
             #w /= w.sum()
       stats.assess(k,None,'u',E=E,w=w)
-  return assimilate
+  return assimilator
 
 
 
@@ -956,7 +951,7 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
   Ref: Bocquet et al. (2010):
     "Beyond Gaussian statistical modeling in geophysical data assimilation"
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
     m, R          = f.m, h.noise.C.full
 
@@ -1002,7 +997,7 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
           E,chi2 = regularize(C12,E,idx,nuj)
 
       stats.assess(k,None,'u',E=E,w=w)
-  return assimilate
+  return assimilator
 
 
 
@@ -1226,7 +1221,7 @@ def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**
 
   Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
     m, Rm12       = f.m, h.noise.C.sym_sqrt_inv
 
@@ -1276,7 +1271,7 @@ def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**
           E,chi2 = regularize(C12,ED,idx,nuj)
 
       stats.assess(k,None,'u',E=E,w=w)
-  return assimilate
+  return assimilator
 
 
 @DA_Config
@@ -1290,7 +1285,7 @@ def EnCheat(upd_a,N,infl=1.0,rot=False,**kwargs):
   It may very well beat the particle filter with N=infinty.
   NB: The forecasts (and their rmse) are given by the standard EnKF.
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     E = X0.sample(N)
@@ -1317,7 +1312,7 @@ def EnCheat(upd_a,N,infl=1.0,rot=False,**kwargs):
         #E += opt - mean(E,0)
 
       stats.assess(k,kObs,mu=opt,Cov=res)
-  return assimilate
+  return assimilator
 
 
 
@@ -1328,7 +1323,7 @@ def Climatology(**kwargs):
   Note that the "climatology" is computed from truth, which might be
   (unfairly) advantageous if the simulation is too short (vs mixing time).
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     mu0   = mean(xx,0)
@@ -1340,7 +1335,7 @@ def Climatology(**kwargs):
 
     for k,kObs,_,_ in progbar(chrono.forecast_range):
       stats.assess(k,kObs,'fau',mu=mu0,Cov=P0)
-  return assimilate
+  return assimilator
 
 
 #TODO: This should be called Optimal Interpolation
@@ -1351,7 +1346,7 @@ def D3Var(infl=1.0,**kwargs):
   Uses the Kalman filter equations,
   but with a prior from the Climatology.
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
     dkObs = chrono.dkObs
     R     = h.noise.C.full
@@ -1420,7 +1415,7 @@ def D3Var(infl=1.0,**kwargs):
       r += 1
 
       stats.assess(k,kObs,mu=mu,Cov=P)
-  return assimilate
+  return assimilator
 
 
 @DA_Config
@@ -1438,7 +1433,7 @@ def ExtKF(infl=1.0,**kwargs):
   infl_per_unit_time == infl.
   Specifying it this way (per unit time) means less tuning.
   """
-  def assimilate(stats,twin,xx,yy):
+  def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     R  = h.noise.C.full
@@ -1473,7 +1468,7 @@ def ExtKF(infl=1.0,**kwargs):
         stats.trHK[kObs] = trace(KH)/f.m
 
       stats.assess(k,kObs,mu=mu,Cov=P)
-  return assimilate
+  return assimilator
 
 
 

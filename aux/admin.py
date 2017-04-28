@@ -57,58 +57,59 @@ def raise_AFE(msg,time_index=None):
     msg += "(k,kObs,fau) = " + str(time_index) + ". "
   raise AssimFailedError(msg)
 
-def DA_Config(da_driver):
+
+def DA_Config(da_method):
   """
-  Wraps a da_driver to an instance of the DAC (DA Configuration) class.
-  1) inserts arguments to da_driver as attributes in a DAC object, and
-  2) wraps assimilate() so as to fail_gently and pre-init stats.
+  Wraps a da_method to an instance of the DAC (DA Configuration) class.
+  1) inserts arguments to da_method as attributes in a DAC object, and
+  2) wraps assimilator() so as to fail_gently and pre-init stats.
 
   Features:
-   - Provides light-weight interface (makes da_driver very readable).
-   - Allows args (and defaults) to be defined in da_driver's signature.
-   - assimilate() nested under da_driver.
+   - Provides light-weight interface (makes da_method very readable).
+   - Allows args (and defaults) to be defined in da_method's signature.
+   - assimilator() nested under da_method.
      => args accessible without unpacking or 'self'.
-   - stats initialized by assimilate(),
-     not when running da_driver itself => save memory.
+   - stats initialized by assimilator(),
+     not when running da_method itself => save memory.
    - Involves minimal hacking/trickery.
   """
   # Note: I did consider unifying DA_Config and the DAC class,
   # since they "belong together", but I saw little other benefit,
   # and it would then be harder to use functools.wraps
 
-  f_arg_names = da_driver.__code__.co_varnames[
-      :da_driver.__code__.co_argcount]
+  f_arg_names = da_method.__code__.co_varnames[
+      :da_method.__code__.co_argcount]
 
-  @functools.wraps(da_driver)
+  @functools.wraps(da_method)
   def wrapr(*args,**kwargs):
     ############################
     # Validate signature/return
     #---------------------------
-    assimilate = da_driver(*args,**kwargs)
-    if assimilate.__name__ != 'assimilate':
+    assimilator = da_method(*args,**kwargs)
+    if assimilator.__name__ != 'assimilator':
       raise Exception("DAPPER convention requires that "
-      + da_driver.__name__ + " return a function named 'assimilate'.")
+      + da_method.__name__ + " return a function named 'assimilator'.")
     run_args = ('stats','twin','xx','yy')
-    if assimilate.__code__.co_varnames[:len(run_args)] != run_args:
+    if assimilator.__code__.co_varnames[:len(run_args)] != run_args:
       raise Exception("DAPPER convention requires that "+
-      "the arguments of 'assimilate' be " + str(run_args))
+      "the arguments of 'assimilator' be " + str(run_args))
 
     ############################
     # Make assimilation caller
     #---------------------------
     def assim_caller(setup,xx,yy):
-      name_hook = da_driver.__name__ # for pdesc of progbar
+      name_hook = da_method.__name__ # for pdesc of progbar
       # Init stats
       stats = Stats(cfg,setup,xx,yy)
-      # Put assimilate inside try/catch to allow gentle failure
+      # Put assimilator inside try/catch to allow gentle failure
       try:
-        assimilate(stats,setup,xx,yy)
+        assimilator(stats,setup,xx,yy)
       except AssimFailedError as err:
         warnings.warn(str(err) + "\n" +
         "Returning stats object in its current (incompleted) state.")
       return stats
-    assim_caller.__doc__ = "Calls assimilate() from " +\
-        da_driver.__name__ +", passing it the (output) stats object. " +\
+    assim_caller.__doc__ = "Calls assimilator() from " +\
+        da_method.__name__ +", passing it the (output) stats object. " +\
         "Returns stats (even if an AssimFailedError is caught)."
 
     ############################
@@ -138,7 +139,7 @@ def DA_Config(da_driver):
     ############################
     # Wrap
     #---------------------------
-    cfg['da_driver']  = da_driver
+    cfg['da_method']  = da_method
     cfg['assimilate'] = assim_caller
     cfg = DAC(cfg)
     return cfg
@@ -174,9 +175,9 @@ class DAC():
       # wrap s
       s = key + '=' + s + ", "
       return s
-    s = self.da_driver.__name__ + '('
+    s = self.da_method.__name__ + '('
     # Print ordered
-    for key in filter_out(self._ordering,*self.excluded,'da_driver'):
+    for key in filter_out(self._ordering,*self.excluded,'da_method'):
       s += format_(key,getattr(self,key))
     # Print remaining
     for key in filter_out(self.__dict__,*self.excluded,*self._ordering):
@@ -188,7 +189,7 @@ class List_of_Configs(list):
 
   # Print settings
   excluded = DAC.excluded + ['name']
-  ordering = ['da_driver','N','upd_a','infl','rot']
+  ordering = ['da_method','N','upd_a','infl','rot']
 
   def __init__(self,*args):
     """
@@ -295,7 +296,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   For c in cfgs:
     Print c[attrkeys], Avrgs[c][statkeys]
   - attrkeys: list of attributes to include.
-      - if -1: only print da_driver.
+      - if -1: only print da_method.
       - if  0: print distinct_attrs
   - statkeys: list of statistics to include.
   """
@@ -312,7 +313,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
 
   # Defaults attributes
   if not attrkeys:       headr = list(cfgs.distinct_attrs())
-  elif   attrkeys == -1: headr = ['da_driver']
+  elif   attrkeys == -1: headr = ['da_method']
   else:                  headr = list(attrkeys)
 
   # Filter excluded
