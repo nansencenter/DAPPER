@@ -23,6 +23,12 @@ t = Chronology(dt=dt,dkObs=1,T=100,BurnIn=20)
 #t = Chronology(dt=dt,dkObs=1,T=20,BurnIn=10)
 
 
+
+mu0 = S[:,int(S.shape[1]*rand())]
+# U should be scaled by svals?
+U0 = np.load('mods/QG/svd_U.npz')['U']
+X0 = GaussRV(mu=mu0,C=CovMat(10*U0,'Left'))
+
 def show(x):
   im = plt.imshow(square(x))
   setter = lambda x:  im.set_data(square(x))
@@ -34,12 +40,6 @@ f = {
     'noise': 0,
     'plot' : show,
     }
-
-mu0 = S[:,int(S.shape[1]*rand())]
-# U should be scaled by svals?
-U0 = np.load('mods/QG/svd_U.npz')['U']
-X0 = GaussRV(mu=mu0,C=spCovMat(C12=10*U0))
-
 
 
 
@@ -93,7 +93,7 @@ h = {
     'loc_f': locf,
     }
 
-setup = OSSE(f,h,t,X0)
+setup = TwinSetup(f,h,t,X0)
 setup.name = os.path.relpath(__file__,'mods/')
 
 

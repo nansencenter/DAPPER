@@ -7,13 +7,16 @@ from time import sleep
 from collections import OrderedDict
 import warnings
 import traceback
+import re
+import functools
 
-# To be used with line_profiler
 import builtins
 try:
+    # This will be available if launched as (e.g.)
+    # (bash)$ kernprof -l -v example_1.py
     profile = builtins.profile
 except AttributeError:
-    # No line profiler, provide a pass-through version
+    # Otherwise: provide a pass-through version.
     def profile(func): return func
 
 
@@ -90,7 +93,9 @@ plt.ion()
 
 # Color set up
 try:
+  olderr = np.geterr() # affected by seaborn (pandas?)
   import seaborn as sns
+  np.seterr(**olderr)  # restore np float error treatment
   sns.set_style({'image.cmap': 'BrBG', 'legend.frameon': True})
   sns_bg = array([0.9176, 0.9176, 0.9490])
   sns.set_color_codes()
@@ -120,11 +125,11 @@ from aux.misc import *
 from aux.chronos import *
 from aux.stoch import *
 from aux.series import *
-from aux.viz import *
 from aux.matrices import *
 from aux.randvars import *
+from aux.viz import *
+from stats import *
 from aux.admin import *
 from aux.convenience import *
-from stats import *
-from da_algos import *
+from da_methods import *
 

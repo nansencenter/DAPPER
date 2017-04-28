@@ -19,7 +19,7 @@ t = Chronology(0.05,dkObs=1,T=200*day,BurnIn=10*day)
 m = 3
 f = {
     'm'    : m,
-    'model': lambda x,t,dt: step(x,t,dt),
+    'model': step,
     'jacob': dfdx,
     'noise': 0
     }
@@ -28,20 +28,19 @@ X0  = GaussRV(C=0.01,m=m) # Decreased from Pajonk's C=1.
 
 h = {
     'm'    : p,
-    'model': lambda x,t: x,
-    'jacob': lambda x,t: eye(p),
-    'noise': GaussRV(C=0.1**2,m=p)
+    'model': Id_op(),
+    'jacob': Id_mat(p),
+    'noise': 0.1,
     }
 
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-setup = OSSE(f,h,t,X0,**other)
+setup = TwinSetup(f,h,t,X0,**other)
 
 ####################
 # Suggested tuning
 ####################
-#cfgs.add(ExtKF,infl=2)
-#cfgs.add(EnKF,'Sqrt',N=3,infl=1.01)
-#cfgs.add(PartFilt, N=100, NER=0.4)
-#cfgs.add(PartFilt, N=1000, NER=0.1)
-
+#cfgs += ExtKF(infl=2)
+#cfgs += EnKF('Sqrt',N=3,infl=1.01)
+#cfgs += PartFilt(reg=1.0, N=100, NER=0.4) # add reg!
+#cfgs += PartFilt(reg=1.0, N=1000, NER=0.1) # add reg!

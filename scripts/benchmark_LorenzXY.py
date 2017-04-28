@@ -14,12 +14,12 @@ ratio_dt = validate_int(setup_trunc.t.dt / setup_full.t.dt)
 #
 
 cfgs = DAC_list()
-cfgs.add(Climatology)
-cfgs.add(D3Var)
-cfgs.add(EnKF,infl=1.10,liveplotting=True)
+cfgs += Climatology()
+cfgs += D3Var()
+cfgs += EnKF(infl=1.10,liveplotting=True)
 keep = len(cfgs)-1
-cfgs.add(EnKF,infl=1.15)
-cfgs.add(EnKF,infl=1.20)
+cfgs += EnKF(infl=1.15)
+cfgs += EnKF(infl=1.20)
 
 ############################
 # Common settings

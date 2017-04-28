@@ -48,7 +48,7 @@ In a trade-off with the above advantages, DAPPER makes some sacrifices of effici
 I.e. it is not designed for the assimilation of real data in operational models.
 
 The current documentation does not provide a tutorial;
-new users should begin by looking at the code in `bench_example.py`
+new users should begin by looking at the code in `example_1/2.py`
 and work their way backward.
 
 	
@@ -135,7 +135,7 @@ do not hesitate make your own scripts and functions
 (instead of squeezing everything into standardized configuration files).
 
 #### Add a new method
-Just add it to `da_algos.py`, using the others in there as templates.
+Just add it to `da_methods.py`, using the others in there as templates.
 
 
 #### Add a new model
@@ -274,19 +274,21 @@ Implementation choices
     * Matrix multiplication through `*` -- since python3.5 can just use `@`
 
 
+<!--
+Conventions:
+* DA_Config, assimilate, stats
+* fau_series
+* E,w,A
+* m-by-N
+* m (not ndims coz thats like 2 for matrices), p, chrono
+* xx,yy
+* no obs at 0
+-->
+
 TODO
 ------------------------------------------------
-* CovMat
-     * Unify sparse and dense treatment
-     * Read-only properties
 * Complete QG, LorenzXY
-* Make Operator callable (`--> .model`) `and __repr__`
-* Insert `fix_mu` and `fix_var` in center
-* Make lightweight OOP assimilation methods:
-    - replace config by function arguments
-    - return function 'assimilate'
-    - wrapped to catch exceptions and return stats
-* Split `da_algos.py` into multiple files
+* Reorg file structure
 * Make full 3D-Var (not opt. int.)
 * Make tutorial
 
@@ -297,5 +299,4 @@ TODO
 ---------------
 * http://stackoverflow.com/a/38191145/38281
 * http://stackoverflow.com/a/37861878/38281
--->
-
+* http://stackoverflow.com/questions/43453707

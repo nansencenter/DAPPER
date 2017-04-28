@@ -15,30 +15,21 @@ f = {
 
 X0 = GaussRV(m=m, C=0.001)
 
-obsInds = arange(0,m,2)
-p       = len(obsInds)
-@atmost_2d
-def hmod(E,t): return E[:,obsInds]
-H = direct_obs_matrix(m,obsInds)
-h = {
-    'm'    : p,
-    'model': hmod,
-    'jacob': lambda x,t: H,
-    'noise': GaussRV(C=1.5*eye(p)),
-    'plot' : lambda y: plt.plot(obsInds,y,'g*',ms=8)[0]
-    }
+jj = arange(0,m,2)
+h = partial_direct_obs_setup(m,jj)
+h['noise'] = 1.5
  
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-setup = OSSE(f,h,t,X0,**other)
+setup = TwinSetup(f,h,t,X0,**other)
 
 ####################
 # Suggested tuning
 ####################
-#cfgs.add(EnKF,'Sqrt',N=24,rot=True,infl=1.02)   # rmse_a = 0.32
-#cfgs.add(PartFilt,N=100,NER=0.2,reg=1.3)        # rmse_a = 0.35
-#cfgs.add(OptPF,   N=100,NER=0.2,reg=1.0,Qs=0.3) # rmse_a = 0.37
-#cfgs.add(PartFilt,N=800,NER=0.2,reg=0.8)        # rmse_a = 0.25
+#cfgs += EnKF('Sqrt',N=24,rot=True,infl=1.02)   # rmse_a = 0.32
+#cfgs += PartFilt(N=100,NER=0.2,reg=1.3)        # rmse_a = 0.35
+#cfgs += OptPF(   N=100,NER=0.2,reg=1.0,Qs=0.3) # rmse_a = 0.37
+#cfgs += PartFilt(N=800,NER=0.2,reg=0.8)        # rmse_a = 0.25
 
 # Note: contrary to the article, we use, in the EnKF,
 # - inflation instead of additive noise ?
@@ -47,13 +38,10 @@ setup = OSSE(f,h,t,X0,**other)
 # The PartFilt is also perhaps better tuned?
 # This explains why the above benchmarks are superior to article.
 
-# Not tested as much as nuj=0 (below), which uses Qs -0.1 compared to these
-#cfgs.add(PFD     ,N=30, NER=0.4,reg=0.5,xN=1000,Qs=1.0) # 0.45
-#cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,xN=100 ,Qs=1.1) # 0.36
-#cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,xN=100 ,Qs=1.0) # 0.32
-#cfgs.add(PFD     ,N=300,NER=0.2,reg=0.2,xN=100 ,Qs=0.8) # 0.27
-# OBSOLETE?
-#cfgs.add(PFD     ,N=30, NER=0.4,reg=0.5,xN=1000,Qs=0.9,nuj=0) # 0.52
-#cfgs.add(PFD     ,N=50, NER=0.2,reg=0.7,xN=100 ,Qs=1.0,nuj=0) # 0.40
-#cfgs.add(PFD     ,N=100,NER=0.2,reg=0.4,xN=100 ,Qs=0.9,nuj=0) # 0.34
-#cfgs.add(PFD     ,N=300,NER=0.2,reg=0.2,xN=100 ,Qs=0.7,nuj=0) # 0.28
+#cfgs += PFD     (N=30, NER=0.4,reg=0.6,xN=1000,Qs=1.0) # 0.48
+#cfgs += PFD     (N=50, NER=0.3,reg=0.8,xN=100 ,Qs=1.1) # 0.43
+#cfgs += PFD     (N=100,NER=0.3,reg=0.5,xN=100 ,Qs=1.0) # 0.38
+#cfgs += PFD     (N=300,NER=0.3,reg=0.3,xN=100 ,Qs=0.8) # 0.29
+# PFD worse than PartFilt (bootstrap) with N>100. Potential causes:
+# - Tuning
+# - 'reg' is better (less bias coz 'no-uniq-jitter') than 'Qs'

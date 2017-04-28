@@ -14,6 +14,15 @@ def tp(a):
   """Tranpose 1d vector"""
   return a[np.newaxis].T
 
+def exactly_1d(a):
+  a = np.atleast_1d(a)
+  assert a.ndim==1
+  return a
+def exactly_2d(a):
+  a = np.atleast_2d(a)
+  assert a.ndim==2
+  return a
+
 # TODO: review useage. Replace by ens_compatible()?
 def atmost_2d(func):
   """
@@ -22,6 +31,7 @@ def atmost_2d(func):
   Requires that the func's 1st argument be the one in question.
   Does not always work (e.g. recursion). Use with caution.
   """
+  @functools.wraps(func)
   def wrapr(x,*kargs,**kwargs):
     answer = func(np.atleast_2d(x),*kargs,**kwargs)
     if answer is not None: return answer.squeeze()
@@ -29,6 +39,7 @@ def atmost_2d(func):
 
 def ens_compatible(func):
   """Tranpose before and after."""
+  @functools.wraps(func)
   def wrapr(x,*kargs,**kwargs):
     return func(x.T,*kargs,**kwargs).T
   return wrapr
@@ -51,8 +62,15 @@ def anom(E,axis=0):
   A  = E - mu
   return A, mu.squeeze()
 
-# Center sample (but maintain its (expected) variance)
 def center(E,rescale=True):
+  """
+  Center sample,
+  but rescale to maintain its (expected) variance.
+
+  Note: similarly, one could correct a sample's 2nd moment,
+        (on the diagonal, or other some other subset),
+        however this is typically not worth it.
+  """
   N = E.shape[0]
   A = E - mean(E,0)
   if rescale:
@@ -63,6 +81,8 @@ def inflate_ens(E,factor):
   A, mu = anom(E)
   return mu + A*factor
 
+def weight_degeneracy(w,prec=1e-10):
+  return (1-w.max()) < 1e-10
 
 def unbias_var(w=None,N_eff=None,avoid_pathological=False):
   """
@@ -71,10 +91,10 @@ def unbias_var(w=None,N_eff=None,avoid_pathological=False):
   """
   if N_eff is None:
     N_eff = 1/(w@w)
-  ub = 1/(1 - 1/N_eff) # =N/(N-1) if w==ones(N)/N.
-  if avoid_pathological and (1-w.max()) < 1e-10:
-    # Don't do in case of weights collapse
-    ub = 1
+  if avoid_pathological and weight_degeneracy(w):
+    ub = 1 # Don't do in case of weights collapse
+  else:
+    ub = 1/(1 - 1/N_eff) # =N/(N-1) if w==ones(N)/N.
   return ub
 
 
@@ -133,13 +153,6 @@ def integrate_TLM(M,dt,method='approx'):
 
 
 
-def mrdiv(b,A):
-  return nla.solve(A.T,b.T).T
-
-def mldiv(A,b):
-  return nla.solve(A,b)
-
-
 
 def round2(num,prec=1.0):
   """Round with specific precision.
@@ -164,16 +177,7 @@ def find_1st_ind(xx):
   except StopIteration:
     return None
 
-def equi_spaced_integers(m,p):
-  """Provide a range of p equispaced integers between 0 and m-1"""
-  return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
 
-def direct_obs_matrix(m,obsInds):
-  """for i,j in enumerate(obsInds): H[i,j] = 1.0"""
-  p = len(obsInds)
-  H = zeros((p,m))
-  H[range(p),obsInds] = 1
-  return H
 
 
 def circulant_ACF(C,do_abs=False):
@@ -195,6 +199,16 @@ def circulant_ACF(C,do_abs=False):
   return ACF/m
 
 
+
+########################
+# Linear Algebra
+########################
+
+def mrdiv(b,A):
+  return nla.solve(A.T,b.T).T
+
+def mldiv(A,b):
+  return nla.solve(A,b)
 
 
 def pad0(ss,N):
@@ -218,11 +232,26 @@ def svd0(A):
   else:
     return sla.svd(A, full_matrices=False)
 
+def truncate_rank(s,threshold,avoid_pathological):
+  "Find truncation rank."
+  # Assume proportion requested
+  if isinstance(threshold,float):
+    assert threshold <= 1.0
+    if threshold < 1.0:
+      r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
+      r += 1 # Hence the strict inequality above
+      if avoid_pathological:
+        # If not avoid_pathological, then the last 4 diag. entries of
+        # reconst( *tsvd(eye(400),0.99) )
+        # will be zero. This is probably not intended.
+        r += np.sum(np.isclose(s[r-1], s[r:]))
+    else:
+      r = len(s)
 
 def tsvd(A, threshold=0.99999, avoid_pathological=True):
   """
   Truncated svd.
-  Also automates flag: full_matrices.
+  Also automates 'full_matrices' flag.
   threshold: if
    - float, < 1.0 then "rank" = lowest number such that the
                                 "energy" retained >= threshold
@@ -246,19 +275,8 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
   # SVD
   U,s,VT = sla.svd(A, full_matrices)
 
-  # Assume proportion requested
-  if isinstance(threshold,float):
-    assert threshold <= 1.0
-    if threshold < 1.0:
-      r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
-      r += 1 # Hence the strict inequality above
-      if avoid_pathological:
-        # If not avoid_pathological, then the last 4 diag. entries of
-        # reconst( *tsvd(eye(400),0.99) )
-        # will be zero. This is probably not intended.
-        r += np.sum(np.isclose(s[r-1], s[r:]))
-    else:
-      r = len(s)
+  # Find truncation rank
+  r = truncate_rank(s,threshold,avoid_pathological)
 
   # Truncate
   U  = U [:,:r]
@@ -281,4 +299,44 @@ def tinv(A,*kargs,**kwargs):
   """
   U,s,VT = tsvd(A,*kargs,**kwargs)
   return (VT.T * s**(-1.0)) @ U.T
+
+
+
+########################
+# Setup facilation
+########################
+
+def Id_op():
+  return NamedFunc(lambda *args: args[0], "Id operator")
+def Id_mat(m):
+  I = np.eye(m)
+  return NamedFunc(lambda x,t: I, "Id("+str(m)+") matrix")
+
+
+def equi_spaced_integers(m,p):
+  """Provide a range of p equispaced integers between 0 and m-1"""
+  return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
+
+def direct_obs_matrix(m,jj):
+  """Matrix that "picks" state elements jj out of range(m)"""
+  p = len(jj)
+  H = zeros((p,m))
+  H[range(p),jj] = 1
+  return H
+
+def partial_direct_obs_setup(m,jj):
+  p  = len(jj)
+  H  = direct_obs_matrix(m,jj)
+  @ens_compatible
+  def model(x,t): return x[jj]
+  def jacob(x,t): return H
+  def plot(y):    return plt.plot(jj,y,'g*',ms=8)[0]
+  h = {
+      'm'    : p,
+      'model': model,
+      'jacob': jacob,
+      'plot' : plot,
+      }
+  return h
+
 

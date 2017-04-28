@@ -38,9 +38,9 @@ f = {
     }
 
 UsT = np.load('mods/Barotropic/C12.npz')['xx']
-C12 = UsT.T/sqrt(UsT.shape[0] - 1)
-X0  = GaussRV(mu0, spCovMat(C12 = 0.03*C12))
-#X0 = RV(sampling_func = lambda N: mu0 + 1e-3*randn((N,len(mu0))))
+C12 = UsT/sqrt(UsT.shape[0] - 1)
+X0  = GaussRV(mu0, CovMat(Right = 0.03*C12))
+#X0 = RV(func= lambda N: mu0 + 1e-3*randn((N,len(mu0))))
 
 p = 300
 obsInds = equi_spaced_integers(m,p)
@@ -83,7 +83,7 @@ def loc_wrapper(radius,direction=None):
   return locf
  
 
-setup = OSSE(f,h,t,X0)
+setup = TwinSetup(f,h,t,X0)
 setup.name = os.path.relpath(__file__,'mods/')
 setup.locf = loc_wrapper
 setup.nYnX = (ny, nx)

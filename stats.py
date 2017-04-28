@@ -1,6 +1,6 @@
 from common import *
 
-class Stats:
+class Stats(MLR_Print):
   """
   Contains and computes statistics of the DA methods.
   """
@@ -8,25 +8,30 @@ class Stats:
   # Adjust this to omit heavy computations
   comp_threshold_3 = 51
 
-  def __init__(self,setup,config,xx,yy):
+  # Used by MLR_Print
+  excluded  = MLR_Print.excluded + ['setup','config','xx','yy']
+  precision = 3
+  ordr_by_linenum = -1
+ 
+  def __init__(self,config,setup,xx,yy):
     """
-    Init a bunch of stats.
-    Note: the individual stats may very well be allocated & computed
-          elsewhere, and simply added as an attribute to the stats
-          instance. But the most common ones are gathered here.
+    Init the default statistics.
+    Note: you may well allocate & compute individual stats elsewhere,
+          and simply assigne them as an attribute to the stats instance.
     """
 
-    self.setup  = setup
     self.config = config
+    self.setup  = setup
     self.xx     = xx
     self.yy     = yy
+
     m    = setup.f.m    ; assert m   ==xx.shape[1]
     K    = setup.t.K    ; assert K   ==xx.shape[0]-1
     p    = setup.h.m    ; assert p   ==yy.shape[1]
     KObs = setup.t.KObs ; assert KObs==yy.shape[0]-1
 
-    fs          = self.new_FAU_series
-    #
+    # time-series constructor alias
+    fs = self.new_FAU_series 
     self.mu     = fs(m) # Mean
     self.var    = fs(m) # Variances
     self.mad    = fs(m) # Mean abs deviations
@@ -39,21 +44,25 @@ class Stats:
 
     if hasattr(config,'N'):
       # Ensemble-only init
-      N    = config.N
-      m_Nm = min(m,N)
-      self.w  = fs(N)           # Likelihood weights
-      self.rh = fs(m,dtype=int) # Rank histogram
-      #self.N  = N              # Use w.shape[1] instead
-      self.is_ens = True
+      self._had_0v = False
+      self._is_ens = True
+      N            = config.N
+      m_Nm         = min(m,N)
+      self.w       = fs(N)           # Importance weights
+      self.rh      = fs(m,dtype=int) # Rank histogram
+      #self.N      = N               # Use w.shape[1] instead
     else:
-      self.is_ens = False
-      m_Nm = m
+      # Linear-Gaussian assessment
+      self._is_ens = False
+      m_Nm         = m
+
     self.svals = fs(m_Nm) # Principal component (SVD) scores
     self.umisf = fs(m_Nm) # Error in component directions
 
     # Other. 
     self.trHK = np.full(KObs+1, nan)
     self.infl = np.full(KObs+1, nan)
+
 
   def assess(self,k,kObs=None,f_a_u=None,
       E=None,w=None,mu=None,Cov=None):
@@ -66,9 +75,20 @@ class Stats:
     If 'u' in f_a_u: call/update LivePlot.
     """
 
-    if k==0: assert kObs is None,\
-        "Should not have any obs at initial time."+\
-        "This very easily yields bugs, and not 'DA convention'."
+    # Initial consistency checks.
+    if k==0:
+      if kObs is not None:
+        raise KeyError("Should not have any obs at initial time."+
+            "This very easily leads to bugs, and not 'DA convention'.")
+      if self._is_ens==True:
+        def rze(a,b,c):
+          raise TypeError("Expected "+a+" input, but "+b+" is "+c+" None")
+        if E is None:      rze("ensemble","E","")
+        if mu is not None: rze("ensemble","my/Cov","not")
+      else:
+        if E is not None:  rze("mu/Cov","E","not")
+        if mu is None:     rze("mu/Cov","mu","")
+    
 
     # Defaults for f_a_u
     if f_a_u is None:
@@ -80,25 +100,38 @@ class Stats:
       if kObs is None:
         f_a_u = 'u'
 
-    LP      = getattr(self.config,'liveplotting',False)
-    store_u = getattr(self.config,'store_u'     ,False)
+    key = (k,kObs,f_a_u)
+
+    LP      = self.config.liveplotting
+    store_u = self.config.store_u
 
     if not (LP or store_u) and kObs==None:
       pass # Skip assessment
     else:
-      if E is not None:
+      # Prepare assessment call and arguments
+      if self._is_ens:
         # Ensemble assessment
-        ens_or_ext = self.assess_ens
+        alias = self.assess_ens
         state_prms = {'E':E,'w':w}
       else:
         # Linear-Gaussian assessment
-        assert mu is not None
-        ens_or_ext = self.assess_ext
+        alias = self.assess_ext
         state_prms = {'mu':mu,'P':Cov}
 
-      # Compute
-      key = (k,kObs,f_a_u)
-      ens_or_ext(key,**state_prms)
+      # Call assessment
+      with np.errstate(divide='ignore',invalid='ignore'):
+        alias(key,**state_prms)
+
+      # In case of degeneracy, variance might be 0,
+      # causing warnings in computing skew/kurt/MGLS
+      # (which all normalize by variance).
+      # This should and will yield nan's, but we don't want
+      # the diagnostics computations to cause too many warnings,
+      # so we turned them off above. But we'll manually warn ONCE here.
+      if not getattr(self,'_had_0v',False) and np.allclose(self.var[key],0):
+        self._had_0v = True
+        warnings.warn("Sample variance was 0 at (k,kObs,fau) = " + str(key))
+
 
       # LivePlot
       if LP:
@@ -107,26 +140,26 @@ class Stats:
         elif 'u' in f_a_u:
           self.lplot.update(k,kObs,**state_prms)
 
-    # Return self for daisy-chaining
-    return self 
-
 
   def assess_ens(self,k,E,w=None):
     """Ensemble and Particle filter (weighted/importance) assessment."""
-    N,m          = E.shape
-    if w is None:
-      self.has_w = False
-      w          = 1/N
-    else:
-      self.has_w = True
-    if np.isscalar(w):
-      assert w  != 0
-      w          = w*ones(N)
-    assert(abs(w.sum()-1) < 1e-5)
-    assert np.all(np.isfinite(E))
-    assert np.all(np.isreal(E))
-
+    # Unpack
+    N,m = E.shape
     x = self.xx[k[0]]
+
+    # Process weights
+    if w is None: 
+      self._has_w = False
+      w           = 1/N
+    else:
+      self._has_w = True
+    if np.isscalar(w):
+      assert w   != 0
+      w           = w*ones(N)
+
+    if abs(w.sum()-1) > 1e-5:      raise_AFE("Weights did not sum to one.",k)
+    if not np.all(np.isfinite(E)): raise_AFE("Ensemble not finite.",k)
+    if not np.all(np.isreal(E)):   raise_AFE("Ensemble not Real.",k)
 
     self.w[k]    = w
     self.mu[k]   = w @ E
@@ -165,7 +198,7 @@ class Stats:
         P              = (A.T * w) @ A
         s2,U           = eigh(P)
         s2            *= ub
-        self.svals[k]  = sqrt(s2)[::-1]
+        self.svals[k]  = sqrt(s2.clip(0))[::-1]
         self.umisf[k]  = U.T[::-1] @ self.err[k]
 
       # For each state dim [i], compute rank of truth (x) among the ensemble (E)
@@ -173,22 +206,27 @@ class Stats:
       self.rh[k]    = [np.where(Ex_sorted[:,i] == x[i])[0][0] for i in range(m)]
 
 
+  @profile
   def assess_ext(self,k,mu,P):
     """Kalman filter (Gaussian) assessment."""
-    assert np.all(np.isfinite(mu)) and np.all(np.isfinite(P))
-    assert np.all(np.isreal(mu))   and np.all(np.isreal(P))
+
+    isFinite = np.all(np.isfinite(mu)) # Do not check covariance
+    isReal   = np.all(np.isreal(mu))   # (coz might not be explicitly availble)
+    if not isFinite: raise_AFE("Estimates not finite.",k)
+    if not isReal:   raise_AFE("Estimates not Real.",k)
 
     m = len(mu)
     x = self.xx[k[0]]
 
     self.mu[k]  = mu
-    self.var[k] = diag(P)
+    self.var[k] = P.diag if isinstance(P,CovMat) else diag(P)
     self.mad[k] = sqrt(self.var[k])*sqrt(2/pi)
     # ... because sqrt(2/pi) = ratio MAD/STD for Gaussians
 
     self.derivative_stats(k,x)
 
     if m <= Stats.comp_threshold_3:
+      P             = P.full if isinstance(P,CovMat) else P
       s2,U          = nla.eigh(P)
       self.svals[k] = sqrt(np.maximum(s2,0.0))[::-1]
       self.umisf[k] = (U.T @ self.err[k])[::-1]
@@ -214,8 +252,10 @@ class Stats:
     """
     Avarage all univariate (scalar) time series.
     """
-    avrg = dict()
+    avrg = AlignedDict()
     for key,series in vars(self).items():
+      if key.startswith('_'):
+        continue
       try:
         # FAU_series
         if isinstance(series,FAU_series):
@@ -247,8 +287,10 @@ class Stats:
 
   def new_FAU_series(self,m,**kwargs):
     "Convenience FAU_series constructor."
-    store_u = getattr(self.config,'store_u',False)
+    store_u = self.config.store_u
     return FAU_series(self.setup.t, m, store_u=store_u, **kwargs)
+
+  # TODO: Provide frontend initializer 
 
   # Better to initialize manually (np.full...)
   # def new_array(self,f_a_u,m,**kwargs):
@@ -284,59 +326,6 @@ def average_each_field(ss,axis=None):
       # NB: This is a rudimentary averaging of confidence intervals
       # Should be checked against variance of avrg[i][key].val
   return avrg
-
-
-def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
-  """
-  For i in range(len(cfgs)):
-    Print cfgs[i][attrkeys], Avrgs[i][statkeys]
-  - attrkeys: list of attributes to include.
-      - if -1: only print da_driver.
-      - if  0: print distinct_attrs
-  - statkeys: list of statistics to include.
-  """
-  if isinstance(cfgs,DAC):
-    cfgs  = DAC_list(cfgs)
-    Avrgs = [Avrgs]
-
-  # Defaults averages
-  if not statkeys:
-    #statkeys = ['rmse_a','rmv_a','logp_m_a']
-    statkeys = ['rmse_a','rmv_a','rmse_f']
-
-  # Defaults attributes
-  if not attrkeys:       headr = list(cfgs.distinct_attrs)
-  elif   attrkeys == -1: headr = ['da_driver']
-  else:                  headr = list(attrkeys)
-
-  # Filter excld
-  excld = ['liveplotting','store_u']
-  headr = [x for x in headr if x not in excld]
-  
-  # Get attribute values
-  mattr = [cfgs.distinct_attrs[key] for key in headr]
-
-  # Add separator
-  headr += ['|']
-  mattr += [['|']*len(cfgs)]
-
-  # Get stats.
-  # Format stats_with_conf. Use #'s to avoid auto-cropping by tabulate().
-  for key in statkeys:
-    col = ['{0:#>9} ±'.format(key)]
-    for i in range(len(cfgs)):
-      try:
-        val  = Avrgs[i][key].val
-        conf = Avrgs[i][key].conf
-        col.append('{0:#>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
-      except KeyError:
-        col.append(' '*16)
-    crop= min([s.count('#') for s in col])
-    col = [s[crop:]         for s in col]
-    headr.append(col[0])
-    mattr.append(col[1:])
-  table = tabulate(mattr, headr).replace('#',' ')
-  print(table)
 
 
 

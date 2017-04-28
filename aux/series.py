@@ -37,7 +37,7 @@ def mean_ratio(xx):
 
 def fit_acf_by_AR1(acf_empir,L=None):
   """
-  Fit an empirical acf by the acf of an AR1 process.
+  Fit an empirical auto cov function (ACF) by that of an AR1 process.
   acf_empir: auto-corr/cov-function.
   L: length of ACF to use in AR(1) fitting
   """
@@ -70,12 +70,17 @@ class val_with_conf():
   def __init__(self,val,conf):
     self.val  = val
     self.conf = conf
+  def _str(self):
+    with np.errstate(divide='ignore'):
+      conf = round2sigfig(self.conf)
+      nsig = floor(log10(conf))
+      return str(round2(self.val,10**(nsig))), str(conf)
   def __str__(self):
-    conf = round2sigfig(self.conf)
-    nsig = floor(log10(conf))
-    return str(round2(self.val,10**(nsig))) + ' ±' + str(conf)
+    val,conf = self._str()
+    return val+' ±'+conf
   def __repr__(self):
-    return str(self.__dict__)
+    val,conf = self._str()
+    return type(self).__name__ + "(val="+val+", conf="+conf+")"
 
 def series_mean_with_conf(xx):
   """
@@ -87,13 +92,12 @@ def series_mean_with_conf(xx):
   N     = len(xx)
   if np.allclose(xx,mu):
     return val_with_conf(mu, 0)
-  if N < 5:
+  if (not np.isfinite(mu)) or N<5:
     return val_with_conf(mu, np.nan)
   acovf = auto_cov(xx,5)
   v     = acovf[0]
   v    /= N
   # Estimate (fit) ACF
-  # Empirical auto cov function (ACF)
   a = fit_acf_by_AR1(acovf)
   # If xx[k] where independent of xx[k-1],
   # then std_of_mu is the end of the story.
@@ -110,8 +114,7 @@ def series_mean_with_conf(xx):
   return vc
 
 
-# TODO: Should use pandas instead?
-class FAU_series:
+class FAU_series(MLR_Print):
   """
   Container for time series of a statistic from filtering.
   Data is indexed with key (k,kObs,f_a_u) or simply k.
@@ -126,6 +129,14 @@ class FAU_series:
   NB: if time series is only from analysis instances (len KObs+1),
       then you should use a simple np.array instead.
   """
+
+  # Used by MLR_Print
+  included = MLR_Print.included + ['f','a','store_u']
+  aliases  = {
+      'f':'Forecast (.f)',
+      'a':'Analysis (.a)',
+      'u':'All      (.u)'}
+  aliases  = {**MLR_Print.aliases, **aliases}
 
   def __init__(self,chrono,m,store_u=True,**kwargs):
     """
@@ -248,18 +259,10 @@ class FAU_series:
     return avrg
 
   def __repr__(self):
-    s = []
-    s.append("\nAnalysis (.a):")
-    s.append(self.a.__str__())
-    s.append("\nForecast (.f):")
-    s.append(self.f.__str__())
-    s.append("\nAll (.u):")
     if self.store_u:
-      s.append(self.u.__str__())
-    else:
-      s.append("store_u == False")
-    return '\n'.join(s)
-
+      # Create instance version of 'included'
+      self.included = self.included + ['u']
+    return super().__repr__()
 
 
 

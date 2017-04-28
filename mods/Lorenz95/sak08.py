@@ -1,14 +1,13 @@
-# Reproduce results from
-# table1 of sakov et al "DEnKF" (2008)
+# Reproduce results from Table 1 of Sakov et al "DEnKF" (2008)
 # This setup is also used in several other papers
 # (bocquet2012"combining",bocquet2015"expanding", raanes2016"EnRTS", ...)
 
 from common import *
 
 from mods.Lorenz95.core import step, dfdx, typical_init_params
+from aux.localization import partial_direct_obs_1d_loc_setup as loc
 
-T = 4**5
-t = Chronology(0.05,dkObs=1,T=T,BurnIn=20)
+t = Chronology(0.05,dkObs=1,T=4**5,BurnIn=20)
 
 m = 40
 f = {
@@ -18,94 +17,57 @@ f = {
     'noise': 0
     }
 
-
-mu0,P0 = typical_init_params(m)
-X0     = GaussRV(mu0, 0.01*P0)
-
-
-
-p  = m
-jj = equi_spaced_integers(m,p)
-@ens_compatible
-def hmod(E,t):
-  return E[jj]
-
-H = zeros((p,m))
-for i,j in enumerate(jj):
-  H[i,j] = 1.0
-
-#yplot = lambda y: plt.plot(y,'g*',MarkerSize=15)[0]
-#yplot = lambda y: plt.plot(y,'g')[0]
-def yplot(y):
-  lh = plt.plot(y,'g')[0]
-  #plt.pause(0.8)
-  return lh
-
-
-from aux.localization import inds_and_coeffs, unravel
-dIJ = unravel(arange(m), m)
-oIJ = unravel(jj , m)
-def locf(radius,direction,t,tag=None):
-  if direction is 'x2y':
-    def locf_at(i):
-      return inds_and_coeffs(dIJ[:,i], oIJ, m, radius, tag=tag)
-  elif direction is 'y2x':
-    def locf_at(i):
-      return inds_and_coeffs(oIJ[:,i], dIJ, m, radius, tag=tag)
-  else: raise KeyError
-  return locf_at
-
+X0 = GaussRV(*typical_init_params(m))
 
 h = {
-    'm'    : p,
-    'model': hmod,
-    'jacob': lambda x,t: H,
-    'noise': GaussRV(C=1*eye(p)),
-    'plot' : yplot,
-    'loc_f': locf,
+    'm'    : m,
+    'model': Id_op(),
+    'jacob': Id_mat(m),
+    'noise': 1, # abbrev GaussRV(C=CovMat(eye(m)))
+    'plot' : lambda y: plt.plot(y,'g')[0],
+    'loc_f': loc(m,arange(m)),
     }
 
 
 other = {'name': os.path.relpath(__file__,'mods/')}
-setup = OSSE(f,h,t,X0,**other)
+setup = TwinSetup(f,h,t,X0,**other)
 
 
 
 ####################
 # Suggested tuning
 ####################
-
-# Reproduce Sakov'2008 "deterministic"
-#config = DAC(EnKF,'PertObs',N=40, infl=1.06)          # rmse_a = 0.22
-#config = DAC(EnKF,'DEnKF',N=40, infl=1.01)            # rmse_a = 0.18
-#config = DAC(EnKF,'PertObs',N=28,infl=1.08)           # rmse_a = 0.24
-#config = DAC(EnKF,'Sqrt'   ,N=24,infl=1.013,rot=True) # rmse_a = 0.18
+# Reproduce Sakov'2008 "deterministic"                     # Expected RMSE_a:
+#cfgs += EnKF('PertObs',N=40, infl=1.06)                  # 0.22
+#cfgs += EnKF('DEnKF'  ,N=40, infl=1.01)                  # 0.18
+#cfgs += EnKF('PertObs',N=28, infl=1.08)                  # 0.24
+#cfgs += EnKF('Sqrt'   ,N=24, infl=1.013,rot=True)        # 0.18
 
 # Other
-#config = DAC(iEnKF,'Sqrt',N=40,iMax=10,infl=1.01,rot=True) # rmse_a = 0.17
-#
-#config = DAC(LETKF,         N=6,rot=True,infl=1.04,loc_rad=4)
-#config = DAC(LETKF,'approx',N=8,rot=True,infl=1.25,loc_rad=4)
-#config = DAC(SL_EAKF,       N=6,rot=True,infl=1.07,loc_rad=6)
-#
-#config = DAC(Climatology)
-#config = DAC(D3Var)
-#config = DAC(ExtKF, infl = 6)
-#config = DAC(EnCheat,'Sqrt',N=24,infl=1.02,rot=True)
+#cfgs += iEnKF('Sqrt',N=40,iMax=10,infl=1.01,rot=True)    # 0.17
 
+# Localized
+#cfgs += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4) # 0.22
+#cfgs += LETKF(approx=1,N=8,rot=True,infl=1.25,loc_rad=4) # 0.36
+#cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6) # 0.23
 # Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6.
-#config = DAC(LETKF,N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')
+#cfgs += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')
 
+# Other
+#cfgs += Climatology()
+#cfgs += D3Var()
+#cfgs += ExtKF(infl=6)
+#cfgs += EnCheat('Sqrt',N=24,infl=1.02,rot=True)
 
 
 # Reproduce Bocquet'2015 "expanding"
 # t = Chronology(0.05,dkObs=3,T=4**4,BurnIn=20)
-# config = DAC(EnKF,'Sqrt',N=20)
-# # config.infl       = 1.02 # dkObs = 1
-# # config.infl       = 1.10 # dkObs = 3
-# # config.infl       = 1.40 # dkObs = 5
+# config = EnKF('Sqrt',N=20)
+# # config.infl = 1.02 # case: dkObs=1
+# # config.infl = 1.10 # case: dkObs=3
+# # config.infl = 1.40 # case: dkObs=5
 #
-# config = DAC(EnKF_N,'Sqrt',N=20)
+# config = EnKF_N('Sqrt',N=20)
 #
 # # Also try quasi-linear regime:
 # t = Chronology(0.01,dkObs=1,T=4**4,BurnIn=20)

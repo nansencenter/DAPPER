@@ -33,4 +33,4 @@ h = {
  
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-setup = OSSE(f,h,t,X0,**other)
+setup = TwinSetup(f,h,t,X0,**other)

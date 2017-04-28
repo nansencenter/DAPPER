@@ -1,5 +1,6 @@
-# Reproduce results from fig2
-# of raanes'2015 "extending sqrt method to model noise"
+# Reproduce results from fig2 of
+# Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
+# "Extending the square root method to account for additive forecast noise in ensemble methods."
 
 # Warnings:
 # - Multidim. multiplicative noise incorporation
@@ -14,62 +15,40 @@ from common import *
 
 from mods.LA.core import sinusoidal_sample, Fmat
 
-m = 1000;
-p = 40;
-
-obsInds = equi_spaced_integers(m,p)
-
 # Burn-in allows damp*x and x+noise balance out
 tseq = Chronology(dt=1,dkObs=5,T=500,BurnIn=60)
 
-@atmost_2d
-def hmod(E,t):
-  return E[:,obsInds]
+m = 1000;
+p = 40;
 
-H = zeros((p,m))
-for i,j in enumerate(obsInds):
-  H[i,j] = 1.0
-
-def yplot(y):
-  lh = plt.plot(obsInds,y,'g*',ms=8)[0]
-  #plt.pause(0.8)
-  return lh
-
-h = {
-    'm': p,
-    'model': hmod,
-    'jacob': lambda x,t: H,
-    'noise': GaussRV(C=0.01*eye(p)),
-    'plot' : yplot,
-    }
+jj = equi_spaced_integers(m,p)
+h = partial_direct_obs_setup(m,jj)
+h['noise'] = 0.01
 
 
-
+################### Noise setup ###################
 # Instead of sampling model noise from sinusoidal_sample(),
 # we will replicate it below by a covariance matrix approach.
 # But, for strict equivalence, one would have to use
 # uniform (i.e. not Gaussian) random numbers.
 wnumQ = 25
-fname = 'data/LA_Q_wnum' + str(wnumQ) + '.npz'
+fname = 'data/LA_Q_wnum' + str(wnumQ) + '_v2' + '.npz'
 try:
   # Load pre-generated
-  Q = np.load(fname)['Q']
+  L = np.load(fname)['Left']
 except FileNotFoundError:
   # First-time use
   NQ        = 20000; # Must have NQ > (2*wnumQ+1)
   A         = sinusoidal_sample(m,wnumQ,NQ)
   A         = 1/10 * anom(A)[0] / sqrt(NQ)
   Q         = A.T @ A
-  np.savez(fname, Q=Q)
+  U,s,_     = tsvd(Q)
+  L         = U*sqrt(s)
+  np.savez(fname, Left=L)
 
-# TODO: Make GaussRV support init by chol,
-#       test reproducibility, insert into loaded file.
-#U,s,_ = tsvd(Q)
-#Q12   = U*sqrt(s)
-#X0    = GaussRV(C12 = sqrt(5)*Q12)
+X0 = GaussRV(C=CovMat(sqrt(5)*L,'Left'))
 
-X0 = GaussRV(C = 5*Q)
-
+################### Forward model ###################
 damp = 0.98;
 Fm = Fmat(m,-1,1,tseq.dt)
 def step(x,t,dt):
@@ -77,15 +56,15 @@ def step(x,t,dt):
   return x @ Fm.T
 
 f = {
-    'm': m,
+    'm'    : m,
     'model': lambda x,t,dt: damp * step(x,t,dt),
     'jacob': lambda x,t,dt: damp * Fm,
-    'noise': GaussRV(C = Q),
+    'noise': GaussRV(C=CovMat(L,'Left')),
     }
 
+################### Gather ###################
 other = {'name': os.path.relpath(__file__,'mods/')}
-
-setup = OSSE(f,h,tseq,X0,**other)
+setup = TwinSetup(f,h,tseq,X0,**other)
 
 
 
@@ -94,14 +73,14 @@ setup = OSSE(f,h,tseq,X0,**other)
 ####################
 
 ## Expected rmse_a = 0.3
-#config = DAC(EnKF,'PertObs',N=30,infl=3.2)
+#config = EnKF('PertObs',N=30,infl=3.2)
 #
 # But infl=1 yields approx optimal rmse, even though then rmv << rmse.
 # TODO: Why is rmse so INsensitive to inflation for PertObs?
 # Similar case, but with N=60: infl=1.00, and 1.80.
 
 # Reproduce raanes'2015 "extending sqrt method to model noise":
-# config = DAC(EnKF,'Sqrt',fnoise_treatm='XXX',N=30,infl=1.0),
+# config = EnKF('Sqrt',fnoise_treatm='XXX',N=30,infl=1.0),
 # where XXX is one of:
 # - Stoch
 # - Mult-1

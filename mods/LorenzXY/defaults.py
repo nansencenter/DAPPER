@@ -35,6 +35,7 @@ P0  = eye(m)
 mu0[:nX],P0[:nX,:nX] = typical_init_params(nX)
 X0  = GaussRV(mu0, 0.01*P0)
 
+# TODO: utilize partial_direct_obs...
 p = nX
 obsInds = range(p)
 @atmost_2d
@@ -54,7 +55,7 @@ h = {
  
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-setup = OSSE(f,h,t,X0,**other)
+setup = TwinSetup(f,h,t,X0,**other)
 
 
 ####################
@@ -64,6 +65,6 @@ setup = OSSE(f,h,t,X0,**other)
 # Not optimized at all:
 #from mods.LorenzXY.defaults import setup
 #setup.t.dt = 0.005
-#config           = DAC(EnKF,'Sqrt',N=100,rot=True)
+#config           = EnKF('Sqrt',N=100,rot=True)
 #config.infl      = 1.01 # for p = nX
 #config.infl      = 1.15 # for p = m

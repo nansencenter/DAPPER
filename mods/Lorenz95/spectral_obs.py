@@ -5,8 +5,7 @@
 # because the assimilation created large gradients.
 # (Of course, this will depend on R and dtObs).
 # Therefore, the setup below instead uses "global obs",
-# where each observation "releve"/captures information about
-# the entire state vector.
+# where each observation captures information about the entire state vector.
 # The idea is that we can then remove observations, (rows of H)
 # one-by-one, to a much larger degree than for H = Identity.
 
@@ -32,7 +31,7 @@
 #
 # Another idea is then to evaluate the value of 40 orthogonal basis
 # functions at 40 equidistant locations
-# (corresponding to the indices of Lorenz-96).
+# (corresponding to the indices of Lorenz95).
 # This will not yield a matrix of +/- 1's,
 # but should nevertheless give nicely distributed weights.
 
@@ -124,11 +123,11 @@ h = {
 
 other = {'name': os.path.relpath(__file__,'mods/')}
 
-setup = OSSE(f,h,t,X0,**other)
+setup = TwinSetup(f,h,t,X0,**other)
 
 
 ####################
 # Suggested tuning
 ####################
-#config = DAC(EnKF ,'Sqrt',N=40, infl=1.01)
+#cfgs += EnKF ('Sqrt',N=40, infl=1.01)
 
