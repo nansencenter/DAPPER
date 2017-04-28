@@ -48,7 +48,7 @@ In a trade-off with the above advantages, DAPPER makes some sacrifices of effici
 I.e. it is not designed for the assimilation of real data in operational models.
 
 The current documentation does not provide a tutorial;
-new users should begin by looking at the code in `bench_example.py`
+new users should begin by looking at the code in `example_1/2.py`
 and work their way backward.
 
 	

@@ -13,7 +13,7 @@ import functools
 import builtins
 try:
     # This will be available if launched as (e.g.)
-    # (bash)$ kernprof -l -v bench_example.py
+    # (bash)$ kernprof -l -v example_1.py
     profile = builtins.profile
 except AttributeError:
     # Otherwise: provide a pass-through version.
