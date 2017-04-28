@@ -211,27 +211,6 @@ def mldiv(A,b):
   return nla.solve(A,b)
 
 
-def pad0(ss,N):
-  out = zeros(N)
-  out[:len(ss)] = ss
-  return out
-
-def svd0(A):
-  """
-  Compute the 
-   - full    svd if nrows > ncols
-   - reduced svd otherwise.
-  In Matlab: svd(A',0)' ,
-  in keeping with DAPPER convention of transposing ensemble matrices.
-  It also contrasts with scipy.linalg's svd and Matlab's svd(A,'econ'),
-  both of which always compute the reduced svd.
-  """
-  m,n = A.shape
-  if m>n:
-    return sla.svd(A, full_matrices=True)
-  else:
-    return sla.svd(A, full_matrices=False)
-
 def truncate_rank(s,threshold,avoid_pathological):
   "Find truncation rank."
   # Assume proportion requested
@@ -283,6 +262,27 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
   VT = VT[  :r]
   s  = s [  :r]
   return U,s,VT
+
+def svd0(A):
+  """
+  Compute the 
+   - full    svd if nrows > ncols
+   - reduced svd otherwise.
+  In Matlab: svd(A',0)' ,
+  in keeping with DAPPER convention of transposing ensemble matrices.
+  It also contrasts with scipy.linalg's svd and Matlab's svd(A,'econ'),
+  both of which always compute the reduced svd.
+  """
+  m,n = A.shape
+  if m>n:
+    return sla.svd(A, full_matrices=True)
+  else:
+    return sla.svd(A, full_matrices=False)
+
+def pad0(ss,N):
+  out = zeros(N)
+  out[:len(ss)] = ss
+  return out
   
 def reconst(U,s,VT):
   """
