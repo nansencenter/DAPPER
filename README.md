@@ -260,17 +260,16 @@ Implementation choices
 ------------------------------------------------
 * Uses python3.5+
 * NEW: Use `N-by-m` ndarrays. Pros:
-    * Python default
+    * python default
         * speed of (row-by-row) access, especially for models
         * same as default ordering of random numbers
-    * numpy *might* return `ndarrays` even when input is matrix
+    * facilitates typical broadcasting
     * less transposing for for ens-space formulae
     * beneficial operator precedence without `()`. E.g. `dy @ Rinv @ Y.T @ Pw` (where `dy` is a vector)
-    * Avoids reshape's and recasting (`asmatrix`)
-    * Fewer indices: `[n,:]` yields same as `[n]`
+    * fewer indices: `[n,:]` yields same as `[n]`
+    * no checking if numpy return `ndarrays` even when input is `matrix`
 * OLD: Use `m-by-N` matrix class. Pros:
     * Literature uses `m-by-N`
-    * Facilitates desired broadcasting
     * Matrix multiplication through `*` -- since python3.5 can just use `@`
 
 
