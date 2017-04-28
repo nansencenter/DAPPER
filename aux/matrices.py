@@ -146,53 +146,54 @@ class CovMat():
   """
   Covariance matrix class.
 
-  Convenience constructor.
-
-  Convenience transformations with memoization. E.g. shortcut to
-    if not hasattr(noise.C,'ssqrt'):
-      noise.C.ssqrt = funm_psd(noise.C
+  Main tasks:
+    - Unifying the covariance representations:
+      full, diagonal, reduced-rank sqrt.
+    - Convenience constructor and printing.
+    - Convenience transformations with memoization.
+      E.g. replaces:
+      >if not hasattr(noise.C,'sym_sqrt'):
+      >  S = funm_psd(noise.C, sqrt)
+      >  noise.C.sym_sqrt = S
+      This (hiding it internally) becomes particularly useful
+      if the covariance matrix changes with time (but repeat).
   """
-  # It's mainly about supporting PSD functionality quickly,
-  # not about keeping the memory usage low.
-  # That would require a much more detailed implementation,
-  # possibly using sparse matrices for the eigenvector matrix.
-  # But then you would have the problem that their use involves
-  # the **matrix class**, which treats * as dot.
-  # Of course, one could try to overload +-@/,
-  # but unfortunately there's no right/post-application version of @ and /,
-  # which makes this less interesting.
 
-  def __init__(self,data,kind='full_or_diag'):
+  ##################################
+  # Init
+  ##################################
+  def __init__(self,data,kind='full_or_diag',trunc=1.0):
     """
     The covariance (say P) can be input (specified in the following ways):
     kind    : data
     ----------------------
     'full'  : full m-by-m array (P)
     'diag'  : diagonal of P (assumed diagonal)
-    'E'     : ensemble (m-by-N) with sample cov P
-    'A'     : as 'E', but pre-centred
-    'Right' : any R such that P = R.T@R (e.g. weighted versions of 'A')
+    'E'     : ensemble (N-by-m) with sample cov P
+    'A'     : as 'E', but pre-centred by mean(E,axis=0)
+    'Right' : any R such that P = R.T@R (e.g. weighted form of 'A')
     'Left'  : any L such that P = L@L.T
     """
-
+    
+    # Cascade if's down to 'Right'
     if kind=='E':
-      mu          = mean(data,0)
-      data        = data - mu
-      kind        = 'A'
+      mu      = mean(data,0)
+      data    = data - mu
+      kind    = 'A'
     if kind=='A':
-      N           = len(data)
-      data        = data / sqrt(N-1)
-      kind        = 'Right'
+      N       = len(data)
+      data    = data / sqrt(N-1)
+      kind    = 'Right'
     if kind=='Left':
-      data        = data.T
-      kind        = 'Right'
+      data    = data.T
+      kind    = 'Right'
     if kind=='Right':
       # If a cholesky factor has been input, we will not
       # automatically go for the EVD, seeing as e.g. the
       # diagonal can be computed without it.
-      R           = exactly_2d(data)
-      self._R     = R
-      self._m     = R.shape[1]
+      R       = exactly_2d(data)
+      self._R = R
+      self._m = R.shape[1]
     else:
       if kind=='full_or_diag':
         data = np.atleast_1d(data)
@@ -214,9 +215,9 @@ class CovMat():
         # With diagonal input, it would be great to use a sparse
         # (or non-existant) representation of V,
         # but that would require so much other adaption of other code.
-        d           = exactly_1d(data)
-        self._dg    = d
-        m           = len(d)
+        d         = exactly_1d(data)
+        self.diag = d
+        m         = len(d)
         if np.all(d==d[0]):
           V   = eye(m)
           rk  = m
@@ -232,73 +233,31 @@ class CovMat():
       else:
         raise KeyError
 
-  @staticmethod
-  def _clip(d):
-    return np.where(d<1e-8*d.max(),0,d)
+    self._kind  = kind
+    self._trunc = trunc
 
-  def _assign_EVD(self,m,rk,d,V):
-      self._m   = m
-      self._d   = d
-      self._U   = V
-      self._rk  = rk
 
-  def _do_EVD(self):
-    if not self.has_done_EVD:
-      V,s,UT = svd0(self._R)
-      m      = UT.shape[1]
-      d      = s**2
-      d      = CovMat._clip(d)
-      rk     = (d>0).sum()
-      d      = d [:rk]
-      V      = UT[:rk].T
-      self._assign_EVD(m,rk,d,V)
-
-  @staticmethod
-  def process_diag(d):
-    return m,rk,d
-
+  ##################################
+  # Protected
+  ##################################
   @property
   def m(self):
     """ndims"""
     return self._m
-  @property
-  def has_done_EVD(self):
-    """Whether or not eigenvalue decomposition has been done for matrix."""
-    return all([key in vars(self) for key in ['_U','_d','_rk']])
-  @property
-  def ews(self):
-    """Eigenvalues. Only outputs the positive values (i.e. len(ews)==rk)."""
-    self._do_EVD()
-    return self._d
-  @property
-  def V(self):
-    """Eigenvectors, output corresponding to ews."""
-    self._do_EVD()
-    return self._U
-  @property
-  def rk(self):
-    """Rank, i.e. the number of positive eigenvalues."""
-    self._do_EVD()
-    return self._rk
 
-  @lazy_property
-  def Left(self):
-    """L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
-    and that its width is somewhere betwen the rank and m."""
-    if hasattr(self,'_R'):
-      return self._R.T
-    else:
-      return self.V * sqrt(self.ews)
+  @property
+  def kind(self):
+    """Form in which matrix was specified."""
+    return self._kind
 
-  @lazy_property
-  def Right(self):
-    """R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
-    and that its height is somewhere betwen the rank and m."""
-    if hasattr(self,'_R'):
-      return self._R
-    else:
-      return self.Left.T
-  
+  @property
+  def trunc(self):
+    """Truncation threshold."""
+    return self._kind
+
+  ##################################
+  # "Non-EVD" stuff
+  ##################################
   @property
   def full(self):
     "Full covariance matrix"
@@ -309,35 +268,106 @@ class CovMat():
     self._C = C
     return C
 
-  @property
+  @lazy_property
   def diag(self):
     "Diagonal of covariance matrix"
-    if hasattr(self,'_dg'):
-      dg = self._dg
-    elif hasattr(self,'_C'):
-      dg = diag(self._C)
+    if hasattr(self,'_C'):
+      return diag(self._C)
     else:
-      dg = (self.Left**2).sum(axis=1)
-    self._dg = dg
-    return dg
+      return (self.Left**2).sum(axis=1)
 
+  @lazy_property
+  def Left(self):
+    """L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
+    and that its width is somewhere betwen the rank and m."""
+    if hasattr(self,'_R'):
+      return self._R.T
+    else:
+      return self.V * sqrt(self.ews)
+  @lazy_property
+  def Right(self):
+    """R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
+    and that its height is somewhere betwen the rank and m."""
+    if hasattr(self,'_R'):
+      return self._R
+    else:
+      return self.Left.T
+
+
+  ##################################
+  # EVD stuff
+  ##################################
+  def _assign_EVD(self,m,rk,d,V):
+      self._m   = m
+      self._d   = d
+      self._V   = V
+      self._rk  = rk
+
+  @staticmethod
+  def _clip(d):
+    return np.where(d<1e-8*d.max(),0,d)
+
+  def _do_EVD(self):
+    if not self.has_done_EVD():
+      V,s,UT = svd0(self._R)
+      m      = UT.shape[1]
+      d      = s**2
+      d      = CovMat._clip(d)
+      rk     = (d>0).sum()
+      d      = d [:rk]
+      V      = UT[:rk].T
+      self._assign_EVD(m,rk,d,V)
+
+  def has_done_EVD(self):
+    """Whether or not eigenvalue decomposition has been done for matrix."""
+    return all([key in vars(self) for key in ['_V','_d','_rk']])
+
+
+  @property
+  def ews(self):
+    """Eigenvalues. Only outputs the positive values (i.e. len(ews)==rk)."""
+    self._do_EVD()
+    return self._d
+  @property
+  def V(self):
+    """Eigenvectors, output corresponding to ews."""
+    self._do_EVD()
+    return self._V
+  @property
+  def rk(self):
+    """Rank, i.e. the number of positive eigenvalues."""
+    self._do_EVD()
+    return self._rk
+
+  
+  ##################################
+  # transform_by properties
+  ##################################
   def transform_by(self,fun):
-    "Generalize scalar function to covariance matrix via Taylor expansion."
-    return (self.V * fun(self.ews)) @ self.V.T
+    """
+    Generalize scalar functions to covariance matrices
+    (via Taylor expansion).
+    """
+
+    r = truncate_rank(self.ews,self.trunc,True)
+    V = self.V[:,:r]
+    w = self.ews[:r]
+
+    return (V * fun(w)) @ V.T
   
   @lazy_property
   def sym_sqrt(self):
-    "S such that C = S@S, where S is square."
+    "S such that C = S@S (and i.e. S is square). Uses trunc-level."
     return self.transform_by(sqrt)
 
   @lazy_property
   def sym_sqrt_inv(self):
-    "S such that C^{-1} = S@S, where S is square."
+    "S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level."
     return self.transform_by(lambda x: 1/sqrt(x))
 
   @lazy_property
   def pinv(self):
-    "Pseudo-inverse. Also consider using truncated inverse (tinv)."
+    "Pseudo-inverse. Uses trunc-level."
     return self.transform_by(lambda x: 1/x)
 
   @lazy_property
@@ -345,16 +375,31 @@ class CovMat():
     if self.m != self.rk:
       raise RuntimeError("Matrix is rank deficient, "+
           "and cannot be inverted. Use .tinv() instead?")
-    return self.pinv
+    # Temporarily remove any truncation
+    tmp = self.trunc
+    self._trunc = 1.0
+    # Compute and restore truncation level
+    Inv = self.pinv
+    self._trunc = tmp
+    return Inv
 
+  ##################################
+  # __repr__
+  ##################################
   def __repr__(self):
-    s  = "\nm: " + str(self.m)
-    s += "\nrk: "
-    if self.has_done_EVD:
+    s  = "\n    m: " + str (self.m)
+    s += "\n kind: " + repr(self.kind)
+    s += "\ntrunc: " + str (self.trunc)
+
+    # Rank
+    s += "\n   rk: "
+    if self.has_done_EVD():
       s += str(self.rk)
     else:
       s += "<=" + str(self.Right.shape[0])
-    s += "\nfull:"
+
+    # Full (as affordable)
+    s += "\n full:"
     if hasattr(self,'_C') or np.get_printoptions()['threshold'] > self.m**2:
       # We can afford to compute full matrix
       t = "\n" + str(self.full)
@@ -382,14 +427,36 @@ class CovMat():
 
       with printoptions(threshold=0):
         t = "\n" + str(All)
-    s += t.replace("\n","\n  ")
 
+    # Indent all of cov array, and add to s
+    s += t.replace("\n","\n   ")
+
+    # Add diag. Indent array +1 vs cov array
     with printoptions(threshold=0):
-      s += "\ndiag:\n" + "   " + str(self.diag)
+      s += "\n diag:\n   " + " " + str(self.diag)
 
-    s = repr_type_and_name(self) + s.replace("\n","\n   ")
+    s = repr_type_and_name(self) + s.replace("\n","\n  ")
     return s
 
+# TODO? The diagonal representation is NOT memory-efficient.
+#
+# But there's no simple way of making so, especially since the sparse class
+# (which would hold the eigenvectors) is a subclass of the matrix class,
+# which interprets * as @, and so, when using this class,
+# one would have to be always careful about it
+# 
+# One could try to overload +-@/ (for CovMat),
+# but unfortunately there's no right/post-application version of @ and /
+# (indeed, how could there be for binary operators?)
+# which makes this less interesting.
+# Hopefully this restriction is not an issue,
+# as diagonal matrices are mainly used for observation error covariance,
+# which are usually not infeasibly large.
+#
+# Another potential solution is to subclass the sparse matrix,
+# and revert its operator definitions to that of ndarray. 
+# and use it for the V (eigenvector) matrix that gets output
+# by various fields of CovMat.
 
 
 

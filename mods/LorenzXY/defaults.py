@@ -35,6 +35,7 @@ P0  = eye(m)
 mu0[:nX],P0[:nX,:nX] = typical_init_params(nX)
 X0  = GaussRV(mu0, 0.01*P0)
 
+# TODO: utilize partial_direct_obs...
 p = nX
 obsInds = range(p)
 @atmost_2d

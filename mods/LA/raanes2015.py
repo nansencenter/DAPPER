@@ -22,20 +22,11 @@ m = 1000;
 p = 40;
 
 jj = equi_spaced_integers(m,p)
-H  = direct_obs_matrix(m,jj)
-@ens_compatible
-def partial_direct_obs    (x,t): return x[jj]
-def partial_direct_obs_jac(x,t): return H
-def yplot(y): return plt.plot(jj,y,'g*',ms=8)[0]
-h = {
-    'm'    : p,
-    'model': partial_direct_obs,
-    'jacob': partial_direct_obs_jac,
-    'noise': 0.01,
-    'plot' : yplot,
-    }
+h = partial_direct_obs_setup(m,jj)
+h['noise'] = 0.01
 
 
+################### Noise setup ###################
 # Instead of sampling model noise from sinusoidal_sample(),
 # we will replicate it below by a covariance matrix approach.
 # But, for strict equivalence, one would have to use
@@ -57,6 +48,7 @@ except FileNotFoundError:
 
 X0 = GaussRV(C=CovMat(sqrt(5)*L,'Left'))
 
+################### Forward model ###################
 damp = 0.98;
 Fm = Fmat(m,-1,1,tseq.dt)
 def step(x,t,dt):
@@ -70,8 +62,8 @@ f = {
     'noise': GaussRV(C=CovMat(L,'Left')),
     }
 
+################### Gather ###################
 other = {'name': os.path.relpath(__file__,'mods/')}
-
 setup = OSSE(f,h,tseq,X0,**other)
 
 

@@ -3,8 +3,9 @@
 from common import *
 
 from mods.Lorenz95 import core
+from aux.localization import partial_direct_obs_1d_loc_setup as loc
 
-t = Chronology(0.05,dkObs=2,T=4**3,BurnIn=20)
+t = Chronology(0.05,dkObs=2,T=4**4,BurnIn=20)
 
 m = 80
 f = {
@@ -16,37 +17,11 @@ f = {
 X0 = GaussRV(m=m, C=0.001)
 
 jj = arange(0,m,2)
-p  = len(jj)
-@atmost_2d
-def hmod(E,t): return E[:,jj]
-H = direct_obs_matrix(m,jj)
-
-
-from aux.localization import inds_and_coeffs, unravel
-dIJ = unravel(arange(m), m)
-oIJ = unravel(jj, m)
-def locf(radius,direction,t,tag=None):
-  if direction is 'x2y':
-    def locf_at(i):
-      return inds_and_coeffs(dIJ[:,i], oIJ, m, radius, tag=tag)
-  elif direction is 'y2x':
-    def locf_at(i):
-      return inds_and_coeffs(oIJ[:,i], dIJ, m, radius, tag=tag)
-  else: raise KeyError
-  return locf_at
-
-
-h = {
-    'm'    : p,
-    'model': hmod,
-    'jacob': lambda x,t: H,
-    'noise': GaussRV(C=1.0*eye(p)),
-    'loc_f': locf,
-    }
- 
+h = partial_direct_obs_setup(m,jj)
+h['noise'] = 1.0
+h['loc_f'] = loc(m,jj)
 
 other = {'name': os.path.relpath(__file__,'mods/')}
-
 setup = OSSE(f,h,t,X0,**other)
 
 ####################

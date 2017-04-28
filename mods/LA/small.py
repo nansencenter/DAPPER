@@ -9,11 +9,9 @@ from common import *
 
 from mods.LA.core import Fmat, homogeneous_1D_cov
 
-m = 100
-p = 4
-obsInds = equi_spaced_integers(m,p)
-
 tseq = Chronology(dt=1,dkObs=5,T=300,BurnIn=-1)
+
+m = 100
 
 #def step(x,t,dt):
   #return np.roll(x,1,axis=x.ndim-1)
@@ -30,18 +28,13 @@ f = {
 
 X0 = GaussRV(C=homogeneous_1D_cov(m,m/8,kind='Gauss'))
 
-@atmost_2d
-def hmod(E,t):
-  return E[:,obsInds]
+p  = 4
+jj = equi_spaced_integers(m,p)
+h  = partial_direct_obs_setup(m,jj)
+h['noise'] = 0.01
 
-h = {
-    'm': p,
-    'model': hmod,
-    'noise': GaussRV(C=0.01*eye(p))
-    }
  
 other = {'name': os.path.relpath(__file__,'mods/')}
-
 setup = OSSE(f,h,tseq,X0,**other)
 
 

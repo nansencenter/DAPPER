@@ -275,11 +275,6 @@ class NamedFunc():
     argnames = "("+",".join(argnames)+")"
     return "<NamedFunc>"+argnames+": "+self._repr
 
-def Id_op():
-  return NamedFunc(lambda *args: args[0], "Id operator")
-def Id_mat(m):
-  I = np.eye(m)
-  return NamedFunc(lambda x,t: I, "Id("+str(m)+") matrix")
 
 
 

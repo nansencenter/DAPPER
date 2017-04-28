@@ -19,7 +19,7 @@ t = Chronology(0.05,dkObs=1,T=200*day,BurnIn=10*day)
 m = 3
 f = {
     'm'    : m,
-    'model': lambda x,t,dt: step(x,t,dt),
+    'model': step,
     'jacob': dfdx,
     'noise': 0
     }

@@ -112,3 +112,20 @@ def inds_and_coeffs(centr, domain, domain_shape,
   return inds, coeffs
 
 
+def partial_direct_obs_1d_loc_setup(m,jj):
+  "m: state length. jj: indices of direct obs in state."
+  ii  = arange(m)      # state inds
+  dIJ = unravel(ii, m) # cartesian indices
+  oIJ = unravel(jj, m) # cartesian indices
+  def locf(radius,direction,t,tag=None):
+    "return function that returns indices_and_coeffs for Lorenz95"
+    if direction is 'x2y':
+      def locf_at(i):
+        return inds_and_coeffs(dIJ[:,i], oIJ, m, radius, tag=tag)
+    elif direction is 'y2x':
+      def locf_at(j):
+        return inds_and_coeffs(oIJ[:,j], dIJ, m, radius, tag=tag)
+    else: raise KeyError
+    return locf_at
+  return locf
+

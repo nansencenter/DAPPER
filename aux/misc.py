@@ -153,13 +153,6 @@ def integrate_TLM(M,dt,method='approx'):
 
 
 
-def mrdiv(b,A):
-  return nla.solve(A.T,b.T).T
-
-def mldiv(A,b):
-  return nla.solve(A,b)
-
-
 
 def round2(num,prec=1.0):
   """Round with specific precision.
@@ -184,16 +177,7 @@ def find_1st_ind(xx):
   except StopIteration:
     return None
 
-def equi_spaced_integers(m,p):
-  """Provide a range of p equispaced integers between 0 and m-1"""
-  return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
 
-def direct_obs_matrix(m,obsInds):
-  """for i,j in enumerate(obsInds): H[i,j] = 1.0"""
-  p = len(obsInds)
-  H = zeros((p,m))
-  H[range(p),obsInds] = 1
-  return H
 
 
 def circulant_ACF(C,do_abs=False):
@@ -215,6 +199,16 @@ def circulant_ACF(C,do_abs=False):
   return ACF/m
 
 
+
+########################
+# Linear Algebra
+########################
+
+def mrdiv(b,A):
+  return nla.solve(A.T,b.T).T
+
+def mldiv(A,b):
+  return nla.solve(A,b)
 
 
 def pad0(ss,N):
@@ -238,6 +232,21 @@ def svd0(A):
   else:
     return sla.svd(A, full_matrices=False)
 
+def truncate_rank(s,threshold,avoid_pathological):
+  "Find truncation rank."
+  # Assume proportion requested
+  if isinstance(threshold,float):
+    assert threshold <= 1.0
+    if threshold < 1.0:
+      r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
+      r += 1 # Hence the strict inequality above
+      if avoid_pathological:
+        # If not avoid_pathological, then the last 4 diag. entries of
+        # reconst( *tsvd(eye(400),0.99) )
+        # will be zero. This is probably not intended.
+        r += np.sum(np.isclose(s[r-1], s[r:]))
+    else:
+      r = len(s)
 
 def tsvd(A, threshold=0.99999, avoid_pathological=True):
   """
@@ -266,19 +275,8 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
   # SVD
   U,s,VT = sla.svd(A, full_matrices)
 
-  # Assume proportion requested
-  if isinstance(threshold,float):
-    assert threshold <= 1.0
-    if threshold < 1.0:
-      r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
-      r += 1 # Hence the strict inequality above
-      if avoid_pathological:
-        # If not avoid_pathological, then the last 4 diag. entries of
-        # reconst( *tsvd(eye(400),0.99) )
-        # will be zero. This is probably not intended.
-        r += np.sum(np.isclose(s[r-1], s[r:]))
-    else:
-      r = len(s)
+  # Find truncation rank
+  r = truncate_rank(s,threshold,avoid_pathological)
 
   # Truncate
   U  = U [:,:r]
@@ -301,4 +299,44 @@ def tinv(A,*kargs,**kwargs):
   """
   U,s,VT = tsvd(A,*kargs,**kwargs)
   return (VT.T * s**(-1.0)) @ U.T
+
+
+
+########################
+# Setup facilation
+########################
+
+def Id_op():
+  return NamedFunc(lambda *args: args[0], "Id operator")
+def Id_mat(m):
+  I = np.eye(m)
+  return NamedFunc(lambda x,t: I, "Id("+str(m)+") matrix")
+
+
+def equi_spaced_integers(m,p):
+  """Provide a range of p equispaced integers between 0 and m-1"""
+  return np.round(linspace(floor(m/p/2),ceil(m-m/p/2-1),p)).astype(int)
+
+def direct_obs_matrix(m,jj):
+  """Matrix that "picks" state elements jj out of range(m)"""
+  p = len(jj)
+  H = zeros((p,m))
+  H[range(p),jj] = 1
+  return H
+
+def partial_direct_obs_setup(m,jj):
+  p  = len(jj)
+  H  = direct_obs_matrix(m,jj)
+  @ens_compatible
+  def model(x,t): return x[jj]
+  def jacob(x,t): return H
+  def plot(y):    return plt.plot(jj,y,'g*',ms=8)[0]
+  h = {
+      'm'    : p,
+      'model': model,
+      'jacob': jacob,
+      'plot' : plot,
+      }
+  return h
+
 

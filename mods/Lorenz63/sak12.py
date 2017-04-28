@@ -10,7 +10,6 @@ p = m
 
 t = Chronology(0.01,dkObs=25,T=4**5,BurnIn=4)
 
-m = 3
 f = {
     'm'    : m,
     'model': step,
@@ -25,7 +24,7 @@ h = {
     'm'    : p,
     'model': Id_op(),
     'jacob': Id_mat(m),
-    'noise': 2, # shortcut for GaussRV(C=CovMat(2*eye(p)))
+    'noise': 2, # abbrev GaussRV(C=CovMat(2*eye(p)))
     }
 
 other = {'name': os.path.relpath(__file__,'mods/')}

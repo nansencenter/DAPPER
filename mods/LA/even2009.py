@@ -14,7 +14,7 @@ from mods.LA.core import sinusoidal_sample, Fmat
 
 m = 1000
 p = 4
-obsInds = equi_spaced_integers(m,p)
+jj = equi_spaced_integers(m,p)
 
 tseq = Chronology(dt=1,dkObs=5,T=300,BurnIn=-1)
 
@@ -26,7 +26,7 @@ def step(x,t,dt):
   return x @ Fm.T
 
 f = {
-    'm': m,
+    'm'    : m,
     'model': step,
     'jacob': Fm,
     'noise': 0
@@ -39,28 +39,16 @@ f = {
 wnum  = 25
 X0 = RV(func= lambda N: sqrt(5)/10 * sinusoidal_sample(m,wnum,N))
 
-@atmost_2d
-def hmod(E,t):
-  return E[:,obsInds]
 def yplot(y):
-  lh = plt.plot(obsInds,y,'g*',MarkerSize=8)[0]
+  lh = plt.plot(jj,y,'g*',MarkerSize=8)[0]
   plt.pause(0.8)
   return lh
 
-H = zeros((p,m))
-for i,j in enumerate(obsInds):
-  H[i,j] = 1.0
+h = partial_direct_obs_setup(m,jj)
+h['noise'] = 0.01
+h['plot'] = yplot
 
-h = {
-    'm': p,
-    'model': hmod,
-    'jacob': lambda x,t: H,
-    'noise': GaussRV(C=0.01*eye(p)),
-    'plot' : yplot,
-    }
- 
 other = {'name': os.path.relpath(__file__,'mods/')}
-
 setup = OSSE(f,h,tseq,X0,**other)
 
 

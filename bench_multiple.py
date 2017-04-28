@@ -9,6 +9,7 @@ from common import *
 sd0 = seed(9)
 
 from mods.Lorenz95.sak08 import setup
+setup.t.T = 4**4
 
 xx,yy = simulate(setup)
 
@@ -24,6 +25,10 @@ cfgs += EnKF('Sqrt',N=25,infl=1.05)
 cfgs += EnKF('Sqrt',N=50,infl=1.03)
 cfgs += EnKF_N(N=25)
 cfgs += EnKF_N(N=50)
+
+#cfgs += LETKF(         N=6,rot=True,infl=1.04,loc_rad=4)
+#cfgs += LETKF(approx=1,N=8,rot=True,infl=1.25,loc_rad=4)
+#cfgs += SL_EAKF(       N=6,rot=True,infl=1.07,loc_rad=6)
 
 ############################
 # Assimilate
@@ -50,10 +55,11 @@ print_averages(cfgs,avrgs)
 ############################
 # Plot
 ############################
-plot_time_series   (stats[-1])
-plot_3D_trajectory (stats[-1])
-plot_err_components(stats[-1])
-plot_rank_histogram(stats[-1])
+#plot_time_series   (stats[-1])
+#plot_3D_trajectory (stats[-1])
+#plot_err_components(stats[-1])
+#plot_rank_histogram(stats[-1])
 
 # TODO: Verify speed changes before/after CovMat
 # TODO: Rename assimilator and da_driver --> same
+# TODO: cfgs.add --> cfgs +=

@@ -287,11 +287,8 @@ Conventions:
 
 TODO
 ------------------------------------------------
-* CovMat
-     * Unify sparse and dense treatment
-     * Read-only properties
 * Complete QG, LorenzXY
-* Split `da_algos.py` into multiple files
+* Reorg file structure
 * Make full 3D-Var (not opt. int.)
 * Make tutorial
 
