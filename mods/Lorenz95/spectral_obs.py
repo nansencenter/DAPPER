@@ -129,5 +129,5 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-#config = EnKF ('Sqrt',N=40, infl=1.01)
+#cfgs += EnKF ('Sqrt',N=40, infl=1.01)
 

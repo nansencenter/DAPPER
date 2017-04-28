@@ -14,11 +14,11 @@ from mods.Barotropic.defaults  import setup
 setup.t.T = 20
 
 cfgs = DAC_list()
-cfgs.add(Climatology)
-cfgs.add(EnKF,infl=1.15,keep=True,upd_a='Sqrt')
-cfgs.add(LETKF  ,infl=1.10,locf=setup.locf(100,'x2y'),keep=True)
-#cfgs.add(LETKF,infl=1.10,locf=setup.locf(10,'x2y'),upd_a='approx',keep=True)
-#cfgs.add(SL_EAKF,infl=1.0,locf=setup.locf(10,'y2x'),keep=True)
+cfgs += Climatology()
+cfgs += EnKF(infl=1.15,keep=True,upd_a='Sqrt')
+cfgs += LETKF  (infl=1.10,locf=setup.locf(100,'x2y'),keep=True)
+#cfgs += LETKF(infl=1.10,locf=setup.locf(10,'x2y'),upd_a='approx',keep=True)
+#cfgs += SL_EAKF(infl=1.0,locf=setup.locf(10,'y2x'),keep=True)
 
 ############################
 # Common settings

@@ -1,5 +1,4 @@
-# Reproduce results from
-# table1 of sakov et al "DEnKF" (2008)
+# Reproduce results from Table 1 of Sakov et al "DEnKF" (2008)
 # This setup is also used in several other papers
 # (bocquet2012"combining",bocquet2015"expanding", raanes2016"EnRTS", ...)
 
@@ -38,28 +37,27 @@ setup = OSSE(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-
-# Reproduce Sakov'2008 "deterministic"
-#config = EnKF('PertObs',N=40, infl=1.06)           # rmse_a = 0.22
-#config = EnKF('DEnKF'  ,N=40, infl=1.01)           # rmse_a = 0.18
-#config = EnKF('PertObs',N=28, infl=1.08)           # rmse_a = 0.24
-#config = EnKF('Sqrt'   ,N=24, infl=1.013,rot=True) # rmse_a = 0.18
+# Reproduce Sakov'2008 "deterministic"                     # Expected RMSE_a:
+#cfgs += EnKF('PertObs',N=40, infl=1.06)                  # 0.22
+#cfgs += EnKF('DEnKF'  ,N=40, infl=1.01)                  # 0.18
+#cfgs += EnKF('PertObs',N=28, infl=1.08)                  # 0.24
+#cfgs += EnKF('Sqrt'   ,N=24, infl=1.013,rot=True)        # 0.18
 
 # Other
-#config = iEnKF('Sqrt',N=40,iMax=10,infl=1.01,rot=True) # rmse_a = 0.17
-#
-#config = LETKF(         N=6,rot=True,infl=1.04,loc_rad=4)
-#config = LETKF(approx=1,N=8,rot=True,infl=1.25,loc_rad=4)
-#config = SL_EAKF(       N=6,rot=True,infl=1.07,loc_rad=6)
-#
-#config = Climatology()
-#config = D3Var()
-#config = ExtKF(infl=6)
-#config = EnCheat('Sqrt',N=24,infl=1.02,rot=True)
+#cfgs += iEnKF('Sqrt',N=40,iMax=10,infl=1.01,rot=True)    # 0.17
 
+# Localized
+#cfgs += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4) # 0.22
+#cfgs += LETKF(approx=1,N=8,rot=True,infl=1.25,loc_rad=4) # 0.36
+#cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6) # 0.23
 # Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6.
-#config = LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')
+#cfgs += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')
 
+# Other
+#cfgs += Climatology()
+#cfgs += D3Var()
+#cfgs += ExtKF(infl=6)
+#cfgs += EnCheat('Sqrt',N=24,infl=1.02,rot=True)
 
 
 # Reproduce Bocquet'2015 "expanding"

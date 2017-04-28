@@ -29,15 +29,15 @@ nRepeat   = 2
 ############################
 
 cfgs = DAC_list()
-cfgs.add(Climatology)
-cfgs.add(D3Var)
-cfgs.add(ExtKF,infl=6)
-cfgs.add(EnKF_N,N=24,rot=True)
+cfgs += Climatology()
+cfgs += D3Var()
+cfgs += ExtKF(infl=6)
+cfgs += EnKF_N(N=24,rot=True)
 
 # Not tuned
-#cfgs.add(EnKF,'PertObs',N=24,infl=1.25)
-#cfgs.add(EnKF,'Sqrt',N=24,infl=1.25)
-#cfgs.add(EnKF_tp,N=24,infl=1.25)
+#cfgs += EnKF('PertObs',N=24,infl=1.25)
+#cfgs += EnKF('Sqrt',N=24,infl=1.25)
+#cfgs += EnKF_tp(N=24,infl=1.25)
 
 #cfgs.assign_names()
 

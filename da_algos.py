@@ -767,9 +767,9 @@ def BnKF(N,infl=1.0,rot=False,**kwargs):
   def assimilate(stats,twin,xx,yy):
     # Test settings:
     #from mods.Lorenz95.sak08 import setup
-    #config = EnKF_N(N=28)
-    #config = EnKF('PertObs',N=39,infl=1.06)
-    #config = BnKF(N=39,infl=1.03)
+    #cfgs += EnKF_N(N=28)
+    #cfgs += EnKF('PertObs',N=39,infl=1.06)
+    #cfgs += BnKF(N=39,infl=1.03)
 
     # Unpack
     f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0

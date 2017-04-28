@@ -15,9 +15,9 @@ setup.name = os.path.relpath(__file__,'mods/')
 ####################
 # Suggested tuning
 ####################
-#cfgs.add(ExtKF,infl=8)
-#cfgs.add(EnKF ,'Sqrt',N=10,infl=1.05)
-#cfgs.add(EnKF ,'Sqrt',N=100,rot=True,infl=1.01)
-#cfgs.add(EnKF_N ,N=4)
-#cfgs.add(PartFilt, N=100, NER=0.4)
-#cfgs.add(PartFilt, N=1000, NER=0.1)
+#cfgs += ExtKF(infl=8)
+#cfgs += EnKF ('Sqrt',N=10,infl=1.05)
+#cfgs += EnKF ('Sqrt',N=100,rot=True,infl=1.01)
+#cfgs += EnKF_N (N=4)
+#cfgs += PartFilt(N=100, NER=0.4) # add reg!
+#cfgs += PartFilt(N=1000, NER=0.1) # add reg!
