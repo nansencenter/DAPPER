@@ -1,4 +1,4 @@
-# Illustrate how to use DAPPER to benchmark DA methods
+# Illustrate how to use DAPPER to benchmark multiple DA methods
 
 from common import *
 
@@ -82,3 +82,6 @@ print_averages(cfgs,avrgs)
 #plot_err_components(stats[-1])
 #plot_rank_histogram(stats[-1])
 #plot_hovmoller     (xx,setup.t)
+
+
+

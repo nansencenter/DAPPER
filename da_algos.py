@@ -933,7 +933,7 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
             # Compensate for rroot
             #w *= exp(-0.5*chi2*(1 - 1/rroot))
             #w /= w.sum()
-      stats.assess(k,None,'u',E=E,w=w)
+      stats.assess(k,kObs,'u',E=E,w=w)
   return assimilator
 
 
@@ -996,7 +996,7 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
           idx,w  = resample(w, upd_a, wroot=wroot)
           E,chi2 = regularize(C12,E,idx,nuj)
 
-      stats.assess(k,None,'u',E=E,w=w)
+      stats.assess(k,kObs,'u',E=E,w=w)
   return assimilator
 
 
@@ -1270,7 +1270,7 @@ def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**
           C12    = reg*bandw(N,m)*raw_C12(ED[idx],w) # TODO: compute from w_ ?
           E,chi2 = regularize(C12,ED,idx,nuj)
 
-      stats.assess(k,None,'u',E=E,w=w)
+      stats.assess(k,kObs,'u',E=E,w=w)
   return assimilator
 
 

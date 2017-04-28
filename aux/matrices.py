@@ -1,28 +1,16 @@
 from common import *
 
-# Useful matrix to toy with.
-try:
-  from Misc.magic_square import magic
-except ImportError:
-  pass
-
-# I also recommend the package "rogues",
-# which replicates Matlab's matrix gallery.
-
+# Test matrices
 def randcov(m):
-  """(Makeshift) random cov mat
-  (which is missing from rogues)"""
+  """(Makeshift) random cov mat."""
   N = int(ceil(2+m**1.2))
   E = randn((N,m))
   return E.T @ E
 def randcorr(m):
-  """(Makeshift) random corr mat
-  (which is missing from rogues)"""
+  """(Makeshift) random corr mat."""
   Cov  = randcov(m)
   Dm12 = diag(diag(Cov)**(-0.5))
   return Dm12@Cov@Dm12
-
-
 
 
 def genOG(m):

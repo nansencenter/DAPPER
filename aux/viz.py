@@ -118,7 +118,8 @@ class LivePlot:
           C = np.cov(E,rowvar=False)
         else:
           assert P is not None
-          C = P.copy()
+          C = P.full if isinstance(P,CovMat) else P
+          C = C.copy()
         # Compute corr from cov
         std = sqrt(diag(C))
         C  /= std[:,None]
@@ -222,12 +223,13 @@ class LivePlot:
         return f
 
       def divN():
-        if 'E' in locals():
+        try:
           N = E.shape[0]
-        else:
-          N = np.inf
-        def f(x): return x/N
-        return f
+          def f(x): return x/N
+          return f
+        except AttributeError:
+          pass
+        
 
       # --------------
       # RMS
@@ -352,7 +354,7 @@ class LivePlot:
     #####################
     # Weight histogram
     #####################
-    if 4 in only:
+    if 4 in only and E is not None and stats._has_w:
       fgh = plt.figure(4,figsize=(8,4))
       fgh.clf()
       win_title(fgh,"Weight histogram")
@@ -362,22 +364,19 @@ class LivePlot:
       axh.set_xscale('log')
       axh.set_xlabel('weigth [× N]')
       axh.set_ylabel('count')
-      if E is not None and stats._has_w:
-        if len(E)<10001:
-          hst = axh.hist(stats.w[0])[2]
-          N   = len(E)
-          xticks = 1/N * 10**arange(-4,log10(N)+1)
-          xtlbls = array(['$10^{'+ str(int(log10(w*N))) + '}$' for w in xticks])
-          xtlbls[xticks==1/N] = '1'
-          axh.set_xticks(xticks)
-          axh.set_xticklabels(xtlbls)
-          self.fgh = fgh
-          self.axh = axh
-          self.hst = hst
-        else:
-          not_available_text(axh,'Not computed (N > threshold)')
-      else: 
-        not_available_text(axh)
+      if len(E)<10001:
+        hst = axh.hist(stats.w[0])[2]
+        N   = len(E)
+        xticks = 1/N * 10**arange(-4,log10(N)+1)
+        xtlbls = array(['$10^{'+ str(int(log10(w*N))) + '}$' for w in xticks])
+        xtlbls[xticks==1/N] = '1'
+        axh.set_xticks(xticks)
+        axh.set_xticklabels(xtlbls)
+        self.fgh = fgh
+        self.axh = axh
+        self.hst = hst
+      else:
+        not_available_text(axh,'Not computed (N > threshold)')
 
 
 
@@ -512,7 +511,8 @@ class LivePlot:
           C = np.cov(E,rowvar=False)
         else:
           assert P is not None
-          C = P.copy()
+          C = P.full if isinstance(P,CovMat) else P
+          C = C.copy()
         std = sqrt(diag(C))
         C  /= std[:,None]
         C  /= std[None,:]

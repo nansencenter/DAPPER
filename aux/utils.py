@@ -121,7 +121,8 @@ try:
     return tabulate_orig.tabulate(data,headr,showindex=inds)
 except ImportError as err:
   install_warn(err)
-  # pandas more widespread than tabulate, but slower to import
+  # pandas is more widespread than tabulate,
+  # but slower to import (but gets imported by seaborn anyways)
   import pandas
   pandas.options.display.width = None # Auto-adjust linewidth
   pandas.options.display.colheader_justify = 'center'
@@ -436,36 +437,6 @@ def filter_out(orig_list,*unwanted):
     else:
       new.append(word)
   return new
-
-def safe_del(dct,*args):
-  "Returns new dct from dct with args removed. Also supports regex."
-  #Non-regex version:
-  #dct = {k:v for k,v in dct.items() if k not in args}
-  out = dct.copy()
-  for key in dct.keys():
-    for arg in args:
-      try:
-        # Regex compare
-        rm = bool(arg.match(key))
-      except AttributeError:
-        # String compare
-        rm = arg==key
-      # Insert in new
-      if rm:
-        del out[key]
-  return out
-
-def select(orig,*args):
-  """
-  Used to forward (pass on) keyword arguments.
-  Pro: returns empty dict if args not found.
-  Con: enforces same name at all levels.
-  Consider other approaches:
-   - a 'safe_get()' which falls-back to some defaults.
-   - using a DFLT class, within which the
-     defaults are stored and accessible for all levels and signatures.
-  """
-  return {key:orig[key] for key in args if key in orig}
 
 
 # From stackoverflow.com/q/3012421

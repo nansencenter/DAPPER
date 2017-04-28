@@ -125,9 +125,9 @@ from aux.misc import *
 from aux.chronos import *
 from aux.stoch import *
 from aux.series import *
-from aux.viz import *
 from aux.matrices import *
 from aux.randvars import *
+from aux.viz import *
 from stats import *
 from aux.admin import *
 from aux.convenience import *

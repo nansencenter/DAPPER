@@ -3,11 +3,11 @@
 # Load DAPPER. Assumes pwd is path-to-dapper
 from common import *
 
-# Load "twin" settings
+# Load "twin experiment" setup
 from mods.Lorenz63.sak12 import setup
 
 # Specify a DA method configuration
-config = EnKF('Sqrt', N=10, infl=1.02, rot=True, liveplotting=False)
+config = EnKF('Sqrt', N=10, infl=1.02, rot=True, liveplotting=True)
 
 # Simulate synthetic truth (xx) and noisy obs (yy)
 xx,yy  = simulate(setup)
@@ -29,4 +29,6 @@ plot_time_series(stats)
 #print(config)
 #print(stats)
 #print(avrgs)
+
+
 
