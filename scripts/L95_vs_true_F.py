@@ -30,7 +30,7 @@ nRepeat   = 2
 
 cfgs = DAC_list()
 cfgs += Climatology()
-cfgs += D3Var()
+cfgs += Var3D()
 cfgs += ExtKF(infl=6)
 cfgs += EnKF_N(N=24,rot=True)
 

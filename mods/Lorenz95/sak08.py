@@ -55,7 +55,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 
 # Other
 #cfgs += Climatology()
-#cfgs += D3Var()
+#cfgs += Var3D()
 #cfgs += ExtKF(infl=6)
 #cfgs += EnCheat('Sqrt',N=24,infl=1.02,rot=True)
 

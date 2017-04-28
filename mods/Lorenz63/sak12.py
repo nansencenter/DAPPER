@@ -36,7 +36,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 ####################
 #from mods.Lorenz63.sak12 import setup ##################### Expected RMSE_a:
 #cfgs += Climatology()  # no tuning!                       # 8.5
-#cfgs += D3Var()        # tuning not stirctly required     # 1.26
+#cfgs += Var3D()        # tuning not stirctly required     # 1.26
 #cfgs += ExtKF(infl=90) # some inflation tuning needed     # 0.87
 #cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # Very variable
 #cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63 (sak: 0.65)

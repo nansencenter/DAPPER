@@ -1338,18 +1338,47 @@ def Climatology(**kwargs):
   return assimilator
 
 
-#TODO: This should be called Optimal Interpolation
 @DA_Config
-def D3Var(infl=1.0,**kwargs):
+def OptInterp(**kwargs):
   """
-  3D-Var -- a baseline/reference method.
+  Optimal Interpolation -- a baseline/reference method.
   Uses the Kalman filter equations,
   but with a prior from the Climatology.
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    dkObs = chrono.dkObs
-    R     = h.noise.C.full
+
+    H = h.jacob(np.nan, np.nan)
+    assert np.all(np.isfinite(H)), "Only supports time-independent H."
+
+    mu0 = mean(xx,0)
+    A0  = xx - mu0
+    P0  = (A0.T @ A0) / (xx.shape[0] - 1)
+    KG  = mrdiv(P0@H.T, H@P0@H.T+h.noise.C.full)
+
+    mu = mu0
+    stats.assess(0,mu=mu,Cov=P0)
+    stats.trHK[:] = trace(KG@H)/f.m
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      mu = f(mu,t-dt,dt)
+      if kObs is not None:
+        stats.assess(k,kObs,'f',mu=mu0,Cov=P0)
+        mu = mu0 + KG@(yy[kObs] - h(mu0,t))
+      stats.assess(k,kObs,mu=mu,Cov=P0)
+  return assimilator
+
+
+@DA_Config
+def Var3D(infl=1.0,**kwargs):
+  """
+  3D-Var -- a baseline/reference method.
+  Uses the Kalman filter equations,
+  but with...
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    dkObs, R      = chrono.dkObs, h.noise.C.full
 
     mu0   = mean(xx,0)
     A0    = xx - mu0
@@ -1376,9 +1405,9 @@ def D3Var(infl=1.0,**kwargs):
     # Experimental:
     L       = estimate_corr_length(A0.ravel(order='F'))
     max_amp = 2*P0 # var(mu-truth) = 2 P0
-    def saw_tooth(Pa,rho):
+    def wave_crest(Pa,rho):
       """A sigmoid fitted to decorrelation length (L), Pa, and P0."""
-      # See doc/saw_tooth.jpg
+      # See doc/wave_crest.jpg
       sigmoid = lambda t: 1/(1+exp(-t))
       inv_sig = lambda u: log(u/(1-u))
       shift   = inv_sig(trace(Pa)/trace(max_amp))
@@ -1396,22 +1425,20 @@ def D3Var(infl=1.0,**kwargs):
       mu = f(mu,t-dt,dt)
 
       if kObs is not None:
-        stats.assess(k,kObs,'f',mu=mu0,Cov=P0)
-
+        stats.assess(k,kObs,'f',mu=mu,Cov=P)
         r = 0
-        y = yy[kObs]
+
         if not pre_computed_KG:
-          H  = h.jacob(mu0,t)
+          H  = h.jacob(mu,t)
           KG = mrdiv(P0@H.T, H@P0@H.T + R)
           KH = KG@H
           Pa = (eye(f.m) - KH) @ P0
           stats.trHK[kObs] = trace(KH)/f.m
-        mu = mu0 + KG@(y - h(mu0,t))
+
+        mu = mu + KG@(yy[kObs] - h(mu,t))
 
       if r<dkObs:
-        # Interpolate P between Pa and P0.
-        #P = Pa + (max_amp-Pa)*r/dkObs
-        P = saw_tooth(Pa,r/dkObs)
+        P = wave_crest(Pa,r/dkObs)
       r += 1
 
       stats.assess(k,kObs,mu=mu,Cov=P)

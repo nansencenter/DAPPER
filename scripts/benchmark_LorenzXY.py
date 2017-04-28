@@ -15,7 +15,7 @@ ratio_dt = validate_int(setup_trunc.t.dt / setup_full.t.dt)
 
 cfgs = DAC_list()
 cfgs += Climatology()
-cfgs += D3Var()
+cfgs += Var3D()
 cfgs += EnKF(infl=1.10,liveplotting=True)
 keep = len(cfgs)-1
 cfgs += EnKF(infl=1.15)
