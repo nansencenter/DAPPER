@@ -131,5 +131,5 @@ from aux.viz import *
 from stats import *
 from aux.admin import *
 from aux.convenience import *
-from da_algos import *
+from da_methods import *
 

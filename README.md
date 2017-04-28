@@ -135,7 +135,7 @@ do not hesitate make your own scripts and functions
 (instead of squeezing everything into standardized configuration files).
 
 #### Add a new method
-Just add it to `da_algos.py`, using the others in there as templates.
+Just add it to `da_methods.py`, using the others in there as templates.
 
 
 #### Add a new model
