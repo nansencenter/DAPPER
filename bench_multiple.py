@@ -30,6 +30,9 @@ cfgs += EnKF_N(N=50)
 #cfgs += LETKF(approx=1,N=8,rot=True,infl=1.25,loc_rad=4)
 #cfgs += SL_EAKF(       N=6,rot=True,infl=1.07,loc_rad=6)
 
+#cfgs.add(PFD,     N=100, xN=1000,NER=0.9,reg=0.7,Qs=0.9,nuj=1) # 1.05
+#cfgs.add(PFD,     N=1000,xN=100, NER=0.9,reg=0.4,Qs=0.6,nuj=1) # 0.52
+
 ############################
 # Assimilate
 ############################
