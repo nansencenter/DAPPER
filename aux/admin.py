@@ -1,9 +1,8 @@
 from common import *
 
-# TODO: Rename Twin ?
-class OSSE(MLR_Print):
+class TwinSetup(MLR_Print):
   """
-  Container for OSSE settings.
+  Container for Twin experiment (OSSE) settings.
   OSSE: "observing system simulation experiment"
   """
   def __init__(self,f,h,t,X0,**kwargs):

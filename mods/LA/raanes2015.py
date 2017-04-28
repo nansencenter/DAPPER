@@ -64,7 +64,7 @@ f = {
 
 ################### Gather ###################
 other = {'name': os.path.relpath(__file__,'mods/')}
-setup = OSSE(f,h,tseq,X0,**other)
+setup = TwinSetup(f,h,tseq,X0,**other)
 
 
 

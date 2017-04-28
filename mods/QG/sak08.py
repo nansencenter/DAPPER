@@ -93,7 +93,7 @@ h = {
     'loc_f': locf,
     }
 
-setup = OSSE(f,h,t,X0)
+setup = TwinSetup(f,h,t,X0)
 setup.name = os.path.relpath(__file__,'mods/')
 
 

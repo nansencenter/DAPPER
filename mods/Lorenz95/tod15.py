@@ -22,7 +22,7 @@ h['noise'] = 1.0
 h['loc_f'] = loc(m,jj)
 
 other = {'name': os.path.relpath(__file__,'mods/')}
-setup = OSSE(f,h,t,X0,**other)
+setup = TwinSetup(f,h,t,X0,**other)
 
 ####################
 # Suggested tuning
