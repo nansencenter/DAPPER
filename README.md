@@ -116,6 +116,7 @@ Also has:
 * Intelligent defaults (e.g. plot duration estimated from autocorrelation,
     axis limits estimated from percentiles)
 * Chronology/Ticker with consistency checks
+* Gentle failure system to allow execution to continue if experiment fails.
 * Progressbar
 * X-platform random number generator
 * Parallelisation options
@@ -172,7 +173,7 @@ What it can't do
      allowing for live/online  (graphic or text) comparison.
 * Time-dependent error coviariances and changes in lengths of state/obs
      (but f and h may otherwise depend on time).
-* Non-uniform time sequences.
+* Non-uniform time sequences only partially supported.
 
 
 Alternative projects
@@ -288,7 +289,6 @@ TODO
 ------------------------------------------------
 * Complete QG, LorenzXY
 * Reorg file structure
-* Make full 3D-Var (not opt. int.)
 * Make tutorial
 
 
