@@ -257,8 +257,9 @@ Operational: optimized for speed.
 [18]: https://github.com/kingaa/pomp
 
 
+
+<!--
 Implementation choices
-------------------------------------------------
 * Uses python3.5+
 * NEW: Use `N-by-m` ndarrays. Pros:
     * python default
@@ -273,8 +274,6 @@ Implementation choices
     * Literature uses `m-by-N`
     * Matrix multiplication through `*` -- since python3.5 can just use `@`
 
-
-<!--
 Conventions:
 * DA_Config, assimilate, stats
 * fau_series
