@@ -34,10 +34,12 @@ The typical set-up is a "twin experiment", where you
 DAPPER makes the numerical investigation of DA methods accessible
 through its variety of typical test cases and statistics.
 It (1) reproduces numerical results (benchmarks) reported in the literature,
-and (2) facilitates comparativ studies through its collection of baseline methods
+and (2) facilitates comparative studies.
+<!--
+through its collection of baseline methods
 and its tools to manage experimental settings, averages, and random numbers.
+-->
 This assists in ensuring that the results are (1) reliable and (2) relevant.
-
 DAPPER is open source, written in Python, and focuses on code readability;
 this promotes the reproduction and dissemination of the underlying science,
 and makes it easy to adapt and extend to further needs.
@@ -129,6 +131,16 @@ Also has:
         Auto-config provided by `utils.py:parallelize()`.
 
 
+What it can't do
+------------------------------------------------
+* Do highly efficient DA on very big models (see discussion in introdution).
+* Run different DA methods concurrently (i.e. step-by-step)
+     allowing for live/online  (graphic or text) comparison.
+* Time-dependent error coviariances and changes in lengths of state/obs
+     (but f and h may otherwise depend on time).
+* Non-uniform time sequences only partially supported.
+
+
 How to
 ------------------------------------------------
 DAPPER is like a *set of templates* (not a framework);
@@ -141,9 +153,9 @@ Just add it to `da_methods.py`, using the others in there as templates.
 
 #### Add a new model
 * Make a new dir: `DAPPER/mods/`**your_mod**
-* Remember to include the empty file `__init__.py`
+* Add the empty file `__init__.py`
 * See other examples, e.g. `DAPPER/mods/Lorenz63/sak12.py`
-* Make sure that your model (and obs operator) supports
+* Make sure that the model (and obs operator) supports
   2D-array (i.e. ensemble) and 1D-array (single realization) input.
   See `Lorenz63` and `Lorenz95` for typical implementation.
 
@@ -164,16 +176,6 @@ Just add it to `da_methods.py`, using the others in there as templates.
     * or very small observation noise (perfectly observed system)
 -->
 
-
-
-What it can't do
-------------------------------------------------
-* Do highly efficient DA on very big models (see discussion in introdution).
-* Run different DA methods concurrently (i.e. step-by-step)
-     allowing for live/online  (graphic or text) comparison.
-* Time-dependent error coviariances and changes in lengths of state/obs
-     (but f and h may otherwise depend on time).
-* Non-uniform time sequences only partially supported.
 
 
 Alternative projects
