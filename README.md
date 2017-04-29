@@ -34,11 +34,11 @@ The typical set-up is a "twin experiment", where you
 DAPPER makes the numerical investigation of DA methods accessible
 through its variety of typical test cases and statistics.
 It (1) reproduces numerical results (benchmarks) reported in the literature,
-and (2) facilitates comparative studies.
-<!--
+and (2) facilitates comparative studies
+(
 through its collection of baseline methods
 and its tools to manage experimental settings, averages, and random numbers.
--->
+)
 This assists in ensuring that the results are (1) reliable and (2) relevant.
 DAPPER is open source, written in Python, and focuses on code readability;
 this promotes the reproduction and dissemination of the underlying science,
