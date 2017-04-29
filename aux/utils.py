@@ -457,3 +457,14 @@ class lazy_property(object):
 
 
 
+class AssimFailedError(RuntimeError):
+    pass
+
+def raise_AFE(msg,time_index=None):
+  if time_index is not None:
+    msg += "(k,kObs,fau) = " + str(time_index) + ". "
+  raise AssimFailedError(msg)
+
+
+
+

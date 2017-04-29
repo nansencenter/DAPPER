@@ -48,14 +48,6 @@ class Operator(MLR_Print):
     return self.model(*args,**kwargs)
 
 
-class AssimFailedError(RuntimeError):
-    pass
-
-def raise_AFE(msg,time_index=None):
-  if time_index is not None:
-    msg += "(k,kObs,fau) = " + str(time_index) + ". "
-  raise AssimFailedError(msg)
-
 
 def DA_Config(da_method):
   """
@@ -103,9 +95,13 @@ def DA_Config(da_method):
       # Put assimilator inside try/catch to allow gentle failure
       try:
         assimilator(stats,setup,xx,yy)
-      except AssimFailedError as err:
-        warnings.warn(str(err) + "\n" +
-        "Returning stats object in its current (incompleted) state.")
+      except (AssimFailedError,ValueError) as err:
+        msg  = "Caught exception during assimilation. Printing traceback:"
+        msg += "\n" + "<"*20 + "\n\n"
+        msg += "\n".join(s for s in traceback.format_tb(err.__traceback__))
+        msg += "\n" + ">"*20 + "\n"
+        msg += "Returning stats object in its current (incompleted) state.\n"
+        print(msg)
       return stats
     assim_caller.__doc__ = "Calls assimilator() from " +\
         da_method.__name__ +", passing it the (output) stats object. " +\
