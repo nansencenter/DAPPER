@@ -1326,15 +1326,15 @@ def Climatology(**kwargs):
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
-    mu0   = mean(xx,0)
-    A0    = xx - mu0
-    P0    = CovMat(A0,'A')
+    muC   = mean(xx,0)
+    AC    = xx - muC
+    PC    = CovMat(AC,'A')
 
-    stats.assess(0,mu=mu0,Cov=P0)
+    stats.assess(0,mu=muC,Cov=PC)
     stats.trHK[:] = 0
 
     for k,kObs,_,_ in progbar(chrono.forecast_range):
-      stats.assess(k,kObs,'fau',mu=mu0,Cov=P0)
+      stats.assess(k,kObs,'fau',mu=muC,Cov=PC)
   return assimilator
 
 
@@ -1348,24 +1348,37 @@ def OptInterp(**kwargs):
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
-    H = h.jacob(np.nan, np.nan)
-    assert np.all(np.isfinite(H)), "Only supports time-independent H."
+    # Get H.
+    msg  = "For simplicity, only time-independent H is supported."
+    H    = h.jacob(np.nan, np.nan)
+    assert np.all(np.isfinite(H)), msg
 
-    mu0 = mean(xx,0)
-    A0  = xx - mu0
-    P0  = (A0.T @ A0) / (xx.shape[0] - 1)
-    KG  = mrdiv(P0@H.T, H@P0@H.T+h.noise.C.full)
+    # Compute "climatological" Kalman gain
+    muC = mean(xx,0)
+    AC  = xx - muC
+    PC  = (AC.T @ AC) / (xx.shape[0] - 1)
+    KG  = mrdiv(PC@H.T, H@PC@H.T+h.noise.C.full)
 
-    mu = mu0
-    stats.assess(0,mu=mu,Cov=P0)
+    # Setup scalar "time-series" covariance dynamics.
+    # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
+    Pa    = (eye(f.m) - KG@H) @ PC
+    CorrL = estimate_corr_length(AC.ravel(order='F'))
+    WaveC = wave_crest(trace(Pa)/trace(2*PC),CorrL)
+
+    # Init
+    mu = muC
+    stats.assess(0,mu=mu,Cov=PC)
     stats.trHK[:] = trace(KG@H)/f.m
 
     for k,kObs,t,dt in progbar(chrono.forecast_range):
+      # Forecast
       mu = f(mu,t-dt,dt)
       if kObs is not None:
-        stats.assess(k,kObs,'f',mu=mu0,Cov=P0)
-        mu = mu0 + KG@(yy[kObs] - h(mu0,t))
-      stats.assess(k,kObs,mu=mu,Cov=P0)
+        stats.assess(k,kObs,'f',mu=muC,Cov=PC)
+        # Analysis
+        mu = muC + KG@(yy[kObs] - h(muC,t))
+        WaveC.prev_obs = k
+      stats.assess(k,kObs,mu=mu,Cov=2*PC*WaveC(k))
   return assimilator
 
 
@@ -1374,75 +1387,92 @@ def Var3D(infl=1.0,**kwargs):
   """
   3D-Var -- a baseline/reference method.
   Uses the Kalman filter equations,
-  but with...
+  but with a prior covariance estimated from the Climatology
+  and a scalar time-series approximation to the dynamics.
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    dkObs, R      = chrono.dkObs, h.noise.C.full
 
-    mu0   = mean(xx,0)
-    A0    = xx - mu0
-    P0    = (A0.T @ A0) * (infl/(xx.shape[0] - 1))
+    # Compute "climatology"
+    muC = mean(xx,0)
+    AC  = xx - muC
+    PC  = (AC.T @ AC)/(xx.shape[0] - 1)
 
-    # Try to detect whether KG may be pre-computed by
-    # relying on NaN's to trigger errors (if H is time-dep).
-    try:
-      H  = h.jacob(np.nan, np.nan)
-      KG = mrdiv(P0@H.T, H@P0@H.T+R)
-      Pa = (eye(f.m) - KG@H) @ P0
-      stats.trHK[:] = trace(KG@H)/f.m
-      pre_computed_KG = True
-    except:
-      pre_computed_KG = False
-
-    # The uncertainty estimate P is only computed
-    # for the sake of the stats, and not for actual DA.
-    # Even though it should be beneficial to use P instead of P0
-    # in the mu update, that is beyond our scope.
-    # I.e. the actual DA only relies on P0.
-    P     = P0    # estimate
-    r     = dkObs # intra-DAW counter
-    # Experimental:
-    L       = estimate_corr_length(A0.ravel(order='F'))
-    max_amp = 2*P0 # var(mu-truth) = 2 P0
-    def wave_crest(Pa,rho):
-      """A sigmoid fitted to decorrelation length (L), Pa, and P0."""
-      # See doc/wave_crest.jpg
-      sigmoid = lambda t: 1/(1+exp(-t))
-      inv_sig = lambda u: log(u/(1-u))
-      shift   = inv_sig(trace(Pa)/trace(max_amp))
-      dC      = 0.1 # Correlation increment for comparing corr funcs.
-      L_ratio = 2*inv_sig(dC/2) / log(dC)
-      fudge   = 1/5.5
-      scale   = fudge*dkObs/L*L_ratio
-      return max_amp*sigmoid(shift + scale*rho)
+    # Setup scalar "time-series" covariance dynamics
+    CorrL = estimate_corr_length(AC.ravel(order='F'))
+    WaveC = wave_crest(0.5,CorrL) # Ignore careless W0 init
 
     # Init
-    mu = X0.mu
-    stats.assess(0,mu=mu,Cov=P0)
+    mu = muC
+    P  = PC
+    stats.assess(0,mu=mu,Cov=P)
 
     for k,kObs,t,dt in progbar(chrono.forecast_range):
+      # Forecast
       mu = f(mu,t-dt,dt)
+      P  = 2*PC*WaveC(k,kObs)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',mu=mu,Cov=P)
-        r = 0
-
-        if not pre_computed_KG:
-          H  = h.jacob(mu,t)
-          KG = mrdiv(P0@H.T, H@P0@H.T + R)
-          KH = KG@H
-          Pa = (eye(f.m) - KH) @ P0
-          stats.trHK[kObs] = trace(KH)/f.m
-
+        # Analysis
+        H  = h.jacob(mu,t)
+        KG = mrdiv(P@H.T, H@P@H.T + h.noise.C.full)
+        KH = KG@H
         mu = mu + KG@(yy[kObs] - h(mu,t))
 
-      if r<dkObs:
-        P = wave_crest(Pa,r/dkObs)
-      r += 1
+        # Re-calibrate wave_crest with new W0 = Pa/(2*PC)
+        Pa    = infl*(eye(f.m) - KH) @ P
+        WaveC = wave_crest(trace(Pa)/trace(2*PC),CorrL,k)
 
-      stats.assess(k,kObs,mu=mu,Cov=P)
+      stats.assess(k,kObs,mu=mu,Cov=2*PC*WaveC(k,kObs))
   return assimilator
+
+
+
+
+def wave_crest(W0,L,k_prev=None):
+  """
+  Return a sigmoid [function W(k)] that may be used
+  to provide scalar approximations to covariance dynamics. 
+
+  As "any sigmoid", W is symmetric around 0 and W(-∞)=0 and W(∞)=1.
+  It is further fitted such that
+   - W has a scale (slope at 0) equal to that of f(t) = 1-exp(-t/L),
+     where L is suppsed to be the system's decorrelation length (L),
+     as detailed in doc/wave_crest.jpg.
+   - W has a shift (translation) such that it takes the value W0 at k=0.
+     Typically, W0 = 2*PC/Pa, where
+     2*PC = 2*Var(free_run) = Var(mu-truth), and Pa = Var(analysis).
+
+  The best way to illustrate W(k) and test it is to:
+   - set dkObs very large, to see a long evolution;
+   - set store_u = True, to store intermediate stats;
+   - plot_time_series (var vs err).
+  """
+  sigmoid    = lambda t: 1/(1+exp(-t))
+  inv_sig    = lambda s: log(s/(1-s))
+  shift      = inv_sig(W0) # starting point
+  scale      = 1/(2*L)     # derivative of exp(-t/L) at t=1/2
+
+  def W(k,kObs=None):
+    # Manage intra-DAW counter, dk.
+    dk = k - W.prev_obs
+    if kObs is not None:
+      W.prev_obs = k
+    # Compute
+    return sigmoid(shift + scale*dk)
+
+  # Initialize W.prev_obs, which can be externally set like here,
+  # and which provides a persistent reference for W(k) to compute dk.
+  if k_prev is None:
+    # init such that W(0) = 0.5
+    W.prev_obs = (shift-inv_sig(0.5))/scale 
+  else:
+    # from input
+    W.prev_obs = k_prev
+
+  return W
+
 
 
 @DA_Config
@@ -1454,11 +1484,11 @@ def ExtKF(infl=1.0,**kwargs):
   If everything is linear-Gaussian, this provides the exact solution
   to the Bayesian filtering equations.
 
-  Inflation ('infl') may be specified.
-  It defaults to 1.0, which is ideal in the lin-Gauss case.
-  It is applied at each dt, with infl_per_dt := inlf**(dt), so that 
-  infl_per_unit_time == infl.
-  Specifying it this way (per unit time) means less tuning.
+  - infl (inflation) may be specified.
+    Default: 1.0 (i.e. none), as is optimal in the lin-Gauss case.
+    Gets applied at each dt, with infl_per_dt := inlf**(dt), so that 
+    infl_per_unit_time == infl.
+    Specifying it this way (per unit time) means less tuning.
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -1473,15 +1503,12 @@ def ExtKF(infl=1.0,**kwargs):
 
     for k,kObs,t,dt in progbar(chrono.forecast_range):
       
-      F = f.jacob(mu,t-dt,dt) 
-      # "EKF for the mean". Rarely worth the effort. Matlab code:
-      # for k = 1:m
-      #   HessianF_k = hessianest(@(x) submat(F(t,dt,x), k), X(:,iT-1))
-      #   HessCov(k) = sum(sum( HessianF_k .* P(:,:,iT-1) ))
-      # X(:,iT) = X(:,iT) + 1/2*HessCov 
-
       mu = f(mu,t-dt,dt)
+      F  = f.jacob(mu,t-dt,dt) 
       P  = infl**(dt)*(F@P@F.T) + dt*Q
+
+      # Of academic interest? Higher-order linearization:
+      # mu_i += 0.5 * (Hessian[f_i] * P).sum()
 
       if kObs is not None:
         stats.assess(k,kObs,'f',mu=mu,Cov=P)
