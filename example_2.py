@@ -10,11 +10,12 @@ sd0 = seed(9)
 cfgs  = List_of_Configs()
 
 from mods.Lorenz63.sak12 import setup ##################### Expected RMSE_a:
-cfgs += Climatology()  # no tuning!                       # 8.5
-cfgs += Var3D()        # tuning not stirctly required     # 1.26
+cfgs += Climatology()  # no tuning!                       # 7.6
+cfgs += OptInterp()    # no tuning!                       # 1.25
+cfgs += Var3D(infl=0.9)# tuning not strictly required     # 1.03 
 cfgs += ExtKF(infl=90) # some inflation tuning needed     # 0.87
-cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # Very variable
-cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63 (sak: 0.65)
+cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # 0.82
+cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63
 cfgs += EnKF('PertObs',N=500, infl=0.95,rot=False)        # 0.56
 cfgs += EnKF_N(        N=10,            rot=True)         # 0.54
 cfgs += iEnKF('Sqrt',  N=10,  infl=1.02,rot=True,iMax=10) # 0.31

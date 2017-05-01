@@ -37,7 +37,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-# Reproduce Sakov'2008 "deterministic"                     # Expected RMSE_a:
+# Reproduce Sakov'2008 "deterministic"                    # Expected RMSE_a:
 #cfgs += EnKF('PertObs',N=40, infl=1.06)                  # 0.22
 #cfgs += EnKF('DEnKF'  ,N=40, infl=1.01)                  # 0.18
 #cfgs += EnKF('PertObs',N=28, infl=1.08)                  # 0.24
@@ -50,14 +50,14 @@ setup = TwinSetup(f,h,t,X0,**other)
 #cfgs += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4) # 0.22
 #cfgs += LETKF(approx=1,N=8,rot=True,infl=1.25,loc_rad=4) # 0.36
 #cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6) # 0.23
-# Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6.
+# Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6:
 #cfgs += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')
 
 # Other
-#cfgs += Climatology()
-#cfgs += Var3D()
-#cfgs += ExtKF(infl=6)
-#cfgs += EnCheat('Sqrt',N=24,infl=1.02,rot=True)
+#cfgs += Climatology()                                    # 3.6 
+#cfgs += OptInterp()                                      # 0.95 
+#cfgs += Var3D(infl=1.05)                                 # 0.41 
+#cfgs += ExtKF(infl=10)                                   # 0.24 
 
 
 # Reproduce Bocquet'2015 "expanding"
