@@ -1429,6 +1429,126 @@ def Var3D(infl=1.0,**kwargs):
 
 
 
+@DA_Config
+def Var3D_Adp(infl=1.0,**kwargs):
+  """
+  3D-Var -- a baseline/reference method.
+  Uses the Kalman filter equations,
+  but with a prior covariance estimated from the Climatology
+  and a scalar time-series approximation to the dynamics.
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+
+    # Compute "climatology"
+    muC = mean(xx,0)
+    AC  = xx - muC
+    PC  = (AC.T @ AC)/(xx.shape[0] - 1)
+
+    # Setup scalar "time-series" covariance dynamics
+    CorrL = estimate_corr_length(AC.ravel(order='F'))
+    WaveC = wave_crest(0.5,CorrL) # Ignore careless W0 init
+
+    # Init
+    mu = muC
+    P  = PC
+    stats.assess(0,mu=mu,Cov=P)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      # Forecast
+      mu = f(mu,t-dt,dt)
+      P  = infl*2*PC*WaveC(k,kObs)
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',mu=mu,Cov=P)
+        # Analysis
+        H  = h.jacob(mu,t)
+        KG = mrdiv(P@H.T, H@P@H.T + h.noise.C.full)
+        KH = KG@H
+        mu = mu + KG@(yy[kObs] - h(mu,t))
+
+        # Re-calibrate wave_crest with new W0 = Pa/(2*PC)
+        Pa    = (eye(f.m) - KH) @ P
+        WaveC = wave_crest(trace(Pa)/trace(2*PC),CorrL,k)
+
+      stats.assess(k,kObs,mu=mu,Cov=2*PC*WaveC(k,kObs))
+  return assimilator
+
+class AdInf():
+  def __init__(self,s0=1.0,nu0=1,forgt=None):
+    if forgt is None:
+      self.forgt = forgt * L
+    else:
+      self.forgt = forgt
+    self.cert = cert0
+    self.val  = val0
+  def update(self,inno):
+    self.nu  = ...
+    self.val = ...
+
+@DA_Config
+def Var3D_OLD(infl=1.0,**kwargs):
+  """
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+
+    # Compute "climatology"
+    muC = mean(xx,0)
+    AC  = xx - muC
+    PC  = (AC.T @ AC)/(xx.shape[0] - 1)
+
+    # Setup scalar time-series covariance dynamics
+    CorrL = estimate_corr_length(AC.ravel(order='F'))
+    H     = h.jacob(np.nan, np.nan)
+    KG    = mrdiv(PC@H.T, H@PC@H.T+h.noise.C.full)
+    Pa    = (eye(f.m) - KG@H) @ PC
+    WaveC = wave_crest(trace(Pa)/trace(2*PC),CorrL)
+
+    # Init
+    mu = muC
+    P  = PC
+    stats.assess(0,mu=mu,Cov=P)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      # Forecast
+      mu = f(mu,t-dt,dt)
+      P  = 2*PC*WaveC(k,kObs)
+
+      if kObs is not None:
+
+        # Scaling estimation
+        H   = h.jacob(mu,t)
+        R   = h.noise.C.full
+        d   = yy[kObs] - h(mu,t)
+        tR  = trace(R)
+        tP  = trace(H@P@H.T)
+
+        # v1: expectation matching
+        #mis = ((d**2).sum() - tR)
+        #mis = max( mis, 0.1*(d**2).sum() )
+        #sc  = mis/tP
+
+        # v2: scalar-approximate Max-Lklhd
+        U   = CovMat(H@P@H.T + R).sym_sqrt_inv
+        dz  = U @ d
+        Dlt = (dz**2).sum()/h.m
+        rho = tP/tR
+        sc  = ( Dlt*(rho+1) - 1 )/rho
+
+        sc *= infl
+        P  *= sc
+
+        stats.assess(k,kObs,'f',mu=mu,Cov=P)
+        KG    = mrdiv(P@H.T,H@P@H.T + R)
+        KH    = KG@H
+        mu    = mu + KG@(yy[kObs] - h(mu,t))
+        Pa    = (eye(f.m) - KH) @ P
+        WaveC = wave_crest(trace(Pa)/trace(2*PC),CorrL,k)
+
+      stats.assess(k,kObs,mu=mu,Cov=2*PC*WaveC(k,kObs))
+  return assimilator
+
 
 def wave_crest(W0,L,k_prev=None):
   """
