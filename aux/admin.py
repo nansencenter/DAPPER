@@ -34,7 +34,7 @@ class Operator(MLR_Print):
     if isinstance(noise,RV):
       self.noise = noise
     else:
-      if not noise: noise = 0
+      if noise is None: noise = 0
       if np.isscalar(noise):
         self.noise = GaussRV(C=noise,m=m)
       else:
@@ -144,7 +144,6 @@ def DA_Config(da_method):
 class DAC():
   """
   DA Configs (settings).
-  Basically just a fancy dict.
   """
 
   # Defaults
@@ -153,15 +152,19 @@ class DAC():
       'store_u'     : False,
       }
 
-  excluded = \
-      list(dflts.keys()) +\
-      ['assimilate',re.compile('^_')]
+  excluded =  ['assimilate',re.compile('^_')]
 
   def __init__(self,odict):
     # Ordering is kept for printing
     self._ordering = odict.keys()
     for key, value in self.dflts.items(): setattr(self, key, value)
     for key, value in      odict.items(): setattr(self, key, value)
+
+  def update_settings(self,**kwargs):
+    """Returns new DAC with new "instance" of the da_method with the updated setting."""
+    old = list(self._ordering) + filter_out(self.__dict__,*self._ordering,*self.excluded,'da_method')
+    dct = {**{key: getattr(self,key) for key in old}, **kwargs}
+    return DA_Config(self.da_method)(**dct)
 
   def __repr__(self):
     def format_(key,val):
@@ -172,10 +175,9 @@ class DAC():
       return s
     s = self.da_method.__name__ + '('
     # Print ordered
-    for key in filter_out(self._ordering,*self.excluded,'da_method'):
-      s += format_(key,getattr(self,key))
-    # Print remaining
-    for key in filter_out(self.__dict__,*self.excluded,*self._ordering):
+    keys = list(self._ordering) + filter_out(self.__dict__,*self._ordering)
+    keys = filter_out(keys,*self.excluded,*self.dflts,'da_method')
+    for key in keys:
       s += format_(key,getattr(self,key))
     return s[:-2]+')'
 
@@ -265,14 +267,14 @@ class List_of_Configs(list):
     If ow: do_overwrite.
     """
     # Process attributes into strings 
-    names = ['']*len(self) # Init
+    names = [config.da_method.__name__+' ' for config in self]
     dist  = self.distinct_attrs()
-    keys  = filter_out(dist, *self.excluded)
+    keys  = filter_out(dist, *self.excluded,'da_method')
     for i,k in enumerate(keys):
       vals  = dist[k]                                              # Get data
       lbls  = '' if i==0 else ' '                                  # Spacing 
       if len(k)<=4: lbls += k + ' '                                # Standard label
-      else:         lbls += k[:3] + '~' + k[4] + ' '               # Abbreviated label
+      else:         lbls += k[:3] + '~' + k[-1] + ' '              # Abbreviated label
       lbls  = [' '*len(lbls) if v is None else lbls for v in vals] # Skip label if val=None
       vals  = typeset(vals,do_tab=True)                            # Format data
       names = [''.join(x) for x in zip(names,lbls,vals)]           # Join
