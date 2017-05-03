@@ -32,8 +32,12 @@ def pdesc(desc):
 # Define progbar as tqdm or noobar
 try:
   import tqdm
-  def progbar(inds, desc=None, leave=1):
-    return tqdm.tqdm(inds,desc=pdesc(desc),leave=leave)
+  if is_notebook:
+    def progbar(inds, desc=None, leave=1):
+      return tqdm.tqdm_notebook(inds,desc=pdesc(desc),leave=leave)
+  else:
+    def progbar(inds, desc=None, leave=1):
+      return tqdm.tqdm(inds,desc=pdesc(desc),leave=leave)
 except ImportError as err:
   install_warn(err)
   def progbar(inds, desc=None, leave=1):

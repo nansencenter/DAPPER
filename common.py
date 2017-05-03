@@ -74,7 +74,8 @@ def user_is_patrick():
 # Choose graphics backend.
 import matplotlib as mpl
 from IPython import get_ipython
-if 'zmq' in str(type(get_ipython())).lower():
+is_notebook = 'zmq' in str(type(get_ipython())).lower()
+if is_notebook:
   # notebook frontent
   mpl.use('nbAgg') # interactive
 else:

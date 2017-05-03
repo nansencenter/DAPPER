@@ -71,7 +71,7 @@ class val_with_conf():
     self.val  = val
     self.conf = conf
   def _str(self):
-    with np.errstate(divide='ignore'):
+    with np.errstate(all='ignore'):
       conf = round2sigfig(self.conf)
       nsig = floor(log10(conf))
       return str(round2(self.val,10**(nsig))), str(conf)
