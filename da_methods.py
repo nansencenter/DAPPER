@@ -890,6 +890,10 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
 
   [3]: Zhe Chen, 2003:
     "Bayesian Filtering: From Kalman Filters to Particle Filters, and Beyond"
+
+  Settings for reproducing literature benchmarks may be found in
+  mods/Lorenz95/boc10.py and mods/Lorenz95/boc10_m40.py.
+  Other interesting settings include: mods/Lorenz63/sak12.py
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -950,6 +954,10 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
 
   Ref: Bocquet et al. (2010):
     "Beyond Gaussian statistical modeling in geophysical data assimilation"
+
+  Settings for reproducing literature benchmarks may be found in
+  mods/Lorenz95/boc10.py and mods/Lorenz95/boc10_m40.py.
+  Other interesting settings include: mods/Lorenz63/sak12.py
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
