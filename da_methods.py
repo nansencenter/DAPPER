@@ -943,7 +943,7 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
 
 
 @DA_Config
-def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
+def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,wroot=1.0,**kwargs):
   """
   "Optimal proposal" particle filter.
   OR
@@ -973,7 +973,7 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
     for k,kObs,t,dt in progbar(chrono.forecast_range):
       E = f(E,t-dt,dt)
       if f.noise.C is not 0:
-        E += sqrt(dt)*(randn((N,m))@f.noise.C.sym_sqrt.T)
+        E += sqrt(dt)*(randn((N,m))@f.noise.C.sym_sqrt.T) # TODO use cholU
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E,w=w)
@@ -986,8 +986,8 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
         As  = s*raw_C12(E,w)
         E  += sample_quickly_with(As)[0]
         hE  = h(E,t) # after noise
-        Ys  = s*raw_C12(hE,w)
-        D   = center(h.noise.sample(N))
+        Ys  = s*raw_C12(hE,w)           # TODO: duplicate s ?
+        D   = center(h.noise.sample(N)) # TODO: no center?
         C   = Ys.T@Ys + R
         dE  = As.T@Ys @ mldiv(C,(y-hE+D).T)
         E   = E + dE.T
@@ -1072,7 +1072,7 @@ def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,re
 
 
 def trigger_resampling(w,NER,stats,kObs):
-  "Return boolean: N_effective <= threshold."
+  "Return boolean: N_effective <= threshold. Also write stats."
   N_eff              = 1/(w@w)
   do_resample        = N_eff <= len(w)*NER
   stats.N_eff[kObs]  = N_eff
@@ -1360,7 +1360,7 @@ def OptInterp(**kwargs):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
     # Get H.
-    msg  = "For simplicity, only time-independent H is supported."
+    msg  = "For speed, only time-independent H is supported."
     H    = h.jacob(np.nan, np.nan)
     if not np.all(np.isfinite(H)): raise AssimFailedError(msg)
 
