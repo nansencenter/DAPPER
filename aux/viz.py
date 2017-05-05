@@ -10,7 +10,6 @@ from matplotlib import colors
 from matplotlib.ticker import MaxNLocator
 
 
-
 class LivePlot:
   """
   Live plotting functionality.
@@ -407,7 +406,7 @@ class LivePlot:
 
 
     self.prev_k = 0
-    plt.pause(0.01)
+    plot_pause(0.01)
 
 
 
@@ -430,6 +429,8 @@ class LivePlot:
       # If <enter>, turn off pause
       if '\r' in ch:
         self.is_paused = False
+
+    return False
 
     key = poll_input() # =None if <space> was pressed above
     if key is not None:
@@ -537,7 +538,7 @@ class LivePlot:
         self.lmf.set_ydata(msft)
         update_ylim(msft, self.ax2)
 
-      plt.pause(0.01)
+      plot_pause(0.01)
 
 
     #####################
@@ -616,7 +617,7 @@ class LivePlot:
         rm_absent(self.ax_d2,self.d2)
         self.has_checked_presence = True
 
-      plt.pause(0.01)
+      plot_pause(0.01)
 
 
     #####################
@@ -662,7 +663,7 @@ class LivePlot:
         self.tail_mu        = roll_n_sub(self.tail_mu,mu[k,:3])
         update_tail(self.ltmu, self.tail_mu)
 
-      plt.pause(0.01)
+      plot_pause(0.01)
 
       # For animation:
       #self.fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=70)
@@ -687,7 +688,7 @@ class LivePlot:
       axh.set_title('N: {:d}.   N_eff: {:.4g}.   Not shown: {:d}. '.\
           format(N, 1/(w@w), N-nC))
       update_ylim([nn], axh, cC=True)
-      plt.pause(0.01)
+      plot_pause(0.01)
 
 
 
@@ -698,10 +699,26 @@ class LivePlot:
       plt.figure(self.fgu.number)
       self.setter_truth(self.xx[k])
       self.setter_mean(mu[k])
-      plt.pause(0.01)
+      plot_pause(0.01)
 
     # Trackers
     self.prev_k = k
+
+
+
+
+def plot_pause(duration):
+  """
+  plt.pause is not supported by jupyter notebook.
+  Provide fallback that does work.
+  stackoverflow.com/q/34486642
+  """
+  try:
+    plt.pause(duration)
+  except:
+    fig = plt.gcf()
+    fig.canvas.draw()
+    time.sleep(0.1)
 
 
 def setup_wrapping(m):

@@ -1008,6 +1008,68 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
   return assimilator
 
 
+@DA_Config
+def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,re_use=True,**kwargs):
+  """
+  Idea: sample a bunch from each kernel.
+  => The ones more likely to get picked by resampling are closer to the likelihood.
+
+  Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    m, Rm12       = f.m, h.noise.C.sym_sqrt_inv
+
+    DD = None
+    E  = X0.sample(N)
+    w  = 1/N*ones(N)
+
+    stats.N_eff  = np.full(chrono.KObs+1,nan)
+    stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+    stats.assess(0,E=E,w=1/N)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      if f.noise.C is not 0:
+        E += sqrt(dt)*(randn((N,m))@f.noise.C.sym_sqrt.T)
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E,w=w)
+        y  = yy[kObs]
+
+        innovs = (y - h(E,t)) @ Rm12.T
+        logL   = -0.5 * np.sum(innovs**2, axis=1)
+        w_     = w.copy()
+        w      = reweight(w,logL=logL)
+
+        stats.assess(k,kObs,'a',E=E,w=w)
+        if trigger_resampling(w,NER,stats,kObs):
+          w    = w_
+          C12_ = Qs*bandw(N,m)*raw_C12(E,w)
+
+          ED   = E.repeat(xN,0)
+          wD   = w.repeat(xN)
+          wD  /= wD.sum()
+
+          cholU = chol_trunc(C12_.T@C12_)
+          rnk   = cholU.shape[0]
+          if DD is None or not re_use:
+            DD  = randn((N*xN,m))
+          ED   += DD[:,:rnk]@cholU
+          
+          innovs = (y - h(ED,t)) @ Rm12.T
+          logL   = -0.5 * np.sum(innovs**2, axis=1)
+          wD     = reweight(wD,logL=logL)
+
+          idx,w  = resample(wD, upd_a, wroot=wroot, N=N)
+          C12    = reg*bandw(N,m)*raw_C12(ED[idx],w) # TODO: compute from w_ ?
+          E,chi2 = regularize(C12,ED,idx,nuj)
+
+      stats.assess(k,kObs,'u',E=E,w=w)
+  return assimilator
+
+
+
 
 def trigger_resampling(w,NER,stats,kObs):
   "Return boolean: N_effective <= threshold."
@@ -1221,65 +1283,6 @@ def sample_quickly_with(C12,N=None):
 
 
 
-@DA_Config
-def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
-  """
-  Idea: sample a bunch from each kernel.
-  => The ones more likely to get picked by resampling are closer to the likelihood.
-
-  Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
-  """
-  def assimilator(stats,twin,xx,yy):
-    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    m, Rm12       = f.m, h.noise.C.sym_sqrt_inv
-
-    DD = None
-    E  = X0.sample(N)
-    w  = 1/N*ones(N)
-
-    stats.N_eff  = np.full(chrono.KObs+1,nan)
-    stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
-    stats.assess(0,E=E,w=1/N)
-
-    for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E = f(E,t-dt,dt)
-      if f.noise.C is not 0:
-        E += sqrt(dt)*(randn((N,m))@f.noise.C.sym_sqrt.T)
-
-      if kObs is not None:
-        stats.assess(k,kObs,'f',E=E,w=w)
-        y  = yy[kObs]
-
-        innovs = (y - h(E,t)) @ Rm12.T
-        logL   = -0.5 * np.sum(innovs**2, axis=1)
-        w_     = w.copy()
-        w      = reweight(w,logL=logL)
-
-        stats.assess(k,kObs,'a',E=E,w=w)
-        if trigger_resampling(w,NER,stats,kObs):
-          w    = w_
-          C12_ = Qs*bandw(N,m)*raw_C12(E,w)
-
-          ED   = E.repeat(xN,0)
-          wD   = w.repeat(xN)
-          wD  /= wD.sum()
-
-          cholU = chol_trunc(C12_.T@C12_)
-          rnk   = cholU.shape[0]
-          if DD is None:
-            DD  = randn((N*xN,m))
-          ED   += DD[:,:rnk]@cholU
-          
-          innovs = (y - h(ED,t)) @ Rm12.T
-          logL   = -0.5 * np.sum(innovs**2, axis=1)
-          wD     = reweight(wD,logL=logL)
-
-          idx,w  = resample(wD, upd_a, wroot=wroot, N=N)
-          C12    = reg*bandw(N,m)*raw_C12(ED[idx],w) # TODO: compute from w_ ?
-          E,chi2 = regularize(C12,ED,idx,nuj)
-
-      stats.assess(k,kObs,'u',E=E,w=w)
-  return assimilator
 
 
 @DA_Config
