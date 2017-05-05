@@ -54,7 +54,7 @@ def genOG_modified(m,opts=(0,1.0)):
     else:
       Q = eye(m)
   elif ver==2:
-    # Background knowledge
+    # Decompose and reduce angle of (complex) diagonal. Background:
     # stackoverflow.com/questions/38426349
     # https://en.wikipedia.org/wiki/Orthogonal_matrix
     Q   = genOG(m)

@@ -1326,9 +1326,9 @@ def Climatology(**kwargs):
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
-    muC   = mean(xx,0)
-    AC    = xx - muC
-    PC    = CovMat(AC,'A')
+    muC = mean(xx,0)
+    AC  = xx - muC
+    PC  = CovMat(AC,'A')
 
     stats.assess(0,mu=muC,Cov=PC)
     stats.trHK[:] = 0
@@ -1351,13 +1351,13 @@ def OptInterp(**kwargs):
     # Get H.
     msg  = "For simplicity, only time-independent H is supported."
     H    = h.jacob(np.nan, np.nan)
-    assert np.all(np.isfinite(H)), msg
+    if not np.all(np.isfinite(H)): raise AssimFailedError(msg)
 
     # Compute "climatological" Kalman gain
     muC = mean(xx,0)
     AC  = xx - muC
     PC  = (AC.T @ AC) / (xx.shape[0] - 1)
-    KG  = mrdiv(PC@H.T, H@PC@H.T+h.noise.C.full)
+    KG  = mrdiv(PC@H.T, H@PC@H.T + h.noise.C.full)
 
     # Setup scalar "time-series" covariance dynamics.
     # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
@@ -1368,7 +1368,6 @@ def OptInterp(**kwargs):
     # Init
     mu = muC
     stats.assess(0,mu=mu,Cov=PC)
-    stats.trHK[:] = trace(KG@H)/f.m
 
     for k,kObs,t,dt in progbar(chrono.forecast_range):
       # Forecast
@@ -1377,8 +1376,7 @@ def OptInterp(**kwargs):
         stats.assess(k,kObs,'f',mu=muC,Cov=PC)
         # Analysis
         mu = muC + KG@(yy[kObs] - h(muC,t))
-        WaveC.prev_obs = k
-      stats.assess(k,kObs,mu=mu,Cov=2*PC*WaveC(k))
+      stats.assess(k,kObs,mu=mu,Cov=2*PC*WaveC(k,kObs))
   return assimilator
 
 
@@ -1388,7 +1386,8 @@ def Var3D(infl=1.0,**kwargs):
   3D-Var -- a baseline/reference method.
   Uses the Kalman filter equations,
   but with a prior covariance estimated from the Climatology
-  and a scalar time-series approximation to the dynamics.
+  and a scalar time-series approximation to the dynamics
+  (that does NOT use the innovation to estimate the backgroiund covariance).
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -1400,7 +1399,7 @@ def Var3D(infl=1.0,**kwargs):
 
     # Setup scalar "time-series" covariance dynamics
     CorrL = estimate_corr_length(AC.ravel(order='F'))
-    WaveC = wave_crest(0.5,CorrL) # Ignore careless W0 init
+    WaveC = wave_crest(0.5,CorrL) # Nevermind careless W0 init
 
     # Init
     mu = muC
@@ -1410,80 +1409,38 @@ def Var3D(infl=1.0,**kwargs):
     for k,kObs,t,dt in progbar(chrono.forecast_range):
       # Forecast
       mu = f(mu,t-dt,dt)
-      P  = 2*PC*WaveC(k,kObs)
+      P  = 2*PC*WaveC(k)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',mu=mu,Cov=P)
         # Analysis
+        P *= infl
         H  = h.jacob(mu,t)
         KG = mrdiv(P@H.T, H@P@H.T + h.noise.C.full)
         KH = KG@H
         mu = mu + KG@(yy[kObs] - h(mu,t))
 
-        # Re-calibrate wave_crest with new W0 = Pa/(2*PC)
-        Pa    = infl*(eye(f.m) - KH) @ P
-        WaveC = wave_crest(trace(Pa)/trace(2*PC),CorrL,k)
+        # Re-calibrate wave_crest with new W0 = Pa/(2*PC).
+        # Note: obs innovations are not used to estimate P!
+        Pa    = (eye(f.m) - KH) @ P
+        WaveC = wave_crest(trace(Pa)/trace(2*PC),CorrL)
 
       stats.assess(k,kObs,mu=mu,Cov=2*PC*WaveC(k,kObs))
   return assimilator
 
 
 
-
-from scipy.integrate import quad
-from scipy.optimize import minimize_scalar as minz
-
-def Chi2_pdf(d,nu,t):
-  c = 1 # same as for iChi2, I believe
-  return c * 1/t * (d/t)**(nu/2-1) * exp(-nu*d/2/t)
-
-def iChi2_pdf(s,nu,x):
-  c = 1 # nu**(nu/2) / 2**(nu/2) / sp.special.gamma(nu/2)
-  return c * x**(-nu/2-1) * exp(-nu*s/2/x)
-
-class InvChi2Filter(MLR_Print):
-  def __init__(self,s=1.0,nu=5,L=None):
-    """
-    Start at nu=5 so that the posterior is sure to have a variance
-    (which we use for comparison).
-    """
-    if L is None:
-      self.forget = exp(-1/corr_L(xx))
-    else:
-      self.forget = exp(-1/L)
-    self.nu = max(1e-4,nu)
-    self.s  = s
-  def forecast(self,k=1):
-    self.nu *= self.forget**k
-    #self.s  = 1.0 + self.forget**k*(self.s - 1.0)
-  def update(self,lklhd):
-    Domain  = (1e-10, min(self.s*100, 1e-5**(-2/self.nu)))
-    quad_   = lambda f: quad(f,*Domain)[0]
-    prior   = lambda x: iChi2_pdf(self.s,self.nu,x)
-    post_nn = lambda x: prior(x) * lklhd(x)
-    normlzt = quad_(lambda x:  post_nn(x))
-    post    = lambda x: post_nn(x) / normlzt
-    mean    = quad_(lambda x:  post(x)*x)
-    var     = quad_(lambda x:  post(x)*(x-mean)**2)
-    self.nu = 4 + 2*mean**2/var
-    self.s  = (self.nu-2)/self.nu * mean
-
-    # Using mode instead of mean (untested):
-    #mode    = minz(lambda x: -post(x),              Domain).x
-    #polynom = [var, -8*var-2*mode**2, 20*var-8*mode**2, -16*var-8*mode**2]
-    #roots   = np.roots(polynom)
-    #nu      = np.real(roots[np.isreal(roots)])
-    #if len(nu)>1:
-      #raise raise_AFE("Found more than 1 root")
-    #else:
-      #self.nu = nu[0]
-    #self.s = mode*
-
-
-def wave_crest(W0,L,k_prev=None):
+def wave_crest(W0,L):
   """
   Return a sigmoid [function W(k)] that may be used
   to provide scalar approximations to covariance dynamics. 
+
+  We use the logistic function for the sigmoid.
+  This has theoretical benefits: it's the solution of the
+  "population growth" ODE: dE/dt = a*E*(1-E/E(∞)).
+  PS: It might be better to use the "error growth ODE" of Lorenz/Dalcher/Kalnay,
+  but this has a significantly more complicated closed-form solution,
+  and reduces to the above ODE when there's no model error (ODE source term).
 
   As "any sigmoid", W is symmetric around 0 and W(-∞)=0 and W(∞)=1.
   It is further fitted such that
@@ -1499,27 +1456,25 @@ def wave_crest(W0,L,k_prev=None):
    - set store_u = True, to store intermediate stats;
    - plot_time_series (var vs err).
   """
-  sigmoid    = lambda t: 1/(1+exp(-t))
-  inv_sig    = lambda s: log(s/(1-s))
-  shift      = inv_sig(W0) # starting point
-  scale      = 1/(2*L)     # derivative of exp(-t/L) at t=1/2
+  sigmoid = lambda t: 1/(1+exp(-t))
+  inv_sig = lambda s: log(s/(1-s))
+  shift   = inv_sig(W0) # "reset" point
+  scale   = 1/(2*L)     # derivative of exp(-t/L) at t=1/2
 
-  def W(k,kObs=None):
+  def W(k,reset=False):
     # Manage intra-DAW counter, dk.
-    dk = k - W.prev_obs
-    if kObs is not None:
+    if reset is None:
+      dk = k - W.prev_obs
+    elif reset > 0:
       W.prev_obs = k
+      dk = k - W.prev_obs # = 0
+    else:
+      dk = k - W.prev_obs
     # Compute
     return sigmoid(shift + scale*dk)
 
-  # Initialize W.prev_obs, which can be externally set like here,
-  # and which provides a persistent reference for W(k) to compute dk.
-  if k_prev is None:
-    # init such that W(0) = 0.5
-    W.prev_obs = (shift-inv_sig(0.5))/scale 
-  else:
-    # from input
-    W.prev_obs = k_prev
+  # Initialize W.prev_obs: provides persistent ref [for W(k)] to compute dk.
+  W.prev_obs = (shift-inv_sig(0.5))/scale 
 
   return W
 

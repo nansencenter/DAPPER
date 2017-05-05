@@ -60,23 +60,19 @@ def install_warn(import_err):
   name = name.split("'")[1]
   warnings.warn(install_msg(name))
 
-# Raise error on warning
-#warnings.filterwarnings('error',category=RuntimeWarning)
-
 
 ##################################
-# Interactive plotting settings
+# Plotting settings
 ##################################
 def user_is_patrick():
   import getpass
   return getpass.getuser() == 'pataan'
 
-# Choose graphics backend.
 import matplotlib as mpl
+# Choose graphics backend.
 from IPython import get_ipython
 is_notebook = 'zmq' in str(type(get_ipython())).lower()
 if is_notebook:
-  # notebook frontent
   mpl.use('nbAgg') # interactive
 else:
   # terminal frontent
@@ -88,7 +84,8 @@ else:
       mpl.use('MacOSX') # prettier, stable, fast (notable in LivePlot)
     else:
       pass
-import matplotlib.pyplot as plt
+# Get Matlab-like interface, and enable interactive plotting
+import matplotlib.pyplot as plt 
 plt.ion()
 
 
@@ -105,9 +102,7 @@ except ImportError as err:
   #plt.style.use('ggplot') # 'fivethirtyeight', 'bmh'
   mpl.rcParams['image.cmap'] = 'BrBG'
 
-RGBs = {'w': array([1,1,1]), 'k': array([0,0,0])}
-for c in 'bgrmyc':
-  RGBs[c] = array(mpl.colors.colorConverter.to_rgb(c))
+RGBs = {c: array(mpl.colors.colorConverter.to_rgb(c)) for c in 'bgrmycw'}
 
 # With TkAgg/Qt4Agg backend this causes warning.
 import matplotlib.cbook
