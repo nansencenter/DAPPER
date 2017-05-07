@@ -23,13 +23,13 @@ The screenshot below illustrates the default diagnostics.
 
 The typical set-up is a "twin experiment", where you
 * specify a
-	* dynamic model 
-	* observational model 
+	* dynamic model* 
+	* observational model*
 * use these to generate a synthetic
 	* "truth"
-	* and observations thereof
-* assess how different DA methods
-	perform in estimating the truth
+	* and observations thereof*
+* assess how different DA methods, with knowledge of the above starred (*) items,
+		perform in estimating the truth.
 
 DAPPER makes the numerical investigation of DA methods accessible
 through its variety of typical test cases and statistics.
@@ -69,15 +69,17 @@ EnKS, EnRTS                                            | raanes'2016 ("EnRTS and
 iEnKF                                                  | sakov'2012 ("an iterative")
 LETKF, local & serial EAKF                             | bocquet'2011 ("EnKF-N")
 Sqrt. model noise methods                              | raanes'2015 ("sqrt model noise")
-Particle filter (bootstrap & implicit) <sup>2</sup>    | bocquet'2010 ("beyond Gaussian")
+Particle filter (bootstrap) <sup>2</sup>               | bocquet'2010 ("beyond Gaussian")
+Optimal/implicit Particle filter  <sup>2</sup>         | "
 Extended KF                                            | raanes'2016 thesis
-3D-Var                                                 | "
+Optimal interpolation                                  | "
 Climatology                                            | "
+3D-Var                                                 | 
 
 <sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).  
 Tuned with inflation and "random, orthogonal rotations".  
-<sup>2</sup>: Resampling: multinomial (including systematic and residual).  
-The particle filter is tuned with "effective-N monitoring", "regularization", "adjusted resampling weights", "annealed prior".  
+<sup>2</sup>: Resampling: multinomial (including systematic/universal and residual).  
+The particle filter is tuned with "effective-N" monitoring", "regularization/jittering" strength, and more.
 
 
 Models
