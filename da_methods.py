@@ -897,6 +897,10 @@ def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs
   mods/Lorenz95/boc10.py and mods/Lorenz95/boc10_m40.py.
   Other interesting settings include: mods/Lorenz63/sak12.py
   """
+  # TODO:
+  #if miN < 1:
+    #miN = N*miN
+
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
     m, Rm12       = f.m, h.noise.C.sym_sqrt_inv
@@ -1021,8 +1025,6 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
 
   Here, we will use the posterior mean of (2) and cov of (1).
   Or maybe we should use x_a^n distributed according to a sqrt update?
-
-  Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -1047,20 +1049,18 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
         stats.assess(k,kObs,'f',E=E,w=w)
         y  = yy[kObs]
         hE = h(E,t)
+        wD = w.copy()
 
         # Importance weighting
         innovs = (y - hE) @ Rm12.T
-        w_     = w.copy()
         w      = reweight(w,uni_innovs=innovs)
         
         # Resampling
         stats.assess(k,kObs,'a',E=E,w=w)
         if trigger_resampling(w,NER,stats,kObs):
-          w = w_
-
           # Weighted covariance factors
-          Aw = raw_C12(E,w)
-          Yw = raw_C12(hE,w)
+          Aw = raw_C12(E,wD)
+          Yw = raw_C12(hE,wD)
 
           # EnKF-without-pertubations update
           V,sig,UT = svd0( Yw @ Rm12.T )
@@ -1079,8 +1079,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
 
           # Duplicate
           ED  = cntrs.repeat(xN,0)
-          wD  = w_.repeat(xN)
-          wD /= wD.sum() # /xN
+          wD  = wD.repeat(xN) / xN
 
           # Sample q
           AD = DD@P_cholU
@@ -1099,7 +1098,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
           log_tot = log_L + log_pf - log_q
           wD      = reweight(wD,logL=log_tot)
 
-          # Resample and regularize
+          # Resample and reduce
           wroot = 1.0
           while True:
             idx,w  = resample(wD, resampl, wroot=wroot, N=N)
@@ -1116,10 +1115,11 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
 
 
 @DA_Config
-def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
+def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
   """
   Idea: sample xN duplicates from each of the N kernels.
   Let resampling reduce it to N.
+  Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -1141,36 +1141,40 @@ def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroo
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E,w=w)
         y  = yy[kObs]
+        wD = w.copy()
 
         innovs = (y - h(E,t)) @ Rm12.T
-        w_     = w.copy()
         w      = reweight(w,uni_innovs=innovs)
 
         stats.assess(k,kObs,'a',E=E,w=w)
         if trigger_resampling(w,NER,stats,kObs):
-          w    = w_
-          C12_ = Qs*bandw(N,m)*raw_C12(E,w)
+          # Compute kernel colouring matrix
+          cholR = Qs*bandw(N,m)*raw_C12(E,wD)
+          cholR = chol_reduce(cholR)
 
-          ED   = E.repeat(xN,0)
-          wD   = w.repeat(xN)
-          wD  /= wD.sum()
-
-          # TODO:
-          #V,sig,UT = svd0(C12_)
-          #cholU = sig*UT
-          cholU = chol_trunc(C12_.T@C12_)
-          rnk   = cholU.shape[0]
+          # Generate N·xN random numbers from NormDist(0,1)
           if DD is None or not re_use:
-            DD  = randn((N*xN,m))
-          ED   += DD[:,:rnk]@cholU
-          
+            DD = randn((N*xN,m))
+
+          # Duplicate and jitter
+          ED  = E.repeat(xN,0)
+          wD  = wD.repeat(xN) / xN
+          ED += DD[:,:len(cholR)]@cholR
+
+          # Update weights
           innovs = (y - h(ED,t)) @ Rm12.T
           wD     = reweight(wD,uni_innovs=innovs)
 
-          idx,w  = resample(wD, resampl, wroot=wroot, N=N)
-          C12    = reg*bandw(N,m)*raw_C12(ED[idx],w) # TODO: compute from w_ ?
-          E,_    = regularize(C12,ED,idx,nuj)
-
+          # Resample and reduce
+          wroot = 1.0
+          while True:
+            idx,w = resample(wD, resampl, wroot=wroot, N=N)
+            dups  = sum(mask_unique_of_sorted(idx))
+            if dups == 0:
+              E = ED[idx]
+              break
+            else:
+              wroot += 0.1
       stats.assess(k,kObs,'u',E=E,w=w)
   return assimilator
 
@@ -1380,10 +1384,10 @@ def sample_quickly_with(C12,N=None):
   (N_,m) = C12.shape
   if N is None: N = N_
   if N_ > 2*m:
-    cholU  = chol_trunc(C12.T@C12)
-    D      = randn((N,cholU.shape[0]))
+    cholR  = chol_reduce(C12)
+    D      = randn((N,cholR.shape[0]))
     chi2   = np.sum(D**2, axis=1)
-    sample = D@cholU
+    sample = D@cholR
   else:
     chi2_compensate_for_rank = min(m/N_,1.0)
     D      = randn((N,N_))
