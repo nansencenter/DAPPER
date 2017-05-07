@@ -24,6 +24,6 @@ setup = TwinSetup(f,h,t,X0,**other)
 #cfgs += PartFilt(N=5000,NER=0.10,reg=1.1)                # 0.72
 #cfgs += PartFilt(N=10000,NER=0.05,reg=0.8)               # 0.45
 
-#cfgs += PFD(     N=100, xN=1000,NER=0.9,reg=0.7,Qs=1.0)  # 0.87
-#cfgs += PFD(     N=100, xN=1000,NER=0.3,reg=0.7,Qs=0.9)  # 0.72 Diverges
-#cfgs += PFD(     N=1000,xN=100, NER=0.9,reg=0.5,Qs=0.6)  # 0.51
+#cfgs += PFxN(    N=100, xN=1000,NER=0.9,reg=0.7,Qs=1.0)  # 0.87
+#cfgs += PFxN(    N=100, xN=1000,NER=0.3,reg=0.7,Qs=0.9)  # 0.72 Diverges
+#cfgs += PFxN(    N=1000,xN=100, NER=0.9,reg=0.5,Qs=0.6)  # 0.51

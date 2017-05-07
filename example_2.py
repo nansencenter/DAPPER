@@ -22,7 +22,7 @@ cfgs += iEnKF('Sqrt',  N=10,  infl=1.02,rot=True,iMax=10) # 0.31
 cfgs += PartFilt(      N=100 ,reg=2.4,NER=0.3)            # 0.38
 cfgs += PartFilt(      N=800 ,reg=0.9,NER=0.2)            # 0.28
 #cfgs += PartFilt(      N=4000,reg=0.7,NER=0.05)           # 0.27
-#cfgs += PFD(xN=1000,   N=30  ,reg=0.7,NER=0.2,Qs=2)       # 0.56
+#cfgs += PFxN(xN=1000,  N=30  ,reg=0.7,NER=0.2,Qs=2)       # 0.56
 
 #from mods.Lorenz95.sak08 import setup ##################### Expected RMSE_a:
 #cfgs += ExtKF(infl=6)

@@ -54,7 +54,7 @@ def genOG_modified(m,opts=(0,1.0)):
     else:
       Q = eye(m)
   elif ver==2:
-    # Background knowledge
+    # Decompose and reduce angle of (complex) diagonal. Background:
     # stackoverflow.com/questions/38426349
     # https://en.wikipedia.org/wiki/Orthogonal_matrix
     Q   = genOG(m)
@@ -109,24 +109,29 @@ def funm_psd(a, fun, check_finite=False):
   return (v * w) @ v.T
 
 
-# TODO: THIS FAILS sometimes. E.g. Q from mods.LA.raanes2015
-from scipy.linalg.lapack import get_lapack_funcs
-def chol_trunc(C):
+def chol_reduce(Right):
   """
-  Return U such that C - U.T@U is close to machine-precision zero.
-  U is truncated when cholesky() finds a 'leading negative minor'.
-  Thus, U is rectangular, with height ∈ [rank, m].
+  Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
   Example:
-    E = randn((20,5))
-    C = E@E.T
-    # sla.cholesky(C) yields error coz of numerical error
-    U = chol_trunc(C)
+    A = anom(randn((20,5)),axis=1)
+    C = A.T @ A
+    # sla.cholesky(C) throws error
+    R = chol_reduce(A)
+    R.shape[1] == 4
   """
-  potrf, = get_lapack_funcs(('potrf',), (C,))
-  U, info = potrf(C, lower=False, overwrite_a=False, clean=True)
-  if info!=0:
-    U = U[:info]
-  return U
+  _,sig,UT = sla.svd(Right,full_matrices=False)
+  R = sig[:,None]*UT
+
+  # DEPRECATED, coz fails e.g. with Q from mods.LA.raanes2015
+  # R is truncated when cholesky() finds a 'leading negative minor'.
+  # Thus, R is rectangular, with height ∈ [rank, m].
+  #from scipy.linalg.lapack import get_lapack_funcs
+  #potrf, = get_lapack_funcs(('potrf',), (C,))
+  #R, info = potrf(C, lower=False, overwrite_a=False, clean=True)
+  #if info!=0:
+    #R = R[:info]
+
+  return R
 
 
 
