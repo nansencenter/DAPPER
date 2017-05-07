@@ -1063,13 +1063,6 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
           Yw = raw_C12(hE,w)
 
           # EnKF-without-pertubations update
-          #C       = Yw.T @ Yw + R
-          #YC      = mrdiv(Yw,C)
-          #KG      = Aw.T @ YC
-          #cntrs   = E + (y-hE)@KG.T
-          #Pa      = eye(N) - YC @ Yw.T
-          #P_cholU = funm_psd(Pa, sqrt) @ Aw
-          # SVD version
           V,sig,UT = svd0( Yw @ Rm12.T )
           dgn      = pad0( sig**2, N ) + 1
           Pw       = (V * dgn**(-1.0)) @ V.T
@@ -1083,20 +1076,6 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
             DD    = randn((N*xN,N))
             chi2  = np.sum(DD**2, axis=1) * rnk/N
             log_q = -0.5 * chi2
-          # - Using m-by-m P_cholU... no good?
-          # - Using the same buckshot for each kernel:
-          # DD    = randn((xN,N))
-          # # Order by distance to some direction
-          # # dirct = (y-mean(hE,0))@Ri@Yw.T@Pw@Aw
-          # # dists = np.sum((DD@P_cholU-10*dirct)**2,axis=1)
-          # # order = np.argsort(dists)
-          # # DD    = DD[order]
-          # rnk   = min(m,N-1)
-          # chi2  = np.sum(DD**2, axis=1) * rnk/N
-          # log_q = -0.5 * chi2
-          # # Duplicate
-          # log_q = np.tile(log_q,N)
-          # DD    = np.tile(DD,(N,1))
 
           # Duplicate
           ED  = cntrs.repeat(xN,0)
@@ -1124,8 +1103,6 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
           wroot = 1.0
           while True:
             idx,w  = resample(wD, resampl, wroot=wroot, N=N)
-            #C12    = reg*bandw(N,m)*raw_C12(ED[idx],w)
-            #E,_    = regularize(C12,ED,idx,nuj)
             dups   = sum(mask_unique_of_sorted(idx))
             if dups == 0:
               E = ED[idx]
