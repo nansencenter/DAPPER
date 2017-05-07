@@ -99,6 +99,7 @@ def DA_Config(da_method):
         msg  = "Caught exception during assimilation. Printing traceback:"
         msg += "\n" + "<"*20 + "\n\n"
         msg += "\n".join(s for s in traceback.format_tb(err.__traceback__))
+        msg += "\n" + str(err)
         msg += "\n" + ">"*20 + "\n"
         msg += "Returning stats object in its current (incompleted) state.\n"
         print(msg)
@@ -300,8 +301,13 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
 
   # Convert single cfg to list
   if isinstance(cfgs,DAC):
-    cfgs  = List_of_Configs(cfgs)
-    Avrgs = [Avrgs]
+    cfgs     = List_of_Configs(cfgs)
+    Avrgs    = [Avrgs]
+
+  # Set excluded attributes
+  excluded = list(cfgs.excluded)
+  if len(cfgs)==1:
+    excluded += list(cfgs[0].dflts)
 
   # Defaults averages
   if not statkeys:
@@ -314,7 +320,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   else:                  headr = list(attrkeys)
 
   # Filter excluded
-  headr = filter_out(headr, *cfgs.excluded)
+  headr = filter_out(headr, *excluded)
   
   # Get attribute values
   mattr = [cfgs.distinct_attrs()[key] for key in headr]

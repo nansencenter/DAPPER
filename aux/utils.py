@@ -37,7 +37,8 @@ try:
       return tqdm.tqdm_notebook(inds,desc=pdesc(desc),leave=leave)
   else:
     def progbar(inds, desc=None, leave=1):
-      return tqdm.tqdm(inds,desc=pdesc(desc),leave=leave)
+      return tqdm.tqdm(inds,desc=pdesc(desc),leave=leave,
+          smoothing=0.3,dynamic_ncols=True)
 except ImportError as err:
   install_warn(err)
   def progbar(inds, desc=None, leave=1):
@@ -442,6 +443,9 @@ def filter_out(orig_list,*unwanted):
       new.append(word)
   return new
 
+def all_but_1_is_None(*args):
+  "Check if only 1 of the items in list are Truthy"
+  return sum(x is not None for x in args) == 1
 
 # From stackoverflow.com/q/3012421
 class lazy_property(object):
@@ -466,7 +470,7 @@ class AssimFailedError(RuntimeError):
 
 def raise_AFE(msg,time_index=None):
   if time_index is not None:
-    msg += "(k,kObs,fau) = " + str(time_index) + ". "
+    msg += "\n(k,kObs,fau) = " + str(time_index) + ". "
   raise AssimFailedError(msg)
 
 
