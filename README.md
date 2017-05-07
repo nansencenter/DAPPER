@@ -28,8 +28,8 @@ The typical set-up is a "twin experiment", where you
 * use these to generate a synthetic
 	* "truth"
 	* and observations thereof*
-* assess how different DA methods, with knowledge of the above starred (*) items,
-		perform in estimating the truth.
+* assess how different DA methods perform in estimating the truth,
+		given the above starred (*) items.
 
 DAPPER enables the numerical investigation of DA methods
 through its variety of typical test cases and statistics.
