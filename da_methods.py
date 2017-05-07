@@ -196,7 +196,7 @@ def add_noise(E, dt, noise, config):
 
   N,m  = E.shape
   A,mu = anom(E)
-  Q12  = noise.C.Left # Note: not sym_sqrt
+  Q12  = noise.C.Left
   Q    = noise.C.full
 
   def sqrt_core():
@@ -870,7 +870,7 @@ def BnKF(N,infl=1.0,rot=False,**kwargs):
 
 
 @DA_Config
-def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
+def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
   """
   Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
   This is the bootstrap version: the proposal density is just
@@ -883,8 +883,10 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
 
   Tuning settings:
    - NER: Trigger resampling whenever N_eff <= N*NER.
-       If resampling with some variant of 'Multinomial', no systematic bias is introduced.
-   - qroot: "Inflate" (anneal) the proposal noise kernels by this root to increase diversity.
+       If resampling with some variant of 'Multinomial',
+       no systematic bias is introduced.
+   - qroot: "Inflate" (anneal) the proposal noise kernels
+       by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
        Ref: [3], section VI-M.2
 
@@ -911,7 +913,7 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
       E = f(E,t-dt,dt)
       if f.noise.C is not 0:
         D  = randn((N,m))
-        E += sqrt(dt*qroot)*(D@f.noise.C.sym_sqrt.T)
+        E += sqrt(dt*qroot)*(D@f.noise.C.Right)
 
         if qroot != 1.0:
           # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
@@ -922,16 +924,13 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
         stats.assess(k,kObs,'f',E=E,w=w)
 
         innovs = (yy[kObs] - h(E,t)) @ Rm12.T
-        logL   = -0.5 * np.sum(innovs**2, axis=1)
-        w      = reweight(w,logL=logL)
+        w      = reweight(w,uni_innovs=innovs)
 
-        stats.innovs[kObs] = innovs
         stats.assess(k,kObs,'a',E=E,w=w)
-
         if trigger_resampling(w,NER,stats,kObs):
           C12    = reg*bandw(N,m)*raw_C12(E,w)
           #C12  *= sqrt(rroot) # Re-include?
-          idx,w  = resample(w, upd_a, wroot=wroot)
+          idx,w  = resample(w, resampl, wroot=wroot)
           E,chi2 = regularize(C12,E,idx,nuj)
           #if rroot != 1.0:
             # Compensate for rroot
@@ -943,7 +942,7 @@ def PartFilt(N,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,**k
 
 
 @DA_Config
-def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,wroot=1.0,**kwargs):
+def OptPF(N,Qs,NER=1.0,resampl='Sys',reg=0,nuj=True,wroot=1.0,**kwargs):
   """
   "Optimal proposal" particle filter.
   OR
@@ -973,23 +972,24 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,wroot=1.0,**kwargs):
     for k,kObs,t,dt in progbar(chrono.forecast_range):
       E = f(E,t-dt,dt)
       if f.noise.C is not 0:
-        E += sqrt(dt)*(randn((N,m))@f.noise.C.sym_sqrt.T) # TODO use cholU
+        E += sqrt(dt)*(randn((N,m))@f.noise.C.Right)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E,w=w)
         y = yy[kObs]
 
-        innovs = y - h(E,t) # before noise
+        hE = h(E,t)
+        innovs = y - hE
 
         # EnKF-ish update
-        s   = bandw(N,m)*Qs
+        s   = Qs*bandw(N,m)
         As  = s*raw_C12(E,w)
-        E  += sample_quickly_with(As)[0]
-        hE  = h(E,t) # after noise
-        Ys  = s*raw_C12(hE,w)           # TODO: duplicate s ?
-        D   = center(h.noise.sample(N)) # TODO: no center?
+        Ys  = s*raw_C12(hE,w)
         C   = Ys.T@Ys + R
-        dE  = As.T@Ys @ mldiv(C,(y-hE+D).T)
+        KG  = As.T@mrdiv(Ys,C)
+        E  += sample_quickly_with(As)[0]
+        D   = h.noise.sample(N)
+        dE  = KG @ (y-h(E,t)+D).T
         E   = E + dE.T
 
         # Importance weighting
@@ -1001,20 +1001,148 @@ def OptPF(N,Qs,NER=1.0,upd_a='Systematic',reg=0,nuj=True,wroot=1.0,**kwargs):
         stats.assess(k,kObs,'a',E=E,w=w)
         if trigger_resampling(w,NER,stats,kObs):
           C12    = reg*bandw(N,m)*raw_C12(E,w)
-          idx,w  = resample(w, upd_a, wroot=wroot)
-          E,chi2 = regularize(C12,E,idx,nuj)
+          idx,w  = resample(w, resampl, wroot=wroot)
+          E,_    = regularize(C12,E,idx,nuj)
 
       stats.assess(k,kObs,'u',E=E,w=w)
   return assimilator
 
-
 @DA_Config
-def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,re_use=True,**kwargs):
+def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
   """
-  Idea: sample a bunch from each kernel.
-  => The ones more likely to get picked by resampling are closer to the likelihood.
+  Particle filter with EnKF-based proposal, q.
+  Also employs xN duplication, as in PFxN.
+
+  Recall that the proposals:
+  Opt.: q_n(x) = c_n·N(x|x_n,Q     )·N(y|Hx,R)  (1)
+  EnKF: q_n(x) = c_n·N(x|x_n,bar{B})·N(y|Hx,R)  (2)
+  with c_n = p(y|x^{k-1}_n) being the composite proposal-analysis weight,
+  and with Q possibly from regularization (rather than actual model noise).
+
+  Here, we will use the posterior mean of (2) and cov of (1).
+  Or maybe we should use x_a^n distributed according to a sqrt update?
 
   Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    m, R, Rm12, Ri= f.m, h.noise.C.full, h.noise.C.sym_sqrt_inv, h.noise.C.inv
+
+    E = X0.sample(N)
+    w = 1/N*ones(N)
+
+    DD = None
+    
+    stats.N_eff  = np.full(chrono.KObs+1,nan)
+    stats.wroot  = np.full(chrono.KObs+1,nan)
+    stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+    stats.assess(0,E=E,w=1/N)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      if f.noise.C is not 0:
+        E += sqrt(dt)*(randn((N,m))@f.noise.C.Right)
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E,w=w)
+        y  = yy[kObs]
+        hE = h(E,t)
+
+        # Importance weighting
+        innovs = (y - hE) @ Rm12.T
+        w_     = w.copy()
+        w      = reweight(w,uni_innovs=innovs)
+        
+        # Resampling
+        stats.assess(k,kObs,'a',E=E,w=w)
+        if trigger_resampling(w,NER,stats,kObs):
+          w = w_
+
+          # Weighted covariance factors
+          Aw = raw_C12(E,w)
+          Yw = raw_C12(hE,w)
+
+          # EnKF-without-pertubations update
+          #C       = Yw.T @ Yw + R
+          #YC      = mrdiv(Yw,C)
+          #KG      = Aw.T @ YC
+          #cntrs   = E + (y-hE)@KG.T
+          #Pa      = eye(N) - YC @ Yw.T
+          #P_cholU = funm_psd(Pa, sqrt) @ Aw
+          # SVD version
+          V,sig,UT = svd0( Yw @ Rm12.T )
+          dgn      = pad0( sig**2, N ) + 1
+          Pw       = (V * dgn**(-1.0)) @ V.T
+          cntrs    = E + (y-hE)@Ri@Yw.T@Pw@Aw
+          P_cholU  = (V*dgn**(-0.5)).T @ Aw
+
+          # Generate N·xN random numbers from NormDist(0,1), and compute
+          # log(q(x))
+          if DD is None or not re_use:
+            rnk   = min(m,N-1)
+            DD    = randn((N*xN,N))
+            chi2  = np.sum(DD**2, axis=1) * rnk/N
+            log_q = -0.5 * chi2
+          # - Using m-by-m P_cholU... no good?
+          # - Using the same buckshot for each kernel:
+          # DD    = randn((xN,N))
+          # # Order by distance to some direction
+          # # dirct = (y-mean(hE,0))@Ri@Yw.T@Pw@Aw
+          # # dists = np.sum((DD@P_cholU-10*dirct)**2,axis=1)
+          # # order = np.argsort(dists)
+          # # DD    = DD[order]
+          # rnk   = min(m,N-1)
+          # chi2  = np.sum(DD**2, axis=1) * rnk/N
+          # log_q = -0.5 * chi2
+          # # Duplicate
+          # log_q = np.tile(log_q,N)
+          # DD    = np.tile(DD,(N,1))
+
+          # Duplicate
+          ED  = cntrs.repeat(xN,0)
+          wD  = w_.repeat(xN)
+          wD /= wD.sum() # /xN
+
+          # Sample q
+          AD = DD@P_cholU
+          ED = ED + AD
+
+          # log(prior_kernel(x))
+          s         = Qs*bandw(N,m)
+          innovs_pf = AD @ tinv(s*Aw)
+          log_pf    = -0.5 * np.sum(innovs_pf**2, axis=1)
+
+          # log(likelihood(x))
+          innovs = (y - h(ED,t)) @ Rm12.T
+          log_L  = -0.5 * np.sum(innovs**2, axis=1)
+
+          # Update weights
+          log_tot = log_L + log_pf - log_q
+          wD      = reweight(wD,logL=log_tot)
+
+          # Resample and regularize
+          wroot = 1.0
+          while True:
+            idx,w  = resample(wD, resampl, wroot=wroot, N=N)
+            #C12    = reg*bandw(N,m)*raw_C12(ED[idx],w)
+            #E,_    = regularize(C12,ED,idx,nuj)
+            dups   = sum(mask_unique_of_sorted(idx))
+            if dups == 0:
+              E = ED[idx]
+              break
+            else:
+              wroot += 0.1
+      stats.assess(k,kObs,'u',E=E,w=w)
+  return assimilator
+
+
+
+
+@DA_Config
+def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
+  """
+  Idea: sample xN duplicates from each of the N kernels.
+  Let resampling reduce it to N.
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -1031,16 +1159,15 @@ def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,re
     for k,kObs,t,dt in progbar(chrono.forecast_range):
       E = f(E,t-dt,dt)
       if f.noise.C is not 0:
-        E += sqrt(dt)*(randn((N,m))@f.noise.C.sym_sqrt.T)
+        E += sqrt(dt)*(randn((N,m))@f.noise.C.Right)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E,w=w)
         y  = yy[kObs]
 
         innovs = (y - h(E,t)) @ Rm12.T
-        logL   = -0.5 * np.sum(innovs**2, axis=1)
         w_     = w.copy()
-        w      = reweight(w,logL=logL)
+        w      = reweight(w,uni_innovs=innovs)
 
         stats.assess(k,kObs,'a',E=E,w=w)
         if trigger_resampling(w,NER,stats,kObs):
@@ -1051,6 +1178,9 @@ def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,re
           wD   = w.repeat(xN)
           wD  /= wD.sum()
 
+          # TODO:
+          #V,sig,UT = svd0(C12_)
+          #cholU = sig*UT
           cholU = chol_trunc(C12_.T@C12_)
           rnk   = cholU.shape[0]
           if DD is None or not re_use:
@@ -1058,16 +1188,14 @@ def PFD(N,Qs,xN,NER=1.0,upd_a='Systematic',reg=0,nuj=True,qroot=1.0,wroot=1.0,re
           ED   += DD[:,:rnk]@cholU
           
           innovs = (y - h(ED,t)) @ Rm12.T
-          logL   = -0.5 * np.sum(innovs**2, axis=1)
-          wD     = reweight(wD,logL=logL)
+          wD     = reweight(wD,uni_innovs=innovs)
 
-          idx,w  = resample(wD, upd_a, wroot=wroot, N=N)
+          idx,w  = resample(wD, resampl, wroot=wroot, N=N)
           C12    = reg*bandw(N,m)*raw_C12(ED[idx],w) # TODO: compute from w_ ?
-          E,chi2 = regularize(C12,ED,idx,nuj)
+          E,_    = regularize(C12,ED,idx,nuj)
 
       stats.assess(k,kObs,'u',E=E,w=w)
   return assimilator
-
 
 
 
@@ -1079,7 +1207,7 @@ def trigger_resampling(w,NER,stats,kObs):
   stats.resmpl[kObs] = do_resample
   return do_resample
 
-def reweight(w,lklhd=None,logL=None):
+def reweight(w,lklhd=None,logL=None,uni_innovs=None):
   """
   Do Bayes' rule for the empirical distribution of an importance sample.
   Do computations in log-space, for at least 2 reasons:
@@ -1087,15 +1215,20 @@ def reweight(w,lklhd=None,logL=None):
   - Num. precision: lklhd*w should have better precision in log space.
   Output is non-log, for the purpose of assessment and resampling.
   """
+  assert all_but_1_is_None(lklhd,logL,uni_innovs), \
+      "Input error. Only specify one of lklhd, logL, uni_innovs"
+
   # Get log-values.
   # Use context manager 'errstate' to not warn for log(0) = -inf.
   # Note: the case when all(w==0) will cause nan's,
   #       which should cause errors outside.
   with np.errstate(divide='ignore'):
-    if lklhd is not None:
-      assert logL is None
-      logL = log(lklhd)
     logw = log(w)        
+    if lklhd is not None:
+      logL = log(lklhd)
+    elif uni_innovs is not None:
+      chi2 = np.sum(uni_innovs**2, axis=1)
+      logL = -0.5 * chi2
 
   logw   = logw + logL   # Bayes' rule in log-space
   logw  -= logw.max()    # Avoid numerical error
@@ -1232,11 +1365,11 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
 
 def _resample(w,kind,N_o,N):
   "Core functionality for resample(). See its docstring."
-  if kind is 'Stochastic':
+  if kind in ['Stochastic','Stoch']:
     # van Leeuwen [2] also calls this "probabilistic" resampling
     idx = np.random.choice(N_o,N,replace=True,p=w)
     # np.random.multinomial is faster (slightly different usage) ?
-  elif kind is 'Residual':
+  elif kind in ['Residual','Res']:
     # Doucet [1] also calls this "stratified" resampling.
     w_N   = w*N             # upscale
     w_I   = w_N.astype(int) # integer part
@@ -1250,7 +1383,7 @@ def _resample(w,kind,N_o,N):
     idx_D = np.random.choice(N_o,N_D,replace=True,p=w_D/w_D.sum())
     # Concatenate
     idx   = np.hstack((idx_I,idx_D))
-  elif kind is 'Systematic':
+  elif kind in ['Systematic','Sys']:
     # van Leeuwen [2] also calls this "stochastic universal" resampling
     U     = rand(1) / N
     CDF_a = U + arange(N)/N
