@@ -430,8 +430,6 @@ class LivePlot:
       if '\r' in ch:
         self.is_paused = False
 
-    return False
-
     key = poll_input() # =None if <space> was pressed above
     if key is not None:
       if key == '\n':

@@ -26,30 +26,33 @@ setup = TwinSetup(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-#                                            Expected RMSE_a:
-#cfgs += EnKF('Sqrt',N=24,rot=True,infl=1.02)       # 0.32
-#cfgs += PartFilt(N=50 ,NER=0.3,reg=1.7)            # 1.0
-#cfgs += OptPF(   N=50,NER=0.25,reg=1.4,Qs=0.4)     # 0.61
-#cfgs += PartFilt(N=100,NER=0.2,reg=1.3)            # 0.35
-#cfgs += OptPF(   N=100,NER=0.2,reg=1.0,Qs=0.3)     # 0.37
-#cfgs += PartFilt(N=800,NER=0.2,reg=0.8)            # 0.25
-#cfgs += OptPF(   N=800,NER=0.2,reg=0.6,Qs=0.1)     # 0.25
-
-# Note: contrary to the article, we use, in the EnKF,
+# Why are these benchmarks superior to those in the article?
+# We use, in the EnKF,
 # - inflation instead of additive noise ?
 # - Sqrt      instead of perturbed obs
 # - random orthogonal rotations.
-# The PartFilt is also perhaps better tuned?
-# This explains why the above benchmarks are superior to article.
+# The particle filters are also probably better tuned:
+# - jitter covariance proportional to ensemble (weighted) cov
+# - no jitter on unique particles after resampling
+
+#                                            Expected RMSE_a:
+#cfgs += EnKF('Sqrt',N=24,rot=True,infl=1.02)       # 0.32
+
+#cfgs += PartFilt(N=50 ,NER=0.3 ,reg=1.7)           # 1.0
+#cfgs += PartFilt(N=100,NER=0.2 ,reg=1.3)           # 0.36
+#cfgs += PartFilt(N=800,NER=0.2 ,reg=0.8)           # 0.25
+
+#cfgs += OptPF(   N=50 ,NER=0.25,reg=1.4,Qs=0.4)    # 0.61
+#cfgs += OptPF(   N=100,NER=0.2 ,reg=1.0,Qs=0.3)    # 0.37
+#cfgs += OptPF(   N=800,NER=0.2 ,reg=0.6,Qs=0.1)    # 0.25
 
 #cfgs += PFxN     (N=30, NER=0.4, Qs=1.0,xN=1000)   # 0.48
 #cfgs += PFxN     (N=50, NER=0.3, Qs=1.1,xN=100 )   # 0.43
-#cfgs += PFxN     (N=100,NER=0.3, Qs=1.0,xN=100 )   # 0.38
-#cfgs += PFxN     (N=300,NER=0.3, Qs=0.8,xN=100 )   # 0.29
+#cfgs += PFxN     (N=100,NER=0.2, Qs=1.0,xN=100 )   # 0.32
+#cfgs += PFxN     (N=400,NER=0.2, Qs=0.8,xN=100 )   # 0.27
+#cfgs += PFxN     (N=800,NER=0.2, Qs=0.6,xN=100 )   # 0.25
+
 #cfgs += PFxN_EnKF(N=25 ,NER=0.4 ,Qs=1.5,xN=100)    # 0.49
 #cfgs += PFxN_EnKF(N=50 ,NER=0.25,Qs=1.5,xN=100)    # 0.36
-#cfgs += PFxN_EnKF(N=100,NER=0.20,Qs=1.0,xN=100)    # 0.31
+#cfgs += PFxN_EnKF(N=100,NER=0.20,Qs=1.0,xN=100)    # 0.32
 #cfgs += PFxN_EnKF(N=300,NER=0.10,Qs=1.0,xN=100)    # 0.28
-# PFxN worse than PartFilt (bootstrap) with N>100. Potential causes:
-# - Tuning
-# - 'reg' is better (less bias coz 'no-uniq-jitter') than 'Qs'

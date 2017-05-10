@@ -270,8 +270,9 @@ Implementation choices
     * beneficial operator precedence without `()`. E.g. `dy @ Rinv @ Y.T @ Pw` (where `dy` is a vector)
     * fewer indices: `[n,:]` yields same as `[n]`
     * no checking if numpy return `ndarrays` even when input is `matrix`
+    * Regression literature uses `N-by-m` ("data matrix")
 * OLD: Use `m-by-N` matrix class. Pros:
-    * Literature uses `m-by-N`
+    * EnKF literature uses `m-by-N`
     * Matrix multiplication through `*` -- since python3.5 can just use `@`
 
 Conventions:

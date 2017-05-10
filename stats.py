@@ -206,7 +206,6 @@ class Stats(MLR_Print):
       self.rh[k]    = [np.where(Ex_sorted[:,i] == x[i])[0][0] for i in range(m)]
 
 
-  @profile
   def assess_ext(self,k,mu,P):
     """Kalman filter (Gaussian) assessment."""
 
