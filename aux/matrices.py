@@ -122,14 +122,14 @@ def chol_reduce(Right):
   _,sig,UT = sla.svd(Right,full_matrices=False)
   R = sig[:,None]*UT
 
-  # DEPRECATED, coz fails e.g. with Q from mods.LA.raanes2015
-  # R is truncated when cholesky() finds a 'leading negative minor'.
-  # Thus, R is rectangular, with height ∈ [rank, m].
+  # The below is DEPRECATED, coz it fails e.g. with Q from mods.LA.raanes2015.
   #from scipy.linalg.lapack import get_lapack_funcs
   #potrf, = get_lapack_funcs(('potrf',), (C,))
   #R, info = potrf(C, lower=False, overwrite_a=False, clean=True)
   #if info!=0:
     #R = R[:info]
+  # Explanation: R is truncated when cholesky() finds a 'leading negative minor'.
+  # Thus, R is rectangular, with height ∈ [rank, m].
 
   return R
 
@@ -246,7 +246,7 @@ class CovMat():
   @property
   def trunc(self):
     """Truncation threshold."""
-    return self._kind
+    return self._trunc
 
   ##################################
   # "Non-EVD" stuff

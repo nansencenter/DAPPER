@@ -212,20 +212,21 @@ def mldiv(A,b):
 
 
 def truncate_rank(s,threshold,avoid_pathological):
-  "Find truncation rank."
-  # Assume proportion requested
-  if isinstance(threshold,float):
-    assert threshold <= 1.0
-    if threshold < 1.0:
-      r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
-      r += 1 # Hence the strict inequality above
-      if avoid_pathological:
-        # If not avoid_pathological, then the last 4 diag. entries of
-        # reconst( *tsvd(eye(400),0.99) )
-        # will be zero. This is probably not intended.
-        r += np.sum(np.isclose(s[r-1], s[r:]))
-    else:
-      r = len(s)
+  "Find r such that s[:r] contains the threshold proportion of s."
+  assert isinstance(threshold,float)
+  if threshold == 1.0:
+    r = len(s)
+  elif threshold < 1.0:
+    r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
+    r += 1 # Hence the strict inequality above
+    if avoid_pathological:
+      # If not avoid_pathological, then the last 4 diag. entries of
+      # reconst( *tsvd(eye(400),0.99) )
+      # will be zero. This is probably not intended.
+      r += np.sum(np.isclose(s[r-1], s[r:]))
+  else:
+    raise ValueError
+  return r
 
 def tsvd(A, threshold=0.99999, avoid_pathological=True):
   """
@@ -242,20 +243,19 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
   m,n = A.shape
   full_matrices = False
 
-  # Assume number of components requested
   if is_int(threshold):
-    assert threshold >= 1
+    # Assume specific number is requested
     r = threshold
-    assert r <= max(m,n)
+    assert 1 <= r <= max(m,n)
     if r > min(m,n):
       full_matrices = True
-    avoid_pathological = False
 
   # SVD
   U,s,VT = sla.svd(A, full_matrices)
 
-  # Find truncation rank
-  r = truncate_rank(s,threshold,avoid_pathological)
+  if isinstance(threshold,float):
+    # Assume proportion is requested
+    r = truncate_rank(s,threshold,avoid_pathological)
 
   # Truncate
   U  = U [:,:r]
@@ -268,16 +268,15 @@ def svd0(A):
   Compute the 
    - full    svd if nrows > ncols
    - reduced svd otherwise.
-  In Matlab: svd(A',0)' ,
-  in keeping with DAPPER convention of transposing ensemble matrices.
-  It also contrasts with scipy.linalg's svd and Matlab's svd(A,'econ'),
+  As in Matlab: svd(A,0),
+  except that the input and output are transposed, in keeping with DAPPER convention.
+  It contrasts with scipy.linalg's svd(full_matrice=False) and Matlab's svd(A,'econ'),
   both of which always compute the reduced svd.
+  For reduction down to rank, see tsvd() instead.
   """
   m,n = A.shape
-  if m>n:
-    return sla.svd(A, full_matrices=True)
-  else:
-    return sla.svd(A, full_matrices=False)
+  if m>n: return sla.svd(A, full_matrices=True)
+  else:   return sla.svd(A, full_matrices=False)
 
 def pad0(ss,N):
   out = zeros(N)
