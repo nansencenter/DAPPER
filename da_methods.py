@@ -32,54 +32,6 @@ def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
       stats.assess(k,kObs,E=E)
   return assimilator
 
-@DA_Config
-def EnKF_tp(N,infl=1.0,rot=False,**kwargs):
-  """
-  EnKF using 'non-transposed' analysis equations,
-  where E is m-by-N, as is convention in EnKF litterature.
-  This is slightly inefficient in our Python implementation,
-  but is included for comparison (debugging, etc...).
-  """
-  def assimilator(stats,twin,xx,yy):
-    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-
-    E = X0.sample(N)
-    stats.assess(0,E=E)
-
-    for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E = f(E,t-dt,dt)
-      E = add_noise(E, dt, f.noise, kwargs)
-
-      if kObs is not None:
-        stats.assess(k,kObs,'f',E=E)
-        hE = h(E,t)
-        y  = yy[kObs]
-
-        E  = asmatrix(E).T
-        hE = asmatrix(hE).T
-
-        mu = mean(E,1)
-        A  = E - mu
-        hx = mean(hE,1)
-        y  = y.reshape((h.m,1))
-        dy = y - hx
-        Y  = hE-hx
-
-        C  = Y@Y.T + h.noise.C.full*(N-1)
-        YC = mrdiv(Y.T, C)
-        KG = A@YC
-        HK = Y@YC
-        D  = center(h.noise.sample(N)).T
-        dE = KG @ ( y + D - hE )
-        E  = E + dE
-        E  = asarray(E.T)
-
-        stats.trHK[kObs] = trace(HK)/h.m
-
-        E = post_process(E,infl,rot)
-
-      stats.assess(k,kObs,E=E)
-  return assimilator
 
 
 @DA_Config
@@ -181,6 +133,104 @@ def EnRTS(upd_a,N,cntr,infl=1.0,rot=False,**kwargs):
 
 
 
+
+def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
+    R = hnoise.C
+    N,m = E.shape
+
+    mu = mean(E,0)
+    A  = E - mu
+
+    hx = mean(hE,0)
+    Y  = hE-hx
+    dy = y - hx
+
+    if 'PertObs' in upd_a:
+        # Uses perturbed observations (burgers'98)
+        C  = Y.T @ Y + R.full*(N-1)
+        D  = center(hnoise.sample(N))
+        YC = mrdiv(Y, C)
+        KG = A.T @ YC
+        HK = Y.T @ YC
+        dE = (KG @ ( y + D - hE ).T).T
+        E  = E + dE
+    elif 'Sqrt' in upd_a:
+        # Uses a symmetric square root (ETKF)
+        # to deterministically transform the ensemble.
+        #
+        # The various versions below differ only numerically.
+        # EVD is default, but for large N use SVD version.
+        if upd_a == 'Sqrt' and N>m: upd_a = 'Sqrt svd'
+        #
+        if 'explicit' in upd_a:
+          # Not recommended.
+          # Implementation using inv (in ens space)
+          Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
+          T  = sqrtm(Pw) * sqrt(N-1)
+          HK = R.inv @ Y.T @ Pw @ Y
+          #KG = R.inv @ Y.T @ Pw @ A
+        elif 'svd' in upd_a:
+          # Implementation using svd of Y R^{-1/2}.
+          V,s,_ = svd0(Y @ R.sym_sqrt_inv.T)
+          d     = pad0(s**2,N) + (N-1)
+          Pw    = ( V * d**(-1.0) ) @ V.T
+          T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
+          trHK  = np.sum( (s**2+(N-1))**(-1.0) * s**2 ) # see docs/trHK.jpg
+        elif 'sS' in upd_a:
+          # Same as 'svd', but with slightly different notation
+          # (sometimes used by Sakov) using the normalization sqrt(N-1).
+          S     = Y @ R.sym_sqrt_inv.T / sqrt(N-1)
+          V,s,_ = svd0(S)
+          d     = pad0(s**2,N) + 1
+          Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
+          T     = ( V * d**(-0.5) )@V.T
+          trHK  = np.sum(  (s**2 + 1)**(-1.0)*s**2 ) # see docs/trHK.jpg
+        else: # 'eig' in upd_a:
+          # Implementation using eig. val. decomp.
+          d,V   = eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
+          T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
+          Pw    = V@diag(d**(-1.0))@V.T
+          HK    = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
+        w = dy @ R.inv @ Y.T @ Pw
+        E = mu + w@A + T@A
+    elif 'Serial' in upd_a:
+        # Observations assimilator one-at-a-time.
+        # Even though it's derived as "serial ETKF",
+        # it's not equivalent to 'Sqrt' for the actual ensemble,
+        # although it does yield the same mean/cov.
+        # See DAPPER/Misc/batch_vs_serial.py for more details.
+        inds = serial_inds(upd_a, y, R, A)
+        z = dy@ R.sym_sqrt_inv.T / sqrt(N-1)
+        S = Y @ R.sym_sqrt_inv.T / sqrt(N-1)
+        T = eye(N)
+        for j in inds:
+          # Possibility: re-compute Sj by non-lin h.
+          Sj = S[:,j]
+          Dj = Sj@Sj + 1
+          Tj = np.outer(Sj, Sj /  (Dj + sqrt(Dj)))
+          T -= Tj @ T
+          S -= Tj @ S
+        GS   = S.T @ T
+        E    = mu + z@GS@A + T@A
+        trHK = trace(R.sym_sqrt_inv.T@GS@Y)/sqrt(N-1) # Correct?
+    elif 'DEnKF' is upd_a:
+        # Uses "Deterministic EnKF" (sakov'08)
+        C  = Y.T @ Y + R.full*(N-1)
+        YC = mrdiv(Y, C)
+        KG = A.T @ YC
+        HK = Y.T @ YC
+        E  = E + KG@dy - 0.5*(KG@Y.T).T
+    else:
+      raise KeyError("No analysis update method found: '" + upd_a + "'.") 
+
+    # Diagnostic: relative influence of observations
+    if 'trHK' in locals(): stats.trHK[kObs] = trHK     /hnoise.m
+    elif 'HK' in locals(): stats.trHK[kObs] = trace(HK)/hnoise.m
+
+    return E
+
+
+
 def add_noise(E, dt, noise, config):
   """
   Treatment of additive noise for ensembles.
@@ -259,116 +309,7 @@ def add_noise(E, dt, noise, config):
   return E
 
 
-def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
-    R = hnoise.C
-    N,m = E.shape
 
-    mu = mean(E,0)
-    A  = E - mu
-
-    hx = mean(hE,0)
-    Y  = hE-hx
-    dy = y - hx
-
-    if 'PertObs' in upd_a:
-        # Uses perturbed observations (burgers'98)
-        C  = Y.T @ Y + R.full*(N-1)
-        D  = center(hnoise.sample(N))
-        YC = mrdiv(Y, C)
-        KG = A.T @ YC
-        HK = Y.T @ YC
-        dE = (KG @ ( y + D - hE ).T).T
-        E  = E + dE
-    elif 'Sqrt' in upd_a:
-        # Uses a symmetric square root (ETKF)
-        # to deterministically transform the ensemble.
-        #
-        # The various versions below differ only numerically.
-        # EVD is default, # But for large N use SVD version.
-        if upd_a == 'Sqrt' and N>m: upd_a = 'Sqrt svd'
-        #
-        if 'explicit' in upd_a:
-          # Not recommended.
-          # Implementation using inv (in ens space)
-          Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
-          T  = sqrtm(Pw) * sqrt(N-1)
-          HK = R.inv @ Y.T @ Pw @ Y
-          #KG = R.inv @ Y.T @ Pw @ A
-        elif 'svd' in upd_a:
-          # Implementation using svd of Y R^{-1/2}.
-          V,s,_ = svd0(Y @ R.sym_sqrt_inv.T)
-          d     = pad0(s**2,N) + (N-1)
-          Pw    = ( V * d**(-1.0) ) @ V.T
-          T     = ( V * d**(-0.5) ) @ V.T * sqrt(N-1) 
-          trHK  = np.sum( (s**2+(N-1))**(-1.0) * s**2 ) # see docs/trHK.jpg
-        elif 'sS' in upd_a:
-          # Same as 'svd', but with slightly different notation
-          # (sometimes used by Sakov) using the normalization sqrt(N-1).
-          S     = Y @ R.sym_sqrt_inv.T / sqrt(N-1)
-          V,s,_ = svd0(S)
-          d     = pad0(s**2,N) + 1
-          Pw    = ( V * d**(-1.0) )@V.T / (N-1) # = G/(N-1)
-          T     = ( V * d**(-0.5) )@V.T
-          trHK  = np.sum(  (s**2 + 1)**(-1.0)*s**2 ) # see docs/trHK.jpg
-        else: # 'eig' in upd_a:
-          # Implementation using eig. val. decomp.
-          d,V   = eigh(Y @ R.inv @ Y.T + (N-1)*eye(N))
-          T     = V@diag(d**(-0.5))@V.T * sqrt(N-1)
-          Pw    = V@diag(d**(-1.0))@V.T
-          HK    = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
-        w = dy @ R.inv @ Y.T @ Pw
-        E = mu + w@A + T@A
-    elif 'Serial' in upd_a:
-        # Observations assimilator one-at-a-time.
-        # Even though it's derived as "serial ETKF",
-        # it's not equivalent to 'Sqrt' for the actual ensemble,
-        # although it does yield the same mean/cov.
-        # See DAPPER/Misc/batch_vs_serial.py for more details.
-        inds = serial_inds(upd_a, y, R, A)
-        z = dy@ R.sym_sqrt_inv.T / sqrt(N-1)
-        S = Y @ R.sym_sqrt_inv.T / sqrt(N-1)
-        T = eye(N)
-        for j in inds:
-          # Possibility: re-compute Sj by non-lin h.
-          Sj = S[:,j]
-          Dj = Sj@Sj + 1
-          Tj = np.outer(Sj, Sj /  (Dj + sqrt(Dj)))
-          T -= Tj @ T
-          S -= Tj @ S
-        GS   = S.T @ T
-        E    = mu + z@GS@A + T@A
-        trHK = trace(R.sym_sqrt_inv.T@GS@Y)/sqrt(N-1) # Correct?
-    elif 'DEnKF' is upd_a:
-        # Uses "Deterministic EnKF" (sakov'08)
-        C  = Y.T @ Y + R.full*(N-1)
-        YC = mrdiv(Y, C)
-        KG = A.T @ YC
-        HK = Y.T @ YC
-        E  = E + KG@dy - 0.5*(KG@Y.T).T
-    else:
-      raise KeyError("No analysis update method found: '" + upd_a + "'.") 
-
-    # Diagnostic: relative influence of observations
-    if 'trHK' in locals(): stats.trHK[kObs] = trHK     /hnoise.m
-    elif 'HK' in locals(): stats.trHK[kObs] = trace(HK)/hnoise.m
-
-    return E
-
-
-def serial_inds(upd_a, y, cvR, A):
-  if 'mono' in upd_a:
-    # Not robust?
-    inds = arange(len(y))
-  elif 'sorted' in upd_a:
-    dC = cvR.diag
-    if np.all(dC == dC[0]):
-      # Sort y by P
-      dC = np.sum(A*A,0)/(N-1)
-    inds = np.argsort(dC)
-  else: # Default: random ordering
-    inds = np.random.permutation(len(y))
-  return inds
-  
 
 @DA_Config
 def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
@@ -443,6 +384,21 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
       stats.assess(k,kObs,E=E)
   return assimilator
 
+
+def serial_inds(upd_a, y, cvR, A):
+  if 'mono' in upd_a:
+    # Not robust?
+    inds = arange(len(y))
+  elif 'sorted' in upd_a:
+    dC = cvR.diag
+    if np.all(dC == dC[0]):
+      # Sort y by P
+      dC = np.sum(A*A,0)/(N-1)
+    inds = np.argsort(dC)
+  else: # Default: random ordering
+    inds = np.random.permutation(len(y))
+  return inds
+  
 
 
 @DA_Config
@@ -1012,7 +968,7 @@ def OptPF(N,Qs,NER=1.0,resampl='Sys',reg=0,nuj=True,wroot=1.0,**kwargs):
   return assimilator
 
 @DA_Config
-def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
+def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
   """
   Particle filter with EnKF-based proposal, q.
   Also employs xN duplication, as in PFxN.
@@ -1028,7 +984,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-    m, R, Rm12, Ri= f.m, h.noise.C.full, h.noise.C.sym_sqrt_inv, h.noise.C.inv
+    m, Rm12, Ri   = f.m, h.noise.C.sym_sqrt_inv, h.noise.C.inv
 
     E = X0.sample(N)
     w = 1/N*ones(N)
@@ -1063,19 +1019,33 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
           Yw = raw_C12(hE,wD)
 
           # EnKF-without-pertubations update
-          V,sig,UT = svd0( Yw @ Rm12.T )
-          dgn      = pad0( sig**2, N ) + 1
-          Pw       = (V * dgn**(-1.0)) @ V.T
-          cntrs    = E + (y-hE)@Ri@Yw.T@Pw@Aw
-          P_cholU  = (V*dgn**(-0.5)).T @ Aw
-
-          # Generate N·xN random numbers from NormDist(0,1), and compute
-          # log(q(x))
-          if DD is None or not re_use:
-            rnk   = min(m,N-1)
-            DD    = randn((N*xN,N))
-            chi2  = np.sum(DD**2, axis=1) * rnk/N
-            log_q = -0.5 * chi2
+          if N>m:
+            C       = Yw.T @ Yw + h.noise.C.full
+            KG      = mrdiv(Aw.T@Yw,C)
+            cntrs   = E + (y-hE)@KG.T
+            Pa      = Aw.T@Aw - KG@Yw.T@Aw
+            P_cholU = funm_psd(Pa, sqrt)
+            if DD is None or not re_use:
+              DD    = randn((N*xN,m))
+              chi2  = np.sum(DD**2, axis=1) * m/N
+              log_q = -0.5 * chi2
+          else:
+            V,sig,UT = svd0( Yw @ Rm12.T )
+            dgn      = pad0( sig**2, N ) + 1
+            Pw       = (V * dgn**(-1.0)) @ V.T
+            cntrs    = E + (y-hE)@Ri@Yw.T@Pw@Aw
+            P_cholU  = (V*dgn**(-0.5)).T @ Aw
+            # Generate N·xN random numbers from NormDist(0,1), and compute
+            # log(q(x))
+            if DD is None or not re_use:
+              rnk   = min(m,N-1)
+              DD    = randn((N*xN,N))
+              chi2  = np.sum(DD**2, axis=1) * rnk/N
+              log_q = -0.5 * chi2
+            #NB: the DoF_linalg/DoF_stoch correction is only correct "on average".
+            # It is inexact "in proportion" to V@V.T-Id, where V,s,UT = tsvd(Aw).
+            # Anyways, we're computing the tsvd of Aw below, so might as well
+            # compute q(x) instead of q(xi).
 
           # Duplicate
           ED  = cntrs.repeat(xN,0)
@@ -1088,6 +1058,8 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
           # log(prior_kernel(x))
           s         = Qs*bandw(N,m)
           innovs_pf = AD @ tinv(s*Aw)
+          # NB: Correct: innovs_pf = (ED-E_orig) @ tinv(s*Aw)
+          #     But it seems to make no difference on well-tuned performance !
           log_pf    = -0.5 * np.sum(innovs_pf**2, axis=1)
 
           # log(likelihood(x))
@@ -1100,7 +1072,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
 
           # Resample and reduce
           wroot = 1.0
-          while True:
+          while wroot < wroot_max:
             idx,w  = resample(wD, resampl, wroot=wroot, N=N)
             dups   = sum(mask_unique_of_sorted(idx))
             if dups == 0:
@@ -1115,7 +1087,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
 
 
 @DA_Config
-def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
+def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
   """
   Idea: sample xN duplicates from each of the N kernels.
   Let resampling reduce it to N.
@@ -1167,7 +1139,7 @@ def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',**kwargs):
 
           # Resample and reduce
           wroot = 1.0
-          while True:
+          while wroot < wroot_max:
             idx,w = resample(wD, resampl, wroot=wroot, N=N)
             dups  = sum(mask_unique_of_sorted(idx))
             if dups == 0:
