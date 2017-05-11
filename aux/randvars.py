@@ -5,6 +5,10 @@ from common import *
 
 class RV(MLR_Print):
   "Class to represent random variables."
+
+  # Used by MLR_Print
+  ordr_by_linenum = +1
+
   def __init__(self,m,**kwargs):
     """
      - m    <int>     : ndim
@@ -72,12 +76,15 @@ class RV(MLR_Print):
     assert self.m == E.shape[1]
     return E
 
-class GaussRV(RV,MLR_Print):
-  """Multivariate, Gaussian (Normal) random variables."""
 
-  # Used by MLR_Print
-  ordr_by_linenum = +1
+class RV_with_mean_and_cov(RV):
+  """
+  Generic multivariate random variable
+  characterized by two parameters: mean and covariance.
 
+  This class must be subclassed to provide sample(),
+  i.e. its main purpose is provide a common convenience constructor.
+  """
   def __init__(self,mu=0,C=0,m=None):
     """Init allowing for shortcut notation."""
 
@@ -123,21 +130,95 @@ class GaussRV(RV,MLR_Print):
     except AttributeError:
       pass
     
-
     # Assign
     self.m  = m
     self.mu = mu
     self.C  = C
 
   def sample(self,N):
+    """
+    Sample N realizations. Returns N-by-m (ndim) sample matrix.
+    Example:
+    plt.scatter(*(UniRV(C=randcov(2)).sample(10**4).T))
+    """
     if self.C is 0:
       D = zeros((N,self.m))
     else:
-      R = self.C.Right
-      D = randn((N,len(R))) @ R
+      D = self._sample(N)
     return self.mu + D
 
+  def _sample(self,N):
+    raise NotImplementedError("Must be implemented in subclass")
 
-# TODO: UniRV
-# TODO: ExpoRV # for Nerger
-# TODO: TruncGaussRV # for Abhi
+
+class GaussRV(RV_with_mean_and_cov):
+  """Gaussian (Normal) multivariate random variable."""
+  def _sample(self,N):
+    R = self.C.Right
+    D = randn((N,len(R))) @ R
+    return D
+
+class LaplaceRV(RV_with_mean_and_cov):
+  """
+  Laplace (double exponential) multivariate random variable.
+  This is an elliptical generalization. Ref:
+  Eltoft (2006) "On the Multivariate Laplace Distribution".
+  """
+  def _sample(self,N):
+    R = self.C.Right
+    z = np.random.exponential(1,N)
+    D = randn((N,len(R)))
+    D = z[:,None]*D
+    return D @ R / sqrt(2)
+
+class LaplaceParallelRV(RV_with_mean_and_cov):
+  """
+  A NON-elliptical multivariate generalization of
+  the Laplace (double exponential) random variable.
+  """
+  def _sample(self,N):
+    #R = self.C.Right   # contour: sheared rectangle
+    R = self.C.sym_sqrt # contour: rotated rectangle
+    D = np.random.laplace(0,1,(N,len(R)))
+    return D @ R / sqrt(2)
+
+
+class StudRV(RV_with_mean_and_cov):
+  """
+  Student-t multivariate random variable.
+  """
+  def __init__(self,dof,*args,**kwargs):
+    super().__init__(*args,**kwargs)
+    self.dof = dof
+  def _sample(self,N):
+    R = self.C.Right
+    nu= self.dof
+    r = nu/np.sum(randn((N,nu))**2,axis=1) # InvChi2
+    D = sqrt(r)[:,None]*randn((N,len(R)))
+    return D @ R * sqrt((nu-2)/nu)
+
+class UniRV(RV_with_mean_and_cov):
+  """
+  Uniform multivariate random variable.
+  with an elliptic-shape support.
+  Ref: Voelker et al. (2017) "Efficiently sampling
+  vectors and coordinates from the n-sphere and n-ball"
+  """
+  def _sample(self,N):
+    R = self.C.Right
+    D = randn((N,len(R)))
+    r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2,axis=1))
+    D = r[:,None]*D
+    return D @ R * 2
+
+class UniParallelRV(RV_with_mean_and_cov):
+  """
+  Uniform multivariate random variable,
+  with a parallelogram-shaped support, as determined by the cholesky factor
+  applied to the (corners of) the hypercube.
+  """
+  def _sample(self,N):
+    R = self.C.Right
+    D = rand((N,len(R)))-0.5
+    return D @ R * sqrt(12)
+

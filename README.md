@@ -118,7 +118,9 @@ Also has:
 * Chronology/Ticker with consistency checks
 * Gentle failure system to allow execution to continue if experiment fails.
 * Progressbar
-* X-platform random number generator
+* Multivariate random variables: Gaussian, Student-t, Laplace, Uniform, ...,
+    as well as support for custom sampling functions.
+* X-platform random number generator (for debugging accross platforms)
 * Parallelisation options
     * Forecast parallelisation is possible since
         the (user-implemented) model has access to the full ensemble
