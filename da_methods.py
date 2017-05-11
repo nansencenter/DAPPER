@@ -1654,4 +1654,64 @@ def post_process(E,infl,rot):
   return E
 
 
+@DA_Config
+def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
+  """
+  The Nonlinear-Ensemble-Transform-Filter (localized).
 
+  Ref: Julian Tödter and Bodo Ahrens (2014):
+  "A Second-Order Exact Ensemble Square Root Filter for Nonlinear Data Assimilation"
+
+  Settings for reproducing literature benchmarks may be found in
+  mods/Lorenz95/tod15.py
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    Rm12 = h.noise.C.sym_sqrt_inv
+
+    E = X0.sample(N)
+    stats.assess(0,E=E)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, kwargs)
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        mu = mean(E,0)
+        A  = E - mu
+
+        hE = h(E,t)
+        hx = mean(hE,0)
+        YR = (hE-hx)  @ Rm12.T
+        yR = (yy[kObs] - hx) @ Rm12.T
+
+        locf_at = h.loc_f(loc_rad, 'x2y', t, taper)
+        for i in range(f.m):
+          # Localize
+          local, coeffs = locf_at(i)
+          if len(local) == 0: continue
+          iY  = YR[:,local] * sqrt(coeffs)
+          idy = yR[local]   * sqrt(coeffs)
+
+          # NETF:
+          # This section is the only difference to the LETKF
+          w      = laplace_lklhd((idy-iY)/Rs)
+          dmu    = w@A[:,i]
+          AT     = sqrt(N)*funm_psd(diag(w) - np.outer(w,w), sqrt)@A[:,i]
+
+          E[:,i] = mu[i] + dmu + AT
+        E = post_process(E,infl,rot)
+      stats.assess(k,kObs,E=E)
+  return assimilator
+
+def laplace_lklhd(innovs):
+  """
+  Compute likelihood of the innovations assuming a
+  sampling distribution corresponding to LaplaceParallelRV(C=I)
+  """
+  logw   = -sqrt(2)*np.sum(np.abs(innovs), axis=1)
+  logw  -= logw.max()    # Avoid numerical error
+  w      = exp(logw)     # non-log
+  w     /= w.sum()       # normalize
+  return w
