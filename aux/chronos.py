@@ -60,7 +60,6 @@ class Chronology:
     if not K:
       if T:
         K = round(T/dt)
-        K = round(T/dt)
         assert abs(T - K*dt) < dt*1e-9
       elif KObs:
         K = dkObs*(KObs+1)

@@ -63,34 +63,6 @@ def myrandn(shape=(1,)):
   return sqrt(pi/8.) * log(u/(1-u))
 
 # Use built-in generator
-def rand(shape=(1,)): return np.random.uniform(0,1,shape)
+def rand( shape=(1,)): return np.random.uniform(0,1,shape)
+def randn(shape=(1,)): return np.random.normal (0,1,shape)
 
-# By looking up in a table, we gain 3x speed on np.random.normal.
-use_pre_computed_table_for_randn = False
-TableG = np.random.normal(0,1,10**7)
-def randn(shape=(1,)):
-  if use_pre_computed_table_for_randn:
-    N      = np.prod(shape)
-    ind0   = int(len(TableG)*np.random.uniform())
-    inds   = arange(-ind0,-ind0+N)
-    sample = TableG[inds].reshape(shape)
-  else: # Use built-in generator
-    sample = np.random.normal(0,1,shape)
-  return sample
-
-
-# Use LCG for all randn
-#def randn(*kargs):
-  #raise Warning('Using barebones LCG random numbers')
-  #return myrandn(*kargs)
-#def rand(*kargs):
-  #raise Warning('Using barebones LCG random numbers')
-  #return myrand(*kargs)
-# NB: To get equality with Datum, consider removing randomness altogether.
-#     OR, to use LCG(), uncomment the above re-labellings,
-#     and in Datum rename utils/myrand{,n}.m to utils/rand{,n}.m.
-#     Also remember to reset seeds, and that in Datum:
-#     - propagation (of truth) is fully completed before observation.
-#     - observations are done from back to front.
-#     - it seems that (somewhere?) a single draw is burnt
-#       after x0 and before propagation (a little unsure...).
