@@ -1486,6 +1486,7 @@ def Var3D(infl=1.0,**kwargs):
   and a scalar time-series approximation to the dynamics
   (that does NOT use the innovation to estimate the backgroiund covariance).
   """
+  # TODO: The wave-crest yields good results for sak08, but not for boc10 
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
