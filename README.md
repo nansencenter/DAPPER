@@ -70,6 +70,7 @@ LETKF, local & serial EAKF                             | bocquet'2011 ("EnKF-N")
 Sqrt. model noise methods                              | raanes'2015 ("sqrt model noise")
 Particle filter (bootstrap) <sup>2</sup>               | bocquet'2010 ("beyond Gaussian")
 Optimal/implicit Particle filter  <sup>2</sup>         | "
+NETF                                                   | todter'2015 ("a second-order exact")
 Extended KF                                            | raanes'2016 thesis
 Optimal interpolation                                  | "
 Climatology                                            | "

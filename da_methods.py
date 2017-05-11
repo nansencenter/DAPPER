@@ -231,6 +231,32 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
 
 
 
+def post_process(E,infl,rot):
+  """
+  Inflate, Rotate.
+
+  To avoid recomputing/recombining anomalies, this should be inside EnKF_analysis().
+  But for readability it is nicer to keep it as a separate function,
+  also since it avoids inflating/rotationg smoothed states (for the EnKS).
+  """
+  do_infl = infl!=1.0
+
+  if do_infl or rot:
+    A, mu = anom(E)
+    N,m   = E.shape
+    T     = eye(N)
+
+    if do_infl:
+      T = infl * T
+
+    if rot:
+      T = genOG_1(N,rot) @ T
+
+    E = mu + T@A
+  return E
+
+
+
 def add_noise(E, dt, noise, config):
   """
   Treatment of additive noise for ensembles.
@@ -1630,30 +1656,6 @@ def ExtKF(infl=1.0,**kwargs):
 
 
 
-def post_process(E,infl,rot):
-  """
-  Inflate, Rotate.
-
-  To avoid recomputing/recombining anomalies, this should be inside EnKF_analysis().
-  But for readability it is nicer to keep it as a separate function,
-  also since it avoids inflating/rotationg smoothed states (for the EnKS).
-  """
-  do_infl = infl!=1.0
-
-  if do_infl or rot:
-    A, mu = anom(E)
-    N,m   = E.shape
-    T     = eye(N)
-
-    if do_infl:
-      T = infl * T
-
-    if rot:
-      T = genOG_1(N,rot) @ T
-
-    E = mu + T@A
-  return E
-
 
 @DA_Config
 def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
@@ -1662,6 +1664,8 @@ def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
 
   Ref: Julian Tödter and Bodo Ahrens (2014):
   "A Second-Order Exact Ensemble Square Root Filter for Nonlinear Data Assimilation"
+
+  It is (supposedly) a deterministic upgrade of the NLEAF of Lei and Bickel (2011).
 
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/tod15.py
@@ -1696,7 +1700,8 @@ def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
           idy = yR[local]   * sqrt(coeffs)
 
           # NETF:
-          # This section is the only difference to the LETKF
+          # This "paragraph" is the only difference to the LETKF.
+          # We only provide the Laplace version.
           w      = laplace_lklhd((idy-iY)/Rs)
           dmu    = w@A[:,i]
           AT     = sqrt(N)*funm_psd(diag(w) - np.outer(w,w), sqrt)@A[:,i]
