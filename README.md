@@ -294,6 +294,13 @@ TODO
 * Reorg file structure
 * Make tutorial
 
+Contact
+------------------------------------------------
+patrick. n. raanes AT gmail
+
+Licence
+------------------------------------------------
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./lincence.txt)
 
 
 <!--
