@@ -300,7 +300,7 @@ patrick. n. raanes AT gmail
 
 Licence
 ------------------------------------------------
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./lincence.txt)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./licence.txt)
 
 
 <!--
