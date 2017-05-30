@@ -1188,7 +1188,8 @@ def trigger_resampling(w,NER,stats,kObs):
 
 def reweight(w,lklhd=None,logL=None,uni_innovs=None):
   """
-  Do Bayes' rule for the empirical distribution of an importance sample.
+  Do Bayes' rule (for the empirical distribution of an importance sample).
+  If input is 'uni_innovs', the likelihood is assumed Gaussian.
   Do computations in log-space, for at least 2 reasons:
   - Normalization: will fail if sum==0 (if all innov's are large).
   - Num. precision: lklhd*w should have better precision in log space.
@@ -1603,6 +1604,61 @@ def wave_crest(W0,L):
   return W
 
 
+# TODO: Clean up
+@DA_Config
+def ExtRTS(infl=1.0,**kwargs):
+  """
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+
+    R  = h.noise.C.full
+    Q  = 0 if f.noise.C==0 else f.noise.C.full
+
+    mu    = zeros((chrono.K+1,f.m))
+    P     = zeros((chrono.K+1,f.m,f.m))
+
+    # Forecasted values
+    muf   = zeros((chrono.K+1,f.m))
+    Pf    = zeros((chrono.K+1,f.m,f.m))
+    Ff    = zeros((chrono.K+1,f.m,f.m))
+
+    mu[0] = X0.mu
+    P [0] = X0.C.full
+
+    stats.assess(0,mu=mu[0],Cov=P[0])
+
+    # Forward pass
+    for k,kObs,t,dt in progbar(chrono.forecast_range, 'ExtRTS->'):
+      mu[k]  = f(mu[k-1],t-dt,dt)
+      F      = f.jacob(mu[k-1],t-dt,dt) 
+      P [k]  = infl**(dt)*(F@P[k-1]@F.T) + dt*Q
+
+      # Store forecast and Jacobian
+      muf[k] = mu[k]
+      Pf [k] = P [k]
+      Ff [k] = F
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',mu=mu[k],Cov=P[k])
+        H     = h.jacob(mu[k],t)
+        KG    = mrdiv(P[k] @ H.T, H@P[k]@H.T + R)
+        y     = yy[kObs]
+        mu[k] = mu[k] + KG@(y - h(mu[k],t))
+        KH    = KG@H
+        P[k]  = (eye(f.m) - KH) @ P[k]
+        stats.assess(k,kObs,'a',mu=mu[k],Cov=P[k])
+
+    # Backward pass
+    for k in progbar(range(chrono.K)[::-1],'ExtRTS<-'):
+      J     = mrdiv(P[k]@Ff[k+1].T, Pf[k+1])
+      mu[k] = mu[k]  + J @ (mu[k+1]  - muf[k+1])
+      P[k]  = P[k] + J @ (P[k+1] - Pf[k+1]) @ J.T
+    for k in progbar(range(chrono.K+1),desc='Assess'):
+      stats.assess(k,mu=mu[k],Cov=P[k])
+
+  return assimilator
+
 
 @DA_Config
 def ExtKF(infl=1.0,**kwargs):
@@ -1701,8 +1757,11 @@ def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
 
           # NETF:
           # This "paragraph" is the only difference to the LETKF.
-          # We only provide the Laplace version.
-          w      = laplace_lklhd((idy-iY)/Rs)
+          innovs = (idy-iY)/Rs
+          if 'laplace' in str(type(h.noise)).lower():
+            w    = laplace_lklhd(innovs)
+          else:
+            w    = reweight(ones(N),uni_innovs=innovs)
           dmu    = w@A[:,i]
           AT     = sqrt(N)*funm_psd(diag(w) - np.outer(w,w), sqrt)@A[:,i]
 
@@ -1711,12 +1770,13 @@ def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
       stats.assess(k,kObs,E=E)
   return assimilator
 
-def laplace_lklhd(innovs):
+def laplace_lklhd(xx):
   """
-  Compute likelihood of the innovations assuming a
-  sampling distribution corresponding to LaplaceParallelRV(C=I)
+  Compute likelihood of xx wrt. the sampling distribution
+  LaplaceParallelRV(C=I), i.e., for x in xx:
+  p(x) = exp(-sqrt(2)*|x|_1) / sqrt(2).
   """
-  logw   = -sqrt(2)*np.sum(np.abs(innovs), axis=1)
+  logw   = -sqrt(2)*np.sum(np.abs(xx), axis=1)
   logw  -= logw.max()    # Avoid numerical error
   w      = exp(logw)     # non-log
   w     /= w.sum()       # normalize

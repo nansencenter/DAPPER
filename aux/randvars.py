@@ -186,6 +186,10 @@ class LaplaceParallelRV(RV_with_mean_and_cov):
 class StudRV(RV_with_mean_and_cov):
   """
   Student-t multivariate random variable.
+  Assumes the covariance exists,
+  which requires degreee-of-freedom (dof) > 1+ndim.
+  Also requires that dof be integer,
+  since chi2 is sampled via Gaussians.
   """
   def __init__(self,dof,*args,**kwargs):
     super().__init__(*args,**kwargs)

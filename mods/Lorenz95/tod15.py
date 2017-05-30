@@ -36,22 +36,22 @@ setup = TwinSetup(f,h,t,X0,**other)
 #cfgs += LETKF(N=80,rot=True,infl=1.04       ,loc_rad=5) # 0.43
 #
 #cfgs += LNETF(N=40,rot=True,infl=1.10,Rs=2.5,loc_rad=5) # 0.57
-#cfgs += LNETF(N=80,rot=True,infl=1.10,Rs=1.5,loc_rad=5) # 0.46
+#cfgs += LNETF(N=80,rot=True,infl=1.10,Rs=1.6,loc_rad=5) # 0.45
 
 # In addition to standard post-analysis inflation,
 # we also find the necessity of tuning the inflation (Rs) for R,
 # which is not mentioned in the reference.
 
-# Compared to the reference paper:
-# - Our rmse scores for the LETKF are better
+# In summary, compared to the reference paper:
+# - Our rmse scores for the local ETKF are better
 # - Our rmse scores for the local NETF
-#   - with N>80 are similar
-#   - with N<80 are worse
-
-# These results (contradict and) pretty much voids the merit of the NETF,
-# especially considering that the Laplace obs-error case favours the NETF.
-# Maybe our/their implementation is buggy?
-# Another explanation: the paper uses T=100,
-# which is too short, and so they might have gotten "lucky".
-
+#   - with N=80 seems to be equal
+#   - with N=40 is worse
+# 
+# These results (contradict and) pretty much void the merit of the NETF,
+# especially considering how the Laplace obs-error favours the NETF.
+# Possible explanations:
+#  - our/their implementations are buggy
+#  - they use T=100 (unit-less),
+#    which is way too short, and so they might have gotten "lucky".
 

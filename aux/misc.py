@@ -311,6 +311,20 @@ def Id_mat(m):
   I = np.eye(m)
   return NamedFunc(lambda x,t: I, "Id("+str(m)+") matrix")
 
+def linear_model_setup(M):
+  "M is normalized wrt step length dt."
+  m = len(M)
+  @ens_compatible
+  def model(x,t,dt): return dt*(M@x)
+  def jacob(x,t,dt): return dt*M
+  f = {
+      'm'    : m,
+      'model': model,
+      'jacob': jacob,
+      }
+  return f
+
+
 
 def equi_spaced_integers(m,p):
   """Provide a range of p equispaced integers between 0 and m-1"""
