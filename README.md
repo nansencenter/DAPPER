@@ -52,9 +52,9 @@ Installation
 ------------------------------------------------
 Prerequisite: python3.5+ with scipy (e.g. from [anaconda](https://www.continuum.io/downloads))
 
-Download, extract, and `cd` to DAPPER. Then run:
+Download, extract, and `cd` to DAPPER. To test it, run:
 
-    > python -i example_1.py
+    python -i example_1.py
 
 Methods
 ------------
