@@ -11,7 +11,7 @@ from common import *
 
 from ipywidgets import *
 
-from tutorials.answers import answers, show_answer
+from tutorials.resources.answers import answers, show_answer
 
 
 import io
@@ -76,7 +76,7 @@ def envisat_video():
 #           axI = plt.subplot(111)
 #           axI.set_axis_off()
 #           axI.set_title(txts[i],loc='left',usetex=True,size=15)
-#           axI.imshow(crop(imread('./tutorials/illust_EnKF/illust_EnKF_prez_'+str(i+8)+'.png')))
+#           axI.imshow(crop(imread('./tutorials/resources/illust_EnKF/illust_EnKF_prez_'+str(i+8)+'.png')))
 #           # Extract text:
 #           #plt.savefig("images/txts_"+str(i+8)+'.png')
 #           #bash: for f in `ls txts_*.png`; do convert -crop 800x110+120+260 $f $f; done
@@ -85,20 +85,20 @@ def envisat_video():
 
 
 wI = Image(
-    value=open("./tutorials/illust_EnKF/illust_EnKF_prez_8.png", "rb").read(),
+    value=open("./tutorials/resources/illust_EnKF/illust_EnKF_prez_8.png", "rb").read(),
     format='png',
     width=600,
     height=400,
 )
 wT = Image(
-    value=open("./tutorials/illust_EnKF/txts_8.png", "rb").read(),
+    value=open("./tutorials/resources/illust_EnKF/txts_8.png", "rb").read(),
     format='png',
     width=600,
     height=50,
 )
 def show_image(i=0):
-    img = "./tutorials/illust_EnKF/illust_EnKF_prez_"+str(i+8)+".png"
-    txt = "./tutorials/illust_EnKF/txts_"+str(i+8)+".png"
+    img = "./tutorials/resources/illust_EnKF/illust_EnKF_prez_"+str(i+8)+".png"
+    txt = "./tutorials/resources/illust_EnKF/txts_"+str(i+8)+".png"
     wI.value=open(img, "rb").read()
     wT.value=open(txt, "rb").read()
     
@@ -121,3 +121,5 @@ def piece_wise_DA_step_lines(xf,xa=None):
     pw_f  = array([[xa[k  ], xf[k+1], nan] for k in range(len(xf)-1)]).ravel()
     pw_a  = array([[xf[k+1], xa[k+1], nan] for k in range(len(xf)-1)]).ravel()
     return pw_f, pw_a
+
+
