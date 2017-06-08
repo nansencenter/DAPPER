@@ -44,6 +44,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 #cfgs += EnKF('Sqrt'   ,N=24, infl=1.013,rot=True)        # 0.18
 
 # Other
+#cfgs += EnKF_N(N=24,rot=True)                            # 0.18
 #cfgs += iEnKF('Sqrt',N=40,iMax=10,infl=1.01,rot=True)    # 0.17
 
 # Localized
@@ -67,7 +68,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 # # config.infl = 1.10 # case: dkObs=3
 # # config.infl = 1.40 # case: dkObs=5
 #
-# config = EnKF_N('Sqrt',N=20)
+# config = EnKF_N(N=20)
 #
 # # Also try quasi-linear regime:
 # t = Chronology(0.01,dkObs=1,T=4**4,BurnIn=20)
