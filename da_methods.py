@@ -528,17 +528,15 @@ def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
 # NB: In extreme (or just non-linear h) cases,
 #     the EnKF-N cost function may have multiple minima.
 #     Then: must use more robust optimizer!
-def myNewton(fun,deriv,x0,conf=1.0,xtol=1e-4,itermax=10**4):
+def myNewton(fun,deriv,x0,conf=1.0,xtol=1e-4,ytol=1e-4,itermax=10**4):
   "Simple implementation of Newton root-finding"
-  x       = x0
-  itr     = 0
-  dx      = np.inf
-  while True and xtol<dx and itr<itermax:
-    Jx = fun(x)
-    Dx = deriv(x)
-    dx = Jx/Dx * conf
-    x -= dx
-  return x
+  itr, dx, Jx = 0, np.inf, fun(x0)
+  while ytol<abs(Jx) and xtol<abs(dx) and itr<itermax:
+    Dx  = deriv(x0)
+    dx  = Jx/Dx * conf
+    x0 -= dx
+    Jx  = fun(x0)
+  return x0
 
 @DA_Config
 def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
@@ -601,7 +599,6 @@ def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
         J    = lambda l:          np.sum(du**2/dgn(l)) \
                + (1/fctr)*eN/l**2 \
                + fctr*clog*log(l**2)
-        #l1  = sp.optimize.minimize_scalar(J, bracket=(LowB, 1e2), tol=1e-4).x
         # Derivatives
         dJ1  = lambda l: -2*l   * np.sum(pad0(s**2, m_Nm) * du**2/dgn(l)**2) \
                + -2*(1/fctr)*eN/l**3 \
@@ -611,6 +608,8 @@ def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
                + -2*fctr*clog  /l**2
         # Find inflation factor
         l1 = myNewton(dJ1,dJ2, 1.0)
+        #l1 = sp.optimize.fmin_bfgs(J, x0=[1], gtol=1e-4, disp=0)
+        #l1 = sp.optimize.minimize_scalar(J, bracket=(LowB, 1e2), tol=1e-4).x
 
         # Turns EnKF-N into ETKF:
         #l1 = 1.0
@@ -639,6 +638,9 @@ def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
 
       stats.assess(k,kObs,E=E)
   return assimilator
+
+
+
 
 
 @DA_Config
