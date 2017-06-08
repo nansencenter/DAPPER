@@ -50,11 +50,17 @@ If you're after full DA tutorials, see the `tutorials` folder.
 	
 Installation
 ------------------------------------------------
-Prerequisite: python3.5+ with scipy (e.g. from [anaconda](https://www.continuum.io/downloads))
+Prerequisite: python3.5+ with
+`scipy`, `matplotlib`, `pandas`, and (optionally) `tqdm`, `tabulate`, and `seaborn`.
+This can be got (e.g.) from [anaconda](https://www.continuum.io/downloads).
 
 Download, extract, and `cd` to DAPPER. To test it, run:
 
     python -i example_1.py
+
+For the tutorial notebooks, you will also need
+`jupyter` and the `markdown` package.
+
 
 Methods
 ------------
