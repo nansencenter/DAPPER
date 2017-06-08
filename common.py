@@ -119,16 +119,16 @@ warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 ##################################
 # Setup DAPPER namespace
 ##################################
-from aux.utils import *
-from aux.misc import *
-from aux.chronos import *
-from aux.stoch import *
-from aux.series import *
-from aux.matrices import *
-from aux.randvars import *
-from aux.viz import *
+from tools.utils import *
+from tools.misc import *
+from tools.chronos import *
+from tools.stoch import *
+from tools.series import *
+from tools.matrices import *
+from tools.randvars import *
+from tools.viz import *
 from stats import *
-from aux.admin import *
-from aux.convenience import *
+from tools.admin import *
+from tools.convenience import *
 from da_methods import *
 

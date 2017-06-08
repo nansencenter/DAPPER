@@ -55,7 +55,7 @@ h = {
     #'noise': GaussRV(C=0.01**2*eye(p)),
     }
 
-from aux.localization import inds_and_coeffs, unravel
+from tools.localization import inds_and_coeffs, unravel
 def loc_wrapper(radius,direction=None):
   # Unravelling is slow, and should only be done once.
   # By contrast, the dist/coeff computations are not so slow,

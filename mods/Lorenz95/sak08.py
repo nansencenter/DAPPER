@@ -5,7 +5,7 @@
 from common import *
 
 from mods.Lorenz95.core import step, dfdx, typical_init_params
-from aux.localization import partial_direct_obs_1d_loc_setup as loc
+from tools.localization import partial_direct_obs_1d_loc_setup as loc
 
 t = Chronology(0.05,dkObs=1,T=4**5,BurnIn=20)
 

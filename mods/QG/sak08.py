@@ -67,7 +67,7 @@ def hmod(E,t):
 #    H[i,j] = 1.0
 #  return H
 
-from aux.localization import inds_and_coeffs, unravel
+from tools.localization import inds_and_coeffs, unravel
 xIJ = unravel(arange(m), (ny,nx)) # 2-by-m
 def locf(radius,direction,t):
   """Prepare function:
