@@ -21,3 +21,24 @@ Why is filtering called filtering?
   Note: also has connexs to time series analysis, kriging, regression, etc.
 
  
+Gain: 
+ - French: multiplier?
+ - Interpolates (from 0 to 1)
+ - Convex combination
+
+KG derivation has error (similar)
+KG code has error: replace mu by b
+
+m_grid should be resolution
+d should be m
+
+Note how the parametric BR is cheap compared to pointwise multiplication.
+
+"that that"
+
+Ensemble: independent (given law), iid, equally weighted
+
+Ens member
+Sample point
+Realization
+Particle
