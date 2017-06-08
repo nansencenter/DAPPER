@@ -56,6 +56,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 # Other
 #cfgs += Climatology()                                    # 3.6 
 #cfgs += OptInterp()                                      # 0.95 
+#cfgs += Var3D_Lag(infl=0.5)
 #cfgs += Var3D(infl=1.05)                                 # 0.41 
 #cfgs += ExtKF(infl=10)                                   # 0.24 
 
