@@ -641,6 +641,100 @@ def EnKF_N(N,infl=1.0,rot=False,Hess=False,**kwargs):
 
 
 
+@DA_Config
+def EnKF_AdInf(N,infl=1.0,rot=False,Sb2=1.0,Nb=4,Fb=0.99,br=1.0,**kwargs):
+  """
+  """
+  def assimilator(stats,twin,xx,yy):
+    # Unpack
+    f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
+
+    nonlocal Nb, Sb2
+    stats.aa = zeros(chrono.KObs+1)
+    stats.bb = zeros(chrono.KObs+1)
+    stats.Nb = zeros(chrono.KObs+1)
+
+    Rm12 = h.noise.C.sym_sqrt_inv
+    Ri   = h.noise.C.inv
+
+    # EnKF-N constants
+    g    = 1             # Nullity of Y (obs anom's).
+    eN   = (N+1)/N       # Effect of unknown mean
+    clog = (N+g)/(N-1)   # Coeff in front of log term
+    mode = eN/clog       # Mode of prior for lambda
+    LowB = sqrt(mode)    # Lower bound for lambda^1
+
+    E = X0.sample(N)
+    stats.assess(0,E=E)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, kwargs)
+
+      Nb = Nb*Fb # NB
+      Sb2 -= (Sb2-1)*br # NB
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        hE = h(E,t)
+        y  = yy[kObs]
+
+        mu = mean(E,0)
+        A  = E - mu
+
+        hx = mean(hE,0)
+        Y  = hE-hx
+        dy = y - hx
+
+        V,s,U_T = svd0( Y @ Rm12.T )
+
+        # Make dual cost function (in terms of lambda^1)
+        m_Nm = min(N,h.m)
+        du   = U_T @ (Rm12 @ dy)
+        dgn  = lambda l: pad0( (l*s)**2, m_Nm ) + (N-1)
+        PR   = (s**2).sum()/(N-1)
+        rb   = Nb/(N-1)
+        fctr = sqrt(mode**(1/(1+PR)))
+        J    = lambda ab:          np.sum(du**2/dgn(ab[0]*ab[1])) \
+               + (1/fctr)*eN/ab[0]**2 \
+               + fctr*clog*log(ab[0]**2) \
+               + Sb2*rb/ab[1]**2 \
+               + rb*log(ab[1]**2)
+        # Find inflation factors
+        a, b = sp.optimize.fmin_bfgs(J, x0=[1,sqrt(Sb2)], gtol=1e-4, disp=0)
+
+        # TODO: Update Nb, Sb2
+        Sb2 = (Nb*Sb2 + b**2)/(Nb + 1)
+        Nb += 1
+
+        # Aggregate factor
+        l1 = a*b
+        # Turns it into ETKF:
+        #l1 = 1.0
+
+        stats.aa[kObs] = a
+        stats.bb[kObs] = b
+        stats.Nb[kObs] = Nb
+
+        # Inflate prior.
+        A *= l1
+        Y *= l1
+
+        # Compute ETKF (sym sqrt) update
+        dgn     = lambda l: pad0( (l*s)**2, N ) + (N-1)
+        Pw      = (V * dgn(l1)**(-1.0)) @ V.T
+        w       = dy@Ri@Y.T@Pw
+        T       = (V * dgn(l1)**(-0.5)) @ V.T * sqrt(N-1)
+          
+        E = mu + w@A + T@A
+        E = post_process(E,infl,rot)
+
+        stats.infl[kObs] = l1
+        stats.trHK[kObs] = (((l1*s)**2 + (N-1))**(-1.0)*s**2).sum()/h.noise.m
+
+      stats.assess(k,kObs,E=E)
+  return assimilator
+
 
 
 @DA_Config
