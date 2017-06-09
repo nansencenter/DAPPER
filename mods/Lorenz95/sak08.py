@@ -5,7 +5,7 @@
 from common import *
 
 from mods.Lorenz95.core import step, dfdx, typical_init_params
-from aux.localization import partial_direct_obs_1d_loc_setup as loc
+from tools.localization import partial_direct_obs_1d_loc_setup as loc
 
 t = Chronology(0.05,dkObs=1,T=4**5,BurnIn=20)
 
@@ -57,6 +57,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 # Other
 #cfgs += Climatology()                                    # 3.6 
 #cfgs += OptInterp()                                      # 0.95 
+#cfgs += Var3D_Lag(infl=0.5)
 #cfgs += Var3D(infl=1.05)                                 # 0.41 
 #cfgs += ExtKF(infl=10)                                   # 0.24 
 

@@ -23,7 +23,7 @@
 
 import numpy as np
 from scipy.linalg import circulant
-from aux.misc import rk4, integrate_TLM, is1d
+from tools.misc import rk4, integrate_TLM, is1d
 
 Force           = 8.0
 prevent_blow_up = False

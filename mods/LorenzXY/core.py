@@ -22,7 +22,7 @@
 
 import numpy as np
 from scipy.linalg import circulant
-from aux.misc import rk4, is1d, atmost_2d
+from tools.misc import rk4, is1d, atmost_2d
 
 from mods.Lorenz95.core import lr
 

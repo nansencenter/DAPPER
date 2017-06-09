@@ -44,18 +44,23 @@ In summary, it is well suited for teaching and fundamental DA research.
 In a trade-off with the above advantages, DAPPER makes some sacrifices of efficiency and flexibility (generality).
 I.e. it is not designed for the assimilation of real data in operational models.
 
-The current documentation does not provide a tutorial;
-new users should begin by looking at the code in `example_1/2.py`
-and work their way backward.
+A good place to start is with the scripts `example_1/2.py`.
+If you're after full DA tutorials, see the `tutorials` folder.
 
 	
 Installation
 ------------------------------------------------
-Prerequisite: python3.5+ with scipy (e.g. from [anaconda](https://www.continuum.io/downloads))
+Prerequisite: python3.5+ with
+`scipy`, `matplotlib`, `pandas`, and (optionally) `tqdm`, `tabulate`, and `seaborn`.
+This can be got (e.g.) from [anaconda](https://www.continuum.io/downloads).
 
-Download, extract, and `cd` to DAPPER. Then run:
+Download, extract, and `cd` to DAPPER. To test it, run:
 
-    > python -i benchmark.py
+    python -i example_1.py
+
+For the tutorial notebooks, you will also need
+`jupyter` and the `markdown` package.
+
 
 Methods
 ------------

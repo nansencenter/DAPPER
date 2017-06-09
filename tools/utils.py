@@ -123,12 +123,15 @@ try:
   def _tabulate(data,headr):
     data  = list(map(list, zip(*data))) # Transpose
     inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds
-    return tabulate_orig.tabulate(data,headr,showindex=inds)
+    try :             table = tabulate_orig.tabulate(data,headr,showindex=inds)
+    except TypeError: table = tabulate_orig.tabulate(data,headr)
+    return table
 except ImportError as err:
   install_warn(err)
-  # pandas is more widespread than tabulate,
-  # but slower to import (but gets imported by seaborn anyways)
+  # pandas is more widespread than tabulate, but slower to import 
+  olderr = np.geterr() # gets affected by pandas
   import pandas
+  np.seterr(**olderr)  # restore np float error treatment
   pandas.options.display.width = None # Auto-adjust linewidth
   pandas.options.display.colheader_justify = 'center'
   def _tabulate(data,headr):

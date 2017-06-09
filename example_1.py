@@ -5,6 +5,7 @@ from common import *
 
 # Load "twin experiment" setup
 from mods.Lorenz63.sak12 import setup
+setup.t.T = 30
 
 # Specify a DA method configuration
 config = EnKF('Sqrt', N=10, infl=1.02, rot=True, liveplotting=True)

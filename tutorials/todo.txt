@@ -1,0 +1,44 @@
+ b) Multivariate inference: Kriging
+  - random field (is random vector, is random variable)
+  - if one data point: estimate same
+  - if two data points: estimate weighted (precision) mean
+  - if more: Kriging, with assigned covariance or variogram
+  - Repeat regression example, now also with unknown x0
+ c) Linear regression
+  - brings it back to state space
+  - vs finite diff
+  - min var, min err
+  - posterior mean
+ d) Woodbury (Morrison)
+  - props of covar (spd, spectral th, inversion, sqrroots, generalizes error bars)
+  - Direct proof
+  - Use to yield EnKF
+  - SVD and block manipulation is an alternative
+
+Why is filtering called filtering?
+  Not coz it makes output smoother than input.
+  But coz it has historical connections to signal proc.
+  Note: also has connexs to time series analysis, kriging, regression, etc.
+
+ 
+Gain: 
+ - French: multiplier?
+ - Interpolates (from 0 to 1)
+ - Convex combination
+
+KG derivation has error (similar)
+KG code has error: replace mu by b
+
+m_grid should be resolution
+d should be m
+
+Note how the parametric BR is cheap compared to pointwise multiplication.
+
+"that that"
+
+Ensemble: independent (given law), iid, equally weighted
+
+Ens member
+Sample point
+Realization
+Particle

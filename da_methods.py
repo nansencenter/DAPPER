@@ -1650,6 +1650,41 @@ def Var3D(infl=1.0,**kwargs):
   return assimilator
 
 
+@DA_Config
+def Var3D_Lag(infl=1.0,**kwargs):
+  """
+  Background covariance based on lagged time series.
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+
+    # Get H.
+    msg  = "For speed, only time-independent H is supported."
+    H    = h.jacob(np.nan, np.nan)
+    if not np.all(np.isfinite(H)): raise AssimFailedError(msg)
+
+
+    # Compute "lag" Kalman gain
+    muC = mean(xx,0)
+    L   = chrono.dkObs
+    AC  = infl * (xx[L:] - xx[:-L])
+    PC  = (AC.T @ AC) / (xx.shape[0] - 1)
+    KG  = mrdiv(PC@H.T, H@PC@H.T + h.noise.C.full)
+
+    # Init
+    mu = muC
+    stats.assess(0,mu=mu,Cov=PC)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      # Forecast
+      mu = f(mu,t-dt,dt)
+      if kObs is not None:
+        stats.assess(k,kObs,'f',mu=mu,Cov=PC)
+        # Analysis
+        mu = mu + KG@(yy[kObs] - h(mu,t))
+      stats.assess(k,kObs,mu=mu,Cov=PC)
+  return assimilator
+
 
 def wave_crest(W0,L):
   """

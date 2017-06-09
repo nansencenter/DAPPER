@@ -91,7 +91,7 @@ def step_1(x0, t, dt_):
   return x
 
 
-from aux.utils import multiproc_map
+from tools.utils import multiproc_map
 def step(E0, t, dt_):
   """Vector and 2D-array (ens) input, with multiproc for ens case."""
   if E0.ndim==1:

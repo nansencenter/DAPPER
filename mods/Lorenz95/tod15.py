@@ -4,7 +4,7 @@
 from common import *
 
 from mods.Lorenz95 import core
-from aux.localization import partial_direct_obs_1d_loc_setup as loc
+from tools.localization import partial_direct_obs_1d_loc_setup as loc
 
 t = Chronology(0.05,dkObs=2,T=4**5,BurnIn=20)
 

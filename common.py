@@ -69,9 +69,13 @@ def user_is_patrick():
   return getpass.getuser() == 'pataan'
 
 import matplotlib as mpl
+
 # Choose graphics backend.
-from IPython import get_ipython
-is_notebook = 'zmq' in str(type(get_ipython())).lower()
+try:
+  from IPython import get_ipython
+  is_notebook = 'zmq' in str(type(get_ipython())).lower()
+except ImportError:
+  is_notebook = False
 if is_notebook:
   mpl.use('nbAgg') # interactive
 else:
@@ -88,10 +92,9 @@ else:
 import matplotlib.pyplot as plt 
 plt.ion()
 
-
-# Color set up
+# Styles
 try:
-  olderr = np.geterr() # affected by seaborn (pandas?)
+  olderr = np.geterr() # gets affected by seaborn (pandas?)
   import seaborn as sns
   np.seterr(**olderr)  # restore np float error treatment
   sns.set_style({'image.cmap': 'BrBG', 'legend.frameon': True})
@@ -99,7 +102,7 @@ try:
   sns.set_color_codes()
 except ImportError as err:
   install_warn(err)
-  #plt.style.use('ggplot') # 'fivethirtyeight', 'bmh'
+  #plt.style.use('ggplot') # 'fivethirtyeight', 'bmh', 'seaborn-darkgrid',
   mpl.rcParams['image.cmap'] = 'BrBG'
 
 RGBs = {c: array(mpl.colors.colorConverter.to_rgb(c)) for c in 'bgrmycw'}
@@ -116,16 +119,16 @@ warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 ##################################
 # Setup DAPPER namespace
 ##################################
-from aux.utils import *
-from aux.misc import *
-from aux.chronos import *
-from aux.stoch import *
-from aux.series import *
-from aux.matrices import *
-from aux.randvars import *
-from aux.viz import *
+from tools.utils import *
+from tools.misc import *
+from tools.chronos import *
+from tools.stoch import *
+from tools.series import *
+from tools.matrices import *
+from tools.randvars import *
+from tools.viz import *
 from stats import *
-from aux.admin import *
-from aux.convenience import *
+from tools.admin import *
+from tools.convenience import *
 from da_methods import *
 
