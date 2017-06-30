@@ -317,6 +317,8 @@ Raanes (2016a) : Raanes. "On the ensemble Rauch-Tung-Striebel smoother and its e
 Raanes (2016b) : Raanes. "Improvements to Ensemble Methods for Data Assimilation in the Geosciences".  
 Wiljes (2017)  : Aceved, Wilje and Reich. "Second-order accurate ensemble transform particle filters".  
 
+Further references are provided in the algorithm codes.
+
 Contact
 ------------------------------------------------
 patrick. n. raanes AT gmail
