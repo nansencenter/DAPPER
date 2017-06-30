@@ -67,16 +67,16 @@ Methods
 
 Method name                                            | Literature RMSE results reproduced
 ------------------------------------------------------ | ---------------------------------------
-EnKF <sup>1</sup>                                      | sakov'2008 ("deterministic")
-EnKF-N                                                 | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
-EnKS, EnRTS                                            | raanes'2016 ("EnRTS and EnKS")
-iEnKS (and -N)                                         | sakov'2012 ("an iterative"), bocquet'2012 ("combining"), bocquet'2014 ("iterative EnKS")
-LETKF, local & serial EAKF                             | bocquet'2011 ("EnKF-N")
-Sqrt. model noise methods                              | raanes'2015 ("sqrt model noise")
-Particle filter (bootstrap) <sup>2</sup>               | bocquet'2010 ("beyond Gaussian")
+EnKF <sup>1</sup>                                      | Sakov and Oke (2008)
+EnKF-N                                                 | Bocquet (2012), Bocquet (2015)
+EnKS, EnRTS                                            | Raanes (2016a)
+iEnKS (and -N)                                         | Sakov (2012), Bocquet (2012), Bocquet (2014)
+LETKF, local & serial EAKF                             | Bocquet (2011)
+Sqrt. model noise methods                              | Raanes (2015)
+Particle filter (bootstrap) <sup>2</sup>               | Bocquet (2010)
 Optimal/implicit Particle filter  <sup>2</sup>         | "
-NETF                                                   | todter'2015 ("2nd-O exact"), wiljes'2017 ("2nd-O accurate")
-Extended KF                                            | raanes'2016 thesis
+NETF                                                   | Tödter (2015), Wiljes (2017)
+Extended KF                                            | Raanes (2016b)
 Optimal interpolation                                  | "
 Climatology                                            | "
 3D-Var                                                 | 
@@ -85,6 +85,22 @@ Climatology                                            | "
 Tuned with inflation and "random, orthogonal rotations".  
 <sup>2</sup>: Resampling: multinomial (including systematic/universal and residual).  
 The particle filter is tuned with "effective-N" monitoring", "regularization/jittering" strength, and more.
+
+#### References
+Sakov (2008)   : Sakov and Oke. "A deterministic formulation of the ensemble Kalman filter: an alternative to ensemble square root filters".
+Bocquet (2010) : Bocquet, Pires, and Wu. "Beyond Gaussian statistical modeling in geophysical data assimilation".
+Bocquet (2011) : Bocquet. "Ensemble Kalman filtering without the intrinsic need for inflation,".
+Sakov (2012)   : Sakov, Oliver, and Bertino. "An iterative EnKF for strongly nonlinear systems".
+Bocquet (2012) : Bocquet and Sakov. "Combining inflation-free and iterative ensemble Kalman filters for strongly nonlinear systems".
+Bocquet (2014) : Bocquet and Sakov. "An iterative ensemble Kalman smoother".
+Bocquet (2015) : Bocquet, Raanes, and Hannart. "Expanding the validity of the ensemble Kalman filter without the intrinsic need for inflation".
+Tödter (2015)  : Tödter and Ahrens. "A second-order exact ensemble square root filter for nonlinear data assimilation".
+Raanes (2015)  : Raanes, Carrassi, and Bertino. "Extending the square root method to account for model noise in the ensemble Kalman filter".
+Raanes (2016a) : Raanes. "On the ensemble Rauch-Tung-Striebel smoother and its equivalence to the ensemble Kalman smoother".
+Raanes (2016b) : Raanes. "Improvements to Ensemble Methods for Data Assimilation in the Geosciences".
+Wiljes (2017)  : Aceved, Wilje and Reich. "Second-order accurate ensemble transform particle filters".
+
+
 
 
 Models
