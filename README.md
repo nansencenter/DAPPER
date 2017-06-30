@@ -69,9 +69,9 @@ References provided at bottom
 Method name                                            | Literature RMSE results reproduced
 ------------------------------------------------------ | ---------------------------------------
 EnKF <sup>1</sup>                                      | Sakov and Oke (2008)
-EnKF-N                                                 | Bocquet (2012), Bocquet (2015)
+EnKF-N                                                 | Bocquet (2012), (2015)
 EnKS, EnRTS                                            | Raanes (2016a)
-iEnKS (and -N)                                         | Sakov (2012), Bocquet (2012), Bocquet (2014)
+iEnKS (and -N)                                         | Sakov (2012), Bocquet (2012), (2014)
 LETKF, local & serial EAKF                             | Bocquet (2011)
 Sqrt. model noise methods                              | Raanes (2015)
 Particle filter (bootstrap) <sup>2</sup>               | Bocquet (2010)
