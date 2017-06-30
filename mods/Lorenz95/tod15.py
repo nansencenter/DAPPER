@@ -50,8 +50,8 @@ setup = TwinSetup(f,h,t,X0,**other)
 # 
 # These results (contradict and) pretty much void the merit of the NETF,
 # especially considering how the Laplace obs-error favours the NETF.
-# Possible explanations:
-#  - our/their implementations are buggy
-#  - they use T=100 (unit-less),
-#    which is way too short, and so they might have gotten "lucky".
-
+# A possible explanation is that they use T=100 (unit-less),
+# which is way too short, and so they might have gotten "lucky".
+# Another explanation is that our implementation is buggy,
+# but this seems unlikely, especially since we reproduce the NETF
+# results from Wiljes'2017.

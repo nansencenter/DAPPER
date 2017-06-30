@@ -142,9 +142,33 @@ def DA_Config(da_method):
   return wrapr
 
 
-class DAC():
+# Adapted from stackoverflow.com/a/3603824
+class ImmutableAttributes():
+  """
+  Freeze (make immutable) attributes of class instance.
+  Applies to 
+  """
+  __isfrozen = False
+  __keys     = None
+  def __setattr__(self, key, value):
+    #if self.__isfrozen and hasattr(self, key):
+    if self.__isfrozen and key in self.__keys:
+      raise AttributeError(
+          "The attribute %r of %r has been frozen."%(key,type(self)))
+    object.__setattr__(self, key, value)
+  def _freeze(self,keys):
+    self.__keys     = keys
+    self.__isfrozen = True
+
+class DAC(ImmutableAttributes):
   """
   DA Configs (settings).
+
+  This class just contains the parameters grabbed by the DA_Config wrapper.
+  NB: re-assigning these would only change their value in this container,
+      (i.e. not as they are known by the assimilator() funtions)
+      and has therefore been disabled ("frozen").
+      However, parameter changes can be made using update_settings().
   """
 
   # Defaults
@@ -156,10 +180,12 @@ class DAC():
   excluded =  ['assimilate',re.compile('^_')]
 
   def __init__(self,odict):
+    """Assign dict items to attributes"""
     # Ordering is kept for printing
     self._ordering = odict.keys()
     for key, value in self.dflts.items(): setattr(self, key, value)
     for key, value in      odict.items(): setattr(self, key, value)
+    self._freeze(odict.keys())
 
   def update_settings(self,**kwargs):
     """Returns new DAC with new "instance" of the da_method with the updated setting."""

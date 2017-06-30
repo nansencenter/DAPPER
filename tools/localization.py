@@ -129,3 +129,15 @@ def partial_direct_obs_1d_loc_setup(m,jj):
     return locf_at
   return locf
 
+
+def no_localization(m,jj):
+  def locf(radius,direction,t,tag=None):
+    "return function that returns indices_and_coeffs for Lorenz95"
+    if direction is 'x2y':
+      no_localization = lambda i: ( jj, ones(len(jj)) )
+    elif direction is 'y2x':
+      # TODO: Not tested
+      no_localization = lambda j: ( arange(m), ones(m) )
+    else: raise KeyError
+    return no_localization
+  return locf

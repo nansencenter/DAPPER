@@ -33,7 +33,7 @@ def genOG_modified(m,opts=(0,1.0)):
   if not opts:
     # Shot-circuit in case of False or 0
     return eye(m)
-  elif isinstance(opts,bool):
+  elif isinstance(opts,bool) or opts is 1:
     return genOG(m)
   elif isinstance(opts,float):
     ver    = 1
@@ -269,7 +269,7 @@ class CovMat():
     else:
       return (self.Left**2).sum(axis=1)
 
-  @lazy_property
+  @property
   def Left(self):
     """L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
     and that its width is somewhere betwen the rank and m."""
@@ -277,7 +277,7 @@ class CovMat():
       return self._R.T
     else:
       return self.V * sqrt(self.ews)
-  @lazy_property
+  @property
   def Right(self):
     """R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
     and that its height is somewhere betwen the rank and m."""
@@ -285,7 +285,6 @@ class CovMat():
       return self._R
     else:
       return self.Left.T
-
 
   ##################################
   # EVD stuff

@@ -114,15 +114,19 @@ class Chronology:
   def T(self,value):
     self.__init__(dt=self.dt,dkObs=self.dkObs,T=value,BurnIn=self.BurnIn)
 
+  @property
+  def KObs(self):
+    return int(self.K/self.dkObs)-1
+  @KObs.setter
+  def KObs(self,value):
+    self.__init__(dt=self.dt,dkObs=self.dkObs,KObs=value,BurnIn=self.BurnIn)
+
   ######################################
   # Read-only
   ######################################
   @property
   def dtObs(self):
     return self.dkObs*self.dt
-  @property
-  def KObs(self):
-    return int(self.K/self.dkObs)-1
 
   @property
   def kk(self):
@@ -166,9 +170,9 @@ class Chronology:
     next(tckr)
     return tckr
 
-  def DAW_range(self,kObs):
+  def obs_range(self,kObs):
     """
-    The range (in kk) of the kObs-th data assimilation window (DAW).
+    The range (in kk) observation kObs and kObs+1.
     Also yields t and dt.
     """
     for k in kObs * self.dkObs + arange(1,self.dkObs+1):

@@ -16,8 +16,8 @@ import mods.Lorenz95.core as L95
 F_DA    = 8.0
 F_range = arange(6,12)
 
-setup.t.T = 4**3.5
-nRepeat   = 1
+setup.t.T = 4**4.5
+nRepeat   = 5
 
 ############################
 # DA methods
@@ -27,12 +27,8 @@ cfgs = List_of_Configs()
 cfgs += Climatology()
 cfgs += Var3D()
 #cfgs += ExtKF(infl=6)
-cfgs += EnKF_N    (N=24,rot=True)
-cfgs += EnKF_AdInf(N=24,rot=True,Nb=1000,Fb=(1-1/40/6),br=0.01)
-cfgs += EnKF_AdInf(N=24,rot=True,Nb=1000,Fb=(1-1/40/20),br=0.01)
-cfgs += EnKF_AdInf(N=24,rot=True,Nb=100 ,Fb=(1-1/40/6),br=0.01)
-cfgs += EnKF_AdInf(N=24,rot=True,Nb=1000,Fb=(1-1/40/6),br=0.05)
-cfgs += EnKF_AdInf(N=24,rot=True,Nb=1000,Fb=(1-1/40/6),br=0.005)
+cfgs += EnKF_N    (N=25,rot=False)
+cfgs += EnKF_AdInf(N=25,rot=False,Nb=1000,Fb=(1-1/40/6),br=0.05)
 
 # Not tuned
 #cfgs.assign_names()

@@ -18,7 +18,7 @@ cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # 0.82
 cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63
 cfgs += EnKF('PertObs',N=500, infl=0.95,rot=False)        # 0.56
 cfgs += EnKF_N(        N=10,            rot=True)         # 0.54
-cfgs += iEnKF('Sqrt',  N=10,  infl=1.02,rot=True,iMax=10) # 0.31
+cfgs += iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)         # 0.31
 cfgs += PartFilt(      N=100 ,reg=2.4  ,NER=0.3)          # 0.38
 cfgs += PartFilt(      N=800 ,reg=0.9  ,NER=0.2)          # 0.28
 #cfgs += PartFilt(      N=4000,reg=0.7  ,NER=0.05)         # 0.27
@@ -32,7 +32,7 @@ cfgs += PartFilt(      N=800 ,reg=0.9  ,NER=0.2)          # 0.28
 #cfgs += EnKF(Sqrt   ',N=24,infl=1.02,rot=True)            # 0.18
 #
 #cfgs += EnKF_N(N=24,rot=True)                             # 0.18
-#cfgs += iEnKF(Sqrt',N=40,iMax=10,infl=1.01,rot=True)      # 0.17
+#cfgs += iEnKS('Sqrt',N=40,infl=1.01,rot=True)             # 0.17
 #
 #cfgs += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4)  # 0.22
 #cfgs += LETKF(approx=1,N=8,rot=True,infl=1.25,loc_rad=4)  # 0.36

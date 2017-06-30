@@ -128,7 +128,8 @@ class Stats(MLR_Print):
       # This should and will yield nan's, but we don't want
       # the diagnostics computations to cause too many warnings,
       # so we turned them off above. But we'll manually warn ONCE here.
-      if not getattr(self,'_had_0v',False) and np.allclose(self.var[key],0):
+      if not getattr(self,'_had_0v',False) \
+          and np.allclose(sqrt(self.var[key]),0):
         self._had_0v = True
         warnings.warn("Sample variance was 0 at (k,kObs,fau) = " + str(key))
 

@@ -46,7 +46,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 # Other
 #cfgs += EnKF_N(N=24,rot=True) # no tuning!               # 0.21
 #cfgs += EnKF_N(N=24,rot=True,nu=2.0)                     # 0.18
-#cfgs += iEnKF('Sqrt',N=40,iMax=10,infl=1.01,rot=True)    # 0.17
+#cfgs += iEnKS('Sqrt',N=40,infl=1.01,rot=True)            # 0.17
 
 # Localized
 #cfgs += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4) # 0.22
@@ -63,15 +63,28 @@ setup = TwinSetup(f,h,t,X0,**other)
 #cfgs += ExtKF(infl=10)                                   # 0.24 
 
 
-# Reproduce Bocquet'2015 "expanding"
-# t = Chronology(0.05,dkObs=3,T=4**4,BurnIn=20)
-# config = EnKF('Sqrt',N=20)
-# # config.infl = 1.02 # case: dkObs=1
-# # config.infl = 1.10 # case: dkObs=3
-# # config.infl = 1.40 # case: dkObs=5
-#
-# config = EnKF_N(N=20)                                   # 0.24
-# config = EnKF_N(N=20,nu=2)                              # 0.19
-#
+# Reproduce Fig 3 of Bocquet'2015 "expanding"
+#cfgs += EnKF('Sqrt',N=20,rot=True,infl=1.04)             # 0.20
+# # use infl=1.10 with dkObs=3
+# # use infl=1.40 with dkObs=5
+# cfgs += EnKF_N(N=20)                                    # 0.24
+# cfgs += EnKF_N(N=20,nu=2)                               # 0.19
 # # Also try quasi-linear regime:
 # t = Chronology(0.01,dkObs=1,T=4**4,BurnIn=20)
+
+# Reproduce Fig 7a of Bocquet'2014 "an iterative EnKS"
+#cfgs += iEnKS('-N', N=20,Lag=10,nu=2.0)                  # 0.163
+#cfgs += iEnKS('-N', N=20,Lag=20,nu=2.0)                  # 0.160 
+# using setup.t.dkObs = 8:
+#cfgs += iEnKS('-N', N=20,Lag=2,nu=1.0)                   # 0.39
+#
+# Fig 2 (smoother averages):
+#cfgs += iEnKS('-N', N=20,Lag=10,nu=2.0)                  # 0.163
+# The analysis-time smoother averages can be computed as
+# mean(s[indx].rmse.u[setup.t.kkObs_BI])
+# while universal-time averages are given by 
+#print_averages(cfgs,avrgs,[],['rmse_u'])
+
+
+
+

@@ -7,6 +7,7 @@
 # TODO: improve random_offset():
 #        - no LCG, but better seed management
 #        - random initialization
+# TODO: Auto-gen samples (or download). Gen U0
 
 
 from common import *
@@ -19,15 +20,17 @@ from mods.QG.core import step, dt, nx, ny, m, S, square
 
 #t = Chronology(dt=dt,dkObs=1,T=1200,BurnIn=100)
 #t = Chronology(dt=dt,dkObs=1,T=600,BurnIn=100)
-t = Chronology(dt=dt,dkObs=1,T=100,BurnIn=20)
+t = Chronology(dt=dt,dkObs=1,T=300,BurnIn=100)
+#t = Chronology(dt=dt,dkObs=1,T=100,BurnIn=20)
 #t = Chronology(dt=dt,dkObs=1,T=20,BurnIn=10)
 
 
 
 mu0 = S[:,int(S.shape[1]*rand())]
 # U should be scaled by svals?
-U0 = np.load('mods/QG/svd_U.npz')['U']
-X0 = GaussRV(mu=mu0,C=CovMat(10*U0,'Left'))
+#U0 = np.load('mods/QG/svd_U.npz')['U']
+#X0 = GaussRV(mu=mu0,C=CovMat(10*U0,'Left'))
+X0 = RV(func=lambda N: S[:,np.random.choice(S.shape[1],N)].T, m=m)
 
 def show(x):
   im = plt.imshow(square(x))
@@ -69,12 +72,14 @@ def hmod(E,t):
 
 from tools.localization import inds_and_coeffs, unravel
 xIJ = unravel(arange(m), (ny,nx)) # 2-by-m
-def locf(radius,direction,t):
-  """Prepare function:
-    inds, coeffs = locf_at(state_or_obs_index)"""
+def locf(radius,direction,t,tag=None):
+  """
+  Prepare function:
+  inds, coeffs = locf_at(state_or_obs_index)
+  """
   yIJ = xIJ[:,obs_inds(t)] # 2-by-p
   def ic(cntr, domain):
-    return inds_and_coeffs(cntr, domain, (ny,nx), radius)
+    return inds_and_coeffs(cntr, domain, (ny,nx), radius, tag=tag)
   if direction is 'x2y':
     # Could pre-compute ic() for all xIJ,
     # but speed gain is not worth it.
@@ -101,6 +106,9 @@ setup.name = os.path.relpath(__file__,'mods/')
 ####################
 # Suggested tuning
 ####################
+# Reproduce Fig 7 from Sakov and Oke "DEnKF" paper from 2008.
+#from mods.QG.sak08 import setup                                 # Expected RMSE_a:
+#cfgs += LETKF(N=24,rot=True,infl=1.04,loc_rad=10,taper='Gauss') # 0.6
 
 
 

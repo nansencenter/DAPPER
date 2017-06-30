@@ -33,107 +33,6 @@ def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
   return assimilator
 
 
-
-@DA_Config
-def EnKS(upd_a,N,tLag,infl=1.0,rot=False,**kwargs):
-  """
-  EnKS (ensemble Kalman smoother)
-
-  Ref: Evensen, Geir. (2009):
-  "The ensemble Kalman filter for combined state and parameter estimation."
-
-  The only difference to the EnKF is the management of the lag and the reshapings.
-  Settings for reproducing literature benchmarks may be found in
-  mods/Lorenz95/raanes2016.py
-  """
-  def assimilator(stats,twin,xx,yy):
-    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-
-    def reshape_to(E):
-      K,N,m = E.shape
-      return E.transpose([1,0,2]).reshape((N,K*m))
-    def reshape_fr(E,m):
-      N,Km = E.shape
-      K    = Km//m
-      return E.reshape((N,K,m)).transpose([1,0,2])
-
-    E    = zeros((chrono.K+1,N,f.m))
-    E[0] = X0.sample(N)
-
-    for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E[k] = f(E[k-1],t-dt,dt)
-      E[k] = add_noise(E[k], dt, f.noise, kwargs)
-
-      if kObs is not None:
-        stats.assess(k,kObs,'f',E=E[k])
-
-        kLag     = find_1st_ind(chrono.tt >= t-tLag)
-        kkLag    = range(kLag, k+1)
-        ELag     = E[kkLag]
-
-        hE       = h(E[k],t)
-        y        = yy[kObs]
-
-        ELag     = reshape_to(ELag)
-        ELag     = EnKF_analysis(ELag,hE,h.noise,y,upd_a,stats,kObs)
-        E[kkLag] = reshape_fr(ELag,f.m)
-        E[k]     = post_process(E[k],infl,rot)
-        stats.assess(k,kObs,'a',E=E[k])
-
-    for k in progbar(range(chrono.K+1),desc='Assessing'):
-      stats.assess(k,None,'u',E=E[k])
-  return assimilator
-
-
-@DA_Config
-def EnRTS(upd_a,N,cntr,infl=1.0,rot=False,**kwargs):
-  """
-  EnRTS (Rauch-Tung-Striebel) smoother.
-
-  Ref: Raanes, Patrick Nima. (2016):
-  "On the ensemble Rauch‐Tung‐Striebel smoother..."
-
-  Settings for reproducing literature benchmarks may be found in
-  mods/Lorenz95/raanes2016.py
-  """
-  def assimilator(stats,twin,xx,yy):
-    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
-
-    E    = zeros((chrono.K+1,N,f.m))
-    Ef   = E.copy()
-    E[0] = X0.sample(N)
-
-    # Forward pass
-    for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E[k]  = f(E[k-1],t-dt,dt)
-      E[k]  = add_noise(E[k], dt, f.noise, kwargs)
-      Ef[k] = E[k]
-
-      if kObs is not None:
-        stats.assess(k,kObs,'f',E=E[k])
-        hE   = h(E[k],t)
-        y    = yy[kObs]
-        E[k] = EnKF_analysis(E[k],hE,h.noise,y,upd_a,stats,kObs)
-        E[k] = post_process(E[k],infl,rot)
-        stats.assess(k,kObs,'a',E=E[k])
-
-    # Backward pass
-    for k in progbar(range(chrono.K)[::-1]):
-      A  = anom(E[k])[0]
-      Af = anom(Ef[k+1])[0]
-
-      J = tinv(Af) @ A
-      J *= cntr
-      
-      E[k] += ( E[k+1] - Ef[k+1] ) @ J
-
-    for k in progbar(range(chrono.K+1),desc='Assessing'):
-      stats.assess(k,E=E[k])
-  return assimilator
-
-
-
-
 def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
     R = hnoise.C
     N,m = E.shape
@@ -336,6 +235,123 @@ def add_noise(E, dt, noise, config):
 
 
 
+# Reshapings used in smoothers to go to/from
+# 3D arrays, where the 0th axis is the Lag index.
+def reshape_to(E):
+  K,N,m = E.shape
+  return E.transpose([1,0,2]).reshape((N,K*m))
+def reshape_fr(E,m):
+  N,Km = E.shape
+  K    = Km//m
+  return E.reshape((N,K,m)).transpose([1,0,2])
+
+
+@DA_Config
+def EnKS(upd_a,N,tLag,infl=1.0,rot=False,**kwargs):
+  """
+  EnKS (ensemble Kalman smoother)
+
+  Ref: Evensen, Geir. (2009):
+  "The ensemble Kalman filter for combined state and parameter estimation."
+
+  The only difference to the EnKF is the management of the lag and the reshapings.
+
+  Settings for reproducing literature benchmarks may be found in
+  mods/Lorenz95/raanes2016.py
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+
+    E    = zeros((chrono.K+1,N,f.m))
+    E[0] = X0.sample(N)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E[k] = f(E[k-1],t-dt,dt)
+      E[k] = add_noise(E[k], dt, f.noise, kwargs)
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E[k])
+
+        kLag     = find_1st_ind(chrono.tt >= t-tLag)
+        kkLag    = range(kLag, k+1)
+        ELag     = E[kkLag]
+
+        hE       = h(E[k],t)
+        y        = yy[kObs]
+
+        ELag     = reshape_to(ELag)
+        ELag     = EnKF_analysis(ELag,hE,h.noise,y,upd_a,stats,kObs)
+        E[kkLag] = reshape_fr(ELag,f.m)
+        E[k]     = post_process(E[k],infl,rot)
+        stats.assess(k,kObs,'a',E=E[k])
+
+    for k in progbar(range(chrono.K+1),desc='Assessing'):
+      stats.assess(k,None,'u',E=E[k])
+  return assimilator
+
+
+@DA_Config
+def EnRTS(upd_a,N,cntr,infl=1.0,rot=False,**kwargs):
+  """
+  EnRTS (Rauch-Tung-Striebel) smoother.
+
+  Ref: Raanes, Patrick Nima. (2016):
+  "On the ensemble Rauch‐Tung‐Striebel smoother..."
+
+  Settings for reproducing literature benchmarks may be found in
+  mods/Lorenz95/raanes2016.py
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+
+    E    = zeros((chrono.K+1,N,f.m))
+    Ef   = E.copy()
+    E[0] = X0.sample(N)
+
+    # Forward pass
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E[k]  = f(E[k-1],t-dt,dt)
+      E[k]  = add_noise(E[k], dt, f.noise, kwargs)
+      Ef[k] = E[k]
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E[k])
+        hE   = h(E[k],t)
+        y    = yy[kObs]
+        E[k] = EnKF_analysis(E[k],hE,h.noise,y,upd_a,stats,kObs)
+        E[k] = post_process(E[k],infl,rot)
+        stats.assess(k,kObs,'a',E=E[k])
+
+    # Backward pass
+    for k in progbar(range(chrono.K)[::-1]):
+      A  = anom(E[k])[0]
+      Af = anom(Ef[k+1])[0]
+
+      J = tinv(Af) @ A
+      J *= cntr
+      
+      E[k] += ( E[k+1] - Ef[k+1] ) @ J
+
+    for k in progbar(range(chrono.K+1),desc='Assessing'):
+      stats.assess(k,E=E[k])
+  return assimilator
+
+
+
+
+def serial_inds(upd_a, y, cvR, A):
+  if 'mono' in upd_a:
+    # Not robust?
+    inds = arange(len(y))
+  elif 'sorted' in upd_a:
+    dC = cvR.diag
+    if np.all(dC == dC[0]):
+      # Sort y by P
+      dC = np.sum(A*A,0)/(N-1)
+    inds = np.argsort(dC)
+  else: # Default: random ordering
+    inds = np.random.permutation(len(y))
+  return inds
 
 @DA_Config
 def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
@@ -410,21 +426,6 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
       stats.assess(k,kObs,E=E)
   return assimilator
 
-
-def serial_inds(upd_a, y, cvR, A):
-  if 'mono' in upd_a:
-    # Not robust?
-    inds = arange(len(y))
-  elif 'sorted' in upd_a:
-    dC = cvR.diag
-    if np.all(dC == dC[0]):
-      # Sort y by P
-      dC = np.sum(A*A,0)/(N-1)
-    inds = np.argsort(dC)
-  else: # Default: random ordering
-    inds = np.random.permutation(len(y))
-  return inds
-  
 
 
 @DA_Config
@@ -556,7 +557,7 @@ def Newton_m(fun,deriv,x0,is_inverted=False,
   return x0
 
 @DA_Config
-def EnKF_N(N,infl=1.0,rot=False,dual=True,Hess=False,g=0,nu=1.0,**kwargs):
+def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
   """
   Finite-size EnKF (EnKF-N).
 
@@ -567,14 +568,14 @@ def EnKF_N(N,infl=1.0,rot=False,dual=True,Hess=False,g=0,nu=1.0,**kwargs):
   This implementation favours the efficiency of the 'dual' formulation.
   The 'primal' formulation is there mainly to show equivalence
   (to the dual, provided the same minimum is found by the optimizers),
-  and to allow comparison with iEnKF_N(), which uses the full, non-lin h.
+  and to allow comparison with iEnKS_N(), which uses the full, non-lin h.
 
   'infl' should be unnecessary.
 
   'Hess': use non-approx Hessian for ensemble transform matrix?
 
   'g' is the nullity of A (state anom's), ie. g=max(1,N-m).
-  But we have made it an input argument with default 0
+  But we have made it an input argument instead, with default 0,
   because we don't think it's beneficial.
 
   'nu' (not yet described in litteture)
@@ -716,6 +717,158 @@ def EnKF_N(N,infl=1.0,rot=False,dual=True,Hess=False,g=0,nu=1.0,**kwargs):
       stats.assess(k,kObs,E=E)
   return assimilator
 
+# It is necessary to have a prior mode lower than 1:
+#   This sets up "tension" (negative feedback) in the inflation cycle:
+#   the prior pulls downwards, while the likelihood tends to pull upwards.
+#   and the possibility of high values due to the likelihood.
+# Mode correction obviously becomes necessary, however, when R-->infty,
+# because then there should be no ensemble update (and also no inflation!).
+
+# TODO:
+# Discuss with Marc
+#  - algo abbreviation (zeta_a paragraph)
+#  - excessive rmv 
+#  - MDA not rigorous
+#  - Is he sure MDA causes -N Pbs? Use observability correction?
+
+@DA_Config
+def iEnKS(upd_a,N,Lag=1,iMax=10,nu=1.0,bundle=False,infl=1.0,rot=False,**kwargs):
+  """
+  Iterative EnKS-N
+
+  References:
+  Boc14: Marc Bocquet, and Pavel Sakov. (2014):
+  "An iterative ensemble Kalman smoother."
+  Boc12: Marc Bocquet, and Pavel Sakov. (2012):
+  "Combining inflation-free and iterative EnKFs ..."
+
+  Options:
+  - upd_a : 'Sqrt' (i.e. ETKF) or '-N' (i.e. EnKF-N)
+  - Lag   : the length of the data assimilation window (DAW).
+            Its default, 1 (dkObs) yields the iterative "filter" iEnKF.
+  - bundle: Use bundle (finite difference) or transform (regression)
+            linearizations. For details, see Boc12.
+            If True, then the statistics for spread (etc) will
+            be very small, but we have not bothered to correct this.
+
+  As in Boc14, the minimization is done with Gauss-Newton.
+  See Boc12 for a Levenberg-Marquardt approach.
+
+  As in Boc14, the shift (S) is fixed at 1.
+
+  MDA (progressive assimilation) is not implemented because
+   - The balancing step is convoluted
+   - Trouble playing nice with '-N'
+
+  Settings for reproducing literature benchmarks may be found in
+  mods/Lorenz95/sak08.py
+  mods/Lorenz95/sak12.py
+  mods/Lorenz95/boc12.py
+  """
+
+  N1 = N-1
+  # Hessian of analysis cost function for w: Y@R.inv@Y + za(w)*I,
+  # both for EnKF-N and ETKF. Here we define za.
+  if upd_a == 'Sqrt':
+      # No adaptive inflation
+      def zeta_a(_,__): return N1
+  elif upd_a == '-N':
+      # See EnKF_N() for details
+      g          = 0
+      eN_        = (N+1)/N
+      cL_        = (N+g)/N1
+      prior_mode = eN_/cL_
+      def zeta_a(s,w):
+        diagonal = pad0( s**2, N ) + N1
+        I_KH     = mean( diagonal**(-1) )*N1
+        mc       = sqrt(prior_mode**I_KH)
+        eN       = eN_*nu/mc
+        cL       = cL_*nu*mc
+        za       = N1*cL/(eN + w@w)
+        return za
+
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0,R,KObs = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C, twin.t.KObs
+    assert f.noise.C is 0, "Q>0 not supported"
+
+    # Init DA cycles
+    E = X0.sample(N)
+    stats.iters = np.full(KObs+1,nan)
+
+    # Loop DA cycles
+    for kObs in progbar(arange(KObs+1)):
+        # Store 0th (iteration) estimate as (xf,Af)
+        Af,xf  = anom(E)
+        # Init iterations
+        w      = zeros(N)
+        Tinv   = eye(N)
+        T      = eye(N)
+        # Set (shifting) DA Window
+        DAW_0  = kObs-Lag+1
+        DAW    = arange(max(0,DAW_0),DAW_0+Lag)
+        # Loop iterations
+        for iteration in arange(iMax):
+            if bundle:
+              T    = 1e-4*eye(N)
+              Tinv = 1e+4*eye(N)
+            # Forecast
+            E = xf + w @ Af + T @ Af                # Current estimate of E[kObs-Lag]
+            for kDAW in DAW:                        # Loop Lag cycles
+              for k,t,dt in chrono.obs_range(kDAW): # Loop dkObs steps (1 cycle)
+                E = f(E,t-dt,dt)                    # Forecast 1 dt step (1 dkObs)
+            if iteration==0:
+              stats.assess(k,kObs,'f',E=E)
+
+            # Analysis of y[kObs] (already assim'd [:kObs])
+            y    = yy[kObs]
+            Y,hx = anom(h(E,t))
+            # "Uncondition" the observation anomalies
+            # (and yet this linearization of h improves with iterations)
+            Y  = Tinv @ Y
+            # Transform obs space
+            Y  = Y        @ R.sym_sqrt_inv.T
+            dy = (y - hx) @ R.sym_sqrt_inv.T
+            # Prepare analysis: do SVD
+            V,s,UT = svd0(Y)
+            za     = zeta_a(s,w)
+            # Gauss-Newton ingredients
+            grad = -Y@dy + w*za
+            Pw   = (V * (pad0(s**2,N) + za)**-1.0) @ V.T
+            # Linearization improvement
+            T    = (V * (pad0(s**2,N) + za)**-0.5) @ V.T * sqrt(N1)
+            Tinv = (V * (pad0(s**2,N) + za)**+0.5) @ V.T / sqrt(N1)
+            # Gauss-Newton step
+            dw   = Pw@grad
+            w   -= dw
+            # Stopping condition
+            if np.linalg.norm(dw) < N*1e-4:
+              break
+
+        # Analysis 'a' stats for E[kObs].
+        stats.assess(k,kObs,'a',E=E)
+        stats.trHK [kObs] = trace(Y.T @ Pw @ Y)/h.noise.m
+        stats.iters[kObs] = iteration+1
+        stats.infl [kObs] = sqrt(N1/za)
+
+        # Final (smoothed) estimate of E[kObs-Lag]
+        E = xf + w @ Af + T @ Af
+        E = post_process(E,infl,rot)
+
+        # Forecast smoothed ensemble by shift (1*dkObs)
+        if DAW_0 >= 0:
+          for k,t,dt in chrono.obs_range(DAW_0):
+            stats.assess(k-1,None,'u',E=E)
+            E = f(E,t-dt,dt)
+
+    # Assess the last (Lag-1) obs ranges
+    for kDAW in arange(DAW[0]+1,KObs+1):
+      for k,t,dt in chrono.obs_range(kDAW):
+        stats.assess(k-1,None,'u',E=E)
+        E = f(E,t-dt,dt)
+    stats.assess(chrono.K,None,'u',E=E)
+
+  return assimilator
+
 
 
 @DA_Config
@@ -765,132 +918,6 @@ def EnKF_AdInf(N,infl=1.0,rot=False,Sb2=1.0,Nb=4,Fb=0.99,br=1.0,g=0,**kwargs):
         stats.aa[kObs] = a
         stats.bb[kObs] = b
         stats.Nb[kObs] = Nb
-
-
-# TODO: See todo's in code
-@DA_Config
-def iEnKS(upd_a,N,iMax=10,infl=1.0,rot=False,nu=1.0,L=1,**kwargs):
-  """
-  Iterative EnKS-N
-
-  Reference:
-  Boc14: Bocquet, Marc, and Pavel Sakov. (2014):
-  "An iterative ensemble Kalman smoother."
-
-  - L is the lag (DAW) of the smoother.
-  - As in Boc14, the shift (S) is fixed at 1.
-  - There is no MDA option.
-
-  This is the transform (i.e. not bundle) version, as detailed in
-  Bocquet and Sakov (2012): "Combining inflation-free and iterative EnKFs..."
-
-  Settings for reproducing literature benchmarks may be found in
-  mods/Lorenz95/sak08.py
-  mods/Lorenz95/sak12.py
-  mods/Lorenz95/boc12.py
-  """
-  def assimilator(stats,twin,xx,yy):
-    f,h,chrono,X0,R = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C
-
-    KObs = chrono.KObs
-
-    assert twin.f.noise.C is 0
-
-    # EnKF-N constants
-    g          = 0        # Gauge number
-    N1         = N-1      # Abbrev
-    eN_        = (N+1)/N  # Effect of unknown mean
-    cL_        = (N+g)/N1 # Coeff in front of log term
-    prior_mode = eN_/cL_  # Mode of l1 (un-corrected)
-
-    # Init DA cycles
-    E = X0.sample(N)
-    stats.iters = np.full(KObs+1,nan)
-    stats.assess(0,E=E)
-
-    # Loop DA cycles
-    for kObs in progbar(range(KObs+1)):
-        Af,xf  = anom(E)
-        # Init iterations
-        w      = zeros(N)
-        Tinv   = eye(N)
-        T      = eye(N)
-        # Loop iterations
-        for iteration in range(iMax):
-            # Current estimate of E[kObs-L]
-            E = xf + w @ Af + T @ Af
-            # Forecast L DAWs
-            for kO in range(max(0,kObs+1-L),kObs+1):
-              # Forecast 1 DAW
-              for k,t,dt in chrono.DAW_range(kO):
-                E = f(E,t-dt,dt)
-
-            # Analysis: Assimilation of kObs
-            # [range(kObs-L,kObs) already assimilated]
-            hE = h(E,t)
-            hx = mean(hE,0)
-            Y  = hE-hx
-            Y  = Tinv @ Y
-            y  = yy[kObs]
-            dy = y - hx
-
-            # #dw,Pw,T,Tinv = iEnKF_analysis(w,dy,Y,h.noise,upd_a)
-            # grad = (N-1)*w      - Y @ (R.inv @ dy)
-            # hess = (N-1)*eye(N) + Y @ R.inv @ Y.T
-            # d,V  = eigh(hess)
-            # Pw   = V@diag(d**(-1.0))@V.T
-            # T    = V@diag(d**(-0.5))@V.T * sqrt(N-1)
-            # Tinv = V@diag(d**(+0.5))@V.T / sqrt(N-1)
-            # #Pw   = funm_psd(hess, np.reciprocal)
-            # #T    = funm_psd(hess, lambda x: x**(-0.5)) * sqrt(N-1)
-            # #Tinv = funm_psd(hess, sqrt) / sqrt(N-1)
-
-            V,s,UT = svd0  (Y @ R.sym_sqrt_inv.T)
-            du     = UT @ (dy @ R.sym_sqrt_inv.T)
-            dgn_N  = lambda l: pad0( (l*s)**2, N ) + N1
-
-            if iteration==0:
-              stats.assess(k,kObs,'f',E=E)
-              # See EnKF_N() for details:
-              I_KH  = mean( dgn_N(1.0)**(-1) )*N1
-              mc    = sqrt(prior_mode**I_KH)
-              eN = eN_*nu/mc
-              cL = cL_*nu*mc
-              za = lambda w: N1*cL/(eN + w@w)
-
-            grad = -Y@R.inv@dy + N1*cL*w/(eN + w@w)
-            Pw   = (V * (pad0(s**2,N) + za(w))**-1.0) @ V.T
-            T    = (V * (pad0(s**2,N) + za(w))**-0.5) @ V.T * sqrt(N-1)
-            Tinv = (V * (pad0(s**2,N) + za(w))**+0.5) @ V.T / sqrt(N-1)
-
-            dw   = Pw@grad
-            w   -= dw
-            if np.linalg.norm(dw) < N*1e-4:
-              break
-
-        stats.assess(k,kObs,'a',E=E)
-        stats.trHK [kObs] = trace(R.inv @ Y.T @ Pw @ Y)/h.noise.m
-        stats.iters[kObs] = iteration+1
-        stats.infl [kObs] = sqrt(N1/za(w))
-
-        # Final (smoothed) estimate of E[kObs-L]
-        E = xf + w @ Af + T @ Af
-        E = post_process(E,infl,rot)
-
-        # Forecast smoothed ensemble by 1 DAW
-        kO = kObs+1-L
-        if kO >= 0:
-          for k,t,dt in chrono.DAW_range(kO):
-            stats.assess(k-1,None,'u',E=E)
-            E = f(E,t-dt,dt)
-
-    # TODO: rmse.u peak towrds the end. Something is wrong!
-    # TODO: compute smoother avrgs from _u using kkObs_BI
-    for kO in range(max(0,KObs-L+1),KObs+1):
-      for k,t,dt in chrono.DAW_range(kO):
-        E = f(E,t-dt,dt)
-        stats.assess(k,None,'u',E=E)
-  return assimilator
 
 
 
@@ -1916,6 +1943,7 @@ def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
 
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/tod15.py
+  mods/Lorenz95/wiljes2017.py
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -1951,7 +1979,7 @@ def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
           innovs = (idy-iY)/Rs
           if 'laplace' in str(type(h.noise)).lower():
             w    = laplace_lklhd(innovs)
-          else:
+          else: # assume Gaussian
             w    = reweight(ones(N),uni_innovs=innovs)
           dmu    = w@A[:,i]
           AT     = sqrt(N)*funm_psd(diag(w) - np.outer(w,w), sqrt)@A[:,i]
