@@ -70,12 +70,12 @@ Method name                                            | Literature RMSE results
 EnKF <sup>1</sup>                                      | sakov'2008 ("deterministic")
 EnKF-N                                                 | bocquet'2012 ("combining"), bocquet'2015 ("expanding")
 EnKS, EnRTS                                            | raanes'2016 ("EnRTS and EnKS")
-iEnKF                                                  | sakov'2012 ("an iterative")
+iEnKS (and -N)                                         | sakov'2012 ("an iterative"), bocquet'2012 ("combining"), bocquet'2014 ("iterative EnKS")
 LETKF, local & serial EAKF                             | bocquet'2011 ("EnKF-N")
 Sqrt. model noise methods                              | raanes'2015 ("sqrt model noise")
 Particle filter (bootstrap) <sup>2</sup>               | bocquet'2010 ("beyond Gaussian")
 Optimal/implicit Particle filter  <sup>2</sup>         | "
-NETF                                                   | todter'2015 ("a second-order exact")
+NETF                                                   | todter'2015 ("2nd-O exact"), wiljes'2017 ("2nd-O accurate")
 Extended KF                                            | raanes'2016 thesis
 Optimal interpolation                                  | "
 Climatology                                            | "
