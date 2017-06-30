@@ -34,6 +34,15 @@ def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
 
 
 def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
+    """
+    The EnKF analysis update.
+    
+    'upd_a' selects between the different versions.
+
+    References:
+    Sakov and Oke (2008). "Implications of the Form of the ... EnSRF..."
+    Sakov and Oke (2008). "A deterministic formulation of the EnKF..."
+    """
     R = hnoise.C
     N,m = E.shape
 
@@ -723,13 +732,6 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
 #   and the possibility of high values due to the likelihood.
 # Mode correction obviously becomes necessary, however, when R-->infty,
 # because then there should be no ensemble update (and also no inflation!).
-
-# TODO:
-# Discuss with Marc
-#  - algo abbreviation (zeta_a paragraph)
-#  - excessive rmv 
-#  - MDA not rigorous
-#  - Is he sure MDA causes -N Pbs? Use observability correction?
 
 @DA_Config
 def iEnKS(upd_a,N,Lag=1,iMax=10,nu=1.0,bundle=False,infl=1.0,rot=False,**kwargs):
