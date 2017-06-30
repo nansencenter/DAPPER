@@ -45,7 +45,7 @@ In a trade-off with the above advantages, DAPPER makes some sacrifices of effici
 I.e. it is not designed for the assimilation of real data in operational models.
 
 A good place to start is with the scripts `example_1/2.py`.
-If you're after full DA tutorials, see the `tutorials` folder.
+Alternatively, see the `tutorials` folder for an intro to DA.
 
 	
 Installation
