@@ -34,6 +34,8 @@ setup = TwinSetup(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
+# Reproduce benchmarks for NETF and ESRF (here EnKF-N)
+# from left pane of Fig 1.
 #from mods.Lorenz63.wiljes2017 import setup ################ Expected RMSE_a:
 #cfgs += EnKF_N(N=5)                                        # 2.67
 #cfgs += EnKF_N(N=30,rot=True)                              # 2.43

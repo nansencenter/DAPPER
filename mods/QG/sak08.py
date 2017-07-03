@@ -1,60 +1,43 @@
 # Reproduce results from Sakov and Oke "DEnKF" paper from 2008.
 
-# TODO: Set RKH2 = 2.0e-11 ?
-# TODO: Do something about parameter management,
-#       especially dt
-# TODO: Sampling X0 ala Sakov ?
-# TODO: improve random_offset():
-#        - no LCG, but better seed management
-#        - random initialization
-# TODO: Auto-gen samples (or download). Gen U0
-
-
 from common import *
 
-from mods.QG.core import step, dt, nx, ny, m, S, square
+from mods.QG.core import step, dt, nx, ny, m, square, sample_filename, show
 
+
+# As specified in core.py: dt = 4*1.25 = 5.0.
+#t = Chronology(dt=dt,dkObs=1,T=300,BurnIn=100) # Sakov: repeat 10 times
+#t = Chronology(dt=dt,dkObs=1,T=600,BurnIn=20)
+t = Chronology(dt=dt,dkObs=1,T=100,BurnIn=20)
+#t = Chronology(dt=dt,dkObs=1,T=20,BurnIn=10)
+#
 # Considering that I have 8GB on the Mac, and the estimate:
 # ≈ (8 bytes/float)*(129² float/stat)*(7 stat/k) * K,
-# it should be possible to have an experiment with K≈8000.
+# it should be possible to have an experiment with maximum K≈8000.
 
-#t = Chronology(dt=dt,dkObs=1,T=1200,BurnIn=100)
-#t = Chronology(dt=dt,dkObs=1,T=600,BurnIn=100)
-t = Chronology(dt=dt,dkObs=1,T=300,BurnIn=100)
-#t = Chronology(dt=dt,dkObs=1,T=100,BurnIn=20)
-#t = Chronology(dt=dt,dkObs=1,T=20,BurnIn=10)
-
-
-
-mu0 = S[:,int(S.shape[1]*rand())]
-# U should be scaled by svals?
-#U0 = np.load('mods/QG/svd_U.npz')['U']
-#X0 = GaussRV(mu=mu0,C=CovMat(10*U0,'Left'))
-X0 = RV(func=lambda N: S[:,np.random.choice(S.shape[1],N)].T, m=m)
-
-def show(x):
-  im = plt.imshow(square(x))
-  setter = lambda x:  im.set_data(square(x))
-  return setter
 
 f = {
     'm'    : m,
     'model': step,
     'noise': 0,
-    'plot' : show,
     }
 
+X0 = RV(m=m,file=sample_filename)
 
 
+############################
+# Observation settings
+############################
 p  = 300
-jj = equi_spaced_integers(m,p+1)[:p]
+jj = equi_spaced_integers(m,p)
+jj = jj-jj[0]
 
+rstream = np.random.RandomState()
+max_offset = jj[1]-jj[0]
 def random_offset(t):
-  max_offset = jj[1]-jj[0]
-  LCG(100*t)                # seed
-  for _ in range(10): LCG() # burn in
-  r = LCG()                 # draw
-  return int(floor(max_offset * r))
+  rstream.seed(int(t/dt*100))
+  u = rstream.rand()
+  return int(floor(max_offset * u))
 
 def obs_inds(t):
   return jj + random_offset(t)
@@ -62,13 +45,6 @@ def obs_inds(t):
 @ens_compatible
 def hmod(E,t):
   return E[obs_inds(t)]
-
-# Not validated
-#def hjac(x,t):
-#  H  = zeros((p,m))
-#  for i,j in enumerate(obs_inds(t)):
-#    H[i,j] = 1.0
-#  return H
 
 from tools.localization import inds_and_coeffs, unravel
 xIJ = unravel(arange(m), (ny,nx)) # 2-by-m
@@ -108,7 +84,7 @@ setup.name = os.path.relpath(__file__,'mods/')
 ####################
 # Reproduce Fig 7 from Sakov and Oke "DEnKF" paper from 2008.
 #from mods.QG.sak08 import setup                                 # Expected RMSE_a:
-#cfgs += LETKF(N=24,rot=True,infl=1.04,loc_rad=10,taper='Gauss') # 0.6
+#cfgs += LETKF(N=25,rot=True,infl=1.04,loc_rad=10,taper='Gauss') # 0.6
 
 
 

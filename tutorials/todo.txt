@@ -32,6 +32,12 @@ KG code has error: replace mu by b
 m_grid should be resolution
 d should be m
 
+Why Gaussian:
+ - If you want multiple data points to yield a least squares problems,
+   you gotta stick the quadratic forms into exponentials for BR.
+   This is another way to state:
+   "Gaussians yield sample mean as ML estimator"
+
 Note how the parametric BR is cheap compared to pointwise multiplication.
 
 "that that"

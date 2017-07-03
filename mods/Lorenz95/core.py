@@ -35,10 +35,9 @@ def dxdt(x):
 
 def step(x0, t, dt):
 
-  # NB
-  if prevent_blow_up:
-    clip      = abs(x0)>30
-    x0[clip] *= 0.1
+  #if prevent_blow_up:
+    #clip      = abs(x0)>30
+    #x0[clip] *= 0.1
 
   return rk4(lambda t,x: dxdt(x), x0, np.nan, dt)
 

@@ -160,7 +160,7 @@ def round2(num,prec=1.0):
   return np.multiply(prec,np.rint(np.divide(num,prec)))
 
 def round2sigfig(x,nfig=1):
-  if x == 0:
+  if np.all(array(x) == 0):
     return x
   signs = np.sign(x)
   x *= signs

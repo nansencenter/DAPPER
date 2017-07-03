@@ -55,7 +55,7 @@ class LivePlot:
     #####################
     # Dashboard
     #####################
-    if 1 in only:
+    if 1 in only and m<4001:
       self.fga = plt.figure(1,figsize=(8,8))
       self.fga.clf()
       win_title(self.fga, "Dashboard")
@@ -111,7 +111,7 @@ class LivePlot:
       # Colorbar
       cax   = divdr.append_axes("bottom", size = "10%", pad = 0.05)
       cax   . set_xlabel('Correlation')
-      if hasattr(self,'ax') and m<401:
+      if hasattr(self,'ax') and m<201:
         # Get cov matrix
         if E is not None:
           C = np.cov(E,rowvar=False)
@@ -308,7 +308,7 @@ class LivePlot:
     #####################
     # 3D phase space
     #####################
-    if 3 in only:
+    if 3 in only and m<41:
       self.fg3 = plt.figure(3,figsize=(8,6))
       self.fg3.clf()
       win_title(self.fg3,"3D trajectories")
@@ -345,9 +345,11 @@ class LivePlot:
       self.ltx,      = ax3.plot(*self.tail_xx.T,'y',lw=4)
 
       #ax3.axis('off')
-      for i in range(3):
-        set_ilim(ax3,i,xx,1.7)
-      ax3.set_axis_bgcolor('w')
+      with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for i in range(3):
+          set_ilim(ax3,i,xx,1.7)
+        ax3.set_axis_bgcolor('w')
 
 
     #####################

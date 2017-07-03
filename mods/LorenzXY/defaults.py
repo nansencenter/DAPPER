@@ -4,7 +4,8 @@ from common import *
 
 from mods.LorenzXY.core import nX,J,m,dxdt,dfdx
 
-t = Chronology(dt=0.001,dkObs=10,T=4**3,BurnIn=6)
+#t = Chronology(dt=0.001,dkObs=10,T=4**3,BurnIn=6)
+t = Chronology(dt=0.005,dkObs=10,T=4**3,BurnIn=6)
 
 def plot_state(x):
   circX = np.mod(arange(nX+1)  ,nX)
@@ -29,29 +30,13 @@ f = {
     'plot' : plot_state
     }
 
-from mods.Lorenz95.core import typical_init_params
-mu0 = zeros(nX*(J+1))
-P0  = eye(m)
-mu0[:nX],P0[:nX,:nX] = typical_init_params(nX)
-X0  = GaussRV(mu0, 0.01*P0)
+X0  = GaussRV(C=0.01*eye(m))
 
-# TODO: utilize partial_direct_obs...
 p = nX
-obsInds = range(p)
-@atmost_2d
-def hmod(E,t):
-  return E[:,obsInds]
+jj= arange(p)
+h = partial_direct_obs_setup(m,jj)
+h['noise'] = 0.1
 
-H = zeros((p,m))
-for i,j in enumerate(obsInds):
-  H[i,j] = 1.0
-
-h = {
-    'm'    : p,
-    'model': hmod,
-    'jacob': lambda x,t: H,
-    'noise': GaussRV(C=0.1*eye(p)),
-    }
  
 other = {'name': os.path.relpath(__file__,'mods/')}
 
@@ -61,10 +46,8 @@ setup = TwinSetup(f,h,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-
-# Not optimized at all:
+# Not at all tuned:
 #from mods.LorenzXY.defaults import setup
 #setup.t.dt = 0.005
-#config           = EnKF('Sqrt',N=100,rot=True)
-#config.infl      = 1.01 # for p = nX
-#config.infl      = 1.15 # for p = m
+#cfgs += EnKF('Sqrt',N=100,rot=True,infl=1.01)
+# infl = 1.15 for p = m

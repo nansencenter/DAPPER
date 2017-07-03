@@ -39,7 +39,7 @@ class RV(MLR_Print):
       E = self.func(N)
     elif hasattr(self,'file'):
       # Provided by numpy file with sample
-      data = np.load(self.file)
+      data   = np.load(self.file)
       sample = data['sample']
       N0     = len(sample)
       if 'w' in data:

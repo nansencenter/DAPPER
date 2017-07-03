@@ -24,8 +24,6 @@ import numpy as np
 from scipy.linalg import circulant
 from tools.misc import rk4, is1d, atmost_2d
 
-from mods.Lorenz95.core import lr
-
 nX= 8  # of X
 J = 32 # of Y per X 
 m = (J+1)*nX # total state length
@@ -44,14 +42,16 @@ def dxdt(x):
   Y = x[:,nX:]
   assert Y.shape[1] == J*X.shape[1]
 
+  s = lambda x,n: np.roll(x,-n,axis=-1)
+
   d = np.zeros_like(x)
   # dX/dt -- same as "uncoupled" Lorenz-95
-  d[:,:nX] = np.multiply(lr(X,1)-lr(X,-2),lr(X,-1)) - X + F
+  d[:,:nX] = np.multiply(s(X,1)-s(X,-2),s(X,-1)) - X + F
   # Add in coupling from Y vars
   for i in range(nX):
     d[:,i] += -h*c/b * np.sum(Y[:,iiY[i]],1)
   # dY/dt
-  d[:,nX:] = -c*b*np.multiply(lr(Y,2)-lr(Y,-1),lr(Y,1)) - c*Y \
+  d[:,nX:] = -c*b*np.multiply(s(Y,2)-s(Y,-1),s(Y,1)) - c*Y \
       + h*c/b * X[:,iiX]
   return d
 
@@ -88,7 +88,7 @@ def dfdx(x,t,dt):
 def dxdt_trunc(x):
   "truncated dxdt: slow variables (X) only"
   assert x.shape[1] == nX
-  return np.multiply(lr(x,1)-lr(x,-2),lr(x,-1)) - x + F
+  return np.multiply(s(x,1)-s(x,-2),s(x,-1)) - x + F
 
 def dxdt_det(x):
   """

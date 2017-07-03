@@ -15,21 +15,12 @@ f = {
     'noise': 0,
     }
 
-from mods.Lorenz95.core import typical_init_params
-mu0,P0 = typical_init_params(nX)
-X0 = GaussRV(mu0, 0.01*P0)
+X0  = GaussRV(C=0.01*eye(nX))
 
 p = nX
-obsInds = range(p)
-@atmost_2d
-def hmod(E,t):
-  return E[:,obsInds]
-
-h = {
-    'm'    : p,
-    'model': hmod,
-    'noise': GaussRV(C=0.1*eye(p)),
-    }
+jj= arange(p)
+h = partial_direct_obs_setup(nX,jj)
+h['noise'] = 0.1
  
 other = {'name': os.path.relpath(__file__,'mods/')}
 
