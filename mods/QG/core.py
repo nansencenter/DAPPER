@@ -73,7 +73,7 @@ with open(prm_filename, 'w') as f:
 # Domain management
 #########################
 
-# Domain size defined in f90/parameters.f90
+# Domain size "hardcoded" in f90/parameters.f90
 nx = 129
 ny = nx
 m  = nx*ny

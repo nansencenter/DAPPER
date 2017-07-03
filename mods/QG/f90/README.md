@@ -1,26 +1,26 @@
 This model was taken from Sakov's EnKF-Matlab package. Licence reproduced below.
 
-%  Copyright (C) 2008, 2009 Pavel Sakov
-%  
-%  Redistribution and use of material from the package EnKF-Matlab, with or
-%  without modification, are permitted provided that the following conditions are 
-%  met:
-%  
-%     1. Redistributions of material must retain the above copyright notice, this
-%        list of conditions and the following disclaimer.
-%     2. The name of the author may not be used to endorse or promote products
-%        derived from this software without specific prior written permission.
-%  
-%  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED 
-%  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-%  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
-%  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-%  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
-%  OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-%  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-%  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-%  IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-%  OF SUCH DAMAGE.
+        Copyright (C) 2008, 2009 Pavel Sakov
+
+        Redistribution and use of material from the package EnKF-Matlab, with or
+        without modification, are permitted provided that the following conditions are 
+        met:
+        
+           1. Redistributions of material must retain the above copyright notice, this
+              list of conditions and the following disclaimer.
+           2. The name of the author may not be used to endorse or promote products
+              derived from this software without specific prior written permission.
+        
+        THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED 
+        WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+        MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+        EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+        EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+        OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+        CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+        IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+        OF SUCH DAMAGE.
 
 The main adaption made since then is to set it up for python, as described below.
 
