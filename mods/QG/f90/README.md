@@ -26,8 +26,10 @@ The main adaption made since then is to set it up for python, as described below
 
 ### This `f90` directory
 contains Fortran90 code for the QG model for building
- 1. a python extension module
- 2. a standalone program
+
+ 1. a python extension module `py_mod`
+ 2. a standalone program `qg`
+
 Both requires an f90 compiler (tested with g95 and gfortran).
 In addition (1) requires `f2py`, while (2) requires `netcdf` libraries.
 
