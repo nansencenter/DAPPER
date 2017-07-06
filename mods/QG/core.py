@@ -139,7 +139,7 @@ def gen_sample(Len,SpinUp,Spacing):
 sample_filename = 'data/samples/QG_samples.npz'
 if not os.path.isfile(sample_filename):
   print('Generating a "random" sample with which to start simulations')
-  sample = sample(400,500,10)
+  sample = gen_sample(400,500,10)
   np.savez(sample_filename,sample=sample)
 
 
