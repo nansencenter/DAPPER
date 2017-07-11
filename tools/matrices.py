@@ -109,8 +109,7 @@ def funm_psd(a, fun, check_finite=False):
   return (v * w) @ v.T
 
 
-# TODO: THIS FAILS sometimes. E.g. Q from mods.LA.raanes2015
-def chol_reduce(C):
+def chol_reduce(Right):
   """
   Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
   Example:
@@ -132,14 +131,12 @@ def chol_reduce(C):
   # Explanation: R is truncated when cholesky() finds a 'leading negative minor'.
   # Thus, R is rectangular, with height ∈ [rank, m].
 
+  return R
 
 
 class CovMat(object):
   """
-  Covariance matrix 
-
-
-  .
+  Covariance matrix class.
 
   Main tasks:
     - Unifying the covariance representations:

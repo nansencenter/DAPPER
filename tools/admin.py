@@ -15,7 +15,7 @@ class TwinSetup(MLR_Print):
       setattr(self, key, value)
     # Validation
     if self.h.noise.C==0 or self.h.noise.C.rk!=self.h.noise.C.m:
-        raise ValueError("Rankdeficient R not supported.")
+        raise ValueError("Rank-deficient R not supported.")
 
   def prepare_setup(self,mat,assimcycles):
     #Extend the assimilation to get 10**4 cycles
@@ -212,7 +212,7 @@ class DAC(ImmutableAttributes):
     keys = filter_out(keys,*self.excluded,*self.dflts,'da_method')
     for key in keys:
       s += format_(key,getattr(self,key))
-    return s[:2]+')'
+    return s[:-2]+')'
 
 class List_of_Configs(list):
   """List for DAC's"""
@@ -223,8 +223,8 @@ class List_of_Configs(list):
 
   def __init__(self,*args):
     """
-    List_of_Configs() > new empty list
-    List_of_Configs(iterable) > new list initialized from iterable's items
+    List_of_Configs() -> new empty list
+    List_of_Configs(iterable) -> new list initialized from iterable's items
     """
     for cfg in args:
       if isinstance(cfg, DAC):
@@ -289,7 +289,7 @@ class List_of_Configs(list):
       # Common
       keys  = filter_out(comn,*self.excluded)
       comn  = {k: formatr(comn[k]) for k in keys}
-      s    += "\n\nCommon: " + str(comn)
+      s    += "\n---\nCommon: " + str(comn)
     else:
       s = "List_of_Configs([])"
     return s
@@ -307,7 +307,7 @@ class List_of_Configs(list):
       vals  = dist[k]                                              # Get data
       lbls  = '' if i==0 else ' '                                  # Spacing 
       if len(k)<=4: lbls += k + ' '                                # Standard label
-      else:         lbls += k[:3] + '~' + k[1] + ' '              # Abbreviated label
+      else:         lbls += k[:3] + '~' + k[-1] + ' '              # Abbreviated label
       lbls  = [' '*len(lbls) if v is None else lbls for v in vals] # Skip label if val=None
       vals  = typeset(vals,do_tab=True)                            # Format data
       names = [''.join(x) for x in zip(names,lbls,vals)]           # Join
@@ -325,10 +325,10 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   """
   For c in cfgs:
     Print c[attrkeys], Avrgs[c][statkeys]
-   attrkeys: list of attributes to include.
-       if 1: only print da_method.
-       if  0: print distinct_attrs
-   statkeys: list of statistics to include.
+  - attrkeys: list of attributes to include.
+      - if -1: only print da_method.
+      - if  0: print distinct_attrs
+  - statkeys: list of statistics to include.
   """
 
   # Convert single cfg to list
@@ -348,7 +348,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
 
   # Defaults attributes
   if not attrkeys:       headr = list(cfgs.distinct_attrs())
-  elif   attrkeys == 1: headr = ['da_method']
+  elif   attrkeys == -1: headr = ['da_method']
   else:                  headr = list(attrkeys)
 
   # Filter excluded
@@ -363,7 +363,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
 
   # Get stats.
   # Format stats_with_conf.
-  # Use #'s to avoid autocropping by tabulate().
+  # Use #'s to avoid auto-cropping by tabulate().
   for key in statkeys:
     col = ['{0:#>9} ±'.format(key)]
     for i in range(len(cfgs)):
