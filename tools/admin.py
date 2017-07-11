@@ -15,7 +15,7 @@ class TwinSetup(MLR_Print):
       setattr(self, key, value)
     # Validation
     if self.h.noise.C==0 or self.h.noise.C.rk!=self.h.noise.C.m:
-        raise ValueError("Rank-deficient R not supported.")
+        raise ValueError("Rankdeficient R not supported.")
 
   def prepare_setup(self,mat,assimcycles):
     #Extend the assimilation to get 10**4 cycles
@@ -60,16 +60,16 @@ def DA_Config(da_method):
   """
   Wraps a da_method to an instance of the DAC (DA Configuration) class.
   1) inserts arguments to da_method as attributes in a DAC object, and
-  2) wraps assimilator() so as to fail_gently and pre-init stats.
+  2) wraps assimilator() so as to fail_gently and preinit stats.
 
   Features:
-   - Provides light-weight interface (makes da_method very readable).
-   - Allows args (and defaults) to be defined in da_method's signature.
-   - assimilator() nested under da_method.
+    Provides lightweight interface (makes da_method very readable).
+    Allows args (and defaults) to be defined in da_method's signature.
+    assimilator() nested under da_method.
      => args accessible without unpacking or 'self'.
-   - stats initialized by assimilator(),
+    stats initialized by assimilator(),
      not when running da_method itself => save memory.
-   - Involves minimal hacking/trickery.
+    Involves minimal hacking/trickery.
   """
   # Note: I did consider unifying DA_Config and the DAC class,
   # since they "belong together", but I saw little other benefit,
@@ -82,7 +82,7 @@ def DA_Config(da_method):
   def wrapr(*args,**kwargs):
     ############################
     # Validate signature/return
-    #---------------------------
+    #
     assimilator = da_method(*args,**kwargs)
     if assimilator.__name__ != 'assimilator':
       raise Exception("DAPPER convention requires that "
@@ -94,7 +94,7 @@ def DA_Config(da_method):
 
     ############################
     # Make assimilation caller
-    #---------------------------
+    #
     def assim_caller(setup,xx,yy):
       name_hook = da_method.__name__ # for pdesc of progbar
       # Init stats
@@ -117,7 +117,7 @@ def DA_Config(da_method):
 
     ############################
     # Grab argument names/values
-    #---------------------------
+    #
     # Process abbreviations
     abbrevs = [('LP','liveplotting')]
     for a,b in abbrevs:
@@ -127,7 +127,7 @@ def DA_Config(da_method):
 
     cfg = OrderedDict()
     i   = 0
-    # 1) Insert args into cfg with signature-names.
+    # 1) Insert args into cfg with signaturenames.
     for i,val in enumerate(args):
       cfg[f_arg_names[i]] = val
     # 2) Insert kwargs, ordered as in signature.
@@ -141,17 +141,40 @@ def DA_Config(da_method):
 
     ############################
     # Wrap
-    #---------------------------
+    #
     cfg['da_method']  = da_method
     cfg['assimilate'] = assim_caller
     cfg = DAC(cfg)
     return cfg
   return wrapr
 
+# Adapted from stackoverflow.com/a/3603824
+class ImmutableAttributes():
+  """
+  Freeze (make immutable) attributes of class instance.
+  Applies to 
+  """
+  __isfrozen = False
+  __keys     = None
+  def __setattr__(self, key, value):
+    #if self.__isfrozen and hasattr(self, key):
+    if self.__isfrozen and key in self.__keys:
+      raise AttributeError(
+          "The attribute %r of %r has been frozen."%(key,type(self)))
+    object.__setattr__(self, key, value)
+  def _freeze(self,keys):
+    self.__keys     = keys
+    self.__isfrozen = True
 
-class DAC():
+class DAC(ImmutableAttributes):
   """
   DA Configs (settings).
+
+  This class just contains the parameters grabbed by the DA_Config wrapper.
+  NB: re-assigning these would only change their value in this container,
+      (i.e. not as they are known by the assimilator() funtions)
+      and has therefore been disabled ("frozen").
+      However, parameter changes can be made using update_settings().
   """
 
   # Defaults
@@ -163,10 +186,12 @@ class DAC():
   excluded =  ['assimilate',re.compile('^_')]
 
   def __init__(self,odict):
+    """Assign dict items to attributes"""
     # Ordering is kept for printing
     self._ordering = odict.keys()
     for key, value in self.dflts.items(): setattr(self, key, value)
     for key, value in      odict.items(): setattr(self, key, value)
+    self._freeze(odict.keys())
 
   def update_settings(self,**kwargs):
     """Returns new DAC with new "instance" of the da_method with the updated setting."""
@@ -187,7 +212,7 @@ class DAC():
     keys = filter_out(keys,*self.excluded,*self.dflts,'da_method')
     for key in keys:
       s += format_(key,getattr(self,key))
-    return s[:-2]+')'
+    return s[:2]+')'
 
 class List_of_Configs(list):
   """List for DAC's"""
@@ -198,8 +223,8 @@ class List_of_Configs(list):
 
   def __init__(self,*args):
     """
-    List_of_Configs() -> new empty list
-    List_of_Configs(iterable) -> new list initialized from iterable's items
+    List_of_Configs() > new empty list
+    List_of_Configs(iterable) > new list initialized from iterable's items
     """
     for cfg in args:
       if isinstance(cfg, DAC):
@@ -264,7 +289,7 @@ class List_of_Configs(list):
       # Common
       keys  = filter_out(comn,*self.excluded)
       comn  = {k: formatr(comn[k]) for k in keys}
-      s    += "\n---\nCommon: " + str(comn)
+      s    += "\n\nCommon: " + str(comn)
     else:
       s = "List_of_Configs([])"
     return s
@@ -282,7 +307,7 @@ class List_of_Configs(list):
       vals  = dist[k]                                              # Get data
       lbls  = '' if i==0 else ' '                                  # Spacing 
       if len(k)<=4: lbls += k + ' '                                # Standard label
-      else:         lbls += k[:3] + '~' + k[-1] + ' '              # Abbreviated label
+      else:         lbls += k[:3] + '~' + k[1] + ' '              # Abbreviated label
       lbls  = [' '*len(lbls) if v is None else lbls for v in vals] # Skip label if val=None
       vals  = typeset(vals,do_tab=True)                            # Format data
       names = [''.join(x) for x in zip(names,lbls,vals)]           # Join
@@ -300,16 +325,21 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   """
   For c in cfgs:
     Print c[attrkeys], Avrgs[c][statkeys]
-  - attrkeys: list of attributes to include.
-      - if -1: only print da_method.
-      - if  0: print distinct_attrs
-  - statkeys: list of statistics to include.
+   attrkeys: list of attributes to include.
+       if 1: only print da_method.
+       if  0: print distinct_attrs
+   statkeys: list of statistics to include.
   """
 
   # Convert single cfg to list
   if isinstance(cfgs,DAC):
-    cfgs  = List_of_Configs(cfgs)
-    Avrgs = [Avrgs]
+    cfgs     = List_of_Configs(cfgs)
+    Avrgs    = [Avrgs]
+
+  # Set excluded attributes
+  excluded = list(cfgs.excluded)
+  if len(cfgs)==1:
+    excluded += list(cfgs[0].dflts)
 
   # Defaults averages
   if not statkeys:
@@ -318,11 +348,11 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
 
   # Defaults attributes
   if not attrkeys:       headr = list(cfgs.distinct_attrs())
-  elif   attrkeys == -1: headr = ['da_method']
+  elif   attrkeys == 1: headr = ['da_method']
   else:                  headr = list(attrkeys)
 
   # Filter excluded
-  headr = filter_out(headr, *cfgs.excluded)
+  headr = filter_out(headr, *excluded)
   
   # Get attribute values
   mattr = [cfgs.distinct_attrs()[key] for key in headr]
@@ -333,7 +363,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
 
   # Get stats.
   # Format stats_with_conf.
-  # Use #'s to avoid auto-cropping by tabulate().
+  # Use #'s to avoid autocropping by tabulate().
   for key in statkeys:
     col = ['{0:#>9} ±'.format(key)]
     for i in range(len(cfgs)):
