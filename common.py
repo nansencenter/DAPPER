@@ -34,7 +34,7 @@ import scipy.stats as ss
 from scipy.linalg import svd
 #from scipy.linalg import eig # Necessitates np.real_if_close().
 from numpy.linalg import eig
-from scipy.linalg import sqrtm, inv, eigh
+from scipy.linalg import sqrtm, inv, eigh, block_diag
 
 from numpy import \
     pi, nan, \
@@ -43,7 +43,14 @@ from numpy import \
     mean, prod, \
     array, asarray, asmatrix, \
     linspace, arange, reshape, \
-    eye, zeros, ones, diag, trace \
+    eye, zeros, ones, diag, trace, \
+    fromiter, reshape,hstack,vstack
+
+from itertools import product
+
+from time import time,strftime
+
+from pandas import DataFrame,read_csv
 
 
 ##################################

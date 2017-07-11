@@ -1,4 +1,5 @@
 from common import *
+#from tryout import *
 
 class TwinSetup(MLR_Print):
   """
@@ -16,6 +17,13 @@ class TwinSetup(MLR_Print):
     # Validation
     if self.h.noise.C==0 or self.h.noise.C.rk!=self.h.noise.C.m:
         raise ValueError("Rank-deficient R not supported.")
+
+  def prepare_setup(self,mat,assimcycles):
+    #Extend the assimilation to get 10**4 cycles
+    self.t.T=assimcycles*self.t.dtObs
+    self.h.noise.C=mat
+
+    return self
 
 class Operator(MLR_Print):
   """
@@ -99,7 +107,6 @@ def DA_Config(da_method):
         msg  = "Caught exception during assimilation. Printing traceback:"
         msg += "\n" + "<"*20 + "\n\n"
         msg += "\n".join(s for s in traceback.format_tb(err.__traceback__))
-        msg += "\n" + str(err)
         msg += "\n" + ">"*20 + "\n"
         msg += "Returning stats object in its current (incompleted) state.\n"
         print(msg)
@@ -142,33 +149,9 @@ def DA_Config(da_method):
   return wrapr
 
 
-# Adapted from stackoverflow.com/a/3603824
-class ImmutableAttributes():
-  """
-  Freeze (make immutable) attributes of class instance.
-  Applies to 
-  """
-  __isfrozen = False
-  __keys     = None
-  def __setattr__(self, key, value):
-    #if self.__isfrozen and hasattr(self, key):
-    if self.__isfrozen and key in self.__keys:
-      raise AttributeError(
-          "The attribute %r of %r has been frozen."%(key,type(self)))
-    object.__setattr__(self, key, value)
-  def _freeze(self,keys):
-    self.__keys     = keys
-    self.__isfrozen = True
-
-class DAC(ImmutableAttributes):
+class DAC():
   """
   DA Configs (settings).
-
-  This class just contains the parameters grabbed by the DA_Config wrapper.
-  NB: re-assigning these would only change their value in this container,
-      (i.e. not as they are known by the assimilator() funtions)
-      and has therefore been disabled ("frozen").
-      However, parameter changes can be made using update_settings().
   """
 
   # Defaults
@@ -180,12 +163,10 @@ class DAC(ImmutableAttributes):
   excluded =  ['assimilate',re.compile('^_')]
 
   def __init__(self,odict):
-    """Assign dict items to attributes"""
     # Ordering is kept for printing
     self._ordering = odict.keys()
     for key, value in self.dflts.items(): setattr(self, key, value)
     for key, value in      odict.items(): setattr(self, key, value)
-    self._freeze(odict.keys())
 
   def update_settings(self,**kwargs):
     """Returns new DAC with new "instance" of the da_method with the updated setting."""
@@ -327,13 +308,8 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
 
   # Convert single cfg to list
   if isinstance(cfgs,DAC):
-    cfgs     = List_of_Configs(cfgs)
-    Avrgs    = [Avrgs]
-
-  # Set excluded attributes
-  excluded = list(cfgs.excluded)
-  if len(cfgs)==1:
-    excluded += list(cfgs[0].dflts)
+    cfgs  = List_of_Configs(cfgs)
+    Avrgs = [Avrgs]
 
   # Defaults averages
   if not statkeys:
@@ -346,7 +322,7 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   else:                  headr = list(attrkeys)
 
   # Filter excluded
-  headr = filter_out(headr, *excluded)
+  headr = filter_out(headr, *cfgs.excluded)
   
   # Get attribute values
   mattr = [cfgs.distinct_attrs()[key] for key in headr]
@@ -393,5 +369,7 @@ def typeset(lst,do_tab):
     width = max([len(s)     for s in ss])
     ss    = [s.ljust(width) for s in ss]
   return ss
+
+
 
 

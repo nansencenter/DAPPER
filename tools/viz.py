@@ -9,6 +9,10 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from matplotlib import colors
 from matplotlib.ticker import MaxNLocator
 
+from matplotlib.widgets import Slider
+import tkinter
+
+
 
 class LivePlot:
   """
@@ -55,7 +59,7 @@ class LivePlot:
     #####################
     # Dashboard
     #####################
-    if 1 in only and m<4001:
+    if 1 in only:
       self.fga = plt.figure(1,figsize=(8,8))
       self.fga.clf()
       win_title(self.fga, "Dashboard")
@@ -111,7 +115,7 @@ class LivePlot:
       # Colorbar
       cax   = divdr.append_axes("bottom", size = "10%", pad = 0.05)
       cax   . set_xlabel('Correlation')
-      if hasattr(self,'ax') and m<201:
+      if hasattr(self,'ax') and m<401:
         # Get cov matrix
         if E is not None:
           C = np.cov(E,rowvar=False)
@@ -308,7 +312,7 @@ class LivePlot:
     #####################
     # 3D phase space
     #####################
-    if 3 in only and m<41:
+    if 3 in only:
       self.fg3 = plt.figure(3,figsize=(8,6))
       self.fg3.clf()
       win_title(self.fg3,"3D trajectories")
@@ -345,11 +349,9 @@ class LivePlot:
       self.ltx,      = ax3.plot(*self.tail_xx.T,'y',lw=4)
 
       #ax3.axis('off')
-      with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        for i in range(3):
-          set_ilim(ax3,i,xx,1.7)
-        ax3.set_axis_bgcolor('w')
+      for i in range(3):
+        set_ilim(ax3,i,xx,1.7)
+      ax3.set_axis_bgcolor('w')
 
 
     #####################
@@ -408,7 +410,7 @@ class LivePlot:
 
 
     self.prev_k = 0
-    plot_pause(0.01)
+    plt.pause(0.01)
 
 
 
@@ -538,7 +540,7 @@ class LivePlot:
         self.lmf.set_ydata(msft)
         update_ylim(msft, self.ax2)
 
-      plot_pause(0.01)
+      plt.pause(0.01)
 
 
     #####################
@@ -617,7 +619,7 @@ class LivePlot:
         rm_absent(self.ax_d2,self.d2)
         self.has_checked_presence = True
 
-      plot_pause(0.01)
+      plt.pause(0.01)
 
 
     #####################
@@ -663,7 +665,7 @@ class LivePlot:
         self.tail_mu        = roll_n_sub(self.tail_mu,mu[k,:3])
         update_tail(self.ltmu, self.tail_mu)
 
-      plot_pause(0.01)
+      plt.pause(0.01)
 
       # For animation:
       #self.fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=70)
@@ -688,7 +690,7 @@ class LivePlot:
       axh.set_title('N: {:d}.   N_eff: {:.4g}.   Not shown: {:d}. '.\
           format(N, 1/(w@w), N-nC))
       update_ylim([nn], axh, cC=True)
-      plot_pause(0.01)
+      plt.pause(0.01)
 
 
 
@@ -699,26 +701,10 @@ class LivePlot:
       plt.figure(self.fgu.number)
       self.setter_truth(self.xx[k])
       self.setter_mean(mu[k])
-      plot_pause(0.01)
+      plt.pause(0.01)
 
     # Trackers
     self.prev_k = k
-
-
-
-
-def plot_pause(duration):
-  """
-  plt.pause is not supported by jupyter notebook.
-  Provide fallback that does work.
-  stackoverflow.com/q/34486642
-  """
-  try:
-    plt.pause(duration)
-  except:
-    fig = plt.gcf()
-    fig.canvas.draw()
-    time.sleep(0.1)
 
 
 def setup_wrapping(m):
@@ -1143,6 +1129,153 @@ def plot_rank_histogram(stats):
     not_available_text(ax_H)
   
 
+
+import matplotlib.cm as cm
+def plot_benchmark_analysis(entry,loc1='1211',loc2='1212',skip=False):
+  #allows to plot a compiled output, or a loaded output from an older Benchmark
+  source=entry.output if 'Benchmark' in str(type(entry)) else entry
+
+  #Mind mutability
+  sels=['kind','CPU_Time','thin','submat','Subdiv','RMSE','Spread','Stats_TS','diags','DA','ErrComp','Rinfl']
+  absent=list(set(sels)-set(source.columns))
+  for c in absent:
+    source[c]=''
+  df=source[sels].copy()
+
+  #Convert everything to string
+  #df[list(set(df.columns)-set(['Stats_TS','ErrComp']))]=df[list(set(df.columns)-set(['Stats_TS','ErrComp']))].applymap(str)
+  
+  def disp(x):
+    if str(x.diags)=='1' and x.kind=='MultiDiag':
+      return 'Identity'+('\nRinfl='+str(x.Rinfl) if float(x.Rinfl)!=1.0 else '')
+    else: 
+      y=x.kind \
+      +(', '+str(x.thin) if float(x.thin)<0.9 else '') \
+      +(',\n'+str(x.submat) if not x.submat=='' else '') \
+      +('*'+str(x.Subdiv) if not '[' in str(x.submat) and not str(x.submat)=='' else '') \
+      +('\n#d='+str(x.diags) if not str(x.diags)=='' and not str(x.diags)=='None' else '')
+      return y
+  
+  df.kind=df.apply(disp,axis=1)
+  df['infl']=df.DA.apply(lambda x:float(re.findall('infl=[0-9]\.[0-9]{1,}',str(x))[0][5:9]))
+
+  
+  #plt.pause(0.01)
+
+  #Plot individual TS with a slider
+  f3=plt.figure()
+  ax=f3.add_subplot(212)
+  
+  r=df.iloc[0]
+  l1,=ax.plot(r.Stats_TS[:,0],label='RMSE')
+  l2,=ax.plot(r.Stats_TS[:,1],label='Spread')
+  ax.set_xlabel('Assimilation cycles')
+  ax.legend()
+  ax.autoscale(True)
+  plt.subplots_adjust(left=0.1, bottom=0.25)
+
+  axframe = plt.axes([0.1, 0.1, 0.85, 0.03])
+  sframe = Slider(axframe, 'CorrMat', 0, len(df), valinit=0,valfmt='%d')
+  axframe.xaxis.set_visible(True)
+  axframe.set_xticks(range(len(df)))
+  axframe.set_xticklabels(df['kind'],rotation=45)
+
+  ax2 = plt.subplot(211)                                                         
+  ax2.set_xlabel('Principal component index')                                    
+  ax2.set_ylabel('Time-average (_a) magnitude')                                  
+  ax2.set_title('Spectral error comparison') 
+  supt = plt.suptitle(df.iloc[0].kind+'\ninfl='+str(r.infl),fontsize=12,fontweight='bold')                                    
+  has_been_computed = np.any(np.isfinite(df.iloc[0].ErrComp[:,0]))           
+  if has_been_computed:                                                          
+    L = len(df.iloc[0].ErrComp)                                              
+    l3, = ax2.plot(        range(L),      df.iloc[0].ErrComp[:,0],'k',lw=2, label='Error')
+    ax2.fill_between(range(L),[0]*L,df.iloc[0].ErrComp[:,1],alpha=0.7,label='Spread')     
+    ax2.set_yscale('log')                                                                 
+    ax2.set_ylim(bottom=1e-4*df.iloc[0].ErrComp[:,1].sum())                               
+    ax2.set_xlim(right=df.iloc[0].ErrComp[:,1].shape[0]-1); add_endpoint_xtick(ax2)       
+    ax2.get_xaxis().set_major_locator(MaxNLocator(integer=True))                          
+    ax2.legend()                                                                          
+  else:                                                                                   
+      not_available_text(ax2)                                                               
+
+  def update(val):  
+    ind = int(numpy.floor(sframe.val))                                                    
+    r=df.iloc[ind]                                                                           
+    l1.set_ydata(r.Stats_TS[:,0])                                                         
+    l2.set_ydata(r.Stats_TS[:,1])                                                         
+    #ax2.set_title(r.kind+'\ninfl='+str(r.DA.infl),fontsize=12,fontweight='bold') 
+    supt.set_text(r.kind+'\ninfl='+str(r.infl))          
+    ax.relim()                                                                            
+    ax.autoscale_view()                                                                   
+    l3.set_ydata(r.ErrComp[:,0])                                                          
+    for coll in (ax2.collections):                                                        
+      ax2.collections.remove(coll)                                                      
+    ax2.fill_between(range(L),[0]*L,r.ErrComp[:,1],alpha=0.7,label='Spread',color=sns.color_palette()[0])              
+    plt.draw()
+
+  sframe.on_changed(update)
+  win_title(f3,'Individual time series')
+  set_figpos(loc2)
+  #f3.tight_layout()
+  f3.show(0)
+
+  f, (ax_r,ax_s)=plt.subplots(nrows=2,sharex=True)
+
+  infe=[cm.plasma((i-min(df.CPU_Time))/(max(df.CPU_Time)-min(df.CPU_Time)),1) for i in df.CPU_Time]
+
+  #Plot CPU_Time
+  ax_r.scatter(range(len(df['kind'])),df['CPU_Time'],marker='*',s=100,c=infe,edgecolor='black',linewidth=1.0)
+  ax_r.set_xticks(range(len(df)))
+  ax_r.set_ylabel('CPU_Time (s)',fontweight='bold')
+  ax_r.set_title('Benchmark analysis',fontsize=14,fontweight='bold')
+
+  #Plot Spread VS RMSE
+  ax_s.stackplot(range(len(df['kind'])),df['RMSE'],labels="RMSE",alpha=0.8,zorder=1)
+  ax_s.plot(range(len(df['kind'])),df.Spread,marker='o',label='Spread',c='black',zorder=10)
+  ax_s.set_xticks(range(len(df)))
+  ax_s.set_xticklabels(df['kind'],rotation=45)
+  ax_s.set_ylabel('Spread / RMSE',fontweight='bold')
+  ax_s.legend(loc=2)
+  if max(df.Spread)>1 or max(df.RMSE)>1:
+    ax_s.set_ylim([0,1])
+  
+  #Now the inflation
+  ax_t=ax_s.twinx()
+  ax_t.bar(range(len(df)),df.infl,color='green',alpha=0.65,label='Infl',zorder=2)
+  ax_t.set_ylabel('Inflation factor',fontweight='bold')
+  ax_t.set_ylim(bottom=1.0)
+  ax_t.grid(b=False)
+  ax_t.legend(loc=1)
+
+  #Set the figure details
+  f.tight_layout()
+  win_title(f,'Global comparison of CorrMats')
+  set_figpos(loc1)
+  f.show(0)
+  
+
+#plot_benchmark_analysis(b)
+
+  """
+  for (x,y,l) in zip(df['RMSE'],df['CPU_Time'],df.kind):
+    plt.annotate(
+      l,
+      xy=(x,y),
+      #xytext=(x*0.95,y*0.95),
+      #textcoords='offset points', ha='right', va='bottom',
+      bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+      arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0')
+      )
+  """
+
+  #Plot now a detailed plot on thinning effects:
+  #df2=b[['kind','thin','RMSE']].groupby(['kind']).count()
+  #df2=b[df2>1]
+  #for key,grp in df2.groupby('kind'):
+  #  grp.plot.scatter()
+
+
+
 def show_figs(fignums=None):
   """Move all fig windows to top"""
   if fignums == None:
@@ -1207,11 +1340,13 @@ def set_figpos(loc):
   #    w0 = Dell_w
   #    h0 = Dell_h
 
-  # TkAgg
+  # TkAgg Get screen dimensions
+  # By chance it seems to work (if several monitors are used, it only returns dimensions of the main monitor, even if it should not work but display sum of all monitor dimensions)
   x0 = 0
   y0 = 0
-  w0 = 1280
-  h0 = 752
+  w0 = tkinter.Tk().winfo_screenwidth()
+  h0 = tkinter.Tk().winfo_screenheight()
+
   
   # Def place function with offsets
   def place(x,y,w,h):
