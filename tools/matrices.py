@@ -1,19 +1,5 @@
 from common import *
 
-
-################################
-# I modified this file locally: some issues related to np.eigh ame some matrices appear singular wile they were not
-# As we consider (suposely) positive deifnite matrices, all eigen values should be >0, but using np.eigh() return some negative iegen values
-# The test originally performed was (d>0).sum()==m. 
-# i changed it to d<>0
-######## ! ! ! ! ! ! ! ! ! 
-# I also changed the _clip so that it would not correct negative eigen value any more.
-#def _clip(d):
-#    return np.where(d<1e-8*d.max(),0,d)
-#was changed to np.where(abs(d)<1e-8*abs(d).max(),0,d)
-
-
-
 # Test matrices
 def randcov(m):
   """(Makeshift) random cov mat."""
@@ -47,7 +33,7 @@ def genOG_modified(m,opts=(0,1.0)):
   if not opts:
     # Shot-circuit in case of False or 0
     return eye(m)
-  elif isinstance(opts,bool):
+  elif isinstance(opts,bool) or opts is 1:
     return genOG(m)
   elif isinstance(opts,float):
     ver    = 1
@@ -68,7 +54,7 @@ def genOG_modified(m,opts=(0,1.0)):
     else:
       Q = eye(m)
   elif ver==2:
-    # Background knowledge
+    # Decompose and reduce angle of (complex) diagonal. Background:
     # stackoverflow.com/questions/38426349
     # https://en.wikipedia.org/wiki/Orthogonal_matrix
     Q   = genOG(m)
@@ -106,6 +92,8 @@ def genOG_1(N,opts=()):
   else:
     Q = genOG_modified(N-1,opts)
   return V @ sla.block_diag(1,Q) @ V.T
+
+
 
 def funm_psd(a, fun, check_finite=False):
   """
@@ -210,7 +198,7 @@ class CovMat(object):
         m           = len(C)
         d,V         = eigh(C)
         d           = CovMat._clip(d)
-        rk          = (d!=0).sum()
+        rk          = (d>0).sum()
         d           =  d  [-rk:][::-1]
         V           = (V.T[-rk:][::-1]).T
         self._assign_EVD(m,rk,d,V)
@@ -226,7 +214,7 @@ class CovMat(object):
           rk  = m
         else:
           d   = CovMat._clip(d)
-          rk  = (d!=0).sum()
+          rk  = (d>0).sum()
           idx = np.argsort(d)[::-1]
           d   = d[idx][:rk]
           nn0 = idx<rk
@@ -287,7 +275,7 @@ class CovMat(object):
     else:
       return (self.Left**2).sum(axis=1)
 
-  @lazy_property
+  @property
   def Left(self):
     """L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
     and that its width is somewhere betwen the rank and m."""
@@ -295,7 +283,7 @@ class CovMat(object):
       return self._R.T
     else:
       return self.V * sqrt(self.ews)
-  @lazy_property
+  @property
   def Right(self):
     """R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
     and that its height is somewhere betwen the rank and m."""
@@ -324,7 +312,7 @@ class CovMat(object):
       m      = UT.shape[1]
       d      = s**2
       d      = CovMat._clip(d)
-      rk     = (d!=0).sum()
+      rk     = (d>0).sum()
       d      = d [:rk]
       V      = UT[:rk].T
       self._assign_EVD(m,rk,d,V)

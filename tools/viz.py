@@ -59,7 +59,7 @@ class LivePlot:
     #####################
     # Dashboard
     #####################
-    if 1 in only:
+    if 1 in only and m<4001:
       self.fga = plt.figure(1,figsize=(8,8))
       self.fga.clf()
       win_title(self.fga, "Dashboard")
@@ -115,7 +115,7 @@ class LivePlot:
       # Colorbar
       cax   = divdr.append_axes("bottom", size = "10%", pad = 0.05)
       cax   . set_xlabel('Correlation')
-      if hasattr(self,'ax') and m<401:
+      if hasattr(self,'ax') and m<201:
         # Get cov matrix
         if E is not None:
           C = np.cov(E,rowvar=False)
@@ -312,7 +312,7 @@ class LivePlot:
     #####################
     # 3D phase space
     #####################
-    if 3 in only:
+    if 3 in only and m<41:
       self.fg3 = plt.figure(3,figsize=(8,6))
       self.fg3.clf()
       win_title(self.fg3,"3D trajectories")
@@ -349,9 +349,11 @@ class LivePlot:
       self.ltx,      = ax3.plot(*self.tail_xx.T,'y',lw=4)
 
       #ax3.axis('off')
-      for i in range(3):
-        set_ilim(ax3,i,xx,1.7)
-      ax3.set_axis_bgcolor('w')
+      with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for i in range(3):
+          set_ilim(ax3,i,xx,1.7)
+        ax3.set_axis_bgcolor('w')
 
 
     #####################
@@ -410,7 +412,7 @@ class LivePlot:
 
 
     self.prev_k = 0
-    plt.pause(0.01)
+    plot_pause(0.01)
 
 
 
@@ -540,7 +542,7 @@ class LivePlot:
         self.lmf.set_ydata(msft)
         update_ylim(msft, self.ax2)
 
-      plt.pause(0.01)
+      plot_pause(0.01)
 
 
     #####################
@@ -619,7 +621,7 @@ class LivePlot:
         rm_absent(self.ax_d2,self.d2)
         self.has_checked_presence = True
 
-      plt.pause(0.01)
+      plot_pause(0.01)
 
 
     #####################
@@ -665,7 +667,7 @@ class LivePlot:
         self.tail_mu        = roll_n_sub(self.tail_mu,mu[k,:3])
         update_tail(self.ltmu, self.tail_mu)
 
-      plt.pause(0.01)
+      plot_pause(0.01)
 
       # For animation:
       #self.fg3.savefig('figs/l63_' + str(k) + '.png',format='png',dpi=70)
@@ -690,7 +692,7 @@ class LivePlot:
       axh.set_title('N: {:d}.   N_eff: {:.4g}.   Not shown: {:d}. '.\
           format(N, 1/(w@w), N-nC))
       update_ylim([nn], axh, cC=True)
-      plt.pause(0.01)
+      plot_pause(0.01)
 
 
 
@@ -701,11 +703,23 @@ class LivePlot:
       plt.figure(self.fgu.number)
       self.setter_truth(self.xx[k])
       self.setter_mean(mu[k])
-      plt.pause(0.01)
+      plot_pause(0.01)
 
     # Trackers
     self.prev_k = k
 
+def plot_pause(duration):
+  """
+  plt.pause is not supported by jupyter notebook.
+  Provide fallback that does work.
+  stackoverflow.com/q/34486642
+  """
+  try:
+    plt.pause(duration)
+  except:
+    fig = plt.gcf()
+    fig.canvas.draw()
+    time.sleep(0.1)
 
 def setup_wrapping(m):
   """

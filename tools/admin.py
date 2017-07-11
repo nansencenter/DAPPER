@@ -1,5 +1,4 @@
 from common import *
-#from tryout import *
 
 class TwinSetup(MLR_Print):
   """
@@ -107,6 +106,7 @@ def DA_Config(da_method):
         msg  = "Caught exception during assimilation. Printing traceback:"
         msg += "\n" + "<"*20 + "\n\n"
         msg += "\n".join(s for s in traceback.format_tb(err.__traceback__))
+        msg += "\n" + str(err)
         msg += "\n" + ">"*20 + "\n"
         msg += "Returning stats object in its current (incompleted) state.\n"
         print(msg)
