@@ -12,7 +12,7 @@ DAPPER is a set of templates for benchmarking the performance of
 [data assimilation (DA)](https://sites.google.com/site/patricknraanespro/DA_tut.pdf)
 methods.
 The tests provide experimental support and guidance for new developments in DA.
-The screenshot below illustrates the default diagnostics.
+Example diagnostics:
 
 <!--
 ![EnKF - Lorenz'63](./data/figs/anims/Lor63_ens_anim_2.gif)
@@ -23,13 +23,13 @@ The screenshot below illustrates the default diagnostics.
 
 The typical set-up is a "twin experiment", where you
 * specify a
-	* dynamic model* 
-	* observational model*
+  * dynamic model* 
+  * observational model*
 * use these to generate a synthetic
-	* "truth"
-	* and observations thereof*
+  * "truth"
+  * and observations thereof*
 * assess how different DA methods perform in estimating the truth,
-		given the above starred (*) items.
+    given the above starred (*) items.
 
 DAPPER enables the numerical investigation of DA methods
 through its variety of typical test cases and statistics.
@@ -47,7 +47,7 @@ I.e. it is not designed for the assimilation of real data in operational models.
 A good place to start is with the scripts `example_1/2.py`.
 Alternatively, see the `tutorials` folder for an intro to DA.
 
-	
+  
 Installation
 ------------------------------------------------
 Prerequisite: python3.5+ with
@@ -85,7 +85,7 @@ Climatology                                            | "
 <sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).  
 Tuned with inflation and "random, orthogonal rotations".  
 <sup>2</sup>: Resampling: multinomial (including systematic/universal and residual).  
-The particle filter is tuned with "effective-N" monitoring", "regularization/jittering" strength, and more.
+The particle filter is tuned with "effective-N monitoring", "regularization/jittering" strength, and more.
 
 
 
@@ -118,8 +118,8 @@ Many
 Also has:
 * Live plotting with on/off toggle
 * Confidence interval on times series (e.g. rmse) with
-	* automatic correction for autocorrelation 
-	* significant digits printing
+  * automatic correction for autocorrelation 
+  * significant digits printing
 * CovMat class (input flexibility/overloading, lazy eval) that facilitates
     the use of non-diagnoal covariance matrices (whether sparse or full)
 * Intelligent defaults (e.g. plot duration estimated from autocorrelation,
@@ -179,8 +179,8 @@ Just add it to `da_methods.py`, using the others in there as templates.
     * a safe (e.g. 1.2) inflation value
     * small initial perturbations
       (big/sharp noises might cause model blow up)
-		* small(er) integrational time step
-			(assimilation might create instabilities)
+    * small(er) integrational time step
+      (assimilation might create instabilities)
     * very large observation noise (free run)
     * or very small observation noise (perfectly observed system)
 -->
