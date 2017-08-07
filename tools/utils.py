@@ -118,7 +118,7 @@ def printoptions(*args, **kwargs):
 
 
 try:
-  import tabulate as tabulate_orig
+  import tools.tabulate as tabulate_orig
   tabulate_orig.MIN_PADDING = 0
   def _tabulate(data,headr):
     data  = list(map(list, zip(*data))) # Transpose
