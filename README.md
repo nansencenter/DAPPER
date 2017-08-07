@@ -102,7 +102,6 @@ Lorenz95    | No      | 1D        | 40 *      | 13       | Lorenz/Raanes
 LorenzXY    | No      | 2x 1D     | 256 + 8 * | ≈13      | Lorenz/Raanes
 MAOOAM      | No      | 2x 1D     | 36        | ?        | Tondeur/Vannitsem
 Quasi-Geost | No      | 2D        | 129²≈17k  | ≈135     | Sakov
-Barotropic  | No      | 2D        | 256²≈60k  | ?        | J.Penn/Raanes
 
 *: straightforward to vary.
 
