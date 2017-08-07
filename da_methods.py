@@ -71,7 +71,7 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
         if upd_a == 'Sqrt' and N>m: upd_a = 'Sqrt svd'
         #
         if 'explicit' in upd_a:
-          # Not recommended.
+          # Not recommended due to numerical costs and instability.
           # Implementation using inv (in ens space)
           Pw = inv(Y @ R.inv @ Y.T + (N-1)*eye(N))
           T  = sqrtm(Pw) * sqrt(N-1)
@@ -670,7 +670,7 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
             J      = lambda l:          np.sum(du**2/dgn_rk(l)) \
                      +    eN/l**2 \
                      +    cL*log(l**2)
-            # Derivatives
+            # Derivatives (not required with minimize_scalar):
             Jp     = lambda l: -2*l   * np.sum(pad_rk(s**2) * du**2/dgn_rk(l)**2) \
                      + -2*eN/l**3 \
                      +  2*cL/l
@@ -686,7 +686,7 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
             za     = lambda w: N1*cL/(eN + w@w) # zeta_a
             J      = lambda w: .5*np.sum(( (dy-w@Y)@R.sym_sqrt_inv.T)**2 ) + \
                                .5*N1*cL*log(eN + w@w)
-            # Derivatives
+            # Derivatives (not required with fmin_bfgs):
             Jp     = lambda w: -Y@R.inv@(dy-w@Y) + N1*cL*w/(eN + w@w)
             #Jpp   = lambda w:  Y@R.inv@Y.T + za(w)*(eye(N) - 2*np.outer(w,w)/(eN + w@w))
             #Jpp   = lambda w:  Y@R.inv@Y.T + za(w)*eye(N) # approx: no radial-angular cross-deriv
