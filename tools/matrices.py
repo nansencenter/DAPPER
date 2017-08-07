@@ -15,6 +15,8 @@ def randcorr(m):
 
 def genOG(m):
   """Generate random orthonormal matrix."""
+  # TODO: This (using Householder) is (slightly?) wrong, 
+  # as per section 4 of mezzadri2006generate.
   Q,R = nla.qr(randn((m,m)))
   for i in range(m):
     if R[i,i] < 0:

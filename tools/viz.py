@@ -419,7 +419,6 @@ class LivePlot:
     """
     open_figns = plt.get_fignums()
     if open_figns == []:
-      self.stats.config.liveplotting = 0
       return True
 
     if self.is_paused:

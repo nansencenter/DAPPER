@@ -82,7 +82,7 @@ def inflate_ens(E,factor):
   return mu + A*factor
 
 def weight_degeneracy(w,prec=1e-10):
-  return (1-w.max()) < 1e-10
+  return (1-w.max()) < prec
 
 def unbias_var(w=None,N_eff=None,avoid_pathological=False):
   """
@@ -313,6 +313,7 @@ def Id_mat(m):
 
 def linear_model_setup(M):
   "M is normalized wrt step length dt."
+  M = np.asarray(M) # sparse or matrix classes not supported
   m = len(M)
   @ens_compatible
   def model(x,t,dt): return dt*(M@x)
