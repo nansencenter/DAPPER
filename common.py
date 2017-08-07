@@ -70,12 +70,14 @@ def user_is_patrick():
 
 import matplotlib as mpl
 
-# Choose graphics backend.
+# is_notebook 
 try:
   from IPython import get_ipython
   is_notebook = 'zmq' in str(type(get_ipython())).lower()
 except ImportError:
   is_notebook = False
+
+# Choose graphics backend.
 if is_notebook:
   mpl.use('nbAgg') # interactive
 else:
@@ -83,42 +85,29 @@ else:
   if user_is_patrick():
     from sys import platform
     if platform == 'darwin':
-      #mpl.use('Qt4Agg') # deprecated
-      #mpl.use('TkAgg')  # has geometry(placement)
       mpl.use('MacOSX') # prettier, stable, fast (notable in LivePlot)
+      #mpl.use('Qt4Agg') # deprecated
+
+      # Has geometry(placement). Causes warning
+      #mpl.use('TkAgg')  
+      #import matplotlib.cbook
+      #warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
     else:
       pass
+
 # Get Matlab-like interface, and enable interactive plotting
 import matplotlib.pyplot as plt 
 plt.ion()
 
-# Styles
-try:
-  olderr = np.geterr() # gets affected by seaborn (pandas?)
-  import seaborn as sns
-  np.seterr(**olderr)  # restore np float error treatment
-  sns.set_style({'image.cmap': 'BrBG', 'legend.frameon': True})
-  sns_bg = array([0.9176, 0.9176, 0.9490])
-  sns.set_color_codes()
-except ImportError as err:
-  install_warn(err)
-  #plt.style.use('ggplot') # 'fivethirtyeight', 'bmh', 'seaborn-darkgrid',
-  mpl.rcParams['image.cmap'] = 'BrBG'
+# Styles, e.g. 'fivethirtyeight', 'bmh', 'seaborn-darkgrid'
+plt.style.use(['seaborn-darkgrid','tools/DAPPER.mplstyle'])
 
-RGBs = {c: array(mpl.colors.colorConverter.to_rgb(c)) for c in 'bgrmycw'}
-
-# With TkAgg/Qt4Agg backend this causes warning.
-import matplotlib.cbook
-warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
-
-# With TkAgg/Qt4Agg backend this causes warning.
-#mpl.rcParams['toolbar'] = 'None'
-#warnings.filterwarnings("ignore",category=UserWarning)
 
 
 ##################################
 # Setup DAPPER namespace
 ##################################
+from tools.colors import *
 from tools.utils import *
 from tools.misc import *
 from tools.chronos import *

@@ -128,14 +128,11 @@ class LivePlot:
         mask[np.tril_indices_from(mask)] = True
         C2 = np.ma.masked_where(mask, C)[::-1]
         # Make colormap
-        try:
-          cmap = sns.diverging_palette(220,10,as_cmap=True)
-        except NameError:
-          cmap = plt.get_cmap('coolwarm')
+        cmap = plt.get_cmap('RdBu')
         # Log-transform cmap, but not internally in matplotlib,
         # to avoid transforming the colorbar too.
         trfm = colors.SymLogNorm(linthresh=0.2,linscale=0.2,vmin=-1, vmax=1)
-        cmap = cmap(trfm(linspace(-1,1,cmap.N)))
+        cmap = cmap(trfm(linspace(-0.6,0.6,cmap.N)))
         cmap = colors.ListedColormap(cmap)
         #VM  = abs(np.percentile(C2,[1,99])).max()
         VM   = 1.0
@@ -916,9 +913,6 @@ def plot_3D_trajectory(stats,dims=0,**kwargs):
   ax3.set_zlabel('dim ' + str(dims[2]))
   ax3.legend(frameon=False)
   ax3.set_axis_bgcolor('w')
-  # Don't do the following, coz it also needs the white grid,
-  # which I can't get working for 3d.
-  #for i in 'xyz': eval('ax3.w_' + i + 'axis.set_pane_color(sns_bg)')
 
 
 def plot_time_series(stats,dim=0,**kwargs):

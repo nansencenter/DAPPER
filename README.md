@@ -51,7 +51,7 @@ Alternatively, see the `tutorials` folder for an intro to DA.
 Installation
 ------------------------------------------------
 Prerequisite: python3.5+ with
-`scipy`, `matplotlib`, `pandas`, and (optionally) `tqdm`, `tabulate`, and `seaborn`.
+`scipy`, `matplotlib`, `pandas`, and (optionally) `tqdm`.
 This can be got (e.g.) from [anaconda](https://www.continuum.io/downloads).
 
 Download, extract, and `cd` to DAPPER. To test it, run:
