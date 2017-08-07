@@ -14,8 +14,6 @@ from scipy.linalg import circulant
 from numpy import abs, sign, eye, ceil
 from scipy import sparse
 
-# Alternative: np.roll(x,1,axis=x.ndim-1),
-# but this is more general (has dt,dx,c).
 def Fmat(m,c,dx,dt):
   """
   m  - System size
@@ -23,13 +21,12 @@ def Fmat(m,c,dx,dt):
   dx - Grid spacing
   dt - Time step
   
-  CFL condition
-  Note that the 1st Ord Upwind scheme (i.e. F and dFdx) is exact
-  (vis-a-vis the analytic solution) for dt = abs(dx/c). 
-  In this case it corresponds to circshift. This has little bearing on
-  DA purposes, however.
+  Note that the 1st-order upwind scheme used here is exact
+  (vis-a-vis the analytic solution) only for dt = abs(dx/c),
+  in which case it corresponds to
+  np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.
   """
-  assert(abs(c*dt/dx) <= 1)
+  assert abs(c*dt/dx)<=1, "Must satisfy CFL condition"
   # 1st order explicit upwind scheme
   row1     = np.zeros(m)
   row1[-1] = +(sign(c)+1)/2

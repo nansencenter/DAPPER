@@ -43,7 +43,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 #cfgs += ExtKF(infl=90) # some inflation tuning needed     # 0.87
 #cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # 0.82
 #cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63
-#cfgs += EnKF('PertObs',N=500, infl=0.95,rot=False)        # 0.56
+#cfgs += EnKF('PertObs',N=500, infl=0.97,rot=False)        # 0.56
 #cfgs += EnKF_N(        N=3) # no tuning!                  # 0.60
 #cfgs += EnKF_N(        N=10,            rot=True)         # 0.54
 #cfgs += iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)         # 0.31

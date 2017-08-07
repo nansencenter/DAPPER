@@ -74,10 +74,6 @@ setup = TwinSetup(f,h,tseq,X0,**other)
 
 ## Expected rmse_a = 0.3
 #config = EnKF('PertObs',N=30,infl=3.2)
-#
-# But infl=1 yields approx optimal rmse, even though then rmv << rmse.
-# TODO: Why is rmse so INsensitive to inflation for PertObs?
-# Similar case, but with N=60: infl=1.00, and 1.80.
 
 # Reproduce raanes'2015 "extending sqrt method to model noise":
 # config = EnKF('Sqrt',fnoise_treatm='XXX',N=30,infl=1.0),
@@ -88,3 +84,11 @@ setup = TwinSetup(f,h,tseq,X0,**other)
 # - Sqrt-Core
 # - Sqrt-Add-Z
 # - Sqrt-Dep
+
+
+# Note that infl=1 may yield approx optimal rmse, even though then rmv << rmse.
+# Why is rmse so INsensitive to inflation, especially for PertObs?
+# This is largely explained by the paragraph
+# "Cataloguing the circumstances for inflation"
+# of Raanes and Bocquet, 2017.
+# A similar case, but with N=60: infl=1.00, and 1.80.

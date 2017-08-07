@@ -7,8 +7,8 @@ from mods.QG.core import step, dt, nx, ny, m, square, sample_filename, show
 
 # As specified in core.py: dt = 4*1.25 = 5.0.
 #t = Chronology(dt=dt,dkObs=1,T=300,BurnIn=100) # Sakov: repeat 10 times
-#t = Chronology(dt=dt,dkObs=1,T=600,BurnIn=20)
-t = Chronology(dt=dt,dkObs=1,T=100,BurnIn=20)
+t = Chronology(dt=dt,dkObs=1,T=600,BurnIn=20)
+#t = Chronology(dt=dt,dkObs=1,T=100,BurnIn=20)
 #t = Chronology(dt=dt,dkObs=1,T=20,BurnIn=10)
 #
 # Considering that I have 8GB on the Mac, and the estimate:
