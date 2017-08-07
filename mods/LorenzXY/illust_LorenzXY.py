@@ -1,9 +1,7 @@
 from common import *
 sd0 = seed(4)
 
-#sns.set_style("ticks")
-plt.style.use(
-#plt.style.use('AdInf')
+plt.style.use('AdInf/paper.mplstyle')
 
 
 from mods.LorenzXY.core import nX,J,m
@@ -33,7 +31,6 @@ fg = plt.figure(2)
 fg.clear()
 ax = fg.gca()
 #ax.set_axis_off()
-ax.set_axis_bgcolor('white')
 ax.set_xticks(arange(nX+1))
 ax.set_xlabel('Y-index')
 ax.set_xticklabels(['1'] + [str((i+1)*J) for i in circX])
