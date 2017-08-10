@@ -117,26 +117,11 @@ def printoptions(*args, **kwargs):
     np.set_printoptions(**original)
 
 
-try:
-  import tools.tabulate as tabulate_orig
-  tabulate_orig.MIN_PADDING = 0
-  def _tabulate(data,headr):
-    data  = list(map(list, zip(*data))) # Transpose
-    inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds
-    try :             table = tabulate_orig.tabulate(data,headr,showindex=inds)
-    except TypeError: table = tabulate_orig.tabulate(data,headr)
-    return table
-except ImportError as err:
-  install_warn(err)
-  # pandas is more widespread than tabulate, but slower to import 
-  olderr = np.geterr() # gets affected by pandas
-  import pandas
-  np.seterr(**olderr)  # restore np float error treatment
-  pandas.options.display.width = None # Auto-adjust linewidth
-  pandas.options.display.colheader_justify = 'center'
-  def _tabulate(data,headr):
-    df = pandas.DataFrame.from_items([i for i in zip(headr,data)])
-    return df.__repr__()
+olderr = np.geterr() # gets affected by pandas
+import pandas
+np.seterr(**olderr)  # restore np float error treatment
+import tools.tabulate as tabulate_orig
+tabulate_orig.MIN_PADDING = 0
 
 def tabulate(data,headr=(),formatters=()):
   """Pre-processor for tabulate().
@@ -162,7 +147,9 @@ def tabulate(data,headr=(),formatters=()):
   for f in formatters:
     data = [[f['format'](j) for j in row] if f['test'](row[0]) else row for row in data]
 
-  return _tabulate(data, headr)
+  data  = list(map(list, zip(*data))) # Transpose
+  inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds
+  return tabulate_orig.tabulate(data,headr,showindex=inds)
 
 
 
