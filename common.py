@@ -1,5 +1,35 @@
 # This file holds global (DAPPER-wide) imports and settings
 
+##################################
+# Scientific
+##################################
+import numpy as np
+import scipy as sp
+import numpy.random
+import scipy.linalg as sla
+import numpy.linalg as nla
+import scipy.stats as ss
+
+
+from scipy.linalg import svd
+from numpy.linalg import eig
+# eig() of scipy.linalg necessitates using np.real_if_close().
+from scipy.linalg import sqrtm, inv, eigh
+
+from numpy import \
+    pi, nan, \
+    log, log10, exp, sin, cos, tan, \
+    sqrt, floor, ceil, \
+    mean, prod, \
+    array, asarray, asmatrix, \
+    linspace, arange, reshape, \
+    eye, zeros, ones, diag, trace \
+
+
+
+##################################
+# Tools
+##################################
 import sys
 assert sys.version_info >= (3,5)
 import os.path
@@ -19,36 +49,11 @@ except AttributeError:
     # Otherwise: provide a pass-through version.
     def profile(func): return func
 
+olderr = np.geterr() # gets affected by pandas
+import pandas
+np.seterr(**olderr)  # restore np float error treatment
 
-##################################
-# Scientific
-##################################
-import numpy as np
-import scipy as sp
-import numpy.random
-import scipy.linalg as sla
-import numpy.linalg as nla
-import scipy.stats as ss
-
-
-from scipy.linalg import svd
-#from scipy.linalg import eig # Necessitates np.real_if_close().
-from numpy.linalg import eig
-from scipy.linalg import sqrtm, inv, eigh
-
-from numpy import \
-    pi, nan, \
-    log, log10, exp, sin, cos, tan, \
-    sqrt, floor, ceil, \
-    mean, prod, \
-    array, asarray, asmatrix, \
-    linspace, arange, reshape, \
-    eye, zeros, ones, diag, trace \
-
-
-##################################
-# Installation suggestion 
-##################################
+# Installation suggestions
 def install_msg(package):
   return """
   Could not find (import) package '{0}'. Using fall-back.
@@ -59,6 +64,7 @@ def install_warn(import_err):
   #name = name.split('No module named ')[1]
   name = name.split("'")[1]
   warnings.warn(install_msg(name))
+
 
 
 ##################################

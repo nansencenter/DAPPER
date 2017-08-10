@@ -117,12 +117,8 @@ def printoptions(*args, **kwargs):
     np.set_printoptions(**original)
 
 
-olderr = np.geterr() # gets affected by pandas
-import pandas
-np.seterr(**olderr)  # restore np float error treatment
 import tools.tabulate as tabulate_orig
 tabulate_orig.MIN_PADDING = 0
-
 def tabulate(data,headr=(),formatters=()):
   """Pre-processor for tabulate().
   data:  list-of-lists, whose 'rows' will be printed as columns.
