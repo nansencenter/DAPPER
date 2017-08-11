@@ -1233,3 +1233,40 @@ def set_figpos(loc):
   place((j-1)*w0/n, yoff + (i-1)*h0/m, w0/n, h0/m)
 
 
+from matplotlib.widgets import CheckButtons
+def toggle_lines(ax=None):
+  """Make checkbuttons to toggle visibility of each line in current plot."""
+
+  # Get lines and their properties
+  if ax is None: ax = plt.gca()
+  lines = {'handle': list(ax.get_lines())}
+  for p in ['label','color','visible']:
+    lines[p] = [plt.getp(x,p) for x in lines['handle']]
+  lines = pd.DataFrame(lines)
+  lines = lines[~lines.label.str.startswith('_')]
+
+  # Setup buttons
+  # When there's many, the box-sizing is awful, but difficult to fix.
+  plt.subplots_adjust(left=0.2)
+  N = len(lines)
+  H = min(1,0.07*N)
+  rax = plt.axes([0.05, 0.5-H/2, 0.1, H])
+  check = CheckButtons(rax, lines.label, lines.visible)
+
+  # Adjust button style
+  for i in range(N):
+    check.rectangles[i].set(lw=0,facecolor=lines.color[i])
+    check.labels[i].set(color=lines.color[i])
+
+  # Callback
+  def toggle_visible(label):
+    handle = lines[lines.label==label].handle.item()
+    handle.set_visible( not handle.get_visible() )
+    plt.draw()
+  check.on_clicked(toggle_visible)
+
+  # Must return (and be received) so as not to expire.
+  return check
+
+
+
