@@ -40,6 +40,12 @@ import traceback
 import re
 import functools
 
+# Pandas changes numpy's error settings. Correct.
+olderr = np.geterr()
+import pandas as pd
+np.seterr(**olderr)
+
+# Profiling
 import builtins
 try:
     # This will be available if launched as (e.g.)
@@ -48,10 +54,6 @@ try:
 except AttributeError:
     # Otherwise: provide a pass-through version.
     def profile(func): return func
-
-olderr = np.geterr() # gets affected by pandas
-import pandas
-np.seterr(**olderr)  # restore np float error treatment
 
 # Installation suggestions
 def install_msg(package):
@@ -126,4 +128,5 @@ from stats import *
 from tools.admin import *
 from tools.convenience import *
 from da_methods import *
+
 
