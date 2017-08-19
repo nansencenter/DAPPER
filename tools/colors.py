@@ -35,3 +35,19 @@ for code, color in zip('bgrmyckw', sns_colors):
     mpl.colors.colorConverter.colors[code] = color
     mpl.colors.colorConverter.cache[code]  = color
 
+
+def blend_rgb(rgb, a, bg_rgb=ones(3)):
+  """
+  Fake RGB transparency by blending it to some background.
+  Useful for exporting to eps.
+  But there's no actualy transparency, so superposition of lines
+  will not work. For that: export to pdf, or make do without.
+   - rgb: N-by-3 rgb, or a color code.
+   - a: alpha value
+   - bg_rgb: background in rgb. Default: white
+  Based on stackoverflow.com/a/33375738/38281
+  """ 
+  if isinstance(rgb,str):
+    rgb = mpl.colors.colorConverter.to_rgb(rgb)
+  return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]
+
