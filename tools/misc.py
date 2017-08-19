@@ -92,7 +92,7 @@ def rk4(f, x0, t, dt):
   k4 = dt * f(t+dt   , x0+k3)
   return x0 + (k1 + 2.*(k2 + k3) + k4)/6.0
 
-def make_recursive(func):
+def make_recursive(func,with_prog=False):
   """
   Return a version of func() whose 2nd argument (k)
   is the number of times to times apply func on its output.
@@ -104,7 +104,9 @@ def make_recursive(func):
   def fun_k(x0,k,*args,**kwargs):
     xx    = zeros((k+1,)+x0.shape)
     xx[0] = x0
-    for i in range(k):
+    rg    = range(k)
+    rg    = progbar(rg,'Recurs.') if with_prog else rg
+    for i in rg:
       xx[i+1] = func(xx[i],*args,**kwargs)
     return xx
   return fun_k
