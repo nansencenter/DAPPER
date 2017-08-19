@@ -31,7 +31,7 @@ prevent_blow_up = False
 def dxdt(x):
   a = x.ndim-1
   s = lambda x,n: np.roll(x,-n,axis=a)
-  return np.multiply(s(x,1)-s(x,-2), s(x,-1)) - x + Force
+  return (s(x,1)-s(x,-2))*s(x,-1) - x + Force
 
 def step(x0, t, dt):
 
