@@ -92,7 +92,7 @@ def rk4(f, x0, t, dt):
   k4 = dt * f(t+dt   , x0+k3)
   return x0 + (k1 + 2.*(k2 + k3) + k4)/6.0
 
-def rk4_wrapped(dxdt,autonom=False):
+def with_rk4(dxdt,autonom=False):
   if autonom: step = lambda x0,t0,dt: rk4(lambda t,x: dxdt(x),x0,np.nan,dt)
   else:       step = lambda x0,t0,dt: rk4(            dxdt   ,x0,t0    ,dt)
   return step
