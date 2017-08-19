@@ -23,20 +23,6 @@ def exactly_2d(a):
   assert a.ndim==2
   return a
 
-# TODO: review useage. Replace by ens_compatible()?
-def atmost_2d(func):
-  """
-  Decorator to make functions that work on 2-dim input
-  work for (all of) 0,1, or 2-dim input.
-  Requires that the func's 1st argument be the one in question.
-  Does not always work (e.g. recursion). Use with caution.
-  """
-  @functools.wraps(func)
-  def wrapr(x,*kargs,**kwargs):
-    answer = func(np.atleast_2d(x),*kargs,**kwargs)
-    if answer is not None: return answer.squeeze()
-  return wrapr
-
 def ens_compatible(func):
   """Tranpose before and after."""
   @functools.wraps(func)
@@ -116,7 +102,7 @@ def make_recursive(func):
     x[k]   = step_k(x0,k,t=NaN,dt)[-1]
   """
   def fun_k(x0,k,*args,**kwargs):
-    xx    = zeros((k+1,len(x0)))
+    xx    = zeros((k+1,)+x0.shape)
     xx[0] = x0
     for i in range(k):
       xx[i+1] = func(xx[i],*args,**kwargs)
