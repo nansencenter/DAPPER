@@ -77,7 +77,6 @@ class Chronology:
 
     assert len(self.kkObs) == self.KObs+1
 
-
   ######################################
   # "State vars". Can be set (changed).
   ######################################
@@ -103,6 +102,10 @@ class Chronology:
   @K.setter
   def K(self,value):
     self.__init__(dt=self.dt,dkObs=self.dkObs,K=value,BurnIn=self.BurnIn)
+
+  def copy(self):
+    "Copy via state vars."
+    return Chronology(dt=self.dt,dkObs=self.dkObs,K=self.K,BurnIn=self.BurnIn)
 
   ######################################
   # Read/write (though not state var)
