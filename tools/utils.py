@@ -460,5 +460,35 @@ def raise_AFE(msg,time_index=None):
   raise AssimFailedError(msg)
 
 
+def vectorize0(f):
+  """
+  Vectorize f for its 1st (index 0) argument.
+
+  Compared to np.vectorize:
+    - less powerful, but safer to only vectorize 1st argument
+    - doesn't evaluate the 1st item twice
+    - doesn't always return array
+
+  Example:
+    @vectorize0
+    def add(x,y):
+      return x+y
+    add(1,100)
+    x = np.arange(6).reshape((3,-1))
+    add(x,100)
+    add([20,x],100)
+  """
+  @functools.wraps(f)
+  def wrapped(x,*args,**kwargs):
+    if hasattr(x,'__iter__'):
+      out = [wrapped(xi,*args,**kwargs) for xi in x]
+      if isinstance(x,np.ndarray):
+        out = np.asarray(out)
+      else:
+        out = type(x)(out)
+    else:
+      out = f(x,*args,**kwargs)
+    return out
+  return wrapped
 
 

@@ -1269,4 +1269,15 @@ def toggle_lines(ax=None):
   return check
 
 
+@vectorize0
+def toggle_viz(h,prompt=True):
+  "Toggle vizibility of the handle (or list thereof) h."
+  h.set_visible(not h.get_visible())
+  if prompt:
+    input("Press Enter to continue...")
+  plt.pause(0.04)
+
+
+
+
 
