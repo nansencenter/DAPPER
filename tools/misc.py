@@ -84,17 +84,35 @@ def unbias_var(w=None,N_eff=None,avoid_pathological=False):
   return ub
 
 
-def rk4(f, x0, t, dt):
-  """Runge-Kutta 4-th order (approximate ODE solver)."""
-  k1 = dt * f(t      , x0)
-  k2 = dt * f(t+dt/2., x0+k1/2.)
-  k3 = dt * f(t+dt/2., x0+k2/2.)
-  k4 = dt * f(t+dt   , x0+k3)
-  return x0 + (k1 + 2.*(k2 + k3) + k4)/6.0
+#def rk4(f, x, t, dt):
+  #k1 = dt * f(t      , x)
+  #k2 = dt * f(t+dt/2., x+k1/2.)
+  #k3 = dt * f(t+dt/2., x+k2/2.)
+  #k4 = dt * f(t+dt   , x+k3)
+  #return x + (k1 + 2.*(k2 + k3) + k4)/6.0
 
-def with_rk4(dxdt,autonom=False):
-  if autonom: step = lambda x0,t0,dt: rk4(lambda t,x: dxdt(x),x0,np.nan,dt)
-  else:       step = lambda x0,t0,dt: rk4(            dxdt   ,x0,t0    ,dt)
+def rk4(f, x, t, dt, order=4):
+  """Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers.""" 
+  if order >=1: k1 = dt * f(t     , x)
+  if order >=2: k2 = dt * f(t+dt/2, x+k1/2)
+  if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)
+  if order ==4:
+                k3 = dt * f(t+dt/2, x+k2/2)
+                k4 = dt * f(t+dt  , x+k3)
+  if    order ==1: return x + k1
+  elif  order ==2: return x + k2
+  elif  order ==3: return x + (k1 + 4*k2 + k3)/6
+  elif  order ==4: return x + (k1 + 2*(k2 + k3) + k4)/6
+  else: raise NotImplementedError
+
+
+def with_rk4(dxdt,autonom=False,order=4):
+  """Wrap dxdt in rk4"""
+  integrator       = functools.partial(rk4,order=order)
+  if autonom: step = lambda x0,t0,dt: integrator(lambda t,x: dxdt(x),x0,np.nan,dt)
+  else:       step = lambda x0,t0,dt: integrator(            dxdt   ,x0,t0    ,dt)
+  name = "rk"+str(order)+" integration of "+repr(dxdt)+" from "+dxdt.__module__
+  step = NamedFunc(step,name)
   return step
 
 def make_recursive(func,with_prog=False):

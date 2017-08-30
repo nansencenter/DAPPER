@@ -6,7 +6,7 @@
 # ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
 
 import numpy as np
-from tools.misc import rk4, is1d, ens_compatible, integrate_TLM
+from tools.misc import with_rk4, is1d, ens_compatible, integrate_TLM
 
 # Constants
 sig = 10.0; rho = 28.0; beta = 8.0/3
@@ -20,8 +20,8 @@ def dxdt(x):
   d[2]  = x*y - beta*z
   return d
 
-def step(x0, t0, dt):
-    return rk4(lambda t,x: dxdt(x), x0, np.nan, dt)
+step = with_rk4(dxdt,autonom=True)
+
 
 def TLM(x):
   """Tangent linear model"""

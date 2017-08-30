@@ -253,12 +253,13 @@ class Bunch(dict):
     self.__dict__ = self
 
 
-
+# From stackoverflow.com/q/22797580 and more
 class NamedFunc():
-  "Provides better repr for functions."
+  "Provides custom repr for functions."
   def __init__(self,_func,_repr):
     self._func = _func
     self._repr = _repr
+    #functools.update_wrapper(self, _func)
   def __call__(self, *args, **kw):
     return self._func(*args, **kw)
   def __repr__(self):
@@ -267,7 +268,12 @@ class NamedFunc():
     argnames = "("+",".join(argnames)+")"
     return "<NamedFunc>"+argnames+": "+self._repr
 
-
+class NameFunc():
+  "Decorator version"
+  def __init__(self,name):
+     self.fn_name = name
+  def __call__(self,fn):
+      return NamedFunc(fn,self.fn_name)
 
 
 #########################################
