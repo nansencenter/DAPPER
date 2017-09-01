@@ -714,6 +714,7 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
           #     = (Y@R.inv@Y.T/N1 + eye(N))**(-0.5)
         else:
           # Also include angular-radial co-dependence.
+          # Note: denominator not squared coz unlike Boc15 we rescaled Y.
           Hw    = Y@R.inv@Y.T/N1 + eye(N) - 2*np.outer(w,w)/(eN + w@w)
           T     = funm_psd(Hw, lambda x: x**-.5) # is there a sqrtm Woodbury?
           
