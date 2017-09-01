@@ -311,15 +311,15 @@ class Stats(MLR_Print):
 
 
 def average_each_field(ss,axis=None):
+  "Average a 2D table (where T[i,j] is a dict of fields) along a given axis."
   assert ss.ndim == 2
   if axis == 0:
     ss = np.transpose(ss)
   m,N = ss.shape
   avrg = np.empty(m,dict)
-  keys = ss[0][0].keys()
   for i,row in enumerate(ss):
     avrg[i] = dict()
-    for key in keys:
+    for key in ss[i][0].keys():
       avrg[i][key] = val_with_conf(
           val  = mean([s_ij[key].val  for s_ij in row]),
           conf = mean([s_ij[key].conf for s_ij in row])/sqrt(N))
