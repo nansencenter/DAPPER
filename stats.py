@@ -285,6 +285,27 @@ class Stats(MLR_Print):
         pass
     return avrg
 
+
+  def recomp_univariate(self,ii):
+    """
+    Recompute state-averaged (i.e. univariate) time-series,
+    but only include state components ii.
+    Then average in time.
+    Note: This re-does computations done on-line (live),
+          but we don't bother to include all of these.
+    """ 
+    avrg = AlignedDict()
+    # Compute univariate time series
+    for fa in 'a':
+      avrg['rmse_'+fa] = sqrt(mean(getattr(self.err,fa)[:,ii]**2,1))
+      avrg['rmv_' +fa] = sqrt(mean(getattr(self.var,fa)[:,ii]   ,1))
+    # Average in time:
+    for key,series in avrg.items():
+      avrg[key] = series_mean_with_conf(series[self.setup.t.maskObs_BI])
+    return avrg
+
+
+
   def new_FAU_series(self,m,**kwargs):
     "Convenience FAU_series constructor."
     store_u = self.config.store_u
