@@ -84,13 +84,6 @@ def unbias_var(w=None,N_eff=None,avoid_pathological=False):
   return ub
 
 
-#def rk4(f, x, t, dt):
-  #k1 = dt * f(t      , x)
-  #k2 = dt * f(t+dt/2., x+k1/2.)
-  #k3 = dt * f(t+dt/2., x+k2/2.)
-  #k4 = dt * f(t+dt   , x+k3)
-  #return x + (k1 + 2.*(k2 + k3) + k4)/6.0
-
 def rk4(f, x, t, dt, order=4):
   """Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers.""" 
   if order >=1: k1 = dt * f(t     , x)
