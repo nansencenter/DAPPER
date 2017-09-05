@@ -296,7 +296,7 @@ class Stats(MLR_Print):
     """ 
     avrg = AlignedDict()
     # Compute univariate time series
-    for fa in 'a':
+    for fa in 'fa':
       avrg['rmse_'+fa] = sqrt(mean(getattr(self.err,fa)[:,ii]**2,1))
       avrg['rmv_' +fa] = sqrt(mean(getattr(self.var,fa)[:,ii]   ,1))
     # Average in time:
