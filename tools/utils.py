@@ -119,7 +119,7 @@ def printoptions(*args, **kwargs):
 
 import tools.tabulate as tabulate_orig
 tabulate_orig.MIN_PADDING = 0
-def tabulate(data,headr=(),formatters=()):
+def tabulate(data,headr=(),formatters=(),inds='nice'):
   """Pre-processor for tabulate().
   data:  list-of-lists, whose 'rows' will be printed as columns.
          This coincides with the output of Dict.values().
@@ -131,20 +131,30 @@ def tabulate(data,headr=(),formatters=()):
   >>> print(tabulate(cfgs.distinct_attrs()))
   """
 
+  # Extract headr/mattr
   if hasattr(data,'keys'):
     headr = list(data)
     data  = data.values()
 
+  # Default formats
   if not formatters:
     formatters = ({
         'test'  : lambda x: hasattr(x,'__name__'),
         'format': lambda x: x.__name__
         },)
+  # Apply formatting (if not applicable, data is just forwarded)
   for f in formatters:
     data = [[f['format'](j) for j in row] if f['test'](row[0]) else row for row in data]
 
-  data  = list(map(list, zip(*data))) # Transpose
-  inds  = ['[{}]'.format(d) for d in range(len(data))] # Gen nice inds
+  # Transpose
+  data  = list(map(list, zip(*data)))
+
+  # Generate nice indices
+  if inds=='nice':
+    inds = ['[{}]'.format(d) for d in range(len(data))]
+  else:
+    pass # Should be True or False
+
   return tabulate_orig.tabulate(data,headr,showindex=inds)
 
 
@@ -304,7 +314,7 @@ def save_dir(filepath):
   makedirs(dirpath, exist_ok=True)
   return dirpath
 
-def parse_parrallelization_args():
+def parse_parallelization_args():
   """Get experiment version (v) and indices (inds) from command-line."""
   i_v    = sys.argv.index('save_path')+1
   i_inds = sys.argv.index('inds')+1
