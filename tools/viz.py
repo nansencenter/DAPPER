@@ -1233,8 +1233,19 @@ def set_figpos(loc):
   place((j-1)*w0/n, yoff + (i-1)*h0/m, w0/n, h0/m)
 
 
+# stackoverflow.com/a/7396313
+from matplotlib import transforms as mtransforms
+def autoscale_based_on(ax, line_handles):
+  "Autoscale axis based (only) on line_handles."
+  ax.dataLim = mtransforms.Bbox.unit()
+  for iL,lh in enumerate(line_handles):
+    xy = np.vstack(lh.get_data()).T
+    ax.dataLim.update_from_data_xy(xy, ignore=(iL==0))
+  ax.autoscale_view()
+
+
 from matplotlib.widgets import CheckButtons
-def toggle_lines(ax=None):
+def toggle_lines(ax=None,autoscl=True):
   """Make checkbuttons to toggle visibility of each line in current plot."""
 
   # Get lines and their properties
@@ -1260,8 +1271,13 @@ def toggle_lines(ax=None):
 
   # Callback
   def toggle_visible(label):
-    handle = lines[lines.label==label].handle.item()
-    handle.set_visible( not handle.get_visible() )
+    ind = lines.label==label
+    handle = lines[ind].handle.item()
+    vs = not lines[ind].visible.item()
+    handle.set_visible( vs )
+    lines.loc[ind,'visible'] = vs
+    if autoscl:
+      autoscale_based_on(ax,lines[lines.visible].handle)
     plt.draw()
   check.on_clicked(toggle_visible)
 
@@ -1276,8 +1292,6 @@ def toggle_viz(h,prompt=True):
   if prompt:
     input("Press Enter to continue...")
   plt.pause(0.04)
-
-
 
 
 
