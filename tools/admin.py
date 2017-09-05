@@ -185,7 +185,7 @@ class DAC(ImmutableAttributes):
     self._ordering = odict.keys()
     for key, value in self.dflts.items(): setattr(self, key, value)
     for key, value in      odict.items(): setattr(self, key, value)
-    self._freeze(odict.keys())
+    self._freeze(filter_out(odict.keys(),*self.dflts,'name'))
 
   def update_settings(self,**kwargs):
     """Returns new DAC with new "instance" of the da_method with the updated setting."""
@@ -295,6 +295,8 @@ class List_of_Configs(list):
     """
     # Process attributes into strings 
     names = [config.da_method.__name__+' ' for config in self]
+    MaxL  = max([len(n) for n in names])
+    names = [n.ljust(MaxL) for n in names]
     dist  = self.distinct_attrs()
     keys  = filter_out(dist, *self.excluded,'da_method')
     for i,k in enumerate(keys):
@@ -355,23 +357,27 @@ def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):
   headr += ['|']
   mattr += [['|']*len(cfgs)]
 
-  # Get stats.
-  # Format stats_with_conf.
-  # Use #'s to avoid auto-cropping by tabulate().
+  # Fill in stats
   for key in statkeys:
-    col = ['{0:#>9} ±'.format(key)]
+    # Generate column, including header (for cropping purposes)
+    col = ['{0:@>9} ±'.format(key)]
     for i in range(len(cfgs)):
+      # Format entry
       try:
         val  = Avrgs[i][key].val
         conf = Avrgs[i][key].conf
-        col.append('{0:#>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
+        col.append('{0:@>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
       except KeyError:
-        col.append(' '*16)
-    crop= min([s.count('#') for s in col])
+        col.append(' ') # gets filled by tabulate
+    # Crop
+    crop= min([s.count('@') for s in col])
     col = [s[crop:]         for s in col]
+    # Split column into headr/mattr
     headr.append(col[0])
     mattr.append(col[1:])
-  table = tabulate(mattr, headr).replace('#',' ')
+
+  # Used @'s to avoid auto-cropping by tabulate().
+  table = tabulate(mattr, headr).replace('@',' ')
   print(table)
 
 
