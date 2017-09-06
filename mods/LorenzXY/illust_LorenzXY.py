@@ -37,13 +37,13 @@ fg = plt.figure(2)
 fg.clear()
 ax = fg.gca()
 tY = arange(nX+1)
-lY = ['1'] + [str((i+1)*J) for i in circX]
+lY = ['\n1'] + ['\n'+str((i+1)*J) for i in circX]
 tX = iX[1:-1]
-lX = np.array(['\n'+str(i+1) for i in range(nX)])
+lX = np.array([str(i+1) for i in range(nX)])
 ax.set_xticks(tY)
 ax.set_xticklabels(lY)
 for t, l in zip(tX,lX):
-  ax.text(t-0.05,-6.5,l,fontsize=mpl.rcParams['xtick.labelsize'])
+  ax.text(t-0.05,-5.8,l,fontsize=mpl.rcParams['xtick.labelsize'])
 ax.grid(color='k',alpha=0.6,lw=0.4,axis='both',which='major')
 L = 30 # Num of lines to plot
 for p in range(L):
@@ -55,6 +55,7 @@ for p in range(L):
 ax.set_ylim(-5,13)
 
 # Convert to circular coordinates
+# Should have used instead: projection='polar' 
 def tX(zz):
   xx  = (40 + 3*zz)*cos(2*pi*ii/nX)
   yy  = (40 + 3*zz)*sin(2*pi*ii/nX)

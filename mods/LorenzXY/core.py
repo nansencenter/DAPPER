@@ -1,29 +1,30 @@
 ####################################
 # Lorenz95 two-scale/layer version
 ####################################
-# See Wilks 2005 "effects..."
+# See Wilks 2005 "Effects of stochastic parametrizations in the Lorenz '96 system"
 # X:  large amp, low frequency vars: convective events
 # Y:  small amp, high frequency vars: large-scale synoptic events
-
+#
 # Typically, the DA system will only use the truncated system
 # (containing only the X variables),
 # where the Y's are parameterized as model noise,
 # while the truth is simulated by the full system.
 #
-# See berry2014linear for EnKF application.
-# Typically dt0bs = 0.01 and dt = dtObs/10 for truth.
-# But for EnKF they use dt = dtObs coz
-# "numerical stiffness disappears when fast processes are removed".
-#
-# Wilks2005 uses dt=1e-4 with RK4 for the full model,
-# and dt=5e-3 with RK2 for the forecast/truncated model.
-#
-# Also see mitchell2014 and Hanna Arnold's thesis.
+# Stochastic parmateterization (Todo):
+# Wilks: benefit of including stochastic noise negligible
+# unless its temporal auto-corr is taken into account (as AR(1))
+# (but spatial auto-corr can be neglected).
+# But AR(1) noise is technically difficult because DAPPER
+# is built around the Markov assumption. Possible work-around:
+#  - Don't use standard dxdt + rk4
+#  - Use persistent variables
+
 
 import numpy as np
-from scipy.linalg import circulant
-from tools.misc import rk4, is1d, atmost_2d
+from numpy import arange
+from tools.misc import rk4, is1d
 
+# Parameters
 nX= 8  # of X
 J = 32 # of Y per X 
 m = (J+1)*nX # total state length
@@ -33,27 +34,87 @@ b = 10 # Spatial scale ratio
 c = 10 # time scale ratio
 #c = 4 more difficult to parameterize (less scale separation)
 
-iiX = (np.arange(J*nX)/J).astype(int)
-iiY = np.arange(J*nX).reshape((nX,J))
-@atmost_2d
+check_parameters = True
+
+# Shift elements
+s = lambda x,n: np.roll(x,-n,axis=-1)
+
+# Indices of X and Y variables in state
+iiX = (arange(J*nX)/J).astype(int)
+iiY = arange(J*nX).reshape((nX,J))
+
+
+def dxdt_trunc(x):
+  """
+  Truncated dxdt: slow variables (X) only.
+  Same as "uncoupled" Lorenz-95.
+  """
+  assert x.shape[-1] == nX
+  return -(s(x,-2)-s(x,1))*s(x,-1) - x + F
+
+
 def dxdt(x):
+  """Full (coupled) dxdt."""
   # Split into X,Y
-  X = x[:,:nX]
-  Y = x[:,nX:]
-  assert Y.shape[1] == J*X.shape[1]
-
-  s = lambda x,n: np.roll(x,-n,axis=-1)
-
+  X = x[...,:nX]
+  Y = x[...,nX:]
+  assert Y.shape[-1] == J*X.shape[-1]
   d = np.zeros_like(x)
-  # dX/dt -- same as "uncoupled" Lorenz-95
-  d[:,:nX] = np.multiply(s(X,1)-s(X,-2),s(X,-1)) - X + F
-  # Add in coupling from Y vars
+
+  # dX/dt
+  d[...,:nX] = dxdt_trunc(X)
+  # Couple Y-->X
   for i in range(nX):
-    d[:,i] += -h*c/b * np.sum(Y[:,iiY[i]],1)
+    d[...,i] += -h*c/b * np.sum(Y[...,iiY[i]],-1)
+
   # dY/dt
-  d[:,nX:] = -c*b*np.multiply(s(Y,2)-s(Y,-1),s(Y,1)) - c*Y \
-      + h*c/b * X[:,iiX]
+  d[...,nX:] = -c*b*(s(Y,2)-s(Y,-1))*s(Y,1) - c*Y
+  # Couple X-->Y
+  d[...,nX:] += h*c/b * X[...,iiX]
+
   return d
+
+
+
+# Order of deterministic error parameterization.
+# Note: In order to observe an improvement in DA performance when using
+#       higher orders, the EnKF must be reasonably tuned with inflation.
+#       There is very little improvement gained above order=1.
+detp_order = 'UNSET' # set from outside
+
+def dxdt_detp(x):
+  """
+  Truncated dxdt with
+    polynomial (deterministic) parameterization of fast variables (Y)
+  """
+  d = dxdt_trunc(x)
+  
+  if check_parameters:
+    assert np.all([nX==8,J==32,F==20,c==10,b==10,h==1]), \
+        """
+        The parameterizations have been tuned (by Wilks)
+        for specific param values. These are not currently in use.
+        """
+
+  if   detp_order==4:
+    # From Wilks
+    d -= 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
+  elif detp_order==3:
+    # From Arnold
+    d -= 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
+  elif detp_order==1:
+    # From me -- see AdInf/illust_parameterizations.py
+    d -= 0.74 + 0.82*x
+  elif detp_order==0:
+    # From me -- see AdInf/illust_parameterizations.py
+    d -= 3.82
+  elif detp_order==-1:
+    # Leave as dxdt_trunc
+    pass
+  else:
+    raise NotImplementedError
+  return d
+
 
 def dfdx(x,t,dt):
   """
@@ -84,54 +145,20 @@ def dfdx(x,t,dt):
   return F
 
 
-@atmost_2d
-def dxdt_trunc(x):
-  "truncated dxdt: slow variables (X) only"
-  assert x.shape[1] == nX
-  return np.multiply(s(x,1)-s(x,-2),s(x,-1)) - x + F
-
-def dxdt_det(x):
-  """
-  Truncated dxdt: slow variables (X) only.
-  Deterministic parameterization of fast variables (Y)
-  """
-  d = dxdt_trunc(x) #@atmost_2d included here
-  # Parameterization tuned (by Wilks) for following values.
-  assert np.all([nX==8,J==32,F==20,c==10,b==10,h==1])
-  d -= 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
-  return d
-
-def dxdt_bad(x):
-  """
-  Truncated dxdt: slow variables (X) only.
-  Y parameterized by constant forcing. Should be worse that dxdt_det()
-  """
-  d = dxdt_trunc(x) #@atmost_2d included here
-  assert np.all([nX==8,J==32,F==20,c==10,b==10,h==1])
-  d -= 5.5
-  return d
+from matplotlib import pyplot as plt
+def plot_state(x):
+  circX = np.mod(arange(nX+1)  ,nX)
+  circY = np.mod(arange(nX*J+1),nX*J) + nX
+  lhX   = plt.plot(arange(nX+1)    ,x[circX],'b',lw=3)[0]
+  lhY   = plt.plot(arange(nX*J+1)/J,x[circY],'g',lw=2)[0]
+  ax    = plt.gca()
+  ax.set_xticks(arange(nX+1))
+  ax.set_xticklabels([(str(i) + '/\n' + str(i*J)) for i in circX])
+  ax.set_ylim(-5,15)
+  def setter(x):
+    lhX.set_ydata(x[circX])
+    lhY.set_ydata(x[circY])
+  return setter
 
 
-#@atmost_2d
-#def dxdt_ar1(x):
-  # Wilks: benefit of including stochastic noise negligible
-  # unless its temporal auto-corr is taken into account (as AR(1))
-  # (but spatial auto-corr can be neglected).
-  #
-  # But, using "persistent variables" to get autocorrelation
-  # wont work, coz RK4 calls dxdt multiple (4) times,
-  # thus generating new (but correlated) noise instances for
-  # the same time step.
-  # Moreover, I the noise should scale with sqrt(dt),
-  # which won't happen if you put it into dxdt.
-  # => stochastic parameterizations is the remit of add_noise().
 
-  #phi_1 = 0.984
-  #phi_c = (1-phi**2)**0.5
-  #sig   = 1.99
-
-  #d  = dxdt_d(x)
-  #w  = phi*w + sig*phi_c*randn(x.shape)
-  #d += w
-
-  #return d
