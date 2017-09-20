@@ -17,7 +17,8 @@ f = {
     'noise': 0
     }
 
-X0 = GaussRV(*typical_init_params(m))
+X0 = GaussRV(m=m, C=0.001) 
+#X0 = GaussRV(*typical_init_params(m))
 
 h = {
     'm'    : m,
@@ -86,5 +87,12 @@ setup = TwinSetup(f,h,t,X0,**other)
 #print_averages(cfgs,avrgs,[],['rmse_u'])
 
 
-
-
+# Tests with the Particle filter, with N=3000, KObs=10'000.
+# da_method  NER  reg  |  rmse_a   rmv_a
+# --------- ----  ---  -  ------  ------
+# PartFilt  0.05  1.2  |  0.35    0.40  
+# PartFilt  0.05  1.6  |  0.41    0.45  
+# PartFilt  0.5   0.7  |  0.26    0.29  
+# PartFilt  0.5   0.9  |  0.30    0.34  
+# PartFilt  0.5   1.2  |  0.36    0.40  
+# Using NER=0.9 yielded rather poor results.

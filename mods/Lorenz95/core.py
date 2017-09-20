@@ -65,6 +65,11 @@ def typical_init_params(m):
   """
   Approximate (3 degrees of acf of) climatology.
   Obtained for F=8, m=40.
+
+  NB: Should not be used for X0 because it's like
+  starting the filter from a state of divergence,
+  which might be too challenging to particle filters.
+  The code has been left here for legacy reasons.
   """
   mu0 = 2.34*np.ones(m)
   # Auto-cov-function
