@@ -117,7 +117,7 @@ plt.style.use(['seaborn-darkgrid','tools/DAPPER.mplstyle'])
 ##################################
 from tools.colors import *
 from tools.utils import *
-from tools.misc import *
+from tools.math import *
 from tools.chronos import *
 from tools.stoch import *
 from tools.series import *
@@ -127,6 +127,7 @@ from tools.viz import *
 from stats import *
 from tools.admin import *
 from tools.convenience import *
+from tools.data_management import *
 from da_methods import *
 
 

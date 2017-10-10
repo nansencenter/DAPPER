@@ -111,7 +111,7 @@ class LivePlot:
       # Colorbar
       cax   = divdr.append_axes("bottom", size = "10%", pad = 0.05)
       cax   . set_xlabel('Correlation')
-      if hasattr(self,'ax') and m<201:
+      if hasattr(self,'ax') and m<301:
         # Get cov matrix
         if E is not None:
           C = np.cov(E,rowvar=False)
@@ -725,7 +725,7 @@ def setup_wrapping(m):
   ii  = np.hstack([-0.5, range(m), m-0.5])
   def wrap(E):
     midpoint = (E[[0],...] + E[[-1],...])/2
-    return np.concatenate((midpoint,E,midpoint),axis=0)
+    return ccat(midpoint,E,midpoint)
   return ii, wrap
   
 def adjust_position(ax,adjust_extent=False,**kwargs):
@@ -1245,7 +1245,7 @@ def autoscale_based_on(ax, line_handles):
 
 
 from matplotlib.widgets import CheckButtons
-def toggle_lines(ax=None,autoscl=True):
+def toggle_lines(ax=None,autoscl=True,numbering=True):
   """Make checkbuttons to toggle visibility of each line in current plot."""
 
   # Get lines and their properties
@@ -1255,6 +1255,9 @@ def toggle_lines(ax=None,autoscl=True):
     lines[p] = [plt.getp(x,p) for x in lines['handle']]
   lines = pd.DataFrame(lines)
   lines = lines[~lines.label.str.startswith('_')]
+
+  if numbering:
+    lines['label'] = [str(i)+': '+lb for i,lb in enumerate(lines['label'])]
 
   # Setup buttons
   # When there's many, the box-sizing is awful, but difficult to fix.

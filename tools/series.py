@@ -1,39 +1,30 @@
 from common import *
 
-def auto_cov(xx,L=5):
-    """Auto covariance function.
-    For scalar time series.
-    L: lags (offsets) for which to compute acf."""
-    assert is1d(xx)
-    N = len(xx)
-    if N<=L:
-      raise ValueError('L (=len(ACF)) must be <= len(xx)')
-    mu = mean(xx)
-    acovf = array([
-      np.sum((xx[:N-i]-mu)*(xx[i:]-mu))/(N-1-i)
-      for i in range(L)])
-    return acovf
+def auto_cov(xx,L=5,periodic=False,corr=False):
+  """
+  Auto covariance function, computed along axis 0.
+  L   : max lag (offset) for which to compute acf.
+  mode: use 'wrap' to assume xx periodic (circular).
+  corr: normalize acf by acf[0] so as to return auto-CORRELATION.
+  """
+  assert xx.ndim <= 2
+  assert L<len(xx)
 
-def auto_cov_periodic(xx,L=5):
-    """
-    Periodic version.
-    Assumes that the length of the signal = its period.
-    """
-    assert is1d(xx)
-    N = len(xx)
-    mu = mean(xx)
-    acovf = array([
-      np.sum(np.roll(xx-mu,i)*(xx-mu))/(N-1)
-      for i in range(L)])
-    return acovf
+  N     = len(xx)
+  mu    = mean(xx,0)
+  A     = xx - mu
+  acovf = zeros((L,)+np.shape(mu))
 
+  for i in range(L):
+    Left     = A.take(arange(N-i),0)
+    Right    = A.take(arange(i,N),0)
+    acovf[i] = (Left*Right).sum(0)/(N-i-1)
 
-#def geometric_mean(xx):
-  #return exp(mean(log(xx)))
-geometric_mean = ss.mstats.gmean
+  if corr:
+    acovf /= acovf[0].copy()
 
-def mean_ratio(xx):
-  return geometric_mean([xx[i]/xx[i-1] for i in range(1,len(xx))])
+  return acovf
+
 
 def fit_acf_by_AR1(acf_empir,L=None):
   """
@@ -43,6 +34,11 @@ def fit_acf_by_AR1(acf_empir,L=None):
   """
   if L is None:
     L = len(acf_empir)
+
+  geometric_mean = ss.mstats.gmean # = exp(mean(log(xx)))
+  def mean_ratio(xx):
+    return geometric_mean([xx[i]/xx[i-1] for i in range(1,len(xx))])
+
   # Negative correlation => Truncate ACF
   neg_ind   = find_1st_ind(array(acf_empir)<=0)
   acf_empir = acf_empir[:neg_ind]

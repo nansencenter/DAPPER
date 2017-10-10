@@ -302,19 +302,23 @@ class List_of_Configs(list):
     for i,k in enumerate(keys):
       vals  = dist[k]                                              # Get data
       lbls  = '' if i==0 else ' '                                  # Spacing 
-      if len(k)<=4: lbls += k + ' '                                # Standard label
-      else:         lbls += k[:3] + '~' + k[-1] + ' '              # Abbreviated label
+      if len(k)<=4: lbls += k + ':'                                # Standard label
+      else:         lbls += k[:3] + '~' + k[-1] + ':'              # Abbreviated label
       lbls  = [' '*len(lbls) if v is None else lbls for v in vals] # Skip label if val=None
       vals  = typeset(vals,do_tab=True)                            # Format data
       names = [''.join(x) for x in zip(names,lbls,vals)]           # Join
     
     # Assign strings to configs
     for name,config in zip(names,self):
-      if ow or not getattr(config,'name',None):
-        if not do_tab:
-          name = ' '.join(name.split())
-        config.name = name
-        config._name_auto_gen = True
+      s = name if do_tab else ' '.join(name.split())
+      t = getattr(config,'name',None)
+      if ow is False:
+        if t: s = t
+      elif ow == 'append':
+        if t: s = t+' '+s
+      elif ow == 'prepend':
+        if t: s = s+' '+t
+      config.name = s
     
 
 def print_averages(cfgs,Avrgs,attrkeys=(),statkeys=()):

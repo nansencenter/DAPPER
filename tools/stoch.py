@@ -2,7 +2,7 @@
 
 from common import *
 
-def seed(i=None):
+def seed(i=None,hh=True):
   """
   Seed random number generator.
   If i==None, then the clock is used to seed.
@@ -29,8 +29,28 @@ def seed(i=None):
     [A convenient seed repetition system is to use
     seed_k = k*seed_0 for experiment k. But if seed_0 is 0,
     then all seed_k will be the same (0).]''')
+
   np.random.seed(i)
   return i
+
+import socket
+def hostname_hash():
+  """
+  Generate integer from hostname.
+  Add it to your initial seed to make this change
+  as a function of your host computer.
+  This guarantees different seeds are used for different computers.
+
+  Reasoning:
+  It's difficult to know whether different computers will generate
+  the same random numbers. It is therefore better to guarantee that
+  they generate different random numbers.
+  """
+  h = socket.gethostname()
+  h = h[:2]+h[-2:]
+  h = sum([10**p*np.mod(ord(c),10) for p,c in enumerate(h)])
+  return h
+
 
 def LCG(seed=-1):
   """

@@ -15,7 +15,7 @@ t.dt = 0.05
 
 f = {
     'm'    : nX,
-    'model': with_rk4(dxdt_detp,autonom=True),
+    'model': with_rk4(dxdt_detp),
     'noise': 0,
     }
 

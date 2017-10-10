@@ -9,7 +9,7 @@
 #   Tellus A 57 (2005) 1–11
 
 import numpy as np
-from tools.misc import rk4, is1d
+from tools.math import rk4, is1d
 from common import ens_compatible, integrate_TLM
 
 # Constants

@@ -22,7 +22,7 @@
 
 import numpy as np
 from numpy import arange
-from tools.misc import rk4, is1d
+from tools.math import rk4, is1d
 
 # Parameters
 nX= 8  # of X
@@ -82,7 +82,7 @@ def dxdt(x):
 #       There is very little improvement gained above order=1.
 detp_order = 'UNSET' # set from outside
 
-def dxdt_detp(x):
+def dxdt_detp(t,x):
   """
   Truncated dxdt with
     polynomial (deterministic) parameterization of fast variables (Y)
@@ -96,7 +96,10 @@ def dxdt_detp(x):
         for specific param values. These are not currently in use.
         """
 
-  if   detp_order==4:
+  if hasattr(detp_order, "__call__"):
+    # Custom parameterization function
+    d -= detp_order(t,x)
+  elif detp_order==4:
     # From Wilks
     d -= 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
   elif detp_order==3:

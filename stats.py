@@ -286,16 +286,14 @@ class Stats(MLR_Print):
     return avrg
 
 
-  def recomp_univariate(self,ii):
+  def average_subset(self,ii):
     """
-    Recompute state-averaged (i.e. univariate) time-series,
-    but only include state components ii.
+    Produce time-averages from subsets (ii) of the state indices.
     Then average in time.
-    Note: This re-does computations done on-line (live),
-          but we don't bother to include all of these.
+    This is a mediocre solution, and should be systematized somehow.
     """ 
     avrg = AlignedDict()
-    # Compute univariate time series
+    # Compute univariate time series from subset of state variables
     for fa in 'fa':
       avrg['rmse_'+fa] = sqrt(mean(getattr(self.err,fa)[:,ii]**2,1))
       avrg['rmv_' +fa] = sqrt(mean(getattr(self.var,fa)[:,ii]   ,1))

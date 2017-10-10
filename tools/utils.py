@@ -116,6 +116,15 @@ def printoptions(*args, **kwargs):
     yield 
     np.set_printoptions(**original)
 
+# Temporarily set values
+@contextlib.contextmanager
+def tmp_val(obj,attr,val):
+    tmp = getattr(obj,attr)
+    setattr(obj,attr,val)
+    yield 
+    setattr(obj,attr,tmp)
+
+
 
 import tools.tabulate as tabulate_orig
 tabulate_orig.MIN_PADDING = 0
@@ -291,65 +300,109 @@ class NameFunc():
 #########################################
 
 import glob
-def find_last_v(dirpath):
-  if not dirpath.endswith(os.path.sep):
-    dirpath += os.path.sep
-  ls = glob.glob(dirpath+'v*.npz')
-  if ls == []:
-    return 0
-  #v = max([int(x.split(dirpath)[1].split('v')[1].split('_')[0]) for x in ls])
-  v = max([int(re.search(dirpath + 'v([1-9]*).*\.npz',x).group(1)) for x in ls])
-  return v
-
-def rel_name(filepath,rel_to='./'):
-  fn = os.path.relpath(filepath,rel_to)
-  fn, ext = os.path.splitext(fn)
-  return fn
+def get_numbering(glb):
+  ls = glob.glob(glb+'*')
+  return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
 
 from os import makedirs
 def save_dir(filepath):
   """Make dir DAPPER/data/filepath_without_ext"""
-  dirpath = 'data' + os.path.sep\
-      + rel_name(filepath) + os.path.sep
+  dirpath = 'data' \
+      + os.path.sep\
+      + os.path.splitext(os.path.relpath(filepath))[0]\
+      + os.path.sep
   makedirs(dirpath, exist_ok=True)
   return dirpath
 
-def parse_parallelization_args():
-  """Get experiment version (v) and indices (inds) from command-line."""
-  i_v    = sys.argv.index('save_path')+1
-  i_inds = sys.argv.index('inds')+1
-  assert i_v < i_inds
-  save_path = sys.argv[i_v]
-  inds   = sys.argv[i_inds:]
-  inds   = [int(x) for x in inds]
-  return save_path, inds
+def prep_run(path,prefix):
+  "Create dir, insert prefix, find RUN, reserve path"
+  path  = save_dir(path)
+  path += prefix+'_' if prefix else ''
+  path += 'run'
+  RUN   = str(1 + max(get_numbering(path),default=0))
+  path += RUN
+  print("Will save to",path+"...")
+  subprocess.run(['touch',path]) # reserve filename
+  return path, RUN
 
-from subprocess import call
-import time
-def parallelize(script,inds,max_workers=4):
-  save_path  = save_dir(script)
-  v          = find_last_v(save_path) + 1
-  v          = 'v' + str(v)
-  save_path += v
-  tmp        = 'tmp_' + v + '_t' + str(time.time())[-2:]
-  with open(tmp,'w') as f:
-    f.write('# Auto-generated for experiment parallelization.\n\n')
-    f.write('source ~/.screenrc\n\n')
-    for w in range(max_workers):
-      iiw = [str(x) for x in inds[np.mod(inds,max_workers)==w]]
-      f.write('screen -t exp_' + '_'.join(iiw) + ' python -i ' + script
-          + ' save_path ' + save_path
-          + ' inds ' + ' '.join(iiw) + '\n')
-  sleep(0.2)
-  call(['screen', '-S', v,'-c', tmp])
-  sleep(0.2)
-  os.remove(tmp)
+# Parallelization
+import multiprocessing, subprocess
+screenrc_common_txt = """
+# Auto-generated screenrc file for experiment parallelization.
 
+source $HOME/.screenrc
+                                                             
+screen  -t bash bash                   # empty bash session
+#screen -t IPython ipython --no-banner # empty python session
+#screen -t TEST bash -c 'echo "MKL_NUM_THREADS:"; echo $MKL_NUM_THREADS ; exec bash'
 
-def save_data(path,inds,**kwargs):
-  path += '_inds_' + '_'.join([str(x) for x in inds])
-  print('Saving to',path)
-  np.savez(path,**kwargs)
+"""
+def distribute(script,sysargs,settings,prefix='',max_core=999):
+  """
+  Run script either as master, worker, or stand-alone,
+  depending on sysargs.
+  Return corresponding settings and save_path.
+
+  See AdInf/bench_LXY.py for example use.
+
+  Tip: to also parallelize repetitions, insert this above the call to distribute():
+  # Duplicate settings to parallelize repetitions:
+  # NB: Also requires removing the seed equalization in the experiment loop.
+  settings = settings.repeat(16)
+  """
+
+  if len(sysargs)>1:
+    if sysargs[1]=='PARALLELIZE':
+      # Write "master" screenrc file
+      save_path, RUN = prep_run(script,prefix)
+
+      screenrc = "tmp_screenrc_"+os.path.split(script)[1].split('.')[0] + '_run'+RUN
+      nBatch   = min(max_core,multiprocessing.cpu_count()-1, len(settings))
+      with open(screenrc,'w') as f:
+        f.write(screenrc_common_txt)
+        for i in range(nBatch):
+          iWorker = i + 1 # start indexing from 1
+          f.write('screen -t W'+str(iWorker)+' ipython -i --no-banner '+
+              ' '.join([script,'WORKER',str(iWorker),str(nBatch),save_path])+'\n')
+          # sysargs:      0        1           2            3          4    
+        f.write("")
+      sleep(0.2)
+      subprocess.run(['screen', '-dmS', 'run'+RUN,'-c', screenrc])
+      print("Experiments launched. Use 'screen -r' to view their progress.")
+      sleep(1.0)
+      os.remove(screenrc)
+      sys.exit(0)
+
+    elif sysargs[1] == 'WORKER':
+      # Split settings array to this "worker"
+      iWorker   = int(sysargs[2])
+      nBatch    = int(sysargs[3])
+      save_path = sysargs[4] + '_W' + str(iWorker)
+      settings  = np.array_split(settings,nBatch)[iWorker-1]
+      print("settings partition index:",iWorker)
+      print("=> settings array:",settings)
+
+      # Enforce individual core usage
+      try:
+        # Tested on a Mac computer with Anaconda
+        import mkl
+        mkl.set_num_threads(1)
+      except ImportError:
+        # Tested on a Linux server with Anaconda
+        os.environ["MKL_NUM_THREADS"] = "1"
+      # Test by setting nBatch=1 to launch only one experiment.
+      # When ensemble DA is running, only a single CPU should be in use
+      # (can be checked e.g by 'htop' utility).
+      # If not, it's because numpy is distributing calculations,
+      # which is very inefficient in the typical experiment.
+      # As you can see, enforcing single-CPU use is platform dependent,
+      # so you might have to adapt the above code to your platform.
+
+  else:
+    # No args => No parallelization
+    save_path, _ = prep_run(script,prefix)
+
+  return settings, save_path
 
 
 
@@ -357,7 +410,7 @@ def save_data(path,inds,**kwargs):
 # Multiprocessing
 #########################################
 NPROC = 4
-import multiprocessing, signal
+import signal
 def multiproc_map(func,xx,**kwargs):
   """
   Multiprocessing.
@@ -423,6 +476,12 @@ class Timer():
 # Misc
 #########################################
 
+# stackoverflow.com/a/2669120
+def sorted_human( lst ): 
+    """ Sort the given iterable in the way that humans expect.""" 
+    convert = lambda text: int(text) if text.isdigit() else text 
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+    return sorted(lst, key = alphanum_key)
 
 def filter_out(orig_list,*unwanted):
   """

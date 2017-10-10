@@ -18,7 +18,8 @@ ml_colors = np.array(np.matrix("""
 """))
 # Load into matplotlib color dictionary
 for code, color in zip('boyvgcr', ml_colors):
-  mpl.colors.ColorConverter.colors['ml'+code] = tuple(color)
+  mpl.colors.ColorConverter.colors['ml'+code] = color
+  mpl.colors.colorConverter.cache ['ml'+code] = color
 
 # Seaborn colors
 sns_colors = np.array(np.matrix("""
@@ -31,17 +32,21 @@ sns_colors = np.array(np.matrix("""
 0.1   , 0.1   , 0.1   ; 
 1.0   , 1.0   , 1.0    
 """))
+# Overwrite default color codes
 for code, color in zip('bgrmyckw', sns_colors):
     mpl.colors.colorConverter.colors[code] = color
-    mpl.colors.colorConverter.cache[code]  = color
+    mpl.colors.colorConverter.cache [code] = color
 
 
 def blend_rgb(rgb, a, bg_rgb=ones(3)):
   """
   Fake RGB transparency by blending it to some background.
-  Useful for exporting to eps.
+  Useful for creating gradients.
+
+  Also useful for creating 'transparency' for exporting to eps.
   But there's no actualy transparency, so superposition of lines
   will not work. For that: export to pdf, or make do without.
+
    - rgb: N-by-3 rgb, or a color code.
    - a: alpha value
    - bg_rgb: background in rgb. Default: white
