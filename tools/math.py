@@ -2,6 +2,11 @@
 
 from common import *
 
+
+########################
+# Array manip
+########################
+
 def is1d(a):
   """ Works for list and row/column arrays and matrices"""
   return np.sum(asarray(asarray(a).shape) > 1) <= 1
@@ -23,12 +28,8 @@ def exactly_2d(a):
   assert a.ndim==2
   return a
 
-def ens_compatible(func):
-  """Tranpose before and after."""
-  @functools.wraps(func)
-  def wrapr(x,*kargs,**kwargs):
-    return func(x.T,*kargs,**kwargs).T
-  return wrapr
+def ccat(*args,axis=0):
+  return np.concatenate(args,axis=axis)
 
 def roll_n_sub(arr,item,i_repl=0):
   """
@@ -43,6 +44,18 @@ def roll_n_sub(arr,item,i_repl=0):
   arr[i_repl] = item
   return arr
         
+
+########################
+# Ensemble matrix manip
+########################
+
+def ens_compatible(func):
+  """Tranpose before and after."""
+  @functools.wraps(func)
+  def wrapr(x,*kargs,**kwargs):
+    return func(x.T,*kargs,**kwargs).T
+  return wrapr
+
 def anom(E,axis=0):
   mu = mean(E,axis=axis, keepdims=True)
   A  = E - mu
@@ -83,6 +96,10 @@ def unbias_var(w=None,N_eff=None,avoid_pathological=False):
     ub = 1/(1 - 1/N_eff) # =N/(N-1) if w==ones(N)/N.
   return ub
 
+
+########################
+# Time stepping (integration)
+########################
 
 def rk4(f, x, t, dt, order=4):
   """Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers.""" 
@@ -155,8 +172,9 @@ def integrate_TLM(M,dt,method='approx'):
   return resolvent
     
 
-
-
+########################
+# Rounding
+########################
 
 def round2(num,prec=1.0):
   """Round with specific precision.
@@ -170,10 +188,26 @@ def round2sigfig(x,nfig=1):
   x *= signs
   return signs*round2(x,10**floor(log10(x)-nfig+1))
 
+def round2nice(xx):
+  "Rounds (ordered) array to nice numbers"
+  r1 = round2sigfig(xx,nfig=1)
+  r2 = round2sigfig(xx,nfig=2)
+  # Assign r2 to duplicate entries in r1:
+  dup = np.isclose(0,np.diff(r1))
+  r1[1:-1][dup[:-1]] = r2[1:-1][dup[:-1]]
+  if dup[-1]:
+    r1[-2] = r2[-2]
+  return r1
+
 def validate_int(x):
   x_int = int(x)
   assert np.isclose(x,x_int)
   return x_int
+
+
+########################
+# Misc
+########################
 
 def find_1st_ind(xx):
   try:
@@ -181,8 +215,16 @@ def find_1st_ind(xx):
   except StopIteration:
     return None
 
+def LogSp(start,stop,num=50,**kwargs):
+  """Log space defined through non-log numbers"""
+  assert 'base' not in kwargs, "The base is irrelevant."
+  return np.logspace(log10(start),log10(stop),num=num,base=10)
 
-
+def CurvedSpace(start,end,curve,N):
+  "Monotonic series (space). Set 'curve' param between 0,1."  
+  x0 = 1/curve - 1
+  span  = end - start
+  return start + span*( LogSp(x0,1+x0,N) - x0 )
 
 def circulant_ACF(C,do_abs=False):
   """
@@ -201,7 +243,6 @@ def circulant_ACF(C,do_abs=False):
     ACF += row
     # Note: this actually also accesses masked values in C.
   return ACF/m
-
 
 
 ########################
@@ -302,7 +343,6 @@ def tinv(A,*kargs,**kwargs):
   """
   U,s,VT = tsvd(A,*kargs,**kwargs)
   return (VT.T * s**(-1.0)) @ U.T
-
 
 
 ########################
