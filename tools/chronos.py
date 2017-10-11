@@ -89,13 +89,13 @@ class Chronology:
     if not np.isclose(int(dkObs_new), dkObs_new):
       raise ValueError('New value is amgiguous with respect to dkObs')
     dkObs_new = int(dkObs_new)
-    self.__init__(dt=value,dkObs=dkObs_new,K=self.K,BurnIn=self.BurnIn)
+    self.__init__(dt=value,dkObs=dkObs_new,T=self.T,BurnIn=self.BurnIn)
   @property
   def dkObs(self):
     return self._dkObs
   @dkObs.setter
   def dkObs(self,value):
-    self.__init__(dt=self.dt,dkObs=value,K=self.K,BurnIn=self.BurnIn)
+    self.__init__(dt=self.dt,dkObs=value,T=self.T,BurnIn=self.BurnIn)
   @property
   def K(self):
     return self._K
