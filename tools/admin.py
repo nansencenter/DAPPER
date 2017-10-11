@@ -188,7 +188,13 @@ class DAC(ImmutableAttributes):
     self._freeze(filter_out(odict.keys(),*self.dflts,'name'))
 
   def update_settings(self,**kwargs):
-    """Returns new DAC with new "instance" of the da_method with the updated setting."""
+    """
+    Returns new DAC with new "instance" of the da_method with the updated setting.
+
+    Example:
+    for iC,C in enumerate(cfgs):
+      cfgs[iC] = C.update_settings(liveplotting=True)
+    """
     old = list(self._ordering) + filter_out(self.__dict__,*self._ordering,*self.excluded,'da_method')
     dct = {**{key: getattr(self,key) for key in old}, **kwargs}
     return DA_Config(self.da_method)(**dct)

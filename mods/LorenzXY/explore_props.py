@@ -4,11 +4,15 @@
 from common import *
 seed(2)
 
+# Note: seed(6) gives yields ICs that are in the basin for
+# the tiny-variability limit cycle at $c=50$,
+# as can be seen by plotting up to T = 0.005 * 10**4.
+
 ###########################
 # Setup
 ###########################
 import mods.LorenzXY.core as LXY
-LXY.c = 0.01
+LXY.c = 100
 from mods.LorenzXY.core import *
 from mods.LorenzXY.defaults import plot_state
 
@@ -28,7 +32,7 @@ true_K = make_recursive(true_step,with_prog=1)
 x0 = true_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
 xx = true_K(x0,K        ,t0,dt)
 
-# ACF
+# ACF - make K to see periodicity
 #plt.plot( mean( auto_cov(xx[:,:nX],L=K,corr=1), axis=1) )
 
 ###########################
@@ -66,7 +70,7 @@ if True:
   plt.figure(2)
   setter = plot_state(xx[0])
   ax = plt.gca()
-  for k in progbar(range(min(400,K)),'plot'):
+  for k in progbar(range(K),'plot'):
     if not k%4:
       setter(xx[k])
       ax.set_title("t = {:<5.2f}".format(dt*k))
