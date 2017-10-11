@@ -397,7 +397,10 @@ def distribute(script,sysargs,settings,prefix='',max_core=999):
       # which is very inefficient in the typical experiment.
       # As you can see, enforcing single-CPU use is platform dependent,
       # so you might have to adapt the above code to your platform.
-
+    elif sysargs[1]=='EXPENDABLE':
+      save_path = 'data/expendable'
+    else:
+      raise ValueError('Could not interpret sys.args[1]')
   else:
     # No args => No parallelization
     save_path, _ = prep_run(script,prefix)
