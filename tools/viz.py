@@ -1245,8 +1245,14 @@ def autoscale_based_on(ax, line_handles):
 
 
 from matplotlib.widgets import CheckButtons
-def toggle_lines(ax=None,autoscl=True,numbering=True):
-  """Make checkbuttons to toggle visibility of each line in current plot."""
+import textwrap
+def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15):
+  """
+  Make checkbuttons to toggle visibility of each line in current plot.
+  autoscl  : Rescale axis limits as required by currently visible lines.
+  numbering: Add numbering to labels.
+  txtwidth : Wrap labels to this length.
+  """
 
   # Get lines and their properties
   if ax is None: ax = plt.gca()
@@ -1259,12 +1265,15 @@ def toggle_lines(ax=None,autoscl=True,numbering=True):
   if numbering:
     lines['label'] = [str(i)+': '+lb for i,lb in enumerate(lines['label'])]
 
+  if txtwidth:
+    lines['label'] = [textwrap.fill(n,width=txtwidth) for n in lines['label']]
+
   # Setup buttons
   # When there's many, the box-sizing is awful, but difficult to fix.
-  plt.subplots_adjust(left=0.2)
+  plt.subplots_adjust(left=0.32,right=0.97)
   N = len(lines)
   H = min(1,0.07*N)
-  rax = plt.axes([0.05, 0.5-H/2, 0.1, H])
+  rax = plt.axes([0.05, 0.5-H/2, 0.22, H])
   check = CheckButtons(rax, lines.label, lines.visible)
 
   # Adjust button style
