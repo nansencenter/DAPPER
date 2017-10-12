@@ -12,12 +12,12 @@ seed(2)
 # Setup
 ###########################
 import mods.LorenzXY.core as LXY
-LXY.c = 100
+LXY.c = 150
 from mods.LorenzXY.core import *
 from mods.LorenzXY.defaults import plot_state
 
 K  = 2000
-dt = 0.005
+dt = 0.001
 t0 = np.nan
 
 x0 = 0.01*randn(m)
@@ -71,7 +71,7 @@ if True:
   setter = plot_state(xx[0])
   ax = plt.gca()
   for k in progbar(range(K),'plot'):
-    if not k%4:
+    if not k%(4*(int(0.005/dt))):
       setter(xx[k])
       ax.set_title("t = {:<5.2f}".format(dt*k))
       plt.pause(0.01)

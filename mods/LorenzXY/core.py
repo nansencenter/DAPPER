@@ -27,21 +27,20 @@ from tools.math import rk4, is1d
 # Parameters
 nX= 8  # of X
 J = 32 # of Y per X 
-m = (J+1)*nX # total state length
 h = 1  # coupling constant
 F = 20 # forcing
 b = 10 # Spatial scale ratio
 c = 10 # time scale ratio
 #c = 4 more difficult to parameterize (less scale separation)
 
+# Total state length.
+# Not a constant, but function of J and nX (could be changed from outside).
+ndim = lambda: (J+1)*nX
+
 check_parameters = True
 
 # Shift elements
 s = lambda x,n: np.roll(x,-n,axis=-1)
-
-# Indices of X and Y variables in state
-iiX = (arange(J*nX)/J).astype(int)
-iiY = arange(J*nX).reshape((nX,J))
 
 
 def dxdt_trunc(x):
@@ -60,6 +59,10 @@ def dxdt(x):
   Y = x[...,nX:]
   assert Y.shape[-1] == J*X.shape[-1]
   d = np.zeros_like(x)
+
+  # Indices of X and Y variables in state
+  iiX = (arange(J*nX)/J).astype(int)
+  iiY = arange(J*nX).reshape((nX,J))
 
   # dX/dt
   d[...,:nX] = dxdt_trunc(X)
@@ -124,7 +127,12 @@ def dfdx(x,t,dt):
   Jacobian of x + dt*dxdt.
   """
   assert is1d(x)
-  F  = np.zeros((m,m))
+  F  = np.zeros((ndim(),ndim()))
+
+  # Indices of X and Y variables in state
+  iiX = (arange(J*nX)/J).astype(int)
+  iiY = arange(J*nX).reshape((nX,J))
+
   # X
   md = lambda i: np.mod(i,nX)
   for i in range(nX):

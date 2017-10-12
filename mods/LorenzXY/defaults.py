@@ -1,4 +1,4 @@
-# Inspired by berry2014linear, mitchell2014 and Hanna Arnold's thesis.
+# Uses nX, J, F as in core.py, which is taken from Wilks2005.
 
 from common import *
 
@@ -6,8 +6,7 @@ from mods.LorenzXY.core import nX,m,dxdt,dfdx,plot_state
 
 # Wilks2005 uses dt=1e-4 with RK4 for the full model,
 # and dt=5e-3 with RK2 for the forecast/truncated model.
-# Typically dt0bs = 0.01 and dt = dtObs/10 for truth.
-# But for EnKF berry2014linear use dt = dtObs coz
+# As berry2014linear notes, this is possible coz
 # "numerical stiffness disappears when fast processes are removed".
 
 #t = Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
