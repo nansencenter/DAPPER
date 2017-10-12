@@ -13,8 +13,27 @@ class ResultsTable():
   where element TABLE[iC,iS][iRep] contains
   all available fields of time-average statistics.
 
-  See AdInf/present_results.py for example use.
+  Examples:
+
+  # COMPOSING THE DATABASE OF RESULTS
+  # Res = ResultsTable('data/AdInf/bench_LXY/c_run[1-3]')                       # Load by regex
+  # Res.load('data/AdInf/bench_LXY/c_run7')                                     # More loading
+  # Res.mv(r'tag (\d+)',r'tag\1')                                               # change "tag 50" to "tag50" => merge such configs
+  # Res.rm([0, 1, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16])                          # rm uninteresting configs
+  # Res.rm('EnKF[^_]')                                                          # rm EnKF but not EnKF_N
+  # cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s) # Define more involved criterion
+  # R2, Res = Res.split(cond)                                                   # Split into EnKF_N and rest
+
+  # PRESENTING RESULTS
+  # Res.print_frame(Res.mean_field('rmse_a')[0].tolist())                       # re-use print_frame to print mean_field
+  # Res.print_mean_field('rmse_a',show_fail=True,show_conf=False,col_inds=...)  # print_mean_field has more options
+  # #Res.print_field(Res.field('rmse_a'))                                       # print raw data
+  # Res.plot_mean_field('rmse_a')                                               # plot
+  # check = toggle_lines()                                                      # check boxes
+
+  Also see AdInf/present_results.py for further examples.
   """
+
   def __init__(self,*args,**kwargs):
     self.load(*args,**kwargs)
 
