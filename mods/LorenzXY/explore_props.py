@@ -14,7 +14,7 @@ seed(2)
 import mods.LorenzXY.core as LXY
 LXY.c = 150
 from mods.LorenzXY.core import *
-from mods.LorenzXY.defaults import plot_state
+from mods.LorenzXY.wilks05_full import plot_state
 
 K  = 2000
 dt = 0.001

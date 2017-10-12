@@ -8,7 +8,7 @@ plt.style.use('AdInf/paper.mplstyle')
 # Setup
 sd0 = seed(4)
 from mods.LorenzXY.core import nX,J,m
-from mods.LorenzXY.defaults import setup
+from mods.LorenzXY.wilks05_full import setup
 dt = 0.005
 setup.t = Chronology(dt,dt,round2(6,dt))
 xx,yy = simulate(setup)
