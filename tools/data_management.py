@@ -5,7 +5,7 @@ from common import *
 #########################################
 # 
 #########################################
-from copy import deepcopy
+from copy import deepcopy, copy
 
 class ResultsTable():
   """
@@ -112,7 +112,6 @@ class ResultsTable():
     return np.vectorize(lambda x: len(x))(self.TABLE)
 
 
-
   def rm(self,cond,INV=False):
     """
     Delete configs where cond is True.
@@ -164,6 +163,36 @@ class ResultsTable():
           ds['cnames'][i] = re.sub(regex, sub, cfg)
     self.regen_table()
 
+
+  def __deepcopy__(self, memo):
+    """
+    Implement __deepcopy__ to make it faster.
+
+    We only need to copy the datasets.
+    Then regen_table essentially re-inits the object.
+
+    The speed-up is obtained by stopping the 'deep' copying
+    at the level of the arrays containing the avrgs.
+      This is admissible because the entries of avrgs
+      should never be modified, only deleted.
+    """
+    cls = self.__class__
+    new = cls.__new__(cls)
+    memo[id(self)] = new
+    new.datasets = OrderedDict()
+
+    for k, ds in self.datasets.items():
+      new.datasets[k] = {
+          'settings':deepcopy(ds['settings']),
+          'cnames'  :deepcopy(ds['cnames']),
+          'avrgs'   :np.empty(ds['avrgs'].shape,dict)
+          }
+      for idx, avrg in np.ndenumerate(ds['avrgs']):
+        # 'shallow' copy of the entry
+        new.datasets[k]['avrgs'][idx] = copy(avrg)
+
+    new.regen_table()
+    return new
 
   def __repr__(self):
     s = "datasets from " + str(self.patterns)
