@@ -116,14 +116,35 @@ def printoptions(*args, **kwargs):
     yield 
     np.set_printoptions(**original)
 
-# Temporarily set values
-@contextlib.contextmanager
-def tmp_val(obj,attr,val):
-    tmp = getattr(obj,attr)
-    setattr(obj,attr,val)
-    yield 
-    setattr(obj,attr,tmp)
+# # Temporarily set attribute values
+# @contextlib.contextmanager
+# def set_tmp(obj,attr,val):
+#     tmp = getattr(obj,attr)
+#     setattr(obj,attr,val)
+#     yield 
+#     setattr(obj,attr,tmp)
 
+@contextlib.contextmanager
+def set_tmp(obj, attr, val):
+    """
+    Temporarily set an attribute.
+    code.activestate.com/recipes/577089
+    """
+    was_there = False
+    tmp = None
+    if hasattr(obj, attr):
+      try:
+        if attr in obj.__dict__:
+          was_there = True
+      except AttributeError:
+        if attr in obj.__slots__:
+          was_there = True
+      if was_there:
+        tmp = getattr(obj, attr)
+    setattr(obj, attr, val)
+    yield #was_there, tmp
+    if not was_there: delattr(obj, attr)
+    else:             setattr(obj, attr, tmp)
 
 
 import tools.tabulate as tabulate_orig
@@ -253,7 +274,7 @@ class AlignedDict(OrderedDict):
   def __init__(self,*args,**kwargs):
     super().__init__(*args,**kwargs)
   def __str__(self):
-    L = max(len(s) for s in self.keys())
+    L = max([len(s) for s in self.keys()], default=0)
     s = " "
     for key in self.keys():
       s += key.rjust(L)+": "+repr(self[key])+"\n "
@@ -304,14 +325,16 @@ def get_numbering(glb):
   ls = glob.glob(glb+'*')
   return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
 
-from os import makedirs
+def rel_path(path,start=None,ext=False):
+  path = os.path.relpath(path,start)
+  if not ext:
+    path = os.path.splitext(path)[0]
+  return path
+
 def save_dir(filepath):
   """Make dir DAPPER/data/filepath_without_ext"""
-  dirpath = 'data' \
-      + os.path.sep\
-      + os.path.splitext(os.path.relpath(filepath))[0]\
-      + os.path.sep
-  makedirs(dirpath, exist_ok=True)
+  dirpath  = os.path.join('data',rel_path(filepath),'')
+  os.makedirs(dirpath, exist_ok=True)
   return dirpath
 
 def prep_run(path,prefix):
@@ -397,7 +420,7 @@ def distribute(script,sysargs,settings,prefix='',max_core=999):
       # which is very inefficient in the typical experiment.
       # As you can see, enforcing single-CPU use is platform dependent,
       # so you might have to adapt the above code to your platform.
-    elif sysargs[1]=='EXPENDABLE':
+    elif sysargs[1]=='EXPENDABLE' or sysargs[1]=='DISPOSABLE':
       save_path = 'data/expendable'
     else:
       raise ValueError('Could not interpret sys.args[1]')
