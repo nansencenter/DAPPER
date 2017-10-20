@@ -5,25 +5,23 @@ from common import *
 seed(2)
 
 # Note: seed(6) gives yields ICs that are in the basin for
-# the tiny-variability limit cycle at $c=50$,
+# the tiny-variability limit cycle at $c=50$ (with Wilks setup),
 # as can be seen by plotting up to T = 0.005 * 10**4.
 
 ###########################
 # Setup
 ###########################
-import mods.LorenzXY.core as LXY
-LXY.c = 150
-from mods.LorenzXY.core import *
-from mods.LorenzXY.wilks05_full import plot_state
+from mods.LorenzXY.wilks05 import LXY
+nX = LXY.nX
 
 K  = 2000
-dt = 0.001
+dt = 0.005
 t0 = np.nan
 
-x0 = 0.01*randn(m)
+x0 = 0.01*randn(LXY.m)
 
-true_step  = with_rk4(dxdt      ,autonom=True)
-model_step = with_rk4(dxdt_trunc,autonom=True)
+true_step  = with_rk4(LXY.dxdt      ,autonom=True)
+model_step = with_rk4(LXY.dxdt_trunc,autonom=True)
 
 ###########################
 # Compute truth trajectory
@@ -33,7 +31,10 @@ x0 = true_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
 xx = true_K(x0,K        ,t0,dt)
 
 # ACF - make K to see periodicity
-#plt.plot( mean( auto_cov(xx[:,:nX],L=K,corr=1), axis=1) )
+fig = plt.figure(3)
+ax  = plt.gca()
+ax.plot( mean( auto_cov(xx[:,:nX],L=K,corr=1), axis=1) )
+plt.pause(0.1)
 
 ###########################
 # Lyapunov estimation
@@ -44,7 +45,7 @@ if False:
   E   = xx[0] + eps*U
   LL_exp = zeros((K,LXY.m))
   tt     = dt*(1+arange(K))
-  for k,t in progbar(enumerate(tt),desc='Lyap'):
+  for k,t in enumerate(progbar(tt,desc='Lyap')):
     E         = true_step(E,99,dt)
     E         = (E-xx[k+1]).T/eps
     [Q, R]    = sla.qr(E,mode='economic')
@@ -68,8 +69,9 @@ if False:
 ###########################
 if True:
   plt.figure(2)
-  setter = plot_state(xx[0])
   ax = plt.gca()
+  ax.clear()
+  setter = LXY.plot_state(xx[0])
   for k in progbar(range(K),'plot'):
     if not k%(4*(int(0.005/dt))):
       setter(xx[k])
@@ -77,13 +79,16 @@ if True:
       plt.pause(0.01)
 
 
+###########################
+# Properties as a func of:
+# (setting: Wilks2005)
+###########################
 # h:   Var(xx[:,:nX])
 # 0.1: 56.25
 # 0.5: 43.91
 # 1.0: 25.96
 # 2.5: 0.123
 # 3.0: 0.057
-
 
 # c:    varX:  n0:  
 # 1.00  54.62  59

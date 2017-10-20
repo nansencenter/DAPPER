@@ -7,11 +7,19 @@ plt.style.use('AdInf/paper.mplstyle')
 
 # Setup
 sd0 = seed(4)
-from mods.LorenzXY.core import nX,J,m
-from mods.LorenzXY.wilks05_full import setup
+from mods.LorenzXY.wilks05 import LXY
+nX, J = LXY.nX, LXY.J
+
 dt = 0.005
-setup.t = Chronology(dt,dt,round2(6,dt))
-xx,yy = simulate(setup)
+t0 = np.nan
+K  = int(6/dt)
+
+step_1 = with_rk4(LXY.dxdt,autonom=True)
+step_K = make_recursive(step_1,with_prog=1)
+
+x0 = 0.01*randn(LXY.m)
+x0 = step_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
+xx = step_K(x0,K        ,t0,dt)
 
 # Grab parts of state vector
 ii = arange(nX+1)
@@ -27,7 +35,7 @@ def Xi(xx):
 plt.figure(1)
 lhX   = plt.plot(arange(nX+1)    ,xx[-1][circX],'b',lw=3)[0]
 lhY   = plt.plot(arange(nX*J+1)/J,xx[-1][circY],'g',lw=2)[0]
-for k in progbar(range(setup.t.K),'Plotting'):
+for k in progbar(range(K),'Plotting'):
   lhX.set_ydata(xx[k][circX])
   lhY.set_ydata(xx[k][circY])
   plt.pause(0.001)
@@ -70,7 +78,7 @@ def tY(zz):
 plt.figure(3)
 lhX   = plt.plot(*tX(xx[-1][circX]),'b',lw=3)[0]
 lhY   = plt.plot(*tY(xx[-1][circY]),'g',lw=1)[0]
-for k in progbar(range(setup.t.K),'Plotting'):
+for k in progbar(range(K),'Plotting'):
   dataX = tX(xx[k][circX])
   dataY = tY(xx[k][circY])
   lhX.set_xdata(dataX[0])
@@ -88,7 +96,7 @@ plt.plot(*tX(4.52*np.ones_like(circX)),color='k',lw=1)[0]
 plt.plot(*tY(0.15*np.ones_like(circY)),color='k',lw=1)[0]
 ax = fg.axes[0]
 ax.set_axis_off()
-ax.set_axis_bgcolor('white')
+ax.set_facecolor('white')
 ax.set_aspect('equal')
 L = 40 # Num of lines to plot
 for p in range(L):
