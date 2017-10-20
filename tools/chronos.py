@@ -103,10 +103,6 @@ class Chronology:
   def K(self,value):
     self.__init__(dt=self.dt,dkObs=self.dkObs,K=value,BurnIn=self.BurnIn)
 
-  def copy(self):
-    "Copy via state vars."
-    return Chronology(dt=self.dt,dkObs=self.dkObs,K=self.K,BurnIn=self.BurnIn)
-
   ######################################
   # Read/write (though not state var)
   ######################################
@@ -188,6 +184,19 @@ class Chronology:
     return str(AlignedDict([(k, getattr(self,k)) for k in printable]))
   def __repr__(self):
     return repr_type_and_name(self) + "\n" + str(self)
+
+  ######################################
+  # Utilities
+  ######################################
+  def copy(self):
+    "Copy via state vars."
+    return Chronology(dt=self.dt,dkObs=self.dkObs,K=self.K,BurnIn=self.BurnIn)
+  def __eq__(self, other):
+    if isinstance(other, self.__class__):
+      return self.__dict__ == other.__dict__
+    return False
+  def __ne__(self, other):
+    return not self.__eq__(other)
 
 
 class Ticker:
