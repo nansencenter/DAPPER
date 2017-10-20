@@ -4,7 +4,7 @@ from common import *
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.axes_grid.inset_locator import inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from matplotlib import colors
 from matplotlib.ticker import MaxNLocator
@@ -56,7 +56,7 @@ class LivePlot:
     # Dashboard
     #####################
     if 1 in only and m<4001:
-      self.fga = plt.figure(1,figsize=(8,8))
+      self.fga = plt.figure(1,figsize=(6,6))
       self.fga.clf()
       win_title(self.fga, "Dashboard")
       set_figpos('2311')
@@ -141,7 +141,8 @@ class LivePlot:
         #
         axC.figure.colorbar(mesh,cax=cax,orientation='horizontal')
         plt.box(False)
-        axC.set_axis_bgcolor('w')
+        #axC.set_axis_bgcolor('w')
+        axC.set_facecolor('w') 
         axC.yaxis.tick_right()
         tcks = tcks[np.logical_and(tcks >= ii[0], tcks <= ii[-1])]
         tcks = tcks.astype(int)
@@ -206,7 +207,7 @@ class LivePlot:
     # Diagnostics
     #####################
     if 2 in only:
-      self.fgd = plt.figure(2,figsize=(8,6))
+      self.fgd = plt.figure(2,figsize=(5,3.5))
       self.fgd.clf()
       win_title(self.fgd,"Scalar diagnostics")
       set_figpos('2312')
@@ -306,13 +307,14 @@ class LivePlot:
     # 3D phase space
     #####################
     if 3 in only and m<41:
-      self.fg3 = plt.figure(3,figsize=(8,6))
+      self.fg3 = plt.figure(3,figsize=(5,3.5))
       self.fg3.clf()
       win_title(self.fg3,"3D trajectories")
       set_figpos('2321')
 
       ax3      = self.fg3.add_subplot(111,projection='3d')
       self.ax3 = ax3
+      self.fg3.set_tight_layout(True)
 
       tail_k = max(2,int(1/dt))
       
@@ -353,7 +355,7 @@ class LivePlot:
     # Weight histogram
     #####################
     if 4 in only and E is not None and stats._has_w:
-      fgh = plt.figure(4,figsize=(8,4))
+      fgh = plt.figure(4,figsize=(6,3))
       fgh.clf()
       win_title(fgh,"Weight histogram")
       set_figpos('2321')
@@ -383,7 +385,7 @@ class LivePlot:
     #####################
     if 9 in only:
       if hasattr(setup.f,'plot'):
-        self.fgu = plt.figure(9,figsize=(8,8))
+        self.fgu = plt.figure(9,figsize=(6,6))
         self.fgu.clf()
         win_title(self.fgu,"Custom")
         set_figpos('2322')
@@ -924,7 +926,7 @@ def plot_time_series(stats,dim=0,**kwargs):
   xx     = stats.xx
   chrono = stats.setup.t
 
-  fg = plt.figure(12,figsize=(8,8)).clf()
+  fg = plt.figure(12,figsize=(6,6)).clf()
   set_figpos('1313 mac')
 
   kk,kkA = get_plot_inds(xx[:,dim],chrono,mult=80,**kwargs)
@@ -980,7 +982,7 @@ def plot_hovmoller(xx,chrono=None,**kwargs):
   """
   #cm = mpl.colors.ListedColormap(sns.color_palette("BrBG", 256)) # RdBu_r
   #cm = plt.get_cmap('BrBG')
-  fgH = plt.figure(16,figsize=(6,5)).clf()
+  fgH = plt.figure(16,figsize=(4,3.5)).clf()
   set_figpos('3311 mac')
   axH = plt.subplot(111)
 
@@ -1040,7 +1042,7 @@ def plot_err_components(stats):
         the singular values (svals) correspond to rotated MADs,
         and because rms(umisf) seems to convoluted for interpretation.
   """
-  fgE = plt.figure(15,figsize=(8,8)).clf()
+  fgE = plt.figure(15,figsize=(6,6)).clf()
   set_figpos('1312 mac')
 
   chrono = stats.setup.t
@@ -1103,7 +1105,7 @@ def plot_rank_histogram(stats):
     """Test inital & final weights, not intermediate (for speed)."""
     (w[0]==1/N).all() and (w[-1]==1/N).all()
 
-  fg = plt.figure(13,figsize=(8,4)).clf()
+  fg = plt.figure(13,figsize=(6,3)).clf()
   set_figpos('3331 mac')
   #
   ax_H = plt.subplot(111)
