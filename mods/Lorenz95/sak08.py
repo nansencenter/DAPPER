@@ -74,6 +74,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 # t = Chronology(0.01,dkObs=1,T=4**4,BurnIn=20)
 
 # Reproduce Fig 7a of Bocquet'2014 "an iterative EnKS"
+# Similar settings also in Fig 7.3 of DA book by Asch, Bocquet, Nodet.
 #cfgs += iEnKS('-N', N=20,Lag=10,nu=2.0)                  # 0.163
 #cfgs += iEnKS('-N', N=20,Lag=20,nu=2.0)                  # 0.160 
 # using setup.t.dkObs = 8:
