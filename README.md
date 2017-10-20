@@ -50,16 +50,20 @@ Alternatively, see the `tutorials` folder for an intro to DA.
   
 Installation
 ------------------------------------------------
-Prerequisite: python3.5+ with
-`scipy`, `matplotlib`, `pandas`, `tqdm`.
-This can be got (e.g.) from [anaconda](https://www.continuum.io/downloads).
+Prerequisite: `python3.5+` with
+`scipy`, `matplotlib`, `pandas`.
+This is all comes with [anaconda](https://www.continuum.io/downloads)
+by default.
 
-Download, extract, and `cd` to DAPPER. To test it, run:
+Download, extract the DAPPER folder, and `cd` into it. To test it, run:
 
     python -i example_1.py
 
 For the tutorials, you will also need
 `jupyter` and the `markdown` package.
+
+It is also recommended to install `tqdm` (e.g. `pip install tqdm`).
+
 
 
 Methods
@@ -99,11 +103,11 @@ Lin. Advect.| Yes     | 1D        | 1000 *    | 51       | Evensen/Raanes
 Lorenz63    | No      | 0D        | 3         | 2        | Lorenz/Sakov
 Lorenz84    | No      | 0D        | 3         | 2        | Lorenz/Raanes
 Lorenz95    | No      | 1D        | 40 *      | 13       | Lorenz/Raanes
-LorenzXY    | No      | 2x 1D     | 256 + 8 * | ≈13      | Lorenz/Raanes
-MAOOAM      | No      | 2x 1D     | 36        | ?        | Tondeur/Vannitsem
-Quasi-Geost | No      | 2D        | 129²≈17k  | ≈135     | Sakov
+LorenzXY    | No      | 2x 1D     | 256 + 8 * | ≈60      | Lorenz/Raanes
+MAOOAM      | No      | 2x 1D     | 36        | ?        | Vannitsem/Tondeur
+Quasi-Geost | No      | 2D        | 129²≈17k  | ?        | Sakov
 
-*: straightforward to vary.
+*: can be changed
 
 
 Additional features
