@@ -9,9 +9,17 @@ from copy import deepcopy, copy
 
 class ResultsTable():
   """
-  A 3D table (2D-array of 1D-lists of varying length)
-  where element TABLE[iC,iS][iRep] contains
-  all available fields of time-average statistics.
+  Load avrgs (array of dicts of fields of time-average statistics)
+    from .npz files which also contain arrays 'abscissa' and 'labels'.
+    Assumes avrgs.shape == (len(abscissa),nRepeat,len(labels)).
+  Merge (stack) into a TABLE with shape (len(labels),len(abscissa)).
+    THUS, all results for a given label/abscissa are easily indexed,
+    and don't even have to be of the same length
+    (TABLE[iC,iS] is a list of the avrgs for that (label,absissa)).
+  Also provides functions taht partitions the TABLE.
+
+  NB: the TABLE is just convenience:
+      the internal state of ResultsTable is the dict of datasets.
 
   Examples:
 
@@ -40,7 +48,6 @@ class ResultsTable():
   def load(self,pattern):
     """
     Load datasets into the "datasets",
-    which holds the internal state of the ResultsTable.
     Call regen_table.
     """
     self.patterns = getattr(self,'patterns',[]) + [pattern]
@@ -69,22 +76,22 @@ class ResultsTable():
   def regen_table(self):
     """
     from datasets, do:
-     - assemble cnames and settings
+     - assemble labels and abscissa
      - generate corresponding TABLE 
     """
-    settings = []
-    cnames   = []
+    abscissa = []
+    labels   = []
     for ds in self.datasets.values():
-      settings += [ds['settings']]
-      cnames   += [ds['cnames']]
-    # Make cnames and settings unique
+      abscissa += [ds['abscissa']]
+      labels   += [ds['labels']]
+    # Make labels and abscissa unique
     def retain_order_uniq(ar):
       _, inds = np.unique(ar,return_index=True)
       return ar[np.sort(inds)]
-    settings = np.sort(np.unique(ccat(*settings)))
-    cnames   = retain_order_uniq(ccat(*cnames))
-    self.settings = settings
-    self.cnames   = cnames
+    abscissa = np.sort(np.unique(ccat(*abscissa)))
+    labels   = retain_order_uniq(ccat(*labels))
+    self.abscissa = abscissa
+    self.labels   = labels
 
     # Init
     TABLE  = np.empty(self.shape,object)
@@ -93,17 +100,17 @@ class ResultsTable():
     # Fill
     fields = set()
     for ds in self.datasets.values():
-      for iC,C in enumerate(ds['cnames']):
-        for iS,S in enumerate(ds['settings']):
+      for iC,C in enumerate(ds['labels']):
+        for iS,S in enumerate(ds['abscissa']):
           avrgs = ds['avrgs'][iS,:,iC].tolist()
-          TABLE[cnames==C,settings==S][0] += avrgs
+          TABLE[labels==C,abscissa==S][0] += avrgs
           fields |= set().union(*(a.keys() for a in avrgs))
     self.TABLE  = TABLE
     self.fields = fields
 
   @property
   def shape(self):
-    return (len(self.cnames),len(self.settings))
+    return (len(self.labels),len(self.abscissa))
 
   # The number of experiments for a given Config and Setting [iC,iS]
   # may differ (and may be 0). Generate 2D table counting it.
@@ -130,13 +137,13 @@ class ResultsTable():
       elif isinstance(cond,str):
         match = bool(re.search(cond,name))
       else: # assume indices
-        match = name in self.cnames[cond]
+        match = name in self.labels[cond]
       # Use xnor to inverse (if INV)
       return not (not(INV) ^ match) 
 
     for ds in self.datasets.values():
-      ii = [i for i,name in enumerate(ds['cnames']) if _cond(name)]
-      ds['cnames'] = np.delete(ds['cnames'], ii)
+      ii = [i for i,name in enumerate(ds['labels']) if _cond(name)]
+      ds['labels'] = np.delete(ds['labels'], ii)
       ds['avrgs']  = np.delete(ds['avrgs'] , ii, axis=-1)
       # stackoverflow.com/q/46611571
       ds['avrgs']  = np.ascontiguousarray(ds['avrgs'])
@@ -154,13 +161,13 @@ class ResultsTable():
     Remove space between "tag XX": Res.mv(r'tag (\d+)',r'tag\1')                                          # change "tag 50" to "tag50" => merge such configsregex: search pattern
 
     sub:   substitution pattern
-    inds:  restrict to these inds of table's cnames
+    inds:  restrict to these inds of table's labels
     """
     if isinstance(inds,int): inds = [inds]
     for ds in self.datasets.values():
-      for i,cfg in enumerate(ds['cnames']):
-        if inds is None or cfg in self.cnames[inds]:
-          ds['cnames'][i] = re.sub(regex, sub, cfg)
+      for i,cfg in enumerate(ds['labels']):
+        if inds is None or cfg in self.labels[inds]:
+          ds['labels'][i] = re.sub(regex, sub, cfg)
     self.regen_table()
 
 
@@ -179,12 +186,13 @@ class ResultsTable():
     cls = self.__class__
     new = cls.__new__(cls)
     memo[id(self)] = new
+    new.patterns = deepcopy(self.patterns)
     new.datasets = OrderedDict()
 
     for k, ds in self.datasets.items():
       new.datasets[k] = {
-          'settings':deepcopy(ds['settings']),
-          'cnames'  :deepcopy(ds['cnames']),
+          'abscissa':deepcopy(ds['abscissa']),
+          'labels'  :deepcopy(ds['labels']),
           'avrgs'   :np.empty(ds['avrgs'].shape,dict)
           }
       for idx, avrg in np.ndenumerate(ds['avrgs']):
@@ -196,11 +204,11 @@ class ResultsTable():
 
   def __repr__(self):
     s = "datasets from " + str(self.patterns)
-    if hasattr(self,'settings'):
-      s +="\nsettings: "      +str(self.settings)+\
+    if hasattr(self,'abscissa'):
+      s +="\nabscissa: "      +str(self.abscissa)+\
           "\nfields: "        +str(self.fields)+\
           "\n\n"+\
-          "\n".join(["[{0:2d}] {1:s}".format(i,name) for i,name in enumerate(self.cnames)])
+          "\n".join(["[{0:2d}] {1:s}".format(i,name) for i,name in enumerate(self.labels)])
     return s
         
         
@@ -248,8 +256,8 @@ class ResultsTable():
   def print_frame(self,frame):
     "Print single frame"
     for iC,row in enumerate(frame):
-      row.insert(0,self.cnames[iC])
-    print(tabulate_orig.tabulate(frame,headers=self.settings,missingval=''))
+      row.insert(0,self.labels[iC])
+    print(tabulate_orig.tabulate(frame,headers=self.abscissa,missingval=''))
 
   def print_field(self,field3D):
     "Loop over repetitions, printing Config-by-Setting tables."
@@ -265,7 +273,7 @@ class ResultsTable():
     show_conf: include confidence estimate (±).
     show_fail: include number of runs that yielded NaNs (#).
                if False but NaNs are present: print NaN for the mean value.
-    jj: indices of columns (experiment settings) to include. Default: all
+    jj: indices of columns (experiment abscissa) to include. Default: all
     """
 
     mu, conf, nSuc = self.mean_field(field)
@@ -278,19 +286,19 @@ class ResultsTable():
     # Set mean values to NaN wherever NaNs are present
     if not show_fail: mu[nFail.astype(bool)] = np.nan
 
-    if col_inds is None: col_inds = arange(len(self.settings))
+    if col_inds is None: col_inds = arange(len(self.abscissa))
 
     headr = ['name']
-    mattr = [self.cnames.tolist()]
+    mattr = [self.labels.tolist()]
 
     # Fill in stats
     for iS in col_inds:
-      S = self.settings[iS]
+      S = self.abscissa[iS]
       # Generate column. Include header for cropping purposes
       col = [('{0:@>6g} {1: <'+NF+'s}').format(S,'#')]
       if show_fail: col[0] += (' {0: <'+NF+'s}').format('X')
       if show_conf: col[0] += ' ±'
-      for iC in range(len(self.cnames)):
+      for iC in range(len(self.labels)):
         # Format entry
         nRep = nReps[iC][iS]
         val  = mu   [iC][iS]
@@ -316,8 +324,8 @@ class ResultsTable():
 
   def plot_mean_field(self,field):
     mu = self.mean_field(field)[0]
-    for iC,(row,name) in enumerate(zip(mu,self.cnames)): 
-      plt.plot(self.settings,row,'-o',label=name)
+    for iC,(row,name) in enumerate(zip(mu,self.labels)): 
+      plt.plot(self.abscissa,row,'-o',label=name)
 
 
 
