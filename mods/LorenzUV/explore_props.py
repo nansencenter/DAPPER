@@ -11,17 +11,17 @@ seed(2)
 ###########################
 # Setup
 ###########################
-from mods.LorenzXY.wilks05 import LXY
-nX = LXY.nX
+from mods.LorenzUV.wilks05 import LUV
+nX = LUV.nX
 
 K  = 2000
 dt = 0.005
 t0 = np.nan
 
-x0 = 0.01*randn(LXY.m)
+x0 = 0.01*randn(LUV.m)
 
-true_step  = with_rk4(LXY.dxdt      ,autonom=True)
-model_step = with_rk4(LXY.dxdt_trunc,autonom=True)
+true_step  = with_rk4(LUV.dxdt      ,autonom=True)
+model_step = with_rk4(LUV.dxdt_trunc,autonom=True)
 
 ###########################
 # Compute truth trajectory
@@ -41,9 +41,9 @@ plt.pause(0.1)
 ###########################
 if False:
   eps = 0.001
-  U   = eye(LXY.m)
+  U   = eye(LUV.m)
   E   = xx[0] + eps*U
-  LL_exp = zeros((K,LXY.m))
+  LL_exp = zeros((K,LUV.m))
   tt     = dt*(1+arange(K))
   for k,t in enumerate(progbar(tt,desc='Lyap')):
     E         = true_step(E,99,dt)
@@ -56,7 +56,7 @@ if False:
   running_LS = ( tp(1/tt) * np.cumsum(LL_exp,axis=0) )
   LS         = running_LS[-1]
   n0 = sum(LS >= 0)
-  print('c: ', LXY.c)
+  print('c: ', LUV.c)
   print('var X: ', np.var(xx[:,:nX]))
   print('n0: ', n0)
   #
@@ -71,7 +71,7 @@ if True:
   plt.figure(2)
   ax = plt.gca()
   ax.clear()
-  setter = LXY.plot_state(xx[0])
+  setter = LUV.plot_state(xx[0])
   for k in progbar(range(K),'plot'):
     if not k%(4*(int(0.005/dt))):
       setter(xx[k])

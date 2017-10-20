@@ -16,45 +16,42 @@ def plot_best(ax,RT,field,color,label,**ls):
 
 
 ##############################
-# LorenzXY Wilks: vs speed-ratio (c)
+# LorenzUV Wilks: vs speed-ratio (c)
 ##############################
 
 # # Full run
-# Base = ResultsTable('data/remote/AdInf/bench_LXY/c_run4')
+# Base = ResultsTable('data/remote/AdInf/bench_LUV/c_run4')
 # # Adds coordinate c=0.01. Unfortunately, uses slightly different infl values.
-# Base.load('data/remote/AdInf/bench_LXY/c_run5')
+# Base.load('data/remote/AdInf/bench_LUV/c_run5')
 # # Also adds c=0.01, but used explicitly NO parameterization for c=0.01.
-# #Base.load('data/remote/AdInf/bench_LXY/c_run7') 
+# #Base.load('data/remote/AdInf/bench_LUV/c_run7') 
 # Ro1, Base = Base.split('^EnKF ') # Ro1: EnKF
 # cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s)
 # Ro1_N, Base = Base.split(cond) # Ro1_N: EnKF_N
 # 
 # # Full run. Uses dt=0.005 also for truncated model (i.e. DA).
-# #Base = ResultsTable('data/remote/AdInf/bench_LXY/c_run9')  # 8 repetitions
-# #Base = ResultsTable('data/remote/AdInf/bench_LXY/c_run8') # only 1 repetition, with truth at c=50 in a tiny limit cycle
+# #Base = ResultsTable('data/remote/AdInf/bench_LUV/c_run9')  # 8 repetitions
+# #Base = ResultsTable('data/remote/AdInf/bench_LUV/c_run8') # only 1 repetition, with truth at c=50 in a tiny limit cycle
 
 ##############################
-# LorenzXY Lorenz: vs speed-ratio (c)
+# LorenzUV Lorenz: vs speed-ratio (c)
 ##############################
 
-# # 4x2 repetition, T=200, 40 data points.
-# Base = ResultsTable('data/remote/AdInf/bench_LXY/c_run1[2-5]')
-# Base.rm(r'EnKF_N (?!.*N:40 nu:2).*FULL') # rm EnKF_N FULL except (...)
-# Base.rm([1,2,6]) # rm inds 1,2,4
-# Ro1, Base = Base.split('^EnKF ') # Ro1: EnKF
-# cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s)
-# Ro1_N, Base = Base.split(cond) # Ro1_N: EnKF_N
-# 
-# # Adds detpO0
-# Ro0 = ResultsTable('data/remote/AdInf/bench_LXY/c_run1[6-9]')
-# Ro0_N, Ro0 = Ro0.split('EnKF_N')
-# # # Adds detpO2 -- quite unstable
-# # Ro2 = ResultsTable('data/remote/AdInf/bench_LXY/c_run2[4-7]')
-# # # Adds detpO4 -- more unstable
-# # Ro4 = ResultsTable('data/remote/AdInf/bench_LXY/c_run2[0-3]')
+# 4x2 repetition, T=200, 40 data points.
+Base = ResultsTable('data/remote/AdInf/bench_LUV/c_run1[2-5]')
+Base.rm(r'EnKF_N (?!.*N:40 nu:2).*FULL') # rm EnKF_N FULL except (...)
+Base.rm([1,2,6]) # rm inds 1,2,4
+Ro1, Base = Base.split('^EnKF ') # Ro1: EnKF
+cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s)
+Ro1_N, Base = Base.split(cond) # Ro1_N: EnKF_N
 
-Base = ResultsTable('data/remote/AdInf/bench_LXY/c_run(2[89]|3[01])')
-
+# Adds detpO0
+Ro0 = ResultsTable('data/remote/AdInf/bench_LUV/c_run1[6-9]')
+Ro0_N, Ro0 = Ro0.split('EnKF_N')
+# # Adds detpO2 -- quite unstable
+# Ro2 = ResultsTable('data/remote/AdInf/bench_LUV/c_run2[4-7]')
+# # Adds detpO4 -- more unstable
+# Ro4 = ResultsTable('data/remote/AdInf/bench_LUV/c_run2[0-3]')
 
 ##############################
 # Plot

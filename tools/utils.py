@@ -366,7 +366,7 @@ def distribute(script,sysargs,settings,prefix='',max_core=999):
   depending on sysargs.
   Return corresponding settings and save_path.
 
-  See AdInf/bench_LXY.py for example use.
+  See AdInf/bench_LUV.py for example use.
 
   Tip: to also parallelize repetitions, insert this above the call to distribute():
   # Duplicate settings to parallelize repetitions:

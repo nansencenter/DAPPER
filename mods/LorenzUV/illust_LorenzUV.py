@@ -7,17 +7,17 @@ plt.style.use('AdInf/paper.mplstyle')
 
 # Setup
 sd0 = seed(4)
-from mods.LorenzXY.wilks05 import LXY
-nX, J = LXY.nX, LXY.J
+from mods.LorenzUV.wilks05 import LUV
+nX, J = LUV.nX, LUV.J
 
 dt = 0.005
 t0 = np.nan
 K  = int(6/dt)
 
-step_1 = with_rk4(LXY.dxdt,autonom=True)
+step_1 = with_rk4(LUV.dxdt,autonom=True)
 step_K = make_recursive(step_1,with_prog=1)
 
-x0 = 0.01*randn(LXY.m)
+x0 = 0.01*randn(LUV.m)
 x0 = step_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
 xx = step_K(x0,K        ,t0,dt)
 

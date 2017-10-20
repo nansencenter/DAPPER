@@ -24,8 +24,8 @@ class ResultsTable():
   Examples:
 
   # COMPOSING THE DATABASE OF RESULTS
-  # Res = ResultsTable('data/AdInf/bench_LXY/c_run[1-3]')                       # Load by regex
-  # Res.load('data/AdInf/bench_LXY/c_run7')                                     # More loading
+  # Res = ResultsTable('data/AdInf/bench_LUV/c_run[1-3]')                       # Load by regex
+  # Res.load('data/AdInf/bench_LUV/c_run7')                                     # More loading
   # Res.mv(r'tag (\d+)',r'tag\1')                                               # change "tag 50" to "tag50" => merge such configs
   # Res.rm([0, 1, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16])                          # rm uninteresting configs
   # Res.rm('EnKF[^_]')                                                          # rm EnKF but not EnKF_N

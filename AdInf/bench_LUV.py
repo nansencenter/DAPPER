@@ -1,4 +1,4 @@
-# Benchmarks with model error in the LorenzXY system.
+# Benchmarks with model error in the LorenzUV system.
 
 from common import *
 from AdInf.filters import *
@@ -18,7 +18,7 @@ settings, save_path = distribute(__file__,sys.argv,settings,SETTING)
 
 # For each experiment:
 nRepeat = 1 # number of repeats
-T = 50     # length (unitless time)
+T = 20     # length (unitless time)
 
 # Polynom. order of determ. error parameterizt.
 # Order 2,3,4 only really work around c=10.
@@ -29,9 +29,9 @@ ORDER = 1
 # Setup
 ##############################
 
-#from mods.LorenzXY.wilks05  import setup_full, setup_trunc, LXY
-from mods.LorenzXY.lorenz95 import setup_full, setup_trunc, LXY
-nX = LXY.nX # num of "X"-vars
+#from mods.LorenzUV.wilks05  import setup_full, setup_trunc, LUV
+from mods.LorenzUV.lorenz95 import setup_full, setup_trunc, LUV
+nX = LUV.nX # num of "X"-vars
 
 tF = setup_full .t; tF.T = T
 tT = setup_trunc.t; tT.T = T;
@@ -42,7 +42,7 @@ dk = validate_int(tT.dt / tF.dt)
 ##############################
 
 # Estimate linear (deterministic) parameterization of unresovled scales.
-# See mods/LorenzXY/illust_parameterizations.py for more details.
+# See mods/LorenzUV/illust_parameterizations.py for more details.
 # Yields "good enough" estimates for T>100.
 # Little diff whether using dt of setup_trunc or setup_full.
 def estimate_parameterization(xx,order):
@@ -54,7 +54,7 @@ def estimate_parameterization(xx,order):
       TC  = TC[::dk]                 
       dt_ = tT.dt
       
-    with set_tmp(LXY,'prmzt',lambda t,x: 0): # No parameterization
+    with set_tmp(LUV,'prmzt',lambda t,x: 0): # No parameterization
       for k,x in enumerate(progbar(TC[:-1],desc='Paramzt')):
         Mod   = setup_trunc.f(x,np.nan,dt_)
         Diff  = Mod - TC[k+1]
@@ -69,11 +69,11 @@ def true_coupling(xx):
   coupling = zeros(nX)
   # RK4 uses intermediate stages => use a range.
   kk  = lambda t: (t-.9*tF.dt < tF.tt) & (tF.tt < t+.9*tF.dt)
-  hcb = LXY.h*LXY.c/LXY.b
+  hcb = LUV.h*LUV.c/LUV.b
   def inner(t,E):
     Y_vars = xx[kk(t),nX:]
     for i in range(nX):
-      coupling[i] = hcb * np.mean(Y_vars[:,LXY.iiY[i]],0).sum()
+      coupling[i] = hcb * np.mean(Y_vars[:,LUV.iiY[i]],0).sum()
     return coupling
   return inner
 
@@ -152,15 +152,15 @@ avrgs = np.empty((len(settings),nRepeat,len(cfgs)),dict)
 
 for iS,S in enumerate(settings):
   print_c('\n'+SETTING+' value: ', S)
-  if   SETTING == 'c': LXY.c = S
-  elif SETTING == 'h': LXY.h = S
+  if   SETTING == 'c': LUV.c = S
+  elif SETTING == 'h': LUV.h = S
 
   for iR in range(nRepeat):
     sd = seed(sd0+iR)
 
     xx,yy = simulate_or_load(S,sd)
     
-    LXY.prmzt = estimate_parameterization(xx,ORDER)
+    LUV.prmzt = estimate_parameterization(xx,ORDER)
 
     for iC,Config in enumerate(cfgs):
       seed(sd)
@@ -172,7 +172,7 @@ for iS,S in enumerate(settings):
 
       # Case: DA should use trunc model but gets coupling from truth
       elif 'CHEAT' in getattr(Config,'name',''):
-        with set_tmp(LXY,'prmzt',true_coupling(xx)), set_tmp(setup_trunc,'t',tF):
+        with set_tmp(LUV,'prmzt',true_coupling(xx)), set_tmp(setup_trunc,'t',tF):
           stat = Config.assimilate(setup_trunc,xx[:,:nX],yy)
           avrg = stat.average_in_time()
 
