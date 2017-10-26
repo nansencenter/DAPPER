@@ -67,7 +67,7 @@ We can ignore all factors that do not depend on $x$.
 p(x|y) &= \frac{p(x) \, p(y|x)}{p(y)}
 \propto p(x) \, p(y|x) \\\
 &\propto N(x|b,B) \, N(y|x,R) \\\
-&\propto \exp \Big( \frac{-1}{2} \Big( (x-b)^2/B + (x-y)^2/B\Big) \Big) \\\
+&\propto \exp \Big( \frac{-1}{2} \Big( (x-b)^2/B + (x-y)^2/R \Big) \Big) \\\
 &\propto \exp \Big( \frac{-1}{2} \Big( (1/B + 1/R)x^2 - 2(b/B + y/R)x \Big) \Big) \\\
 &\propto \exp \Big( \frac{-1}{2} \Big( x - \frac{b/B + y/R}{1/B + 1/R} \Big)^2 \cdot (1/B + 1/R) \Big) \\\
 &\propto N(x|\mu,P) \, ,
@@ -92,7 +92,7 @@ answers['BR Gauss code'] = ['MD',r'''
     mu = P*(b/B+y/R)
     #     KG = B/(B+R)
     #     P  = (1-KG)*B
-    #     mu = b + KG*(y-mu)
+    #     mu = b + KG*(y-b)
 ''']
 
 answers['LinReg deriv'] = ['MD',r'''
@@ -117,7 +117,11 @@ answers['KF func'] = ['MD',r'''
     mua[k+1] = PPa[k+1] * (muf[k+1]/PPf[k+1] + yy[k]*H/R)
     #KG = PPf[k+1]*H / (H*PPf[k+1]*H + R)
     #PPa[k+1] = (1-KG)*PPf[k+1]
-    #mua[k+1] = muf[k+1]+KG*(y[k]-muf[k+1])
+    #mua[k+1] = muf[k+1]+KG*(yy[k]-muf[k+1])
+''']
+
+answers['KF KG fail'] = ['MD',r'''
+Because `PPa[0]` is infinite. And while the limit (as `PPf` goes to +infinity) of `KG = PPf*H / (H*PPf*H + R)` is `H (= 1)`, its numerical evaluation fails (as it should). Note that the infinity did not cause any problems numerically for the "weighted average" form.
 ''']
 
 answers['LinReg plot'] = ['MD',r'''

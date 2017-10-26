@@ -26,9 +26,6 @@ Gain:
  - Interpolates (from 0 to 1)
  - Convex combination
 
-KG derivation has error (similar)
-KG code has error: replace mu by b
-
 m_grid should be resolution
 d should be m
 
