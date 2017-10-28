@@ -37,7 +37,7 @@ T = 200      # length (unitless time)
 
 #from mods.LorenzUV.wilks05  import setup_full, setup_trunc, LUV
 from mods.LorenzUV.lorenz95 import setup_full, setup_trunc, LUV
-nX = LUV.nX # num of "U"-vars
+nU = LUV.nU # num of "U"-vars
 
 tF = setup_full .t; tF.T = T
 tT = setup_trunc.t; tT.T = T;
@@ -54,7 +54,7 @@ dk = validate_int(tT.dt / tF.dt)
 # There's little diff whether using dt of setup_trunc or setup_full.
 # Polynom order 2,3,4 only really work around c=10.
 def estimate_parameterization(xx):
-    TC = xx[tF.mask_BI,:nX] # Truth cropped to: burn-in and "U"-vars 
+    TC = xx[tF.mask_BI,:nU] # Truth cropped to: burn-in and "U"-vars 
     gg = np.zeros_like(TC)  # "Unresolved tendency"
     if True: # Estimate based on dt of setup_full
       dt_ = tF.dt
@@ -86,13 +86,13 @@ def estimate_parameterization(xx):
 
 # Yields coupling used by truth, except for intermediate RK4 stages
 def true_coupling(xx):
-  coupling = zeros(nX)
+  coupling = zeros(nU)
   # RK4 uses intermediate stages => use a range.
   kk  = lambda t: (t-.9*tF.dt < tF.tt) & (tF.tt < t+.9*tF.dt)
   hcb = LUV.h*LUV.c/LUV.b
   def inner(t,E):
-    Y_vars = xx[kk(t),nX:]
-    for i in range(nX):
+    Y_vars = xx[kk(t),nU:]
+    for i in range(nU):
       coupling[i] = hcb * np.mean(Y_vars[:,LUV.iiY[i]],0).sum()
     return coupling
   return inner
@@ -178,18 +178,18 @@ for iS,S in enumerate(settings):
       # Case: DA should use full model
       if 'FULL' in getattr(Config,'name',''):
         stat = Config.assimilate(setup_full,xx,yy)
-        avrg = stat.average_subset(range(nX))
+        avrg = stat.average_subset(range(nU))
 
       # Case: DA should use trunc model but gets coupling from truth
       elif 'CHEAT' in getattr(Config,'name',''):
         with set_tmp(LUV,'prmzt',true_coupling(xx)), set_tmp(setup_trunc,'t',tF):
-          stat = Config.assimilate(setup_trunc,xx[:,:nX],yy)
+          stat = Config.assimilate(setup_trunc,xx[:,:nU],yy)
           avrg = stat.average_in_time()
 
       # Case: DA uses trunc model with parameterization
       else:
         LUV.prmzt = prmzt[Config.detp]
-        stat = Config.assimilate(setup_trunc,xx[::dk,:nX],yy)
+        stat = Config.assimilate(setup_trunc,xx[::dk,:nU],yy)
         avrg = stat.average_in_time()
 
       #stats[iS,iR,iC] = stat

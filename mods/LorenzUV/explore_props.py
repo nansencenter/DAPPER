@@ -12,8 +12,8 @@ seed(2)
 # Setup
 ###########################
 from mods.LorenzUV.core import model_instance
-LUV = model_instance(nX=36,J=10,F=10,h=0.1)
-nX = LUV.nX
+LUV = model_instance(nU=36,J=10,F=10,h=0.1)
+nU = LUV.nU
 
 K  = 7000
 dt = 0.005
@@ -34,7 +34,7 @@ xx = true_K(x0,K        ,t0,dt)
 # ACF - make K to see periodicity
 fig = plt.figure(6)
 ax  = plt.gca()
-ax.plot( mean( auto_cov(xx[:,:nX],L=K,corr=1), axis=1) )
+ax.plot( mean( auto_cov(xx[:,:nU],L=K,corr=1), axis=1) )
 plt.pause(0.1)
 
 ###########################
@@ -58,7 +58,7 @@ if False:
   LS         = running_LS[-1]
   n0 = sum(LS >= 0)
   print('c: ', LUV.c)
-  print('var X: ', np.var(xx[:,:nX]))
+  print('var X: ', np.var(xx[:,:nU]))
   print('n0: ', n0)
   #
   plt.figure(7)
@@ -84,7 +84,7 @@ if False:
 # Properties as a func of:
 # (setting: Wilks2005)
 ###########################
-# h:   Var(xx[:,:nX])
+# h:   Var(xx[:,:nU])
 # 0.1: 56.25
 # 0.5: 43.91
 # 1.0: 25.96
