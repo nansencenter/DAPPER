@@ -415,7 +415,7 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
 
           if skk<1e-9: continue
 
-          # Update state (regression), with localization
+          # Update state (regress from y2), with localization
           # Localize
           local, coeffs = locf_at(j)
           if len(local) == 0: continue
@@ -577,7 +577,7 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
   This implementation favours the efficiency of the 'dual' formulation.
   The 'primal' formulation is there mainly to show equivalence
   (to the dual, provided the same minimum is found by the optimizers),
-  and to allow comparison with iEnKS_N(), which uses the full, non-lin h.
+  and to allow comparison with iEnKS(), which uses the full, non-lin h.
 
   'infl' should be unnecessary.
 

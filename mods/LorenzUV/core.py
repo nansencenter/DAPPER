@@ -35,12 +35,12 @@ class model_instance():
   Use OOP to facilitate having multiple parameter settings simultaneously.
   Default parameters from Wilks'2005.
   """
-  def __init__(self,nX=8,J=32,F=20,h=1,b=10,c=10):
+  def __init__(self,nU=8,J=32,F=20,h=1,b=10,c=10):
     
     # System size
-    self.nX = nX       # num of X
+    self.nU = nU       # num of X
     self.J  = J        # num of Y per X  
-    self.m  = (J+1)*nX # => Total state length
+    self.m  = (J+1)*nU # => Total state length
 
     # Other parameters
     self.F  = F  # forcing
@@ -49,8 +49,8 @@ class model_instance():
     self.c  = c  # time scale ratio
 
     # Indices for coupling
-    self.iiX = (arange(J*nX)/J).astype(int)
-    self.iiY = arange(J*nX).reshape((nX,J))
+    self.iiX = (arange(J*nU)/J).astype(int)
+    self.iiY = arange(J*nU).reshape((nU,J))
 
 
   def dxdt_trunc(self,x):
@@ -58,29 +58,29 @@ class model_instance():
     Truncated dxdt: slow variables (X) only.
     Same as "uncoupled" Lorenz-95.
     """
-    assert x.shape[-1] == self.nX
+    assert x.shape[-1] == self.nU
     return -(s(x,-2)-s(x,1))*s(x,-1) - x + self.F
 
 
   def dxdt(self,x):
     """Full (coupled) dxdt."""
     # Split into X,Y
-    nX,J,h,b,c = self.nX,self.J,self.h,self.b,self.c
-    X  = x[...,:nX]
-    Y  = x[...,nX:]
+    nU,J,h,b,c = self.nU,self.J,self.h,self.b,self.c
+    X  = x[...,:nU]
+    Y  = x[...,nU:]
     assert Y.shape[-1] == J*X.shape[-1]
     d  = np.zeros_like(x)
 
     # dX/dt
-    d[...,:nX] = self.dxdt_trunc(X)
+    d[...,:nU] = self.dxdt_trunc(X)
     # Couple Y-->X
-    for i in range(nX):
+    for i in range(nU):
       d[...,i] += -h*c/b * np.sum(Y[...,self.iiY[i]],-1)
 
     # dY/dt
-    d[...,nX:] = -c*b*(s(Y,2)-s(Y,-1))*s(Y,1) - c*Y
+    d[...,nU:] = -c*b*(s(Y,2)-s(Y,-1))*s(Y,1) - c*Y
     # Couple X-->Y
-    d[...,nX:] += h*c/b * X[...,self.iiX]
+    d[...,nU:] += h*c/b * X[...,self.iiX]
 
     return d
 
@@ -98,40 +98,40 @@ class model_instance():
     """
     Jacobian of x + dt*dxdt.
     """
-    nX,J,h,b,c = self.nX,self.J,self.h,self.b,self.c
+    nU,J,h,b,c = self.nU,self.J,self.h,self.b,self.c
     assert is1d(x)
     F = np.zeros((ndim(),ndim()))
 
     # X
-    md = lambda i: np.mod(i,nX)
-    for i in range(nX):
+    md = lambda i: np.mod(i,nU)
+    for i in range(nU):
       # wrt. X
       F[i,i]         = - dt + 1
       F[i,md(i-2)]   = - dt * x[md(i-1)]
       F[i,md(i+1)]   = + dt * x[md(i-1)]
       F[i,md(i-1)]   =   dt *(x[md(i+1)]-x[md(i-2)])
       # wrt. Y
-      F[i,nX+self.iiY[i]] = dt * -h*c/b
+      F[i,nU+self.iiY[i]] = dt * -h*c/b
     # Y
-    md = lambda i: nX + np.mod(i-nX,nX*J)
-    for i in range(nX,(J+1)*nX):
+    md = lambda i: nU + np.mod(i-nU,nU*J)
+    for i in range(nU,(J+1)*nU):
       # wrt. Y
       F[i,i]         = -dt*c + 1
       F[i,md(i-1)]   = +dt*c*b * x[md(i+1)]
       F[i,md(i+1)]   = -dt*c*b * (x[md(i+2)]-x[md(i-1)])
       F[i,md(i+2)]   = -dt*c*b * x[md(i+1)]
       # wrt. X
-      F[i,self.iiX[i-nX]] = dt * h*c/b
+      F[i,self.iiX[i-nU]] = dt * h*c/b
     return F
 
   def plot_state(self,x):
-    nX, J = self.nX, self.J
-    circX = np.mod(arange(nX+1)  ,nX)
-    circY = np.mod(arange(nX*J+1),nX*J) + nX
-    lhX   = plt.plot(arange(nX+1)    ,x[circX],'b',lw=3)[0]
-    lhY   = plt.plot(arange(nX*J+1)/J,x[circY],'g',lw=2)[0]
+    nU, J = self.nU, self.J
+    circX = np.mod(arange(nU+1)  ,nU)
+    circY = np.mod(arange(nU*J+1),nU*J) + nU
+    lhX   = plt.plot(arange(nU+1)    ,x[circX],'b',lw=3)[0]
+    lhY   = plt.plot(arange(nU*J+1)/J,x[circY],'g',lw=2)[0]
     ax    = plt.gca()
-    ax.set_xticks(arange(nX+1))
+    ax.set_xticks(arange(nU+1))
     ax.set_xticklabels([(str(i) + '/\n' + str(i*J)) for i in circX])
     ax.set_ylim(-5,15)
     def setter(x):

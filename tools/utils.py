@@ -331,9 +331,9 @@ def rel_path(path,start=None,ext=False):
     path = os.path.splitext(path)[0]
   return path
 
-def save_dir(filepath):
+def save_dir(filepath,pre=''):
   """Make dir DAPPER/data/filepath_without_ext"""
-  dirpath  = os.path.join('data',rel_path(filepath),'')
+  dirpath  = os.path.join(pre,'data',rel_path(filepath),'')
   os.makedirs(dirpath, exist_ok=True)
   return dirpath
 
@@ -366,7 +366,7 @@ def distribute(script,sysargs,settings,prefix='',max_core=999):
   depending on sysargs.
   Return corresponding settings and save_path.
 
-  See AdInf/bench_LXY.py for example use.
+  See AdInf/bench_LUV.py for example use.
 
   Tip: to also parallelize repetitions, insert this above the call to distribute():
   # Duplicate settings to parallelize repetitions:

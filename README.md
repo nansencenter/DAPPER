@@ -103,7 +103,7 @@ Lin. Advect.| Yes     | 1D        | 1000 *    | 51       | Evensen/Raanes
 Lorenz63    | No      | 0D        | 3         | 2        | Lorenz/Sakov
 Lorenz84    | No      | 0D        | 3         | 2        | Lorenz/Raanes
 Lorenz95    | No      | 1D        | 40 *      | 13       | Lorenz/Raanes
-LorenzXY    | No      | 2x 1D     | 256 + 8 * | ≈60      | Lorenz/Raanes
+LorenzUV    | No      | 2x 1D     | 256 + 8 * | ≈60      | Lorenz/Raanes
 MAOOAM      | No      | 2x 1D     | 36        | ?        | Vannitsem/Tondeur
 Quasi-Geost | No      | 2D        | 129²≈17k  | ?        | Sakov
 
@@ -301,7 +301,7 @@ Conventions:
 
 TODO
 ------------------------------------------------
-* Complete QG, LorenzXY
+* Complete QG, LorenzUV
 * Reorg file structure
 * Make tutorial
 

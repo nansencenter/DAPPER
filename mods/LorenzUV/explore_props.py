@@ -11,17 +11,18 @@ seed(2)
 ###########################
 # Setup
 ###########################
-from mods.LorenzXY.wilks05 import LXY
-nX = LXY.nX
+from mods.LorenzUV.core import model_instance
+LUV = model_instance(nU=36,J=10,F=10,h=0.1)
+nU = LUV.nU
 
-K  = 2000
+K  = 7000
 dt = 0.005
 t0 = np.nan
 
-x0 = 0.01*randn(LXY.m)
+x0 = 0.01*randn(LUV.m)
 
-true_step  = with_rk4(LXY.dxdt      ,autonom=True)
-model_step = with_rk4(LXY.dxdt_trunc,autonom=True)
+true_step  = with_rk4(LUV.dxdt      ,autonom=True)
+model_step = with_rk4(LUV.dxdt_trunc,autonom=True)
 
 ###########################
 # Compute truth trajectory
@@ -31,9 +32,9 @@ x0 = true_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
 xx = true_K(x0,K        ,t0,dt)
 
 # ACF - make K to see periodicity
-fig = plt.figure(3)
+fig = plt.figure(6)
 ax  = plt.gca()
-ax.plot( mean( auto_cov(xx[:,:nX],L=K,corr=1), axis=1) )
+ax.plot( mean( auto_cov(xx[:,:nU],L=K,corr=1), axis=1) )
 plt.pause(0.1)
 
 ###########################
@@ -41,9 +42,9 @@ plt.pause(0.1)
 ###########################
 if False:
   eps = 0.001
-  U   = eye(LXY.m)
+  U   = eye(LUV.m)
   E   = xx[0] + eps*U
-  LL_exp = zeros((K,LXY.m))
+  LL_exp = zeros((K,LUV.m))
   tt     = dt*(1+arange(K))
   for k,t in enumerate(progbar(tt,desc='Lyap')):
     E         = true_step(E,99,dt)
@@ -56,22 +57,22 @@ if False:
   running_LS = ( tp(1/tt) * np.cumsum(LL_exp,axis=0) )
   LS         = running_LS[-1]
   n0 = sum(LS >= 0)
-  print('c: ', LXY.c)
-  print('var X: ', np.var(xx[:,:nX]))
+  print('c: ', LUV.c)
+  print('var X: ', np.var(xx[:,:nU]))
   print('n0: ', n0)
   #
-  plt.figure(1)
+  plt.figure(7)
   plt.clf()
   plt.plot(tt,running_LS)
 
 ###########################
 # Plot truth evolution
 ###########################
-if True:
-  plt.figure(2)
+if False:
+  plt.figure(8)
   ax = plt.gca()
   ax.clear()
-  setter = LXY.plot_state(xx[0])
+  setter = LUV.plot_state(xx[0])
   for k in progbar(range(K),'plot'):
     if not k%(4*(int(0.005/dt))):
       setter(xx[k])
@@ -83,7 +84,7 @@ if True:
 # Properties as a func of:
 # (setting: Wilks2005)
 ###########################
-# h:   Var(xx[:,:nX])
+# h:   Var(xx[:,:nU])
 # 0.1: 56.25
 # 0.5: 43.91
 # 1.0: 25.96

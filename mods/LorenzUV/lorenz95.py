@@ -2,9 +2,9 @@
 
 from common import *
 
-from mods.LorenzXY.core import model_instance
-LXY = model_instance(nX=36,J=10,F=10)
-nX = LXY.nX
+from mods.LorenzUV.core import model_instance
+LUV = model_instance(nU=36,J=10,F=10)
+nU = LUV.nU
 
 
 
@@ -20,17 +20,17 @@ t = Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)
 
 
 f = {
-    'm'    : LXY.m,
-    'model': with_rk4(LXY.dxdt,autonom=True),
+    'm'    : LUV.m,
+    'model': with_rk4(LUV.dxdt,autonom=True),
     'noise': 0,
-    'jacob': LXY.dfdx,
-    'plot' : LXY.plot_state
+    'jacob': LUV.dfdx,
+    'plot' : LUV.plot_state
     }
 
-X0 = GaussRV(C=0.01*eye(LXY.m))
+X0 = GaussRV(C=0.01*eye(LUV.m))
 
 R = 1.0
-h = partial_direct_obs_setup(LXY.m,arange(LXY.nX))
+h = partial_direct_obs_setup(LUV.m,arange(LUV.nU))
 h['noise'] = R
 
 other = {'name': rel_path(__file__,'mods/')+'_full'}
@@ -45,14 +45,14 @@ setup_full = TwinSetup(f,h,t,X0,**other)
 t = Chronology(dt=0.05, dtObs=0.05,T=4**3,BurnIn=6)
 
 f = {
-    'm'    : nX,
-    'model': with_rk4(LXY.dxdt_parameterized),
+    'm'    : nU,
+    'model': with_rk4(LUV.dxdt_parameterized),
     'noise': 0,
     }
 
-X0 = GaussRV(C=0.01*eye(nX))
+X0 = GaussRV(C=0.01*eye(nU))
 
-h = partial_direct_obs_setup(nX,arange(nX))
+h = partial_direct_obs_setup(nU,arange(nU))
 h['noise'] = R
  
 other = {'name': rel_path(__file__,'mods/')+'_trunc'}

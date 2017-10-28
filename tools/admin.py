@@ -95,7 +95,7 @@ def DA_Config(da_method):
       # Put assimilator inside try/catch to allow gentle failure
       try:
         assimilator(stats,setup,xx,yy)
-      except (AssimFailedError,ValueError) as err:
+      except (AssimFailedError,ValueError,np.linalg.LinAlgError) as err:
         msg  = "Caught exception during assimilation. Printing traceback:"
         msg += "\n" + "<"*20 + "\n\n"
         msg += "\n".join(s for s in traceback.format_tb(err.__traceback__))

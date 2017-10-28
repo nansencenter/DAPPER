@@ -7,25 +7,25 @@ plt.style.use('AdInf/paper.mplstyle')
 
 # Setup
 sd0 = seed(4)
-from mods.LorenzXY.wilks05 import LXY
-nX, J = LXY.nX, LXY.J
+from mods.LorenzUV.wilks05 import LUV
+nU, J = LUV.nU, LUV.J
 
 dt = 0.005
 t0 = np.nan
 K  = int(6/dt)
 
-step_1 = with_rk4(LXY.dxdt,autonom=True)
+step_1 = with_rk4(LUV.dxdt,autonom=True)
 step_K = make_recursive(step_1,with_prog=1)
 
-x0 = 0.01*randn(LXY.m)
+x0 = 0.01*randn(LUV.m)
 x0 = step_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
 xx = step_K(x0,K        ,t0,dt)
 
 # Grab parts of state vector
-ii = arange(nX+1)
-jj = arange(nX*J+1)
-circX = np.mod(ii  ,nX)
-circY = np.mod(jj,nX*J) + nX
+ii = arange(nU+1)
+jj = arange(nU*J+1)
+circX = np.mod(ii  ,nU)
+circY = np.mod(jj,nU*J) + nU
 iX = np.hstack([0, 0.5+arange(8), 8])
 def Xi(xx):
   interp = (xx[0]+xx[-1])/2
@@ -33,8 +33,8 @@ def Xi(xx):
 
 # Animate linear
 plt.figure(1)
-lhX   = plt.plot(arange(nX+1)    ,xx[-1][circX],'b',lw=3)[0]
-lhY   = plt.plot(arange(nX*J+1)/J,xx[-1][circY],'g',lw=2)[0]
+lhX   = plt.plot(arange(nU+1)    ,xx[-1][circX],'b',lw=3)[0]
+lhY   = plt.plot(arange(nU*J+1)/J,xx[-1][circY],'g',lw=2)[0]
 for k in progbar(range(K),'Plotting'):
   lhX.set_ydata(xx[k][circX])
   lhY.set_ydata(xx[k][circY])
@@ -44,10 +44,10 @@ for k in progbar(range(K),'Plotting'):
 fg = plt.figure(2)
 fg.clear()
 ax = fg.gca()
-tY = arange(nX+1)
+tY = arange(nU+1)
 lY = ['\n1'] + ['\n'+str((i+1)*J) for i in circX]
 tX = iX[1:-1]
-lX = np.array([str(i+1) for i in range(nX)])
+lX = np.array([str(i+1) for i in range(nU)])
 ax.set_xticks(tY)
 ax.set_xticklabels(lY)
 for t, l in zip(tX,lX):
@@ -58,19 +58,19 @@ for p in range(L):
   k = int(2e5*dt) + p*2
   c = cm.viridis(1-p/L)
   a = 0.8-0.2*p/L
-  plt.plot(iX  ,Xi(xx[k][:nX]),color=c,lw=2  ,alpha=a)[0]
+  plt.plot(iX  ,Xi(xx[k][:nU]),color=c,lw=2  ,alpha=a)[0]
   plt.plot(jj/J,xx[k][circY]  ,color=c,lw=0.7,alpha=a)[0]
 ax.set_ylim(-5,13)
 
 # Convert to circular coordinates
 # Should have used instead: projection='polar' 
 def tX(zz):
-  xx  = (40 + 3*zz)*cos(2*pi*ii/nX)
-  yy  = (40 + 3*zz)*sin(2*pi*ii/nX)
+  xx  = (40 + 3*zz)*cos(2*pi*ii/nU)
+  yy  = (40 + 3*zz)*sin(2*pi*ii/nU)
   return xx,yy
 def tY(zz):
-  xx  = (80 + 15*zz)*cos(2*pi*jj/nX/J)
-  yy  = (80 + 15*zz)*sin(2*pi*jj/nX/J)
+  xx  = (80 + 15*zz)*cos(2*pi*jj/nU/J)
+  yy  = (80 + 15*zz)*sin(2*pi*jj/nU/J)
   return xx,yy
 
 

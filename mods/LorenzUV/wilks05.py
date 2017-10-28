@@ -1,10 +1,10 @@
-# Uses nX, J, F as in core.py, which is taken from Wilks2005.
+# Uses nU, J, F as in core.py, which is taken from Wilks2005.
 # Obs settings taken from different places (=> quasi-linear regime).
 
 from common import *
-from mods.LorenzXY.core import model_instance
-LXY = model_instance()
-nX = LXY.nX
+from mods.LorenzUV.core import model_instance
+LUV = model_instance()
+nU = LUV.nU
 
 # Wilks2005 uses dt=1e-4 with RK4 for the full model,
 # and dt=5e-3 with RK2 for the forecast/truncated model.
@@ -20,17 +20,17 @@ t = Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)  # requires rk4
 
 
 f = {
-    'm'    : LXY.m,
-    'model': with_rk4(LXY.dxdt,autonom=True),
+    'm'    : LUV.m,
+    'model': with_rk4(LUV.dxdt,autonom=True),
     'noise': 0,
-    'jacob': LXY.dfdx,
-    'plot' : LXY.plot_state
+    'jacob': LUV.dfdx,
+    'plot' : LUV.plot_state
     }
 
-X0 = GaussRV(C=0.01*eye(LXY.m))
+X0 = GaussRV(C=0.01*eye(LUV.m))
 
 R = 0.1
-h = partial_direct_obs_setup(LXY.m,arange(LXY.nX))
+h = partial_direct_obs_setup(LUV.m,arange(LUV.nU))
 h['noise'] = R
 
 other = {'name': rel_path(__file__,'mods/')+'_full'}
@@ -45,14 +45,14 @@ setup_full = TwinSetup(f,h,t,X0,**other)
 t = Chronology(dt=0.05, dtObs=0.05,T=4**3,BurnIn=6)
 
 f = {
-    'm'    : nX,
-    'model': with_rk4(LXY.dxdt_parameterized),
+    'm'    : nU,
+    'model': with_rk4(LUV.dxdt_parameterized),
     'noise': 0,
     }
 
-X0 = GaussRV(C=0.01*eye(nX))
+X0 = GaussRV(C=0.01*eye(nU))
 
-h = partial_direct_obs_setup(nX,arange(nX))
+h = partial_direct_obs_setup(nU,arange(nU))
 h['noise'] = R
  
 other = {'name': rel_path(__file__,'mods/')+'_trunc'}

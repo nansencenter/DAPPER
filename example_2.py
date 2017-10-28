@@ -42,7 +42,7 @@ cfgs += PartFilt(      N=800 ,reg=0.9  ,NER=0.2)          # 0.28
 #from mods.LA.raanes2015 import setup
 #from mods.Lorenz95.spectral_obs import setup
 #from mods.Lorenz95.raanes2016 import setup
-#from mods.LorenzXY.wilks05_full import setup
+#from mods.LorenzUV.wilks05_full import setup
 #from mods.Lorenz84.harder import setup
 # -- Get suggested tuning from setup files --
 

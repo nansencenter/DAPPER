@@ -13,31 +13,31 @@ class ResultsTable():
     from .npz files which also contain arrays 'abscissa' and 'labels'.
     Assumes avrgs.shape == (len(abscissa),nRepeat,len(labels)).
   Merge (stack) into a TABLE with shape (len(labels),len(abscissa)).
-    THUS, all results for a given label/abscissa are easily indexed,
+    Thus, all results for a given label/abscissa are easily indexed,
     and don't even have to be of the same length
     (TABLE[iC,iS] is a list of the avrgs for that (label,absissa)).
-  Also provides functions taht partitions the TABLE.
-
+  Also provides functions that partition the TABLE,
+    (but nowhere near the power of a full database).
   NB: the TABLE is just convenience:
       the internal state of ResultsTable is the dict of datasets.
 
   Examples:
 
   # COMPOSING THE DATABASE OF RESULTS
-  # Res = ResultsTable('data/AdInf/bench_LXY/c_run[1-3]')                       # Load by regex
-  # Res.load('data/AdInf/bench_LXY/c_run7')                                     # More loading
-  # Res.mv(r'tag (\d+)',r'tag\1')                                               # change "tag 50" to "tag50" => merge such configs
-  # Res.rm([0, 1, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16])                          # rm uninteresting configs
-  # Res.rm('EnKF[^_]')                                                          # rm EnKF but not EnKF_N
-  # cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s) # Define more involved criterion
-  # R2, Res = Res.split(cond)                                                   # Split into EnKF_N and rest
+  Res = ResultsTable('data/AdInf/bench_LUV/c_run[1-3]')                       # Load by regex
+  Res.load('data/AdInf/bench_LUV/c_run7')                                     # More loading
+  Res.mv(r'tag (\d+)',r'tag\1')                                               # change "tag 50" to "tag50" => merge such configs
+  Res.rm([0, 1, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16])                          # rm uninteresting configs
+  Res.rm('EnKF[^_]')                                                          # rm EnKF but not EnKF_N
+  cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s) # Define more involved criterion
+  R2, Res = Res.split(cond)                                                   # Split into EnKF_N and rest
 
   # PRESENTING RESULTS
-  # Res.print_frame(Res.mean_field('rmse_a')[0].tolist())                       # re-use print_frame to print mean_field
-  # Res.print_mean_field('rmse_a',show_fail=True,show_conf=False,col_inds=...)  # print_mean_field has more options
-  # #Res.print_field(Res.field('rmse_a'))                                       # print raw data
-  # Res.plot_mean_field('rmse_a')                                               # plot
-  # check = toggle_lines()                                                      # check boxes
+  Res.print_frame(Res.mean_field('rmse_a')[0].tolist())                       # re-use print_frame to print mean_field
+  Res.print_mean_field('rmse_a',show_fail=True,show_conf=False,col_inds=...)  # print_mean_field has more options
+  #Res.print_field(Res.field('rmse_a'))                                       # print raw data
+  Res.plot_mean_field('rmse_a')                                               # plot
+  check = toggle_lines()                                                      # check boxes
 
   Also see AdInf/present_results.py for further examples.
   """
@@ -150,10 +150,16 @@ class ResultsTable():
 
     self.regen_table()
 
-  def split(self,cond):
+  def split2(self,cond):
     C1 = deepcopy(self); C1.rm(cond,INV=True)
     C2 = deepcopy(self); C2.rm(cond)
     return C1, C2
+
+  def split(self,cond):
+    "In-place version"
+    C1 = deepcopy(self); C1.rm(cond,INV=True)
+    self.rm(cond)
+    return C1
 
   def mv(self,regex,sub,inds=None):
     """
@@ -237,7 +243,7 @@ class ResultsTable():
     return field3D
 
   def mean_field(self,field):
-    # Extract field
+    "Extract field"
     field3D = self.field(field)
     field3D = array(field3D,float) # converts None to Nan (not to be counted as fails!)
     mu   = zeros(self.shape)

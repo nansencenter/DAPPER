@@ -1,0 +1,56 @@
+For my benefit, tell me your name and your institute
+
+Schedule
+
+Retake some elements of DA. With practicals.
+The ultimate aim is to build your own EnKF.
+7 tutorials. 3 + 4
+
+Who has a laptop with them?
+Who knows their own name?
+Who knows python?
+Matlab?
+Programming?
+=> Organize groups
+
+Wifi
+Download DAPPER, --depth=1
+[See accounts.txt]
+
+
+
+
+1) Wifi: Nansen-Guest. Follow login procedure.
+
+2) github.com/nansencenter/DAPPER
+   git clone --depth=1
+
+3) jupyterhub.nersc.no/hub/login
+
+Michael Agronah               : da_oct2016-0  : Q3NJdXFxQ3
+Hugo Goncalo Antunes Moreira  : da_oct2016-1  : cFZJT1JOcn
+Dereje Weldesemayat Beyene    : da_oct2016-2  : SmRMNVZseF
+Maria Bjørnestad              : da_oct2016-3  : ejZBOENkR3
+Lisbeth Engell-Sørensen       : da_oct2016-4  : c3I1Y05wMT
+Anita Gjesteland              : da_oct2016-5  : NnNFUDZyel
+Oda Gilhuus Gregusson         : da_oct2016-6  : ZHc4cmdQNm
+Kristian Gundersen            : da_oct2016-7  : QVkzcGdseC
+Yafee Ishraq                  : da_oct2016-8  : M3NCQUVhZV
+Alireza Jafarinia             : da_oct2016-26 : MkE4NXJ1Ym
+Zahra Khorsand                : da_oct2016-10 : dVJqSy9jSk
+Federico Lombardi             : da_oct2016-11 : ZGM1Y29vK3
+Andrea Tronstad Lønn          : da_oct2016-12 : eWdMVTd3aX
+Mika Petteri Malila           : da_oct2016-13 : TWZwR3dYTF
+Marius Meier                  : da_oct2016-14 : QlY4UkNuMm
+Anna Oleynik                  : da_oct2016-15 : SjcvcVh0SU
+Fredrik Markus Pfeil          : da_oct2016-16 : Zk9mZEhRTm
+Ulin Nuha Abdul Qohar         : da_oct2016-17 : bkJmOTZWUV
+Francine Janneke Schevenhoven : da_oct2016-18 : ZjI4SEh1WT
+Nadia Emilie Skoglund         : da_oct2016-19 : QTNNZ3VQTG
+Aklilu Tilahun Tadesse        : da_oct2016-20 : dEVqNFU0cU
+Vincent Teyekpiti             : da_oct2016-21 : WlEvd1Y3eS
+Jens Christian Wahl           : da_oct2016-22 : Wk9DYkhXeS
+Helene Wilson                 : da_oct2016-25 : RjJ6Q1ZYdl
+
+Maxime da_oct2016-24 : MzZycmw2R2
+

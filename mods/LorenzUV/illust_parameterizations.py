@@ -19,19 +19,19 @@ mpl.rcParams['toolbar'] = 'None'
 # Setup
 ###########################
 PRMS = 'Lorenz'
-if PRMS == 'Wilks': from mods.LorenzXY.wilks05  import LXY
-else:               from mods.LorenzXY.lorenz95 import LXY
-nX = LXY.nX
+if PRMS == 'Wilks': from mods.LorenzUV.wilks05  import LUV
+else:               from mods.LorenzUV.lorenz95 import LUV
+nU = LUV.nU
 
 K  = 400
 dt = 0.005
 t0 = np.nan
 
 seed(30) # 3 5 7 13 15 30
-x0 = randn(LXY.m)
+x0 = randn(LUV.m)
 
-true_step  = with_rk4(LXY.dxdt      ,autonom=True)
-model_step = with_rk4(LXY.dxdt_trunc,autonom=True)
+true_step  = with_rk4(LUV.dxdt      ,autonom=True)
+model_step = with_rk4(LUV.dxdt_trunc,autonom=True)
 true_K     = make_recursive(true_step,with_prog=1)
 
 ###########################
@@ -43,22 +43,22 @@ xx = true_K(x0,K        ,t0,dt)
 ###########################
 # Compute unresovled scales
 ###########################
-gg = zeros((K,nX)) # "Unresolved tendency"
+gg = zeros((K,nU)) # "Unresolved tendency"
 for k,x in enumerate(xx[:-1]):
-  X = x[:nX]
+  X = x[:nU]
   Z = model_step(X,t0,dt)
-  D = Z - xx[k+1,:nX]
+  D = Z - xx[k+1,:nU]
   gg[k] = 1/dt*D
 
 # Automated regression for deterministic parameterizations
 pc = {}
 for order in [0,1,2,3,4]:
-  pc[order] = np.polyfit(xx[:-1,:nX].ravel(), gg.ravel(), deg=order)
+  pc[order] = np.polyfit(xx[:-1,:nU].ravel(), gg.ravel(), deg=order)
 
 ###########################
 # Scatter plot
 ###########################
-xx = xx[:-1,:nX]
+xx = xx[:-1,:nU]
 dk = int(8/dt/50) # step size
 xx = xx[::dk].ravel()
 gg = gg[::dk].ravel()
