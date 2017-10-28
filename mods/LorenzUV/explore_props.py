@@ -11,10 +11,11 @@ seed(2)
 ###########################
 # Setup
 ###########################
-from mods.LorenzUV.wilks05 import LUV
+from mods.LorenzUV.core import model_instance
+LUV = model_instance(nX=36,J=10,F=10,h=0.1)
 nX = LUV.nX
 
-K  = 2000
+K  = 7000
 dt = 0.005
 t0 = np.nan
 
@@ -31,7 +32,7 @@ x0 = true_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
 xx = true_K(x0,K        ,t0,dt)
 
 # ACF - make K to see periodicity
-fig = plt.figure(3)
+fig = plt.figure(6)
 ax  = plt.gca()
 ax.plot( mean( auto_cov(xx[:,:nX],L=K,corr=1), axis=1) )
 plt.pause(0.1)
@@ -60,15 +61,15 @@ if False:
   print('var X: ', np.var(xx[:,:nX]))
   print('n0: ', n0)
   #
-  plt.figure(1)
+  plt.figure(7)
   plt.clf()
   plt.plot(tt,running_LS)
 
 ###########################
 # Plot truth evolution
 ###########################
-if True:
-  plt.figure(2)
+if False:
+  plt.figure(8)
   ax = plt.gca()
   ax.clear()
   setter = LUV.plot_state(xx[0])
