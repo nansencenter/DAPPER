@@ -35,7 +35,9 @@ T = 200      # length (unitless time)
 # Setup
 ##############################
 
+# Wilks appears less interesting, with nU=8 only, and too many V-vars.
 #from mods.LorenzUV.wilks05  import setup_full, setup_trunc, LUV
+
 from mods.LorenzUV.lorenz95 import setup_full, setup_trunc, LUV
 nU = LUV.nU # num of "U"-vars
 
