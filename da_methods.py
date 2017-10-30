@@ -519,6 +519,78 @@ def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
       stats.assess(k,kObs,E=E)
   return assimilator
 
+def mode_adjust(prior_mode,dgn_N,N1):
+  # As a func of I-KH ("prior's weight"), adjust l1's mode towards 1.
+  # Note: I-HK = mean( dgn_N(1.0)**(-1) )/N ≈ 1/(1 + HBH/R).
+  I_KH  = mean( dgn_N(1.0)**(-1) )*N1 # Normalize by f.m ?
+  #I_KH = 1/(1 + (s**2).sum()/N1)     # Alternative: use tr(HBH/R).
+  mc    = sqrt(prior_mode**I_KH)      # "mode correction".
+  return mc
+
+SERIES = [] # Bad hack to provide persistant memory
+def noise_level(nu,stats,chrono,N1,kObs,A,A_old):
+    """
+    Adaptive estimation of hyper-hyper parameter: the noise level (nu),
+    which should affect our confidence in the ensemble covariance estimate.
+
+    Seperate it from the main EnKF-N code because to avoid distraction
+    (as a high-level hyper-param, it is not so important,
+    and could usually just be set to 1).
+    """
+
+    if kObs==0:
+      stats.c2   = zeros(chrono.KObs+1)
+      stats.nu   = zeros(chrono.KObs+1)
+      stats.VAR  = zeros(chrono.KObs+1)
+      stats.MEAN = zeros(chrono.KObs+1)
+
+    if isinstance(nu,(float,int)):
+      return nu
+    elif nu is 'Chi2Fit':
+      # Principle: make prior's variance match observed variance.
+      # For simplicity, work with inflation^(-2), assumed Chi+2.
+      # Init series with sample from Chi2(1,N1).
+      if kObs==0: SERIES.append( WeightedSeries((randn((N1,10))**2).mean(0)) )
+      else:       SERIES[0].insert(stats.infl[kObs-1]**-2)
+
+      # ISSUE: the argmax of the posterior is not RV itself !
+      # Relating their var through FUDGE, failed.
+      # It works better (mysteriously) to dampen nu_.
+      # However, it should depend on trHK or something.
+      FUDGE = 0.1
+      nu_  = 2*SERIES[0].mean()**2/SERIES[0].var() # from Chi2 var formula
+      nu_  = nu_/N1     # normalize
+      nu_  = nu_**FUDGE # dampen
+      stats.VAR [kObs] = SERIES[0].var()
+      stats.MEAN[kObs] = SERIES[0].mean()
+
+    elif nu is 'adapt':
+      # Fit based on empirisism from L95 experiments.
+      if kObs==0: SERIES.append( WeightedSeries(1+sqrt(0.082)*randn(10)) )
+      else:       SERIES[0].insert(stats.infl[kObs-1])
+      nu_ = 0.75-0.1*log(SERIES[0].var()) 
+      nu_ = max(0.64,nu_)
+
+    elif nu is 'corr1':
+      # Principle: use correlation to assess the amount of sampling error generated.
+      # It might be bonus that it also picks up on non-Gaussianity
+      if kObs==0:
+        nu_ = 1
+      else:
+        nrm  = lambda A: A / sqrt(np.sum(A**2,0)/N1)
+        corr = np.sum(nrm(A)*nrm(A_old),0)/N1
+        corr = mean(abs(corr))
+        MIN  = 0.8
+        MAX  = 3
+        CURV = 5 # bigger => more curvature graph: nu vs corr
+        nu_  = MIN + (MAX-MIN)*exp(CURV*corr)/exp(CURV)
+        #nu_  = (2+0.4)**corr - 0.4
+        stats.c2[kObs] = corr
+    else:
+      raise KeyError('No such nuestimation method')
+    stats.nu[kObs] = nu_
+    return nu_
+
 
 
 # Notes on optimizers for the 'dual' EnKF-N:
@@ -640,28 +712,11 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
         du     = UT @ (dy @ R.sym_sqrt_inv.T)
         dgn_N  = lambda l: pad0( (l*s)**2, N ) + N1
 
-        # As a func of I-KH ("prior's weight"), adjust l1's mode towards 1.
-        # Note: I-HK = mean( dgn_N(1.0)**(-1) )/N ≈ 1/(1 + HBH/R).
-        I_KH  = mean( dgn_N(1.0)**(-1) )*N1 # Normalize by f.m ?
-        #I_KH = 1/(1 + (s**2).sum()/N1)     # Alternative: use tr(HBH/R).
-        mc    = sqrt(prior_mode**I_KH)      # "mode correction".
-
-        # Certainty (nu) estimation
-        if nu is 'adapt':
-          L = 40
-          # Memorize inflation values
-          if kObs==0: infls = 1+sqrt(0.082)*randn(L) # Init st. nu becomes 1
-          else:       infls = roll_n_sub(infls,stats.infl[kObs-1],0) # FIFO
-          weights  = arange(L,0,-1) / (L*(L+1)/2) # 1,2,...L normalized
-          infl_var = weights@(infls - weights@infls)**2
-          nu_ = 0.75-0.1*log(infl_var) # Empirisism based on L95 experiments
-          nu_ = max(0.64,nu_)
-        else:
-          nu_ = nu
-
-        # Apply adjustments
-        eN = eN_*nu_/mc
-        cL = cL_*nu_*mc
+        # Adjust prior
+        mc  = mode_adjust(prior_mode,dgn_N,N1)
+        nu_ = noise_level(nu,stats,chrono,N1,kObs,A,locals().get('A_old',None))
+        eN  = eN_*nu_/mc
+        cL  = cL_*nu_*mc
 
         if dual:
             # Make dual cost function (in terms of l1)
@@ -720,6 +775,8 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
           
         E = mu + w@A + T@A
         E = post_process(E,infl,rot)
+
+        A_old = T@A
 
         stats.infl[kObs] = l1
         stats.trHK[kObs] = (((l1*s)**2 + N1)**(-1.0)*s**2).sum()/h.noise.m
@@ -922,117 +979,6 @@ def EnKF_AdInf(N,infl=1.0,rot=False,Sb2=1.0,Nb=4,Fb=0.99,br=1.0,g=0,**kwargs):
         stats.bb[kObs] = b
         stats.Nb[kObs] = Nb
 
-
-
-@DA_Config
-def BnKF(N,infl=1.0,rot=False,**kwargs):
-  import scipy.optimize as opt
-  def assimilator(stats,twin,xx,yy):
-    # Test settings:
-    #from mods.Lorenz95.sak08 import setup
-    #cfgs += EnKF_N(N=28)
-    #cfgs += EnKF('PertObs',N=39,infl=1.06)
-    #cfgs += BnKF(N=39,infl=1.03)
-
-    # Unpack
-    f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
-
-    Rm12 = h.noise.C.sym_sqrt_inv
-    Ri   = h.noise.C.inv
-
-    # constants
-    nu = N-1
-
-    invm = lambda x: funm_psd(x, np.reciprocal)
-    IN  = eye(N)
-    Pi1 = np.outer(ones(N),ones(N))/N
-    PiC = IN - Pi1
-
-    # Init
-    bb = N*ones(N)
-    E  = X0.sample(N)
-    stats.assess(0,E=E)
-
-    for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E = f(E,t-dt,dt)
-      E = add_noise(E, dt, f.noise, kwargs)
-
-      if kObs is not None:
-        stats.assess(k,kObs,'f',E=E)
-        hE = h(E,t)
-        y  = yy[kObs]
-
-        mu = mean(E,0)
-        A  = E - mu
-
-        hx = mean(hE,0)
-        Y  = hE-hx
-        dy = y - hx
-
-        #  V,s,U_T = svd0( Y @ Rm12.T )
-
-        #  # Compute ETKF (sym sqrt) update
-        #  l1      = 1.0
-        #  dgn     = lambda l: pad0( (l*s)**2, N ) + (N-1)
-        #  Pw      = (V * dgn(l1)**(-1.0)) @ V.T
-        #  w       = dy@Ri@Y.T@Pw
-        #  T       = (V * dgn(l1)**(-0.5)) @ V.T * sqrt(N-1)
-
-        #  E = mu + w@A + T@A
-
-        # Prepare
-        V,s,_  = svd0( Y @ Rm12.T ) 
-        target = invm( Y@Ri@Y.T/nu + eye(N) ) # = nu*Pwn
-
-        dC = np.zeros((N,N))
-        def resulting_Pw(rr):
-          for n in arange(N):
-            dn      = y-hE[n]
-            an      = nu*rr[n]/bb[n]
-            #xn    += A@Y.T @ invm( Y@Y.T + an*R ) @ (y-xn+noise)
-            #Pwn    = invm( Y.T @ Ri @ Y/an + eye(N))/an
-            dgn     = pad0(s**2,N) + an
-            Pwn     = ( V * dgn**(-1.0) ) @ V.T
-            dC[:,n] = IN[:,n] + Pwn@Y@Ri@dn
-          Ca = dC @ PiC @ dC.T
-          return Ca
-
-        def inpT(logr):
-          assert len(logr)==(N-1)
-          rr = np.hstack([exp(logr), N])
-          rr*= np.sum(1/rr)
-          return rr
-
-        def r2(x):
-          rr = inpT(x[:-1])
-          Ca = resulting_Pw(rr)
-          diff = diag(  target - (Ca + x[-1]*Pi1)  )
-          return diff
-
-        x0  = np.hstack([log(N*ones(N-1)), 1])
-        sol = opt.root(r2, x0, method='lm', options={'maxiter':1000})
-        rr_ = inpT(sol.x[:-1])
-
-        #print(inpT(sol.x[:-1]))
-        #print(r2(sol.x))
-
-        # Get PertObs-EnKF
-        #D   = center(h.noise.sample(N))
-        #rr_ = N*ones(N)
-          
-        for n in arange(N):
-          dn      = y-hE[n] # + D[n]
-          an      = nu*rr_[n]/bb[n]
-          dg0     = pad0(s**2,N) + nu
-          dgn     = pad0(s**2,N) + an
-          Pwn     = ( V * dgn**(-1.0) ) @ V.T
-          E[n]   += A.T@Pwn@Y@Ri@dn
-          bb[n]   = mean(dg0/dgn*rr_[n])
-        bb *= np.sum(1/bb)
-
-        E = post_process(E,infl,rot)
-      stats.assess(k,kObs,E=E,w=1/bb) # TODO
-  return assimilator
 
 
 

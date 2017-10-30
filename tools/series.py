@@ -110,6 +110,33 @@ def series_mean_with_conf(xx):
   return vc
 
 
+class WeightedSeries(MLR_Print):
+  """
+  Light-weight implementation of a rolling, weighted series.
+  """
+  def __init__(self,arr0,weights=None):
+
+    if weights is None:
+      weights = 1+arange(len(arr0)) # Linearly increasing weights
+    else:
+      assert len(weights)==len(arr0)
+
+    self.weights = weights / sum(weights)
+    self.series  = arr0
+
+  def insert(self,val):
+    self.series = roll_n_sub(self.series,val,-1)
+
+  def __len__(self):
+    return len(self.weights)
+
+  def mean(self):
+    return self.weights@self.series
+  def var(self):
+    return self.weights@(self.series - self.mean())**2
+
+
+
 class FAU_series(MLR_Print):
   """
   Container for time series of a statistic from filtering.

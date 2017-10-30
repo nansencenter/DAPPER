@@ -107,7 +107,7 @@ LorenzUV    | No      | 2x 1D     | 256 + 8 * | ≈60      | Lorenz/Raanes
 MAOOAM      | No      | 2x 1D     | 36        | ?        | Vannitsem/Tondeur
 Quasi-Geost | No      | 2D        | 129²≈17k  | ?        | Sakov
 
-*: can be changed
+*: flexible; set as necessary
 
 
 Additional features
