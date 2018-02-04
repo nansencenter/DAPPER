@@ -377,7 +377,7 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
 
-    n = N-1
+    N1 = N-1
 
     R    = h.noise
     Rm12 = h.noise.C.sym_sqrt_inv
@@ -398,19 +398,19 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
         for i,j in enumerate(inds):
           hE = h(E,t)
           hx = mean(hE,0)
-          Y  = (hE - hx).T
+          Y  = hE - hx
           mu = mean(E ,0)
           A  = E-mu
 
           # Update j-th component of observed ensemble
-          Yj    = Rm12[j,:] @ Y
+          Yj    = Rm12[j,:] @ Y.T
           dyj   = Rm12[j,:] @ (y - hx)
           #
           skk   = Yj@Yj
-          su    = 1/( 1/skk + 1/n )
-          alpha = (n/(n+skk))**(0.5)
+          su    = 1/( 1/skk + 1/N1 )
+          alpha = (N1/(N1+skk))**(0.5)
           #
-          dy2   = su*dyj/n # (mean is absorbed in dyj)
+          dy2   = su*dyj/N1 # (mean is absorbed in dyj)
           Y2    = alpha*Yj
 
           if skk<1e-9: continue
@@ -483,14 +483,14 @@ def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
             # even though the local cropping of Y happens after application of H.
             # Anyways, with an explicit H, one can apply Woodbury
             # to go to state space (dim==1), before reverting to HA_i = Y_loc.
-            n   = N-1
-            B   = A[:,i]@A[:,i] / n
+            N1  = N-1
+            B   = A[:,i]@A[:,i] / N1
             AY  = A[:,i]@iY
             BmR = AY@AY.T
-            T2  = (1 + BmR/(B*n**2))**(-1)
+            T2  = (1 + BmR/(B*N1**2))**(-1)
             AT  = sqrt(T2) * A[:,i]
             P   = T2 * B
-            dmu = P*(AY/(n*B))@idy
+            dmu = P*(AY/(N1*B))@idy
           else:
             # Non-Approximate
             if len(local) < N:
@@ -528,9 +528,9 @@ def mode_adjust(prior_mode,dgn_N,N1):
   return mc
 
 SERIES = [] # Bad hack to provide persistant memory
-def noise_level(nu,stats,chrono,N1,kObs,A,A_old):
+def noise_level(xN,stats,chrono,N1,kObs,A,A_old):
     """
-    Adaptive estimation of hyper-hyper parameter: the noise level (nu),
+    Adaptive estimation of hyper-hyper parameter: the noise level (xN),
     which should affect our confidence in the ensemble covariance estimate.
 
     Seperate it from the main EnKF-N code because to avoid distraction
@@ -540,13 +540,13 @@ def noise_level(nu,stats,chrono,N1,kObs,A,A_old):
 
     if kObs==0:
       stats.c2   = zeros(chrono.KObs+1)
-      stats.nu   = zeros(chrono.KObs+1)
+      stats.xN   = zeros(chrono.KObs+1)
       stats.VAR  = zeros(chrono.KObs+1)
       stats.MEAN = zeros(chrono.KObs+1)
 
-    if isinstance(nu,(float,int)):
-      return nu
-    elif nu is 'Chi2Fit':
+    if isinstance(xN,(float,int)):
+      return xN
+    elif xN is 'Chi2Fit':
       # Principle: make prior's variance match observed variance.
       # For simplicity, work with inflation^(-2), assumed Chi+2.
       # Init series with sample from Chi2(1,N1).
@@ -555,41 +555,41 @@ def noise_level(nu,stats,chrono,N1,kObs,A,A_old):
 
       # ISSUE: the argmax of the posterior is not RV itself !
       # Relating their var through FUDGE, failed.
-      # It works better (mysteriously) to dampen nu_.
+      # It works better (mysteriously) to dampen xN_.
       # However, it should depend on trHK or something.
       FUDGE = 0.1
-      nu_  = 2*SERIES[0].mean()**2/SERIES[0].var() # from Chi2 var formula
-      nu_  = nu_/N1     # normalize
-      nu_  = nu_**FUDGE # dampen
+      xN_  = 2*SERIES[0].mean()**2/SERIES[0].var() # from Chi2 var formula
+      xN_  = xN_/N1     # normalize
+      xN_  = xN_**FUDGE # dampen
       stats.VAR [kObs] = SERIES[0].var()
       stats.MEAN[kObs] = SERIES[0].mean()
 
-    elif nu is 'adapt':
+    elif xN is 'adapt':
       # Fit based on empirisism from L95 experiments.
       if kObs==0: SERIES.append( WeightedSeries(1+sqrt(0.082)*randn(10)) )
       else:       SERIES[0].insert(stats.infl[kObs-1])
-      nu_ = 0.75-0.1*log(SERIES[0].var()) 
-      nu_ = max(0.64,nu_)
+      xN_ = 0.75-0.1*log(SERIES[0].var()) 
+      xN_ = max(0.64,xN_)
 
-    elif nu is 'corr1':
+    elif xN is 'corr1':
       # Principle: use correlation to assess the amount of sampling error generated.
       # It might be bonus that it also picks up on non-Gaussianity
       if kObs==0:
-        nu_ = 1
+        xN_ = 1
       else:
         nrm  = lambda A: A / sqrt(np.sum(A**2,0)/N1)
         corr = np.sum(nrm(A)*nrm(A_old),0)/N1
         corr = mean(abs(corr))
         MIN  = 0.8
         MAX  = 3
-        CURV = 5 # bigger => more curvature graph: nu vs corr
-        nu_  = MIN + (MAX-MIN)*exp(CURV*corr)/exp(CURV)
-        #nu_  = (2+0.4)**corr - 0.4
+        CURV = 5 # bigger => more curvature graph: xN vs corr
+        xN_  = MIN + (MAX-MIN)*exp(CURV*corr)/exp(CURV)
+        #xN_  = (2+0.4)**corr - 0.4
         stats.c2[kObs] = corr
     else:
       raise KeyError('No such nuestimation method')
-    stats.nu[kObs] = nu_
-    return nu_
+    stats.xN[kObs] = xN_
+    return xN_
 
 
 
@@ -603,7 +603,7 @@ def noise_level(nu,stats,chrono,N1,kObs,A,A_old):
 #  - these also accept dJdx. But only fmin_bfgs approaches
 #    the speed of the scalar minimizers.
 #  Using scalar root-finders:
-#  - brenth(dJ1, LowB, 1e2,     xtol=1e-6) # Same speed as minimmization
+#  - brenth(dJ1, LowB, 1e2,     xtol=1e-6) # Same speed as minimization
 #  - newton(dJ1,1.0, fprime=dJ2, tol=1e-6) # No improvement
 #  - newton(dJ1,1.0, fprime=dJ2, tol=1e-6, fprime2=dJ3) # No improvement
 #  - Newton_m(dJ1,dJ2, 1.0) # Significantly faster. Also slightly better CV?
@@ -638,7 +638,7 @@ def Newton_m(fun,deriv,x0,is_inverted=False,
   return x0
 
 @DA_Config
-def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
+def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
   """
   Finite-size EnKF (EnKF-N).
 
@@ -655,19 +655,23 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
 
   'Hess': use non-approx Hessian for ensemble transform matrix?
 
-  'g' is the nullity of A (state anom's), ie. g=max(1,N-m).
+  'g' is the nullity of A (state anomalies's), ie. g=max(1,N-m).
   But we have made it an input argument instead, with default 0,
   because we don't think it's beneficial.
 
-  'nu' (not yet described in litteture)
-  allows tuning the hyper-prior for the inflation:
-   - nu=1: is fully agnostic, i.e. assumes the ensemble is generated
+  'xN' allows tuning the hyper-prior for the inflation.
+  Usually, I just try setting it to 1 (default) or 2.
+  It has not yet described in the litteture,
+  although its effect of damping has also been employed in Anderson's inflation work.
+  It is motivated as an adjustment for the level of stochasticity
+  (i.e. relative sampling error) of the system.
+   - xN=1: is fully agnostic, i.e. assumes the ensemble is generated
            from a highly chaotic or stochastic model.
-   - nu>1: increases the certainty of the hyper-prior,
+   - xN>1: increases the certainty of the hyper-prior,
            which is appropriate for more linear and deterministic systems.
-   - nu<1: yields a more (than 'fully') agnostic hyper-prior,
+   - xN<1: yields a more (than 'fully') agnostic hyper-prior,
            as if N were smaller than it truly is.
-   - nu<=0 is not meaningful.
+   - xN<=0 is not meaningful.
 
   Mode-correction is used (almost) as in eqn 36 of Boc15.
 
@@ -714,9 +718,9 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
 
         # Adjust prior
         mc  = mode_adjust(prior_mode,dgn_N,N1)
-        nu_ = noise_level(nu,stats,chrono,N1,kObs,A,locals().get('A_old',None))
-        eN  = eN_*nu_/mc
-        cL  = cL_*nu_*mc
+        xN_ = noise_level(xN,stats,chrono,N1,kObs,A,locals().get('A_old',None))
+        eN  = eN_*xN_/mc
+        cL  = cL_*xN_*mc
 
         if dual:
             # Make dual cost function (in terms of l1)
@@ -792,7 +796,7 @@ def EnKF_N(N,dual=True,Hess=False,g=0,nu=1.0,infl=1.0,rot=False,**kwargs):
 # because then there should be no ensemble update (and also no inflation!).
 
 @DA_Config
-def iEnKS(upd_a,N,Lag=1,iMax=10,nu=1.0,bundle=False,infl=1.0,rot=False,**kwargs):
+def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs):
   """
   Iterative EnKS-N
 
@@ -842,8 +846,8 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,nu=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
         diagonal = pad0( s**2, N ) + N1
         I_KH     = mean( diagonal**(-1) )*N1
         mc       = sqrt(prior_mode**I_KH)
-        eN       = eN_*nu/mc
-        cL       = cL_*nu*mc
+        eN       = eN_*xN/mc
+        cL       = cL_*xN*mc
         za       = N1*cL/(eN + w@w)
         return za
 
@@ -1042,7 +1046,7 @@ def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs
         stats.assess(k,kObs,'f',E=E,w=w)
 
         innovs = (yy[kObs] - h(E,t)) @ Rm12.T
-        w      = reweight(w,uni_innovs=innovs)
+        w      = reweight(w,innovs=innovs)
 
         stats.assess(k,kObs,'a',E=E,w=w)
         if trigger_resampling(w,NER,stats,kObs):
@@ -1167,7 +1171,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
 
         # Importance weighting
         innovs = (y - hE) @ Rm12.T
-        w      = reweight(w,uni_innovs=innovs)
+        w      = reweight(w,innovs=innovs)
         
         # Resampling
         stats.assess(k,kObs,'a',E=E,w=w)
@@ -1274,7 +1278,7 @@ def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
         wD = w.copy()
 
         innovs = (y - h(E,t)) @ Rm12.T
-        w      = reweight(w,uni_innovs=innovs)
+        w      = reweight(w,innovs=innovs)
 
         stats.assess(k,kObs,'a',E=E,w=w)
         if trigger_resampling(w,NER,stats,kObs):
@@ -1293,7 +1297,7 @@ def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
 
           # Update weights
           innovs = (y - h(ED,t)) @ Rm12.T
-          wD     = reweight(wD,uni_innovs=innovs)
+          wD     = reweight(wD,innovs=innovs)
 
           # Resample and reduce
           wroot = 1.0
@@ -1318,17 +1322,18 @@ def trigger_resampling(w,NER,stats,kObs):
   stats.resmpl[kObs] = do_resample
   return do_resample
 
-def reweight(w,lklhd=None,logL=None,uni_innovs=None):
+def reweight(w,lklhd=None,logL=None,innovs=None):
   """
   Do Bayes' rule (for the empirical distribution of an importance sample).
-  If input is 'uni_innovs', the likelihood is assumed Gaussian.
   Do computations in log-space, for at least 2 reasons:
   - Normalization: will fail if sum==0 (if all innov's are large).
   - Num. precision: lklhd*w should have better precision in log space.
   Output is non-log, for the purpose of assessment and resampling.
+
+  If input is 'innovs': likelihood := NormDist(innovs|0,Id).
   """
-  assert all_but_1_is_None(lklhd,logL,uni_innovs), \
-      "Input error. Only specify one of lklhd, logL, uni_innovs"
+  assert all_but_1_is_None(lklhd,logL,innovs), \
+      "Input error. Only specify one of lklhd, logL, innovs"
 
   # Get log-values.
   # Use context manager 'errstate' to not warn for log(0) = -inf.
@@ -1338,8 +1343,8 @@ def reweight(w,lklhd=None,logL=None,uni_innovs=None):
     logw = log(w)        
     if lklhd is not None:
       logL = log(lklhd)
-    elif uni_innovs is not None:
-      chi2 = np.sum(uni_innovs**2, axis=1)
+    elif innovs is not None:
+      chi2 = np.sum(innovs**2, axis=1)
       logL = -0.5 * chi2
 
   logw   = logw + logL   # Bayes' rule in log-space
@@ -1878,6 +1883,73 @@ def ExtKF(infl=1.0,**kwargs):
 
 
 
+@DA_Config
+def RHF(N,ordr='rand',infl=1.0,rot=False,**kwargs):
+  """
+  Rank histogram filter. 
+
+  Quick & dirty implementation without attention to (de)tails.
+
+  Ref:
+  Anderson'2010: "A Non-Gaussian Ensemble Filter Update for DA"
+
+  Settings for reproducing literature benchmarks may be found in
+  mods/Lorenz63/anderson2010non.py 
+  """
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+
+    N1 = N-1
+    step       = 1/N
+    cdf_grid   = linspace(step/2, 1-step/2, N)
+
+    R    = h.noise
+    Rm12 = h.noise.C.sym_sqrt_inv
+
+    E = X0.sample(N)
+    stats.assess(0,E=E)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      E = add_noise(E, dt, f.noise, kwargs)
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E)
+        y    = yy[kObs]
+        inds = serial_inds(ordr, y, R, anom(E)[0])
+            
+        for i,j in enumerate(inds):
+          hE = h(E,t)
+          hx = mean(hE,0)
+          Y  = hE - hx
+          mu = mean(E ,0)
+          A  = E-mu
+
+          # Update j-th component of observed ensemble
+          dYf    = Rm12[j,:] @ (y - hE).T # NB: does Rm12 make sense?
+          Yj     = Rm12[j,:] @ Y.T
+          Regr   = A.T@Yj/np.sum(Yj**2)
+
+          Sorted = np.argsort(dYf)
+          Revert = np.argsort(Sorted)
+          dYf    = dYf[Sorted]
+          w      = reweight(ones(N),innovs=dYf[:,None]) # Lklhd
+          w      = w.clip(1e-10) # Avoid zeros in interp1
+          cw     = w.cumsum()
+          cw    /= cw[-1]
+          cw    *= N1/N
+          cdfs   = np.minimum(np.maximum(cw[0],cdf_grid),cw[-1])
+          dhE    = -dYf + np.interp(cdfs, cw, dYf)
+          dhE    = dhE[Revert]
+          # Update state by regression
+          E     += np.outer(-dhE, Regr)
+
+        E = post_process(E,infl,rot)
+
+      stats.assess(k,kObs,E=E)
+  return assimilator
+
+
 
 
 @DA_Config
@@ -1929,7 +2001,7 @@ def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
           if 'laplace' in str(type(h.noise)).lower():
             w    = laplace_lklhd(innovs)
           else: # assume Gaussian
-            w    = reweight(ones(N),uni_innovs=innovs)
+            w    = reweight(ones(N),innovs=innovs)
           dmu    = w@A[:,i]
           AT     = sqrt(N)*funm_psd(diag(w) - np.outer(w,w), sqrt)@A[:,i]
 
