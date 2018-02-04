@@ -12,6 +12,10 @@ class ResultsTable():
   Load avrgs (array of dicts of fields of time-average statistics)
     from .npz files which also contain arrays 'abscissa' and 'labels'.
     Assumes avrgs.shape == (len(abscissa),nRepeat,len(labels)).
+    But the avrgs of different source files can have entirely different
+    abscissa, nRepeat, labels. The sources will be properly handled
+    also allowing for nan values. This flexibility allows working with
+    a patchwork of "inhomogenous" sources.
   Merge (stack) into a TABLE with shape (len(labels),len(abscissa)).
     Thus, all results for a given label/abscissa are easily indexed,
     and don't even have to be of the same length
@@ -30,16 +34,17 @@ class ResultsTable():
   Res.rm([0, 1, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16])                          # rm uninteresting configs
   Res.rm('EnKF[^_]')                                                          # rm EnKF but not EnKF_N
   cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s) # Define more involved criterion
-  R2, Res = Res.split(cond)                                                   # Split into EnKF_N and rest
+  R1 = Res.split('mytag')                                                     # Split into configs with 'mytag' and rest
+  R2, Res = Res.split2(cond)                                                  # Split into EnKF_N and rest
 
   # PRESENTING RESULTS
   Res.print_frame(Res.mean_field('rmse_a')[0].tolist())                       # re-use print_frame to print mean_field
-  Res.print_mean_field('rmse_a',show_fail=True,show_conf=False,col_inds=...)  # print_mean_field has more options
+  Res.print_mean_field('rmse_a',show_fail=True,show_conf=False,cols=None)     # print_mean_field has more options
   #Res.print_field(Res.field('rmse_a'))                                       # print raw data
   Res.plot_mean_field('rmse_a')                                               # plot
   check = toggle_lines()                                                      # check boxes
 
-  Also see AdInf/present_results.py for further examples.
+  See AdInf/present_results.py for further examples.
   """
 
   def __init__(self,*args,**kwargs):
@@ -56,6 +61,10 @@ class ResultsTable():
     DIR,regex = os.path.split(pattern)
     keys      = sorted_human(os.listdir(DIR))
     keys      = [os.path.join(DIR,f) for f in keys if re.search(regex,f)]
+
+    if len(keys)==0:
+      raise Exception("No files found that match with the given pattern")
+
     for f in keys:
       if f in self.datasets:
         print("Warning: re-loading",f)
@@ -163,19 +172,29 @@ class ResultsTable():
 
   def mv(self,regex,sub,inds=None):
     """
-    Rename configs. Examples:
-    Remove space between "tag XX": Res.mv(r'tag (\d+)',r'tag\1')                                          # change "tag 50" to "tag50" => merge such configsregex: search pattern
-
+    Rename labels.
     sub:   substitution pattern
     inds:  restrict to these inds of table's labels
     """
     if isinstance(inds,int): inds = [inds]
     for ds in self.datasets.values():
+      ds['labels'] = list(ds['labels']) # coz fixed string limits
       for i,cfg in enumerate(ds['labels']):
         if inds is None or cfg in self.labels[inds]:
           ds['labels'][i] = re.sub(regex, sub, cfg)
     self.regen_table()
 
+  def rm_abcsissa(self,inds):
+    """
+    Remove abscissa with indices inds.
+    """
+    D = self.abscissa[inds] # these points will be removed
+    for ds in self.datasets.values():
+      keep = [i for i,a in enumerate(ds['abscissa']) if a not in D]
+      ds['abscissa'] = ds['abscissa'][keep]
+      ds['avrgs']    = ds['avrgs']   [keep]
+      ds['avrgs']    = np.ascontiguousarray(ds['avrgs'])
+    self.regen_table()
 
   def __deepcopy__(self, memo):
     """
@@ -254,7 +273,7 @@ class ResultsTable():
       f    = field3D[:nRep,iC,iS]
       f    = f[np.logical_not(np.isnan(f))]
       mu  [iC,iS] = f.mean()                   if len(f)   else None
-      conf[iC,iS] = f.std(ddof=1)/sqrt(len(f)) if len(f)>5 else np.nan
+      conf[iC,iS] = f.std(ddof=1)/sqrt(len(f)) if len(f)>3 else np.nan
       nSuc[iC,iS] = len(f)
     return mu, conf, nSuc
 
@@ -272,14 +291,17 @@ class ResultsTable():
       self.print_frame(frame)
 
 
-  def print_mean_field(self,field,show_conf=False,show_fail=False,col_inds=None):
+  def print_mean_field(self,field,show_conf=False,show_fail=False,cols=None):
     """
     Print mean frame, including nRep (#) for each value.
     Don't print nan's when nRep==0 (i.e. print nothing).
     show_conf: include confidence estimate (±).
     show_fail: include number of runs that yielded NaNs (#).
                if False but NaNs are present: print NaN for the mean value.
-    jj: indices of columns (experiment abscissa) to include. Default: all
+    s: indices of columns (experiment abscissa) to include.
+         - Default          : all
+         - tuple of length 2: value range
+         - a number         : closest match
     """
 
     mu, conf, nSuc = self.mean_field(field)
@@ -292,13 +314,22 @@ class ResultsTable():
     # Set mean values to NaN wherever NaNs are present
     if not show_fail: mu[nFail.astype(bool)] = np.nan
 
-    if col_inds is None: col_inds = arange(len(self.abscissa))
+    # Determine columns to print
+    if cols is None:
+      # All
+      cols = arange(len(self.abscissa))
+    if isinstance(cols,(int,float)):
+      # Find closest
+      cols = [abs(self.abscissa - cols).argmin()]
+    if isinstance(cols,tuple):
+      # Make range
+      cols = np.where( (cols[0]<=self.abscissa) & (self.abscissa<=cols[1]) )[0]
 
     headr = ['name']
     mattr = [self.labels.tolist()]
 
     # Fill in stats
-    for iS in col_inds:
+    for iS in cols:
       S = self.abscissa[iS]
       # Generate column. Include header for cropping purposes
       col = [('{0:@>6g} {1: <'+NF+'s}').format(S,'#')]

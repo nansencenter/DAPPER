@@ -29,6 +29,7 @@ def exactly_2d(a):
   return a
 
 def ccat(*args,axis=0):
+  args = [np.atleast_1d(x) for x in args]
   return np.concatenate(args,axis=axis)
 
 def roll_n_sub(arr,item,i_repl=0):

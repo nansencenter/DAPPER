@@ -188,6 +188,10 @@ def tabulate(data,headr=(),formatters=(),inds='nice'):
   return tabulate_orig.tabulate(data,headr,showindex=inds)
 
 
+def print_together(*args):
+  "Print stacked 1D arrays."
+  print(np.vstack(args).T)
+
 
 def repr_type_and_name(thing):
   """Print thing's type [and name]"""
@@ -338,7 +342,7 @@ def save_dir(filepath,pre=''):
   return dirpath
 
 def prep_run(path,prefix):
-  "Create dir, insert prefix, find RUN, reserve path"
+  "Create data-dir, create (and reserve) path (with its prefix and RUN)"
   path  = save_dir(path)
   path += prefix+'_' if prefix else ''
   path += 'run'
@@ -354,57 +358,72 @@ screenrc_common_txt = """
 # Auto-generated screenrc file for experiment parallelization.
 
 source $HOME/.screenrc
-                                                             
-screen  -t bash bash                   # empty bash session
-#screen -t IPython ipython --no-banner # empty python session
-#screen -t TEST bash -c 'echo "MKL_NUM_THREADS:"; echo $MKL_NUM_THREADS ; exec bash'
 
-"""
+screen -t bash bash # make one empty bash session
+
+""".replace('/',os.path.sep)
+# Other useful screens to launch
+#screen -t IPython ipython --no-banner # empty python session
+#screen -t TEST bash -c 'echo nThread $MKL_NUM_THREADS; exec bash'
+
 def distribute(script,sysargs,settings,prefix='',max_core=999):
   """
   Run script either as master, worker, or stand-alone,
-  depending on sysargs.
-  Return corresponding settings and save_path.
+  depending on sysargs[2].
+
+  Return corresponding
+   - portion of settings
+   - portion of iiRepeat (setting repeat count)
+   - save_path.
 
   See AdInf/bench_LUV.py for example use.
-
-  Tip: to also parallelize repetitions, insert this above the call to distribute():
-  # Duplicate settings to parallelize repetitions:
-  # NB: Also requires removing the seed equalization in the experiment loop.
-  settings = settings.repeat(16)
   """
 
-  if len(sysargs)>1:
-    if sysargs[1]=='PARALLELIZE':
-      # Write "master" screenrc file
+  # Make running count (iiRepeats) of repeated settings.
+  # Allows also parallelizing across repetitions,
+  # by replicating the setting, e.g.: settings*16,
+  # and using iiRepeats to modify the seeds.
+  iiRepeat = [ list(settings[:i]).count(x) for i,x in enumerate(settings) ]
+
+  if len(sysargs)>2:
+    if sysargs[2]=='PARALLELIZE':
       save_path, RUN = prep_run(script,prefix)
 
-      screenrc = "tmp_screenrc_"+os.path.split(script)[1].split('.')[0] + '_run'+RUN
-      nBatch   = min(max_core,multiprocessing.cpu_count()-1, len(settings))
+      # screenrc path. This config is the "master".
+      rcdir = os.path.join('data','screenrc')
+      os.makedirs(rcdir, exist_ok=True)
+      screenrc  = os.path.join(rcdir,'tmp_screenrc_')
+      screenrc += os.path.split(script)[1].split('.')[0] + '_run'+RUN
+
+      # Write workers to screenrc
+      nBatch = min(max_core,multiprocessing.cpu_count()-1, len(settings))
       with open(screenrc,'w') as f:
         f.write(screenrc_common_txt)
         for i in range(nBatch):
           iWorker = i + 1 # start indexing from 1
           f.write('screen -t W'+str(iWorker)+' ipython -i --no-banner '+
-              ' '.join([script,'WORKER',str(iWorker),str(nBatch),save_path])+'\n')
-          # sysargs:      0        1           2            3          4    
+              ' '.join([script,sysargs[1],'WORKER',str(iWorker),str(nBatch),save_path])+'\n')
+          # sysargs:      0        1         2            3        4            5
         f.write("")
       sleep(0.2)
+      # Launch
       subprocess.run(['screen', '-dmS', 'run'+RUN,'-c', screenrc])
       print("Experiments launched. Use 'screen -r' to view their progress.")
-      sleep(1.0)
-      os.remove(screenrc)
       sys.exit(0)
 
-    elif sysargs[1] == 'WORKER':
+    elif sysargs[2] == 'WORKER':
       # Split settings array to this "worker"
-      iWorker   = int(sysargs[2])
-      nBatch    = int(sysargs[3])
-      save_path = sysargs[4] + '_W' + str(iWorker)
+      iWorker   = int(sysargs[3])
+      nBatch    = int(sysargs[4])
       settings  = np.array_split(settings,nBatch)[iWorker-1]
+      iiRepeat  = np.array_split(iiRepeat,nBatch)[iWorker-1]
       print("settings partition index:",iWorker)
       print("=> settings array:",settings)
 
+      # Append worker index to save_path
+      save_path = sysargs[5] + '_W' + str(iWorker)
+      print("Will save to",save_path+"...")
+      
       # Enforce individual core usage
       try:
         # Tested on a Mac computer with Anaconda
@@ -413,37 +432,44 @@ def distribute(script,sysargs,settings,prefix='',max_core=999):
       except ImportError:
         # Tested on a Linux server with Anaconda
         os.environ["MKL_NUM_THREADS"] = "1"
-      # Test by setting nBatch=1 to launch only one experiment.
-      # When ensemble DA is running, only a single CPU should be in use
-      # (can be checked e.g by 'htop' utility).
-      # If not, it's because numpy is distributing calculations,
-      # which is very inefficient in the typical experiment.
-      # As you can see, enforcing single-CPU use is platform dependent,
-      # so you might have to adapt the above code to your platform.
-    elif sysargs[1]=='EXPENDABLE' or sysargs[1]=='DISPOSABLE':
-      save_path = 'data/expendable'
+        #
+        # NB: NO LONGER WORKING! Must be set in .bashrc instead.
+        #
+        # Test by setting nBatch=1 to launch only one experiment.
+        # When ensemble DA is running, only a single CPU should be in use
+        # (can be checked e.g by 'htop' utility).
+        # If not, it's because numpy is distributing calculations,
+        # which is very inefficient in the typical experiment.
+        # As you can see, enforcing single-CPU use is platform dependent,
+        # so you might have to adapt the above code to your platform.
+
+    elif sysargs[2]=='EXPENDABLE' or sysargs[2]=='DISPOSABLE':
+      save_path = os.path.join('data','expendable')
     else:
       raise ValueError('Could not interpret sys.args[1]')
   else:
     # No args => No parallelization
     save_path, _ = prep_run(script,prefix)
 
-  return settings, save_path
+  return settings, save_path, iiRepeat
 
 
 
 #########################################
 # Multiprocessing
 #########################################
-NPROC = 4
-import signal
 def multiproc_map(func,xx,**kwargs):
   """
   Multiprocessing.
   Basically a wrapper for multiprocessing.pool.map(). Deals with
    - additional, fixed arguments.
    - KeyboardInterruption (python bug?)
+
+  See example use in mods/QG/core.py.
   """
+  import signal
+  NPROC = multiprocessing.cpu_count()-1
+
   # stackoverflow.com/a/35134329/38281
   orig = signal.signal(signal.SIGINT, signal.SIG_IGN)
   pool = multiprocessing.Pool(NPROC)
@@ -471,11 +497,16 @@ def multiproc_map(func,xx,**kwargs):
 
 
 
+
+
+
 #########################################
-# Tic-toc
+# Misc
 #########################################
 
-#import time
+
+# Better than tic-toc !
+import time
 class Timer():
   """
   Usage:
@@ -495,13 +526,6 @@ class Timer():
       print('Elapsed: %s' % (time.time() - self.tstart))
 
 
-
-
-
-#########################################
-# Misc
-#########################################
-
 # stackoverflow.com/a/2669120
 def sorted_human( lst ): 
     """ Sort the given iterable in the way that humans expect.""" 
@@ -509,7 +533,7 @@ def sorted_human( lst ):
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
     return sorted(lst, key = alphanum_key)
 
-def filter_out(orig_list,*unwanted):
+def filter_out(orig_list,*unwanted,INV=False):
   """
   Returns new list from orig_list with unwanted removed.
   Also supports re.search() by inputting a re.compile('patrn') among unwanted.
@@ -523,8 +547,7 @@ def filter_out(orig_list,*unwanted):
       except AttributeError:
         # String compare
         rm = x==word
-      # Insert
-      if rm:
+      if (not INV)==bool(rm):
         break
     else:
       new.append(word)

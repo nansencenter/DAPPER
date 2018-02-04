@@ -96,13 +96,16 @@ def DA_Config(da_method):
       try:
         assimilator(stats,setup,xx,yy)
       except (AssimFailedError,ValueError,np.linalg.LinAlgError) as err:
-        msg  = "Caught exception during assimilation. Printing traceback:"
-        msg += "\n" + "<"*20 + "\n\n"
-        msg += "\n".join(s for s in traceback.format_tb(err.__traceback__))
-        msg += "\n" + str(err)
-        msg += "\n" + ">"*20 + "\n"
-        msg += "Returning stats object in its current (incompleted) state.\n"
-        print(msg)
+        if getattr(cfg,'fail_gently',True):
+          msg  = "Caught exception during assimilation. Printing traceback:"
+          msg += "\n" + "<"*20 + "\n\n"
+          msg += "\n".join(s for s in traceback.format_tb(err.__traceback__))
+          msg += "\n" + str(err)
+          msg += "\n" + ">"*20 + "\n"
+          msg += "Returning stats object in its current (incompleted) state.\n"
+          print(msg)
+        else:
+          raise err
       return stats
     assim_caller.__doc__ = "Calls assimilator() from " +\
         da_method.__name__ +", passing it the (output) stats object. " +\

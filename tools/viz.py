@@ -1248,7 +1248,7 @@ def autoscale_based_on(ax, line_handles):
 
 from matplotlib.widgets import CheckButtons
 import textwrap
-def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15):
+def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,state=None):
   """
   Make checkbuttons to toggle visibility of each line in current plot.
   autoscl  : Rescale axis limits as required by currently visible lines.
@@ -1256,32 +1256,43 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15):
   txtwidth : Wrap labels to this length.
   """
 
-  # Get lines and their properties
   if ax is None: ax = plt.gca()
+  if txtsize is None: txtsize = mpl.rcParams['font.size']
+
+  # Get lines and their properties
   lines = {'handle': list(ax.get_lines())}
   for p in ['label','color','visible']:
     lines[p] = [plt.getp(x,p) for x in lines['handle']]
+  # Put into pandas for some reason
   lines = pd.DataFrame(lines)
+  # Rm those that start with _
   lines = lines[~lines.label.str.startswith('_')]
 
-  if numbering:
-    lines['label'] = [str(i)+': '+lb for i,lb in enumerate(lines['label'])]
+  # Adjust labels
+  if numbering: lines['label'] = [str(i)+': '+lb for i,lb in enumerate(lines['label'])]
+  if txtwidth:  lines['label'] = [textwrap.fill(n,width=txtwidth) for n in lines['label']]
 
-  if txtwidth:
-    lines['label'] = [textwrap.fill(n,width=txtwidth) for n in lines['label']]
+  # Set state. BUGGY? sometimes causes MPL complaints after clicking boxes
+  if state is not None:
+    state = array(state).astype(bool)
+    lines.visible = state
+    for i,x in enumerate(state):
+      lines['handle'][i].set_visible(x)
 
   # Setup buttons
   # When there's many, the box-sizing is awful, but difficult to fix.
-  plt.subplots_adjust(left=0.32,right=0.97)
+  W = 0.23 * txtwidth/15 * txtsize/10
   N = len(lines)
   H = min(1,0.07*N)
-  rax = plt.axes([0.05, 0.5-H/2, 0.22, H])
+  plt.subplots_adjust(left=W+0.12,right=0.97)
+  rax = plt.axes([0.05, 0.5-H/2, W, H])
   check = CheckButtons(rax, lines.label, lines.visible)
 
   # Adjust button style
   for i in range(N):
     check.rectangles[i].set(lw=0,facecolor=lines.color[i])
     check.labels[i].set(color=lines.color[i])
+    if txtsize: check.labels[i].set(size=txtsize)
 
   # Callback
   def toggle_visible(label):

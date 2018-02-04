@@ -2,7 +2,7 @@
 
 from common import *
 
-def seed(i=None,hh=True):
+def seed(i=None):
   """
   Seed random number generator.
   If i==None, then the clock is used to seed.
@@ -32,6 +32,21 @@ def seed(i=None,hh=True):
 
   np.random.seed(i)
   return i
+
+def seed_init(i=None):
+  """
+  To avoid accidentally re-using the same seed:
+    - multiply i by 1000 (to have 999 incremental seeds for each i)
+    - and add hostname_hash()
+  before calling seed().
+  """
+  if i==None:
+    i   = seed() # obtain clock-init
+    sd0 = seed(     i + hostname_hash())
+  else:
+    sd0 = seed(i*1000 + hostname_hash())
+  return sd0
+  
 
 import socket
 def hostname_hash():
