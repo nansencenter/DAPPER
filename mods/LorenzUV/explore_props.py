@@ -11,11 +11,15 @@ seed(2)
 ###########################
 # Setup
 ###########################
-from mods.LorenzUV.core import model_instance
-LUV = model_instance(nU=36,J=10,F=10,h=0.1)
+from mods.LorenzUV.wilks05 import LUV
+LUV.F = 10
+
+#from mods.LorenzUV.lorenz95 import LUV
+#LUV.c = 1
+
 nU = LUV.nU
 
-K  = 7000
+K  = 2000
 dt = 0.005
 t0 = np.nan
 
@@ -68,7 +72,7 @@ if False:
 ###########################
 # Plot truth evolution
 ###########################
-if False:
+if True:
   plt.figure(8)
   ax = plt.gca()
   ax.clear()

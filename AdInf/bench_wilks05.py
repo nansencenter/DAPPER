@@ -8,11 +8,11 @@ from AdInf.filters import *
 
 sd0 = seed_init(14) # base random seed
 
-from mods.LorenzUV.lorenz95 import setup_full, setup_trunc, LUV
-#(nU=36,J=10,F=10,h=1,b=10,c=10)
+from mods.LorenzUV.wilks05  import setup_full, setup_trunc, LUV
+#(nU=8 ,J=32,F=20,h=1,b=10,c=10)
 
 T     = 500  # length (unitless time) of each experiment
-dtObs = 0.15 # DAW
+dtObs = 0.05 # DAW
 tF = setup_full .t; tF.T = T; tF.dkObs = round(dtObs/tF.dt)
 tT = setup_trunc.t; tT.T = T; tT.dkObs = round(dtObs/tT.dt)
 dk = validate_int(tT.dt / tF.dt)
@@ -21,18 +21,10 @@ dk = validate_int(tT.dt / tF.dt)
 # Get experiment control variable (SETTING) from arguments
 SETTING = sys.argv[1]
 # Set range of experimental settings
-if SETTING == 'c': # time scale ratio
-  settings = round2sigfig(CurvedSpace(0.01,40,0.925,20),nfig=2)
-  settings = np.sort(ccat(settings,[14,15]))
-  #settings = [min(settings, key=lambda x:abs(x-s)) for s in [10,12]]
-elif SETTING == 'h': # coupling constant 
-  settings = round2sigfig(CurvedSpace(0.01,10,0.9,40),nfig=2)
-  #settings = [min(settings, key=lambda x:abs(x-s)) for s in [0.2,0.5,1]]
-elif SETTING == 'F': # coupling constant 
-  settings = round2sigfig(CurvedSpace(1,30,0.9,40),nfig=2)
-  settings = [15]
+if SETTING == 'F': # coupling constant 
+  settings = round2sigfig(CurvedSpace(15,80,0.7,20),nfig=2)
 
-settings = array(settings).repeat(1)
+settings = array(settings).repeat(2)
 
 # Parallelization and save-path setup
 settings, save_path, iiRep = distribute(__file__,sys.argv,settings,SETTING,max_core=999)
@@ -99,11 +91,11 @@ def true_coupling(xx):
 ##############################
 cfgs  = List_of_Configs()
 
-# # BASELINES
-# cfgs += Climatology(detp=-99)
-# cfgs += Var3D(detp=0)
-# cfgs += Var3D(detp=1)
-# 
+# BASELINES
+cfgs += Climatology(detp=-99)
+cfgs += Var3D(detp=0)
+cfgs += Var3D(detp=1)
+ 
 # for nu in [1]:
 #   cfgs += EnKF_N(N=20, nu=nu, name='FULL' )
 #   cfgs += EnKF_N(N=80, nu=nu, name='FULL' , rot=True)
@@ -118,30 +110,26 @@ cfgs  = List_of_Configs()
 #   for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
  
 # ADAPTIVE INFLATION METHODS
-for N in [20]: # NB N=15 is too small for F>12
-  #cfgs += EnKF_N       (N=N)
-  #cfgs += EnKF_N_mod   (N=N, L=None,    nu_f=5)
-  cfgs += EAKF_A07     (N=N,           var_f=1e-2)
-  #cfgs += EAKF_A07     (N=N, damp=1.0, var_f=1e-2)
-  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3)
-  #cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3, infl=1.015)
-  #cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e4)
-  #cfgs += ETKF_InvCS   (N=N, L=1e3,      nu0=10, Uni=1, Var=0)
-  #cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4)
-  #cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e3)
-  #cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e3, Cond=0)
-  cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4, Cond=0)
+for N in [8]: # NB N=15 is too small for F>12
+  cfgs += EAKF_A07     (N=N,           var_f=1e-2           )
+  cfgs += EAKF_A07     (N=N, damp=1.0, var_f=1e-2           )
+  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3            )
+  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3, infl=1.015)
+  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e4            )
+  cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4            )
+  cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e3            )
+  cfgs += EnKF_N_mod   (N=N, L=None,    nu_f=5)
+  cfgs += EnKF_N       (N=N)
 
-  cfgs += EnKF_pre('Sqrt',N=N,infl=1.30)
 
 
 # TUNING RANGES
-# for var_f in round2sigfig(CurvedSpace(1e-3,1e0,0.99,10),1):
-#   cfgs += EAKF_A07  (N=20,           var_f=var_f)
-# for nu_f in round2sigfig(CurvedSpace(10,1e4,0.99,10),1):
-#   cfgs += ETKF_Xplct(N=20, L=None,    nu_f=nu_f)
-# for nu_f in round2sigfig(CurvedSpace(1e1,1e5,0.99,10),1):
-#   cfgs += EnKF_N_Xplct(N=20, L=None,  nu_f=nu_f)
+#for var_f in round2sigfig(CurvedSpace(1e-3,1e0,0.99,10),1):
+  #cfgs += EAKF_A07  (N=20,           var_f=var_f)
+#for nu_f in round2sigfig(CurvedSpace(10,1e4,0.99,10),1):
+  #cfgs += ETKF_Xplct(N=20, L=None,   nu_f=nu_f)
+#for nu_f in round2sigfig(CurvedSpace(1e1,1e5,0.99,10),1):
+  #cfgs += EnKF_N_Xplct(N=20, L=None,   nu_f=nu_f)
 
 
 for c in cfgs:
@@ -182,10 +170,10 @@ for iS,(S,iR) in enumerate(zip(settings,iiRep)):
       stat = Config.assimilate(setup_trunc,xx[::dk,:nU],yy)
       avrg = stat.average_in_time()
 
-    stats[iS,0,iC] = stat
+    #stats[iS,0,iC] = stat
     avrgs[iS,0,iC] = avrg
   print_averages(cfgs, avrgs[iS,0],statkeys=
-      ['rmse_a','rmv_a','infl','a','b'])
+      ['rmse_a','rmv_a','infl','nu_a','a','b'])
 
 
 ##############################
@@ -195,5 +183,6 @@ cfgs.assign_names(do_tab=False,ow='prepend')
 cnames = [c.name for c in cfgs]
 print("Saving to",save_path)
 np.savez(save_path,avrgs=avrgs,abscissa=settings,labels=cnames)
+
 
 

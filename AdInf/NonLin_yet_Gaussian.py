@@ -33,7 +33,7 @@
 ###########################
 
 from common import *
-#plt.style.use('AdInf/paper.mplstyle')
+plt.style.use('AdInf/paper.mplstyle')
 
 seed(88) # 4,59,88,89 are good ones
 
@@ -130,7 +130,8 @@ for k in arange(nT):
   BB[k] = B
   PP[k] = T**2*B
   #E = sqrt(eN) * normalize(E) # Yields Ex(barB) = 2 (exactly)
-  E = NLT(E)
+  E = NLT(E)   # DEFAULT
+  #E = sqrt(2)*randn(N) # To estimate bias with fully random ensemble
   
 plt.figure(2)
 plt.clf()
@@ -141,7 +142,7 @@ plt.plot(PP,color='mlb',lw=1.5)
 plt.plot(bb,color='k'  ,lw=1.5)
 
 plt.ylim((-0.3,3))
-plt.xlim(xmin=0)
+plt.xlim(xmin=0,xmax=nT)
 
 print('mean B:', mean(BB))
 print('mean P:', mean(PP))
@@ -220,6 +221,13 @@ plt.text(0.5,-0.05,'DA cycle (i.e. time) index',
 ax = plt.gca()
 ax.yaxis.tick_left()
 
+
+##
+#fname='NonLin_yet_Gaussian'
+#plt.savefig('data/AdInf/figs/'+fname+'.eps')
+#plt.savefig('data/AdInf/figs/'+fname+'.pdf')
+
+
 ###########################
 # QUIT
 ###########################
@@ -282,8 +290,6 @@ print('mean varance',mean(PP)) # Should be approx 1.
 print('var of var  ',np.var(PP)) 
 # This should increase with the num of NLT applied.
 # Tops out at 0.22 (for recursion level=0 or >5). Min=0.15 (for level=1).
-
-
 
 
 

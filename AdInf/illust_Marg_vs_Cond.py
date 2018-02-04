@@ -73,7 +73,7 @@ h['e'].append(ax2.plot(xx,30*norm(loc=5,scale=1).pdf(xx),'g',lw=3,alpha=0.6)[0])
 save_num = 0
 def savef():
   global save_num
-  plt.savefig('data/figs/AdInf/Marg_vs_Cond_' + str(save_num) + '.pdf')
+  plt.savefig('data/AdInf/figs/Marg_vs_Cond_' + str(save_num) + '.pdf')
   save_num += 1
   plt.pause(0.1)
 
