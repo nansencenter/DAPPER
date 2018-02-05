@@ -23,73 +23,93 @@ def show_answer(excercise_tag):
 answers = {}
 
 
-answers['thesaurus'] = ["TXT",r"""
-Data Assimilation (DA)  Statistical inference   Ensemble    
-Filtering               Inverse problems        Sample     
-Kalman filter (KF)      Inversion               
-State estimation        Estimation              Stochastic 
-Data fusion             Approximation           Random     
-                        Regression              Monte-Carlo
-Recursive               Fitting               
-Sequential                                      data        
-Iterative                                       measurements
-Serial                                          observations
+answers['thesaurus 1'] = ["TXT",r"""
+Data Assimilation (DA)     Ensemble    Stochastic     data        
+Filtering                  Sample      Random         measurements
+Kalman filter (KF)                     Monte-Carlo    observations
+State estimation           
+Data fusion                
+"""]
+
+answers['thesaurus 2'] = ["TXT",r"""
+Statistical inference    Ensemble member     Quantitative belief    Recursive 
+Inverse problems         Sample point        Probability            Sequential
+Inversion                Realization         Relative frequency     Iterative 
+Estimation               Single draw                                Serial    
+Approximation            
+Regression               
+Fitting                  
 """]
 
 answers['why Gaussian'] =  ['MD',r"""
  * Pragmatic: leads to least-squares problems, which lead to linear systems of equations.
+   This was demonstrated by the simplicity of the parametric Gaussian-Gaussian Bayes' rule.
  * The central limit theorem (CLT) and all of its implications.
- * The condition "ML estimator = sample average" implies Gaussian sampling distributions.
- * See chapter 7 of: [Probability theory: the logic of science](https://books.google.com/books/about/Probability_Theory.html?id=tTN4HuUNXjgC) (Edwin T. Jaynes), which is an excellent book for understanding probability and statistics.
+ * The intuitive condition "ML estimator = sample average" implies the sample is drawn from a Gaussian.
+ * For more, see chapter 7 of: [Probability theory: the logic of science](https://books.google.com/books/about/Probability_Theory.html?id=tTN4HuUNXjgC) (Edwin T. Jaynes), which is an excellent book for understanding probability and statistics.
 """]
 
 answers['pdf_G_1'] = ['MD',r'''
-    return 1/sqrt(2*pi*P)*exp(-0.5*(xx-mu)**2/P)
-    #return sp.stats.norm.pdf(xx,loc=mu,scale=sqrt(P))
+    pdf_values = 1/sqrt(2*pi*P)*exp(-0.5*(x-mu)**2/P)
+    # Version using the scipy (sp) library:
+    # pdf_values = sp.stats.norm.pdf(x,loc=mu,scale=sqrt(P))
 ''']
 
 answers['BR deriv'] = ['MD',r'''
-[Wiki](https://en.wikipedia.org/wiki/Bayes%27_theorem#Derivation)
+<a href="https://en.wikipedia.org/wiki/Bayes%27_theorem#Derivation" target="_blank">Wikipedia</a>
+
 ''']
 
 answers['BR grid normalization'] = ['MD',r'''
-Because $p(y) = \int p(x,y) \, dx = \int p(x) p(y|x) \, dx$, 
-which is what gets computed by the sum over the grid values together with `dx`.
+Because it can compute $p(y)$ as
+the factor needed to normalize to 1,
+as required by the definition of pdfs.
+
+That's what the `#normalization` line does.
+
+Proof that this is equivalent:
+$$\texttt{sum(pp)*dx} \approx \int p(x) p(y|x) \, dx = \int p(x,y) \, dx = p(y) \, .$$
 ''']
 
-answers['num mult'] = ['MD',r'''
-$(m_{grid})^d$
+answers['Dimensionality a'] = ['MD',r'''
+$N^m$
+''']
+answers['Dimensionality b'] = ['MD',r'''
+$15 * 360 * 180 = 972'000 \approx 10^6$
+''']
+answers['Dimensionality c'] = ['MD',r'''
+$10^{10^6}$
 ''']
 
 answers['BR Gauss'] = ['MD',r'''
-We can ignore all factors that do not depend on $x$.
+We can ignore factors that do not depend on $x$.
+
 \begin{align}
-p(x|y) &= \frac{p(x) \, p(y|x)}{p(y)}
-\propto p(x) \, p(y|x) \\\
-&\propto N(x|b,B) \, N(y|x,R) \\\
+p(x|y)
+&= \frac{p(x) \, p(y|x)}{p(y)} \\\
+&\propto p(x) \, p(y|x) \\\
+&=       N(x|b,B) \, N(y|x,R) \\\
 &\propto \exp \Big( \frac{-1}{2} \Big( (x-b)^2/B + (x-y)^2/R \Big) \Big) \\\
 &\propto \exp \Big( \frac{-1}{2} \Big( (1/B + 1/R)x^2 - 2(b/B + y/R)x \Big) \Big) \\\
-&\propto \exp \Big( \frac{-1}{2} \Big( x - \frac{b/B + y/R}{1/B + 1/R} \Big)^2 \cdot (1/B + 1/R) \Big) \\\
-&\propto N(x|\mu,P) \, ,
+&\propto \exp \Big( \frac{-1}{2} \Big( x - \frac{b/B + y/R}{1/B + 1/R} \Big)^2 \cdot (1/B + 1/R) \Big) \, .
 \end{align}
-i.e., by identification,
-$ p(x|y) = N(x|\mu,P) \, ,$
-with
-\begin{align}
-    P &= 1/(1/B + 1/R) \, , \\\
-  \mu &= P(b/B + y/R) \, .
-\end{align}
+
+The last line can be identified as $N(x|\mu,P)$ as defined above.
 ''']
 
 answers['KG 2'] = ['MD',r'''
- * Because it drags the estimate from $b$ "towards" $y$. Because it is beteen 0 and 1.
-   It weights the observation noise level (R) vs. the total noise level (B+R).
-   In the multivariate case, the same holds for its eigenvectors (if $H=I$).
+Because it
+
+ * drags the estimate from $b$ "towards" $y$.
+ * is between 0 and 1.
+ * weights the observation noise level (R) vs. the total noise level (B+R).
+ * In the multivariate case (and with $H=I$), the same holds for its eigenvectors.
 ''']
 
 answers['BR Gauss code'] = ['MD',r'''
     P  = 1/(1/B+1/R)
     mu = P*(b/B+y/R)
+    # Gain version:
     #     KG = B/(B+R)
     #     P  = (1-KG)*B
     #     mu = b + KG*(y-b)
@@ -115,6 +135,7 @@ answers['KF func'] = ['MD',r'''
     # Analysis
     PPa[k+1] = 1/(1/PPf[k+1] + H*1/R*H)
     mua[k+1] = PPa[k+1] * (muf[k+1]/PPf[k+1] + yy[k]*H/R)
+    # Analysis -- Kalman gain version:
     #KG = PPf[k+1]*H / (H*PPf[k+1]*H + R)
     #PPa[k+1] = (1-KG)*PPf[k+1]
     #mua[k+1] = muf[k+1]+KG*(yy[k]-muf[k+1])
@@ -191,13 +212,13 @@ Type `randn??` in a code cell and execute it.
 ''']
 answers['Gaussian sampling c'] = ['MD',r'''
     z = randn((m,1))
-    x = mu + L @ z
+    x = b + L @ z
 ''']
 
 answers['Gaussian sampling d'] = ['MD',r'''
-    mu_vertical = 10*ones((m,1))
-    E = mu_vertical + L @ randn((m,N))
-    #E = np.random.multivariate_normal(mu,P,N).T
+    b_vertical = 10*ones((m,1))
+    E = b_vertical + L @ randn((m,N))
+    #E = np.random.multivariate_normal(b,P,N).T
 ''']
 
 answers['Average sampling error'] = ['MD',r'''
