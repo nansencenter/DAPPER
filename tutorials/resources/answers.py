@@ -36,7 +36,7 @@ Statistical inference    Ensemble member     Quantitative belief    Recursive
 Inverse problems         Sample point        Probability            Sequential
 Inversion                Realization         Relative frequency     Iterative 
 Estimation               Single draw                                Serial    
-Approximation            
+Approximation            Particle
 Regression               
 Fitting                  
 """]
