@@ -1,5 +1,4 @@
-from IPython import get_ipython
-IP = get_ipython()
+# CD to DAPPER folder
 from IPython import get_ipython
 IP = get_ipython()
 if IP.magic("pwd").endswith('tutorials'):
@@ -7,13 +6,18 @@ if IP.magic("pwd").endswith('tutorials'):
 else:
     assert IP.magic("pwd").endswith("DAPPER")
 
+# Load DAPPER
 from common import *
 
-from ipywidgets import *
-
+# Load answers
 from tutorials.resources.answers import answers, show_answer
 
+# Load widgets
+from ipywidgets import *
 
+####################################
+# DA video
+####################################
 import io
 import base64
 from IPython.display import HTML
@@ -41,6 +45,9 @@ def envisat_video():
 
 
 
+####################################
+# EnKF animation
+####################################
 #   from matplotlib.image import imread
 #   
 #   # Hack to keep line-spacing constant with/out TeX
@@ -107,6 +114,9 @@ EnKF_animation = VBox([wS,wT,wI])
 
 
 
+####################################
+# Misc
+####################################
 def plot_ensemble(E):
     E_with_NaNs = np.hstack([np.tile(E,(1,2)),np.nan*ones((len(E),1))]).ravel()
     Heights     = plt.ylim()[1]*0.5*np.tile(arange(3),(len(E),1)).ravel()
@@ -121,5 +131,7 @@ def piece_wise_DA_step_lines(xf,xa=None):
     pw_f  = array([[xa[k  ], xf[k+1], nan] for k in range(len(xf)-1)]).ravel()
     pw_a  = array([[xf[k+1], xa[k+1], nan] for k in range(len(xf)-1)]).ravel()
     return pw_f, pw_a
+
+
 
 
