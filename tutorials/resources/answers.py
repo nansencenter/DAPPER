@@ -24,9 +24,9 @@ answers = {}
 
 
 answers['thesaurus 1'] = ["TXT",r"""
-Data Assimilation (DA)     Ensemble    Stochastic     data        
-Filtering                  Sample      Random         measurements
-Kalman filter (KF)                     Monte-Carlo    observations
+Data Assimilation (DA)     Ensemble      Stochastic     Data        
+Filtering                  Sample        Random         Measurements
+Kalman filter (KF)         Set of draws  Monte-Carlo    Observations
 State estimation           
 Data fusion                
 """]
