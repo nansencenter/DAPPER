@@ -935,54 +935,6 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
 
 
 
-@DA_Config
-def EnKF_AdInf(N,infl=1.0,rot=False,Sb2=1.0,Nb=4,Fb=0.99,br=1.0,g=0,**kwargs):
-  """
-  """
-  def assimilator(stats,twin,xx,yy):
-    # Unpack
-    f,h,chrono,X0  = twin.f, twin.h, twin.t, twin.X0
-
-    nonlocal Nb, Sb2
-    stats.aa = zeros(chrono.KObs+1)
-    stats.bb = zeros(chrono.KObs+1)
-    stats.Nb = zeros(chrono.KObs+1)
-
-
-    for k,kObs,t,dt in progbar(chrono.forecast_range):
-      E = f(E,t-dt,dt)
-      E = add_noise(E, dt, f.noise, kwargs)
-
-      Nb = Nb*Fb # NB
-      Sb2 -= (Sb2-1)*br # NB
-
-      if kObs is not None:
-        stats.assess(k,kObs,'f',E=E)
-
-        # Make dual cost function (in terms of lambda^1)
-        m_Nm = min(N,h.m)
-        dgn  = lambda l: pad0( (l*s)**2, m_Nm ) + (N-1)
-        J    = lambda ab:          np.sum(du**2/dgn(ab[0]*ab[1])) \
-               + eN/mc/ab[0]**2 \
-               + cL  *mc*log(ab[0]**2) \
-               + Sb2*rb/ab[1]**2 \
-               + rb*log(ab[1]**2)
-        # Find inflation factors
-        a, b = sp.optimize.fmin_bfgs(J, x0=[1,sqrt(Sb2)], gtol=1e-4, disp=0)
-
-        # TODO: Update Nb, Sb2
-        Sb2 = (Nb*Sb2 + b**2)/(Nb + 1)
-        Nb += 1
-
-        # Aggregate factor
-        l1 = a*b
-        # Turns it into ETKF:
-        #l1 = 1.0
-
-        stats.aa[kObs] = a
-        stats.bb[kObs] = b
-        stats.Nb[kObs] = Nb
-
 
 
 
@@ -998,6 +950,8 @@ def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs
   [1]: Christopher K. Wikle, L. Mark Berliner, 2006:
     "A Bayesian tutorial for data assimilation"
   [2]: Van Leeuwen, 2009: "Particle Filtering in Geophysical Systems"
+  [3]: Zhe Chen, 2003:
+    "Bayesian Filtering: From Kalman Filters to Particle Filters, and Beyond"
 
   Tuning settings:
    - NER: Trigger resampling whenever N_eff <= N*NER.
@@ -1008,8 +962,6 @@ def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs
        The weights are updated to maintain un-biased-ness.
        Ref: [3], section VI-M.2
 
-  [3]: Zhe Chen, 2003:
-    "Bayesian Filtering: From Kalman Filters to Particle Filters, and Beyond"
 
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/boc10.py and mods/Lorenz95/boc10_m40.py.
