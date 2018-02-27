@@ -123,7 +123,7 @@ class LivePlot:
         std = sqrt(diag(C))
         C  /= std[:,None]
         C  /= std[None,:]
-        # Mask half to 
+        # Mask half
         mask = np.zeros_like(C, dtype=np.bool)
         mask[np.tril_indices_from(mask)] = True
         C2 = np.ma.masked_where(mask, C)[::-1]
@@ -1317,6 +1317,7 @@ def toggle_viz(h,prompt=True):
   if prompt:
     input("Press Enter to continue...")
   plt.pause(0.04)
+
 
 
 

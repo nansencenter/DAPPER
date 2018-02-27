@@ -826,8 +826,8 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
 
   Settings for reproducing literature benchmarks may be found in
   mods/Lorenz95/sak08.py
-  mods/Lorenz95/sak12.py
-  mods/Lorenz95/boc12.py
+  mods/Lorenz63/sak12.py
+  mods/Lorenz63/boc12.py
   """
 
   N1 = N-1
@@ -898,7 +898,7 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
             # Gauss-Newton ingredients
             grad = -Y@dy + w*za
             Pw   = (V * (pad0(s**2,N) + za)**-1.0) @ V.T
-            # Linearization improvement
+            # Conditioning for anomalies (discrete linearlizations)
             T    = (V * (pad0(s**2,N) + za)**-0.5) @ V.T * sqrt(N1)
             Tinv = (V * (pad0(s**2,N) + za)**+0.5) @ V.T / sqrt(N1)
             # Gauss-Newton step
@@ -932,7 +932,6 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
     stats.assess(chrono.K,None,'u',E=E)
 
   return assimilator
-
 
 
 
