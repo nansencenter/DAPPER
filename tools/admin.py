@@ -114,8 +114,8 @@ def DA_Config(da_method):
     ############################
     # Grab argument names/values
     #---------------------------
-    # Process abbreviations
-    abbrevs = [('LP','liveplotting')]
+    # Process abbreviations, aliases
+    abbrevs = [('LP','liveplotting'),('store_intermediate','store_u')]
     for a,b in abbrevs:
       if a in kwargs:
         kwargs[b] = kwargs[a]

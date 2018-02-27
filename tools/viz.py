@@ -141,7 +141,7 @@ class LivePlot:
         #
         axC.figure.colorbar(mesh,cax=cax,orientation='horizontal')
         plt.box(False)
-        #axC.set_axis_bgcolor('w')
+        #axC.set_facecolor('w')
         axC.set_facecolor('w') 
         axC.yaxis.tick_right()
         tcks = tcks[np.logical_and(tcks >= ii[0], tcks <= ii[-1])]
@@ -348,7 +348,7 @@ class LivePlot:
         warnings.simplefilter("ignore")
         for i in range(3):
           set_ilim(ax3,i,xx,1.7)
-        ax3.set_axis_bgcolor('w')
+        ax3.set_facecolor('w')
 
 
     #####################
@@ -914,7 +914,7 @@ def plot_3D_trajectory(stats,dims=0,**kwargs):
   ax3.set_ylabel('dim ' + str(dims[1]))
   ax3.set_zlabel('dim ' + str(dims[2]))
   ax3.legend(frameon=False)
-  ax3.set_axis_bgcolor('w')
+  ax3.set_facecolor('w')
 
 
 def plot_time_series(stats,dim=0,**kwargs):
