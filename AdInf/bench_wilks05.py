@@ -97,15 +97,15 @@ cfgs += Var3D(detp=0)
 cfgs += Var3D(detp=1)
  
 # for nu in [1]:
-#   cfgs += EnKF_N(N=20, nu=nu, name='FULL' )
-#   cfgs += EnKF_N(N=80, nu=nu, name='FULL' , rot=True)
-#   cfgs += EnKF_N(N=20, nu=nu, name='CHEAT')
-#   cfgs += EnKF_N(N=80, nu=nu, name='CHEAT', rot=True)
+#   cfgs += EnKF_N(N=20, xN=xN, name='FULL' )
+#   cfgs += EnKF_N(N=80, xN=xN, name='FULL' , rot=True)
+#   cfgs += EnKF_N(N=20, xN=xN, name='CHEAT')
+#   cfgs += EnKF_N(N=80, xN=xN, name='CHEAT', rot=True)
 
 # infls = round2(CurvedSpace(1,5,0.98,40),0.01)
 # for N in [20]:
 #   #for infl in infls: cfgs += EnKF_N  (       N=N,infl=infl)
-#   #for infl in infls: cfgs += EnKF_N  (nu=2,  N=N,infl=infl)
+#   #for infl in infls: cfgs += EnKF_N  (xN=2,  N=N,infl=infl)
 #   #for infl in infls: cfgs += EnKF    ('Sqrt',N=N,infl=infl)
 #   for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
  

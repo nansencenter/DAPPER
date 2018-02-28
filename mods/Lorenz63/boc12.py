@@ -18,7 +18,7 @@ setup.name = os.path.relpath(__file__,'mods/')
 #
 # With dkObs=5:
 #cfgs += iEnKS('-N', N=3)                                           # 0.15
-#cfgs += iEnKS('-N', N=3,nu=1.4)                                    # 0.14
+#cfgs += iEnKS('-N', N=3,xN=1.4)                                    # 0.14
 #
 # With R=8*eye(3):
 #cfgs += iEnKS('-N', N=3)                                           # 0.70
