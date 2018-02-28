@@ -51,7 +51,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 #    and don't really need localization.
 #from mods.Lorenz95.frei2013bridging import setup           # rmse_a
 #cfgs += EnKF_N(N=400,rot=1)                                # 0.80
-#cfgs += LETKF(N=400,rot=True,infl=1.01,loc_rad=10/1.7386)  # 0.79 # short experiment only
+#cfgs += LETKF(N=400,rot=True,infl=1.01,loc_rad=10/1.82)    # 0.79 # short experiment only
 #cfgs += Var3D(infl=0.8)                                    # ≈2.5 # short experiment only
 
 
