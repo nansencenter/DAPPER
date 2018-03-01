@@ -46,7 +46,14 @@ def distance_nD(centr, domain, shape, periodic=True):
 
 
 def dist2coeff(dists, radius, tag=None):
-  """Compute coefficients corresponding to a distances."""
+  """
+  Compute coefficients corresponding to a distances.
+
+  NB: The radius is internally adjusted such that independently of 'tag',
+  coeff==exp(-0.5) when distance==radius.
+  However, the constants in Sakov (2011) "Relation..." and his enkf-matlab code
+  are slightly wrong, and have been changed here.
+  """
   coeffs = zeros(dists.shape)
 
   if tag is None:
@@ -59,16 +66,16 @@ def dist2coeff(dists, radius, tag=None):
     R = radius
     coeffs = exp(-0.5 * (dists/R)**3)
   elif tag == 'Cubic':
-    R            = radius * 1.8676
+    R            = radius * 1.87 # Sakov: 1.8676
     inds         = dists <= R
     coeffs[inds] = (1 - (dists[inds] / R) ** 3) ** 3
   elif tag == 'Quadro':
-    R            = radius * 1.7080
+    R            = radius * 1.64 # Sakov: 1.7080
     inds         = dists <= R
     coeffs[inds] = (1 - (dists[inds] / R) ** 4) ** 4
   elif tag == 'GC':
     # Gaspari_Cohn
-    R = radius * 1.7386
+    R = radius * 1.82 # Sakov: 1.7386
     #
     ind1         = dists<=R
     r2           = (dists[ind1] / R) ** 2
@@ -141,3 +148,7 @@ def no_localization(m,jj):
     else: raise KeyError
     return no_localization
   return locf
+
+
+
+

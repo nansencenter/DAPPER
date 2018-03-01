@@ -36,7 +36,7 @@ setup = TwinSetup(f,h,t,X0,**other)
 # - no jitter on unique particles after resampling
 
 #                                            Expected RMSE_a:
-#cfgs += EnKF_N(N=8,rot=True,nu=1.3)                # 0.31
+#cfgs += EnKF_N(N=8,rot=True,xN=1.3)                # 0.31
 
 #cfgs += PartFilt(N=50 ,NER=0.3 ,reg=1.7)           # 1.0
 #cfgs += PartFilt(N=100,NER=0.2 ,reg=1.3)           # 0.36

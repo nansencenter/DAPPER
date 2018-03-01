@@ -81,6 +81,7 @@ Sqrt. model noise methods                              | Raanes (2015)
 Particle filter (bootstrap) <sup>2</sup>               | Bocquet (2010)
 Optimal/implicit Particle filter  <sup>2</sup>         | "
 NETF                                                   | Tödter (2015), Wiljes (2017)
+Rank histogram filter (RHF)                            | Anderson (2010)
 Extended KF                                            | Raanes (2016b)
 Optimal interpolation                                  | "
 Climatology                                            | "
@@ -308,6 +309,7 @@ TODO
 References
 ------------------------------------------------
 Sakov (2008)   : Sakov and Oke. "A deterministic formulation of the ensemble Kalman filter: an alternative to ensemble square root filters".  
+Anderson (2010): "A Non-Gaussian Ensemble Filter Update for Data Assimilation"
 Bocquet (2010) : Bocquet, Pires, and Wu. "Beyond Gaussian statistical modeling in geophysical data assimilation".  
 Bocquet (2011) : Bocquet. "Ensemble Kalman filtering without the intrinsic need for inflation,".  
 Sakov (2012)   : Sakov, Oliver, and Bertino. "An iterative EnKF for strongly nonlinear systems".  

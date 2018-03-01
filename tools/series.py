@@ -69,7 +69,7 @@ class val_with_conf():
   def _str(self):
     with np.errstate(all='ignore'):
       conf = round2sigfig(self.conf)
-      nsig = floor(log10(conf))
+      nsig = max(-10,floor(log10(conf)))
       return str(round2(self.val,10**(nsig))), str(conf)
   def __str__(self):
     val,conf = self._str()
@@ -86,10 +86,8 @@ def series_mean_with_conf(xx):
   """
   mu    = mean(xx)
   N     = len(xx)
-  if np.allclose(xx,mu):
-    return val_with_conf(mu, 0)
-  if (not np.isfinite(mu)) or N<5:
-    return val_with_conf(mu, np.nan)
+  if np.allclose(xx,mu):            return val_with_conf(mu, 0)
+  if (not np.isfinite(mu)) or N<=5: return val_with_conf(mu, np.nan)
   acovf = auto_cov(xx,5)
   v     = acovf[0]
   v    /= N
