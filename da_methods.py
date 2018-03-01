@@ -907,6 +907,144 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
 
 
 @DA_Config
+def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,iMax=10,xN=1.0,infl=1.0,rot=False,**kwargs):
+  """
+  Iterative, Localized EnKS-N.
+
+  Based on iEnKS() and LETKF() codes,
+  which describes the other input arguments.
+
+  - upd_a : - 'Sqrt' (i.e. ETKF)
+            - 'Stoch' (i.e. perturbed-observations) 
+            - '-N' (i.e. EnKF-N)
+  
+  References:
+  Raanes (2018) : "Stochastic, iterative ensemble smoothers"
+  Bocquet (2015): "Localization and the iterative ensemble Kalman smoother"
+
+  Settings for reproducing literature benchmarks may be found in
+  ...
+  """
+
+  N1 = N-1
+
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0,R,KObs = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C, twin.t.KObs
+    assert f.noise.C is 0, "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
+
+    # Init DA cycles
+    E = X0.sample(N)
+    stats.iters = np.full(KObs+1,nan)
+
+    # Loop DA cycles
+    for kObs in progbar(arange(KObs+1)):
+        # Set (shifting) DA Window. Shift is 1.
+        DAW_0  = kObs-Lag+1
+        DAW    = arange(max(0,DAW_0),DAW_0+Lag)
+        DAW_dt = chrono.ttObs[DAW[-1]] - chrono.ttObs[DAW[0]] + chrono.dtObs
+
+        # Store 0th (iteration) estimate as (xf,Af)
+        Af,xf  = anom(E)
+        # Init iterations
+        w      = np.tile( zeros(N) , (f.m,1) )
+        Tinv   = np.tile( eye(N)   , (f.m,1,1) )
+        T      = np.tile( eye(N)   , (f.m,1,1) )
+
+        # Get localization func (at time t)
+        locf_at = h.loc_f(loc_rad, 'x2y', chrono.ttObs[kObs], taper)
+
+        # Loop iterations
+        for iteration in arange(iMax):
+
+            # Assemble current estimate of E[kObs-Lag]
+            for i in range(f.m):
+              E[:,i] = xf[i] + w[i]@Af[:,i]+ T[i]@Af[:,i]
+
+            # Forecast
+            for kDAW in DAW:                        # Loop Lag cycles
+              for k,t,dt in chrono.obs_range(kDAW): # Loop dkObs steps (1 cycle)
+                E = f(E,t-dt,dt)                    # Forecast 1 dt step (1 dkObs)
+
+            if iteration==0:
+              stats.assess(k,kObs,'f',E=E)
+
+            # Analysis of y[kObs] (already assim'd [:kObs])
+            y    = yy[kObs]
+            Y,hx = anom(h(E,t))
+            # Transform obs space
+            Y  = Y        @ R.sym_sqrt_inv.T
+            dy = (y - hx) @ R.sym_sqrt_inv.T
+
+            # Inflation estimation.
+            # Set "effective ensemble size", za = (N-1)/pre-inflation^2.
+            if upd_a == 'Sqrt':
+                za = N1 # no inflation
+            elif upd_a == '-N':
+              # Careful not to overwrite w,T,Tinv !
+              V,s,UT = svd0(Y)
+              grad   = Y@dy
+              Pw     = (V * (pad0(s**2,N) + N1)**-1.0) @ V.T
+              w_glob = Pw@grad 
+              za     = zeta_a(*hyperprior_coeffs(s,N,xN), w_glob)
+
+            for i in range(f.m):
+              # Shift localization center (to adjust for time difference)
+              i_kObs = h.loc_shift(i, DAW_dt)
+              # Localize
+              local, coeffs = locf_at(i_kObs)
+              if len(local) == 0: continue
+              Y_i   = Y[:,local] * sqrt(coeffs)
+              dy_i  = dy[local]  * sqrt(coeffs)
+
+              # "Uncondition" the observation anomalies
+              # (and yet this linearization of h improves with iterations)
+              Y_i     = Tinv[i] @ Y_i
+              # Prepare analysis: do SVD
+              V,s,UT  = svd0(Y_i)
+              # Gauss-Newton ingredients
+              grad    = -Y_i@dy_i + w[i]*za
+              Pw      = (V * (pad0(s**2,N) + za)**-1.0) @ V.T
+              # Conditioning for anomalies (discrete linearlizations)
+              T[i]    = (V * (pad0(s**2,N) + za)**-0.5) @ V.T * sqrt(N1)
+              Tinv[i] = (V * (pad0(s**2,N) + za)**+0.5) @ V.T / sqrt(N1)
+              # Gauss-Newton step
+              dw      = Pw@grad
+              w[i]   -= dw
+
+            # Stopping condition # TODO
+            #if np.linalg.norm(dw) < N*1e-4:
+              #break
+
+        # Analysis 'a' stats for E[kObs].
+        stats.assess(k,kObs,'a',E=E)
+        stats.trHK [kObs] = trace(Y.T @ Pw @ Y)/h.noise.m
+        stats.infl [kObs] = sqrt(N1/za)
+        stats.iters[kObs] = iteration+1
+
+        # Final (smoothed) estimate of E[kObs-Lag]
+        for i in range(f.m):
+          E[:,i] = xf[i] + w[i]@Af[:,i]+ T[i]@Af[:,i]
+
+        E = post_process(E,infl,rot)
+
+        # Forecast smoothed ensemble by shift (1*dkObs)
+        if DAW_0 >= 0:
+          for k,t,dt in chrono.obs_range(DAW_0):
+            stats.assess(k-1,None,'u',E=E)
+            E = f(E,t-dt,dt)
+
+    # Assess the last (Lag-1) obs ranges
+    for kDAW in arange(DAW[0]+1,KObs+1):
+      for k,t,dt in chrono.obs_range(kDAW):
+        stats.assess(k-1,None,'u',E=E)
+        E = f(E,t-dt,dt)
+    stats.assess(chrono.K,None,'u',E=E)
+
+  return assimilator
+
+
+
+@DA_Config
 def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
   """
   Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
