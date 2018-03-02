@@ -485,12 +485,12 @@ def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
             # Anyways, with an explicit H, one can apply Woodbury
             # to go to state space (dim==1), before reverting to HA_i = Y_loc.
             B   = A[:,i]@A[:,i] / N1
-            AY  = A[:,i]@Y_i
-            BmR = AY@AY.T
-            T2  = (1 + BmR/(B*N1**2))**(-1)
-            AT  = sqrt(T2) * A[:,i]
+            H   = A[:,i]@Y_i /B / N1 # H.T == H
+            HRH = H@H                # R^{-1} == Id coz of above
+            T2  = 1/(1 + B*HRH)
+            AT  = sqrt(T2)*A[:,i]
             P   = T2 * B
-            dmu = P*(AY/(N1*B))@dy_i
+            dmu = P*H@dy_i
           else:
             # Non-Approximate
             if len(local) < N:
@@ -510,11 +510,6 @@ def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
           E[:,i] = mu[i] + dmu + AT
 
         E = post_process(E,infl,rot)
-
-        if 'sd' in locals():
-          stats.trHK[kObs] = (sd**(-1.0) * sd**2).sum()/h.noise.m
-        #else:
-          # nevermind
 
       stats.assess(k,kObs,E=E)
   return assimilator
