@@ -80,9 +80,10 @@ import matplotlib as mpl
 
 # is_notebook 
 try:
+  __IPYTHON__
   from IPython import get_ipython
   is_notebook = 'zmq' in str(type(get_ipython())).lower()
-except ImportError:
+except (NameError,ImportError):
   is_notebook = False
 
 # Choose graphics backend.
