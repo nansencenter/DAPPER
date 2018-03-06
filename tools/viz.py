@@ -926,8 +926,10 @@ def plot_time_series(stats,dim=0,**kwargs):
   xx     = stats.xx
   chrono = stats.setup.t
 
-  fg = plt.figure(12,figsize=(6,6)).clf()
+  fg = plt.figure(12,figsize=(6,6))
+  fg.clf()
   set_figpos('1313 mac')
+  fg, (ax_d, ax_K, ax_e) = plt.subplots(3,1,sharex=True,num=12)
 
   kk,kkA = get_plot_inds(xx[:,dim],chrono,mult=80,**kwargs)
   tt,ttA = chrono.tt[kk], chrono.tt[kkA]
@@ -950,7 +952,6 @@ def plot_time_series(stats,dim=0,**kwargs):
   skew   = s.skew.a[:KA]
   kurt   = s.kurt.a[:KA]
 
-  ax_d = plt.subplot(3,1,1)
   ax_d.plot(tt_,xx[:,dim],'k',lw=3,label='Truth')
   ax_d.plot(tt_,mu[:,dim],    lw=2,label='DA estim.')
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',usetex=True,size=20)
@@ -959,14 +960,12 @@ def plot_time_series(stats,dim=0,**kwargs):
   ax_d.legend()
   ax_d.set_xticklabels([])
 
-  ax_K = plt.subplot(3,1,2)
   ax_K.plot(ttA, trKH,'k',lw=2,label='tr(HK)')
   ax_K.plot(ttA, skew,'g',lw=2,label='Skew')
   ax_K.plot(ttA, kurt,'r',lw=2,label='Kurt')
   ax_K.legend()
   ax_K.set_xticklabels([])
 
-  ax_e = plt.subplot(3,1,3)
   ax_e.plot(        tt_, rmse,'k',lw=2 ,label='Error')
   ax_e.fill_between(tt_, rmv ,alpha=0.7,label='Spread') 
   ax_e.set_ylim(0, 1.1*max(np.percentile(rmse,99), rmv.max()) )
