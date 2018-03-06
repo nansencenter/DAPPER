@@ -90,22 +90,43 @@ def DA_Config(da_method):
     #---------------------------
     def assim_caller(setup,xx,yy):
       name_hook = da_method.__name__ # for pdesc of progbar
+
       # Init stats
       stats = Stats(cfg,setup,xx,yy)
+
       # Put assimilator inside try/catch to allow gentle failure
       try:
         assimilator(stats,setup,xx,yy)
-      except (AssimFailedError,ValueError,np.linalg.LinAlgError) as err:
+      except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
         if getattr(cfg,'fail_gently',True):
-          msg  = "Caught exception during assimilation. Printing traceback:"
-          msg += "\n" + "<"*20 + "\n\n"
-          msg += "\n".join(s for s in traceback.format_tb(err.__traceback__))
-          msg += "\n" + str(err)
-          msg += "\n" + ">"*20 + "\n"
-          msg += "Returning stats object in its current (incompleted) state.\n"
-          print(msg)
-        else:
-          raise err
+          msg  = []
+          msg += ["\nCaught exception during assimilation. Printing traceback:"]
+          msg += ["<"*20 + "\n"]
+
+          # Insert traceback for debugging
+          try:
+            # If IPython, use its coloring functionality
+            __IPYTHON__
+            from IPython.core.debugger import Pdb
+            import traceback as tb
+            pdb_instance = Pdb()
+            pdb_instance.curframe = inspect.currentframe() # first frame: this one
+            for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
+              if i==0: continue # skip first frame
+              msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
+          except (NameError,ImportError):
+            # No coloring
+            msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
+
+          msg += [str(ERR)]
+          msg += ["\n" + ">"*20]
+          msg += ["Returning stats object in its current (incompleted) state, "+\
+              "so that program execution may continue.\n"]
+          for s in msg: print(s,file=sys.stderr)
+
+        else: # Don't fail gently.
+          raise ERR
+
       return stats
     assim_caller.__doc__ = "Calls assimilator() from " +\
         da_method.__name__ +", passing it the (output) stats object. " +\

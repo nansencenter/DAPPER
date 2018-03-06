@@ -63,6 +63,10 @@ setup = TwinSetup(f,h,t,X0,**other)
 #cfgs += Var3D(infl=1.05)                                 # 0.41 
 #cfgs += ExtKF(infl=10)                                   # 0.24 
 
+# Reproduce Table 3 (IEnKF) from sakov2012iterative
+#setup.t.dkObs = 12
+#cfgs += iEnKS('Sqrt' ,N=25,Lag=1,iMax=10,infl=1.2,rot=1) # 0.46
+
 
 # Reproduce Fig 3 of Bocquet'2015 "expanding"
 #cfgs += EnKF('Sqrt',N=20,rot=True,infl=1.04)             # 0.20

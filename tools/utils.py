@@ -32,13 +32,18 @@ def pdesc(desc):
 # Define progbar as tqdm or noobar
 try:
   import tqdm
-  if is_notebook:
-    def progbar(inds, desc=None, leave=1):
-      return tqdm.tqdm_notebook(inds,desc=pdesc(desc),leave=leave)
-  else:
-    def progbar(inds, desc=None, leave=1):
-      return tqdm.tqdm(inds,desc=pdesc(desc),leave=leave,
-          smoothing=0.3,dynamic_ncols=True)
+  def progbar(inds, desc=None, leave=1):
+    if is_notebook:
+      pb = tqdm.tqdm_notebook(inds,desc=pdesc(desc),leave=leave)
+    else:
+      pb = tqdm.tqdm(inds,desc=pdesc(desc),leave=leave,smoothing=0.3,dynamic_ncols=True)
+    # Printing during the progbar loop (may occur with error printing)
+    # can cause tqdm to freeze the entire execution. 
+    # Seemingly, this is caused by their multiprocessing-safe stuff.
+    # Disable this, as per github.com/tqdm/tqdm/issues/461#issuecomment-334343230
+    try: pb.get_lock().locks = []
+    except AttributeError: pass
+    return pb
 except ImportError as err:
   install_warn(err)
   def progbar(inds, desc=None, leave=1):
