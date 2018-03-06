@@ -782,9 +782,11 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
   "Combining inflation-free and iterative EnKFs ..."
 
   - upd_a : 'Sqrt' (i.e. ETKF) or '-N' (i.e. EnKF-N)
-  - Lag   : the length of the data assimilation window (DAW).
-            Its default, 1 (dkObs) yields the iterative "filter" iEnKF.
-            As in Boc14, the shift (S) is fixed at 1.
+  - Lag   : length of the DA window (DAW), in multiples of dkObs.
+            Lag=1 (default) yields the iterative "filter" iEnKF.
+            Note: the shift (S) is fixed at 1.
+  - iMax  : Maximal num. of iterations allowed.
+            NB: Its minimum (1) still yields 2 forecasts per step.
   - bundle: Use bundle (finite difference) or transform (regression)
             linearizations. For details, see Boc12.
             If True, then the statistics for spread (etc) will
@@ -855,9 +857,14 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
             # Prepare analysis: do SVD
             V,s,UT = svd0(Y)
 
+            step_shrink = 1 + iteration     # Decreasing (starting from 1)
+            #step_shrink = iMax - iteration # Increasing (starting from max)
+            # Implement by inserting *sqrt(step_shrink) [for Pw only?]
+
             # Set "effective ensemble size", za = (N-1)/pre-inflation^2
             if   upd_a == 'Sqrt': za = N1 # No inflation
             elif upd_a == '-N'  : za = zeta_a(*hyperprior_coeffs(s,N,xN), w)
+            else: raise KeyError("upd_a: '" + upd_a + "' not matched.") 
 
             # Gauss-Newton ingredients
             grad = -Y@dy + w*za
@@ -899,6 +906,104 @@ def iEnKS(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs)
   return assimilator
 
 
+@DA_Config
+def EnRML(upd_a,N,Lag=1,iMax=10,xN=1.0,bundle=False,infl=1.0,rot=False,**kwargs):
+  """
+  """
+  N1 = N-1
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0,R,KObs = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C, twin.t.KObs
+    assert f.noise.C is 0, "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
+
+    # Init DA cycles
+    E = X0.sample(N)
+    stats.iters = np.full(KObs+1,nan)
+
+    # Loop DA cycles
+    for kObs in progbar(arange(KObs+1)):
+        # Set DA Window. Shift is 1.
+        DAW_0  = kObs-Lag+1
+        DAW    = arange(max(0,DAW_0),DAW_0+Lag)
+
+        # Store 0th (iteration) estimate as (xf,Af)
+        Af,xf  = anom(E)
+        # Init iterations
+        W      = eye(N)
+        T      = eye(N)
+        D      = center(h.noise.sample(N))
+
+        # Loop iterations
+        for iteration in arange(iMax):
+
+            # Forecast
+            E = xf + W.T @ Af                       # Current estimate of E[kObs-Lag]
+            for kDAW in DAW:                        # Loop Lag cycles
+              for k,t,dt in chrono.obs_range(kDAW): # Loop dkObs steps (1 cycle)
+                E = f(E,t-dt,dt)                    # Forecast 1 dt step (1 dkObs)
+
+            if iteration==0:
+              stats.assess(k,kObs,'f',E=E)
+
+            # Analysis of y[kObs] (already assim'd [:kObs])
+            y    = yy[kObs]
+            hE   = h(E,t)
+            Y,hx = anom(hE)
+            # "Uncondition" the observation anomalies
+            # (and yet this linearization of h improves with iterations)
+            Y  = mldiv(T,Y)
+            # Transform obs space
+            Y  = Y @ R.sym_sqrt_inv.T
+            dY = R.sym_sqrt_inv @ (y - D - hE).T
+            # Prepare analysis: do SVD
+            V,s,UT = svd0(Y)
+
+            # Set "effective ensemble size", za = (N-1)/pre-inflation^2
+            za = N1
+
+            # I recomend decreasing
+            step_shrink = 1 + iteration    # Decreasing (starting from 1)
+            #step_shrink = iMax - iteration # Increasing (starting from max)
+            s *= sqrt(step_shrink)
+
+            # Gauss-Newton ingredients
+            grad = Y@dY + (eye(N)-W)*za
+            Pw   = (V * (pad0(s**2,N) + za)**-1.0) @ V.T
+            # Conditioning for anomalies (discrete linearlizations)
+            T    = Pw @ (za*eye(N) - Y@(R.sym_sqrt_inv@D.T))
+            # Gauss-Newton step
+            dW   = Pw@grad
+            W   += dW
+
+            # Stopping condition TODO
+            #if np.linalg.norm(dW) < N*1e-4:
+              #break
+
+        # Analysis 'a' stats for E[kObs].
+        stats.assess(k,kObs,'a',E=E)
+        stats.trHK [kObs] = trace(Y.T @ Pw @ Y)/h.noise.m
+        stats.iters[kObs] = iteration+1
+        stats.infl [kObs] = sqrt(N1/za)
+
+        # Final (smoothed) estimate of E[kObs-Lag]
+        E = xf + W.T @ Af
+        E = post_process(E,infl,rot)
+
+        # Forecast smoothed ensemble by shift (1*dkObs)
+        if DAW_0 >= 0:
+          for k,t,dt in chrono.obs_range(DAW_0):
+            stats.assess(k-1,None,'u',E=E)
+            E = f(E,t-dt,dt)
+
+    # Assess the last (Lag-1) obs ranges
+    for kDAW in arange(DAW[0]+1,KObs+1):
+      for k,t,dt in chrono.obs_range(kDAW):
+        stats.assess(k-1,None,'u',E=E)
+        E = f(E,t-dt,dt)
+    stats.assess(chrono.K,None,'u',E=E)
+
+  return assimilator
+
+
 
 
 @DA_Config
@@ -918,7 +1023,7 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,iMax=10,xN=1.0,infl=1.0,rot=False,**
   Bocquet (2015): "Localization and the iterative ensemble Kalman smoother"
 
   Settings for reproducing literature benchmarks may be found in
-  ...
+  mods/Lorenz95/boc15loc.py
   """
 
   N1 = N-1
