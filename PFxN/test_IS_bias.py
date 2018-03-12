@@ -1,68 +1,59 @@
 ##
-# Test if importance sampling has bias.
+
+# Verify that importance sampling (IS) has bias.
 # According to Doucet (2009):
 # "A Tutorial on Particle Filtering and Smoothing: 15 years later"
-# using normalized weights YIELDS A BIAS (see below their eqn 26).
-
+# using NORMALIZED weights yields a BIAS (see below their eqn 26)
+# in the PF (as defined by any test statistic).
+# However, it remains consistent (CV to true dist for N-->infty).
+# Also see owen2018importance below his eqn 9.3.
 
 from common import *
 
 #seed(2)
 
 ## True distribution
-
-def p(xx):
-  # Uniform(0,1)
-  pp = np.ones_like(xx)
-  pp[xx<0] = 0
-  pp[xx>1] = 0
-  return pp
-p.sample = lambda N: rand(N)
-
-#def p(xx):
-  #return sp.stats.norm(loc=2).pdf(xx)
-#p.sample = lambda N: 2 + randn(N)
-
+p = ss.uniform(loc=1)
+#p = ss.norm(loc=1)
 
 ## Function for which we'll estimate the expected value
-
 #f = lambda x: x**3             # nonlin f yields bias
-f = lambda x: x                # linear f yields bias
-#f = lambda x: np.ones_like(x)  # constant f does not yield bias
+f = lambda x: np.ones_like(x)  # constant f does not yield bias
 
-f_expect = mean(f(p.sample(10**4)))
-
+f_expect = mean(f(p.rvs(10**4)))
 
 ## Proposal
+q = ss.norm()
 
-def q(xx):
-  # Gaussian(0,1)
-  return sp.stats.norm.pdf(xx)
-q.sample = lambda N: randn(N)
-
-# If using true distribution,
-# then importance sampling reduces to basic Monte-Carlo,
+# If proposal == true,
+# then IS reduces to basic Monte-Carlo,
 # and there should be no bias.
 #q = p
 
-## 
-#E = q.sample(10**5)
-#Z = mean(p(E)/q(E))
+xx = linspace(-2,8,401)
+plt.plot(xx,p.pdf(xx),label='p')
+plt.plot(xx,q.pdf(xx),label='q')
 
 
 ## Bias estimation
-
-K = 10000 # Experiment repetitions
-N = 5     # Ensemble size
+K = 1000 # Experiment repetitions
+N = 5    # Ensemble size
 
 bias = []
 for k in range(K):
-  E = q.sample(N)
-  w = p(E)/q(E)
-  if np.all(w==0):
-    continue
-  #w /= w.sum()
-  w /= N
+  E = q.rvs(N)
+  w = p.pdf(E)/q.pdf(E)
+
+  # Note: Ignoring the case all(w==0) would introduce bias.
+  #       In this case, just leave w==0.
+
+  # Alternative 1: normalize weights.
+  if not np.all(w==0):
+    w /= w.sum()
+
+  # Alternative 2: don't normalize. Should have no bias.
+  #w /= N
+
   f_estim = w @ f(E)
   bias += [f_estim - f_expect]
 bias = array(bias)

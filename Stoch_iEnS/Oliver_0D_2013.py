@@ -6,11 +6,9 @@
 
 ##
 from common import *
+from scipy.stats import norm
 
 sd0 = seed_init(2)
-
-def NormPDF(xx,b=0,B=1):
-  return 1/sqrt(2*pi*B)*exp(-(xx-b)**2/2/B)
 
 xx = linspace(-5,10,2001)
 dx = xx[1]-xx[0]
@@ -36,8 +34,8 @@ def hp(x): return 7/4*x*x - 7*x + 8
 #def  h(x): return 4*x
 #def hp(x): return 4
 
-def prior(xx): return NormPDF(xx,b,B)
-def lklhd(xx): return normlz( NormPDF(y,h(xx),R) )
+def prior(xx): return norm.pdf(xx,b,sqrt(B))
+def lklhd(xx): return normlz( norm.pdf(y,h(xx),sqrt(R)) )
 def postr(xx): return normlz( prior(xx) * lklhd(xx) )
 
 ## Plotting

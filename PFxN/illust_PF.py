@@ -2,6 +2,7 @@
 
 ##
 from common import *
+from scipy.stats import norm
 plt.style.use('AdInf/paper.mplstyle')
 #plt.xkcd()
 sd0 = seed(28)
@@ -49,9 +50,6 @@ def delta_plot(ax,xx,hh=1.0,c='k',label=''):
   return hs
 
 
-def NormPDF(xx,b=0,B=1):
-  return 1/sqrt(2*pi*B)*exp(-(xx-b)**2/2/B)
-  
 ##############################
 # 
 ##############################
@@ -76,16 +74,16 @@ P2 = 1/(1/B2 + 1/R)
 p1 = P1/B1*b1 + P1/R*y
 p2 = P2/B2*b2 + P2/R*y
 # Posterior mixture weights
-w1 = v1*NormPDF(y,b1,B1+R)
-w2 = v2*NormPDF(y,b2,B2+R)
+w1 = v1*norm.pdf(y,b1,sqrt(B1+R))
+w2 = v2*norm.pdf(y,b2,sqrt(B2+R))
 w1, w2 = w1/(w1+w2), w2/(w1+w2)
 
 def prior(xx):
-  return v1*NormPDF(xx,b1,B1) + v2*NormPDF(xx,b2,B2)
+  return v1*norm.pdf(xx,b1,sqrt(B1)) + v2*norm.pdf(xx,b2,sqrt(B2))
 def lklhd(xx):
-  return NormPDF(y,xx,R)
+  return norm.pdf(y,xx,sqrt(R))
 def postr(xx):
-  return w1*NormPDF(xx,p1,P1) + w2*NormPDF(xx,p2,P2)
+  return w1*norm.pdf(xx,p1,sqrt(P1)) + w2*norm.pdf(xx,p2,sqrt(P2))
 
 # Prior ensemble
 E = zeros(N)
@@ -101,7 +99,7 @@ for n in range(N):
   E[n] = b + sqrt(B)*randn()
 
 ## Analysis: weigting by likelihood
-ww = NormPDF(y,E,R)
+ww = norm.pdf(y,E,sqrt(R))
 ww /= ww.sum()
 
 # Resampling
@@ -136,7 +134,8 @@ h['A'] = delta_plot(ax,E,hh=ww*N,c='g',label='Post. particles')
 h['F'] = delta_plot(ax,F        ,c='r',label='Resampled particles')
 h['G'] = delta_plot(ax,G        ,c='r',label='Jittered particles')
 
-#sys.exit(0)
+
+sys.exit(0)
 
 savefig_n.index = 1
 def tog(h,save=True,*a,**b):

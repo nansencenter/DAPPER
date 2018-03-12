@@ -9,6 +9,7 @@
 
 ## Preamble
 from common import *
+from scipy.stats import norm
 
 #plt.xkcd()
 
@@ -48,11 +49,8 @@ dx = xx[1]-xx[0]
 def normlz(pp):
   return pp / sum(pp) / dx
 
-def NormPDF(xx,b=0,B=1):
-  return 1/sqrt(2*pi*B)*exp(-(xx-b)**2/2/B)
-
-prior_xx = NormPDF(xx,b[0],B[0,0])
-lklhd_xx = normlz( NormPDF(y[0],h1(xx),R[0,0]) )
+prior_xx = norm.pdf(xx,b[0],sqrt(B[0,0]))
+lklhd_xx = normlz( norm.pdf(y[0],h1(xx),sqrt(R[0,0])) )
 postr_xx = normlz( prior_xx * lklhd_xx )
 
 ## Plotting
