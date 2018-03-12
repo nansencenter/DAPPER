@@ -55,6 +55,24 @@ answers['pdf_G_1'] = ['MD',r'''
     # pdf_values = sp.stats.norm.pdf(x,loc=mu,scale=sqrt(P))
 ''']
 
+answers['pdf_U_1'] = ['MD',r'''
+    def pdf_U_1(x,mu,P):
+        # Univariate (scalar), Uniform pdf
+
+        pdf_values = ones((x-mu).shape)
+
+        a = mu - sqrt(3*P)
+        b = mu + sqrt(3*P)
+
+        pdf_values[x<a] = 0
+        pdf_values[x>b] = 0
+
+        height = 1/(b-a)
+        pdf_values *= height
+
+        return pdf_values
+''']
+
 answers['BR deriv'] = ['MD',r'''
 <a href="https://en.wikipedia.org/wiki/Bayes%27_theorem#Derivation" target="_blank">Wikipedia</a>
 
@@ -67,7 +85,7 @@ as required by the definition of pdfs.
 
 That's what the `#normalization` line does.
 
-Proof that this is equivalent:
+Here's the proof that the normalization (which makes `pp` sum to 1) is equivalent to dividing by $p(y)$:
 $$\texttt{sum(pp)*dx} \approx \int p(x) p(y|x) \, dx = \int p(x,y) \, dx = p(y) \, .$$
 ''']
 
@@ -339,7 +357,7 @@ Because they are only defined at analysis times, i.e. every `dkObs` time step.
 
 answers['RMSE hist'] = ['MD',r'''
  * The MSE will be (something close to) chi-square.
- * Gaussianity
+ * That the estimator and truth are independent, Gaussian random variables.
 ''']
 
 answers['Rank hist'] = ['MD',r'''
