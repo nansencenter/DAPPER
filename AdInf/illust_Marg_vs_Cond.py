@@ -69,22 +69,12 @@ h['e'].append(ax2.plot(xx,30*norm(loc=5,scale=1).pdf(xx),'g',lw=3,alpha=0.6)[0])
 #ax1.yaxis.set_ticks([])
 #ax1.xaxis.set_ticks([])
 
+toggle_viz(h.values(),prompt=False)
 
-save_num = 0
-def savef():
-  global save_num
-  plt.savefig('data/AdInf/figs/Marg_vs_Cond_' + str(save_num) + '.pdf')
-  save_num += 1
-  plt.pause(0.1)
-
-def tog(h,prompt=True,save=True):
-  toggle_viz(h,prompt=True)
-  if save:
-    savef()
-
-for key in h:
-  toggle_viz(h[key],prompt=False)
-
+savefig_n.index = 1
+def tog(h,save=True,*a,**b):
+  toggle_viz(h,prompt=False,*a,**b)
+  if save: savefig_n()
 
 tog([h['aBx'], h['aBy'], h['tBx'], h['tBy']])
 tog([h['rec'], h['tc']])

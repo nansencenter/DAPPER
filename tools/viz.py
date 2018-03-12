@@ -1253,6 +1253,9 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,s
   autoscl  : Rescale axis limits as required by currently visible lines.
   numbering: Add numbering to labels.
   txtwidth : Wrap labels to this length.
+
+  State of checkboxes can be inquired by 
+  OnOff = [lh.get_visible() for lh in ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]
   """
 
   if ax is None: ax = plt.gca()
@@ -1310,13 +1313,57 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,s
 
 
 @vectorize0
-def toggle_viz(h,prompt=True):
-  "Toggle vizibility of the handle (or list thereof) h."
-  h.set_visible(not h.get_visible())
+def toggle_viz(h,prompt=True,legend=True):
+  """
+  Toggle visibility of the handle h,
+  which can also be a list of handles.
+  """
+
+  # Core functionality: turn on/off
+  is_viz = not h.get_visible()
+  h.set_visible(is_viz)
+
   if prompt:
     input("Press Enter to continue...")
+
+  if legend:
+    if is_viz:
+      try:
+        h.set_label(h.old_label)
+      except AttributeError:
+        pass
+    else:
+      h.old_label = h.get_label()
+      h.set_label('_nolegend_')
+
+    # Legend update
+    ax = h.axes
+    with warnings.catch_warnings():
+      warnings.simplefilter("error",category=UserWarning)
+      try:
+        ax.legend()
+      except UserWarning:
+        # If there's no remaining legend entries, ax.legend() throws warning.
+        # And yet it does NOT remove the last entry!
+        # Also ax._legend.remove() won't work either coz now _legend does not exist!
+        lh = ax.legend('NOT ASSOCIATED TO ANY OBJECT') # Spur mpl back into action
+        lh.remove()
+
   plt.pause(0.04)
+  return is_viz
 
 
+def savefig_n(f=None):
+  """
+  Simplify the exporting of a figure, especially when it's part of a series.
+  """
+  assert savefig_n.index>=0, "Initalize using savefig_n.index = 1 in your script"
+  if f is None:
+    f = inspect.getfile(inspect.stack()[1][0])   # Get __file__ of caller
+  f = save_dir(f)                                # Prep save dir
+  plt.savefig(f + str(savefig_n.index) + '.pdf') # Save
+  savefig_n.index += 1                           # Increment index
+  plt.pause(0.1)                                 # For safety?
+savefig_n.index = -1
 
 

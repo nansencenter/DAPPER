@@ -613,8 +613,6 @@ def vectorize0(f):
       out = [wrapped(xi,*args,**kwargs) for xi in x]
       if isinstance(x,np.ndarray):
         out = np.asarray(out)
-      else:
-        out = type(x)(out)
     else:
       out = f(x,*args,**kwargs)
     return out
