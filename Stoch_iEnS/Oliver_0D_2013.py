@@ -22,7 +22,7 @@ b = -2
 B = 1
 
 
-N  = 100
+N  = 3000
 N1 = N-1
 E0 = b + sqrt(B)*randn((1,N))
 B0 = np.cov(E0,ddof=1)
@@ -82,10 +82,10 @@ x0 = mean(E0)
 A0 = E0 - x0
 
 #FORM='MDA'
-FORM='RML'             # RML with exact, local gradients. Gauss-Newton.
+#FORM='RML'             # RML with exact, local gradients. Gauss-Newton.
 #FORM='GN-obs'          # Gauss-Newton, FIXED step length (no Lambda)
 #FORM='GN-state'        # Idem. Formulated in state space
-#FORM='GN-ens'          # Idem. Formulated in ensemble space
+FORM='GN-ens'          # Idem. Formulated in ensemble space
 #FORM='LM-orig-state'   # Use Lambda
 #FORM='LM-state'        # Use Lambda, modify Hessian  Formulated in state space
 #FORM='LM-obs'          # Use Lambda, modify Hessian. Formulated in obs space
@@ -129,8 +129,13 @@ for k in range(nIter):
     dR = P@H.T/R @(y-D-hE)
     dB = P    /B0*(E0-E)
   elif FORM=='GN-ens':
+    assert N<=3000, "That's just too much (and slow)"
     Z  = H@A0
-    K  = A0@tinv(Z.T@Z/R + N1*eye(N))@Z.T/R
+    #K  = A0@inv(Z.T@Z/R + N1*eye(N))@Z.T/R
+    # In scalar case, can derive Potter-like formula
+    z2 = Z@Z.T
+    Pw = eye(N)/N1 - Z.T@Z/N1/(R*N1+z2) 
+    K  = A0@Pw@Z.T/R
     dR = K@(y-D-hE)
     dB = (eye(1) - K@H)@(E0-E)
   elif FORM=='LM-orig-state':
