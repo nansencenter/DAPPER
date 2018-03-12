@@ -95,7 +95,8 @@ class Chronology:
     return self._dkObs
   @dkObs.setter
   def dkObs(self,value):
-    self.__init__(dt=self.dt,dkObs=value,T=self.T,BurnIn=self.BurnIn)
+    ratio = value/self.dkObs
+    self.__init__(dt=self.dt,dkObs=value,T=ratio*self.T,BurnIn=self.BurnIn)
   @property
   def K(self):
     return self._K

@@ -302,9 +302,11 @@ Conventions:
 
 TODO
 ------------------------------------------------
-* Complete QG, LorenzUV
 * Reorg file structure
-* Make tutorial
+* Turn into package?
+* Simplify time management?
+* Use pandas for stats time series?
+* Complete QG
 
 References
 ------------------------------------------------
