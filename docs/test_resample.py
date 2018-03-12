@@ -24,9 +24,9 @@ w = array([pdf(q[i],dof)/qdf(q[i],scl) for i in range(N)])
 w = w/w.sum()
 
 # Resaple
-r = resample(tp(q),w,N=int(0.8*N),kind='Residual')
-s = resample(tp(q),w,N=int(0.8*N),kind='Systematic')
-t = resample(tp(q),w,N=int(0.8*N),kind='Stochastic')
+r,_ = resample(w,'Residual')  ; r = q[r]
+s,_ = resample(w,'Systematic'); s = q[s]
+t,_ = resample(w,'Stochastic'); t = q[t]
 
 XL   = 15
 xx   = linspace(0,XL,201)
