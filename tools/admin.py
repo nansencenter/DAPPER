@@ -238,6 +238,10 @@ class DAC(ImmutableAttributes):
       s += format_(key,getattr(self,key))
     return s[:-2]+')'
 
+  def _is(self,decorated_da_method):
+    "Test if cfg is an instance of the decorator of the da_method."
+    return self.da_method.__name__ == decorated_da_method.__name__
+
 class List_of_Configs(list):
   """List for DAC's"""
 
