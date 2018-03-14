@@ -8,9 +8,12 @@
 # However, it remains consistent (CV to true dist for N-->infty).
 # Also see owen2018importance below his eqn 9.3.
 
-from common import *
+import numpy as np
+import scipy.stats as ss
+import matplotlib.pyplot as plt 
+plt.ion()
 
-#seed(2)
+#np.random.seed(2)
 
 ## True distribution
 p = ss.uniform(loc=1)
@@ -18,9 +21,9 @@ p = ss.uniform(loc=1)
 
 ## Function for which we'll estimate the expected value
 #f = lambda x: x**3             # nonlin f yields bias
-f = lambda x: np.ones_like(x)  # constant f does not yield bias
+f = lambda x: np.ones_like(x)  # constant f also yields bias
 
-f_expect = mean(f(p.rvs(10**4)))
+f_expect = f(p.rvs(10**4)).mean()
 
 ## Proposal
 q = ss.norm()
@@ -30,9 +33,10 @@ q = ss.norm()
 # and there should be no bias.
 #q = p
 
-xx = linspace(-2,8,401)
+xx = np.linspace(-2,8,401)
 plt.plot(xx,p.pdf(xx),label='p')
 plt.plot(xx,q.pdf(xx),label='q')
+plt.legend()
 
 
 ## Bias estimation
@@ -56,9 +60,8 @@ for k in range(K):
 
   f_estim = w @ f(E)
   bias += [f_estim - f_expect]
-bias = array(bias)
 
-print("Average err:",bias.mean())
+print("Average err:",np.mean(bias))
 
 
 ##
