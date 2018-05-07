@@ -103,17 +103,17 @@ def EnKF_analysis(E,hE,hnoise,y,upd_a,stats,kObs):
         w = dy @ R.inv @ Y.T @ Pw
         E = mu + w@A + T@A
     elif 'Serial' in upd_a:
-        # Observations assimilator one-at-a-time.
-        # Even though it's derived as "serial ETKF",
-        # it's not equivalent to 'Sqrt' for the actual ensemble,
-        # although it does yield the same mean/cov.
-        # See DAPPER/Misc/batch_vs_serial.py for more details.
+        # Observations assimilated one-at-a-time (the "Potter method").
+        #  - While it may be derived as "serial ETKF", it does not yield the same updated 
+        #    ensemble as 'Sqrt' (which processes obs as a batch), only the same mean/cov.
+        #  - The two-stage "update-regress" form of the serial EAKF yields the same ensemble.
+        #  - An enhancement would be to re-compute Sj by non-lin h,
+        #    but this would then not allow us to accumulate the updates on S and T.
         inds = serial_inds(upd_a, y, R, A)
         z = dy@ R.sym_sqrt_inv.T / sqrt(N1)
         S = Y @ R.sym_sqrt_inv.T / sqrt(N1)
         T = eye(N)
         for j in inds:
-          # Possibility: re-compute Sj by non-lin h.
           Sj = S[:,j]
           Dj = Sj@Sj + 1
           Tj = np.outer(Sj, Sj /  (Dj + sqrt(Dj)))
@@ -373,7 +373,6 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
 
   Used without localization, this should be equivalent
   (full ensemble equality) to the EnKF 'Serial'.
-  See DAPPER/Misc/batch_vs_serial.py for some details.
   """
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
@@ -407,23 +406,22 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
           Yj    = Rm12[j,:] @ Y.T
           dyj   = Rm12[j,:] @ (y - hx)
           #
-          skk   = Yj@Yj
-          su    = 1/( 1/skk + 1/N1 )
-          alpha = (N1/(N1+skk))**(0.5)
+          skk   = Yj@Yj                # N1 * prior var
+          su    = 1/( 1/skk + 1/N1 )   # N1 * KG
+          alpha = (N1/(N1+skk))**(0.5) # update contraction factor
           #
-          dy2   = su*dyj/N1 # (mean is absorbed in dyj)
-          Y2    = alpha*Yj
+          dy2   = su*dyj/N1 # mean update
+          Y2    = alpha*Yj  # anomaly update
 
           if skk<1e-9: continue
 
-          # Update state (regress from y2), with localization
-          # Localize
+          # Update state (regress update from observation space)
+          # Localized
           local, coeffs = locf_at(j)
           if len(local) == 0: continue
           Regression    = (A[:,local]*coeffs).T @ Yj/np.sum(Yj**2)
           mu[ local]   += Regression*dy2
           A[:,local]   += np.outer(Y2 - Yj, Regression)
-
           # Without localization:
           #Regression = A.T @ Yj/np.sum(Yj**2)
           #mu        += Regression*dy2
@@ -1285,6 +1283,85 @@ def OptPF(N,Qs,NER=1.0,resampl='Sys',reg=0,nuj=True,wroot=1.0,**kwargs):
 
       stats.assess(k,kObs,'u',E=E,w=w)
   return assimilator
+
+
+
+@DA_Config
+def PFa(N,alpha,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,**kwargs):
+  """
+  PF with weight adjustment withOUT compensating for the bias it introduces.
+  'alpha' sets wroot before resampling such that N_effective becomes >alpha*N.
+  Using alpha≈NER usually works well.
+
+  Explanation:
+  Recall that the bootstrap particle filter has "no" bias,
+  but significant variance (which is reflected in the weights).
+  The EnKF is quite the opposite.
+  Similarly, by adjusting the weights we play on the bias-variance spectrum.
+  NB: This does not mean that we make a PF-EnKF hybrid
+      -- we're only playing on the weights.
+
+  Hybridization with xN did not show much promise.
+  """
+
+  def assimilator(stats,twin,xx,yy):
+    f,h,chrono,X0 = twin.f, twin.h, twin.t, twin.X0
+    m, Rm12       = f.m, h.noise.C.sym_sqrt_inv
+
+    E = X0.sample(N)
+    w = 1/N*ones(N)
+
+    stats.N_eff  = np.full(chrono.KObs+1,nan)
+    stats.resmpl = zeros(chrono.KObs+1,dtype=bool)
+    stats.wroot  = np.full(chrono.KObs+1,nan)
+    stats.innovs = np.full((chrono.KObs+1,N,h.m),nan)
+    stats.assess(0,E=E,w=1/N)
+
+    for k,kObs,t,dt in progbar(chrono.forecast_range):
+      E = f(E,t-dt,dt)
+      if f.noise.C is not 0:
+        D  = randn((N,m))
+        E += sqrt(dt*qroot)*(D@f.noise.C.Right)
+
+        if qroot != 1.0:
+          # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
+          w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
+          w /= w.sum()
+
+      if kObs is not None:
+        stats.assess(k,kObs,'f',E=E,w=w)
+
+        innovs = (yy[kObs] - h(E,t)) @ Rm12.T
+        w      = reweight(w,innovs=innovs)
+
+        stats.assess(k,kObs,'a',E=E,w=w)
+        if trigger_resampling(w,NER,stats,kObs):
+          C12    = reg*bandw(N,m)*raw_C12(E,w)
+          #C12  *= sqrt(rroot) # Re-include?
+
+          wroot = 1.0
+          while True:
+            s   = ( w**(1/wroot - 1) ).clip(max=1e100)
+            s  /= (s*w).sum()
+            sw  = s*w
+            if 1/(sw@sw) < N*alpha:
+              wroot += 0.2
+            else:
+              stats.wroot[kObs] = wroot
+              break
+          idx,w  = resample(sw, resampl, wroot=1)
+
+
+          E,chi2 = regularize(C12,E,idx,nuj)
+          #if rroot != 1.0:
+            # Compensate for rroot
+            #w *= exp(-0.5*chi2*(1 - 1/rroot))
+            #w /= w.sum()
+      stats.assess(k,kObs,'u',E=E,w=w)
+  return assimilator
+
+
+
 
 @DA_Config
 def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):

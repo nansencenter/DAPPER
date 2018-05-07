@@ -6,7 +6,7 @@
 # using NORMALIZED weights yields a BIAS (see below their eqn 26)
 # in the PF (as defined by any test statistic).
 # However, it remains consistent (CV to true dist for N-->infty).
-# Also see owen2018importance below his eqn 9.3.
+# Also see owen2018ch9 below his eqn 9.3.
 
 import numpy as np
 import scipy.stats as ss
@@ -20,8 +20,8 @@ p = ss.uniform(loc=1)
 #p = ss.norm(loc=1)
 
 ## Function for which we'll estimate the expected value
-#f = lambda x: x**3             # nonlin f yields bias
-f = lambda x: np.ones_like(x)  # constant f also yields bias
+f = lambda x: x**3             # nonlin f yields bias
+#f = lambda x: np.ones_like(x)  # constant f also yields bias
 
 f_expect = f(p.rvs(10**4)).mean()
 

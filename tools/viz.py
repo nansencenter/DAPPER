@@ -1360,8 +1360,10 @@ def savefig_n(f=None):
   assert savefig_n.index>=0, "Initalize using savefig_n.index = 1 in your script"
   if f is None:
     f = inspect.getfile(inspect.stack()[1][0])   # Get __file__ of caller
-  f = save_dir(f)                                # Prep save dir
-  plt.savefig(f + str(savefig_n.index) + '.pdf') # Save
+    f = save_dir(f)                              # Prep save dir
+  f = f + str(savefig_n.index) + '.pdf'          # Compose name
+  print("Saving fig to:",f)                      # Print
+  plt.savefig(f)                                 # Save
   savefig_n.index += 1                           # Increment index
   plt.pause(0.1)                                 # For safety?
 savefig_n.index = -1
