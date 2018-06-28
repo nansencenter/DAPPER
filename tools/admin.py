@@ -69,104 +69,104 @@ def DA_Config(da_method):
 
   @functools.wraps(da_method)
   def wrapr(*args,**kwargs):
-    ############################
-    # Validate signature/return
-    #---------------------------
-    assimilator = da_method(*args,**kwargs)
-    if assimilator.__name__ != 'assimilator':
-      raise Exception("DAPPER convention requires that "
-      + da_method.__name__ + " return a function named 'assimilator'.")
-    run_args = ('stats','twin','xx','yy')
-    if assimilator.__code__.co_varnames[:len(run_args)] != run_args:
-      raise Exception("DAPPER convention requires that "+
-      "the arguments of 'assimilator' be " + str(run_args))
+      ############################
+      # Validate signature/return
+      #---------------------------
+      assimilator = da_method(*args,**kwargs)
+      if assimilator.__name__ != 'assimilator':
+        raise Exception("DAPPER convention requires that "
+        + da_method.__name__ + " return a function named 'assimilator'.")
+      run_args = ('stats','twin','xx','yy')
+      if assimilator.__code__.co_varnames[:len(run_args)] != run_args:
+        raise Exception("DAPPER convention requires that "+
+        "the arguments of 'assimilator' be " + str(run_args))
 
-    ############################
-    # Make assimilation caller
-    #---------------------------
-    def assim_caller(setup,xx,yy):
-      name_hook = da_method.__name__ # for pdesc of progbar
+      ############################
+      # Make assimilation caller
+      #---------------------------
+      def assim_caller(setup,xx,yy):
+        name_hook = da_method.__name__ # for pdesc of progbar
 
-      # Init stats
-      stats = Stats(cfg,setup,xx,yy)
+        # Init stats
+        stats = Stats(cfg,setup,xx,yy)
 
-      def crop_traceback(ERR,lvl):
-          msg = []
-          try:
-            # If IPython, use its coloring functionality
-            __IPYTHON__
-            from IPython.core.debugger import Pdb
-            import traceback as tb
-            pdb_instance = Pdb()
-            pdb_instance.curframe = inspect.currentframe() # first frame: this one
-            for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
-              if i<lvl: continue # skip first frame
-              msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
-          except (NameError,ImportError):
-            # No coloring
-            msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
-          return msg
+        def crop_traceback(ERR,lvl):
+            msg = []
+            try:
+              # If IPython, use its coloring functionality
+              __IPYTHON__
+              from IPython.core.debugger import Pdb
+              import traceback as tb
+              pdb_instance = Pdb()
+              pdb_instance.curframe = inspect.currentframe() # first frame: this one
+              for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
+                if i<lvl: continue # skip first frame
+                msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
+            except (NameError,ImportError):
+              # No coloring
+              msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
+            return msg
 
-      # Put assimilator inside try/catch to allow gentle failure
-      try:
+        # Put assimilator inside try/catch to allow gentle failure
         try:
-            assimilator(stats,setup,xx,yy)
-        except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
-            if getattr(cfg,'fail_gently',True):
-              msg  = ["\nCaught exception during assimilation. Printing traceback:"]
-              msg += ["<"*20 + "\n"]
-              msg += crop_traceback(ERR,1) + [str(ERR)]
-              msg += ["\n" + ">"*20]
-              msg += ["Returning stats (time series) object in its"+\
-                  " current (incompleted) state\n, and resuming program execution.\n"]
-              for s in msg:
-                print(s,file=sys.stderr)
-            else: # Don't fail gently.
+          try:
+              assimilator(stats,setup,xx,yy)
+          except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
+              if getattr(cfg,'fail_gently',True):
+                msg  = ["\nCaught exception during assimilation. Printing traceback:"]
+                msg += ["<"*20 + "\n"]
+                msg += crop_traceback(ERR,1) + [str(ERR)]
+                msg += ["\n" + ">"*20]
+                msg += ["Returning stats (time series) object in its"+\
+                    " current (incompleted) state\n, and resuming program execution.\n"]
+                for s in msg:
+                  print(s,file=sys.stderr)
+              else: # Don't fail gently.
+                raise ERR
+        except Exception as ERR:
+              #print(*crop_traceback(ERR,2), str(ERR))
+              # How to avoid duplicate traceback printouts?
+              # Don't want to replace 'raise' by 'sys.exit(1)',
+              # coz then %debug would start here.
               raise ERR
-      except Exception as ERR:
-            #print(*crop_traceback(ERR,2), str(ERR))
-            # How to avoid duplicate traceback printouts?
-            # Don't want to replace 'raise' by 'sys.exit(1)',
-            # coz then %debug would start here.
-            raise ERR
 
-      return stats
+        return stats
 
-    assim_caller.__doc__ = "Calls assimilator() from " +\
-        da_method.__name__ +", passing it the (output) stats object. " +\
-        "Returns stats (even if an AssimFailedError is caught)."
+      assim_caller.__doc__ = "Calls assimilator() from " +\
+          da_method.__name__ +", passing it the (output) stats object. " +\
+          "Returns stats (even if an AssimFailedError is caught)."
 
-    ############################
-    # Grab argument names/values
-    #---------------------------
-    # Process abbreviations, aliases
-    abbrevs = [('LP','liveplotting'),('store_intermediate','store_u')]
-    for a,b in abbrevs:
-      if a in kwargs:
-        kwargs[b] = kwargs[a]
-        del kwargs[a]
+      ############################
+      # Grab argument names/values
+      #---------------------------
+      # Process abbreviations, aliases
+      abbrevs = [('LP','liveplotting'),('store_intermediate','store_u')]
+      for a,b in abbrevs:
+        if a in kwargs:
+          kwargs[b] = kwargs[a]
+          del kwargs[a]
 
-    cfg = OrderedDict()
-    i   = 0
-    # 1) Insert args into cfg with signature-names.
-    for i,val in enumerate(args):
-      cfg[f_arg_names[i]] = val
-    # 2) Insert kwargs, ordered as in signature.
-    for key in f_arg_names[i:]:
-      try:
-        cfg[key] = kwargs.pop(key)
-      except KeyError:
-        pass
-    # 3) Insert kwargs not listed in signature.
-    cfg.update(kwargs)
+      cfg = OrderedDict()
+      i   = 0
+      # 1) Insert args into cfg with signature-names.
+      for i,val in enumerate(args):
+        cfg[f_arg_names[i]] = val
+      # 2) Insert kwargs, ordered as in signature.
+      for key in f_arg_names[i:]:
+        try:
+          cfg[key] = kwargs.pop(key)
+        except KeyError:
+          pass
+      # 3) Insert kwargs not listed in signature.
+      cfg.update(kwargs)
 
-    ############################
-    # Wrap
-    #---------------------------
-    cfg['da_method']  = da_method
-    cfg['assimilate'] = assim_caller
-    cfg = DAC(cfg)
-    return cfg
+      ############################
+      # Wrap
+      #---------------------------
+      cfg['da_method']  = da_method
+      cfg['assimilate'] = assim_caller
+      cfg = DAC(cfg)
+      return cfg
   return wrapr
 
 
