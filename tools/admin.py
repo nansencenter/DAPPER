@@ -52,24 +52,20 @@ class Operator(MLR_Print):
 def DA_Config(da_method):
   """
   Wraps a da_method to an instance of the DAC (DA Configuration) class.
-  1) inserts arguments to da_method as attributes in a DAC object, and
-  2) wraps assimilator() so as to fail_gently and pre-init stats.
 
-  Features:
-   - Provides light-weight interface (makes da_method very readable).
-   - Allows args (and defaults) to be defined in da_method's signature.
-   - assimilator() nested under da_method.
-     => args accessible without unpacking or 'self'.
-   - stats initialized by assimilator(),
-     not when running da_method itself => save memory.
-   - Involves minimal hacking/trickery.
+  Purpose: make a da_method brief and readable. Features:
+   - argument treatment: since assimilator() is nested under a da_method,
+     this enables builtin argument default systemization (via da_method's signature),
+     and enables processing before the assimilation run.
+     In contrast to the system of passing dicts, this avoids unpacking.
+   - stats auto-initialized here, before calling assimilator()
+   - provides fail_gently
+  We could have achieved much the same with less hacking (less 'inspect')
+  using classes for the da_methods. But that would have required onerous
+  read/write via 'self'.
   """
-  # Note: I did consider unifying DA_Config and the DAC class,
-  # since they "belong together", but I saw little other benefit,
-  # and it would then be harder to use functools.wraps
 
-  f_arg_names = da_method.__code__.co_varnames[
-      :da_method.__code__.co_argcount]
+  f_arg_names = da_method.__code__.co_varnames[:da_method.__code__.co_argcount]
 
   @functools.wraps(da_method)
   def wrapr(*args,**kwargs):
@@ -94,16 +90,8 @@ def DA_Config(da_method):
       # Init stats
       stats = Stats(cfg,setup,xx,yy)
 
-      # Put assimilator inside try/catch to allow gentle failure
-      try:
-        assimilator(stats,setup,xx,yy)
-      except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
-        if getattr(cfg,'fail_gently',True):
-          msg  = []
-          msg += ["\nCaught exception during assimilation. Printing traceback:"]
-          msg += ["<"*20 + "\n"]
-
-          # Insert traceback for debugging
+      def crop_traceback(ERR,lvl):
+          msg = []
           try:
             # If IPython, use its coloring functionality
             __IPYTHON__
@@ -112,22 +100,38 @@ def DA_Config(da_method):
             pdb_instance = Pdb()
             pdb_instance.curframe = inspect.currentframe() # first frame: this one
             for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
-              if i==0: continue # skip first frame
+              if i<lvl: continue # skip first frame
               msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
           except (NameError,ImportError):
             # No coloring
             msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
+          return msg
 
-          msg += [str(ERR)]
-          msg += ["\n" + ">"*20]
-          msg += ["Returning stats object in its current (incompleted) state, "+\
-              "so that program execution may continue.\n"]
-          for s in msg: print(s,file=sys.stderr)
-
-        else: # Don't fail gently.
-          raise ERR
+      # Put assimilator inside try/catch to allow gentle failure
+      try:
+        try:
+            assimilator(stats,setup,xx,yy)
+        except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
+            if getattr(cfg,'fail_gently',True):
+              msg  = ["\nCaught exception during assimilation. Printing traceback:"]
+              msg += ["<"*20 + "\n"]
+              msg += crop_traceback(ERR,1) + [str(ERR)]
+              msg += ["\n" + ">"*20]
+              msg += ["Returning stats (time series) object in its"+\
+                  " current (incompleted) state\n, and resuming program execution.\n"]
+              for s in msg:
+                print(s,file=sys.stderr)
+            else: # Don't fail gently.
+              raise ERR
+      except Exception as ERR:
+            #print(*crop_traceback(ERR,2), str(ERR))
+            # How to avoid duplicate traceback printouts?
+            # Don't want to replace 'raise' by 'sys.exit(1)',
+            # coz then %debug would start here.
+            raise ERR
 
       return stats
+
     assim_caller.__doc__ = "Calls assimilator() from " +\
         da_method.__name__ +", passing it the (output) stats object. " +\
         "Returns stats (even if an AssimFailedError is caught)."
@@ -184,11 +188,13 @@ class ImmutableAttributes():
     self.__keys     = keys
     self.__isfrozen = True
 
+
 class DAC(ImmutableAttributes):
   """
-  DA Configs (settings).
+  DA configs (settings).
 
   This class just contains the parameters grabbed by the DA_Config wrapper.
+
   NB: re-assigning these would only change their value in this container,
       (i.e. not as they are known by the assimilator() funtions)
       and has therefore been disabled ("frozen").
@@ -216,8 +222,8 @@ class DAC(ImmutableAttributes):
     Returns new DAC with new "instance" of the da_method with the updated setting.
 
     Example:
-    for iC,C in enumerate(cfgs):
-      cfgs[iC] = C.update_settings(liveplotting=True)
+    >>> for iC,C in enumerate(cfgs):
+    >>>   cfgs[iC] = C.update_settings(liveplotting=True)
     """
     old = list(self._ordering) + filter_out(self.__dict__,*self._ordering,*self.excluded,'da_method')
     dct = {**{key: getattr(self,key) for key in old}, **kwargs}
@@ -242,8 +248,14 @@ class DAC(ImmutableAttributes):
     "Test if cfg is an instance of the decorator of the da_method."
     return self.da_method.__name__ == decorated_da_method.__name__
 
+
 class List_of_Configs(list):
-  """List for DAC's"""
+  """
+  List of DA configs.
+
+  Purpose: presentation (facilitate printing tables of attributes, results, etc).
+  Also implement += operator for easy use.
+  """
 
   # Print settings
   excluded = DAC.excluded + ['name']
@@ -268,11 +280,78 @@ class List_of_Configs(list):
       self.append(item)
     return self
 
+  def sublist(self,inds):
+    """
+    List only supports slice indexing.
+    This enables accessing (i.e. getitem) by list of inds
+    """
+    return List_of_Configs([self[i] for i in inds])
+
+  @property
+  def da_names(self):
+    return [config.da_method.__name__ for config in self]
+
+  # HUGE WASTE OF TIME.
+  # Better to rely on manual (but brief) filter_out(xcld) to use gen_names().
+  # def distinct_attrs(self,grouped=0):
+  #   """
+  #   Yields list of the attributes that are distinct (not all the same or absent/None).
+
+  #   grouped:
+  #     Does (various levels of) group-wise comparisons (grouping by da_name)
+  #     to eliminate some attrs from the list.
+  #     NB: Setting grouped>0 can be quite useful, but "comes with no guarantees".
+  #         I.e. the behaviour is only strictly predictable for grouped=0.
+  #     NB: If grouped>0, then some attributes may be eliminated,
+  #         in which case: {common UNION distinct} < {all attributes}.
+  #   """
+  #   attrs = self.separate_distinct_common()[0]
+
+  #   if grouped>=1: # Eliminate single-appearance attrs that belong to single-appearance names.
+  #       names = self.da_names
+  #       for key in list(attrs):
+  #         nn_inds = [i for i,x in enumerate(attrs[key]) if x is not None]        # not-None indices
+  #         if len(nn_inds)==1:                                                    # if  ∃! not-None val
+  #           if names.count(names[nn_inds[0]])==1:                                # and ∃! of the corresponding name 
+  #             del attrs[key]
+
+  #   if grouped>=2: # Elim if constant within all non-singleton groups.
+  #       groups  = list(keep_order_unique(array(names)))                          # groups: unique names
+  #       g_inds  = [ [i for i,n in enumerate(names) if n==g] for g in groups ]    # get indices per group 
+  #       g_attrs = [self.sublist(inds).distinct_attrs() for inds in g_inds ]      # distinct_attrs per group
+
+  #       # Here be dragons!
+  #       for key in list(attrs):
+  #         nn_inds  = [i for i,x in enumerate(attrs[key]) if x is not None]       # not-None indices
+  #         is_const = []                                                          # list where duplicates were found
+  #         for gi,inds in enumerate(g_inds):                                      # Loop over groups
+  #           if len(inds)>1:                                                      #   ensure non-singleton group
+  #             if all([i in nn_inds for i in inds]):                              #   ensure vals are not all None (globally)
+  #               is_const.append( key not in g_attrs[gi] )                        #   check if constant
+  #         if len(is_const)>0:                                                    # if non-singleton/None groups were found
+  #           if all(is_const):                                                    # if all were constant 
+  #             del attrs[key]                                                     # eliminate attribute
+
+  #   if grouped>=3: # Eliminate those that are not distinct in any group.
+  #       # Get distinct_attrs per group.
+  #       g_keys  = [list(attrs.keys()) for attrs in g_attrs ]                     # use keys only
+  #       g_keys  = keep_order_unique(array([a for keys in g_keys for a in keys])) # Merge (flatten, unique)
+
+  #       # Eliminate, but retain ordering.
+  #       for key in list(attrs): 
+  #         if key not in g_keys: del attrs[key]
+
+  #   return attrs
+
   def distinct_attrs(self): return self.separate_distinct_common()[0]
-  def common_attrs  (self): return self.separate_distinct_common()[1]
+  def   common_attrs(self): return self.separate_distinct_common()[1]
 
   def separate_distinct_common(self):
-    """Generate a set of distinct names for DAC's."""
+    """
+    Compile the attributes of the DAC's in the List_of_Confgs,
+    and partition them in two sets: distinct and common.
+    Insert None's for cfgs that don't have that attribute.
+    """
     dist = {}
     comn = {}
 
@@ -285,7 +364,7 @@ class List_of_Configs(list):
     # Partition attributes into distinct and common
     for key in keys:
       vals = [getattr(config,key,None) for config in self]
-      if all(v == vals[0] for v in vals) and len(self)>1:
+      if all(v == vals[0] for v in vals): # and len(self)>1:
         comn[key] = vals[0]
       else:
         dist[key] = vals
@@ -304,7 +383,7 @@ class List_of_Configs(list):
     dist = OrderedDict(sorted(dist.items(), key=sortr))
 
     return dist, comn
-   
+
   def __repr__(self):
     if len(self):
       # Prepare
@@ -322,29 +401,54 @@ class List_of_Configs(list):
       s = "List_of_Configs([])"
     return s
 
-  def assign_names(self,ow=False,do_tab=True):
+  def gen_names(self,abbrev=4,trim=False,do_tab=False,xcld=[]):
+
+    # 1st column: da_method's names
+    columns = self.da_names
+    MxWidth = max([len(n) for n in columns])
+    columns = [n.ljust(MxWidth) + ' ' for n in columns]
+
+    # Get distinct attributes
+    dist  = self.distinct_attrs()
+    keys  = filter_out(dist, *self.excluded,'da_method',*xcld)
+
+    # Process attributes into strings 
+    for i,k in enumerate(keys):
+      vals = dist[k]
+
+      # Make label strings
+      A = 4 if abbrev is True else 99 if abbrev==False else abbrev # Set abbrev length A
+      if A: lbls = k                     + ':'                     # Standard label
+      else: lbls = k[:A-1] + '~' + k[-1] + ':'                     # Abbreviated label
+      lbls = ('' if i==0 else ' ') + lbls                          # Column spacing 
+      lbls = [' '*len(lbls) if v is None else lbls for v in vals]  # Erase label where val=None
+
+      # Make value strings
+      if trim and all(v in [find_1st(vals),None] for v in vals):
+        # If all values  are identical (or None): only keep label.
+        lbls = [x[:-1] for x in lbls] # Remove colon
+        vals = [''     for x in lbls] # Make empty val
+      else: # Format data
+        vals = typeset(vals,do_tab=True)
+
+      # Form column: join columns, lbls and vals.
+      columns = [''.join(x) for x in zip(columns,lbls,vals)]           
+
+    # Undo all tabulation inside column all at once:
+    if not do_tab: columns = [" ".join(n.split()) for n in columns]
+
+    return columns
+
+  def assign_names(self,ow=False,do_tab=False):
     """
     Assign distinct_names to the individual DAC's.
     If ow: do_overwrite.
     """
     # Process attributes into strings 
-    names = [config.da_method.__name__+' ' for config in self]
-    MaxL  = max([len(n) for n in names])
-    names = [n.ljust(MaxL) for n in names]
-    dist  = self.distinct_attrs()
-    keys  = filter_out(dist, *self.excluded,'da_method')
-    for i,k in enumerate(keys):
-      vals  = dist[k]                                              # Get data
-      lbls  = '' if i==0 else ' '                                  # Spacing 
-      if len(k)<=4: lbls += k + ':'                                # Standard label
-      else:         lbls += k[:3] + '~' + k[-1] + ':'              # Abbreviated label
-      lbls  = [' '*len(lbls) if v is None else lbls for v in vals] # Skip label if val=None
-      vals  = typeset(vals,do_tab=True)                            # Format data
-      names = [''.join(x) for x in zip(names,lbls,vals)]           # Join
+    names = gen_names(self,do_tab)
     
     # Assign strings to configs
     for name,config in zip(names,self):
-      s = name if do_tab else ' '.join(name.split())
       t = getattr(config,'name',None)
       if ow is False:
         if t: s = t
