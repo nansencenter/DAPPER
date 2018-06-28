@@ -70,6 +70,9 @@ def genOG_modified(m,opts=(0,1.0)):
   elif ver==4:
     # Introduce correlation between columns of randn((m,m))
     raise NotImplementedError
+  elif ver==5:
+     # stats.stackexchange.com/q/25552
+    raise NotImplementedError
   else:
     raise KeyError
   return Q
