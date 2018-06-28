@@ -958,13 +958,11 @@ def plot_time_series(stats,dim=0,**kwargs):
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
   ax_d.set_ylabel('dim ' + str(dim))
   ax_d.legend()
-  ax_d.set_xticklabels([])
 
   ax_K.plot(ttA, trKH,'k',lw=2,label='tr(HK)')
   ax_K.plot(ttA, skew,'g',lw=2,label='Skew')
   ax_K.plot(ttA, kurt,'r',lw=2,label='Kurt')
   ax_K.legend()
-  ax_K.set_xticklabels([])
 
   ax_e.plot(        tt_, rmse,'k',lw=2 ,label='Error')
   ax_e.fill_between(tt_, rmv ,alpha=0.7,label='Spread') 
