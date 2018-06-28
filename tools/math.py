@@ -205,16 +205,119 @@ def validate_int(x):
   assert np.isclose(x,x_int)
   return x_int
 
+#   import decimal
+#   def round2(num,prec=1.0):
+#     """
+#     Round with specific precision.
+#     """
+#   
+#     rr = prec * np.round(num/prec).astype(int)
+#   
+#     # Yes, it's a finite-prec world. But esthetics are emphasized.
+#     # Example of uglyness to avoid:
+#     # >>> prec=1e-2; num=0.899;
+#     # >>> prec*np.round(num/prec).astype(int) # --> 0.9000000000002
+#     # Using non-numpy int() is better: would yield 0.9.
+#     # But it still does not fully avoid this effect. Example:
+#     # >>> prec = 1e-1; num = 0.31;
+#     # >>> prec * int(np.round(num/prec)) # --> 0.30000000000000004
+#     # The following module avoids this uglyness:
+#     decimal.getcontext().prec = max(1,-int(ceil(log10(prec))))
+#   
+#     if hasattr(rr,'__iter__'):
+#       rr = array([float(decimal.Decimal(str(r))) for r in rr])
+#     else:
+#       rr = float(decimal.Decimal(str(rr)))
+#     return rr
+#   
+#   def round2nice(xx,expo=None,irreg=0.0,v=False):
+#     """
+#     Rounds (ordered) array to nice numbers,
+#     without introducing any duplicates.
+#   
+#     irreg: float between 0 and 1 controlling the prefererence
+#                  between (0) regular spacing and (1) less sigfig.
+#     """
+#   
+#     # # Init
+#     # if expos is None:
+#     #   expos = array([int(x) if x!=0 else 0 for x in floor(log10(xx))])
+#   
+#     # N = len(xx)
+#   
+#     # # Round array with prec=10**expo
+#     # rr  = [round2(x,10**e)   for x,e in zip(xx,expos)]
+#     # rr1 = [round2(x,10**e+1) for x,e in zip(xx,expos)]
+#   
+#     # Init
+#     if expo is None:
+#       expo = int(floor(log10(xx.max())))-1
+#   
+#     N = len(xx)
+#   
+#     # Round array with prec=10**expo
+#     rr  = round2(xx,10**expo)
+#     rr1 = round2(xx,10**(expo+1))
+#   
+#   
+#     if irreg:
+#       i = np.argmin(np.abs(xx-rr1[0]))
+#       if i==0 or i==N-1:
+#         # Edge cases not easy to handle,
+#         # because they would need to be compared to the "outer" array.
+#         # We're opting to set them to less-sigfic.
+#         #rr[i] = rr1[i]
+#         pass
+#       else:
+#         irreg2 = irreg**2 # more 'human readable'
+#         maxratio = 1 + irreg
+#         a = rr1[i] - rr[i-1]
+#         b = rr[i+1] - rr1[i]
+#         if max(a/b, b/a) > 1/irreg2:
+#           rr[i] = rr1[i]
+#   
+#   
+#     # Find intervals of duplicates
+#     edges = [] # boundries of intervals
+#     dups  = [False] + np.isclose(0,np.diff(rr)).tolist()
+#     for i in arange(N-1):
+#       if (not dups[i]) and dups[i+1]:
+#         edges += [ [i,'pending'] ]
+#       if dups[i] and (not dups[i+1]):
+#         edges[-1][1] = i+1
+#   
+#     if v:
+#       spell_out(expo)
+#       print(np.vstack([rr1,rr,xx,arange(N)]))
+#       spell_out(edges,"\n")
+#   
+#     if len(edges)==0:
+#       return rr
+#   
+#     # Sub-arrays
+#     arrs = [ rr[:edges[0][0]] ]
+#     for i,(a,b) in enumerate(edges):
+#       d1_next = edges[i+1][0] if i<(len(edges)-1) else N
+#       # Recurse
+#       arrs += [ round2nice(xx[a:b], expo-1, irreg, v) ]
+#       # Add interval of non-duplicates
+#       arrs += [ rr[b:d1_next] ]
+#     #spell_out(arrs)
+#     return np.concatenate(arrs)
+
+
+
+
+
+
 
 ########################
 # Misc
 ########################
 
 def find_1st_ind(xx):
-  try:
-    return next(k for k in range(len(xx)) if xx[k])
-  except StopIteration:
-    return None
+  try:                  return next(k for k in range(len(xx)) if xx[k])
+  except StopIteration: return None
 
 def LogSp(start,stop,num=50,**kwargs):
   """Log space defined through non-log numbers"""
