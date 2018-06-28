@@ -315,10 +315,6 @@ def validate_int(x):
 # Misc
 ########################
 
-def find_1st_ind(xx):
-  try:                  return next(k for k in range(len(xx)) if xx[k])
-  except StopIteration: return None
-
 def LogSp(start,stop,num=50,**kwargs):
   """Log space defined through non-log numbers"""
   assert 'base' not in kwargs, "The base is irrelevant."

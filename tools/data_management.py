@@ -9,6 +9,9 @@ from copy import deepcopy, copy
 
 class ResultsTable():
   """
+  Main purpose: collect result data (avrgs) from separate (e.g. parallelized) experiments.
+  Supports merging datasets with distinct xticks (abscissa) and labels.
+
   Load avrgs (array of dicts of fields of time-average statistics)
     from .npz files which also contain arrays 'abscissa' and 'labels'.
     Assumes avrgs.shape == (len(abscissa),nRepeat,len(labels)).
@@ -28,21 +31,22 @@ class ResultsTable():
   Examples:
 
   # COMPOSING THE DATABASE OF RESULTS
-  Res = ResultsTable('data/AdInf/bench_LUV/c_run[1-3]')                       # Load by regex
-  Res.load('data/AdInf/bench_LUV/c_run7')                                     # More loading
-  Res.mv(r'tag (\d+)',r'tag\1')                                               # change "tag 50" to "tag50" => merge such configs
-  Res.rm([0, 1, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16])                          # rm uninteresting configs
-  Res.rm('EnKF[^_]')                                                          # rm EnKF but not EnKF_N
-  cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s) # Define more involved criterion
-  R1 = Res.split('mytag')                                                     # Split into configs with 'mytag' and rest
-  R2, Res = Res.split2(cond)                                                  # Split into EnKF_N and rest
+  >>> R = ResultsTable('data/AdInf/bench_LUV/c_run[1-3]')                         # Load by regex
+  >>> R.load('data/AdInf/bench_LUV/c_run7')                                       # More loading
+  >>> R.mv(r'tag (\d+)',r'tag\1')                                                 # change "tag 50" to "tag50" => merge such labels (configs)
+  >>> R.rm([0, 1, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16])                            # rm uninteresting labels (configs)
+  >>> R.rm('EnKF[^_]')                                                            # rm EnKF but not EnKF_N
+  >>> cond = lambda s: s.startswith('EnKF_N') and not re.search('(FULL|CHEAT)',s) # Define more involved criterion
+  >>> R1 = R.split('mytag')                                                       # R1: labels with 'mytag'.   R <-- R\R1
+  >>> R1, R2 = R.split2(cond)                                                     # R1: labels satisfying cond. R2 = R\R1
 
   # PRESENTING RESULTS
-  Res.print_frame(Res.mean_field('rmse_a')[0].tolist())                       # re-use print_frame to print mean_field
-  Res.print_mean_field('rmse_a',show_fail=True,show_conf=False,cols=None)     # print_mean_field has more options
-  #Res.print_field(Res.field('rmse_a'))                                       # print raw data
-  Res.plot_mean_field('rmse_a')                                               # plot
-  check = toggle_lines()                                                      # check boxes
+  >>> R.print_frame(R.field('rmse_a')[iR])                                        # print frame of exprmnt#iR of 'rmse_a' field.
+  >>> R.print_field(R.field('rmse_a'))                                            # print all experiment frames
+  >>> R.print_frame(R.mean_field('rmse_a')[0].tolist())                           # print frame of mean of field
+  >>> R.print_mean_field('rmse_a',show_fail=True,show_conf=False,cols=None)       # This gives more options
+  >>> R.plot_mean_field('rmse_a',leg=False)                                       # plot
+  >>> check = toggle_lines()                                                      # check boxes
 
   See AdInf/present_results.py for further examples.
   """
@@ -57,6 +61,7 @@ class ResultsTable():
     """
     self.patterns = getattr(self,'patterns',[]) + [pattern]
     self.datasets = getattr(self,'datasets',OrderedDict())
+    # NB: Don't declare any more attributes here; put them in regen_table().
 
     DIR,regex = os.path.split(pattern)
     keys      = sorted_human(os.listdir(DIR))
@@ -69,10 +74,11 @@ class ResultsTable():
       if f in self.datasets:
         print("Warning: re-loading",f)
       if 0==os.path.getsize(f):
-        print("Skipping empty file",f)
+        print("Encountered placeholder file:",f)
         continue
       self.datasets[f] = dict(np.load(f))
     self.regen_table()
+
     return self # for chaining
 
   def rm_dataset(self,pattern):
@@ -83,39 +89,69 @@ class ResultsTable():
 
 
   def regen_table(self):
-    """
-    from datasets, do:
-     - assemble labels and abscissa
-     - generate corresponding TABLE 
-    """
-    abscissa = []
-    labels   = []
-    for ds in self.datasets.values():
-      abscissa += [ds['abscissa']]
-      labels   += [ds['labels']]
-    # Make labels and abscissa unique
-    def retain_order_uniq(ar):
-      _, inds = np.unique(ar,return_index=True)
-      return ar[np.sort(inds)]
-    abscissa = np.sort(np.unique(ccat(*abscissa)))
-    labels   = retain_order_uniq(ccat(*labels))
-    self.abscissa = abscissa
-    self.labels   = labels
+      """
+      from datasets, do:
+       - assemble labels and abscissa
+       - generate corresponding TABLE 
+       - validate xlabel, tuneLabel
+      """
+      # abscissa, labels
+      abscissa = [] # <--> xlabel
+      labels   = [] # <--> tuneLabel
+      # Grab from datasets
+      for ds in self.datasets.values():
+        abscissa += [ds['abscissa']]
+        labels   += [ds['labels']]
+      # Make labels and abscissa unique
+      abscissa = np.sort(np.unique(ccat(*abscissa)))
+      labels   = keep_order_unique(ccat(*labels))
+      # Assign
+      self.abscissa = abscissa
+      self.labels   = labels
+      # Init TABLE
+      TABLE  = np.empty(self.shape,object)
+      for i,j in np.ndindex(TABLE.shape):
+        TABLE[i,j] = []
+      # Fill TABLE
+      fields = set()
+      for ds in self.datasets.values():
+        for iC,C in enumerate(ds['labels']):
+          for iS,S in enumerate(ds['abscissa']):
+            avrgs = ds['avrgs'][iS,:,iC].tolist()
+            TABLE[labels==C,abscissa==S][0] += avrgs
+            fields |= set().union(*(a.keys() for a in avrgs))
+      self.TABLE  = TABLE
+      self.fields = fields
 
-    # Init
-    TABLE  = np.empty(self.shape,object)
-    for i,j in np.ndindex(TABLE.shape):
-      TABLE[i,j] = []
-    # Fill
-    fields = set()
-    for ds in self.datasets.values():
-      for iC,C in enumerate(ds['labels']):
-        for iS,S in enumerate(ds['abscissa']):
-          avrgs = ds['avrgs'][iS,:,iC].tolist()
-          TABLE[labels==C,abscissa==S][0] += avrgs
-          fields |= set().union(*(a.keys() for a in avrgs))
-    self.TABLE  = TABLE
-    self.fields = fields
+      # Non-array attributes (i.e. must be the same in all datasets).
+      self._scalars = ['xlabel', 'tuneLabel'] # Register attributes.
+      # NB: If you add a new attribute but not by registering them in _scalars,
+      #     then you must also manage it in __deepcopy__().
+      scalars = {key:[] for key in self._scalars} # Init
+      # Ensure consistency
+      def validate_homogeneity(key,vals):
+        if not all(vals[0] == x for x in vals):
+          raise Exception("The loaded datasets have different %s."%key)
+        # Check if some datasets lack the tag.
+        if 0<len(vals)<len(self.datasets):
+          # Don't bother to warn in len==0 case.
+          print("Warning: some of the loaded datasets don't specify %s."%key)
+      # Grab from datasets
+      for ds in self.datasets.values():
+        for key in scalars:
+          if key in ds:
+            scalars[key] += [ds[key].item()]
+      # Assign
+      for key,vals in scalars.items():
+        if vals:
+          validate_homogeneity(key,vals)
+          setattr(self,key,vals[0])
+        else:
+          setattr(self,key,None)
+          if key is not 'tuneLabel':
+            print("Warning: none of the datasets specify %s."%key)
+
+
 
   @property
   def shape(self):
@@ -160,12 +196,21 @@ class ResultsTable():
     self.regen_table()
 
   def split2(self,cond):
+    """
+    Split.
+    Example:
+    >>> R1 = R.split('mytag') # R1 <-- labels with 'mytag'. R <-- R\R1.
+    """
     C1 = deepcopy(self); C1.rm(cond,INV=True)
     C2 = deepcopy(self); C2.rm(cond)
     return C1, C2
 
   def split(self,cond):
-    "In-place version"
+    """
+    Split. In-place version.
+    Example:
+    >>> R1, R2 = R.split2(cond) # R1 <-- labels satisfying cond. R2 = R\R1
+    """
     C1 = deepcopy(self); C1.rm(cond,INV=True)
     self.rm(cond)
     return C1
@@ -196,6 +241,7 @@ class ResultsTable():
       ds['avrgs']    = np.ascontiguousarray(ds['avrgs'])
     self.regen_table()
 
+
   def __deepcopy__(self, memo):
     """
     Implement __deepcopy__ to make it faster.
@@ -203,7 +249,7 @@ class ResultsTable():
     We only need to copy the datasets.
     Then regen_table essentially re-inits the object.
 
-    The speed-up is obtained by stopping the 'deep' copying
+    The speed-up is achieved by stopping the 'deep' copying
     at the level of the arrays containing the avrgs.
       This is admissible because the entries of avrgs
       should never be modified, only deleted.
@@ -215,24 +261,34 @@ class ResultsTable():
     new.datasets = OrderedDict()
 
     for k, ds in self.datasets.items():
+      # deepcopy
       new.datasets[k] = {
           'abscissa':deepcopy(ds['abscissa']),
-          'labels'  :deepcopy(ds['labels']),
-          'avrgs'   :np.empty(ds['avrgs'].shape,dict)
+          'labels'  :deepcopy(ds['labels'])
           }
+      for tag in self._scalars:
+        if tag in ds:
+          new.datasets[k][tag] = deepcopy(ds[tag])
+      # 'shallow' copy for avrgs:
+      new.datasets[k]['avrgs'] = np.empty(ds['avrgs'].shape,dict)
       for idx, avrg in np.ndenumerate(ds['avrgs']):
-        # 'shallow' copy of the entry
         new.datasets[k]['avrgs'][idx] = copy(avrg)
 
     new.regen_table()
     return new
 
+  def __len__(self):
+    # len(self) == len(self.labels) == len(self.TABLE)
+    return len(self.TABLE)
+
   def __repr__(self):
-    s = "datasets from " + str(self.patterns)
+    s = "ResultsTable based on datasets matching patterns:\n" + "\n".join(self.patterns)
     if hasattr(self,'abscissa'):
-      s +="\nabscissa: "      +str(self.abscissa)+\
-          "\nfields: "        +str(self.fields)+\
-          "\n\n"+\
+      s +="\n\nfields:\n"     + str(self.fields)    +\
+          "\n\nxlabel: "      + str(self.xlabel)    +\
+          "\nabscissa: "      + str(self.abscissa)  +\
+          "\n\ntuneLabel: "   + str(self.tuneLabel) +\
+          "\nlabels:\n"+\
           "\n".join(["[{0:2d}] {1:s}".format(i,name) for i,name in enumerate(self.labels)])
     return s
         
@@ -318,6 +374,9 @@ class ResultsTable():
     if cols is None:
       # All
       cols = arange(len(self.abscissa))
+    if isinstance(cols,slice):
+      # Slice
+      cols = arange(len(self.abscissa))[cols]
     if isinstance(cols,(int,float)):
       # Find closest
       cols = [abs(self.abscissa - cols).argmin()]
@@ -325,8 +384,12 @@ class ResultsTable():
       # Make range
       cols = np.where( (cols[0]<=self.abscissa) & (self.abscissa<=cols[1]) )[0]
 
-    headr = ['name']
+    # mattr[0]: names
     mattr = [self.labels.tolist()]
+    # headr: name \ setting, with filling spacing:
+    MxLen = max([len(x) for x in mattr[0]])
+    Space = max(0, MxLen - len(self.xlabel) - 2)
+    headr = ['name' + " "*(Space//2) + "\\" + " "*-(-Space//2) + self.xlabel + ":"]
 
     # Fill in stats
     for iS in cols:
@@ -359,11 +422,89 @@ class ResultsTable():
     print(tabulate(mattr,headr,inds=False).replace('@',' '))
 
 
-  def plot_mean_field(self,field):
-    mu = self.mean_field(field)[0]
-    for iC,(row,name) in enumerate(zip(mu,self.labels)): 
-      plt.plot(self.abscissa,row,'-o',label=name)
+  def plot_1d(self,field,legloc='best',**kwargs):
+    fig, ax = plt.gcf(), plt.gca()
 
+    Z = self.mean_field(field)[0]
+
+    if self.tuneLabel:
+      from cycler import cycler
+      colors = plt.get_cmap('jet')(linspace(0,1,len(self.labels)))
+      ax.set_prop_cycle(cycler('color',colors))
+
+    lhs = []
+    for iC,(row,name) in enumerate(zip(Z,self.labels)): 
+      lhs += [ ax.plot(self.abscissa,row,'-o',label=name,**kwargs)[0] ]
+
+    ax.set_xlabel(self.xlabel)
+    ax.set_ylabel(field)
+    ax.set_title("datasets matching pattern:\n" + "\n".join(self.patterns))
+    if legloc: ax.legend(loc=legloc)
+
+    # Set xticks from abscissa data.
+    #xt = self.abscissa
+    #if len(xt)>15:
+      #xt = xt[ceil(linspace(0,len(xt)-1,9)).astype(int)]
+    #ax.set_xticks(xt)
+    #ax.set_xticklabels(xt)
+
+    return lhs
+
+
+  def plot_2d(self,field,log=False,cMax=None,**kwargs):
+    fig, ax = plt.gcf(), plt.gca()
+
+    Z = self.mean_field(field)[0]
+#tuneLabel = 'loc_rad' # 'loc_rad', 'rot'
+#tuneVals  = R.pprop(tuneLabel,float)
+
+    cMax = Z.max() if cMax is None else cMax
+
+    # Colormap
+    cmap = plt.get_cmap('nipy_spectral',200)
+    cmap.set_over('w')
+    if log: trfm = mpl.colors.LogNorm(0.95*Z.min(), cMax)
+    else:   trfm = None
+
+    # 
+    mesh = ax.pcolormesh(Z,cmap=cmap,norm=trfm)
+
+    # Colorbar
+    #cb = fig.colorbar(mesh,shrink=0.9)
+    #l = mpl.ticker.AutoLocator()
+    #l.create_dummy_axis()
+    #l.tick_values(, 2)
+
+
+    ct = [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1, 2, 3, 4, 5]
+    cb.set_ticks(ct); cb.set_ticklabels(ct)
+    cb.ax.tick_params(length=4, direction='out',width=1, colors='k')
+
+    ax.set_xticks(0.5+arange(len(self.abscissa))); ax.set_xticklabels(self.abscissa); ax.set_xlabel(self.xlabel)
+    ax.set_yticks(0.5+arange(len(tuneVals     ))); ax.set_yticklabels(tuneVals)  
+
+    plt.xlabel(self.xlabel)
+    if self.tuneLabel is not None:
+      tuneLabel = 'Lag' # 'loc_rad', 'rot'
+      tuneVals  = self.pprop(tuneLabel,float)
+      plt.ylabel(tuneLabel)
+
+    plt.title("datasets matching pattern:\n" + "\n".join(self.patterns))
+
+    return mesh
+
+
+  def pprop(self,propID,cast=float,fillval=np.nan):
+    """
+    Parse property (propID) values from labels.
+    Example:
+    >>> pprop(R.labels,'infl',float)
+    """
+    props = []
+    for s in self.labels:
+      x = re.search(r'.*'+propID+':(.+?)(\s|$)',s)
+      props += [cast(x.group(1))] if x else [fillval]
+    return array(props)
 
 
 
