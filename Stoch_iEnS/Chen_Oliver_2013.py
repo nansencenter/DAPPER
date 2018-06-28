@@ -1,10 +1,12 @@
 ##
 
 # Consider the univariate problem from Chen, Yan and Oliver, Dean S.
-# "Levenberg--Marquardt forms of the iES for efficient history matching and UQ"
+# "Levenberg-Marquardt forms of the iES for efficient history matching and UQ"
+#
 # This is here generalized to M dimensions
 # by repeating the problem independently for each dim.
-# Note: sampling error will couple the dimensions somewhat.
+# However, sampling error will couple the dimensions somewhat.
+#
 # Setting M = P = 1 can be used to reproduce the results of the paper.
 
 ## Preamble
@@ -19,11 +21,11 @@ def mean1(E):
   "Enables correct broadcasting for MxN shaped ensemble matrices"
   return mean(E,axis=1,keepdims=True)
 
-M  = 5       # State length
-P  = 2       # Obs length
-N  = 400     # Ens size
+M  = 1       # State length
+P  = 1       # Obs length
+N  = 200     # Ens size
 N1 = N-1     #
-nbins = 300   # Histogram bins
+nbins = 100  # Histogram bins
 
 ## Prior
 b  = -2*ones((M,1))
@@ -83,7 +85,7 @@ D  = sqrtm(R)@randn((P,N))
 D -= mean1(D)
 D *= sqrt(N/N1)
 
-# Sqrt ininitalization matrix
+# Sqrt initialization matrix
 Tinv   = eye(N)
 T      = eye(N)
 w      = zeros((N,1))
@@ -100,20 +102,20 @@ B0 = A0@A0.T/N1
 #FORM='RML-GN'                # RML with exact, local gradients. Gauss-Newton.
 #FORM='EnRML-GN-obs'          # EnRML, Gauss-Newton
 #FORM='EnRML-GN-state'        # Idem. Formulated in state space
-#FORM='EnRML-GN-ens'          # Idem. Formulated in ensemble space
+FORM='EnRML-GN-ens'          # Idem. Formulated in ensemble space
 #FORM='EnRML-LM-ORIG-state'   # Use Lambda to adjust step lengths. 
 #FORM='EnRML-LM-state'        # Use Lambda, modify Hessian  Formulated in state space
 #FORM='EnRML-LM-obs'          # Use Lambda, modify Hessian. Formulated in obs space
 #FORM='EnRML-LM-APPROX-state' # Drop prior term
 #FORM='iEnS-Det-GN'           # Sqrt, determin, iter EnS
-FORM='iEnS-Stoch-GN'          # Sqrt, stoch, iter EnS. Equals EnRML-GN ? 
+#FORM='iEnS-Stoch-GN'          # Sqrt, stoch, iter EnS. Equals EnRML-GN ? 
 
 # Only applies for LM methods
 Lambda = 1 # Increase in Lambda => Decrease in step length
 Gamma  = 4 # Lambda geometric decrease factor
 
 ##
-nIter = 16
+nIter = 9
 for k in range(nIter):
   Lambda /= Gamma
 
@@ -122,7 +124,7 @@ for k in range(nIter):
   Y  = hE - mean1(hE)
   H  = Y@tinv(A)
 
-  if FORM=='RML':
+  if FORM=='RML-GN':
     dLkl = zeros((M,N))
     dPri = zeros((M,N))
     for n in range(N): 
@@ -148,6 +150,7 @@ for k in range(nIter):
     dLkl = K@(y-D-hE)
     dPri = (eye(M) - K@H)@(E0-E)
   elif FORM=='EnRML-GN-state':
+    assert nla.matrix_rank(B0) == M # Not well-done by inv()
     P    = inv( inv(B0) + H.T@inv(R)@H )
     dLkl = P@H.T@inv(R)@(y-D-hE)
     dPri = P@inv(B0)@(E0-E)
@@ -214,9 +217,9 @@ for k in range(nIter):
     plt.pause(0.5)
 
 
-
-
 ##
+# For (comparing methods) debugging
+print("%15.15s, E_k state0...5:"%FORM, E[0,:5])
 
 ##
 

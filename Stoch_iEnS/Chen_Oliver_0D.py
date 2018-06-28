@@ -1,5 +1,6 @@
 ##
 
+# OBSOLETE: replaced by Chen_Oliver_2013.py.
 # Do 1-parameter experiment from paper by Chen, Yan and Oliver, Dean S.
 # "Levenberg--Marquardt forms of the iES
 # for efficient history matching and UQ"

@@ -18,7 +18,7 @@ if SETTING == 'dkObs': # time scale ratio
 settings = array(settings).repeat(2)
 
 # Parallelization and save-path setup
-settings, save_path, iiRep = distribute(__file__,sys.argv,settings,SETTING,max_core=12)
+settings, save_path, iiRep = distribute(__file__,sys.argv,settings,SETTING,nCore=12)
 
 
 ##############################
