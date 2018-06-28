@@ -1,5 +1,36 @@
 from common import *
 
+
+
+
+#########################################
+# Colouring for the terminal / console
+#########################################
+import colorama
+colorama.init() # Makes stdout/err color codes work on windows too.
+from colorama import Fore as cFG # Foreground color codes
+from colorama import Back as cBG # Background color codes
+
+import contextlib
+@contextlib.contextmanager
+def coloring(*color_codes):
+  """
+  Color printing using 'with'. Example:
+  >>> with coloring(cFG.GREEN): print("This is in color")
+  """
+  if len(color_codes)==0:
+    color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
+
+  print(*color_codes, end="")
+  yield 
+  print(colorama.Style.RESET_ALL, end="", flush=True)
+
+
+
+
+#########################################
+# Colouring for matplotlib
+#########################################
 sns_bg = array([0.9176, 0.9176, 0.9490])
 
 # Standard color codes
@@ -55,4 +86,5 @@ def blend_rgb(rgb, a, bg_rgb=ones(3)):
   if isinstance(rgb,str):
     rgb = mpl.colors.colorConverter.to_rgb(rgb)
   return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]
+
 
