@@ -218,6 +218,16 @@ def add_noise(E, dt, noise, config):
     E      = reconst(*tsvd(E,0.999)) # Explained in Datum
   elif method == 'Sqrt-Core':
     E = sqrt_core()[0]
+  elif method == 'Sqrt-Mult-1':
+    varE0 = np.var(E,axis=0,ddof=1).sum()
+    varE2 = (varE0 + dt*diag(Q).sum())
+    E, _, Qa12 = sqrt_core()
+    if N<=m:
+      A,mu   = anom(E)
+      varE1  = np.var(E,axis=0,ddof=1).sum()
+      ratio  = varE2/varE1
+      E      = mu + sqrt(ratio)*A
+      E      = reconst(*tsvd(E,0.999)) # Explained in Datum
   elif method == 'Sqrt-Add-Z':
     E, _, Qa12 = sqrt_core()
     if N<=m:
@@ -364,7 +374,7 @@ def serial_inds(upd_a, y, cvR, A):
   return inds
 
 @DA_Config
-def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
+def SL_EAKF(N,loc_rad,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
   """
   Serial, covariance-localized EAKF.
 
@@ -437,7 +447,7 @@ def SL_EAKF(loc_rad,N,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
 
 
 @DA_Config
-def LETKF(loc_rad,N,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
+def LETKF(N,loc_rad,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
   """
   Same as EnKF (sqrt), but with localization.
 
@@ -645,9 +655,9 @@ def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
   Boc15: Bocquet, Marc, Patrick N. Raanes, and Alexis Hannart. (2015):
   "Expanding the validity of the ensemble Kalman filter..."
 
-  This implementation prioritizes the "dual" form,
-  and as a consequence the efficiency of the "primal" form suffers a bit.
-  The primal form is there mainly to show equivalence
+  This implementation is pedagogical, prioritizing the "dual" form.
+  In consequence, the efficiency of the "primal" form suffers a bit.
+  The primal form is there mainly to demonstrate equivalence
   (to the dual, provided the same minimum is found by the optimizers),
   and to allow comparison with iEnKS(), which uses the full, non-lin h.
 
@@ -655,9 +665,11 @@ def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
 
   'Hess': use non-approx Hessian for ensemble transform matrix?
 
-  'g' is the nullity of A (state anomalies's), ie. g=max(1,N-m).
+  'g' is the nullity of A (state anomalies's), ie. g=max(1,N-m),
+  compensating for the redundancy in the space of w.
   But we have made it an input argument instead, with default 0,
-  because we don't think it's beneficial.
+  because mode-finding (of p(x) via the dual) completely ignores this redundancy,
+  and the mode gets (undesireably) modified by g.
 
   'xN' allows tuning the hyper-prior for the inflation.
   Usually, I just try setting it to 1 (default), or 2.
@@ -1024,11 +1036,11 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,iMax=10,xN=1.0,infl=1.0,rot=False,**
   mods/Lorenz95/boc15loc.py
   """
 
-  N1 = N-1
-
   def assimilator(stats,twin,xx,yy):
     f,h,chrono,X0,R,KObs = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C, twin.t.KObs
     assert f.noise.C is 0, "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
+    N1 = N-1
+
 
     # Init DA cycles
     E = X0.sample(N)
@@ -2187,7 +2199,7 @@ def RHF(N,ordr='rand',infl=1.0,rot=False,**kwargs):
 
 
 @DA_Config
-def LNETF(loc_rad,N,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
+def LNETF(N,loc_rad,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
   """
   The Nonlinear-Ensemble-Transform-Filter (localized).
 
