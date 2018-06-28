@@ -89,7 +89,7 @@ cfgs  = List_of_Configs()
 cfgs += ExtKF()
 cfgs += EnKF('Sqrt',   10,fnoise_treatm='Sqrt-Core')
 cfgs += EnKF_wrong(    10,fnoise_treatm='Sqrt-Core')
-cfgs += EnKF('PertObs',10,fnoise_treatm='Stoch',infl=1.3,LP=False)
+#cfgs += EnKF('PertObs',10,fnoise_treatm='Stoch',infl=1.3,LP=False)
 
 
 
@@ -102,7 +102,7 @@ xx = zeros((chrono.K+1,f.m))
 yy = zeros((chrono.KObs+1,h.m))
 for k,kObs,t,dt in chrono.forecast_range:
   # DONT USE MODEL. Use  (below), or comment out entirely.
-  pass                                          # xx := 0.
+  pass # xx := 0.
   #xx[k] = xx[k-1] + sqrt(dt)*f.noise.sample(1)  # random walk
   if kObs is not None:
     yy[kObs] = h(xx[k],t) + h.noise.sample(1)
