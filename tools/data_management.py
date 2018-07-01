@@ -199,7 +199,7 @@ class ResultsTable():
     """
     Split.
     Example:
-    >>> R1 = R.split('mytag') # R1 <-- labels with 'mytag'. R <-- R\R1.
+    >>> R1, R2 = R.split2(cond) # R1 <-- labels satisfying cond. R2 = R\R1
     """
     C1 = deepcopy(self); C1.rm(cond,INV=True)
     C2 = deepcopy(self); C2.rm(cond)
@@ -209,7 +209,7 @@ class ResultsTable():
     """
     Split. In-place version.
     Example:
-    >>> R1, R2 = R.split2(cond) # R1 <-- labels satisfying cond. R2 = R\R1
+    >>> R1 = R.split('mytag') # R1 <-- labels with 'mytag'. R <-- R\R1.
     """
     C1 = deepcopy(self); C1.rm(cond,INV=True)
     self.rm(cond)
