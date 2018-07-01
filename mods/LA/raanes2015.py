@@ -32,7 +32,7 @@ h['noise'] = 0.01
 # But, for strict equivalence, one would have to use
 # uniform (i.e. not Gaussian) random numbers.
 wnumQ = 25
-fname = 'data/LA_Q_wnum' + str(wnumQ) + '_v2' + '.npz'
+fname = 'data/samples/LA_Q_wnum' + str(wnumQ) + '.npz'
 try:
   # Load pre-generated
   L = np.load(fname)['Left']

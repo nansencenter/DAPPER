@@ -22,7 +22,8 @@ sd0 = seed_init(8) # Base random seed.
 from   mods.Lorenz95.boc15loc import setup
 import mods.Lorenz95.core as core
 
-setup.t.T = 4**4.0 # Experiment duration
+setup.t.BurnIn = 0.2 # Experiment duration
+setup.t.T = 0.8 # Experiment duration
 
 # Specify the control variable (i.e. the plotting xlabel) of interest.
 SETTING = sys.argv[1] # command-line argument #1
@@ -30,13 +31,14 @@ SETTING = sys.argv[1] # command-line argument #1
 
 # Define range of the experiment control variable.
 if SETTING == 'N': # Ensemble size.
-  settings = ccat(arange(2,20),[20, 22, 25, 30, 40, 50, 70, 100]) 
+  #settings = ccat(arange(2,20),[20, 22, 25, 30, 40, 50, 70, 100]) 
+  settings = [20, 30]
 
 if SETTING == 'F': # Model forcing
   settings = arange(3,20)
 
 # Experiments duplication (random seeds will be varied).
-settings = array(settings).repeat(16)
+settings = array(settings).repeat(1)
 
 # If this script is run
 # - with the second argument PARALLELIZE,
@@ -56,17 +58,16 @@ cfgs  = List_of_Configs()
 cfgs += Climatology()                                               # Baseline method
 cfgs += OptInterp()                                                 # Baseline method
 
-for rot in [0,0.3]:
-  cfgs += EnKF('Sqrt',N                                             ,rot=rot) # (also called the ETKF)
-  cfgs += EnKF('Sqrt',N            ,infl=1.01                       ,rot=rot) # + fixed, post-inflation, tuned for N=50.
-  cfgs += EnKF('Sqrt',N            ,infl=1.05                       ,rot=rot) # + fixed, post-inflation, tuned for N=17.
-  cfgs += EnKF('Sqrt',N            ,infl=1.10                       ,rot=rot) # + fixed, post-inflation, tuned for N=16.
-  cfgs += EnKF_N(     N                       ,xN=1.5               ,rot=rot) # + adaptive inflation
-  cfgs += LETKF(      N,loc_rad=2                                   ,rot=rot) # + localization with radius=2
-  cfgs += LETKF(      N,loc_rad='?'                                 ,rot=rot) # + localization (radius(N) assigned in loop)
-  cfgs += LETKF(      N,loc_rad='$'                                 ,rot=rot) # + localization (radius(N) assigned in loop)
-  cfgs += iLEnKS('-N',N,loc_rad='?'           ,xN=1.5,iMax=1,Lag=1  ,rot=rot) # + localization and adaptive inflation.
-  cfgs += iLEnKS('-N',N,loc_rad='?'           ,xN=1.5,iMax=4,Lag='?',rot=rot) # + iterations, localization and adaptive inflation.
+for upd_a in ['PertObs','Sqrt']:                                    # Update (_a) forms: stoch, determ.
+  cfgs += EnKF(upd_a,N                                            ) # Pure EnKF
+  cfgs += EnKF(upd_a,N            ,infl=1.01                      ) # + fixed, post-inflation, good around N=50.
+  cfgs += EnKF(upd_a,N            ,infl=1.05                      ) # + fixed, post-inflation, good around N=17.
+  cfgs += EnKF(upd_a,N            ,infl=1.10                      ) # + fixed, post-inflation, good around N=16.
+cfgs += EnKF_N(      N                       ,xN=1.5              ) # + adaptive (≈optimal) inflation
+#cfgs += LETKF(       N,loc_rad=2                                  ) # + localization with radius=2
+#cfgs += LETKF(       N,loc_rad='?'                                ) # + localization with ≈optimal radius(N)
+#cfgs += iLEnKS('-N',N,loc_rad='?'           ,xN=1.5,iMax=1,Lag=1  ) # + localization and adaptive inflation.
+#cfgs += iLEnKS('-N',N,loc_rad='?'           ,xN=1.5,iMax=4,Lag='?') # + iterations, localization and adaptive inflation.
 # NB: Using Lag=0 for the iLEnKS is not supported. But the Lag=1 is not quite the filter.
 # TODO: Implement spatialized inflation?
 
@@ -77,7 +78,7 @@ for rot in [0,0.3]:
 def adjust_osse(variable,S):
   if   variable == 'F': core.Force = S
   elif variable == 'N': pass
-  else: raise ValueError("Variable " + variable + " not in tuning table.")
+  else: raise ValueError("OSSE changes not defined for variable " + variable)
 
 def adjust_cfg(C,variable,S):
   if variable == 'F':
@@ -85,29 +86,17 @@ def adjust_cfg(C,variable,S):
   elif variable == 'N':
     if getattr(C,'N'      ,None)=='?': C = C.update_settings(      N=S)
     if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(S,core.Force))
-    if getattr(C,'loc_rad',None)=='$': C = C.update_settings(loc_rad=rad_tab(S,core.Force))
-    if getattr(C,'rot'    ,None)=='?': C = C.update_settings(    rot=L95_rot(S,core.Force))
     if getattr(C,'Lag'    ,None)=='?': C = C.update_settings(    Lag=L95_lag(S,core.Force))
-  else:
-    raise ValueError("Variable " + variable + " not in tuning table.")
+  else: raise ValueError("Config changes not defined for variable " + variable)
   return C
 
-# Ensemble methods are approximate => Leeway exists => Tuneable parameters exits.
-# The following are very approximate tuning settings.
+# Most DA methods are approximate => Leeway exists
+#  => Tuneable parameters exits. Here, we define some tuning settings.
 def L95_rad(N,F):
-  # Approximately fitted Gaussian VG.
-  r  = 11*(1-exp(-(N/30)**2)) # for infl=1.0
+  # Approximately fitted (for infl=1.0) variogram (Gaussian).
+  r = 13*(1-exp(-(N/50)**2))
   r *= sqrt(8/F) # Not tuned at all!
   return r
-def rad_tab(N,F):
-  tab = {2: 0.1,  3:0.38,   4:0.56,  5: 0.8,  6: 0.8,  7: 0.8,
-         8:1.10,  9:1.10,  10:3.16, 11:3.16, 12: 4.0, 13:3.16,
-        14:3.16, 15:3.16,  16:3.16, 17: 4.0, 18:5.06,
-        19:6.38, 20:6.38,  22:6.38, 25:6.38, 30:6.38, 40: 8.0,
-        50:  10, 70:  11, 100: 12}
-  return tab[N]
-def L95_rot(N,F):
-  return False if N<20 else 0.3
 def L95_lag(N,F):
   # Approximately tuned for iLEnKS and sak08 settings.
   if     N<=7 : return 1
@@ -143,7 +132,7 @@ for iS,(S,iR) in enumerate(zip(settings,rep_inds)):
   print_averages(cfgs,avrgs[iS,0])
 
 # Results saved in the format below is supported by DAPPER's ResultsTable, whose main purpose
-# is to collect result data from parallelized (or quite separate) experiments.
+# is to collect result data from parallelized (or otherwise independent) experiments.
 np.savez(save_path,
     avrgs    = avrgs,            # 3D array of dicts whose fields are the averages.
     xlabel   = SETTING,          # The control variable tag (string).
@@ -152,14 +141,17 @@ np.savez(save_path,
 
 
 ##############################
-# Present results
+# Results save/load/presentation
 ##############################
-if sys.argv[2:3][0] == 'WORKER': sys.exit(0) # quit if script was run by worker.
+if 'WORKER' in sys.argv: sys.exit(0) # quit if script is running as worker.
 
-# This "section" only uses saved data => could be run in separate session...
-#R = ResultsTable('data/remote/example_3/N_runX') # ... or on downloads (e.g. from parallelization).
-R = ResultsTable('data/remote/example_3/N_run6'); R.rm([4,7,8,10]);
-#R = ResultsTable(save_path)
+# The rest of this script only uses saved data (=> could be a separate script):
+R = ResultsTable(save_path)
+# The presentation below could also be done for downloaded data (e.g. from parallelization):
+#R = ResultsTable('data/example_3/MyRemoteHost/N_runX')
+
+R = ResultsTable('data/example_3/johansen/N_run2') # 
+#R = ResultsTable('data/example_3/P2720L/N_run1'); R.load('data/example_3/johansen/N_run1') # Localization VGs
 
 # Print averages of a given field.
 # The subcolumns show the number of repetitions, crashes and the 1-sigma conf.
@@ -167,19 +159,19 @@ with coloring(): print("Averages over experiment repetition:")
 R.print_mean_field('rmse_a',1,1,cols=slice(0,2))
 
 BaseLineMethods = R.split(lambda x: x in ['Climatology', 'OptInterp', 'Var3D','ExtKF'])
-R3              = R.split('rot:0.3')
 
 # Plot
 fig, ax = plt.subplots()
 R.plot_1d('rmse_a',)
-check = toggle_lines(); plt.sca(ax)
+check += [toggle_lines()]; plt.sca(ax)
 BaseLineMethods.plot_1d('rmse_a',color='k')
+ax.legend().remove();
 
 # Adjust plot
 if R.xlabel=='N':
   ax.loglog()
   ax.grid(True,'minor')
-  xt = [2,3,4,6,8,10,15,20,25,30,40,50]
+  xt = [2,3,4,6,8,10,15,20,25,30,40,50,70,100]
   yt = [0.1, 0.2, 0.5, 1, 2, 5]
   ax.set_xticks(xt); ax.set_xticklabels(xt)
   ax.set_yticks(yt); ax.set_yticklabels(yt)
@@ -192,5 +184,5 @@ if R.xlabel=='N':
 #       However, the difference to **tuned** inflation (represented here by the EnKF-N)
 #       is still very clear.
 
-
+##
 

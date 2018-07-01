@@ -330,9 +330,12 @@ def rel_path(path,start=None,ext=False):
     path = os.path.splitext(path)[0]
   return path
 
+import socket
 def save_dir(filepath,pre=''):
-  """Make dir DAPPER/data/filepath_without_ext"""
-  dirpath  = os.path.join(pre,'data',rel_path(filepath),'')
+  """Make dir DAPPER/data/filepath_without_ext/hostname"""
+  host = socket.gethostname().split('.')[0]
+  path = rel_path(filepath)
+  dirpath  = os.path.join(pre,'data',path,host,'')
   os.makedirs(dirpath, exist_ok=True)
   return dirpath
 
