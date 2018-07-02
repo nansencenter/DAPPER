@@ -1306,6 +1306,9 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,s
     plt.draw()
   check.on_clicked(toggle_visible)
 
+  # Return focus
+  plt.sca(ax)
+
   # Must return (and be received) so as not to expire.
   return check
 
