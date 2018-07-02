@@ -107,66 +107,60 @@ termcolors={
     'underline' : '\033[4m' ,
 }
 
-def print_c(*kargs,color='blue',**kwargs):
-  s = ' '.join([str(k) for k in kargs])
+def print_c(*args,color='blue',**kwargs):
+  s = ' '.join([str(k) for k in args])
   print(termcolors[color] + s + termcolors['ENDC'],**kwargs)
+
+
+import inspect
+def spell_out(*args,sep=",   ",end='\n'):
+  "Print (args), including its variable name."
+  flocs = inspect.stack()[1].frame.f_locals # get caller's namespace
+
+  for i,x in enumerate(args):
+    sep_ = end if i==len(args)-1 else sep
+
+    # Find all matches.
+    # It's impossible to distinguish between them, all should be listed.
+    ks = [k for k in flocs if flocs[k] is x]
+
+    # Don't use sep.join() coz print() can hook into
+    # ipython's pretty print, which is better than str().
+    if   len(ks)==0: print(             x,         end=sep_)
+    elif len(ks)==1: print(ks[0], ": ", x, sep="", end=sep_)
+    elif len(ks)>=2: print(ks   , ": ", x, sep="", end=sep_)
+
+
+def print_together(*args):
+  "Print 1D arrays stacked together."
+  print(np.vstack(args).T)
 
 
 # Local np.set_printoptions. stackoverflow.com/a/2891805/38281
 import contextlib
 @contextlib.contextmanager
+@functools.wraps(np.set_printoptions)
 def printoptions(*args, **kwargs):
     original = np.get_printoptions()
     np.set_printoptions(*args, **kwargs)
     yield 
     np.set_printoptions(**original)
 
-# # Temporarily set attribute values
-# @contextlib.contextmanager
-# def set_tmp(obj,attr,val):
-#     tmp = getattr(obj,attr)
-#     setattr(obj,attr,val)
-#     yield 
-#     setattr(obj,attr,tmp)
-
-@contextlib.contextmanager
-def set_tmp(obj, attr, val):
-    """
-    Temporarily set an attribute.
-    code.activestate.com/recipes/577089
-    """
-    was_there = False
-    tmp = None
-    if hasattr(obj, attr):
-      try:
-        if attr in obj.__dict__:
-          was_there = True
-      except AttributeError:
-        if attr in obj.__slots__:
-          was_there = True
-      if was_there:
-        tmp = getattr(obj, attr)
-    setattr(obj, attr, val)
-    yield #was_there, tmp
-    if not was_there: delattr(obj, attr)
-    else:             setattr(obj, attr, tmp)
-
 
 import tools.tabulate as tabulate_orig
 tabulate_orig.MIN_PADDING = 0
 def tabulate(data,headr=(),formatters=(),inds='nice'):
-  """Pre-processor for tabulate().
-  data:  list-of-lists, whose 'rows' will be printed as columns.
-         This coincides with the output of Dict.values().
-  headr: list or tuple.
-  If 'data' is a dict, then the keys will be the headr.
-  formatter: define formats to apply before relaying to pandas.
-        Default: attr.__name__ (when applicable).
+  """
+  Pre-processor for tabulate().
+  Main task: transpose 'data' (list-of-lists).
+  If 'data' is a dict, the 'headr' will be keys.
+  'formatter': define formats to apply before relaying to pandas.
+               Default: attr.__name__ (when applicable).
   Example:
   >>> print(tabulate(cfgs.distinct_attrs()))
   """
 
-  # Extract headr/mattr
+  # Extract dict
   if hasattr(data,'keys'):
     headr = list(data)
     data  = data.values()
@@ -182,7 +176,7 @@ def tabulate(data,headr=(),formatters=(),inds='nice'):
     data = [[f['format'](j) for j in row] if f['test'](row[0]) else row for row in data]
 
   # Transpose
-  data  = list(map(list, zip(*data)))
+  data = list(map(list, zip(*data)))
 
   # Generate nice indices
   if inds=='nice':
@@ -193,17 +187,13 @@ def tabulate(data,headr=(),formatters=(),inds='nice'):
   return tabulate_orig.tabulate(data,headr,showindex=inds)
 
 
-def print_together(*args):
-  "Print stacked 1D arrays."
-  print(np.vstack(args).T)
-
-
 def repr_type_and_name(thing):
   """Print thing's type [and name]"""
   s = "<" + type(thing).__name__ + '>'
   if hasattr(thing,'name'):
     s += ': ' + thing.name
   return s
+
 
 class MLR_Print:
   """
@@ -340,9 +330,12 @@ def rel_path(path,start=None,ext=False):
     path = os.path.splitext(path)[0]
   return path
 
+import socket
 def save_dir(filepath,pre=''):
-  """Make dir DAPPER/data/filepath_without_ext"""
-  dirpath  = os.path.join(pre,'data',rel_path(filepath),'')
+  """Make dir DAPPER/data/filepath_without_ext/hostname"""
+  host = socket.gethostname().split('.')[0]
+  path = rel_path(filepath)
+  dirpath  = os.path.join(pre,'data',path,host,'')
   os.makedirs(dirpath, exist_ok=True)
   return dirpath
 
@@ -357,42 +350,40 @@ def prep_run(path,prefix):
   subprocess.run(['touch',path]) # reserve filename
   return path, RUN
 
-# Parallelization
-import multiprocessing, subprocess
-screenrc_common_txt = """
-# Auto-generated screenrc file for experiment parallelization.
 
-source $HOME/.screenrc
-
-screen -t bash bash # make one empty bash session
-
-""".replace('/',os.path.sep)
-# Other useful screens to launch
-#screen -t IPython ipython --no-banner # empty python session
-#screen -t TEST bash -c 'echo nThread $MKL_NUM_THREADS; exec bash'
-
-def distribute(script,sysargs,settings,prefix='',max_core=999):
+import subprocess
+def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
   """
-  Run script either as master, worker, or stand-alone,
-  depending on sysargs[2].
+  Parallelization.
+
+  Runs 'script' either as master, worker, or stand-alone,
+  depending on 'sysargs[2]'.
 
   Return corresponding
-   - portion of settings
-   - portion of iiRepeat (setting repeat count)
+   - portion of 'xticks'
+   - portion of 'rep_inds' (setting repeat indices)
    - save_path.
 
-  See AdInf/bench_LUV.py for example use.
+  xCost: The computational assumed: [(1-xCost) + xCost*S for S in xticks].
+  This controls how the xticks array gets distributed to nodes. Example:
+   - Set xCost to 0 for uniform distribution of xticks array.
+   - Set xCost to 1 if the costs scale linearly with the setting.
   """
 
-  # Make running count (iiRepeats) of repeated settings.
-  # Allows also parallelizing across repetitions,
-  # by replicating the setting, e.g.: settings*16,
-  # and using iiRepeats to modify the seeds.
-  iiRepeat = [ list(settings[:i]).count(x) for i,x in enumerate(settings) ]
+  # Make running count (rep_inds) of repeated xticks.
+  # This is typically used to modify the experiment seeds.
+  rep_inds = [ list(xticks[:i]).count(x) for i,x in enumerate(xticks) ]
 
   if len(sysargs)>2:
     if sysargs[2]=='PARALLELIZE':
       save_path, RUN = prep_run(script,prefix)
+
+      # THIS SECTION CAN BE MODIFIED TO YOUR OWN QUEUE SYSTEM, etc.
+      # ------------------------------------------------------------
+      # The implemention here-below does not use any queing system,
+      # but simply launches a bunch of processes.
+      # It uses (gnu's) screen for coolness, coz then individual
+      # worker progress and printouts can be accessed using 'screen -r'.
 
       # screenrc path. This config is the "master".
       rcdir = os.path.join('data','screenrc')
@@ -400,10 +391,28 @@ def distribute(script,sysargs,settings,prefix='',max_core=999):
       screenrc  = os.path.join(rcdir,'tmp_screenrc_')
       screenrc += os.path.split(script)[1].split('.')[0] + '_run'+RUN
 
+      HEADER = """
+      # Auto-generated screenrc file for experiment parallelization.
+      source $HOME/.screenrc
+      screen -t bash bash # make one empty bash session
+      """.replace('/',os.path.sep)
+      import textwrap
+      HEADER = textwrap.dedent(HEADER)
+      # Other useful screens to launch
+      #screen -t IPython ipython --no-banner # empty python session
+      #screen -t TEST bash -c 'echo nThread $MKL_NUM_THREADS; exec bash'
+
+      # Decide number of batches (i.e. processes) to split xticks into.
+      from psutil import cpu_percent, cpu_count
+      if isinstance(nCore,float): # interpret as ratio of total available CPU
+        nBatch = round( nCore * (1 - cpu_percent()/100) * cpu_count() )
+      else:       # interpret as number of cores
+        nBatch = min(nCore, cpu_count())
+      nBatch = min(nBatch, len(xticks))
+
       # Write workers to screenrc
-      nBatch = min(max_core,multiprocessing.cpu_count()-1, len(settings))
       with open(screenrc,'w') as f:
-        f.write(screenrc_common_txt)
+        f.write(HEADER)
         for i in range(nBatch):
           iWorker = i + 1 # start indexing from 1
           f.write('screen -t W'+str(iWorker)+' ipython -i --no-banner '+
@@ -417,52 +426,76 @@ def distribute(script,sysargs,settings,prefix='',max_core=999):
       sys.exit(0)
 
     elif sysargs[2] == 'WORKER':
-      # Split settings array to this "worker"
       iWorker   = int(sysargs[3])
       nBatch    = int(sysargs[4])
-      settings  = np.array_split(settings,nBatch)[iWorker-1]
-      iiRepeat  = np.array_split(iiRepeat,nBatch)[iWorker-1]
-      print("settings partition index:",iWorker)
-      print("=> settings array:",settings)
+
+      # xCost defaults
+      if xCost==None:
+        if prefix=='N':
+          xCost = 0.02
+        elif prefix=='F':
+          xCost = 0
+
+      # Split xticks array to this "worker":
+      if xCost==None:
+        # Split uniformly
+        xticks   = np.array_split(xticks,nBatch)[iWorker-1]
+        rep_inds = np.array_split(rep_inds,nBatch)[iWorker-1]
+      else:
+        # Weigh xticks by costs, before splitting uniformly
+        eps = 1e-6                       # small number
+        cc  = (1-xCost) + xCost*xticks   # computational cost,...
+        cc  = np.cumsum(cc)              # ...cumulatively
+        cc /= cc[-1]                     # ...normalized
+        # Find index dividors between cc such that cumsum deltas are approx const:
+        divs     = [find_1st_ind(cc>c+1e-6) for c in linspace(0,1,nBatch+1)]
+        divs[-1] = len(xticks)
+        # Split
+        xticks   = array(xticks)[divs[iWorker-1]:divs[iWorker]]
+        rep_inds = array(rep_inds)[divs[iWorker-1]:divs[iWorker]]
+
+      print("xticks partition index:",iWorker)
+      print("=> xticks array:",xticks)
 
       # Append worker index to save_path
       save_path = sysargs[5] + '_W' + str(iWorker)
       print("Will save to",save_path+"...")
       
-      # Enforce individual core usage
-      try:
-        # Tested on a Mac computer with Anaconda
+      # Enforcing individual core usage.
+      # --------------------------------
+      # Issue: numpy often tries to distribute calculations accross cores.
+      #    This may yield some performance gain, but not much compared to
+      #    experiment parallelization (as we do here), coz of overhead.
+      # Solution: force numpy to only use a single core.
+      # Unfortunately: it's platform-dependent
+      #    => you might have to adapt the code to your platform.
+      # Testing: set nBatch=1. Only a single core should be in use.
+      #    Check using your system's process manager, e.g., 'top'.
+      try: 
         import mkl
-        mkl.set_num_threads(1)
+        mkl.set_num_threads(1) # For Mac with Anaconda
       except ImportError:
-        # Tested on a Linux server with Anaconda
-        os.environ["MKL_NUM_THREADS"] = "1"
-        #
-        # NB: NO LONGER WORKING! Must be set in .bashrc instead.
-        #
-        # Test by setting nBatch=1 to launch only one experiment.
-        # When ensemble DA is running, only a single CPU should be in use
-        # (can be checked e.g by 'htop' utility).
-        # If not, it's because numpy is distributing calculations,
-        # which is very inefficient in the typical experiment.
-        # As you can see, enforcing single-CPU use is platform dependent,
-        # so you might have to adapt the above code to your platform.
+        os.environ["MKL_NUM_THREADS"] = "1" # For Linux with Anaconda
+        # NB: This might not work. => Try to set it in your .bashrc instead.
 
     elif sysargs[2]=='EXPENDABLE' or sysargs[2]=='DISPOSABLE':
       save_path = os.path.join('data','expendable')
-    else:
-      raise ValueError('Could not interpret sys.args[1]')
+
+    else: raise ValueError('Could not interpret sys.args[1]')
+
   else:
     # No args => No parallelization
     save_path, _ = prep_run(script,prefix)
 
-  return settings, save_path, iiRepeat
+  return xticks, save_path, rep_inds
 
 
 
 #########################################
 # Multiprocessing
 #########################################
+import multiprocessing, signal
+
 def multiproc_map(func,xx,**kwargs):
   """
   Multiprocessing.
@@ -472,7 +505,6 @@ def multiproc_map(func,xx,**kwargs):
 
   See example use in mods/QG/core.py.
   """
-  import signal
   NPROC = multiprocessing.cpu_count()-1
 
   # stackoverflow.com/a/35134329/38281
@@ -509,6 +541,38 @@ def multiproc_map(func,xx,**kwargs):
 # Misc
 #########################################
 
+# # Temporarily set attribute values
+# @contextlib.contextmanager
+# def set_tmp(obj,attr,val):
+#     tmp = getattr(obj,attr)
+#     setattr(obj,attr,val)
+#     yield 
+#     setattr(obj,attr,tmp)
+
+import contextlib
+@contextlib.contextmanager
+def set_tmp(obj, attr, val):
+    """
+    Temporarily set an attribute.
+    code.activestate.com/recipes/577089
+    """
+    was_there = False
+    tmp = None
+    if hasattr(obj, attr):
+      try:
+        if attr in obj.__dict__:
+          was_there = True
+      except AttributeError:
+        if attr in obj.__slots__:
+          was_there = True
+      if was_there:
+        tmp = getattr(obj, attr)
+    setattr(obj, attr, val)
+    yield #was_there, tmp
+    if not was_there: delattr(obj, attr)
+    else:             setattr(obj, attr, tmp)
+
+
 
 # Better than tic-toc !
 import time
@@ -530,6 +594,12 @@ class Timer():
           print('[%s]' % self.name, end='')
       print('Elapsed: %s' % (time.time() - self.tstart))
 
+def find_1st(xx):
+  try:                  return next(x for x in xx if x)
+  except StopIteration: return None
+def find_1st_ind(xx):
+  try:                  return next(k for k in range(len(xx)) if xx[k])
+  except StopIteration: return None
 
 # stackoverflow.com/a/2669120
 def sorted_human( lst ): 
@@ -537,6 +607,11 @@ def sorted_human( lst ):
     convert = lambda text: int(text) if text.isdigit() else text 
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
     return sorted(lst, key = alphanum_key)
+
+def keep_order_unique(arr):
+  "Undo the sorting that np.unique() does."
+  _, inds = np.unique(arr,return_index=True)
+  return arr[np.sort(inds)]
 
 def filter_out(orig_list,*unwanted,INV=False):
   """
@@ -599,13 +674,20 @@ def vectorize0(f):
     - doesn't always return array
 
   Example:
-    @vectorize0
-    def add(x,y):
-      return x+y
-    add(1,100)
-    x = np.arange(6).reshape((3,-1))
-    add(x,100)
-    add([20,x],100)
+  >>> @vectorize0
+  >>> def add(x,y):
+  >>>   return x+y
+  >>> add(1,100)
+  101
+  >>> x = np.arange(6).reshape((3,-1))
+  >>> add(x,100)
+  array([[100, 101],
+       [102, 103],
+       [104, 105]])
+  >>> add([20,x],100)
+  [120, array([[100, 101],
+        [102, 103],
+        [104, 105]])]
   """
   @functools.wraps(f)
   def wrapped(x,*args,**kwargs):

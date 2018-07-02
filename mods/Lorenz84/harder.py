@@ -1,4 +1,4 @@
-# The settings in of Pajonk are too easy:
+# The settings of Pajonk are too easy:
 # the average value of trHK is 0.013.
 # Here we increase dkObs to make the DA problem more difficult.
 

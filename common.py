@@ -24,6 +24,7 @@ from numpy import \
     array, asarray, asmatrix, \
     linspace, arange, reshape, \
     eye, zeros, ones, diag, trace \
+# Don't shadow builtins: sum, max, abs, round, pow
 
 
 

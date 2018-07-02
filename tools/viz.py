@@ -958,13 +958,11 @@ def plot_time_series(stats,dim=0,**kwargs):
   #ax_d.set_ylabel('$x_{' + str(dim) + '}$',size=20)
   ax_d.set_ylabel('dim ' + str(dim))
   ax_d.legend()
-  ax_d.set_xticklabels([])
 
   ax_K.plot(ttA, trKH,'k',lw=2,label='tr(HK)')
   ax_K.plot(ttA, skew,'g',lw=2,label='Skew')
   ax_K.plot(ttA, kurt,'r',lw=2,label='Kurt')
   ax_K.legend()
-  ax_K.set_xticklabels([])
 
   ax_e.plot(        tt_, rmse,'k',lw=2 ,label='Error')
   ax_e.fill_between(tt_, rmv ,alpha=0.7,label='Spread') 
@@ -1308,6 +1306,9 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,s
     plt.draw()
   check.on_clicked(toggle_visible)
 
+  # Return focus
+  plt.sca(ax)
+
   # Must return (and be received) so as not to expire.
   return check
 
@@ -1360,8 +1361,10 @@ def savefig_n(f=None):
   assert savefig_n.index>=0, "Initalize using savefig_n.index = 1 in your script"
   if f is None:
     f = inspect.getfile(inspect.stack()[1][0])   # Get __file__ of caller
-  f = save_dir(f)                                # Prep save dir
-  plt.savefig(f + str(savefig_n.index) + '.pdf') # Save
+    f = save_dir(f)                              # Prep save dir
+  f = f + str(savefig_n.index) + '.pdf'          # Compose name
+  print("Saving fig to:",f)                      # Print
+  plt.savefig(f)                                 # Save
   savefig_n.index += 1                           # Increment index
   plt.pause(0.1)                                 # For safety?
 savefig_n.index = -1

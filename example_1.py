@@ -1,4 +1,5 @@
-# Basic illustration of benchmarking DA methods with DAPPER
+# Illustrate how to use DAPPER:
+# Basic benchmarking of DA methods.
 
 # Load DAPPER. Assumes pwd is <path-to-dapper>
 from common import *

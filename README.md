@@ -113,45 +113,42 @@ Quasi-Geost | No      | 2D        | 129²≈17k  | ?        | Sakov
 
 Additional features
 ------------------------------------------------
-Many
-* Visualizations 
-* Diagnostics
-* Tools to manage and display experimental settings and stats
-
-
-Also has:
-* Live plotting with on/off toggle
-* Confidence interval on times series (e.g. rmse) with
-  * automatic correction for autocorrelation 
-  * significant digits printing
-* CovMat class (input flexibility/overloading, lazy eval) that facilitates
-    the use of non-diagnoal covariance matrices (whether sparse or full)
-* Intelligent defaults (e.g. plot duration estimated from autocorrelation,
-    axis limits estimated from percentiles)
-* Chronology/Ticker with consistency checks
-* Gentle failure system to allow execution to continue if experiment fails.
 * Progressbar
-* Multivariate random variables: Gaussian, Student-t, Laplace, Uniform, ...,
-    as well as support for custom sampling functions.
-* X-platform random number generator (for debugging accross platforms)
+* Many visualizations, including
+    * liveplotting (during assimilation)
+    * intelligent defaults (axis limits, ...)
+* Many diagnostics and statistics
+    * Confidence interval on times series (e.g. rmse) averages with
+        * automatic correction for autocorrelation 
+        * significant digits printing
+* Tools to manage and display experimental settings and stats
 * Parallelisation options
+    * (Independent) experiments can run in parallel; see `example_3.py`
     * Forecast parallelisation is possible since
         the (user-implemented) model has access to the full ensemble
         (see `mods/QG/core.py`)
     * A light-weight alternative (see e.g. `mods/Lorenz95/core.py`):
         native numpy vectorization (again by having access to full ensemble).
-    * (Independent) experiments can also run in parallel.
-        Auto-config provided by `utils.py:parallelize()`.
+* Gentle failure system to allow execution to continue if experiment fails.
+* Classes that simplify treating:
+    * Time sequences Chronology/Ticker with consistency checks
+    * random variables (`RandVar`): Gaussian, Student-t, Laplace, Uniform, ...,
+    as well as support for custom sampling functions.
+    * covariance matrices (`CovMat`): provides input flexibility/overloading, lazy eval) that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
+
+
+<!--
+Also has:
+* X-platform random number generator (for debugging accross platforms)
+-->
 
 
 What it can't do
 ------------------------------------------------
-* Do highly efficient DA on very big models (see discussion in introdution).
-* Run different DA methods concurrently (i.e. step-by-step)
-     allowing for live/online  (graphic or text) comparison.
-* Time-dependent error coviariances and changes in lengths of state/obs
-     (but f and h may otherwise depend on time).
-* Non-uniform time sequences only partially supported.
+* Highly efficient DA on very big models (see discussion in introduction).
+* Time-dependent error covariances and changes in lengths of state/obs
+     (but models f and h may otherwise be time-dependent).
+* Non-uniform time sequences not fully supported.
 
 
 How to
@@ -307,6 +304,31 @@ TODO
 * Simplify time management?
 * Use pandas for stats time series?
 * Complete QG
+
+<!--
+* Make citation format for DAPPER
+* TODO: Implement spatialized inflation?
+* Replace print_c and termcolors dict by 'with coloring:'
+* Fix Windows bug (key listening: ncurses?)
+* Fix issue with anaconda python framework install or whatever that fucks figure interaction
+* Use inspect somehow instead of C.update_setting
+* Use AlignedDict for DA_Config's repr?
+* Include Colin's tut
+* Get barotropic
+* Get good/simple local PF with reproduction of Alban's results
+* rename do_tab to tab
+* Make function DA_Config() a member called 'method' of DAC. Rename DAC to DA_Config.
+    => Yields (???) decorator syntax @DA_Config.method  (which would look nice) 
+* Rename setup to HMM
+* Change m to M ? (what about model?)
+* EITHER: Rm *args, **kwargs from da_methods? (less spelling errors)
+*         Replace with opts argument (could be anything).
+*     OR: implement warning if config argument was not used (warns against misspelling, etc)
+* Fix dtObs bug
+* Post version on nersc and link from enkf.nersc
+* Post version on norce
+-->
+
 
 References
 ------------------------------------------------

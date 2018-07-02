@@ -1,4 +1,5 @@
-# Illustrate how to use DAPPER to benchmark multiple DA methods
+# Illustrate how to use DAPPER
+# to benchmark multiple DA methods
 
 from common import *
 
@@ -72,8 +73,6 @@ for ic,config in enumerate(cfgs):
   #print_averages(config, avrgs[-1])
 print_averages(cfgs,avrgs)
 
-# Note: if model is very large, you may want to
-# discard the stats objects, keeping only the avrgs.
 
 ##############################
 # Plot
