@@ -36,7 +36,7 @@ if CtrlVar == 'F': # Model forcing
   xticks = arange(3,20)
 
 # Experiments duplication (random seeds will be varied).
-xticks = array(xticks).repeat(32)
+xticks = array(xticks).repeat(22)
 
 # If this script is run
 # - with the second argument PARALLELIZE,
@@ -53,20 +53,21 @@ xticks, save_path, rep_inds = distribute(__file__,sys.argv,xticks,CtrlVar)
 N = '?' if CtrlVar=='N' else 20
 
 cfgs  = List_of_Configs()
-#cfgs += Climatology()                                                # Baseline method
-#cfgs += OptInterp()                                                  # Baseline method
+cfgs += Climatology()                                                # Baseline method
+cfgs += OptInterp()                                                  # Baseline method
 
-#for upd_a in ['PertObs','Sqrt']:                                     # Update (_a) forms: stoch, determ.
-  #cfgs += EnKF(upd_a,N                                             ) # Pure EnKF
-  #cfgs += EnKF(upd_a,N            ,infl=1.01                       ) # + fixed, post-inflation, good around N=50.
-  #cfgs += EnKF(upd_a,N            ,infl=1.05                       ) # + idem                 , good around N=17.
-  #cfgs += EnKF(upd_a,N            ,infl=1.10                       ) # + idem                 , good around N=16.
-#cfgs += EnKF_N(      N                                             ) # + adaptive (≈optimal) inflation.
-#cfgs += EnKF_N(      N                       ,xN=2                 ) # + idem, with 2x confidence in inflation hyper-prior.
-#cfgs += LETKF(       N,loc_rad=2                                   ) # + localization with radius=2.
+for upd_a in ['PertObs','Sqrt']:                                     # Update (_a) forms: stoch, determ.
+  cfgs += EnKF(upd_a,N                                             ) # Pure EnKF
+  cfgs += EnKF(upd_a,N            ,infl=1.01                       ) # + fixed, post-inflation, good around N=50.
+  cfgs += EnKF(upd_a,N            ,infl=1.05                       ) # + idem                 , good around N=17.
+  cfgs += EnKF(upd_a,N            ,infl=1.10                       ) # + idem                 , good around N=16.
+cfgs += EnKF_N(      N                                             ) # + adaptive (≈optimal) inflation.
+cfgs += EnKF_N(      N                       ,xN=2                 ) # + idem, with 2x confidence in inflation hyper-prior.
+cfgs += LETKF(       N,loc_rad=2                                   ) # + localization with radius=2.
 cfgs += LETKF(       N,loc_rad='?'                                 ) # + localization with ≈optimal radius(N)
-#cfgs += LETKF(       N,loc_rad='?',infl='-N' ,xN=2                 ) # + idem, with adaptive (≈optimal) inflation.
-#cfgs += iLEnKS('-N' ,N,loc_rad='?'           ,xN=2 ,iMax=4,Lag='?' ) # + iterations, localization and adaptive inflation.
+cfgs += LETKF(       N,loc_rad='?',infl='-N' ,xN=2                 ) # + idem, with adaptive (≈optimal) inflation.
+cfgs += LETKF(       N,loc_rad='$',infl='-N' ,xN=2                 ) # + idem, with adaptive (≈optimal) inflation.
+cfgs += iLEnKS('-N' ,N,loc_rad='?'           ,xN=2 ,iMax=4,Lag='?' ) # + iterations, localization and adaptive inflation.
 
 
 ##############################
@@ -83,6 +84,7 @@ def adjust_cfg(C,variable,S):
   elif variable == 'N':
     if getattr(C,'N'      ,None)=='?': C = C.update_settings(      N=S)
     if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(S,core.Force))
+    if getattr(C,'loc_rad',None)=='$': C = C.update_settings(loc_rad=1.5*L95_rad(S,core.Force))
     if getattr(C,'Lag'    ,None)=='?': C = C.update_settings(    Lag=L95_lag(S,core.Force))
   else: raise ValueError("Config changes not defined for variable " + variable)
   return C
@@ -131,11 +133,10 @@ for iS,(S,iR) in enumerate(zip(xticks,rep_inds)):
 # Results saved in the format below is supported by DAPPER's ResultsTable, whose main purpose
 # is to collect result data from parallelized (or otherwise independent) experiments.
 np.savez(save_path,
-    avrgs    = avrgs,            # 3D array of dicts, whose fields are the averages.
-    xlabel   = CtrlVar,          # The control variable tag (string).
-    xticks   = xticks,           # xticks (array).
-    #tuning_tag = tuning_tag,    # Not applicable here
-    labels   = cfgs.gen_names()) # List of strings.
+    avrgs      = avrgs,            # 3D array of dicts, whose fields are the averages.
+    xlabel     = CtrlVar,          # The control variable tag (string).
+    xticks     = xticks,           # xticks (array).
+    labels     = cfgs.gen_names()) # List of strings.
 
 
 ##############################
@@ -152,7 +153,7 @@ R = ResultsTable(save_path)
 
 #R = ResultsTable('data/example_3/johansen/N_run[23]') # All. Old
 R = ResultsTable('data/example_3/johansen/N_run4') # All. New
-R.load          ('data/example_3/johansen/N_run5') # New loc rad
+R.load          ('data/example_3/johansen/N_run5'); R.rm(arange(17,25)); # New loc rad
 
 #R = ResultsTable('data/example_3/P2720L/N_run1'); R.load('data/example_3/johansen/N_run1') # Localization VGs
 
@@ -181,6 +182,8 @@ if R.xlabel=='N':
   ax.set_xticks(xt); ax.set_xticklabels(xt)
   ax.set_yticks(yt); ax.set_yticklabels(yt)
 
+
+# TODO: replace tuning functions by argmin (i.e. R.minz_tuning), and merge with example_4
 
 # Discussion of results shown in figure:
 # - Localization more important than inflation? Both are necessary, neither sufficient.
