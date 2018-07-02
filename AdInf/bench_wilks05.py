@@ -142,12 +142,12 @@ for c in cfgs:
 avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 stats = np.empty_like(avrgs)
 
-for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
-  print_c('\n'+CtrlVar,'value:', S,'index:',iS,'/',len(xticks)-1)
-  setattr(LUV,CtrlVar,S)
+for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
+  print_c('\n'+CtrlVar,'value:', X,'index:',iX,'/',len(xticks)-1)
+  setattr(LUV,CtrlVar,X)
 
   sd    = seed(sd0 + iR)
-  xx,yy = simulate_or_load(__file__, setup_full, sd, CtrlVar+'='+str(S))
+  xx,yy = simulate_or_load(__file__, setup_full, sd, CtrlVar+'='+str(X))
   prmzt = estimate_parameterization(xx)
 
   for iC,Config in enumerate(cfgs):
@@ -170,9 +170,9 @@ for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
       stat = Config.assimilate(setup_trunc,xx[::dk,:nU],yy)
       avrg = stat.average_in_time()
 
-    #stats[iS,0,iC] = stat
-    avrgs[iS,0,iC] = avrg
-  print_averages(cfgs, avrgs[iS,0],statkeys=
+    #stats[iX,0,iC] = stat
+    avrgs[iX,0,iC] = avrg
+  print_averages(cfgs, avrgs[iX,0],statkeys=
       ['rmse_a','rmv_a','infl','nu_a','a','b'])
 
 

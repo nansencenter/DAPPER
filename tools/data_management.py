@@ -22,7 +22,7 @@ class ResultsTable():
   Merge (stack) into a TABLE with shape (len(labels),len(xticks)).
     Thus, all results for a given label/xticks are easily indexed,
     and don't even have to be of the same length
-    (TABLE[iC,iS] is a list of the avrgs for that (label,absissa)).
+    (TABLE[iC,iX] is a list of the avrgs for that (label,absissa)).
   Also provides functions that partition the TABLE,
     (but nowhere near the power of a full database).
   NB: the TABLE is just convenience:
@@ -118,9 +118,9 @@ class ResultsTable():
       fields = set()
       for ds in self.datasets.values():
         for iC,C in enumerate(ds['labels']):
-          for iS,S in enumerate(ds['xticks']):
-            avrgs = ds['avrgs'][iS,:,iC].tolist()
-            TABLE[labels==C,xticks==S][0] += avrgs
+          for iX,X in enumerate(ds['xticks']):
+            avrgs = ds['avrgs'][iX,:,iC].tolist()
+            TABLE[labels==C,xticks==X][0] += avrgs
             fields |= set().union(*(a.keys() for a in avrgs))
       self.TABLE  = TABLE
       self.fields = fields
@@ -159,7 +159,7 @@ class ResultsTable():
   def shape(self):
     return (len(self.labels),len(self.xticks))
 
-  # The number of experiments for a given Config and Setting [iC,iS]
+  # The number of experiments for a given Config and Setting [iC,iX]
   # may differ (and may be 0). Generate 2D table counting it.
   @property
   def nRepeats(self):
@@ -315,11 +315,11 @@ class ResultsTable():
     # And Tabulate uses None to identify 'missingval'. 
     # So we stick with lists here, to be able to print directly, e.g.
     # Results.print_field(Results.field('rmse_a')
-    for iR,iC,iS in np.ndindex(shape):
+    for iR,iC,iX in np.ndindex(shape):
       try:
-        field3D[iR][iC][iS] = self.TABLE[iC,iS][iR][field].val
+        field3D[iR][iC][iX] = self.TABLE[iC,iX][iR][field].val
       except (IndexError,KeyError):
-        field3D[iR][iC][iS] = None
+        field3D[iR][iC][iX] = None
     return field3D
 
   def mean_field(self,field):
@@ -329,13 +329,13 @@ class ResultsTable():
     mu   = zeros(self.shape)
     conf = zeros(self.shape)
     nSuc = zeros(self.shape,int) # non-fails
-    for (iC,iS),_ in np.ndenumerate(mu):
-      nRep = self.nRepeats[iC,iS]
-      f    = field3D[:nRep,iC,iS]
+    for (iC,iX),_ in np.ndenumerate(mu):
+      nRep = self.nRepeats[iC,iX]
+      f    = field3D[:nRep,iC,iX]
       f    = f[np.logical_not(np.isnan(f))]
-      mu  [iC,iS] = f.mean()                   if len(f)   else None
-      conf[iC,iS] = f.std(ddof=1)/sqrt(len(f)) if len(f)>3 else np.nan
-      nSuc[iC,iS] = len(f)
+      mu  [iC,iX] = f.mean()                   if len(f)   else None
+      conf[iC,iX] = f.std(ddof=1)/sqrt(len(f)) if len(f)>3 else np.nan
+      nSuc[iC,iX] = len(f)
     return mu, conf, nSuc
 
 
@@ -397,18 +397,18 @@ class ResultsTable():
     headr = ['name' + " "*(Space//2) + "\\" + " "*-(-Space//2) + self.xlabel + ":"]
 
     # Fill in stats
-    for iS in cols:
-      S = self.xticks[iS]
+    for iX in cols:
+      X = self.xticks[iX]
       # Generate column. Include header for cropping purposes
-      col = [('{0:@>6g} {1: <'+NF+'s}').format(S,'#')]
+      col = [('{0:@>6g} {1: <'+NF+'s}').format(X,'#')]
       if show_fail: col[0] += (' {0: <'+NF+'s}').format('X')
       if show_conf: col[0] += ' ±'
       for iC in range(len(self.labels)):
         # Format entry
-        nRep = nReps[iC][iS]
-        val  = mu   [iC][iS]
-        c    = conf [iC][iS]
-        nF   = nFail[iC][iS]
+        nRep = nReps[iC][iX]
+        val  = mu   [iC][iX]
+        c    = conf [iC][iX]
+        nF   = nFail[iC][iX]
         if nRep:
           s = ('{0:@>6.3g} {1: <'+NF+'d} '    ).format(val,nRep)
           if show_fail: s += ('{0: <'+NF+'d} ').format(nF)

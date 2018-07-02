@@ -20,20 +20,20 @@ CtrlVar = sys.argv[1]
 
 # Set range of experimental settings
 if CtrlVar == 'Q': # Var of stoch error
-  set_true  = lambda S: setattr(setup.f.noise,'C',CovMat(S*ones(setup.f.m)))
-  set_false = lambda S: setattr(setup.f.noise,'C',0)
+  set_true  = lambda X: setattr(setup.f.noise,'C',CovMat(X*ones(setup.f.m)))
+  set_false = lambda X: setattr(setup.f.noise,'C',0)
   xticks    = round2sigfig(LogSp(1e-6,2,20),nfig=2)
   #xticks   = [1e-6, 1e-3, 0.1, 1]
   #xticks   = [min(xticks, key=lambda x:abs(x-60))]
 
 elif CtrlVar == 'FDA': # Forcing erroneously assumed by DA
-  set_true  = lambda S: setattr(L95,'Force',8) # should also be in xticks!
-  set_false = lambda S: setattr(L95,'Force',S)
+  set_true  = lambda X: setattr(L95,'Force',8) # should also be in xticks!
+  set_false = lambda X: setattr(L95,'Force',X)
   xticks    = arange(7,9+0.1,0.1)
 
 elif CtrlVar == 'FTr': # Forcing used by truth
-  set_true  = lambda S: setattr(L95,'Force',S)
-  set_false = lambda S: setattr(L95,'Force',8) # should also be in xticks!
+  set_true  = lambda X: setattr(L95,'Force',X)
+  set_false = lambda X: setattr(L95,'Force',8) # should also be in xticks!
   xticks    = arange(7,9+0.1,0.1)
 
 elif CtrlVar == 'N': # Ensemble size
@@ -45,8 +45,8 @@ elif CtrlVar == 'N': # Ensemble size
         if N>30:
           cfgs[iC] = C.update_settings(rot=True)
     setattr(L95,'Force', F)
-  set_true  = lambda S: setN(S,8)
-  set_false = lambda S: setN(S,7)
+  set_true  = lambda X: setN(X,8)
+  set_false = lambda X: setN(X,7)
   xticks    = CurvedSpace(15,200,0.9,40).astype(int)
 
 
@@ -93,27 +93,27 @@ for N in [20]:
 avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 stats = np.empty_like(avrgs)
 
-for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
-  print_c('\n'+CtrlVar,'value:', S,'index:',iS,'/',len(xticks)-1)
-  set_true(S)
+for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
+  print_c('\n'+CtrlVar,'value:', X,'index:',iX,'/',len(xticks)-1)
+  set_true(X)
 
   sd    = seed(sd0 + iR)
-  xx,yy = simulate_or_load(__file__, setup, sd, CtrlVar+'='+str(S))
+  xx,yy = simulate_or_load(__file__, setup, sd, CtrlVar+'='+str(X))
 
   for iC,Config in enumerate(cfgs):
     seed(sd)
     
     if 'FULL' in getattr(Config,'name',''):
-      set_true(S)
+      set_true(X)
     else:
-      set_false(S)
+      set_false(X)
 
     stat = Config.assimilate(setup,xx,yy)
     avrg = stat.average_in_time()
 
-    #stats[iS,0,iC] = stat
-    avrgs[iS,0,iC] = avrg
-  print_averages(cfgs, avrgs[iS,0],statkeys=
+    #stats[iX,0,iC] = stat
+    avrgs[iX,0,iC] = avrg
+  print_averages(cfgs, avrgs[iX,0],statkeys=
       ['rmse_a','rmv_a','infl','nu_a','a','b'])
 
 

@@ -53,9 +53,9 @@ for N in [20, 25, 35, 50, 100]:
 avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 stats = np.empty_like(avrgs)
 
-for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
-  print_c('\n'+CtrlVar,'value:', S,'index:',iS,'/',len(xticks)-1)
-  setattr(setup.t,CtrlVar,S)
+for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
+  print_c('\n'+CtrlVar,'value:', X,'index:',iX,'/',len(xticks)-1)
+  setattr(setup.t,CtrlVar,X)
 
   sd    = seed(sd0 + iR)
   xx,yy = simulate(setup)
@@ -71,9 +71,9 @@ for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
     stat = C.assimilate(setup,xx,yy)
     avrg = stat.average_in_time()
 
-    stats[iS,0,iC] = stat
-    avrgs[iS,0,iC] = avrg
-  print_averages(cfgs, avrgs[iS,0],statkeys=['rmse_a','rmv_a','infl'])
+    stats[iX,0,iC] = stat
+    avrgs[iX,0,iC] = avrg
+  print_averages(cfgs, avrgs[iX,0],statkeys=['rmse_a','rmv_a','infl'])
 
 #plot_time_series(stats[-1])
 
@@ -90,7 +90,7 @@ np.savez(save_path,avrgs=avrgs,xticks=xticks,labels=cnames)
 
 
 # Archived:
-#  In the loop:  set_infl(C,avrgs[iS,0])
+#  In the loop:  set_infl(C,avrgs[iX,0])
 # 
 #  def set_infl(cfg,avrgs):
 #  
