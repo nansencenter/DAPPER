@@ -281,8 +281,11 @@ class ResultsTable():
     # len(self) == len(self.labels) == len(self.TABLE)
     return len(self.TABLE)
 
+  def _headr(self):
+    return "ResultsTable from datasets matching patterns:\n" + "\n".join(self.patterns)
+
   def __repr__(self):
-    s = "ResultsTable based on datasets matching patterns:\n" + "\n".join(self.patterns)
+    s = self._headr()
     if hasattr(self,'abscissa'):
       s +="\n\nfields:\n"     + str(self.fields)    +\
           "\n\nxlabel: "      + str(self.xlabel)    +\
@@ -422,7 +425,7 @@ class ResultsTable():
     print(tabulate(mattr,headr,inds=False).replace('@',' '))
 
 
-  def plot_1d(self,field,legloc='best',**kwargs):
+  def plot_1d(self,field='rmse_a',**kwargs):
     fig, ax = plt.gcf(), plt.gca()
 
     Z = self.mean_field(field)[0]
@@ -438,8 +441,7 @@ class ResultsTable():
 
     ax.set_xlabel(self.xlabel)
     ax.set_ylabel(field)
-    ax.set_title("datasets matching pattern:\n" + "\n".join(self.patterns))
-    if legloc: ax.legend(loc=legloc)
+    ax.set_title(self._headr())
 
     # Set xticks from abscissa data.
     #xt = self.abscissa
@@ -451,61 +453,88 @@ class ResultsTable():
     return lhs
 
 
-  def plot_2d(self,field,log=False,cMax=None,**kwargs):
+  def plot_2d(self,field='rmse_a',log=True,cMin=None,cMax=None,show_fail=True,**kwargs):
     fig, ax = plt.gcf(), plt.gca()
 
     Z = self.mean_field(field)[0]
-#tuneLabel = 'loc_rad' # 'loc_rad', 'rot'
-#tuneVals  = R.pprop(tuneLabel,float)
 
-    cMax = Z.max() if cMax is None else cMax
+    # Color range limit
+    cMin = 0.95*Z.min() if cMin is None else cMin
+    cMax = Z.max()      if cMax is None else cMax
+    CL   = cMin, cMax
 
     # Colormap
     cmap = plt.get_cmap('nipy_spectral',200)
-    cmap.set_over('w')
-    if log: trfm = mpl.colors.LogNorm(0.95*Z.min(), cMax)
-    else:   trfm = None
+    cmap.set_over('w') # white color for out-of-range values
+    if log: trfm = mpl.colors.LogNorm  (*CL)
+    else:   trfm = mpl.colors.Normalize(*CL)
 
-    # 
-    mesh = ax.pcolormesh(Z,cmap=cmap,norm=trfm)
+    # Plot 
+    mesh = ax.pcolormesh(Z,
+        cmap=cmap,norm=trfm,
+        edgecolor=0.0*ones(3),linewidth=0.3,
+        **kwargs)
 
-    # Colorbar
-    #cb = fig.colorbar(mesh,shrink=0.9)
-    #l = mpl.ticker.AutoLocator()
-    #l.create_dummy_axis()
-    #l.tick_values(, 2)
+    # Colorbar and its ticks.
+    # Caution: very tricky in log-case. Don't mess with this.
+    cb = fig.colorbar(mesh,shrink=0.9)
+    cb.ax.tick_params(length=4, direction='out',width=1, color='k')
+    if log:
+      ct = round2sigfig(LogSp(   max(Z.min(),CL[0]), min(CL[1],Z.max()), 10  ), 2)
+      ct = [x for x in ct if CL[0] <= x <= CL[1]] # Cannot go outside of clim! Buggy as hell!
+      cb.set_ticks(  ct   )
+      cb.set_ticklabels(ct)
+    else:
+      pass
+    cb.set_label(field)
 
-
-    ct = [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1, 2, 3, 4, 5]
-    cb.set_ticks(ct); cb.set_ticklabels(ct)
-    cb.ax.tick_params(length=4, direction='out',width=1, colors='k')
-
-    ax.set_xticks(0.5+arange(len(self.abscissa))); ax.set_xticklabels(self.abscissa); ax.set_xlabel(self.xlabel)
-    ax.set_yticks(0.5+arange(len(tuneVals     ))); ax.set_yticklabels(tuneVals)  
-
-    plt.xlabel(self.xlabel)
+    # title
+    ax.set_title(self._headr())
+    # xlabel
+    ax.set_xlabel(self.xlabel)
+    # ylabel:
     if self.tuneLabel is not None:
-      tuneLabel = 'Lag' # 'loc_rad', 'rot'
-      tuneVals  = self.pprop(tuneLabel,float)
-      plt.ylabel(tuneLabel)
+      ax.set_ylabel(self.tuneLabel)
+      ylbls = self.tune_vals()
+    else:
+      ax.set_ylabel('labels')
+      ylbls = self.labels
 
-    plt.title("datasets matching pattern:\n" + "\n".join(self.patterns))
+    # Make abscissa less dense, if needed
+    nXGrid = len(self.abscissa)
+    step = 1 if nXGrid <= 16 else nXGrid//10
+    # Set ticks
+    ax.set_xticks(0.5+arange(nXGrid)[::step]); ax.set_xticklabels(self.abscissa[::step]);
+    ax.set_yticks(0.5+arange(len(ylbls)));     ax.set_yticklabels(ylbls)  
+
+    # Reverse order
+    ax.invert_yaxis()
 
     return mesh
 
 
-  def pprop(self,propID,cast=float,fillval=np.nan):
-    """
-    Parse property (propID) values from labels.
-    Example:
-    >>> pprop(R.labels,'infl',float)
-    """
-    props = []
-    for s in self.labels:
-      x = re.search(r'.*'+propID+':(.+?)(\s|$)',s)
-      props += [cast(x.group(1))] if x else [fillval]
-    return array(props)
+  def tune_vals(self,**kwargs):
+    return pprop(self.labels, self.tuneLabel, **kwargs)
+
+  def minz_tuned(self,field='rmse_a'):
+    Z = self.mean_field(field)[0]
+    tune_inds = np.nanargmin(Z,0)
+    tune_vals = self.tune_vals()[tune_inds]
+    fieldvals = Z[tune_inds,arange(len(tune_inds))]
+    return tune_inds, tune_vals, fieldvals 
 
 
+
+def pprop(labels,propID,cast=float,fillval=np.nan):
+  """
+  Parse property (propID) values from labels.
+  Example:
+  >>> pprop(R.labels,'infl',float)
+  """
+  props = []
+  for s in labels:
+    x = re.search(r'.*'+propID+':(.+?)(\s|$)',s)
+    props += [cast(x.group(1))] if x else [fillval]
+  return array(props)
 
 
