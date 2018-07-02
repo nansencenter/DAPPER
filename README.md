@@ -307,6 +307,7 @@ TODO
 
 <!--
 * Make citation format for DAPPER
+* TODO: Implement spatialized inflation?
 * Replace print_c and termcolors dict by 'with coloring:'
 * Fix Windows bug (key listening: ncurses?)
 * Fix issue with anaconda python framework install or whatever that fucks figure interaction
