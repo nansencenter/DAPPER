@@ -22,7 +22,7 @@ sd0 = seed_init(8) # Base random seed.
 from   mods.Lorenz95.boc15loc import setup
 import mods.Lorenz95.core as core
 
-setup.t.T = 4**4.0 # Experiment duration
+setup.t.T = 4**4.0
 
 # Specify the control variable (i.e. the plotting xlabel) of interest.
 CtrlVar = sys.argv[1] # command-line argument #1
@@ -36,7 +36,7 @@ if CtrlVar == 'F': # Model forcing
   xticks = arange(3,20)
 
 # Experiments duplication (random seeds will be varied).
-xticks = array(xticks).repeat(22)
+xticks = array(xticks).repeat(32)
 
 # If this script is run
 # - with the second argument PARALLELIZE,
@@ -73,19 +73,19 @@ cfgs += iLEnKS('-N' ,N,loc_rad='?'           ,xN=2 ,iMax=4,Lag='?' ) # + iterati
 ##############################
 # Setters for the control variable
 ##############################
-def adjust_osse(variable,S):
-  if   variable == 'F': core.Force = S
+def adjust_osse(variable,X):
+  if   variable == 'F': core.Force = X
   elif variable == 'N': pass
   else: raise ValueError("OSSE changes not defined for variable " + variable)
 
-def adjust_cfg(C,variable,S):
+def adjust_cfg(C,variable,X):
   if variable == 'F':
-    if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(S,core.Force))
+    if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(X,core.Force))
   elif variable == 'N':
-    if getattr(C,'N'      ,None)=='?': C = C.update_settings(      N=S)
-    if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(S,core.Force))
-    if getattr(C,'loc_rad',None)=='$': C = C.update_settings(loc_rad=1.5*L95_rad(S,core.Force))
-    if getattr(C,'Lag'    ,None)=='?': C = C.update_settings(    Lag=L95_lag(S,core.Force))
+    if getattr(C,'N'      ,None)=='?': C = C.update_settings(      N=X)
+    if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(X,core.Force))
+    if getattr(C,'loc_rad',None)=='$': C = C.update_settings(loc_rad=1.5*L95_rad(X,core.Force))
+    if getattr(C,'Lag'    ,None)=='?': C = C.update_settings(    Lag=L95_lag(X,core.Force))
   else: raise ValueError("Config changes not defined for variable " + variable)
   return C
 
@@ -114,21 +114,21 @@ avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 # (which contain full time series and therefore might require significant memory)
 # that the array would hold, instead get discarded after each loop iterate.
 
-for iS,(S,iR) in enumerate(zip(xticks,rep_inds)):
-  with coloring(): print('\n'+"xticks[",iS,'/',len(xticks)-1,"] ",CtrlVar,': ',S,sep="")
-  adjust_osse(CtrlVar,S)
+for iX,(X,iR) in enumerate(zip(xticks,rep_inds)):
+  with coloring(): print('\n'+"xticks[",iX,'/',len(xticks)-1,"] ",CtrlVar,': ',X,sep="")
+  adjust_osse(CtrlVar,X)
 
   seed(sd0+iR)
   xx,yy = simulate(setup)
 
   for iC,C in enumerate(cfgs):
-    C = adjust_cfg(C,CtrlVar,S)
+    C = adjust_cfg(C,CtrlVar,X)
     seed(sd0+iR)
     stat = C.assimilate(setup,xx,yy)
-    #stats[iS,0,iC] = stat
-    avrgs[iS,0,iC] = stat.average_in_time()
+    #stats[iX,0,iC] = stat
+    avrgs[iX,0,iC] = stat.average_in_time()
 
-  print_averages(cfgs,avrgs[iS,0])
+  print_averages(cfgs,avrgs[iX,0])
 
 # Results saved in the format below is supported by DAPPER's ResultsTable, whose main purpose
 # is to collect result data from parallelized (or otherwise independent) experiments.
@@ -144,24 +144,21 @@ np.savez(save_path,
 ##############################
 if 'WORKER' in sys.argv: sys.exit(0) # quit if script is running as worker.
 
-# The rest of this script only uses saved data (=> could be a separate script):
+# The rest of this script only uses saved data:
 R = ResultsTable(save_path)
-# The presentation below could also be done for downloaded data (e.g. from parallelization):
+# ... => could be run as a separate script,
+# ... or downloaded data (e.g. from parallelization):
 #R = ResultsTable('data/example_3/MyRemoteHost/N_runX')
 
 ##
-
-#R = ResultsTable('data/example_3/johansen/N_run[23]') # All. Old
-R = ResultsTable('data/example_3/johansen/N_run4') # All. New
-R.load          ('data/example_3/johansen/N_run5'); R.rm(arange(17,25)); # New loc rad
-
-#R = ResultsTable('data/example_3/P2720L/N_run1'); R.load('data/example_3/johansen/N_run1') # Localization VGs
+R = ResultsTable('data/example_3/johansen/N_run1') # all
 
 # Print averages of a given field.
 # The "subcolumns" show the number of repetitions, crashes and the 1-sigma conf.
 with coloring(): print("Averages over experiment repetition:")
 R.print_mean_field('rmse_a',1,1,cols=slice(0,2))
 
+# Separate out the baseline methods from the rest
 BaseLineMethods = R.split(lambda x: x in ['Climatology', 'OptInterp', 'Var3D','ExtKF'])
 
 # Plot
@@ -171,7 +168,6 @@ R.plot_1d('rmse_a',)
 if 'checkmarks' not in locals(): checkmarks = []
 checkmarks += [toggle_lines()];
 BaseLineMethods.plot_1d('rmse_a',color='k')
-
 
 # Adjust plot
 if R.xlabel=='N':
@@ -183,15 +179,17 @@ if R.xlabel=='N':
   ax.set_yticks(yt); ax.set_yticklabels(yt)
 
 
-# TODO: replace tuning functions by argmin (i.e. R.minz_tuning), and merge with example_4
 
 # Discussion of results shown in figure:
 # - Localization more important than inflation? Both are necessary, neither sufficient.
 # - Some rotation could be beneficial for the Sqrt EnKF's with N>30 (avoid worsening rmse).
-# - The LETKF with infl=1 diverges even for large ensemble sizes.
+# - The EnKFs with infl=1 (and no localization) diverge even for large ensemble sizes.
 #   But simply with infl=1.01 one obtains a much more reasonable benchmark curve.
 #   However, the difference to **tuned** inflation (represented here by the EnKF-N)
 #   is still very clear.
+# - TODO: replace tuning functions by argmin (i.e. R.minz_tuning), and merge with example_4.
+#   Why: good tuning functions require too much manual labor, and bad ones yield noisy curves.
+#   This should also enable {inflation+localization} to get more advantage over {localization only}.
 
 ##
 
