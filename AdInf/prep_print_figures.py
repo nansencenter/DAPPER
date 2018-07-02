@@ -60,7 +60,7 @@ def style(label):
 Skill = lambda x: x 
 
 Singls  = OD()        # each label is here will be plotted 
-Groups  = OD()        # for each group: only min (per abscissa) is plotted
+Groups  = OD()        # for each group: only min (per xticks) is plotted
 AxProps = OD()        # labels, etc
 
 
@@ -208,18 +208,18 @@ infls_all = xtract_prop(G.labels,'infl')
 OFS = 0.10 # inflation tuning offset
 rmses = G.mean_field('rmse_a')[0]
 rmvs  = G.mean_field('rmv_a' )[0]
-iiS   = arange(len(G.abscissa))
+iiS   = arange(len(G.xticks))
 iiV   = [np.argmin(np.abs(infls[iS]+OFS-infls_all)) for iS in iiS]
-ax.plot(G.abscissa, rmses[iiV,iiS], **style('poorly tuned'))
+ax.plot(G.xticks, rmses[iiV,iiS], **style('poorly tuned'))
 
 for lbl, RT in Groups.items():
   if RT:
-    ax.plot(RT.abscissa,Skill(optimz(RT,'rmse_a')),**style(lbl))
+    ax.plot(RT.xticks,Skill(optimz(RT,'rmse_a')),**style(lbl))
 
 for RT in Singls.values():
   if RT and len(RT.labels):
     for iC,(row,name) in enumerate(zip(RT.mean_field('rmse_a')[0],RT.labels)): 
-      ax.plot(RT.abscissa,Skill(row),**style(name))
+      ax.plot(RT.xticks,Skill(row),**style(name))
 
 #---- RMV
 def vstyle(dct):
@@ -230,21 +230,21 @@ def vstyle(dct):
   except: pass
   return dct
 
-ax.plot(G.abscissa, rmvs[iiV,iiS], **vstyle(style('poorly tuned')))
+ax.plot(G.xticks, rmvs[iiV,iiS], **vstyle(style('poorly tuned')))
 
 for lbl, G in Groups.items():
   if G:
     rmv  = G.mean_field('rmv_a')[0]
     best = np.nanargmin(G.mean_field('rmse_a')[0],0)
     rmv  = rmv[best,arange(rmv.shape[1])]
-    ax.plot(G.abscissa,Skill(rmv),**vstyle(style(lbl)))
+    ax.plot(G.xticks,Skill(rmv),**vstyle(style(lbl)))
 
 for RT in Singls:
   if 'FULL' in RT: continue
   else: RT = Singls[RT]
   if RT and len(RT.labels):
     for iC,(row,name) in enumerate(zip(RT.mean_field('rmv_a')[0],RT.labels)): 
-      ax.plot(RT.abscissa,Skill(row),**vstyle(style(name)))
+      ax.plot(RT.xticks,Skill(row),**vstyle(style(name)))
 
 
 #---- AxProps
@@ -272,17 +272,17 @@ infls = xtract_prop(G.labels,'infl')[np.nanargmin(G.mean_field('rmse_a')[0],0)]
 infls_all = xtract_prop(G.labels,'infl')
 
 mc = [] # mean conf
-for iS,_ in enumerate(G.abscissa):
+for iS,_ in enumerate(G.xticks):
   iT = np.argmin(np.abs(infls[iS]-infls_all)); iT
   mc += [ mean([x['rmse_a'].conf for x in G.TABLE[iT,iS]]) ]
-ax.plot(G.abscissa, mc, **style('EnKF_pre infl:?'))
+ax.plot(G.xticks, mc, **style('EnKF_pre infl:?'))
 
 for RT in Singls.values():
   for iC,name in enumerate(RT.labels): 
     mc = [] # mean conf
-    for iS,_ in enumerate(RT.abscissa):
+    for iS,_ in enumerate(RT.xticks):
       mc += [ mean([x['rmse_a'].conf for x in RT.TABLE[iC,iS]]) ]
-    ax.plot(RT.abscissa,mc,**style(name))
+    ax.plot(RT.xticks,mc,**style(name))
 
 
 AxProps2 = {k:AxProps[k] for k in filter_out(AxProps,'ylim')}

@@ -148,7 +148,7 @@ def post_process(E,infl,rot):
   But for readability it is nicer to keep it as a separate function,
   also since it avoids inflating/rotationg smoothed states (for the EnKS).
   """
-  do_infl = infl!=1.0
+  do_infl = infl!=1.0 and infl!='-N'
 
   if do_infl or rot:
     A, mu = anom(E)
@@ -446,6 +446,37 @@ def SL_EAKF(N,loc_rad,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
 
 
 
+def infl_N_dual(YR,dyR,xN,g):
+  N, P = YR.shape
+  N1 = N-1
+
+  V,s,UT = svd0(YR)
+  du     = UT @ dyR
+
+  eN, cL = hyperprior_coeffs(s,N,xN,g)
+
+  pad_rk = lambda arr: pad0( arr, min(N,P) )
+  dgn_rk = lambda l: pad_rk((l*s)**2) + N1
+
+  # Make dual cost function (in terms of l1)
+  J      = lambda l:          np.sum(du**2/dgn_rk(l)) \
+           +    eN/l**2 \
+           +    cL*log(l**2)
+  # Derivatives (not required with minimize_scalar):
+  Jp     = lambda l: -2*l   * np.sum(pad_rk(s**2) * du**2/dgn_rk(l)**2) \
+           + -2*eN/l**3 \
+           +  2*cL/l
+  Jpp    = lambda l: 8*l**2 * np.sum(pad_rk(s**4) * du**2/dgn_rk(l)**3) \
+           +  6*eN/l**4 \
+           + -2*cL/l**2
+  # Find inflation factor (optimize)
+  l1 = Newton_m(Jp,Jpp,1.0)
+  #l1 = fmin_bfgs(J, x0=[1], gtol=1e-4, disp=0)
+  #l1 = minimize_scalar(J, bracket=(sqrt(prior_mode), 1e2), tol=1e-4).x
+
+  za = N1/l1**2
+  return za
+
 @DA_Config
 def LETKF(N,loc_rad,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
   """
@@ -458,8 +489,7 @@ def LETKF(N,loc_rad,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
   "Efficient data assimilation for spatiotemporal chaos..."
   """
   def assimilator(stats,twin,xx,yy):
-    f,h,chrono,X0,N1 = twin.f, twin.h, twin.t, twin.X0, N-1
-    Rm12 = h.noise.C.sym_sqrt_inv
+    f,h,chrono,X0,R,N1 = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C, N-1
 
     E = X0.sample(N)
     stats.assess(0,E=E)
@@ -473,18 +503,26 @@ def LETKF(N,loc_rad,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
         mu = mean(E,0)
         A  = E - mu
 
-        hE = h(E,t)
-        hx = mean(hE,0)
-        YR = (hE-hx)  @ Rm12.T
-        yR = (yy[kObs] - hx) @ Rm12.T
+        y    = yy[kObs]
+        Y,hx = anom(h(E,t))
+        # Transform obs space
+        Y  = Y        @ R.sym_sqrt_inv.T
+        dy = (y - hx) @ R.sym_sqrt_inv.T
+
+        if infl=='-N':
+          xN = kwargs.get('xN',1.0)
+          g  = kwargs.get('g',0)
+          za = infl_N_dual(Y,dy,xN,g)
+        else:
+          za = N1
 
         locf_at = h.loc_f(loc_rad, 'x2y', t, taper)
         for i in range(f.m):
           # Localize
           local, coeffs = locf_at(i)
           if len(local) == 0: continue
-          Y_i  = YR[:,local] * sqrt(coeffs)
-          dy_i = yR[local]   * sqrt(coeffs)
+          Y_i  = Y[:,local] * sqrt(coeffs)
+          dy_i = dy [local] * sqrt(coeffs)
 
           # Do analysis
           if approx:
@@ -492,8 +530,8 @@ def LETKF(N,loc_rad,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
             # even though the local cropping of Y happens after application of H.
             # Anyways, with an explicit H, one can apply Woodbury
             # to go to state space (dim==1), before reverting to HA_i = Y_loc.
-            B   = A[:,i]@A[:,i] / N1
-            H   = A[:,i]@Y_i /B / N1 # H.T == H
+            B   = A[:,i]@A[:,i] / za
+            H   = A[:,i]@Y_i /B / za # H.T == H
             HRH = H@H                # R^{-1} == Id coz of above
             T2  = 1/(1 + B*HRH)
             AT  = sqrt(T2)*A[:,i]
@@ -504,13 +542,13 @@ def LETKF(N,loc_rad,taper='GC',approx=False,infl=1.0,rot=False,**kwargs):
             if len(local) < N:
               # SVD version
               V,sd,_ = svd0(Y_i)
-              d      = pad0(sd**2,N) + N1
+              d      = pad0(sd**2,N) + za
               Pw     = (V * d**(-1.0)) @ V.T
-              T      = (V * d**(-0.5)) @ V.T * sqrt(N1)
+              T      = (V * d**(-0.5)) @ V.T * sqrt(za)
             else:
               # EVD version
-              d,V   = eigh(Y_i @ Y_i.T + N1*eye(N))
-              T     = V@diag(d**(-0.5))@V.T * sqrt(N1)
+              d,V   = eigh(Y_i @ Y_i.T + za*eye(N))
+              T     = V@diag(d**(-0.5))@V.T * sqrt(za)
               Pw    = V@diag(d**(-1.0))@V.T
             AT  = T@A[:,i]
             dmu = dy_i@Y_i.T@Pw@A[:,i]
@@ -1037,10 +1075,8 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,iMax=10,xN=1.0,infl=1.0,rot=False,**
   """
 
   def assimilator(stats,twin,xx,yy):
-    f,h,chrono,X0,R,KObs = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C, twin.t.KObs
+    f,h,chrono,X0,R,KObs, N1 = twin.f, twin.h, twin.t, twin.X0, twin.h.noise.C, twin.t.KObs, N-1
     assert f.noise.C is 0, "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
-    N1 = N-1
-
 
     # Init DA cycles
     E = X0.sample(N)

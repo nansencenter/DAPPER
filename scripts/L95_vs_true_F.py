@@ -13,8 +13,8 @@ sd0 = seed(5)
 from mods.Lorenz95.sak08 import setup
 import mods.Lorenz95.core as L95
 
-F_DA     = 8.0
-settings = arange(6,12) # Forcing F
+F_DA   = 8.0
+xticks = arange(6,12) # Forcing F
 
 setup.t.T = 4**4.5
 nRepeat   = 8
@@ -34,10 +34,10 @@ cfgs += EnKF_N(N=25,rot=False)
 ############################
 # Assimilate
 ############################
-avrgs = np.empty((len(settings),nRepeat,len(cfgs)),dict)
+avrgs = np.empty((len(xticks),nRepeat,len(cfgs)),dict)
 stats = np.empty_like(avrgs)
 
-for iS,Setting in enumerate(settings):
+for iS,Setting in enumerate(xticks):
   print_c('\nF_true: ', Setting)
   for iR in range(nRepeat):
     seed(sd0+iR)
@@ -53,4 +53,4 @@ for iS,Setting in enumerate(settings):
   print_c('Average over',nRepeat,'repetitions:')
   print_averages(cfgs,avrg)
 
-#save_data(save_path,inds,settings=settings,stng_var=stng_var,avrgs=avrgs,xx=xx,yy=yy)
+#save_data(save_path,inds,xticks=xticks,stng_var=stng_var,avrgs=avrgs,xx=xx,yy=yy)

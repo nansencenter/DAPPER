@@ -18,24 +18,24 @@ tT = setup_trunc.t; tT.T = T; tT.dkObs = round(dtObs/tT.dt)
 dk = validate_int(tT.dt / tF.dt)
 
 
-# Get experiment control variable (SETTING) from arguments
-SETTING = sys.argv[1]
-# Set range of experimental settings
-if SETTING == 'c': # time scale ratio
-  settings = round2sigfig(CurvedSpace(0.01,40,0.925,20),nfig=2)
-  settings = np.sort(ccat(settings,[14,15]))
-  #settings = [min(settings, key=lambda x:abs(x-s)) for s in [10,12]]
-elif SETTING == 'h': # coupling constant 
-  settings = round2sigfig(CurvedSpace(0.01,10,0.9,40),nfig=2)
-  #settings = [min(settings, key=lambda x:abs(x-s)) for s in [0.2,0.5,1]]
-elif SETTING == 'F': # coupling constant 
-  settings = round2sigfig(CurvedSpace(1,30,0.9,40),nfig=2)
-  settings = [15]
+# Get experiment control variable (CtrlVar) from arguments
+CtrlVar = sys.argv[1]
+# Set range of experimental xticks
+if CtrlVar == 'c': # time scale ratio
+  xticks = round2sigfig(CurvedSpace(0.01,40,0.925,20),nfig=2)
+  xticks = np.sort(ccat(xticks,[14,15]))
+  #xticks = [min(xticks, key=lambda x:abs(x-s)) for s in [10,12]]
+elif CtrlVar == 'h': # coupling constant 
+  xticks = round2sigfig(CurvedSpace(0.01,10,0.9,40),nfig=2)
+  #xticks = [min(xticks, key=lambda x:abs(x-s)) for s in [0.2,0.5,1]]
+elif CtrlVar == 'F': # coupling constant 
+  xticks = round2sigfig(CurvedSpace(1,30,0.9,40),nfig=2)
+  xticks = [15]
 
-settings = array(settings).repeat(1)
+xticks = array(xticks).repeat(1)
 
 # Parallelization and save-path setup
-settings, save_path, iiRep = distribute(__file__,sys.argv,settings,SETTING,nCore=999)
+xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=999)
 
 
 ##############################
@@ -151,15 +151,15 @@ for c in cfgs:
 ##############################
 # Assimilate
 ##############################
-avrgs = np.empty((len(settings),1,len(cfgs)),dict)
+avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 stats = np.empty_like(avrgs)
 
-for iS,(S,iR) in enumerate(zip(settings,iiRep)):
-  print_c('\n'+SETTING,'value:', S,'index:',iS,'/',len(settings)-1)
-  setattr(LUV,SETTING,S)
+for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
+  print_c('\n'+CtrlVar,'value:', S,'index:',iS,'/',len(xticks)-1)
+  setattr(LUV,CtrlVar,S)
 
   sd    = seed(sd0 + iR)
-  xx,yy = simulate_or_load(__file__, setup_full, sd, SETTING+'='+str(S))
+  xx,yy = simulate_or_load(__file__, setup_full, sd, CtrlVar+'='+str(S))
   prmzt = estimate_parameterization(xx)
 
   for iC,Config in enumerate(cfgs):
@@ -194,6 +194,6 @@ for iS,(S,iR) in enumerate(zip(settings,iiRep)):
 cfgs.assign_names(do_tab=False,ow='prepend')
 cnames = [c.name for c in cfgs]
 print("Saving to",save_path)
-np.savez(save_path,avrgs=avrgs,abscissa=settings,labels=cnames)
+np.savez(save_path,avrgs=avrgs,xticks=xticks,labels=cnames)
 
 

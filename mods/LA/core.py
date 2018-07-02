@@ -100,7 +100,7 @@ def homogeneous_1D_cov(m,d,kind='Expo'):
   # This can be motivated by looking at the exponential correlation function,
   #         corr(h) = exp(-h/d).
   # The area under the curve (from 0 to infty) equals d, which is also
-  # the point where the initial tangent hits the abscissa.
+  # the point where the initial tangent hits the x-axis.
   #
   # For the gaussian correlation function,
   #         corr(h) = exp(-h^2/a^2)

@@ -10,17 +10,17 @@ from copy import deepcopy, copy
 class ResultsTable():
   """
   Main purpose: collect result data (avrgs) from separate (e.g. parallelized) experiments.
-  Supports merging datasets with distinct xticks (abscissa) and labels.
+  Supports merging datasets with distinct xticks and labels.
 
   Load avrgs (array of dicts of fields of time-average statistics)
-    from .npz files which also contain arrays 'abscissa' and 'labels'.
-    Assumes avrgs.shape == (len(abscissa),nRepeat,len(labels)).
+    from .npz files which also contain arrays 'xticks' and 'labels'.
+    Assumes avrgs.shape == (len(xticks),nRepeat,len(labels)).
     But the avrgs of different source files can have entirely different
-    abscissa, nRepeat, labels. The sources will be properly handled
+    xticks, nRepeat, labels. The sources will be properly handled
     also allowing for nan values. This flexibility allows working with
     a patchwork of "inhomogenous" sources.
-  Merge (stack) into a TABLE with shape (len(labels),len(abscissa)).
-    Thus, all results for a given label/abscissa are easily indexed,
+  Merge (stack) into a TABLE with shape (len(labels),len(xticks)).
+    Thus, all results for a given label/xticks are easily indexed,
     and don't even have to be of the same length
     (TABLE[iC,iS] is a list of the avrgs for that (label,absissa)).
   Also provides functions that partition the TABLE,
@@ -91,71 +91,75 @@ class ResultsTable():
   def regen_table(self):
       """
       from datasets, do:
-       - assemble labels and abscissa
+       - assemble labels and xticks
        - generate corresponding TABLE 
-       - validate xlabel, tuneLabel
+       - validate xlabel, tuning_tag
       """
-      # abscissa, labels
-      abscissa = [] # <--> xlabel
-      labels   = [] # <--> tuneLabel
+
+      # xticks, labels
+      # -------------------
+      xticks = [] # <--> xlabel
+      labels = [] # <--> tuning_tag (if applicable)
       # Grab from datasets
       for ds in self.datasets.values():
-        abscissa += [ds['abscissa']]
-        labels   += [ds['labels']]
-      # Make labels and abscissa unique
-      abscissa = np.sort(np.unique(ccat(*abscissa)))
-      labels   = keep_order_unique(ccat(*labels))
+        xticks += [ds['xticks']]
+        labels += [ds['labels']]
+      # Make labels and xticks unique
+      xticks = np.sort(np.unique(ccat(*xticks)))
+      labels = keep_order_unique(ccat(*labels))
       # Assign
-      self.abscissa = abscissa
-      self.labels   = labels
-      # Init TABLE
+      self.xticks = xticks
+      self.labels = labels
+
+      # Init TABLE of avrgs
+      # -------------------
       TABLE  = np.empty(self.shape,object)
       for i,j in np.ndindex(TABLE.shape):
         TABLE[i,j] = []
-      # Fill TABLE
+      # Fill TABLE, fields
       fields = set()
       for ds in self.datasets.values():
         for iC,C in enumerate(ds['labels']):
-          for iS,S in enumerate(ds['abscissa']):
+          for iS,S in enumerate(ds['xticks']):
             avrgs = ds['avrgs'][iS,:,iC].tolist()
-            TABLE[labels==C,abscissa==S][0] += avrgs
+            TABLE[labels==C,xticks==S][0] += avrgs
             fields |= set().union(*(a.keys() for a in avrgs))
       self.TABLE  = TABLE
       self.fields = fields
 
       # Non-array attributes (i.e. must be the same in all datasets).
-      self._scalars = ['xlabel', 'tuneLabel'] # Register attributes.
+      # --------------------------------------------------------------
+      self._scalars = ['xlabel', 'tuning_tag'] # Register attributes.
       # NB: If you add a new attribute but not by registering them in _scalars,
       #     then you must also manage it in __deepcopy__().
       scalars = {key:[] for key in self._scalars} # Init
-      # Ensure consistency
-      def validate_homogeneity(key,vals):
-        if not all(vals[0] == x for x in vals):
-          raise Exception("The loaded datasets have different %s."%key)
-        # Check if some datasets lack the tag.
-        if 0<len(vals)<len(self.datasets):
-          # Don't bother to warn in len==0 case.
-          print("Warning: some of the loaded datasets don't specify %s."%key)
       # Grab from datasets
       for ds in self.datasets.values():
         for key in scalars:
           if key in ds:
             scalars[key] += [ds[key].item()]
-      # Assign
+      # Assign, having ensured consistency
       for key,vals in scalars.items():
         if vals:
-          validate_homogeneity(key,vals)
+          #def validate_homogeneity(key,vals):
+          if not all(vals[0] == x for x in vals):
+            raise Exception("The loaded datasets have different %s."%key)
+          # Check if some datasets lack the tag.
+          if 0<len(vals)<len(self.datasets):
+            # Don't bother to warn in len==0 case.
+            print("Warning: some of the loaded datasets don't specify %s."%key)
+          #validate_homogeneity(key,vals)
           setattr(self,key,vals[0])
         else:
           setattr(self,key,None)
-          if key is not 'tuneLabel':
+          if key is not 'tuning_tag':
             print("Warning: none of the datasets specify %s."%key)
 
 
 
   @property
   def shape(self):
-    return (len(self.labels),len(self.abscissa))
+    return (len(self.labels),len(self.xticks))
 
   # The number of experiments for a given Config and Setting [iC,iS]
   # may differ (and may be 0). Generate 2D table counting it.
@@ -231,14 +235,14 @@ class ResultsTable():
 
   def rm_abcsissa(self,inds):
     """
-    Remove abscissa with indices inds.
+    Remove xticks with indices inds.
     """
-    D = self.abscissa[inds] # these points will be removed
+    D = self.xticks[inds] # these points will be removed
     for ds in self.datasets.values():
-      keep = [i for i,a in enumerate(ds['abscissa']) if a not in D]
-      ds['abscissa'] = ds['abscissa'][keep]
-      ds['avrgs']    = ds['avrgs']   [keep]
-      ds['avrgs']    = np.ascontiguousarray(ds['avrgs'])
+      keep = [i for i,a in enumerate(ds['xticks']) if a not in D]
+      ds['xticks'] = ds['xticks'][keep]
+      ds['avrgs']  = ds['avrgs'] [keep]
+      ds['avrgs']  = np.ascontiguousarray(ds['avrgs'])
     self.regen_table()
 
 
@@ -263,8 +267,8 @@ class ResultsTable():
     for k, ds in self.datasets.items():
       # deepcopy
       new.datasets[k] = {
-          'abscissa':deepcopy(ds['abscissa']),
-          'labels'  :deepcopy(ds['labels'])
+          'xticks':deepcopy(ds['xticks']),
+          'labels':deepcopy(ds['labels'])
           }
       for tag in self._scalars:
         if tag in ds:
@@ -286,11 +290,11 @@ class ResultsTable():
 
   def __repr__(self):
     s = self._headr()
-    if hasattr(self,'abscissa'):
-      s +="\n\nfields:\n"     + str(self.fields)    +\
-          "\n\nxlabel: "      + str(self.xlabel)    +\
-          "\nabscissa: "      + str(self.abscissa)  +\
-          "\n\ntuneLabel: "   + str(self.tuneLabel) +\
+    if hasattr(self,'xticks'):
+      s +="\n\nfields:\n"      + str(self.fields)     +\
+          "\n\nxlabel: "       + str(self.xlabel)     +\
+          "\nxticks: "         + str(self.xticks)     +\
+          "\n\ntuning_tag: "   + str(self.tuning_tag) +\
           "\nlabels:\n"+\
           "\n".join(["[{0:2d}] {1:s}".format(i,name) for i,name in enumerate(self.labels)])
     return s
@@ -341,7 +345,7 @@ class ResultsTable():
     "Print single frame"
     for iC,row in enumerate(frame):
       row.insert(0,self.labels[iC])
-    print(tabulate_orig.tabulate(frame,headers=self.abscissa,missingval=''))
+    print(tabulate_orig.tabulate(frame,headers=self.xticks,missingval=''))
 
   def print_field(self,field3D):
     "Loop over repetitions, printing Config-by-Setting tables."
@@ -357,7 +361,7 @@ class ResultsTable():
     show_conf: include confidence estimate (±).
     show_fail: include number of runs that yielded NaNs (#).
                if False but NaNs are present: print NaN for the mean value.
-    s: indices of columns (experiment abscissa) to include.
+    s: indices of columns (experiment xticks) to include.
          - Default          : all
          - tuple of length 2: value range
          - a number         : closest match
@@ -376,16 +380,16 @@ class ResultsTable():
     # Determine columns to print
     if cols is None:
       # All
-      cols = arange(len(self.abscissa))
+      cols = arange(len(self.xticks))
     if isinstance(cols,slice):
       # Slice
-      cols = arange(len(self.abscissa))[cols]
+      cols = arange(len(self.xticks))[cols]
     if isinstance(cols,(int,float)):
       # Find closest
-      cols = [abs(self.abscissa - cols).argmin()]
+      cols = [abs(self.xticks - cols).argmin()]
     if isinstance(cols,tuple):
       # Make range
-      cols = np.where( (cols[0]<=self.abscissa) & (self.abscissa<=cols[1]) )[0]
+      cols = np.where( (cols[0]<=self.xticks) & (self.xticks<=cols[1]) )[0]
 
     # mattr[0]: names
     mattr = [self.labels.tolist()]
@@ -396,7 +400,7 @@ class ResultsTable():
 
     # Fill in stats
     for iS in cols:
-      S = self.abscissa[iS]
+      S = self.xticks[iS]
       # Generate column. Include header for cropping purposes
       col = [('{0:@>6g} {1: <'+NF+'s}').format(S,'#')]
       if show_fail: col[0] += (' {0: <'+NF+'s}').format('X')
@@ -430,25 +434,18 @@ class ResultsTable():
 
     Z = self.mean_field(field)[0]
 
-    if self.tuneLabel:
+    if self.tuning_tag:
       from cycler import cycler
       colors = plt.get_cmap('jet')(linspace(0,1,len(self.labels)))
       ax.set_prop_cycle(cycler('color',colors))
 
     lhs = []
     for iC,(row,name) in enumerate(zip(Z,self.labels)): 
-      lhs += [ ax.plot(self.abscissa,row,'-o',label=name,**kwargs)[0] ]
+      lhs += [ ax.plot(self.xticks,row,'-o',label=name,**kwargs)[0] ]
 
     ax.set_xlabel(self.xlabel)
     ax.set_ylabel(field)
     ax.set_title(self._headr())
-
-    # Set xticks from abscissa data.
-    #xt = self.abscissa
-    #if len(xt)>15:
-      #xt = xt[ceil(linspace(0,len(xt)-1,9)).astype(int)]
-    #ax.set_xticks(xt)
-    #ax.set_xticklabels(xt)
 
     return lhs
 
@@ -493,18 +490,18 @@ class ResultsTable():
     # xlabel
     ax.set_xlabel(self.xlabel)
     # ylabel:
-    if self.tuneLabel is not None:
-      ax.set_ylabel(self.tuneLabel)
-      ylbls = self.tune_vals()
-    else:
+    if self.tuning_tag is None:
       ax.set_ylabel('labels')
       ylbls = self.labels
+    else:
+      ax.set_ylabel(self.tuning_tag)
+      ylbls = self.tuning_vals()
 
-    # Make abscissa less dense, if needed
-    nXGrid = len(self.abscissa)
+    # Make xticks less dense, if needed
+    nXGrid = len(self.xticks)
     step = 1 if nXGrid <= 16 else nXGrid//10
     # Set ticks
-    ax.set_xticks(0.5+arange(nXGrid)[::step]); ax.set_xticklabels(self.abscissa[::step]);
+    ax.set_xticks(0.5+arange(nXGrid)[::step]); ax.set_xticklabels(self.xticks[::step]);
     ax.set_yticks(0.5+arange(len(ylbls)));     ax.set_yticklabels(ylbls)  
 
     # Reverse order
@@ -513,15 +510,15 @@ class ResultsTable():
     return mesh
 
 
-  def tune_vals(self,**kwargs):
-    return pprop(self.labels, self.tuneLabel, **kwargs)
+  def tuning_vals(self,**kwargs):
+    return pprop(self.labels, self.tuning_tag, **kwargs)
 
-  def minz_tuned(self,field='rmse_a'):
+  def minz_tuning(self,field='rmse_a'):
     Z = self.mean_field(field)[0]
-    tune_inds = np.nanargmin(Z,0)
-    tune_vals = self.tune_vals()[tune_inds]
-    fieldvals = Z[tune_inds,arange(len(tune_inds))]
-    return tune_inds, tune_vals, fieldvals 
+    tuning_inds = np.nanargmin(Z,0)
+    tuning_vals = self.tuning_vals()[tuning_inds]
+    fieldvals   = Z[tuning_inds,arange(len(tuning_inds))]
+    return tuning_inds, tuning_vals, fieldvals 
 
 
 

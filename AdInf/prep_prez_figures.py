@@ -60,7 +60,7 @@ def style(label):
 Skill = lambda x: x 
 
 Singls  = OD()        # each label is here will be plotted 
-Groups  = OD()        # for each group: only min (per abscissa) is plotted
+Groups  = OD()        # for each group: only min (per xticks) is plotted
 AxProps = OD()        # labels, etc
 
 
@@ -205,7 +205,7 @@ h = dict()
 
 for lbl, RT in Groups.items():
   if RT:
-    h[lbl], = ax.plot(RT.abscissa,Skill(optimz(RT,'rmse_a')),**style(lbl))
+    h[lbl], = ax.plot(RT.xticks,Skill(optimz(RT,'rmse_a')),**style(lbl))
 
 # Sub-optimally tuned 
 G = Groups['EnKF_pre infl:?']
@@ -214,14 +214,14 @@ infls_all = xtract_prop(G.labels,'infl')
 OFS = 0.10 # inflation tuning offset
 rmses = G.mean_field('rmse_a')[0]
 rmvs  = G.mean_field('rmv_a' )[0]
-iiS   = arange(len(G.abscissa))
+iiS   = arange(len(G.xticks))
 iiV   = [np.argmin(np.abs(infls[iS]+OFS-infls_all)) for iS in iiS]
-h['poorly tuned'], = ax.plot(G.abscissa, rmses[iiV,iiS], **style('poorly tuned'))
+h['poorly tuned'], = ax.plot(G.xticks, rmses[iiV,iiS], **style('poorly tuned'))
 
 for RT in Singls.values():
   if RT and len(RT.labels):
     for iC,(row,name) in enumerate(zip(RT.mean_field('rmse_a')[0],RT.labels)): 
-      h[name], = ax.plot(RT.abscissa,Skill(row),**style(name))
+      h[name], = ax.plot(RT.xticks,Skill(row),**style(name))
 
 #---- RMV
 def vstyle(dct):
@@ -237,16 +237,16 @@ for lbl, G in Groups.items():
     rmv  = G.mean_field('rmv_a')[0]
     best = np.nanargmin(G.mean_field('rmse_a')[0],0)
     rmv  = rmv[best,arange(rmv.shape[1])]
-    h['RMV_'+lbl], = ax.plot(G.abscissa,Skill(rmv),**vstyle(style(lbl)))
+    h['RMV_'+lbl], = ax.plot(G.xticks,Skill(rmv),**vstyle(style(lbl)))
 
-h['RMV_'+'poorly tuned'], = ax.plot(G.abscissa, rmvs[iiV,iiS], **vstyle(style('poorly tuned')))
+h['RMV_'+'poorly tuned'], = ax.plot(G.xticks, rmvs[iiV,iiS], **vstyle(style('poorly tuned')))
 
 for RT in Singls:
   if 'FULL' in RT: continue
   else: RT = Singls[RT]
   if RT and len(RT.labels):
     for iC,(row,name) in enumerate(zip(RT.mean_field('rmv_a')[0],RT.labels)): 
-      h['RMV_'+name], = ax.plot(RT.abscissa,Skill(row),**vstyle(style(name)))
+      h['RMV_'+name], = ax.plot(RT.xticks,Skill(row),**vstyle(style(name)))
 
 
 #---- AxProps

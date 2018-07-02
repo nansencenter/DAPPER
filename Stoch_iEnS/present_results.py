@@ -43,7 +43,7 @@ Skill = lambda x: x
 
 OD      = OrderedDict # short alias
 Singls  = OD()        # each label is here will be plotted 
-Groups  = OD()        # for each group: only min (per abscissa) is plotted
+Groups  = OD()        # for each group: only min (per xticks) is plotted
 AxProps = OD()        # labels, etc
 OnOff   = None
 
@@ -94,8 +94,8 @@ Groups['EnRML 1'] = R.split('^EnRML .*Lag:1')
 Groups['EnRML L'] = R.split('^EnRML .*Lag:0.4')
 
 AxProps['ylim'] = (0.15,1.1)
-AxProps['xticks'] = R.abscissa
-AxProps['xticklabels'] = 0.05*R.abscissa
+AxProps['xticks'] = R.xticks
+AxProps['xticklabels'] = 0.05*R.xticks
 
 #OnOff = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -109,11 +109,11 @@ fig, ax = plt.subplots()
 for RT in Singls.values():
   if RT and len(RT.labels):
     for iC,(row,name) in enumerate(zip(RT.mean_field('rmse_a')[0],RT.labels)): 
-      ax.plot(RT.abscissa,Skill(row),**style(name))
+      ax.plot(RT.xticks,Skill(row),**style(name))
 
 for lbl, RT in Groups.items():
   if RT:
-    ax.plot(RT.abscissa,Skill(optimz(RT,'rmse_a')),**style(lbl))
+    ax.plot(RT.xticks,Skill(optimz(RT,'rmse_a')),**style(lbl))
 
 G = Groups['PertObs']
 infls = xtract_prop(G.labels,'infl')[np.nanargmin(G.mean_field('rmse_a')[0],0)]

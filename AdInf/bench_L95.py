@@ -15,28 +15,28 @@ setup.t.T = 500 # length (unitless time)
 setup.t.dkObs = 3 # DAW
 
 
-# Get experiment control variable (SETTING) from arguments
-SETTING = sys.argv[1]
+# Get experiment control variable (CtrlVar) from arguments
+CtrlVar = sys.argv[1]
 
 # Set range of experimental settings
-if SETTING == 'Q': # Var of stoch error
+if CtrlVar == 'Q': # Var of stoch error
   set_true  = lambda S: setattr(setup.f.noise,'C',CovMat(S*ones(setup.f.m)))
   set_false = lambda S: setattr(setup.f.noise,'C',0)
-  settings  = round2sigfig(LogSp(1e-6,2,20),nfig=2)
-  #settings = [1e-6, 1e-3, 0.1, 1]
-  #settings = [min(settings, key=lambda x:abs(x-60))]
+  xticks    = round2sigfig(LogSp(1e-6,2,20),nfig=2)
+  #xticks   = [1e-6, 1e-3, 0.1, 1]
+  #xticks   = [min(xticks, key=lambda x:abs(x-60))]
 
-elif SETTING == 'FDA': # Forcing erroneously assumed by DA
-  set_true  = lambda S: setattr(L95,'Force',8) # should also be in settings!
+elif CtrlVar == 'FDA': # Forcing erroneously assumed by DA
+  set_true  = lambda S: setattr(L95,'Force',8) # should also be in xticks!
   set_false = lambda S: setattr(L95,'Force',S)
-  settings  = arange(7,9+0.1,0.1)
+  xticks    = arange(7,9+0.1,0.1)
 
-elif SETTING == 'FTr': # Forcing used by truth
+elif CtrlVar == 'FTr': # Forcing used by truth
   set_true  = lambda S: setattr(L95,'Force',S)
-  set_false = lambda S: setattr(L95,'Force',8) # should also be in settings!
-  settings  = arange(7,9+0.1,0.1)
+  set_false = lambda S: setattr(L95,'Force',8) # should also be in xticks!
+  xticks    = arange(7,9+0.1,0.1)
 
-elif SETTING == 'N': # Ensemble size
+elif CtrlVar == 'N': # Ensemble size
   # NB: NO GOOD
   def setN(N,F):
     for iC,C in enumerate(cfgs):
@@ -47,13 +47,13 @@ elif SETTING == 'N': # Ensemble size
     setattr(L95,'Force', F)
   set_true  = lambda S: setN(S,8)
   set_false = lambda S: setN(S,7)
-  settings  = CurvedSpace(15,200,0.9,40).astype(int)
+  xticks    = CurvedSpace(15,200,0.9,40).astype(int)
 
 
-settings = array(settings).repeat(12)
+xticks = array(xticks).repeat(12)
 
 # Parallelization and save-path setup
-settings, save_path, iiRep = distribute(__file__,sys.argv,settings,SETTING,nCore=999)
+xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=999)
 
 
 ##############################
@@ -90,15 +90,15 @@ for N in [20]:
 ##############################
 # Assimilate
 ##############################
-avrgs = np.empty((len(settings),1,len(cfgs)),dict)
+avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 stats = np.empty_like(avrgs)
 
-for iS,(S,iR) in enumerate(zip(settings,iiRep)):
-  print_c('\n'+SETTING,'value:', S,'index:',iS,'/',len(settings)-1)
+for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
+  print_c('\n'+CtrlVar,'value:', S,'index:',iS,'/',len(xticks)-1)
   set_true(S)
 
   sd    = seed(sd0 + iR)
-  xx,yy = simulate_or_load(__file__, setup, sd, SETTING+'='+str(S))
+  xx,yy = simulate_or_load(__file__, setup, sd, CtrlVar+'='+str(S))
 
   for iC,Config in enumerate(cfgs):
     seed(sd)
@@ -123,6 +123,6 @@ for iS,(S,iR) in enumerate(zip(settings,iiRep)):
 cfgs.assign_names(do_tab=False,ow='prepend')
 cnames = [c.name for c in cfgs]
 print("Saving to",save_path)
-np.savez(save_path,avrgs=avrgs,abscissa=settings,labels=cnames)
+np.savez(save_path,avrgs=avrgs,xticks=xticks,labels=cnames)
 
 

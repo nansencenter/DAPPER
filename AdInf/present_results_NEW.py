@@ -41,7 +41,7 @@ Skill = lambda x: x
 
 OD      = OrderedDict # short alias
 Singls  = OD()        # each label is here will be plotted 
-Groups  = OD()        # for each group: only min (per abscissa) is plotted
+Groups  = OD()        # for each group: only min (per xticks) is plotted
 AxProps = OD()        # labels, etc
 OnOff   = None
 
@@ -310,12 +310,12 @@ for RT in Singls.values():
 #infls = xtract_prop(G.labels,'infl')[np.nanargmin(G.mean_field('rmse_a')[0],0)]
 
 # To scale xaxis so that points are equi-distant,
-# first remove abscissa from plotting calls,
+# first remove xticks from plotting calls,
 # then apply the following:
 #xax = ax.get_xaxis()
-#ticks = [int(x) for x in np.linspace(0,len(abscissa)-1,8)]
+#ticks = [int(x) for x in np.linspace(0,len(xticks)-1,8)]
 #xax.set_ticks(ticks)
-#xax.set_ticklabels('{:.3g}'.format(x) for x in abscissa[ticks])
+#xax.set_ticklabels('{:.3g}'.format(x) for x in xticks[ticks])
 
 ##
 
@@ -330,12 +330,12 @@ fig, ax = plt.subplots()
 
 for lbl, RT in Groups.items():
   if RT:
-    ax.plot(RT.abscissa,Skill(optimz(RT,'rmse_a')),**style(lbl))
+    ax.plot(RT.xticks,Skill(optimz(RT,'rmse_a')),**style(lbl))
 
 for RT in Singls.values():
   if RT and len(RT.labels):
     for iC,(row,name) in enumerate(zip(RT.mean_field('rmse_a')[0],RT.labels)): 
-      ax.plot(RT.abscissa,Skill(row),**style(name))
+      ax.plot(RT.xticks,Skill(row),**style(name))
 
 for k,v in AxProps.items(): ax.set(**{k:v})
 check += [toggle_lines(state=OnOff,txtwidth=22,txtsize=10)]

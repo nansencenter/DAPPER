@@ -8,17 +8,17 @@ sd0 = seed(3)
 from mods.Lorenz95.boc15loc import setup
 setup.t.KObs = 2000 # length (num of cycles) of each experiment
 
-# Get experiment control variable (SETTING) from arguments
-SETTING = sys.argv[1]
+# Get experiment control variable (CtrlVar) from arguments
+CtrlVar = sys.argv[1]
 # Set range of experimental settings
-if SETTING == 'dkObs': # time scale ratio
-  settings = 1+arange(8)
-  #settings = [min(settings, key=lambda x:abs(x-s)) for s in [10,12]]
+if CtrlVar == 'dkObs': # time scale ratio
+  xticks = 1+arange(8)
+  #xticks = [min(xticks, key=lambda x:abs(x-s)) for s in [10,12]]
 
-settings = array(settings).repeat(2)
+xticks = array(xticks).repeat(2)
 
 # Parallelization and save-path setup
-settings, save_path, iiRep = distribute(__file__,sys.argv,settings,SETTING,nCore=12)
+xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=12)
 
 
 ##############################
@@ -50,12 +50,12 @@ for N in [20, 25, 35, 50, 100]:
 ##############################
 # Assimilate
 ##############################
-avrgs = np.empty((len(settings),1,len(cfgs)),dict)
+avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 stats = np.empty_like(avrgs)
 
-for iS,(S,iR) in enumerate(zip(settings,iiRep)):
-  print_c('\n'+SETTING,'value:', S,'index:',iS,'/',len(settings)-1)
-  setattr(setup.t,SETTING,S)
+for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
+  print_c('\n'+CtrlVar,'value:', S,'index:',iS,'/',len(xticks)-1)
+  setattr(setup.t,CtrlVar,S)
 
   sd    = seed(sd0 + iR)
   xx,yy = simulate(setup)
@@ -84,7 +84,7 @@ for iS,(S,iR) in enumerate(zip(settings,iiRep)):
 cfgs.assign_names(do_tab=False,ow='prepend')
 cnames = [c.name for c in cfgs]
 print("Saving to",save_path)
-np.savez(save_path,avrgs=avrgs,abscissa=settings,labels=cnames)
+np.savez(save_path,avrgs=avrgs,xticks=xticks,labels=cnames)
 
 
 

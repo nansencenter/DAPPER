@@ -10,66 +10,63 @@
 #         by M. Asch, M. Bocquet, M. Nodet.
 #
 # Also demostrates:
-#  - Parallelization (distribution of experiment settings).
+#  - Parallelization (distribution of experiment settings (xticks)).
 #  - Result data saving, loading, plotting. 
 
 from common import *
 
 # Seed management. Notice below that the seed only varies
-# between repetitions, not settings or configurations.
+# between repetitions, not xticks or configurations.
 sd0 = seed_init(8) # Base random seed.
 
 from   mods.Lorenz95.boc15loc import setup
 import mods.Lorenz95.core as core
 
-setup.t.BurnIn = 0.2 # Experiment duration
-setup.t.T = 0.8 # Experiment duration
+setup.t.T = 4**4.0 # Experiment duration
 
 # Specify the control variable (i.e. the plotting xlabel) of interest.
-SETTING = sys.argv[1] # command-line argument #1
-#SETTING = 'N'
+CtrlVar = sys.argv[1] # command-line argument #1
+#CtrlVar = 'N'
 
 # Define range of the experiment control variable.
-if SETTING == 'N': # Ensemble size.
-  #settings = ccat(arange(2,20),[20, 22, 25, 30, 40, 50, 70, 100]) 
-  settings = [20, 30]
+if CtrlVar == 'N': # Ensemble size.
+  xticks = ccat(arange(2,20),[20, 22, 25, 30, 40, 50, 70, 100]) 
 
-if SETTING == 'F': # Model forcing
-  settings = arange(3,20)
+if CtrlVar == 'F': # Model forcing
+  xticks = arange(3,20)
 
 # Experiments duplication (random seeds will be varied).
-settings = array(settings).repeat(1)
+xticks = array(xticks).repeat(32)
 
 # If this script is run
 # - with the second argument PARALLELIZE,
-#   then this function will split the 'settings' array into 'nCore' batches,
+#   then this function will split the 'xticks' array into 'nCore' batches,
 #   and distribute each to a WORKER which run the rest of the script in parallel.
 #   Important: see comment in distribute() about enforcing single-core use by numpy.
 # - without a second argument: script is run as normal (no parallelization).
-settings, save_path, rep_inds = distribute(__file__,sys.argv,settings,SETTING)
+xticks, save_path, rep_inds = distribute(__file__,sys.argv,xticks,CtrlVar)
 
 
 ##############################
 # DA Configurations
 ##############################
-N = '?' if SETTING=='N' else 20
+N = '?' if CtrlVar=='N' else 20
 
 cfgs  = List_of_Configs()
-cfgs += Climatology()                                               # Baseline method
-cfgs += OptInterp()                                                 # Baseline method
+#cfgs += Climatology()                                                # Baseline method
+#cfgs += OptInterp()                                                  # Baseline method
 
-for upd_a in ['PertObs','Sqrt']:                                    # Update (_a) forms: stoch, determ.
-  cfgs += EnKF(upd_a,N                                            ) # Pure EnKF
-  cfgs += EnKF(upd_a,N            ,infl=1.01                      ) # + fixed, post-inflation, good around N=50.
-  cfgs += EnKF(upd_a,N            ,infl=1.05                      ) # + fixed, post-inflation, good around N=17.
-  cfgs += EnKF(upd_a,N            ,infl=1.10                      ) # + fixed, post-inflation, good around N=16.
-cfgs += EnKF_N(      N                       ,xN=1.5              ) # + adaptive (≈optimal) inflation
-#cfgs += LETKF(       N,loc_rad=2                                  ) # + localization with radius=2
-#cfgs += LETKF(       N,loc_rad='?'                                ) # + localization with ≈optimal radius(N)
-#cfgs += iLEnKS('-N',N,loc_rad='?'           ,xN=1.5,iMax=1,Lag=1  ) # + localization and adaptive inflation.
-#cfgs += iLEnKS('-N',N,loc_rad='?'           ,xN=1.5,iMax=4,Lag='?') # + iterations, localization and adaptive inflation.
-# NB: Using Lag=0 for the iLEnKS is not supported. But the Lag=1 is not quite the filter.
-# TODO: Implement spatialized inflation?
+#for upd_a in ['PertObs','Sqrt']:                                     # Update (_a) forms: stoch, determ.
+  #cfgs += EnKF(upd_a,N                                             ) # Pure EnKF
+  #cfgs += EnKF(upd_a,N            ,infl=1.01                       ) # + fixed, post-inflation, good around N=50.
+  #cfgs += EnKF(upd_a,N            ,infl=1.05                       ) # + idem                 , good around N=17.
+  #cfgs += EnKF(upd_a,N            ,infl=1.10                       ) # + idem                 , good around N=16.
+#cfgs += EnKF_N(      N                                             ) # + adaptive (≈optimal) inflation.
+#cfgs += EnKF_N(      N                       ,xN=2                 ) # + idem, with 2x confidence in inflation hyper-prior.
+#cfgs += LETKF(       N,loc_rad=2                                   ) # + localization with radius=2.
+cfgs += LETKF(       N,loc_rad='?'                                 ) # + localization with ≈optimal radius(N)
+#cfgs += LETKF(       N,loc_rad='?',infl='-N' ,xN=2                 ) # + idem, with adaptive (≈optimal) inflation.
+#cfgs += iLEnKS('-N' ,N,loc_rad='?'           ,xN=2 ,iMax=4,Lag='?' ) # + iterations, localization and adaptive inflation.
 
 
 ##############################
@@ -91,14 +88,14 @@ def adjust_cfg(C,variable,S):
   return C
 
 # Most DA methods are approximate => Leeway exists
-#  => Tuneable parameters exits. Here, we define some tuning settings.
+#  => Tuneable parameters exits. Here, we define some tuning xticks.
 def L95_rad(N,F):
   # Approximately fitted (for infl=1.0) variogram (Gaussian).
-  r = 13*(1-exp(-(N/50)**2))
+  r = 10*(1-exp(-(N/40)**2))**0.8
   r *= sqrt(8/F) # Not tuned at all!
   return r
 def L95_lag(N,F):
-  # Approximately tuned for iLEnKS and sak08 settings.
+  # Approximately tuned for iLEnKS and sak08 xticks.
   if     N<=7 : return 1
   if 8 <=N<=15: return N-6
   if 16<=N    : return 10
@@ -107,23 +104,23 @@ def L95_lag(N,F):
 ##############################
 # Assimilate
 ##############################
-avrgs = np.empty((len(settings),1,len(cfgs)),dict)
-# avrgs uses nRepeats=1 coz repetition is done by settings replication.
+avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
+# avrgs uses nRepeats=1 coz repetition is done by xticks replication.
 
 #stats = np.empty_like(avrgs)
 # Lines with the 'stats' array are commented out so that the stat objects
 # (which contain full time series and therefore might require significant memory)
 # that the array would hold, instead get discarded after each loop iterate.
 
-for iS,(S,iR) in enumerate(zip(settings,rep_inds)):
-  with coloring(): print('\n'+"settings[",iS,'/',len(settings)-1,"] ",SETTING,': ',S,sep="")
-  adjust_osse(SETTING,S)
+for iS,(S,iR) in enumerate(zip(xticks,rep_inds)):
+  with coloring(): print('\n'+"xticks[",iS,'/',len(xticks)-1,"] ",CtrlVar,': ',S,sep="")
+  adjust_osse(CtrlVar,S)
 
   seed(sd0+iR)
   xx,yy = simulate(setup)
 
   for iC,C in enumerate(cfgs):
-    C = adjust_cfg(C,SETTING,S)
+    C = adjust_cfg(C,CtrlVar,S)
     seed(sd0+iR)
     stat = C.assimilate(setup,xx,yy)
     #stats[iS,0,iC] = stat
@@ -134,10 +131,11 @@ for iS,(S,iR) in enumerate(zip(settings,rep_inds)):
 # Results saved in the format below is supported by DAPPER's ResultsTable, whose main purpose
 # is to collect result data from parallelized (or otherwise independent) experiments.
 np.savez(save_path,
-    avrgs    = avrgs,            # 3D array of dicts whose fields are the averages.
-    xlabel   = SETTING,          # The control variable tag (string).
-    abscissa = settings,         # Abscissa (xticks) array.
-    labels   = cfgs.gen_names()) # For legends, etc
+    avrgs    = avrgs,            # 3D array of dicts, whose fields are the averages.
+    xlabel   = CtrlVar,          # The control variable tag (string).
+    xticks   = xticks,           # xticks (array).
+    #tuning_tag = tuning_tag,    # Not applicable here
+    labels   = cfgs.gen_names()) # List of strings.
 
 
 ##############################
@@ -150,11 +148,16 @@ R = ResultsTable(save_path)
 # The presentation below could also be done for downloaded data (e.g. from parallelization):
 #R = ResultsTable('data/example_3/MyRemoteHost/N_runX')
 
-R = ResultsTable('data/example_3/johansen/N_run2') # 
+##
+
+#R = ResultsTable('data/example_3/johansen/N_run[23]') # All. Old
+R = ResultsTable('data/example_3/johansen/N_run4') # All. New
+R.load          ('data/example_3/johansen/N_run5') # New loc rad
+
 #R = ResultsTable('data/example_3/P2720L/N_run1'); R.load('data/example_3/johansen/N_run1') # Localization VGs
 
 # Print averages of a given field.
-# The subcolumns show the number of repetitions, crashes and the 1-sigma conf.
+# The "subcolumns" show the number of repetitions, crashes and the 1-sigma conf.
 with coloring(): print("Averages over experiment repetition:")
 R.print_mean_field('rmse_a',1,1,cols=slice(0,2))
 
@@ -163,9 +166,11 @@ BaseLineMethods = R.split(lambda x: x in ['Climatology', 'OptInterp', 'Var3D','E
 # Plot
 fig, ax = plt.subplots()
 R.plot_1d('rmse_a',)
-check += [toggle_lines()]; plt.sca(ax)
+# The commented-out lines make checkmarks that toggle on/off the curves.
+if 'checkmarks' not in locals(): checkmarks = []
+checkmarks += [toggle_lines()];
 BaseLineMethods.plot_1d('rmse_a',color='k')
-ax.legend().remove();
+
 
 # Adjust plot
 if R.xlabel=='N':
@@ -178,11 +183,12 @@ if R.xlabel=='N':
 
 
 # Discussion of results shown in figure:
-# Localization more important than inflation? Both are necessary, neither sufficient.
-# Note: the LETKF with infl=1 diverges even for large ensemble sizes.
-#       But simply with infl=1.01 one obtains a much more reasonable benchmark curve.
-#       However, the difference to **tuned** inflation (represented here by the EnKF-N)
-#       is still very clear.
+# - Localization more important than inflation? Both are necessary, neither sufficient.
+# - Some rotation could be beneficial for the Sqrt EnKF's with N>30 (avoid worsening rmse).
+# - The LETKF with infl=1 diverges even for large ensemble sizes.
+#   But simply with infl=1.01 one obtains a much more reasonable benchmark curve.
+#   However, the difference to **tuned** inflation (represented here by the EnKF-N)
+#   is still very clear.
 
 ##
 

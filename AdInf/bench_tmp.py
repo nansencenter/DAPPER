@@ -13,32 +13,32 @@ from   mods.Lorenz63.sak12 import setup
 setup.t.dkObs = 15 # DAW
 setup.t.T = 500 # length (unitless time)
 
-# Get experiment control variable (SETTING) from arguments
-SETTING = sys.argv[1]
+# Get experiment control variable (CtrlVar) from arguments
+CtrlVar = sys.argv[1]
 
 # Set range of experimental settings
-if SETTING == 'Q': # Var of stoch error
+if CtrlVar == 'Q': # Var of stoch error
   set_true  = lambda S: setattr(setup.f.noise,'C',CovMat(S*ones(setup.f.m)))
   set_false = lambda S: setattr(setup.f.noise,'C',0)
-  settings  = round2sigfig(LogSp(1e-6,1e2,40),nfig=2)
-  #settings = [1e-6, 1e-3, 0.1, 1]
-  #settings = [min(settings, key=lambda x:abs(x-60))]
+  xticks    = round2sigfig(LogSp(1e-6,1e2,40),nfig=2)
+  #xticks   = [1e-6, 1e-3, 0.1, 1]
+  #xticks   = [min(xticks, key=lambda x:abs(x-60))]
 
-elif SETTING == 'FDA': # Forcing erroneously assumed by DA
+elif CtrlVar == 'FDA': # Forcing erroneously assumed by DA
   set_true  = lambda S: setattr(L63,'sig',10)
   set_false = lambda S: setattr(L63,'sig',S)
-  settings  = arange(4,24)
+  xticks    = arange(4,24)
 
-elif SETTING == 'FTr': # Forcing used by truth
+elif CtrlVar == 'FTr': # Forcing used by truth
   set_true  = lambda S: setattr(L63,'sig',S)
   set_false = lambda S: setattr(L63,'sig',10)
-  settings  = arange(4,24)
+  xticks    = arange(4,24)
 
-#nCore    = len(settings) # restrict so as to share machine
-settings = array(settings).repeat(16)
+#nCore = len(xticks) # restrict so as to share machine
+xticks = array(xticks).repeat(16)
 
 # Parallelization and save-path setup
-settings, save_path, iiRep = distribute(__file__,sys.argv,settings,SETTING)
+xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar)
 
 
 ##############################
@@ -72,15 +72,15 @@ for N in [3]:
 ##############################
 # Assimilate
 ##############################
-avrgs = np.empty((len(settings),1,len(cfgs)),dict)
+avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 stats = np.empty_like(avrgs)
 
-for iS,(S,iR) in enumerate(zip(settings,iiRep)):
-  print_c('\n'+SETTING+' value: ', S)
+for iS,(S,iR) in enumerate(zip(xticks,iiRep)):
+  print_c('\n'+CtrlVar+' value: ', S)
   set_true(S)
 
   sd    = seed(sd0 + iR)
-  xx,yy = simulate_or_load(__file__, setup, sd, SETTING+'='+str(S))
+  xx,yy = simulate_or_load(__file__, setup, sd, CtrlVar+'='+str(S))
 
   for iC,Config in enumerate(cfgs):
     seed(sd)
@@ -105,7 +105,7 @@ for iS,(S,iR) in enumerate(zip(settings,iiRep)):
 cfgs.assign_names(do_tab=False,ow='prepend')
 cnames = [c.name for c in cfgs]
 print("Saving to",save_path)
-np.savez(save_path,avrgs=avrgs,abscissa=settings,labels=cnames)
+np.savez(save_path,avrgs=avrgs,xticks=xticks,labels=cnames)
 
 
 

@@ -352,7 +352,7 @@ def prep_run(path,prefix):
 
 
 import subprocess
-def distribute(script,sysargs,settings,prefix='',nCore=0.99,xCost=0.02):
+def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
   """
   Parallelization.
 
@@ -360,19 +360,19 @@ def distribute(script,sysargs,settings,prefix='',nCore=0.99,xCost=0.02):
   depending on 'sysargs[2]'.
 
   Return corresponding
-   - portion of 'settings'
+   - portion of 'xticks'
    - portion of 'rep_inds' (setting repeat indices)
    - save_path.
 
-  xCost: The computational assumed: [(1-xCost) + xCost*S for S in settings].
-  This controls how the settings array gets distributed to nodes. Example:
-   - Set xCost to 0 for uniform distribution of settings array.
+  xCost: The computational assumed: [(1-xCost) + xCost*S for S in xticks].
+  This controls how the xticks array gets distributed to nodes. Example:
+   - Set xCost to 0 for uniform distribution of xticks array.
    - Set xCost to 1 if the costs scale linearly with the setting.
   """
 
-  # Make running count (rep_inds) of repeated settings.
+  # Make running count (rep_inds) of repeated xticks.
   # This is typically used to modify the experiment seeds.
-  rep_inds = [ list(settings[:i]).count(x) for i,x in enumerate(settings) ]
+  rep_inds = [ list(xticks[:i]).count(x) for i,x in enumerate(xticks) ]
 
   if len(sysargs)>2:
     if sysargs[2]=='PARALLELIZE':
@@ -402,13 +402,13 @@ def distribute(script,sysargs,settings,prefix='',nCore=0.99,xCost=0.02):
       #screen -t IPython ipython --no-banner # empty python session
       #screen -t TEST bash -c 'echo nThread $MKL_NUM_THREADS; exec bash'
 
-      # Decide number of batches (i.e. processes) to split settings into.
+      # Decide number of batches (i.e. processes) to split xticks into.
       from psutil import cpu_percent, cpu_count
       if isinstance(nCore,float): # interpret as ratio of total available CPU
         nBatch = round( nCore * (1 - cpu_percent()/100) * cpu_count() )
       else:       # interpret as number of cores
         nBatch = min(nCore, cpu_count())
-      nBatch = min(nBatch, len(settings))
+      nBatch = min(nBatch, len(xticks))
 
       # Write workers to screenrc
       with open(screenrc,'w') as f:
@@ -428,26 +428,34 @@ def distribute(script,sysargs,settings,prefix='',nCore=0.99,xCost=0.02):
     elif sysargs[2] == 'WORKER':
       iWorker   = int(sysargs[3])
       nBatch    = int(sysargs[4])
-      # Split settings array to this "worker":
-      if xCost==0:
+
+      # xCost defaults
+      if xCost==None:
+        if prefix=='N':
+          xCost = 0.02
+        elif prefix=='F':
+          xCost = 0
+
+      # Split xticks array to this "worker":
+      if xCost==None:
         # Split uniformly
-        settings  = np.array_split(settings,nBatch)[iWorker-1]
-        rep_inds  = np.array_split(rep_inds,nBatch)[iWorker-1]
+        xticks   = np.array_split(xticks,nBatch)[iWorker-1]
+        rep_inds = np.array_split(rep_inds,nBatch)[iWorker-1]
       else:
-        # Weigh settings by costs, before splitting uniformly
+        # Weigh xticks by costs, before splitting uniformly
         eps = 1e-6                       # small number
-        cc  = (1-xCost) + xCost*settings # computational cost,...
+        cc  = (1-xCost) + xCost*xticks   # computational cost,...
         cc  = np.cumsum(cc)              # ...cumulatively
         cc /= cc[-1]                     # ...normalized
         # Find index dividors between cc such that cumsum deltas are approx const:
         divs     = [find_1st_ind(cc>c+1e-6) for c in linspace(0,1,nBatch+1)]
-        divs[-1] = len(settings)
+        divs[-1] = len(xticks)
         # Split
-        settings = array(settings)[divs[iWorker-1]:divs[iWorker]]
+        xticks   = array(xticks)[divs[iWorker-1]:divs[iWorker]]
         rep_inds = array(rep_inds)[divs[iWorker-1]:divs[iWorker]]
 
-      print("settings partition index:",iWorker)
-      print("=> settings array:",settings)
+      print("xticks partition index:",iWorker)
+      print("=> xticks array:",xticks)
 
       # Append worker index to save_path
       save_path = sysargs[5] + '_W' + str(iWorker)
@@ -468,7 +476,7 @@ def distribute(script,sysargs,settings,prefix='',nCore=0.99,xCost=0.02):
         mkl.set_num_threads(1) # For Mac with Anaconda
       except ImportError:
         os.environ["MKL_NUM_THREADS"] = "1" # For Linux with Anaconda
-        # NB: No longer works! Must set in your .bashrc instead.
+        # NB: This might not work. => Try to set it in your .bashrc instead.
 
     elif sysargs[2]=='EXPENDABLE' or sysargs[2]=='DISPOSABLE':
       save_path = os.path.join('data','expendable')
@@ -479,7 +487,7 @@ def distribute(script,sysargs,settings,prefix='',nCore=0.99,xCost=0.02):
     # No args => No parallelization
     save_path, _ = prep_run(script,prefix)
 
-  return settings, save_path, rep_inds
+  return xticks, save_path, rep_inds
 
 
 

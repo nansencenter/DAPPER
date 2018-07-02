@@ -19,9 +19,9 @@ tF = setup_full .t; tF.T = T; tF.dkObs = round(dtObs/tF.dt)
 tT = setup_trunc.t; tT.T = T; tT.dkObs = round(dtObs/tT.dt)
 dk = validate_int(tT.dt / tF.dt)
 
-SETTING = 'F'
+CtrlVar = 'F'
 S = 16
-print_c(SETTING,S)
+print_c(CtrlVar,S)
 
 ##############################
 # Parameterization estimation
@@ -112,8 +112,8 @@ for c in cfgs:
 avrgs = np.empty(len(cfgs),dict)
 stats = np.empty_like(avrgs)
 
-setattr(LUV,SETTING,S)
-xx,yy = simulate_or_load('AdInf/bench_LUV.py', setup_full, sd0, SETTING+'='+str(S))
+setattr(LUV,CtrlVar,S)
+xx,yy = simulate_or_load('AdInf/bench_LUV.py', setup_full, sd0, CtrlVar+'='+str(S))
 prmzt = estimate_parameterization(xx)
 
 for iC,Config in enumerate(cfgs):
