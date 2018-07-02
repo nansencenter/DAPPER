@@ -45,8 +45,6 @@ class ResultsTable():
   >>> R.print_field(R.field('rmse_a'))                                            # print all experiment frames
   >>> R.print_frame(R.mean_field('rmse_a')[0].tolist())                           # print frame of mean of field
   >>> R.print_mean_field('rmse_a',show_fail=True,show_conf=False,cols=None)       # This gives more options
-  >>> R.plot_mean_field('rmse_a',leg=False)                                       # plot
-  >>> check = toggle_lines()                                                      # check boxes
 
   See AdInf/present_results.py for further examples.
   """
@@ -435,22 +433,28 @@ class ResultsTable():
     Z = self.mean_field(field)[0]
 
     if self.tuning_tag:
+      labels = self.tuning_vals()
+      title_ = "\nLegend: " + self.tuning_tag
+      #
       from cycler import cycler
-      colors = plt.get_cmap('jet')(linspace(0,1,len(self.labels)))
+      colors = plt.get_cmap('jet')(linspace(0,1,len(labels)))
       ax.set_prop_cycle(cycler('color',colors))
+    else:
+      labels = self.labels
+      title_ = ""
 
     lhs = []
-    for iC,(row,name) in enumerate(zip(Z,self.labels)): 
+    for iC,(row,name) in enumerate(zip(Z,labels)): 
       lhs += [ ax.plot(self.xticks,row,'-o',label=name,**kwargs)[0] ]
 
     ax.set_xlabel(self.xlabel)
     ax.set_ylabel(field)
-    ax.set_title(self._headr())
+    ax.set_title(self._headr() + title_)
 
     return lhs
 
 
-  def plot_2d(self,field='rmse_a',log=True,cMin=None,cMax=None,show_fail=True,**kwargs):
+  def plot_2d(self,field='rmse_a',log=False,cMin=None,cMax=None,show_fail=True,**kwargs):
     fig, ax = plt.gcf(), plt.gca()
 
     Z = self.mean_field(field)[0]
@@ -520,6 +524,13 @@ class ResultsTable():
     fieldvals   = Z[tuning_inds,arange(len(tuning_inds))]
     return tuning_inds, tuning_vals, fieldvals 
 
+  def plot_minz_tuning(self,field='rmse_a'):
+    _, vals, _ = self.minz_tuning()
+    fig, ax = plt.gcf(), plt.gca()
+    ax.plot(self.xticks, vals)
+    ax.set_xlabel(self.xlabel)
+    ax.set_ylabel("Value of " + self.tuning_tag + " that minimizes " + field)
+    ax.set_title(self._headr())
 
 
 def pprop(labels,propID,cast=float,fillval=np.nan):
