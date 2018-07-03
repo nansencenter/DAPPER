@@ -1,4 +1,6 @@
-# DA filters with different inflation estimation methods
+# DA filters with different inflation estimation methods.
+# This file is quite messy (as compared to DAPPER/da_methods.py, for example),
+# having been used for trying out many different methods.
 
 from common import *
 

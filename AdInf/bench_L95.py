@@ -39,7 +39,7 @@ elif CtrlVar == 'FTr': # Forcing used by truth
 xticks = array(xticks).repeat(32)
 
 # Parallelization and save-path setup
-xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=999)
+xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar)
 
 
 ##############################
@@ -54,14 +54,14 @@ cfgs += Var3D()
 cfgs += EnKF_N(N=20, name='FULL', rot=False)
 cfgs += EnKF_N(N=80, name='FULL', rot=True)
 
-infls = round2(CurvedSpace(1,5,0.98,40),0.01)
-for N in [20]:
-  for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
+# infls = round2(CurvedSpace(1,5,0.98,40),0.01)
+# for N in [20]:
+#   for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
 
 # ADAPTIVE INFLATION METHODS
 for N in [20]:
   cfgs += EAKF_A07     (N=N,           var_f=1e-2           )
-  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3            )
+  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3, infl=1.015)
   cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4, Cond=False)
 
 
@@ -96,7 +96,12 @@ for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
       ['rmse_a','rmv_a','infl','nu_a','a','b'])
 
 
+##
 np.savez(save_path,avrgs=avrgs,xlabel=CtrlVar,xticks=xticks,labels=cfgs.gen_names())
+##
+R = ResultsTable(save_path)
+R.plot_1d('rmse_a',)
+##
 
 
 

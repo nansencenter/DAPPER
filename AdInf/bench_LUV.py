@@ -13,8 +13,8 @@ from mods.LorenzUV.lorenz95 import setup_full, setup_trunc, LUV
 
 T     = 500  # length (unitless time) of each experiment
 dtObs = 0.15 # DAW
-tF = setup_full .t; tF.T = T; tF.dkObs = round(dtObs/tF.dt)
-tT = setup_trunc.t; tT.T = T; tT.dkObs = round(dtObs/tT.dt)
+tF = setup_full .t; tF.dkObs = round(dtObs/tF.dt); tF.T = T; 
+tT = setup_trunc.t; tT.dkObs = round(dtObs/tT.dt); tT.T = T; 
 dk = validate_int(tT.dt / tF.dt)
 
 
@@ -30,12 +30,11 @@ elif CtrlVar == 'h': # coupling constant
   #xticks = [min(xticks, key=lambda x:abs(x-s)) for s in [0.2,0.5,1]]
 elif CtrlVar == 'F': # coupling constant 
   xticks = round2sigfig(CurvedSpace(1,30,0.9,40),nfig=2)
-  #xticks = [15]
 
 xticks = array(xticks).repeat(32)
 
 # Parallelization and save-path setup
-xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=999)
+xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar)
 
 
 ##############################
@@ -105,17 +104,17 @@ cfgs += Var3D(detp=0)
 cfgs += Var3D(detp=1)
 
 for nu in [1]:
-  cfgs += EnKF_N(N=20, xN=xN, name='FULL' )
-  cfgs += EnKF_N(N=80, xN=xN, name='FULL' , rot=True)
-  cfgs += EnKF_N(N=20, xN=xN, name='CHEAT')
-  cfgs += EnKF_N(N=80, xN=xN, name='CHEAT', rot=True)
+  cfgs += EnKF_N(N=20, name='FULL' )
+  cfgs += EnKF_N(N=80, name='FULL' , rot=True)
+  #cfgs += EnKF_N(N=20, name='CHEAT')
+  #cfgs += EnKF_N(N=80, name='CHEAT', rot=True)
 
-infls = round2(CurvedSpace(1,5,0.98,40),0.01)
-for N in [20]:
-  #for infl in infls: cfgs += EnKF_N  (       N=N,infl=infl)
-  #for infl in infls: cfgs += EnKF_N  (xN=2,  N=N,infl=infl)
-  #for infl in infls: cfgs += EnKF    ('Sqrt',N=N,infl=infl)
-  for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
+# infls = round2(CurvedSpace(1,5,0.98,40),0.01)
+# for N in [20]:
+#   #for infl in infls: cfgs += EnKF_N  (       N=N,infl=infl)
+#   #for infl in infls: cfgs += EnKF_N  (xN=2,  N=N,infl=infl)
+#   #for infl in infls: cfgs += EnKF    ('Sqrt',N=N,infl=infl)
+#   for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
 
 # ADAPTIVE INFLATION METHODS
 for N in [20]: # NB N=15 is too small for F>12
@@ -123,16 +122,14 @@ for N in [20]: # NB N=15 is too small for F>12
   #cfgs += EnKF_N_mod   (N=N, L=None,    nu_f=5)
   cfgs += EAKF_A07     (N=N,           var_f=1e-2)
   #cfgs += EAKF_A07     (N=N, damp=1.0, var_f=1e-2)
-  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3)
-  #cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3, infl=1.015)
+  #cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3)
+  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3, infl=1.015)
   #cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e4)
   #cfgs += ETKF_InvCS   (N=N, L=1e3,      nu0=10, Uni=1, Var=0)
   #cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4)
   #cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e3)
   #cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e3, Cond=0)
   cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4, Cond=0)
-
-  cfgs += EnKF_pre('Sqrt',N=N,infl=1.30)
 
 
 # TUNING RANGES
@@ -188,7 +185,12 @@ for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
       ['rmse_a','rmv_a','infl','a','b'])
 
 
+##
 np.savez(save_path,avrgs=avrgs,xlabel=CtrlVar,xticks=xticks,labels=cfgs.gen_names())
+##
+R = ResultsTable(save_path)
+R.plot_1d('rmse_a',)
+##
 
 
 
