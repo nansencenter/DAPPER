@@ -482,7 +482,14 @@ def ETKF_InvCS(N,Uni=True,Var=False,pt='mean',L=np.inf,nu0=1000,deb=False,damp=1
 
 
 
-
+# Obsolete: replaced by hyperprior_coeffs
+def mode_adjust(prior_mode,dgn_N,N1):
+  # As a func of I-KH ("prior's weight"), adjust l1's mode towards 1.
+  # Note: I-HK = mean( dgn_N(1.0)**(-1) )/N ≈ 1/(1 + HBH/R).
+  I_KH  = mean( dgn_N(1.0)**(-1) )*N1 # Normalize by f.m ?
+  #I_KH = 1/(1 + (s**2).sum()/N1)     # Alternative: use tr(HBH/R).
+  mc    = sqrt(prior_mode**I_KH)      # "mode correction".
+  return mc
 
 
 from scipy.optimize import fmin_bfgs
