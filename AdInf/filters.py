@@ -889,4 +889,3 @@ var_Chi1 = lambda nu: chi(df=nu,scale=sqrt(1.0)/sqrt(nu)).var()
 var_iChi1 = lambda nu: np.var( sqrt ( 1/(np.sum( randn((10**6//nu,nu))** 2,axis=1)/nu) ) )
 # For large nu, can just use the chi1 formula.
 
-
