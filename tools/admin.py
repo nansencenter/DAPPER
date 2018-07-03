@@ -445,7 +445,7 @@ class List_of_Configs(list):
     If ow: do_overwrite.
     """
     # Process attributes into strings 
-    names = gen_names(self,do_tab)
+    names = self.gen_names(do_tab)
     
     # Assign strings to configs
     for name,config in zip(names,self):

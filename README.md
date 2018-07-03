@@ -44,7 +44,7 @@ In summary, it is well suited for teaching and fundamental DA research.
 In a trade-off with the above advantages, DAPPER makes some sacrifices of efficiency and flexibility (generality).
 I.e. it is not designed for the assimilation of real data in operational models.
 
-A good place to start is with the scripts `example_1/2.py`.
+A good place to start is with the scripts `example_{1,2,3}.py`.
 Alternatively, see the `tutorials` folder for an intro to DA.
 
   
