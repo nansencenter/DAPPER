@@ -36,21 +36,7 @@ elif CtrlVar == 'FTr': # Forcing used by truth
   set_false = lambda X: setattr(L95,'Force',8) # should also be in xticks!
   xticks    = arange(7,9+0.1,0.1)
 
-elif CtrlVar == 'N': # Ensemble size
-  # NB: NO GOOD
-  def setN(N,F):
-    for iC,C in enumerate(cfgs):
-      if hasattr(C,'N'):
-        cfgs[iC] = C.update_settings(N=N)
-        if N>30:
-          cfgs[iC] = C.update_settings(rot=True)
-    setattr(L95,'Force', F)
-  set_true  = lambda X: setN(X,8)
-  set_false = lambda X: setN(X,7)
-  xticks    = CurvedSpace(15,200,0.9,40).astype(int)
-
-
-xticks = array(xticks).repeat(12)
+xticks = array(xticks).repeat(32)
 
 # Parallelization and save-path setup
 xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=999)
@@ -61,28 +47,21 @@ xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=999
 ##############################
 cfgs  = List_of_Configs()
 
-# # BASELINES
-# cfgs += Climatology()
-# cfgs += Var3D()
-# 
-# cfgs += EnKF_N(N=20, name='FULL', rot=False)
-# cfgs += EnKF_N(N=80, name='FULL', rot=True)
-# 
-# infls = round2(CurvedSpace(1,5,0.98,40),0.01)
-# for N in [20]:
-#   for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
-# 
+# BASELINES
+cfgs += Climatology()
+cfgs += Var3D()
+
+cfgs += EnKF_N(N=20, name='FULL', rot=False)
+cfgs += EnKF_N(N=80, name='FULL', rot=True)
+
+infls = round2(CurvedSpace(1,5,0.98,40),0.01)
+for N in [20]:
+  for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
+
 # ADAPTIVE INFLATION METHODS
 for N in [20]:
-  #cfgs += EAKF_A07     (N=N,           var_f=1e-2           )
-  #cfgs += EAKF_A07     (N=N, damp=1.0, var_f=1e-2           )
-  #cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3            )
-  #cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3, infl=1.015)
-  #cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e4            )
-  #cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4            )
-  #cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e3            )
-  #cfgs += EnKF_N_mod   (N=N, L=None,    nu_f=5)
-  cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e3, Cond=False)
+  cfgs += EAKF_A07     (N=N,           var_f=1e-2           )
+  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3            )
   cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4, Cond=False)
 
 
@@ -117,12 +96,7 @@ for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
       ['rmse_a','rmv_a','infl','nu_a','a','b'])
 
 
-##############################
-# Save
-##############################
-cfgs.assign_names(do_tab=False,ow='prepend')
-cnames = [c.name for c in cfgs]
-print("Saving to",save_path)
-np.savez(save_path,avrgs=avrgs,xticks=xticks,labels=cnames)
+np.savez(save_path,avrgs=avrgs,xlabel=CtrlVar,xticks=xticks,labels=cfgs.gen_names())
+
 
 

@@ -34,7 +34,7 @@ elif CtrlVar == 'FTr': # Forcing used by truth
   set_false = lambda X: setattr(L63,'sig',10)
   xticks    = arange(4,24)
 
-xticks = array(xticks).repeat(6)
+xticks = array(xticks).repeat(32)
 
 # Parallelization and save-path setup
 xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=999)
@@ -45,29 +45,22 @@ xticks, save_path, iiRep = distribute(__file__,sys.argv,xticks,CtrlVar,nCore=999
 ##############################
 cfgs  = List_of_Configs()
 
-# # BASELINES
-# cfgs += Climatology()
-# cfgs += Var3D()
-# 
-# cfgs += EnKF_N(N=3 , name='FULL', rot=False)
-# cfgs += EnKF_N(N=80, name='FULL', rot=True)
-# 
+# BASELINES
+cfgs += Climatology()
+cfgs += Var3D()
+
+cfgs += EnKF_N(N=3 , name='FULL', rot=False)
+cfgs += EnKF_N(N=80, name='FULL', rot=True)
+
 infls = round2(CurvedSpace(1,5,0.98,40),0.01)
 for N in [3]:
   for infl in infls: cfgs += EnKF_pre('Sqrt',N=N,infl=infl)
 
 # ADAPTIVE INFLATION METHODS
-# for N in [3]:
-#   cfgs += EAKF_A07     (N=N,           var_f=1e-2           )
-#   cfgs += EAKF_A07     (N=N, damp=1.0, var_f=1e-2           )
-#   cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3            )
-#   cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3, infl=1.015)
-#   cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e4            )
-#   cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4            )
-#   cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=0e3            )
-#   cfgs += EnKF_N_mod   (N=N, L=None,    nu_f=5)
-#   cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e3, Cond=False)
-#   cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4, Cond=False)
+for N in [3]:
+  cfgs += EAKF_A07     (N=N,           var_f=1e-2           )
+  cfgs += ETKF_Xplct   (N=N, L=None,    nu_f=1e3            )
+  cfgs += EnKF_N_Xplct (N=N, L=None,    nu_f=1e4, Cond=False)
 
 
 
@@ -101,13 +94,7 @@ for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
       ['rmse_a','rmv_a','infl','nu_a','a','b'])
 
 
-##############################
-# Save
-##############################
-cfgs.assign_names(do_tab=False,ow='prepend')
-cnames = [c.name for c in cfgs]
-print("Saving to",save_path)
-np.savez(save_path,avrgs=avrgs,xticks=xticks,labels=cnames)
+np.savez(save_path,avrgs=avrgs,xlabel=CtrlVar,xticks=xticks,labels=cfgs.gen_names())
 
 
 
