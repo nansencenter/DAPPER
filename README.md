@@ -299,6 +299,7 @@ Conventions:
 
 TODO
 ------------------------------------------------
+* Remark colorama dependency
 * Reorg file structure
 * Turn into package?
 * Simplify time management?

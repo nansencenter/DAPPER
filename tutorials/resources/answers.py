@@ -206,13 +206,25 @@ answers["error evolution"] = ["MD",r"""
 * (a). $\frac{d \varepsilon}{dt} = \frac{d (x-z)}{dt}
 = \frac{dx}{dt} - \frac{dz}{dt} = f(x) - f(z) \approx f(x) - [f(x) - \frac{df}{dx}\varepsilon ] = F \varepsilon$
 * (b). Differentiate $e^{F t}$.
-* (c1). Dissipates to 0.
-* (c2). No. A balance is always reached between the uncertainty reduction $(1-K)$ and growth $F^2$. Also recall the asymptotic value of $P_k$ computed from [the previous section](T3 - Univariate Kalman filtering.ipynb#Exc-'Asymptotic-P':).
-* (d). $\frac{d \varepsilon}{dt} \approx F \varepsilon + (f-g)$
-* (e). [link](https://en.wikipedia.org/wiki/Logistic_function#Logistic_differential_equation)
+* (c).
+    * (1). Dissipates to 0.
+    * (2). No.
+      A balance is always reached between
+      the uncertainty reduction $(1-K)$ and growth $F^2$.  
+      Also recall the asymptotic value of $P_k$ computed from
+      [the previous tutorial](T3 - Univariate Kalman filtering.ipynb#Exc-3.14-'Asymptotic-P':).
+* (d). [link](https://en.wikipedia.org/wiki/Logistic_function#Logistic_differential_equation)
+* (e). $\frac{d \varepsilon}{dt} \approx F \varepsilon + (f-g)$
 """]
 
-
+answers["doubling time"] = ["MD",r"""
+    xx = output_63[0][:,-1]      # Ensemble of particles at the end of integration
+    v  = np.var(xx,axis=0)       # variance of ensemble at the end
+    d  = sqrt(mean(v))           # root-mean variance
+    d0 = w.children[4].value     # initial spread (get from slider)
+    rate = log(d/d0)             # assuming d = d0*exp(rate*T)
+    print("Doubling time (approx):",log(2)/rate)
+"""]
 
 answers['Gaussian sampling a'] = ['MD',r'''
 Firstly, a linear (affine) transformation can be decomposed into a sequence of sums. This means that $\mathbf{x}$ will be Gaussian.
