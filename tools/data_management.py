@@ -454,10 +454,15 @@ class ResultsTable():
     return lhs
 
 
-  def plot_2d(self,field='rmse_a',log=False,cMin=None,cMax=None,show_fail=True,**kwargs):
+  def plot_2d(self,field='rmse_a',log=False,cMin=None,cMax=None,
+      show_fail=True,minz=True,**kwargs):
     fig, ax = plt.gcf(), plt.gca()
 
-    Z = self.mean_field(field)[0]
+    # Get plotting data
+    Z, _, nSuc = self.mean_field(field)
+    nFail      = self.nRepeats - nSuc
+    if show_fail: pass # draw crosses (see further below)
+    else: Z[nFail.astype(bool)] = np.nan # Create nan (white?) pixels
 
     # Color range limit
     cMin = 0.95*Z.min() if cMin is None else cMin
@@ -476,6 +481,15 @@ class ResultsTable():
         edgecolor=0.0*ones(3),linewidth=0.3,
         **kwargs)
 
+    if show_fail: # draw crosses on top of colored pixels
+      d = array([0,1])
+      for (i,j), failed in np.ndenumerate(nFail):
+        if failed:
+          plt.plot(j+d,i+d  ,'w-',lw=2)
+          plt.plot(j+d,i+d  ,'k:',lw=1.5)
+          plt.plot(j+d,i-d+1,'w-',lw=2)
+          plt.plot(j+d,i-d+1,'k:',lw=1.5)
+
     # Colorbar and its ticks.
     # Caution: very tricky in log-case. Don't mess with this.
     cb = fig.colorbar(mesh,shrink=0.9)
@@ -488,6 +502,12 @@ class ResultsTable():
     else:
       pass
     cb.set_label(field)
+
+    # Mark optimal tuning
+    if minz:
+      tuning_inds, _, _ = self.minz_tuning(field)
+      ax.plot(0.5 + arange(len(self.xticks)), 0.5 + tuning_inds, 'w*' , ms=12)
+      ax.plot(0.5 + arange(len(self.xticks)), 0.5 + tuning_inds, 'b:*', ms=5)
 
     # title
     ax.set_title(self._headr())
@@ -509,7 +529,7 @@ class ResultsTable():
     ax.set_yticks(0.5+arange(len(ylbls)));     ax.set_yticklabels(ylbls)  
 
     # Reverse order
-    ax.invert_yaxis()
+    #ax.invert_yaxis()
 
     return mesh
 
@@ -523,14 +543,6 @@ class ResultsTable():
     tuning_vals = self.tuning_vals()[tuning_inds]
     fieldvals   = Z[tuning_inds,arange(len(tuning_inds))]
     return tuning_inds, tuning_vals, fieldvals 
-
-  def plot_minz_tuning(self,field='rmse_a'):
-    _, vals, _ = self.minz_tuning()
-    fig, ax = plt.gcf(), plt.gca()
-    ax.plot(self.xticks, vals)
-    ax.set_xlabel(self.xlabel)
-    ax.set_ylabel("Value of " + self.tuning_tag + " that minimizes " + field)
-    ax.set_title(self._headr())
 
 
 def pprop(labels,propID,cast=float,fillval=np.nan):
