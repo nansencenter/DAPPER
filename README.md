@@ -299,6 +299,7 @@ Conventions:
 
 TODO
 ------------------------------------------------
+* Remark colorama dependency
 * Reorg file structure
 * Turn into package?
 * Simplify time management?
@@ -356,6 +357,12 @@ Licence
 ------------------------------------------------
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./licence.txt)
 
+Contributors
+------------------------------------------------
+Patrick N. Raanes,
+Colin Grudzien,
+Maxime Tondeur,
+Remy Dubois
 
 <!--
 "Outreach"

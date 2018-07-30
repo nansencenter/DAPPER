@@ -200,19 +200,53 @@ $P_\infty = 1/\big(1/R + 1/[F^2 P_\infty]\big)$.
 This yields $P_\infty = R (1-1/F^2)$.
 ''']
 
+answers["Hint: Lorenz energy"] = ["MD",r'''
+Hint: what's its time-derivative?
+''']
 
+answers["Lorenz energy"] = ["MD",r'''
+\begin{align}
+\frac{d}{dt}
+\sum_i
+x_i^2
+&=
+2 \sum_i
+x_i \dot{x}_i
+\end{align}
+
+Next, insert the quadratic terms from the ODE,
+$
+\dot x_i = (x_{i+1} − x_{i-2}) x_{i-1}
+\, .
+$
+
+Finally, apply the periodicity of the indices.
+''']
 
 answers["error evolution"] = ["MD",r"""
 * (a). $\frac{d \varepsilon}{dt} = \frac{d (x-z)}{dt}
 = \frac{dx}{dt} - \frac{dz}{dt} = f(x) - f(z) \approx f(x) - [f(x) - \frac{df}{dx}\varepsilon ] = F \varepsilon$
 * (b). Differentiate $e^{F t}$.
-* (c1). Dissipates to 0.
-* (c2). No. A balance is always reached between the uncertainty reduction $(1-K)$ and growth $F^2$. Also recall the asymptotic value of $P_k$ computed from [the previous section](T3 - Univariate Kalman filtering.ipynb#Exc-'Asymptotic-P':).
-* (d). $\frac{d \varepsilon}{dt} \approx F \varepsilon + (f-g)$
-* (e). [link](https://en.wikipedia.org/wiki/Logistic_function#Logistic_differential_equation)
+* (c).
+    * (1). Dissipates to 0.
+    * (2). No.
+      A balance is always reached between
+      the uncertainty reduction $(1-K)$ and growth $F^2$.  
+      Also recall the asymptotic value of $P_k$ computed from
+      [the previous tutorial](T3 - Univariate Kalman filtering.ipynb#Exc-3.14-'Asymptotic-P':).
+* (d). [link](https://en.wikipedia.org/wiki/Logistic_function#Logistic_differential_equation)
+* (e). $\frac{d \varepsilon}{dt} \approx F \varepsilon + (f-g)$
 """]
 
-
+answers["doubling time"] = ["MD",r"""
+    xx   = output_63[0][:,-1]      # Ensemble of particles at the end of integration
+    v    = mean(v)                 # homogenize
+    d    = sqrt(v)                 # std. dev.
+    eps  = [FILL IN SLIDER VALUE]  # initial spread
+    T    = [FILL IN SLIDER VALUE]  # integration time
+    rate = log(d/eps)/T            # assuming d = eps*exp(rate*T)
+    print("Doubling time (approx):",log(2)/rate)
+"""]
 
 answers['Gaussian sampling a'] = ['MD',r'''
 Firstly, a linear (affine) transformation can be decomposed into a sequence of sums. This means that $\mathbf{x}$ will be Gaussian.

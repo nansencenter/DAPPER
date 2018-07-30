@@ -74,7 +74,7 @@ np.savez(save_path,
 
 
 ##############################
-# Results save/load/presentation
+# Results load & presentation
 ##############################
 if 'WORKER' in sys.argv: sys.exit(0) # quit if script is running as worker.
 
