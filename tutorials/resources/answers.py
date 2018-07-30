@@ -200,7 +200,28 @@ $P_\infty = 1/\big(1/R + 1/[F^2 P_\infty]\big)$.
 This yields $P_\infty = R (1-1/F^2)$.
 ''']
 
+answers["Hint: Lorenz energy"] = ["MD",r'''
+Hint: what's its time-derivative?
+''']
 
+answers["Lorenz energy"] = ["MD",r'''
+\begin{align}
+\frac{d}{dt}
+\sum_i
+x_i^2
+&=
+2 \sum_i
+x_i \dot{x}_i
+\end{align}
+
+Next, insert the quadratic terms from the ODE,
+$
+\dot x_i = (x_{i+1} − x_{i-2}) x_{i-1}
+\, .
+$
+
+Finally, apply the periodicity of the indices.
+''']
 
 answers["error evolution"] = ["MD",r"""
 * (a). $\frac{d \varepsilon}{dt} = \frac{d (x-z)}{dt}
@@ -218,11 +239,12 @@ answers["error evolution"] = ["MD",r"""
 """]
 
 answers["doubling time"] = ["MD",r"""
-    xx = output_63[0][:,-1]      # Ensemble of particles at the end of integration
-    v  = np.var(xx,axis=0)       # variance of ensemble at the end
-    d  = sqrt(mean(v))           # root-mean variance
-    d0 = w.children[4].value     # initial spread (get from slider)
-    rate = log(d/d0)             # assuming d = d0*exp(rate*T)
+    xx   = output_63[0][:,-1]      # Ensemble of particles at the end of integration
+    v    = mean(v)                 # homogenize
+    d    = sqrt(v)                 # std. dev.
+    eps  = [FILL IN SLIDER VALUE]  # initial spread
+    T    = [FILL IN SLIDER VALUE]  # integration time
+    rate = log(d/eps)/T            # assuming d = eps*exp(rate*T)
     print("Doubling time (approx):",log(2)/rate)
 """]
 
