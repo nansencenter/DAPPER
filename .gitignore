@@ -36,5 +36,9 @@
 ehthumbs.db
 Thumbs.db
 
+# no checkpoints
 /tutorials/.ipynb_checkpoints
 /tutorials/DA and the Dynamics of Ensemble Based Forecasting/.ipynb_checkpoints
+
+# no vim backups
+*~
