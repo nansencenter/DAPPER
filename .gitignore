@@ -40,5 +40,8 @@ Thumbs.db
 /tutorials/.ipynb_checkpoints
 /tutorials/DA and the Dynamics of Ensemble Based Forecasting/.ipynb_checkpoints
 
+# no py cache
+*.pyc
+
 # no vim backups
 *~
