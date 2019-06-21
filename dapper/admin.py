@@ -196,7 +196,6 @@ def DA_Config(da_method):
 
 
 
-# from deepdiff import DeepDiff
 class DAC(ImmutableAttributes):
   """DA configs (settings).
 
@@ -254,8 +253,9 @@ class DAC(ImmutableAttributes):
   def __eq__(self, config):
     prep = lambda obj: {k:v for k,v in obj.__dict__.items() if
         k!="assimilate" and not k.startswith("_")}
-    # eq = prep(self)==prep(config)
-    eq = not DeepDiff(self,config) # slow, but works well
+    eq = prep(self)==prep(config)
+    # EDIT: deepdiff causes horrible input bug with QtConsole.
+    # eq = not DeepDiff(self,config) # slow, but works well.
     return eq
 
   def _is(self,decorated_da_method):

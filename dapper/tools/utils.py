@@ -45,6 +45,7 @@ try:
     "Prints a nice progress bar in the terminal"
     desc = pdesc(desc)
     # if is_notebook:
+      # This fails in QtConsole (which also yields is_notebook==True)
       # return tqdm.tqdm_notebook(iterable,desc=desc,leave=leave)
     # else:
     return tqdm.tqdm(iterable,desc=desc,leave=leave,smoothing=0.3,dynamic_ncols=True)

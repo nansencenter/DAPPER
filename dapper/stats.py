@@ -190,7 +190,7 @@ class Stats(NestedPrint):
       # LivePlot -- Both initiation and update must come after the assessment.
       if not hasattr(self,'LP_instance'):
         self.LP_instance = LivePlot(self, self.config.liveplotting, key,E,Cov)
-      else:
+      elif mpl_is_interactive:
         self.LP_instance.update(key,E,Cov)
 
 

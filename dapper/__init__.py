@@ -86,32 +86,26 @@ def install_warn(import_err):
 ##################################
 import matplotlib as mpl
 
-# # is_notebook 
-# try:
-  # __IPYTHON__
-  # from IPython import get_ipython
-  # is_notebook = 'zmq' in str(type(get_ipython())).lower()
-# except (NameError,ImportError):
-  # is_notebook = False
-
 # user_is_patrick
 import getpass
 user_is_patrick = getpass.getuser() == 'pataan'
 
 # Choose graphics backend.
-# if is_notebook:
-if False:
-  mpl.use('nbAgg') # interactive
-else:
-  # terminal frontent
-  from sys import platform
-  if user_is_patrick and platform == 'darwin':
-    try:
-      mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
-      import matplotlib.pyplot # Trigger (i.e. test) the actual import
-    except ImportError:
-      # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
-      mpl.use('MacOSX')
+from sys import platform
+if user_is_patrick and platform == 'darwin':
+  try:
+    mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
+    import matplotlib.pyplot # Trigger (i.e. test) the actual import
+  except ImportError:
+    # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
+    mpl.use('MacOSX')
+
+# terminal frontent
+mpl_is_interactive=True
+if 'inline' in mpl.get_backend():
+  print("\nWarning: interactive/live plotting functionality is off.")
+  print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
+  mpl_is_interactive=False
 
 # Get Matlab-like interface, and enable interactive plotting
 import matplotlib.pyplot as plt 

@@ -39,6 +39,15 @@ Todo
 
 
 
+
+
+* Clean up is_notebook
+* Rm mpl.backend stuff in __init__
+* Fix pause/skip functionality in QtConsole?
+
+
+
+
 Clean .git and github
 Start master from dev1
 Tag github version
