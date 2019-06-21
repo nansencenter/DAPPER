@@ -81,7 +81,8 @@ Extended KF                                            |
 Optimal interpolation                                  |
 Climatology                                            |
 
-<sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.). Serial forms are also available.  
+<sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).
+Serial forms are also available.  
 Tuned with inflation and "random, orthogonal rotations".  
 <sup>2</sup>: Also supports the bundle version, and "EnKF-N"-type inflation.  
 <sup>3</sup>: Resampling: multinomial (including systematic/universal and residual).  

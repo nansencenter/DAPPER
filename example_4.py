@@ -93,6 +93,5 @@ fig, ax = plt.subplots()
 R.plot_2d(log=True)
 # R.plot_2d(log=False,cMax=0.8)
 
-
 ##
 
