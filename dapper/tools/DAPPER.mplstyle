@@ -1,0 +1,9 @@
+image.cmap: BrBG
+legend.frameon: True
+legend.edgecolor: None
+legend.framealpha: 0.8
+legend.fontsize: small
+lines.linewidth   : 2
+
+# axes.axisbelow: # if True or 'line': then (e.g.) inward ticks get hidden on colorbars. 
+

@@ -1,0 +1,122 @@
+% Latex source to create suitably formatted bibliography.
+
+% Note: use 'make4ht -u' instead of 'pdflatex' to compile!
+
+% Clean dir:
+% $ find . -type f ! -name '*.tex' -name 'bib.*' -delete
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Method 1:
+% Compile with bibtex, i.e.
+% pdflatex %.tex --> bibtex %.aux --> pdflatex %.tex)
+% Optional:
+% - use 'locate' to find apalike.bst, copy to PWD, and 
+% - In FUNCTION {format.lab.names}, delete the line: { pop$ " et~al." * }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\documentclass{article}
+%\usepackage[utf8]{inputenc}
+%\usepackage[english]{babel}
+%%\usepackage[]{natbib} % Don't activate
+%\usepackage{url}
+%\bibliographystyle{apalike}
+%\begin{document}
+ 
+		%\cite{anderson2010non}
+		%\cite{bocquet2010beyond}
+		%\cite{bocquet2011ensemble}
+		%\cite{bocquet2012combining}
+		%\cite{bocquet2013joint}
+		%\cite{bocquet2014iterative}
+		%\cite{bocquet2015expanding}
+		%\cite{hoteit2015mitigating}
+		%\cite{raanes2016thesis}
+		%\cite{raanes2015extending}
+		%\cite{raanes2015rts}
+		%\cite{raanes2019adaptive}
+		%\cite{raanes2019revising}
+		%\cite{sakov2008deterministic}
+		%\cite{sakov2008deterministic}
+		%\cite{sakov2012iterative}
+		%\cite{todter2015second}
+		%\cite{wiljes2016second}
+ 
+%\bibliography{../../Refs/references}
+ 
+%\end{document}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Method 2:
+% Compile with biber, i.e.
+%   $ pdflatex %.tex --> biber %.bcf --> pdflatex %.tex)
+% Note: biber complains unless we use a "clean" .bib file => use the following
+%   $ reference_strip bib.tex ../../Refs/references.bib localrefs.bib
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{article}
+\usepackage[maxalphanames=1, minalphanames=1, style=alphabetic, backend=biber]{biblatex}
+\usepackage{url}
+
+\addbibresource{localrefs.bib}
+\addbibresource{otherrefs.bib}
+
+\renewcommand*{\labelalphaothers}{}
+
+\DeclareLabelalphaTemplate{
+	\labelelement{
+		\field[final]{shorthand}
+		\field{label}
+		\field[strwidth=3,strside=left]{labelname}
+	}
+	\labelelement{
+		\field[strwidth=2,strside=right]{year}    
+	}
+}
+
+\begin{document}
+
+
+\section*{Bibliography}
+
+%Further references are given in the code.
+
+		\nocite{anderson2010non}
+		\nocite{bocquet2010beyond}
+		\nocite{bocquet2011ensemble}
+		\nocite{bocquet2012combining}
+		\nocite{bocquet2013joint}
+		\nocite{bocquet2014iterative}
+		\nocite{bocquet2015expanding}
+		\nocite{bocquet2016localization}
+		\nocite{chen2003bayesian}
+		\nocite{doucet2001sequential}
+		\nocite{doucet2009tutorial}
+		\nocite{evensen2009ensemble}
+		\nocite{hoteit2015mitigating}
+		\nocite{hunt2007efficient}
+		\nocite{karspeck2007experimental}
+		\nocite{liu2001theoretical}
+		\nocite{lei2011moment}
+		\nocite{raanes2016thesis}
+		\nocite{raanes2015extending}
+		\nocite{raanes2015rts}
+		\nocite{raanes2019adaptive}
+		\nocite{raanes2019revising}
+		\nocite{sakov2008deterministic}
+		\nocite{sakov2008implications}
+		\nocite{sakov2012iterative}
+		\nocite{todter2015second}
+		\nocite{van2009particle}
+		\nocite{wiljes2016second}
+		\nocite{wikle2007bayesian}
+		\nocite{wiki_density}
+		\nocite{zupanski2005maximum}
+
+	\printbibliography[heading=none]
+\end{document}
+
+
+
+
