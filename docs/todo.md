@@ -39,20 +39,13 @@ Todo
 
 
 
+Start dev1
+Include other branches
 
-
-* Clean up is_notebook
-* Rm mpl.backend stuff in __init__
-* Fix pause/skip functionality in QtConsole?
-
-
-
-
-Clean .git and github
-Start master from dev1
 Tag github version
 Upload to PyPi
 
-Test installation on all platforms
-Include branches
+Clean .gitignore
+Test installation on Windows
 Make tutorials github 
+Email Christian to let him know it's new

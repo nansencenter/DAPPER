@@ -142,7 +142,7 @@ from .da_methods.variational import *
 from .da_methods.other import *
 
 
-print("Done") # ... initializing DAPPER
+print("...Done") # ... initializing DAPPER
 
 
 
