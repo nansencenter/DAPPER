@@ -196,7 +196,7 @@ def DA_Config(da_method):
 
 
 
-from deepdiff import DeepDiff
+# from deepdiff import DeepDiff
 class DAC(ImmutableAttributes):
   """DA configs (settings).
 

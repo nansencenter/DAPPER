@@ -44,10 +44,10 @@ try:
   def progbar(iterable, desc=None, leave=1):
     "Prints a nice progress bar in the terminal"
     desc = pdesc(desc)
-    if is_notebook:
-      return tqdm.tqdm_notebook(iterable,desc=desc,leave=leave)
-    else:
-      return tqdm.tqdm(iterable,desc=desc,leave=leave,smoothing=0.3,dynamic_ncols=True)
+    # if is_notebook:
+      # return tqdm.tqdm_notebook(iterable,desc=desc,leave=leave)
+    # else:
+    return tqdm.tqdm(iterable,desc=desc,leave=leave,smoothing=0.3,dynamic_ncols=True)
     # Printing during the progbar loop (may occur with error printing)
     # can cause tqdm to freeze the entire execution. 
     # Seemingly, this is caused by their multiprocessing-safe stuff.

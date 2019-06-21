@@ -86,20 +86,21 @@ def install_warn(import_err):
 ##################################
 import matplotlib as mpl
 
-# is_notebook 
-try:
-  __IPYTHON__
-  from IPython import get_ipython
-  is_notebook = 'zmq' in str(type(get_ipython())).lower()
-except (NameError,ImportError):
-  is_notebook = False
+# # is_notebook 
+# try:
+  # __IPYTHON__
+  # from IPython import get_ipython
+  # is_notebook = 'zmq' in str(type(get_ipython())).lower()
+# except (NameError,ImportError):
+  # is_notebook = False
 
 # user_is_patrick
 import getpass
 user_is_patrick = getpass.getuser() == 'pataan'
 
 # Choose graphics backend.
-if is_notebook:
+# if is_notebook:
+if False:
   mpl.use('nbAgg') # interactive
 else:
   # terminal frontent

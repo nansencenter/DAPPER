@@ -128,7 +128,8 @@ def plot_pause(interval):
                 canvas.draw_idle()
             if focus_figure:
                 plt.show(block=False)
-            if not is_notebook:
+            # if not is_notebook:
+            if True:
                 canvas.start_event_loop(interval)
         else:
             time.sleep(interval)
