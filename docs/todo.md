@@ -39,13 +39,3 @@ Todo
 
 
 
-Start dev1
-Include other branches
-
-Tag github version
-Upload to PyPi
-
-Clean .gitignore
-Test installation on Windows
-Make tutorials github 
-Email Christian to let him know it's new
