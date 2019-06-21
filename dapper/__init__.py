@@ -84,10 +84,6 @@ def install_warn(import_err):
 ##################################
 # Plotting settings
 ##################################
-def user_is_patrick():
-  import getpass
-  return getpass.getuser() == 'pataan'
-
 import matplotlib as mpl
 
 # is_notebook 
@@ -98,13 +94,17 @@ try:
 except (NameError,ImportError):
   is_notebook = False
 
+# user_is_patrick
+import getpass
+user_is_patrick = getpass.getuser() == 'pataan'
+
 # Choose graphics backend.
 if is_notebook:
   mpl.use('nbAgg') # interactive
 else:
   # terminal frontent
   from sys import platform
-  if user_is_patrick() and platform == 'darwin':
+  if user_is_patrick and platform == 'darwin':
     try:
       mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
       import matplotlib.pyplot # Trigger (i.e. test) the actual import

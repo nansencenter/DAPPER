@@ -415,7 +415,8 @@ def fig_place(loc,fignum=None):
   >>>   fig_place(loc, i)
   """
 
-  #Only configured for me (Patrick):
+  # Only configured for me (Patrick):
+  # NB: Using this causes fig windows to be hidden on some systems.
   if not user_is_patrick: return
   # if not mpl.get_backend()=='TkAgg': return
     
