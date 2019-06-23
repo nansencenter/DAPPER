@@ -44,18 +44,59 @@ setuptools.setup(
 
     # Dependencies
     python_requires='~=3.5',
+    # TODO: improve version pinning; mv multiprocessing, psutil to MP
     install_requires=[
       'scipy>=1.1',
       'matplotlib>=3.0.3',
       'ipython>=5.1',
-      'jupyter>=1.0.0',
       'pandas>=0.18',
       'tqdm>=4.18',
       'colorama>=0.3.7',
-      'Markdown>=2.6',
       'tabulate>=0.7.7',
       'multiprocessing-on-dill>=3.5.0a4',
+      'psutil',
       ],
+    extras_require={
+        'MP':  ['mkl'],
+        'Qt':  ['qtpy'],
+    },
+    # Tutorials:
+    # -----------
+    # 'jupyter>=1.0.0',
+    # 'Markdown>=2.6',
+    #
+    # Site-packages -- implicit
+    # -------------
+    # numpy # comes with scipy, etc
+    # cycler # comes with mpl
+    # pkg_resources # comes with setuptools
+    #
+    # Stdlib
+    # -------------
+    # contextlib
+    # subprocess
+    # socket
+    # textwrap
+    # copy
+    # itertools
+    # os.path
+    # warnings
+    # re
+    # traceback
+    # inspect
+    # signal
+    # functools
+    # glob
+    # collections
+    # termios
+    # getpass
+    #
+    # Built-ins:
+    # -------------
+    # builtins
+    # time
+    # sys
+    # msvcrt
 
 
     # File inclusion

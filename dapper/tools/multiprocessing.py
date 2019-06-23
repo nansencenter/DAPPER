@@ -51,7 +51,7 @@ except ImportError:
 # pickle much more than basic pickle (e.g. nested functions),
 # and is being used by 'multiprocessing_on_dill'.
 # Alternatively, the package pathos also enables multiprocessing with dill.
-import multiprocessing_on_dill as multiprocessing 
+import multiprocessing_on_dill as multiprocessing
 
 def multiproc_map(func,xx,**kwargs):
   """A parallelized version of map.
