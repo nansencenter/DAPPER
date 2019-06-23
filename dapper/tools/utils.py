@@ -190,8 +190,7 @@ def printoptions(*args, **kwargs):
     np.set_printoptions(**original)
 
 
-from . import tabulate as tabulate_orig
-# import tabulate as tabulate_orig # TODO
+import tabulate as tabulate_orig
 tabulate_orig.MIN_PADDING = 0
 def tabulate(data,headr=(),formatters=(),inds='nice'):
   """Pre-processor for tabulate().

@@ -53,8 +53,8 @@ setuptools.setup(
       'tqdm>=4.18',
       'colorama>=0.3.7',
       'Markdown>=2.6',
+      'tabulate>=0.7.7',
       'multiprocessing-on-dill>=3.5.0a4',
-      'deepdiff',
       ],
 
 
