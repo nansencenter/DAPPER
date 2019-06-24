@@ -44,7 +44,7 @@ setuptools.setup(
 
     # Dependencies. Use pipdeptree and pipreqs tools.
     python_requires='~=3.5',
-    # TODO: improve version pinning; mv multiprocessing, psutil to MP
+    # TODO: improve version pinning
     install_requires=[
       'scipy>=1.1',
       'matplotlib>=3.0.3',
@@ -52,13 +52,15 @@ setuptools.setup(
       'tqdm>=4.18',
       'colorama>=0.3.7',
       'tabulate>=0.7.7',
-      'multiprocessing-on-dill>=3.5.0a4',
-      'psutil',
       ],
     extras_require={
-        'MP':  ['mkl'],
-        'Qt':  ['qtpy'],
-    },
+      'MP': [
+        'threadpoolctl==1.0.0',
+        'multiprocessing-on-dill>=3.5.0a4',
+        'psutil',
+        ],
+      'Qt':  ['qtpy'],
+      },
     # Tutorials:
     # -----------
     # 'jupyter>=1.0.0',

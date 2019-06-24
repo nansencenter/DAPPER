@@ -8,40 +8,13 @@ __version__ = "0.9.03"
 
 print("Initializing DAPPER...",end="", flush=True)
 
-##################################
-# Scientific
-##################################
-import numpy as np
-import scipy as sp
-import numpy.random
-import scipy.linalg as sla
-import numpy.linalg as nla
-import scipy.stats as ss
-
-from scipy.linalg import svd
-from numpy.linalg import eig
-# eig() of scipy.linalg necessitates using np.real_if_close().
-from scipy.linalg import sqrtm, inv, eigh
-
-from numpy import \
-    pi, nan, \
-    log, log10, exp, sin, cos, tan, \
-    sqrt, floor, ceil, \
-    mean, prod, \
-    diff, cumsum, \
-    array, asarray, asmatrix, \
-    linspace, arange, reshape, \
-    eye, zeros, ones, diag, trace \
-# Don't shadow builtins: sum, max, abs, round, pow
-
-
 
 ##################################
 # Tools
 ##################################
 import sys
 assert sys.version_info >= (3,5)
-import os.path
+import os
 from time import sleep
 from collections import OrderedDict
 import itertools
@@ -79,6 +52,32 @@ def install_warn(import_err):
   name = name.split("'")[1]
   warnings.warn(install_msg(name))
 
+
+##################################
+# Scientific
+##################################
+import numpy as np
+import scipy as sp
+import numpy.random
+import scipy.linalg as sla
+import numpy.linalg as nla
+import scipy.stats as ss
+
+from scipy.linalg import svd
+from numpy.linalg import eig
+# eig() of scipy.linalg necessitates using np.real_if_close().
+from scipy.linalg import sqrtm, inv, eigh
+
+from numpy import \
+    pi, nan, \
+    log, log10, exp, sin, cos, tan, \
+    sqrt, floor, ceil, \
+    mean, prod, \
+    diff, cumsum, \
+    array, asarray, asmatrix, \
+    linspace, arange, reshape, \
+    eye, zeros, ones, diag, trace \
+# Don't shadow builtins: sum, max, abs, round, pow
 
 
 ##################################
