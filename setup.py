@@ -42,14 +42,13 @@ setuptools.setup(
     description="Data Assimilation with Python: a Package for Experimental Research.",
 
 
-    # Dependencies
+    # Dependencies. Use pipdeptree and pipreqs tools.
     python_requires='~=3.5',
     # TODO: improve version pinning; mv multiprocessing, psutil to MP
     install_requires=[
       'scipy>=1.1',
       'matplotlib>=3.0.3',
       'ipython>=5.1',
-      'pandas>=0.18',
       'tqdm>=4.18',
       'colorama>=0.3.7',
       'tabulate>=0.7.7',

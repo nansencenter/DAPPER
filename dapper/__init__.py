@@ -18,7 +18,6 @@ import scipy.linalg as sla
 import numpy.linalg as nla
 import scipy.stats as ss
 
-
 from scipy.linalg import svd
 from numpy.linalg import eig
 # eig() of scipy.linalg necessitates using np.real_if_close().
@@ -45,6 +44,7 @@ assert sys.version_info >= (3,5)
 import os.path
 from time import sleep
 from collections import OrderedDict
+import itertools
 import warnings
 import traceback
 import re
@@ -54,9 +54,9 @@ import functools
 dpr = os.path.dirname(os.path.abspath(__file__))
 
 # Pandas changes numpy's error settings. Correct.
-olderr = np.geterr()
-import pandas as pd
-np.seterr(**olderr)
+# olderr = np.geterr()
+# import pandas as pd
+# np.seterr(**olderr)
 
 # Profiling. Decorate the function you wish to time with 'profile' below
 # Then launch program as: $ kernprof -l -v myprog.py

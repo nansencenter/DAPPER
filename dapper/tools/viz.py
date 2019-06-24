@@ -480,47 +480,48 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,s
   lines = {'handle': list(ax.get_lines())}
   for prop in ['label','color','visible']:
     lines[prop] = [plt.getp(x,prop) for x in lines['handle']]
-  # Put into pandas for some reason
-  lines = pd.DataFrame(lines)
+
   # Rm those that start with _
-  lines = lines[~lines.label.str.startswith('_')]
+  not_ = [not x.startswith('_') for x in lines['label']]
+  for prop in lines:
+    lines[prop] = list(itertools.compress(lines[prop], not_))
+  N = len(lines['handle'])
 
   # Adjust labels
-  if numbering: lines['label'] = [str(i)+': '+lbl for i,lbl in enumerate(lines['label'])]
-  if txtwidth:  lines['label'] = [textwrap.fill(lbl,width=txtwidth) for lbl in lines['label']]
+  if numbering: lines['label'] = [str(i)+': '+x for i,x in enumerate(lines['label'])]
+  if txtwidth:  lines['label'] = [textwrap.fill(x,width=txtwidth) for x in lines['label']]
 
   # Set state. BUGGY? sometimes causes MPL complaints after clicking boxes
   if state is not None:
     state = array(state).astype(bool)
-    lines.visible = state
+    lines['visible'] = state
     for i,x in enumerate(state):
       lines['handle'][i].set_visible(x)
 
   # Setup buttons
   # When there's many, the box-sizing is awful, but difficult to fix.
   W       = 0.23 * txtwidth/15 * txtsize/10
-  N       = len(lines)
-  nBreaks = sum(lbl.count('\n') for lbl in lines['label']) # count linebreaks
+  nBreaks = sum(x.count('\n') for x in lines['label']) # count linebreaks
   H       = min(1,0.05*(N+nBreaks))
   plt.subplots_adjust(left=W+0.12,right=0.97)
   rax = plt.axes([0.05, 0.5-H/2, W, H])
-  check = CheckButtons(rax, lines.label, lines.visible)
+  check = CheckButtons(rax, lines['label'], lines['visible'])
 
   # Adjust button style
   for i in range(N):
-    check.rectangles[i].set(lw=0,facecolor=lines.color[i])
-    check.labels[i].set(color=lines.color[i])
+    check.rectangles[i].set(lw=0,facecolor=lines['color'][i])
+    check.labels[i].set(color=lines['color'][i])
     if txtsize: check.labels[i].set(size=txtsize)
 
   # Callback
   def toggle_visible(label):
-    ind = lines.label==label
-    handle = lines[ind].handle.item()
-    vs = not lines[ind].visible.item()
+    ind    = lines['label'].index(label)
+    handle = lines['handle'][ind]
+    vs     = not lines['visible'][ind]
     handle.set_visible( vs )
-    lines.loc[ind,'visible'] = vs
+    lines['visible'][ind] = vs
     if autoscl:
-      autoscale_based_on(ax,lines[lines.visible].handle)
+      autoscale_based_on(ax,list(itertools.compress(lines['handle'],lines['visible'])))
     plt.draw()
   check.on_clicked(toggle_visible)
 
@@ -529,6 +530,7 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,s
 
   # Must return (and be received) so as not to expire.
   return check
+
 
 
 def toggle_viz(*handles,prompt=False,legend=False,pause=True):

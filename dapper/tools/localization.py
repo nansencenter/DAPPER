@@ -131,8 +131,7 @@ def rectangular_partitioning(shape,steps):
   edge_partitions = [np.array_split(np.arange(n),nLoc) for n,nLoc in zip(shape,nLocs)]
 
   batches = []
-  from itertools import product as outer
-  for batch_edges in outer(*edge_partitions):
+  for batch_edges in itertools.product(*edge_partitions):
     # The 'indexing' argument below is actually inconsequential:
     # it merely changes batch's internal ordering.
     batch_rect    = np.meshgrid(*batch_edges, indexing='ij')

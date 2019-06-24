@@ -199,7 +199,7 @@ def tabulate(data,headr=(),formatters=(),inds='nice'):
 
   If 'data' is a dict, the 'headr' will be keys.
 
-  'formatter': define formats to apply before relaying to pandas.
+  'formatter': define formats to apply before relaying to tabulate().
   Default: attr.__name__ (when applicable).
 
   Example::
