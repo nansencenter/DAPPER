@@ -42,39 +42,37 @@ setuptools.setup(
     description="Data Assimilation with Python: a Package for Experimental Research.",
 
 
-    # Dependencies. Use pipdeptree and pipreqs tools.
+    # Dependencies. Use pipdeptree and pipreqs tools to list.
+    # We pin smaller libraries (coz stackoverflow.com/a/28510546),
+    # but allow ranges for bigger ones (coz stackoverflow.com/a/43421973).
     python_requires='~=3.6', # (need >=3.6 for mpl 3.1)
     install_requires=[
       'scipy>=1.1',
-      'matplotlib~=3.1', # >=3.1 to avoid Mac's framework-build issues
       'ipython>=5.1',
-      'tqdm>=4.18',
-      'colorama>=0.3.7',
-      'tabulate>=0.7.7',
+      'matplotlib~=3.1', # >=3.1 to avoid Mac's framework-build issues
+      'tqdm~=4.31',
+      'colorama~=0.4.1',
+      'tabulate~=0.8.3',
       ],
     # Optional
     extras_require={
       'MP': [
         'threadpoolctl==1.0.0',
-        'multiprocessing-on-dill>=3.5.0a4',
+        'multiprocessing-on-dill==3.5.0a4',
         'psutil',
         ],
       'Qt':  ['PyQt5','qtpy'],
       },
-    extras_require['all'] = sum([extras_require[key] for key in extras_require], [])
-    # Tutorials:
-    # -----------
-    # 'jupyter>=1.0.0',
-    # 'Markdown>=2.6',
+    # Other packages used, but not explicitly required
     #
-    # Site-packages -- implicit
-    # -------------
+    # Already implicitly required:
+    # ----------------------------
     # numpy # comes with scipy, etc
     # cycler # comes with mpl
     # pkg_resources # comes with setuptools
     #
     # Stdlib
-    # -------------
+    # ----------------------------
     # contextlib
     # subprocess
     # socket
@@ -94,11 +92,16 @@ setuptools.setup(
     # getpass
     #
     # Built-ins:
-    # -------------
+    # ----------------------------
     # builtins
     # time
     # sys
     # msvcrt
+    #
+    # Tutorials:
+    # ----------------------------
+    # 'jupyter>=1.0.0',
+    # 'Markdown>=2.6',
 
 
     # File inclusion
