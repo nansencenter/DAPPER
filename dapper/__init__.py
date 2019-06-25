@@ -40,19 +40,6 @@ except AttributeError:
     def profile(func): return func # provide a pass-through version.
 
 
-# Installation suggestions
-def install_msg(package):
-  return """
-  Could not find (import) package '{0}'. Using fall-back.
-  [But we recommend installing '{0}' (using pip or conda, etc...)
-  to improve the functionality of DAPPER.]""".format(package)
-def install_warn(import_err):
-  name = import_err.args[0]
-  #name = name.split('No module named ')[1]
-  name = name.split("'")[1]
-  warnings.warn(install_msg(name))
-
-
 ##################################
 # Scientific
 ##################################
