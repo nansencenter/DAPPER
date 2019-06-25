@@ -43,24 +43,25 @@ setuptools.setup(
 
 
     # Dependencies. Use pipdeptree and pipreqs tools.
-    python_requires='~=3.5',
-    # TODO: improve version pinning
+    python_requires='~=3.6', # (need >=3.6 for mpl 3.1)
     install_requires=[
       'scipy>=1.1',
-      'matplotlib>=3.0.3',
+      'matplotlib~=3.1', # >=3.1 to avoid Mac's framework-build issues
       'ipython>=5.1',
       'tqdm>=4.18',
       'colorama>=0.3.7',
       'tabulate>=0.7.7',
       ],
+    # Optional
     extras_require={
       'MP': [
         'threadpoolctl==1.0.0',
         'multiprocessing-on-dill>=3.5.0a4',
         'psutil',
         ],
-      'Qt':  ['qtpy'],
+      'Qt':  ['PyQt5','qtpy'],
       },
+    extras_require['all'] = sum([extras_require[key] for key in extras_require], [])
     # Tutorials:
     # -----------
     # 'jupyter>=1.0.0',

@@ -37,8 +37,8 @@ Also see its [drawbacks](#alternative-projects).
 
 Installation
 ================================================
-1. **Prerequisite**: python>=3.5 (suggest setting it up with [anaconda](https://www.anaconda.com/download)).  
-Execute `python -V` (uppercase `V`) in a [terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda) to assert that the version is 3.5 or higher.
+1. **Prerequisite**: python>=3.6 (suggest setting it up with [anaconda](https://www.anaconda.com/download)).  
+Execute `python -V` (uppercase `V`) in a [terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda) to assert that the version is 3.6 or higher.
 2. **Install**: Download and extract (or `git clone`) DAPPER, `cd` into the resulting folder, and `pip install -e .`
 3. **Test**: `python example_1.py`  
 
