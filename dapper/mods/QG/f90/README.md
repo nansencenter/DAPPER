@@ -1,4 +1,4 @@
-This model was taken from Sakov's EnKF-Matlab package. Licence reproduced below.
+This model was taken from Sakov's EnKF-Matlab package (changelog at below). Licence reproduced below.
 
         Copyright (C) 2008, 2009 Pavel Sakov
 
@@ -22,24 +22,26 @@ This model was taken from Sakov's EnKF-Matlab package. Licence reproduced below.
         IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
         OF SUCH DAMAGE.
 
-The main adaption made since then is to set it up for Python by making `interface.f90`.
-Compilation is described below.
+Compilate as follows...
 
 ### This `f90` directory
 contains Fortran90 code for the QG model for building
 
  1. a python extension module `py_mod`
- 2. a standalone program `qg`
+ 2. a standalone program 
 
-Both requires an f90 compiler (tested with g95 and gfortran).
-In addition (1) requires `f2py`, while (2) requires `netcdf` libraries.
+Both requires an f90 compiler (tested with g95 and gfortran).  
+In addition  `py_mod` requires `f2py`, while `qg` requires `netcdf` libraries.  
+DAPPER only requires `py_mod` (also to generate intial sample).
+
 
 ### For DAPPER,
-only the python module `py_mod` is required (also to generate intial sample). To build it, run:
+To build `py_mod`, run:
 
-    $ cd DAPPER/mods/QG/f90
+    $ cd dapper/mods/QG/f90
     $ rm -rf py_mod.cpython-* __pycache__
     $ f2py -c utils.f90 parameters.f90 helmholtz.f90 calc.f90 qgflux.f90 qgstep.f90 interface.f90 -m py_mod
+
 
 
 ### For the standalone executable `qg`
@@ -48,16 +50,26 @@ only the python module `py_mod` is required (also to generate intial sample). To
     $ make qg
 
 Example: here's how I compiled the standalone on my Mac:
-- get netcdf:
-    brew install netcdf --with-fortran
+- get netcdf: `brew install netcdf --with-fortran`
 - In makefile, changed to: 
-		FC = gfortran-5
-		NCLIB = /usr/local/lib/libnetcdff.dylib /usr/local/lib/libnetcdf.dylib
+      FC = gfortran-5
+      NCLIB = /usr/local/lib/libnetcdff.dylib /usr/local/lib/libnetcdf.dylib
 - Matlab has a new netcdf interface. Therefore, qgread.m should use
-  	% ncdisp(fname)
-  	ncid = netcdf.open(fname);
-  	psi  = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'psi')), [3 2 1]);
-  	q    = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'q'))  , [3 2 1]);
-  	t    = netcdf.getVar(ncid, netcdf.inqVarID(ncid,'t'));
+      % ncdisp(fname)
+      ncid = netcdf.open(fname);
+      psi  = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'psi')), [3 2 1]);
+      q    = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'q'))  , [3 2 1]);
+      t    = netcdf.getVar(ncid, netcdf.inqVarID(ncid,'t'));
 
+
+
+
+
+### Changelog since Sakov's enkf-matlab:
+ - Rm Matlab interface funcs: qgplay.m qgplot.m qgread.m mexcmd.m qgstep_mex.f90 mexf90.f90 
+ - Modified makefile, as described above.
+ - In parameters.f90:
+   * Capitalized m,n
+   * Swapped NY1 and NX1 in definitions of M,N 
+ - Made `interface.f90` for Python.
 

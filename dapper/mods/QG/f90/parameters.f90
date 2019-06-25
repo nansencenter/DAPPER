@@ -19,8 +19,6 @@
 ! Description:    
 !
 ! Revisions:
-!     - Patrick N. Raanes, Sept 2018:
-!       Swapped NY1 and NX1 in definitions of M,N.
 
 module parameters_mod
 
