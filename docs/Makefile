@@ -8,10 +8,9 @@
 UNUSED = _modules/modules.rst _modules/dapper.rst
 DPR = ../dapper
 NOAPI = $(DPR)/mods/*/demo.py \
-	$(DPR)/mods/pyks/* \
-       	$(DPR)/mods/LorenzUV/illust_* \
-       	$(DPR)/tools/tabulate.py \
-       	$(DPR)/mods/explore_props.py
+				$(DPR)/mods/pyks/* \
+				$(DPR)/mods/LorenzUV/illust_* \
+				$(DPR)/mods/explore_props.py
 
 
 # You can set these variables from the command line.
