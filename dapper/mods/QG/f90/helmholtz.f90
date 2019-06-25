@@ -115,7 +115,7 @@ contains
    nst(k) = iq
    imx(k) = M
    jmx(k) = N
-   Obs(k) = hh
+   h(k) = hh
    iq = iq + M * N
  end subroutine grdfn
 
@@ -134,7 +134,7 @@ contains
       is = is + N
       ist(i) = is
    end do
-   hh = Obs(k)
+   hh = h(k)
  end subroutine key
 
  subroutine putf1(k, F, nh)
