@@ -24,7 +24,7 @@ Obs['noise'] = 0.01
 # But, for strict equivalence, one would have to use
 # uniform (i.e. not Gaussian) random numbers.
 wnumQ = 25
-sample_filename = os.path.join('data','samples','LA_Q_wnum' + str(wnumQ) + '.npz')
+sample_filename = os.path.join(sample_dir,'LA_Q_wnum%d.npz'%wnumQ)
 
 try:
   # Load pre-generated

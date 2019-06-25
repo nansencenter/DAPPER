@@ -145,7 +145,7 @@ def gen_sample(model,nSamples,SpinUp,Spacing):
   sample    = simulator(zeros(Nx), K, 0.0, model.prms["dtout"])
   return sample[SpinUp::Spacing]
 
-sample_filename = os.path.join('data','samples','QG_samples.npz')
+sample_filename = os.path.join(sample_dir,'QG_samples.npz')
 if not os.path.isfile(sample_filename):
   print('Did not find sample file',sample_filename,
       'for experiment initialization. Generating...')

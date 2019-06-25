@@ -23,8 +23,11 @@ import traceback
 import re
 import functools
 
-# Get DAPPER absolute path
-dpr = os.path.dirname(os.path.abspath(__file__))
+# Dirs
+dpr        = os.path.dirname(os.path.abspath(__file__)) # DAPEPR
+data_dir   = os.path.join(dpr,"..","data")              # DAPPER/data
+# data_dir = os.path.join(".","data")                   # PWD/data
+sample_dir = os.path.join(data_dir,"samples")           # data_dir/samples
 
 # Pandas changes numpy's error settings. Correct.
 # olderr = np.geterr()

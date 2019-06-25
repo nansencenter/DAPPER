@@ -31,8 +31,8 @@ class ResultsTable():
   Examples:
 
   # COMPOSING THE DATABASE OF RESULTS
-  >>> R = ResultsTable('data/AdInf/bench_LUV/c_run[1-3]')                         # Load by regex
-  >>> R.load('data/AdInf/bench_LUV/c_run7')                                       # More loading
+  >>> R = ResultsTable(data_dir+'/AdInf/bench_LUV/c_run[1-3]')                    # Load by regex
+  >>> R.load(data_dir+'/AdInf/bench_LUV/c_run7')                                  # More loading
   >>> R.mv(r'tag (\d+)',r'tag\1')                                                 # change "tag 50" to "tag50" => merge such labels (configs)
   >>> R.rm([0, 1, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16])                            # rm uninteresting labels (configs)
   >>> R.rm('EnKF[^_]')                                                            # rm EnKF but not EnKF_N

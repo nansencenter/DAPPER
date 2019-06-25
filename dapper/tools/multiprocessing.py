@@ -206,7 +206,7 @@ def save_dir(filepath,pre='',host=True):
   else:
     host = ''
   path = rel_path(filepath)
-  dirpath  = os.path.join(pre,'data',path,host,'')
+  dirpath  = os.path.join(pre,data_dir,path,host,'')
   os.makedirs(dirpath, exist_ok=True)
   return dirpath
 
@@ -266,7 +266,7 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
           # worker progress and printouts can be accessed using 'screen -r'.
 
           # screenrc path. This config is the "master".
-          rcdir = os.path.join('data','screenrc')
+          rcdir = os.path.join(data_dir,'screenrc')
           os.makedirs(rcdir, exist_ok=True)
           screenrc  = os.path.join(rcdir,'tmp_screenrc_')
           screenrc += os.path.split(script)[1].split('.')[0] + '_run'+RUN
@@ -342,7 +342,7 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
       print("Will save to",save_path+"...")
       
     elif sysargs[2]=='EXPENDABLE' or sysargs[2]=='DISPOSABLE':
-      save_path = os.path.join('data','expendable')
+      save_path = os.path.join(data_dir,'expendable')
 
     else: raise ValueError('Could not interpret sys.args[1]')
 
