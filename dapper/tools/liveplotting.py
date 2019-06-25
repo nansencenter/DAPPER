@@ -591,7 +591,7 @@ def sliding_marginals(
     # Tune plots
     axs[0].set_title("Marginal time series")
     for ix, (m,ax) in enumerate(zip(DimsX,axs)):
-      ax.set_ylim(*stretch(*span(xx[:,m]), 1/p.zoomy))
+      ax.set_ylim(*stretch(*xtrema(xx[:,m]), 1/p.zoomy))
       if p.labels==[]: ax.set_ylabel("$x_{%d}$"%m)
       else:            ax.set_ylabel(p.labels[ix])
     axs[-1].set_xlabel('Time (t)')
@@ -688,7 +688,7 @@ def phase3d(
     ax3.set_title("Phase space trajectories")
     # Tune plot
     for ind, (s,i) in enumerate(zip(p.labels, p.dims)):
-      set_ilim(ax3, ind, *stretch(*span(xx[:,i]),1/p.zoom))
+      set_ilim(ax3, ind, *stretch(*xtrema(xx[:,i]),1/p.zoom))
     ax3.set_xlabel(p.labels[0])
     ax3.set_ylabel(p.labels[1])
     ax3.set_zlabel(p.labels[2])
@@ -973,7 +973,7 @@ def spatial1d(
       line_y,  = ax.plot(p.obs_inds, nan*p.obs_inds,  'g*' ,ms=5,label='Obs')
 
     # Tune plot
-    ax.set_ylim( *span(xx) )
+    ax.set_ylim( *xtrema(xx) )
     ax.set_xlim(stretch(ii[0],ii[-1],1))
     # Xticks
     xt = ax.get_xticks()

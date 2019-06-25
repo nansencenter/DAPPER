@@ -47,7 +47,7 @@ def adjust_position(ax,adjust_extent=False,**kwargs):
   # Set
   ax.set_position(d.values())
 
-def span(xx,axis=None):
+def xtrema(xx,axis=None):
   a = xx.min(axis)
   b = xx.max(axis)
   return a, b
@@ -117,8 +117,9 @@ def plot_pause(interval):
     # Implement plt.pause() that doesn't focus window, c.f.
     # github.com/matplotlib/matplotlib/issues/11131, so.com/q/45729092.
     # Only necessary for some platforms (e.g. Windows) and mpl versions.
-    # Even then, mere figure creation may steal the focus if script was
-    # launched with `$ python example_1.py` rather than ipython's `run`.
+    # Even then, mere figure creation may steal the focus.
+    # This was done deliberately github.com/matplotlib/matplotlib/pull/6384#issue-69259165.
+    # See issue: github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
     from matplotlib import _pylab_helpers
     def _plot_pause(interval,  focus_figure=True):
         canvas = plt.gcf().canvas

@@ -9,13 +9,13 @@ from dapper.mods.Lorenz95.core import step
 def amplitude_animation(xx,periodic=False,skip=1):
   fig, ax = plt.subplots()
   fig.suptitle('Amplitudes')
-  ax.set_ylim(*stretch(*span(xx),1.1))
+  ax.set_ylim(*stretch(*xtrema(xx),1.1))
   K,Nx = xx.shape
 
   ii,wrap = setup_wrapping(Nx,periodic)
 
   lh, = ax.plot(ii, wrap(xx[0]))
-  ax.set_xlim(*span(ii))
+  ax.set_xlim(*xtrema(ii))
 
   for x in progbar(xx[::skip],"Animating"):
     lh.set_ydata(wrap(x))

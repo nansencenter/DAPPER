@@ -2,7 +2,7 @@ Todo
 ================================================
 * Defaults file (fail_gently, liveplotting, store_u mkl.set_num_threads, print options in NestedPrint, computational_threshold)
 
-* rename viz.py:span to "xtrma". Or rm?
+* Deal with window focus.
 * Rename partial_direct_Obs -> partial_Id_Obs
 * Rename dfdx -> dstep_dx
 * Rename TLM -> d2x_dtdx
