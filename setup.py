@@ -115,6 +115,8 @@ setuptools.setup(
         'dapper.mods.QG.f90': ['*.txt','*.md','*.png','Makefile','*.f90'],
     },
 
+    py_modules=["example_1","example_2","example_3"],
+
     # Detailed meta
     classifiers=[
         'Development Status :: 3 - Alpha',

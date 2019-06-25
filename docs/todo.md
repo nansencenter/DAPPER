@@ -1,5 +1,8 @@
 Todo
 ================================================
+* Re-test LETKF mp on more cores
+
+
 * Defaults file (fail_gently, liveplotting, store_u mkl.set_num_threads, print options in NestedPrint, computational_threshold)
 
 * Deal with window focus.
