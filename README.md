@@ -8,8 +8,8 @@
 ! 
 -->
 
-DAPPER is a set of templates for benchmarking the performance of
-[data assimilation (DA)](https://sites.google.com/site/patricknraanespro/DA_tut.pdf) methods. The tests provide experimental support and guidance for new developments in DA. Example diagnostics:
+DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods.
+The tests provide experimental support and guidance for new developments in DA. Example diagnostics:
 
 ![EnKF - Lorenz'63](./data/figs/anims/DAPPER_illust_v2.jpg)
 
