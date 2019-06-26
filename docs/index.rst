@@ -24,6 +24,7 @@ Other resources
    implementation
    features
    todo
+   contributing
    license
 
 

@@ -28,8 +28,7 @@ Todo
 * Use pandas for stats time series?
 
 
-DAC changes:
-=======================
+## DAC changes:
 Try making something like the following
 to deal with:
   * Use inspect somehow instead of C.update_setting
@@ -59,8 +58,6 @@ def EnKF(stats,upd_a, N, infl):
     return stats
 
 
-
-=======================
 
 
 

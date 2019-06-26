@@ -56,7 +56,7 @@ The [docs](https://dapper.readthedocs.io/en/latest/)
 provide processed docstrings,
 but are far from complete.
 
-Alternatively, see the `tutorials` folder for an intro to DA.
+Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials) for an intro to DA.
 
 
 Methods

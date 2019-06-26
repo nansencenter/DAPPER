@@ -4,7 +4,7 @@ DAPPER is a set of templates for benchmarking the performance of data assimilati
 using synthetic/twin experiments.
 """
 
-__version__ = "0.9.0"
+__version__ = "0.9.3"
 
 print("Initializing DAPPER...",end="", flush=True)
 
@@ -79,22 +79,31 @@ import matplotlib as mpl
 import getpass
 user_is_patrick = getpass.getuser() == 'pataan'
 
-# Choose graphics backend.
-from sys import platform
-if user_is_patrick and platform == 'darwin':
+if user_is_patrick:
+  from sys import platform
+  # Try to detect notebook
   try:
-    mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
-    import matplotlib.pyplot # Trigger (i.e. test) the actual import
-  except ImportError:
-    # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
-    mpl.use('MacOSX')
+    __IPYTHON__
+    from IPython import get_ipython
+    is_notebook_or_qt = 'zmq' in str(type(get_ipython())).lower()
+  except (NameError,ImportError):
+    is_notebook_or_qt = False
+  # Switch backend
+  if is_notebook_or_qt:
+    pass # Don't change backend
+  elif platform == 'darwin':
+    try:
+      mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
+      import matplotlib.pyplot # Trigger (i.e. test) the actual import
+    except ImportError:
+      # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
+      mpl.use('MacOSX')
 
-# terminal frontent
-mpl_is_interactive=True
-if 'inline' in mpl.get_backend():
-  print("\nWarning: interactive/live plotting functionality is off.")
-  print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
-  mpl_is_interactive=False
+_BE = mpl.get_backend().lower()
+liveplotting_enabled  = not any([_BE==x for x in ['agg','ps','pdf','svg','cairo','gdk']])
+# Also disable for inline backends, which are buggy with liveplotting
+liveplotting_enabled  = 'inline' not in _BE
+liveplotting_enabled &= 'nbagg'  not in _BE
 
 # Get Matlab-like interface, and enable interactive plotting
 import matplotlib.pyplot as plt 

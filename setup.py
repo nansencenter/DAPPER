@@ -97,11 +97,6 @@ setuptools.setup(
     # time
     # sys
     # msvcrt
-    #
-    # Tutorials:
-    # ----------------------------
-    # 'jupyter>=1.0.0',
-    # 'Markdown>=2.6',
 
 
     # File inclusion
