@@ -4,7 +4,7 @@ DAPPER is a set of templates for benchmarking the performance of data assimilati
 using synthetic/twin experiments.
 """
 
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 
 print("Initializing DAPPER...",end="", flush=True)
 
