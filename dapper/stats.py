@@ -188,10 +188,19 @@ class Stats(NestedPrint):
         warnings.warn("Sample variance was 0 at (k,kObs,fau) = " + str(key))
 
       # LivePlot -- Both initiation and update must come after the assessment.
-      if not hasattr(self,'LP_instance'):
+      if not hasattr(self,'LP_instance'): # -- INIT --
+        # Don't require liveplotting_enabled here (coz need LP_instance anyway)
         self.LP_instance = LivePlot(self, self.config.liveplotting, key,E,Cov)
-      elif mpl_is_interactive:
+
+      elif liveplotting_enabled: # -- UPDATE --
         self.LP_instance.update(key,E,Cov)
+
+      elif self.config.liveplotting is not False: # -- WARN --
+        if not getattr(self, 'mpl_warning_printed', False):
+          print("\nWarning: interactive/live plotting was requested,")
+          print("but is not supported by current backend: %s."%mpl.get_backend())
+          print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
+          self.mpl_warning_printed = True
 
 
   def assess_ens(self,k,E,w=None):
