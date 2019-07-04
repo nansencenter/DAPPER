@@ -187,34 +187,6 @@ else:
 # Multiprocessing, but for scripts,
 # and launching the processes (scripts) outside of python.
 
-import glob
-def get_numbering(glb):
-  ls = glob.glob(glb+'*')
-  return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
-
-import socket
-def save_dir(filepath,host=True):
-  """Make dir dpr_data/filepath_without_ext/hostname"""
-  host = socket.gethostname().split('.')[0] if host else ''
-  sdir = os.path.splitext(filepath)[0]
-  root = os.path.commonpath([dirs['data'],sdir])
-  sdir = os.path.relpath(sdir, root)
-  sdir = os.path.join(dirs['data'],sdir,host,'')
-  os.makedirs(sdir, exist_ok=True)
-  return sdir
-
-def prep_run(path,prefix):
-  "Call save_dir, and create (and reserve) path (with its prefix and RUN)"
-  path  = save_dir(path)
-  path += prefix+'_' if prefix else ''
-  path += 'run'
-  RUN   = str(1 + max(get_numbering(path),default=0))
-  path += RUN
-  print("Will save to",path+"...")
-  subprocess.run(['touch',path]) # reserve filename
-  return path, RUN
-
-
 import subprocess
 def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
   """Parallelization.
@@ -234,71 +206,106 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
    - Set xCost to 1 if the costs scale linearly with the setting.
   """
 
-  def simple_run():
-    save_path, _ = prep_run(script,prefix)
-    return save_path
+  import glob
+  def get_numbering(glb):
+    ls = glob.glob(glb+'*')
+    return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
+
+  def prep_run():
+    "Call save_dir, and create (and reserve) path (with its prefix and RUN)"
+    path  = save_dir(script)
+    # Add RUN part
+    path += prefix+'_' if prefix else ''
+    path += 'run'
+    RUN   = str(1 + max(get_numbering(path),default=0))
+    path += RUN
+    print("Will save to",path+"...")
+    # Reserve filename
+    subprocess.run(['touch',path]) 
+    return path, RUN
 
   # Make running count (rep_inds) of repeated xticks.
   # This is typically used to modify the experiment seeds.
   rep_inds = [ list(xticks[:i]).count(x) for i,x in enumerate(xticks) ]
 
-  if len(sysargs)>2:
-    if sysargs[2]=='PARALLELIZE':
-
+  # Set run_type
+  if len(sysargs)==1:
+    run_type = 'SIMPLE'
+  else:
+    run_type = sysargs[2].upper()
+    if run_type in ['TMP', 'WORKER']:
+      pass # i.e. this is a valid run_type
+    elif 'PARA' in run_type or 'DIST' in run_type:
       if no_MP:
-          MP_warn()
-          save_path = simple_run()
+        MP_warn()
+        run_type = 'SIMPLE'
       else:
-          save_path, RUN = prep_run(script,prefix)
+        run_type = 'MASTER'
+    else:
+      raise ValueError('%s is not a valid run type.'%sysargs[2])
 
-          # THIS SECTION CAN BE MODIFIED TO YOUR OWN QUEUE SYSTEM, etc.
-          # ------------------------------------------------------------
-          # The implemention here-below does not use any queing system,
-          # but simply launches a bunch of processes.
-          # It uses (gnu's) screen for coolness, coz then individual
-          # worker progress and printouts can be accessed using 'screen -r'.
 
-          # screenrc path. This config is the "master".
-          rcdir = os.path.join(dirs['data'],'screenrc')
-          os.makedirs(rcdir, exist_ok=True)
-          screenrc  = os.path.join(rcdir,'tmp_screenrc_')
-          screenrc += os.path.split(script)[1].split('.')[0] + '_run'+RUN
+    # Switch(run_type)
+    if   run_type == 'SIMPLE':
+      save_path, _ = prep_run()
 
-          HEADER = """
-          # Auto-generated screenrc file for experiment parallelization.
-          source $HOME/.screenrc
-          screen -t bash bash # make one empty bash session
-          """.replace('/',os.path.sep)
-          HEADER = textwrap.dedent(HEADER)
-          # Other useful screens to launch
-          #screen -t IPython ipython --no-banner # empty python session
-          #screen -t TEST bash -c 'echo nThread $MKL_NUM_THREADS; exec bash'
+    elif run_type == 'TMP':
+      save_path = os.path.join(dirs['data'],'tmp_data')
 
-          # Decide number of batches (i.e. processes) to split xticks into.
-          if isinstance(nCore,float): # interpret as ratio of total available CPU
-            nBatch = round( nCore * (1 - cpu_percent()/100) * cpu_count() )
-          else:       # interpret as number of cores
-            nBatch = min(nCore, cpu_count())
-          nBatch = min(nBatch, len(xticks))
+    elif run_type == 'MASTER':
+      save_path, RUN = prep_run()
 
-          # Write workers to screenrc
-          with open(screenrc,'w') as f:
-            f.write(HEADER)
-            for i in range(nBatch):
-              iWorker = i + 1 # start indexing from 1
-              f.write('screen -t W'+str(iWorker)+' ipython -i --no-banner '+
-                  ' '.join([script,sysargs[1],'WORKER',str(iWorker),str(nBatch),save_path])+'\n')
-              # sysargs:      0        1         2            3        4            5
-            f.write("")
-          sleep(0.2)
-          # Launch
-          subprocess.run(['screen', '-dmS', 'run'+RUN,'-c', screenrc])
-          print("Experiments launched. Use 'screen -r' to view their progress.")
-          sys.exit(0)
+      # THIS SECTION CAN BE MODIFIED TO YOUR OWN QUEUE SYSTEM, etc.
+      # ------------------------------------------------------------
+      # The implemention here-below does not use any queing system,
+      # but simply launches a bunch of processes.
+      # It uses (gnu's) screen for coolness, coz then individual
+      # worker progress and printouts can be accessed using 'screen -r'.
 
-    elif sysargs[2] == 'WORKER':
-      iWorker   = int(sysargs[3])
-      nBatch    = int(sysargs[4])
+      # screenrc path. This config is the "master".
+      rcdir = os.path.join(dirs['data'],'screenrc')
+      os.makedirs(rcdir, exist_ok=True)
+      screenrc  = os.path.join(rcdir,'tmp_screenrc_')
+      screenrc += os.path.split(script)[1].split('.')[0] + '_run'+RUN
+
+      HEADER = """
+      # Auto-generated screenrc file for experiment parallelization.
+      source $HOME/.screenrc
+      screen -t bash bash # make one empty bash session
+      """.replace('/',os.path.sep)
+      HEADER = textwrap.dedent(HEADER)
+      # Other useful screens to launch
+      #screen -t IPython ipython --no-banner # empty python session
+      #screen -t TEST bash -c 'echo nThread $MKL_NUM_THREADS; exec bash'
+
+      # Decide number of batches (i.e. processes) to run.
+      if isinstance(nCore,float): # interpret as ratio of total available CPU
+        nBatch = round( nCore * (1 - cpu_percent()/100) * cpu_count() )
+      else:       # interpret as number of cores
+        nBatch = min(nCore, cpu_count())
+
+      # Write workers to screenrc
+      with open(screenrc,'w') as f:
+        f.write(HEADER)
+        for i in range(nBatch):
+          iWorker = i + 1 # start indexing from 1
+          f.write('screen -t W'+str(iWorker)+' ipython -i --no-banner '+
+              ' '.join([script,sysargs[1],'WORKER',str(iWorker),str(nBatch),save_path])+'\n')
+          # sysargs:      0        1         2            3        4            5
+        f.write("")
+      sleep(0.2)
+      # Launch
+      subprocess.run(['screen', '-dmS', 'run'+RUN,'-c', screenrc])
+      print("Experiments launched. Use 'screen -r' to view their progress.")
+      sys.exit(0)
+
+    elif run_type == 'WORKER':
+      # Parse worker's sysargs
+      iWorker = int(sysargs[3])
+      nBatch  = int(sysargs[4])
+      nBatch  = min(nBatch, len(xticks))
+      if iWorker-1 >= nBatch:
+        sys.exit(0)
 
       # xCost defaults
       if xCost==None:
@@ -310,7 +317,7 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
       # Split xticks array to this "worker":
       if xCost==None:
         # Split uniformly
-        xticks   = np.array_split(xticks,nBatch)[iWorker-1]
+        xticks   = np.array_split(xticks  ,nBatch)[iWorker-1]
         rep_inds = np.array_split(rep_inds,nBatch)[iWorker-1]
       else:
         # Weigh xticks by costs, before splitting uniformly
@@ -334,15 +341,6 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
       save_path = sysargs[5] + '_W' + str(iWorker)
       print("Will save to",save_path+"...")
       
-    elif sysargs[2]=='EXPENDABLE' or sysargs[2]=='DISPOSABLE':
-      save_path = os.path.join(dirs['data'],'expendable')
-
-    else: raise ValueError('Could not interpret sys.args[1]')
-
-  else:
-    # No args => No parallelization
-    save_path = simple_run()
-
   return xticks, save_path, rep_inds
 
 
