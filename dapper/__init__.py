@@ -28,6 +28,9 @@ import configparser
 rc = configparser.ConfigParser()
 rc['dirs'] = {}
 rc['dirs']['data'] = "cwd"
+rc['plot'] = {}
+rc['plot']['style'] = 'default' # Comma-separated list e.g.
+#                                 fivethirtyeight,bmh,seaborn-darkgrid
 # Load rc files from user-home and cwd
 rc.read(os.path.join(x,'dpr_config.ini')
     for x in [os.path.expanduser("~"), os.curdir])
@@ -120,8 +123,8 @@ liveplotting_enabled &= 'nbagg'  not in _BE
 import matplotlib.pyplot as plt 
 plt.ion()
 
-# Styles, e.g. 'fivethirtyeight', 'bmh', 'seaborn-darkgrid'
-plt.style.use(['seaborn-darkgrid',os.path.join(dirs['dapper'],'tools','DAPPER.mplstyle')])
+# Styles
+plt.style.use(rc['plot']['style'].split(","))
 
 
 ##################################
