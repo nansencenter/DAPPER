@@ -192,26 +192,19 @@ def get_numbering(glb):
   ls = glob.glob(glb+'*')
   return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
 
-def rel_path(path,start=None,ext=False):
-  path = os.path.relpath(path,start)
-  if not ext:
-    path = os.path.splitext(path)[0]
-  return path
-
 import socket
-def save_dir(filepath,pre='',host=True):
-  """Make dir DAPPER/data/filepath_without_ext/hostname"""
-  if host is True:
-    host = socket.gethostname().split('.')[0]
-  else:
-    host = ''
-  path = rel_path(filepath)
-  dirpath  = os.path.join(pre,data_dir,path,host,'')
-  os.makedirs(dirpath, exist_ok=True)
-  return dirpath
+def save_dir(filepath,host=True):
+  """Make dir dpr_data/filepath_without_ext/hostname"""
+  host = socket.gethostname().split('.')[0] if host else ''
+  sdir = os.path.splitext(filepath)[0]
+  root = os.path.commonpath([dirs['data'],sdir])
+  sdir = os.path.relpath(sdir, root)
+  sdir = os.path.join(dirs['data'],sdir,host,'')
+  os.makedirs(sdir, exist_ok=True)
+  return sdir
 
 def prep_run(path,prefix):
-  "Create data-dir, create (and reserve) path (with its prefix and RUN)"
+  "Call save_dir, and create (and reserve) path (with its prefix and RUN)"
   path  = save_dir(path)
   path += prefix+'_' if prefix else ''
   path += 'run'
@@ -266,7 +259,7 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
           # worker progress and printouts can be accessed using 'screen -r'.
 
           # screenrc path. This config is the "master".
-          rcdir = os.path.join(data_dir,'screenrc')
+          rcdir = os.path.join(dirs['data'],'screenrc')
           os.makedirs(rcdir, exist_ok=True)
           screenrc  = os.path.join(rcdir,'tmp_screenrc_')
           screenrc += os.path.split(script)[1].split('.')[0] + '_run'+RUN
@@ -342,7 +335,7 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
       print("Will save to",save_path+"...")
       
     elif sysargs[2]=='EXPENDABLE' or sysargs[2]=='DISPOSABLE':
-      save_path = os.path.join(data_dir,'expendable')
+      save_path = os.path.join(dirs['data'],'expendable')
 
     else: raise ValueError('Could not interpret sys.args[1]')
 

@@ -23,11 +23,13 @@ import traceback
 import re
 import functools
 
-# Dirs
-dpr        = os.path.dirname(os.path.abspath(__file__)) # DAPEPR
-data_dir   = os.path.join(dpr,"..","data")              # DAPPER/data
-# data_dir = os.path.join(".","data")                   # PWD/data
-sample_dir = os.path.join(data_dir,"samples")           # data_dir/samples
+# Paths
+dirs = {}
+dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
+dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
+dirs['data_root'] = os.getcwd()
+dirs['data']      = os.path.join(dirs['data_root'], "dpr_data")
+dirs['samples']   = os.path.join(dirs['data']     ,"samples")
 
 # Pandas changes numpy's error settings. Correct.
 # olderr = np.geterr()
@@ -110,7 +112,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 # Styles, e.g. 'fivethirtyeight', 'bmh', 'seaborn-darkgrid'
-plt.style.use(['seaborn-darkgrid',os.path.join(dpr,'tools','DAPPER.mplstyle')])
+plt.style.use(['seaborn-darkgrid',os.path.join(dirs['dapper'],'tools','DAPPER.mplstyle')])
 
 
 ##################################
