@@ -574,21 +574,39 @@ def toggle_viz(*handles,prompt=False,legend=False,pause=True):
   return are_viz
 
 
-def savefig_n(f=None, ext='.pdf'):
+class FigSaver(NestedPrint):
   """
-  Simplify the exporting of a figure, especially when it's part of a series.
+  Simplify exporting a figure, especially when it's part of a series.
   """
-  assert savefig_n.index>=0, "Initalize using savefig_n.index = 1 in your script"
-  if f is None:
-    f = inspect.getfile(inspect.stack()[1][0])   # Get __file__ of caller
-    f = save_dir(f)                              # Prep save dir
-  f = f + str(savefig_n.index) + ext             # Compose name
-  print("Saving fig to:",f)                      # Print
-  plt.savefig(f)                                 # Save
-  savefig_n.index += 1                           # Increment index
-  plt.pause(0.1)                                 # For safety?
-savefig_n.index = -1
+  def __init__(self, script=None, basename=None, n=-1, ext='.pdf'):
+    
+    # Defaults
+    if script is None: # Get __file__ of caller
+      script = inspect.getfile(inspect.stack()[1][0])
+    if basename is None:
+      basename = 'figure'
+    # Prep save dir
+    sdir = save_dir(script,host=False)                   
+    # Set state
+    self.fname = sdir + basename
+    self.n     = n
+    self.ext   = ext
 
+  @property
+  def fullname(self):
+    f = self.fname         # Abbrev
+    if self.n>=0:          # If indexing:
+      f += '_n%d'%self.n   #   Add index
+    f += self.ext          # Add extension
+    return f
+
+  def save(self):
+    f = self.fullname         # Abbrev
+    print("Saving fig to:",f) # Print
+    plt.savefig(f)            # Save
+    if self.n>=0:             # If indexing:
+      self.n += 1             #   Increment
+      plt.pause(0.1)          #   For safety
 
 
 def nrowcol(nTotal,AR=1):
