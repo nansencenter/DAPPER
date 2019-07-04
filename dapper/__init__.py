@@ -24,19 +24,19 @@ import re
 import functools
 import configparser
 
-# Default rc
+# Define default rc
 rc = configparser.ConfigParser()
-rc['all'] = {}
-rc['all']['data in cwd'] = "yes"
-# Load rc
+rc['dirs'] = {}
+rc['dirs']['data'] = "cwd"
+# Load rc files from user-home and cwd
 rc.read(os.path.join(x,'dpr_config.ini')
     for x in [os.path.expanduser("~"), os.curdir])
 
-# Paths
+# Define paths
 dirs = {}
 dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
 dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
-dirs['data_root'] = os.getcwd() if rc['all'].getboolean('data in cwd') else dirs['DAPPER']
+dirs['data_root'] = os.getcwd() if rc['dirs']['data']=="cwd" else dirs['DAPPER']
 dirs['data']      = os.path.join(dirs['data_root'], "dpr_data")
 dirs['samples']   = os.path.join(dirs['data']     ,"samples")
 
