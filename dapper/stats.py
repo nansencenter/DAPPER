@@ -7,9 +7,6 @@ class Stats(NestedPrint):
   Contains and computes statistics of the DA methods.
   """
 
-  # Adjust this to omit heavy computations
-  comp_threshold_3 = 51
-
   # Used by NestedPrint
   excluded  = NestedPrint.excluded +\
       ['HMM','config','xx','yy','style1','style2','LP_instance']
@@ -64,12 +61,12 @@ class Stats(NestedPrint):
       minN         = min(Nx,N)
       self.w       = new_series(N)            # Importance weights
       self.rh      = new_series(Nx,dtype=int) # Rank histogram
-      do_spectral  = sqrt(Nx*N) <= Stats.comp_threshold_3
+      do_spectral  = sqrt(Nx*N) <= rc['comp_threshold_b']
     else:
       # Linear-Gaussian assessment
       self._is_ens = False
       minN         = Nx
-      do_spectral  = Nx <= Stats.comp_threshold_3
+      do_spectral  = Nx <= rc['comp_threshold_b']
 
     if do_spectral:
       self.svals = new_series(minN) # Principal component (SVD) scores
@@ -167,7 +164,7 @@ class Stats(NestedPrint):
       # Skip assessment?
       if kObs==None and not self.config.store_u:
         try:
-          if not self.LP_instance.any_figs:
+          if (not rc['liveplotting_enabled']) or (not self.LP_instance.any_figs):
             continue
         except AttributeError:
           pass # LP_instance not yet created
@@ -188,19 +185,11 @@ class Stats(NestedPrint):
         warnings.warn("Sample variance was 0 at (k,kObs,fau) = " + str(key))
 
       # LivePlot -- Both initiation and update must come after the assessment.
-      if not hasattr(self,'LP_instance'): # -- INIT --
-        # Don't require liveplotting_enabled here (coz need LP_instance anyway)
-        self.LP_instance = LivePlot(self, self.config.liveplotting, key,E,Cov)
-
-      elif liveplotting_enabled: # -- UPDATE --
-        self.LP_instance.update(key,E,Cov)
-
-      elif self.config.liveplotting is not False: # -- WARN --
-        if not getattr(self, 'mpl_warning_printed', False):
-          print("\nWarning: interactive/live plotting was requested,")
-          print("but is not supported by current backend: %s."%mpl.get_backend())
-          print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
-          self.mpl_warning_printed = True
+      if rc['liveplotting_enabled']:
+        if not hasattr(self,'LP_instance'): # -- INIT --
+          self.LP_instance = LivePlot(self, self.config.liveplotting, key,E,Cov)
+        else: # -- UPDATE --
+          self.LP_instance.update(key,E,Cov)
 
 
   def assess_ens(self,k,E,w=None):
