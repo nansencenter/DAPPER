@@ -9,7 +9,7 @@ class LivePlot:
    - Which liveploters to call.
    - plot_u
    - Figure window (title and number)."""
-  def __init__(self,stats,figlist,key0=(0,None,'u'),E=None,P=None,speed=1.0,**kwargs):
+  def __init__(self,stats,liveplotting,key0=(0,None,'u'),E=None,P=None,speed=1.0,**kwargs):
     """
     Initialize plots.
     - figlist: figures to plot; alternatives:
@@ -26,6 +26,7 @@ class LivePlot:
     self.params = {
         'pause_f' : 0.05,
         'pause_a' : 0.05,
+        'pause_s' : 0.05,
         'pause_u' : 0.001,
         }
     for pause in ["pause_"+x for x in "fau"]:
@@ -48,14 +49,7 @@ class LivePlot:
       assert num>10, "Liveplotters specified in the HMM should have fignum>10."
       potential_LPs[get_name(init)] = num, show, init
 
-    # Figures requested for this config. Convert to list
-    if isinstance(figlist,str):
-      fn = figlist.lower()                               # Yields:
-      if   "all" == fn:              figlist = range(99) # All potential_LPs
-      elif "default" in fn:          figlist = []        # All show_by_default
-    elif hasattr(figlist,'__len__'): figlist = figlist   # This list (only)
-    elif figlist:                    figlist = []        # All show_by_default
-    else:                            figlist = [None]    # None
+    figlist = parse_figlist(liveplotting)
 
     # On the 2nd run (of example_1 e.g.) the figures don't appear
     # if they've been closed. For some reason, this fixes it:
@@ -144,10 +138,22 @@ class LivePlot:
             updater(key,E,P)
             plot_pause(self.params['pause_'+f_a_u])
 
+def parse_figlist(figlist):
+  "Figures requested for this config. Convert to list."
+  if isinstance(figlist,str):
+    fn = figlist.lower()                               # Yields:
+    if   "all" == fn:              figlist = range(99) # All potential_LPs
+    elif "default" in fn:          figlist = []        # All show_by_default
+  elif hasattr(figlist,'__len__'): figlist = figlist   # This list (only)
+  elif figlist:                    figlist = []        # All show_by_default
+  else:                            figlist = [None]    # None
+  return figlist
 
 
 
-def replay(stats, figlist=[], speed=np.inf, t1=0, t2=None, **kwargs):
+
+
+def replay(stats, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   """Replay LivePlot with what's been stored in 'stats'.
 
   - t1, t2: time window to plot.
@@ -169,6 +175,9 @@ def replay(stats, figlist=[], speed=np.inf, t1=0, t2=None, **kwargs):
   # TODO: This system for switching from Ens to stats must be replaced.
   #       It breaks down when M is very large.
   P0 = np.full_like(stats.HMM.X0.C.full, nan) 
+
+  if figlist is None: figlist = stats.config.liveplotting
+  figlist = parse_figlist(figlist)
 
   LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, **kwargs)
 
@@ -463,7 +472,7 @@ class correlations:
     GS = {'height_ratios':[4, 1],'hspace':0.09,'top':0.95}
     fig, (ax,ax2) = freshfig(fignum, (5,6), loc='2321', nrows=2, gridspec_kw=GS)
 
-    if E is None and np.isnan(P).all():
+    if E is None and np.isnan(P.diag if isinstance(P,CovMat) else P).all():
       not_available_text(ax,'Not available in replays\ncoz full Ens/Cov not stored.')
       self.is_active = False
       return

@@ -527,8 +527,23 @@ def Id_mat(M):
   return NamedFunc(lambda x,t: I, "Id("+str(M)+") matrix")
 
 def linear_model_setup(ModelMatrix,dt0):
-  """x(t+dt) = ModelMatrix^(dt/dt0) @ x(t),
-  i.e. dx/dt = log(ModelMatrix)/dt0 @ x(t)."""
+  r"""Make a dictionary the Dyn/Obs field of HMM representing a linear model.
+
+  .. math::
+
+    x(t+dt) = \texttt{ModelMatrix}^{dt/dt0} x(t),
+
+  i.e. 
+
+  .. math::
+
+    \frac{dx}{dt} = \frac{\log(\texttt{ModelMatrix})}{dt0} x(t).
+    
+  In typical use, ``dt0==dt`` (where ``dt`` is defined by the chronology).
+  Anyways, ``dt`` must be an integer multiple of ``dt0``.
+  """
+
+  
   Mat = np.asarray(ModelMatrix) # does not support sparse and matrix-class
   
   # Compute and cache ModelMatrix^(dt/dt0).

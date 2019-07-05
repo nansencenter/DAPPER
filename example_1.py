@@ -12,10 +12,6 @@ config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
 # config = Var3D(infl=0.9)
 # config = PartFilt(N=100,reg=2.4,NER=0.3)
 
-# These attributes affect live and replay plots
-config.liveplotting=True
-config.store_u=True
-
 # Simulate synthetic truth (xx) and noisy obs (yy)
 xx,yy = simulate(HMM)
 

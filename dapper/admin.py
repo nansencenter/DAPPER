@@ -140,7 +140,7 @@ def DA_Config(da_method):
           try:
               assimilator(stats,HMM,xx,yy)
           except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
-              if getattr(cfg,'fail_gently',True):
+              if getattr(cfg,'fail_gently',rc['fail_gently']):
                 msg  = ["\n\nCaught exception during assimilation. Printing traceback:"]
                 msg += ["<"*20 + "\n"]
                 msg += crop_traceback(ERR,1) + [str(ERR)]
@@ -209,8 +209,8 @@ class DAC(ImmutableAttributes):
 
   # Defaults
   dflts = {
-      'liveplotting': False,
-      'store_u'     : False,
+      'liveplotting': rc['liveplotting_enabled'],
+      'store_u'     : rc['store_u'],
       }
 
   excluded =  ['assimilate',re.compile('^_')]

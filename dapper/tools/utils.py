@@ -125,6 +125,21 @@ def read1():
 
 
 
+#########################################
+# Path manipulation
+#########################################
+
+import socket
+def save_dir(script,host=True):
+  """Make dirs['data']/script/hostname, with some refinements."""
+  host   = socket.gethostname().split('.')[0] if host else ''
+  script = os.path.splitext(script)[0]
+  root   = os.path.commonpath([os.path.abspath(x) for x in [dirs['data'],script]])
+  script = os.path.relpath(script, root)
+  sdir   = os.path.join(dirs['data'],script,host,'')
+  os.makedirs(sdir, exist_ok=True)
+  return sdir
+
 
 #########################################
 # Console input / output

@@ -19,7 +19,13 @@ def simulate(HMM,desc='Truth & Obs'):
   return xx,yy
 
 
+def rel_path(path,start=None,ext=False):
+  path = os.path.relpath(path,start)
+  if not ext:
+    path = os.path.splitext(path)[0]
+  return path
 
+# TODO: archive
 def simulate_or_load(script,HMM, sd, more): 
   t = HMM.t
 

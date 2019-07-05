@@ -98,12 +98,11 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0, LP=LP_setup(obs_inds) )
 #   but are included in the state vector (amounting to 3% of the its length),
 #   and thus in RMSE calculations (which is not quite fair/optimal).
 
-# from dapper.mods.QG.sak08 import HMM                  # Expected RMSE_a:
-# N = 25
-# cfgs += LETKF(mp=True, N=N,infl=1.04       ,loc_rad=10)        # 0.64
-# cfgs += LETKF(mp=True, N=N,infl='-N',xN=2.0,loc_rad=10)        # 0.66
-# cfgs += SL_EAKF(       N=N,infl=1.04       ,loc_rad=10)        # 0.62
-# cfgs += SL_EAKF(       N=N,infl=1.03       ,loc_rad=10)        # 0.58
+# from dapper.mods.QG.sak08 import HMM                   # Expected RMSE_a:
+# cfgs += LETKF(mp=True, N=25,infl=1.04       ,loc_rad=10)        # 0.64
+# cfgs += LETKF(mp=True, N=25,infl='-N',xN=2.0,loc_rad=10)        # 0.66
+# cfgs += SL_EAKF(       N=25,infl=1.04       ,loc_rad=10)        # 0.62
+# cfgs += SL_EAKF(       N=25,infl=1.03       ,loc_rad=10)        # 0.58
 #
 # Iterative:
 # Yet to try: '-N' inflation, larger N, different loc_rad, and

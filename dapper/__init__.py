@@ -6,41 +6,57 @@ using synthetic/twin experiments.
 
 __version__ = "0.9.4"
 
-print("Initializing DAPPER...",end="", flush=True)
-
-
 ##################################
-# Tools
+# Standard lib
 ##################################
 import sys
-assert sys.version_info >= (3,5)
 import os
-from time import sleep
-from collections import OrderedDict
 import itertools
 import warnings
 import traceback
 import re
 import functools
+import configparser
+import builtins
+from time import sleep
+from collections import OrderedDict
 
-# Dirs
-dpr        = os.path.dirname(os.path.abspath(__file__)) # DAPEPR
-data_dir   = os.path.join(dpr,"..","data")              # DAPPER/data
-# data_dir = os.path.join(".","data")                   # PWD/data
-sample_dir = os.path.join(data_dir,"samples")           # data_dir/samples
+assert sys.version_info >= (3,6), "Need Python>=3.6"
 
-# Pandas changes numpy's error settings. Correct.
-# olderr = np.geterr()
-# import pandas as pd
-# np.seterr(**olderr)
+
+##################################
+# Config
+##################################
+dirs = {}
+dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
+dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
+
+_rc = configparser.ConfigParser()
+# Load rc files from dapper, user-home, and cwd
+_rc.read(os.path.join(x,'dpr_config.ini') for x in
+    [dirs['dapper'], os.path.expanduser("~"), os.curdir])
+# Convert to dict
+rc = {s:dict(_rc.items(s)) for s in _rc.sections() if s not in ['int','bool']}
+# Parse
+rc['plot']['styles'] = rc['plot']['styles'].replace('$dapper',dirs['dapper']).replace('/',os.path.sep)
+for x in _rc['int' ]: rc[x] = _rc['int' ].getint(x)
+for x in _rc['bool']: rc[x] = _rc['bool'].getboolean(x)
+
+# Define paths
+dirs['data_root'] = os.getcwd() if rc['dirs']['data']=="cwd" else dirs['DAPPER']
+dirs['data_base'] = "dpr_data"
+dirs['data']      = os.path.join(dirs['data_root'], dirs['data_base'])
+dirs['samples']   = os.path.join(dirs['DAPPER']   , dirs['data_base'], "samples")
 
 # Profiling. Decorate the function you wish to time with 'profile' below
 # Then launch program as: $ kernprof -l -v myprog.py
-import builtins
 try:
     profile = builtins.profile     # will exists if launched via kernprof
 except AttributeError:
     def profile(func): return func # provide a pass-through version.
+
+if rc['welcome_message']:
+  print("Initializing DAPPER...",flush=True)
 
 
 ##################################
@@ -100,17 +116,24 @@ if user_is_patrick:
       mpl.use('MacOSX')
 
 _BE = mpl.get_backend().lower()
-liveplotting_enabled  = not any([_BE==x for x in ['agg','ps','pdf','svg','cairo','gdk']])
-# Also disable for inline backends, which are buggy with liveplotting
-liveplotting_enabled  = 'inline' not in _BE
-liveplotting_enabled &= 'nbagg'  not in _BE
+_LP = rc['liveplotting_enabled']
+if _LP: # Check if we should disable anyway:
+  _LP &= not any([_BE==x for x in ['agg','ps','pdf','svg','cairo','gdk']])
+  # Also disable for inline backends, which are buggy with liveplotting
+  _LP &= 'inline' not in _BE
+  _LP &= 'nbagg'  not in _BE
+  if not _LP:
+    print("\nWarning: interactive/live plotting was requested,")
+    print("but is not supported by current backend: %s."%mpl.get_backend())
+    print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
+rc['liveplotting_enabled'] = _LP
 
 # Get Matlab-like interface, and enable interactive plotting
 import matplotlib.pyplot as plt 
 plt.ion()
 
-# Styles, e.g. 'fivethirtyeight', 'bmh', 'seaborn-darkgrid'
-plt.style.use(['seaborn-darkgrid',os.path.join(dpr,'tools','DAPPER.mplstyle')])
+# Styles
+plt.style.use(rc['plot']['styles'].split(","))
 
 
 ##################################
@@ -140,7 +163,9 @@ from .da_methods.variational import *
 from .da_methods.other import *
 
 
-print("...Done") # ... initializing DAPPER
+if rc['welcome_message']:
+  print("...Done") # ... initializing DAPPER
+  print("PS: Turn off this message in your configuration: dpr_config.ini")
 
 
 
