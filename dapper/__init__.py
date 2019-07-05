@@ -27,23 +27,26 @@ assert sys.version_info >= (3,6), "Need Python>=3.6"
 ##################################
 # Config
 ##################################
+dirs = {}
+dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
+dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
+
 _rc = configparser.ConfigParser()
 # Load rc files from dapper, user-home, and cwd
 _rc.read(os.path.join(x,'dpr_config.ini') for x in
-    [os.path.dirname(os.path.abspath(__file__)), os.path.expanduser("~"), os.curdir])
+    [dirs['dapper'], os.path.expanduser("~"), os.curdir])
 # Convert to dict
 rc = {s:dict(_rc.items(s)) for s in _rc.sections() if s not in ['int','bool']}
 # Parse
+rc['plot']['styles'] = rc['plot']['styles'].replace('$dapper',dirs['dapper']).replace('/',os.path.sep)
 for x in _rc['int' ]: rc[x] = _rc['int' ].getint(x)
 for x in _rc['bool']: rc[x] = _rc['bool'].getboolean(x)
 
 # Define paths
-dirs = {}
-dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
-dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
 dirs['data_root'] = os.getcwd() if rc['dirs']['data']=="cwd" else dirs['DAPPER']
-dirs['data']      = os.path.join(dirs['data_root'], "dpr_data")
-dirs['samples']   = os.path.join(dirs['data']     , "samples")
+dirs['data_base'] = "dpr_data"
+dirs['data']      = os.path.join(dirs['data_root'], dirs['data_base'])
+dirs['samples']   = os.path.join(dirs['DAPPER']   , dirs['data_base'], "samples")
 
 # Profiling. Decorate the function you wish to time with 'profile' below
 # Then launch program as: $ kernprof -l -v myprog.py
