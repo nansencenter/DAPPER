@@ -165,7 +165,7 @@ def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=Non
 
             # Assess (analysis) stats. The final_increment is a linearization to
             # (i) avoid re-running the model and (ii) reproduce EnKF in case nIter==1. 
-            final_increment = (dw+T-T_old)@Xf # See data/doc_snippets/iEnKS_Ea.jpg.
+            final_increment = (dw+T-T_old)@Xf # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
             stats.assess(k,   kObs, 'a', E=E+final_increment)
             stats.iters      [kObs] = iteration+1
             if xN: stats.infl[kObs] = sqrt(N1/za)

@@ -11,7 +11,7 @@
 DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods.
 The tests provide experimental support and guidance for new developments in DA. Example diagnostics:
 
-![EnKF - Lorenz'63](./data/figs/anims/DAPPER_illust_v2.jpg)
+![EnKF - Lorenz'63](./dpr_data/figs/anims/DAPPER_illust_v2.jpg)
 
 The typical set-up is a **twin experiment**, where you
 * specify a
@@ -216,10 +216,10 @@ Publication list
 Powered by
 ================================================
 <div>
-<img src="./data/figs/logos/python.png"  alt="Python"  height="100">
-<img src="./data/figs/logos/numpy.png"   alt="Numpy"   height="100">
-<img src="./data/figs/logos/pandas.png"  alt="Pandas"  height="100">
-<img src="./data/figs/logos/jupyter.png" alt="Jupyter" height="100">
+<img src="./dpr_data/figs/logos/python.png"  alt="Python"  height="100">
+<img src="./dpr_data/figs/logos/numpy.png"   alt="Numpy"   height="100">
+<img src="./dpr_data/figs/logos/pandas.png"  alt="Pandas"  height="100">
+<img src="./dpr_data/figs/logos/jupyter.png" alt="Jupyter" height="100">
 </div>
 
 <!--
