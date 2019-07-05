@@ -37,6 +37,7 @@ cfgs += PFxN(xN=1000,   N=30  ,Qs=2     ,NER=0.2)
 xx,yy = simulate(HMM)
 avrgs = []
 for ic,config in enumerate(cfgs):
+  config.liveplotting = False
   config.store_u = True
   seed(sd0+2)
   stats = config.assimilate(HMM,xx,yy)
@@ -100,6 +101,7 @@ xx,yy = simulate(HMM)
 avrgs = []
 for ic,config in enumerate(cfgs):
   config.store_u = True
+  config.liveplotting = False
   seed(sd0+2)
   stats = config.assimilate(HMM,xx,yy)
   avrgs += [ stats.average_in_time() ]

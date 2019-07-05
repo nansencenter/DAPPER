@@ -15,6 +15,7 @@ def test_L63():
   cfgs  = List_of_Configs()
   cfgs += EnKF('Sqrt',   N=10 ,infl=1.02 ,rot=True)
   cfgs += PartFilt(      N=20 ,reg=2.4   ,NER=0.3)
+  cfgs += OptInterp()
   # cfgs += iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)
 
   for iC,C in enumerate(cfgs):
@@ -61,6 +62,8 @@ def test_L95():
   from dapper.mods.Lorenz95.sak08 import HMM
   cfgs += EnKF('PertObs'        ,N=40, infl=1.06)               # 0.22
   cfgs += EnKF('Serial'         ,N=28, infl=1.02,rot=True)      # 0.18
+  cfgs += OptInterp()
+  cfgs += Var3D(infl=1.05)
   cfgs += ExtKF(infl=10)                                        # 0.24 
   cfgs += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')  # 
 
