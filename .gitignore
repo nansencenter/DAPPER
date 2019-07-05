@@ -4,6 +4,7 @@
 ### macOS ###
 .DS_Store
 ._*
+##############################
 
 ##############################
 ### Windows ###
@@ -49,28 +50,6 @@ docs/_build/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-##############################
-# Personal config for Patrick
-##############################
-
-# Data
-data/
-*.mat
-*.npz
-
-*~ # vim backups
-
-tmp[1-4].py
-
-dapper/mods/QG/f90/prms_*
-
-old
-new
-.rsync_xcld
-fileops.py
-Session.vim
-tmp_fileops_grep
-
 # Profiling, etc
 profile*.txt
 *.pyprof
@@ -79,4 +58,19 @@ profile*.txt
 *.dSYM
 *.dot
 *.profile
+
+##############################
+# DAPPER
+##############################
+
+# Data
+data/
+*.mat
+*.npz
+
+tmp[1-4].py
+
+# QG/f90
+prms_*\.txt
+
 
