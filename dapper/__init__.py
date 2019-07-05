@@ -31,9 +31,9 @@ rc['dirs']['data'] = "cwd"
 rc['plot'] = {}
 rc['plot']['style'] = 'default' # Comma-separated list e.g.
 #                                 fivethirtyeight,bmh,seaborn-darkgrid
-# Load rc files from user-home and cwd
-rc.read(os.path.join(x,'dpr_config.ini')
-    for x in [os.path.expanduser("~"), os.curdir])
+# Load rc files from dapper, user-home, and cwd
+rc.read(os.path.join(x,'dpr_config.ini') for x in
+    [os.path.dirname(os.path.abspath(__file__)), os.path.expanduser("~"), os.curdir])
 
 # Define paths
 dirs = {}
