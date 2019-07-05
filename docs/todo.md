@@ -2,9 +2,6 @@ Todo
 ================================================
 * Re-test LETKF mp on more cores
 
-
-* Defaults file (fail_gently, liveplotting, store_u mkl.set_num_threads, print options in NestedPrint, computational_threshold)
-
 * Deal with window focus.
 * Rename partial_direct_Obs -> partial_Id_Obs
 * Rename dfdx -> dstep_dx
@@ -20,8 +17,6 @@ Todo
 
 * Bugs:
     * __name__ for HMM via inspect fails when running a 2nd, ≠ script.
-
-* Post version on norce, nersc and link from enkf.nersc
 
 * Darcy, LotkaVolterra, 2pendulum, Kuramoto-Sivashinsky , Nikolaevskiy Equation
 * Simplify time management?
