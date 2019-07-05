@@ -26,6 +26,7 @@ class LivePlot:
     self.params = {
         'pause_f' : 0.05,
         'pause_a' : 0.05,
+        'pause_s' : 0.05,
         'pause_u' : 0.001,
         }
     for pause in ["pause_"+x for x in "fau"]:
