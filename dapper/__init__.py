@@ -43,7 +43,7 @@ dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
 dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
 dirs['data_root'] = os.getcwd() if rc['dirs']['data']=="cwd" else dirs['DAPPER']
 dirs['data']      = os.path.join(dirs['data_root'], "dpr_data")
-dirs['samples']   = os.path.join(dirs['data']     ,"samples")
+dirs['samples']   = os.path.join(dirs['data']     , "samples")
 
 # Profiling. Decorate the function you wish to time with 'profile' below
 # Then launch program as: $ kernprof -l -v myprog.py

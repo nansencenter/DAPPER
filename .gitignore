@@ -64,7 +64,7 @@ profile*.txt
 ##############################
 
 # Data
-data/
+dpr_data/
 *.mat
 *.npz
 
