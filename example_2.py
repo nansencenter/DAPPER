@@ -64,9 +64,7 @@ stats = []
 avrgs = []
 
 for ic,config in enumerate(cfgs):
-  # config.store_u = True
-  # config.liveplotting = True
-  # config.fail_gently = True
+  config.liveplotting = False
   seed(sd0+2) # use common random nums
 
   stats += [ config.assimilate(HMM,xx,yy) ]
