@@ -472,7 +472,7 @@ class correlations:
     GS = {'height_ratios':[4, 1],'hspace':0.09,'top':0.95}
     fig, (ax,ax2) = freshfig(fignum, (5,6), loc='2321', nrows=2, gridspec_kw=GS)
 
-    if E is None and np.isnan(P).all():
+    if E is None and np.isnan(P.diag if isinstance(P,CovMat) else P).all():
       not_available_text(ax,'Not available in replays\ncoz full Ens/Cov not stored.')
       self.is_active = False
       return
