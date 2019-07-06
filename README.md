@@ -5,9 +5,6 @@ This branch of DAPPER reproduces the benchmark results plotted in Figure 4 (a,b,
     by Patrick N. Raanes, Marc Bocquet, and Alberto Carrassi.
 
 
-The scripts are located in the folder `AdInf` (which only exists on this git branch). The scripts depend on the underlying package: DAPPER. In particular, all of the AdInf scripts are based on DAPPER/example_3.py; refer to this for more detailed commenting.
-
-
 DAPPER may be installed as described
 [for in the master branch (accessed July 2019)](https://github.com/nansencenter/DAPPER#installation). 
 
@@ -19,3 +16,4 @@ To reproduce the benchmark data points:
    * Figure 4b: `python bench_LUV.py c`
    * Figure 4c: `python bench_L95.py F`
    * Figure 4d: `python bench_L95.py Q`
+   All scripts are based on `example_3.py`; refer to this for more detailed commenting.
