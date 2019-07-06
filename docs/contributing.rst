@@ -55,6 +55,10 @@ Making a release
     username: myuser
     password: mypass
 
+- Upload to Test.PyPI::
+
+    git checkout dev1
+
 
 
 
