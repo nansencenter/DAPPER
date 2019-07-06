@@ -109,7 +109,7 @@ setuptools.setup(
       ['dapper.mods.'+x for x in os.listdir('dapper/mods') if filter_dirs(x)]+\
       ['dapper.mods.QG.f90'],
     package_data={
-        '': ['*.mplstyle','*.txt','*.md','*.png'],
+        '': ['dpr_config.ini','*.mplstyle','*.txt','*.md','*.png'],
         'dapper.mods.QG.f90': ['*.txt','*.md','*.png','Makefile','*.f90'],
     },
 
