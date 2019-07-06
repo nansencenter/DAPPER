@@ -550,7 +550,7 @@ def linear_model_setup(ModelMatrix,dt0):
   @functools.lru_cache(maxsize=1)
   def MatPow(dt):
     assert is_whole(dt/dt0), "Mat. exponentiation unique only for integer powers."
-    return nla.matrix_power(Mat, round(dt/dt0))
+    return nla.matrix_power(Mat, int(round(dt/dt0)))
 
   @ens_compatible
   def model(x,t,dt): return MatPow(dt) @ x
