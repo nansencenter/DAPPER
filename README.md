@@ -46,6 +46,8 @@ Step 2 can be replaced by
 `pip install da-dapper`
 but this is not recommended since this hides away DAPPER as a library in your python path.
 
+If the installation fails, you probably need to [create a fresh Python environment](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments) (which is why we recommend using Anaconda).
+
 
 Getting started
 ================================================
