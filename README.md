@@ -14,6 +14,6 @@ To reproduce the benchmark data points:
 2. Run the desired script, doing one of:
    * Figure 4a: `python bench_LUV.py F`
    * Figure 4b: `python bench_LUV.py c`
-   * Figure 4c: `python bench_L95.py F`
+   * Figure 4c: `python bench_L95.py FTr`
    * Figure 4d: `python bench_L95.py Q`
    All scripts are based on `example_3.py`; refer to this for more detailed commenting.

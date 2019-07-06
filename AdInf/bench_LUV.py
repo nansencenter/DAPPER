@@ -156,11 +156,12 @@ for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
   setattr(LUV,CtrlVar,X)
 
   sd    = seed(sd0 + iR)
-  xx,yy = simulate_or_load(__file__, HMM_full, sd, CtrlVar+'='+str(X))
+  xx,yy = simulate(HMM)
   prmzt = estimate_parameterization(xx)
 
   for iC,Config in enumerate(cfgs):
     seed(sd)
+    Config.liveplotting=False
     
     # Case: DA should use full model
     if 'FULL' in getattr(Config,'name',''):

@@ -75,10 +75,11 @@ for iX,(X,iR) in enumerate(zip(xticks,iiRep)):
   set_true(X)
 
   sd    = seed(sd0 + iR)
-  xx,yy = simulate_or_load(__file__, HMM, sd, CtrlVar+'='+str(X))
+  xx,yy = simulate(HMM)
 
   for iC,Config in enumerate(cfgs):
     seed(sd)
+    Config.liveplotting=False
     
     if 'FULL' in getattr(Config,'name',''):
       set_true(X)
