@@ -10,4 +10,5 @@ DAPPER may be installed as described
 
 To reproduce the benchmark data points:
 1. Execute: `git checkout paper_StochIEnS` to view this branch.
-2. Run the script: `python bench_L95.py N`, (based on `example_3.py`, which has more comments).
+2. Run the script: `python bench_L95.py N`  
+   (based on `example_3.py`, which has more comments).
