@@ -4,7 +4,7 @@ DAPPER is a set of templates for benchmarking the performance of data assimilati
 using synthetic/twin experiments.
 """
 
-__version__ = "0.9.5"
+__version__ = "0.9.6"
 
 ##################################
 # Standard lib

@@ -24,9 +24,16 @@ Making a release
   
     rm -rf build/ dist *.egg-info .eggs
 
+- Add new files to ``package_data`` and ``packages`` in ``setup.py``
+
 - Build::
 
     ./setup.py sdist bdist_wheel
+
+- Upload to PyPI::
+
+    twine upload --repository pypi dist/*
+
 
 - Upload to Test.PyPI::
 
@@ -49,9 +56,6 @@ Making a release
     password: mypass
 
 
-- Upload to PyPI::
-
-    twine upload --repository pypi dist/*
 
 
 Test installation
