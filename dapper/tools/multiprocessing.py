@@ -229,30 +229,30 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
   rep_inds = [ list(xticks[:i]).count(x) for i,x in enumerate(xticks) ]
 
   # Set run_type
-  if len(sysargs)==1:
-    run_type = 'SIMPLE'
+  if len(sysargs)<=2:
+      run_type = 'SIMPLE'
   else:
-    run_type = sysargs[2].upper()
-    if run_type in ['TMP', 'WORKER']:
-      pass # i.e. this is a valid run_type
-    elif 'PARA' in run_type or 'DIST' in run_type:
-      if no_MP:
-        MP_warn()
-        run_type = 'SIMPLE'
+      run_type = sysargs[2].upper()
+      if run_type in ['TMP', 'WORKER']:
+        pass # i.e. this is a valid run_type
+      elif 'PARA' in run_type or 'DIST' in run_type:
+        if no_MP:
+          MP_warn()
+          run_type = 'SIMPLE'
+        else:
+          run_type = 'MASTER'
       else:
-        run_type = 'MASTER'
-    else:
-      raise ValueError('%s is not a valid run type.'%sysargs[2])
+        raise ValueError('%s is not a valid run type.'%sysargs[2])
 
 
-    # Switch(run_type)
-    if   run_type == 'SIMPLE':
+  # Switch(run_type)
+  if   run_type == 'SIMPLE':
       save_path, _ = prep_run()
 
-    elif run_type == 'TMP':
+  elif run_type == 'TMP':
       save_path = os.path.join(dirs['data'],'tmp_data')
 
-    elif run_type == 'MASTER':
+  elif run_type == 'MASTER':
       save_path, RUN = prep_run()
 
       # THIS SECTION CAN BE MODIFIED TO YOUR OWN QUEUE SYSTEM, etc.
@@ -299,7 +299,7 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
       print("Experiments launched. Use 'screen -r' to view their progress.")
       sys.exit(0)
 
-    elif run_type == 'WORKER':
+  elif run_type == 'WORKER':
       # Parse worker's sysargs
       iWorker = int(sysargs[3])
       nBatch  = int(sysargs[4])
