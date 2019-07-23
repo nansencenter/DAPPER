@@ -174,7 +174,10 @@ def replay(stats, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   # If the LPs are initialized with P0!=None, then they will avoid ens plotting.
   # TODO: This system for switching from Ens to stats must be replaced.
   #       It breaks down when M is very large.
-  P0 = np.full_like(stats.HMM.X0.C.full, nan) 
+  try:
+    P0 = np.full_like(stats.HMM.X0.C.full, nan) 
+  except AttributeError: # e.g. if X0 is defined via sampling func
+    P0 = eye(stats.HMM.Nx)
 
   if figlist is None: figlist = stats.config.liveplotting
   figlist = parse_figlist(figlist)

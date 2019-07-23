@@ -20,10 +20,11 @@ def step(x,t,dt):
 Dyn = {
     'M': Nx,
     'model': step,
+    'jacob': lambda x,t,dt: Fm,
     'noise': 0
     }
 
-X0 = GaussRV(C=homogeneous_1D_cov(Nx,Nx/8,kind='Gauss'))
+X0 = GaussRV(mu=zeros(Nx), C=homogeneous_1D_cov(Nx,Nx/8,kind='Gauss'))
 
 Ny  = 4
 jj = equi_spaced_integers(Nx,Ny)

@@ -52,7 +52,7 @@ class Operator(NestedPrint):
     # None => Identity model
     if model is None:
       model = Id_op()
-      kwargs['jacob'] = Id_mat(M)
+      kwargs['jacob'] = lambda x,t,dt: Id_mat(M)
     self.model = model
 
     # None/0 => No noise

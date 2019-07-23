@@ -569,6 +569,10 @@ def direct_obs_matrix(Nx,obs_inds):
   Ny = len(obs_inds)
   H = zeros((Ny,Nx))
   H[range(Ny),obs_inds] = 1
+
+  # One-liner:
+  # H = array([[i==j for i in range(M)] for j in jj],float)
+
   return H
 
 
