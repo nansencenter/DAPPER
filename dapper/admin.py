@@ -209,7 +209,7 @@ class DAC(ImmutableAttributes):
 
   # Defaults
   dflts = {
-      'liveplotting': True,
+      'liveplotting': False,
       'store_u'     : rc['store_u'],
       }
 
