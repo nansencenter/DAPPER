@@ -93,10 +93,8 @@ class LivePlot:
       open_figns = plt.get_fignums()
       live_figns = set(num for (num, updater) in self.figures.values())
       self.any_figs = bool(live_figns.intersection(open_figns))
-    # If no open figures: don't update
-    if not self.any_figs:
+    else:
       return
-
 
     # Playback control
     SPACE  = b' '   
