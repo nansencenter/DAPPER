@@ -134,10 +134,10 @@ for iX,(X,iR) in enumerate(zip(xticks,rep_inds)):
 # Results saved in the format below is supported by DAPPER's ResultsTable, whose main purpose
 # is to collect result data from parallelized (or otherwise independent) experiments.
 np.savez(save_path,
-    avrgs      = avrgs,            # 3D array of dicts, whose fields are the averages.
-    xlabel     = CtrlVar,          # The control variable tag (string).
-    xticks     = xticks,           # xticks (array).
-    labels     = cfgs.gen_names()) # List of strings.
+    avrgs  = avrgs,            # 3D array of dicts, whose fields are the averages.
+    xlabel = CtrlVar,          # The control variable tag (string).
+    xticks = xticks,           # xticks (array).
+    labels = cfgs.gen_names()) # List of strings.
 
 
 ##############################
