@@ -22,12 +22,12 @@ sd0 = seed(5)
 # N   = Nx        # Num of perturbations used.
 
 
-# from dapper.mods.Lorenz63.core import step, Nx
+# from dapper.mods.Lorenz63.core import step, x0
 # # ------------------
 # # Lyapunov exponents: [0.906, 0, -14.572]
 # T   = 1e2
 # dt  = 0.04
-# x0  = ones(Nx)
+# Nx  = len(x0)
 # eps = 0.001
 # N   = Nx
 
