@@ -7,13 +7,16 @@ from dapper import *
 from dapper.mods.Lorenz63.sak12 import HMM
 HMM.t.T = 30 # shorten experiment
 
+# Simulate synthetic truth (xx) and noisy obs (yy)
+xx,yy = simulate(HMM)
+
 # Specify a DA method configuration
 config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
 # config = Var3D(infl=0.9)
 # config = PartFilt(N=100,reg=2.4,NER=0.3)
 
-# Simulate synthetic truth (xx) and noisy obs (yy)
-xx,yy = simulate(HMM)
+# Turn on liveplotting
+config.liveplotting = True
 
 # Assimilate yy, knowing the HMM; xx is used for assessment.
 stats = config.assimilate(HMM,xx,yy)
