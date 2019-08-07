@@ -228,7 +228,7 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
   # This is typically used to modify the experiment seeds.
   rep_inds = [ list(xticks[:i]).count(x) for i,x in enumerate(xticks) ]
 
-  # Set run_type
+  # Parse run_type
   if len(sysargs)<=2:
       run_type = 'SIMPLE'
   else:
