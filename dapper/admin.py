@@ -196,7 +196,7 @@ def DA_Config(da_method):
 
 
 
-class DAC(ImmutableAttributes):
+class DAC(ImmutableAttributes,NestedPrint):
   """DA configs (settings).
 
   This class just contains the parameters grabbed by the DA_Config wrapper.
@@ -213,15 +213,16 @@ class DAC(ImmutableAttributes):
       'store_u'     : rc['store_u'],
       }
 
-  excluded =  ['assimilate',re.compile('^_')]
+  # Print settings
+  excluded = ['assimilate','da_method','name',re.compile('^_'),'ordering']
+  excluded += list(dflts)
 
   def __init__(self,odict):
-    """Assign dict items to attributes"""
-    # Ordering is kept for printing
-    self._ordering = list(odict.keys())
-    for key, value in self.dflts.items(): setattr(self, key, value)
-    for key, value in      odict.items(): setattr(self, key, value)
-    self._freeze(filter_out(odict.keys(),*self.dflts,'name'))
+    self.ordering = list(odict.keys())                              # Keep ordering (4 printing)
+    for key, value in self.dflts.items(): setattr(self, key, value) # Set defaults
+    for key, value in      odict.items(): setattr(self, key, value) # Set argument
+    if 'name' not in odict: self.name = self.da_method.__name__     # Set name
+    self._freeze(filter_out(odict.keys(),*self.dflts,'name'))       # Freeze
 
   def update_settings(self,**kwargs):
     """
@@ -231,24 +232,19 @@ class DAC(ImmutableAttributes):
     >>> for iC,C in enumerate(cfgs):
     >>>   cfgs[iC] = C.update_settings(liveplotting=True)
     """
-    old = self._ordering + filter_out(self.__dict__,*self._ordering,*self.excluded,'da_method')
+
+    old = self.ordering
+    old += filter_out(self.__dict__,*self.ordering)
+    old = filter_out(old,'assimilate','da_method',re.compile('^_'),'ordering')
     dct = {**{key: getattr(self,key) for key in old}, **kwargs}
     return DA_Config(self.da_method)(**dct)
 
-  def __repr__(self):
-    def format_(key,val):
-      # default printing
-      s = repr(val)
-      # wrap s
-      s = key + '=' + s + ", "
-      return s
-    s = self.da_method.__name__ + '('
-    # Print ordered
-    keys = self._ordering + filter_out(self.__dict__,*self._ordering)
-    keys = filter_out(keys,*self.excluded,*self.dflts,'da_method')
-    for key in keys:
-      s += format_(key,getattr(self,key))
-    return s[:-2]+')'
+  # def __repr__(self):
+    # keys  = self.ordering                               # + ordered keys
+    # keys += filter_out(self.__dict__,*self.ordering)    # + other attributes
+    # keys  = filter_out(keys,*self.excluded)             # - excluded
+    # attributes = ", ".join([k+"="+repr(getattr(self,k)) for k in keys])
+    # return self.da_method.__name__ + '(' + attributes + ')'
 
   def __eq__(self, config):
     prep = lambda obj: {k:v for k,v in obj.__dict__.items() if
@@ -275,7 +271,7 @@ class List_of_Configs(list):
   """
 
   # Print settings
-  excluded = DAC.excluded + ['name']
+  excluded = filter_out(DAC.excluded,'da_method')
   ordering = ['da_method','N','upd_a','infl','rot']
 
   def __init__(self,*args,unique=False):
