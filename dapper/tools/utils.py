@@ -140,6 +140,11 @@ def save_dir(script,host=True):
   os.makedirs(sdir, exist_ok=True)
   return sdir
 
+import glob
+def get_numbering(glb):
+  ls = glob.glob(glb+'*')
+  return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
+
 
 #########################################
 # Console input / output

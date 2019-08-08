@@ -550,3 +550,67 @@ def typeset(lst,tab):
   return ss
 
 
+
+
+import dill
+def save_data(name,*args,**kwargs):
+  """"Utility for saving experimental data.
+
+  Takes care of:
+   - Path management.
+   - Calling dill.dump().
+   - Default naming of certain types of arguments.
+
+  The advantage of dill is that it can seriealize (and hence store) nearly anything.
+  Also, dill automatically uses np.save() for arrays for memory/disk efficiency.
+  """
+
+  filename  = save_dir(name,host=False) + "run_"
+  filename += str(1 + max(get_numbering(filename),default=0)) + ".pickle"
+  print("Saving data to",filename)
+
+  def name_args():
+      data = OrderedDict()
+      nNone = 0 # count of non-classified objects
+
+      nameable_classes = OrderedDict(
+            HMM  = lambda x: isinstance(x,HiddenMarkovModel),
+            cfgs = lambda x: isinstance(x,List_of_Configs),
+            DAC  = lambda x: isinstance(x,DAC),
+            stat = lambda x: isinstance(x,Stats),
+            avrg = lambda x: getattr(x,"_isavrg",False),
+          )
+
+      def classify(x):
+          for name, test in nameable_classes.items():
+            if test(x): return name
+          # Defaults:
+          if isinstance(x,list): return "list"
+          else:                  return None
+
+      for x in args:
+          Class = classify(x)
+
+          if Class == "list":
+            Class0 = classify(x[0])
+            if Class0 in nameable_classes and all([Class0==classify(y) for y in x]):
+              Class = Class0 + "s" # plural
+            else:
+              Class = None
+
+          elif Class is None:
+            nNone += 1
+            Class = "obj%d"%nNone
+
+          data[Class] = x
+      return data
+
+  with open(filename,"wb") as filestream:
+      dill.dump({**kwargs, **name_args()}, filestream)
+
+  return filename
+
+
+
+
+

@@ -71,6 +71,8 @@ for ic,config in enumerate(cfgs):
   # print_averages(config, avrgs[-1])
 print_averages(cfgs,avrgs)
 
+dpath = save_data(__file__, HMM, cfgs, stats, avrgs)
+
 
 ##############################
 # Plot

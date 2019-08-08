@@ -334,6 +334,10 @@ class Stats(NestedPrint):
           raise NotImplementedError
       except NotImplementedError:
         pass
+
+    # used as class id by save_data
+    avrg._isavrg = True 
+
     return avrg
 
 
