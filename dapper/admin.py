@@ -218,7 +218,7 @@ class DAC(ImmutableAttributes):
   def __init__(self,odict):
     """Assign dict items to attributes"""
     # Ordering is kept for printing
-    self._ordering = odict.keys()
+    self._ordering = list(odict.keys())
     for key, value in self.dflts.items(): setattr(self, key, value)
     for key, value in      odict.items(): setattr(self, key, value)
     self._freeze(filter_out(odict.keys(),*self.dflts,'name'))
@@ -231,7 +231,7 @@ class DAC(ImmutableAttributes):
     >>> for iC,C in enumerate(cfgs):
     >>>   cfgs[iC] = C.update_settings(liveplotting=True)
     """
-    old = list(self._ordering) + filter_out(self.__dict__,*self._ordering,*self.excluded,'da_method')
+    old = self._ordering + filter_out(self.__dict__,*self._ordering,*self.excluded,'da_method')
     dct = {**{key: getattr(self,key) for key in old}, **kwargs}
     return DA_Config(self.da_method)(**dct)
 
@@ -244,7 +244,7 @@ class DAC(ImmutableAttributes):
       return s
     s = self.da_method.__name__ + '('
     # Print ordered
-    keys = list(self._ordering) + filter_out(self.__dict__,*self._ordering)
+    keys = self._ordering + filter_out(self.__dict__,*self._ordering)
     keys = filter_out(keys,*self.excluded,*self.dflts,'da_method')
     for key in keys:
       s += format_(key,getattr(self,key))
