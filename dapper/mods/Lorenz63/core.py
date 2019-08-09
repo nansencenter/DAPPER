@@ -1,6 +1,7 @@
-# "Lorenz-63"  model. Classic exhibitor of chaos.
-# Phase-plot looks like a butterfly.
-# See demo.py for more info.
+"""The "Lorenz-63" model: the classic exhibitor of chaos.
+Phase-plot looks like a butterfly.
+See demo.py for more info.
+"""
 
 
 import numpy as np
@@ -9,9 +10,9 @@ from dapper.tools.math import with_rk4, is1d, ens_compatible, integrate_TLM
 # Constants
 sig = 10.0; rho = 28.0; beta = 8.0/3
 
-# Dynamics: time derivative.
 @ens_compatible
 def dxdt(x):
+  "Evolution equation (coupled ODEs) specifying the dynamics."
   d     = np.zeros_like(x)
   x,y,z = x
   d[0]  = sig*(y - x)
@@ -19,17 +20,16 @@ def dxdt(x):
   d[2]  = x*y - beta*z
   return d
 
-# Dynamics: time step integration.
+# Time-step integration.
 step = with_rk4(dxdt,autonom=True)
 
 # Time span for plotting. Typically: ≈10 * "system time scale".
 Tplot = 4.0
 
-# Example initial state.
-# Specifics are usually not important coz system is chaotic,
-# and we employ a BurnIn before averaging statistics.
-# But it's often convenient to give a point on the attractor,
-# or at least its basin, or at least ensure that it's "physical".
+# Example initial state -- usually not important,
+# coz system is chaotic, and we average stats after a BurnIn time.
+# But it's often convenient to have a point on the attractor, or basin,
+# or at least ensure "physicality".
 x0 = np.array([1.509, -1.531, 25.46])
 
 
@@ -37,7 +37,7 @@ x0 = np.array([1.509, -1.531, 25.46])
 # OPTIONAL (not necessary for EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
-  """Tangent linear model"""
+  """Tangent linear model (TLM): Jacobian of dxdt(x)."""
   x,y,z = x
   A = np.array(
       [[-sig , sig , 0],
@@ -46,7 +46,7 @@ def d2x_dtdx(x):
   return A
 
 def dstep_dx(x,t,dt):
-  """Integral of d2x_dtdx. Jacobian of step."""
+  """Resolvent (propagator) of the TLM: Jacobian of step(x)."""
   return integrate_TLM(d2x_dtdx(x),dt,method='approx')
 
 
