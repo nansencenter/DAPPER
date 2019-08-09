@@ -29,7 +29,7 @@ def step(x,t,dt):
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': lambda x,t,dt: Fm,
+    'linear': lambda x,t,dt: Fm,
     'noise': 0
     }
 

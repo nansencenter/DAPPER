@@ -13,7 +13,7 @@ Nx = len(x0)
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dstep_dx,
+    'linear': dstep_dx,
     'noise': 0
     }
 

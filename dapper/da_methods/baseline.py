@@ -48,7 +48,7 @@ def OptInterp(**kwargs):
 
     # Get H.
     msg  = "For speed, only time-independent H is supported."
-    H    = Obs.jacob(np.nan, np.nan)
+    H    = Obs.linear(np.nan, np.nan)
     if not np.all(np.isfinite(H)): raise AssimFailedError(msg)
 
     # Compute "climatological" Kalman gain
@@ -122,7 +122,7 @@ def Var3D(infl=1.0,**kwargs):
         stats.assess(k,kObs,'f',mu=mu,Cov=P)
         # Analysis
         P *= infl
-        H  = Obs.jacob(mu,t)
+        H  = Obs.linear(mu,t)
         KG = mrdiv(P@H.T, H@P@H.T + Obs.noise.C.full)
         KH = KG@H
         mu = mu + KG@(yy[kObs] - Obs(mu,t))

@@ -554,12 +554,12 @@ def linear_model_setup(ModelMatrix,dt0):
 
   @ens_compatible
   def model(x,t,dt): return MatPow(dt) @ x
-  def jacob(x,t,dt): return MatPow(dt)
+  def linear(x,t,dt): return MatPow(dt)
 
   Dyn = {
       'M'    : len(Mat),
       'model': model,
-      'jacob': jacob,
+      'linear': linear,
       }
   return Dyn
 
@@ -581,11 +581,11 @@ def partial_Id_Obs(Nx,obs_inds):
   H = direct_obs_matrix(Nx,obs_inds)
   @ens_compatible
   def model(x,t): return x[obs_inds]
-  def jacob(x,t): return H
+  def linear(x,t): return H
   Obs = {
       'M'    : Ny,
       'model': model,
-      'jacob': jacob,
+      'linear': linear,
       }
   return Obs
 

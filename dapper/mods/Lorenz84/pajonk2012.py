@@ -23,7 +23,7 @@ t = Chronology(0.05,dkObs=1,T=200*day,BurnIn=10*day)
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dstep_dx,
+    'linear': dstep_dx,
     'noise': 0
     }
 

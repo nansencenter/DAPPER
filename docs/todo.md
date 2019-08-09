@@ -1,8 +1,6 @@
 Todo
 ================================================
-* Rename jacob -> linearization
-
-* Darcy, LotkaVolterra, 2pendulum, Kuramoto-Sivashinsky , Nikolaevskiy Equation
+* Darcy, Kuramoto-Sivashinsky, Nikolaevskiy Equation
 * Simplify time management?
 * Use pandas for stats time series?
 

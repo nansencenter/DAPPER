@@ -53,7 +53,7 @@ def step(x,t,dt):
 Dyn = {
     'M'    : Nx,
     'model': lambda x,t,dt: damp * step(x,t,dt),
-    'jacob': lambda x,t,dt: damp * Fm,
+    'linear': lambda x,t,dt: damp * Fm,
     'noise': GaussRV(C=CovMat(L,'Left')),
     }
 
