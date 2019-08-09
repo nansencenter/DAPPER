@@ -14,7 +14,7 @@ Nx = 1000;
 Ny = 40;
 
 jj = equi_spaced_integers(Nx,Ny)
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
 

@@ -1,6 +1,5 @@
 Todo
 ================================================
-* Rename partial_direct_Obs -> partial_Id_Obs
 * Rename dfdx -> dstep_dx
 * Rename TLM -> d2x_dtdx
 * Rename jacob -> linearization

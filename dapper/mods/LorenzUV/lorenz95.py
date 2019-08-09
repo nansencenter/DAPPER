@@ -30,7 +30,7 @@ X0 = GaussRV(C=0.01*eye(LUV.M))
 
 R = 1.0
 jj = arange(LUV.nU)
-Obs = partial_direct_Obs(LUV.M,jj)
+Obs = partial_Id_Obs(LUV.M,jj)
 Obs['noise'] = R
 
 other = {'name': rel_path(__file__,'mods/')+'_full'}
@@ -53,7 +53,7 @@ Dyn = {
 X0 = GaussRV(C=0.01*eye(nU))
 
 jj = arange(nU)
-Obs = partial_direct_Obs(nU,jj)
+Obs = partial_Id_Obs(nU,jj)
 Obs['noise'] = R
  
 other = {'name': rel_path(__file__,'mods/')+'_trunc'}

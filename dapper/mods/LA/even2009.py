@@ -41,7 +41,7 @@ wnum  = 25
 a = sqrt(5)/10
 X0 = RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx,wnum,N))
 
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
 HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))

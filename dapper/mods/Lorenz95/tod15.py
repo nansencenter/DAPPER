@@ -18,7 +18,7 @@ Dyn = {
 X0 = GaussRV(M=Nx, C=0.001)
 
 jj = arange(0,Nx,2)
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['localizer'] = loc_setup( (Nx,), (1,), jj, periodic=True )
 # Obs['noise'] = LaplaceRV(C=1,M=len(jj))
 Obs['noise'] = LaplaceParallelRV(C=1,M=len(jj))

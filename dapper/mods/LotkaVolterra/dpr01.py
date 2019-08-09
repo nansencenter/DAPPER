@@ -22,7 +22,7 @@ Dyn = {
 X0 = GaussRV(mu=x0,C=0.01**2)
 
 jj = [1,3]
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.04**2
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LP_setup(jj))

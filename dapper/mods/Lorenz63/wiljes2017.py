@@ -9,7 +9,7 @@ from dapper.mods.Lorenz63.sak12 import HMM, Nx
 HMM.t = Chronology(0.01,dkObs=12,T=4**5,BurnIn=4)
 
 jj = array([0])
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 8
 HMM.Obs = Operator(**Obs)
 
