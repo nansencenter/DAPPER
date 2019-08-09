@@ -1,26 +1,24 @@
 Todo
 ================================================
-* Re-test LETKF mp on more cores
-
-* Deal with window focus.
 * Rename partial_direct_Obs -> partial_Id_Obs
 * Rename dfdx -> dstep_dx
 * Rename TLM -> d2x_dtdx
 * Rename jacob -> linearization
 
-* Is this why ctrl-c fails so often (from https://docs.python.org/3.5/library/select.html ):
-    "Changed in version 3.5: The function is now retried with a recomputed timeout when interrupted by a signal,
-    except if the signal handler raises an exception (see PEP 475 for the rationale),
-    instead of raising InterruptedError."
-* Avoid tqdm multiline (https://stackoverflow.com/a/38345993/38281) ???
-  No, INSTEAD: capture key press and don't send to stdout
-
-* Bugs:
-    * __name__ for HMM via inspect fails when running a 2nd, ≠ script.
-
 * Darcy, LotkaVolterra, 2pendulum, Kuramoto-Sivashinsky , Nikolaevskiy Equation
 * Simplify time management?
 * Use pandas for stats time series?
+
+
+* Bugs:
+		* Window focus.
+    * __name__ for HMM via inspect fails when running a 2nd, ≠ script.
+		* Is this why ctrl-c fails so often (from https://docs.python.org/3.5/library/select.html ):
+				"Changed in version 3.5: The function is now retried with a recomputed timeout when interrupted by a signal,
+				except if the signal handler raises an exception (see PEP 475 for the rationale),
+				instead of raising InterruptedError."
+		* Avoid tqdm multiline (https://stackoverflow.com/a/38345993/38281) ???
+			No, INSTEAD: capture key press and don't send to stdout
 
 
 ## DAC changes:

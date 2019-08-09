@@ -497,6 +497,9 @@ def LETKF(N,loc_rad,taper='GC',infl=1.0,rot=False,mp=False,**kwargs):
 
   Settings for reproducing literature benchmarks may be found in
   :mod:`dapper.mods.Lorenz95.sak08`
+
+  NB: Multiprocessing yields slow-down for L95, even with batch_size=(1,).
+      But for QG (batch_size=(2,2) or less) it is quicker.
   """
   def assimilator(stats,HMM,xx,yy):
     Dyn,Obs,chrono,X0,R,N1 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, HMM.Obs.noise.C, N-1
