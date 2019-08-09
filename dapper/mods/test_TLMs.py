@@ -1,4 +1,4 @@
-# Numerical validation of TLM (derivatives).
+# Numerical validation of TLM (d2x_dtdx).
 
 ##
 from dapper import *
@@ -31,23 +31,23 @@ def compare(fun, Jacob, x):
 
 
 ##
-from dapper.mods.LotkaVolterra.core import dxdt, TLM, x0
-def test_LV(fun=dxdt,Jacob=TLM,x=x0): # capture current values
+from dapper.mods.LotkaVolterra.core import dxdt, d2x_dtdx, x0
+def test_LV(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
   assert compare(fun, Jacob, x)
 
 ##
-from dapper.mods.Lorenz63.core import dxdt, TLM, x0
-def test_L63(fun=dxdt,Jacob=TLM,x=x0): # capture current values
+from dapper.mods.Lorenz63.core import dxdt, d2x_dtdx, x0
+def test_L63(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
   assert compare(fun, Jacob, x)
 
 ##
-from dapper.mods.Lorenz84.core import dxdt, TLM, x0
-def test_L84(fun=dxdt,Jacob=TLM,x=x0): # capture current values
+from dapper.mods.Lorenz84.core import dxdt, d2x_dtdx, x0
+def test_L84(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
   assert compare(fun, Jacob, x)
 
 ##
-from dapper.mods.Lorenz95.core import dxdt, TLM, x0
-def test_L95(fun=dxdt,Jacob=TLM,x=x0(40)): # capture current values
+from dapper.mods.Lorenz95.core import dxdt, d2x_dtdx, x0
+def test_L95(fun=dxdt,Jacob=d2x_dtdx,x=x0(40)): # capture current values
   assert compare(fun, Jacob, x)
 
 ##

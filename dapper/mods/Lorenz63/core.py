@@ -36,7 +36,7 @@ x0 = np.array([1.509, -1.531, 25.46])
 ################################################
 # OPTIONAL (not necessary for EnKF or PartFilt):
 ################################################
-def TLM(x):
+def d2x_dtdx(x):
   """Tangent linear model"""
   x,y,z = x
   A = np.array(
@@ -46,8 +46,8 @@ def TLM(x):
   return A
 
 def dstep_dx(x,t,dt):
-  """Integral of TLM. Jacobian of step."""
-  return integrate_TLM(TLM(x),dt,method='approx')
+  """Integral of d2x_dtdx. Jacobian of step."""
+  return integrate_TLM(d2x_dtdx(x),dt,method='approx')
 
 
 ################################################

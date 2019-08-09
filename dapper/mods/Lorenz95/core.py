@@ -37,20 +37,20 @@ def step(x0, t, dt):
 ################################################
 # OPTIONAL (not necessary for EnKF or PartFilt):
 ################################################
-def TLM(x):
+def d2x_dtdx(x):
   assert is1d(x)
-  Nx    = len(x)
-  TLM  = np.zeros((Nx,Nx))
-  md   = lambda i: np.mod(i,Nx)
+  Nx  = len(x)
+  Mat = np.zeros((Nx,Nx))
+  md  = lambda i: np.mod(i,Nx)
   for i in range(Nx):
-    TLM[i,i]       = -1.0
-    TLM[i,   i-2 ] = -x[i-1]
-    TLM[i,md(i+1)] = +x[i-1]
-    TLM[i,   i-1 ] = x[md(i+1)]-x[i-2]
-  return TLM
+    Mat[i,i]       = -1.0
+    Mat[i,   i-2 ] = -x[i-1]
+    Mat[i,md(i+1)] = +x[i-1]
+    Mat[i,   i-1 ] = x[md(i+1)]-x[i-2]
+  return Mat
 
 # For L95, method='analytic' >> 'approx'
-dstep_dx = lambda x,t,dt: integrate_TLM(TLM(x),dt,method='analytic')
+dstep_dx = lambda x,t,dt: integrate_TLM(d2x_dtdx(x),dt,method='analytic')
 # dstep_dx = FD_Jac(step)
 
 

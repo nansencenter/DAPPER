@@ -1,7 +1,5 @@
 Todo
 ================================================
-* Rename dstep_dx -> dstep_dx
-* Rename TLM -> d2x_dtdx
 * Rename jacob -> linearization
 
 * Darcy, LotkaVolterra, 2pendulum, Kuramoto-Sivashinsky , Nikolaevskiy Equation

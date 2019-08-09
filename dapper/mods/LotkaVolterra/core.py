@@ -25,10 +25,10 @@ def dxdt(x):
 step = with_rk4(dxdt,autonom=True)
 
 
-def TLM(x):
+def d2x_dtdx(x):
   return diag(r - r*(A@x)) - (r*x)[:,None]*A 
 def dstep_dx(x,t,dt):
-  return integrate_TLM(TLM(x),dt,method='approx')
+  return integrate_TLM(d2x_dtdx(x),dt,method='approx')
 
 
 from dapper.mods.Lorenz63.core import LPs as L63_LPs
