@@ -197,17 +197,17 @@ def integrate_TLM(TLM,dt,method='approx'):
 
 def FD_Jac(ens_compatible_function,eps=1e-7):
   """Finite-diff approximation for functions compatible with 1D and 2D input.
-  Example: dfdx = FD_Jac(step)
+  Example: dstep_dx = FD_Jac(step)
   """
-  def dfdx(x,t,dt):
+  def dstep_dx(x,t,dt):
     f  = lambda x0: ens_compatible_function(x0, t, dt)
     I  = np.eye(len(x))
     E  = x + eps*I       # row-oriented ensemble
     fE = f(E)            # => also row-oriented
     fx = f(x)            # no orientation (1d)
     F  = (fE - fx)/eps   # => correct broadcasting
-    return F.T           # => dfdx[i,j] = df_i/dx_j
-  return dfdx
+    return F.T           # => dstep_dx[i,j] = df_i/dx_j
+  return dstep_dx
 
     
 

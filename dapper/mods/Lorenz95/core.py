@@ -50,8 +50,8 @@ def TLM(x):
   return TLM
 
 # For L95, method='analytic' >> 'approx'
-dfdx = lambda x,t,dt: integrate_TLM(TLM(x),dt,method='analytic')
-# dfdx = FD_Jac(step)
+dstep_dx = lambda x,t,dt: integrate_TLM(TLM(x),dt,method='analytic')
+# dstep_dx = FD_Jac(step)
 
 
 ################################################

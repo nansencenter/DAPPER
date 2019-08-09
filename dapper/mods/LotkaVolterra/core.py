@@ -27,7 +27,7 @@ step = with_rk4(dxdt,autonom=True)
 
 def TLM(x):
   return diag(r - r*(A@x)) - (r*x)[:,None]*A 
-def dfdx(x,t,dt):
+def dstep_dx(x,t,dt):
   return integrate_TLM(TLM(x),dt,method='approx')
 
 

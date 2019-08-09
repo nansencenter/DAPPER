@@ -4,7 +4,7 @@
 
 from dapper import *
 
-from dapper.mods.Lorenz95.core import step, dfdx, x0, Tplot, LPs
+from dapper.mods.Lorenz95.core import step, dstep_dx, x0, Tplot, LPs
 from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
 
 t = Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
@@ -15,7 +15,7 @@ x0 = x0(Nx)
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dfdx,
+    'jacob': dstep_dx,
     'noise': 0
     }
 

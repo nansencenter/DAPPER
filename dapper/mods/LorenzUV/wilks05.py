@@ -23,7 +23,7 @@ Dyn = {
     'M'    : LUV.M,
     'model': with_rk4(LUV.dxdt,autonom=True),
     'noise': 0,
-    'jacob': LUV.dfdx,
+    'jacob': LUV.dstep_dx,
     }
 
 X0 = GaussRV(C=0.01*eye(LUV.M))

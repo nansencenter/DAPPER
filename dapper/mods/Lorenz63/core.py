@@ -45,7 +45,7 @@ def TLM(x):
       [y     , x   , -beta]])
   return A
 
-def dfdx(x,t,dt):
+def dstep_dx(x,t,dt):
   """Integral of TLM. Jacobian of step."""
   return integrate_TLM(TLM(x),dt,method='approx')
 

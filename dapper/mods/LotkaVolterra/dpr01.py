@@ -2,7 +2,7 @@
 
 from dapper import *
 
-from dapper.mods.LotkaVolterra.core import step, dfdx, x0, LP_setup
+from dapper.mods.LotkaVolterra.core import step, dstep_dx, x0, LP_setup
 
 # dt has been chosen after noting that 
 # using dt up to 0.7 does not change the chaotic properties much,
@@ -15,7 +15,7 @@ Nx = len(x0)
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dfdx,
+    'jacob': dstep_dx,
     'noise': 0
     }
 

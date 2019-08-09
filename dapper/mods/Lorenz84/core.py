@@ -37,7 +37,7 @@ def TLM(x):
       [b*y+z , b*x  , x-1]])
   return TLM
 
-def dfdx(x,t,dt):
+def dstep_dx(x,t,dt):
   return integrate_TLM(TLM(x),dt,method='approx')
 
 

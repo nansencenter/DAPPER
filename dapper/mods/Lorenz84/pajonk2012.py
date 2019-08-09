@@ -11,7 +11,7 @@
 
 from dapper import *
 
-from dapper.mods.Lorenz84.core import step, dfdx, x0
+from dapper.mods.Lorenz84.core import step, dstep_dx, x0
 from dapper.mods.Lorenz63.core import LPs
 
 Nx = len(x0)
@@ -23,7 +23,7 @@ t = Chronology(0.05,dkObs=1,T=200*day,BurnIn=10*day)
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dfdx,
+    'jacob': dstep_dx,
     'noise': 0
     }
 

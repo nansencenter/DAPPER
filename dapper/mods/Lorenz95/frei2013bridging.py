@@ -16,7 +16,7 @@
 
 from dapper import *
 
-from dapper.mods.Lorenz95.core import step, dfdx
+from dapper.mods.Lorenz95.core import step, dstep_dx
 from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
 
 t = Chronology(0.05,dtObs=0.4,T=4**5,BurnIn=20)
@@ -25,7 +25,7 @@ Nx = 40
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dfdx,
+    'jacob': dstep_dx,
     'noise': 0
     }
 

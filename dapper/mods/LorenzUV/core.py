@@ -94,7 +94,7 @@ class model_instance():
     return d
 
 
-  def dfdx(self):
+  def dstep_dx(self):
     """
     Jacobian of x + dt*dxdt.
     """

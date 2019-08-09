@@ -4,7 +4,7 @@ Sakov, Oliver, Bertino (2012):
 
 from dapper import *
 
-from dapper.mods.Lorenz63.core import step, dfdx, x0, Tplot, LPs
+from dapper.mods.Lorenz63.core import step, dstep_dx, x0, Tplot, LPs
 
 t = Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
@@ -13,7 +13,7 @@ Nx = len(x0)
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dfdx,
+    'jacob': dstep_dx,
     'noise': 0
     }
 
