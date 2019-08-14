@@ -104,16 +104,17 @@ The particle filter is tuned with "effective-N monitoring", "regularization/jitt
 Models
 ================================================
 
-Model             | Linear? | Phys.dim. | State len | # Lyap≥0 | Implementer
------------       | ------- | --------- | --------- | -------- | ----------
-Lin. Advect.      | Yes     | 1d        | 1000 *    | 51       | Evensen/Raanes
-DoublePendulum    | No      | 0d        | 4         | 2        | Matplotlib/Raanes
-LotkaVolterra     | No      | 0d        | 5 *       | 1        | Wikipedia/Raanes
-Lorenz63          | No      | 0d        | 3         | 2        | Sakov
-Lorenz84          | No      | 0d        | 3         | 2        | Raanes
-Lorenz95          | No      | 1d        | 40 *      | 13       | Raanes
-LorenzUV          | No      | 2x 1d     | 256 + 8 * | ≈60      | Raanes
-Quasi-Geost       | No      | 2d        | 129²≈17k  | ≈140     | Sakov
+Model                | Linear? | TLM?    | Phys.dim. | State len | # Lyap≥0 | Implementer
+-----------          | ------- | ------- | --------- | --------- | -------- | ----------
+Lin. Advect.         | Yes     | Yes     | 1d        | 1000 *    | 51       | Evensen/Raanes
+DoublePendulum       | No      | Yes     | 0d        | 4         | 2        | Matplotlib/Raanes
+LotkaVolterra        | No      | Yes     | 0d        | 5 *       | 1        | Wikipedia/Raanes
+Lorenz63             | No      | Yes     | 0d        | 3         | 2        | Sakov
+Lorenz84             | No      | Yes     | 0d        | 3         | 2        | Raanes
+Lorenz95             | No      | Yes     | 1d        | 40 *      | 13       | Raanes
+LorenzUV             | No      | Yes     | 2x 1d     | 256 + 8 * | ≈60      | Raanes
+Kuramoto-Sivashinsky | No      | No      | 1d        | 128 *     | 11       | Kassam/Raanes
+Quasi-Geost          | No      | No      | 2d        | 129²≈17k  | ≈140     | Sakov
 
 *: flexible; set as necessary
 
