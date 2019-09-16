@@ -18,7 +18,7 @@ def approx_jacob(fun, x, colwise=False):
 # Transpose explanation:
 # Let A be matrix whose cols are realizations. Abbrev: f=fun.
 # Assume: f(A)-f(x) ≈ F @ (A-x).
-# Then  : F ≈ [f(A)-f(x)] @ inv(A-x)         (v1)
+# Then  : F ≈ [ f(A)-f(x) ]  @ inv(A-x)      (v1)
 #           = [f(A')-f(x')]' @ inv(A'-x')'.  (v2)
 # Since DAPPER uses dxdt that is made for A', it's easier to apply v2.
 # However, TLM should compute F (not F').
