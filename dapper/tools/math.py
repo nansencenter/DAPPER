@@ -55,7 +55,7 @@ def ens_compatible(func):
   An older version also used np.atleast_2d and squeeze(),
   but that is more messy than necessary.
 
-  Note: this is the_way™ -- other tricks are sometimes more practical.
+  Note: this is not the_way™ -- other tricks are sometimes more practical.
   See for example core.py:dxdt() of LorenzUV, Lorenz95, LotkaVolterra.
   """
   @functools.wraps(func)
@@ -196,18 +196,32 @@ def integrate_TLM(TLM,dt,method='approx'):
   return resolvent
 
 def FD_Jac(ens_compatible_function,eps=1e-7):
-  """Finite-diff approximation for functions compatible with 1D and 2D input.
-  Example: dstep_dx = FD_Jac(step)
+  """Finite-diff approx. for functions compatible with 1D and 2D input.
+
+  Example:
+  >>> dstep_dx = FD_Jac(step)
   """
-  def dstep_dx(x,t,dt):
-    f  = lambda x0: ens_compatible_function(x0, t, dt)
-    I  = np.eye(len(x))
-    E  = x + eps*I       # row-oriented ensemble
-    fE = f(E)            # => also row-oriented
-    fx = f(x)            # no orientation (1d)
-    F  = (fE - fx)/eps   # => correct broadcasting
-    return F.T           # => dstep_dx[i,j] = df_i/dx_j
-  return dstep_dx
+  def Jacf(x,*args,**kwargs):
+    def f(xx): return ens_compatible_function(xx, *args, **kwargs)
+    E  = x + eps*eye(len(x)) # row-oriented ensemble
+    FT = (f(E) - f(x))/eps   # => correct broadcasting
+    return FT.T              # => Jac[i,j] = df_i/dx_j
+  return Jacf
+
+# Transpose explanation:
+# - Let F[i,j] = df_i/dx_j be the Jacobian matrix such that
+#               f(A)-f(x) ≈ F @ (A-x) 
+#   for a matrix A whose columns are realizations. Then
+#                       F ≈ [f(A)-f(x)] @ inv(A-x)   [eq1]
+# - But, to facilitate broadcasting,
+#   DAPPER works with row-oriented (i.e. "ens_compatible" functions),
+#   meaning that f should be called as f(A').
+#   Transposing [eq1] yields:
+#        F' = inv(A-x)'  @ [f(A)  - f(x)]'
+#           = inv(A'-x') @ [f(A') - f(x')]
+#           =      1/eps * [f(A') - f(x')]
+#           =              [f(A') - f(x')] / eps     [eq2]
+# => Need to compute [eq2] and then transpose.
 
     
 
