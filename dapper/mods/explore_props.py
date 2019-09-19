@@ -8,6 +8,35 @@ sd0 = seed(5)
 # Model selection
 ########################
 
+
+# from dapper.mods.DoublePendulum.core import step, x0
+# ------------------
+# Lyapunov exponents: [ 1.05  0.   -0.01 -1.05]
+# T   = 5e2
+# dt  = 0.005
+# eps = 0.0002
+# Nx  = len(x0)
+# N   = Nx
+
+# from dapper.mods.LotkaVolterra.core import step, x0
+# # ------------------
+# # Lyapunov exponents: [0.02  0 -0.28 -1.03]
+# T   = 1e3
+# dt  = 0.2
+# eps = 0.0002
+# Nx  = len(x0)
+# N   = Nx
+
+
+# from dapper.mods.Lorenz63.core import step, x0
+# # ------------------
+# # Lyapunov exponents: [0.906, 0, -14.572]
+# T   = 1e2
+# dt  = 0.04
+# Nx  = len(x0)
+# eps = 0.001
+# N   = Nx
+
 # from dapper.mods.Lorenz95.core import step
 # # ------------------
 # # Reproduces findings of Carrassi-2008 "Model error and sequential DA...",
@@ -21,26 +50,6 @@ sd0 = seed(5)
 # eps = 0.0002    # Ens rescaling factor.
 # N   = Nx        # Num of perturbations used.
 
-
-# from dapper.mods.Lorenz63.core import step, x0
-# # ------------------
-# # Lyapunov exponents: [0.906, 0, -14.572]
-# T   = 1e2
-# dt  = 0.04
-# Nx  = len(x0)
-# eps = 0.001
-# N   = Nx
-
-# from dapper.mods.DoublePendulum.core import step, x0
-# ------------------
-# Lyapunov exponents: [ 1.05  0.   -0.01 -1.05]
-# T   = 5e2
-# dt  = 0.005
-# eps = 0.0002
-# Nx  = len(x0)
-# N   = Nx
-
-
 # from dapper.mods.LorenzUV.lorenz95 import LUV
 # # ------------------
 # # Lyapunov exponents with F=10: [9.47   9.3    8.72 ..., -33.02 -33.61 -34.79] => n0:64
@@ -53,16 +62,6 @@ sd0 = seed(5)
 # x0    = 0.01*randn(LUV.M)
 # eps   = 0.001
 # N     = 66 # Don't need all Nx for a good approximation of upper spectrum.
-
-
-# from dapper.mods.LotkaVolterra.core import step, x0
-# # ------------------
-# # Lyapunov exponents: [0.02  0 -0.28 -1.03]
-# T   = 1e3
-# dt  = 0.2
-# eps = 0.0002
-# Nx  = len(x0)
-# N   = Nx
 
 
 # from dapper.mods.QG.core import model_config, shape, sample_filename
