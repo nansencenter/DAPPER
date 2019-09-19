@@ -20,16 +20,16 @@ t = Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)
 
 
 Dyn = {
-    'M'    : LUV.M,
-    'model': with_rk4(LUV.dxdt,autonom=True),
-    'noise': 0,
+    'M'     : LUV.M,
+    'model' : with_rk4(LUV.dxdt,autonom=True),
+    'noise' : 0,
     'linear': LUV.dstep_dx,
     }
 
-X0 = GaussRV(C=0.01*eye(LUV.M))
+X0 = GaussRV(mu=LUV.x0, C=0.01)
 
 R = 1.0
-jj = arange(LUV.nU)
+jj = arange(nU)
 Obs = partial_Id_Obs(LUV.M,jj)
 Obs['noise'] = R
 
@@ -50,7 +50,7 @@ Dyn = {
     'noise': 0,
     }
 
-X0 = GaussRV(C=0.01*eye(nU))
+X0 = GaussRV(mu=LUV.x0[:nU],C=0.01)
 
 jj = arange(nU)
 Obs = partial_Id_Obs(nU,jj)

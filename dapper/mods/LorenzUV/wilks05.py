@@ -26,7 +26,7 @@ Dyn = {
     'linear': LUV.dstep_dx,
     }
 
-X0 = GaussRV(C=0.01*eye(LUV.M))
+X0 = GaussRV(mu=LUV.x0,C=0.01)
 
 R = 0.1
 jj = arange(nU)
@@ -50,7 +50,7 @@ Dyn = {
     'noise': 0,
     }
 
-X0 = GaussRV(C=0.01*eye(nU))
+X0 = GaussRV(mu=LUV.x0[:nU],C=0.01)
 
 jj = arange(nU)
 Obs = partial_Id_Obs(nU,jj)
