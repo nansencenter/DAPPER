@@ -2,7 +2,6 @@ Todo
 ================================================
 * Simplify time management?
 * Use pandas for stats time series?
-* Eliminate ens_compatible entirely by use of .T and/or ...
 * Darcy, Nikolaevskiy Equation
 
 
