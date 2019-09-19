@@ -64,6 +64,16 @@ sd0 = seed(5)
 # N     = 66 # Don't need all Nx for a good approximation of upper spectrum.
 
 
+# from dapper.mods.KS.core import prms, step, x0
+# # ------------------
+# Lyapunov exponents: [  0.08   0.07   0.06 ... -37.9  -39.09 -41.55]
+# T   = 1e3
+# Nx  = len(x0)
+# dt  = prms['dt']
+# eps = 0.0002
+# N   = Nx
+
+
 # from dapper.mods.QG.core import model_config, shape, sample_filename
 # # ------------------
 # # n0 ≈ 140
