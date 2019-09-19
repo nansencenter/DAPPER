@@ -12,11 +12,6 @@ def _allclose(fun, Jacob, x):
   return np.allclose(F1, F2, atol=10*eps, rtol=0)
 
 ##
-from dapper.mods.LotkaVolterra.core import dxdt, d2x_dtdx, x0
-def test_LV(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
-  assert _allclose(fun, Jacob, x)
-
-##
 from dapper.mods.Lorenz63.core import dxdt, d2x_dtdx, x0
 def test_L63(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
   assert _allclose(fun, Jacob, x)
@@ -31,18 +26,22 @@ from dapper.mods.Lorenz95.core import dxdt, d2x_dtdx, x0
 def test_L95(fun=dxdt,Jacob=d2x_dtdx,x=x0(40)): # capture current values
   assert _allclose(fun, Jacob, x)
 
+##
+from dapper.mods.LorenzUV.core import model_instance
+LUV = model_instance(nU=10,J=4,F=10)
+def test_LUV(fun=LUV.dxdt,Jacob=LUV.d2x_dtdx,x=LUV.x0): # capture current values
+  assert _allclose(fun, Jacob, x)
+
+##
 from dapper.mods.KS.core import dxdt, d2x_dtdx, x0
 def test_KS(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
   assert _allclose(fun, Jacob, x)
 
 ##
-# TODO
-# from dapper.mods.LorenzUV.core import model_instance
-# LUV = model_instance(nU=10,J=4,F=10)
-# x = 5 + randn(LUV.M)
-# LUV.dfdt
-# def test_LUV(fun=,Jacob=,x=): # capture current values
-  # assert _allclose(fun, Jacob, x)
+from dapper.mods.LotkaVolterra.core import dxdt, d2x_dtdx, x0
+def test_LV(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
+  assert _allclose(fun, Jacob, x)
+
 
 ##
 # test_LV()
