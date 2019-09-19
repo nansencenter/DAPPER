@@ -4,54 +4,48 @@
 # Note: implementation is ndim-agnostic.
 
 import numpy as np
-from dapper.tools.math import rk4, integrate_TLM, is1d, FD_Jac
+from dapper.tools.math import is1d, rk4, integrate_TLM
 
 Force = 8.0
-
-# Note: the model is unstable (blows up) if there are large peaks
-# (as may be occasioned by the analysis update, especially with partial obs). 
-# Example: integrate 4 steps with dt=0.05 from x0 = [0,-30,0,30].
-# This is effectively a CFL condition... Can be addressed by:
-#  - lowering dt
-#  - using an implicit time stepping scheme instead of rk4
-#  - stupidly crop amplitudes, as is done here:
-prevent_blow_up = False
 
 Tplot = 10
 
 x0 = lambda M: 2.3*np.ones(M)
 
+def shift(x,n):
+  return np.roll(x,-n,axis=-1)
+
+def dxdt_autonomous(x):
+  return (shift(x,1)-shift(x,-2))*shift(x,-1) - x
+
 def dxdt(x):
-  a = x.ndim-1
-  s = lambda x,n: np.roll(x,-n,axis=a)
-  return (s(x,1)-s(x,-2))*s(x,-1) - x + Force
+  return dxdt_autonomous(x) + Force
 
 def step(x0, t, dt):
-
-  if prevent_blow_up:
-    clip      = abs(x0)>30
-    x0[clip] *= 0.1
-
   return rk4(lambda t,x: dxdt(x), x0, np.nan, dt)
 
+
 ################################################
-# OPTIONAL (not necessary for EnKF or PartFilt):
+# OPTIONAL (not required by EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
   assert is1d(x)
-  Nx  = len(x)
-  Mat = np.zeros((Nx,Nx))
-  md  = lambda i: np.mod(i,Nx)
-  for i in range(Nx):
-    Mat[i,i]       = -1.0
-    Mat[i,   i-2 ] = -x[i-1]
-    Mat[i,md(i+1)] = +x[i-1]
-    Mat[i,   i-1 ] = x[md(i+1)]-x[i-2]
-  return Mat
+  M = len(x)
+  F = np.zeros((M,M))
+  md = lambda i: np.mod(i,M) # modulo
 
-# For L95, method='analytic' >> 'approx'
-dstep_dx = lambda x,t,dt: integrate_TLM(d2x_dtdx(x),dt,method='analytic')
+  for i in range(M):
+    F[i,i]       = -1.0
+    F[i,   i-2 ] = -x[i-1]
+    F[i,md(i+1)] = +x[i-1]
+    F[i,   i-1 ] = x[md(i+1)]-x[i-2]
+
+  return F
+
 # dstep_dx = FD_Jac(step)
+def dstep_dx(x,t,dt):
+  # For L95, method='analytic' >> 'approx'
+  return integrate_TLM(d2x_dtdx(x),dt,method='analytic')
 
 
 ################################################
