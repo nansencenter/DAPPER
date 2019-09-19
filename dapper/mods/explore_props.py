@@ -1,5 +1,5 @@
 # Estimtate the Lyapunov spectrum using an ensemble of perturbations.
-# (Outdated) versions using explicit TLMs can be found in EmblAUS/Lyap_L{63,95}.
+# An obsolete version using explicit TLMs can be found in EmblAUS/Lyap_L{63,95}.
 
 from dapper import *
 sd0 = seed(5)
@@ -16,7 +16,7 @@ sd0 = seed(5)
 # Nx  = 40        # State size (flexible). Usually 36 or 40
 # T   = 1e3       # Length of experiment (unitless time).
 # dt  = 0.1       # Step length
-# # d t = 0.0083  # Any dt<0.1 yield "almost correct" Lyapunov expos.
+# # dt = 0.0083     # Any dt<0.1 yield "almost correct" Lyapunov expos.
 # x0  = randn(Nx) # Init condition.
 # eps = 0.0002    # Ens rescaling factor.
 # N   = Nx        # Num of perturbations used.
@@ -88,7 +88,7 @@ sd0 = seed(5)
 ########################
 simulator = with_recursion(step, prog="Simul.")
 t0 = 0.0 # NB: Arbitrary, coz models are autonom. But dont use nan coz QG doesn't like it.
-K  = round(T/dt)                           # Num of time steps.
+K  = int(round(T/dt))                      # Num of time steps.
 tt = linspace(dt,T,K)                      # Time seq.
 x  = simulator(x0, int(10/dt), t0, dt)[-1] # BurnIn
 xx = simulator(x,K,t0,dt)                  # Ref trajectory
