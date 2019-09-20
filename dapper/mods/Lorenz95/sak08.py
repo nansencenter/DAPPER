@@ -13,10 +13,10 @@ Nx = 40
 x0 = x0(Nx)
 
 Dyn = {
-    'M'    : Nx,
-    'model': step,
+    'M'     : Nx,
+    'model' : step,
     'linear': dstep_dx,
-    'noise': 0
+    'noise' : 0
     }
 
 X0 = GaussRV(mu=x0, C=0.001) 
