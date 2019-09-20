@@ -59,7 +59,7 @@ def dist2coeff(dists, radius, tag=None):
     inds         = dists <= R
     coeffs[inds] = (1 - (dists[inds] / R) ** 4) ** 4
   elif tag == 'GC':
-    # Gaspari_Cohn
+    # Gaspari_Cohn. Eqn 25 of Sakov2011relation or Eqn 4.10 of Gaspari1999construction
     R = radius * 1.82 # Sakov: 1.7386
     #
     ind1         = dists<=R
@@ -194,6 +194,10 @@ def partial_direct_obs_nd_loc_setup(shape,batch_shape,obs_inds,periodic):
 
   return loc_setup
 
+def Id_Obs_nd_loc_setup(shape,batch_shape,periodic):
+  M  = np.prod(shape)
+  jj = np.arange(M)
+  return partial_direct_obs_nd_loc_setup(shape,batch_shape,jj,periodic)
 
 
 def no_localization(Nx,Ny):
