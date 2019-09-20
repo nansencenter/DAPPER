@@ -33,8 +33,9 @@ def test_LUV(fun=LUV.dxdt,Jacob=LUV.d2x_dtdx,x=LUV.x0): # capture current values
   assert _allclose(fun, Jacob, x)
 
 ##
-from dapper.mods.KS.core import dxdt, d2x_dtdx, x0
-def test_KS(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
+from dapper.mods.KS.core import Model
+KS = Model()
+def test_KS(fun=KS.dxdt,Jacob=KS.d2x_dtdx,x=KS.x0): # capture current values
   assert _allclose(fun, Jacob, x)
 
 ##
