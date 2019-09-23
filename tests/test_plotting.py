@@ -63,7 +63,7 @@ def test_L95():
   cfgs += EnKF('PertObs'        ,N=40, infl=1.06)               # 0.22
   cfgs += EnKF('Serial'         ,N=28, infl=1.02,rot=True)      # 0.18
   cfgs += OptInterp()
-  cfgs += Var3D(infl=1.05)
+  cfgs += Var3D(xB=0.02)
   cfgs += ExtKF(infl=10)                                        # 0.24 
   cfgs += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')  # 
 

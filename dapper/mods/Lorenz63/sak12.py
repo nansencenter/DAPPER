@@ -11,10 +11,10 @@ t = Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 Nx = len(x0)
 
 Dyn = {
-    'M'    : Nx,
-    'model': step,
-    'linear': dstep_dx,
-    'noise': 0
+    'M'      : Nx,
+    'model'  : step,
+    'linear' : dstep_dx,
+    'noise'  : 0
     }
 
 X0 = GaussRV(C=2,mu=x0)
@@ -32,14 +32,14 @@ HMM.liveplotters = LPs(jj)
 # Suggested tuning
 ####################
 # from dapper.mods.Lorenz63.sak12 import HMM       # Expected RMSE_a:
-# cfgs += Climatology()  # no tuning!                       # 7.6
-# cfgs += OptInterp()    # no tuning!                       # 1.25
-# cfgs += Var3D(infl=0.9)# tuning not strictly required     # 1.03 
-# cfgs += ExtKF(infl=90) # some inflation tuning needed     # 0.87
+# cfgs += Climatology()                                     # 7.6
+# cfgs += OptInterp()                                       # 1.25
+# cfgs += Var3D(xB=0.1)                                     # 1.03
+# cfgs += ExtKF(infl=90)                                    # 0.87
 # cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # 0.82
 # cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63
 # cfgs += EnKF('PertObs',N=500, infl=0.97,rot=False)        # 0.56
-# cfgs += EnKF_N(        N=3) # no tuning!                  # 0.60
+# cfgs += EnKF_N(        N=3)                               # 0.60
 # cfgs += EnKF_N(        N=10,            rot=True)         # 0.54
 # cfgs += iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)         # 0.31
 # cfgs += PartFilt(      N=100 ,reg=2.4,NER=0.3)            # 0.38

@@ -12,7 +12,7 @@ xx,yy = simulate(HMM)
 
 # Specify a DA method configuration
 config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
-# config = Var3D(infl=0.9)
+# config = Var3D()
 # config = PartFilt(N=100,reg=2.4,NER=0.3)
 
 # Turn on liveplotting

@@ -20,10 +20,10 @@ t = Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)  # requires rk4
 
 
 Dyn = {
-    'M'    : LUV.M,
-    'model': with_rk4(LUV.dxdt,autonom=True),
-    'noise': 0,
-    'linear': LUV.dstep_dx,
+    'M'      : LUV.M,
+    'model'  : with_rk4(LUV.dxdt,autonom=True),
+    'noise'  : 0,
+    'linear' : LUV.dstep_dx,
     }
 
 X0 = GaussRV(mu=LUV.x0,C=0.01)
@@ -96,9 +96,9 @@ def polynom_prmzt(t,x,order):
 ####################
 # Suggested tuning
 ####################
-#                                                         # Expected RMSE_a:
+# Using HMM_full                                           # Expected RMSE_a:
 # cfgs += Climatology()                                    # 0.93
-# cfgs += Var3D()                                          # 0.38
+# cfgs += Var3D(xB=2.0)                                    # 0.39
 # cfgs += EnKF_N(N=20)                                     # 0.27
 
 

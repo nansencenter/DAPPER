@@ -41,19 +41,20 @@ HMM.liveplotters = LPs(jj)
 # cfgs += EnKF('DEnKF'          ,N=40, infl=1.01)               # 0.18
 # cfgs += EnKF('PertObs'        ,N=28, infl=1.08)               # 0.24
 # cfgs += EnKF('Sqrt'           ,N=24, infl=1.013,rot=True)     # 0.18
-
+#
 # Other analysis schemes:
 # cfgs += EnKF('Serial'         ,N=28, infl=1.02,rot=True)      # 0.18
 # cfgs += EnKF('Serial ESOPS'   ,N=28, infl=1.02)               # 0.18
 # cfgs += EnKF('Serial Stoch'   ,N=28, infl=1.08)               # 0.24
+#
 # EnKF-N
-# cfgs += EnKF_N(N=24,rot=True) # no tuning!                    # 0.21
+# cfgs += EnKF_N(N=24,rot=True)                                 # 0.21
 # cfgs += EnKF_N(N=24,rot=True,xN=2.0)                          # 0.18
+#
 # Baseline methods
 # cfgs += Climatology()                                         # 3.6 
 # cfgs += OptInterp()                                           # 0.95 
-# cfgs += Var3D_Lag(infl=0.5)
-# cfgs += Var3D(infl=1.05)                                      # 0.41 
+# cfgs += Var3D(xB=0.02)                                        # 0.41
 # cfgs += ExtKF(infl=10)                                        # 0.24 
 
 # Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6:
