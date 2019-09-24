@@ -302,7 +302,7 @@ def adjustable_box_or_forced():
   return 'box-forced' if pv(mpl.__version__) < pv("2.2.0") else 'box'
 
 
-def freshfig(num,figsize=None,*args,**kwargs):
+def freshfig(num=None,figsize=None,*args,**kwargs):
   """Create/clear figure.
   
   Similar to::
