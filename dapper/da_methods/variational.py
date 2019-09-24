@@ -119,7 +119,7 @@ def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=Non
                 Y0     = Tinv @ Y          # "De-condition" the obs anomalies.
                 V,s,UT = svd0(Y0)          # Decompose Y0.
 
-                # Set "cov normlzt fctr" za ("effective ensemble size") => pre-infl^2 = (N-1)/za.
+                # Set "cov normlzt fctr" za ("effective ensemble size") => pre_infl^2 = (N-1)/za.
                 if xN is None: za  = N1
                 else         : za  = zeta_a(*hyperprior_coeffs(s,N,xN), w)
                 if MDA       : za *= nIter # inflation (factor: nIter) of the ObsErrCov.

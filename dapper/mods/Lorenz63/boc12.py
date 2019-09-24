@@ -14,11 +14,16 @@ HMM.name = os.path.relpath(__file__,'mods/')
 # Suggested tuning
 ####################
 # from dapper.mods.Lorenz63.boc12 import HMM                # Expected RMSE_a:
-# cfgs += iEnKS('-N', N=3,infl=0.95)                                 # 0.20
+# HMM.t.dkObs = 25
+# cfgs += iEnKS('Sqrt', N=10,infl=1.02,rot=True)            # 0.22
+# cfgs += iEnKS('Sqrt', N=3, infl=1.04)                     # 0.23
+# cfgs += iEnKS('Sqrt', N=3, xN=1.0)                        # 0.22
 # 
-# With dkObs=5:
-# cfgs += iEnKS('-N', N=3)                                           # 0.15
-# cfgs += iEnKS('-N', N=3,xN=1.4)                                    # 0.14
+# HMM.t.dkObs = 5
+# cfgs += iEnKS('Sqrt', N=10,infl=1.02,rot=True)            # 0.13
+# cfgs += iEnKS('Sqrt', N=3, infl=1.02)                     # 0.13
+# cfgs += iEnKS('Sqrt', N=3, xN=1.0)                        # 0.15
+# cfgs += iEnKS('Sqrt', N=3, xN=2.0)                        # 0.14
 # 
-# With R=8*eye(3):
-# cfgs += iEnKS('-N', N=3)                                           # 0.70
+# HMM.t.dkObs = 25 and R=8*eye(3):
+# cfgs += iEnKS('Sqrt', N=3, xN=1.0)                        # 0.70

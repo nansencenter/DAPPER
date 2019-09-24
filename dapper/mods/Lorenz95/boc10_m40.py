@@ -18,7 +18,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 #                                                          # rmse_a 
 # cfgs += EnKF_N(      N=24,      rot=True ,infl=1.01)     # 0.38
 # cfgs += iEnKS('Sqrt',N=19,Lag=2,rot=False,infl=1.04)     # 0.39
-# cfgs += iEnKS('-N'  ,N=19,Lag=2,rot=False,xN=1.5)        # 0.39
+# cfgs += iEnKS('Sqrt',N=19,Lag=2,rot=False,xN=1.5)        # 0.39
 
 # NB: Particle filter scores very sensitive to rare events => Need T>=2000.
 # cfgs += PartFilt(N=3000,NER=0.20,reg=1.2)                # 0.77

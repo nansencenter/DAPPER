@@ -68,6 +68,7 @@ HMM.liveplotters = LPs(jj)
 # --------------------------------------------------------------------------------
 # HMM.t.dkObs = 12
 # cfgs += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,infl=1.2,rot=1)     # 0.46
+# cfgs += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,xN=2.0  ,rot=1)     # 0.46
 
 # Reproduce Fig 3 of Bocquet'2015 "expanding"
 # --------------------------------------------------------------------------------

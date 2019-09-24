@@ -34,11 +34,12 @@ HMM.liveplotters = LPs(jj)
 # from dapper.mods.Lorenz63.sak12 import HMM       # Expected RMSE_a:
 # cfgs += Climatology()                                     # 7.6
 # cfgs += OptInterp()                                       # 1.25
-# cfgs += Var3D(xB=0.1)                                     # 1.03
-# cfgs += ExtKF(infl=90)                                    # 0.87
-# cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # 0.82
-# cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.63
-# cfgs += EnKF('PertObs',N=500, infl=0.97,rot=False)        # 0.56
+# cfgs += Var3D(xB=0.1)                                     # 1.04
+# cfgs += ExtKF(infl=180)                                   # 0.92
+# cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # 0.80
+# cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.60
+# cfgs += EnKF('PertObs',N=10,  infl=1.04)                  # 0.65
+# cfgs += EnKF('PertObs',N=100, infl=1.01)                  # 0.56
 # cfgs += EnKF_N(        N=3)                               # 0.60
 # cfgs += EnKF_N(        N=10,            rot=True)         # 0.54
 # cfgs += iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)         # 0.31
