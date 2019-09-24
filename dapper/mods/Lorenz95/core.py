@@ -10,7 +10,7 @@ Force = 8.0
 
 Tplot = 10
 
-x0 = lambda M: 2.3*np.ones(M)
+x0 = lambda M: np.eye(M)[0]
 
 def shift(x,n):
   return np.roll(x,-n,axis=-1)
