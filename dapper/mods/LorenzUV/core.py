@@ -2,12 +2,12 @@
 # Lorenz95 two-scale/layer version
 ####################################
 # See Wilks 2005 "Effects of stochastic parametrizations in the Lorenz '96 system"
-# X:  large amp, low frequency vars: convective events
-# Y:  small amp, high frequency vars: large-scale synoptic events
+# U:  large amp, low frequency vars: convective events
+# V:  small amp, high frequency vars: large-scale synoptic events
 #
 # Typically, the DA system will only use the truncated system
-# (containing only the X variables),
-# where the Y's are parameterized as model noise,
+# (containing only the U variables),
+# where the V's are parameterized as model noise,
 # while the truth is simulated by the full system.
 #
 # Stochastic parmateterization (Todo):
@@ -15,19 +15,23 @@
 # unless its temporal auto-corr is taken into account (as AR(1))
 # (but spatial auto-corr can be neglected).
 # But AR(1) noise is technically difficult because DAPPER
-# is built around the Markov assumption. Possible work-around:
-#  - Don't use standard dxdt + rk4
-#  - Use persistent variables
-
+# is built around the Markov assumption.
 
 import numpy as np
-from numpy import arange
-from dapper.tools.math import rk4, is1d
-from matplotlib import pyplot as plt
 import dapper.tools.liveplotting as LP
+import dapper.mods.Lorenz95.core as L95
 
-# Shift elements
-s = lambda x,n: np.roll(x,-n,axis=-1)
+def reversible(fun):
+  "Reverse input/output (instead of manipulating indices)."""
+  def newfun(x,*args,reverse=False,**kwargs):
+      if reverse: x = np.flip(x) # flip ALL dims
+      y = fun(x,*args,**kwargs)  # call fun()
+      if reverse: y = np.flip(y) # flip ALL dims
+      return y
+  return newfun
+
+dxdt_auto     = reversible(L95.dxdt_autonomous)
+d2x_dtdx_auto = reversible(L95.d2x_dtdx)
 
 
 class model_instance():
@@ -38,8 +42,8 @@ class model_instance():
   def __init__(self,nU=8,J=32,F=20,h=1,b=10,c=10):
     
     # System size
-    self.nU = nU       # num of X
-    self.J  = J        # num of Y per X  
+    self.nU = nU       # num of U
+    self.J  = J        # num of V per U  
     self.M  = (J+1)*nU # => Total state length
 
     # Other parameters
@@ -49,81 +53,55 @@ class model_instance():
     self.c  = c  # time scale ratio
 
     # Indices for coupling
-    self.iiX = (arange(J*nU)/J).astype(int)
-    self.iiY = arange(J*nU).reshape((nU,J))
+    self.iiU = (np.arange(J*nU)/J).astype(int)
+    self.iiV = np.arange(J*nU)
 
+    # Init with perturbation
+    self.x0 = np.eye(self.M)[0]
+
+  def unpack(self,x):
+    nU,J,h,b,c = self.nU,self.J,self.h,self.b,self.c
+    U, V = x[...,:nU], x[...,nU:]
+    return nU,J, h,b,c, U,V
 
   def dxdt_trunc(self,x):
-    """
-    Truncated dxdt: slow variables (X) only.
-    Same as "uncoupled" Lorenz-95.
-    """
+    """Truncated dxdt: slow variables (U) only."""
     assert x.shape[-1] == self.nU
-    return -(s(x,-2)-s(x,1))*s(x,-1) - x + self.F
-
-
-  def dxdt(self,x):
-    """Full (coupled) dxdt."""
-    # Split into X,Y
-    nU,J,h,b,c = self.nU,self.J,self.h,self.b,self.c
-    X  = x[...,:nU]
-    Y  = x[...,nU:]
-    assert Y.shape[-1] == J*X.shape[-1]
-    d  = np.zeros_like(x)
-
-    # dX/dt
-    d[...,:nU] = self.dxdt_trunc(X)
-    # Couple Y-->X
-    for i in range(nU):
-      d[...,i] += -h*c/b * np.sum(Y[...,self.iiY[i]],-1)
-
-    # dY/dt
-    d[...,nU:] = -c*b*(s(Y,2)-s(Y,-1))*s(Y,1) - c*Y
-    # Couple X-->Y
-    d[...,nU:] += h*c/b * X[...,self.iiX]
-
-    return d
-
+    return dxdt_auto(x) + self.F
 
   def dxdt_parameterized(self,t,x):
-    """
-    Truncated dxdt with parameterization of fast variables (Y)
-    """
+    """Truncated dxdt with parameterization of fast variables (V)."""
     d  = self.dxdt_trunc(x)
     d -= self.prmzt(t,x) # must (of course) be set first
     return d
 
+  def dxdt(self,x):
+    """Full (coupled) dxdt."""
+    nU,J, h,b,c, U,V = self.unpack(x)
 
-  def dfdx(self):
-    """
-    Jacobian of x + dt*dxdt.
-    """
-    nU,J,h,b,c = self.nU,self.J,self.h,self.b,self.c
-    assert is1d(x)
-    F = np.zeros((ndim(),ndim()))
+    d = np.zeros_like(x)
+    d[...,:nU]  = self.dxdt_trunc(U)                              # dU/dt
+    d[...,:nU] += -h*c/b * V.reshape(V.shape[:-1]+(nU,J)).sum(-1) # Couple U<--V
+    d[...,nU:]  = c/b*dxdt_auto(b*V,reverse=True)  # dV/dt
+    d[...,nU:] += h*c/b * U[...,self.iiU]          # Couple V<--U
 
-    # X
-    md = lambda i: np.mod(i,nU)
-    for i in range(nU):
-      # wrt. X
-      F[i,i]         = - dt + 1
-      F[i,md(i-2)]   = - dt * x[md(i-1)]
-      F[i,md(i+1)]   = + dt * x[md(i-1)]
-      F[i,md(i-1)]   =   dt *(x[md(i+1)]-x[md(i-2)])
-      # wrt. Y
-      F[i,nU+self.iiY[i]] = dt * -h*c/b
-    # Y
-    md = lambda i: nU + np.mod(i-nU,nU*J)
-    for i in range(nU,(J+1)*nU):
-      # wrt. Y
-      F[i,i]         = -dt*c + 1
-      F[i,md(i-1)]   = +dt*c*b * x[md(i+1)]
-      F[i,md(i+1)]   = -dt*c*b * (x[md(i+2)]-x[md(i-1)])
-      F[i,md(i+2)]   = -dt*c*b * x[md(i+1)]
-      # wrt. X
-      F[i,self.iiX[i-nU]] = dt * h*c/b
+    return d
+
+  def d2x_dtdx(self,x):
+    nU,J, h,b,c, U,V = self.unpack(x)
+    iiU, iiV = self.iiU, self.iiV+nU
+
+    F = np.zeros((self.M,self.M))
+    F[:nU, :nU] = d2x_dtdx_auto(U) # dU/dU
+    F[iiU, iiV] = -h*c/b           # dU/dV
+    F[nU:, nU:] = c * d2x_dtdx_auto(b*V,reverse=True) # dV/dV
+    F[iiV, iiU] = h*c/b                               # dV/dU
+
     return F
 
+  def dstep_dx(self,x,t,dt):
+    return integrate_TLM(self.d2x_dtdx_auto(x),dt,method='analytic')
+
   def LPs(self,jj):
-    return [ ( 11, 1, LP.spatial1d(jj,dims=arange(self.nU)) ) ]
+    return [ ( 11, 1, LP.spatial1d(jj,dims=list(range(self.nU))) ) ]
 

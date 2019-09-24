@@ -10,23 +10,68 @@ from matplotlib import colors
 from matplotlib.ticker import MaxNLocator
 
 
-def setup_wrapping(M,periodic=True):
+def setup_wrapping(M,periodicity=None):
   """
-  Make periodic indices and a corresponding function
-  (that works for ensemble input).
+  Wrap the state indices and
+  create a function that does the same for state vectors (or and ensemble thereof).
+
+  - 'periodicity' defines the mode of the wrapping.
+    Default: "+1", meaning that the first element is appended after the last.
   """
 
-  if periodic:
+  if periodicity in (None,True):
+     periodicity = "+1"
+
+  if periodicity is "+1":
+    ii = arange(M+1)
+    def wrap(E):
+      return E[...,list(range(M))+[0]]
+
+  elif periodicity is "+/-05":
     ii = np.hstack([-0.5, arange(M), M-0.5])
     def wrap(E):
-      midpoint = (E[[0],...] + E[[-1],...])/2
-      return ccat(midpoint,E,midpoint)
+      midpoint = (E[...,[0]] + E[...,[-1]])/2
+      return ccat(midpoint,E,midpoint,axis=-1)
 
   else:
     ii = arange(M)
     wrap = lambda x: x
 
   return ii, wrap
+
+from matplotlib.animation import FuncAnimation
+def amplitude_animation(EE,dt=None,interval=10,periodicity=None,blit=True,fignum=None):
+  fig, ax = freshfig(fignum)
+  ax.set_xlabel('State index')
+  ax.set_ylabel('Amplitue')
+  # ax.set_title('Amplitudes')
+  ax.set_ylim(*stretch(*xtrema(EE),1.1))
+
+  if EE.ndim == 2:
+    EE = np.expand_dims(EE,1)
+  K,N,Nx = EE.shape
+
+  ii,wrap = setup_wrapping(Nx,periodicity)
+
+  lines = ax.plot(ii, wrap(EE[0]).T)
+  ax.set_xlim(*xtrema(ii))
+
+  if dt is not None:
+    times = 'time = %.1f'
+    lines += [ax.text(0.05, 0.9, '', transform=ax.transAxes)]
+
+  def anim(k):
+    Ek = wrap(EE[k])
+    for n in range(N):
+      lines[n].set_ydata(Ek[n])
+    if len(lines)>N:
+      lines[-1].set_text(times%(dt*k))
+    return lines
+
+  return FuncAnimation(fig, anim, range(K), interval=interval, blit=blit)
+
+
+
   
 def adjust_position(ax,adjust_extent=False,**kwargs):
   """
@@ -302,7 +347,7 @@ def adjustable_box_or_forced():
   return 'box-forced' if pv(mpl.__version__) < pv("2.2.0") else 'box'
 
 
-def freshfig(num,figsize=None,*args,**kwargs):
+def freshfig(num=None,figsize=None,*args,**kwargs):
   """Create/clear figure.
   
   Similar to::

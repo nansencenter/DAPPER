@@ -14,7 +14,7 @@ Nx = 1000;
 Ny = 40;
 
 jj = equi_spaced_integers(Nx,Ny)
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
 
@@ -53,7 +53,7 @@ def step(x,t,dt):
 Dyn = {
     'M'    : Nx,
     'model': lambda x,t,dt: damp * step(x,t,dt),
-    'jacob': lambda x,t,dt: damp * Fm,
+    'linear': lambda x,t,dt: damp * Fm,
     'noise': GaussRV(C=CovMat(L,'Left')),
     }
 

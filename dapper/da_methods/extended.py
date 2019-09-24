@@ -31,7 +31,7 @@ def ExtKF(infl=1.0,**kwargs):
     for k,kObs,t,dt in progbar(chrono.ticker):
       
       mu = Dyn(mu,t-dt,dt)
-      F  = Dyn.jacob(mu,t-dt,dt) 
+      F  = Dyn.linear(mu,t-dt,dt) 
       P  = infl**(dt)*(F@P@F.T) + dt*Q
 
       # Of academic interest? Higher-order linearization:
@@ -39,7 +39,7 @@ def ExtKF(infl=1.0,**kwargs):
 
       if kObs is not None:
         stats.assess(k,kObs,'f',mu=mu,Cov=P)
-        H  = Obs.jacob(mu,t)
+        H  = Obs.linear(mu,t)
         KG = mrdiv(P @ H.T, H@P@H.T + R)
         y  = yy[kObs]
         mu = mu + KG@(y - Obs(mu,t))
@@ -80,7 +80,7 @@ def ExtRTS(infl=1.0,**kwargs):
     # Forward pass
     for k,kObs,t,dt in progbar(chrono.ticker, 'ExtRTS->'):
       mu[k]  = Dyn(mu[k-1],t-dt,dt)
-      F      = Dyn.jacob(mu[k-1],t-dt,dt) 
+      F      = Dyn.linear(mu[k-1],t-dt,dt) 
       P [k]  = infl**(dt)*(F@P[k-1]@F.T) + dt*Q
 
       # Store forecast and Jacobian
@@ -90,7 +90,7 @@ def ExtRTS(infl=1.0,**kwargs):
 
       if kObs is not None:
         stats.assess(k,kObs,'f',mu=mu[k],Cov=P[k])
-        H     = Obs.jacob(mu[k],t)
+        H     = Obs.linear(mu[k],t)
         KG    = mrdiv(P[k] @ H.T, H@P[k]@H.T + R)
         y     = yy[kObs]
         mu[k] = mu[k] + KG@(y - Obs(mu[k],t))

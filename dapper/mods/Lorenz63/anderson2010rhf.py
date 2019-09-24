@@ -4,7 +4,7 @@
 
 from dapper import *
 
-from dapper.mods.Lorenz63.core import step, dfdx, x0, Tplot
+from dapper.mods.Lorenz63.core import step, dstep_dx, x0, Tplot
 
 t = Chronology(0.01, dkObs=12, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
@@ -13,13 +13,13 @@ Nx = len(x0)
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dfdx,
+    'linear': dstep_dx,
     'noise': 0
     }
 
 X0 = GaussRV(C=2,mu=x0)
 
-Obs = partial_direct_Obs(Nx,arange(Nx))
+Obs = partial_Id_Obs(Nx,arange(Nx))
 Obs['noise'] = 8.0
 
 

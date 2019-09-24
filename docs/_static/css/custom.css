@@ -1,0 +1,22 @@
+
+body {
+    font-family: 'Open Sans', sans-serif;
+}
+
+
+
+h1, h2, h3, h4 {
+		font-weight: 300;
+    font-family: "Open Sans",sans-serif;
+}
+
+h1 {
+		font-size: 200%;
+}
+
+
+div.toctree-wrapper.compound .caption-text {
+    font-family: "Open Sans",sans-serif;
+		font-weight: 300;
+		font-size: 100%;
+}

@@ -9,7 +9,7 @@ from dapper.mods.Lorenz63.sak12 import HMM, Nx
 HMM.t = Chronology(0.01,dkObs=12,T=4**5,BurnIn=4)
 
 jj = array([0])
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 8
 HMM.Obs = Operator(**Obs)
 
@@ -21,7 +21,7 @@ HMM.Obs = Operator(**Obs)
 # ------------------------------------------------------------------------------
 # HMM.t.KObs = 10**2
 # cfgs += OptInterp()                                                # 5.4    / N/A
-# cfgs += Var3D(infl=0.7)                                            # 3.2    / N/A
+# cfgs += Var3D(xB=0.3)                                              # 3.0    / N/A
 # cfgs += EnKF_N(N=5)                                                # 2.68   / N/A
 # cfgs += EnKF_N(N=30,rot=True)                                      # 2.52   / 2.5
 # cfgs += LNETF(N=40,rot=True,infl=1.02,Rs=1.0,loc_rad='NA')         # 2.61   / ~2.2

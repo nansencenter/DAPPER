@@ -24,7 +24,7 @@ def test_L63():
     C.liveplotting="all"
 
   HMM.t.BurnIn = HMM.t.dtObs
-  HMM.t.KObs = 2
+  HMM.t.KObs = 1
   xx,yy = simulate(HMM)
 
   stats = []
@@ -41,6 +41,7 @@ def test_L63():
 
   for s in stats:
     replay(s,"all")
+
   replay(stats[-1], t2=1)
   replay(stats[-1], t2=0.0)
   replay(stats[-1], t2=0.3)
@@ -63,7 +64,7 @@ def test_L95():
   cfgs += EnKF('PertObs'        ,N=40, infl=1.06)               # 0.22
   cfgs += EnKF('Serial'         ,N=28, infl=1.02,rot=True)      # 0.18
   cfgs += OptInterp()
-  cfgs += Var3D(infl=1.05)
+  cfgs += Var3D(xB=0.02)
   cfgs += ExtKF(infl=10)                                        # 0.24 
   cfgs += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')  # 
 
@@ -77,10 +78,10 @@ def test_L95():
     C.store_u=True
     C.liveplotting="all"
 
-  HMM.t.BurnIn = 10*HMM.t.dtObs
-  HMM.t.KObs = 30
-  # HMM.t.BurnIn = HMM.t.dtObs
-  # HMM.t.KObs = 2
+  # HMM.t.BurnIn = 10*HMM.t.dtObs
+  # HMM.t.KObs = 30
+  HMM.t.BurnIn = HMM.t.dtObs
+  HMM.t.KObs = 2
   xx,yy = simulate(HMM)
 
   stats = []
@@ -97,6 +98,7 @@ def test_L95():
 
   for s in stats:
     replay(s,"all")
+
   replay(stats[-1], t2=1)
   replay(stats[-1], t2=0.0)
   replay(stats[-1], t2=0.3)

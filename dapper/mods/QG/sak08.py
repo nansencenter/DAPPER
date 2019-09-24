@@ -54,7 +54,7 @@ def hmod(E,t):
   return E[obs_inds(t)]
 
 # Localization.
-batch_shape = [3, 3] # width (in grid points) of each state batch.
+batch_shape = [2, 2] # width (in grid points) of each state batch.
 # Increasing the width
 #  => quicker analysis (but less relative speed-up by parallelization, depending on NPROC)
 #  => worse (increased) rmse (but width 4 is only slightly worse than 1);

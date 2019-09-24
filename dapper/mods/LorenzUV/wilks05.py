@@ -20,17 +20,17 @@ t = Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)  # requires rk4
 
 
 Dyn = {
-    'M'    : LUV.M,
-    'model': with_rk4(LUV.dxdt,autonom=True),
-    'noise': 0,
-    'jacob': LUV.dfdx,
+    'M'      : LUV.M,
+    'model'  : with_rk4(LUV.dxdt,autonom=True),
+    'noise'  : 0,
+    'linear' : LUV.dstep_dx,
     }
 
-X0 = GaussRV(C=0.01*eye(LUV.M))
+X0 = GaussRV(mu=LUV.x0,C=0.01)
 
 R = 0.1
 jj = arange(nU)
-Obs = partial_direct_Obs(LUV.M,jj)
+Obs = partial_Id_Obs(LUV.M,jj)
 Obs['noise'] = R
 
 other = {'name': rel_path(__file__,'mods/')+'_full'}
@@ -50,10 +50,10 @@ Dyn = {
     'noise': 0,
     }
 
-X0 = GaussRV(C=0.01*eye(nU))
+X0 = GaussRV(mu=LUV.x0[:nU],C=0.01)
 
 jj = arange(nU)
-Obs = partial_direct_Obs(nU,jj)
+Obs = partial_Id_Obs(nU,jj)
 Obs['noise'] = R
  
 other = {'name': rel_path(__file__,'mods/')+'_trunc'}
@@ -96,9 +96,9 @@ def polynom_prmzt(t,x,order):
 ####################
 # Suggested tuning
 ####################
-#                                                         # Expected RMSE_a:
+# Using HMM_full                                           # Expected RMSE_a:
 # cfgs += Climatology()                                    # 0.93
-# cfgs += Var3D()                                          # 0.38
+# cfgs += Var3D(xB=2.0)                                    # 0.39
 # cfgs += EnKF_N(N=20)                                     # 0.27
 
 

@@ -13,7 +13,7 @@ cfgs  = List_of_Configs()
 from dapper.mods.Lorenz63.sak12 import HMM       # Expected RMSE_a:
 cfgs += Climatology()   # no tuning!                      # 7.6
 cfgs += OptInterp()     # no tuning!                      # 1.25
-cfgs += Var3D(infl=0.9) # tuning not strictly required    # 1.03 
+cfgs += Var3D(xB=0.1)   # tuning not strictly required    # 1.03 
 cfgs += ExtKF(infl=90)  # some inflation tuning needed    # 0.87
 cfgs += EnKF('Sqrt',    N=3 ,  infl=1.30)                 # 0.82
 cfgs += EnKF('Sqrt',    N=10,  infl=1.02,rot=True)        # 0.63
@@ -28,7 +28,7 @@ cfgs += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # from dapper.mods.Lorenz95.sak08 import HMM       # Expected RMSE_a:
 # cfgs += Climatology()                                     # 3.6
 # cfgs += OptInterp()                                       # 0.95
-# cfgs += Var3D(infl=1.05)                                  # 0.41 
+# cfgs += Var3D(xB=0.02)                                    # 0.41 
 # cfgs += ExtKF(infl=6)                                     # 0.24
 # cfgs += EnKF('PertObs'        ,N=40,infl=1.06)            # 0.22
 # cfgs += EnKF('Sqrt'           ,N=28,infl=1.02,rot=True)   # 0.18
@@ -64,13 +64,14 @@ stats = []
 avrgs = []
 
 for ic,config in enumerate(cfgs):
-  config.liveplotting = False
   seed(sd0+2) # use common random nums
 
   stats += [ config.assimilate(HMM,xx,yy) ]
   avrgs += [ stats[ic].average_in_time() ]
   # print_averages(config, avrgs[-1])
 print_averages(cfgs,avrgs)
+
+dpath = save_data(__file__, HMM, cfgs, stats, avrgs)
 
 
 ##############################

@@ -93,11 +93,12 @@ class Stats(NestedPrint):
     #     plotting stats that are not being used.
     #     => Cannot use dtype bool or int for those that may be plotted.
 
+    # Transformations used in plotting stats
     def lin(a,b): return lambda x: a + b*x
     def Id(x)   : return x
     def divN(x) :
-      try: return x/N
-      except NameError: return nan
+      try: return x/config.N
+      except AttributeError: return nan
 
     # RMS
     self.style1 = {
@@ -333,6 +334,10 @@ class Stats(NestedPrint):
           raise NotImplementedError
       except NotImplementedError:
         pass
+
+    # used as class id by save_data
+    avrg._isavrg = True 
+
     return avrg
 
 

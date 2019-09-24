@@ -73,4 +73,7 @@ tmp[1-4].py
 # QG/f90
 prms_*\.txt
 
+scripts/
+
+dapper/mods/KS/kursiv.m
 

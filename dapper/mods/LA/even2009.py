@@ -29,7 +29,7 @@ def step(x,t,dt):
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': Fm,
+    'linear': lambda x,t,dt: Fm,
     'noise': 0
     }
 
@@ -38,9 +38,10 @@ Dyn = {
 # Yet this is not so implausible because sinusoidal_sample()
 # yields (multivariate) uniform (random numbers) -- not Gaussian.
 wnum  = 25
-X0 = RV(M=Nx, func = lambda N: sqrt(5)/10 * sinusoidal_sample(Nx,wnum,N))
+a = sqrt(5)/10
+X0 = RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx,wnum,N))
 
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
 HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))

@@ -93,10 +93,8 @@ class LivePlot:
       open_figns = plt.get_fignums()
       live_figns = set(num for (num, updater) in self.figures.values())
       self.any_figs = bool(live_figns.intersection(open_figns))
-    # If no open figures: don't update
-    if not self.any_figs:
+    else:
       return
-
 
     # Playback control
     SPACE  = b' '   
@@ -174,7 +172,10 @@ def replay(stats, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   # If the LPs are initialized with P0!=None, then they will avoid ens plotting.
   # TODO: This system for switching from Ens to stats must be replaced.
   #       It breaks down when M is very large.
-  P0 = np.full_like(stats.HMM.X0.C.full, nan) 
+  try:
+    P0 = np.full_like(stats.HMM.X0.C.full, nan) 
+  except AttributeError: # e.g. if X0 is defined via sampling func
+    P0 = eye(stats.HMM.Nx)
 
   if figlist is None: figlist = stats.config.liveplotting
   figlist = parse_figlist(figlist)
@@ -485,7 +486,7 @@ class correlations:
       mask[np.tril_indices_from(mask)] = True
       # Make colormap. Log-transform cmap, but not internally in matplotlib,
       # so as to avoid transforming the colorbar too.
-      cmap = plt.get_cmap('RdBu')
+      cmap = plt.get_cmap('RdBu_r')
       trfm = colors.SymLogNorm(linthresh=0.2,linscale=0.2,vmin=-1, vmax=1)
       cmap = cmap(trfm(linspace(-0.6,0.6,cmap.N)))
       cmap = colors.ListedColormap(cmap)
@@ -933,7 +934,7 @@ def d_ylim(data,ax=None,cC=0,cE=1,pp=(1,99),Min=-1e20,Max=+1e20):
 from .viz import setup_wrapping
 def spatial1d(
     obs_inds     = None,
-    periodic     = True,
+    periodicity  = None,
     dims         = [],
     ens_props    = {'color': 0.7*RGBs['w'],'alpha':0.5},
     conf_mult    = None,
@@ -955,7 +956,7 @@ def spatial1d(
       M = len(p.dims)
 
     # Make periodic wrapper
-    ii, wrap = setup_wrapping(M,p.periodic)
+    ii, wrap = setup_wrapping(M,p.periodicity)
 
     # Set up figure, axes
     fig, ax = freshfig(fignum, (8,5), loc='2312-3')
@@ -974,8 +975,8 @@ def spatial1d(
       line_mu, = ax.plot(ii,nan1,                     'b-' ,lw=2,label='DA mean')
     else:                                                      
       nanE     = nan*ones((stats.config.N,M))
-      lines_E  = ax.plot(ii,wrap(nanE[0] .T), **p.ens_props,lw=1,label='Ensemble')
-      lines_E += ax.plot(ii,wrap(nanE[1:].T), **p.ens_props,lw=1)
+      lines_E  = ax.plot(ii,wrap(nanE[0])   , **p.ens_props,lw=1,label='Ensemble')
+      lines_E += ax.plot(ii,wrap(nanE[1:]).T, **p.ens_props,lw=1)
     # Truth, Obs
     line_x,    = ax.plot(ii,nan1,                     'k-' ,lw=3,label='Truth')
     if p.obs_inds is not None:                                 

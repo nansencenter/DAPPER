@@ -140,12 +140,48 @@ def save_dir(script,host=True):
   os.makedirs(sdir, exist_ok=True)
   return sdir
 
+import glob
+def get_numbering(glb):
+  ls = glob.glob(glb+'*')
+  return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
+
 
 #########################################
 # Console input / output
 #########################################
 
 import inspect
+def get_call():
+    """Get calling statement (even if it is multi-lined).
+
+    NB: returns full lines (may include junk before/after calls)
+        coz real parsing (brackets, commas, \, etc) is complicated.
+
+    Also return caller namespace.
+    """
+    f0         = inspect.currentframe()        # this frame
+    f1         = f0.f_back                     # caller1
+    name       = f1.f_code.co_name             # caller1's name
+    f2         = f1.f_back                     # caller2's frame
+    code,shift = inspect.getsourcelines(f2)    # caller2's code
+    nEnd       = f2.f_lineno                   # caller2's lineno
+
+    if shift: nEnd -= shift
+    else: nEnd -= 1 # needed when shift==0 (don't know why)
+
+    # Loop backwards from line nEnd
+    for nStart in range(nEnd,-1,-1):
+      line = code[nStart]
+      if re.search(r"\b"+name+r"\b\s*\(",line): break
+    else:
+      raise Exception("Couldn't find caller.")
+
+    call = "".join(code[nStart:nEnd+1])
+    call = call.rstrip() # rm trailing newline 
+
+    return call, f2.f_locals
+
+
 def spell_out(*args):
   """
   Print (args) including variable names.
@@ -154,33 +190,16 @@ def spell_out(*args):
   >>> 3*2:
   >>> 6
   """
-  frame  = inspect.stack()[1].frame
-  lineno = frame.f_lineno
 
-  # This does not work coz they (both) end reading when encountering a func def
-  # code  = inspect.getsourcelines(frame)
-  # code  = inspect.getsource(frame)
-
-  # Instead, read the source manually...
-  f = inspect.getfile(frame)
-  if "ipython-input" in f:
-    # ( does not work with pure python where f == "<stdin>" )
-    line = inspect.getsource(frame)
-  else:
-    try:
-      f = os.path.relpath(f)
-      with open(f) as stream:
-        line = stream.readlines()[lineno-1]
-    except FileNotFoundError:
-      line = "(Print command on line number " + str(lineno) + " [of unknown source])"
+  call, _ = get_call()
 
   # Find opening/closing brackets
-  left  = line. find("(")
-  right = line.rfind(")")
+  left  = call. find("(")
+  right = call.rfind(")")
 
   # Print header
   with coloring(cFG.MAGENTA):
-    print(line[left+1:right] + ":")
+    print(call[left+1:right] + ":")
   # Print (normal)
   print(*args)
 
@@ -378,11 +397,32 @@ class AlignedDict(OrderedDict):
     # Is implemented by OrderedDict, so must overwrite.
     if cycle: p.text('{...}')
     else:     p.text(self.__repr__())
-  
+
+
 class Bunch(dict):
+  "Neat little dict that doubles as a class"
   def __init__(self,**kw):
+    "Init like a normal dict."
     dict.__init__(self,kw)
     self.__dict__ = self
+
+  @classmethod
+  def magic_init(cls,*args,**kw):
+    """Get attribute name from variable names in call.
+    THIS IS A BIG FAT HACK!!!"""
+    call, locvars = get_call()
+
+    # Insert args in kw
+    for i,x in enumerate(args):
+      # Match x to a name, or more, by id, and also its presence in the call.
+      matches = [name for name in locvars if locvars[name] is x]
+      matches = [name for name in matches if re.search(r"\b"+name+r"\b", call)]
+      if not matches:
+        raise RuntimeError("Couldn't find the name for "+str(x))
+      for m in matches:
+        kw[m] = x
+
+    return cls(**kw)
 
 
 # From stackoverflow.com/q/22797580 and more

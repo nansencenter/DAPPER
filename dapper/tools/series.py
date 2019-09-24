@@ -1,27 +1,26 @@
 from dapper import *
 
-def auto_cov(xx,L=5,periodic=False,corr=False):
+# TODO: change L to 'nlags', with nlags=L-1, to conform with
+# the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
+def auto_cov(xx,L=5,zero_mean=False,corr=False):
   """
   Auto covariance function, computed along axis 0.
   L   : max lag (offset) for which to compute acf.
-  mode: use 'wrap' to assume xx periodic (circular).
   corr: normalize acf by acf[0] so as to return auto-CORRELATION.
   """
-  assert xx.ndim <= 2
-  assert L<len(xx)
+  assert L<=len(xx)
 
-  N     = len(xx)
-  mu    = mean(xx,0)
-  A     = xx - mu
-  acovf = zeros((L,)+np.shape(mu))
+  N = len(xx)
+  A = xx if zero_mean else center(xx)[0]
+  acovf = zeros((L,)+xx.shape[1:])
 
   for i in range(L):
-    Left     = A.take(arange(N-i),0)
-    Right    = A.take(arange(i,N),0)
-    acovf[i] = (Left*Right).sum(0)/(N-i-1)
+    Left  = A[arange(N-i)]
+    Right = A[arange(i,N)]
+    acovf[i] = (Left*Right).sum(0)/(N-i)
 
   if corr:
-    acovf /= acovf[0].copy()
+    acovf /= acovf[0]
 
   return acovf
 

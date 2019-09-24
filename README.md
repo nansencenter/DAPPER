@@ -37,12 +37,22 @@ Also see its [drawbacks](#alternative-projects).
 
 Installation
 ================================================
-1. **Prerequisite**: python>=3.6 (suggest setting it up with [anaconda](https://www.anaconda.com/download)).  
-Execute `python -V` (uppercase `V`) in a [terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda) to assert that the version is 3.6 or higher.
-2. **Install**: Download and extract (or `git clone`) DAPPER, `cd` into the resulting folder, and `pip install -e .`
-3. **Test**: `python example_1.py`  
+Works on Linux/Windows/Mac.
 
-Step 2 can be replaced by 
+1. **Prerequisite**: python>=3.6.  
+   If you're not {admin | expert}:  
+   1a. Install it with [Anaconda](https://www.anaconda.com/download).  
+   1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda) to run the commands below.
+
+2. **Install**:  
+   Download and extract (or `git clone`) DAPPER,  
+   `cd` into the resulting folder
+	 *(ensure you're at the level with a `setup.py` file)*:  
+   `pip install -e .` (don't forget the `.`).
+
+3. **Test** by running: `python example_1.py`  
+
+Step 2 can be replaced by running
 `pip install da-dapper`
 but this is not recommended since this hides away DAPPER as a library in your python path.
 
@@ -94,16 +104,17 @@ The particle filter is tuned with "effective-N monitoring", "regularization/jitt
 Models
 ================================================
 
-Model             | Linear? | Phys.dim. | State len | # Lyap≥0 | Implementer
------------       | ------- | --------- | --------- | -------- | ----------
-Lin. Advect.      | Yes     | 1d        | 1000 *    | 51       | Evensen/Raanes
-DoublePendulum    | No      | 0d        | 4         | 2        | Matplotlib/Raanes
-LotkaVolterra     | No      | 0d        | 5 *       | 1        | Wikipedia/Raanes
-Lorenz63          | No      | 0d        | 3         | 2        | Sakov
-Lorenz84          | No      | 0d        | 3         | 2        | Raanes
-Lorenz95          | No      | 1d        | 40 *      | 13       | Raanes
-LorenzUV          | No      | 2x 1d     | 256 + 8 * | ≈60      | Raanes
-Quasi-Geost       | No      | 2d        | 129²≈17k  | ≈140     | Sakov
+Model                | Lin? | TLM? | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer
+-----------          | ---- | ---- | ----  | --------- | --------- | ------ | ----------
+Linear Advect. (LA)  | Yes  | Yes  | Yes   | 1d        | 1000 *    | 51     | Evensen/Raanes
+DoublePendulum       | No   | Yes  | No    | 0d        | 4         | 2      | Matplotlib/Raanes
+LotkaVolterra        | No   | Yes  | No    | 0d        | 5 *       | 1      | Wikipedia/Raanes
+Lorenz63             | No   | Yes  | "Yes" | 0d        | 3         | 2      | Sakov
+Lorenz84             | No   | Yes  | No    | 0d        | 3         | 2      | Raanes
+Lorenz95             | No   | Yes  | No    | 1d        | 40 *      | 13     | Raanes
+LorenzUV             | No   | Yes  | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
+Kuramoto-Sivashinsky | No   | Yes  | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
+Quasi-Geost (QG)     | No   | No   | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov
 
 *: flexible; set as necessary
 

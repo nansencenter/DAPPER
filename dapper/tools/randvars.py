@@ -77,6 +77,7 @@ class RV(NestedPrint):
     return E
 
 
+# TODO: improve constructor (treatment of arg cases is too fragile).
 class RV_with_mean_and_cov(RV):
   """Generic multivariate random variable characterized by two parameters: mean and covariance.
 

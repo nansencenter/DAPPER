@@ -52,7 +52,7 @@ class Operator(NestedPrint):
     # None => Identity model
     if model is None:
       model = Id_op()
-      kwargs['jacob'] = Id_mat(M)
+      kwargs['linear'] = lambda x,t,dt: Id_mat(M)
     self.model = model
 
     # None/0 => No noise
@@ -196,7 +196,7 @@ def DA_Config(da_method):
 
 
 
-class DAC(ImmutableAttributes):
+class DAC(ImmutableAttributes,NestedPrint):
   """DA configs (settings).
 
   This class just contains the parameters grabbed by the DA_Config wrapper.
@@ -209,19 +209,20 @@ class DAC(ImmutableAttributes):
 
   # Defaults
   dflts = {
-      'liveplotting': rc['liveplotting_enabled'],
+      'liveplotting': False,
       'store_u'     : rc['store_u'],
       }
 
-  excluded =  ['assimilate',re.compile('^_')]
+  # Print settings
+  excluded = ['assimilate','da_method','name',re.compile('^_'),'ordering']
+  excluded += list(dflts)
 
   def __init__(self,odict):
-    """Assign dict items to attributes"""
-    # Ordering is kept for printing
-    self._ordering = odict.keys()
-    for key, value in self.dflts.items(): setattr(self, key, value)
-    for key, value in      odict.items(): setattr(self, key, value)
-    self._freeze(filter_out(odict.keys(),*self.dflts,'name'))
+    self.ordering = list(odict.keys())                              # Keep ordering (4 printing)
+    for key, value in self.dflts.items(): setattr(self, key, value) # Set defaults
+    for key, value in      odict.items(): setattr(self, key, value) # Set argument
+    if 'name' not in odict: self.name = self.da_method.__name__     # Set name
+    self._freeze(filter_out(odict.keys(),*self.dflts,'name'))       # Freeze
 
   def update_settings(self,**kwargs):
     """
@@ -231,24 +232,19 @@ class DAC(ImmutableAttributes):
     >>> for iC,C in enumerate(cfgs):
     >>>   cfgs[iC] = C.update_settings(liveplotting=True)
     """
-    old = list(self._ordering) + filter_out(self.__dict__,*self._ordering,*self.excluded,'da_method')
+
+    old = self.ordering
+    old += filter_out(self.__dict__,*self.ordering)
+    old = filter_out(old,'assimilate','da_method',re.compile('^_'),'ordering')
     dct = {**{key: getattr(self,key) for key in old}, **kwargs}
     return DA_Config(self.da_method)(**dct)
 
-  def __repr__(self):
-    def format_(key,val):
-      # default printing
-      s = repr(val)
-      # wrap s
-      s = key + '=' + s + ", "
-      return s
-    s = self.da_method.__name__ + '('
-    # Print ordered
-    keys = list(self._ordering) + filter_out(self.__dict__,*self._ordering)
-    keys = filter_out(keys,*self.excluded,*self.dflts,'da_method')
-    for key in keys:
-      s += format_(key,getattr(self,key))
-    return s[:-2]+')'
+  # def __repr__(self):
+    # keys  = self.ordering                               # + ordered keys
+    # keys += filter_out(self.__dict__,*self.ordering)    # + other attributes
+    # keys  = filter_out(keys,*self.excluded)             # - excluded
+    # attributes = ", ".join([k+"="+repr(getattr(self,k)) for k in keys])
+    # return self.da_method.__name__ + '(' + attributes + ')'
 
   def __eq__(self, config):
     prep = lambda obj: {k:v for k,v in obj.__dict__.items() if
@@ -275,7 +271,7 @@ class List_of_Configs(list):
   """
 
   # Print settings
-  excluded = DAC.excluded + ['name']
+  excluded = filter_out(DAC.excluded,'da_method')
   ordering = ['da_method','N','upd_a','infl','rot']
 
   def __init__(self,*args,unique=False):
@@ -548,5 +544,69 @@ def typeset(lst,tab):
     width = max([len(s)     for s in ss])
     ss    = [s.ljust(width) for s in ss]
   return ss
+
+
+
+
+import dill
+def save_data(name,*args,**kwargs):
+  """"Utility for saving experimental data.
+
+  Takes care of:
+   - Path management.
+   - Calling dill.dump().
+   - Default naming of certain types of arguments.
+
+  The advantage of dill is that it can seriealize (and hence store) nearly anything.
+  Also, dill automatically uses np.save() for arrays for memory/disk efficiency.
+  """
+
+  filename  = save_dir(name,host=False) + "run_"
+  filename += str(1 + max(get_numbering(filename),default=0)) + ".pickle"
+  print("Saving data to",filename)
+
+  def name_args():
+      data = OrderedDict()
+      nNone = 0 # count of non-classified objects
+
+      nameable_classes = OrderedDict(
+            HMM  = lambda x: isinstance(x,HiddenMarkovModel),
+            cfgs = lambda x: isinstance(x,List_of_Configs),
+            DAC  = lambda x: isinstance(x,DAC),
+            stat = lambda x: isinstance(x,Stats),
+            avrg = lambda x: getattr(x,"_isavrg",False),
+          )
+
+      def classify(x):
+          for name, test in nameable_classes.items():
+            if test(x): return name
+          # Defaults:
+          if isinstance(x,list): return "list"
+          else:                  return None
+
+      for x in args:
+          Class = classify(x)
+
+          if Class == "list":
+            Class0 = classify(x[0])
+            if Class0 in nameable_classes and all([Class0==classify(y) for y in x]):
+              Class = Class0 + "s" # plural
+            else:
+              Class = None
+
+          elif Class is None:
+            nNone += 1
+            Class = "obj%d"%nNone
+
+          data[Class] = x
+      return data
+
+  with open(filename,"wb") as filestream:
+      dill.dump({**kwargs, **name_args()}, filestream)
+
+  return filename
+
+
+
 
 

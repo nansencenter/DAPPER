@@ -9,29 +9,28 @@ and `quick start <https://github.com/nansencenter/DAPPER/#getting-started>`_ gui
 
 .. toctree::
    :maxdepth: 3
+   :caption: For users:
 
    api
-
-
-Other resources
----------------
-
-.. toctree::
-   :maxdepth: 3
-
    bib/bib
    adding
    implementation
    features
+
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+   :caption: For developers:
+
    todo
    contributing
    license
 
-
-Look-up tools:
---------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+..
+  Look-up tools:
+  --------------
+  
+  * :ref:`genindex`
+  * :ref:`modindex`
+  * :ref:`search`
+  

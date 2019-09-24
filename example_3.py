@@ -22,7 +22,7 @@ sd0 = seed_init(8) # Base random seed.
 from   dapper.mods.Lorenz95.boc15loc import HMM
 import dapper.mods.Lorenz95.core as core
 
-HMM.t.T = 4**4.0
+HMM.t.T = 4**3.0
 
 # Specify the control variable (i.e. the plotting xlabel) of interest.
 CtrlVar = sys.argv[1] # For example, run script with: `python example_3.py N`
@@ -42,8 +42,7 @@ xticks = array(xticks).repeat(32)
 # - with the 2nd command-line argument being PARALLELIZE,
 #   then this function will split the 'xticks' array into 'nCore' batches,
 #   and distribute each to a WORKER which run the rest of the script in parallel.
-#   Important: see comment in distribute() about enforcing single-core use by numpy.
-# - without a second argument: script is run as normal (no parallelization).
+# - without a 2nd argument: script is run as normal (no parallelization).
 xticks, save_path, rep_inds = distribute(__file__,sys.argv,xticks,CtrlVar)
 
 
@@ -134,10 +133,10 @@ for iX,(X,iR) in enumerate(zip(xticks,rep_inds)):
 # Results saved in the format below is supported by DAPPER's ResultsTable, whose main purpose
 # is to collect result data from parallelized (or otherwise independent) experiments.
 np.savez(save_path,
-    avrgs      = avrgs,            # 3D array of dicts, whose fields are the averages.
-    xlabel     = CtrlVar,          # The control variable tag (string).
-    xticks     = xticks,           # xticks (array).
-    labels     = cfgs.gen_names()) # List of strings.
+    avrgs  = avrgs,            # 3D array of dicts, whose fields are the averages.
+    xlabel = CtrlVar,          # The control variable tag (string).
+    xticks = xticks,           # xticks (array).
+    labels = cfgs.gen_names()) # List of strings.
 
 
 ##############################
@@ -152,7 +151,7 @@ R = ResultsTable(save_path)
 # R = ResultsTable(dirs['data']+'/example_3/MyRemoteHost/N_runX')
 
 # Print averages of a given field.
-# The "subcolumns" show the number of repetitions, crashes and the 1-sigma conf.
+# The "subcolumns" show the num. of (#) reps, (X) crashes, and the (±) 1-sigma conf.
 with coloring(): print("Averages over experiment repetition:")
 R.print_mean_field('rmse_a',1,1,cols=slice(0,2))
 

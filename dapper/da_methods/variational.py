@@ -119,7 +119,7 @@ def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=Non
                 Y0     = Tinv @ Y          # "De-condition" the obs anomalies.
                 V,s,UT = svd0(Y0)          # Decompose Y0.
 
-                # Set "cov normlzt fctr" za ("effective ensemble size") => pre-infl^2 = (N-1)/za.
+                # Set "cov normlzt fctr" za ("effective ensemble size") => pre_infl^2 = (N-1)/za.
                 if xN is None: za  = N1
                 else         : za  = zeta_a(*hyperprior_coeffs(s,N,xN), w)
                 if MDA       : za *= nIter # inflation (factor: nIter) of the ObsErrCov.
@@ -371,7 +371,7 @@ def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
                 # Forecast.
                 for kCycle in DAW:
                   for k,t,dt in chrono.cycle(kCycle):
-                    X = Dyn.jacob(x,t-dt,dt) @ X
+                    X = Dyn.linear(x,t-dt,dt) @ X
                     x = Dyn      (x,t-dt,dt)
 
                 # Assess forecast stats
@@ -379,7 +379,7 @@ def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
                   stats.assess(k,kObs,'f',mu=x,Cov=X@X.T)
 
                 # Observe.
-                Y  = Obs.jacob(x,t) @ X
+                Y  = Obs.linear(x,t) @ X
                 xo = Obs(x,t)
 
                 # Analysis prep.
@@ -416,7 +416,7 @@ def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
           if kLag>=0: stats.assess(chrono.kkObs[kLag],kLag,'s',mu=x,Cov=X@Cow1@X.T)
           for k,t,dt in chrono.cycle(kLag+1):
             stats.assess(k-1,None,'u',mu=x,Cov=Y@Y.T)
-            X = Dyn.jacob(x,t-dt,dt) @ X
+            X = Dyn.linear(x,t-dt,dt) @ X
             x = Dyn      (x,t-dt,dt)
 
     # END loop kObs

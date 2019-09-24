@@ -16,23 +16,23 @@
 
 from dapper import *
 
-from dapper.mods.Lorenz95.core import step, dfdx
+from dapper.mods.Lorenz95.core import step, dstep_dx
 from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
 
 t = Chronology(0.05,dtObs=0.4,T=4**5,BurnIn=20)
 
 Nx = 40
 Dyn = {
-    'M'    : Nx,
-    'model': step,
-    'jacob': dfdx,
-    'noise': 0
+    'M'     : Nx,
+    'model' : step,
+    'linear': dstep_dx,
+    'noise' : 0
     }
 
 X0 = GaussRV(M=Nx, C=0.001)
 
 jj = 1 + arange(0,Nx,2)
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.5
 Obs['localizer'] = loc_setup( (Nx,), (2,), jj, periodic=True )
 
@@ -50,7 +50,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 #    and don't really need localization.
 # from dapper.mods.Lorenz95.frei2013bridging import HMM      # rmse_a
 # cfgs += EnKF_N(N=400,rot=1)                                # 0.80
-# cfgs += LETKF(N=400,rot=True,infl=1.01,loc_rad=10/1.82)    # 0.79 # short experiment only
-# cfgs += Var3D(infl=0.8)                                    # ≈2.5 # short experiment only
+# cfgs += LETKF( N=400,rot=True,infl=1.01,loc_rad=10/1.82)   # 0.79 # short experiment only
+# cfgs += Var3D()                                            # 2.42 # short experiment only
 
 

@@ -55,7 +55,7 @@ def ens_compatible(func):
   An older version also used np.atleast_2d and squeeze(),
   but that is more messy than necessary.
 
-  Note: this is the_way™ -- other tricks are sometimes more practical.
+  Note: this is not the_way™ -- other tricks are sometimes more practical.
   See for example core.py:dxdt() of LorenzUV, Lorenz95, LotkaVolterra.
   """
   @functools.wraps(func)
@@ -196,18 +196,32 @@ def integrate_TLM(TLM,dt,method='approx'):
   return resolvent
 
 def FD_Jac(ens_compatible_function,eps=1e-7):
-  """Finite-diff approximation for functions compatible with 1D and 2D input.
-  Example: dfdx = FD_Jac(step)
+  """Finite-diff approx. for functions compatible with 1D and 2D input.
+
+  Example:
+  >>> dstep_dx = FD_Jac(step)
   """
-  def dfdx(x,t,dt):
-    f  = lambda x0: ens_compatible_function(x0, t, dt)
-    I  = np.eye(len(x))
-    E  = x + eps*I       # row-oriented ensemble
-    fE = f(E)            # => also row-oriented
-    fx = f(x)            # no orientation (1d)
-    F  = (fE - fx)/eps   # => correct broadcasting
-    return F.T           # => dfdx[i,j] = df_i/dx_j
-  return dfdx
+  def Jacf(x,*args,**kwargs):
+    def f(xx): return ens_compatible_function(xx, *args, **kwargs)
+    E  = x + eps*eye(len(x)) # row-oriented ensemble
+    FT = (f(E) - f(x))/eps   # => correct broadcasting
+    return FT.T              # => Jac[i,j] = df_i/dx_j
+  return Jacf
+
+# Transpose explanation:
+# - Let F[i,j] = df_i/dx_j be the Jacobian matrix such that
+#               f(A)-f(x) ≈ F @ (A-x) 
+#   for a matrix A whose columns are realizations. Then
+#                       F ≈ [f(A)-f(x)] @ inv(A-x)   [eq1]
+# - But, to facilitate broadcasting,
+#   DAPPER works with row-oriented (i.e. "ens_compatible" functions),
+#   meaning that f should be called as f(A').
+#   Transposing [eq1] yields:
+#        F' = inv(A-x)'  @ [f(A)  - f(x)]'
+#           = inv(A'-x') @ [f(A') - f(x')]
+#           =      1/eps * [f(A') - f(x')]
+#           =              [f(A') - f(x')] / eps     [eq2]
+# => Need to compute [eq2] and then transpose.
 
     
 
@@ -217,9 +231,14 @@ def FD_Jac(ens_compatible_function,eps=1e-7):
 
 def round2(num,prec=1.0):
   """Round with specific precision.
-  Returns int if prec is int."""
+
+  Returns int if prec is int.
+
+  Also see: builtin round with decimals kwarg.
+  """
   return np.multiply(prec,np.rint(np.divide(num,prec)))
 
+# TODO: replace with builtin round (with decimals kwarg)
 def round2sigfig(x,nfig=1):
   if np.all(array(x) == 0):
     return x
@@ -248,111 +267,6 @@ def is_int(a):
 def validate_int(x):
   assert is_whole(x)
   return round(x) # convert to int
-
-
-#   import decimal
-#   def round2(num,prec=1.0):
-#     """
-#     Round with specific precision.
-#     """
-#   
-#     rr = prec * np.round(num/prec).astype(int)
-#   
-#     # Yes, it's a finite-prec world. But esthetics are emphasized.
-#     # Example of uglyness to avoid:
-#     # >>> prec=1e-2; num=0.899;
-#     # >>> prec*np.round(num/prec).astype(int) # --> 0.9000000000002
-#     # Using non-numpy int() is better: would yield 0.9.
-#     # But it still does not fully avoid this effect. Example:
-#     # >>> prec = 1e-1; num = 0.31;
-#     # >>> prec * int(np.round(num/prec)) # --> 0.30000000000000004
-#     # The following module avoids this uglyness:
-#     decimal.getcontext().prec = max(1,-int(ceil(log10(prec))))
-#   
-#     if hasattr(rr,'__iter__'):
-#       rr = array([float(decimal.Decimal(str(r))) for r in rr])
-#     else:
-#       rr = float(decimal.Decimal(str(rr)))
-#     return rr
-#   
-#   def round2nice(xx,expo=None,irreg=0.0,v=False):
-#     """
-#     Rounds (ordered) array to nice numbers,
-#     without introducing any duplicates.
-#   
-#     irreg: float between 0 and 1 controlling the prefererence
-#                  between (0) regular spacing and (1) less sigfig.
-#     """
-#   
-#     # # Init
-#     # if expos is None:
-#     #   expos = array([int(x) if x!=0 else 0 for x in floor(log10(xx))])
-#   
-#     # N = len(xx)
-#   
-#     # # Round array with prec=10**expo
-#     # rr  = [round2(x,10**e)   for x,e in zip(xx,expos)]
-#     # rr1 = [round2(x,10**e+1) for x,e in zip(xx,expos)]
-#   
-#     # Init
-#     if expo is None:
-#       expo = int(floor(log10(xx.max())))-1
-#   
-#     N = len(xx)
-#   
-#     # Round array with prec=10**expo
-#     rr  = round2(xx,10**expo)
-#     rr1 = round2(xx,10**(expo+1))
-#   
-#   
-#     if irreg:
-#       i = np.argmin(np.abs(xx-rr1[0]))
-#       if i==0 or i==N-1:
-#         # Edge cases not easy to handle,
-#         # because they would need to be compared to the "outer" array.
-#         # We're opting to set them to less-sigfic.
-#         #rr[i] = rr1[i]
-#         pass
-#       else:
-#         irreg2 = irreg**2 # more 'human readable'
-#         maxratio = 1 + irreg
-#         a = rr1[i] - rr[i-1]
-#         b = rr[i+1] - rr1[i]
-#         if max(a/b, b/a) > 1/irreg2:
-#           rr[i] = rr1[i]
-#   
-#   
-#     # Find intervals of duplicates
-#     edges = [] # boundries of intervals
-#     dups  = [False] + np.isclose(0,np.diff(rr)).tolist()
-#     for i in arange(N-1):
-#       if (not dups[i]) and dups[i+1]:
-#         edges += [ [i,'pending'] ]
-#       if dups[i] and (not dups[i+1]):
-#         edges[-1][1] = i+1
-#   
-#     if v:
-#       spell_out(expo)
-#       print(np.vstack([rr1,rr,xx,arange(N)]))
-#       spell_out(edges,"\n")
-#   
-#     if len(edges)==0:
-#       return rr
-#   
-#     # Sub-arrays
-#     arrs = [ rr[:edges[0][0]] ]
-#     for i,(a,b) in enumerate(edges):
-#       d1_next = edges[i+1][0] if i<(len(edges)-1) else N
-#       # Recurse
-#       arrs += [ round2nice(xx[a:b], expo-1, irreg, v) ]
-#       # Add interval of non-duplicates
-#       arrs += [ rr[b:d1_next] ]
-#     #spell_out(arrs)
-#     return np.concatenate(arrs)
-
-
-
-
 
 
 
@@ -554,12 +468,12 @@ def linear_model_setup(ModelMatrix,dt0):
 
   @ens_compatible
   def model(x,t,dt): return MatPow(dt) @ x
-  def jacob(x,t,dt): return MatPow(dt)
+  def linear(x,t,dt): return MatPow(dt)
 
   Dyn = {
       'M'    : len(Mat),
       'model': model,
-      'jacob': jacob,
+      'linear': linear,
       }
   return Dyn
 
@@ -569,21 +483,28 @@ def direct_obs_matrix(Nx,obs_inds):
   Ny = len(obs_inds)
   H = zeros((Ny,Nx))
   H[range(Ny),obs_inds] = 1
+
+  # One-liner:
+  # H = array([[i==j for i in range(M)] for j in jj],float)
+
   return H
 
 
-def partial_direct_Obs(Nx,obs_inds):
+def partial_Id_Obs(Nx,obs_inds):
   Ny = len(obs_inds)
   H = direct_obs_matrix(Nx,obs_inds)
   @ens_compatible
   def model(x,t): return x[obs_inds]
-  def jacob(x,t): return H
+  def linear(x,t): return H
   Obs = {
       'M'    : Ny,
       'model': model,
-      'jacob': jacob,
+      'linear': linear,
       }
   return Obs
+
+def Id_Obs(Nx):
+  return partial_Id_Obs(Nx,np.arange(Nx))
 
 
 

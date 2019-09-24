@@ -4,7 +4,7 @@
 
 from dapper import *
 
-from dapper.mods.Lorenz95.core import step, dfdx, x0, Tplot, LPs
+from dapper.mods.Lorenz95.core import step, dstep_dx, x0, Tplot, LPs
 from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
 
 t = Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
@@ -13,16 +13,16 @@ Nx = 40
 x0 = x0(Nx)
 
 Dyn = {
-    'M'    : Nx,
-    'model': step,
-    'jacob': dfdx,
-    'noise': 0
+    'M'     : Nx,
+    'model' : step,
+    'linear': dstep_dx,
+    'noise' : 0
     }
 
 X0 = GaussRV(mu=x0, C=0.001) 
 
 jj = arange(Nx) # obs_inds
-Obs = partial_direct_Obs(Nx, jj)
+Obs = partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
 Obs['localizer'] = loc_setup( (Nx,), (2,), jj, periodic=True )
 
@@ -41,19 +41,20 @@ HMM.liveplotters = LPs(jj)
 # cfgs += EnKF('DEnKF'          ,N=40, infl=1.01)               # 0.18
 # cfgs += EnKF('PertObs'        ,N=28, infl=1.08)               # 0.24
 # cfgs += EnKF('Sqrt'           ,N=24, infl=1.013,rot=True)     # 0.18
-
+#
 # Other analysis schemes:
 # cfgs += EnKF('Serial'         ,N=28, infl=1.02,rot=True)      # 0.18
 # cfgs += EnKF('Serial ESOPS'   ,N=28, infl=1.02)               # 0.18
 # cfgs += EnKF('Serial Stoch'   ,N=28, infl=1.08)               # 0.24
+#
 # EnKF-N
-# cfgs += EnKF_N(N=24,rot=True) # no tuning!                    # 0.21
+# cfgs += EnKF_N(N=24,rot=True)                                 # 0.21
 # cfgs += EnKF_N(N=24,rot=True,xN=2.0)                          # 0.18
+#
 # Baseline methods
 # cfgs += Climatology()                                         # 3.6 
 # cfgs += OptInterp()                                           # 0.95 
-# cfgs += Var3D_Lag(infl=0.5)
-# cfgs += Var3D(infl=1.05)                                      # 0.41 
+# cfgs += Var3D(xB=0.02)                                        # 0.41
 # cfgs += ExtKF(infl=10)                                        # 0.24 
 
 # Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6:
@@ -67,6 +68,7 @@ HMM.liveplotters = LPs(jj)
 # --------------------------------------------------------------------------------
 # HMM.t.dkObs = 12
 # cfgs += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,infl=1.2,rot=1)     # 0.46
+# cfgs += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,xN=2.0  ,rot=1)     # 0.46
 
 # Reproduce Fig 3 of Bocquet'2015 "expanding"
 # --------------------------------------------------------------------------------

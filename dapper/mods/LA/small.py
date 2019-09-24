@@ -20,14 +20,15 @@ def step(x,t,dt):
 Dyn = {
     'M': Nx,
     'model': step,
+    'linear': lambda x,t,dt: Fm,
     'noise': 0
     }
 
-X0 = GaussRV(C=homogeneous_1D_cov(Nx,Nx/8,kind='Gauss'))
+X0 = GaussRV(mu=zeros(Nx), C=homogeneous_1D_cov(Nx,Nx/8,kind='Gauss'))
 
 Ny  = 4
 jj = equi_spaced_integers(Nx,Ny)
-Obs  = partial_direct_Obs(Nx,jj)
+Obs  = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
  

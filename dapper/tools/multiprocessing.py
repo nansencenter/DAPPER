@@ -206,11 +206,6 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
    - Set xCost to 1 if the costs scale linearly with the setting.
   """
 
-  import glob
-  def get_numbering(glb):
-    ls = glob.glob(glb+'*')
-    return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
-
   def prep_run():
     "Call save_dir, and create (and reserve) path (with its prefix and RUN)"
     path  = save_dir(script)
@@ -228,7 +223,7 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
   # This is typically used to modify the experiment seeds.
   rep_inds = [ list(xticks[:i]).count(x) for i,x in enumerate(xticks) ]
 
-  # Set run_type
+  # Parse run_type
   if len(sysargs)<=2:
       run_type = 'SIMPLE'
   else:

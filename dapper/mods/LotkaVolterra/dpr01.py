@@ -2,7 +2,7 @@
 
 from dapper import *
 
-from dapper.mods.LotkaVolterra.core import step, dfdx, x0, LP_setup
+from dapper.mods.LotkaVolterra.core import step, dstep_dx, x0, LP_setup
 
 # dt has been chosen after noting that 
 # using dt up to 0.7 does not change the chaotic properties much,
@@ -15,14 +15,14 @@ Nx = len(x0)
 Dyn = {
     'M'    : Nx,
     'model': step,
-    'jacob': dfdx,
+    'linear': dstep_dx,
     'noise': 0
     }
 
 X0 = GaussRV(mu=x0,C=0.01**2)
 
 jj = [1,3]
-Obs = partial_direct_Obs(Nx,jj)
+Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.04**2
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LP_setup(jj))
