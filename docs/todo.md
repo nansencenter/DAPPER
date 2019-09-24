@@ -1,16 +1,7 @@
 Todo
 ================================================
-* KS settings from bocquet2019consistency
-* x0 in Lorenz95 with pytest changes
-* Add Lorenz84 to explore_props
-* Add DoublePendulum to test_TLMs
-
-* Settle on a reasonable infl approach for Var3D
 * Simplify time management?
 * Use pandas for stats time series?
-* Darcy, Nikolaevskiy Equation
-
-
 
 * Bugs:
 		* Window focus.
