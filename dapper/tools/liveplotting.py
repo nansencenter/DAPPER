@@ -486,7 +486,7 @@ class correlations:
       mask[np.tril_indices_from(mask)] = True
       # Make colormap. Log-transform cmap, but not internally in matplotlib,
       # so as to avoid transforming the colorbar too.
-      cmap = plt.get_cmap('RdBu')
+      cmap = plt.get_cmap('RdBu_r')
       trfm = colors.SymLogNorm(linthresh=0.2,linscale=0.2,vmin=-1, vmax=1)
       cmap = cmap(trfm(linspace(-0.6,0.6,cmap.N)))
       cmap = colors.ListedColormap(cmap)
