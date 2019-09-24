@@ -975,8 +975,8 @@ def spatial1d(
       line_mu, = ax.plot(ii,nan1,                     'b-' ,lw=2,label='DA mean')
     else:                                                      
       nanE     = nan*ones((stats.config.N,M))
-      lines_E  = ax.plot(ii,wrap(nanE[0] .T), **p.ens_props,lw=1,label='Ensemble')
-      lines_E += ax.plot(ii,wrap(nanE[1:].T), **p.ens_props,lw=1)
+      lines_E  = ax.plot(ii,wrap(nanE[0])   , **p.ens_props,lw=1,label='Ensemble')
+      lines_E += ax.plot(ii,wrap(nanE[1:]).T, **p.ens_props,lw=1)
     # Truth, Obs
     line_x,    = ax.plot(ii,nan1,                     'k-' ,lw=3,label='Truth')
     if p.obs_inds is not None:                                 
