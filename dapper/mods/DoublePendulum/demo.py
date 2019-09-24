@@ -2,6 +2,7 @@
 
 from dapper import *
 from dapper.mods.DoublePendulum.core import step, x0, energy, L1, L2
+plt.ion()
 
 ##
 E0 = x0 + 0.01*randn((3,4))

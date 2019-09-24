@@ -44,6 +44,7 @@ def dxdt(x):
 #       (without leaking energy), but ain't faster.
 step = with_rk4(dxdt, autonom=True)
 
+dstep_dx = FD_Jac(step)
 
 def energy(x):
     """Compute total energy of system."""
