@@ -3,6 +3,7 @@
 
 from dapper import *
 sd0 = seed(5)
+plt.ion()
 
 ########################
 # Model selection
@@ -37,6 +38,15 @@ sd0 = seed(5)
 # eps = 0.001
 # N   = Nx
 
+# from dapper.mods.Lorenz84.core import step, x0
+# # ------------------
+# # Lyapunov exponents: [ 0.22, 0, -0.52]
+# T   = 1e3
+# dt  = 0.05
+# Nx  = len(x0)
+# eps = 0.001
+# N   = Nx
+
 # from dapper.mods.Lorenz95.core import step
 # # ------------------
 # # Reproduces findings of Carrassi-2008 "Model error and sequential DA...",
@@ -53,7 +63,7 @@ sd0 = seed(5)
 # from dapper.mods.LorenzUV.lorenz95 import LUV
 # # ------------------
 # # Lyapunov exponents with F=10: [9.47   9.3    8.72 ..., -33.02 -33.61 -34.79] => n0:64
-# nU    = LUV.nU
+# ii    = arange(LUV.nU)
 # step  = with_rk4(LUV.dxdt, autonom=True)
 # Nx    = LUV.M
 # T     = 1e2
@@ -87,6 +97,7 @@ sd0 = seed(5)
 # model = model_config("sak08",{},mp=False)
 # step  = model.step
 # Nx    = prod(shape)
+# ii    = np.random.choice(arange(Nx),100,False)
 # T     = 1000.0
 # dt    = model.prms['dtout']
 # x0    = np.load(sample_filename)['sample'][-1]
@@ -98,22 +109,24 @@ sd0 = seed(5)
 ########################
 # Reference trajectory
 ########################
-simulator = with_recursion(step, prog="Simul.")
 t0 = 0.0 # NB: Arbitrary, coz models are autonom. But dont use nan coz QG doesn't like it.
 K  = int(round(T/dt))                      # Num of time steps.
 tt = linspace(dt,T,K)                      # Time seq.
-x  = simulator(x0, int(10/dt), t0, dt)[-1] # BurnIn
-xx = simulator(x,K,t0,dt)                  # Ref trajectory
+x  = with_recursion(step, prog="BurnIn")   (x0, int(10/dt), t0, dt)[-1]
+xx = with_recursion(step, prog="Reference")(x , K,          t0, dt)
+
 
 ########################
 # ACF
 ########################
-# TODO: validate. 
 # NB: Won't work with QG (too big, and BCs==0).
-# fig, ax = freshfig(4)
-# if "nU" not in locals(): nU = min(100,Nx)
-# ax.plot( mean( auto_cov(xx[:,:nU],L=K,corr=1), axis=1) )
-# plt.pause(0.1)
+fig, ax = freshfig(4)
+if "ii"    not in locals(): ii    = arange(min(100,Nx))
+if "nlags" not in locals(): nlags = min(100,K)
+ax.plot(tt[:nlags], np.nanmean( auto_cov(xx[:nlags,ii],L=nlags,corr=1), axis=1) )
+ax.set_xlabel('Time (t)')
+ax.set_ylabel('Auto-corr')
+plot_pause(0.1)
 
 
 ########################
@@ -122,7 +135,7 @@ xx = simulator(x,K,t0,dt)                  # Ref trajectory
 LL = zeros((K,N))        # Local (in time) Lyapunov exponents
 E  = x + eps*eye(Nx)[:N] # Init E
 
-for k,t in enumerate(progbar(tt)):
+for k,t in enumerate(progbar(tt,"Ens (≈TLM)")):
   # if t%10.0==0: print(t)
 
   x     = xx[k+1] # = step(x,t,dt)  # f.cast reference
