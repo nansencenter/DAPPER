@@ -33,7 +33,6 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.animation import FuncAnimation
 plt.ion()
 
 from dapper.mods.KS.core import Model
@@ -56,6 +55,11 @@ for k in range(1,K+1):
   EE[k] = model.step(EE[k-1], np.nan, dt)
   tt[k] = k*dt
 
+
+# Animate
+from dapper.tools.viz import amplitude_animation
+ani = amplitude_animation(EE,dt)
+
 # Plot
 plt.figure()
 n = 0
@@ -67,18 +71,4 @@ plt.title('Hovmoller for K-S system, member %d'%n)
 plt.ylabel('Time (t)')
 plt.xlabel('Space (x)')
 
-# Animate
-fig, ax = plt.subplots()
-ax.set_xlabel('x ($2 \pi L \cdot$ index)')
-times = 'time = %.1f'
-lines = ax.plot(model.grid,EE[0].T)
-lines += [ax.text(0.05, 0.9, '', transform=ax.transAxes)]
-ax.set_ylim([-3,3])
-def anim(k):
-  for n in range(N):
-    lines[n].set_ydata(EE[k,n])
-    lines[-1].set_text(times%(dt*k))
-  return lines
-
-ani = FuncAnimation(fig, anim, range(K), interval=10, blit=True)
 

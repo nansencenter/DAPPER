@@ -1,18 +1,17 @@
-# 
-
-
-from dapper import *
+##
+from dapper import with_recursion, plt
 from dapper.mods.LA.raanes2015 import step, X0
-from dapper.mods.Lorenz95.demo import amplitude_animation
+from dapper.tools.viz import amplitude_animation
+plt.ion()
 
 ##
 simulator = with_recursion(step, prog="Simulating")
 
 x0 = X0.sample(1).squeeze()
-xx = simulator(x0, k=500, t=0, dt=1)
+dt = 1
+xx = simulator(x0, k=500, t=0, dt=dt)
 
-##
-amplitude_animation(xx,periodic=True,skip=3)
+amplitude_animation(xx,dt)
 
 ##
 

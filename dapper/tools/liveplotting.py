@@ -934,7 +934,7 @@ def d_ylim(data,ax=None,cC=0,cE=1,pp=(1,99),Min=-1e20,Max=+1e20):
 from .viz import setup_wrapping
 def spatial1d(
     obs_inds     = None,
-    periodic     = True,
+    periodicity  = None,
     dims         = [],
     ens_props    = {'color': 0.7*RGBs['w'],'alpha':0.5},
     conf_mult    = None,
@@ -956,7 +956,7 @@ def spatial1d(
       M = len(p.dims)
 
     # Make periodic wrapper
-    ii, wrap = setup_wrapping(M,p.periodic)
+    ii, wrap = setup_wrapping(M,p.periodicity)
 
     # Set up figure, axes
     fig, ax = freshfig(fignum, (8,5), loc='2312-3')
