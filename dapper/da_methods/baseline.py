@@ -93,7 +93,7 @@ def Var3D(B=None,xB=1.0,**kwargs):
     Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
 
     nonlocal B
-    if B==None: 
+    if B in (None,'clim'): 
       # Use climatological cov, ...
       B = np.cov(xx.T) # ... estimated from truth
     B *= xB
