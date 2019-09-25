@@ -16,8 +16,6 @@ class HiddenMarkovModel(NestedPrint):
     self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)
 
     # Assign name by file (using inspect magic)
-    # Fails if used after running a script from the model dir (e.g. demo.py),
-    # (but only then?). Buggy?
     name = inspect.getfile(inspect.stack()[1][0])
     self.name = os.path.relpath(name,'mods/')
 

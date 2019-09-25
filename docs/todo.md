@@ -1,11 +1,11 @@
 Todo
 ================================================
-* Simplify time management?
+* Simplify and/or generalize time management?
+* Simplify and/or improve cov matrix stuff.
 * Use pandas for stats time series?
 
 * Bugs:
 		* Window focus.
-    * __name__ for HMM via inspect fails when running a 2nd, ≠ script.
 		* Is this why ctrl-c fails so often (from https://docs.python.org/3.5/library/select.html ):
 				"Changed in version 3.5:
 				The function is now retried with a recomputed timeout when interrupted by a signal,

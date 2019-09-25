@@ -224,7 +224,7 @@ old['u'] = \
 
 
 # For nonlinear dynamics, the (non-iterative) EnKF (f/a/u stats)
-# are reproduced by the iEnKS with Lag=0 (and nIter==1 if Obs.mod is also nonlin).
+# are reproduced by the iEnKS with Lag=0 (requires nIter==1 if Obs.mod is also nonlin).
 # However, the 'u' stats of the non-iterative EnKS(Lag>0) are not reproduced.
 # Re-use cfgs and test with:
 # from dapper.mods.Lorenz95.sak08 import HMM
