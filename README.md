@@ -73,7 +73,6 @@ Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials) 
 
 Methods
 ================================================
-[References](https://dapper.readthedocs.io/en/latest/bib/bib.html)
 
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ---------------------------------------
@@ -93,12 +92,21 @@ Extended KF                                            |
 Optimal interpolation                                  |
 Climatology                                            |
 
+[References](https://dapper.readthedocs.io/en/latest/bib/bib.html)
+
 <sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).
 Serial forms are also available.  
 Tuned with inflation and "random, orthogonal rotations".  
 <sup>2</sup>: Also supports the bundle version, and "EnKF-N"-type inflation.  
 <sup>3</sup>: Resampling: multinomial (including systematic/universal and residual).  
 The particle filter is tuned with "effective-N monitoring", "regularization/jittering" strength, and more.
+
+
+For a list of ready-made experiments with suitable, tuned settings for a given method (e.g. the `iEnKS`), use gnu's grep:
+
+    $ cd dapper/mods
+    $ grep -r "iEnKS.*("
+
 
 
 Models
@@ -119,26 +127,38 @@ Quasi-Geost (QG)     | No   | No   | Yes   | 2d        | 129²≈17k  | ≈140  
 *: flexible; set as necessary
 
 
-Other reproductions
-================================================
-As mentioned [above](#Methods),
-DAPPER reproduces literature results.
-There are also plenty of results in the literature that DAPPER does not reproduce.
-Typically, this means that the published results are incorrect.
+The models are found as subdirectories within `dapper/mods`.
+A model should be defined in a file named `core.py`,
+and illustrated by a file named `demo.py`.
+Ideally, both of these files do not rely on the rest of DAPPER.
+[More info](https://dapper.readthedocs.io/en/latest/adding.html).
 
-A list of experimental settings that can be compared with literature papers
-can be obtained using gnu's `find`:
+Most of the other files within a model subdirectory
+are usually named `authorYEAR.py` and define a `HMM` object,
+which holds the settings of a specific twin experiment,
+using that model,
+as detailed in the corresponding author/year's paper.
+At the bottom of each such file should be (in comments)
+a list of suitable, tuned settings for various DA methods,
+along with their expected, average rmse_a score for that experiment.
+The complete list of included experiment files can be obtained with
+gnu's `find`:
 
-			$ find . -iname "[a-z]*[0-9].py" | grep mods
+    $ cd dapper/mods
+    $ find . -iname "[a-z]*[0-9].py"
 
 Some of these files contain settings that have been used in several papers.
+As mentioned [above](#Methods),
+DAPPER reproduces literature results.
+There are also results in the literature that DAPPER does not reproduce.
+Typically, this means that the published results are incorrect.
 
 
 
 
 Alternative projects
 ================================================
-DAPPER is aimed at research and teaching (see discussion on top).
+DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:
  * It is not suited for very big models (>60k unknowns).
  * Time-dependent error covariances and changes in lengths of state/obs
