@@ -2,7 +2,7 @@
 
 from dapper import *
 
-@da_class
+@da_method
 class iEnKS:
   """Iterative EnKS.
 
@@ -192,7 +192,7 @@ class iEnKS:
     stats.assess(k,KObs,'us',E=E)
 
 
-@da_class
+@da_method
 class iLEnKS:
   """Iterative, Localized EnKS-N. [Boc16]_
 
@@ -330,7 +330,7 @@ class iLEnKS:
 
 
 
-@da_class
+@da_method
 class Var4D:
   """4D-Var.
 

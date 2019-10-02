@@ -2,7 +2,7 @@
 
 from dapper import *
 
-@da_class
+@da_method
 class RHF:
   """Rank histogram filter [And10]_.
 
@@ -68,7 +68,7 @@ class RHF:
 
 
 
-@da_class
+@da_method
 class LNETF:
   """The Nonlinear-Ensemble-Transform-Filter (localized) [Wil16]_, [Töd15]_.
 

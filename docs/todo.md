@@ -1,7 +1,6 @@
 Todo
 ================================================
 
-* mv da_class da_method
 * do something about fnoise_treatm
 * mv liveplotting (kw) liveplots
 * abbreviations (aliases) ? Could use __post_init__().

@@ -1,7 +1,7 @@
 from dapper import *
 
 
-@da_class
+@da_method
 class PartFilt:
   r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
@@ -71,7 +71,7 @@ class PartFilt:
 
 
 
-@da_class
+@da_method
 class OptPF:
   """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
@@ -135,7 +135,7 @@ class OptPF:
 
 
 
-@da_class
+@da_method
 class PFa:
   """PF with weight adjustment withOUT compensating for the bias it introduces.  
 
@@ -214,7 +214,7 @@ class PFa:
 
 
 
-@da_class
+@da_method
 class PFxN_EnKF:
   """Particle filter with EnKF-based proposal, q.
 
@@ -336,7 +336,7 @@ class PFxN_EnKF:
 
 
 
-@da_class
+@da_method
 class PFxN:
   """Particle filter with buckshot duplication during analysis.
   

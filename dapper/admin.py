@@ -77,9 +77,9 @@ class Operator(NestedPrint):
 import dataclasses as dc
 @dc.dataclass
 class _da_defaults:
-    """Default kwargs for da_class.
+    """Default kwargs for da_method.
 
-    NB: The da_class'es are created at startup.
+    NB: The da_method's are created at startup.
         => changing this later has no effect."""
     implicit = lambda x: dc.field(default=x, repr=0, compare=0)
 
@@ -126,7 +126,7 @@ def call_gently(fun,self,*args):
         else: 
             raise ERR
 
-def da_class(cls): 
+def da_method(cls): 
     """Decorator based on dataclass.
 
     This adds __init__, __repr__, __eq__, ..., but also includes
@@ -183,7 +183,7 @@ def da_class(cls):
 
 
 class List_of_Configs(list):
-  """List, customized for holding ``da_class`` objects ("configs").
+  """List, customized for holding ``da_method`` objects ("configs").
 
    Modifications to `list`:
    - append() using `+=`, also for single items;

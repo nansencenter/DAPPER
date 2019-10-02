@@ -2,7 +2,7 @@
 
 from dapper import *
 
-@da_class
+@da_method
 class EnKF:
   """The ensemble Kalman filter [Eve09]_"""
   upd_a : str
@@ -298,7 +298,7 @@ def add_noise(E, dt, noise, config):
 
 
 
-@da_class
+@da_method
 class EnKS:
   """The ensemble Kalman smoother [Eve09]_.
 
@@ -355,7 +355,7 @@ class EnKS:
         stats.assess(k,kObs,'s',E=E[k])
 
 
-@da_class
+@da_method
 class EnRTS:
   """EnRTS (Rauch-Tung-Striebel) smoother [Raa16b]_."""
   upd_a : str
@@ -417,7 +417,7 @@ def serial_inds(upd_a, y, cvR, A):
     inds = np.random.permutation(len(y))
   return inds
 
-@da_class
+@da_method
 class SL_EAKF:
   """Serial, covariance-localized EAKF [Kar07]_.
 
@@ -490,7 +490,7 @@ class SL_EAKF:
 
 
 
-@da_class
+@da_method
 class LETKF:
   """Same as EnKF (sqrt), but with localization [Hun07]_.
 
@@ -737,7 +737,7 @@ def zeta_a(eN,cL,w):
   return za
 
 
-@da_class
+@da_method
 class EnKF_N:
   """Finite-size EnKF (EnKF-N) [Boc11]_, [Boc15]_
 
