@@ -2,35 +2,33 @@
 
 from dapper import *
 
-@DA_Config
-def EnKF(upd_a,N,infl=1.0,rot=False,**kwargs):
-  """The ensemble Kalman filter [Eve09]_.
+@da_class
+class EnKF:
+  """The ensemble Kalman filter [Eve09]_"""
+  upd_a : str
+  N     : int
+  infl  : float = 1.0
+  rot   : bool  = False
 
-  Test [And10]_
-
-  Settings for reproducing literature benchmarks may be found in
-  :mod:`dapper.mods.Lorenz95.sak08`
-  """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
     # Init
-    E = X0.sample(N)
+    E = X0.sample(self.N)
     stats.assess(0,E=E)
 
     # Loop
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, kwargs)
+      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
 
       # Analysis update
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
-        E = EnKF_analysis(E,Obs(E,t),Obs.noise,yy[kObs],upd_a,stats,kObs)
-        E = post_process(E,infl,rot)
+        E = EnKF_analysis(E,Obs(E,t),Obs.noise,yy[kObs],self.upd_a,stats,kObs)
+        E = post_process(E,self.infl,self.rot)
 
       stats.assess(k,kObs,E=E)
-  return assimilator
 
 
 def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
@@ -40,9 +38,9 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
 
     Main references: [Sak08a]_, [Sak08b]_, [Hot15]_
     """
-    R = hnoise.C    # Obs noise cov
+    R    = hnoise.C # Obs noise cov
     N,Nx = E.shape  # Dimensionality
-    N1  = N-1       # Ens size - 1
+    N1   = N-1      # Ens size - 1
 
     mu = mean(E,0)  # Ens mean
     A  = E - mu     # Ens anomalies
@@ -113,8 +111,6 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
 
         if any(x in upd_a for x in ['Stoch','ESOPS','Var1']):
             # More details: Misc/Serial_ESOPS.py.
-            # Settings for reproducing literature benchmarks may be found in
-            # :mod:`dapper.mods.Lorenz95.hot15`
             for i,j in enumerate(inds):
 
               # Perturbation creation
@@ -221,11 +217,7 @@ def post_process(E,infl,rot):
 
 
 def add_noise(E, dt, noise, config):
-  """Treatment of additive noise for ensembles [Raa15]_.
-
-  Settings for reproducing literature benchmarks may be found in
-  :mod:`dapper.mods.LA.raanes2015`
-  """
+  """Treatment of additive noise for ensembles [Raa15]_."""
   method = config.get('fnoise_treatm','Stoch')
 
   if noise.C is 0: return E
@@ -306,37 +298,39 @@ def add_noise(E, dt, noise, config):
 
 
 
-@DA_Config
-def EnKS(upd_a,N,Lag,infl=1.0,rot=False,**kwargs):
+@da_class
+class EnKS:
   """The ensemble Kalman smoother [Eve09]_.
 
-  The only difference to the EnKF is the management of the lag and the reshapings.
-
-  Settings for reproducing literature benchmarks may be found in
-  :mod:`dapper.mods.Lorenz95.raanes2016`
-  """
+  The only difference to the EnKF
+  is the management of the lag and the reshapings."""
+  upd_a : str
+  N     : int
+  Lag   : int
+  infl  : float = 1.0
+  rot   : bool  = False
 
   # Reshapings used in smoothers to go to/from
   # 3D arrays, where the 0th axis is the Lag index.
-  def reshape_to(E):
+  def reshape_to(self,E):
     K,N,Nx = E.shape
     return E.transpose([1,0,2]).reshape((N,K*Nx))
-  def reshape_fr(E,Nx):
+  def reshape_fr(self,E,Nx):
     N,Km = E.shape
     K    = Km//Nx
     return E.reshape((N,K,Nx)).transpose([1,0,2])
 
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
     # Inefficient version, storing full time series ensemble.
     # See iEnKS for a "rolling" version.
-    E    = zeros((chrono.K+1,N,Dyn.M))
-    E[0] = X0.sample(N)
+    E    = zeros((chrono.K+1,self.N,Dyn.M))
+    E[0] = X0.sample(self.N)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E[k] = Dyn(E[k-1],t-dt,dt)
-      E[k] = add_noise(E[k], dt, Dyn.noise, kwargs)
+      E[k] = add_noise(E[k], dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E[k])
@@ -345,49 +339,50 @@ def EnKS(upd_a,N,Lag,infl=1.0,rot=False,**kwargs):
         y     = yy[kObs]
 
         # Inds within Lag
-        kk    = range(max(0,k-Lag*chrono.dkObs), k+1) 
+        kk    = range(max(0,k-self.Lag*chrono.dkObs), k+1) 
 
         EE    = E[kk]
 
-        EE    = reshape_to(EE)
-        EE    = EnKF_analysis(EE,Eo,Obs.noise,y,upd_a,stats,kObs)
-        E[kk] = reshape_fr(EE,Dyn.M)
-        E[k]  = post_process(E[k],infl,rot)
+        EE    = self.reshape_to(EE)
+        EE    = EnKF_analysis(EE,Eo,Obs.noise,y,self.upd_a,stats,kObs)
+        E[kk] = self.reshape_fr(EE,Dyn.M)
+        E[k]  = post_process(E[k],self.infl,self.rot)
         stats.assess(k,kObs,'a',E=E[k])
 
     for k,kObs,t,dt in progbar(chrono.ticker,desc='Assessing'):
       stats.assess(k,kObs,'u',E=E[k])
       if kObs is not None:
         stats.assess(k,kObs,'s',E=E[k])
-  return assimilator
 
 
-@DA_Config
-def EnRTS(upd_a,N,cntr,infl=1.0,rot=False,**kwargs):
-  """EnRTS (Rauch-Tung-Striebel) smoother [Raa16b]_.
+@da_class
+class EnRTS:
+  """EnRTS (Rauch-Tung-Striebel) smoother [Raa16b]_."""
+  upd_a : str
+  N     : int
+  cntr  : float
+  infl  : float = 1.0
+  rot   : bool  = False
 
-  Settings for reproducing literature benchmarks may be found in
-  :mod:`dapper.mods.Lorenz95.raanes2016`
-  """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-    E    = zeros((chrono.K+1,N,Dyn.M))
+    E    = zeros((chrono.K+1,self.N,Dyn.M))
     Ef   = E.copy()
-    E[0] = X0.sample(N)
+    E[0] = X0.sample(self.N)
 
     # Forward pass
     for k,kObs,t,dt in progbar(chrono.ticker):
       E[k]  = Dyn(E[k-1],t-dt,dt)
-      E[k]  = add_noise(E[k], dt, Dyn.noise, kwargs)
+      E[k]  = add_noise(E[k], dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
       Ef[k] = E[k]
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E[k])
         Eo   = Obs(E[k],t)
         y    = yy[kObs]
-        E[k] = EnKF_analysis(E[k],Eo,Obs.noise,y,upd_a,stats,kObs)
-        E[k] = post_process(E[k],infl,rot)
+        E[k] = EnKF_analysis(E[k],Eo,Obs.noise,y,self.upd_a,stats,kObs)
+        E[k] = post_process(E[k],self.infl,self.rot)
         stats.assess(k,kObs,'a',E=E[k])
 
     # Backward pass
@@ -396,7 +391,7 @@ def EnRTS(upd_a,N,cntr,infl=1.0,rot=False,**kwargs):
       Af = center(Ef[k+1])[0]
 
       J = tinv(Af) @ A
-      J *= cntr
+      J *= self.cntr
       
       E[k] += ( E[k+1] - Ef[k+1] ) @ J
 
@@ -404,7 +399,6 @@ def EnRTS(upd_a,N,cntr,infl=1.0,rot=False,**kwargs):
       stats.assess(k,kObs,'u',E=E[k])
       if kObs is not None:
         stats.assess(k,kObs,'s',E=E[k])
-  return assimilator
 
 
 
@@ -423,33 +417,39 @@ def serial_inds(upd_a, y, cvR, A):
     inds = np.random.permutation(len(y))
   return inds
 
-@DA_Config
-def SL_EAKF(N,loc_rad,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
+@da_class
+class SL_EAKF:
   """Serial, covariance-localized EAKF [Kar07]_.
 
   Used without localization, this should be equivalent (full ensemble equality)
-  to the :func:`EnKF` with ``upd_a='Serial'``.
-  """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  to the :func:`EnKF` with ``upd_a='Serial'``."""
+  N       : int
+  loc_rad : float
+  taper   : str   = 'GC'
+  ordr    : str   = 'rand'
+  infl    : float = 1.0
+  rot     : bool  = False
 
-    N1   = N-1
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+
+    N1   = self.N-1
     R    = Obs.noise
     Rm12 = Obs.noise.C.sym_sqrt_inv
 
-    E = X0.sample(N)
+    E = X0.sample(self.N)
     stats.assess(0,E=E)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, kwargs)
+      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
         y    = yy[kObs]
-        inds = serial_inds(ordr, y, R, center(E)[0])
+        inds = serial_inds(self.ordr, y, R, center(E)[0])
             
-        state_taperer = Obs.localizer(loc_rad, 'y2x', t, taper)
+        state_taperer = Obs.localizer(self.loc_rad, 'y2x', t, self.taper)
         for j in inds:
           # Prep:
           # ------------------------------------------------------
@@ -484,39 +484,42 @@ def SL_EAKF(N,loc_rad,taper='GC',ordr='rand',infl=1.0,rot=False,**kwargs):
 
           E = mu + A
 
-        E = post_process(E,infl,rot)
+        E = post_process(E,self.infl,self.rot)
 
       stats.assess(k,kObs,E=E)
-  return assimilator
 
 
 
-@DA_Config
-def LETKF(N,loc_rad,taper='GC',infl=1.0,rot=False,mp=False,**kwargs):
+@da_class
+class LETKF:
   """Same as EnKF (sqrt), but with localization [Hun07]_.
-
-  Settings for reproducing literature benchmarks may be found in
-  :mod:`dapper.mods.Lorenz95.sak08`
 
   NB: Multiprocessing yields slow-down for L95, even with batch_size=(1,).
       But for QG (batch_size=(2,2) or less) it is quicker.
-  """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0,R,N1 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, HMM.Obs.noise.C, N-1
 
-    _map = multiproc_map if mp else map
+  NB: If len(ii) is small, analysis may be slowed-down with '-N' infl."""
+  N       : int
+  loc_rad : float
+  taper   : str   = 'GC'
+  xN      : float = 1.0
+  g       : int   = 0
+  mp      : bool  = False
+  infl    : float = 1.0
+  rot     : bool  = False
 
-    # Warning: if len(ii) is small, analysis may be slowed-down with '-N' infl
-    xN = kwargs.get('xN',1.0)
-    g  = kwargs.get('g',0)
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    R, N1 = HMM.Obs.noise.C, self.N-1
 
-    E = X0.sample(N)
+    _map = multiproc_map if self.mp else map
+
+    E = X0.sample(self.N)
     stats.assess(0,E=E)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       # Forecast
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, kwargs)
+      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
@@ -531,7 +534,7 @@ def LETKF(N,loc_rad,taper='GC',infl=1.0,rot=False,mp=False,**kwargs):
         Y  = Y        @ R.sym_sqrt_inv.T
         dy = (y - xo) @ R.sym_sqrt_inv.T
 
-        state_batches, obs_taperer = Obs.localizer(loc_rad, 'x2y', t, taper)
+        state_batches, obs_taperer = Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
         # for ii in state_batches:
         def local_analysis(ii):
 
@@ -542,22 +545,22 @@ def LETKF(N,loc_rad,taper='GC',infl=1.0,rot=False,mp=False,**kwargs):
           dy_jj  = dy [jj]
 
           # Adaptive inflation
-          za = effective_N(Y_jj,dy_jj,xN,g) if infl=='-N' else N1
+          za = effective_N(Y_jj,dy_jj,self.xN,self.g) if self.infl=='-N' else N1
 
           # Taper
           Y_jj  *= sqrt(tapering)
           dy_jj *= sqrt(tapering)
 
           # Compute ETKF update
-          if len(jj) < N:
+          if len(jj) < self.N:
             # SVD version
             V,sd,_ = svd0(Y_jj)
-            d      = pad0(sd**2,N) + za
+            d      = pad0(sd**2,self.N) + za
             Pw     = (V * d**(-1.0)) @ V.T
             T      = (V * d**(-0.5)) @ V.T * sqrt(za)
           else:
             # EVD version
-            d,V   = eigh(Y_jj@Y_jj.T + za*eye(N))
+            d,V   = eigh(Y_jj@Y_jj.T + za*eye(self.N))
             T     = V@diag(d**(-0.5))@V.T * sqrt(za)
             Pw    = V@diag(d**(-1.0))@V.T
           AT  = T @ A[:,ii]
@@ -573,12 +576,11 @@ def LETKF(N,loc_rad,taper='GC',infl=1.0,rot=False,mp=False,**kwargs):
           E[:,ii] = Eii
 
         # Global post-processing
-        E = post_process(E,infl,rot)
+        E = post_process(E,self.infl,self.rot)
 
         stats.infl[kObs] = sqrt(N1/mean(zz))
 
       stats.assess(k,kObs,E=E)
-  return assimilator
 
 
 
@@ -735,8 +737,8 @@ def zeta_a(eN,cL,w):
   return za
 
 
-@DA_Config
-def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
+@da_class
+class EnKF_N:
   """Finite-size EnKF (EnKF-N) [Boc11]_, [Boc15]_
 
   This implementation is pedagogical, prioritizing the "dual" form.
@@ -757,16 +759,19 @@ def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
 
   'xN' allows tuning the hyper-prior for the inflation.
   Usually, I just try setting it to 1 (default), or 2.
-  Further description in hyperprior_coeffs().
+  Further description in hyperprior_coeffs()."""
+  N    : int
+  dual : bool  = False
+  Hess : bool  = False
+  xN   : float = 1.0
+  g    : int   = 0
+  infl : float = 1.0
+  rot  : bool  = False
 
-  Settings for reproducing literature benchmarks may be found in
-
-  - :mod:`dapper.mods.Lorenz95.sak08`
-  - :mod:`dapper.mods.Lorenz63.sak12`
-  """
-  def assimilator(stats,HMM,xx,yy):
+  def assimilate(self,HMM,xx,yy):
     # Unpack
-    Dyn,Obs,chrono,X0,R,N1 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, HMM.Obs.noise.C, N-1
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    R, N, N1 = HMM.Obs.noise.C, self.N, self.N-1
 
     # Init
     E = X0.sample(N)
@@ -776,7 +781,7 @@ def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
     for k,kObs,t,dt in progbar(chrono.ticker):
       # Forecast
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, kwargs)
+      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
 
       # Analysis
       if kObs is not None:
@@ -796,10 +801,10 @@ def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
         dgn_N  = lambda l: pad0( (l*s)**2, N ) + N1
 
         # Adjust hyper-prior
-        #xN_ = noise_level(xN,stats,chrono,N1,kObs,A,locals().get('A_old',None))
-        eN, cL = hyperprior_coeffs(s,N,xN,g)
+        #xN_ = noise_level(self.xN,stats,chrono,N1,kObs,A,locals().get('A_old',None))
+        eN, cL = hyperprior_coeffs(s,N,self.xN,self.g)
 
-        if dual:
+        if self.dual:
             # Make dual cost function (in terms of l1)
             pad_rk = lambda arr: pad0( arr, min(N,Obs.M) )
             dgn_rk = lambda l: pad_rk((l*s)**2) + N1
@@ -844,7 +849,7 @@ def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
         Pw      = (V * dgn_N(l1)**(-1.0)) @ V.T
         w       = dy@R.inv@Y.T@Pw
         # For the anomalies:
-        if not Hess:
+        if not self.Hess:
           # Regular ETKF (i.e. sym sqrt) update (with inflation)
           T     = (V * dgn_N(l1)**(-0.5)) @ V.T * sqrt(N1)
           #     = (Y@R.inv@Y.T/N1 + eye(N))**(-0.5)
@@ -855,13 +860,12 @@ def EnKF_N(N,dual=True,Hess=False,g=0,xN=1.0,infl=1.0,rot=False,**kwargs):
           T     = funm_psd(Hw, lambda x: x**-.5) # is there a sqrtm Woodbury?
           
         E = mu + w@A + T@A
-        E = post_process(E,infl,rot)
+        E = post_process(E,self.infl,self.rot)
 
         stats.infl[kObs] = l1
         stats.trHK[kObs] = (((l1*s)**2 + N1)**(-1.0)*s**2).sum()/HMM.Ny
 
       stats.assess(k,kObs,E=E)
-  return assimilator
 
 
 

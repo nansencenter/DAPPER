@@ -2,17 +2,19 @@
 
 from dapper import *
 
-@DA_Config
-def RHF(N,ordr='rand',infl=1.0,rot=False,**kwargs):
+@da_class
+class RHF:
   """Rank histogram filter [And10]_.
 
   Quick & dirty implementation without attention to (de)tails.
-
-  Settings for reproducing literature benchmarks may be found in
-  :mod:`dapper.mods.Lorenz63.anderson2010non` 
   """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  N    : int
+  ordr : str   = 'rand'
+  infl : float = 1.0
+  rot  : bool  = False
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats,N = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
 
     N1         = N-1
     step       = 1/N
@@ -26,12 +28,12 @@ def RHF(N,ordr='rand',infl=1.0,rot=False,**kwargs):
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, kwargs)
+      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
         y    = yy[kObs]
-        inds = serial_inds(ordr, y, R, center(E)[0])
+        inds = serial_inds(self.ordr, y, R, center(E)[0])
             
         for i,j in enumerate(inds):
           Eo = Obs(E,t)
@@ -59,35 +61,36 @@ def RHF(N,ordr='rand',infl=1.0,rot=False,**kwargs):
           # Update state by regression
           E     += np.outer(-dhE, Regr)
 
-        E = post_process(E,infl,rot)
+        E = post_process(E,self.infl,self.rot)
 
       stats.assess(k,kObs,E=E)
-  return assimilator
 
 
 
 
-@DA_Config
-def LNETF(N,loc_rad,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
+@da_class
+class LNETF:
   """The Nonlinear-Ensemble-Transform-Filter (localized) [Wil16]_, [Töd15]_.
 
   It is (supposedly) a deterministic upgrade of the NLEAF of [Lei11]_.
-
-  Settings for reproducing literature benchmarks may be found in
-
-  - :mod:`dapper.mods.Lorenz95.tod15`
-  - :mod:`dapper.mods.Lorenz95.wiljes2017`
   """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  N       : int
+  loc_rad : float
+  taper   : str   = 'GC'
+  Rs      : float = 1.0
+  infl    : float = 1.0
+  rot     : bool  = False
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
     Rm12 = Obs.noise.C.sym_sqrt_inv
 
-    E = X0.sample(N)
+    E = X0.sample(self.N)
     stats.assess(0,E=E)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, kwargs)
+      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
@@ -99,7 +102,7 @@ def LNETF(N,loc_rad,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
         YR = (Eo-xo)  @ Rm12.T
         yR = (yy[kObs] - xo) @ Rm12.T
 
-        state_batches, obs_taperer = Obs.localizer(loc_rad, 'x2y', t, taper)
+        state_batches, obs_taperer = Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
         for ii in state_batches:
           # Localize obs
           jj, tapering = obs_taperer(ii)
@@ -110,19 +113,18 @@ def LNETF(N,loc_rad,taper='GC',infl=1.0,Rs=1.0,rot=False,**kwargs):
 
           # NETF:
           # This "paragraph" is the only difference to the LETKF.
-          innovs = (dy_jj-Y_jj)/Rs
+          innovs = (dy_jj-Y_jj)/self.Rs
           if 'laplace' in str(type(Obs.noise)).lower():
             w    = laplace_lklhd(innovs)
           else: # assume Gaussian
-            w    = reweight(ones(N),innovs=innovs)
+            w    = reweight(ones(self.N),innovs=innovs)
           dmu    = w@A[:,ii]
-          AT     = sqrt(N)*funm_psd(diag(w) - np.outer(w,w), sqrt)@A[:,ii]
+          AT     = sqrt(self.N)*funm_psd(diag(w) - np.outer(w,w), sqrt)@A[:,ii]
 
           E[:,ii] = mu[ii] + dmu + AT
 
-        E = post_process(E,infl,rot)
+        E = post_process(E,self.infl,self.rot)
       stats.assess(k,kObs,E=E)
-  return assimilator
 
 def laplace_lklhd(xx):
   """Compute a Laplacian likelihood.

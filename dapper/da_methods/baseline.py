@@ -5,23 +5,15 @@ Many are based on [Raa16a]_.
 
 from dapper import *
 
-@DA_Config
-def EnCheat(**kwargs):
+@da_class
+class Climatology:
   """A baseline/reference method.
-  Should be implemented as part of Stats instead."""
-  def assimilator(stats,HMM,xx,yy): pass
-  return assimilator
 
-
-@DA_Config
-def Climatology(**kwargs):
-  """
-  A baseline/reference method.
   Note that the "climatology" is computed from truth, which might be
-  (unfairly) advantageous if the simulation is too short (vs mixing time).
-  """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  (unfairly) advantageous if the simulation is too short (vs mixing time)."""
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
     muC = mean(xx,0)
     AC  = xx - muC
@@ -33,18 +25,17 @@ def Climatology(**kwargs):
     for k,kObs,_,_ in progbar(chrono.ticker):
       fau = 'u' if kObs is None else 'fau'
       stats.assess(k,kObs,fau,mu=muC,Cov=PC)
-  return assimilator
 
 
-@DA_Config
-def OptInterp(**kwargs):
-  """
-  Optimal Interpolation -- a baseline/reference method.
+@da_class
+class OptInterp:
+  """Optimal Interpolation -- a baseline/reference method.
+
   Uses the Kalman filter equations,
-  but with a prior from the Climatology.
-  """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  but with a prior from the Climatology."""
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
     # Get H.
     msg  = "For speed, only time-independent H is supported."
@@ -77,26 +68,28 @@ def OptInterp(**kwargs):
         SM = fit_sigmoid(trace(P)/trace(PC),L,k)
 
       stats.assess(k,kObs,mu=mu,Cov=2*PC*SM(k))
-  return assimilator
 
 
-@DA_Config
-def Var3D(B=None,xB=1.0,**kwargs):
+@da_class
+class Var3D:
   """
   3D-Var -- a baseline/reference method.
 
   This implementation is not "Var"-ish: there is no *iterative* optimzt.
   Instead, it does the full analysis update in one step: the Kalman filter,
-  with the background covariance being user specified, through B and xB.
-  """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  with the background covariance being user specified, through B and xB."""
+  B  : Optional[np.ndarray] = None
+  xB : float                = 1.0
 
-    nonlocal B
-    if B in (None,'clim'): 
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+
+    if self.B in (None,'clim'): 
       # Use climatological cov, ...
       B = np.cov(xx.T) # ... estimated from truth
-    B *= xB
+    else:
+      B = self.B
+    B *= self.xB
 
     # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
     CC = 2*np.cov(xx.T)
@@ -126,7 +119,6 @@ def Var3D(B=None,xB=1.0,**kwargs):
         SM = fit_sigmoid(trace(P)/trace(CC),L,k)
 
       stats.assess(k,kObs,mu=mu,Cov=P)
-  return assimilator
 
 
 def fit_sigmoid(Sb,L,kb):
@@ -143,9 +135,7 @@ def fit_sigmoid(Sb,L,kb):
   The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see doc_snippets/sigmoid.jpg) with
 
   - a corresponding to a given corr. length L.
-  - b to match values of S(kb) and Sb
-
-  """
+  - b to match values of S(kb) and Sb"""
 
   sigmoid = lambda k: 1/(1+exp(-k)) # normalized sigmoid
   inv_sig = lambda s: log(s/(1-s))  # its inverse
@@ -158,6 +148,14 @@ def fit_sigmoid(Sb,L,kb):
 
   return S
 
+
+@da_class
+class EnCheat:
+  """A baseline/reference method.
+
+  Should be implemented as part of Stats instead."""
+
+  def assimilate(self,HMM,xx,yy): pass
 
 
 

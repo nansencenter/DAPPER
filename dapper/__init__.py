@@ -20,12 +20,13 @@ import configparser
 import builtins
 from time import sleep
 from collections import OrderedDict
+from typing import Optional, Any
 
 assert sys.version_info >= (3,6), "Need Python>=3.6"
 
 
 ##################################
-# Config
+# Load rc: default settings
 ##################################
 dirs = {}
 dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
@@ -48,15 +49,20 @@ dirs['data_base'] = "dpr_data"
 dirs['data']      = os.path.join(dirs['data_root'], dirs['data_base'])
 dirs['samples']   = os.path.join(dirs['DAPPER']   , dirs['data_base'], "samples")
 
-# Profiling. Decorate the function you wish to time with 'profile' below
+# 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
+if rc['welcome_message']:
+  print("Initializing DAPPER...",flush=True)
+
+
+##################################
+# Profiling.
+##################################
+# Decorate the function you wish to time with 'profile' below
 # Then launch program as: $ kernprof -l -v myprog.py
 try:
     profile = builtins.profile     # will exists if launched via kernprof
 except AttributeError:
     def profile(func): return func # provide a pass-through version.
-
-if rc['welcome_message']:
-  print("Initializing DAPPER...",flush=True)
 
 
 ##################################

@@ -74,218 +74,136 @@ class Operator(NestedPrint):
   ordering = ['M','model','noise']
 
 
+import dataclasses as dc
+@dc.dataclass
+class _da_defaults:
+    """Default kwargs for da_class.
 
-def DA_Config(da_method):
-  """Wraps a da_method to an instance of the DAC (DA Configuration) class.
+    NB: The da_class'es are created at startup.
+        => changing this later has no effect."""
+    implicit = lambda x: dc.field(default=x, repr=0, compare=0)
 
-  Purpose: make a da_method brief and readable. Features:
-   - argument treatment: since assimilator() is nested under a da_method,
-     this enables builtin argument default systemization (via da_method's signature),
-     and enables processing before the assimilation run.
-     In contrast to the system of passing dicts, this avoids unpacking.
-   - stats auto-initialized here, before calling assimilator()
-   - provides fail_gently
+    liveplotting: bool = implicit(False)
+    store_u     : bool = implicit(rc['store_u'])
+    fail_gently : bool = implicit(rc['fail_gently'])
 
-  We could have achieved much the same with less hacking (less 'inspect')
-  using classes for the da_methods. But that would have required onerous
-  read/write via 'self'.
-  """
 
-  f_arg_names = da_method.__code__.co_varnames[:da_method.__code__.co_argcount]
+def call_gently(fun,self,*args):
+    """Wrap fun in try clause to allow execution to continue
+    for some types of exceptions."""
 
-  @functools.wraps(da_method)
-  def wrapr(*args,**kwargs):
-      ############################
-      # Validate signature/return
-      #---------------------------
-      assimilator = da_method(*args,**kwargs)
-      if assimilator.__name__ != 'assimilator':
-        raise Exception("DAPPER convention requires that "
-        + da_method.__name__ + " return a function named 'assimilator'.")
-      run_args = ('stats','HMM','xx','yy')
-      if assimilator.__code__.co_varnames[:len(run_args)] != run_args:
-        raise Exception("DAPPER convention requires that "+
-        "the arguments of 'assimilator' be " + str(run_args))
 
-      ############################
-      # Make assimilation caller
-      #---------------------------
-      def assim_caller(HMM,xx,yy):
-        name_hook = da_method.__name__ # for pdesc of progbar
-
-        # Init stats
-        stats = Stats(cfg,HMM,xx,yy)
-
-        def crop_traceback(ERR,lvl):
-            msg = []
-            try:
-              # If IPython, use its coloring functionality
-              __IPYTHON__
-              from IPython.core.debugger import Pdb
-              import traceback as tb
-              pdb_instance = Pdb()
-              pdb_instance.curframe = inspect.currentframe() # first frame: this one
-              for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
-                if i<lvl: continue # skip first frame
-                msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
-            except (NameError,ImportError):
-              # No coloring
-              msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
-            return msg
-
-        # Put assimilator inside try/catch to allow gentle failure
+    def crop_traceback(ERR,lvl):
+        msg = []
         try:
-          try:
-              assimilator(stats,HMM,xx,yy)
-          except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
-              if getattr(cfg,'fail_gently',rc['fail_gently']):
-                msg  = ["\n\nCaught exception during assimilation. Printing traceback:"]
-                msg += ["<"*20 + "\n"]
-                msg += crop_traceback(ERR,1) + [str(ERR)]
-                msg += ["\n" + ">"*20]
-                msg += ["Returning stats (time series) object in its "+\
-                    "current (incompleted) state,\nand resuming program execution.\n"+\
-                    "Turn off the fail_gently attribute of the DA config to fully raise the exception.\n"]
-                for s in msg:
-                  print(s,file=sys.stderr)
-              else: # Don't fail gently.
-                raise ERR
-        except Exception as ERR:
-              #print(*crop_traceback(ERR,2), str(ERR))
-              # How to avoid duplicate traceback printouts?
-              # Don't want to replace 'raise' by 'sys.exit(1)',
-              # coz then %debug would start here.
-              raise ERR
+          # If IPython, use its coloring functionality
+          __IPYTHON__
+          from IPython.core.debugger import Pdb
+          import traceback as tb
+          pdb_instance = Pdb()
+          pdb_instance.curframe = inspect.currentframe() # first frame: this one
+          for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
+            if i<lvl: continue # skip first frame
+            msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
+        except (NameError,ImportError):
+          # No coloring
+          msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
+        return msg
 
-        return stats
+    try:
+        fun(self,*args)
 
-      assim_caller.__doc__ = "Calls assimilator() from " +\
-          da_method.__name__ +", passing it the (output) stats object. " +\
-          "Returns stats (even if an AssimFailedError is caught)."
+    except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
+        if self.fail_gently:
+            msg  = ["\n\nCaught exception during assimilation. Traceback:"]
+            msg += ["<"*20 + "\n"]
+            msg += crop_traceback(ERR,1) + [str(ERR)]
+            msg += ["\n" + ">"*20]
+            msg += ["Returning stats (time series) object in its current "+\
+                "(incompleted) state,\nand resuming program execution.\n"+\
+                "Turn off `fail_gently` to fully raise the exception.\n"]
+            for s in msg: print(s,file=sys.stderr)
+        else: 
+            raise ERR
 
-      ############################
-      # Grab argument names/values
-      #---------------------------
-      # Process abbreviations, aliases
-      de_abbreviate(kwargs, [('LP','liveplotting')])
+def da_class(cls): 
+    """Decorator based on dataclass.
 
-      cfg = OrderedDict()
-      i   = 0
-      # 1) Insert args into cfg with signature-names.
-      for i,val in enumerate(args):
-        cfg[f_arg_names[i]] = val
-      # 2) Insert kwargs, ordered as in signature.
-      for key in f_arg_names[i:]:
-        try:
-          cfg[key] = kwargs.pop(key)
-        except KeyError:
-          pass
-      # 3) Insert kwargs not listed in signature.
-      cfg.update(kwargs)
+    This adds __init__, __repr__, __eq__, ..., but also includes
+    inherited defaults (see stackoverflow.com/a/58130805).
 
-      ############################
-      # Wrap
-      #---------------------------
-      cfg['da_method']  = da_method
-      cfg['assimilate'] = assim_caller
-      cfg = DAC(cfg)
-      return cfg
-  return wrapr
+    Also:
+     - Wraps assimilate() to provide gentle_fail functionality.
+     - Initialises and writes the Stats object.
+     - Adds average_stats(), print_averages()."""
 
+    # Store
+    orig_assimilate = cls.assimilate
 
+    # Add _da_defaults fields AFTER cls's.
+    ensure_attr(cls,'__annotations__',{})
+    for f in dc.fields(_da_defaults):
+        if f.name not in cls.__annotations__:    # Don't overwrite
+            cls.__annotations__[f.name] = f.type # Add annotation
+            setattr(cls,f.name,f)                # Add attribute
+    cls = dc.dataclass(cls)                      # New class (NB: same id)
 
-class DAC(ImmutableAttributes,NestedPrint):
-  """DA configs (settings).
+    # Shortcut for self.__class__.__name__
+    cls.da_method = cls.__name__
 
-  This class just contains the parameters grabbed by the DA_Config wrapper.
+    def method(fun):
+        setattr(cls,fun.__name__,fun)
+        return fun
 
-  NB: re-assigning these would only change their value in this container,
-      (i.e. not as they are known by the assimilator() funtions)
-      and has therefore been disabled ("frozen").
-      However, parameter changes can be made using update_settings().
-  """
+    @method
+    @functools.wraps(orig_assimilate)
+    def assimilate(self,HMM,xx,yy,desc=None):
+        pb_name_hook = self.da_method if desc is None else desc
+        self.stats = Stats(self,HMM,xx,yy)
+        call_gently(orig_assimilate,self,HMM,xx,yy)
 
-  # Defaults
-  dflts = {
-      'liveplotting': False,
-      'store_u'     : rc['store_u'],
-      }
+    @method
+    def average_stats(self,free=False):
+        """Average (in time) all of the time series in the Stats object.
 
-  # Print settings
-  excluded = ['assimilate','da_method','name',re.compile('^_'),'ordering']
-  excluded += list(dflts)
+        If ``free``: del ref to Stats object."""
+        self.avrgs = self.stats.average_in_time()
+        if free:
+            delattr(self,'stats')
 
-  def __init__(self,odict):
-    self.ordering = list(odict.keys())                              # Keep ordering (4 printing)
-    for key, value in self.dflts.items(): setattr(self, key, value) # Set defaults
-    for key, value in      odict.items(): setattr(self, key, value) # Set argument
-    if 'name' not in odict: self.name = self.da_method.__name__     # Set name
-    self._freeze(filter_out(odict.keys(),*self.dflts,'name'))       # Freeze
+    @method
+    def print_avrgs(self,keys=()):
+        """Tabulated print of averages (those requested by ``keys``)"""
+        cfgs = List_of_Configs([self])
+        cfgs.print_avrgs(keys)
 
-  def update_settings(self,**kwargs):
-    """
-    Returns new DAC with new "instance" of the da_method with the updated setting.
+    method(replay)
 
-    Example:
-    >>> for iC,C in enumerate(cfgs):
-    >>>   cfgs[iC] = C.update_settings(liveplotting=True)
-    """
-
-    old = self.ordering
-    old += filter_out(self.__dict__,*self.ordering)
-    old = filter_out(old,'assimilate','da_method',re.compile('^_'),'ordering')
-    dct = {**{key: getattr(self,key) for key in old}, **kwargs}
-    return DA_Config(self.da_method)(**dct)
-
-  # def __repr__(self):
-    # keys  = self.ordering                               # + ordered keys
-    # keys += filter_out(self.__dict__,*self.ordering)    # + other attributes
-    # keys  = filter_out(keys,*self.excluded)             # - excluded
-    # attributes = ", ".join([k+"="+repr(getattr(self,k)) for k in keys])
-    # return self.da_method.__name__ + '(' + attributes + ')'
-
-  def __eq__(self, config):
-    prep = lambda obj: {k:v for k,v in obj.__dict__.items() if
-        k!="assimilate" and not k.startswith("_")}
-    eq = prep(self)==prep(config)
-    # EDIT: deepdiff causes horrible input bug with QtConsole.
-    # eq = not DeepDiff(self,config) # slow, but works well.
-    return eq
-
-  def _is(self,decorated_da_method):
-    "Test if cfg is an instance of the decorator of the da_method."
-    return self.da_method.__name__ == decorated_da_method.__name__
+    return cls
 
 
 class List_of_Configs(list):
-  """List of DA configs.
+  """List, customized for holding ``da_class`` objects ("configs").
 
-  This class is quite hackey. But convenience is king for its purposes:
-   - pretty printing (using common/distinct attrs)
-   - make += accept (a single) item
-   - unique kw.
-   - indexing with lists.
-   - searching for indices by attributes [inds()].
-  """
+   Modifications to `list`:
+   - append() using `+=`, also for single items;
+     this is hackey, but convenience is king.
+   - append() supports `unique` to avoid duplicates.
+   - `__getitem__()` (indexing) that supports lists.
+   - searching by attributes: `inds()`.
+   - pretty printing (using common/distinct attrs).
 
-  # Print settings
-  excluded = filter_out(DAC.excluded,'da_method')
-  ordering = ['da_method','N','upd_a','infl','rot']
+   Also:
+   - print_averages()
+   - gen_names()
+   - assimilate()
+   """
 
   def __init__(self,*args,unique=False):
-    """
-    List_of_Configs() -> new empty list
-    List_of_Configs(iterable) -> new list initialized from iterable's items
-
-    If unique: don't append duplicate entries.
-    """
+    """Initialize without args, or with a list of configs.
+     - unique: if true, then duplicates won't get appended."""
     self.unique = unique
-    for cfg in args:
-      if isinstance(cfg, DAC):
-        self.append(cfg)
-      elif isinstance(cfg, list):
-        for b in cfg:
-          self.append(b)
+    super().__init__(*args)
 
   def __iadd__(self,cfg):
     if not hasattr(cfg,'__iter__'):
@@ -295,289 +213,253 @@ class List_of_Configs(list):
     return self
 
   def append(self,cfg):
-    "Implemented in order to support 'unique'"
-    if self.unique and cfg in self:
-      return
-    else:
-      super().append(cfg)
+    "Append if not unique&present"
+    if not (self.unique and cfg in self): super().append(cfg)
 
   def __getitem__(self, keys):
-    """Implement indexing by a list"""
-    try:              B=List_of_Configs([self[k] for k in keys]) # list
-    except TypeError: B=list.__getitem__(self, keys)             # int, slice
-    return B
+    """Indexing, also by a list"""
+    try:              B=[self[k] for k in keys]   # if keys is list
+    except TypeError: B=super().__getitem__(keys) # if keys is int, slice
+    if hasattr(B,'__len__'): B = List_of_Configs(B) # Cast
+    return B 
 
-
-  # NB: In principle, it is possible to list fewer attributes as distinct,
-  #     by using groupings. However, doing so intelligently is difficult,
-  #     and I wasted a lot of time trying. So don't go there...
-  def separate_distinct_common(self):
+  def inds(self,strict=True,**kws):
+    """Find (all) indices of configs whose attributes match kws.
+     - strict: If True, then configs lacking a requested attribute will match.
     """
-    Compile the attributes of the DAC's in the List_of_Confgs,
-    and partition them in two sets: distinct and common.
-    Insert None's for cfgs that don't have that attribute.
-    """
-    dist = {}
-    comn = {}
+    def match(C):
+        passthrough = lambda v: 'YOU SHALL NOT PASS' if strict else v
+        matches = [getattr(C,k,passthrough(v))==v for k,v in kws.items()]
+        return all(matches)
 
-    # Find all keys
-    keys = {}
-    for config in self:
-      keys |= config.__dict__.keys()
-    keys = list(keys)
+    return [i for i,C in enumerate(self) if match(C)]
 
-    # Partition attributes into distinct and common
-    for key in keys:
-      vals = [getattr(config,key,None) for config in self]
+  def assimilate(self,HMM,xx,yy,sd=True,free=True,print=False,desc=True):
+    "Call config.assimilate() for each config in self."
 
-      try:
-        allsame = all(v == vals[0] for v in vals) # and len(self)>1:
-      except ValueError:
-        allsame = False
+    if sd is True:
+        sd = seed()
 
-      if allsame: comn[key] = vals[0]
-      else:       dist[key] = vals
+    if desc: labels = self.gen_names()
+    else:    labels = self.da_methods
 
-    # Sort. Do it here so that the same sort is used for
-    # repr(List_of_Configs) and print_averages().
-    def sortr(item):
-      key = item[0]
-      try:
-        # Find index in self.ordering.
-        # Do chr(65+) to compare alphabetically,
-        # for keys not in ordering list.
-        return chr(65+self.ordering.index(key))
-      except:
-        return key.upper()
-    dist = OrderedDict(sorted(dist.items(), key=sortr))
+    for ic,(label,config) in enumerate(zip(labels,self)):
 
-    return dist, comn
+        # "Variance reduction" (eg. CRN: wikipedia.org/wiki/Variance_reduction)
+        # is useful, but should not be relied on for confident conclusions!
+        if sd:
+            seed(sd)
 
-  def distinct_attrs(self): return self.separate_distinct_common()[0]
-  def   common_attrs(self): return self.separate_distinct_common()[1]
+        config.assimilate(HMM,xx,yy,desc=label)
 
-
-  def __repr__(self):
-    if len(self):
-      # Prepare
-      s = '<List_of_Configs> with attributes:\n'
-      dist,comn = self.separate_distinct_common()
-      # Distinct
-      headr = filter_out(dist,*self.excluded)
-      mattr = [dist[key] for key in headr]
-      s    += tabulate(mattr, headr)
-      # Common
-      keys  = filter_out(comn,*self.excluded)
-      comn  = {k: formatr(comn[k]) for k in keys}
-      s    += "\n---\nCommon attributes:\n" + str(AlignedDict(comn))
-    else:
-      s = "List_of_Configs([])"
-    return s
+        config.average_stats(free=free)
+        if print:
+            config.print_avrgs()
 
   @property
-  def da_names(self):
-    return [config.da_method.__name__ for config in self]
-
-  def gen_names(self,abbrev=4,trim=False,tab=False,xcld=[]):
-
-    # 1st column: da_method's names
-    columns = self.da_names
-    MxWidth = max([len(n) for n in columns])
-    columns = [n.ljust(MxWidth) + ' ' for n in columns]
-
-    # Get distinct attributes
-    dist  = self.distinct_attrs()
-    keys  = filter_out(dist, *self.excluded,'da_method',*xcld)
-
-    # Process attributes into strings 
-    for i,k in enumerate(keys):
-      vals = dist[k]
-
-      # Make label strings
-      A = 4 if abbrev is True else 99 if abbrev==False else abbrev # Set abbrev length A
-      if A: lbls = k                     + ':'                     # Standard label
-      else: lbls = k[:A-1] + '~' + k[-1] + ':'                     # Abbreviated label
-      lbls = ('' if i==0 else ' ') + lbls                          # Column spacing 
-      lbls = [' '*len(lbls) if v is None else lbls for v in vals]  # Erase label where val=None
-
-      # Make value strings
-      if trim and all(v in [find_1st(vals),None] for v in vals):
-        # If all values  are identical (or None): only keep label.
-        lbls = [x[:-1] for x in lbls] # Remove colon
-        vals = [''     for x in lbls] # Make empty val
-      else: # Format data
-        vals = typeset(vals,tab=True)
-
-      # Form column: join columns, lbls and vals.
-      columns = [''.join(x) for x in zip(columns,lbls,vals)]           
-
-    # Undo all tabulation inside column all at once:
-    if not tab: columns = [" ".join(n.split()) for n in columns]
-
-    return columns
-
-  def assign_names(self,ow=False,tab=False):
-    """
-    Assign distinct_names to the individual DAC's.
-    If ow: do_overwrite.
-    """
-    # Process attributes into strings 
-    names = self.gen_names(tab)
-    
-    # Assign strings to configs
-    for name,config in zip(names,self):
-      t = getattr(config,'name',None)
-      if ow is False:
-        if t: s = t
-      elif ow == 'append':
-        if t: s = t+' '+s
-      elif ow == 'prepend':
-        if t: s = s+' '+t
-      config.name = s
+  def da_methods(self):
+    return [config.da_method for config in self]
 
 
-  def inds(self,strict=True,da=None,**kw):
-    """Find indices of configs with attributes matching the kw dict.
-     - strict: If True, then configs lacking a requested attribute will match.
-     - da: the da_method.
-     """
+  def split_attrs(self,nomerge=()):
+    """Compile the attributes of the individual configs in the List_of_Confgs,
+    and partition them into dicts: distinct, redundant, and common.
+    Insert None if attribute not in cfg."""
 
-    def fill(fillval):
-      return 'empties_dont_match' if strict else fillval
+    def _aggregate_keys():
+      "Aggregate keys from all configs"
+      if len(self)==0:
+          return []
+      keys  = ['da_method'] # Start with da_method
+      # Aggregate all other keys
+      for config in self:
+          for k in config.__dict__.keys():
+              if k not in keys: keys.append(k)
+      # Remove unwanted
+      excluded  = [re.compile('^_'),'avrgs','stats','HMM']
+      excluded += [f.name for f in dc.fields(_da_defaults) if not f.repr]
+      keys = filter_out(keys,*excluded)
+      return keys
 
-    def matches(C, kw):
-      kw_match = all( getattr(C,k,fill(v))==v for k,v in kw.items())
-      da_match = True if da is None else C._is(da)
-      return (kw_match and da_match)
+    distinct, redundant, common = {}, {}, {}
 
-    return [i for i,C in enumerate(self) if matches(C,kw)]
+    for key in _aggregate_keys():
 
+        # Want to distinguish actual None's from empty ("N/A").
+        # => Don't use getattr(obj,key,None)
+        vals = [getattr(config,key,"N/A") for config in self]
 
-    
+        # Sort into distinct, redundant, common
+        if key in nomerge:
+            # nomerge => Distinct
+            dct, vals = distinct, vals
+        elif all(vals[0]==v for v in vals):
+            # all values equal => common
+            dct, vals = common, vals[0]
+        else:
+            v0 = next(v for v in vals if "N/A"!=v)
+            if all(v=="N/A" or v==v0 for v in vals):
+            # all values equal or "N/A" => redundant
+                dct, vals = redundant, v0
+            else:
+            # otherwise => distinct
+                dct, vals = distinct, vals
 
-def _print_averages(cfgs,avrgs,attrkeys=(),statkeys=()):
-  """Pretty print the structure containing the averages.
+        # Replace "N/A" by None
+        sub = lambda v: None if v=="N/A" else v
+        if isinstance(vals,str): vals = sub(vals)
+        else:
+            try:                 vals = [sub(v) for v in vals]
+            except TypeError:    vals = sub(vals)
 
-  Essentially, for c in cfgs:
-    Print c[attrkeys], avrgs[c][statkeys]
-
-  - attrkeys: list of attributes to include.
-      - if -1: only print da_method.
-      - if  0: print distinct_attrs
-  - statkeys: list of statistics to include.
-  """
-  # Convert single cfg to list
-  if isinstance(cfgs,DAC):
-    cfgs     = List_of_Configs(cfgs)
-    avrgs    = [avrgs]
-
-  # Set excluded attributes
-  excluded = list(cfgs.excluded)
-  if len(cfgs)==1:
-    excluded += list(cfgs[0].dflts)
-
-  # Defaults averages
-  if not statkeys:
-    #statkeys = ['rmse_a','rmv_a','logp_m_a']
-    statkeys = ['rmse_a','rmv_a','rmse_f']
-
-  # Defaults attributes
-  if not attrkeys:       headr = list(cfgs.distinct_attrs())
-  elif   attrkeys == -1: headr = ['da_method']
-  else:                  headr = list(attrkeys)
-
-  # Filter excluded
-  headr = filter_out(headr, *excluded)
+        dct[key] = vals
   
-  # Get attribute values
-  mattr = [cfgs.distinct_attrs()[key] for key in headr]
+    return distinct, redundant, common
 
-  # Add separator
-  headr += ['|']
-  mattr += [['|']*len(cfgs)]
-
-  # Fill in stats
-  for key in statkeys:
-    # Generate column, including header (for cropping purposes)
-    col = ['{0:@>9} ±'.format(key)]
-    for i in range(len(cfgs)):
-      # Format entry
-      try:
-        val  = avrgs[i][key].val
-        conf = avrgs[i][key].conf
-        col.append('{0:@>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
-      except KeyError:
-        col.append(' ') # gets filled by tabulate
-    # Crop
-    crop= min([s.count('@') for s in col])
-    col = [s[crop:]         for s in col]
-    # Split column into headr/mattr
-    headr.append(col[0])
-    mattr.append(col[1:])
-
-  # Used @'s to avoid auto-cropping by tabulate().
-  table = tabulate(mattr, headr).replace('@',' ')
-  return table
-
-@functools.wraps(_print_averages)
-def print_averages(*args,**kwargs):
-  print(_print_averages(*args,**kwargs))
+  def __repr__(self):
+      distinct, redundant, common = self.split_attrs()
+      s = '<List_of_Configs> of length %d with attributes:\n'%len(self)
+      s += tabulate(distinct)
+      s += "\nOther attributes:\n"
+      s += str(AlignedDict({**redundant, **common}))
+      return s
 
 
-def formatr(x):
-  """Abbreviated formatting"""
-  if hasattr(x,'__name__'): return x.__name__
-  if isinstance(x,bool)   : return '1' if x else '0'
-  if isinstance(x,float)  : return '{0:.5g}'.format(x)
-  if x is None: return ''
-  return str(x)
+  def _repr_avrgs(self,statkeys=(),decimals=None):
+    """Pretty print the structure containing the averages.
+  
+    - ``statkeys``: list of keys of statistics to include.
+    """
 
-def typeset(lst,tab):
-  """
-  Convert lst elements to string.
-  If tab: pad to min fixed width.
-  """
-  ss = list(map(formatr, lst))
-  if tab:
-    width = max([len(s)     for s in ss])
-    ss    = [s.ljust(width) for s in ss]
-  return ss
+    def _format_avrgs(self,statkeys=(),decimals=None):
+        """Tabulate avrgs in the format: val ± conf.
+
+        Pad with 'æ' to avoid later auto-cropping by tabulate()."""
+        # Defaults averages
+        if not statkeys:
+          statkeys = ['rmse_a','rmv_a','rmse_f']
+    
+        def align(col,header):
+            "Align single column (with decimal alignment) using tabulate()"
+            col = tabulate_orig.tabulate(col,[header],'plain')
+            col = col.splitlines()
+            mxW = max(len(s) for s in col)
+            def pad(s):
+                s = s + 'æ'*(mxW-len(s)) # Pad   on right
+                r = s.lstrip()           # Strip on left
+                s = 'æ'*(mxW-len(r)) + r # Pad   on left
+                return s
+            return [pad(s) for s in col]
+
+        # Fill in
+        headr, mattr = [], []
+        for key in statkeys:
+            # Get vals, confs
+            vals, confs = [], []
+            for config in self:
+                vc = config.avrgs.get(key,None)
+                if vc is None:         val,conf = None,None
+                elif decimals is None: val,conf = vc.round(mult=0.2)
+                else:                  val,conf = np.round([vc.val, vc.conf],decimals)
+                vals .append([val])
+                confs.append([conf])
+            # Align
+            vals  = align(vals , key)
+            confs = align(confs, '1σ')
+            # Enter in headr, mattr
+            headr.append(vals[0]+'  1σ')
+            mattr.append([v +' ±'+c for v,c in zip(vals,confs)][1:])
+        return headr, mattr
+
+    distinct, redundant, common = self.split_attrs()
+  
+    # Prepare table components
+    headr1, mattr1 = list(distinct.keys()), list(distinct.values())
+    headr2, mattr2 = _format_avrgs(self,statkeys,decimals)
+    # Join 1&2
+    headr = headr1 + ['|']             + headr2
+    mattr = mattr1 + [['|']*len(self)] + mattr2
+  
+    table = tabulate(mattr, headr).replace('æ',' ')
+    return table
+  
+  @functools.wraps(_repr_avrgs)
+  def print_avrgs(self,*args,**kwargs):
+    print(self._repr_avrgs(*args,**kwargs))
+
+  def gen_names(self,abbrev=4,tab=False):
+      """Similiar to self.__repr__(), but:
+        - returns *list* of names
+        - attaches label to each attribute
+        - tabulation is only an option
+        - abbreviates labels to width abbrev
+      """
+      distinct, redundant, common = self.split_attrs(nomerge="da_method")
+      labels = distinct.keys()
+      values = distinct.values()
+
+      # Label abbreviation
+      if not abbrev: abbrev = 99
+      labels = [(k if len(k)<=abbrev else k[:abbrev-2]+'~'+k[-1]) for k in labels]
+
+      # Make label columns: insert None or lbl+":", depending on value
+      column = lambda  lbl,vals: [None if v is None else lbl+":" for v in vals]
+      labels = [column(lbl,vals) for lbl, vals in zip(labels,values)]
+
+      # Interlace labels and values
+      table = [x for (a,b) in zip(labels,values) for x in (a,b)]
+
+      # Rm da_method label (but keep value)
+      table.pop(0)
+
+      # Tabulate
+      table = tabulate(table,inds=False, tablefmt="plain")
+
+      # Rm space between lbls/vals
+      table = re.sub(':  +',':',table) 
+
+      # Rm alignment
+      if not tab:
+          table = re.sub(r' +',r' ', table)
+
+      return table.splitlines()
 
 
 
 
 import dill
-def save_data(name,*args,**kwargs):
+def save_data(script_name,*args,**kwargs):
   """"Utility for saving experimental data.
 
+  This function uses ``dill`` rather than ``pickle``
+  because dill can serialize nearly anything.
+  Also, dill automatically uses np.save() for arrays for memory/disk efficiency.
+
   Takes care of:
-   - Path management.
+   - Path management, using script_name (e.g. script's __file__)
    - Calling dill.dump().
    - Default naming of certain types of arguments.
 
-  The advantage of dill is that it can seriealize (and hence store) nearly anything.
-  Also, dill automatically uses np.save() for arrays for memory/disk efficiency.
+  Returns filename of saved data. Load namespace dict using
+  >>> with open(save_path, "rb") as F:
+  >>>     d = dill.load(F)
   """
-
-  filename  = save_dir(name,host=False) + "run_"
-  filename += str(1 + max(get_numbering(filename),default=0)) + ".pickle"
-  print("Saving data to",filename)
 
   def name_args():
       data = OrderedDict()
       nNone = 0 # count of non-classified objects
 
       nameable_classes = OrderedDict(
-            HMM  = lambda x: isinstance(x,HiddenMarkovModel),
-            cfgs = lambda x: isinstance(x,List_of_Configs),
-            DAC  = lambda x: isinstance(x,DAC),
-            stat = lambda x: isinstance(x,Stats),
-            avrg = lambda x: getattr(x,"_isavrg",False),
+            HMM    = lambda x: isinstance(x,HiddenMarkovModel),
+            cfgs   = lambda x: isinstance(x,List_of_Configs),
+            config = lambda x: hasattr(x,'da_method'),
+            stat   = lambda x: isinstance(x,Stats),
+            avrg   = lambda x: getattr(x,"_isavrg",False),
           )
 
       def classify(x):
-          for name, test in nameable_classes.items():
-            if test(x): return name
+          for script_name, test in nameable_classes.items():
+            if test(x): return script_name
           # Defaults:
           if isinstance(x,list): return "list"
           else:                  return None
@@ -598,6 +480,10 @@ def save_data(name,*args,**kwargs):
 
           data[Class] = x
       return data
+
+  filename  = save_dir(script_name,host=False) + "run_"
+  filename += str(1 + max(get_numbering(filename),default=0)) + ".pickle"
+  print("Saving data to",filename)
 
   with open(filename,"wb") as filestream:
       dill.dump({**kwargs, **name_args()}, filestream)

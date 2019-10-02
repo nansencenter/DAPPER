@@ -44,11 +44,11 @@ setuptools.setup(
     author_email="patrick.n.raanes@gmail.com",
     description="Data Assimilation with Python: a Package for Experimental Research.",
 
+    python_requires='~=3.7', # >=3.6 (for mpl==3.1), >=3.7 (for dataclass).
 
     # Dependencies. Use pipdeptree and pipreqs tools to list.
     # We pin smaller libraries (coz stackoverflow.com/a/28510546),
     # but allow ranges for bigger ones (coz stackoverflow.com/a/43421973).
-    python_requires='~=3.6', # (need >=3.6 for mpl 3.1)
     install_requires=[
       'scipy>=1.1',
       'ipython>=5.1',
@@ -56,6 +56,7 @@ setuptools.setup(
       'tqdm~=4.31',
       'colorama~=0.4.1',
       'tabulate~=0.8.3',
+      'dill>=0.3.1.1', # >=0.3.1.1 for dataclass
       ],
     # Optional
     extras_require={

@@ -2,11 +2,9 @@
 
 from dapper import *
 
-@DA_Config
-def ExtKF(infl=1.0,**kwargs):
-  """
-  The extended Kalman filter.
-  A baseline/reference method.
+@da_class
+class ExtKF:
+  """The extended Kalman filter. A baseline/reference method.
 
   If everything is linear-Gaussian, this provides the exact solution
   to the Bayesian filtering equations.
@@ -17,8 +15,10 @@ def ExtKF(infl=1.0,**kwargs):
     infl_per_unit_time == infl.
     Specifying it this way (per unit time) means less tuning.
   """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  infl : float = 1.0
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
     R  = Obs.noise.C.full
     Q  = 0 if Dyn.noise.C==0 else Dyn.noise.C.full
@@ -32,7 +32,7 @@ def ExtKF(infl=1.0,**kwargs):
       
       mu = Dyn(mu,t-dt,dt)
       F  = Dyn.linear(mu,t-dt,dt) 
-      P  = infl**(dt)*(F@P@F.T) + dt*Q
+      P  = self.infl**(dt)*(F@P@F.T) + dt*Q
 
       # Of academic interest? Higher-order linearization:
       # mu_i += 0.5 * (Hessian[f_i] * P).sum()
@@ -49,16 +49,17 @@ def ExtKF(infl=1.0,**kwargs):
         stats.trHK[kObs] = trace(KH)/Dyn.M
 
       stats.assess(k,kObs,mu=mu,Cov=P)
-  return assimilator
 
 
 # TODO: Clean up
-@DA_Config
-def ExtRTS(infl=1.0,**kwargs):
+@da_class
+class ExtRTS:
   """
   """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
+  infl : float = 1.0
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
     Nx = Dyn.M
 
     R  = Obs.noise.C.full
@@ -81,7 +82,7 @@ def ExtRTS(infl=1.0,**kwargs):
     for k,kObs,t,dt in progbar(chrono.ticker, 'ExtRTS->'):
       mu[k]  = Dyn(mu[k-1],t-dt,dt)
       F      = Dyn.linear(mu[k-1],t-dt,dt) 
-      P [k]  = infl**(dt)*(F@P[k-1]@F.T) + dt*Q
+      P [k]  = self.infl**(dt)*(F@P[k-1]@F.T) + dt*Q
 
       # Store forecast and Jacobian
       muf[k] = mu[k]
@@ -105,8 +106,5 @@ def ExtRTS(infl=1.0,**kwargs):
       P[k]  = P[k] + J @ (P[k+1] - Pf[k+1]) @ J.T
     for k in progbar(range(chrono.K+1),desc='Assess'):
       stats.assess(k,mu=mu[k],Cov=P[k])
-
-  return assimilator
-
 
 

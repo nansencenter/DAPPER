@@ -150,8 +150,7 @@ def parse_figlist(figlist):
 
 
 
-
-def replay(stats, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
+def replay(config, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   """Replay LivePlot with what's been stored in 'stats'.
 
   - t1, t2: time window to plot.
@@ -162,6 +161,8 @@ def replay(stats, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
 
   .. note:: Ensembles are generally not stored in the stats and so cannot be replayed.
   """
+
+  stats = config.stats
 
   # Time settings
   chrono = stats.HMM.t
@@ -177,14 +178,14 @@ def replay(stats, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   except AttributeError: # e.g. if X0 is defined via sampling func
     P0 = eye(stats.HMM.Nx)
 
-  if figlist is None: figlist = stats.config.liveplotting
+  if figlist is None: figlist = config.liveplotting
   figlist = parse_figlist(figlist)
 
   LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, **kwargs)
 
   # Remember: must use progbar to unblock read1.
   # Let's also make a proper description.
-  desc = stats.config.da_method.__name__ + " (replay)"
+  desc = config.da_method + " (replay)"
 
   # Play through assimilation cycles
   for k,kObs,t,dt in progbar(chrono.ticker, desc):

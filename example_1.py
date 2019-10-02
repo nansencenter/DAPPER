@@ -19,27 +19,27 @@ config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
 config.liveplotting = True
 
 # Assimilate yy, knowing the HMM; xx is used for assessment.
-stats = config.assimilate(HMM,xx,yy)
+config.assimilate(HMM,xx,yy)
 
 # Average stats time series
-avrgs = stats.average_in_time()
+config.average_stats()
 
 # Print averages
-print_averages(config,avrgs,[],['rmse_a','rmv_a'])
+config.print_avrgs(['rmse_a','rmv_a'])
 
 # Replay liveplotters -- can adjust speed, time-window, etc.
-replay(stats)
+config.replay()
 
 # Further diagnostic plots:
-# plot_rank_histogram(stats)
-# plot_err_components(stats)
+# plot_rank_histogram(config.stats)
+# plot_err_components(config.stats)
 # plot_hovmoller(xx)
 
 # Explore objects:
 # print(HMM)
 # print(config)
-# print(stats)
-# print(avrgs)
+# print(config.stats)
+# print(config.avrgs)
 
 # Excercise: Try using
 # - Optimal interpolation

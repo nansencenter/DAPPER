@@ -1,8 +1,8 @@
 from dapper import *
 
 
-@DA_Config
-def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs):
+@da_class
+class PartFilt:
   r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
   Refs: [Wik07]_, [van09]_, [Che03]_
@@ -19,22 +19,22 @@ def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs
      by this root to increase diversity.
      The weights are updated to maintain un-biased-ness.
      See [Che03]_, section VI-M.2
-
-  Settings for reproducing literature benchmarks may be found in
-  
-  - :mod:`dapper.mods.Lorenz95.boc10`
-  - :mod:`dapper.mods.Lorenz95.boc10_m40`.
-
-  Other interesting settings include: :mod:`dapper.mods.Lorenz63.sak12`
   """
+  N       : int
+  NER     : float = 1.0
+  resampl : str   = 'Sys'
+  reg     : float = 0
+  nuj     : bool  = True
+  qroot   : float = 1.0
+  wroot   : float = 1.0
 
   # TODO:
   #if miN < 1:
     #miN = N*miN
 
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
-    Nx, Rm12 = Dyn.M, Obs.noise.C.sym_sqrt_inv
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
     E = X0.sample(N)
     w = 1/N*ones(N)
@@ -45,11 +45,11 @@ def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs
       E = Dyn(E,t-dt,dt)
       if Dyn.noise.C is not 0:
         D  = randn((N,Nx))
-        E += sqrt(dt*qroot)*(D@Dyn.noise.C.Right)
+        E += sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
-        if qroot != 1.0:
-          # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
-          w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
+        if self.qroot != 1.0:
+          # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
+          w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
           w /= w.sum()
 
       if kObs is not None:
@@ -58,39 +58,39 @@ def PartFilt(N,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,wroot=1.0,**kwargs
         innovs = (yy[kObs] - Obs(E,t)) @ Rm12.T
         w      = reweight(w,innovs=innovs)
 
-        if trigger_resampling(w, NER, [stats,E,k,kObs]):
-          C12    = reg*bandw(N,Nx)*raw_C12(E,w)
+        if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
+          C12    = self.reg*bandw(N,Nx)*raw_C12(E,w)
           #C12  *= sqrt(rroot) # Re-include?
-          idx,w  = resample(w, resampl, wroot=wroot)
-          E,chi2 = regularize(C12,E,idx,nuj)
+          idx,w  = resample(w, self.resampl, wroot=self.wroot)
+          E,chi2 = regularize(C12,E,idx,self.nuj)
           #if rroot != 1.0:
             # Compensate for rroot
             #w *= exp(-0.5*chi2*(1 - 1/rroot))
             #w /= w.sum()
       stats.assess(k,kObs,'u',E=E,w=w)
-  return assimilator
 
 
 
-@DA_Config
-def OptPF(N,Qs,NER=1.0,resampl='Sys',reg=0,nuj=True,wroot=1.0,**kwargs):
+@da_class
+class OptPF:
   """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
   Ref: [Boc10]_.
 
   .. note:: Regularization (``Qs``) is here added BEFORE Bayes' rule.
             If ``Qs==0``: OptPF should be equal to the bootstrap filter :func:`PartFilt`.
-
-  Settings for reproducing literature benchmarks may be found in
-
-  - :mod:`dapper.mods.Lorenz95.boc10`
-  - :mod:`dapper.mods.Lorenz95.boc10_m40`.
-
-  Other interesting settings include: :mod:`dapper.mods.Lorenz63.sak12`
   """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
-    Nx, R = Dyn.M, Obs.noise.C.full
+  N       : int
+  Qs      : float
+  NER     : float = 1.0
+  resampl : str   = 'Sys'
+  reg     : float = 0
+  nuj     : bool  = True
+  wroot   : float = 1.0
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    N, Nx, R = self.N, Dyn.M, Obs.noise.C.full
 
     E = X0.sample(N)
     w = 1/N*ones(N)
@@ -110,7 +110,7 @@ def OptPF(N,Qs,NER=1.0,resampl='Sys',reg=0,nuj=True,wroot=1.0,**kwargs):
         innovs = y - Eo
 
         # EnKF-ish update
-        s   = Qs*bandw(N,Nx)
+        s   = self.Qs*bandw(N,Nx)
         As  = s*raw_C12(E,w)
         Ys  = s*raw_C12(Eo,w)
         C   = Ys.T@Ys + R
@@ -126,18 +126,17 @@ def OptPF(N,Qs,NER=1.0,resampl='Sys',reg=0,nuj=True,wroot=1.0,**kwargs):
         w      = reweight(w,logL=logL)
         
         # Resampling
-        if trigger_resampling(w, NER, [stats,E,k,kObs]):
-          C12    = reg*bandw(N,Nx)*raw_C12(E,w)
-          idx,w  = resample(w, resampl, wroot=wroot)
-          E,_    = regularize(C12,E,idx,nuj)
+        if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
+          C12    = self.reg*bandw(N,Nx)*raw_C12(E,w)
+          idx,w  = resample(w, self.resampl, wroot=self.wroot)
+          E,_    = regularize(C12,E,idx,self.nuj)
 
       stats.assess(k,kObs,'u',E=E,w=w)
-  return assimilator
 
 
 
-@DA_Config
-def PFa(N,alpha,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,**kwargs):
+@da_class
+class PFa:
   """PF with weight adjustment withOUT compensating for the bias it introduces.  
 
   'alpha' sets wroot before resampling such that N_effective becomes >alpha*N.
@@ -154,10 +153,17 @@ def PFa(N,alpha,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,**kwargs):
 
   Hybridization with xN did not show much promise.
   """
+  N       : int
+  alpha   : float
+  NER     : float = 1.0
+  resampl : str   = 'Sys'
+  reg     : float = 0
+  nuj     : bool  = True
+  qroot   : float = 1.0
 
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
-    Nx, Rm12 = Dyn.M, Obs.noise.C.sym_sqrt_inv
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
     E = X0.sample(N)
     w = 1/N*ones(N)
@@ -168,11 +174,11 @@ def PFa(N,alpha,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,**kwargs):
       E = Dyn(E,t-dt,dt)
       if Dyn.noise.C is not 0:
         D  = randn((N,Nx))
-        E += sqrt(dt*qroot)*(D@Dyn.noise.C.Right)
+        E += sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
-        if qroot != 1.0:
-          # Evaluate p/q (for each col of D) when q:=p**(1/qroot).
-          w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/qroot))
+        if self.qroot != 1.0:
+          # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
+          w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
           w /= w.sum()
 
       if kObs is not None:
@@ -181,8 +187,8 @@ def PFa(N,alpha,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,**kwargs):
         innovs = (yy[kObs] - Obs(E,t)) @ Rm12.T
         w      = reweight(w,innovs=innovs)
 
-        if trigger_resampling(w, NER, [stats,E,k,kObs]):
-          C12    = reg*bandw(N,Nx)*raw_C12(E,w)
+        if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
+          C12    = self.reg*bandw(N,Nx)*raw_C12(E,w)
           #C12  *= sqrt(rroot) # Re-include?
 
           wroot = 1.0
@@ -190,27 +196,26 @@ def PFa(N,alpha,NER=1.0,resampl='Sys',reg=0,nuj=True,qroot=1.0,**kwargs):
             s   = ( w**(1/wroot - 1) ).clip(max=1e100)
             s  /= (s*w).sum()
             sw  = s*w
-            if 1/(sw@sw) < N*alpha:
+            if 1/(sw@sw) < N*self.alpha:
               wroot += 0.2
             else:
               stats.wroot[kObs] = wroot
               break
-          idx,w  = resample(sw, resampl, wroot=1)
+          idx,w  = resample(sw, self.resampl, wroot=1)
 
 
-          E,chi2 = regularize(C12,E,idx,nuj)
+          E,chi2 = regularize(C12,E,idx,self.nuj)
           #if rroot != 1.0:
             # Compensate for rroot
             #w *= exp(-0.5*chi2*(1 - 1/rroot))
             #w /= w.sum()
       stats.assess(k,kObs,'u',E=E,w=w)
-  return assimilator
 
 
 
 
-@DA_Config
-def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
+@da_class
+class PFxN_EnKF:
   """Particle filter with EnKF-based proposal, q.
 
   Also employs xN duplication, as in PFxN.
@@ -224,9 +229,17 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
   Here, we will use the posterior mean of (2) and cov of (1).
   Or maybe we should use x_a^n distributed according to a sqrt update?
   """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
-    Nx, Rm12, Ri = Dyn.M, Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
+  N         : int
+  Qs        : float
+  xN        : int
+  re_use    : bool  = True
+  NER       : float = 1.0
+  resampl   : str   = 'Sys'
+  wroot_max : float = 5.0
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    N, xN, Nx, Rm12, Ri = self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
 
     E = X0.sample(N)
     w = 1/N*ones(N)
@@ -251,7 +264,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
         w      = reweight(w,innovs=innovs)
         
         # Resampling
-        if trigger_resampling(w, NER, [stats,E,k,kObs]):
+        if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
           # Weighted covariance factors
           Aw = raw_C12(E,wD)
           Yw = raw_C12(Eo,wD)
@@ -263,7 +276,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
             cntrs   = E + (y-Eo)@KG.T
             Pa      = Aw.T@Aw - KG@Yw.T@Aw
             P_cholU = funm_psd(Pa, sqrt)
-            if DD is None or not re_use:
+            if DD is None or not self.re_use:
               DD    = randn((N*xN,Nx))
               chi2  = np.sum(DD**2, axis=1) * Nx/N
               log_q = -0.5 * chi2
@@ -275,7 +288,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
             P_cholU  = (V*dgn**(-0.5)).T @ Aw
             # Generate N·xN random numbers from NormDist(0,1), and compute
             # log(q(x))
-            if DD is None or not re_use:
+            if DD is None or not self.re_use:
               rnk   = min(Nx,N-1)
               DD    = randn((N*xN,N))
               chi2  = np.sum(DD**2, axis=1) * rnk/N
@@ -294,7 +307,7 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
           ED = ED + AD
 
           # log(prior_kernel(x))
-          s         = Qs*bandw(N,Nx)
+          s         = self.Qs*bandw(N,Nx)
           innovs_pf = AD @ tinv(s*Aw)
           # NB: Correct: innovs_pf = (ED-E_orig) @ tinv(s*Aw)
           #     But it seems to make no difference on well-tuned performance !
@@ -310,8 +323,8 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
 
           # Resample and reduce
           wroot = 1.0
-          while wroot < wroot_max:
-            idx,w  = resample(wD, resampl, wroot=wroot, N=N)
+          while wroot < self.wroot_max:
+            idx,w  = resample(wD, self.resampl, wroot=wroot, N=N)
             dups   = sum(mask_unique_of_sorted(idx))
             if dups == 0:
               E = ED[idx]
@@ -319,22 +332,29 @@ def PFxN_EnKF(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
             else:
               wroot += 0.1
       stats.assess(k,kObs,'u',E=E,w=w)
-  return assimilator
 
 
 
 
-@DA_Config
-def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
+@da_class
+class PFxN:
   """Particle filter with buckshot duplication during analysis.
   
   Idea: sample xN duplicates from each of the N kernels.
   Let resampling reduce it to N.
   Additional idea: employ w-adjustment to obtain N unique particles, without jittering.
   """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0
-    Nx, Rm12 = Dyn.M, Obs.noise.C.sym_sqrt_inv
+  N         : int
+  Qs        : float
+  xN        : int
+  re_use    : bool  = True
+  NER       : float = 1.0
+  resampl   : str   = 'Sys'
+  wroot_max : float = 5.0
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    N, xN, Nx, Rm12 = self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
     DD = None
     E  = X0.sample(N)
@@ -355,13 +375,13 @@ def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
         innovs = (y - Obs(E,t)) @ Rm12.T
         w      = reweight(w,innovs=innovs)
 
-        if trigger_resampling(w, NER, [stats,E,k,kObs]):
+        if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
           # Compute kernel colouring matrix
-          cholR = Qs*bandw(N,Nx)*raw_C12(E,wD)
+          cholR = self.Qs*bandw(N,Nx)*raw_C12(E,wD)
           cholR = chol_reduce(cholR)
 
           # Generate N·xN random numbers from NormDist(0,1)
-          if DD is None or not re_use:
+          if DD is None or not self.re_use:
             DD = randn((N*xN,Nx))
 
           # Duplicate and jitter
@@ -375,8 +395,8 @@ def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
 
           # Resample and reduce
           wroot = 1.0
-          while wroot < wroot_max:
-            idx,w = resample(wD, resampl, wroot=wroot, N=N)
+          while wroot < self.wroot_max:
+            idx,w = resample(wD, self.resampl, wroot=wroot, N=N)
             dups  = sum(mask_unique_of_sorted(idx))
             if dups == 0:
               E = ED[idx]
@@ -384,7 +404,6 @@ def PFxN(N,Qs,xN,re_use=True,NER=1.0,resampl='Sys',wroot_max=5,**kwargs):
             else:
               wroot += 0.1
       stats.assess(k,kObs,'u',E=E,w=w)
-  return assimilator
 
 
 

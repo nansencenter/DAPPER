@@ -2,8 +2,8 @@
 
 from dapper import *
 
-@DA_Config
-def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=None,infl=1.0,rot=False,**kwargs):
+@da_class
+class iEnKS:
   """Iterative EnKS.
 
   Special cases: EnRML, ES-MDA, iEnKF, EnKF [Raa19b]_.
@@ -46,13 +46,18 @@ def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=Non
   (due to boundary cases: only asymptotically valid)
   
   References: [Boc12]_, [Boc13]_, [Boc14]_,
-
-  Settings for reproducing literature benchmarks may be found in
-
-  - :mod:`dapper.mods.Lorenz95.sak08`
-  - :mod:`dapper.mods.Lorenz63.sak12`
-  - :mod:`dapper.mods.Lorenz63.boc12`
   """
+  upd_a  : str
+  N      : int
+  Lag    : int   = 1
+  nIter  : int   = 10
+  wtol   : float = 0
+  MDA    : bool  = False
+  step   : bool  = False
+  bundle : bool  = False
+  xN     : float = None
+  infl   : float = 1.0
+  rot    : bool  = False
 
   # NB It's very difficult to preview what should happen to all of the time indices in all cases of
   # nIter and Lag. => Any changes to this function must be unit-tested via scripts/test_iEnKS.py.
@@ -63,21 +68,22 @@ def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=Non
   #   * The 'balancing step' is complicated.
   #   * Trouble playing nice with '-N' inflation estimation.
 
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0,R,KObs, N1 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, HMM.Obs.noise.C, HMM.t.KObs, N-1
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats,N = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
+    R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
     Rm12 = R.sym_sqrt_inv
 
     assert Dyn.noise.C is 0, "Q>0 not yet supported. TODO: implement Sakov et al 2017"
     
-    if bundle: EPS = 1e-4 # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
-    else     : EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional shape of the bundle.
+    if self.bundle: EPS = 1e-4 # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
+    else          : EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
 
     # Initial ensemble
     E = X0.sample(N)
 
     # Loop over DA windows (DAW).
-    for kObs in progbar(arange(-1,KObs+Lag+1)):
-        kLag = kObs-Lag
+    for kObs in progbar(arange(-1,KObs+self.Lag+1)):
+        kLag = kObs-self.Lag
         DAW = range( max(0, kLag+1), min(kObs, KObs) + 1)
 
         # Assimilation (if ∃ "not-fully-assimlated" obs).
@@ -90,7 +96,7 @@ def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=Non
             Tinv  = eye(N)    # Explicit Tinv [instead of tinv(T)] allows for merging MDA code
                               # with iEnKS/EnRML code, and flop savings in 'Sqrt' case.
 
-            for iteration in arange(nIter):
+            for iteration in arange(self.nIter):
                 # Reconstruct smoothed ensemble.
                 E = x0 + (w + EPS*T)@X0 
                 # Forecast.
@@ -120,59 +126,59 @@ def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=Non
                 V,s,UT = svd0(Y0)          # Decompose Y0.
 
                 # Set "cov normlzt fctr" za ("effective ensemble size") => pre_infl^2 = (N-1)/za.
-                if xN is None: za  = N1
-                else         : za  = zeta_a(*hyperprior_coeffs(s,N,xN), w)
-                if MDA       : za *= nIter # inflation (factor: nIter) of the ObsErrCov.
+                if self.xN is None: za  = N1
+                else              : za  = zeta_a(*hyperprior_coeffs(s,N,self.xN), w)
+                if self.MDA       : za *= self.nIter # inflation (factor: nIter) of the ObsErrCov.
 
                 # Post. cov (approx) of w, estimated at current iteration, raised to power.
                 Cowp = lambda expo: (V * (pad0(s**2,N) + za)**-expo) @ V.T
                 Cow1 = Cowp(1.0)
 
-                if MDA: # View update as annealing (progressive assimilation).
+                if self.MDA: # View update as annealing (progressive assimilation).
                     Cow1 = Cow1 @ T # apply previous update
                     dw = dy @ Y.T @ Cow1
-                    if 'PertObs' in upd_a:           #== "ES-MDA". By Emerick/Reynolds.
-                      D     = mean0(randn(Y.shape)) * sqrt(nIter)
+                    if 'PertObs' in self.upd_a:      #== "ES-MDA". By Emerick/Reynolds.
+                      D     = mean0(randn(Y.shape)) * sqrt(self.nIter)
                       T    -= (Y + D) @ Y.T @ Cow1
-                    elif 'Sqrt' in upd_a:            #== "ETKF-ish". By Raanes.
+                    elif 'Sqrt' in self.upd_a:       #== "ETKF-ish". By Raanes.
                       T     = Cowp(0.5) * sqrt(za) @ T
-                    elif 'Order1' in upd_a:          #== "DEnKF-ish". By Emerick.
+                    elif 'Order1' in self.upd_a:     #== "DEnKF-ish". By Emerick.
                       T    -= 0.5 * Y @ Y.T @ Cow1
                     # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
                 else: # View update as Gauss-Newton optimzt. of log-posterior.
                     grad  = Y0@dy - w*za             # Cost function gradient
                     dw    = grad@Cow1                # Gauss-Newton step
-                    if 'Sqrt' in upd_a:              # =="ETKF-ish". By Bocquet/Sakov.
+                    if 'Sqrt' in self.upd_a:         # =="ETKF-ish". By Bocquet/Sakov.
                       T     = Cowp(0.5) * sqrt(N1)   # Sqrt-transforms
                       Tinv  = Cowp(-.5) / sqrt(N1)   # Saves time [vs tinv(T)] when Nx<N
-                    elif 'PertObs' in upd_a:         # =="EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
+                    elif 'PertObs' in self.upd_a:    # =="EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
                       D     = mean0(randn(Y.shape)) if iteration==0 else D
                       gradT = -(Y+D)@Y0.T + N1*(eye(N) - T)
                       T     = T + gradT@Cow1
                       # Tinv= tinv(T, threshold=N1)  # unstable
                       Tinv  = inv(T+1)               # the +1 is for stability.
-                    elif 'Order1' in upd_a:          #== "DEnKF-ish". By Raanes. 
+                    elif 'Order1' in self.upd_a:     #== "DEnKF-ish". By Raanes. 
                       # Included for completeness; does not make much sense.
                       gradT = -0.5*Y@Y0.T + N1*(eye(N) - T)
                       T     = T + gradT@Cow1
                       Tinv  = tinv(T, threshold=N1)
 
                 w += dw
-                if dw@dw < wtol*N:
+                if dw@dw < self.wtol*N:
                   break
             # END loop iteration
 
             # Assess (analysis) stats. The final_increment is a linearization to
             # (i) avoid re-running the model and (ii) reproduce EnKF in case nIter==1. 
             final_increment = (dw+T-T_old)@Xf # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
-            stats.assess(k,   kObs, 'a', E=E+final_increment)
-            stats.iters      [kObs] = iteration+1
-            if xN: stats.infl[kObs] = sqrt(N1/za)
+            stats.assess(k,kObs, 'a', E=E+final_increment)
+            stats.iters[kObs] = iteration+1
+            if self.xN: stats.infl[kObs] = sqrt(N1/za)
 
             # Final (smoothed) estimate of E at [kLag].
             E = x0 + (w+T)@X0
-            E = post_process(E,infl,rot)
+            E = post_process(E,self.infl,self.rot)
         # END assimilation block
 
         # Slide/shift DAW by propagating smoothed ('s') ensemble from [kLag].
@@ -184,10 +190,10 @@ def iEnKS(upd_a,N,Lag=1,nIter=10,wtol=0,MDA=False,step=False,bundle=False,xN=Non
 
     # END loop kObs
     stats.assess(k,KObs,'us',E=E)
-  return assimilator
 
-@DA_Config
-def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,nIter=10,xN=1.0,infl=1.0,rot=False,**kwargs):
+
+@da_class
+class iLEnKS:
   """Iterative, Localized EnKS-N. [Boc16]_
 
   Based on iEnKS() and LETKF() codes,
@@ -195,13 +201,20 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,nIter=10,xN=1.0,infl=1.0,rot=False,*
 
   - upd_a : - 'Sqrt' (i.e. ETKF)
             - '-N' (i.e. EnKF-N)
-
-  Settings for reproducing literature benchmarks may be found in
-  :mod:`dapper.mods.Lorenz95.boc15loc`
   """
+  upd_a   : str
+  N       : int
+  loc_rad : float
+  taper   : str   = 'GC'
+  Lag     : int   = 1
+  nIter   : int   = 10
+  xN      : float = None
+  infl    : float = 1.0
+  rot     : bool  = False
 
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0,R,KObs, N1 = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, HMM.Obs.noise.C, HMM.t.KObs, N-1
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats,N = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
+    R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
     assert Dyn.noise.C is 0, "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
 
     # Init DA cycles
@@ -210,12 +223,13 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,nIter=10,xN=1.0,infl=1.0,rot=False,*
     # Loop DA cycles
     for kObs in progbar(arange(KObs+1)):
         # Set (shifting) DA Window. Shift is 1.
-        DAW_0  = kObs-Lag+1
-        DAW    = arange(max(0,DAW_0),DAW_0+Lag)
+        DAW_0  = kObs-self.Lag+1
+        DAW    = arange(max(0,DAW_0),DAW_0+self.Lag)
         DAW_dt = chrono.ttObs[DAW[-1]] - chrono.ttObs[DAW[0]] + chrono.dtObs
 
         # Get localization setup (at time t)
-        state_batches, obs_taperer = Obs.localizer(loc_rad, 'x2y', chrono.ttObs[kObs], taper)
+        state_batches, obs_taperer = Obs.localizer(
+                self.loc_rad, 'x2y', chrono.ttObs[kObs], self.taper)
         nBatch = len(state_batches)
 
         # Store 0th (iteration) estimate as (x0,A0)
@@ -226,7 +240,7 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,nIter=10,xN=1.0,infl=1.0,rot=False,*
         T      = np.tile( eye(N)   , (nBatch,1,1) )
 
         # Loop iterations
-        for iteration in arange(nIter):
+        for iteration in arange(self.nIter):
 
             # Assemble current estimate of E[kObs-Lag]
             for ib, ii in enumerate(state_batches):
@@ -249,16 +263,16 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,nIter=10,xN=1.0,infl=1.0,rot=False,*
 
             # Inflation estimation.
             # Set "effective ensemble size", za = (N-1)/pre-inflation^2.
-            if upd_a == 'Sqrt':
+            if self.upd_a == 'Sqrt':
                 za = N1 # no inflation
-            elif upd_a == '-N':
+            elif self.upd_a == '-N':
               # Careful not to overwrite w,T,Tinv !
               V,s,UT = svd0(Y)
               grad   = Y@dy
               Pw     = (V * (pad0(s**2,N) + N1)**-1.0) @ V.T
               w_glob = Pw@grad 
-              za     = zeta_a(*hyperprior_coeffs(s,N,xN), w_glob)
-            else: raise KeyError("upd_a: '" + upd_a + "' not matched.") 
+              za     = zeta_a(*hyperprior_coeffs(s,N,self.xN), w_glob)
+            else: raise KeyError("upd_a: '" + self.upd_a + "' not matched.") 
 
             for ib, ii in enumerate(state_batches):
               # Shift indices (to adjust for time difference)
@@ -298,7 +312,7 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,nIter=10,xN=1.0,infl=1.0,rot=False,*
         for ib, ii in enumerate(state_batches):
           E[:,ii] = x0[ii] + w[ib]@A0[:,ii]+ T[ib]@A0[:,ii]
 
-        E = post_process(E,infl,rot)
+        E = post_process(E,self.infl,self.rot)
 
         # Forecast smoothed ensemble by shift (1*dkObs)
         if DAW_0 >= 0:
@@ -313,12 +327,11 @@ def iLEnKS(upd_a,N,loc_rad,taper='GC',Lag=1,nIter=10,xN=1.0,infl=1.0,rot=False,*
         E = Dyn(E,t-dt,dt)
     stats.assess(chrono.K,None,'u',E=E)
 
-  return assimilator
 
 
 
-@DA_Config
-def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
+@da_class
+class Var4D:
   """4D-Var.
 
   Cycling scheme is same as in iEnKS (i.e. the shift is always 1*kObs).
@@ -332,20 +345,25 @@ def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
   => This implementation is not suited for big systems.
 
   Incremental formulation is used, so the formulae look like the ones in iEnKS.
-
-  Settings for reproducing literature benchmarks may be found in
-  :mod:`dapper.mods.Lorenz95.sak08`
   """
-  def assimilator(stats,HMM,xx,yy):
-    Dyn,Obs,chrono,X0,R,KObs = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, HMM.Obs.noise.C, HMM.t.KObs
-    Rm12 = R.sym_sqrt_inv
+  B     : Optional[np.ndarray] = None
+  xB    : float                = 1.0
+  Lag   : int                  = 1
+  wtol  : float                = 0
+  nIter : int                  = 10
+
+  def assimilate(self,HMM,xx,yy):
+    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    R, KObs = HMM.Obs.noise.C.sym_sqrt_inv, HMM.t.KObs
     Nx = Dyn.M
 
     # Set background covariance. Note that it is static (compare to iEnKS).
-    nonlocal B
-    if B is None:
-      B = eye(Nx)
-    B *= xB
+    if self.B in (None,'clim'): 
+      # Use climatological cov, ...
+      B = np.cov(xx.T) # ... estimated from truth
+    else:
+      B = self.B
+    B *= self.xB
     B12 = CovMat(B).sym_sqrt 
 
     # Init
@@ -353,8 +371,8 @@ def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
     stats.assess(0,mu=x,Cov=B)
 
     # Loop over DA windows (DAW).
-    for kObs in progbar(arange(-1,KObs+Lag+1)):
-        kLag = kObs-Lag
+    for kObs in progbar(arange(-1,KObs+self.Lag+1)):
+        kLag = kObs-self.Lag
         DAW = range( max(0, kLag+1), min(kObs, KObs) + 1)
 
         # Assimilation (if ∃ "not-fully-assimlated" obs).
@@ -364,7 +382,7 @@ def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
             w   = zeros(Nx)          # Control vector for the mean state.
             x0  = x.copy()           # Increment reference.
 
-            for iteration in arange(nIter):
+            for iteration in arange(self.nIter):
                 # Reconstruct smoothed state.
                 x = x0 + B12@w
                 X = B12 # Aggregate composite TLMs onto B12
@@ -396,7 +414,7 @@ def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
                 dw   = Cow1@grad           # Gauss-Newton step
                 w   += dw                  # Step
 
-                if dw@dw < wtol*Nx:
+                if dw@dw < self.wtol*Nx:
                   break
             # END loop iteration
 
@@ -421,7 +439,6 @@ def Var4D(B=None,xB=1.0,Lag=1,wtol=0,nIter=10,**kwargs):
 
     # END loop kObs
     stats.assess(k,KObs,'us',mu=x,Cov=X@Cow1@X.T)
-  return assimilator
 
 
 
