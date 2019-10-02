@@ -25,9 +25,9 @@ for Lag in [0,1,3]:
       cfgs += iEnKS('Order1'  , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
 
 
-for iC,C in enumerate(cfgs):
-  cfgs[iC] = C.update_settings(
-      liveplotting=False,fail_gently=True,store_u=True)
+for c in cfgs:
+    c.liveplotting=False
+    c.store_u=True
 
 
 ##############################
@@ -35,15 +35,8 @@ for iC,C in enumerate(cfgs):
 ##############################
 xx,yy = simulate(HMM)
 
-stats = []
-avrgs = []
-
-for ic,config in enumerate(cfgs):
-  seed(sd0+2)
-
-  stats += [ config.assimilate(HMM,xx,yy) ]
-  avrgs += [ stats[ic].average_in_time() ]
-print_averages(cfgs,avrgs,statkeys=['rmse_u','rmse_s'])
+cfgs.assimilate(HMM,xx,yy,sd0+2)
+cfgs.print_avrgs(['rmse_u','rmse_s'])
 
 
 ##############################
@@ -55,7 +48,7 @@ def allsame(xx):
   return np.allclose(xx, xx[0], atol=1e-10, rtol=0) # rtol=0 => only atol matters.
 
 def gr(ii,f_a_u): # grab_rmses
-  return [avrgs[i]['rmse_'+f_a_u].val for i in ii]
+  return [cfgs[i].avrgs['rmse_'+f_a_u].val for i in ii]
 
 
 ##############################

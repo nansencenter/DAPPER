@@ -27,33 +27,28 @@ def test_L63():
   HMM.t.KObs = 1
   xx,yy = simulate(HMM)
 
-  stats = []
-  avrgs = []
+  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True)
+  cfgs.print_avrgs(['rmse_a'])
 
-  for ic,config in enumerate(cfgs):
-    seed(sd0+2)
+  for config in cfgs:
+    replay(config,"all")
 
-    stats += [ config.assimilate(HMM,xx,yy) ]
-    avrgs += [ stats[ic].average_in_time() ]
-    print_averages(config, avrgs[-1])
+  replay(config, t2=1)
+  replay(config, t2=0.0)
+  replay(config, t2=0.3)
+  replay(config, t2=0.8)
+  replay(config, t2=0.8, t1=0.2)
+  replay(config, t2=np.inf)
+  replay(config, t2=np.inf, speed=1)
+  replay(config, t2=np.inf, pause_a=0, pause_f=0)
 
-  print_averages(cfgs,avrgs,statkeys=['rmse_a'])
+  spell_out(HMM);
+  spell_out(config);
+  spell_out(config.stats);
+  spell_out(config.avrgs)
 
-  for s in stats:
-    replay(s,"all")
-
-  replay(stats[-1], t2=1)
-  replay(stats[-1], t2=0.0)
-  replay(stats[-1], t2=0.3)
-  replay(stats[-1], t2=0.8)
-  replay(stats[-1], t2=0.8, t1=0.2)
-  replay(stats[-1], t2=np.inf)
-  replay(stats[-1], t2=np.inf, speed=1)
-  replay(stats[-1], t2=np.inf, pause_a=0, pause_f=0)
-
-  print(HMM); print(config); print(stats); print(avrgs)
-  assert True
-  return HMM, xx, yy, cfgs, stats, avrgs
+  assert True # An assertion for pytest to count
+  return HMM, xx, yy, cfgs # Return useful stuff
 
 
 
@@ -84,39 +79,31 @@ def test_L95():
   HMM.t.KObs = 2
   xx,yy = simulate(HMM)
 
-  stats = []
-  avrgs = []
+  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True)
+  cfgs.print_avrgs(['rmse_a'])
 
-  for ic,config in enumerate(cfgs):
-    seed(sd0+2)
+  for config in cfgs:
+    replay(config,"all")
 
-    stats += [ config.assimilate(HMM,xx,yy) ]
-    avrgs += [ stats[ic].average_in_time() ]
-    print_averages(config, avrgs[-1])
+  replay(config, t2=1)
+  replay(config, t2=0.0)
+  replay(config, t2=0.3)
+  replay(config, t2=0.8)
+  replay(config, t2=0.8, t1=0.2)
+  replay(config, t2=np.inf)
+  replay(config, t2=np.inf, speed=1)
+  replay(config, t2=np.inf, pause_a=0, pause_f=0)
 
-  print_averages(cfgs,avrgs,statkeys=['rmse_a'])
+  print(HMM); print(config); print(config.stats); print(config.avrgs)
 
-  for s in stats:
-    replay(s,"all")
-
-  replay(stats[-1], t2=1)
-  replay(stats[-1], t2=0.0)
-  replay(stats[-1], t2=0.3)
-  replay(stats[-1], t2=0.8)
-  replay(stats[-1], t2=0.8, t1=0.2)
-  replay(stats[-1], t2=np.inf)
-  replay(stats[-1], t2=np.inf, speed=1)
-  replay(stats[-1], t2=np.inf, pause_a=0, pause_f=0)
-
-  print(HMM); print(config); print(stats); print(avrgs)
-  assert True
-  return HMM, xx, yy, cfgs, stats, avrgs
+  assert True # An assertion for pytest to count
+  return HMM, xx, yy, cfgs # Return useful stuff
 
 
 
 # Non py.test runs:
-# HMM, xx, yy, cfgs, stats, avrgs = test_L63()
-# HMM, xx, yy, cfgs, stats, avrgs = test_L95()
+# HMM, xx, yy, cfgs = test_L63()
+# HMM, xx, yy, cfgs = test_L95()
 
 
 
