@@ -2,26 +2,37 @@
 
 from dapper import *
 
+def ensure_attr(obj,attr,default):
+    if not hasattr(obj,attr):
+        setattr(obj,attr,default)
+
+
 #########################################
 # Progressbar
 #########################################
 
 import inspect
 def pdesc(desc):
-  "Get progbar description by caller inspection."
+  "Get progbar description by introspection."
 
   if desc is not None:
     return desc
 
-  # Assume the "progress" happens 2 calling levels above
-  level = 2
+  stack = inspect.stack()
+  # Gives FULL REPR:
+  # stack[4].frame.f_locals['name_hook']
 
-  try:
-    # Assuming we're in a DAC, go look above (i.e. stack[3]) for a name_hook.
-    name = inspect.stack()[level+1].frame.f_locals['name_hook'] #so.com/q/15608987
-  except (KeyError, AttributeError):
-    # Otherwise: just get name of what's calling progbar (i.e. stack[2]) 
-    name = inspect.stack()[level].function #so.com/a/900404
+  # Go look above in the stack for a name_hook.
+  for level in range(2,6):
+      locals = stack[level].frame.f_locals
+      if 'pb_name_hook' in locals:
+          name = locals['pb_name_hook']
+          break
+  else:
+      # Otherwise: just get name of what's
+      # calling progbar (i.e. stack[2]) 
+      name = stack[2].function
+
   return name
 
 
@@ -222,7 +233,7 @@ def printoptions(*args, **kwargs):
 
 import tabulate as tabulate_orig
 tabulate_orig.MIN_PADDING = 0
-def tabulate(data,headr=(),formatters=(),inds='nice'):
+def tabulate(data,headr=(),formatters=(),inds='nice',**kwargs):
   """Pre-processor for tabulate().
 
   Main task: transpose 'data' (list-of-lists).
@@ -234,7 +245,7 @@ def tabulate(data,headr=(),formatters=(),inds='nice'):
 
   Example::
 
-    >>> print(tabulate(cfgs.distinct_attrs()))
+    >>> print(tabulate(cfgs.split_attrs()[0]))
   """
 
   # Extract dict
@@ -249,7 +260,7 @@ def tabulate(data,headr=(),formatters=(),inds='nice'):
         'format': lambda x: x.__name__
         },{
         'test'  : lambda x: isinstance(x,np.ndarray),
-        'format': lambda x: "..." if isinstance(x,np.ndarray) else x
+        'format': lambda x: "..."
         },
         )
   # Apply formatting (if not applicable, data is just forwarded)
@@ -267,7 +278,7 @@ def tabulate(data,headr=(),formatters=(),inds='nice'):
   else:
     pass # Should be True or False
 
-  return tabulate_orig.tabulate(data,headr,showindex=inds)
+  return tabulate_orig.tabulate(data,headr,showindex=inds,**kwargs)
 
 
 def repr_type_and_name(thing):
