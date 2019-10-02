@@ -33,7 +33,7 @@ for c in cfgs:
 ##############################
 # Assimilate
 ##############################
-xx,yy = simulate(HMM)
+xx,yy = HMM.simulate()
 
 cfgs.assimilate(HMM,xx,yy,sd0+2)
 cfgs.print_avrgs(['rmse_u','rmse_s'])

@@ -157,7 +157,6 @@ from .tools.randvars import *
 from .tools.viz import *
 from .tools.liveplotting import *
 from .tools.localization import *
-from .tools.convenience import *
 from .tools.data_management import *
 from .stats import *
 from .admin import *

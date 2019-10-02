@@ -29,7 +29,7 @@ cfgs += PFxN(xN=1000,   N=30  ,Qs=2     ,NER=0.2)
 
 # Run
 for c in cfgs: c.store_u=True
-xx,yy = simulate(HMM)
+xx,yy = HMM.simulate()
 cfgs.assimilate(HMM,xx,yy,sd0+2)
 
 table = cfgs._repr_avrgs(['rmse_a','rmse_f','rmse_u'],decimals=4)
@@ -85,7 +85,7 @@ cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)
 
 
 for c in cfgs: c.store_u=True
-xx,yy = simulate(HMM)
+xx,yy = HMM.simulate()
 cfgs.assimilate(HMM,xx,yy,sd0+2)
 
 table = cfgs._repr_avrgs(['rmse_a','rmse_f','rmse_u'],decimals=4)

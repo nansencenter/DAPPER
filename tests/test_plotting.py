@@ -25,7 +25,7 @@ def test_L63():
 
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 1
-  xx,yy = simulate(HMM)
+  xx,yy = HMM.simulate()
 
   cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True)
   cfgs.print_avrgs(['rmse_a'])
@@ -77,7 +77,7 @@ def test_L95():
   # HMM.t.KObs = 30
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 2
-  xx,yy = simulate(HMM)
+  xx,yy = HMM.simulate()
 
   cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True)
   cfgs.print_avrgs(['rmse_a'])

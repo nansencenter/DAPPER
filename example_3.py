@@ -119,7 +119,7 @@ for iX,(X,iR) in enumerate(zip(xticks,rep_inds)):
   adjust_osse(CtrlVar,X)
 
   seed(sd0+iR)
-  xx,yy = simulate(HMM)
+  xx,yy = HMM.simulate()
 
   for iC,C in enumerate(cfgs):
     C = adjust_cfg(C,CtrlVar,X)

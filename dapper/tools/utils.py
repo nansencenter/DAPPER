@@ -152,6 +152,12 @@ def get_numbering(glb):
   ls = glob.glob(glb+'*')
   return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
 
+def rel_path(path,start=None,ext=False):
+  path = os.path.relpath(path,start)
+  if not ext:
+    path = os.path.splitext(path)[0]
+  return path
+
 
 #########################################
 # Console input / output

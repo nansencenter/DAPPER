@@ -55,7 +55,7 @@ for iX,(X,iR) in enumerate(zip(xticks,rep_inds)):
   with coloring(): print('\n'+"xticks[",iX,'/',len(xticks)-1,"] ",CtrlVar,': ',X,sep="")
 
   seed(sd0+iR)
-  xx,yy = simulate(HMM)
+  xx,yy = HMM.simulate()
 
   for iC,C in enumerate(cfgs):
     C = C.update_settings(N=X)

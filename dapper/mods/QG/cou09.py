@@ -31,5 +31,5 @@ truth_model   = model_config("cou09_truth",{"dtout":dt}                ).step
 #
 # - Use this to turn on/off the truth-model before/after truth simulation:
 #   with set_tmp(HMM.Dyn,'model',truth_model):
-#     xx,yy = simulate(HMM)
+#     xx,yy = HMM.simulate()
 

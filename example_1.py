@@ -8,7 +8,7 @@ from dapper.mods.Lorenz63.sak12 import HMM
 HMM.t.T = 30 # shorten experiment
 
 # Simulate synthetic truth (xx) and noisy obs (yy)
-xx,yy = simulate(HMM)
+xx,yy = HMM.simulate()
 
 # Specify a DA method configuration
 config = EnKF('Sqrt', N=10, infl=1.02, rot=True)

@@ -1,7 +1,6 @@
 Todo
 ================================================
 
-* Relocate simulate
 * Sort out import order
 
 * Rm HMM from Stats

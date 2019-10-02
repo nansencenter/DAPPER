@@ -42,6 +42,27 @@ class HiddenMarkovModel(NestedPrint):
   ordering = ['Dyn','Obs','t','X0']
 
 
+  def simulate(self,desc='Truth & Obs'):
+    """Generate synthetic truth and observations."""
+    Dyn,Obs,chrono,X0 = self.Dyn, self.Obs, self.t, self.X0
+
+    # Init
+    xx    = zeros((chrono.K   +1,Dyn.M))
+    yy    = zeros((chrono.KObs+1,Obs.M))
+
+    xx[0] = X0.sample(1)
+
+    # Loop
+    for k,kObs,t,dt in progbar(chrono.ticker,desc):
+      xx[k] = Dyn(xx[k-1],t-dt,dt) + sqrt(dt)*Dyn.noise.sample(1)
+      if kObs is not None:
+        yy[kObs] = Obs(xx[k],t) + Obs.noise.sample(1)
+
+    return xx,yy
+
+
+
+
 class Operator(NestedPrint):
   """Container for operators (models)."""
   def __init__(self,M,model=None,noise=None,**kwargs):

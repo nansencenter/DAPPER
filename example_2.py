@@ -50,7 +50,7 @@ cfgs += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 HMM.t.T = 100
 
 # Generate synthetic truth/obs
-xx,yy = simulate(HMM)
+xx,yy = HMM.simulate()
 
 # Assimilate (for each config in cfgs)
 cfgs.assimilate(HMM,xx,yy)
