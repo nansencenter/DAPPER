@@ -1,7 +1,7 @@
 Todo
 ================================================
 
-* Relocate simulate,  tabulate_orig
+* Relocate simulate
 * Sort out import order
 
 * Rm HMM from Stats

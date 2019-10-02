@@ -229,15 +229,14 @@ def printoptions(*args, **kwargs):
 
 import tabulate as tabulate_orig
 tabulate_orig.MIN_PADDING = 0
-def tabulate(data,headr=(),formatters=(),inds='nice',**kwargs):
+def tabulate(data,headers=(),formatters=(),inds='nice',**kwargs):
   """Pre-processor for tabulate().
 
-  Main task: transpose 'data' (list-of-lists).
-
-  If 'data' is a dict, the 'headr' will be keys.
-
-  'formatter': define formats to apply before relaying to tabulate().
-  Default: attr.__name__ (when applicable).
+  - Transposes 'data' (list-of-lists).
+  - ``formatter``: define formats to apply before relaying to tabulate().
+                   Default: attr.__name__ (when applicable).
+  - If ``data`` is a dict, the ``headers`` will be keys.
+  - Add row indices with style: [i]
 
   Example::
 
@@ -246,8 +245,8 @@ def tabulate(data,headr=(),formatters=(),inds='nice',**kwargs):
 
   # Extract dict
   if hasattr(data,'keys'):
-    headr = list(data)
-    data  = data.values()
+    headers = list(data)
+    data = data.values()
 
   # Default formats
   if not formatters:
@@ -256,7 +255,7 @@ def tabulate(data,headr=(),formatters=(),inds='nice',**kwargs):
         'format': lambda x: x.__name__
         },{
         'test'  : lambda x: isinstance(x,np.ndarray),
-        'format': lambda x: "..."
+        'format': lambda x: "arr(...)"
         },
         )
   # Apply formatting (if not applicable, data is just forwarded)
@@ -274,7 +273,7 @@ def tabulate(data,headr=(),formatters=(),inds='nice',**kwargs):
   else:
     pass # Should be True or False
 
-  return tabulate_orig.tabulate(data,headr,showindex=inds,**kwargs)
+  return tabulate_orig.tabulate(data,headers,showindex=inds,**kwargs)
 
 
 def repr_type_and_name(thing):
