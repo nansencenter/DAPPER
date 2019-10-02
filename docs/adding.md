@@ -8,6 +8,7 @@ do not hesitate make your own scripts and functions
 Adding a new method
 ----------------------------------
 Follow the example of one of the methods in the `da_methods` folder.
+The simplest is `da_methods/ensemble.py:EnKF()`.
 
 
 Adding a new model
