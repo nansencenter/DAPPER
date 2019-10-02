@@ -1,7 +1,6 @@
 Todo
 ================================================
 
-* mv liveplotting (kw) liveplots
 * abbreviations (aliases) ? Could use __post_init__().
 * Relocate ensure_attr, find_1st, simulate, de_abbreviate, tabulate_orig
 * Sort out import order

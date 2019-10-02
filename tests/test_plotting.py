@@ -21,7 +21,7 @@ def test_L63():
   for iC,C in enumerate(cfgs):
     C.fail_gently=False
     C.store_u=False
-    C.liveplotting="all"
+    C.liveplots="all"
 
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 1
@@ -71,7 +71,7 @@ def test_L95():
   for iC,C in enumerate(cfgs):
     C.fail_gently=False
     C.store_u=True
-    C.liveplotting="all"
+    C.liveplots="all"
 
   # HMM.t.BurnIn = 10*HMM.t.dtObs
   # HMM.t.KObs = 30

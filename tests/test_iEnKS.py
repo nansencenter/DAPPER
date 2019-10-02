@@ -26,7 +26,7 @@ for Lag in [0,1,3]:
 
 
 for c in cfgs:
-    c.liveplotting=False
+    c.liveplots=False
     c.store_u=True
 
 

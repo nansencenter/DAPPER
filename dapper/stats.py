@@ -108,8 +108,8 @@ class Stats(NestedPrint):
 
     # OTHER         transf       , shape  , plt kwargs
     self.style2 = OrderedDict([
-        ('skew'   , [Id          , None   , dict(c=     'g' , label=star+'Skew/$\sigma^3$'        )]),
-        ('kurt'   , [Id          , None   , dict(c=     'r' , label=star+'Kurt$/\sigma^4{-}3$'    )]),
+        ('skew'   , [Id          , None   , dict(c=     'g' , label=star+r'Skew/$\sigma^3$'        )]),
+        ('kurt'   , [Id          , None   , dict(c=     'r' , label=star+r'Kurt$/\sigma^4{-}3$'    )]),
         ('trHK'   , [Id          , None   , dict(c=     'k' , label=star+'HK'                     )]),
         ('infl'   , [lin(-10,10) , 'step' , dict(c=     'c' , label='10(infl-1)'                  )]),
         ('N_eff'  , [divN        , 'dirac', dict(c=RGBs['y'], label='N_eff/N'             ,lw=3   )]),
@@ -188,7 +188,7 @@ class Stats(NestedPrint):
       # LivePlot -- Both initiation and update must come after the assessment.
       if rc['liveplotting_enabled']:
         if not hasattr(self,'LP_instance'): # -- INIT --
-          self.LP_instance = LivePlot(self, self.config.liveplotting, key,E,Cov)
+          self.LP_instance = LivePlot(self, self.config.liveplots, key,E,Cov)
         else: # -- UPDATE --
           self.LP_instance.update(key,E,Cov)
 

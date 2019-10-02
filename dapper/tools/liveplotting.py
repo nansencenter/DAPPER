@@ -9,7 +9,7 @@ class LivePlot:
    - Which liveploters to call.
    - plot_u
    - Figure window (title and number)."""
-  def __init__(self,stats,liveplotting,key0=(0,None,'u'),E=None,P=None,speed=1.0,**kwargs):
+  def __init__(self,stats,liveplots,key0=(0,None,'u'),E=None,P=None,speed=1.0,**kwargs):
     """
     Initialize plots.
     - figlist: figures to plot; alternatives:
@@ -49,7 +49,7 @@ class LivePlot:
       assert num>10, "Liveplotters specified in the HMM should have fignum>10."
       potential_LPs[get_name(init)] = num, show, init
 
-    figlist = parse_figlist(liveplotting)
+    figlist = parse_figlist(liveplots)
 
     # On the 2nd run (of example_1 e.g.) the figures don't appear
     # if they've been closed. For some reason, this fixes it:
@@ -63,7 +63,7 @@ class LivePlot:
 
         # Startup message
         if not self.any_figs:
-          print('Initializing liveplotting...')
+          print('Initializing liveplots...')
           print('Hit <Space> to pause/step.')
           print('Hit <Enter> to resume/skip.')
           self.paused = False
@@ -178,7 +178,7 @@ def replay(config, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   except AttributeError: # e.g. if X0 is defined via sampling func
     P0 = eye(stats.HMM.Nx)
 
-  if figlist is None: figlist = config.liveplotting
+  if figlist is None: figlist = config.liveplots
   figlist = parse_figlist(figlist)
 
   LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, **kwargs)
@@ -225,7 +225,7 @@ class sliding_diagnostics:
             # try: val0 = stat[key0[0]]
             # except KeyError: continue
             # PS: recall (from series.py) that even if store_u is false, stat[k] is
-            # still present if liveplotting=True via the k_tmp functionality.
+            # still present if liveplots=True via the k_tmp functionality.
             
             # Unpack style
             ln = {}

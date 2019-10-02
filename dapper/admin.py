@@ -83,7 +83,7 @@ class _da_defaults:
         => changing this later has no effect."""
     implicit = lambda x: dc.field(default=x, repr=0, compare=0)
 
-    liveplotting: bool = implicit(False)
+    liveplots   : bool = implicit(False)
     store_u     : bool = implicit(rc['store_u'])
     fail_gently : bool = implicit(rc['fail_gently'])
 

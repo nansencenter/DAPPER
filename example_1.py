@@ -16,7 +16,7 @@ config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
 # config = PartFilt(N=100,reg=2.4,NER=0.3)
 
 # Turn on liveplotting
-config.liveplotting = True
+config.liveplots = True
 
 # Assimilate yy, knowing the HMM; xx is used for assessment.
 config.assimilate(HMM,xx,yy)
