@@ -3,6 +3,15 @@
 from dapper import *
 
 @da_method
+@dc.dataclass
+class var_method:
+  "Declare default variational arguments."
+  Lag    : int   = 1
+  nIter  : int   = 10
+  wtol   : float = 0
+
+
+@var_method
 class iEnKS:
   """Iterative EnKS.
 
@@ -49,9 +58,6 @@ class iEnKS:
   """
   upd_a  : str
   N      : int
-  Lag    : int   = 1
-  nIter  : int   = 10
-  wtol   : float = 0
   MDA    : bool  = False
   step   : bool  = False
   bundle : bool  = False
@@ -192,7 +198,7 @@ class iEnKS:
     stats.assess(k,KObs,'us',E=E)
 
 
-@da_method
+@var_method
 class iLEnKS:
   """Iterative, Localized EnKS-N. [Boc16]_
 
@@ -206,8 +212,6 @@ class iLEnKS:
   N       : int
   loc_rad : float
   taper   : str   = 'GC'
-  Lag     : int   = 1
-  nIter   : int   = 10
   xN      : float = None
   infl    : float = 1.0
   rot     : bool  = False
@@ -330,7 +334,7 @@ class iLEnKS:
 
 
 
-@da_method
+@var_method
 class Var4D:
   """4D-Var.
 
@@ -348,9 +352,6 @@ class Var4D:
   """
   B     : Optional[np.ndarray] = None
   xB    : float                = 1.0
-  Lag   : int                  = 1
-  wtol  : float                = 0
-  nIter : int                  = 10
 
   def assimilate(self,HMM,xx,yy):
     Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats

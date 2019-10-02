@@ -3,12 +3,19 @@
 from dapper import *
 
 @da_method
+@dc.dataclass
+class ens_method:
+  "Declare default ensemble arguments."
+  infl          : float = 1.0
+  rot           : bool  = False
+  fnoise_treatm : str   = 'Stoch'
+
+
+@ens_method
 class EnKF:
   """The ensemble Kalman filter [Eve09]_"""
   upd_a : str
   N     : int
-  infl  : float = 1.0
-  rot   : bool  = False
 
   def assimilate(self,HMM,xx,yy):
     Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -20,7 +27,7 @@ class EnKF:
     # Loop
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
+      E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
       # Analysis update
       if kObs is not None:
@@ -216,9 +223,8 @@ def post_process(E,infl,rot):
 
 
 
-def add_noise(E, dt, noise, config):
+def add_noise(E, dt, noise, method):
   """Treatment of additive noise for ensembles [Raa15]_."""
-  method = config.get('fnoise_treatm','Stoch')
 
   if noise.C is 0: return E
 
@@ -298,7 +304,7 @@ def add_noise(E, dt, noise, config):
 
 
 
-@da_method
+@ens_method
 class EnKS:
   """The ensemble Kalman smoother [Eve09]_.
 
@@ -307,8 +313,6 @@ class EnKS:
   upd_a : str
   N     : int
   Lag   : int
-  infl  : float = 1.0
-  rot   : bool  = False
 
   # Reshapings used in smoothers to go to/from
   # 3D arrays, where the 0th axis is the Lag index.
@@ -330,7 +334,7 @@ class EnKS:
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E[k] = Dyn(E[k-1],t-dt,dt)
-      E[k] = add_noise(E[k], dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
+      E[k] = add_noise(E[k], dt, Dyn.noise, self.fnoise_treatm)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E[k])
@@ -355,14 +359,12 @@ class EnKS:
         stats.assess(k,kObs,'s',E=E[k])
 
 
-@da_method
+@ens_method
 class EnRTS:
   """EnRTS (Rauch-Tung-Striebel) smoother [Raa16b]_."""
   upd_a : str
   N     : int
   cntr  : float
-  infl  : float = 1.0
-  rot   : bool  = False
 
   def assimilate(self,HMM,xx,yy):
     Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -374,7 +376,7 @@ class EnRTS:
     # Forward pass
     for k,kObs,t,dt in progbar(chrono.ticker):
       E[k]  = Dyn(E[k-1],t-dt,dt)
-      E[k]  = add_noise(E[k], dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
+      E[k]  = add_noise(E[k], dt, Dyn.noise, self.fnoise_treatm)
       Ef[k] = E[k]
 
       if kObs is not None:
@@ -417,7 +419,7 @@ def serial_inds(upd_a, y, cvR, A):
     inds = np.random.permutation(len(y))
   return inds
 
-@da_method
+@ens_method
 class SL_EAKF:
   """Serial, covariance-localized EAKF [Kar07]_.
 
@@ -427,8 +429,6 @@ class SL_EAKF:
   loc_rad : float
   taper   : str   = 'GC'
   ordr    : str   = 'rand'
-  infl    : float = 1.0
-  rot     : bool  = False
 
   def assimilate(self,HMM,xx,yy):
     Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -442,7 +442,7 @@ class SL_EAKF:
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
+      E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
@@ -490,7 +490,7 @@ class SL_EAKF:
 
 
 
-@da_method
+@ens_method
 class LETKF:
   """Same as EnKF (sqrt), but with localization [Hun07]_.
 
@@ -504,8 +504,6 @@ class LETKF:
   xN      : float = 1.0
   g       : int   = 0
   mp      : bool  = False
-  infl    : float = 1.0
-  rot     : bool  = False
 
   def assimilate(self,HMM,xx,yy):
     Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -519,7 +517,7 @@ class LETKF:
     for k,kObs,t,dt in progbar(chrono.ticker):
       # Forecast
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
+      E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
@@ -737,7 +735,7 @@ def zeta_a(eN,cL,w):
   return za
 
 
-@da_method
+@ens_method
 class EnKF_N:
   """Finite-size EnKF (EnKF-N) [Boc11]_, [Boc15]_
 
@@ -765,8 +763,6 @@ class EnKF_N:
   Hess : bool  = False
   xN   : float = 1.0
   g    : int   = 0
-  infl : float = 1.0
-  rot  : bool  = False
 
   def assimilate(self,HMM,xx,yy):
     # Unpack
@@ -781,7 +777,7 @@ class EnKF_N:
     for k,kObs,t,dt in progbar(chrono.ticker):
       # Forecast
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
+      E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
       # Analysis
       if kObs is not None:

@@ -2,7 +2,7 @@
 
 from dapper import *
 
-@da_method
+@da_method()
 class ExtKF:
   """The extended Kalman filter. A baseline/reference method.
 
@@ -52,7 +52,7 @@ class ExtKF:
 
 
 # TODO: Clean up
-@da_method
+@da_method()
 class ExtRTS:
   """
   """

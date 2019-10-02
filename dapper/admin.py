@@ -126,60 +126,80 @@ def call_gently(fun,self,*args):
         else: 
             raise ERR
 
-def da_method(cls): 
-    """Decorator based on dataclass.
+def da_method(*default_dcs): 
+    """Make the decorator that makes the DA classes.
 
-    This adds __init__, __repr__, __eq__, ..., but also includes
-    inherited defaults (see stackoverflow.com/a/58130805).
+    Example:
+    >>> @dc.dataclass
+    >>> class ens_defaults:
+    >>>   infl          : float = 1.0
+    >>>   rot           : bool  = False
+    >>> 
+    >>> @da_method(ens_defaults)
+    >>> class EnKF:
+    >>>     N     : int
+    >>>     upd_a : str = "Sqrt"
+    >>> 
+    >>>     def assimilate(self,HMM,xx,yy):
+    >>>         ...
+    """
 
-    Also:
-     - Wraps assimilate() to provide gentle_fail functionality.
-     - Initialises and writes the Stats object.
-     - Adds average_stats(), print_averages()."""
+    def dataclass_with_defaults(cls):
+        """Decorator based on dataclass.
 
-    # Store
-    orig_assimilate = cls.assimilate
+        This adds __init__, __repr__, __eq__, ..., but also includes
+        inherited defaults (see stackoverflow.com/a/58130805).
 
-    # Add _da_defaults fields AFTER cls's.
-    ensure_attr(cls,'__annotations__',{})
-    for f in dc.fields(_da_defaults):
-        if f.name not in cls.__annotations__:    # Don't overwrite
-            cls.__annotations__[f.name] = f.type # Add annotation
-            setattr(cls,f.name,f)                # Add attribute
-    cls = dc.dataclass(cls)                      # New class (NB: same id)
+        Also:
+         - Wraps assimilate() to provide gentle_fail functionality.
+         - Initialises and writes the Stats object.
+         - Adds average_stats(), print_averages()."""
+        # Store
+        orig_assimilate = cls.assimilate
 
-    # Shortcut for self.__class__.__name__
-    cls.da_method = cls.__name__
+        # Add default_dcs fields AFTER cls's. NB: do not implement support
+        # for non-default args (e.g. by placing them first) -- to messy!
+        ensure_attr(cls,'__annotations__',{})
+        for defaults in default_dcs + (_da_defaults,):
+            for f in dc.fields(defaults):
+                if f.name not in cls.__annotations__:    # Don't overwrite
+                    cls.__annotations__[f.name] = f.type # Add annotation
+                    setattr(cls,f.name,f)                # Add attribute
+        cls = dc.dataclass(cls)                          # New class (NB: same id)
 
-    def method(fun):
-        setattr(cls,fun.__name__,fun)
-        return fun
+        # Shortcut for self.__class__.__name__
+        cls.da_method = cls.__name__
 
-    @method
-    @functools.wraps(orig_assimilate)
-    def assimilate(self,HMM,xx,yy,desc=None):
-        pb_name_hook = self.da_method if desc is None else desc
-        self.stats = Stats(self,HMM,xx,yy)
-        call_gently(orig_assimilate,self,HMM,xx,yy)
+        def method(fun):
+            setattr(cls,fun.__name__,fun)
+            return fun
 
-    @method
-    def average_stats(self,free=False):
-        """Average (in time) all of the time series in the Stats object.
+        @method
+        @functools.wraps(orig_assimilate)
+        def assimilate(self,HMM,xx,yy,desc=None):
+            pb_name_hook = self.da_method if desc is None else desc
+            self.stats = Stats(self,HMM,xx,yy)
+            call_gently(orig_assimilate,self,HMM,xx,yy)
 
-        If ``free``: del ref to Stats object."""
-        self.avrgs = self.stats.average_in_time()
-        if free:
-            delattr(self,'stats')
+        @method
+        def average_stats(self,free=False):
+            """Average (in time) all of the time series in the Stats object.
 
-    @method
-    def print_avrgs(self,keys=()):
-        """Tabulated print of averages (those requested by ``keys``)"""
-        cfgs = List_of_Configs([self])
-        cfgs.print_avrgs(keys)
+            If ``free``: del ref to Stats object."""
+            self.avrgs = self.stats.average_in_time()
+            if free:
+                delattr(self,'stats')
 
-    method(replay)
+        @method
+        def print_avrgs(self,keys=()):
+            """Tabulated print of averages (those requested by ``keys``)"""
+            cfgs = List_of_Configs([self])
+            cfgs.print_avrgs(keys)
 
-    return cls
+        method(replay)
+
+        return cls
+    return dataclass_with_defaults
 
 
 class List_of_Configs(list):

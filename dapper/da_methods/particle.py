@@ -1,7 +1,14 @@
 from dapper import *
 
-
 @da_method
+@dc.dataclass
+class particle_method:
+  "Declare default particle arguments."
+  NER     : float = 1.0
+  resampl : str   = 'Sys'
+
+
+@particle_method
 class PartFilt:
   r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
@@ -21,8 +28,6 @@ class PartFilt:
      See [Che03]_, section VI-M.2
   """
   N       : int
-  NER     : float = 1.0
-  resampl : str   = 'Sys'
   reg     : float = 0
   nuj     : bool  = True
   qroot   : float = 1.0
@@ -71,7 +76,7 @@ class PartFilt:
 
 
 
-@da_method
+@particle_method
 class OptPF:
   """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
@@ -82,8 +87,6 @@ class OptPF:
   """
   N       : int
   Qs      : float
-  NER     : float = 1.0
-  resampl : str   = 'Sys'
   reg     : float = 0
   nuj     : bool  = True
   wroot   : float = 1.0
@@ -135,7 +138,7 @@ class OptPF:
 
 
 
-@da_method
+@particle_method
 class PFa:
   """PF with weight adjustment withOUT compensating for the bias it introduces.  
 
@@ -155,8 +158,6 @@ class PFa:
   """
   N       : int
   alpha   : float
-  NER     : float = 1.0
-  resampl : str   = 'Sys'
   reg     : float = 0
   nuj     : bool  = True
   qroot   : float = 1.0
@@ -214,7 +215,7 @@ class PFa:
 
 
 
-@da_method
+@particle_method
 class PFxN_EnKF:
   """Particle filter with EnKF-based proposal, q.
 
@@ -233,8 +234,6 @@ class PFxN_EnKF:
   Qs        : float
   xN        : int
   re_use    : bool  = True
-  NER       : float = 1.0
-  resampl   : str   = 'Sys'
   wroot_max : float = 5.0
 
   def assimilate(self,HMM,xx,yy):
@@ -336,7 +335,7 @@ class PFxN_EnKF:
 
 
 
-@da_method
+@particle_method
 class PFxN:
   """Particle filter with buckshot duplication during analysis.
   
@@ -348,8 +347,6 @@ class PFxN:
   Qs        : float
   xN        : int
   re_use    : bool  = True
-  NER       : float = 1.0
-  resampl   : str   = 'Sys'
   wroot_max : float = 5.0
 
   def assimilate(self,HMM,xx,yy):

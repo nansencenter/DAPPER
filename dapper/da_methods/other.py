@@ -1,8 +1,9 @@
 """More experimental or esoteric DA methods."""
 
 from dapper import *
+from .ensemble import ens_method
 
-@da_method
+@ens_method
 class RHF:
   """Rank histogram filter [And10]_.
 
@@ -10,8 +11,6 @@ class RHF:
   """
   N    : int
   ordr : str   = 'rand'
-  infl : float = 1.0
-  rot  : bool  = False
 
   def assimilate(self,HMM,xx,yy):
     Dyn,Obs,chrono,X0,stats,N = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
@@ -28,7 +27,7 @@ class RHF:
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
+      E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)
@@ -68,7 +67,7 @@ class RHF:
 
 
 
-@da_method
+@ens_method
 class LNETF:
   """The Nonlinear-Ensemble-Transform-Filter (localized) [Wil16]_, [Töd15]_.
 
@@ -78,8 +77,6 @@ class LNETF:
   loc_rad : float
   taper   : str   = 'GC'
   Rs      : float = 1.0
-  infl    : float = 1.0
-  rot     : bool  = False
 
   def assimilate(self,HMM,xx,yy):
     Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -90,7 +87,7 @@ class LNETF:
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
-      E = add_noise(E, dt, Dyn.noise, {'fnoise_treatm':'Stoch'})
+      E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
       if kObs is not None:
         stats.assess(k,kObs,'f',E=E)

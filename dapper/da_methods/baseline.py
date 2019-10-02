@@ -5,7 +5,7 @@ Many are based on [Raa16a]_.
 
 from dapper import *
 
-@da_method
+@da_method()
 class Climatology:
   """A baseline/reference method.
 
@@ -27,7 +27,7 @@ class Climatology:
       stats.assess(k,kObs,fau,mu=muC,Cov=PC)
 
 
-@da_method
+@da_method()
 class OptInterp:
   """Optimal Interpolation -- a baseline/reference method.
 
@@ -70,7 +70,7 @@ class OptInterp:
       stats.assess(k,kObs,mu=mu,Cov=2*PC*SM(k))
 
 
-@da_method
+@da_method()
 class Var3D:
   """
   3D-Var -- a baseline/reference method.
@@ -149,7 +149,7 @@ def fit_sigmoid(Sb,L,kb):
   return S
 
 
-@da_method
+@da_method()
 class EnCheat:
   """A baseline/reference method.
 
