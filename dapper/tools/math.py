@@ -238,8 +238,9 @@ def round2(num,prec=1.0):
   """
   return np.multiply(prec,np.rint(np.divide(num,prec)))
 
-# TODO: replace with builtin round (with decimals kwarg)
 def round2sigfig(x,nfig=1):
+  """Round to ``nfig`` number of *significant* figures
+  (i.e. not the same as builtin round)."""
   if np.all(array(x) == 0):
     return x
   signs = np.sign(x)

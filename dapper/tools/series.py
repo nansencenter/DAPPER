@@ -65,17 +65,28 @@ class val_with_conf():
   def __init__(self,val,conf):
     self.val  = val
     self.conf = conf
-  def _str(self):
-    with np.errstate(all='ignore'):
-      conf = round2sigfig(self.conf)
-      nsig = max(-10,floor(log10(conf)))
-      return str(round2(self.val,10**(nsig))), str(conf)
+  def round(self,mult=1.0):
+      """Round intelligently:
+
+      - conf to 1 sigfig.
+      - val:
+          - to precision: mult*conf.
+          - fallback: rc['sigfig']
+      """
+      with np.errstate(all='ignore'):
+        conf = round2sigfig(self.conf,1) 
+        val  = self.val
+        if not np.isnan(conf) and conf>0:
+            val = round2(val, mult*conf)
+        else:
+            val = round2sigfig(val,rc['sigfig'])
+        return val, conf
   def __str__(self):
-    val,conf = self._str()
-    return val+' ±'+conf
+    val,conf = self.round()
+    return str(val)+' ±'+str(conf)
   def __repr__(self):
-    val,conf = self._str()
-    return type(self).__name__ + "(val="+val+", conf="+conf+")"
+    val,conf = self.round()
+    return type(self).__name__ + "(val="+str(val)+", conf="+str(conf)+")"
 
 def series_mean_with_conf(xx):
   """
@@ -83,27 +94,29 @@ def series_mean_with_conf(xx):
   Also provide confidence of mean,
   as estimated from its correlation-corrected variance.
   """
-  mu    = mean(xx)
-  N     = len(xx)
-  if np.allclose(xx,mu):            return val_with_conf(mu, 0)
-  if (not np.isfinite(mu)) or N<=5: return val_with_conf(mu, np.nan)
-  acovf = auto_cov(xx,5)
-  v     = acovf[0]
-  v    /= N
-  # Estimate (fit) ACF
-  a = fit_acf_by_AR1(acovf)
-  # If xx[k] where independent of xx[k-1],
-  # then std_of_mu is the end of the story.
-  # The following corrects for the correlation in the time series.
-  #
-  # See stats.stackexchange.com/q/90062
-  # c = sum([(N-k)*a**k for k in range(1,N)])
-  # But this series is analytically tractable:
-  c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
-  confidence_correction = 1 + 2/N * c
-  v*= confidence_correction
-  #sig_fig_std = float('%.1g' % sqrt(decorr_var_of_mu))
-  vc = val_with_conf(mu, round2sigfig(sqrt(v)))
+  mu = mean(xx)
+  N  = len(xx)
+  if (not np.isfinite(mu)) or N<=5:
+      vc = val_with_conf(mu, np.nan)
+  elif np.allclose(xx,mu):
+      vc = val_with_conf(mu, 0)
+  else:
+      acovf = auto_cov(xx,5)
+      var   = acovf[0]
+      var  /= N
+      # Estimate (fit) ACF
+      a = fit_acf_by_AR1(acovf)
+      # If xx[k] where independent of xx[k-1],
+      # then std_of_mu is the end of the story.
+      # The following corrects for the correlation in the time series.
+      #
+      # See stats.stackexchange.com/q/90062
+      # c = sum([(N-k)*a**k for k in range(1,N)])
+      # But this series is analytically tractable:
+      c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
+      confidence_correction = 1 + 2/N * c
+      var *= confidence_correction
+      vc = val_with_conf(mu, round2sigfig(sqrt(var)))
   return vc
 
 
