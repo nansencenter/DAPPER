@@ -147,16 +147,16 @@ plt.style.use(rc['plot']['styles'].split(","))
 ##################################
 from .tools.colors import *
 from .tools.utils import *
-from .tools.multiprocessing import *
 from .tools.math import *
-from .tools.chronos import *
 from .tools.stoch import *
-from .tools.series import *
 from .tools.matrices import *
 from .tools.randvars import *
+from .tools.chronos import *
+from .tools.series import *
 from .tools.viz import *
 from .tools.liveplotting import *
 from .tools.localization import *
+from .tools.multiprocessing import *
 from .tools.data_management import *
 from .stats import *
 from .admin import *

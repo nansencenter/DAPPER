@@ -1,8 +1,6 @@
 Todo
 ================================================
 
-* Sort out import order
-
 * Rm HMM from Stats
 * Make average_stats (and average_in_time) accept indices (or conditions)
     that define regions (for example, "ocean", and "BurnIn")
