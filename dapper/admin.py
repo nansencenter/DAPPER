@@ -159,7 +159,8 @@ def da_method(*default_dcs):
 
         # Add default_dcs fields AFTER cls's. NB: do not implement support
         # for non-default args (e.g. by placing them first) -- to messy!
-        ensure_attr(cls,'__annotations__',{})
+        if not hasattr(cls,'__annotations__'):
+            cls.__annotations__ = {}
         for defaults in default_dcs + (_da_defaults,):
             for f in dc.fields(defaults):
                 if f.name not in cls.__annotations__:    # Don't overwrite

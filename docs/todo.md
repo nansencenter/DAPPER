@@ -1,8 +1,7 @@
 Todo
 ================================================
 
-* abbreviations (aliases) ? Could use __post_init__().
-* Relocate ensure_attr, find_1st, simulate, de_abbreviate, tabulate_orig
+* Relocate simulate,  tabulate_orig
 * Sort out import order
 
 * Rm HMM from Stats

@@ -41,6 +41,7 @@ def fit_acf_by_AR1(acf_empir,L=None):
   # Negative correlation => Truncate ACF
   neg_ind   = find_1st_ind(array(acf_empir)<=0)
   acf_empir = acf_empir[:neg_ind]
+
   if   len(acf_empir) == 0: return 0
   elif len(acf_empir) == 1: return 0.01
   else:                     return mean_ratio(acf_empir)

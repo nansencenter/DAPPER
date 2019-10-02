@@ -2,10 +2,6 @@
 
 from dapper import *
 
-def ensure_attr(obj,attr,default):
-    if not hasattr(obj,attr):
-        setattr(obj,attr,default)
-
 
 #########################################
 # Progressbar
@@ -166,7 +162,7 @@ def get_call():
     """Get calling statement (even if it is multi-lined).
 
     NB: returns full lines (may include junk before/after calls)
-        coz real parsing (brackets, commas, \, etc) is complicated.
+        coz real parsing (brackets, commas, backslash, etc) is complicated.
 
     Also return caller namespace.
     """
@@ -521,11 +517,8 @@ class Timer():
           print('[%s]' % self.name, end='')
       print('Elapsed: %s' % (time.time() - self.tstart))
 
-def find_1st(xx):
-  try:                  return next(x for x in xx if x)
-  except StopIteration: return None
 def find_1st_ind(xx):
-  try:                  return next(k for k in range(len(xx)) if xx[k])
+  try:                  return next(k for k,x in enumerate(xx) if x)
   except StopIteration: return None
 
 # stackoverflow.com/a/2669120
