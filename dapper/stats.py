@@ -31,22 +31,24 @@ class Stats(NestedPrint):
     self.xx     = xx
     self.yy     = yy
 
-    # Validations
-    Nx   = HMM.Nx      ; assert Nx   ==xx.shape[1]
-    Ny   = HMM.Ny      ; assert Ny   ==yy.shape[1]
-    K    = HMM.t.K     ; assert K    ==xx.shape[0]-1
-    KObs = HMM.t.KObs  ; assert KObs ==yy.shape[0]-1
-
+    # Shapes
+    K    = xx.shape[0]-1
+    Nx   = xx.shape[1]
+    KObs = yy.shape[0]-1
+    Ny   = yy.shape[1]
+    self.K   , self.Nx = K   , Nx
+    self.KObs, self.Ny = KObs, Ny
 
     ######################################
     # Declare time series of various stats
     ######################################
-    new_series = self.new_FAU_series
+    def new_series(M,**kwargs):
+        return FAU_series(K,KObs,M,self.config.store_u, **kwargs)
 
     self.mu     = new_series(Nx) # Mean
     self.var    = new_series(Nx) # Variances
     self.mad    = new_series(Nx) # Mean abs deviations
-    self.err    = new_series(Nx) # Error (mu-truth)
+    self.err    = new_series(Nx) # Error (mu - truth)
     self.logp_m = new_series(1)  # Marginal, Gaussian Log score
     self.skew   = new_series(1)  # Skewness
     self.kurt   = new_series(1)  # Kurtosis
@@ -299,93 +301,59 @@ class Stats(NestedPrint):
     self.logp_m[k] = logp_m/Nx
 
 
-  def average_in_time(self):
-    """
-    Avarage all univariate (scalar) time series.
-    """
-    avrg = AlignedDict()
-    for key,series in vars(self).items():
-      if key.startswith('_'):
-        continue
-      try:
-        # FAU_series
-        if isinstance(series,FAU_series):
-          # Compute
-          f_a_u = series.average()
-          # Add the sub-fields as sub-scripted fields
-          for sub in f_a_u: avrg[key+'_'+sub] = f_a_u[sub]
-        # Array
-        elif isinstance(series,np.ndarray):
-          if series.ndim > 1:
-            raise NotImplementedError
-          t = self.HMM.t
-          if len(series) == len(t.kkObs):
-            inds = t.maskObs_BI
-          elif len(series) == len(t.kk):
-            inds = t.kk_BI
-          else:
-            raise ValueError
-          # Compute
-          avrg[key] = series_mean_with_conf(series[inds])
-        # Scalars
-        elif np.isscalar(series):
-          avrg[key] = series
-        else:
-          raise NotImplementedError
-      except NotImplementedError:
-        pass
+  def average_in_time(self,kk=None,kkObs=None):
+      """Avarage all univariate (scalar) time series.
 
-    # used as class id by save_data
-    avrg._isavrg = True 
+      - ``kk``    time inds for averaging
+      - ``kkObs`` time inds for averaging obs
+      """
+      avrg = AlignedDict()
 
-    return avrg
+      chrono = self.HMM.t
+      if kk    is None: kk     = chrono.mask_BI
+      if kkObs is None: kkObs  = chrono.maskObs_BI
 
+      def average_multivariate():
+        """Plain averages of nd-series are rarely interesting.
+        => Leave for manual computations."""
+        raise NotImplementedError
 
-  def average_subset(self,ii):
-    """
-    Produce time-averages from subsets (ii) of the state indices.
-    Then average in time.
-    This is a mediocre solution, and should be systematized somehow.
-    """ 
-    avrg = AlignedDict()
-    # Compute univariate time series from subset of state variables
-    for fa in 'fa':
-      avrg['rmse_'+fa] = sqrt(mean(getattr(self.err,fa)[:,ii]**2,1))
-      avrg['rmv_' +fa] = sqrt(mean(getattr(self.var,fa)[:,ii]   ,1))
-    # Average in time:
-    for key,series in avrg.items():
-      avrg[key] = series_mean_with_conf(series[self.HMM.t.maskObs_BI])
-    return avrg
+      for key,series in vars(self).items():
+          try:
+              if key.startswith('_'):
+                  # Don't include
+                  continue
 
+              if isinstance(series,FAU_series):
+                  # Average series for each subscript
+                  for sub in 'afsu':
+                      if series.M > 1:
+                          avrg[key] = average_multivariate()
+                      elif hasattr(series,sub):
+                          subseries = getattr(series,sub)[kk if sub=='u' else kkObs]
+                          avrg[key+'_'+sub] = series_mean_with_conf(subseries)
 
+              elif isinstance(series,np.ndarray):
+                  # Average the array
+                  if series.ndim > 1:
+                      avrg[key] = average_multivariate()
+                  elif len(series) == self.KObs+1:
+                      avrg[key] = series_mean_with_conf(series[kkObs])
+                  elif len(series) == self.K+1:
+                      avrg[key] = series_mean_with_conf(series[kk])
+                  else:
+                      raise ValueError
+              
+              elif np.isscalar(series):
+                  # Just write the number
+                  avrg[key] = series
 
-  def new_FAU_series(self,M,**kwargs):
-    "Convenience FAU_series constructor."
-    store_u = self.config.store_u
-    return FAU_series(self.HMM.t, M, store_u=store_u, **kwargs)
+              else:
+                  raise NotImplementedError
 
+          except NotImplementedError:
+            pass
 
-
-def average_each_field(table,axis=1):
-  "Average each field in a 2D table of dicts along a given axis."
-  if isinstance(table,list):
-    table = array(table)
-  if axis == 0:
-    table = np.transpose(table)
-  assert table.ndim == 2
-
-  M,N = table.shape
-  avrg = np.empty(M,dict)
-
-  for i,row in enumerate(table):
-    avrg[i] = dict()
-    for key in table[i][0].keys():
-      avrg[i][key] = val_with_conf(
-          val  = mean([s_ij[key].val  for s_ij in row]),
-          conf = mean([s_ij[key].conf for s_ij in row])/sqrt(N))
-      # NB: This is a rudimentary averaging of confidence intervals
-      # Should be checked against variance of avrg[i][key].val
-  return avrg
-
+      return avrg
 
 

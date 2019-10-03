@@ -152,17 +152,15 @@ class FAU_series(NestedPrint):
       'u':'All      (.u)'}
   aliases  = {**NestedPrint.aliases, **aliases}
 
-  def __init__(self,chrono,M,store_u=True,**kwargs):
+  def __init__(self,K,KObs,M,store_u,**kwargs):
     """
     Constructor.
-     - chrono  : a Chronology object.
      - M       : len (or shape) of items in series. 
      - store_u : if False: only the current value is stored.
      - kwargs  : passed on to ndarrays.
     """
 
     self.store_u = store_u
-    self.chrono  = chrono
 
     # Convert int-len to shape-tuple
     self.M = M # store first
@@ -170,11 +168,11 @@ class FAU_series(NestedPrint):
       if M==1: M = ()
       else:    M = (M,)
 
-    self.a   = np.full((chrono.KObs+1,)+M, nan, **kwargs)
-    self.f   = np.full((chrono.KObs+1,)+M, nan, **kwargs)
-    self.s   = np.full((chrono.KObs+1,)+M, nan, **kwargs)
+    self.a   = np.full((KObs+1,)+M, nan, **kwargs)
+    self.f   = np.full((KObs+1,)+M, nan, **kwargs)
+    self.s   = np.full((KObs+1,)+M, nan, **kwargs)
     if self.store_u:
-      self.u = np.full((chrono.K   +1,)+M, nan, **kwargs)
+      self.u = np.full((K   +1,)+M, nan, **kwargs)
     else:
       self.tmp   = np.full(M, nan, **kwargs)
       self.k_tmp = None
@@ -193,7 +191,7 @@ class FAU_series(NestedPrint):
             raise KeyError("Accessing ."+ltr+" series, but kObs is None.")
       # NB: The following check has been disabled, because
       # it is actually very time consuming when kkObs is long (e.g. 10**4):
-      # elif k != self.chrono.kkObs[kObs]: raise KeyError("kObs indicated, but k!=kkObs[kObs]")
+      # elif k != kkObs[kObs]: raise KeyError("kObs indicated, but k!=kkObs[kObs]")
     except ValueError:
       # Assume key = k
       assert not hasattr(key, '__getitem__'), "Key must be 1-dimensional."
@@ -262,25 +260,6 @@ class FAU_series(NestedPrint):
           "or to use analysis (.a), forecast (.f), or smoothed (.s) arrays instead."
           raise KeyError(msg)
         return self.tmp[k1]
-
-  def average(self):
-    """
-    Avarage series,
-    but only if it's univariate (scalar).
-    """
-    if self.M > 1:
-      raise NotImplementedError
-    avrg = {}
-    t = self.chrono
-    for sub in 'afsu':
-      if sub=='u':
-        inds = t.kk[t.mask_BI]
-      else:
-        inds = t.maskObs_BI
-      if hasattr(self,sub):
-        series = getattr(self,sub)[inds]
-        avrg[sub] = series_mean_with_conf(series)
-    return avrg
 
   def __repr__(self):
     if self.store_u:

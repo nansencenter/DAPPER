@@ -1,9 +1,10 @@
 Todo
 ================================================
 
-* Rm HMM from Stats
-* Make average_stats (and average_in_time) accept indices (or conditions)
-    that define regions (for example, "ocean", and "BurnIn")
+* Make stats.FAU = array
+* Make stats.region.FAU = array
+* Change KObs to KObs-1
+* Indentation
 
 * Improve docs
 * Make superclasses for the filter, smoother, and iterative smoother.
