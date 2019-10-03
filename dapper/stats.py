@@ -57,7 +57,6 @@ class Stats(NestedPrint):
 
     if hasattr(config,'N'):
       # Ensemble-only init
-      self._had_0v = False
       self._is_ens = True
       N            = config.N
       minN         = min(Nx,N)
@@ -169,25 +168,17 @@ class Stats(NestedPrint):
           except AttributeError:
             pass # LP_instance not yet created
 
-        # Call assessment
-        stats_now = Bunch()
-        with np.errstate(divide='ignore',invalid='ignore'):
-          _assess(stats_now,self.xx[k],**_prms)
+        # Avoid repetitive warnings caused by zero variance
+        with np.errstate(divide='call',invalid='call'):
+            np.seterrcall(warn_zero_variance)
+
+            # Call assessment
+            stats_now = Bunch()
+            _assess(stats_now,self.xx[k],**_prms)
 
         # Write instance stats to series
         for stat,val in stats_now.items():
             getattr(self,stat)[(k,kObs,sub)] = val
-
-        # In case of degeneracy, variance might be 0,
-        # causing warnings in computing skew/kurt/MGLS
-        # (which all normalize by variance).
-        # This should and will yield nan's, but we don't want
-        # the diagnostics computations to cause too many warnings,
-        # so we turned them off above. But we'll manually warn ONCE here.
-        if not getattr(self,'_had_0v',False) \
-            and np.allclose(sqrt(stats_now.var),0):
-          self._had_0v = True
-          warnings.warn("Sample variance was 0 at (k,kObs,faus) = " + (k,kObs,sub))
 
         # LivePlot -- Both initiation and update must come after the assessment.
         if rc['liveplotting_enabled']:
@@ -344,10 +335,23 @@ class Stats(NestedPrint):
 
       return avrg
 
+@do_once
+def warn_zero_variance(err,flag):
+    """In case of degeneracy, variance might be 0,
+    causing warnings in computing skew/kurt/MGLS
+    (which all normalize by variance).
+    This should and will yield nan's, but we don't want
+    mere diagnostics computations to cause repetitive warnings,
+    so we only warn once."""
+    msg = "Numerical error in stat comps.\n"+\
+            "Probably caused by a sample variance of 0."
+    warnings.warn(msg)
+
 
 # TODO: do something about key
 def raise_AFE(msg,key=None):
   if key is not None:
     msg += "\n(k,kObs,fau) = " + str(key) + ". "
   raise AssimFailedError(msg)
+
 

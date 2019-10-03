@@ -590,6 +590,17 @@ class lazy_property(object):
       return value
 
 
+def do_once(fun):
+    def new(*args,**kwargs):
+        if new.already_done:
+            return None # do nothing
+        else:
+            new.already_done = True
+            return fun(*args,**kwargs)
+    new.already_done = False
+    return new
+
+
 def vectorize0(f):
   """Vectorize f for its 1st (index 0) argument, and do so recursively.
 
