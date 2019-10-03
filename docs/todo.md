@@ -1,7 +1,7 @@
 Todo
 ================================================
 
-* Make stats.FAU = array
+* Review _had_0v
 * Make stats.region.FAU = array
 * Change KObs to KObs-1
 * Indentation

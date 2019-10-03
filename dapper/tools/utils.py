@@ -374,6 +374,8 @@ class NestedPrint:
         else:
           if self.ordr_by_linenum:
             key = self.ordr_by_linenum*txts[x].count('\n')
+            if key<=1:
+                key = self.ordr_by_linenum*len(txts[x])
           else:
             key = x.lower()
             # Convert str to int (assuming ASCII) for comparison with above cases
@@ -586,16 +588,6 @@ class lazy_property(object):
       value = self.fget(obj)
       setattr(obj,self.func_name,value)
       return value
-
-
-
-class AssimFailedError(RuntimeError):
-    pass
-
-def raise_AFE(msg,time_index=None):
-  if time_index is not None:
-    msg += "\n(k,kObs,fau) = " + str(time_index) + ". "
-  raise AssimFailedError(msg)
 
 
 def vectorize0(f):

@@ -90,8 +90,8 @@ class val_with_conf():
     return type(self).__name__ + "(val="+str(val)+", conf="+str(conf)+")"
 
 def series_mean_with_conf(xx):
-  """
-  Compute series mean.
+  """Compute the mean of a 1d iterable ``xx``.
+
   Also provide confidence of mean,
   as estimated from its correlation-corrected variance.
   """
@@ -121,152 +121,67 @@ def series_mean_with_conf(xx):
   return vc
 
 
-class FAU_series(NestedPrint):
+class FAUSt(NestedPrint):
   """Container for time series of a statistic from filtering.
 
-  Data is indexed with key (k,kObs,f_a_u) or simply k.
-  The accessing then categorizes the result as
+  Four attributes, each of which is an ndarray:
 
-   - forecast   (.f, len: KObs+1)
-   - analysis   (.a, len: KObs+1)
-   - smoothed   (.s, len: KObs+1)
+   - .f for forecast      , (KObs+1,)+item.shape
+   - .a for analysis      , (KObs+1,)+item.shape
+   - .s for smoothed      , (KObs+1,)+item.shape
+   - .u for universial/all, (K   +1,)+item.shape
 
-   - universial (.u, len: K+1)
+  Series can also be accessed
+  >>> self[kObs,'a']
+  >>> self[whatever,kObs,'a']
+  >>> # ... and likewise for 'f' and 's'. For 'u', can use:
+  >>> self[k,'u']
+  >>> self[k,whatever,'u']
 
-     - also contains time instances where there are no obs.
-       These intermediates are nice for plotting.
-     - may also be hijacked to store "smoothed" values.
-
-  Data may also be accessed through raw attributes [.a, .f, .s, .u].
-
-  .. note:: if time series is only from analysis instances (len KObs+1),
-            then you should use a simple np.array instead.
+  .. note:: If a data series only pertains to the analysis,
+            then you should use a plain np.array instead.
   """
 
-  # Printing options (cf. NestedPrint)
-  included = NestedPrint.included + ['f','a','s','store_u']
+  # Printing options (see NestedPrint)
   aliases  = {
       'f':'Forecast (.f)',
       'a':'Analysis (.a)',
       's':'Smoothed (.s)',
-      'u':'All      (.u)'}
-  aliases  = {**NestedPrint.aliases, **aliases}
+      'u':'Universl (.u)'}
 
-  def __init__(self,K,KObs,M,store_u,**kwargs):
-    """
-    Constructor.
-     - M       : len (or shape) of items in series. 
+  def __init__(self,K,KObs,shape,store_u,**kwargs):
+    """Constructor.
+
+     - shape   : shape of an item in the series. 
      - store_u : if False: only the current value is stored.
      - kwargs  : passed on to ndarrays.
     """
 
+    # Convert length (an int) to shape
+    if not hasattr(shape, '__len__'):
+      if shape==1: shape = ()
+      else:        shape = (shape,)
+
+    self.f   = np.full((KObs+1,)+shape, nan, **kwargs)
+    self.a   = np.full((KObs+1,)+shape, nan, **kwargs)
+    self.s   = np.full((KObs+1,)+shape, nan, **kwargs)
+    if store_u:
+      self.u = np.full((K   +1,)+shape, nan, **kwargs)
+    else:
+      self.u = np.full((     1,)+shape, nan, **kwargs)
+
     self.store_u = store_u
-
-    # Convert int-len to shape-tuple
-    self.M = M # store first
-    if is_int(M):
-      if M==1: M = ()
-      else:    M = (M,)
-
-    self.a   = np.full((KObs+1,)+M, nan, **kwargs)
-    self.f   = np.full((KObs+1,)+M, nan, **kwargs)
-    self.s   = np.full((KObs+1,)+M, nan, **kwargs)
-    if self.store_u:
-      self.u = np.full((K   +1,)+M, nan, **kwargs)
-    else:
-      self.tmp   = np.full(M, nan, **kwargs)
-      self.k_tmp = None
+    self.shape   = shape
   
-  def validate_key(self,key):
-    try:
-      # Assume key = (k,kObs,fau)
-      if not isinstance(key,tuple):                     raise ValueError
-      k,kObs,fau = key                       #Will also raise ValueError
-      if not isinstance(fau,str):                       raise ValueError
-      if not all([letter in 'fasu' for letter in fau]): raise ValueError
-      #
-      if kObs is None:
-        for ltr in 'afs':
-          if ltr in fau:
-            raise KeyError("Accessing ."+ltr+" series, but kObs is None.")
-      # NB: The following check has been disabled, because
-      # it is actually very time consuming when kkObs is long (e.g. 10**4):
-      # elif k != kkObs[kObs]: raise KeyError("kObs indicated, but k!=kkObs[kObs]")
-    except ValueError:
-      # Assume key = k
-      assert not hasattr(key, '__getitem__'), "Key must be 1-dimensional."
-      key = (key,None,'u')
-    return key
-
-  def split_dims(self,k):
-    "Split (k,kObs,fau) into k, (kObs,fau)"
-    if isinstance(k,tuple):
-      k1 = k[1:]
-      k0 = k[0]
-    elif is_int(k):
-      k1 = ...
-      k0 = k
-    else:
-      raise KeyError
-    return k0, k1
+  def _ind(self,key):
+    if key[-1]=='u': return key[0] if self.store_u else 0
+    else           : return key[-2]
 
   def __setitem__(self,key,item):
-    k,kObs,fau = self.validate_key(key)
-    if 'f' in fau:
-      self.f[kObs]   = item
-    if 'a' in fau:
-      self.a[kObs]   = item
-    if 's' in fau:
-      self.s[kObs]   = item
-    if 'u' in fau:
-      if self.store_u:
-        self.u[k]    = item
-      else:
-        k0, k1       = self.split_dims(k)
-        self.k_tmp   = k0
-        self.tmp[k1] = item
+    getattr(self,key[-1])[self._ind(key)] = item
 
   def __getitem__(self,key):
-    k,kObs,fau = self.validate_key(key)
-
-    if len(fau)>1:
-      # Check consistency. NB: Somewhat time-consuming.
-      for sub in fau[1:]:
-        i1 = self[k,kObs,sub]
-        i2 = self[k,kObs,fau[0]]
-        if np.any(i1!=i2):
-          if not (np.all(np.isnan(i1)) and np.all(np.isnan(i2))):
-            raise RuntimeError(
-              "Requested item corresponding to multiple arrays ('%s'), "%fau +\
-              "But the items are not equal.")
-
-    if 'f' in fau:
-      return self.f[kObs]
-    elif 'a' in fau:
-      return self.a[kObs]
-    elif 's' in fau:
-      return self.s[kObs]
-    else:
-      if self.store_u:
-        return self.u[k]
-      else:
-        k0, k1 = self.split_dims(k)
-        if self.k_tmp != k0:
-          msg = "Only item [" + str(self.k_tmp) + "] is available from "+\
-          "the universal (.u) series. One possible source of error "+\
-          "is that the data has not been computed for entry k="+str(k0)+". "+\
-          "Another possibility is that it has been cleared; "+\
-          "if so, a fix might be to set store_u=True, "+\
-          "or to use analysis (.a), forecast (.f), or smoothed (.s) arrays instead."
-          raise KeyError(msg)
-        return self.tmp[k1]
-
-  def __repr__(self):
-    if self.store_u:
-      # Create instance version of 'included'
-      self.included = self.included + ['u']
-    return super().__repr__()
-
+    return getattr(self,key[-1])[self._ind(key)]
 
 
 class RollingArray:

@@ -9,7 +9,7 @@ class LivePlot:
    - Which liveploters to call.
    - plot_u
    - Figure window (title and number)."""
-  def __init__(self,stats,liveplots,key0=(0,None,'u'),E=None,P=None,speed=1.0,**kwargs):
+  def __init__(self,stats,liveplots,key0=(0,None,'u'),E=None,P=None,speed=1.0,replay=False,**kwargs):
     """
     Initialize plots.
     - figlist: figures to plot; alternatives:
@@ -55,6 +55,9 @@ class LivePlot:
     # if they've been closed. For some reason, this fixes it:
     plt.ion()
 
+    # Determine whether all/universal/intermediate stats
+    self.plot_u = stats.mu.store_u or not replay
+
     # Loop over requeted figures
     self.any_figs = False
     self.figures = OrderedDict()
@@ -71,7 +74,6 @@ class LivePlot:
           self.any_figs = True
 
         # Init figure
-        self.plot_u = plot_u(stats.mu,key0)
         post_title = "" if self.plot_u else "\n(obs times only)"
         updater = init(num,stats,key0,self.plot_u,E,P,**kwargs)
         if plt.fignum_exists(num) and getattr(updater,'is_active',1):
@@ -128,13 +130,13 @@ class LivePlot:
         
     if not self.skipping:
       # Update figures
-      f_a_u = key[2]
-      if f_a_u is not 'u' or self.plot_u:
+      faus = key[-1]
+      if faus is not 'u' or self.plot_u:
         for name, (num, updater) in self.figures.items():
           if plt.fignum_exists(num) and getattr(updater,'is_active',1):
             fig = plt.figure(num)
             updater(key,E,P)
-            plot_pause(self.params['pause_'+f_a_u])
+            plot_pause(self.params['pause_'+faus])
 
 def parse_figlist(figlist):
   "Figures requested for this config. Convert to list."
@@ -181,7 +183,7 @@ def replay(config, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   if figlist is None: figlist = config.liveplots
   figlist = parse_figlist(figlist)
 
-  LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, **kwargs)
+  LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, replay=True, **kwargs)
 
   # Remember: must use progbar to unblock read1.
   # Let's also make a proper description.
@@ -202,7 +204,7 @@ def replay(config, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
 star = "${}^*$"
 class sliding_diagnostics:
 
-  def __init__(self,fignum,stats,key0,_,E,P,Tplot=None,**kwargs):
+  def __init__(self,fignum,stats,key0,plot_u,E,P,Tplot=None,**kwargs):
       GS = {'left':0.125,'right':0.76}
       fig, (ax1, ax2) = freshfig(fignum, (5,3.5), loc='2311', nrows=2, sharex=True, gridspec_kw=GS)
 
@@ -234,8 +236,8 @@ class sliding_diagnostics:
             ln['plt']    = style_table[name][2]
 
             # Create series
-            if isinstance(stat,FAU_series):
-              ln['plot_u'] = plot_u(stat,key0)
+            if isinstance(stat,FAUSt):
+              ln['plot_u'] = plot_u
               K_plot       = comp_K_plot(K_lag,a_lag,ln['plot_u'])
             else:
               ln['plot_u'] = False
@@ -268,7 +270,7 @@ class sliding_diagnostics:
 
   # Update plot
   def __call__(self,key,E,P):
-      k, kObs, f_a_u = key
+      k, kObs, faus = key
 
       stats  = self.stats
       chrono = stats.HMM.t
@@ -279,23 +281,23 @@ class sliding_diagnostics:
         for name, ln in plotted_lines.items():
           stat = getattr(stats,name)
           t    = chrono.tt[k] # == chrono.ttObs[kObs]
-          if isinstance(stat,FAU_series):
+          if isinstance(stat,FAUSt):
             # ln['data'] will contain duplicates for f/a times.
             if ln['plot_u']:
               val = stat[key]
               ln['tt']  .insert(k   , t)
               ln['data'].insert(k   , ln['transf'](val))
-            elif 'u' not in f_a_u:
+            elif 'u' not in faus:
               val = stat[key]
               ln['tt']  .insert(kObs, t)
               ln['data'].insert(kObs, ln['transf'](val))
           else:
             # ln['data'] will not contain duplicates, coz only 'a' is input.
-            if 'a' in f_a_u: 
+            if 'a' in faus: 
               val = stat[kObs]
               ln['tt']  .insert(kObs, t)
               ln['data'].insert(kObs, ln['transf'](val))
-            elif 'f' in f_a_u:
+            elif 'f' in faus:
               pass
 
       def update_plot_data(ax,plotted_lines):
@@ -357,7 +359,7 @@ class sliding_diagnostics:
       ax2.set_ylim(  *d_ylim(data2, ax2, Max=4, Min=-4, cC=0.3,cE=0.9))
 
       # Init legend. Rm nan lines.
-      if self.init_incomplete and 'a'==f_a_u:
+      if self.init_incomplete and 'a'==faus:
          self.init_incomplete = False
          finalize_init(ax1, self.d1, False)
          finalize_init(ax2, self.d2, True)
@@ -398,8 +400,8 @@ class weight_histogram:
     self.init_incomplete = True
 
   def __call__(self,key,E,P):
-    k,kObs,f_a_u = key
-    if 'a'==f_a_u:
+    k,kObs,faus = key
+    if 'a'==faus:
       w  = self.stats.w[key]
       N  = len(w)
       ax = self.ax
@@ -441,10 +443,10 @@ class spectral_errors:
 
   # Update plot
   def __call__(self,key,E,P):
-    k,kObs,f_a_u = key
+    k,kObs,faus = key
     ax = self.ax
     if self.init_incomplete:
-      if self.plot_u or 'f'==f_a_u:
+      if self.plot_u or 'f'==faus:
         self.init_incomplete = False
         msft = abs(self.msft[key])
         sprd =     self.sprd[key]
@@ -631,7 +633,7 @@ def sliding_marginals(
 
 
     def update(key,E,P):
-      k,kObs,f_a_u = key
+      k,kObs,faus = key
 
       EE = duplicate_with_blanks_for_resampled(E, DimsX, key, has_w)
 
@@ -726,7 +728,7 @@ def phase3d(
 
 
     def update(key,E,P):
-      k,kObs,f_a_u = key
+      k,kObs,faus = key
       show_y = 'y' in d and kObs is not None
 
       def update_tail(handle,newdata):
@@ -789,41 +791,19 @@ def validate_lag(Tplot, chrono):
   return T_lag, K_lag, a_lag
 
 
-def plot_u(ref_stat,key0):
-  """Determine whether to intermediate (between obs times) statistics are plotted.
-  This is determine this by inspecting the reference statistic passed in.
-  True if available (i.e. store_u) or if live.
-  """
-  return ref_stat.store_u or ref_stat.k_tmp==key0[0]
-
 def comp_K_plot(K_lag,a_lag,plot_u):
   K_plot = 2*a_lag  # Sum of lags of {f,a} series.
   if plot_u:
     K_plot += K_lag # Add lag of u series.
   return K_plot
 
-def determine_K_plot(stat,key0,K_lag,a_lag):
-  """Determine K_plot: the time (in inds) window of plotting,
-  i.e. the length of the RollingArray to be used."""
-
-  if isinstance(stat,FAU_series):
-    plot_u  = stat.store_u or stat.k_tmp==key0[0]
-    K_plot  = 2*a_lag          # f+a series
-    if plot_u: K_plot += K_lag # u series.
-
-  else:
-    plot_u = False
-    K_plot = a_lag
-
-  return K_plot, plot_u
-
 
 def update_alpha(key, stats, lines, scatters=None):
   "Adjust color alpha (for particle filters)"
 
-  k,kObs,f_a_u = key
+  k,kObs,faus = key
   if kObs is None: return
-  if f_a_u=='f': return
+  if faus=='f': return
   if not hasattr(stats,'w'): return
 
   # Compute alpha values
@@ -850,10 +830,10 @@ def duplicate_with_blanks_for_resampled(E,dims,key,has_w):
   EE = []
   E  = E[:,dims]
   if has_w:
-    k,kObs,f_a_u = key
-    if   f_a_u=='f': pass
-    elif f_a_u=='a': _Ea[0] = E[:,0] # Store (1st dim of) ens.
-    elif f_a_u=='u' and kObs is not None:
+    k,kObs,faus = key
+    if   faus=='f': pass
+    elif faus=='a': _Ea[0] = E[:,0] # Store (1st dim of) ens.
+    elif faus=='u' and kObs is not None:
       # Find resampled particles. Insert duplicate ensemble. Write nans (breaks).
       resampled = _Ea[0] != E[:,0]  # Mark as resampled if ens changed.
       EE.append( E.copy() )         # Insert current ensemble (copy to avoid overwriting).
@@ -1007,7 +987,7 @@ def spatial1d(
 
 
     def update(key,E,P):
-      k,kObs,f_a_u = key
+      k,kObs,faus = key
 
       if p.conf_mult:
         sigma = mu[key] + p.conf_mult * sqrt(stats.var[key]) * [[1],[-1]]
@@ -1028,13 +1008,13 @@ def spatial1d(
 
       text_t.set_text(format_time(k,kObs,stats.HMM.t.tt[k]))
 
-      if 'f' in f_a_u:
+      if 'f' in faus:
         if p.obs_inds is not None:
           line_y.set_ydata(yy[kObs])
           line_y.set_zorder(5)
           line_y.set_visible(True)
 
-      if 'u' in f_a_u:
+      if 'u' in faus:
         if p.obs_inds is not None:
           line_y.set_visible(False)
 
@@ -1125,7 +1105,7 @@ def spatial2d(
         transform=ax_12.transAxes,family='monospace',ha='left')
 
     def update(key,E,P):
-      k,kObs,f_a_u = key
+      k,kObs,faus = key
       t = tt[k]
 
       im_11.set_data(square( mu[key])        )

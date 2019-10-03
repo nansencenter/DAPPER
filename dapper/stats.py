@@ -42,8 +42,8 @@ class Stats(NestedPrint):
     ######################################
     # Declare time series of various stats
     ######################################
-    def new_series(M,**kwargs):
-        return FAU_series(K,KObs,M,self.config.store_u, **kwargs)
+    def new_series(shape,**kwargs):
+        return FAUSt(K,KObs,shape,self.config.store_u, **kwargs)
 
     self.mu     = new_series(Nx) # Mean
     self.var    = new_series(Nx) # Variances
@@ -76,7 +76,7 @@ class Stats(NestedPrint):
 
 
     ######################################
-    # Declare non-FAU (i.e. normal) series
+    # Declare non-FAUSt series
     ######################################
     self.trHK   = np.full (KObs+1, nan)
     self.infl   = np.full (KObs+1, nan)
@@ -120,23 +120,25 @@ class Stats(NestedPrint):
       ])
 
 
-  def assess(self,k,kObs=None,f_a_u=None,
+  def assess(self,k,kObs=None,faus=None,
       E=None,w=None,mu=None,Cov=None):
-    """
-    Common interface for both assess_ens and _ext.
+    """Common interface for both assess_ens and _ext.
 
-    f_a_u: One or more of ['f',' a', 'u'], indicating
-           that the result should be stored in (respectively)
-           the forecast/analysis/universal attribute.
-           Default: 'u' if kObs is None else 'au' ('a' and 'u').
+    The _ens assessment function gets called if E is not None,
+    and _ext if mu is not None.
+
+    faus: One or more of ['f',' a', 'u'], indicating
+          that the result should be stored in (respectively)
+          the forecast/analysis/universal attribute.
+          Default: 'u' if kObs is None else 'au' ('a' and 'u').
     """
 
     # Initial consistency checks.
     if k==0:
       if kObs is not None:
         raise KeyError("DAPPER convention: no obs at t=0. Helps avoid bugs.")
-      if f_a_u is None:
-        f_a_u = 'u'
+      if faus is None:
+        faus = 'u'
       if self._is_ens==True:
         def rze(a,b,c):
           raise TypeError("Expected "+a+" input, but "+b+" is "+c+" None")
@@ -147,158 +149,148 @@ class Stats(NestedPrint):
         if mu is None:     rze("mu/Cov","mu","")
 
     # Default. Don't add more defaults. It just gets confusing.
-    if f_a_u is None:
-      f_a_u = 'u' if kObs is None else 'au'
+    if faus is None:
+      faus = 'u' if kObs is None else 'au'
 
-    # Prepare assessment call and arguments
+    # Select assessment call and arguments
     if self._is_ens:
-      # Ensemble assessment
-      alias = self.assess_ens
-      state_prms = {'E':E,'w':w}
+      _assess = self.assess_ens
+      _prms   = {'E':E,'w':w}
     else:
-      # Moment assessment
-      alias = self.assess_ext
-      state_prms = {'mu':mu,'P':Cov}
+      _assess = self.assess_ext
+      _prms   = {'mu':mu,'P':Cov}
 
-    for fau in f_a_u:
-      # Assemble key
-      key = (k,kObs,fau)
+    for sub in faus:
+        # Skip assessment?
+        if kObs==None and not self.config.store_u:
+          try:
+            if (not rc['liveplotting_enabled']) or (not self.LP_instance.any_figs):
+              continue
+          except AttributeError:
+            pass # LP_instance not yet created
 
-      # Skip assessment?
-      if kObs==None and not self.config.store_u:
-        try:
-          if (not rc['liveplotting_enabled']) or (not self.LP_instance.any_figs):
-            continue
-        except AttributeError:
-          pass # LP_instance not yet created
+        # Call assessment
+        stats_now = Bunch()
+        with np.errstate(divide='ignore',invalid='ignore'):
+          _assess(stats_now,self.xx[k],**_prms)
 
-      # Call assessment
-      with np.errstate(divide='ignore',invalid='ignore'):
-        alias(key,**state_prms)
+        # Write instance stats to series
+        for stat,val in stats_now.items():
+            getattr(self,stat)[(k,kObs,sub)] = val
 
-      # In case of degeneracy, variance might be 0,
-      # causing warnings in computing skew/kurt/MGLS
-      # (which all normalize by variance).
-      # This should and will yield nan's, but we don't want
-      # the diagnostics computations to cause too many warnings,
-      # so we turned them off above. But we'll manually warn ONCE here.
-      if not getattr(self,'_had_0v',False) \
-          and np.allclose(sqrt(self.var[key]),0):
-        self._had_0v = True
-        warnings.warn("Sample variance was 0 at (k,kObs,fau) = " + str(key))
+        # In case of degeneracy, variance might be 0,
+        # causing warnings in computing skew/kurt/MGLS
+        # (which all normalize by variance).
+        # This should and will yield nan's, but we don't want
+        # the diagnostics computations to cause too many warnings,
+        # so we turned them off above. But we'll manually warn ONCE here.
+        if not getattr(self,'_had_0v',False) \
+            and np.allclose(sqrt(stats_now.var),0):
+          self._had_0v = True
+          warnings.warn("Sample variance was 0 at (k,kObs,faus) = " + (k,kObs,sub))
 
-      # LivePlot -- Both initiation and update must come after the assessment.
-      if rc['liveplotting_enabled']:
-        if not hasattr(self,'LP_instance'): # -- INIT --
-          self.LP_instance = LivePlot(self, self.config.liveplots, key,E,Cov)
-        else: # -- UPDATE --
-          self.LP_instance.update(key,E,Cov)
+        # LivePlot -- Both initiation and update must come after the assessment.
+        if rc['liveplotting_enabled']:
+          if not hasattr(self,'LP_instance'): # -- INIT --
+            self.LP_instance = LivePlot(self, self.config.liveplots, (k,kObs,sub), E, Cov)
+          else: # -- UPDATE --
+            self.LP_instance.update((k,kObs,sub),E,Cov)
 
 
-  def assess_ens(self,k,E,w=None):
+  def assess_ens(self,now,x,E,w):
     """Ensemble and Particle filter (weighted/importance) assessment."""
-    # Unpack
     N,Nx = E.shape
-    x = self.xx[k[0]]
 
-    # Validate weights
     if w is None: 
-      try:                    delattr(self,'w')
-      except AttributeError:  pass
-      finally:                w = 1/N
-    if np.isscalar(w):
-      assert w != 0
-      w = w*ones(N)
-    if hasattr(self,'w'):
-      self.w[k] = w
+      w = ones(N)/N # No weights. Also, rm attr from stats:
+      try: delattr(self,'w')
+      except AttributeError: pass
+    else:
+      now.w = w
+      if abs(w.sum()-1) > 1e-5:    raise_AFE("Weights did not sum to one.")
+    if not np.all(np.isfinite(E)): raise_AFE("Ensemble not finite.")
+    if not np.all(np.isreal(E)):   raise_AFE("Ensemble not Real.")
 
-    if abs(w.sum()-1) > 1e-5:      raise_AFE("Weights did not sum to one.",k)
-    if not np.all(np.isfinite(E)): raise_AFE("Ensemble not finite.",k)
-    if not np.all(np.isreal(E)):   raise_AFE("Ensemble not Real.",k)
-
-    self.mu[k]   = w @ E
-    A            = E - self.mu[k]
+    now.mu = w @ E
+    A = E - now.mu
 
     # While A**2 is approx as fast as A*A,
     # A**3 is 10x slower than A**2 (or A**2.0).
     # => Use A2 = A**2, A3 = A*A2, A4=A*A3.
     # But, to save memory, only use A_pow.
-    A_pow        = A**2
+    A_pow = A**2
 
-    self.var[k]  = w @ A_pow
-    self.mad[k]  = w @ abs(A)  # Mean abs deviations
+    now.var = w @ A_pow
+    now.mad = w @ abs(A) # Mean abs deviations
 
-    ub           = unbias_var(w,avoid_pathological=True)
-    self.var[k] *= ub
+    ub       = unbias_var(w,avoid_pathological=True)
+    now.var *= ub
     
-
     # For simplicity, use naive (biased) formulae, derived
     # from "empirical measure". See doc/unbiased_skew_kurt.jpg.
     # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
-    A_pow       *= A
-    self.skew[k] = np.nanmean( w @ A_pow / self.var[k]**(3/2) )
-    A_pow       *= A # idem.
-    self.kurt[k] = np.nanmean( w @ A_pow / self.var[k]**2 - 3 )
+    A_pow *= A
+    now.skew = np.nanmean( w @ A_pow / now.var**(3/2) )
+    A_pow *= A
+    now.kurt = np.nanmean( w @ A_pow / now.var**2 - 3 )
 
-    self.derivative_stats(k,x)
+    self.derivative_stats(now,x)
 
     if hasattr(self,'svals'):
       if N<=Nx:
-        _,s,UT         = svd( (sqrt(w)*A.T).T, full_matrices=False)
-        s             *= sqrt(ub) # Makes s^2 unbiased
-        self.svals[k]  = s
-        self.umisf[k]  = UT @ self.err[k]
+        _,s,UT    = svd( (sqrt(w)*A.T).T, full_matrices=False)
+        s        *= sqrt(ub) # Makes s^2 unbiased
+        now.svals = s
+        now.umisf = UT @ now.err
       else:
-        P              = (A.T * w) @ A
-        s2,U           = eigh(P)
-        s2            *= ub
-        self.svals[k]  = sqrt(s2.clip(0))[::-1]
-        self.umisf[k]  = U.T[::-1] @ self.err[k]
+        P         = (A.T * w) @ A
+        s2,U      = eigh(P)
+        s2       *= ub
+        now.svals = sqrt(s2.clip(0))[::-1]
+        now.umisf = U.T[::-1] @ now.err
 
       # For each state dim [i], compute rank of truth (x) among the ensemble (E)
-      Ex_sorted     = np.sort(np.vstack((E,x)),axis=0,kind='heapsort')
-      self.rh[k]    = [np.where(Ex_sorted[:,i] == x[i])[0][0] for i in range(Nx)]
+      Ex_sorted = np.sort(np.vstack((E,x)),axis=0,kind='heapsort')
+      now.rh    = [np.where(Ex_sorted[:,i] == x[i])[0][0] for i in range(Nx)]
 
 
-  def assess_ext(self,k,mu,P):
+  def assess_ext(self,now,x,mu,P):
     """Kalman filter (Gaussian) assessment."""
+    Nx = len(mu)
 
     isFinite = np.all(np.isfinite(mu)) # Do not check covariance
     isReal   = np.all(np.isreal(mu))   # (coz might not be explicitly availble)
-    if not isFinite: raise_AFE("Estimates not finite.",k)
-    if not isReal:   raise_AFE("Estimates not Real.",k)
+    if not isFinite: raise_AFE("Estimates not finite.")
+    if not isReal:   raise_AFE("Estimates not Real.")
 
-    Nx = len(mu)
-    x  = self.xx[k[0]]
-
-    self.mu[k]  = mu
-    self.var[k] = P.diag if isinstance(P,CovMat) else diag(P)
-    self.mad[k] = sqrt(self.var[k])*sqrt(2/pi)
+    now.mu  = mu
+    now.var = P.diag if isinstance(P,CovMat) else diag(P)
+    now.mad = sqrt(now.var)*sqrt(2/pi)
     # ... because sqrt(2/pi) = ratio MAD/STD for Gaussians
 
-    self.derivative_stats(k,x)
+    self.derivative_stats(now,x)
 
     if hasattr(self,'svals'):
-      P             = P.full if isinstance(P,CovMat) else P
-      s2,U          = nla.eigh(P)
-      self.svals[k] = sqrt(np.maximum(s2,0.0))[::-1]
-      self.umisf[k] = (U.T @ self.err[k])[::-1]
+      P         = P.full if isinstance(P,CovMat) else P
+      s2,U      = nla.eigh(P)
+      now.svals = sqrt(np.maximum(s2,0.0))[::-1]
+      now.umisf = (U.T @ now.err)[::-1]
 
 
-  def derivative_stats(self,k,x):
+  def derivative_stats(self,now,x):
     """Stats that apply for both _w and _ext paradigms and derive from the other stats."""
-    self.err[k]  = self.mu[k] - x
-    self.rmv[k]  = sqrt(mean(self.var[k]))
-    self.rmse[k] = sqrt(mean(self.err[k]**2))
-    self.MGLS(k)
+    now.err  = now.mu - x
+    now.rmv  = sqrt(mean(now.var))
+    now.rmse = sqrt(mean(now.err**2))
+    self.MGLS(now)
     
-  def MGLS(self,k):
-    # Marginal Gaussian Log Score.
-    Nx             = len(self.err[k])
-    ldet           = log(self.var[k]).sum()
-    nmisf          = self.var[k]**(-1/2) * self.err[k]
-    logp_m         = (nmisf**2).sum() + ldet
-    self.logp_m[k] = logp_m/Nx
+  def MGLS(self,now):
+    "Marginal Gaussian Log Score."
+    Nx         = len(now.err)
+    ldet       = log(now.var).sum()
+    nmisf      = now.var**(-1/2) * now.err
+    logp_m     = (nmisf**2).sum() + ldet
+    now.logp_m = logp_m/Nx
 
 
   def average_in_time(self,kk=None,kkObs=None):
@@ -314,9 +306,9 @@ class Stats(NestedPrint):
       if kkObs is None: kkObs  = chrono.maskObs_BI
 
       def average_multivariate():
+        raise NotImplementedError(
         """Plain averages of nd-series are rarely interesting.
-        => Leave for manual computations."""
-        raise NotImplementedError
+        => Leave for manual computations.""")
 
       for key,series in vars(self).items():
           try:
@@ -324,14 +316,14 @@ class Stats(NestedPrint):
                   # Don't include
                   continue
 
-              if isinstance(series,FAU_series):
+              if isinstance(series,FAUSt):
                   # Average series for each subscript
-                  for sub in 'afsu':
-                      if series.M > 1:
-                          avrg[key] = average_multivariate()
-                      elif hasattr(series,sub):
-                          subseries = getattr(series,sub)[kk if sub=='u' else kkObs]
-                          avrg[key+'_'+sub] = series_mean_with_conf(subseries)
+                  if series.shape != ():
+                      average_multivariate()
+                  for sub in 'afs':
+                      avrg[key+'_'+sub] = series_mean_with_conf(series[kkObs,sub])
+                  if series.store_u:
+                      avrg[key+'_u'] = series_mean_with_conf(series[kk,'u'])
 
               elif isinstance(series,np.ndarray):
                   # Average the array
@@ -344,10 +336,6 @@ class Stats(NestedPrint):
                   else:
                       raise ValueError
               
-              elif np.isscalar(series):
-                  # Just write the number
-                  avrg[key] = series
-
               else:
                   raise NotImplementedError
 
@@ -356,4 +344,10 @@ class Stats(NestedPrint):
 
       return avrg
 
+
+# TODO: do something about key
+def raise_AFE(msg,key=None):
+  if key is not None:
+    msg += "\n(k,kObs,fau) = " + str(key) + ". "
+  raise AssimFailedError(msg)
 

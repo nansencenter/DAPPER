@@ -44,7 +44,7 @@ class PartFilt:
     E = X0.sample(N)
     w = 1/N*ones(N)
 
-    stats.assess(0,E=E,w=1/N)
+    stats.assess(0,E=E,w=w)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
@@ -98,7 +98,7 @@ class OptPF:
     E = X0.sample(N)
     w = 1/N*ones(N)
 
-    stats.assess(0,E=E,w=1/N)
+    stats.assess(0,E=E,w=w)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
@@ -169,7 +169,7 @@ class PFa:
     E = X0.sample(N)
     w = 1/N*ones(N)
 
-    stats.assess(0,E=E,w=1/N)
+    stats.assess(0,E=E,w=w)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
@@ -245,7 +245,7 @@ class PFxN_EnKF:
 
     DD = None
     
-    stats.assess(0,E=E,w=1/N)
+    stats.assess(0,E=E,w=w)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)
@@ -357,7 +357,7 @@ class PFxN:
     E  = X0.sample(N)
     w  = 1/N*ones(N)
 
-    stats.assess(0,E=E,w=1/N)
+    stats.assess(0,E=E,w=w)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
       E = Dyn(E,t-dt,dt)

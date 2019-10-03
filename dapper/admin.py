@@ -109,6 +109,9 @@ class _da_defaults:
     fail_gently : bool = implicit(rc['fail_gently'])
 
 
+class AssimFailedError(RuntimeError):
+    pass
+
 def call_gently(fun,self,*args):
     """Wrap fun in try clause to allow execution to continue
     for some types of exceptions."""
