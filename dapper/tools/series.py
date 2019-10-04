@@ -61,33 +61,31 @@ def estimate_corr_length(xx):
     L = 1/log(1/a)
   return L
 
-
+@dc.dataclass
 class val_with_conf():
-  def __init__(self,val,conf):
-    self.val  = val
-    self.conf = conf
-  def round(self,mult=1.0):
-      """Round intelligently:
+    val  : float
+    conf : float
 
-      - conf to 1 sigfig.
-      - val:
-          - to precision: mult*conf.
-          - fallback: rc['sigfig']
-      """
-      with np.errstate(all='ignore'):
-        conf = round2sigfig(self.conf,1) 
-        val  = self.val
-        if not np.isnan(conf) and conf>0:
-            val = round2(val, mult*conf)
-        else:
-            val = round2sigfig(val,rc['sigfig'])
-        return val, conf
-  def __str__(self):
-    val,conf = self.round()
-    return str(val)+' ±'+str(conf)
-  def __repr__(self):
-    val,conf = self.round()
-    return type(self).__name__ + "(val="+str(val)+", conf="+str(conf)+")"
+    def round(self,mult=1.0):
+        """Round intelligently:
+
+        - conf to 1 sigfig.
+        - val:
+            - to precision: mult*conf.
+            - fallback: rc['sigfig']
+        """
+        with np.errstate(all='ignore'):
+          conf = round2sigfig(self.conf,1) 
+          val  = self.val
+          if not np.isnan(conf) and conf>0:
+              val = round2(val, mult*conf)
+          else:
+              val = round2sigfig(val,rc['sigfig'])
+          return val, conf
+    def __str__(self):
+      val,conf = self.round()
+      return str(val)+' ±'+str(conf)
+
 
 def series_mean_with_conf(xx):
   """Compute the mean of a 1d iterable ``xx``.
