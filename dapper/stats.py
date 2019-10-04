@@ -87,38 +87,6 @@ class Stats(NestedPrint):
     self.new_series('resmpl', (), KObs+1)
 
 
-    ######################################
-    # Define which stats get plotted as diagnostics in liveplotting, and how.
-    ######################################
-    # NB: The diagnostic liveplotting relies on detecting nan's to avoid
-    #     plotting stats that are not being used.
-    #     => Cannot use dtype bool or int for those that may be plotted.
-
-    # Transformations used in plotting stats
-    def lin(a,b): return lambda x: a + b*x
-    def Id(x)   : return x
-    def divN(x) :
-      try: return x/config.N
-      except AttributeError: return nan
-
-    # RMS
-    self.style1 = {
-        'rmse'    : [Id          , None   , dict(c='k'      , label='Error'            )],
-        'rmv'     : [Id          , None   , dict(c='b'      , label='Spread', alpha=0.6)],
-      }
-
-    # OTHER         transf       , shape  , plt kwargs
-    self.style2 = OrderedDict([
-        ('skew'   , [Id          , None   , dict(c=     'g' , label=star+r'Skew/$\sigma^3$'        )]),
-        ('kurt'   , [Id          , None   , dict(c=     'r' , label=star+r'Kurt$/\sigma^4{-}3$'    )]),
-        ('trHK'   , [Id          , None   , dict(c=     'k' , label=star+'HK'                     )]),
-        ('infl'   , [lin(-10,10) , 'step' , dict(c=     'c' , label='10(infl-1)'                  )]),
-        ('N_eff'  , [divN        , 'dirac', dict(c=RGBs['y'], label='N_eff/N'             ,lw=3   )]),
-        ('iters'  , [lin(0,.1)   , 'dirac', dict(c=     'm' , label='iters/10'                    )]),
-        ('resmpl' , [Id          , 'dirac', dict(c=     'k' , label='resampled?'                  )]),
-      ])
-
-
   def new_series(self,name,shape,length='FAUSt',**kwargs):
       """Create (and register) a statistics time series.
 

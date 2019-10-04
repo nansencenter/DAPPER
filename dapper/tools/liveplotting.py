@@ -204,6 +204,7 @@ def replay(config, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
 star = "${}^*$"
 class sliding_diagnostics:
 
+
   def __init__(self,fignum,stats,key0,plot_u,E,P,Tplot=None,**kwargs):
       GS = {'left':0.125,'right':0.76}
       fig, (ax1, ax2) = freshfig(fignum, (5,3.5), loc='2311', nrows=2, sharex=True, gridspec_kw=GS)
@@ -215,6 +216,32 @@ class sliding_diagnostics:
       adjust_position(ax2, y0=0.03)
 
       self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
+  
+      ######################################
+      # Define which stats get plotted as diagnostics in liveplotting, and how.
+      ######################################
+      # NB: The diagnostic liveplotting relies on detecting nan's to avoid
+      #     plotting stats that are not being used.
+      #     => Cannot use dtype bool or int for those that may be plotted.
+
+      # STYLE TABLES
+      lin  = lambda a,b: (lambda x: a + b*x)
+      divN = 1/getattr(stats.config,'N',99)
+      # RMS
+      style1 = {
+          'rmse'    : [None        , None   , dict(c='k'      , label='Error'            )],
+          'rmv'     : [None        , None   , dict(c='b'      , label='Spread', alpha=0.6)],
+        }
+      # OTHER         transf       , shape  , plt kwargs
+      style2 = OrderedDict([
+          ('skew'   , [None        , None   , dict(c=     'g' , label=star+r'Skew/$\sigma^3$'       )]),
+          ('kurt'   , [None        , None   , dict(c=     'r' , label=star+r'Kurt$/\sigma^4{-}3$'   )]),
+          ('trHK'   , [None        , None   , dict(c=     'k' , label=star+'HK'                     )]),
+          ('infl'   , [lin(-10,10) , 'step' , dict(c=     'c' , label='10(infl-1)'                  )]),
+          ('N_eff'  , [lin(0,divN) , 'dirac', dict(c=RGBs['y'], label='N_eff/N'             ,lw=3   )]),
+          ('iters'  , [lin(0,.1)   , 'dirac', dict(c=     'm' , label='iters/10'                    )]),
+          ('resmpl' , [None        , 'dirac', dict(c=     'k' , label='resampled?'                  )]),
+        ])
 
       def init_ax(ax,style_table):
         plotted_lines = OrderedDict()
@@ -231,7 +258,7 @@ class sliding_diagnostics:
             
             # Unpack style
             ln = {}
-            ln['transf'] = style_table[name][0]
+            ln['transf'] = style_table[name][0] or (lambda x:x)
             ln['shape']  = style_table[name][1]
             ln['plt']    = style_table[name][2]
 
@@ -256,8 +283,8 @@ class sliding_diagnostics:
         return plotted_lines
 
       # Plot
-      self.d1 = init_ax(ax1, stats.style1);
-      self.d2 = init_ax(ax2, stats.style2);
+      self.d1 = init_ax(ax1, style1);
+      self.d2 = init_ax(ax2, style2);
 
       # Horizontal line at y=0
       self.baseline0, = ax2.plot(ax2.get_xlim(),[0,0],c=0.5*ones(3),lw=0.7,label='_nolegend_')
