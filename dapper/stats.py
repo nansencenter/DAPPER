@@ -14,8 +14,7 @@ class Stats(NestedPrint):
   ordr_by_linenum = -1
  
   def __init__(self,config,HMM,xx,yy):
-    """
-    Init the default statistics.
+    """Init the default statistics.
 
     Note: you may also allocate & compute individual stats elsewhere
           (Python allows dynamic class attributes).
@@ -26,10 +25,10 @@ class Stats(NestedPrint):
     ######################################
     # Save twin experiment settings 
     ######################################
-    self.config = config
-    self.HMM    = HMM
-    self.xx     = xx
-    self.yy     = yy
+    self.config  = config
+    self.xx      = xx
+    self.yy      = yy
+    self.HMM     = HMM
 
     # Shapes
     K    = xx.shape[0]-1
@@ -43,12 +42,14 @@ class Stats(NestedPrint):
     # Declare time series of various stats
     ######################################
     def new_series(shape,**kwargs):
-        return FAUSt(K,KObs,shape,self.config.store_u, **kwargs)
+        return FAUSt(K,KObs,shape,config.store_u, **kwargs)
 
     self.mu     = new_series(Nx) # Mean
     self.var    = new_series(Nx) # Variances
+    self.std    = new_series(Nx) # Spread
     self.mad    = new_series(Nx) # Mean abs deviations
     self.err    = new_series(Nx) # Error (mu - truth)
+
     self.logp_m = new_series(1)  # Marginal, Gaussian Log score
     self.skew   = new_series(1)  # Skewness
     self.kurt   = new_series(1)  # Kurtosis
@@ -249,15 +250,13 @@ class Stats(NestedPrint):
     """Kalman filter (Gaussian) assessment."""
     Nx = len(mu)
 
-    isFinite = np.all(np.isfinite(mu)) # Do not check covariance
-    isReal   = np.all(np.isreal(mu))   # (coz might not be explicitly availble)
-    if not isFinite: raise_AFE("Estimates not finite.")
-    if not isReal:   raise_AFE("Estimates not Real.")
+    if not np.all(np.isfinite(mu)): raise_AFE("Estimates not finite.")
+    if not np.all(np.isreal(mu)):   raise_AFE("Estimates not Real.")
+    # Don't check the cov (might not be explicitly availble)
 
     now.mu  = mu
     now.var = P.diag if isinstance(P,CovMat) else diag(P)
-    now.mad = sqrt(now.var)*sqrt(2/pi)
-    # ... because sqrt(2/pi) = ratio MAD/STD for Gaussians
+    now.mad = sqrt(now.var)*sqrt(2/pi) # sqrt(2/pi): ratio, Gaussian MAD/STD
 
     self.derivative_stats(now,x)
 
@@ -269,8 +268,9 @@ class Stats(NestedPrint):
 
 
   def derivative_stats(self,now,x):
-    """Stats that apply for both _w and _ext paradigms and derive from the other stats."""
+    """Stats that apply derive from the others, and apply for both _ens and _ext"""
     now.err  = now.mu - x
+
     now.rmv  = sqrt(mean(now.var))
     now.rmse = sqrt(mean(now.err**2))
     self.MGLS(now)
@@ -309,7 +309,7 @@ class Stats(NestedPrint):
 
               if isinstance(series,FAUSt):
                   # Average series for each subscript
-                  if series.shape != ():
+                  if series.item_shape != ():
                       average_multivariate()
                   for sub in 'afs':
                       avrg[key+'_'+sub] = series_mean_with_conf(series[kkObs,sub])

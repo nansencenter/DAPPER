@@ -15,18 +15,18 @@ class HiddenMarkovModel(NestedPrint):
     self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)
     self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)
 
-    # Assign name by file (using inspect magic)
+    # Assign name
     name = inspect.getfile(inspect.stack()[1][0])
     self.name = os.path.relpath(name,'mods/')
 
-    # Write the rest of parameters
+    # Assign kwargs
     de_abbreviate(kwargs, [('LP','liveplotters')])
     for key, value in kwargs.items():
       setattr(self, key, value)
 
-    # Allow running LETKF, SL_EAKF etc without localization
-    if not hasattr(self.Obs,"localizer"):
-      self.Obs.localizer = no_localization(self.Nx, self.Ny)
+    # Assign defaults
+    if not hasattr(self.Obs,"localizer"): self.Obs.localizer = no_localization(self.Nx, self.Ny)
+    if not hasattr(self    ,"regions")  : self.regions       = {}
 
     # Validation
     if self.Obs.noise.C==0 or self.Obs.noise.C.rk!=self.Obs.noise.C.M:

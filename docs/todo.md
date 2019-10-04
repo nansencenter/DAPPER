@@ -1,7 +1,7 @@
 Todo
 ================================================
 
-* Make stats.region.FAU = array
+* Make stats.region['glob'].FAU = array
 * Change KObs to KObs-1
 * Indentation
 

@@ -126,12 +126,15 @@ class FAUSt(NestedPrint):
 
   Four attributes, each of which is an ndarray:
 
-   - .f for forecast      , (KObs+1,)+item.shape
-   - .a for analysis      , (KObs+1,)+item.shape
-   - .s for smoothed      , (KObs+1,)+item.shape
-   - .u for universial/all, (K   +1,)+item.shape
+   - .f for forecast      , (KObs+1,)+item_shape
+   - .a for analysis      , (KObs+1,)+item_shape
+   - .s for smoothed      , (KObs+1,)+item_shape
+   - .u for universial/all, (K   +1,)+item_shape
 
-  Series can also be accessed
+  If store_u=False, then .u series has shape (1,)+item_shape,
+  wherein only the most-recently-written item is stored.
+
+  Series can also be indexed as in
   >>> self[kObs,'a']
   >>> self[whatever,kObs,'a']
   >>> # ... and likewise for 'f' and 's'. For 'u', can use:
@@ -149,39 +152,37 @@ class FAUSt(NestedPrint):
       's':'Smoothed (.s)',
       'u':'Universl (.u)'}
 
-  def __init__(self,K,KObs,shape,store_u,**kwargs):
+  def __init__(self,K,KObs,item_shape,store_u,**kwargs):
     """Constructor.
 
-     - shape   : shape of an item in the series. 
-     - store_u : if False: only the current value is stored.
-     - kwargs  : passed on to ndarrays.
+     - item_shape : shape of an item in the series. 
+     - store_u    : if False: only the current value is stored.
+     - kwargs     : passed on to ndarrays.
     """
 
     # Convert length (an int) to shape
-    if not hasattr(shape, '__len__'):
-      if shape==1: shape = ()
-      else:        shape = (shape,)
+    if not hasattr(item_shape, '__len__'):
+      if item_shape==1: item_shape = ()
+      else:             item_shape = (item_shape,)
 
-    self.f   = np.full((KObs+1,)+shape, nan, **kwargs)
-    self.a   = np.full((KObs+1,)+shape, nan, **kwargs)
-    self.s   = np.full((KObs+1,)+shape, nan, **kwargs)
+    self.f   = np.full((KObs+1,)+item_shape, nan, **kwargs)
+    self.a   = np.full((KObs+1,)+item_shape, nan, **kwargs)
+    self.s   = np.full((KObs+1,)+item_shape, nan, **kwargs)
     if store_u:
-      self.u = np.full((K   +1,)+shape, nan, **kwargs)
+      self.u = np.full((K   +1,)+item_shape, nan, **kwargs)
     else:
-      self.u = np.full((     1,)+shape, nan, **kwargs)
+      self.u = np.full((     1,)+item_shape, nan, **kwargs)
 
-    self.store_u = store_u
-    self.shape   = shape
+  item_shape = property(lambda self: self.a.shape[1:])
+  store_u    = property(lambda self: len(self.u)>1)
   
   def _ind(self,key):
+    "Aux function to unpack ``key`` (k,kObs,faus)"
     if key[-1]=='u': return key[0] if self.store_u else 0
     else           : return key[-2]
 
-  def __setitem__(self,key,item):
-    getattr(self,key[-1])[self._ind(key)] = item
-
-  def __getitem__(self,key):
-    return getattr(self,key[-1])[self._ind(key)]
+  def __setitem__(self,key,item):     getattr(self,key[-1])[self._ind(key)] = item
+  def __getitem__(self,key):   return getattr(self,key[-1])[self._ind(key)]
 
 
 class RollingArray:

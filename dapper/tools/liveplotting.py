@@ -56,7 +56,7 @@ class LivePlot:
     plt.ion()
 
     # Determine whether all/universal/intermediate stats
-    self.plot_u = stats.mu.store_u or not replay
+    self.plot_u = stats.config.store_u or not replay
 
     # Loop over requeted figures
     self.any_figs = False
@@ -158,8 +158,8 @@ def replay(config, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   - t1, t2: time window to plot.
   - 'figlist' and 'speed': See LivePlot's doc.
 
-  .. note:: store_u (specify in the config to store intermediate stats)
-            must have been True to have smooth graphs as in the actual LivePlot.
+  .. note:: ``store_u`` (specify in the config to store intermediate stats)
+            must have been ``True`` to have smooth graphs as in the actual LivePlot.
 
   .. note:: Ensembles are generally not stored in the stats and so cannot be replayed.
   """
