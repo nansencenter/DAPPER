@@ -3,7 +3,6 @@
 from dapper import *
 
 @da_method
-@dc.dataclass
 class ens_method:
   "Declare default ensemble arguments."
   infl          : float = 1.0

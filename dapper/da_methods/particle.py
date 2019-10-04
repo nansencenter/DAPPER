@@ -1,7 +1,6 @@
 from dapper import *
 
 @da_method
-@dc.dataclass
 class particle_method:
   "Declare default particle arguments."
   NER     : float = 1.0

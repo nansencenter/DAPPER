@@ -3,7 +3,6 @@
 from dapper import *
 
 @da_method
-@dc.dataclass
 class var_method:
   "Declare default variational arguments."
   Lag    : int   = 1

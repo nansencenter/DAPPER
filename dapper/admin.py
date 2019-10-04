@@ -95,7 +95,6 @@ class Operator(NestedPrint):
   ordering = ['M','model','noise']
 
 
-import dataclasses as dc
 @dc.dataclass
 class _da_defaults:
     """Default kwargs for da_method.
@@ -186,7 +185,7 @@ def da_method(*default_dcs):
         if not hasattr(cls,'__annotations__'):
             cls.__annotations__ = {}
         for defaults in default_dcs + (_da_defaults,):
-            for f in dc.fields(defaults):
+            for f in dc.fields(dc.dataclass(defaults)):
                 if f.name not in cls.__annotations__:    # Don't overwrite
                     cls.__annotations__[f.name] = f.type # Add annotation
                     setattr(cls,f.name,f)                # Add attribute

@@ -20,6 +20,7 @@ import configparser
 import builtins
 from time import sleep
 from collections import OrderedDict
+import dataclasses as dc
 from typing import Optional, Any
 
 assert sys.version_info >= (3,6), "Need Python>=3.6"
