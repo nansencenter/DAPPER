@@ -217,14 +217,7 @@ class sliding_diagnostics:
 
       self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
   
-      ######################################
-      # Define which stats get plotted as diagnostics in liveplotting, and how.
-      ######################################
-      # NB: The diagnostic liveplotting relies on detecting nan's to avoid
-      #     plotting stats that are not being used.
-      #     => Cannot use dtype bool or int for those that may be plotted.
-
-      # STYLE TABLES
+      # STYLE TABLES - Defines which/how diagnostics get plotted
       lin  = lambda a,b: (lambda x: a + b*x)
       divN = 1/getattr(stats.config,'N',99)
       # RMS
@@ -355,8 +348,8 @@ class sliding_diagnostics:
           for name in list(plotted_lines):
             ln = plotted_lines[name]
             if not np.any(np.isfinite(ln['data'])):
-              ln['handle'].remove()
-              del plotted_lines[name]
+              ln['handle'].remove()   # rm from axes
+              del plotted_lines[name] # rm from dict
           # Add legends
           if plotted_lines:
             ax.legend(loc='upper left', bbox_to_anchor=(1.01, 1),borderaxespad=0)

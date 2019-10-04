@@ -37,8 +37,9 @@ class Stats(NestedPrint):
     self.K   , self.Nx = K   , Nx
     self.KObs, self.Ny = KObs, Ny
 
+
     ######################################
-    # Declare time series of various stats
+    # Allocate time series of various stats
     ######################################
     self.data_register = [] # Register of names of series
     self.included = self.data_register # Repr: only these
@@ -75,7 +76,7 @@ class Stats(NestedPrint):
 
 
     ######################################
-    # Declare a few series for outside use
+    # Allocate a few series for outside use
     ######################################
     self.new_series('trHK'  , (), KObs+1)
     self.new_series('infl'  , (), KObs+1)
@@ -92,12 +93,16 @@ class Stats(NestedPrint):
 
       Example: Create ndarray of length KObs+1 for inflation time series:
       >>> self.new_series('infl', (), KObs+1)
-      """
 
+      NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``'s
+          to avoid plotting stats that are not being used.
+          => Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
+      """
       if length=='FAUSt': series = FAUSt(self.K,self.KObs,shape,self.config.store_u, **kwargs)
       else              : series = np.full((length,)+shape, nan, **kwargs)
       setattr(self, name, series)     # Write
       self.data_register.append(name) # Register
+
 
   def assess(self,k,kObs=None,faus=None,
       E=None,w=None,mu=None,Cov=None):
