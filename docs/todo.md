@@ -2,6 +2,8 @@ Todo
 ================================================
 
 * Make stats.region['glob'].FAU = array
+* stats.rmse[kObs,'a']
+* stats.rmse.a[kObs]
 * Change KObs to KObs-1
 * Indentation
 

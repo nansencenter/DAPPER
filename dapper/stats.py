@@ -3,13 +3,12 @@
 from dapper import *
 
 class Stats(NestedPrint):
-  """
-  Contains and computes statistics of the DA methods.
+  """Contains and computes statistics of the DA methods.
+
+  Use new_series() to register your own stat time series.
   """
 
   # Used by NestedPrint
-  excluded  = NestedPrint.excluded +\
-      ['HMM','config','xx','yy','style1','style2','LP_instance']
   precision = 3
   ordr_by_linenum = -1
  
@@ -41,28 +40,28 @@ class Stats(NestedPrint):
     ######################################
     # Declare time series of various stats
     ######################################
-    def new_series(shape,**kwargs):
-        return FAUSt(K,KObs,shape,config.store_u, **kwargs)
+    self.data_register = [] # Register of names of series
+    self.included = self.data_register # Repr: only these
 
-    self.mu     = new_series(Nx) # Mean
-    self.var    = new_series(Nx) # Variances
-    self.std    = new_series(Nx) # Spread
-    self.mad    = new_series(Nx) # Mean abs deviations
-    self.err    = new_series(Nx) # Error (mu - truth)
+    self.new_series('mu' ,Nx) # Mean
+    self.new_series('var',Nx) # Variances
+    self.new_series('std',Nx) # Spread
+    self.new_series('mad',Nx) # Mean abs deviations
+    self.new_series('err',Nx) # Error (mu - truth)
 
-    self.logp_m = new_series(1)  # Marginal, Gaussian Log score
-    self.skew   = new_series(1)  # Skewness
-    self.kurt   = new_series(1)  # Kurtosis
-    self.rmv    = new_series(1)  # Root-mean variance
-    self.rmse   = new_series(1)  # Root-mean square error
+    self.new_series('logp_m',1)  # Marginal ,Gaussian Log score
+    self.new_series('skew'  ,1)  # Skewness
+    self.new_series('kurt'  ,1)  # Kurtosis
+    self.new_series('rmv'   ,1)  # Root-mean variance
+    self.new_series('rmse'  ,1)  # Root-mean square error
 
     if hasattr(config,'N'):
       # Ensemble-only init
       self._is_ens = True
       N            = config.N
       minN         = min(Nx,N)
-      self.w       = new_series(N)            # Importance weights
-      self.rh      = new_series(Nx,dtype=int) # Rank histogram
+      self.new_series('w',N)             # Importance weights
+      self.new_series('rh',Nx,dtype=int) # Rank histogram
       do_spectral  = sqrt(Nx*N) <= rc['comp_threshold_b']
     else:
       # Linear-Gaussian assessment
@@ -71,21 +70,21 @@ class Stats(NestedPrint):
       do_spectral  = Nx <= rc['comp_threshold_b']
 
     if do_spectral:
-      self.svals = new_series(minN) # Principal component (SVD) scores
-      self.umisf = new_series(minN) # Error in component directions
+      self.new_series('svals',minN) # Principal component (SVD) scores
+      self.new_series('umisf',minN) # Error in component directions
 
 
     ######################################
-    # Declare non-FAUSt series
+    # Declare a few series for outside use
     ######################################
-    self.trHK   = np.full (KObs+1, nan)
-    self.infl   = np.full (KObs+1, nan)
-    self.iters  = np.full (KObs+1, nan)
+    self.new_series('trHK'  , (), KObs+1)
+    self.new_series('infl'  , (), KObs+1)
+    self.new_series('iters' , (), KObs+1)
 
     # Weight-related
-    self.N_eff  = np.full (KObs+1, nan)
-    self.wroot  = np.full (KObs+1, nan)
-    self.resmpl = np.full (KObs+1, nan)
+    self.new_series('N_eff' , (), KObs+1)
+    self.new_series('wroot' , (), KObs+1)
+    self.new_series('resmpl', (), KObs+1)
 
 
     ######################################
@@ -119,6 +118,18 @@ class Stats(NestedPrint):
         ('resmpl' , [Id          , 'dirac', dict(c=     'k' , label='resampled?'                  )]),
       ])
 
+
+  def new_series(self,name,shape,length='FAUSt',**kwargs):
+      """Create (and register) a statistics time series.
+
+      Example: Create ndarray of length KObs+1 for inflation time series:
+      >>> self.new_series('infl', (), KObs+1)
+      """
+
+      if length=='FAUSt': series = FAUSt(self.K,self.KObs,shape,self.config.store_u, **kwargs)
+      else              : series = np.full((length,)+shape, nan, **kwargs)
+      setattr(self, name, series)     # Write
+      self.data_register.append(name) # Register
 
   def assess(self,k,kObs=None,faus=None,
       E=None,w=None,mu=None,Cov=None):
@@ -177,7 +188,7 @@ class Stats(NestedPrint):
             stats_now = Bunch()
             _assess(stats_now,self.xx[k],**_prms)
 
-        # Write instance stats to series
+        # Write current stats to series
         for stat,val in stats_now.items():
             getattr(self,stat)[(k,kObs,sub)] = val
 
@@ -195,8 +206,9 @@ class Stats(NestedPrint):
 
     if w is None: 
       w = ones(N)/N # No weights. Also, rm attr from stats:
-      try: delattr(self,'w')
-      except AttributeError: pass
+      if hasattr(self,'w'):
+        delattr(self,'w')
+        self.data_register.remove('w')
     else:
       now.w = w
       if abs(w.sum()-1) > 1e-5:    raise_AFE("Weights did not sum to one.")
@@ -301,12 +313,14 @@ class Stats(NestedPrint):
         """Plain averages of nd-series are rarely interesting.
         => Leave for manual computations.""")
 
-      for key,series in vars(self).items():
-          try:
-              if key.startswith('_'):
-                  # Don't include
-                  continue
+      for key in self.data_register:
 
+          if hasattr(self,key):
+              series = getattr(self,key)
+          else:
+              continue
+
+          try:
               if isinstance(series,FAUSt):
                   # Average series for each subscript
                   if series.item_shape != ():

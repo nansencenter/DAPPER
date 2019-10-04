@@ -360,13 +360,14 @@ class NestedPrint:
       # Process attribute repr's
       txts = {}
       for key in keys:
-        t = pretty_repr(getattr(self,key)) # sub-repr
-        if '\n' in t:
-          # Activate multi-line printing
-          t = t.replace('\n',NL+' '*self.indent)      # other lines
-          t = NL+' '*self.indent + t                  # first line
-        t = NL + self.aliases.get(key,key) + ': ' + t # key-name
-        txts[key] = t
+          if hasattr(self,key):
+              t = pretty_repr(getattr(self,key)) # sub-repr
+              if '\n' in t:
+                  # Activate multi-line printing
+                  t = t.replace('\n',NL+' '*self.indent)      # other lines
+                  t = NL+' '*self.indent + t                  # first line
+              t = NL + self.aliases.get(key,key) + ': ' + t   # key-name
+              txts[key] = t
 
       def sortr(x):
         if x in self.ordering:
