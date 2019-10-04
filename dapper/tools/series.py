@@ -116,7 +116,7 @@ def series_mean_with_conf(xx):
       c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
       confidence_correction = 1 + 2/N * c
       var *= confidence_correction
-      vc = UncertainNumber(mu, round2sigfig(sqrt(var)))
+      vc = UncertainNumber(mu, sqrt(var))
   return vc
 
 
