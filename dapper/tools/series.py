@@ -62,7 +62,7 @@ def estimate_corr_length(xx):
   return L
 
 @dc.dataclass
-class val_with_conf():
+class UncertainNumber():
     val  : float
     conf : float
 
@@ -82,6 +82,7 @@ class val_with_conf():
           else:
               val = round2sigfig(val,rc['sigfig'])
           return val, conf
+
     def __str__(self):
       val,conf = self.round()
       return str(val)+' ±'+str(conf)
@@ -96,9 +97,9 @@ def series_mean_with_conf(xx):
   mu = mean(xx)
   N  = len(xx)
   if (not np.isfinite(mu)) or N<=5:
-      vc = val_with_conf(mu, np.nan)
+      vc = UncertainNumber(mu, np.nan)
   elif np.allclose(xx,mu):
-      vc = val_with_conf(mu, 0)
+      vc = UncertainNumber(mu, 0)
   else:
       acovf = auto_cov(xx,5)
       var   = acovf[0]
@@ -115,7 +116,7 @@ def series_mean_with_conf(xx):
       c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
       confidence_correction = 1 + 2/N * c
       var *= confidence_correction
-      vc = val_with_conf(mu, round2sigfig(sqrt(var)))
+      vc = UncertainNumber(mu, round2sigfig(sqrt(var)))
   return vc
 
 
