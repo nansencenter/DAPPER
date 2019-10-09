@@ -43,6 +43,7 @@ rc = {s:dict(_rc.items(s)) for s in _rc.sections() if s not in ['int','bool']}
 rc['plot']['styles'] = rc['plot']['styles'].replace('$dapper',dirs['dapper']).replace('/',os.path.sep)
 for x in _rc['int' ]: rc[x] = _rc['int' ].getint(x)
 for x in _rc['bool']: rc[x] = _rc['bool'].getboolean(x)
+del x
 
 # Define paths
 dirs['data_root'] = os.getcwd() if rc['dirs']['data']=="cwd" else dirs['DAPPER']
