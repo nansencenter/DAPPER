@@ -329,8 +329,7 @@ class NestedPrint:
   precision=None
 
   # Recursion monitoring.
-  _stack=[] # Reference using NestedPrint._stack, ...
-  # not self._stack or self.__class__, which reference sub-class "instance".
+  _stack={}
 
   # Reference using self.excluded, to access sub-class "instance".
   excluded = [] # Don't include in printing
@@ -346,28 +345,40 @@ class NestedPrint:
       # new line chars
       NL = '\n' + self.ch + ' '*(self.indent-1)
 
-      # Infinite recursion prevention
-      is_top_level = False
-      if NestedPrint._stack == []:
-        is_top_level = True
-      if self in NestedPrint._stack:
-        return "**Recursion**"
-      NestedPrint._stack += [self]
+      # Init
+      if NestedPrint._stack=={}:
+          is_top_level = True
+          NestedPrint._stack[id(self)] = '<root>' 
+      else:
+          is_top_level = False
 
       # Use included or filter-out excluded
       keys = self.included or filter_out(vars(self), *self.excluded)
+      keys = [k for k in keys if hasattr(self,k)]
 
-      # Process attribute repr's
+      # Aggregate (sub-)repr's from the attributes
       txts = {}
       for key in keys:
-          if hasattr(self,key):
-              t = pretty_repr(getattr(self,key)) # sub-repr
-              if '\n' in t:
-                  # Activate multi-line printing
-                  t = t.replace('\n',NL+' '*self.indent)      # other lines
-                  t = NL+' '*self.indent + t                  # first line
-              t = NL + self.aliases.get(key,key) + ': ' + t   # key-name
-              txts[key] = t
+          val = getattr(self,key)
+          
+          # Get sub-repr (t).
+          # Link to already-printed items and prevent infinite recursion!
+          # NB: ``val in _stack`` is not what we want coz it also accepts equality.
+          if id(val) in NestedPrint._stack and isinstance(val,NestedPrint):
+              # Link
+              t = "**Same (id)** as %s"%NestedPrint._stack[id(val)]
+          else:
+              # Recurse
+              NestedPrint._stack[id(val)] = NestedPrint._stack[id(self)]+'.'+key
+              t = pretty_repr(val)
+
+          # Process t: activate multi-line printing
+          if '\n' in t:
+              t = t.replace('\n',NL+' '*self.indent)      # other lines
+              t = NL+' '*self.indent + t                  # first line
+
+          t = NL + self.aliases.get(key,key) + ': ' + t   # Add key (name)
+          txts[key] = t # Register
 
       def sortr(x):
         if x in self.ordering:
@@ -377,9 +388,11 @@ class NestedPrint:
             key = self.ordr_by_linenum*txts[x].count('\n')
             if key<=1:
                 key = self.ordr_by_linenum*len(txts[x])
+          elif self.ordr_by_linenum is None:
+            key = 0 # no sort
           else:
             key = x.lower()
-            # Convert str to int (assuming ASCII) for comparison with above cases
+            # Convert str to int (assuming ASCII) for comp with above cases
             key = sum( ord(x)*128**i for i,x in enumerate(x[::-1]) )
         return key
 
@@ -390,12 +403,12 @@ class NestedPrint:
 
       # Empty _stack when top-level printing finished
       if is_top_level:
-        NestedPrint._stack = []
+        NestedPrint._stack = {}
 
       return s
 
 
-class AlignedDict(OrderedDict):
+class AlignedDict(dict):
   """Provide aligned-printing for dict."""
   def __init__(self,*args,**kwargs):
     super().__init__(*args,**kwargs)
@@ -407,27 +420,30 @@ class AlignedDict(OrderedDict):
     s = s[:-2]
     return s
   def __repr__(self):
-    return type(self).__name__ + "(**{\n " + str(self).replace("\n",",\n") + "\n})"
-  def _repr_pretty_(self, p, cycle):
-    # Is implemented by OrderedDict, so must overwrite.
-    if cycle: p.text('{...}')
-    else:     p.text(self.__repr__())
+    return type(self).__name__ + "(**{\n " + str(self)[1:].replace("\n",",\n") + "\n})"
 
 
-class Bunch(dict):
-  "Neat little dict that doubles as a class"
-  def __init__(self,**kw):
+class Bunch(NestedPrint,dict):
+  """Neat little dict that doubles as a class.
+
+  Source: stackoverflow.com/a/14620633
+
+  Added benefit of using a class: can subclass NestedPrint.
+
+  ``magic_init``is a bonus, non-essential, and non-invasive feature.
+  """
+  def __init__(self,*args,**kwargs):
     "Init like a normal dict."
-    dict.__init__(self,kw)
-    self.__dict__ = self
+    super(Bunch, self).__init__(*args,**kwargs) # Make a (normal) dict
+    self.__dict__ = self                        # Assign it to self.__dict__
 
   @classmethod
-  def magic_init(cls,*args,**kw):
+  def magic_init(cls,*args,**kwargs):
     """Get attribute name from variable names in call.
     THIS IS A BIG FAT HACK!!!"""
     call, locvars = get_call()
 
-    # Insert args in kw
+    # Insert args in kwargs
     for i,x in enumerate(args):
       # Match x to a name, or more, by id, and also its presence in the call.
       matches = [name for name in locvars if locvars[name] is x]
@@ -435,9 +451,9 @@ class Bunch(dict):
       if not matches:
         raise RuntimeError("Couldn't find the name for "+str(x))
       for m in matches:
-        kw[m] = x
+        kwargs[m] = x
 
-    return cls(**kw)
+    return cls(**kwargs)
 
 
 # From stackoverflow.com/q/22797580 and more
@@ -548,8 +564,6 @@ def de_abbreviate(abbrev_d, abbreviations):
       abbrev_d[b] = abbrev_d[a]
       del abbrev_d[a]
 
-
-
 def filter_out(orig_list,*unwanted,INV=False):
   """
   Returns new list from orig_list with unwanted removed.
@@ -574,13 +588,13 @@ def all_but_1_is_None(*args):
   "Check if only 1 of the items in list are Truthy"
   return sum(x is not None for x in args) == 1
 
-# From stackoverflow.com/q/3012421
-class lazy_property(object):
-    '''
-    Lazy evaluation of property.
+class lazy_property:
+    """Lazy evaluation of property.
+
     Should represent non-mutable data,
     as it replaces itself.
-    '''
+
+    From stackoverflow.com/q/3012421"""
     def __init__(self,fget):
       self.fget = fget
       self.func_name = fget.__name__

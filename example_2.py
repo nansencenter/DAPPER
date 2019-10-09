@@ -47,7 +47,8 @@ cfgs += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # Run experiment
 ##############################
 # Adjust experiment duration
-HMM.t.T = 100
+HMM.t.BurnIn = 0
+HMM.t.T = 10
 
 # Generate synthetic truth/obs
 xx,yy = HMM.simulate()

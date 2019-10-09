@@ -61,6 +61,7 @@ def estimate_corr_length(xx):
     L = 1/log(1/a)
   return L
 
+# TODO rename UncertainQuantity and vc-->uq
 @dc.dataclass
 class UncertainNumber():
     val  : float
@@ -120,7 +121,45 @@ def series_mean_with_conf(xx):
   return vc
 
 
-class FAUSt(NestedPrint):
+def deep_getattr(self,name,*default):
+  if '.' in name:
+      child, _, grandchild = name.partition('.')
+      return deep_getattr( getattr(self, child), grandchild, *default)
+  else:
+      return getattr(self,name,*default)
+      # return object.__getattribute__(self, name)
+
+def deep_hasattr(self,name):
+  if '.' in name:
+      child, _, grandchild = name.partition('.')
+      if deep_hasattr(self,child):
+          child = deep_getattr(self, child)
+      else:
+          return False
+      has = deep_hasattr( child, grandchild )
+      return has
+  else:
+      return hasattr(self,name)
+      # return object.__getattribute__(self, name)
+
+
+def deep_setattr(self,name,value):
+  if '.' in name:
+      child, _, grandchild = name.partition('.')
+      if not hasattr(self,child):
+          self.child = DataSeries()
+      deep_setattr( deep_getattr(self, child), grandchild, value )
+  else:
+      setattr(self,name,value)
+
+class DataSeries(NestedPrint):
+    def __init__(self,shape,**kwargs):
+        self.array = np.full(shape, nan, **kwargs)
+        self.was_touched = False
+    def __getitem__(self,key): return self.array[key]
+    def __setitem__(self,key,val): self.array[key] = val
+
+class FAUSt(DataSeries,NestedPrint):
   """Container for time series of a statistic from filtering.
 
   Four attributes, each of which is an ndarray:
@@ -146,12 +185,17 @@ class FAUSt(NestedPrint):
 
   # Printing options (see NestedPrint)
   aliases  = {
-      'f':'Forecast (.f)',
-      'a':'Analysis (.a)',
-      's':'Smoothed (.s)',
-      'u':'Universl (.u)'}
+      'f'   : 'Forecast  (.f)',
+      'a'   : 'Analysis  (.a)',
+      's'   : 'Smoothed  (.s)',
+      'u'   : 'Universal (.u)',
+      'm'   : 'Field mean (.m)',
+      'ma'  : 'Field mean-abs (.ma)',
+      'rms' : 'Field root-mean-square (.rms)',
+      'gm'  : 'Field geometric-mean (.gm)'}
+  ordr_by_linenum = None
 
-  def __init__(self,K,KObs,item_shape,store_u,**kwargs):
+  def __init__(self,K,KObs,item_shape,store_u,store_s,**kwargs):
     """Constructor.
 
      - item_shape : shape of an item in the series. 
@@ -159,21 +203,19 @@ class FAUSt(NestedPrint):
      - kwargs     : passed on to ndarrays.
     """
 
-    # Convert length (an int) to shape
-    if not hasattr(item_shape, '__len__'):
-      if item_shape==1: item_shape = ()
-      else:             item_shape = (item_shape,)
-
-    self.f   = np.full((KObs+1,)+item_shape, nan, **kwargs)
-    self.a   = np.full((KObs+1,)+item_shape, nan, **kwargs)
-    self.s   = np.full((KObs+1,)+item_shape, nan, **kwargs)
+    self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+    self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+    if store_s:
+        self.s = np.full((KObs+1,)+item_shape, nan, **kwargs)
     if store_u:
-      self.u = np.full((K   +1,)+item_shape, nan, **kwargs)
+        self.u = np.full((K   +1,)+item_shape, nan, **kwargs)
     else:
-      self.u = np.full((     1,)+item_shape, nan, **kwargs)
+        self.u = np.full((     1,)+item_shape, nan, **kwargs)
 
-  item_shape = property(lambda self: self.a.shape[1:])
-  store_u    = property(lambda self: len(self.u)>1)
+  # We could just store the input values for these attrs, but using
+  # property => Won't be listed in vars(self), and un-writeable.
+  item_shape = property( lambda self: self.a.shape[1:] )
+  store_u    = property( lambda self: len(self.u)>1    )
   
   def _ind(self,key):
     "Aux function to unpack ``key`` (k,kObs,faus)"

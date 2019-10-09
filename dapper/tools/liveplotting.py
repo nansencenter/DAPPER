@@ -222,8 +222,8 @@ class sliding_diagnostics:
       divN = 1/getattr(stats.config,'N',99)
       # RMS
       style1 = {
-          'rmse'    : [None        , None   , dict(c='k'      , label='Error'            )],
-          'rmv'     : [None        , None   , dict(c='b'      , label='Spread', alpha=0.6)],
+          'err_rms' : [None        , None   , dict(c='k'      , label='Error'            )],
+          'std_rms' : [None        , None   , dict(c='b'      , label='Spread', alpha=0.6)],
         }
       # OTHER         transf       , shape  , plt kwargs
       style2 = OrderedDict([
@@ -369,7 +369,7 @@ class sliding_diagnostics:
       update_plot_data(ax2, self.d2)
 
       # Set x-limits (time)
-      sliding_xlim(ax1, self.d1['rmse']['tt'], self.T_lag, margin=True)
+      sliding_xlim(ax1, self.d1['err_rms']['tt'], self.T_lag, margin=True)
       self.baseline0.set_xdata(ax1.get_xlim())
 
       # Set y-limits
@@ -417,7 +417,8 @@ class weight_histogram:
     ax.set_ylabel('Count')
     self.stats = stats
     self.ax    = ax
-    self.init_incomplete = True
+    self.hist  = []
+    self.bins  = exp( linspace( log(1e-10), log(1), 31 ) )
 
   def __call__(self,key,E,P):
     k,kObs,faus = key
@@ -426,17 +427,13 @@ class weight_histogram:
       N  = len(w)
       ax = self.ax
 
-      if self.init_incomplete:
-        self.init_incomplete = False
-        self.is_active = N<10001
-        self.bins = exp( linspace( log(1e-10), log(1), 31 ) )
-        if not self.is_active:
+      self.is_active = N<10001
+      if not self.is_active:
           not_available_text(ax,'Not computed (N > threshold)')
           return
-      else:
-        _ = [b.remove() for b in self.hist]
 
       counted = w>self.bins[0]
+      _ = [b.remove() for b in self.hist]
       nn,_,self.hist = ax.hist(w[counted], bins=self.bins, color='b')
       ax.set_ylim(top=max(nn))
 
@@ -549,6 +546,7 @@ class correlations:
       self.line_AC = line_AC
       self.line_AA = line_AA
       self.mask    = mask
+      self.w       = stats.w
     else:
       not_available_text(ax)
 
@@ -556,7 +554,7 @@ class correlations:
   def __call__(self,key,E,P):
     # Get cov matrix
     if E is not None:
-      C = np.cov(E,rowvar=False)
+      C = np.cov(E,aweights=self.w[key],rowvar=False)
     else:
       assert P is not None
       C = P.full if isinstance(P,CovMat) else P
@@ -592,7 +590,7 @@ def sliding_marginals(
   params_orig = Bunch(**locals())
 
   def init(fignum,stats,key0,plot_u,E,P,**kwargs):
-    xx, yy, mu, var, chrono = stats.xx, stats.yy, stats.mu, stats.var, stats.HMM.t
+    xx, yy, mu, std, chrono = stats.xx, stats.yy, stats.mu, stats.std, stats.HMM.t
 
     # Set parameters (kwargs takes precedence over params_orig)
     p = Bunch(**{kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
@@ -662,7 +660,7 @@ def sliding_marginals(
       for Ens in EE: # If E is duplicated, so must the others be.
         if 'E'  in d: d.E .insert(ind, Ens)
         if 'mu' in d: d.mu.insert(ind, mu[key][DimsX])
-        if 's'  in d: d.s .insert(ind, mu[key][DimsX] + [[1],[-1]]*sqrt(var[key][DimsX]))
+        if 's'  in d: d.s .insert(ind, mu[key][DimsX] + [[1],[-1]]*std[key][DimsX])
         if True     : d.t .insert(ind, chrono.tt[k])
         if True     : d.y .insert(ind, yy[kObs,iiY] if kObs is not None else nan*ones(Ny))
         if True     : d.x .insert(ind, xx[k,DimsX])
@@ -696,7 +694,7 @@ def phase3d(
   params_orig = Bunch(**locals())
 
   def init(fignum,stats,key0,plot_u,E,P,**kwargs):
-    xx, yy, mu, var, chrono = stats.xx, stats.yy, stats.mu, stats.var, stats.HMM.t
+    xx, yy, mu, std, chrono = stats.xx, stats.yy, stats.mu, stats.std, stats.HMM.t
     M = 3 # Only applicable for 3d plots
 
     # Set parameters (kwargs takes precedence over params_orig)
@@ -1010,19 +1008,14 @@ def spatial1d(
       k,kObs,faus = key
 
       if p.conf_mult:
-        sigma = mu[key] + p.conf_mult * sqrt(stats.var[key]) * [[1],[-1]]
+        sigma = mu[key] + p.conf_mult * stats.std[key] * [[1],[-1]]
         lines_s[0].set_ydata(wrap(sigma[0,p.dims]))
         lines_s[1].set_ydata(wrap(sigma[1,p.dims]))
         line_mu   .set_ydata(wrap(mu[key][p.dims]))
       else:
         for n,line in enumerate(lines_E):
           line.set_ydata(wrap(E[n,p.dims]))
-
-        if hasattr(stats,'w'):
-          w    = stats.w[key]
-          wmax = w.max()
-          for n,line in enumerate(lines_E):
-            line.set_alpha((w[n]/wmax).clip(0.1))
+        update_alpha(key, stats, lines_E)
 
       line_x.set_ydata(wrap(xx[k,p.dims]))
 
@@ -1078,16 +1071,16 @@ def spatial2d(
     ax_23 = fig.add_axes([bb.x1+0.03, bb.y0 + dy, 0.04, bb.height - 2*dy])
 
     # Extract data arrays
-    xx, yy, mu, var, err = stats.xx, stats.yy, stats.mu, stats.var, stats.err
+    xx, yy, mu, std, err = stats.xx, stats.yy, stats.mu, stats.std, stats.err
     k = key0[0]
     tt = stats.HMM.t.tt
 
     # Plot
     # - origin='lower' might get overturned by set_ylim() below.
-    im_11 = ax_11.imshow(square(mu[k])       , cmap=cm) 
-    im_12 = ax_12.imshow(square(xx[k])       , cmap=cm)
-    im_21 = ax_21.imshow(square(sqrt(var[k])), cmap=plt.cm.bwr) # hot is better, but needs +1 colorbar
-    im_22 = ax_22.imshow(square(err[k])      , cmap=plt.cm.bwr)
+    im_11 = ax_11.imshow(square(mu[k]) , cmap=cm) 
+    im_12 = ax_12.imshow(square(xx[k]) , cmap=cm)
+    im_21 = ax_21.imshow(square(std[k]), cmap=plt.cm.bwr) # hot is better, but needs +1 colorbar
+    im_22 = ax_22.imshow(square(err[k]), cmap=plt.cm.bwr)
     ims = (im_11, im_12, im_21, im_22)
     # Obs init -- a list where item 0 is the handle of something invisible.
     lh = list(ax_12.plot(0,0)[0:1])
@@ -1128,10 +1121,10 @@ def spatial2d(
       k,kObs,faus = key
       t = tt[k]
 
-      im_11.set_data(square( mu[key])        )
-      im_12.set_data(square( xx[k])          )
-      im_21.set_data(square( sqrt(var[key])) )
-      im_22.set_data(square( err[key])       )
+      im_11.set_data(square( mu[key]  ))
+      im_12.set_data(square( xx[k]    ))
+      im_21.set_data(square( std[key] ))
+      im_22.set_data(square( err[key] ))
 
       # Remove previous obs
       try:

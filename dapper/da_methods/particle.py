@@ -416,8 +416,9 @@ def trigger_resampling(w,NER,stat_args):
   stats.resmpl[kObs] = 1 if do_resample else 0
 
   # Why have we put stats.assess() here?
-  # Because we need to write stats.N_eff and stats.resmpl before calling assess()
-  # so that the liveplotting does not eliminate these curves (as inactive).
+  # Because we need to write stats.N_eff and stats.resmpl before calling
+  # assess() so that these curves (in sliding_diagnostics liveplotting
+  # are not eliminated (as inactive).
   stats.assess(k,kObs,'a',E=E,w=w)
 
   return do_resample

@@ -93,8 +93,8 @@ def weight_degeneracy(w,prec=1e-10):
   return (1-w.max()) < prec
 
 def unbias_var(w=None,N_eff=None,avoid_pathological=False):
-  """
-  Compute unbias-ing factor for variance estimation.
+  """Compute unbias-ing factor for variance estimation.
+
   wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
   """
   if N_eff is None:

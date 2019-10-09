@@ -15,16 +15,16 @@ class HiddenMarkovModel(NestedPrint):
     self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)
     self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)
 
-    # Assign name
+    # Name
     name = inspect.getfile(inspect.stack()[1][0])
     self.name = os.path.relpath(name,'mods/')
 
-    # Assign kwargs
+    # Kwargs
     de_abbreviate(kwargs, [('LP','liveplotters')])
     for key, value in kwargs.items():
       setattr(self, key, value)
 
-    # Assign defaults
+    # Defaults
     if not hasattr(self.Obs,"localizer"): self.Obs.localizer = no_localization(self.Nx, self.Ny)
     if not hasattr(self    ,"regions")  : self.regions       = {}
 
@@ -94,6 +94,7 @@ class Operator(NestedPrint):
   # Print options
   ordering = ['M','model','noise']
 
+implicit_field = lambda x: dc.field(default=x, repr=False, compare=False)
 
 @dc.dataclass
 class _da_defaults:
@@ -101,11 +102,105 @@ class _da_defaults:
 
     NB: The da_method's are created at startup.
         => changing this later has no effect."""
-    implicit = lambda x: dc.field(default=x, repr=0, compare=0)
 
-    liveplots   : bool = implicit(False)
-    store_u     : bool = implicit(rc['store_u'])
-    fail_gently : bool = implicit(rc['fail_gently'])
+    liveplots   : bool = implicit_field(False)
+    store_u     : bool = implicit_field(False)
+    fail_gently : bool = implicit_field(True)
+
+
+def da_method(*default_dcs): 
+    """Make the decorator that makes the DA classes.
+
+    Example:
+    >>> @dc.dataclass
+    >>> class ens_defaults:
+    >>>   infl          : float = 1.0
+    >>>   rot           : bool  = False
+    >>> 
+    >>> @da_method(ens_defaults)
+    >>> class EnKF:
+    >>>     N     : int
+    >>>     upd_a : str = "Sqrt"
+    >>> 
+    >>>     def assimilate(self,HMM,xx,yy):
+    >>>         ...
+    """
+
+    def dataclass_with_defaults(cls):
+        """Decorator based on dataclass.
+
+        This adds __init__, __repr__, __eq__, ..., but also includes
+        inherited defaults (see stackoverflow.com/a/58130805).
+
+        Also:
+         - Wraps assimilate() to provide gentle_fail functionality.
+         - Initialises and writes the Stats object.
+         - Adds average_stats(), print_averages()."""
+
+
+        # Default fields invovle: (1) annotations and (2) attributes.
+        if not hasattr(cls,'__annotations__'):
+            cls.__annotations__ = {}
+        def set_field(name,type,val):
+            cls.__annotations__[name] = type
+            if not isinstance(val,dc.Field):
+                val = dc.field(default=val)
+            setattr(cls, name, val)
+
+        # APPend default fields without overwriting.
+        # Don't implement (by PREpending?) non-default args -- to messy!
+        for D in default_dcs + (_da_defaults,):
+            # Calling dataclass twice always makes repr=True, so avoid this.
+            try:              fields = dc.fields(D)
+            except TypeError: fields = dc.fields(dc.dataclass(D))
+            for F in fields:
+                if F.name not in cls.__annotations__:
+                    set_field(F.name,F.type,F)
+
+        # Programmatic defaults (for the class):
+        set_field('store_s', bool, implicit_field('Lag' in cls.__annotations__))
+
+        # Create new class (NB: old/new classes have same id) 
+        orig_assimilate = cls.assimilate # => store old.assimilate
+        cls = dc.dataclass(cls)
+
+
+
+
+        # Shortcut for self.__class__.__name__
+        cls.da_method = cls.__name__
+
+        # Add instance methods
+        def method(fun):
+            setattr(cls,fun.__name__,fun)
+            return fun
+
+        @method
+        @functools.wraps(orig_assimilate)
+        def assimilate(self,HMM,xx,yy,desc=None):
+            pb_name_hook = self.da_method if desc is None else desc
+            self.stats = Stats(self,HMM,xx,yy)
+            call_gently(orig_assimilate,self,HMM,xx,yy)
+
+        @method
+        def average_stats(self,free=False):
+            """Average (in time) all of the time series in the Stats object.
+
+            If ``free``: del ref to Stats object."""
+            self.avrgs = self.stats.average_in_time()
+            if free:
+                delattr(self,'stats')
+
+        @method
+        def print_avrgs(self,keys=()):
+            """Tabulated print of averages (those requested by ``keys``)"""
+            cfgs = List_of_Configs([self])
+            cfgs.print_avrgs(keys)
+
+        method(replay)
+
+        return cls
+    return dataclass_with_defaults
 
 
 class AssimFailedError(RuntimeError):
@@ -148,83 +243,6 @@ def call_gently(fun,self,*args):
             for s in msg: print(s,file=sys.stderr)
         else: 
             raise ERR
-
-def da_method(*default_dcs): 
-    """Make the decorator that makes the DA classes.
-
-    Example:
-    >>> @dc.dataclass
-    >>> class ens_defaults:
-    >>>   infl          : float = 1.0
-    >>>   rot           : bool  = False
-    >>> 
-    >>> @da_method(ens_defaults)
-    >>> class EnKF:
-    >>>     N     : int
-    >>>     upd_a : str = "Sqrt"
-    >>> 
-    >>>     def assimilate(self,HMM,xx,yy):
-    >>>         ...
-    """
-
-    def dataclass_with_defaults(cls):
-        """Decorator based on dataclass.
-
-        This adds __init__, __repr__, __eq__, ..., but also includes
-        inherited defaults (see stackoverflow.com/a/58130805).
-
-        Also:
-         - Wraps assimilate() to provide gentle_fail functionality.
-         - Initialises and writes the Stats object.
-         - Adds average_stats(), print_averages()."""
-        # Store
-        orig_assimilate = cls.assimilate
-
-        # Add default_dcs fields AFTER cls's. NB: do not implement support
-        # for non-default args (e.g. by placing them first) -- to messy!
-        if not hasattr(cls,'__annotations__'):
-            cls.__annotations__ = {}
-        for defaults in default_dcs + (_da_defaults,):
-            for f in dc.fields(dc.dataclass(defaults)):
-                if f.name not in cls.__annotations__:    # Don't overwrite
-                    cls.__annotations__[f.name] = f.type # Add annotation
-                    setattr(cls,f.name,f)                # Add attribute
-        cls = dc.dataclass(cls)                          # New class (NB: same id)
-
-        # Shortcut for self.__class__.__name__
-        cls.da_method = cls.__name__
-
-        def method(fun):
-            setattr(cls,fun.__name__,fun)
-            return fun
-
-        @method
-        @functools.wraps(orig_assimilate)
-        def assimilate(self,HMM,xx,yy,desc=None):
-            pb_name_hook = self.da_method if desc is None else desc
-            self.stats = Stats(self,HMM,xx,yy)
-            call_gently(orig_assimilate,self,HMM,xx,yy)
-
-        @method
-        def average_stats(self,free=False):
-            """Average (in time) all of the time series in the Stats object.
-
-            If ``free``: del ref to Stats object."""
-            self.avrgs = self.stats.average_in_time()
-            if free:
-                delattr(self,'stats')
-
-        @method
-        def print_avrgs(self,keys=()):
-            """Tabulated print of averages (those requested by ``keys``)"""
-            cfgs = List_of_Configs([self])
-            cfgs.print_avrgs(keys)
-
-        method(replay)
-
-        return cls
-    return dataclass_with_defaults
-
 
 class List_of_Configs(list):
   """List, customized for holding ``da_method`` objects ("configs").
@@ -312,18 +330,29 @@ class List_of_Configs(list):
 
     def _aggregate_keys():
       "Aggregate keys from all configs"
-      if len(self)==0:
-          return []
-      keys  = ['da_method'] # Start with da_method
+      if len(self)==0: return []
+      # Start with da_method
+      aggregate = ['da_method']
       # Aggregate all other keys
       for config in self:
+          # Get dataclass fields
+          dc_fields = dc.fields(config.__class__)
+          dc_names = [F.name for F in dc_fields]
+          # For all potential keys:
           for k in config.__dict__.keys():
-              if k not in keys: keys.append(k)
+              # If not already present:
+              if k not in aggregate:
+                  # If dataclass, check repr:
+                  if k in dc_names:
+                      if dc_fields[dc_names.index(k)].repr:
+                          aggregate.append(k)
+                  # Else, just append
+                  else:
+                      aggregate.append(k)
       # Remove unwanted
       excluded  = [re.compile('^_'),'avrgs','stats','HMM']
-      excluded += [f.name for f in dc.fields(_da_defaults) if not f.repr]
-      keys = filter_out(keys,*excluded)
-      return keys
+      aggregate = filter_out(aggregate,*excluded)
+      return aggregate
 
     distinct, redundant, common = {}, {}, {}
 
@@ -381,9 +410,9 @@ class List_of_Configs(list):
         Pad with 'æ' to avoid later auto-cropping by tabulate()."""
         # Defaults averages
         if not statkeys:
-          statkeys = ['rmse_a','rmv_a','rmse_f']
+          statkeys = ['err.rms.a','std.rms.a','err.rms.f']
     
-        def align(col,header):
+        def tabulate_column(col,header):
             "Align single column (with decimal alignment) using tabulate()"
             col = tabulate_orig.tabulate(col,[header],'plain')
             col = col.splitlines()
@@ -397,19 +426,19 @@ class List_of_Configs(list):
 
         # Fill in
         headr, mattr = [], []
-        for key in statkeys:
+        for stat_name in statkeys:
             # Get vals, confs
             vals, confs = [], []
             for config in self:
-                vc = config.avrgs.get(key,None)
+                vc = deep_getattr(config.avrgs,stat_name,None)
                 if vc is None:         val,conf = None,None
                 elif decimals is None: val,conf = vc.round(mult=0.2)
                 else:                  val,conf = np.round([vc.val, vc.conf],decimals)
                 vals .append([val])
                 confs.append([conf])
             # Align
-            vals  = align(vals , key)
-            confs = align(confs, '1σ')
+            vals  = tabulate_column(vals , stat_name)
+            confs = tabulate_column(confs, '1σ')
             # Enter in headr, mattr
             headr.append(vals[0]+'  1σ')
             mattr.append([v +' ±'+c for v,c in zip(vals,confs)][1:])

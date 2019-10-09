@@ -1,19 +1,18 @@
 Todo
 ================================================
 
+* Make land_ocean example
+* Clean up rmse_ rmv_
+* Abbreviate rmse
 * Make stats.region['glob'].FAU = array
-* stats.rmse[kObs,'a']
-* stats.rmse.a[kObs]
 * Change KObs to KObs-1
-* Indentation
+* https://stackoverflow.com/q/1024435/how-to-fix-python-indentation
 
 * Improve docs
 * Make superclasses for the filter, smoother, and iterative smoother.
+* Note (somewhere) the implicit dependence on t=0 being special
 * Simplify and/or generalize time management?
 * Simplify and/or improve cov matrix stuff.
-* Note (somewhere) the implicit dependence on t=0 being special
-* Use pandas for stats time series?
-* https://stackoverflow.com/q/1024435/how-to-fix-python-indentation
 
 Bugs:
 * Window focus.

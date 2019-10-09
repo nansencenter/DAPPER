@@ -291,7 +291,7 @@ def plot_err_components(stats):
   else:
     not_available_text(ax1)
 
-  rmse = stats.rmse.a[chrono.maskObs_BI]
+  rmse = stats.err_rms.a[chrono.maskObs_BI]
   ax2.hist(rmse,bins=30,density=False)
   ax2.set_ylabel('Num. of occurence (_a)')
   ax2.set_xlabel('RMSE')

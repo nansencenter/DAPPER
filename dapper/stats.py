@@ -15,14 +15,13 @@ class Stats(NestedPrint):
   def __init__(self,config,HMM,xx,yy):
     """Init the default statistics.
 
-    Note: you may also allocate & compute individual stats elsewhere
-          (Python allows dynamic class attributes).
-          For example at the top of your experimental DA method,
-          which avoids "polluting" this space.
+    Note: Python allows dynamically creating attributes, so you can easily
+    add custom stat. series to a Stat instance within a particular method,
+    for example. Use ``new_series`` to get automatic averaging too.
     """
 
     ######################################
-    # Save twin experiment settings 
+    # Preamble
     ######################################
     self.config  = config
     self.xx      = xx
@@ -37,40 +36,58 @@ class Stats(NestedPrint):
     self.K   , self.Nx = K   , Nx
     self.KObs, self.Ny = KObs, Ny
 
+    # Methods for summarizing multivariate stats ("fields") as scalars
+    self.field_summation = dict(
+            # Don't use nanmean here; nan's should get propagated!
+            # suffix              formula
+            m         = lambda x: mean(x)           , # mean-field
+            rms       = lambda x: sqrt(mean(x**2))  , # root-mean-square
+            ma        = lambda x: mean(abs(x))      , # mean-absolute
+            gm        = lambda x: exp(mean(log(x))) , # geometric mean
+            )
+    # Only keep the methods listed in rc
+    self.field_summation = {k:v for k,v in self.field_summation.items()
+            if k in rc['stat']['field_summary_methods'].split(',')}
+
+    # Define similar methods, but restricted to regions
+    self.region_summation = {}
+    restrict = lambda fun, inds: (lambda x: fun(x[inds]))
+    for suffix, formula in self.field_summation.items():
+        for region, inds in HMM.regions.items():
+            f = restrict(formula,inds)
+            self.region_summation['%s.%s'%(suffix,region)] = f
+
 
     ######################################
     # Allocate time series of various stats
     ######################################
-    self.data_register = [] # Register of names of series
-    self.included = self.data_register # Repr: only these
+    self.new_series('mu'    ,Nx, MS='reg') # Mean
+    self.new_series('std'   ,Nx, MS='reg') # Std. dev. ("spread")
+    self.new_series('err'   ,Nx, MS='reg') # Error (mu - truth)
+    self.new_series('gscore',Nx, MS='reg') # Gaussian (log) score
 
-    self.new_series('mu' ,Nx) # Mean
-    self.new_series('var',Nx) # Variances
-    self.new_series('std',Nx) # Spread
-    self.new_series('mad',Nx) # Mean abs deviations
-    self.new_series('err',Nx) # Error (mu - truth)
-
-    self.new_series('logp_m',1)  # Marginal ,Gaussian Log score
-    self.new_series('skew'  ,1)  # Skewness
-    self.new_series('kurt'  ,1)  # Kurtosis
-    self.new_series('rmv'   ,1)  # Root-mean variance
-    self.new_series('rmse'  ,1)  # Root-mean square error
+    # To save memory, we only store these field means:
+    self.new_series('mad' ,1) # Mean abs deviations
+    self.new_series('skew',1) # Skewness
+    self.new_series('kurt',1) # Kurtosis
 
     if hasattr(config,'N'):
-      # Ensemble-only init
-      self._is_ens = True
       N            = config.N
-      minN         = min(Nx,N)
-      self.new_series('w',N)             # Importance weights
+      self.new_series('w',N, MS=True)    # Importance weights
       self.new_series('rh',Nx,dtype=int) # Rank histogram
+
+      self._is_ens = True
+      minN         = min(Nx,N)
       do_spectral  = sqrt(Nx*N) <= rc['comp_threshold_b']
     else:
-      # Linear-Gaussian assessment
       self._is_ens = False
       minN         = Nx
       do_spectral  = Nx <= rc['comp_threshold_b']
 
     if do_spectral:
+      # Note: the mean-field and RMS time-series of
+      # (i) svals and (ii) umisf should match the corresponding series of
+      # (i) std and (ii) err.
       self.new_series('svals',minN) # Principal component (SVD) scores
       self.new_series('umisf',minN) # Error in component directions
 
@@ -78,30 +95,61 @@ class Stats(NestedPrint):
     ######################################
     # Allocate a few series for outside use
     ######################################
-    self.new_series('trHK'  , (), KObs+1)
-    self.new_series('infl'  , (), KObs+1)
-    self.new_series('iters' , (), KObs+1)
+    self.new_series('trHK'  , 1, KObs+1)
+    self.new_series('infl'  , 1, KObs+1)
+    self.new_series('iters' , 1, KObs+1)
 
     # Weight-related
-    self.new_series('N_eff' , (), KObs+1)
-    self.new_series('wroot' , (), KObs+1)
-    self.new_series('resmpl', (), KObs+1)
+    self.new_series('N_eff' , 1, KObs+1)
+    self.new_series('wroot' , 1, KObs+1)
+    self.new_series('resmpl', 1, KObs+1)
+
+    self.included = self.data_series
 
 
-  def new_series(self,name,shape,length='FAUSt',**kwargs):
+  def new_series(self,name,shape,length='FAUSt',MS=False,**kwargs):
       """Create (and register) a statistics time series.
 
+      Series are initialized with nan's.
+
       Example: Create ndarray of length KObs+1 for inflation time series:
-      >>> self.new_series('infl', (), KObs+1)
+      >>> self.new_series('infl', 1, KObs+1)
 
       NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``'s
           to avoid plotting stats that are not being used.
           => Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
       """
-      if length=='FAUSt': series = FAUSt(self.K,self.KObs,shape,self.config.store_u, **kwargs)
-      else              : series = np.full((length,)+shape, nan, **kwargs)
-      setattr(self, name, series)     # Write
-      self.data_register.append(name) # Register
+
+      # Convert int shape to tuple
+      if not hasattr(shape, '__len__'):
+        if shape==1: shape = ()
+        else:        shape = (shape,)
+
+      def make_series(shape,**kwargs):
+          # Principal series
+          if length=='FAUSt':
+              return FAUSt(self.K, self.KObs, shape,
+                      self.config.store_u, self.config.store_s, **kwargs)
+          else:
+              return DataSeries((length,)+shape,**kwargs)
+
+      series = make_series(shape)
+      setattr(self, name, series)
+
+      # Summary (scalar) series:
+      if shape!=():
+          if MS:
+              for suffix in self.field_summation:
+                  deep_setattr(series,suffix,make_series(()))
+          if MS=='reg':
+              for suffix in self.region_summation:
+                  deep_setattr(series,suffix,make_series(()))
+
+
+
+  @property
+  def data_series(self):
+      return [k for k in vars(self) if isinstance(getattr(self,k),DataSeries)]
 
 
   def assess(self,k,kObs=None,faus=None,
@@ -159,11 +207,15 @@ class Stats(NestedPrint):
 
             # Call assessment
             stats_now = Bunch()
-            _assess(stats_now,self.xx[k],**_prms)
+            _assess(stats_now, self.xx[k], **_prms)
+            self.derivative_stats(stats_now)
+            self.summarize_marginals(stats_now)
 
         # Write current stats to series
-        for stat,val in stats_now.items():
-            getattr(self,stat)[(k,kObs,sub)] = val
+        for name,val in stats_now.items():
+            stat = deep_getattr(self,name)
+            if isinstance(stat,FAUSt): stat[(k,kObs,sub)] = val
+            else:                      stat[kObs]         = val
 
         # LivePlot -- Both initiation and update must come after the assessment.
         if rc['liveplotting_enabled']:
@@ -173,22 +225,40 @@ class Stats(NestedPrint):
             self.LP_instance.update((k,kObs,sub),E,Cov)
 
 
+  def summarize_marginals(self,now):
+    "Compute Mean-field and RMS values"
+    for stat in list(now):
+        field = now[stat]
+        # if hasattr(field,'__len__'): # already ensured in new_series()
+        with np.errstate(divide='ignore',invalid='ignore'):
+            means = {**self.field_summation, **self.region_summation}
+            for suffix, formula in means.items():
+                statpath = stat+'.'+suffix
+                if deep_hasattr(self, statpath):
+                    now[statpath] = formula(field)
+
+
+  def derivative_stats(self,now):
+    """Stats that derive from others (=> not specific for _ens or _ext)."""
+    now.gscore = 2*log(now.std) + (now.err/now.std)**2
+
+
   def assess_ens(self,now,x,E,w):
     """Ensemble and Particle filter (weighted/importance) assessment."""
     N,Nx = E.shape
 
     if w is None: 
-      w = ones(N)/N # No weights. Also, rm attr from stats:
+      w = ones(N)/N # All equal. Also, rm attr from stats:
       if hasattr(self,'w'):
         delattr(self,'w')
-        self.data_register.remove('w')
     else:
       now.w = w
       if abs(w.sum()-1) > 1e-5:    raise_AFE("Weights did not sum to one.")
     if not np.all(np.isfinite(E)): raise_AFE("Ensemble not finite.")
     if not np.all(np.isreal(E)):   raise_AFE("Ensemble not Real.")
 
-    now.mu = w @ E
+    now.mu  = w @ E
+    now.err = now.mu - x
     A = E - now.mu
 
     # While A**2 is approx as fast as A*A,
@@ -197,21 +267,24 @@ class Stats(NestedPrint):
     # But, to save memory, only use A_pow.
     A_pow = A**2
 
-    now.var = w @ A_pow
-    now.mad = w @ abs(A) # Mean abs deviations
+    # Compute variances
+    var  = w @ A_pow
+    ub   = unbias_var(w,avoid_pathological=True)
+    var *= ub
 
-    ub       = unbias_var(w,avoid_pathological=True)
-    now.var *= ub
+    # Compute standard deviation ("Spread")
+    std = sqrt(var) # NB: biased (even though var is unbiased)
+    now.std = std
     
     # For simplicity, use naive (biased) formulae, derived
     # from "empirical measure". See doc/unbiased_skew_kurt.jpg.
     # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
     A_pow *= A
-    now.skew = np.nanmean( w @ A_pow / now.var**(3/2) )
+    now.skew = np.nanmean( w @ A_pow / (std*std*std) )
     A_pow *= A
-    now.kurt = np.nanmean( w @ A_pow / now.var**2 - 3 )
+    now.kurt = np.nanmean( w @ A_pow / var**2 - 3 )
 
-    self.derivative_stats(now,x)
+    now.mad  = np.nanmean( w @ abs(A) )
 
     if hasattr(self,'svals'):
       if N<=Nx:
@@ -227,8 +300,8 @@ class Stats(NestedPrint):
         now.umisf = U.T[::-1] @ now.err
 
       # For each state dim [i], compute rank of truth (x) among the ensemble (E)
-      Ex_sorted = np.sort(np.vstack((E,x)),axis=0,kind='heapsort')
-      now.rh    = [np.where(Ex_sorted[:,i] == x[i])[0][0] for i in range(Nx)]
+      E_x = np.sort(np.vstack((E,x)),axis=0,kind='heapsort')
+      now.rh = np.asarray([np.where(E_x[:,i]==x[i])[0][0] for i in range(Nx)])
 
 
   def assess_ext(self,now,x,mu,P):
@@ -240,10 +313,13 @@ class Stats(NestedPrint):
     # Don't check the cov (might not be explicitly availble)
 
     now.mu  = mu
-    now.var = P.diag if isinstance(P,CovMat) else diag(P)
-    now.mad = sqrt(now.var)*sqrt(2/pi) # sqrt(2/pi): ratio, Gaussian MAD/STD
+    now.err = now.mu - x
 
-    self.derivative_stats(now,x)
+    var = P.diag if isinstance(P,CovMat) else diag(P)
+    now.std = sqrt(var)
+
+    # Here, sqrt(2/pi) is the ratio, of MAD/STD for Gaussians
+    now.mad = np.nanmean( now.std ) * sqrt(2/pi)
 
     if hasattr(self,'svals'):
       P         = P.full if isinstance(P,CovMat) else P
@@ -252,75 +328,55 @@ class Stats(NestedPrint):
       now.umisf = (U.T @ now.err)[::-1]
 
 
-  def derivative_stats(self,now,x):
-    """Stats that apply derive from the others, and apply for both _ens and _ext"""
-    now.err  = now.mu - x
-
-    now.rmv  = sqrt(mean(now.var))
-    now.rmse = sqrt(mean(now.err**2))
-    self.MGLS(now)
-    
-  def MGLS(self,now):
-    "Marginal Gaussian Log Score."
-    Nx         = len(now.err)
-    ldet       = log(now.var).sum()
-    nmisf      = now.var**(-1/2) * now.err
-    logp_m     = (nmisf**2).sum() + ldet
-    now.logp_m = logp_m/Nx
-
-
   def average_in_time(self,kk=None,kkObs=None):
       """Avarage all univariate (scalar) time series.
 
       - ``kk``    time inds for averaging
       - ``kkObs`` time inds for averaging obs
       """
-      avrg = AlignedDict()
-
       chrono = self.HMM.t
       if kk    is None: kk     = chrono.mask_BI
       if kkObs is None: kkObs  = chrono.maskObs_BI
 
-      def average_multivariate():
-        raise NotImplementedError(
-        """Plain averages of nd-series are rarely interesting.
-        => Leave for manual computations.""")
+      def compute(series):
+          avrgs = Bunch()
 
-      for key in self.data_register:
+          def average_multivariate(): return avrgs
+          # Plain averages of nd-series are rarely interesting.
+          # => Leave for manual computations
 
-          if hasattr(self,key):
-              series = getattr(self,key)
-          else:
-              continue
+          if isinstance(series,FAUSt):
+              # Average series for each subscript
+              if series.item_shape != ():
+                  return average_multivariate()
+              for sub in [ch for ch in 'afs' if hasattr(series,ch)]:
+                  avrgs[sub] = series_mean_with_conf(series[kkObs,sub])
+              if series.store_u:
+                  avrgs['u'] = series_mean_with_conf(series[kk,'u'])
 
-          try:
-              if isinstance(series,FAUSt):
-                  # Average series for each subscript
-                  if series.item_shape != ():
-                      average_multivariate()
-                  for sub in 'afs':
-                      avrg[key+'_'+sub] = series_mean_with_conf(series[kkObs,sub])
-                  if series.store_u:
-                      avrg[key+'_u'] = series_mean_with_conf(series[kk,'u'])
+          elif isinstance(series,DataSeries):
+              if series.array.shape[1:] != ():
+                  return average_multivariate()
+              elif len(series.array) == self.KObs+1:
+                  avrgs = series_mean_with_conf(series[kkObs])
+              elif len(series.array) == self.K+1:
+                  avrgs = series_mean_with_conf(series[kk])
+              else: raise ValueError
+          return avrgs
 
-              elif isinstance(series,np.ndarray):
-                  # Average the array
-                  if series.ndim > 1:
-                      avrg[key] = average_multivariate()
-                  elif len(series) == self.KObs+1:
-                      avrg[key] = series_mean_with_conf(series[kkObs])
-                  elif len(series) == self.K+1:
-                      avrg[key] = series_mean_with_conf(series[kk])
-                  else:
-                      raise ValueError
-              
-              else:
-                  raise NotImplementedError
+      def recursive_avrgs(stat_parent,avrgs_parent):
+          for key,series in vars(stat_parent).items(): # Loop data_series
+              if not isinstance(series,DataSeries): continue
 
-          except NotImplementedError:
-            pass
+              avrgs = compute(series)
+              avrgs_parent[key] = avrgs
 
-      return avrg
+              recursive_avrgs(series,avrgs)
+
+      avrgs = Bunch()
+      avrgs.ordr_by_linenum=None
+      recursive_avrgs(self,avrgs)
+      return avrgs
 
 @do_once
 def warn_zero_variance(err,flag):

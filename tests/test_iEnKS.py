@@ -36,7 +36,7 @@ for c in cfgs:
 xx,yy = HMM.simulate()
 
 cfgs.assimilate(HMM,xx,yy,sd0+2)
-cfgs.print_avrgs(['rmse_u','rmse_s'])
+cfgs.print_avrgs(['err.rms.u','err.rms.s'])
 
 
 ##############################
@@ -47,8 +47,11 @@ inds = cfgs.inds # lookup inds
 def allsame(xx): 
   return np.allclose(xx, xx[0], atol=1e-10, rtol=0) # rtol=0 => only atol matters.
 
-def gr(ii,f_a_u): # grab_rmses
-  return [cfgs[i].avrgs['rmse_'+f_a_u].val for i in ii]
+def gr(ii,sub): # grab_rmses
+    def get_val(i):
+        try: return deep_getattr(cfgs[i].avrgs,'err.rms.'+sub).val
+        except AttributeError: return nan
+    return [get_val(i) for i in ii]
 
 
 ##############################
