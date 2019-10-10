@@ -510,6 +510,22 @@ class NameFunc():
       return NamedFunc(fn,self.fn_name)
 
 
+def functools_wraps(wrapped, lineno=1, *args, **kwargs):
+    """Like functools.wraps(), but keeps lines[0:lineno] of orig. docstring."""
+    doc = wrapped.__doc__.splitlines()[lineno:]
+
+    def wrapper(orig):
+        orig_header = orig.__doc__.splitlines()[:lineno]
+
+        @functools.wraps(wrapped,*args,**kwargs)
+        def new(*args2,**kwargs2):
+            return orig(*args2,**kwargs2)
+
+        new.__doc__ = "\n".join(orig_header + doc)
+        return new
+
+    return wrapper
+
 
 #########################################
 # Misc

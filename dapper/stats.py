@@ -398,3 +398,45 @@ def raise_AFE(msg,key=None):
   raise AssimFailedError(msg)
 
 
+def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
+    """Tabulate avrgs (val±conf).
+
+    - ``statkeys``: list of keys of statistics to include.
+    """
+    # Defaults averages
+    if not statkeys:
+      statkeys = ['rmse.a','rmv.a','rmse.f']
+  
+    # Abbreviations
+    abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
+    de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
+  
+    def tabulate_column(col,header):
+        """Align single column (on decimal pt) using tabulate().
+        Pad for equal length."""
+        col = tabulate_orig.tabulate(col,[header],'plain').splitlines()
+        mxW = max(len(s) for s in col)
+        col = [s + ' '*(mxW-len(s)) for s in col]
+        col = [s.replace(' ',pad)   for s in col]
+        return col
+  
+    # Fill in
+    headr, mattr = [], []
+    for column in statkeys:
+        # Get vals, confs
+        vals, confs = [], []
+        for avrgs in avrgs_list:
+            uq = deep_getattr(avrgs,de_abbrev(column),None)
+            if uq is None:         val,conf = None,None
+            elif decimals is None: val,conf = uq.round(mult=0.2)
+            else:                  val,conf = np.round([uq.val, uq.conf],decimals)
+            vals .append([val])
+            confs.append([conf])
+        # Align
+        vals  = tabulate_column(vals , column)
+        confs = tabulate_column(confs, '1σ')
+        # Enter in headr, mattr
+        headr.append(vals[0]+'  1σ')
+        mattr.append([v +' ±'+c for v,c in zip(vals,confs)][1:])
+    return headr, mattr
+

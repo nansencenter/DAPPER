@@ -397,60 +397,14 @@ class List_of_Configs(list):
       s += str(AlignedDict({**redundant, **common}))
       return s
 
-
-  def _repr_avrgs(self,statkeys=(),decimals=None):
-    """Pretty (tabulated) repr of cfgs & avrgs (val±conf).
-
-    - ``statkeys``: list of keys of statistics to include.
-    """
-
-    def tabulate_avrgs(self):
-        "Also pad with 'æ' to avoid later auto-cropping by tabulate()."
-        # Defaults averages
-        if not statkeys:
-          statkeys = ['err.rms.a','std.rms.a','err.rms.f']
-
-        # Abbreviations
-        abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
-        de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
-    
-        def tabulate_column(col,header):
-            "Align single column (with decimal alignment) using tabulate()"
-            col = tabulate_orig.tabulate(col,[header],'plain')
-            col = col.splitlines()
-            mxW = max(len(s) for s in col)
-            def pad(s):
-                s = s + 'æ'*(mxW-len(s)) # Pad   on right
-                r = s.lstrip()           # Strip on left
-                s = 'æ'*(mxW-len(r)) + r # Pad   on left
-                return s
-            return [pad(s) for s in col]
-
-        # Fill in
-        headr, mattr = [], []
-        for stat_name in statkeys:
-            # Get vals, confs
-            vals, confs = [], []
-            for config in self:
-                uq = deep_getattr(config.avrgs,de_abbrev(stat_name),None)
-                if uq is None:         val,conf = None,None
-                elif decimals is None: val,conf = uq.round(mult=0.2)
-                else:                  val,conf = np.round([uq.val, uq.conf],decimals)
-                vals .append([val])
-                confs.append([conf])
-            # Align
-            vals  = tabulate_column(vals , stat_name)
-            confs = tabulate_column(confs, '1σ')
-            # Enter in headr, mattr
-            headr.append(vals[0]+'  1σ')
-            mattr.append([v +' ±'+c for v,c in zip(vals,confs)][1:])
-        return headr, mattr
-
+  @functools_wraps(tabulate_avrgs)
+  def _repr_avrgs(self,*args,**kwargs): 
+    """Pretty (tabulated) repr of cfgs & avrgs (val±conf)."""
     distinct, redundant, common = self.split_attrs()
   
     # Prepare table components
     headr1, mattr1 = list(distinct.keys()), list(distinct.values())
-    headr2, mattr2 = tabulate_avrgs(self)
+    headr2, mattr2 = tabulate_avrgs([C.avrgs for C in self],*args,**kwargs,pad='æ')
     # Join 1&2
     headr = headr1 + ['|']             + headr2
     mattr = mattr1 + [['|']*len(self)] + mattr2
