@@ -80,7 +80,7 @@ def adjust_position(ax,adjust_extent=False,**kwargs):
   """
   # Load get_position into d
   pos = ax.get_position()
-  d   = OrderedDict()
+  d = {}
   for key in ['x0','y0','width','height']:
     d[key] = getattr(pos,key)
   # Make adjustments

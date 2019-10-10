@@ -519,10 +519,10 @@ def save_data(script_name,*args,**kwargs):
   """
 
   def name_args():
-      data = OrderedDict()
+      data = {}
       nNone = 0 # count of non-classified objects
 
-      nameable_classes = OrderedDict(
+      nameable_classes = dict(
             HMM    = lambda x: isinstance(x,HiddenMarkovModel),
             cfgs   = lambda x: isinstance(x,List_of_Configs),
             config = lambda x: hasattr(x,'da_method'),

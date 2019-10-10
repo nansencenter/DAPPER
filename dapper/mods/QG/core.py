@@ -27,23 +27,23 @@ except ImportError as err:
   raise Exception("Have you compiled the (Fortran) model?" + \
       "\nSee README in folder "+dirs['dapper']+"/mods/QG/f90") from err
 
-default_prms = OrderedDict([
+default_prms = dict(
   # These parameters may be interesting to change.
-  ["dtout"        , 5.0        ], # dt for output to DAPPER.
-  ["dt"           , 1.25       ], # dt used internally by Fortran. CFL = 2.0
-  ["RKB"          , 0          ], # bottom     friction
-  ["RKH"          , 0          ], # horizontal friction
-  ["RKH2"         , 2.0e-12    ], # horizontal friction, biharmonic
-  ["F"            , 1600       ], # Froud number
-  ["R"            , 1.0e-5     ], # ≈ Rossby number
-  ["scheme"       , "'rk4'"    ], # One of (2ndorder, rk4, dp5)
+  dtout        = 5.0        , # dt for output to DAPPER.
+  dt           = 1.25       , # dt used internally by Fortran. CFL = 2.0
+  RKB          = 0          , # bottom     friction
+  RKH          = 0          , # horizontal friction
+  RKH2         = 2.0e-12    , # horizontal friction, biharmonic
+  F            = 1600       , # Froud number
+  R            = 1.0e-5     , # ≈ Rossby number
+  scheme       = "'rk4'"    , # One of (2ndorder, rk4, dp5)
   # Do not change the following:
-  ["tend"         , 0          ], # Only used by standalone QG
-  ["verbose"      , 0          ], # Turn off
-  ["rstart"       , 0          ], # Restart: switch
-  ["restartfname" , "''"       ], # Restart: read file
-  ["outfname"     , "''"       ]  # Restart: write file
-  ])
+  tend         = 0          , # Only used by standalone QG
+  verbose      = 0          , # Turn off
+  rstart       = 0          , # Restart: switch
+  restartfname = "''"       , # Restart: read file
+  outfname     = "''"       , # Restart: write file
+  )
 
 class model_config:
   """

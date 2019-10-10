@@ -41,7 +41,7 @@ class LivePlot:
       except AttributeError:  return init.__class__.__name__
 
     # Set up dict of liveplotters
-    potential_LPs = OrderedDict()
+    potential_LPs = {}
     for num, show, init in default_liveplotters:
       potential_LPs[get_name(init)] = num, show, init
     # Add HMM-specific liveplotters
@@ -60,7 +60,7 @@ class LivePlot:
 
     # Loop over requeted figures
     self.any_figs = False
-    self.figures = OrderedDict()
+    self.figures = {}
     for name, (num, show_by_default, init) in potential_LPs.items():
       if (num in figlist) or (name in figlist) or (figlist==[] and show_by_default):
 
@@ -220,21 +220,20 @@ class sliding_diagnostics:
       # STYLE TABLES - Defines which/how diagnostics get plotted
       lin  = lambda a,b: (lambda x: a + b*x)
       divN = 1/getattr(stats.config,'N',99)
-      # RMS
-      style1 = {
-          'err_rms' : [None        , None   , dict(c='k'      , label='Error'            )],
-          'std_rms' : [None        , None   , dict(c='b'      , label='Spread', alpha=0.6)],
-        }
-      # OTHER         transf       , shape  , plt kwargs
-      style2 = OrderedDict([
-          ('skew'   , [None        , None   , dict(c=     'g' , label=star+r'Skew/$\sigma^3$'       )]),
-          ('kurt'   , [None        , None   , dict(c=     'r' , label=star+r'Kurt$/\sigma^4{-}3$'   )]),
-          ('trHK'   , [None        , None   , dict(c=     'k' , label=star+'HK'                     )]),
-          ('infl'   , [lin(-10,10) , 'step' , dict(c=     'c' , label='10(infl-1)'                  )]),
-          ('N_eff'  , [lin(0,divN) , 'dirac', dict(c=RGBs['y'], label='N_eff/N'             ,lw=3   )]),
-          ('iters'  , [lin(0,.1)   , 'dirac', dict(c=     'm' , label='iters/10'                    )]),
-          ('resmpl' , [None        , 'dirac', dict(c=     'k' , label='resampled?'                  )]),
-        ])
+      # -------------transf      , shape  , plt kwargs---------------------------------------
+      style_RMS = dict(
+          err_rms = [None        , None   , dict(c='k'      , label='Error'            )],
+          std_rms = [None        , None   , dict(c='b'      , label='Spread', alpha=0.6)],
+          )
+      style_Val = dict(
+          skew    = [None        , None   , dict(c=     'g' , label=star+r'Skew/$\sigma^3$'       )],
+          kurt    = [None        , None   , dict(c=     'r' , label=star+r'Kurt$/\sigma^4{-}3$'   )],
+          trHK    = [None        , None   , dict(c=     'k' , label=star+'HK'                     )],
+          infl    = [lin(-10,10) , 'step' , dict(c=     'c' , label='10(infl-1)'                  )],
+          N_eff   = [lin(0,divN) , 'dirac', dict(c=RGBs['y'], label='N_eff/N'             ,lw=3   )],
+          iters   = [lin(0,.1)   , 'dirac', dict(c=     'm' , label='iters/10'                    )],
+          resmpl  = [None        , 'dirac', dict(c=     'k' , label='resampled?'                  )],
+          )
 
       def init_ax(ax,style_table):
         plotted_lines = OrderedDict()
@@ -276,8 +275,8 @@ class sliding_diagnostics:
         return plotted_lines
 
       # Plot
-      self.d1 = init_ax(ax1, style1);
-      self.d2 = init_ax(ax2, style2);
+      self.d1 = init_ax(ax1, style_RMS);
+      self.d2 = init_ax(ax2, style_Val);
 
       # Horizontal line at y=0
       self.baseline0, = ax2.plot(ax2.get_xlim(),[0,0],c=0.5*ones(3),lw=0.7,label='_nolegend_')

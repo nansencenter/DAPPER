@@ -55,7 +55,7 @@ class ResultsTable():
   def load(self,pattern):
     """Load datasets into the "datasets". Call regen_table."""
     self.patterns = getattr(self,'patterns',[]) + [pattern]
-    self.datasets = getattr(self,'datasets',OrderedDict())
+    self.datasets = getattr(self,'datasets',{})
     # NB: Don't declare any more attributes here; put them in regen_table().
 
     DIR,regex = os.path.split(pattern)
@@ -265,7 +265,7 @@ class ResultsTable():
     new = cls.__new__(cls)
     memo[id(self)] = new
     new.patterns = deepcopy(self.patterns)
-    new.datasets = OrderedDict()
+    new.datasets = {}
 
     for k, ds in self.datasets.items():
       # deepcopy
@@ -597,6 +597,8 @@ class ResultsTable():
 
     Z = self.mean_field(field)[0]
 
+    # TODO: rm OrderedDict
+    from collections import OrderedDict
     unique      = OrderedDict.fromkeys(n for n in names)
     tuning_inds = []
     tuning_vals = []
