@@ -61,9 +61,8 @@ def estimate_corr_length(xx):
     L = 1/log(1/a)
   return L
 
-# TODO rename UncertainQuantity and vc-->uq
 @dc.dataclass
-class UncertainNumber():
+class UncertainQtty():
     val  : float
     conf : float
 
@@ -98,9 +97,9 @@ def series_mean_with_conf(xx):
   mu = mean(xx)
   N  = len(xx)
   if (not np.isfinite(mu)) or N<=5:
-      vc = UncertainNumber(mu, np.nan)
+      uq = UncertainQtty(mu, np.nan)
   elif np.allclose(xx,mu):
-      vc = UncertainNumber(mu, 0)
+      uq = UncertainQtty(mu, 0)
   else:
       acovf = auto_cov(xx,5)
       var   = acovf[0]
@@ -117,8 +116,8 @@ def series_mean_with_conf(xx):
       c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
       confidence_correction = 1 + 2/N * c
       var *= confidence_correction
-      vc = UncertainNumber(mu, sqrt(var))
-  return vc
+      uq = UncertainQtty(mu, sqrt(var))
+  return uq
 
 
 def deep_getattr(self,name,*default):

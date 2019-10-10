@@ -430,10 +430,10 @@ class List_of_Configs(list):
             # Get vals, confs
             vals, confs = [], []
             for config in self:
-                vc = deep_getattr(config.avrgs,stat_name,None)
-                if vc is None:         val,conf = None,None
-                elif decimals is None: val,conf = vc.round(mult=0.2)
-                else:                  val,conf = np.round([vc.val, vc.conf],decimals)
+                uq = deep_getattr(config.avrgs,stat_name,None)
+                if uq is None:         val,conf = None,None
+                elif decimals is None: val,conf = uq.round(mult=0.2)
+                else:                  val,conf = np.round([uq.val, uq.conf],decimals)
                 vals .append([val])
                 confs.append([conf])
             # Align
