@@ -404,10 +404,8 @@ class List_of_Configs(list):
     - ``statkeys``: list of keys of statistics to include.
     """
 
-    def _format_avrgs(self,statkeys=(),decimals=None):
-        """Tabulate avrgs with format: val ± conf.
-
-        Pad with 'æ' to avoid later auto-cropping by tabulate()."""
+    def tabulate_avrgs(self):
+        "Also pad with 'æ' to avoid later auto-cropping by tabulate()."
         # Defaults averages
         if not statkeys:
           statkeys = ['err.rms.a','std.rms.a','err.rms.f']
@@ -452,7 +450,7 @@ class List_of_Configs(list):
   
     # Prepare table components
     headr1, mattr1 = list(distinct.keys()), list(distinct.values())
-    headr2, mattr2 = _format_avrgs(self,statkeys,decimals)
+    headr2, mattr2 = tabulate_avrgs(self)
     # Join 1&2
     headr = headr1 + ['|']             + headr2
     mattr = mattr1 + [['|']*len(self)] + mattr2
