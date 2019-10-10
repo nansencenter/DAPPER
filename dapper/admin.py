@@ -412,11 +412,9 @@ class List_of_Configs(list):
         if not statkeys:
           statkeys = ['err.rms.a','std.rms.a','err.rms.f']
 
-        # Abbreviation, de_abbreviate
-        AB = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
-        AB.update({k+'.'+ch: v+'.'+ch for ch in 'faus' for k,v in AB.items()})
-        BA = {v:k for k,v in AB.items()}
-        statkeys = [AB.get(k,k) for k in statkeys]
+        # Abbreviations
+        abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
+        de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
     
         def tabulate_column(col,header):
             "Align single column (with decimal alignment) using tabulate()"
@@ -436,14 +434,14 @@ class List_of_Configs(list):
             # Get vals, confs
             vals, confs = [], []
             for config in self:
-                uq = deep_getattr(config.avrgs,stat_name,None)
+                uq = deep_getattr(config.avrgs,de_abbrev(stat_name),None)
                 if uq is None:         val,conf = None,None
                 elif decimals is None: val,conf = uq.round(mult=0.2)
                 else:                  val,conf = np.round([uq.val, uq.conf],decimals)
                 vals .append([val])
                 confs.append([conf])
             # Align
-            vals  = tabulate_column(vals , BA.get(stat_name,stat_name))
+            vals  = tabulate_column(vals , stat_name)
             confs = tabulate_column(confs, '1σ')
             # Enter in headr, mattr
             headr.append(vals[0]+'  1σ')
