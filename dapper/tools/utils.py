@@ -410,8 +410,10 @@ class NestedPrint:
 
 # from pingfive.typepad.com/blog/2010/04
 def deep_getattr(self,name,*default):
-    _getattr = lambda x,y: getattr(x,y,*default)
-    return functools.reduce(_getattr, name.split('.'), self)
+    attr = self
+    for lvl in name.split('.'):
+        attr = getattr(attr,lvl,*default)
+    return attr
 
 # deep_setattr() has been removed because it's unclear
 # what type of object to set for intermediate hierarchy levels.
