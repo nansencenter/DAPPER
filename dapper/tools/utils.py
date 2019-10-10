@@ -409,19 +409,16 @@ class NestedPrint:
 
 
 # from pingfive.typepad.com/blog/2010/04
-def deep_getattr(self,name,*default):
-    attr = self
-    for lvl in name.split('.'):
-        attr = getattr(attr,lvl,*default)
-    return attr
+def deep_getattr(obj,name,*default):
+    for n in name.split('.'): obj = getattr(obj,n,*default)
+    return obj
 
 # deep_setattr() has been removed because it's unclear
 # what type of object to set for intermediate hierarchy levels.
 
-def deep_hasattr(self,name):
-    try: deep_getattr(self,name)
-    except AttributeError: return False
-    return True
+def deep_hasattr(obj,name):
+    try: deep_getattr(obj,name); return True
+    except AttributeError:       return False
 
 
 class AlignedDict(dict):
