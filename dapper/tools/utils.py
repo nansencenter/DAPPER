@@ -416,18 +416,9 @@ def deep_getattr(self,name,*default):
       # return object.__getattribute__(self, name)
 
 def deep_hasattr(self,name):
-  if '.' in name:
-      child, _, grandchild = name.partition('.')
-      if deep_hasattr(self,child):
-          child = deep_getattr(self, child)
-      else:
-          return False
-      has = deep_hasattr( child, grandchild )
-      return has
-  else:
-      return hasattr(self,name)
-      # return object.__getattribute__(self, name)
-
+    try: deep_getattr(self,name)
+    except AttributeError: return False
+    return True
 
 def deep_setattr(self,name,value):
   if '.' in name:
