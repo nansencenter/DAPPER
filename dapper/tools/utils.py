@@ -413,19 +413,13 @@ def deep_getattr(self,name,*default):
     _getattr = lambda x,y: getattr(x,y,*default)
     return functools.reduce(_getattr, name.split('.'), self)
 
+# deep_setattr() has been removed because it's unclear
+# what type of object to set for intermediate hierarchy levels.
+
 def deep_hasattr(self,name):
     try: deep_getattr(self,name)
     except AttributeError: return False
     return True
-
-def deep_setattr(self,name,value):
-  if '.' in name:
-      child, _, grandchild = name.partition('.')
-      if not hasattr(self,child):
-          self.child = DataSeries()
-      deep_setattr( deep_getattr(self, child), grandchild, value )
-  else:
-      setattr(self,name,value)
 
 
 class AlignedDict(dict):

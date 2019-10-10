@@ -140,10 +140,10 @@ class Stats(NestedPrint):
       if shape!=():
           if MS:
               for suffix in self.field_summation:
-                  deep_setattr(series,suffix,make_series(()))
+                  setattr(series,suffix,make_series(()))
           if MS=='reg':
               for suffix in self.region_summation:
-                  deep_setattr(series,suffix,make_series(()))
+                  setattr(series,suffix,make_series(()))
 
 
 
