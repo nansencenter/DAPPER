@@ -120,43 +120,14 @@ def series_mean_with_conf(xx):
   return uq
 
 
-def deep_getattr(self,name,*default):
-  if '.' in name:
-      child, _, grandchild = name.partition('.')
-      return deep_getattr( getattr(self, child), grandchild, *default)
-  else:
-      return getattr(self,name,*default)
-      # return object.__getattribute__(self, name)
-
-def deep_hasattr(self,name):
-  if '.' in name:
-      child, _, grandchild = name.partition('.')
-      if deep_hasattr(self,child):
-          child = deep_getattr(self, child)
-      else:
-          return False
-      has = deep_hasattr( child, grandchild )
-      return has
-  else:
-      return hasattr(self,name)
-      # return object.__getattribute__(self, name)
-
-
-def deep_setattr(self,name,value):
-  if '.' in name:
-      child, _, grandchild = name.partition('.')
-      if not hasattr(self,child):
-          self.child = DataSeries()
-      deep_setattr( deep_getattr(self, child), grandchild, value )
-  else:
-      setattr(self,name,value)
-
 class DataSeries(NestedPrint):
     def __init__(self,shape,**kwargs):
         self.array = np.full(shape, nan, **kwargs)
         self.was_touched = False
-    def __getitem__(self,key): return self.array[key]
-    def __setitem__(self,key,val): self.array[key] = val
+    def __len__    (self):        return len(self.array)
+    def __getitem__(self,key):    return     self.array[key]
+    def __setitem__(self,key,val):           self.array[key] = val
+
 
 class FAUSt(DataSeries,NestedPrint):
   """Container for time series of a statistic from filtering.

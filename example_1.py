@@ -22,7 +22,7 @@ xx,yy = HMM.simulate()
 
 
 # Turn on liveplotting
-config.liveplots = False
+config.liveplots = "all"
 
 # Assimilate yy, knowing the HMM; xx is used for assessment.
 config.assimilate(HMM,xx,yy)

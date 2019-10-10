@@ -7,6 +7,7 @@ Todo
 * Make stats.region['glob'].FAU = array
 * Change KObs to KObs-1
 * https://stackoverflow.com/q/1024435/how-to-fix-python-indentation
+* Replace equi_spaced_integers by linspace_int. Rerun all tests.
 
 * Improve docs
 * Make superclasses for the filter, smoother, and iterative smoother.

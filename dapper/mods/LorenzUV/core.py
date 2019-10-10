@@ -10,7 +10,7 @@
 # where the V's are parameterized as model noise,
 # while the truth is simulated by the full system.
 #
-# Stochastic parmateterization (Todo):
+# Stochastic parmateterization:
 # Wilks: benefit of including stochastic noise negligible
 # unless its temporal auto-corr is taken into account (as AR(1))
 # (but spatial auto-corr can be neglected).

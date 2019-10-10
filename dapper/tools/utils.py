@@ -407,6 +407,37 @@ class NestedPrint:
 
       return s
 
+def deep_getattr(self,name,*default):
+  if '.' in name:
+      child, _, grandchild = name.partition('.')
+      return deep_getattr( getattr(self, child), grandchild, *default)
+  else:
+      return getattr(self,name,*default)
+      # return object.__getattribute__(self, name)
+
+def deep_hasattr(self,name):
+  if '.' in name:
+      child, _, grandchild = name.partition('.')
+      if deep_hasattr(self,child):
+          child = deep_getattr(self, child)
+      else:
+          return False
+      has = deep_hasattr( child, grandchild )
+      return has
+  else:
+      return hasattr(self,name)
+      # return object.__getattribute__(self, name)
+
+
+def deep_setattr(self,name,value):
+  if '.' in name:
+      child, _, grandchild = name.partition('.')
+      if not hasattr(self,child):
+          self.child = DataSeries()
+      deep_setattr( deep_getattr(self, child), grandchild, value )
+  else:
+      setattr(self,name,value)
+
 
 class AlignedDict(dict):
   """Provide aligned-printing for dict."""
