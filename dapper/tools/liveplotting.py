@@ -206,42 +206,45 @@ class sliding_diagnostics:
 
 
   def __init__(self,fignum,stats,key0,plot_u,E,P,Tplot=None,**kwargs):
-      GS = {'left':0.125,'right':0.76}
-      fig, (ax1, ax2) = freshfig(fignum, (5,3.5), loc='2311', nrows=2, sharex=True, gridspec_kw=GS)
 
-      ax1.set_title("Diagnostics")
-      ax1.set_ylabel('RMS')
-      ax2.set_ylabel('Values') 
-      ax2.set_xlabel('Time (t)')
-      adjust_position(ax2, y0=0.03)
-
-      self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
-  
       # STYLE TABLES - Defines which/how diagnostics get plotted
+      styles = {}
       lin  = lambda a,b: (lambda x: a + b*x)
       divN = 1/getattr(stats.config,'N',99)
       # -------------transf      , shape  , plt kwargs---------------------------------------
-      style_RMS = dict(
-          err_rms = [None        , None   , dict(c='k'      , label='Error'            )],
-          std_rms = [None        , None   , dict(c='b'      , label='Spread', alpha=0.6)],
-          )
-      style_Val = dict(
-          skew    = [None        , None   , dict(c=     'g' , label=star+r'Skew/$\sigma^3$'       )],
-          kurt    = [None        , None   , dict(c=     'r' , label=star+r'Kurt$/\sigma^4{-}3$'   )],
-          trHK    = [None        , None   , dict(c=     'k' , label=star+'HK'                     )],
-          infl    = [lin(-10,10) , 'step' , dict(c=     'c' , label='10(infl-1)'                  )],
-          N_eff   = [lin(0,divN) , 'dirac', dict(c=RGBs['y'], label='N_eff/N'             ,lw=3   )],
-          iters   = [lin(0,.1)   , 'dirac', dict(c=     'm' , label='iters/10'                    )],
-          resmpl  = [None        , 'dirac', dict(c=     'k' , label='resampled?'                  )],
-          )
+      styles['RMS'] = {
+          'err.rms' : [None        , None   , dict(c='k'      , label='Error'            )],
+          'std.rms' : [None        , None   , dict(c='b'      , label='Spread', alpha=0.6)],
+          }
+      styles['Values'] = {
+          'skew'    : [None        , None   , dict(c=     'g' , label=star+r'Skew/$\sigma^3$'       )],
+          'kurt'    : [None        , None   , dict(c=     'r' , label=star+r'Kurt$/\sigma^4{-}3$'   )],
+          'trHK'    : [None        , None   , dict(c=     'k' , label=star+'HK'                     )],
+          'infl'    : [lin(-10,10) , 'step' , dict(c=     'c' , label='10(infl-1)'                  )],
+          'N_eff'   : [lin(0,divN) , 'dirac', dict(c=RGBs['y'], label='N_eff/N'             ,lw=3   )],
+          'iters'   : [lin(0,.1)   , 'dirac', dict(c=     'm' , label='iters/10'                    )],
+          'resmpl'  : [None        , 'dirac', dict(c=     'k' , label='resampled?'                  )],
+          }
 
+      nAx = len(styles)
+      GS = {'left':0.125,'right':0.76}
+      fig, axs = freshfig(fignum, (5,1+nAx), loc='2311', nrows=nAx, sharex=True, gridspec_kw=GS)
+
+      axs[0].set_title("Diagnostics")
+      for style, ax in zip(styles,axs):
+          ax.set_ylabel(style)
+      ax.set_xlabel('Time (t)')
+      adjust_position(ax, y0=0.03)
+
+      self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
+  
       def init_ax(ax,style_table):
-        plotted_lines = OrderedDict()
+        lines = {}
         for name in style_table:
 
             # SKIP -- if stats[name] is not in existence
             # Note: The nan check/deletion comes after the first kObs.
-            try: stat = getattr(stats,name)
+            try: stat = deep_getattr(stats,name)
             except AttributeError: continue
             # try: val0 = stat[key0[0]]
             # except KeyError: continue
@@ -271,19 +274,17 @@ class sliding_diagnostics:
             ax.set_xlim(0,1)
             ax.set_ylim(0,1)
 
-            plotted_lines[name] = ln
-        return plotted_lines
+            lines[name] = ln
+        return lines
 
       # Plot
-      self.d1 = init_ax(ax1, style_RMS);
-      self.d2 = init_ax(ax2, style_Val);
+      self.d = [init_ax(ax, styles[style]) for style,ax in zip(styles,axs)]
 
       # Horizontal line at y=0
-      self.baseline0, = ax2.plot(ax2.get_xlim(),[0,0],c=0.5*ones(3),lw=0.7,label='_nolegend_')
+      self.baseline0, = ax.plot(ax.get_xlim(),[0,0],c=0.5*ones(3),lw=0.7,label='_nolegend_')
 
       # Store
-      self.ax1 = ax1
-      self.ax2 = ax2
+      self.axs   = axs
       self.stats = stats
       self.init_incomplete = True
 
@@ -293,12 +294,11 @@ class sliding_diagnostics:
 
       stats  = self.stats
       chrono = stats.HMM.t
-      ax1    = self.ax1
-      ax2    = self.ax2
+      ax0, ax1 = self.axs
 
-      def update_arrays(plotted_lines):
-        for name, ln in plotted_lines.items():
-          stat = getattr(stats,name)
+      def update_arrays(lines):
+        for name, ln in lines.items():
+          stat = deep_getattr(stats,name)
           t    = chrono.tt[k] # == chrono.ttObs[kObs]
           if isinstance(stat,FAUSt):
             # ln['data'] will contain duplicates for f/a times.
@@ -319,7 +319,7 @@ class sliding_diagnostics:
             elif 'f' in faus:
               pass
 
-      def update_plot_data(ax,plotted_lines):
+      def update_plot_data(ax,lines):
 
           def bend_into(shape, xx, yy):
             # Get arrays. Repeat (to use for intermediate nodes). 
@@ -339,49 +339,46 @@ class sliding_diagnostics:
             return xx, yy
 
           nDirac = 1
-          for name, ln in plotted_lines.items():
+          for name, ln in lines.items():
             ln['handle'].set_data(*bend_into(ln['shape'], ln['tt'], ln['data']))
 
-      def finalize_init(ax,plotted_lines,mm):
+      def finalize_init(ax,lines,mm):
           # Rm lines that only contain NaNs
-          for name in list(plotted_lines):
-            ln = plotted_lines[name]
+          for name in list(lines):
+            ln = lines[name]
             if not np.any(np.isfinite(ln['data'])):
               ln['handle'].remove()   # rm from axes
-              del plotted_lines[name] # rm from dict
+              del lines[name] # rm from dict
           # Add legends
-          if plotted_lines:
+          if lines:
             ax.legend(loc='upper left', bbox_to_anchor=(1.01, 1),borderaxespad=0)
             if mm:
               ax.annotate(star+": mean of\nmarginals",
-                  xy=(0,-1.5/len(plotted_lines)),
+                  xy=(0,-1.5/len(lines)),
                   xycoords=ax.get_legend().get_frame(),
                   bbox=dict(alpha=0.0), fontsize='small')
           plot_pause(0.01) # coz placement of annotate needs flush sometimes
 
       # Insert current stats
-      update_arrays(self.d1)
-      update_arrays(self.d2)
-
-      # Plot
-      update_plot_data(ax1, self.d1)
-      update_plot_data(ax2, self.d2)
+      for lines, ax in zip(self.d,self.axs):
+          update_arrays(lines)
+          update_plot_data(ax, lines)
 
       # Set x-limits (time)
-      sliding_xlim(ax1, self.d1['err_rms']['tt'], self.T_lag, margin=True)
-      self.baseline0.set_xdata(ax1.get_xlim())
+      sliding_xlim(ax0, self.d[0]['err.rms']['tt'], self.T_lag, margin=True)
+      self.baseline0.set_xdata(ax0.get_xlim())
 
       # Set y-limits
-      data1 = [ln['data'].array for ln in self.d1.values()]
-      data2 = [ln['data'].array for ln in self.d2.values()]
-      ax1.set_ylim(0, d_ylim(data1, ax1,                cC=0.2,cE=0.9)[1])
-      ax2.set_ylim(  *d_ylim(data2, ax2, Max=4, Min=-4, cC=0.3,cE=0.9))
+      data0 = [ln['data'].array for ln in self.d[0].values()]
+      data1 = [ln['data'].array for ln in self.d[1].values()]
+      ax0.set_ylim(0, d_ylim(data0, ax0,                cC=0.2,cE=0.9)[1])
+      ax1.set_ylim(  *d_ylim(data1, ax1, Max=4, Min=-4, cC=0.3,cE=0.9))
 
       # Init legend. Rm nan lines.
       if self.init_incomplete and 'a'==faus:
          self.init_incomplete = False
-         finalize_init(ax1, self.d1, False)
-         finalize_init(ax2, self.d2, True)
+         finalize_init(ax0, self.d[0], False)
+         finalize_init(ax1, self.d[1], True)
 
 
 
@@ -545,7 +542,8 @@ class correlations:
       self.line_AC = line_AC
       self.line_AA = line_AA
       self.mask    = mask
-      self.w       = stats.w
+      if hasattr(stats,'w'):
+          self.w   = stats.w
     else:
       not_available_text(ax)
 
@@ -553,7 +551,10 @@ class correlations:
   def __call__(self,key,E,P):
     # Get cov matrix
     if E is not None:
-      C = np.cov(E,aweights=self.w[key],rowvar=False)
+      if hasattr(self,'w'):
+          C = np.cov(E,rowvar=False,aweights=self.w[key])
+      else:
+          C = np.cov(E,rowvar=False)
     else:
       assert P is not None
       C = P.full if isinstance(P,CovMat) else P
