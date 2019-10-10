@@ -20,9 +20,9 @@ class HiddenMarkovModel(NestedPrint):
     self.name = os.path.relpath(name,'mods/')
 
     # Kwargs
-    de_abbreviate(kwargs, [('LP','liveplotters')])
-    for key, value in kwargs.items():
-      setattr(self, key, value)
+    abbrevs = {'LP':'liveplotters'}
+    for key in kwargs:
+      setattr(self, abbrevs.get(key,key), kwargs[key])
 
     # Defaults
     if not hasattr(self.Obs,"localizer"): self.Obs.localizer = no_localization(self.Nx, self.Ny)
@@ -399,18 +399,24 @@ class List_of_Configs(list):
 
 
   def _repr_avrgs(self,statkeys=(),decimals=None):
-    """Pretty print the structure containing the averages.
-  
+    """Pretty (tabulated) repr of cfgs & avrgs (val±conf).
+
     - ``statkeys``: list of keys of statistics to include.
     """
 
     def _format_avrgs(self,statkeys=(),decimals=None):
-        """Tabulate avrgs in the format: val ± conf.
+        """Tabulate avrgs with format: val ± conf.
 
         Pad with 'æ' to avoid later auto-cropping by tabulate()."""
         # Defaults averages
         if not statkeys:
           statkeys = ['err.rms.a','std.rms.a','err.rms.f']
+
+        # Abbreviation, de_abbreviate
+        AB = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
+        AB.update({k+'.'+ch: v+'.'+ch for ch in 'faus' for k,v in AB.items()})
+        BA = {v:k for k,v in AB.items()}
+        statkeys = [AB.get(k,k) for k in statkeys]
     
         def tabulate_column(col,header):
             "Align single column (with decimal alignment) using tabulate()"
@@ -437,7 +443,7 @@ class List_of_Configs(list):
                 vals .append([val])
                 confs.append([conf])
             # Align
-            vals  = tabulate_column(vals , stat_name)
+            vals  = tabulate_column(vals , BA.get(stat_name,stat_name))
             confs = tabulate_column(confs, '1σ')
             # Enter in headr, mattr
             headr.append(vals[0]+'  1σ')

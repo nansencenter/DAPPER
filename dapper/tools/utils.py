@@ -588,6 +588,7 @@ def keep_order_unique(arr):
   _, inds = np.unique(arr,return_index=True)
   return arr[np.sort(inds)]
 
+# kwargs = {abbrevs.get(k,k):kwargs[k] for k in kwargs}
 def de_abbreviate(abbrev_d, abbreviations):
   "Expand any abbreviations (list of 2-tuples) that occur in abbrev_d (dict)."
   for a,b in abbreviations:

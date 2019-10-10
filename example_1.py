@@ -22,7 +22,7 @@ xx,yy = HMM.simulate()
 
 
 # Turn on liveplotting
-config.liveplots = "all"
+config.liveplots = False
 
 # Assimilate yy, knowing the HMM; xx is used for assessment.
 config.assimilate(HMM,xx,yy)
@@ -31,7 +31,7 @@ config.assimilate(HMM,xx,yy)
 config.average_stats()
 
 # Print averages
-config.print_avrgs(['err.rms.a','std.rms.a'])
+config.print_avrgs(['rmse.a','rmv.a'])
 
 # Replay liveplotters -- can adjust speed, time-window, etc.
 config.replay()
