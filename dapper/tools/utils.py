@@ -407,13 +407,11 @@ class NestedPrint:
 
       return s
 
+
+# from pingfive.typepad.com/blog/2010/04
 def deep_getattr(self,name,*default):
-  if '.' in name:
-      child, _, grandchild = name.partition('.')
-      return deep_getattr( getattr(self, child), grandchild, *default)
-  else:
-      return getattr(self,name,*default)
-      # return object.__getattribute__(self, name)
+    _getattr = lambda x,y: getattr(x,y,*default)
+    return functools.reduce(_getattr, name.split('.'), self)
 
 def deep_hasattr(self,name):
     try: deep_getattr(self,name)
