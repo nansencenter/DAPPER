@@ -195,6 +195,29 @@ def get_call():
     return call, f2.f_locals
 
 
+def magic_naming(*args,**kwargs):
+    """Convert args (by their names in the call) to kwargs."""
+    call, locvars = get_call()
+
+    # Use a new dict, with args inserted first, to keep ordering.
+    joint_kwargs = {}
+
+    # Insert args in kwargs
+    for i,arg in enumerate(args):
+      # Match arg to a name by
+      # - id to a variable in the local namespace, and
+      # - the presence of said variable in the call.
+      mm = [name for name in locvars if locvars[name] is arg]
+      mm = [name for name in mm if re.search(r"\b"+name+r"\b", call)]
+      if not mm:
+        raise RuntimeError("Couldn't find the name for "+str(arg))
+      for m in mm: # Allows saving an arg under multiple names.
+        joint_kwargs[m] = arg
+
+    joint_kwargs.update(kwargs)
+    return joint_kwargs
+
+
 def spell_out(*args):
   """
   Print (args) including variable names.
@@ -437,36 +460,27 @@ class AlignedDict(dict):
 
 
 class Bunch(NestedPrint,dict):
-  """Neat little dict that doubles as a class.
+  """A dict that also has attribute (dot) access.
 
+  Benefit compared to a dict:
+
+   - Verbosity of ``mycontainer.a`` vs. ``mycontainer['a']``.
+   - Includes NestedPrint.
+
+  Why not just use NestedPrint itself as a container?
+
+  - Because it's convenient to also have item access.
+  - The class name hints at the "container" purpose.
+
+  As seen from its creation in ``__init__``,
+  Bunch is not very hackey.
+  Bunch is also quite robust.
   Source: stackoverflow.com/a/14620633
-
-  Added benefit of using a class: can subclass NestedPrint.
-
-  ``magic_init``is a bonus, non-essential, and non-invasive feature.
   """
   def __init__(self,*args,**kwargs):
     "Init like a normal dict."
     super(Bunch, self).__init__(*args,**kwargs) # Make a (normal) dict
     self.__dict__ = self                        # Assign it to self.__dict__
-
-  @classmethod
-  def magic_init(cls,*args,**kwargs):
-    """Get attribute name from variable names in call.
-    THIS IS A BIG FAT HACK!!!"""
-    call, locvars = get_call()
-
-    # Insert args in kwargs
-    for i,x in enumerate(args):
-      # Match x to a name, or more, by id, and also its presence in the call.
-      matches = [name for name in locvars if locvars[name] is x]
-      matches = [name for name in matches if re.search(r"\b"+name+r"\b", call)]
-      if not matches:
-        raise RuntimeError("Couldn't find the name for "+str(x))
-      for m in matches:
-        kwargs[m] = x
-
-    return cls(**kwargs)
 
 
 # From stackoverflow.com/q/22797580 and more
