@@ -124,13 +124,13 @@ class Stats(NestedPrint):
         else:        shape = (shape,)
 
       def make_series(shape,**kwargs):
-          # Principal series
           if length=='FAUSt':
               return FAUSt(self.K, self.KObs, shape,
                       self.config.store_u, self.config.store_s, **kwargs)
           else:
               return DataSeries((length,)+shape,**kwargs)
 
+      # Principal series
       series = make_series(shape)
       setattr(self, name, series)
 
@@ -139,10 +139,11 @@ class Stats(NestedPrint):
           if MS:
               for suffix in self.field_summaries:
                   setattr(series,suffix,make_series(()))
+          # Make a nested level for sectors
           if MS=='sec':
-              for suffix in self.sector_summaries:
-                  setattr(series,suffix,make_series(()))
-
+              for ss in self.sector_summaries:
+                  suffix, sector = ss.split('.')
+                  sector = setattr(getattr(series,suffix),sector,make_series(()))
 
 
   @property
