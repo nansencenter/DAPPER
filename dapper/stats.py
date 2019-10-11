@@ -37,7 +37,7 @@ class Stats(NestedPrint):
     self.KObs, self.Ny = KObs, Ny
 
     # Methods for summarizing multivariate stats ("fields") as scalars
-    self.field_summation = dict(
+    self.field_summaries = dict(
             # Don't use nanmean here; nan's should get propagated!
             # suffix              formula
             m         = lambda x: mean(x)           , # mean-field
@@ -46,25 +46,25 @@ class Stats(NestedPrint):
             gm        = lambda x: exp(mean(log(x))) , # geometric mean
             )
     # Only keep the methods listed in rc
-    self.field_summation = {k:v for k,v in self.field_summation.items()
+    self.field_summaries = {k:v for k,v in self.field_summaries.items()
             if k in rc['stat']['field_summary_methods'].split(',')}
 
-    # Define similar methods, but restricted to regions
-    self.region_summation = {}
+    # Define similar methods, but restricted to sectors
+    self.sector_summaries = {}
     restrict = lambda fun, inds: (lambda x: fun(x[inds]))
-    for suffix, formula in self.field_summation.items():
-        for region, inds in HMM.regions.items():
+    for suffix, formula in self.field_summaries.items():
+        for sector, inds in HMM.sectors.items():
             f = restrict(formula,inds)
-            self.region_summation['%s.%s'%(suffix,region)] = f
+            self.sector_summaries['%s.%s'%(suffix,sector)] = f
 
 
     ######################################
     # Allocate time series of various stats
     ######################################
-    self.new_series('mu'    ,Nx, MS='reg') # Mean
-    self.new_series('std'   ,Nx, MS='reg') # Std. dev. ("spread")
-    self.new_series('err'   ,Nx, MS='reg') # Error (mu - truth)
-    self.new_series('gscore',Nx, MS='reg') # Gaussian (log) score
+    self.new_series('mu'    ,Nx, MS='sec') # Mean
+    self.new_series('std'   ,Nx, MS='sec') # Std. dev. ("spread")
+    self.new_series('err'   ,Nx, MS='sec') # Error (mu - truth)
+    self.new_series('gscore',Nx, MS='sec') # Gaussian (log) score
 
     # To save memory, we only store these field means:
     self.new_series('mad' ,1) # Mean abs deviations
@@ -137,10 +137,10 @@ class Stats(NestedPrint):
       # Summary (scalar) series:
       if shape!=():
           if MS:
-              for suffix in self.field_summation:
+              for suffix in self.field_summaries:
                   setattr(series,suffix,make_series(()))
-          if MS=='reg':
-              for suffix in self.region_summation:
+          if MS=='sec':
+              for suffix in self.sector_summaries:
                   setattr(series,suffix,make_series(()))
 
 
@@ -234,7 +234,7 @@ class Stats(NestedPrint):
         field = now[stat]
         # if hasattr(field,'__len__'): # already ensured in new_series()
         with np.errstate(divide='ignore',invalid='ignore'):
-            means = {**self.field_summation, **self.region_summation}
+            means = {**self.field_summaries, **self.sector_summaries}
             for suffix, formula in means.items():
                 statpath = stat+'.'+suffix
                 if deep_hasattr(self, statpath):

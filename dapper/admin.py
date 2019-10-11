@@ -26,7 +26,7 @@ class HiddenMarkovModel(NestedPrint):
 
     # Defaults
     if not hasattr(self.Obs,"localizer"): self.Obs.localizer = no_localization(self.Nx, self.Ny)
-    if not hasattr(self    ,"regions")  : self.regions       = {}
+    if not hasattr(self    ,"sectors")  : self.sectors       = {}
 
     # Validation
     if self.Obs.noise.C==0 or self.Obs.noise.C.rk!=self.Obs.noise.C.M:

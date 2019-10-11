@@ -11,7 +11,7 @@ HMM.t.T = 30 # shorten experiment
 # config = Var3D()
 config = PartFilt(N=100,reg=2.4,NER=0.3)
 
-HMM.regions = dict(land=[0,1], ocean=[2])
+HMM.sectors = dict(land=[0,1], ocean=[2])
 
 # from dapper.mods.Lorenz95.boc10 import HMM
 # HMM.t.T = 30 # shorten experiment
