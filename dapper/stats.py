@@ -231,12 +231,12 @@ class Stats(NestedPrint):
 
   def summarize_marginals(self,now):
     "Compute Mean-field and RMS values"
-    for stat in list(now):
-        field = now[stat]
-        # if hasattr(field,'__len__'): # already ensured in new_series()
-        with np.errstate(divide='ignore',invalid='ignore'):
-            means = {**self.field_summaries, **self.sector_summaries}
-            for suffix, formula in means.items():
+    formulae = {**self.field_summaries, **self.sector_summaries}
+
+    with np.errstate(divide='ignore',invalid='ignore'):
+        for stat in list(now):
+            field = now[stat]
+            for suffix, formula in formulae.items():
                 statpath = stat+'.'+suffix
                 if deep_hasattr(self, statpath):
                     now[statpath] = formula(field)
