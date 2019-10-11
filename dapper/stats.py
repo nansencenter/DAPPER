@@ -104,8 +104,6 @@ class Stats(NestedPrint):
     self.new_series('wroot' , 1, KObs+1)
     self.new_series('resmpl', 1, KObs+1)
 
-    self.included = self.data_series
-
 
   def new_series(self,name,shape,length='FAUSt',MS=False,**kwargs):
       """Create (and register) a statistics time series.
@@ -150,6 +148,11 @@ class Stats(NestedPrint):
   @property
   def data_series(self):
       return [k for k in vars(self) if isinstance(getattr(self,k),DataSeries)]
+
+  @property
+  def included(self):
+      return self.data_series
+
 
 
   def assess(self,k,kObs=None,faus=None,
