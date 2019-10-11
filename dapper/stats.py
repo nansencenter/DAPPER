@@ -342,7 +342,7 @@ class Stats(NestedPrint):
       if kk    is None: kk     = chrono.mask_BI
       if kkObs is None: kkObs  = chrono.maskObs_BI
 
-      def compute(series):
+      def average(series):
           avrgs = Bunch()
 
           def average_multivariate(): return avrgs
@@ -366,20 +366,21 @@ class Stats(NestedPrint):
               elif len(series.array) == self.K+1:
                   avrgs = series_mean_with_conf(series[kk])
               else: raise ValueError
+
           return avrgs
 
-      def recursive_avrgs(stat_parent,avrgs_parent):
+      def recurse_average(stat_parent,avrgs_parent):
           for key,series in vars(stat_parent).items(): # Loop data_series
               if not isinstance(series,DataSeries): continue
 
-              avrgs = compute(series)
+              avrgs = average(series)
               avrgs_parent[key] = avrgs
 
-              recursive_avrgs(series,avrgs)
+              recurse_average(series,avrgs)
 
       avrgs = Bunch()
       avrgs.ordr_by_linenum=None
-      recursive_avrgs(self,avrgs)
+      recurse_average(self,avrgs)
       return avrgs
 
 @do_once
