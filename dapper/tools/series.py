@@ -84,9 +84,12 @@ class UncertainQtty():
           return val, conf
 
     def __str__(self):
-      val,conf = self.round()
-      return str(val)+' ±'+str(conf)
+      return "{} ±{}".format(*self.round())
 
+    def __repr__(self):
+        vc = "(val={:.4g}, conf={:.1g})".format(*self.round(1e-9))
+        return self.__class__.__name__ + vc
+                
 
 def series_mean_with_conf(xx):
   """Compute the mean of a 1d iterable ``xx``.
