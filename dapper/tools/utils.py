@@ -240,11 +240,6 @@ def spell_out(*args):
   print(*args)
 
 
-def print_together(*args):
-  "Print 1D arrays stacked together."
-  print(np.vstack(args).T)
-
-
 # Local np.set_printoptions. stackoverflow.com/a/2891805/38281
 import contextlib
 @contextlib.contextmanager
@@ -311,26 +306,6 @@ def repr_type_and_name(thing):
   if hasattr(thing,'name'):
     s += ': ' + thing.name
   return s
-
-
-# Adapted from stackoverflow.com/a/3603824
-class ImmutableAttributes():
-  """
-  Freeze (make immutable) attributes of class instance.
-  Applies to 
-  """
-  __isfrozen = False
-  __keys     = None
-  def __setattr__(self, key, value):
-    #if self.__isfrozen and hasattr(self, key):
-    if self.__isfrozen and key in self.__keys:
-      raise AttributeError(
-          "The attribute %r of %r has been frozen."%(key,type(self)))
-    object.__setattr__(self, key, value)
-  def _freeze(self,keys):
-    self.__keys     = keys
-    self.__isfrozen = True
-
 
 
 from IPython.lib.pretty import pretty as pretty_repr
