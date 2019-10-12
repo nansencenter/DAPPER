@@ -8,9 +8,7 @@ class Stats(NestedPrint):
   Use new_series() to register your own stat time series.
   """
 
-  # Used by NestedPrint
-  precision = 3
-  ordr_by_linenum = -1
+  printopts = {'precision' : 3, 'ordr_by_linenum' : -1}
  
   def __init__(self,config,HMM,xx,yy):
     """Init the default statistics.
@@ -343,7 +341,7 @@ class Stats(NestedPrint):
       if kkObs is None: kkObs  = chrono.maskObs_BI
 
       def average(series):
-          avrgs = Bunch()
+          avrgs = Bunch(printopts=FAUSt.printopts)
 
           def average_multivariate(): return avrgs
           # Plain averages of nd-series are rarely interesting.
@@ -353,7 +351,7 @@ class Stats(NestedPrint):
               # Average series for each subscript
               if series.item_shape != ():
                   return average_multivariate()
-              for sub in [ch for ch in 'afs' if hasattr(series,ch)]:
+              for sub in [ch for ch in 'fas' if hasattr(series,ch)]:
                   avrgs[sub] = series_mean_with_conf(series[kkObs,sub])
               if series.store_u:
                   avrgs['u'] = series_mean_with_conf(series[kk,'u'])
@@ -378,8 +376,7 @@ class Stats(NestedPrint):
 
               recurse_average(series,avrgs)
 
-      avrgs = Bunch()
-      avrgs.ordr_by_linenum=None
+      avrgs = Bunch(printopts=FAUSt.printopts)
       recurse_average(self,avrgs)
       return avrgs
 

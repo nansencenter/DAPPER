@@ -154,16 +154,18 @@ class FAUSt(DataSeries,NestedPrint):
   """
 
   # Printing options (see NestedPrint)
-  aliases  = {
-      'f'   : 'Forecast  (.f)',
-      'a'   : 'Analysis  (.a)',
-      's'   : 'Smoothed  (.s)',
-      'u'   : 'Universal (.u)',
-      'm'   : 'Field mean (.m)',
-      'ma'  : 'Field mean-abs (.ma)',
-      'rms' : 'Field root-mean-square (.rms)',
-      'gm'  : 'Field geometric-mean (.gm)'}
-  ordr_by_linenum = None
+  printopts = {
+          'ordr_by_linenum' : None,
+          'aliases'  : {
+              'f'   : 'Forecast  (.f)',
+              'a'   : 'Analysis  (.a)',
+              's'   : 'Smoothed  (.s)',
+              'u'   : 'Universal (.u)',
+              'm'   : 'Field mean (.m)',
+              'ma'  : 'Field mean-abs (.ma)',
+              'rms' : 'Field root-mean-square (.rms)',
+              'gm'  : 'Field geometric-mean (.gm)'}
+          }
 
   def __init__(self,K,KObs,item_shape,store_u,store_s,**kwargs):
     """Constructor.

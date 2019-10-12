@@ -337,36 +337,47 @@ from IPython.lib.pretty import pretty as pretty_repr
 class NestedPrint:
   """Multi-Line, Recursive repr (print) functionality.
 
-  Set class variables to change look:
+  Define a dict called 'printopts' in your subclass
+  to change print the settings.
 
-   - 'indent': indentation per level
-   - 'ch': character to use for "spine" (e.g. '|' or ' ')
-   - 'ordr_by_linenum': 0: alphabetically, 1: linenumbr, -1: reverse
+   - inden'          : indentation per level
+   - ch              : character to use for "spine" (e.g. '|' or ' ')
+   - ordr_by_linenum : 0: alphabetically, 1: linenumbr, -1: reverse
+   - threshold       : as for numpy
+   - precision       : as for numpy
+   - excluded        : attributes not to be printed (allows regex and callable)
+   - included        : only print these attrs.
+   - ordering        : ordering of attrs
+   - aliases         : dict containing the aliases for attributes
   """
-  indent=3
-  ch='.'
-  ordr_by_linenum = 0
+  printopts = {}
 
-  # numpy print options
-  threshold=10
-  precision=None
+  printopts['indent']          = 3
+  printopts['ch']              = '.'
+  printopts['ordr_by_linenum'] = 0
+
+  printopts['threshold'] = 10
+  printopts['precision'] = None
+
+  printopts['excluded'] = ['printopts']
+  printopts['excluded'].append(re.compile('^_'))
+
+  printopts['included'] = []
+  printopts['ordering'] = []
+  printopts['aliases']  = {}
 
   # Recursion monitoring.
   _stack={}
 
-  # Reference using self.excluded, to access sub-class "instance".
-  excluded = [] # Don't include in printing
-  excluded.append(re.compile('^_')) # "Private"
-  excluded.append('name') # Treated separately
-
-  included = [] # Only print these (also determines ordering).
-  ordering = [] # Determine ordering (with precedence over included).
-  aliases  = {} # Rename attributes (vars)
-
   def __repr__(self):
-    with printoptions(threshold=self.threshold,precision=self.precision):
+
+    # Merge defaults with requested printopts
+    opts = {**NestedPrint.printopts, **self.printopts}
+
+    with printoptions(**{k:opts[k] for k in ['threshold','precision']}):
+
       # new line chars
-      NL = '\n' + self.ch + ' '*(self.indent-1)
+      NL = '\n' + opts['ch'] + ' '*(opts['indent']-1)
 
       # Init
       if NestedPrint._stack=={}:
@@ -376,8 +387,12 @@ class NestedPrint:
           is_top_level = False
 
       # Use included or filter-out excluded
-      keys = self.included or filter_out(vars(self), *self.excluded)
-      keys = [k for k in keys if hasattr(self,k)]
+      if opts['included']:
+          keys = opts['included']
+          keys = [k for k in keys if hasattr(self,k)]
+      else:
+          keys = vars(self)
+          keys = filter_out(keys, *opts['excluded'])
 
       # Aggregate (sub-)repr's from the attributes
       txts = {}
@@ -386,7 +401,7 @@ class NestedPrint:
           
           # Get sub-repr (t).
           # Link to already-printed items and prevent infinite recursion!
-          # NB: ``val in _stack`` is not what we want coz it also accepts equality.
+          # NB: Dont test ``val in _stack`` -- it also accepts equality.
           if id(val) in NestedPrint._stack and isinstance(val,NestedPrint):
               # Link
               t = "**Same (id)** as %s"%NestedPrint._stack[id(val)]
@@ -397,21 +412,21 @@ class NestedPrint:
 
           # Process t: activate multi-line printing
           if '\n' in t:
-              t = t.replace('\n',NL+' '*self.indent)      # other lines
-              t = NL+' '*self.indent + t                  # first line
+              t = t.replace('\n',NL+' '*opts['indent'])      # other lines
+              t = NL+' '*opts['indent'] + t                  # first line
 
-          t = NL + self.aliases.get(key,key) + ': ' + t   # Add key (name)
+          t = NL + opts['aliases'].get(key,key) + ': ' + t   # Add key (name)
           txts[key] = t # Register
 
       def sortr(x):
-        if x in self.ordering:
-          key = -1000 + self.ordering.index(x)
+        if x in opts['ordering']:
+          key = -1000 + opts['ordering'].index(x)
         else:
-          if self.ordr_by_linenum:
-            key = self.ordr_by_linenum*txts[x].count('\n')
-            if key<=1:
-                key = self.ordr_by_linenum*len(txts[x])
-          elif self.ordr_by_linenum is None:
+          if opts['ordr_by_linenum']:
+            key = 100*opts['ordr_by_linenum']*txts[x].count('\n')
+            if key<=1: # one '\n' is always present, due to NL
+                key = opts['ordr_by_linenum']*len(txts[x])
+          elif opts['ordr_by_linenum'] is None:
             key = 0 # no sort
           else:
             key = x.lower()
@@ -538,10 +553,8 @@ def functools_wraps(wrapped, lineno=1, *args, **kwargs):
 import contextlib
 @contextlib.contextmanager
 def set_tmp(obj, attr, val):
-    """
-    Temporarily set an attribute.
-    code.activestate.com/recipes/577089
-    """
+    """Temporarily set an attribute.
+    code.activestate.com/recipes/577089"""
     was_there = False
     tmp = None
     if hasattr(obj, attr):

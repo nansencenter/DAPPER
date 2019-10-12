@@ -6,8 +6,7 @@ from dapper import *
 class RV(NestedPrint):
   "Class to represent random variables."
 
-  # Used by NestedPrint
-  ordr_by_linenum = +1
+  printopts = {'ordr_by_linenum' : +1}
 
   def __init__(self,M,**kwargs):
     """

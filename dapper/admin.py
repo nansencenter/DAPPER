@@ -38,8 +38,7 @@ class HiddenMarkovModel(NestedPrint):
   @property
   def Ny(self): return self.Obs.M
 
-  # Print options
-  ordering = ['Dyn','Obs','t','X0']
+  printopts = {'ordering' : ['Dyn','Obs','t','X0']}
 
 
   def simulate(self,desc='Truth & Obs'):
@@ -59,7 +58,6 @@ class HiddenMarkovModel(NestedPrint):
         yy[kObs] = Obs(xx[k],t) + Obs.noise.sample(1)
 
     return xx,yy
-
 
 
 
@@ -91,8 +89,9 @@ class Operator(NestedPrint):
   def __call__(self,*args,**kwargs):
     return self.model(*args,**kwargs)
 
-  # Print options
-  ordering = ['M','model','noise']
+  printopts = {'ordering' : ['M','model','noise']}
+
+
 
 implicit_field = lambda x: dc.field(default=x, repr=False, compare=False)
 
