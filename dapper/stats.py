@@ -123,10 +123,12 @@ class Stats(NestedPrint):
 
       def make_series(shape,**kwargs):
           if length=='FAUSt':
-              return FAUSt(self.K, self.KObs, shape,
+              total_shape = self.K, self.KObs, shape
+              return FAUSt(*total_shape,
                       self.config.store_u, self.config.store_s, **kwargs)
           else:
-              return DataSeries((length,)+shape,**kwargs)
+              total_shape = (length,)+shape
+              return DataSeries(total_shape,**kwargs)
 
       # Principal series
       series = make_series(shape)
