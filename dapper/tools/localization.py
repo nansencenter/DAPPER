@@ -8,6 +8,28 @@ from dapper import *
 CUTOFF   = 1e-3
 TAG      = 'GC'
 
+# TODO replace distance_nd usage by pairwise_distances
+# TODO make partial_direct_obs_nd_loc_setup use general_localization
+
+
+def pairwise_distances(A, B, shape=None, periodic=True):
+    """Euclidian distance (un-squared) between pts in A and B.
+
+    - A: array of shape (npts,ndim), where the last dim holds the coords.
+    - B: idem. (npts can differ).
+    - returns distances as an array of shape (npts_A, npts_B)
+
+    - If ``periodic``: ``shape`` must be provdied,
+      specifying length of edges of hypercube.
+    """
+    d = A[:,None] - B # shape=(npts_A,npts_B,ndim)
+
+    if periodic:
+        shape = np.reshape(shape ,(1,1,-1))
+        d = np.minimum(d, shape-d)
+
+    # return sla.norm(d,axis=-1)
+    return sla.norm(d,axis=-1)
 
 def distance_nd(centre, pts, shape, periodic=True):
   """Euclidian distance between centre and pts.
@@ -58,15 +80,14 @@ def dist2coeff(dists, radius, tag=None):
     R            = radius * 1.64 # Sakov: 1.7080
     inds         = dists <= R
     coeffs[inds] = (1 - (dists[inds] / R) ** 4) ** 4
-  elif tag == 'GC':
-    # Gaspari_Cohn. Eqn 25 of Sakov2011relation or Eqn 4.10 of Gaspari1999construction
-    R = radius * 1.82 # Sakov: 1.7386
-    #
+  elif tag == 'GC': # eqn 4.10 of Gaspari-Cohn'99, or eqn 25 of Sakov2011relation
+    R = radius * 1.82 # =sqrt(10/3). Sakov: 1.7386
+    # 1st segment
     ind1         = dists<=R
     r2           = (dists[ind1] / R) ** 2
     r3           = (dists[ind1] / R) ** 3
     coeffs[ind1] = 1 + r2 * (- r3 / 4 + r2 / 2) + r3 * (5 / 8) - r2 * (5 / 3)
-    #
+    # 2nd segment
     ind2         = np.logical_and(R < dists, dists <= 2*R)
     r1           = (dists[ind2] / R)
     r2           = (dists[ind2] / R) ** 2
@@ -100,26 +121,26 @@ def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
 
 
 
-def rectangular_partitioning(shape,steps):
+def rectangular_partitioning(shape,steps,do_ind=True):
   """N-D rectangular batch generation.
 
   shape: [len(grid[dim]) for dim in range(ndim)]
   steps: [step_len[dim]  for dim in range(ndim)]
 
   returns a list of batches,
-  where each element (batch) is an ndim-list,
-  where each element is an array of ordinates (length == #gridpoints in batch).
+  where each element (batch) is a list of indices
 
   # Example, with visualization:
+  >>> seed(3)
   >>> shape   = [4,13]
   >>> steps   = [2,4]
-  >>> batches = rectangular_partitioning(shape, steps)
+  >>> batches = rectangular_partitioning(shape, steps, do_ind=False)
   >>> M       = np.prod(shape)
   >>> nB      = len(batches)
   >>> values  = np.random.choice(arange(nB),nB,0)
   >>> Z       = zeros(shape)
   >>> for ib,b in enumerate(batches):
-  >>>   Z[b] = values[ib]
+  >>>   Z[tuple(b)] = values[ib]
   >>> plt.imshow(Z)
   """
   assert len(shape)==len(steps)
@@ -137,6 +158,11 @@ def rectangular_partitioning(shape,steps):
     batch_rect    = np.meshgrid(*batch_edges, indexing='ij')
     coords        = [ ii.flatten() for ii in batch_rect]
     batches      += [ coords ]
+
+  if do_ind:
+      def sub2ind(sub):
+          return np.ravel_multi_index(sub, shape)
+      batches = [sub2ind(b) for b in batches]
 
   return batches
 
@@ -161,15 +187,13 @@ def obs_inds_safe(obs_inds, t):
 def partial_direct_obs_nd_loc_setup(shape,batch_shape,obs_inds,periodic):
   "N-D rectangle"
 
-  def sub2ind(sub): return np.ravel_multi_index(sub, shape)
-  def ind2sub(ind): return np.    unravel_index(ind, shape)
-
+  # def sub2ind(sub): return np.ravel_multi_index(sub, shape)
+  def ind2sub(ind): return np.unravel_index(ind, shape)
 
   M = np.prod(shape)
   state_coord = ind2sub(arange(M))
 
   batches = rectangular_partitioning(shape, batch_shape)
-  batches = [sub2ind(b) for b in batches]
 
   def loc_setup(radius,direction,t,tag=None):
     "Provide localization setup for time t."
@@ -218,5 +242,24 @@ def no_localization(Nx,Ny):
   return loc_setup
 
 
+def general_localization(y2x_distances,batches):
+
+    def loc_setup(radius,direction,t,tag=None):
+        "Provide localization setup for time t."
+        y2x = y2x_distances(t)
+  
+        if direction is 'x2y':
+          def obs_taperer(batch):
+              x2y = y2x.T
+              dists = x2y[batch].mean(axis=0)
+              return inds_and_coeffs(dists, radius, tag=tag)
+          return batches, obs_taperer
+  
+        elif direction is 'y2x':
+          def state_taperer(iObs):
+              return inds_and_coeffs(y2x[iObs], radius, tag=tag)
+        return state_taperer
+  
+    return loc_setup
 
 
