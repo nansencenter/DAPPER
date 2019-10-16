@@ -18,16 +18,11 @@ def test_L63():
   cfgs += OptInterp()
   # cfgs += iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)
 
-  for iC,C in enumerate(cfgs):
-    C.fail_gently=False
-    C.store_u=False
-    C.liveplots="all"
-
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 1
   xx,yy = HMM.simulate()
 
-  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True)
+  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True,liveplots="all",store_u=False,fail_gently=False)
   cfgs.print_avrgs(['rmse_a'])
 
   for config in cfgs:
@@ -68,18 +63,13 @@ def test_L95():
   # cfgs += PartFilt(N=3000,NER=0.20,reg=1.2)                # 0.77
   # cfgs += PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)          # 0.51
 
-  for iC,C in enumerate(cfgs):
-    C.fail_gently=False
-    C.store_u=True
-    C.liveplots="all"
-
   # HMM.t.BurnIn = 10*HMM.t.dtObs
   # HMM.t.KObs = 30
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 2
   xx,yy = HMM.simulate()
 
-  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True)
+  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True,liveplots="all",store_u=False,fail_gently=False)
   cfgs.print_avrgs(['rmse_a'])
 
   for config in cfgs:

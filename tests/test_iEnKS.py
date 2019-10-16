@@ -25,17 +25,12 @@ for Lag in [0,1,3]:
       cfgs += iEnKS('Order1'  , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
 
 
-for c in cfgs:
-    c.liveplots=False
-    c.store_u=True
-
-
 ##############################
 # Assimilate
 ##############################
 xx,yy = HMM.simulate()
 
-cfgs.assimilate(HMM,xx,yy,sd0+2)
+cfgs.assimilate(HMM,xx,yy,sd0+2,store_u=True)
 cfgs.print_avrgs(['err.rms.u','err.rms.s'])
 
 

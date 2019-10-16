@@ -56,7 +56,7 @@ class LivePlot:
     plt.ion()
 
     # Determine whether all/universal/intermediate stats
-    self.plot_u = stats.config.store_u or not replay
+    self.plot_u = stats.store_u or not replay
 
     # Loop over requeted figures
     self.any_figs = False
@@ -152,7 +152,7 @@ def parse_figlist(figlist):
 
 
 
-def replay(config, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
+def replay(config, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
   """Replay LivePlot with what's been stored in 'stats'.
 
   - t1, t2: time window to plot.
@@ -180,7 +180,6 @@ def replay(config, figlist=None, speed=np.inf, t1=0, t2=None, **kwargs):
   except AttributeError: # e.g. if X0 is defined via sampling func
     P0 = eye(stats.HMM.Nx)
 
-  if figlist is None: figlist = config.liveplots
   figlist = parse_figlist(figlist)
 
   LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, replay=True, **kwargs)

@@ -92,22 +92,7 @@ class Operator(NestedPrint):
   printopts = {'ordering' : ['M','model','noise']}
 
 
-
-implicit_field = lambda x: dc.field(default=x, repr=False, compare=False)
-
-@dc.dataclass
-class _da_defaults:
-    """Default kwargs for da_method.
-
-    NB: The da_method's are created at startup.
-        => changing this later has no effect."""
-
-    liveplots   : bool = implicit_field(False)
-    store_u     : bool = implicit_field(False)
-    fail_gently : bool = implicit_field(True)
-
-
-def da_method(*default_dcs): 
+def da_method(*default_dataclasses): 
     """Make the decorator that makes the DA classes.
 
     Example:
@@ -138,9 +123,9 @@ def da_method(*default_dcs):
 
 
         # Default fields invovle: (1) annotations and (2) attributes.
-        if not hasattr(cls,'__annotations__'):
-            cls.__annotations__ = {}
         def set_field(name,type,val):
+            if not hasattr(cls,'__annotations__'):
+                cls.__annotations__ = {}
             cls.__annotations__[name] = type
             if not isinstance(val,dc.Field):
                 val = dc.field(default=val)
@@ -148,23 +133,15 @@ def da_method(*default_dcs):
 
         # APPend default fields without overwriting.
         # Don't implement (by PREpending?) non-default args -- to messy!
-        for D in default_dcs + (_da_defaults,):
-            # Calling dataclass twice always makes repr=True, so avoid this.
-            try:              fields = dc.fields(D)
-            except TypeError: fields = dc.fields(dc.dataclass(D))
-            for F in fields:
+        for D in default_dataclasses:
+            # NB: Calling dataclass twice always makes repr=True, so avoid this.
+            for F in dc.fields(dc.dataclass(D)):
                 if F.name not in cls.__annotations__:
                     set_field(F.name,F.type,F)
-
-        # Programmatic defaults (for the class):
-        set_field('store_s', bool, implicit_field('Lag' in cls.__annotations__))
 
         # Create new class (NB: old/new classes have same id) 
         orig_assimilate = cls.assimilate # => store old.assimilate
         cls = dc.dataclass(cls)
-
-
-
 
         # Shortcut for self.__class__.__name__
         cls.da_method = cls.__name__
@@ -176,10 +153,21 @@ def da_method(*default_dcs):
 
         @method
         @functools.wraps(orig_assimilate)
-        def assimilate(self,HMM,xx,yy,desc=None):
+        def assimilate(self,HMM,xx,yy,
+                desc=None,fail_gently=rc['fail_gently'],**kwargs):
+
+            # Progressbar name
             pb_name_hook = self.da_method if desc is None else desc
-            self.stats = Stats(self,HMM,xx,yy)
-            call_gently(orig_assimilate,self,HMM,xx,yy)
+
+            self.stats = Stats(self,HMM,xx,yy,**kwargs)
+
+            try:
+                orig_assimilate(self,HMM,xx,yy)
+            except Exception as ERR:
+                if fail_gently:
+                    print_cropped_traceback(ERR)
+                else:
+                    raise ERR
 
         @method
         def average_stats(self,free=False):
@@ -200,49 +188,6 @@ def da_method(*default_dcs):
 
         return cls
     return dataclass_with_defaults
-
-
-def call_gently(fun,self,*args):
-    """Wrap fun in try clause to allow execution to continue
-    for some types of exceptions."""
-
-
-    def crop_traceback(ERR,lvl):
-        msg = []
-        try:
-            # If IPython, use its coloring functionality
-          __IPYTHON__
-          from IPython.core.debugger import Pdb
-          import traceback as tb
-          pdb_instance = Pdb()
-          pdb_instance.curframe = inspect.currentframe() # first frame: this one
-
-          for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
-              if i<lvl: continue # skip frames
-              if i==lvl: msg += ["   ⋮\n"]
-              msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
-        except (NameError,ImportError):
-            # No coloring
-            msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
-        return msg
-
-    def _print(ERR):
-        msg  = ["\n\nCaught exception during assimilation. Traceback:"]
-        msg += ["<"*20 + "\n"]
-        msg += crop_traceback(ERR,1) + [str(ERR)]
-        msg += ["\n" + ">"*20]
-        msg += ["Returning stats (time series) object in its current "+\
-            "(incompleted) state,\nand resuming program execution.\n"+\
-            "Turn off `fail_gently` to fully raise the exception.\n"]
-        for s in msg: print(s,file=sys.stderr)
-
-    try:
-        fun(self,*args)
-    except Exception as ERR:
-        if self.fail_gently:
-            _print(ERR)
-        else: 
-            raise ERR
 
 
 class List_of_Configs(list):
@@ -297,7 +242,7 @@ class List_of_Configs(list):
 
     return [i for i,C in enumerate(self) if match(C)]
 
-  def assimilate(self,HMM,xx,yy,sd=True,free=True,print=False,desc=True):
+  def assimilate(self,HMM,xx,yy,sd=True,free=True,print=False,desc=True,**kwargs):
     "Call config.assimilate() for each config in self."
 
     if sd is True:
@@ -313,7 +258,7 @@ class List_of_Configs(list):
         if sd:
             seed(sd)
 
-        config.assimilate(HMM,xx,yy,desc=label)
+        config.assimilate(HMM,xx,yy,desc=label,**kwargs)
 
         config.average_stats(free=free)
 
@@ -456,6 +401,37 @@ class List_of_Configs(list):
       return table.splitlines()
 
 
+
+def print_cropped_traceback(ERR):
+
+    def crop_traceback(ERR,lvl):
+        msg = []
+        try:
+            # If IPython, use its coloring functionality
+          __IPYTHON__
+          from IPython.core.debugger import Pdb
+          import traceback as tb
+          pdb_instance = Pdb()
+          pdb_instance.curframe = inspect.currentframe() # first frame: this one
+
+          for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
+              if i<lvl: continue # skip frames
+              if i==lvl: msg += ["   ⋮\n"]
+              msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
+
+        except (NameError,ImportError):
+            # No coloring
+            msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
+
+        return msg
+
+    msg  = ["\n\nCaught exception during assimilation. Traceback:"]
+    msg += ["<"*20 + "\n"]
+    msg += crop_traceback(ERR,1) + [str(ERR)]
+    msg += ["\n" + ">"*20]
+    msg += ["Resuming program execution.\n"+\
+        "Turn off `fail_gently` to fully raise the exception.\n"]
+    for s in msg: print(s,file=sys.stderr)
 
 
 import dill

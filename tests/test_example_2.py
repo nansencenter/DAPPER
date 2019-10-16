@@ -30,9 +30,8 @@ cfgs += PartFilt(       N=4000,reg=0.7  ,NER=0.05)
 cfgs += PFxN(xN=1000,   N=30  ,Qs=2     ,NER=0.2)
 
 # Run
-for c in cfgs: c.store_u=True
 xx,yy = HMM.simulate()
-cfgs.assimilate(HMM,xx,yy,sd0+2)
+cfgs.assimilate(HMM,xx,yy,sd0+2,store_u=True)
 
 table = cfgs._repr_avrgs(statkeys,decimals=4)
 old = """
@@ -86,9 +85,8 @@ cfgs += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4)
 cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)
 
 
-for c in cfgs: c.store_u=True
 xx,yy = HMM.simulate()
-cfgs.assimilate(HMM,xx,yy,sd0+2)
+cfgs.assimilate(HMM,xx,yy,sd0+2,store_u=True)
 
 table = cfgs._repr_avrgs(statkeys,decimals=4)
 old = """

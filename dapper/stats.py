@@ -10,7 +10,7 @@ class Stats(NestedPrint):
 
   printopts = {'precision' : 3, 'ordr_by_linenum' : -1}
  
-  def __init__(self,config,HMM,xx,yy):
+  def __init__(self,config,HMM,xx,yy, liveplots=False, store_u=rc['store_u']):
     """Init the default statistics.
 
     Note: Python allows dynamically creating attributes, so you can easily
@@ -21,10 +21,13 @@ class Stats(NestedPrint):
     ######################################
     # Preamble
     ######################################
-    self.config  = config
-    self.xx      = xx
-    self.yy      = yy
-    self.HMM     = HMM
+    self.config    = config
+    self.HMM       = HMM
+    self.xx        = xx
+    self.yy        = yy
+    self.liveplots = liveplots
+    self.store_u   = store_u
+    self.store_s   = hasattr(config,'Lag')
 
     # Shapes
     K    = xx.shape[0]-1
@@ -125,7 +128,7 @@ class Stats(NestedPrint):
           if length=='FAUSt':
               total_shape = self.K, self.KObs, shape
               return FAUSt(*total_shape,
-                      self.config.store_u, self.config.store_s, **kwargs)
+                      self.store_u, self.store_s, **kwargs)
           else:
               total_shape = (length,)+shape
               return DataSeries(total_shape,**kwargs)
@@ -198,7 +201,7 @@ class Stats(NestedPrint):
 
     for sub in faus:
         # Skip assessment?
-        if kObs==None and not self.config.store_u:
+        if kObs==None and not self.store_u:
           try:
             if (not rc['liveplotting_enabled']) or (not self.LP_instance.any_figs):
               continue
@@ -224,7 +227,7 @@ class Stats(NestedPrint):
         # LivePlot -- Both initiation and update must come after the assessment.
         if rc['liveplotting_enabled']:
           if not hasattr(self,'LP_instance'): # -- INIT --
-            self.LP_instance = LivePlot(self, self.config.liveplots, (k,kObs,sub), E, Cov)
+            self.LP_instance = LivePlot(self, self.liveplots, (k,kObs,sub), E, Cov)
           else: # -- UPDATE --
             self.LP_instance.update((k,kObs,sub),E,Cov)
 

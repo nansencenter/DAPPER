@@ -1,11 +1,10 @@
 Todo
 ================================================
 
-* Make land_ocean example
 * Clean up rmse_ rmv_
-* Abbreviate rmse
-* Make stats.sector['glob'].FAU = array
 * Change KObs to KObs-1
+* Rename 95 96
+* hot, hoteit, sak, sakov
 * https://stackoverflow.com/q/1024435/how-to-fix-python-indentation
 * Replace equi_spaced_integers by linspace_int. Rerun all tests.
 

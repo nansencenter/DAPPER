@@ -7,25 +7,17 @@ seed(3)
 # Load experiment setup: the hidden Markov Model (HMM)
 from dapper.mods.Lorenz63.sak12 import HMM
 HMM.t.T = 30 # shorten experiment
-# config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
-# config = Var3D()
-config = PartFilt(N=100,reg=2.4,NER=0.3)
-
-HMM.sectors = dict(land=[0,1], ocean=[2])
-
-# from dapper.mods.Lorenz95.boc10 import HMM
-# HMM.t.T = 30 # shorten experiment
-# config = PartFilt(N=100,NER=0.2 ,reg=1.3)           # 0.36
 
 # Simulate synthetic truth (xx) and noisy obs (yy)
 xx,yy = HMM.simulate()
 
-
-# Turn on liveplotting
-config.liveplots = False
+# Specify a DA method configuration
+config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
+# config = Var3D()
+# config = PartFilt(N=100,reg=2.4,NER=0.3)
 
 # Assimilate yy, knowing the HMM; xx is used for assessment.
-config.assimilate(HMM,xx,yy)
+config.assimilate(HMM,xx,yy, liveplots=True)
 
 # Average stats time series
 config.average_stats()
