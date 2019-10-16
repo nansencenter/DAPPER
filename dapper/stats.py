@@ -414,7 +414,10 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
     def tabulate_column(col,header):
         """Align single column (on decimal pt) using tabulate().
         Pad for equal length."""
-        col = tabulate_orig.tabulate(col,[header],'plain').splitlines()
+        col = [[x] for x in col]
+        mv  = '?' # NB: do not use '': might vertically shorten column!
+        col = tabulate_orig.tabulate(col,[header],'plain',missingval=mv)
+        col = col.splitlines()
         mxW = max(len(s) for s in col)
         col = [s + ' '*(mxW-len(s)) for s in col]
         col = [s.replace(' ',pad)   for s in col]
@@ -430,11 +433,12 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
             if uq is None:         val,conf = None,None
             elif decimals is None: val,conf = uq.round(mult=0.2)
             else:                  val,conf = np.round([uq.val, uq.conf],decimals)
-            vals .append([val])
-            confs.append([conf])
+            vals .append(val)
+            confs.append(conf)
         # Align
         vals  = tabulate_column(vals , column)
         confs = tabulate_column(confs, '1σ')
+        assert len(vals)==len(confs)
         # Enter in headr, mattr
         headr.append(vals[0]+'  1σ')
         mattr.append([v +' ±'+c for v,c in zip(vals,confs)][1:])
