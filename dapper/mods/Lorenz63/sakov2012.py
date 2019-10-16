@@ -1,5 +1,4 @@
-"""Reproduce results from Table 1
-Sakov, Oliver, Bertino (2012):
+"""Reproduce results from Table 1 of Sakov, Oliver, Bertino (2012):
 'An Iterative EnKF for Strongly Nonlinear Systems'"""
 
 from dapper import *
@@ -31,7 +30,7 @@ HMM.liveplotters = LPs(jj)
 ####################
 # Suggested tuning
 ####################
-# from dapper.mods.Lorenz63.sak12 import HMM       # Expected rmse.a:
+# from dapper.mods.Lorenz63.sakov2012 import HMM   # Expected rmse.a:
 # cfgs += Climatology()                                     # 7.6
 # cfgs += OptInterp()                                       # 1.25
 # cfgs += Var3D(xB=0.1)                                     # 1.04

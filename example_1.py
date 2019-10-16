@@ -5,7 +5,7 @@ from dapper import *
 seed(3)
 
 # Load experiment setup: the hidden Markov Model (HMM)
-from dapper.mods.Lorenz63.sak12 import HMM
+from dapper.mods.Lorenz63.sakov2012 import HMM
 HMM.t.T = 30 # shorten experiment
 
 # Simulate synthetic truth (xx) and noisy obs (yy)

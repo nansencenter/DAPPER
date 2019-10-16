@@ -181,7 +181,7 @@ def obs_inds_safe(obs_inds, t):
 #  2) It's not necessary, because the module only communicates to *exterior* via indices
 #     [of what assumes to be X.flatten(order='C')], and not coordinates!
 #     Thus, the only adaptation necessary if the order is 'F' is to reverse
-#     the shape parameter passed to these functions (example: mods/QG/sak08).
+#     the shape parameter passed to these functions (example: mods/QG/sakov2008).
 
 
 def partial_direct_obs_nd_loc_setup(shape,batch_shape,obs_inds,periodic):

@@ -89,7 +89,7 @@ def periodic_distance_range(M):
   #return np.concatenate((range((M+1)//2), range(M//2,0,-1)))
 
 
-# Initialization as suggested by evensen'2009
+# Initialization as suggested by evensen2009
 def homogeneous_1D_cov(M,d,kind='Expo'):
   """
   Generate initial correlations for Linear Advection experiment.

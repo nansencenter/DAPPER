@@ -9,7 +9,7 @@ seed(3)
 ##############################
 cfgs  = List_of_Configs()
 
-from dapper.mods.Lorenz63.sak12 import HMM       # Expected rmse.a:
+from dapper.mods.Lorenz63.sakov2012 import HMM   # Expected rmse.a:
 cfgs += Climatology()                                     # 7.6
 cfgs += OptInterp()                                       # 1.25
 cfgs += Var3D(xB=0.1)                                     # 1.03 
@@ -24,7 +24,7 @@ cfgs += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # cfgs += PartFilt(     N=4000,reg=0.7  ,NER=0.05)        # 0.27
 # cfgs += PFxN(xN=1000, N=30  ,Qs=2     ,NER=0.2)         # 0.56
 
-# from dapper.mods.Lorenz95.sak08 import HMM       # Expected rmse.a:
+# from dapper.mods.Lorenz95.sakov2008 import HMM  # Expected rmse.a:
 # cfgs += Climatology()                                     # 3.6
 # cfgs += OptInterp()                                       # 0.95
 # cfgs += Var3D(xB=0.02)                                    # 0.41 
@@ -40,7 +40,7 @@ cfgs += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)  # 0.23
 
 # Other models (suitable cfgs listed in HMM files):
-# from dapper.mods.LA           .even2009    import HMM
+# from dapper.mods.LA           .evensen2009 import HMM
 # from dapper.mods.KS           .bocquet2019 import HMM
 # from dapper.mods.LotkaVolterra.dpr01       import HMM
 

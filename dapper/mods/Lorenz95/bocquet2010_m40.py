@@ -1,5 +1,5 @@
-# Same as boc10, except that here ndim=40 (i.e. Fig. 5 of paper)
-from dapper.mods.Lorenz95.boc10 import *
+"""Same as bocquet2010, except that here ndim=40 (i.e. Fig. 5 of paper)"""
+from dapper.mods.Lorenz95.bocquet2010 import *
 
 Nx = 40
 Dyn['M'] = Nx

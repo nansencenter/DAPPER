@@ -1,4 +1,4 @@
-# A mix of Evensen'2009 and Sakov'2008
+"""A mix of Evensen'2009 and Sakov'2008"""
 
 # NB: Since there is no noise, and the system is stable,
 #     the rmse's from this HMM go to zero as T-->infty.

@@ -1,5 +1,6 @@
-# Concerns figure 4 of Todter and Ahrens (2015):
-# "A Second-Order Exact Ensemble Square Root Filter for Nonlinear Data Assimilation"
+"""Concerns figure 4 of Todter and Ahrens (2015):
+'A Second-Order Exact Ensemble Square Root Filter
+for Nonlinear Data Assimilation'"""
 
 from dapper import *
 

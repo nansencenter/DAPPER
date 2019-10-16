@@ -19,7 +19,7 @@ from dapper import *
 # between repetitions, not xticks or configurations.
 sd0 = seed_init(8) # Base random seed.
 
-from   dapper.mods.Lorenz95.boc15loc import HMM
+from   dapper.mods.Lorenz95.bocquet2015loc import HMM
 import dapper.mods.Lorenz95.core as core
 
 HMM.t.T = 4**3.0
@@ -97,7 +97,7 @@ def L95_rad(N,F):
   r *= sqrt(8/F) # Not tuned at all!
   return r
 def L95_lag(N,F):
-  # Approximately tuned for iLEnKS and sak08 xticks.
+  # Approximately tuned for iLEnKS and sakov2008 xticks.
   if     N<=7 : return 1
   if 8 <=N<=15: return N-6
   if 16<=N    : return 10

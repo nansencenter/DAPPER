@@ -1,5 +1,6 @@
-# From Fig. 1 of Bocquet 2010 "Beyond Gaussian Statistical Modeling
-# in Geophysical Data Assimilation".
+"""From Fig. 1 of Bocquet 2010 'Beyond Gaussian Statistical Modeling
+in Geophysical Data Assimilation'."""
+
 from dapper import *
 
 from dapper.mods.Lorenz95 import core

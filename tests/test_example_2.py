@@ -8,7 +8,7 @@ statkeys = ['err.rms.a','err.rms.f','err.rms.u']
 ##############################
 # L63
 ##############################
-from dapper.mods.Lorenz63.sak12 import HMM
+from dapper.mods.Lorenz63.sakov2012 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
 sd0 = seed(9)
@@ -63,7 +63,7 @@ L63 = dict(table=table,old=old)
 ##############################
 # L95
 ##############################
-from dapper.mods.Lorenz95.sak08 import HMM
+from dapper.mods.Lorenz95.sakov2008 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
 sd0 = seed(9)

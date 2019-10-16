@@ -94,7 +94,7 @@ plt.ion()
 # # This may be an ipython bug (stackoverflow.com/a/45720872).
 # # Solutions: 1) run script from outside of ipython,
 # #         or 2) Turn it off using mp=False.
-# model = model_config("sak08",{},mp=False)
+# model = model_config("sakov2008",{},mp=False)
 # step  = model.step
 # Nx    = prod(shape)
 # ii    = np.random.choice(arange(Nx),100,False)

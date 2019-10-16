@@ -1,14 +1,15 @@
-'''Set-up as in Sakov's 2008 article in Tellus
+"""Set-up as in Sakov's 2008 article in Tellus
 "A deterministic formulation of the ensemble Kalman filter:
 an alternative to ensemble square root filters",
 
 Similar to the 1998 MWR article by E. N. Lorenz and K. A. Emanuel:
-"Optimal Sites for Supplementary Weather Observations: Simulation with a Small Model",
+'Optimal Sites for Supplementary Weather Observations:
+Simulation with a Small Model',
 except that the observations are from the entire state.
 
 This HMM is used (with small variations) in many DA papers,
 some of which are mentioned below.
-'''
+"""
 
 from dapper import *
 

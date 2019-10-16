@@ -1,7 +1,7 @@
-# Like tod15 but with Gaussian likelihood.
+"""Like todter2015 but with Gaussian likelihood."""
 
 from dapper import *
-from dapper.mods.Lorenz95.tod15 import HMM
+from dapper.mods.Lorenz95.todter2015 import HMM
 HMM.Obs.noise = GaussRV(C=HMM.Obs.noise.C)
 
 ####################

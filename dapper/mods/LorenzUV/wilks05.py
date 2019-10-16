@@ -1,5 +1,5 @@
-# Uses nU, J, F as in core.py, which is taken from Wilks2005.
-# Obs settings taken from different places (=> quasi-linear regime).
+"""Uses nU, J, F as in core.py, which is taken from wilks05.
+Obs settings taken from different places (=> quasi-linear regime)."""
 
 from dapper import *
 from dapper.mods.LorenzUV.core import model_instance

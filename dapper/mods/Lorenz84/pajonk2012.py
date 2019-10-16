@@ -1,13 +1,13 @@
-# Settings from
-# Pajonk, Oliver, et al. 
-#   "A deterministic filter for non-Gaussian Bayesian estimation—applications
-#    to dynamical system estimation with noisy measurements."
-#   Physica D: Nonlinear Phenomena 241.7 (2012): 775-788.
-#
-# There is nothing to reproduce from the paper as there are no
-# statistically converged numbers.
+"""Settings from Pajonk, Oliver, et al. 
+'A deterministic filter for non-Gaussian Bayesian estimation—applications
+to dynamical system estimation with noisy measurements.'
+Physica D: Nonlinear Phenomena 241.7 (2012): 775-788.
 
-# More interesting settings: mods.Lorenz84.harder
+There is nothing to reproduce from the paper as there are no
+statistically converged numbers.
+
+More interesting settings: mods.Lorenz84.harder
+"""
 
 from dapper import *
 

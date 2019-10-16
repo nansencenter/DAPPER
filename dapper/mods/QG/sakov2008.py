@@ -1,4 +1,4 @@
-# Reproduce results from Sakov and Oke "DEnKF" paper from 2008.
+"""Reproduce results from Sakov and Oke 'DEnKF' paper from 2008."""
 
 from dapper import *
 
@@ -9,7 +9,7 @@ from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_set
 # Time series, model, initial condition
 ############################
 
-model = model_config("sak08",{})
+model = model_config("sakov2008",{})
 Dyn = {
     'M'    : np.prod(shape),
     'model': model.step,
@@ -88,7 +88,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0, LP=LP_setup(obs_inds) )
 
 # Notes:
 # - If N<=25, then typically need to increase the dissipation
-#      to be almost sure to avoid divergence. See cou09.py for example.
+#      to be almost sure to avoid divergence. See counillon2009.py for example.
 #    - We have not had the need to increase the dissipation parameter for the EnKF.
 # - Our experiments differ from Sakov's in the following minor details:
 #    - We use a batch width (unsure what Sakov uses).
@@ -98,7 +98,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0, LP=LP_setup(obs_inds) )
 #   but are included in the state vector (amounting to 3% of the its length),
 #   and thus in RMSE calculations (which is not quite fair/optimal).
 
-# from dapper.mods.QG.sak08 import HMM                   # Expected rmse.a:
+# from dapper.mods.QG.sakov2008 import HMM               # Expected rmse.a:
 # cfgs += LETKF(mp=True, N=25,infl=1.04       ,loc_rad=10)        # 0.64
 # cfgs += LETKF(mp=True, N=25,infl='-N',xN=2.0,loc_rad=10)        # 0.66
 # cfgs += SL_EAKF(       N=25,infl=1.04       ,loc_rad=10)        # 0.62

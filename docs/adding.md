@@ -27,7 +27,7 @@ Make a new dir: `DAPPER/mods/your_model`. Add the following files:
 * `demo.py` to visually showcase a simulation of the model.
 * Files that define a complete Hidden Markov Model ready for a twin experiment (OSSE).
     For example, this will plug in the `step`function you made previously as in `Dyn['model'] = step`.
-    For further details, see examples such as `DAPPER/mods/Lorenz63/{sak12,boc12}.py`.
+    For further details, see examples such as `DAPPER/mods/Lorenz63/{sakov2012,bocquet2012}.py`.
 
 
 <!--

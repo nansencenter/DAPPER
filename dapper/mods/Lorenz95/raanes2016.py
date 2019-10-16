@@ -2,7 +2,7 @@
 
 from dapper import *
 
-from dapper.mods.Lorenz95.sak08 import HMM
+from dapper.mods.Lorenz95.sakov2008 import HMM
 
 HMM.t = Chronology(0.01,dkObs=15,T=4**5,BurnIn=20)
 

@@ -1,8 +1,10 @@
-# Reproduce results from Fig 11 of 
-# M. Bocquet and P. Sakov (2012): "Combining inflation-free and
-# iterative ensemble Kalman filters for strongly nonlinear systems"
-from dapper.mods.Lorenz63.sak12 import HMM
-# The only diff to sak12 is R: boc12 uses 1 and 8, sak12 uses 2 (and 8)
+"""Reproduce results from Fig 11 of 
+M. Bocquet and P. Sakov (2012): 'Combining inflation-free and
+iterative ensemble Kalman filters for strongly nonlinear systems'"""
+
+from dapper.mods.Lorenz63.sakov2012 import HMM
+# The only diff to sakov2012 is R:
+# bocquet2012 uses 1 and 8, sakov2012 uses 2 (and 8)
 
 from dapper import *
 
@@ -13,7 +15,7 @@ HMM.name = os.path.relpath(__file__,'mods/')
 ####################
 # Suggested tuning
 ####################
-# from dapper.mods.Lorenz63.boc12 import HMM                # Expected rmse.a:
+# from dapper.mods.Lorenz63.bocquet2012 import HMM # Expected rmse.a:
 # HMM.t.dkObs = 25
 # cfgs += iEnKS('Sqrt', N=10,infl=1.02,rot=True)            # 0.22
 # cfgs += iEnKS('Sqrt', N=3, infl=1.04)                     # 0.23

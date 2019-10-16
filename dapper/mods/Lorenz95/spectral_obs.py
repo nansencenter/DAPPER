@@ -67,7 +67,7 @@
 # Am I missing something?
 
 
-from dapper.mods.Lorenz95.sak08 import *
+from dapper.mods.Lorenz95.sakov2008 import *
 
 # The (Nx-Ny) highest frequency observation modes are left out of H below.
 # If Ny>Nx, then H no longer has independent (let alone orthogonal) columns,

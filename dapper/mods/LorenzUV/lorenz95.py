@@ -1,4 +1,4 @@
-# As in Lorenz 1996 "Predictability..."
+"""As in Lorenz 1996 'Predictability...'"""
 
 from dapper import *
 
