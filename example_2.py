@@ -24,7 +24,7 @@ cfgs += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # cfgs += PartFilt(     N=4000,reg=0.7  ,NER=0.05)        # 0.27
 # cfgs += PFxN(xN=1000, N=30  ,Qs=2     ,NER=0.2)         # 0.56
 
-# from dapper.mods.Lorenz95.sakov2008 import HMM  # Expected rmse.a:
+# from dapper.mods.Lorenz96.sakov2008 import HMM  # Expected rmse.a:
 # cfgs += Climatology()                                     # 3.6
 # cfgs += OptInterp()                                       # 0.95
 # cfgs += Var3D(xB=0.02)                                    # 0.41 

@@ -3,7 +3,7 @@
 """
 
 
-from dapper.mods.Lorenz95.sakov2008 import *
+from dapper.mods.Lorenz96.sakov2008 import *
 from dapper.tools.localization import general_localization, pairwise_distances
 
 t = Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)

@@ -4,7 +4,7 @@ for Nonlinear Data Assimilation'"""
 
 from dapper import *
 
-from dapper.mods.Lorenz95 import core
+from dapper.mods.Lorenz96 import core
 from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
 
 t = Chronology(0.05,dkObs=2,T=4**5,BurnIn=20)

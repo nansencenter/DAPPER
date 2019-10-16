@@ -218,7 +218,7 @@ old['u'] = \
 # are reproduced by the iEnKS with Lag=0 (requires nIter==1 if Obs.mod is also nonlin).
 # However, the 'u' stats of the non-iterative EnKS(Lag>0) are not reproduced.
 # Re-use cfgs and test with:
-# from dapper.mods.Lorenz95.sakov2008 import HMM
+# from dapper.mods.Lorenz96.sakov2008 import HMM
 # HMM.t.KObs=100 # Here, must use >100 to avoid indistinguishable rmse stats.
 
 

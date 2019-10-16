@@ -1,8 +1,7 @@
 Todo
 ================================================
 
-* Rename 95 96
-* hot, hoteit, sak, sakov
+* Lorenz-96 hot, hoteit, sak, sakov
 * Localization: use general_local
 * Change KObs to KObs-1
 * https://stackoverflow.com/q/1024435/how-to-fix-python-indentation

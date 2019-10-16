@@ -1,4 +1,4 @@
-'''The "Lorenz-95" (or 96) model.
+'''The "Lorenz-96" (or 96) model.
 
 From "Predictability -- a problem partly solved" by E. N. Lorenz (1996).
 Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.
@@ -51,7 +51,7 @@ def d2x_dtdx(x):
 
 # dstep_dx = FD_Jac(step)
 def dstep_dx(x,t,dt):
-  # For L95, method='analytic' >> 'approx'
+  # For L96, method='analytic' >> 'approx'
   return integrate_TLM(d2x_dtdx(x),dt,method='analytic')
 
 

@@ -1,5 +1,5 @@
 # Estimtate the Lyapunov spectrum using an ensemble of perturbations.
-# An obsolete version using explicit TLMs can be found in EmblAUS/Lyap_L{63,95}.
+# An obsolete version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}.
 
 from dapper import *
 sd0 = seed(5)
@@ -47,7 +47,7 @@ plt.ion()
 # eps = 0.001
 # N   = Nx
 
-# from dapper.mods.Lorenz95.core import step
+# from dapper.mods.Lorenz96.core import step
 # # ------------------
 # # Reproduces findings of Carrassi-2008 "Model error and sequential DA...",
 # # when setting M=36, F=8, dt=0.0083="1hour":  LyapExps ∈ ( −0.97, 0.33 ) /hour.
@@ -60,7 +60,7 @@ plt.ion()
 # eps = 0.0002    # Ens rescaling factor.
 # N   = Nx        # Num of perturbations used.
 
-# from dapper.mods.LorenzUV.lorenz95 import LUV
+# from dapper.mods.LorenzUV.lorenz96 import LUV
 # # ------------------
 # # Lyapunov exponents with F=10: [9.47   9.3    8.72 ..., -33.02 -33.61 -34.79] => n0:64
 # ii    = arange(LUV.nU)

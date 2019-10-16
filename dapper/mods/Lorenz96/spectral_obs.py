@@ -1,5 +1,5 @@
 
-# Lorenz95 is highly sensitive to large gradients.
+# Lorenz96 is highly sensitive to large gradients.
 # Therefore, if we only observe every 4th (e.g.) state component,
 # the members might "blow up" during the forecast,
 # because the assimilation created large gradients.
@@ -31,7 +31,7 @@
 #
 # Another idea is then to evaluate the value of 40 orthogonal basis
 # functions at 40 equidistant locations
-# (corresponding to the indices of Lorenz95).
+# (corresponding to the indices of Lorenz96).
 # This will not yield a matrix of +/- 1's,
 # but should nevertheless give nicely distributed weights.
 
@@ -47,7 +47,7 @@
 # 
 # Another basis is the harmonic (sine/cosine) functions. Advantages:
 #  - will be orthogonal when evaluated on 40 discrete equidistant points.
-#  - the domain of Lorenz95 is periodic: as are sine/cosine.
+#  - the domain of Lorenz96 is periodic: as are sine/cosine.
 #  - (conjecture) in the 2^n dim. case, it yields a matrix of +/- 1's.
 #  - nice "spectral/frequency" interpretation of each observation.
 # Disadvatages:
@@ -67,7 +67,7 @@
 # Am I missing something?
 
 
-from dapper.mods.Lorenz95.sakov2008 import *
+from dapper.mods.Lorenz96.sakov2008 import *
 
 # The (Nx-Ny) highest frequency observation modes are left out of H below.
 # If Ny>Nx, then H no longer has independent (let alone orthogonal) columns,

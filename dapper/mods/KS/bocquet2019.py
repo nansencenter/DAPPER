@@ -1,6 +1,6 @@
 from dapper import *
 
-from dapper.mods.Lorenz95.core import LPs
+from dapper.mods.Lorenz96.core import LPs
 from dapper.tools.localization import Id_Obs_nd_loc_setup as loc_setup
 
 from dapper.mods.KS.core import Model, Tplot

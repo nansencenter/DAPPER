@@ -47,7 +47,7 @@ config.replay()
 
 # Excercise: Run an experiment for each of the models:
 # - LotkaVolterra
-# - Lorenz95
+# - Lorenz96
 # - LA
 # - QG
 

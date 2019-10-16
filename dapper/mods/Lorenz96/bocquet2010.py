@@ -3,7 +3,7 @@ in Geophysical Data Assimilation'."""
 
 from dapper import *
 
-from dapper.mods.Lorenz95 import core
+from dapper.mods.Lorenz96 import core
 
 t = Chronology(0.05,dkObs=1,T=4**3,BurnIn=20)
 

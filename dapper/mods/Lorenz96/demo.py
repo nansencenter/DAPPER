@@ -5,7 +5,7 @@ from numpy import eye
 from dapper import with_recursion, amplitude_animation, plt
 plt.ion()
 
-from dapper.mods.Lorenz95.core import step, x0
+from dapper.mods.Lorenz96.core import step, x0
 
 ##
 if __name__ == "__main__":

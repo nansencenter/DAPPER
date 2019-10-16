@@ -119,7 +119,7 @@ DoublePendulum       | No   | Yes  | No    | 0d        | 4         | 2      | Ma
 LotkaVolterra        | No   | Yes  | No    | 0d        | 5 *       | 1      | Wikipedia/Raanes
 Lorenz63             | No   | Yes  | "Yes" | 0d        | 3         | 2      | Sakov
 Lorenz84             | No   | Yes  | No    | 0d        | 3         | 2      | Raanes
-Lorenz95             | No   | Yes  | No    | 1d        | 40 *      | 13     | Raanes
+Lorenz96             | No   | Yes  | No    | 1d        | 40 *      | 13     | Raanes
 LorenzUV             | No   | Yes  | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
 Kuramoto-Sivashinsky | No   | Yes  | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
 Quasi-Geost (QG)     | No   | No   | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov

@@ -61,9 +61,9 @@ old   = [row.rstrip() for row in old  .splitlines()]
 L63 = dict(table=table,old=old)
 
 ##############################
-# L95
+# L96
 ##############################
-from dapper.mods.Lorenz95.sakov2008 import HMM
+from dapper.mods.Lorenz96.sakov2008 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
 sd0 = seed(9)
@@ -108,7 +108,7 @@ old = """
 table = [row.rstrip() for row in table.splitlines()]
 old   = [row.rstrip() for row in old  .splitlines()]
 
-L95 = dict(table=table,old=old)
+L96 = dict(table=table,old=old)
 
 
 
@@ -122,8 +122,8 @@ def test_tables_L63(lineno):
     assert L63['table'][lineno] == L63['old'][lineno]
 
 
-@pytest.mark.parametrize(('lineno'),arange(len(L95['table'])))
-def test_tables_L95(lineno):
-    assert L95['table'][lineno] == L95['old'][lineno]
+@pytest.mark.parametrize(('lineno'),arange(len(L96['table'])))
+def test_tables_L96(lineno):
+    assert L96['table'][lineno] == L96['old'][lineno]
 
 

@@ -13,7 +13,7 @@ some of which are mentioned below.
 
 from dapper import *
 
-from dapper.mods.Lorenz95.core import step, dstep_dx, x0, Tplot, LPs
+from dapper.mods.Lorenz96.core import step, dstep_dx, x0, Tplot, LPs
 from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
 
 # Sakov uses K=300000, BurnIn=1000*0.05

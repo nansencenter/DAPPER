@@ -19,7 +19,7 @@ from dapper import *
 ###########################
 PRMS = 'Lorenz'
 if PRMS == 'Wilks': from dapper.mods.LorenzUV.wilks05  import LUV
-else:               from dapper.mods.LorenzUV.lorenz95 import LUV
+else:               from dapper.mods.LorenzUV.lorenz96 import LUV
 nU = LUV.nU
 
 K  = 400
@@ -69,7 +69,7 @@ ax.set_ylabel(r'Unresolved tendency ($q_{k,i}/\Delta t$)')
 ax.set_xlabel('Resolved variable ($X_{k,i}$)')
 
 ###########################
-# Lorenz'95 Parameterization annotations
+# Lorenz'96 Parameterization annotations
 ###########################
 if PRMS != 'Wilks':
   ax.set_xlim(-8,12)

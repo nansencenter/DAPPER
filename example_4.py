@@ -6,8 +6,8 @@ from dapper import *
 
 sd0 = seed_init(8) # Base random seed.
 
-from   dapper.mods.Lorenz95.bocquet2015loc import HMM
-import dapper.mods.Lorenz95.core as core
+from   dapper.mods.Lorenz96.bocquet2015loc import HMM
+import dapper.mods.Lorenz96.core as core
 
 CtrlVar = sys.argv[1] # command-line argument #1
 # CtrlVar = 'N'

@@ -493,7 +493,7 @@ class SL_EAKF:
 class LETKF:
   """Same as EnKF (sqrt), but with localization [Hun07]_.
 
-  NB: Multiprocessing yields slow-down for L95, even with batch_size=(1,).
+  NB: Multiprocessing yields slow-down for L96, even with batch_size=(1,).
       But for QG (batch_size=(2,2) or less) it is quicker.
 
   NB: If len(ii) is small, analysis may be slowed-down with '-N' infl."""

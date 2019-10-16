@@ -4,7 +4,7 @@
 from dapper import *
 plt.ion()
 
-from dapper.mods.LorenzUV.lorenz95 import LUV
+from dapper.mods.LorenzUV.lorenz96 import LUV
 nU, J = LUV.nU, LUV.J
 
 dt = 0.005

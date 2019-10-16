@@ -19,8 +19,8 @@ from dapper import *
 # between repetitions, not xticks or configurations.
 sd0 = seed_init(8) # Base random seed.
 
-from   dapper.mods.Lorenz95.bocquet2015loc import HMM
-import dapper.mods.Lorenz95.core as core
+from   dapper.mods.Lorenz96.bocquet2015loc import HMM
+import dapper.mods.Lorenz96.core as core
 
 HMM.t.T = 4**3.0
 

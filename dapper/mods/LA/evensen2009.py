@@ -10,7 +10,7 @@
 from dapper import *
 
 from dapper.mods.LA.core import sinusoidal_sample, Fmat
-from dapper.mods.Lorenz95.core import LPs
+from dapper.mods.Lorenz96.core import LPs
 
 Nx = 1000
 Ny = 4

@@ -7,7 +7,7 @@ from matplotlib import cm
 # Setup
 sd0 = seed(4)
 # from dapper.mods.LorenzUV.wilks05 import LUV
-from dapper.mods.LorenzUV.lorenz95 import LUV
+from dapper.mods.LorenzUV.lorenz96 import LUV
 nU, J = LUV.nU, LUV.J
 
 dt = 0.005
@@ -50,7 +50,7 @@ ax.set_xticks([])
 ym,yM = -4,10
 ax.set_ylim(ym,yM)
 ax.set_xlim(0,nU)
-dY = 4 # SET TO: 1 for wilks05, 4 for lorenz95
+dY = 4 # SET TO: 1 for wilks05, 4 for lorenz96
 # U-vars: major
 tU = iU[1:-1]
 lU = np.array([str(i+1) for i in range(nU)])

@@ -6,7 +6,7 @@ inspired by MWR 1998 by E. N. Lorenz and K. A. Emanuel:
 """
 
 
-from dapper.mods.Lorenz95.sakov2008 import *
+from dapper.mods.Lorenz96.sakov2008 import *
 
 # Use small dt to "cope with" ocean sector blow up (due to spatially-constant infl)
 OneYear = 0.05 * (24/6) * 365

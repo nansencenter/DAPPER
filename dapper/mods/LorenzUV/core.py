@@ -1,5 +1,5 @@
 ####################################
-# Lorenz95 two-scale/layer version
+# Lorenz96 two-scale/layer version
 ####################################
 # See Wilks 2005 "Effects of stochastic parametrizations in the Lorenz '96 system"
 # U:  large amp, low frequency vars: convective events
@@ -19,7 +19,7 @@
 
 import numpy as np
 import dapper.tools.liveplotting as LP
-import dapper.mods.Lorenz95.core as L95
+import dapper.mods.Lorenz96.core as L96
 
 def reversible(fun):
   "Reverse input/output (instead of manipulating indices)."""
@@ -30,8 +30,8 @@ def reversible(fun):
       return y
   return newfun
 
-dxdt_auto     = reversible(L95.dxdt_autonomous)
-d2x_dtdx_auto = reversible(L95.d2x_dtdx)
+dxdt_auto     = reversible(L96.dxdt_autonomous)
+d2x_dtdx_auto = reversible(L96.d2x_dtdx)
 
 
 class model_instance():

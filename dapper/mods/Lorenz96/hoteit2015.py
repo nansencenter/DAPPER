@@ -2,7 +2,7 @@
 "Mitigating Observation Perturbation Sampling Errors in the Stochastic EnKF"
 which introduces the ESOPS (2nd-O exact perturbation sampling) method."""
 
-from dapper.mods.Lorenz95.sakov2008 import HMM
+from dapper.mods.Lorenz96.sakov2008 import HMM
 
 HMM.t.T = 365
 HMM.t.BurnIn = 4

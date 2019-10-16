@@ -47,10 +47,10 @@ def test_L63():
 
 
 
-def test_L95():
+def test_L96():
   cfgs  = List_of_Configs()
 
-  from dapper.mods.Lorenz95.sakov2008 import HMM
+  from dapper.mods.Lorenz96.sakov2008 import HMM
   cfgs += EnKF('PertObs'        ,N=40, infl=1.06)               # 0.22
   cfgs += EnKF('Serial'         ,N=28, infl=1.02,rot=True)      # 0.18
   cfgs += OptInterp()
@@ -58,7 +58,7 @@ def test_L95():
   cfgs += ExtKF(infl=10)                                        # 0.24 
   cfgs += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')  # 
 
-  # from dapper.mods.Lorenz95.bocquet2015loc import HMM
+  # from dapper.mods.Lorenz96.bocquet2015loc import HMM
   # cfgs += EnKF_N(  N=24, rot=True ,infl=1.01)              # 0.38
   # cfgs += PartFilt(N=3000,NER=0.20,reg=1.2)                # 0.77
   # cfgs += PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)          # 0.51
@@ -93,7 +93,7 @@ def test_L95():
 
 # Non py.test runs:
 # HMM, xx, yy, cfgs = test_L63()
-# HMM, xx, yy, cfgs = test_L95()
+# HMM, xx, yy, cfgs = test_L96()
 
 
 

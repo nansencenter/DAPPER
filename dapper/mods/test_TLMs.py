@@ -22,8 +22,8 @@ def test_L84(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
   assert _allclose(fun, Jacob, x)
 
 ##
-from dapper.mods.Lorenz95.core import dxdt, d2x_dtdx, x0
-def test_L95(fun=dxdt,Jacob=d2x_dtdx,x=x0(40)): # capture current values
+from dapper.mods.Lorenz96.core import dxdt, d2x_dtdx, x0
+def test_L96(fun=dxdt,Jacob=d2x_dtdx,x=x0(40)): # capture current values
   assert _allclose(fun, Jacob, x)
 
 ##
@@ -48,7 +48,7 @@ def test_LV(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
 # test_LV()
 # test_L63()
 # test_L84()
-# test_L95()
+# test_L96()
 
 ##
 
