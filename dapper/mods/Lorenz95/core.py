@@ -1,7 +1,14 @@
-# "Lorenz-95" (or 96) model. For a deeper introduction, see
-# "DAPPER/tutorials/T4 - Dynamical systems, chaos, Lorenz.ipynb"
-#
-# Note: implementation is ndim-agnostic.
+'''The "Lorenz-95" (or 96) model.
+
+From "Predictability -- a problem partly solved" by E. N. Lorenz (1996).
+Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.
+
+For a short introduction, see
+ - demo.py and
+ - "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials
+
+Note: the implementation is ndim-agnostic.
+'''
 
 import numpy as np
 from dapper.tools.math import is1d, rk4, integrate_TLM

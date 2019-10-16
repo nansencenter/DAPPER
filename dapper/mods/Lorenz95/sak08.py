@@ -1,12 +1,21 @@
-# This HMM is also used (with small variations) in many DA papers.
-# First (exact) use: Ott et al (2004) "A local EnKF for atmospheric DA" ?
-# See list below of other papers that use it.
+'''Set-up as in Sakov's 2008 article in Tellus
+"A deterministic formulation of the ensemble Kalman filter:
+an alternative to ensemble square root filters",
+
+Similar to the 1998 MWR article by E. N. Lorenz and K. A. Emanuel:
+"Optimal Sites for Supplementary Weather Observations: Simulation with a Small Model",
+except that the observations are from the entire state.
+
+This HMM is used (with small variations) in many DA papers,
+some of which are mentioned below.
+'''
 
 from dapper import *
 
 from dapper.mods.Lorenz95.core import step, dstep_dx, x0, Tplot, LPs
 from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
 
+# Sakov uses K=300000, BurnIn=1000*0.05
 t = Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
 
 Nx = 40

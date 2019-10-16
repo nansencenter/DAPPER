@@ -19,9 +19,9 @@ HMM.t.BurnIn = 4
 
 # DAPPER only has localization implemented for the ETKF (LETKF) and the serial EAKF (SL_EAKF).
 # Thus, direction comparison to paper (which always uses localization) is difficult.
-# Still, these LETKF scores can be compared with Fig. 2 of the paper,
+# Still, these LETKF scores can be compared with Fig. 2 of the paper.
 # They indicate that the LETKF is a little better than any scheme in the paper.
-# However, lhe localization implementation is probably not fully equivalent
+# However, the localization implementation is probably not fully equivalent
 # (also, since optimal R seems to be around 6, I think Hoteit et al may have
 # forgotten the sqrt(10/3) factor from Whitaker/Hamill).
 #                                                                # Expected RMSE_a:
