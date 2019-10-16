@@ -202,9 +202,6 @@ def da_method(*default_dcs):
     return dataclass_with_defaults
 
 
-class AssimFailedError(RuntimeError):
-    pass
-
 def call_gently(fun,self,*args):
     """Wrap fun in try clause to allow execution to continue
     for some types of exceptions."""
@@ -213,35 +210,40 @@ def call_gently(fun,self,*args):
     def crop_traceback(ERR,lvl):
         msg = []
         try:
-          # If IPython, use its coloring functionality
+            # If IPython, use its coloring functionality
           __IPYTHON__
           from IPython.core.debugger import Pdb
           import traceback as tb
           pdb_instance = Pdb()
           pdb_instance.curframe = inspect.currentframe() # first frame: this one
+
           for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
-            if i<lvl: continue # skip first frame
-            msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
+              if i<lvl: continue # skip frames
+              if i==lvl: msg += ["   ⋮\n"]
+              msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
         except (NameError,ImportError):
-          # No coloring
-          msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
+            # No coloring
+            msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
         return msg
+
+    def _print(ERR):
+        msg  = ["\n\nCaught exception during assimilation. Traceback:"]
+        msg += ["<"*20 + "\n"]
+        msg += crop_traceback(ERR,1) + [str(ERR)]
+        msg += ["\n" + ">"*20]
+        msg += ["Returning stats (time series) object in its current "+\
+            "(incompleted) state,\nand resuming program execution.\n"+\
+            "Turn off `fail_gently` to fully raise the exception.\n"]
+        for s in msg: print(s,file=sys.stderr)
 
     try:
         fun(self,*args)
-
-    except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
+    except Exception as ERR:
         if self.fail_gently:
-            msg  = ["\n\nCaught exception during assimilation. Traceback:"]
-            msg += ["<"*20 + "\n"]
-            msg += crop_traceback(ERR,1) + [str(ERR)]
-            msg += ["\n" + ">"*20]
-            msg += ["Returning stats (time series) object in its current "+\
-                "(incompleted) state,\nand resuming program execution.\n"+\
-                "Turn off `fail_gently` to fully raise the exception.\n"]
-            for s in msg: print(s,file=sys.stderr)
+            _print(ERR)
         else: 
             raise ERR
+
 
 class List_of_Configs(list):
   """List, customized for holding ``da_method`` objects ("configs").
