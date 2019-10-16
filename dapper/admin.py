@@ -316,8 +316,9 @@ class List_of_Configs(list):
         config.assimilate(HMM,xx,yy,desc=label)
 
         config.average_stats(free=free)
+
         if print:
-            config.print_avrgs()
+            config.print_avrgs(() if print is True else print)
 
   @property
   def da_methods(self):
