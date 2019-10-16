@@ -140,7 +140,7 @@ using that model,
 as detailed in the corresponding author/year's paper.
 At the bottom of each such file should be (in comments)
 a list of suitable, tuned settings for various DA methods,
-along with their expected, average rmse_a score for that experiment.
+along with their expected, average rmse.a score for that experiment.
 The complete list of included experiment files can be obtained with
 gnu's `find`:
 

@@ -32,7 +32,7 @@ HMM.liveplotters = LPs(np.arange(Nx))
 # Suggested tuning
 ####################
 
-# Reproduce (top-right panel) of Fig. 4 of bocquet2019consistency     # Expected RMSE_a:
+# Reproduce (top-right panel) of Fig. 4 of bocquet2019consistency     # Expected rmse.a:
 # --------------------------------------------------------------------------------
 # cfgs += LETKF(N=4 , loc_rad=15/1.82, infl=1.11,rot=True,taper='GC') # 0.18
 # cfgs += LETKF(N=6,  loc_rad=25/1.82, infl=1.06,rot=True,taper='GC') # 0.14

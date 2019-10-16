@@ -37,7 +37,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 # see benchmarks in presentation from SIAM_SEAS.
 # Note: They are slightly unrealiable (short runs).
 
-#                                             Expected RMSE_a:
+#                                             Expected rmse.a:
 # cfgs += EnKF_N(N=8,rot=True,xN=1.3)                # 0.31
 
 # cfgs += PartFilt(N=50 ,NER=0.3 ,reg=1.7)           # 1.0

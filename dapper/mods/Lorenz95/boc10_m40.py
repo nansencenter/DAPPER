@@ -15,7 +15,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 ####################
 # Suggested tuning
 ####################
-#                                                          # rmse_a 
+#                                                          # rmse.a 
 # cfgs += EnKF_N(      N=24,      rot=True ,infl=1.01)     # 0.38
 # cfgs += iEnKS('Sqrt',N=19,Lag=2,rot=False,infl=1.04)     # 0.39
 # cfgs += iEnKS('Sqrt',N=19,Lag=2,rot=False,xN=1.5)        # 0.39

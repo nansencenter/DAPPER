@@ -24,7 +24,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LP_setup(jj))
 ####################
 # Suggested tuning
 ####################
-# from dapper.mods.DoublePendulum.dpr01 import HMM      # Expct RMSE_a:
+# from dapper.mods.DoublePendulum.dpr01 import HMM      # Expct rmse.a:
 
 # HMM.t.dkObs = anything
 # cfgs += Climatology()                                 # 5

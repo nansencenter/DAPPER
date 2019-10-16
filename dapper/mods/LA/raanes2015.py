@@ -66,7 +66,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
 # Suggested tuning
 ####################
 
-## Expected rmse_a = 0.3
+## Expected rmse.a = 0.3
 # config = EnKF('PertObs',N=30,infl=3.2)
 # Note that infl=1 may yield approx optimal rmse, even though then rmv << rmse.
 # Why is rmse so INsensitive to inflation, especially for PertObs?

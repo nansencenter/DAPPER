@@ -31,7 +31,7 @@ HMM.liveplotters = LPs(jj)
 ####################
 # Suggested tuning
 ####################
-# from dapper.mods.Lorenz63.sak12 import HMM       # Expected RMSE_a:
+# from dapper.mods.Lorenz63.sak12 import HMM       # Expected rmse.a:
 # cfgs += Climatology()                                     # 7.6
 # cfgs += OptInterp()                                       # 1.25
 # cfgs += Var3D(xB=0.1)                                     # 1.04

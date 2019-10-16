@@ -44,7 +44,7 @@ HMM.liveplotters = LPs(jj)
 # Suggested tuning
 ####################
 
-# Reproduce Table1 of Sakov'2008 "deterministic"                # Expected RMSE_a:
+# Reproduce Table1 of Sakov'2008 "deterministic"                # Expected rmse.a:
 # --------------------------------------------------------------------------------
 # cfgs += EnKF('PertObs'        ,N=40, infl=1.06)               # 0.22
 # cfgs += EnKF('DEnKF'          ,N=40, infl=1.01)               # 0.18
@@ -98,7 +98,7 @@ HMM.liveplotters = LPs(jj)
 # cfgs += Var4D(Lag=6,xB=0.015)            # 0.385 Boc13 reports 0.33
 
 # Tests with the Particle filter, with N=3000, KObs=10'000.
-# da_method  NER  reg  |  rmse_a   rmv_a
+# da_method  NER  reg  |  rmse.a   rmv.a
 # --------- ----  ---  -  ------  ------
 # PartFilt  0.05  1.2  |  0.35    0.40  
 # PartFilt  0.05  1.6  |  0.41    0.45  

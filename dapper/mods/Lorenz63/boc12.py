@@ -13,7 +13,7 @@ HMM.name = os.path.relpath(__file__,'mods/')
 ####################
 # Suggested tuning
 ####################
-# from dapper.mods.Lorenz63.boc12 import HMM                # Expected RMSE_a:
+# from dapper.mods.Lorenz63.boc12 import HMM                # Expected rmse.a:
 # HMM.t.dkObs = 25
 # cfgs += iEnKS('Sqrt', N=10,infl=1.02,rot=True)            # 0.22
 # cfgs += iEnKS('Sqrt', N=3, infl=1.04)                     # 0.23

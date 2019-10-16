@@ -23,7 +23,7 @@ def test_L63():
   xx,yy = HMM.simulate()
 
   cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True,liveplots="all",store_u=False,fail_gently=False)
-  cfgs.print_avrgs(['rmse_a'])
+  cfgs.print_avrgs(['rmse.a'])
 
   for config in cfgs:
     replay(config,"all")
@@ -70,7 +70,7 @@ def test_L95():
   xx,yy = HMM.simulate()
 
   cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True,liveplots="all",store_u=False,fail_gently=False)
-  cfgs.print_avrgs(['rmse_a'])
+  cfgs.print_avrgs(['rmse.a'])
 
   for config in cfgs:
     replay(config,"all")

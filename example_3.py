@@ -153,18 +153,18 @@ R = ResultsTable(save_path)
 # Print averages of a given field.
 # The "subcolumns" show the num. of (#) reps, (X) crashes, and the (±) 1-sigma conf.
 with coloring(): print("Averages over experiment repetition:")
-R.print_mean_field('rmse_a',1,1,cols=slice(0,2))
+R.print_mean_field('rmse.a',1,1,cols=slice(0,2))
 
 # Separate out the baseline methods from the rest
 BaseLineMethods = R.split(lambda x: x in ['Climatology', 'OptInterp', 'Var3D','ExtKF'])
 
 # Plot
 fig, ax = plt.subplots()
-R.plot_1d('rmse_a',)
+R.plot_1d('rmse.a',)
 # The commented-out lines make checkmarks that toggle on/off the curves.
 # if 'checkmarks' not in locals(): checkmarks = []
 # checkmarks += [toggle_lines()];
-BaseLineMethods.plot_1d('rmse_a',color='k')
+BaseLineMethods.plot_1d('rmse.a',color='k')
 
 # Adjust plot
 if R.xlabel=='N':

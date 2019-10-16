@@ -1,7 +1,6 @@
 Todo
 ================================================
 
-* Clean up rmse_ rmv_
 * Change KObs to KObs-1
 * Rename 95 96
 * hot, hoteit, sak, sakov

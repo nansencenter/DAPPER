@@ -96,7 +96,7 @@ def polynom_prmzt(t,x,order):
 ####################
 # Suggested tuning
 ####################
-# Using HMM_full                                           # Expected RMSE_a:
+# Using HMM_full                                           # Expected rmse.a:
 # cfgs += Climatology()                                    # 0.93
 # cfgs += Var3D(xB=2.0)                                    # 0.39
 # cfgs += EnKF_N(N=20)                                     # 0.27

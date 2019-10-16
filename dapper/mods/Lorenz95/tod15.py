@@ -29,7 +29,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 # Suggested tuning
 ####################
 
-#                                                           rmse_a
+#                                                           rmse.a
 # cfgs += LETKF(N=20,rot=True,infl=1.04       ,loc_rad=5) # 0.44
 # cfgs += LETKF(N=40,rot=True,infl=1.04       ,loc_rad=5) # 0.44
 # cfgs += LETKF(N=80,rot=True,infl=1.04       ,loc_rad=5) # 0.43

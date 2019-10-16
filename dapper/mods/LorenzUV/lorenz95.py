@@ -62,4 +62,4 @@ HMM_trunc = HiddenMarkovModel(Dyn,Obs,t,X0,**other)
 ####################
 # Suggested tuning
 ####################
-#                     # Expected RMSE_a ("U"-vars only!)
+#                     # Expected rmse.a ("U"-vars only!)

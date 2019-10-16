@@ -17,7 +17,7 @@ HMM.Obs = Operator(**Obs)
 # Suggested tuning
 ####################
 # Reproduce benchmarks for NETF and ESRF (here EnKF-N) from left pane of Fig 1.
-# from dapper.mods.Lorenz63.wiljes2017 import HMM # RMSE_a reported by DAPPER / PAPER:
+# from dapper.mods.Lorenz63.wiljes2017 import HMM # rmse.a reported by DAPPER / PAPER:
 # ------------------------------------------------------------------------------
 # HMM.t.KObs = 10**2
 # cfgs += OptInterp()                                                # 5.4    / N/A

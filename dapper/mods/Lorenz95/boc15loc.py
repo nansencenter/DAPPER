@@ -19,7 +19,7 @@ HMM.Obs.loc_shift = loc_shift
 ####################
 # Suggested tuning
 ####################
-# Reproduce data point dt=0.4 from figure 5                                # Expected RMSE_a:
+# Reproduce data point dt=0.4 from figure 5                                # Expected rmse.a:
 # HMM.t.dkObs = 8
 # cfgs += iEnKS('-N'  , N=20)                                              # 0.40
 # cfgs += iLEnKS('Sqrt',N=10,loc_rad=12/1.82,infl=1.07)                    # 0.42

@@ -24,7 +24,7 @@ HMM.t.BurnIn = 4
 # However, the localization implementation is probably not fully equivalent
 # (also, since optimal R seems to be around 6, I think Hoteit et al may have
 # forgotten the sqrt(10/3) factor from Whitaker/Hamill).
-#                                                                # Expected RMSE_a:
+#                                                                # Expected rmse.a:
 # cfgs += LETKF(        N=10,rot=True,infl=1.02,loc_rad=4)       # 0.21
 # cfgs += LETKF(        N=10,rot=True,infl=1.04,loc_rad=6)       # 0.20
 # cfgs += LETKF(        N=10,rot=True,infl=1.10,loc_rad=10)      # 0.22

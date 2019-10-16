@@ -41,10 +41,10 @@ class ResultsTable():
   >>> R1, R2 = R.split2(cond)                                                     # R1: labels satisfying cond. R2 = R\R1
 
   # PRESENTING RESULTS
-  >>> R.print_frame(R.field('rmse_a')[iR])                                        # print frame of exprmnt#iR of 'rmse_a' field.
-  >>> R.print_field(R.field('rmse_a'))                                            # print all experiment frames
-  >>> R.print_frame(R.mean_field('rmse_a')[0].tolist())                           # print frame of mean of field
-  >>> R.print_mean_field('rmse_a',show_fail=True,show_conf=False,cols=None)       # This gives more options
+  >>> R.print_frame(R.field('rmse.a')[iR])                                        # print frame of exprmnt#iR of 'rmse.a' field.
+  >>> R.print_field(R.field('rmse.a'))                                            # print all experiment frames
+  >>> R.print_frame(R.mean_field('rmse.a')[0].tolist())                           # print frame of mean of field
+  >>> R.print_mean_field('rmse.a',show_fail=True,show_conf=False,cols=None)       # This gives more options
 
   See AdInf/present_results.py for further examples.
   """
@@ -321,7 +321,7 @@ class ResultsTable():
     # Lists leave None as None, as opposed to a float ndarray.
     # And Tabulate uses None to identify 'missingval'. 
     # So we stick with lists here, to be able to print directly, e.g.
-    # Results.print_field(Results.field('rmse_a')
+    # Results.print_field(Results.field('rmse.a')
     for iR,iC,iX in np.ndindex(shape):
       try:
         field3D[iR][iC][iX] = self.TABLE[iC,iX][iR][field].val
@@ -437,7 +437,7 @@ class ResultsTable():
     print(tabulate(mattr,headr,inds=False).replace('@',' '))
 
 
-  def plot_1d(self,field='rmse_a',**kwargs):
+  def plot_1d(self,field='rmse.a',**kwargs):
     fig, ax = plt.gcf(), plt.gca()
 
     Z = self.mean_field(field)[0]
@@ -465,7 +465,7 @@ class ResultsTable():
 
 
 
-  def plot_1d_minz(self,field='rmse_a',**kwargs):
+  def plot_1d_minz(self,field='rmse.a',**kwargs):
     fig = plt.gcf()
     fig.clear()
     fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,gridspec_kw={'height_ratios':[3, 1]},num=fig.number)
@@ -494,7 +494,7 @@ class ResultsTable():
     return ax, ax_, lhs, lhs_
 
 
-  def plot_2d(self,field='rmse_a',log=False,cMin=None,cMax=None,
+  def plot_2d(self,field='rmse.a',log=False,cMin=None,cMax=None,
       show_fail=True,minz=True,**kwargs):
     fig, ax = plt.gcf(), plt.gca()
 
@@ -577,14 +577,14 @@ class ResultsTable():
   def tuning_vals(self,**kwargs):
     return pprop(self.labels, self.tuning_tag, **kwargs)
 
-  def minz_tuning(self,field='rmse_a'):
+  def minz_tuning(self,field='rmse.a'):
     Z = self.mean_field(field)[0]
     tuning_inds = np.nanargmin(Z,0)
     tuning_vals = self.tuning_vals()[tuning_inds]
     fieldvals   = Z[tuning_inds,arange(len(tuning_inds))]
     return tuning_inds, tuning_vals, fieldvals 
 
-  def select_optimal(self,field='rmse_a'):
+  def select_optimal(self,field='rmse.a'):
     assert self.tuning_tag
     from numpy import ma
 

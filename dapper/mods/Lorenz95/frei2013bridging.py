@@ -48,7 +48,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 #  - We obtain better EnKF scores than they report,
 #    and use inflation and sqrt updating,
 #    and don't really need localization.
-# from dapper.mods.Lorenz95.frei2013bridging import HMM      # rmse_a
+# from dapper.mods.Lorenz95.frei2013bridging import HMM      # rmse.a
 # cfgs += EnKF_N(N=400,rot=1)                                # 0.80
 # cfgs += LETKF( N=400,rot=True,infl=1.01,loc_rad=10/1.82)   # 0.79 # short experiment only
 # cfgs += Var3D()                                            # 2.42 # short experiment only

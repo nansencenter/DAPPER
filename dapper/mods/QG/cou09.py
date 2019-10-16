@@ -23,7 +23,7 @@ truth_model   = model_config("cou09_truth",{"dtout":dt}                ).step
 #      Eg. enkf-matlab radius 15 (resp 25) corresponds to DAPPER radius 10.6 (resp 17.7).
 
 # R = 17.7 # equiv. to R=25 in enkf-matlab
-# from dapper.mods.QG.cou09 import HMM, truth_model          # Expected RMSE_f:
+# from dapper.mods.QG.cou09 import HMM, truth_model          # Expected rmse.f:
 # cfgs += LETKF(mp=True, N=25,infl=1.15,taper='Gauss',loc_rad=R)      # 1.11
 # cfgs += LETKF(mp=True, N=15,infl=1.35,taper='Gauss',loc_rad=R)      # 1.2
 #

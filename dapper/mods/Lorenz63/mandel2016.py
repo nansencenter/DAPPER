@@ -26,7 +26,7 @@ Q = lambda dkObs: GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))
 # Note: We tune mult. inflation.
 #       The paper only seems to use Q, probably yielding divergence.
 
-# RMSE_a as reported by:                                      DAPPER  paper
+# rmse.a as reported by:                                      DAPPER  paper
 # --------------------------------------------------------------------------
 # from dapper.mods.Lorenz63.mandel2016 import HMM, Q
 #
