@@ -257,9 +257,9 @@ class Stats(NestedPrint):
         delattr(self,'w')
     else:
       now.w = w
-      if abs(w.sum()-1) > 1e-5:    raise_AFE("Weights did not sum to one.")
-    if not np.all(np.isfinite(E)): raise_AFE("Ensemble not finite.")
-    if not np.all(np.isreal(E)):   raise_AFE("Ensemble not Real.")
+      if abs(w.sum()-1) > 1e-5:    raise RuntimeError("Weights did not sum to one.")
+    if not np.all(np.isfinite(E)): raise RuntimeError("Ensemble not finite.")
+    if not np.all(np.isreal(E)):   raise RuntimeError("Ensemble not Real.")
 
     now.mu  = w @ E
     now.err = now.mu - x
@@ -312,8 +312,8 @@ class Stats(NestedPrint):
     """Kalman filter (Gaussian) assessment."""
     Nx = len(mu)
 
-    if not np.all(np.isfinite(mu)): raise_AFE("Estimates not finite.")
-    if not np.all(np.isreal(mu)):   raise_AFE("Estimates not Real.")
+    if not np.all(np.isfinite(mu)): raise RuntimeError("Estimates not finite.")
+    if not np.all(np.isreal(mu)):   raise RuntimeError("Estimates not Real.")
     # Don't check the cov (might not be explicitly availble)
 
     now.mu  = mu
@@ -393,13 +393,6 @@ def warn_zero_variance(err,flag):
     msg = "Numerical error in stat comps.\n"+\
             "Probably caused by a sample variance of 0."
     warnings.warn(msg)
-
-
-# TODO: do something about key
-def raise_AFE(msg,key=None):
-  if key is not None:
-    msg += "\n(k,kObs,fau) = " + str(key) + ". "
-  raise AssimFailedError(msg)
 
 
 def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
