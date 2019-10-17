@@ -123,9 +123,9 @@ def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
   return inds, coeffs
 
 
-def general_localization(y2x_distances,batches):
+def localization_setup(y2x_distances,batches):
 
-    def loc_setup(radius,direction,t,tag=None):
+    def localization_now(radius,direction,t,tag=None):
         "Provide localization setup for time t."
         y2x = y2x_distances(t)
   
@@ -145,7 +145,7 @@ def general_localization(y2x_distances,batches):
               return inds_and_coeffs(y2x[iObs], radius, tag=tag)
           return state_taperer
   
-    return loc_setup
+    return localization_now
 
 
 def no_localization(Nx,Ny):
@@ -153,7 +153,7 @@ def no_localization(Nx,Ny):
   def obs_taperer(batch ): return arange(Ny), ones(Ny)
   def state_taperer(iObs): return arange(Nx), ones(Nx)
 
-  def loc_setup(radius,direction,t,tag=None):
+  def localization_now(radius,direction,t,tag=None):
     """Returns all indices, with all tapering coeffs=1.
 
     Used to validate local DA methods [eg LETKF<==>EnKF('Sqrt')]."""
@@ -162,7 +162,7 @@ def no_localization(Nx,Ny):
     if   direction is 'x2y': return [arange(Nx)], obs_taperer
     elif direction is 'y2x': return             state_taperer
 
-  return loc_setup
+  return localization_now
 
 
 
@@ -251,5 +251,5 @@ def nd_Id_localization(shape,
       obs_coord = ind2sub( safe_eval(obs_inds,t) )
       return pairwise_distances(obs_coord, state_coord, periodic, shape)
 
-  return general_localization(y2x_distances,batches)
+  return localization_setup(y2x_distances,batches)
 

@@ -18,7 +18,7 @@ ocean_sites = arange(Nx//2,Nx)
 jj = land_sites
 Obs = partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
-Obs['localizer'] = loc_setup( (Nx,), (1,), jj, periodic=True )
+Obs['localizer'] = nd_Id_localization( (Nx,), (1,), jj )
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0,
         LP=LPs(jj),

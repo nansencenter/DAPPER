@@ -4,7 +4,7 @@
 
 
 from dapper.mods.Lorenz96.sakov2008 import *
-from dapper.tools.localization import general_localization, pairwise_distances
+from dapper.tools.localization import localization_setup, pairwise_distances
 
 t = Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
 
@@ -26,11 +26,11 @@ y2x_dists = pairwise_distances(obs_sites[:,None], arange(Nx)[:,None], (Nx,), per
 batches = arange(40)[:,None]
 # Define operator
 Obs = {
-      'M'     : len(H),
-      'model' : lambda E,t: E @ H.T,
-      'linear': lambda E,t: H,
-      'noise' : 1,
-      'localizer': general_localization(lambda t: y2x_dists, batches),
+      'M'        : len(H),
+      'model'    : lambda E,t: E @ H.T,
+      'linear'   : lambda E,t: H,
+      'noise'    : 1,
+      'localizer': localization_setup(lambda t: y2x_dists, batches),
       }
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LPs(jj),
