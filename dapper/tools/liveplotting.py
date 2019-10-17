@@ -1076,10 +1076,10 @@ def spatial2d(
 
     # Plot
     # - origin='lower' might get overturned by set_ylim() below.
-    im_11 = ax_11.imshow(square(mu[k]) , cmap=cm) 
-    im_12 = ax_12.imshow(square(xx[k]) , cmap=cm)
-    im_21 = ax_21.imshow(square(std[k]), cmap=plt.cm.bwr) # hot is better, but needs +1 colorbar
-    im_22 = ax_22.imshow(square(err[k]), cmap=plt.cm.bwr)
+    im_11 = ax_11.imshow(square(mu[key0]) , cmap=cm) 
+    im_12 = ax_12.imshow(square(xx[k])    , cmap=cm)
+    im_21 = ax_21.imshow(square(std[key0]), cmap=plt.cm.bwr) # hot is better, but needs +1 colorbar
+    im_22 = ax_22.imshow(square(err[key0]), cmap=plt.cm.bwr)
     ims = (im_11, im_12, im_21, im_22)
     # Obs init -- a list where item 0 is the handle of something invisible.
     lh = list(ax_12.plot(0,0)[0:1])
