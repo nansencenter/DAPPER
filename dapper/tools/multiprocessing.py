@@ -73,10 +73,16 @@ else:
 
       Similar to::
 
-        result = [func(x, **kwargs) for x in xx]
+      >>> result = [func(x, **kwargs) for x in xx]
 
       Note: unlike reading, writing "in-place" does not work with multiprocessing
       (unless "shared" arrays are used, but this has not been tried out here).
+
+      NB: multiprocessing does not mix with matplotlib,
+          so ensure ``func`` does not reference ``self.stats.LP_instance``,
+          where ``self`` is a ``@da_method`` object.
+          In fact, ``func`` should not reference ``self`` at all,
+          because its serialization is rather slow.
 
       See example use in mods/QG/core.py.
 

@@ -505,12 +505,12 @@ class LETKF:
   mp      : bool  = False
 
   def assimilate(self,HMM,xx,yy):
-    Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-    R, N1 = HMM.Obs.noise.C, self.N-1
-
+    Dyn,Obs,chrono,X0,stats,N = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
+    R, N1 = HMM.Obs.noise.C, N-1
+    
     _map = multiproc_map if self.mp else map
 
-    E = X0.sample(self.N)
+    E = X0.sample(N)
     stats.assess(0,E=E)
 
     for k,kObs,t,dt in progbar(chrono.ticker):
@@ -531,51 +531,56 @@ class LETKF:
         Y  = Y        @ R.sym_sqrt_inv.T
         dy = (y - xo) @ R.sym_sqrt_inv.T
 
+        # Local analyses
+        # Get localization configuration
         state_batches, obs_taperer = Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
-        # for ii in state_batches:
+        # Avoid pickling self
+        xN, g, infl = self.xN, self.g, self.infl
+
         def local_analysis(ii):
+            """Notation:
+             - ii: inds for the state batch defining the locality
+             - jj: inds for the associated obs"""
 
-          # Locate local obs
-          jj, tapering = obs_taperer(ii)
-          if len(jj) == 0: return E[:,ii], N1 # no update
-          Y_jj   = Y[:,jj]
-          dy_jj  = dy [jj]
+            # Locate local obs
+            jj, tapering = obs_taperer(ii)
+            if len(jj) == 0: return E[:,ii], N1 # no update
+            Y_jj   = Y[:,jj]
+            dy_jj  = dy [jj]
 
-          # Adaptive inflation
-          za = effective_N(Y_jj,dy_jj,self.xN,self.g) if self.infl=='-N' else N1
+            # Adaptive inflation
+            za = effective_N(Y_jj,dy_jj,xN,g) if infl=='-N' else N1
 
-          # Taper
-          Y_jj  *= sqrt(tapering)
-          dy_jj *= sqrt(tapering)
+            # Taper
+            Y_jj  *= sqrt(tapering)
+            dy_jj *= sqrt(tapering)
 
-          # Compute ETKF update
-          if len(jj) < self.N:
-            # SVD version
-            V,sd,_ = svd0(Y_jj)
-            d      = pad0(sd**2,self.N) + za
-            Pw     = (V * d**(-1.0)) @ V.T
-            T      = (V * d**(-0.5)) @ V.T * sqrt(za)
-          else:
-            # EVD version
-            d,V   = eigh(Y_jj@Y_jj.T + za*eye(self.N))
-            T     = V@diag(d**(-0.5))@V.T * sqrt(za)
-            Pw    = V@diag(d**(-1.0))@V.T
-          AT  = T @ A[:,ii]
-          dmu = dy_jj @ Y_jj.T @ Pw @ A[:,ii]
-          Eii = mu[ii] + dmu + AT
-          return Eii, za
+            # Compute ETKF update
+            if len(jj) < N:
+              # SVD version
+              V,sd,_ = svd0(Y_jj)
+              d      = pad0(sd**2,N) + za
+              Pw     = (V * d**(-1.0)) @ V.T
+              T      = (V * d**(-0.5)) @ V.T * sqrt(za)
+            else:
+              # EVD version
+              d,V   = eigh(Y_jj@Y_jj.T + za*eye(N))
+              T     = V@diag(d**(-0.5))@V.T * sqrt(za)
+              Pw    = V@diag(d**(-1.0))@V.T
+            AT  = T @ A[:,ii]
+            dmu = dy_jj @ Y_jj.T @ Pw @ A[:,ii]
+            Eii = mu[ii] + dmu + AT
+            return Eii, za
 
         # Run local analyses
-        zz = []
-        result = _map(local_analysis, state_batches )
-        for ii, (Eii, za) in zip(state_batches, result):
-          zz += [za]
-          E[:,ii] = Eii
+        EE, za = zip(*_map(local_analysis, state_batches ))
+        for ii, Eii in zip(state_batches, EE):
+            E[:,ii] = Eii
 
         # Global post-processing
         E = post_process(E,self.infl,self.rot)
 
-        stats.infl[kObs] = sqrt(N1/mean(zz))
+        stats.infl[kObs] = sqrt(N1/mean(za))
 
       stats.assess(k,kObs,E=E)
 
