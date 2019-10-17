@@ -125,6 +125,50 @@ def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
 
 
 
+def general_localization(y2x_distances,batches):
+
+    def loc_setup(radius,direction,t,tag=None):
+        "Provide localization setup for time t."
+        y2x = y2x_distances(t)
+  
+        if direction is 'x2y':
+          def obs_taperer(batch):
+              # Don't use ``batch = batches[iBatch]``
+              # (with iBatch as this function's input).
+              # This would slow down multiproc.,
+              # coz batches gets copied to each process.
+              x2y = y2x.T
+              dists = x2y[batch].mean(axis=0)
+              return inds_and_coeffs(dists, radius, tag=tag)
+          return batches, obs_taperer
+  
+        elif direction is 'y2x':
+          def state_taperer(iObs):
+              return inds_and_coeffs(y2x[iObs], radius, tag=tag)
+          return state_taperer
+  
+    return loc_setup
+
+
+def no_localization(Nx,Ny):
+
+  def obs_taperer(batch ): return arange(Ny), ones(Ny)
+  def state_taperer(iObs): return arange(Nx), ones(Nx)
+
+  def loc_setup(radius,direction,t,tag=None):
+    """Returns all indices, with all tapering coeffs=1.
+
+    Used to validate local DA methods [eg LETKF<==>EnKF('Sqrt')]."""
+    assert radius == np.inf, "Localization functions not specified"
+
+    if   direction is 'x2y': return [arange(Nx)], obs_taperer
+    elif direction is 'y2x': return             state_taperer
+
+  return loc_setup
+
+
+
+
 def rectangular_partitioning(shape,steps,do_ind=True):
   """N-D rectangular batch generation.
 
@@ -208,47 +252,4 @@ def partial_direct_obs_nd_loc_setup(shape,
       return pairwise_distances(obs_coord, state_coord, periodic, shape)
 
   return general_localization(y2x_distances,batches)
-
-
-def no_localization(Nx,Ny):
-
-  def obs_taperer(batch ): return arange(Ny), ones(Ny)
-  def state_taperer(iObs): return arange(Nx), ones(Nx)
-
-  def loc_setup(radius,direction,t,tag=None):
-    """Returns all indices, with all tapering coeffs=1.
-
-    Used to validate local DA methods [eg LETKF<==>EnKF('Sqrt')]."""
-    assert radius == np.inf, "Localization functions not specified"
-
-    if   direction is 'x2y': return [arange(Nx)], obs_taperer
-    elif direction is 'y2x': return             state_taperer
-
-  return loc_setup
-
-
-def general_localization(y2x_distances,batches):
-
-    def loc_setup(radius,direction,t,tag=None):
-        "Provide localization setup for time t."
-        y2x = y2x_distances(t)
-  
-        if direction is 'x2y':
-          def obs_taperer(batch):
-              # Don't use ``batch = batches[iBatch]``
-              # (with iBatch as this function's input).
-              # This would slow down multiproc.,
-              # coz batches gets copied to each process.
-              x2y = y2x.T
-              dists = x2y[batch].mean(axis=0)
-              return inds_and_coeffs(dists, radius, tag=tag)
-          return batches, obs_taperer
-  
-        elif direction is 'y2x':
-          def state_taperer(iObs):
-              return inds_and_coeffs(y2x[iObs], radius, tag=tag)
-          return state_taperer
-  
-    return loc_setup
-
 
