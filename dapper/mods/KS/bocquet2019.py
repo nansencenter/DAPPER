@@ -1,7 +1,7 @@
 from dapper import *
 
 from dapper.mods.Lorenz96.core import LPs
-from dapper.tools.localization import Id_Obs_nd_loc_setup as loc_setup
+from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
 
 from dapper.mods.KS.core import Model, Tplot
 KS = Model(dt=0.5)
@@ -21,7 +21,7 @@ X0 = GaussRV(mu=KS.x0, C=0.001)
 
 Obs = Id_Obs(Nx)
 Obs['noise'] = 1
-Obs['localizer'] = loc_setup( (Nx,), (4,), periodic=True )
+Obs['localizer'] = loc_setup( (Nx,), (4,) )
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 

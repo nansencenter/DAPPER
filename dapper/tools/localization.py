@@ -174,10 +174,9 @@ def rectangular_partitioning(shape,steps,do_ind=True):
 # NB: Don't try to put the time-dependence of obs_inds inside obs_taperer().
 # That would require calling ind2sub len(batches) times per analysis,
 # and the result cannot be easily cached, because of multiprocessing.
-def obs_inds_safe(obs_inds, t):
-  "Support time-dependent obs_inds."
-  try:              return obs_inds(t)
-  except TypeError: return obs_inds
+def safe_eval(fun, t):
+  try:              return fun(t)
+  except TypeError: return fun
 
 
 # NB: Why is the 'order' argument not supported by this module? Because:
@@ -188,44 +187,27 @@ def obs_inds_safe(obs_inds, t):
 #     the shape parameter passed to these functions (example: mods/QG/sakov2008).
 
 
-def partial_direct_obs_nd_loc_setup(shape,batch_shape,obs_inds,periodic):
-  "N-D rectangle"
-
-  # def sub2ind(sub): return np.ravel_multi_index(sub, shape)
-  def ind2sub(ind): return np.asarray(np.unravel_index(ind, shape)).T
+def partial_direct_obs_nd_loc_setup(shape,
+        batch_shape=None,obs_inds=None,periodic=True):
+  """Localize direct obs on a N-D, homogeneous, rectangular domain."""
 
   M = np.prod(shape)
-  state_coord = ind2sub(arange(M))
+
+  if batch_shape is None: batch_shape = (1,)*len(shape)
+  if obs_inds    is None: obs_inds    = np.arange(M)
+
+  def ind2sub(ind):
+      return np.asarray(np.unravel_index(ind, shape)).T
 
   batches = rectangular_partitioning(shape, batch_shape)
 
-  def loc_setup(radius,direction,t,tag=None):
-    "Provide localization setup for time t."
-    obs_inds_now = obs_inds_safe(obs_inds,t)
-    obs_coord = ind2sub( obs_inds_now )
+  state_coord = ind2sub(arange(M))
 
-    if direction is 'x2y':
-      def obs_taperer(batch):
-        # Don't use "batch = batches[iBatch]" (with iBatch as this function's input).
-        # This would slow down multiproc., coz batches gets copied to each process.
-        batch_center_coord = ind2sub(batch).mean(axis=0)
-        dists = pairwise_distances(batch_center_coord, obs_coord, periodic, shape)
-        return inds_and_coeffs(dists, radius, tag=tag)
-      return batches, obs_taperer
+  def y2x_distances(t):
+      obs_coord = ind2sub( safe_eval(obs_inds,t) )
+      return pairwise_distances(obs_coord, state_coord, periodic, shape)
 
-    elif direction is 'y2x':
-      def state_taperer(iObs):
-        obs_j_coord = ind2sub(obs_inds_now[iObs])
-        dists = pairwise_distances(obs_j_coord, state_coord, periodic, shape)
-        return inds_and_coeffs(dists, radius, tag=tag)
-    return state_taperer
-
-  return loc_setup
-
-def Id_Obs_nd_loc_setup(shape,batch_shape,periodic):
-  M  = np.prod(shape)
-  jj = np.arange(M)
-  return partial_direct_obs_nd_loc_setup(shape,batch_shape,jj,periodic)
+  return general_localization(y2x_distances,batches)
 
 
 def no_localization(Nx,Ny):
@@ -236,8 +218,7 @@ def no_localization(Nx,Ny):
   def loc_setup(radius,direction,t,tag=None):
     """Returns all indices, with all tapering coeffs=1.
 
-    Useful for testing local DA methods without localization
-    e.g. if LETKF <==> EnKF('Sqrt')."""
+    Used to validate local DA methods [eg LETKF<==>EnKF('Sqrt')]."""
     assert radius == np.inf, "Localization functions not specified"
 
     if   direction is 'x2y': return [arange(Nx)], obs_taperer
@@ -254,6 +235,10 @@ def general_localization(y2x_distances,batches):
   
         if direction is 'x2y':
           def obs_taperer(batch):
+              # Don't use ``batch = batches[iBatch]``
+              # (with iBatch as this function's input).
+              # This would slow down multiproc.,
+              # coz batches gets copied to each process.
               x2y = y2x.T
               dists = x2y[batch].mean(axis=0)
               return inds_and_coeffs(dists, radius, tag=tag)
@@ -262,7 +247,7 @@ def general_localization(y2x_distances,batches):
         elif direction is 'y2x':
           def state_taperer(iObs):
               return inds_and_coeffs(y2x[iObs], radius, tag=tag)
-        return state_taperer
+          return state_taperer
   
     return loc_setup
 
