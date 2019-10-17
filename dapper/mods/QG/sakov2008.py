@@ -3,7 +3,7 @@
 from dapper import *
 
 from dapper.mods.QG.core import model_config, shape, sample_filename, LP_setup
-from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
+from dapper.tools.localization import nd_Id_localization
 
 ############################
 # Time series, model, initial condition
@@ -59,7 +59,7 @@ batch_shape = [2, 2] # width (in grid points) of each state batch.
 #  => quicker analysis (but less relative speed-up by parallelization, depending on NPROC)
 #  => worse (increased) rmse (but width 4 is only slightly worse than 1);
 #     if inflation is applied locally, then rmse might actually improve.
-localizer = loc_setup(shape[::-1], batch_shape[::-1], obs_inds, periodic=False)
+localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], obs_inds, periodic=False)
 
 Obs = {
     'M'    : Ny,

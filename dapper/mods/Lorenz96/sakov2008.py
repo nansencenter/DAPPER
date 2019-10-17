@@ -14,7 +14,7 @@ some of which are mentioned below.
 from dapper import *
 
 from dapper.mods.Lorenz96.core import step, dstep_dx, x0, Tplot, LPs
-from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
+from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
 t = Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
@@ -34,7 +34,7 @@ X0 = GaussRV(mu=x0, C=0.001)
 jj = arange(Nx) # obs_inds
 Obs = partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
-Obs['localizer'] = loc_setup( (Nx,), (2,) )
+Obs['localizer'] = nd_Id_localization( (Nx,), (2,) )
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 

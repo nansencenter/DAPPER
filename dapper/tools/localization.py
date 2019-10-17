@@ -1,17 +1,16 @@
-from dapper import *
+"""A good introduction to localization:
+Sakov (2011), Computational Geosciences:
+'Relation between two common localisation methods for the EnKF'.
+"""
 
-# A good introduction to localization:
-# Sakov (2011), Computational Geosciences:
-# "Relation between two common localisation methods for the EnKF".
+from dapper import *
 
 # Defaults
 CUTOFF   = 1e-3
 TAG      = 'GC'
+PERIODIC = True
 
-# TODO make partial_direct_obs_nd_loc_setup use general_localization
-
-
-def pairwise_distances(A, B=None, periodic=True, domain=None):
+def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
     """Euclidian distance (un-squared) between pts in A and B.
 
     - A: 2-dim array of shape (npts,ndim).
@@ -124,7 +123,6 @@ def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
   return inds, coeffs
 
 
-
 def general_localization(y2x_distances,batches):
 
     def loc_setup(radius,direction,t,tag=None):
@@ -165,6 +163,7 @@ def no_localization(Nx,Ny):
     elif direction is 'y2x': return             state_taperer
 
   return loc_setup
+
 
 
 
@@ -231,9 +230,10 @@ def safe_eval(fun, t):
 #     the shape parameter passed to these functions (example: mods/QG/sakov2008).
 
 
-def partial_direct_obs_nd_loc_setup(shape,
-        batch_shape=None,obs_inds=None,periodic=True):
-  """Localize direct obs on a N-D, homogeneous, rectangular domain."""
+def nd_Id_localization(shape,
+        batch_shape=None,obs_inds=None,periodic=PERIODIC):
+  """Localize Id (direct) point obs of an
+  N-D, homogeneous, rectangular domain."""
 
   M = np.prod(shape)
 

@@ -17,7 +17,7 @@
 from dapper import *
 
 from dapper.mods.Lorenz96.core import step, dstep_dx
-from dapper.tools.localization import partial_direct_obs_nd_loc_setup as loc_setup
+from dapper.tools.localization import nd_Id_localization
 
 t = Chronology(0.05,dtObs=0.4,T=4**5,BurnIn=20)
 
@@ -34,7 +34,7 @@ X0 = GaussRV(M=Nx, C=0.001)
 jj = 1 + arange(0,Nx,2)
 Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.5
-Obs['localizer'] = loc_setup( (Nx,), (2,), jj, periodic=True )
+Obs['localizer'] = nd_Id_localization( (Nx,), (2,), jj )
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 
