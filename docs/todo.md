@@ -1,10 +1,8 @@
 Todo
 ================================================
 
-* Lorenz-96 hot, hoteit, sak, sakov
-* Localization: use general_local
-* Change KObs to KObs-1
 * https://stackoverflow.com/q/1024435/how-to-fix-python-indentation
+* Change KObs to KObs-1
 * Replace equi_spaced_integers by linspace_int. Rerun all tests.
 
 * Improve docs

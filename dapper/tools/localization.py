@@ -8,47 +8,51 @@ from dapper import *
 CUTOFF   = 1e-3
 TAG      = 'GC'
 
-# TODO replace distance_nd usage by pairwise_distances
 # TODO make partial_direct_obs_nd_loc_setup use general_localization
 
 
-def pairwise_distances(A, B, shape=None, periodic=True):
+def pairwise_distances(A, B=None, periodic=True, domain=None):
     """Euclidian distance (un-squared) between pts in A and B.
 
-    - A: array of shape (npts,ndim), where the last dim holds the coords.
-    - B: idem. (npts can differ).
+    - A: 2-dim array of shape (npts,ndim).
+         If A is 1-dim, then (ndim)<--A.shape, npts<--(,).
+    - B: same as for A (npts can differ).
     - returns distances as an array of shape (npts_A, npts_B)
 
-    - If ``periodic``: ``shape`` must be provdied,
-      specifying length of edges of hypercube.
+    These are equal:
+    >>> pairwise_distances(A,periodic=False)
+    >>> squareform(pdist(A)) # 2x slower
+
+    But pairwise_distances allows comparing two different pts A to pts B
+    (without the augmentation/block tricks needed for pdist).
+
+    Also, the ``periodic`` option is provided.
+    It assumes the domain is a hyper-rectangle with edge lengths: ``domain``.
+    NB: Behaviour not defined for any(A.max(0) > domain), and likewise for B.
     """
+
+    if B is None: B = A
+
+    # Prep A,B
+    A = np.asarray(A)
+    B = np.asarray(B)
+    npts_A = A.shape[:A.ndim-1]
+    npts_B = B.shape[:B.ndim-1]
+    # assert A.shape[-1] == B.shape[-1] # == ndim
+    A = np.atleast_2d(A)
+    B = np.atleast_2d(B)
+
     d = A[:,None] - B # shape=(npts_A,npts_B,ndim)
 
     if periodic:
-        shape = np.reshape(shape ,(1,1,-1))
-        d = np.minimum(d, shape-d)
+        domain = np.reshape(domain ,(1,1,-1)) # for broadcasting
+        d = abs(d)
+        d = np.minimum(d, domain-d)
 
-    # return sla.norm(d,axis=-1)
-    return sla.norm(d,axis=-1)
+    # scipy.linalg.norm(d,axis=-1)
+    distances = sqrt((d**2).sum(axis=-1))
 
-def distance_nd(centre, pts, shape, periodic=True):
-  """Euclidian distance between centre and pts.
-
-  - centre: 
-  - pts: an ndim-by-npts array.
-  - shape: tuple specifying the domain extent.
-  """
-
-  # Make col vectors, to enable (ensure) broadcasting...
-  centre = np.reshape(centre,(-1,1))
-  shape  = np.reshape(shape ,(-1,1))
-  # ... in this subtraction
-  d = abs(centre - pts)
-
-  if periodic:
-    d = np.minimum(d, shape-d)
-
-  return sla.norm(d,axis=0)
+    return distances.reshape(npts_A+npts_B)
 
 
 def dist2coeff(dists, radius, tag=None):
@@ -188,7 +192,7 @@ def partial_direct_obs_nd_loc_setup(shape,batch_shape,obs_inds,periodic):
   "N-D rectangle"
 
   # def sub2ind(sub): return np.ravel_multi_index(sub, shape)
-  def ind2sub(ind): return np.unravel_index(ind, shape)
+  def ind2sub(ind): return np.asarray(np.unravel_index(ind, shape)).T
 
   M = np.prod(shape)
   state_coord = ind2sub(arange(M))
@@ -204,15 +208,15 @@ def partial_direct_obs_nd_loc_setup(shape,batch_shape,obs_inds,periodic):
       def obs_taperer(batch):
         # Don't use "batch = batches[iBatch]" (with iBatch as this function's input).
         # This would slow down multiproc., coz batches gets copied to each process.
-        batch_center_coord = array(ind2sub(batch)).mean(axis=1)
-        dists = distance_nd(batch_center_coord, obs_coord, shape, periodic)
+        batch_center_coord = ind2sub(batch).mean(axis=0)
+        dists = pairwise_distances(batch_center_coord, obs_coord, periodic, shape)
         return inds_and_coeffs(dists, radius, tag=tag)
       return batches, obs_taperer
 
     elif direction is 'y2x':
       def state_taperer(iObs):
         obs_j_coord = ind2sub(obs_inds_now[iObs])
-        dists = distance_nd(obs_j_coord, state_coord, shape, periodic)
+        dists = pairwise_distances(obs_j_coord, state_coord, periodic, shape)
         return inds_and_coeffs(dists, radius, tag=tag)
     return state_taperer
 
