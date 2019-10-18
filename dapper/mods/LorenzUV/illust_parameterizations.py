@@ -44,15 +44,15 @@ xx = true_K(x0,K        ,t0,dt)
 ###########################
 gg = zeros((K,nU)) # "Unresolved tendency"
 for k,x in enumerate(xx[:-1]):
-  X = x[:nU]
-  Z = model_step(X,t0,dt)
-  D = Z - xx[k+1,:nU]
-  gg[k] = 1/dt*D
+    X = x[:nU]
+    Z = model_step(X,t0,dt)
+    D = Z - xx[k+1,:nU]
+    gg[k] = 1/dt*D
 
 # Automated regression for deterministic parameterizations
 pc = {}
 for order in [0,1,2,3,4]:
-  pc[order] = np.polyfit(xx[:-1,:nU].ravel(), gg.ravel(), deg=order)
+    pc[order] = np.polyfit(xx[:-1,:nU].ravel(), gg.ravel(), deg=order)
 
 ###########################
 # Scatter plot
@@ -72,47 +72,47 @@ ax.set_xlabel('Resolved variable ($X_{k,i}$)')
 # Lorenz'96 Parameterization annotations
 ###########################
 if PRMS != 'Wilks':
-  ax.set_xlim(-8,12)
-  ax.set_ylim(-3,6)
-  uu = linspace(*ax.get_xlim(),201)
+    ax.set_xlim(-8,12)
+    ax.set_ylim(-3,6)
+    uu = linspace(*ax.get_xlim(),201)
 
-  # Plot pc
-  ax.plot(uu,np.poly1d(pc[0])(uu),'g',lw=4.0)
-  ax.plot(uu,np.poly1d(pc[1])(uu),'r',lw=4.0)
-  ax.plot(uu,np.poly1d(pc[4])(uu),'b',lw=4.0)
+    # Plot pc
+    ax.plot(uu,np.poly1d(pc[0])(uu),'g',lw=4.0)
+    ax.plot(uu,np.poly1d(pc[1])(uu),'r',lw=4.0)
+    ax.plot(uu,np.poly1d(pc[4])(uu),'b',lw=4.0)
 
 ###########################
 # Wilks2005 Parameterization annotations
 ###########################
 else:
-  ax.set_xlim(-10,17)
-  ax.set_ylim(-10,20)
-  uu = linspace(*ax.get_xlim(),201)
+    ax.set_xlim(-10,17)
+    ax.set_ylim(-10,20)
+    uu = linspace(*ax.get_xlim(),201)
 
-  p0 = lambda x: 3.82+0.00*x
-  p1 = lambda x: 0.74+0.82*x                                        # lin.reg(gg,xx)
-  p3 = lambda x: .341+1.30*x -.0136*x**2 -.00235*x**3               # Arnold'2013
-  p4 = lambda x: .262+1.45*x -.0121*x**2 -.00713*x**3 +.000296*x**4 # Wilks'2005
-  uu = linspace(-10,17,201)
-  plt.plot(uu,p0(uu),'g',lw=4.0)
-  plt.plot(uu,p1(uu),'r',lw=4.0)
-  plt.plot(uu,p4(uu),'b',lw=4.0)
-  #plt.plot(uu,p3(uu),'y',lw=3.0)
+    p0 = lambda x: 3.82+0.00*x
+    p1 = lambda x: 0.74+0.82*x                                        # lin.reg(gg,xx)
+    p3 = lambda x: .341+1.30*x -.0136*x**2 -.00235*x**3               # Arnold'2013
+    p4 = lambda x: .262+1.45*x -.0121*x**2 -.00713*x**3 +.000296*x**4 # Wilks'2005
+    uu = linspace(-10,17,201)
+    plt.plot(uu,p0(uu),'g',lw=4.0)
+    plt.plot(uu,p1(uu),'r',lw=4.0)
+    plt.plot(uu,p4(uu),'b',lw=4.0)
+    #plt.plot(uu,p3(uu),'y',lw=3.0)
 
-  def an(T,xy,xyT,HA='left'):
-    ah = ax.annotate(T,
-      xy    =xy ,   xycoords='data',
-      xytext=xyT, textcoords='data',
-      fontsize=16,
-      horizontalalignment=HA,
-      arrowprops=dict(arrowstyle="->", connectionstyle="arc3",lw=2)
-      )
-    return ah
+    def an(T,xy,xyT,HA='left'):
+        ah = ax.annotate(T,
+                xy    =xy ,   xycoords='data',
+                xytext=xyT, textcoords='data',
+                fontsize=16,
+                horizontalalignment=HA,
+                arrowprops=dict(arrowstyle="->", connectionstyle="arc3",lw=2)
+                )
+        return ah
 
-  s4 = '$0.262$\n$+1.45X$\n$-0.0121X^2$\n$-0.00713X^3$\n$+0.000296X^4$'
-  an('$3.82$'      ,(10  ,3.82),(10,-2) ,'center')
-  an('$0.74+0.82X$',(-7.4,-5.4),(1 ,-6))
-  an(s4            ,(7   ,8)   ,(0 ,10) ,'right')
+    s4 = '$0.262$\n$+1.45X$\n$-0.0121X^2$\n$-0.00713X^3$\n$+0.000296X^4$'
+    an('$3.82$'      ,(10  ,3.82),(10,-2) ,'center')
+    an('$0.74+0.82X$',(-7.4,-5.4),(1 ,-6))
+    an(s4            ,(7   ,8)   ,(0 ,10) ,'right')
 
 
 

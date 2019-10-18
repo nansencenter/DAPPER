@@ -12,7 +12,7 @@ HMM.Obs = Operator(**{
     'M'    : 3,
     'model': lambda x,t: x**3,
     'noise': 8
-    })
+})
 
 # It is unclear whether the model error (cov Q) is used
 # just for the DA method, or also for the truth.

@@ -26,15 +26,15 @@ y2x_dists = pairwise_distances(obs_sites[:,None], arange(Nx)[:,None], (Nx,), per
 batches = arange(40)[:,None]
 # Define operator
 Obs = {
-      'M'        : len(H),
-      'model'    : lambda E,t: E @ H.T,
-      'linear'   : lambda E,t: H,
-      'noise'    : 1,
-      'localizer': localization_setup(lambda t: y2x_dists, batches),
-      }
+    'M'        : len(H),
+    'model'    : lambda E,t: E @ H.T,
+    'linear'   : lambda E,t: H,
+    'noise'    : 1,
+    'localizer': localization_setup(lambda t: y2x_dists, batches),
+}
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LPs(jj),
-        sectors={'land':np.arange(*xtrema(obs_sites)).astype(int)})
+          sectors={'land':np.arange(*xtrema(obs_sites)).astype(int)})
 
 ####################
 # Suggested tuning

@@ -9,15 +9,15 @@ from dapper.mods.Lorenz96.core import step, x0
 
 ##
 if __name__ == "__main__":
-  simulator = with_recursion(step, prog="Simulating")
+    simulator = with_recursion(step, prog="Simulating")
 
-  x0 = x0(40)
-  E0 = x0 + 1e-3*eye(len(x0))[:3]
+    x0 = x0(40)
+    E0 = x0 + 1e-3*eye(len(x0))[:3]
 
-  dt = 0.05
-  xx = simulator(E0, k=500, t=0, dt=dt)
+    dt = 0.05
+    xx = simulator(E0, k=500, t=0, dt=dt)
 
-  ani = amplitude_animation(xx,dt=dt,interval=70)
+    ani = amplitude_animation(xx,dt=dt,interval=70)
 
 ##
 

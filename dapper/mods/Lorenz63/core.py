@@ -12,13 +12,13 @@ sig = 10.0; rho = 28.0; beta = 8.0/3
 
 @ens_compatible
 def dxdt(x):
-  "Evolution equation (coupled ODEs) specifying the dynamics."
-  d     = np.zeros_like(x)
-  x,y,z = x
-  d[0]  = sig*(y - x)
-  d[1]  = rho*x - y - x*z
-  d[2]  = x*y - beta*z
-  return d
+    "Evolution equation (coupled ODEs) specifying the dynamics."
+    d     = np.zeros_like(x)
+    x,y,z = x
+    d[0]  = sig*(y - x)
+    d[1]  = rho*x - y - x*z
+    d[2]  = x*y - beta*z
+    return d
 
 # Time-step integration.
 step = with_rk4(dxdt,autonom=True)
@@ -37,17 +37,17 @@ x0 = np.array([1.509, -1.531, 25.46])
 # OPTIONAL (not necessary for EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
-  """Tangent linear model (TLM): Jacobian of dxdt(x)."""
-  x,y,z = x
-  A = np.array(
-      [[-sig , sig , 0],
-      [rho-z , -1  , -x],
-      [y     , x   , -beta]])
-  return A
+    """Tangent linear model (TLM): Jacobian of dxdt(x)."""
+    x,y,z = x
+    A = np.array(
+        [[-sig , sig , 0],
+         [rho-z , -1  , -x],
+         [y     , x   , -beta]])
+    return A
 
 def dstep_dx(x,t,dt):
-  """Resolvent (propagator) of the TLM: Jacobian of step(x)."""
-  return integrate_TLM(d2x_dtdx(x),dt,method='approx')
+    """Resolvent (propagator) of the TLM: Jacobian of step(x)."""
+    return integrate_TLM(d2x_dtdx(x),dt,method='approx')
 
 
 ################################################
@@ -59,4 +59,4 @@ def LPs(jj=None,params=params): return [
     (12, 1, LP.correlations   ),
     (14, 1, LP.sliding_marginals(jj, zoomy=0.8, **params)) ,
     (13, 1, LP.phase3d(jj, **params)                     ) ,
-    ]
+]

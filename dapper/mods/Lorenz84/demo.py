@@ -16,7 +16,7 @@ fig, ax = plt.subplots(subplot_kw={'projection':'3d'})
 
 cc = plt.cm.winter(linspace(0,1,N))
 for n in range(N):
-  ax.plot(*xx[n*K : (n+1)*K+1].T, lw=1, c=cc[n])
+    ax.plot(*xx[n*K : (n+1)*K+1].T, lw=1, c=cc[n])
 
 fig.suptitle('Phase space evolution')
 ax.set_facecolor('w')

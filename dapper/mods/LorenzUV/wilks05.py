@@ -24,7 +24,7 @@ Dyn = {
     'model'  : with_rk4(LUV.dxdt,autonom=True),
     'noise'  : 0,
     'linear' : LUV.dstep_dx,
-    }
+}
 
 X0 = GaussRV(mu=LUV.x0,C=0.01)
 
@@ -48,47 +48,47 @@ Dyn = {
     'M'    : nU,
     'model': with_rk4(LUV.dxdt_parameterized),
     'noise': 0,
-    }
+}
 
 X0 = GaussRV(mu=LUV.x0[:nU],C=0.01)
 
 jj = arange(nU)
 Obs = partial_Id_Obs(nU,jj)
 Obs['noise'] = R
- 
+
 other = {'name': rel_path(__file__,'mods/')+'_trunc'}
 HMM_trunc = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 
 LUV.prmzt = lambda t,x: polynom_prmzt(t,x,1)
 
 def polynom_prmzt(t,x,order):
-  """
-  Polynomial (deterministic) parameterization of fast variables (Y).
-  
-  NB: Only valid for system settings of Wilks'2005.
+    """
+    Polynomial (deterministic) parameterization of fast variables (Y).
 
-  Note: In order to observe an improvement in DA performance w
-        higher orders, the EnKF must be reasonably tuned with 
-        There is very little improvement gained above order=1.
-  """
-  if   order==4:
-    # From Wilks
-    d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
-  elif order==3:
-    # From Arnold
-    d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
-  elif order==1:
-    # From me -- see AdInf/illust_parameterizations.py
-    d = 0.74 + 0.82*x
-  elif order==0:
-    # From me -- see AdInf/illust_parameterizations.py
-    d = 3.82
-  elif order==-1:
-    # Leave as dxdt_trunc
-    d = 0
-  else:
-    raise NotImplementedError
-  return d
+    NB: Only valid for system settings of Wilks'2005.
+
+    Note: In order to observe an improvement in DA performance w
+          higher orders, the EnKF must be reasonably tuned with 
+          There is very little improvement gained above order=1.
+    """
+    if   order==4:
+        # From Wilks
+        d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
+    elif order==3:
+        # From Arnold
+        d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
+    elif order==1:
+        # From me -- see AdInf/illust_parameterizations.py
+        d = 0.74 + 0.82*x
+    elif order==0:
+        # From me -- see AdInf/illust_parameterizations.py
+        d = 3.82
+    elif order==-1:
+        # Leave as dxdt_trunc
+        d = 0
+    else:
+        raise NotImplementedError
+    return d
 
 
 

@@ -12,14 +12,14 @@ Dyn = {
     'M'    : Nx,
     'model': core.step,
     'noise': 0
-    }
+}
 
 X0 = GaussRV(M=Nx, C=0.001)
 
 jj = arange(0,Nx,2)
 Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 1.5
- 
+
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 
 ####################

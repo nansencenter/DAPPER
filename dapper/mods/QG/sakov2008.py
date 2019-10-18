@@ -14,7 +14,7 @@ Dyn = {
     'M'    : np.prod(shape),
     'model': model.step,
     'noise': 0,
-    }
+}
 
 # Considering that I have 8GB mem on the Mac, and the estimate:
 # ≈ (8 bytes/float)*(129² float/stat)*(7 stat/k) * K,
@@ -42,16 +42,16 @@ jj = jj-jj[0]
 rstream = np.random.RandomState()
 max_offset = jj[1]-jj[0]
 def random_offset(t):
-  rstream.seed(int(t/model.prms['dtout']*100))
-  u = rstream.rand()
-  return int(floor(max_offset * u))
+    rstream.seed(int(t/model.prms['dtout']*100))
+    u = rstream.rand()
+    return int(floor(max_offset * u))
 
 def obs_inds(t):
-  return jj + random_offset(t)
+    return jj + random_offset(t)
 
 @ens_compatible
 def hmod(E,t):
-  return E[obs_inds(t)]
+    return E[obs_inds(t)]
 
 # Localization.
 batch_shape = [2, 2] # width (in grid points) of each state batch.
@@ -66,7 +66,7 @@ Obs = {
     'model': hmod,
     'noise': GaussRV(C=4*eye(Ny)),
     'localizer': localizer,
-    }
+}
 
 # Moving localization mask for smoothers:
 Obs['loc_shift'] = lambda ii, dt: ii # no movement (suboptimal, but easy)

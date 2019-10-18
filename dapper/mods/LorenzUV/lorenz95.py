@@ -24,7 +24,7 @@ Dyn = {
     'model' : with_rk4(LUV.dxdt,autonom=True),
     'noise' : 0,
     'linear': LUV.dstep_dx,
-    }
+}
 
 X0 = GaussRV(mu=LUV.x0, C=0.01)
 
@@ -48,14 +48,14 @@ Dyn = {
     'M'    : nU,
     'model': with_rk4(LUV.dxdt_parameterized),
     'noise': 0,
-    }
+}
 
 X0 = GaussRV(mu=LUV.x0[:nU],C=0.01)
 
 jj = arange(nU)
 Obs = partial_Id_Obs(nU,jj)
 Obs['noise'] = R
- 
+
 other = {'name': rel_path(__file__,'mods/')+'_trunc'}
 HMM_trunc = HiddenMarkovModel(Dyn,Obs,t,X0,**other)
 

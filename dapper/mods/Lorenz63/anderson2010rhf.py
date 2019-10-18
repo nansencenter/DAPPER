@@ -15,7 +15,7 @@ Dyn = {
     'model': step,
     'linear': dstep_dx,
     'noise': 0
-    }
+}
 
 X0 = GaussRV(C=2,mu=x0)
 

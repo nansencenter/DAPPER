@@ -21,11 +21,11 @@ day = 0.05/6 * 24 # coz dt=0.05 <--> 6h in "model time scale"
 t = Chronology(0.05,dkObs=1,T=200*day,BurnIn=10*day)
 
 Dyn = {
-    'M'    : Nx,
-    'model': step,
-    'linear': dstep_dx,
-    'noise': 0
-    }
+    'M'      : Nx,
+    'model'  : step,
+    'linear' : dstep_dx,
+    'noise'  : 0
+}
 
 # X0 = GaussRV(C=0.01,M=Nx) # Decreased from Pajonk's C=1.
 X0 = GaussRV(C=0.01,mu=x0)

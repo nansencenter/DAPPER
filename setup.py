@@ -3,17 +3,17 @@
 import setuptools, os, re
 
 # with open("README.md", "r") as fh:
-    # long_description = fh.read()
+#     long_description = fh.read()
 long_description = """DAPPER is a set of templates for benchmarking the performance of data assimilation (DA).
 See full description at github.com/nansencenter/DAPPER.
 """
 
 def filter_dirs(x):
-  val  = x!='__pycache__'
-  val &= x!='.DS_Store'
-  val &= x!='pyks'
-  val &= not x.endswith('.py')
-  return val
+    val  = x!='__pycache__'
+    val &= x!='.DS_Store'
+    val &= x!='pyks'
+    val &= not x.endswith('.py')
+    return val
 
 
 
@@ -50,23 +50,23 @@ setuptools.setup(
     # We pin smaller libraries (coz stackoverflow.com/a/28510546),
     # but allow ranges for bigger ones (coz stackoverflow.com/a/43421973).
     install_requires=[
-      'scipy>=1.1',
-      'ipython>=5.1',
-      'matplotlib~=3.1', # >=3.1 to avoid Mac's framework-build issues
-      'tqdm~=4.31',
-      'colorama~=0.4.1',
-      'tabulate~=0.8.3',
-      'dill>=0.3.1.1', # >=0.3.1.1 for dataclass
-      ],
+        'scipy>=1.1',
+        'ipython>=5.1',
+        'matplotlib~=3.1', # >=3.1 to avoid Mac's framework-build issues
+        'tqdm~=4.31',
+        'colorama~=0.4.1',
+        'tabulate~=0.8.3',
+        'dill>=0.3.1.1', # >=0.3.1.1 for dataclass
+    ],
     # Optional
     extras_require={
-      'MP': [
-        'threadpoolctl==1.0.0',
-        'multiprocessing-on-dill==3.5.0a4',
-        'psutil',
+        'MP': [
+            'threadpoolctl==1.0.0',
+            'multiprocessing-on-dill==3.5.0a4',
+            'psutil',
         ],
-      'Qt':  ['PyQt5','qtpy'],
-      },
+        'Qt':  ['PyQt5','qtpy'],
+    },
     # Other packages used, but not explicitly required
     #
     # Already implicitly required:
@@ -106,9 +106,9 @@ setuptools.setup(
     # File inclusion
     # Note: find_packages() only works on __init__ dirs.
     packages=setuptools.find_packages()+\
-      ['dapper.da_methods','dapper.tools','dapper.mods']+\
-      ['dapper.mods.'+x for x in os.listdir('dapper/mods') if filter_dirs(x)]+\
-      ['dapper.mods.QG.f90'],
+        ['dapper.da_methods','dapper.tools','dapper.mods']+\
+        ['dapper.mods.'+x for x in os.listdir('dapper/mods') if filter_dirs(x)]+\
+        ['dapper.mods.QG.f90'],
     package_data={
         '': ['dpr_config.ini','*.mplstyle','*.txt','*.md','*.png'],
         'dapper.mods.QG.f90': ['*.txt','*.md','*.png','Makefile','*.f90'],

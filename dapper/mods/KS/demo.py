@@ -52,8 +52,8 @@ EE[0] = model.x0 + 1e-3*np.random.randn(N,model.Nx)
 
 # Integrate
 for k in range(1,K+1):
-  EE[k] = model.step(EE[k-1], np.nan, dt)
-  tt[k] = k*dt
+    EE[k] = model.step(EE[k-1], np.nan, dt)
+    tt[k] = k*dt
 
 
 # Animate

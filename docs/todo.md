@@ -1,9 +1,9 @@
 Todo
 ================================================
 
-* https://stackoverflow.com/q/1024435/how-to-fix-python-indentation
-* Change KObs to KObs-1
 * Replace equi_spaced_integers by linspace_int. Rerun all tests.
+* NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``'s
+* Change KObs to KObs-1
 
 * Improve docs
 * Make superclasses for the filter, smoother, and iterative smoother.

@@ -77,14 +77,14 @@ Ny = 12
 X0 = GaussRV(M=Nx, C=0.001) 
 
 def make_H(Ny,Nx):
-  xx = linspace(-1,1,Nx+1)[1:]
-  H = zeros((Ny,Nx))
-  H[0] = 1/sqrt(2)
-  for k in range(-(Ny//2),(Ny+1)//2):
-    ind = 2*abs(k) - (k<0)
-    H[ind] = sin(pi*k*xx + pi/4)
-  H /= sqrt(Nx/2)
-  return H
+    xx = linspace(-1,1,Nx+1)[1:]
+    H = zeros((Ny,Nx))
+    H[0] = 1/sqrt(2)
+    for k in range(-(Ny//2),(Ny+1)//2):
+        ind = 2*abs(k) - (k<0)
+        H[ind] = sin(pi*k*xx + pi/4)
+    H /= sqrt(Nx/2)
+    return H
 
 H = make_H(Ny,Nx)
 # plt.figure(1).gca().matshow(H)
@@ -94,7 +94,7 @@ Obs = {
     'M': Ny,
     'model': lambda x,t: x @ H.T,
     'noise': GaussRV(C=0.01*eye(Ny)),
-    }
+}
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 
@@ -103,21 +103,21 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 ####################
 # "raw" obs plotting
 # if Ny<=Nx:
-  # Hinv = H.T
+#     Hinv = H.T
 # else:
-  # Hinv = sla.pinv2(H)
+#     Hinv = sla.pinv2(H)
 # def yplot(y):
-  # lh = plt.plot(y @ Hinv.T,'g')[0]
-  # return lh
+#     lh = plt.plot(y @ Hinv.T,'g')[0]
+#     return lh
 
 # "implicit" (interpolated sine/cosine) obs plotting
 # Hplot = make_H(Ny,max(Ny,201))
 # Hplot_inv = Hplot.T
 # def yplot(y):
-  # x = y @ Hplot_inv.T
-  # ii = linspace(0,Nx-1,len(x))
-  # lh = plt.plot(ii,x,'g')[0]
-  # return lh
+#     x = y @ Hplot_inv.T
+#     ii = linspace(0,Nx-1,len(x))
+#     lh = plt.plot(ii,x,'g')[0]
+#     return lh
 
 
 ####################

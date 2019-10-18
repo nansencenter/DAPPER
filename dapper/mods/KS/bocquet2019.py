@@ -15,7 +15,7 @@ Dyn = {
     'model' : KS.step,
     'linear': KS.dstep_dx,
     'noise' : 0
-    }
+}
 
 X0 = GaussRV(mu=KS.x0, C=0.001) 
 

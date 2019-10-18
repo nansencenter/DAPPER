@@ -30,10 +30,10 @@ CtrlVar = sys.argv[1] # For example, run script with: `python example_3.py N`
 
 # Define range of the experiment control variable.
 if CtrlVar == 'N': # Ensemble size.
-  xticks = ccat(arange(2,20),[20, 22, 25, 30, 40, 50, 70, 100]) 
+    xticks = ccat(arange(2,20),[20, 22, 25, 30, 40, 50, 70, 100]) 
 
 if CtrlVar == 'F': # Model forcing
-  xticks = arange(3,20)
+    xticks = arange(3,20)
 
 # Experiments duplication (random seeds will be varied).
 xticks = array(xticks).repeat(32)
@@ -56,10 +56,10 @@ cfgs += Climatology()                                                 # Baseline
 cfgs += OptInterp()                                                   # Baseline method
 
 for upd_a in ['PertObs','Sqrt']:                                      # Update (_a) forms: stoch, determ.
-  cfgs += EnKF(upd_a,N                                              ) # Pure EnKF
-  cfgs += EnKF(upd_a,N            ,infl=1.01                        ) # + fixed, post-inflation, good around N=50.
-  cfgs += EnKF(upd_a,N            ,infl=1.05                        ) # + idem                 , good around N=17.
-  cfgs += EnKF(upd_a,N            ,infl=1.10                        ) # + idem                 , good around N=16.
+    cfgs += EnKF(upd_a,N                                            ) # Pure EnKF
+    cfgs += EnKF(upd_a,N            ,infl=1.01                      ) # + fixed, post-inflation, good around N=50.
+    cfgs += EnKF(upd_a,N            ,infl=1.05                      ) # + idem                 , good around N=17.
+    cfgs += EnKF(upd_a,N            ,infl=1.10                      ) # + idem                 , good around N=16.
 cfgs += EnKF_N(      N                                              ) # + adaptive (≈optimal) inflation.
 cfgs += EnKF_N(      N                       ,xN=2                  ) # + idem, with 2x confidence in inflation hyper-prior.
 cfgs += LETKF(       N,loc_rad=2                                    ) # + localization with radius=2.
@@ -73,34 +73,34 @@ cfgs += iLEnKS('-N' ,N,loc_rad='?'           ,xN=2 ,nIter=4,Lag='?' ) # + iterat
 # Setters for the control variable
 ##############################
 def adjust_osse(variable,X):
-  if   variable == 'F': core.Force = X
-  elif variable == 'N': pass
-  else: raise ValueError("OSSE changes not defined for variable " + variable)
+    if   variable == 'F': core.Force = X
+    elif variable == 'N': pass
+    else: raise ValueError("OSSE changes not defined for variable " + variable)
 
 def adjust_cfg(C,variable,X):
-  if variable == 'F':
-    if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(X,core.Force))
-    if getattr(C,'loc_rad',None)=='$': C = C.update_settings(loc_rad=L95_rad(X,core.Force))
-  elif variable == 'N':
-    if getattr(C,'N'      ,None)=='?': C = C.update_settings(      N=X)
-    if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(X,core.Force))
-    if getattr(C,'loc_rad',None)=='$': C = C.update_settings(loc_rad=1.5*L95_rad(X,core.Force))
-    if getattr(C,'Lag'    ,None)=='?': C = C.update_settings(    Lag=L95_lag(X,core.Force))
-  else: raise ValueError("Config changes not defined for variable " + variable)
-  return C
+    if variable == 'F':
+        if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(X,core.Force))
+        if getattr(C,'loc_rad',None)=='$': C = C.update_settings(loc_rad=L95_rad(X,core.Force))
+    elif variable == 'N':
+        if getattr(C,'N'      ,None)=='?': C = C.update_settings(      N=X)
+        if getattr(C,'loc_rad',None)=='?': C = C.update_settings(loc_rad=L95_rad(X,core.Force))
+        if getattr(C,'loc_rad',None)=='$': C = C.update_settings(loc_rad=1.5*L95_rad(X,core.Force))
+        if getattr(C,'Lag'    ,None)=='?': C = C.update_settings(    Lag=L95_lag(X,core.Force))
+    else: raise ValueError("Config changes not defined for variable " + variable)
+    return C
 
 # Most DA methods are approximate => Leeway exists
 #  => Tuneable parameters exits. Here, we define some tuning xticks.
 def L95_rad(N,F):
-  # Approximately fitted (for infl=1.0) variogram (Gaussian).
-  r = 0.08 + 10*(1-exp(-(N/40)**2))**0.8
-  r *= sqrt(8/F) # Not tuned at all!
-  return r
+    # Approximately fitted (for infl=1.0) variogram (Gaussian).
+    r = 0.08 + 10*(1-exp(-(N/40)**2))**0.8
+    r *= sqrt(8/F) # Not tuned at all!
+    return r
 def L95_lag(N,F):
-  # Approximately tuned for iLEnKS and sakov2008 xticks.
-  if     N<=7 : return 1
-  if 8 <=N<=15: return N-6
-  if 16<=N    : return 10
+    # Approximately tuned for iLEnKS and sakov2008 xticks.
+    if     N<=7 : return 1
+    if 8 <=N<=15: return N-6
+    if 16<=N    : return 10
 
 
 ##############################
@@ -115,28 +115,28 @@ avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 # that the array would hold, instead get discarded after each loop iterate.
 
 for iX,(X,iR) in enumerate(zip(xticks,rep_inds)):
-  with coloring(): print('\n'+"xticks[",iX,'/',len(xticks)-1,"] ",CtrlVar,': ',X,sep="")
-  adjust_osse(CtrlVar,X)
+    with coloring(): print('\n'+"xticks[",iX,'/',len(xticks)-1,"] ",CtrlVar,': ',X,sep="")
+    adjust_osse(CtrlVar,X)
 
-  seed(sd0+iR)
-  xx,yy = HMM.simulate()
-
-  for iC,C in enumerate(cfgs):
-    C = adjust_cfg(C,CtrlVar,X)
     seed(sd0+iR)
-    stat = C.assimilate(HMM,xx,yy)
-    # stats[iX,0,iC] = stat
-    avrgs[iX,0,iC] = stat.average_in_time()
+    xx,yy = HMM.simulate()
 
-  print_averages(cfgs,avrgs[iX,0])
+    for iC,C in enumerate(cfgs):
+        C = adjust_cfg(C,CtrlVar,X)
+        seed(sd0+iR)
+        stat = C.assimilate(HMM,xx,yy)
+        # stats[iX,0,iC] = stat
+        avrgs[iX,0,iC] = stat.average_in_time()
+
+    print_averages(cfgs,avrgs[iX,0])
 
 # Results saved in the format below is supported by DAPPER's ResultsTable, whose main purpose
 # is to collect result data from parallelized (or otherwise independent) experiments.
 np.savez(save_path,
-    avrgs  = avrgs,            # 3D array of dicts, whose fields are the averages.
-    xlabel = CtrlVar,          # The control variable tag (string).
-    xticks = xticks,           # xticks (array).
-    labels = cfgs.gen_names()) # List of strings.
+         avrgs  = avrgs,            # 3D array of dicts, whose fields are the averages.
+         xlabel = CtrlVar,          # The control variable tag (string).
+         xticks = xticks,           # xticks (array).
+         labels = cfgs.gen_names()) # List of strings.
 
 
 ##############################
@@ -168,12 +168,12 @@ BaseLineMethods.plot_1d('rmse.a',color='k')
 
 # Adjust plot
 if R.xlabel=='N':
-  ax.loglog()
-  ax.grid(True,'minor')
-  xt = [2,3,4,6,8,10,15,20,25,30,40,50,70,100]
-  yt = [0.1, 0.2, 0.5, 1, 2, 5]
-  ax.set_xticks(xt); ax.set_xticklabels(xt)
-  ax.set_yticks(yt); ax.set_yticklabels(yt)
+    ax.loglog()
+    ax.grid(True,'minor')
+    xt = [2,3,4,6,8,10,15,20,25,30,40,50,70,100]
+    yt = [0.1, 0.2, 0.5, 1, 2, 5]
+    ax.set_xticks(xt); ax.set_xticklabels(xt)
+    ax.set_yticks(yt); ax.set_yticklabels(yt)
 
 
 

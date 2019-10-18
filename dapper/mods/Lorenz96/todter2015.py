@@ -14,7 +14,7 @@ Dyn = {
     'M'    : Nx,
     'model': core.step,
     'noise': 0
-    }
+}
 
 X0 = GaussRV(M=Nx, C=0.001)
 

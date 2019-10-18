@@ -43,18 +43,18 @@ def Model(dt=0.25,DL=32,Nx=128):
     # Evolution equation
     @byFourier
     def dxdt(v):
-      return NL(v) + L*v
+        return NL(v) + L*v
 
     # Jacobian of dxdt(u)
     def d2x_dtdx(u):
-      assert is1d(u)
-      dL  =   ifft ( L * fft(np.eye(Nx)) ) . T
-      dNL = - ifft ( D * fft(np.diag(u)) ) . T
-      return dL + dNL
+        assert is1d(u)
+        dL  =   ifft ( L * fft(np.eye(Nx)) ) . T
+        dNL = - ifft ( D * fft(np.diag(u)) ) . T
+        return dL + dNL
 
     # dstep_dx = FD_Jac(step)
     def dstep_dx(x,t,dt):
-      return integrate_TLM(d2x_dtdx(x),dt,method='analytic')
+        return integrate_TLM(d2x_dtdx(x),dt,method='analytic')
 
     # Runge-Kutta -- Requries dt<1e-2:
     # ------------------------------------------------
@@ -116,7 +116,7 @@ def Model(dt=0.25,DL=32,Nx=128):
     x0_Kassam = cos(grid/16) * (1 + sin(grid/16))
     x0 = x0_Kassam.copy()
     for k in range(int(150/h)):
-      x0 = step(x0, np.nan, h)
+        x0 = step(x0, np.nan, h)
 
     # Return dict
     return Bunch(**magic_naming(

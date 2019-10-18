@@ -27,19 +27,19 @@ wnumQ = 25
 sample_filename = os.path.join(dirs['samples'],'LA_Q_wnum%d.npz'%wnumQ)
 
 try:
-  # Load pre-generated
-  L = np.load(sample_filename)['Left']
+    # Load pre-generated
+    L = np.load(sample_filename)['Left']
 except FileNotFoundError:
-  # First-time use
-  print('Did not find sample file',sample_filename,
-      'for experiment initialization. Generating...')
-  NQ        = 20000 # Must have NQ > (2*wnumQ+1)
-  A         = sinusoidal_sample(Nx,wnumQ,NQ)
-  A         = 1/10 * center(A)[0] / sqrt(NQ)
-  Q         = A.T @ A
-  U,s,_     = tsvd(Q)
-  L         = U*sqrt(s)
-  np.savez(sample_filename, Left=L)
+    # First-time use
+    print('Did not find sample file',sample_filename,
+          'for experiment initialization. Generating...')
+    NQ        = 20000 # Must have NQ > (2*wnumQ+1)
+    A         = sinusoidal_sample(Nx,wnumQ,NQ)
+    A         = 1/10 * center(A)[0] / sqrt(NQ)
+    Q         = A.T @ A
+    U,s,_     = tsvd(Q)
+    L         = U*sqrt(s)
+    np.savez(sample_filename, Left=L)
 
 X0 = GaussRV(C=CovMat(sqrt(5)*L,'Left'))
 
@@ -47,15 +47,15 @@ X0 = GaussRV(C=CovMat(sqrt(5)*L,'Left'))
 damp = 0.98;
 Fm = Fmat(Nx,-1,1,tseq.dt)
 def step(x,t,dt):
-  assert dt == tseq.dt
-  return x @ Fm.T
+    assert dt == tseq.dt
+    return x @ Fm.T
 
 Dyn = {
     'M'    : Nx,
     'model': lambda x,t,dt: damp * step(x,t,dt),
     'linear': lambda x,t,dt: damp * Fm,
     'noise': GaussRV(C=CovMat(L,'Left')),
-    }
+}
 
 ################### Gather ###################
 HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))

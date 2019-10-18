@@ -136,15 +136,15 @@ LL = zeros((K,N))        # Local (in time) Lyapunov exponents
 E  = x + eps*eye(Nx)[:N] # Init E
 
 for k,t in enumerate(progbar(tt,"Ens (≈TLM)")):
-  # if t%10.0==0: print(t)
+    # if t%10.0==0: print(t)
 
-  x     = xx[k+1] # = step(x,t,dt)  # f.cast reference
-  E     = step(E,t,dt)              # f.cast ens (i.e. perturbed ref)
+    x     = xx[k+1] # = step(x,t,dt)  # f.cast reference
+    E     = step(E,t,dt)              # f.cast ens (i.e. perturbed ref)
 
-  E     = (E-x).T/eps               # Compute f.cast perturbations
-  [Q,R] = sla.qr(E,mode='economic') # Orthogonalize
-  E     = x + eps*Q.T               # Init perturbations  
-  LL[k] = log(abs(diag(R)))         # Store local Lyapunov exponents
+    E     = (E-x).T/eps               # Compute f.cast perturbations
+    [Q,R] = sla.qr(E,mode='economic') # Orthogonalize
+    E     = x + eps*Q.T               # Init perturbations  
+    LL[k] = log(abs(diag(R)))         # Store local Lyapunov exponents
 
 
 ########################

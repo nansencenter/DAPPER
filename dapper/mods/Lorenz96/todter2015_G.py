@@ -8,7 +8,7 @@ HMM.Obs.noise = GaussRV(C=HMM.Obs.noise.C)
 # Suggested tuning
 ####################
 
-                                                          # rmse.a
+#                                                           rmse.a
 # cfgs += LETKF(N=40,rot=True,infl=1.04       ,loc_rad=5) # 0.42
 # cfgs += LETKF(N=80,rot=True,infl=1.04       ,loc_rad=5) # 0.42
 

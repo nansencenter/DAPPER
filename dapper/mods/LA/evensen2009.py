@@ -23,15 +23,15 @@ tseq = Chronology(dt=1,dkObs=5,T=300,BurnIn=-1,Tplot=100)
 # WITH:
 Fm = Fmat(Nx,c=-1,dx=1,dt=tseq.dt)
 def step(x,t,dt):
-  assert dt == tseq.dt
-  return x @ Fm.T
+    assert dt == tseq.dt
+    return x @ Fm.T
 
 Dyn = {
     'M'    : Nx,
     'model': step,
     'linear': lambda x,t,dt: Fm,
     'noise': 0
-    }
+}
 
 # In the animation, it can sometimes/somewhat occur
 # that the truth is outside 3*sigma !!!

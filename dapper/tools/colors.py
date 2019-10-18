@@ -14,23 +14,23 @@ from colorama import Back as cBG # Background color codes
 import contextlib
 @contextlib.contextmanager
 def coloring(*color_codes):
-  """
-  Color printing using 'with'. Example:
-  >>> with coloring(cFG.GREEN): print("This is in color")
-  """
-  if len(color_codes)==0:
-    color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
+    """
+    Color printing using 'with'. Example:
+    >>> with coloring(cFG.GREEN): print("This is in color")
+    """
+    if len(color_codes)==0:
+        color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
 
-  print(*color_codes, end="")
-  yield 
-  print(colorama.Style.RESET_ALL, end="", flush=True)
+    print(*color_codes, end="")
+    yield 
+    print(colorama.Style.RESET_ALL, end="", flush=True)
 
 
 def print_c(*args,color='blue',**kwargs):
-  """Print with color.
-  But I prefer using the coloring context manager defined above."""
-  s = ' '.join([str(k) for k in args])
-  print(termcolors[color] + s + termcolors['ENDC'],**kwargs)
+    """Print with color.
+    But I prefer using the coloring context manager defined above."""
+    s = ' '.join([str(k) for k in args])
+    print(termcolors[color] + s + termcolors['ENDC'],**kwargs)
 
 # Terminal color codes. Better to use colorama (above) instead.
 termcolors={
@@ -68,8 +68,8 @@ ml_colors = np.array(np.matrix("""
 """))
 # Load into matplotlib color dictionary
 for code, color in zip('boyvgcr', ml_colors):
-  mpl.colors.ColorConverter.colors['ml'+code] = color
-  mpl.colors.colorConverter.cache ['ml'+code] = color
+    mpl.colors.ColorConverter.colors['ml'+code] = color
+    mpl.colors.colorConverter.cache ['ml'+code] = color
 
 # Seaborn colors
 sns_colors = np.array(np.matrix("""
@@ -89,22 +89,22 @@ for code, color in zip('bgrmyckw', sns_colors):
 
 
 def blend_rgb(rgb, a, bg_rgb=ones(3)):
-  """
-  Fake RGB transparency by blending it to some background.
-  Useful for creating gradients.
+    """
+    Fake RGB transparency by blending it to some background.
+    Useful for creating gradients.
 
-  Also useful for creating 'transparency' for exporting to eps.
-  But there's no actualy transparency, so superposition of lines
-  will not work. For that: export to pdf, or make do without.
+    Also useful for creating 'transparency' for exporting to eps.
+    But there's no actualy transparency, so superposition of lines
+    will not work. For that: export to pdf, or make do without.
 
-   - rgb: N-by-3 rgb, or a color code.
-   - a: alpha value
-   - bg_rgb: background in rgb. Default: white
+     - rgb: N-by-3 rgb, or a color code.
+     - a: alpha value
+     - bg_rgb: background in rgb. Default: white
 
-  Based on stackoverflow.com/a/33375738/38281
-  """ 
-  if isinstance(rgb,str):
-    rgb = mpl.colors.colorConverter.to_rgb(rgb)
-  return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]
+    Based on stackoverflow.com/a/33375738/38281
+    """ 
+    if isinstance(rgb,str):
+        rgb = mpl.colors.colorConverter.to_rgb(rgb)
+    return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]
 
 

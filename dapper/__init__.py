@@ -35,7 +35,7 @@ dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
 _rc = configparser.ConfigParser()
 # Load rc files from dapper, user-home, and cwd
 _rc.read(os.path.join(x,'dpr_config.ini') for x in
-    [dirs['dapper'], os.path.expanduser("~"), os.curdir])
+         [dirs['dapper'], os.path.expanduser("~"), os.curdir])
 # Convert to dict
 rc = {s:dict(_rc.items(s)) for s in _rc.sections() if s not in ['int','bool']}
 # Parse
@@ -52,7 +52,7 @@ dirs['samples']   = os.path.join(dirs['DAPPER']   , dirs['data_base'], "samples"
 
 # 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
 if rc['welcome_message']:
-  print("Initializing DAPPER...",flush=True)
+    print("Initializing DAPPER...",flush=True)
 
 
 ##################################
@@ -90,7 +90,7 @@ from numpy import \
     array, asarray, asmatrix, \
     linspace, arange, reshape, \
     eye, zeros, ones, diag, trace \
-# Don't shadow builtins: sum, max, abs, round, pow
+    # Don't shadow builtins: sum, max, abs, round, pow
 
 
 ##################################
@@ -103,36 +103,36 @@ import getpass
 user_is_patrick = getpass.getuser() == 'pataan'
 
 if user_is_patrick:
-  from sys import platform
-  # Try to detect notebook
-  try:
-    __IPYTHON__
-    from IPython import get_ipython
-    is_notebook_or_qt = 'zmq' in str(type(get_ipython())).lower()
-  except (NameError,ImportError):
-    is_notebook_or_qt = False
-  # Switch backend
-  if is_notebook_or_qt:
-    pass # Don't change backend
-  elif platform == 'darwin':
+    from sys import platform
+    # Try to detect notebook
     try:
-      mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
-      import matplotlib.pyplot # Trigger (i.e. test) the actual import
-    except ImportError:
-      # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
-      mpl.use('MacOSX')
+        __IPYTHON__
+        from IPython import get_ipython
+        is_notebook_or_qt = 'zmq' in str(type(get_ipython())).lower()
+    except (NameError,ImportError):
+        is_notebook_or_qt = False
+    # Switch backend
+    if is_notebook_or_qt:
+        pass # Don't change backend
+    elif platform == 'darwin':
+        try:
+            mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
+            import matplotlib.pyplot # Trigger (i.e. test) the actual import
+        except ImportError:
+            # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
+            mpl.use('MacOSX')
 
 _BE = mpl.get_backend().lower()
 _LP = rc['liveplotting_enabled']
 if _LP: # Check if we should disable anyway:
-  _LP &= not any([_BE==x for x in ['agg','ps','pdf','svg','cairo','gdk']])
-  # Also disable for inline backends, which are buggy with liveplotting
-  _LP &= 'inline' not in _BE
-  _LP &= 'nbagg'  not in _BE
-  if not _LP:
-    print("\nWarning: interactive/live plotting was requested,")
-    print("but is not supported by current backend: %s."%mpl.get_backend())
-    print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
+    _LP &= not any([_BE==x for x in ['agg','ps','pdf','svg','cairo','gdk']])
+    # Also disable for inline backends, which are buggy with liveplotting
+    _LP &= 'inline' not in _BE
+    _LP &= 'nbagg'  not in _BE
+    if not _LP:
+        print("\nWarning: interactive/live plotting was requested,")
+        print("but is not supported by current backend: %s."%mpl.get_backend())
+        print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
 rc['liveplotting_enabled'] = _LP
 
 # Get Matlab-like interface, and enable interactive plotting
@@ -170,8 +170,8 @@ from .da_methods.other import *
 
 
 if rc['welcome_message']:
-  print("...Done") # ... initializing DAPPER
-  print("PS: Turn off this message in your configuration: dpr_config.ini")
+    print("...Done") # ... initializing DAPPER
+    print("PS: Turn off this message in your configuration: dpr_config.ini")
 
 
 

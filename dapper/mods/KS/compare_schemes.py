@@ -33,31 +33,31 @@ durations   = np.zeros(len(hh), dtype=NamedFloats)
 
 for i, dt in enumerate(hh):
 
-  # Model for this dt.
-  model = Model(dt=dt)
+    # Model for this dt.
+    model = Model(dt=dt)
 
-  for m in methods:
-    E = E0.copy()
-    t0 = time.time()
-    # Integration
-    for k in 1+np.arange(int(round(T/dt))):
-      E = model[m](E,np.nan,dt)
-    durations[m][i] = time.time() - t0
+    for m in methods:
+        E = E0.copy()
+        t0 = time.time()
+        # Integration
+        for k in 1+np.arange(int(round(T/dt))):
+            E = model[m](E,np.nan,dt)
+        durations[m][i] = time.time() - t0
 
-    # Compare with reference
-    if m==mref and dt==hh[0]:
-      assert dt==min(hh), "Must define ref from smallest dt."
-      ref = E
-    errors[m][i] = np.max(abs(ref - E))
+        # Compare with reference
+        if m==mref and dt==hh[0]:
+            assert dt==min(hh), "Must define ref from smallest dt."
+            ref = E
+        errors[m][i] = np.max(abs(ref - E))
 
 # Plot stats
 from matplotlib import pyplot as plt
 plt.ion()
 plt.figure()
 for m in methods:
-  plt.loglog(durations[m]    , errors[m], '-o', label=m)
-  plt.text  (durations[m][0 ], errors[m][0 ], 'dt min')
-  # plt.text  (durations[m][-1], errors[m][-1], 'dt max')
+    plt.loglog(durations[m]    , errors[m], '-o', label=m)
+    plt.text  (durations[m][0 ], errors[m][0 ], 'dt min')
+    # plt.text  (durations[m][-1], errors[m][-1], 'dt max')
 plt.legend()
 plt.xlabel('Total computation time (s)')
 plt.ylabel('Max err (vs ref) at T=%d'%T)
