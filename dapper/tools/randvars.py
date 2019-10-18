@@ -88,8 +88,8 @@ class RV_with_mean_and_cov(RV):
         """Init allowing for shortcut notation."""
 
         if isinstance(mu,CovMat):
-            raise TypeError("Got a covariance paramter as mu. " +
-                            "Use kword syntax (C=...) ?")
+            raise TypeError("Got a covariance paramter as mu. "
+                            + "Use kword syntax (C=...) ?")
 
         # Set mu
         mu = exactly_1d(mu)

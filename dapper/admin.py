@@ -430,8 +430,8 @@ def print_cropped_traceback(ERR):
     msg += ["<"*20 + "\n"]
     msg += crop_traceback(ERR,1) + [str(ERR)]
     msg += ["\n" + ">"*20]
-    msg += ["Resuming program execution.\n"+
-            "Turn off `fail_gently` to fully raise the exception.\n"]
+    msg += ["Resuming program execution.\n"
+            + "Turn off `fail_gently` to fully raise the exception.\n"]
     for s in msg: print(s,file=sys.stderr)
 
 

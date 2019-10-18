@@ -290,8 +290,8 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
             f.write(HEADER)
             for i in range(nBatch):
                 iWorker = i + 1 # start indexing from 1
-                f.write('screen -t W'+str(iWorker)+' ipython -i --no-banner '+
-                        ' '.join([script,sysargs[1],'WORKER',str(iWorker),str(nBatch),save_path])+'\n')
+                f.write('screen -t W'+str(iWorker)+' ipython -i --no-banner '
+                        + ' '.join([script,sysargs[1],'WORKER',str(iWorker),str(nBatch),save_path])+'\n')
                 # sysargs:      0        1         2            3        4            5
             f.write("")
         sleep(0.2)
