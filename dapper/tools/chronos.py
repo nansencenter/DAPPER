@@ -39,7 +39,7 @@ class Chronology():
     (e.g. should dtObs*=2 yield a doubling of T too?)
     """
 
-    def __init__(self,dt=None,dtObs=None,T=None,BurnIn=-1, \
+    def __init__(self,dt=None,dtObs=None,T=None,BurnIn=-1,
                  dkObs=None,KObs=None,K=None,Tplot=None):
 
         assert 3 == [dt,dtObs,T,dkObs,KObs,K].count(None) , \

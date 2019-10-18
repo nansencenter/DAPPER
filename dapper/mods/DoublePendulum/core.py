@@ -53,7 +53,7 @@ def energy(x):
     V = -(M1+M2)*L1*G*np.cos(th1) - M2*L2*G*np.cos(th2)
     # Kinetic
     T = 0.5*M1* (L1*th1d)**2 + \
-        0.5*M2*((L1*th1d)**2 + (L2*th2d)**2 + \
+        0.5*M2*((L1*th1d)**2 + (L2*th2d)**2 +
         2*L1*L2*th1d*th2d*np.cos(th1-th2))
     # Sum
     return T + V

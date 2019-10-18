@@ -433,7 +433,7 @@ class weight_histogram:
             nn,_,self.hist = ax.hist(w[counted], bins=self.bins, color='b')
             ax.set_ylim(top=max(nn))
 
-            ax.set_title('N: {:d}.   N_eff: {:.4g}.   Not shown: {:d}. '.\
+            ax.set_title('N: {:d}.   N_eff: {:.4g}.   Not shown: {:d}. '.
                          format(N, 1/(w@w), N-np.sum(counted)))
 
 
