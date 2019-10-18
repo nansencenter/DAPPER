@@ -27,7 +27,7 @@ Dyn = {
 X0 = GaussRV(mu=zeros(Nx), C=homogeneous_1D_cov(Nx,Nx/8,kind='Gauss'))
 
 Ny  = 4
-jj = equi_spaced_integers(Nx,Ny)
+jj = linspace_int(Nx,Ny)
 Obs  = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 

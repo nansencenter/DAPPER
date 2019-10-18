@@ -13,7 +13,7 @@ tseq = Chronology(dt=1,dkObs=5,T=500,BurnIn=60,Tplot=100)
 Nx = 1000;
 Ny = 40;
 
-jj = equi_spaced_integers(Nx,Ny)
+jj = linspace_int(Nx,Ny)
 Obs = partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 

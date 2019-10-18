@@ -14,7 +14,7 @@ from dapper.mods.Lorenz96.core import LPs
 
 Nx = 1000
 Ny = 4
-jj = equi_spaced_integers(Nx,Ny)
+jj = linspace_int(Nx,Ny)
 
 tseq = Chronology(dt=1,dkObs=5,T=300,BurnIn=-1,Tplot=100)
 

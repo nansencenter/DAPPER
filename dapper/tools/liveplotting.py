@@ -604,7 +604,7 @@ def sliding_marginals(
         # Chose marginal dims to plot
         if p.dims==[]:
             Nx      = min(10,xx.shape[-1])
-            DimsX   = equi_spaced_integers(xx.shape[-1], Nx)
+            DimsX   = linspace_int(xx.shape[-1], Nx)
         else:
             Nx      = len(p.dims)
             DimsX   = p.dims
