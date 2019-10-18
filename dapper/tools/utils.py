@@ -648,6 +648,27 @@ def do_once(fun):
     return new
 
 
+def monitor_setitem(cls):
+    """Modify cls to track of whether its ``__setitem__`` has been called.
+
+    See sub.py for a sublcass solution (drawback: creates a new class)."""
+
+    orig_setitem = cls.__setitem__
+    def setitem(self,key,val):
+        orig_setitem(self,key,val)
+        self.were_changed = True
+    cls.__setitem__ = setitem
+
+    # Using class var for were_changed => don't need explicit init
+    cls.were_changed = False
+
+    if issubclass(cls,NestedPrint):
+        cls.printopts['excluded'] = \
+                cls.printopts.get('excluded',[]) + ['were_changed']
+
+    return cls
+
+
 def vectorize0(f):
     """Vectorize f for its 1st (index 0) argument, and do so recursively.
 

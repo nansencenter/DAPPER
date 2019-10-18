@@ -123,15 +123,22 @@ def series_mean_with_conf(xx):
     return uq
 
 
+@monitor_setitem
 class DataSeries(NestedPrint):
+    """Basically just an ``np.ndarray``. But adds:
+
+    - Possibility of adding attributes.
+    - The class (type) provides way to acertain if an attribute is a series.
+
+    Note: subclassing ``ndarray`` is too dirty => We'll just use the
+    ``array`` attribute, and provide ``{s,g}etitem``."""
     def __init__(self,shape,**kwargs):
         self.array = np.full(shape, nan, **kwargs)
-        self.was_touched = False
     def __len__    (self):        return len(self.array)
     def __getitem__(self,key):    return     self.array[key]
     def __setitem__(self,key,val):           self.array[key] = val
 
-
+@monitor_setitem
 class FAUSt(DataSeries,NestedPrint):
     """Container for time series of a statistic from filtering.
 

@@ -344,10 +344,11 @@ class sliding_diagnostics:
         def finalize_init(ax,lines,mm):
             # Rm lines that only contain NaNs
             for name in list(lines):
-                ln = lines[name]
-                if not np.any(np.isfinite(ln['data'])):
-                    ln['handle'].remove()   # rm from axes
-                    del lines[name] # rm from dict
+                ln   = lines[name]
+                stat = deep_getattr(stats,name)
+                if not stat.were_changed:
+                    ln['handle'].remove() # rm from axes
+                    del lines[name]       # rm from dict
             # Add legends
             if lines:
                 ax.legend(loc='upper left', bbox_to_anchor=(1.01, 1),borderaxespad=0)

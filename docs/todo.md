@@ -1,13 +1,11 @@
 Todo
 ================================================
-
-* NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``'s
-* Change KObs to KObs-1
-
 * Improve docs
 * Make superclasses for the filter, smoother, and iterative smoother.
-* Note (somewhere) the implicit dependence on t=0 being special
 * Simplify and/or generalize time management?
+    * k,kObs only, yielded by ticker
+    * Change KObs to KObs-1
+    * Note (somewhere) the implicit dependence on t=0 being special
 * Simplify and/or improve cov matrix stuff.
 
 Bugs:
