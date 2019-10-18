@@ -707,5 +707,3 @@ def vectorize0(f):
             out = f(x,*args,**kwargs)
         return out
     return wrapped
-
-

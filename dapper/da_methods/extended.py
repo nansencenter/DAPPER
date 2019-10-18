@@ -106,5 +106,3 @@ class ExtRTS:
             P[k]  = P[k] + J @ (P[k+1] - Pf[k+1]) @ J.T
         for k in progbar(range(chrono.K+1),desc='Assess'):
             stats.assess(k,mu=mu[k],Cov=P[k])
-
-

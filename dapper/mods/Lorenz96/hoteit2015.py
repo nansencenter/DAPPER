@@ -45,4 +45,3 @@ HMM.t.BurnIn = 4
 # cfgs += EnKF ('Sqrt'           , N=17, infl=1.03)              # 0.217
 # cfgs += EnKF ('Serial'         , N=17, infl=1.06)              # 0.225
 # cfgs += EnKF ('Serial ESOPS'   , N=17, infl=1.08)              # 0.242
-

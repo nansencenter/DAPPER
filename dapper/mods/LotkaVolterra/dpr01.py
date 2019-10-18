@@ -33,4 +33,3 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LP_setup(jj))
 # Not carefully tuned:
 # cfgs += EnKF_N(N=6)
 # cfgs += ExtKF(infl=1.02)
-

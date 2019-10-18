@@ -67,4 +67,3 @@ plt.title('Ens size: %d'%N)
 # Plot ultimate states -- Not interesting, except for debugging
 # plt.figure()
 # plt.plot(grid,E.T)
-

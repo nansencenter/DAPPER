@@ -27,11 +27,3 @@ for k in progbar(range(K),'Plotting'):
     lhU.set_ydata(wrapU(xx[k,:nU]))
     lhV.set_ydata(wrapV(xx[k,nU:]))
     plot_pause(0.001)
-
-
-
-
-
-
-
-

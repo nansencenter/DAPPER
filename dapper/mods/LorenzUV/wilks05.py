@@ -100,5 +100,3 @@ def polynom_prmzt(t,x,order):
 # cfgs += Climatology()                                    # 0.93
 # cfgs += Var3D(xB=2.0)                                    # 0.39
 # cfgs += EnKF_N(N=20)                                     # 0.27
-
-

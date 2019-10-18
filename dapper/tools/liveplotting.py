@@ -1152,7 +1152,3 @@ default_liveplotters = [
     (  1,  1,               sliding_diagnostics),
     (  4,  1,               weight_histogram   ),
 ]
-
-
-
-

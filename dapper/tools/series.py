@@ -255,8 +255,3 @@ class RollingArray:
         # not generally meaningful (i.e. if an element is set in the middle).
         # Of course self.array can still be messed with.
         raise AttributeError("Values should be set with update()")
-
-
-
-
-

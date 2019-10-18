@@ -29,5 +29,3 @@ HMM.Obs.loc_shift = loc_shift
 # Reproduce data point L=10 from figure 6.a
 # cfgs += iLEnKS('Sqrt' ,infl=1.02, N=10,nIter=4,Lag=10,loc_rad=12/1.82)   # 0.17
 # cfgs += iLEnKS('-N' ,             N=10,nIter=4,Lag=10,loc_rad=12/1.82)   # 0.18
-
-

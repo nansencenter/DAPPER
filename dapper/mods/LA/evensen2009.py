@@ -51,4 +51,3 @@ HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
 # Suggested tuning
 ####################
 # config = EnKF('PertObs',N=100,infl=1.02)
-

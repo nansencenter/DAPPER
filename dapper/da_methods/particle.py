@@ -621,6 +621,3 @@ def sample_quickly_with(C12,N=None):
         chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
         sample = D@C12
     return sample, chi2  
-
-
-

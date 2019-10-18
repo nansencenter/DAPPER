@@ -723,7 +723,3 @@ def cov_ellipse(ax, mu, sigma, **kwargs):
 
     # Return artist
     return e
-
-
-
-

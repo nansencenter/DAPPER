@@ -106,5 +106,3 @@ def blend_rgb(rgb, a, bg_rgb=ones(3)):
     if isinstance(rgb,str):
         rgb = mpl.colors.colorConverter.to_rgb(rgb)
     return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]
-
-

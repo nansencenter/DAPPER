@@ -51,5 +51,3 @@ for k, x in progbar(list(enumerate(xx)),"Animating"):
         setter2(x)
         fig.suptitle("k: "+str(k))
         plt.pause(0.01)
-
-

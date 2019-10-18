@@ -135,5 +135,3 @@ def laplace_lklhd(xx):
     w      = exp(logw)     # non-log
     w     /= w.sum()       # normalize
     return w
-
-

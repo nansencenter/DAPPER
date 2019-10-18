@@ -107,5 +107,3 @@ HMM.liveplotters = LPs(jj)
 # PartFilt  0.5   0.9  |  0.30    0.34  
 # PartFilt  0.5   1.2  |  0.36    0.40  
 # Using NER=0.9 yielded rather poor results.
-
-

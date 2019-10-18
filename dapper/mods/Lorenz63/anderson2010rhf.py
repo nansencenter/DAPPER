@@ -39,5 +39,3 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 # cfgs += RHF    (N=50,infl=1.10)                         # 1.28
 # cfgs += RHF    (N=50,infl=0.95,rot=True)                # 0.94
 # cfgs += RHF    (N=20,infl=0.95,rot=True)                # 1.07
-
-

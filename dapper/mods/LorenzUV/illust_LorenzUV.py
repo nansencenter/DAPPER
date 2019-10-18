@@ -117,7 +117,3 @@ ax.grid(color='k',alpha=0.6,lw=0.4,axis='y',which='major')
 #     a = 0.8-0.2*Ny/L
 #     plt.plot(*tU(xx[k][circU]),color=c,lw=2,alpha=a)[0]
 #     plt.plot(*tV(xx[k][circV]),color=c,lw=1,alpha=a)[0]
-
-
-
-

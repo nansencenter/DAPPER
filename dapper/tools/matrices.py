@@ -456,8 +456,3 @@ class CovMat():
 # and revert its operator definitions to that of ndarray. 
 # and use it for the V (eigenvector) matrix that gets output
 # by various fields of CovMat.
-
-
-
-
-

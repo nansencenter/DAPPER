@@ -123,6 +123,3 @@ def homogeneous_1D_cov(M,d,kind='Expo'):
     else: raise KeyError
 
     return C
-
-
-

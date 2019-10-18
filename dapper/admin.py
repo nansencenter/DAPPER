@@ -498,8 +498,3 @@ def save_data(script_name,*args,**kwargs):
         dill.dump({**kwargs, **name_args()}, filestream)
 
     return filename
-
-
-
-
-

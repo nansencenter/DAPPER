@@ -439,7 +439,3 @@ class Var4D:
 
         # END loop kObs
         stats.assess(k,KObs,'us',mu=x,Cov=X@Cow1@X.T)
-
-
-
-

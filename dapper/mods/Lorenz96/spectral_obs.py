@@ -124,4 +124,3 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 # Suggested tuning
 ####################
 # cfgs += EnKF ('Sqrt',N=40, infl=1.01)
-

@@ -66,5 +66,3 @@ def LPs(jj=None): return [
     (13, 0, LP.phase3d(jj)    ),
     (14, 0, LP.sliding_marginals(jj)) ,
 ]
-
-

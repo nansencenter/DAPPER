@@ -111,5 +111,3 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0, LP=LP_setup(obs_inds) )
 # N = 45
 # cfgs += LETKF(mp=True, N=N,infl=1.02       ,loc_rad=10)        # 0.52
 # cfgs += LETKF(mp=True, N=N,infl='-N',xN=1.5,loc_rad=10)        # 0.51
-
-

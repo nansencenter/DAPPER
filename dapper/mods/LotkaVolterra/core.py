@@ -33,4 +33,3 @@ def dstep_dx(x,t,dt):
 
 from dapper.mods.Lorenz63.core import LPs as L63_LPs
 LP_setup = lambda jj: L63_LPs(jj, params=dict())
-

@@ -505,6 +505,3 @@ def partial_Id_Obs(Nx,obs_inds):
 
 def Id_Obs(Nx):
     return partial_Id_Obs(Nx,np.arange(Nx))
-
-
-

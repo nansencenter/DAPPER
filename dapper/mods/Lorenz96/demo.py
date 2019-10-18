@@ -20,4 +20,3 @@ if __name__ == "__main__":
     ani = amplitude_animation(xx,dt=dt,interval=70)
 
 ##
-

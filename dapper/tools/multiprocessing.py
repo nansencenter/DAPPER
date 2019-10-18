@@ -343,7 +343,3 @@ def distribute(script,sysargs,xticks,prefix='',nCore=0.99,xCost=None):
         print("Will save to",save_path+"...")
 
     return xticks, save_path, rep_inds
-
-
-
-

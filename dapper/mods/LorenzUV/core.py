@@ -104,4 +104,3 @@ class model_instance():
 
     def LPs(self,jj):
         return [ ( 11, 1, LP.spatial1d(jj,dims=list(range(self.nU))) ) ]
-

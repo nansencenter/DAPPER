@@ -89,6 +89,3 @@ HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
 # - There are also some very strong, regular correlation
 #   patters that arise when dt=1 (dt = c*dx).
 # - It also happens if X0pat does not use centering.
-
-
-

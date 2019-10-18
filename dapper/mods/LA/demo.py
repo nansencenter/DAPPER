@@ -14,5 +14,3 @@ xx = simulator(x0, k=500, t=0, dt=dt)
 amplitude_animation(xx,dt)
 
 ##
-
-

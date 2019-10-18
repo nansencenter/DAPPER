@@ -14,5 +14,3 @@ HMM.Obs.noise = GaussRV(C=HMM.Obs.noise.C)
 
 # cfgs += LNETF(N=40,rot=True,infl=1.10,Rs=1.9,loc_rad=5) # 0.54
 # cfgs += LNETF(N=80,rot=True,infl=1.06,Rs=1.4,loc_rad=5) # 0.47
-
-

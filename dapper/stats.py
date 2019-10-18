@@ -444,4 +444,3 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
         headr.append(vals[0]+'  1σ')
         mattr.append([v +' ±'+c for v,c in zip(vals,confs)][1:])
     return headr, mattr
-

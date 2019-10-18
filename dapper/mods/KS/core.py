@@ -125,6 +125,3 @@ def Model(dt=0.25,DL=32,Nx=128):
         dxdt, d2x_dtdx, dstep_dx))
 
 Tplot = 10
-
-
-

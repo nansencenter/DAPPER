@@ -252,4 +252,3 @@ def nd_Id_localization(shape,
         return pairwise_distances(obs_coord, state_coord, periodic, shape)
 
     return localization_setup(y2x_distances,batches)
-

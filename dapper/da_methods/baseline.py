@@ -156,7 +156,3 @@ class EnCheat:
     Should be implemented as part of Stats instead."""
 
     def assimilate(self,HMM,xx,yy): pass
-
-
-
-

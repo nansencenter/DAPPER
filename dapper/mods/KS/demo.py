@@ -70,5 +70,3 @@ plt.axis('tight')
 plt.title('Hovmoller for K-S system, member %d'%n)
 plt.ylabel('Time (t)')
 plt.xlabel('Space (x)')
-
-

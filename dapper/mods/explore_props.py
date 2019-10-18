@@ -170,8 +170,3 @@ ax.set_ylabel('Exponent value')
 # for L in LS: ax.text(0.7*T,L+0.01, '$\lambda = {:.5g}$'.format(L) ,size=12)
 
 ##
-
-
-
-
-

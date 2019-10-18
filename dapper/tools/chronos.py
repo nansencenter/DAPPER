@@ -248,5 +248,3 @@ def format_time(k,kObs,t):
         kObs = "kObs=%s"%kObs
     s = "\n".join([t,k,kObs])
     return s
-
-

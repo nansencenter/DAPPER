@@ -644,5 +644,3 @@ def pprop(labels,propID,cast=float,fillval=np.nan):
         x = re.search(r'.*'+propID+':(.+?)(\s|$)',s)
         props += [cast(x.group(1))] if x else [fillval]
     return array(props)
-
-

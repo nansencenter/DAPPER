@@ -225,4 +225,3 @@ class UniParallelRV(RV_with_mean_and_cov):
         R = self.C.Right
         D = rand((N,len(R)))-0.5
         return D @ R * sqrt(12)
-

@@ -70,6 +70,3 @@ save_path = save_data(__file__, HMM, cfgs)
 # plot_err_components(config.stats)
 # plot_rank_histogram(config.stats)
 # plot_hovmoller     (xx,HMM.t)
-
-
-

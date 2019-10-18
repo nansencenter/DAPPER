@@ -100,4 +100,3 @@ def myrandn(shape=(1,)):
 # Use built-in generator
 def rand( shape=(1,)): return np.random.uniform(0,1,shape)
 def randn(shape=(1,)): return np.random.normal (0,1,shape)
-

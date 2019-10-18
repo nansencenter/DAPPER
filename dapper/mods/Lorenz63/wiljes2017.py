@@ -38,5 +38,3 @@ HMM.Obs = Operator(**Obs)
 #   and the one reported in the paper. However, DAPPER's implementation
 #   is not entirely wrong, since it has some skill.
 #   Indeed, it is questionable whether it wrong at all.
-
-

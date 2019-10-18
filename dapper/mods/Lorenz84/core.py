@@ -39,5 +39,3 @@ def d2x_dtdx(x):
 
 def dstep_dx(x,t,dt):
     return integrate_TLM(d2x_dtdx(x),dt,method='approx')
-
-

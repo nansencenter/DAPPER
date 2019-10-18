@@ -874,7 +874,3 @@ class EnKF_N:
                 stats.trHK[kObs] = (((l1*s)**2 + N1)**(-1.0)*s**2).sum()/HMM.Ny
 
             stats.assess(k,kObs,E=E)
-
-
-
-

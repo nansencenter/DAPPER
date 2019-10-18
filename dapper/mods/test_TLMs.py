@@ -51,5 +51,3 @@ def test_LV(fun=dxdt,Jacob=d2x_dtdx,x=x0): # capture current values
 # test_L96()
 
 ##
-
-

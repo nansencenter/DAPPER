@@ -165,7 +165,3 @@ def LP_setup(jj=None): return [
     (15, 0, LP.spectral_errors ),
     (14, 0, LP.sliding_marginals(dims=cntr+arange(4)) ),
 ]
-
-
-
-
