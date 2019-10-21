@@ -275,10 +275,6 @@ def validate_int(x):
 # Misc
 ########################
 
-def equi_spaced_integers(Nx,Ny):
-    """Provide a range of Ny equispaced integers between 0 and Nx-1"""
-    return np.round(linspace(floor(Nx/Ny/2),ceil(Nx-Nx/Ny/2-1),Ny)).astype(int)
-
 def linspace_int(Nx,Ny,periodic=True):
     """Provide a range of Ny equispaced integers between 0 and Nx-1"""
     if periodic: jj = linspace(0, Nx, Ny+1)[:-1]
@@ -286,16 +282,34 @@ def linspace_int(Nx,Ny,periodic=True):
     jj = jj.astype(int)
     return jj
 
-def LogSp(start,stop,num=50,**kwargs):
-    """Log space defined through non-log numbers"""
-    assert 'base' not in kwargs, "The base is irrelevant."
-    return np.logspace(log10(start),log10(stop),num=num,base=10)
+def curvedspace(start,end,N,curvature=1):
+    """A length (func. of curvature) of logspace, normlzd to [start,end]
 
-def CurvedSpace(start,end,curve,N):
-    "Monotonic series (space). Set 'curve' param between 0,1."  
-    x0 = 1/curve - 1
-    span  = end - start
-    return start + span*( LogSp(x0,1+x0,N) - x0 )
+    - curvature== 0: ==> linspace (start,end,N)
+    - curvature==+1: ==> geomspace(start,end,N)
+    - curvature==-1: ==> idem, but reflected about y=x
+
+    Example:
+    >>> ax.plot(np.geomspace(1e-1, 10, 201) ,label="geomspace")
+    >>> ax.plot(np.linspace (1e-1, 10, 201) ,label="linspace")
+    >>> ax.plot( curvedspace(1e-1, 10, 201, 0.5),'y--')
+
+    Also see:
+    - linspace_int
+    - np.logspace
+    - np.geomspace
+    """
+    if -1e-12 < curvature < 1e-12:
+        # Define curvature-->0, which is troublesome
+        # for linear normalization transformation.
+        space01   = linspace(0,1,N)
+    else:
+        curvature = (end/start)**curvature
+        space01   = np.geomspace(1, curvature, N) - 1
+        space01  /= space01[-1]
+
+    return start + (end-start)*space01
+
 
 def circulant_ACF(C,do_abs=False):
     """

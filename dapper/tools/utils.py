@@ -466,6 +466,7 @@ class Bunch(NestedPrint,dict):
     Bunch is not very hackey.
     Bunch is also quite robust.
     Source: stackoverflow.com/a/14620633
+    Similar constructs are quite common, eg IPython/utils/ipstruct.py.
     """
     def __init__(self,*args,**kwargs):
         "Init like a normal dict."
