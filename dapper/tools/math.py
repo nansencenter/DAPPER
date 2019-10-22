@@ -229,34 +229,55 @@ def FD_Jac(ens_compatible_function,eps=1e-7):
 # Rounding
 ########################
 
-def round2(num,prec=1.0):
-    """Round with specific precision.
-
-    Returns int if prec is int.
-
-    Also see: builtin round with decimals kwarg.
+@np.vectorize
+def _round2prec(num, prec):
+    """Don't use! Instead, use round2(). The issue is that:
+    >>> _round2prec(0.7,.1) != 0.7
     """
-    return np.multiply(prec,np.rint(np.divide(num,prec)))
+    return prec * round(num / prec)
 
-def round2sigfig(x,nfig=1):
-    """Round to ``nfig`` number of *significant* figures
-    (i.e. not the same as builtin round)."""
-    if np.all(array(x) == 0):
-        return x
-    signs = np.sign(x)
-    x *= signs
-    return signs*round2(x,10**floor(log10(x)-nfig+1))
+@np.vectorize
+def ndecimal(x):
+    """Convert precision to num. of decimals. Example:
+    >>> ndecimal(10)    # --> -1
+    >>> ndecimal(1)     # --> 0
+    >>> ndecimal(0.1)   # --> 1
+    >>> ndecimal(0.01)  # --> 2
+    >>> ndecimal(0.02)  # --> 2
+    >>> ndecimal(0.099) # --> 2 # yes, this is what we want
+    """
+    if x==0 or not np.isfinite(x):
+        # "Behaviour not defined" => should not be relied upon.
+        return 1
+    else:
+        return -int(floor(log10(abs(x))))
 
-def round2nice(xx):
-    "Rounds (ordered) array to nice numbers"
-    r1 = round2sigfig(xx,nfig=1)
-    r2 = round2sigfig(xx,nfig=2)
-    # Assign r2 to duplicate entries in r1:
-    dup = np.isclose(0,np.diff(r1))
-    r1[1:-1][dup[:-1]] = r2[1:-1][dup[:-1]]
-    if dup[-1]:
-        r1[-2] = r2[-2]
-    return r1
+@np.vectorize
+def round2(num,param=1):
+    """Round num as specified by ``param``. Always returns floats.
+
+    If ``param`` is int: round to ``param`` num. of *significant* digits.
+    Otherwise          : round to ``param`` precison (must be float).
+    By contrast, ``round`` (builtin and np) takes the num. of *decimals*.
+
+    Examples:
+    >>> xx = curvedspace(1e-3,1e2,15,.5)
+    >>> with np.printoptions(precision=100):
+    >>>     spell_out(_round2prec (xx, 1e-2))
+    >>>     spell_out(round2      (xx, 1e-2))
+    >>>     spell_out(round2      (xx,    1))
+    """
+    if is_int(param):
+        # round2sigfig
+        nfig = param-1
+        n    = nfig + ndecimal(num)
+    else:
+        # round2prec
+        prec = param
+        n    = ndecimal(prec)
+        num  = _round2prec(num,prec)
+
+    return np.round(num, n) # n specified => float (always)
 
 def is_whole(x):
     return np.isclose(x,round(x))

@@ -75,12 +75,12 @@ class UncertainQtty():
             - fallback: rc['sigfig']
         """
         with np.errstate(all='ignore'):
-            conf = round2sigfig(self.conf,1) 
+            conf = round2(self.conf, 1) 
             val  = self.val
             if not np.isnan(conf) and conf>0:
                 val = round2(val, mult*conf)
             else:
-                val = round2sigfig(val,rc['sigfig'])
+                val = round2(val, rc['sigfig'])
             return val, conf
 
     def __str__(self):
@@ -229,6 +229,7 @@ class RollingArray:
         # self.array[-1] = val
 
         dk = max(1,dk)
+        # TODO: Should have used deque?
         self.array = np.roll(self.array, -dk, axis=0)
         self.array[-dk:] = nan
         self.array[-1 :] = val
