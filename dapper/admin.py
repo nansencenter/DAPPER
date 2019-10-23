@@ -256,7 +256,7 @@ class List_of_Configs(list):
             # "Variance reduction" (eg. CRN: wikipedia.org/wiki/Variance_reduction)
             # is useful, but should not be relied on for confident conclusions!
             if sd:
-                set_seed(sd + getattr(self,'seed',0))
+                set_seed(sd + getattr(config,'seed',0))
 
             config.assimilate(HMM,xx,yy,desc=label,**kwargs)
 
