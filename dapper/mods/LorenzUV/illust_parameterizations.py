@@ -26,7 +26,7 @@ K  = 400
 dt = 0.005
 t0 = np.nan
 
-seed(30) # 3 5 7 13 15 30
+set_seed(30) # 3 5 7 13 15 30
 x0 = randn(LUV.M)
 
 true_step  = with_rk4(LUV.dxdt      ,autonom=True)

@@ -2,7 +2,7 @@
 # to benchmark multiple DA methods
 
 from dapper import *
-seed(3)
+set_seed(3)
 
 ##############################
 # DA method configurations

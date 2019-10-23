@@ -11,7 +11,7 @@ statkeys = ['err.rms.a','err.rms.f','err.rms.u']
 from dapper.mods.Lorenz63.sakov2012 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
-sd0 = seed(9)
+sd0 = set_seed(9)
 
 # Cfgs
 cfgs  = List_of_Configs()
@@ -66,7 +66,7 @@ L63 = dict(table=table,old=old)
 from dapper.mods.Lorenz96.sakov2008 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
-sd0 = seed(9)
+sd0 = set_seed(9)
 
 # Cfgs
 cfgs  = List_of_Configs()

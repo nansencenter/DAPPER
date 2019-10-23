@@ -2,7 +2,7 @@
 # An obsolete version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}.
 
 from dapper import *
-sd0 = seed(5)
+sd0 = set_seed(5)
 plt.ion()
 
 ########################

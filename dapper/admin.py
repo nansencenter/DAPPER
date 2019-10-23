@@ -246,7 +246,7 @@ class List_of_Configs(list):
         "Call config.assimilate() for each config in self."
 
         if sd is True:
-            sd = seed()
+            sd = set_seed()
 
         if desc: labels = self.gen_names()
         else:    labels = self.da_methods
@@ -256,7 +256,7 @@ class List_of_Configs(list):
             # "Variance reduction" (eg. CRN: wikipedia.org/wiki/Variance_reduction)
             # is useful, but should not be relied on for confident conclusions!
             if sd:
-                seed(sd)
+                set_seed(sd + getattr(self,'seed',0))
 
             config.assimilate(HMM,xx,yy,desc=label,**kwargs)
 
@@ -268,7 +268,6 @@ class List_of_Configs(list):
     @property
     def da_methods(self):
         return [config.da_method for config in self]
-
 
     def split_attrs(self,nomerge=()):
         """Compile the attributes of the individual configs in the List_of_Confgs,

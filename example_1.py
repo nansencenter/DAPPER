@@ -2,7 +2,7 @@
 
 # Load DAPPER
 from dapper import *
-seed(3)
+set_seed(3)
 
 # Load experiment setup: the hidden Markov Model (HMM)
 from dapper.mods.Lorenz63.sakov2012 import HMM

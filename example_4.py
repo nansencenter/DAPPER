@@ -4,7 +4,7 @@
 
 from dapper import *
 
-sd0 = seed_init(8) # Base random seed.
+sd0 = set_seed(8,init=True) # Base random seed.
 
 from   dapper.mods.Lorenz96.bocquet2015loc import HMM
 import dapper.mods.Lorenz96.core as core
@@ -54,12 +54,12 @@ avrgs = np.empty((len(xticks),1,len(cfgs)),dict)
 for iX,(X,iR) in enumerate(zip(xticks,rep_inds)):
   with coloring(): print('\n'+"xticks[",iX,'/',len(xticks)-1,"] ",CtrlVar,': ',X,sep="")
 
-  seed(sd0+iR)
+  set_seed(sd0+iR)
   xx,yy = HMM.simulate()
 
   for iC,C in enumerate(cfgs):
     C = C.update_settings(N=X)
-    seed(sd0+iR)
+    set_seed(sd0+iR)
     stat = C.assimilate(HMM,xx,yy)
     avrgs[iX,0,iC] = stat.average_in_time()
 

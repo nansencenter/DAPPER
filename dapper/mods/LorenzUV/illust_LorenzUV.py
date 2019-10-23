@@ -5,7 +5,7 @@ from dapper import *
 from matplotlib import cm
 
 # Setup
-sd0 = seed(4)
+sd0 = set_seed(4)
 # from dapper.mods.LorenzUV.wilks05 import LUV
 from dapper.mods.LorenzUV.lorenz96 import LUV
 nU, J = LUV.nU, LUV.J

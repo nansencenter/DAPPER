@@ -178,7 +178,7 @@ def rectangular_partitioning(shape,steps,do_ind=True):
     where each element (batch) is a list of indices
 
     # Example, with visualization:
-    >>> seed(3)
+    >>> set_seed(3)
     >>> shape   = [4,13]
     >>> steps   = [2,4]
     >>> batches = rectangular_partitioning(shape, steps, do_ind=False)

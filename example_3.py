@@ -17,7 +17,7 @@ from dapper import *
 
 # Seed management. Notice below that the seed only varies
 # between repetitions, not xticks or configurations.
-sd0 = seed_init(8) # Base random seed.
+sd0 = set_seed(8,init=True) # Base random seed.
 
 from   dapper.mods.Lorenz96.bocquet2015loc import HMM
 import dapper.mods.Lorenz96.core as core
@@ -118,12 +118,12 @@ for iX,(X,iR) in enumerate(zip(xticks,rep_inds)):
     with coloring(): print('\n'+"xticks[",iX,'/',len(xticks)-1,"] ",CtrlVar,': ',X,sep="")
     adjust_osse(CtrlVar,X)
 
-    seed(sd0+iR)
+    set_seed(sd0+iR)
     xx,yy = HMM.simulate()
 
     for iC,C in enumerate(cfgs):
         C = adjust_cfg(C,CtrlVar,X)
-        seed(sd0+iR)
+        set_seed(sd0+iR)
         stat = C.assimilate(HMM,xx,yy)
         # stats[iX,0,iC] = stat
         avrgs[iX,0,iC] = stat.average_in_time()
