@@ -25,7 +25,7 @@ xticks, save_path, rep_inds = distribute(__file__,sys.argv,xticks,CtrlVar)
 ##############################
 # DA Configurations
 ##############################
-cfgs  = List_of_Configs()
+cfgs  = ExperimentList()
 
 tuning_tag = 'loc_rad'
 

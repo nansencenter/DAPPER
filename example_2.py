@@ -7,7 +7,7 @@ set_seed(3)
 ##############################
 # DA method configurations
 ##############################
-cfgs  = List_of_Configs()
+cfgs  = ExperimentList()
 
 from dapper.mods.Lorenz63.sakov2012 import HMM   # Expected rmse.a:
 cfgs += Climatology()                                     # 7.6

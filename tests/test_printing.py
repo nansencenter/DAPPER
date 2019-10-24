@@ -10,7 +10,7 @@ tools.utils.disable_user_interaction = True # NB remember to set to True
 def test_L63():
   from dapper.mods.Lorenz63.sakov2012 import HMM
 
-  cfgs  = List_of_Configs()
+  cfgs  = ExperimentList()
   cfgs += EnKF('Sqrt',   N=10 ,infl=1.02 ,rot=True)
   cfgs += PartFilt(      N=20 ,reg=2.4   ,NER=0.3)
   cfgs += OptInterp()
@@ -34,7 +34,7 @@ def test_L63():
 
 
 def test_L96():
-  cfgs  = List_of_Configs()
+  cfgs  = ExperimentList()
 
   from dapper.mods.Lorenz96.sakov2008 import HMM
   cfgs += EnKF('PertObs'        ,N=40, infl=1.06)

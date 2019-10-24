@@ -181,7 +181,7 @@ def da_method(*default_dataclasses):
         @method
         def print_avrgs(self,keys=()):
             """Tabulated print of averages (those requested by ``keys``)"""
-            cfgs = List_of_Configs([self])
+            cfgs = ExperimentList([self])
             cfgs.print_avrgs(keys)
 
         method(replay)
@@ -190,7 +190,7 @@ def da_method(*default_dataclasses):
     return dataclass_with_defaults
 
 
-class List_of_Configs(list):
+class ExperimentList(list):
     """List, customized for holding ``da_method`` objects ("configs").
 
      Modifications to `list`:
@@ -228,7 +228,7 @@ class List_of_Configs(list):
         """Indexing, also by a list"""
         try:              B=[self[k] for k in keys]   # if keys is list
         except TypeError: B=super().__getitem__(keys) # if keys is int, slice
-        if hasattr(B,'__len__'): B = List_of_Configs(B) # Cast
+        if hasattr(B,'__len__'): B = ExperimentList(B) # Cast
         return B 
 
     def inds(self,strict=True,**kws):
@@ -356,7 +356,7 @@ class List_of_Configs(list):
 
     def __repr__(self):
         distinct, redundant, common = self.split_attrs()
-        s = '<List_of_Configs> of length %d with attributes:\n'%len(self)
+        s = '<ExperimentList> of length %d with attributes:\n'%len(self)
         s += tabulate(distinct)
         s += "\nOther attributes:\n"
         s += str(AlignedDict({**redundant, **common}))
@@ -477,7 +477,7 @@ def save_data(script_name,*args,host=True,**kwargs):
 
         nameable_classes = dict(
             HMM    = lambda x: isinstance(x,HiddenMarkovModel),
-            cfgs   = lambda x: isinstance(x,List_of_Configs),
+            cfgs   = lambda x: isinstance(x,ExperimentList),
             config = lambda x: hasattr(x,'da_method'),
             stat   = lambda x: isinstance(x,Stats),
             avrg   = lambda x: getattr(x,"_isavrg",False),

@@ -51,7 +51,7 @@ xticks, save_path, rep_inds = distribute(__file__,sys.argv,xticks,CtrlVar)
 ##############################
 N = '?' if CtrlVar=='N' else 20
 
-cfgs  = List_of_Configs()
+cfgs  = ExperimentList()
 cfgs += Climatology()                                                 # Baseline method
 cfgs += OptInterp()                                                   # Baseline method
 
