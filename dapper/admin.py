@@ -242,8 +242,8 @@ class List_of_Configs(list):
 
         return [i for i,C in enumerate(self) if match(C)]
 
-    def assimilate(self,HMM,xx,yy,sd=True,free=True,print=False,desc=True,**kwargs):
-        "Call config.assimilate() for each config in self."
+    def assimilate(self,HMM,truth=None,obs=None,sd=True,free=True,statkeys=False,desc=True,**kwargs):
+        "Call xp.assimilate() for each xp in self."
 
         if sd is True:
             sd = set_seed()
@@ -251,23 +251,42 @@ class List_of_Configs(list):
         if desc: labels = self.gen_names()
         else:    labels = self.da_methods
 
-        for ic,(label,config) in enumerate(zip(labels,self)):
+        for ixp,(label,xp) in enumerate(zip(labels,self)):
 
-            # "Variance reduction" (eg. CRN: wikipedia.org/wiki/Variance_reduction)
-            # is useful, but should not be relied on for confident conclusions!
-            if sd:
-                set_seed(sd + getattr(config,'seed',0))
+            # Set HMM_params.
+            if hasattr(xp,'HMM_params'):
+                hmm = deepcopy(HMM)
+                for key, val in xp.HMM_params.items():
+                    hmm.param_setters[key](val)
+            else:
+                hmm = HMM
 
-            config.assimilate(HMM,xx,yy,desc=label,**kwargs)
+            # Re-use seed as a form of "Variance reduction" (eg. CRN, see
+            # wikipedia.org/wiki/Variance_reduction). This may be useful,
+            # but should of course not be relied upon for strong conclusions!
+            if sd: set_seed(sd + getattr(xp,'seed',0))
 
-            config.average_stats(free=free)
+            # Simulate or load
+            if truth is None:
+                assert obs is None
+                xx, yy = hmm.simulate()
+            else:
+                xx, yy = truth, obs
 
-            if print:
-                config.print_avrgs(() if print is True else print)
+            # Re-set seed, in case simulate() is was called,
+            # but only for a particlular (eg. the 1st) xp.
+            if sd: set_seed(sd + getattr(xp,'seed',0))
+
+            xp.assimilate(hmm,xx,yy,desc=label,**kwargs)
+
+            xp.average_stats(free=free)
+
+            if statkeys:
+                xp.print_avrgs(() if statkeys is True else statkeys)
 
     @property
     def da_methods(self):
-        return [config.da_method for config in self]
+        return [xp.da_method for xp in self]
 
     def split_attrs(self,nomerge=()):
         """Compile the attributes of the individual configs in the List_of_Confgs,
@@ -435,7 +454,7 @@ def print_cropped_traceback(ERR):
 
 
 import dill
-def save_data(script_name,*args,**kwargs):
+def save_data(script_name,*args,host=True,**kwargs):
     """"Utility for saving experimental data.
 
     This function uses ``dill`` rather than ``pickle``
@@ -489,7 +508,7 @@ def save_data(script_name,*args,**kwargs):
             data[Class] = x
         return data
 
-    filename  = save_dir(script_name,host=False) + "run_"
+    filename  = save_dir(script_name,host=host) + "run_"
     filename += str(1 + max(get_numbering(filename),default=0)) + ".pickle"
     print("Saving data to",filename)
 

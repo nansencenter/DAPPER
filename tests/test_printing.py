@@ -20,7 +20,7 @@ def test_L63():
   HMM.t.KObs = 1
   xx,yy = HMM.simulate()
 
-  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True,liveplots=None,store_u=False,fail_gently=False)
+  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,statkeys=True,liveplots=None,store_u=False,fail_gently=False)
   cfgs.print_avrgs(['rmse.a'])
 
   spell_out(HMM);
@@ -55,7 +55,7 @@ def test_L96():
   HMM.t.KObs = 2
   xx,yy = HMM.simulate()
 
-  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,print=True,liveplots=None,store_u=False,fail_gently=False)
+  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,statkeys=True,liveplots=None,store_u=False,fail_gently=False)
   cfgs.print_avrgs(['rmse.a'])
 
   spell_out(HMM);
