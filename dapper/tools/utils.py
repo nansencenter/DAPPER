@@ -356,12 +356,11 @@ class NestedPrint:
                 is_top_level = False
 
             # Use included or filter-out excluded
+            keys = vars(self)
             if opts['included']:
-                keys = opts['included']
-                keys = [k for k in keys if hasattr(self,k)]
+                keys = intersect (keys, *opts['included'])
             else:
-                keys = vars(self)
-                keys = filter_out(keys, *opts['excluded'])
+                keys = complement(keys, *opts['excluded'])
 
             # Aggregate (sub-)repr's from the attributes
             txts = {}
@@ -591,45 +590,26 @@ def de_abbreviate(abbrev_d, abbreviations):
             del abbrev_d[a]
 
 def collapse_str(string,length=5):
+    """Abbreviate string to ``length``"""
     if len(string)<=length:
         return string
     else:
         return string[:length-2]+'~'+string[-1]
 
-def flexcomp(x,*conditions):
+def flexcomp(x,*criteria):
     """Compare in various ways."""
 
-    def comp1(x,c):
-        if hasattr(c,'__call__'):
-            return c(x)
-        try:
-            # Regex compare -- should be compiled on the outside
-            return bool(c.search(x))
+    def _compare(x,y):
+        # Callable (condition) compare
+        try: return y(x)
+        except TypeError: pass
+        # Regex compare -- should be compiled on the outside
+        try: return bool(y.search(x))
         except AttributeError:
             # Value compare
-            return c==x
+            return y==x
 
-    return any(comp1(x,c) for c in conditions)
-
-def _compare(x,y):
-    """Fuzzy compare"""
-    # Callable (condition) compare
-    try: return y(x)
-    except TypeError: pass
-    # Regex compare -- should be compiled on the outside
-    try: return bool(y.search(x))
-    except AttributeError:
-        # Value compare
-        return y==x
-
-def _filter(iterable, *criteria, including=True, dict=False):
-    if including: condition = lambda x:     any(_compare(x,y) for y in criteria)
-    else:         condition = lambda x: not any(_compare(x,y) for y in criteria)
-    if dict:
-        return {k:v for k,v in iterable.items() if condition(k)}
-    else:
-        return [x for x in iterable if condition(x)]
-
+    return any(_compare(x,y) for y in criteria)
 # For some reason, _filter (with the `including` switch) is difficult
 # for the brain to parse. Use intersect and complement instead.
 def      intersect(iterable,   *wanted,                  dict=False):
@@ -637,27 +617,16 @@ def      intersect(iterable,   *wanted,                  dict=False):
 def     complement(iterable, *unwanted,                  dict=False):
     return _filter(iterable, *unwanted, including=False, dict=dict)
 
-# TODO: replace _compare by flexcomp
-# TODO: del filter_out
-def filter_out(orig_list,*unwanted,INV=False):
-    """
-    Returns new list from orig_list with unwanted removed.
-    Also supports re.search() by inputting a re.compile('patrn') among unwanted.
-    """
-    new = []
-    for word in orig_list:
-        for x in unwanted:
-            try:
-                # Regex compare
-                rm = x.search(word)
-            except AttributeError:
-                # String compare
-                rm = x==word
-            if (not INV)==bool(rm):
-                break
-        else:
-            new.append(word)
-    return new
+
+def _filter(iterable, *criteria, including=True, dict=False):
+    "Only keep those elements of `ìterable`` that match any criteria."""
+    # Switch: including/not
+    if including: condition = lambda x:     flexcomp(x,*criteria)
+    else:         condition = lambda x: not flexcomp(x,*criteria)
+    # Switch: dict/list
+    if dict: return {k:v for k,v in iterable.items() if condition(k)}
+    else:    return [x   for x   in iterable         if condition(x)]
+
 
 def transpose_lists(list_of_lists, enforce_rectangle=True, as_list=False):
     T = list_of_lists # alias

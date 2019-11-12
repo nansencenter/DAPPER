@@ -360,7 +360,7 @@ class ExperimentList(list):
                             aggregate.append(k)
             # Remove unwanted
             excluded  = [re.compile('^_'),'avrgs','stats','HMM']
-            aggregate = filter_out(aggregate,*excluded)
+            aggregate = complement(aggregate,*excluded)
             return aggregate
 
         distinct, redundant, common = {}, {}, {}
