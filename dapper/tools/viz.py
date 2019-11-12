@@ -727,3 +727,28 @@ def cov_ellipse(ax, mu, sigma, **kwargs):
 
     # Return artist
     return e
+
+
+from scipy.interpolate import interp1d
+from matplotlib import ticker
+def axis_scale_by_array(ax, arr, axis='y', nbins=3):
+    """Scale axis so that the arr entries appear equidistant.
+
+    The full transformation is piecewise-linear."""
+    arr = [x for x in arr if x is not None] # rm None
+
+    # Make transformation
+    xx = arange(len(arr)) # indices
+    yy = arr
+    func = interp1d(xx, yy, fill_value="extrapolate")
+    invf = interp1d(yy, xx, fill_value="extrapolate")
+
+    # Set transformation
+    setter = eval(f"ax.set_{axis}scale")
+    setter('function',functions=(invf,func))
+
+    # Adjust axis ticks
+    axis = getattr(ax,axis+"axis")
+    axis.set_major_locator(ticker.FixedLocator(arr,nbins=nbins))
+    axis.set_minor_locator(ticker.FixedLocator(arr))
+    axis.set_minor_formatter(ticker.NullFormatter())
