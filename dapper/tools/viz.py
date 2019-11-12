@@ -365,7 +365,11 @@ def freshfig(num=None,figsize=None,*args,**kwargs):
     exists = plt.fignum_exists(num)
 
     fig = plt.figure(num=num,figsize=figsize)
-    fig.clf()
+
+    # Deal with warning bug: github.com/matplotlib/matplotlib/issues/9970
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore",category=UserWarning)
+        fig.clf()
 
     loc = kwargs.pop('loc',None)
     if not exists and loc:
