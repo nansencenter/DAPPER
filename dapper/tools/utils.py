@@ -603,6 +603,12 @@ def de_abbreviate(abbrev_d, abbreviations):
             abbrev_d[b] = abbrev_d[a]
             del abbrev_d[a]
 
+def collapse_str(string,length=5):
+    if len(string)<=length:
+        return string
+    else:
+        return string[:length-2]+'~'+string[-1]
+
 def filter_out(orig_list,*unwanted,INV=False):
     """
     Returns new list from orig_list with unwanted removed.
