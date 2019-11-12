@@ -331,6 +331,72 @@ def curvedspace(start,end,N,curvature=1):
 
     return start + (end-start)*space01
 
+@dc.dataclass
+class CurvedSpace:
+    """A selected segment of logspace, affinely transformed to [start,end].
+
+    - curvature== 0: ==> linspace (start,end,N)
+    - curvature==+1: ==> geomspace(start,end,N)
+    - curvature==-1: ==> idem, but reflected about y=x
+
+    Example:
+    >>> fig, ax = freshfig(1)
+    >>> cs =     CurvedSpace(1e-1, 10, 3)
+    >>> ax.plot(np.geomspace(1e-1, 10, 201)       , label="geomspace")
+    >>> ax.plot(np.linspace (1e-1, 10, 201)       , label="linspace")
+    >>> ax.plot(                cs.arr(201) , 'y:', label="CurvedSpace"  )
+    >>> ax.plot(        cs.invf(cs.arr(201)), 'g:', label="invf(func(x))")
+    >>> ax.legend()
+
+    Also provided are the generating functions and its inverse,
+    which can be used for fig. axis scaling, eg.
+    >>> ax.set_yscale('function',functions=(func,invf))
+
+    Also see:
+    - linspace_int
+    - np.linspace
+    - np.logspace
+    - np.geomspace
+    """
+    start     : float
+    end       : float
+    curvature : float = 1
+
+    # The following recipe is equivalent to ``arr(N)``, but +pedagogic.
+    # It (more or less) explains how the I derived ``func``.
+    # if -1e-12 < curvature < 1e-12:
+    #     # Define curvature-->0, which is troublesome
+    #     # for linear normalization transformation.
+    #     space01   = linspace(0,1,N)
+    # else:
+    #     logspace_end = (end/start)**curvature
+    #     space01      = np.geomspace(1, logspace_end, N) - 1
+    #     space01     /= logspace_end-1 # == space01[-1]
+    # return start + (end-start)*space01
+
+    def arr(self,N):
+        return self.func(np.linspace(self.start, self.end, N))
+
+    def _expand_args(self):
+        a, b = self.start, self.end
+        c, d = (b/a)**self.curvature, b-a
+        return a, b, c, d
+
+    @property
+    def func(self):
+        a, b, c, d = self._expand_args()
+        if -1e-12 < self.curvature < 1e-12:
+              return lambda x: x
+        else: return lambda x: a + d/(c-1)*(c**((x-a)/d) - 1)
+
+    @property
+    def invf(self):
+        a, b, c, d = self._expand_args()
+        if -1e-12 < self.curvature < 1e-12:
+              return lambda y: y
+        else: return lambda y: a + d/log(c)*log((c-1)/d*(y-a) + 1)
+
+
 
 def circulant_ACF(C,do_abs=False):
     """
