@@ -29,8 +29,8 @@ assert sys.version_info >= (3,6), "Need Python>=3.6"
 # Load rc: default settings
 ##################################
 dirs = {}
-dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
-dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
+dirs['dapper'] = os.path.dirname(os.path.abspath(__file__))
+dirs['DAPPER'] = os.path.dirname(dirs['dapper'])
 
 _rc = configparser.ConfigParser()
 # Load rc files from dapper, user-home, and cwd
@@ -42,18 +42,23 @@ rc = {s:dict(_rc.items(s)) for s in _rc.sections() if s not in ['int','bool']}
 rc['plot']['styles'] = rc['plot']['styles'].replace('$dapper',dirs['dapper']).replace('/',os.path.sep)
 for x in _rc['int' ]: rc[x] = _rc['int' ].getint(x)
 for x in _rc['bool']: rc[x] = _rc['bool'].getboolean(x)
-del x
 
 # Define paths
-dirs['data_root'] = os.getcwd() if rc['dirs']['data']=="cwd" else dirs['DAPPER']
+x = rc['dirs']['data']
+if   x=="cwd"    : dirs['data_root'] = os.getcwd()
+elif x=="$dapper": dirs['data_root'] = dirs['DAPPER']
+else             : dirs['data_root'] = x
 dirs['data_base'] = "dpr_data"
 dirs['data']      = os.path.join(dirs['data_root'], dirs['data_base'])
 dirs['samples']   = os.path.join(dirs['DAPPER']   , dirs['data_base'], "samples")
+for d in dirs:
+    dirs[d] = os.path.expanduser(dirs[d])
 
 # 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
 if rc['welcome_message']:
     print("Initializing DAPPER...",flush=True)
 
+del x, d
 
 ##################################
 # Profiling.
