@@ -399,6 +399,10 @@ def warn_zero_variance(err,flag):
     warnings.warn(msg)
 
 
+# Abbreviations
+abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
+de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
+
 def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
     """Tabulate avrgs (val±conf).
 
@@ -407,10 +411,6 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
     # Defaults averages
     if not statkeys:
         statkeys = ['rmse.a','rmv.a','rmse.f']
-
-    # Abbreviations
-    abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
-    de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
 
     def tabulate_column(col,header):
         """Align single column (on decimal pt) using tabulate().
