@@ -609,6 +609,49 @@ def collapse_str(string,length=5):
     else:
         return string[:length-2]+'~'+string[-1]
 
+def flexcomp(x,*conditions):
+    """Compare in various ways."""
+
+    def comp1(x,c):
+        if hasattr(c,'__call__'):
+            return c(x)
+        try:
+            # Regex compare -- should be compiled on the outside
+            return bool(c.search(x))
+        except AttributeError:
+            # Value compare
+            return c==x
+
+    return any(comp1(x,c) for c in conditions)
+
+def _compare(x,y):
+    """Fuzzy compare"""
+    # Callable (condition) compare
+    try: return y(x)
+    except TypeError: pass
+    # Regex compare -- should be compiled on the outside
+    try: return bool(y.search(x))
+    except AttributeError:
+        # Value compare
+        return y==x
+
+def _filter(iterable, *criteria, including=True, dict=False):
+    if including: condition = lambda x:     any(_compare(x,y) for y in criteria)
+    else:         condition = lambda x: not any(_compare(x,y) for y in criteria)
+    if dict:
+        return {k:v for k,v in iterable.items() if condition(k)}
+    else:
+        return [x for x in iterable if condition(x)]
+
+# For some reason, _filter (with the `including` switch) is difficult
+# for the brain to parse. Use intersect and complement instead.
+def      intersect(iterable,   *wanted,                  dict=False):
+    return _filter(iterable,   *wanted, including=True,  dict=dict)
+def     complement(iterable, *unwanted,                  dict=False):
+    return _filter(iterable, *unwanted, including=False, dict=dict)
+
+# TODO: replace _compare by flexcomp
+# TODO: del filter_out
 def filter_out(orig_list,*unwanted,INV=False):
     """
     Returns new list from orig_list with unwanted removed.
