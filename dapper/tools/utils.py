@@ -99,12 +99,15 @@ try:
 
 except ImportError:
     # Windows
-    import msvcrt
-    def _read1():
-        if msvcrt.kbhit():
-            return msvcrt.getch()
-        else:
-            return None
+    try:
+        import msvcrt
+        def _read1():
+            if msvcrt.kbhit():
+                return msvcrt.getch()
+            else:
+                return None
+    except ImportError:
+        disable_user_interaction = True
 
 def read1():
     "Get 1 character. Non-blocking, non-echoing."
