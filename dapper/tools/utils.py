@@ -591,10 +591,9 @@ def sorted_human( lst ):
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
     return sorted(lst, key = alphanum_key)
 
-def keep_order_unique(arr):
-    "Undo the sorting that np.unique() does."
-    _, inds = np.unique(arr,return_index=True)
-    return arr[np.sort(inds)]
+def unique_but_keep_order(arr):
+    """Like ``set(arr)`` but keep the ordering."""
+    return list(dict.fromkeys(arr).keys()) # Python >=3.7
 
 # kwargs = {abbrevs.get(k,k):kwargs[k] for k in kwargs}
 def de_abbreviate(abbrev_d, abbreviations):
