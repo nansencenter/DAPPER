@@ -623,6 +623,39 @@ def filter_out(orig_list,*unwanted,INV=False):
             new.append(word)
     return new
 
+def transpose_lists(list_of_lists, enforce_rectangle=True, as_list=False):
+    T = list_of_lists # alias
+    if enforce_rectangle:
+        assert all(len(T[0])==len(row) for row in T)
+
+    new = zip(*T) # transpose
+
+    if as_list:
+        # new = list(map(list, new))
+        new = [list(row) for row in new]
+
+    return new
+
+# Incredibly, it is difficult to make this less verbose
+# (the one-liner is unpredicable for non-rectangular cases)
+def transpose_dicts(dict_of_dicts,enforce_rectangle=True):
+    d = dict_of_dicts
+    new = {}
+    for i in d:
+
+        if enforce_rectangle and new:
+            assert cols == list(d[i])
+        cols = list(d[i])
+
+        for j in d[i]:
+            if j not in new:
+                new[j] = {}
+            new[j][i] = d[i][j]
+
+    return new
+
+
+
 def all_but_1_is_None(*args):
     "Check if only 1 of the items in list are Truthy"
     return sum(x is not None for x in args) == 1
