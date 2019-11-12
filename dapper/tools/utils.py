@@ -31,20 +31,6 @@ def pdesc(desc):
 
     return name
 
-
-def noobar(iterable, desc=None, leave=None):
-    """Simple progress bar. Fallback in case tqdm not installed."""
-    if desc is None: desc = "Prog"
-    L  = len(iterable)
-    print('{}: {: >2d}'.format(desc,0), end='')
-    for k,i in enumerate(iterable):
-        yield i
-        p = (k+1)/L
-        e = '' if k<(L-1) else '\n'
-        print('\b\b\b\b {: >2d}%'.format(int(100*p)), end=e)
-        sys.stdout.flush()
-
-
 # Define progbar
 import tqdm
 def progbar(iterable, desc=None, leave=1):
