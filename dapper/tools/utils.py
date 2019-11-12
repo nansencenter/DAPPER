@@ -91,21 +91,7 @@ try:
     try:
         # Test setting/restoring settings 
         TS_old = new_term_settings()
-        set_term_settings(TS_old)
-
-        # Wrap the progressbar generator with temporary term settings
-        # Note: could also do it when loading/exiting DAPPER (untested),
-        # but it doesn't work to repeatedly do it within the assim loop.
-        orig_progbar = progbar
-        def progbar(iterable, desc=None, leave=1):
-            TS_old = new_term_settings()
-            try:
-                for i in orig_progbar(iterable, pdesc(desc), leave):
-                    yield i
-            finally:
-                # Should restore settings both after normal termination
-                # and if KeyboardInterrupt or other exception happened during loop.
-                set_term_settings(TS_old)
+        # set_term_settings(TS_old) # TODO
 
     except:
         # Fails in non-terminal environments
