@@ -60,13 +60,17 @@ def progbar(iterable, desc=None, leave=1, **kwargs):
         # return pb
 
 
+#########################################
+# Make read1()
+#########################################
+# Non-blocking, non-echo read1 from stdin.
+
 # Set to True before a py.test (which doesn't like reading stdin)
 disable_user_interaction = False
 
-# Non-blocking, non-echo read1 from stdin.
 try:
     # Linux. See Misc/read1_trials.py
-    import termios, sys
+    import termios, sys, atexit
     def set_term_settings(TS):
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, TS)
     def new_term_settings():
@@ -89,9 +93,9 @@ try:
         return os.read(sys.stdin.fileno(), 1)
 
     try:
-        # Test setting/restoring settings 
+        # Set/restore settings 
         TS_old = new_term_settings()
-        # set_term_settings(TS_old) # TODO
+        atexit.register(set_term_settings,TS_old)
 
     except:
         # Fails in non-terminal environments
@@ -113,7 +117,6 @@ def read1():
     "Get 1 character. Non-blocking, non-echoing."
     if disable_user_interaction: return None
     return _read1()
-
 
 
 #########################################
