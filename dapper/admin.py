@@ -190,6 +190,8 @@ def da_method(*default_dataclasses):
     return dataclass_with_defaults
 
 
+# TODO: check collections.userlist
+# TODO: __add__ vs __iadd__
 class ExperimentList(list):
     """List, customized for holding ``da_method`` objects ("configs").
 
@@ -242,7 +244,10 @@ class ExperimentList(list):
 
         return [i for i,C in enumerate(self) if match(C)]
 
-    def assimilate(self,HMM,truth=None,obs=None,sd=True,free=True,statkeys=False,desc=True,**kwargs):
+    def assimilate(self,HMM,truth=None,obs=None,
+            sd=True,free=True,statkeys=False,desc=True,
+            mp=False, savepath=None,
+            **kwargs):
         "Call xp.assimilate() for each xp in self."
 
         if sd is True:
@@ -251,17 +256,29 @@ class ExperimentList(list):
         if desc: labels = self.gen_names()
         else:    labels = self.da_methods
 
-        for ixp,(label,xp) in enumerate(zip(labels,self)):
+        map_ = multiproc_map if mp else map
+        args = enumerate(zip(labels,self))
+        if mp:
+            tools.utils.disable_progbar = True # must precede ``def assim1``
 
-            # Set HMM_params.
-            if hasattr(xp,'HMM_params'):
+        def assim1(arg,pbar='label'):
+            ixp, (label,xp) = arg
+
+            # Set HMM parameters. Why the use of setters?
+            # To avoid tying an HMM to each xp, which
+            #  - keeps the xp attrs primitive.
+            #  - avoids memory and pickling/storage of near-duplicate HMMs.
+            HMM_params = intersect(vars(xp), re.compile(r'^HMM_'))
+            if HMM_params:
                 hmm = deepcopy(HMM)
-                for key, val in xp.HMM_params.items():
+                for key in HMM_params:
+                    val = getattr(xp,key)
+                    key = key.split('HMM_')[1]
                     hmm.param_setters[key](val)
             else:
                 hmm = HMM
 
-            # Re-use seed as a form of "Variance reduction" (eg. CRN, see
+            # Repeat seed. This yields a form of "Variance reduction" (eg. CRN, see
             # wikipedia.org/wiki/Variance_reduction). This may be useful,
             # but should of course not be relied upon for strong conclusions!
             if sd: set_seed(sd + getattr(xp,'seed',0))
@@ -276,13 +293,40 @@ class ExperimentList(list):
             # Re-set seed, in case simulate() is was called,
             # but only for a particlular (eg. the 1st) xp.
             if sd: set_seed(sd + getattr(xp,'seed',0))
-
+            
             xp.assimilate(hmm,xx,yy,desc=label,**kwargs)
 
             xp.average_stats(free=free)
 
             if statkeys:
                 xp.print_avrgs(() if statkeys is True else statkeys)
+
+            if savepath: # cannot alter savepath (keep it nonlocal!)
+                path_ixp = os.path.join(savepath, f"ixp_{ixp}.xp")
+                with open(path_ixp,"wb") as filestream:
+                    dill.dump({'xp':xp}, filestream)
+
+            return "SUCCESS"
+
+        if savepath:
+            savepath = savepath + "run_"
+            savepath = savepath + str(1 + max(get_numbering(savepath),default=0))
+            os.makedirs(savepath, exist_ok=True)
+            print("Will save data to",savepath)
+
+        if mp:
+
+            NPROC = None # None => multiprocessing.cpu_count()
+            with mpd.Pool(NPROC) as pool:
+                # result = pool.map(assim1,args) 
+                result = list(tqdm.tqdm(pool.imap(assim1, args),
+                    total=len(self), desc="Parallel experim's", smoothing=0.1))
+
+        else:
+            results = list(map(assim1, args))
+            self.print_avrgs()
+
+
 
     @property
     def da_methods(self):
@@ -328,7 +372,7 @@ class ExperimentList(list):
             vals = [getattr(config,key,"N/A") for config in self]
 
             # Sort into distinct, redundant, common
-            if key in nomerge:
+            if flexcomp(key, *nomerge):
                 # nomerge => Distinct
                 dct, vals = distinct, vals
             elif all(vals[0]==v for v in vals):
@@ -393,8 +437,7 @@ class ExperimentList(list):
         values = distinct.values()
 
         # Label abbreviation
-        if not abbrev: abbrev = 99
-        labels = [(k if len(k)<=abbrev else k[:abbrev-2]+'~'+k[-1]) for k in labels]
+        labels = [collapse_str(k,abbrev) for k in labels]
 
         # Make label columns: insert None or lbl+":", depending on value
         column = lambda  lbl,vals: [None if v is None else lbl+":" for v in vals]
