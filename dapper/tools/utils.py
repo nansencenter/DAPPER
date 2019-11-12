@@ -347,7 +347,14 @@ class NestedPrint:
     def __repr__(self):
 
         # Merge defaults with requested printopts
-        opts = {**NestedPrint.printopts, **self.printopts}
+        opts = {}
+        for k, v in NestedPrint.printopts.items():
+            if k in self.printopts:
+                v2 = self.printopts[k]
+                if   isinstance(v, dict): opts[k] = {**v, **v2}
+                elif isinstance(v, list): opts[k] = v + v2
+                else:                     opts[k] = v2
+            else:                         opts[k] = v
 
         with printoptions(**{k:opts[k] for k in ['threshold','precision']}):
 
