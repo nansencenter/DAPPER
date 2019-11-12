@@ -32,23 +32,32 @@ def pdesc(desc):
     return name
 
 # Define progbar
-import tqdm
-def progbar(iterable, desc=None, leave=1):
+try:
+    import tqdm
+    disable_progbar = False
+except ImportError:
+    disable_progbar = True
+
+def progbar(iterable, desc=None, leave=1, **kwargs):
     "Prints a nice progress bar in the terminal"
-    desc = pdesc(desc)
-    # if is_notebook:
-    # This fails in QtConsole (which also yields is_notebook==True)
-    # return tqdm.tqdm_notebook(iterable,desc=desc,leave=leave)
-    # else:
-    return tqdm.tqdm(iterable,desc=desc,leave=leave,smoothing=0.3,dynamic_ncols=True)
-    # Printing during the progbar loop (may occur with error printing)
-    # can cause tqdm to freeze the entire execution. 
-    # Seemingly, this is caused by their multiprocessing-safe stuff.
-    # Disable this, as per github.com/tqdm/tqdm/issues/461#issuecomment-334343230
-    # pb = tqdm.tqdm(...)
-    # try: pb.get_lock().locks = []
-    # except AttributeError: pass
-    # return pb
+    if disable_progbar:
+        return iterable
+    else:
+        desc = pdesc(desc)
+        # if is_notebook:
+        # This fails in QtConsole (which also yields is_notebook==True)
+        # return tqdm.tqdm_notebook(iterable,desc=desc,leave=leave)
+        # else:
+        return tqdm.tqdm(iterable,desc=desc,leave=leave,
+                smoothing=0.3,dynamic_ncols=True,**kwargs)
+        # Printing during the progbar loop (may occur with error printing)
+        # can cause tqdm to freeze the entire execution. 
+        # Seemingly, this is caused by their multiprocessing-safe stuff.
+        # Disable this, as per github.com/tqdm/tqdm/issues/461#issuecomment-334343230
+        # pb = tqdm.tqdm(...)
+        # try: pb.get_lock().locks = []
+        # except AttributeError: pass
+        # return pb
 
 
 # Set to True before a py.test (which doesn't like reading stdin)
