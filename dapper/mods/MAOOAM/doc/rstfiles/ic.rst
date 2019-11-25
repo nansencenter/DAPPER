@@ -1,0 +1,3 @@
+.. automodule:: ic
+    :members:
+    :noindex:

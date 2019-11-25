@@ -1,0 +1,321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aotensor &#8212; maooam 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="maooam 1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for aotensor</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Tensor computation module</span>
+<span class="sd">	=========================</span>
+
+<span class="sd">	The equation tensor for the coupled ocean-atmosphere model</span>
+<span class="sd">	with temperature which allows for an extensible set of modes</span>
+<span class="sd">	in the ocean and in the atmosphere.</span>
+<span class="sd">	</span>
+<span class="sd">	.. note :: These are calculated using the analytical expressions from De Cruz, L., Demaeyer, \</span>
+<span class="sd">			J. and Vannitsem, S.: A modular arbitrary-order ocean-atmosphere model: MAOOAM v1.0, Geosci. Model Dev. Discuss.\  </span>
+<span class="sd">			And the `Fortran Code &lt;https://github.com/Climdyn/MAOOAM&gt;`_</span>
+
+<span class="sd">	.. note :: The python code is available here : `aotensor.py &lt;../_modules/aotensor.html&gt;`_ and on `Git &lt;https://github.com/nansencenter/DAPPER/blob/max1/mods/MAOOAM/aotensor.py&gt;`_.</span>
+
+<span class="sd">	:Example:</span>
+
+<span class="sd">	&gt;&gt;&gt; aotensor=aotensor.init_aotensor()</span>
+
+<span class="sd">	Help Functions</span>
+<span class="sd">	-------------------</span>
+<span class="sd">	There are ndim coordinates that correspond to 4 physical quantities.</span>
+<span class="sd">	These functions help to have the i-th coordinates of the quantity.</span>
+
+<span class="sd">	* psi(i) -&gt; i</span>
+<span class="sd">	* theta(i) -&gt; i + natm</span>
+<span class="sd">	* A(i) -&gt; i + 2*natm</span>
+<span class="sd">	* T(i) -&gt; i + 2*natm + noc</span>
+<span class="sd">	* kdelta(i,j) -&gt; (i==j)</span>
+
+<span class="sd">	Global variables</span>
+<span class="sd">	-------------------</span>
+
+<span class="sd">	* real_eps = 2.2204460492503131e-16</span>
+<span class="sd">	* t=np.zeros( ((ndim+1),(ndim+1),(ndim+1)),dtype=float)</span>
+
+<span class="sd">	Dependancies</span>
+<span class="sd">	------------------------</span>
+
+<span class="sd">	&gt;&gt;&gt; from params2 import *</span>
+<span class="sd">	&gt;&gt;&gt; from inprod_analytic import *</span>
+<span class="sd">	&gt;&gt;&gt; from scipy.sparse import dok_matrix</span>
+<span class="sd">	&gt;&gt;&gt; from scipy.sparse import csr_matrix</span>
+<span class="sd">	&gt;&gt;&gt; import os</span>
+
+<span class="sd">	Functions</span>
+<span class="sd">	------------------------</span>
+
+<span class="sd">	* compute_aotensor</span>
+<span class="sd">	* coeff(i,j,k,v)</span>
+<span class="sd">	* simplify</span>
+<span class="sd">	* init_aotensor</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">params2</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">inprod_analytic</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">dok_matrix</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">csr_matrix</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<span class="n">real_eps</span> <span class="o">=</span> <span class="mf">2.2204460492503131e-16</span>
+<span class="n">t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">((</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">),(</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">),(</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">)),</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">psi</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">:</span>
+	<span class="k">return</span> <span class="n">i</span>
+<span class="k">def</span> <span class="nf">theta</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+	<span class="k">return</span> <span class="n">i</span><span class="o">+</span> <span class="n">natm</span>
+<span class="k">def</span> <span class="nf">A</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+	<span class="k">return</span> <span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">natm</span>
+<span class="k">def</span> <span class="nf">T</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">:</span>
+	<span class="k">return</span> <span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">natm</span><span class="o">+</span><span class="n">noc</span>
+<span class="k">def</span> <span class="nf">kdelta</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span> <span class="p">:</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">i</span><span class="o">==</span><span class="n">j</span><span class="p">)</span> <span class="p">:</span>
+		<span class="k">return</span> <span class="mi">1</span>
+	<span class="k">else</span> <span class="p">:</span>
+		<span class="k">return</span> <span class="mi">0</span>
+		
+
+<div class="viewcode-block" id="compute_aotensor"><a class="viewcode-back" href="../rstfiles/aotensor.html#aotensor.compute_aotensor">[docs]</a><span class="k">def</span> <span class="nf">compute_aotensor</span><span class="p">()</span> <span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Computes the three-dimensional tensor t</span>
+<span class="sd"> </span>
+<span class="sd">		This takes the inner products of inprod_analytic and computes the tensor</span>
+<span class="sd"> </span>
+<span class="sd">		:param t: tensor t is a global variable of aotensor</span>
+<span class="sd">		:type t: array((37,37,37),float)</span>
+<span class="sd">		:return: change the global tensor</span>
+<span class="sd">		:rtype: void</span>
+<span class="sd"> </span>
+<span class="sd">		:Example:</span>
+<span class="sd"> </span>
+<span class="sd">		&gt;&gt;&gt; compute_aotensor()</span>
+<span class="sd"> </span>
+<span class="sd">		.. warning:: This needs the global variable aotensor and the global inner products to be initialized.</span>
+<span class="sd">		.. todo:: Correct the line with sc (no impact for now)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">t</span><span class="p">[</span><span class="n">theta</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">Cpa</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">))</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">natm</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+		<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">natm</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">psi</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>  <span class="p">,</span><span class="n">psi</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>  <span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="p">(((</span><span class="n">atmos</span><span class="o">.</span><span class="n">c</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">betp</span><span class="p">)</span> <span class="o">/</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]))</span> <span class="o">-</span> <span class="p">(</span><span class="n">kd</span> <span class="o">*</span> <span class="n">kdelta</span><span class="p">((</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span> <span class="o">/</span> <span class="mi">2</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">theta</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">psi</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>  <span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">kd</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">psi</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>  <span class="p">,</span><span class="n">theta</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">kd</span> <span class="o">*</span> <span class="n">kdelta</span><span class="p">((</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span> <span class="o">/</span> <span class="mi">2</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">theta</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">theta</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="p">((</span><span class="n">sig0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">atmos</span><span class="o">.</span><span class="n">c</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">betp</span> <span class="o">+</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="n">kd</span> <span class="o">+</span> <span class="mf">4.</span> <span class="o">*</span> <span class="n">kdp</span><span class="p">))))</span><span class="o">+</span> <span class="mf">2.</span> <span class="o">*</span> <span class="p">(</span><span class="n">LSBpa</span> <span class="o">+</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">Lpa</span><span class="p">)</span><span class="o">*</span> <span class="n">kdelta</span><span class="p">((</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span> <span class="o">/</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.</span> <span class="o">+</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span>
+			<span class="c1">#I change sc to 1. (-((sig0 * (2. * atmos.c[i,j] * betp + atmos.a[i,j] * (kd + 4. * kdp))))+ 2. * (LSBpa + sc * Lpa)* kdelta(i,j)) / (-2. + 2. * atmos.a[i,i] * sig0)&quot;&quot;&quot;</span>
+			<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">natm</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+				<span class="n">t</span><span class="p">[</span><span class="n">psi</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>  <span class="p">,</span><span class="n">psi</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>  <span class="p">,</span><span class="n">psi</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span>  <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">atmos</span><span class="o">.</span><span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">/</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
+				<span class="n">t</span><span class="p">[</span><span class="n">psi</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>  <span class="p">,</span><span class="n">theta</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="n">theta</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=-</span><span class="p">((</span><span class="n">atmos</span><span class="o">.</span><span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">/</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]))</span>
+				<span class="n">t</span><span class="p">[</span><span class="n">theta</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">psi</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>  <span class="p">,</span><span class="n">theta</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span><span class="o">=</span> <span class="p">(</span><span class="n">atmos</span><span class="o">.</span><span class="n">g</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">-</span> <span class="n">atmos</span><span class="o">.</span><span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span><span class="n">sig0</span><span class="p">)</span>
+				<span class="n">t</span><span class="p">[</span><span class="n">theta</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">theta</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="n">psi</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span>  <span class="o">=</span><span class="p">(</span><span class="n">atmos</span><span class="o">.</span><span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">noc</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">psi</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>  <span class="p">,</span><span class="n">A</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">kd</span> <span class="o">*</span> <span class="n">atmos</span><span class="o">.</span><span class="n">d</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">theta</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">A</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">kd</span> <span class="o">*</span> <span class="p">(</span><span class="n">atmos</span><span class="o">.</span><span class="n">d</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">theta</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">T</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">atmos</span><span class="o">.</span><span class="n">s</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">LSBpo</span> <span class="o">+</span> <span class="n">Lpa</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">atmos</span><span class="o">.</span><span class="n">a</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">sig0</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">noc</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+		<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">natm</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">A</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">psi</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span>   <span class="o">=</span> <span class="n">ocean</span><span class="o">.</span><span class="n">K</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">dp</span> <span class="o">/</span> <span class="p">(</span><span class="n">ocean</span><span class="o">.</span><span class="n">M</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">G</span><span class="p">)</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">A</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">theta</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">ocean</span><span class="o">.</span><span class="n">K</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span> <span class="o">*</span> <span class="n">dp</span> <span class="o">/</span> <span class="p">(</span><span class="n">ocean</span><span class="o">.</span><span class="n">M</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">G</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">noc</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">A</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">A</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="p">((</span><span class="n">ocean</span><span class="o">.</span><span class="n">N</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">betp</span> <span class="o">+</span> <span class="n">ocean</span><span class="o">.</span><span class="n">M</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="n">rp</span> <span class="o">+</span> <span class="n">dp</span><span class="p">)</span> <span class="o">*</span> <span class="n">kdelta</span><span class="p">((</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">))))</span> <span class="o">/</span> <span class="p">(</span><span class="n">ocean</span><span class="o">.</span><span class="n">M</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">G</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">noc</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+				<span class="n">t</span><span class="p">[</span><span class="n">A</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">A</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="n">A</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">ocean</span><span class="o">.</span><span class="n">C</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span> <span class="o">/</span> <span class="p">(</span><span class="n">ocean</span><span class="o">.</span><span class="n">M</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="n">G</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">noc</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+		<span class="n">t</span><span class="p">[</span><span class="n">T</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Cpo</span> <span class="o">*</span> <span class="n">ocean</span><span class="o">.</span><span class="n">W</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">natm</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">T</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">theta</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ocean</span><span class="o">.</span><span class="n">W</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">Lpo</span> <span class="o">+</span> <span class="n">sbpa</span><span class="p">)</span>
+			<span class="c1">#I change sc to 1. ocean.W[i,j] * (2 * sc * Lpo + sbpa)</span>
+		<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">noc</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">T</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">T</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="p">((</span><span class="n">Lpo</span> <span class="o">+</span> <span class="n">sbpo</span><span class="p">))</span> <span class="o">*</span> <span class="n">kdelta</span><span class="p">((</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+			<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">noc</span><span class="p">)</span> <span class="p">:</span>
+				<span class="n">t</span><span class="p">[</span><span class="n">T</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="n">A</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="n">T</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">ocean</span><span class="o">.</span><span class="n">O</span><span class="p">[(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">),(</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span></div>
+
+<div class="viewcode-block" id="coeff"><a class="viewcode-back" href="../rstfiles/aotensor.html#aotensor.coeff">[docs]</a><span class="k">def</span> <span class="nf">coeff</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Affects v for :math:`t_{i,j,k}` making that tensor[i] upper triangular.</span>
+<span class="sd">  		Used in compute_aotensor.</span>
+
+<span class="sd">		:param i: first coordinates</span>
+<span class="sd">		:type i: int in [1,37]</span>
+<span class="sd">		:param j: second coodinates</span>
+<span class="sd">		:type j: int in [1,37]</span>
+<span class="sd">		:param k: third coordinates</span>
+<span class="sd">		:type k: int in [1,37]</span>
+<span class="sd">		:param v: value</span>
+<span class="sd">		:type v: float</span>
+<span class="sd">		:return: change the global tensor</span>
+<span class="sd">		:rtype: void</span>
+<span class="sd"> </span>
+<span class="sd">		:Example:</span>
+<span class="sd"> </span>
+<span class="sd">		&gt;&gt;&gt; coeff(i,j,k,v)</span>
+<span class="sd"> 	&quot;&quot;&quot;</span>
+	<span class="k">if</span><span class="p">(</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">real_eps</span><span class="p">)</span> <span class="p">:</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">j</span><span class="o">&lt;=</span><span class="n">k</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+		<span class="k">else</span> <span class="p">:</span>
+			<span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">v</span></div>
+			
+
+<div class="viewcode-block" id="simplify"><a class="viewcode-back" href="../rstfiles/aotensor.html#aotensor.simplify">[docs]</a><span class="k">def</span> <span class="nf">simplify</span><span class="p">()</span> <span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Make sure that tensor[i] is upper triangular.</span>
+<span class="sd">		To do after compute_aotensor().</span>
+<span class="sd">  </span>
+<span class="sd">		:param t: tensor t is a global variable of aotensor</span>
+<span class="sd">		:type t: array((37,37,37),float)</span>
+<span class="sd">		:return: change the global tensor</span>
+<span class="sd">		:rtype: void</span>
+<span class="sd"> </span>
+<span class="sd">		:Example:</span>
+<span class="sd"> </span>
+<span class="sd">		&gt;&gt;&gt; simplify()</span>
+<span class="sd"> 	&quot;&quot;&quot;</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+			<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">j</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">]</span><span class="o">!=</span><span class="mi">0</span> <span class="p">:</span>
+					<span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+					<span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span></div>
+
+<div class="viewcode-block" id="change_structure"><a class="viewcode-back" href="../rstfiles/aotensor.html#aotensor.change_structure">[docs]</a><span class="k">def</span> <span class="nf">change_structure</span><span class="p">()</span> <span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Take the 3-dimensional heavy tensor t and return aotensor a list of (i,j,k,v).</span>
+<span class="sd">  </span>
+<span class="sd">		:param t: tensor t is a global variable of aotensor</span>
+<span class="sd">		:type t: array((37,37,37),float)</span>
+<span class="sd">		:return: change the global tensor</span>
+<span class="sd">		:rtype: void</span>
+<span class="sd"> </span>
+<span class="sd">		:Example:</span>
+<span class="sd"> </span>
+<span class="sd">		&gt;&gt;&gt; change_structure()</span>
+<span class="sd"> 	&quot;&quot;&quot;</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+		<span class="n">Xbis</span><span class="o">=</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+		<span class="c1">#Xbis.eliminate_zeros()</span>
+		<span class="c1">#print (Xbis)</span>
+		<span class="n">X</span><span class="o">=</span><span class="n">Xbis</span>
+		<span class="n">tensor_liste</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+		<span class="c1"># fichier = open(os.getcwd()+&#39;/tensor/tenseur&#39;+str(i)+&#39;.dat&#39;, &quot;w&quot;)</span>
+		<span class="n">Y</span><span class="o">=</span><span class="n">Xbis</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="p">:</span>
+			<span class="n">j</span><span class="o">=</span><span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">m</span><span class="p">]</span>
+			<span class="n">k</span><span class="o">=</span><span class="n">Y</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">m</span><span class="p">]</span>
+			<span class="c1"># fichier.write(&quot;(&quot;+str(j)+&quot;,&quot;+str(k)+&quot;):&quot;+str(Xbis[j,k])+&quot;\n&quot;)</span>
+		<span class="c1"># fichier.close()</span>
+	<span class="n">tensor</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tensor_liste</span><span class="p">)</span>
+	
+
+	<span class="n">aotensor</span><span class="o">=</span><span class="p">[]</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+		<span class="n">X</span><span class="o">=</span><span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">nnz</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">j</span><span class="o">=</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">m</span><span class="p">]</span>
+			<span class="n">k</span><span class="o">=</span><span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">m</span><span class="p">]</span>
+			<span class="n">aotensor</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span> <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">]))</span>
+	<span class="k">return</span> <span class="n">aotensor</span></div>
+
+<span class="k">def</span> <span class="nf">init_aotensor</span><span class="p">()</span> <span class="p">:</span>
+	
+	<span class="n">init_inprod</span><span class="p">()</span>
+	<span class="n">compute_aotensor</span><span class="p">()</span>
+	<span class="n">simplify</span><span class="p">()</span>
+	<span class="k">global</span> <span class="n">tensor_liste</span>
+	<span class="k">global</span> <span class="n">tensor</span>
+	<span class="k">global</span> <span class="n">aotensor</span>
+	<span class="n">tensor_liste</span><span class="o">=</span><span class="p">[]</span>
+	<span class="n">change_structure</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Maxime Tondeur.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

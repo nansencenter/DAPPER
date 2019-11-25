@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>7. Integration module &#8212; maooam 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="maooam 1 documentation" href="../index.html" />
+    <link rel="next" title="8. Principal module" href="maooam.html" />
+    <link rel="prev" title="6. Tensor computation module" href="aotensor.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="maooam.html" title="8. Principal module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="aotensor.html" title="6. Tensor computation module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-integrator"></span><div class="section" id="integration-module">
+<h1>7. Integration module<a class="headerlink" href="#integration-module" title="Permalink to this headline">¶</a></h1>
+<p>Module with the integration
+This module actually contains the Heun algorithm routines.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The python code is available here : <a class="reference external" href="https://github.com/nansencenter/DAPPER/tree/max1/mods/MAOOAM">https://github.com/nansencenter/DAPPER/tree/max1/mods/MAOOAM</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">integrator</span> <span class="k">import</span> <span class="n">step</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">step</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">dt</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="global-variable">
+<h2>7.1. Global variable<a class="headerlink" href="#global-variable" title="Permalink to this headline">¶</a></h2>
+<p>aotensor</p>
+</div>
+<div class="section" id="dependencies">
+<h2>7.2. Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mods.MAOOAM.params2</span> <span class="k">import</span> <span class="n">ndim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">mods.MAOOAM.aotensor</span> <span class="k">as</span> <span class="nn">aotensor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">dok_matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">csr_matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">time</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="functions">
+<h2>7.3. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>sparse_mul3</li>
+<li>tendencies</li>
+<li>step</li>
+</ul>
+<dl class="function">
+<dt id="integrator.sparse_mul3">
+<code class="descclassname">integrator.</code><code class="descname">sparse_mul3</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/integrator.html#sparse_mul3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#integrator.sparse_mul3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate for each i the sums on j,k of the product
+tensor(i,j,k)* arr(j) * arr(k)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="integrator.tendencies">
+<code class="descclassname">integrator.</code><code class="descname">tendencies</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/integrator.html#tendencies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#integrator.tendencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the tendencies thanks to the product of the tensor and the vector y</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="integrator.step">
+<code class="descclassname">integrator.</code><code class="descname">step</code><span class="sig-paren">(</span><em>y</em>, <em>t</em>, <em>dt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/integrator.html#step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#integrator.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heun method integration</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">7. Integration module</a><ul>
+<li><a class="reference internal" href="#global-variable">7.1. Global variable</a></li>
+<li><a class="reference internal" href="#dependencies">7.2. Dependencies</a></li>
+<li><a class="reference internal" href="#functions">7.3. Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="aotensor.html"
+                        title="previous chapter">6. Tensor computation module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="maooam.html"
+                        title="next chapter">8. Principal module</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="maooam.html" title="8. Principal module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="aotensor.html" title="6. Tensor computation module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Maxime Tondeur.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

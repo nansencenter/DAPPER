@@ -1,0 +1,367 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>5. Inner products module &#8212; maooam 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="maooam 1 documentation" href="../index.html" />
+    <link rel="next" title="6. Tensor computation module" href="aotensor.html" />
+    <link rel="prev" title="4. Initial conditions module" href="ic.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aotensor.html" title="6. Tensor computation module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ic.html" title="4. Initial conditions module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-inprod_analytic"></span><div class="section" id="inner-products-module">
+<h1>5. Inner products module<a class="headerlink" href="#inner-products-module" title="Permalink to this headline">¶</a></h1>
+<p>Inner products between the truncated set of basis functions for the ocean and 
+atmosphere streamfunction fields.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These are calculated using the analytical expressions from De Cruz, L., Demaeyer,                    J. and Vannitsem, S.: A modular arbitrary-order ocean-atmosphere model: MAOOAM v1.0, Geosci. Model Dev. Discuss. 
+And the <a class="reference external" href="https://github.com/Climdyn/MAOOAM">Fortran Code</a></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The python code is available here : <a class="reference external" href="../_modules/inprod_analytic.html">inprod_analytic.py</a> and on <a class="reference external" href="https://github.com/nansencenter/DAPPER/blob/max1/mods/MAOOAM/inprod_analytic.py">Git</a>.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">inprod_analytic</span> <span class="k">import</span> <span class="n">init_inprod</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">init_inprod</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="global-variables">
+<h2>5.1. Global variables<a class="headerlink" href="#global-variables" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">awavenum</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">natm</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">owavenum</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">noc</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atmos</span><span class="o">=</span><span class="n">atm_tensors</span><span class="p">(</span><span class="n">natm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ocean</span><span class="o">=</span><span class="n">ocean_tensors</span><span class="p">(</span><span class="n">noc</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="dependancies">
+<h2>5.2. Dependancies<a class="headerlink" href="#dependancies" title="Permalink to this headline">¶</a></h2>
+<p>it uses the modules :</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">param2</span> <span class="k">import</span> <span class="n">nbatm</span><span class="p">,</span> <span class="n">nboc</span><span class="p">,</span> <span class="n">natm</span><span class="p">,</span><span class="n">noc</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">oms</span><span class="p">,</span><span class="n">ams</span><span class="p">,</span><span class="n">pi</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="classes">
+<h2>5.3. Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>atm_wavenum(typ,P,N,H,Nx,Ny)</li>
+<li>ocean_wavenum(P,H,Nx,Ny)</li>
+<li>atm_tensors(natm)</li>
+<li>ocean_tensors(noc)</li>
+</ul>
+<dl class="class">
+<dt id="inprod_analytic.atm_wavenum">
+<em class="property">class </em><code class="descclassname">inprod_analytic.</code><code class="descname">atm_wavenum</code><span class="sig-paren">(</span><em>typ</em>, <em>P</em>, <em>M</em>, <em>H</em>, <em>Nx</em>, <em>Ny</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#atm_wavenum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.atm_wavenum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to define atmosphere wavenumbers.</p>
+<p>Attributes :</p>
+<ul class="simple">
+<li>typ (char) = &#8216;A&#8217;,&#8217;K&#8217; or &#8216;L&#8217;.</li>
+<li>M (int)</li>
+<li>P (int)</li>
+<li>H (int)</li>
+<li>Nx (int)</li>
+<li>Ny (int)</li>
+</ul>
+</dd></dl>
+
+<dl class="class">
+<dt id="inprod_analytic.ocean_wavenum">
+<em class="property">class </em><code class="descclassname">inprod_analytic.</code><code class="descname">ocean_wavenum</code><span class="sig-paren">(</span><em>P</em>, <em>H</em>, <em>Nx</em>, <em>Ny</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#ocean_wavenum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.ocean_wavenum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to define ocean wavenumbers</p>
+<p>Attributes :</p>
+<ul class="simple">
+<li>P (int)</li>
+<li>H (int)</li>
+<li>Nx (int)</li>
+<li>Ny (int)</li>
+</ul>
+</dd></dl>
+
+<dl class="class">
+<dt id="inprod_analytic.atm_tensors">
+<em class="property">class </em><code class="descclassname">inprod_analytic.</code><code class="descname">atm_tensors</code><span class="sig-paren">(</span><em>natm</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#atm_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.atm_tensors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class which contains all the coefficients a,c,d,s,b,g needed for the tensor computation :</p>
+<p>Attributes :</p>
+<ul class="simple">
+<li><span class="math">\(a_{i,j}\)</span></li>
+<li><span class="math">\(c_{i,j}\)</span></li>
+<li><span class="math">\(d_{i,j}\)</span></li>
+<li><span class="math">\(s_{i,j}\)</span></li>
+<li><span class="math">\(b_{i,j,k}\)</span></li>
+<li><span class="math">\(g_{i,j,k}\)</span></li>
+</ul>
+<p>Return :</p>
+<ul class="simple">
+<li>The object will be name <cite>atmos</cite>.</li>
+</ul>
+<dl class="method">
+<dt id="inprod_analytic.atm_tensors.calculate_a">
+<code class="descname">calculate_a</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#atm_tensors.calculate_a"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.atm_tensors.calculate_a" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math">
+\[a_{i,j} = (F_i, {\nabla}^2 F_j)\]</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.atm_tensors.calculate_b">
+<code class="descname">calculate_b</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#atm_tensors.calculate_b"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.atm_tensors.calculate_b" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math">
+\[b_{i,j,k} = (F_i, J(F_j, \nabla^2 F_k])\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Atmospheric g and a tensors must be computed before calling this routine.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.atm_tensors.calculate_c_atm">
+<code class="descname">calculate_c_atm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#atm_tensors.calculate_c_atm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.atm_tensors.calculate_c_atm" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math">
+\[c_{i,j} = (F_i, \partial_x F_j]\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Beta term for the atmosphere
+Strict function !! Only accepts KL type.
+For any other combination, it will not calculate anything.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.atm_tensors.calculate_d">
+<code class="descname">calculate_d</code><span class="sig-paren">(</span><em>ocean</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#atm_tensors.calculate_d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.atm_tensors.calculate_d" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math">
+\[d_{i,j} = (F_i, \nabla^2 \eta_j]\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Forcing of the ocean on the atmosphere.
+Atmospheric s tensor and oceanic M tensor must be computed 
+before calling this routine !</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.atm_tensors.calculate_g">
+<code class="descname">calculate_g</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#atm_tensors.calculate_g"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.atm_tensors.calculate_g" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math">
+\[g_{i,j,k} = (F_i, J(F_j, F_k])\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is a strict function: it only accepts AKL KKL and LLL types.
+For any other combination, it will not calculate anything.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.atm_tensors.calculate_s">
+<code class="descname">calculate_s</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#atm_tensors.calculate_s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.atm_tensors.calculate_s" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math">
+\[s_{i,j} = (F_i, \eta_j)\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Forcing (thermal) of the ocean on the atmosphere.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="inprod_analytic.ocean_tensors">
+<em class="property">class </em><code class="descclassname">inprod_analytic.</code><code class="descname">ocean_tensors</code><span class="sig-paren">(</span><em>noc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#ocean_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.ocean_tensors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class which contains all the coefficients k,m,n,w,o,c needed for the tensor computation :</p>
+<p>Attributes :</p>
+<ul class="simple">
+<li><span class="math">\(K_{i,j}\)</span></li>
+<li><span class="math">\(M_{i,j}\)</span></li>
+<li><span class="math">\(N_{i,j}\)</span></li>
+<li><span class="math">\(W_{i,j}\)</span></li>
+<li><span class="math">\(O_{i,j,k}\)</span></li>
+<li><span class="math">\(C_{i,j,k}\)</span></li>
+</ul>
+<p>Return :</p>
+<ul class="simple">
+<li>The object will be name ocean</li>
+</ul>
+<dl class="method">
+<dt id="inprod_analytic.ocean_tensors.calculate_K">
+<code class="descname">calculate_K</code><span class="sig-paren">(</span><em>atmos</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#ocean_tensors.calculate_K"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.ocean_tensors.calculate_K" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forcing of the atmosphere on the ocean.</p>
+<div class="math">
+\[K_{i,j} = (\eta_i, \nabla^2 F_j)\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">atmospheric a and s tensors must be computed before calling
+this function !</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.ocean_tensors.calculate_M">
+<code class="descname">calculate_M</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#ocean_tensors.calculate_M"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.ocean_tensors.calculate_M" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forcing of the ocean fields on the ocean.</p>
+<div class="math">
+\[M_{i,j} = (\eta_i, \nabla^2 \eta_j)\]</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.ocean_tensors.calculate_N">
+<code class="descname">calculate_N</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#ocean_tensors.calculate_N"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.ocean_tensors.calculate_N" title="Permalink to this definition">¶</a></dt>
+<dd><p>Beta term for the ocean</p>
+<div class="math">
+\[N_{i,j} = (\eta_i, \partial_x \eta_j)\]</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.ocean_tensors.calculate_O">
+<code class="descname">calculate_O</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#ocean_tensors.calculate_O"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.ocean_tensors.calculate_O" title="Permalink to this definition">¶</a></dt>
+<dd><p>Temperature advection term (passive scalar)</p>
+<div class="math">
+\[O_{i,j,k} = (\eta_i, J(\eta_j, \eta_k))\]</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.ocean_tensors.calculate_C_oc">
+<code class="descname">calculate_C_oc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#ocean_tensors.calculate_C_oc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.ocean_tensors.calculate_C_oc" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math">
+\[C_{i,j,k} = (\eta_i, J(\eta_j,\nabla^2 \eta_k))\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Requires <span class="math">\(O_{i,j,k}\)</span> and <span class="math">\(M_{i,j}\)</span> to be calculated beforehand.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="inprod_analytic.ocean_tensors.calculate_W">
+<code class="descname">calculate_W</code><span class="sig-paren">(</span><em>atmos</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#ocean_tensors.calculate_W"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.ocean_tensors.calculate_W" title="Permalink to this definition">¶</a></dt>
+<dd><p>Short-wave radiative forcing of the ocean.</p>
+<div class="math">
+\[W_{i,j} = (\eta_i, F_j)\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">atmospheric s tensor must be computed before calling
+this function !</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="inprod_analytic.init_inprod">
+<code class="descclassname">inprod_analytic.</code><code class="descname">init_inprod</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/inprod_analytic.html#init_inprod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#inprod_analytic.init_inprod" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates and computes the inner products.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">5. Inner products module</a><ul>
+<li><a class="reference internal" href="#global-variables">5.1. Global variables</a></li>
+<li><a class="reference internal" href="#dependancies">5.2. Dependancies</a></li>
+<li><a class="reference internal" href="#classes">5.3. Classes</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ic.html"
+                        title="previous chapter">4. Initial conditions module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="aotensor.html"
+                        title="next chapter">6. Tensor computation module</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aotensor.html" title="6. Tensor computation module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ic.html" title="4. Initial conditions module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Maxime Tondeur.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

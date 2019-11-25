@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ic_def &#8212; maooam 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="maooam 1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ic_def</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Initial conditions generator module</span>
+<span class="sd">	===================================</span>
+
+<span class="sd">	This module generates initial conditions for the model if it doesn&#39;t exist with the good dimensions.</span>
+<span class="sd">	</span>
+<span class="sd">	It is possible to change the dimensions of the system in params.py the parameters file.</span>
+<span class="sd">	Then delete ic.py and ic_def.py will regenerates it.</span>
+
+<span class="sd">	.. note :: The python code is available here : `ic_def.py &lt;../_modules/ic_def.html&gt;`_ and on `Git &lt;https://github.com/nansencenter/DAPPER/blob/max1/mods/MAOOAM/ic_def.py&gt;`_.</span>
+
+<span class="sd">	:Example:</span>
+
+<span class="sd">	&gt;&gt;&gt; from ic_def import load_IC</span>
+<span class="sd">	&gt;&gt;&gt; load_IC()</span>
+
+<span class="sd">	Global file</span>
+<span class="sd">	-------------------</span>
+
+<span class="sd">	the file ic.py in the same directory.</span>
+
+
+<span class="sd">	Dependancies</span>
+<span class="sd">	-------------------</span>
+
+<span class="sd">	uses the modules to know the dimensions :</span>
+
+<span class="sd">	&gt;&gt;&gt; from params2 import natm,noc,ndim,t_trans,t_run</span>
+<span class="sd">	&gt;&gt;&gt; from inprod_analytic import awavenum,owavenum,init_inprod</span>
+
+<span class="sd">	Functions</span>
+<span class="sd">	-------------------</span>
+
+<span class="sd">	Here is the function in the module :</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">params2</span> <span class="k">import</span> <span class="n">natm</span><span class="p">,</span><span class="n">noc</span><span class="p">,</span><span class="n">ndim</span><span class="p">,</span><span class="n">t_trans</span><span class="p">,</span><span class="n">t_run</span>
+<span class="kn">from</span> <span class="nn">inprod_analytic</span> <span class="k">import</span> <span class="n">awavenum</span><span class="p">,</span><span class="n">owavenum</span><span class="p">,</span><span class="n">init_inprod</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+
+
+<div class="viewcode-block" id="load_IC"><a class="viewcode-back" href="../rstfiles/ic_def.html#ic_def.load_IC">[docs]</a><span class="k">def</span> <span class="nf">load_IC</span><span class="p">()</span> <span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot; Check if ic.py exists, if not creates it with good dimensions and zero initial conditions &quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">ndim</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+		<span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Number of dimensions is 0!&#39;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;ic.py&#39;</span><span class="p">)):</span>
+		<span class="c1">#no need to create one</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;ic already defined&quot;</span><span class="p">)</span>
+	<span class="k">else</span> <span class="p">:</span>
+		<span class="c1">#init_inprod()</span>
+		<span class="n">fichier</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ic.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+		
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;import numpy as np&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;X0=np.zeros(&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		
+		
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#psi variables&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">natm</span><span class="p">):</span>
+			<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;X0[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]=0.0 # typ=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">awavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">typ</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;, NX0=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">awavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Nx</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;, Ny= &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">awavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Ny</span><span class="p">))</span>
+			<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#theta variables&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">natm</span><span class="p">):</span>
+			<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;X0[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">natm</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]=0.0 # typ=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">awavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">typ</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;, NX0=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">awavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Nx</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;, Ny= &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">awavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Ny</span><span class="p">))</span>
+			<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+			
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#A variables&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">noc</span><span class="p">):</span>
+			<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;X0[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">natm</span><span class="o">+</span><span class="n">natm</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]=0.0 # NX0=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">owavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Nx</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;, Ny= &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">owavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Ny</span><span class="p">))</span>
+			<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#T variables&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">noc</span><span class="p">):</span>
+			<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;X0[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">natm</span><span class="o">+</span><span class="n">natm</span><span class="o">+</span><span class="n">noc</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]=0.0 # NX0=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">owavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Nx</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;, Ny= &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">owavenum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Ny</span><span class="p">))</span>
+			<span class="n">fichier</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+		<span class="n">fichier</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="n">load_IC</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Maxime Tondeur.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

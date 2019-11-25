@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>2. Maooam’s parameters &#8212; maooam 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="maooam 1 documentation" href="../index.html" />
+    <link rel="next" title="3. Initial conditions generator module" href="ic_def.html" />
+    <link rel="prev" title="1. Introduction" href="../intro.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ic_def.html" title="3. Initial conditions generator module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../intro.html" title="1. Introduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-params2"></span><div class="section" id="maooam-s-parameters">
+<h1>2. Maooam&#8217;s parameters<a class="headerlink" href="#maooam-s-parameters" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the parameters for the model.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The python code is available here : <a class="reference external" href="../_modules/params2.html">params2.py</a> and on <a class="reference external" href="https://github.com/nansencenter/DAPPER/blob/max1/mods/MAOOAM/params2.py">Git</a>.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">params2</span> <span class="k">import</span> <span class="n">ndim</span><span class="p">,</span><span class="n">natm</span><span class="p">,</span><span class="n">noc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">params2</span> <span class="k">import</span> <span class="n">oms</span><span class="p">,</span><span class="n">nboc</span><span class="p">,</span><span class="n">ams</span><span class="p">,</span><span class="n">nbatm</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">params2</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>There are three types of parameters :</p>
+<ul class="simple">
+<li>integral parameters : simulation time (transient and effective), time step, writeout and write step time</li>
+<li>dimensional parameters : dimensions of the truncation of fourier for the atmosphere and the ocean</li>
+<li>physical parameters : they are used in the tensor for the integration</li>
+</ul>
+<div class="section" id="integral-parameters">
+<h2>2.1. Integral parameters<a class="headerlink" href="#integral-parameters" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Time is adimensional. If t_real is in seconds, then t_model = t_real * f_0
+where f_0 is the Coriolis parameter at 45 degrees latitude ( 1.032e-4 )</p>
+</div>
+<ul class="simple">
+<li>t_trans</li>
+<li>t_run</li>
+<li>dt</li>
+<li>writeout</li>
+<li>tw</li>
+</ul>
+</div>
+<div class="section" id="dimensional-parameters">
+<h2>2.2. Dimensional parameters<a class="headerlink" href="#dimensional-parameters" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>oms and ams</li>
+<li>nboc and natm</li>
+<li>natm and noc</li>
+<li>ndim</li>
+</ul>
+<p>The matrices OMS and AMS gives the possible values of the modes Nx and Ny.
+It is computed with nboc and natm the numbers of atmospheric and oceanic blocs.
+natm and noc are the number of functions available.
+ndim is the total dimension of the system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">oms</span> <span class="o">=</span><span class="n">get_modes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="c1"># ocean mode selection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ams</span> <span class="o">=</span><span class="n">get_modes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="c1"># atmosphere mode selection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nboc</span><span class="p">,</span><span class="n">nbatm</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="mi">2</span>          <span class="c1"># number of blocks</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">natm</span><span class="p">,</span><span class="n">noc</span><span class="p">,</span><span class="n">ndim</span><span class="p">)</span><span class="o">=</span><span class="n">init_params</span><span class="p">(</span><span class="n">nboc</span><span class="p">,</span><span class="n">nbatm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Oceanic blocs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#( x block number accounts for half-integer wavenumber e.g 1 =&gt; 1/2 , 2 =&gt; 1, etc...) </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OMS</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OMS</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OMS</span><span class="p">[</span><span class="mi">2</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OMS</span><span class="p">[</span><span class="mi">3</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OMS</span><span class="p">[</span><span class="mi">4</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span><span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OMS</span><span class="p">[</span><span class="mi">5</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OMS</span><span class="p">[</span><span class="mi">6</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span><span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OMS</span><span class="p">[</span><span class="mi">7</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span><span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#Atmospheric blocs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">AMS</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">AMS</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">AMS</span><span class="p">[</span><span class="mi">2</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span><span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">AMS</span><span class="p">[</span><span class="mi">3</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span><span class="mi">2</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="physical-parameters">
+<h2>2.3. Physical parameters<a class="headerlink" href="#physical-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Scale parameters, ocean&#8217;s and atmosphere parameters, temperature-related ocean&#8217;s and atmosphere&#8217;s parameters
+other constants, coupling parameters</p>
+</div>
+<div class="section" id="dependancies">
+<h2>2.4. Dependancies<a class="headerlink" href="#dependancies" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="fonctions">
+<h2>2.5. Fonctions<a class="headerlink" href="#fonctions" title="Permalink to this headline">¶</a></h2>
+<p>Here are the functions to generate the parameters.</p>
+<dl class="function">
+<dt id="params2.get_modes">
+<code class="descclassname">params2.</code><code class="descname">get_modes</code><span class="sig-paren">(</span><em>nxmax</em>, <em>nymax</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/params2.html#get_modes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#params2.get_modes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the matrix oms and ams with nxmax and nymax</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="params2.init_params">
+<code class="descclassname">params2.</code><code class="descname">init_params</code><span class="sig-paren">(</span><em>nboc</em>, <em>nbatm</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/params2.html#init_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#params2.init_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the dimensions of the system</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">2. Maooam&#8217;s parameters</a><ul>
+<li><a class="reference internal" href="#integral-parameters">2.1. Integral parameters</a></li>
+<li><a class="reference internal" href="#dimensional-parameters">2.2. Dimensional parameters</a></li>
+<li><a class="reference internal" href="#physical-parameters">2.3. Physical parameters</a></li>
+<li><a class="reference internal" href="#dependancies">2.4. Dependancies</a></li>
+<li><a class="reference internal" href="#fonctions">2.5. Fonctions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../intro.html"
+                        title="previous chapter">1. Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ic_def.html"
+                        title="next chapter">3. Initial conditions generator module</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ic_def.html" title="3. Initial conditions generator module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../intro.html" title="1. Introduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Maxime Tondeur.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

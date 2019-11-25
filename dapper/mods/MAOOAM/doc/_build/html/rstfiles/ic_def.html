@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>3. Initial conditions generator module &#8212; maooam 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="maooam 1 documentation" href="../index.html" />
+    <link rel="next" title="4. Initial conditions module" href="ic.html" />
+    <link rel="prev" title="2. Maooam’s parameters" href="params2.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ic.html" title="4. Initial conditions module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="params2.html" title="2. Maooam’s parameters"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-ic_def"></span><div class="section" id="initial-conditions-generator-module">
+<h1>3. Initial conditions generator module<a class="headerlink" href="#initial-conditions-generator-module" title="Permalink to this headline">¶</a></h1>
+<p>This module generates initial conditions for the model if it doesn&#8217;t exist with the good dimensions.</p>
+<p>It is possible to change the dimensions of the system in params.py the parameters file.
+Then delete ic.py and ic_def.py will regenerates it.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The python code is available here : <a class="reference external" href="../_modules/ic_def.html">ic_def.py</a> and on <a class="reference external" href="https://github.com/nansencenter/DAPPER/blob/max1/mods/MAOOAM/ic_def.py">Git</a>.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ic_def</span> <span class="k">import</span> <span class="n">load_IC</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">load_IC</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="global-file">
+<h2>3.1. Global file<a class="headerlink" href="#global-file" title="Permalink to this headline">¶</a></h2>
+<p>the file ic.py in the same directory.</p>
+</div>
+<div class="section" id="dependancies">
+<h2>3.2. Dependancies<a class="headerlink" href="#dependancies" title="Permalink to this headline">¶</a></h2>
+<p>uses the modules to know the dimensions :</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">params2</span> <span class="k">import</span> <span class="n">natm</span><span class="p">,</span><span class="n">noc</span><span class="p">,</span><span class="n">ndim</span><span class="p">,</span><span class="n">t_trans</span><span class="p">,</span><span class="n">t_run</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">inprod_analytic</span> <span class="k">import</span> <span class="n">awavenum</span><span class="p">,</span><span class="n">owavenum</span><span class="p">,</span><span class="n">init_inprod</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="functions">
+<h2>3.3. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<p>Here is the function in the module :</p>
+<dl class="function">
+<dt id="ic_def.load_IC">
+<code class="descclassname">ic_def.</code><code class="descname">load_IC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ic_def.html#load_IC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ic_def.load_IC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if ic.py exists, if not creates it with good dimensions and zero initial conditions</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">3. Initial conditions generator module</a><ul>
+<li><a class="reference internal" href="#global-file">3.1. Global file</a></li>
+<li><a class="reference internal" href="#dependancies">3.2. Dependancies</a></li>
+<li><a class="reference internal" href="#functions">3.3. Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="params2.html"
+                        title="previous chapter">2. Maooam&#8217;s parameters</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ic.html"
+                        title="next chapter">4. Initial conditions module</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ic.html" title="4. Initial conditions module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="params2.html" title="2. Maooam’s parameters"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Maxime Tondeur.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

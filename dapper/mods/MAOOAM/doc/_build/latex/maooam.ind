@@ -1,0 +1,61 @@
+\begin{theindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter A
+  \item atm\_tensors (class in inprod\_analytic), \hyperpage{12}
+  \item atm\_wavenum (class in inprod\_analytic), \hyperpage{12}
+
+  \indexspace
+  \bigletter C
+  \item calculate\_a() (inprod\_analytic.atm\_tensors method), \hyperpage{12}
+  \item calculate\_b() (inprod\_analytic.atm\_tensors method), \hyperpage{12}
+  \item calculate\_c\_atm() (inprod\_analytic.atm\_tensors method), \hyperpage{12}
+  \item calculate\_C\_oc() (inprod\_analytic.ocean\_tensors method), \hyperpage{14}
+  \item calculate\_d() (inprod\_analytic.atm\_tensors method), \hyperpage{13}
+  \item calculate\_g() (inprod\_analytic.atm\_tensors method), \hyperpage{13}
+  \item calculate\_K() (inprod\_analytic.ocean\_tensors method), \hyperpage{13}
+  \item calculate\_M() (inprod\_analytic.ocean\_tensors method), \hyperpage{14}
+  \item calculate\_N() (inprod\_analytic.ocean\_tensors method), \hyperpage{14}
+  \item calculate\_O() (inprod\_analytic.ocean\_tensors method), \hyperpage{14}
+  \item calculate\_s() (inprod\_analytic.atm\_tensors method), \hyperpage{13}
+  \item calculate\_W() (inprod\_analytic.ocean\_tensors method), \hyperpage{14}
+
+  \indexspace
+  \bigletter G
+  \item get\_modes() (in module params2), \hyperpage{6}
+
+  \indexspace
+  \bigletter I
+  \item ic\_def (module), \hyperpage{6}
+  \item init\_inprod() (in module inprod\_analytic), \hyperpage{14}
+  \item init\_params() (in module params2), \hyperpage{6}
+  \item inprod\_analytic (module), \hyperpage{9}
+  \item integrator (module), \hyperpage{17}
+
+  \indexspace
+  \bigletter L
+  \item load\_IC() (in module ic\_def), \hyperpage{7}
+
+  \indexspace
+  \bigletter M
+  \item maooam (module), \hyperpage{20}
+
+  \indexspace
+  \bigletter O
+  \item ocean\_tensors (class in inprod\_analytic), \hyperpage{13}
+  \item ocean\_wavenum (class in inprod\_analytic), \hyperpage{12}
+
+  \indexspace
+  \bigletter P
+  \item params2 (module), \hyperpage{3}
+
+  \indexspace
+  \bigletter S
+  \item sparse\_mul3() (in module integrator), \hyperpage{19}
+  \item step() (in module integrator), \hyperpage{19}
+
+  \indexspace
+  \bigletter T
+  \item tendencies() (in module integrator), \hyperpage{19}
+
+\end{theindex}

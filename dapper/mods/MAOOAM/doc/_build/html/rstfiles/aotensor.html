@@ -1,0 +1,292 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>6. Tensor computation module &#8212; maooam 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="maooam 1 documentation" href="../index.html" />
+    <link rel="next" title="7. Integration module" href="integrator.html" />
+    <link rel="prev" title="5. Inner products module" href="inprod_analytic.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="integrator.html" title="7. Integration module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="inprod_analytic.html" title="5. Inner products module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tensor-computation-module">
+<h1>6. Tensor computation module<a class="headerlink" href="#tensor-computation-module" title="Permalink to this headline">¶</a></h1>
+<p>The equation tensor for the coupled ocean-atmosphere model
+with temperature which allows for an extensible set of modes
+in the ocean and in the atmosphere.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These are calculated using the analytical expressions from De Cruz, L., Demaeyer,                    J. and Vannitsem, S.: A modular arbitrary-order ocean-atmosphere model: MAOOAM v1.0, Geosci. Model Dev. Discuss. 
+And the <a class="reference external" href="https://github.com/Climdyn/MAOOAM">Fortran Code</a></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The python code is available here : <a class="reference external" href="../_modules/aotensor.html">aotensor.py</a> and on <a class="reference external" href="https://github.com/nansencenter/DAPPER/blob/max1/mods/MAOOAM/aotensor.py">Git</a>.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aotensor</span><span class="o">=</span><span class="n">aotensor</span><span class="o">.</span><span class="n">init_aotensor</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="help-functions">
+<h2>6.1. Help Functions<a class="headerlink" href="#help-functions" title="Permalink to this headline">¶</a></h2>
+<p>There are ndim coordinates that correspond to 4 physical quantities.
+These functions help to have the i-th coordinates of the quantity.</p>
+<ul class="simple">
+<li>psi(i) -&gt; i</li>
+<li>theta(i) -&gt; i + natm</li>
+<li>A(i) -&gt; i + 2*natm</li>
+<li>T(i) -&gt; i + 2*natm + noc</li>
+<li>kdelta(i,j) -&gt; (i==j)</li>
+</ul>
+</div>
+<div class="section" id="global-variables">
+<h2>6.2. Global variables<a class="headerlink" href="#global-variables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>real_eps = 2.2204460492503131e-16</li>
+<li>t=np.zeros( ((ndim+1),(ndim+1),(ndim+1)),dtype=float)</li>
+</ul>
+</div>
+<div class="section" id="dependancies">
+<h2>6.3. Dependancies<a class="headerlink" href="#dependancies" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">params2</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">inprod_analytic</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">dok_matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">csr_matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="functions">
+<h2>6.4. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>compute_aotensor</li>
+<li>coeff(i,j,k,v)</li>
+<li>simplify</li>
+<li>init_aotensor</li>
+</ul>
+<dl class="function">
+<dt>
+<code class="descclassname">aotensor.</code><code class="descname">compute_aotensor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aotensor.html#compute_aotensor"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Computes the three-dimensional tensor t</p>
+<p>This takes the inner products of inprod_analytic and computes the tensor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> (<em>array((37,37,37),float)</em>) &#8211; tensor t is a global variable of aotensor</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">change the global tensor</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">void</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">compute_aotensor</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This needs the global variable aotensor and the global inner products to be initialized.</p>
+</div>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Correct the line with sc (no impact for now)</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">aotensor.</code><code class="descname">coeff</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>v</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aotensor.html#coeff"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Affects v for <span class="math">\(t_{i,j,k}\)</span> making that tensor[i] upper triangular.
+Used in compute_aotensor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>int in [1,37]</em>) &#8211; first coordinates</li>
+<li><strong>j</strong> (<em>int in [1,37]</em>) &#8211; second coodinates</li>
+<li><strong>k</strong> (<em>int in [1,37]</em>) &#8211; third coordinates</li>
+<li><strong>v</strong> (<em>float</em>) &#8211; value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">change the global tensor</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">void</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">coeff</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">aotensor.</code><code class="descname">simplify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aotensor.html#simplify"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Make sure that tensor[i] is upper triangular.
+To do after compute_aotensor().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> (<em>array((37,37,37),float)</em>) &#8211; tensor t is a global variable of aotensor</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">change the global tensor</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">void</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">simplify</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">aotensor.</code><code class="descname">change_structure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aotensor.html#change_structure"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Take the 3-dimensional heavy tensor t and return aotensor a list of (i,j,k,v).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> (<em>array((37,37,37),float)</em>) &#8211; tensor t is a global variable of aotensor</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">change the global tensor</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">void</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">change_structure</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">6. Tensor computation module</a><ul>
+<li><a class="reference internal" href="#help-functions">6.1. Help Functions</a></li>
+<li><a class="reference internal" href="#global-variables">6.2. Global variables</a></li>
+<li><a class="reference internal" href="#dependancies">6.3. Dependancies</a></li>
+<li><a class="reference internal" href="#functions">6.4. Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="inprod_analytic.html"
+                        title="previous chapter">5. Inner products module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="integrator.html"
+                        title="next chapter">7. Integration module</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="integrator.html" title="7. Integration module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="inprod_analytic.html" title="5. Inner products module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Maxime Tondeur.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

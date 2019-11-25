@@ -1,0 +1,3 @@
+.. automodule:: aotensor
+    :members:
+    :noindex:

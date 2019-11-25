@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>params2 &#8212; maooam 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="maooam 1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for params2</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Maooam&#39;s parameters</span>
+<span class="sd">	======================</span>
+
+<span class="sd">	This module defines the parameters for the model.</span>
+
+<span class="sd">	.. note :: The python code is available here : `params2.py &lt;../_modules/params2.html&gt;`_ and on `Git &lt;https://github.com/nansencenter/DAPPER/blob/max1/mods/MAOOAM/params2.py&gt;`_.</span>
+<span class="sd">	</span>
+<span class="sd">	:Example:</span>
+
+<span class="sd">	&gt;&gt;&gt; from params2 import ndim,natm,noc</span>
+<span class="sd">	&gt;&gt;&gt; from params2 import oms,nboc,ams,nbatm</span>
+<span class="sd">	&gt;&gt;&gt; from params2 import *</span>
+
+<span class="sd">	There are three types of parameters :</span>
+
+<span class="sd">	* integral parameters : simulation time (transient and effective), time step, writeout and write step time</span>
+<span class="sd">	* dimensional parameters : dimensions of the truncation of fourier for the atmosphere and the ocean</span>
+<span class="sd">	* physical parameters : they are used in the tensor for the integration</span>
+
+<span class="sd">	Integral parameters</span>
+<span class="sd">	-------------------</span>
+
+<span class="sd">	.. warning:: Time is adimensional. If t_real is in seconds, then t_model = t_real * f_0</span>
+<span class="sd">				where f_0 is the Coriolis parameter at 45 degrees latitude ( 1.032e-4 )</span>
+
+<span class="sd">	* t_trans</span>
+<span class="sd">	* t_run</span>
+<span class="sd">	* dt</span>
+<span class="sd">	* writeout</span>
+<span class="sd">	* tw</span>
+
+<span class="sd">	Dimensional parameters</span>
+<span class="sd">	----------------------</span>
+
+<span class="sd">	* oms and ams</span>
+<span class="sd">	* nboc and natm</span>
+<span class="sd">	* natm and noc</span>
+<span class="sd">	* ndim</span>
+
+<span class="sd">	The matrices OMS and AMS gives the possible values of the modes Nx and Ny.</span>
+<span class="sd">	It is computed with nboc and natm the numbers of atmospheric and oceanic blocs.</span>
+<span class="sd">	natm and noc are the number of functions available.</span>
+<span class="sd">	ndim is the total dimension of the system.</span>
+
+<span class="sd">	:Example:</span>
+
+<span class="sd">	&gt;&gt;&gt; oms =get_modes(2,4)# ocean mode selection</span>
+<span class="sd">	&gt;&gt;&gt; ams =get_modes(2,2)# atmosphere mode selection</span>
+<span class="sd">	&gt;&gt;&gt; nboc,nbatm = 2*4,2*2	  # number of blocks</span>
+<span class="sd">	&gt;&gt;&gt; (natm,noc,ndim)=init_params(nboc,nbatm)</span>
+<span class="sd">	&gt;&gt;&gt; </span>
+<span class="sd">	&gt;&gt;&gt; # Oceanic blocs</span>
+<span class="sd">	&gt;&gt;&gt; #( x block number accounts for half-integer wavenumber e.g 1 =&gt; 1/2 , 2 =&gt; 1, etc...) </span>
+<span class="sd">	&gt;&gt;&gt; OMS[0,:] = 1,1</span>
+<span class="sd">	&gt;&gt;&gt; OMS[1,:] = 1,2</span>
+<span class="sd">	&gt;&gt;&gt; OMS[2,:] = 1,3</span>
+<span class="sd">	&gt;&gt;&gt; OMS[3,:] = 1,4</span>
+<span class="sd">	&gt;&gt;&gt; OMS[4,:] = 2,1</span>
+<span class="sd">	&gt;&gt;&gt; OMS[5,:] = 2,2</span>
+<span class="sd">	&gt;&gt;&gt; OMS[6,:] = 2,3</span>
+<span class="sd">	&gt;&gt;&gt; OMS[7,:] = 2,4</span>
+<span class="sd">	&gt;&gt;&gt; #Atmospheric blocs</span>
+<span class="sd">	&gt;&gt;&gt; AMS[0,:] = 1,1</span>
+<span class="sd">	&gt;&gt;&gt; AMS[1,:] = 1,2</span>
+<span class="sd">	&gt;&gt;&gt; AMS[2,:] = 2,1</span>
+<span class="sd">	&gt;&gt;&gt; AMS[3,:] = 2,2</span>
+
+<span class="sd">	Physical parameters</span>
+<span class="sd">	-------------------</span>
+
+<span class="sd">	Scale parameters, ocean&#39;s and atmosphere parameters, temperature-related ocean&#39;s and atmosphere&#39;s parameters</span>
+<span class="sd">	other constants, coupling parameters</span>
+
+<span class="sd">	Dependancies</span>
+<span class="sd">	-------------------</span>
+
+<span class="sd">	&gt;&gt;&gt; import numpy as np</span>
+
+<span class="sd">	Fonctions</span>
+<span class="sd">	---------</span>
+
+<span class="sd">	Here are the functions to generate the parameters.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="c1">#-----------------------------------------------------------</span>
+<span class="c1"># Integral parameters</span>
+<span class="c1">#-----------------------------------------------------------</span>
+
+<span class="n">t_trans</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#  transient period (e.g. 1.e7)</span>
+<span class="n">t_run</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#  length of trajectory on the attractor (e.g. 5.e8)</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mi">1</span>      <span class="c1">#  the time step</span>
+<span class="n">writeout</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1">#  write out all variables every tw time units</span>
+<span class="n">tw</span> <span class="o">=</span> <span class="mi">1</span>   <span class="c1">#  the time step of writing</span>
+
+<span class="c1">#-----------------------------------------------------------</span>
+<span class="c1"># Number of blocks</span>
+<span class="c1">#-----------------------------------------------------------</span>
+
+<span class="c1">#generate the mode blocks for either ocean or atmosphere</span>
+<span class="c1">#up to given wavenumbers</span>
+<span class="c1">#nxmax and nymax are the maximum</span>
+
+<div class="viewcode-block" id="get_modes"><a class="viewcode-back" href="../rstfiles/params2.html#params2.get_modes">[docs]</a><span class="k">def</span> <span class="nf">get_modes</span><span class="p">(</span><span class="n">nxmax</span><span class="p">,</span><span class="n">nymax</span><span class="p">)</span> <span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;Computes the matrix oms and ams with nxmax and nymax&quot;&quot;&quot;</span>
+	<span class="n">res</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nxmax</span><span class="o">*</span><span class="n">nymax</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+	<span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+	<span class="k">for</span> <span class="n">Nx</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">nxmax</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+		<span class="k">for</span> <span class="n">Ny</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">nymax</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">Nx</span><span class="p">,</span><span class="n">Ny</span><span class="p">]</span>
+			<span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+	<span class="k">return</span> <span class="n">res</span></div>
+
+<div class="viewcode-block" id="init_params"><a class="viewcode-back" href="../rstfiles/params2.html#params2.init_params">[docs]</a><span class="k">def</span> <span class="nf">init_params</span><span class="p">(</span><span class="n">nboc</span><span class="p">,</span><span class="n">nbatm</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Computes the dimensions of the system&quot;&quot;&quot;</span>
+	<span class="n">natmres</span><span class="o">=</span><span class="mi">0</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">nbatm</span><span class="p">):</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ams</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+			<span class="n">natmres</span><span class="o">=</span><span class="n">natmres</span><span class="o">+</span><span class="mi">3</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">natmres</span><span class="o">=</span><span class="n">natmres</span><span class="o">+</span><span class="mi">2</span>
+	<span class="n">s</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">oms</span><span class="p">)</span>
+	<span class="n">nocres</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+	
+	<span class="k">return</span> <span class="p">(</span><span class="n">natmres</span><span class="p">,</span><span class="n">nocres</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">natmres</span><span class="o">+</span><span class="n">nocres</span><span class="p">))</span></div>
+
+<span class="c1">#select (.,.) the maximum value admitted for Nx and Ny</span>
+<span class="c1">#don&#39;t forget to delete ic.py, it will regenerates</span>
+
+<span class="n">oms</span> <span class="o">=</span><span class="n">get_modes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="c1"># ocean mode selection</span>
+<span class="n">ams</span> <span class="o">=</span><span class="n">get_modes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="c1"># atmosphere mode selection</span>
+<span class="n">nboc</span><span class="p">,</span><span class="n">nbatm</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="mi">2</span>	  <span class="c1"># number of blocks</span>
+<span class="p">(</span><span class="n">natm</span><span class="p">,</span><span class="n">noc</span><span class="p">,</span><span class="n">ndim</span><span class="p">)</span><span class="o">=</span><span class="n">init_params</span><span class="p">(</span><span class="n">nboc</span><span class="p">,</span><span class="n">nbatm</span><span class="p">)</span>
+
+
+<span class="c1">#noc,natm=8,10     # number of basis functions</span>
+<span class="c1">#ndim=36		  # number of variables</span>
+
+<span class="c1">#-----------------------------------------------------------</span>
+<span class="c1">#  Scale parameters for the ocean and the atmosphere</span>
+<span class="c1">#-----------------------------------------------------------</span>
+<span class="n">scale</span> <span class="o">=</span> <span class="mf">5.e6</span>      <span class="c1">#  the characteristic space scale, L*pi</span>
+<span class="n">f0</span>    <span class="o">=</span> <span class="mf">1.032e-4</span>  <span class="c1">#  Coriolis parameter at 45 degrees latitude	</span>
+<span class="n">n</span>     <span class="o">=</span> <span class="mf">1.5e0</span>     <span class="c1">#  aspect ratio (n = 2Ly/Lx ; Lx = 2*pi*L/n; Ly = pi*L)</span>
+<span class="n">rra</span>   <span class="o">=</span> <span class="mf">6370.e3</span>   <span class="c1">#  earth radius	</span>
+<span class="n">phi0_npi</span> <span class="o">=</span> <span class="mf">0.25e0</span> <span class="c1">#  latitude exprimed in fraction of pi</span>
+
+<span class="c1">#Parameters for the ocean</span>
+<span class="n">gp</span>    <span class="o">=</span> <span class="mf">3.1e-2</span>    <span class="c1">#  reduced gravity</span>
+<span class="n">r</span>     <span class="o">=</span> <span class="mf">1.e-7</span>     <span class="c1">#  frictional coefficient at the bottom of the ocean	</span>
+<span class="n">h</span>     <span class="o">=</span> <span class="mi">165</span>      <span class="c1">#  136.5 GMD depth of the water layer of the ocean</span>
+<span class="n">d</span>     <span class="o">=</span> <span class="mi">6</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span>  <span class="c1"># 1.1 10-7 GMDs the coupling parameter (should be divided by f0 in order to be adimensional)</span>
+
+<span class="c1">#Parameters for the atmosphere</span>
+<span class="n">k</span>     <span class="o">=</span> <span class="mf">0.01</span>    <span class="c1">#  atmosphere bottom friction coefficient</span>
+<span class="n">kp</span>    <span class="o">=</span> <span class="mf">0.02</span>    <span class="c1">#  atmosphere internal friction coefficient</span>
+<span class="n">sig0</span>  <span class="o">=</span> <span class="mf">0.1e0</span>     <span class="c1">#  static stability of the atmosphere</span>
+
+<span class="c1">#Temperature-related parameters for the ocean</span>
+<span class="n">Go</span>    <span class="o">=</span> <span class="mf">6.6e8</span>      <span class="c1">#  Specific heat capacity of the ocean (50m layer)</span>
+<span class="n">Co</span>    <span class="o">=</span> <span class="mi">310</span>   <span class="c1">#310.0 GMD Constant short-wave radiation of the ocean</span>
+<span class="n">To0</span>   <span class="o">=</span> <span class="mi">301</span><span class="n">e0</span>    <span class="c1">#  Stationary solution for the 0-th order ocean temperature</span>
+
+<span class="c1">#Temperature-related parameters for the atmosphere</span>
+<span class="n">Ga</span>    <span class="o">=</span> <span class="mf">1.e7</span>      <span class="c1">#  Specific heat capacity of the atmosphere</span>
+<span class="n">Ca</span>    <span class="o">=</span>  <span class="mf">103.3333</span>  <span class="c1">#  Constant short-wave radiation of the atmosphere</span>
+<span class="n">epsa</span>  <span class="o">=</span> <span class="mf">0.7e0</span>    <span class="c1">#  Emissivity coefficient for the grey-body atmosphere</span>
+<span class="n">Ta0</span>   <span class="o">=</span> <span class="mi">289</span>    <span class="c1">#  Stationary solution for the 0-th order atmospheric temperature</span>
+
+<span class="c1">#Other temperature-related parameters/constants</span>
+<span class="n">sc</span>    <span class="o">=</span> <span class="mf">1.</span>      <span class="c1">#  Ratio of surface to atmosphere temperature</span>
+<span class="n">lambdaa</span> <span class="o">=</span><span class="mi">10</span>   <span class="c1">#  15.06 GMD Sensible + turbulent heat exchange between ocean and atmosphere</span>
+<span class="n">rr</span>    <span class="o">=</span> <span class="mf">287.e0</span>    <span class="c1">#  Gas constant of dry air</span>
+<span class="n">sb</span>    <span class="o">=</span> <span class="mf">5.6e-8</span>    <span class="c1">#  Stefan-Boltzmann constant</span>
+
+<span class="c1">#-----------------------------------------------------------</span>
+<span class="c1"># Some general parameters (Domain, beta, gamma, coupling</span>
+<span class="c1">#-----------------------------------------------------------</span>
+
+<span class="n">pi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="o">-</span><span class="mf">1.e0</span><span class="p">)</span>
+<span class="n">L</span><span class="o">=</span><span class="n">scale</span><span class="o">/</span><span class="n">pi</span>
+<span class="n">phi0</span><span class="o">=</span><span class="n">phi0_npi</span><span class="o">*</span><span class="n">pi</span>
+<span class="n">LR</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gp</span><span class="o">*</span><span class="n">h</span><span class="p">)</span><span class="o">/</span><span class="n">f0</span>
+<span class="n">G</span><span class="o">=-</span><span class="n">L</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">LR</span><span class="o">**</span><span class="mi">2</span>
+<span class="n">betp</span><span class="o">=</span><span class="n">L</span><span class="o">/</span><span class="n">rra</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi0</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi0</span><span class="p">)</span>
+<span class="n">rp</span><span class="o">=</span><span class="n">r</span><span class="o">/</span><span class="n">f0</span>
+<span class="n">dp</span><span class="o">=</span><span class="n">d</span><span class="o">/</span><span class="n">f0</span>
+<span class="n">kd</span><span class="o">=</span><span class="n">k</span><span class="o">*</span><span class="mi">2</span>
+<span class="n">kdp</span><span class="o">=</span><span class="n">kp</span>
+
+<span class="c1">#-----------------------------------------------------------</span>
+<span class="c1"># Derived Quantities</span>
+<span class="c1">#-----------------------------------------------------------</span>
+
+<span class="n">Cpo</span><span class="o">=</span><span class="n">Co</span><span class="o">/</span><span class="p">(</span><span class="n">Go</span><span class="o">*</span><span class="n">f0</span><span class="p">)</span> <span class="o">*</span> <span class="n">rr</span><span class="o">/</span><span class="p">(</span><span class="n">f0</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">L</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">Lpo</span><span class="o">=</span><span class="n">lambdaa</span><span class="o">/</span><span class="p">(</span><span class="n">Go</span><span class="o">*</span><span class="n">f0</span><span class="p">)</span>
+<span class="n">Cpa</span><span class="o">=</span><span class="n">Ca</span><span class="o">/</span><span class="p">(</span><span class="n">Ga</span><span class="o">*</span><span class="n">f0</span><span class="p">)</span> <span class="o">*</span> <span class="n">rr</span><span class="o">/</span><span class="p">(</span><span class="n">f0</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">L</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="c1"># Cpa acts on psi1-psi3, not on theta</span>
+<span class="n">Lpa</span><span class="o">=</span><span class="n">lambdaa</span><span class="o">/</span><span class="p">(</span><span class="n">Ga</span><span class="o">*</span><span class="n">f0</span><span class="p">)</span>
+<span class="n">sbpo</span><span class="o">=</span><span class="mi">4</span><span class="o">*</span><span class="n">sb</span><span class="o">*</span><span class="n">To0</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="p">(</span><span class="n">Go</span><span class="o">*</span><span class="n">f0</span><span class="p">)</span> <span class="c1"># long wave radiation lost by ocean to atmosphere space</span>
+<span class="n">sbpa</span><span class="o">=</span><span class="mi">8</span><span class="o">*</span><span class="n">epsa</span><span class="o">*</span><span class="n">sb</span><span class="o">*</span><span class="n">Ta0</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="p">(</span><span class="n">Go</span><span class="o">*</span><span class="n">f0</span><span class="p">)</span> <span class="c1"># long wave radiation from atmosphere absorbed by ocean</span>
+<span class="n">LSBpo</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">epsa</span><span class="o">*</span><span class="n">sb</span><span class="o">*</span><span class="n">To0</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="p">(</span><span class="n">Ga</span><span class="o">*</span><span class="n">f0</span><span class="p">)</span> <span class="c1"># long wave radiation from ocean absorbed by atmosphere</span>
+<span class="n">LSBpa</span><span class="o">=</span><span class="mi">8</span><span class="o">*</span><span class="n">epsa</span><span class="o">*</span><span class="n">sb</span><span class="o">*</span><span class="n">Ta0</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="p">(</span><span class="n">Ga</span><span class="o">*</span><span class="n">f0</span><span class="p">)</span> <span class="c1"># long wave radiation lost by atmosphere to space &amp; ocean</span>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">maooam 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Maxime Tondeur.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>
