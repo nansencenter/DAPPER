@@ -12,7 +12,7 @@ class LivePlot:
     def __init__(self,stats,liveplots,key0=(0,None,'u'),E=None,P=None,speed=1.0,replay=False,**kwargs):
         """
         Initialize plots.
-        - figlist: figures to plot; alternatives:
+        - liveplots: figures to plot; alternatives:
           - "default"/[]/True: All default figures for this HMM.
           - "all"            : Even more.
           - non-empty list   : Only the figures with these numbers (int) or names (str).
@@ -22,7 +22,18 @@ class LivePlot:
             - 1      : default (as quick as possible while allowing for plt.draw())
             - below 1: slower."""
 
-        # Set speed/pause 
+        # Disable if not liveplotting_enabled
+        self.any_figs = False
+        if not rc['liveplotting_enabled']: return
+
+        # On the 2nd run (of example_1 e.g.) the figures don't appear
+        # if they've been closed. For some reason, this fixes it:
+        plt.ion()
+
+        # Determine whether all/universal/intermediate stats are plotted
+        self.plot_u = not replay or stats.store_u
+
+        # Set speed/pause params
         self.params = {
             'pause_f' : 0.05,
             'pause_a' : 0.05,
@@ -49,17 +60,19 @@ class LivePlot:
             assert num>10, "Liveplotters specified in the HMM should have fignum>10."
             potential_LPs[get_name(init)] = num, show, init
 
+        def parse_figlist(lst):
+            "Figures requested for this config. Convert to list."
+            if isinstance(lst,str):
+                fn = lst.lower()
+                if   "all" == fn:        lst = range(99) # All potential_LPs
+                elif "default" in fn:    lst = []        # All show_by_default
+            elif hasattr(lst,'__len__'): lst = lst       # This list (only)
+            elif lst:                    lst = []        # All show_by_default
+            else:                        lst = [None]    # None
+            return lst
         figlist = parse_figlist(liveplots)
 
-        # On the 2nd run (of example_1 e.g.) the figures don't appear
-        # if they've been closed. For some reason, this fixes it:
-        plt.ion()
-
-        # Determine whether all/universal/intermediate stats
-        self.plot_u = stats.store_u or not replay
-
         # Loop over requeted figures
-        self.any_figs = False
         self.figures = {}
         for name, (num, show_by_default, init) in potential_LPs.items():
             if (num in figlist) or (name in figlist) or (figlist==[] and show_by_default):
@@ -138,18 +151,6 @@ class LivePlot:
                         updater(key,E,P)
                         plot_pause(self.params['pause_'+faus])
 
-def parse_figlist(figlist):
-    "Figures requested for this config. Convert to list."
-    if isinstance(figlist,str):
-        fn = figlist.lower()                               # Yields:
-        if   "all" == fn:              figlist = range(99) # All potential_LPs
-        elif "default" in fn:          figlist = []        # All show_by_default
-    elif hasattr(figlist,'__len__'): figlist = figlist   # This list (only)
-    elif figlist:                    figlist = []        # All show_by_default
-    else:                            figlist = [None]    # None
-    return figlist
-
-
 
 
 def replay(config, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
@@ -179,8 +180,6 @@ def replay(config, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
         P0 = np.full_like(stats.HMM.X0.C.full, nan) 
     except AttributeError: # e.g. if X0 is defined via sampling func
         P0 = eye(stats.HMM.Nx)
-
-    figlist = parse_figlist(figlist)
 
     LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, replay=True, **kwargs)
 

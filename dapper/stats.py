@@ -201,13 +201,11 @@ class Stats(NestedPrint):
             _prms   = {'mu':mu,'P':Cov}
 
         for sub in faus:
-                # Skip assessment?
-            if kObs==None and not self.store_u:
-                try:
-                    if (not rc['liveplotting_enabled']) or (not self.LP_instance.any_figs):
-                        continue
-                except AttributeError:
-                    pass # LP_instance not yet created
+
+            # Skip assessment if ('u' and stats not stored or plotted)
+            if k!=0 and kObs==None:
+                if not (self.store_u or self.LP_instance.any_figs):
+                    continue
 
             # Avoid repetitive warnings caused by zero variance
             with np.errstate(divide='call',invalid='call'):
@@ -225,12 +223,11 @@ class Stats(NestedPrint):
                 if isinstance(stat,FAUSt): stat[(k,kObs,sub)] = val
                 else:                      stat[kObs]         = val
 
-            # LivePlot -- Both initiation and update must come after the assessment.
-            if rc['liveplotting_enabled']:
-                if not hasattr(self,'LP_instance'): # -- INIT --
-                    self.LP_instance = LivePlot(self, self.liveplots, (k,kObs,sub), E, Cov)
-                else: # -- UPDATE --
-                    self.LP_instance.update((k,kObs,sub),E,Cov)
+            # LivePlot -- Both init and update must come after the assessment.
+            try:
+                self.LP_instance.update((k,kObs,sub),E,Cov)
+            except AttributeError:
+                self.LP_instance = LivePlot(self, self.liveplots, (k,kObs,sub), E, Cov)
 
 
     def summarize_marginals(self,now):
