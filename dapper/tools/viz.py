@@ -645,7 +645,7 @@ class FigSaver(NestedPrint):
     def fullname(self):
         f = self.fname         # Abbrev
         if self.n>=0:          # If indexing:
-            f += '_n%d'%self.n   #   Add index
+            f += '_n%d'%self.n #   Add index
         f += self.ext          # Add extension
         return f
 

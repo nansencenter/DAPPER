@@ -137,7 +137,7 @@ if _LP: # Check if we should disable anyway:
     if not _LP:
         print("\nWarning: interactive/live plotting was requested,")
         print("but is not supported by current backend: %s."%mpl.get_backend())
-        print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
+        print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').\n")
 rc['liveplotting_enabled'] = _LP
 
 # Get Matlab-like interface, and enable interactive plotting

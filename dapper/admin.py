@@ -98,8 +98,8 @@ def da_method(*default_dataclasses):
     Example:
     >>> @dc.dataclass
     >>> class ens_defaults:
-    >>>   infl          : float = 1.0
-    >>>   rot           : bool  = False
+    >>>   infl : float = 1.0
+    >>>   rot  : bool  = False
     >>> 
     >>> @da_method(ens_defaults)
     >>> class EnKF:
@@ -261,7 +261,7 @@ class ExperimentList(list):
         if mp:
             tools.utils.disable_progbar = True # must precede ``def assim1``
 
-        def assim1(arg,pbar='label'):
+        def assim1(arg):
             ixp, (label,xp) = arg
 
             # Set HMM parameters. Why the use of setters?
@@ -278,9 +278,9 @@ class ExperimentList(list):
             else:
                 hmm = HMM
 
-            # Repeat seed. This yields a form of "Variance reduction" (eg. CRN, see
-            # wikipedia.org/wiki/Variance_reduction). This may be useful,
-            # but should of course not be relied upon for strong conclusions!
+            # Repeat seed, yielding a form of "Variance reduction"
+            # (eg. CRN, see wikipedia.org/wiki/Variance_reduction).
+            # May be useful, but should of course not be relied upon!
             if sd: set_seed(sd + getattr(xp,'seed',0))
 
             # Simulate or load
@@ -290,8 +290,7 @@ class ExperimentList(list):
             else:
                 xx, yy = truth, obs
 
-            # Re-set seed, in case simulate() is was called,
-            # but only for a particlular (eg. the 1st) xp.
+            # Re-set seed, in case simulate() is called only for the 1st xp.
             if sd: set_seed(sd + getattr(xp,'seed',0))
             
             xp.assimilate(hmm,xx,yy,desc=label,**kwargs)
