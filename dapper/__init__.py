@@ -163,9 +163,9 @@ from .tools.viz import *
 from .tools.liveplotting import *
 from .tools.localization import *
 from .tools.multiprocessing import *
-from .tools.data_management import *
 from .stats import *
 from .admin import *
+from .data_management import *
 from .da_methods.ensemble import *
 from .da_methods.particle import *
 from .da_methods.extended import *
