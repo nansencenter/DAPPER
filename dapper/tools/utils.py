@@ -31,13 +31,6 @@ def pdesc(desc):
 
     return name
 
-# Define progbar
-try:
-    import tqdm
-    disable_progbar = False
-except ImportError:
-    disable_progbar = True
-
 def progbar(iterable, desc=None, leave=1, **kwargs):
     "Prints a nice progress bar in the terminal"
     if disable_progbar:
@@ -59,22 +52,37 @@ def progbar(iterable, desc=None, leave=1, **kwargs):
         # except AttributeError: pass
         # return pb
 
+# NB: Also see disable_user_interaction
+try:
+    import tqdm
+    disable_progbar = False
+except ImportError:
+    disable_progbar = True
+
 
 #########################################
 # Make read1()
 #########################################
 # Non-blocking, non-echo read1 from stdin.
 
-# Set to True before a py.test (which doesn't like reading stdin)
+# Set to True when stdin or term settings isn't supported, for example when:
+#  - running via py.test
+#  - multiprocessing
+# Btw, multiprocessing also doesn't like tqdm itself.
 disable_user_interaction = False
 
 try:
     # Linux. See Misc/read1_trials.py
-    import termios, sys, atexit
+    import termios, sys
+
     def set_term_settings(TS):
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, TS)
+
     def new_term_settings():
-        "Make stdin.read non-echo and non-block"
+        """Make stdin.read non-echo and non-block"""
+        # NB: This makes ipython quit (by pressing C^D twice) hang!
+        #     So it should be undone before returning to prompt.
+        #     Thus, setting/restoring at import/atexit is not viable.
 
         TS_old = termios.tcgetattr(sys.stdin)
         TS_new = termios.tcgetattr(sys.stdin)
@@ -89,13 +97,31 @@ try:
         set_term_settings(TS_new)
         return TS_old
 
-    def _read1():
-        return os.read(sys.stdin.fileno(), 1)
-
     try:
-        # Set/restore settings 
+        # Test set/restore settings 
         TS_old = new_term_settings()
-        atexit.register(set_term_settings,TS_old)
+        set_term_settings(TS_old)
+
+        # Wrap the progressbar generator so as to temporarily set term settings.
+        # Alternative solution: set/restore term settings in assimilate()
+        # of the da_method decorator. But that gets bloated, and anyways the logic
+        # of user-control of liveplots kindof belongs together with a progressbar. 
+        orig_progbar = progbar
+        def progbar(iterable, desc=None, leave=1, **kwargs):
+            if not disable_user_interaction:
+                TS_old = new_term_settings()
+            try:
+                for i in orig_progbar(iterable, pdesc(desc), leave, **kwargs):
+                    yield i
+            except GeneratorExit:
+                pass # Allows code below to run even if caller raised exception
+                     # NB: Fails if caller is in a list-comprehesion! Why?
+            # Restore both for normal termination or exception (propagates).
+            if not disable_user_interaction:
+                set_term_settings(TS_old)
+  
+        def _read1():
+            return os.read(sys.stdin.fileno(), 1)
 
     except:
         # Fails in non-terminal environments
