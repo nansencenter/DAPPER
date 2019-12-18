@@ -11,7 +11,7 @@ sd0 = set_seed(8,init=True)
 from   dapper.mods.Lorenz96.bocquet2015loc import HMM
 import dapper.mods.Lorenz96.core as core
 
-HMM.t.BurnIn = 5
+HMM.t.BurnIn = 2
 HMM.t.T = 10*HMM.t.BurnIn
 
 HMM.param_setters = dict(
@@ -24,21 +24,25 @@ HMM.param_setters = dict(
 ##############################
 cfgs = ExperimentList(unique=True)
 
-for N in ccat(arange(5,10), arange(10, 20, 2), arange(20, 55, 5)):
-    for rot in [True,False]:
-        for infl in 1+array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]):
-            for R in round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]):
+# for N in ccat(arange(5,10), arange(10, 20, 2), arange(20, 55, 5)):
+for N in [22, 25, 30]:
+    # for rot in [True,False]:
+    for rot in [True]:
+        # for infl in 1+array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]):
+        for infl in [1.02, 1.05]:
+            # for R in round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]):
+            for R in [2, 5, 10]:
                 cfgs += Climatology()
-                cfgs += OptInterp()
+                # cfgs += OptInterp()
                 cfgs += EnKF   ('PertObs', N, infl=infl, rot=rot            )
-                cfgs += EnKF   ('Sqrt',    N, infl=infl, rot=rot            )
-                cfgs += EnKF_N (           N, infl=infl, rot=rot            )
+                # cfgs += EnKF   ('Sqrt',    N, infl=infl, rot=rot            )
+                # cfgs += EnKF_N (           N, infl=infl, rot=rot            )
                 cfgs += LETKF  (           N, infl=infl, rot=rot, loc_rad=R )
 
 
 # Replicate all cfgs accross some more control variables
 xps = ExperimentList()
-for seed in range(4):  # Experiment repetitions
+for seed in range(1):  # Experiment repetitions
     for F in [8]:      # L96 Forcing param
         for xp in deepcopy(cfgs):
             xp.seed = seed
@@ -49,19 +53,17 @@ for seed in range(4):  # Experiment repetitions
 ##############################
 # Run experiments
 ##############################
-savepath = save_dir(__file__)
-xps.assimilate(HMM,sd=sd0,mp=False,savepath=savepath)
-
+savepath = xps.launch(HMM,sd0,"GCP",__file__)
 
 ##############################
 # Plotting
 ##############################
 # The following **only** uses saved data => Can run as a separate script.
-savepath = os.path.join(dirs['data'],"ex3","P2721L","run_6")
-xps_orig = load_xps(savepath)
+xps = load_xps(savepath)
 
-# Remove experiments we don't want to plot:
-xps = ExperimentHypercube([xp for xp in xps_orig if True
+# Associate each control variable with a dimension in "hyperspace"
+xps = ExperimentHypercube([xp for xp in xps if True
+    # Remove experiments we don't want to plot:
     and getattr(xp,'upd_a'    ,None)!="PertObs"
     and getattr(xp,'da_method',None)!="EnKF_N"
     and getattr(xp,'HMM_F')         !=10

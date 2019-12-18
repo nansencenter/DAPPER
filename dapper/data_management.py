@@ -9,6 +9,7 @@ from matplotlib import ticker
 import logging
 mpl_logger = logging.getLogger('matplotlib')
 
+
 class ExperimentHypercube(NestedPrint):
     """View the list of xps as an n-rectangle whose dims correspond to attributes.
 
@@ -199,26 +200,44 @@ class ExperimentHypercube(NestedPrint):
 
 
 
-def load_xps(dirpath):
-    """Load (and append to list) the xp from each .xp files in a directory.
+def load_xps(savepath):
+    """Load xp's (as list) from an .xps file or all .xp files in a dir.
 
     Note: saving this list in a new file (takes considerable time and)
           does not yield lower loading times."""
-    dirpath = dirpath.rstrip(os.sep)
 
-    def load_xp(path):
-        with open(path, "rb") as F:
-            return dill.load(F)['xp']
+    # SINGLE-HOST RUN, NEW FORMAT
+    if savepath.endswith(".xps"):
+        with open(savepath, "rb") as F:
+            xps = dill.load(F)['xps']
 
-    files = []
-    for f in os.listdir(dirpath):
-        if f.startswith("ixp_") and f.endswith(".xp"):
-            f = os.path.join(dirpath,f)
-            # shutil.move(f, f.replace(".pickle",".xp"))
-            files.append(f)
+    # SINGLE-HOST RUN, OLD FORMAT
+    elif savepath.endswith(".pickle"):
+        with open(savepath, "rb") as F:
+            xps = dill.load(F)['xps']
 
-    print("Loading %d files from %s"%(len(files),dirpath))
-    xps = [load_xp(f) for f in progbar(files,desc="Loading")]
+    # PARALLELIZED (MP/GCP) RUN
+    elif os.path.isdir(savepath):
+        # savepath = savepath.rstrip(os.sep) # TODO: necessary?
+
+        def load_xp(path):
+            with open(path, "rb") as F:
+                return dill.load(F)['xp']
+
+        files = []
+        for f in sorted_human(os.listdir(savepath)):
+            f = os.path.join(savepath,f)
+            if f.endswith("xp"): # MP RUN
+            # if f.startswith("ixp_") and f.endswith(".xp"):
+                files.append(f)
+            elif os.path.isdir(f): # GCP RUN
+                files.append(os.path.join(f,"xp"))
+
+        print("Loading %d files from %s"%(len(files),savepath))
+        # Dont use list comprehension (coz then progbar won't clean up correctly)
+        xps = []
+        for f in progbar(files,desc="Loading"):
+            xps.append( load_xp(f) )
 
     return xps
 

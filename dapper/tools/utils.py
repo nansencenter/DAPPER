@@ -151,12 +151,15 @@ def read1():
 
 import socket
 def save_dir(script,host=True):
-    """Make dirs['data']/script/hostname, with some refinements."""
-    host   = socket.gethostname().split('.')[0] if host else ''
+    """Make dirs['data']/script_path/[hostname]."""
+    # Hostname
+    host = socket.gethostname().split('.')[0] if host is True else host
+    # Safely determine relpath: script/dpr_data
     script = os.path.splitext(script)[0]
     root   = os.path.commonpath([os.path.abspath(x) for x in [dirs['data'],script]])
     script = os.path.relpath(script, root)
-    sdir   = os.path.join(dirs['data'],script,host,'')
+    # Makedir
+    sdir = os.path.join(dirs['data'],script,host,'')
     os.makedirs(sdir, exist_ok=True)
     return sdir
 
@@ -164,6 +167,14 @@ import glob
 def get_numbering(glb):
     ls = glob.glob(glb+'*')
     return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
+
+def run_path(script,host=True):
+    """save_dir + get_numbering"""
+    sdir = save_dir(script,host=host)
+    sdir = sdir + "run_"
+    sdir = sdir + str(1 + max(get_numbering(sdir),default=0))
+    return sdir
+
 
 def rel_path(path,start=None,ext=False):
     path = os.path.relpath(path,start)

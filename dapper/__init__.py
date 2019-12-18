@@ -19,6 +19,7 @@ import functools
 import configparser
 import builtins
 from time import sleep
+from copy import deepcopy
 import dataclasses as dc
 from typing import Optional, Any
 

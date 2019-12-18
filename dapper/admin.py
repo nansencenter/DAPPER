@@ -2,6 +2,8 @@
 
 from dapper import *
 
+from os.path import join as pjoin
+
 class HiddenMarkovModel(NestedPrint):
     """Container for attributes of a Hidden Markov Model (HMM).
 
@@ -153,21 +155,14 @@ def da_method(*default_dataclasses):
 
         @method
         @functools.wraps(orig_assimilate)
-        def assimilate(self,HMM,xx,yy,
-                       desc=None,fail_gently=rc['fail_gently'],**kwargs):
+        def assimilate(self,HMM,xx,yy,desc=None,**stat_kwargs):
 
             # Progressbar name
             pb_name_hook = self.da_method if desc is None else desc
 
-            self.stats = Stats(self,HMM,xx,yy,**kwargs)
+            self.stats = Stats(self,HMM,xx,yy,**stat_kwargs)
 
-            try:
-                orig_assimilate(self,HMM,xx,yy)
-            except Exception as ERR:
-                if fail_gently:
-                    print_cropped_traceback(ERR)
-                else:
-                    raise ERR
+            orig_assimilate(self,HMM,xx,yy)
 
         @method
         def average_stats(self,free=False):
@@ -243,89 +238,6 @@ class ExperimentList(list):
             return all(matches)
 
         return [i for i,C in enumerate(self) if match(C)]
-
-    def assimilate(self,HMM,truth=None,obs=None,
-            sd=True,free=True,statkeys=False,desc=True,
-            mp=False, savepath=None,
-            **kwargs):
-        "Call xp.assimilate() for each xp in self."
-
-        if sd is True:
-            sd = set_seed()
-
-        if desc: labels = self.gen_names()
-        else:    labels = self.da_methods
-
-        map_ = multiproc_map if mp else map
-        args = enumerate(zip(labels,self))
-        if mp:
-            tools.utils.disable_progbar = True # must precede ``def assim1``
-
-        def assim1(arg):
-            ixp, (label,xp) = arg
-
-            # Set HMM parameters. Why the use of setters?
-            # To avoid tying an HMM to each xp, which
-            #  - keeps the xp attrs primitive.
-            #  - avoids memory and pickling/storage of near-duplicate HMMs.
-            HMM_params = intersect(vars(xp), re.compile(r'^HMM_'))
-            if HMM_params:
-                hmm = deepcopy(HMM)
-                for key in HMM_params:
-                    val = getattr(xp,key)
-                    key = key.split('HMM_')[1]
-                    hmm.param_setters[key](val)
-            else:
-                hmm = HMM
-
-            # Repeat seed, yielding a form of "Variance reduction"
-            # (eg. CRN, see wikipedia.org/wiki/Variance_reduction).
-            # May be useful, but should of course not be relied upon!
-            if sd: set_seed(sd + getattr(xp,'seed',0))
-
-            # Simulate or load
-            if truth is None:
-                assert obs is None
-                xx, yy = hmm.simulate()
-            else:
-                xx, yy = truth, obs
-
-            # Re-set seed, in case simulate() is called only for the 1st xp.
-            if sd: set_seed(sd + getattr(xp,'seed',0))
-            
-            xp.assimilate(hmm,xx,yy,desc=label,**kwargs)
-
-            xp.average_stats(free=free)
-
-            if statkeys:
-                xp.print_avrgs(() if statkeys is True else statkeys)
-
-            if savepath: # cannot alter savepath (keep it nonlocal!)
-                path_ixp = os.path.join(savepath, f"ixp_{ixp}.xp")
-                with open(path_ixp,"wb") as filestream:
-                    dill.dump({'xp':xp}, filestream)
-
-            return "SUCCESS"
-
-        if savepath:
-            savepath = savepath + "run_"
-            savepath = savepath + str(1 + max(get_numbering(savepath),default=0))
-            os.makedirs(savepath, exist_ok=True)
-            print("Will save data to",savepath)
-
-        if mp:
-
-            NPROC = None # None => multiprocessing.cpu_count()
-            with mpd.Pool(NPROC) as pool:
-                # result = pool.map(assim1,args) 
-                result = list(tqdm.tqdm(pool.imap(assim1, args),
-                    total=len(self), desc="Parallel experim's", smoothing=0.1))
-
-        else:
-            results = list(map(assim1, args))
-            self.print_avrgs()
-
-
 
     @property
     def da_methods(self):
@@ -461,6 +373,141 @@ class ExperimentList(list):
         return table.splitlines()
 
 
+    def launch(self, HMM, sd=True, mp=False, savename="unnamed",
+            free=True, statkeys=False, desc=True, fail_gently=rc['fail_gently'], **stat_kwargs):
+        """Call run_experiment(xp,...) for each xp in self.
+        
+        Delegate this to one of:
+         - caller process (=> no parallelisation)
+         - multiprocessing on this host
+         - GCP (Google Cloud Computing) with HTCondor
+
+        Also set up the appropriate savepath for passing data and storing results.
+        """
+
+        # If sd is:
+        # - False          => no seed control in any experiment.
+        # - a number       => use sd+xp.seed in run_experiment()
+        # - True (default) => get sd number from clock:
+        if sd is True: sd = set_seed()
+
+        # save-paths
+        rpath = run_path(savename,host=mp or True)
+        ipath = lambda ixp, sep: pjoin(rpath, f"ixp_{ixp}" + sep)
+        os.makedirs(rpath, exist_ok=True)
+        print("Will save data to",rpath+"/")
+
+        if not mp: # No parallelization
+            labels = self.gen_names() if desc else self.da_methods
+            for ixp, (xp, label) in enumerate(zip(self,labels)):
+                run_experiment(xp, label, HMM, sd, free, statkeys, ipath(ixp,"."), fail_gently, stat_kwargs)
+
+        elif mp is "GCP":
+            with open(pjoin(rpath,"common_input"),"wb") as filestream:
+                dill.dump(dict(
+                    HMM=HMM,
+                    label=None,
+                    sd=sd,
+                    free=free,
+                    statkeys=None,
+                    fail_gently=fail_gently,
+                    stat_kwargs=stat_kwargs,
+                    ), filestream)
+
+            for ixp, xp in enumerate(self):
+                idir = ipath(ixp, os.path.sep)
+                os.mkdir(idir)
+                with open(pjoin(idir, "variable_input"),"wb") as filestream:
+                    dill.dump(dict(xp=xp, ixp=ixp), filestream)
+
+            # TO BE REPLACED BY CONDA_SUBMIT FILE
+            for idir in sorted_human(os.listdir(rpath)):
+                idir = pjoin(rpath,idir)
+                if os.path.isdir(idir):
+                    run_from_file(idir)
+
+        elif mp in ["MP", True]:
+
+            def run_with_fixed_args(arg):
+                xp, ixp = arg
+                return run_experiment(xp, None, HMM, sd, free, None, ipath(ixp,"."), fail_gently, stat_kwargs)
+            args = zip(self,range(len(self)))
+
+            with     set_tmp(tools.utils,'disable_progbar',True):
+                with set_tmp(tools.utils,'disable_user_interaction',True):
+                    NPROC = None # None => multiprocessing.cpu_count()
+                    with mpd.Pool(NPROC) as pool:
+                        list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
+                            total=len(self), desc="Parallel experim's", smoothing=0.1))
+
+        return rpath
+
+
+def run_experiment(xp, label, HMM, sd, free, statkeys, savepath, fail_gently, stat_kwargs):
+    """Run a single experiment.
+
+    In addition to calling xp.assimilate(), it also
+     - sets
+       - HMM_params
+       - sd
+     - generates truth & obs
+     - fail_gently wrap
+     - average_stats()
+     - print_averages()
+     - saves with dill.dump()
+    """
+
+    # Set HMM parameters. Why the use of setters?
+    # To avoid tying an HMM to each xp, which
+    #  - keeps the xp attrs primitive.
+    #  - avoids memory and pickling/storage of near-duplicate HMMs.
+    HMM_params = intersect(vars(xp), re.compile(r'^HMM_'))
+    if HMM_params:
+        # We should copy HMM so as not to cause any nasty surprises such as
+        # expecting param=1 when param=2 (coz it's not been reset).
+        # NB: won't copy implicitly ref'd obj's (like L96's core).
+        #     Could yield bug when using MP?
+        hmm = deepcopy(HMM) 
+        for key in HMM_params:
+            val = getattr(xp,key)
+            key = key.split('HMM_')[1]
+            hmm.param_setters[key](val)
+    else:
+        hmm = HMM
+
+    # Repeat seed, yielding a form of "Variance reduction"
+    # (eg. CRN, see wikipedia.org/wiki/Variance_reduction).
+    # May be useful, but should of course not be relied upon!
+    if sd: set_seed(sd + getattr(xp,'seed',0))
+
+    # Simulate or load
+    xx, yy = hmm.simulate()
+
+    # Re-set seed, in case simulate() is called only for the 1st xp.
+    if sd: set_seed(sd + getattr(xp,'seed',0))
+    
+    # ASSIMILATE
+    try:
+        xp.assimilate(hmm,xx,yy, desc=label, **stat_kwargs)
+    except Exception as ERR:
+        if fail_gently:
+            xp.crashed = True
+            print_cropped_traceback(ERR)
+        else:
+            raise ERR
+
+    # Average in time
+    xp.average_stats(free=free)
+
+    # Print
+    if statkeys:
+        xp.print_avrgs(() if statkeys is True else statkeys)
+
+    # Save
+    if savepath:
+        with open(savepath+"xp","wb") as filestream:
+            dill.dump({'xp':xp}, filestream)
+
 
 def print_cropped_traceback(ERR):
 
@@ -493,6 +540,32 @@ def print_cropped_traceback(ERR):
     msg += ["Resuming program execution.\n"
             + "Turn off `fail_gently` to fully raise the exception.\n"]
     for s in msg: print(s,file=sys.stderr)
+
+
+def run_from_file(dirpath):
+    """Loads experiment parameters from file and calls run_experiment().
+
+    Assumes file tree:
+
+    - common_input
+    - dirpath/
+              - variable_input
+              - xp (output file)
+    """
+    savepath = pjoin(dirpath,'') # = dirpath/
+    common_dir = os.path.split(dirpath.rstrip(os.sep))[0] # = dirpath/..
+
+    with open(pjoin(dirpath,"variable_input"), "rb") as F:
+        variable_input = dill.load(F)
+
+    with open(pjoin(common_dir,"common_input"), "rb") as F:
+        d = dill.load(F)
+
+    xp  = variable_input['xp']
+    ixp = variable_input['ixp']
+
+    result = run_experiment(xp, d['label'], d['HMM'], d['sd'], d['free'],
+            d['statkeys'], savepath, d['fail_gently'], d['stat_kwargs'])
 
 
 import dill
@@ -550,8 +623,7 @@ def save_data(script_name,*args,host=True,**kwargs):
             data[Class] = x
         return data
 
-    filename  = save_dir(script_name,host=host) + "run_"
-    filename += str(1 + max(get_numbering(filename),default=0)) + ".pickle"
+    filename = run_path(script_name, host=host) + ".pickle"
     print("Saving data to",filename)
 
     with open(filename,"wb") as filestream:
