@@ -150,29 +150,47 @@ def read1():
 #########################################
 
 import socket
-def save_dir(script,host=True):
+def save_dir(script,host="",relpath=False):
     """Make dirs['data']/script_path/[hostname]."""
+    script = os.path.splitext(script)[0]
+
+    if relpath:
+        # Safely determine relpath: script vs. dpr_data
+        _a     = os.path.abspath
+        root   = os.path.commonpath([_a(dirs['data']),_a(script)])
+        script = os.path.relpath(script, root)
+    else:
+        # Short path
+        script = os.path.basename(script)
+
     # Hostname
     host = socket.gethostname().split('.')[0] if host is True else host
-    # Safely determine relpath: script/dpr_data
-    script = os.path.splitext(script)[0]
-    root   = os.path.commonpath([os.path.abspath(x) for x in [dirs['data'],script]])
-    script = os.path.relpath(script, root)
+
     # Makedir
     sdir = os.path.join(dirs['data'],script,host,'')
     os.makedirs(sdir, exist_ok=True)
+
     return sdir
 
 import glob
-def get_numbering(glb):
+def get_filenums(glb):
     ls = glob.glob(glb+'*')
     return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
 
-def run_path(script,host=True):
-    """save_dir + get_numbering"""
-    sdir = save_dir(script,host=host)
+def run_path(script,host="",relpath=False,timestamp=True):
+    """save_dir + run_number"""
+    sdir = save_dir(script,host=host,relpath=relpath)
     sdir = sdir + "run_"
-    sdir = sdir + str(1 + max(get_numbering(sdir),default=0))
+
+    if timestamp:
+        from datetime import datetime
+        now = datetime.now()
+        run_number = now.strftime("%Y-%m-%d_%H-%M-%S")
+    else:
+        run_number = str(1 + max(get_filenums(sdir),default=0))
+
+    sdir = sdir + run_number
+    assert not os.path.exists(sdir)
     return sdir
 
 
@@ -647,13 +665,13 @@ def flexcomp(x,*criteria):
             return y==x
 
     return any(_compare(x,y) for y in criteria)
+
 # For some reason, _filter (with the `including` switch) is difficult
 # for the brain to parse. Use intersect and complement instead.
 def      intersect(iterable,   *wanted,                  dict=False):
     return _filter(iterable,   *wanted, including=True,  dict=dict)
 def     complement(iterable, *unwanted,                  dict=False):
     return _filter(iterable, *unwanted, including=False, dict=dict)
-
 
 def _filter(iterable, *criteria, including=True, dict=False):
     "Only keep those elements of `ìterable`` that match any criteria."""
@@ -767,13 +785,17 @@ def vectorize0(f):
       >>> @vectorize0
       >>> def add(x,y):
       >>>   return x+y
+
       >>> add(1,100)
       101
+
       >>> x = np.arange(6).reshape((3,-1))
+
       >>> add(x,100)
       array([[100, 101],
            [102, 103],
            [104, 105]])
+
       >>> add([20,x],100)
       [120, array([[100, 101],
             [102, 103],
