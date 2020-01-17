@@ -396,6 +396,28 @@ def warn_zero_variance(err,flag):
     warnings.warn(msg)
 
 
+# Why not do all columns at once using the tabulate module? Coz
+#  - Want subcolumns, including fancy formatting (e.g. +/-)
+#  - Want separation (using '|') of attr and stats
+#  - ...
+def tabulate_column(col,header,pad=' '):
+    """Format a single column, return as list.
+
+    Use tabulate() to get decimal point alignment.
+
+    Pad each row so that the widths are equal."""
+    # Make text column, aligned
+    col = [[x] for x in col]
+    mv  = '?' # NB: do not use '': might vertically shorten column!
+    col = tabulate_orig.tabulate(col,[header],'plain',missingval=mv)
+    # Pad on the right, for equal widths
+    col = col.splitlines()
+    mxW = max(len(s) for s in col)
+    col = [s + ' '*(mxW-len(s)) for s in col]
+    # Use pad char, such as 'æ'
+    col = [s.replace(' ',pad)   for s in col]
+    return col
+
 # Abbreviations
 abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
 de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
@@ -408,18 +430,6 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
     # Defaults averages
     if not statkeys:
         statkeys = ['rmse.a','rmv.a','rmse.f']
-
-    def tabulate_column(col,header):
-        """Align single column (on decimal pt) using tabulate().
-        Pad for equal length."""
-        col = [[x] for x in col]
-        mv  = '?' # NB: do not use '': might vertically shorten column!
-        col = tabulate_orig.tabulate(col,[header],'plain',missingval=mv)
-        col = col.splitlines()
-        mxW = max(len(s) for s in col)
-        col = [s + ' '*(mxW-len(s)) for s in col]
-        col = [s.replace(' ',pad)   for s in col]
-        return col
 
     # Fill in
     headr, mattr = [], []
@@ -434,8 +444,8 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
             vals .append(val)
             confs.append(conf)
         # Align
-        vals  = tabulate_column(vals , column)
-        confs = tabulate_column(confs, '1σ')
+        vals  = tabulate_column(vals , column, pad)
+        confs = tabulate_column(confs, '1σ'  , pad)
         assert len(vals)==len(confs)
         # Enter in headr, mattr
         headr.append(vals[0]+'  1σ')
