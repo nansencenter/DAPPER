@@ -1,3 +1,6 @@
+"""Define xpCube,
+
+which is handles the **presentation** of experiment (xp) results."""
 
 ##
 from dapper import *
@@ -10,6 +13,7 @@ import logging
 mpl_logger = logging.getLogger('matplotlib')
 
 
+# TODO: rename xpCube, xpList? Also remember "hypercube" 
 class ExperimentHypercube(NestedPrint):
     """View the list of xps as an n-rectangle whose dims correspond to attributes.
 
@@ -34,6 +38,7 @@ class ExperimentHypercube(NestedPrint):
     #----------------------------------
     # Core "hypercube" functionality
     #----------------------------------
+
     printopts = dict(excluded=['xp_list','xp_dict','Coord'])
     tags = (re.compile(r'^tag\d'), )
 
@@ -90,7 +95,7 @@ class ExperimentHypercube(NestedPrint):
             return [xp for xp in self.xp_list if match_dict(xp)]
         elif isinstance(key,list):
             # Get list of items
-            return [self[k] for k in key]
+            return ExperimentList([self[k] for k in key])
         else:
             return self.xp_list[key]
 
@@ -102,7 +107,7 @@ class ExperimentHypercube(NestedPrint):
         # coord = (axes[ax].index(getattr(xp,ax,None)) for ax in axes)
         return self.Coord(*coord)
 
-    def groupby(self,*projection_axs, nullval="NULL"):
+    def group_along(self, *projection_axs, nullval="NULL"):
         """Group indices of xp_list by their coordinates,
 
         whose ticks along *projection_axs are set to nullval."""
@@ -153,17 +158,24 @@ class ExperimentHypercube(NestedPrint):
         avrg = lambda xp: deep_getattr(xp,f'avrgs.{statkey}.val',None)
         return [avrg(xp) for xp in self.xp_list]
 
-    def mean_field(self, statkey="rmse.a", axis=()):
+    def mean_field(self, statkey="rmse.a", axis=('seed',)):
         stats = np.asarray(self.compile_avrgs(statkey))
-        groups = self.groupby(*axis)
+        groups = self.group_along(*axis)
         mean_cube = {}
         for coord,inds in groups.items():
-            mean_cube[coord] = np.mean(stats[inds])
+            # Don't use nanmean! It would give false impressions.
+            vals = stats[inds]
+            N = len(vals)
+            uq = UncertainQtty(np.mean(vals), sqrt(np.var(vals,ddof=1)/N))
+            uq.nTotal   = N
+            uq.nFail    = N - np.isfinite(vals).sum()
+            uq.nSuccess = N - uq.nFail
+            mean_cube[coord] = uq
         return mean_cube
 
     def tuned_field(self,
             statkey="rmse.a", costfun=None,
-            mean_axs=(), optim_axs=(),
+            mean_axs=('seed',), optim_axs=(),
             ):
         """Get (compile/tabulate) a stat field optimised wrt. tuning params."""
 
@@ -177,21 +189,25 @@ class ExperimentHypercube(NestedPrint):
         mean_cube = self.mean_field(statkey, mean_axs)
         mean_subspace = {ax:"NULL" for ax in mean_axs}
 
-        # Group by optim_axs and mean_axs
-        tuned_mean_groups = self.groupby(*optim_axs,*mean_axs)
+        # Gather along optim_axs (and mean_axs)
+        tuned_mean_groups = self.group_along(*optim_axs,*mean_axs)
 
         optimum_cube = {}
         for group_coord, inds_in_group in tuned_mean_groups.items():
 
-            # Find optimal value and coordinate wihtin group
+            # Find optimal value and coord within group
             optimum = np.inf, None
             for ix in inds_in_group:
+
+                # Get value from mean_cube
                 coord = self.coord(self[ix])
                 mean_coord = coord._replace(**mean_subspace)
-                mean_val   = mean_cube[mean_coord]
+                # TODO: AFAICT, mean_coord gets re-produced and re-checked
+                #       for all seeds, which is unnecessary.
+                mean_val   = mean_cube[mean_coord].val
 
                 cost = costfun(mean_val)
-                if cost < optimum[0]:
+                if cost < optimum[0]: # always False for NaN's  
                     optimum = cost, mean_coord
 
             optimum_cube[group_coord] = optimum
@@ -240,7 +256,6 @@ def load_xps(savepath):
             xps.append( load_xp(f) )
 
     return xps
-
 
 
 
@@ -409,6 +424,7 @@ def plot1d(hypercube, x_ax,
     xcld      = (*styled_attrs, panel_ax)
     optim_axs = intersect(complement(optim_axs, *xcld), *hypercube.axes)
     mean_axs  = intersect(complement(mean_axs , *xcld), *hypercube.axes)
+
     # Get tuned hypercube
     tuned_cube = hypercube.tuned_field(statkey, costfun, mean_axs, optim_axs)
 
