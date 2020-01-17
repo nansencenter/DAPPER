@@ -36,16 +36,19 @@ Conventions
 
 Notations
 -------------
-x: truth
-y: obs
-E: ensemble -- shape (N,M)
-xn: member (column) n of E
-M: ndims
-N: ensemble size (number of members)
-Nx: ndims x
-Ny: ndims y
-Repeat symbols: series
-xx: time series of truth -- shape (K+1, M)
-kk: time series of times
-yy: time series of obs
-EE: time series of ens
+* xp: an experiment configuration. Includes...
+* xpList: list of xps
+* xpCube: dict of xps, perceived as a high-dim. sparse matrix
+* x: truth
+* y: obs
+* E: ensemble -- shape (N,M)
+* xn: member (column) n of E
+* M: ndims
+* N: ensemble size (number of members)
+* Nx: ndims x
+* Ny: ndims y
+* Repeat symbols: series
+* xx: time series of truth -- shape (K+1, M)
+* kk: time series of times
+* yy: time series of obs
+* EE: time series of ens
