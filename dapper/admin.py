@@ -230,14 +230,25 @@ class ExperimentList(list):
 
     def inds(self,strict=True,**kws):
         """Find (all) indices of configs whose attributes match kws.
-         - strict: If True, then configs lacking a requested attribute will match.
+
+        If strict, then xp's lacking a requested attr will also match.
         """
-        def match(C):
+        def match(xp):
             passthrough = lambda v: 'YOU SHALL NOT PASS' if strict else v
-            matches = [getattr(C,k,passthrough(v))==v for k,v in kws.items()]
+            matches = [getattr(xp,k,passthrough(v))==v for k,v in kws.items()]
             return all(matches)
 
-        return [i for i,C in enumerate(self) if match(C)]
+        return [i for i,xp in enumerate(self) if match(xp)]
+
+    def inds2(self,strict=True,**kws):
+        """Like inds(), but intentionally treat None
+        as a special value (when strict)."""
+        def match(xp):
+            passthrough = lambda v: None if strict else v
+            matches = [getattr(xp,k,None)==v for k,v in kws.items()]
+            return all(matches)
+
+        return [i for i,xp in enumerate(self) if match(xp)]
 
     @property
     def da_methods(self):
@@ -343,7 +354,7 @@ class ExperimentList(list):
           - tabulation is only an option
           - abbreviates labels to width abbrev
         """
-        distinct, redundant, common = self.split_attrs(nomerge="da_method")
+        distinct, redundant, common = self.split_attrs(nomerge=["da_method"])
         labels = distinct.keys()
         values = distinct.values()
 
@@ -392,10 +403,12 @@ class ExperimentList(list):
         if sd is True: sd = set_seed()
 
         # save-paths
-        rpath = run_path(savename,host=mp or True)
+        # rpath = run_path(savename,host=mp or True)
+        rpath = run_path(savename)
         ipath = lambda ixp, sep: pjoin(rpath, f"ixp_{ixp}" + sep)
         os.makedirs(rpath, exist_ok=True)
-        print("Will save data to",rpath+"/")
+        # NB: Don't casually modify this message. It may be grepped.
+        print("Experiment data stored at",rpath+"/")
 
         if not mp: # No parallelization
             labels = self.gen_names() if desc else self.da_methods
@@ -403,7 +416,7 @@ class ExperimentList(list):
                 run_experiment(xp, label, HMM, sd, free, statkeys, ipath(ixp,"."), fail_gently, stat_kwargs)
 
         elif mp is "GCP":
-            with open(pjoin(rpath,"common_input"),"wb") as filestream:
+            with open(pjoin(rpath,"common_input"),"wb") as F:
                 dill.dump(dict(
                     HMM=HMM,
                     label=None,
@@ -412,25 +425,21 @@ class ExperimentList(list):
                     statkeys=None,
                     fail_gently=fail_gently,
                     stat_kwargs=stat_kwargs,
-                    ), filestream)
+                    ), F)
 
             for ixp, xp in enumerate(self):
                 idir = ipath(ixp, os.path.sep)
                 os.mkdir(idir)
-                with open(pjoin(idir, "variable_input"),"wb") as filestream:
-                    dill.dump(dict(xp=xp, ixp=ixp), filestream)
+                with open(pjoin(idir, "variable_input"),"wb") as F:
+                    dill.dump(dict(xp=xp, ixp=ixp), F)
 
-            # TO BE REPLACED BY CONDA_SUBMIT FILE
-            for idir in sorted_human(os.listdir(rpath)):
-                idir = pjoin(rpath,idir)
-                if os.path.isdir(idir):
-                    run_from_file(idir)
+            remote_work(rpath)
 
         elif mp in ["MP", True]:
 
             def run_with_fixed_args(arg):
                 xp, ixp = arg
-                return run_experiment(xp, None, HMM, sd, free, None, ipath(ixp,"."), fail_gently, stat_kwargs)
+                run_experiment(xp, None, HMM, sd, free, None, ipath(ixp,"."), fail_gently, stat_kwargs)
             args = zip(self,range(len(self)))
 
             with     set_tmp(tools.utils,'disable_progbar',True):
@@ -543,22 +552,21 @@ def print_cropped_traceback(ERR):
 
 
 def run_from_file(dirpath):
-    """Loads experiment parameters from file and calls run_experiment().
-
-    Assumes file tree:
-
-    - common_input
-    - dirpath/
-              - variable_input
-              - xp (output file)
-    """
-    savepath = pjoin(dirpath,'') # = dirpath/
-    common_dir = os.path.split(dirpath.rstrip(os.sep))[0] # = dirpath/..
+    """Loads experiment parameters from file and calls run_experiment()."""
+    savepath = pjoin(dirpath,'')                          # = dirpath/
+    common_dir = os.path.dirname(os.path.abspath(dirpath))# = dirpath/..
+    # common_dir = os.path.split(dirpath.rstrip(os.sep))[0] 
 
     with open(pjoin(dirpath,"variable_input"), "rb") as F:
         variable_input = dill.load(F)
 
-    with open(pjoin(common_dir,"common_input"), "rb") as F:
+    # Test if common_input file exists in savepath...
+    common_path = pjoin(savepath,"common_input")
+    if not os.path.isfile(common_path):
+        # ...Otherwise assume it's in the parent dir.
+        common_path = pjoin(common_dir,"common_input")
+
+    with open(common_path, "rb") as F:
         d = dill.load(F)
 
     xp  = variable_input['xp']
