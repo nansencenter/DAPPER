@@ -22,7 +22,7 @@ class ExperimentHypercube(NestedPrint):
 
     Normally, this array is highly sparse: array.size >> len(xps),
     coz there are many coordinates with no matching experiment,
-    eg. Coord(da_method=Climatology, rot=True, ...).
+    eg. coord(da_method=Climatology, rot=True, ...).
 
     Therefore, the hypercube IS NOT EXPLICITly represented as an array,
     but kept as a dict whose keys are coordinates.
@@ -39,7 +39,7 @@ class ExperimentHypercube(NestedPrint):
     # Core "hypercube" functionality
     #----------------------------------
 
-    printopts = dict(excluded=['xp_list','xp_dict','Coord'])
+    printopts = dict(excluded=['xp_list','xp_dict','make_coord'])
     tags = (re.compile(r'^tag\d'), )
 
     def __init__(self, xp_list, axes=None):
@@ -52,11 +52,11 @@ class ExperimentHypercube(NestedPrint):
         self.axes = axes
         self.make_ticks()
         # Define coord (Hashable, unlike dict. Fixed-length, unlike classes)
-        self.Coord = namedtuple('Coord', self.axes)
+        self.make_coord = namedtuple('coord', self.axes)
 
         # Fill "hypercube"
         self.xp_list = xp_list
-        self.xp_dict = {self.coord(xp): xp for xp in xp_list}
+        self.xp_dict = {self.get_coord(xp): xp for xp in xp_list}
 
     def make_ticks(self, ordering=dict(
                 N         = 'default',
@@ -87,7 +87,7 @@ class ExperimentHypercube(NestedPrint):
         """Get items from self.xp_list"""
         if hasattr(key,'da_method'):
             # Get a single item by its coordinates
-            return self.xp_dict[self.Coord(*key)]
+            return self.xp_dict[self.make_coord(*key)]
         elif isinstance(key, dict):
             # Get all items with attrs matching dict
             match_attr = lambda xp, k: getattr(xp,k,None)==key[k]
@@ -99,13 +99,13 @@ class ExperimentHypercube(NestedPrint):
         else:
             return self.xp_list[key]
 
-    def coord(self,xp):
+    def get_coord(self,xp):
         """Inverse of __getitem__"""
         axes = self.axes
         coord = (getattr(xp,ax,None) for ax in axes)
         # To use indices rather than the values themselves:
         # coord = (axes[ax].index(getattr(xp,ax,None)) for ax in axes)
-        return self.Coord(*coord)
+        return self.make_coord(*coord)
 
     def group_along(self, *projection_axs, nullval="NULL"):
         """Group indices of xp_list by their coordinates,
@@ -114,7 +114,7 @@ class ExperimentHypercube(NestedPrint):
         projection_axs = {ax:nullval for ax in projection_axs}
         groups = {}
         for ix, xp in enumerate(self.xp_list):
-            coord = self.coord(xp)._replace(**projection_axs)
+            coord = self.get_coord(xp)._replace(**projection_axs)
             if coord in groups:
                 groups[coord].append(ix)
             else:
@@ -217,7 +217,7 @@ class ExperimentHypercube(NestedPrint):
             for ix in inds_in_group:
 
                 # Get value from mean_cube
-                coord = self.coord(self[ix])
+                coord = self.get_coord(self[ix])
                 mean_coord = coord._replace(**mean_subspace)
                 # TODO: AFAICT, mean_coord gets re-produced and re-checked
                 #       for all seeds, which is unnecessary.

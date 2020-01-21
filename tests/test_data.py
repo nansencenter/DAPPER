@@ -110,7 +110,7 @@ def print_1d(hypercube, statkey="rmse.a", panel_axes=("da_method",),
                 attrs = {a: distinct[a][row] for a in distinct}
 
                 if mn:
-                    coord = cube_group.Coord(**attrs,
+                    coord = cube_group.make_coord(**attrs,
                             **{k:"NULL" for k in mean_axes_col})
                     avrgs += [mean_cube[coord]]
                 else:
