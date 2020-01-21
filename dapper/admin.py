@@ -190,6 +190,9 @@ def da_method(*default_dataclasses):
 class ExperimentList(list):
     """List, customized for holding ``da_method`` objects ("configs").
 
+    Mainly used to administrate the launching of experiments.
+    See ``ExperimentHypercube`` for experiment result presentation. 
+
      Modifications to `list`:
      - append() using `+=`, also for single items;
        this is hackey, but convenience is king.
@@ -228,24 +231,15 @@ class ExperimentList(list):
         if hasattr(B,'__len__'): B = ExperimentList(B) # Cast
         return B 
 
-    def inds(self,strict=True,**kws):
+    def inds(self,strict=True,missingval="NONSENSE",**kws):
         """Find (all) indices of configs whose attributes match kws.
 
-        If strict, then xp's lacking a requested attr will also match.
+        If strict, then xp's lacking a requested attr will not match,
+        unless the missingval (e.g. None) matches the required value.
         """
         def match(xp):
-            passthrough = lambda v: 'YOU SHALL NOT PASS' if strict else v
-            matches = [getattr(xp,k,passthrough(v))==v for k,v in kws.items()]
-            return all(matches)
-
-        return [i for i,xp in enumerate(self) if match(xp)]
-
-    def inds2(self,strict=True,**kws):
-        """Like inds(), but intentionally treat None
-        as a special value (when strict)."""
-        def match(xp):
-            passthrough = lambda v: None if strict else v
-            matches = [getattr(xp,k,None)==v for k,v in kws.items()]
+            missing = lambda v: missingval if strict else v
+            matches = [getattr(xp,k,missing(v))==v for k,v in kws.items()]
             return all(matches)
 
         return [i for i,xp in enumerate(self) if match(xp)]
