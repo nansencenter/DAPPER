@@ -154,19 +154,36 @@ class ExperimentHypercube(NestedPrint):
     #----------------------------------
     def compile_avrgs(self,statkey="rmse.a"):
         """Baically [getattr(xp.avrgs,statkey) for xp in xp_list]"""
-        statkey = de_abbrev(statkey)
-        avrg = lambda xp: deep_getattr(xp,f'avrgs.{statkey}.val',None)
-        return [avrg(xp) for xp in self.xp_list]
+        sk = de_abbrev(statkey)
+        avrg = lambda xp: deep_getattr(xp,f'avrgs.{sk}.val',None)
+        avrgs = []
+        nothing_found = True
+        for xp in self.xp_list:
+            a = avrg(xp)
+            avrgs.append(a)
+            if nothing_found and a is not None:
+                nothing_found = False
+        if nothing_found:
+            raise RuntimeError(f"The stat. field '{statkey}' was not found"
+                    " among any of the xp's.")
+        return avrgs
 
     def mean_field(self, statkey="rmse.a", axis=('seed',)):
         stats = np.asarray(self.compile_avrgs(statkey))
         groups = self.group_along(*axis)
         mean_cube = {}
         for coord,inds in groups.items():
+
             # Don't use nanmean! It would give false impressions.
             vals = stats[inds]
             N = len(vals)
-            uq = UncertainQtty(np.mean(vals), sqrt(np.var(vals,ddof=1)/N))
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore",category=RuntimeWarning)
+                # Don't print warnings caused by N=1.
+                # It already correctly yield nan's.
+                uq = UncertainQtty(np.mean(vals), sqrt(np.var(vals,ddof=1)/N))
+
             uq.nTotal   = N
             uq.nFail    = N - np.isfinite(vals).sum()
             uq.nSuccess = N - uq.nFail
