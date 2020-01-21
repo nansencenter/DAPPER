@@ -405,17 +405,37 @@ def tabulate_column(col,header,pad=' '):
 
     Use tabulate() to get decimal point alignment.
 
+    Particular treatment of inf and nan so that they don't
+    align left of the decimal point (makes too wide columns).
+
     Pad each row so that the widths are equal."""
+
+    def cnvrt(x):
+        if    np.isnan(x): return  "NAX"
+        elif x == -np.inf: return "-INX"
+        elif x ==  np.inf: return  "INX"
+        else:              return x 
+    def undo(s):
+        s = s.replace("NAX","nan")
+        s = s.replace("INX","inf")
+        return s
+
     # Make text column, aligned
-    col = [[x] for x in col]
+    col = [[cnvrt(x)] for x in col]
     mv  = '?' # NB: do not use '': might vertically shorten column!
     col = tabulate_orig.tabulate(col,[header],'plain',missingval=mv)
+
     # Pad on the right, for equal widths
     col = col.splitlines()
     mxW = max(len(s) for s in col)
     col = [s + ' '*(mxW-len(s)) for s in col]
+
+    # Undo nan/inf treatment
+    col = [undo(s) for s in col]
+
     # Use pad char, such as 'æ'
-    col = [s.replace(' ',pad)   for s in col]
+    col = [s.replace(' ',pad) for s in col]
+
     return col
 
 # Abbreviations
