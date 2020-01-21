@@ -13,7 +13,6 @@ import logging
 mpl_logger = logging.getLogger('matplotlib')
 
 
-# TODO: rename xpCube, xpList? Also remember "hypercube" 
 class ExperimentHypercube(NestedPrint):
     """View the list of xps as an n-rectangle whose dims correspond to attributes.
 
@@ -39,86 +38,108 @@ class ExperimentHypercube(NestedPrint):
     # Core "hypercube" functionality
     #----------------------------------
 
-    printopts = dict(excluded=['xp_list','xp_dict','make_coord'])
     tags = (re.compile(r'^tag\d'), )
 
-    def __init__(self, xp_list, axes=None):
-        xp_list = ExperimentList(xp_list)
+    def __init__(self, axes, dict=None):
+        self.axes = axes
+        self.Coord = namedtuple('coord', self.axes)
+        if dict is not None:
+            self._dict = dict
+
+    @classmethod
+    def from_list(cls, xp_list):
 
         # Define axes
-        if axes is None:
-            distinct_attrs = xp_list.split_attrs(nomerge=self.tags)[0]
-            axes = distinct_attrs
-        self.axes = axes
-        self.make_ticks()
-        # Define coord (Hashable, unlike dict. Fixed-length, unlike classes)
-        self.make_coord = namedtuple('coord', self.axes)
+        xp_list = ExperimentList(xp_list)
+        axes = xp_list.split_attrs(nomerge=['single_out_tag'])[0]
 
+        def make_ticks(axes, ordering=dict(
+                    N         = 'default',
+                    seed      = 'default',
+                    infl      = 'default',
+                    loc_rad   = 'default',
+                    rot       = 'as_found',
+                    da_method = 'as_found',
+                    )):
+            """Make and order ticks of all axes."""
+
+            for ax_name, arr in axes.items():
+                ticks = set(arr) # unique (jumbles order)
+
+                # Sort
+                order = ordering.get(ax_name,'default').lower()
+                if hasattr(order,'__call__'): # eg. mylist.index
+                    key = order
+                elif 'as_found' in order:
+                    ticks = sorted(ticks, key=arr.index)
+                else: # default sorting, with None placed at the end
+                    ticks = sorted(ticks, key= lambda x: (x is None, x))
+                if any(x in order for x in ['rev','inv']):
+                    ticks = ticks[::-1]
+                axes[ax_name] = ticks
+            return axes
+        axes = make_ticks(axes)
+
+        # Create coordinate system
+        obj = cls(axes)
         # Fill "hypercube"
-        self.xp_list = xp_list
-        self.xp_dict = {self.get_coord(xp): xp for xp in xp_list}
+        obj._dict = {obj.get_coord(xp):xp for xp in xp_list}
 
-    def make_ticks(self, ordering=dict(
-                N         = 'default',
-                seed      = 'default',
-                infl      = 'default',
-                loc_rad   = 'default',
-                rot       = 'as_found',
-                da_method = 'as_found',
-                )):
-        """Make and order ticks of all axes."""
+        return obj
 
-        for ax_name, arr in self.axes.items():
-            ticks = set(arr) # unique (jumbles order)
+    def as_dict(self):
+        return self._dict
 
-            # Sort
-            order = ordering.get(ax_name,'default').lower()
-            if hasattr(order,'__call__'): # eg. mylist.index
-                key = order
-            elif 'as_found' in order:
-                ticks = sorted(ticks, key=arr.index)
-            else: # default sorting, with None placed at the end
-                ticks = sorted(ticks, key= lambda x: (x is None, x))
-            if any(x in order for x in ['rev','inv']):
-                ticks = ticks[::-1]
-            self.axes[ax_name] = ticks
+    def as_list(self):
+        """Relies on python>=3.7 for keeping dict order"""
+        return list(self.as_dict().values())
+
+    def __iter__(self):
+        for xp in self.as_list(): yield xp
 
     def __getitem__(self,key):
-        """Get items from self.xp_list"""
+        """Indexing."""
         if hasattr(key,'da_method'):
             # Get a single item by its coordinates
-            return self.xp_dict[self.make_coord(*key)]
+            return self._dict[self.Coord(*key)]
         elif isinstance(key, dict):
             # Get all items with attrs matching dict
             match_attr = lambda xp, k: getattr(xp,k,None)==key[k]
             match_dict = lambda xp: all(match_attr(xp,k) for k in key)
-            return [xp for xp in self.xp_list if match_dict(xp)]
+            return [xp for xp in self if match_dict(xp)]
         elif isinstance(key,list):
             # Get list of items
             return ExperimentList([self[k] for k in key])
         else:
-            return self.xp_list[key]
+            return self.as_list()[key]
 
     def get_coord(self,xp):
-        """Inverse of __getitem__"""
-        axes = self.axes
-        coord = (getattr(xp,ax,None) for ax in axes)
-        # To use indices rather than the values themselves:
-        # coord = (axes[ax].index(getattr(xp,ax,None)) for ax in axes)
-        return self.make_coord(*coord)
+        """get_coord(), i.e. the inverse of (a clean version of) __getitem__."""
+        coord = (getattr(xp,ax,None) for ax in self.axes)
+        # Q: Why do we bother with Coord (a namedtuple)
+        #    instead of just using coord directly?
+        # A: To ensure all dict keys conform to the same coordinate system,
+        #    which is part of the idea of a "cube".
+        return self.Coord(*coord)
 
+    def get_tick_inds(self,xp):
+        axes = self.axes.items()
+        return (ticks.index(getattr(xp,ax)) for ax, ticks in axes)
+
+    def add_axis(self, axis):
+        if axis in self.axes: return
+        self.__init__( {**self.axes, axis:[None]} )
+        self._dict = {self.get_coord(xp):xp for xp in self}
+
+    # TODO: rename rm_axes
     def group_along(self, *projection_axs, nullval="NULL"):
-        """Group indices of xp_list by their coordinates,
-
-        whose ticks along *projection_axs are set to nullval."""
+        """Group by coordinates whose ticks along *projection_axs are set to nullval."""
         projection_axs = {ax:nullval for ax in projection_axs}
         groups = {}
-        for ix, xp in enumerate(self.xp_list):
+        for ix, xp in enumerate(self):
             coord = self.get_coord(xp)._replace(**projection_axs)
-            if coord in groups:
-                groups[coord].append(ix)
-            else:
-                groups[coord] = [ix]
+            if coord in groups: groups[coord].append(ix)
+            else:               groups[coord] = [ix]
         return groups
 
     #----------------------------------
@@ -137,7 +158,7 @@ class ExperimentHypercube(NestedPrint):
             
         for xp in self[coords]:
             xp = deepcopy(xp)
-            xp.tag1 = tag
+            xp.single_out_tag = tag
 
             # Avoid plotting optimal values.
             for a in NoneAttrs:
@@ -145,20 +166,21 @@ class ExperimentHypercube(NestedPrint):
 
             xps.append(xp)
 
-        # "Manually" define axes coz split_attrs() is slow
-        axes = {**self.axes, **dict(tag1=[tag,None]+self.axes.get('tag1',[]))}
-        self.__init__(self.xp_list+xps, axes)
+        self.add_axis('single_out_tag')
+        assert tag not in self.axes['single_out_tag']
+        self.axes['single_out_tag'].append(tag)
+        self._dict.update( {self.get_coord(xp):xp for xp in xps} )
 
     #----------------------------------
     # Processing wrt. to a stat. field
     #----------------------------------
     def compile_avrgs(self,statkey="rmse.a"):
-        """Baically [getattr(xp.avrgs,statkey) for xp in xp_list]"""
+        """Basically [getattr(xp.avrgs,statkey) for xp in as_list()]"""
         sk = de_abbrev(statkey)
         avrg = lambda xp: deep_getattr(xp,f'avrgs.{sk}.val',None)
         avrgs = []
         nothing_found = True
-        for xp in self.xp_list:
+        for xp in self:
             a = avrg(xp)
             avrgs.append(a)
             if nothing_found and a is not None:

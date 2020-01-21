@@ -17,6 +17,7 @@
 # - replace all np.vectorize in math.py with vectorize0
 # - replace header argument in tabulate_column with minWidth.
 
+# TODO: rename xpCube, xpList? Also remember "hypercube" 
 
 
 ##
@@ -84,7 +85,7 @@ def print_1d(hypercube, statkey="rmse.a", panel_axes=("da_method",),
 
             if mn:
                 # Average
-                cube_group = ExperimentHypercube(xps_col)
+                cube_group = ExperimentHypercube.from_list(xps_col)
                 mean_axes_col = intersect(mean_axes, *cube_group.axes)
                 # NB: don't use set() intersection -- keep ordering for pytest.
                 mn_title = f"Stats avrg'd wrt. {mean_axes_col}."
@@ -110,7 +111,7 @@ def print_1d(hypercube, statkey="rmse.a", panel_axes=("da_method",),
                 attrs = {a: distinct[a][row] for a in distinct}
 
                 if mn:
-                    coord = cube_group.make_coord(**attrs,
+                    coord = cube_group.Coord(**attrs,
                             **{k:"NULL" for k in mean_axes_col})
                     avrgs += [mean_cube[coord]]
                 else:
@@ -245,9 +246,9 @@ def _print_1d(*args,**kwargs):
 __file__ = "tests/test_data.py"
 savepath = save_dir(__file__)
 xps = load_xps(savepath)
-xps = ExperimentHypercube(xps)
+xps = ExperimentHypercube.from_list(xps)
 
-xps_shorter = ExperimentHypercube([xp for xp in xps
+xps_shorter = ExperimentHypercube.from_list([xp for xp in xps
     if getattr(xp,'da_method')!='LETKF'])
 
 ##
