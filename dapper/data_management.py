@@ -38,8 +38,6 @@ class ExperimentHypercube(NestedPrint):
     # Core "hypercube" functionality
     #----------------------------------
 
-    tags = (re.compile(r'^tag\d'), )
-
     def __init__(self, axes, dict=None):
         self.axes = axes
         self.Coord = namedtuple('coord', self.axes)
@@ -99,14 +97,13 @@ class ExperimentHypercube(NestedPrint):
 
     def __getitem__(self,key):
         """Indexing."""
-        if hasattr(key,'da_method'):
+        if isinstance(key, self.Coord):
             # Get a single item by its coordinates
-            return self._dict[self.Coord(*key)]
+            return self._dict[key]
         elif isinstance(key, dict):
             # Get all items with attrs matching dict
-            match_attr = lambda xp, k: getattr(xp,k,None)==key[k]
-            match_dict = lambda xp: all(match_attr(xp,k) for k in key)
-            return [xp for xp in self if match_dict(xp)]
+            inds = ExperimentList(self.as_list()).inds
+            return self[inds(**key,missingval=None)]
         elif isinstance(key,list):
             # Get list of items
             return ExperimentList([self[k] for k in key])
@@ -334,7 +331,7 @@ def plot1d(hypercube, x_ax,
     def _format_label(label):
         lbl = ''
         for k, v in label.items():
-           if flexcomp(k, 'da_method', *hypercube.tags):
+           if flexcomp(k, 'da_method', 'single_out_tag'):
                lbl = lbl + f' {v}'
            else:
                lbl = lbl + f' {collapse_str(k)}:{v}'
