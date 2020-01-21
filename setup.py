@@ -44,8 +44,9 @@ setuptools.setup(
     author_email="patrick.n.raanes@gmail.com",
     description="Data Assimilation with Python: a Package for Experimental Research.",
 
-    # >= 3.5 (for @), >=3.6 (for mpl==3.1), >=3.7 (for dataclass, and capture_output).
-    # >=3.6 (for mpl==3.1), >=3.7 (for dataclass, and capture_output).
+    # >= 3.5 (for @),
+    # >=3.6 (for mpl==3.1),
+    # >=3.7 (for dataclass, capture_output, dict ordering).
     python_requires='~=3.7',
 
     # Dependencies. Use pipdeptree and pipreqs tools to list.
