@@ -255,18 +255,30 @@ class ExperimentList(list):
 
         def _aggregate_keys():
             "Aggregate keys from all configs"
+
             if len(self)==0: return []
+
             # Start with da_method
             aggregate = ['da_method']
+
             # Aggregate all other keys
             for config in self:
+
                 # Get dataclass fields
-                dc_fields = dc.fields(config.__class__)
-                dc_names = [F.name for F in dc_fields]
+                try:
+                    dc_fields = dc.fields(config.__class__)
+                    dc_names = [F.name for F in dc_fields]
+                    keys = config.__dict__.keys()
+                except TypeError:
+                    # Assume namedtuple
+                    dc_names = []
+                    keys = config._fields
+
                 # For all potential keys:
-                for k in config.__dict__.keys():
+                for k in keys:
                     # If not already present:
                     if k not in aggregate:
+
                         # If dataclass, check repr:
                         if k in dc_names:
                             if dc_fields[dc_names.index(k)].repr:
@@ -274,6 +286,7 @@ class ExperimentList(list):
                         # Else, just append
                         else:
                             aggregate.append(k)
+
             # Remove unwanted
             excluded  = [re.compile('^_'),'avrgs','stats','HMM']
             aggregate = complement(aggregate,*excluded)
