@@ -688,12 +688,14 @@ def _filter(iterable, *criteria, including=True, dict=False):
     else:    return [x   for x   in iterable         if condition(x)]
 
 
-def transpose_lists(list_of_lists, enforce_rectangle=True, as_list=False):
-    T = list_of_lists # alias
+def transpose_lists(LL, enforce_rectangle=True, as_list=False):
+    """Example:
+    >>> LL = [[i*10 + j for j in range(4)] for i in range(3)]
+    """
     if enforce_rectangle:
-        assert all(len(T[0])==len(row) for row in T)
+        assert all(len(LL[0])==len(row) for row in LL)
 
-    new = zip(*T) # transpose
+    new = zip(*LL) # transpose
 
     if as_list:
         # new = list(map(list, new))
