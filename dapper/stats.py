@@ -400,21 +400,32 @@ def warn_zero_variance(err,flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def tabulate_column(col,header,pad=' '):
+def tabulate_column(col,header,pad=' ',missingval='',frmt=None):
     """Format a single column, return as list.
 
-    Use tabulate() to get decimal point alignment.
+    - Use tabulate() to get decimal point alignment.
+    - Inf and nan are handled individually so that they don't
+      align left of the decimal point (makes too wide columns).
+    - Pad (on the right) each row so that the widths are equal.
+    - Missingval is re-implemented, because tabulate crops col[-1]
+      when this is None and missingval is '' or ' '.
+    """
 
-    Particular treatment of inf and nan so that they don't
-    align left of the decimal point (makes too wide columns).
-
-    Pad each row so that the widths are equal."""
+    # NB: Using '' vertically shortens col if col[-1] is None!
+    mv = '∅'
 
     def cnvrt(x):
-        if    np.isnan(x): return  "NAX"
-        elif x == -np.inf: return "-INX"
-        elif x ==  np.inf: return  "INX"
-        else:              return x 
+        if frmt is not None:
+            return frmt(x)
+        try:
+            if      x is None: return mv
+            elif  np.isnan(x): return  "NAX"
+            elif x == -np.inf: return "-INX"
+            elif x ==  np.inf: return  "INX"
+        except TypeError:
+            pass
+        return x
+
     def undo(s):
         s = s.replace("NAX","nan")
         s = s.replace("INX","inf")
@@ -422,18 +433,20 @@ def tabulate_column(col,header,pad=' '):
 
     # Make text column, aligned
     col = [[cnvrt(x)] for x in col]
-    mv  = '?' # NB: do not use '': might vertically shorten column!
-    col = tabulate_orig.tabulate(col,[header],'plain',missingval=mv)
+    col = tabulate_orig.tabulate(col,[header],'plain')
+    col = col.splitlines()
+
+    # Undo missingval -- must do before padding.
+    col = [s.replace(mv,missingval) for s in col]
 
     # Pad on the right, for equal widths
-    col = col.splitlines()
     mxW = max(len(s) for s in col)
     col = [s + ' '*(mxW-len(s)) for s in col]
 
     # Undo nan/inf treatment
     col = [undo(s) for s in col]
 
-    # Use pad char, such as 'æ'
+    # Use pad char
     col = [s.replace(' ',pad) for s in col]
 
     return col
