@@ -484,17 +484,22 @@ def deep_hasattr(obj,name):
 
 class AlignedDict(dict):
     """Provide aligned-printing for dict."""
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
     def __str__(self):
-        L = max([len(s) for s in self.keys()], default=0)
-        s = " "
-        for key in self.keys():
-            s += key.rjust(L)+": "+repr(self[key])+"\n "
-        s = s[:-2]
+        A = 2 # len(repr(key)) - len(key) 
+        L = max([len(s)+A for s in self.keys()], default=0)
+        s = " " # Indentation
+        for k in self.keys():
+            s += repr(k).rjust(L)
+            s += ": "
+            s += repr(self[k])
+            s +="\n " # Add  newline + indentation
+        s = s[:-2] # Rm last newline + indentation
         return s
     def __repr__(self):
-        return type(self).__name__ + "(**{\n " + str(self)[1:].replace("\n",",\n") + "\n})"
+        s = str(self)                 # Repeat str
+        s = s.replace("\n",",\n")     # Commas
+        if self: s = "\n" + s + "\n"  # Surrounding newlines
+        return "{" + s + "}"          # Clams
 
 
 class Bunch(NestedPrint,dict):
