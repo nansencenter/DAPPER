@@ -705,19 +705,19 @@ def transpose_lists(LL, enforce_rectangle=True, as_list=False):
 
 # Incredibly, it is difficult to make this less verbose
 # (the one-liner is unpredicable for non-rectangular cases)
-def transpose_dicts(dict_of_dicts,enforce_rectangle=True):
-    d = dict_of_dicts
+def transpose_dicts(DD,enforce_rectangle=True):
+    """Example:
+    >>> DD = {chr(97+i): {chr(110+j):i*10+j for j in range(4)} for i in range(3)}
+    """
     new = {}
-    for i in d:
+    for i in DD:
 
         if enforce_rectangle and new:
-            assert cols == list(d[i])
-        cols = list(d[i])
+            assert prev == DD[i].keys(), f"Key(s) missing in row {i}"
+        prev = DD[i].keys()
 
-        for j in d[i]:
-            if j not in new:
-                new[j] = {}
-            new[j][i] = d[i][j]
+        for j in DD[i]:
+            new.setdefault(j,{})[i] = DD[i][j]
 
     return new
 
