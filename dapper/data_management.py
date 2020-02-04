@@ -13,7 +13,7 @@ import logging
 mpl_logger = logging.getLogger('matplotlib')
 
 
-class ExperimentHypercube:
+class xpSpace:
     """View the list of xps as an n-rectangle whose dims correspond to attributes.
 
     This hyper-rectangle ("hypercube") is of shape: (len(ax) for ax in axes),
@@ -86,7 +86,7 @@ class ExperimentHypercube:
         """Indexing."""
         if isinstance(key, dict):
             # Get all items with attrs matching dict
-            # Note: implmentation is simpler than for ExperimentList.
+            # Note: implmentation is simpler than for xpList.
             match1 = lambda coord, k: getattr(coord,k)==key[k]
             match  = lambda coord: all(match1(coord,k) for k in key)
             inds   = [i for i,coord in enumerate(self) if match(coord)]
@@ -215,7 +215,7 @@ class ExperimentHypercube:
     def from_list(cls, xp_list):
 
         # Define axes
-        xp_list = ExperimentList(xp_list)
+        xp_list = xpList(xp_list)
         axes = xp_list.split_attrs(nomerge=['single_out_tag'])[0]
 
         def make_ticks(axes, ordering=dict(

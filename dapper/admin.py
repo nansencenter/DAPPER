@@ -176,7 +176,7 @@ def da_method(*default_dataclasses):
         @method
         def print_avrgs(self,keys=()):
             """Tabulated print of averages (those requested by ``keys``)"""
-            cfgs = ExperimentList([self])
+            cfgs = xpList([self])
             cfgs.print_avrgs(keys)
 
         method(replay)
@@ -187,11 +187,11 @@ def da_method(*default_dataclasses):
 
 # TODO: check collections.userlist
 # TODO: __add__ vs __iadd__
-class ExperimentList(list):
+class xpList(list):
     """List, customized for holding ``da_method`` objects ("configs").
 
     Mainly used to administrate the launching of experiments.
-    See ``ExperimentHypercube`` for experiment result presentation. 
+    See ``xpSpace`` for experiment result presentation. 
 
      Modifications to `list`:
      - append() using `+=`, also for single items;
@@ -228,7 +228,7 @@ class ExperimentList(list):
         """Indexing, also by a list"""
         try:              B=[self[k] for k in keys]   # if keys is list
         except TypeError: B=super().__getitem__(keys) # if keys is int, slice
-        if hasattr(B,'__len__'): B = ExperimentList(B) # Cast
+        if hasattr(B,'__len__'): B = xpList(B) # Cast
         return B 
 
     def inds(self,strict=True,missingval="NONSENSE",**kws):
@@ -329,7 +329,7 @@ class ExperimentList(list):
 
     def __repr__(self):
         distinct, redundant, common = self.split_attrs()
-        s = '<ExperimentList> of length %d with attributes:\n'%len(self)
+        s = '<xpList> of length %d with attributes:\n'%len(self)
         s += tabulate(distinct)
         s += "\nOther attributes:\n"
         s += str(AlignedDict({**redundant, **common}))
@@ -607,7 +607,7 @@ def save_data(script_name,*args,host=True,**kwargs):
 
         nameable_classes = dict(
             HMM    = lambda x: isinstance(x,HiddenMarkovModel),
-            cfgs   = lambda x: isinstance(x,ExperimentList),
+            cfgs   = lambda x: isinstance(x,xpList),
             config = lambda x: hasattr(x,'da_method'),
             stat   = lambda x: isinstance(x,Stats),
             avrg   = lambda x: getattr(x,"_isavrg",False),

@@ -5,7 +5,7 @@ from dapper import *
 
 sd0 = set_seed(3)
 
-cfgs  = ExperimentList(unique=True)
+cfgs  = xpList(unique=True)
 
 from dapper.mods.LA.small import HMM
 HMM.t.BurnIn=0

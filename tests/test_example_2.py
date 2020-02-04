@@ -14,7 +14,7 @@ HMM.t.KObs=10
 sd0 = set_seed(9)
 
 # Cfgs
-cfgs  = ExperimentList()
+cfgs  = xpList()
 cfgs += Climatology()
 cfgs += OptInterp()
 cfgs += Var3D(xB=0.1)
@@ -69,7 +69,7 @@ HMM.t.KObs=10
 sd0 = set_seed(9)
 
 # Cfgs
-cfgs  = ExperimentList()
+cfgs  = xpList()
 cfgs += Climatology()
 cfgs += OptInterp()
 cfgs += Var3D(xB=0.02)

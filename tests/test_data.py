@@ -119,7 +119,7 @@ def nest_xps(hypercube, statkey="rmse.a", axes=_DEFAULT_ALLOTMENT):
         # by computing `distinct` after eliminating inner axis.
         rows = table_tuned.nest_spaces(inner_axes=axes['inner'] or ())
         columns.rows = rows # TODO: rm
-        rows = ExperimentList([*rows])
+        rows = xpList([*rows])
         distinct = rows.split_attrs()[0]
         columns.row_keys = distinct
 
@@ -355,9 +355,9 @@ def _print_1d(*args,**kwargs):
 __file__ = "tests/test_data.py"
 savepath = save_dir(__file__)
 xps = load_xps(savepath)
-xps = ExperimentHypercube.from_list(xps)
+xps = xpSpace.from_list(xps)
 
-xps_shorter = ExperimentHypercube.from_list([xp for xp in xps.as_list()
+xps_shorter = xpSpace.from_list([xp for xp in xps.as_list()
     if getattr(xp,'da_method')!='LETKF'])
 
 ##
@@ -1484,7 +1484,7 @@ xps = [xp for xp in xps if True
     ]
 
 # Associate each control variable with a dimension in "hyperspace"
-xps = ExperimentHypercube.from_list(xps)
+xps = xpSpace.from_list(xps)
 
 # Single out a few particular experiment types to add to plot
 xps.single_out(dict(da_method='EnKF' ,infl=1.01), 'NO-infl NO-loc' , ('infl'))

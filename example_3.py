@@ -26,7 +26,7 @@ HMM.param_setters = dict(
 ##############################
 # DA Configurations
 ##############################
-cfgs = ExperimentList(unique=True)
+cfgs = xpList(unique=True)
 
 # for N in ccat(arange(5,10), arange(10, 20, 2), arange(20, 55, 5)):
     # for infl in 1+array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]):
@@ -42,7 +42,7 @@ cfgs = ExperimentList(unique=True)
 cfgs += EnKF   ('Sqrt',    50, infl=1.0, rot=True            )
 
 # Replicate all cfgs accross non-da_method control variables
-xps = ExperimentList()
+xps = xpList()
 for seed in range(8): # Experiment repetitions
     for F in [8]:      # L96 Forcing param
         for xp in deepcopy(cfgs):
@@ -56,7 +56,7 @@ for seed in range(8): # Experiment repetitions
 ##############################
 savepath = xps.launch(HMM,sd0,True,__file__)
 
-# xps = ExperimentList(load_xps(savepath))
+# xps = xpList(load_xps(savepath))
 # xps.print_avrgs()
 # sys.exit(0)
 
@@ -78,7 +78,7 @@ xps = [xp for xp in xps if True
     ]
 
 # Associate each control variable with a dimension in "hyperspace"
-xps = ExperimentHypercube.from_list(xps)
+xps = xpSpace.from_list(xps)
 
 # Single out a few particular experiment types to add to plot
 # NB: Must use infl=1.01 (not 1) to reproduce Bocquet's "no infl" results.
