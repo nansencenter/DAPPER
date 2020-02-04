@@ -63,6 +63,10 @@ savepath = xps.launch(HMM,sd0,True,__file__)
 ##############################
 # Plot results
 ##############################
+
+# TODO:
+savepath = '/home/pnr/dpr_data/example_3/run_2020-01-02_00-00-00'
+
 # The following **only** uses saved data => Can run as a separate script.
 xps = load_xps(savepath)
 
@@ -74,41 +78,16 @@ xps = [xp for xp in xps if True
     ]
 
 # Associate each control variable with a dimension in "hyperspace"
-xps = ExperimentHypercube(xps)
+xps = ExperimentHypercube.from_list(xps)
 
 # Single out a few particular experiment types to add to plot
-xps.single_out(dict(da_method='EnKF' ,infl=1.0), 'No-INFL No-LOC' , ('infl'))
-xps.single_out(dict(da_method='LETKF',infl=1.0), 'No-INFL'        , ('infl'))
+# NB: Must use infl=1.01 (not 1) to reproduce Bocquet's "no infl" results.
+xps.single_out(dict(da_method='EnKF' ,infl=1.01), 'NO-infl NO-loc' , ('infl'))
+xps.single_out(dict(da_method='LETKF',infl=1.01), 'NO-infl'        , ('infl'))
 
 # Plot
-plt.ion()
-fig, axs, hypercube, plot_data = plot1d(xps, 'N', 'rmse.a', # fignum=1,
-         mean_axs=('seed',), # could also include 'rot' for example
-        optim_axs=('loc_rad','rot','infl'),
-    # Try uncommenting one (or more if non-conflict!) of these lines:
-    #     marker_ax="da_method", color_ax='infl', color_in_legend=False, 
-    #     marker_ax='seed',                      marker_in_legend=False,
-    #  linestyle_ax="rot",                    linestyle_in_legend=True,
-    #      panel_ax='seed',
-        )
+# Try mixing around the various axes allotments:
 
+# TODO: Add rot. Comment out fignum
 
-# Other plotting perspectives:
-# fig, axs, hypercube, plot_data = plot1d(xps, 'infl', 'rmse.a', fignum=1,
-#          mean_axs=('seed',),
-#         optim_axs=('loc_rad','rot'),
-#          color_ax='N', color_in_legend=False, 
-#         # Try toggling these two lines on/off:
-#          panel_ax='da_method',
-#         # marker_ax='da_method',
-#         )
-
-# Other plotting perspectives:
-# fig, axs, hypercube, plot_data = plot1d(xps, 'N', 'rmse.a', fignum=1,
-#         panel_ax='infl',
-#          mean_axs=('seed',),
-#         optim_axs=('loc_rad','rot'),
-#         )
-
-fig.suptitle("\n".join([fig._suptitle.get_text(), os.path.basename(savepath)]))
 ##

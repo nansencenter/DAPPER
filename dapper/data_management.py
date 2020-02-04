@@ -1,4 +1,4 @@
-"""Define xpCube,
+"""Define xpSpace,
 
 which is handles the **presentation** of experiment (xp) results."""
 
@@ -13,7 +13,7 @@ import logging
 mpl_logger = logging.getLogger('matplotlib')
 
 
-class ExperimentHypercube(NestedPrint):
+class ExperimentHypercube:
     """View the list of xps as an n-rectangle whose dims correspond to attributes.
 
     This hyper-rectangle ("hypercube") is of shape: (len(ax) for ax in axes),
@@ -35,15 +35,182 @@ class ExperimentHypercube(NestedPrint):
     """
 
     #----------------------------------
-    # Core "hypercube" functionality
+    # Abstract "hypercube" functionality
     #----------------------------------
 
-    def __init__(self, axes, dict=None):
-        self.axes = axes
-        self.Coord = namedtuple('coord', self.axes)
-        if dict is not None:
-            self._dict = dict
+    def define_coordinate_system(self,axes):
+        self.axes = AlignedDict(axes)
 
+        # Accompanying coordinate defintion.
+        # Q: Why do we bother with Coord (a namedtuple)
+        #    instead of just using a dict of attrs directly?
+        # A: To ensure all dict keys conform to the same coordinate system,
+        #    which is part of the idea of a "cube".
+        Coord = namedtuple('coord', axes)
+
+        # Pretty print
+        def str_dict(obj):
+            return str(obj).partition("(")[-1].partition(")")[0]
+        def str_tuple(obj):
+            return ", ".join(str(v) for v in obj._asdict().values())
+        Coord.str_dict = str_dict
+        Coord.str_tuple = str_tuple
+
+        return Coord
+
+    def __init__(self, axes, _dict=None):
+        self.Coord = self.define_coordinate_system(axes)
+        self._dict = _dict or dict()
+
+    def as_dict(self):
+        return self._dict
+
+    def as_list(self):
+        """Relies on python>=3.7 for keeping dict order"""
+        return list(self.as_dict().values())
+
+    def __iter__(self):
+        for coord in self.as_dict(): yield coord
+
+    def __len__(self):
+        return len(self.as_list())
+
+    # TODO: simplify?
+    def __contains__(self,key):
+        return key in self._dict
+
+    def __setitem__(self,key,val):
+        self._dict[key] = val
+
+    def __getitem__(self,key):
+        """Indexing."""
+        if isinstance(key, dict):
+            # Get all items with attrs matching dict
+            # Note: implmentation is simpler than for ExperimentList.
+            match1 = lambda coord, k: getattr(coord,k)==key[k]
+            match  = lambda coord: all(match1(coord,k) for k in key)
+            inds   = [i for i,coord in enumerate(self) if match(coord)]
+            return self[inds]
+        elif isinstance(key,list):
+            # Get list of items
+            return [self[k] for k in key]
+        elif isinstance(key, int) or isinstance(key, slice):
+            # Slice
+            return self.as_list()[key]
+        else:
+            # Default: get a single item by its coordinates
+            # NB: Shouldn't use isinstance(key, self.Coord)
+            # coz it fails when the namedtuple (Coord) has been
+            # instantiated in different places (but with equal params).
+            # See bugs.python.org/issue7796
+            return self._dict[key]
+
+    def get_coord(self,xp):
+        """get_coord(), i.e. the inverse of (a clean version of) __getitem__."""
+        coord = (getattr(xp,ax,None) for ax in self.axes)
+        return self.Coord(*coord)
+
+    def get_tick_inds(self,xp):
+        axes = self.axes.items()
+        return (ticks.index(getattr(xp,ax)) for ax, ticks in axes)
+
+    # NB: Not tested
+    # def prune_ticks(self):
+    #     """Eliminate superfluous ticks, but keep ordering."""
+    #     for axis, ticks in self.axes.items():
+    #         present = [getattr(coord,axis) for coord in self] # default not necessary!
+    #         self.axes[axis] = intersect(ticks,*present)
+
+    def add_axis(self, axis):
+        if axis in self.axes: return
+        d = self._dict # store
+        self.__init__( {**self.axes, axis:[None]} )
+        self._dict = {self.get_coord(coord):xp for coord, xp in d.items()}
+
+    def nest_spaces(self, inner_axes=None, outer_axes=None):
+        """Return a new hypercube with axes `outer_axes`,
+        
+        obtained by projecting along the ``inner_axes``.
+        The entries of this hypercube are themselves hypercubes,
+        with axes `inner_axes`,
+        each one regrouping the entries with the same (projected) coordinate. 
+        """
+
+        # Default: a singleton outer space,
+        # with everything contained in the inner (projection) space.
+        if inner_axes is None and outer_axes is None:
+            outer_axes = ()
+
+        # Validate
+        if inner_axes is None:
+            inner_axes = complement(self.axes, *outer_axes)
+        else:
+            assert outer_axes is None
+            outer_axes = complement(self.axes, *inner_axes)
+
+        # Include actual axes (ticks)
+        outer_axes = {a:self.axes[a] for a in outer_axes}
+        inner_axes = {a:self.axes[a] for a in inner_axes}
+
+        # Fill outer cube
+        outer_cube = self.__class__(outer_axes)
+        for coord in self:
+            xp = self[coord]
+            outer_coord = outer_cube.get_coord(coord)
+            if outer_coord in outer_cube:
+                inner_cube = outer_cube[outer_coord]
+            else:
+                inner_cube = self.__class__(inner_axes)
+                outer_cube[outer_coord] = inner_cube
+            inner_cube[inner_cube.get_coord(coord)] = xp
+
+        return outer_cube
+
+    def single_out(self,coords,tag=None,NoneAttrs=()):
+        """Insert duplicates of self[coords], with a tag.
+
+        This is to distinguish them from all other xps,
+        which prevents them being gobbled up in averaging/optimization."""
+        xps = []
+            
+        for xp in self[coords]:
+            xp = deepcopy(xp)
+            xp.single_out_tag = tag
+
+            # Avoid plotting optimal values.
+            for a in NoneAttrs:
+                setattr(xp,a,None)
+
+            xps.append(xp)
+
+        # Add axis
+        self.add_axis('single_out_tag')
+        # Add tag
+        assert tag not in self.axes['single_out_tag']
+        self.axes['single_out_tag'].append(tag)
+        # Add duplicated xps
+        self._dict.update( {self.get_coord(xp):xp for xp in xps} )
+
+    def __repr__(self):
+        s  = repr_type_and_name(self)
+        ID = " "*4 # indent
+        a  = repr(self.axes).replace("\n", "\n"+ID)
+        a  = a.replace("\n", ID+"\n")
+        s  += f" with axes: {a}."
+        s  += "\n"+ID + f"The dict has length {len(self)}"
+        m  = len(self)//2
+        head = [str(x) for x in [*self][:min(m,2)]]
+        tail = [str(x) for x in [*self][-min(m,2):]]
+        midl = ["..."] if len(head)+len(tail)<len(self) else []
+        if len(self):
+            s += ("\n"+2*ID).join([" with keys: [", *head, *midl, *tail])
+            s += "\n"+ID+"]"
+        s += "."
+        return s
+
+    #----------------------------------
+    # Experiment-specific functionality
+    #----------------------------------
     @classmethod
     def from_list(cls, xp_list):
 
@@ -59,7 +226,7 @@ class ExperimentHypercube(NestedPrint):
                     rot       = 'as_found',
                     da_method = 'as_found',
                     )):
-            """Make and order ticks of all axes."""
+            """Unique & sort, for each axis (individually) in axes."""
 
             for ax_name, arr in axes.items():
                 ticks = set(arr) # unique (jumbles order)
@@ -85,135 +252,67 @@ class ExperimentHypercube(NestedPrint):
 
         return obj
 
-    def as_dict(self):
-        return self._dict
+    def field(self,statkey="rmse.a"):
+        """Extract statkey for each item in self.
+        
+        Embellishments:
+            - de_abbrev
+            - found_anything
+        """
+        found_anything = False
 
-    def as_list(self):
-        """Relies on python>=3.7 for keeping dict order"""
-        return list(self.as_dict().values())
-
-    def __iter__(self):
-        for xp in self.as_list(): yield xp
-
-    def __getitem__(self,key):
-        """Indexing."""
-        if isinstance(key, self.Coord):
-            # Get a single item by its coordinates
-            return self._dict[key]
-        elif isinstance(key, dict):
-            # Get all items with attrs matching dict
-            inds = ExperimentList(self.as_list()).inds
-            return self[inds(**key,missingval=None)]
-        elif isinstance(key,list):
-            # Get list of items
-            return ExperimentList([self[k] for k in key])
-        else:
-            return self.as_list()[key]
-
-    def get_coord(self,xp):
-        """get_coord(), i.e. the inverse of (a clean version of) __getitem__."""
-        coord = (getattr(xp,ax,None) for ax in self.axes)
-        # Q: Why do we bother with Coord (a namedtuple)
-        #    instead of just using coord directly?
-        # A: To ensure all dict keys conform to the same coordinate system,
-        #    which is part of the idea of a "cube".
-        return self.Coord(*coord)
-
-    def get_tick_inds(self,xp):
-        axes = self.axes.items()
-        return (ticks.index(getattr(xp,ax)) for ax, ticks in axes)
-
-    def add_axis(self, axis):
-        if axis in self.axes: return
-        self.__init__( {**self.axes, axis:[None]} )
-        self._dict = {self.get_coord(xp):xp for xp in self}
-
-    # TODO: rename rm_axes
-    def group_along(self, *projection_axs, nullval="NULL"):
-        """Group by coordinates whose ticks along *projection_axs are set to nullval."""
-        projection_axs = {ax:nullval for ax in projection_axs}
-        groups = {}
-        for ix, xp in enumerate(self):
-            coord = self.get_coord(xp)._replace(**projection_axs)
-            if coord in groups: groups[coord].append(ix)
-            else:               groups[coord] = [ix]
-        return groups
-
-    #----------------------------------
-    # Other functionality
-    #----------------------------------
-    def axis_ticks_nn(self,axis_name):
-        """Axis ticks without None"""
-        return [x for x in self.axes[axis_name] if x is not None]
-
-    def single_out(self,coords,tag=None,NoneAttrs=()):
-        """Insert duplicates of self[coords], with a tag.
-
-        This is to distinguish them from all other xps,
-        which prevents them being gobbled up in averaging/optimization."""
-        xps = []
-            
-        for xp in self[coords]:
-            xp = deepcopy(xp)
-            xp.single_out_tag = tag
-
-            # Avoid plotting optimal values.
-            for a in NoneAttrs:
-                setattr(xp,a,None)
-
-            xps.append(xp)
-
-        self.add_axis('single_out_tag')
-        assert tag not in self.axes['single_out_tag']
-        self.axes['single_out_tag'].append(tag)
-        self._dict.update( {self.get_coord(xp):xp for xp in xps} )
-
-    #----------------------------------
-    # Processing wrt. to a stat. field
-    #----------------------------------
-    def compile_avrgs(self,statkey="rmse.a"):
-        """Basically [getattr(xp.avrgs,statkey) for xp in as_list()]"""
         sk = de_abbrev(statkey)
-        avrg = lambda xp: deep_getattr(xp,f'avrgs.{sk}.val',None)
-        avrgs = []
-        nothing_found = True
-        for xp in self:
-            a = avrg(xp)
-            avrgs.append(a)
-            if nothing_found and a is not None:
-                nothing_found = False
-        if nothing_found:
-            raise RuntimeError(f"The stat. field '{statkey}' was not found"
-                    " among any of the xp's.")
+        get_field = lambda xp: deep_getattr(xp,f'avrgs.{sk}',None)
+
+        avrgs = self.__class__(self.axes)
+
+        for coord in self:
+            xp = self[coord]
+            a = get_field(xp)
+            avrgs[coord] = a
+
+            found_anything = found_anything or (a is not None)
+        if not found_anything: raise RuntimeError(
+                f"The stat. field '{statkey}' was not found"
+                " among any of the xp's.")
         return avrgs
 
-    def mean_field(self, statkey="rmse.a", axis=('seed',)):
-        stats = np.asarray(self.compile_avrgs(statkey))
-        groups = self.group_along(*axis)
-        mean_cube = {}
-        for coord,inds in groups.items():
+    def mean_field(self, statkey="rmse.a", axes=None):
+
+        # Note: The case ``axes=()`` should work w/o special treatment.
+        if axes is None:
+            return self.field(statkey)
+
+        mean_cube = self.nest_spaces(axes)
+        for coord in mean_cube:
+            group = mean_cube[coord]
+
+            uqs = group.field(statkey)
+            vals = [uq.val for uq in uqs.as_list()]
 
             # Don't use nanmean! It would give false impressions.
-            vals = stats[inds]
-            N = len(vals)
+            mu = np.mean(vals)
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore",category=RuntimeWarning)
                 # Don't print warnings caused by N=1.
                 # It already correctly yield nan's.
-                uq = UncertainQtty(np.mean(vals), sqrt(np.var(vals,ddof=1)/N))
+                var = np.var(vals,ddof=1)
 
+            N = len(vals)
+            uq = UncertainQtty(mu, sqrt(var/N))
             uq.nTotal   = N
             uq.nFail    = N - np.isfinite(vals).sum()
             uq.nSuccess = N - uq.nFail
+
             mean_cube[coord] = uq
         return mean_cube
 
-    def tuned_field(self,
-            statkey="rmse.a", costfun=None,
-            mean_axs=('seed',), optim_axs=(),
-            ):
+    def tuned_uq(self, axes=None, costfun=None):
         """Get (compile/tabulate) a stat field optimised wrt. tuning params."""
+
+        if axes is None:
+            return self
 
         # Define cost-function
         costfun = (costfun or 'increasing').lower()
@@ -221,34 +320,28 @@ class ExperimentHypercube(NestedPrint):
         elif 'decreas' in costfun: costfun = (lambda x: -x)
         else: assert hasattr(costfun, '__call__') # custom
 
-        # Average
-        mean_cube = self.mean_field(statkey, mean_axs)
-        mean_subspace = {ax:"NULL" for ax in mean_axs}
-
-        # Gather along optim_axs (and mean_axs)
-        tuned_mean_groups = self.group_along(*optim_axs,*mean_axs)
-
-        optimum_cube = {}
-        for group_coord, inds_in_group in tuned_mean_groups.items():
+        tuned_cube = self.nest_spaces(axes)
+        for outer_coord in tuned_cube:
+            group = tuned_cube[outer_coord]
 
             # Find optimal value and coord within group
-            optimum = np.inf, None
-            for ix in inds_in_group:
+            MIN = np.inf
+            for coord in group:
+                uq = group[coord]
 
-                # Get value from mean_cube
-                coord = self.get_coord(self[ix])
-                mean_coord = coord._replace(**mean_subspace)
-                # TODO: AFAICT, mean_coord gets re-produced and re-checked
-                #       for all seeds, which is unnecessary.
-                mean_val   = mean_cube[mean_coord].val
+                cost = costfun(uq.val)
+                if cost <= MIN: # inf<=inf is True
+                    MIN = cost
+                    uq_opt = uq
+                    uq_opt.tuning_coord = coord
 
-                cost = costfun(mean_val)
-                if cost < optimum[0]: # always False for NaN's  
-                    optimum = cost, mean_coord
+            tuned_cube[outer_coord] = uq_opt
 
-            optimum_cube[group_coord] = optimum
+        return tuned_cube
 
-        return optimum_cube
+    def axis_ticks_nn(self,axis_name):
+        """Axis ticks without None"""
+        return [x for x in self.axes[axis_name] if x is not None]
 
 
 
@@ -257,6 +350,8 @@ def load_xps(savepath):
 
     Note: saving this list in a new file (takes considerable time and)
           does not yield lower loading times."""
+
+    savepath = os.path.expanduser(savepath)
 
     # SINGLE-HOST RUN, NEW FORMAT
     if savepath.endswith(".xps"):
@@ -291,294 +386,7 @@ def load_xps(savepath):
         for f in progbar(files,desc="Loading"):
             xps.append( load_xp(f) )
 
+    else:
+        raise RuntimeError("Could not locate xp(s) files")
+
     return xps
-
-
-
-
-def plot1d(hypercube, x_ax, 
-        statkey="rmse.a", costfun=None,
-        mean_axs=(), optim_axs=(),
-         panel_ax=None,
-         # style_dict:
-        linestyle_ax=None,        linestyle_in_legend=True,
-           marker_ax=None,           marker_in_legend=True,
-            alpha_ax=None,            alpha_in_legend=True,
-            color_ax=None,            color_in_legend=True,
-        #
-        attrs_that_must_affect_color=('da_method',),
-        fignum=None,
-        ):
-    """Plot the avrgs of ``statkey`` as a function of the attribute ``x_ax``.
-
-    Firstly, mean/optimum comps are done for ``mean_axs``, ``optim_axs``.
-    The argmins are plotted on smaller axes below the main plot.
-
-    The experiments can (optional) also be distributed to a row of panels,
-    one for each value of an attribute set in ``panel_ax``.
-
-    The remaining attributes constitute the legend key for each plotted curve.
-    They are also used to color each line differently.
-    However, these attributes may be subtracted from by assigning ``style_ax``,
-    where ``style`` is a linestyle aspect such as (linestyle, maker, alpha).
-    If used, ``color_ax`` sets the cmap to a sequential (rainbow) colorscheme,
-    whose coloring depends only on that attribute.
-    """
-
-    # Panel
-    panels = hypercube.axes.get(panel_ax,[None])
-
-    def _format_label(label):
-        lbl = ''
-        for k, v in label.items():
-           if flexcomp(k, 'da_method', 'single_out_tag'):
-               lbl = lbl + f' {v}'
-           else:
-               lbl = lbl + f' {collapse_str(k)}:{v}'
-        return lbl[1:]
-
-    def _get_tick_index(coord,axis_name):
-        tick = getattr(coord,axis_name)
-        if tick is None:
-            # By design, None should occur at end of axis,
-            # and the index -1 would typically be a suitable flag.
-            # However, sometimes we'd like further differentiation, and so:
-            index = None
-        else:
-            ax = hypercube.axis_ticks_nn(axis_name)
-            index = ax.index(tick)
-            if index == len(ax)-1:
-                index = -1
-        return index
-
-    from matplotlib.lines import Line2D
-    markers = complement(Line2D.markers.keys(), ',')
-    markers = markers[markers.index(".")+1:markers.index("_")]
-    linestyles = ['--', '-.', ':']
-    cmap = plt.get_cmap('jet')
-
-    def _marker(index):
-        axis = hypercube.axis_ticks_nn(marker_ax)
-        if index in [None, -1]:   return '.'
-        else:                     return markers[index%len(axis)]
-    def _linestyle(index):
-        axis = hypercube.axis_ticks_nn(linestyle_ax)
-        if index in [None, -1]:   return '-'
-        else:                     return linestyles[index%len(axis)]
-    def _alpha(index):
-        axis = hypercube.axis_ticks_nn(alpha_ax)
-        if   index in [None, -1]: return 1
-        else:                     return ((1+index)/len(axis))**1.5
-    def _color(index):
-        axis = hypercube.axis_ticks_nn(color_ax)
-        if   index is None:       return None
-        elif index is -1:         return cmap(1)
-        else:                     return cmap((1+index)/len(axis))
-    def _color_by_hash(x):
-        """Color as a (deterministic) function of x."""
-
-        # Particular cases
-        if x=={'da_method': 'Climatology'}:
-            return (0,0,0)
-        elif x=={'da_method': 'OptInterp'}:
-            return (0.5,0.5,0.5)
-        else:
-            # General case
-            x = str(x).encode() # hashable
-            # HASH = hash(tuple(x)) # Changes randomly each session
-            HASH = int(hashlib.sha1(x).hexdigest(),16)
-            colors = plt.get_cmap('tab20').colors
-            return colors[HASH%len(colors)]
-
-    # Load Style info into dict-of-dicts
-    _eval = lambda s, ns=locals(): eval(s,None,ns)
-    style_dict = {}
-    for a in ['alpha','color','marker','linestyle']:
-        if _eval(f"{a}_ax"):
-            style_dict[a] = dict(
-                axis      = _eval(f"{a}_ax"),
-                in_legend = _eval(f"{a}_in_legend"),
-                formtr    = _eval(f"_{a}"),
-                )
-    def styles_by_attr(attr):
-        return [p for p in style_dict.values() if p['axis']==attr]
-    styled_attrs = [p['axis'] for p in style_dict.values()]
-
-    def set_style(coord):
-        """Define line properties"""
-
-        dct = {'markersize': 6}
-
-        # Convert coord to label (dict with relevant attrs)
-        label = {attr:val for attr,val in coord._asdict().items()
-                if attr is not panel_ax
-                and val not in [None, "NULL", 'on x-axis']}
-
-        # Assign color by label
-        label1 = {attr:val for attr,val in label.items()
-                 if attr in attrs_that_must_affect_color
-                 or attr not in styled_attrs}
-        dct['color'] = _color_by_hash(label1)
-
-        # Assign legend label
-        label2 = {attr:val for attr,val in label.items()
-                 if attr not in styled_attrs
-                 or any(p['in_legend'] for p in styles_by_attr(attr))}
-        dct['label'] = _format_label(label2)
-
-        # Get tick inds
-        tick_inds = {}
-        for attr,val in coord._asdict().items():
-            if styles_by_attr(attr):
-                tick_inds[attr] = _get_tick_index(coord,attr)
-
-        # Decide whether to label this line
-        do_lbl = True
-        for attr,val in coord._asdict().items():
-            styles = styles_by_attr(attr)
-            if styles and not any(style['in_legend'] for style in styles):
-                style = styles[0]
-                # Check if val has a "particular" value
-                do_lbl = tick_inds[attr] in [None,-1] 
-                if not do_lbl: break
-
-        # Rm duplicate labels
-        if not do_lbl or dct['label'] in label_register:
-            dct['label'] = None
-        else:
-            label_register.append(dct['label'])
-
-        # Format each style aspect
-        for aspect, style in style_dict.items():
-            attr = style['axis']
-            S = style['formtr'](tick_inds[attr])
-            if S is not None: dct[aspect] = S
-
-        return dct
-
-    # Validate tuning axes
-    xcld      = (*styled_attrs, panel_ax)
-    optim_axs = intersect(complement(optim_axs, *xcld), *hypercube.axes)
-    mean_axs  = intersect(complement(mean_axs , *xcld), *hypercube.axes)
-
-    # Get tuned hypercube
-    tuned_cube = hypercube.tuned_field(statkey, costfun, mean_axs, optim_axs)
-
-    # Setup Figure
-    nrows = len(optim_axs) + 1
-    ncols = len(panels)
-    screenwidth = 12.7 # my mac
-    fig, axs = freshfig(num=fignum, figsize=(min(5*ncols,screenwidth),7),
-            nrows=nrows, sharex=True,
-            ncols=ncols, sharey='row',
-            gridspec_kw=dict(height_ratios=[6]+[1]*(nrows-1),hspace=0.05,
-                left=0.14, right=0.95, bottom=0.06, top=0.9))
-    axs = np.ravel(axs).reshape((-1,ncols)) # atleast_2d (and col vectors)
-    # Title
-    ST = "Stats avrg'd in time."
-    if mean_axs:
-        ST = ST[:-1] + f" and wrt. {mean_axs}."
-    if style_dict:
-        props = ", ".join(f"{a}: %s"%style_dict[a]['axis'] for a in style_dict)
-        ST = ST + " Line property attribution:\n" + props + "."
-    fig.suptitle(ST)
-
-    xticks = hypercube.axis_ticks_nn(x_ax)
-    def arrays_from_dict(line,xticks):
-        """Extract line data: from dict[coords] to array."""
-
-        line['is_constant'] = all(x is None for x in line)
-
-        # Extract yvalues, argmins
-        if line['is_constant']:
-            # This line is indep. of the x-axis => Make flat
-            entry   = line.pop(None)
-            yvalues = [entry[0]]*len(xticks)
-            argmins = [entry[1]]*len(xticks)
-        else:
-            zipped = [line.pop(x,[None,None]) for x in xticks]
-            yvalues, argmins = np.array(zipped).T
-        line['stat_values'] = yvalues
-
-        # getattr(argmin,optim_ax)
-        line['tuning_values'] = {}
-        for attr in optim_axs:
-            ticks = [getattr(coord,attr,None) for coord in argmins]
-            line['tuning_values'][attr] = ticks
-
-    # Loop panels
-    plot_data_per_column = []
-    label_register = [] # mv inside to get legend on each panel
-    for ip, (panel, top_ax) in enumerate(zip(panels, axs[0,:])):
-        panel_lines = {}
-        plot_data_per_column += [panel_lines]
-        title = '' if panel_ax is None else f'{panel_ax}: {panel}'
-
-        # Gather line data (iterating over xp coords)
-        for coord in tuned_cube:
-            if panel_ax is None or panel==getattr(coord,panel_ax):
-                y = tuned_cube[coord]
-                x = getattr(coord,x_ax)
-                coord = coord._replace(**{x_ax:'on x-axis'})
-                panel_lines.setdefault(coord,{})[x] = y
-
-        # Order data
-        for line in panel_lines.values():
-            arrays_from_dict(line, xticks)
-
-        # Plot
-        for coord, line in panel_lines.items():
-
-            # Set line properties
-            ln_props = set_style(coord)
-            if line['is_constant']:
-                ln_props['marker'] = None
-            
-            # Plot
-            top_ax.plot(xticks, line['stat_values'],         **ln_props)
-            for attr, ax in zip(optim_axs, axs[1:,ip]):
-                ax.plot(xticks, line['tuning_values'][attr], **ln_props)
-
-        # Beautify main axes
-        top_ax.set_title(title)
-        top_ax.set_ylabel(statkey)
-        with set_tmp(mpl_logger, 'level', 99):
-            top_ax.legend() # ignores "no label" msg
-
-        axs[-1,ip].set_xlabel(x_ax)
-
-        # Beautify tuning axes
-        for attr, ax in zip(optim_axs, axs[1:,ip]):
-            axis = hypercube.axis_ticks_nn(attr)
-            if isinstance(axis[0], bool):
-                ylims = 0, 1
-            else:
-                ylims = axis[0], axis[-1]
-            ax.set_ylim(*stretch(*ylims,1.02))
-            if ax.is_first_col():
-                ax.set_ylabel(f"Optim.\n{attr}")
-
-        def adjust_axs(axs):
-            """Beautify axes. Maybe belongs outside plot1d."""
-            sensible_f = ticker.FormatStrFormatter('%g')
-            # Main panels (top row):
-            for ax in axs[0,:]:
-                for direction, nPanel in zip(['y','x'], axs.shape):
-                    if nPanel<6:
-                        eval(f"ax.set_{direction}scale('log')")
-                        eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
-                    eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
-                if "rmse" in ax.get_ylabel():
-                    ax.set_ylim([0.15, 5])
-            # All panels
-            for ax in axs.ravel():
-                for direction, nPanel in zip(['y','x'], axs.shape):
-                    if nPanel<6:
-                        ax.grid(True,which="minor",axis=direction)
-                # Inflation tuning panel
-                if not ax.is_first_row() and 'infl' in ax.get_ylabel():
-                    ticks = hypercube.axis_ticks_nn('infl')
-                    axis_scale_by_array(ax, ticks, "y")
-        adjust_axs(axs)
-
-    return fig, axs, hypercube, plot_data_per_column
