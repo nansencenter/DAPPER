@@ -703,6 +703,21 @@ def transpose_lists(LL, enforce_rectangle=True, as_list=False):
 
     return new
 
+# TODO: rm?
+def transpose_dict_of_lists(DL,enforce_rectangle=True):
+    """Example:
+    >>> DL = {chr(97+i): [i*10+j for j in range(4)] for i in range(3)}
+    """
+    if enforce_rectangle:
+        lens = [len(DL[k]) for k in DL]
+        assert all(lens[0]==L for L in lens), "Rows have unqual lengths."
+
+    # SO.com/q/5558418:
+    new = [dict(zip(DL,t)) for t in zip(*DL.values())]
+
+    return new
+
+
 # Incredibly, it is difficult to make this less verbose
 # (the one-liner is unpredicable for non-rectangular cases)
 def transpose_dicts(DD,enforce_rectangle=True):
