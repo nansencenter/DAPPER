@@ -1,7 +1,6 @@
+"""Provide (terminal and matplotlib) color definitions and functionality."""
+
 from dapper import *
-
-
-
 
 #########################################
 # Colouring for the terminal / console
@@ -10,27 +9,7 @@ import colorama
 colorama.init() # Makes stdout/err color codes work on windows too.
 from colorama import Fore as cFG # Foreground color codes
 from colorama import Back as cBG # Background color codes
-
 import contextlib
-@contextlib.contextmanager
-def coloring(*color_codes):
-    """
-    Color printing using 'with'. Example:
-    >>> with coloring(cFG.GREEN): print("This is in color")
-    """
-    if len(color_codes)==0:
-        color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
-
-    print(*color_codes, end="")
-    yield 
-    print(colorama.Style.RESET_ALL, end="", flush=True)
-
-
-def print_c(*args,color='blue',**kwargs):
-    """Print with color.
-    But I prefer using the coloring context manager defined above."""
-    s = ' '.join([str(k) for k in args])
-    print(termcolors[color] + s + termcolors['ENDC'],**kwargs)
 
 # Terminal color codes. Better to use colorama (above) instead.
 termcolors={
@@ -45,6 +24,41 @@ termcolors={
     'bold'      : '\033[1m' ,
     'underline' : '\033[4m' ,
 }
+
+@contextlib.contextmanager
+def coloring(*color_codes):
+    """Color printing using 'with'.
+    
+    Example:
+    >>> with coloring(cFG.GREEN): print("This is in color")
+    """
+
+    if len(color_codes)==0:
+        color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
+
+    orig_print = builtins.print
+    def _print(*args, sep=" ", end="\n", flush=True, **kwargs):
+        # Implemented with a single print statement, so as to
+        # puts the trailing terminal code before newline.
+        s =     "".join(color_codes)
+        s = s + sep.join([str(k) for k in args])
+        s = s + colorama.Style.RESET_ALL
+        orig_print(s, end=end, flush=flush, **kwargs)
+
+    try:
+        builtins.print = _print
+        yield
+    finally:
+        builtins.print = orig_print
+
+
+def print_c(*args,color='blue',**kwargs):
+    """Print with color.
+
+    But I prefer using the coloring context manager defined above."""
+    s = ' '.join([str(k) for k in args])
+    print(termcolors[color] + s + termcolors['ENDC'],**kwargs)
+
 
 
 #########################################
