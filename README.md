@@ -39,7 +39,7 @@ Installation
 ================================================
 Works on Linux/Windows/Mac.
 
-1. **Prerequisite**: python>=3.6.  
+1. **Prerequisite**: python>=3.7.  
    If you're not {admin | expert}:  
    1a. Install it with [Anaconda](https://www.anaconda.com/download).  
    1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda) to run the commands below.
