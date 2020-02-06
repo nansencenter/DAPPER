@@ -39,15 +39,15 @@ Installation
 ================================================
 Works on Linux/Windows/Mac.
 
-1. **Prerequisite**: python>=3.7.  
-   If you're not {admin | expert}:  
-   1a. Install it with [Anaconda](https://www.anaconda.com/download).  
+1. **Prerequisite**: Python>=3.7.  
+   If you're not an admin or expert:  
+   1a. Install Python with [Anaconda](https://www.anaconda.com/download).  
    1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda) to run the commands below.
 
 2. **Install**:  
    Download and extract (or `git clone`) DAPPER,  
    `cd` into the resulting folder
-	 *(ensure you're at the level with a `setup.py` file)*:  
+	 *(ensure you're in the folder with a `setup.py` file)*:  
    `pip install -e .` (don't forget the `.`).
 
 3. **Test** by running: `python example_1.py`  
