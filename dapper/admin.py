@@ -1,4 +1,16 @@
-"""Define high-level objects frequently used in DAPPER."""
+"""Define high-level API in DAPPER.
+
+Used for experiment (xp) specification/administration, including:
+
+ - da_method decorator
+ - xpList
+ - save_data
+ - run_experiment
+ - run_from_file
+
+ - HiddenMarkovModel
+ - Operator
+"""
 
 from dapper import *
 
@@ -185,282 +197,8 @@ def da_method(*default_dataclasses):
     return dataclass_with_defaults
 
 
-# TODO: check collections.userlist
-# TODO: __add__ vs __iadd__
-class xpList(list):
-    """List, customized for holding ``da_method`` objects ("configs").
-
-    Mainly used to administrate the launching of experiments.
-    See ``xpSpace`` for experiment result presentation. 
-
-     Modifications to `list`:
-     - append() using `+=`, also for single items;
-       this is hackey, but convenience is king.
-     - append() supports `unique` to avoid duplicates.
-     - `__getitem__()` (indexing) that supports lists.
-     - searching by attributes: `inds()`.
-     - pretty printing (using common/distinct attrs).
-
-     Also:
-     - print_averages()
-     - gen_names()
-     - assimilate()
-     """
-
-    def __init__(self,*args,unique=False):
-        """Initialize without args, or with a list of configs.
-         - unique: if true, then duplicates won't get appended."""
-        self.unique = unique
-        super().__init__(*args)
-
-    def __iadd__(self,cfg):
-        if not hasattr(cfg,'__iter__'):
-            cfg = [cfg]
-        for item in cfg:
-            self.append(item)
-        return self
-
-    def append(self,cfg):
-        "Append if not unique&present"
-        if not (self.unique and cfg in self): super().append(cfg)
-
-    def __getitem__(self, keys):
-        """Indexing, also by a list"""
-        try:              B=[self[k] for k in keys]   # if keys is list
-        except TypeError: B=super().__getitem__(keys) # if keys is int, slice
-        if hasattr(B,'__len__'): B = xpList(B) # Cast
-        return B 
-
-    def inds(self,strict=True,missingval="NONSENSE",**kws):
-        """Find (all) indices of configs whose attributes match kws.
-
-        If strict, then xp's lacking a requested attr will not match,
-        unless the missingval (e.g. None) matches the required value.
-        """
-        def match(xp):
-            missing = lambda v: missingval if strict else v
-            matches = [getattr(xp,k,missing(v))==v for k,v in kws.items()]
-            return all(matches)
-
-        return [i for i,xp in enumerate(self) if match(xp)]
-
-    @property
-    def da_methods(self):
-        return [xp.da_method for xp in self]
-
-    def split_attrs(self,nomerge=()):
-        """Compile the attributes of the individual configs in the List_of_Confgs,
-        and partition them into dicts: distinct, redundant, and common.
-        Insert None if attribute not in cfg."""
-
-        def _aggregate_keys():
-            "Aggregate keys from all configs"
-
-            if len(self)==0: return []
-
-            # Start with da_method
-            aggregate = ['da_method']
-
-            # Aggregate all other keys
-            for config in self:
-
-                # Get dataclass fields
-                try:
-                    dc_fields = dc.fields(config.__class__)
-                    dc_names = [F.name for F in dc_fields]
-                    keys = config.__dict__.keys()
-                except TypeError:
-                    # Assume namedtuple
-                    dc_names = []
-                    keys = config._fields
-
-                # For all potential keys:
-                for k in keys:
-                    # If not already present:
-                    if k not in aggregate:
-
-                        # If dataclass, check repr:
-                        if k in dc_names:
-                            if dc_fields[dc_names.index(k)].repr:
-                                aggregate.append(k)
-                        # Else, just append
-                        else:
-                            aggregate.append(k)
-
-            # Remove unwanted
-            excluded  = [re.compile('^_'),'avrgs','stats','HMM']
-            aggregate = complement(aggregate,*excluded)
-            return aggregate
-
-        distinct, redundant, common = {}, {}, {}
-
-        for key in _aggregate_keys():
-
-            # Want to distinguish actual None's from empty ("N/A").
-            # => Don't use getattr(obj,key,None)
-            vals = [getattr(config,key,"N/A") for config in self]
-
-            # Sort into distinct, redundant, common
-            if flexcomp(key, *nomerge):
-                # nomerge => Distinct
-                dct, vals = distinct, vals
-            elif all(vals[0]==v for v in vals):
-                # all values equal => common
-                dct, vals = common, vals[0]
-            else:
-                v0 = next(v for v in vals if "N/A"!=v)
-                if all(v=="N/A" or v==v0 for v in vals):
-                    # all values equal or "N/A" => redundant
-                    dct, vals = redundant, v0
-                else:
-                    # otherwise => distinct
-                    dct, vals = distinct, vals
-
-            # Replace "N/A" by None
-            sub = lambda v: None if v=="N/A" else v
-            if isinstance(vals,str): vals = sub(vals)
-            else:
-                try:                 vals = [sub(v) for v in vals]
-                except TypeError:    vals = sub(vals)
-
-            dct[key] = vals
-
-        return distinct, redundant, common
-
-    def __repr__(self):
-        distinct, redundant, common = self.split_attrs()
-        s = '<xpList> of length %d with attributes:\n'%len(self)
-        s += tabulate(distinct)
-        s += "\nOther attributes:\n"
-        s += str(AlignedDict({**redundant, **common}))
-        return s
-
-    @functools_wraps(tabulate_avrgs)
-    def _repr_avrgs(self,*args,**kwargs): 
-        """Pretty (tabulated) repr of cfgs & avrgs (val±conf)."""
-        distinct, redundant, common = self.split_attrs()
-
-        # Prepare table components
-        headr1, mattr1 = list(distinct.keys()), list(distinct.values())
-        headr2, mattr2 = tabulate_avrgs([C.avrgs for C in self],*args,**kwargs,pad='æ')
-        # Join 1&2
-        headr = headr1 + ['|']             + headr2
-        mattr = mattr1 + [['|']*len(self)] + mattr2
-
-        table = tabulate(mattr, headr).replace('æ',' ')
-        return table
-
-    @functools.wraps(_repr_avrgs)
-    def print_avrgs(self,*args,**kwargs):
-        print(self._repr_avrgs(*args,**kwargs))
-
-    def gen_names(self,abbrev=4,tab=False):
-        """Similiar to self.__repr__(), but:
-          - returns *list* of names
-          - attaches label to each attribute
-          - tabulation is only an option
-          - abbreviates labels to width abbrev
-        """
-        distinct, redundant, common = self.split_attrs(nomerge=["da_method"])
-        labels = distinct.keys()
-        values = distinct.values()
-
-        # Label abbreviation
-        labels = [collapse_str(k,abbrev) for k in labels]
-
-        # Make label columns: insert None or lbl+":", depending on value
-        column = lambda  lbl,vals: [None if v is None else lbl+":" for v in vals]
-        labels = [column(lbl,vals) for lbl, vals in zip(labels,values)]
-
-        # Interlace labels and values
-        table = [x for (a,b) in zip(labels,values) for x in (a,b)]
-
-        # Rm da_method label (but keep value)
-        table.pop(0)
-
-        # Tabulate
-        table = tabulate(table,inds=False, tablefmt="plain")
-
-        # Rm space between lbls/vals
-        table = re.sub(':  +',':',table) 
-
-        # Rm alignment
-        if not tab:
-            table = re.sub(r' +',r' ', table)
-
-        return table.splitlines()
-
-
-    def launch(self, HMM, sd=True, mp=False, savename="unnamed",
-            free=True, statkeys=False, desc=True, fail_gently=rc['fail_gently'], **stat_kwargs):
-        """Call run_experiment(xp,...) for each xp in self.
-        
-        Delegate this to one of:
-         - caller process (=> no parallelisation)
-         - multiprocessing on this host
-         - GCP (Google Cloud Computing) with HTCondor
-
-        Also set up the appropriate savepath for passing data and storing results.
-        """
-
-        # If sd is:
-        # - False          => no seed control in any experiment.
-        # - a number       => use sd+xp.seed in run_experiment()
-        # - True (default) => get sd number from clock:
-        if sd is True: sd = set_seed()
-
-        # save-paths
-        # rpath = run_path(savename,host=mp or True)
-        rpath = run_path(savename)
-        ipath = lambda ixp, sep: pjoin(rpath, f"ixp_{ixp}" + sep)
-        os.makedirs(rpath, exist_ok=True)
-        # NB: Don't casually modify this message. It may be grepped.
-        print("Experiment data stored at",rpath+"/")
-
-        if not mp: # No parallelization
-            labels = self.gen_names() if desc else self.da_methods
-            for ixp, (xp, label) in enumerate(zip(self,labels)):
-                run_experiment(xp, label, HMM, sd, free, statkeys, ipath(ixp,"."), fail_gently, stat_kwargs)
-
-        elif mp is "GCP":
-            with open(pjoin(rpath,"common_input"),"wb") as F:
-                dill.dump(dict(
-                    HMM=HMM,
-                    label=None,
-                    sd=sd,
-                    free=free,
-                    statkeys=None,
-                    fail_gently=fail_gently,
-                    stat_kwargs=stat_kwargs,
-                    ), F)
-
-            for ixp, xp in enumerate(self):
-                idir = ipath(ixp, os.path.sep)
-                os.mkdir(idir)
-                with open(pjoin(idir, "variable_input"),"wb") as F:
-                    dill.dump(dict(xp=xp, ixp=ixp), F)
-
-            remote_work(rpath)
-
-        elif mp in ["MP", True]:
-
-            def run_with_fixed_args(arg):
-                xp, ixp = arg
-                run_experiment(xp, None, HMM, sd, free, None, ipath(ixp,"."), fail_gently, stat_kwargs)
-            args = zip(self,range(len(self)))
-
-            with     set_tmp(tools.utils,'disable_progbar',True):
-                with set_tmp(tools.utils,'disable_user_interaction',True):
-                    NPROC = None # None => multiprocessing.cpu_count()
-                    with mpd.Pool(NPROC) as pool:
-                        list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
-                            total=len(self), desc="Parallel experim's", smoothing=0.1))
-
-        return rpath
-
-
 def run_experiment(xp, label, HMM, sd, free, statkeys, savepath, fail_gently, stat_kwargs):
-    """Run a single experiment.
+    """Run a single experiment, similar to ``example_1.py``.
 
     In addition to calling xp.assimilate(), it also
      - sets
@@ -558,6 +296,285 @@ def print_cropped_traceback(ERR):
     for s in msg: print(s,file=sys.stderr)
 
 
+# TODO: check collections.userlist
+# TODO: __add__ vs __iadd__
+class xpList(list):
+    """List, subclassed for holding experiment ("xp") objects.
+
+    Mainly used to administrate experiment **launches**.
+    See ``xpSpace`` for experiment **result presentation**.
+
+     Modifications to ``list``:
+
+     - ``__iadd__`` (append) also for single items;
+       this is hackey, but convenience is king.
+     - ``append()`` supports ``unique`` to enable lazy xp declaration.
+     - ``__getitem__`` supports lists.
+     - pretty printing (using common/distinct attrs).
+
+     Add-ons:
+
+     - ``launch()``
+     - ``print_averages()``
+     - ``gen_names()``
+     - ``inds()`` to search by kw-attrs.
+     """
+
+    def __init__(self,*args,unique=False):
+        """Initialize without args, or with a list of configs.
+         - unique: if true, then duplicates won't get appended."""
+        self.unique = unique
+        super().__init__(*args)
+
+    def __iadd__(self,cfg):
+        if not hasattr(cfg,'__iter__'):
+            cfg = [cfg]
+        for item in cfg:
+            self.append(item)
+        return self
+
+    def append(self,cfg):
+        "Append if not unique&present"
+        if not (self.unique and cfg in self): super().append(cfg)
+
+    def __getitem__(self, keys):
+        """Indexing, also by a list"""
+        try:              B=[self[k] for k in keys]   # if keys is list
+        except TypeError: B=super().__getitem__(keys) # if keys is int, slice
+        if hasattr(B,'__len__'): B = xpList(B) # Cast
+        return B 
+
+    def inds(self,strict=True,missingval="NONSENSE",**kws):
+        """Find (all) indices of configs whose attributes match kws.
+
+        If strict, then xp's lacking a requested attr will not match,
+        unless the missingval (e.g. None) matches the required value.
+        """
+        def match(xp):
+            missing = lambda v: missingval if strict else v
+            matches = [getattr(xp,k,missing(v))==v for k,v in kws.items()]
+            return all(matches)
+
+        return [i for i,xp in enumerate(self) if match(xp)]
+
+    @property
+    def da_methods(self):
+        return [xp.da_method for xp in self]
+
+    def split_attrs(self,nomerge=()):
+        """Compile the attrs of all xps; split as distinct, redundant, common.
+
+        Insert None if an attribute is distinct but not in xp."""
+
+        def _aggregate_keys():
+            "Aggregate keys from all xps"
+
+            if len(self)==0: return []
+
+            # Start with da_method
+            aggregate = ['da_method']
+
+            # Aggregate all other keys
+            for xp in self:
+
+                # Get dataclass fields
+                try:
+                    dc_fields = dc.fields(xp.__class__)
+                    dc_names = [F.name for F in dc_fields]
+                    keys = xp.__dict__.keys()
+                except TypeError:
+                    # Assume namedtuple
+                    dc_names = []
+                    keys = xp._fields
+
+                # For all potential keys:
+                for k in keys:
+                    # If not already present:
+                    if k not in aggregate:
+
+                        # If dataclass, check repr:
+                        if k in dc_names:
+                            if dc_fields[dc_names.index(k)].repr:
+                                aggregate.append(k)
+                        # Else, just append
+                        else:
+                            aggregate.append(k)
+
+            # Remove unwanted
+            excluded  = [re.compile('^_'),'avrgs','stats','HMM']
+            aggregate = complement(aggregate,*excluded)
+            return aggregate
+
+        distinct, redundant, common = {}, {}, {}
+
+        for key in _aggregate_keys():
+
+            # Want to distinguish actual None's from empty ("N/A").
+            # => Don't use getattr(obj,key,None)
+            vals = [getattr(xp,key,"N/A") for xp in self]
+
+            # Sort (assign dct) into distinct, redundant, common
+            if flexcomp(key, *nomerge):
+                # nomerge => Distinct
+                dct, vals = distinct, vals
+            elif all(vals[0]==v for v in vals):
+                # all values equal => common
+                dct, vals = common, vals[0]
+            else:
+                v0 = next(v for v in vals if "N/A"!=v)
+                if all(v=="N/A" or v==v0 for v in vals):
+                    # all values equal or "N/A" => redundant
+                    dct, vals = redundant, v0
+                else:
+                    # otherwise => distinct
+                    dct, vals = distinct, vals
+
+            # Replace "N/A" by None
+            sub = lambda v: None if v=="N/A" else v
+            if isinstance(vals,str): vals = sub(vals)
+            else:
+                try:                 vals = [sub(v) for v in vals]
+                except TypeError:    vals = sub(vals)
+
+            dct[key] = vals
+
+        return distinct, redundant, common
+
+    def __repr__(self):
+        distinct, redundant, common = self.split_attrs()
+        s = '<xpList> of length %d with attributes:\n'%len(self)
+        s += tabulate(distinct)
+        s += "\nOther attributes:\n"
+        s += str(AlignedDict({**redundant, **common}))
+        return s
+
+    @functools_wraps(tabulate_avrgs)
+    def _repr_avrgs(self,*args,**kwargs): 
+        """Pretty (tabulated) repr of cfgs & avrgs (val±conf)."""
+        distinct, redundant, common = self.split_attrs()
+
+        # Prepare table components
+        headr1, mattr1 = list(distinct.keys()), list(distinct.values())
+        headr2, mattr2 = tabulate_avrgs([C.avrgs for C in self],*args,**kwargs,pad='æ')
+        # Join 1&2
+        headr = headr1 + ['|']             + headr2
+        mattr = mattr1 + [['|']*len(self)] + mattr2
+
+        table = tabulate(mattr, headr).replace('æ',' ')
+        return table
+
+    # TODO: rm _repr_avrgs (implement it here)
+    # and make out of stdout capturing in the tests.
+    @functools.wraps(_repr_avrgs)
+    def print_avrgs(self,*args,**kwargs):
+        print(self._repr_avrgs(*args,**kwargs))
+
+    def gen_names(self,abbrev=4,tab=False):
+        """Similiar to ``self.__repr__()``, but:
+
+          - returns *list* of names
+          - attaches label to each attribute
+          - tabulation is only an option
+          - abbreviates labels to width abbrev
+        """
+        distinct, redundant, common = self.split_attrs(nomerge=["da_method"])
+        labels = distinct.keys()
+        values = distinct.values()
+
+        # Label abbreviation
+        labels = [collapse_str(k,abbrev) for k in labels]
+
+        # Make label columns: insert None or lbl+":", depending on value
+        column = lambda  lbl,vals: [None if v is None else lbl+":" for v in vals]
+        labels = [column(lbl,vals) for lbl, vals in zip(labels,values)]
+
+        # Interlace labels and values
+        table = [x for (a,b) in zip(labels,values) for x in (a,b)]
+
+        # Rm da_method label (but keep value)
+        table.pop(0)
+
+        # Tabulate
+        table = tabulate(table,inds=False, tablefmt="plain")
+
+        # Rm space between lbls/vals
+        table = re.sub(':  +',':',table) 
+
+        # Rm alignment
+        if not tab:
+            table = re.sub(r' +',r' ', table)
+
+        return table.splitlines()
+
+
+    def launch(self, HMM, sd=True, mp=False, savename="unnamed",
+            free=True, statkeys=False, desc=True, fail_gently=rc['fail_gently'], **stat_kwargs):
+        """For each xp in self: run_experiment(xp,...). View ``example_2.py``.
+        
+        Delegate this to one of:
+         - caller process (=> no parallelisation)
+         - multiprocessing on this host
+         - GCP (Google Cloud Computing) with HTCondor
+
+        Also set up the appropriate savepath for passing data and storing results.
+        """
+
+        # If sd is:
+        # - False          => no seed control in any experiment.
+        # - a number       => use sd+xp.seed in run_experiment()
+        # - True (default) => get sd number from clock:
+        if sd is True: sd = set_seed()
+
+        # save-paths
+        # rpath = run_path(savename,host=mp or True)
+        rpath = run_path(savename)
+        ipath = lambda ixp, sep: pjoin(rpath, f"ixp_{ixp}" + sep)
+        os.makedirs(rpath, exist_ok=True)
+        # NB: Don't casually modify this message. It may be grepped.
+        print("Experiment data stored at",rpath+"/")
+
+        if not mp: # No parallelization
+            labels = self.gen_names() if desc else self.da_methods
+            for ixp, (xp, label) in enumerate(zip(self,labels)):
+                run_experiment(xp, label, HMM, sd, free, statkeys, ipath(ixp,"."), fail_gently, stat_kwargs)
+
+        elif mp is "GCP":
+            with open(pjoin(rpath,"common_input"),"wb") as F:
+                dill.dump(dict(
+                    HMM=HMM,
+                    label=None,
+                    sd=sd,
+                    free=free,
+                    statkeys=None,
+                    fail_gently=fail_gently,
+                    stat_kwargs=stat_kwargs,
+                    ), F)
+
+            for ixp, xp in enumerate(self):
+                idir = ipath(ixp, os.path.sep)
+                os.mkdir(idir)
+                with open(pjoin(idir, "variable_input"),"wb") as F:
+                    dill.dump(dict(xp=xp, ixp=ixp), F)
+
+            remote_work(rpath)
+
+        elif mp in ["MP", True]:
+
+            def run_with_fixed_args(arg):
+                xp, ixp = arg
+                run_experiment(xp, None, HMM, sd, free, None, ipath(ixp,"."), fail_gently, stat_kwargs)
+            args = zip(self,range(len(self)))
+
+            with     set_tmp(tools.utils,'disable_progbar',True):
+                with set_tmp(tools.utils,'disable_user_interaction',True):
+                    NPROC = None # None => multiprocessing.cpu_count()
+                    with mpd.Pool(NPROC) as pool:
+                        list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
+                            total=len(self), desc="Parallel experim's", smoothing=0.1))
+
+        return rpath
+
+
 def run_from_file(dirpath):
     """Loads experiment parameters from file and calls run_experiment()."""
     savepath = pjoin(dirpath,'')                          # = dirpath/
@@ -582,10 +599,12 @@ def run_from_file(dirpath):
     result = run_experiment(xp, d['label'], d['HMM'], d['sd'], d['free'],
             d['statkeys'], savepath, d['fail_gently'], d['stat_kwargs'])
 
-
+# TODO: Archive
 import dill
 def save_data(script_name,*args,host=True,**kwargs):
     """"Utility for saving experimental data.
+
+    NB: Obsolete. Handled by run_experiment().
 
     This function uses ``dill`` rather than ``pickle``
     because dill can serialize nearly anything.

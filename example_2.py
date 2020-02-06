@@ -1,5 +1,4 @@
-# Illustrate how to use DAPPER
-# to benchmark multiple DA methods
+"""Illustrate usage of DAPPER to benchmark multiple DA methods"""
 
 from dapper import *
 set_seed(3)

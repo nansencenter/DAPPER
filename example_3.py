@@ -1,13 +1,26 @@
-# TODO: grab top/bottom comments from old example_3
+"""Illustrate usage of DAPPER to run MANY benchmark experiments,
 
-# Alternative source: Figure 5.7 of
-# http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf
+for a bunch of control variables,
+and plot the compiled results as functions of the control variable.
+
+Specifically, we will reproduce figure 6.6 from Ref[1].
+The figure reveals the (relative) importance (in the EnKF) of
+localization and inflation.
+
+The code also demonstrates:
+ - Parallelization (accross independent experiments) with mp=True/"GCP".
+ - Data management with xpSpace: load, sub-select, print, plot.
+
+Ref[1]: Book: "Data Assimilation: Methods, Algorithms, and Applications"
+        by M. Asch, M. Bocquet, M. Nodet.
+        Preview:
+        http://books.google.no/books?id=FtDZDQAAQBAJ&q=figure+6.6
+        Alternative source: "Figure 5.7" of:
+        cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf
+"""
 
 from dapper import *
-
-# sd0 = set_seed(8,init=True)
-sd0 = set_seed()
-
+sd0 = set_seed(3)
 
 ##############################
 # Hidden Markov Model
@@ -28,18 +41,16 @@ HMM.param_setters = dict(
 ##############################
 cfgs = xpList(unique=True)
 
-# for N in ccat(arange(5,10), arange(10, 20, 2), arange(20, 55, 5)):
-    # for infl in 1+array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]):
-        # for R in round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]):
-            # for rot in [False,True]:
-                # cfgs += Climatology()
-                # cfgs += OptInterp()
-                # cfgs += EnKF   ('PertObs', N, infl=infl, rot=rot            )
-                # cfgs += EnKF   ('Sqrt',    N, infl=infl, rot=rot            )
-                # cfgs += EnKF_N (           N, infl=infl, rot=rot            )
-                # cfgs += LETKF  (           N, infl=infl, rot=rot, loc_rad=R )
-
-cfgs += EnKF   ('Sqrt',    50, infl=1.0, rot=True            )
+for N in ccat(arange(5,10), arange(10, 20, 2), arange(20, 55, 5)):
+    for infl in 1+array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]):
+        for R in round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]):
+            for rot in [False,True]:
+                cfgs += Climatology()
+                cfgs += OptInterp()
+                cfgs += EnKF   ('PertObs', N, infl=infl, rot=rot            )
+                cfgs += EnKF   ('Sqrt',    N, infl=infl, rot=rot            )
+                cfgs += EnKF_N (           N, infl=infl, rot=rot            )
+                cfgs += LETKF  (           N, infl=infl, rot=rot, loc_rad=R )
 
 # Replicate all cfgs accross non-da_method control variables
 xps = xpList()
@@ -56,18 +67,17 @@ for seed in range(8): # Experiment repetitions
 ##############################
 savepath = xps.launch(HMM,sd0,True,__file__)
 
-# xps = xpList(load_xps(savepath))
-# xps.print_avrgs()
-# sys.exit(0)
 
 ##############################
 # Plot results
 ##############################
+# The following **only** uses saved data
+# => Can run as a separate script, where savepath is manually set.
+# For example, I have result-data stored at:
+# savepath = '~/dpr_data/example_3/run_2020-01-02_00-00-00'
+# savepath = '~/dpr_data/example_3/run_2020-01-09_17-45-34'
 
-# TODO:
-savepath = '/home/pnr/dpr_data/example_3/run_2020-01-02_00-00-00'
-
-# The following **only** uses saved data => Can run as a separate script.
+# Load
 xps = load_xps(savepath)
 
 # Remove experiments we don't want to plot:
@@ -78,16 +88,31 @@ xps = [xp for xp in xps if True
     ]
 
 # Associate each control variable with a dimension in "hyperspace"
-xps = xpSpace.from_list(xps)
+xp_dict = xpSpace.from_list(xps)
 
-# Single out a few particular experiment types to add to plot
-# NB: Must use infl=1.01 (not 1) to reproduce Bocquet's "no infl" results.
-xps.single_out(dict(da_method='EnKF' ,infl=1.01), 'NO-infl NO-loc' , ('infl'))
-xps.single_out(dict(da_method='LETKF',infl=1.01), 'NO-infl'        , ('infl'))
+# Single-out certain settings
+# Note: Must use infl=1.01 (not 1) to reproduce Bocquet's figure,
+# as well as rot=True (better scores obtainable w/o rot).
+separate = xp_dict.label_cross_section
+separate('NO-infl'     , ('infl'), da_method='LETKF', infl=1.01, rot=True)
+separate('NO-infl-loc' , ('infl'), da_method='EnKF' , infl=1.01, rot=True)
 
-# Plot
-# Try mixing around the various axes allotments:
+## 
+axes_allotment=dict(inner="N", mean="seed", optim=('loc_rad','infl','rot'))
 
-# TODO: Add rot. Comment out fignum
+# Print
+xp_dict.print("rmse.a", {**axes_allotment, "outer":"da_method"}, subcols=False)
+
+# Plot -- try moving the axes around the allotment
+# (as suggested by the lines that are commented out).
+plt.ion()
+tabulated_data = xp_dict.plot('rmse.a', axes_allotment, # fignum=1,
+    #     marker_axis="da_method", color_axis='infl', color_in_legend=False, 
+    #     marker_axis='seed',                        marker_in_legend=False,
+    #  linestyle_axis="rot",                      linestyle_in_legend=True,
+         marker_axis='da_method',                   marker_in_legend=True,
+    )
+# Custom adjustments
+beautify_fig_ex3(tabulated_data, savepath, xp_dict)
 
 ##

@@ -1,7 +1,9 @@
-"""Illustrate how to use DAPPER to run a 'twin experiment'."""
+"""Illustrate usage of DAPPER to (interactively) run a 'twin experiment'."""
 
 # Load DAPPER
 from dapper import *
+
+# Fix seed by number for absolute reproducibility.
 set_seed(3)
 
 # Load experiment setup: the hidden Markov Model (HMM)
