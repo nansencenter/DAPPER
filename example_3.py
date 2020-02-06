@@ -11,6 +11,10 @@ The code also demonstrates:
  - Parallelization (accross independent experiments) with mp=True/"GCP".
  - Data management with xpSpace: load, sub-select, print, plot.
 
+Note: unless you have a lot of CPUs available, you probably want to reduce
+      the number of experiments (by shortening the list of ``seed``
+      or some other variable) in the code below.
+
 Ref[1]: Book: "Data Assimilation: Methods, Algorithms, and Applications"
         by M. Asch, M. Bocquet, M. Nodet.
         Preview:
@@ -28,8 +32,9 @@ sd0 = set_seed(3)
 from   dapper.mods.Lorenz96.bocquet2015loc import HMM
 import dapper.mods.Lorenz96.core as core
 
-HMM.t.BurnIn = 250
-HMM.t.KObs = 10**5
+# This is shorter than Ref[1], but we also use repetitions.
+HMM.t.BurnIn = 5
+HMM.t.KObs = 10**3
 
 HMM.param_setters = dict(
         F = lambda x: setattr(core,'Force',x)
@@ -55,7 +60,7 @@ for N in ccat(arange(5,10), arange(10, 20, 2), arange(20, 55, 5)):
 # Replicate all cfgs accross non-da_method control variables
 xps = xpList()
 for seed in range(8): # Experiment repetitions
-    for F in [8]:      # L96 Forcing param
+    for F in [8,10]:  # L96 Forcing param
         for xp in deepcopy(cfgs):
             xp.seed = seed
             xp.HMM_F = F
@@ -91,7 +96,7 @@ xps = [xp for xp in xps if True
 xp_dict = xpSpace.from_list(xps)
 
 # Single-out certain settings
-# Note: Must use infl=1.01 (not 1) to reproduce Bocquet's figure,
+# Note: Must use infl=1.01 (not 1) to reproduce Ref[1]'s figure,
 # as well as rot=True (better scores obtainable w/o rot).
 separate = xp_dict.label_cross_section
 separate('NO-infl'     , ('infl'), da_method='LETKF', infl=1.01, rot=True)
