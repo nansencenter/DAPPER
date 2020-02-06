@@ -1,12 +1,11 @@
 """Illustrate usage of DAPPER to benchmark multiple DA methods"""
 
 from dapper import *
-set_seed(3)
 
 ##############################
 # DA method configurations
 ##############################
-xps  = xpList()
+xps = xpList()
 
 from dapper.mods.Lorenz63.sakov2012 import HMM   # Expected rmse.a:
 xps += Climatology()                                     # 7.6
@@ -38,7 +37,7 @@ xps += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # xps += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4)  # 0.22
 # xps += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)  # 0.23
 
-# Other models (suitable xps listed in HMM files):
+# Other models (suitable xp configs listed in HMM files):
 # from dapper.mods.LA           .evensen2009 import HMM
 # from dapper.mods.KS           .bocquet2019 import HMM
 # from dapper.mods.LotkaVolterra.dpr01       import HMM
@@ -50,19 +49,8 @@ xps += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 HMM.t.BurnIn = 0
 HMM.t.T = 10
 
-# Generate synthetic truth/obs
-xx,yy = HMM.simulate()
-
 # Assimilate (for each config in xps)
-xps.launch(HMM,xx,yy)
+xps.launch(HMM)
 
 # Print results
 xps.print_avrgs()
-
-##############################
-# Plot
-##############################
-# Available when free=False used in assimilate() above
-# plot_err_components(config.stats)
-# plot_rank_histogram(config.stats)
-# plot_hovmoller     (xx,HMM.t)
