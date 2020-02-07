@@ -85,11 +85,11 @@ savepath = xps.launch(HMM,sd0,True,__file__)
 # Load
 xps = load_xps(savepath)
 
-# Remove experiments we don't want to plot:
-xps = [xp for xp in xps if True
-    and getattr(xp,'upd_a'    ,None)!="PertObs"
-    and getattr(xp,'da_method',None)!="EnKF_N"
-    and getattr(xp,'HMM_F')         !=10
+# Remove experiments we don't want to print/plot at the moment:
+xps = [xp for xp in xps
+    if  getattr(xp,'upd_a'    ,None) != "PertObs"
+    and getattr(xp,'da_method',None) != "EnKF_N"
+    and 6 <= getattr(xp,'HMM_F',nan) <= 9
     ]
 
 # Associate each control variable with a dimension in "hyperspace"
