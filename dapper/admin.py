@@ -525,13 +525,16 @@ class xpList(list):
         # - True (default) => get sd number from clock:
         if sd is True: sd = set_seed()
 
-        # save-paths
-        # rpath = run_path(savename,host=mp or True)
-        rpath = run_path(savename)
-        ipath = lambda ixp, sep: pjoin(rpath, f"ixp_{ixp}" + sep)
-        os.makedirs(rpath, exist_ok=True)
-        # NB: Don't casually modify this message. It may be grepped.
-        print("Experiment data stored at",rpath+"/")
+        if savename:
+            # rpath = run_path(savename,host=mp or True)
+            rpath = run_path(savename)
+            ipath = lambda ixp, sep: pjoin(rpath, f"ixp_{ixp}" + sep)
+            os.makedirs(rpath, exist_ok=True)
+            # NB: Don't casually modify this message. It may be grepped.
+            print("Experiment data stored at",rpath+"/")
+        else:
+            rpath = None
+            ipath = lambda *args: False
 
         if not mp: # No parallelization
             labels = self.gen_names() if desc else self.da_methods

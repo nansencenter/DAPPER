@@ -20,9 +20,8 @@ def test_L63():
 
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 1
-  xx,yy = HMM.simulate()
 
-  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,liveplots="all",store_u=False,fail_gently=False)
+  cfgs.launch(HMM,sd=sd0,free=False,liveplots="all",store_u=False,fail_gently=False)
 
   for config in cfgs:
       replay(config,"all")
@@ -37,7 +36,7 @@ def test_L63():
   replay(config, t2=np.inf, pause_a=0, pause_f=0)
 
   assert True # An assertion for pytest to count
-  return HMM, xx, yy, cfgs # Return useful stuff
+  return HMM, cfgs # Return useful stuff
 
 
 
@@ -61,9 +60,8 @@ def test_L96():
   # HMM.t.KObs = 30
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 2
-  xx,yy = HMM.simulate()
 
-  cfgs.assimilate(HMM,xx,yy,sd=sd0,free=False,liveplots="all",store_u=False,fail_gently=False)
+  cfgs.launch(HMM,sd=sd0,free=False,liveplots="all",store_u=False,fail_gently=False, savename=False)
 
   for config in cfgs:
       replay(config,"all")
@@ -78,13 +76,13 @@ def test_L96():
   replay(config, t2=np.inf, pause_a=0, pause_f=0)
 
   assert True # An assertion for pytest to count
-  return HMM, xx, yy, cfgs # Return useful stuff
+  return HMM, cfgs # Return useful stuff
 
 
 
 # Non py.test runs:
-# HMM, xx, yy, cfgs = test_L63()
-# HMM, xx, yy, cfgs = test_L96()
+# HMM, cfgs = test_L63()
+# HMM, cfgs = test_L96()
 
 
 
