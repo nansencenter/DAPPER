@@ -54,7 +54,7 @@ for N in ccat(arange(5,10), arange(10, 20, 2), arange(20, 55, 5)):
                 cfgs += OptInterp()
                 cfgs += EnKF   ('PertObs', N, infl=infl, rot=rot            )
                 cfgs += EnKF   ('Sqrt',    N, infl=infl, rot=rot            )
-                cfgs += EnKF_N (           N, infl=infl, rot=rot            )
+                cfgs += EnKF_N (           N,            rot=rot            )
                 cfgs += LETKF  (           N, infl=infl, rot=rot, loc_rad=R )
 
 # Replicate all cfgs accross non-da_method control variables
@@ -70,7 +70,10 @@ for seed in range(8): # Experiment repetitions
 ##############################
 # Run experiments
 ##############################
-savepath = xps.launch(HMM,sd0,__file__,mp=True)
+# Try mp=True or mp="GCP"
+savepath = xps.launch(HMM,sd0,__file__,mp=False)
+
+# xps.print_avrgs()
 
 
 ##############################
@@ -85,14 +88,14 @@ savepath = xps.launch(HMM,sd0,__file__,mp=True)
 # Load
 xps = load_xps(savepath)
 
-# Remove experiments we don't want to print/plot at the moment:
+# Remove experiments we don't want to print/plot at the moment
 xps = [xp for xp in xps
     if  getattr(xp,'upd_a'    ,None) != "PertObs"
     and getattr(xp,'da_method',None) != "EnKF_N"
     and 6 <= getattr(xp,'HMM_F',nan) <= 9
     ]
 
-# Associate each control variable with a dimension in "hyperspace"
+# Associate each control variable with a coordinate dimension
 xp_dict = xpSpace.from_list(xps)
 
 # Single-out certain settings
