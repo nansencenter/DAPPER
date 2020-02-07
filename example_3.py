@@ -70,7 +70,7 @@ for seed in range(8): # Experiment repetitions
 ##############################
 # Run experiments
 ##############################
-savepath = xps.launch(HMM,sd0,True,__file__)
+savepath = xps.launch(HMM,sd0,__file__,mp=True)
 
 
 ##############################

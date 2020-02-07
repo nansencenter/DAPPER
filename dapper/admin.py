@@ -507,7 +507,7 @@ class xpList(list):
         return table.splitlines()
 
 
-    def launch(self, HMM, sd=True, mp=False, savename="unnamed",
+    def launch(self, HMM, sd=True, savename="unnamed", mp=False,
             free=True, statkeys=False, desc=True, fail_gently=rc['fail_gently'], **stat_kwargs):
         """For each xp in self: run_experiment(xp,...). View ``example_2.py``.
         
