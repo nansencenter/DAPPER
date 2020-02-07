@@ -807,34 +807,34 @@ _print_1d(xps_shorter, "rmse.a", dict(outer="da_method"))
 
 ##
 old = """
-      |  da_method='Climatology', N=None  OptInterp, None  EnKF, 10  EnKF, 12  EnKF, 14
-infl  |  rmse.a                           rmse.a           rmse.a    rmse.a    rmse.a
-----  -  -------------------------------  ---------------  --------  --------  --------
-      |  3.624                            0.941                                      
-1     |                                                    4.55      4.33      4.19  
-1.01  |                                                    4.4       4.24      3.96  
-1.02  |                                                    4.36      4.08      3.76  
-1.04  |                                                    4.16      3.88      2.88  
-1.07  |                                                    3.92      3.6       2.7   
-1.1   |                                                    3.84      3.462     2.28  
-1.2   |                                                    3.58      2.92      1.28  
-1.4   |                                                    3.43      2.52      0.92  
+      |  da_method='Climatology',N=None  OptInterp,None  EnKF,10  EnKF,12  EnKF,14
+infl  |  rmse.a                          rmse.a          rmse.a   rmse.a   rmse.a
+----  -  ------------------------------  --------------  -------  -------  -------
+      |  3.624                           0.941                                   
+1     |                                                  4.55     4.33     4.19  
+1.01  |                                                  4.4      4.24     3.96  
+1.02  |                                                  4.36     4.08     3.76  
+1.04  |                                                  4.16     3.88     2.88  
+1.07  |                                                  3.92     3.6      2.7   
+1.1   |                                                  3.84     3.462    2.28  
+1.2   |                                                  3.58     2.92     1.28  
+1.4   |                                                  3.43     2.52     0.92  
 """
 _print_1d(xps_shorter, "rmse.a", dict(inner=("da_method","N"),mean="seed"), subcols=False)
 
 ##
 old = """
-[4m•Table for da_method='Climatology', seed=2.[0m
+[4m•Table for da_method='Climatology',seed=2.[0m
 rmse.a
 ------
  3.632
 
-[4m•Table for da_method='OptInterp', seed=2.[0m
+[4m•Table for da_method='OptInterp',seed=2.[0m
 rmse.a
 ------
  0.944
 
-[4m•Table for da_method='EnKF', seed=2.[0m
+[4m•Table for da_method='EnKF',seed=2.[0m
       |  _N=10_  __12__  __14__
 infl  |  rmse.a  rmse.a  rmse.a
 ----  -  ------  ------  ------
@@ -847,17 +847,17 @@ infl  |  rmse.a  rmse.a  rmse.a
 1.2   |    3.68    2.96    1.28
 1.4   |    3.5     2.34    1.16
 
-[4m•Table for da_method='Climatology', seed=3.[0m
+[4m•Table for da_method='Climatology',seed=3.[0m
 rmse.a
 ------
  3.612
 
-[4m•Table for da_method='OptInterp', seed=3.[0m
+[4m•Table for da_method='OptInterp',seed=3.[0m
 rmse.a
 ------
  0.939
 
-[4m•Table for da_method='EnKF', seed=3.[0m
+[4m•Table for da_method='EnKF',seed=3.[0m
       |  _N=10_  __12__  __14__
 infl  |  rmse.a  rmse.a  rmse.a
 ----  -  ------  ------  ------
@@ -870,17 +870,17 @@ infl  |  rmse.a  rmse.a  rmse.a
 1.2   |    3.38    2.84    0.96
 1.4   |    3.32    2.48    0.55
 
-[4m•Table for da_method='Climatology', seed=4.[0m
+[4m•Table for da_method='Climatology',seed=4.[0m
 rmse.a
 ------
  3.628
 
-[4m•Table for da_method='OptInterp', seed=4.[0m
+[4m•Table for da_method='OptInterp',seed=4.[0m
 rmse.a
 ------
 0.9396
 
-[4m•Table for da_method='EnKF', seed=4.[0m
+[4m•Table for da_method='EnKF',seed=4.[0m
       |  _N=10_  __12__  __14__
 infl  |  rmse.a  rmse.a  rmse.a
 ----  -  ------  ------  ------
