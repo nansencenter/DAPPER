@@ -28,9 +28,7 @@ for Lag in [0,1,3]:
 ##############################
 # Assimilate
 ##############################
-xx,yy = HMM.simulate()
-
-cfgs.assimilate(HMM,xx,yy,sd0+2,store_u=True)
+cfgs.launch(HMM,sd0,store_u=True)
 cfgs.print_avrgs(['err.rms.u','err.rms.s'])
 
 
