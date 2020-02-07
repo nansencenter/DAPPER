@@ -60,9 +60,11 @@ def load_xps(savepath):
 
 ##
 class SparseSpace(dict):
-    """Implements a dict of points in a given coordinate system.
+    """Dict, subclassed to make keys conform to a coord. system, i.e. a space.
 
-    As for any points the dicts can hold any type of objects.
+    As for any dict, it can hold any type of objects.
+    The coordinate system is specified by its "axes",
+    which is used to produce self.Coord (a namedtuple class).
 
     Normally, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
@@ -87,31 +89,28 @@ class SparseSpace(dict):
         return self.Coord._fields
 
     def __init__(self, axes, *args, **kwargs):
-        self.Coord = namedtuple('coord', axes) # Def coord. system
-        super().__init__(*args,**kwargs)       # Write dict
+        # Define coordinate class (i.e. system)
+        self.Coord = namedtuple('Coord', axes) 
 
-    def __repr__(self):
-        s = self.__class__.__name__
-        s += f"(axes={self.axes!r})"
-        L = len(self)
-        # Key list:
-        n = min(L//2,2)
-        head = [*self][:n]
-        tail = [*self][n:]
-        if len(tail) > len(head)+1:
-            tail = tail[-(n+1):]
-            tail[0] = "..."
-        Open = "\n  Keys: ["
-        sep  = ",\n" + " "*(len(Open)-1)
-        keys = [coord2tup2str(x) for x in head+tail]
-        keys = sep.join(keys)
-        s += Open + keys + "]"
-        # Length
-        s += f"\n  Length: {L}"
-        return s
+        # Optional: add repr
+        self.Coord.__repr__ = lambda c: ",".join(f"{k}={v!r}" for k,v in zip(c._fields,c))
+        self.Coord.__str__  = lambda c: ",".join(str(v) for v in c)
+
+        # Write dict.
+        # Use update() [not super().__init__] to pass by __setitem__(). 
+        # Also see stackoverflow.com/a/2588648 & stackoverflow.com/a/2390997
+        self.update(*args, **kwargs)
+
+    def update(self, *args, **kwargs):
+        """As for dict, but using __setitem__()."""
+        for k, v in dict(*args, **kwargs).items(): self[k] = v
 
     def __setitem__(self, key, val):
-        key = self.Coord(*key)
+        """Setitem ensuring coordinate conforms."""
+        try: key = self.Coord(*key)
+        except TypeError as err: raise TypeError(
+                f"The key {key!r} did not fit the coord. system "
+                f"which has axes {self.axes}")
         super().__setitem__(key,val)
 
     def __getitem__(self,key):
@@ -131,6 +130,26 @@ class SparseSpace(dict):
             # instantiated in different places (but with equal params).
             # Also see bugs.python.org/issue7796
             return super().__getitem__(key)
+
+    def __repr__(self):
+        s = self.__class__.__name__
+        s += f"(axes={self.axes!r})"
+        L = len(self)
+        # Key list:
+        n = min(L//2,2)
+        head = [*self][:n]
+        tail = [*self][n:]
+        if len(tail) > len(head)+1:
+            tail = tail[-(n+1):]
+            tail[0] = "..."
+        Open = "\n  Keys: ["
+        sep  = ",\n" + " "*(len(Open)-1)
+        keys = [str(x) for x in head+tail]
+        keys = sep.join(keys)
+        s += Open + keys + "]"
+        # Length
+        s += f"\n  Length: {L}"
+        return s
 
     def matching_coords(self, **kwargs):
         # Get all items with attrs matching dict
@@ -207,9 +226,6 @@ class SparseSpace(dict):
             coord = coord._replace(XS=label)
             coord = coord._replace(**{a:None for a in NoneAttrs})
             self[coord] = entry
-
-def coord2str(coord):     return str(coord).partition("(")[-1][:-1]
-def coord2tup2str(coord): return ", ".join(str(v) for v in coord)
 
 ##
 
@@ -564,8 +580,8 @@ class xpSpace(SparseSpace):
                     header, matter = column[0], column[1:]
 
                 if h2: # Do super_header
-                    if j: super_header = coord2tup2str(col_coord)
-                    else: super_header = coord2str(col_coord)
+                    if j: super_header = str(col_coord)
+                    else: super_header = repr(col_coord)
                     width = len(header) #+= 1 if using unicode chars like ✔️
                     super_header = super_header.center(width,"_")
                     header = super_header + "\n" + header
@@ -591,7 +607,7 @@ class xpSpace(SparseSpace):
                 for i, (row_coord, row) in enumerate(zip(table, rows)):
                     row_key = ", ".join(str(v) for v in row_coord)
                     rows[i] =  [row_key]         + row
-                rows.insert(0, [f"{table.axes}"] + [coord2str(c) for c in cc])
+                rows.insert(0, [f"{table.axes}"] + [repr(c) for c in cc])
             else: # ********************** Elegant table.
                 h2 = len(cc)>1 # do column-super-header
                 rows = align_subcols(rows,cc,subcols,h2)
@@ -618,7 +634,7 @@ class xpSpace(SparseSpace):
             # Print
             print("\n",end="")
             if axes['outer']:
-                table_title = "•Table for " + coord2str(table_coord) + "."
+                table_title = "•Table for " + repr(table_coord) + "."
                 table_title = table_title + (f" •Averages Σ over {axes['mean']}." if axes['mean'] else "")
                 with coloring(termcolors['underline']):
                     print(table_title)
@@ -860,7 +876,7 @@ class xpSpace(SparseSpace):
         # Loop panels
         label_register = [] # mv inside loop to get legend on each panel
         for ip, (table_coord, table) in enumerate(tables.items()):
-            title = '' if axes["outer"] is None else coord2str(table_coord)
+            title = '' if axes["outer"] is None else repr(table_coord)
             table.panels = panels[:,ip]
 
             # Plot
