@@ -436,9 +436,9 @@ class xpSpace(SparseSpace):
             uq_dict = uq_dict.tune(axes['optim'])
             return uq_dict
 
-        # Prefer calling mean_tune() here:
+        # Prefer calling mean_tune() [see its docstring] here:
         xp_dict = mean_tune(xp_dict)
-        # This preference (up top) is because then the axes of
+        # This preference is because then the axes of
         # a row (xpSpace) should not include mean&optim, and thus:
         #  - Column header/coords may be had directly as row.keys(),
         #    without extraction by get_coord() from (e.g.) row[0].
@@ -939,7 +939,9 @@ def beautify_fig_ex3(tabulated_data, savepath, xp_dict):
             if nPanel<6:
                 ax.grid(True,which="minor",axis=direction)
         # Inflation tuning panel
-        if not ax.is_first_row() and 'infl' in ax.get_ylabel():
-            yy = xp_dict.axis_ticks_nn('infl')
-            axis_scale_by_array(ax, yy, "y")
+        if not ax.is_first_row():
+            for axis in ['infl','xB','xN']:
+                if axis in ax.get_ylabel():
+                    yy = xp_dict.axis_ticks_nn(axis)
+                    axis_scale_by_array(ax, yy, "y")
 ##
