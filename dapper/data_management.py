@@ -360,12 +360,10 @@ class xpSpace(SparseSpace):
         for coord, space in nested.items():
 
             # Find optimal value and coord within space
-            MIN = np.inf
-            for inner_coord in space:
-                uq = space[inner_coord]
-
+            for i, (inner_coord, uq) in enumerate(space.items()):
                 cost = costfun(uq.val)
-                if cost <= MIN: # inf<=inf is True
+
+                if i==0 or cost<=MIN:
                     MIN = cost
                     uq_opt = uq
                     uq_opt.tuning_coord = inner_coord
