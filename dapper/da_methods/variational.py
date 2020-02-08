@@ -354,13 +354,16 @@ class Var4D:
 
     def assimilate(self,HMM,xx,yy):
         Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        R, KObs = HMM.Obs.noise.C.sym_sqrt_inv, HMM.t.KObs
+        R, KObs = HMM.Obs.noise.C, HMM.t.KObs
+        Rm12 = R.sym_sqrt_inv
         Nx = Dyn.M
 
         # Set background covariance. Note that it is static (compare to iEnKS).
         if self.B in (None,'clim'): 
             # Use climatological cov, ...
             B = np.cov(xx.T) # ... estimated from truth
+        elif self.B == 'eye':
+            B = np.eye(Nx)
         else:
             B = self.B
         B *= self.xB
