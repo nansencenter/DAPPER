@@ -209,10 +209,18 @@ def run_experiment(xp, label, HMM, sd, free, statkeys, savepath, fail_gently, st
      - average_stats()
      - print_averages()
      - saves with dill.dump()
+
+    - sd is used to fix the seed, repeating it for each experiment.
+      This may yield a form of "Variance reduction"
+      (eg. CRN, see wikipedia.org/wiki/Variance_reduction).
+      Note: this CRN trick is handy for quick comparisons
+            of results between xp's,
+            but should not be relied upon for publishing results,
+            which should simply be converged values.
     """
 
-    # Set HMM parameters. Why the use of setters?
-    # To avoid tying an HMM to each xp, which
+    # Set HMM parameters.
+    # Why the use of setters? To avoid tying an HMM to each xp, which
     #  - keeps the xp attrs primitive.
     #  - avoids memory and pickling/storage of near-duplicate HMMs.
     HMM_params = intersect(vars(xp), re.compile(r'^HMM_'))
@@ -229,16 +237,14 @@ def run_experiment(xp, label, HMM, sd, free, statkeys, savepath, fail_gently, st
     else:
         hmm = HMM
 
-    # Repeat seed, yielding a form of "Variance reduction"
-    # (eg. CRN, see wikipedia.org/wiki/Variance_reduction).
-    # May be useful, but should of course not be relied upon!
-    if sd: set_seed(sd + getattr(xp,'seed',0))
-
-    # Simulate or load
+    # GENERATE TRUTH/OBS
+    if sd: set_seed(sd + getattr(xp,'seed',0)) # Set seed
     xx, yy = hmm.simulate()
-
-    # Re-set seed, in case simulate() is called only for the 1st xp.
-    if sd: set_seed(sd + getattr(xp,'seed',0))
+    # Now set the seed again. Then it does not matter for the following
+    # random draws whether-or-not simulate() was called above.
+    # Also, offset by a fixed number to avoid any magic correspondence
+    # of the random draws of the truth and the state-estimator.
+    if sd: set_seed(sd + getattr(xp,'seed',0) + 1)
     
     # ASSIMILATE
     try:
