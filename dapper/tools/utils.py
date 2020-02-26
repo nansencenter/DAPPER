@@ -190,7 +190,8 @@ def run_path(script,host="",relpath=False,timestamp=True):
         run_number = str(1 + max(get_filenums(sdir),default=0))
 
     sdir = sdir + run_number
-    assert not os.path.exists(sdir)
+    os.makedirs(sdir, exist_ok=False)
+
     return sdir
 
 

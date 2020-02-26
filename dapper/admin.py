@@ -208,7 +208,7 @@ def run_experiment(xp, label, HMM, sd, free, statkeys, savepath, fail_gently, st
      - fail_gently wrap
      - average_stats()
      - print_averages()
-     - saves with dill.dump()
+     - saves, using dill.dump()
 
     - sd is used to fix the seed, repeating it for each experiment.
       This may yield a form of "Variance reduction"
@@ -535,12 +535,16 @@ class xpList(list):
             # rpath = run_path(savename,host=mp or True)
             rpath = run_path(savename)
             ipath = lambda ixp, sep: pjoin(rpath, f"ixp_{ixp}" + sep)
-            os.makedirs(rpath, exist_ok=True)
             # NB: Don't casually modify this message. It may be grepped.
             print("Experiment data stored at",rpath+"/")
         else:
-            rpath = None
-            ipath = lambda *args: False
+            # It's possible to parallelize without storing,
+            # especially if using threads. But, it's more complicated,
+            # and requires deeper consideration of communications.
+            if mp:
+                raise ValueError("Parallelization requires storing data.")
+            else:
+                ipath = lambda *args: False
 
         if not mp: # No parallelization
             labels = self.gen_names() if desc else self.da_methods
@@ -549,19 +553,12 @@ class xpList(list):
 
         elif mp is "GCP":
             with open(pjoin(rpath,"common_input"),"wb") as F:
-                dill.dump(dict(
-                    HMM=HMM,
-                    label=None,
-                    sd=sd,
-                    free=free,
-                    statkeys=None,
-                    fail_gently=fail_gently,
-                    stat_kwargs=stat_kwargs,
-                    ), F)
+                dill.dump(dict(HMM=HMM, label=None, sd=sd, free=free, statkeys=None,
+                    fail_gently=fail_gently, stat_kwargs=stat_kwargs), F)
 
             for ixp, xp in enumerate(self):
                 idir = ipath(ixp, os.path.sep)
-                os.mkdir(idir)
+                os.makedirs(idir)
                 with open(pjoin(idir, "variable_input"),"wb") as F:
                     dill.dump(dict(xp=xp, ixp=ixp), F)
 
@@ -581,7 +578,7 @@ class xpList(list):
                         list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
                             total=len(self), desc="Parallel experim's", smoothing=0.1))
 
-        return rpath
+        return rpath if savename else None
 
 
 def run_from_file(dirpath):
