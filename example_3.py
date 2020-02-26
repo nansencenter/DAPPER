@@ -99,7 +99,7 @@ xps = [xp for xp in xps
 xp_dict = xpSpace.from_list(xps)
 
 # Single-out certain settings
-# Note: Must use infl=1.01 (not 1) to reproduce Ref[1]'s figure,
+# Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
 # as well as rot=True (better scores obtainable w/o rot).
 separate = xp_dict.label_cross_section
 separate('NO-infl'     , ('infl'), da_method='LETKF', infl=1.01, rot=True)
