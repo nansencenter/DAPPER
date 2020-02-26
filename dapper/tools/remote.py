@@ -38,6 +38,11 @@ def remote_work(curjob):
     DPR = dirs['DAPPER']
     cmd(f"gsutil -m rsync -r -d -x {xcldd} {DPR} gs://pb2/DAPPER")
 
+
+    print("Synching current dir to cloud-storage")
+    cmd(f"gsutil cp *.py gs://pb2/workdir/")
+
+
     print("Copying common_input to initdir of each job")
     remote_cmd("""cd job; for f in ixp_*; do cp common_input $f/; done""")
 
