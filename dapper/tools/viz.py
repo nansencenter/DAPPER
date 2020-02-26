@@ -735,7 +735,9 @@ def axis_scale_by_array(ax, arr, axis='y', nbins=3):
     """Scale axis so that the arr entries appear equidistant.
 
     The full transformation is piecewise-linear."""
-    arr = [x for x in arr if x is not None] # rm None
+    arr = array([x for x in arr if x is not None]) # rm None
+    if np.issubdtype(bool, arr.dtype):
+        arr = array([0,1])
 
     # Make transformation
     xx = arange(len(arr)) # indices
@@ -744,11 +746,11 @@ def axis_scale_by_array(ax, arr, axis='y', nbins=3):
     invf = interp1d(yy, xx, fill_value="extrapolate")
 
     # Set transformation
-    setter = eval(f"ax.set_{axis}scale")
-    setter('function',functions=(invf,func))
+    set_scale = eval(f"ax.set_{axis}scale")
+    set_scale('function',functions=(invf,func))
 
     # Adjust axis ticks
-    axis = getattr(ax,axis+"axis")
-    axis.set_major_locator(ticker.FixedLocator(arr,nbins=nbins))
-    axis.set_minor_locator(ticker.FixedLocator(arr))
-    axis.set_minor_formatter(ticker.NullFormatter())
+    _axis = getattr(ax,axis+"axis")
+    _axis.set_major_locator(ticker.FixedLocator(arr,nbins=nbins))
+    _axis.set_minor_locator(ticker.FixedLocator(arr))
+    _axis.set_minor_formatter(ticker.NullFormatter())
