@@ -223,13 +223,15 @@ class CovMat():
                     V   = eye(M)
                     rk  = M
                 else:
+                    # Clip and sort diag
                     d   = CovMat._clip(d)
-                    rk  = (d>0).sum()
                     idx = np.argsort(d)[::-1]
-                    d   = d[idx][:rk]
-                    nn0 = idx<rk
-                    V   = zeros((M,rk))
-                    V[nn0, idx[nn0]] = 1
+                    rk  = (d>0).sum()
+                    # Sort d
+                    d = d[idx][:rk]
+                    # Make rectangular V that un-sorts d
+                    V = zeros((M,rk))
+                    V[idx[:rk],  arange(rk)] = 1
                 self._assign_EVD(M,rk,d,V)
             else:
                 raise KeyError
