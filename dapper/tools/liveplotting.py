@@ -680,7 +680,8 @@ def sliding_marginals(
     return init # end sliding_marginals()
 
 
-def phase3d(
+def phase_particles(
+    is_3d        = True,
     obs_inds     = [],
     dims         = [],
     labels       = [],
@@ -692,36 +693,38 @@ def phase3d(
     # Store parameters
     params_orig = Bunch(**locals())
 
+    M = 3 if is_3d else 2
+
     def init(fignum,stats,key0,plot_u,E,P,**kwargs):
         xx, yy, mu, std, chrono = stats.xx, stats.yy, stats.mu, stats.std, stats.HMM.t
-        M = 3 # Only applicable for 3d plots
 
         # Set parameters (kwargs takes precedence over params_orig)
         p = Bunch(**{kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
 
         # Lag settings:
-        T_lag, K_lag, a_lag = validate_lag(p.Tplot, chrono)
-        K_plot = comp_K_plot(K_lag,a_lag,plot_u)
-        # Extend K_plot forther for adding blanks in resampling (PartFilt):
         has_w = hasattr(stats,'w')
-        if has_w: K_plot += a_lag
+        if p.Tplot == 0:
+            K_plot = 1
+        else:
+            T_lag, K_lag, a_lag = validate_lag(p.Tplot, chrono)
+            K_plot = comp_K_plot(K_lag,a_lag,plot_u)
+            # Extend K_plot forther for adding blanks in resampling (PartFilt):
+            if has_w: K_plot += a_lag
 
         # Dimension settings
-        if p.dims   == []: p.dims   = [0,1,2]
-        if p.labels == []: p.labels = ["$x_%s$"%i for i in "123"]
+        if p.dims   == []: p.dims   = arange(M)
+        if p.labels == []: p.labels = ["$x_%d$"%d for d in p.dims]
         assert len(p.dims)==M
 
         # Set up figure, axes
-        fig = freshfig(fignum, figsize=(5,5), loc='2321', nrows=0, ncols=0)
-        ax3 = plt.subplot(111, projection='3d')
-        ax3.set_facecolor('w')
-        ax3.set_title("Phase space trajectories")
+        fig, _ = freshfig(fignum, figsize=(5,5), loc='2321', nrows=0, ncols=0)
+        ax = plt.subplot(111, projection='3d' if is_3d else None)
+        ax.set_facecolor('w')
+        ax.set_title("Phase space trajectories")
         # Tune plot
-        for ind, (s,i) in enumerate(zip(p.labels, p.dims)):
-            set_ilim(ax3, ind, *stretch(*xtrema(xx[:,i]),1/p.zoom))
-        ax3.set_xlabel(p.labels[0])
-        ax3.set_ylabel(p.labels[1])
-        ax3.set_zlabel(p.labels[2])
+        for ind, (s,i,t) in enumerate(zip(p.labels, p.dims, "xyz")):
+            set_ilim(ax, ind, *stretch(*xtrema(xx[:,i]),1/p.zoom))
+            eval("ax.set_%slabel('%s')"%(t,s))
 
         # Allocate
         d = Bunch() # data arrays
@@ -733,15 +736,15 @@ def phase3d(
         if list(p.obs_inds)==list(p.dims): d.y  = RollingArray((K_plot,M))
 
         # Plot tails (invisible coz everything here is nan, for the moment).
-        if 'E'  in d: h.E  += [ax3.plot(*xn    , **p.ens_props)[0] for xn in np.transpose(d.E,[1,2,0])]
-        if 'mu' in d: h.mu  =  ax3.plot(*d.mu.T, 'b' , lw=2   )[0]
-        if True     : h.x   =  ax3.plot(*d.x .T, 'k' , lw=3   )[0]
-        if 'y'  in d: h.y   =  ax3.plot(*d.y .T, 'g*',ms=14   )[0]
+        if 'E'  in d: h.E  += [ax.plot(*xn    , **p.ens_props)[0] for xn in np.transpose(d.E,[1,2,0])]
+        if 'mu' in d: h.mu  =  ax.plot(*d.mu.T, 'b' , lw=2   )[0]
+        if True     : h.x   =  ax.plot(*d.x .T, 'k' , lw=3   )[0]
+        if 'y'  in d: h.y   =  ax.plot(*d.y .T, 'g*',ms=14   )[0]
 
         # Scatter. NB: don't init with nan's coz it's buggy (wrt. get_color() and _offsets3d) since mpl 3.1.
-        if 'E'  in d: s.E   =  ax3.scatter(*E.T[p.dims],s=3 **2, c=[hn  .get_color() for hn in h.E])
-        if 'mu' in d: s.mu  =  ax3.scatter(*ones(M)    ,s=8 **2, c=[h.mu.get_color(),])
-        if True     : s.x   =  ax3.scatter(*ones(M)    ,s=14**2, c=[h.x .get_color(),], marker=(5, 1), zorder=99)
+        if 'E'  in d: s.E   =  ax.scatter(*E.T[p.dims],s=3 **2, c=[hn  .get_color() for hn in h.E])
+        if 'mu' in d: s.mu  =  ax.scatter(*ones(M)    ,s=8 **2, c=[h.mu.get_color(),])
+        if True     : s.x   =  ax.scatter(*ones(M)    ,s=14**2, c=[h.x .get_color(),], marker=(5, 1), zorder=99)
 
 
         def update(key,E,P):
@@ -750,7 +753,14 @@ def phase3d(
 
             def update_tail(handle,newdata):
                 handle.set_data(newdata[:,0],newdata[:,1])
-                handle.set_3d_properties(newdata[:,2])
+                if is_3d:
+                    handle.set_3d_properties(newdata[:,2])
+
+            def update_sctr(handle,newdata):
+                if is_3d:
+                    handle._offsets3d = juggle_axes(*newdata.T,'z')
+                else:
+                    handle.set_offsets(newdata)
 
             EE = duplicate_with_blanks_for_resampled(E, p.dims, key, has_w)
 
@@ -763,29 +773,31 @@ def phase3d(
                 if 'mu' in d: d.mu.insert(ind, mu[key][p.dims])
 
             # Update graph
-            s.x._offsets3d = juggle_axes(*d.x[[-1]].T,'z')
+            update_sctr(s.x, d.x[[-1]])
             update_tail(h.x, d.x)
             if 'y' in d:
                 update_tail(h.y, d.y)
             if 'mu' in d:
-                s.mu._offsets3d = juggle_axes(*d.mu[[-1]].T,'z')
+                update_sctr(s.mu, d.mu[[-1]])
                 update_tail(h.mu, d.mu)
             else:
-                s.E._offsets3d = juggle_axes(*d.E[-1].T,'z')
+                update_sctr(s.E, d.E[-1])
                 for n in range(len(E)):
                     update_tail(h.E[n],d.E[:,n,:])
                 update_alpha(key, stats, h.E, s.E)
 
             return # end update()
         return update # end init()
-    return init # end phase3d()
+    return init # end phase_particles()
 
 
 
 def validate_lag(Tplot, chrono):
-    """Return T_lag:
+    """Return validated T_lag such that is is:
+
      - equal to Tplot with fallback: HMM.t.Tplot.
      - no longer than HMM.t.T.
+
      Also return corresponding K_lag, a_lag."""
 
     # Defaults
@@ -797,7 +809,7 @@ def validate_lag(Tplot, chrono):
 
     assert T_lag >= 0
 
-    # Validate
+    # Validate T_lag
     t2 = chrono.tt[-1]
     t1 = max(chrono.tt[0], t2-T_lag)
     T_lag = t2-t1

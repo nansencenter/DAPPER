@@ -26,7 +26,7 @@ step = with_rk4(dxdt,autonom=True)
 # Time span for plotting. Typically: ≈10 * "system time scale".
 Tplot = 4.0
 
-# Example initial state -- usually not important,
+# Example initial state -- should not matter for benchmarks,
 # coz system is chaotic, and we average stats after a BurnIn time.
 # But it's often convenient to have a point on the attractor, or basin,
 # or at least ensure "physicality".
@@ -58,5 +58,5 @@ params = dict(labels='xyz', Tplot=1)
 def LPs(jj=None,params=params): return [
     (12, 1, LP.correlations   ),
     (14, 1, LP.sliding_marginals(jj, zoomy=0.8, **params)) ,
-    (13, 1, LP.phase3d(jj, **params)                     ) ,
+    (13, 1, LP.phase_particles(is_3d=True, obs_inds=jj, **params)                     ) ,
 ]

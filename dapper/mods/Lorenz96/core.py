@@ -63,6 +63,6 @@ def LPs(jj=None): return [
     (11, 1, LP.spatial1d(jj)  ),
     (12, 1, LP.correlations   ),
     (15, 0, LP.spectral_errors),
-    (13, 0, LP.phase3d(jj)    ),
+    (13, 0, LP.phase_particles(True,jj) ),
     (14, 0, LP.sliding_marginals(jj)) ,
 ]
