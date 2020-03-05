@@ -391,8 +391,8 @@ def warn_zero_variance(err,flag):
     This should and will yield nan's, but we don't want
     mere diagnostics computations to cause repetitive warnings,
     so we only warn once."""
-    msg = """Numerical error in stat comps.
-          Probably caused by a sample variance of 0."""
+    msg = "\n".join(["Numerical error in stat comps.",
+          "Probably caused by a sample variance of 0."])
     warnings.warn(msg)
 
 

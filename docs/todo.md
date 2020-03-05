@@ -2,7 +2,9 @@ Todo
 ================================================
 
 Minor:
+* Rm all occurances of plt.ion(). Works better without.
 * Cut back on "config" wording, in favour of xp.
+* Rename dpr01.py occurences to some_settings_01.py
 * Use unpack_uqs in tabulate_avrgs
 * Rm tabulate() in favour of tabulate_orig().
 * Replace all np.vectorize in math.py with vectorize0
