@@ -33,6 +33,14 @@ def test_LUV(fun=LUV.dxdt,Jacob=LUV.d2x_dtdx,x=LUV.x0): # capture current values
     assert _allclose(fun, Jacob, x)
 
 ##
+from dapper.mods.Ikeda.core import step, dstep_dx, x0
+x0 = randn(x0.shape)
+def test_Ikeda(fun=step,Jacob=dstep_dx,x=x0): # capture current values
+    fun1   = lambda x: fun  (x,nan,nan)
+    Jacob1 = lambda x: Jacob(x,nan,nan)
+    assert _allclose(fun1, Jacob1, x)
+
+##
 from dapper.mods.KS.core import Model
 KS = Model()
 def test_KS(fun=KS.dxdt,Jacob=KS.d2x_dtdx,x=KS.x0): # capture current values

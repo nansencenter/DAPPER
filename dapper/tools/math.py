@@ -60,7 +60,7 @@ def ens_compatible(func):
     """
     @functools.wraps(func)
     def wrapr(x,*args,**kwargs):
-        return func(x.T,*args,**kwargs).T
+        return np.asarray(func(x.T,*args,**kwargs)).T
     return wrapr
 
 def center(E,axis=0,rescale=False):

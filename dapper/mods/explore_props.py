@@ -28,6 +28,14 @@ plt.ion()
 # Nx  = len(x0)
 # N   = Nx
 
+# from dapper.mods.Ikeda.core import step, x0
+# # ------------------
+# # Lyapunov exponents: [ 0.51 -0.72]
+# T   = 5e3
+# dt  = 1
+# eps = 1e-5
+# Nx  = len(x0)
+# N   = Nx
 
 # from dapper.mods.Lorenz63.core import step, x0
 # # ------------------

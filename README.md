@@ -116,6 +116,7 @@ Model                | Lin? | TLM? | PDE?  | Phys.dim. | State len | Lyap≥0 | 
 -----------          | ---- | ---- | ----  | --------- | --------- | ------ | ----------
 Linear Advect. (LA)  | Yes  | Yes  | Yes   | 1d        | 1000 *    | 51     | Evensen/Raanes
 DoublePendulum       | No   | Yes  | No    | 0d        | 4         | 2      | Matplotlib/Raanes
+Ikeda                | No   | Yes  | No    | 0d        | 2         | 1      | Raanes
 LotkaVolterra        | No   | Yes  | No    | 0d        | 5 *       | 1      | Wikipedia/Raanes
 Lorenz63             | No   | Yes  | "Yes" | 0d        | 3         | 2      | Sakov
 Lorenz84             | No   | Yes  | No    | 0d        | 3         | 2      | Raanes
