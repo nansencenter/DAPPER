@@ -484,7 +484,10 @@ def deep_hasattr(obj,name):
 
 
 class AlignedDict(dict):
-    """Provide aligned-printing for dict."""
+    """Provide aligned-printing for dict.
+    
+    A similar class is sp.optimize.OptimizeResult
+    """
     def __str__(self):
         A = 2 # len(repr(key)) - len(key) 
         L = max([len(s)+A for s in self.keys()], default=0)

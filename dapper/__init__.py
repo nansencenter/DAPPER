@@ -64,8 +64,9 @@ del x, d
 ##################################
 # Profiling.
 ##################################
-# Decorate the function you wish to time with 'profile' below
-# Then launch program as: $ kernprof -l -v myprog.py
+# pip install line_profiler
+# Launch python script: $ kernprof -l -v myprog.py
+# Functions decorated with 'profile' from below will be timed.
 try:
     profile = builtins.profile     # will exists if launched via kernprof
 except AttributeError:
