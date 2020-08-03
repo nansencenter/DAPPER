@@ -106,7 +106,7 @@ class Operator(NestedPrint):
     printopts = {'ordering' : ['M','model','noise']}
 
 
-def da_method(*default_dataclasses): 
+def da_method(*default_dataclasses):
     """Make the decorator that makes the DA classes.
 
     Example:
@@ -518,7 +518,7 @@ class xpList(list):
         """For each xp in self: run_experiment(xp,...). View ``example_2.py``.
         
         Delegate this to one of:
-         - caller process (=> no parallelisation)
+         - caller process (no parallelisation)
          - multiprocessing on this host
          - GCP (Google Cloud Computing) with HTCondor
 
