@@ -4,8 +4,7 @@ import setuptools, os, re
 
 # with open("README.md", "r") as fh:
 #     long_description = fh.read()
-long_description = """DAPPER is a set of templates for benchmarking the performance of data assimilation (DA).
-See full description at github.com/nansencenter/DAPPER.
+long_description = """DAPPER is a set of templates for benchmarking the performance of data assimilation (DA). See full README at github.com/nansencenter/DAPPER.
 """
 
 def filter_dirs(x):
@@ -49,9 +48,7 @@ setuptools.setup(
     # >=3.7 (for dataclass, capture_output, dict ordering).
     python_requires='~=3.7',
 
-    # Dependencies. Use pipdeptree and pipreqs tools to list.
-    # We pin smaller libraries (coz stackoverflow.com/a/28510546),
-    # but allow ranges for bigger ones (coz stackoverflow.com/a/43421973).
+    # Dependencies.
     install_requires=[
         'scipy>=1.1',
         'ipython>=5.1',
@@ -60,6 +57,7 @@ setuptools.setup(
         'colorama~=0.4.1',
         'tabulate~=0.8.3',
         'dill>=0.3.1.1', # >=0.3.1.1 for dataclass
+        'pandas'
     ],
     # Optional
     extras_require={
