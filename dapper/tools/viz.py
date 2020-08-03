@@ -6,7 +6,6 @@ from mpl_toolkits.mplot3d.art3d import juggle_axes
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from matplotlib import colors
 from matplotlib.ticker import MaxNLocator
 
 
@@ -22,12 +21,12 @@ def setup_wrapping(M,periodicity=None):
     if periodicity in (None,True):
         periodicity = "+1"
 
-    if periodicity is "+1":
+    if periodicity == "+1":
         ii = arange(M+1)
         def wrap(E):
             return E[...,list(range(M))+[0]]
 
-    elif periodicity is "+/-05":
+    elif periodicity == "+/-05":
         ii = np.hstack([-0.5, arange(M), M-0.5])
         def wrap(E):
             midpoint = (E[...,[0]] + E[...,[-1]])/2
@@ -114,9 +113,9 @@ def stretch(a,b,factor=1,int=False):
 
 def set_ilim(ax,i,Min=None,Max=None):
     """Set bounds on axis i.""" 
-    if i is 0: ax.set_xlim(Min,Max)
-    if i is 1: ax.set_ylim(Min,Max)
-    if i is 2: ax.set_zlim(Min,Max)
+    if i == 0: ax.set_xlim(Min,Max)
+    if i == 1: ax.set_ylim(Min,Max)
+    if i == 2: ax.set_zlim(Min,Max)
 
 # Examples:
 # K_lag = estimate_good_plot_length(stats.xx,chrono,mult = 80)

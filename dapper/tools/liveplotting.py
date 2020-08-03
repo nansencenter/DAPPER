@@ -1,6 +1,5 @@
 from dapper import *
 
-
 class LivePlot:
     """Live plotting manager.
 
@@ -144,7 +143,7 @@ class LivePlot:
         if not self.skipping:
             # Update figures
             faus = key[-1]
-            if faus is not 'u' or self.plot_u:
+            if faus != 'u' or self.plot_u:
                 for name, (num, updater) in self.figures.items():
                     if plt.fignum_exists(num) and getattr(updater,'is_active',1):
                         fig = plt.figure(num)
@@ -499,12 +498,14 @@ class correlations:
             # Mask half
             mask = np.zeros_like(C, dtype=np.bool)
             mask[np.tril_indices_from(mask)] = True
-            # Make colormap. Log-transform cmap, but not internally in matplotlib,
+            # Make colormap. Log-transform cmap,
+            # but not internally in matplotlib,
             # so as to avoid transforming the colorbar too.
             cmap = plt.get_cmap('RdBu_r')
-            trfm = colors.SymLogNorm(linthresh=0.2,linscale=0.2,vmin=-1, vmax=1)
+            trfm = mpl.colors.SymLogNorm(linthresh=0.2,linscale=0.2,
+                                         base=np.e, vmin=-1, vmax=1)
             cmap = cmap(trfm(linspace(-0.6,0.6,cmap.N)))
-            cmap = colors.ListedColormap(cmap)
+            cmap = mpl.colors.ListedColormap(cmap)
             #
             VM   = 1.0 # abs(np.percentile(C,[1,99])).max()
             im   = ax.imshow(C,cmap=cmap,vmin=-VM,vmax=VM)
