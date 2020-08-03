@@ -1,10 +1,12 @@
-"""Demonstrate the Ikeda map."""
-##
+"""Demonstrate the Ikeda map.
+
+Plot settings inspired by Wikipedia."""
+
 from dapper import *
 import core
 
 ## Various parameter cases
-case = "c3"
+case = "c1"
 if case == "c1":
     core.u = 0.918
     s = 5
@@ -21,6 +23,9 @@ elif case == "c3":
     N = 1
     as_points = True
 
+# Simulation length
+K = 10**5 // N
+
 ## Computations
 simulator = with_recursion(core.step, prog="Simulating")
 
@@ -28,29 +33,22 @@ simulator = with_recursion(core.step, prog="Simulating")
 E0 = core.x0 + s*randn((N,2))
 
 # Simulate
-K = 10**5 // N
 EE = simulator(E0, K, 0, 1)
 
-##
+## Plot
 # fig, ax = plt.subplots()
 plt.ion()
 fig, ax = freshfig(1)
 fig.suptitle('Phase space')
-[eval("ax.set_%slabel('%s')"%(s,s)) for s in "xy"]
-
-# Length (from ending) of trajectories to plot
-L = 0 # if 0: include all
+ax.set(xlabel="x", ylabel="y")
 
 # Re-order axes for plotting
-EE = EE[-L:].transpose((2,0,1))
+tail_length = 0 # 0 => infinite
+ET = EE[-tail_length:].transpose((2,0,1))
 
-if as_points: ax.plot(*EE, "b.", ms=1.0, alpha=1.0)
-else:         ax.plot(*EE, "b-", lw=.02, alpha=0.1)
+if as_points: ax.plot(*ET, "b.", ms=1.0, alpha=1.0)
+else:         ax.plot(*ET, "b-", lw=.02, alpha=0.1)
 
 # Plot start/end-ing points
-# ax.plot(*EE[0] .T, '*g', ms=14)
-# ax.plot(*EE[-1].T, '*r', ms=14)
-
-
-##
-
+# ax.plot(*EE[0] .T, '*g', ms=7)
+# ax.plot(*EE[-1].T, '*r', ms=7)

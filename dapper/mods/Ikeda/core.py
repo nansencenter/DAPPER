@@ -1,6 +1,6 @@
 """The "Ikeda" map.
 
-Source: en.wikipedia.org/wiki/Ikeda_map and Colin Grudzen.
+Source: https://en.wikipedia.org/wiki/Ikeda_map and Colin Grudzen.
 
 See demo.py for more info.
 """
