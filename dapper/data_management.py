@@ -208,7 +208,8 @@ class SparseSpace(dict):
         """Insert duplicate entries for the cross section
         
         whose ``coord``s match ``sub_coord``,
-        adding the attr ``Fixation=label`` to their ``coord``.
+        adding the attr ``Const=label`` to their ``coord``,
+        reflecting the "constance/constraint/fixation" this represents.
 
         This distinguishes the entries in this fixed-affine subspace,
         preventing them from being gobbled up in ``nest()``.
@@ -217,13 +218,13 @@ class SparseSpace(dict):
         avoid these getting plotted in tuning panels.
         """
 
-        if "Fixation" not in self.axes:
-            self.add_axis('Fixation')
+        if "Const" not in self.axes:
+            self.add_axis('Const')
 
         for coord in self.matching_coords(**sub_coord):
             entry = self[coord]
             entry = deepcopy(entry)
-            coord = coord._replace(Fixation=label)
+            coord = coord._replace(Const=label)
             coord = coord._replace(**{a:None for a in NoneAttrs})
             self[coord] = entry
 
@@ -278,7 +279,7 @@ class xpSpace(SparseSpace):
 
         # Define axes
         xp_list = xpList(xps)
-        axes = xp_list.split_attrs(nomerge=['Fixation'])[0]
+        axes = xp_list.split_attrs(nomerge=['Const'])[0]
         ticks = make_ticks(axes)
         self = cls(axes.keys())
 
@@ -669,7 +670,7 @@ class xpSpace(SparseSpace):
         def _format_label(label):
             lbl = ''
             for k, v in label.items():
-               if flexcomp(k, 'da_method', 'Fixation'):
+               if flexcomp(k, 'da_method', 'Const'):
                    lbl = lbl + f' {v}'
                else:
                    lbl = lbl + f' {collapse_str(k)}:{v}'
