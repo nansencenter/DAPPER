@@ -827,7 +827,7 @@ class xpSpace(SparseSpace):
             ST = ST[:-1] + f" and {axes['mean']}."
         if style_dict:
             props = ", ".join(f"{a}:%s"%style_dict[a]['axis'] for a in style_dict)
-            ST = ST + "\nProperty allotment: " + props + "."
+            ST = ST + "\nStyle allotm.: " + props + "."
         tables.fig.suptitle(ST)
 
         def plot_line(row, panels):

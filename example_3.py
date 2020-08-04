@@ -1,9 +1,9 @@
-"""Illustrate usage of DAPPER to run MANY benchmark experiments,
+"""Illustrate usage of DAPPER to run MANY benchmark experiments
 
-for a bunch of control variables,
-and plot the compiled results as functions of the control variable.
+(to explore a bunch of control variables),
+and plot the compiled results as in a variety of ways.
 
-Specifically, we will reproduce figure 6.6 from Ref[1].
+In particular, we will reproduce figure 6.6 from Ref[1].
 The figure reveals the (relative) importance (in the EnKF) of
 localization and inflation.
 
@@ -17,7 +17,6 @@ Note: unless you have a lot of CPUs available, you probably want to reduce
 
 Ref[1]: Book: "Data Assimilation: Methods, Algorithms, and Applications"
         by M. Asch, M. Bocquet, M. Nodet.
-        Preview:
         http://books.google.no/books?id=FtDZDQAAQBAJ&q=figure+6.6
         Alternative source: "Figure 5.7" of:
         cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf
@@ -102,8 +101,8 @@ xp_dict = xpSpace.from_list(xps)
 # Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
 # as well as rot=True (better scores obtainable w/o rot).
 point_out = xp_dict.label_xSection
-point_out('No-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
-point_out('No-infl-loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
+point_out('NO-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
+point_out('NO-infl-loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
 
 # Describe roles of coordinates/dimensions in plotting/printing
 axes_allotment=dict(inner="N", mean="seed", optim=('loc_rad','infl','rot'))
@@ -111,7 +110,7 @@ axes_allotment=dict(inner="N", mean="seed", optim=('loc_rad','infl','rot'))
 # Print
 xp_dict.print("rmse.a", {**axes_allotment, "outer":"da_method"}, subcols=False)
 
-# Plot -- try moving the axes around the allotment
+# Plot -- try changing the axis allotments
 # (as suggested by the lines that are commented out).
 plt.ion()
 tabulated_data = xp_dict.plot('rmse.a', axes_allotment, # fignum=1,
