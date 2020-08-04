@@ -67,6 +67,7 @@ setuptools.setup(
             'psutil',
         ],
         'Qt':  ['PyQt5','qtpy'],
+        'Dev':  ['line_profiler','ipdb','pytest'],
     },
     # Other packages used, but not explicitly required
     #
