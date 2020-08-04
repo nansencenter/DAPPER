@@ -625,7 +625,7 @@ class xpSpace(SparseSpace):
                 if len(row_keys.columns):
                     # Header
                     rows[0] = [('\n' if h2 else '')+k for k in row_keys] +\
-                             [ '|' + ('\n|' if h2 else '')] + rows[0]
+                        [(' \n\\' if h2 else '\\')] + rows[0]
                     # Matter
                     for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
                         rows[i+1] = [*key] + ['|']+ row
