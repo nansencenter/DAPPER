@@ -204,11 +204,11 @@ class SparseSpace(dict):
             entry = self.pop(coord)
             self[coord + (None,)] = entry
 
-    def label_cross_section(self,label,*NoneAttrs,**sub_coord):
+    def label_xSection(self,label,*NoneAttrs,**sub_coord):
         """Insert duplicate entries for the cross section
         
         whose ``coord``s match ``sub_coord``,
-        adding the attr ``XS=label`` to their ``coord``.
+        adding the attr ``xSect=label`` to their ``coord``.
 
         This distinguishes the entries in this fixed-affine subspace,
         preventing them from being gobbled up in ``nest()``.
@@ -217,13 +217,13 @@ class SparseSpace(dict):
         avoid these getting plotted in tuning panels.
         """
 
-        if "XS" not in self.axes:
-            self.add_axis('XS')
+        if "xSect" not in self.axes:
+            self.add_axis('xSect')
 
         for coord in self.matching_coords(**sub_coord):
             entry = self[coord]
             entry = deepcopy(entry)
-            coord = coord._replace(XS=label)
+            coord = coord._replace(xSect=label)
             coord = coord._replace(**{a:None for a in NoneAttrs})
             self[coord] = entry
 
@@ -278,7 +278,7 @@ class xpSpace(SparseSpace):
 
         # Define axes
         xp_list = xpList(xps)
-        axes = xp_list.split_attrs(nomerge=['XS'])[0]
+        axes = xp_list.split_attrs(nomerge=['xSect'])[0]
         ticks = make_ticks(axes)
         self = cls(axes.keys())
 
@@ -487,17 +487,18 @@ class xpSpace(SparseSpace):
 
           Example: If ``mean`` is assigned to:
 
-          - ("seed",): Experiments are averaged accross seeds, and the 1σ (sub)col is
-                       computed as sqrt(var(xps)/N) where xps is a set of experiments.
+          - ("seed",): Experiments are averaged accross seeds,
+                       and the 1σ (sub)col is computed as sqrt(var(xps)/N),
+                       where xps is a set of experiments.
 
-          - ()       : Experiments are averaged across nothing
-                       (i.e.) this is a valid edge case of the previous one.
+          - ()       : Experiments are averaged across nothing (i.e. this is an edge case).
 
-          - None     : Experiments are not averaged, and the 1σ (sub)col reports the
-                       confidence from that individual experiment (time series of values).
+          - None     : Experiments are not averaged (i.e. the values are the same as above),
+                       and the 1σ (sub)col is computed from the time series of that single experiment.
         """
 
         import pandas as pd
+
         # Enable storing None's (not as nan's) both in
         # - structured np.array
         # - pd.DataFrame
@@ -507,7 +508,6 @@ class xpSpace(SparseSpace):
             """Subcolumns: align, justify, join."""
 
             def unpack_uqs(uq_list, decimals=None):
-
                 subcols=["val","conf","nFail","nSuccess","tuning_coord"]
 
                 # np.array with named columns.
@@ -669,7 +669,7 @@ class xpSpace(SparseSpace):
         def _format_label(label):
             lbl = ''
             for k, v in label.items():
-               if flexcomp(k, 'da_method', 'XS'):
+               if flexcomp(k, 'da_method', 'xSect'):
                    lbl = lbl + f' {v}'
                else:
                    lbl = lbl + f' {collapse_str(k)}:{v}'
