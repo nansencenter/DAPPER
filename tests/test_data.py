@@ -1,4 +1,4 @@
-"""Test data loading and presenting functionality."""
+"""Test data loading and presentation functionality."""
 ##
 from dapper import *
 
@@ -101,17 +101,17 @@ xps_shorter = xpSpace.from_list([xp for xp in xps.values()
 
 ##
 old = """
-[4m•Table for da_method='Climatology'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='Climatology'. •Averages over ('seed',).[0m
 rmse.a ±1σ    ☠ ✓
 -----------------
  3.624 ±0.006 0 3
 
-[4m•Table for da_method='OptInterp'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='OptInterp'. •Averages over ('seed',).[0m
 rmse.a ±1σ    ☠ ✓
 -----------------
  0.941 ±0.001 0 3
 
-[4m•Table for da_method='EnKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='EnKF'. •Averages over ('seed',).[0m
       |  ______N=10______  _______12_______  _______14_______
 infl  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓
 ----  -  ----------------  ----------------  ----------------
@@ -124,7 +124,7 @@ infl  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓
 1.2   |    3.58 ±0.1  0 3   2.92  ±0.05 0 3    1.28 ±0.2  0 3
 1.4   |    3.43 ±0.06 0 3   2.52  ±0.1  0 3    0.92 ±0.2  0 3
 
-[4m•Table for da_method='LETKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='LETKF'. •Averages over ('seed',).[0m
                |  _______N=10______  ________12_______  ________14_______
 infl  loc_rad  |  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 ----  -------  -  -----------------  -----------------  -----------------
@@ -157,23 +157,23 @@ _print_1d(xps, "rmse.a", dict(outer="da_method",inner="N",mean="seed",))
 
 ##
 old = """
-[4m•Table for da_method='Climatology'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='Climatology'. •Averages over ('seed',).[0m
 rmse.a ±1σ    *('infl',)
 ------------------------
  3.624 ±0.006 *(None,)  
 
-[4m•Table for da_method='OptInterp'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='OptInterp'. •Averages over ('seed',).[0m
 rmse.a ±1σ    *('infl',)
 ------------------------
  0.941 ±0.001 *(None,)  
 
-[4m•Table for da_method='EnKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='EnKF'. •Averages over ('seed',).[0m
 __________N=10_________  __________12__________  __________14__________
 rmse.a ±1σ   *('infl',)  rmse.a ±1σ  *('infl',)  rmse.a ±1σ  *('infl',)
 -----------------------  ----------------------  ----------------------
   3.43 ±0.06 *(1.4,)       2.52 ±0.1 *(1.4,)       0.92 ±0.2 *(1.4,)   
 
-[4m•Table for da_method='LETKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='LETKF'. •Averages over ('seed',).[0m
          |  __________N=10__________  ___________12___________  ___________14___________
 loc_rad  |  rmse.a ±1σ    *('infl',)  rmse.a ±1σ    *('infl',)  rmse.a ±1σ    *('infl',)
 -------  -  ------------------------  ------------------------  ------------------------
@@ -185,17 +185,17 @@ _print_1d(xps, "rmse.a", dict(outer="da_method",inner="N",mean="seed",optim="inf
 
 ##
 old = """
-[4m•Table for da_method='Climatology'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='Climatology'. •Averages over ('seed',).[0m
 kurt.f ±1σ  ☠ ✓
 ---------------
 nan    ±nan 3 0
 
-[4m•Table for da_method='OptInterp'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='OptInterp'. •Averages over ('seed',).[0m
 kurt.f ±1σ  ☠ ✓
 ---------------
 nan    ±nan 3 0
 
-[4m•Table for da_method='EnKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='EnKF'. •Averages over ('seed',).[0m
       |  ________N=10_______  _________12________  _________14________
 infl  |   kurt.f ±1σ     ☠ ✓   kurt.f ±1σ     ☠ ✓   kurt.f ±1σ     ☠ ✓
 ----  -  -------------------  -------------------  -------------------
@@ -208,7 +208,7 @@ infl  |   kurt.f ±1σ     ☠ ✓   kurt.f ±1σ     ☠ ✓   kurt.f ±1σ    
 1.2   |  -1.008  ±0.003  0 3  -0.8704 ±0.004  0 3  -0.7576 ±0.004  0 3
 1.4   |  -1.0104 ±0.004  0 3  -0.8628 ±0.003  0 3  -0.753  ±0.001  0 3
 
-[4m•Table for da_method='LETKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='LETKF'. •Averages over ('seed',).[0m
                |  ________N=10________  _________12_________  _________14_________
 infl  loc_rad  |    kurt.f ±1σ     ☠ ✓    kurt.f ±1σ     ☠ ✓    kurt.f ±1σ     ☠ ✓
 ----  -------  -  --------------------  --------------------  --------------------
@@ -241,17 +241,17 @@ _print_1d(xps, "kurt.f", dict(outer="da_method",inner="N",mean="seed",))
 
 ##
 old = """
-[4m•Table for da_method='Climatology'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='Climatology'. •Averages over ('seed',).[0m
 rmse.a ±1σ    ☠ ✓
 -----------------
  3.624 ±0.006 0 3
 
-[4m•Table for da_method='OptInterp'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='OptInterp'. •Averages over ('seed',).[0m
 rmse.a ±1σ    ☠ ✓
 -----------------
  0.941 ±0.001 0 3
 
-[4m•Table for da_method='EnKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='EnKF'. •Averages over ('seed',).[0m
     |  ____infl=1.0____  ______1.01______  ______1.02______  ______1.04______  ______1.07_____  ______1.1_______  ______1.2_______  ______1.4_______
  N  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ  ☠ ✓  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓
 --  -  ----------------  ----------------  ----------------  ----------------  ---------------  ----------------  ----------------  ----------------
@@ -259,7 +259,7 @@ rmse.a ±1σ    ☠ ✓
 12  |    4.33 ±0.07 0 3    4.24 ±0.1  0 3    4.08 ±0.2  0 3    3.88 ±0.07 0 3    3.6  ±0.2 0 3   3.462 ±0.03 0 3    2.92 ±0.05 0 3    2.52 ±0.1  0 3
 14  |    4.19 ±0.08 0 3    3.96 ±0.1  0 3    3.76 ±0.1  0 3    2.88 ±0.3  0 3    2.7  ±0.3 0 3   2.28  ±0.3  0 3    1.28 ±0.2  0 3    0.92 ±0.2  0 3
 
-[4m•Table for da_method='LETKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='LETKF'. •Averages over ('seed',).[0m
              |  _____infl=1.0____  _______1.01______  _______1.02______  _______1.04______  _______1.07______  _______1.1_______  _______1.2_______  _______1.4_______
  N  loc_rad  |  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  -------  -  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------
@@ -277,13 +277,13 @@ _print_1d(xps, "rmse.a", dict(outer="da_method",inner="infl",mean="seed",))
 
 ##
 old = """
-[4m•Table for N=None. •Averages Σ over ('seed',).[0m
+[4m•Table for N=None. •Averages over ('seed',).[0m
 da_method    |  rmse.a ±1σ    ☠ ✓
 -----------  -  -----------------
 Climatology  |   3.624 ±0.006 0 3
 OptInterp    |   0.941 ±0.001 0 3
 
-[4m•Table for N=10. •Averages Σ over ('seed',).[0m
+[4m•Table for N=10. •Averages over ('seed',).[0m
                     |  ____infl=1.0____  _______1.01______  _______1.02______  _______1.04______  _______1.07______  _______1.1_______  _______1.2_______  _______1.4_______
 da_method  loc_rad  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 ---------  -------  -  ----------------  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------
@@ -292,7 +292,7 @@ LETKF          0.1  |   3.758 ±0.01 0 3   3.818 ±0.01  0 3  3.892  ±0.01  0 3
 LETKF          0.4  |   0.51  ±0.03 0 3   0.41  ±0.01  0 3  0.3752 ±0.004 0 3  0.3616 ±0.004 0 3  0.3726 ±0.003 0 3  0.3932 ±0.002 0 3  0.468  ±0.002 0 3  0.5872 ±0.001 0 3
 LETKF          2    |   1.3   ±0.6  0 3   0.26  ±0.007 0 3  0.245  ±0.007 0 3  0.2454 ±0.003 0 3  0.2664 ±0.002 0 3  0.2904 ±0.001 0 3  0.3716 ±0.002 0 3  0.4978 ±0.001 0 3
 
-[4m•Table for N=12. •Averages Σ over ('seed',).[0m
+[4m•Table for N=12. •Averages over ('seed',).[0m
                     |  ____infl=1.0____  _______1.01______  _______1.02______  _______1.04______  _______1.07______  _______1.1_______  _______1.2_______  _______1.4_______
 da_method  loc_rad  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 ---------  -------  -  ----------------  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------
@@ -301,7 +301,7 @@ LETKF          0.1  |   3.756 ±0.01 0 3   3.806 ±0.01  0 3   3.868 ±0.01  0 3
 LETKF          0.4  |   0.53  ±0.07 0 3   0.408 ±0.02  0 3   0.375 ±0.005 0 3  0.36   ±0.003 0 3  0.3732 ±0.003 0 3  0.393  ±0.003 0 3  0.4692 ±0.002 0 3  0.5884 ±0.002 0 3
 LETKF          2    |   0.8   ±0.5  0 3   0.251 ±0.008 0 3   0.242 ±0.006 0 3  0.2454 ±0.003 0 3  0.2664 ±0.002 0 3  0.2916 ±0.001 0 3  0.3744 ±0.001 0 3  0.5022 ±0.001 0 3
 
-[4m•Table for N=14. •Averages Σ over ('seed',).[0m
+[4m•Table for N=14. •Averages over ('seed',).[0m
                     |  _____infl=1.0____  _______1.01______  _______1.02______  _______1.04______  _______1.07______  _______1.1_______  _______1.2_______  _______1.4_______
 da_method  loc_rad  |  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 ---------  -------  -  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------  -----------------
@@ -314,13 +314,13 @@ _print_1d(xps, "rmse.a", dict(outer="N",inner="infl",mean="seed",))
 
 ##
 old = """
-[4m•Table for N=None. •Averages Σ over ('seed',).[0m
+[4m•Table for N=None. •Averages over ('seed',).[0m
 da_method='Climatology'  ____OptInterp____
 rmse.a ±1σ    ☠ ✓        rmse.a ±1σ    ☠ ✓
 -----------------------  -----------------
  3.624 ±0.006 0 3         0.941 ±0.001 0 3
 
-[4m•Table for N=10. •Averages Σ over ('seed',).[0m
+[4m•Table for N=10. •Averages over ('seed',).[0m
                |  da_method='EnKF'  ______LETKF______
 infl  loc_rad  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ    ☠ ✓
 ----  -------  -  ----------------  -----------------
@@ -357,7 +357,7 @@ infl  loc_rad  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ    ☠ ✓
 1.4       0.4  |         ±          0.5872 ±0.001 0 3
 1.4       2    |         ±          0.4978 ±0.001 0 3
 
-[4m•Table for N=12. •Averages Σ over ('seed',).[0m
+[4m•Table for N=12. •Averages over ('seed',).[0m
                |  da_method='EnKF'  ______LETKF______
 infl  loc_rad  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ    ☠ ✓
 ----  -------  -  ----------------  -----------------
@@ -394,7 +394,7 @@ infl  loc_rad  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ    ☠ ✓
 1.4       0.4  |         ±          0.5884 ±0.002 0 3
 1.4       2    |         ±          0.5022 ±0.001 0 3
 
-[4m•Table for N=14. •Averages Σ over ('seed',).[0m
+[4m•Table for N=14. •Averages over ('seed',).[0m
                |  da_method='EnKF'  ______LETKF______
 infl  loc_rad  |  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ    ☠ ✓
 ----  -------  -  ----------------  -----------------
@@ -651,17 +651,17 @@ _print_1d(xps_shorter, "rmse.a", dict(outer="da_method",inner="N",mean=()))
 
 ##
 old = """
-[4m•Table for da_method='Climatology'. •Averages Σ over ('seed', 'infl').[0m
+[4m•Table for da_method='Climatology'. •Averages over ('seed', 'infl').[0m
 rmse.a ±1σ    ☠ ✓
 -----------------
  3.624 ±0.006 0 3
 
-[4m•Table for da_method='OptInterp'. •Averages Σ over ('seed', 'infl').[0m
+[4m•Table for da_method='OptInterp'. •Averages over ('seed', 'infl').[0m
 rmse.a ±1σ    ☠ ✓
 -----------------
  0.941 ±0.001 0 3
 
-[4m•Table for da_method='EnKF'. •Averages Σ over ('seed', 'infl').[0m
+[4m•Table for da_method='EnKF'. •Averages over ('seed', 'infl').[0m
 _______N=10______  _______12_______  _______14_______
 rmse.a ±1σ   ☠  ✓  rmse.a ±1σ  ☠  ✓  rmse.a ±1σ  ☠  ✓
 -----------------  ----------------  ----------------
@@ -671,17 +671,17 @@ _print_1d(xps_shorter, "rmse.a", dict(outer="da_method",inner="N",mean=("seed","
 
 ##
 old = """
-[4m•Table for da_method='Climatology'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='Climatology'. •Averages over ('seed',).[0m
 rmse.a ±1σ    ☠ ✓
 -----------------
  3.624 ±0.006 0 3
 
-[4m•Table for da_method='OptInterp'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='OptInterp'. •Averages over ('seed',).[0m
 rmse.a ±1σ    ☠ ✓
 -----------------
  0.941 ±0.001 0 3
 
-[4m•Table for da_method='EnKF'. •Averages Σ over ('seed',).[0m
+[4m•Table for da_method='EnKF'. •Averages over ('seed',).[0m
  N  infl  |  rmse.a ±1σ   ☠ ✓
 --  ----  -  ----------------
 10  1     |   4.55  ±0.09 0 3

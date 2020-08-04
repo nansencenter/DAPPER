@@ -208,7 +208,7 @@ class SparseSpace(dict):
         """Insert duplicate entries for the cross section
         
         whose ``coord``s match ``sub_coord``,
-        adding the attr ``xSect=label`` to their ``coord``.
+        adding the attr ``Fixation=label`` to their ``coord``.
 
         This distinguishes the entries in this fixed-affine subspace,
         preventing them from being gobbled up in ``nest()``.
@@ -217,13 +217,13 @@ class SparseSpace(dict):
         avoid these getting plotted in tuning panels.
         """
 
-        if "xSect" not in self.axes:
-            self.add_axis('xSect')
+        if "Fixation" not in self.axes:
+            self.add_axis('Fixation')
 
         for coord in self.matching_coords(**sub_coord):
             entry = self[coord]
             entry = deepcopy(entry)
-            coord = coord._replace(xSect=label)
+            coord = coord._replace(Fixation=label)
             coord = coord._replace(**{a:None for a in NoneAttrs})
             self[coord] = entry
 
@@ -278,7 +278,7 @@ class xpSpace(SparseSpace):
 
         # Define axes
         xp_list = xpList(xps)
-        axes = xp_list.split_attrs(nomerge=['xSect'])[0]
+        axes = xp_list.split_attrs(nomerge=['Fixation'])[0]
         ticks = make_ticks(axes)
         self = cls(axes.keys())
 
@@ -633,7 +633,7 @@ class xpSpace(SparseSpace):
             print("\n",end="")
             if axes['outer']:
                 table_title = "•Table for " + repr(table_coord) + "."
-                table_title = table_title + (f" •Averages Σ over {axes['mean']}." if axes['mean'] else "")
+                table_title = table_title + (f" •Averages over {axes['mean']}." if axes['mean'] else "")
                 with coloring(termcolors['underline']):
                     print(table_title)
             headers, *rows = rows
@@ -669,7 +669,7 @@ class xpSpace(SparseSpace):
         def _format_label(label):
             lbl = ''
             for k, v in label.items():
-               if flexcomp(k, 'da_method', 'xSect'):
+               if flexcomp(k, 'da_method', 'Fixation'):
                    lbl = lbl + f' {v}'
                else:
                    lbl = lbl + f' {collapse_str(k)}:{v}'
