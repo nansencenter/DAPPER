@@ -46,8 +46,8 @@ xps += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # Run experiment
 ##############################
 # Adjust experiment duration
-HMM.t.BurnIn = 0
-HMM.t.T = 10
+HMM.t.BurnIn = 2
+HMM.t.T = 50
 
 # Assimilate (for each config in xps)
 xps.launch(HMM)
