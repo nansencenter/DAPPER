@@ -95,17 +95,17 @@ xps = [xp for xp in xps
     and 6 <= getattr(xp,'HMM_F',nan) <= 9
     ]
 
-# Associate each control variable with a coordinate dimension
+# Associate each control variable with a coordinate/dimension
 xp_dict = xpSpace.from_list(xps)
 
 # Single-out certain settings
 # Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
 # as well as rot=True (better scores obtainable w/o rot).
-separate = xp_dict.label_cross_section
-separate('NO-infl'     , ('infl'), da_method='LETKF', infl=1.01, rot=True)
-separate('NO-infl-loc' , ('infl'), da_method='EnKF' , infl=1.01, rot=True)
+point_out = xp_dict.label_xSection
+point_out('No-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
+point_out('No-infl-loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
 
-## 
+# Describe roles of coordinates/dimensions in plotting/printing
 axes_allotment=dict(inner="N", mean="seed", optim=('loc_rad','infl','rot'))
 
 # Print
@@ -122,5 +122,3 @@ tabulated_data = xp_dict.plot('rmse.a', axes_allotment, # fignum=1,
     )
 # Custom adjustments
 beautify_fig_ex3(tabulated_data, savepath, xp_dict)
-
-##
