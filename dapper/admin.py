@@ -307,8 +307,8 @@ def print_cropped_traceback(ERR):
 class xpList(list):
     """List, subclassed for holding experiment ("xp") objects.
 
-    Mainly used to administrate experiment **launches**.
-    See ``xpSpace`` for experiment **result presentation**.
+    Main use: admin. experiment **launches**.
+    Also see: ``xpSpace`` for experiment **result presentation**.
 
      Modifications to ``list``:
 
@@ -552,15 +552,15 @@ class xpList(list):
                 run_experiment(xp, label, HMM, sd, free, statkeys, ipath(ixp,"."), fail_gently, stat_kwargs)
 
         elif mp is "GCP":
-            with open(pjoin(rpath,"common_input"),"wb") as F:
+            with open(pjoin(rpath,"common_input"),"wb") as FILE:
                 dill.dump(dict(HMM=HMM, label=None, sd=sd, free=free, statkeys=None,
-                    fail_gently=fail_gently, stat_kwargs=stat_kwargs), F)
+                    fail_gently=fail_gently, stat_kwargs=stat_kwargs), FILE)
 
             for ixp, xp in enumerate(self):
                 idir = ipath(ixp, os.path.sep)
                 os.makedirs(idir)
-                with open(pjoin(idir, "variable_input"),"wb") as F:
-                    dill.dump(dict(xp=xp, ixp=ixp), F)
+                with open(pjoin(idir, "variable_input"),"wb") as FILE:
+                    dill.dump(dict(xp=xp, ixp=ixp), FILE)
 
             remote_work(rpath)
 
@@ -583,27 +583,23 @@ class xpList(list):
 
 def run_from_file(dirpath):
     """Loads experiment parameters from file and calls run_experiment()."""
+    # Paths
     savepath = pjoin(dirpath,'')                          # = dirpath/
     common_dir = os.path.dirname(os.path.abspath(dirpath))# = dirpath/..
     # common_dir = os.path.split(dirpath.rstrip(os.sep))[0] 
-
-    with open(pjoin(dirpath,"variable_input"), "rb") as F:
-        variable_input = dill.load(F)
-
-    # Test if common_input file exists in savepath...
     common_path = pjoin(savepath,"common_input")
     if not os.path.isfile(common_path):
-        # ...Otherwise assume it's in the parent dir.
+        # If common_input file not in savepath, assume it's in the parent dir.
         common_path = pjoin(common_dir,"common_input")
+    variable_path = pjoin(dirpath,"variable_input")
 
-    with open(common_path, "rb") as F:
-        d = dill.load(F)
+    # Load
+    with open(common_path  , "rb") as FILE: com = dill.load(FILE)
+    with open(variable_path, "rb") as FILE: var = dill.load(FILE)
 
-    xp  = variable_input['xp']
-    ixp = variable_input['ixp']
-
-    result = run_experiment(xp, d['label'], d['HMM'], d['sd'], d['free'],
-            d['statkeys'], savepath, d['fail_gently'], d['stat_kwargs'])
+    # Run
+    result = run_experiment(var['xp'], com['label'], com['HMM'], com['sd'], com['free'],
+            com['statkeys'], savepath, com['fail_gently'], com['stat_kwargs'])
 
 # TODO: Archive
 import dill
@@ -622,8 +618,8 @@ def save_data(script_name,*args,host=True,**kwargs):
      - Default naming of certain types of arguments.
 
     Returns filename of saved data. Load namespace dict using
-    >>> with open(save_path, "rb") as F:
-    >>>     d = dill.load(F)
+    >>> with open(save_path, "rb") as FILE:
+    >>>     d = dill.load(FILE)
     """
 
     def name_args():

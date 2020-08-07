@@ -81,8 +81,7 @@ savepath = xps.launch(HMM,sd0,__file__,mp=False)
 # The following **only** uses saved data
 # => Can run as a separate script, where savepath is manually set.
 # For example, I have result-data stored at:
-# savepath = '~/dpr_data/example_3/run_2020-01-02_00-00-00'
-# savepath = '~/dpr_data/example_3/run_2020-01-09_17-45-34'
+# savepath = '~/dpr_data/example_3/run1'
 
 # Load
 xps = load_xps(savepath)

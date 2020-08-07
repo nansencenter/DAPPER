@@ -26,12 +26,13 @@ def remote_work(curjob):
     switch = "" if autoscaler_cronjob_ran_recently() else " NOT"
     print("autoscaler.py%s detected."%switch)
 
-    print(f"Synching files for {len(jobs)} jobs to submit node")
+    print(f"Syncing {len(jobs)} jobs to **submit node**")
     cmd(f"rsync -avz --delete {curjob}/ {ip_submit}:~/job")
-    # print("Synching submission description to submit node")
+
+    print("Syncing submission description to **submit node**")
     cmd(f"rsync -avz /home/pnr/GCP/cluster/htcondor/ {ip_submit}:~/job")
 
-    print("Synching DAPPER to cloud-storage")
+    print("Syncing DAPPER to **cloud-storage**")
     # Sync via cloud-storage coz it's accessible to compute nodes 
     # even though they're not connected to the internet
     xcldd=".git|scripts|docs|.*__pycache__.*|.pytest_cache|DA_DAPPER.egg-info" 
@@ -39,7 +40,7 @@ def remote_work(curjob):
     cmd(f"gsutil -m rsync -r -d -x {xcldd} {DPR} gs://pb2/DAPPER")
 
 
-    print("Synching current dir to cloud-storage")
+    print("Syncing current dir to **cloud-storage**")
     cmd(f"gsutil cp *.py gs://pb2/workdir/")
 
 
@@ -85,7 +86,7 @@ def remote_cmd(command):
     output = cmd(connect + [command],split=False)
     return output
 
-def autoscaler_cronjob_ran_recently(minutes=1):
+def autoscaler_cronjob_ran_recently(minutes=2):
 
     # Grep syslog for autoscaler.
     # Also get remote's date (time), to avoid another (slow) ssh.
