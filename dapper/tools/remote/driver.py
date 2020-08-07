@@ -23,6 +23,8 @@ def remote_work(curjob):
     else:
         print("[No compute nodes found]")
 
+    # TODO: sync autoscaler.py
+
     switch = "" if autoscaler_cronjob_ran_recently() else " NOT"
     print("autoscaler.py%s detected."%switch)
 

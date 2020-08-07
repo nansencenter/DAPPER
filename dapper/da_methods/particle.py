@@ -47,7 +47,7 @@ class PartFilt:
 
         for k,kObs,t,dt in progbar(chrono.ticker):
             E = Dyn(E,t-dt,dt)
-            if Dyn.noise.C is not 0:
+            if Dyn.noise.C != 0:
                 D  = randn((N,Nx))
                 E += sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
@@ -101,7 +101,7 @@ class OptPF:
 
         for k,kObs,t,dt in progbar(chrono.ticker):
             E = Dyn(E,t-dt,dt)
-            if Dyn.noise.C is not 0:
+            if Dyn.noise.C != 0:
                 E += sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
 
             if kObs is not None:
@@ -172,7 +172,7 @@ class PFa:
 
         for k,kObs,t,dt in progbar(chrono.ticker):
             E = Dyn(E,t-dt,dt)
-            if Dyn.noise.C is not 0:
+            if Dyn.noise.C != 0:
                 D  = randn((N,Nx))
                 E += sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
@@ -248,7 +248,7 @@ class PFxN_EnKF:
 
         for k,kObs,t,dt in progbar(chrono.ticker):
             E = Dyn(E,t-dt,dt)
-            if Dyn.noise.C is not 0:
+            if Dyn.noise.C != 0:
                 E += sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
 
             if kObs is not None:
@@ -360,7 +360,7 @@ class PFxN:
 
         for k,kObs,t,dt in progbar(chrono.ticker):
             E = Dyn(E,t-dt,dt)
-            if Dyn.noise.C is not 0:
+            if Dyn.noise.C != 0:
                 E += sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
 
             if kObs is not None:

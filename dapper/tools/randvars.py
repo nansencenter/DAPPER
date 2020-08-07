@@ -107,7 +107,7 @@ class RV_with_mean_and_cov(RV):
             if M is None:
                 M = C.M
         else:
-            if C is 0:
+            if C == 0:
                 pass # Assign as pure 0!
             else:
                 if np.isscalar(C):
@@ -141,7 +141,7 @@ class RV_with_mean_and_cov(RV):
 
           plt.scatter(*(UniRV(C=randcov(2)).sample(10**4).T))
         """
-        if self.C is 0:
+        if self.C == 0:
             D = zeros((N,self.M))
         else:
             D = self._sample(N)

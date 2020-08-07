@@ -129,7 +129,7 @@ def localization_setup(y2x_distances,batches):
         "Provide localization setup for time t."
         y2x = y2x_distances(t)
 
-        if direction is 'x2y':
+        if direction == 'x2y':
             def obs_taperer(batch):
                 # Don't use ``batch = batches[iBatch]``
                 # (with iBatch as this function's input).
@@ -140,7 +140,7 @@ def localization_setup(y2x_distances,batches):
                 return inds_and_coeffs(dists, radius, tag=tag)
             return batches, obs_taperer
 
-        elif direction is 'y2x':
+        elif direction == 'y2x':
             def state_taperer(iObs):
                 return inds_and_coeffs(y2x[iObs], radius, tag=tag)
             return state_taperer
@@ -159,8 +159,8 @@ def no_localization(Nx,Ny):
         Used to validate local DA methods [eg LETKF<==>EnKF('Sqrt')]."""
         assert radius == np.inf, "Localization functions not specified"
 
-        if   direction is 'x2y': return [arange(Nx)], obs_taperer
-        elif direction is 'y2x': return             state_taperer
+        if   direction == 'x2y': return [arange(Nx)], obs_taperer
+        elif direction == 'y2x': return             state_taperer
 
     return localization_now
 

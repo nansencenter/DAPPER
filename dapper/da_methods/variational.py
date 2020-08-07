@@ -78,7 +78,7 @@ class iEnKS:
         R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
         Rm12 = R.sym_sqrt_inv
 
-        assert Dyn.noise.C is 0, "Q>0 not yet supported. TODO: implement Sakov et al 2017"
+        assert Dyn.noise.C == 0, "Q>0 not yet supported. TODO: implement Sakov et al 2017"
 
         if self.bundle: EPS = 1e-4 # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
         else          : EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
@@ -218,7 +218,7 @@ class iLEnKS:
     def assimilate(self,HMM,xx,yy):
         Dyn,Obs,chrono,X0,stats,N = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
         R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
-        assert Dyn.noise.C is 0, "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
+        assert Dyn.noise.C == 0, "Q>0 not yet supported. See Sakov et al 2017: 'An iEnKF with mod. error'"
 
         # Init DA cycles
         E = X0.sample(N)

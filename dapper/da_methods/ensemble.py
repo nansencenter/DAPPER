@@ -174,7 +174,7 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
             w = dy@Y.T@T/N1
             E = mu + w@A + T@A
 
-    elif 'DEnKF' is upd_a:
+    elif 'DEnKF' == upd_a:
         # Uses "Deterministic EnKF" (sakov'08)
         C  = Y.T @ Y + R.full*N1
         YC = mrdiv(Y, C)
@@ -225,7 +225,7 @@ def post_process(E,infl,rot):
 def add_noise(E, dt, noise, method):
     """Treatment of additive noise for ensembles [Raa15]_."""
 
-    if noise.C is 0: return E
+    if noise.C == 0: return E
 
     N,Nx = E.shape
     A,mu = center(E)

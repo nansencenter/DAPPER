@@ -711,7 +711,7 @@ class xpSpace(SparseSpace):
         def _color(index):
             axis = xp_dict.axis_ticks_nn(color_axis)
             if   index is None:       return None
-            elif index is -1:         return cmap(1)
+            elif index == -1:         return cmap(1)
             else:                     return cmap((1+index)/len(axis))
         def _color_by_hash(x):
             """Color as a (deterministic) function of x."""

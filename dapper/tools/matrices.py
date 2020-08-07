@@ -36,7 +36,7 @@ def genOG_modified(M,opts=(0,1.0)):
     if not opts:
         # Shot-circuit in case of False or 0
         return eye(M)
-    elif isinstance(opts,bool) or opts is 1:
+    elif isinstance(opts,bool) or opts == 1:
         return genOG(M)
     elif isinstance(opts,float):
         ver    = 1

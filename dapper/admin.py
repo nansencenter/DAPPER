@@ -551,7 +551,7 @@ class xpList(list):
             for ixp, (xp, label) in enumerate(zip(self,labels)):
                 run_experiment(xp, label, HMM, sd, free, statkeys, ipath(ixp,"."), fail_gently, stat_kwargs)
 
-        elif mp is "GCP":
+        elif mp == "GCP":
             with open(pjoin(rpath,"common_input"),"wb") as FILE:
                 dill.dump(dict(HMM=HMM, label=None, sd=sd, free=free, statkeys=None,
                     fail_gently=fail_gently, stat_kwargs=stat_kwargs), FILE)
