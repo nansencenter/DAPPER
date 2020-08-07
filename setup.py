@@ -56,7 +56,7 @@ setuptools.setup(
         'tqdm~=4.31',
         'colorama~=0.4.1',
         'tabulate~=0.8.3',
-        'dill==0.3.1.1', # >=0.3.1.1 for dataclass. Update to 0.3.2 also required on GCP!
+        'dill==0.3.2', # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
         'pandas'
     ],
     # Optional
