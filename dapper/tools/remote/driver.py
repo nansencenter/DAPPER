@@ -10,40 +10,41 @@ def remote_work(curjob):
 
     assert remote_unfinished()==0, "Cannot submit jobs (would overwite currently running experiments)"
 
+    # Get IP address
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = 'get(networkInterfaces[0].accessConfigs[0].natIP)'
     ip_submit = cmd(f"gcloud compute instances describe condor-submit --format={getip}").strip()
-    # print("IP:", ip_submit)
 
-    status = """condor_status -total"""
-    print(f"you@condor-submit({ip_submit})$ " + status)
-    status = remote_cmd(status)
-    if status:
-        for line in status.splitlines()[::4]: print(line)
-    else:
-        print("[No compute nodes found]")
-
-    # TODO: sync autoscaler.py
+    # # Show condor status 
+    # status = """condor_status -total"""
+    # print(f"you@condor-submit({ip_submit})$ " + status)
+    # status = remote_cmd(status)
+    # if status:
+    #     for line in status.splitlines()[::4]: print(line)
+    # else:
+    #     print("[No compute nodes found]")
 
     switch = "" if autoscaler_cronjob_ran_recently() else " NOT"
     print("autoscaler.py%s detected."%switch)
 
-    print(f"Syncing {len(jobs)} jobs to **submit node**")
-    cmd(f"rsync -avz --delete {curjob}/ {ip_submit}:~/job")
-
     print("Syncing submission description to **submit node**")
-    cmd(f"rsync -avz /home/pnr/GCP/cluster/htcondor/ {ip_submit}:~/job")
+    DPR = dirs['DAPPER']
+    # NB: this rsync must come first coz it uses --delete which deletes all other contents job/
+    cmd(f"rsync -avz --delete {DPR}/dapper/tools/remote/htcondor/ {ip_submit}:~/job")
+
+    print("Syncing %d jobs to **submit node**"%len(jobs))
+    cmd(f"rsync -avz {curjob}/ {ip_submit}:~/job")
 
     print("Syncing DAPPER to **cloud-storage**")
     # Sync via cloud-storage coz it's accessible to compute nodes 
     # even though they're not connected to the internet
     xcldd=".git|scripts|docs|.*__pycache__.*|.pytest_cache|DA_DAPPER.egg-info" 
-    DPR = dirs['DAPPER']
     cmd(f"gsutil -m rsync -r -d -x {xcldd} {DPR} gs://pb2/DAPPER")
 
 
-    print("Syncing current dir to **cloud-storage**")
-    cmd(f"gsutil cp *.py gs://pb2/workdir/")
+    # TODO: also uncomment corresponding stuff in run_job.sh
+    # print("Syncing current dir to **cloud-storage**")
+    # cmd(f"gsutil cp *.py gs://pb2/workdir/")
 
 
     print("Copying common_input to initdir of each job")
