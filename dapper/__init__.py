@@ -165,7 +165,7 @@ from .tools.viz import *
 from .tools.liveplotting import *
 from .tools.localization import *
 from .tools.multiprocessing import *
-from .tools.remote.driver import *
+from .tools.remote.transmission import *
 from .stats import *
 from .admin import *
 from .data_management import *
