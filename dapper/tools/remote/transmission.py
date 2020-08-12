@@ -5,24 +5,22 @@ from pathlib import  Path
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as _parse
 
-# TODO: use git ls-tree instead of xcldd
-# TODO: allow multiple jobs simultaneously (by de-confusing progbar?)
 
 
 def submit_job_GCP(xps_path):
     """GCP/HTCondor launcher"""
     xps_path = Path(xps_path)
+
     HOST = get_ip("condor-submit")
     # print_condor_status()
     print("autoscaler.py%s detected."%("" if detect_autoscaler() else " NOT"))
     sync_job(HOST,xps_path)
 
-
     print("Submitting jobs")
     try:
         remote_cmd(f"""cd {xps_path.name}; condor_submit submit-description""")
         remote_monitor_progress(xps_path.name)
-    except KeyboardInterrupt as err:
+    except KeyboardInterrupt as error:
         if input("Do you wish to clear the job queue? (Y/n): ").lower() in ["","y","yes"]:
             print("Clearing queue")
             remote_cmd("""condor_rm -a""")
@@ -31,8 +29,8 @@ def submit_job_GCP(xps_path):
         print("Downloading results")
         # Don't use individual scp's! (Pro: enables progbar. Con: it's SLOW!)
         nologs = " ".join("--exclude="+x for x in
-                ["xp_com","out\\.*","err\\.*","run\\.*log"])
-        cmd(f"rsync -avz {nologs} {HOST}:~/{xps_path.name}/ {xps_path}")
+                ["xp.com","out\\.*","err\\.*","run\\.*log","DAPPER"])
+        sys_cmd(f"rsync -avz {nologs} {HOST}:~/{xps_path.name}/ {xps_path}")
     finally:
         # print("Checking for autoscaler cron job:") # let user know smth's happenin
         if not detect_autoscaler():
@@ -43,25 +41,30 @@ def submit_job_GCP(xps_path):
 
 
 import subprocess
-def cmd(args,split=True):
-    """Run subprocess and communicate."""
-    if split:
-        args = args.split()
-    ps = subprocess.run(args, check=True, capture_output=True)
+def sys_cmd(args,split=True):
+    """Run subprocess, capture output, raise exception."""
+    if split: args = args.split()
+    try:
+        ps = subprocess.run(args, check=True, capture_output=True)
+    except subprocess.CalledProcessError as error:
+        # CalledProcessError doesnt print its .stderr, so we raise it this way:
+        raise subprocess.SubprocessError(
+            f"Command {error.cmd} returned non-zero exit status, "
+            f"with stderr:\n{error.stderr.decode()}") from error
     output = ps.stdout.decode()
     return output
 
 def remote_cmd(command):
     command = """--command=""" + command
     connect = "gcloud compute ssh condor-submit".split()
-    output = cmd(connect + [command],split=False)
+    output = sys_cmd(connect + [command], split=False)
     return output
 
 
 def get_ip(instance):
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = 'get(networkInterfaces[0].accessConfigs[0].natIP)'
-    ip = cmd(f"gcloud compute instances describe {instance} --format={getip}")
+    ip = sys_cmd(f"gcloud compute instances describe {instance} --format={getip}")
     return ip.strip()
 
 def print_condor_status():
@@ -73,34 +76,41 @@ def print_condor_status():
     else:
         print("[No compute nodes found]")
 
+def sync_DAPPER(HOST,xps_path):
+    """DAPPER (as it currently exists, not a specific version)
+    
+    must be synced to the compute nodes, which don't have external IP addresses.
+    """
+    # Get list of files: whatever mentioned by .git
+    repo  = f"--git-dir={dirs['DAPPER']}/.git"
+    files = sys_cmd(f"git {repo} ls-tree -r --name-only HEAD").split()
+    xcldd = lambda f: f.startswith("docs/") or f.endswith(".jpg") or f.endswith(".png")
+    files = [f for f in files if not xcldd(f)]
+    with open("synclist","w") as FILE:
+        print("\n".join(files),file=FILE)
+
+    print("Syncing DAPPER")
+    try:
+        sys_cmd(f"rsync -avz --files-from=synclist {dirs['DAPPER']} {HOST}:~/{xps_path.name}/DAPPER/")
+    except subprocess.SubprocessError as error:
+        # Suggest common source of error in the message.
+        msg = error.args[0] + "\nDid you mv/rm files (and not registering it with .git)?"
+        raise subprocess.SubprocessError(msg) from error
+    finally:
+        os.remove("synclist")
+
 def sync_job(HOST,xps_path):
 
-    print("Syncing submission description to **submit node**")
-    # NB: this rsync must come first coz it uses --delete which deletes all other contents job/
-    cmd(f"rsync -avz --delete {dirs['DAPPER']}/dapper/tools/remote/htcondor/ {HOST}:~/{xps_path.name}")
-
     jobs = [ixp for ixp in os.listdir(xps_path) if ixp.startswith("ixp_")]
-    print("Syncing %d jobs to **submit node**"%len(jobs))
-    cmd(f"rsync -avz {xps_path}/ {HOST}:~/{xps_path.name}")
 
-    
-    print("Syncing DAPPER")
-    files = cmd(f"git --git-dir={dirs['DAPPER']}/.git ls-tree -r --name-only HEAD")
-    with open("dpr_files","w") as FILE:
-        print(files,file=FILE)
-    cmd(f"rsync -avz --files-from=dpr_files {dirs['DAPPER']} {HOST}:~/DAPPER/")
+    print("Syncing %d jobs"%len(jobs))
+    # NB: Note use of --delete. This rsync must come first!
+    sys_cmd(f"rsync -avz --delete {dirs['DAPPER']}/dapper/tools/remote/htcondor/ {HOST}:~/{xps_path.name}")
+    sys_cmd(f"rsync -avz {xps_path}/ {HOST}:~/{xps_path.name}")
+    # print("Copying xp.com to initdir")
+    remote_cmd(f"""cd {xps_path.name}; for ixp in ixp_*; do cp xp.com $ixp/; done""")
 
-    # Sync via cloud-storage coz it's accessible to compute nodes 
-    # even though they're not connected to the internet
-    xcldd=".git|scripts|docs|.*__pycache__.*|.pytest_cache|DA_DAPPER.egg-info|old_version.zip" 
-    cmd(f"gsutil -m rsync -r -d -x {xcldd} {dirs['DAPPER']} gs://pb2/DAPPER")
-
-    # TODO: also uncomment corresponding stuff in run_job.sh
-    # print("Syncing current dir to **cloud-storage**")
-    # cmd(f"gsutil cp *.py gs://pb2/workdir/")
-
-    print("Copying xp_com to initdir of each job")
-    remote_cmd(f"""cd {xps_path.name}; for ixp in ixp_*; do cp xp_com $ixp/; done""")
+    sync_DAPPER(HOST,xps_path)
 
 
 def detect_autoscaler(minutes=2):

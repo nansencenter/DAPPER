@@ -185,7 +185,7 @@ def run_path(script,host="",relpath=False,timestamp=True):
     if timestamp:
         from datetime import datetime
         now = datetime.now()
-        run_number = now.strftime("%Y-%m-%d_%H-%M-%S")
+        run_number = now.strftime("%Y-%m-%d__%H:%M:%S")
     else:
         run_number = str(1 + max(get_filenums(sdir),default=0))
 

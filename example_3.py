@@ -69,8 +69,11 @@ for seed in range(8): # Experiment repetitions
 ##############################
 # Run experiments
 ##############################
-# Try mp=True or mp="GCP"
-savepath = xps.launch(HMM,sd0,__file__,mp=False)
+
+GCP = dict(server="GCP", extra_files=[],
+exec="""import dapper.mods.Lorenz96.core as core""")
+
+savepath = xps.launch(HMM,sd0,__file__,mp=GCP)
 
 # xps.print_avrgs()
 

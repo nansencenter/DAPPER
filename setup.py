@@ -46,7 +46,8 @@ setuptools.setup(
     # >= 3.5 (for @),
     # >=3.6 (for mpl==3.1),
     # >=3.7 (for dataclass, capture_output, dict ordering).
-    python_requires='~=3.7',
+    # ==3.8 (as on GCP, since dill doesnt guarantee compat. accross versions).
+    python_requires='==3.8.*',
 
     # Dependencies.
     install_requires=[

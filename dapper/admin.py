@@ -14,6 +14,7 @@ Used for experiment (xp) specification/administration, including:
 
 from dapper import *
 
+import dill
 from os.path import join as pjoin
 
 class HiddenMarkovModel(NestedPrint):
@@ -265,8 +266,8 @@ def run_experiment(xp, label, HMM, sd, free, statkeys, savepath, fail_gently, st
 
     # Save
     if savepath:
-        with open(savepath+"xp","wb") as filestream:
-            dill.dump({'xp':xp}, filestream)
+        with open(savepath+"xp","wb") as FILE:
+            dill.dump({'xp':xp}, FILE)
 
 
 def print_cropped_traceback(ERR):
@@ -512,7 +513,6 @@ class xpList(list):
 
         return table.splitlines()
 
-
     def launch(self, HMM, sd=True, savename="unnamed", mp=False,
             free=True, statkeys=False, desc=True, fail_gently=rc['fail_gently'], **stat_kwargs):
         """For each xp in self: run_experiment(xp,...). View ``example_2.py``.
@@ -531,12 +531,13 @@ class xpList(list):
         # - True (default) => get sd number from clock:
         if sd is True: sd = set_seed()
 
+
+        # savename => ixp_path(ixp, sep)
         if savename:
-            # rpath = run_path(savename,host=mp or True)
-            rpath = run_path(savename)
-            ipath = lambda ixp, sep: pjoin(rpath, f"ixp_{ixp}" + sep)
+            xps_path = run_path(savename)
+            ixp_path = lambda ixp, sep: pjoin(xps_path, f"ixp_{ixp}" + sep)
             # NB: Don't casually modify this message. It may be grepped.
-            print("Experiment data stored at",rpath+"/")
+            print("Experiment data stored at",xps_path+"/")
         else:
             # It's possible to parallelize without storing,
             # especially if using threads. But, it's more complicated,
@@ -544,31 +545,38 @@ class xpList(list):
             if mp:
                 raise ValueError("Parallelization requires storing data.")
             else:
-                ipath = lambda *args: False
+                ixp_path = lambda *args: False
 
-        if not mp: # No parallelization
+
+        # No parallelization
+        if not mp: 
             labels = self.gen_names() if desc else self.da_methods
             for ixp, (xp, label) in enumerate(zip(self,labels)):
-                run_experiment(xp, label, HMM, sd, free, statkeys, ipath(ixp,"."), fail_gently, stat_kwargs)
+                run_experiment(xp, label, HMM, sd, free, statkeys, ixp_path(ixp,"."), fail_gently, stat_kwargs)
 
-        elif mp == "GCP":
-            with open(pjoin(rpath,"common_input"),"wb") as FILE:
-                dill.dump(dict(HMM=HMM, label=None, sd=sd, free=free, statkeys=None,
-                    fail_gently=fail_gently, stat_kwargs=stat_kwargs), FILE)
+
+        # GCP
+        elif isinstance(mp,dict) and mp["server"] == "GCP":
+            with open(pjoin(xps_path,"xp.com"),"wb") as FILE:
+                dill.dump(dict(exec=mp["exec"],
+                               HMM=HMM, label=None, sd=sd, free=free, statkeys=None,
+                               fail_gently=fail_gently, stat_kwargs=stat_kwargs), FILE)
 
             for ixp, xp in enumerate(self):
-                idir = ipath(ixp, os.path.sep)
+                idir = ixp_path(ixp, os.path.sep)
                 os.makedirs(idir)
-                with open(pjoin(idir, "variable_input"),"wb") as FILE:
+                with open(pjoin(idir, "xp.var"),"wb") as FILE:
                     dill.dump(dict(xp=xp, ixp=ixp), FILE)
 
-            remote_work(rpath)
+            submit_job_GCP(xps_path)
 
+
+        # Local multiprocessing
         elif mp in ["MP", True]:
 
             def run_with_fixed_args(arg):
                 xp, ixp = arg
-                run_experiment(xp, None, HMM, sd, free, None, ipath(ixp,"."), fail_gently, stat_kwargs)
+                run_experiment(xp, None, HMM, sd, free, None, ixp_path(ixp,"."), fail_gently, stat_kwargs)
             args = zip(self,range(len(self)))
 
             with     set_tmp(tools.utils,'disable_progbar',True):
@@ -578,91 +586,4 @@ class xpList(list):
                         list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
                             total=len(self), desc="Parallel experim's", smoothing=0.1))
 
-        return rpath if savename else None
-
-
-def run_from_file(dirpath):
-    """Loads experiment parameters from file and calls run_experiment()."""
-    # Paths
-    savepath = pjoin(dirpath,'')                          # = dirpath/
-    common_dir = os.path.dirname(os.path.abspath(dirpath))# = dirpath/..
-    # common_dir = os.path.split(dirpath.rstrip(os.sep))[0] 
-    common_path = pjoin(savepath,"common_input")
-    if not os.path.isfile(common_path):
-        # If common_input file not in savepath, assume it's in the parent dir.
-        common_path = pjoin(common_dir,"common_input")
-    variable_path = pjoin(dirpath,"variable_input")
-
-    # Load
-    with open(common_path  , "rb") as FILE: com = dill.load(FILE)
-    with open(variable_path, "rb") as FILE: var = dill.load(FILE)
-
-    # Run
-    result = run_experiment(var['xp'], com['label'], com['HMM'], com['sd'], com['free'],
-            com['statkeys'], savepath, com['fail_gently'], com['stat_kwargs'])
-
-# TODO: Archive
-import dill
-def save_data(script_name,*args,host=True,**kwargs):
-    """"Utility for saving experimental data.
-
-    NB: Obsolete. Handled by run_experiment().
-
-    This function uses ``dill`` rather than ``pickle``
-    because dill can serialize nearly anything.
-    Also, dill automatically uses np.save() for arrays for memory/disk efficiency.
-
-    Takes care of:
-     - Path management, using script_name (e.g. script's __file__)
-     - Calling dill.dump().
-     - Default naming of certain types of arguments.
-
-    Returns filename of saved data. Load namespace dict using
-    >>> with open(save_path, "rb") as FILE:
-    >>>     d = dill.load(FILE)
-    """
-
-    def name_args():
-        data = {}
-        nNone = 0 # count of non-classified objects
-
-        nameable_classes = dict(
-            HMM    = lambda x: isinstance(x,HiddenMarkovModel),
-            cfgs   = lambda x: isinstance(x,xpList),
-            config = lambda x: hasattr(x,'da_method'),
-            stat   = lambda x: isinstance(x,Stats),
-            avrg   = lambda x: getattr(x,"_isavrg",False),
-        )
-
-        def classify(x):
-            for script_name, test in nameable_classes.items():
-                if test(x): return script_name
-            # Defaults:
-            if isinstance(x,list): return "list"
-            else:                  return None
-
-        for x in args:
-            Class = classify(x)
-
-            if Class == "list":
-                Class0 = classify(x[0])
-                if Class0 in nameable_classes:
-                    if all(Class0==classify(y) for y in x):
-                        Class = Class0 + "s" # plural
-                    else:
-                        Class = None
-
-            elif Class is None:
-                nNone += 1
-                Class = "obj%d"%nNone
-
-            data[Class] = x
-        return data
-
-    filename = run_path(script_name, host=host) + ".pickle"
-    print("Saving data to",filename)
-
-    with open(filename,"wb") as filestream:
-        dill.dump({**kwargs, **name_args()}, filestream)
-
-    return filename
+        return xps_path if savename else None
