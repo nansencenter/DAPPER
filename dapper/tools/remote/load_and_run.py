@@ -3,8 +3,8 @@
 from dapper import *
 
 # Load
-with open("xp_com", "rb") as FILE: com = dill.load(FILE)
-with open("xp_var", "rb") as FILE: var = dill.load(FILE)
+with open("xp.com", "rb") as FILE: com = dill.load(FILE)
+with open("xp.var", "rb") as FILE: var = dill.load(FILE)
 
 # Startup
 script = com.pop("exec")
