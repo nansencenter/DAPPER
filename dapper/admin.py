@@ -535,7 +535,7 @@ class xpList(list):
         # savename => ixp_path(ixp, sep)
         if savename:
             xps_path = run_path(savename)
-            ixp_path = lambda ixp, sep: pjoin(xps_path, f"ixp_{ixp}" + sep)
+            ixp_path = lambda ixp, sep: pjoin(xps_path, f"{ixp}" + sep)
             # NB: Don't casually modify this message. It may be grepped.
             print("Experiment data stored at",xps_path+"/")
         else:
@@ -567,6 +567,15 @@ class xpList(list):
                 os.makedirs(idir)
                 with open(pjoin(idir, "xp.var"),"wb") as FILE:
                     dill.dump(dict(xp=xp, ixp=ixp), FILE)
+
+            import shutil
+            dst = Path(xps_path) / "extra_files"
+            os.mkdir(dst)
+            for f in mp["extra_files"]:
+                dst = dst / f.relative_to(mp["root"])
+                try:            shutil.copytree(f, dst) # dir -r
+                except OSError: shutil.copy2   (f, dst) # file
+
 
             submit_job_GCP(xps_path)
 

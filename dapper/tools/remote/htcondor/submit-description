@@ -1,7 +1,7 @@
 # htcondor submit script
 executable              = run_job.sh
 arguments               = $(Process) $(rundir)
-transfer_input_files    = xp.var,../xp.com,../DAPPER
+transfer_input_files    = xp.var,../xp.com,../DAPPER,../extra_files
 should_transfer_files   = IF_NEEDED
 when_to_transfer_output = ON_EXIT
 initialdir              = $(rundir)
@@ -12,4 +12,4 @@ log                     = runlog
 #queue 4
 #queue xp from experiment_list.txt
 #queue xp matching files *.dat
-queue rundir matching ixp_*
+queue rundir matching [0-9]*

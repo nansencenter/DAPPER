@@ -1,4 +1,6 @@
-"""Tools related to running experimentes remotely"""
+"""Tools related to running experimentes remotely
+
+Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 
 from dapper import *
 from pathlib import  Path
@@ -76,6 +78,7 @@ def print_condor_status():
     else:
         print("[No compute nodes found]")
 
+
 def sync_DAPPER(HOST,xps_path):
     """DAPPER (as it currently exists, not a specific version)
     
@@ -101,16 +104,20 @@ def sync_DAPPER(HOST,xps_path):
 
 def sync_job(HOST,xps_path):
 
-    jobs = [ixp for ixp in os.listdir(xps_path) if ixp.startswith("ixp_")]
+    jobs = [ixp for ixp in os.listdir(xps_path) if str(ixp).isnumeric()]
 
     print("Syncing %d jobs"%len(jobs))
     # NB: Note use of --delete. This rsync must come first!
     sys_cmd(f"rsync -avz --delete {dirs['DAPPER']}/dapper/tools/remote/htcondor/ {HOST}:~/{xps_path.name}")
     sys_cmd(f"rsync -avz {xps_path}/ {HOST}:~/{xps_path.name}")
     # print("Copying xp.com to initdir")
-    remote_cmd(f"""cd {xps_path.name}; for ixp in ixp_*; do cp xp.com $ixp/; done""")
+    remote_cmd(f"""cd {xps_path.name}; for ixp in [0-999999]; do cp xp.com $ixp/; done""")
 
     sync_DAPPER(HOST,xps_path)
+
+    print("Syncing extra_files")
+    extra_files = xps_path / "extra_files"
+    sys_cmd(f"rsync -avz {extra_files}/ {HOST}:~/{xps_path.name}/extra_files/")
 
 
 def detect_autoscaler(minutes=2):
@@ -146,7 +153,7 @@ def detect_autoscaler(minutes=2):
         return True
 
 def remote_num_jobs(xps_path):
-    return int(remote_cmd(f"""cd {xps_path}; ls -1 | grep ixp | wc -l"""))
+    return int(remote_cmd(f"""cd {xps_path}; ls -1 | grep -o '[0-9]*' | wc -l"""))
 
 def remote_unfinished():
     condor_q = remote_cmd("""condor_q -totals""")
