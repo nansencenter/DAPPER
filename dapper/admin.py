@@ -515,7 +515,7 @@ class xpList(list):
         return table.splitlines()
 
     def launch(self, HMM, sd=True, savename="unnamed", mp=False,
-            free=True, statkeys=False, desc=True, fail_gently=rc['fail_gently'], **stat_kwargs):
+            free=True, statkeys=False, desc=True, fail_gently=rc.fail_gently, **stat_kwargs):
         """For each xp in self: run_experiment(xp,...). View ``example_2.py`` for an example.
         
         Depending on ``mp``, run_experiment() is delegated to one of:

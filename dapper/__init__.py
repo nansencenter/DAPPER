@@ -72,7 +72,7 @@ from numpy import \
 from .config import *
 
 # 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
-if rc['welcome_message']:
+if rc.welcome_message:
     print("Initializing DAPPER...",flush=True)
 
 from .tools.colors import *
@@ -98,6 +98,6 @@ from .da_methods.baseline import *
 from .da_methods.variational import *
 from .da_methods.other import *
 
-if rc['welcome_message']:
+if rc.welcome_message:
     print("...Done") # ... initializing DAPPER
     print("PS: Turn off this message in your configuration: dpr_config.ini")

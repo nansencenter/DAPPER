@@ -72,7 +72,7 @@ class UncertainQtty():
         - conf to 1 sigfig.
         - val:
             - to precision: mult*conf.
-            - fallback: rc['sigfig']
+            - fallback: rc.sigfig
         """
         with np.errstate(all='ignore'):
             conf = round2(self.conf, 1) 
@@ -80,7 +80,7 @@ class UncertainQtty():
             if not np.isnan(conf) and conf>0:
                 val = round2(val, mult*conf)
             else:
-                val = round2(val, rc['sigfig'])
+                val = round2(val, rc.sigfig)
             return val, conf
 
     def __str__(self):

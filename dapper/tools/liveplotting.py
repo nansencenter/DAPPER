@@ -23,7 +23,7 @@ class LivePlot:
 
         # Disable if not liveplotting_enabled
         self.any_figs = False
-        if not rc['liveplotting_enabled']: return
+        if not rc.liveplotting_enabled: return
 
         # On the 2nd run (of example_1 e.g.) the figures don't appear
         # if they've been closed. For some reason, this fixes it:

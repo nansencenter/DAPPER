@@ -11,7 +11,7 @@ class Stats(NestedPrint):
     printopts = {'precision' : 3, 'ordr_by_linenum' : -1}
 
     def __init__(self,config,HMM,xx,yy,
-            liveplots=False, store_u=rc['store_u']):
+            liveplots=False, store_u=rc.store_u):
         """Init the default statistics.
 
         Note: Python allows dynamically creating attributes, so you can easily
@@ -49,7 +49,7 @@ class Stats(NestedPrint):
         )
         # Only keep the methods listed in rc
         self.field_summaries = {k:v for k,v in self.field_summaries.items()
-             if k in rc['stat']['field_summary_methods'].split(',')}
+             if k in rc.stat.field_summary_methods.split(',')}
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
@@ -80,11 +80,11 @@ class Stats(NestedPrint):
 
             self._is_ens = True
             minN         = min(Nx,N)
-            do_spectral  = sqrt(Nx*N) <= rc['comp_threshold_b']
+            do_spectral  = sqrt(Nx*N) <= rc.comp_threshold_b
         else:
             self._is_ens = False
             minN         = Nx
-            do_spectral  = Nx <= rc['comp_threshold_b']
+            do_spectral  = Nx <= rc.comp_threshold_b
 
         if do_spectral:
             # Note: the mean-field and RMS time-series of
