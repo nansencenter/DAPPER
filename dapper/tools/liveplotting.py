@@ -587,13 +587,13 @@ def sliding_marginals(
 ):
 
     # Store parameters
-    params_orig = Bunch(**locals())
+    params_orig = DotDict(**locals())
 
     def init(fignum,stats,key0,plot_u,E,P,**kwargs):
         xx, yy, mu, std, chrono = stats.xx, stats.yy, stats.mu, stats.std, stats.HMM.t
 
         # Set parameters (kwargs takes precedence over params_orig)
-        p = Bunch(**{kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
+        p = DotDict(**{kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
 
         # Lag settings:
         T_lag, K_lag, a_lag = validate_lag(p.Tplot, chrono)
@@ -631,8 +631,8 @@ def sliding_marginals(
         plt.tight_layout()
 
         # Allocate
-        d = Bunch() # data arrays
-        h = Bunch() # plot handles
+        d = DotDict() # data arrays
+        h = DotDict() # plot handles
         # Why "if True" ? Just to indent the rest of the line...
         if True         : d.t  = RollingArray((K_plot,))          ; 
         if True         : d.x  = RollingArray((K_plot,Nx))        ; h.x  = []
@@ -692,7 +692,7 @@ def phase_particles(
 ):
 
     # Store parameters
-    params_orig = Bunch(**locals())
+    params_orig = DotDict(**locals())
 
     M = 3 if is_3d else 2
 
@@ -700,7 +700,7 @@ def phase_particles(
         xx, yy, mu, std, chrono = stats.xx, stats.yy, stats.mu, stats.std, stats.HMM.t
 
         # Set parameters (kwargs takes precedence over params_orig)
-        p = Bunch(**{kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
+        p = DotDict(**{kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
 
         # Lag settings:
         has_w = hasattr(stats,'w')
@@ -728,9 +728,9 @@ def phase_particles(
             eval("ax.set_%slabel('%s')"%(t,s))
 
         # Allocate
-        d = Bunch() # data arrays
-        h = Bunch() # plot handles
-        s = Bunch() # scatter handles
+        d = DotDict() # data arrays
+        h = DotDict() # plot handles
+        s = DotDict() # scatter handles
         if E is not None                 : d.E  = RollingArray((K_plot,len(E),M)); h.E = []
         if P is not None                 : d.mu = RollingArray((K_plot,M))
         if True                          : d.x  = RollingArray((K_plot,M))
@@ -952,13 +952,13 @@ def spatial1d(
 ):
 
     # Store parameters
-    params_orig = Bunch(**locals())
+    params_orig = DotDict(**locals())
 
     def init(fignum,stats,key0,plot_u,E,P,**kwargs):
         xx, yy, mu = stats.xx, stats.yy, stats.mu
 
         # Set parameters (kwargs takes precedence over params_orig)
-        p = Bunch(**{kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
+        p = DotDict(**{kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
 
         if p.dims==[]:
             M = xx.shape[-1]

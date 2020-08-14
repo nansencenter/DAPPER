@@ -421,6 +421,9 @@ class NestedPrint:
 
             return s
 
+    def __str__(self):
+        return repr(self)
+
 
 # from pingfive.typepad.com/blog/2010/04
 def deep_getattr(obj,name,*default):
@@ -456,31 +459,6 @@ class AlignedDict(dict):
         s = s.replace("\n",",\n")     # Commas
         if self: s = "\n" + s + "\n"  # Surrounding newlines
         return "{" + s + "}"          # Clams
-
-
-class Bunch(NestedPrint,dict):
-    """A dict that also has attribute (dot) access.
-
-    Benefit compared to a dict:
-
-     - Verbosity of ``mycontainer.a`` vs. ``mycontainer['a']``.
-     - Includes NestedPrint.
-
-    Why not just use NestedPrint itself as a container?
-
-    - Because it's convenient to also have item access.
-    - The class name hints at the "container" purpose.
-
-    As seen from its creation in ``__init__``,
-    Bunch is not very hackey.
-    Bunch is also quite robust.
-    Source: stackoverflow.com/a/14620633
-    Similar constructs are quite common, eg IPython/utils/ipstruct.py.
-    """
-    def __init__(self,*args,**kwargs):
-        "Init like a normal dict."
-        super(Bunch, self).__init__(*args,**kwargs) # Make a (normal) dict
-        self.__dict__ = self                        # Assign it to self.__dict__
 
 
 # From stackoverflow.com/q/22797580 and more
