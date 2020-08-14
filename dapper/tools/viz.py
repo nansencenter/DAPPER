@@ -634,7 +634,8 @@ class FigSaver(NestedPrint):
         if basename is None:
             basename = 'figure'
         # Prep save dir
-        sdir = save_dir(script,host=False)                   
+        sdir = rc.dirs.data / Path(script).stem
+        os.makedirs(sdir,exist_ok=True)
         # Set state
         self.fname = sdir + basename
         self.n     = n

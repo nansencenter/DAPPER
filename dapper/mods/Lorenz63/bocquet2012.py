@@ -10,7 +10,7 @@ from dapper import *
 
 HMM.Obs.noise.C = CovMat(eye(3))
 
-HMM.name = os.path.relpath(__file__,'mods/')
+HMM.name = Path(__file__).relative_to(rc.dirs.dapper/"mods")
 
 ####################
 # Suggested tuning

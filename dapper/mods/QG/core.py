@@ -25,7 +25,7 @@ try:
     from dapper.mods.QG.f90.py_mod import interface_mod as fortran
 except ImportError as err:
     raise Exception("\n".join(["Have you compiled the (Fortran) model?",
-                    "See README in folder "+dirs['dapper']+"/mods/QG/f90"]) from err
+                    f"See README in folder {rc.dirs.dapper}/mods/QG/f90"]) from err
 
 default_prms = dict(
     # These parameters may be interesting to change.
@@ -67,8 +67,7 @@ class model_config:
         self.prms  = D
         self.mp    = mp
         self.name  = name
-        self.fname = os.path.join(os.path.dirname(__file__),'f90',
-                                  'prms_' + name + '.txt')
+        self.fname = Path(__file__).parent / 'f90' / f'prms_{name}.txt'
 
         # Create string
         text = ["  %s = %s"%(key.ljust(20),str(D[key])) for key in D]
@@ -145,8 +144,8 @@ def gen_sample(model,nSamples,SpinUp,Spacing):
     sample    = simulator(zeros(Nx), K, 0.0, model.prms["dtout"])
     return sample[SpinUp::Spacing]
 
-sample_filename = os.path.join(dirs['samples'],'QG_samples.npz')
-if not os.path.isfile(sample_filename):
+sample_filename = rc.dirs.samples/'QG_samples.npz'
+if not sample_filename.is_file():
     print('Did not find sample file',sample_filename,
           'for experiment initialization. Generating...')
     sample = gen_sample(model_config("sample_generation",{}),400,700,10)

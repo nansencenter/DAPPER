@@ -11,4 +11,4 @@ script = com.pop("exec")
 exec(script)
 
 # Run
-result = run_experiment(var['xp'], **com, savepath="./")
+result = run_experiment(var['xp'], **com, savedir=Path("."))

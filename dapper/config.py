@@ -1,4 +1,7 @@
 """Load rc: default settings"""
+from dapper import *
+
+import json
 
 class JsonDict(dict):
     """Provide json pretty-printing"""
@@ -56,3 +59,83 @@ class DotDict(JsonDict):
         self.__dict__ = self                          # Assign it to self.__dict__
 
 
+dirs = DotDict(dapper = Path(__file__).absolute().parent)
+
+# Load rc files from [dapper, user-home, cwd]
+_rc_locations = [dirs.dapper, Path("~").expanduser(), Path.cwd()]
+_rc = configparser.ConfigParser()
+_rc.read(x/'dpr_config.ini' for x in _rc_locations)
+# Convert to dict
+rc = DotDict({s:DotDict(_rc.items(s)) for s in _rc.sections() if s not in ['int','bool']})
+# Parse styles
+x = rc.plot.styles
+x = x.replace('$dapper',str(dirs.dapper))
+x = x.replace('/',os.path.sep)
+rc.plot.styles = x
+# Parse sections
+for x in _rc['int' ]: rc[x] = _rc['int' ].getint(x)
+for x in _rc['bool']: rc[x] = _rc['bool'].getboolean(x)
+
+# Define paths
+x = rc.dirs.data
+if   x=="cwd"    : _root = Path.cwd()
+elif x=="$dapper": _root = dirs.DAPPER
+else             : _root = Path(x)
+dirs.DAPPER  = dirs.dapper.parent
+dirs.data    = _root / "dpr_data"
+dirs.samples = dirs.data / "samples"
+for d in dirs:
+    dirs[d] = dirs[d].expanduser()
+rc.dirs = dirs
+del dirs, x, d
+
+
+
+##################################
+# Plotting settings
+##################################
+import matplotlib as mpl
+
+# user_is_patrick
+import getpass
+user_is_patrick = getpass.getuser() == 'pataan'
+
+if user_is_patrick:
+    from sys import platform
+    # Try to detect notebook
+    try:
+        __IPYTHON__
+        from IPython import get_ipython
+        is_notebook_or_qt = 'zmq' in str(type(get_ipython())).lower()
+    except (NameError,ImportError):
+        is_notebook_or_qt = False
+    # Switch backend
+    if is_notebook_or_qt:
+        pass # Don't change backend
+    elif platform == 'darwin':
+        try:
+            mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
+            import matplotlib.pyplot # Trigger (i.e. test) the actual import
+        except ImportError:
+            # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
+            mpl.use('MacOSX')
+
+_BE = mpl.get_backend().lower()
+_LP = rc.liveplotting_enabled
+if _LP: # Check if we should disable anyway:
+    _LP &= not any([_BE==x for x in ['agg','ps','pdf','svg','cairo','gdk']])
+    # Also disable for inline backends, which are buggy with liveplotting
+    _LP &= 'inline' not in _BE
+    _LP &= 'nbagg'  not in _BE
+    if not _LP:
+        print("\nWarning: interactive/live plotting was requested,")
+        print("but is not supported by current backend: %s."%mpl.get_backend())
+        print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').\n")
+rc.liveplotting_enabled = _LP
+
+# Get Matlab-like interface, and enable interactive plotting
+import matplotlib.pyplot as plt 
+plt.ion()
+
+# Styles
+plt.style.use(rc.plot.styles.split(","))

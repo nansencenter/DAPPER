@@ -15,7 +15,7 @@ class RV(NestedPrint):
          - func <func(N)> : use this sampling function. Example:
                             RV(M=4,func=lambda N: rand((N,4))
          - file <str>     : draw from file. Example:
-                            RV(M=4,file=dirs['data']+'/tmp.npz')
+                            RV(M=4,file=rc.dirs.data/'tmp.npz')
         The following kwords (versions) are available,
         but should not be used for anything serious (use instead subclasses, like GaussRV).
          - icdf <func(x)> : marginal/independent  "inverse transform" sampling. Example:

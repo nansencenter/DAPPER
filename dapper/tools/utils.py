@@ -149,57 +149,9 @@ def read1():
 # Path manipulation
 #########################################
 
-import socket
-def save_dir(script,host="",relpath=False):
-    """Make dirs['data']/script_path/[hostname]."""
-    script = os.path.splitext(script)[0]
-
-    if relpath:
-        # Safely determine relpath: script vs. dpr_data
-        _a     = os.path.abspath
-        root   = os.path.commonpath([_a(dirs['data']),_a(script)])
-        script = os.path.relpath(script, root)
-    else:
-        # Short path
-        script = os.path.basename(script)
-
-    # Hostname
-    host = socket.gethostname().split('.')[0] if host is True else host
-
-    # Makedir
-    sdir = os.path.join(dirs['data'],script,host,'')
-    os.makedirs(sdir, exist_ok=True)
-
-    return sdir
-
-import glob
-def get_filenums(glb):
-    ls = glob.glob(glb+'*')
-    return [int(re.search(glb+'([0-9]*).*',f).group(1)) for f in ls]
-
-def run_path(script,host="",relpath=False,timestamp=True):
-    """save_dir + run_number"""
-    sdir = save_dir(script,host=host,relpath=relpath)
-    sdir = sdir + "run_"
-
-    if timestamp:
-        from datetime import datetime
-        now = datetime.now()
-        run_number = now.strftime("%Y-%m-%d__%H:%M:%S")
-    else:
-        run_number = str(1 + max(get_filenums(sdir),default=0))
-
-    sdir = sdir + run_number
-    os.makedirs(sdir, exist_ok=False)
-
-    return sdir
-
-
-def rel_path(path,start=None,ext=False):
-    path = os.path.relpath(path,start)
-    if not ext:
-        path = os.path.splitext(path)[0]
-    return path
+def rel2mods(path):
+    path = Path(path).relative_to(rc.dirs.dapper/'mods').with_suffix("")
+    return str(path)
 
 
 #########################################

@@ -718,7 +718,7 @@ def phase_particles(
         assert len(p.dims)==M
 
         # Set up figure, axes
-        fig, _ = freshfig(fignum, figsize=(5,5), loc='2321', nrows=0, ncols=0)
+        fig, _ = freshfig(fignum, figsize=(5,5), loc='2321')
         ax = plt.subplot(111, projection='3d' if is_3d else None)
         ax.set_facecolor('w')
         ax.set_title("Phase space trajectories")

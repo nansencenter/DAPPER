@@ -10,7 +10,6 @@ import hashlib
 from matplotlib import ticker
 import logging
 mpl_logger = logging.getLogger('matplotlib')
-from pathlib import Path
 
 ##
 def load_xps(savepath):
@@ -897,7 +896,7 @@ def beautify_fig_ex3(tabulated_data, savepath, xp_dict):
     try:
         savepath = savepath
         ST = tabulated_data.fig._suptitle.get_text()
-        ST = "\n".join([ST, os.path.basename(savepath)])
+        ST = "\n".join([ST, Path(savepath).stem])
         tabulated_data.fig.suptitle(ST)
     except NameError:
         pass

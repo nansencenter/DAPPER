@@ -3,7 +3,6 @@
 Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 
 from dapper import *
-from pathlib import  Path
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as _parse
 
@@ -85,7 +84,7 @@ def sync_DAPPER(HOST,xps_path):
     must be synced to the compute nodes, which don't have external IP addresses.
     """
     # Get list of files: whatever mentioned by .git
-    repo  = f"--git-dir={dirs['DAPPER']}/.git"
+    repo  = f"--git-dir={rc.dirs.DAPPER}/.git"
     files = sys_cmd(f"git {repo} ls-tree -r --name-only HEAD").split()
     xcldd = lambda f: f.startswith("docs/") or f.endswith(".jpg") or f.endswith(".png")
     files = [f for f in files if not xcldd(f)]
@@ -94,7 +93,7 @@ def sync_DAPPER(HOST,xps_path):
 
     print("Syncing DAPPER")
     try:
-        sys_cmd(f"rsync -avz --files-from=synclist {dirs['DAPPER']} {HOST}:~/{xps_path.name}/DAPPER/")
+        sys_cmd(f"rsync -avz --files-from=synclist {rc.dirs.DAPPER} {HOST}:~/{xps_path.name}/DAPPER/")
     except subprocess.SubprocessError as error:
         # Suggest common source of error in the message.
         msg = error.args[0] + "\nDid you mv/rm files (and not registering it with .git)?"
@@ -108,7 +107,7 @@ def sync_job(HOST,xps_path):
 
     print("Syncing %d jobs"%len(jobs))
     # NB: Note use of --delete. This rsync must come first!
-    sys_cmd(f"rsync -avz --delete {dirs['DAPPER']}/dapper/tools/remote/htcondor/ {HOST}:~/{xps_path.name}")
+    sys_cmd(f"rsync -avz --delete {rc.dirs.DAPPER}/dapper/tools/remote/htcondor/ {HOST}:~/{xps_path.name}")
     sys_cmd(f"rsync -avz {xps_path}/ {HOST}:~/{xps_path.name}")
     # print("Copying xp.com to initdir")
     remote_cmd(f"""cd {xps_path.name}; for ixp in [0-999999]; do cp xp.com $ixp/; done""")

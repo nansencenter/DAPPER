@@ -18,6 +18,7 @@ import re
 import functools
 import configparser
 import builtins
+from pathlib import Path
 from time import sleep
 from copy import deepcopy
 import dataclasses as dc
@@ -25,41 +26,6 @@ from typing import Optional, Any
 
 assert sys.version_info >= (3,6), "Need Python>=3.6"
 
-
-##################################
-# Load rc: default settings
-##################################
-dirs = {}
-dirs['dapper'] = os.path.dirname(os.path.abspath(__file__))
-dirs['DAPPER'] = os.path.dirname(dirs['dapper'])
-
-_rc = configparser.ConfigParser()
-# Load rc files from dapper, user-home, and cwd
-_rc.read(os.path.join(x,'dpr_config.ini') for x in
-         [dirs['dapper'], os.path.expanduser("~"), os.curdir])
-# Convert to dict
-rc = {s:dict(_rc.items(s)) for s in _rc.sections() if s not in ['int','bool']}
-# Parse
-rc['plot']['styles'] = rc['plot']['styles'].replace('$dapper',dirs['dapper']).replace('/',os.path.sep)
-for x in _rc['int' ]: rc[x] = _rc['int' ].getint(x)
-for x in _rc['bool']: rc[x] = _rc['bool'].getboolean(x)
-
-# Define paths
-x = rc['dirs']['data']
-if   x=="cwd"    : dirs['data_root'] = os.getcwd()
-elif x=="$dapper": dirs['data_root'] = dirs['DAPPER']
-else             : dirs['data_root'] = x
-dirs['data_base'] = "dpr_data"
-dirs['data']      = os.path.join(dirs['data_root'], dirs['data_base'])
-dirs['samples']   = os.path.join(dirs['DAPPER']   , dirs['data_base'], "samples")
-for d in dirs:
-    dirs[d] = os.path.expanduser(dirs[d])
-
-# 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
-if rc['welcome_message']:
-    print("Initializing DAPPER...",flush=True)
-
-del x, d
 
 ##################################
 # Profiling.
@@ -99,60 +65,16 @@ from numpy import \
     eye, zeros, ones, diag, trace \
     # Don't shadow builtins: sum, max, abs, round, pow
 
-
-##################################
-# Plotting settings
-##################################
-import matplotlib as mpl
-
-# user_is_patrick
-import getpass
-user_is_patrick = getpass.getuser() == 'pataan'
-
-if user_is_patrick:
-    from sys import platform
-    # Try to detect notebook
-    try:
-        __IPYTHON__
-        from IPython import get_ipython
-        is_notebook_or_qt = 'zmq' in str(type(get_ipython())).lower()
-    except (NameError,ImportError):
-        is_notebook_or_qt = False
-    # Switch backend
-    if is_notebook_or_qt:
-        pass # Don't change backend
-    elif platform == 'darwin':
-        try:
-            mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
-            import matplotlib.pyplot # Trigger (i.e. test) the actual import
-        except ImportError:
-            # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
-            mpl.use('MacOSX')
-
-_BE = mpl.get_backend().lower()
-_LP = rc['liveplotting_enabled']
-if _LP: # Check if we should disable anyway:
-    _LP &= not any([_BE==x for x in ['agg','ps','pdf','svg','cairo','gdk']])
-    # Also disable for inline backends, which are buggy with liveplotting
-    _LP &= 'inline' not in _BE
-    _LP &= 'nbagg'  not in _BE
-    if not _LP:
-        print("\nWarning: interactive/live plotting was requested,")
-        print("but is not supported by current backend: %s."%mpl.get_backend())
-        print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').\n")
-rc['liveplotting_enabled'] = _LP
-
-# Get Matlab-like interface, and enable interactive plotting
-import matplotlib.pyplot as plt 
-plt.ion()
-
-# Styles
-plt.style.use(rc['plot']['styles'].split(","))
-
-
 ##################################
 # Imports from DAPPER package
 ##################################
+# Load rc: default settings
+from .config import *
+
+# 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
+if rc['welcome_message']:
+    print("Initializing DAPPER...",flush=True)
+
 from .tools.colors import *
 from .tools.utils import *
 from .tools.math import *
@@ -175,7 +97,6 @@ from .da_methods.extended import *
 from .da_methods.baseline import *
 from .da_methods.variational import *
 from .da_methods.other import *
-
 
 if rc['welcome_message']:
     print("...Done") # ... initializing DAPPER

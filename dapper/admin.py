@@ -15,7 +15,8 @@ Used for experiment (xp) specification/administration, including:
 from dapper import *
 
 import dill
-from os.path import join as pjoin
+import shutil
+from datetime import datetime
 
 class HiddenMarkovModel(NestedPrint):
     """Container for attributes of a Hidden Markov Model (HMM).
@@ -32,7 +33,7 @@ class HiddenMarkovModel(NestedPrint):
 
         # Name
         name = inspect.getfile(inspect.stack()[1][0])
-        self.name = os.path.relpath(name,'mods/')
+        self.name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
 
         # Kwargs
         abbrevs = {'LP':'liveplotters'}
@@ -198,7 +199,7 @@ def da_method(*default_dataclasses):
     return dataclass_with_defaults
 
 
-def run_experiment(xp, label, HMM, sd, free, statkeys, savepath, fail_gently, stat_kwargs):
+def run_experiment(xp, label, HMM, sd, free, statkeys, savedir, fail_gently, stat_kwargs):
     """Run a single experiment, similar to ``example_1.py``.
 
     In addition to calling xp.assimilate(), it also
@@ -265,8 +266,8 @@ def run_experiment(xp, label, HMM, sd, free, statkeys, savepath, fail_gently, st
         xp.print_avrgs(() if statkeys is True else statkeys)
 
     # Save
-    if savepath:
-        with open(savepath+"xp","wb") as FILE:
+    if savedir:
+        with open(savedir/"xp","wb") as FILE:
             dill.dump({'xp':xp}, FILE)
 
 
@@ -515,61 +516,54 @@ class xpList(list):
 
     def launch(self, HMM, sd=True, savename="unnamed", mp=False,
             free=True, statkeys=False, desc=True, fail_gently=rc['fail_gently'], **stat_kwargs):
-        """For each xp in self: run_experiment(xp,...). View ``example_2.py``.
+        """For each xp in self: run_experiment(xp,...). View ``example_2.py`` for an example.
         
-        Delegate this to one of:
+        Depending on ``mp``, run_experiment() is delegated to one of:
          - caller process (no parallelisation)
          - multiprocessing on this host
          - GCP (Google Cloud Computing) with HTCondor
 
+        - ``sd``:
+            - False          => seed not explicitly set (for any experiment).
+            - a number       => run_experiment() will use xp.seed+sd.
+            - True (default) => run_experiment() will use xp.seed+set_seed("clock")
+
         Also set up the appropriate savepath for passing data and storing results.
         """
 
-        # If sd is:
-        # - False          => no seed control in any experiment.
-        # - a number       => use sd+xp.seed in run_experiment()
-        # - True (default) => get sd number from clock:
-        if sd is True: sd = set_seed()
+        if sd is True:
+            sd = set_seed("clock")
 
-
-        # savename => ixp_path(ixp, sep)
-        if savename:
-            xps_path = run_path(savename)
-            ixp_path = lambda ixp, sep: pjoin(xps_path, f"{ixp}" + sep)
-            # NB: Don't casually modify this message. It may be grepped.
-            print("Experiment data stored at",xps_path+"/")
-        else:
-            # It's possible to parallelize without storing,
-            # especially if using threads. But, it's more complicated,
-            # and requires deeper consideration of communications.
-            if mp:
-                raise ValueError("Parallelization requires storing data.")
-            else:
-                ixp_path = lambda *args: False
+        # savename => xps_path
+        xps_path = rc.dirs.data / Path(savename).stem
+        xps_path /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
+        os.makedirs(xps_path)
+        print(f"Experiment data stored at {xps_path}")
+        def xpi_dir(i):
+            path = xps_path / str(i)
+            os.mkdir(path)
+            return path
 
 
         # No parallelization
         if not mp: 
             labels = self.gen_names() if desc else self.da_methods
             for ixp, (xp, label) in enumerate(zip(self,labels)):
-                run_experiment(xp, label, HMM, sd, free, statkeys, ixp_path(ixp,"."), fail_gently, stat_kwargs)
+                run_experiment(xp, label, HMM, sd, free, statkeys, xpi_dir(ixp), fail_gently, stat_kwargs)
 
 
         # GCP
         elif isinstance(mp,dict) and mp["server"] == "GCP":
-            with open(pjoin(xps_path,"xp.com"),"wb") as FILE:
+            with open(xps_path/"xp.com","wb") as FILE:
                 dill.dump(dict(exec=mp["exec"],
                                HMM=HMM, label=None, sd=sd, free=free, statkeys=None,
                                fail_gently=fail_gently, stat_kwargs=stat_kwargs), FILE)
 
             for ixp, xp in enumerate(self):
-                idir = ixp_path(ixp, os.path.sep)
-                os.makedirs(idir)
-                with open(pjoin(idir, "xp.var"),"wb") as FILE:
+                with open(xpi_dir(ixp)/"xp.var","wb") as FILE:
                     dill.dump(dict(xp=xp, ixp=ixp), FILE)
 
-            import shutil
-            dst = Path(xps_path) / "extra_files"
+            dst = xps_path / "extra_files"
             os.mkdir(dst)
             for f in mp["extra_files"]:
                 dst = dst / f.relative_to(mp["root"])
@@ -583,9 +577,12 @@ class xpList(list):
         # Local multiprocessing
         elif mp in ["MP", True]:
 
+            # It's possible to parallelize without storing,
+            # especially if using threads. But, it's more complicated,
+            # and requires deeper consideration of communications.
             def run_with_fixed_args(arg):
                 xp, ixp = arg
-                run_experiment(xp, None, HMM, sd, free, None, ixp_path(ixp,"."), fail_gently, stat_kwargs)
+                run_experiment(xp, None, HMM, sd, free, None, xpi_dir(ixp), fail_gently, stat_kwargs)
             args = zip(self,range(len(self)))
 
             with     set_tmp(tools.utils,'disable_progbar',True):

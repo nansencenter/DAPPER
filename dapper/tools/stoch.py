@@ -2,7 +2,7 @@
 
 from dapper import *
 
-def set_seed(i=None,init=False):
+def set_seed(i="clock",init=False):
     """Seed global random number generator by ``i``.
 
     Enables reproducibility of experiments which include randomness.
@@ -23,7 +23,7 @@ def set_seed(i=None,init=False):
     >>> sd = set_seed(42); randn() # --> array([0.4967])
     >>> set_seed(sd);      randn() # --> array([0.4967])
     """
-    if i==None:
+    if i in [None or "clock"]:
         np.random.seed()                # Init by clock.
         i = np.random.get_state()[1][0] # Set seed to state[0]
 

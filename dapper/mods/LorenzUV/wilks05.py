@@ -33,7 +33,7 @@ jj = arange(nU)
 Obs = partial_Id_Obs(LUV.M,jj)
 Obs['noise'] = R
 
-other = {'name': rel_path(__file__,'mods/')+'_full'}
+other = {'name': rel2mods(__file__)+'_full'}
 HMM_full = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 
 
@@ -56,7 +56,7 @@ jj = arange(nU)
 Obs = partial_Id_Obs(nU,jj)
 Obs['noise'] = R
 
-other = {'name': rel_path(__file__,'mods/')+'_trunc'}
+other = {'name': rel2mods(__file__)+'_trunc'}
 HMM_trunc = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 
 LUV.prmzt = lambda t,x: polynom_prmzt(t,x,1)
