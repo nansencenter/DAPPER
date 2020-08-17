@@ -39,7 +39,7 @@ Installation
 ================================================
 Works on Linux/Windows/Mac.
 
-1. **Prerequisite**: Python>=3.7.  
+1. **Prerequisite**: Python>=3.8.  
    If you're not an admin or expert:  
    1a. Install Python with [Anaconda](https://www.anaconda.com/download).  
    1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda) to run the commands below.
@@ -49,6 +49,9 @@ Works on Linux/Windows/Mac.
    `cd` into the resulting folder
 	 *(ensure you're in the folder with a `setup.py` file)*:  
    `pip install -e .` (don't forget the `.`).
+   If you want multiprocessing options, install with:  
+   `pip install -e .[MP]`
+
 
 3. **Test** by running: `python example_1.py`  
 

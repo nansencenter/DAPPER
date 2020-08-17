@@ -21,7 +21,7 @@ def test_L63():
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 1
 
-  cfgs.launch(HMM,sd=sd0,free=False,liveplots="all",store_u=False,fail_gently=False)
+  cfgs.launch(HMM,sd0,free=False,liveplots="all",store_u=False,fail_gently=False)
 
   for config in cfgs:
       replay(config,"all")
@@ -61,7 +61,7 @@ def test_L96():
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 2
 
-  cfgs.launch(HMM,sd=sd0,free=False,liveplots="all",store_u=False,fail_gently=False, savename=False)
+  cfgs.launch(HMM,sd0,free=False,liveplots="all",store_u=False,fail_gently=False, savename=False)
 
   for config in cfgs:
       replay(config,"all")

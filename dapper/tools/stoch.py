@@ -20,18 +20,19 @@ def set_seed(i="clock",init=False):
     because the mapping seed-->state is not surjective.
 
     Example
-    >>> sd = set_seed(42); randn() # --> array([0.4967])
-    >>> set_seed(sd);      randn() # --> array([0.4967])
+    >>> seed = set_seed(42); randn() # --> array([0.4967])
+    >>> set_seed(seed);      randn() # --> array([0.4967])
     """
     if i in [None or "clock"]:
         np.random.seed()                # Init by clock.
         i = np.random.get_state()[1][0] # Set seed to state[0]
 
     if i==0:
-        warnings.warn('''
-        A seed of 0 is not a good idea. Use seed > 1.'
-        [Sometimes people use sd_k = seed(k*sd_0) for experiment k.
-        So if sd_0==0, then sd_k==0 for all k!]''')
+        raise RuntimeError("""
+        A seed of 0 is not a good idea. Use seed > 1. Reasons:
+        - Avoid confusion with [None, False].
+        - Sometimes people use sd_k = seed(k*sd_0) for experiment k.
+          So if sd_0==0, then sd_k==0 for all k!""")
 
     if init:
         i = i*1000 + hostname_hash()

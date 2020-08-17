@@ -199,26 +199,20 @@ def da_method(*default_dataclasses):
     return dataclass_with_defaults
 
 
-def run_experiment(xp, label, HMM, sd, free, statkeys, savedir, fail_gently, stat_kwargs):
-    """Run a single experiment, similar to ``example_1.py``.
+def run_experiment(xp, label, savedir, HMM,
+                   seed=None, free=True, statkeys=False, fail_gently=rc.fail_gently,
+                   **stat_kwargs):
+    """Used by xpList.launch() to run each single experiment.
+    
+    This involves steps similar to ``example_1.py``, i.e.:
 
-    In addition to calling xp.assimilate(), it also
-     - sets
-       - HMM_params
-       - sd
-     - generates truth & obs
-     - fail_gently wrap
-     - average_stats()
-     - print_averages()
-     - saves, using dill.dump()
-
-    - sd is used to fix the seed, repeating it for each experiment.
-      This may yield a form of "Variance reduction"
-      (eg. CRN, see wikipedia.org/wiki/Variance_reduction).
-      Note: this CRN trick is handy for quick comparisons
-            of results between xp's,
-            but should not be relied upon for publishing results,
-            which should simply be converged values.
+     - set seed (if not False/None)
+     - set any HMM_params
+     - hmm.simulate()  : generate truth & obs
+     - xp.assimilate() : run DA method, catch exception if fail_gently
+     - average_stats() : result averaging
+     - print_averages(): result printing
+     - dill.dump()     : result storage
     """
 
     # Set HMM parameters.
@@ -239,18 +233,28 @@ def run_experiment(xp, label, HMM, sd, free, statkeys, savedir, fail_gently, sta
     else:
         hmm = HMM
 
+
     # GENERATE TRUTH/OBS
-    if sd: set_seed(sd + getattr(xp,'seed',0)) # Set seed
+    if seed: set_seed(seed + getattr(xp,'seed',0)) # Set seed
     xx, yy = hmm.simulate()
-    # Now set the seed again. Then it does not matter for the following
+
+    # Now set the seed again. Then it does not matter for any following
     # random draws whether-or-not simulate() was called above.
-    # Also, offset by a fixed number to avoid any magic correspondence
+    # Also, offset by a fixed number to prevent any magic correspondence
     # of the random draws of the truth and the state-estimator.
-    if sd: set_seed(sd + getattr(xp,'seed',0) + 1)
+    if seed: set_seed(seed + getattr(xp,'seed',0) + 1)
+    # Repeating the seed for each experiment.
+    # may yield a form of "Variance reduction"
+    # (eg. CRN, see wikipedia.org/wiki/Variance_reduction).
+    # Note: this CRN trick is handy for quick comparisons
+    #       of results between xp's,
+    #       but should not be relied upon for publishing results,
+    #       which should simply be converged values.
     
+
     # ASSIMILATE
     try:
-        xp.assimilate(hmm,xx,yy, desc=label, **stat_kwargs)
+        xp.assimilate(hmm,xx,yy, label, **stat_kwargs)
     except Exception as ERR:
         if fail_gently:
             xp.crashed = True
@@ -309,7 +313,7 @@ def print_cropped_traceback(ERR):
 class xpList(list):
     """List, subclassed for holding experiment ("xp") objects.
 
-    Main use: admin. experiment **launches**.
+    Main use: administrate experiment **launches**.
     Also see: ``xpSpace`` for experiment **result presentation**.
 
      Modifications to ``list``:
@@ -514,76 +518,88 @@ class xpList(list):
 
         return table.splitlines()
 
-    def launch(self, HMM, sd=True, savename="unnamed", mp=False,
-            free=True, statkeys=False, desc=True, fail_gently=rc.fail_gently, **stat_kwargs):
-        """For each xp in self: run_experiment(xp,...). View ``example_2.py`` for an example.
+    def launch(self, HMM, seed="clock", savename="noname", mp=False, **kwargs):
+        """For each xp in self: run_experiment(xp, ...).
         
+        Value of `seed` ||| Consequent seed mngmt. by run_experiment():
+        ----------------|||---------------------------------------------
+        False/None      ||| No management.
+        a number>0      ||| Uses xp.seed + seed.
+        True/"clock"    ||| Uses xp.seed + set_seed("clock")
+
+        The results are saved in ``rc.dirs['data']/savename.stem``,
+        unless ``savename`` is False/None.
+
         Depending on ``mp``, run_experiment() is delegated to one of:
          - caller process (no parallelisation)
          - multiprocessing on this host
          - GCP (Google Cloud Computing) with HTCondor
 
-        - ``sd``:
-            - False          => seed not explicitly set (for any experiment).
-            - a number       => run_experiment() will use xp.seed+sd.
-            - True (default) => run_experiment() will use xp.seed+set_seed("clock")
-
-        Also set up the appropriate savepath for passing data and storing results.
+        The kwargs are forwarded to run_experiment().
+        
+        See ``example_2.py`` and ``example_3.py`` for example use.
         """
 
-        if sd is True:
-            sd = set_seed("clock")
+        # Include in kwargs
+        kwargs['HMM'] = HMM
+        kwargs['seed'] = set_seed("clock") if seed in ["clock",True] else seed
 
-        # savename => xps_path
-        xps_path = rc.dirs.data / Path(savename).stem
-        xps_path /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
-        os.makedirs(xps_path)
-        print(f"Experiment data stored at {xps_path}")
-        def xpi_dir(i):
-            path = xps_path / str(i)
-            os.mkdir(path)
-            return path
+        if savename in [None,False]:
+            assert not mp, "Multiprocessing requires saving data."
+            # Parallelization w/o storing is possible, especially w/ threads.
+            # But it involves more complicated communication setup.
+            xpi_dir = lambda *args: None
+        else:
+            savename = rc.dirs.data / Path(savename).stem
+            savename /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
+            os.makedirs(savename)
+            print(f"Experiment data stored at {savename}")
+            def xpi_dir(i):
+                path = savename / str(i)
+                os.mkdir(path)
+                return path
+
 
 
         # No parallelization
         if not mp: 
-            labels = self.gen_names() if desc else self.da_methods
-            for ixp, (xp, label) in enumerate(zip(self,labels)):
-                run_experiment(xp, label, HMM, sd, free, statkeys, xpi_dir(ixp), fail_gently, stat_kwargs)
+            for ixp, (xp, label) in enumerate( zip(self, self.gen_names()) ):
+                run_experiment(xp, label, xpi_dir(ixp), **kwargs)
+
 
 
         # GCP
         elif isinstance(mp,dict) and mp["server"] == "GCP":
-            with open(xps_path/"xp.com","wb") as FILE:
-                dill.dump(dict(exec=mp["exec"],
-                               HMM=HMM, label=None, sd=sd, free=free, statkeys=None,
-                               fail_gently=fail_gently, stat_kwargs=stat_kwargs), FILE)
 
+            # Also see 
             for ixp, xp in enumerate(self):
-                with open(xpi_dir(ixp)/"xp.var","wb") as FILE:
-                    dill.dump(dict(xp=xp, ixp=ixp), FILE)
+                with open(xpi_dir(ixp)/"xp.var","wb") as xp_var:
+                    dill.dump(dict(xp=xp), xp_var)
 
-            dst = xps_path / "extra_files"
-            os.mkdir(dst)
+            # TODO: insert load_and_run.py in extra_files
+            kwargs["fail_gently"] = True # Todo: make this unnecesary
+
+            with open(savename/"xp.com","wb") as xp_com:
+                dill.dump(dict(exec=mp["exec"], **kwargs), xp_com)
+
+            extra_files = savename / "extra_files"
+            os.mkdir(extra_files)
             for f in mp["extra_files"]:
-                dst = dst / f.relative_to(mp["root"])
+                dst = extra_files / f.relative_to(mp["root"])
                 try:            shutil.copytree(f, dst) # dir -r
                 except OSError: shutil.copy2   (f, dst) # file
 
+            submit_job_GCP(savename)
 
-            submit_job_GCP(xps_path)
 
 
         # Local multiprocessing
         elif mp in ["MP", True]:
 
-            # It's possible to parallelize without storing,
-            # especially if using threads. But, it's more complicated,
-            # and requires deeper consideration of communications.
             def run_with_fixed_args(arg):
                 xp, ixp = arg
-                run_experiment(xp, None, HMM, sd, free, None, xpi_dir(ixp), fail_gently, stat_kwargs)
-            args = zip(self,range(len(self)))
+                run_experiment(xp, None, xpi_dir(ixp), **kwargs)
+            args = zip(self, range(len(self)))
 
             with     set_tmp(tools.utils,'disable_progbar',True):
                 with set_tmp(tools.utils,'disable_user_interaction',True):
@@ -592,4 +608,6 @@ class xpList(list):
                         list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
                             total=len(self), desc="Parallel experim's", smoothing=0.1))
 
-        return xps_path if savename else None
+
+
+        return savename
