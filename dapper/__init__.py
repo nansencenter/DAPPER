@@ -18,7 +18,7 @@ import re
 import functools
 import configparser
 import builtins
-from pathlib import Path
+from pathlib import Path, PurePath
 from time import sleep
 from copy import deepcopy
 import dataclasses as dc

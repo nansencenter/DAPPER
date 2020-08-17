@@ -21,8 +21,8 @@ echo "pwd:" $(pwd)
 echo "SCRATCH:" $SCRATCH
 echo "whoami:" $(whoami)
 echo "PYTHONPATH:" $PYTHONPATH
-echo "find . -type f -maxdepth 2:"
-find . -type f -maxdepth 2
+echo "find . -type f -maxdepth 3:"
+find . -type f -maxdepth 3
 echo ""
 
 
@@ -34,4 +34,4 @@ python -c "import sys; print('Python v.', sys.version,'\n')"
 
 
 echo "Running experiment"
-python DAPPER/dapper/tools/remote/load_and_run.py 2>&1
+python load_and_run.py 2>&1

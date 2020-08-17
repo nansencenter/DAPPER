@@ -518,7 +518,7 @@ class xpList(list):
 
         return table.splitlines()
 
-    def launch(self, HMM, seed="clock", savename="noname", mp=False, **kwargs):
+    def launch(self, HMM, seed="clock", save_as="noname", mp=False, **kwargs):
         """For each xp in self: run_experiment(xp, ...).
         
         Value of `seed` ||| Consequent seed mngmt. by run_experiment():
@@ -527,8 +527,8 @@ class xpList(list):
         a number>0      ||| Uses xp.seed + seed.
         True/"clock"    ||| Uses xp.seed + set_seed("clock")
 
-        The results are saved in ``rc.dirs['data']/savename.stem``,
-        unless ``savename`` is False/None.
+        The results are saved in ``rc.dirs['data']/save_as.stem``,
+        unless ``save_as`` is False/None.
 
         Depending on ``mp``, run_experiment() is delegated to one of:
          - caller process (no parallelisation)
@@ -544,18 +544,18 @@ class xpList(list):
         kwargs['HMM'] = HMM
         kwargs['seed'] = set_seed("clock") if seed in ["clock",True] else seed
 
-        if savename in [None,False]:
+        if save_as in [None,False]:
             assert not mp, "Multiprocessing requires saving data."
             # Parallelization w/o storing is possible, especially w/ threads.
             # But it involves more complicated communication setup.
             xpi_dir = lambda *args: None
         else:
-            savename = rc.dirs.data / Path(savename).stem
-            savename /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
-            os.makedirs(savename)
-            print(f"Experiment data stored at {savename}")
+            save_as = rc.dirs.data / Path(save_as).stem
+            save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
+            os.makedirs(save_as)
+            print(f"Experiment data stored at {save_as}")
             def xpi_dir(i):
-                path = savename / str(i)
+                path = save_as / str(i)
                 os.mkdir(path)
                 return path
 
@@ -573,23 +573,37 @@ class xpList(list):
 
             # Also see 
             for ixp, xp in enumerate(self):
-                with open(xpi_dir(ixp)/"xp.var","wb") as xp_var:
-                    dill.dump(dict(xp=xp), xp_var)
+                with open(xpi_dir(ixp)/"xp.var","wb") as f:
+                    dill.dump(dict(xp=xp), f)
 
-            # TODO: insert load_and_run.py in extra_files
-            kwargs["fail_gently"] = True # Todo: make this unnecesary
+            with open(save_as/"xp.com","wb") as f:
+                dill.dump(kwargs, f)
 
-            with open(savename/"xp.com","wb") as xp_com:
-                dill.dump(dict(exec=mp["exec"], **kwargs), xp_com)
-
-            extra_files = savename / "extra_files"
+            extra_files = save_as / "extra_files"
             os.mkdir(extra_files)
             for f in mp["extra_files"]:
-                dst = extra_files / f.relative_to(mp["root"])
-                try:            shutil.copytree(f, dst) # dir -r
-                except OSError: shutil.copy2   (f, dst) # file
+                dst = extra_files / Path(f[0]).relative_to(f[1])
+                try:            shutil.copytree(f[0], dst) # dir -r
+                except OSError: shutil.copy2   (f[0], dst) # file
 
-            submit_job_GCP(savename)
+            # Loads PWD/xp_{var,com} and calls run_experiment()
+            with open(extra_files/"load_and_run.py","w") as f: f.write("""
+            from dapper import *
+
+            # Load
+            with open("xp.com", "rb") as f: com = dill.load(f)
+            with open("xp.var", "rb") as f: var = dill.load(f)
+
+            com["fail_gently"] = True # TODO: make this unnecesary
+
+            # Startup
+            exec(%s)
+
+            # Run
+            result = run_experiment(var['xp'], None, Path("."), **com)
+            """%mp["exec"])
+
+            submit_job_GCP(save_as)
 
 
 
@@ -610,4 +624,4 @@ class xpList(list):
 
 
 
-        return savename
+        return save_as
