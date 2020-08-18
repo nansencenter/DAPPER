@@ -13,6 +13,7 @@ Used for experiment (xp) specification/administration, including:
 """
 
 from dapper import *
+from textwrap import dedent
 
 import dill
 import shutil
@@ -170,12 +171,11 @@ def da_method(*default_dataclasses):
         @method
         @functools.wraps(orig_assimilate)
         def assimilate(self,HMM,xx,yy,desc=None,**stat_kwargs):
-
             # Progressbar name
             pb_name_hook = self.da_method if desc is None else desc
-
+            # Init stats
             self.stats = Stats(self,HMM,xx,yy,**stat_kwargs)
-
+            # Assimilate
             orig_assimilate(self,HMM,xx,yy)
 
         @method
@@ -189,7 +189,7 @@ def da_method(*default_dataclasses):
 
         @method
         def print_avrgs(self,keys=()):
-            """Tabulated print of averages (those requested by ``keys``)"""
+            """Tabulated print of averages (as requested by ``keys``)"""
             cfgs = xpList([self])
             cfgs.print_avrgs(keys)
 
@@ -560,51 +560,10 @@ class xpList(list):
                 return path
 
 
-
         # No parallelization
         if not mp: 
             for ixp, (xp, label) in enumerate( zip(self, self.gen_names()) ):
                 run_experiment(xp, label, xpi_dir(ixp), **kwargs)
-
-
-
-        # GCP
-        elif isinstance(mp,dict) and mp["server"] == "GCP":
-
-            # Also see 
-            for ixp, xp in enumerate(self):
-                with open(xpi_dir(ixp)/"xp.var","wb") as f:
-                    dill.dump(dict(xp=xp), f)
-
-            with open(save_as/"xp.com","wb") as f:
-                dill.dump(kwargs, f)
-
-            extra_files = save_as / "extra_files"
-            os.mkdir(extra_files)
-            for f in mp["extra_files"]:
-                dst = extra_files / Path(f[0]).relative_to(f[1])
-                try:            shutil.copytree(f[0], dst) # dir -r
-                except OSError: shutil.copy2   (f[0], dst) # file
-
-            # Loads PWD/xp_{var,com} and calls run_experiment()
-            with open(extra_files/"load_and_run.py","w") as f: f.write("""
-            from dapper import *
-
-            # Load
-            with open("xp.com", "rb") as f: com = dill.load(f)
-            with open("xp.var", "rb") as f: var = dill.load(f)
-
-            com["fail_gently"] = True # TODO: make this unnecesary
-
-            # Startup
-            exec(%s)
-
-            # Run
-            result = run_experiment(var['xp'], None, Path("."), **com)
-            """%mp["exec"])
-
-            submit_job_GCP(save_as)
-
 
 
         # Local multiprocessing
@@ -621,6 +580,53 @@ class xpList(list):
                     with mpd.Pool(NPROC) as pool:
                         list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
                             total=len(self), desc="Parallel experim's", smoothing=0.1))
+
+
+        # GCP
+        elif isinstance(mp,dict):
+
+            for ixp, xp in enumerate(self):
+                with open(xpi_dir(ixp)/"xp.var","wb") as f:
+                    dill.dump(dict(xp=xp), f)
+
+            with open(save_as/"xp.com","wb") as f:
+                dill.dump(kwargs, f)
+
+            extra_files = save_as / "extra_files"
+            os.mkdir(extra_files)
+            for f in mp["extra_files"]:
+                if isinstance(f, (str,PurePath)):
+                    # Example: f = "A.py"
+                    path = Path(sys.path[0]) / f
+                    dst = f
+                else:
+                    # Example: f = ("~/E/G/A.py", "G")
+                    path, root = f
+                    dst = Path(path).relative_to(root)
+                dst = extra_files / dst
+                os.makedirs(dst.parent, exist_ok=True)
+                try:            shutil.copytree(path, dst) # dir -r
+                except OSError: shutil.copy2   (path, dst) # file
+
+            # com["fail_gently"] = True # TODO: make this unnecesary
+
+            # Loads PWD/xp_{var,com} and calls run_experiment()
+            with open(extra_files/"load_and_run.py","w") as f:
+                f.write( dedent("""\
+                from dapper import *
+
+                # Load
+                with open("xp.com", "rb") as f: com = dill.load(f)
+                with open("xp.var", "rb") as f: var = dill.load(f)
+
+                # User-defined code
+                %s
+
+                # Run
+                result = run_experiment(var['xp'], None, Path("."), **com)
+                """)%dedent(mp["code"]) )
+
+            submit_job_GCP(save_as)
 
 
 

@@ -87,9 +87,13 @@ from .tools.viz import *
 from .tools.liveplotting import *
 from .tools.localization import *
 from .tools.multiprocessing import *
-from .tools.remote.transmission import *
+from .tools.remote.uplink import *
 from .stats import *
 from .admin import *
+# from .xp/statistics import *
+# from .xp/components import *
+# from .xp/management import *
+# from .xp/results import *
 from .data_management import *
 from .da_methods.ensemble import *
 from .da_methods.particle import *
