@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# NB: Stuff subject to variation (as the cluster may be updated):
+# - anaconda path (typically /opt/anaconda{,3}/...
+# - conda environment name
+# - python{3,}
+
 # Args
 index=$1
 rundir=$2
@@ -24,12 +29,12 @@ find . -type f -maxdepth 3
 echo ""
 
 echo "Activating conda"
-__conda_setup=$(/opt/anaconda3/bin/conda shell.bash hook)
+__conda_setup=$(/opt/anaconda/bin/conda shell.bash hook)
 eval "$__conda_setup"
-conda activate dpr_2020-08-07
+conda activate base
 
 echo "Python version:"
-python -c "import sys; print(sys.version,'\n')"
+python3 -c "import sys; print(sys.version,'\n')"
 
 echo "Running experiment"
-python $PWD/extra_files/load_and_run.py 2>&1
+python3 $PWD/extra_files/load_and_run.py 2>&1

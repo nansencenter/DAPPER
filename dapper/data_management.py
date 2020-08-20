@@ -18,20 +18,14 @@ def load_xps(savepath):
     Note: saving this list as a new file (takes considerable time and)
           does not yield lower loading times."""
 
+    savepath = Path(savepath).expanduser()
+
+    files = [d/"xp" for d in list_job_dirs(savepath)]
+
+    print("Loading %d files from %s"%(len(files),savepath))
     def load_xp(path):
         with open(path, "rb") as F:
             return dill.load(F)['xp']
-
-    savepath = Path(savepath).expanduser()
-
-    files = []
-    for f in sorted_human(os.listdir(savepath)):
-        f = savepath / f
-        if not str(f.stem).isnumeric(): continue
-        elif f.suffix == ".xp": files.append(f) # LOCAL RUN
-        elif f.is_dir():        files.append(f/"xp") # GCP RUN
-
-    print("Loading %d files from %s"%(len(files),savepath))
     # Dont use list comprehension (coz then progbar won't clean up correctly)
     xps = []
     for f in progbar(files,desc="Loading"):

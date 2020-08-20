@@ -4,44 +4,247 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 
 from dapper import *
 from datetime import datetime, timezone, timedelta
-from dateutil.parser import parse as _parse
+from dateutil.parser import parse as datetime_parse
+import tempfile
+import subprocess
+
+class SubmissionConnection:
+    """Establish multiplexed ssh to a given submit-node for a given xps_path."""
+    def __init__(self,xps_path,name="condor-submit",zone="us-central1-f",proj="mc-tut"):
+        # Job info
+        self.xps_path = xps_path
+        # Submit-node info
+        self.name     = name
+        self.proj     = proj
+        self.zone     = zone
+        self.host     = f"{name}.{zone}.{proj}" # instance name (as viewed by system ssh)
+        self.ip       = get_ip(name)
+
+        print("Preparing ssh connection")
+        sys_cmd("gcloud compute config-ssh")
+        # Use multiplexing to enable simultaneous connections.
+        # Possible alternative: alter MaxStartups in sshd_config, or other configurations:
+        # - https://stackoverflow.com/a/36654900/38281
+        # - https://unix.stackexchange.com/a/226460
+        # - https://superuser.com/a/1032667/142925
+        self.ssh_M = '''ssh -o ControlMaster=auto -o ControlPath=~/.ssh/%r@%h:%p.socket -o ControlPersist=1m'''
+
+        # print_condor_status()
+        print("autoscaler.py%s detected"%("" if detect_autoscaler(self) else " NOT"))
+
+    def remote_cmd(self,cmd_string):
+        """Run command at self.host via multiplexed ssh."""
+        # Old version (uses gcloud):
+        #     command = """--command=""" + command
+        #     connect = "gcloud compute ssh condor-submit".split()
+        #     output = sys_cmd(connect + [command], split=False)
+        return sys_cmd([*self.ssh_M.split(), self.ip, cmd_string], split=False)
+
+    def rsync(self,src,dst,opts=[],rev=False):
+        """rsync using multiplexed ssh."""
+        # Don't use individual scp's! (Pro: enables progbar. Con: it's SLOW!)
+
+        # Prepare: opts
+        if isinstance(opts,str):
+            opts = opts.split()
+
+        # Prepare: src, dst
+        src = str(src)
+        dst = str(dst)
+        dst = self.ip + ":" + dst
+        if rev:
+            src, dst = dst, src
+
+        # Sync
+        rsync = ["rsync", "-avz", *opts, "-e", self.ssh_M]
+        return sys_cmd([*rsync, src, dst], split=False)
 
 
-
-def submit_job_GCP(xps_path):
+def submit_job_GCP(xps_path, **kwargs):
     """GCP/HTCondor launcher"""
     xps_path = Path(xps_path)
+    sc = SubmissionConnection(xps_path, **kwargs)
+    sync_job(sc)
 
-    HOST = get_ip("condor-submit")
-    # print_condor_status()
-    print("autoscaler.py%s detected."%("" if detect_autoscaler() else " NOT"))
-    sync_job(HOST,xps_path)
-
-    print("Submitting jobs")
     try:
-        remote_cmd(f"""cd {xps_path.name}; condor_submit submit-description""")
-        remote_monitor_progress(xps_path.name)
-    except KeyboardInterrupt as error:
-        if input("Do you wish to clear the job queue? (Y/n): ").lower() in ["","y","yes"]:
-            print("Clearing queue")
-            remote_cmd("""condor_rm -a""")
-        sys.exit(0)
+        print("Submitting jobs")
+        sc.remote_cmd(f"""cd {xps_path.name}; condor_submit -batch-name {xps_path.name} submit-description""")
+        monitor_progress(sc)
+    except:
+        clear_queue(sc)
+        raise
     else:
         print("Downloading results")
-        # Don't use individual scp's! (Pro: enables progbar. Con: it's SLOW!)
-        nologs = " ".join("--exclude="+x for x in
-                ["xp.com","out\\.*","err\\.*","run\\.*log","DAPPER"])
-        sys_cmd(f"rsync -avz {nologs} {HOST}:~/{xps_path.name}/ {xps_path}")
+        xcldd = ["xp.com","out\\.*","err\\.*","run\\.*log","DAPPER"]
+        xcldd = ["--exclude="+x for x in xcldd]
+        sc.rsync(xps_path.parent, f"~/{xps_path.name}", rev=True, opts=xcldd)
     finally:
         # print("Checking for autoscaler cron job:") # let user know smth's happenin
-        if not detect_autoscaler():
+        if not detect_autoscaler(sc):
             print("Warning: autoscaler.py NOT detected!\n    "
                 "Shut down the compute nodes yourself using:\n    "
                 "gcloud compute instance-groups managed "
                 "resize condor-compute-pvm-igm --size 0")
 
 
-import subprocess
+
+
+def detect_autoscaler(self,minutes=2):
+    """Grep syslog for autoscaler.
+
+    Also get remote's date (time), to avoid another (slow) ssh."""
+
+    command = """grep CRON /var/log/syslog | grep autoscaler | tail; date"""
+    output  = self.remote_cmd(command).splitlines()
+    recent_crons, now = output[:-1], output[-1]
+
+    if not recent_crons: return False
+
+    # Get timestamp of last cron job
+    last_cron = recent_crons[-1].split(self.name)[0]
+    log_time  = datetime_parse(last_cron).replace(tzinfo=timezone.utc)
+    now       = datetime_parse(now)
+    pause     = timedelta(minutes=minutes)
+
+    if log_time + pause < now: return False
+
+    return True
+
+
+def sync_job(self):
+    xps_path = self.xps_path
+
+    jobs = list_job_dirs(xps_path)
+    print("Syncing %d jobs"%len(jobs))
+
+    # NB: --delete => Must precede other rsync's!
+    self.rsync(xps_path, "~/", "--delete") 
+
+    htcondor = str(rc.dirs.DAPPER/"dapper"/"tools"/"remote"/"htcondor") + os.sep
+    self.rsync(htcondor, "~/"+xps_path.name)
+
+    print("Copying xp.com to initdirs")
+    self.remote_cmd(f"""cd {xps_path.name}; for ixp in [0-999999]; do cp xp.com $ixp/; done""")
+
+    sync_DAPPER(self)
+
+def sync_DAPPER(self):
+    """Sync DAPPER (as it currently exists, not a specific version)
+    
+    to compute-nodes, which don't have external IP addresses.
+    """
+    # Get list of files: whatever mentioned by .git
+    repo  = f"--git-dir={rc.dirs.DAPPER}/.git"
+    files = sys_cmd(f"git {repo} ls-tree -r --name-only HEAD").split()
+    xcldd = lambda f: f.startswith("docs/") or f.endswith(".jpg") or f.endswith(".png")
+    files = [f for f in files if not xcldd(f)]
+
+    with tempfile.NamedTemporaryFile("w",delete=False) as synclist:
+        print("\n".join(files),file=synclist)
+
+    print("Syncing DAPPER")
+    try:
+        self.rsync(rc.dirs.DAPPER, f"~/{self.xps_path.name}/DAPPER", "--files-from="+synclist.name)
+    except subprocess.SubprocessError as error:
+        # Suggest common source of error in the message.
+        msg = error.args[0] + "\nDid you mv/rm files (and not registering it with .git)?"
+        raise subprocess.SubprocessError(msg) from error
+
+
+
+def print_condor_status(self):
+    status = """condor_status -total"""
+    status = self.remote_cmd(status)
+    if status:
+        print(status,":")
+        for line in status.splitlines()[::4]: print(line)
+    else:
+        print("[No compute nodes found]")
+
+def clear_queue(self):
+    """Use condor_rm to clear the job queue of the submission."""
+    try:
+        batch = f"""-constraint 'JobBatchName == "{self.xps_path.name}"'"""
+        self.remote_cmd(f"""condor_rm {batch}""")
+        print("Queue cleared.")
+    except subprocess.SubprocessError as error:
+        if "matching" in error.args[0]:
+            # Queue probably already cleared, as happens upon
+            # KeyboardInterrupt, when there's also "held" jobs. 
+            pass 
+        else:
+            raise
+
+
+def get_job_status(self):
+    """Parse condor_q to get number idle, held, etc, jobs"""
+    # The autoscaler.py script from Google uses
+    # 'condor_q -totals -format "%d " Jobs -format "%d " Idle -format "%d " Held'
+    # But in both condor versions I've tried, -totals does not mix well with -format,
+    # and the ClassAd attributes ("Jobs", "Idle", "Held") are not available, as listed by:
+    #  - condor_q -l
+    #  - Appendix "Job ClassAd Attributes" of the condor-manual (online).
+    #  Condor version 8.6 (higher than 8.4 used by GCP tutorial)
+    #  enables labelling jobs with -batch-name, and thus multiple jobs
+    #  can be submitted and run (queried for progress, rm'd, downloaded) simultaneously.
+    #  One alternative is to query job status with condor_q -constraint 'JobStatus == 5',
+    #  but I prefer to parse the -totals output instead.
+
+    batch = f"""-constraint 'JobBatchName == "{self.xps_path.name}"'"""
+    qsum = self.remote_cmd(f"""condor_q {batch}""").split()
+    status = dict(jobs="jobs;", completed="completed,", removed="removed,",
+                  idle="idle,", running="running,", held="held,", suspended="suspended")
+    # Another way to get total num. of jobs:
+    # int(self.remote_cmd(f"""cd {self.xps_path.name}; ls -1 | grep -o '[0-9]*' | wc -l"""))
+    # Another way to parse qsum:
+    # int(re.search("""(\d+) idle""",condor_q).group(1))
+    return {k: int(qsum[qsum.index(v)-1]) for k,v in status.items()}
+
+def monitor_progress(self):
+    """Use condor_q to monitor job progress."""
+    num_jobs = len(list_job_dirs(self.xps_path))
+    pbar = tqdm.tqdm(total=num_jobs,desc="Processing jobs")
+    try:
+        unfinished = num_jobs
+        while unfinished:
+            job_status     = get_job_status(self)
+            unlisted       = num_jobs - job_status["jobs"] # completed w/ success
+            finished       = job_status["held"] + unlisted # failed + suceeded
+            unfinished_new = num_jobs - finished
+            increment      = unfinished - unfinished_new
+            unfinished     = unfinished_new
+            # print(job_status)
+            pbar.update(increment)
+            time.sleep(1) # dont clog the ssh connection
+    except: raise
+    else:
+        print("All jobs finished without failure.")
+    finally:
+        pbar.close()
+        if job_status["held"]:
+            print("NB: There were %d failed jobs"%job_status["held"])
+            print(f"View errors at {self.xps_path}/JOBNUMBER/out")
+            clear_queue(self)
+
+
+
+
+
+
+def list_job_dirs(xps_path):
+    dirs = [xps_path/d for d in sorted_human(os.listdir(xps_path))]
+    return [d for d in dirs if d.is_dir() and d.stem.isnumeric()]
+
+
+def get_ip(instance):
+    # Could also read from ~/.ssh/config but how reliable/portable would that be?
+
+    # cloud.google.com/compute/docs/instances/view-ip-address
+    getip = 'get(networkInterfaces[0].accessConfigs[0].natIP)'
+    ip = sys_cmd(f"gcloud compute instances describe {instance} --format={getip}")
+    return ip.strip()
+
+
 def sys_cmd(args,split=True):
     """Run subprocess, capture output, raise exception."""
     if split: args = args.split()
@@ -54,123 +257,3 @@ def sys_cmd(args,split=True):
             f"with stderr:\n{error.stderr.decode()}") from error
     output = ps.stdout.decode()
     return output
-
-def remote_cmd(command):
-    command = """--command=""" + command
-    connect = "gcloud compute ssh condor-submit".split()
-    output = sys_cmd(connect + [command], split=False)
-    return output
-
-
-def get_ip(instance):
-    # cloud.google.com/compute/docs/instances/view-ip-address
-    getip = 'get(networkInterfaces[0].accessConfigs[0].natIP)'
-    ip = sys_cmd(f"gcloud compute instances describe {instance} --format={getip}")
-    return ip.strip()
-
-def print_condor_status():
-    status = """condor_status -total"""
-    status = remote_cmd(status)
-    if status:
-        print(status,":")
-        for line in status.splitlines()[::4]: print(line)
-    else:
-        print("[No compute nodes found]")
-
-
-def sync_DAPPER(HOST,xps_path):
-    """DAPPER (as it currently exists, not a specific version)
-    
-    must be synced to the compute nodes, which don't have external IP addresses.
-    """
-    # Get list of files: whatever mentioned by .git
-    repo  = f"--git-dir={rc.dirs.DAPPER}/.git"
-    files = sys_cmd(f"git {repo} ls-tree -r --name-only HEAD").split()
-    xcldd = lambda f: f.startswith("docs/") or f.endswith(".jpg") or f.endswith(".png")
-    files = [f for f in files if not xcldd(f)]
-    with open("synclist","w") as FILE:
-        print("\n".join(files),file=FILE)
-
-    print("Syncing DAPPER")
-    try:
-        sys_cmd(f"rsync -avz --files-from=synclist {rc.dirs.DAPPER} {HOST}:~/{xps_path.name}/DAPPER/")
-    except subprocess.SubprocessError as error:
-        # Suggest common source of error in the message.
-        msg = error.args[0] + "\nDid you mv/rm files (and not registering it with .git)?"
-        raise subprocess.SubprocessError(msg) from error
-    finally:
-        os.remove("synclist")
-
-def sync_job(HOST,xps_path):
-
-    jobs = [ixp for ixp in os.listdir(xps_path) if str(ixp).isnumeric()]
-
-    print("Syncing %d jobs"%len(jobs))
-    # NB: Note use of --delete. This rsync must come first!
-    sys_cmd(f"rsync -avz --delete {rc.dirs.DAPPER}/dapper/tools/remote/htcondor/ {HOST}:~/{xps_path.name}")
-    sys_cmd(f"rsync -avz {xps_path}/ {HOST}:~/{xps_path.name}")
-    # print("Copying xp.com to initdir")
-    remote_cmd(f"""cd {xps_path.name}; for ixp in [0-999999]; do cp xp.com $ixp/; done""")
-
-    sync_DAPPER(HOST,xps_path)
-
-    print("Syncing extra_files")
-    extra_files = xps_path / "extra_files"
-    sys_cmd(f"rsync -avz {extra_files}/ {HOST}:~/{xps_path.name}/extra_files/")
-
-
-def detect_autoscaler(minutes=2):
-    """Grep syslog for autoscaler.
-
-    Also get remote's date (time), to avoid another (slow) ssh."""
-
-    command = """grep CRON /var/log/syslog | grep autoscaler | tail; date"""
-    output  = remote_cmd(command).splitlines()
-    recent_crons, now = output[:-1], output[-1]
-
-    if not recent_crons:
-        return False
-
-    # Get timestamp of last cron job
-    last_cron = recent_crons[-1].split("condor-submit")[0]
-    log_time = _parse(last_cron)
-    now = _parse(now)
-    # Make "aware" (assume /etc/timezone is utc):
-    log_time = log_time.replace(tzinfo=timezone.utc)
-    pause = timedelta(minutes=minutes)
-    # spell_out(last_cron)
-    # now = datetime.utcnow()
-    # spell_out(log_time)
-    # spell_out(pause)
-    # spell_out(now)
-    # spell_out(log_time < now-pause)
-
-
-    if log_time + pause < now:
-        return False
-    else:
-        return True
-
-def remote_num_jobs(xps_path):
-    return int(remote_cmd(f"""cd {xps_path}; ls -1 | grep -o '[0-9]*' | wc -l"""))
-
-def remote_unfinished():
-    condor_q = remote_cmd("""condor_q -totals""")
-    return int(re.search("""(\d+) jobs;""",condor_q).group(1))
-
-def remote_monitor_progress(xps_path):
-    # Progress monitoring
-    num_jobs = remote_num_jobs(xps_path)
-    pbar = tqdm.tqdm(total=num_jobs,desc="Processing jobs")
-    try:
-        unfinished = num_jobs
-        while unfinished:
-            previously = unfinished
-            unfinished = remote_unfinished()
-            pbar.update(previously - unfinished)
-            # print(num_jobs - unfinished, "jobs done")
-            time.sleep(1) # ssh takes a while, so let's wait a bit extra
-    finally:
-        pbar.close()
-
-

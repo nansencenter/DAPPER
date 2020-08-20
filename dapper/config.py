@@ -61,8 +61,8 @@ class DotDict(JsonDict):
 
 dirs = DotDict(dapper = Path(__file__).absolute().parent)
 
-# Load rc files from [dapper, user-home, cwd]
-_rc_locations = [dirs.dapper, Path("~").expanduser(), Path.cwd()]
+# Load rc files from [dapper, user-home, sys.path[0]]
+_rc_locations = [dirs.dapper, Path("~").expanduser(), Path(sys.path[0])]
 _rc = configparser.ConfigParser()
 _rc.read(x/'dpr_config.ini' for x in _rc_locations)
 # Convert to dict
@@ -128,9 +128,9 @@ if _LP: # Check if we should disable anyway:
     _LP &= 'inline' not in _BE
     _LP &= 'nbagg'  not in _BE
     if not _LP:
-        print("\nWarning: interactive/live plotting was requested,")
+        print("\nWarning: interactive/live plotting is turned on in dpr_config.ini,")
         print("but is not supported by current backend: %s."%mpl.get_backend())
-        print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').\n")
+        print("To enable it, try using another backend, e.g., mpl.use('Qt5Agg').\n")
 rc.liveplotting_enabled = _LP
 
 # Get Matlab-like interface, and enable interactive plotting

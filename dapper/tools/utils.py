@@ -20,10 +20,14 @@ def pdesc(desc):
 
     # Go look above in the stack for a name_hook.
     for level in range(2,6):
-        locals = stack[level].frame.f_locals
-        if 'pb_name_hook' in locals:
-            name = locals['pb_name_hook']
-            break
+        try:
+            locals = stack[level].frame.f_locals
+        except IndexError:
+            pass
+        else:
+            if 'pb_name_hook' in locals:
+                name = locals['pb_name_hook']
+                break
     else:
         # Otherwise: just get name of what's
         # calling progbar (i.e. stack[2]) 
@@ -157,6 +161,34 @@ def rel2mods(path):
 #########################################
 # Console input / output
 #########################################
+
+def print_cropped_traceback(ERR):
+
+    def crop_traceback(ERR,lvl):
+        msg = "Traceback (most recent call last):\n"
+        try:
+            # If in IPython, use its coloring functionality
+            __IPYTHON__
+            from IPython.core.debugger import Pdb
+            import traceback as tb
+            pdb_instance = Pdb()
+            pdb_instance.curframe = inspect.currentframe()
+
+            for i, frame in enumerate(tb.walk_tb(ERR.__traceback__)):
+                if i<lvl: continue # skip frames
+                if i==lvl: msg += "   ⋮ [cropped] \n"
+                msg += pdb_instance.format_stack_entry(frame,context=3)
+
+        except (NameError,ImportError):
+            msg += "".join(traceback.format_tb(ERR.__traceback__))
+
+        return msg
+
+    msg = crop_traceback(ERR,1) + "\nError message: " + str(ERR)
+    msg += "\n\nResuming program execution. " \
+        "Use `fail_gently=False` to raise exception & halt execution.\n"
+    print(msg,file=sys.stderr)
+
 
 import inspect
 def get_call():

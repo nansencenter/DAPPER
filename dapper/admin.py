@@ -200,7 +200,7 @@ def da_method(*default_dataclasses):
 
 
 def run_experiment(xp, label, savedir, HMM,
-                   seed=None, free=True, statkeys=False, fail_gently=rc.fail_gently,
+                   seed=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
     """Used by xpList.launch() to run each single experiment.
     
@@ -209,7 +209,7 @@ def run_experiment(xp, label, savedir, HMM,
      - set seed (if not False/None)
      - set any HMM_params
      - hmm.simulate()  : generate truth & obs
-     - xp.assimilate() : run DA method, catch exception if fail_gently
+     - xp.assimilate() : run DA method, pass on exception if fail_gently
      - average_stats() : result averaging
      - print_averages(): result printing
      - dill.dump()     : result storage
@@ -275,37 +275,15 @@ def run_experiment(xp, label, savedir, HMM,
             dill.dump({'xp':xp}, FILE)
 
 
-def print_cropped_traceback(ERR):
-
-    def crop_traceback(ERR,lvl):
-        msg = []
-        try:
-            # If IPython, use its coloring functionality
-            __IPYTHON__
-            from IPython.core.debugger import Pdb
-            import traceback as tb
-            pdb_instance = Pdb()
-            pdb_instance.curframe = inspect.currentframe()
-
-            for i, frame in enumerate(tb.walk_tb(ERR.__traceback__)):
-                if i<lvl: continue # skip frames
-                if i==lvl: msg += ["   ⋮\n"]
-                msg += [pdb_instance.format_stack_entry(frame,context=5)]
-
-        except (NameError,ImportError):
-            # No coloring
-            for s in traceback.format_tb(ERR.__traceback__):
-                msg += "\n".join(s)
-
-        return msg
-
-    msg  = ["\n\nCaught exception during assimilation. Traceback:"]
-    msg += ["<"*20 + "\n"]
-    msg += crop_traceback(ERR,1) + [str(ERR)]
-    msg += ["\n" + ">"*20]
-    msg += ["Resuming program execution.\n"
-            + "Turn off `fail_gently` to fully raise the exception.\n"]
-    for s in msg: print(s,file=sys.stderr)
+@dc.dataclass
+class Sleeper():
+    seconds : int  = 10
+    success : bool = True
+    def assimilate(self,*args,**kwargs):
+        for k in progbar(range(self.seconds)): sleep(1)
+        if not self.success: raise RuntimeError("Sleep over. Failing as intended.")
+    def average_stats(self,*args,**kwargs): pass
+    def print_avrgs(  self,*args,**kwargs): pass
 
 
 # TODO: check collections.userlist
@@ -553,7 +531,7 @@ class xpList(list):
             save_as = rc.dirs.data / Path(save_as).stem
             save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
             os.makedirs(save_as)
-            print(f"Experiment data stored at {save_as}")
+            print(f"Experiment stored at {save_as}")
             def xpi_dir(i):
                 path = save_as / str(i)
                 os.mkdir(path)
@@ -608,8 +586,6 @@ class xpList(list):
                 try:            shutil.copytree(path, dst) # dir -r
                 except OSError: shutil.copy2   (path, dst) # file
 
-            # com["fail_gently"] = True # TODO: make this unnecesary
-
             # Loads PWD/xp_{var,com} and calls run_experiment()
             with open(extra_files/"load_and_run.py","w") as f:
                 f.write( dedent("""\
@@ -625,6 +601,10 @@ class xpList(list):
                 # Run
                 result = run_experiment(var['xp'], None, Path("."), **com)
                 """)%dedent(mp["code"]) )
+
+            # Avoid fluff in `out` files.
+            with open(extra_files/"dpr_config.ini","w") as f:
+                f.write("[bool]\nliveplotting_enabled = False\nwelcome_message = False\n")
 
             submit_job_GCP(save_as)
 
