@@ -11,19 +11,13 @@ from colorama import Fore as cFG # Foreground color codes
 from colorama import Back as cBG # Background color codes
 import contextlib
 
-# Terminal color codes. Better to use colorama (above) instead.
-termcolors={
-    'blue'      : '\033[94m',
-    'green'     : '\033[92m',
-    'OKblue'    : '\033[94m',
-    'OKgreen'   : '\033[92m',
-    'WARNING'   : '\033[93m',
-    'FAIL'      : '\033[91m',
-    'ENDC'      : '\033[0m' ,
-    'header'    : '\033[95m',
-    'bold'      : '\033[1m' ,
-    'underline' : '\033[4m' ,
-}
+def color_text(text, *color_codes):
+
+    if len(color_codes)==0:
+        color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
+
+    return "".join(color_codes) + text + colorama.Style.RESET_ALL
+
 
 @contextlib.contextmanager
 def coloring(*color_codes):
@@ -33,17 +27,13 @@ def coloring(*color_codes):
     >>> with coloring(cFG.GREEN): print("This is in color")
     """
 
-    if len(color_codes)==0:
-        color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
-
     orig_print = builtins.print
     def _print(*args, sep=" ", end="\n", flush=True, **kwargs):
         # Implemented with a single print statement, so as to
         # puts the trailing terminal code before newline.
-        s =     "".join(color_codes)
-        s = s + sep.join([str(k) for k in args])
-        s = s + colorama.Style.RESET_ALL
-        orig_print(s, end=end, flush=flush, **kwargs)
+        text = sep.join([str(k) for k in args])
+        text = color_text(text, *color_codes)
+        orig_print(text, end=end, flush=flush, **kwargs)
 
     try:
         builtins.print = _print
@@ -52,24 +42,9 @@ def coloring(*color_codes):
         builtins.print = orig_print
 
 
-def print_c(*args,color='blue',**kwargs):
-    """Print with color.
-
-    But I prefer using the coloring context manager defined above."""
-    s = ' '.join([str(k) for k in args])
-    print(termcolors[color] + s + termcolors['ENDC'],**kwargs)
-
-
-
 #########################################
 # Colouring for matplotlib
 #########################################
-sns_bg = array([0.9176, 0.9176, 0.9490])
-
-# Standard color codes
-RGBs = {c: array(mpl.colors.colorConverter.to_rgb(c)) for c in 'bgrmyckw'}
-#RGBs = [mpl.colors.colorConverter.to_rgb(c) for c in 'bgrmyckw']
-
 # Matlab (new) colors.
 ml_colors = np.array(np.matrix("""
      0    0.4470    0.7410;
@@ -100,23 +75,3 @@ sns_colors = np.array(np.matrix("""
 for code, color in zip('bgrmyckw', sns_colors):
     mpl.colors.colorConverter.colors[code] = color
     mpl.colors.colorConverter.cache [code] = color
-
-
-def blend_rgb(rgb, a, bg_rgb=ones(3)):
-    """
-    Fake RGB transparency by blending it to some background.
-    Useful for creating gradients.
-
-    Also useful for creating 'transparency' for exporting to eps.
-    But there's no actualy transparency, so superposition of lines
-    will not work. For that: export to pdf, or make do without.
-
-     - rgb: N-by-3 rgb, or a color code.
-     - a: alpha value
-     - bg_rgb: background in rgb. Default: white
-
-    Based on stackoverflow.com/a/33375738/38281
-    """ 
-    if isinstance(rgb,str):
-        rgb = mpl.colors.colorConverter.to_rgb(rgb)
-    return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]

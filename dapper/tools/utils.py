@@ -396,11 +396,11 @@ class NestedPrint:
                 is_top_level = False
 
             # Use included or filter-out excluded
-            keys = vars(self)
+            keys = list(vars(self))
             if opts['included']:
-                keys = intersect (keys, *opts['included'])
+                keys = intersect (keys, opts['included'])
             else:
-                keys = complement(keys, *opts['excluded'])
+                keys = complement(keys, opts['excluded'])
 
             # Aggregate (sub-)repr's from the attributes
             txts = {}
@@ -637,22 +637,21 @@ def flexcomp(x,*criteria):
 
     return any(_compare(x,y) for y in criteria)
 
-# For some reason, _filter (with the `including` switch) is difficult
+def _intersect(iterable, criteria, inv=False):
+    """Keep elements of ``iterable`` that match **any** criteria.
+    
+    If ``iterable`` is a dict, then a dict is returned.
+    """
+    negate = lambda x: (not x) if inv else x
+    keys = [k for k in iterable if negate(flexcomp(k,*criteria))]
+    if isinstance(iterable, dict): # Dict
+        return {k:iterable[k] for k in keys}
+    else:
+        return keys
+# For some reason, _intersect (with the `inv` switch) is difficult
 # for the brain to parse. Use intersect and complement instead.
-def      intersect(iterable,   *wanted,                  dict=False):
-    return _filter(iterable,   *wanted, including=True,  dict=dict)
-def     complement(iterable, *unwanted,                  dict=False):
-    return _filter(iterable, *unwanted, including=False, dict=dict)
-
-def _filter(iterable, *criteria, including=True, dict=False):
-    "Only keep those elements of `ìterable`` that match any criteria."""
-    # Switch: including/not
-    if including: condition = lambda x:     flexcomp(x,*criteria)
-    else:         condition = lambda x: not flexcomp(x,*criteria)
-    # Switch: dict/list
-    if dict: return {k:v for k,v in iterable.items() if condition(k)}
-    else:    return [x   for x   in iterable         if condition(x)]
-
+def intersect( iterable,   wanteds): return _intersect(iterable, wanteds,   inv=False)
+def complement(iterable, unwanteds): return _intersect(iterable, unwanteds, inv=True)
 
 def transpose_lists(LL, enforce_rectangle=True, as_list=False):
     """Example:

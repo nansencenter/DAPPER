@@ -219,7 +219,7 @@ def run_experiment(xp, label, savedir, HMM,
     # Why the use of setters? To avoid tying an HMM to each xp, which
     #  - keeps the xp attrs primitive.
     #  - avoids memory and pickling/storage of near-duplicate HMMs.
-    HMM_params = intersect(vars(xp), re.compile(r'^HMM_'))
+    HMM_params = intersect(list(vars(xp)), [re.compile(r'^HMM_')])
     if HMM_params:
         # We should copy HMM so as not to cause any nasty surprises such as
         # expecting param=1 when param=2 (coz it's not been reset).
@@ -392,7 +392,7 @@ class xpList(list):
 
             # Remove unwanted
             excluded  = [re.compile('^_'),'avrgs','stats','HMM']
-            aggregate = complement(aggregate,*excluded)
+            aggregate = complement(aggregate,excluded)
             return aggregate
 
         distinct, redundant, common = {}, {}, {}

@@ -214,13 +214,13 @@ class sliding_diagnostics:
             'std.rms' : [None        , None   , dict(c='b'      , label='Spread', alpha=0.6)],
         }
         styles['Values'] = {
-            'skew'    : [None        , None   , dict(c=     'g' , label=star+r'Skew/$\sigma^3$'       )],
-            'kurt'    : [None        , None   , dict(c=     'r' , label=star+r'Kurt$/\sigma^4{-}3$'   )],
-            'trHK'    : [None        , None   , dict(c=     'k' , label=star+'HK'                     )],
-            'infl'    : [lin(-10,10) , 'step' , dict(c=     'c' , label='10(infl-1)'                  )],
-            'N_eff'   : [lin(0,divN) , 'dirac', dict(c=RGBs['y'], label='N_eff/N'             ,lw=3   )],
-            'iters'   : [lin(0,.1)   , 'dirac', dict(c=     'm' , label='iters/10'                    )],
-            'resmpl'  : [None        , 'dirac', dict(c=     'k' , label='resampled?'                  )],
+            'skew'    : [None       , None   , dict(c='g', label=star+r'Skew/$\sigma^3$'    )],
+            'kurt'    : [None       , None   , dict(c='r', label=star+r'Kurt$/\sigma^4{-}3$')],
+            'trHK'    : [None       , None   , dict(c='k', label=star+'HK'                  )],
+            'infl'    : [lin(-10,10), 'step' , dict(c='c', label='10(infl-1)'               )],
+            'N_eff'   : [lin(0,divN), 'dirac', dict(c='y', label='N_eff/N'             ,lw=3)],
+            'iters'   : [lin(0,.1)  , 'dirac', dict(c='m', label='iters/10'                 )],
+            'resmpl'  : [None       , 'dirac', dict(c='k', label='resampled?'               )],
         }
 
         nAx = len(styles)
@@ -947,7 +947,7 @@ def spatial1d(
     obs_inds     = None,
     periodicity  = None,
     dims         = [],
-    ens_props    = {'color': 0.7*RGBs['w'],'alpha':0.5},
+    ens_props    = {'color': 'k','alpha':0.1},
     conf_mult    = None,
 ):
 

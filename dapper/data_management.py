@@ -155,10 +155,10 @@ class SparseSpace(dict):
         # Validate axes
         if inner_axes is None:
             assert outer_axes is not None
-            inner_axes = complement(self.axes, *outer_axes)
+            inner_axes = complement(self.axes, outer_axes)
         else:
             assert outer_axes is None
-            outer_axes = complement(self.axes, *inner_axes)
+            outer_axes = complement(self.axes, inner_axes)
 
         # Fill spaces
         outer_space = self.__class__(outer_axes)
@@ -179,6 +179,22 @@ class SparseSpace(dict):
             entry = self.pop(coord)
             self[coord + (None,)] = entry
 
+    def intersect_axes(self, attrs):
+        """Rm those a in attrs that are not in self.axes, for ease-of-use:
+        
+        allowing axes specifications currently not relevant."""
+        absent = complement(attrs, self.axes)
+        if absent:
+            print(color_text("Warning:"  ,cFG.RED), "The requested attributes",
+                  color_text(str(absent), cFG.RED), "were not found among the",
+                  "xpSpace axes (attrs. used as coordinates for the set of experiments).",
+                  "This may be no problem if the attr. is redundant for the coord-sys.",
+                  "However, if it is caused by confusion or mis-spelling,",
+                  "then it is likely to cause mis-interpretation of the shown results.")
+            attrs = complement(attrs, absent)
+        return attrs
+
+
     def label_xSection(self,label,*NoneAttrs,**sub_coord):
         """Insert duplicate entries for the cross section
         
@@ -189,15 +205,21 @@ class SparseSpace(dict):
         This distinguishes the entries in this fixed-affine subspace,
         preventing them from being gobbled up in ``nest()``.
 
-        Optionally, ``NoneAttrs`` can be specified to
-        avoid these getting plotted in tuning panels.
+        If you wish, you can specify the ``NoneAttrs``,
+        which are consequently set to None for the duplicate entries,
+        preventing them from getting plotted in tuning panels.
         """
 
         if "Const" not in self.axes:
             self.add_axis('Const')
 
-        for coord in self.matching_coords(**sub_coord):
+        for coord in self.matching_coords(**self.intersect_axes(sub_coord)):
             entry = self[coord]
+
+            # Verify that ALL (not just those in self.axes) attrs match.
+            if any( getattr(entry,a,"NO VALUE") != v for a,v in sub_coord.items()):
+                continue
+
             entry = deepcopy(entry)
             coord = coord._replace(Const=label)
             coord = coord._replace(**{a:None for a in NoneAttrs})
@@ -367,9 +389,12 @@ class xpSpace(SparseSpace):
                 if isinstance(aa,str) or not hasattr(aa,"__iter__"):
                     aa = (aa,)
 
+                aa = self.intersect_axes(aa)
+                # Ensure valid axis name
+                # assert axis in self.axes, f"Axis {axis!r} not among the xp axes."
+
                 for axis in aa:
-                    # Ensure valid axis name
-                    assert axis in self.axes, f"Axis {axis!r} not among the xp axes."
+
                     # Ensure unique
                     if axis in roles:
                         raise TypeError(f"An axis (here {axis!r}) cannot be assigned"
@@ -610,8 +635,7 @@ class xpSpace(SparseSpace):
             if axes['outer']:
                 table_title = "•Table for " + repr(table_coord) + "."
                 table_title = table_title + (f" •Averages over {axes['mean']}." if axes['mean'] else "")
-                with coloring(termcolors['underline']):
-                    print(table_title)
+                print(color_text(table_title, cBG.YELLOW))
             headers, *rows = rows
             print(tabulate_orig.tabulate(rows,headers).replace('æ',' '))
 
@@ -666,7 +690,7 @@ class xpSpace(SparseSpace):
             return index
 
         from matplotlib.lines import Line2D
-        markers = complement(Line2D.markers.keys(), ',')
+        markers = complement(Line2D.markers.keys(), [','])
         markers = markers[markers.index(".")+1:markers.index("_")]
         linestyles = ['--', '-.', ':']
         cmap = plt.get_cmap('jet')
@@ -688,21 +712,19 @@ class xpSpace(SparseSpace):
             if   index is None:       return None
             elif index == -1:         return cmap(1)
             else:                     return cmap((1+index)/len(axis))
+
+        tab_colors = plt.get_cmap('tab20').colors
         def _color_by_hash(x):
             """Color as a (deterministic) function of x."""
 
             # Particular cases
-            if x=={'da_method': 'Climatology'}:
-                return (0,0,0)
-            elif x=={'da_method': 'OptInterp'}:
-                return (0.5,0.5,0.5)
-            else:
-                # General case
+            if   x=={'da_method': 'Climatology'}: return (0,0,0)
+            elif x=={'da_method': 'OptInterp'}:   return (0.5,0.5,0.5)
+            else: # General case
                 x = str(x).encode() # hashable
                 # HASH = hash(tuple(x)) # Changes randomly each session
                 HASH = int(hashlib.sha1(x).hexdigest(),16)
-                colors = plt.get_cmap('tab20').colors
-                return colors[HASH%len(colors)]
+                return tab_colors[HASH%len(tab_colors)]
 
         # Style axes
         # Load kwargs into dict-of-dicts
