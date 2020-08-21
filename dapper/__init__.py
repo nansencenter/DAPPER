@@ -69,7 +69,7 @@ from numpy import \
 # Imports from DAPPER package
 ##################################
 # Load rc: default settings
-from .config import *
+from .dpr_conf import *
 
 # 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
 if rc.welcome_message:
@@ -90,10 +90,6 @@ from .tools.multiprocessing import *
 from .tools.remote.uplink import *
 from .stats import *
 from .admin import *
-# from .xp/statistics import *
-# from .xp/components import *
-# from .xp/management import *
-# from .xp/results import *
 from .data_management import *
 from .da_methods.ensemble import *
 from .da_methods.particle import *
