@@ -22,13 +22,13 @@ config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
 config.assimilate(HMM,xx,yy, liveplots=True)
 
 # Average stats time series
-config.average_stats()
+config.stats.average_in_time()
 
 # Print averages
-config.print_avrgs(['rmse.a','rmv.a'])
+print(config.avrgs.tabulate(['rmse.a','rmv.a']))
 
 # Replay liveplotters -- can adjust speed, time-window, etc.
-config.replay()
+replay(config.stats)
 
 # Further diagnostic plots:
 # plot_rank_histogram(config.stats)

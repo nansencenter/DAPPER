@@ -24,16 +24,16 @@ def test_L63():
   cfgs.launch(HMM,sd0,free=False,liveplots="all",store_u=False,fail_gently=False)
 
   for config in cfgs:
-      replay(config,"all")
+      replay(config.stats,"all")
 
-  replay(config, t2=1)
-  replay(config, t2=0.0)
-  replay(config, t2=0.3)
-  replay(config, t2=0.8)
-  replay(config, t2=0.8, t1=0.2)
-  replay(config, t2=np.inf)
-  replay(config, t2=np.inf, speed=1)
-  replay(config, t2=np.inf, pause_a=0, pause_f=0)
+  replay(config.stats, t2=1)
+  replay(config.stats, t2=0.0)
+  replay(config.stats, t2=0.3)
+  replay(config.stats, t2=0.8)
+  replay(config.stats, t2=0.8, t1=0.2)
+  replay(config.stats, t2=np.inf)
+  replay(config.stats, t2=np.inf, speed=1)
+  replay(config.stats, t2=np.inf, pause_a=0, pause_f=0)
 
   assert True # An assertion for pytest to count
   return HMM, cfgs # Return useful stuff

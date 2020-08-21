@@ -113,6 +113,18 @@ def da_method(*default_dataclasses):
     """Make the decorator that makes the DA classes.
 
     Example:
+    >>> @da_method()
+    >>> class Sleeper():
+    >>>     "Do nothing."
+    >>>     seconds : int  = 10
+    >>>     success : bool = True
+    >>>     def assimilate(self,*args,**kwargs):
+    >>>         for k in progbar(range(self.seconds)):
+    >>>             sleep(1)
+    >>>         if not self.success:
+    >>>             raise RuntimeError("Sleep over. Failing as intended.")
+
+    Example:
     >>> @dc.dataclass
     >>> class ens_defaults:
     >>>   infl : float = 1.0
@@ -135,8 +147,7 @@ def da_method(*default_dataclasses):
 
         Also:
          - Wraps assimilate() to provide gentle_fail functionality.
-         - Initialises and writes the Stats object.
-         - Adds average_stats(), print_averages()."""
+         - Initialises and writes the Stats object."""
 
 
         # Default fields invovle: (1) annotations and (2) attributes.
@@ -157,44 +168,22 @@ def da_method(*default_dataclasses):
                     set_field(F.name,F.type,F)
 
         # Create new class (NB: old/new classes have same id) 
-        orig_assimilate = cls.assimilate # => store old.assimilate
         cls = dc.dataclass(cls)
 
         # Shortcut for self.__class__.__name__
         cls.da_method = cls.__name__
 
-        # Add instance methods
-        def method(fun):
-            setattr(cls,fun.__name__,fun)
-            return fun
-
-        @method
-        @functools.wraps(orig_assimilate)
         def assimilate(self,HMM,xx,yy,desc=None,**stat_kwargs):
             # Progressbar name
             pb_name_hook = self.da_method if desc is None else desc
             # Init stats
             self.stats = Stats(self,HMM,xx,yy,**stat_kwargs)
             # Assimilate
-            orig_assimilate(self,HMM,xx,yy)
+            old_assimilate(self,HMM,xx,yy)
 
-        @method
-        def average_stats(self,free=False):
-            """Average (in time) all of the time series in the Stats object.
-
-            If ``free``: del ref to Stats object."""
-            self.avrgs = self.stats.average_in_time()
-            if free:
-                delattr(self,'stats')
-
-        @method
-        def print_avrgs(self,keys=()):
-            """Tabulated print of averages (as requested by ``keys``)"""
-            cfgs = xpList([self])
-            cfgs.print_avrgs(keys)
-
-        method(replay)
-
+        old_assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+        
         return cls
     return dataclass_with_defaults
 
@@ -208,11 +197,11 @@ def run_experiment(xp, label, savedir, HMM,
 
      - set seed (if not False/None)
      - set any HMM_params
-     - hmm.simulate()  : generate truth & obs
-     - xp.assimilate() : run DA method, pass on exception if fail_gently
-     - average_stats() : result averaging
-     - print_averages(): result printing
-     - dill.dump()     : result storage
+     - hmm.simulate()             : generate truth & obs
+     - xp.assimilate()            : run DA method, pass on exception if fail_gently
+     - xp.stats.average_in_time() : result averaging
+     - xp.avrgs.tabulate()        : result printing
+     - dill.dump()                : result storage
     """
 
     # Set HMM parameters.
@@ -262,28 +251,19 @@ def run_experiment(xp, label, savedir, HMM,
         else:
             raise ERR
 
-    # Average in time
-    xp.average_stats(free=free)
+    # AVERAGE
+    xp.stats.average_in_time(free=free)
 
-    # Print
+    # PRINT
     if statkeys:
-        xp.print_avrgs(() if statkeys is True else statkeys)
+        statkeys = () if statkeys is True else statkeys
+        print(xp.avrgs.tabulate(statkeys))
 
-    # Save
+    # SAVE
     if savedir:
         with open(savedir/"xp","wb") as FILE:
             dill.dump({'xp':xp}, FILE)
 
-
-@dc.dataclass
-class Sleeper():
-    seconds : int  = 10
-    success : bool = True
-    def assimilate(self,*args,**kwargs):
-        for k in progbar(range(self.seconds)): sleep(1)
-        if not self.success: raise RuntimeError("Sleep over. Failing as intended.")
-    def average_stats(self,*args,**kwargs): pass
-    def print_avrgs(  self,*args,**kwargs): pass
 
 
 # TODO: check collections.userlist

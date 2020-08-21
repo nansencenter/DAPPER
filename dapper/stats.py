@@ -9,6 +9,9 @@ class Avrgs(NestedPrint,DotDict):
 
     - Because it's convenient to also have item access.
     - The class name hints at the "container" purpose."""
+    def tabulate(self, statkeys=()):
+        headr, mattr = tabulate_avrgs([self],statkeys,decimals=None)
+        return tabulate(mattr, headr)
 
 
 class Stats(NestedPrint):
@@ -342,7 +345,7 @@ class Stats(NestedPrint):
             now.umisf = (U.T @ now.err)[::-1]
 
 
-    def average_in_time(self,kk=None,kkObs=None):
+    def average_in_time(self,kk=None,kkObs=None,free=False):
         """Avarage all univariate (scalar) time series.
 
         - ``kk``    time inds for averaging
@@ -390,7 +393,9 @@ class Stats(NestedPrint):
 
         avrgs = Avrgs(printopts=FAUSt.printopts)
         recurse_average(self,avrgs)
-        return avrgs
+        self.config.avrgs = avrgs
+        if free:
+            delattr(self.config,'stats')
 
 @do_once
 def warn_zero_variance(err,flag):

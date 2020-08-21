@@ -152,19 +152,17 @@ class LivePlot:
 
 
 
-def replay(config, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
+def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
     """Replay LivePlot with what's been stored in 'stats'.
 
     - t1, t2: time window to plot.
     - 'figlist' and 'speed': See LivePlot's doc.
 
-    .. note:: ``store_u`` (specify in the config to store intermediate stats)
+    .. note:: ``store_u`` (whether to store non-obs-time stats)
               must have been ``True`` to have smooth graphs as in the actual LivePlot.
 
     .. note:: Ensembles are generally not stored in the stats and so cannot be replayed.
     """
-
-    stats = config.stats
 
     # Time settings
     chrono = stats.HMM.t
@@ -184,7 +182,7 @@ def replay(config, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
 
     # Remember: must use progbar to unblock read1.
     # Let's also make a proper description.
-    desc = config.da_method + " (replay)"
+    desc = stats.config.da_method + " (replay)"
 
     # Play through assimilation cycles
     for k,kObs,t,dt in progbar(chrono.ticker, desc):
