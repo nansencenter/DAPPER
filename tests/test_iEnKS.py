@@ -28,7 +28,7 @@ for Lag in [0,1,3]:
 ##############################
 # Assimilate
 ##############################
-cfgs.launch(HMM,sd0,store_u=True,savename=False)
+cfgs.launch(HMM,sd0,store_u=True,save_as=False)
 cfgs.print_avrgs(['err.rms.u','err.rms.s'])
 
 

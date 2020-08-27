@@ -19,7 +19,7 @@ def test_L63():
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 1
 
-  cfgs.launch(HMM,sd0,free=False,statkeys=True,liveplots=None,store_u=False,fail_gently=False,savename=False)
+  cfgs.launch(HMM,sd0,free=False,statkeys=True,liveplots=None,store_u=False,fail_gently=False,save_as=False)
   cfgs.print_avrgs(['rmse.a'])
 
   spell_out(HMM);
@@ -54,7 +54,7 @@ def test_L96():
   HMM.t.BurnIn = HMM.t.dtObs
   HMM.t.KObs = 2
 
-  cfgs.launch(HMM,sd0,free=False,statkeys=True,liveplots=None,store_u=False,fail_gently=False,savename=False)
+  cfgs.launch(HMM,sd0,free=False,statkeys=True,liveplots=None,store_u=False,fail_gently=False,save_as=False)
   cfgs.print_avrgs(['rmse.a'])
 
   spell_out(HMM);
