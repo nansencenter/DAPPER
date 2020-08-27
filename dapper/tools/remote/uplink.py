@@ -71,7 +71,9 @@ def submit_job_GCP(xps_path, **kwargs):
         sc.remote_cmd(f"""cd {xps_path.name}; condor_submit -batch-name {xps_path.name} submit-description""")
         monitor_progress(sc)
     except:
-        clear_queue(sc)
+        if input("Do you wish to clear the job queue? (Y/n): ").lower() in ["","y","yes"]:
+            print("Clearing queue")
+            clear_queue(sc)
         raise
     else:
         print("Downloading results")
@@ -216,7 +218,7 @@ def monitor_progress(self):
             # print(job_status)
             pbar.update(increment)
             time.sleep(1) # dont clog the ssh connection
-    except: raise
+    except: raise # deal with it in caller
     else:
         print("All jobs finished without failure.")
     finally:
