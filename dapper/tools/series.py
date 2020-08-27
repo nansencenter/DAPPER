@@ -138,6 +138,19 @@ class DataSeries(NestedPrint):
     def __getitem__(self,key):    return     self.array[key]
     def __setitem__(self,key,val):           self.array[key] = val
 
+FAUSt_printopts = {
+        'ordr_by_linenum' : None,
+        'aliases'  : {
+            'f'   : 'Forecast  (.f)',
+            'a'   : 'Analysis  (.a)',
+            's'   : 'Smoothed  (.s)',
+            'u'   : 'Universal (.u)',
+            'm'   : 'Field mean (.m)',
+            'ma'  : 'Field mean-abs (.ma)',
+            'rms' : 'Field root-mean-square (.rms)',
+            'gm'  : 'Field geometric-mean (.gm)'}
+    }
+
 @monitor_setitem
 class FAUSt(DataSeries,NestedPrint):
     """Container for time series of a statistic from filtering.
@@ -164,18 +177,7 @@ class FAUSt(DataSeries,NestedPrint):
     """
 
     # Printing options (see NestedPrint)
-    printopts = {
-        'ordr_by_linenum' : None,
-        'aliases'  : {
-            'f'   : 'Forecast  (.f)',
-            'a'   : 'Analysis  (.a)',
-            's'   : 'Smoothed  (.s)',
-            'u'   : 'Universal (.u)',
-            'm'   : 'Field mean (.m)',
-            'ma'  : 'Field mean-abs (.ma)',
-            'rms' : 'Field root-mean-square (.rms)',
-            'gm'  : 'Field geometric-mean (.gm)'}
-    }
+    printopts = FAUSt_printopts
 
     def __init__(self,K,KObs,item_shape,store_u,store_s,**kwargs):
         """Constructor.

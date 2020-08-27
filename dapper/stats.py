@@ -3,12 +3,9 @@
 from dapper import *
 
 class Avrgs(NestedPrint,DotDict):
-    """Container, like DotDict, but with __repr__ provided by NestedPrint.
+    """Container, like DotDict, but with __repr__ provided by NestedPrint."""
+    printopts = FAUSt_printopts
 
-    Why not just use NestedPrint itself as a container?
-
-    - Because it's convenient to also have item access.
-    - The class name hints at the "container" purpose."""
     def tabulate(self, statkeys=()):
         headr, mattr = tabulate_avrgs([self],statkeys,decimals=None)
         return tabulate(mattr, headr)
@@ -356,7 +353,7 @@ class Stats(NestedPrint):
         if kkObs is None: kkObs  = chrono.maskObs_BI
 
         def average(series):
-            avrgs = Avrgs(printopts=FAUSt.printopts)
+            avrgs = Avrgs()
 
             def average_multivariate(): return avrgs
             # Plain averages of nd-series are rarely interesting.
@@ -391,7 +388,7 @@ class Stats(NestedPrint):
 
                 recurse_average(series,avrgs)
 
-        avrgs = Avrgs(printopts=FAUSt.printopts)
+        avrgs = Avrgs()
         recurse_average(self,avrgs)
         self.config.avrgs = avrgs
         if free:
