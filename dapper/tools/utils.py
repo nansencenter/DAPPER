@@ -268,6 +268,7 @@ def spell_out(*args):
     print(*args)
 
 
+# TODO: rm?
 # Local np.set_printoptions. stackoverflow.com/a/2891805/38281
 import contextlib
 @contextlib.contextmanager
@@ -458,42 +459,6 @@ class NestedPrint:
         return repr(self)
 
 
-# from https://pingfive.typepad.com/blog/2010/04/
-def deep_getattr(obj,name,*default):
-    for n in name.split('.'): obj = getattr(obj,n,*default)
-    return obj
-
-# deep_setattr() has been removed because it's unclear
-# what type of object to set for intermediate hierarchy levels.
-
-def deep_hasattr(obj,name):
-    try: deep_getattr(obj,name); return True
-    except AttributeError:       return False
-
-
-class AlignedDict(dict):
-    """Provide aligned-printing for dict.
-    
-    A similar class is sp.optimize.OptimizeResult
-    """
-    def __str__(self):
-        A = 2 # len(repr(key)) - len(key) 
-        L = max([len(s)+A for s in self.keys()], default=0)
-        s = " " # Indentation
-        for k in self.keys():
-            s += repr(k).rjust(L)
-            s += ": "
-            s += repr(self[k])
-            s +="\n " # Add  newline + indentation
-        s = s[:-2] # Rm last newline + indentation
-        return s
-    def __repr__(self):
-        s = str(self)                 # Repeat str
-        s = s.replace("\n",",\n")     # Commas
-        if self: s = "\n" + s + "\n"  # Surrounding newlines
-        return "{" + s + "}"          # Clams
-
-
 # From stackoverflow.com/q/22797580 and more
 class NamedFunc():
     "Provides custom repr for functions."
@@ -625,86 +590,6 @@ def collapse_str(string,length=5):
         return string
     else:
         return string[:length-2]+'~'+string[-1]
-
-def flexcomp(x,*criteria):
-    """Compare in various ways."""
-
-    def _compare(x,y):
-        # Callable (condition) compare
-        try: return y(x)
-        except TypeError: pass
-        # Regex compare -- should be compiled on the outside
-        try: return bool(y.search(x))
-        except AttributeError:
-            # Value compare
-            return y==x
-
-    return any(_compare(x,y) for y in criteria)
-
-def _intersect(iterable, criteria, inv=False):
-    """Keep elements of ``iterable`` that match **any** criteria.
-    
-    If ``iterable`` is a dict, then a dict is returned.
-    """
-    negate = lambda x: (not x) if inv else x
-    keys = [k for k in iterable if negate(flexcomp(k,*criteria))]
-    if isinstance(iterable, dict): # Dict
-        return {k:iterable[k] for k in keys}
-    else:
-        return keys
-# For some reason, _intersect (with the `inv` switch) is difficult
-# for the brain to parse. Use intersect and complement instead.
-def intersect( iterable,   wanteds): return _intersect(iterable, wanteds,   inv=False)
-def complement(iterable, unwanteds): return _intersect(iterable, unwanteds, inv=True)
-
-def transpose_lists(LL, enforce_rectangle=True, as_list=False):
-    """Example:
-    >>> LL = [[i*10 + j for j in range(4)] for i in range(3)]
-    """
-    if enforce_rectangle:
-        assert all(len(LL[0])==len(row) for row in LL)
-
-    new = zip(*LL) # transpose
-
-    if as_list:
-        # new = list(map(list, new))
-        new = [list(row) for row in new]
-
-    return new
-
-# TODO: rm?
-def transpose_dict_of_lists(DL,enforce_rectangle=True):
-    """Example:
-    >>> DL = {chr(97+i): [i*10+j for j in range(4)] for i in range(3)}
-    """
-    if enforce_rectangle:
-        lens = [len(DL[k]) for k in DL]
-        assert all(lens[0]==L for L in lens), "Rows have unqual lengths."
-
-    # SO.com/q/5558418:
-    new = [dict(zip(DL,t)) for t in zip(*DL.values())]
-
-    return new
-
-
-# Incredibly, it is difficult to make this less verbose
-# (the one-liner is unpredicable for non-rectangular cases)
-def transpose_dicts(DD,enforce_rectangle=True):
-    """Example:
-    >>> DD = {chr(97+i): {chr(110+j):i*10+j for j in range(4)} for i in range(3)}
-    """
-    new = {}
-    for i in DD:
-
-        if enforce_rectangle and new:
-            assert prev == DD[i].keys(), f"Key(s) missing in row {i}"
-        prev = DD[i].keys()
-
-        for j in DD[i]:
-            new.setdefault(j,{})[i] = DD[i][j]
-
-    return new
-
 
 
 def all_but_1_is_None(*args):
