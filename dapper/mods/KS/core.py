@@ -9,7 +9,8 @@ See demo.py for further description.
 import numpy as np
 from numpy import pi, linspace, arange, sin, cos, exp
 from dapper.tools.math import with_rk4, integrate_TLM, is1d
-from dapper.config import DotDict, magic_naming
+from dapper.dpr_conf import DotDict
+from dapper.tools.utils import magic_naming
 import functools
 
 
@@ -119,9 +120,10 @@ def Model(dt=0.25,DL=32,Nx=128):
         x0 = step(x0, np.nan, h)
 
     # Return dict
-    return DotDict(**magic_naming(
-        dt, DL, Nx, x0, x0_Kassam, grid, step,
-        step_ETD_RK4, step_SI_RK3, step_RK4, step_RK1,
-        dxdt, d2x_dtdx, dstep_dx))
+    return DotDict(dict(
+        dt=dt, DL=DL, Nx=Nx, x0=x0, x0_Kassam=x0_Kassam, grid=grid, step=step,
+        step_ETD_RK4=step_ETD_RK4, step_SI_RK3=step_SI_RK3, step_RK4=step_RK4,
+        step_RK1=step_RK1, dxdt=dxdt, d2x_dtdx=d2x_dtdx, dstep_dx=dstep_dx,
+    ))
 
 Tplot = 10
