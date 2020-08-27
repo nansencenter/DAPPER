@@ -40,6 +40,7 @@ class JsonDict(dict):
             new += line
         return new
 
+
 class DotDict(JsonDict):
     """Dict that *also* supports attribute (dot) access.
 
@@ -48,7 +49,7 @@ class DotDict(JsonDict):
      - Verbosity of ``d['a']`` vs. ``d.a``.
      - Includes ``JsonDict``.
 
-    DotDict is not very hackey, and is quite robust.
+    DotDict is not terribly hackey, and is quite robust.
     Similar constructs are quite common, eg IPython/utils/ipstruct.py.
 
     Main inspiration: stackoverflow.com/a/14620633

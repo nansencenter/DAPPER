@@ -222,6 +222,7 @@ def get_call():
     return call, f2.f_locals
 
 
+# TODO: doesnt work anymore?
 def magic_naming(*args,**kwargs):
     """Convert args (by their names in the call) to kwargs."""
     call, locvars = get_call()
@@ -233,8 +234,8 @@ def magic_naming(*args,**kwargs):
     for i,arg in enumerate(args):
         # Match arg to a name by
         # - id to a variable in the local namespace, and
-        # - the presence of said variable in the call.
         mm = [name for name in locvars if locvars[name] is arg]
+        # - the presence of said variable in the call.
         mm = [name for name in mm if re.search(r"\b"+name+r"\b", call)]
         if not mm:
             raise RuntimeError("Couldn't find the name for "+str(arg))
@@ -457,7 +458,7 @@ class NestedPrint:
         return repr(self)
 
 
-# from pingfive.typepad.com/blog/2010/04
+# from https://pingfive.typepad.com/blog/2010/04/
 def deep_getattr(obj,name,*default):
     for n in name.split('.'): obj = getattr(obj,n,*default)
     return obj
@@ -545,11 +546,14 @@ def functools_wraps(wrapped, lineno=1, *args, **kwargs):
 #     yield 
 #     setattr(obj,attr,tmp)
 
+# TODO: use finally?
 import contextlib
 @contextlib.contextmanager
 def set_tmp(obj, attr, val):
     """Temporarily set an attribute.
-    code.activestate.com/recipes/577089"""
+
+    http://code.activestate.com/recipes/577089/"""
+
     was_there = False
     tmp = None
     if hasattr(obj, attr):
