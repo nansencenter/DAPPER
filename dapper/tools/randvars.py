@@ -107,7 +107,7 @@ class RV_with_mean_and_cov(RV):
             if M is None:
                 M = C.M
         else:
-            if C == 0:
+            if C is 0:
                 pass # Assign as pure 0!
             else:
                 if np.isscalar(C):
