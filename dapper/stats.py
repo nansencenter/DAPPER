@@ -2,22 +2,18 @@
 
 from dapper import *
 
-class Avrgs(NestedPrint,DotDict):
-    """Container, like DotDict, but with __repr__ provided by NestedPrint."""
-    printopts = FAUSt_printopts
-
+class Avrgs(StatPrint,DotDict):
+    """DotDict with with StatPrint and tabulation."""
     def tabulate(self, statkeys=()):
         headr, mattr = tabulate_avrgs([self],statkeys,decimals=None)
         return tabulate(mattr, headr)
 
 
-class Stats(NestedPrint):
+class Stats(StatPrint):
     """Contains and computes statistics of the DA methods.
 
     Use new_series() to register your own stat time series.
     """
-
-    printopts = {'precision' : 3, 'ordr_by_linenum' : -1}
 
     def __init__(self,config,HMM,xx,yy,
             liveplots=False, store_u=rc.store_u):

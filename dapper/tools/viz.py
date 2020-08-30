@@ -622,7 +622,7 @@ def toggle_viz(*handles,prompt=False,legend=False,pause=True):
     return are_viz
 
 
-class FigSaver(NestedPrint):
+class FigSaver(NicePrint):
     """
     Simplify exporting a figure, especially when it's part of a series.
     """

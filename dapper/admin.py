@@ -19,7 +19,7 @@ import dill
 import shutil
 from datetime import datetime
 
-class HiddenMarkovModel(NestedPrint):
+class HiddenMarkovModel(NicePrint):
     """Container for attributes of a Hidden Markov Model (HMM).
 
     This container contains the specification of a "twin experiment",
@@ -78,7 +78,7 @@ class HiddenMarkovModel(NestedPrint):
 
 
 
-class Operator(NestedPrint):
+class Operator(NicePrint):
     """Container for operators (models)."""
     def __init__(self,M,model=None,noise=None,**kwargs):
         self.M = M

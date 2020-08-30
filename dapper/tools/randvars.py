@@ -3,10 +3,12 @@
 from dapper import *
 
 
-class RV(NestedPrint):
+class RV(NicePrint):
     "Class to represent random variables."
 
-    printopts = {'ordr_by_linenum' : +1}
+    printopts = NicePrint.printopts.copy()
+    printopts["ordering"] = "linenumber"
+    printopts["reverse"] = True
 
     def __init__(self,M,**kwargs):
         """

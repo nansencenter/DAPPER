@@ -41,25 +41,6 @@ class JsonDict(dict):
         return new
 
 
-class DotDict(JsonDict):
-    """Dict that *also* supports attribute (dot) access.
-
-    Benefit compared to a dict:
-
-     - Verbosity of ``d['a']`` vs. ``d.a``.
-     - Includes ``JsonDict``.
-
-    DotDict is not terribly hackey, and is quite robust.
-    Similar constructs are quite common, eg IPython/utils/ipstruct.py.
-
-    Main inspiration: stackoverflow.com/a/14620633
-    """
-    def __init__(self,*args,**kwargs):
-        "Init like a normal dict."
-        super(DotDict, self).__init__(*args,**kwargs) # Make a (normal) dict
-        self.__dict__ = self                          # Assign it to self.__dict__
-
-
 dirs = DotDict(dapper = Path(__file__).absolute().parent)
 
 # Load rc files from [dapper, user-home, sys.path[0]]

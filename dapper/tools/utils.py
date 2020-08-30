@@ -337,129 +337,7 @@ def repr_type_and_name(thing):
     return s
 
 
-from IPython.lib.pretty import pretty as pretty_repr
-class NestedPrint:
-    """Multi-Line, Recursive repr (print) functionality.
-
-    Define a dict called 'printopts' in your subclass
-    to change print the settings.
-
-     - inden'          : indentation per level
-     - ch              : character to use for "spine" (e.g. '|' or ' ')
-     - ordr_by_linenum : 0: alphabetically, 1: linenumbr, -1: reverse
-     - threshold       : as for numpy
-     - precision       : as for numpy
-     - excluded        : attributes not to be printed (allows regex and callable)
-     - included        : only print these attrs.
-     - ordering        : ordering of attrs
-     - aliases         : dict containing the aliases for attributes
-    """
-    printopts = {}
-
-    printopts['indent']          = 3
-    printopts['ch']              = '.'
-    printopts['ordr_by_linenum'] = 0
-
-    printopts['threshold'] = 10
-    printopts['precision'] = None
-
-    printopts['excluded'] = ['printopts']
-    printopts['excluded'].append(re.compile('^_'))
-
-    printopts['included'] = []
-    printopts['ordering'] = []
-    printopts['aliases']  = {}
-
-    # Recursion monitoring.
-    _stack={}
-
-    def __repr__(self):
-
-        # Merge defaults with requested printopts
-        opts = {}
-        for k, v in NestedPrint.printopts.items():
-            if k in self.printopts:
-                v2 = self.printopts[k]
-                if   isinstance(v, dict): opts[k] = {**v, **v2}
-                elif isinstance(v, list): opts[k] = v + v2
-                else:                     opts[k] = v2
-            else:                         opts[k] = v
-
-        with printoptions(**{k:opts[k] for k in ['threshold','precision']}):
-
-            # new line chars
-            NL = '\n' + opts['ch'] + ' '*(opts['indent']-1)
-
-            # Init
-            if NestedPrint._stack=={}:
-                is_top_level = True
-                NestedPrint._stack[id(self)] = '<root>' 
-            else:
-                is_top_level = False
-
-            # Use included or filter-out excluded
-            keys = list(vars(self))
-            if opts['included']:
-                keys = intersect (keys, opts['included'])
-            else:
-                keys = complement(keys, opts['excluded'])
-
-            # Aggregate (sub-)repr's from the attributes
-            txts = {}
-            for key in keys:
-                val = getattr(self,key)
-
-                # Get sub-repr (t).
-                # Link to already-printed items and prevent infinite recursion!
-                # NB: Dont test ``val in _stack`` -- it also accepts equality.
-                if id(val) in NestedPrint._stack and isinstance(val,NestedPrint):
-                    # Link
-                    t = "**Same (id)** as %s"%NestedPrint._stack[id(val)]
-                else:
-                    # Recurse
-                    NestedPrint._stack[id(val)] = NestedPrint._stack[id(self)]+'.'+key
-                    t = pretty_repr(val)
-
-                # Process t: activate multi-line printing
-                if '\n' in t:
-                    t = t.replace('\n',NL+' '*opts['indent'])      # other lines
-                    t = NL+' '*opts['indent'] + t                  # first line
-
-                t = NL + opts['aliases'].get(key,key) + ': ' + t   # Add key (name)
-                txts[key] = t # Register
-
-            def sortr(x):
-                if x in opts['ordering']:
-                    key = -1000 + opts['ordering'].index(x)
-                else:
-                    if opts['ordr_by_linenum']:
-                        key = 100*opts['ordr_by_linenum']*txts[x].count('\n')
-                        if key<=1: # one '\n' is always present, due to NL
-                            key = opts['ordr_by_linenum']*len(txts[x])
-                    elif opts['ordr_by_linenum'] is None:
-                        key = 0 # no sort
-                    else:
-                        key = x.lower()
-                        # Convert str to int (assuming ASCII) for comp with above cases
-                        key = sum( ord(x)*128**i for i,x in enumerate(x[::-1]) )
-                return key
-
-            # Assemble string
-            s = repr_type_and_name(self)
-            for key in sorted(txts, key=sortr):
-                s += txts[key]
-
-            # Empty _stack when top-level printing finished
-            if is_top_level:
-                NestedPrint._stack = {}
-
-            return s
-
-    def __str__(self):
-        return repr(self)
-
-
-# From stackoverflow.com/q/22797580 and more
+# From https://stackoverflow.com/q/22797580 and more
 class NamedFunc():
     "Provides custom repr for functions."
     def __init__(self,_func,_repr):
@@ -638,7 +516,7 @@ def monitor_setitem(cls):
     # Using class var for were_changed => don't need explicit init
     cls.were_changed = False
 
-    if issubclass(cls,NestedPrint):
+    if issubclass(cls,NicePrint):
         cls.printopts['excluded'] = \
                 cls.printopts.get('excluded',[]) + ['were_changed']
 

@@ -122,9 +122,36 @@ def series_mean_with_conf(xx):
         uq = UncertainQtty(mu, sqrt(var))
     return uq
 
+class StatPrint(NicePrint):
+    """Set NicePrint options suitable for stats."""
+    printopts = dict(
+        excluded=NicePrint.printopts["excluded"]+["HMM","LP_instance"],
+        ordering="linenumber",
+        reverse =True,
+        indent  =2,
+        aliases ={
+            'f'   :'Forecast  (.f)',
+            'a'   :'Analysis  (.a)',
+            's'   :'Smoothed  (.s)',
+            'u'   :'Universal (.u)',
+            'm'   :'Field mean (.m)',
+            'ma'  :'Field mean-abs (.ma)',
+            'rms' :'Field root-mean-square (.rms)',
+            'gm'  :'Field geometric-mean (.gm)'
+        },
+    )
+
+    # Adjust np.printoptions before NicePrint
+    def __repr__(self):
+        with np.printoptions(threshold=10,precision=3):
+            return super().__repr__()
+    def __str__(self):
+        with np.printoptions(threshold=10,precision=3):
+            return super().__str__()
+
 
 @monitor_setitem
-class DataSeries(NestedPrint):
+class DataSeries(StatPrint):
     """Basically just an ``np.ndarray``. But adds:
 
     - Possibility of adding attributes.
@@ -138,21 +165,9 @@ class DataSeries(NestedPrint):
     def __getitem__(self,key):    return     self.array[key]
     def __setitem__(self,key,val):           self.array[key] = val
 
-FAUSt_printopts = {
-        'ordr_by_linenum' : None,
-        'aliases'  : {
-            'f'   : 'Forecast  (.f)',
-            'a'   : 'Analysis  (.a)',
-            's'   : 'Smoothed  (.s)',
-            'u'   : 'Universal (.u)',
-            'm'   : 'Field mean (.m)',
-            'ma'  : 'Field mean-abs (.ma)',
-            'rms' : 'Field root-mean-square (.rms)',
-            'gm'  : 'Field geometric-mean (.gm)'}
-    }
 
 @monitor_setitem
-class FAUSt(DataSeries,NestedPrint):
+class FAUSt(DataSeries,StatPrint):
     """Container for time series of a statistic from filtering.
 
     Four attributes, each of which is an ndarray:
@@ -175,9 +190,6 @@ class FAUSt(DataSeries,NestedPrint):
     .. note:: If a data series only pertains to the analysis,
               then you should use a plain np.array instead.
     """
-
-    # Printing options (see NestedPrint)
-    printopts = FAUSt_printopts
 
     def __init__(self,K,KObs,item_shape,store_u,store_s,**kwargs):
         """Constructor.
