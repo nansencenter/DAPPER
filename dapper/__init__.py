@@ -70,7 +70,7 @@ from numpy import \
 ##################################
 # Load rc: default settings
 from .dict_tools import *
-from .dpr_conf import *
+from .dpr_config import *
 
 # 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
 if rc.welcome_message:

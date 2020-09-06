@@ -33,8 +33,13 @@ class HiddenMarkovModel(NicePrint):
         self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)
 
         # Name
-        name = inspect.getfile(inspect.stack()[1][0])
-        self.name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
+        self.name = kwargs.pop("name", "")
+        if not self.name:
+            name = inspect.getfile(inspect.stack()[1][0])
+            try:
+                self.name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
+            except ValueError:
+                self.name = str(Path(name))
 
         # Kwargs
         abbrevs = {'LP':'liveplotters'}
@@ -196,7 +201,7 @@ def run_experiment(xp, label, savedir, HMM,
     This involves steps similar to ``example_1.py``, i.e.:
 
      - set seed (if not False/None)
-     - set any HMM_params
+     - set any HMM_<param>
      - hmm.simulate()             : generate truth & obs
      - xp.assimilate()            : run DA method, pass on exception if fail_gently
      - xp.stats.average_in_time() : result averaging
@@ -204,24 +209,23 @@ def run_experiment(xp, label, savedir, HMM,
      - dill.dump()                : result storage
     """
 
-    # Set HMM parameters.
-    # Why the use of setters? To avoid tying an HMM to each xp, which
-    #  - keeps the xp attrs primitive.
-    #  - avoids memory and pickling/storage of near-duplicate HMMs.
-    HMM_params = intersect(list(vars(xp)), [re.compile(r'^HMM_')])
-    if HMM_params:
-        # We should copy HMM so as not to cause any nasty surprises such as
-        # expecting param=1 when param=2 (coz it's not been reset).
-        # NB: won't copy implicitly ref'd obj's (like L96's core).
-        #     Could yield bug when using MP?
-        hmm = deepcopy(HMM) 
-        for key in HMM_params:
-            val = getattr(xp,key)
-            key = key.split('HMM_')[1]
-            hmm.param_setters[key](val)
-    else:
-        hmm = HMM
+    # We should copy HMM so as not to cause any nasty surprises such as
+    # expecting param=1 when param=2 (coz it's not been reset).
+    # NB: won't copy implicitly ref'd obj's (like L96's core).
+    #     Could yield bug when using MP?
+    hmm = deepcopy(HMM)
 
+    # Set HMM_<param>
+    for key, val in vars(xp).items():
+        if key.startswith("HMM_"):
+            setter = hmm.param_setters[key.split("HMM_")[1]]
+            setter(hmm, val)
+
+    # Warn if param in param_setters but HMM_<param> not in xp.
+    for key in getattr(hmm,'param_setters',{}):
+        if not hasattr(xp,f"HMM_{key}"):
+            print(color_text("Warning:" ,cFG.RED),
+                  f"'{key}' ∈ HMM.param_setters, but 'HMM_{key}' ∉ {xp}")
 
     # GENERATE TRUTH/OBS
     if seed: set_seed(seed + getattr(xp,'seed',0)) # Set seed

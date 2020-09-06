@@ -9,7 +9,7 @@ See demo.py for further description.
 import numpy as np
 from numpy import pi, linspace, arange, sin, cos, exp
 from dapper.tools.math import with_rk4, integrate_TLM, is1d
-from dapper.dpr_conf import DotDict
+from dapper.dpr_config import DotDict
 from dapper.tools.utils import magic_naming
 import functools
 
