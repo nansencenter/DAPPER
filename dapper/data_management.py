@@ -12,17 +12,17 @@ import logging
 mpl_logger = logging.getLogger('matplotlib')
 
 ##
-def load_xps(savepath):
-    """Load xp's (as list) from an .xps file or all .xp files in a dir.
+def load_xps(save_as):
+    """Load xp's (as list) from all .xp files in a dir.
 
     Note: saving this list as a new file (takes considerable time and)
           does not yield lower loading times."""
 
-    savepath = Path(savepath).expanduser()
+    save_as = Path(save_as).expanduser()
 
-    files = [d/"xp" for d in list_job_dirs(savepath)]
+    files = [d/"xp" for d in list_job_dirs(save_as)]
 
-    print("Loading %d files from %s"%(len(files),savepath))
+    print("Loading %d files from %s"%(len(files),save_as))
     def load_xp(path):
         with open(path, "rb") as F:
             return dill.load(F)['xp']
@@ -901,18 +901,18 @@ class xpSpace(SparseSpace):
 
         return tables
 
-def beautify_fig_ex3(tabulated_data, savepath, xp_dict):
+def beautify_fig_ex3(tabulated_data, save_as, xp_dict):
     """Beautify.
 
     These settings are particular to example_3,
     and do not generalize well.
     """
     
-    # Add savepath to suptitle
+    # Add save_as to suptitle
     try:
-        savepath = savepath
+        save_as = save_as
         ST = tabulated_data.fig._suptitle.get_text()
-        ST = "\n".join([ST, Path(savepath).stem])
+        ST = "\n".join([ST, Path(save_as).stem])
         tabulated_data.fig.suptitle(ST)
     except NameError:
         pass
