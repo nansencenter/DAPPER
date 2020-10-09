@@ -92,8 +92,8 @@ def adjust_position(ax,adjust_extent=False,**kwargs):
     ax.set_position(d.values())
 
 def xtrema(xx,axis=None):
-    a = xx.min(axis)
-    b = xx.max(axis)
+    a = np.nanmin(xx,axis)
+    b = np.nanmax(xx,axis)
     return a, b
 
 def stretch(a,b,factor=1,int=False):
