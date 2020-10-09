@@ -511,7 +511,7 @@ def reconst(U,s,VT):
 
     Example::
 
-      A == reconst(*tsvd(A,1.0)).
+    >>> A == reconst(*tsvd(A,1.0)).
 
     .. seealso:: sla.diagsvd().
     """
