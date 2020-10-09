@@ -87,6 +87,8 @@ class Var3D:
         if self.B in (None,'clim'): 
             # Use climatological cov, ...
             B = np.cov(xx.T) # ... estimated from truth
+        elif self.B == 'eye':
+            B = np.eye(HMM.Nx)
         else:
             B = self.B
         B *= self.xB
