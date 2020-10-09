@@ -22,7 +22,7 @@ from pathlib import Path, PurePath
 from time import sleep
 from copy import deepcopy
 import dataclasses as dc
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 assert sys.version_info >= (3,6), "Need Python>=3.6"
 
