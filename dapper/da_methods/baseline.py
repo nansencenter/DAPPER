@@ -37,22 +37,15 @@ class OptInterp:
     def assimilate(self,HMM,xx,yy):
         Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-        # Get H.
-        msg  = "For speed, only time-independent H is supported."
-        H    = Obs.linear(np.nan, np.nan)
-        if not np.all(np.isfinite(H)): raise AssimFailedError(msg)
-
         # Compute "climatological" Kalman gain
         muC = mean(xx,0)
         AC  = xx - muC
         PC  = (AC.T @ AC) / (xx.shape[0] - 1)
-        KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
 
         # Setup scalar "time-series" covariance dynamics.
-        # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
-        P  = (eye(Dyn.M) - KG@H) @ PC
+        # ONLY USED FOR DIAGNOSTICS, not to affect the Kalman gain.
         L  = estimate_corr_length(AC.ravel(order='F'))
-        SM = fit_sigmoid(trace(P)/trace(2*PC),L,0)
+        SM = fit_sigmoid(trace(PC)/trace(2*PC),L,0)
 
         # Init
         mu = muC
@@ -63,8 +56,13 @@ class OptInterp:
             mu = Dyn(mu,t-dt,dt)
             if kObs is not None:
                 stats.assess(k,kObs,'f',mu=muC,Cov=PC)
+
                 # Analysis
+                H  = Obs.linear(muC,t)
+                KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
                 mu = muC + KG@(yy[kObs] - Obs(muC,t))
+
+                P  = (eye(Dyn.M) - KG@H) @ PC
                 SM = fit_sigmoid(trace(P)/trace(PC),L,k)
 
             stats.assess(k,kObs,mu=mu,Cov=2*PC*SM(k))
