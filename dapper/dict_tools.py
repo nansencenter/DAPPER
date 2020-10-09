@@ -51,7 +51,21 @@ def _intersect(iterable, criteria, inv=False):
 # for the brain to parse. Use intersect and complement instead.
 def intersect( iterable,   wanteds): return _intersect(iterable, wanteds,   inv=False)
 def complement(iterable, unwanteds): return _intersect(iterable, unwanteds, inv=True)
+# Complement should be called "relative complement" (or set diff)
 
+def dict_product(dct):
+    """Cartesian/Outer product, for dicts.
+
+    Example:
+    >>> list(dict_product(dict(n=[1,2], c='ab')))
+    [{'n': 1, 'c': 'a'},
+     {'n': 1, 'c': 'b'},
+     {'n': 2, 'c': 'a'},
+     {'n': 2, 'c': 'b'}]
+    
+    Source: https://stackoverflow.com/a/40623158/38281."""
+    import itertools
+    return (dict(zip(dct, x)) for x in itertools.product(*dct.values()))
 
 def transpose_dicts(DD,enforce_rectangle=True):
     """As title says.
