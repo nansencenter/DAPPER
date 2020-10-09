@@ -151,8 +151,8 @@ def da_method(*default_dataclasses):
         inherited defaults (see stackoverflow.com/a/58130805).
 
         Also:
-         - Wraps assimilate() to provide gentle_fail functionality.
-         - Initialises and writes the Stats object."""
+        - Wraps assimilate() to provide gentle_fail functionality.
+        - Initialises and writes the Stats object."""
 
 
         # Default fields invovle: (1) annotations and (2) attributes.
@@ -184,7 +184,9 @@ def da_method(*default_dataclasses):
             # Init stats
             self.stats = Stats(self,HMM,xx,yy,**stat_kwargs)
             # Assimilate
+            time_start = time.time()
             old_assimilate(self,HMM,xx,yy)
+            register_stat(self.stats,"duration",time.time()-time_start)
 
         old_assimilate = cls.assimilate
         cls.assimilate = functools.wraps(old_assimilate)(assimilate)
@@ -251,7 +253,8 @@ def run_experiment(xp, label, savedir, HMM,
     except Exception as ERR:
         if fail_gently:
             xp.crashed = True
-            print_cropped_traceback(ERR)
+            if fail_gently not in ["silent","quiet"]:
+                print_cropped_traceback(ERR)
         else:
             raise ERR
 
@@ -294,9 +297,13 @@ class xpList(list):
      - ``inds()`` to search by kw-attrs.
      """
 
-    def __init__(self,*args,unique=False):
+    def __init__(self,*args,unique=True):
         """Initialize without args, or with a list of configs.
-         - unique: if true, then duplicates won't get appended."""
+
+        If ``unique``: duplicates won't get appended.
+        This makes ``append()`` (and ``__iadd__()``) relatively slow.
+        Use ``extend()`` or ``__add__()`` to bypass this validation."""
+
         self.unique = unique
         super().__init__(*args)
 
@@ -308,7 +315,7 @@ class xpList(list):
         return self
 
     def append(self,cfg):
-        "Append if not unique&present"
+        """Append if not unique & present."""
         if not (self.unique and cfg in self): super().append(cfg)
 
     def __getitem__(self, keys):
@@ -375,7 +382,7 @@ class xpList(list):
                             aggregate.append(k)
 
             # Remove unwanted
-            excluded  = [re.compile('^_'),'avrgs','stats','HMM']
+            excluded  = [re.compile('^_'),'avrgs','stats','HMM','duration']
             aggregate = complement(aggregate,excluded)
             return aggregate
 
@@ -449,8 +456,7 @@ class xpList(list):
           - returns *list* of names
           - attaches label to each attribute
           - tabulation is only an option
-          - abbreviates labels to width abbrev
-        """
+          - abbreviates labels to width abbrev"""
         distinct, redundant, common = self.split_attrs(nomerge=["da_method"])
         labels = distinct.keys()
         values = distinct.values()
@@ -509,7 +515,7 @@ class xpList(list):
         if save_as in [None,False]:
             assert not mp, "Multiprocessing requires saving data."
             # Parallelization w/o storing is possible, especially w/ threads.
-            # But it involves more complicated communication setup.
+            # But it involves more complicated communication set-up.
             xpi_dir = lambda *args: None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
@@ -591,7 +597,5 @@ class xpList(list):
                 f.write("[bool]\nliveplotting_enabled = False\nwelcome_message = False\n")
 
             submit_job_GCP(save_as)
-
-
 
         return save_as
