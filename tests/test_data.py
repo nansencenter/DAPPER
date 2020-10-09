@@ -91,9 +91,8 @@ def _print_1d(xp_dict,*args,**kwargs):
 
 
 ##
-__file__ = "tests/test_data.py"
-savepath = save_dir(__file__)
-xps = load_xps(savepath)
+save_as = rc.dirs.data / "test_data"
+xps = load_xps(save_as)
 xps = xpSpace.from_list(xps)
 
 xps_shorter = xpSpace.from_list([xp for xp in xps.values()
