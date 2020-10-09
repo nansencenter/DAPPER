@@ -50,7 +50,7 @@ HMM.t.BurnIn = 2
 HMM.t.T = 50
 
 # Assimilate (for each config in xps)
-xps.launch(HMM)
+xps.launch(HMM,liveplots=False)
 
 # Print results
 xps.print_avrgs()
