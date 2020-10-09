@@ -63,7 +63,7 @@ class PartFilt:
                 w      = reweight(w,innovs=innovs)
 
                 if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
-                    C12    = self.reg*bandw(N,Nx)*raw_C12(E,w)
+                    C12    = self.reg*auto_bandw(N,Nx)*raw_C12(E,w)
                     #C12  *= sqrt(rroot) # Re-include?
                     idx,w  = resample(w, self.resampl, wroot=self.wroot)
                     E,chi2 = regularize(C12,E,idx,self.nuj)
@@ -112,7 +112,7 @@ class OptPF:
                 innovs = y - Eo
 
                 # EnKF-ish update
-                s   = self.Qs*bandw(N,Nx)
+                s   = self.Qs*auto_bandw(N,Nx)
                 As  = s*raw_C12(E,w)
                 Ys  = s*raw_C12(Eo,w)
                 C   = Ys.T@Ys + R
@@ -129,7 +129,7 @@ class OptPF:
 
                 # Resampling
                 if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
-                    C12    = self.reg*bandw(N,Nx)*raw_C12(E,w)
+                    C12    = self.reg*auto_bandw(N,Nx)*raw_C12(E,w)
                     idx,w  = resample(w, self.resampl, wroot=self.wroot)
                     E,_    = regularize(C12,E,idx,self.nuj)
 
@@ -188,7 +188,7 @@ class PFa:
                 w      = reweight(w,innovs=innovs)
 
                 if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
-                    C12    = self.reg*bandw(N,Nx)*raw_C12(E,w)
+                    C12    = self.reg*auto_bandw(N,Nx)*raw_C12(E,w)
                     #C12  *= sqrt(rroot) # Re-include?
 
                     wroot = 1.0
@@ -305,7 +305,7 @@ class PFxN_EnKF:
                     ED = ED + AD
 
                     # log(prior_kernel(x))
-                    s         = self.Qs*bandw(N,Nx)
+                    s         = self.Qs*auto_bandw(N,Nx)
                     innovs_pf = AD @ tinv(s*Aw)
                     # NB: Correct: innovs_pf = (ED-E_orig) @ tinv(s*Aw)
                     #     But it seems to make no difference on well-tuned performance !
@@ -373,7 +373,7 @@ class PFxN:
 
                 if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
                     # Compute kernel colouring matrix
-                    cholR = self.Qs*bandw(N,Nx)*raw_C12(E,wD)
+                    cholR = self.Qs*auto_bandw(N,Nx)*raw_C12(E,wD)
                     cholR = chol_reduce(cholR)
 
                     # Generate N·xN random numbers from NormDist(0,1)
@@ -481,7 +481,7 @@ def mask_unique_of_sorted(idx):
     duplicates |= idx==np.roll(idx,-1)
     return duplicates
 
-def bandw(N,M):
+def auto_bandw(N,M):
     """"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
 
     Refs: [Dou01]_ section 12.2.2, and [Wik17]_ section "Rule_of_thumb"
