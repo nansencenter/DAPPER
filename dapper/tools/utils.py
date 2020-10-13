@@ -337,28 +337,28 @@ def repr_type_and_name(thing):
     return s
 
 
-# From https://stackoverflow.com/q/22797580 and more
+# https://stackoverflow.com/q/22797580
+# https://stackoverflow.com/q/10875442
+import functools
 class NamedFunc():
     "Provides custom repr for functions."
-    def __init__(self,_func,_repr):
-        self._func = _func
-        self._repr = _repr
-        #functools.update_wrapper(self, _func)
-    def __call__(self, *args, **kw):
-        return self._func(*args, **kw)
+    def __init__(self,func,name):
+        self._function = func
+        self._old_name = func.__name__
+        self._new_name = name
+        functools.update_wrapper(self, func)
+    def __call__(self, *args, **kwargs):
+        return self._function(*args, **kwargs)
+    def __str__(self):
+        return self._new_name + "()"
     def __repr__(self):
-        argnames = self._func.__code__.co_varnames[
-            :self._func.__code__.co_argcount]
-        argnames = "("+",".join(argnames)+")"
-        return "<NamedFunc>"+argnames+": "+self._repr
+        return str(self) + f" <NamedFunc of {self._old_name}>" 
 
-class NameFunc():
-    "Decorator version"
-    def __init__(self,name):
-        self.fn_name = name
-    def __call__(self,fn):
-        return NamedFunc(fn,self.fn_name)
-
+def name_func(name):
+    """Decorator for creating NamedFunc."""
+    def namer(func):
+        return NamedFunc(func,name)
+    return namer
 
 def functools_wraps(wrapped, lineno=1, *args, **kwargs):
     """Like functools.wraps(), but keeps lines[0:lineno] of orig. docstring."""
