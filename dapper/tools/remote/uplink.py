@@ -2,6 +2,8 @@
 
 Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 
+# TODO: use Fabric? https://www.fabfile.org/
+
 from dapper import *
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as datetime_parse
@@ -40,10 +42,7 @@ class SubmissionConnection:
         #     output = sys_cmd(connect + [command], split=False)
         return sys_cmd([*self.ssh_M.split(), self.ip, cmd_string], split=False)
 
-    def rsync(self,src,dst,opts=[],rev=False):
-        """rsync using multiplexed ssh."""
-        # Don't use individual scp's! (Pro: enables progbar. Con: it's SLOW!)
-
+    def rsync(self,src,dst,opts=[],rev=False,prog=False,dry=False,use_M=True):
         # Prepare: opts
         if isinstance(opts,str):
             opts = opts.split()
@@ -55,9 +54,29 @@ class SubmissionConnection:
         if rev:
             src, dst = dst, src
 
-        # Sync
-        rsync = ["rsync", "-avz", *opts, "-e", self.ssh_M]
-        return sys_cmd([*rsync, src, dst], split=False)
+        # Show progress
+        if prog:
+            prog = ("--info=progress2", "--no-inc-recursive")
+        else:
+            prog = []
+
+        # Use multiplex
+        multiplex = []
+        if use_M:
+            multiplex = "-e", self.ssh_M
+        else:
+            multiplex = []
+
+        # Assemble command
+        cmd = ["rsync", "-azh", *prog, *multiplex, *opts, src, dst]
+
+        if dry:
+            # Dry run
+            return " ".join(cmd)
+        else:
+            # Sync
+            ps = subprocess.run(cmd, check=True)
+            return None
 
 
 def submit_job_GCP(xps_path, **kwargs):
@@ -67,8 +86,23 @@ def submit_job_GCP(xps_path, **kwargs):
     sync_job(sc)
 
     try:
-        print("Submitting jobs")
-        sc.remote_cmd(f"""cd {xps_path.name}; condor_submit -batch-name {xps_path.name} submit-description""")
+        # Timeout functionality for ssh -c submit
+        def submit():
+            print("Submitting jobs")
+            sc.remote_cmd(f"""cd {xps_path.name}; condor_submit -batch-name {xps_path.name} submit-description""")
+        p = mpd.Process(target=submit)
+        p.start()
+        p.join(5*60)
+        if p.is_alive():
+            print('The ssh seems to hang, '
+                  'but the jobs are probably submitted.')
+            p.terminate()
+            p.join()
+
+        # Prepare download command
+        print("To download results (before completion) use:")
+        print(sc.rsync(xps_path.parent, f"~/{xps_path.name}", rev=True, dry=True, use_M=False))
+
         monitor_progress(sc)
     except:
         if input("Do you wish to clear the job queue? (Y/n): ").lower() in ["","y","yes"]:
@@ -77,9 +111,9 @@ def submit_job_GCP(xps_path, **kwargs):
         raise
     else:
         print("Downloading results")
-        xcldd = ["xp.com","out\\.*","err\\.*","run\\.*log","DAPPER"]
+        xcldd = ["xp.com","DAPPER","runlog","err"] # "out\\.*"
         xcldd = ["--exclude="+x for x in xcldd]
-        sc.rsync(xps_path.parent, f"~/{xps_path.name}", rev=True, opts=xcldd)
+        sc.rsync(xps_path.parent, f"~/{xps_path.name}", rev=True, opts=xcldd, prog=True)
     finally:
         # print("Checking for autoscaler cron job:") # let user know smth's happenin
         if not detect_autoscaler(sc):
@@ -91,7 +125,7 @@ def submit_job_GCP(xps_path, **kwargs):
 
 
 
-def detect_autoscaler(self,minutes=2):
+def detect_autoscaler(self,minutes=10):
     """Grep syslog for autoscaler.
 
     Also get remote's date (time), to avoid another (slow) ssh."""
@@ -218,7 +252,9 @@ def monitor_progress(self):
             # print(job_status)
             pbar.update(increment)
             time.sleep(1) # dont clog the ssh connection
-    except: raise # deal with it in caller
+    except: 
+        print("Some kind of exception occured, while %d jobs were not even run."%unfinished)
+        raise
     else:
         print("All jobs finished without failure.")
     finally:
