@@ -195,57 +195,35 @@ def da_method(*default_dataclasses):
     return dataclass_with_defaults
 
 
+def default_setup(HMM,xp):
+    set_seed(getattr(xp,'seed',False))
+    xx, yy = HMM.simulate()
+    return xx, yy
+
 def run_experiment(xp, label, savedir, HMM,
-                   seed=None, free=True, statkeys=False, fail_gently=False,
+                   setup=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
     """Used by xpList.launch() to run each single experiment.
     
     This involves steps similar to ``example_1.py``, i.e.:
 
-     - set seed (if not False/None)
-     - set any HMM_<param>
-     - hmm.simulate()             : generate truth & obs
-     - xp.assimilate()            : run DA method, pass on exception if fail_gently
-     - xp.stats.average_in_time() : result averaging
-     - xp.avrgs.tabulate()        : result printing
-     - dill.dump()                : result storage
-    """
+    - setup()                    : Call function given by user. Should set
+                                   params, eg HMM.Force, seed, and return
+                                   (simulated/loaded) truth and obs series.
+    - xp.assimilate()            : run DA, pass on exception if fail_gently
+    - xp.stats.average_in_time() : result averaging
+    - xp.avrgs.tabulate()        : result printing
+    - dill.dump()                : result storage
+
+    If ``setup == None``: use ``default_setup()``.""" 
 
     # We should copy HMM so as not to cause any nasty surprises such as
     # expecting param=1 when param=2 (coz it's not been reset).
-    # NB: won't copy implicitly ref'd obj's (like L96's core).
-    #     Could yield bug when using MP?
+    # NB: won't copy implicitly ref'd obj's (like L96's core). => bug w/ MP?
     hmm = deepcopy(HMM)
 
-    # Set HMM_<param>
-    for key, val in vars(xp).items():
-        if key.startswith("HMM_"):
-            setter = hmm.param_setters[key.split("HMM_")[1]]
-            setter(hmm, val)
-
-    # Warn if param in param_setters but HMM_<param> not in xp.
-    for key in getattr(hmm,'param_setters',{}):
-        if not hasattr(xp,f"HMM_{key}"):
-            print(color_text("Warning:" ,cFG.RED),
-                  f"'{key}' ∈ HMM.param_setters, but 'HMM_{key}' ∉ {xp}")
-
     # GENERATE TRUTH/OBS
-    if seed: set_seed(seed + getattr(xp,'seed',0)) # Set seed
-    xx, yy = hmm.simulate()
-
-    # Now set the seed again. Then it does not matter for any following
-    # random draws whether-or-not simulate() was called above.
-    # Also, offset by a fixed number to prevent any magic correspondence
-    # of the random draws of the truth and the state-estimator.
-    if seed: set_seed(seed + getattr(xp,'seed',0) + 1)
-    # Repeating the seed for each experiment.
-    # may yield a form of "Variance reduction"
-    # (eg. CRN, see wikipedia.org/wiki/Variance_reduction).
-    # Note: this CRN trick is handy for quick comparisons
-    #       of results between xp's,
-    #       but should not be relied upon for publishing results,
-    #       which should simply be converged values.
-    
+    xx, yy = (setup or default_setup)(hmm,xp)
 
     # ASSIMILATE
     try:
@@ -486,15 +464,9 @@ class xpList(list):
 
         return table.splitlines()
 
-    def launch(self, HMM, seed="clock", save_as="noname", mp=False, **kwargs):
+    def launch(self, HMM, save_as="noname", mp=False, **kwargs):
         """For each xp in self: run_experiment(xp, ...).
         
-        Value of `seed` ||| Consequent seed mngmt. by run_experiment():
-        ----------------|||---------------------------------------------
-        False/None      ||| No management.
-        a number>0      ||| Uses xp.seed + seed.
-        True/"clock"    ||| Uses xp.seed + set_seed("clock")
-
         The results are saved in ``rc.dirs['data']/save_as.stem``,
         unless ``save_as`` is False/None.
 
@@ -508,10 +480,16 @@ class xpList(list):
         See ``example_2.py`` and ``example_3.py`` for example use.
         """
 
-        # Include in kwargs
         kwargs['HMM'] = HMM
-        kwargs['seed'] = set_seed("clock") if seed in ["clock",True] else seed
 
+        # Parse mp option
+        if not mp               : mp = False
+        elif mp in [True, "MP"] : mp = dict(server="local")
+        elif isinstance(mp, int): mp = dict(server="local",NPROC=mp)
+        elif mp=="GCP"          : mp = dict(server="GCP", files=[], code="")
+        else                    : assert isinstance(mp,dict)
+
+        # Process save_as
         if save_as in [None,False]:
             assert not mp, "Multiprocessing requires saving data."
             # Parallelization w/o storing is possible, especially w/ threads.
@@ -527,16 +505,13 @@ class xpList(list):
                 os.mkdir(path)
                 return path
 
-
         # No parallelization
         if not mp: 
             for ixp, (xp, label) in enumerate( zip(self, self.gen_names()) ):
                 run_experiment(xp, label, xpi_dir(ixp), **kwargs)
 
-
         # Local multiprocessing
-        elif mp in ["MP", True]:
-
+        elif mp["server"].lower() == "local":
             def run_with_fixed_args(arg):
                 xp, ixp = arg
                 run_experiment(xp, None, xpi_dir(ixp), **kwargs)
@@ -544,15 +519,13 @@ class xpList(list):
 
             with     set_tmp(tools.utils,'disable_progbar',True):
                 with set_tmp(tools.utils,'disable_user_interaction',True):
-                    NPROC = None # None => multiprocessing.cpu_count()
+                    NPROC = mp.get("NPROC",None) # None => mp.cpu_count()
                     with mpd.Pool(NPROC) as pool:
                         list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
                             total=len(self), desc="Parallel experim's", smoothing=0.1))
 
-
-        # GCP
-        elif isinstance(mp,dict):
-
+        # Google cloud platform, multiprocessing
+        elif mp["server"] == "GCP":
             for ixp, xp in enumerate(self):
                 with open(xpi_dir(ixp)/"xp.var","wb") as f:
                     dill.dump(dict(xp=xp), f)
@@ -560,14 +533,22 @@ class xpList(list):
             with open(save_as/"xp.com","wb") as f:
                 dill.dump(kwargs, f)
 
+            # mkdir extra_files
             extra_files = save_as / "extra_files"
             os.mkdir(extra_files)
-            for f in mp["extra_files"]:
+            # Default files: .py files in sys.path[0] (main script's path)
+            if not mp.get("files",[]):
+                # Todo?: also intersect(..., sys.modules).
+                # Todo?: use git ls-tree instead?
+                ff = os.listdir(sys.path[0])
+                mp["files"] = [f for f in ff if f.endswith(".py")]
+            # Copy files into extra_files
+            for f in mp["files"]:
                 if isinstance(f, (str,PurePath)):
                     # Example: f = "A.py"
                     path = Path(sys.path[0]) / f
                     dst = f
-                else:
+                else: # instance of tuple(path, root)
                     # Example: f = ("~/E/G/A.py", "G")
                     path, root = f
                     dst = Path(path).relative_to(root)
