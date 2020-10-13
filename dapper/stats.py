@@ -112,7 +112,7 @@ class Stats(StatPrint):
         self.new_series('resmpl', 1, KObs+1)
 
 
-    def new_series(self,name,shape,length='FAUSt',MS=False,**kwargs):
+    def new_series(self,name,shape,length='FAUSt',MS=False,**kws):
         """Create (and register) a statistics time series.
 
         Series are initialized with nan's.
@@ -130,39 +130,34 @@ class Stats(StatPrint):
             if shape==1: shape = ()
             else:        shape = (shape,)
 
-        def make_series(shape,**kwargs):
+        def make_series(parent,name,shape):
             if length=='FAUSt':
                 total_shape = self.K, self.KObs, shape
-                return FAUSt(*total_shape,
-                             self.store_u, self.store_s, **kwargs)
+                store_opts = self.store_u, self.store_s
+                series = FAUSt(*total_shape, *store_opts, **kws)
             else:
                 total_shape = (length,)+shape
-                return DataSeries(total_shape,**kwargs)
+                series = DataSeries(total_shape,*kws)
+            register_stat(parent, name, series)
 
         # Principal series
-        series = make_series(shape)
-        setattr(self, name, series)
+        make_series(self, name, shape)
 
         # Summary (scalar) series:
         if shape!=():
             if MS:
                 for suffix in self.field_summaries:
-                    setattr(series,suffix,make_series(()))
+                    make_series(getattr(self,name),suffix,())
             # Make a nested level for sectors
             if MS=='sec':
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split('.')
-                    sector = setattr(getattr(series,suffix),sector,make_series(()))
+                    make_series(deep_getattr(self,f"{name}.{suffix}"),sector,())
 
 
     @property
     def data_series(self):
         return [k for k in vars(self) if isinstance(getattr(self,k),DataSeries)]
-
-    @property
-    def included(self):
-        return self.data_series
-
 
 
     def assess(self,k,kObs=None,faus=None,
@@ -213,6 +208,7 @@ class Stats(StatPrint):
                     continue
 
             # Avoid repetitive warnings caused by zero variance
+            # TODO: look into np.warnings.onceregistry
             with np.errstate(divide='call',invalid='call'):
                 np.seterrcall(warn_zero_variance)
 
@@ -353,7 +349,7 @@ class Stats(StatPrint):
 
             def average_multivariate(): return avrgs
             # Plain averages of nd-series are rarely interesting.
-            # => Leave for manual computations
+            # => Shortcircuit => Leave for manual computations
 
             if isinstance(series,FAUSt):
                 # Average series for each subscript
@@ -376,19 +372,46 @@ class Stats(StatPrint):
             return avrgs
 
         def recurse_average(stat_parent,avrgs_parent):
-            for key,series in vars(stat_parent).items(): # Loop data_series
-                if not isinstance(series,DataSeries): continue
+            try:
+                keys = stat_parent.stat_register
+            except AttributeError:
+                return
 
-                avrgs = average(series)
+            # Ensure keys exists. Eg assess_ens() del's weights if None
+            keys = intersect(keys, vars(stat_parent))
+
+            for key in keys: # Loop data_series
+                series = getattr(stat_parent,key)
+
+                if isinstance(series,DataSeries):
+                    avrgs = average(series)
+                    recurse_average(series,avrgs)
+
+                # TODO: should this be used at all?
+                # NB: no BurnIn!
+                # elif isinstance(series,np.ndarray):
+                    # avrgs = series_mean_with_conf(series)
+
+                elif np.isscalar(series):
+                    avrgs = series # Eg. just copy over "duration" from stats
+
+                else:
+                    raise TypeError(f"Don't know how to average {key}")
+
                 avrgs_parent[key] = avrgs
 
-                recurse_average(series,avrgs)
 
         avrgs = Avrgs()
         recurse_average(self,avrgs)
         self.config.avrgs = avrgs
         if free:
             delattr(self.config,'stats')
+
+def register_stat(self,name,value):
+    setattr(self,name,value)
+    if not hasattr(self,"stat_register"):
+        self.stat_register = []
+    self.stat_register.append(name)
 
 @do_once
 def warn_zero_variance(err,flag):
