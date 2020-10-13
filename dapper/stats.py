@@ -436,48 +436,45 @@ def tabulate_column(col,header,pad=' ',missingval='',frmt=None):
     - Use tabulate() to get decimal point alignment.
     - Inf and nan are handled individually so that they don't
       align left of the decimal point (makes too wide columns).
+      Custom ``frmt`` also supported.
     - Pad (on the right) each row so that the widths are equal.
-    - Missingval is re-implemented, because tabulate crops col[-1]
-      when this is None and missingval is '' or ' '.
     """
 
-    # NB: Using '' vertically shortens col if col[-1] is None!
-    mv = '∅'
-
-    def cnvrt(x):
-        if frmt is not None:
-            return frmt(x)
+    def preprocess(x):
         try:
-            if      x is None: return mv
+            # Custom frmt supplied
+            if frmt is not None:
+                return frmt(x)
+
+            # Standard formatting
+            if      x is None: return missingval
             elif  np.isnan(x): return  "NAX"
             elif x == -np.inf: return "-INX"
             elif x ==  np.inf: return  "INX"
-        except TypeError:
-            pass
-        return x
+            return x # leave formatting to tabulate()
 
-    def undo(s):
+        except TypeError:
+            return missingval
+
+    def postprocess(s):
         s = s.replace("NAX","nan")
         s = s.replace("INX","inf")
         return s
 
     # Make text column, aligned
-    col = [[cnvrt(x)] for x in col]
+    col = [[preprocess(x)] for x in col]
     col = tabulate_orig.tabulate(col,[header],'plain')
-    col = col.splitlines()
+    col = col.split("\n") # NOTE: dont use splitlines (removes empty lines)
 
-    # Undo missingval -- must do before padding.
-    col = [s.replace(mv,missingval) for s in col]
+    # Undo nan/inf treatment
+    col = [postprocess(s) for s in col]
 
     # Pad on the right, for equal widths
     mxW = max(len(s) for s in col)
-    col = [s + ' '*(mxW-len(s)) for s in col]
+    col = [s.ljust(mxW) for s in col]
 
-    # Undo nan/inf treatment
-    col = [undo(s) for s in col]
-
-    # Use pad char
-    col = [s.replace(' ',pad) for s in col]
+    # Use pad char. on BOTH left/right, to prevent trunc. by later tabulate().
+    col = [s.replace(" ",pad) for s in col]
 
     return col
 
