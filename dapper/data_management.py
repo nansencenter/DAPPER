@@ -11,73 +11,147 @@ from matplotlib import ticker
 import logging
 mpl_logger = logging.getLogger('matplotlib')
 
-##
-def load_xps(save_as):
-    """Load xp's (as list) from all .xp files in a dir.
-
-    Note: saving this list as a new file (takes considerable time and)
-          does not yield lower loading times."""
-
+def load_HMM(save_as):
     save_as = Path(save_as).expanduser()
+    HMM = dill.load(open(save_as/"xp.com","rb"))["HMM"]
+    return HMM
 
+def load_xps(save_as):
+    """Load ``xps`` (as a simple list) from dir."""
+    save_as = Path(save_as).expanduser()
     files = [d/"xp" for d in list_job_dirs(save_as)]
 
+    def load_any(filepath):
+        """Load any/all ``xp's`` from ``filepath``."""
+        with open(filepath, "rb") as F:
+            # If experiment crashed, then xp will be empty
+            try:
+                data = dill.load(F)
+            except EOFError:
+                return []
+            # Always return list
+            try:
+                return data["xps"]
+            except KeyError:
+                return [data["xp"]]
+
     print("Loading %d files from %s"%(len(files),save_as))
-    def load_xp(path):
-        with open(path, "rb") as F:
-            return dill.load(F)['xp']
-    # Dont use list comprehension (coz then progbar won't clean up correctly)
-    xps = []
+    xps = [] # NB: progbar wont clean up properly w/ list compr.
     for f in progbar(files,desc="Loading"):
-        xps.append( load_xp(f) )
+        xps.extend( load_any(f) )
+
+    if len(xps) < len(files):
+        print(f"{len(files)-len(xps)} files could not be loaded.")
 
     return xps
 
-##
-class SparseSpace(dict):
-    """Dict, subclassed to make keys conform to a coord. system, i.e. a space.
+def save_xps(xps, save_as, nDir=100):
+    """Split xps and save in save_as/i for i in range(nDir).
+    
+    Example: rename attr n_iter to nIter:
+    >>> proj_name = "Stein"
+    >>> dd = rc.dirs.data / proj_name
+    >>> save_as = dd / "run_2020-09-22__19:36:13"
+    >>> 
+    >>> for save_as in os.listdir(dd):
+    >>>     save_as = dd / save_as
+    >>> 
+    >>>     xps = load_xps(save_as)
+    >>>     HMM = load_HMM(save_as)
+    >>> 
+    >>>     for xp in xps:
+    >>>         if hasattr(xp,"n_iter"):
+    >>>             xp.nIter = xp.n_iter
+    >>>             del xp.n_iter
+    >>> 
+    >>>     overwrite_xps(xps, save_as)
+    """
 
-    As for any dict, it can hold any type of objects.
+    save_as = Path(save_as)
+    save_as.mkdir(parents=False,exist_ok=False)
+
+    splitting = np.array_split(xps,nDir)
+    for i, sub_xps in enumerate(tqdm.tqdm(splitting,desc="Saving")):
+        if len(sub_xps):
+            iDir = save_as / str(i)
+            os.mkdir(iDir)
+            with open(iDir/"xp","wb") as F:
+                dill.dump({'xps':sub_xps}, F)
+
+def overwrite_xps(xps,save_as):
+    """Save xps in save_as, but safely (by first saving to tmp)."""
+    save_xps(xps, save_as/"tmp" )
+
+    # Delete
+    for d in tqdm.tqdm(list_job_dirs(save_as),desc="Deleting old"):
+        shutil.rmtree(d)
+
+    # Mv up from tmp/ -- goes quick, coz there are not many.
+    for d in os.listdir( save_as/"tmp" ):
+        shutil.move(save_as/"tmp"/d, save_as/d)
+
+    shutil.rmtree(save_as/"tmp")
+
+def reduce_inodes(save_as):
+    """Reduce the number of ``xp`` dirs
+    
+    by packing multiple ``xp``s into lists (``xps``).
+
+    This reduces the **number** of files (inodes) on the system,
+    which limits storage capacity (along with **size**).
+
+    It also reduces loading times."""
+    overwrite_xps(load_xps(save_as),save_as)
+
+
+class SparseSpace(dict):
+    """Dict, subclassed enforce key conformity (to a coord. sys, i.e. a space).
+
     The coordinate system is specified by its "axes",
     which is used to produce self.Coord (a namedtuple class).
 
-    Normally, this space is highly sparse,
+    As a normal dict, it can hold any type of objects.
+
+    In normal use, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
     eg. coord(da_method=Climatology, rot=True, ...).
 
     Indeed, operations across (potentially multiple simultaneous) axes,
-    such as optimization or averaging,
-    are internally carried out by iterating -- not across the axis --
-    but across the the list of items, whose coordinates (dict keys)
-    provide the axes ticks.
+    such as optimization or averaging, should be carried out by iterating
+    -- not over the axis -- but over the the list of items.
 
     The most important method is ``nest()``,
     which is used (by xpSpace.table_tree) to separate tables/columns,
     and also to carry out the mean/optim operations.
 
+    In addition, __getitem__() is very flexible, allowing accessing by:
+    - The actual key, a self.Coord object. Returns single item.
+    - A dict match against (part of) the coordinates. Returns subspace.
+    - An int. Returns list(self)[key].
+    - A list of any of the above. Returns list.
+    This flexibility can cause bugs, but it's probably still worth it).
+    Also see __call__(), get_for(), and coords(), for further convenience.
+
     Inspired by stackoverflow.com/a/7728830
-    Also see stackoverflow.com/q/3387691
-    """
+    Also see stackoverflow.com/q/3387691 """
 
     @property
     def axes(self):
         return self.Coord._fields
 
     def __init__(self, axes, *args, **kwargs):
-        # Define coordinate class (i.e. system)
+        # Define coordinate system
         self.Coord = namedtuple('Coord', axes) 
-
-        # Optional: add repr
+        # Write dict
+        self.update(*args, **kwargs)
+        # Add repr/str
         self.Coord.__repr__ = lambda c: ",".join(f"{k}={v!r}" for k,v in zip(c._fields,c))
         self.Coord.__str__  = lambda c: ",".join(str(v) for v in c)
 
-        # Write dict.
-        # Use update() [not super().__init__] to pass by __setitem__(). 
-        # Also see stackoverflow.com/a/2588648 & stackoverflow.com/a/2390997
-        self.update(*args, **kwargs)
-
     def update(self, *args, **kwargs):
-        """As for dict, but using __setitem__()."""
+        """Update using custom __setitem__()."""
+        # See https://stackoverflow.com/a/2588648
+        # and https://stackoverflow.com/a/2390997
         for k, v in dict(*args, **kwargs).items(): self[k] = v
 
     def __setitem__(self, key, val):
@@ -89,63 +163,102 @@ class SparseSpace(dict):
         super().__setitem__(key,val)
 
     def __getitem__(self,key):
-        """Indexing.
-        
-        In keeping with the mantra 'loop over points as list,
-        not along actual axes' followed by nest(), this function
-        also supports list indexing."""
-        if isinstance(key,list): # Get list of items
+        """Flexible indexing."""
+
+        # List of items (by a list of indices).
+        # Also see get_for().
+        if isinstance(key,list):
             return [self[k] for k in key]
-        elif isinstance(key, int) or isinstance(key, slice): # Slice
+
+        # Single (by integer) or list (by Slice)
+        # Note: NOT validating np.int64 here catches quite a few bugs.
+        elif isinstance(key, int) or isinstance(key, slice):
             return [*self.values()][key]
+
+        # Subspace (by dict, ie. an informal, partial coordinate)
+        elif isinstance(key, dict):
+            outer = self.nest(outer_axes=list(key)) # nest
+            coord = outer.Coord(*key.values())      # create coord
+            inner = outer[coord]                    # chose subspace
+            return inner
+
+        # Single item (by Coord object, coz an integer (eg)
+        # gets interpreted (above) as a list index)
         else:
-            # Get a single item by its coordinates
-            # NB: Shouldn't use isinstance(key, self.Coord)
+            # NB: Dont't use isinstance(key, self.Coord)
             # coz it fails when the namedtuple (Coord) has been
             # instantiated in different places (but with equal params).
             # Also see bugs.python.org/issue7796
             return super().__getitem__(key)
 
-    def __repr__(self):
-        s = self.__class__.__name__
-        s += f"(axes={self.axes!r})"
-        L = len(self)
-        # Key list:
-        n = min(L//2,2)
-        head = [*self][:n]
-        tail = [*self][n:]
-        if len(tail) > len(head)+1:
-            tail = tail[-(n+1):]
-            tail[0] = "..."
-        Open = "\n  Keys: ["
-        sep  = ",\n" + " "*(len(Open)-1)
-        keys = [str(x) for x in head+tail]
-        keys = sep.join(keys)
-        s += Open + keys + "]"
-        # Length
-        s += f"\n  Length: {L}"
-        return s
-
-    def matching_coords(self, **kwargs):
-        # Get all items with attrs matching dict
-        # Note: implmentation is simpler than for xpList.
-        match  = lambda x: all(getattr(x,k)==kwargs[k] for k in kwargs)
-        coords = [x for x in self if match(x)]
-        return coords
-
-    def get_coord(self,entry):
-        """Inverse of (a purist version of) __getitem__."""
+    def __getkey__(self,entry):
+        """Inverse of dict.__getitem__(), but also works on coords.
+        
+        Note: This dunder method is not a "builtin" naming convention."""
         coord = (getattr(entry,a,None) for a in self.axes)
         return self.Coord(*coord)
 
-    def nest(self, inner_axes=None, outer_axes=None):
-        """Return a new xpSpace with axes `outer_axes`,
-        
-        obtained by projecting along the ``inner_axes``.
-        The entries of this xpSpace are themselves xpSpace's,
-        with axes `inner_axes`,
-        each one regrouping the entries with the same (projected) coordinate. 
+    def __call__(self,**kwargs):
+        """Convenience, that enables, eg.:
+        >>> xp_dict(da_method="EnKF", infl=1, seed=3)
         """
+        return self.__getitem__(kwargs)
+
+    def get_for(self,ticks,default=None):
+        """Almost ``[self.get(Coord(x)) for x in ticks]``.
+        
+        NB: using the "naive" thing: ``[self[x] for x in ticks]``
+        would probably be a BUG coz x gets interpreted as indices
+        for the internal list."""
+        singleton = not hasattr(ticks[0],"__iter__")
+        coord = lambda xyz: self.Coord(xyz if singleton else xyz)
+        return [self.get(coord(x),default) for x in ticks]
+
+    def coords(self, **kwargs):
+        """Get all ``coord``s matching kwargs.
+        
+        Unlike ``__getitem__(kwargs)``,
+        - A list is returned, not a subspace.
+        - This list constains keys (coords), not values.
+        - The coords refer to the original space, not the subspace.
+        
+        The last point is especially useful for label_xSection().
+        """
+
+        embed = lambda coord: {**kwargs, **coord._asdict()}
+        return [self.Coord(**embed(x)) for x in self[kwargs]]
+
+        # Old implementation.
+        # - I prefer the new version for its re-use of __getitem__'s
+        #   nesting, evidencing their mutual relationship)
+        # - Note that unlike xpList.inds(): missingval shenanigans
+        #   are here unnecessary coz each coordinate is complete.
+        # match  = lambda x: all(getattr(x,k)==kwargs[k] for k in kwargs)
+        # return [x for x in self if match(x)]
+
+    def __repr__(self):
+        L = 2
+        keys = [str(k) for k in self] # TODO: use xpList.__repr__ instead (for tabulation)
+        if 2*L < len(keys): keys = keys[:L] + ["..."] + keys[-L:]
+        keys = "[\n  " + ",\n  ".join(keys) + "\n]"
+        txt = f"<{self.__class__.__name__}> with {len(self)} keys: {keys}"
+        # txt += " befitting the coord. sys. with axes "
+        txt += "\nplaced in a coord-sys with axes "
+        try:
+            txt += "(and ticks):" + str(AlignedDict(self.ticks))
+        except AttributeError:
+            txt += ":\n" + str(self.axes)
+        return txt
+
+    def nest(self, inner_axes=None, outer_axes=None):
+        """Return a new xpSpace with axes ``outer_axes``,
+
+        obtained by projecting along the ``inner_axes``.
+        The entries of this ``xpSpace`` are themselves ``xpSpace``s,
+        with axes ``inner_axes``,
+        each one regrouping the entries with the same (projected) coordinate. 
+
+        Note: is also called by ``__getitem__(key)`` if ``key`` is dict."""
 
         # Default: a singleton outer space,
         # with everything contained in the inner (projection) space.
@@ -163,13 +276,13 @@ class SparseSpace(dict):
         # Fill spaces
         outer_space = self.__class__(outer_axes)
         for coord, entry in self.items():
-            outer_coord = outer_space.get_coord(coord)
+            outer_coord = outer_space.__getkey__(coord)
             try:
                 inner_space = outer_space[outer_coord]
             except KeyError:
                 inner_space = self.__class__(inner_axes)
                 outer_space[outer_coord] = inner_space
-            inner_space[inner_space.get_coord(coord)] = entry
+            inner_space[inner_space.__getkey__(coord)] = entry
 
         return outer_space
 
@@ -180,9 +293,9 @@ class SparseSpace(dict):
             self[coord + (None,)] = entry
 
     def intersect_axes(self, attrs):
-        """Rm those a in attrs that are not in self.axes, for ease-of-use:
+        """Rm those a in attrs that are not in self.axes.
         
-        allowing axes specifications currently not relevant."""
+        This allows errors in the axes allotment, for ease-of-use."""
         absent = complement(attrs, self.axes)
         if absent:
             print(color_text("Warning:"  ,cFG.RED), "The requested attributes",
@@ -193,7 +306,6 @@ class SparseSpace(dict):
                   "then it is likely to cause mis-interpretation of the shown results.")
             attrs = complement(attrs, absent)
         return attrs
-
 
     def label_xSection(self,label,*NoneAttrs,**sub_coord):
         """Insert duplicate entries for the cross section
@@ -206,17 +318,18 @@ class SparseSpace(dict):
         preventing them from being gobbled up in ``nest()``.
 
         If you wish, you can specify the ``NoneAttrs``,
-        which are consequently set to None for the duplicate entries,
+        which are consequently set to None for the duplicated entries,
         preventing them from getting plotted in tuning panels.
         """
 
         if "Const" not in self.axes:
             self.add_axis('Const')
 
-        for coord in self.matching_coords(**self.intersect_axes(sub_coord)):
+        for coord in self.coords(**self.intersect_axes(sub_coord)):
             entry = self[coord]
 
-            # Verify that ALL (not just those in self.axes) attrs match.
+            # Verify that ALL attrs (not just those in self.axes) match.
+            # TODO: necessary?
             if any( getattr(entry,a,"NO VALUE") != v for a,v in sub_coord.items()):
                 continue
 
@@ -225,7 +338,6 @@ class SparseSpace(dict):
             coord = coord._replace(**{a:None for a in NoneAttrs})
             self[coord] = entry
 
-##
 
 DEFAULT_ALLOTMENT = dict(
         outer=None,
@@ -235,19 +347,24 @@ DEFAULT_ALLOTMENT = dict(
         )
 
 class xpSpace(SparseSpace):
-    """Extends SparseSpace with functionality to present results from xps.
+    """Functionality to facilitate working with ``xps`` and their results.
 
-    Includes:
-    
-    - from_list() factory function insert a list of xps.
-    - table_tree(), which is used by 
-        - print()
-        - plot()
-    """
+    The function ``from_list()`` initializes a ``SparseSpace`` from a list
+    of objects, typically experiments referred to as ``xps``, by
+    (1) computing the relevant axes from the attributes, and
+    (2) filling the dict by ``xps``.
+
+    The main use of xpSpace is through its ``print()`` & ``plot()``,
+    both of which call ``table_tree()`` to nest the axes of the SparseSpace.
+    For custom plotting, you will likely want to start with ``table_tree()``.
+
+    Using ``from_list(xps)`` creates a SparseSpace holding ``xps``.
+    However, the nested ``xpSpace``s output by ``table_tree()``, will hold
+    objects of type ``UncertainQtty``,
+    coz ``table_tree()`` calls ``mean()`` calls ``field(statkey)``."""
 
     @classmethod
     def from_list(cls, xps):
-
         def make_ticks(axes, ordering=dict(
                     N         = 'default',
                     seed      = 'default',
@@ -286,7 +403,7 @@ class xpSpace(SparseSpace):
         self.ticks = axes
 
         # Fill
-        self.update({self.get_coord(xp):xp for xp in xps})
+        self.update({self.__getkey__(xp):xp for xp in xps})
 
         return self
 
@@ -315,14 +432,14 @@ class xpSpace(SparseSpace):
         return avrgs
 
     def mean(self, axes=None):
-
         # Note: The case ``axes=()`` should work w/o special treatment.
         if axes is None: return self
 
         nested = self.nest(axes)
         for coord, space in nested.items():
 
-            vals = [uq.val for uq in space.values()]
+            getval = lambda uq: uq.val if isinstance(uq,UncertainQtty) else uq
+            vals = [getval(uq) for uq in space.values()]
 
             # Don't use nanmean! It would give false impressions.
             mu = np.mean(vals)
@@ -404,7 +521,6 @@ class xpSpace(SparseSpace):
             axes[role] = aa
         return axes
 
-    
     def table_tree(xp_dict, statkey, axes):
         """Hierarchical nest(): xp_dict>outer>inner>mean>optim.
 
@@ -430,19 +546,18 @@ class xpSpace(SparseSpace):
             "uncluttered" that mean_tune() (or a few of its code lines)
             could be called anywhere above/between/below
             the ``nest()``ing of ``outer`` or ``inner``.
-            These possibile call locations are commented in the code.
-            """
+            These possibile call locations are commented in the code."""
             uq_dict = xp_dict.field(statkey)
             uq_dict = uq_dict.mean(axes['mean'])
             uq_dict = uq_dict.tune(axes['optim'])
             return uq_dict
 
-        # Prefer calling mean_tune() [see its docstring] here:
         xp_dict = mean_tune(xp_dict)
-        # This preference is because then the axes of
+        # Prefer calling mean_tune() [also see its docstring]
+        # before doing outer/inner nesting. This is because then the axes of
         # a row (xpSpace) should not include mean&optim, and thus:
         #  - Column header/coords may be had directly as row.keys(),
-        #    without extraction by get_coord() from (e.g.) row[0].
+        #    without extraction by __getkey__() from (e.g.) row[0].
         #  - Don't need to propagate mean&optim axes down to the row level.
         #    which would require defining rows by the nesting:
         #    rows = table.nest(outer_axes=complement(table.axes,
@@ -470,12 +585,15 @@ class xpSpace(SparseSpace):
 
         return axes, tables
 
-
     def axis_ticks_nn(self,axis_name):
         """Axis ticks without None"""
         return [x for x in self.ticks[axis_name] if x is not None]
 
-    def print(xp_dict, statkey="rmse.a", axes=DEFAULT_ALLOTMENT, subcols=True):
+    def tickz(self,axis_name):
+        return self.axis_ticks_nn(axis_name)
+
+    def print(xp_dict, statkey="rmse.a", axes=DEFAULT_ALLOTMENT,
+              subcols=True,decimals=None):
         """Print table of results.
 
         - statkey: The statistical field from the experiments to report.
@@ -508,7 +626,7 @@ class xpSpace(SparseSpace):
         def align_subcols(rows,cc,subcols,h2):
             """Subcolumns: align, justify, join."""
 
-            def unpack_uqs(uq_list, decimals=None):
+            def unpack_uqs(uq_list):
                 subcols=["val","conf","nFail","nSuccess","tuning_coord"]
 
                 # np.array with named columns.
@@ -519,7 +637,7 @@ class xpSpace(SparseSpace):
                     if uq is not None:
 
                         # Format v,c
-                        if decimals is None: v,c = uq.round(mult=0.2)
+                        if decimals is None: v,c = uq.round(mult=0.1)
                         else:                v,c = np.round([uq.val, uq.conf],decimals)
 
                         # Write attr's
@@ -639,18 +757,19 @@ class xpSpace(SparseSpace):
             headers, *rows = rows
             print(tabulate_orig.tabulate(rows,headers).replace('æ',' '))
 
-    
     def plot(xp_dict, statkey="rmse.a",
-            axes=DEFAULT_ALLOTMENT,
-            attrs_that_must_affect_color=('da_method',),
-            # style_dict generated from:
-            linestyle_axis=None,  linestyle_in_legend=True,
-               marker_axis=None,     marker_in_legend=True,
-                alpha_axis=None,      alpha_in_legend=True,
-                color_axis=None,      color_in_legend=True,
-            #
-            fignum=None,
-            costfun=None, 
+             axes=DEFAULT_ALLOTMENT, # TODO
+             coord2style=None,
+             attrs_that_must_affect_color=('da_method',),
+             # style_dict generated from:
+             linestyle_axis=None,  linestyle_in_legend=True,
+             marker_axis=None,     marker_in_legend=True,
+             alpha_axis=None,      alpha_in_legend=True,
+             color_axis=None,      color_in_legend=True,
+             #
+             fignum=None,
+             figsize=None,
+             costfun=None, 
             ):
         """Plot the avrgs of ``statkey`` as a function of axis["inner"].
         
@@ -665,15 +784,6 @@ class xpSpace(SparseSpace):
         If used, ``color_axis`` sets the cmap to a sequential (rainbow) colorscheme,
         whose coloring depends only on that attribute.
         """
-
-        def _format_label(label):
-            lbl = ''
-            for k, v in label.items():
-               if flexcomp(k, 'da_method', 'Const'):
-                   lbl = lbl + f' {v}'
-               else:
-                   lbl = lbl + f' {collapse_str(k)}:{v}'
-            return lbl[1:]
 
         def _get_tick_index(coord,axis_name):
             tick = getattr(coord,axis_name)
@@ -727,7 +837,6 @@ class xpSpace(SparseSpace):
                 return tab_colors[HASH%len(tab_colors)]
 
         # Style axes
-        # Load kwargs into dict-of-dicts
         _eval = lambda s, ns=locals(): eval(s,None,ns)
         style_dict = {}
         for a in ['alpha','color','marker','linestyle']:
@@ -775,7 +884,7 @@ class xpSpace(SparseSpace):
             label2 = {attr:val for attr,val in label.items()
                      if attr not in styled_attrs
                      or any(p['in_legend'] for p in styles_by_attr(attr))}
-            dct['label'] = _format_label(label2)
+            dct['label'] = make_label(label2)
 
             # Get tick inds
             tick_inds = {}
@@ -811,7 +920,9 @@ class xpSpace(SparseSpace):
         nrows = len(axes['optim'] or ()) + 1
         ncols = len(tables)
         screenwidth = 12.7 # my mac
-        tables.fig, panels = freshfig(num=fignum, figsize=(min(5*ncols,screenwidth),7),
+        figsize = figsize or ( min(5*ncols,screenwidth), 7 )
+
+        tables.fig, panels = freshfig(num=fignum, figsize=figsize,
                 nrows=nrows, sharex=True,
                 ncols=ncols, sharey='row',
                 gridspec_kw=dict(height_ratios=[6]+[1]*(nrows-1),hspace=0.05,
@@ -830,22 +941,21 @@ class xpSpace(SparseSpace):
         def plot_line(row, panels):
             """sort, insert None's, handle constants."""
 
+            # is_constant?
+            # If len=1 and key0=None:
+            # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
+            # This also works:
             row.is_constant = all(x == row.Coord(None) for x in row)
 
             if row.is_constant:
-                # This row is indep. of the x-axis => Make flat
+                # row does not depend on x-axis
+                # => display as constant line.
                 uqs = [row[0]]*len(xticks)
                 row.style['marker'] = None
                 row.style['lw'] = mpl.rcParams['lines.linewidth']/2
                 # row.style['ls'] = "--"
-
             else:
-                def get_uq(x):
-                    coord = row.Coord(x)
-                    try:             return row[coord]
-                    except KeyError: return None
-                # Sort uq's. Insert None if x missing.
-                uqs = [get_uq(x) for x in xticks]
+                uqs = row.get_for(xticks)
 
             # Extract attrs
             row.vals = [getattr(uq,'val',None) for uq in uqs]
@@ -877,7 +987,10 @@ class xpSpace(SparseSpace):
 
             # Plot
             for coord, row in table.items():
-                row.style = get_style(coord)
+                if coord2style:
+                    row.style = coord2style(coord)
+                else:
+                    row.style = get_style(coord)
                 plot_line(row, table.panels)
                 
             # Beautify top_panel
@@ -890,12 +1003,19 @@ class xpSpace(SparseSpace):
             table.panels[-1].set_xlabel(axes["inner"][0])
             # Beautify tuning axes
             for a, ax in zip(axes["optim"] or (), table.panels[1:]):
+                # Get ylims
                 axis = xp_dict.axis_ticks_nn(a)
                 if isinstance(axis[0], bool):
                     ylims = 0, 1
                 else:
                     ylims = axis[0], axis[-1]
-                ax.set_ylim(*stretch(*ylims,1.02))
+                # Set ylims
+                if ax.get_yscale() == "log":
+                    ylims = 10**(stretch(*np.log10(ylims), 1.2))
+                    ax.set_ylim(*ylims)
+                else:
+                    ax.set_ylim(*stretch(*ylims,1.2))
+                # Sety ylabel
                 if ax.is_first_col():
                     ax.set_ylabel(f"Optim.\n{a}")
 
@@ -942,4 +1062,90 @@ def beautify_fig_ex3(tabulated_data, save_as, xp_dict):
                 if axis in ax.get_ylabel():
                     yy = xp_dict.axis_ticks_nn(axis)
                     axis_scale_by_array(ax, yy, "y")
-##
+
+
+
+def make_label(dct):
+    lbl = ''
+    for k, v in dct.items():
+       if flexcomp(k, 'da_method', 'Const'):
+           lbl = lbl + f' {v}'
+       else:
+           lbl = lbl + f' {collapse_str(k,7)}:{v}'
+    return lbl[1:]
+
+
+def default_style(coord, baseline_legends=False, v=2):
+    style = DotDict(ms=10)
+
+    label = {a:v for a,v in coord._asdict().items() if v!=None}
+    style.label = make_label(label)
+
+    try:
+        if coord.da_method == "Climatology":
+            style.order = 10
+            style.ls = ":"
+            style.c = "k"
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == "OptInterp":
+            style.order = 20
+            style.ls = ":"
+            style.c = .7*ones(3)
+            style.label = "Opt. Interp."
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == "Var3D":
+            style.order = 30
+            style.ls = ":"
+            style.c = .5*ones(3)
+            style.label = "3D-Var"
+            if not baseline_legends:
+                style.label = None
+
+        else:
+            style.marker=".",
+
+        if v>=2:
+            if coord.da_method == "EnKF":
+                style.order = 40
+                style.marker = "*"
+                style.c = "c"
+
+            if coord.da_method == "PartFilt":
+                style.order = 50
+                style.marker = "X"
+                style.c = "orange"
+
+    except AttributeError:
+        pass
+
+    return style
+
+
+from matplotlib import cm
+
+def cm_bond(cmap,xp_dict,axis,vmin=0,vmax=0):
+    """Map cmap for coord.axis ∈ [0, len(ticks)]."""
+    def link(coord):
+        """Essentially: cmap(ticks.index(coord.axis))"""
+        if hasattr(coord,axis):
+            ticks = xp_dict.ticks[axis]
+            cNorm = mpl.colors.Normalize(vmin, vmax + len(ticks))
+            ScMap = cm.ScalarMappable(cNorm,cmap).to_rgba
+            index = ticks.index(getattr(coord,axis))
+            return ScMap(index)
+        else:
+            return cmap(0.5)
+    return link
+
+def in_idx(coord, indices, xp_dict, axis):
+    """Essentially: coord.axis in ticks[indices]"""
+    if hasattr(coord, axis):
+        ticks = array(xp_dict.ticks[axis])[indices]
+        return getattr(coord, axis) in ticks
+    else:
+        return True
+
