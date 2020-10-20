@@ -195,7 +195,7 @@ def da_method(*default_dataclasses):
     return dataclass_with_defaults
 
 
-def default_setup(HMM,xp):
+def seed_and_simulate(HMM,xp):
     set_seed(getattr(xp,'seed',False))
     xx, yy = HMM.simulate()
     return xx, yy
@@ -215,7 +215,7 @@ def run_experiment(xp, label, savedir, HMM,
     - xp.avrgs.tabulate()        : result printing
     - dill.dump()                : result storage
 
-    If ``setup == None``: use ``default_setup()``.""" 
+    If ``setup == None``: use ``seed_and_simulate()``.""" 
 
     # We should copy HMM so as not to cause any nasty surprises such as
     # expecting param=1 when param=2 (coz it's not been reset).
@@ -223,7 +223,7 @@ def run_experiment(xp, label, savedir, HMM,
     hmm = deepcopy(HMM)
 
     # GENERATE TRUTH/OBS
-    xx, yy = (setup or default_setup)(hmm,xp)
+    xx, yy = setup(hmm,xp)
 
     # ASSIMILATE
     try:
@@ -275,7 +275,7 @@ class xpList(list):
      - ``inds()`` to search by kw-attrs.
      """
 
-    def __init__(self,*args,unique=True):
+    def __init__(self,*args,unique=False):
         """Initialize without args, or with a list of configs.
 
         If ``unique``: duplicates won't get appended.
@@ -464,7 +464,8 @@ class xpList(list):
 
         return table.splitlines()
 
-    def launch(self, HMM, save_as="noname", mp=False, **kwargs):
+    def launch(self, HMM, save_as="noname", mp=False,
+               setup=seed_and_simulate, fail_gently=None, **kwargs):
         """For each xp in self: run_experiment(xp, ...).
         
         The results are saved in ``rc.dirs['data']/save_as.stem``,
@@ -479,17 +480,31 @@ class xpList(list):
         
         See ``example_2.py`` and ``example_3.py`` for example use.
         """
+        # TODO: doc files and code options in mp, e.g
+        # `files` get added to PYTHONPATH and have dir-structure preserved.
+        # Setup: Experiment initialisation. Default: seed_and_simulate().
+        #   Enables setting experiment variables that are not parameters of a da_method.
 
+        # Collect common args forwarded to run_experiment
         kwargs['HMM'] = HMM
+        kwargs["setup"] = setup
 
         # Parse mp option
-        if not mp               : mp = False
-        elif mp in [True, "MP"] : mp = dict(server="local")
-        elif isinstance(mp, int): mp = dict(server="local",NPROC=mp)
-        elif mp=="GCP"          : mp = dict(server="GCP", files=[], code="")
-        else                    : assert isinstance(mp,dict)
+        if not mp                   : mp = False
+        elif mp in [True, "MP"]     : mp = dict(server="local")
+        elif isinstance(mp, int)    : mp = dict(server="local",NPROC=mp)
+        elif mp in ["GCP","Google"] : mp = dict(server="GCP", files=[], code="")
+        else                        : assert isinstance(mp,dict)
 
-        # Process save_as
+        # Parse fail_gently
+        if fail_gently is None:
+            if isinstance(mp,dict) and mp["server"] == "GCP":
+                fail_gently = False # coz cloud processing is entirely de-coupled anyways
+            else:
+                fail_gently = True
+        kwargs["fail_gently"] = fail_gently
+
+        # Parse save_as
         if save_as in [None,False]:
             assert not mp, "Multiprocessing requires saving data."
             # Parallelization w/o storing is possible, especially w/ threads.
@@ -580,3 +595,30 @@ class xpList(list):
             submit_job_GCP(save_as)
 
         return save_as
+
+
+def get_param_setter(param_dict, **glob_dict):
+    """Mass creation of xp's by combining the value lists in the parameter dicts.
+
+    The parameters are trimmed to the ones available for the given method.
+    This is a good deal more efficient than relying on xpList's unique=True.
+
+    Beware! If, eg., [infl,rot] are in the param_dict, aimed at the EnKF,
+    but you forget that they are also attributes some method where you don't
+    actually want to use them (eg. SVGDF),
+    then you'll create many more than you intend.
+    """
+    def for_params(method, **fixed_params):
+        dc_fields = [f.name for f in dc.fields(method)]
+        params = intersect(param_dict, dc_fields)
+        params = complement(params, fixed_params)
+        params = {**glob_dict, **params} # glob_dict 1st
+
+        def xp1(dct):
+            xp = method(**intersect(dct, dc_fields),**fixed_params)
+            for key, v in intersect(dct, glob_dict).items():
+                setattr(xp,key,v)
+            return xp
+
+        return [xp1(dct) for dct in dict_product(params)]
+    return for_params

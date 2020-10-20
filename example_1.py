@@ -3,10 +3,10 @@
 # Load DAPPER
 from dapper import *
 
-# Fix seed by number for absolute reproducibility.
-set_seed(3)
+# Generate the same random numbers
+set_seed(3000)
 
-# Load experiment setup: the hidden Markov Model (HMM)
+# Load experiment setup: the hidden Markov model (HMM)
 from dapper.mods.Lorenz63.sakov2012 import HMM
 HMM.t.T = 30 # shorten experiment
 
@@ -18,17 +18,17 @@ config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
 # config = Var3D()
 # config = PartFilt(N=100,reg=2.4,NER=0.3)
 
-# Assimilate yy, knowing the HMM; xx is used for assessment.
-config.assimilate(HMM,xx,yy, liveplots=True)
+# Assimilate yy, knowing the HMM; xx is used to assess the performance
+config.assimilate(HMM, xx, yy, liveplots=True)
 
-# Average stats time series
+# Average the time series of various statistics
 config.stats.average_in_time()
 
-# Print averages
+# Print some averages
 print(config.avrgs.tabulate(['rmse.a','rmv.a']))
 
-# Replay liveplotters -- can adjust speed, time-window, etc.
-replay(config.stats)
+# Replay liveplotters
+replay(config.stats, speed=np.inf)
 
 # Further diagnostic plots:
 # plot_rank_histogram(config.stats)
@@ -41,11 +41,16 @@ replay(config.stats)
 # print(config.stats)
 # print(config.avrgs)
 
+# Excercise: Why does the replay look jagged?
+# Hint: provide the keyword store_u=True to assimilate() to avoid this.
+
+# Excercise: Why does the replay only contain the blue lines?
+
 # Excercise: Try using
 # - Optimal interpolation
 # - The (extended) Kalman filter
 # - The iterative EnKS
-# Hint: suggested DA configs are listed in the HMM file.
+# Hint: suggested DA configs are listed in the HMM file
 
 # Excercise: Run an experiment for each of the models:
 # - LotkaVolterra

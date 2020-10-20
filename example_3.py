@@ -1,127 +1,157 @@
-"""Illustrate usage of DAPPER to run MANY benchmark experiments
+"""Illustrate usage of DAPPER to run MANY benchmark experiments.
 
-(to explore a bunch of control variables),
+Launch many experiments (to explore a bunch of control variables),
 and plot the compiled results as in a variety of ways.
 
-In particular, we will reproduce figure 6.6 from Ref[1].
+As an example, we will reproduce Figure 6.6 from Ref[1].
 The figure reveals the (relative) importance (in the EnKF) of
 localization and inflation.
 
 The code also demonstrates:
-    - Parallelization (accross independent experiments) with mp=True/GCP.
-    - Data management with xpSpace: load, sub-select, print, plot.
+- Parallelization (accross independent experiments) with mp=True/Google.
+- Data management with xpSpace: load, sub-select, print, plot.
 
-Note: unless you have a lot of CPUs available, you probably want to reduce
-    the number of experiments (by shortening the list of ``seed``
-    or some other variable) in the code below.
+NB: unless you have access to the DAPPER cluster, you probably want to reduce
+the number of experiments by shortening the list of ``seed``
+(and maybe those of some tuning parameters) and/or reducing ``KObs``.
 
-Ref[1]: Book: "Data Assimilation: Methods, Algorithms, and Applications"
-    by M. Asch, M. Bocquet, M. Nodet.
-    http://books.google.no/books?id=FtDZDQAAQBAJ&q=figure+6.6
-    Alternative source: "Figure 5.7" of:
-    cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf
+Ref[1]: Asch, Bocquet, Nodet: "Data Assimilation: Methods, Algorithms, and Applications",
+    https://books.google.no/books?id=FtDZDQAAQBAJ&q=figure+6.6 . Alternatively, see
+    http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf (its figure 5.7).
 """
 
 from dapper import *
-sd0 = set_seed(3)
 
 ##############################
 # Hidden Markov Model
 ##############################
-from   dapper.mods.Lorenz96.bocquet2015loc import HMM
-import dapper.mods.Lorenz96.core as core
+from dapper.mods.Lorenz96.bocquet2015loc import HMM
 
-# This is shorter than Ref[1], but we also use repetitions.
-HMM.t.BurnIn = 5
-HMM.t.KObs = 10**3
+def setup(hmm,xp):
+    """Experiment init.: Set Lorenz-96 forcing. Seed. Simulate truth/obs."""
+    import dapper.mods.Lorenz96.core as core
+    core.Force = xp.F
+    return seed_and_simulate(hmm,xp)
 
-HMM.param_setters = dict(
-        F = lambda x: setattr(core,'Force',x)
-)
-
+# This is shorter than Ref[1], but we also use repetitions (a seed list).
+HMM.t.KObs = 10**4
 
 ##############################
 # DA Configurations
 ##############################
-cfgs = xpList(unique=True)
+params = dict(
+    xB       = [.1, .2, .4, 1],
+    N        = [5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50],
+    infl     = 1+array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]),
+    rot      = [True, False],
+    loc_rad  = round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]),
+)
 
-for N in ccat(arange(5,10), arange(10, 20, 2), arange(20, 55, 5)):
-    for infl in 1+array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]):
-        for R in round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]):
-            for rot in [False,True]:
-                cfgs += Climatology()
-                cfgs += OptInterp()
-                cfgs += EnKF   ('PertObs', N, infl=infl, rot=rot            )
-                cfgs += EnKF   ('Sqrt',    N, infl=infl, rot=rot            )
-                cfgs += EnKF_N (           N,            rot=rot            )
-                cfgs += LETKF  (           N, infl=infl, rot=rot, loc_rad=R )
-
-# Replicate all cfgs accross non-da_method control variables
 xps = xpList()
-for seed in range(8): # Experiment repetitions
-    for F in [8,10]:  # L96 Forcing param
-        for xp in deepcopy(cfgs):
-            xp.seed = seed
-            xp.HMM_F = F
-            xps += xp
+for_params = get_param_setter(params, seed=3000+arange(10), F=[8,10])
+xps += for_params(Climatology)
+xps += for_params(OptInterp)
+xps += for_params(Var3D, B="eye")
+xps += for_params(EnKF, upd_a="PertObs")
+xps += for_params(EnKF, upd_a="Sqrt")
+xps += for_params(EnKF_N, infl=1.0)
+xps += for_params(LETKF)
 
 
 ##############################
 # Run experiments
 ##############################
 
-GCP = dict(server="GCP", extra_files=[],
-exec="""import dapper.mods.Lorenz96.core as core""")
+# Paralellize/distribute experiments across CPUs.
+mp = False    # 1 CPU only
+# mp = 7        # 7 CPUs (requires that you pip-installed DAPPER with [MP])
+# mp = True     # All CPUs 
+# mp = "Google" # Requires access to DAPPER cluster
 
-savepath = xps.launch(HMM,sd0,__file__,mp=GCP)
-
-# xps.print_avrgs()
+save_as = xps.launch(HMM,__file__,mp,setup)
 
 
 ##############################
 # Plot results
 ##############################
-# The following **only** uses saved data
-# => Can run as a separate script, where save_as is manually set.
-# For example, I have result-data stored at:
-# save_as = '~/dpr_data/example_3/run1'
+# The following "section" **only** uses saved data.
+# => Can run as a separate script, by setting save_as manually, e.g.
+# save_as = rc.dirs.data / "example_3" / "run2"
 
 # Load
 xps = load_xps(save_as)
 
-# Remove experiments we don't want to print/plot at the moment
-xps = [xp for xp in xps if True
-    # and getattr(xp,'upd_a'    ,None) != "PertObs"
-    and getattr(xp,'da_method',None) != "EnKF_N"
-    and 6 <= getattr(xp,'HMM_F',nan) <= 9
-    ]
-
-# Print all
+# Prints all
 # xpList(xps).print_avrgs(statkeys=["rmse.a","rmv.a"])
 
 # Associate each control variable with a coordinate/dimension
-xp_dict = xpSpace.from_list(xps)
+xp_dict = xpSpace.from_list(xps) 
 
-# Single out (highlight) particular settings
+# Single out (highlight) particular settings.
 # Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
-# as well as rot=True (better scores obtainable w/o rot).
+#       as well as rot=True (better scores can be obtained without rot).
 point_out = xp_dict.label_xSection
 point_out('NO-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
 point_out('NO-infl/loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
 
 # Print, with columns: `inner`. Also try setting `outer=None`.
-tunable = ('loc_rad','infl','rot')
-axes = dict(outer="da_method",inner="N",mean="seed",optim=tunable)
+tunable = {'loc_rad','infl','xB','rot'}
+axes = dict(outer="F",inner="N",mean="seed",optim=tunable)
 xp_dict.print("rmse.a", axes, subcols=False)
 
-# Plot -- try changing the axis allotments
-# (as suggested by the lines that are commented out).
+# Line colors, etc
+def get_style(coord):
+    """Quick and dirty styling."""
+    S = default_styles(coord,True)
+    if coord.da_method == "EnKF":
+        upd_a = getattr(coord,"upd_a",None)
+        if   upd_a == "PertObs": S.c = "C2"
+        elif upd_a == "Sqrt":    S.c = "C1"
+    elif coord.da_method == "LETKF": S.c = "C3"
+    if getattr(coord,"rot"  ,False): S.marker = "+"
+    Const = getattr(coord,"Const",False)
+    if str(Const).startswith("NO-"):
+        S.ls = "--"; S.marker = None; S.label=Const
+    return S
+
+# Plot
 plt.ion()
-tabulated_data = xp_dict.plot('rmse.a', axes, # fignum=1,
-    #     marker_axis="da_method", color_axis='infl', color_in_legend=False, 
-    #     marker_axis='seed',                        marker_in_legend=False,
-    #  linestyle_axis="rot",                      linestyle_in_legend=True,
-         marker_axis='da_method',                   marker_in_legend=True,
-    )
-# Custom adjustments
-beautify_fig_ex3(tabulated_data, save_as, xp_dict)
+tables = xp_dict.plot('rmse.a', axes, get_style, title2=save_as)
+default_fig_adjustments(tables)
+
+
+##############################
+#  Plot with color gradient  #
+##############################
+
+# Remove experiments we don't want to plot here
+xps = [xp for xp in xps if getattr(xp,"Const",None)==None]
+xp_dict = xpSpace.from_list(xps) 
+
+# Setup mapping: loc_rad --> color gradient 
+graded = "loc_rad"
+axes["optim"] -= {graded}
+grades = xp_dict.tickz(graded)
+# cmap, sm = discretize_cmap(cm.Reds, len(grades), .2)
+cmap, sm = discretize_cmap(cm.rainbow, len(grades))
+
+# Line colors, etc
+def get_style_with_gradient(coord):
+    S = get_style(coord)
+    if coord.da_method=="LETKF":
+        grade = rel_index(getattr(coord,graded),grades,1)
+        S.c = cmap(grade)
+        S.marker = None
+        S.label = make_label(coord,exclude=[graded])
+    return S
+
+# Plot
+tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
+default_fig_adjustments(tables)
+
+# Colorbar
+cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0],label=graded)
+cb.set_ticks(arange(len(grades))); cb.set_ticklabels(grades)
+
+# Excercise:
+# Make a get_style() that works well with graded = "infl".

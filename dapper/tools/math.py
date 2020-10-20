@@ -290,7 +290,13 @@ def validate_int(x):
     assert is_whole(x)
     return round(x) # convert to int
 
+def isNone(x):
+    """x==None that also works for x being an np.ndarray.
 
+    Since python3.8 ``x is None`` throws warning.
+    
+    Ref: np.isscalar docstring."""
+    return np.ndim(x)==0 and x==None
 
 ########################
 # Misc

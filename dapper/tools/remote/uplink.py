@@ -101,7 +101,9 @@ def submit_job_GCP(xps_path, **kwargs):
 
         # Prepare download command
         print("To download results (before completion) use:")
-        print(sc.rsync(xps_path.parent, f"~/{xps_path.name}", rev=True, dry=True, use_M=False))
+        xcldd = ["xp.com","DAPPER","runlog","err"] # "out\\.*"
+        xcldd = ["--exclude="+x for x in xcldd]
+        print(sc.rsync(xps_path.parent, f"~/{xps_path.name}", rev=True, opts=xcldd, dry=True, use_M=False))
 
         monitor_progress(sc)
     except:
@@ -111,8 +113,6 @@ def submit_job_GCP(xps_path, **kwargs):
         raise
     else:
         print("Downloading results")
-        xcldd = ["xp.com","DAPPER","runlog","err"] # "out\\.*"
-        xcldd = ["--exclude="+x for x in xcldd]
         sc.rsync(xps_path.parent, f"~/{xps_path.name}", rev=True, opts=xcldd, prog=True)
     finally:
         # print("Checking for autoscaler cron job:") # let user know smth's happenin

@@ -463,7 +463,7 @@ def de_abbreviate(abbrev_d, abbreviations):
             abbrev_d[b] = abbrev_d[a]
             del abbrev_d[a]
 
-def collapse_str(string,length=5):
+def collapse_str(string,length=6):
     """Abbreviate string to ``length``"""
     if len(string)<=length:
         return string

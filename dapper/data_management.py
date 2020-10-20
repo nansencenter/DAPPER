@@ -10,6 +10,117 @@ import hashlib
 from matplotlib import ticker
 import logging
 mpl_logger = logging.getLogger('matplotlib')
+from matplotlib import cm
+
+
+NO_KEY = ("da_method","Const","upd_a")
+def make_label(coord,no_key=NO_KEY,exclude=()):
+    dct = {a:v for a,v in coord._asdict().items() if v!=None}
+    lbl = ''
+    for k, v in dct.items():
+        if k not in exclude:
+            if any(x in k for x in no_key):
+                lbl = lbl + f' {v}'
+            else:
+                lbl = lbl + f' {collapse_str(k,7)}:{v}'
+    return lbl[1:]
+
+
+def default_styles(coord, baseline_legends=False):
+    """Quick and dirty (but somewhat robust) styling."""
+    style = DotDict(ms=8)
+    style.label = make_label(coord)
+
+    try:
+        if coord.da_method == "Climatology":
+            style.ls = ":"
+            style.c = "k"
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == "OptInterp":
+            style.ls = ":"
+            style.c = .7*ones(3)
+            style.label = "Opt. Interp."
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == "Var3D":
+            style.ls = ":"
+            style.c = .5*ones(3)
+            style.label = "3D-Var"
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == "EnKF":
+            style.marker = "*"
+            style.c = "C1"
+
+        elif coord.da_method == "PartFilt":
+            style.marker = "X"
+            style.c = "C2"
+
+        else:
+            style.marker="."
+
+    except AttributeError:
+        pass
+
+    return style
+
+def rel_index(elem, lst, default=None):
+    """``lst.index(elem) / len(lst)`` with fallback."""
+    try:
+        return lst.index(elem) / len(lst)
+    except ValueError:
+        if default == None:
+            raise
+        return default
+
+def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
+    """Discretize cmap so that it partitions [0,1] into N segments.
+
+    I.e. cmap(k/N) == cmap(k/N + eps).
+    
+    Also provide the ScalarMappable ``sm``
+    that maps range(N) to the segment centers,
+    as will be reflected by ``cb = fig.colorbar(sm)``.
+    You can then re-label the ticks using
+    ``cb.set_ticks(arange(N)); cb.set_ticklabels(["A","B","C",...])``."""
+    # cmap(k/N)
+    from_list = mpl.colors.LinearSegmentedColormap.from_list
+    colors = cmap(linspace(val0,val1,N))
+    cmap = from_list(name, colors, N)
+    # sm
+    cNorm = mpl.colors.Normalize(-.5, -.5+N)
+    sm = mpl.cm.ScalarMappable(cNorm,cmap)
+    return cmap, sm
+
+
+
+def cm_bond(cmap,xp_dict,axis,vmin=0,vmax=0):
+    """Map cmap for coord.axis ∈ [0, len(ticks)]."""
+    def link(coord):
+        """Essentially: cmap(ticks.index(coord.axis))"""
+        if hasattr(coord,axis):
+            ticks = xp_dict.ticks[axis]
+            cNorm = mpl.colors.Normalize(vmin, vmax + len(ticks))
+            ScMap = cm.ScalarMappable(cNorm,cmap).to_rgba
+            index = ticks.index(getattr(coord,axis))
+            return ScMap(index)
+        else:
+            return cmap(0.5)
+    return link
+
+def in_idx(coord, indices, xp_dict, axis):
+    """Essentially: coord.axis in ticks[indices]"""
+    if hasattr(coord, axis):
+        ticks = array(xp_dict.ticks[axis])[indices]
+        return getattr(coord, axis) in ticks
+    else:
+        return True
+
+
 
 def load_HMM(save_as):
     save_as = Path(save_as).expanduser()
@@ -100,7 +211,9 @@ def reduce_inodes(save_as):
     This reduces the **number** of files (inodes) on the system,
     which limits storage capacity (along with **size**).
 
-    It also reduces loading times."""
+    It also deletes files "xp.var" and "out" (which tends to be relatively
+    large coz of the progbar).
+    This is probably also the reason that the loading time is sometimes reduced."""
     overwrite_xps(load_xps(save_as),save_as)
 
 
@@ -339,7 +452,7 @@ class SparseSpace(dict):
             self[coord] = entry
 
 
-DEFAULT_ALLOTMENT = dict(
+AXES_ROLES = dict(
         outer=None,
         inner=None,
         mean=None,
@@ -481,7 +594,7 @@ class xpSpace(SparseSpace):
                 if i==0 or cost<=MIN:
                     MIN = cost
                     uq_opt = uq
-                    uq_opt.tuning_coord = inner_coord
+                    uq_opt.tuned_coord = inner_coord
 
             nested[coord] = uq_opt
 
@@ -495,9 +608,9 @@ class xpSpace(SparseSpace):
               Use ``axis or ()`` wherever tuples are required.
         """
         roles = {} # "inv"
-        for role in set(axes) | set(DEFAULT_ALLOTMENT):
-            assert role in DEFAULT_ALLOTMENT, f"Invalid role {role!r}"
-            aa = axes.get(role,DEFAULT_ALLOTMENT[role])
+        for role in set(axes) | set(AXES_ROLES):
+            assert role in AXES_ROLES, f"Invalid role {role!r}"
+            aa = axes.get(role,AXES_ROLES[role])
 
             if aa is None:
                 pass # Purposely special
@@ -585,14 +698,11 @@ class xpSpace(SparseSpace):
 
         return axes, tables
 
-    def axis_ticks_nn(self,axis_name):
+    def tickz(self,axis_name):
         """Axis ticks without None"""
         return [x for x in self.ticks[axis_name] if x is not None]
 
-    def tickz(self,axis_name):
-        return self.axis_ticks_nn(axis_name)
-
-    def print(xp_dict, statkey="rmse.a", axes=DEFAULT_ALLOTMENT,
+    def print(xp_dict, statkey="rmse.a", axes=AXES_ROLES,
               subcols=True,decimals=None):
         """Print table of results.
 
@@ -627,7 +737,7 @@ class xpSpace(SparseSpace):
             """Subcolumns: align, justify, join."""
 
             def unpack_uqs(uq_list):
-                subcols=["val","conf","nFail","nSuccess","tuning_coord"]
+                subcols=["val","conf","nFail","nSuccess","tuned_coord"]
 
                 # np.array with named columns.
                 dtype = np.dtype([(c,_otype) for c in subcols])
@@ -664,7 +774,7 @@ class xpSpace(SparseSpace):
                     subc['spaces']   = [' ±'    , ] # last one gets appended below.
                     subc['aligns']   = ['>'     , '<'] # 4 header -- matter gets decimal-aligned.
                     if axes['optim'] is not None:
-                        subc['keys']    += ["tuning_coord"]
+                        subc['keys']    += ["tuned_coord"]
                         subc['headers'] += [axes['optim']]
                         subc['frmts']   += [lambda x: tuple(a for a in x)]
                         subc['spaces']  += [' *']
@@ -709,6 +819,7 @@ class xpSpace(SparseSpace):
 
             return rows
 
+        print(f"Averages over {axes['mean']}\n" if axes['mean'] else "",end="")
         axes, tables = xp_dict.table_tree(statkey, axes)
         for table_coord, table in tables.items():
 
@@ -751,296 +862,129 @@ class xpSpace(SparseSpace):
             # Print
             print("\n",end="")
             if axes['outer']:
-                table_title = "•Table for " + repr(table_coord) + "."
-                table_title = table_title + (f" •Averages over {axes['mean']}." if axes['mean'] else "")
+                table_title = "Table for " + repr(table_coord)
                 print(color_text(table_title, cBG.YELLOW))
             headers, *rows = rows
             print(tabulate_orig.tabulate(rows,headers).replace('æ',' '))
 
-    def plot(xp_dict, statkey="rmse.a",
-             axes=DEFAULT_ALLOTMENT, # TODO
-             coord2style=None,
-             attrs_that_must_affect_color=('da_method',),
-             # style_dict generated from:
-             linestyle_axis=None,  linestyle_in_legend=True,
-             marker_axis=None,     marker_in_legend=True,
-             alpha_axis=None,      alpha_in_legend=True,
-             color_axis=None,      color_in_legend=True,
-             #
-             fignum=None,
-             figsize=None,
-             costfun=None, 
-            ):
-        """Plot the avrgs of ``statkey`` as a function of axis["inner"].
+
+    def plot(xp_dict, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
+             fignum=None, figsize=None, panels=None,
+             title2=None, costfun=None, unique_labels=True):
+        """Plot the avrgs of ``statkey`` as a function of ``axis["inner"]``.
         
-        Initially, mean/optimum comps are done for
-        ``axis["mean"]``, ``axis["optim"]``.
-        The argmins are plotted on smaller axes below the main plot.
-        The experiments can (optional) also be grouped by ``axis["outer"]``,
-        yielding a figure with columns of panels.
+        Firs of all, though, mean and optimum computations are done for
+        ``axis["mean"]`` and ``axis["optim"]``.
 
-        Assign ``style_axis``,
-        where ``style`` is a linestyle aspect such as (linestyle, marker, alpha).
-        If used, ``color_axis`` sets the cmap to a sequential (rainbow) colorscheme,
-        whose coloring depends only on that attribute.
-        """
+        The optimal parameters are plotted in panels below the main plot.
+        This can be prevented by providing the figure axes in ``panels``.
 
-        def _get_tick_index(coord,axis_name):
-            tick = getattr(coord,axis_name)
-            if tick is None:
-                # By design, None should occur at end of axis,
-                # and the index -1 would typically be a suitable flag.
-                # However, sometimes we'd like further differentiation, and so:
-                index = None
-            else:
-                ax = xp_dict.axis_ticks_nn(axis_name)
-                index = ax.index(tick)
-                if index == len(ax)-1:
-                    index = -1
-            return index
+        Optionally, the experiments can be grouped by ``axis["outer"]``,
+        producing a figure with columns of panels."""
 
-        from matplotlib.lines import Line2D
-        markers = complement(Line2D.markers.keys(), [','])
-        markers = markers[markers.index(".")+1:markers.index("_")]
-        linestyles = ['--', '-.', ':']
-        cmap = plt.get_cmap('jet')
+        def plot1(panelcol, row, style):
+            """Plot a given line (row) in the main panel and the optim panels.
+            
+            Involves: Sort, insert None's, handle constant lines."""
 
-        def _marker(index):
-            axis = xp_dict.axis_ticks_nn(marker_axis)
-            if index in [None, -1]:   return '.'
-            else:                     return markers[index%len(markers)]
-        def _linestyle(index):
-            axis = xp_dict.axis_ticks_nn(linestyle_axis)
-            if index in [None, -1]:   return '-'
-            else:                     return linestyles[index%len(linestyles)]
-        def _alpha(index):
-            axis = xp_dict.axis_ticks_nn(alpha_axis)
-            if   index in [None, -1]: return 1
-            else:                     return ((1+index)/len(axis))**1.5
-        def _color(index):
-            axis = xp_dict.axis_ticks_nn(color_axis)
-            if   index is None:       return None
-            elif index == -1:         return cmap(1)
-            else:                     return cmap((1+index)/len(axis))
+            # Make a full row (yy) of vals, whether is_constant or not.
+            # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
+            row.is_constant = all(x == row.Coord(None) for x in row)
+            yy = [row[0] if row.is_constant else y for y in row.get_for(xticks)]
 
-        tab_colors = plt.get_cmap('tab20').colors
-        def _color_by_hash(x):
-            """Color as a (deterministic) function of x."""
+            # Plot main
+            row.vals = [getattr(y,'val',None) for y in yy]
+            row.handles = {}
+            row.handles["main_panel"] = panelcol[0].plot(xticks, row.vals, **style)[0]
 
-            # Particular cases
-            if   x=={'da_method': 'Climatology'}: return (0,0,0)
-            elif x=={'da_method': 'OptInterp'}:   return (0.5,0.5,0.5)
-            else: # General case
-                x = str(x).encode() # hashable
-                # HASH = hash(tuple(x)) # Changes randomly each session
-                HASH = int(hashlib.sha1(x).hexdigest(),16)
-                return tab_colors[HASH%len(tab_colors)]
+            # Plot tuning params
+            row.tuned_coords = {} # Store ordered, "transposed" argmins
+            argmins = [getattr(y,'tuned_coord',None) for y in yy]
+            for a, panel in zip(axes["optim"], panelcol[1:]): 
+                yy = [getattr(coord,a,None) for coord in argmins]
+                row.tuned_coords[a] = yy
 
-        # Style axes
-        _eval = lambda s, ns=locals(): eval(s,None,ns)
-        style_dict = {}
-        for a in ['alpha','color','marker','linestyle']:
-            if _eval(f"{a}_axis"):
-                style_dict[a] = dict(
-                    axis      = _eval(f"{a}_axis"),
-                    in_legend = _eval(f"{a}_in_legend"),
-                    formtr    = _eval(f"_{a}"),
-                    )
-        def styles_by_attr(attr):
-            return [p for p in style_dict.values() if p['axis']==attr]
-        styled_attrs = [p['axis'] for p in style_dict.values()]
+                # Plotting all None's sets axes units (like any plotting call)
+                # which can cause trouble if the axes units were actually supposed
+                # to be categorical (eg upd_a), but this is only revealed later.
+                if not all(y==None for y in yy):
+                    row.handles[a] = panel.plot(xticks, yy, **style)
 
-        # Main axes
-        axes, tables = xp_dict.table_tree(statkey, axes)
-        xticks = xp_dict.axis_ticks_nn(axes["inner"][0])
-
-        # Validate axes
+        # Nest axes through table_tree()
         assert len(axes["inner"])==1, "You must chose the abscissa."
-        for ak in style_dict:
-            av = style_dict[ak]['axis']
-            assert av in xp_dict.axes, f"Axis {av!r} not among xp_dict.axes."
-            for bk in axes:
-                bv = axes[bk]
-                assert bv is None or (av not in bv), \
-                        f"{ak}_axis={av!r} already used by axes[{bk!r}]"
+        axes, tables = xp_dict.table_tree(statkey, axes)
+        xticks = xp_dict.tickz(axes["inner"][0])
 
-        def get_style(coord):
-            """Define line properties"""
-
-            dct = {'markersize': 6}
-
-            # Convert coord to label (dict with relevant attrs)
-            label = {attr:val for attr,val in coord._asdict().items()
-                    if ( (axes["outer"] is None) or (attr not in axes["outer"]) )
-                    and val not in [None, "NULL", 'on x-axis']}
-
-            # Assign color by label
-            label1 = {attr:val for attr,val in label.items()
-                     if attr in attrs_that_must_affect_color
-                     or attr not in styled_attrs}
-            dct['color'] = _color_by_hash(label1)
-
-            # Assign legend label
-            label2 = {attr:val for attr,val in label.items()
-                     if attr not in styled_attrs
-                     or any(p['in_legend'] for p in styles_by_attr(attr))}
-            dct['label'] = make_label(label2)
-
-            # Get tick inds
-            tick_inds = {}
-            for attr,val in coord._asdict().items():
-                if styles_by_attr(attr):
-                    tick_inds[attr] = _get_tick_index(coord,attr)
-
-            # Decide whether to label this line
-            do_lbl = True
-            for attr,val in coord._asdict().items():
-                styles = styles_by_attr(attr)
-                if styles and not any(style['in_legend'] for style in styles):
-                    style = styles[0]
-                    # Check if val has a "particular" value
-                    do_lbl = tick_inds[attr] in [None,-1] 
-                    if not do_lbl: break
-
-            # Rm duplicate labels
-            if not do_lbl or dct['label'] in label_register:
-                dct['label'] = None
-            else:
-                label_register.append(dct['label'])
-
-            # Format each style aspect
-            for aspect, style in style_dict.items():
-                attr = style['axis']
-                S = style['formtr'](tick_inds[attr])
-                if S is not None: dct[aspect] = S
-
-            return dct
-
-        # Setup Figure
-        nrows = len(axes['optim'] or ()) + 1
-        ncols = len(tables)
-        screenwidth = 12.7 # my mac
-        figsize = figsize or ( min(5*ncols,screenwidth), 7 )
-
-        tables.fig, panels = freshfig(num=fignum, figsize=figsize,
-                nrows=nrows, sharex=True,
-                ncols=ncols, sharey='row',
-                gridspec_kw=dict(height_ratios=[6]+[1]*(nrows-1),hspace=0.05,
-                    left=0.14, right=0.95, bottom=0.06, top=0.9))
-        panels = np.ravel(panels).reshape((-1,ncols)) # atleast_2d (and col vectors)
+        # Figure panels
+        if isNone(panels):
+            nrows = len(axes['optim'] or ()) + 1
+            ncols = len(tables)
+            maxW = 12.7 # my mac screen
+            figsize = figsize or ( min(5*ncols,maxW), 7 )
+            # Create
+            _, panels = freshfig(num=fignum, figsize=figsize, constrained_layout=True,
+                    nrows=nrows, sharex=True,
+                    ncols=ncols, sharey='row',
+                    gridspec_kw=dict(height_ratios=[6]+[1]*(nrows-1),
+                                     hspace=0.05,wspace=0.05,
+                                     left=0.15/(1+log(ncols)), # eyeballed
+                                     right=0.97, bottom=0.06, top=0.9))
+            panels = np.ravel(panels).reshape((-1,ncols))
+        else:
+            panels = np.atleast_2d(panels)
 
         # Title
-        ST = "Average wrt. time."
-        if axes["mean"] is not None:
-            ST = ST[:-1] + f" and {axes['mean']}."
-        if style_dict:
-            props = ", ".join(f"{a}:%s"%style_dict[a]['axis'] for a in style_dict)
-            ST = ST + "\nStyle allotm.: " + props + "."
-        tables.fig.suptitle(ST)
+        fig = panels[0,0].figure
+        fig_title = "Average wrt. time"
+        if axes["mean"] is not None: fig_title += f" and {axes['mean']}"
+        if      title2  is not None: fig_title += "\n" + str(title2)
+        fig.suptitle(fig_title)
 
-        def plot_line(row, panels):
-            """sort, insert None's, handle constants."""
-
-            # is_constant?
-            # If len=1 and key0=None:
-            # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
-            # This also works:
-            row.is_constant = all(x == row.Coord(None) for x in row)
-
-            if row.is_constant:
-                # row does not depend on x-axis
-                # => display as constant line.
-                uqs = [row[0]]*len(xticks)
-                row.style['marker'] = None
-                row.style['lw'] = mpl.rcParams['lines.linewidth']/2
-                # row.style['ls'] = "--"
-            else:
-                uqs = row.get_for(xticks)
-
-            # Extract attrs
-            row.vals = [getattr(uq,'val',None) for uq in uqs]
-
-            # Plot
-            row.handles = {'top_panel':
-                    panels[0].plot(xticks, row.vals, **row.style)[0]}
-
-            # Plot tuning
-            if axes["optim"]:
-
-                # Extract attrs
-                argmins = [getattr(uq,'tuning_coord',None) for uq in uqs]
-
-                # Unpack tuning_coords. Write to row.
-                row.tuning_coords = {}
-                row.tuning_coords = {axis: [getattr(coord,axis,None)
-                    for coord in argmins] for axis in axes["optim"]}
-
-                # 
-                for a, ax in zip(axes["optim"], panels[1:]):
-                    row.handles[a] = ax.plot(xticks, row.tuning_coords[a], **row.style)
-
-        # Loop panels
-        label_register = [] # mv inside loop to get legend on each panel
-        for ip, (table_coord, table) in enumerate(tables.items()):
+        # Loop outer
+        label_register = set() # mv inside loop to get legend on each panel
+        for table_panels, (table_coord,table) in zip(panels.T, tables.items()):
+            table.panels = table_panels
             title = '' if axes["outer"] is None else repr(table_coord)
-            table.panels = panels[:,ip]
 
             # Plot
             for coord, row in table.items():
-                if coord2style:
-                    row.style = coord2style(coord)
-                else:
-                    row.style = get_style(coord)
-                plot_line(row, table.panels)
-                
-            # Beautify top_panel
-            top_panel = table.panels[0]
-            top_panel.set_title(title)
-            if top_panel.is_first_col(): top_panel.set_ylabel(statkey)
-            with set_tmp(mpl_logger, 'level', 99):
-                top_panel.legend() # ignores "no label" msg
-            # xlabel
-            table.panels[-1].set_xlabel(axes["inner"][0])
-            # Beautify tuning axes
-            for a, ax in zip(axes["optim"] or (), table.panels[1:]):
-                # Get ylims
-                axis = xp_dict.axis_ticks_nn(a)
-                if isinstance(axis[0], bool):
-                    ylims = 0, 1
-                else:
-                    ylims = axis[0], axis[-1]
-                # Set ylims
-                if ax.get_yscale() == "log":
-                    ylims = 10**(stretch(*np.log10(ylims), 1.2))
-                    ax.set_ylim(*ylims)
-                else:
-                    ax.set_ylim(*stretch(*ylims,1.2))
-                # Sety ylabel
-                if ax.is_first_col():
-                    ax.set_ylabel(f"Optim.\n{a}")
+                style = get_style(coord)
 
+                # Rm duplicate labels (contrary to coords, labels can
+                # be "tampered" with, and so can be duplicate)
+                if unique_labels:
+                    if style.get("label",None) in label_register:
+                        del style["label"]
+                    else:
+                        label_register.add(style["label"])
+
+                plot1(table.panels, row, style)
+
+            # Beautify
+            panel0 = table.panels[0]
+            panel0.set_title(title)
+            if panel0.is_first_col(): panel0.set_ylabel(statkey)
+            with set_tmp(mpl_logger, 'level', 99): # silence "no label" msg
+                panel0.legend()
+            table.panels[-1].set_xlabel(axes["inner"][0])
+            # Tuning panels:
+            for a, panel in zip(axes["optim"] or (), table.panels[1:]):
+                if panel.is_first_col():
+                    panel.set_ylabel(f"Optim.\n{a}")
+
+        tables.fig = fig
+        tables.xp_dict = xp_dict
+        tables.axes_roles = axes
         return tables
 
-def beautify_fig_ex3(tabulated_data, save_as, xp_dict):
-    """Beautify.
 
-    These settings are particular to example_3,
-    and do not generalize well.
-    """
-    
-    # Add save_as to suptitle
-    try:
-        save_as = save_as
-        ST = tabulated_data.fig._suptitle.get_text()
-        ST = "\n".join([ST, Path(save_as).stem])
-        tabulated_data.fig.suptitle(ST)
-    except NameError:
-        pass
 
-    # Get axs as array
-    axs = array([col.panels for col in tabulated_data.values()]).T
+def default_fig_adjustments(tables):
+    """Beautify. These settings do not generalize well."""
+    # Get axs as 2d-array
+    axs = array([table.panels for table in tables.values()]).T
 
-    # Beautify main panels (top row):
+    # Main panels (top row) only:
     sensible_f = ticker.FormatStrFormatter('%g')
     for ax in axs[0,:]:
         for direction, nPanel in zip(['y','x'], axs.shape):
@@ -1048,104 +992,25 @@ def beautify_fig_ex3(tabulated_data, save_as, xp_dict):
                 eval(f"ax.set_{direction}scale('log')")
                 eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
             eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
-        if "rmse" in ax.get_ylabel():
-            ax.set_ylim([0.15, 5])
 
-    # Beautify all panels
+    # Tuning panels only
+    table = tables[0]
+    for a, panel in zip(tables.axes_roles["optim"] or (), table.panels[1:]):
+        yy = tables.xp_dict.tickz(a)
+        axis_scale_by_array(panel, yy, "y")
+        # set_ymargin doesn't work for wonky scales. Do so manually:
+        alpha = len(yy)/10
+        y0,y1,y2,y3 = yy[0], yy[1], yy[-2], yy[-1]
+        panel.set_ylim(y0-alpha*(y1-y0), y3+alpha*(y3-y2))
+
+    # All panels
     for ax in axs.ravel():
         for direction, nPanel in zip(['y','x'], axs.shape):
             if nPanel<6:
                 ax.grid(True,which="minor",axis=direction)
-        # Inflation tuning panel
-        if not ax.is_first_row():
-            for axis in ['infl','xB','xN']:
-                if axis in ax.get_ylabel():
-                    yy = xp_dict.axis_ticks_nn(axis)
-                    axis_scale_by_array(ax, yy, "y")
 
-
-
-def make_label(dct):
-    lbl = ''
-    for k, v in dct.items():
-       if flexcomp(k, 'da_method', 'Const'):
-           lbl = lbl + f' {v}'
-       else:
-           lbl = lbl + f' {collapse_str(k,7)}:{v}'
-    return lbl[1:]
-
-
-def default_style(coord, baseline_legends=False, v=2):
-    style = DotDict(ms=10)
-
-    label = {a:v for a,v in coord._asdict().items() if v!=None}
-    style.label = make_label(label)
-
-    try:
-        if coord.da_method == "Climatology":
-            style.order = 10
-            style.ls = ":"
-            style.c = "k"
-            if not baseline_legends:
-                style.label = None
-
-        elif coord.da_method == "OptInterp":
-            style.order = 20
-            style.ls = ":"
-            style.c = .7*ones(3)
-            style.label = "Opt. Interp."
-            if not baseline_legends:
-                style.label = None
-
-        elif coord.da_method == "Var3D":
-            style.order = 30
-            style.ls = ":"
-            style.c = .5*ones(3)
-            style.label = "3D-Var"
-            if not baseline_legends:
-                style.label = None
-
-        else:
-            style.marker=".",
-
-        if v>=2:
-            if coord.da_method == "EnKF":
-                style.order = 40
-                style.marker = "*"
-                style.c = "c"
-
-            if coord.da_method == "PartFilt":
-                style.order = 50
-                style.marker = "X"
-                style.c = "orange"
-
-    except AttributeError:
-        pass
-
-    return style
-
-
-from matplotlib import cm
-
-def cm_bond(cmap,xp_dict,axis,vmin=0,vmax=0):
-    """Map cmap for coord.axis ∈ [0, len(ticks)]."""
-    def link(coord):
-        """Essentially: cmap(ticks.index(coord.axis))"""
-        if hasattr(coord,axis):
-            ticks = xp_dict.ticks[axis]
-            cNorm = mpl.colors.Normalize(vmin, vmax + len(ticks))
-            ScMap = cm.ScalarMappable(cNorm,cmap).to_rgba
-            index = ticks.index(getattr(coord,axis))
-            return ScMap(index)
-        else:
-            return cmap(0.5)
-    return link
-
-def in_idx(coord, indices, xp_dict, axis):
-    """Essentially: coord.axis in ticks[indices]"""
-    if hasattr(coord, axis):
-        ticks = array(xp_dict.ticks[axis])[indices]
-        return getattr(coord, axis) in ticks
-    else:
-        return True
-
+    # Not strictly compatible with gridspec height_ratios,
+    # (throws warning), but still works ok.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore",category=UserWarning)
+        axs[0,0].figure.tight_layout()
