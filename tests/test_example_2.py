@@ -11,7 +11,6 @@ statkeys = ['err.rms.a','err.rms.f','err.rms.u']
 from dapper.mods.Lorenz63.sakov2012 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
-sd0 = set_seed(9)
 
 # Cfgs
 cfgs  = xpList()
@@ -29,8 +28,11 @@ cfgs += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)
 cfgs += PartFilt(       N=4000,reg=0.7  ,NER=0.05)
 cfgs += PFxN(xN=1000,   N=30  ,Qs=2     ,NER=0.2)
 
+for xp in cfgs:
+    xp.seed = 9
+
 # Run
-cfgs.launch(HMM,sd0,store_u=True)
+cfgs.launch(HMM,store_u=True)
 
 table = cfgs._repr_avrgs(statkeys,decimals=4)
 old = """
@@ -59,13 +61,14 @@ old   = [row.rstrip() for row in old  .splitlines()]
 
 L63 = dict(table=table,old=old)
 
+
+
 ##############################
 # L96
 ##############################
 from dapper.mods.Lorenz96.sakov2008 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
-sd0 = set_seed(9)
 
 # Cfgs
 cfgs  = xpList()
@@ -83,8 +86,10 @@ cfgs += iEnKS('Sqrt',N=40,infl=1.01,rot=True)
 cfgs += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4)
 cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)
 
+for xp in cfgs:
+    xp.seed = 9
 
-cfgs.launch(HMM,sd0,store_u=True)
+cfgs.launch(HMM,store_u=True)
 
 table = cfgs._repr_avrgs(statkeys,decimals=4)
 old = """
@@ -123,5 +128,3 @@ def test_tables_L63(lineno):
 @pytest.mark.parametrize(('lineno'),arange(len(L96['table'])))
 def test_tables_L96(lineno):
     assert L96['table'][lineno] == L96['old'][lineno]
-
-

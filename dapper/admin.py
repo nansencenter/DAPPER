@@ -225,6 +225,9 @@ def run_experiment(xp, label, savedir, HMM,
     # GENERATE TRUTH/OBS
     xx, yy = setup(hmm,xp)
 
+    # TODO: this is just for compatibility with old seed system. Should be removed. 
+    set_seed(1+getattr(xp,'seed',False))
+
     # ASSIMILATE
     try:
         xp.assimilate(hmm,xx,yy, label, **stat_kwargs)
