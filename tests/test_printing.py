@@ -1,7 +1,6 @@
 """Test printing"""
 
 from dapper import *
-sd0 = set_seed(3)
 
 import dapper.tools.utils
 tools.utils.disable_user_interaction = True # NB remember to set to True

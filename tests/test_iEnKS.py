@@ -3,8 +3,6 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0)."""
 
 from dapper import *
 
-sd0 = set_seed(3)
-
 cfgs  = xpList(unique=True)
 
 from dapper.mods.LA.small import HMM
@@ -24,12 +22,12 @@ for Lag in [0,1,3]:
       cfgs += iEnKS('PertObs' , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
       cfgs += iEnKS('Order1'  , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
 
+for xp in cfgs:
+    xp.seed = 3000
 
 ##############################
 # Assimilate
 ##############################
-for xp in cfgs:
-    xp.seed = 3
 
 cfgs.launch(HMM,store_u=True,save_as=False)
 cfgs.print_avrgs(['err.rms.a','err.rms.f','err.rms.u','err.rms.s'])

@@ -196,6 +196,10 @@ def da_method(*default_dataclasses):
 
 
 def seed_and_simulate(HMM,xp):
+    """Default experiment setup. Set seed and simulate truth and obs.
+    
+    Note: if there is no ``xp.seed`` then then the seed is not set.
+    Thus, different experiments will produce different truth and obs."""
     set_seed(getattr(xp,'seed',False))
     xx, yy = HMM.simulate()
     return xx, yy
@@ -214,8 +218,7 @@ def run_experiment(xp, label, savedir, HMM,
     - xp.stats.average_in_time() : result averaging
     - xp.avrgs.tabulate()        : result printing
     - dill.dump()                : result storage
-
-    If ``setup == None``: use ``seed_and_simulate()``.""" 
+    """ 
 
     # We should copy HMM so as not to cause any nasty surprises such as
     # expecting param=1 when param=2 (coz it's not been reset).
@@ -224,9 +227,6 @@ def run_experiment(xp, label, savedir, HMM,
 
     # GENERATE TRUTH/OBS
     xx, yy = setup(hmm,xp)
-
-    # TODO: this is just for compatibility with old seed system. Should be removed. 
-    set_seed(1+getattr(xp,'seed',False))
 
     # ASSIMILATE
     try:
@@ -479,8 +479,10 @@ class xpList(list):
          - multiprocessing on this host
          - GCP (Google Cloud Computing) with HTCondor
 
-        The kwargs are forwarded to run_experiment().
+        If ``setup == None``: use ``seed_and_simulate()``.
         
+        The kwargs are forwarded to run_experiment().
+
         See ``example_2.py`` and ``example_3.py`` for example use.
         """
         # TODO: doc files and code options in mp, e.g
