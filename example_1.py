@@ -3,7 +3,7 @@
 # Load DAPPER
 from dapper import *
 
-# Generate the same random numbers
+# Generate the same random numbers every time
 set_seed(3000)
 
 # Load experiment setup: the hidden Markov model (HMM)

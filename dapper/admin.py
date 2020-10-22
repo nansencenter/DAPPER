@@ -410,34 +410,13 @@ class xpList(list):
         s += str(AlignedDict({**redundant, **common}))
         return s
 
-    @functools_wraps(tabulate_avrgs)
-    def _repr_avrgs(self,*args,**kwargs): 
-        """Pretty (tabulated) repr of cfgs & avrgs (val±conf)."""
-        distinct, redundant, common = self.split_attrs()
-
-        # Prepare table components
-        headr1, mattr1 = list(distinct.keys()), list(distinct.values())
-        headr2, mattr2 = tabulate_avrgs([C.avrgs for C in self],*args,**kwargs,pad='æ')
-        # Join 1&2
-        headr = headr1 + ['|']             + headr2
-        mattr = mattr1 + [['|']*len(self)] + mattr2
-
-        table = tabulate(mattr, headr).replace('æ',' ')
-        return table
-
-    # TODO: rm _repr_avrgs (implement it here)
-    # and make out of stdout capturing in the tests.
-    @functools.wraps(_repr_avrgs)
-    def print_avrgs(self,*args,**kwargs):
-        print(self._repr_avrgs(*args,**kwargs))
-
     def gen_names(self,abbrev=4,tab=False):
         """Similiar to ``self.__repr__()``, but:
 
-          - returns *list* of names
-          - attaches label to each attribute
-          - tabulation is only an option
-          - abbreviates labels to width abbrev"""
+        - returns *list* of names
+        - tabulation is optional
+        - attaches (abbreviated) labels to each attribute
+        """
         distinct, redundant, common = self.split_attrs(nomerge=["da_method"])
         labels = distinct.keys()
         values = distinct.values()
@@ -466,6 +445,22 @@ class xpList(list):
             table = re.sub(r' +',r' ', table)
 
         return table.splitlines()
+
+    def tabulate_avrgs(self,*args,**kwargs):
+        """Pretty (tabulated) repr of cfgs & avrgs.
+        
+        Similar to stats.tabulate_avrgs(), but for the entire list of xps."""
+        distinct, redundant, common = self.split_attrs()
+
+        # Prepare table components
+        headr1, mattr1 = list(distinct.keys()), list(distinct.values())
+        headr2, mattr2 = tabulate_avrgs([C.avrgs for C in self],*args,**kwargs,pad='æ')
+        # Join 1&2
+        headr = headr1 + ['|']             + headr2
+        mattr = mattr1 + [['|']*len(self)] + mattr2
+
+        return tabulate(mattr, headr).replace('æ',' ')
+
 
     def launch(self, HMM, save_as="noname", mp=False,
                setup=seed_and_simulate, fail_gently=None, **kwargs):

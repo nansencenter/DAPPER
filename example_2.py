@@ -54,4 +54,4 @@ HMM.t.T = 50
 xps.launch(HMM,liveplots=False)
 
 # Print results
-xps.print_avrgs()
+print(xps.tabulate_avrgs())

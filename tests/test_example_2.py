@@ -32,7 +32,7 @@ cfgs += PFxN(xN=1000,   N=30  ,Qs=2     ,NER=0.2)
 # Run
 cfgs.launch(HMM,store_u=True)
 
-table = cfgs._repr_avrgs(statkeys,decimals=4)
+table = cfgs.tabulate_avrgs(statkeys, decimals=4)
 old = """
       da_method     infl  upd_a       N  rot      xN  reg   NER  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
 ----  -----------  -----  -------  ----  -----  ----  ---  ----  -  -----------------  -----------------  -----------------
@@ -88,7 +88,7 @@ cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)
 
 cfgs.launch(HMM,store_u=True)
 
-table = cfgs._repr_avrgs(statkeys,decimals=4)
+table = cfgs.tabulate_avrgs(statkeys, decimals=4)
 old = """
       da_method    infl  upd_a     N  rot    xN  loc_rad  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
 ----  -----------  ----  -------  --  -----  --  -------  -  -----------------  -----------------  -----------------

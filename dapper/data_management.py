@@ -704,7 +704,7 @@ class xpSpace(SparseSpace):
 
     def print(xp_dict, statkey="rmse.a", axes=AXES_ROLES,
               subcols=True,decimals=None):
-        """Print table of results.
+        """Print tables of results.
 
         - statkey: The statistical field from the experiments to report.
 

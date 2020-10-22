@@ -30,7 +30,7 @@ for xp in cfgs:
 ##############################
 
 cfgs.launch(HMM,store_u=True,save_as=False)
-cfgs.print_avrgs(['err.rms.a','err.rms.f','err.rms.u','err.rms.s'])
+print(cfgs.tabulate_avrgs(['err.rms.a','err.rms.f','err.rms.u','err.rms.s']))
 
 
 ##############################

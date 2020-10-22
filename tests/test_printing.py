@@ -19,7 +19,7 @@ def test_L63():
   HMM.t.KObs = 1
 
   cfgs.launch(HMM,free=False,statkeys=True,liveplots=None,store_u=False,fail_gently=False,save_as=False)
-  cfgs.print_avrgs(['rmse.a'])
+  print(cfgs.tabulate_avrgs(['rmse.a']))
 
   spell_out(HMM);
   spell_out(cfgs[-1]);
@@ -54,7 +54,7 @@ def test_L96():
   HMM.t.KObs = 2
 
   cfgs.launch(HMM,free=False,statkeys=True,liveplots=None,store_u=False,fail_gently=False,save_as=False)
-  cfgs.print_avrgs(['rmse.a'])
+  print(cfgs.tabulate_avrgs(['rmse.a']))
 
   spell_out(HMM);
   spell_out(cfgs[-1]);

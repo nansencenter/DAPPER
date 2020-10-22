@@ -2,6 +2,11 @@
 
 from dapper import *
 
+# TODO: implement for all of Avrgs
+# Abbreviations
+abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
+de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
+
 class Avrgs(StatPrint,DotDict):
     """DotDict with with StatPrint and tabulation."""
     def tabulate(self, statkeys=()):
@@ -478,15 +483,10 @@ def tabulate_column(col,header,pad=' ',missingval='',frmt=None):
 
     return col
 
-# Abbreviations
-abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
-de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
-
 def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
     """Tabulate avrgs (val±conf).
 
-    - ``statkeys``: list of keys of statistics to include.
-    """
+    ``statkeys``: list of keys of statistics to include."""
     # Defaults averages
     if not statkeys:
         statkeys = ['rmse.a','rmv.a','rmse.f']
