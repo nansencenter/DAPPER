@@ -442,14 +442,7 @@ class SparseSpace(dict):
             self.add_axis('Const')
 
         for coord in self.coords(**self.intersect_axes(sub_coord)):
-            entry = self[coord]
-
-            # Verify that ALL attrs (not just those in self.axes) match.
-            # TODO: necessary?
-            if any( getattr(entry,a,"NO VALUE") != v for a,v in sub_coord.items()):
-                continue
-
-            entry = deepcopy(entry)
+            entry = deepcopy(self[coord])
             coord = coord._replace(Const=label)
             coord = coord._replace(**{a:None for a in NoneAttrs})
             self[coord] = entry
@@ -618,8 +611,6 @@ class xpSpace(SparseSpace):
                     aa = (aa,)
 
                 aa = self.intersect_axes(aa)
-                # Ensure valid axis name
-                # assert axis in self.axes, f"Axis {axis!r} not among the xp axes."
 
                 for axis in aa:
 
