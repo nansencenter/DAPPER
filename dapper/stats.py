@@ -363,7 +363,7 @@ class Stats(StatPrint):
         if kk    is None: kk     = chrono.mask_BI
         if kkObs is None: kkObs  = chrono.maskObs_BI
 
-        def average(series):
+        def average1(series):
             avrgs = Avrgs()
 
             def average_multivariate(): return avrgs
@@ -388,37 +388,23 @@ class Stats(StatPrint):
                     avrgs = series_mean_with_conf(series[kk])
                 else: raise ValueError
 
+            elif np.isscalar(series):
+                avrgs = series # Eg. just copy over "duration" from stats
+
+            else:
+                raise TypeError(f"Don't know how to average {key}")
+
             return avrgs
 
         def recurse_average(stat_parent,avrgs_parent):
-            try:
-                keys = stat_parent.stat_register
-            except AttributeError:
-                return
-
-            # Ensure keys exists. Eg assess_ens() del's weights if None
-            keys = intersect(keys, vars(stat_parent))
-
-            for key in keys: # Loop data_series
-                series = getattr(stat_parent,key)
-
-                if isinstance(series,DataSeries):
-                    avrgs = average(series)
-                    recurse_average(series,avrgs)
-
-                # TODO: should this be used at all?
-                # NB: no BurnIn!
-                # elif isinstance(series,np.ndarray):
-                    # avrgs = series_mean_with_conf(series)
-
-                elif np.isscalar(series):
-                    avrgs = series # Eg. just copy over "duration" from stats
-
-                else:
-                    raise TypeError(f"Don't know how to average {key}")
-
+            for key in getattr(stat_parent,"stat_register",[]):
+                try:
+                    series = getattr(stat_parent,key)
+                except AttributeError:
+                    continue # Eg assess_ens() deletes .weights if None
+                avrgs = average1(series)
+                recurse_average(series,avrgs)
                 avrgs_parent[key] = avrgs
-
 
         avrgs = Avrgs()
         recurse_average(self,avrgs)
