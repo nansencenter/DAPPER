@@ -521,27 +521,21 @@ class xpSpace(SparseSpace):
         return self
 
     def field(self,statkey="rmse.a"):
-        """Extract statkey for each item in self.
-        
-        Embellishments:
-            - de_abbrev
-            - found_anything
-        """
-        found_anything = False
+        """Extract ``statkey`` for each item in ``self``."""
 
-        sk = de_abbrev(statkey)
-        get_field = lambda xp: deep_getattr(xp,f'avrgs.{sk}',None)
-
+        # Init a new xpDict to hold field
         avrgs = self.__class__(self.axes)
 
+        found_anything = False
         for coord, xp in self.items():
-            a = get_field(xp)
-            avrgs[coord] = a
+            val = getattr(xp.avrgs,statkey,None)
+            avrgs[coord] = val
+            found_anything = found_anything or (val is not None)
 
-            found_anything = found_anything or (a is not None)
-        if not found_anything: raise RuntimeError(
+        if not found_anything: raise AttributeError(
                 f"The stat. field '{statkey}' was not found"
                 " among any of the xp's.")
+
         return avrgs
 
     def mean(self, axes=None):

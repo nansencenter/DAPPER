@@ -2,17 +2,32 @@
 
 from dapper import *
 
-# TODO: implement for all of Avrgs
-# Abbreviations
-abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
-de_abbrev = lambda k: '.'.join(abbrevs.get(l,l) for l in k.split('.'))
-
 class Avrgs(StatPrint,DotDict):
-    """DotDict with with StatPrint and tabulation."""
+    """A DotDict specialized for stat. averages.
+
+    Embellishments:
+    - StatPrint
+    - tabulate
+    - getattr that supports abbreviations.
+    """
+
     def tabulate(self, statkeys=()):
         headr, mattr = tabulate_avrgs([self],statkeys,decimals=None)
         return tabulate(mattr, headr)
 
+    abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
+
+    # Use getattribute coz it gets called before getattr.
+    def __getattribute__(self,key):
+        """Support deep and abbreviated lookup."""
+
+        # key = abbrevs[key] # Instead of this, also support rmse.a:
+        key = '.'.join(Avrgs.abbrevs.get(l,l) for l in key.split('.'))
+
+        if "." in key:
+            return deep_getattr(self,key)
+        else:
+            return super().__getattribute__(key)
 
 class Stats(StatPrint):
     """Contains and computes statistics of the DA methods.
@@ -497,7 +512,7 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
         # Get vals, confs
         vals, confs = [], []
         for avrgs in avrgs_list:
-            uq = deep_getattr(avrgs,de_abbrev(column),None)
+            uq = getattr(avrgs,column,None)
             if uq is None:         val,conf = None,None
             elif decimals is None: val,conf = uq.round(mult=0.2)
             else:                  val,conf = np.round([uq.val, uq.conf],decimals)

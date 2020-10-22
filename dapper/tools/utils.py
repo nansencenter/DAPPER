@@ -455,14 +455,6 @@ def unique_but_keep_order(arr):
     """Like ``set(arr)`` but keep the ordering."""
     return list(dict.fromkeys(arr).keys()) # Python >=3.7
 
-# kwargs = {abbrevs.get(k,k):kwargs[k] for k in kwargs}
-def de_abbreviate(abbrev_d, abbreviations):
-    "Expand any abbreviations (list of 2-tuples) that occur in abbrev_d (dict)."
-    for a,b in abbreviations:
-        if a in abbrev_d:
-            abbrev_d[b] = abbrev_d[a]
-            del abbrev_d[a]
-
 def collapse_str(string,length=6):
     """Abbreviate string to ``length``"""
     if len(string)<=length:
