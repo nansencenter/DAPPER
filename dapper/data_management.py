@@ -189,9 +189,9 @@ def save_xps(xps, save_as, nDir=100):
             with open(iDir/"xp","wb") as F:
                 dill.dump({'xps':sub_xps}, F)
 
-def overwrite_xps(xps,save_as):
+def overwrite_xps(xps,save_as,nDir=100):
     """Save xps in save_as, but safely (by first saving to tmp)."""
-    save_xps(xps, save_as/"tmp" )
+    save_xps(xps, save_as/"tmp" , nDir)
 
     # Delete
     for d in tqdm.tqdm(list_job_dirs(save_as),desc="Deleting old"):
@@ -203,7 +203,7 @@ def overwrite_xps(xps,save_as):
 
     shutil.rmtree(save_as/"tmp")
 
-def reduce_inodes(save_as):
+def reduce_inodes(save_as,nDir=100):
     """Reduce the number of ``xp`` dirs
     
     by packing multiple ``xp``s into lists (``xps``).
@@ -211,10 +211,10 @@ def reduce_inodes(save_as):
     This reduces the **number** of files (inodes) on the system,
     which limits storage capacity (along with **size**).
 
-    It also deletes files "xp.var" and "out" (which tends to be relatively
-    large coz of the progbar).
+    It also deletes files "xp.var" and "out"
+    (which tends to be relatively large coz of the progbar).
     This is probably also the reason that the loading time is sometimes reduced."""
-    overwrite_xps(load_xps(save_as),save_as)
+    overwrite_xps(load_xps(save_as),save_as,nDir)
 
 
 class SparseSpace(dict):
@@ -819,7 +819,12 @@ class xpSpace(SparseSpace):
 
             return rows
 
-        print(f"Averages over {axes['mean']}\n" if axes['mean'] else "",end="")
+        # Inform axes["mean"]
+        if axes.get('mean',None):
+            print(f"Averages (in time and) over {axes['mean']}.")
+        else:
+            print(f"Averages in time only (=> the 1σ estimates may be unreliable).")
+
         axes, tables = xp_dict.table_tree(statkey, axes)
         for table_coord, table in tables.items():
 
@@ -837,24 +842,23 @@ class xpSpace(SparseSpace):
                     rows[i] =  [row_key]         + row
                 rows.insert(0, [f"{table.axes}"] + [repr(c) for c in cc])
             else: # ********************** Elegant table.
-                h2 = len(cc)>1 # do column-super-header
+                h2 = "\n" if len(cc)>1 else "" # do column-super-header
                 rows = align_subcols(rows,cc,subcols,h2)
 
-                # Make left_table and prepend.
+                # Make and prepend left-side table
                 # - It's prettier if row_keys don't have unnecessary cols.
-                # For example, the table of Climatology should not have an
-                # entire column repeatedly displaying "infl=None".
-                # => split_attrs().
+                #   For example, the table of Climatology should not have an
+                #   entire column repeatedly displaying "infl=None".
+                #   => split_attrs().
                 # - Why didn't we do this for the column attrs?
-                # Coz there we have no ambition to split the attrs,
-                # which would also require excessive processing:
-                # nesting the table as cols, and then split_attrs() on cols.
+                #   Coz there we have no ambition to split the attrs,
+                #   which would also require excessive processing:
+                #   nesting the table as cols, and then split_attrs() on cols.
                 row_keys = xpList(table.keys()).split_attrs()[0]
                 row_keys = pd.DataFrame.from_dict(row_keys,dtype=_otype)
                 if len(row_keys.columns):
                     # Header
-                    rows[0] = [('\n' if h2 else '')+k for k in row_keys] +\
-                        [(' \n\\' if h2 else '\\')] + rows[0]
+                    rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
                     # Matter
                     for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
                         rows[i+1] = [*key] + ['|']+ row

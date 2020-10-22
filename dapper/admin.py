@@ -504,7 +504,7 @@ class xpList(list):
             if isinstance(mp,dict) and mp["server"] == "GCP":
                 fail_gently = False # coz cloud processing is entirely de-coupled anyways
             else:
-                fail_gently = True
+                fail_gently = True # True unless otherwise requested
         kwargs["fail_gently"] = fail_gently
 
         # Parse save_as
