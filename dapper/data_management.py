@@ -350,8 +350,11 @@ class SparseSpace(dict):
         # return [x for x in self if match(x)]
 
     def __repr__(self):
+        # Note: print(xpList(self)) produces more human-readable key listing,
+        # but we don't want to implement it here, coz it requires split_attrs(),
+        # which we don't really want to call again.
         L = 2
-        keys = [str(k) for k in self] # TODO: use xpList.__repr__ instead (for tabulation)
+        keys = [str(k) for k in self]
         if 2*L < len(keys): keys = keys[:L] + ["..."] + keys[-L:]
         keys = "[\n  " + ",\n  ".join(keys) + "\n]"
         txt = f"<{self.__class__.__name__}> with {len(self)} keys: {keys}"
@@ -478,6 +481,8 @@ class xpSpace(SparseSpace):
 
     @classmethod
     def from_list(cls, xps):
+        """Init xpSpace from xpList."""
+
         def make_ticks(axes, ordering=dict(
                     N         = 'default',
                     seed      = 'default',
@@ -502,12 +507,11 @@ class xpSpace(SparseSpace):
                 if any(x in order for x in ['rev','inv']):
                     ticks = ticks[::-1]
                 axes[ax_name] = ticks
-            return axes
 
         # Define axes
         xp_list = xpList(xps)
         axes = xp_list.split_attrs(nomerge=['Const'])[0]
-        ticks = make_ticks(axes)
+        make_ticks(axes)
         self = cls(axes.keys())
 
         # Note: this attr (ticks) will not be propagated through nest().
