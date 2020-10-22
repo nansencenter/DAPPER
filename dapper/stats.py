@@ -227,12 +227,11 @@ class Stats(StatPrint):
                 if not (self.store_u or self.LP_instance.any_figs):
                     continue
 
-            # Avoid repetitive warnings caused by zero variance
-            # TODO: look into np.warnings.onceregistry
+            # Silence repeat warnings caused by zero variance
             with np.errstate(divide='call',invalid='call'):
                 np.seterrcall(warn_zero_variance)
 
-                # Call assessment
+                # Assess
                 stats_now = Avrgs()
                 _assess(stats_now, self.xx[k], **_prms)
                 self.derivative_stats(stats_now)
@@ -433,14 +432,19 @@ def register_stat(self,name,value):
         self.stat_register = []
     self.stat_register.append(name)
 
+
+# In case of degeneracy, variance might be 0, causing warnings
+# in computing skew/kurt/MGLS (which all normalize by variance).
+# This should and will yield nan's, but we don't want mere diagnostics
+# computations to cause repetitive warnings, so we only warn once.
+#
+# I would have expected this (more elegant solution?) to work,
+# but it just makes it worse.
+# with np.errstate(divide='warn',invalid='warn'), warnings.catch_warnings():
+    # warnings.simplefilter("once",category=RuntimeWarning)
+    # ...
 @do_once
 def warn_zero_variance(err,flag):
-    """In case of degeneracy, variance might be 0,
-    causing warnings in computing skew/kurt/MGLS
-    (which all normalize by variance).
-    This should and will yield nan's, but we don't want
-    mere diagnostics computations to cause repetitive warnings,
-    so we only warn once."""
     msg = "\n".join(["Numerical error in stat comps.",
           "Probably caused by a sample variance of 0."])
     warnings.warn(msg)
