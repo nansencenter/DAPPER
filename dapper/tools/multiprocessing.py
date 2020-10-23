@@ -47,15 +47,13 @@ try:
 except ImportError:
     no_MP = True
 
+    @do_once
     def MP_warn():
-        if not MP_warn.have_printed: # only print once!
-            print(textwrap.dedent("""
-            Warning: Multiprocessing (MP) was requsted during execution,
-            but has not been properly installed.
-            Try re-installing DAPPER with `pip install -e <path-to-DAPPER>[MP]`.
-            """))
-            MP_warn.have_printed = True
-    MP_warn.have_printed = False
+        print(textwrap.dedent("""
+        Warning: Multiprocessing (MP) was requsted during execution,
+        but has not been properly installed.
+        Try re-installing DAPPER with `pip install -e <path-to-DAPPER>[MP]`.
+        """))
 
 
 #########################################
