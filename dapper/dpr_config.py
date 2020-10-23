@@ -70,6 +70,9 @@ for d in dirs:
     dirs[d] = dirs[d].expanduser()
 rc.dirs = dirs
 del dirs, x, d
+# Create dirs
+for d in rc.dirs:
+    os.makedirs(rc.dirs[d], exist_ok=True)
 
 
 
