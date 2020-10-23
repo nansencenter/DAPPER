@@ -1,116 +1,118 @@
-# Estimtate the Lyapunov spectrum using an ensemble of perturbations.
-# An obsolete version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}.
+"""Estimtate the Lyapunov spectrum using an ensemble of perturbations.
+
+An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}."""
 
 from dapper import *
-sd0 = set_seed(5)
+set_seed(3000)
 plt.ion()
 
 ########################
 # Model selection
 ########################
 
+mod = "L63"
 
-# from dapper.mods.DoublePendulum.core import step, x0
-# ------------------
 # Lyapunov exponents: [ 1.05  0.   -0.01 -1.05]
-# T   = 5e2
-# dt  = 0.005
-# eps = 0.0002
-# Nx  = len(x0)
-# N   = Nx
-
-# from dapper.mods.LotkaVolterra.core import step, x0
-# # ------------------
-# # Lyapunov exponents: [0.02  0 -0.28 -1.03]
-# T   = 1e3
-# dt  = 0.2
-# eps = 0.0002
-# Nx  = len(x0)
-# N   = Nx
-
-# from dapper.mods.Ikeda.core import step, x0
-# # ------------------
-# # Lyapunov exponents: [ 0.51 -0.72]
-# T   = 5e3
-# dt  = 1
-# eps = 1e-5
-# Nx  = len(x0)
-# N   = Nx
-
-# from dapper.mods.Lorenz63.core import step, x0
-# # ------------------
-# # Lyapunov exponents: [0.906, 0, -14.572]
-# T   = 1e2
-# dt  = 0.04
-# Nx  = len(x0)
-# eps = 0.001
-# N   = Nx
-
-# from dapper.mods.Lorenz84.core import step, x0
-# # ------------------
-# # Lyapunov exponents: [ 0.22, 0, -0.52]
-# T   = 1e3
-# dt  = 0.05
-# Nx  = len(x0)
-# eps = 0.001
-# N   = Nx
-
-# from dapper.mods.Lorenz96.core import step
-# # ------------------
-# # Reproduces findings of Carrassi-2008 "Model error and sequential DA...",
-# # when setting M=36, F=8, dt=0.0083="1hour":  LyapExps ∈ ( −0.97, 0.33 ) /hour.
-# # In unitless time (as used here), this means LyapExps ∈ ( −4.87, 1.66 ) .
-# Nx  = 40        # State size (flexible). Usually 36 or 40
-# T   = 1e3       # Length of experiment (unitless time).
-# dt  = 0.1       # Step length
-# # dt = 0.0083     # Any dt<0.1 yield "almost correct" Lyapunov expos.
-# x0  = randn(Nx) # Init condition.
-# eps = 0.0002    # Ens rescaling factor.
-# N   = Nx        # Num of perturbations used.
-
-# from dapper.mods.LorenzUV.lorenz96 import LUV
-# # ------------------
-# # Lyapunov exponents with F=10: [9.47   9.3    8.72 ..., -33.02 -33.61 -34.79] => n0:64
-# ii    = arange(LUV.nU)
-# step  = with_rk4(LUV.dxdt, autonom=True)
-# Nx    = LUV.M
-# T     = 1e2
-# dt    = 0.005
-# LUV.F = 10
-# x0    = 0.01*randn(LUV.M)
-# eps   = 0.001
-# N     = 66 # Don't need all Nx for a good approximation of upper spectrum.
+if mod == "DP":
+    from dapper.mods.DoublePendulum.core import step, x0
+    T   = 5e2
+    dt  = 0.005
+    eps = 0.0002
+    Nx  = len(x0)
+    N   = Nx
 
 
-# from dapper.mods.KS.core import Model
-# # ------------------
-# # Lyapunov exponents: [  0.08   0.07   0.06 ... -37.9  -39.09 -41.55]
-# KS   = Model()
-# step = KS.step
-# x0   = KS.x0
-# dt   = KS.dt
-# N    = KS.Nx
-# Nx   = len(x0)
-# T    = 1e3
-# eps  = 0.0002
+# Lyapunov exponents: [0.02  0 -0.28 -1.03]
+if mod == "LV":
+    from dapper.mods.LotkaVolterra.core import step, x0
+    T   = 1e3
+    dt  = 0.2
+    eps = 0.0002
+    Nx  = len(x0)
+    N   = Nx
+
+# Lyapunov exponents: [ 0.51 -0.72]
+if mod == "Ikeda":
+    from dapper.mods.Ikeda.core import step, x0
+    T   = 5e3
+    dt  = 1
+    eps = 1e-5
+    Nx  = len(x0)
+    N   = Nx
+
+# Lyapunov exponents: [0.906, 0, -14.572]
+if mod == "L63":
+    from dapper.mods.Lorenz63.core import step, x0
+    T   = 1e2
+    dt  = 0.04
+    Nx  = len(x0)
+    eps = 0.001
+    N   = Nx
+
+# Lyapunov exponents: [ 0.22, 0, -0.52]
+if mod == "L84":
+    from dapper.mods.Lorenz84.core import step, x0
+    T   = 1e3
+    dt  = 0.05
+    Nx  = len(x0)
+    eps = 0.001
+    N   = Nx
+
+# Reproduces findings of Carrassi-2008 "Model error and sequential DA...",
+# when setting M=36, F=8, dt=0.0083="1hour":  LyapExps ∈ ( −0.97, 0.33 ) /hour.
+# In unitless time (as used here), this means LyapExps ∈ ( −4.87, 1.66 ) .
+if mod == "L96":
+    from dapper.mods.Lorenz96.core import step
+    Nx  = 40        # State size (flexible). Usually 36 or 40
+    T   = 1e3       # Length of experiment (unitless time).
+    dt  = 0.1       # Step length
+    # dt = 0.0083     # Any dt<0.1 yield "almost correct" Lyapunov expos.
+    x0  = randn(Nx) # Init condition.
+    eps = 0.0002    # Ens rescaling factor.
+    N   = Nx        # Num of perturbations used.
+
+# Lyapunov exponents with F=10: [9.47   9.3    8.72 ..., -33.02 -33.61 -34.79] => n0:64
+if mod == "LUV":
+    from dapper.mods.LorenzUV.lorenz96 import LUV
+    ii    = arange(LUV.nU)
+    step  = with_rk4(LUV.dxdt, autonom=True)
+    Nx    = LUV.M
+    T     = 1e2
+    dt    = 0.005
+    LUV.F = 10
+    x0    = 0.01*randn(LUV.M)
+    eps   = 0.001
+    N     = 66 # Don't need all Nx for a good approximation of upper spectrum.
 
 
-# from dapper.mods.QG.core import model_config, shape, sample_filename
-# # ------------------
-# # n0 ≈ 140
-# # NB: "Sometimes" multiprocessing does not work here.
-# # This may be an ipython bug (stackoverflow.com/a/45720872).
-# # Solutions: 1) run script from outside of ipython,
-# #         or 2) Turn it off using mp=False.
-# model = model_config("sakov2008",{},mp=False)
-# step  = model.step
-# Nx    = prod(shape)
-# ii    = np.random.choice(arange(Nx),100,False)
-# T     = 1000.0
-# dt    = model.prms['dtout']
-# x0    = np.load(sample_filename)['sample'][-1]
-# eps   = 0.01 # ensemble rescaling
-# N     = 300
+# Lyapunov exponents: [  0.08   0.07   0.06 ... -37.9  -39.09 -41.55]
+if mod == "KS":
+    from dapper.mods.KS.core import Model
+    KS   = Model()
+    step = KS.step
+    x0   = KS.x0
+    dt   = KS.dt
+    N    = KS.Nx
+    Nx   = len(x0)
+    T    = 1e3
+    eps  = 0.0002
+
+
+# n0 ≈ 140
+if mod == "QG":
+    from dapper.mods.QG.core import model_config, shape, sample_filename
+    # NB: There may arise an ipython/multiprocessing bug/issue.
+    # Ref https://stackoverflow.com/a/45720872 . If so, set mp=False,
+    # or run outside of ipython. However, I did not encounter lately.
+    model = model_config("sakov2008",{},mp=True)
+    step  = model.step
+    Nx    = prod(shape)
+    ii    = np.random.choice(arange(Nx),100,False)
+    T     = 1000.0
+    dt    = model.prms['dtout']
+    x0    = np.load(sample_filename)['sample'][-1]
+    eps   = 0.01 # ensemble rescaling
+    N     = 300
 
 
 
