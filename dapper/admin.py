@@ -454,12 +454,12 @@ class xpList(list):
 
         # Prepare table components
         headr1, mattr1 = list(distinct.keys()), list(distinct.values())
-        headr2, mattr2 = tabulate_avrgs([C.avrgs for C in self],*args,**kwargs,pad='æ')
+        headr2, mattr2 = tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         # Join 1&2
         headr = headr1 + ['|']             + headr2
         mattr = mattr1 + [['|']*len(self)] + mattr2
 
-        return tabulate(mattr, headr).replace('æ',' ')
+        return tabulate(mattr, headr).replace('␣',' ')
 
 
     def launch(self, HMM, save_as="noname", mp=False,

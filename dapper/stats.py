@@ -12,7 +12,7 @@ class Avrgs(StatPrint,DotDict):
     """
 
     def tabulate(self, statkeys=()):
-        headr, mattr = tabulate_avrgs([self],statkeys,decimals=None)
+        headr, mattr = tabulate_avrgs([self], statkeys, decimals=None)
         return tabulate(mattr, headr)
 
     abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
@@ -440,7 +440,7 @@ def warn_zero_variance(err,flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def tabulate_column(col,header,pad=' ',missingval='',frmt=None):
+def tabulate_column(col,header,pad='␣',missingval='',frmt=None):
     """Format a single column, return as list.
 
     - Use tabulate() to get decimal point alignment.
@@ -490,56 +490,46 @@ def tabulate_column(col,header,pad=' ',missingval='',frmt=None):
 
 
 def unpack_uqs(uq_list, decimals=None, cols=("val","conf")):
+    """Make array whose (named) cols are ``[uq.col for uq in uq_list]``.
+    
+    Embellishments:
+    - Insert None (in each col) if uq is None.
+    - Apply uq.round() when extracting val & conf. 
+    """
 
-    # np.array with named columns. "O" => allow storing None's.
-    dtypes = np.dtype([(c,"O") for c in cols]) 
-    avrgs = np.full_like(uq_list, dtype=dtypes, fill_value=None)
-
-    def unpack1(avrgs,i,uq):
+    def unpack1(arr,i,uq):
         if uq is None: return
         # val/conf
         if decimals is None: v,c = uq.round(mult=0.1)
         else:                v,c = np.round([uq.val, uq.conf],decimals)
-        avrgs["val"][i], avrgs["conf"][i] = v, c
+        arr["val"][i], arr["conf"][i] = v, c
         # Others
         for col in complement(cols, ["val","conf"]):
-            try: avrgs[col][i] = getattr(uq,col)
+            try: arr[col][i] = getattr(uq,col)
             except AttributeError: pass
 
+    # np.array with named columns. "O" => allow storing None's.
+    dtypes = np.dtype([(c,"O") for c in cols]) 
+    arr = np.full_like(uq_list, dtype=dtypes, fill_value=None)
     for i,uq in enumerate(uq_list):
-        unpack1(avrgs,i,uq)
+        unpack1(arr,i,uq)
 
-    return avrgs
+    return arr
 
 
+def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
+    """Tabulate avrgs (val±conf)."""
 
-def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
-    """Tabulate avrgs (val±conf).
-
-    ``statkeys``: list of keys of statistics to include."""
-    # Defaults averages
     if not statkeys:
         statkeys = ['rmse.a','rmv.a','rmse.f']
 
-    # Fill in
     headr, mattr = [], []
-    for column in statkeys:
-
-        # Get vals, confs
-        vals, confs = [], []
-        for avrgs in avrgs_list:
-            uq = getattr(avrgs,column,None)
-            if uq is None:         val,conf = None,None
-            elif decimals is None: val,conf = uq.round(mult=0.2)
-            else:                  val,conf = np.round([uq.val, uq.conf],decimals)
-            vals .append(val)
-            confs.append(conf)
-
-        # Align
-        vals  = tabulate_column(vals , column, pad)
-        confs = tabulate_column(confs, '1σ'  , pad)
-        assert len(vals)==len(confs)
+    for stat in statkeys:
+        column = unpack_uqs([getattr(a,stat,None) for a in avrgs_list], decimals)
+        vals   = tabulate_column(column["val"]  , stat)
+        confs  = tabulate_column(column["conf"] , '1σ')
         # Enter in headr, mattr
         headr.append(vals[0]+'  1σ')
         mattr.append([v +' ±'+c for v,c in zip(vals,confs)][1:])
+
     return headr, mattr

@@ -754,7 +754,7 @@ class xpSpace(SparseSpace):
                     # Tabulate subcolumns
                     subheaders = []
                     for key, header, frmt, _, align in zip(*subc.values()):
-                        column[key] = tabulate_column(column[key],header,'æ',frmt=frmt)[1:]
+                        column[key] = tabulate_column(column[key],header,frmt=frmt)[1:]
                         L = len(column[-1][key])
                         if align=='<': subheaders += [str(header).ljust(L)]
                         else:          subheaders += [str(header).rjust(L)]
@@ -762,9 +762,8 @@ class xpSpace(SparseSpace):
                     matter = [template.format(*[row[k] for k in subc['keys']]) for row in column]
                     header = template.format(*subheaders)
                 else:
-                    column = unpack_uqs(column, decimals)
-                    column = column["val"]
-                    column = tabulate_column(column,statkey,'æ')
+                    column = unpack_uqs(column, decimals)["val"]
+                    column = tabulate_column(column,statkey)
                     header, matter = column[0], column[1:]
 
                 if h2: # Do super_header
@@ -830,7 +829,7 @@ class xpSpace(SparseSpace):
                 table_title = "Table for " + repr(table_coord)
                 print(color_text(table_title, cBG.YELLOW))
             headers, *rows = rows
-            print(tabulate_orig.tabulate(rows,headers).replace('æ',' '))
+            print(tabulate_orig.tabulate(rows,headers).replace('␣',' '))
 
 
     def plot(xp_dict, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
