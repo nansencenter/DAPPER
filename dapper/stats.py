@@ -488,6 +488,31 @@ def tabulate_column(col,header,pad=' ',missingval='',frmt=None):
 
     return col
 
+
+def unpack_uqs(uq_list, decimals=None, cols=("val","conf")):
+
+    # np.array with named columns. "O" => allow storing None's.
+    dtypes = np.dtype([(c,"O") for c in cols]) 
+    avrgs = np.full_like(uq_list, dtype=dtypes, fill_value=None)
+
+    def unpack1(avrgs,i,uq):
+        if uq is None: return
+        # val/conf
+        if decimals is None: v,c = uq.round(mult=0.1)
+        else:                v,c = np.round([uq.val, uq.conf],decimals)
+        avrgs["val"][i], avrgs["conf"][i] = v, c
+        # Others
+        for col in complement(cols, ["val","conf"]):
+            try: avrgs[col][i] = getattr(uq,col)
+            except AttributeError: pass
+
+    for i,uq in enumerate(uq_list):
+        unpack1(avrgs,i,uq)
+
+    return avrgs
+
+
+
 def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
     """Tabulate avrgs (val±conf).
 
@@ -499,6 +524,7 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
     # Fill in
     headr, mattr = [], []
     for column in statkeys:
+
         # Get vals, confs
         vals, confs = [], []
         for avrgs in avrgs_list:
@@ -508,6 +534,7 @@ def tabulate_avrgs(avrgs_list,statkeys=(),decimals=None,pad=' '):
             else:                  val,conf = np.round([uq.val, uq.conf],decimals)
             vals .append(val)
             confs.append(conf)
+
         # Align
         vals  = tabulate_column(vals , column, pad)
         confs = tabulate_column(confs, '1σ'  , pad)

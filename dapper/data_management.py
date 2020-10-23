@@ -717,80 +717,52 @@ class xpSpace(SparseSpace):
 
         import pandas as pd
 
-        # Enable storing None's (not as nan's) both in
-        # - structured np.array
-        # - pd.DataFrame
-        _otype = object # could also use 'O'
-
         def align_subcols(rows,cc,subcols,h2):
             """Subcolumns: align, justify, join."""
 
-            def unpack_uqs(uq_list):
-                subcols=["val","conf","nFail","nSuccess","tuned_coord"]
+            # Define subcol formats
+            subc = dict()
+            subc['keys']     = ["val"   , "conf"]
+            subc['headers']  = [statkey , '1σ']
+            subc['frmts']    = [None    , None]
+            subc['spaces']   = [' ±'    , ] # last one gets appended below.
+            subc['aligns']   = ['>'     , '<'] # 4 header -- matter gets decimal-aligned.
+            if axes['optim'] is not None:
+                subc['keys']    += ["tuned_coord"]
+                subc['headers'] += [axes['optim']]
+                subc['frmts']   += [lambda x: tuple(a for a in x)]
+                subc['spaces']  += [' *']
+                subc['aligns']  += ['<']
+            elif axes['mean']  is not None:
+                subc['keys']    += ["nFail" , "nSuccess"]
+                subc['headers'] += ['☠'     , '✓'] # use width-1 symbols!
+                subc['frmts']   += [None    , None]
+                subc['spaces']  += [' '     , ' ']
+                subc['aligns']  += ['>'     , '>']
+            subc['spaces'].append('') # no space after last subcol
+            template = '{}' + '{}'.join(subc['spaces'])
 
-                # np.array with named columns.
-                dtype = np.dtype([(c,_otype) for c in subcols])
-                avrgs = np.full_like(uq_list, dtype=dtype, fill_value=None)
+            # Transpose
+            columns = [list(x) for x in zip(*rows)]
 
-                for i,uq in enumerate(uq_list):
-                    if uq is not None:
-
-                        # Format v,c
-                        if decimals is None: v,c = uq.round(mult=0.1)
-                        else:                v,c = np.round([uq.val, uq.conf],decimals)
-
-                        # Write attr's
-                        with set_tmp(uq,'val',v), set_tmp(uq,'conf',c):
-                            for a in subcols:
-                                try:
-                                    avrgs[a][i] = getattr(uq,a)
-                                except AttributeError:
-                                    pass
-
-                return avrgs
-
-            columns = [list(x) for x in zip(*rows)] # Tranpose
             # Iterate over columns.
             for j, (col_coord, column) in enumerate(zip(cc, columns)):
-                column = unpack_uqs(column)
-                # Tabulate (sub)columns
+
+                # Tabulate columns
                 if subcols:
-
-                    subc = dict()
-                    subc['keys']     = ["val"   , "conf"]
-                    subc['headers']  = [statkey , '1σ']
-                    subc['frmts']    = [None    , None]
-                    subc['spaces']   = [' ±'    , ] # last one gets appended below.
-                    subc['aligns']   = ['>'     , '<'] # 4 header -- matter gets decimal-aligned.
-                    if axes['optim'] is not None:
-                        subc['keys']    += ["tuned_coord"]
-                        subc['headers'] += [axes['optim']]
-                        subc['frmts']   += [lambda x: tuple(a for a in x)]
-                        subc['spaces']  += [' *']
-                        subc['aligns']  += ['<']
-                    elif axes['mean']  is not None:
-                        subc['keys']    += ["nFail" , "nSuccess"]
-                        subc['headers'] += ['☠'     , '✓'] # use width-1 symbols!
-                        subc['frmts']   += [None    , None]
-                        subc['spaces']  += [' '     , ' ']
-                        subc['aligns']  += ['>'     , '>']
-                    subc['spaces'].append('') # no space after last subcol
-                    template = '{}' + '{}'.join(subc['spaces'])
-
+                    column = unpack_uqs(column, decimals, subc["keys"])
                     # Tabulate subcolumns
                     subheaders = []
                     for key, header, frmt, _, align in zip(*subc.values()):
                         column[key] = tabulate_column(column[key],header,'æ',frmt=frmt)[1:]
-
-                        h = str(header)
                         L = len(column[-1][key])
-                        if align=='<': subheaders += [h.ljust(L)]
-                        else:          subheaders += [h.rjust(L)]
-
+                        if align=='<': subheaders += [str(header).ljust(L)]
+                        else:          subheaders += [str(header).rjust(L)]
                     # Join subcolumns:
                     matter = [template.format(*[row[k] for k in subc['keys']]) for row in column]
                     header = template.format(*subheaders)
                 else:
+                    column = unpack_uqs(column, decimals)
                     column = column["val"]
                     column = tabulate_column(column,statkey,'æ')
                     header, matter = column[0], column[1:]
@@ -844,7 +816,7 @@ class xpSpace(SparseSpace):
                 #   which would also require excessive processing:
                 #   nesting the table as cols, and then split_attrs() on cols.
                 row_keys = xpList(table.keys()).split_attrs()[0]
-                row_keys = pd.DataFrame.from_dict(row_keys,dtype=_otype)
+                row_keys = pd.DataFrame.from_dict(row_keys,dtype="O") # allow storing None
                 if len(row_keys.columns):
                     # Header
                     rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
