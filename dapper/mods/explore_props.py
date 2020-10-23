@@ -161,7 +161,7 @@ for k,t in enumerate(progbar(tt,"Ens (≈TLM)")):
 running_LS = ( 1/tt[:,None] * np.cumsum(LL,axis=0) )
 LS = running_LS[-1]
 print('Lyapunov spectrum estimate after t=T:')
-with printoptions(precision=2): print(LS)
+with np.printoptions(precision=2): print(LS)
 n0 = sum(LS >= 0)
 print('n0  : ', n0)
 print('var : ', np.var(xx))

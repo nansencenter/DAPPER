@@ -268,18 +268,6 @@ def spell_out(*args):
     print(*args)
 
 
-# TODO: rm?
-# Local np.set_printoptions. stackoverflow.com/a/2891805/38281
-import contextlib
-@contextlib.contextmanager
-@functools.wraps(np.set_printoptions)
-def printoptions(*args, **kwargs):
-    original = np.get_printoptions()
-    np.set_printoptions(*args, **kwargs)
-    yield 
-    np.set_printoptions(**original)
-
-
 import tabulate as tabulate_orig
 tabulate_orig.MIN_PADDING = 0
 def tabulate(data,headers=(),formatters=(),inds='nice',**kwargs):

@@ -426,14 +426,14 @@ class CovMat():
             S  = np.hstack([SW,nan*ones((K,1)),SE])
             All= np.vstack([N ,nan*ones(2*K+1),S])
 
-            with printoptions(threshold=0):
+            with np.printoptions(threshold=0):
                 t = "\n" + str(All)
 
         # Indent all of cov array, and add to s
         s += t.replace("\n","\n   ")
 
         # Add diag. Indent array +1 vs cov array
-        with printoptions(threshold=0):
+        with np.printoptions(threshold=0):
             s += "\n diag:\n   " + " " + str(self.diag)
 
         s = repr_type_and_name(self) + s.replace("\n","\n  ")
