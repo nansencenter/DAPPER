@@ -2,33 +2,6 @@
 
 from dapper import *
 
-class Avrgs(StatPrint,DotDict):
-    """A DotDict specialized for stat. averages.
-
-    Embellishments:
-    - StatPrint
-    - tabulate
-    - getattr that supports abbreviations.
-    """
-
-    def tabulate(self, statkeys=()):
-        columns = tabulate_avrgs([self], statkeys, decimals=None)
-        return tabulate(columns, headers="keys").replace('␣',' ')
-
-    abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
-
-    # Use getattribute coz it gets called before getattr.
-    def __getattribute__(self,key):
-        """Support deep and abbreviated lookup."""
-
-        # key = abbrevs[key] # Instead of this, also support rmse.a:
-        key = '.'.join(Avrgs.abbrevs.get(l,l) for l in key.split('.'))
-
-        if "." in key:
-            return deep_getattr(self,key)
-        else:
-            return super().__getattribute__(key)
-
 class Stats(StatPrint):
     """Contains and computes statistics of the DA methods.
 
@@ -418,6 +391,33 @@ def register_stat(self,name,value):
         self.stat_register = []
     self.stat_register.append(name)
 
+
+class Avrgs(StatPrint,DotDict):
+    """A DotDict specialized for stat. averages.
+
+    Embellishments:
+    - StatPrint
+    - tabulate
+    - getattr that supports abbreviations.
+    """
+
+    def tabulate(self, statkeys=()):
+        columns = tabulate_avrgs([self], statkeys, decimals=None)
+        return tabulate(columns, headers="keys").replace('␣',' ')
+
+    abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
+
+    # Use getattribute coz it gets called before getattr.
+    def __getattribute__(self,key):
+        """Support deep and abbreviated lookup."""
+
+        # key = abbrevs[key] # Instead of this, also support rmse.a:
+        key = '.'.join(Avrgs.abbrevs.get(l,l) for l in key.split('.'))
+
+        if "." in key:
+            return deep_getattr(self,key)
+        else:
+            return super().__getattribute__(key)
 
 # In case of degeneracy, variance might be 0, causing warnings
 # in computing skew/kurt/MGLS (which all normalize by variance).
