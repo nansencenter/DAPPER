@@ -405,12 +405,12 @@ class xpList(list):
     def __repr__(self):
         distinct, redundant, common = self.split_attrs()
         s = '<xpList> of length %d with attributes:\n'%len(self)
-        s += tabulate(distinct)
+        s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
         s += str(AlignedDict({**redundant, **common}))
         return s
 
-    def gen_names(self,abbrev=4,tab=False):
+    def gen_names(self,abbrev=6,tab=False):
         """Similiar to ``self.__repr__()``, but:
 
         - returns *list* of names
@@ -434,8 +434,11 @@ class xpList(list):
         # Rm da_method label (but keep value)
         table.pop(0)
 
+        # Transpose
+        table = list(map(list, zip(*table)))
+
         # Tabulate
-        table = tabulate(table,inds=False, tablefmt="plain")
+        table = tabulate(table, tablefmt="plain")
 
         # Rm space between lbls/vals
         table = re.sub(':  +',':',table) 
@@ -446,20 +449,14 @@ class xpList(list):
 
         return table.splitlines()
 
-    def tabulate_avrgs(self,*args,**kwargs):
-        """Pretty (tabulated) repr of cfgs & avrgs.
+    def tabulate_avrgs(self, *args, **kwargs):
+        """Pretty (tabulated) repr of cfgs & their avrgs.
         
         Similar to stats.tabulate_avrgs(), but for the entire list of xps."""
         distinct, redundant, common = self.split_attrs()
-
-        # Prepare table components
-        headr1, mattr1 = list(distinct.keys()), list(distinct.values())
-        headr2, mattr2 = tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
-        # Join 1&2
-        headr = headr1 + ['|']             + headr2
-        mattr = mattr1 + [['|']*len(self)] + mattr2
-
-        return tabulate(mattr, headr).replace('␣',' ')
+        averages = tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
+        columns = {**distinct, '|':['|']*len(self), **averages} # merge
+        return tabulate(columns, headers="keys", showindex=True).replace('␣',' ')
 
 
     def launch(self, HMM, save_as="noname", mp=False,

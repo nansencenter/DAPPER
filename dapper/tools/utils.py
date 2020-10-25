@@ -268,54 +268,9 @@ def spell_out(*args):
     print(*args)
 
 
-import tabulate as tabulate_orig
-tabulate_orig.MIN_PADDING = 0
-def tabulate(data,headers=(),formatters=(),inds='nice',**kwargs):
-    """Pre-processor for tabulate().
-
-    - Transposes 'data' (list-of-lists).
-    - ``formatter``: define formats to apply before relaying to tabulate().
-                     Default: attr.__name__ (when applicable).
-    - If ``data`` is a dict, the ``headers`` will be keys.
-    - Add row indices with style: [i]
-
-    Example::
-
-      >>> print(tabulate(cfgs.split_attrs()[0]))
-    """
-
-    # Extract dict
-    if hasattr(data,'keys'):
-        headers = list(data)
-        data = data.values()
-
-    # Default formats
-    if not formatters:
-        formatters = ({
-            'test'  : lambda x: hasattr(x,'__name__'),
-            'format': lambda x: x.__name__
-        },{
-            'test'  : lambda x: isinstance(x,np.ndarray),
-            'format': lambda x: "arr(...)"
-        },
-        )
-    # Apply formatting (if not applicable, data is just forwarded)
-    for f in formatters:
-        match = lambda row: any(f['test'](j) for j in row)
-        formt = lambda row: [f['format'](j) for j in row]
-        data = [formt(row) if match(row) else row for row in data]
-
-    # Transpose
-    data = list(map(list, zip(*data)))
-
-    # Generate nice indices
-    if inds=='nice':
-        inds = ['[{}]'.format(d) for d in range(len(data))]
-    else:
-        pass # Should be True or False
-
-    return tabulate_orig.tabulate(data,headers,showindex=inds,**kwargs)
-
+import tabulate
+tabulate.MIN_PADDING = 0
+from tabulate import tabulate
 
 def repr_type_and_name(thing):
     """Print thing's type [and name]"""

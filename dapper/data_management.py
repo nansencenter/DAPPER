@@ -829,7 +829,7 @@ class xpSpace(SparseSpace):
                 table_title = "Table for " + repr(table_coord)
                 print(color_text(table_title, cBG.YELLOW))
             headers, *rows = rows
-            print(tabulate_orig.tabulate(rows,headers).replace('␣',' '))
+            print(tabulate(rows,headers).replace('␣',' '))
 
 
     def plot(xp_dict, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,

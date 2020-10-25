@@ -12,8 +12,8 @@ class Avrgs(StatPrint,DotDict):
     """
 
     def tabulate(self, statkeys=()):
-        headr, mattr = tabulate_avrgs([self], statkeys, decimals=None)
-        return tabulate(mattr, headr)
+        columns = tabulate_avrgs([self], statkeys, decimals=None)
+        return tabulate(columns, headers="keys").replace('␣',' ')
 
     abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
 
@@ -473,7 +473,7 @@ def tabulate_column(col,header,pad='␣',missingval='',frmt=None):
 
     # Make text column, aligned
     col = [[preprocess(x)] for x in col]
-    col = tabulate_orig.tabulate(col,[header],'plain')
+    col = tabulate(col,[header],'plain')
     col = col.split("\n") # NOTE: dont use splitlines (removes empty lines)
 
     # Undo nan/inf treatment
@@ -523,13 +523,13 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     if not statkeys:
         statkeys = ['rmse.a','rmv.a','rmse.f']
 
-    headr, mattr = [], []
+    columns = {}
     for stat in statkeys:
         column = unpack_uqs([getattr(a,stat,None) for a in avrgs_list], decimals)
         vals   = tabulate_column(column["val"]  , stat)
         confs  = tabulate_column(column["conf"] , '1σ')
-        # Enter in headr, mattr
-        headr.append(vals[0]+'  1σ')
-        mattr.append([v +' ±'+c for v,c in zip(vals,confs)][1:])
+        headr = vals[0]+'  1σ'
+        mattr = [v +' ±'+c for v,c in zip(vals,confs)][1:]
+        columns[headr] = mattr
 
-    return headr, mattr
+    return columns
