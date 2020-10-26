@@ -1,10 +1,8 @@
 Todo
 ================================================
 Minor:
-* Dont use .ini config files
-* Open ipdb session during liveplotting
+* Open ipdb session during liveplotting if "i" is pressed
 * Cut back on "config" wording, in favour of xp.
-* Rename dpr01.py occurences to some_settings_01.py
 * Replace all np.vectorize in math.py with vectorize0
 
 

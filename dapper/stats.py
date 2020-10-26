@@ -47,7 +47,7 @@ class Stats(StatPrint):
         )
         # Only keep the methods listed in rc
         self.field_summaries = {k:v for k,v in self.field_summaries.items()
-             if k in rc.stat.field_summary_methods.split(',')}
+             if k in rc.field_summary_methods.split(',')}
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
