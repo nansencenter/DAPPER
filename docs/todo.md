@@ -16,7 +16,3 @@ Major:
     * Change KObs to KObs-1
     * Note (somewhere) the implicit dependence on t=0 being special
 * Simplify and/or improve cov matrix stuff.
-
-
-Bugs:
-* Window focus when plt.ion().

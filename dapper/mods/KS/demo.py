@@ -1,3 +1,4 @@
+"""Demonstrate the Kuramoto-Sivashinsky (KS) system."""
 # The Kuramoto-Sivashinsky (K-S) system:
 #    u_t = -u*u_x - u_xx - u_xxxx,
 #    where x ∈ [0, L],  periodic BCs,
@@ -33,7 +34,6 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
-plt.ion()
 
 from dapper.mods.KS.core import Model
 model = Model()
@@ -58,7 +58,7 @@ for k in range(1,K+1):
 
 # Animate
 from dapper.tools.viz import amplitude_animation
-ani = amplitude_animation(EE,dt)
+ani = amplitude_animation(EE,dt,interval=20)
 
 # Plot
 plt.figure()
@@ -70,3 +70,4 @@ plt.axis('tight')
 plt.title('Hovmoller for K-S system, member %d'%n)
 plt.ylabel('Time (t)')
 plt.xlabel('Space (x)')
+plt.show()

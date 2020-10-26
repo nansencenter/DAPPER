@@ -1,8 +1,6 @@
-# Quick illustration.
-# Sorry for the mess.
+"""Demonstrate the Lorenz two-speed/scale/layer model."""
 
 from dapper import *
-plt.ion()
 
 from dapper.mods.LorenzUV.lorenz96 import LUV
 nU, J = LUV.nU, LUV.J
@@ -26,4 +24,4 @@ lhV = plt.plot(jj/J,wrapV(xx[-1,nU:]),'g',lw=2)[0]
 for k in progbar(range(K),'Plotting'):
     lhU.set_ydata(wrapU(xx[k,:nU]))
     lhV.set_ydata(wrapV(xx[k,nU:]))
-    plot_pause(0.001)
+    plt.pause(0.001)

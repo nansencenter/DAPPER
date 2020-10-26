@@ -39,11 +39,10 @@ def setup_wrapping(M,periodicity=None):
     return ii, wrap
 
 from matplotlib.animation import FuncAnimation
-def amplitude_animation(EE,dt=None,interval=10,periodicity=None,blit=True,fignum=None):
+def amplitude_animation(EE,dt=None,interval=0,periodicity=None,blit=True,fignum=None):
     fig, ax = freshfig(fignum)
     ax.set_xlabel('State index')
     ax.set_ylabel('Amplitue')
-    # ax.set_title('Amplitudes')
     ax.set_ylim(*stretch(*xtrema(EE),1.1))
 
     if EE.ndim == 2:

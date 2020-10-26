@@ -1,4 +1,4 @@
-# Quick illustration.
+"""Prettier, static illustration of Lorenz two-speed/scale/layer model."""
 # Sorry for the mess.
 
 from dapper import *
@@ -69,7 +69,7 @@ for i, (t, l) in enumerate(zip(tV,lV)):
     ax.vlines(t, ym, -3.9, 'k',lw=mpl.rcParams['xtick.minor.width'])
 ax.grid(color='k',alpha=0.6,lw=0.4,axis='y',which='major')
 
-
+plt.show()
 
 
 

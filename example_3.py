@@ -3,7 +3,7 @@
 Launch many experiments (to explore a bunch of control variables),
 and plot the compiled results as in a variety of ways.
 
-As an example, we will reproduce Figure 6.6 from Ref[1].
+As an example, we will reproduce Figure 6.6 from reference [1].
 The figure reveals the (relative) importance (in the EnKF) of
 localization and inflation.
 
@@ -15,9 +15,11 @@ NB: unless you have access to the DAPPER cluster, you probably want to reduce
 the number of experiments by shortening the list of ``seed``
 (and maybe those of some tuning parameters) and/or reducing ``KObs``.
 
-Ref[1]: Asch, Bocquet, Nodet: "Data Assimilation: Methods, Algorithms, and Applications",
-    https://books.google.no/books?id=FtDZDQAAQBAJ&q=figure+6.6 . Alternatively, see
-    http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf (its figure 5.7).
+[1]: Asch, Bocquet, Nodet:
+     "Data Assimilation: Methods, Algorithms, and Applications",
+     https://books.google.no/books?id=FtDZDQAAQBAJ&q=figure+6.6 .
+     Alternatively, see figure 5.7 of
+     http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf .
 """
 
 from dapper import *
@@ -115,9 +117,9 @@ def get_style(coord):
     return S
 
 # Plot
-plt.ion()
 tables = xp_dict.plot('rmse.a', axes, get_style, title2=save_as)
 default_fig_adjustments(tables)
+plt.pause(1)
 
 
 ##############################
@@ -152,6 +154,8 @@ default_fig_adjustments(tables)
 # Colorbar
 cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0],label=graded)
 cb.set_ticks(arange(len(grades))); cb.set_ticklabels(grades)
+
+plt.pause(1)
 
 # Excercise:
 # Make a get_style() that works well with graded = "infl".

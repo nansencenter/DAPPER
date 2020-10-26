@@ -52,7 +52,6 @@ for i, dt in enumerate(hh):
 
 # Plot stats
 from matplotlib import pyplot as plt
-plt.ion()
 plt.figure()
 for m in methods:
     plt.loglog(durations[m]    , errors[m], '-o', label=m)
@@ -63,6 +62,7 @@ plt.xlabel('Total computation time (s)')
 plt.ylabel('Max err (vs ref) at T=%d'%T)
 plt.grid(True,'minor')
 plt.title('Ens size: %d'%N)
+plt.show()
 
 # Plot ultimate states -- Not interesting, except for debugging
 # plt.figure()

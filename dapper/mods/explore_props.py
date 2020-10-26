@@ -4,7 +4,6 @@ An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}."""
 
 from dapper import *
 set_seed(3000)
-plt.ion()
 
 ########################
 # Model selection
@@ -179,4 +178,4 @@ ax.set_ylabel('Exponent value')
 # Annotate values
 # for L in LS: ax.text(0.7*T,L+0.01, '$\lambda = {:.5g}$'.format(L) ,size=12)
 
-##
+plt.show()

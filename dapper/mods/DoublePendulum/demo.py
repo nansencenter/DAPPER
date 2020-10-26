@@ -1,10 +1,9 @@
+"""Demonstrate the Double Pendulum model."""
 # https://en.wikipedia.org/wiki/Double_pendulum
 
 from dapper import *
 from dapper.mods.DoublePendulum.core import step, x0, energy, L1, L2
-plt.ion()
 
-##
 E0 = x0 + 0.01*randn((3,4))
 simulator = with_recursion(step)
 dt = 0.01
@@ -13,7 +12,6 @@ EE = simulator(E0, k=10**4, t0=0, dt=dt)
 # Energy evolution. Should be constant, but for numerical errors:
 # plt.plot(energy(EE).T)
 
-##
 fig = plt.figure()
 ax = fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
 
@@ -42,6 +40,4 @@ def animate(i):
 import matplotlib.animation as animation
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(EE)),
                               interval=1, blit=True, init_func=init)
-
-
-##
+plt.show()

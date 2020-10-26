@@ -24,6 +24,7 @@ def dxdt(x):
 
 step = with_rk4(dxdt,autonom=True)
 
+Tplot = 100
 
 def d2x_dtdx(x):
     return diag(r - r*(A@x)) - (r*x)[:,None]*A 

@@ -1,4 +1,4 @@
-# Script to illustrate the QG (quasi-geostrophic) model.
+"""Demonstrate the QG (quasi-geostrophic) model."""
 
 from dapper import *
 from dapper.mods.QG.core import sample_filename, nx, square, default_prms
