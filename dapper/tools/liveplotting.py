@@ -25,10 +25,6 @@ class LivePlot:
         self.any_figs = False
         if not rc.liveplotting_enabled: return
 
-        # On the 2nd run (of example_1 e.g.) the figures don't appear
-        # if they've been closed. For some reason, this fixes it:
-        plt.ion()
-
         # Determine whether all/universal/intermediate stats are plotted
         self.plot_u = not replay or stats.store_u
 
@@ -96,7 +92,7 @@ class LivePlot:
                     win.set_window_title("%s [%d]"%(name,num))
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0,E,P) # Call initial update
-                    plot_pause(0.01)      # Draw
+                    plt.pause(0.01)       # Draw
 
 
     def update(self,key,E,P):

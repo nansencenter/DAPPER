@@ -151,7 +151,10 @@ def estimate_good_plot_length(xx,chrono=None,mult=100):
 
 
 def plot_pause(interval):
-    """Similar to plt.pause()"""
+    """Similar to plt.pause(), but doesn't focus window.
+
+    NB: doesn't create windows either.
+    For that, use plt.pause() or plt.show() instead."""
 
     # plt.pause(0) just seems to freeze execution.
     if interval==0:
@@ -159,11 +162,13 @@ def plot_pause(interval):
 
     try:
         # Implement plt.pause() that doesn't focus window, c.f.
-        # github.com/matplotlib/matplotlib/issues/11131, so.com/q/45729092.
+        # https://github.com/matplotlib/matplotlib/issues/11131
+        # https://stackoverflow.com/q/45729092
         # Only necessary for some platforms (e.g. Windows) and mpl versions.
         # Even then, mere figure creation may steal the focus.
-        # This was done deliberately github.com/matplotlib/matplotlib/pull/6384#issue-69259165.
-        # See issue: github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
+        # This was done deliberately:
+        # https://github.com/matplotlib/matplotlib/pull/6384#issue-69259165
+        # https://github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
         from matplotlib import _pylab_helpers
         def _plot_pause(interval,  focus_figure=True):
             canvas = plt.gcf().canvas
@@ -365,7 +370,8 @@ def freshfig(num=None,figsize=None,*args,**kwargs):
 
     fig = plt.figure(num=num,figsize=figsize)
 
-    # Deal with warning bug: github.com/matplotlib/matplotlib/issues/9970
+    # Deal with warning bug
+    # https://github.com/matplotlib/matplotlib/issues/9970
     with warnings.catch_warnings():
         warnings.simplefilter("ignore",category=UserWarning)
         fig.clf()
@@ -417,6 +423,13 @@ def get_screen_size():
         y0 = sg.y()
         w0 = sg.width()
         h0 = sg.height()
+    elif mpl.get_backend() == "TkAgg":
+        # https://stackoverflow.com/a/42951711/38281
+        window = plt.get_current_fig_manager().window
+        x0, y0 = 0, 0
+        w0, h0 = window.wm_maxsize()
+        # h = window.winfo_screenheight()
+        # w = window.winfo_screenwidth()
     else:
         # Mac Retina Early 2013
         x0 = 0
@@ -444,11 +457,15 @@ def fig_rel_geometry(fignum=None,x=None,y=None,w=None,h=None):
     x = x if x is not None else fmw.x()     /w0
     y = y if y is not None else fmw.y()     /h0
 
+    x = x0 + x*w0
+    y = y0 + y*h0 + footer
+    w = w*w0
+    h = h*h0 - footer
+
     try: # For Qt4Agg/Qt5Agg
-        fmw.setGeometry( x0+x*w0, y0+y*h0+footer, w*w0, h*h0-footer)
+        fmw.setGeometry(x, y, w, h)
     except: # For TkAgg
-        geo = str(int(w)) + 'x' + str(int(h)) + \
-            '+' + str(int(x)) + '+' + str(int(y))
+        geo = f"{int(w)}x{int(h)}+{int(x)}+{int(y)}"
         fmw.geometry(newGeometry=geo) 
 
 def fig_place(loc,fignum=None):
@@ -465,10 +482,8 @@ def fig_place(loc,fignum=None):
     >>>   fig_place(loc, i)
     """
 
-    # Only configured for me (Patrick):
-    # NB: Using this causes fig windows to be hidden on some systems.
-    if not user_is_patrick: return
-    # if not mpl.get_backend()=='TkAgg': return
+    # NB: Experimental. Fails on some systems/backends.
+    if not rc.place_figs: return
 
     loc = str(loc)
     loc = loc.replace(",","")

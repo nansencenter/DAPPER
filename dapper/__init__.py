@@ -65,12 +65,15 @@ from numpy import \
     eye, zeros, ones, diag, trace \
     # Don't shadow builtins: sum, max, abs, round, pow
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt 
+
 ##################################
 # Imports from DAPPER package
 ##################################
 # Load rc: default settings
 from .dict_tools import *
-from .dpr_config import *
+from .dpr_config import rc
 
 # 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
 if rc.welcome_message:

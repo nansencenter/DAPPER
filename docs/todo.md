@@ -1,7 +1,8 @@
 Todo
 ================================================
 Minor:
-* Rm all occurances of plt.ion(). Works better without.
+* Dont use .ini config files
+* Open ipdb session during liveplotting
 * Cut back on "config" wording, in favour of xp.
 * Rename dpr01.py occurences to some_settings_01.py
 * Replace all np.vectorize in math.py with vectorize0
