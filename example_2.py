@@ -41,7 +41,7 @@ xps += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # Other models (suitable xp configs listed in HMM files):
 # from dapper.mods.LA           .evensen2009 import HMM
 # from dapper.mods.KS           .bocquet2019 import HMM
-# from dapper.mods.LotkaVolterra.dpr01       import HMM
+# from dapper.mods.LotkaVolterra.settings101 import HMM
 
 ##############################
 # Run experiment
