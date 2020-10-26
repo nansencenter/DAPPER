@@ -24,7 +24,7 @@ from copy import deepcopy
 import dataclasses as dc
 from typing import Optional, Any, Union
 
-assert sys.version_info >= (3,6), "Need Python>=3.6"
+assert sys.version_info >= (3,8), "Need Python>=3.8"
 
 
 ##################################
