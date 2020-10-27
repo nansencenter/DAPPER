@@ -1,13 +1,10 @@
 Todo
 ================================================
 Minor:
-* Fix replay (ex1)
-* SVG animation for github README
-* Replace all np.vectorize in math.py with vectorize0
+* Clean up imports into __init__
 
 
 Major:
-* Clean up imports into __init__
 * Improve docs
 * Make superclasses for the filter, smoother, and iterative smoother.
 * Simplify and/or generalize time management?
