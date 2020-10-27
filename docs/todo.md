@@ -7,6 +7,7 @@ Minor:
 
 
 Major:
+* Clean up imports into __init__
 * Improve docs
 * Make superclasses for the filter, smoother, and iterative smoother.
 * Simplify and/or generalize time management?
