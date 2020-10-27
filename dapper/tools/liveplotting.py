@@ -175,6 +175,7 @@ def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
         P0 = eye(stats.HMM.Nx)
 
     LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, replay=True, **kwargs)
+    plt.pause(.01) # required when speed=inf
 
     # Remember: must use progbar to unblock read1.
     # Let's also make a proper description.
@@ -187,6 +188,8 @@ def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
                 LP.update((k,kObs,'f'),None,None)
                 LP.update((k,kObs,'a'),None,None)
             LP.update((k,kObs,'u'),None,None)
+
+    plt.pause(.01) # required when speed=inf
 
 
 
