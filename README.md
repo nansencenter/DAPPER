@@ -14,15 +14,18 @@ The tests provide experimental support and guidance for new developments in DA. 
 ![EnKF - Lorenz'63](./dpr_data/figs/anims/DAPPER_illust_v2.jpg)
 
 The typical set-up is a **synthetic (twin) experiment**, where you
-* specify a
-  * dynamic model* 
-  * observational model*
-* use these to generate a synthetic
-  * "truth"
-  * and observations thereof*
-* assess how different DA methods perform in estimating the truth,
-    given the above starred (*) items.
+- specify a
+    - dynamic model`*`
+    - observational model`*`
+- use these to generate a synthetic
+    - "truth"
+    - and observations thereof`*`
+- assess how different DA methods perform in estimating the truth,
+    given the above starred (`*`) items.
 
+
+Highlights
+================================================
 DAPPER enables the numerical investigation of DA methods
 through a variety of typical test cases and statistics.
 It (a) reproduces numerical benchmarks results reported in the literature,
