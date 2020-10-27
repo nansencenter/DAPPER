@@ -4,7 +4,7 @@ import textwrap
 
 # Multiprocessing is kept as an option in DAPPER,
 # since some of these libraries are experimental.
-# TODO: make it mandatory?
+# TODO 2: make it mandatory?
 try:
     # Multiprocessing requries pickling. The package 'dill' is able to
     # pickle much more than basic pickle (e.g. nested functions),

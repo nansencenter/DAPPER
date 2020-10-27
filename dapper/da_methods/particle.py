@@ -32,7 +32,7 @@ class PartFilt:
     qroot   : float = 1.0
     wroot   : float = 1.0
 
-    # TODO:
+    # TODO 4:
     #if miN < 1:
     #miN = N*miN
 

@@ -67,7 +67,7 @@ class iEnKS:
     # NB It's very difficult to preview what should happen to all of the time indices in all cases of
     # nIter and Lag. => Any changes to this function must be unit-tested via scripts/test_iEnKS.py.
 
-    # TODO:
+    # TODO 4:
     # - step length
     # - Implement quasi-static assimilation. Boc notes:
     #   * The 'balancing step' is complicated.
@@ -78,7 +78,7 @@ class iEnKS:
         R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
         Rm12 = R.sym_sqrt_inv
 
-        assert Dyn.noise.C == 0, "Q>0 not yet supported. TODO: implement Sakov et al 2017"
+        assert Dyn.noise.C == 0, "Q>0 not yet supported. TODO 4: implement Sakov et al 2017"
 
         if self.bundle: EPS = 1e-4 # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
         else          : EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
@@ -301,7 +301,7 @@ class iLEnKS:
                     dw       = Pw@grad
                     w[ib]   -= dw
 
-                # Stopping condition # TODO
+                # Stopping condition # TODO 2
                 #if np.linalg.norm(dw) < N*1e-4:
                     #break
 

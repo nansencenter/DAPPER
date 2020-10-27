@@ -254,8 +254,8 @@ def run_experiment(xp, label, savedir, HMM,
 
 
 
-# TODO: check collections.userlist
-# TODO: __add__ vs __iadd__
+# TODO 2: check collections.userlist
+# TODO 2: __add__ vs __iadd__
 class xpList(list):
     """List, subclassed for holding experiment ("xp") objects.
 
@@ -477,7 +477,7 @@ class xpList(list):
 
         See ``example_2.py`` and ``example_3.py`` for example use.
         """
-        # TODO: doc files and code options in mp, e.g
+        # TODO 2: doc files and code options in mp, e.g
         # `files` get added to PYTHONPATH and have dir-structure preserved.
         # Setup: Experiment initialisation. Default: seed_and_simulate().
         #   Enables setting experiment variables that are not parameters of a da_method.
@@ -550,8 +550,8 @@ class xpList(list):
             os.mkdir(extra_files)
             # Default files: .py files in sys.path[0] (main script's path)
             if not mp.get("files",[]):
-                # Todo?: also intersect(..., sys.modules).
-                # Todo?: use git ls-tree instead?
+                # Todo 4: also intersect(..., sys.modules).
+                # Todo 4: use git ls-tree instead?
                 ff = os.listdir(sys.path[0])
                 mp["files"] = [f for f in ff if f.endswith(".py")]
             # Copy files into extra_files

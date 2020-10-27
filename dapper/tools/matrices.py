@@ -15,7 +15,7 @@ def randcorr(M):
 
 def genOG(M):
     """Generate random orthonormal matrix."""
-    # TODO: This (using Householder) is (slightly?) wrong, 
+    # TODO 3: This (using Householder) is (slightly?) wrong, 
     # as per section 4 of mezzadri2006generate.
     Q,R = nla.qr(randn((M,M)))
     for i in range(M):
@@ -439,7 +439,7 @@ class CovMat():
         s = repr_type_and_name(self) + s.replace("\n","\n  ")
         return s
 
-# TODO? The diagonal representation is NOT memory-efficient.
+# Note: The diagonal representation is NOT memory-efficient.
 #
 # But there's no simple way of making so, especially since the sparse class
 # (which would hold the eigenvectors) is a subclass of the matrix class,

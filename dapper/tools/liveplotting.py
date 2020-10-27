@@ -192,7 +192,7 @@ def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
 
     # Ens does not get stored in stats, so we cannot replay that.
     # If the LPs are initialized with P0!=None, then they will avoid ens plotting.
-    # TODO: This system for switching from Ens to stats must be replaced.
+    # TODO 2: This system for switching from Ens to stats must be replaced.
     #       It breaks down when M is very large.
     try:
         P0 = np.full_like(stats.HMM.X0.C.full, nan) 
@@ -218,7 +218,7 @@ def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
 
 
 
-# TODO:
+# TODO 4:
 # - iEnKS diagnostics don't work at all when store_u=False
 star = "${}^*$"
 class sliding_diagnostics:
@@ -1125,7 +1125,7 @@ def spatial2d(
         ax_21.set_title('std. '+sx)
         ax_22.set_title('err. '+sx)
 
-        # TODO
+        # TODO 4
         # for ax in axs.flatten():
         # lims = (1, nx-2) # crop boundries (which should be 0, i.e. yield harsh q gradients).
         # step = (nx - 1)/8

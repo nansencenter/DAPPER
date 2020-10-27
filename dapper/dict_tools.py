@@ -1,6 +1,6 @@
 """Tools for working with dicts"""
 
-# TODO
+# TODO 9
 # - Make pip package, answer SO.com questions about
 #   https://www.google.com/search?q=python+aligned+dict&oq=python+aligned+dict
 
@@ -88,7 +88,7 @@ def transpose_dicts(DD,enforce_rectangle=True):
 
     return new
 
-# TODO: rm?
+# TODO 4: rm?
 def transpose_dict_of_lists(DL,enforce_rectangle=True):
     """Example:
     >>> DL = {chr(97+i): [i*10+j for j in range(4)] for i in range(3)}
@@ -165,7 +165,7 @@ def _shorten_linewidth_by(n):
         _linewidth = old
         np_lw(old)
 
-# TODO: should also be made thread-safe? Ref _is_being_printed.
+# TODO 4: should also be made thread-safe? Ref _is_being_printed.
 _linewidth = None
 _top_dog = None
 _is_being_printed = set()

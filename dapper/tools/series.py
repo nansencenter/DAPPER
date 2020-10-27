@@ -1,6 +1,6 @@
 from dapper import *
 
-# TODO: change L to 'nlags', with nlags=L-1, to conform with
+# TODO 3: change L to 'nlags', with nlags=L-1, to conform with
 # the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
 def auto_cov(xx,L=5,zero_mean=False,corr=False):
     """
@@ -243,7 +243,7 @@ class RollingArray:
         # self.array[-1] = val
 
         dk = max(1,dk)
-        # TODO: Should have used deque?
+        # TODO 4: Should have used deque?
         self.array = np.roll(self.array, -dk, axis=0)
         self.array[-dk:] = nan
         self.array[-1 :] = val

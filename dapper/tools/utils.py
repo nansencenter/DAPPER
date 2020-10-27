@@ -222,7 +222,7 @@ def get_call():
     return call, f2.f_locals
 
 
-# TODO: doesnt work anymore?
+# TODO 2: doesnt work anymore?
 def magic_naming(*args,**kwargs):
     """Convert args (by their names in the call) to kwargs."""
     call, locvars = get_call()
@@ -332,7 +332,7 @@ def functools_wraps(wrapped, lineno=1, *args, **kwargs):
 #     yield 
 #     setattr(obj,attr,tmp)
 
-# TODO: use finally?
+# TODO 2: use finally?
 import contextlib
 @contextlib.contextmanager
 def set_tmp(obj, attr, val):
