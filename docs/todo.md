@@ -1,7 +1,7 @@
 Todo
 ================================================
 Minor:
-* Open ipdb session during liveplotting if "i" is pressed
+* SVG animation for github README
 * Cut back on "config" wording, in favour of xp.
 * Replace all np.vectorize in math.py with vectorize0
 

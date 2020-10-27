@@ -14,6 +14,8 @@ The code also demonstrates:
 NB: unless you have access to the DAPPER cluster, you probably want to reduce
 the number of experiments by shortening the list of ``seed``
 (and maybe those of some tuning parameters) and/or reducing ``KObs``.
+Also, the resulting output can be previewed at
+https://github.com/nansencenter/DAPPER#highlights
 
 [1]: Asch, Bocquet, Nodet:
      "Data Assimilation: Methods, Algorithms, and Applications",

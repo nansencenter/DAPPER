@@ -56,6 +56,7 @@ setuptools.setup(
         'matplotlib~=3.1', # >=3.1 to avoid Mac's framework-build issues
         'tqdm~=4.31',
         'pyyaml',
+        'ipdb',
         'colorama~=0.4.1',
         'tabulate~=0.8.3',
         'dill==0.3.2', # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.

@@ -77,7 +77,9 @@ class LivePlot:
                     print('Initializing liveplots...')
                     print('Hit <Space> to pause/step.')
                     print('Hit <Enter> to resume/skip.')
+                    print('Hit <i> to enter debug mode.')
                     self.paused = False
+                    self.run_ipdb = False
                     self.skipping = False
                     self.any_figs = True
 
@@ -107,37 +109,52 @@ class LivePlot:
             return
 
         # Playback control
-        SPACE  = b' '   
+        SPACE  = b' '
+        CHAR_I = b'i'
         ENTERs = [b'\n', b'\r'] # Linux + Windows
         def pause():
             "Loop until user decision is made."
             ch = read1() 
             while True:
-                if ch in ENTERs:
-                    self.paused = False
-                if ch in ENTERs + [SPACE]:
-                    break
+                # Set state (pause, skipping, ipdb)
+                if ch in ENTERs: self.paused = False
+                elif ch==CHAR_I: self.run_ipdb = True
+                # If keypress valid, resume execution
+                if ch in ENTERs + [SPACE, CHAR_I]: break
                 ch = read1()
                 # Pause to enable zoom, pan, etc. of mpl GUI
                 plot_pause(0.01) # Don't use time.sleep()!
-        #
+
+        # Enter pause loop
         if self.paused:
             pause()
+
         else:
             if key==(0,None,'u'):
-                pass # Skip read1 for key0 (coz it blocks)
+                # Skip read1 for key0 (coz it blocks)
+                pass
             else:
-                # Set switches for pause & skipping
                 ch = read1()
-                if ch==SPACE: # Turn ON pause & turn OFF skipping.
+                if ch==SPACE:
+                    # Pause
                     self.paused = True
                     self.skipping = False
                     pause()
-                elif ch in ENTERs: # Toggle skipping
-                    self.skipping = not self.skipping 
+                elif ch in ENTERs:
+                    # Toggle skipping
+                    self.skipping = not self.skipping
+                elif ch==CHAR_I:
+                    # Schedule debug
+                    # Note: The reason we dont set_trace(frame) right here is:
+                    # - I could not find the right frame, even doing
+                    #   >   frame = inspect.stack()[0]
+                    #   >   while frame.f_code.co_name != "assimilate":
+                    #   >       frame = frame.f_back
+                    # - It just restarts the plot.
+                    self.run_ipdb = True
 
+        # Update figures
         if not self.skipping:
-            # Update figures
             faus = key[-1]
             if faus != 'u' or self.plot_u:
                 for name, (num, updater) in self.figures.items():
@@ -146,6 +163,14 @@ class LivePlot:
                         updater(key,E,P)
                         plot_pause(self.params['pause_'+faus])
 
+        if self.run_ipdb:
+            self.run_ipdb = False
+            import ipdb
+            import inspect
+            print("Entering debug mode (ipdb).")
+            print("Type '?' (and Enter) for usage help.")
+            print("Type 'c' to continue the assimilation.")
+            ipdb.set_trace(inspect.stack()[2].frame)
 
 
 def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
