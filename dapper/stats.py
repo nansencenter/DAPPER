@@ -46,8 +46,7 @@ class Stats(StatPrint):
             gm        = lambda x: exp(mean(log(x))) , # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = {k:v for k,v in self.field_summaries.items()
-             if k in rc.field_summary_methods.split(',')}
+        self.field_summaries = intersect(self.field_summaries, rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}

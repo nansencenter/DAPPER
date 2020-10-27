@@ -21,9 +21,9 @@ class LivePlot:
             - 1      : default (as quick as possible while allowing for plt.draw())
             - below 1: slower."""
 
-        # Disable if not liveplotting_enabled
+        # Disable if not rc.liveplotting
         self.any_figs = False
-        if not rc.liveplotting_enabled: return
+        if not rc.liveplotting: return
 
         # Determine whether all/universal/intermediate stats are plotted
         self.plot_u = not replay or stats.store_u
