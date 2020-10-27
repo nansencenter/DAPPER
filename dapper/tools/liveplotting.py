@@ -38,7 +38,7 @@ class LivePlot:
         for pause in ["pause_"+x for x in "fau"]:
             self.params[pause] /= speed
         # Write params
-        self.params.update(getattr(stats.config, "LP_kwargs", dict()))
+        self.params.update(getattr(stats.xp, "LP_kwargs", dict()))
         self.params.update(kwargs)
 
         def get_name(init):
@@ -56,7 +56,7 @@ class LivePlot:
             potential_LPs[get_name(init)] = num, show, init
 
         def parse_figlist(lst):
-            "Figures requested for this config. Convert to list."
+            "Figures requested for this xp. Convert to list."
             if isinstance(lst,str):
                 fn = lst.lower()
                 if   "all" == fn:        lst = range(99) # All potential_LPs
@@ -203,7 +203,7 @@ def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
 
     # Remember: must use progbar to unblock read1.
     # Let's also make a proper description.
-    desc = stats.config.da_method + " (replay)"
+    desc = stats.xp.da_method + " (replay)"
 
     # Play through assimilation cycles
     for k,kObs,t,dt in progbar(chrono.ticker, desc):
@@ -226,7 +226,7 @@ class sliding_diagnostics:
             # STYLE TABLES - Defines which/how diagnostics get plotted
         styles = {}
         lin  = lambda a,b: (lambda x: a + b*x)
-        divN = 1/getattr(stats.config,'N',99)
+        divN = 1/getattr(stats.xp,'N',99)
         # -------------transf      , shape  , plt kwargs---------------------------------------
         styles['RMS'] = {
             'err.rms' : [None        , None   , dict(c='k'      , label='Error'            )],
@@ -1004,7 +1004,7 @@ def spatial1d(
             lines_s += ax.plot(ii,nan1,                     "b-" ,lw=1)
             line_mu, = ax.plot(ii,nan1,                     'b-' ,lw=2,label='DA mean')
         else:                                                      
-            nanE     = nan*ones((stats.config.N,M))
+            nanE     = nan*ones((stats.xp.N,M))
             lines_E  = ax.plot(ii,wrap(nanE[0])   , **p.ens_props,lw=1,label='Ensemble')
             lines_E += ax.plot(ii,wrap(nanE[1:]).T, **p.ens_props,lw=1)
         # Truth, Obs

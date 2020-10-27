@@ -42,11 +42,11 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LPs(jj),
 
 # Reproduce Anderson Figure 2
 # -----------------------------------------------------------------------------------
-# config = SL_EAKF(N=6, infl=sqrt(1.1), loc_rad=0.2/1.82*40)
+# xp = SL_EAKF(N=6, infl=sqrt(1.1), loc_rad=0.2/1.82*40)
 # for lbl in ['err','std']:
-#     stat = getattr(config.stats,lbl).f[HMM.t.maskObs_BI]
+#     stat = getattr(xp.stats,lbl).f[HMM.t.maskObs_BI]
 #     plt.plot(sqrt(mean(stat**2, axis=0)),label=lbl)
 #
-# Note: for this config, one must to be lucky with the random seed to avoid
+# Note: for this xp, one must to be lucky with the random seed to avoid
 #       blow up in the ocean sector (which is not constrained by obs) due to infl.
 #       Instead, I recommend lowering dt (as in Miyoshi 2011) to stabilize integration.

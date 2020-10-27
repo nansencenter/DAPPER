@@ -20,12 +20,12 @@ HMM.Obs = Operator(**Obs)
 # from dapper.mods.Lorenz63.wiljes2017 import HMM # rmse.a reported by DAPPER / PAPER:
 # ------------------------------------------------------------------------------
 # HMM.t.KObs = 10**2
-# cfgs += OptInterp()                                                # 5.4    / N/A
-# cfgs += Var3D(xB=0.3)                                              # 3.0    / N/A
-# cfgs += EnKF_N(N=5)                                                # 2.68   / N/A
-# cfgs += EnKF_N(N=30,rot=True)                                      # 2.52   / 2.5
-# cfgs += LNETF(N=40,rot=True,infl=1.02,Rs=1.0,loc_rad='NA')         # 2.61   / ~2.2
-# cfgs += PartFilt(N=35 ,reg=1.4,NER=0.3)                            # 2.05   / 1.4  (tuning settings not given)
+# xps += OptInterp()                                                # 5.4    / N/A
+# xps += Var3D(xB=0.3)                                              # 3.0    / N/A
+# xps += EnKF_N(N=5)                                                # 2.68   / N/A
+# xps += EnKF_N(N=30,rot=True)                                      # 2.52   / 2.5
+# xps += LNETF(N=40,rot=True,infl=1.02,Rs=1.0,loc_rad='NA')         # 2.61   / ~2.2
+# xps += PartFilt(N=35 ,reg=1.4,NER=0.3)                            # 2.05   / 1.4  (tuning settings not given)
 
 # - The relevance of the experimental settings is questionable,
 #   since the EnKF/NETF are barely able to beat 3D-Var

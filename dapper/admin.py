@@ -288,16 +288,16 @@ class xpList(list):
         self.unique = unique
         super().__init__(*args)
 
-    def __iadd__(self,cfg):
-        if not hasattr(cfg,'__iter__'):
-            cfg = [cfg]
-        for item in cfg:
+    def __iadd__(self,xp):
+        if not hasattr(xp,'__iter__'):
+            xp = [xp]
+        for item in xp:
             self.append(item)
         return self
 
-    def append(self,cfg):
+    def append(self,xp):
         """Append if not unique & present."""
-        if not (self.unique and cfg in self): super().append(cfg)
+        if not (self.unique and xp in self): super().append(xp)
 
     def __getitem__(self, keys):
         """Indexing, also by a list"""
@@ -450,7 +450,7 @@ class xpList(list):
         return table.splitlines()
 
     def tabulate_avrgs(self, *args, **kwargs):
-        """Pretty (tabulated) repr of cfgs & their avrgs.
+        """Pretty (tabulated) repr of xps & their avrgs.
         
         Similar to stats.tabulate_avrgs(), but for the entire list of xps."""
         distinct, redundant, common = self.split_attrs()

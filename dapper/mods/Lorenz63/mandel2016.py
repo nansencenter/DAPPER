@@ -32,18 +32,18 @@ Q = lambda dkObs: GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))
 #
 # t.dkObs = 55
 # HMM.Dyn.noise = Q(t.dkObs)
-# cfgs += EnKF  ('PertObs', N=100, infl=1.05)                # 0.20    [not tested]
-# cfgs += EnKF  ('PertObs', N=10 , infl=1.30)                # nan     3.4
+# xps += EnKF  ('PertObs', N=100, infl=1.05)                # 0.20    [not tested]
+# xps += EnKF  ('PertObs', N=10 , infl=1.30)                # nan     3.4
 
 # t.dkObs = 35
 # HMM.Dyn.noise = Q(t.dkObs)
-# cfgs += EnKF  ('PertObs', N=100, infl=1.03)                # 0.20    [not tested]
-# cfgs += EnKF  ('PertObs', N=10 , infl=1.20)                # 0.64    3.6
+# xps += EnKF  ('PertObs', N=100, infl=1.03)                # 0.20    [not tested]
+# xps += EnKF  ('PertObs', N=10 , infl=1.20)                # 0.64    3.6
 
 # t.dkObs = 5
 # HMM.Dyn.noise = Q(t.dkObs)
-# cfgs += EnKF  ('PertObs', N=100, infl=1.03)                # 0.05    [not tested]
-# cfgs += EnKF  ('PertObs', N=10 , infl=1.20)                # 0.09    0.3
+# xps += EnKF  ('PertObs', N=100, infl=1.03)                # 0.05    [not tested]
+# xps += EnKF  ('PertObs', N=10 , infl=1.20)                # 0.09    0.3
 
 
 # Concerning the paper's first experiment (also Lorenz'63), reported in fig 2:

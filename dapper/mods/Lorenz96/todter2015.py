@@ -30,13 +30,13 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 # Suggested tuning
 ####################
 
-#                                                           rmse.a
-# cfgs += LETKF(N=20,rot=True,infl=1.04       ,loc_rad=5) # 0.44
-# cfgs += LETKF(N=40,rot=True,infl=1.04       ,loc_rad=5) # 0.44
-# cfgs += LETKF(N=80,rot=True,infl=1.04       ,loc_rad=5) # 0.43
+#                                                          rmse.a
+# xps += LETKF(N=20,rot=True,infl=1.04       ,loc_rad=5) # 0.44
+# xps += LETKF(N=40,rot=True,infl=1.04       ,loc_rad=5) # 0.44
+# xps += LETKF(N=80,rot=True,infl=1.04       ,loc_rad=5) # 0.43
 # These scores are quite variable:
-# cfgs += LNETF(N=40,rot=True,infl=1.10,Rs=2.5,loc_rad=5) # 0.57
-# cfgs += LNETF(N=80,rot=True,infl=1.10,Rs=1.6,loc_rad=5) # 0.45
+# xps += LNETF(N=40,rot=True,infl=1.10,Rs=2.5,loc_rad=5) # 0.57
+# xps += LNETF(N=80,rot=True,infl=1.10,Rs=1.6,loc_rad=5) # 0.45
 
 # In addition to standard post-analysis inflation,
 # we also find the necessity of tuning the inflation (Rs) for R,

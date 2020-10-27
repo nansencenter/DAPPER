@@ -30,19 +30,19 @@ HMM.liveplotters = LPs(jj)
 ####################
 # Suggested tuning
 ####################
-# from dapper.mods.Lorenz63.sakov2012 import HMM   # Expected rmse.a:
-# cfgs += Climatology()                                     # 7.6
-# cfgs += OptInterp()                                       # 1.25
-# cfgs += Var3D(xB=0.1)                                     # 1.04
-# cfgs += ExtKF(infl=180)                                   # 0.92
-# cfgs += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # 0.80
-# cfgs += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.60
-# cfgs += EnKF('PertObs',N=10,  infl=1.04)                  # 0.65
-# cfgs += EnKF('PertObs',N=100, infl=1.01)                  # 0.56
-# cfgs += EnKF_N(        N=3)                               # 0.60
-# cfgs += EnKF_N(        N=10,            rot=True)         # 0.54
-# cfgs += iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)         # 0.31
-# cfgs += PartFilt(      N=100 ,reg=2.4,NER=0.3)            # 0.38
-# cfgs += PartFilt(      N=800 ,reg=0.9,NER=0.2)            # 0.28
-# cfgs += PartFilt(      N=4000,reg=0.7,NER=0.05)           # 0.27
-# cfgs += PFxN(xN=1000,  N=30  ,Qs=2   ,NER=0.2)            # 0.56
+# from dapper.mods.Lorenz63.sakov2012 import HMM           # rmse.a:
+# xps += Climatology()                                     # 7.6
+# xps += OptInterp()                                       # 1.25
+# xps += Var3D(xB=0.1)                                     # 1.04
+# xps += ExtKF(infl=180)                                   # 0.92
+# xps += EnKF('Sqrt',   N=3 ,  infl=1.30)                  # 0.80
+# xps += EnKF('Sqrt',   N=10,  infl=1.02,rot=True)         # 0.60
+# xps += EnKF('PertObs',N=10,  infl=1.04)                  # 0.65
+# xps += EnKF('PertObs',N=100, infl=1.01)                  # 0.56
+# xps += EnKF_N(        N=3)                               # 0.60
+# xps += EnKF_N(        N=10,            rot=True)         # 0.54
+# xps += iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)         # 0.31
+# xps += PartFilt(      N=100 ,reg=2.4,NER=0.3)            # 0.38
+# xps += PartFilt(      N=800 ,reg=0.9,NER=0.2)            # 0.28
+# xps += PartFilt(      N=4000,reg=0.7,NER=0.05)           # 0.27
+# xps += PFxN(xN=1000,  N=30  ,Qs=2   ,NER=0.2)            # 0.56

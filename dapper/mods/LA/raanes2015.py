@@ -67,12 +67,12 @@ HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
 ####################
 
 ## Expected rmse.a = 0.3
-# config = EnKF('PertObs',N=30,infl=3.2)
+# xp = EnKF('PertObs',N=30,infl=3.2)
 # Note that infl=1 may yield approx optimal rmse, even though then rmv << rmse.
 # Why is rmse so INsensitive to inflation, especially for PertObs?
 
 # Reproduce raanes'2015 "extending sqrt method to model noise":
-# config = EnKF('Sqrt',fnoise_treatm='XXX',N=30,infl=1.0),
+# xp = EnKF('Sqrt',fnoise_treatm='XXX',N=30,infl=1.0),
 # where XXX is one of:
 # - Stoch
 # - Mult-1

@@ -23,9 +23,9 @@ truth_model   = model_config("counillon2009_truth",{"dtout":dt}                )
 #      Eg. enkf-matlab radius 15 (resp 25) corresponds to DAPPER radius 10.6 (resp 17.7).
 
 # R = 17.7 # equiv. to R=25 in enkf-matlab
-# from dapper.mods.QG.counillon2009 import HMM, truth_model  # Expected rmse.f:
-# cfgs += LETKF(mp=True, N=25,infl=1.15,taper='Gauss',loc_rad=R)      # 1.11
-# cfgs += LETKF(mp=True, N=15,infl=1.35,taper='Gauss',loc_rad=R)      # 1.2
+# from dapper.mods.QG.counillon2009 import HMM, truth_model          # rmse.f:
+# xps += LETKF(mp=True, N=25,infl=1.15,taper='Gauss',loc_rad=R)      # 1.11
+# xps += LETKF(mp=True, N=15,infl=1.35,taper='Gauss',loc_rad=R)      # 1.2
 #
 # - My N=15 rmse << rmse_from_paper. But I only tested a single repetition => maybe I got lucky.
 #

@@ -13,33 +13,33 @@ HMM.t.T = 30 # shorten experiment
 # Simulate synthetic truth (xx) and noisy obs (yy)
 xx,yy = HMM.simulate()
 
-# Specify a DA method configuration
-config = EnKF('Sqrt', N=10, infl=1.02, rot=True)
-# config = Var3D()
-# config = PartFilt(N=100,reg=2.4,NER=0.3)
+# Specify a DA method configuration ("xp" for "experiment")
+xp = EnKF('Sqrt', N=10, infl=1.02, rot=True)
+# xp = Var3D()
+# xp = PartFilt(N=100,reg=2.4,NER=0.3)
 
 # Assimilate yy, knowing the HMM; xx is used to assess the performance
-config.assimilate(HMM, xx, yy, liveplots=True)
+xp.assimilate(HMM, xx, yy, liveplots=True)
 
 # Average the time series of various statistics
-config.stats.average_in_time()
+xp.stats.average_in_time()
 
 # Print some averages
-print(config.avrgs.tabulate(['rmse.a','rmv.a']))
+print(xp.avrgs.tabulate(['rmse.a','rmv.a']))
 
 # Replay liveplotters
-replay(config.stats, speed=np.inf)
+replay(xp.stats, speed=np.inf)
 
 # Further diagnostic plots:
-# plot_rank_histogram(config.stats)
-# plot_err_components(config.stats)
+# plot_rank_histogram(xp.stats)
+# plot_err_components(xp.stats)
 # plot_hovmoller(xx)
 
 # Explore objects:
 # print(HMM)
-# print(config)
-# print(config.stats)
-# print(config.avrgs)
+# print(xp)
+# print(xp.stats)
+# print(xp.avrgs)
 
 # Excercise: Why does the replay look jagged?
 # Hint: provide the keyword store_u=True to assimilate() to avoid this.
@@ -50,7 +50,7 @@ replay(config.stats, speed=np.inf)
 # - Optimal interpolation
 # - The (extended) Kalman filter
 # - The iterative EnKS
-# Hint: suggested DA configs are listed in the HMM file
+# Hint: suggested DA xp's are listed in the HMM file
 
 # Excercise: Run an experiment for each of the models:
 # - LotkaVolterra

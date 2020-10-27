@@ -29,9 +29,9 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0,
 # Suggested tuning
 ####################
 
-# Reproduce Miyoshi Figure 5                               # rmse.a  rmse.land.a  rmse.ocean.a
+# Reproduce Miyoshi Figure 5                              # rmse.a  rmse.land.a  rmse.ocean.a
 # ---------------------------------------------------------------------------------------------
-# cfgs += LETKF(N=10,rot=False,infl=sqrt(1.015),loc_rad=3) # 2.1     0.38         2.9
+# xps += LETKF(N=10,rot=False,infl=sqrt(1.015),loc_rad=3) # 2.1     0.38         2.9
 
 # It can be seen that Miyoshi's "Global RMSE" is just the average of the land and ocean RMSE's,
 # which explains why this differs so much from DAPPER's (conventionally defined) global RMSE.

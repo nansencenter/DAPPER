@@ -1,8 +1,8 @@
 Todo
 ================================================
 Minor:
+* Fix replay (ex1)
 * SVG animation for github README
-* Cut back on "config" wording, in favour of xp.
 * Replace all np.vectorize in math.py with vectorize0
 
 

@@ -156,7 +156,7 @@ The complete list of included experiment files can be obtained with
 gnu's `find`:
 
     $ cd dapper/mods
-    $ find . -iname "[a-z]*[0-9].py"
+    $ find . -iname "[a-z]*20[0-9].py"
 
 Some of these files contain settings that have been used in several papers.
 As mentioned [above](#Methods),

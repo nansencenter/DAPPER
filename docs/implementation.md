@@ -22,7 +22,7 @@ Choices
 Conventions
 ---------------
 
-* DA_Config, assimilate, stats
+* da_method, assimilate, stats
 * fau_series
 * E,w,A
 * Nx-by-N

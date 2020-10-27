@@ -3,47 +3,47 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0)."""
 
 from dapper import *
 
-cfgs  = xpList(unique=True)
+xps  = xpList(unique=True)
 
 from dapper.mods.LA.small import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
 
-cfgs +=  EnKF('Sqrt'        , N=20,                      )
-cfgs +=  EnKF('PertObs'     , N=20,                      )
-cfgs +=  EnKF('DEnKF'       , N=20,                      )
+xps +=  EnKF('Sqrt'        , N=20,                      )
+xps +=  EnKF('PertObs'     , N=20,                      )
+xps +=  EnKF('DEnKF'       , N=20,                      )
 for Lag in [0,1,3]:
-  cfgs +=  EnKS('Sqrt'      , N=20, Lag=Lag,             )
-  cfgs +=  EnKS('PertObs'   , N=20, Lag=Lag,             )
-  cfgs +=  EnKS('DEnKF'     , N=20, Lag=Lag,             )
+  xps +=  EnKS('Sqrt'      , N=20, Lag=Lag,             )
+  xps +=  EnKS('PertObs'   , N=20, Lag=Lag,             )
+  xps +=  EnKS('DEnKF'     , N=20, Lag=Lag,             )
   for nIter in [1,4]:
     for MDA in [False,True]:
-      cfgs += iEnKS('Sqrt'    , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-      cfgs += iEnKS('PertObs' , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-      cfgs += iEnKS('Order1'  , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+      xps += iEnKS('Sqrt'    , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+      xps += iEnKS('PertObs' , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+      xps += iEnKS('Order1'  , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
 
-for xp in cfgs:
+for xp in xps:
     xp.seed = 3000
 
 ##############################
 # Assimilate
 ##############################
 
-cfgs.launch(HMM,store_u=True,save_as=False)
-print(cfgs.tabulate_avrgs(["rmse.a", "rmse.f", "rmse.u", "rmse.s"]))
+xps.launch(HMM,store_u=True,save_as=False)
+print(xps.tabulate_avrgs(["rmse.a", "rmse.f", "rmse.u", "rmse.s"]))
 
 
 ##############################
 # Test aux functions
 ##############################
-inds = cfgs.inds # lookup inds
+inds = xps.inds # lookup inds
 
 def allsame(xx): 
   return np.allclose(xx, xx[0], atol=1e-10, rtol=0) # rtol=0 => only atol matters.
 
 def gr(ii,sub): # grab_rmses
     def get_val(i):
-        try: return deep_getattr(cfgs[i].avrgs,'err.rms.'+sub).val
+        try: return deep_getattr(xps[i].avrgs,'err.rms.'+sub).val
         except AttributeError: return nan
     return [get_val(i) for i in ii]
 
@@ -117,6 +117,6 @@ def test_Order1_nIter1_Lag3_u(ii=ii):                      assert allsame(gr(ii,
 # For nonlinear dynamics, the (non-iterative) EnKF (f/a/u stats)
 # are reproduced by the iEnKS with Lag=0 (requires nIter==1 if Obs.mod is also nonlin).
 # However, the 'u' stats of the non-iterative EnKS(Lag>0) are not reproduced.
-# Re-use cfgs and test with:
+# Re-use xps and test with:
 # from dapper.mods.Lorenz96.sakov2008 import HMM
 # HMM.t.KObs=100 # Here, must use >100 to avoid indistinguishable rmse stats.

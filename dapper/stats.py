@@ -8,7 +8,7 @@ class Stats(StatPrint):
     Use new_series() to register your own stat time series.
     """
 
-    def __init__(self,config,HMM,xx,yy,
+    def __init__(self,xp,HMM,xx,yy,
             liveplots=False, store_u=rc.store_u):
         """Init the default statistics.
 
@@ -20,13 +20,13 @@ class Stats(StatPrint):
         ######################################
         # Preamble
         ######################################
-        self.config    = config
+        self.xp        = xp
         self.HMM       = HMM
         self.xx        = xx
         self.yy        = yy
         self.liveplots = liveplots
         self.store_u   = store_u
-        self.store_s   = hasattr(config,'Lag')
+        self.store_s   = hasattr(xp,'Lag')
 
         # Shapes
         K    = xx.shape[0]-1
@@ -70,8 +70,8 @@ class Stats(StatPrint):
         self.new_series('skew',1) # Skewness
         self.new_series('kurt',1) # Kurtosis
 
-        if hasattr(config,'N'):
-            N            = config.N
+        if hasattr(xp,'N'):
+            N            = xp.N
             self.new_series('w',N, MS=True)    # Importance weights
             self.new_series('rh',Nx,dtype=int) # Rank histogram
 
@@ -380,9 +380,9 @@ class Stats(StatPrint):
 
         avrgs = Avrgs()
         recurse_average(self,avrgs)
-        self.config.avrgs = avrgs
+        self.xp.avrgs = avrgs
         if free:
-            delattr(self.config,'stats')
+            delattr(self.xp,'stats')
 
 def register_stat(self,name,value):
     setattr(self,name,value)

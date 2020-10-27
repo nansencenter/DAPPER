@@ -320,7 +320,7 @@ def plot_rank_histogram(stats):
     if has_been_computed:
         ranks = stats.rh.a[chrono.maskObs_BI]
         Nx    = ranks.shape[1]
-        N     = stats.config.N
+        N     = stats.xp.N
         if not hasattr(stats,'w'):
             # Ensemble rank histogram
             integer_hist(ranks.ravel(),N)

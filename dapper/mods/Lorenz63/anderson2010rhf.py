@@ -33,9 +33,9 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 ####################
 # Compare with Anderson's figure 10.
 # Benchmarks are fairly reliable (KObs=2000): 
-# from dapper.mods.Lorenz63.anderson2010rhf import HMM    # rmse.a
-# cfgs += SL_EAKF(N=20,infl=1.01,rot=True,loc_rad=np.inf) # 0.87
-# cfgs += EnKF_N (N=20,rot=True)                          # 0.87
-# cfgs += RHF    (N=50,infl=1.10)                         # 1.28
-# cfgs += RHF    (N=50,infl=0.95,rot=True)                # 0.94
-# cfgs += RHF    (N=20,infl=0.95,rot=True)                # 1.07
+# from dapper.mods.Lorenz63.anderson2010rhf import HMM   # rmse.a
+# xps += SL_EAKF(N=20,infl=1.01,rot=True,loc_rad=np.inf) # 0.87
+# xps += EnKF_N (N=20,rot=True)                          # 0.87
+# xps += RHF    (N=50,infl=1.10)                         # 1.28
+# xps += RHF    (N=50,infl=0.95,rot=True)                # 0.94
+# xps += RHF    (N=20,infl=0.95,rot=True)                # 1.07

@@ -13,26 +13,26 @@ HMM.t.KObs=10
 
 set_seed(3000)
 
-# Cfgs
-cfgs  = xpList()
-cfgs += Climatology()
-cfgs += OptInterp()
-cfgs += Var3D(xB=0.1)
-cfgs += ExtKF(infl=90)
-cfgs += EnKF('Sqrt',    N=3 ,  infl=1.30)
-cfgs += EnKF('Sqrt',    N=10,  infl=1.02,rot=True)
-cfgs += EnKF('PertObs', N=500, infl=0.95,rot=False)
-cfgs += EnKF_N(         N=10,            rot=True)
-cfgs += iEnKS('Sqrt',   N=10,  infl=1.02,rot=True)
-cfgs += PartFilt(       N=100 ,reg=2.4  ,NER=0.3)
-cfgs += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)
-cfgs += PartFilt(       N=4000,reg=0.7  ,NER=0.05)
-cfgs += PFxN(xN=1000,   N=30  ,Qs=2     ,NER=0.2)
+# xps
+xps  = xpList()
+xps += Climatology()
+xps += OptInterp()
+xps += Var3D(xB=0.1)
+xps += ExtKF(infl=90)
+xps += EnKF('Sqrt',    N=3 ,  infl=1.30)
+xps += EnKF('Sqrt',    N=10,  infl=1.02,rot=True)
+xps += EnKF('PertObs', N=500, infl=0.95,rot=False)
+xps += EnKF_N(         N=10,            rot=True)
+xps += iEnKS('Sqrt',   N=10,  infl=1.02,rot=True)
+xps += PartFilt(       N=100 ,reg=2.4  ,NER=0.3)
+xps += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)
+xps += PartFilt(       N=4000,reg=0.7  ,NER=0.05)
+xps += PFxN(xN=1000,   N=30  ,Qs=2     ,NER=0.2)
 
 # Run
-cfgs.launch(HMM,store_u=True)
+xps.launch(HMM,store_u=True)
 
-table = cfgs.tabulate_avrgs(statkeys, decimals=4)
+table = xps.tabulate_avrgs(statkeys, decimals=4)
 old = """
     da_method     infl  upd_a       N  rot      xN  reg   NER  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
 --  -----------  -----  -------  ----  -----  ----  ---  ----  -  -----------------  -----------------  -----------------
@@ -70,25 +70,25 @@ HMM.t.KObs=10
 
 set_seed(3000)
 
-# Cfgs
-cfgs  = xpList()
-cfgs += Climatology()
-cfgs += OptInterp()
-cfgs += Var3D(xB=0.02)
-cfgs += ExtKF(infl=6)
-cfgs += EnKF('PertObs'        ,N=40,infl=1.06)
-cfgs += EnKF('Sqrt'           ,N=28,infl=1.02,rot=True)
+# xps
+xps  = xpList()
+xps += Climatology()
+xps += OptInterp()
+xps += Var3D(xB=0.02)
+xps += ExtKF(infl=6)
+xps += EnKF('PertObs'        ,N=40,infl=1.06)
+xps += EnKF('Sqrt'           ,N=28,infl=1.02,rot=True)
 
-cfgs += EnKF_N(N=24,rot=True)
-cfgs += EnKF_N(N=24,rot=True,xN=2)
-cfgs += iEnKS('Sqrt',N=40,infl=1.01,rot=True)
+xps += EnKF_N(N=24,rot=True)
+xps += EnKF_N(N=24,rot=True,xN=2)
+xps += iEnKS('Sqrt',N=40,infl=1.01,rot=True)
 
-cfgs += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4)
-cfgs += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)
+xps += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4)
+xps += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)
 
-cfgs.launch(HMM,store_u=True)
+xps.launch(HMM,store_u=True)
 
-table = cfgs.tabulate_avrgs(statkeys, decimals=4)
+table = xps.tabulate_avrgs(statkeys, decimals=4)
 old = """
     da_method    infl  upd_a     N  rot    xN  loc_rad  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
 --  -----------  ----  -------  --  -----  --  -------  -  -----------------  -----------------  -----------------
