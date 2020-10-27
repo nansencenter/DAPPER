@@ -104,4 +104,4 @@ from .da_methods.other import *
 
 if rc.welcome_message:
     print("...Done") # ... initializing DAPPER
-    print("PS: Turn off this message in your configuration: dpr_config.ini")
+    print("PS: Turn off this message in your configuration: dpr_config.yaml")
