@@ -14,6 +14,7 @@ Used for experiment (xp) specification/administration, including:
 
 from dapper import *
 from textwrap import dedent
+import re
 
 import dill
 import shutil
@@ -556,7 +557,7 @@ class xpList(list):
                 mp["files"] = [f for f in ff if f.endswith(".py")]
             # Copy files into extra_files
             for f in mp["files"]:
-                if isinstance(f, (str,PurePath)):
+                if isinstance(f, (str,Path)):
                     # Example: f = "A.py"
                     path = Path(sys.path[0]) / f
                     dst = f

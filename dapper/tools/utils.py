@@ -1,6 +1,7 @@
 # Utilities (non-math)
 
 from dapper import *
+import re
 
 
 #########################################
@@ -188,85 +189,6 @@ def print_cropped_traceback(ERR):
     msg += "\n\nResuming program execution. " \
         "Use `fail_gently=False` to raise exception & halt execution.\n"
     print(msg,file=sys.stderr)
-
-
-import inspect
-def get_call():
-    """Get calling statement (even if it is multi-lined).
-
-    NB: returns full lines (may include junk before/after calls)
-        coz real parsing (brackets, commas, backslash, etc) is complicated.
-
-    Also return caller namespace.
-    """
-    f0         = inspect.currentframe()        # this frame
-    f1         = f0.f_back                     # caller1
-    name       = f1.f_code.co_name             # caller1's name
-    f2         = f1.f_back                     # caller2's frame
-    code,shift = inspect.getsourcelines(f2)    # caller2's code
-    nEnd       = f2.f_lineno                   # caller2's lineno
-
-    if shift: nEnd -= shift
-    else: nEnd -= 1 # needed when shift==0 (don't know why)
-
-    # Loop backwards from line nEnd
-    for nStart in range(nEnd,-1,-1):
-        line = code[nStart]
-        if re.search(r"\b"+name+r"\b\s*\(",line): break
-    else:
-        raise Exception("Couldn't find caller.")
-
-    call = "".join(code[nStart:nEnd+1])
-    call = call.rstrip() # rm trailing newline 
-
-    return call, f2.f_locals
-
-
-# TODO 2: doesnt work anymore?
-def magic_naming(*args,**kwargs):
-    """Convert args (by their names in the call) to kwargs."""
-    call, locvars = get_call()
-
-    # Use a new dict, with args inserted first, to keep ordering.
-    joint_kwargs = {}
-
-    # Insert args in kwargs
-    for i,arg in enumerate(args):
-        # Match arg to a name by
-        # - id to a variable in the local namespace, and
-        mm = [name for name in locvars if locvars[name] is arg]
-        # - the presence of said variable in the call.
-        mm = [name for name in mm if re.search(r"\b"+name+r"\b", call)]
-        if not mm:
-            raise RuntimeError("Couldn't find the name for "+str(arg))
-        for m in mm: # Allows saving an arg under multiple names.
-            joint_kwargs[m] = arg
-
-    joint_kwargs.update(kwargs)
-    return joint_kwargs
-
-
-def spell_out(*args):
-    """
-    Print (args) including variable names.
-    Example:
-    >>> print(3*2)
-    >>> 3*2:
-    >>> 6
-    """
-
-    call, _ = get_call()
-
-    # Find opening/closing brackets
-    left  = call. find("(")
-    right = call.rfind(")")
-
-    # Print header
-    with coloring(cFG.MAGENTA):
-        print(call[left+1:right] + ":")
-    # Print (normal)
-    print(*args)
-
 
 import tabulate
 tabulate.MIN_PADDING = 0

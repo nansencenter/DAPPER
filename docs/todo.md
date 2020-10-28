@@ -2,6 +2,9 @@ Todo
 ================================================
 Minor:
 * Clean up imports into __init__
+* Do some todos
+* Ensure it works with Stein, EmblAUS
+* Publish version
 
 
 Major:

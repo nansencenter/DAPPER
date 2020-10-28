@@ -14,11 +14,10 @@ import os
 import itertools
 import warnings
 import traceback
-import re
 import functools
 import configparser
 import builtins
-from pathlib import Path, PurePath
+from pathlib import Path
 from time import sleep
 from copy import deepcopy
 import dataclasses as dc
@@ -81,6 +80,7 @@ if rc.welcome_message:
 
 from .tools.colors import *
 from .tools.utils import *
+from .tools.magic import *
 from .tools.math import *
 from .tools.stoch import *
 from .tools.matrices import *
