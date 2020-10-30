@@ -113,7 +113,7 @@ def series_mean_with_conf(xx):
         # then std_of_mu is the end of the story.
         # The following corrects for the correlation in the time series.
         #
-        # See stats.stackexchange.com/q/90062
+        # See https://stats.stackexchange.com/q/90062
         # c = sum([(N-k)*a**k for k in range(1,N)])
         # But this series is analytically tractable:
         c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2

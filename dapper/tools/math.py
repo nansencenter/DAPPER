@@ -282,7 +282,7 @@ def round2(num,param=1):
 def is_whole(x):
     return np.isclose(x,round(x))
 
-# stackoverflow.com/q/37726830
+# https://stackoverflow.com/q/37726830
 def is_int(a):
     return np.issubdtype(type(a), np.integer)
 

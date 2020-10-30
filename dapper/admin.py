@@ -149,7 +149,7 @@ def da_method(*default_dataclasses):
         """Decorator based on dataclass.
 
         This adds __init__, __repr__, __eq__, ..., but also includes
-        inherited defaults (see stackoverflow.com/a/58130805).
+        inherited defaults (see https://stackoverflow.com/a/58130805 ).
 
         Also:
         - Wraps assimilate() to provide gentle_fail functionality.

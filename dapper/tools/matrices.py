@@ -58,7 +58,7 @@ def genOG_modified(M,opts=(0,1.0)):
             Q = eye(M)
     elif ver==2:
         # Decompose and reduce angle of (complex) diagonal. Background:
-        # stackoverflow.com/questions/38426349
+        # https://stackoverflow.com/q/38426349
         # https://en.wikipedia.org/wiki/Orthogonal_matrix
         Q   = genOG(M)
         s,U = sla.eig(Q)
@@ -72,7 +72,7 @@ def genOG_modified(M,opts=(0,1.0)):
         # Introduce correlation between columns of randn((M,M))
         raise NotImplementedError
     elif ver==5:
-       # stats.stackexchange.com/q/25552
+        # https://stats.stackexchange.com/q/25552
         raise NotImplementedError
     else:
         raise KeyError

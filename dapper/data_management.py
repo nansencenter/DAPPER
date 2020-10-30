@@ -245,8 +245,8 @@ class SparseSpace(dict):
     This flexibility can cause bugs, but it's probably still worth it).
     Also see __call__(), get_for(), and coords(), for further convenience.
 
-    Inspired by stackoverflow.com/a/7728830
-    Also see stackoverflow.com/q/3387691 """
+    Inspired by https://stackoverflow.com/a/7728830
+    Also see https://stackoverflow.com/q/3387691 """
 
     @property
     def axes(self):

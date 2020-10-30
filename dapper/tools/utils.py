@@ -309,7 +309,7 @@ def find_1st_ind(xx):
     try:                  return next(k for k,x in enumerate(xx) if x)
     except StopIteration: return None
 
-# stackoverflow.com/a/2669120
+# https://stackoverflow.com/a/2669120
 def sorted_human( lst ): 
     """ Sort the given iterable in the way that humans expect.""" 
     convert = lambda text: int(text) if text.isdigit() else text 
@@ -338,7 +338,8 @@ class lazy_property:
     Should represent non-mutable data,
     as it replaces itself.
 
-    From stackoverflow.com/q/3012421"""
+    From https://stackoverflow.com/q/3012421
+    """
     def __init__(self,fget):
         self.fget = fget
         self.func_name = fget.__name__

@@ -185,7 +185,7 @@ def plot_pause(interval):
         _plot_pause(interval, focus_figure=False)
 
     except:
-        # Jupyter notebook support (SO.com/q/34486642)
+        # Jupyter notebook support: https://stackoverflow.com/q/34486642
         # Note: no longer needed with the above _plot_pause()?
         plt.gcf().canvas.draw()
         time.sleep(0.1)
@@ -512,7 +512,7 @@ def fig_place(loc,fignum=None):
     fig_rel_geometry(fignum,  (j1-1)/N,   (i1-1)/M,   dj/N,   di/M)
 
 
-# stackoverflow.com/a/7396313
+# https://stackoverflow.com/a/7396313
 from matplotlib import transforms as mtransforms
 def autoscale_based_on(ax, line_handles):
     "Autoscale axis based (only) on line_handles."
@@ -718,7 +718,7 @@ def cov_ellipse(ax, mu, sigma, **kwargs):
     """
     Draw ellipse corresponding to (Gaussian) 1-sigma countour of cov matrix.
 
-    Inspired by stackoverflow.com/q/17952171
+    Inspired by https://stackoverflow.com/q/17952171
 
     Example:
     >>> ellipse = cov_ellipse(ax, y, R,

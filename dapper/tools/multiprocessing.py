@@ -22,7 +22,7 @@ try:
     #   ensemble forecasts simulations, or local analyses.
     # Therefore: force numpy to only use a single core.
     #
-    # Ref stackoverflow.com/a/53224849
+    # Ref https://stackoverflow.com/a/53224849
     # for envar in [
     #     "OMP_NUM_THREADS",        # openmp
     #     "OPENBLAS_NUM_THREADS",   # openblas
@@ -101,7 +101,7 @@ else:
         #    (not into the worker codes), and should therefore be cropped before then.
         #
         # NB: Here be fuckin dragons!
-        # This solution is mostly based on stackoverflow.com/a/35134329.
+        # This solution is mostly based on https://stackoverflow.com/a/35134329
         # I don't (fully) understand why the issues arise,
         # nor why my patchwork solution somewhat works.
         #
@@ -134,10 +134,11 @@ else:
         try:
             f = functools.partial(func,**kwargs) # Fix kwargs
 
-            # map vs imap: stackoverflow.com/a/26521507
+            # map vs imap: https://stackoverflow.com/a/26521507
             result = pool.map(f,xx) 
 
-            # Relating to Ctrl-C issue, map_async was preferred: stackoverflow.com/a/1408476
+            # Relating to Ctrl-C issue, map_async was preferred:
+            # https://stackoverflow.com/a/1408476
             # However, this does not appear to be necessary anymore...
             # result = pool.map_async(f, xx)
             # timeout = 60 # Required for get() to not ignore signals.
@@ -169,7 +170,7 @@ else:
 
         try:
             # Helps with debugging,
-            # according to stackoverflow.com/a/38271957
+            # according to https://stackoverflow.com/a/38271957
             pool.join() 
         except KeyboardInterrupt as e:
             # Also need to handle Ctrl-C in join()...
