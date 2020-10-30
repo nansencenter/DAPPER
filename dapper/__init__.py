@@ -80,7 +80,6 @@ if rc.welcome_message:
 
 from .tools.colors import *
 from .tools.utils import *
-from .tools.magic import *
 from .tools.math import *
 from .tools.stoch import *
 from .tools.matrices import *
@@ -89,6 +88,7 @@ from .tools.chronos import *
 from .tools.series import *
 from .tools.viz import *
 from .tools.liveplotting import *
+from .tools.magic import magic_naming, spell_out
 from .tools.localization import *
 from .tools.multiprocessing import *
 from .tools.remote.uplink import *
