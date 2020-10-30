@@ -65,13 +65,13 @@ from numpy import \
     # Don't shadow builtins: sum, max, abs, round, pow
 
 import matplotlib as mpl
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
 ##################################
 # Imports from DAPPER package
 ##################################
-# Load rc: default settings
-from .dict_tools import *
+import dapper.dict_tools as dtools
+from .dict_tools import DotDict, NicePrint, deep_getattr, deep_hasattr
 from .dpr_config import rc
 
 # 'Tis perhaps late to issue a welcome, but the heavy libraries are below.

@@ -361,7 +361,7 @@ class SparseSpace(dict):
         # txt += " befitting the coord. sys. with axes "
         txt += "\nplaced in a coord-sys with axes "
         try:
-            txt += "(and ticks):" + str(AlignedDict(self.ticks))
+            txt += "(and ticks):" + str(dtools.AlignedDict(self.ticks))
         except AttributeError:
             txt += ":\n" + str(self.axes)
         return txt
@@ -384,10 +384,10 @@ class SparseSpace(dict):
         # Validate axes
         if inner_axes is None:
             assert outer_axes is not None
-            inner_axes = complement(self.axes, outer_axes)
+            inner_axes = dtools.complement(self.axes, outer_axes)
         else:
             assert outer_axes is None
-            outer_axes = complement(self.axes, inner_axes)
+            outer_axes = dtools.complement(self.axes, inner_axes)
 
         # Fill spaces
         outer_space = self.__class__(outer_axes)
@@ -412,7 +412,7 @@ class SparseSpace(dict):
         """Rm those a in attrs that are not in self.axes.
         
         This allows errors in the axes allotment, for ease-of-use."""
-        absent = complement(attrs, self.axes)
+        absent = dtools.complement(attrs, self.axes)
         if absent:
             print(color_text("Warning:"  ,cFG.RED), "The requested attributes",
                   color_text(str(absent), cFG.RED), "were not found among the",
@@ -420,7 +420,7 @@ class SparseSpace(dict):
                   "This may be no problem if the attr. is redundant for the coord-sys.",
                   "However, if it is caused by confusion or mis-spelling,",
                   "then it is likely to cause mis-interpretation of the shown results.")
-            attrs = complement(attrs, absent)
+            attrs = dtools.complement(attrs, absent)
         return attrs
 
     def label_xSection(self,label,*NoneAttrs,**sub_coord):
@@ -662,7 +662,7 @@ class xpSpace(SparseSpace):
         #    without extraction by __getkey__() from (e.g.) row[0].
         #  - Don't need to propagate mean&optim axes down to the row level.
         #    which would require defining rows by the nesting:
-        #    rows = table.nest(outer_axes=complement(table.axes,
+        #    rows = table.nest(outer_axes=dtools.complement(table.axes,
         #        *(axes['inner'] or ()),
         #        *(axes['mean']  or ()),
         #        *(axes['optim'] or ()) ))

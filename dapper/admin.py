@@ -365,7 +365,7 @@ class xpList(list):
 
             # Remove unwanted
             excluded  = [re.compile('^_'),'avrgs','stats','HMM','duration']
-            aggregate = complement(aggregate,excluded)
+            aggregate = dtools.complement(aggregate,excluded)
             return aggregate
 
         distinct, redundant, common = {}, {}, {}
@@ -377,7 +377,7 @@ class xpList(list):
             vals = [getattr(xp,key,"N/A") for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
-            if flexcomp(key, *nomerge):
+            if dtools.flexcomp(key, *nomerge):
                 # nomerge => Distinct
                 dct, vals = distinct, vals
             elif all(vals[0]==v for v in vals):
@@ -408,7 +408,7 @@ class xpList(list):
         s = '<xpList> of length %d with attributes:\n'%len(self)
         s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
-        s += str(AlignedDict({**redundant, **common}))
+        s += str(dtools.AlignedDict({**redundant, **common}))
         return s
 
     def gen_names(self,abbrev=6,tab=False):
@@ -608,15 +608,15 @@ def get_param_setter(param_dict, **glob_dict):
     """
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dc.fields(method)]
-        params = intersect(param_dict, dc_fields)
-        params = complement(params, fixed_params)
+        params = dtools.intersect(param_dict, dc_fields)
+        params = dtools.complement(params, fixed_params)
         params = {**glob_dict, **params} # glob_dict 1st
 
         def xp1(dct):
-            xp = method(**intersect(dct, dc_fields),**fixed_params)
-            for key, v in intersect(dct, glob_dict).items():
+            xp = method(**dtools.intersect(dct, dc_fields),**fixed_params)
+            for key, v in dtools.intersect(dct, glob_dict).items():
                 setattr(xp,key,v)
             return xp
 
-        return [xp1(dct) for dct in dict_product(params)]
+        return [xp1(dct) for dct in dtools.dict_product(params)]
     return for_params

@@ -46,7 +46,7 @@ class Stats(StatPrint):
             gm        = lambda x: exp(mean(log(x))) , # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = intersect(self.field_summaries, rc.field_summaries)
+        self.field_summaries = dtools.intersect(self.field_summaries, rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
@@ -503,7 +503,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val","conf")):
         else:                v,c = np.round([uq.val, uq.conf],decimals)
         arr["val"][i], arr["conf"][i] = v, c
         # Others
-        for col in complement(cols, ["val","conf"]):
+        for col in dtools.complement(cols, ["val","conf"]):
             try: arr[col][i] = getattr(uq,col)
             except AttributeError: pass
 

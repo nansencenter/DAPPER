@@ -185,7 +185,7 @@ class Chronology():
 
     def __str__(self):
         printable = ['K','KObs','T','BurnIn','dtObs','dt']
-        return str(AlignedDict([(k, getattr(self,k)) for k in printable]))
+        return str(dtools.AlignedDict([(k, getattr(self,k)) for k in printable]))
     def __repr__(self):
         return repr_type_and_name(self) + "\n" + str(self)
 
