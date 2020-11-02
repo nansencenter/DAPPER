@@ -74,7 +74,7 @@ ax.set_xlabel('Resolved variable ($X_{k,i}$)')
 if PRMS != 'Wilks':
     ax.set_xlim(-8,12)
     ax.set_ylim(-3,6)
-    uu = linspace(*ax.get_xlim(),201)
+    uu = np.linspace(*ax.get_xlim(),201)
 
     # Plot pc
     ax.plot(uu,np.poly1d(pc[0])(uu),'g',lw=4.0)
@@ -87,13 +87,13 @@ if PRMS != 'Wilks':
 else:
     ax.set_xlim(-10,17)
     ax.set_ylim(-10,20)
-    uu = linspace(*ax.get_xlim(),201)
+    uu = np.linspace(*ax.get_xlim(),201)
 
     p0 = lambda x: 3.82+0.00*x
     p1 = lambda x: 0.74+0.82*x                                        # lin.reg(gg,xx)
     p3 = lambda x: .341+1.30*x -.0136*x**2 -.00235*x**3               # Arnold'2013
     p4 = lambda x: .262+1.45*x -.0121*x**2 -.00713*x**3 +.000296*x**4 # Wilks'2005
-    uu = linspace(-10,17,201)
+    uu = np.linspace(-10,17,201)
     plt.plot(uu,p0(uu),'g',lw=4.0)
     plt.plot(uu,p1(uu),'r',lw=4.0)
     plt.plot(uu,p4(uu),'b',lw=4.0)

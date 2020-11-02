@@ -46,7 +46,7 @@ class OptInterp:
         # Setup scalar "time-series" covariance dynamics.
         # ONLY USED FOR DIAGNOSTICS, not to affect the Kalman gain.
         L  = estimate_corr_length(AC.ravel(order='F'))
-        SM = fit_sigmoid(trace(PC)/trace(2*PC),L,0)
+        SM = fit_sigmoid(1/2,L,0)
 
         # Init
         mu = muC
@@ -64,7 +64,7 @@ class OptInterp:
                 mu = muC + KG@(yy[kObs] - Obs(muC,t))
 
                 P  = (eye(Dyn.M) - KG@H) @ PC
-                SM = fit_sigmoid(trace(P)/trace(PC),L,k)
+                SM = fit_sigmoid(P.trace()/PC.trace(),L,k)
 
             stats.assess(k,kObs,mu=mu,Cov=2*PC*SM(k))
 
@@ -96,7 +96,7 @@ class Var3D:
         CC = 2*np.cov(xx.T)
         L  = estimate_corr_length(center(xx)[0].ravel(order='F'))
         P  = X0.C.full
-        SM = fit_sigmoid(trace(P)/trace(CC),L,0)
+        SM = fit_sigmoid(P.trace()/CC.trace(),L,0)
 
         # Init
         mu = X0.mu
@@ -117,7 +117,7 @@ class Var3D:
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
                 P = (eye(Dyn.M) - KG@H) @ B
-                SM = fit_sigmoid(trace(P)/trace(CC),L,k)
+                SM = fit_sigmoid(P.trace()/CC.trace(),L,k)
 
             stats.assess(k,kObs,mu=mu,Cov=P)
 

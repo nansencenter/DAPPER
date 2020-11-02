@@ -17,9 +17,9 @@ xps += EnKF('Sqrt',    N=3 ,  infl=1.30)                 # 0.82
 xps += EnKF('Sqrt',    N=10,  infl=1.02,rot=True)        # 0.63
 xps += EnKF('PertObs', N=500, infl=0.95,rot=False)       # 0.56
 xps += EnKF_N(         N=10,            rot=True)        # 0.54
-# xps += iEnKS('Sqrt',   N=10,  infl=1.02,rot=True)        # 0.31
-# xps += PartFilt(       N=100 ,reg=2.4  ,NER=0.3)         # 0.38
-# xps += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
+xps += iEnKS('Sqrt',   N=10,  infl=1.02,rot=True)        # 0.31
+xps += PartFilt(       N=100 ,reg=2.4  ,NER=0.3)         # 0.38
+xps += PartFilt(       N=800 ,reg=0.9  ,NER=0.2)         # 0.28
 # xps += PartFilt(     N=4000,reg=0.7  ,NER=0.05)        # 0.27
 # xps += PFxN(xN=1000, N=30  ,Qs=2     ,NER=0.2)         # 0.56
 

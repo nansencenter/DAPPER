@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 def is1d(a):
     """ Works for list and row/column arrays and matrices"""
-    return np.sum(asarray(asarray(a).shape) > 1) <= 1
+    return np.sum(np.asarray(np.asarray(a).shape) > 1) <= 1
 
 def tp(a):
     """Tranpose 1d vector"""
@@ -21,6 +21,7 @@ def exactly_1d(a):
     a = np.atleast_1d(a)
     assert a.ndim==1
     return a
+
 def exactly_2d(a):
     a = np.atleast_2d(a)
     assert a.ndim==2
@@ -252,7 +253,7 @@ def ndecimal(x):
         # "Behaviour not defined" => should not be relied upon.
         return 1
     else:
-        return -int(floor(log10(abs(x))))
+        return -int(floor(np.log10(abs(x))))
 
 @np.vectorize
 def round2(num,param=1):
@@ -306,8 +307,8 @@ def isNone(x):
 
 def linspace_int(Nx,Ny,periodic=True):
     """Provide a range of Ny equispaced integers between 0 and Nx-1"""
-    if periodic: jj = linspace(0, Nx, Ny+1)[:-1]
-    else:        jj = linspace(0, Nx-1, Ny)
+    if periodic: jj = np.linspace(0, Nx, Ny+1)[:-1]
+    else:        jj = np.linspace(0, Nx-1, Ny)
     jj = jj.astype(int)
     return jj
 
@@ -331,7 +332,7 @@ def curvedspace(start,end,N,curvature=1):
     if -1e-12 < curvature < 1e-12:
         # Define curvature-->0, which is troublesome
         # for linear normalization transformation.
-        space01   = linspace(0,1,N)
+        space01   = np.linspace(0,1,N)
     else:
         curvature = (end/start)**curvature
         space01   = np.geomspace(1, curvature, N) - 1
@@ -375,7 +376,7 @@ class CurvedSpace:
     # if -1e-12 < curvature < 1e-12:
     #     # Define curvature-->0, which is troublesome
     #     # for linear normalization transformation.
-    #     space01   = linspace(0,1,N)
+    #     space01   = np.linspace(0,1,N)
     # else:
     #     logspace_end = (end/start)**curvature
     #     space01      = np.geomspace(1, logspace_end, N) - 1

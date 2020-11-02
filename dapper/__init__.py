@@ -6,17 +6,10 @@ using synthetic/twin experiments.
 
 __version__ = "0.9.6"
 
-##################################
-# Standard lib
-##################################
 import sys
 assert sys.version_info >= (3,8), "Need Python>=3.8"
 
-
-##################################
 # Profiling.
-##################################
-# pip install line_profiler
 # Launch python script: $ kernprof -l -v myprog.py
 # Functions decorated with 'profile' from below will be timed.
 try:
@@ -43,17 +36,18 @@ from scipy.linalg import sqrtm, inv, eigh
 
 from numpy import \
     pi, nan, \
-    log, log10, exp, sin, cos, tan, \
+    log, exp, sin, cos, tan, \
     sqrt, floor, ceil, \
     mean, prod, \
-    diff, cumsum, \
-    array, asarray, asmatrix, \
-    linspace, arange, reshape, \
-    eye, zeros, ones, diag, trace \
+    diff, \
+    array, \
+    arange, reshape, \
+    eye, zeros, ones, diag \
     # Don't shadow builtins: sum, max, abs, round, pow
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+
 
 ##################################
 # Imports from DAPPER package

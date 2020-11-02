@@ -3,6 +3,7 @@
 from dapper import *
 from pathlib import Path
 import time
+import traceback as tb
 import os
 import re
 import sys
@@ -166,7 +167,6 @@ def print_cropped_traceback(ERR):
             # If in IPython, use its coloring functionality
             __IPYTHON__
             from IPython.core.debugger import Pdb
-            import traceback as tb
             pdb_instance = Pdb()
             pdb_instance.curframe = inspect.currentframe()
 
@@ -176,7 +176,7 @@ def print_cropped_traceback(ERR):
                 msg += pdb_instance.format_stack_entry(frame,context=3)
 
         except (NameError,ImportError):
-            msg += "".join(traceback.format_tb(ERR.__traceback__))
+            msg += "".join(tb.format_tb(ERR.__traceback__))
 
         return msg
 

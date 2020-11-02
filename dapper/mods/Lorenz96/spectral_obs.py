@@ -77,7 +77,7 @@ Ny = 12
 X0 = GaussRV(M=Nx, C=0.001) 
 
 def make_H(Ny,Nx):
-    xx = linspace(-1,1,Nx+1)[1:]
+    xx = np.linspace(-1,1,Nx+1)[1:]
     H = zeros((Ny,Nx))
     H[0] = 1/sqrt(2)
     for k in range(-(Ny//2),(Ny+1)//2):
@@ -115,7 +115,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 # Hplot_inv = Hplot.T
 # def yplot(y):
 #     x = y @ Hplot_inv.T
-#     ii = linspace(0,Nx-1,len(x))
+#     ii = np.linspace(0,Nx-1,len(x))
 #     lh = plt.plot(ii,x,'g')[0]
 #     return lh
 

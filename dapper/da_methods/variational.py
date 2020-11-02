@@ -308,7 +308,7 @@ class iLEnKS:
 
             # Analysis 'a' stats for E[kObs].
             stats.assess(k,kObs,'a',E=E)
-            stats.trHK [kObs] = trace(Y.T @ Pw @ Y)/HMM.Ny
+            stats.trHK [kObs] = np.trace(Y.T @ Pw @ Y)/HMM.Ny
             stats.infl [kObs] = sqrt(N1/za)
             stats.iters[kObs] = iteration+1
 

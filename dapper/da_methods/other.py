@@ -17,7 +17,7 @@ class RHF:
 
         N1         = N-1
         step       = 1/N
-        cdf_grid   = linspace(step/2, 1-step/2, N)
+        cdf_grid   = np.linspace(step/2, 1-step/2, N)
 
         R    = Obs.noise
         Rm12 = Obs.noise.C.sym_sqrt_inv

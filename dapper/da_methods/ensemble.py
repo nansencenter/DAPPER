@@ -186,8 +186,8 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
         raise KeyError("No analysis update method found: '" + upd_a + "'.") 
 
     # Diagnostic: relative influence of observations
-    if 'trHK' in locals(): stats.trHK[kObs] = trHK     /hnoise.M
-    elif 'HK' in locals(): stats.trHK[kObs] = trace(HK)/hnoise.M
+    if 'trHK' in locals(): stats.trHK[kObs] = trHK      /hnoise.M
+    elif 'HK' in locals(): stats.trHK[kObs] = HK.trace()/hnoise.M
 
     return E
 

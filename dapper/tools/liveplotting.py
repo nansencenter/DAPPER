@@ -434,7 +434,7 @@ class weight_histogram:
         self.stats = stats
         self.ax    = ax
         self.hist  = []
-        self.bins  = exp( linspace( log(1e-10), log(1), 31 ) )
+        self.bins  = exp( np.linspace( log(1e-10), log(1), 31 ) )
 
     def __call__(self,key,E,P):
         k,kObs,faus = key
@@ -526,7 +526,7 @@ class correlations:
             cmap = plt.get_cmap('RdBu_r')
             trfm = mpl.colors.SymLogNorm(linthresh=0.2,linscale=0.2,
                                          base=np.e, vmin=-1, vmax=1)
-            cmap = cmap(trfm(linspace(-0.6,0.6,cmap.N)))
+            cmap = cmap(trfm(np.linspace(-0.6,0.6,cmap.N)))
             cmap = mpl.colors.ListedColormap(cmap)
             #
             VM   = 1.0 # abs(np.percentile(C,[1,99])).max()

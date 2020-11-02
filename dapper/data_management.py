@@ -93,7 +93,7 @@ def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
     ``cb.set_ticks(arange(N)); cb.set_ticklabels(["A","B","C",...])``."""
     # cmap(k/N)
     from_list = mpl.colors.LinearSegmentedColormap.from_list
-    colors = cmap(linspace(val0,val1,N))
+    colors = cmap(np.linspace(val0,val1,N))
     cmap = from_list(name, colors, N)
     # sm
     cNorm = mpl.colors.Normalize(-.5, -.5+N)

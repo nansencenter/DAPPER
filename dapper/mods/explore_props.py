@@ -120,7 +120,7 @@ if mod == "QG":
 ########################
 t0 = 0.0 # NB: Arbitrary, coz models are autonom. But dont use nan coz QG doesn't like it.
 K  = int(round(T/dt))                      # Num of time steps.
-tt = linspace(dt,T,K)                      # Time seq.
+tt = np.linspace(dt,T,K)                   # Time seq.
 x  = with_recursion(step, prog="BurnIn")   (x0, int(10/dt), t0, dt)[-1]
 xx = with_recursion(step, prog="Reference")(x , K,          t0, dt)
 

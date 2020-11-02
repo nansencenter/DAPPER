@@ -46,7 +46,7 @@ class ExtKF:
                 KH = KG@H
                 P  = (eye(Dyn.M) - KH) @ P
 
-                stats.trHK[kObs] = trace(KH)/Dyn.M
+                stats.trHK[kObs] = KH.trace()/Dyn.M
 
             stats.assess(k,kObs,mu=mu,Cov=P)
 

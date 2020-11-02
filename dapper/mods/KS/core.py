@@ -113,7 +113,7 @@ def Model(dt=0.25,DL=32,Nx=128):
 
     # Generate IC as end-point of ex. from Kassam and Trefethen.
     # x0_Kassam isn't convenient, coz prefer {x0 ∈ attractor} to {x0 ∈ basin}.
-    grid = DL*pi*linspace(0,1,Nx+1)[1:]
+    grid = DL*pi*np.linspace(0,1,Nx+1)[1:]
     x0_Kassam = cos(grid/16) * (1 + sin(grid/16))
     x0 = x0_Kassam.copy()
     for k in range(int(150/h)):

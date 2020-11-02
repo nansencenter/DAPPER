@@ -11,7 +11,7 @@ xx = simulator(x0, k=N*K, t0=0, dt=0.01)
 
 fig, ax = plt.subplots(subplot_kw={'projection':'3d'})
 
-cc = plt.cm.winter(linspace(0,1,N))
+cc = plt.cm.winter(np.linspace(0,1,N))
 for n in range(N):
     ax.plot(*xx[n*K : (n+1)*K+1].T, lw=1, c=cc[n])
 

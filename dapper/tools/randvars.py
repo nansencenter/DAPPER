@@ -63,7 +63,7 @@ class RV(NicePrint):
                 cdf    = self.cdf
                 Left,  = fsolve(lambda x: cdf(x) - 1e-9    , 0.1)
                 Right, = fsolve(lambda x: cdf(x) - (1-1e-9), 0.1)
-                xx     = linspace(Left,Right,1001)
+                xx     = np.linspace(Left,Right,1001)
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu,xx)
                 self.icdf_interp = np.vectorize(icdf)

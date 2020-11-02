@@ -77,10 +77,10 @@ def sinusoidal_sample(Nx,k,N):
 
     # Note: Each sample member is centered
     # -- Not the sample as a whole.
-    sample = asmatrix(sample)
+    sample = np.asmatrix(sample)
     sample = sample - np.mean(sample,1)
-    sample = asarray(sample)
-    return sample 
+    sample = np.asarray(sample)
+    return sample
 
 
 def periodic_distance_range(M):
