@@ -1,6 +1,7 @@
 """Provide (terminal and matplotlib) color definitions and functionality."""
 
 from dapper import *
+import builtins
 
 #########################################
 # Colouring for the terminal / console
