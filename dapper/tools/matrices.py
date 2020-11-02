@@ -1,19 +1,20 @@
 from dapper import *
 
 import numpy as np
+from numpy import sqrt, ones, zeros
 import scipy.linalg as sla
 import functools
 
 # Test matrices
 def randcov(M):
     """(Makeshift) random cov mat."""
-    N = int(ceil(2+M**1.2))
+    N = int(np.ceil(2+M**1.2))
     E = randn((N,M))
     return E.T @ E
 def randcorr(M):
     """(Makeshift) random corr mat."""
     Cov  = randcov(M)
-    Dm12 = diag(diag(Cov)**(-0.5))
+    Dm12 = np.diag(np.diag(Cov)**(-0.5))
     return Dm12@Cov@Dm12
 
 
@@ -39,7 +40,7 @@ def genOG_modified(M,opts=(0,1.0)):
     # Parse opts
     if not opts:
         # Shot-circuit in case of False or 0
-        return eye(M)
+        return np.eye(M)
     elif isinstance(opts,bool) or opts == 1:
         return genOG(M)
     elif isinstance(opts,float):
@@ -59,7 +60,7 @@ def genOG_modified(M,opts=(0,1.0)):
         if np.mod(counter, dc) < 1:
             Q = genOG(M)
         else:
-            Q = eye(M)
+            Q = np.eye(M)
     elif ver==2:
         # Decompose and reduce angle of (complex) diagonal. Background:
         # https://stackoverflow.com/q/38426349
@@ -182,7 +183,7 @@ class CovMat():
 
         # Cascade if's down to 'Right'
         if kind=='E':
-            mu      = mean(data,0)
+            mu      = np.mean(data,0)
             data    = data - mu
             kind    = 'A'
         if kind=='A':
@@ -224,7 +225,7 @@ class CovMat():
                 self.diag = d
                 M         = len(d)
                 if np.all(d==d[0]):
-                    V   = eye(M)
+                    V   = np.eye(M)
                     rk  = M
                 else:
                     # Clip and sort diag
@@ -235,7 +236,7 @@ class CovMat():
                     d = d[idx][:rk]
                     # Make rectangular V that un-sorts d
                     V = zeros((M,rk))
-                    V[idx[:rk],  arange(rk)] = 1
+                    V[idx[:rk],  np.arange(rk)] = 1
                 self._assign_EVD(M,rk,d,V)
             else:
                 raise KeyError
@@ -426,9 +427,9 @@ class CovMat():
             SE = L@L.T
 
             # Concatenate corners. Fill "cross" between them with nan's
-            N  = np.hstack([NW,nan*ones((K,1)),NE])
-            S  = np.hstack([SW,nan*ones((K,1)),SE])
-            All= np.vstack([N ,nan*ones(2*K+1),S])
+            N  = np.hstack([NW,np.nan*ones((K,1)),NE])
+            S  = np.hstack([SW,np.nan*ones((K,1)),SE])
+            All= np.vstack([N ,np.nan*ones(2*K+1),S])
 
             with np.printoptions(threshold=0):
                 t = "\n" + str(All)

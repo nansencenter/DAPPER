@@ -1,6 +1,7 @@
 from dapper import *
 from dataclasses import dataclass
 import numpy as np
+from numpy import nan
 
 # TODO 3: change L to 'nlags', with nlags=L-1, to conform with
 # the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
@@ -14,11 +15,11 @@ def auto_cov(xx,L=5,zero_mean=False,corr=False):
 
     N = len(xx)
     A = xx if zero_mean else center(xx)[0]
-    acovf = zeros((L,)+xx.shape[1:])
+    acovf = np.zeros((L,)+xx.shape[1:])
 
     for i in range(L):
-        Left  = A[arange(N-i)]
-        Right = A[arange(i,N)]
+        Left  = A[np.arange(N-i)]
+        Right = A[np.arange(i,N)]
         acovf[i] = (Left*Right).sum(0)/(N-i)
 
     if corr:
@@ -42,7 +43,7 @@ def fit_acf_by_AR1(acf_empir,L=None):
         return geometric_mean([xx[i]/xx[i-1] for i in range(1,len(xx))])
 
     # Negative correlation => Truncate ACF
-    neg_ind   = find_1st_ind(array(acf_empir)<=0)
+    neg_ind   = find_1st_ind(np.array(acf_empir)<=0)
     acf_empir = acf_empir[:neg_ind]
 
     if   len(acf_empir) == 0: return 0
@@ -100,7 +101,7 @@ def series_mean_with_conf(xx):
     Also provide confidence of mean,
     as estimated from its correlation-corrected variance.
     """
-    mu = mean(xx)
+    mu = np.mean(xx)
     N  = len(xx)
     if (not np.isfinite(mu)) or N<=5:
         uq = UncertainQtty(mu, np.nan)
@@ -122,7 +123,7 @@ def series_mean_with_conf(xx):
         c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
         confidence_correction = 1 + 2/N * c
         var *= confidence_correction
-        uq = UncertainQtty(mu, sqrt(var))
+        uq = UncertainQtty(mu, np.sqrt(var))
     return uq
 
 class StatPrint(NicePrint):

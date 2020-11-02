@@ -45,7 +45,7 @@ def allsame(xx):
 def gr(ii,sub): # grab_rmses
     def get_val(i):
         try: return deep_getattr(xps[i].avrgs,'err.rms.'+sub).val
-        except AttributeError: return nan
+        except AttributeError: return np.nan
     return [get_val(i) for i in ii]
 
 

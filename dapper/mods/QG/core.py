@@ -143,7 +143,7 @@ def gen_sample(model,nSamples,SpinUp,Spacing):
     simulator = with_recursion(model.step,prog="Simulating")
     K         = SpinUp + nSamples*Spacing
     Nx        = np.prod(shape) # total state length
-    sample    = simulator(zeros(Nx), K, 0.0, model.prms["dtout"])
+    sample    = simulator(np.zeros(Nx), K, 0.0, model.prms["dtout"])
     return sample[SpinUp::Spacing]
 
 sample_filename = rc.dirs.samples/'QG_samples.npz'
@@ -158,11 +158,11 @@ if not sample_filename.is_file():
 #########################
 # Liveplotting
 #########################
-cm   = mpl.colors.ListedColormap(0.85*mpl.cm.jet(arange(256)))
+cm   = mpl.colors.ListedColormap(0.85*mpl.cm.jet(np.arange(256)))
 cntr = nx*int(ny/2) + int(0.5*nx)
 import dapper.tools.liveplotting as LP
 def LP_setup(jj=None): return [
     (11, 1, LP.spatial2d(square,ind2sub,jj, cm) ),
     (15, 0, LP.spectral_errors ),
-    (14, 0, LP.sliding_marginals(dims=cntr+arange(4)) ),
+    (14, 0, LP.sliding_marginals(dims=cntr+np.arange(4)) ),
 ]

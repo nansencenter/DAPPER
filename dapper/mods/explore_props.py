@@ -75,7 +75,7 @@ if mod == "L96":
 # Lyapunov exponents with F=10: [9.47   9.3    8.72 ..., -33.02 -33.61 -34.79] => n0:64
 if mod == "LUV":
     from dapper.mods.LorenzUV.lorenz96 import LUV
-    ii    = arange(LUV.nU)
+    ii    = np.arange(LUV.nU)
     step  = with_rk4(LUV.dxdt, autonom=True)
     Nx    = LUV.M
     T     = 1e2
@@ -107,8 +107,8 @@ if mod == "QG":
     # or run outside of ipython. However, I did not encounter lately.
     model = model_config("sakov2008",{},mp=True)
     step  = model.step
-    Nx    = prod(shape)
-    ii    = np.random.choice(arange(Nx),100,False)
+    Nx    = np.prod(shape)
+    ii    = np.random.choice(np.arange(Nx),100,False)
     T     = 1000.0
     dt    = model.prms['dtout']
     x0    = np.load(sample_filename)['sample'][-1]
@@ -132,7 +132,7 @@ xx = with_recursion(step, prog="Reference")(x , K,          t0, dt)
 ########################
 # NB: Won't work with QG (too big, and BCs==0).
 fig, ax = freshfig(4)
-if "ii"    not in locals(): ii    = arange(min(100,Nx))
+if "ii"    not in locals(): ii    = np.arange(min(100,Nx))
 if "nlags" not in locals(): nlags = min(100,K)
 ax.plot(tt[:nlags], np.nanmean( auto_cov(xx[:nlags,ii],L=nlags,corr=1), axis=1) )
 ax.set_xlabel('Time (t)')
@@ -143,19 +143,19 @@ plot_pause(0.1)
 ########################
 # "Linearized" forecasting
 ########################
-LL = zeros((K,N))        # Local (in time) Lyapunov exponents
-E  = x + eps*eye(Nx)[:N] # Init E
+LL = np.zeros((K,N))           # Local (in time) Lyapunov exponents
+E  = x + eps*np.eye(Nx)[:N] # Init E
 
 for k,t in enumerate(progbar(tt,"Ens (≈TLM)")):
     # if t%10.0==0: print(t)
 
-    x     = xx[k+1] # = step(x,t,dt)  # f.cast reference
-    E     = step(E,t,dt)              # f.cast ens (i.e. perturbed ref)
+    x     = xx[k+1] # = step(x,t,dt)   # f.cast reference
+    E     = step(E,t,dt)               # f.cast ens (i.e. perturbed ref)
 
-    E     = (E-x).T/eps               # Compute f.cast perturbations
-    [Q,R] = sla.qr(E,mode='economic') # Orthogonalize
-    E     = x + eps*Q.T               # Init perturbations  
-    LL[k] = np.log(abs(diag(R)))      # Store local Lyapunov exponents
+    E     = (E-x).T/eps                # Compute f.cast perturbations
+    [Q,R] = sla.qr(E,mode='economic')  # Orthogonalize
+    E     = x + eps*Q.T                # Init perturbations  
+    LL[k] = np.log(np.abs(np.diag(R))) # Store local Lyapunov exponents
 
 
 ########################

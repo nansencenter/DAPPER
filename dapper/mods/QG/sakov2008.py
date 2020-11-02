@@ -44,7 +44,7 @@ max_offset = jj[1]-jj[0]
 def random_offset(t):
     rstream.seed(int(t/model.prms['dtout']*100))
     u = rstream.rand()
-    return int(floor(max_offset * u))
+    return int(np.floor(max_offset * u))
 
 def obs_inds(t):
     return jj + random_offset(t)
@@ -64,7 +64,7 @@ localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], obs_inds, periodi
 Obs = {
     'M'    : Ny,
     'model': hmod,
-    'noise': GaussRV(C=4*eye(Ny)),
+    'noise': GaussRV(C=4*np.eye(Ny)),
     'localizer': localizer,
 }
 

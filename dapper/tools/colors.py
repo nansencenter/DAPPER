@@ -48,7 +48,7 @@ def coloring(*color_codes):
 # Colouring for matplotlib
 #########################################
 # Matlab (new) colors.
-ml_colors = array(
+ml_colors = np.array(
     [[0.   , 0.447, 0.741],
      [0.85 , 0.325, 0.098],
      [0.929, 0.694, 0.125],
@@ -62,7 +62,7 @@ for code, color in zip('boyvgcr', ml_colors):
     mpl.colors.colorConverter.cache ['ml'+code] = color
 
 # Seaborn colors
-sns_colors = array(
+sns_colors = np.array(
     [[0.298, 0.447, 0.69 ],
      [0.333, 0.658, 0.407],
      [0.768, 0.305, 0.321],
@@ -89,7 +89,7 @@ for code, color in zip('bgrmyckw', sns_colors):
 # c = cmap( .5 )        # using float
 # Equivalent:
 # clist = cmap.colors # (only for ListedColormap) => 2D tuple,
-# clist = cmap(arange(0,.9,.1))                 # => 2D ndarray
+# clist = cmap(np.arange(0,.9,.1))              # => 2D ndarray
 #
 # Choosing cmap: https://matplotlib.org/3.3.1/tutorials/colors/colormaps.html
 # Color codes: https://matplotlib.org/tutorials/colors/colors.html

@@ -2,6 +2,7 @@
 
 from dapper import *
 import numpy as np
+from numpy import eye, diag, zeros, ones, sqrt, arange
 from .ensemble import ens_method
 
 @ens_method
@@ -37,9 +38,9 @@ class RHF:
 
                 for i,j in enumerate(inds):
                     Eo = Obs(E,t)
-                    xo = mean(Eo,0)
+                    xo = np.mean(Eo,0)
                     Y  = Eo - xo
-                    mu = mean(E ,0)
+                    mu = np.mean(E ,0)
                     A  = E-mu
 
                     # Update j-th component of observed ensemble
@@ -92,11 +93,11 @@ class LNETF:
 
             if kObs is not None:
                 stats.assess(k,kObs,'f',E=E)
-                mu = mean(E,0)
+                mu = np.mean(E,0)
                 A  = E - mu
 
                 Eo = Obs(E,t)
-                xo = mean(Eo,0)
+                xo = np.mean(Eo,0)
                 YR = (Eo-xo)  @ Rm12.T
                 yR = (yy[kObs] - xo) @ Rm12.T
 
@@ -117,7 +118,7 @@ class LNETF:
                     else: # assume Gaussian
                         w    = reweight(ones(self.N),innovs=innovs)
                     dmu    = w@A[:,ii]
-                    AT     = sqrt(self.N)*funm_psd(diag(w) - np.outer(w,w), sqrt)@A[:,ii]
+                    AT     = np.sqrt(self.N)*funm_psd(np.diag(w) - np.outer(w,w), np.sqrt)@A[:,ii]
 
                     E[:,ii] = mu[ii] + dmu + AT
 

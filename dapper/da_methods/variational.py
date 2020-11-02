@@ -2,6 +2,7 @@
 
 from dapper import *
 import numpy as np
+from numpy import eye, diag, zeros, ones, sqrt, arange
 from typing import Optional, Any
 
 @da_method

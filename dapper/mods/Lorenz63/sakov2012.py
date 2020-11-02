@@ -18,7 +18,7 @@ Dyn = {
 
 X0 = GaussRV(C=2,mu=x0)
 
-jj = arange(Nx) # obs_inds
+jj = np.arange(Nx) # obs_inds
 Obs = partial_Id_Obs(Nx, jj)
 Obs['noise'] = 2 # GaussRV(C=CovMat(2*eye(Nx)))
 

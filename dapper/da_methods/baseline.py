@@ -17,7 +17,7 @@ class Climatology:
     def assimilate(self,HMM,xx,yy):
         Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-        muC = mean(xx,0)
+        muC = np.mean(xx,0)
         AC  = xx - muC
         PC  = CovMat(AC,'A')
 
@@ -40,7 +40,7 @@ class OptInterp:
         Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
         # Compute "climatological" Kalman gain
-        muC = mean(xx,0)
+        muC = np.mean(xx,0)
         AC  = xx - muC
         PC  = (AC.T @ AC) / (xx.shape[0] - 1)
 
@@ -64,7 +64,7 @@ class OptInterp:
                 KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
                 mu = muC + KG@(yy[kObs] - Obs(muC,t))
 
-                P  = (eye(Dyn.M) - KG@H) @ PC
+                P  = (np.eye(Dyn.M) - KG@H) @ PC
                 SM = fit_sigmoid(P.trace()/PC.trace(),L,k)
 
             stats.assess(k,kObs,mu=mu,Cov=2*PC*SM(k))
@@ -117,7 +117,7 @@ class Var3D:
                 mu = mu + KG@(yy[kObs] - Obs(mu,t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
-                P = (eye(Dyn.M) - KG@H) @ B
+                P = (np.eye(Dyn.M) - KG@H) @ B
                 SM = fit_sigmoid(P.trace()/CC.trace(),L,k)
 
             stats.assess(k,kObs,mu=mu,Cov=P)

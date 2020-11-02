@@ -52,7 +52,7 @@ def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
         d = np.minimum(d, domain-d)
 
     # scipy.linalg.norm(d,axis=-1)
-    distances = sqrt((d**2).sum(axis=-1))
+    distances = np.sqrt((d**2).sum(axis=-1))
 
     return distances.reshape(npts_A+npts_B)
 
@@ -67,7 +67,7 @@ def dist2coeff(dists, radius, tag=None):
      - The constants were slightly wrong, as noted in comments below.
      - It forgot to take sqrt() of coeffs when applying them through 'local analysis'.
     """
-    coeffs = zeros(dists.shape)
+    coeffs = np.zeros(dists.shape)
 
     if tag is None:
         tag = TAG
@@ -87,7 +87,7 @@ def dist2coeff(dists, radius, tag=None):
         inds         = dists <= R
         coeffs[inds] = (1 - (dists[inds] / R) ** 4) ** 4
     elif tag == 'GC': # eqn 4.10 of Gaspari-Cohn'99, or eqn 25 of Sakov2011relation
-        R = radius * 1.82 # =sqrt(10/3). Sakov: 1.7386
+        R = radius * 1.82 # =np.sqrt(10/3). Sakov: 1.7386
         # 1st segment
         ind1         = dists<=R
         r2           = (dists[ind1] / R) ** 2
@@ -120,7 +120,7 @@ def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
     coeffs = dist2coeff(dists, radius, tag)
 
     # Truncate using cut-off
-    inds   = arange(len(dists))[coeffs > cutoff]
+    inds   = np.arange(len(dists))[coeffs > cutoff]
     coeffs = coeffs[inds]
 
     return inds, coeffs
@@ -153,8 +153,8 @@ def localization_setup(y2x_distances,batches):
 
 def no_localization(Nx,Ny):
 
-    def obs_taperer(batch ): return arange(Ny), ones(Ny)
-    def state_taperer(iObs): return arange(Nx), ones(Nx)
+    def obs_taperer(batch ): return np.arange(Ny), np.ones(Ny)
+    def state_taperer(iObs): return np.arange(Nx), np.ones(Nx)
 
     def localization_now(radius,direction,t,tag=None):
         """Returns all indices, with all tapering coeffs=1.
@@ -162,8 +162,8 @@ def no_localization(Nx,Ny):
         Used to validate local DA methods [eg LETKF<==>EnKF('Sqrt')]."""
         assert radius == np.inf, "Localization functions not specified"
 
-        if   direction == 'x2y': return [arange(Nx)], obs_taperer
-        elif direction == 'y2x': return             state_taperer
+        if   direction == 'x2y': return [np.arange(Nx)], obs_taperer
+        elif direction == 'y2x': return                state_taperer
 
     return localization_now
 
@@ -188,7 +188,7 @@ def rectangular_partitioning(shape,steps,do_ind=True):
     >>> M       = np.prod(shape)
     >>> nB      = len(batches)
     >>> values  = np.random.choice(arange(nB),nB,0)
-    >>> Z       = zeros(shape)
+    >>> Z       = np.zeros(shape)
     >>> for ib,b in enumerate(batches):
     >>>   Z[tuple(b)] = values[ib]
     >>> plt.imshow(Z)
@@ -248,7 +248,7 @@ def nd_Id_localization(shape,
 
     batches = rectangular_partitioning(shape, batch_shape)
 
-    state_coord = ind2sub(arange(M))
+    state_coord = ind2sub(np.arange(M))
 
     def y2x_distances(t):
         obs_coord = ind2sub( safe_eval(obs_inds,t) )

@@ -42,7 +42,7 @@ xx = true_K(x0,K        ,t0,dt)
 ###########################
 # Compute unresovled scales
 ###########################
-gg = zeros((K,nU)) # "Unresolved tendency"
+gg = np.zeros((K,nU)) # "Unresolved tendency"
 for k,x in enumerate(xx[:-1]):
     X = x[:nU]
     Z = model_step(X,t0,dt)

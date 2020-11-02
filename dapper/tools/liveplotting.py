@@ -1,5 +1,6 @@
 from dapper import *
 import numpy as np
+from numpy import arange, ones, nan
 
 class LivePlot:
     """Live plotting manager.
@@ -198,7 +199,7 @@ def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
     try:
         P0 = np.full_like(stats.HMM.X0.C.full, nan) 
     except AttributeError: # e.g. if X0 is defined via sampling func
-        P0 = eye(stats.HMM.Nx)
+        P0 = np.eye(stats.HMM.Nx)
 
     LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, replay=True, **kwargs)
     plt.pause(.01) # required when speed=inf
@@ -517,7 +518,7 @@ class correlations:
 
         Nx = len(stats.mu[key0])
         if Nx<=1003:
-            C = eye(Nx)
+            C = np.eye(Nx)
             # Mask half
             mask = np.zeros_like(C, dtype=np.bool)
             mask[np.tril_indices_from(mask)] = True
@@ -583,7 +584,7 @@ class correlations:
             C = P.full if isinstance(P,CovMat) else P
             C = C.copy()
         # Compute corr from cov
-        std = sqrt(diag(C))
+        std = np.sqrt(np.diag(C))
         C  /= std[:,None]
         C  /= std[None,:]
         # Mask
@@ -924,7 +925,7 @@ def d_ylim(data,ax=None,cC=0,cE=1,pp=(1,99),Min=-1e20,Max=+1e20):
     for d in data:
         d = d[np.isfinite(d)]
         if len(d):
-            perc = array([-1, 1]) * np.percentile(d,pp)
+            perc = np.array([-1, 1]) * np.percentile(d,pp)
             minv, maxv = np.maximum([minv, maxv], perc)
     minv *= -1
 

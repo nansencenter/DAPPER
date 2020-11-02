@@ -1,5 +1,6 @@
 from dapper import *
 import numpy as np
+from numpy import eye, diag, zeros, ones, sqrt, arange
 
 @da_method
 class particle_method:

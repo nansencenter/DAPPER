@@ -45,14 +45,14 @@ def default_styles(coord, baseline_legends=False):
 
         elif coord.da_method == "OptInterp":
             style.ls = ":"
-            style.c = .7*ones(3)
+            style.c = .7*np.ones(3)
             style.label = "Opt. Interp."
             if not baseline_legends:
                 style.label = None
 
         elif coord.da_method == "Var3D":
             style.ls = ":"
-            style.c = .5*ones(3)
+            style.c = .5*np.ones(3)
             style.label = "3D-Var"
             if not baseline_legends:
                 style.label = None
@@ -91,7 +91,7 @@ def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
     that maps range(N) to the segment centers,
     as will be reflected by ``cb = fig.colorbar(sm)``.
     You can then re-label the ticks using
-    ``cb.set_ticks(arange(N)); cb.set_ticklabels(["A","B","C",...])``."""
+    ``cb.set_ticks(np.arange(N)); cb.set_ticklabels(["A","B","C",...])``."""
     # cmap(k/N)
     from_list = mpl.colors.LinearSegmentedColormap.from_list
     colors = cmap(np.linspace(val0,val1,N))
@@ -120,7 +120,7 @@ def cm_bond(cmap,xp_dict,axis,vmin=0,vmax=0):
 def in_idx(coord, indices, xp_dict, axis):
     """Essentially: coord.axis in ticks[indices]"""
     if hasattr(coord, axis):
-        ticks = array(xp_dict.ticks[axis])[indices]
+        ticks = np.array(xp_dict.ticks[axis])[indices]
         return getattr(coord, axis) in ticks
     else:
         return True
@@ -951,7 +951,7 @@ class xpSpace(SparseSpace):
 def default_fig_adjustments(tables):
     """Beautify. These settings do not generalize well."""
     # Get axs as 2d-array
-    axs = array([table.panels for table in tables.values()]).T
+    axs = np.array([table.panels for table in tables.values()]).T
 
     # Main panels (top row) only:
     sensible_f = ticker.FormatStrFormatter('%g')

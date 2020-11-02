@@ -46,13 +46,13 @@ HMM.t.KObs = 10**4
 params = dict(
     xB       = [.1, .2, .4, 1],
     N        = [5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50],
-    infl     = 1+array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]),
+    infl     = 1+np.array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]),
     rot      = [True, False],
     loc_rad  = round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]),
 )
 
 xps = xpList()
-for_params = get_param_setter(params, seed=3000+arange(10), F=[8,10])
+for_params = get_param_setter(params, seed=3000+np.arange(10), F=[8,10])
 xps += for_params(Climatology)
 xps += for_params(OptInterp)
 xps += for_params(Var3D, B="eye")
@@ -155,7 +155,7 @@ default_fig_adjustments(tables)
 
 # Colorbar
 cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0],label=graded)
-cb.set_ticks(arange(len(grades))); cb.set_ticklabels(grades)
+cb.set_ticks(np.arange(len(grades))); cb.set_ticklabels(grades)
 
 plt.pause(1)
 

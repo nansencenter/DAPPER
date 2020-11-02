@@ -37,10 +37,10 @@ def roll_n_sub(arr,item,i_repl=0):
     """
     Example::
 
-      >>> roll_n_sub(arange(4),99,0)
-      array([99,  0,  1,  2])
-      >>> roll_n_sub(arange(4),99,-1)
-      array([ 1,  2,  3, 99])
+    >>> roll_n_sub(np.arange(4),99,0)
+    array([99,  0,  1,  2])
+    >>> roll_n_sub(np.arange(4),99,-1)
+    array([ 1,  2,  3, 99])
     """
     shift       = i_repl if i_repl<0 else (i_repl+1)
     arr         = np.roll(arr,shift,axis=0)
@@ -74,12 +74,12 @@ def center(E,axis=0,rescale=False):
     Makes use of np features: keepdims and broadcasting.
 
     - rescale: Inflate to compensate for reduction in the expected variance."""
-    x = mean(E, axis=axis, keepdims=True)
+    x = np.mean(E, axis=axis, keepdims=True)
     X = E - x
 
     if rescale:
         N  = E.shape[axis]
-        X *= sqrt(N/(N-1))
+        X *= np.sqrt(N/(N-1))
 
     x = x.squeeze()
 
@@ -150,10 +150,10 @@ def with_recursion(func,prog=False):
 
       def step(x,t,dt): ...
       step_k = with_recursion(step)
-      x[k]   = step_k(x0,k,t=NaN,dt)[-1]
+      x[k]   = step_k(x0,k,t=np.nan,dt)[-1]
     """
     def fun_k(x0,k,*args,**kwargs):
-        xx    = zeros((k+1,)+x0.shape)
+        xx    = np.zeros((k+1,)+x0.shape)
         xx[0] = x0
         rg    = range(k)
 
@@ -191,7 +191,7 @@ def integrate_TLM(TLM,dt,method='approx'):
         resolvent = (V * np.exp(dt*Lambda)) @ np.linalg.inv(V)
         resolvent = np.real_if_close(resolvent, tol=10**5)
     else:
-        I = eye(TLM.shape[0])
+        I = np.eye(TLM.shape[0])
         if method == 'rk4':
             resolvent = rk4(lambda t,U: TLM@U, I, np.nan, dt)
         elif method.lower().startswith('approx'):
@@ -208,9 +208,9 @@ def FD_Jac(ens_compatible_function,eps=1e-7):
     """
     def Jacf(x,*args,**kwargs):
         def f(xx): return ens_compatible_function(xx, *args, **kwargs)
-        E  = x + eps*eye(len(x)) # row-oriented ensemble
-        FT = (f(E) - f(x))/eps   # => correct broadcasting
-        return FT.T              # => Jac[i,j] = df_i/dx_j
+        E  = x + eps*np.eye(len(x)) # row-oriented ensemble
+        FT = (f(E) - f(x))/eps      # => correct broadcasting
+        return FT.T                 # => Jac[i,j] = df_i/dx_j
     return Jacf
 
 # Transpose explanation:
@@ -255,7 +255,7 @@ def ndecimal(x):
         # "Behaviour not defined" => should not be relied upon.
         return 1
     else:
-        return -int(floor(np.log10(abs(x))))
+        return -int(np.floor(np.log10(np.abs(x))))
 
 @np.vectorize
 def round2(num,param=1):
@@ -416,9 +416,9 @@ def circulant_ACF(C,do_abs=False):
     of a 1D periodic domain.
     """
     M    = len(C)
-    #cols = np.flipud(sla.circulant(arange(M)[::-1]))
-    cols = sla.circulant(arange(M))
-    ACF  = zeros(M)
+    #cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
+    cols = sla.circulant(np.arange(M))
+    ACF  = np.zeros(M)
     for i in range(M):
         row = C[i,cols[i]]
         if do_abs:
@@ -449,7 +449,7 @@ def truncate_rank(s,threshold,avoid_pathological):
         r += 1 # Hence the strict inequality above
         if avoid_pathological:
             # If not avoid_pathological, then the last 4 diag. entries of
-            # reconst( *tsvd(eye(400),0.99) )
+            # reconst( *tsvd(np.eye(400),0.99) )
             # will be zero. This is probably not intended.
             r += np.sum(np.isclose(s[r-1], s[r:]))
     else:
@@ -513,7 +513,7 @@ def svd0(A):
     else:   return sla.svd(A, full_matrices=False)
 
 def pad0(ss,N):
-    out = zeros(N)
+    out = np.zeros(N)
     out[:len(ss)] = ss
     return out
 
@@ -593,11 +593,11 @@ def linear_model_setup(ModelMatrix,dt0):
 def direct_obs_matrix(Nx,obs_inds):
     """Matrix that "picks" state elements obs_inds out of range(Nx)"""
     Ny = len(obs_inds)
-    H = zeros((Ny,Nx))
+    H = np.zeros((Ny,Nx))
     H[range(Ny),obs_inds] = 1
 
     # One-liner:
-    # H = array([[i==j for i in range(M)] for j in jj],float)
+    # H = np.array([[i==j for i in range(M)] for j in jj],float)
 
     return H
 

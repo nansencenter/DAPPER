@@ -2,6 +2,7 @@
 
 from dapper import *
 import numpy as np
+from numpy import sqrt
 
 
 class RV(NicePrint):
@@ -35,7 +36,7 @@ class RV(NicePrint):
     def sample(self,N):
         if getattr(self,'is0',False):
             # Identically 0
-            E = zeros((N,self.M))
+            E = np.zeros((N,self.M))
         elif hasattr(self,'func'):
             # Provided by function
             E = self.func(N)
@@ -47,7 +48,7 @@ class RV(NicePrint):
             if 'w' in data:
                 w = data['w']
             else:
-                w = ones(N0)/N0
+                w = np.ones(N0)/N0
             idx = np.random.choice(N0,N,replace=True,p=w)
             E   = sample[idx]
         elif hasattr(self,'icdf'):
@@ -103,7 +104,7 @@ class RV_with_mean_and_cov(RV):
                 assert len(mu) == M
         else:
             if M is not None:
-                mu = ones(M)*mu
+                mu = np.ones(M)*mu
 
         # Set C
         if isinstance(C,CovMat):
@@ -115,7 +116,7 @@ class RV_with_mean_and_cov(RV):
             else:
                 if np.isscalar(C):
                     M = len(mu)
-                    C = CovMat(C*ones(M),'diag')
+                    C = CovMat(C*np.ones(M),'diag')
                 else:
                     C = CovMat(C)
                     if M is None:
@@ -145,7 +146,7 @@ class RV_with_mean_and_cov(RV):
           plt.scatter(*(UniRV(C=randcov(2)).sample(10**4).T))
         """
         if self.C == 0:
-            D = zeros((N,self.M))
+            D = np.zeros((N,self.M))
         else:
             D = self._sample(N)
         return self.mu + D

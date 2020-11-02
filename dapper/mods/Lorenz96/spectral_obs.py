@@ -68,6 +68,7 @@
 
 
 from dapper.mods.Lorenz96.sakov2008 import *
+from numpy import eye
 
 # The (Nx-Ny) highest frequency observation modes are left out of H below.
 # If Ny>Nx, then H no longer has independent (let alone orthogonal) columns,
@@ -78,7 +79,7 @@ X0 = GaussRV(M=Nx, C=0.001)
 
 def make_H(Ny,Nx):
     xx = np.linspace(-1,1,Nx+1)[1:]
-    H = zeros((Ny,Nx))
+    H = np.zeros((Ny,Nx))
     H[0] = 1/sqrt(2)
     for k in range(-(Ny//2),(Ny+1)//2):
         ind = 2*abs(k) - (k<0)

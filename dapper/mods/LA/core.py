@@ -11,9 +11,6 @@
 from dapper import *
 import numpy as np
 import scipy.linalg as sla
-
-from scipy.linalg import circulant
-from numpy import abs, sign, eye, ceil
 from scipy import sparse
 
 def Fmat(Nx,c,dx,dt):
@@ -28,14 +25,14 @@ def Fmat(Nx,c,dx,dt):
     in which case it corresponds to
     np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.
     """
-    assert abs(c*dt/dx)<=1, "Must satisfy CFL condition"
+    assert np.abs(c*dt/dx)<=1, "Must satisfy CFL condition"
     # 1st order explicit upwind scheme
     row1     = np.zeros(Nx)
-    row1[-1] = +(sign(c)+1)/2
-    row1[+1] = -(sign(c)-1)/2
+    row1[-1] = +(np.sign(c)+1)/2
+    row1[+1] = -(np.sign(c)-1)/2
     row1[0]  = -1
-    L        = circulant(row1)
-    F        = eye(Nx) + (dt/dx*abs(c))*L
+    L        = sla.circulant(row1)
+    F        = np.eye(Nx) + (dt/dx*np.abs(c))*L
     F        = sparse.dia_matrix(F)
     return F
 
@@ -45,8 +42,8 @@ def basis_vector(Nx,k):
     Nx - state vector length
     k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     """
-    mm = arange(1,Nx+1) / Nx
-    kk = arange(k+1) # Wavenumbers
+    mm = np.arange(1,Nx+1) / Nx
+    kk = np.arange(k+1) # Wavenumbers
     aa = rand(k+1)   # Amplitudes
     pp = rand(k+1)   # Phases
 
@@ -73,7 +70,7 @@ def sinusoidal_sample(Nx,k,N):
     > E = sinusoidal_sample(100,4,5)
     > plt.plot(E.T)
     """
-    sample = zeros((N,Nx))
+    sample = np.zeros((N,Nx))
     for n in range(N):
         sample[n] = basis_vector(Nx,k)
 
@@ -117,11 +114,11 @@ def homogeneous_1D_cov(M,d,kind='Expo'):
         # Gaussian covariance
         nugget = 1e-5
         a = 2/sqrt(np.pi)*d
-        C = nugget*eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
+        C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
     elif kind == 'Expo':
         # Exponential covariance
         nugget = 1e-2;
-        C = nugget*eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/d));
+        C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/d));
     else: raise KeyError
 
     return C

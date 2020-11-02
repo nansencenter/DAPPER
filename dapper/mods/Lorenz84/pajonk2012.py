@@ -30,7 +30,7 @@ Dyn = {
 # X0 = GaussRV(C=0.01,M=Nx) # Decreased from Pajonk's C=1.
 X0 = GaussRV(C=0.01,mu=x0)
 
-jj = arange(Nx)
+jj = np.arange(Nx)
 Obs = partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.1
 

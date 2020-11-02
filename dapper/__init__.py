@@ -18,20 +18,6 @@ try:
 except AttributeError:
     def profile(func): return func # provide a pass-through version.
 
-
-##################################
-# Scientific
-##################################
-from numpy import \
-    nan, \
-    sqrt, floor, ceil, \
-    mean, prod, \
-    diff, \
-    array, \
-    arange, reshape, \
-    eye, zeros, ones, diag \
-    # Don't shadow builtins: sum, max, abs, round, pow
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 

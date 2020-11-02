@@ -44,7 +44,7 @@ class ExtKF:
                 y  = yy[kObs]
                 mu = mu + KG@(y - Obs(mu,t))
                 KH = KG@H
-                P  = (eye(Dyn.M) - KH) @ P
+                P  = (np.eye(Dyn.M) - KH) @ P
 
                 stats.trHK[kObs] = KH.trace()/Dyn.M
 
@@ -65,13 +65,13 @@ class ExtRTS:
         R  = Obs.noise.C.full
         Q  = 0 if Dyn.noise.C==0 else Dyn.noise.C.full
 
-        mu    = zeros((chrono.K+1,Nx))
-        P     = zeros((chrono.K+1,Nx,Nx))
+        mu    = np.zeros((chrono.K+1,Nx))
+        P     = np.zeros((chrono.K+1,Nx,Nx))
 
         # Forecasted values
-        muf   = zeros((chrono.K+1,Nx))
-        Pf    = zeros((chrono.K+1,Nx,Nx))
-        Ff    = zeros((chrono.K+1,Nx,Nx))
+        muf   = np.zeros((chrono.K+1,Nx))
+        Pf    = np.zeros((chrono.K+1,Nx,Nx))
+        Ff    = np.zeros((chrono.K+1,Nx,Nx))
 
         mu[0] = X0.mu
         P [0] = X0.C.full
@@ -96,7 +96,7 @@ class ExtRTS:
                 y     = yy[kObs]
                 mu[k] = mu[k] + KG@(y - Obs(mu[k],t))
                 KH    = KG@H
-                P[k]  = (eye(Nx) - KH) @ P[k]
+                P[k]  = (np.eye(Nx) - KH) @ P[k]
                 stats.assess(k,kObs,'a',mu=mu[k],Cov=P[k])
 
         # Backward pass

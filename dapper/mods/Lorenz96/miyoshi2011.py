@@ -12,8 +12,8 @@ from dapper.mods.Lorenz96.sakov2008 import *
 OneYear = 0.05 * (24/6) * 365
 t = Chronology(0.005, dtObs=0.05, T=110*OneYear, Tplot=Tplot, BurnIn=10*OneYear)
 
-land_sites  = arange(Nx//2)
-ocean_sites = arange(Nx//2,Nx)
+land_sites  = np.arange(Nx//2)
+ocean_sites = np.arange(Nx//2,Nx)
 
 jj = land_sites
 Obs = partial_Id_Obs(Nx, jj)

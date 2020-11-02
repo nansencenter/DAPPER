@@ -31,7 +31,7 @@ Dyn = {
 
 X0 = GaussRV(mu=x0, C=0.001) 
 
-jj = arange(Nx) # obs_inds
+jj = np.arange(Nx) # obs_inds
 Obs = partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization( (Nx,), (2,) )

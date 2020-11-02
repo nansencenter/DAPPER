@@ -29,7 +29,7 @@ Dyn = {
 X0 = GaussRV(mu=LUV.x0,C=0.01)
 
 R = 0.1
-jj = arange(nU)
+jj = np.arange(nU)
 Obs = partial_Id_Obs(LUV.M,jj)
 Obs['noise'] = R
 
@@ -52,7 +52,7 @@ Dyn = {
 
 X0 = GaussRV(mu=LUV.x0[:nU],C=0.01)
 
-jj = arange(nU)
+jj = np.arange(nU)
 Obs = partial_Id_Obs(nU,jj)
 Obs['noise'] = R
 

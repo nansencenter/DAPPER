@@ -9,7 +9,7 @@ HMM.t.BurnIn = 4
 # Further settings used in paper:
 # Experiments repeated 10 times. 
 # Sometimes used: dkObs=4.
-# Sometimes used: obs_inds = arange(Nx)[::2].
+# Sometimes used: obs_inds = np.arange(Nx)[::2].
 # Used localization: as in Whitaker/Hamill'2002: GC.
 
 

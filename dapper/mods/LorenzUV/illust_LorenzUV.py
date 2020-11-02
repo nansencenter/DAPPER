@@ -61,7 +61,7 @@ for t, l in zip(tU,lU):
     ax.text(t,ym-.6,l,fontsize=mpl.rcParams['xtick.labelsize'],horizontalalignment='center')
     ax.vlines(t, ym, -3.78, 'k',lw=mpl.rcParams['xtick.major.width'])
 # V-vars: minor
-tV = arange(nU+1)
+tV = np.arange(nU+1)
 lV = ['1'] + [str((i+1)*J) for i in circU]
 for i, (t, l) in enumerate(zip(tV,lV)):
     if i%dY==0:

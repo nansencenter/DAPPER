@@ -2,6 +2,7 @@
 
 from dapper import *
 import numpy as np
+from numpy import eye, diag, zeros, ones, sqrt, arange
 import scipy.linalg as sla
 
 @da_method
@@ -46,16 +47,16 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
 
     Main references: [Sak08a]_, [Sak08b]_, [Hot15]_
     """
-    R    = hnoise.C # Obs noise cov
-    N,Nx = E.shape  # Dimensionality
-    N1   = N-1      # Ens size - 1
+    R    = hnoise.C    # Obs noise cov
+    N,Nx = E.shape     # Dimensionality
+    N1   = N-1         # Ens size - 1
 
-    mu = mean(E,0)  # Ens mean
-    A  = E - mu     # Ens anomalies
+    mu = np.mean(E,0)  # Ens mean
+    A  = E - mu        # Ens anomalies
 
-    xo = mean(Eo,0) # Obs ens mean 
-    Y  = Eo-xo      # Obs ens anomalies
-    dy = y - xo     # Mean "innovation"
+    xo = np.mean(Eo,0) # Obs ens mean 
+    Y  = Eo-xo         # Obs ens anomalies
+    dy = y - xo        # Mean "innovation"
 
     if 'PertObs' in upd_a:
         # Uses classic, perturbed observations (Burgers'98)
@@ -463,9 +464,9 @@ class SL_EAKF:
                     # Prep:
                     # ------------------------------------------------------
                     Eo = Obs(E,t)
-                    xo = mean(Eo,0)
+                    xo = np.mean(Eo,0)
                     Y  = Eo - xo
-                    mu = mean(E ,0)
+                    mu = np.mean(E ,0)
                     A  = E-mu
                     # Update j-th component of observed ensemble:
                     # ------------------------------------------------------
@@ -532,7 +533,7 @@ class LETKF:
                 stats.assess(k,kObs,'f',E=E)
 
                 # Decompose ensmeble
-                mu = mean(E,0)
+                mu = np.mean(E,0)
                 A  = E - mu
                 # Obs space variables
                 y    = yy[kObs]
@@ -590,7 +591,7 @@ class LETKF:
                 # Global post-processing
                 E = post_process(E,self.infl,self.rot)
 
-                stats.infl[kObs] = sqrt(N1/mean(za))
+                stats.infl[kObs] = sqrt(N1/np.mean(za))
 
             stats.assess(k,kObs,E=E)
 
@@ -719,11 +720,11 @@ def hyperprior_coeffs(s,N,xN=1,g=0):
     cL = (N+g)/N1
 
     # Mode correction (almost) as in eqn 36 of [Boc15]_
-    prior_mode = eN/cL                     # Mode of l1 (before correction)
-    diagonal   = pad0( s**2, N ) + N1      # diag of Y@R.inv@Y + N1*I [Hessian of J(w)]
-    I_KH       = mean( diagonal**(-1) )*N1 # ≈ 1/(1 + HBH/R)
-    #I_KH      = 1/(1 + (s**2).sum()/N1)   # Scalar alternative: use tr(HBH/R).
-    mc         = sqrt(prior_mode**I_KH)    # Correction coeff
+    prior_mode = eN/cL                        # Mode of l1 (before correction)
+    diagonal   = pad0( s**2, N ) + N1         # diag of Y@R.inv@Y + N1*I [Hessian of J(w)]
+    I_KH       = np.mean( diagonal**(-1) )*N1 # ≈ 1/(1 + HBH/R)
+    #I_KH      = 1/(1 + (s**2).sum()/N1)      # Scalar alternative: use tr(HBH/R).
+    mc         = sqrt(prior_mode**I_KH)       # Correction coeff
 
     # Apply correction
     eN /= mc
@@ -799,10 +800,10 @@ class EnKF_N:
                 Eo = Obs(E,t)
                 y  = yy[kObs]
 
-                mu = mean(E,0)
+                mu = np.mean(E,0)
                 A  = E - mu
 
-                xo = mean(Eo,0)
+                xo = np.mean(Eo,0)
                 Y  = Eo-xo
                 dy = y - xo
 

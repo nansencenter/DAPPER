@@ -68,7 +68,7 @@ class Chronology():
             elif KObs:
                 K = dkObs*(KObs+1)
             else: raise TypeError('Unable to interpret time setup')
-        K = int(ceil(K/dkObs)*dkObs)
+        K = int(np.ceil(K/dkObs)*dkObs)
 
         # "State vars"
         self._dt      = dt
@@ -139,7 +139,7 @@ class Chronology():
 
     @property
     def kk(self):
-        return arange(self.K+1)
+        return np.arange(self.K+1)
     @property
     def kkObs(self):
         return self.kk[self.dkObs::self.dkObs]
@@ -179,7 +179,7 @@ class Chronology():
 
         Also yields t and dt.
         """
-        for k in kObs * self.dkObs + arange(1,self.dkObs+1):
+        for k in kObs * self.dkObs + np.arange(1,self.dkObs+1):
             t  = self.tt[k]
             dt = t - self.tt[k-1]
             yield k, t, dt

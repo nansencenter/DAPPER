@@ -248,7 +248,7 @@ class Stats(StatPrint):
         N,Nx = E.shape
 
         if w is None: 
-            w = ones(N)/N # All equal. Also, rm attr from stats:
+            w = np.ones(N)/N # All equal. Also, rm attr from stats:
             if hasattr(self,'w'):
                 delattr(self,'w')
         else:
@@ -315,7 +315,7 @@ class Stats(StatPrint):
         now.mu  = mu
         now.err = now.mu - x
 
-        var = P.diag if isinstance(P,CovMat) else diag(P)
+        var = P.diag if isinstance(P,CovMat) else np.diag(P)
         now.std = sqrt(var)
 
         # Here, sqrt(2/pi) is the ratio, of MAD/STD for Gaussians

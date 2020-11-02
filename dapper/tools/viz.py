@@ -5,6 +5,7 @@ import itertools
 import os
 import warnings
 import numpy as np
+from numpy import array, arange
 import scipy.linalg as sla
 
 #from mpl_toolkits.mplot3d import Axes3D
@@ -112,8 +113,8 @@ def stretch(a,b,factor=1,int=False):
     a = c + factor*(a-c) 
     b = c + factor*(b-c) 
     if int:
-        a = floor(a)
-        b = ceil(b)
+        a = np.floor(a)
+        b = np.ceil(b)
     return a, b
 
 
@@ -135,7 +136,7 @@ def estimate_good_plot_length(xx,chrono=None,mult=100):
         # If mult-dim, then average over dims (by ravel)....
         # But for inhomogeneous variables, it is important
         # to subtract the mean first!
-        xx = xx - mean(xx,axis=0)
+        xx = xx - np.mean(xx,axis=0)
         xx = xx.ravel(order='F')
 
     try:
@@ -269,10 +270,10 @@ def plot_err_components(stats):
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
 
-    err   = mean( abs(stats.err  .a) ,0)
-    sprd  = mean(     stats.mad  .a  ,0)
-    umsft = mean( abs(stats.umisf.a) ,0)
-    usprd = mean(     stats.svals.a  ,0)
+    err   = np.mean( np.abs(stats.err  .a) ,0)
+    sprd  = np.mean(        stats.mad  .a  ,0)
+    umsft = np.mean( np.abs(stats.umisf.a) ,0)
+    usprd = np.mean(     stats.svals.a  ,0)
 
     ax0.plot(            arange(Nx),               err,'k',lw=2, label='Error')
     if Nx<10**3:
@@ -338,7 +339,7 @@ def plot_rank_histogram(stats):
             # Potential improvement: interpolate weights between particles.
             w  = stats.w.a[chrono.maskObs_BI]
             K  = len(w)
-            w  = np.hstack([w, ones((K,1))/N]) # define weights for rank N+1
+            w  = np.hstack([w, np.ones((K,1))/N]) # define weights for rank N+1
             w  = array([ w[arange(K),ranks[arange(K),i]] for i in range(Nx)])
             w  = w.T.ravel()
             w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
@@ -681,8 +682,8 @@ class FigSaver(NicePrint):
 
 def nrowcol(nTotal,AR=1):
     "Return integer nrows and ncols such that nTotal ≈ nrows*ncols."
-    nrows = int(floor(sqrt(nTotal)/AR))
-    ncols = int(ceil(nTotal/nrows))
+    nrows = int(np.floor(np.sqrt(nTotal)/AR))
+    ncols = int(np.ceil(nTotal/nrows))
     return nrows, ncols
 
 

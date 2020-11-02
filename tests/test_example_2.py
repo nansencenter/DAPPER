@@ -1,6 +1,7 @@
 """Just stupidly compare the full results table."""
 
 from dapper import *
+import numpy as np
 
 statkeys = ['err.rms.a','err.rms.f','err.rms.u']
 
@@ -117,11 +118,11 @@ L96 = dict(table=table,old=old)
 ##############################
 
 import pytest
-@pytest.mark.parametrize(('lineno'),arange(len(L63['table'])))
+@pytest.mark.parametrize(('lineno'),np.arange(len(L63['table'])))
 def test_tables_L63(lineno):
     assert L63['table'][lineno] == L63['old'][lineno]
 
 
-@pytest.mark.parametrize(('lineno'),arange(len(L96['table'])))
+@pytest.mark.parametrize(('lineno'),np.arange(len(L96['table'])))
 def test_tables_L96(lineno):
     assert L96['table'][lineno] == L96['old'][lineno]

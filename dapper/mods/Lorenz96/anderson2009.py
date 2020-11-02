@@ -10,7 +10,7 @@ import numpy as np
 t = Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
 
 # Define obs sites
-obs_sites = 0.395 + 0.01*arange(1,21)
+obs_sites = 0.395 + 0.01*np.arange(1,21)
 obs_sites *= 40
 # Surrounding inds
 ii_below = obs_sites.astype(int)
@@ -19,12 +19,12 @@ ii_above = ii_below + 1
 w_above = obs_sites - ii_below
 w_below = 1 - w_above
 # Define obs matrix
-H = zeros((20,40))
-H[arange(20),ii_below] = w_below
-H[arange(20),ii_above] = w_above
+H = np.zeros((20,40))
+H[np.arange(20),ii_below] = w_below
+H[np.arange(20),ii_above] = w_above
 # Measure obs-state distances
-y2x_dists = pairwise_distances(obs_sites[:,None], arange(Nx)[:,None], (Nx,), periodic=True)
-batches = arange(40)[:,None]
+y2x_dists = pairwise_distances(obs_sites[:,None], np.arange(Nx)[:,None], (Nx,), periodic=True)
+batches = np.arange(40)[:,None]
 # Define operator
 Obs = {
     'M'        : len(H),
@@ -46,7 +46,7 @@ HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LPs(jj),
 # xp = SL_EAKF(N=6, infl=sqrt(1.1), loc_rad=0.2/1.82*40)
 # for lbl in ['err','std']:
 #     stat = getattr(xp.stats,lbl).f[HMM.t.maskObs_BI]
-#     plt.plot(sqrt(mean(stat**2, axis=0)),label=lbl)
+#     plt.plot(sqrt(np.mean(stat**2, axis=0)),label=lbl)
 #
 # Note: for this xp, one must to be lucky with the random seed to avoid
 #       blow up in the ocean sector (which is not constrained by obs) due to infl.
