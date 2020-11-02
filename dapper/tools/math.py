@@ -187,7 +187,7 @@ def integrate_TLM(TLM,dt,method='approx'):
     .. seealso:: FD_Jac.
     """
     if method == 'analytic':
-        Lambda,V  = np.linalg.eig(TLM)
+        Lambda,V  = sla.eig(TLM)
         resolvent = (V * exp(dt*Lambda)) @ np.linalg.inv(V)
         resolvent = np.real_if_close(resolvent, tol=10**5)
     else:

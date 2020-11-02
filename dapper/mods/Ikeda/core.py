@@ -8,7 +8,7 @@ See demo.py for more info.
 
 import numpy as np
 from numpy import cos, sin
-from dapper.tools.math import with_rk4, is1d, ens_compatible, integrate_TLM
+from dapper.tools.math import with_rk4, is1d, ens_compatible
 
 # Constant 0.6 <= u <= 1.
 u = 0.9

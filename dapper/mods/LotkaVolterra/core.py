@@ -3,6 +3,7 @@
 #       Vano et al (2006): "Chaos in low-dimensional Lotka-Volterra models of competition".
 
 from dapper import *
+from dapper.tools.math import integrate_TLM
 
 Nx = 4
 
