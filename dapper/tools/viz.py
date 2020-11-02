@@ -1,4 +1,5 @@
 from dapper import *
+import dapper.tools.utils as utils
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
@@ -150,7 +151,7 @@ def estimate_good_plot_length(xx,chrono=None,mult=100):
         t = chrono
         K = int(min(max(K, t.dkObs), t.K))
         T = round2sigfig(t.tt[K],2) # Could return T; T>tt[-1]
-        K = find_1st_ind(t.tt >= T)
+        K = utils.find_1st_ind(t.tt >= T)
         if K: return K
         else: return t.K
     else:

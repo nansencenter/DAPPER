@@ -30,5 +30,5 @@ truth_model   = model_config("counillon2009_truth",{"dtout":dt}                )
 # - My N=15 rmse << rmse_from_paper. But I only tested a single repetition => maybe I got lucky.
 #
 # - Use this to turn on/off the truth-model before/after truth simulation:
-#   with set_tmp(HMM.Dyn,'model',truth_model):
+#   with utils.set_tmp(HMM.Dyn,'model',truth_model):
 #     xx,yy = HMM.simulate()

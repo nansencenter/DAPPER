@@ -1,4 +1,5 @@
 from dapper import *
+import dapper.tools.utils as utils
 from dataclasses import dataclass
 import numpy as np
 from numpy import nan
@@ -43,7 +44,7 @@ def fit_acf_by_AR1(acf_empir,L=None):
         return geometric_mean([xx[i]/xx[i-1] for i in range(1,len(xx))])
 
     # Negative correlation => Truncate ACF
-    neg_ind   = find_1st_ind(np.array(acf_empir)<=0)
+    neg_ind   = utils.find_1st_ind(np.array(acf_empir)<=0)
     acf_empir = acf_empir[:neg_ind]
 
     if   len(acf_empir) == 0: return 0
@@ -154,7 +155,7 @@ class StatPrint(NicePrint):
             return super().__str__()
 
 
-@monitor_setitem
+@utils.monitor_setitem
 class DataSeries(StatPrint):
     """Basically just an ``np.ndarray``. But adds:
 
@@ -170,7 +171,7 @@ class DataSeries(StatPrint):
     def __setitem__(self,key,val):           self.array[key] = val
 
 
-@monitor_setitem
+@utils.monitor_setitem
 class FAUSt(DataSeries,StatPrint):
     """Container for time series of a statistic from filtering.
 

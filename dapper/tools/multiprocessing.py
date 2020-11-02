@@ -1,5 +1,6 @@
 from dapper import *
 
+import dapper.tools.utils as utils
 import textwrap
 import functools
 
@@ -48,7 +49,7 @@ try:
 except ImportError:
     no_MP = True
 
-    @do_once
+    @utils.do_once
     def MP_warn():
         print(textwrap.dedent("""
         Warning: Multiprocessing (MP) was requsted during execution,

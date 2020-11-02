@@ -13,6 +13,7 @@ Used for experiment (xp) specification/administration, including:
 """
 
 from dapper import *
+import dapper.tools.utils as utils
 from pathlib import Path
 import dataclasses as dcs
 import copy
@@ -21,6 +22,7 @@ import os
 import sys
 import re
 import numpy as np
+import inspect
 
 import functools
 import dill
@@ -82,7 +84,7 @@ class HiddenMarkovModel(NicePrint):
         xx[0] = X0.sample(1)
 
         # Loop
-        for k,kObs,t,dt in progbar(chrono.ticker,desc):
+        for k,kObs,t,dt in utils.progbar(chrono.ticker,desc):
             xx[k] = Dyn(xx[k-1],t-dt,dt) + np.sqrt(dt)*Dyn.noise.sample(1)
             if kObs is not None:
                 yy[kObs] = Obs(xx[k],t) + Obs.noise.sample(1)
@@ -132,7 +134,7 @@ def da_method(*default_dataclasses):
     >>>     seconds : int  = 10
     >>>     success : bool = True
     >>>     def assimilate(self,*args,**kwargs):
-    >>>         for k in progbar(range(self.seconds)):
+    >>>         for k in utils.progbar(range(self.seconds)):
     >>>             time.sleep(1)
     >>>         if not self.success:
     >>>             raise RuntimeError("Sleep over. Failing as intended.")
@@ -243,7 +245,7 @@ def run_experiment(xp, label, savedir, HMM,
         if fail_gently:
             xp.crashed = True
             if fail_gently not in ["silent","quiet"]:
-                print_cropped_traceback(ERR)
+                utils.print_cropped_traceback(ERR)
         else:
             raise ERR
 
@@ -413,7 +415,7 @@ class xpList(list):
     def __repr__(self):
         distinct, redundant, common = self.split_attrs()
         s = '<xpList> of length %d with attributes:\n'%len(self)
-        s += tabulate(distinct, headers="keys", showindex=True)
+        s += utils.tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
         s += str(dtools.AlignedDict({**redundant, **common}))
         return s
@@ -430,7 +432,7 @@ class xpList(list):
         values = distinct.values()
 
         # Label abbreviation
-        labels = [collapse_str(k,abbrev) for k in labels]
+        labels = [utils.collapse_str(k,abbrev) for k in labels]
 
         # Make label columns: insert None or lbl+":", depending on value
         column = lambda  lbl,vals: [None if v is None else lbl+":" for v in vals]
@@ -446,7 +448,7 @@ class xpList(list):
         table = list(map(list, zip(*table)))
 
         # Tabulate
-        table = tabulate(table, tablefmt="plain")
+        table = utils.tabulate(table, tablefmt="plain")
 
         # Rm space between lbls/vals
         table = re.sub(':  +',':',table) 
@@ -464,7 +466,7 @@ class xpList(list):
         distinct, redundant, common = self.split_attrs()
         averages = tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, '|':['|']*len(self), **averages} # merge
-        return tabulate(columns, headers="keys", showindex=True).replace('␣',' ')
+        return utils.tabulate(columns, headers="keys", showindex=True).replace('␣',' ')
 
 
     def launch(self, HMM, save_as="noname", mp=False,
@@ -537,8 +539,8 @@ class xpList(list):
                 run_experiment(xp, None, xpi_dir(ixp), **kwargs)
             args = zip(self, range(len(self)))
 
-            with     set_tmp(tools.utils,'disable_progbar',True):
-                with set_tmp(tools.utils,'disable_user_interaction',True):
+            with     utils.set_tmp(tools.utils,'disable_progbar',True):
+                with utils.set_tmp(tools.utils,'disable_user_interaction',True):
                     NPROC = mp.get("NPROC",None) # None => mp.cpu_count()
                     with mpd.Pool(NPROC) as pool:
                         list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),

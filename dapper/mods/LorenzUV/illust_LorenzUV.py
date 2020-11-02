@@ -4,6 +4,7 @@
 from dapper import *
 import matplotlib as mpl
 from matplotlib import pyplot as plt
+from dapper.tools.utils import progbar
 import numpy as np
 from matplotlib import cm
 

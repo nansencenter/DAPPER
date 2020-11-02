@@ -1,6 +1,7 @@
 """Provide the stats class which defines the "builtin" stats to be computed."""
 
 from dapper import *
+import dapper.tools.utils as utils
 import numpy as np
 import scipy.linalg as sla
 import warnings
@@ -405,7 +406,7 @@ class Avrgs(StatPrint,DotDict):
 
     def tabulate(self, statkeys=()):
         columns = tabulate_avrgs([self], statkeys, decimals=None)
-        return tabulate(columns, headers="keys").replace('␣',' ')
+        return utils.tabulate(columns, headers="keys").replace('␣',' ')
 
     abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
 
@@ -431,7 +432,7 @@ class Avrgs(StatPrint,DotDict):
 # with np.errstate(divide='warn',invalid='warn'), warnings.catch_warnings():
     # warnings.simplefilter("once",category=RuntimeWarning)
     # ...
-@do_once
+@utils.do_once
 def warn_zero_variance(err,flag):
     msg = "\n".join(["Numerical error in stat comps.",
           "Probably caused by a sample variance of 0."])
@@ -475,7 +476,7 @@ def tabulate_column(col,header,pad='␣',missingval='',frmt=None):
 
     # Make text column, aligned
     col = [[preprocess(x)] for x in col]
-    col = tabulate(col,[header],'plain')
+    col = utils.tabulate(col,[header],'plain')
     col = col.split("\n") # NOTE: dont use splitlines (removes empty lines)
 
     # Undo nan/inf treatment

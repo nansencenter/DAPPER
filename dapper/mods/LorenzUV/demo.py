@@ -1,6 +1,7 @@
 """Demonstrate the Lorenz two-speed/scale/layer model."""
 
 from dapper import *
+from dapper.tools.utils import progbar
 from matplotlib import pyplot as plt
 import numpy as np
 

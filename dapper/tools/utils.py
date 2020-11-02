@@ -1,6 +1,6 @@
 # Utilities (non-math)
 
-from dapper import *
+from dapper.dict_tools import NicePrint
 from pathlib import Path
 import time
 import traceback as tb
@@ -83,7 +83,7 @@ disable_user_interaction = False
 
 try:
     # Linux. See Misc/read1_trials.py
-    import termios 
+    import termios
 
     def set_term_settings(TS):
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, TS)
@@ -220,22 +220,6 @@ def name_func(name):
         return NamedFunc(func,name)
     return namer
 
-def functools_wraps(wrapped, lineno=1, *args, **kwargs):
-    """Like functools.wraps(), but keeps lines[0:lineno] of orig. docstring."""
-    doc = wrapped.__doc__.splitlines()[lineno:]
-
-    def wrapper(orig):
-        orig_header = orig.__doc__.splitlines()[:lineno]
-
-        @functools.wraps(wrapped,*args,**kwargs)
-        def new(*args2,**kwargs2):
-            return orig(*args2,**kwargs2)
-
-        new.__doc__ = "\n".join(orig_header + doc)
-        return new
-
-    return wrapper
-
 
 #########################################
 # Misc
@@ -308,15 +292,11 @@ def find_1st_ind(xx):
     except StopIteration: return None
 
 # https://stackoverflow.com/a/2669120
-def sorted_human( lst ): 
-    """ Sort the given iterable in the way that humans expect.""" 
-    convert = lambda text: int(text) if text.isdigit() else text 
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+def sorted_human( lst ):
+    """ Sort the given iterable in the way that humans expect."""
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
     return sorted(lst, key = alphanum_key)
-
-def unique_but_keep_order(arr):
-    """Like ``set(arr)`` but keep the ordering."""
-    return list(dict.fromkeys(arr).keys()) # Python >=3.7
 
 def collapse_str(string,length=6):
     """Abbreviate string to ``length``"""
@@ -325,28 +305,9 @@ def collapse_str(string,length=6):
     else:
         return string[:length-2]+'~'+string[-1]
 
-
 def all_but_1_is_None(*args):
     "Check if only 1 of the items in list are Truthy"
     return sum(x is not None for x in args) == 1
-
-class lazy_property:
-    """Lazy evaluation of property.
-
-    Should represent non-mutable data,
-    as it replaces itself.
-
-    From https://stackoverflow.com/q/3012421
-    """
-    def __init__(self,fget):
-        self.fget = fget
-        self.func_name = fget.__name__
-
-    def __get__(self,obj,cls):
-        value = self.fget(obj)
-        setattr(obj,self.func_name,value)
-        return value
-
 
 def do_once(fun):
     def new(*args,**kwargs):

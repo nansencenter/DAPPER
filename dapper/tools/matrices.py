@@ -1,9 +1,29 @@
 from dapper import *
+import dapper.tools.utils as utils
 
 import numpy as np
 from numpy import sqrt, ones, zeros
 import scipy.linalg as sla
 import functools
+
+class lazy_property:
+    """Lazy evaluation of property.
+
+    Should represent non-mutable data,
+    as it replaces itself.
+
+    From https://stackoverflow.com/q/3012421
+    """
+    def __init__(self,fget):
+        self.fget = fget
+        self.func_name = fget.__name__
+
+    def __get__(self,obj,cls):
+        value = self.fget(obj)
+        setattr(obj,self.func_name,value)
+        return value
+
+
 
 # Test matrices
 def randcov(M):
@@ -441,7 +461,7 @@ class CovMat():
         with np.printoptions(threshold=0):
             s += "\n diag:\n   " + " " + str(self.diag)
 
-        s = repr_type_and_name(self) + s.replace("\n","\n  ")
+        s = utils.repr_type_and_name(self) + s.replace("\n","\n  ")
         return s
 
 # Note: The diagonal representation is NOT memory-efficient.

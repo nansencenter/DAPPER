@@ -1,4 +1,6 @@
 from dapper import *
+import dapper.tools.utils as utils
+from dapper.tools.utils import progbar
 import numpy as np
 from numpy import eye, diag, zeros, ones, sqrt, arange
 
@@ -437,7 +439,7 @@ def reweight(w,lklhd=None,logL=None,innovs=None):
 
     If input is 'innovs': likelihood := NormDist(innovs|0,Id).
     """
-    assert all_but_1_is_None(lklhd,logL,innovs), \
+    assert utils.all_but_1_is_None(lklhd,logL,innovs), \
         "Input error. Only specify one of lklhd, logL, innovs"
 
     # Get log-values.

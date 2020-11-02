@@ -1,4 +1,5 @@
 from dapper import *
+from dapper.tools.utils import progbar
 import matplotlib as mpl
 import numpy as np
 from numpy import arange, ones, nan
@@ -118,14 +119,14 @@ class LivePlot:
         ENTERs = [b'\n', b'\r'] # Linux + Windows
         def pause():
             "Loop until user decision is made."
-            ch = read1() 
+            ch = utils.read1() 
             while True:
                 # Set state (pause, skipping, ipdb)
                 if ch in ENTERs: self.paused = False
                 elif ch==CHAR_I: self.run_ipdb = True
                 # If keypress valid, resume execution
                 if ch in ENTERs + [SPACE, CHAR_I]: break
-                ch = read1()
+                ch = utils.read1()
                 # Pause to enable zoom, pan, etc. of mpl GUI
                 plot_pause(0.01) # Don't use time.sleep()!
 
@@ -138,7 +139,7 @@ class LivePlot:
                 # Skip read1 for key0 (coz it blocks)
                 pass
             else:
-                ch = read1()
+                ch = utils.read1()
                 if ch==SPACE:
                     # Pause
                     self.paused = True

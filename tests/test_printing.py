@@ -2,8 +2,8 @@
 
 from dapper import *
 
-import dapper.tools.utils
-tools.utils.disable_user_interaction = True # NB remember to set to True
+import dapper.tools.utils as utils
+utils.disable_user_interaction = True # NB remember to set to True
 
 
 def test_L63():

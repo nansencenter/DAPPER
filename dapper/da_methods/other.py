@@ -1,6 +1,7 @@
 """More experimental or esoteric DA methods."""
 
 from dapper import *
+from dapper.tools.utils import progbar
 import numpy as np
 from numpy import eye, diag, zeros, ones, sqrt, arange
 from .ensemble import ens_method

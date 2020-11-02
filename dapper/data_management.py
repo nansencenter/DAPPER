@@ -3,7 +3,12 @@
 which is handles the **presentation** of experiment (xp) results."""
 
 ##
+import dapper as dpr
+from dapper.tools.colors import color_text
+import dapper.tools.utils as utils
 from dapper import *
+from dapper.tools.utils import progbar
+import colorama
 
 import matplotlib as mpl
 from pathlib import Path
@@ -28,7 +33,7 @@ def make_label(coord,no_key=NO_KEY,exclude=()):
             if any(x in k for x in no_key):
                 lbl = lbl + f' {v}'
             else:
-                lbl = lbl + f' {collapse_str(k,7)}:{v}'
+                lbl = lbl + f' {utils.collapse_str(k,7)}:{v}'
     return lbl[1:]
 
 
@@ -420,8 +425,10 @@ class SparseSpace(dict):
         This allows errors in the axes allotment, for ease-of-use."""
         absent = dtools.complement(attrs, self.axes)
         if absent:
-            print(color_text("Warning:"  ,cFG.RED), "The requested attributes",
-                  color_text(str(absent), cFG.RED), "were not found among the",
+            print(color_text("Warning:", colorama.Fore.RED),
+                  "The requested attributes",
+                  color_text(str(absent), colorama.Fore.RED),
+                  "were not found among the",
                   "xpSpace axes (attrs. used as coordinates for the set of experiments).",
                   "This may be no problem if the attr. is redundant for the coord-sys.",
                   "However, if it is caused by confusion or mis-spelling,",
@@ -833,9 +840,9 @@ class xpSpace(SparseSpace):
             print("\n",end="")
             if axes['outer']:
                 table_title = "Table for " + repr(table_coord)
-                print(color_text(table_title, cBG.YELLOW))
+                print(color_text(table_title, colorama.Back.YELLOW))
             headers, *rows = rows
-            print(tabulate(rows,headers).replace('␣',' '))
+            print(utils.tabulate(rows,headers).replace('␣',' '))
 
 
     def plot(xp_dict, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
@@ -934,7 +941,7 @@ class xpSpace(SparseSpace):
             panel0 = table.panels[0]
             panel0.set_title(title)
             if panel0.is_first_col(): panel0.set_ylabel(statkey)
-            with set_tmp(mpl_logger, 'level', 99): # silence "no label" msg
+            with utils.set_tmp(mpl_logger, 'level', 99): # silence "no label" msg
                 panel0.legend()
             table.panels[-1].set_xlabel(axes["inner"][0])
             # Tuning panels:

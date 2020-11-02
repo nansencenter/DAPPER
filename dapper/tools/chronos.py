@@ -1,6 +1,7 @@
 # Time sequence management
 
 from dapper import *
+import dapper.tools.utils as utils
 import numpy as np
 
 class Chronology():
@@ -188,7 +189,7 @@ class Chronology():
         printable = ['K','KObs','T','BurnIn','dtObs','dt']
         return str(dtools.AlignedDict([(k, getattr(self,k)) for k in printable]))
     def __repr__(self):
-        return repr_type_and_name(self) + "\n" + str(self)
+        return utils.repr_type_and_name(self) + "\n" + str(self)
 
     ######################################
     # Utilities

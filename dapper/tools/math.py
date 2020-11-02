@@ -1,6 +1,7 @@
 # Misc math
 
 from dapper import *
+import dapper.tools.utils as utils
 import numpy as np
 import scipy.linalg as sla
 import functools
@@ -137,7 +138,7 @@ def with_rk4(dxdt,autonom=False,order=4):
     if autonom: step = lambda x0,t0,dt: integrator(lambda t,x: dxdt(x),x0,np.nan,dt)
     else:       step = lambda x0,t0,dt: integrator(            dxdt   ,x0,t0    ,dt)
     name = "rk"+str(order)+" integration of "+pretty_repr(dxdt)
-    step = NamedFunc(step,name)
+    step = utils.NamedFunc(step,name)
     return step
 
 def with_recursion(func,prog=False):
@@ -546,11 +547,11 @@ def trank(A,*kargs,**kwargs):
 ########################
 
 def Id_op():
-    return NamedFunc(lambda *args: args[0], "Id operator")
+    return utils.NamedFunc(lambda *args: args[0], "Id operator")
 
 def Id_mat(M):
     I = np.eye(M)
-    return NamedFunc(lambda x,t: I, "Id("+str(M)+") matrix")
+    return utils.NamedFunc(lambda x,t: I, "Id("+str(M)+") matrix")
 
 def linear_model_setup(ModelMatrix,dt0):
     r"""Make a dictionary the Dyn/Obs field of HMM representing a linear model.

@@ -31,8 +31,8 @@ from .dpr_config import rc
 if rc.welcome_message:
     print("Initializing DAPPER...",flush=True)
 
-from .tools.colors import *
-from .tools.utils import *
+# from .tools.colors import *
+# from .tools.utils import *
 from .tools.math import *
 from .tools.stoch import *
 from .tools.matrices import *

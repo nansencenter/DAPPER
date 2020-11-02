@@ -5,6 +5,7 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 # TODO 5: use Fabric? https://www.fabfile.org/
 
 from dapper import *
+import dapper.tools.utils as utils
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as datetime_parse
 import os
@@ -270,7 +271,7 @@ def monitor_progress(self):
 
 
 def list_job_dirs(xps_path):
-    dirs = [xps_path/d for d in sorted_human(os.listdir(xps_path))]
+    dirs = [xps_path/d for d in utils.sorted_human(os.listdir(xps_path))]
     return [d for d in dirs if d.is_dir() and d.stem.isnumeric()]
 
 

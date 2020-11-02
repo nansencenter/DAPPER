@@ -1,6 +1,7 @@
 """The extended KF (EKF) and the (Rauch-Tung-Striebel) smoother."""
 
 from dapper import *
+from dapper.tools.utils import progbar
 
 @da_method()
 class ExtKF:

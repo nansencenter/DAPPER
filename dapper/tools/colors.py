@@ -1,23 +1,22 @@
 """Provide (terminal and matplotlib) color definitions and functionality."""
 
-from dapper import *
-import matplotlib as mpl
 import builtins
+import contextlib
+
+import colorama
+import matplotlib as mpl
 import numpy as np
+
+# Makes stdout/err color codes work on windows too.
+colorama.init()
 
 #########################################
 # Colouring for the terminal / console
 #########################################
-import colorama
-colorama.init() # Makes stdout/err color codes work on windows too.
-from colorama import Fore as cFG # Foreground color codes
-from colorama import Back as cBG # Background color codes
-import contextlib
-
 def color_text(text, *color_codes):
 
     if len(color_codes)==0:
-        color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
+        color_codes = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
 
     return "".join(color_codes) + text + colorama.Style.RESET_ALL
 
@@ -27,7 +26,7 @@ def coloring(*color_codes):
     """Color printing using 'with'.
     
     Example:
-    >>> with coloring(cFG.GREEN): print("This is in color")
+    >>> with coloring(colorama.Fore.GREEN): print("This is in color")
     """
 
     orig_print = builtins.print
