@@ -11,7 +11,6 @@ __version__ = "0.9.6"
 ##################################
 import itertools
 import warnings
-import traceback
 import functools
 import configparser
 import builtins

@@ -6,6 +6,7 @@ which is handles the **presentation** of experiment (xp) results."""
 from dapper import *
 
 import os
+import warnings
 
 import collections
 from matplotlib import ticker
