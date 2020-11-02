@@ -9,7 +9,6 @@ __version__ = "0.9.6"
 ##################################
 # Standard lib
 ##################################
-import os
 import itertools
 import warnings
 import traceback

@@ -5,8 +5,9 @@ which is handles the **presentation** of experiment (xp) results."""
 ##
 from dapper import *
 
-from collections import namedtuple
-import hashlib
+import os
+
+import collections
 from matplotlib import ticker
 import logging
 mpl_logger = logging.getLogger('matplotlib')
@@ -254,7 +255,7 @@ class SparseSpace(dict):
 
     def __init__(self, axes, *args, **kwargs):
         # Define coordinate system
-        self.Coord = namedtuple('Coord', axes) 
+        self.Coord = collections.namedtuple('Coord', axes)
         # Write dict
         self.update(*args, **kwargs)
         # Add repr/str

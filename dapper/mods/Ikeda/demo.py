@@ -4,7 +4,6 @@ Plot settings inspired by Wikipedia."""
 
 from dapper import *
 import core
-from collections import namedtuple
 
 def demo(u,s0,N,as_points,ends):
     core.u = u

@@ -1,6 +1,7 @@
 # Utilities (non-math)
 
 from dapper import *
+import os
 import re
 import sys
 

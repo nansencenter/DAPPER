@@ -1,5 +1,6 @@
 from dapper import *
 
+import os
 #from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 

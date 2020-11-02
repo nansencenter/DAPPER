@@ -7,6 +7,7 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 from dapper import *
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as datetime_parse
+import os
 import tempfile
 import subprocess
 

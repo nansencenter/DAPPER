@@ -14,6 +14,7 @@ Used for experiment (xp) specification/administration, including:
 
 from dapper import *
 from textwrap import dedent
+import os
 import sys
 import re
 
