@@ -2,6 +2,7 @@
 
 from dapper import *
 import numpy as np
+import scipy.linalg as sla
 import warnings
 
 class Stats(StatPrint):
@@ -287,7 +288,7 @@ class Stats(StatPrint):
 
         if hasattr(self,'svals'):
             if N<=Nx:
-                _,s,UT    = svd( (sqrt(w)*A.T).T, full_matrices=False)
+                _,s,UT    = sla.svd( (sqrt(w)*A.T).T, full_matrices=False)
                 s        *= sqrt(ub) # Makes s^2 unbiased
                 now.svals = s
                 now.umisf = UT @ now.err

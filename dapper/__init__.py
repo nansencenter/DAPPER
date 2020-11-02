@@ -22,7 +22,6 @@ except AttributeError:
 ##################################
 # Scientific
 ##################################
-from scipy.linalg import svd
 from numpy.linalg import eig
 # eig() of scipy.linalg necessitates using np.real_if_close().
 from scipy.linalg import sqrtm, inv, eigh
