@@ -322,7 +322,7 @@ class Stats(StatPrint):
 
         if hasattr(self,'svals'):
             P         = P.full if isinstance(P,CovMat) else P
-            s2,U      = nla.eigh(P)
+            s2,U      = sla.eigh(P)
             now.svals = sqrt(np.maximum(s2,0.0))[::-1]
             now.umisf = (U.T @ now.err)[::-1]
 

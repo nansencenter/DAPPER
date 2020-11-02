@@ -433,10 +433,10 @@ def circulant_ACF(C,do_abs=False):
 ########################
 
 def mrdiv(b,A):
-    return nla.solve(A.T,b.T).T
+    return sla.solve(A.T,b.T).T
 
 def mldiv(A,b):
-    return nla.solve(A,b)
+    return sla.solve(A,b)
 
 
 def truncate_rank(s,threshold,avoid_pathological):
@@ -576,7 +576,7 @@ def linear_model_setup(ModelMatrix,dt0):
     @functools.lru_cache(maxsize=1)
     def MatPow(dt):
         assert is_whole(dt/dt0), "Mat. exponentiation unique only for integer powers."
-        return nla.matrix_power(Mat, int(round(dt/dt0)))
+        return sla.matrix_power(Mat, int(round(dt/dt0)))
 
     @ens_compatible
     def model(x,t,dt): return MatPow(dt) @ x

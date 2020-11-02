@@ -21,7 +21,7 @@ def genOG(M):
     """Generate random orthonormal matrix."""
     # TODO 3: This (using Householder) is (slightly?) wrong, 
     # as per section 4 of mezzadri2006generate.
-    Q,R = nla.qr(randn((M,M)))
+    Q,R = sla.qr(randn((M,M)))
     for i in range(M):
         if R[i,i] < 0:
             Q[:,i] = -Q[:,i]
@@ -89,7 +89,7 @@ def genOG_modified(M,opts=(0,1.0)):
 def basis_beginning_with_ones(ndim):
     """Basis whose first vector is ones(ndim)."""
     e = ones((ndim,1))
-    return nla.svd(e)[0]
+    return sla.svd(e)[0]
 
 def genOG_1(N,opts=()):
     """
