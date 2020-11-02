@@ -82,7 +82,6 @@ class SubmissionConnection:
 
 def submit_job_GCP(xps_path, **kwargs):
     """GCP/HTCondor launcher"""
-    xps_path = Path(xps_path)
     sc = SubmissionConnection(xps_path, **kwargs)
     sync_job(sc)
 

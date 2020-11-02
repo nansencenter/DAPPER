@@ -1,6 +1,7 @@
 """Load DAPPER configuration settings into `rc`."""
 
 from dapper import *
+from pathlib import Path
 import sys
 import os
 import yaml

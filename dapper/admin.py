@@ -13,6 +13,7 @@ Used for experiment (xp) specification/administration, including:
 """
 
 from dapper import *
+from pathlib import Path
 from textwrap import dedent
 import os
 import sys

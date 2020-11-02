@@ -17,6 +17,7 @@
 #    See example in mods/QG/counillon2009.py.
 
 from dapper import *
+from pathlib import Path
 
 #########################
 # Model

@@ -1,6 +1,7 @@
 # Utilities (non-math)
 
 from dapper import *
+from pathlib import Path
 import os
 import re
 import sys

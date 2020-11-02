@@ -10,7 +10,6 @@ __version__ = "0.9.6"
 # Standard lib
 ##################################
 import builtins
-from pathlib import Path
 from time import sleep
 from copy import deepcopy
 import dataclasses as dc

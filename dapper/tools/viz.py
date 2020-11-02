@@ -1,5 +1,6 @@
 from dapper import *
 
+from pathlib import Path
 import itertools
 import os
 import warnings

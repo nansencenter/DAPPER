@@ -5,6 +5,7 @@ which is handles the **presentation** of experiment (xp) results."""
 ##
 from dapper import *
 
+from pathlib import Path
 import os
 import warnings
 
@@ -180,7 +181,7 @@ def save_xps(xps, save_as, nDir=100):
     >>>     overwrite_xps(xps, save_as)
     """
 
-    save_as = Path(save_as)
+    save_as = Path(save_as).expanduser()
     save_as.mkdir(parents=False,exist_ok=False)
 
     splitting = np.array_split(xps,nDir)
