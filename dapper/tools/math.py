@@ -1,6 +1,7 @@
 # Misc math
 
 from dapper import *
+import functools
 
 
 ########################

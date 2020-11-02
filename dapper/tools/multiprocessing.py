@@ -1,6 +1,7 @@
 from dapper import *
 
 import textwrap
+import functools
 
 # Multiprocessing is kept as an option in DAPPER,
 # since some of these libraries are experimental.

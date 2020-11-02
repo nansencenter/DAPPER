@@ -1,5 +1,7 @@
 from dapper import *
 
+import functools
+
 # Test matrices
 def randcov(M):
     """(Makeshift) random cov mat."""

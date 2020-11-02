@@ -18,6 +18,7 @@ import os
 import sys
 import re
 
+import functools
 import dill
 import shutil
 from datetime import datetime
