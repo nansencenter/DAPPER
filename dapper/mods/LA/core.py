@@ -50,7 +50,7 @@ def basis_vector(Nx,k):
     aa = rand(k+1)   # Amplitudes
     pp = rand(k+1)   # Phases
 
-    s  = aa @ np.sin(2*pi*(tp(kk) * mm + tp(pp)))
+    s  = aa @ np.sin(2*np.pi*(tp(kk) * mm + tp(pp)))
 
     #% Normalise
     sd = np.std(s,ddof=1)
@@ -116,7 +116,7 @@ def homogeneous_1D_cov(M,d,kind='Expo'):
     if kind == 'Gauss':
         # Gaussian covariance
         nugget = 1e-5
-        a = 2/sqrt(pi)*d
+        a = 2/sqrt(np.pi)*d
         C = nugget*eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
     elif kind == 'Expo':
         # Exponential covariance

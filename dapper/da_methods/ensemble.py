@@ -615,7 +615,7 @@ def effective_N(YR,dyR,xN,g):
     # Make dual cost function (in terms of l1)
     J      = lambda l:          np.sum(du**2/dgn_rk(l)) \
            +    eN/l**2 \
-           +    cL*log(l**2)
+           +    cL*np.log(l**2)
     # Derivatives (not required with minimize_scalar):
     Jp     = lambda l: -2*l   * np.sum(pad_rk(s**2) * du**2/dgn_rk(l)**2) \
            +   -2*eN/l**3 \
@@ -820,7 +820,7 @@ class EnKF_N:
                     dgn_rk = lambda l: pad_rk((l*s)**2) + N1
                     J      = lambda l:          np.sum(du**2/dgn_rk(l)) \
                            +    eN/l**2 \
-                           +    cL*log(l**2)
+                           +    cL*np.log(l**2)
                     # Derivatives (not required with minimize_scalar):
                     Jp     = lambda l: -2*l   * np.sum(pad_rk(s**2) * du**2/dgn_rk(l)**2) \
                            + -2*eN/l**3 \
@@ -836,7 +836,7 @@ class EnKF_N:
                     # Primal form, in a fully linearized version.
                     za     = lambda w: zeta_a(eN,cL,w)
                     J      = lambda w: .5*np.sum(( (dy-w@Y)@R.sym_sqrt_inv.T)**2 ) + \
-                                       .5*N1*cL*log(eN + w@w)
+                                       .5*N1*cL*np.log(eN + w@w)
                     # Derivatives (not required with fmin_bfgs):
                     Jp     = lambda w: -Y@R.inv@(dy-w@Y) + w*za(w)
                     #Jpp   = lambda w:  Y@R.inv@Y.T + za(w)*(eye(N) - 2*np.outer(w,w)/(eN + w@w))

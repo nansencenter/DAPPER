@@ -155,7 +155,7 @@ for k,t in enumerate(progbar(tt,"Ens (≈TLM)")):
     E     = (E-x).T/eps               # Compute f.cast perturbations
     [Q,R] = sla.qr(E,mode='economic') # Orthogonalize
     E     = x + eps*Q.T               # Init perturbations  
-    LL[k] = log(abs(diag(R)))         # Store local Lyapunov exponents
+    LL[k] = np.log(abs(diag(R)))      # Store local Lyapunov exponents
 
 
 ########################

@@ -7,7 +7,6 @@ See demo.py for further description.
 """
 
 import numpy as np
-from numpy import pi, linspace, arange, sin, cos, exp
 from dapper.tools.math import with_rk4, integrate_TLM, is1d
 from dapper.dpr_config import DotDict
 from dapper.tools.magic import magic_naming
@@ -30,9 +29,9 @@ def Model(dt=0.25,DL=32,Nx=128):
     h = dt # alias -- prevents o/w in step()
 
     # Fourier stuff
-    kk = np.append(arange(0,Nx/2),0)*2/DL                     # wave nums for rfft
-    # kk = ccat([arange(0,Nx/2),[0], arange(-Nx/2+1,0)])*2/DL # wave nums for fft
-    # kk = np.fft.fftfreq(Nx, DL/Nx/2)                        # (altern. method)
+    kk = np.append(np.arange(0,Nx/2),0)*2/DL                        # wave nums for rfft
+    # kk = ccat([np.arange(0,Nx/2),[0], np.arange(-Nx/2+1,0)])*2/DL # wave nums for fft
+    # kk = np.fft.fftfreq(Nx, DL/Nx/2)                              # (altern. method)
     # Operators
     D = 1j*kk         # Differentiation to compute:  F[ u_x ]
     L = kk**2 - kk**4 # Linear operator for K-S eqn: F[ - u_xx - u_xxxx]
@@ -82,20 +81,20 @@ def Model(dt=0.25,DL=32,Nx=128):
     # doi.org/10.1137/S1064827502410633.
     #
     # Precompute ETDRK4 scalar quantities
-    E  = exp(h*L)       # Integrating factor, eval at dt
-    E2 = exp(h*L/2)     # Integrating factor, eval at dt/2
+    E  = np.exp(h*L)       # Integrating factor, eval at dt
+    E2 = np.exp(h*L/2)     # Integrating factor, eval at dt/2
     # Roots of unity are used to discretize a circular countour...
     nRoots = 16
-    roots = exp( 1j * pi * (0.5+arange(nRoots))/nRoots ) 
+    roots = np.exp( 1j * np.pi * (0.5+np.arange(nRoots))/nRoots ) 
     # ... the associated integral then reduces to the mean,
     # g(CL).mean(axis=-1) ~= g(L), whose computation is more stable.
     CL = h * L[:,None] + roots # Contour for (each element of) L
     # E * exact_integral of integrating factor:
-    Q  = h * (          (exp(CL/2)-1)         / CL    ).mean(axis=-1).real
+    Q  = h * (          (np.exp(CL/2)-1)         / CL    ).mean(axis=-1).real
     # RK4 coefficients (modified by Cox-Matthews):
-    f1 = h * ( (-4-CL+exp(CL)*(4-3*CL+CL**2)) / CL**3 ).mean(axis=-1).real
-    f2 = h * (   (2+CL+exp(CL)*(-2+CL))       / CL**3 ).mean(axis=-1).real
-    f3 = h * ( (-4-3*CL-CL**2+exp(CL)*(4-CL)) / CL**3 ).mean(axis=-1).real
+    f1 = h * ( (-4-CL+np.exp(CL)*(4-3*CL+CL**2)) / CL**3 ).mean(axis=-1).real
+    f2 = h * (   (2+CL+np.exp(CL)*(-2+CL))       / CL**3 ).mean(axis=-1).real
+    f3 = h * ( (-4-3*CL-CL**2+np.exp(CL)*(4-CL)) / CL**3 ).mean(axis=-1).real
     #
     @byFourier
     def step_ETD_RK4(v,t,dt):
@@ -113,8 +112,8 @@ def Model(dt=0.25,DL=32,Nx=128):
 
     # Generate IC as end-point of ex. from Kassam and Trefethen.
     # x0_Kassam isn't convenient, coz prefer {x0 ∈ attractor} to {x0 ∈ basin}.
-    grid = DL*pi*np.linspace(0,1,Nx+1)[1:]
-    x0_Kassam = cos(grid/16) * (1 + sin(grid/16))
+    grid = DL*np.pi*np.linspace(0,1,Nx+1)[1:]
+    x0_Kassam = np.cos(grid/16) * (1 + np.sin(grid/16))
     x0 = x0_Kassam.copy()
     for k in range(int(150/h)):
         x0 = step(x0, np.nan, h)

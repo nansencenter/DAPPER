@@ -188,7 +188,7 @@ def integrate_TLM(TLM,dt,method='approx'):
     """
     if method == 'analytic':
         Lambda,V  = sla.eig(TLM)
-        resolvent = (V * exp(dt*Lambda)) @ np.linalg.inv(V)
+        resolvent = (V * np.exp(dt*Lambda)) @ np.linalg.inv(V)
         resolvent = np.real_if_close(resolvent, tol=10**5)
     else:
         I = eye(TLM.shape[0])
@@ -405,7 +405,7 @@ class CurvedSpace:
         a, b, c, d = self._expand_args()
         if -1e-12 < self.curvature < 1e-12:
               return lambda y: y
-        else: return lambda y: a + d/log(c)*log((c-1)/d*(y-a) + 1)
+        else: return lambda y: a + d/np.log(c)*np.log((c-1)/d*(y-a) + 1)
 
 
 

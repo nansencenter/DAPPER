@@ -2,6 +2,7 @@
 # https://en.wikipedia.org/wiki/Double_pendulum
 
 import numpy as np
+from numpy import sin, cos
 from dapper import *
 from dapper.mods.DoublePendulum.core import step, x0, energy, L1, L2
 

@@ -896,7 +896,7 @@ class xpSpace(SparseSpace):
                     ncols=ncols, sharey='row',
                     gridspec_kw=dict(height_ratios=[6]+[1]*(nrows-1),
                                      hspace=0.05,wspace=0.05,
-                                     left=0.15/(1+log(ncols)), # eyeballed
+                                     left=0.15/(1+np.log(ncols)), # eyeballed
                                      right=0.97, bottom=0.06, top=0.9))
             panels = np.ravel(panels).reshape((-1,ncols))
         else:

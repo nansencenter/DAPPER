@@ -139,8 +139,8 @@ def fit_sigmoid(Sb,L,kb):
     - a corresponding to a given corr. length L.
     - b to match values of S(kb) and Sb"""
 
-    sigmoid = lambda k: 1/(1+exp(-k)) # normalized sigmoid
-    inv_sig = lambda s: log(s/(1-s))  # its inverse
+    sigmoid = lambda k: 1/(1+np.exp(-k)) # normalized sigmoid
+    inv_sig = lambda s: np.log(s/(1-s))  # its inverse
 
     a = 1/L
     b = inv_sig(Sb)

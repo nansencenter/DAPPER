@@ -435,7 +435,7 @@ class weight_histogram:
         self.stats = stats
         self.ax    = ax
         self.hist  = []
-        self.bins  = exp( np.linspace( log(1e-10), log(1), 31 ) )
+        self.bins  = np.exp( np.linspace( log(1e-10), log(1), 31 ) )
 
     def __call__(self,key,E,P):
         k,kObs,faus = key

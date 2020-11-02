@@ -61,7 +61,7 @@ def dist2coeff(dists, radius, tag=None):
     """Compute tapering coefficients corresponding to a distances.
 
     NB: The radius is internally adjusted such that, independently of 'tag',
-    coeff==exp(-0.5) when distance==radius.
+    coeff==np.exp(-0.5) when distance==radius.
 
     This is largely based on Sakov's enkf-matlab code. Two bugs have here been fixed:
      - The constants were slightly wrong, as noted in comments below.
@@ -74,10 +74,10 @@ def dist2coeff(dists, radius, tag=None):
 
     if tag == 'Gauss':
         R = radius
-        coeffs = exp(-0.5 * (dists/R)**2)
+        coeffs = np.exp(-0.5 * (dists/R)**2)
     elif tag == 'Exp':
         R = radius
-        coeffs = exp(-0.5 * (dists/R)**3)
+        coeffs = np.exp(-0.5 * (dists/R)**3)
     elif tag == 'Cubic':
         R            = radius * 1.87 # Sakov: 1.8676
         inds         = dists <= R

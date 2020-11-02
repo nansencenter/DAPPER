@@ -61,7 +61,7 @@ def estimate_corr_length(xx):
     if a == 0:
         L = 0
     else:
-        L = 1/log(1/a)
+        L = 1/np.log(1/a)
     return L
 
 @dataclass

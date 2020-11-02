@@ -82,7 +82,7 @@ def make_H(Ny,Nx):
     H[0] = 1/sqrt(2)
     for k in range(-(Ny//2),(Ny+1)//2):
         ind = 2*abs(k) - (k<0)
-        H[ind] = sin(pi*k*xx + pi/4)
+        H[ind] = np.sin(np.pi*k*xx + pi/4)
     H /= sqrt(Nx/2)
     return H
 

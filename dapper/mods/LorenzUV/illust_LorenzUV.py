@@ -23,11 +23,11 @@ x0 = step_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
 xx = step_K(x0,K        ,t0,dt)
 
 # Grab parts of state vector
-ii = arange(nU+1)
-jj = arange(nU*J+1)
+ii = np.arange(nU+1)
+jj = np.arange(nU*J+1)
 circU = np.mod(ii  ,nU)
 circV = np.mod(jj,nU*J) + nU
-iU = np.hstack([0, 0.5+arange(nU), nU])
+iU = np.hstack([0, 0.5+np.arange(nU), nU])
 def Ui(xx):
     interp = (xx[0]+xx[-1])/2
     return np.hstack([interp, xx, interp])
@@ -78,12 +78,12 @@ plt.show()
 # # Convert to circular coordinates
 # # Should have used instead: projection='polar' 
 # def tU(zz):
-#     xx  = (40 + 3*zz)*cos(2*pi*ii/nU)
-#     yy  = (40 + 3*zz)*sin(2*pi*ii/nU)
+#     xx  = (40 + 3*zz)*np.cos(2*np.pi*ii/nU)
+#     yy  = (40 + 3*zz)*np.sin(2*np.pi*ii/nU)
 #     return xx,yy
 # def tV(zz):
-#     xx  = (80 + 15*zz)*cos(2*pi*jj/nU/J)
-#     yy  = (80 + 15*zz)*sin(2*pi*jj/nU/J)
+#     xx  = (80 + 15*zz)*np.cos(2*np.pi*jj/nU/J)
+#     yy  = (80 + 15*zz)*np.sin(2*np.pi*jj/nU/J)
 #     return xx,yy
 # 
 # 

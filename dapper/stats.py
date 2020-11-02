@@ -43,10 +43,10 @@ class Stats(StatPrint):
         self.field_summaries = dict(
             # Don't use nanmean here; nan's should get propagated!
             # suffix              formula
-            m         = lambda x: mean(x)           , # mean-field
-            rms       = lambda x: sqrt(mean(x**2))  , # root-mean-square
-            ma        = lambda x: mean(abs(x))      , # mean-absolute
-            gm        = lambda x: exp(mean(log(x))) , # geometric mean
+            m         = lambda x: np.mean(x)                 , # mean-field
+            rms       = lambda x: np.sqrt(np.mean(x**2))     , # root-mean-square
+            ma        = lambda x: np.mean(np.abs(x))         , # mean-absolute
+            gm        = lambda x: np.exp(np.mean(np.log(x))) , # geometric mean
         )
         # Only keep the methods listed in rc
         self.field_summaries = dtools.intersect(self.field_summaries, rc.field_summaries)
@@ -240,7 +240,7 @@ class Stats(StatPrint):
 
     def derivative_stats(self,now):
         """Stats that derive from others (=> not specific for _ens or _ext)."""
-        now.gscore = 2*log(now.std) + (now.err/now.std)**2
+        now.gscore = 2*np.log(now.std) + (now.err/now.std)**2
 
 
     def assess_ens(self,now,x,E,w):
@@ -319,7 +319,7 @@ class Stats(StatPrint):
         now.std = sqrt(var)
 
         # Here, sqrt(2/pi) is the ratio, of MAD/STD for Gaussians
-        now.mad = np.nanmean( now.std ) * sqrt(2/pi)
+        now.mad = np.nanmean( now.std ) * sqrt(2/np.pi)
 
         if hasattr(self,'svals'):
             P         = P.full if isinstance(P,CovMat) else P

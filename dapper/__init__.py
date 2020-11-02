@@ -23,8 +23,7 @@ except AttributeError:
 # Scientific
 ##################################
 from numpy import \
-    pi, nan, \
-    log, exp, sin, cos, tan, \
+    nan, \
     sqrt, floor, ceil, \
     mean, prod, \
     diff, \

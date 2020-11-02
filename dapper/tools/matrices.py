@@ -66,7 +66,7 @@ def genOG_modified(M,opts=(0,1.0)):
         # https://en.wikipedia.org/wiki/Orthogonal_matrix
         Q   = genOG(M)
         s,U = sla.eig(Q)
-        s2  = exp(1j*np.angle(s)*degree) # reduce angles
+        s2  = np.exp(1j*np.angle(s)*degree) # reduce angles
         Q   = mrdiv(U * s2, U)
         Q   = Q.real
     elif ver==3:

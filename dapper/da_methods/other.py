@@ -132,7 +132,7 @@ def laplace_lklhd(xx):
     p(x) = exp(-sqrt(2)*|x|_1) / sqrt(2).
     """
     logw   = -sqrt(2)*np.sum(np.abs(xx), axis=1)
-    logw  -= logw.max()    # Avoid numerical error
-    w      = exp(logw)     # non-log
-    w     /= w.sum()       # normalize
+    logw  -= logw.max()      # Avoid numerical error
+    w      = np.np.exp(logw) # non-log
+    w     /= w.sum()         # normalize
     return w

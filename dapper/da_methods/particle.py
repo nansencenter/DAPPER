@@ -54,7 +54,7 @@ class PartFilt:
 
                 if self.qroot != 1.0:
                     # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
-                    w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
+                    w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
                     w /= w.sum()
 
             if kObs is not None:
@@ -70,7 +70,7 @@ class PartFilt:
                     E,chi2 = regularize(C12,E,idx,self.nuj)
                     #if rroot != 1.0:
                     # Compensate for rroot
-                    #w *= exp(-0.5*chi2*(1 - 1/rroot))
+                    #w *= np.exp(-0.5*chi2*(1 - 1/rroot))
                     #w /= w.sum()
             stats.assess(k,kObs,'u',E=E,w=w)
 
@@ -179,7 +179,7 @@ class PFa:
 
                 if self.qroot != 1.0:
                     # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
-                    w *= exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
+                    w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
                     w /= w.sum()
 
             if kObs is not None:
@@ -208,7 +208,7 @@ class PFa:
                     E,chi2 = regularize(C12,E,idx,self.nuj)
                     #if rroot != 1.0:
                     # Compensate for rroot
-                    #w *= exp(-0.5*chi2*(1 - 1/rroot))
+                    #w *= np.exp(-0.5*chi2*(1 - 1/rroot))
                     #w /= w.sum()
             stats.assess(k,kObs,'u',E=E,w=w)
 
@@ -285,8 +285,8 @@ class PFxN_EnKF:
                         Pw       = (V * dgn**(-1.0)) @ V.T
                         cntrs    = E + (y-Eo)@Ri@Yw.T@Pw@Aw
                         P_cholU  = (V*dgn**(-0.5)).T @ Aw
-                        # Generate N·xN random numbers from NormDist(0,1), and compute
-                        # log(q(x))
+                        # Generate N·xN random numbers from NormDist(0,1),
+                        # and compute log(q(x))
                         if DD is None or not self.re_use:
                             rnk   = min(Nx,N-1)
                             DD    = randn((N*xN,N))
@@ -444,16 +444,16 @@ def reweight(w,lklhd=None,logL=None,innovs=None):
     # Note: the case when all(w==0) will cause nan's,
     #       which should cause errors outside.
     with np.errstate(divide='ignore'):
-        logw = log(w)        
+        logw = np.log(w)        
         if lklhd is not None:
-            logL = log(lklhd)
+            logL = np.log(lklhd)
         elif innovs is not None:
             chi2 = np.sum(innovs**2, axis=1)
             logL = -0.5 * chi2
 
     logw   = logw + logL   # Bayes' rule in log-space
     logw  -= logw.max()    # Avoid numerical error
-    w      = exp(logw)     # non-log
+    w      = np.exp(logw)  # non-log
     w     /= w.sum()       # normalize
     return w
 
