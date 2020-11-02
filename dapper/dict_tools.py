@@ -345,7 +345,7 @@ class AlignedDict(dict):
     - If set (to an integer), then the values are printed on a new line,
       indented by that (unchanging) length (unless they're one-liners).
 
-    A similar class is sp.optimize.OptimizeResult
+    A similar class is scipy.optimize.OptimizeResult
 
     See also:
     - pprint.pformat(x,linewidth,compact=True,sort_dicts=False)

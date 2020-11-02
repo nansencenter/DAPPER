@@ -1,6 +1,7 @@
 """Demonstrate the Lorenz two-speed/scale/layer model."""
 
 from dapper import *
+import numpy as np
 
 from dapper.mods.LorenzUV.lorenz96 import LUV
 nU, J = LUV.nU, LUV.J

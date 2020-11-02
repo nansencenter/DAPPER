@@ -4,6 +4,7 @@ Sakov (2011), Computational Geosciences:
 """
 
 from dapper import *
+import numpy as np
 
 import itertools
 

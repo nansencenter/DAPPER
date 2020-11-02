@@ -1,6 +1,7 @@
 # Random variables
 
 from dapper import *
+import numpy as np
 
 
 class RV(NicePrint):

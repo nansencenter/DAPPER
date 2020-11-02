@@ -1,6 +1,7 @@
 # Misc math
 
 from dapper import *
+import numpy as np
 import functools
 from dataclasses import dataclass
 

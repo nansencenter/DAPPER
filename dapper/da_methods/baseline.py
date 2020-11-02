@@ -4,6 +4,7 @@ Many are based on [Raa16a]_.
 """
 
 from dapper import *
+import numpy as np
 from typing import Optional
 
 @da_method()

@@ -1,5 +1,6 @@
 from dapper import *
 
+import numpy as np
 import functools
 
 # Test matrices

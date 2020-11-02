@@ -9,6 +9,7 @@
 # ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
 
 from dapper import *
+import numpy as np
 
 from scipy.linalg import circulant
 from numpy import abs, sign, eye, ceil
@@ -111,12 +112,12 @@ def homogeneous_1D_cov(M,d,kind='Expo'):
     # the area under the curve equals sqrt(pi*a^2)/2.
     # Thus we should set a^2 = 4/pi*d^2 ~= d^2.
 
-    if kind is 'Gauss':
+    if kind == 'Gauss':
         # Gaussian covariance
         nugget = 1e-5
         a = 2/sqrt(pi)*d
         C = nugget*eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
-    elif kind is 'Expo':
+    elif kind == 'Expo':
         # Exponential covariance
         nugget = 1e-2;
         C = nugget*eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/d));

@@ -2,6 +2,7 @@
 
 # Load DAPPER
 from dapper import *
+import numpy as np
 
 # Generate the same random numbers every time
 set_seed(3000)

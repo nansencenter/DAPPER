@@ -1,6 +1,7 @@
 """Tests with the LA model, which are very useful for testing
 boundary cases of the iEnKS (e.g. nIter=1, Lag=0)."""
 
+import numpy as np
 from dapper import *
 
 xps  = xpList(unique=True)

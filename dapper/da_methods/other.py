@@ -1,6 +1,7 @@
 """More experimental or esoteric DA methods."""
 
 from dapper import *
+import numpy as np
 from .ensemble import ens_method
 
 @ens_method

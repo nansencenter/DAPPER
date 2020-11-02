@@ -2,6 +2,7 @@
 
 from dapper import *
 import builtins
+import numpy as np
 
 #########################################
 # Colouring for the terminal / console

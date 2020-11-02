@@ -1,4 +1,5 @@
 from dapper import *
+import numpy as np
 
 # Based on double_pendulum_animated.html from matplotlib.org.
 # which was based on physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c

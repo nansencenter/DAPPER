@@ -1,5 +1,6 @@
 
 from dapper import *
+import numpy as np
 
 def test_1():
     """This causes the bug reported by Julien Brajard"""

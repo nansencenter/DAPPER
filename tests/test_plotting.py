@@ -4,6 +4,7 @@
 
 from dapper import *
 
+import numpy as np
 import dapper.tools.utils
 tools.utils.disable_user_interaction = True # NB remember to set to True
 

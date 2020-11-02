@@ -3,6 +3,7 @@
 
 from dapper import *
 from core import step, x0
+import numpy as np
 
 simulator = with_recursion(step, prog="Simulating")
 

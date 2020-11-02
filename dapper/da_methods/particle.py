@@ -1,4 +1,5 @@
 from dapper import *
+import numpy as np
 
 @da_method
 class particle_method:

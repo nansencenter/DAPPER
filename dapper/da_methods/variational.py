@@ -1,6 +1,7 @@
 """Variational methods (iEnKS, 4D-Var, etc)"""
 
 from dapper import *
+import numpy as np
 from typing import Optional, Any
 
 @da_method

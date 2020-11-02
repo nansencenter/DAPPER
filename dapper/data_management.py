@@ -15,6 +15,7 @@ from matplotlib import ticker
 import logging
 mpl_logger = logging.getLogger('matplotlib')
 from matplotlib import cm
+import numpy as np
 
 
 NO_KEY = ("da_method","Const","upd_a")

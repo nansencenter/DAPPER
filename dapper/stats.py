@@ -1,6 +1,7 @@
 """Provide the stats class which defines the "builtin" stats to be computed."""
 
 from dapper import *
+import numpy as np
 import warnings
 
 class Stats(StatPrint):

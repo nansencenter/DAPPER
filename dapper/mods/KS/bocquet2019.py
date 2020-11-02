@@ -1,4 +1,5 @@
 from dapper import *
+import numpy as np
 
 from dapper.mods.Lorenz96.core import LPs
 from dapper.tools.localization import nd_Id_localization

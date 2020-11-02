@@ -6,6 +6,7 @@ from dapper import *
 
 from dapper.mods.LA.core import sinusoidal_sample, Fmat
 from dapper.mods.Lorenz96.core import LPs
+import numpy as np
 
 # Burn-in allows damp*x and x+noise balance out
 tseq = Chronology(dt=1,dkObs=5,T=500,BurnIn=60,Tplot=100)

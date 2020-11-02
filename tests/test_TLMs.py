@@ -2,6 +2,7 @@
 
 ##
 from dapper import *
+import numpy as np
 
 eps = 1e-6
 def _allclose(fun, Jacob, x):

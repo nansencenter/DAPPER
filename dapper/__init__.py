@@ -22,12 +22,8 @@ except AttributeError:
 ##################################
 # Scientific
 ##################################
-import numpy as np
-import scipy as sp
-import numpy.random
 import scipy.linalg as sla
 import numpy.linalg as nla
-import scipy.stats as ss
 
 from scipy.linalg import svd
 from numpy.linalg import eig

@@ -1,6 +1,7 @@
 """Reproduce results from Sakov and Oke 'DEnKF' paper from 2008."""
 
 from dapper import *
+import numpy as np
 
 from dapper.mods.QG.core import model_config, shape, sample_filename, LP_setup
 from dapper.tools.localization import nd_Id_localization

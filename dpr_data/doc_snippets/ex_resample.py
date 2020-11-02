@@ -1,6 +1,7 @@
 # Test resample function
 
 from dapper import *
+import numpy as np
 from statsmodels.nonparametric.kernel_density import KDEMultivariate as kde
 
 f, axs = plt.subplots(7,1,sharex=True,sharey=True)

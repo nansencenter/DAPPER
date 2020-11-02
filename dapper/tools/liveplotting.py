@@ -1,4 +1,5 @@
 from dapper import *
+import numpy as np
 
 class LivePlot:
     """Live plotting manager.

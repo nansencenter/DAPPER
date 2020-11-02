@@ -1,6 +1,7 @@
 # Time sequence management
 
 from dapper import *
+import numpy as np
 
 class Chronology():
     """Time schedules with consistency checks.

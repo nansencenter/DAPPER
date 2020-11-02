@@ -1,6 +1,7 @@
 """The EnKF and other ensemble-based methods"""
 
 from dapper import *
+import numpy as np
 
 @da_method
 class ens_method:

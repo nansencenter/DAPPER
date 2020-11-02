@@ -1,5 +1,6 @@
 from dapper import *
 from dataclasses import dataclass
+import numpy as np
 
 # TODO 3: change L to 'nlags', with nlags=L-1, to conform with
 # the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
@@ -35,7 +36,8 @@ def fit_acf_by_AR1(acf_empir,L=None):
     if L is None:
         L = len(acf_empir)
 
-    geometric_mean = ss.mstats.gmean # = exp(mean(log(xx)))
+    # geometric_mean = ss.mstats.gmean
+    geometric_mean = lambda xx: np.exp(np.mean(np.log(xx)))
     def mean_ratio(xx):
         return geometric_mean([xx[i]/xx[i-1] for i in range(1,len(xx))])
 

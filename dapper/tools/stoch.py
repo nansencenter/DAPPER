@@ -1,6 +1,7 @@
 """Random number generation."""
 
 from dapper import *
+import numpy as np
 import time
 
 def set_seed(sd="clock"):

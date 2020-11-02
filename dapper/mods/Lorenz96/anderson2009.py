@@ -5,6 +5,7 @@
 
 from dapper.mods.Lorenz96.sakov2008 import *
 from dapper.tools.localization import localization_setup, pairwise_distances
+import numpy as np
 
 t = Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
 
