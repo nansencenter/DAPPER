@@ -18,8 +18,6 @@ try:
 except AttributeError:
     def profile(func): return func # provide a pass-through version.
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
 
 ##################################

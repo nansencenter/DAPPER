@@ -4,7 +4,8 @@
 # "DA-tutorials/T4 - Dynamical systems, chaos, Lorenz.ipynb"
 
 from numpy import eye
-from dapper import with_recursion, amplitude_animation, plt
+from matplotlib import pyplot as plt
+from dapper import with_recursion, amplitude_animation
 
 from dapper.mods.Lorenz96.core import step, x0
 

@@ -18,6 +18,7 @@
 
 from dapper import *
 from pathlib import Path
+import matplotlib as mpl
 import numpy as np
 
 #########################

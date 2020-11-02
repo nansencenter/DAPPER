@@ -5,6 +5,7 @@ which is handles the **presentation** of experiment (xp) results."""
 ##
 from dapper import *
 
+import matplotlib as mpl
 from pathlib import Path
 import os
 import copy

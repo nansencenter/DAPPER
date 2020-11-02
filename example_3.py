@@ -25,6 +25,7 @@ https://github.com/nansencenter/DAPPER#highlights
 """
 
 from dapper import *
+from matplotlib import pyplot as plt
 
 ##############################
 # Hidden Markov Model

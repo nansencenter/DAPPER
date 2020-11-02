@@ -1,6 +1,7 @@
 """Demonstrate the Double Pendulum model."""
 # https://en.wikipedia.org/wiki/Double_pendulum
 
+from matplotlib import pyplot as plt
 import numpy as np
 from numpy import sin, cos
 from dapper import *

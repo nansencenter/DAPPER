@@ -1,6 +1,7 @@
 """Demonstrate the QG (quasi-geostrophic) model."""
 
 from dapper import *
+from matplotlib import pyplot as plt
 import numpy as np
 from dapper.mods.QG.core import sample_filename, nx, square, default_prms
 

@@ -4,6 +4,7 @@ An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}."""
 
 from dapper import *
 import scipy.linalg as sla
+from matplotlib import pyplot as plt
 import numpy as np
 set_seed(3000)
 

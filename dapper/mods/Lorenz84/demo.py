@@ -2,6 +2,7 @@
 
 from dapper import *
 from dapper.mods.Lorenz84.core import step, x0
+from matplotlib import pyplot as plt
 
 simulator = with_recursion(step, prog="Simulating")
 

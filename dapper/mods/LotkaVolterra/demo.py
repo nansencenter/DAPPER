@@ -1,6 +1,7 @@
 """Demonstrate the Lotka-Volterra model."""
 
 from dapper import *
+from matplotlib import pyplot as plt
 from dapper.mods.LotkaVolterra.core import step, x0
 
 simulator = with_recursion(step, prog="Simulating")

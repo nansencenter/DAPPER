@@ -1,6 +1,7 @@
 """Provide (terminal and matplotlib) color definitions and functionality."""
 
 from dapper import *
+import matplotlib as mpl
 import builtins
 import numpy as np
 

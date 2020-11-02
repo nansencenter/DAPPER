@@ -11,6 +11,7 @@
 from dapper import *
 import numpy as np
 import scipy.linalg as sla
+from matplotlib import pyplot as plt
 from scipy import sparse
 
 def Fmat(Nx,c,dx,dt):

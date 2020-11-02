@@ -3,6 +3,7 @@
 Plot settings inspired by Wikipedia."""
 
 from dapper import *
+from matplotlib import pyplot as plt
 import core
 
 def demo(u,s0,N,as_points,ends):

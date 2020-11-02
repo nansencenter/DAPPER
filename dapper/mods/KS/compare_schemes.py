@@ -6,6 +6,7 @@
 
 import numpy as np
 import time
+from matplotlib import pyplot as plt
 from dapper.mods.KS.core import Model
 model = Model()
 

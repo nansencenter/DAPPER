@@ -1,5 +1,6 @@
 """Demonstrate the Linear Advection (LA) model."""
-from dapper import with_recursion, plt
+from dapper import with_recursion
+from matplotlib import pyplot as plt
 from dapper.mods.LA.raanes2015 import step, X0
 from dapper.tools.viz import amplitude_animation
 

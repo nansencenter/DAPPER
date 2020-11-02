@@ -12,6 +12,7 @@
 #  dt=0.005 for model.
 
 from dapper import *
+from matplotlib import pyplot as plt
 # mpl.rcParams['toolbar'] = 'None'
 
 ###########################

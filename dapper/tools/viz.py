@@ -1,5 +1,7 @@
 from dapper import *
 
+import matplotlib as mpl
+from matplotlib import pyplot as plt
 from pathlib import Path
 import itertools
 import os

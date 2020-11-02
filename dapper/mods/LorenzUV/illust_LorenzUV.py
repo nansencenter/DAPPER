@@ -2,6 +2,8 @@
 # Sorry for the mess.
 
 from dapper import *
+import matplotlib as mpl
+from matplotlib import pyplot as plt
 import numpy as np
 from matplotlib import cm
 

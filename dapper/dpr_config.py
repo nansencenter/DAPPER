@@ -1,6 +1,7 @@
 """Load DAPPER configuration settings into `rc`."""
 
 from dapper import *
+import matplotlib as mpl
 from pathlib import Path
 import sys
 import os

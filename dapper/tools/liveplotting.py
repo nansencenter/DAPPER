@@ -1,6 +1,8 @@
 from dapper import *
+import matplotlib as mpl
 import numpy as np
 from numpy import arange, ones, nan
+from matplotlib import pyplot as plt
 
 class LivePlot:
     """Live plotting manager.
@@ -436,7 +438,7 @@ class weight_histogram:
         self.stats = stats
         self.ax    = ax
         self.hist  = []
-        self.bins  = np.exp( np.linspace( log(1e-10), log(1), 31 ) )
+        self.bins  = np.exp( np.linspace( np.log(1e-10), np.log(1), 31 ) )
 
     def __call__(self,key,E,P):
         k,kObs,faus = key
