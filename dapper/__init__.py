@@ -9,7 +9,6 @@ __version__ = "0.9.6"
 ##################################
 # Standard lib
 ##################################
-import sys
 import os
 import itertools
 import warnings
@@ -23,6 +22,7 @@ from copy import deepcopy
 import dataclasses as dc
 from typing import Optional, Any, Union
 
+import sys
 assert sys.version_info >= (3,8), "Need Python>=3.8"
 
 

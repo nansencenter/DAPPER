@@ -1,6 +1,7 @@
 """Load DAPPER configuration settings into `rc`."""
 
 from dapper import *
+import sys
 import yaml
 
 ##################################

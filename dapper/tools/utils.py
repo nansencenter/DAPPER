@@ -2,6 +2,7 @@
 
 from dapper import *
 import re
+import sys
 
 
 #########################################
@@ -78,7 +79,7 @@ disable_user_interaction = False
 
 try:
     # Linux. See Misc/read1_trials.py
-    import termios, sys
+    import termios 
 
     def set_term_settings(TS):
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, TS)
