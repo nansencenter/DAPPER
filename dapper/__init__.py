@@ -9,7 +9,6 @@ __version__ = "0.9.6"
 ##################################
 # Standard lib
 ##################################
-import configparser
 import builtins
 from pathlib import Path
 from time import sleep
