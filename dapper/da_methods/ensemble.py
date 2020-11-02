@@ -2,6 +2,7 @@
 
 from dapper import *
 import numpy as np
+import scipy.linalg as sla
 
 @da_method
 class ens_method:
@@ -79,7 +80,7 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
             # Not recommended due to numerical costs and instability.
             # Implementation using inv (in ens space)
             Pw = inv(Y @ R.inv @ Y.T + N1*eye(N))
-            T  = sqrtm(Pw) * sqrt(N1)
+            T  = sla.sqrtm(Pw) * sqrt(N1)
             HK = R.inv @ Y.T @ Pw @ Y
             #KG = R.inv @ Y.T @ Pw @ A
         elif 'svd' in upd_a:
@@ -100,7 +101,7 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
             trHK  = np.sum(  (s**2 + 1)**(-1.0)*s**2 ) # dpr_data/doc_snippets/trHK.jpg
         else: # 'eig' in upd_a:
             # Implementation using eig. val. decomp.
-            d,V   = eigh(Y @ R.inv @ Y.T + N1*eye(N))
+            d,V   = sla.eigh(Y @ R.inv @ Y.T + N1*eye(N))
             T     = V@diag(d**(-0.5))@V.T * sqrt(N1)
             Pw    = V@diag(d**(-1.0))@V.T
             HK    = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
@@ -573,7 +574,7 @@ class LETKF:
                         T      = (V * d**(-0.5)) @ V.T * sqrt(za)
                     else:
                         # EVD version
-                        d,V   = eigh(Y_jj@Y_jj.T + za*eye(N))
+                        d,V   = sla.eigh(Y_jj@Y_jj.T + za*eye(N))
                         T     = V@diag(d**(-0.5))@V.T * sqrt(za)
                         Pw    = V@diag(d**(-1.0))@V.T
                     AT  = T @ A[:,ii]

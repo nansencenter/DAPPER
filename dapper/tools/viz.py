@@ -5,6 +5,7 @@ import itertools
 import os
 import warnings
 import numpy as np
+import scipy.linalg as sla
 
 #from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import juggle_axes
@@ -732,7 +733,7 @@ def cov_ellipse(ax, mu, sigma, **kwargs):
     """
 
     # Cov --> Width, Height, Theta
-    vals, vecs = np.linalg.eigh(sigma)
+    vals, vecs = sla.eigh(sigma)
     x, y       = vecs[:, -1] # x-y components of largest (last) eigenvector
     theta      = np.degrees(np.arctan2(y, x))
     theta      = theta % 180

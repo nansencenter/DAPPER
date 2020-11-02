@@ -115,7 +115,7 @@ def funm_psd(a, fun, check_finite=False):
       def sqrtm_psd(A):
           return funm_psd(A, sqrt)
     """
-    w, v = eigh(a, check_finite=check_finite)
+    w, v = sla.eigh(a, check_finite=check_finite)
     w = np.maximum(w, 0)
     w = fun(w)
     return (v * w) @ v.T
@@ -210,7 +210,7 @@ class CovMat():
                 C           = exactly_2d(data)
                 self._C     = C
                 M           = len(C)
-                d,V         = eigh(C)
+                d,V         = sla.eigh(C)
                 d           = CovMat._clip(d)
                 rk          = (d>0).sum()
                 d           =  d  [-rk:][::-1]

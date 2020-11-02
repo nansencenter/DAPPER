@@ -22,8 +22,6 @@ except AttributeError:
 ##################################
 # Scientific
 ##################################
-from scipy.linalg import sqrtm, inv, eigh
-
 from numpy import \
     pi, nan, \
     log, exp, sin, cos, tan, \

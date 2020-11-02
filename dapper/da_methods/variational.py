@@ -164,7 +164,7 @@ class iEnKS:
                             gradT = -(Y+D)@Y0.T + N1*(eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable
-                            Tinv  = inv(T+1)               # the +1 is for stability.
+                            Tinv  = sla.inv(T+1)           # the +1 is for stability.
                         elif 'Order1' in self.upd_a:     #== "DEnKF-ish". By Raanes. 
                             # Included for completeness; does not make much sense.
                             gradT = -0.5*Y@Y0.T + N1*(eye(N) - T)

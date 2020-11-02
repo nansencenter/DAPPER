@@ -294,7 +294,7 @@ class Stats(StatPrint):
                 now.umisf = UT @ now.err
             else:
                 P         = (A.T * w) @ A
-                s2,U      = eigh(P)
+                s2,U      = sla.eigh(P)
                 s2       *= ub
                 now.svals = sqrt(s2.clip(0))[::-1]
                 now.umisf = U.T[::-1] @ now.err
