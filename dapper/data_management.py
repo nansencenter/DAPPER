@@ -7,6 +7,7 @@ from dapper import *
 
 from pathlib import Path
 import os
+import copy
 import warnings
 
 import collections
@@ -445,7 +446,7 @@ class SparseSpace(dict):
             self.add_axis('Const')
 
         for coord in self.coords(**self.intersect_axes(sub_coord)):
-            entry = deepcopy(self[coord])
+            entry = copy.deepcopy(self[coord])
             coord = coord._replace(Const=label)
             coord = coord._replace(**{a:None for a in NoneAttrs})
             self[coord] = entry

@@ -14,6 +14,7 @@ Used for experiment (xp) specification/administration, including:
 
 from dapper import *
 from pathlib import Path
+import copy
 from textwrap import dedent
 import os
 import sys
@@ -228,7 +229,7 @@ def run_experiment(xp, label, savedir, HMM,
     # We should copy HMM so as not to cause any nasty surprises such as
     # expecting param=1 when param=2 (coz it's not been reset).
     # NB: won't copy implicitly ref'd obj's (like L96's core). => bug w/ MP?
-    hmm = deepcopy(HMM)
+    hmm = copy.deepcopy(HMM)
 
     # GENERATE TRUTH/OBS
     xx, yy = setup(hmm,xp)
