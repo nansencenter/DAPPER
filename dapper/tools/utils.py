@@ -2,6 +2,7 @@
 
 from dapper import *
 from pathlib import Path
+import time
 import os
 import re
 import sys
@@ -281,7 +282,6 @@ def set_tmp(obj, attr, val):
 
 
 # Better than tic-toc !
-import time
 class Timer():
     """Timer context manager.
 

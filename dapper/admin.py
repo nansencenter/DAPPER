@@ -130,7 +130,7 @@ def da_method(*default_dataclasses):
     >>>     success : bool = True
     >>>     def assimilate(self,*args,**kwargs):
     >>>         for k in progbar(range(self.seconds)):
-    >>>             sleep(1)
+    >>>             time.sleep(1)
     >>>         if not self.success:
     >>>             raise RuntimeError("Sleep over. Failing as intended.")
 
