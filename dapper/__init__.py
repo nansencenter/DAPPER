@@ -9,7 +9,6 @@ __version__ = "0.9.6"
 ##################################
 # Standard lib
 ##################################
-import itertools
 import functools
 import configparser
 import builtins

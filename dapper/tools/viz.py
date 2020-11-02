@@ -1,5 +1,6 @@
 from dapper import *
 
+import itertools
 import os
 import warnings
 #from mpl_toolkits.mplot3d import Axes3D

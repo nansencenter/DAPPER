@@ -5,6 +5,8 @@ Sakov (2011), Computational Geosciences:
 
 from dapper import *
 
+import itertools
+
 # Defaults
 CUTOFF   = 1e-3
 TAG      = 'GC'
