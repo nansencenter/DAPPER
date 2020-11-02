@@ -154,15 +154,6 @@ def read1():
 
 
 #########################################
-# Path manipulation
-#########################################
-
-def rel2mods(path):
-    path = Path(path).relative_to(rc.dirs.dapper/'mods').with_suffix("")
-    return str(path)
-
-
-#########################################
 # Console input / output
 #########################################
 
@@ -248,6 +239,10 @@ def functools_wraps(wrapped, lineno=1, *args, **kwargs):
 #########################################
 # Misc
 #########################################
+
+def rel2mods(path):
+    path = Path(path).relative_to(rc.dirs.dapper/'mods').with_suffix("")
+    return str(path)
 
 # # Temporarily set attribute values
 # @contextlib.contextmanager
