@@ -1,6 +1,7 @@
 from dapper import *
 
 import numpy as np
+import scipy.linalg as sla
 import functools
 
 # Test matrices

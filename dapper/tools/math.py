@@ -2,6 +2,7 @@
 
 from dapper import *
 import numpy as np
+import scipy.linalg as sla
 import functools
 from dataclasses import dataclass
 

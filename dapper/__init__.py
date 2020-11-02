@@ -22,7 +22,6 @@ except AttributeError:
 ##################################
 # Scientific
 ##################################
-import scipy.linalg as sla
 import numpy.linalg as nla
 
 from scipy.linalg import svd

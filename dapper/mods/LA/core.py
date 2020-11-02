@@ -10,6 +10,7 @@
 
 from dapper import *
 import numpy as np
+import scipy.linalg as sla
 
 from scipy.linalg import circulant
 from numpy import abs, sign, eye, ceil
