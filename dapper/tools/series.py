@@ -1,4 +1,5 @@
 from dapper import *
+from dataclasses import dataclass
 
 # TODO 3: change L to 'nlags', with nlags=L-1, to conform with
 # the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
@@ -61,7 +62,7 @@ def estimate_corr_length(xx):
         L = 1/log(1/a)
     return L
 
-@dc.dataclass
+@dataclass
 class UncertainQtty():
     val  : float
     conf : float

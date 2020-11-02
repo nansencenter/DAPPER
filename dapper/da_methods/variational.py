@@ -1,6 +1,7 @@
 """Variational methods (iEnKS, 4D-Var, etc)"""
 
 from dapper import *
+from typing import Optional, Any
 
 @da_method
 class var_method:

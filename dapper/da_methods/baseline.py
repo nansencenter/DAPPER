@@ -4,6 +4,7 @@ Many are based on [Raa16a]_.
 """
 
 from dapper import *
+from typing import Optional
 
 @da_method()
 class Climatology:

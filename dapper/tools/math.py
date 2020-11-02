@@ -2,6 +2,7 @@
 
 from dapper import *
 import functools
+from dataclasses import dataclass
 
 
 ########################
@@ -338,7 +339,7 @@ def curvedspace(start,end,N,curvature=1):
 
     return start + (end-start)*space01
 
-@dc.dataclass
+@dataclass
 class CurvedSpace:
     """A selected segment of logspace, affinely transformed to [start,end].
 

@@ -3,6 +3,7 @@
 from dapper import *
 
 import inspect
+from dataclasses import dataclass
 import functools
 
 # Capture stdout
@@ -18,8 +19,7 @@ def cap_stdout(fun, *args, **kwargs):
 ##
 if "--replace" in sys.argv:
 
-    import dataclasses as dc
-    @dc.dataclass
+    @dataclass
     class Replacement:
         lines  : list
         nOpen  : int

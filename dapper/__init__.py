@@ -9,10 +9,6 @@ __version__ = "0.9.6"
 ##################################
 # Standard lib
 ##################################
-import builtins
-import dataclasses as dc
-from typing import Optional, Any, Union
-
 import sys
 assert sys.version_info >= (3,8), "Need Python>=3.8"
 
@@ -24,6 +20,7 @@ assert sys.version_info >= (3,8), "Need Python>=3.8"
 # Launch python script: $ kernprof -l -v myprog.py
 # Functions decorated with 'profile' from below will be timed.
 try:
+    import builtins
     profile = builtins.profile     # will exists if launched via kernprof
 except AttributeError:
     def profile(func): return func # provide a pass-through version.

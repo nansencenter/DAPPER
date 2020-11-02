@@ -14,6 +14,7 @@ Used for experiment (xp) specification/administration, including:
 
 from dapper import *
 from pathlib import Path
+import dataclasses as dcs
 import copy
 from textwrap import dedent
 import os
@@ -136,7 +137,7 @@ def da_method(*default_dataclasses):
     >>>             raise RuntimeError("Sleep over. Failing as intended.")
 
     Example:
-    >>> @dc.dataclass
+    >>> @dcs.dataclass
     >>> class ens_defaults:
     >>>   infl : float = 1.0
     >>>   rot  : bool  = False
@@ -166,20 +167,20 @@ def da_method(*default_dataclasses):
             if not hasattr(cls,'__annotations__'):
                 cls.__annotations__ = {}
             cls.__annotations__[name] = type
-            if not isinstance(val,dc.Field):
-                val = dc.field(default=val)
+            if not isinstance(val,dcs.Field):
+                val = dcs.field(default=val)
             setattr(cls, name, val)
 
         # APPend default fields without overwriting.
         # Don't implement (by PREpending?) non-default args -- to messy!
         for D in default_dataclasses:
             # NB: Calling dataclass twice always makes repr=True, so avoid this.
-            for F in dc.fields(dc.dataclass(D)):
+            for F in dcs.fields(dcs.dataclass(D)):
                 if F.name not in cls.__annotations__:
                     set_field(F.name,F.type,F)
 
         # Create new class (NB: old/new classes have same id) 
-        cls = dc.dataclass(cls)
+        cls = dcs.dataclass(cls)
 
         # Shortcut for self.__class__.__name__
         cls.da_method = cls.__name__
@@ -347,7 +348,7 @@ class xpList(list):
 
                 # Get dataclass fields
                 try:
-                    dc_fields = dc.fields(xp.__class__)
+                    dc_fields = dcs.fields(xp.__class__)
                     dc_names = [F.name for F in dc_fields]
                     keys = xp.__dict__.keys()
                 except TypeError:
@@ -612,7 +613,7 @@ def get_param_setter(param_dict, **glob_dict):
     then you'll create many more than you intend.
     """
     def for_params(method, **fixed_params):
-        dc_fields = [f.name for f in dc.fields(method)]
+        dc_fields = [f.name for f in dcs.fields(method)]
         params = dtools.intersect(param_dict, dc_fields)
         params = dtools.complement(params, fixed_params)
         params = {**glob_dict, **params} # glob_dict 1st
