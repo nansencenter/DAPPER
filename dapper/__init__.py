@@ -27,10 +27,6 @@ import dapper.dict_tools as dtools
 from .dict_tools import DotDict, NicePrint, deep_getattr, deep_hasattr
 from .dpr_config import rc
 
-# 'Tis perhaps late to issue a welcome, but the heavy libraries are below.
-if rc.welcome_message:
-    print("Initializing DAPPER...",flush=True)
-
 # from .tools.colors import *
 # from .tools.utils import *
 # from .tools.math import *
@@ -56,7 +52,3 @@ from .da_methods.extended import *
 from .da_methods.baseline import *
 from .da_methods.variational import *
 from .da_methods.other import *
-
-if rc.welcome_message:
-    print("...Done") # ... initializing DAPPER
-    print("PS: Turn off this message in your configuration: dpr_config.yaml")
