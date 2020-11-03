@@ -6,7 +6,7 @@ Many are based on [Raa16a]_.
 from dapper import *
 import dapper as dpr
 from dapper.tools.utils import progbar
-from dapper.tools.math import mrdiv
+import dapper.tools.math as mtools
 import numpy as np
 from typing import Optional
 
@@ -49,7 +49,7 @@ class OptInterp:
 
         # Setup scalar "time-series" covariance dynamics.
         # ONLY USED FOR DIAGNOSTICS, not to affect the Kalman gain.
-        L  = estimate_corr_length(AC.ravel(order='F'))
+        L  = dpr.series.estimate_corr_length(AC.ravel(order='F'))
         SM = fit_sigmoid(1/2,L,0)
 
         # Init
@@ -64,7 +64,7 @@ class OptInterp:
 
                 # Analysis
                 H  = Obs.linear(muC,t)
-                KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
+                KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
                 mu = muC + KG@(yy[kObs] - Obs(muC,t))
 
                 P  = (np.eye(Dyn.M) - KG@H) @ PC
@@ -98,7 +98,7 @@ class Var3D:
 
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
         CC = 2*np.cov(xx.T)
-        L  = estimate_corr_length(dpr.center(xx)[0].ravel(order='F'))
+        L  = dpr.series.estimate_corr_length(mtools.center(xx)[0].ravel(order='F'))
         P  = X0.C.full
         SM = fit_sigmoid(P.trace()/CC.trace(),L,0)
 

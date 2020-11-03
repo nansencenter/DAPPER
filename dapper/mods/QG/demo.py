@@ -2,6 +2,7 @@
 
 from dapper import *
 from matplotlib import pyplot as plt
+import dapper.tools.viz as viz
 from dapper.tools.utils import progbar
 import numpy as np
 from dapper.mods.QG.core import sample_filename, nx, square, default_prms
@@ -40,7 +41,7 @@ def compute_q(psi):
 # Main
 ###########
 fig, (ax1,ax2) = plt.subplots(ncols=2,sharex=True,sharey=True,figsize=(8,4))
-for ax in (ax1,ax2): ax.set_aspect('equal',adjustable_box_or_forced())
+for ax in (ax1,ax2): ax.set_aspect('equal',viz.adjustable_box_or_forced())
 ax1.set_title(r'$\psi$')
 ax2.set_title('$q$')
 

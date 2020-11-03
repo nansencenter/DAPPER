@@ -1,9 +1,12 @@
 """Provide the stats class which defines the "builtin" stats to be computed."""
 
 from dapper import *
+from matplotlib import pyplot as plt
+import dapper.tools.liveplotting as liveplotting
+from dapper.tools.series import StatPrint, DataSeries
 import dapper as dpr
 import dapper.tools.utils as utils
-import dapper.tools.math
+from dapper.tools.math import unbias_var
 import numpy as np
 import scipy.linalg as sla
 import warnings
@@ -132,7 +135,7 @@ class Stats(StatPrint):
             if length=='FAUSt':
                 total_shape = self.K, self.KObs, shape
                 store_opts = self.store_u, self.store_s
-                series = FAUSt(*total_shape, *store_opts, **kws)
+                series = dpr.series.FAUSt(*total_shape, *store_opts, **kws)
             else:
                 total_shape = (length,)+shape
                 series = DataSeries(total_shape,*kws)
@@ -218,14 +221,14 @@ class Stats(StatPrint):
             # Write current stats to series
             for name,val in stats_now.items():
                 stat = deep_getattr(self,name)
-                if isinstance(stat,FAUSt): stat[(k,kObs,sub)] = val
+                if isinstance(stat,dpr.series.FAUSt): stat[(k,kObs,sub)] = val
                 else:                      stat[kObs]         = val
 
             # LivePlot -- Both init and update must come after the assessment.
             try:
                 self.LP_instance.update((k,kObs,sub),E,Cov)
             except AttributeError:
-                self.LP_instance = LivePlot(self, self.liveplots, (k,kObs,sub), E, Cov)
+                self.LP_instance = liveplotting.LivePlot(self, self.liveplots, (k,kObs,sub), E, Cov)
 
 
     def summarize_marginals(self,now):
@@ -272,7 +275,7 @@ class Stats(StatPrint):
 
         # Compute variances
         var  = w @ A_pow
-        ub   = dapper.tools.math.unbias_var(w,avoid_pathological=True)
+        ub   = unbias_var(w,avoid_pathological=True)
         var *= ub
 
         # Compute standard deviation ("Spread")
@@ -348,22 +351,22 @@ class Stats(StatPrint):
             # Plain averages of nd-series are rarely interesting.
             # => Shortcircuit => Leave for manual computations
 
-            if isinstance(series,FAUSt):
+            if isinstance(series,dpr.series.FAUSt):
                 # Average series for each subscript
                 if series.item_shape != ():
                     return average_multivariate()
                 for sub in [ch for ch in 'fas' if hasattr(series,ch)]:
-                    avrgs[sub] = series_mean_with_conf(series[kkObs,sub])
+                    avrgs[sub] = dpr.series.mean_with_conf(series[kkObs,sub])
                 if series.store_u:
-                    avrgs['u'] = series_mean_with_conf(series[kk,'u'])
+                    avrgs['u'] = dpr.series.mean_with_conf(series[kk,'u'])
 
             elif isinstance(series,DataSeries):
                 if series.array.shape[1:] != ():
                     return average_multivariate()
                 elif len(series.array) == self.KObs+1:
-                    avrgs = series_mean_with_conf(series[kkObs])
+                    avrgs = dpr.series.mean_with_conf(series[kkObs])
                 elif len(series.array) == self.K+1:
-                    avrgs = series_mean_with_conf(series[kk])
+                    avrgs = dpr.series.mean_with_conf(series[kk])
                 else: raise ValueError
 
             elif np.isscalar(series):
@@ -389,6 +392,51 @@ class Stats(StatPrint):
         self.xp.avrgs = avrgs
         if free:
             delattr(self.xp,'stats')
+
+    def replay(self, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
+        """Replay LivePlot with what's been stored in 'self'.
+
+        - t1, t2: time window to plot.
+        - 'figlist' and 'speed': See LivePlot's doc.
+
+        .. note:: ``store_u`` (whether to store non-obs-time stats)
+                  must have been ``True`` to have smooth graphs as in the actual LivePlot.
+
+        .. note:: Ensembles are generally not stored in the stats and so cannot be replayed.
+        """
+
+        # Time settings
+        chrono = self.HMM.t
+        if t2 is None:
+            t2 = t1 + chrono.Tplot
+
+        # Ens does not get stored in stats, so we cannot replay that.
+        # If the LPs are initialized with P0!=None, then they will avoid ens plotting.
+        # TODO 2: This system for switching from Ens to stats must be replaced.
+        #       It breaks down when M is very large.
+        try:
+            P0 = np.full_like(self.HMM.X0.C.full, np.nan)
+        except AttributeError: # e.g. if X0 is defined via sampling func
+            P0 = np.eye(self.HMM.Nx)
+
+        LP = liveplotting.LivePlot(self, figlist, P=P0, speed=speed,
+                                   Tplot=t2-t1, replay=True, **kwargs)
+        plt.pause(.01) # required when speed=inf
+
+        # Remember: must use progbar to unblock read1.
+        # Let's also make a proper description.
+        desc = self.xp.da_method + " (replay)"
+
+        # Play through assimilation cycles
+        for k,kObs,t,dt in utils.progbar(chrono.ticker, desc):
+            if t1 <= t <= t2:
+                if kObs is not None:
+                    LP.update((k,kObs,'f'),None,None)
+                    LP.update((k,kObs,'a'),None,None)
+                LP.update((k,kObs,'u'),None,None)
+
+        plt.pause(.01) # required when speed=inf
+
 
 def register_stat(self,name,value):
     setattr(self,name,value)

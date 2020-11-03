@@ -10,6 +10,7 @@
 
 import numpy as np
 import dapper as dpr
+from dapper.tools.math import integrate_TLM
 
 # Constants
 a = 0.25;  b = 4; F = 8.0; G = 1.23;
@@ -37,4 +38,4 @@ def d2x_dtdx(x):
     return Mat
 
 def dstep_dx(x,t,dt):
-    return dpr.integrate_TLM(d2x_dtdx(x),dt,method='approx')
+    return integrate_TLM(d2x_dtdx(x),dt,method='approx')

@@ -34,6 +34,7 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
+from dapper.tools.viz import amplitude_animation
 
 from dapper.mods.KS.core import Model
 model = Model()
@@ -57,7 +58,6 @@ for k in range(1,K+1):
 
 
 # Animate
-from dapper.tools.viz import amplitude_animation
 ani = amplitude_animation(EE,dt,interval=20)
 
 # Plot

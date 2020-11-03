@@ -6,6 +6,7 @@ from dapper import *
 import dapper as dpr
 from dapper.tools.math import with_rk4, with_recursion
 from dapper.tools.utils import progbar
+import dapper.tools.viz as viz
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
 import numpy as np
@@ -135,13 +136,13 @@ xx = with_recursion(step, prog="Reference")(x , K,          t0, dt)
 # ACF
 ########################
 # NB: Won't work with QG (too big, and BCs==0).
-fig, ax = freshfig(4)
+fig, ax = dpr.freshfig(4)
 if "ii"    not in locals(): ii    = np.arange(min(100,Nx))
 if "nlags" not in locals(): nlags = min(100,K)
-ax.plot(tt[:nlags], np.nanmean( auto_cov(xx[:nlags,ii],L=nlags,corr=1), axis=1) )
+ax.plot(tt[:nlags], np.nanmean( dpr.series.auto_cov(xx[:nlags,ii],L=nlags,corr=1), axis=1) )
 ax.set_xlabel('Time (t)')
 ax.set_ylabel('Auto-corr')
-plot_pause(0.1)
+viz.plot_pause(0.1)
 
 
 ########################
@@ -176,7 +177,7 @@ print('mean: ', np.mean(xx))
 
 ##
 
-fig, ax = freshfig(1)
+fig, ax = dpr.freshfig(1)
 ax.plot(tt,running_LS,lw=1.2,alpha=0.7)
 ax.set_title('Lyapunov Exponent estimates')
 ax.set_xlabel('Time')

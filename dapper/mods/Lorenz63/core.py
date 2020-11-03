@@ -6,6 +6,7 @@ See demo.py for more info.
 
 import numpy as np
 import dapper as dpr
+from dapper.tools.math import integrate_TLM
 
 # Constants
 sig = 10.0; rho = 28.0; beta = 8.0/3
@@ -47,7 +48,7 @@ def d2x_dtdx(x):
 
 def dstep_dx(x,t,dt):
     """Resolvent (propagator) of the TLM: Jacobian of step(x)."""
-    return dpr.integrate_TLM(d2x_dtdx(x),dt,method='approx')
+    return integrate_TLM(d2x_dtdx(x),dt,method='approx')
 
 
 ################################################

@@ -5,6 +5,7 @@
 
 from dapper.mods.Lorenz96.sakov2008 import *
 import dapper as dpr
+from dapper.tools.viz import xtrema
 from dapper.tools.localization import localization_setup, pairwise_distances
 import numpy as np
 

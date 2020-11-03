@@ -2,6 +2,7 @@
 
 from dapper import *
 import dapper as dpr
+from dapper.tools.viz import setup_wrapping
 from dapper.tools.utils import progbar
 from matplotlib import pyplot as plt
 import numpy as np

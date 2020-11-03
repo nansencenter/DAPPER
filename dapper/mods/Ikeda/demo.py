@@ -24,7 +24,7 @@ def demo(u,s0,N,as_points,ends):
     EE = simulator(E0, K, 0, 1)
 
     # Plot
-    fig, ax = freshfig()
+    fig, ax = dpr.freshfig()
     fig.suptitle('Phase space' + f"\nu={core.u}, N={N}, $σ_0$={s0}")
     ax.set(xlabel="x", ylabel="y")
 

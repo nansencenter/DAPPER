@@ -3,6 +3,7 @@
 from dapper import *
 import dapper as dpr
 from dapper.tools.utils import progbar
+import dapper.tools.math as mtools
 from dapper.tools.matrices import funm_psd
 import numpy as np
 from numpy import eye, diag, zeros, ones, sqrt, arange
@@ -37,7 +38,7 @@ class RHF:
             if kObs is not None:
                 stats.assess(k,kObs,'f',E=E)
                 y    = yy[kObs]
-                inds = serial_inds(self.ordr, y, R, dpr.center(E)[0])
+                inds = serial_inds(self.ordr, y, R, mtools.center(E)[0])
 
                 for i,j in enumerate(inds):
                     Eo = Obs(E,t)

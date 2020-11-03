@@ -6,6 +6,7 @@ which is handles the **presentation** of experiment (xp) results."""
 import dapper as dpr
 from dapper.tools.colors import color_text
 from dapper.tools.math import isNone
+from dapper.tools.viz import axis_scale_by_array
 import dapper.tools.utils as utils
 from dapper import *
 import colorama
@@ -555,7 +556,7 @@ class xpSpace(SparseSpace):
         nested = self.nest(axes)
         for coord, space in nested.items():
 
-            getval = lambda uq: uq.val if isinstance(uq,UncertainQtty) else uq
+            getval = lambda uq: uq.val if isinstance(uq, dpr.UncertainQtty) else uq
             vals = [getval(uq) for uq in space.values()]
 
             # Don't use nanmean! It would give false impressions.
@@ -568,7 +569,7 @@ class xpSpace(SparseSpace):
                 var = np.var(vals,ddof=1)
 
             N = len(vals)
-            uq = UncertainQtty(mu, np.sqrt(var/N))
+            uq = dpr.UncertainQtty(mu, np.sqrt(var/N))
             uq.nTotal   = N
             uq.nFail    = N - np.isfinite(vals).sum()
             uq.nSuccess = N - uq.nFail
@@ -899,7 +900,7 @@ class xpSpace(SparseSpace):
             maxW = 12.7 # my mac screen
             figsize = figsize or ( min(5*ncols,maxW), 7 )
             # Create
-            _, panels = freshfig(num=fignum, figsize=figsize, constrained_layout=True,
+            _, panels = dpr.freshfig(num=fignum, figsize=figsize, constrained_layout=True,
                     nrows=nrows, sharex=True,
                     ncols=ncols, sharey='row',
                     gridspec_kw=dict(height_ratios=[6]+[1]*(nrows-1),

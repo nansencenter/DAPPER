@@ -1,5 +1,5 @@
 import dapper as dpr
-from dapper.tools.math import mrdiv, truncate_rank, svd0, tinv
+from dapper.tools.math import mrdiv, truncate_rank, svd0, tinv, exactly_1d, exactly_2d
 import dapper.tools.utils as utils
 
 import numpy as np
@@ -218,7 +218,7 @@ class CovMat():
             # If a cholesky factor has been input, we will not
             # automatically go for the EVD, seeing as e.g. the
             # diagonal can be computed without it.
-            R       = dpr.exactly_2d(data)
+            R       = exactly_2d(data)
             self._R = R
             self._m = R.shape[1]
         else:
@@ -229,7 +229,7 @@ class CovMat():
             if kind=='full':
                 # If full has been imput, then we have memory for an EVD,
                 # which will probably be put to use in the DA.
-                C           = dpr.exactly_2d(data)
+                C           = exactly_2d(data)
                 self._C     = C
                 M           = len(C)
                 d,V         = sla.eigh(C)
@@ -242,7 +242,7 @@ class CovMat():
                 # With diagonal input, it would be great to use a sparse
                 # (or non-existant) representation of V,
                 # but that would require so much other adaption of other code.
-                d         = dpr.exactly_1d(data)
+                d         = exactly_1d(data)
                 self.diag = d
                 M         = len(d)
                 if np.all(d==d[0]):

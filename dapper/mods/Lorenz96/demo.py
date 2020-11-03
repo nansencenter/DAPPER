@@ -5,7 +5,8 @@
 
 from numpy import eye
 from matplotlib import pyplot as plt
-from dapper import with_recursion, amplitude_animation
+from dapper import with_recursion
+from dapper.tools.viz import amplitude_animation
 
 from dapper.mods.Lorenz96.core import step, x0
 

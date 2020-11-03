@@ -3,6 +3,7 @@
 # only whether they cause errors or not.
 
 from dapper import *
+from dapper.tools.liveplotting import replay
 
 import numpy as np
 import dapper.tools.utils

@@ -1,6 +1,7 @@
-from dapper import *
-import dapper as dpr
+from dapper.dict_tools import NicePrint
+from dapper.dpr_config import rc
 import dapper.tools.utils as utils
+import dapper.tools.math as mtools
 from dataclasses import dataclass
 import numpy as np
 from numpy import nan
@@ -16,7 +17,7 @@ def auto_cov(xx,L=5,zero_mean=False,corr=False):
     assert L<=len(xx)
 
     N = len(xx)
-    A = xx if zero_mean else dpr.center(xx)[0]
+    A = xx if zero_mean else mtools.center(xx)[0]
     acovf = np.zeros((L,)+xx.shape[1:])
 
     for i in range(L):
@@ -58,7 +59,7 @@ def estimate_corr_length(xx):
     Also note that, for exponential corr function, as assumed here,
     corr(L) = exp(-1) = ca 0.368
     """
-    assert is1d(xx)
+    assert mtools.is1d(xx)
     acovf = auto_cov(xx,min(100,len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
@@ -81,12 +82,12 @@ class UncertainQtty():
             - fallback: rc.sigfig
         """
         with np.errstate(all='ignore'):
-            conf = dpr.round2(self.conf, 1) 
+            conf = mtools.round2(self.conf, 1) 
             val  = self.val
             if not np.isnan(conf) and conf>0:
-                val = dpr.round2(val, mult*conf)
+                val = mtools.round2(val, mult*conf)
             else:
-                val = dpr.round2(val, rc.sigfig)
+                val = mtools.round2(val, dpr.rc.sigfig)
             return val, conf
 
     def __str__(self):
@@ -97,7 +98,7 @@ class UncertainQtty():
         return self.__class__.__name__ + vc
 
 
-def series_mean_with_conf(xx):
+def mean_with_conf(xx):
     """Compute the mean of a 1d iterable ``xx``.
 
     Also provide confidence of mean,

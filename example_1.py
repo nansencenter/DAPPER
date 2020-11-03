@@ -30,12 +30,13 @@ xp.stats.average_in_time()
 print(xp.avrgs.tabulate(['rmse.a','rmv.a']))
 
 # Replay liveplotters
-replay(xp.stats, speed=np.inf)
+xp.stats.replay(speed=np.inf)
 
 # Further diagnostic plots:
-# plot_rank_histogram(xp.stats)
-# plot_err_components(xp.stats)
-# plot_hovmoller(xx)
+# import dapper.tools.viz as viz
+# viz.plot_rank_histogram(xp.stats)
+# viz.plot_err_components(xp.stats)
+# viz.plot_hovmoller(xx)
 
 # Explore objects:
 # print(HMM)

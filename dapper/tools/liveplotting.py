@@ -1,12 +1,19 @@
-from dapper import *
-import dapper as dpr
-from dapper.tools.utils import progbar
+from dapper.dpr_config import rc
+from dapper.dict_tools import DotDict, deep_getattr
+import dapper.tools.viz as viz
+from dapper.tools.viz import plot_pause, not_available_text, freshfig
+from dapper.tools.matrices import CovMat
+import dapper.tools.utils as utils
 from dapper.tools.chronos import format_time
+from dapper.tools.series import FAUSt, RollingArray
 import dapper.tools.math
 import matplotlib as mpl
 import numpy as np
 from numpy import arange, ones, nan
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from mpl_toolkits.mplot3d.art3d import juggle_axes
+
 
 class LivePlot:
     """Live plotting manager.
@@ -181,49 +188,6 @@ class LivePlot:
             ipdb.set_trace(inspect.stack()[2].frame)
 
 
-def replay(stats, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
-    """Replay LivePlot with what's been stored in 'stats'.
-
-    - t1, t2: time window to plot.
-    - 'figlist' and 'speed': See LivePlot's doc.
-
-    .. note:: ``store_u`` (whether to store non-obs-time stats)
-              must have been ``True`` to have smooth graphs as in the actual LivePlot.
-
-    .. note:: Ensembles are generally not stored in the stats and so cannot be replayed.
-    """
-
-    # Time settings
-    chrono = stats.HMM.t
-    if t2 is None:
-        t2 = t1 + chrono.Tplot
-
-    # Ens does not get stored in stats, so we cannot replay that.
-    # If the LPs are initialized with P0!=None, then they will avoid ens plotting.
-    # TODO 2: This system for switching from Ens to stats must be replaced.
-    #       It breaks down when M is very large.
-    try:
-        P0 = np.full_like(stats.HMM.X0.C.full, nan) 
-    except AttributeError: # e.g. if X0 is defined via sampling func
-        P0 = np.eye(stats.HMM.Nx)
-
-    LP = LivePlot(stats, figlist, P=P0, speed=speed, Tplot=t2-t1, replay=True, **kwargs)
-    plt.pause(.01) # required when speed=inf
-
-    # Remember: must use progbar to unblock read1.
-    # Let's also make a proper description.
-    desc = stats.xp.da_method + " (replay)"
-
-    # Play through assimilation cycles
-    for k,kObs,t,dt in progbar(chrono.ticker, desc):
-        if t1 <= t <= t2:
-            if kObs is not None:
-                LP.update((k,kObs,'f'),None,None)
-                LP.update((k,kObs,'a'),None,None)
-            LP.update((k,kObs,'u'),None,None)
-
-    plt.pause(.01) # required when speed=inf
-
 
 
 # TODO 4:
@@ -261,7 +225,7 @@ class sliding_diagnostics:
         for style, ax in zip(styles,axs):
             ax.set_ylabel(style)
         ax.set_xlabel('Time (t)')
-        adjust_position(ax, y0=0.03)
+        viz.adjust_position(ax, y0=0.03)
 
         self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
 
@@ -517,7 +481,7 @@ class correlations:
         GS = {'height_ratios':[4, 1],'hspace':0.09,'top':0.95}
         fig, (ax,ax2) = freshfig(fignum, (5,6), loc='2321', nrows=2, gridspec_kw=GS)
 
-        if E is None and np.isnan(P.diag if isinstance(P,dpr.CovMat) else P).all():
+        if E is None and np.isnan(P.diag if isinstance(P,CovMat) else P).all():
             not_available_text(ax,'Not available in replays\ncoz full Ens/Cov not stored.')
             self.is_active = False
             return
@@ -587,7 +551,7 @@ class correlations:
                 C = np.cov(E,rowvar=False)
         else:
             assert P is not None
-            C = P.full if isinstance(P,dpr.CovMat) else P
+            C = P.full if isinstance(P,CovMat) else P
             C = C.copy()
         # Compute corr from cov
         std = np.sqrt(np.diag(C))
@@ -599,8 +563,8 @@ class correlations:
         # Plot
         self.im.set_data(C)
         # Auto-corr function
-        ACF = dpr.tools.math.circulant_ACF(C)
-        AAF = dpr.tools.math.circulant_ACF(C,do_abs=True)
+        ACF = dapper.tools.math.circulant_ACF(C)
+        AAF = dapper.tools.math.circulant_ACF(C,do_abs=True)
         self.line_AC.set_ydata(ACF)
         self.line_AA.set_ydata(AAF)
 
@@ -635,7 +599,7 @@ def sliding_marginals(
         # Chose marginal dims to plot
         if p.dims==[]:
             Nx      = min(10,xx.shape[-1])
-            DimsX   = dpr.linspace_int(xx.shape[-1], Nx)
+            DimsX   = dapper.tools.math.linspace_int(xx.shape[-1], Nx)
         else:
             Nx      = len(p.dims)
             DimsX   = p.dims
@@ -652,7 +616,7 @@ def sliding_marginals(
         # Tune plots
         axs[0].set_title("Marginal time series")
         for ix, (m,ax) in enumerate(zip(DimsX,axs)):
-            ax.set_ylim(*stretch(*xtrema(xx[:,m]), 1/p.zoomy))
+            ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:,m]), 1/p.zoomy))
             if p.labels==[]: ax.set_ylabel("$x_{%d}$"%m)
             else:            ax.set_ylabel(p.labels[ix])
         axs[-1].set_xlabel('Time (t)')
@@ -754,7 +718,7 @@ def phase_particles(
         ax.set_title("Phase space trajectories")
         # Tune plot
         for ind, (s,i,t) in enumerate(zip(p.labels, p.dims, "xyz")):
-            set_ilim(ax, ind, *stretch(*xtrema(xx[:,i]),1/p.zoom))
+            viz.set_ilim(ax, ind, *viz.stretch(*viz.xtrema(xx[:,i]),1/p.zoom))
             eval("ax.set_%slabel('%s')"%(t,s))
 
         # Allocate
@@ -972,7 +936,6 @@ def d_ylim(data,ax=None,cC=0,cE=1,pp=(1,99),Min=-1e20,Max=+1e20):
 
 
 
-from .viz import setup_wrapping
 def spatial1d(
     obs_inds     = None,
     periodicity  = None,
@@ -997,7 +960,7 @@ def spatial1d(
             M = len(p.dims)
 
         # Make periodic wrapper
-        ii, wrap = setup_wrapping(M,p.periodicity)
+        ii, wrap = viz.setup_wrapping(M,p.periodicity)
 
         # Set up figure, axes
         fig, ax = freshfig(fignum, (8,5), loc='2312-3')
@@ -1024,8 +987,8 @@ def spatial1d(
             line_y,  = ax.plot(p.obs_inds, nan*p.obs_inds,  'g*' ,ms=5,label='Obs')
 
         # Tune plot
-        ax.set_ylim( *xtrema(xx) )
-        ax.set_xlim(stretch(ii[0],ii[-1],1))
+        ax.set_ylim( *viz.xtrema(xx) )
+        ax.set_xlim(viz.stretch(ii[0],ii[-1],1))
         # Xticks
         xt = ax.get_xticks()
         xt = xt[abs(xt%1)<0.01].astype(int) # Keep only the integer ticks 
@@ -1093,7 +1056,7 @@ def spatial2d(
         fig, axs = freshfig(fignum, (6,6), loc='231-22-3',
                             nrows=2,ncols=2,sharex=True,sharey=True, gridspec_kw=GS)
 
-        for ax in axs.flatten():ax.set_aspect('equal',adjustable_box_or_forced())
+        for ax in axs.flatten():ax.set_aspect('equal',viz.adjustable_box_or_forced())
 
         ((ax_11, ax_12), (ax_21, ax_22)) = axs
 

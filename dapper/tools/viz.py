@@ -1,6 +1,7 @@
-from dapper import *
+from dapper.dict_tools import NicePrint
 import dapper as dpr
 import dapper.tools.utils as utils
+from dapper.dpr_config import rc
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
@@ -144,7 +145,7 @@ def estimate_good_plot_length(xx,chrono=None,mult=100):
         xx = xx.ravel(order='F')
 
     try:
-        K = mult * estimate_corr_length(xx)
+        K = mult * dpr.series.estimate_corr_length(xx)
     except ValueError:
         K = 0
 
@@ -228,16 +229,6 @@ def plot_hovmoller(xx,chrono=None,**kwargs):
 
     plot_pause(0.1)
     plt.tight_layout()
-
-
-def add_endpoint_xtick(ax):
-    """Useful when xlim(right) is e.g. 39 (instead of 40)."""
-    xF = ax.get_xlim()[1]
-    ticks = ax.get_xticks()
-    if ticks[-1] > xF:
-        ticks = ticks[:-1]
-    ticks = np.append(ticks, xF)
-    ax.set_xticks(ticks)
 
 
 def integer_hist(E,N,centrd=False,weights=None,**kwargs):

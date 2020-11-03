@@ -1,6 +1,7 @@
 # Random variables
 
 import dapper as dpr
+from dapper.tools.math import exactly_1d
 import numpy as np
 from numpy import sqrt
 
@@ -96,7 +97,7 @@ class RV_with_mean_and_cov(RV):
                             + "Use kword syntax (C=...) ?")
 
         # Set mu
-        mu = dpr.exactly_1d(mu)
+        mu = exactly_1d(mu)
         if len(mu)>1:
             if M is None:
                 M = len(mu)

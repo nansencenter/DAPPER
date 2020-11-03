@@ -34,14 +34,15 @@ if rc.welcome_message:
 # from .tools.colors import *
 # from .tools.utils import *
 # from .tools.math import *
-from .tools.math import is1d, exactly_1d, exactly_2d, ens_compatible, center, integrate_TLM, with_rk4, with_recursion, round2, linspace_int, partial_Id_Obs
+from .tools.math import ens_compatible, with_rk4, with_recursion, round2, linspace_int, partial_Id_Obs
 from .tools.stoch import set_seed, rand, randn
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
 from .tools.chronos import Chronology
-from .tools.series import *
-from .tools.viz import *
-from .tools.liveplotting import *
+import dapper.tools.series as series
+from dapper.tools.series import UncertainQtty
+from .tools.viz import freshfig
+# from .tools.liveplotting import *
 from .tools.magic import magic_naming, spell_out
 from .tools.localization import *
 from .tools.multiprocessing import *
