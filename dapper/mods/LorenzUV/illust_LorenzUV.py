@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib import cm
 
 # Setup
-sd0 = set_seed(4)
+sd0 = dpr.set_seed(4)
 # from dapper.mods.LorenzUV.wilks05 import LUV
 from dapper.mods.LorenzUV.lorenz96 import LUV
 nU, J = LUV.nU, LUV.J
@@ -22,7 +22,7 @@ K  = int(10/dt)
 step_1 = dpr.with_rk4(LUV.dxdt,autonom=True)
 step_K = dpr.with_recursion(step_1,prog=1)
 
-x0 = 0.01*randn(LUV.M)
+x0 = 0.01*dpr.randn(LUV.M)
 x0 = step_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
 xx = step_K(x0,K        ,t0,dt)
 

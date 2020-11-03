@@ -1,8 +1,7 @@
 """Random number generation."""
 
-from dapper import *
-import numpy as np
 import time
+import numpy as np
 
 def set_seed(sd="clock"):
     """Essentially ``np.random.seed(sd)``, but also returning ``sd``.

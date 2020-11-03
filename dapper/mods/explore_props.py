@@ -3,12 +3,13 @@
 An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}."""
 
 from dapper import *
+import dapper as dpr
 from dapper.tools.math import with_rk4, with_recursion
 from dapper.tools.utils import progbar
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
 import numpy as np
-set_seed(3000)
+dpr.set_seed(3000)
 
 ########################
 # Model selection
@@ -67,13 +68,13 @@ if mod == "L84":
 # In unitless time (as used here), this means LyapExps ∈ ( −4.87, 1.66 ) .
 if mod == "L96":
     from dapper.mods.Lorenz96.core import step
-    Nx  = 40        # State size (flexible). Usually 36 or 40
-    T   = 1e3       # Length of experiment (unitless time).
-    dt  = 0.1       # Step length
-    # dt = 0.0083     # Any dt<0.1 yield "almost correct" Lyapunov expos.
-    x0  = randn(Nx) # Init condition.
-    eps = 0.0002    # Ens rescaling factor.
-    N   = Nx        # Num of perturbations used.
+    Nx  = 40            # State size (flexible). Usually 36 or 40
+    T   = 1e3           # Length of experiment (unitless time).
+    dt  = 0.1           # Step length
+    # dt = 0.0083       # Any dt<0.1 yield "almost correct" Lyapunov expos.
+    x0  = dpr.randn(Nx) # Init condition.
+    eps = 0.0002        # Ens rescaling factor.
+    N   = Nx            # Num of perturbations used.
 
 # Lyapunov exponents with F=10: [9.47   9.3    8.72 ..., -33.02 -33.61 -34.79] => n0:64
 if mod == "LUV":
@@ -84,7 +85,7 @@ if mod == "LUV":
     T     = 1e2
     dt    = 0.005
     LUV.F = 10
-    x0    = 0.01*randn(LUV.M)
+    x0    = 0.01*dpr.randn(LUV.M)
     eps   = 0.001
     N     = 66 # Don't need all Nx for a good approximation of upper spectrum.
 

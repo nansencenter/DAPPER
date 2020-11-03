@@ -13,6 +13,7 @@ Used for experiment (xp) specification/administration, including:
 """
 
 from dapper import *
+import dapper as dpr
 import dapper.tools.utils as utils
 from dapper.tools.math import Id_op, Id_mat
 from pathlib import Path
@@ -22,6 +23,7 @@ from textwrap import dedent
 import os
 import sys
 import re
+import time
 import numpy as np
 import inspect
 
@@ -211,7 +213,7 @@ def seed_and_simulate(HMM,xp):
     
     Note: if there is no ``xp.seed`` then then the seed is not set.
     Thus, different experiments will produce different truth and obs."""
-    set_seed(getattr(xp,'seed',False))
+    dpr.set_seed(getattr(xp,'seed',False))
     xx, yy = HMM.simulate()
     return xx, yy
 

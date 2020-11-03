@@ -1,6 +1,7 @@
 """The EnKF and other ensemble-based methods"""
 
 from dapper import *
+import dapper as dpr
 from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0, pad0, reconst, tinv
 from dapper.tools.utils import progbar
 import numpy as np
@@ -139,8 +140,8 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
                         mult  = (v@A) / (Yj@A)     # Should be constant*ones(Nx), meaning that:
                         v     = v - mult[0]*Yj     # we can project v into ker(A) such that v@A is null.
                         v    /= sqrt(v@v)          # Normalize
-                    Zj  = v*sqrt(N1)             # Standardized perturbation along v
-                    Zj *= np.sign(rand()-0.5)    # Random sign
+                    Zj  = v*sqrt(N1)               # Standardized perturbation along v
+                    Zj *= np.sign(dpr.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations. 
                     Zj = mean0(randn(N)) # Un-coloured noise

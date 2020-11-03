@@ -1,6 +1,7 @@
 """Just stupidly compare the full results table."""
 
 from dapper import *
+import dapper as dpr
 import numpy as np
 
 statkeys = ['err.rms.a','err.rms.f','err.rms.u']
@@ -12,7 +13,7 @@ from dapper.mods.Lorenz63.sakov2012 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
 
-set_seed(3000)
+dpr.set_seed(3000)
 
 # xps
 xps  = xpList()
@@ -69,7 +70,7 @@ from dapper.mods.Lorenz96.sakov2008 import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
 
-set_seed(3000)
+dpr.set_seed(3000)
 
 # xps
 xps  = xpList()

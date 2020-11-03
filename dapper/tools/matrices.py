@@ -31,7 +31,7 @@ class lazy_property:
 def randcov(M):
     """(Makeshift) random cov mat."""
     N = int(np.ceil(2+M**1.2))
-    E = randn((N,M))
+    E = dpr.randn((N,M))
     return E.T @ E
 def randcorr(M):
     """(Makeshift) random corr mat."""
@@ -44,7 +44,7 @@ def genOG(M):
     """Generate random orthonormal matrix."""
     # TODO 3: This (using Householder) is (slightly?) wrong, 
     # as per section 4 of mezzadri2006generate.
-    Q,R = sla.qr(randn((M,M)))
+    Q,R = sla.qr(dpr.randn((M,M)))
     for i in range(M):
         if R[i,i] < 0:
             Q[:,i] = -Q[:,i]
@@ -149,7 +149,7 @@ def chol_reduce(Right):
 
     Example::
 
-    >>> A = dpr.mean0(randn((20,5)),axis=1)
+    >>> A = dpr.mean0(dpr.randn((20,5)),axis=1)
     >>> C = A.T @ A
     >>> # sla.cholesky(C) throws error
     >>> R = chol_reduce(A)

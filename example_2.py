@@ -1,7 +1,8 @@
 """Illustrate usage of DAPPER to benchmark multiple DA methods."""
 
 from dapper import *
-set_seed(3000)
+import dapper as dpr
+dpr.set_seed(3000)
 
 ##############################
 # DA method configurations

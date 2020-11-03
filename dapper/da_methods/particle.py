@@ -1,4 +1,5 @@
 from dapper import *
+import dapper as dpr
 import dapper.tools.utils as utils
 import dapper.tools.math
 from dapper.tools.math import mrdiv, mldiv, svd0, pad0, tinv
@@ -599,7 +600,7 @@ def _resample(w,kind,N_o,N):
         idx   = np.hstack((idx_I,idx_D))
     elif kind in ['Systematic','Sys']:
         # van Leeuwen [2] also calls this "stochastic universal" resampling
-        U     = rand(1) / N
+        U     = dpr.rand(1) / N
         CDF_a = U + arange(N)/N
         CDF_o = np.cumsum(w)
         #idx  = CDF_a <= CDF_o[:,None]

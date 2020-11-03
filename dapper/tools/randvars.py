@@ -1,6 +1,7 @@
 # Random variables
 
 from dapper import *
+import dapper as dpr
 import numpy as np
 from numpy import sqrt
 
@@ -54,7 +55,7 @@ class RV(NicePrint):
         elif hasattr(self,'icdf'):
             # Independent "inverse transform" sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rand((N,self.M))
+            uu   = dpr.rand((N,self.M))
             E    = icdf(uu)
         elif hasattr(self,'cdf'):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -69,7 +70,7 @@ class RV(NicePrint):
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu,xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = rand((N,self.M))
+            uu = dpr.rand((N,self.M))
             E  = self.icdf_interp(uu)
         elif hasattr(self,'pdf'):
             # "acceptance-rejection" sampling
@@ -159,7 +160,7 @@ class GaussRV(RV_with_mean_and_cov):
     """Gaussian (Normal) multivariate random variable."""
     def _sample(self,N):
         R = self.C.Right
-        D = randn((N,len(R))) @ R
+        D = dpr.randn((N,len(R))) @ R
         return D
 
 class LaplaceRV(RV_with_mean_and_cov):
@@ -171,7 +172,7 @@ class LaplaceRV(RV_with_mean_and_cov):
     def _sample(self,N):
         R = self.C.Right
         z = np.random.exponential(1,N)
-        D = randn((N,len(R)))
+        D = dpr.randn((N,len(R)))
         D = z[:,None]*D
         return D @ R / sqrt(2)
 
@@ -201,8 +202,8 @@ class StudRV(RV_with_mean_and_cov):
     def _sample(self,N):
         R = self.C.Right
         nu= self.dof
-        r = nu/np.sum(randn((N,nu))**2,axis=1) # InvChi2
-        D = sqrt(r)[:,None]*randn((N,len(R)))
+        r = nu/np.sum(dpr.randn((N,nu))**2,axis=1) # InvChi2
+        D = sqrt(r)[:,None]*dpr.randn((N,len(R)))
         return D @ R * sqrt((nu-2)/nu)
 
 class UniRV(RV_with_mean_and_cov):
@@ -214,8 +215,8 @@ class UniRV(RV_with_mean_and_cov):
     """
     def _sample(self,N):
         R = self.C.Right
-        D = randn((N,len(R)))
-        r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2,axis=1))
+        D = dpr.randn((N,len(R)))
+        r = dpr.rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2,axis=1))
         D = r[:,None]*D
         return D @ R * 2
 
@@ -227,5 +228,5 @@ class UniParallelRV(RV_with_mean_and_cov):
     """
     def _sample(self,N):
         R = self.C.Right
-        D = rand((N,len(R)))-0.5
+        D = dpr.rand((N,len(R)))-0.5
         return D @ R * sqrt(12)

@@ -9,6 +9,7 @@
 # ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
 
 from dapper import *
+import dapper as dpr
 import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
@@ -45,8 +46,8 @@ def basis_vector(Nx,k):
     """
     mm = np.arange(1,Nx+1) / Nx
     kk = np.arange(k+1)[:,None] # Wavenumbers
-    aa = rand(k+1)              # Amplitudes
-    pp = rand(k+1)[:,None]      # Phases
+    aa = dpr.rand(k+1)          # Amplitudes
+    pp = dpr.rand(k+1)[:,None]  # Phases
 
     s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
 

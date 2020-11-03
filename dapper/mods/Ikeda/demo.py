@@ -3,6 +3,7 @@
 Plot settings inspired by Wikipedia."""
 
 from dapper import *
+import dapper as dpr
 from matplotlib import pyplot as plt
 from dapper.tools.math import with_rk4, with_recursion
 import core
@@ -17,7 +18,7 @@ def demo(u,s0,N,as_points,ends):
     simulator = with_recursion(core.step, prog="Simulating")
 
     # Initial ensemble
-    E0 = core.x0 + s0*randn((N,2))
+    E0 = core.x0 + s0*dpr.randn((N,2))
 
     # Simulate
     EE = simulator(E0, K, 0, 1)

@@ -2,10 +2,11 @@
 
 # Load DAPPER
 from dapper import *
+import dapper as dpr
 import numpy as np
 
 # Generate the same random numbers every time
-set_seed(3000)
+dpr.set_seed(3000)
 
 # Load experiment setup: the hidden Markov model (HMM)
 from dapper.mods.Lorenz63.sakov2012 import HMM

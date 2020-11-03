@@ -12,6 +12,7 @@
 #  dt=0.005 for model.
 
 from dapper import *
+import dapper as dpr
 from dapper.tools.math import with_rk4, with_recursion
 from matplotlib import pyplot as plt
 # mpl.rcParams['toolbar'] = 'None'
@@ -28,8 +29,8 @@ K  = 400
 dt = 0.005
 t0 = np.nan
 
-set_seed(30) # 3 5 7 13 15 30
-x0 = randn(LUV.M)
+dpr.set_seed(30) # 3 5 7 13 15 30
+x0 = dpr.randn(LUV.M)
 
 true_step  = with_rk4(LUV.dxdt      ,autonom=True)
 model_step = with_rk4(LUV.dxdt_trunc,autonom=True)

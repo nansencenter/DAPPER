@@ -8,7 +8,7 @@ from dapper import *
 from dapper import with_recursion
 from dapper.mods.DoublePendulum.core import step, x0, energy, L1, L2
 
-E0 = x0 + 0.01*randn((3,4))
+E0 = x0 + 0.01*dpr.randn((3,4))
 simulator = with_recursion(step)
 dt = 0.01
 EE = simulator(E0, k=10**4, t0=0, dt=dt)
