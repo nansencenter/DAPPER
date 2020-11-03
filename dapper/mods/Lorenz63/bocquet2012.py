@@ -2,6 +2,7 @@
 M. Bocquet and P. Sakov (2012): 'Combining inflation-free and
 iterative ensemble Kalman filters for strongly nonlinear systems'"""
 
+import dapper as dpr
 from dapper.mods.Lorenz63.sakov2012 import HMM
 import numpy as np
 # The only diff to sakov2012 is R:
@@ -9,7 +10,7 @@ import numpy as np
 
 from dapper import *
 
-HMM.Obs.noise.C = CovMat(np.eye(3))
+HMM.Obs.noise.C = dpr.CovMat(np.eye(3))
 
 HMM.name = HMM.name.replace("sakov","bocquet")
 

@@ -568,7 +568,7 @@ class xpSpace(SparseSpace):
                 var = np.var(vals,ddof=1)
 
             N = len(vals)
-            uq = UncertainQtty(mu, sqrt(var/N))
+            uq = UncertainQtty(mu, np.sqrt(var/N))
             uq.nTotal   = N
             uq.nFail    = N - np.isfinite(vals).sum()
             uq.nSuccess = N - uq.nFail

@@ -1,6 +1,7 @@
 """Variational methods (iEnKS, 4D-Var, etc)"""
 
 from dapper import *
+import dapper as dpr
 from dapper.tools.utils import progbar
 from dapper.tools.math import center, mean0, svd0, inflate_ens, pad0, tinv
 import numpy as np
@@ -372,7 +373,7 @@ class Var4D:
         else:
             B = self.B
         B *= self.xB
-        B12 = CovMat(B).sym_sqrt 
+        B12 = dpr.CovMat(B).sym_sqrt 
 
         # Init
         x = X0.mu

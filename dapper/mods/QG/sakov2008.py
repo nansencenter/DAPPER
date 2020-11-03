@@ -25,7 +25,7 @@ t = Chronology(dt=model.prms['dtout'],dkObs=1,T=1500,BurnIn=250)
 # In my opinion the burn in should be 400.
 # Sakov also used 10 repetitions.
 
-X0 = RV(M=Dyn['M'],file=sample_filename)
+X0 = dpr.RV(M=Dyn['M'],file=sample_filename)
 
 
 ############################
@@ -65,7 +65,7 @@ localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], obs_inds, periodi
 Obs = {
     'M'    : Ny,
     'model': hmod,
-    'noise': GaussRV(C=4*np.eye(Ny)),
+    'noise': dpr.GaussRV(C=4*np.eye(Ny)),
     'localizer': localizer,
 }
 

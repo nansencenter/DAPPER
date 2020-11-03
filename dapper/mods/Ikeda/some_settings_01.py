@@ -15,11 +15,11 @@ Dyn = {
     'noise'  : 0
 }
 
-X0 = GaussRV(C=.1,mu=x0)
+X0 = dpr.GaussRV(C=.1,mu=x0)
 
 jj = np.arange(Nx) # obs_inds
 Obs = dpr.partial_Id_Obs(Nx, jj)
-Obs['noise'] = .1 # GaussRV(C=CovMat(1*eye(Nx)))
+Obs['noise'] = .1 # dpr.GaussRV(C=CovMat(1*eye(Nx)))
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 

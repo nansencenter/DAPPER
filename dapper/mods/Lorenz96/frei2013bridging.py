@@ -30,7 +30,7 @@ Dyn = {
     'noise' : 0
 }
 
-X0 = GaussRV(M=Nx, C=0.001)
+X0 = dpr.GaussRV(M=Nx, C=0.001)
 
 jj = 1 + np.arange(0,Nx,2)
 Obs = dpr.partial_Id_Obs(Nx,jj)

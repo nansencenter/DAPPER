@@ -2,6 +2,7 @@ from dapper import *
 import dapper as dpr
 import dapper.tools.utils as utils
 import dapper.tools.math
+from dapper.tools.matrices import funm_psd, chol_reduce
 from dapper.tools.math import mrdiv, mldiv, svd0, pad0, tinv
 from dapper.tools.utils import progbar
 import numpy as np

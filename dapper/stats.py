@@ -1,6 +1,7 @@
 """Provide the stats class which defines the "builtin" stats to be computed."""
 
 from dapper import *
+import dapper as dpr
 import dapper.tools.utils as utils
 import dapper.tools.math
 import numpy as np
@@ -82,7 +83,7 @@ class Stats(StatPrint):
 
             self._is_ens = True
             minN         = min(Nx,N)
-            do_spectral  = sqrt(Nx*N) <= rc.comp_threshold_b
+            do_spectral  = np.sqrt(Nx*N) <= rc.comp_threshold_b
         else:
             self._is_ens = False
             minN         = Nx
@@ -275,7 +276,7 @@ class Stats(StatPrint):
         var *= ub
 
         # Compute standard deviation ("Spread")
-        std = sqrt(var) # NB: biased (even though var is unbiased)
+        std = np.sqrt(var) # NB: biased (even though var is unbiased)
         now.std = std
 
         # For simplicity, use naive (biased) formulae, derived
@@ -290,15 +291,15 @@ class Stats(StatPrint):
 
         if hasattr(self,'svals'):
             if N<=Nx:
-                _,s,UT    = sla.svd( (sqrt(w)*A.T).T, full_matrices=False)
-                s        *= sqrt(ub) # Makes s^2 unbiased
+                _,s,UT    = sla.svd( (np.sqrt(w)*A.T).T, full_matrices=False)
+                s        *= np.sqrt(ub) # Makes s^2 unbiased
                 now.svals = s
                 now.umisf = UT @ now.err
             else:
                 P         = (A.T * w) @ A
                 s2,U      = sla.eigh(P)
                 s2       *= ub
-                now.svals = sqrt(s2.clip(0))[::-1]
+                now.svals = np.sqrt(s2.clip(0))[::-1]
                 now.umisf = U.T[::-1] @ now.err
 
             # For each state dim [i], compute rank of truth (x) among the ensemble (E)
@@ -317,16 +318,16 @@ class Stats(StatPrint):
         now.mu  = mu
         now.err = now.mu - x
 
-        var = P.diag if isinstance(P,CovMat) else np.diag(P)
-        now.std = sqrt(var)
+        var = P.diag if isinstance(P,dpr.CovMat) else np.diag(P)
+        now.std = np.sqrt(var)
 
         # Here, sqrt(2/pi) is the ratio, of MAD/STD for Gaussians
-        now.mad = np.nanmean( now.std ) * sqrt(2/np.pi)
+        now.mad = np.nanmean( now.std ) * np.sqrt(2/np.pi)
 
         if hasattr(self,'svals'):
-            P         = P.full if isinstance(P,CovMat) else P
+            P         = P.full if isinstance(P,dpr.CovMat) else P
             s2,U      = sla.eigh(P)
-            now.svals = sqrt(np.maximum(s2,0.0))[::-1]
+            now.svals = np.sqrt(np.maximum(s2,0.0))[::-1]
             now.umisf = (U.T @ now.err)[::-1]
 
 

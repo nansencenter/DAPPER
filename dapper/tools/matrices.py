@@ -1,4 +1,3 @@
-from dapper import *
 import dapper as dpr
 from dapper.tools.math import mrdiv, truncate_rank, svd0, tinv
 import dapper.tools.utils as utils

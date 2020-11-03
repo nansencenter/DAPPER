@@ -25,7 +25,7 @@ Dyn = {
     'noise': 0
 }
 
-X0 = GaussRV(mu=np.zeros(Nx), C=homogeneous_1D_cov(Nx,Nx/8,kind='Gauss'))
+X0 = dpr.GaussRV(mu=np.zeros(Nx), C=homogeneous_1D_cov(Nx,Nx/8,kind='Gauss'))
 
 Ny  = 4
 jj = dpr.linspace_int(Nx,Ny)

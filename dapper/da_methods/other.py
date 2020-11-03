@@ -3,6 +3,7 @@
 from dapper import *
 import dapper as dpr
 from dapper.tools.utils import progbar
+from dapper.tools.matrices import funm_psd
 import numpy as np
 from numpy import eye, diag, zeros, ones, sqrt, arange
 from .ensemble import ens_method
@@ -131,7 +132,7 @@ def laplace_lklhd(xx):
     """Compute a Laplacian likelihood.
 
     Compute likelihood of xx wrt. the sampling distribution
-    LaplaceParallelRV(C=I), i.e., for x in xx:
+    RVs.LaplaceParallelRV(C=I), i.e., for x in xx:
     p(x) = exp(-sqrt(2)*|x|_1) / sqrt(2).
     """
     logw   = -sqrt(2)*np.sum(np.abs(xx), axis=1)

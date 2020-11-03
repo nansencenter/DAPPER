@@ -18,7 +18,7 @@ Dyn = {
     'noise': 0
 }
 
-X0 = GaussRV(C=2,mu=x0)
+X0 = dpr.GaussRV(C=2,mu=x0)
 
 Obs = dpr.partial_Id_Obs(Nx,np.arange(Nx))
 Obs['noise'] = 8.0

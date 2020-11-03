@@ -43,7 +43,7 @@ class HiddenMarkovModel(NicePrint):
         self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn)
         self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs)
         self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)
-        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)
+        self.X0  = X0  if isinstance(X0 , dpr.RV)     else dpr.RV    (**X0)
 
         # Name
         self.name = kwargs.pop("name", "")
@@ -108,14 +108,14 @@ class Operator(NicePrint):
         self.model = model
 
         # None/0 => No noise
-        if isinstance(noise,RV):
+        if isinstance(noise, dpr.RV):
             self.noise = noise
         else:
             if noise is None: noise = 0
             if np.isscalar(noise):
-                self.noise = GaussRV(C=noise,M=M)
+                self.noise = dpr.GaussRV(C=noise,M=M)
             else:
-                self.noise = GaussRV(C=noise)
+                self.noise = dpr.GaussRV(C=noise)
 
         # Write attributes
         for key, value in kwargs.items():
@@ -632,3 +632,4 @@ def get_param_setter(param_dict, **glob_dict):
 
         return [xp1(dct) for dct in dtools.dict_product(params)]
     return for_params
+

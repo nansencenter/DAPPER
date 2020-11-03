@@ -27,7 +27,7 @@ Dyn = {
     'linear': LUV.dstep_dx,
 }
 
-X0 = GaussRV(mu=LUV.x0, C=0.01)
+X0 = dpr.GaussRV(mu=LUV.x0, C=0.01)
 
 R = 1.0
 jj = np.arange(nU)
@@ -51,7 +51,7 @@ Dyn = {
     'noise': 0,
 }
 
-X0 = GaussRV(mu=LUV.x0[:nU],C=0.01)
+X0 = dpr.GaussRV(mu=LUV.x0[:nU],C=0.01)
 
 jj = np.arange(nU)
 Obs = dpr.partial_Id_Obs(nU,jj)

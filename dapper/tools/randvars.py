@@ -1,15 +1,14 @@
 # Random variables
 
-from dapper import *
 import dapper as dpr
 import numpy as np
 from numpy import sqrt
 
 
-class RV(NicePrint):
+class RV(dpr.NicePrint):
     "Class to represent random variables."
 
-    printopts = NicePrint.printopts.copy()
+    printopts = dpr.NicePrint.printopts.copy()
     printopts["ordering"] = "linenumber"
     printopts["reverse"] = True
 
@@ -92,7 +91,7 @@ class RV_with_mean_and_cov(RV):
     def __init__(self,mu=0,C=0,M=None):
         """Init allowing for shortcut notation."""
 
-        if isinstance(mu,CovMat):
+        if isinstance(mu,dpr.CovMat):
             raise TypeError("Got a covariance paramter as mu. "
                             + "Use kword syntax (C=...) ?")
 
@@ -108,7 +107,7 @@ class RV_with_mean_and_cov(RV):
                 mu = np.ones(M)*mu
 
         # Set C
-        if isinstance(C,CovMat):
+        if isinstance(C,dpr.CovMat):
             if M is None:
                 M = C.M
         else:
@@ -117,9 +116,9 @@ class RV_with_mean_and_cov(RV):
             else:
                 if np.isscalar(C):
                     M = len(mu)
-                    C = CovMat(C*np.ones(M),'diag')
+                    C = dpr.CovMat(C*np.ones(M),'diag')
                 else:
-                    C = CovMat(C)
+                    C = dpr.CovMat(C)
                     if M is None:
                         M = C.M
 

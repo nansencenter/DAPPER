@@ -28,8 +28,8 @@ Dyn = {
     'noise'  : 0
 }
 
-# X0 = GaussRV(C=0.01,M=Nx) # Decreased from Pajonk's C=1.
-X0 = GaussRV(C=0.01,mu=x0)
+# X0 = dpr.GaussRV(C=0.01,M=Nx) # Decreased from Pajonk's C=1.
+X0 = dpr.GaussRV(C=0.01,mu=x0)
 
 jj = np.arange(Nx)
 Obs = dpr.partial_Id_Obs(Nx, jj)

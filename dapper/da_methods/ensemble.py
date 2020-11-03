@@ -4,6 +4,7 @@ from dapper import *
 import dapper as dpr
 from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0, pad0, reconst, tinv
 from dapper.tools.utils import progbar
+from dapper.tools.matrices import genOG_1, funm_psd
 import numpy as np
 from numpy import eye, diag, zeros, ones, sqrt, arange
 import scipy.linalg as sla

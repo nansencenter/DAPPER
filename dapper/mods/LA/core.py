@@ -55,7 +55,7 @@ def basis_vector(Nx,k):
     sd = np.std(s,ddof=1)
     #if Nx >= (2*k + 1)
     #% See analytic_normzt.m
-    #sd = sqrt(sum(aa(2:end).^2)*(Nx/2)/(Nx-1));
+    #sd = np.sqrt(sum(aa(2:end).^2)*(Nx/2)/(Nx-1));
     s  = s/sd
 
     return s
@@ -115,7 +115,7 @@ def homogeneous_1D_cov(M,d,kind='Expo'):
     if kind == 'Gauss':
         # Gaussian covariance
         nugget = 1e-5
-        a = 2/sqrt(np.pi)*d
+        a = 2/np.sqrt(np.pi)*d
         C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
     elif kind == 'Expo':
         # Exponential covariance

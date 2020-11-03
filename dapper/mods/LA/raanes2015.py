@@ -38,13 +38,13 @@ except FileNotFoundError:
           'for experiment initialization. Generating...')
     NQ        = 20000 # Must have NQ > (2*wnumQ+1)
     A         = sinusoidal_sample(Nx,wnumQ,NQ)
-    A         = 1/10 * dpr.center(A)[0] / sqrt(NQ)
+    A         = 1/10 * dpr.center(A)[0] / np.sqrt(NQ)
     Q         = A.T @ A
     U,s,_     = tsvd(Q)
-    L         = U*sqrt(s)
+    L         = U*np.sqrt(s)
     np.savez(sample_filename, Left=L)
 
-X0 = GaussRV(C=CovMat(sqrt(5)*L,'Left'))
+X0 = dpr.GaussRV(C=dpr.CovMat(np.sqrt(5)*L,'Left'))
 
 ################### Forward model ###################
 damp = 0.98;
@@ -57,7 +57,7 @@ Dyn = {
     'M'    : Nx,
     'model': lambda x,t,dt: damp * step(x,t,dt),
     'linear': lambda x,t,dt: damp * Fm,
-    'noise': GaussRV(C=CovMat(L,'Left')),
+    'noise': dpr.GaussRV(C=dpr.CovMat(L,'Left')),
 }
 
 ################### Gather ###################

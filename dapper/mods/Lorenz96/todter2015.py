@@ -4,6 +4,7 @@ for Nonlinear Data Assimilation'"""
 
 from dapper import *
 import dapper as dpr
+import dapper.tools.randvars as RVs
 
 from dapper.mods.Lorenz96 import core
 from dapper.tools.localization import nd_Id_localization
@@ -17,13 +18,13 @@ Dyn = {
     'noise': 0
 }
 
-X0 = GaussRV(M=Nx, C=0.001)
+X0 = dpr.GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0,Nx,2)
 Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['localizer'] = nd_Id_localization( (Nx,), (1,), jj )
-# Obs['noise'] = LaplaceRV(C=1,M=len(jj))
-Obs['noise'] = LaplaceParallelRV(C=1,M=len(jj))
+# Obs['noise'] = RVs.LaplaceRV(C=1,M=len(jj))
+Obs['noise'] = RVs.LaplaceParallelRV(C=1,M=len(jj))
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
 

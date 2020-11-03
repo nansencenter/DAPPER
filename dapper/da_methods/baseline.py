@@ -22,7 +22,7 @@ class Climatology:
 
         muC = np.mean(xx,0)
         AC  = xx - muC
-        PC  = CovMat(AC,'A')
+        PC  = dpr.CovMat(AC,'A')
 
         stats.assess(0,mu=muC,Cov=PC)
         stats.trHK[:] = 0

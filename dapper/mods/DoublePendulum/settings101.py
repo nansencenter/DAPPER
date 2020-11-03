@@ -14,7 +14,7 @@ Dyn = {
     'linear': dstep_dx,
 }
 
-X0 = GaussRV(mu=x0,C=0.01**2)
+X0 = dpr.GaussRV(mu=x0,C=0.01**2)
 
 jj = [0,2]
 Obs = dpr.partial_Id_Obs(len(x0),jj)

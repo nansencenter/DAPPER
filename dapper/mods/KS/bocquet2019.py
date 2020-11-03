@@ -1,4 +1,5 @@
 from dapper import *
+import dapper as dpr
 import numpy as np
 from dapper.tools.math import Id_Obs
 
@@ -19,7 +20,7 @@ Dyn = {
     'noise' : 0
 }
 
-X0 = GaussRV(mu=KS.x0, C=0.001) 
+X0 = dpr.GaussRV(mu=KS.x0, C=0.001) 
 
 Obs = Id_Obs(Nx)
 Obs['noise'] = 1

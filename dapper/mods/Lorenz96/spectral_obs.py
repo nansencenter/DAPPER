@@ -68,23 +68,23 @@
 
 
 from dapper.mods.Lorenz96.sakov2008 import *
-from numpy import eye
+import numpy as np
 
 # The (Nx-Ny) highest frequency observation modes are left out of H below.
 # If Ny>Nx, then H no longer has independent (let alone orthogonal) columns,
 # yet more information is gained, since the observations are noisy.
 Ny = 12
 
-X0 = GaussRV(M=Nx, C=0.001) 
+X0 = dpr.GaussRV(M=Nx, C=0.001) 
 
 def make_H(Ny,Nx):
     xx = np.linspace(-1,1,Nx+1)[1:]
     H = np.zeros((Ny,Nx))
-    H[0] = 1/sqrt(2)
+    H[0] = 1/np.sqrt(2)
     for k in range(-(Ny//2),(Ny+1)//2):
         ind = 2*abs(k) - (k<0)
         H[ind] = np.sin(np.pi*k*xx + pi/4)
-    H /= sqrt(Nx/2)
+    H /= np.sqrt(Nx/2)
     return H
 
 H = make_H(Ny,Nx)
@@ -94,7 +94,7 @@ H = make_H(Ny,Nx)
 Obs = {
     'M': Ny,
     'model': lambda x,t: x @ H.T,
-    'noise': GaussRV(C=0.01*eye(Ny)),
+    'noise': dpr.GaussRV(C=0.01*np.eye(Ny)),
 }
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)

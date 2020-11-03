@@ -10,6 +10,7 @@
 from dapper import *
 import dapper as dpr
 
+import numpy as np
 import dapper as dpr
 from dapper.mods.LA.core import sinusoidal_sample, Fmat
 from dapper.mods.Lorenz96.core import LPs
@@ -40,8 +41,8 @@ Dyn = {
 # Yet this is not so implausible because sinusoidal_sample()
 # yields (multivariate) uniform (random numbers) -- not Gaussian.
 wnum  = 25
-a = sqrt(5)/10
-X0 = RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx,wnum,N))
+a = np.sqrt(5)/10
+X0 = dpr.RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx,wnum,N))
 
 Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
