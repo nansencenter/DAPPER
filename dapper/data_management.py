@@ -3,12 +3,13 @@
 which is handles the **presentation** of experiment (xp) results."""
 
 ##
-from dapper import *
-import dapper as dpr
 from dapper.tools.colors import color_text
 from dapper.tools.math import isNone
-from dapper.tools.viz import axis_scale_by_array
+from dapper.tools.viz import axis_scale_by_array, freshfig
+from dapper.tools.series import UncertainQtty
 from dapper.stats import tabulate_column, unpack_uqs
+from dapper.admin import xpList
+import dapper.dict_tools as dict_tools
 import dapper.tools.remote.uplink as uplink
 import dapper.tools.utils as utils
 import colorama
@@ -376,7 +377,7 @@ class SparseSpace(dict):
         # txt += " befitting the coord. sys. with axes "
         txt += "\nplaced in a coord-sys with axes "
         try:
-            txt += "(and ticks):" + str(dtools.AlignedDict(self.ticks))
+            txt += "(and ticks):" + str(dict_tools.AlignedDict(self.ticks))
         except AttributeError:
             txt += ":\n" + str(self.axes)
         return txt
@@ -399,10 +400,10 @@ class SparseSpace(dict):
         # Validate axes
         if inner_axes is None:
             assert outer_axes is not None
-            inner_axes = dtools.complement(self.axes, outer_axes)
+            inner_axes = dict_tools.complement(self.axes, outer_axes)
         else:
             assert outer_axes is None
-            outer_axes = dtools.complement(self.axes, inner_axes)
+            outer_axes = dict_tools.complement(self.axes, inner_axes)
 
         # Fill spaces
         outer_space = self.__class__(outer_axes)
@@ -427,7 +428,7 @@ class SparseSpace(dict):
         """Rm those a in attrs that are not in self.axes.
         
         This allows errors in the axes allotment, for ease-of-use."""
-        absent = dtools.complement(attrs, self.axes)
+        absent = dict_tools.complement(attrs, self.axes)
         if absent:
             print(color_text("Warning:", colorama.Fore.RED),
                   "The requested attributes",
@@ -437,7 +438,7 @@ class SparseSpace(dict):
                   "This may be no problem if the attr. is redundant for the coord-sys.",
                   "However, if it is caused by confusion or mis-spelling,",
                   "then it is likely to cause mis-interpretation of the shown results.")
-            attrs = dtools.complement(attrs, absent)
+            attrs = dict_tools.complement(attrs, absent)
         return attrs
 
     def label_xSection(self,label,*NoneAttrs,**sub_coord):
@@ -519,7 +520,7 @@ class xpSpace(SparseSpace):
                 axes[ax_name] = ticks
 
         # Define axes
-        xp_list = dpr.xpList(xps)
+        xp_list = xpList(xps)
         axes = xp_list.split_attrs(nomerge=['Const'])[0]
         make_ticks(axes)
         self = cls(axes.keys())
@@ -559,7 +560,7 @@ class xpSpace(SparseSpace):
         nested = self.nest(axes)
         for coord, space in nested.items():
 
-            getval = lambda uq: uq.val if isinstance(uq, dpr.UncertainQtty) else uq
+            getval = lambda uq: uq.val if isinstance(uq, UncertainQtty) else uq
             vals = [getval(uq) for uq in space.values()]
 
             # Don't use nanmean! It would give false impressions.
@@ -572,7 +573,7 @@ class xpSpace(SparseSpace):
                 var = np.var(vals,ddof=1)
 
             N = len(vals)
-            uq = dpr.UncertainQtty(mu, np.sqrt(var/N))
+            uq = UncertainQtty(mu, np.sqrt(var/N))
             uq.nTotal   = N
             uq.nFail    = N - np.isfinite(vals).sum()
             uq.nSuccess = N - uq.nFail
@@ -679,7 +680,7 @@ class xpSpace(SparseSpace):
         #    without extraction by __getkey__() from (e.g.) row[0].
         #  - Don't need to propagate mean&optim axes down to the row level.
         #    which would require defining rows by the nesting:
-        #    rows = table.nest(outer_axes=dtools.complement(table.axes,
+        #    rows = table.nest(outer_axes=dict_tools.complement(table.axes,
         #        *(axes['inner'] or ()),
         #        *(axes['mean']  or ()),
         #        *(axes['optim'] or ()) ))
@@ -831,7 +832,7 @@ class xpSpace(SparseSpace):
                 #   Coz there we have no ambition to split the attrs,
                 #   which would also require excessive processing:
                 #   nesting the table as cols, and then split_attrs() on cols.
-                row_keys = dpr.xpList(table.keys()).split_attrs()[0]
+                row_keys = xpList(table.keys()).split_attrs()[0]
                 row_keys = pd.DataFrame.from_dict(row_keys,dtype="O") # allow storing None
                 if len(row_keys.columns):
                     # Header
@@ -903,7 +904,7 @@ class xpSpace(SparseSpace):
             maxW = 12.7 # my mac screen
             figsize = figsize or ( min(5*ncols,maxW), 7 )
             # Create
-            _, panels = dpr.freshfig(num=fignum, figsize=figsize, constrained_layout=True,
+            _, panels = freshfig(num=fignum, figsize=figsize, constrained_layout=True,
                     nrows=nrows, sharex=True,
                     ncols=ncols, sharey='row',
                     gridspec_kw=dict(height_ratios=[6]+[1]*(nrows-1),

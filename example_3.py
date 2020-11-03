@@ -85,13 +85,13 @@ save_as = xps.launch(HMM,__file__,mp,setup)
 # save_as = rc.dirs.data / "example_3" / "run2"
 
 # Load
-xps = load_xps(save_as)
+xps = dpr.load_xps(save_as)
 
 # Prints all
 # xpList(xps).print_avrgs(statkeys=["rmse.a","rmv.a"])
 
 # Associate each control variable with a coordinate/dimension
-xp_dict = xpSpace.from_list(xps) 
+xp_dict = dpr.xpSpace.from_list(xps)
 
 # Single out (highlight) particular settings.
 # Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
@@ -108,7 +108,7 @@ xp_dict.print("rmse.a", axes, subcols=False)
 # Line colors, etc
 def get_style(coord):
     """Quick and dirty styling."""
-    S = default_styles(coord,True)
+    S = dpr.default_styles(coord,True)
     if coord.da_method == "EnKF":
         upd_a = getattr(coord,"upd_a",None)
         if   upd_a == "PertObs": S.c = "C2"
@@ -122,7 +122,7 @@ def get_style(coord):
 
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style, title2=save_as)
-default_fig_adjustments(tables)
+dpr.default_fig_adjustments(tables)
 plt.pause(1)
 
 
@@ -132,28 +132,28 @@ plt.pause(1)
 
 # Remove experiments we don't want to plot here
 xps = [xp for xp in xps if getattr(xp,"Const",None)==None]
-xp_dict = xpSpace.from_list(xps) 
+xp_dict = dpr.xpSpace.from_list(xps) 
 
 # Setup mapping: loc_rad --> color gradient 
 graded = "loc_rad"
 axes["optim"] -= {graded}
 grades = xp_dict.tickz(graded)
-# cmap, sm = discretize_cmap(cm.Reds, len(grades), .2)
-cmap, sm = discretize_cmap(cm.rainbow, len(grades))
+# cmap, sm = dpr.discretize_cmap(cm.Reds, len(grades), .2)
+cmap, sm = dpr.discretize_cmap(cm.rainbow, len(grades))
 
 # Line colors, etc
 def get_style_with_gradient(coord):
     S = get_style(coord)
     if coord.da_method=="LETKF":
-        grade = rel_index(getattr(coord,graded),grades,1)
+        grade = dpr.rel_index(getattr(coord,graded),grades,1)
         S.c = cmap(grade)
         S.marker = None
-        S.label = make_label(coord,exclude=[graded])
+        S.label = dpr.make_label(coord,exclude=[graded])
     return S
 
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
-default_fig_adjustments(tables)
+dpr.default_fig_adjustments(tables)
 
 # Colorbar
 cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0],label=graded)

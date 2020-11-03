@@ -39,7 +39,7 @@ else:
     test_register = locals()
     test_ind = 0
 
-@functools.wraps(xpSpace.print)
+@functools.wraps(dpr.xpSpace.print)
 def _print(xp_dict,*args,**kwargs):
     """Test xpSpace.print().
 
@@ -97,10 +97,10 @@ def _print(xp_dict,*args,**kwargs):
 
 ##
 save_as = rc.dirs.DAPPER / "dpr_data" / "test_data"
-xps = load_xps(save_as)
-xps = xpSpace.from_list(xps)
+xps = dpr.load_xps(save_as)
+xps = dpr.xpSpace.from_list(xps)
 
-xps_shorter = xpSpace.from_list([xp for xp in xps.values()
+xps_shorter = dpr.xpSpace.from_list([xp for xp in xps.values()
     if getattr(xp,'da_method')!='LETKF'])
 
 ##

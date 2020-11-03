@@ -49,7 +49,7 @@ from .tools.magic import magic_naming, spell_out
 # from .tools.remote.uplink import *
 from .stats import register_stat
 from .admin import HiddenMarkovModel, Operator, da_method, seed_and_simulate, xpList, get_param_setter
-from .data_management import *
+from .data_management import load_xps, xpSpace, make_label, default_styles, rel_index, discretize_cmap, default_fig_adjustments
 from .da_methods.ensemble import *
 from .da_methods.particle import *
 from .da_methods.extended import *
