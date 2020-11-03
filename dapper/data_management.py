@@ -44,7 +44,7 @@ def make_label(coord,no_key=NO_KEY,exclude=()):
 
 def default_styles(coord, baseline_legends=False):
     """Quick and dirty (but somewhat robust) styling."""
-    style = DotDict(ms=8)
+    style = dict_tools.DotDict(ms=8)
     style.label = make_label(coord)
 
     try:

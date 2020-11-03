@@ -3,6 +3,7 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0)."""
 
 import numpy as np
 from dapper import *
+from dapper.dict_tools import deep_getattr
 import dapper as dpr
 
 xps  = dpr.xpList(unique=True)

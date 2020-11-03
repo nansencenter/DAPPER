@@ -1,15 +1,17 @@
 # Random variables
 
-import dapper as dpr
+from dapper.dict_tools import NicePrint
 from dapper.tools.math import exactly_1d
+from dapper.tools.stoch import rand, randn
+from dapper.tools.matrices import CovMat
 import numpy as np
 from numpy import sqrt
 
 
-class RV(dpr.NicePrint):
+class RV(NicePrint):
     "Class to represent random variables."
 
-    printopts = dpr.NicePrint.printopts.copy()
+    printopts = NicePrint.printopts.copy()
     printopts["ordering"] = "linenumber"
     printopts["reverse"] = True
 
@@ -55,7 +57,7 @@ class RV(dpr.NicePrint):
         elif hasattr(self,'icdf'):
             # Independent "inverse transform" sampling
             icdf = np.vectorize(self.icdf)
-            uu   = dpr.rand((N,self.M))
+            uu   = rand((N,self.M))
             E    = icdf(uu)
         elif hasattr(self,'cdf'):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -70,7 +72,7 @@ class RV(dpr.NicePrint):
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu,xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = dpr.rand((N,self.M))
+            uu = rand((N,self.M))
             E  = self.icdf_interp(uu)
         elif hasattr(self,'pdf'):
             # "acceptance-rejection" sampling
@@ -92,7 +94,7 @@ class RV_with_mean_and_cov(RV):
     def __init__(self,mu=0,C=0,M=None):
         """Init allowing for shortcut notation."""
 
-        if isinstance(mu,dpr.CovMat):
+        if isinstance(mu,CovMat):
             raise TypeError("Got a covariance paramter as mu. "
                             + "Use kword syntax (C=...) ?")
 
@@ -108,7 +110,7 @@ class RV_with_mean_and_cov(RV):
                 mu = np.ones(M)*mu
 
         # Set C
-        if isinstance(C,dpr.CovMat):
+        if isinstance(C,CovMat):
             if M is None:
                 M = C.M
         else:
@@ -117,9 +119,9 @@ class RV_with_mean_and_cov(RV):
             else:
                 if np.isscalar(C):
                     M = len(mu)
-                    C = dpr.CovMat(C*np.ones(M),'diag')
+                    C = CovMat(C*np.ones(M),'diag')
                 else:
-                    C = dpr.CovMat(C)
+                    C = CovMat(C)
                     if M is None:
                         M = C.M
 
@@ -160,7 +162,7 @@ class GaussRV(RV_with_mean_and_cov):
     """Gaussian (Normal) multivariate random variable."""
     def _sample(self,N):
         R = self.C.Right
-        D = dpr.randn((N,len(R))) @ R
+        D = randn((N,len(R))) @ R
         return D
 
 class LaplaceRV(RV_with_mean_and_cov):
@@ -172,7 +174,7 @@ class LaplaceRV(RV_with_mean_and_cov):
     def _sample(self,N):
         R = self.C.Right
         z = np.random.exponential(1,N)
-        D = dpr.randn((N,len(R)))
+        D = randn((N,len(R)))
         D = z[:,None]*D
         return D @ R / sqrt(2)
 
@@ -202,8 +204,8 @@ class StudRV(RV_with_mean_and_cov):
     def _sample(self,N):
         R = self.C.Right
         nu= self.dof
-        r = nu/np.sum(dpr.randn((N,nu))**2,axis=1) # InvChi2
-        D = sqrt(r)[:,None]*dpr.randn((N,len(R)))
+        r = nu/np.sum(randn((N,nu))**2,axis=1) # InvChi2
+        D = sqrt(r)[:,None]*randn((N,len(R)))
         return D @ R * sqrt((nu-2)/nu)
 
 class UniRV(RV_with_mean_and_cov):
@@ -215,8 +217,8 @@ class UniRV(RV_with_mean_and_cov):
     """
     def _sample(self,N):
         R = self.C.Right
-        D = dpr.randn((N,len(R)))
-        r = dpr.rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2,axis=1))
+        D = randn((N,len(R)))
+        r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2,axis=1))
         D = r[:,None]*D
         return D @ R * 2
 
@@ -228,5 +230,5 @@ class UniParallelRV(RV_with_mean_and_cov):
     """
     def _sample(self,N):
         R = self.C.Right
-        D = dpr.rand((N,len(R)))-0.5
+        D = rand((N,len(R)))-0.5
         return D @ R * sqrt(12)

@@ -23,10 +23,8 @@ except AttributeError:
 ##################################
 # Imports from DAPPER package
 ##################################
-import dapper.dict_tools as dtools
-from .dict_tools import DotDict, NicePrint, deep_getattr, deep_hasattr
+# from .dict_tools import *
 from .dpr_config import rc
-
 # from .tools.colors import *
 # from .tools.utils import *
 # from .tools.math import *

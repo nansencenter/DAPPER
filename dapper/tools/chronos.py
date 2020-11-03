@@ -1,6 +1,6 @@
 # Time sequence management
 
-from dapper import dtools
+import dapper.dict_tools as dict_tools
 import dapper.tools.utils as utils
 from dapper.tools.math import is_int
 import numpy as np
@@ -188,7 +188,7 @@ class Chronology():
 
     def __str__(self):
         printable = ['K','KObs','T','BurnIn','dtObs','dt']
-        return str(dtools.AlignedDict([(k, getattr(self,k)) for k in printable]))
+        return str(dict_tools.AlignedDict([(k, getattr(self,k)) for k in printable]))
     def __repr__(self):
         return utils.repr_type_and_name(self) + "\n" + str(self)
 
