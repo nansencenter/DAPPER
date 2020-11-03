@@ -87,7 +87,7 @@ class UncertainQtty():
             if not np.isnan(conf) and conf>0:
                 val = mtools.round2(val, mult*conf)
             else:
-                val = mtools.round2(val, dpr.rc.sigfig)
+                val = mtools.round2(val, rc.sigfig)
             return val, conf
 
     def __str__(self):

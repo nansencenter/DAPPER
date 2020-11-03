@@ -18,6 +18,7 @@
 
 from dapper import *
 import dapper as dpr
+from dapper.tools.multiprocessing import multiproc_map
 from pathlib import Path
 import matplotlib as mpl
 import numpy as np

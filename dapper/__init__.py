@@ -44,8 +44,8 @@ from dapper.tools.series import UncertainQtty
 from .tools.viz import freshfig
 # from .tools.liveplotting import *
 from .tools.magic import magic_naming, spell_out
-from .tools.localization import *
-from .tools.multiprocessing import *
+# from .tools.localization import *
+# from .tools.multiprocessing import *
 from .tools.remote.uplink import *
 from .stats import *
 from .admin import *

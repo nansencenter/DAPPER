@@ -3,11 +3,8 @@ Sakov (2011), Computational Geosciences:
 'Relation between two common localisation methods for the EnKF'.
 """
 
-from dapper import *
-import dapper as dpr
-import numpy as np
-
 import itertools
+import numpy as np
 
 # Defaults
 CUTOFF   = 1e-3
@@ -182,7 +179,6 @@ def rectangular_partitioning(shape,steps,do_ind=True):
     where each element (batch) is a list of indices
 
     # Example, with visualization:
-    >>> dpr.set_seed(3)
     >>> shape   = [4,13]
     >>> steps   = [2,4]
     >>> batches = rectangular_partitioning(shape, steps, do_ind=False)
