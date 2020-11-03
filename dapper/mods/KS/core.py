@@ -29,9 +29,9 @@ def Model(dt=0.25,DL=32,Nx=128):
     h = dt # alias -- prevents o/w in step()
 
     # Fourier stuff
-    kk = np.append(np.arange(0,Nx/2),0)*2/DL                        # wave nums for rfft
-    # kk = ccat([np.arange(0,Nx/2),[0], np.arange(-Nx/2+1,0)])*2/DL # wave nums for fft
-    # kk = np.fft.fftfreq(Nx, DL/Nx/2)                              # (altern. method)
+    kk = np.append(np.arange(0,Nx/2),0)*2/DL                            # wave nums for rfft
+    # kk = dpr.ccat([np.arange(0,Nx/2),[0], np.arange(-Nx/2+1,0)])*2/DL # wave nums for fft
+    # kk = np.fft.fftfreq(Nx, DL/Nx/2)                                  # (altern. method)
     # Operators
     D = 1j*kk         # Differentiation to compute:  F[ u_x ]
     L = kk**2 - kk**4 # Linear operator for K-S eqn: F[ - u_xx - u_xxxx]

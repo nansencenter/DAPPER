@@ -10,6 +10,7 @@ More interesting settings: mods.Lorenz84.harder
 """
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.Lorenz84.core import step, dstep_dx, x0
 from dapper.mods.Lorenz63.core import LPs
@@ -31,7 +32,7 @@ Dyn = {
 X0 = GaussRV(C=0.01,mu=x0)
 
 jj = np.arange(Nx)
-Obs = partial_Id_Obs(Nx, jj)
+Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.1
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LPs(jj))

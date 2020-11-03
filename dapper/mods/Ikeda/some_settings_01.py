@@ -1,6 +1,7 @@
 """Setup parameters for twin experiments."""
 
 from dapper import *
+import dapper as dpr
 
 from .core import step, x0, Tplot, LPs
 
@@ -17,7 +18,7 @@ Dyn = {
 X0 = GaussRV(C=.1,mu=x0)
 
 jj = np.arange(Nx) # obs_inds
-Obs = partial_Id_Obs(Nx, jj)
+Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = .1 # GaussRV(C=CovMat(1*eye(Nx)))
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)

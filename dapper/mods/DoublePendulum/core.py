@@ -1,4 +1,6 @@
 from dapper import *
+import dapper as dpr
+from dapper.tools.math import FD_Jac
 import numpy as np
 
 # Based on double_pendulum_animated.html from matplotlib.org.
@@ -13,7 +15,7 @@ M2 = 1.0  # mass of pendulum 2 in kg
 # Initial condition: th1, w1, th2, w2
 x0 = np.radians([ 130,  0, -10,  0])
 
-@ens_compatible
+@dpr.ens_compatible
 def dxdt(x):
     th1, w1, th2, w2 = x
 
@@ -43,7 +45,7 @@ def dxdt(x):
 
 # Note: scipy's integrate.odeint can use larger dt,
 #       (without leaking energy), but ain't faster.
-step = with_rk4(dxdt, autonom=True)
+step = dpr.with_rk4(dxdt, autonom=True)
 
 dstep_dx = FD_Jac(step)
 

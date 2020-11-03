@@ -8,12 +8,12 @@ See demo.py for more info.
 
 import numpy as np
 from numpy import cos, sin
-from dapper.tools.math import with_rk4, is1d, ens_compatible
+import dapper as dpr
 
 # Constant 0.6 <= u <= 1.
 u = 0.9
 
-@ens_compatible
+@dpr.ens_compatible
 def step(x,_t,_dt):
     s,t,x1,y1 = aux(*x)
     return 1+u*x1, u*y1

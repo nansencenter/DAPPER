@@ -9,14 +9,13 @@
 #   Tellus A 57 (2005) 1–11
 
 import numpy as np
-from dapper.tools.math import with_rk4, is1d
-from dapper import ens_compatible, integrate_TLM
+import dapper as dpr
 
 # Constants
 a = 0.25;  b = 4; F = 8.0; G = 1.23;
 #G = 1.0
 
-@ens_compatible
+@dpr.ens_compatible
 def dxdt(x):
     d     = np.zeros_like(x)
     x,y,z = x
@@ -25,7 +24,7 @@ def dxdt(x):
     d[2]  = b*x*y + x*z - z
     return d
 
-step = with_rk4(dxdt,autonom=True)
+step = dpr.with_rk4(dxdt,autonom=True)
 
 x0 = np.array([ 1.65,  0.49,  1.21])
 
@@ -38,4 +37,4 @@ def d2x_dtdx(x):
     return Mat
 
 def dstep_dx(x,t,dt):
-    return integrate_TLM(d2x_dtdx(x),dt,method='approx')
+    return dpr.integrate_TLM(d2x_dtdx(x),dt,method='approx')

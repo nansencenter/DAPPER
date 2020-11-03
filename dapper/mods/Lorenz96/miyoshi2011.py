@@ -7,6 +7,7 @@ inspired by MWR 1998 by E. N. Lorenz and K. A. Emanuel:
 
 
 from dapper.mods.Lorenz96.sakov2008 import *
+import dapper as dpr
 
 # Use small dt to "cope with" ocean sector blow up (due to spatially-constant infl)
 OneYear = 0.05 * (24/6) * 365
@@ -16,7 +17,7 @@ land_sites  = np.arange(Nx//2)
 ocean_sites = np.arange(Nx//2,Nx)
 
 jj = land_sites
-Obs = partial_Id_Obs(Nx, jj)
+Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization( (Nx,), (1,), jj )
 

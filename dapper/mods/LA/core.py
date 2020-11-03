@@ -44,11 +44,11 @@ def basis_vector(Nx,k):
     k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     """
     mm = np.arange(1,Nx+1) / Nx
-    kk = np.arange(k+1) # Wavenumbers
-    aa = rand(k+1)   # Amplitudes
-    pp = rand(k+1)   # Phases
+    kk = np.arange(k+1)[:,None] # Wavenumbers
+    aa = rand(k+1)              # Amplitudes
+    pp = rand(k+1)[:,None]      # Phases
 
-    s  = aa @ np.sin(2*np.pi*(tp(kk) * mm + tp(pp)))
+    s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
 
     #% Normalise
     sd = np.std(s,ddof=1)

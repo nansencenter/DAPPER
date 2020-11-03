@@ -1,4 +1,5 @@
 from dapper import *
+import dapper as dpr
 import dapper.tools.utils as utils
 from dataclasses import dataclass
 import numpy as np
@@ -15,7 +16,7 @@ def auto_cov(xx,L=5,zero_mean=False,corr=False):
     assert L<=len(xx)
 
     N = len(xx)
-    A = xx if zero_mean else center(xx)[0]
+    A = xx if zero_mean else dpr.center(xx)[0]
     acovf = np.zeros((L,)+xx.shape[1:])
 
     for i in range(L):
@@ -80,12 +81,12 @@ class UncertainQtty():
             - fallback: rc.sigfig
         """
         with np.errstate(all='ignore'):
-            conf = round2(self.conf, 1) 
+            conf = dpr.round2(self.conf, 1) 
             val  = self.val
             if not np.isnan(conf) and conf>0:
-                val = round2(val, mult*conf)
+                val = dpr.round2(val, mult*conf)
             else:
-                val = round2(val, rc.sigfig)
+                val = dpr.round2(val, rc.sigfig)
             return val, conf
 
     def __str__(self):

@@ -1,6 +1,7 @@
 """The EnKF and other ensemble-based methods"""
 
 from dapper import *
+from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0, pad0, reconst, tinv
 from dapper.tools.utils import progbar
 import numpy as np
 from numpy import eye, diag, zeros, ones, sqrt, arange

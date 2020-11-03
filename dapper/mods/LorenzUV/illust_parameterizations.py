@@ -12,6 +12,7 @@
 #  dt=0.005 for model.
 
 from dapper import *
+from dapper.tools.math import with_rk4, with_recursion
 from matplotlib import pyplot as plt
 # mpl.rcParams['toolbar'] = 'None'
 

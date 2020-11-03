@@ -2,6 +2,7 @@
 
 from dapper import *
 import dapper.tools.utils as utils
+from dapper.tools.math import is_int
 import numpy as np
 
 class Chronology():

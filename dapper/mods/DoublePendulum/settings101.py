@@ -1,6 +1,7 @@
 # Settings not taken from anywhere
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.DoublePendulum.core import step, x0, LP_setup, dstep_dx
 
@@ -16,7 +17,7 @@ Dyn = {
 X0 = GaussRV(mu=x0,C=0.01**2)
 
 jj = [0,2]
-Obs = partial_Id_Obs(len(x0),jj)
+Obs = dpr.partial_Id_Obs(len(x0),jj)
 Obs['noise'] = 0.1**2
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LP_setup(jj))

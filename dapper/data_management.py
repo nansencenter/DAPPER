@@ -5,9 +5,9 @@ which is handles the **presentation** of experiment (xp) results."""
 ##
 import dapper as dpr
 from dapper.tools.colors import color_text
+from dapper.tools.math import isNone
 import dapper.tools.utils as utils
 from dapper import *
-from dapper.tools.utils import progbar
 import colorama
 
 import matplotlib as mpl
@@ -159,7 +159,7 @@ def load_xps(save_as):
 
     print("Loading %d files from %s"%(len(files),save_as))
     xps = [] # NB: progbar wont clean up properly w/ list compr.
-    for f in progbar(files,desc="Loading"):
+    for f in utils.progbar(files,desc="Loading"):
         xps.extend( load_any(f) )
 
     if len(xps) < len(files):

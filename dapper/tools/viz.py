@@ -1,4 +1,5 @@
 from dapper import *
+import dapper as dpr
 import dapper.tools.utils as utils
 
 import matplotlib as mpl
@@ -41,7 +42,7 @@ def setup_wrapping(M,periodicity=None):
         ii = np.hstack([-0.5, arange(M), M-0.5])
         def wrap(E):
             midpoint = (E[...,[0]] + E[...,[-1]])/2
-            return ccat(midpoint,E,midpoint,axis=-1)
+            return dpr.ccat(midpoint,E,midpoint,axis=-1)
 
     else:
         ii = arange(M)

@@ -17,6 +17,7 @@
 #    See example in mods/QG/counillon2009.py.
 
 from dapper import *
+import dapper as dpr
 from pathlib import Path
 import matplotlib as mpl
 import numpy as np
@@ -141,7 +142,7 @@ def ind2sub(ind): return np.unravel_index(ind, shape[::-1])
 # Free run
 #########################
 def gen_sample(model,nSamples,SpinUp,Spacing):
-    simulator = with_recursion(model.step,prog="Simulating")
+    simulator = dpr.with_recursion(model.step,prog="Simulating")
     K         = SpinUp + nSamples*Spacing
     Nx        = np.prod(shape) # total state length
     sample    = simulator(np.zeros(Nx), K, 0.0, model.prms["dtout"])

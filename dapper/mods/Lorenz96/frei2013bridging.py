@@ -15,6 +15,7 @@
 
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.Lorenz96.core import step, dstep_dx
 from dapper.tools.localization import nd_Id_localization
@@ -32,7 +33,7 @@ Dyn = {
 X0 = GaussRV(M=Nx, C=0.001)
 
 jj = 1 + np.arange(0,Nx,2)
-Obs = partial_Id_Obs(Nx,jj)
+Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.5
 Obs['localizer'] = nd_Id_localization( (Nx,), (2,), jj )
 

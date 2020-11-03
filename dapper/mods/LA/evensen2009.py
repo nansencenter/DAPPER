@@ -8,13 +8,15 @@
 #     For that purpose, see mods/LA/raanes2015.py instead.
 
 from dapper import *
+import dapper as dpr
 
+import dapper as dpr
 from dapper.mods.LA.core import sinusoidal_sample, Fmat
 from dapper.mods.Lorenz96.core import LPs
 
 Nx = 1000
 Ny = 4
-jj = linspace_int(Nx,Ny)
+jj = dpr.linspace_int(Nx,Ny)
 
 tseq = Chronology(dt=1,dkObs=5,T=300,BurnIn=-1,Tplot=100)
 
@@ -41,7 +43,7 @@ wnum  = 25
 a = sqrt(5)/10
 X0 = RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx,wnum,N))
 
-Obs = partial_Id_Obs(Nx,jj)
+Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
 HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))

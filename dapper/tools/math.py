@@ -1,6 +1,5 @@
 # Misc math
 
-from dapper import *
 import dapper.tools.utils as utils
 import numpy as np
 import scipy.linalg as sla
@@ -16,10 +15,6 @@ def is1d(a):
     """ Works for list and row/column arrays and matrices"""
     return np.sum(np.asarray(np.asarray(a).shape) > 1) <= 1
 
-def tp(a):
-    """Tranpose 1d vector"""
-    return a[np.newaxis].T
-
 def exactly_1d(a):
     a = np.atleast_1d(a)
     assert a.ndim==1
@@ -33,20 +28,6 @@ def exactly_2d(a):
 def ccat(*args,axis=0):
     args = [np.atleast_1d(x) for x in args]
     return np.concatenate(args,axis=axis)
-
-def roll_n_sub(arr,item,i_repl=0):
-    """
-    Example::
-
-    >>> roll_n_sub(np.arange(4),99,0)
-    array([99,  0,  1,  2])
-    >>> roll_n_sub(np.arange(4),99,-1)
-    array([ 1,  2,  3, 99])
-    """
-    shift       = i_repl if i_repl<0 else (i_repl+1)
-    arr         = np.roll(arr,shift,axis=0)
-    arr[i_repl] = item
-    return arr
 
 
 ########################
@@ -342,72 +323,6 @@ def curvedspace(start,end,N,curvature=1):
         space01  /= space01[-1]
 
     return start + (end-start)*space01
-
-@dataclass
-class CurvedSpace:
-    """A selected segment of logspace, affinely transformed to [start,end].
-
-    - curvature== 0: ==> linspace (start,end,N)
-    - curvature==+1: ==> geomspace(start,end,N)
-    - curvature==-1: ==> idem, but reflected about y=x
-
-    Example:
-    >>> fig, ax = freshfig(1)
-    >>> cs =     CurvedSpace(1e-1, 10, 3)
-    >>> ax.plot(np.geomspace(1e-1, 10, 201)       , label="geomspace")
-    >>> ax.plot(np.linspace (1e-1, 10, 201)       , label="linspace")
-    >>> ax.plot(                cs.arr(201) , 'y:', label="CurvedSpace"  )
-    >>> ax.plot(        cs.invf(cs.arr(201)), 'g:', label="invf(func(x))")
-    >>> ax.legend()
-
-    Also provided are the generating functions and its inverse,
-    which can be used for fig. axis scaling, eg.
-    >>> ax.set_yscale('function',functions=(func,invf))
-
-    Also see:
-    - linspace_int
-    - np.linspace
-    - np.logspace
-    - np.geomspace
-    """
-    start     : float
-    end       : float
-    curvature : float = 1
-
-    # The following recipe is equivalent to ``arr(N)``, but +pedagogic.
-    # It (more or less) explains how the I derived ``func``.
-    # if -1e-12 < curvature < 1e-12:
-    #     # Define curvature-->0, which is troublesome
-    #     # for linear normalization transformation.
-    #     space01   = np.linspace(0,1,N)
-    # else:
-    #     logspace_end = (end/start)**curvature
-    #     space01      = np.geomspace(1, logspace_end, N) - 1
-    #     space01     /= logspace_end-1 # == space01[-1]
-    # return start + (end-start)*space01
-
-    def arr(self,N):
-        return self.func(np.linspace(self.start, self.end, N))
-
-    def _expand_args(self):
-        a, b = self.start, self.end
-        c, d = (b/a)**self.curvature, b-a
-        return a, b, c, d
-
-    @property
-    def func(self):
-        a, b, c, d = self._expand_args()
-        if -1e-12 < self.curvature < 1e-12:
-              return lambda x: x
-        else: return lambda x: a + d/(c-1)*(c**((x-a)/d) - 1)
-
-    @property
-    def invf(self):
-        a, b, c, d = self._expand_args()
-        if -1e-12 < self.curvature < 1e-12:
-              return lambda y: y
-        else: return lambda y: a + d/np.log(c)*np.log((c-1)/d*(y-a) + 1)
-
 
 
 def circulant_ACF(C,do_abs=False):

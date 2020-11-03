@@ -14,6 +14,7 @@ Used for experiment (xp) specification/administration, including:
 
 from dapper import *
 import dapper.tools.utils as utils
+from dapper.tools.math import Id_op, Id_mat
 from pathlib import Path
 import dataclasses as dcs
 import copy

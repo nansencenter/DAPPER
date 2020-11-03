@@ -33,7 +33,8 @@ if rc.welcome_message:
 
 # from .tools.colors import *
 # from .tools.utils import *
-from .tools.math import *
+# from .tools.math import *
+from .tools.math import is1d, exactly_1d, exactly_2d, ens_compatible, center, integrate_TLM, with_rk4, with_recursion, round2, linspace_int, partial_Id_Obs
 from .tools.stoch import *
 from .tools.matrices import *
 from .tools.randvars import *

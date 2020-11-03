@@ -1,4 +1,6 @@
 from dapper import *
+import dapper as dpr
+from dapper.tools.math import mrdiv, truncate_rank, svd0, tinv
 import dapper.tools.utils as utils
 
 import numpy as np
@@ -133,8 +135,8 @@ def funm_psd(a, fun, check_finite=False):
 
     Example::
 
-      def sqrtm_psd(A):
-          return funm_psd(A, sqrt)
+    >>> def sqrtm_psd(A):
+    >>>     return funm_psd(A, sqrt)
     """
     w, v = sla.eigh(a, check_finite=check_finite)
     w = np.maximum(w, 0)
@@ -147,11 +149,11 @@ def chol_reduce(Right):
 
     Example::
 
-      A = mean0(randn((20,5)),axis=1)
-      C = A.T @ A
-      # sla.cholesky(C) throws error
-      R = chol_reduce(A)
-      R.shape[1] == 4
+    >>> A = dpr.mean0(randn((20,5)),axis=1)
+    >>> C = A.T @ A
+    >>> # sla.cholesky(C) throws error
+    >>> R = chol_reduce(A)
+    >>> R.shape[1] == 4
     """
     _,sig,UT = sla.svd(Right,full_matrices=False)
     R = sig[:,None]*UT
@@ -217,7 +219,7 @@ class CovMat():
             # If a cholesky factor has been input, we will not
             # automatically go for the EVD, seeing as e.g. the
             # diagonal can be computed without it.
-            R       = exactly_2d(data)
+            R       = dpr.exactly_2d(data)
             self._R = R
             self._m = R.shape[1]
         else:
@@ -228,7 +230,7 @@ class CovMat():
             if kind=='full':
                 # If full has been imput, then we have memory for an EVD,
                 # which will probably be put to use in the DA.
-                C           = exactly_2d(data)
+                C           = dpr.exactly_2d(data)
                 self._C     = C
                 M           = len(C)
                 d,V         = sla.eigh(C)
@@ -241,7 +243,7 @@ class CovMat():
                 # With diagonal input, it would be great to use a sparse
                 # (or non-existant) representation of V,
                 # but that would require so much other adaption of other code.
-                d         = exactly_1d(data)
+                d         = dpr.exactly_1d(data)
                 self.diag = d
                 M         = len(d)
                 if np.all(d==d[0]):

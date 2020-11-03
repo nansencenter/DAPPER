@@ -1,6 +1,7 @@
 """Reproduce results from Sakov and Oke 'DEnKF' paper from 2008."""
 
 from dapper import *
+import dapper as dpr
 import numpy as np
 
 from dapper.mods.QG.core import model_config, shape, sample_filename, LP_setup
@@ -33,7 +34,7 @@ X0 = RV(M=Dyn['M'],file=sample_filename)
 
 # This will look like satellite tracks when plotted in 2D
 Ny = 300
-jj = linspace_int(Dyn['M'],Ny)
+jj = dpr.linspace_int(Dyn['M'],Ny)
 
 # Want: random_offset(t1)==random_offset(t2) if t1==t2.
 # Solutions: (1) use caching (ensure maxsize=inf) or (2) stream seeding.
@@ -49,7 +50,7 @@ def random_offset(t):
 def obs_inds(t):
     return jj + random_offset(t)
 
-@ens_compatible
+@dpr.ens_compatible
 def hmod(E,t):
     return E[obs_inds(t)]
 

@@ -4,6 +4,7 @@ Plot settings inspired by Wikipedia."""
 
 from dapper import *
 from matplotlib import pyplot as plt
+from dapper.tools.math import with_rk4, with_recursion
 import core
 
 def demo(u,s0,N,as_points,ends):

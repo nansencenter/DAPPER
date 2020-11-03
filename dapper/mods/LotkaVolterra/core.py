@@ -3,6 +3,7 @@
 #       Vano et al (2006): "Chaos in low-dimensional Lotka-Volterra models of competition".
 
 from dapper import *
+import dapper as dpr
 from dapper.tools.math import integrate_TLM
 
 Nx = 4
@@ -23,7 +24,7 @@ x0 = 0.25*np.ones(Nx)
 def dxdt(x):
     return (r*x) * (1 - x@A.T)
 
-step = with_rk4(dxdt,autonom=True)
+step = dpr.with_rk4(dxdt,autonom=True)
 
 Tplot = 100
 

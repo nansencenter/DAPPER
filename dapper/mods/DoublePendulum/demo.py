@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from numpy import sin, cos
 from dapper import *
+from dapper import with_recursion
 from dapper.mods.DoublePendulum.core import step, x0, energy, L1, L2
 
 E0 = x0 + 0.01*randn((3,4))

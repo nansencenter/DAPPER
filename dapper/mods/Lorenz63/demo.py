@@ -2,6 +2,7 @@
 # "DAPPER/tutorials/T4 - Dynamical systems, chaos, Lorenz.ipynb"
 
 from dapper import *
+from dapper import with_recursion
 from core import step, x0
 from matplotlib import pyplot as plt
 import numpy as np
@@ -18,6 +19,5 @@ ax.plot(*np.atleast_2d(xx[-1]).T, '*r', ms=14)
 
 fig.suptitle('Phase space evolution')
 ax.set_facecolor('w')
-[eval("ax.set_%slabel('%s')"%(s,s)) for s in "xyz"]
-
+for s in "xyz": eval(f"ax.set_{s}label('{s}')")
 plt.show()

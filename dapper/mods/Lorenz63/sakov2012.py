@@ -2,6 +2,7 @@
 'An Iterative EnKF for Strongly Nonlinear Systems'"""
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.Lorenz63.core import step, dstep_dx, x0, Tplot, LPs
 
@@ -19,7 +20,7 @@ Dyn = {
 X0 = GaussRV(C=2,mu=x0)
 
 jj = np.arange(Nx) # obs_inds
-Obs = partial_Id_Obs(Nx, jj)
+Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 2 # GaussRV(C=CovMat(2*eye(Nx)))
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)

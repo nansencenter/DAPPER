@@ -1,5 +1,7 @@
 from dapper import *
 import dapper.tools.utils as utils
+import dapper.tools.math
+from dapper.tools.math import mrdiv, mldiv, svd0, pad0, tinv
 from dapper.tools.utils import progbar
 import numpy as np
 from numpy import eye, diag, zeros, ones, sqrt, arange
@@ -469,13 +471,13 @@ def raw_C12(E,w):
     and also computed based on a weighted mean.
     """
     # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if weight_degeneracy(w):
+    if dapper.tools.math.weight_degeneracy(w):
         w = ones(len(w))/len(w)
         # PS: 'avoid_pathological' already treated here.
 
     mu  = w@E
     A   = E - mu
-    ub  = unbias_var(w, avoid_pathological=False)
+    ub  = dapper.tools.math.unbias_var(w, avoid_pathological=False)
     C12 = sqrt(ub*w[:,None]) * A
     return C12
 

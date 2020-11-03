@@ -2,6 +2,7 @@
 in Geophysical Data Assimilation'."""
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.Lorenz96 import core
 
@@ -17,7 +18,7 @@ Dyn = {
 X0 = GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0,Nx,2)
-Obs = partial_Id_Obs(Nx,jj)
+Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 1.5
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)

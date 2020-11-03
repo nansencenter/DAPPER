@@ -12,6 +12,7 @@ some of which are mentioned below.
 """
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.Lorenz96.core import step, dstep_dx, x0, Tplot, LPs
 from dapper.tools.localization import nd_Id_localization
@@ -32,7 +33,7 @@ Dyn = {
 X0 = GaussRV(mu=x0, C=0.001) 
 
 jj = np.arange(Nx) # obs_inds
-Obs = partial_Id_Obs(Nx, jj)
+Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization( (Nx,), (2,) )
 

@@ -1,10 +1,11 @@
 """Demonstrate the Lorenz-84 model."""
 
 from dapper import *
+import dapper as dpr
 from dapper.mods.Lorenz84.core import step, x0
 from matplotlib import pyplot as plt
 
-simulator = with_recursion(step, prog="Simulating")
+simulator = dpr.with_recursion(step, prog="Simulating")
 
 N  = 400
 K  = 10

@@ -25,6 +25,7 @@ https://github.com/nansencenter/DAPPER#highlights
 """
 
 from dapper import *
+import dapper as dpr
 from matplotlib import pyplot as plt
 
 ##############################
@@ -49,7 +50,7 @@ params = dict(
     N        = [5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50],
     infl     = 1+np.array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]),
     rot      = [True, False],
-    loc_rad  = round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]),
+    loc_rad  = dpr.round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]),
 )
 
 xps = xpList()

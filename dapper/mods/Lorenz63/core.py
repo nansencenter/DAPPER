@@ -5,12 +5,12 @@ See demo.py for more info.
 
 
 import numpy as np
-from dapper.tools.math import with_rk4, is1d, ens_compatible, integrate_TLM
+import dapper as dpr
 
 # Constants
 sig = 10.0; rho = 28.0; beta = 8.0/3
 
-@ens_compatible
+@dpr.ens_compatible
 def dxdt(x):
     "Evolution equation (coupled ODEs) specifying the dynamics."
     d     = np.zeros_like(x)
@@ -21,7 +21,7 @@ def dxdt(x):
     return d
 
 # Time-step integration.
-step = with_rk4(dxdt,autonom=True)
+step = dpr.with_rk4(dxdt,autonom=True)
 
 # Time span for plotting. Typically: ≈10 * "system time scale".
 Tplot = 4.0
@@ -47,7 +47,7 @@ def d2x_dtdx(x):
 
 def dstep_dx(x,t,dt):
     """Resolvent (propagator) of the TLM: Jacobian of step(x)."""
-    return integrate_TLM(d2x_dtdx(x),dt,method='approx')
+    return dpr.integrate_TLM(d2x_dtdx(x),dt,method='approx')
 
 
 ################################################

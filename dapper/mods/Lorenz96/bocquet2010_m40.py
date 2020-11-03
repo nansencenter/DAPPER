@@ -1,5 +1,6 @@
 """Same as bocquet2010, except that here ndim=40 (i.e. Fig. 5 of paper)"""
 from dapper.mods.Lorenz96.bocquet2010 import *
+import dapper as dpr
 
 Nx = 40
 Dyn['M'] = Nx
@@ -7,7 +8,7 @@ Dyn['M'] = Nx
 X0 = GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0,Nx,2)
-Obs = partial_Id_Obs(Nx,jj)
+Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 1.5
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0)

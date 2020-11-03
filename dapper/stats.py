@@ -2,6 +2,7 @@
 
 from dapper import *
 import dapper.tools.utils as utils
+import dapper.tools.math
 import numpy as np
 import scipy.linalg as sla
 import warnings
@@ -270,7 +271,7 @@ class Stats(StatPrint):
 
         # Compute variances
         var  = w @ A_pow
-        ub   = unbias_var(w,avoid_pathological=True)
+        ub   = dapper.tools.math.unbias_var(w,avoid_pathological=True)
         var *= ub
 
         # Compute standard deviation ("Spread")

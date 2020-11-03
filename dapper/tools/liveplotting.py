@@ -1,5 +1,7 @@
 from dapper import *
+import dapper as dpr
 from dapper.tools.utils import progbar
+import dapper.tools.math
 import matplotlib as mpl
 import numpy as np
 from numpy import arange, ones, nan
@@ -596,8 +598,8 @@ class correlations:
         # Plot
         self.im.set_data(C)
         # Auto-corr function
-        ACF = circulant_ACF(C)
-        AAF = circulant_ACF(C,do_abs=True)
+        ACF = dpr.tools.math.circulant_ACF(C)
+        AAF = dpr.tools.math.circulant_ACF(C,do_abs=True)
         self.line_AC.set_ydata(ACF)
         self.line_AA.set_ydata(AAF)
 
@@ -632,7 +634,7 @@ def sliding_marginals(
         # Chose marginal dims to plot
         if p.dims==[]:
             Nx      = min(10,xx.shape[-1])
-            DimsX   = linspace_int(xx.shape[-1], Nx)
+            DimsX   = dpr.linspace_int(xx.shape[-1], Nx)
         else:
             Nx      = len(p.dims)
             DimsX   = p.dims

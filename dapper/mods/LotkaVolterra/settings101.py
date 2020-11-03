@@ -1,6 +1,7 @@
 # Settings not taken from anywhere
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.LotkaVolterra.core import step, dstep_dx, x0, LP_setup, Tplot
 
@@ -22,7 +23,7 @@ Dyn = {
 X0 = GaussRV(mu=x0,C=0.01**2)
 
 jj = [1,3]
-Obs = partial_Id_Obs(Nx,jj)
+Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.04**2
 
 HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LP_setup(jj))

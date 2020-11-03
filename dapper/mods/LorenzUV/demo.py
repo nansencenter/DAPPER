@@ -1,6 +1,7 @@
 """Demonstrate the Lorenz two-speed/scale/layer model."""
 
 from dapper import *
+import dapper as dpr
 from dapper.tools.utils import progbar
 from matplotlib import pyplot as plt
 import numpy as np
@@ -11,8 +12,8 @@ nU, J = LUV.nU, LUV.J
 dt = 0.005
 K  = int(4/dt)
 
-step_1 = with_rk4(LUV.dxdt,autonom=True)
-step_K = with_recursion(step_1,prog='Simulating')
+step_1 = dpr.with_rk4(LUV.dxdt,autonom=True)
+step_K = dpr.with_recursion(step_1,prog='Simulating')
 
 xx = step_K(LUV.x0,K,np.nan,dt)
 

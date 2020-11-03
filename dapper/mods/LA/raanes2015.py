@@ -3,6 +3,8 @@
 # "Extending the square root method to account for additive forecast noise in ensemble methods."
 
 from dapper import *
+import dapper as dpr
+from dapper.tools.math import tsvd
 
 from dapper.mods.LA.core import sinusoidal_sample, Fmat
 from dapper.mods.Lorenz96.core import LPs
@@ -14,8 +16,8 @@ tseq = Chronology(dt=1,dkObs=5,T=500,BurnIn=60,Tplot=100)
 Nx = 1000;
 Ny = 40;
 
-jj = linspace_int(Nx,Ny)
-Obs = partial_Id_Obs(Nx,jj)
+jj = dpr.linspace_int(Nx,Ny)
+Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
 
@@ -36,7 +38,7 @@ except FileNotFoundError:
           'for experiment initialization. Generating...')
     NQ        = 20000 # Must have NQ > (2*wnumQ+1)
     A         = sinusoidal_sample(Nx,wnumQ,NQ)
-    A         = 1/10 * center(A)[0] / sqrt(NQ)
+    A         = 1/10 * dpr.center(A)[0] / sqrt(NQ)
     Q         = A.T @ A
     U,s,_     = tsvd(Q)
     L         = U*sqrt(s)

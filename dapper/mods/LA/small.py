@@ -2,6 +2,7 @@
 # => convenient for debugging, e.g., scripts/test_iEnKS.py
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.LA.core import Fmat, homogeneous_1D_cov
 from dapper.mods.Lorenz96.core import LPs
@@ -27,8 +28,8 @@ Dyn = {
 X0 = GaussRV(mu=np.zeros(Nx), C=homogeneous_1D_cov(Nx,Nx/8,kind='Gauss'))
 
 Ny  = 4
-jj = linspace_int(Nx,Ny)
-Obs  = partial_Id_Obs(Nx,jj)
+jj = dpr.linspace_int(Nx,Ny)
+Obs  = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
 

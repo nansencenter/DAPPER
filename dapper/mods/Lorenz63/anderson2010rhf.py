@@ -3,6 +3,7 @@
 
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.Lorenz63.core import step, dstep_dx, x0, Tplot
 
@@ -19,7 +20,7 @@ Dyn = {
 
 X0 = GaussRV(C=2,mu=x0)
 
-Obs = partial_Id_Obs(Nx,np.arange(Nx))
+Obs = dpr.partial_Id_Obs(Nx,np.arange(Nx))
 Obs['noise'] = 8.0
 
 

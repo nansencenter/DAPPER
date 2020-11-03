@@ -2,6 +2,7 @@
 
 from dapper import *
 from dapper.tools.utils import progbar
+from dapper.tools.math import mrdiv
 
 @da_method()
 class ExtKF:

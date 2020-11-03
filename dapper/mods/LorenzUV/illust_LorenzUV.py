@@ -2,6 +2,7 @@
 # Sorry for the mess.
 
 from dapper import *
+import dapper as dpr
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from dapper.tools.utils import progbar
@@ -18,8 +19,8 @@ dt = 0.005
 t0 = np.nan
 K  = int(10/dt)
 
-step_1 = with_rk4(LUV.dxdt,autonom=True)
-step_K = with_recursion(step_1,prog=1)
+step_1 = dpr.with_rk4(LUV.dxdt,autonom=True)
+step_K = dpr.with_recursion(step_1,prog=1)
 
 x0 = 0.01*randn(LUV.M)
 x0 = step_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
@@ -58,8 +59,8 @@ dY = 4 # SET TO: 1 for wilks05, 4 for lorenz96
 # U-vars: major
 tU = iU[1:-1]
 lU = np.array([str(i+1) for i in range(nU)])
-tU = ccat(tU[0],tU[dY-1::dY])
-lU = ccat(lU[0],lU[dY-1::dY])
+tU = dpr.ccat(tU[0],tU[dY-1::dY])
+lU = dpr.ccat(lU[0],lU[dY-1::dY])
 for t, l in zip(tU,lU):
     ax.text(t,ym-.6,l,fontsize=mpl.rcParams['xtick.labelsize'],horizontalalignment='center')
     ax.vlines(t, ym, -3.78, 'k',lw=mpl.rcParams['xtick.major.width'])

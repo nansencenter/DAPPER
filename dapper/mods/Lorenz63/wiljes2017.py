@@ -3,13 +3,14 @@
 # author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},
 
 from dapper import *
+import dapper as dpr
 
 from dapper.mods.Lorenz63.sakov2012 import HMM, Nx
 
 HMM.t = Chronology(0.01,dkObs=12,T=4**5,BurnIn=4)
 
 jj = np.array([0])
-Obs = partial_Id_Obs(Nx,jj)
+Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 8
 HMM.Obs = Operator(**Obs)
 
