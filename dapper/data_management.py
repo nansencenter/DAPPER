@@ -12,6 +12,7 @@ from dapper.stats import tabulate_column, unpack_uqs
 import dapper.tools.remote.uplink as uplink
 import dapper.tools.utils as utils
 import colorama
+import dill
 
 import matplotlib as mpl
 from pathlib import Path
@@ -518,7 +519,7 @@ class xpSpace(SparseSpace):
                 axes[ax_name] = ticks
 
         # Define axes
-        xp_list = xpList(xps)
+        xp_list = dpr.xpList(xps)
         axes = xp_list.split_attrs(nomerge=['Const'])[0]
         make_ticks(axes)
         self = cls(axes.keys())
@@ -830,7 +831,7 @@ class xpSpace(SparseSpace):
                 #   Coz there we have no ambition to split the attrs,
                 #   which would also require excessive processing:
                 #   nesting the table as cols, and then split_attrs() on cols.
-                row_keys = xpList(table.keys()).split_attrs()[0]
+                row_keys = dpr.xpList(table.keys()).split_attrs()[0]
                 row_keys = pd.DataFrame.from_dict(row_keys,dtype="O") # allow storing None
                 if len(row_keys.columns):
                     # Header

@@ -23,7 +23,7 @@ jj = np.arange(Nx) # obs_inds
 Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 2 # dpr.GaussRV(C=CovMat(2*eye(Nx)))
 
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
 
 HMM.liveplotters = LPs(jj)
 

@@ -12,7 +12,7 @@ HMM.t = dpr.Chronology(0.01,dkObs=12,T=4**5,BurnIn=4)
 jj = np.array([0])
 Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 8
-HMM.Obs = Operator(**Obs)
+HMM.Obs = dpr.Operator(**Obs)
 
 ####################
 # Suggested tuning

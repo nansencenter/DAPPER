@@ -3,8 +3,9 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0)."""
 
 import numpy as np
 from dapper import *
+import dapper as dpr
 
-xps  = xpList(unique=True)
+xps  = dpr.xpList(unique=True)
 
 from dapper.mods.LA.small import HMM
 HMM.t.BurnIn=0

@@ -1,5 +1,6 @@
 from dapper import *
 import dapper as dpr
+from dapper.admin import da_method
 import dapper.tools.utils as utils
 import dapper.tools.math
 from dapper.tools.matrices import funm_psd, chol_reduce

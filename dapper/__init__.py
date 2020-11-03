@@ -48,7 +48,7 @@ from .tools.magic import magic_naming, spell_out
 # from .tools.multiprocessing import *
 # from .tools.remote.uplink import *
 from .stats import register_stat
-from .admin import *
+from .admin import HiddenMarkovModel, Operator, da_method, seed_and_simulate, xpList, get_param_setter
 from .data_management import *
 from .da_methods.ensemble import *
 from .da_methods.particle import *

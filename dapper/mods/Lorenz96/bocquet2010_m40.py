@@ -11,7 +11,7 @@ jj = np.arange(0,Nx,2)
 Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 1.5
 
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
 
 ####################
 # Suggested tuning

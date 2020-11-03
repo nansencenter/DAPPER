@@ -37,7 +37,7 @@ Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.5
 Obs['localizer'] = nd_Id_localization( (Nx,), (2,), jj )
 
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
 
 
 

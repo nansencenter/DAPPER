@@ -16,7 +16,7 @@ HMM.t.KObs=10
 dpr.set_seed(3000)
 
 # xps
-xps  = xpList()
+xps  = dpr.xpList()
 xps += Climatology()
 xps += OptInterp()
 xps += Var3D(xB=0.1)
@@ -73,7 +73,7 @@ HMM.t.KObs=10
 dpr.set_seed(3000)
 
 # xps
-xps  = xpList()
+xps  = dpr.xpList()
 xps += Climatology()
 xps += OptInterp()
 xps += Var3D(xB=0.02)

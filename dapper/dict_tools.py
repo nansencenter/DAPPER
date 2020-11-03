@@ -74,11 +74,11 @@ def complement(iterable, unwanteds):
 # Complement should be called "relative complement" (or set diff)
 
 
-def dict_product(dct):
+def prodct(dct):
     """Cartesian/Outer product, for dicts.
 
     Example:
-    >>> list(dict_product(dict(n=[1,2], c='ab')))
+    >>> list(prodct(dict(n=[1,2], c='ab')))
     [{'n': 1, 'c': 'a'},
      {'n': 1, 'c': 'b'},
      {'n': 2, 'c': 'a'},

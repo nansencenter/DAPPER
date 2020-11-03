@@ -26,7 +26,7 @@ Obs['localizer'] = nd_Id_localization( (Nx,), (1,), jj )
 # Obs['noise'] = RVs.LaplaceRV(C=1,M=len(jj))
 Obs['noise'] = RVs.LaplaceParallelRV(C=1,M=len(jj))
 
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
 
 ####################
 # Suggested tuning

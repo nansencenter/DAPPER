@@ -22,7 +22,7 @@ Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization( (Nx,), (1,), jj )
 
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0,
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,
           LP=LPs(jj),
           sectors={'land':land_sites, 'ocean': ocean_sites}
       )

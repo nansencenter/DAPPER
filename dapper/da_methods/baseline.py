@@ -5,6 +5,7 @@ Many are based on [Raa16a]_.
 
 from dapper import *
 import dapper as dpr
+from dapper.admin import da_method
 from dapper.tools.utils import progbar
 import dapper.tools.math as mtools
 import numpy as np

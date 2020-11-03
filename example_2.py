@@ -7,7 +7,7 @@ dpr.set_seed(3000)
 ##############################
 # DA method configurations
 ##############################
-xps = xpList()
+xps = dpr.xpList()
 
 from dapper.mods.Lorenz63.sakov2012 import HMM   # Expected rmse.a:
 xps += Climatology()                                     # 7.6

@@ -37,7 +37,7 @@ def setup(hmm,xp):
     """Experiment init.: Set Lorenz-96 forcing. Seed. Simulate truth/obs."""
     import dapper.mods.Lorenz96.core as core
     core.Force = xp.F
-    return seed_and_simulate(hmm,xp)
+    return dpr.seed_and_simulate(hmm,xp)
 
 # This is shorter than Ref[1], but we also use repetitions (a seed list).
 HMM.t.KObs = 10**4
@@ -53,8 +53,8 @@ params = dict(
     loc_rad  = dpr.round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]),
 )
 
-xps = xpList()
-for_params = get_param_setter(params, seed=3000+np.arange(10), F=[8,10])
+xps = dpr.xpList()
+for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8,10])
 xps += for_params(Climatology)
 xps += for_params(OptInterp)
 xps += for_params(Var3D, B="eye")

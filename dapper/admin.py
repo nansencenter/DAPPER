@@ -12,12 +12,14 @@ Used for experiment (xp) specification/administration, including:
  - Operator
 """
 
-from dapper import *
 import dapper.stats
+import dapper.dict_tools as dict_tools
+from dapper.tools.chronos import Chronology
+from dapper.tools.randvars import RV, GaussRV
+from dapper.tools.stoch import set_seed
 from dapper.tools.multiprocessing import mpd
 from dapper.dpr_config import rc
 from dapper.tools.remote.uplink import submit_job_GCP
-import dapper as dpr
 import dapper.tools.utils as utils
 from dapper.tools.localization import no_localization
 from dapper.tools.math import Id_op, Id_mat
@@ -37,7 +39,7 @@ import dill
 import shutil
 from datetime import datetime
 
-class HiddenMarkovModel(NicePrint):
+class HiddenMarkovModel(dict_tools.NicePrint):
     """Container for attributes of a Hidden Markov Model (HMM).
 
     This container contains the specification of a "twin experiment",
@@ -45,10 +47,10 @@ class HiddenMarkovModel(NicePrint):
     """
 
     def __init__(self,Dyn,Obs,t,X0,**kwargs):
-        self.Dyn = Dyn if isinstance(Dyn,     Operator)   else Operator      (**Dyn)
-        self.Obs = Obs if isinstance(Obs,     Operator)   else Operator      (**Obs)
-        self.t   = t   if isinstance(t  , dpr.Chronology) else dpr.Chronology(**t)
-        self.X0  = X0  if isinstance(X0 , dpr.RV)         else dpr.RV        (**X0)
+        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn)
+        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs)
+        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)
+        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)
 
         # Name
         self.name = kwargs.pop("name", "")
@@ -101,7 +103,7 @@ class HiddenMarkovModel(NicePrint):
 
 
 
-class Operator(NicePrint):
+class Operator(dict_tools.NicePrint):
     """Container for operators (models)."""
     def __init__(self,M,model=None,noise=None,**kwargs):
         self.M = M
@@ -113,14 +115,14 @@ class Operator(NicePrint):
         self.model = model
 
         # None/0 => No noise
-        if isinstance(noise, dpr.RV):
+        if isinstance(noise, RV):
             self.noise = noise
         else:
             if noise is None: noise = 0
             if np.isscalar(noise):
-                self.noise = dpr.GaussRV(C=noise,M=M)
+                self.noise = GaussRV(C=noise,M=M)
             else:
-                self.noise = dpr.GaussRV(C=noise)
+                self.noise = GaussRV(C=noise)
 
         # Write attributes
         for key, value in kwargs.items():
@@ -218,7 +220,7 @@ def seed_and_simulate(HMM,xp):
     
     Note: if there is no ``xp.seed`` then then the seed is not set.
     Thus, different experiments will produce different truth and obs."""
-    dpr.set_seed(getattr(xp,'seed',False))
+    set_seed(getattr(xp,'seed',False))
     xx, yy = HMM.simulate()
     return xx, yy
 
@@ -382,7 +384,7 @@ class xpList(list):
 
             # Remove unwanted
             excluded  = [re.compile('^_'),'avrgs','stats','HMM','duration']
-            aggregate = dtools.complement(aggregate,excluded)
+            aggregate = dict_tools.complement(aggregate,excluded)
             return aggregate
 
         distinct, redundant, common = {}, {}, {}
@@ -394,7 +396,7 @@ class xpList(list):
             vals = [getattr(xp,key,"N/A") for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
-            if dtools.flexcomp(key, *nomerge):
+            if dict_tools.flexcomp(key, *nomerge):
                 # nomerge => Distinct
                 dct, vals = distinct, vals
             elif all(vals[0]==v for v in vals):
@@ -425,7 +427,7 @@ class xpList(list):
         s = '<xpList> of length %d with attributes:\n'%len(self)
         s += utils.tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
-        s += str(dtools.AlignedDict({**redundant, **common}))
+        s += str(dict_tools.AlignedDict({**redundant, **common}))
         return s
 
     def gen_names(self,abbrev=6,tab=False):
@@ -625,16 +627,16 @@ def get_param_setter(param_dict, **glob_dict):
     """
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dcs.fields(method)]
-        params = dtools.intersect(param_dict, dc_fields)
-        params = dtools.complement(params, fixed_params)
+        params = dict_tools.intersect(param_dict, dc_fields)
+        params = dict_tools.complement(params, fixed_params)
         params = {**glob_dict, **params} # glob_dict 1st
 
         def xp1(dct):
-            xp = method(**dtools.intersect(dct, dc_fields),**fixed_params)
-            for key, v in dtools.intersect(dct, glob_dict).items():
+            xp = method(**dict_tools.intersect(dct, dc_fields),**fixed_params)
+            for key, v in dict_tools.intersect(dct, glob_dict).items():
                 setattr(xp,key,v)
             return xp
 
-        return [xp1(dct) for dct in dtools.dict_product(params)]
+        return [xp1(dct) for dct in dict_tools.prodct(params)]
     return for_params
 

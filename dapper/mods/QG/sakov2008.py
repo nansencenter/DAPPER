@@ -79,7 +79,7 @@ Obs['loc_shift'] = lambda ii, dt: ii # no movement (suboptimal, but easy)
 ############################
 # Other
 ############################
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0, LP=LP_setup(obs_inds) )
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0, LP=LP_setup(obs_inds) )
 
 
 ####################

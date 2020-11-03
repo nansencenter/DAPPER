@@ -36,7 +36,7 @@ Obs = {
     'localizer': localization_setup(lambda t: y2x_dists, batches),
 }
 
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LPs(jj),
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,LP=LPs(jj),
           sectors={'land':np.arange(*xtrema(obs_sites)).astype(int)})
 
 ####################

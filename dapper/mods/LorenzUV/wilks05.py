@@ -36,7 +36,7 @@ Obs = dpr.partial_Id_Obs(LUV.M,jj)
 Obs['noise'] = R
 
 other = {'name': utils.rel2mods(__file__)+'_full'}
-HMM_full = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
+HMM_full = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 
 
 ################
@@ -59,7 +59,7 @@ Obs = dpr.partial_Id_Obs(nU,jj)
 Obs['noise'] = R
 
 other = {'name': utils.rel2mods(__file__)+'_trunc'}
-HMM_trunc = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
+HMM_trunc = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 
 LUV.prmzt = lambda t,x: polynom_prmzt(t,x,1)
 

@@ -1,6 +1,7 @@
 """The extended KF (EKF) and the (Rauch-Tung-Striebel) smoother."""
 
 from dapper import *
+from dapper.admin import da_method
 from dapper.tools.utils import progbar
 from dapper.tools.math import mrdiv
 

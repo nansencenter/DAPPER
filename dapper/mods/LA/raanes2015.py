@@ -61,7 +61,7 @@ Dyn = {
 }
 
 ################### Gather ###################
-HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
 
 
 

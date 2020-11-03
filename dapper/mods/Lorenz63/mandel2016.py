@@ -9,7 +9,7 @@ from dapper.mods.Lorenz63.sakov2012 import HMM
 # HMM.t = dpr.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
 # But it's pretty safe to shorten the BurnIn and KObs.
 
-HMM.Obs = Operator(**{
+HMM.Obs = dpr.Operator(**{
     'M'    : 3,
     'model': lambda x,t: x**3,
     'noise': 8

@@ -47,7 +47,7 @@ X0 = dpr.RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx,wnum,N))
 Obs = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
-HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
 
 
 ####################

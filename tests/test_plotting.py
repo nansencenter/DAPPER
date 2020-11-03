@@ -3,6 +3,7 @@
 # only whether they cause errors or not.
 
 from dapper import *
+import dapper as dpr
 from dapper.tools.liveplotting import replay
 
 import numpy as np
@@ -13,7 +14,7 @@ tools.utils.disable_user_interaction = True # NB remember to set to True
 def test_L63():
   from dapper.mods.Lorenz63.sakov2012 import HMM
 
-  xps  = xpList()
+  xps  = dpr.xpList()
   xps += EnKF('Sqrt',   N=10 ,infl=1.02 ,rot=True)
   xps += PartFilt(      N=20 ,reg=2.4   ,NER=0.3)
   xps += OptInterp()

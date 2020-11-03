@@ -26,7 +26,7 @@ Obs = Id_Obs(Nx)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization( (Nx,), (4,) )
 
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
 
 HMM.liveplotters = LPs(np.arange(Nx))
 

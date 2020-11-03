@@ -68,6 +68,7 @@
 
 
 from dapper.mods.Lorenz96.sakov2008 import *
+import dapper as dpr
 import numpy as np
 
 # The (Nx-Ny) highest frequency observation modes are left out of H below.
@@ -97,7 +98,7 @@ Obs = {
     'noise': dpr.GaussRV(C=0.01*np.eye(Ny)),
 }
 
-HMM = HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
 
 ####################
 # Obs plotting -- needs updating

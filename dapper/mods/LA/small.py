@@ -33,7 +33,7 @@ Obs  = dpr.partial_Id_Obs(Nx,jj)
 Obs['noise'] = 0.01
 
 
-HMM = HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
+HMM = dpr.HiddenMarkovModel(Dyn,Obs,tseq,X0,LP=LPs(jj))
 
 
 ####################
