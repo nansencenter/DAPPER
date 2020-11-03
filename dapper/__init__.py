@@ -46,8 +46,8 @@ from .tools.viz import freshfig
 from .tools.magic import magic_naming, spell_out
 # from .tools.localization import *
 # from .tools.multiprocessing import *
-from .tools.remote.uplink import *
-from .stats import *
+# from .tools.remote.uplink import *
+from .stats import register_stat
 from .admin import *
 from .data_management import *
 from .da_methods.ensemble import *

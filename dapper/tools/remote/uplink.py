@@ -4,8 +4,8 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 
 # TODO 5: use Fabric? https://www.fabfile.org/
 
-from dapper import *
 from dapper.tools.multiprocessing import mpd
+from dapper.dpr_config import rc
 import dapper.tools.utils as utils
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as datetime_parse

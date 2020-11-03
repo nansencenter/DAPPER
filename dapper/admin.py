@@ -13,7 +13,10 @@ Used for experiment (xp) specification/administration, including:
 """
 
 from dapper import *
+import dapper.stats
 from dapper.tools.multiprocessing import mpd
+from dapper.dpr_config import rc
+from dapper.tools.remote.uplink import submit_job_GCP
 import dapper as dpr
 import dapper.tools.utils as utils
 from dapper.tools.localization import no_localization
@@ -197,11 +200,11 @@ def da_method(*default_dataclasses):
             # Progressbar name
             pb_name_hook = self.da_method if desc is None else desc
             # Init stats
-            self.stats = Stats(self,HMM,xx,yy,**stat_kwargs)
+            self.stats = dapper.stats.Stats(self,HMM,xx,yy,**stat_kwargs)
             # Assimilate
             time_start = time.time()
             old_assimilate(self,HMM,xx,yy)
-            register_stat(self.stats,"duration",time.time()-time_start)
+            dapper.stats.register_stat(self.stats,"duration",time.time()-time_start)
 
         old_assimilate = cls.assimilate
         cls.assimilate = functools.wraps(old_assimilate)(assimilate)
@@ -469,7 +472,7 @@ class xpList(list):
         
         Similar to stats.tabulate_avrgs(), but for the entire list of xps."""
         distinct, redundant, common = self.split_attrs()
-        averages = tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
+        averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, '|':['|']*len(self), **averages} # merge
         return utils.tabulate(columns, headers="keys", showindex=True).replace('␣',' ')
 

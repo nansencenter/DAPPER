@@ -1,6 +1,7 @@
 Todo
 ================================================
 Minor:
+* Pause after resume doesn't work
 * Clean up imports into __init__
 * Do some todos
 * Ensure it works with Stein, EmblAUS

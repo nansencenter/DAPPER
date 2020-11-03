@@ -3,12 +3,14 @@
 which is handles the **presentation** of experiment (xp) results."""
 
 ##
+from dapper import *
 import dapper as dpr
 from dapper.tools.colors import color_text
 from dapper.tools.math import isNone
 from dapper.tools.viz import axis_scale_by_array
+from dapper.stats import tabulate_column, unpack_uqs
+import dapper.tools.remote.uplink as uplink
 import dapper.tools.utils as utils
-from dapper import *
 import colorama
 
 import matplotlib as mpl
@@ -142,7 +144,7 @@ def load_HMM(save_as):
 def load_xps(save_as):
     """Load ``xps`` (as a simple list) from dir."""
     save_as = Path(save_as).expanduser()
-    files = [d/"xp" for d in list_job_dirs(save_as)]
+    files = [d/"xp" for d in uplink.list_job_dirs(save_as)]
 
     def load_any(filepath):
         """Load any/all ``xp's`` from ``filepath``."""
@@ -206,7 +208,7 @@ def overwrite_xps(xps,save_as,nDir=100):
     save_xps(xps, save_as/"tmp" , nDir)
 
     # Delete
-    for d in tqdm.tqdm(list_job_dirs(save_as),desc="Deleting old"):
+    for d in tqdm.tqdm(uplink.list_job_dirs(save_as),desc="Deleting old"):
         shutil.rmtree(d)
 
     # Mv up from tmp/ -- goes quick, coz there are not many.

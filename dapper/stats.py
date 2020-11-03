@@ -1,7 +1,9 @@
 """Provide the stats class which defines the "builtin" stats to be computed."""
 
-from dapper import *
+from dapper.dict_tools import DotDict
+import dapper.dict_tools as dict_tools
 from matplotlib import pyplot as plt
+from dapper.dpr_config import rc
 import dapper.tools.liveplotting as liveplotting
 from dapper.tools.series import StatPrint, DataSeries
 import dapper as dpr
@@ -55,7 +57,7 @@ class Stats(StatPrint):
             gm        = lambda x: np.exp(np.mean(np.log(x))) , # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = dtools.intersect(self.field_summaries, rc.field_summaries)
+        self.field_summaries = dict_tools.intersect(self.field_summaries, rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
@@ -153,7 +155,7 @@ class Stats(StatPrint):
             if MS=='sec':
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split('.')
-                    make_series(deep_getattr(self,f"{name}.{suffix}"),sector,())
+                    make_series(dict_tools.deep_getattr(self,f"{name}.{suffix}"),sector,())
 
 
     @property
@@ -220,7 +222,7 @@ class Stats(StatPrint):
 
             # Write current stats to series
             for name,val in stats_now.items():
-                stat = deep_getattr(self,name)
+                stat = dict_tools.deep_getattr(self,name)
                 if isinstance(stat,dpr.series.FAUSt): stat[(k,kObs,sub)] = val
                 else:                      stat[kObs]         = val
 
@@ -240,7 +242,7 @@ class Stats(StatPrint):
                 field = now[stat]
                 for suffix, formula in formulae.items():
                     statpath = stat+'.'+suffix
-                    if deep_hasattr(self, statpath):
+                    if dict_tools.deep_hasattr(self, statpath):
                         now[statpath] = formula(field)
 
 
@@ -468,7 +470,7 @@ class Avrgs(StatPrint,DotDict):
         key = '.'.join(Avrgs.abbrevs.get(l,l) for l in key.split('.'))
 
         if "." in key:
-            return deep_getattr(self,key)
+            return dict_tools.deep_getattr(self,key)
         else:
             return super().__getattribute__(key)
 
@@ -557,7 +559,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val","conf")):
         else:                v,c = np.round([uq.val, uq.conf],decimals)
         arr["val"][i], arr["conf"][i] = v, c
         # Others
-        for col in dtools.complement(cols, ["val","conf"]):
+        for col in dict_tools.complement(cols, ["val","conf"]):
             try: arr[col][i] = getattr(uq,col)
             except AttributeError: pass
 
