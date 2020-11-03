@@ -40,10 +40,10 @@ class HiddenMarkovModel(NicePrint):
     """
 
     def __init__(self,Dyn,Obs,t,X0,**kwargs):
-        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn)
-        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs)
-        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)
-        self.X0  = X0  if isinstance(X0 , dpr.RV)     else dpr.RV    (**X0)
+        self.Dyn = Dyn if isinstance(Dyn,     Operator)   else Operator      (**Dyn)
+        self.Obs = Obs if isinstance(Obs,     Operator)   else Operator      (**Obs)
+        self.t   = t   if isinstance(t  , dpr.Chronology) else dpr.Chronology(**t)
+        self.X0  = X0  if isinstance(X0 , dpr.RV)         else dpr.RV        (**X0)
 
         # Name
         self.name = kwargs.pop("name", "")

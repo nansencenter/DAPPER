@@ -6,7 +6,7 @@ from dapper import *
 import dapper as dpr
 from dapper.mods.Lorenz63.sakov2012 import HMM
 
-# HMM.t = Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
+# HMM.t = dpr.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
 # But it's pretty safe to shorten the BurnIn and KObs.
 
 HMM.Obs = Operator(**{

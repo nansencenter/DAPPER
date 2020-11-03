@@ -5,7 +5,7 @@ import dapper as dpr
 
 from .core import step, x0, Tplot, LPs
 
-t = Chronology(1, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
+t = dpr.Chronology(1, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
 Nx = len(x0)
 

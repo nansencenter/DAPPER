@@ -7,7 +7,7 @@ import dapper as dpr
 from dapper.mods.LA.core import Fmat, homogeneous_1D_cov
 from dapper.mods.Lorenz96.core import LPs
 
-tseq = Chronology(dt=1,dkObs=5,T=300,BurnIn=-1,Tplot=100)
+tseq = dpr.Chronology(dt=1,dkObs=5,T=300,BurnIn=-1,Tplot=100)
 
 Nx = 100
 

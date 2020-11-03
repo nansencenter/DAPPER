@@ -17,8 +17,8 @@ nU = LUV.nU
 # Full
 ################
 
-# t = Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
-t = Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)  # requires rk4
+# t = dpr.Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
+t = dpr.Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)  # requires rk4
 
 
 Dyn = {
@@ -44,7 +44,7 @@ HMM_full = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 ################
 
 # Just change dt from 005 to 05
-t = Chronology(dt=0.05, dtObs=0.05,T=4**3,BurnIn=6)
+t = dpr.Chronology(dt=0.05, dtObs=0.05,T=4**3,BurnIn=6)
 
 Dyn = {
     'M'    : nU,

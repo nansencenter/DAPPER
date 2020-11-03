@@ -6,7 +6,7 @@ import dapper as dpr
 
 from dapper.mods.Lorenz96 import core
 
-t = Chronology(0.05,dkObs=1,T=4**3,BurnIn=20)
+t = dpr.Chronology(0.05,dkObs=1,T=4**3,BurnIn=20)
 
 Nx = 10
 Dyn = {

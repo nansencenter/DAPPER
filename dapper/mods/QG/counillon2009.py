@@ -3,11 +3,12 @@
 by F. Counillon, P. Sakov, and L. Bertino (2009)."""
 
 from dapper import *
+import dapper as dpr
 from dapper.mods.QG.sakov2008 import HMM
 from dapper.mods.QG.core import model_config
 
 dt = 1.25 * 10 # 10 steps between obs (also requires dkObs=1)
-HMM.t = Chronology(dt=dt,dkObs=1,T=1000*dt,BurnIn=10*dt)
+HMM.t = dpr.Chronology(dt=dt,dkObs=1,T=1000*dt,BurnIn=10*dt)
 
 HMM.Dyn.model = model_config("counillon2009_ens"  ,{"dtout":dt, 'RKH2':2.0e-11}).step
 truth_model   = model_config("counillon2009_truth",{"dtout":dt}                ).step

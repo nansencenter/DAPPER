@@ -11,7 +11,7 @@ import dapper as dpr
 
 # Use small dt to "cope with" ocean sector blow up (due to spatially-constant infl)
 OneYear = 0.05 * (24/6) * 365
-t = Chronology(0.005, dtObs=0.05, T=110*OneYear, Tplot=Tplot, BurnIn=10*OneYear)
+t = dpr.Chronology(0.005, dtObs=0.05, T=110*OneYear, Tplot=Tplot, BurnIn=10*OneYear)
 
 land_sites  = np.arange(Nx//2)
 ocean_sites = np.arange(Nx//2,Nx)

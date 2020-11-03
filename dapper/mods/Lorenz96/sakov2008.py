@@ -18,7 +18,7 @@ from dapper.mods.Lorenz96.core import step, dstep_dx, x0, Tplot, LPs
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
-t = Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
+t = dpr.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
 
 Nx = 40
 x0 = x0(Nx)

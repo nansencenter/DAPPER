@@ -5,7 +5,7 @@ import dapper as dpr
 
 from dapper.mods.DoublePendulum.core import step, x0, LP_setup, dstep_dx
 
-t = Chronology(0.01,dkObs=100,T=30,BurnIn=10)
+t = dpr.Chronology(0.01,dkObs=100,T=30,BurnIn=10)
 
 Dyn = {
     'M'     : len(x0),

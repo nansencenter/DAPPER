@@ -9,7 +9,7 @@ import dapper.tools.randvars as RVs
 from dapper.mods.Lorenz96 import core
 from dapper.tools.localization import nd_Id_localization
 
-t = Chronology(0.05,dkObs=2,T=4**5,BurnIn=20)
+t = dpr.Chronology(0.05,dkObs=2,T=4**5,BurnIn=20)
 
 Nx = 80
 Dyn = {

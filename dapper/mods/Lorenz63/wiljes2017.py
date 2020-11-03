@@ -7,7 +7,7 @@ import dapper as dpr
 
 from dapper.mods.Lorenz63.sakov2012 import HMM, Nx
 
-HMM.t = Chronology(0.01,dkObs=12,T=4**5,BurnIn=4)
+HMM.t = dpr.Chronology(0.01,dkObs=12,T=4**5,BurnIn=4)
 
 jj = np.array([0])
 Obs = dpr.partial_Id_Obs(Nx,jj)

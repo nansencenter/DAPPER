@@ -3,9 +3,10 @@
 # Here we increase dkObs to make the DA problem more difficult.
 
 from dapper import *
+import dapper as dpr
 from dapper.mods.Lorenz84.pajonk2012 import HMM
 
-HMM.t = Chronology(0.05,dkObs=10,T=4**5,BurnIn=20)
+HMM.t = dpr.Chronology(0.05,dkObs=10,T=4**5,BurnIn=20)
 
 
 ####################

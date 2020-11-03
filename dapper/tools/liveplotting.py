@@ -1,6 +1,7 @@
 from dapper import *
 import dapper as dpr
 from dapper.tools.utils import progbar
+from dapper.tools.chronos import format_time
 import dapper.tools.math
 import matplotlib as mpl
 import numpy as np

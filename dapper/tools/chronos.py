@@ -1,6 +1,6 @@
 # Time sequence management
 
-from dapper import *
+from dapper import dtools
 import dapper.tools.utils as utils
 from dapper.tools.math import is_int
 import numpy as np

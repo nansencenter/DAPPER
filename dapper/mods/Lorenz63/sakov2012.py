@@ -6,7 +6,7 @@ import dapper as dpr
 
 from dapper.mods.Lorenz63.core import step, dstep_dx, x0, Tplot, LPs
 
-t = Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
+t = dpr.Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
 Nx = len(x0)
 

@@ -9,7 +9,7 @@ from dapper.mods.LotkaVolterra.core import step, dstep_dx, x0, LP_setup, Tplot
 # using dt up to 0.7 does not change the chaotic properties much,
 # as adjudged with eye-ball and Lyapunov measures.
 
-t = Chronology(0.5,dtObs=10,T=1000,BurnIn=Tplot,Tplot=Tplot)
+t = dpr.Chronology(0.5,dtObs=10,T=1000,BurnIn=Tplot,Tplot=Tplot)
 
 Nx = len(x0)
 

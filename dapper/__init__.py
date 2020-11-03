@@ -38,7 +38,7 @@ from .tools.math import is1d, exactly_1d, exactly_2d, ens_compatible, center, in
 from .tools.stoch import set_seed, rand, randn
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
-from .tools.chronos import *
+from .tools.chronos import Chronology
 from .tools.series import *
 from .tools.viz import *
 from .tools.liveplotting import *

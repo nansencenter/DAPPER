@@ -11,7 +11,7 @@ KS = Model(dt=0.5)
 Nx = KS.Nx
 
 # nRepeat=10
-t = Chronology(KS.dt, dkObs=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
+t = dpr.Chronology(KS.dt, dkObs=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
 
 Dyn = {
     'M'     : Nx,
