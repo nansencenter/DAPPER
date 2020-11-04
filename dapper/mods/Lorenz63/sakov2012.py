@@ -2,6 +2,7 @@
 'An Iterative EnKF for Strongly Nonlinear Systems'"""
 
 from dapper import *
+import numpy as np
 import dapper as dpr
 
 from dapper.mods.Lorenz63.core import step, dstep_dx, x0, Tplot, LPs

@@ -1,5 +1,6 @@
 """Setup parameters for twin experiments."""
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 

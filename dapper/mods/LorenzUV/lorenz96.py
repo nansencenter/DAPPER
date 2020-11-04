@@ -1,5 +1,6 @@
 """As in Lorenz 1996 'Predictability...'"""
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 import dapper.tools.utils as utils

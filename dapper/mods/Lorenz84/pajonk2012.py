@@ -1,4 +1,4 @@
-"""Settings from Pajonk, Oliver, et al. 
+"""Settings from Pajonk, Oliver, et al.
 'A deterministic filter for non-Gaussian Bayesian estimation—applications
 to dynamical system estimation with noisy measurements.'
 Physica D: Nonlinear Phenomena 241.7 (2012): 775-788.
@@ -9,6 +9,7 @@ statistically converged numbers.
 More interesting settings: mods.Lorenz84.harder
 """
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 

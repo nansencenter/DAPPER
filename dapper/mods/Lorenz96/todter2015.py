@@ -2,6 +2,7 @@
 'A Second-Order Exact Ensemble Square Root Filter
 for Nonlinear Data Assimilation'"""
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 import dapper.tools.randvars as RVs

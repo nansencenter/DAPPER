@@ -12,18 +12,18 @@ from dapper.mods.LA.small import HMM
 HMM.t.BurnIn=0
 HMM.t.KObs=10
 
-xps +=  EnKF('Sqrt'        , N=20,                      )
-xps +=  EnKF('PertObs'     , N=20,                      )
-xps +=  EnKF('DEnKF'       , N=20,                      )
+xps +=  dpr.EnKF('Sqrt'        , N=20,                      )
+xps +=  dpr.EnKF('PertObs'     , N=20,                      )
+xps +=  dpr.EnKF('DEnKF'       , N=20,                      )
 for Lag in [0,1,3]:
-  xps +=  EnKS('Sqrt'      , N=20, Lag=Lag,             )
-  xps +=  EnKS('PertObs'   , N=20, Lag=Lag,             )
-  xps +=  EnKS('DEnKF'     , N=20, Lag=Lag,             )
+  xps +=  dpr.EnKS('Sqrt'      , N=20, Lag=Lag,             )
+  xps +=  dpr.EnKS('PertObs'   , N=20, Lag=Lag,             )
+  xps +=  dpr.EnKS('DEnKF'     , N=20, Lag=Lag,             )
   for nIter in [1,4]:
     for MDA in [False,True]:
-      xps += iEnKS('Sqrt'    , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-      xps += iEnKS('PertObs' , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-      xps += iEnKS('Order1'  , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+      xps += dpr.iEnKS('Sqrt'    , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+      xps += dpr.iEnKS('PertObs' , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+      xps += dpr.iEnKS('Order1'  , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
 
 for xp in xps:
     xp.seed = 3000
@@ -109,11 +109,11 @@ def test_Order1_nIter4_MDA1(ii=ii):                        assert allsame(gr(ii,
 ii = inds(strict=0,upd_a='DEnKF' ,Lag=0) +\
      inds(         upd_a='Order1',Lag=0,nIter=1)
 def test_Order1_nIter1_Lag0_u(ii=ii):                      assert allsame(gr(ii,'u'))
-ii = inds(da=EnKS, upd_a='DEnKF' ,Lag=1) +\
-     inds(         upd_a='Order1',Lag=1,nIter=1)
+ii = inds(da=dpr.EnKS, upd_a='DEnKF' ,Lag=1) +\
+     inds(             upd_a='Order1',Lag=1,nIter=1)
 def test_Order1_nIter1_Lag1_u(ii=ii):                      assert allsame(gr(ii,'u'))
-ii = inds(da=EnKS, upd_a='DEnKF' ,Lag=3) +\
-     inds(         upd_a='Order1',Lag=3,nIter=1)
+ii = inds(da=dpr.EnKS, upd_a='DEnKF' ,Lag=3) +\
+     inds(             upd_a='Order1',Lag=3,nIter=1)
 def test_Order1_nIter1_Lag3_u(ii=ii):                      assert allsame(gr(ii,'u'))
 
 

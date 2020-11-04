@@ -1,5 +1,6 @@
 """Demonstrate the Lorenz-84 model."""
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 from dapper.mods.Lorenz84.core import step, x0

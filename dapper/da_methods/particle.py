@@ -1,13 +1,11 @@
-from dapper import *
-import dapper as dpr
+import numpy as np
 from dapper.admin import da_method
 import dapper.tools.utils as utils
 import dapper.tools.math
 from dapper.tools.matrices import funm_psd, chol_reduce
+from dapper.tools.stoch import rand, randn
 from dapper.tools.math import mrdiv, mldiv, svd0, pad0, tinv
 from dapper.tools.utils import progbar
-import numpy as np
-from numpy import eye, diag, zeros, ones, sqrt, arange
 
 @da_method
 class particle_method:
@@ -50,7 +48,7 @@ class PartFilt:
         N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
         E = X0.sample(N)
-        w = 1/N*ones(N)
+        w = 1/N*np.ones(N)
 
         stats.assess(0,E=E,w=w)
 
@@ -58,7 +56,7 @@ class PartFilt:
             E = Dyn(E,t-dt,dt)
             if Dyn.noise.C != 0:
                 D  = randn((N,Nx))
-                E += sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
+                E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
                     # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
@@ -73,7 +71,7 @@ class PartFilt:
 
                 if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
                     C12    = self.reg*auto_bandw(N,Nx)*raw_C12(E,w)
-                    #C12  *= sqrt(rroot) # Re-include?
+                    #C12  *= np.sqrt(rroot) # Re-include?
                     idx,w  = resample(w, self.resampl, wroot=self.wroot)
                     E,chi2 = regularize(C12,E,idx,self.nuj)
                     #if rroot != 1.0:
@@ -104,14 +102,14 @@ class OptPF:
         N, Nx, R = self.N, Dyn.M, Obs.noise.C.full
 
         E = X0.sample(N)
-        w = 1/N*ones(N)
+        w = 1/N*np.ones(N)
 
         stats.assess(0,E=E,w=w)
 
         for k,kObs,t,dt in progbar(chrono.ticker):
             E = Dyn(E,t-dt,dt)
             if Dyn.noise.C != 0:
-                E += sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k,kObs,'f',E=E,w=w)
@@ -175,7 +173,7 @@ class PFa:
         N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
         E = X0.sample(N)
-        w = 1/N*ones(N)
+        w = 1/N*np.ones(N)
 
         stats.assess(0,E=E,w=w)
 
@@ -183,7 +181,7 @@ class PFa:
             E = Dyn(E,t-dt,dt)
             if Dyn.noise.C != 0:
                 D  = randn((N,Nx))
-                E += sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
+                E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
                     # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
@@ -198,7 +196,7 @@ class PFa:
 
                 if trigger_resampling(w, self.NER, [stats,E,k,kObs]):
                     C12    = self.reg*auto_bandw(N,Nx)*raw_C12(E,w)
-                    #C12  *= sqrt(rroot) # Re-include?
+                    #C12  *= np.sqrt(rroot) # Re-include?
 
                     wroot = 1.0
                     while True:
@@ -249,7 +247,7 @@ class PFxN_EnKF:
         N, xN, Nx, Rm12, Ri = self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
 
         E = X0.sample(N)
-        w = 1/N*ones(N)
+        w = 1/N*np.ones(N)
 
         DD = None
 
@@ -258,7 +256,7 @@ class PFxN_EnKF:
         for k,kObs,t,dt in progbar(chrono.ticker):
             E = Dyn(E,t-dt,dt)
             if Dyn.noise.C != 0:
-                E += sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k,kObs,'f',E=E,w=w)
@@ -282,7 +280,7 @@ class PFxN_EnKF:
                         KG      = mrdiv(Aw.T@Yw,C)
                         cntrs   = E + (y-Eo)@KG.T
                         Pa      = Aw.T@Aw - KG@Yw.T@Aw
-                        P_cholU = funm_psd(Pa, sqrt)
+                        P_cholU = funm_psd(Pa, np.sqrt)
                         if DD is None or not self.re_use:
                             DD    = randn((N*xN,Nx))
                             chi2  = np.sum(DD**2, axis=1) * Nx/N
@@ -363,14 +361,14 @@ class PFxN:
 
         DD = None
         E  = X0.sample(N)
-        w  = 1/N*ones(N)
+        w  = 1/N*np.ones(N)
 
         stats.assess(0,E=E,w=w)
 
         for k,kObs,t,dt in progbar(chrono.ticker):
             E = Dyn(E,t-dt,dt)
             if Dyn.noise.C != 0:
-                E += sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(randn((N,Nx))@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k,kObs,'f',E=E,w=w)
@@ -475,13 +473,13 @@ def raw_C12(E,w):
     """
     # If weights are degenerate: use unweighted covariance to avoid C=0.
     if dapper.tools.math.weight_degeneracy(w):
-        w = ones(len(w))/len(w)
+        w = np.ones(len(w))/len(w)
         # PS: 'avoid_pathological' already treated here.
 
     mu  = w@E
     A   = E - mu
     ub  = dapper.tools.math.unbias_var(w, avoid_pathological=False)
-    C12 = sqrt(ub*w[:,None]) * A
+    C12 = np.sqrt(ub*w[:,None]) * A
     return C12
 
 def mask_unique_of_sorted(idx):
@@ -568,7 +566,7 @@ def resample(w,kind='Systematic',N=None,wroot=1.0):
         s  /= (s*w).sum()
         sw  = s*w
     else:
-        s   = ones(N_o)
+        s   = np.ones(N_o)
         sw  = w
 
     # Do the actual resampling
@@ -592,7 +590,7 @@ def _resample(w,kind,N_o,N):
         w_I   = w_N.astype(int) # integer part
         w_D   = w_N-w_I         # decimal part
         # Create duplicate indices for integer parts
-        idx_I = [i*ones(wi,dtype=int) for i,wi in enumerate(w_I)]
+        idx_I = [i*np.ones(wi,dtype=int) for i,wi in enumerate(w_I)]
         idx_I = np.concatenate(idx_I)
         # Multinomial sampling of decimal parts
         N_I   = w_I.sum() # == len(idx_I)
@@ -602,8 +600,8 @@ def _resample(w,kind,N_o,N):
         idx   = np.hstack((idx_I,idx_D))
     elif kind in ['Systematic','Sys']:
         # van Leeuwen [2] also calls this "stochastic universal" resampling
-        U     = dpr.rand(1) / N
-        CDF_a = U + arange(N)/N
+        U     = rand(1) / N
+        CDF_a = U + np.arange(N)/N
         CDF_o = np.cumsum(w)
         #idx  = CDF_a <= CDF_o[:,None]
         #idx  = np.argmax(idx,axis=0) # Finds 1st. SO/a/16244044/

@@ -1,7 +1,8 @@
 """Test data loading and presentation functionality."""
 ##
-from dapper import *
 
+import sys
+import dapper as dpr
 import inspect
 from dataclasses import dataclass
 import functools
@@ -96,7 +97,7 @@ def _print(xp_dict,*args,**kwargs):
 
 
 ##
-save_as = rc.dirs.DAPPER / "dpr_data" / "test_data"
+save_as = dpr.rc.dirs.DAPPER / "dpr_data" / "test_data"
 xps = dpr.load_xps(save_as)
 xps = dpr.xpSpace.from_list(xps)
 

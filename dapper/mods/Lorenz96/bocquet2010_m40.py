@@ -1,4 +1,5 @@
 """Same as bocquet2010, except that here ndim=40 (i.e. Fig. 5 of paper)"""
+import numpy as np
 from dapper.mods.Lorenz96.bocquet2010 import *
 import dapper as dpr
 

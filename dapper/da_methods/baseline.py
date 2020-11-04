@@ -3,10 +3,10 @@
 Many are based on [Raa16a]_.
 """
 
-from dapper import *
-import dapper as dpr
 from dapper.admin import da_method
+import dapper.tools.series as series
 from dapper.tools.utils import progbar
+from dapper.tools.matrices import CovMat
 import dapper.tools.math as mtools
 import numpy as np
 from typing import Optional
@@ -23,7 +23,7 @@ class Climatology:
 
         muC = np.mean(xx,0)
         AC  = xx - muC
-        PC  = dpr.CovMat(AC,'A')
+        PC  = CovMat(AC,'A')
 
         stats.assess(0,mu=muC,Cov=PC)
         stats.trHK[:] = 0
@@ -50,7 +50,7 @@ class OptInterp:
 
         # Setup scalar "time-series" covariance dynamics.
         # ONLY USED FOR DIAGNOSTICS, not to affect the Kalman gain.
-        L  = dpr.series.estimate_corr_length(AC.ravel(order='F'))
+        L  = series.estimate_corr_length(AC.ravel(order='F'))
         SM = fit_sigmoid(1/2,L,0)
 
         # Init
@@ -99,7 +99,7 @@ class Var3D:
 
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
         CC = 2*np.cov(xx.T)
-        L  = dpr.series.estimate_corr_length(mtools.center(xx)[0].ravel(order='F'))
+        L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order='F'))
         P  = X0.C.full
         SM = fit_sigmoid(P.trace()/CC.trace(),L,0)
 
@@ -117,7 +117,7 @@ class Var3D:
 
                 # Analysis
                 H  = Obs.linear(mu,t)
-                KG = mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
+                KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
                 mu = mu + KG@(yy[kObs] - Obs(mu,t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B

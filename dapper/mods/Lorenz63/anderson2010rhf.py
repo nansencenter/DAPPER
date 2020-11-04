@@ -2,6 +2,7 @@
 
 
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 

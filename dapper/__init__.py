@@ -44,9 +44,11 @@ from .tools.magic import magic_naming, spell_out
 from .stats import register_stat
 from .admin import HiddenMarkovModel, Operator, da_method, seed_and_simulate, xpList, get_param_setter
 from .data_management import load_xps, xpSpace, make_label, default_styles, rel_index, discretize_cmap, default_fig_adjustments
-from .da_methods.ensemble import *
-from .da_methods.particle import *
-from .da_methods.extended import *
-from .da_methods.baseline import *
-from .da_methods.variational import *
-from .da_methods.other import *
+
+# DA methods
+from .da_methods.ensemble import EnKF, EnKS, EnRTS, SL_EAKF, LETKF, EnKF_N
+from .da_methods.particle import PartFilt, OptPF, PFa, PFxN_EnKF, PFxN
+from .da_methods.extended import ExtKF, ExtRTS
+from .da_methods.baseline import Climatology, OptInterp, Var3D
+from .da_methods.variational import Var4D, iEnKS
+from .da_methods.other import LNETF, RHF

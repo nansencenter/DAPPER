@@ -1,15 +1,15 @@
 """The EnKF and other ensemble-based methods"""
 
-from dapper import *
-import dapper as dpr
+import numpy as np
+from numpy import eye, diag, zeros, sqrt
+import scipy.linalg as sla
+
 from dapper.admin import da_method
+from dapper.tools.stoch import rand, randn
 from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0, pad0, reconst, tinv
 from dapper.tools.utils import progbar
 from dapper.tools.matrices import genOG_1, funm_psd
 from dapper.tools.multiprocessing import multiproc_map
-import numpy as np
-from numpy import eye, diag, zeros, ones, sqrt, arange
-import scipy.linalg as sla
 
 @da_method
 class ens_method:
@@ -139,12 +139,12 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
                         v = V[:,N-2]
                     else:
                         # Orthogonalize v wrt. the new A
-                        # v   = Zj - Yj            # This formula (from paper) relies on Y=HX.
-                        mult  = (v@A) / (Yj@A)     # Should be constant*ones(Nx), meaning that:
-                        v     = v - mult[0]*Yj     # we can project v into ker(A) such that v@A is null.
-                        v    /= sqrt(v@v)          # Normalize
-                    Zj  = v*sqrt(N1)               # Standardized perturbation along v
-                    Zj *= np.sign(dpr.rand()-0.5)  # Random sign
+                        # v   = Zj - Yj        # This formula (from paper) relies on Y=HX.
+                        mult  = (v@A) / (Yj@A) # Should be constant*ones(Nx), meaning that:
+                        v     = v - mult[0]*Yj # we can project v into ker(A) such that v@A is null.
+                        v    /= sqrt(v@v)      # Normalize
+                    Zj  = v*sqrt(N1)           # Standardized perturbation along v
+                    Zj *= np.sign(rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations. 
                     Zj = mean0(randn(N)) # Un-coloured noise
@@ -424,7 +424,7 @@ class EnRTS:
 def serial_inds(upd_a, y, cvR, A):
     if 'mono' in upd_a:
         # Not robust?
-        inds = arange(len(y))
+        inds = np.arange(len(y))
     elif 'sorted' in upd_a:
         dC = cvR.diag
         if np.all(dC == dC[0]):

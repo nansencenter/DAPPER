@@ -1,8 +1,8 @@
 """More experimental or esoteric DA methods."""
 
-from dapper import *
-import dapper as dpr
 from dapper.tools.utils import progbar
+from dapper.da_methods.ensemble import post_process, add_noise, serial_inds
+from dapper.da_methods.particle import reweight
 import dapper.tools.math as mtools
 from dapper.tools.matrices import funm_psd
 import numpy as np

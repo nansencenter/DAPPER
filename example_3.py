@@ -55,13 +55,13 @@ params = dict(
 
 xps = dpr.xpList()
 for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8,10])
-xps += for_params(Climatology)
-xps += for_params(OptInterp)
-xps += for_params(Var3D, B="eye")
-xps += for_params(EnKF, upd_a="PertObs")
-xps += for_params(EnKF, upd_a="Sqrt")
-xps += for_params(EnKF_N, infl=1.0)
-xps += for_params(LETKF)
+xps += for_params(dpr.Climatology)
+xps += for_params(dpr.OptInterp)
+xps += for_params(dpr.Var3D, B="eye")
+xps += for_params(dpr.EnKF, upd_a="PertObs")
+xps += for_params(dpr.EnKF, upd_a="Sqrt")
+xps += for_params(dpr.EnKF_N, infl=1.0)
+xps += for_params(dpr.LETKF)
 
 
 ##############################

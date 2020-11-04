@@ -11,6 +11,7 @@ This HMM is used (with small variations) in many DA papers,
 some of which are mentioned below.
 """
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 
@@ -30,7 +31,7 @@ Dyn = {
     'noise' : 0
 }
 
-X0 = dpr.GaussRV(mu=x0, C=0.001) 
+X0 = dpr.GaussRV(mu=x0, C=0.001)
 
 jj = np.arange(Nx) # obs_inds
 Obs = dpr.partial_Id_Obs(Nx, jj)

@@ -2,6 +2,7 @@
 # title={Second-order accurate ensemble transform particle filters},
 # author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 

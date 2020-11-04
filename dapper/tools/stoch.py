@@ -55,5 +55,6 @@ def set_seed(sd="clock"):
 
     return sd
 
+# TODO 2: rm
 def rand( shape=(1,)): return np.random.uniform(0,1,shape)
 def randn(shape=(1,)): return np.random.normal (0,1,shape)

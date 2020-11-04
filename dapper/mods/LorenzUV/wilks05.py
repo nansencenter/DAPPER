@@ -2,6 +2,7 @@
 Obs settings taken from different places (=> quasi-linear regime)."""
 
 from dapper import *
+import numpy as np
 import dapper as dpr
 import dapper.tools.utils as utils
 from dapper.mods.LorenzUV.core import model_instance

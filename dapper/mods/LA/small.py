@@ -1,6 +1,7 @@
 # Smaller version.
 # => convenient for debugging, e.g., scripts/test_iEnKS.py
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 

@@ -11,6 +11,7 @@
 #  dt=0.001 for truth
 #  dt=0.005 for model.
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 from dapper.tools.math import with_rk4, with_recursion

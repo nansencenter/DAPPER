@@ -1,5 +1,6 @@
 """Demonstrate the Lotka-Volterra model."""
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 from matplotlib import pyplot as plt

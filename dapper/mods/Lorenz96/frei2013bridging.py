@@ -14,6 +14,7 @@
 #    Comp. Statist. Data Anal. 58, 127–38.
 
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 

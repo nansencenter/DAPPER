@@ -1,13 +1,16 @@
 """Variational methods (iEnKS, 4D-Var, etc)"""
 
-from dapper import *
-import dapper as dpr
-from dapper.admin import da_method
-from dapper.tools.utils import progbar
-from dapper.tools.math import center, mean0, svd0, inflate_ens, pad0, tinv
-import numpy as np
-from numpy import eye, diag, zeros, ones, sqrt, arange
 from typing import Optional, Any
+
+import numpy as np
+import scipy.linalg as sla
+
+from dapper.admin import da_method
+from dapper.tools.stoch import randn
+from dapper.tools.utils import progbar
+from dapper.tools.matrices import CovMat
+from dapper.tools.math import center, mean0, svd0, inflate_ens, pad0, tinv
+from dapper.da_methods.ensemble import post_process, hyperprior_coeffs, zeta_a
 
 @da_method
 class var_method:
@@ -94,21 +97,21 @@ class iEnKS:
         E = X0.sample(N)
 
         # Loop over DA windows (DAW).
-        for kObs in progbar(arange(-1,KObs+self.Lag+1)):
+        for kObs in progbar(np.arange(-1,KObs+self.Lag+1)):
             kLag = kObs-self.Lag
             DAW = range( max(0, kLag+1), min(kObs, KObs) + 1)
 
             # Assimilation (if ∃ "not-fully-assimlated" obs).
-            if 0 <= kObs <= KObs:  
+            if 0 <= kObs <= KObs:
 
                 # Init iterations.
-                X0,x0 = center(E) # Decompose ensemble.
-                w     = zeros(N)  # Control vector for the mean state.
-                T     = eye(N)    # Anomalies transform matrix.
-                Tinv  = eye(N)    # Explicit Tinv [instead of tinv(T)] allows for merging MDA code
-                                  # with iEnKS/EnRML code, and flop savings in 'Sqrt' case.
+                X0,x0 = center(E)    # Decompose ensemble.
+                w     = np.zeros(N)  # Control vector for the mean state.
+                T     = np.eye(N)    # Anomalies transform matrix.
+                Tinv  = np.eye(N)    # Explicit Tinv [instead of tinv(T)] allows for merging MDA code
+                                     # with iEnKS/EnRML code, and flop savings in 'Sqrt' case.
 
-                for iteration in arange(self.nIter):
+                for iteration in np.arange(self.nIter):
                     # Reconstruct smoothed ensemble.
                     E = x0 + (w + EPS*T)@X0 
                     # Forecast.
@@ -150,29 +153,29 @@ class iEnKS:
                         Cow1 = Cow1 @ T # apply previous update
                         dw = dy @ Y.T @ Cow1
                         if 'PertObs' in self.upd_a:      #== "ES-MDA". By Emerick/Reynolds.
-                            D     = mean0(randn(Y.shape)) * sqrt(self.nIter)
+                            D     = mean0(randn(Y.shape)) * np.sqrt(self.nIter)
                             T    -= (Y + D) @ Y.T @ Cow1
                         elif 'Sqrt' in self.upd_a:       #== "ETKF-ish". By Raanes.
-                            T     = Cowp(0.5) * sqrt(za) @ T
+                            T     = Cowp(0.5) * np.sqrt(za) @ T
                         elif 'Order1' in self.upd_a:     #== "DEnKF-ish". By Emerick.
                             T    -= 0.5 * Y @ Y.T @ Cow1
                         # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
                     else: # View update as Gauss-Newton optimzt. of log-posterior.
-                        grad  = Y0@dy - w*za             # Cost function gradient
-                        dw    = grad@Cow1                # Gauss-Newton step
-                        if 'Sqrt' in self.upd_a:         # =="ETKF-ish". By Bocquet/Sakov.
-                            T     = Cowp(0.5) * sqrt(N1)   # Sqrt-transforms
-                            Tinv  = Cowp(-.5) / sqrt(N1)   # Saves time [vs tinv(T)] when Nx<N
-                        elif 'PertObs' in self.upd_a:    # =="EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
+                        grad  = Y0@dy - w*za                  # Cost function gradient
+                        dw    = grad@Cow1                     # Gauss-Newton step
+                        if 'Sqrt' in self.upd_a:              # =="ETKF-ish". By Bocquet/Sakov.
+                            T     = Cowp(0.5) * np.sqrt(N1)   # Sqrt-transforms
+                            Tinv  = Cowp(-.5) / np.sqrt(N1)   # Saves time [vs tinv(T)] when Nx<N
+                        elif 'PertObs' in self.upd_a:         # =="EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
                             D     = mean0(randn(Y.shape)) if iteration==0 else D
-                            gradT = -(Y+D)@Y0.T + N1*(eye(N) - T)
+                            gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable
                             Tinv  = sla.inv(T+1)           # the +1 is for stability.
                         elif 'Order1' in self.upd_a:     #== "DEnKF-ish". By Raanes. 
                             # Included for completeness; does not make much sense.
-                            gradT = -0.5*Y@Y0.T + N1*(eye(N) - T)
+                            gradT = -0.5*Y@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             Tinv  = tinv(T, threshold=N1)
 
@@ -186,7 +189,7 @@ class iEnKS:
                 final_increment = (dw+T-T_old)@Xf # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
                 stats.assess(k,kObs, 'a', E=E+final_increment)
                 stats.iters[kObs] = iteration+1
-                if self.xN: stats.infl[kObs] = sqrt(N1/za)
+                if self.xN: stats.infl[kObs] = np.sqrt(N1/za)
 
                 # Final (smoothed) estimate of E at [kLag].
                 E = x0 + (w+T)@X0
@@ -231,10 +234,10 @@ class iLEnKS:
         E = X0.sample(N)
 
         # Loop DA cycles
-        for kObs in progbar(arange(KObs+1)):
+        for kObs in progbar(np.arange(KObs+1)):
             # Set (shifting) DA Window. Shift is 1.
             DAW_0  = kObs-self.Lag+1
-            DAW    = arange(max(0,DAW_0),DAW_0+self.Lag)
+            DAW    = np.arange(max(0,DAW_0),DAW_0+self.Lag)
             DAW_dt = chrono.ttObs[DAW[-1]] - chrono.ttObs[DAW[0]] + chrono.dtObs
 
             # Get localization setup (at time t)
@@ -245,12 +248,12 @@ class iLEnKS:
             # Store 0th (iteration) estimate as (x0,A0)
             A0,x0  = center(E)
             # Init iterations
-            w      = np.tile( zeros(N) , (nBatch,1) )
-            Tinv   = np.tile( eye(N)   , (nBatch,1,1) )
-            T      = np.tile( eye(N)   , (nBatch,1,1) )
+            w      = np.tile( np.zeros(N) , (nBatch,1) )
+            Tinv   = np.tile( np.eye(N)   , (nBatch,1,1) )
+            T      = np.tile( np.eye(N)   , (nBatch,1,1) )
 
             # Loop iterations
-            for iteration in arange(self.nIter):
+            for iteration in np.arange(self.nIter):
 
                     # Assemble current estimate of E[kObs-Lag]
                 for ib, ii in enumerate(state_batches):
@@ -290,8 +293,8 @@ class iLEnKS:
                     # Localize
                     jj, tapering = obs_taperer(ii_kObs)
                     if len(jj) == 0: continue
-                    Y_jj   = Y[:,jj] * sqrt(tapering)
-                    dy_jj  = dy[jj]  * sqrt(tapering)
+                    Y_jj   = Y[:,jj] * np.sqrt(tapering)
+                    dy_jj  = dy[jj]  * np.sqrt(tapering)
 
                     # "Uncondition" the observation anomalies
                     # (and yet this linearization of Obs.mod improves with iterations)
@@ -302,8 +305,8 @@ class iLEnKS:
                     grad     = -Y_jj@dy_jj + w[ib]*za
                     Pw       = (V * (pad0(s**2,N) + za)**-1.0) @ V.T
                     # Conditioning for anomalies (discrete linearlizations)
-                    T[ib]    = (V * (pad0(s**2,N) + za)**-0.5) @ V.T * sqrt(N1)
-                    Tinv[ib] = (V * (pad0(s**2,N) + za)**+0.5) @ V.T / sqrt(N1)
+                    T[ib]    = (V * (pad0(s**2,N) + za)**-0.5) @ V.T * np.sqrt(N1)
+                    Tinv[ib] = (V * (pad0(s**2,N) + za)**+0.5) @ V.T / np.sqrt(N1)
                     # Gauss-Newton step
                     dw       = Pw@grad
                     w[ib]   -= dw
@@ -315,7 +318,7 @@ class iLEnKS:
             # Analysis 'a' stats for E[kObs].
             stats.assess(k,kObs,'a',E=E)
             stats.trHK [kObs] = np.trace(Y.T @ Pw @ Y)/HMM.Ny
-            stats.infl [kObs] = sqrt(N1/za)
+            stats.infl [kObs] = np.sqrt(N1/za)
             stats.iters[kObs] = iteration+1
 
             # Final (smoothed) estimate of E[kObs-Lag]
@@ -331,7 +334,7 @@ class iLEnKS:
                     E = Dyn(E,t-dt,dt)
 
         # Assess the last (Lag-1) obs ranges
-        for kDAW in arange(DAW[0]+1,KObs+1):
+        for kDAW in np.arange(DAW[0]+1,KObs+1):
             for k,t,dt in chrono.cycle(kDAW):
                 stats.assess(k-1,None,'u',E=E)
                 E = Dyn(E,t-dt,dt)
@@ -374,14 +377,14 @@ class Var4D:
         else:
             B = self.B
         B *= self.xB
-        B12 = dpr.CovMat(B).sym_sqrt 
+        B12 = CovMat(B).sym_sqrt
 
         # Init
         x = X0.mu
         stats.assess(0,mu=x,Cov=B)
 
         # Loop over DA windows (DAW).
-        for kObs in progbar(arange(-1,KObs+self.Lag+1)):
+        for kObs in progbar(np.arange(-1,KObs+self.Lag+1)):
             kLag = kObs-self.Lag
             DAW = range( max(0, kLag+1), min(kObs, KObs) + 1)
 
@@ -389,10 +392,10 @@ class Var4D:
             if 0 <= kObs <= KObs:  
 
                 # Init iterations.
-                w   = zeros(Nx)          # Control vector for the mean state.
-                x0  = x.copy()           # Increment reference.
+                w   = np.zeros(Nx) # Control vector for the mean state.
+                x0  = x.copy()     # Increment reference.
 
-                for iteration in arange(self.nIter):
+                for iteration in np.arange(self.nIter):
                     # Reconstruct smoothed state.
                     x = x0 + B12@w
                     X = B12 # Aggregate composite TLMs onto B12

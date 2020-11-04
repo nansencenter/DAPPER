@@ -1,6 +1,7 @@
 """From Fig. 1 of Bocquet 2010 'Beyond Gaussian Statistical Modeling
 in Geophysical Data Assimilation'."""
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 

@@ -16,9 +16,9 @@ HMM.t.T = 30 # shorten experiment
 xx,yy = HMM.simulate()
 
 # Specify a DA method configuration ("xp" for "experiment")
-xp = EnKF('Sqrt', N=10, infl=1.02, rot=True)
-# xp = Var3D()
-# xp = PartFilt(N=100,reg=2.4,NER=0.3)
+xp = dpr.EnKF('Sqrt', N=10, infl=1.02, rot=True)
+# xp = dpr.Var3D()
+# xp = dpr.PartFilt(N=100,reg=2.4,NER=0.3)
 
 # Assimilate yy, knowing the HMM; xx is used to assess the performance
 xp.assimilate(HMM, xx, yy, liveplots=True)

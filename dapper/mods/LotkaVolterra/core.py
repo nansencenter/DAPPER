@@ -2,6 +2,7 @@
 # Refs: wikipedia.org/wiki/Competitive_Lotka%E2%80%93Volterra_equations
 #       Vano et al (2006): "Chaos in low-dimensional Lotka-Volterra models of competition".
 
+import numpy as np
 from dapper import *
 import dapper as dpr
 from dapper.tools.math import integrate_TLM
