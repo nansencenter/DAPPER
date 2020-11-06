@@ -2,14 +2,15 @@
 
 Many are based on [Raa16a]_.
 """
+import numpy as np
+from typing import Optional
 
 from dapper.admin import da_method
 import dapper.tools.series as series
 from dapper.tools.utils import progbar
 from dapper.tools.matrices import CovMat
 import dapper.tools.math as mtools
-import numpy as np
-from typing import Optional
+
 
 @da_method()
 class Climatology:
@@ -18,19 +19,19 @@ class Climatology:
     Note that the "climatology" is computed from truth, which might be
     (unfairly) advantageous if the simulation is too short (vs mixing time)."""
 
-    def assimilate(self,HMM,xx,yy):
-        Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    def assimilate(self, HMM, xx, yy):
+        chrono, stats = HMM.t, self.stats
 
-        muC = np.mean(xx,0)
+        muC = np.mean(xx, 0)
         AC  = xx - muC
-        PC  = CovMat(AC,'A')
+        PC  = CovMat(AC, 'A')
 
-        stats.assess(0,mu=muC,Cov=PC)
+        stats.assess(0, mu=muC, Cov=PC)
         stats.trHK[:] = 0
 
-        for k,kObs,_,_ in progbar(chrono.ticker):
+        for k, kObs, _, _ in progbar(chrono.ticker):
             fau = 'u' if kObs is None else 'fau'
-            stats.assess(k,kObs,fau,mu=muC,Cov=PC)
+            stats.assess(k, kObs, fau, mu=muC, Cov=PC)
 
 
 @da_method()
@@ -40,38 +41,38 @@ class OptInterp:
     Uses the Kalman filter equations,
     but with a prior from the Climatology."""
 
-    def assimilate(self,HMM,xx,yy):
-        Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    def assimilate(self, HMM, xx, yy):
+        Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.t, self.stats
 
         # Compute "climatological" Kalman gain
-        muC = np.mean(xx,0)
+        muC = np.mean(xx, 0)
         AC  = xx - muC
         PC  = (AC.T @ AC) / (xx.shape[0] - 1)
 
         # Setup scalar "time-series" covariance dynamics.
         # ONLY USED FOR DIAGNOSTICS, not to affect the Kalman gain.
         L  = series.estimate_corr_length(AC.ravel(order='F'))
-        SM = fit_sigmoid(1/2,L,0)
+        SM = fit_sigmoid(1/2, L, 0)
 
         # Init
         mu = muC
-        stats.assess(0,mu=mu,Cov=PC)
+        stats.assess(0, mu=mu, Cov=PC)
 
-        for k,kObs,t,dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(chrono.ticker):
             # Forecast
-            mu = Dyn(mu,t-dt,dt)
+            mu = Dyn(mu, t-dt, dt)
             if kObs is not None:
-                stats.assess(k,kObs,'f',mu=muC,Cov=PC)
+                stats.assess(k, kObs, 'f', mu=muC, Cov=PC)
 
                 # Analysis
-                H  = Obs.linear(muC,t)
+                H  = Obs.linear(muC, t)
                 KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
-                mu = muC + KG@(yy[kObs] - Obs(muC,t))
+                mu = muC + KG@(yy[kObs] - Obs(muC, t))
 
                 P  = (np.eye(Dyn.M) - KG@H) @ PC
-                SM = fit_sigmoid(P.trace()/PC.trace(),L,k)
+                SM = fit_sigmoid(P.trace()/PC.trace(), L, k)
 
-            stats.assess(k,kObs,mu=mu,Cov=2*PC*SM(k))
+            stats.assess(k, kObs, mu=mu, Cov=2*PC*SM(k))
 
 
 @da_method()
@@ -82,15 +83,15 @@ class Var3D:
     This implementation is not "Var"-ish: there is no *iterative* optimzt.
     Instead, it does the full analysis update in one step: the Kalman filter,
     with the background covariance being user specified, through B and xB."""
-    B  : Optional[np.ndarray] = None
-    xB : float                = 1.0
+    B: Optional[np.ndarray] = None
+    xB: float               = 1.0
 
-    def assimilate(self,HMM,xx,yy):
-        Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    def assimilate(self, HMM, xx, yy):
+        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-        if self.B in (None,'clim'): 
+        if self.B in (None, 'clim'):
             # Use climatological cov, ...
-            B = np.cov(xx.T) # ... estimated from truth
+            B = np.cov(xx.T)  # ... estimated from truth
         elif self.B == 'eye':
             B = np.eye(HMM.Nx)
         else:
@@ -101,34 +102,34 @@ class Var3D:
         CC = 2*np.cov(xx.T)
         L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order='F'))
         P  = X0.C.full
-        SM = fit_sigmoid(P.trace()/CC.trace(),L,0)
+        SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
 
         # Init
         mu = X0.mu
-        stats.assess(0,mu=mu,Cov=P)
+        stats.assess(0, mu=mu, Cov=P)
 
-        for k,kObs,t,dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(chrono.ticker):
             # Forecast
-            mu = Dyn(mu,t-dt,dt)
+            mu = Dyn(mu, t-dt, dt)
             P  = CC*SM(k)
 
             if kObs is not None:
-                stats.assess(k,kObs,'f',mu=mu,Cov=P)
+                stats.assess(k, kObs, 'f', mu=mu, Cov=P)
 
                 # Analysis
-                H  = Obs.linear(mu,t)
+                H  = Obs.linear(mu, t)
                 KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
-                mu = mu + KG@(yy[kObs] - Obs(mu,t))
+                mu = mu + KG@(yy[kObs] - Obs(mu, t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
                 P = (np.eye(Dyn.M) - KG@H) @ B
-                SM = fit_sigmoid(P.trace()/CC.trace(),L,k)
+                SM = fit_sigmoid(P.trace()/CC.trace(), L, k)
 
-            stats.assess(k,kObs,mu=mu,Cov=P)
+            stats.assess(k, kObs, mu=mu, Cov=P)
 
 
-def fit_sigmoid(Sb,L,kb):
-    """Return a sigmoid [function S(k)] for approximating error dynamics. 
+def fit_sigmoid(Sb, L, kb):
+    """Return a sigmoid [function S(k)] for approximating error dynamics.
 
     We use the logistic function for the sigmoid; it's the solution of the
     "population growth" ODE: dS/dt = a*S*(1-S/S(∞)).
@@ -143,8 +144,8 @@ def fit_sigmoid(Sb,L,kb):
     - a corresponding to a given corr. length L.
     - b to match values of S(kb) and Sb"""
 
-    sigmoid = lambda k: 1/(1+np.exp(-k)) # normalized sigmoid
-    inv_sig = lambda s: np.log(s/(1-s))  # its inverse
+    def sigmoid(k): return 1/(1+np.exp(-k))  # normalized sigmoid
+    def inv_sig(s): return np.log(s/(1-s))  # its inverse
 
     a = 1/L
     b = inv_sig(Sb)
@@ -161,4 +162,4 @@ class EnCheat:
 
     Should be implemented as part of Stats instead."""
 
-    def assimilate(self,HMM,xx,yy): pass
+    def assimilate(self, HMM, xx, yy): pass
