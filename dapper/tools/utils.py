@@ -116,11 +116,12 @@ try:
         TS_old = new_term_settings()
         set_term_settings(TS_old)
 
+        orig_progbar = progbar
+
         # Wrap the progressbar generator so as to temporarily set term settings.
         # Alternative solution: set/restore term settings in assimilate()
         # of the da_method decorator. But that gets bloated, and anyways the logic
         # of user-control of liveplots kindof belongs together with a progressbar.
-
         def progbar(iterable, desc=None, leave=1, **kwargs):
             if not disable_user_interaction:
                 TS_old = new_term_settings()
@@ -134,7 +135,6 @@ try:
             # Restore both for normal termination or exception (propagates).
             if not disable_user_interaction:
                 set_term_settings(TS_old)
-        orig_progbar = progbar
 
         def _read1():
             return os.read(sys.stdin.fileno(), 1)
