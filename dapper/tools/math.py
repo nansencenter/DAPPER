@@ -1,10 +1,10 @@
 # Misc math
 
+from IPython.lib.pretty import pretty as pretty_repr
 import dapper.tools.utils as utils
 import numpy as np
 import scipy.linalg as sla
 import functools
-from dataclasses import dataclass
 
 
 ########################
@@ -15,19 +15,22 @@ def is1d(a):
     """ Works for list and row/column arrays and matrices"""
     return np.sum(np.asarray(np.asarray(a).shape) > 1) <= 1
 
+
 def exactly_1d(a):
     a = np.atleast_1d(a)
-    assert a.ndim==1
+    assert a.ndim == 1
     return a
+
 
 def exactly_2d(a):
     a = np.atleast_2d(a)
-    assert a.ndim==2
+    assert a.ndim == 2
     return a
 
-def ccat(*args,axis=0):
+
+def ccat(*args, axis=0):
     args = [np.atleast_1d(x) for x in args]
-    return np.concatenate(args,axis=axis)
+    return np.concatenate(args, axis=axis)
 
 
 ########################
@@ -46,11 +49,12 @@ def ens_compatible(func):
     See for example core.py:dxdt() of LorenzUV, Lorenz96, LotkaVolterra.
     """
     @functools.wraps(func)
-    def wrapr(x,*args,**kwargs):
-        return np.asarray(func(x.T,*args,**kwargs)).T
+    def wrapr(x, *args, **kwargs):
+        return np.asarray(func(x.T, *args, **kwargs)).T
     return wrapr
 
-def center(E,axis=0,rescale=False):
+
+def center(E, axis=0, rescale=False):
     """Center ensemble.
 
     Makes use of np features: keepdims and broadcasting.
@@ -60,26 +64,31 @@ def center(E,axis=0,rescale=False):
     X = E - x
 
     if rescale:
-        N  = E.shape[axis]
+        N = E.shape[axis]
         X *= np.sqrt(N/(N-1))
 
     x = x.squeeze()
 
     return X, x
 
-def mean0(E,axis=0,rescale=True):
-    "Same as: center(E,rescale=True)[0]"
-    return center(E,axis=axis,rescale=rescale)[0]
 
-def inflate_ens(E,factor):
-    if factor==1: return E
+def mean0(E, axis=0, rescale=True):
+    "Same as: center(E,rescale=True)[0]"
+    return center(E, axis=axis, rescale=rescale)[0]
+
+
+def inflate_ens(E, factor):
+    if factor == 1:
+        return E
     X, x = center(E)
     return x + X*factor
 
-def weight_degeneracy(w,prec=1e-10):
+
+def weight_degeneracy(w, prec=1e-10):
     return (1-w.max()) < prec
 
-def unbias_var(w=None,N_eff=None,avoid_pathological=False):
+
+def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     """Compute unbias-ing factor for variance estimation.
 
     wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
@@ -87,9 +96,9 @@ def unbias_var(w=None,N_eff=None,avoid_pathological=False):
     if N_eff is None:
         N_eff = 1/(w@w)
     if avoid_pathological and weight_degeneracy(w):
-        ub = 1 # Don't do in case of weights collapse
+        ub = 1  # Don't do in case of weights collapse
     else:
-        ub = 1/(1 - 1/N_eff) # =N/(N-1) if w==ones(N)/N.
+        ub = 1/(1 - 1/N_eff)  # =N/(N-1) if w==ones(N)/N.
     return ub
 
 
@@ -97,32 +106,38 @@ def unbias_var(w=None,N_eff=None,avoid_pathological=False):
 # Time stepping (integration)
 ########################
 
+# fmt: off
 def rk4(f, x, t, dt, order=4):
-    """Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers.""" 
-    if order >=1: k1 = dt * f(t     , x)
-    if order >=2: k2 = dt * f(t+dt/2, x+k1/2)
-    if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)
-    if order ==4:
-                  k3 = dt * f(t+dt/2, x+k2/2)
-                  k4 = dt * f(t+dt  , x+k3)
-    if    order ==1: return x + k1
-    elif  order ==2: return x + k2
-    elif  order ==3: return x + (k1 + 4*k2 + k3)/6
-    elif  order ==4: return x + (k1 + 2*(k2 + k3) + k4)/6
-    else: raise NotImplementedError
+    """Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers."""
+    if order >=1: k1 = dt * f(t     , x)                        # noqa
+    if order >=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
+    if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
+    if order ==4:                                               # noqa
+                  k3 = dt * f(t+dt/2, x+k2/2)                   # noqa
+                  k4 = dt * f(t+dt  , x+k3)                     # noqa
+    if    order ==1: return x + k1                              # noqa
+    elif  order ==2: return x + k2                              # noqa
+    elif  order ==3: return x + (k1 + 4*k2 + k3)/6              # noqa
+    elif  order ==4: return x + (k1 + 2*(k2 + k3) + k4)/6       # noqa
+    else: raise NotImplementedError                             # noqa
+# fmt: on
 
 
-from IPython.lib.pretty import pretty as pretty_repr
-def with_rk4(dxdt,autonom=False,order=4):
+def with_rk4(dxdt, autonom=False, order=4):
     """Wrap dxdt in rk4"""
-    integrator       = functools.partial(rk4,order=order)
-    if autonom: step = lambda x0,t0,dt: integrator(lambda t,x: dxdt(x),x0,np.nan,dt)
-    else:       step = lambda x0,t0,dt: integrator(            dxdt   ,x0,t0    ,dt)
+    integrator = functools.partial(rk4, order=order)
+    if autonom:
+        def step(x0, t0, dt):
+            return integrator(lambda t, x: dxdt(x), x0, np.nan, dt)
+    else:
+        def step(x0, t0, dt):
+            return integrator(dxdt, x0, t0, dt)
     name = "rk"+str(order)+" integration of "+pretty_repr(dxdt)
-    step = utils.NamedFunc(step,name)
+    step = utils.NamedFunc(step, name)
     return step
 
-def with_recursion(func,prog=False):
+
+def with_recursion(func, prog=False):
     """Make function recursive in its 1st arg.
 
     Return a version of func() whose 2nd argument (k)
@@ -134,21 +149,24 @@ def with_recursion(func,prog=False):
       step_k = with_recursion(step)
       x[k]   = step_k(x0,k,t=np.nan,dt)[-1]
     """
-    def fun_k(x0,k,*args,**kwargs):
-        xx    = np.zeros((k+1,)+x0.shape)
+    def fun_k(x0, k, *args, **kwargs):
+        xx = np.zeros((k+1,)+x0.shape)
         xx[0] = x0
-        rg    = range(k)
 
-        if isinstance(prog,str): rg = progbar(rg,prog)
-        elif prog:               rg = progbar(rg,'Recurs.')
+        if isinstance(prog, str):
+            rg = utils.progbar(range(k), prog)
+        elif prog:
+            rg = utils.progbar(range(k), 'Recurs.')
 
         for i in rg:
-            xx[i+1] = func(xx[i],*args,**kwargs)
+            xx[i+1] = func(xx[i], *args, **kwargs)
+
         return xx
 
     return fun_k
 
-def integrate_TLM(TLM,dt,method='approx'):
+
+def integrate_TLM(TLM, dt, method='approx'):
     """Compute the resolvent.
 
     The resolvent may also be called
@@ -169,35 +187,36 @@ def integrate_TLM(TLM,dt,method='approx'):
     .. seealso:: FD_Jac.
     """
     if method == 'analytic':
-        Lambda,V  = sla.eig(TLM)
+        Lambda, V = sla.eig(TLM)
         resolvent = (V * np.exp(dt*Lambda)) @ np.linalg.inv(V)
         resolvent = np.real_if_close(resolvent, tol=10**5)
     else:
-        I = np.eye(TLM.shape[0])
+        Id = np.eye(TLM.shape[0])
         if method == 'rk4':
-            resolvent = rk4(lambda t,U: TLM@U, I, np.nan, dt)
+            resolvent = rk4(lambda t, U: TLM@U, Id, np.nan, dt)
         elif method.lower().startswith('approx'):
-            resolvent = I + dt*TLM
+            resolvent = Id + dt*TLM
         else:
             raise ValueError
     return resolvent
 
-def FD_Jac(ens_compatible_function,eps=1e-7):
+
+def FD_Jac(ens_compatible_function, eps=1e-7):
     """Finite-diff approx. for functions compatible with 1D and 2D input.
 
     Example:
     >>> dstep_dx = FD_Jac(step)
     """
-    def Jacf(x,*args,**kwargs):
+    def Jacf(x, *args, **kwargs):
         def f(xx): return ens_compatible_function(xx, *args, **kwargs)
-        E  = x + eps*np.eye(len(x)) # row-oriented ensemble
+        E = x + eps*np.eye(len(x))  # row-oriented ensemble
         FT = (f(E) - f(x))/eps      # => correct broadcasting
         return FT.T                 # => Jac[i,j] = df_i/dx_j
     return Jacf
 
 # Transpose explanation:
 # - Let F[i,j] = df_i/dx_j be the Jacobian matrix such that
-#               f(A)-f(x) ≈ F @ (A-x) 
+#               f(A)-f(x) ≈ F @ (A-x)
 #   for a matrix A whose columns are realizations. Then
 #                       F ≈ [f(A)-f(x)] @ inv(A-x)   [eq1]
 # - But, to facilitate broadcasting,
@@ -211,7 +230,6 @@ def FD_Jac(ens_compatible_function,eps=1e-7):
 # => Need to compute [eq2] and then transpose.
 
 
-
 ########################
 # Rounding
 ########################
@@ -223,6 +241,7 @@ def _round2prec(num, prec):
     """
     return prec * round(num / prec)
 
+
 @np.vectorize
 def ndecimal(x):
     """Convert precision to num. of decimals. Example:
@@ -233,14 +252,15 @@ def ndecimal(x):
     >>> ndecimal(0.02)  # --> 2
     >>> ndecimal(0.099) # --> 2 # yes, this is what we want
     """
-    if x==0 or not np.isfinite(x):
+    if x == 0 or not np.isfinite(x):
         # "Behaviour not defined" => should not be relied upon.
         return 1
     else:
         return -int(np.floor(np.log10(np.abs(x))))
 
+
 @np.vectorize
-def round2(num,param=1):
+def round2(num, param=1):
     """Round num as specified by ``param``. Always returns floats.
 
     If ``param`` is int: round to ``param`` num. of *significant* digits.
@@ -257,46 +277,53 @@ def round2(num,param=1):
     if is_int(param):
         # round2sigfig
         nfig = param-1
-        n    = nfig + ndecimal(num)
+        n = nfig + ndecimal(num)
     else:
         # round2prec
         prec = param
-        n    = ndecimal(prec)
-        num  = _round2prec(num,prec)
+        n = ndecimal(prec)
+        num = _round2prec(num, prec)
 
-    return np.round(num, n) # n specified => float (always)
+    return np.round(num, n)  # n specified => float (always)
 
-def is_whole(x):
-    return np.isclose(x,round(x))
 
 # https://stackoverflow.com/q/37726830
 def is_int(a):
     return np.issubdtype(type(a), np.integer)
 
+
+def is_whole(x):
+    return np.isclose(x, round(x))
+
+
 def validate_int(x):
     assert is_whole(x)
-    return round(x) # convert to int
+    return round(x)  # convert to int
+
 
 def isNone(x):
     """x==None that also works for x being an np.ndarray.
 
     Since python3.8 ``x is None`` throws warning.
-    
+
     Ref: np.isscalar docstring."""
-    return np.ndim(x)==0 and x==None
+    return np.ndim(x) == 0 and x == None
+
 
 ########################
 # Misc
 ########################
-
-def linspace_int(Nx,Ny,periodic=True):
+def linspace_int(Nx, Ny, periodic=True):
     """Provide a range of Ny equispaced integers between 0 and Nx-1"""
-    if periodic: jj = np.linspace(0, Nx, Ny+1)[:-1]
-    else:        jj = np.linspace(0, Nx-1, Ny)
+    if periodic:
+        jj = np.linspace(0, Nx, Ny+1)[:-1]
+    else:
+        jj = np.linspace(0, Nx-1, Ny)
     jj = jj.astype(int)
     return jj
 
-def curvedspace(start,end,N,curvature=1):
+
+def curvedspace(start, end, N, curvature=1):
     """A length (func. of curvature) of logspace, normlzd to [start,end]
 
     - curvature== 0: ==> linspace (start,end,N)
@@ -316,27 +343,25 @@ def curvedspace(start,end,N,curvature=1):
     if -1e-12 < curvature < 1e-12:
         # Define curvature-->0, which is troublesome
         # for linear normalization transformation.
-        space01   = np.linspace(0,1,N)
+        space01 = np.linspace(0, 1, N)
     else:
         curvature = (end/start)**curvature
-        space01   = np.geomspace(1, curvature, N) - 1
-        space01  /= space01[-1]
+        space01 = np.geomspace(1, curvature, N) - 1
+        space01 /= space01[-1]
 
     return start + (end-start)*space01
 
 
-def circulant_ACF(C,do_abs=False):
-    """
-    Compute the ACF of C,
-    assuming it is the cov/corr matrix
-    of a 1D periodic domain.
-    """
-    M    = len(C)
-    #cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
+def circulant_ACF(C, do_abs=False):
+    """Compute the ACF of C.
+
+    This assumes it is the cov/corr matrix of a 1D periodic domain."""
+    M = len(C)
+    # cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
     cols = sla.circulant(np.arange(M))
-    ACF  = np.zeros(M)
+    ACF = np.zeros(M)
     for i in range(M):
-        row = C[i,cols[i]]
+        row = C[i, cols[i]]
         if do_abs:
             row = abs(row)
         ACF += row
@@ -347,22 +372,22 @@ def circulant_ACF(C,do_abs=False):
 ########################
 # Linear Algebra
 ########################
-
-def mrdiv(b,A):
-    return sla.solve(A.T,b.T).T
-
-def mldiv(A,b):
-    return sla.solve(A,b)
+def mrdiv(b, A):
+    return sla.solve(A.T, b.T).T
 
 
-def truncate_rank(s,threshold,avoid_pathological):
+def mldiv(A, b):
+    return sla.solve(A, b)
+
+
+def truncate_rank(s, threshold, avoid_pathological):
     "Find r such that s[:r] contains the threshold proportion of s."
-    assert isinstance(threshold,float)
+    assert isinstance(threshold, float)
     if threshold == 1.0:
         r = len(s)
     elif threshold < 1.0:
         r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
-        r += 1 # Hence the strict inequality above
+        r += 1  # Hence the strict inequality above
         if avoid_pathological:
             # If not avoid_pathological, then the last 4 diag. entries of
             # reconst( *tsvd(np.eye(400),0.99) )
@@ -371,6 +396,7 @@ def truncate_rank(s,threshold,avoid_pathological):
     else:
         raise ValueError
     return r
+
 
 def tsvd(A, threshold=0.99999, avoid_pathological=True):
     """Truncated svd.
@@ -386,33 +412,34 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
     - avoid_pathological: avoid truncating (e.g.) the identity matrix.
       NB: only applies for float threshold.
     """
-    M,N = A.shape
+    M, N = A.shape
     full_matrices = False
 
     if is_int(threshold):
         # Assume specific number is requested
         r = threshold
-        assert 1 <= r <= max(M,N)
-        if r > min(M,N):
+        assert 1 <= r <= max(M, N)
+        if r > min(M, N):
             full_matrices = True
-            r = min(M,N)
+            r = min(M, N)
 
-    U,s,VT = sla.svd(A, full_matrices)
+    U, s, VT = sla.svd(A, full_matrices)
 
-    if isinstance(threshold,float):
+    if isinstance(threshold, float):
         # Assume proportion is requested
-        r = truncate_rank(s,threshold,avoid_pathological)
+        r = truncate_rank(s, threshold, avoid_pathological)
 
     # Truncate
-    U  = U [:,:r]
-    VT = VT[  :r]
-    s  = s [  :r]
-    return U,s,VT
+    U = U[:, :r]
+    VT = VT[:r]
+    s = s[:r]
+    return U, s, VT
+
 
 def svd0(A):
     """Similar to Matlab's svd(A,0).
 
-    Compute the 
+    Compute the
 
      - full    svd if nrows > ncols
      - reduced svd otherwise.
@@ -424,16 +451,20 @@ def svd0(A):
 
     .. seealso:: tsvd() for rank (and threshold) truncation.
     """
-    M,N = A.shape
-    if M>N: return sla.svd(A, full_matrices=True)
-    else:   return sla.svd(A, full_matrices=False)
+    M, N = A.shape
+    if M > N:
+        return sla.svd(A, full_matrices=True)
+    else:
+        return sla.svd(A, full_matrices=False)
 
-def pad0(ss,N):
+
+def pad0(ss, N):
     out = np.zeros(N)
     out[:len(ss)] = ss
     return out
 
-def reconst(U,s,VT):
+
+def reconst(U, s, VT):
     """Reconstruct matrix from svd. Supports truncated svd's.
 
     Example::
@@ -444,38 +475,42 @@ def reconst(U,s,VT):
     """
     return (U * s) @ VT
 
-def tinv(A,*kargs,**kwargs):
+
+def tinv(A, *kargs, **kwargs):
     """
     Inverse based on truncated svd.
     Also see sla.pinv2().
     """
-    U,s,VT = tsvd(A,*kargs,**kwargs)
+    U, s, VT = tsvd(A, *kargs, **kwargs)
     return (VT.T * s**(-1.0)) @ U.T
 
-def trank(A,*kargs,**kwargs):
+
+def trank(A, *kargs, **kwargs):
     """Rank following truncation"""
-    return len(tsvd(A,*kargs,**kwargs)[1])
+    return len(tsvd(A, *kargs, **kwargs)[1])
 
 
 ########################
-# HMM setup shortcuts 
+# HMM setup shortcuts
 ########################
 
 def Id_op():
     return utils.NamedFunc(lambda *args: args[0], "Id operator")
 
-def Id_mat(M):
-    I = np.eye(M)
-    return utils.NamedFunc(lambda x,t: I, "Id("+str(M)+") matrix")
 
-def linear_model_setup(ModelMatrix,dt0):
+def Id_mat(M):
+    Id = np.eye(M)
+    return utils.NamedFunc(lambda x, t: Id, "Id("+str(M)+") matrix")
+
+
+def linear_model_setup(ModelMatrix, dt0):
     r"""Make a dictionary the Dyn/Obs field of HMM representing a linear model.
 
     .. math::
 
       x(t+dt) = \texttt{ModelMatrix}^{dt/dt0} x(t),
 
-    i.e. 
+    i.e.
 
     .. math::
 
@@ -485,8 +520,7 @@ def linear_model_setup(ModelMatrix,dt0):
     Anyways, ``dt`` must be an integer multiple of ``dt0``.
     """
 
-
-    Mat = np.asarray(ModelMatrix) # does not support sparse and matrix-class
+    Mat = np.asarray(ModelMatrix)  # does not support sparse and matrix-class
 
     # Compute and cache ModelMatrix^(dt/dt0).
     @functools.lru_cache(maxsize=1)
@@ -495,22 +529,22 @@ def linear_model_setup(ModelMatrix,dt0):
         return sla.matrix_power(Mat, int(round(dt/dt0)))
 
     @ens_compatible
-    def model(x,t,dt): return MatPow(dt) @ x
-    def linear(x,t,dt): return MatPow(dt)
+    def model(x, t, dt): return MatPow(dt) @ x
+    def linear(x, t, dt): return MatPow(dt)
 
     Dyn = {
-        'M'    : len(Mat),
+        'M': len(Mat),
         'model': model,
         'linear': linear,
     }
     return Dyn
 
 
-def direct_obs_matrix(Nx,obs_inds):
+def direct_obs_matrix(Nx, obs_inds):
     """Matrix that "picks" state elements obs_inds out of range(Nx)"""
     Ny = len(obs_inds)
-    H = np.zeros((Ny,Nx))
-    H[range(Ny),obs_inds] = 1
+    H = np.zeros((Ny, Nx))
+    H[range(Ny), obs_inds] = 1
 
     # One-liner:
     # H = np.array([[i==j for i in range(M)] for j in jj],float)
@@ -518,18 +552,19 @@ def direct_obs_matrix(Nx,obs_inds):
     return H
 
 
-def partial_Id_Obs(Nx,obs_inds):
+def partial_Id_Obs(Nx, obs_inds):
     Ny = len(obs_inds)
-    H = direct_obs_matrix(Nx,obs_inds)
+    H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
-    def model(x,t): return x[obs_inds]
-    def linear(x,t): return H
+    def model(x, t): return x[obs_inds]
+    def linear(x, t): return H
     Obs = {
-        'M'    : Ny,
+        'M': Ny,
         'model': model,
         'linear': linear,
     }
     return Obs
 
+
 def Id_Obs(Nx):
-    return partial_Id_Obs(Nx,np.arange(Nx))
+    return partial_Id_Obs(Nx, np.arange(Nx))

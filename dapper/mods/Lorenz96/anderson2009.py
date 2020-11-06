@@ -25,7 +25,7 @@ H = np.zeros((20,40))
 H[np.arange(20),ii_below] = w_below
 H[np.arange(20),ii_above] = w_above
 # Measure obs-state distances
-y2x_dists = pairwise_distances(obs_sites[:,None], np.arange(Nx)[:,None], (Nx,), periodic=True)
+y2x_dists = pairwise_distances(obs_sites[:,None], np.arange(Nx)[:,None], periodic=True, domain=(Nx,))
 batches = np.arange(40)[:,None]
 # Define operator
 Obs = {

@@ -1,28 +1,36 @@
-from dapper.dict_tools import NicePrint
-import dapper as dpr
-import dapper.tools.utils as utils
-from dapper.dpr_config import rc
+"""Tools for plotting."""
 
-import matplotlib as mpl
-from matplotlib import pyplot as plt
-from pathlib import Path
 import itertools
 import os
 import warnings
+from pathlib import Path
+import textwrap
+import time
+import inspect
+
 import numpy as np
 from numpy import array, arange
 import scipy.linalg as sla
 
-#from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import juggle_axes
-
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
+import matplotlib as mpl
+from matplotlib import pyplot as plt
+from matplotlib import ticker
+from matplotlib import transforms as mtransforms
 from matplotlib.ticker import MaxNLocator
+from matplotlib.patches import Ellipse
+from matplotlib.animation import FuncAnimation
+from matplotlib.gridspec import GridSpec
+from matplotlib.widgets import CheckButtons
+from scipy.interpolate import interp1d
+
+import dapper as dpr
+from dapper.dict_tools import NicePrint
+from dapper.dpr_config import rc
+import dapper.tools.utils as utils
+from dapper.tools.math import round2
 
 
-def setup_wrapping(M,periodicity=None):
+def setup_wrapping(M, periodicity=None):
     """
     Wrap the state indices and
     create a function that does the same for state vectors (or and ensemble thereof).
@@ -31,38 +39,41 @@ def setup_wrapping(M,periodicity=None):
       Default: "+1", meaning that the first element is appended after the last.
     """
 
-    if periodicity in (None,True):
+    if periodicity in (None, True):
         periodicity = "+1"
 
     if periodicity == "+1":
         ii = arange(M+1)
+
         def wrap(E):
-            return E[...,list(range(M))+[0]]
+            return E[..., list(range(M))+[0]]
 
     elif periodicity == "+/-05":
         ii = np.hstack([-0.5, arange(M), M-0.5])
+
         def wrap(E):
-            midpoint = (E[...,[0]] + E[...,[-1]])/2
-            return dpr.ccat(midpoint,E,midpoint,axis=-1)
+            midpoint = (E[..., [0]] + E[..., [-1]])/2
+            return dpr.ccat(midpoint, E, midpoint, axis=-1)
 
     else:
         ii = arange(M)
-        wrap = lambda x: x
+        def wrap(x): return x
 
     return ii, wrap
 
-from matplotlib.animation import FuncAnimation
-def amplitude_animation(EE,dt=None,interval=0,periodicity=None,blit=True,fignum=None):
+
+def amplitude_animation(EE, dt=None, interval=0,
+                        periodicity=None, blit=True, fignum=None):
     fig, ax = freshfig(fignum)
     ax.set_xlabel('State index')
     ax.set_ylabel('Amplitue')
-    ax.set_ylim(*stretch(*xtrema(EE),1.1))
+    ax.set_ylim(*stretch(*xtrema(EE), 1.1))
 
     if EE.ndim == 2:
-        EE = np.expand_dims(EE,1)
-    K,N,Nx = EE.shape
+        EE = np.expand_dims(EE, 1)
+    K, N, Nx = EE.shape
 
-    ii,wrap = setup_wrapping(Nx,periodicity)
+    ii, wrap = setup_wrapping(Nx, periodicity)
 
     lines = ax.plot(ii, wrap(EE[0]).T)
     ax.set_xlim(*xtrema(ii))
@@ -75,16 +86,14 @@ def amplitude_animation(EE,dt=None,interval=0,periodicity=None,blit=True,fignum=
         Ek = wrap(EE[k])
         for n in range(N):
             lines[n].set_ydata(Ek[n])
-        if len(lines)>N:
-            lines[-1].set_text(times%(dt*k))
+        if len(lines) > N:
+            lines[-1].set_text(times % (dt*k))
         return lines
 
     return FuncAnimation(fig, anim, range(K), interval=interval, blit=blit)
 
 
-
-
-def adjust_position(ax,adjust_extent=False,**kwargs):
+def adjust_position(ax, adjust_extent=False, **kwargs):
     """
     Adjust values (add) to get_position().
     kwarg must be one of 'x0','y0','width','height'.
@@ -92,46 +101,55 @@ def adjust_position(ax,adjust_extent=False,**kwargs):
     # Load get_position into d
     pos = ax.get_position()
     d = {}
-    for key in ['x0','y0','width','height']:
-        d[key] = getattr(pos,key)
+    for key in ['x0', 'y0', 'width', 'height']:
+        d[key] = getattr(pos, key)
     # Make adjustments
-    for key,item in kwargs.items():
+    for key, item in kwargs.items():
         d[key] += item
         if adjust_extent:
-            if key=='x0': d['width']  -= item
-            if key=='y0': d['height'] -= item
+            if key == 'x0':
+                d['width']  -= item
+            if key == 'y0':
+                d['height'] -= item
     # Set
     ax.set_position(d.values())
 
-def xtrema(xx,axis=None):
-    a = np.nanmin(xx,axis)
-    b = np.nanmax(xx,axis)
+
+def xtrema(xx, axis=None):
+    a = np.nanmin(xx, axis)
+    b = np.nanmax(xx, axis)
     return a, b
 
-def stretch(a,b,factor=1,int=False):
+
+def stretch(a, b, factor=1, int=False):
     """
     Stretch distance a-b by factor.
     Return a,b.
     If int: floor(a) and ceil(b)
     """
     c = (a+b)/2
-    a = c + factor*(a-c) 
-    b = c + factor*(b-c) 
+    a = c + factor*(a-c)
+    b = c + factor*(b-c)
     if int:
         a = np.floor(a)
         b = np.ceil(b)
     return a, b
 
 
-def set_ilim(ax,i,Min=None,Max=None):
-    """Set bounds on axis i.""" 
-    if i == 0: ax.set_xlim(Min,Max)
-    if i == 1: ax.set_ylim(Min,Max)
-    if i == 2: ax.set_zlim(Min,Max)
+def set_ilim(ax, i, Min=None, Max=None):
+    """Set bounds on axis i."""
+    if i == 0:
+        ax.set_xlim(Min, Max)
+    if i == 1:
+        ax.set_ylim(Min, Max)
+    if i == 2:
+        ax.set_zlim(Min, Max)
 
 # Examples:
 # K_lag = estimate_good_plot_length(stats.xx,chrono,mult = 80)
-def estimate_good_plot_length(xx,chrono=None,mult=100):
+
+
+def estimate_good_plot_length(xx, chrono=None, mult=100):
     """
     Estimate good length for plotting stuff
     from the time scale of the system.
@@ -141,7 +159,7 @@ def estimate_good_plot_length(xx,chrono=None,mult=100):
         # If mult-dim, then average over dims (by ravel)....
         # But for inhomogeneous variables, it is important
         # to subtract the mean first!
-        xx = xx - np.mean(xx,axis=0)
+        xx = xx - np.mean(xx, axis=0)
         xx = xx.ravel(order='F')
 
     try:
@@ -149,16 +167,18 @@ def estimate_good_plot_length(xx,chrono=None,mult=100):
     except ValueError:
         K = 0
 
-    if chrono != None:
+    if chrono is not None:
         t = chrono
         K = int(min(max(K, t.dkObs), t.K))
-        T = round2sigfig(t.tt[K],2) # Could return T; T>tt[-1]
+        T = round2(t.tt[K], 2)  # Could return T; T>tt[-1]
         K = utils.find_1st_ind(t.tt >= T)
-        if K: return K
-        else: return t.K
+        if K:
+            return K
+        else:
+            return t.K
     else:
         K = int(min(max(K, 1), len(xx)))
-        T = round2sigfig(K,2)
+        T = round2(K, 2)
         return K
 
 
@@ -169,7 +189,7 @@ def plot_pause(interval):
     For that, use plt.pause() or plt.show() instead."""
 
     # plt.pause(0) just seems to freeze execution.
-    if interval==0:
+    if interval == 0:
         return
 
     try:
@@ -181,7 +201,8 @@ def plot_pause(interval):
         # This was done deliberately:
         # https://github.com/matplotlib/matplotlib/pull/6384#issue-69259165
         # https://github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
-        from matplotlib import _pylab_helpers
+        # from matplotlib import _pylab_helpers
+
         def _plot_pause(interval,  focus_figure=True):
             canvas = plt.gcf().canvas
             manager = canvas.manager
@@ -197,31 +218,31 @@ def plot_pause(interval):
                 time.sleep(interval)
         _plot_pause(interval, focus_figure=False)
 
-    except:
+    except: # noqa
         # Jupyter notebook support: https://stackoverflow.com/q/34486642
         # Note: no longer needed with the above _plot_pause()?
         plt.gcf().canvas.draw()
         time.sleep(0.1)
 
 
-def plot_hovmoller(xx,chrono=None,**kwargs):
+def plot_hovmoller(xx, chrono=None, **kwargs):
     """
     Plot Hovmöller diagram.
     """
-    fig, ax = freshfig(26,figsize=(4,3.5),loc='331-22')
+    fig, ax = freshfig(26, figsize=(4, 3.5), loc='331-22')
 
-    if chrono!=None:
+    if chrono is not None:
         mask = chrono.tt <= chrono.Tplot*2
         kk   = chrono.kk[mask]
         tt   = chrono.tt[mask]
         ax.set_ylabel('Time (t)')
     else:
-        K    = estimate_good_plot_length(xx,mult=20)
+        K    = estimate_good_plot_length(xx, mult=20)
         kk   = arange(K)
         tt   = kk
         ax.set_ylabel('Time indices (k)')
 
-    plt.contourf(arange(xx.shape[1]),tt,xx[kk],25)
+    plt.contourf(arange(xx.shape[1]), tt, xx[kk], 25)
     plt.colorbar()
     ax.get_xaxis().set_major_locator(MaxNLocator(integer=True))
     ax.set_title("Hovmoller diagram (of 'Truth')")
@@ -231,22 +252,25 @@ def plot_hovmoller(xx,chrono=None,**kwargs):
     plt.tight_layout()
 
 
-def integer_hist(E,N,centrd=False,weights=None,**kwargs):
+def integer_hist(E, N, centrd=False, weights=None, **kwargs):
     """Histogram for integers."""
     ax = plt.gca()
-    rnge = (-0.5,N+0.5) if centrd else (0,N+1)
-    ax.hist(E,bins=N+1,range=rnge,density=True,weights=weights,**kwargs)
+    rnge = (-0.5, N+0.5) if centrd else (0, N+1)
+    ax.hist(E, bins=N+1, range=rnge, density=True, weights=weights, **kwargs)
     ax.set_xlim(rnge)
 
 
-def not_available_text(ax,txt=None,fs=20):
-    if txt is None: txt = '[Not available]'
-    else:           txt = '[' + txt + ']'
-    ax.text(0.5,0.5,txt,
+def not_available_text(ax, txt=None, fs=20):
+    if txt is None:
+        txt = '[Not available]'
+    else:
+        txt = '[' + txt + ']'
+    ax.text(0.5, 0.5, txt,
             fontsize=fs,
             transform=ax.transAxes,
-            va='center',ha='center',
+            va='center', ha='center',
             wrap=True)
+
 
 def plot_err_components(stats):
     """Plot components of the error.
@@ -260,45 +284,45 @@ def plot_err_components(stats):
       the singular values (svals) correspond to rotated MADs,
       and because rms(umisf) seems to convoluted for interpretation.
     """
-    fig, (ax0,ax1,ax2) = freshfig(25,figsize=(6,6),loc='1313',nrows=3)
+    fig, (ax0, ax1, ax2) = freshfig(25, figsize=(6, 6), loc='1313', nrows=3)
 
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
 
-    err   = np.mean( np.abs(stats.err  .a) ,0)
-    sprd  = np.mean(        stats.mad  .a  ,0)
-    umsft = np.mean( np.abs(stats.umisf.a) ,0)
-    usprd = np.mean(     stats.svals.a  ,0)
+    err   = np.mean(np.abs(stats.err  .a), 0)
+    sprd  = np.mean(stats.mad  .a, 0)
+    umsft = np.mean(np.abs(stats.umisf.a), 0)
+    usprd = np.mean(stats.svals.a, 0)
 
-    ax0.plot(            arange(Nx),               err,'k',lw=2, label='Error')
-    if Nx<10**3:
-        ax0.fill_between(arange(Nx),[0]*len(sprd),sprd,alpha=0.7,label='Spread')
+    ax0.plot(arange(Nx),               err, 'k', lw=2, label='Error')
+    if Nx < 10**3:
+        ax0.fill_between(arange(Nx), [0]*len(sprd), sprd, alpha=0.7, label='Spread')
     else:
-        ax0.plot(        arange(Nx),              sprd,alpha=0.7,label='Spread')
-    #ax0.set_yscale('log')
+        ax0.plot(arange(Nx),              sprd, alpha=0.7, label='Spread')
+    # ax0.set_yscale('log')
     ax0.set_title('Element-wise error comparison')
     ax0.set_xlabel('Dimension index (i)')
     ax0.set_ylabel('Time-average (_a) magnitude')
-    ax0.set_xlim(0,Nx-1)
+    ax0.set_xlim(0, Nx-1)
     ax0.get_xaxis().set_major_locator(MaxNLocator(integer=True))
     ax0.legend(loc='upper right')
 
-    ax1.set_xlim(0,Nx-1)
+    ax1.set_xlim(0, Nx-1)
     ax1.set_xlabel('Principal component index')
     ax1.set_ylabel('Time-average (_a) magnitude')
     ax1.set_title('Spectral error comparison')
     has_been_computed = np.any(np.isfinite(umsft))
     if has_been_computed:
         L = len(umsft)
-        ax1.plot(        arange(L),      umsft,'k',lw=2, label='Error')
-        ax1.fill_between(arange(L),[0]*L,usprd,alpha=0.7,label='Spread')
+        ax1.plot(arange(L),      umsft, 'k', lw=2, label='Error')
+        ax1.fill_between(arange(L), [0]*L, usprd, alpha=0.7, label='Spread')
         ax1.set_yscale('log')
         ax1.get_xaxis().set_major_locator(MaxNLocator(integer=True))
     else:
         not_available_text(ax1)
 
     rmse = stats.err_rms.a[chrono.maskObs_BI]
-    ax2.hist(rmse,bins=30,density=False)
+    ax2.hist(rmse, bins=30, density=False)
     ax2.set_ylabel('Num. of occurence (_a)')
     ax2.set_xlabel('RMSE')
     ax2.set_title('Histogram of RMSE values')
@@ -312,10 +336,10 @@ def plot_rank_histogram(stats):
     chrono = stats.HMM.t
 
     has_been_computed = \
-        hasattr(stats,'rh') and \
-        not all(stats.rh.a[-1]==array(np.nan).astype(int))
+        hasattr(stats, 'rh') and \
+        not all(stats.rh.a[-1] == array(np.nan).astype(int))
 
-    fig, ax = freshfig(24, (6,3), loc="3313")
+    fig, ax = freshfig(24, (6, 3), loc="3313")
     ax.set_title('(Mean of marginal) rank histogram (_a)')
     ax.set_ylabel('Freq. of occurence\n (of truth in interval n)')
     ax.set_xlabel('ensemble member index (n)')
@@ -324,9 +348,9 @@ def plot_rank_histogram(stats):
         ranks = stats.rh.a[chrono.maskObs_BI]
         Nx    = ranks.shape[1]
         N     = stats.xp.N
-        if not hasattr(stats,'w'):
+        if not hasattr(stats, 'w'):
             # Ensemble rank histogram
-            integer_hist(ranks.ravel(),N)
+            integer_hist(ranks.ravel(), N)
         else:
             # Experimental: weighted rank histogram.
             # Weight ranks by inverse of particle weight. Why? Coz, with correct
@@ -334,12 +358,13 @@ def plot_rank_histogram(stats):
             # Potential improvement: interpolate weights between particles.
             w  = stats.w.a[chrono.maskObs_BI]
             K  = len(w)
-            w  = np.hstack([w, np.ones((K,1))/N]) # define weights for rank N+1
-            w  = array([ w[arange(K),ranks[arange(K),i]] for i in range(Nx)])
+            w  = np.hstack([w, np.ones((K, 1))/N])  # define weights for rank N+1
+            w  = array([w[arange(K), ranks[arange(K), i]] for i in range(Nx)])
             w  = w.T.ravel()
-            w  = np.maximum(w, 1/N/100) # Artificial cap. Reduces variance, but introduces bias.
+            # Artificial cap. Reduces variance, but introduces bias.
+            w  = np.maximum(w, 1/N/100)
             w  = 1/w
-            integer_hist(ranks.ravel(),N,weights=w)
+            integer_hist(ranks.ravel(), N, weights=w)
     else:
         not_available_text(ax)
 
@@ -353,7 +378,7 @@ def adjustable_box_or_forced():
     return 'box-forced' if pv(mpl.__version__) < pv("2.2.0") else 'box'
 
 
-def freshfig(num=None,figsize=None,*args,**kwargs):
+def freshfig(num=None, figsize=None, *args, **kwargs):
     """Create/clear figure.
 
     Similar to::
@@ -370,34 +395,36 @@ def freshfig(num=None,figsize=None,*args,**kwargs):
     """
     exists = plt.fignum_exists(num)
 
-    fig = plt.figure(num=num,figsize=figsize)
+    fig = plt.figure(num=num, figsize=figsize)
 
     # Deal with warning bug
     # https://github.com/matplotlib/matplotlib/issues/9970
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore",category=UserWarning)
+        warnings.simplefilter("ignore", category=UserWarning)
         fig.clf()
 
-    loc = kwargs.pop('loc',None)
+    loc = kwargs.pop('loc', None)
     if not exists and loc:
-        fig_place(loc,fig)
+        fig_place(loc, fig)
 
-    _, ax = plt.subplots(num=fig.number,*args,**kwargs)
+    _, ax = plt.subplots(num=fig.number, *args, **kwargs)
     return fig, ax
+
 
 def show_figs(fignums=None):
     """Move all fig windows to top"""
-    if fignums == None:
+    if fignums is None:
         fignums = plt.get_fignums()
     try:
         fignums = list(fignums)
-    except:
+    except: # noqa
         fignums = [fignums]
     for f in fignums:
         plt.figure(f)
         fmw = plt.get_current_fig_manager().window
-        fmw.attributes('-topmost',1) # Bring to front, but
-        fmw.attributes('-topmost',0) # don't keep in front
+        fmw.attributes('-topmost', 1)  # Bring to front, but
+        fmw.attributes('-topmost', 0)  # don't keep in front
+
 
 def get_fig(fignum=None):
     "Get/validate fig handle"
@@ -408,11 +435,13 @@ def get_fig(fignum=None):
     else:
         return plt.figure(fignum)
 
+
 def get_fmw(fignum=None):
     fig = get_fig(fignum)
     fmw = fig.canvas.manager.window
     # fmw = plt.get_current_fig_manager().window
     return fmw
+
 
 def get_screen_size():
     """Get **available** screen size/resolution."""
@@ -440,12 +469,13 @@ def get_screen_size():
         h0 = 773
     return x0, y0, w0, h0
 
-def fig_rel_geometry(fignum=None,x=None,y=None,w=None,h=None):
+
+def fig_rel_geometry(fignum=None, x=None, y=None, w=None, h=None):
     """Place figure on screen, in coordinates relative (between 0 and 1)."""
     try:
         fmw = get_fmw(fignum)
     except AttributeError:
-        return # do nothing
+        return  # do nothing
 
     x0, y0, w0, h0 = get_screen_size()
 
@@ -454,23 +484,24 @@ def fig_rel_geometry(fignum=None,x=None,y=None,w=None,h=None):
     footer = 0.028*(h0+y0)
 
     # Current values (Qt4Agg only!):
-    w = w if w is not None else fmw.width() /w0
+    w = w if w is not None else fmw.width() / w0
     h = h if h is not None else fmw.height()/h0
-    x = x if x is not None else fmw.x()     /w0
-    y = y if y is not None else fmw.y()     /h0
+    x = x if x is not None else fmw.x()     / w0
+    y = y if y is not None else fmw.y()     / h0
 
     x = x0 + x*w0
     y = y0 + y*h0 + footer
     w = w*w0
     h = h*h0 - footer
 
-    try: # For Qt4Agg/Qt5Agg
+    try:  # For Qt4Agg/Qt5Agg
         fmw.setGeometry(x, y, w, h)
-    except: # For TkAgg
+    except: # noqa # For TkAgg
         geo = f"{int(w)}x{int(h)}+{int(x)}+{int(y)}"
-        fmw.geometry(newGeometry=geo) 
+        fmw.geometry(newGeometry=geo)
 
-def fig_place(loc,fignum=None):
+
+def fig_place(loc, fignum=None):
     """Place figure on screen.
 
     - loc: string that defines the figures new geometry, given either as
@@ -485,29 +516,42 @@ def fig_place(loc,fignum=None):
     """
 
     # NB: Experimental. Fails on some systems/backends.
-    if not rc.place_figs: return
+    if not rc.place_figs:
+        return
 
     loc = str(loc)
-    loc = loc.replace(",","")
+    loc = loc.replace(",", "")
     if not loc[:4].isnumeric():
-        if   loc.startswith('NW'): loc = '2211'
-        elif loc.startswith('SW'): loc = '2221'
-        elif loc.startswith('NE'): loc = '2212'
-        elif loc.startswith('SE'): loc = '2222'
-        elif loc.startswith('W' ): loc = '1211'
-        elif loc.startswith('E' ): loc = '1212'
-        elif loc.startswith('S' ): loc = '2121'
-        elif loc.startswith('N' ): loc = '2111'
+        if loc.startswith('NW'):
+            loc = '2211'
+        elif loc.startswith('SW'):
+            loc = '2221'
+        elif loc.startswith('NE'):
+            loc = '2212'
+        elif loc.startswith('SE'):
+            loc = '2222'
+        elif loc.startswith('W'):
+            loc = '1211'
+        elif loc.startswith('E'):
+            loc = '1212'
+        elif loc.startswith('S'):
+            loc = '2121'
+        elif loc.startswith('N'):
+            loc = '2111'
 
     # Split digits
-    M,N = int(loc[0]), int(loc[1])
-    if loc[ 3]=='-': i1, i2 = int(loc[ 2]), int(loc[ 4])
-    else:            i1, i2 = int(loc[ 2]), int(loc[ 2])
-    if loc[-2]=='-': j1, j2 = int(loc[-3]), int(loc[-1])
-    else:            j1, j2 = int(loc[-1]), int(loc[-1])
+    M, N = int(loc[0]), int(loc[1])
+    if loc[3] == '-':
+        i1, i2 = int(loc[2]), int(loc[4])
+    else:
+        i1, i2 = int(loc[2]), int(loc[2])
+    if loc[-2] == '-':
+        j1, j2 = int(loc[-3]), int(loc[-1])
+    else:
+        j1, j2 = int(loc[-1]), int(loc[-1])
     # Validate
-    assert M>=i2>=i1>0, "The specified col index is invalid." 
-    assert N>=j2>=j1>0, "The specified row index is invalid."
+    assert M >= i2 >= i1 > 0, "The specified col index is invalid."
+    assert N >= j2 >= j1 > 0, "The specified row index is invalid."
 
     # Place
     di = i2-i1+1
@@ -516,36 +560,39 @@ def fig_place(loc,fignum=None):
 
 
 # https://stackoverflow.com/a/7396313
-from matplotlib import transforms as mtransforms
+
+
 def autoscale_based_on(ax, line_handles):
     "Autoscale axis based (only) on line_handles."
     ax.dataLim = mtransforms.Bbox.unit()
-    for iL,lh in enumerate(line_handles):
+    for iL, lh in enumerate(line_handles):
         xy = np.vstack(lh.get_data()).T
-        ax.dataLim.update_from_data_xy(xy, ignore=(iL==0))
+        ax.dataLim.update_from_data_xy(xy, ignore=(iL == 0))
     ax.autoscale_view()
 
 
-from matplotlib.widgets import CheckButtons
-import textwrap
-def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,state=None):
+def toggle_lines(ax=None, autoscl=True, numbering=False,
+                 txtwidth=15, txtsize=None, state=None):
     """
     Make checkbuttons to toggle visibility of each line in current plot.
     autoscl  : Rescale axis limits as required by currently visible lines.
     numbering: Add numbering to labels.
     txtwidth : Wrap labels to this length.
 
-    State of checkboxes can be inquired by 
-    OnOff = [lh.get_visible() for lh in ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]
+    State of checkboxes can be inquired by
+    OnOff = [lh.get_visible() for lh in
+    ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]
     """
 
-    if ax is None: ax = plt.gca()
-    if txtsize is None: txtsize = mpl.rcParams['font.size']
+    if ax is None:
+        ax = plt.gca()
+    if txtsize is None:
+        txtsize = mpl.rcParams['font.size']
 
     # Get lines and their properties
     lines = {'handle': list(ax.get_lines())}
-    for prop in ['label','color','visible']:
-        lines[prop] = [plt.getp(x,prop) for x in lines['handle']]
+    for prop in ['label', 'color', 'visible']:
+        lines[prop] = [plt.getp(x, prop) for x in lines['handle']]
 
     # Rm those that start with _
     not_ = [not x.startswith('_') for x in lines['label']]
@@ -554,40 +601,44 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,s
     N = len(lines['handle'])
 
     # Adjust labels
-    if numbering: lines['label'] = [str(i)+': '+x for i,x in enumerate(lines['label'])]
-    if txtwidth:  lines['label'] = [textwrap.fill(x,width=txtwidth) for x in lines['label']]
+    if numbering:
+        lines['label'] = [str(i)+': '+x for i, x in enumerate(lines['label'])]
+    if txtwidth:
+        lines['label'] = [textwrap.fill(x, width=txtwidth) for x in lines['label']]
 
     # Set state. BUGGY? sometimes causes MPL complaints after clicking boxes
     if state is not None:
         state = array(state).astype(bool)
         lines['visible'] = state
-        for i,x in enumerate(state):
+        for i, x in enumerate(state):
             lines['handle'][i].set_visible(x)
 
     # Setup buttons
     # When there's many, the box-sizing is awful, but difficult to fix.
     W       = 0.23 * txtwidth/15 * txtsize/10
-    nBreaks = sum(x.count('\n') for x in lines['label']) # count linebreaks
-    H       = min(1,0.05*(N+nBreaks))
-    plt.subplots_adjust(left=W+0.12,right=0.97)
+    nBreaks = sum(x.count('\n') for x in lines['label'])  # count linebreaks
+    H       = min(1, 0.05*(N+nBreaks))
+    plt.subplots_adjust(left=W+0.12, right=0.97)
     rax = plt.axes([0.05, 0.5-H/2, W, H])
     check = CheckButtons(rax, lines['label'], lines['visible'])
 
     # Adjust button style
     for i in range(N):
-        check.rectangles[i].set(lw=0,facecolor=lines['color'][i])
+        check.rectangles[i].set(lw=0, facecolor=lines['color'][i])
         check.labels[i].set(color=lines['color'][i])
-        if txtsize: check.labels[i].set(size=txtsize)
+        if txtsize:
+            check.labels[i].set(size=txtsize)
 
     # Callback
     def toggle_visible(label):
         ind    = lines['label'].index(label)
         handle = lines['handle'][ind]
         vs     = not lines['visible'][ind]
-        handle.set_visible( vs )
+        handle.set_visible(vs)
         lines['visible'][ind] = vs
         if autoscl:
-            autoscale_based_on(ax,list(itertools.compress(lines['handle'],lines['visible'])))
+            autoscale_based_on(ax, list(itertools.compress(
+                lines['handle'], lines['visible'])))
         plt.draw()
     check.on_clicked(toggle_visible)
 
@@ -598,8 +649,7 @@ def toggle_lines(ax=None,autoscl=True,numbering=False,txtwidth=15,txtsize=None,s
     return check
 
 
-
-def toggle_viz(*handles,prompt=False,legend=False,pause=True):
+def toggle_viz(*handles, prompt=False, legend=False, pause=True):
     """Toggle visibility of the graphics with handle handles."""
 
     are_viz = []
@@ -625,16 +675,19 @@ def toggle_viz(*handles,prompt=False,legend=False,pause=True):
             # Legend refresh
             ax = h.axes
             with warnings.catch_warnings():
-                warnings.simplefilter("error",category=UserWarning)
+                warnings.simplefilter("error", category=UserWarning)
                 try:
                     ax.legend()
                 except UserWarning:
                     # If all labels are '_nolabel_' then ax.legend() throws warning,
-                    # and quits before refreshing. => Refresh by creating/rm another legend.
+                    # and quits before refreshing.
+                    # => Refresh by creating/rm another legend.
                     ax.legend('TMP').remove()
 
-    if prompt: input("Press <Enter> to continue...")
-    if pause:  plt.pause(0.02)
+    if prompt:
+        input("Press <Enter> to continue...")
+    if pause:
+        plt.pause(0.02)
 
     return are_viz
 
@@ -643,16 +696,17 @@ class FigSaver(NicePrint):
     """
     Simplify exporting a figure, especially when it's part of a series.
     """
+
     def __init__(self, script=None, basename=None, n=-1, ext='.pdf'):
 
         # Defaults
-        if script is None: # Get __file__ of caller
+        if script is None:  # Get __file__ of caller
             script = inspect.getfile(inspect.stack()[1][0])
         if basename is None:
             basename = 'figure'
         # Prep save dir
         sdir = rc.dirs.data / Path(script).stem
-        os.makedirs(sdir,exist_ok=True)
+        os.makedirs(sdir, exist_ok=True)
         # Set state
         self.fname = sdir + basename
         self.n     = n
@@ -660,30 +714,29 @@ class FigSaver(NicePrint):
 
     @property
     def fullname(self):
-        f = self.fname         # Abbrev
-        if self.n>=0:          # If indexing:
-            f += '_n%d'%self.n #   Add index
-        f += self.ext          # Add extension
+        f = self.fname            # Abbrev
+        if self.n >= 0:           # If indexing:
+            f += '_n%d' % self.n  # Add index
+        f += self.ext             # Add extension
         return f
 
     def save(self):
-        f = self.fullname         # Abbrev
-        print("Saving fig to:",f) # Print
-        plt.savefig(f)            # Save
-        if self.n>=0:             # If indexing:
-            self.n += 1             #   Increment
-            plt.pause(0.1)          #   For safety
+        f = self.fullname           # Abbrev
+        print("Saving fig to:", f)  # Print
+        plt.savefig(f)              # Save
+        if self.n >= 0:             # If indexing:
+            self.n += 1                 # Increment
+            plt.pause(0.1)              # For safety
 
 
-def nrowcol(nTotal,AR=1):
+def nrowcol(nTotal, AR=1):
     "Return integer nrows and ncols such that nTotal ≈ nrows*ncols."
     nrows = int(np.floor(np.sqrt(nTotal)/AR))
     ncols = int(np.ceil(nTotal/nrows))
     return nrows, ncols
 
 
-from matplotlib.gridspec import GridSpec
-def axes_with_marginals(n_joint, n_marg,**kwargs):
+def axes_with_marginals(n_joint, n_marg, **kwargs):
     """
     Create a joint axis along with two marginal axes.
 
@@ -705,18 +758,18 @@ def axes_with_marginals(n_joint, n_marg,**kwargs):
     # _.set_visible(False) # Actually removing would bug the axis ticks etc.
 
     # Method 2
-    gs   = GridSpec(N,N,**kwargs)
+    gs   = GridSpec(N, N, **kwargs)
     fig  = plt.gcf()
-    ax_s = fig.add_subplot(gs[n_marg:N     ,0      :n_joint])
-    ax_x = fig.add_subplot(gs[0     :n_marg,0      :n_joint],sharex=ax_s)
-    ax_y = fig.add_subplot(gs[n_marg:N     ,n_joint:N      ],sharey=ax_s)
+    ax_s = fig.add_subplot(gs[n_marg:N, 0:n_joint])
+    ax_x = fig.add_subplot(gs[0:n_marg, 0:n_joint], sharex=ax_s)
+    ax_y = fig.add_subplot(gs[n_marg:N, n_joint:N], sharey=ax_s)
     # Cannot delete ticks coz axis are shared
     plt.setp(ax_x.get_xticklabels(), visible=False)
     plt.setp(ax_y.get_yticklabels(), visible=False)
 
     return ax_s, ax_x, ax_y
 
-from matplotlib.patches import Ellipse
+
 def cov_ellipse(ax, mu, sigma, **kwargs):
     """
     Draw ellipse corresponding to (Gaussian) 1-sigma countour of cov matrix.
@@ -730,7 +783,7 @@ def cov_ellipse(ax, mu, sigma, **kwargs):
 
     # Cov --> Width, Height, Theta
     vals, vecs = sla.eigh(sigma)
-    x, y       = vecs[:, -1] # x-y components of largest (last) eigenvector
+    x, y       = vecs[:, -1]  # x-y components of largest (last) eigenvector
     theta      = np.degrees(np.arctan2(y, x))
     theta      = theta % 180
 
@@ -740,19 +793,17 @@ def cov_ellipse(ax, mu, sigma, **kwargs):
     e = Ellipse(mu, w, h, theta, **kwargs)
 
     ax.add_patch(e)
-    e.set_clip_box(ax.bbox) # why is this necessary?
+    e.set_clip_box(ax.bbox)  # why is this necessary?
 
     # Return artist
     return e
 
 
-from scipy.interpolate import interp1d
-from matplotlib import ticker
 def axis_scale_by_array(ax, arr, axis='y', nbins=3):
     """Scale axis so that the arr entries appear equidistant.
 
     The full transformation is piecewise-linear."""
-    yy = array([y for y in arr if y is not None], dtype=float) # rm None
+    yy = array([y for y in arr if y is not None], dtype=float)  # rm None
 
     # Make transformation
     xx = arange(len(yy))
@@ -761,10 +812,10 @@ def axis_scale_by_array(ax, arr, axis='y', nbins=3):
 
     # Set transformation
     set_scale = eval(f"ax.set_{axis}scale")
-    set_scale('function',functions=(invf,func))
+    set_scale('function', functions=(invf, func))
 
     # Adjust axis ticks
-    _axis = getattr(ax,axis+"axis")
-    _axis.set_major_locator(ticker.FixedLocator(yy,nbins=nbins))
+    _axis = getattr(ax, axis+"axis")
+    _axis.set_major_locator(ticker.FixedLocator(yy, nbins=nbins))
     _axis.set_minor_locator(ticker.FixedLocator(yy))
     _axis.set_minor_formatter(ticker.NullFormatter())

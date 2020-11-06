@@ -1,11 +1,12 @@
 import dapper as dpr
-from dapper.tools.math import mrdiv, truncate_rank, svd0, tinv, exactly_1d, exactly_2d
+from dapper.tools.math import mrdiv, truncate_rank, svd0, exactly_1d, exactly_2d
 import dapper.tools.utils as utils
 
 import numpy as np
 from numpy import sqrt, ones, zeros
 import scipy.linalg as sla
 import functools
+
 
 class lazy_property:
     """Lazy evaluation of property.
@@ -15,41 +16,44 @@ class lazy_property:
 
     From https://stackoverflow.com/q/3012421
     """
-    def __init__(self,fget):
+
+    def __init__(self, fget):
         self.fget = fget
         self.func_name = fget.__name__
 
-    def __get__(self,obj,cls):
+    def __get__(self, obj, cls):
         value = self.fget(obj)
-        setattr(obj,self.func_name,value)
+        setattr(obj, self.func_name, value)
         return value
-
 
 
 # Test matrices
 def randcov(M):
     """(Makeshift) random cov mat."""
     N = int(np.ceil(2+M**1.2))
-    E = dpr.randn((N,M))
+    E = dpr.randn((N, M))
     return E.T @ E
+
+
 def randcorr(M):
     """(Makeshift) random corr mat."""
-    Cov  = randcov(M)
+    Cov = randcov(M)
     Dm12 = np.diag(np.diag(Cov)**(-0.5))
     return Dm12@Cov@Dm12
 
 
 def genOG(M):
     """Generate random orthonormal matrix."""
-    # TODO 3: This (using Householder) is (slightly?) wrong, 
+    # TODO 3: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
-    Q,R = sla.qr(dpr.randn((M,M)))
+    Q, R = sla.qr(dpr.randn((M, M)))
     for i in range(M):
-        if R[i,i] < 0:
-            Q[:,i] = -Q[:,i]
+        if R[i, i] < 0:
+            Q[:, i] = -Q[:, i]
     return Q
 
-def genOG_modified(M,opts=(0,1.0)):
+
+def genOG_modified(M, opts=(0, 1.0)):
     """genOG with modifications.
 
     Caution: although 'degree' ∈ (0,1) for all versions,
@@ -62,42 +66,42 @@ def genOG_modified(M,opts=(0,1.0)):
     if not opts:
         # Shot-circuit in case of False or 0
         return np.eye(M)
-    elif isinstance(opts,bool) or opts == 1:
+    elif isinstance(opts, bool) or opts == 1:
         return genOG(M)
-    elif isinstance(opts,float):
-        ver    = 1
+    elif isinstance(opts, float):
+        ver = 1
         degree = opts
     else:
-        ver    = opts[0]
+        ver = opts[0]
         degree = opts[1]
 
-    if ver==1:
+    if ver == 1:
         # Only rotate "once in a while"
-        dc = 1/degree # = "while"
+        dc = 1/degree  # = "while"
         # Retrieve/store persistent variable
-        counter = getattr(genOG_modified,"counter",0) + 1
-        setattr(genOG_modified,"counter",counter)
+        counter = getattr(genOG_modified, "counter", 0) + 1
+        setattr(genOG_modified, "counter", counter)
         # Compute rot or skip
         if np.mod(counter, dc) < 1:
             Q = genOG(M)
         else:
             Q = np.eye(M)
-    elif ver==2:
+    elif ver == 2:
         # Decompose and reduce angle of (complex) diagonal. Background:
         # https://stackoverflow.com/q/38426349
         # https://en.wikipedia.org/wiki/Orthogonal_matrix
-        Q   = genOG(M)
-        s,U = sla.eig(Q)
-        s2  = np.exp(1j*np.angle(s)*degree) # reduce angles
-        Q   = mrdiv(U * s2, U)
-        Q   = Q.real
-    elif ver==3:
+        Q = genOG(M)
+        s, U = sla.eig(Q)
+        s2 = np.exp(1j*np.angle(s)*degree)  # reduce angles
+        Q = mrdiv(U * s2, U)
+        Q = Q.real
+    elif ver == 3:
         # Reduce Given's rotations in QR algo
         raise NotImplementedError
-    elif ver==4:
+    elif ver == 4:
         # Introduce correlation between columns of randn((M,M))
         raise NotImplementedError
-    elif ver==5:
+    elif ver == 5:
         # https://stats.stackexchange.com/q/25552
         raise NotImplementedError
     else:
@@ -110,21 +114,21 @@ def genOG_modified(M,opts=(0,1.0)):
 @functools.lru_cache(maxsize=1)
 def basis_beginning_with_ones(ndim):
     """Basis whose first vector is ones(ndim)."""
-    e = ones((ndim,1))
+    e = ones((ndim, 1))
     return sla.svd(e)[0]
 
-def genOG_1(N,opts=()):
+
+def genOG_1(N, opts=()):
     """
     Random orthonormal mean-preserving matrix.
     Source: ienks code of Sakov/Bocquet.
     """
     V = basis_beginning_with_ones(N)
-    if opts==():
+    if opts == ():
         Q = genOG(N-1)
     else:
-        Q = genOG_modified(N-1,opts)
-    return V @ sla.block_diag(1,Q) @ V.T
-
+        Q = genOG_modified(N-1, opts)
+    return V @ sla.block_diag(1, Q) @ V.T
 
 
 def funm_psd(a, fun, check_finite=False):
@@ -154,20 +158,19 @@ def chol_reduce(Right):
     >>> R = chol_reduce(A)
     >>> R.shape[1] == 4
     """
-    _,sig,UT = sla.svd(Right,full_matrices=False)
-    R = sig[:,None]*UT
+    _, sig, UT = sla.svd(Right, full_matrices=False)
+    R = sig[:, None]*UT
 
     # The below is DEPRECATED, coz it fails e.g. with Q from dapper.mods.LA.raanes2015.
-    #from scipy.linalg.lapack import get_lapack_funcs
-    #potrf, = get_lapack_funcs(('potrf',), (C,))
-    #R, info = potrf(C, lower=False, overwrite_a=False, clean=True)
-    #if info!=0:
-    #R = R[:info]
-    # Explanation: R is truncated when cholesky() finds a 'leading negative minor'.
-    # Thus, R is rectangular, with height ∈ [rank, M].
+    # from scipy.linalg.lapack import get_lapack_funcs
+    # potrf, = get_lapack_funcs(('potrf',), (C,))
+    # R, info = potrf(C, lower=False, overwrite_a=False, clean=True)
+    #  if info!=0:
+    # R = R[:info]
+    #  Explanation: R is truncated when cholesky() finds a 'leading negative minor'.
+    #  Thus, R is rectangular, with height ∈ [rank, M].
 
     return R
-
 
 
 class CovMat():
@@ -189,7 +192,7 @@ class CovMat():
     ##################################
     # Init
     ##################################
-    def __init__(self,data,kind='full_or_diag',trunc=1.0):
+    def __init__(self, data, kind='full_or_diag', trunc=1.0):
         """The covariance (say P) can be input (specified in the following ways):
 
         kind    : data
@@ -203,18 +206,18 @@ class CovMat():
         """
 
         # Cascade if's down to 'Right'
-        if kind=='E':
-            mu      = np.mean(data,0)
+        if kind == 'E':
+            mu      = np.mean(data, 0)
             data    = data - mu
             kind    = 'A'
-        if kind=='A':
+        if kind == 'A':
             N       = len(data)
             data    = data / sqrt(N-1)
             kind    = 'Right'
-        if kind=='Left':
+        if kind == 'Left':
             data    = data.T
             kind    = 'Right'
-        if kind=='Right':
+        if kind == 'Right':
             # If a cholesky factor has been input, we will not
             # automatically go for the EVD, seeing as e.g. the
             # diagonal can be computed without it.
@@ -222,53 +225,55 @@ class CovMat():
             self._R = R
             self._m = R.shape[1]
         else:
-            if kind=='full_or_diag':
+            if kind == 'full_or_diag':
                 data = np.atleast_1d(data)
-                if data.ndim==1 and len(data) > 1: kind = 'diag'
-                else:                              kind = 'full'
-            if kind=='full':
+                if data.ndim == 1 and len(data) > 1:
+                    kind = 'diag'
+                else:
+                    kind = 'full'
+            if kind == 'full':
                 # If full has been imput, then we have memory for an EVD,
                 # which will probably be put to use in the DA.
                 C           = exactly_2d(data)
                 self._C     = C
                 M           = len(C)
-                d,V         = sla.eigh(C)
+                d, V        = sla.eigh(C)
                 d           = CovMat._clip(d)
-                rk          = (d>0).sum()
-                d           =  d  [-rk:][::-1]
+                rk          = (d > 0).sum()
+                d           = d[-rk:][::-1]
                 V           = (V.T[-rk:][::-1]).T
-                self._assign_EVD(M,rk,d,V)
-            elif kind=='diag':
+                self._assign_EVD(M, rk, d, V)
+            elif kind == 'diag':
                 # With diagonal input, it would be great to use a sparse
                 # (or non-existant) representation of V,
                 # but that would require so much other adaption of other code.
                 d         = exactly_1d(data)
                 self.diag = d
                 M         = len(d)
-                if np.all(d==d[0]):
+                if np.all(d == d[0]):
                     V   = np.eye(M)
                     rk  = M
                 else:
                     # Clip and sort diag
                     d   = CovMat._clip(d)
                     idx = np.argsort(d)[::-1]
-                    rk  = (d>0).sum()
+                    rk  = (d > 0).sum()
                     # Sort d
                     d = d[idx][:rk]
                     # Make rectangular V that un-sorts d
-                    V = zeros((M,rk))
+                    V = zeros((M, rk))
                     V[idx[:rk],  np.arange(rk)] = 1
-                self._assign_EVD(M,rk,d,V)
+                self._assign_EVD(M, rk, d, V)
             else:
                 raise KeyError
 
         self._kind  = kind
         self._trunc = trunc
 
-
     ##################################
     # Protected
     ##################################
+
     @property
     def M(self):
         """ndims"""
@@ -290,7 +295,7 @@ class CovMat():
     @property
     def full(self):
         "Full covariance matrix"
-        if hasattr(self,'_C'):
+        if hasattr(self, '_C'):
             return self._C
         else:
             C = self.Left @ self.Left.T
@@ -300,8 +305,8 @@ class CovMat():
     @lazy_property
     def diag(self):
         "Diagonal of covariance matrix"
-        if hasattr(self,'_C'):
-            return diag(self._C)
+        if hasattr(self, '_C'):
+            return np.diag(self._C)
         else:
             return (self.Left**2).sum(axis=1)
 
@@ -309,15 +314,16 @@ class CovMat():
     def Left(self):
         """L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
         and that its width is somewhere betwen the rank and M."""
-        if hasattr(self,'_R'):
+        if hasattr(self, '_R'):
             return self._R.T
         else:
             return self.V * sqrt(self.ews)
+
     @property
     def Right(self):
         """R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
         and that its height is somewhere betwen the rank and M."""
-        if hasattr(self,'_R'):
+        if hasattr(self, '_R'):
             return self._R
         else:
             return self.Left.T
@@ -325,7 +331,7 @@ class CovMat():
     ##################################
     # EVD stuff
     ##################################
-    def _assign_EVD(self,M,rk,d,V):
+    def _assign_EVD(self, M, rk, d, V):
         self._m   = M
         self._d   = d
         self._V   = V
@@ -333,51 +339,51 @@ class CovMat():
 
     @staticmethod
     def _clip(d):
-        return np.where(d<1e-8*d.max(),0,d)
+        return np.where(d < 1e-8*d.max(), 0, d)
 
     def _do_EVD(self):
         if not self.has_done_EVD():
-            V,s,UT = svd0(self._R)
-            M      = UT.shape[1]
-            d      = s**2
-            d      = CovMat._clip(d)
-            rk     = (d>0).sum()
-            d      = d [:rk]
-            V      = UT[:rk].T
-            self._assign_EVD(M,rk,d,V)
+            V, s, UT = svd0(self._R)
+            M        = UT.shape[1]
+            d        = s**2
+            d        = CovMat._clip(d)
+            rk       = (d > 0).sum()
+            d        = d[:rk]
+            V        = UT[:rk].T
+            self._assign_EVD(M, rk, d, V)
 
     def has_done_EVD(self):
         """Whether or not eigenvalue decomposition has been done for matrix."""
-        return all([key in vars(self) for key in ['_V','_d','_rk']])
-
+        return all([key in vars(self) for key in ['_V', '_d', '_rk']])
 
     @property
     def ews(self):
         """Eigenvalues. Only outputs the positive values (i.e. len(ews)==rk)."""
         self._do_EVD()
         return self._d
+
     @property
     def V(self):
         """Eigenvectors, output corresponding to ews."""
         self._do_EVD()
         return self._V
+
     @property
     def rk(self):
         """Rank, i.e. the number of positive eigenvalues."""
         self._do_EVD()
         return self._rk
 
-
     ##################################
     # transform_by properties
     ##################################
-    def transform_by(self,fun):
+    def transform_by(self, fun):
         """Generalize scalar functions to covariance matrices
         (via Taylor expansion).
         """
 
-        r = truncate_rank(self.ews,self.trunc,True)
-        V = self.V[:,:r]
+        r = truncate_rank(self.ews, self.trunc, True)
+        V = self.V[:, :r]
         w = self.ews[:r]
 
         return (V * fun(w)) @ V.T
@@ -414,9 +420,9 @@ class CovMat():
     # __repr__
     ##################################
     def __repr__(self):
-        s  = "\n    M: " + str (self.M)
+        s  = "\n    M: " + str(self.M)
         s += "\n kind: " + repr(self.kind)
-        s += "\ntrunc: " + str (self.trunc)
+        s += "\ntrunc: " + str(self.trunc)
 
         # Rank
         s += "\n   rk: "
@@ -427,19 +433,19 @@ class CovMat():
 
         # Full (as affordable)
         s += "\n full:"
-        if hasattr(self,'_C') or np.get_printoptions()['threshold'] > self.M**2:
+        if hasattr(self, '_C') or np.get_printoptions()['threshold'] > self.M**2:
             # We can afford to compute full matrix
             t = "\n" + str(self.full)
         else:
             # Only compute corners of full matrix
             K  = np.get_printoptions()['edgeitems']
             s += " (only computing/printing corners)"
-            if hasattr(self,'_R'):
-                U = self.Left[:K ,:] # Upper
-                L = self.Left[-K:,:] # Lower
+            if hasattr(self, '_R'):
+                U = self.Left[:K, :]  # Upper
+                L = self.Left[-K:, :]  # Lower
             else:
-                U = self.V[:K ,:] * sqrt(self.ews)
-                L = self.V[-K:,:] * sqrt(self.ews)
+                U = self.V[:K, :] * sqrt(self.ews)
+                L = self.V[-K:, :] * sqrt(self.ews)
 
             # Corners
             NW = U@U.T
@@ -448,21 +454,21 @@ class CovMat():
             SE = L@L.T
 
             # Concatenate corners. Fill "cross" between them with nan's
-            N  = np.hstack([NW,np.nan*ones((K,1)),NE])
-            S  = np.hstack([SW,np.nan*ones((K,1)),SE])
-            All= np.vstack([N ,np.nan*ones(2*K+1),S])
+            N  = np.hstack([NW, np.nan*ones((K, 1)), NE])
+            S  = np.hstack([SW, np.nan*ones((K, 1)), SE])
+            All = np.vstack([N, np.nan*ones(2*K+1), S])
 
             with np.printoptions(threshold=0):
                 t = "\n" + str(All)
 
         # Indent all of cov array, and add to s
-        s += t.replace("\n","\n   ")
+        s += t.replace("\n", "\n   ")
 
         # Add diag. Indent array +1 vs cov array
         with np.printoptions(threshold=0):
             s += "\n diag:\n   " + " " + str(self.diag)
 
-        s = utils.repr_type_and_name(self) + s.replace("\n","\n  ")
+        s = utils.repr_type_and_name(self) + s.replace("\n", "\n  ")
         return s
 
 # Note: The diagonal representation is NOT memory-efficient.
@@ -471,7 +477,7 @@ class CovMat():
 # (which would hold the eigenvectors) is a subclass of the matrix class,
 # which interprets * as @, and so, when using this class,
 # one would have to be always careful about it
-# 
+#
 # One could try to overload +-@/ (for CovMat),
 # but unfortunately there's no right/post-application version of @ and /
 # (indeed, how could there be for binary operators?)
@@ -481,6 +487,6 @@ class CovMat():
 # which are usually not infeasibly large.
 #
 # Another potential solution is to subclass the sparse matrix,
-# and revert its operator definitions to that of ndarray. 
+# and revert its operator definitions to that of ndarray.
 # and use it for the V (eigenvector) matrix that gets output
 # by various fields of CovMat.

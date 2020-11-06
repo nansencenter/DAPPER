@@ -13,14 +13,14 @@ import numpy as np
 import scipy.linalg as sla
 import warnings
 
+
 class Stats(StatPrint):
     """Contains and computes statistics of the DA methods.
 
     Use new_series() to register your own stat time series.
     """
 
-    def __init__(self,xp,HMM,xx,yy,
-            liveplots=False, store_u=rc.store_u):
+    def __init__(self, xp, HMM, xx, yy, liveplots=False, store_u=rc.store_u):
         """Init the default statistics.
 
         Note: Python allows dynamically creating attributes, so you can easily
@@ -37,57 +37,56 @@ class Stats(StatPrint):
         self.yy        = yy
         self.liveplots = liveplots
         self.store_u   = store_u
-        self.store_s   = hasattr(xp,'Lag')
+        self.store_s   = hasattr(xp, 'Lag')
 
         # Shapes
         K    = xx.shape[0]-1
         Nx   = xx.shape[1]
         KObs = yy.shape[0]-1
         Ny   = yy.shape[1]
-        self.K   , self.Nx = K   , Nx
+        self.K,    self.Nx = K, Nx
         self.KObs, self.Ny = KObs, Ny
 
         # Methods for summarizing multivariate stats ("fields") as scalars
+        # Don't use nanmean here; nan's should get propagated!
         self.field_summaries = dict(
-            # Don't use nanmean here; nan's should get propagated!
-            # suffix              formula
-            m         = lambda x: np.mean(x)                 , # mean-field
-            rms       = lambda x: np.sqrt(np.mean(x**2))     , # root-mean-square
-            ma        = lambda x: np.mean(np.abs(x))         , # mean-absolute
-            gm        = lambda x: np.exp(np.mean(np.log(x))) , # geometric mean
+            m   = lambda x: np.mean(x),                  # mean-field
+            rms = lambda x: np.sqrt(np.mean(x**2)),      # root-mean-square
+            ma  = lambda x: np.mean(np.abs(x)),          # mean-absolute
+            gm  = lambda x: np.exp(np.mean(np.log(x))),  # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = dict_tools.intersect(self.field_summaries, rc.field_summaries)
+        self.field_summaries = dict_tools.intersect(self.field_summaries,
+                                                    rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
-        restrict = lambda fun, inds: (lambda x: fun(x[inds]))
+        def restrict(fun, inds): return (lambda x: fun(x[inds]))
         for suffix, formula in self.field_summaries.items():
             for sector, inds in HMM.sectors.items():
-                f = restrict(formula,inds)
-                self.sector_summaries['%s.%s'%(suffix,sector)] = f
-
+                f = restrict(formula, inds)
+                self.sector_summaries['%s.%s' % (suffix, sector)] = f
 
         ######################################
         # Allocate time series of various stats
         ######################################
-        self.new_series('mu'    ,Nx, MS='sec') # Mean
-        self.new_series('std'   ,Nx, MS='sec') # Std. dev. ("spread")
-        self.new_series('err'   ,Nx, MS='sec') # Error (mu - truth)
-        self.new_series('gscore',Nx, MS='sec') # Gaussian (log) score
+        self.new_series('mu',     Nx, MS='sec')  # Mean
+        self.new_series('std',    Nx, MS='sec')  # Std. dev. ("spread")
+        self.new_series('err',    Nx, MS='sec')  # Error (mu - truth)
+        self.new_series('gscore', Nx, MS='sec')  # Gaussian (log) score
 
         # To save memory, we only store these field means:
-        self.new_series('mad' ,1) # Mean abs deviations
-        self.new_series('skew',1) # Skewness
-        self.new_series('kurt',1) # Kurtosis
+        self.new_series('mad',  1)  # Mean abs deviations
+        self.new_series('skew', 1)  # Skewness
+        self.new_series('kurt', 1)  # Kurtosis
 
-        if hasattr(xp,'N'):
+        if hasattr(xp, 'N'):
             N            = xp.N
-            self.new_series('w',N, MS=True)    # Importance weights
-            self.new_series('rh',Nx,dtype=int) # Rank histogram
+            self.new_series('w', N, MS=True)    # Importance weights
+            self.new_series('rh', Nx, dtype=int)  # Rank histogram
 
             self._is_ens = True
-            minN         = min(Nx,N)
+            minN         = min(Nx, N)
             do_spectral  = np.sqrt(Nx*N) <= rc.comp_threshold_b
         else:
             self._is_ens = False
@@ -98,24 +97,22 @@ class Stats(StatPrint):
             # Note: the mean-field and RMS time-series of
             # (i) svals and (ii) umisf should match the corresponding series of
             # (i) std and (ii) err.
-            self.new_series('svals',minN) # Principal component (SVD) scores
-            self.new_series('umisf',minN) # Error in component directions
-
+            self.new_series('svals', minN)  # Principal component (SVD) scores
+            self.new_series('umisf', minN)  # Error in component directions
 
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series('trHK'  , 1, KObs+1)
-        self.new_series('infl'  , 1, KObs+1)
-        self.new_series('iters' , 1, KObs+1)
+        self.new_series('trHK',  1, KObs+1)
+        self.new_series('infl',  1, KObs+1)
+        self.new_series('iters', 1, KObs+1)
 
         # Weight-related
-        self.new_series('N_eff' , 1, KObs+1)
-        self.new_series('wroot' , 1, KObs+1)
+        self.new_series('N_eff',  1, KObs+1)
+        self.new_series('wroot',  1, KObs+1)
         self.new_series('resmpl', 1, KObs+1)
 
-
-    def new_series(self,name,shape,length='FAUSt',MS=False,**kws):
+    def new_series(self, name, shape, length='FAUSt', MS=False, **kws):
         """Create (and register) a statistics time series.
 
         Series are initialized with nan's.
@@ -130,41 +127,42 @@ class Stats(StatPrint):
 
         # Convert int shape to tuple
         if not hasattr(shape, '__len__'):
-            if shape==1: shape = ()
-            else:        shape = (shape,)
+            if shape == 1:
+                shape = ()
+            else:
+                shape = (shape,)
 
-        def make_series(parent,name,shape):
-            if length=='FAUSt':
+        def make_series(parent, name, shape):
+            if length == 'FAUSt':
                 total_shape = self.K, self.KObs, shape
                 store_opts = self.store_u, self.store_s
                 series = dpr.series.FAUSt(*total_shape, *store_opts, **kws)
             else:
                 total_shape = (length,)+shape
-                series = DataSeries(total_shape,*kws)
+                series = DataSeries(total_shape, *kws)
             register_stat(parent, name, series)
 
         # Principal series
         make_series(self, name, shape)
 
         # Summary (scalar) series:
-        if shape!=():
+        if shape != ():
             if MS:
                 for suffix in self.field_summaries:
-                    make_series(getattr(self,name),suffix,())
+                    make_series(getattr(self, name), suffix, ())
             # Make a nested level for sectors
-            if MS=='sec':
+            if MS == 'sec':
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split('.')
-                    make_series(dict_tools.deep_getattr(self,f"{name}.{suffix}"),sector,())
-
+                    make_series(dict_tools.deep_getattr(
+                        self, f"{name}.{suffix}"), sector, ())
 
     @property
     def data_series(self):
-        return [k for k in vars(self) if isinstance(getattr(self,k),DataSeries)]
+        return [k for k in vars(self) if isinstance(getattr(self, k), DataSeries)]
 
-
-    def assess(self,k,kObs=None,faus=None,
-               E=None,w=None,mu=None,Cov=None):
+    def assess(self, k, kObs=None, faus=None,
+               E=None, w=None, mu=None, Cov=None):
         """Common interface for both assess_ens and _ext.
 
         The _ens assessment function gets called if E is not None,
@@ -177,19 +175,26 @@ class Stats(StatPrint):
         """
 
         # Initial consistency checks.
-        if k==0:
+        if k == 0:
             if kObs is not None:
-                raise KeyError("DAPPER convention: no obs at t=0. Helps avoid bugs.")
+                raise KeyError("DAPPER convention: no obs at t=0."
+                               " Helps avoid bugs.")
             if faus is None:
                 faus = 'u'
-            if self._is_ens==True:
-                def rze(a,b,c):
-                    raise TypeError("Expected "+a+" input, but "+b+" is "+c+" None")
-                if E is None:      rze("ensemble","E","")
-                if mu is not None: rze("ensemble","my/Cov","not")
+            if self._is_ens == True:
+                if E is None:
+                    raise TypeError(
+                        "Expected ensemble input but E is None")
+                if mu is not None:
+                    raise TypeError(
+                        "Expected ensemble input but mu/Cov is not None")
             else:
-                if E is not None:  rze("mu/Cov","E","not")
-                if mu is None:     rze("mu/Cov","mu","")
+                if E is not None:
+                    raise TypeError(
+                        "Expected mu/Cov input but E is not None")
+                if mu is None:
+                    raise TypeError(
+                        "Expected mu/Cov input but mu is None")
 
         # Default. Don't add more defaults. It just gets confusing.
         if faus is None:
@@ -198,20 +203,20 @@ class Stats(StatPrint):
         # Select assessment call and arguments
         if self._is_ens:
             _assess = self.assess_ens
-            _prms   = {'E':E,'w':w}
+            _prms   = {'E': E, 'w': w}
         else:
             _assess = self.assess_ext
-            _prms   = {'mu':mu,'P':Cov}
+            _prms   = {'mu': mu, 'P': Cov}
 
         for sub in faus:
 
             # Skip assessment if ('u' and stats not stored or plotted)
-            if k!=0 and kObs==None:
+            if k != 0 and kObs == None:
                 if not (self.store_u or self.LP_instance.any_figs):
                     continue
 
             # Silence repeat warnings caused by zero variance
-            with np.errstate(divide='call',invalid='call'):
+            with np.errstate(divide='call', invalid='call'):
                 np.seterrcall(warn_zero_variance)
 
                 # Assess
@@ -221,23 +226,23 @@ class Stats(StatPrint):
                 self.summarize_marginals(stats_now)
 
             # Write current stats to series
-            for name,val in stats_now.items():
-                stat = dict_tools.deep_getattr(self,name)
-                if isinstance(stat,dpr.series.FAUSt): stat[(k,kObs,sub)] = val
-                else:                      stat[kObs]         = val
+            for name, val in stats_now.items():
+                stat = dict_tools.deep_getattr(self, name)
+                isFaust = isinstance(stat, dpr.series.FAUSt)
+                stat[(k, kObs, sub) if isFaust else kObs] = val
 
             # LivePlot -- Both init and update must come after the assessment.
             try:
-                self.LP_instance.update((k,kObs,sub),E,Cov)
+                self.LP_instance.update((k, kObs, sub), E, Cov)
             except AttributeError:
-                self.LP_instance = liveplotting.LivePlot(self, self.liveplots, (k,kObs,sub), E, Cov)
+                self.LP_instance = liveplotting.LivePlot(
+                    self, self.liveplots, (k, kObs, sub), E, Cov)
 
-
-    def summarize_marginals(self,now):
+    def summarize_marginals(self, now):
         "Compute Mean-field and RMS values"
         formulae = {**self.field_summaries, **self.sector_summaries}
 
-        with np.errstate(divide='ignore',invalid='ignore'):
+        with np.errstate(divide='ignore', invalid='ignore'):
             for stat in list(now):
                 field = now[stat]
                 for suffix, formula in formulae.items():
@@ -245,25 +250,26 @@ class Stats(StatPrint):
                     if dict_tools.deep_hasattr(self, statpath):
                         now[statpath] = formula(field)
 
-
-    def derivative_stats(self,now):
+    def derivative_stats(self, now):
         """Stats that derive from others (=> not specific for _ens or _ext)."""
         now.gscore = 2*np.log(now.std) + (now.err/now.std)**2
 
-
-    def assess_ens(self,now,x,E,w):
+    def assess_ens(self, now, x, E, w):
         """Ensemble and Particle filter (weighted/importance) assessment."""
-        N,Nx = E.shape
+        N, Nx = E.shape
 
-        if w is None: 
-            w = np.ones(N)/N # All equal. Also, rm attr from stats:
-            if hasattr(self,'w'):
-                delattr(self,'w')
+        if w is None:
+            w = np.ones(N)/N  # All equal. Also, rm attr from stats:
+            if hasattr(self, 'w'):
+                delattr(self, 'w')
         else:
             now.w = w
-            if abs(w.sum()-1) > 1e-5:  raise RuntimeError("Weights did not sum to one.")
-        if not np.all(np.isfinite(E)): raise RuntimeError("Ensemble not finite.")
-        if not np.all(np.isreal(E)):   raise RuntimeError("Ensemble not Real.")
+            if abs(w.sum()-1) > 1e-5:
+                raise RuntimeError("Weights did not sum to one.")
+        if not np.all(np.isfinite(E)):
+            raise RuntimeError("Ensemble not finite.")
+        if not np.all(np.isreal(E)):
+            raise RuntimeError("Ensemble not Real.")
 
         now.mu  = w @ E
         now.err = now.mu - x
@@ -277,74 +283,75 @@ class Stats(StatPrint):
 
         # Compute variances
         var  = w @ A_pow
-        ub   = unbias_var(w,avoid_pathological=True)
+        ub   = unbias_var(w, avoid_pathological=True)
         var *= ub
 
         # Compute standard deviation ("Spread")
-        std = np.sqrt(var) # NB: biased (even though var is unbiased)
+        std = np.sqrt(var)  # NB: biased (even though var is unbiased)
         now.std = std
 
         # For simplicity, use naive (biased) formulae, derived
         # from "empirical measure". See doc/unbiased_skew_kurt.jpg.
         # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
         A_pow *= A
-        now.skew = np.nanmean( w @ A_pow / (std*std*std) )
+        now.skew = np.nanmean(w @ A_pow / (std*std*std))
         A_pow *= A
-        now.kurt = np.nanmean( w @ A_pow / var**2 - 3 )
+        now.kurt = np.nanmean(w @ A_pow / var**2 - 3)
 
-        now.mad  = np.nanmean( w @ abs(A) )
+        now.mad  = np.nanmean(w @ abs(A))
 
-        if hasattr(self,'svals'):
-            if N<=Nx:
-                _,s,UT    = sla.svd( (np.sqrt(w)*A.T).T, full_matrices=False)
-                s        *= np.sqrt(ub) # Makes s^2 unbiased
+        if hasattr(self, 'svals'):
+            if N <= Nx:
+                _, s, UT  = sla.svd((np.sqrt(w)*A.T).T, full_matrices=False)
+                s        *= np.sqrt(ub)  # Makes s^2 unbiased
                 now.svals = s
                 now.umisf = UT @ now.err
             else:
                 P         = (A.T * w) @ A
-                s2,U      = sla.eigh(P)
+                s2, U     = sla.eigh(P)
                 s2       *= ub
                 now.svals = np.sqrt(s2.clip(0))[::-1]
                 now.umisf = U.T[::-1] @ now.err
 
             # For each state dim [i], compute rank of truth (x) among the ensemble (E)
-            E_x = np.sort(np.vstack((E,x)),axis=0,kind='heapsort')
-            now.rh = np.asarray([np.where(E_x[:,i]==x[i])[0][0] for i in range(Nx)])
+            E_x = np.sort(np.vstack((E, x)), axis=0, kind='heapsort')
+            now.rh = np.asarray(
+                [np.where(E_x[:, i] == x[i])[0][0] for i in range(Nx)])
 
-
-    def assess_ext(self,now,x,mu,P):
+    def assess_ext(self, now, x, mu, P):
         """Kalman filter (Gaussian) assessment."""
-        Nx = len(mu)
-
-        if not np.all(np.isfinite(mu)): raise RuntimeError("Estimates not finite.")
-        if not np.all(np.isreal(mu)):   raise RuntimeError("Estimates not Real.")
+        if not np.all(np.isfinite(mu)):
+            raise RuntimeError("Estimates not finite.")
+        if not np.all(np.isreal(mu)):
+            raise RuntimeError("Estimates not Real.")
         # Don't check the cov (might not be explicitly availble)
 
         now.mu  = mu
         now.err = now.mu - x
 
-        var = P.diag if isinstance(P,dpr.CovMat) else np.diag(P)
+        var = P.diag if isinstance(P, dpr.CovMat) else np.diag(P)
         now.std = np.sqrt(var)
 
         # Here, sqrt(2/pi) is the ratio, of MAD/STD for Gaussians
-        now.mad = np.nanmean( now.std ) * np.sqrt(2/np.pi)
+        now.mad = np.nanmean(now.std) * np.sqrt(2/np.pi)
 
-        if hasattr(self,'svals'):
-            P         = P.full if isinstance(P,dpr.CovMat) else P
-            s2,U      = sla.eigh(P)
-            now.svals = np.sqrt(np.maximum(s2,0.0))[::-1]
+        if hasattr(self, 'svals'):
+            P         = P.full if isinstance(P, dpr.CovMat) else P
+            s2, U      = sla.eigh(P)
+            now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
             now.umisf = (U.T @ now.err)[::-1]
 
-
-    def average_in_time(self,kk=None,kkObs=None,free=False):
+    def average_in_time(self, kk=None, kkObs=None, free=False):
         """Avarage all univariate (scalar) time series.
 
         - ``kk``    time inds for averaging
         - ``kkObs`` time inds for averaging obs
         """
         chrono = self.HMM.t
-        if kk    is None: kk     = chrono.mask_BI
-        if kkObs is None: kkObs  = chrono.maskObs_BI
+        if kk is None:
+            kk     = chrono.mask_BI
+        if kkObs is None:
+            kkObs  = chrono.maskObs_BI
 
         def average1(series):
             avrgs = Avrgs()
@@ -353,47 +360,48 @@ class Stats(StatPrint):
             # Plain averages of nd-series are rarely interesting.
             # => Shortcircuit => Leave for manual computations
 
-            if isinstance(series,dpr.series.FAUSt):
+            if isinstance(series, dpr.series.FAUSt):
                 # Average series for each subscript
                 if series.item_shape != ():
                     return average_multivariate()
-                for sub in [ch for ch in 'fas' if hasattr(series,ch)]:
-                    avrgs[sub] = dpr.series.mean_with_conf(series[kkObs,sub])
+                for sub in [ch for ch in 'fas' if hasattr(series, ch)]:
+                    avrgs[sub] = dpr.series.mean_with_conf(series[kkObs, sub])
                 if series.store_u:
-                    avrgs['u'] = dpr.series.mean_with_conf(series[kk,'u'])
+                    avrgs['u'] = dpr.series.mean_with_conf(series[kk, 'u'])
 
-            elif isinstance(series,DataSeries):
+            elif isinstance(series, DataSeries):
                 if series.array.shape[1:] != ():
                     return average_multivariate()
                 elif len(series.array) == self.KObs+1:
                     avrgs = dpr.series.mean_with_conf(series[kkObs])
                 elif len(series.array) == self.K+1:
                     avrgs = dpr.series.mean_with_conf(series[kk])
-                else: raise ValueError
+                else:
+                    raise ValueError
 
             elif np.isscalar(series):
-                avrgs = series # Eg. just copy over "duration" from stats
+                avrgs = series  # Eg. just copy over "duration" from stats
 
             else:
-                raise TypeError(f"Don't know how to average {key}")
+                raise TypeError(f"Don't know how to average {series}")
 
             return avrgs
 
-        def recurse_average(stat_parent,avrgs_parent):
-            for key in getattr(stat_parent,"stat_register",[]):
+        def recurse_average(stat_parent, avrgs_parent):
+            for key in getattr(stat_parent, "stat_register", []):
                 try:
-                    series = getattr(stat_parent,key)
+                    series = getattr(stat_parent, key)
                 except AttributeError:
-                    continue # Eg assess_ens() deletes .weights if None
+                    continue  # Eg assess_ens() deletes .weights if None
                 avrgs = average1(series)
-                recurse_average(series,avrgs)
+                recurse_average(series, avrgs)
                 avrgs_parent[key] = avrgs
 
         avrgs = Avrgs()
-        recurse_average(self,avrgs)
+        recurse_average(self, avrgs)
         self.xp.avrgs = avrgs
         if free:
-            delattr(self.xp,'stats')
+            delattr(self.xp, 'stats')
 
     def replay(self, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
         """Replay LivePlot with what's been stored in 'self'.
@@ -401,10 +409,11 @@ class Stats(StatPrint):
         - t1, t2: time window to plot.
         - 'figlist' and 'speed': See LivePlot's doc.
 
-        .. note:: ``store_u`` (whether to store non-obs-time stats)
-                  must have been ``True`` to have smooth graphs as in the actual LivePlot.
+        .. note:: ``store_u`` (whether to store non-obs-time stats) must
+        have been ``True`` to have smooth graphs as in the actual LivePlot.
 
-        .. note:: Ensembles are generally not stored in the stats and so cannot be replayed.
+        .. note:: Ensembles are generally not stored in the stats
+        and so cannot be replayed.
         """
 
         # Time settings
@@ -418,36 +427,36 @@ class Stats(StatPrint):
         #       It breaks down when M is very large.
         try:
             P0 = np.full_like(self.HMM.X0.C.full, np.nan)
-        except AttributeError: # e.g. if X0 is defined via sampling func
+        except AttributeError:  # e.g. if X0 is defined via sampling func
             P0 = np.eye(self.HMM.Nx)
 
         LP = liveplotting.LivePlot(self, figlist, P=P0, speed=speed,
                                    Tplot=t2-t1, replay=True, **kwargs)
-        plt.pause(.01) # required when speed=inf
+        plt.pause(.01)  # required when speed=inf
 
         # Remember: must use progbar to unblock read1.
         # Let's also make a proper description.
         desc = self.xp.da_method + " (replay)"
 
         # Play through assimilation cycles
-        for k,kObs,t,dt in utils.progbar(chrono.ticker, desc):
+        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
             if t1 <= t <= t2:
                 if kObs is not None:
-                    LP.update((k,kObs,'f'),None,None)
-                    LP.update((k,kObs,'a'),None,None)
-                LP.update((k,kObs,'u'),None,None)
+                    LP.update((k, kObs, 'f'), None, None)
+                    LP.update((k, kObs, 'a'), None, None)
+                LP.update((k, kObs, 'u'), None, None)
 
-        plt.pause(.01) # required when speed=inf
+        plt.pause(.01)  # required when speed=inf
 
 
-def register_stat(self,name,value):
-    setattr(self,name,value)
-    if not hasattr(self,"stat_register"):
+def register_stat(self, name, value):
+    setattr(self, name, value)
+    if not hasattr(self, "stat_register"):
         self.stat_register = []
     self.stat_register.append(name)
 
 
-class Avrgs(StatPrint,DotDict):
+class Avrgs(StatPrint, DotDict):
     """A DotDict specialized for stat. averages.
 
     Embellishments:
@@ -458,19 +467,19 @@ class Avrgs(StatPrint,DotDict):
 
     def tabulate(self, statkeys=()):
         columns = tabulate_avrgs([self], statkeys, decimals=None)
-        return utils.tabulate(columns, headers="keys").replace('␣',' ')
+        return utils.tab(columns, headers="keys").replace('␣', ' ')
 
-    abbrevs = {'rmse':'err.rms', 'rmss':'std.rms', 'rmv':'std.rms'}
+    abbrevs = {'rmse': 'err.rms', 'rmss': 'std.rms', 'rmv': 'std.rms'}
 
     # Use getattribute coz it gets called before getattr.
-    def __getattribute__(self,key):
+    def __getattribute__(self, key):
         """Support deep and abbreviated lookup."""
 
         # key = abbrevs[key] # Instead of this, also support rmse.a:
-        key = '.'.join(Avrgs.abbrevs.get(l,l) for l in key.split('.'))
+        key = '.'.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split('.'))
 
         if "." in key:
-            return dict_tools.deep_getattr(self,key)
+            return dict_tools.deep_getattr(self, key)
         else:
             return super().__getattribute__(key)
 
@@ -482,12 +491,14 @@ class Avrgs(StatPrint,DotDict):
 # I would have expected this (more elegant solution?) to work,
 # but it just makes it worse.
 # with np.errstate(divide='warn',invalid='warn'), warnings.catch_warnings():
-    # warnings.simplefilter("once",category=RuntimeWarning)
-    # ...
+# warnings.simplefilter("once",category=RuntimeWarning)
+# ...
+
+
 @utils.do_once
-def warn_zero_variance(err,flag):
+def warn_zero_variance(err, flag):
     msg = "\n".join(["Numerical error in stat comps.",
-          "Probably caused by a sample variance of 0."])
+                     "Probably caused by a sample variance of 0."])
     warnings.warn(msg)
 
 
@@ -495,7 +506,7 @@ def warn_zero_variance(err,flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def tabulate_column(col,header,pad='␣',missingval='',frmt=None):
+def tabulate_column(col, header, pad='␣', missingval='', frmt=None):
     """Format a single column, return as list.
 
     - Use tabulate() to get decimal point alignment.
@@ -512,24 +523,28 @@ def tabulate_column(col,header,pad='␣',missingval='',frmt=None):
                 return frmt(x)
 
             # Standard formatting
-            if      x is None: return missingval
-            elif  np.isnan(x): return  "NAX"
-            elif x == -np.inf: return "-INX"
-            elif x ==  np.inf: return  "INX"
-            return x # leave formatting to tabulate()
+            if x is None:
+                return missingval
+            elif np.isnan(x):
+                return "NAX"
+            elif x == -np.inf:
+                return "-INX"
+            elif x == np.inf:
+                return "INX"
+            return x  # leave formatting to tabulate()
 
         except TypeError:
             return missingval
 
     def postprocess(s):
-        s = s.replace("NAX","nan")
-        s = s.replace("INX","inf")
+        s = s.replace("NAX", "nan")
+        s = s.replace("INX", "inf")
         return s
 
     # Make text column, aligned
     col = [[preprocess(x)] for x in col]
-    col = utils.tabulate(col,[header],'plain')
-    col = col.split("\n") # NOTE: dont use splitlines (removes empty lines)
+    col = utils.tab(col, [header], 'plain')
+    col = col.split("\n")  # NOTE: dont use splitlines (removes empty lines)
 
     # Undo nan/inf treatment
     col = [postprocess(s) for s in col]
@@ -539,35 +554,40 @@ def tabulate_column(col,header,pad='␣',missingval='',frmt=None):
     col = [s.ljust(mxW) for s in col]
 
     # Use pad char. on BOTH left/right, to prevent trunc. by later tabulate().
-    col = [s.replace(" ",pad) for s in col]
+    col = [s.replace(" ", pad) for s in col]
 
     return col
 
 
-def unpack_uqs(uq_list, decimals=None, cols=("val","conf")):
+def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
     """Make array whose (named) cols are ``[uq.col for uq in uq_list]``.
-    
+
     Embellishments:
     - Insert None (in each col) if uq is None.
-    - Apply uq.round() when extracting val & conf. 
+    - Apply uq.round() when extracting val & conf.
     """
 
-    def unpack1(arr,i,uq):
-        if uq is None: return
+    def unpack1(arr, i, uq):
+        if uq is None:
+            return
         # val/conf
-        if decimals is None: v,c = uq.round(mult=0.1)
-        else:                v,c = np.round([uq.val, uq.conf],decimals)
+        if decimals is None:
+            v, c = uq.round(mult=0.1)
+        else:
+            v, c = np.round([uq.val, uq.conf], decimals)
         arr["val"][i], arr["conf"][i] = v, c
         # Others
-        for col in dict_tools.complement(cols, ["val","conf"]):
-            try: arr[col][i] = getattr(uq,col)
-            except AttributeError: pass
+        for col in dict_tools.complement(cols, ["val", "conf"]):
+            try:
+                arr[col][i] = getattr(uq, col)
+            except AttributeError:
+                pass
 
     # np.array with named columns. "O" => allow storing None's.
-    dtypes = np.dtype([(c,"O") for c in cols]) 
+    dtypes = np.dtype([(c, "O") for c in cols])
     arr = np.full_like(uq_list, dtype=dtypes, fill_value=None)
-    for i,uq in enumerate(uq_list):
-        unpack1(arr,i,uq)
+    for i, uq in enumerate(uq_list):
+        unpack1(arr, i, uq)
 
     return arr
 
@@ -576,15 +596,16 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     """Tabulate avrgs (val±conf)."""
 
     if not statkeys:
-        statkeys = ['rmse.a','rmv.a','rmse.f']
+        statkeys = ['rmse.a', 'rmv.a', 'rmse.f']
 
     columns = {}
     for stat in statkeys:
-        column = unpack_uqs([getattr(a,stat,None) for a in avrgs_list], decimals)
-        vals   = tabulate_column(column["val"]  , stat)
-        confs  = tabulate_column(column["conf"] , '1σ')
-        headr = vals[0]+'  1σ'
-        mattr = [v +' ±'+c for v,c in zip(vals,confs)][1:]
+        column = unpack_uqs(
+            [getattr(a, stat, None) for a in avrgs_list], decimals)
+        vals   = tabulate_column(column["val"], stat)
+        confs  = tabulate_column(column["conf"], '1σ')
+        headr  = vals[0]+'  1σ'
+        mattr  = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr
 
     return columns

@@ -44,7 +44,7 @@
 # it is well-known that not only will the qr-decomp be numerically unstable,
 # the exact polynomial interpolant of 40 equidistant points
 # is subject to the "horrible" Runge phenomenon.
-# 
+#
 # Another basis is the harmonic (sine/cosine) functions. Advantages:
 #  - will be orthogonal when evaluated on 40 discrete equidistant points.
 #  - the domain of Lorenz96 is periodic: as are sine/cosine.
@@ -56,7 +56,7 @@
 #
 # In conclusion, we will use the harmonic functions.
 #
-# 
+#
 # Update: It appears that we were wrong concerning the 2^n case.
 # That is, sine/cosine functions do not yield only +/- 1's for n>2
 # The question then remains (to be proven combinatorically?)
@@ -76,17 +76,18 @@ import numpy as np
 # yet more information is gained, since the observations are noisy.
 Ny = 12
 
-X0 = dpr.GaussRV(M=Nx, C=0.001) 
+X0 = dpr.GaussRV(M=Nx, C=0.001)
 
 def make_H(Ny,Nx):
     xx = np.linspace(-1,1,Nx+1)[1:]
     H = np.zeros((Ny,Nx))
     H[0] = 1/np.sqrt(2)
     for k in range(-(Ny//2),(Ny+1)//2):
-        ind = 2*abs(k) - (k<0)
-        H[ind] = np.sin(np.pi*k*xx + pi/4)
+        ind = 2*abs(k) - (k < 0)
+        H[ind] = np.sin(np.pi*k*xx + np.pi/4)
     H /= np.sqrt(Nx/2)
     return H
+
 
 H = make_H(Ny,Nx)
 # plt.figure(1).gca().matshow(H)

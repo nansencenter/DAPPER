@@ -3,6 +3,7 @@
 import time
 import numpy as np
 
+
 def set_seed(sd="clock"):
     """Essentially ``np.random.seed(sd)``, but also returning ``sd``.
 
@@ -27,7 +28,7 @@ def set_seed(sd="clock"):
     Note: why are we using global generator?
     Because that's what we were used to.
     And we're not not worried about thread safety.
-    
+
     Example:
     >>> def prnt(sd):
     >>>     print(str(sd).ljust(10), np.random.randint(0,99))
@@ -38,7 +39,7 @@ def set_seed(sd="clock"):
     >>> sd = set_seed()  ; prnt(sd)
     """
 
-    if (sd is not False) and sd==0:
+    if (sd is not False) and sd == 0:
         msg = ("Seeding with 0 is not a good idea, because\n"
                "- Might be confused with [None, False].\n"
                "- Sometimes people seed experiment k with seed(k*sd),\n"
@@ -55,6 +56,7 @@ def set_seed(sd="clock"):
 
     return sd
 
+
 # TODO 2: rm
-def rand( shape=(1,)): return np.random.uniform(0,1,shape)
-def randn(shape=(1,)): return np.random.normal (0,1,shape)
+def rand(shape=(1,)): return np.random.uniform(0, 1, shape)
+def randn(shape=(1,)): return np.random.normal(0, 1, shape)

@@ -39,6 +39,7 @@ import dill
 import shutil
 from datetime import datetime
 
+
 class HiddenMarkovModel(dict_tools.NicePrint):
     """Container for attributes of a Hidden Markov Model (HMM).
 
@@ -46,11 +47,13 @@ class HiddenMarkovModel(dict_tools.NicePrint):
     i.e. an "OSSE (observing system simulation experiment)".
     """
 
-    def __init__(self,Dyn,Obs,t,X0,**kwargs):
-        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn)
-        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs)
-        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)
-        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)
+    def __init__(self, Dyn, Obs, t, X0, **kwargs):
+        # fmt: off
+        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
+        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
+        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
+        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
+        # fmt: on
 
         # Name
         self.name = kwargs.pop("name", "")
@@ -62,16 +65,18 @@ class HiddenMarkovModel(dict_tools.NicePrint):
                 self.name = str(Path(name))
 
         # Kwargs
-        abbrevs = {'LP':'liveplotters'}
+        abbrevs = {'LP': 'liveplotters'}
         for key in kwargs:
-            setattr(self, abbrevs.get(key,key), kwargs[key])
+            setattr(self, abbrevs.get(key, key), kwargs[key])
 
         # Defaults
-        if not hasattr(self.Obs,"localizer"): self.Obs.localizer = no_localization(self.Nx, self.Ny)
-        if not hasattr(self    ,"sectors")  : self.sectors       = {}
+        if not hasattr(self.Obs, "localizer"):
+            self.Obs.localizer = no_localization(self.Nx, self.Ny)
+        if not hasattr(self, "sectors"):
+            self.sectors = {}
 
         # Validation
-        if self.Obs.noise.C==0 or self.Obs.noise.C.rk!=self.Obs.noise.C.M:
+        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
             raise ValueError("Rank-deficient R not supported.")
 
     # ndim shortcuts
@@ -80,47 +85,47 @@ class HiddenMarkovModel(dict_tools.NicePrint):
     @property
     def Ny(self): return self.Obs.M
 
-    printopts = {'ordering' : ['Dyn','Obs','t','X0']}
+    printopts = {'ordering': ['Dyn', 'Obs', 't', 'X0']}
 
-
-    def simulate(self,desc='Truth & Obs'):
+    def simulate(self, desc='Truth & Obs'):
         """Generate synthetic truth and observations."""
-        Dyn,Obs,chrono,X0 = self.Dyn, self.Obs, self.t, self.X0
+        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
 
         # Init
-        xx    = np.zeros((chrono.K   +1,Dyn.M))
-        yy    = np.zeros((chrono.KObs+1,Obs.M))
+        xx    = np.zeros((chrono.K   + 1, Dyn.M))
+        yy    = np.zeros((chrono.KObs+1, Obs.M))
 
         xx[0] = X0.sample(1)
 
         # Loop
-        for k,kObs,t,dt in utils.progbar(chrono.ticker,desc):
-            xx[k] = Dyn(xx[k-1],t-dt,dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
             if kObs is not None:
-                yy[kObs] = Obs(xx[k],t) + Obs.noise.sample(1)
+                yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
 
-        return xx,yy
-
+        return xx, yy
 
 
 class Operator(dict_tools.NicePrint):
     """Container for operators (models)."""
-    def __init__(self,M,model=None,noise=None,**kwargs):
+
+    def __init__(self, M, model=None, noise=None, **kwargs):
         self.M = M
 
         # None => Identity model
         if model is None:
             model = Id_op()
-            kwargs['linear'] = lambda x,t,dt: Id_mat(M)
+            kwargs['linear'] = lambda x, t, dt: Id_mat(M)
         self.model = model
 
         # None/0 => No noise
         if isinstance(noise, RV):
             self.noise = noise
         else:
-            if noise is None: noise = 0
+            if noise is None:
+                noise = 0
             if np.isscalar(noise):
-                self.noise = GaussRV(C=noise,M=M)
+                self.noise = GaussRV(C=noise, M=M)
             else:
                 self.noise = GaussRV(C=noise)
 
@@ -128,10 +133,10 @@ class Operator(dict_tools.NicePrint):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __call__(self,*args,**kwargs):
-        return self.model(*args,**kwargs)
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
 
-    printopts = {'ordering' : ['M','model','noise']}
+    printopts = {'ordering': ['M', 'model', 'noise']}
 
 
 def da_method(*default_dataclasses):
@@ -154,12 +159,12 @@ def da_method(*default_dataclasses):
     >>> class ens_defaults:
     >>>   infl : float = 1.0
     >>>   rot  : bool  = False
-    >>> 
+    >>>
     >>> @da_method(ens_defaults)
     >>> class EnKF:
     >>>     N     : int
     >>>     upd_a : str = "Sqrt"
-    >>> 
+    >>>
     >>>     def assimilate(self,HMM,xx,yy):
     >>>         ...
     """
@@ -174,13 +179,12 @@ def da_method(*default_dataclasses):
         - Wraps assimilate() to provide gentle_fail functionality.
         - Initialises and writes the Stats object."""
 
-
         # Default fields invovle: (1) annotations and (2) attributes.
-        def set_field(name,type,val):
-            if not hasattr(cls,'__annotations__'):
+        def set_field(name, type, val):
+            if not hasattr(cls, '__annotations__'):
                 cls.__annotations__ = {}
             cls.__annotations__[name] = type
-            if not isinstance(val,dcs.Field):
+            if not isinstance(val, dcs.Field):
                 val = dcs.field(default=val)
             setattr(cls, name, val)
 
@@ -190,45 +194,46 @@ def da_method(*default_dataclasses):
             # NB: Calling dataclass twice always makes repr=True, so avoid this.
             for F in dcs.fields(dcs.dataclass(D)):
                 if F.name not in cls.__annotations__:
-                    set_field(F.name,F.type,F)
+                    set_field(F.name, F.type, F)
 
-        # Create new class (NB: old/new classes have same id) 
+        # Create new class (NB: old/new classes have same id)
         cls = dcs.dataclass(cls)
 
         # Shortcut for self.__class__.__name__
         cls.da_method = cls.__name__
 
-        def assimilate(self,HMM,xx,yy,desc=None,**stat_kwargs):
+        def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
             # Progressbar name
-            pb_name_hook = self.da_method if desc is None else desc
+            pb_name_hook = self.da_method if desc is None else desc # noqa
             # Init stats
-            self.stats = dapper.stats.Stats(self,HMM,xx,yy,**stat_kwargs)
+            self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
             # Assimilate
             time_start = time.time()
-            old_assimilate(self,HMM,xx,yy)
-            dapper.stats.register_stat(self.stats,"duration",time.time()-time_start)
+            old_assimilate(self, HMM, xx, yy)
+            dapper.stats.register_stat(self.stats, "duration", time.time()-time_start)
 
         old_assimilate = cls.assimilate
         cls.assimilate = functools.wraps(old_assimilate)(assimilate)
-        
+
         return cls
     return dataclass_with_defaults
 
 
-def seed_and_simulate(HMM,xp):
+def seed_and_simulate(HMM, xp):
     """Default experiment setup. Set seed and simulate truth and obs.
-    
+
     Note: if there is no ``xp.seed`` then then the seed is not set.
     Thus, different experiments will produce different truth and obs."""
-    set_seed(getattr(xp,'seed',False))
+    set_seed(getattr(xp, 'seed', False))
     xx, yy = HMM.simulate()
     return xx, yy
+
 
 def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
     """Used by xpList.launch() to run each single experiment.
-    
+
     This involves steps similar to ``example_1.py``, i.e.:
 
     - setup()                    : Call function given by user. Should set
@@ -238,7 +243,7 @@ def run_experiment(xp, label, savedir, HMM,
     - xp.stats.average_in_time() : result averaging
     - xp.avrgs.tabulate()        : result printing
     - dill.dump()                : result storage
-    """ 
+    """
 
     # We should copy HMM so as not to cause any nasty surprises such as
     # expecting param=1 when param=2 (coz it's not been reset).
@@ -246,15 +251,15 @@ def run_experiment(xp, label, savedir, HMM,
     hmm = copy.deepcopy(HMM)
 
     # GENERATE TRUTH/OBS
-    xx, yy = setup(hmm,xp)
+    xx, yy = setup(hmm, xp)
 
     # ASSIMILATE
     try:
-        xp.assimilate(hmm,xx,yy, label, **stat_kwargs)
+        xp.assimilate(hmm, xx, yy, label, **stat_kwargs)
     except Exception as ERR:
         if fail_gently:
             xp.crashed = True
-            if fail_gently not in ["silent","quiet"]:
+            if fail_gently not in ["silent", "quiet"]:
                 utils.print_cropped_traceback(ERR)
         else:
             raise ERR
@@ -269,9 +274,8 @@ def run_experiment(xp, label, savedir, HMM,
 
     # SAVE
     if savedir:
-        with open(savedir/"xp","wb") as FILE:
-            dill.dump({'xp':xp}, FILE)
-
+        with open(savedir/"xp", "wb") as FILE:
+            dill.dump({'xp': xp}, FILE)
 
 
 # TODO 2: check collections.userlist
@@ -298,7 +302,7 @@ class xpList(list):
      - ``inds()`` to search by kw-attrs.
      """
 
-    def __init__(self,*args,unique=False):
+    def __init__(self, *args, unique=False):
         """Initialize without args, or with a list of configs.
 
         If ``unique``: duplicates won't get appended.
@@ -308,42 +312,46 @@ class xpList(list):
         self.unique = unique
         super().__init__(*args)
 
-    def __iadd__(self,xp):
-        if not hasattr(xp,'__iter__'):
+    def __iadd__(self, xp):
+        if not hasattr(xp, '__iter__'):
             xp = [xp]
         for item in xp:
             self.append(item)
         return self
 
-    def append(self,xp):
+    def append(self, xp):
         """Append if not unique & present."""
-        if not (self.unique and xp in self): super().append(xp)
+        if not (self.unique and xp in self):
+            super().append(xp)
 
     def __getitem__(self, keys):
         """Indexing, also by a list"""
-        try:              B=[self[k] for k in keys]   # if keys is list
-        except TypeError: B=super().__getitem__(keys) # if keys is int, slice
-        if hasattr(B,'__len__'): B = xpList(B) # Cast
-        return B 
+        try:
+            B = [self[k] for k in keys]    # if keys is list
+        except TypeError:
+            B = super().__getitem__(keys)  # if keys is int, slice
+        if hasattr(B, '__len__'):
+            B = xpList(B)                  # Cast
+        return B
 
-    def inds(self,strict=True,missingval="NONSENSE",**kws):
+    def inds(self, strict=True, missingval="NONSENSE", **kws):
         """Find (all) indices of configs whose attributes match kws.
 
         If strict, then xp's lacking a requested attr will not match,
         unless the missingval (e.g. None) matches the required value.
         """
         def match(xp):
-            missing = lambda v: missingval if strict else v
-            matches = [getattr(xp,k,missing(v))==v for k,v in kws.items()]
+            def missing(v): return missingval if strict else v
+            matches = [getattr(xp, k, missing(v)) == v for k, v in kws.items()]
             return all(matches)
 
-        return [i for i,xp in enumerate(self) if match(xp)]
+        return [i for i, xp in enumerate(self) if match(xp)]
 
     @property
     def da_methods(self):
         return [xp.da_method for xp in self]
 
-    def split_attrs(self,nomerge=()):
+    def split_attrs(self, nomerge=()):
         """Compile the attrs of all xps; split as distinct, redundant, common.
 
         Insert None if an attribute is distinct but not in xp."""
@@ -351,7 +359,8 @@ class xpList(list):
         def _aggregate_keys():
             "Aggregate keys from all xps"
 
-            if len(self)==0: return []
+            if len(self) == 0:
+                return []
 
             # Start with da_method
             aggregate = ['da_method']
@@ -383,8 +392,8 @@ class xpList(list):
                             aggregate.append(k)
 
             # Remove unwanted
-            excluded  = [re.compile('^_'),'avrgs','stats','HMM','duration']
-            aggregate = dict_tools.complement(aggregate,excluded)
+            excluded  = [re.compile('^_'), 'avrgs', 'stats', 'HMM', 'duration']
+            aggregate = dict_tools.complement(aggregate, excluded)
             return aggregate
 
         distinct, redundant, common = {}, {}, {}
@@ -393,18 +402,18 @@ class xpList(list):
 
             # Want to distinguish actual None's from empty ("N/A").
             # => Don't use getattr(obj,key,None)
-            vals = [getattr(xp,key,"N/A") for xp in self]
+            vals = [getattr(xp, key, "N/A") for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
             if dict_tools.flexcomp(key, *nomerge):
                 # nomerge => Distinct
                 dct, vals = distinct, vals
-            elif all(vals[0]==v for v in vals):
+            elif all(vals[0] == v for v in vals):
                 # all values equal => common
                 dct, vals = common, vals[0]
             else:
-                v0 = next(v for v in vals if "N/A"!=v)
-                if all(v=="N/A" or v==v0 for v in vals):
+                v0 = next(v for v in vals if "N/A" != v)
+                if all(v == "N/A" or v == v0 for v in vals):
                     # all values equal or "N/A" => redundant
                     dct, vals = redundant, v0
                 else:
@@ -412,11 +421,14 @@ class xpList(list):
                     dct, vals = distinct, vals
 
             # Replace "N/A" by None
-            sub = lambda v: None if v=="N/A" else v
-            if isinstance(vals,str): vals = sub(vals)
+            def sub(v): return None if v == "N/A" else v
+            if isinstance(vals, str):
+                vals = sub(vals)
             else:
-                try:                 vals = [sub(v) for v in vals]
-                except TypeError:    vals = sub(vals)
+                try:
+                    vals = [sub(v) for v in vals]
+                except TypeError:
+                    vals = sub(vals)
 
             dct[key] = vals
 
@@ -424,13 +436,13 @@ class xpList(list):
 
     def __repr__(self):
         distinct, redundant, common = self.split_attrs()
-        s = '<xpList> of length %d with attributes:\n'%len(self)
-        s += utils.tabulate(distinct, headers="keys", showindex=True)
+        s = '<xpList> of length %d with attributes:\n' % len(self)
+        s += utils.tab(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
         s += str(dict_tools.AlignedDict({**redundant, **common}))
         return s
 
-    def gen_names(self,abbrev=6,tab=False):
+    def gen_names(self, abbrev=6, tab=False):
         """Similiar to ``self.__repr__()``, but:
 
         - returns *list* of names
@@ -442,14 +454,15 @@ class xpList(list):
         values = distinct.values()
 
         # Label abbreviation
-        labels = [utils.collapse_str(k,abbrev) for k in labels]
+        labels = [utils.collapse_str(k, abbrev) for k in labels]
 
         # Make label columns: insert None or lbl+":", depending on value
-        column = lambda  lbl,vals: [None if v is None else lbl+":" for v in vals]
-        labels = [column(lbl,vals) for lbl, vals in zip(labels,values)]
+        def column(lbl, vals):
+            return [None if v is None else lbl+":" for v in vals]
+        labels = [column(lbl, vals) for lbl, vals in zip(labels, values)]
 
         # Interlace labels and values
-        table = [x for (a,b) in zip(labels,values) for x in (a,b)]
+        table = [x for (a, b) in zip(labels, values) for x in (a, b)]
 
         # Rm da_method label (but keep value)
         table.pop(0)
@@ -458,31 +471,30 @@ class xpList(list):
         table = list(map(list, zip(*table)))
 
         # Tabulate
-        table = utils.tabulate(table, tablefmt="plain")
+        table = utils.tab(table, tablefmt="plain")
 
         # Rm space between lbls/vals
-        table = re.sub(':  +',':',table) 
+        table = re.sub(':  +', ':', table)
 
         # Rm alignment
         if not tab:
-            table = re.sub(r' +',r' ', table)
+            table = re.sub(r' +', r' ', table)
 
         return table.splitlines()
 
     def tabulate_avrgs(self, *args, **kwargs):
         """Pretty (tabulated) repr of xps & their avrgs.
-        
+
         Similar to stats.tabulate_avrgs(), but for the entire list of xps."""
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
-        columns = {**distinct, '|':['|']*len(self), **averages} # merge
-        return utils.tabulate(columns, headers="keys", showindex=True).replace('␣',' ')
-
+        columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
+        return utils.tab(columns, headers="keys", showindex=True).replace('␣', ' ')
 
     def launch(self, HMM, save_as="noname", mp=False,
                setup=seed_and_simulate, fail_gently=None, **kwargs):
         """For each xp in self: run_experiment(xp, ...).
-        
+
         The results are saved in ``rc.dirs['data']/save_as.stem``,
         unless ``save_as`` is False/None.
 
@@ -492,7 +504,7 @@ class xpList(list):
          - GCP (Google Cloud Computing) with HTCondor
 
         If ``setup == None``: use ``seed_and_simulate()``.
-        
+
         The kwargs are forwarded to run_experiment().
 
         See ``example_2.py`` and ``example_3.py`` for example use.
@@ -507,39 +519,47 @@ class xpList(list):
         kwargs["setup"] = setup
 
         # Parse mp option
-        if not mp                   : mp = False
-        elif mp in [True, "MP"]     : mp = dict(server="local")
-        elif isinstance(mp, int)    : mp = dict(server="local",NPROC=mp)
-        elif mp in ["GCP","Google"] : mp = dict(server="GCP", files=[], code="")
-        else                        : assert isinstance(mp,dict)
+        if not mp:
+            mp = False
+        elif mp in [True, "MP"]:
+            mp = dict(server="local")
+        elif isinstance(mp, int):
+            mp = dict(server="local", NPROC=mp)
+        elif mp in ["GCP", "Google"]:
+            mp = dict(server="GCP", files=[], code="")
+        else:
+            assert isinstance(mp, dict)
 
         # Parse fail_gently
         if fail_gently is None:
-            if isinstance(mp,dict) and mp["server"] == "GCP":
-                fail_gently = False # coz cloud processing is entirely de-coupled anyways
+            if isinstance(mp, dict) and mp["server"] == "GCP":
+                fail_gently = False
+                # coz cloud processing is entirely de-coupled anyways
             else:
-                fail_gently = True # True unless otherwise requested
+                fail_gently = True
+                # True unless otherwise requested
         kwargs["fail_gently"] = fail_gently
 
         # Parse save_as
-        if save_as in [None,False]:
+        if save_as in [None, False]:
             assert not mp, "Multiprocessing requires saving data."
             # Parallelization w/o storing is possible, especially w/ threads.
             # But it involves more complicated communication set-up.
-            xpi_dir = lambda *args: None
+            def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
             save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
             os.makedirs(save_as)
             print(f"Experiment stored at {save_as}")
+
             def xpi_dir(i):
                 path = save_as / str(i)
                 os.mkdir(path)
                 return path
 
         # No parallelization
-        if not mp: 
-            for ixp, (xp, label) in enumerate( zip(self, self.gen_names()) ):
+        if not mp:
+            for ixp, (xp, label) in enumerate(zip(self, self.gen_names())):
                 run_experiment(xp, label, xpi_dir(ixp), **kwargs)
 
         # Local multiprocessing
@@ -549,17 +569,23 @@ class xpList(list):
                 run_experiment(xp, None, xpi_dir(ixp), **kwargs)
             args = zip(self, range(len(self)))
 
-            with     utils.set_tmp(tools.utils,'disable_progbar',True):
-                with utils.set_tmp(tools.utils,'disable_user_interaction',True):
-                    NPROC = mp.get("NPROC",None) # None => mp.cpu_count()
-                    with mpd.Pool(NPROC) as pool:
-                        list(tqdm.tqdm(pool.imap(run_with_fixed_args, args),
-                            total=len(self), desc="Parallel experim's", smoothing=0.1))
+            utils.disable_progbar          = True
+            utils.disable_user_interaction = True
+            NPROC = mp.get("NPROC", None)  # None => mp.cpu_count()
+            with mpd.Pool(NPROC) as pool:
+                list(utils.tqdm.tqdm(
+                    pool.imap(
+                        run_with_fixed_args, args),
+                    total=len(self),
+                    desc="Parallel experim's",
+                    smoothing=0.1))
+            utils.disable_progbar          = False
+            utils.disable_user_interaction = False
 
         # Google cloud platform, multiprocessing
         elif mp["server"] == "GCP":
             for ixp, xp in enumerate(self):
-                with open(xpi_dir(ixp)/"xp.var","wb") as f:
+                with open(xpi_dir(ixp)/"xp.var", "wb") as f:
                     dill.dump(dict(xp=xp), f)
 
             with open(save_as/"xp.com","wb") as f:
@@ -569,29 +595,31 @@ class xpList(list):
             extra_files = save_as / "extra_files"
             os.mkdir(extra_files)
             # Default files: .py files in sys.path[0] (main script's path)
-            if not mp.get("files",[]):
+            if not mp.get("files", []):
                 # Todo 4: also intersect(..., sys.modules).
                 # Todo 4: use git ls-tree instead?
                 ff = os.listdir(sys.path[0])
                 mp["files"] = [f for f in ff if f.endswith(".py")]
             # Copy files into extra_files
             for f in mp["files"]:
-                if isinstance(f, (str,Path)):
+                if isinstance(f, (str, Path)):
                     # Example: f = "A.py"
                     path = Path(sys.path[0]) / f
                     dst = f
-                else: # instance of tuple(path, root)
+                else:  # instance of tuple(path, root)
                     # Example: f = ("~/E/G/A.py", "G")
                     path, root = f
                     dst = Path(path).relative_to(root)
                 dst = extra_files / dst
                 os.makedirs(dst.parent, exist_ok=True)
-                try:            shutil.copytree(path, dst) # dir -r
-                except OSError: shutil.copy2   (path, dst) # file
+                try:
+                    shutil.copytree(path, dst)  # dir -r
+                except OSError:
+                    shutil.copy2(path, dst)  # file
 
             # Loads PWD/xp_{var,com} and calls run_experiment()
-            with open(extra_files/"load_and_run.py","w") as f:
-                f.write( dedent("""\
+            with open(extra_files/"load_and_run.py", "w") as f:
+                f.write(dedent("""\
                 from dapper import *
 
                 # Load
@@ -603,10 +631,10 @@ class xpList(list):
 
                 # Run
                 result = run_experiment(var['xp'], None, Path("."), **com)
-                """)%dedent(mp["code"]) )
+                """) % dedent(mp["code"]))
 
             # Avoid fluff in `out` files.
-            with open(extra_files/"dpr_config.ini","w") as f:
+            with open(extra_files/"dpr_config.ini", "w") as f:
                 f.write("[bool]\nliveplotting_enabled = False\nwelcome_message = False\n")
 
             submit_job_GCP(save_as)
@@ -629,14 +657,13 @@ def get_param_setter(param_dict, **glob_dict):
         dc_fields = [f.name for f in dcs.fields(method)]
         params = dict_tools.intersect(param_dict, dc_fields)
         params = dict_tools.complement(params, fixed_params)
-        params = {**glob_dict, **params} # glob_dict 1st
+        params = {**glob_dict, **params}  # glob_dict 1st
 
         def xp1(dct):
-            xp = method(**dict_tools.intersect(dct, dc_fields),**fixed_params)
+            xp = method(**dict_tools.intersect(dct, dc_fields), **fixed_params)
             for key, v in dict_tools.intersect(dct, glob_dict).items():
-                setattr(xp,key,v)
+                setattr(xp, key, v)
             return xp
 
         return [xp1(dct) for dct in dict_tools.prodct(params)]
     return for_params
-

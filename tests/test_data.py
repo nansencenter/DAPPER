@@ -1,5 +1,4 @@
 """Test data loading and presentation functionality."""
-##
 
 import sys
 import dapper as dpr
@@ -10,6 +9,8 @@ import functools
 # Capture stdout
 import io
 from contextlib import redirect_stdout
+
+
 # https://stackoverflow.com/a/22434594
 def cap_stdout(fun, *args, **kwargs):
     """Capture stdout."""
@@ -17,19 +18,20 @@ def cap_stdout(fun, *args, **kwargs):
         fun(*args, **kwargs)
         return stringbuf.getvalue()
 
+
 ##
 if "--replace" in sys.argv:
 
     @dataclass
     class Replacement:
-        lines  : list
-        nOpen  : int
-        nClose : int
+        lines: list
+        nOpen: int
+        nClose: int
 
     replacements = []
-    orig_code = open(__file__,"r").readlines()
+    orig_code = open(__file__, "r").readlines()
 
-    def backtrack_until_finding(substr,lineno):
+    def backtrack_until_finding(substr, lineno):
         while True:
             lineno -= 1
             if substr in orig_code[lineno]:
@@ -40,12 +42,13 @@ else:
     test_register = locals()
     test_ind = 0
 
+
 @functools.wraps(dpr.xpSpace.print)
-def _print(xp_dict,*args,**kwargs):
+def _print(xp_dict, *args, **kwargs):
     """Test xpSpace.print().
 
     sys.argv options:
-        --replace : update this file (i.e. its data) 
+        --replace : update this file (i.e. its data)
         --print   : turn _print into xpSpace.print().
 
     Features:
@@ -74,26 +77,26 @@ def _print(xp_dict,*args,**kwargs):
     if "--replace" in sys.argv:
         caller_lineno = inspect.currentframe().f_back.f_lineno
         nClose = backtrack_until_finding('"""\n', caller_lineno)
-        nOpen  = backtrack_until_finding('"""', nClose)
-        replacements.append(Replacement(output,nOpen,nClose))
+        nOpen = backtrack_until_finding('"""', nClose)
+        replacements.append(Replacement(output, nOpen, nClose))
 
-    else: # Generate & register tests
+    else:  # Generate & register tests
         global test_ind
         test_ind += 1
 
         # Capture ``old``
-        _old = old.splitlines(True) # keepends
+        _old = old.splitlines(True)  # keepends
 
         # Loop over rows
-        for lineno, (old_bound,new_bound) in enumerate(zip(_old,output)):
+        for lineno, (old_bound, new_bound) in enumerate(zip(_old, output)):
 
             # Define test function.
-            def compare(old_line=old_bound,new_line=new_bound):
+            def compare(old_line=old_bound, new_line=new_bound):
                 assert old_line == new_line
                 # assert old_line.strip() == new_line.strip()
 
             # Register test
-            test_register[f'test_{test_ind}_line_{lineno}'] = compare
+            test_register[f"test_{test_ind}_line_{lineno}"] = compare
 
 
 ##
@@ -101,8 +104,8 @@ save_as = dpr.rc.dirs.DAPPER / "dpr_data" / "test_data"
 xps = dpr.load_xps(save_as)
 xps = dpr.xpSpace.from_list(xps)
 
-xps_shorter = dpr.xpSpace.from_list([xp for xp in xps.values()
-    if getattr(xp,'da_method')!='LETKF'])
+xps_shorter = dpr.xpSpace.from_list(
+    [xp for xp in xps.values() if getattr(xp, "da_method") != "LETKF"])
 
 ##
 old = """Averages (in time and) over seed.
@@ -182,7 +185,15 @@ old = """Averages (in time and) over seed.
 10  2          10  |  0.2328 ±0.006 0 2  0.2811 ±0.003 0 2  0.326  ±0.01  0 2
 10  2          40  |  0.216  ±0.01  0 2  0.268  ±0.008 0 2  0.328  ±0.01  0 2
 """
-_print(xps, "rmse.a", dict(outer="da_method",inner="N",mean="seed",))
+_print(
+    xps,
+    "rmse.a",
+    dict(
+        outer="da_method",
+        inner="N",
+        mean="seed",
+    ),
+)
 
 ##
 old = """Averages (in time and) over seed.
@@ -238,7 +249,8 @@ old = """Averages (in time and) over seed.
 10       10  |  0.034  ±0.005 *(1.01,)    0.0325 ±0.005 *(1.1,)     0.0315 ±0.005 *(1.1,)   
 10       40  |  0.034  ±0.005 *(1.01,)    0.0325 ±0.005 *(1.01,)    0.032  ±0.005 *(1.1,)   
 """
-_print(xps, "rmse.a", dict(outer="da_method",inner="N",mean="seed",optim="infl"))
+_print(xps, "rmse.a",
+       dict(outer="da_method", inner="N", mean="seed", optim="infl"))
 
 ##
 old = """Averages (in time and) over seed.
@@ -318,7 +330,15 @@ old = """Averages (in time and) over seed.
 10  2          10  |  -1.068 ±0.03 0 2  -0.6315  ±0.003  0 2  -0.2092 ±0.004 0 2
 10  2          40  |  -1.072 ±0.02 0 2  -0.6444  ±0.009  0 2  -0.2076 ±0.004 0 2
 """
-_print(xps, "kurt.f", dict(outer="da_method",inner="N",mean="seed",))
+_print(
+    xps,
+    "kurt.f",
+    dict(
+        outer="da_method",
+        inner="N",
+        mean="seed",
+    ),
+)
 
 ##
 old = """Averages (in time and) over seed.
@@ -401,7 +421,15 @@ old = """Averages (in time and) over seed.
 10  50       10  |  0.0315 ±0.005 0 2  0.0315 ±0.005 0 2  0.326  ±0.01  0 2
 10  50       40  |  0.032  ±0.005 0 2  0.032  ±0.005 0 2  0.328  ±0.01  0 2
 """
-_print(xps, "rmse.a", dict(outer="da_method",inner="infl",mean="seed",))
+_print(
+    xps,
+    "rmse.a",
+    dict(
+        outer="da_method",
+        inner="infl",
+        mean="seed",
+    ),
+)
 
 ##
 old = """Averages (in time and) over seed.
@@ -477,7 +505,15 @@ LETKF      10                 4  |  0.0315 ±0.005 0 2  0.0315 ±0.005 0 2  0.33
 LETKF      10                10  |  0.0315 ±0.005 0 2  0.0315 ±0.005 0 2  0.326  ±0.01  0 2         ±         
 LETKF      10                40  |  0.032  ±0.005 0 2  0.032  ±0.005 0 2  0.328  ±0.01  0 2         ±         
 """
-_print(xps, "rmse.a", dict(outer="N",inner="infl",mean="seed",))
+_print(
+    xps,
+    "rmse.a",
+    dict(
+        outer="N",
+        inner="infl",
+        mean="seed",
+    ),
+)
 
 ##
 old = """Averages (in time and) over seed.
@@ -624,7 +660,15 @@ old = """Averages (in time and) over seed.
 10           2          10  |         ±                  ±           0.326  ±0.01  0 2
 10           2          40  |         ±                  ±           0.328  ±0.01  0 2
 """
-_print(xps, "rmse.a", dict(outer="N",inner="da_method",mean="seed",))
+_print(
+    xps,
+    "rmse.a",
+    dict(
+        outer="N",
+        inner="da_method",
+        mean="seed",
+    ),
+)
 
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
@@ -773,7 +817,7 @@ LETKF      10           2           4  |  0.32    ±0.2     0.34    ±0.2
 LETKF      10           2          10  |  0.32    ±0.2     0.34    ±0.2   
 LETKF      10           2          40  |  0.32    ±0.2     0.34    ±0.2   
 """
-_print(xps, "rmse.a", dict(outer="N",inner="seed"))
+_print(xps, "rmse.a", dict(outer="N", inner="seed"))
 
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
@@ -848,7 +892,7 @@ seed   F  ⑊   rmse.a ±1σ       rmse.a ±1σ       rmse.a ±1σ
 3001   8  |  0.0277  ±0.001   0.02608 ±0.0008  0.02528 ±0.0008
 3001  10  |  0.02907 ±0.0009  0.02745 ±0.0009  0.02664 ±0.0008
 """
-_print(xps_shorter, "rmse.a", dict(outer="da_method",inner="N"))
+_print(xps_shorter, "rmse.a", dict(outer="da_method", inner="N"))
 
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
@@ -923,7 +967,7 @@ seed   F  ⑊   rmse.a ±1σ  ☠ ✓   rmse.a ±1σ  ☠ ✓   rmse.a ±1σ  �
 3001   8  |  0.02768 ±nan 0 1  0.02607 ±nan 0 1  0.02529 ±nan 0 1
 3001  10  |  0.02904 ±nan 0 1  0.02746 ±nan 0 1  0.02663 ±nan 0 1
 """
-_print(xps_shorter, "rmse.a", dict(outer="da_method",inner="N",mean=()))
+_print(xps_shorter, "rmse.a", dict(outer="da_method", inner="N", mean=()))
 
 ##
 old = """Averages (in time and) over ('seed', 'infl').
@@ -966,7 +1010,8 @@ old = """Averages (in time and) over ('seed', 'infl').
  8  |  0.0325 ±0.005 0 2   0.031 ±0.005 0 2   0.03  ±0.005 0 2
 10  |  0.0345 ±0.005 0 2   0.033 ±0.005 0 2   0.032 ±0.005 0 2
 """
-_print(xps_shorter, "rmse.a", dict(outer="da_method",inner="N",mean=("seed","infl")))
+_print(xps_shorter, "rmse.a",
+       dict(outer="da_method", inner="N", mean=("seed", "infl")))
 
 ##
 old = """Averages (in time and) over seed.
@@ -1043,7 +1088,7 @@ old = """Averages (in time and) over seed.
 10  20  |  0.033  ±0.005 0 2
 10  50  |  0.032  ±0.005 0 2
 """
-_print(xps_shorter, "rmse.a", dict(outer="da_method",mean=("seed")))
+_print(xps_shorter, "rmse.a", dict(outer="da_method", mean=("seed")))
 
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
@@ -1203,7 +1248,10 @@ old = """Averages (in time and) over seed.
  8                1     |                                                                                         0.0325     0.031      0.03  
 10                1     |                                                                                         0.0345     0.033      0.032 
 """
-_print(xps_shorter, "rmse.a", dict(inner=("da_method","N"),mean="seed"), subcols=False)
+_print(xps_shorter,
+       "rmse.a",
+       dict(inner=("da_method", "N"), mean="seed"),
+       subcols=False)
 
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
@@ -1300,26 +1348,28 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
  8  |  0.0277   0.02608  0.02528
 10  |  0.02907  0.02745  0.02664
 """
-_print(xps_shorter, "rmse.a", dict(outer=("da_method","seed"),inner="N"), subcols=False)
-
+_print(xps_shorter,
+       "rmse.a",
+       dict(outer=("da_method", "seed"), inner="N"),
+       subcols=False)
 
 ##
 if "--replace" in sys.argv:
     new_code = orig_code[0:replacements[0].nOpen]
 
-    for i,replacement in enumerate(replacements):
+    for i, replacement in enumerate(replacements):
 
         replacement.lines[0] = 'old = """' + replacement.lines[0]
         new_code += replacement.lines
 
         try:
-            nEnd = replacements[i+1].nOpen
+            nEnd = replacements[i + 1].nOpen
         except IndexError:
             nEnd = len(orig_code)
-        new_code += orig_code[replacement.nClose : nEnd]
+        new_code += orig_code[replacement.nClose:nEnd]
 
     # Don't overwrite! This allows for diffing.
-    with open(__file__+".new", "w") as F:
+    with open(__file__ + ".new", "w") as F:
         for line in new_code:
             # F.write(line.rstrip()+"\n")
             F.write(line)

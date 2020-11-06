@@ -8,13 +8,15 @@ from numpy import nan
 
 # TODO 3: change L to 'nlags', with nlags=L-1, to conform with
 # the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
-def auto_cov(xx,L=5,zero_mean=False,corr=False):
+
+
+def auto_cov(xx, L=5, zero_mean=False, corr=False):
     """
     Auto covariance function, computed along axis 0.
     L   : max lag (offset) for which to compute acf.
     corr: normalize acf by acf[0] so as to return auto-CORRELATION.
     """
-    assert L<=len(xx)
+    assert L <= len(xx)
 
     N = len(xx)
     A = xx if zero_mean else mtools.center(xx)[0]
@@ -22,7 +24,7 @@ def auto_cov(xx,L=5,zero_mean=False,corr=False):
 
     for i in range(L):
         Left  = A[np.arange(N-i)]
-        Right = A[np.arange(i,N)]
+        Right = A[np.arange(i, N)]
         acovf[i] = (Left*Right).sum(0)/(N-i)
 
     if corr:
@@ -31,7 +33,7 @@ def auto_cov(xx,L=5,zero_mean=False,corr=False):
     return acovf
 
 
-def fit_acf_by_AR1(acf_empir,L=None):
+def fit_acf_by_AR1(acf_empir, L=None):
     """
     Fit an empirical auto cov function (ACF) by that of an AR1 process.
     acf_empir: auto-corr/cov-function.
@@ -41,17 +43,22 @@ def fit_acf_by_AR1(acf_empir,L=None):
         L = len(acf_empir)
 
     # geometric_mean = ss.mstats.gmean
-    geometric_mean = lambda xx: np.exp(np.mean(np.log(xx)))
+    def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
+
     def mean_ratio(xx):
-        return geometric_mean([xx[i]/xx[i-1] for i in range(1,len(xx))])
+        return geometric_mean([xx[i]/xx[i-1] for i in range(1, len(xx))])
 
     # Negative correlation => Truncate ACF
-    neg_ind   = utils.find_1st_ind(np.array(acf_empir)<=0)
+    neg_ind   = utils.find_1st_ind(np.array(acf_empir) <= 0)
     acf_empir = acf_empir[:neg_ind]
 
-    if   len(acf_empir) == 0: return 0
-    elif len(acf_empir) == 1: return 0.01
-    else:                     return mean_ratio(acf_empir)
+    if len(acf_empir) == 0:
+        return 0
+    elif len(acf_empir) == 1:
+        return 0.01
+    else:
+        return mean_ratio(acf_empir)
+
 
 def estimate_corr_length(xx):
     """
@@ -60,7 +67,7 @@ def estimate_corr_length(xx):
     corr(L) = exp(-1) = ca 0.368
     """
     assert mtools.is1d(xx)
-    acovf = auto_cov(xx,min(100,len(xx)-2))
+    acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
         L = 0
@@ -68,12 +75,13 @@ def estimate_corr_length(xx):
         L = 1/np.log(1/a)
     return L
 
+
 @dataclass
 class UncertainQtty():
-    val  : float
-    conf : float
+    val: float
+    conf: float
 
-    def round(self,mult=1.0):
+    def round(self, mult=1.0):
         """Round intelligently:
 
         - conf to 1 sigfig.
@@ -82,9 +90,9 @@ class UncertainQtty():
             - fallback: rc.sigfig
         """
         with np.errstate(all='ignore'):
-            conf = mtools.round2(self.conf, 1) 
+            conf = mtools.round2(self.conf, 1)
             val  = self.val
-            if not np.isnan(conf) and conf>0:
+            if not np.isnan(conf) and conf > 0:
                 val = mtools.round2(val, mult*conf)
             else:
                 val = mtools.round2(val, rc.sigfig)
@@ -106,12 +114,12 @@ def mean_with_conf(xx):
     """
     mu = np.mean(xx)
     N  = len(xx)
-    if (not np.isfinite(mu)) or N<=5:
+    if (not np.isfinite(mu)) or N <= 5:
         uq = UncertainQtty(mu, np.nan)
-    elif np.allclose(xx,mu):
+    elif np.allclose(xx, mu):
         uq = UncertainQtty(mu, 0)
     else:
-        acovf = auto_cov(xx,5)
+        acovf = auto_cov(xx, 5)
         var   = acovf[0]
         var  /= N
         # Estimate (fit) ACF
@@ -123,37 +131,39 @@ def mean_with_conf(xx):
         # See https://stats.stackexchange.com/q/90062
         # c = sum([(N-k)*a**k for k in range(1,N)])
         # But this series is analytically tractable:
-        c = ( (N-1)*a - N*a**2 + a**(N+1) ) / (1-a)**2
+        c = ((N-1)*a - N*a**2 + a**(N+1)) / (1-a)**2
         confidence_correction = 1 + 2/N * c
         var *= confidence_correction
         uq = UncertainQtty(mu, np.sqrt(var))
     return uq
 
+
 class StatPrint(NicePrint):
     """Set NicePrint options suitable for stats."""
     printopts = dict(
-        excluded=NicePrint.printopts["excluded"]+["HMM","LP_instance"],
+        excluded=NicePrint.printopts["excluded"]+["HMM", "LP_instance"],
         ordering="linenumber",
-        reverse =True,
-        indent  =2,
-        aliases ={
-            'f'   :'Forecast  (.f)',
-            'a'   :'Analysis  (.a)',
-            's'   :'Smoothed  (.s)',
-            'u'   :'Universal (.u)',
-            'm'   :'Field mean (.m)',
-            'ma'  :'Field mean-abs (.ma)',
-            'rms' :'Field root-mean-square (.rms)',
-            'gm'  :'Field geometric-mean (.gm)'
+        reverse=True,
+        indent=2,
+        aliases={
+            'f': 'Forecast  (.f)',
+            'a': 'Analysis  (.a)',
+            's': 'Smoothed  (.s)',
+            'u': 'Universal (.u)',
+            'm': 'Field mean (.m)',
+            'ma': 'Field mean-abs (.ma)',
+            'rms': 'Field root-mean-square (.rms)',
+            'gm': 'Field geometric-mean (.gm)'
         },
     )
 
     # Adjust np.printoptions before NicePrint
     def __repr__(self):
-        with np.printoptions(threshold=10,precision=3):
+        with np.printoptions(threshold=10, precision=3):
             return super().__repr__()
+
     def __str__(self):
-        with np.printoptions(threshold=10,precision=3):
+        with np.printoptions(threshold=10, precision=3):
             return super().__str__()
 
 
@@ -166,15 +176,17 @@ class DataSeries(StatPrint):
 
     Note: subclassing ``ndarray`` is too dirty => We'll just use the
     ``array`` attribute, and provide ``{s,g}etitem``."""
-    def __init__(self,shape,**kwargs):
+
+    def __init__(self, shape, **kwargs):
         self.array = np.full(shape, nan, **kwargs)
-    def __len__    (self):        return len(self.array)
-    def __getitem__(self,key):    return     self.array[key]
-    def __setitem__(self,key,val):           self.array[key] = val
+
+    def __len__(self): return len(self.array)
+    def __getitem__(self, key): return self.array[key]
+    def __setitem__(self, key, val):           self.array[key] = val
 
 
 @utils.monitor_setitem
-class FAUSt(DataSeries,StatPrint):
+class FAUSt(DataSeries, StatPrint):
     """Container for time series of a statistic from filtering.
 
     Four attributes, each of which is an ndarray:
@@ -198,10 +210,10 @@ class FAUSt(DataSeries,StatPrint):
               then you should use a plain np.array instead.
     """
 
-    def __init__(self,K,KObs,item_shape,store_u,store_s,**kwargs):
+    def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
         """Constructor.
 
-         - item_shape : shape of an item in the series. 
+         - item_shape : shape of an item in the series.
          - store_u    : if False: only the current value is stored.
          - kwargs     : passed on to ndarrays.
         """
@@ -211,22 +223,24 @@ class FAUSt(DataSeries,StatPrint):
         if store_s:
             self.s = np.full((KObs+1,)+item_shape, nan, **kwargs)
         if store_u:
-            self.u = np.full((K   +1,)+item_shape, nan, **kwargs)
+            self.u = np.full((K   + 1,)+item_shape, nan, **kwargs)
         else:
-            self.u = np.full((     1,)+item_shape, nan, **kwargs)
+            self.u = np.full((1,)+item_shape, nan, **kwargs)
 
     # We could just store the input values for these attrs, but using
     # property => Won't be listed in vars(self), and un-writeable.
-    item_shape = property( lambda self: self.a.shape[1:] )
-    store_u    = property( lambda self: len(self.u)>1    )
+    item_shape = property(lambda self: self.a.shape[1:])
+    store_u    = property(lambda self: len(self.u) > 1)
 
-    def _ind(self,key):
+    def _ind(self, key):
         "Aux function to unpack ``key`` (k,kObs,faus)"
-        if key[-1]=='u': return key[0] if self.store_u else 0
-        else           : return key[-2]
+        if key[-1] == 'u':
+            return key[0] if self.store_u else 0
+        else:
+            return key[-2]
 
-    def __setitem__(self,key,item):     getattr(self,key[-1])[self._ind(key)] = item
-    def __getitem__(self,key):   return getattr(self,key[-1])[self._ind(key)]
+    def __setitem__(self, key, item):  getattr(self, key[-1])[self._ind(key)] = item
+    def __getitem__(self, key): return getattr(self, key[-1])[self._ind(key)]
 
 
 class RollingArray:
@@ -236,9 +250,9 @@ class RollingArray:
     def __init__(self, shape, fillval=nan):
         self.array = np.full(shape, fillval)
         self.k1 = 0      # previous k
-        self.nFilled = 0 # 
+        self.nFilled = 0
 
-    def insert(self,k,val):
+    def insert(self, k, val):
         dk = k-self.k1
 
         # Old (more readable?) version:
@@ -249,11 +263,11 @@ class RollingArray:
         # self.array[-dk:] = nan
         # self.array[-1] = val
 
-        dk = max(1,dk)
+        dk = max(1, dk)
         # TODO 4: Should have used deque?
         self.array = np.roll(self.array, -dk, axis=0)
         self.array[-dk:] = nan
-        self.array[-1 :] = val
+        self.array[-1:] = val
 
         self.k1 = k
         self.nFilled = min(len(self), self.nFilled+dk)
@@ -268,11 +282,12 @@ class RollingArray:
     def T(self):
         return self.array.T
 
-    def __array__  (self,dtype=None): return self.array
-    def __len__    (self):            return len(self.array)
-    def __repr__   (self):            return 'RollingArray:\n%s'%str(self.array)
-    def __getitem__(self,key):        return self.array[key]
-    def __setitem__(self,key,val):
+    def __array__(self, dtype=None): return self.array
+    def __len__(self): return len(self.array)
+    def __repr__(self): return 'RollingArray:\n%s' % str(self.array)
+    def __getitem__(self, key): return self.array[key]
+
+    def __setitem__(self, key, val):
         # Don't implement __setitem__ coz leftmost() is then
         # not generally meaningful (i.e. if an element is set in the middle).
         # Of course self.array can still be messed with.
