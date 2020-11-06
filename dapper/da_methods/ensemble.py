@@ -6,63 +6,67 @@ import scipy.linalg as sla
 
 from dapper.admin import da_method
 from dapper.tools.stoch import rand, randn
-from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0, pad0, reconst, tinv
+from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0,\
+    pad0, reconst, tinv
 from dapper.tools.utils import progbar
 from dapper.tools.matrices import genOG_1, funm_psd
 from dapper.tools.multiprocessing import multiproc_map
 
+
 @da_method
 class ens_method:
     "Declare default ensemble arguments."
-    infl          : float = 1.0
-    rot           : bool  = False
-    fnoise_treatm : str   = 'Stoch'
+    infl: float        = 1.0
+    rot: bool          = False
+    fnoise_treatm: str = 'Stoch'
 
 
 @ens_method
 class EnKF:
     """The ensemble Kalman filter [Eve09]_"""
-    upd_a : str
-    N     : int
+    upd_a: str
+    N: int
 
-    def assimilate(self,HMM,xx,yy):
-        Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    def assimilate(self, HMM, xx, yy):
+        Dyn, Obs, chrono, X0, stats = \
+            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
         # Init
         E = X0.sample(self.N)
-        stats.assess(0,E=E)
+        stats.assess(0, E=E)
 
         # Loop
-        for k,kObs,t,dt in progbar(chrono.ticker):
-            E = Dyn(E,t-dt,dt)
+        for k, kObs, t, dt in progbar(chrono.ticker):
+            E = Dyn(E, t-dt, dt)
             E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
             # Analysis update
             if kObs is not None:
-                stats.assess(k,kObs,'f',E=E)
-                E = EnKF_analysis(E,Obs(E,t),Obs.noise,yy[kObs],self.upd_a,stats,kObs)
-                E = post_process(E,self.infl,self.rot)
+                stats.assess(k, kObs, 'f', E=E)
+                E = EnKF_analysis(E, Obs(E, t), Obs.noise,
+                                  yy[kObs], self.upd_a, stats, kObs)
+                E = post_process(E, self.infl, self.rot)
 
-            stats.assess(k,kObs,E=E)
+            stats.assess(k, kObs, E=E)
 
 
-def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
+def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
     """The EnKF analysis update, in many flavours and forms.
 
     The update is specified via 'upd_a'.
 
     Main references: [Sak08a]_, [Sak08b]_, [Hot15]_
     """
-    R    = hnoise.C    # Obs noise cov
-    N,Nx = E.shape     # Dimensionality
-    N1   = N-1         # Ens size - 1
+    R     = hnoise.C     # Obs noise cov
+    N, Nx = E.shape      # Dimensionality
+    N1    = N-1          # Ens size - 1
 
-    mu = np.mean(E,0)  # Ens mean
-    A  = E - mu        # Ens anomalies
+    mu = np.mean(E, 0)   # Ens mean
+    A  = E - mu          # Ens anomalies
 
-    xo = np.mean(Eo,0) # Obs ens mean 
-    Y  = Eo-xo         # Obs ens anomalies
-    dy = y - xo        # Mean "innovation"
+    xo = np.mean(Eo, 0)  # Obs ens mean
+    Y  = Eo-xo           # Obs ens anomalies
+    dy = y - xo          # Mean "innovation"
 
     if 'PertObs' in upd_a:
         # Uses classic, perturbed observations (Burgers'98)
@@ -71,7 +75,7 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
         YC = mrdiv(Y, C)
         KG = A.T @ YC
         HK = Y.T @ YC
-        dE = (KG @ ( y - D - Eo ).T).T
+        dE = (KG @ (y - D - Eo).T).T
         E  = E + dE
 
     elif 'Sqrt' in upd_a:
@@ -80,38 +84,40 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
 
         # The various versions below differ only numerically.
         # EVD is default, but for large N use SVD version.
-        if upd_a == 'Sqrt' and N>Nx:
+        if upd_a == 'Sqrt' and N > Nx:
             upd_a = 'Sqrt svd'
 
         if 'explicit' in upd_a:
             # Not recommended due to numerical costs and instability.
             # Implementation using inv (in ens space)
-            Pw = inv(Y @ R.inv @ Y.T + N1*eye(N))
+            Pw = np.inv(Y @ R.inv @ Y.T + N1*eye(N))
             T  = sla.sqrtm(Pw) * sqrt(N1)
             HK = R.inv @ Y.T @ Pw @ Y
-            #KG = R.inv @ Y.T @ Pw @ A
+            # KG = R.inv @ Y.T @ Pw @ A
         elif 'svd' in upd_a:
             # Implementation using svd of Y R^{-1/2}.
-            V,s,_ = svd0(Y @ R.sym_sqrt_inv.T)
-            d     = pad0(s**2,N) + N1
-            Pw    = ( V * d**(-1.0) ) @ V.T
-            T     = ( V * d**(-0.5) ) @ V.T * sqrt(N1) 
-            trHK  = np.sum( (s**2+N1)**(-1.0) * s**2 ) # dpr_data/doc_snippets/trHK.jpg
+            V, s, _ = svd0(Y @ R.sym_sqrt_inv.T)
+            d       = pad0(s**2, N) + N1
+            Pw      = (V * d**(-1.0)) @ V.T
+            T       = (V * d**(-0.5)) @ V.T * sqrt(N1)
+            # dpr_data/doc_snippets/trHK.jpg
+            trHK    = np.sum((s**2+N1)**(-1.0) * s**2)
         elif 'sS' in upd_a:
             # Same as 'svd', but with slightly different notation
             # (sometimes used by Sakov) using the normalization sqrt(N1).
-            S     = Y @ R.sym_sqrt_inv.T / sqrt(N1)
-            V,s,_ = svd0(S)
-            d     = pad0(s**2,N) + 1
-            Pw    = ( V * d**(-1.0) )@V.T / N1 # = G/(N1)
-            T     = ( V * d**(-0.5) )@V.T
-            trHK  = np.sum(  (s**2 + 1)**(-1.0)*s**2 ) # dpr_data/doc_snippets/trHK.jpg
-        else: # 'eig' in upd_a:
+            S       = Y @ R.sym_sqrt_inv.T / sqrt(N1)
+            V, s, _ = svd0(S)
+            d       = pad0(s**2, N) + 1
+            Pw      = (V * d**(-1.0))@V.T / N1  # = G/(N1)
+            T       = (V * d**(-0.5))@V.T
+            # dpr_data/doc_snippets/trHK.jpg
+            trHK    = np.sum((s**2 + 1)**(-1.0)*s**2)
+        else:  # 'eig' in upd_a:
             # Implementation using eig. val. decomp.
-            d,V   = sla.eigh(Y @ R.inv @ Y.T + N1*eye(N))
-            T     = V@diag(d**(-0.5))@V.T * sqrt(N1)
-            Pw    = V@diag(d**(-1.0))@V.T
-            HK    = R.inv @ Y.T @ (V@ diag(d**(-1)) @V.T) @ Y
+            d, V   = sla.eigh(Y @ R.inv @ Y.T + N1*eye(N))
+            T      = V@diag(d**(-0.5))@V.T * sqrt(N1)
+            Pw     = V@diag(d**(-1.0))@V.T
+            HK     = R.inv @ Y.T @ (V @ diag(d**(-1)) @ V.T) @ Y
         w = dy @ R.inv @ Y.T @ Pw
         E = mu + w@A + T@A
 
@@ -121,46 +127,51 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
         #  Requires de-correlation:
         dy   = dy @ R.sym_sqrt_inv.T
         Y    = Y  @ R.sym_sqrt_inv.T
-        # Enhancement in the nonlinear case: re-compute Y each scalar obs assim.
-        # But: little benefit, model costly (?), updates cannot be accumulated on S and T.
+        # Enhancement in the nonlinear case:
+        # re-compute Y each scalar obs assim.
+        # But: little benefit, model costly (?),
+        # updates cannot be accumulated on S and T.
 
-        if any(x in upd_a for x in ['Stoch','ESOPS','Var1']):
+        if any(x in upd_a for x in ['Stoch', 'ESOPS', 'Var1']):
             # More details: Misc/Serial_ESOPS.py.
-            for i,j in enumerate(inds):
+            for i, j in enumerate(inds):
 
                 # Perturbation creation
                 if 'ESOPS' in upd_a:
                     # "2nd-O exact perturbation sampling"
-                    if i==0:
-                        # Init -- increase nullspace by 1 
-                        V,s,UT = tsvd(A,N1)
+                    if i == 0:
+                        # Init -- increase nullspace by 1
+                        V, s, UT = tsvd(A, N1)
                         s[N-2:] = 0
-                        A = reconst(V,s,UT)
-                        v = V[:,N-2]
+                        A = reconst(V, s, UT)
+                        v = V[:, N-2]
                     else:
                         # Orthogonalize v wrt. the new A
-                        # v   = Zj - Yj        # This formula (from paper) relies on Y=HX.
-                        mult  = (v@A) / (Yj@A) # Should be constant*ones(Nx), meaning that:
-                        v     = v - mult[0]*Yj # we can project v into ker(A) such that v@A is null.
-                        v    /= sqrt(v@v)      # Normalize
-                    Zj  = v*sqrt(N1)           # Standardized perturbation along v
+                        #
+                        # v = Zj - Yj (from paper) requires Y==HX.
+                        # Instead: mult` should be c*ones(Nx) so we can
+                        # project v into ker(A) such that v@A is null.
+                        mult  = (v@A) / (Yj@A) # noqa TODO 2
+                        v     = v - mult[0]*Yj # noqa
+                        v    /= sqrt(v@v)
+                    Zj  = v*sqrt(N1)  # Standardized perturbation along v
                     Zj *= np.sign(rand()-0.5)  # Random sign
                 else:
-                    # The usual stochastic perturbations. 
-                    Zj = mean0(randn(N)) # Un-coloured noise
+                    # The usual stochastic perturbations.
+                    Zj = mean0(randn(N))  # Un-coloured noise
                     if 'Var1' in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
                 # Select j-th obs
-                Yj  = Y[:,j]       # [j] obs anomalies
-                dyj = dy [j]       # [j] innov mean
-                DYj = Zj - Yj      # [j] innov anomalies
-                DYj = DYj[:,None]  # Make 2d vertical
+                Yj  = Y[:, j]       # [j] obs anomalies
+                dyj = dy[j]         # [j] innov mean
+                DYj = Zj - Yj       # [j] innov anomalies
+                DYj = DYj[:, None]  # Make 2d vertical
 
                 # Kalman gain computation
-                C     = Yj@Yj + N1 # Total obs cov
-                KGx   = Yj @ A / C # KG to update state
-                KGy   = Yj @ Y / C # KG to update obs
+                C     = Yj@Yj + N1  # Total obs cov
+                KGx   = Yj @ A / C  # KG to update state
+                KGy   = Yj @ Y / C  # KG to update obs
 
                 # Updates
                 A    += DYj * KGx
@@ -170,14 +181,17 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
             E = mu + A
         else:
             # "Potter scheme", "EnSRF"
-            # - EAKF's two-stage "update-regress" form yields the same *ensemble* as this.
-            # - The form below may be derived as "serial ETKF", but does not yield the same
-            #   ensemble as 'Sqrt' (which processes obs as a batch) -- only the same mean/cov.
+            # - EAKF's two-stage "update-regress" form yields
+            #   the same *ensemble* as this.
+            # - The form below may be derived as "serial ETKF",
+            #   but does not yield the same
+            #   ensemble as 'Sqrt' (which processes obs as a batch)
+            #   -- only the same mean/cov.
             T = eye(N)
             for j in inds:
-                Yj = Y[:,j]
+                Yj = Y[:, j]
                 C  = Yj@Yj + N1
-                Tj = np.outer(Yj, Yj /  (C + sqrt(N1*C)))
+                Tj = np.outer(Yj, Yj / (C + sqrt(N1*C)))
                 T -= Tj @ T
                 Y -= Tj @ Y
             w = dy@Y.T@T/N1
@@ -192,17 +206,18 @@ def EnKF_analysis(E,Eo,hnoise,y,upd_a,stats,kObs):
         E  = E + KG@dy - 0.5*(KG@Y.T).T
 
     else:
-        raise KeyError("No analysis update method found: '" + upd_a + "'.") 
+        raise KeyError("No analysis update method found: '" + upd_a + "'.")
 
     # Diagnostic: relative influence of observations
-    if 'trHK' in locals(): stats.trHK[kObs] = trHK      /hnoise.M
-    elif 'HK' in locals(): stats.trHK[kObs] = HK.trace()/hnoise.M
+    if 'trHK' in locals():
+        stats.trHK[kObs] = trHK      / hnoise.M
+    elif 'HK' in locals():
+        stats.trHK[kObs] = HK.trace()/hnoise.M
 
     return E
 
 
-
-def post_process(E,infl,rot):
+def post_process(E, infl, rot):
     """Inflate, Rotate.
 
     To avoid recomputing/recombining anomalies,
@@ -213,48 +228,48 @@ def post_process(E,infl,rot):
     - for readability;
     - to avoid inflating/rotationg smoothed states (for the :func:`EnKS`).
     """
-    do_infl = infl!=1.0 and infl!='-N'
+    do_infl = infl != 1.0 and infl != '-N'
 
     if do_infl or rot:
-        A, mu = center(E)
-        N,Nx  = E.shape
-        T     = eye(N)
+        A, mu  = center(E)
+        N, Nx  = E.shape
+        T      = eye(N)
 
         if do_infl:
             T = infl * T
 
         if rot:
-            T = genOG_1(N,rot) @ T
+            T = genOG_1(N, rot) @ T
 
         E = mu + T@A
     return E
 
 
-
 def add_noise(E, dt, noise, method):
     """Treatment of additive noise for ensembles [Raa15]_."""
 
-    if noise.C == 0: return E
+    if noise.C == 0:
+        return E
 
-    N,Nx = E.shape
-    A,mu = center(E)
-    Q12  = noise.C.Left
-    Q    = noise.C.full
+    N, Nx = E.shape
+    A, mu = center(E)
+    Q12   = noise.C.Left
+    Q     = noise.C.full
 
     def sqrt_core():
-        T    = np.nan # cause error if used
-        Qa12 = np.nan # cause error if used
-        A2   = A.copy() # Instead of using (the implicitly nonlocal) A,
+        T    = np.nan    # cause error if used
+        Qa12 = np.nan    # cause error if used
+        A2   = A.copy()  # Instead of using (the implicitly nonlocal) A,
         # which changes A outside as well. NB: This is a bug in Datum!
-        if N<=Nx:
+        if N <= Nx:
             Ainv = tinv(A2.T)
             Qa12 = Ainv@Q12
             T    = funm_psd(eye(N) + dt*(N-1)*(Qa12@Qa12.T), sqrt)
             A2   = T@A2
-        else: # "Left-multiplying" form
-            P = A2.T @ A2 /(N-1)
-            L = funm_psd(eye(Nx) + dt*mrdiv(Q,P), sqrt)
-            A2= A2 @ L.T
+        else:  # "Left-multiplying" form
+            P  = A2.T @ A2 / (N-1)
+            L  = funm_psd(eye(Nx) + dt*mrdiv(Q, P), sqrt)
+            A2 = A2 @ L.T
         E = mu + A2
         return E, T, Qa12
 
@@ -266,43 +281,43 @@ def add_noise(E, dt, noise, method):
         pass
 
     elif method == 'Mult-1':
-        varE   = np.var(E,axis=0,ddof=1).sum()
+        varE   = np.var(E, axis=0, ddof=1).sum()
         ratio  = (varE + dt*diag(Q).sum())/varE
         E      = mu + sqrt(ratio)*A
-        E      = reconst(*tsvd(E,0.999)) # Explained in Datum
+        E      = reconst(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Mult-M':
-        varE   = np.var(E,axis=0)
-        ratios = sqrt( (varE + dt*diag(Q))/varE )
+        varE   = np.var(E, axis=0)
+        ratios = sqrt((varE + dt*diag(Q))/varE)
         E      = mu + A*ratios
-        E      = reconst(*tsvd(E,0.999)) # Explained in Datum
+        E      = reconst(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Sqrt-Core':
         E = sqrt_core()[0]
 
     elif method == 'Sqrt-Mult-1':
-        varE0 = np.var(E,axis=0,ddof=1).sum()
+        varE0 = np.var(E, axis=0, ddof=1).sum()
         varE2 = (varE0 + dt*diag(Q).sum())
         E, _, Qa12 = sqrt_core()
-        if N<=Nx:
-            A,mu   = center(E)
-            varE1  = np.var(E,axis=0,ddof=1).sum()
-            ratio  = varE2/varE1
-            E      = mu + sqrt(ratio)*A
-            E      = reconst(*tsvd(E,0.999)) # Explained in Datum
+        if N <= Nx:
+            A, mu   = center(E)
+            varE1   = np.var(E, axis=0, ddof=1).sum()
+            ratio   = varE2/varE1
+            E       = mu + sqrt(ratio)*A
+            E       = reconst(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Sqrt-Add-Z':
         E, _, Qa12 = sqrt_core()
-        if N<=Nx:
+        if N <= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn((Z.shape[1],N))).T
+            E += sqrt(dt)*(Z@randn((Z.shape[1], N))).T
 
     elif method == 'Sqrt-Dep':
         E, T, Qa12 = sqrt_core()
-        if N<=Nx:
+        if N <= Nx:
             # Q_hat12: reuse svd for both inversion and projection.
             Q_hat12      = A.T @ Qa12
-            U,s,VT       = tsvd(Q_hat12,0.99)
+            U, s, VT     = tsvd(Q_hat12, 0.99)
             Q_hat12_inv  = (VT.T * s**(-1.0)) @ U.T
             Q_hat12_proj = VT.T@VT
             rQ = Q12.shape[1]
@@ -310,14 +325,14 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn((rQ,N))
+            Xi_til = (eye(rQ) - Q_hat12_proj)@randn((rQ, N))
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
-    else: raise KeyError('No such method')
+    else:
+        raise KeyError('No such method')
 
     return E
-
 
 
 @ens_method
@@ -326,82 +341,85 @@ class EnKS:
 
     The only difference to the EnKF
     is the management of the lag and the reshapings."""
-    upd_a : str
-    N     : int
-    Lag   : int
+    upd_a: str
+    N: int
+    Lag: int
 
     # Reshapings used in smoothers to go to/from
     # 3D arrays, where the 0th axis is the Lag index.
-    def reshape_to(self,E):
-        K,N,Nx = E.shape
-        return E.transpose([1,0,2]).reshape((N,K*Nx))
-    def reshape_fr(self,E,Nx):
-        N,Km = E.shape
-        K    = Km//Nx
-        return E.reshape((N,K,Nx)).transpose([1,0,2])
+    def reshape_to(self, E):
+        K, N, Nx = E.shape
+        return E.transpose([1, 0, 2]).reshape((N, K*Nx))
 
-    def assimilate(self,HMM,xx,yy):
-        Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    def reshape_fr(self, E, Nx):
+        N, Km = E.shape
+        K    = Km//Nx
+        return E.reshape((N, K, Nx)).transpose([1, 0, 2])
+
+    def assimilate(self, HMM, xx, yy):
+        Dyn, Obs, chrono, X0, stats = \
+            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
         # Inefficient version, storing full time series ensemble.
         # See iEnKS for a "rolling" version.
-        E    = zeros((chrono.K+1,self.N,Dyn.M))
+        E    = zeros((chrono.K+1, self.N, Dyn.M))
         E[0] = X0.sample(self.N)
 
-        for k,kObs,t,dt in progbar(chrono.ticker):
-            E[k] = Dyn(E[k-1],t-dt,dt)
+        for k, kObs, t, dt in progbar(chrono.ticker):
+            E[k] = Dyn(E[k-1], t-dt, dt)
             E[k] = add_noise(E[k], dt, Dyn.noise, self.fnoise_treatm)
 
             if kObs is not None:
-                stats.assess(k,kObs,'f',E=E[k])
+                stats.assess(k, kObs, 'f', E=E[k])
 
-                Eo    = Obs(E[k],t)
+                Eo    = Obs(E[k], t)
                 y     = yy[kObs]
 
                 # Inds within Lag
-                kk    = range(max(0,k-self.Lag*chrono.dkObs), k+1) 
+                kk    = range(max(0, k-self.Lag*chrono.dkObs), k+1)
 
                 EE    = E[kk]
 
                 EE    = self.reshape_to(EE)
-                EE    = EnKF_analysis(EE,Eo,Obs.noise,y,self.upd_a,stats,kObs)
-                E[kk] = self.reshape_fr(EE,Dyn.M)
-                E[k]  = post_process(E[k],self.infl,self.rot)
-                stats.assess(k,kObs,'a',E=E[k])
+                EE    = EnKF_analysis(EE, Eo, Obs.noise, y, self.upd_a, stats, kObs)
+                E[kk] = self.reshape_fr(EE, Dyn.M)
+                E[k]  = post_process(E[k], self.infl, self.rot)
+                stats.assess(k, kObs, 'a', E=E[k])
 
-        for k,kObs,t,dt in progbar(chrono.ticker,desc='Assessing'):
-            stats.assess(k,kObs,'u',E=E[k])
+        for k, kObs, t, dt in progbar(chrono.ticker, desc='Assessing'):
+            stats.assess(k, kObs, 'u', E=E[k])
             if kObs is not None:
-                stats.assess(k,kObs,'s',E=E[k])
+                stats.assess(k, kObs, 's', E=E[k])
 
 
 @ens_method
 class EnRTS:
     """EnRTS (Rauch-Tung-Striebel) smoother [Raa16b]_."""
-    upd_a : str
-    N     : int
-    cntr  : float
+    upd_a: str
+    N: int
+    cntr: float
 
-    def assimilate(self,HMM,xx,yy):
-        Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    def assimilate(self, HMM, xx, yy):
+        Dyn, Obs, chrono, X0, stats = \
+            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-        E    = zeros((chrono.K+1,self.N,Dyn.M))
+        E    = zeros((chrono.K+1, self.N, Dyn.M))
         Ef   = E.copy()
         E[0] = X0.sample(self.N)
 
         # Forward pass
-        for k,kObs,t,dt in progbar(chrono.ticker):
-            E[k]  = Dyn(E[k-1],t-dt,dt)
+        for k, kObs, t, dt in progbar(chrono.ticker):
+            E[k]  = Dyn(E[k-1], t-dt, dt)
             E[k]  = add_noise(E[k], dt, Dyn.noise, self.fnoise_treatm)
             Ef[k] = E[k]
 
             if kObs is not None:
-                stats.assess(k,kObs,'f',E=E[k])
-                Eo   = Obs(E[k],t)
+                stats.assess(k, kObs, 'f', E=E[k])
+                Eo   = Obs(E[k], t)
                 y    = yy[kObs]
-                E[k] = EnKF_analysis(E[k],Eo,Obs.noise,y,self.upd_a,stats,kObs)
-                E[k] = post_process(E[k],self.infl,self.rot)
-                stats.assess(k,kObs,'a',E=E[k])
+                E[k] = EnKF_analysis(E[k], Eo, Obs.noise, y, self.upd_a, stats, kObs)
+                E[k] = post_process(E[k], self.infl, self.rot)
+                stats.assess(k, kObs, 'a', E=E[k])
 
         # Backward pass
         for k in progbar(range(chrono.K)[::-1]):
@@ -411,14 +429,12 @@ class EnRTS:
             J = tinv(Af) @ A
             J *= self.cntr
 
-            E[k] += ( E[k+1] - Ef[k+1] ) @ J
+            E[k] += (E[k+1] - Ef[k+1]) @ J
 
-        for k,kObs,t,dt in progbar(chrono.ticker,desc='Assessing'):
-            stats.assess(k,kObs,'u',E=E[k])
+        for k, kObs, t, dt in progbar(chrono.ticker, desc='Assessing'):
+            stats.assess(k, kObs, 'u', E=E[k])
             if kObs is not None:
-                stats.assess(k,kObs,'s',E=E[k])
-
-
+                stats.assess(k, kObs, 's', E=E[k])
 
 
 def serial_inds(upd_a, y, cvR, A):
@@ -426,14 +442,16 @@ def serial_inds(upd_a, y, cvR, A):
         # Not robust?
         inds = np.arange(len(y))
     elif 'sorted' in upd_a:
+        N = len(A)
         dC = cvR.diag
         if np.all(dC == dC[0]):
             # Sort y by P
-            dC = np.sum(A*A,0)/(N-1)
+            dC = np.sum(A*A, 0)/(N-1)
         inds = np.argsort(dC)
-    else: # Default: random ordering
+    else:  # Default: random ordering
         inds = np.random.permutation(len(y))
     return inds
+
 
 @ens_method
 class SL_EAKF:
@@ -441,27 +459,27 @@ class SL_EAKF:
 
     Used without localization, this should be equivalent (full ensemble equality)
     to the :func:`EnKF` with ``upd_a='Serial'``."""
-    N       : int
-    loc_rad : float
-    taper   : str   = 'GC'
-    ordr    : str   = 'rand'
+    N: int
+    loc_rad: float
+    taper: str  = 'GC'
+    ordr: str   = 'rand'
 
-    def assimilate(self,HMM,xx,yy):
-        Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+    def assimilate(self, HMM, xx, yy):
+        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
         N1   = self.N-1
         R    = Obs.noise
         Rm12 = Obs.noise.C.sym_sqrt_inv
 
         E = X0.sample(self.N)
-        stats.assess(0,E=E)
+        stats.assess(0, E=E)
 
-        for k,kObs,t,dt in progbar(chrono.ticker):
-            E = Dyn(E,t-dt,dt)
+        for k, kObs, t, dt in progbar(chrono.ticker):
+            E = Dyn(E, t-dt, dt)
             E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
             if kObs is not None:
-                stats.assess(k,kObs,'f',E=E)
+                stats.assess(k, kObs, 'f', E=E)
                 y    = yy[kObs]
                 inds = serial_inds(self.ordr, y, R, center(E)[0])
 
@@ -469,30 +487,32 @@ class SL_EAKF:
                 for j in inds:
                     # Prep:
                     # ------------------------------------------------------
-                    Eo = Obs(E,t)
-                    xo = np.mean(Eo,0)
+                    Eo = Obs(E, t)
+                    xo = np.mean(Eo, 0)
                     Y  = Eo - xo
-                    mu = np.mean(E ,0)
+                    mu = np.mean(E, 0)
                     A  = E-mu
                     # Update j-th component of observed ensemble:
                     # ------------------------------------------------------
-                    Y_j    = Rm12[j,:] @ Y.T
-                    dy_j   = Rm12[j,:] @ (y - xo)
+                    Y_j    = Rm12[j, :] @ Y.T
+                    dy_j   = Rm12[j, :] @ (y - xo)
                     # Prior var * N1:
-                    sig2_j = Y_j@Y_j                
-                    if sig2_j<1e-9: continue
+                    sig2_j = Y_j@Y_j
+                    if sig2_j < 1e-9:
+                        continue
                     # Update (below, we drop the locality subscript: _j)
-                    sig2_u = 1/( 1/sig2_j + 1/N1 )   # KG * N1
-                    alpha  = (N1/(N1+sig2_j))**(0.5) # Update contraction factor
-                    dy2    = sig2_u * dy_j/N1        # Mean update
-                    Y2     = alpha*Y_j               # Anomaly update
+                    sig2_u = 1/(1/sig2_j + 1/N1)      # KG * N1
+                    alpha  = (N1/(N1+sig2_j))**(0.5)  # Update contraction factor
+                    dy2    = sig2_u * dy_j/N1         # Mean update
+                    Y2     = alpha*Y_j                # Anomaly update
                     # Update state (regress update from obs space, using localization)
                     # ------------------------------------------------------
                     ii, tapering = state_taperer(j)
-                    if len(ii) == 0: continue
-                    Regression = (A[:,ii]*tapering).T @ Y_j/np.sum(Y_j**2)
-                    mu[ ii]   += Regression*dy2
-                    A[:,ii]   += np.outer(Y2 - Y_j, Regression)
+                    if len(ii) == 0:
+                        continue
+                    Regression = (A[:, ii]*tapering).T @ Y_j/np.sum(Y_j**2)
+                    mu[ii]   += Regression*dy2
+                    A[:, ii]   += np.outer(Y2 - Y_j, Regression)
                     # Without localization:
                     # Regression = A.T @ Y_j/np.sum(Y_j**2)
                     # mu        += Regression*dy2
@@ -500,10 +520,9 @@ class SL_EAKF:
 
                     E = mu + A
 
-                E = post_process(E,self.infl,self.rot)
+                E = post_process(E, self.infl, self.rot)
 
-            stats.assess(k,kObs,E=E)
-
+            stats.assess(k, kObs, E=E)
 
 
 @ens_method
@@ -514,43 +533,45 @@ class LETKF:
         But for QG (batch_size=(2,2) or less) it is quicker.
 
     NB: If len(ii) is small, analysis may be slowed-down with '-N' infl."""
-    N       : int
-    loc_rad : float
-    taper   : str   = 'GC'
-    xN      : float = 1.0
-    g       : int   = 0
-    mp      : bool  = False
+    N: int
+    loc_rad: float
+    taper: str = 'GC'
+    xN: float  = 1.0
+    g: int     = 0
+    mp: bool   = False
 
-    def assimilate(self,HMM,xx,yy):
-        Dyn,Obs,chrono,X0,stats,N = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
+    def assimilate(self, HMM, xx, yy):
+        Dyn, Obs, chrono, X0, stats, N = \
+            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
         R, N1 = HMM.Obs.noise.C, N-1
 
         _map = multiproc_map if self.mp else map
 
         E = X0.sample(N)
-        stats.assess(0,E=E)
+        stats.assess(0, E=E)
 
-        for k,kObs,t,dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(chrono.ticker):
             # Forecast
-            E = Dyn(E,t-dt,dt)
+            E = Dyn(E, t-dt, dt)
             E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
             if kObs is not None:
-                stats.assess(k,kObs,'f',E=E)
+                stats.assess(k, kObs, 'f', E=E)
 
                 # Decompose ensmeble
-                mu = np.mean(E,0)
+                mu = np.mean(E, 0)
                 A  = E - mu
                 # Obs space variables
-                y    = yy[kObs]
-                Y,xo = center(Obs(E,t))
+                y     = yy[kObs]
+                Y, xo = center(Obs(E, t))
                 # Transform obs space
                 Y  = Y        @ R.sym_sqrt_inv.T
                 dy = (y - xo) @ R.sym_sqrt_inv.T
 
                 # Local analyses
                 # Get localization configuration
-                state_batches, obs_taperer = Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
+                state_batches, obs_taperer = \
+                    Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
                 # Avoid pickling self
                 xN, g, infl = self.xN, self.g, self.infl
 
@@ -561,12 +582,13 @@ class LETKF:
 
                     # Locate local obs
                     jj, tapering = obs_taperer(ii)
-                    if len(jj) == 0: return E[:,ii], N1 # no update
-                    Y_jj   = Y[:,jj]
-                    dy_jj  = dy [jj]
+                    if len(jj) == 0:
+                        return E[:, ii], N1  # no update
+                    Y_jj   = Y[:, jj]
+                    dy_jj  = dy[jj]
 
                     # Adaptive inflation
-                    za = effective_N(Y_jj,dy_jj,xN,g) if infl=='-N' else N1
+                    za = effective_N(Y_jj, dy_jj, xN, g) if infl == '-N' else N1
 
                     # Taper
                     Y_jj  *= sqrt(tapering)
@@ -575,65 +597,73 @@ class LETKF:
                     # Compute ETKF update
                     if len(jj) < N:
                         # SVD version
-                        V,sd,_ = svd0(Y_jj)
-                        d      = pad0(sd**2,N) + za
+                        V, sd, _ = svd0(Y_jj)
+                        d      = pad0(sd**2, N) + za
                         Pw     = (V * d**(-1.0)) @ V.T
                         T      = (V * d**(-0.5)) @ V.T * sqrt(za)
                     else:
                         # EVD version
-                        d,V   = sla.eigh(Y_jj@Y_jj.T + za*eye(N))
+                        d, V   = sla.eigh(Y_jj@Y_jj.T + za*eye(N))
                         T     = V@diag(d**(-0.5))@V.T * sqrt(za)
                         Pw    = V@diag(d**(-1.0))@V.T
-                    AT  = T @ A[:,ii]
-                    dmu = dy_jj @ Y_jj.T @ Pw @ A[:,ii]
+                    AT  = T @ A[:, ii]
+                    dmu = dy_jj @ Y_jj.T @ Pw @ A[:, ii]
                     Eii = mu[ii] + dmu + AT
                     return Eii, za
 
                 # Run local analyses
-                EE, za = zip(*_map(local_analysis, state_batches ))
+                EE, za = zip(*_map(local_analysis, state_batches))
                 for ii, Eii in zip(state_batches, EE):
-                    E[:,ii] = Eii
+                    E[:, ii] = Eii
 
                 # Global post-processing
-                E = post_process(E,self.infl,self.rot)
+                E = post_process(E, self.infl, self.rot)
 
                 stats.infl[kObs] = sqrt(N1/np.mean(za))
 
-            stats.assess(k,kObs,E=E)
+            stats.assess(k, kObs, E=E)
 
 
-
-def effective_N(YR,dyR,xN,g):
+def effective_N(YR, dyR, xN, g):
     """Effective ensemble size N.
 
     As measured by the finite-size EnKF-N
     """
-    N,Ny = YR.shape
+    N, Ny = YR.shape
     N1   = N-1
 
-    V,s,UT = svd0(YR)
+    V, s, UT = svd0(YR)
     du     = UT @ dyR
 
-    eN, cL = hyperprior_coeffs(s,N,xN,g)
+    eN, cL = hyperprior_coeffs(s, N, xN, g)
 
-    pad_rk = lambda arr: pad0( arr, min(N,Ny) )
-    dgn_rk = lambda l: pad_rk((l*s)**2) + N1
+    def pad_rk(arr): return pad0(arr, min(N, Ny))
+    def dgn_rk(l1): return pad_rk((l1*s)**2) + N1
 
     # Make dual cost function (in terms of l1)
-    J      = lambda l:          np.sum(du**2/dgn_rk(l)) \
-           +    eN/l**2 \
-           +    cL*np.log(l**2)
+    def J(l1):
+        val = np.sum(du**2/dgn_rk(l1)) \
+            + eN/l1**2 \
+            + cL*np.log(l1**2)
+        return val
+
     # Derivatives (not required with minimize_scalar):
-    Jp     = lambda l: -2*l   * np.sum(pad_rk(s**2) * du**2/dgn_rk(l)**2) \
-           +   -2*eN/l**3 \
-           +    2*cL/l
-    Jpp    = lambda l: 8*l**2 * np.sum(pad_rk(s**4) * du**2/dgn_rk(l)**3) \
-           +    6*eN/l**4 \
-           +   -2*cL/l**2
+    def Jp(l1):
+        val = -2*l1   * np.sum(pad_rk(s**2) * du**2/dgn_rk(l1)**2) \
+            + -2*eN/l1**3 \
+            + 2*cL/l1
+        return val
+
+    def Jpp(l1):
+        val = 8*l1**2 * np.sum(pad_rk(s**4) * du**2/dgn_rk(l1)**3) \
+            + 6*eN/l1**4 \
+            + -2*cL/l1**2
+        return val
+
     # Find inflation factor (optimize)
-    l1 = Newton_m(Jp,Jpp,1.0)
-    #l1 = fmin_bfgs(J, x0=[1], gtol=1e-4, disp=0)
-    #l1 = minimize_scalar(J, bracket=(sqrt(prior_mode), 1e2), tol=1e-4).x
+    l1 = Newton_m(Jp, Jpp, 1.0)
+    # l1 = fmin_bfgs(J, x0=[1], gtol=1e-4, disp=0)
+    # l1 = minimize_scalar(J, bracket=(sqrt(prior_mode), 1e2), tol=1e-4).x
 
     za = N1/l1**2
     return za
@@ -664,26 +694,26 @@ def effective_N(YR,dyR,xN,g):
 # Similarly, Newton_m seems like the best option,
 # although alternatives are provided (commented out).
 #
-def Newton_m(fun,deriv,x0,is_inverted=False,
-             conf=1.0,xtol=1e-4,ytol=1e-7,itermax=10**2):
+def Newton_m(fun, deriv, x0, is_inverted=False,
+             conf=1.0, xtol=1e-4, ytol=1e-7, itermax=10**2):
     "Simple (and fast) implementation of Newton root-finding"
     itr, dx, Jx = 0, np.inf, fun(x0)
-    norm = lambda x: sqrt(np.sum(x**2))
-    while ytol<norm(Jx) and xtol<norm(dx) and itr<itermax:
+    def norm(x): return sqrt(np.sum(x**2))
+    while ytol < norm(Jx) and xtol < norm(dx) and itr < itermax:
         Dx  = deriv(x0)
         if is_inverted:
             dx  = Dx @ Jx
-        elif isinstance(Dx,float):
+        elif isinstance(Dx, float):
             dx  = Jx/Dx
         else:
-            dx  = mldiv(Dx,Jx)
+            dx  = mldiv(Dx, Jx)
         dx *= conf
         x0 -= dx
         Jx  = fun(x0)
     return x0
 
 
-def hyperprior_coeffs(s,N,xN=1,g=0):
+def hyperprior_coeffs(s, N, xN=1, g=0):
     """EnKF-N inflation prior may be specified by the constants:
 
     - eN: Effect of unknown mean
@@ -727,22 +757,24 @@ def hyperprior_coeffs(s,N,xN=1,g=0):
 
     # Mode correction (almost) as in eqn 36 of [Boc15]_
     prior_mode = eN/cL                        # Mode of l1 (before correction)
-    diagonal   = pad0( s**2, N ) + N1         # diag of Y@R.inv@Y + N1*I [Hessian of J(w)]
-    I_KH       = np.mean( diagonal**(-1) )*N1 # ≈ 1/(1 + HBH/R)
-    #I_KH      = 1/(1 + (s**2).sum()/N1)      # Scalar alternative: use tr(HBH/R).
+    diagonal   = pad0(s**2, N) + N1           # diag of Y@R.inv@Y + N1*I
+    #                                           (Hessian of J)
+    I_KH       = np.mean(diagonal**(-1))*N1   # ≈ 1/(1 + HBH/R)
+    # I_KH      = 1/(1 + (s**2).sum()/N1)     # Scalar alternative: use tr(HBH/R).
     mc         = sqrt(prior_mode**I_KH)       # Correction coeff
 
     # Apply correction
     eN /= mc
     cL *= mc
 
-    # Boost by xN 
+    # Boost by xN
     eN *= xN
     cL *= xN
 
     return eN, cL
 
-def zeta_a(eN,cL,w):
+
+def zeta_a(eN, cL, w):
     """EnKF-N inflation estimation via w.
 
     Returns zeta_a = (N-1)/pre-inflation^2.
@@ -779,107 +811,126 @@ class EnKF_N:
     'xN' allows tuning the hyper-prior for the inflation.
     Usually, I just try setting it to 1 (default), or 2.
     Further description in hyperprior_coeffs()."""
-    N    : int
-    dual : bool  = False
-    Hess : bool  = False
-    xN   : float = 1.0
-    g    : int   = 0
+    N: int
+    dual: bool = False
+    Hess: bool = False
+    xN: float  = 1.0
+    g: int     = 0
 
-    def assimilate(self,HMM,xx,yy):
+    def assimilate(self, HMM, xx, yy):
         # Unpack
-        Dyn,Obs,chrono,X0,stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+        Dyn, Obs, chrono, X0, stats = \
+            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
         R, N, N1 = HMM.Obs.noise.C, self.N, self.N-1
 
         # Init
         E = X0.sample(N)
-        stats.assess(0,E=E)
+        stats.assess(0, E=E)
 
         # Loop
-        for k,kObs,t,dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(chrono.ticker):
             # Forecast
-            E = Dyn(E,t-dt,dt)
+            E = Dyn(E, t-dt, dt)
             E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
             # Analysis
             if kObs is not None:
-                stats.assess(k,kObs,'f',E=E)
-                Eo = Obs(E,t)
+                stats.assess(k, kObs, 'f', E=E)
+                Eo = Obs(E, t)
                 y  = yy[kObs]
 
-                mu = np.mean(E,0)
+                mu = np.mean(E, 0)
                 A  = E - mu
 
-                xo = np.mean(Eo,0)
+                xo = np.mean(Eo, 0)
                 Y  = Eo-xo
                 dy = y - xo
 
-                V,s,UT = svd0  (Y @ R.sym_sqrt_inv.T)
-                du     = UT @ (dy @ R.sym_sqrt_inv.T)
-                dgn_N  = lambda l: pad0( (l*s)**2, N ) + N1
+                V, s, UT = svd0(Y @ R.sym_sqrt_inv.T)
+                du       = UT @ (dy @ R.sym_sqrt_inv.T)
+                def dgn_N(l1): return pad0((l1*s)**2, N) + N1
 
                 # Adjust hyper-prior
-                #xN_ = noise_level(self.xN,stats,chrono,N1,kObs,A,locals().get('A_old',None))
-                eN, cL = hyperprior_coeffs(s,N,self.xN,self.g)
+                # xN_ = noise_level(self.xN,stats,chrono,N1,kObs,A,
+                #                   locals().get('A_old',None))
+                eN, cL = hyperprior_coeffs(s, N, self.xN, self.g)
 
                 if self.dual:
                     # Make dual cost function (in terms of l1)
-                    pad_rk = lambda arr: pad0( arr, min(N,Obs.M) )
-                    dgn_rk = lambda l: pad_rk((l*s)**2) + N1
-                    J      = lambda l:          np.sum(du**2/dgn_rk(l)) \
-                           +    eN/l**2 \
-                           +    cL*np.log(l**2)
+                    def pad_rk(arr): return pad0(arr, min(N, Obs.M))
+                    def dgn_rk(l1): return pad_rk((l1*s)**2) + N1
+
+                    def J(l1):
+                        val = np.sum(du**2/dgn_rk(l1)) \
+                            + eN/l1**2 \
+                            + cL*np.log(l1**2)
+                        return val
+
                     # Derivatives (not required with minimize_scalar):
-                    Jp     = lambda l: -2*l   * np.sum(pad_rk(s**2) * du**2/dgn_rk(l)**2) \
-                           + -2*eN/l**3 \
-                           +  2*cL/l
-                    Jpp    = lambda l: 8*l**2 * np.sum(pad_rk(s**4) * du**2/dgn_rk(l)**3) \
-                           +  6*eN/l**4 \
-                           + -2*cL/l**2
+                    def Jp(l1):
+                        val = -2*l1 * np.sum(pad_rk(s**2) * du**2/dgn_rk(l1)**2) \
+                            + -2*eN/l1**3 + 2*cL/l1
+                        return val
+
+                    def Jpp(l1):
+                        val = 8*l1**2 * np.sum(pad_rk(s**4) * du**2/dgn_rk(l1)**3) \
+                            + 6*eN/l1**4 + -2*cL/l1**2
+                        return val
                     # Find inflation factor (optimize)
-                    l1 = Newton_m(Jp,Jpp,1.0)
-                    #l1 = fmin_bfgs(J, x0=[1], gtol=1e-4, disp=0)
-                    #l1 = minimize_scalar(J, bracket=(sqrt(prior_mode), 1e2), tol=1e-4).x
+                    l1 = Newton_m(Jp, Jpp, 1.0)
+                    # l1 = fmin_bfgs(J, x0=[1], gtol=1e-4, disp=0)
+                    # l1 = minimize_scalar(J, bracket=(sqrt(prior_mode), 1e2),
+                    #                      tol=1e-4).x
+
                 else:
                     # Primal form, in a fully linearized version.
-                    za     = lambda w: zeta_a(eN,cL,w)
-                    J      = lambda w: .5*np.sum(( (dy-w@Y)@R.sym_sqrt_inv.T)**2 ) + \
-                                       .5*N1*cL*np.log(eN + w@w)
+                    def za(w): return zeta_a(eN, cL, w)
+
+                    def J(w): return \
+                        .5*np.sum(((dy-w@Y)@R.sym_sqrt_inv.T)**2) + \
+                        .5*N1*cL*np.log(eN + w@w)
                     # Derivatives (not required with fmin_bfgs):
-                    Jp     = lambda w: -Y@R.inv@(dy-w@Y) + w*za(w)
-                    #Jpp   = lambda w:  Y@R.inv@Y.T + za(w)*(eye(N) - 2*np.outer(w,w)/(eN + w@w))
-                    #Jpp   = lambda w:  Y@R.inv@Y.T + za(w)*eye(N) # approx: no radial-angular cross-deriv
-                    nvrs   = lambda w: (V * (pad0(s**2,N) + za(w))**-1.0) @ V.T # inverse of Jpp-approx
+                    def Jp(w): return -Y@R.inv@(dy-w@Y) + w*za(w)
+                    # Jpp   = lambda w:  Y@R.inv@Y.T + \
+                    #     za(w)*(eye(N) - 2*np.outer(w,w)/(eN + w@w))
+                    # Approx: no radial-angular cross-deriv:
+                    # Jpp   = lambda w:  Y@R.inv@Y.T + za(w)*eye(N)
+
+                    def nvrs(w):
+                        # inverse of Jpp-approx
+                        return (V * (pad0(s**2, N) + za(w)) ** -1.0) @ V.T
                     # Find w (optimize)
-                    wa     = Newton_m(Jp,nvrs,zeros(N),is_inverted=True)
-                    #wa    = Newton_m(Jp,Jpp ,zeros(N))
-                    #wa    = fmin_bfgs(J,zeros(N),Jp,disp=0)
+                    wa     = Newton_m(Jp, nvrs, zeros(N), is_inverted=True)
+                    # wa   = Newton_m(Jp,Jpp ,zeros(N))
+                    # wa   = fmin_bfgs(J,zeros(N),Jp,disp=0)
                     l1     = sqrt(N1/za(wa))
 
                 # Uncomment to revert to ETKF
-                #l1 = 1.0
+                # l1 = 1.0
 
                 # Explicitly inflate prior => formulae look different from [Boc15]_.
                 A *= l1
                 Y *= l1
 
                 # Compute sqrt update
-                Pw      = (V * dgn_N(l1)**(-1.0)) @ V.T
-                w       = dy@R.inv@Y.T@Pw
+                Pw = (V * dgn_N(l1)**(-1.0)) @ V.T
+                w  = dy@R.inv@Y.T@Pw
                 # For the anomalies:
                 if not self.Hess:
                     # Regular ETKF (i.e. sym sqrt) update (with inflation)
-                    T     = (V * dgn_N(l1)**(-0.5)) @ V.T * sqrt(N1)
-                    #     = (Y@R.inv@Y.T/N1 + eye(N))**(-0.5)
+                    T = (V * dgn_N(l1)**(-0.5)) @ V.T * sqrt(N1)
+                    # = (Y@R.inv@Y.T/N1 + eye(N))**(-0.5)
                 else:
                     # Also include angular-radial co-dependence.
-                    # Note: denominator not squared coz unlike [Boc15]_ we have inflated Y.
-                    Hw    = Y@R.inv@Y.T/N1 + eye(N) - 2*np.outer(w,w)/(eN + w@w)
-                    T     = funm_psd(Hw, lambda x: x**-.5) # is there a sqrtm Woodbury?
+                    # Note: denominator not squared coz
+                    # unlike [Boc15]_ we have inflated Y.
+                    Hw = Y@R.inv@Y.T/N1 + eye(N) - 2*np.outer(w, w)/(eN + w@w)
+                    T  = funm_psd(Hw, lambda x: x**-.5)  # is there a sqrtm Woodbury?
 
                 E = mu + w@A + T@A
-                E = post_process(E,self.infl,self.rot)
+                E = post_process(E, self.infl, self.rot)
 
                 stats.infl[kObs] = l1
                 stats.trHK[kObs] = (((l1*s)**2 + N1)**(-1.0)*s**2).sum()/HMM.Ny
 
-            stats.assess(k,kObs,E=E)
+            stats.assess(k, kObs, E=E)
