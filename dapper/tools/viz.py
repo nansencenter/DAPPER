@@ -23,7 +23,8 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.widgets import CheckButtons
 from scipy.interpolate import interp1d
 
-import dapper as dpr
+from dapper.tools.math import ccat
+import dapper.tools.series as series
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
 import dapper.tools.utils as utils
@@ -53,7 +54,7 @@ def setup_wrapping(M, periodicity=None):
 
         def wrap(E):
             midpoint = (E[..., [0]] + E[..., [-1]])/2
-            return dpr.ccat(midpoint, E, midpoint, axis=-1)
+            return ccat(midpoint, E, midpoint, axis=-1)
 
     else:
         ii = arange(M)
@@ -163,7 +164,7 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
         xx = xx.ravel(order='F')
 
     try:
-        K = mult * dpr.series.estimate_corr_length(xx)
+        K = mult * series.estimate_corr_length(xx)
     except ValueError:
         K = 0
 

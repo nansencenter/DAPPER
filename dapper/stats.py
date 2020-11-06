@@ -1,12 +1,13 @@
 """Provide the stats class which defines the "builtin" stats to be computed."""
 
 from dapper.dict_tools import DotDict
+from dapper.tools.matrices import CovMat
 import dapper.dict_tools as dict_tools
 from matplotlib import pyplot as plt
 from dapper.dpr_config import rc
 import dapper.tools.liveplotting as liveplotting
+import dapper.tools.series as series
 from dapper.tools.series import StatPrint, DataSeries
-import dapper as dpr
 import dapper.tools.utils as utils
 from dapper.tools.math import unbias_var
 import numpy as np
@@ -136,11 +137,11 @@ class Stats(StatPrint):
             if length == 'FAUSt':
                 total_shape = self.K, self.KObs, shape
                 store_opts = self.store_u, self.store_s
-                series = dpr.series.FAUSt(*total_shape, *store_opts, **kws)
+                tseries = series.FAUSt(*total_shape, *store_opts, **kws)
             else:
                 total_shape = (length,)+shape
-                series = DataSeries(total_shape, *kws)
-            register_stat(parent, name, series)
+                tseries = DataSeries(total_shape, *kws)
+            register_stat(parent, name, tseries)
 
         # Principal series
         make_series(self, name, shape)
@@ -228,7 +229,7 @@ class Stats(StatPrint):
             # Write current stats to series
             for name, val in stats_now.items():
                 stat = dict_tools.deep_getattr(self, name)
-                isFaust = isinstance(stat, dpr.series.FAUSt)
+                isFaust = isinstance(stat, series.FAUSt)
                 stat[(k, kObs, sub) if isFaust else kObs] = val
 
             # LivePlot -- Both init and update must come after the assessment.
@@ -329,14 +330,14 @@ class Stats(StatPrint):
         now.mu  = mu
         now.err = now.mu - x
 
-        var = P.diag if isinstance(P, dpr.CovMat) else np.diag(P)
+        var = P.diag if isinstance(P, CovMat) else np.diag(P)
         now.std = np.sqrt(var)
 
         # Here, sqrt(2/pi) is the ratio, of MAD/STD for Gaussians
         now.mad = np.nanmean(now.std) * np.sqrt(2/np.pi)
 
         if hasattr(self, 'svals'):
-            P         = P.full if isinstance(P, dpr.CovMat) else P
+            P         = P.full if isinstance(P, CovMat) else P
             s2, U      = sla.eigh(P)
             now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
             now.umisf = (U.T @ now.err)[::-1]
@@ -353,48 +354,48 @@ class Stats(StatPrint):
         if kkObs is None:
             kkObs  = chrono.maskObs_BI
 
-        def average1(series):
+        def average1(tseries):
             avrgs = Avrgs()
 
             def average_multivariate(): return avrgs
             # Plain averages of nd-series are rarely interesting.
             # => Shortcircuit => Leave for manual computations
 
-            if isinstance(series, dpr.series.FAUSt):
+            if isinstance(tseries, series.FAUSt):
                 # Average series for each subscript
-                if series.item_shape != ():
+                if tseries.item_shape != ():
                     return average_multivariate()
-                for sub in [ch for ch in 'fas' if hasattr(series, ch)]:
-                    avrgs[sub] = dpr.series.mean_with_conf(series[kkObs, sub])
-                if series.store_u:
-                    avrgs['u'] = dpr.series.mean_with_conf(series[kk, 'u'])
+                for sub in [ch for ch in 'fas' if hasattr(tseries, ch)]:
+                    avrgs[sub] = series.mean_with_conf(tseries[kkObs, sub])
+                if tseries.store_u:
+                    avrgs['u'] = series.mean_with_conf(tseries[kk, 'u'])
 
-            elif isinstance(series, DataSeries):
-                if series.array.shape[1:] != ():
+            elif isinstance(tseries, DataSeries):
+                if tseries.array.shape[1:] != ():
                     return average_multivariate()
-                elif len(series.array) == self.KObs+1:
-                    avrgs = dpr.series.mean_with_conf(series[kkObs])
-                elif len(series.array) == self.K+1:
-                    avrgs = dpr.series.mean_with_conf(series[kk])
+                elif len(tseries.array) == self.KObs+1:
+                    avrgs = series.mean_with_conf(tseries[kkObs])
+                elif len(tseries.array) == self.K+1:
+                    avrgs = series.mean_with_conf(tseries[kk])
                 else:
                     raise ValueError
 
-            elif np.isscalar(series):
-                avrgs = series  # Eg. just copy over "duration" from stats
+            elif np.isscalar(tseries):
+                avrgs = tseries  # Eg. just copy over "duration" from stats
 
             else:
-                raise TypeError(f"Don't know how to average {series}")
+                raise TypeError(f"Don't know how to average {tseries}")
 
             return avrgs
 
         def recurse_average(stat_parent, avrgs_parent):
             for key in getattr(stat_parent, "stat_register", []):
                 try:
-                    series = getattr(stat_parent, key)
+                    tseries = getattr(stat_parent, key)
                 except AttributeError:
                     continue  # Eg assess_ens() deletes .weights if None
-                avrgs = average1(series)
-                recurse_average(series, avrgs)
+                avrgs = average1(tseries)
+                recurse_average(tseries, avrgs)
                 avrgs_parent[key] = avrgs
 
         avrgs = Avrgs()

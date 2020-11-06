@@ -287,7 +287,8 @@ def get_ip(instance):
 
 def sys_cmd(args,split=True):
     """Run subprocess, capture output, raise exception."""
-    if split: args = args.split()
+    if split:
+        args = args.split()
     try:
         ps = subprocess.run(args, check=True, capture_output=True)
     except subprocess.CalledProcessError as error:
