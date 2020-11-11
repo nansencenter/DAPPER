@@ -4,7 +4,8 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 
 # TODO 5: use Fabric? https://www.fabfile.org/
 
-from dapper.tools.multiprocessing import mpd
+import multiprocessing_on_dill as mpd
+from pathlib import Path
 from dapper.dpr_config import rc
 import dapper.tools.utils as utils
 from datetime import datetime, timezone, timedelta
@@ -277,12 +278,24 @@ def list_job_dirs(xps_path):
 
 
 def get_ip(instance):
-    # Could also read from ~/.ssh/config but how reliable/portable would that be?
 
     # cloud.google.com/compute/docs/instances/view-ip-address
-    getip = 'get(networkInterfaces[0].accessConfigs[0].natIP)'
-    ip = sys_cmd(f"gcloud compute instances describe {instance} --format={getip}")
-    return ip.strip()
+    # getip = 'get(networkInterfaces[0].accessConfigs[0].natIP)'
+    # ip = sys_cmd(f"gcloud compute instances describe {instance} --format={getip}")
+    # return ip.strip()
+
+    # On my Mac2013 with Catalina using the ip-address no longer worked.
+    # Instead, I should use the "Host" as given in the config file.
+    # Q: how reliable/portable is that?
+    with open(Path("~").expanduser()/".ssh"/"config") as ssh_config:
+        for ln in ssh_config:
+            if ln.startswith("Host condor-submit"):
+                break
+        else:
+            raise RuntimeError(
+                "Did not find condor-submit Host in .ssh/config.")
+        return "condor-submit.us-central1-f.mc-tut"
+
 
 
 def sys_cmd(args,split=True):
