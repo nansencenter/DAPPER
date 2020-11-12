@@ -17,7 +17,6 @@ import dapper.dict_tools as dict_tools
 from dapper.tools.chronos import Chronology
 from dapper.tools.randvars import RV, GaussRV
 from dapper.tools.stoch import set_seed
-from dapper.tools.multiprocessing import mpd
 from dapper.dpr_config import rc
 from dapper.tools.remote.uplink import submit_job_GCP
 import dapper.tools.utils as utils
@@ -274,7 +273,7 @@ def run_experiment(xp, label, savedir, HMM,
 
     # SAVE
     if savedir:
-        with open(savedir/"xp", "wb") as FILE:
+        with open(Path(savedir)/"xp", "wb") as FILE:
             dill.dump({'xp': xp}, FILE)
 
 
@@ -572,6 +571,7 @@ class xpList(list):
             utils.disable_progbar          = True
             utils.disable_user_interaction = True
             NPROC = mp.get("NPROC", None)  # None => mp.cpu_count()
+            from dapper.tools.multiprocessing import mpd  # will fail on GCP
             with mpd.Pool(NPROC) as pool:
                 list(utils.tqdm.tqdm(
                     pool.imap(
@@ -588,7 +588,7 @@ class xpList(list):
                 with open(xpi_dir(ixp)/"xp.var", "wb") as f:
                     dill.dump(dict(xp=xp), f)
 
-            with open(save_as/"xp.com","wb") as f:
+            with open(save_as/"xp.com", "wb") as f:
                 dill.dump(kwargs, f)
 
             # mkdir extra_files
@@ -620,7 +620,8 @@ class xpList(list):
             # Loads PWD/xp_{var,com} and calls run_experiment()
             with open(extra_files/"load_and_run.py", "w") as f:
                 f.write(dedent("""\
-                from dapper import *
+                import dill
+                from dapper.admin import run_experiment
 
                 # Load
                 with open("xp.com", "rb") as f: com = dill.load(f)
@@ -630,13 +631,14 @@ class xpList(list):
                 %s
 
                 # Run
-                result = run_experiment(var['xp'], None, Path("."), **com)
+                result = run_experiment(var['xp'], None, ".", **com)
                 """) % dedent(mp["code"]))
 
-            # Avoid fluff in `out` files.
-            with open(extra_files/"dpr_config.ini", "w") as f:
-                f.write("[bool]\nliveplotting_enabled = False\nwelcome_message = False\n")
-
+            with open(extra_files/"dpr_config.yaml", "w") as f:
+                f.write("\n".join([
+                    "data_root: '$cwd'",
+                    "liveplotting: no",
+                    "welcome_message: no"]))
             submit_job_GCP(save_as)
 
         return save_as
