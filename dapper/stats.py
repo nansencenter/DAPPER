@@ -447,7 +447,12 @@ class Stats(StatPrint):
                     LP.update((k, kObs, 'a'), None, None)
                 LP.update((k, kObs, 'u'), None, None)
 
-        plt.pause(.01)  # required when speed=inf
+        # Pause required when speed=inf.
+        # On Mac, it was also necessary to do it for each fig.
+        for name, (num, updater) in LP.figures.items():
+            if plt.fignum_exists(num) and getattr(updater, 'is_active', 1):
+                plt.figure(num)
+                plt.pause(0.01)
 
 
 def register_stat(self, name, value):
