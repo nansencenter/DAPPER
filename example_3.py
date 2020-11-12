@@ -88,7 +88,6 @@ save_as = xps.launch(HMM, __file__, mp, setup)
 # The following "section" **only** uses saved data.
 # => Can run as a separate script, by setting save_as manually, e.g.
 # save_as = dpr.rc.dirs.data / "example_3" / ""run_2020-11-11__20:36:36"
-save_as = dpr.rc.dirs.data / "example_3" / "run_2020-11-11__20:36:36"
 
 # Load
 xps = dpr.load_xps(save_as)
