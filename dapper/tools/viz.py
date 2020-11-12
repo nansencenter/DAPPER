@@ -63,8 +63,9 @@ def setup_wrapping(M, periodicity=None):
     return ii, wrap
 
 
-def amplitude_animation(EE, dt=None, interval=0,
-                        periodicity=None, blit=True, fignum=None):
+def amplitude_animation(EE, dt=None, interval=1,
+                        periodicity=None, blit=True,
+                        fignum=None, repeat=False):
     fig, ax = freshfig(fignum)
     ax.set_xlabel('State index')
     ax.set_ylabel('Amplitue')
@@ -91,7 +92,9 @@ def amplitude_animation(EE, dt=None, interval=0,
             lines[-1].set_text(times % (dt*k))
         return lines
 
-    return FuncAnimation(fig, anim, range(K), interval=interval, blit=blit)
+    return FuncAnimation(fig, anim, range(K),
+                         interval=interval, blit=blit,
+                         repeat=repeat)
 
 
 def adjust_position(ax, adjust_extent=False, **kwargs):
