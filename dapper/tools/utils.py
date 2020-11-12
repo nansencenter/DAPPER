@@ -193,7 +193,7 @@ def print_cropped_traceback(ERR):
         return msg
 
     msg = crop_traceback(ERR, 1) + "\nError message: " + str(ERR)
-    msg += "\n\nResuming program execution. " \
+    msg += "\n\nResuming execution. " \
         "Use `fail_gently=False` to raise exception & halt execution.\n"
     print(msg, file=sys.stderr)
 
