@@ -1,11 +1,13 @@
 """Load DAPPER configuration settings into `rc`."""
 
-from dapper.dict_tools import DotDict
-import matplotlib as mpl
-from pathlib import Path
-import sys
 import os
+import sys
+from pathlib import Path
+
+import matplotlib as mpl
 import yaml
+
+from dapper.dict_tools import DotDict
 
 ##################################
 # Load configurations

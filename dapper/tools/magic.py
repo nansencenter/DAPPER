@@ -92,7 +92,7 @@ def magic_naming(*args, **kwargs):
     >>> a,b,c = 1,2,3
     >>> dct = magic_naming(a,b,c,d=e)
     """
-    call, argnames, locvars = get_call()
+    call, argnames, locvars = get_call() # pylint: disable=unused-variable
     assert len(args) == len(argnames), "Something's gone wrong."
 
     # Obsolete (works with call rather than argnames).
@@ -138,7 +138,7 @@ def spell_out(*args):
 
 if __name__ == "__main__":
     lst = [chr(97+i) for i in range(7)]
-    dct = {c: c for c in lst}
+    dct2 = {c: c for c in lst}
     a, b, c, d, e, f, g = lst
 
     print(magic_naming(a, b,
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # But intorspection is brittle, so that's not surprising.
 
     d2 = magic_naming(a, b, c, d, e, f, g)
-    assert d2 == dct
+    assert d2 == dct2
 
     # Ugly call
     assert \

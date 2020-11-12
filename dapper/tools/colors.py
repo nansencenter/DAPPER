@@ -24,7 +24,7 @@ def color_text(text, *color_codes):
 @contextlib.contextmanager
 def coloring(*color_codes):
     """Color printing using 'with'.
-    
+
     Example:
     >>> with coloring(colorama.Fore.GREEN): print("This is in color")
     """
