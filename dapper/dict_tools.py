@@ -479,7 +479,7 @@ class NicePrint:
     """
 
     # _underscored = re.compile('^_')
-    _underscored = lambda s: s.startswith("_")
+    _underscored = lambda s: s.startswith("_") # noqa
     printopts = dict(excluded=[_underscored, "printopts"])
 
     def _repr(self, is_repr=True):

@@ -4,7 +4,6 @@ import pytest
 import os
 from pathlib import Path
 from importlib import import_module
-import warnings
 
 import dapper as dpr
 import dapper.tools.utils as utils
@@ -28,7 +27,6 @@ for root, dir, files in os.walk("."):
                     modules_with_HMM.append(filepath)
 
 
-
 @pytest.mark.parametrize(("path"), modules_with_HMM)
 def test_HMM(path):
     """Test that any HMM in module can be simulated."""
@@ -42,7 +40,7 @@ def test_HMM(path):
         return False
 
     for key, HMM in vars(module).items():
-        if isinstance(HMM, dpr.HiddenMarkovModel) and not exclude(key,HMM):
+        if isinstance(HMM, dpr.HiddenMarkovModel) and not exclude(key, HMM):
             HMM.t.BurnIn = 0
             HMM.t.KObs = 1
             xx, yy = HMM.simulate()

@@ -11,7 +11,8 @@ from dapper.mods.Lorenz96.sakov2008 import Tplot, Nx, X0, Dyn, LPs
 from dapper.tools.localization import nd_Id_localization
 import dapper as dpr
 
-# Use small dt to "cope with" ocean sector blow up (due to spatially-constant infl)
+# Use small dt to "cope with" ocean sector blow up
+# (due to spatially-constant infl)
 OneYear = 0.05 * (24/6) * 365
 t = dpr.Chronology(0.005, dtObs=0.05, T=110*OneYear, Tplot=Tplot, BurnIn=10*OneYear)
 

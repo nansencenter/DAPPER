@@ -16,18 +16,18 @@ HMM.t.KObs = 10
 xps = dpr.xpList(unique=True)
 
 # yapf: disable
-xps += dpr.EnKF('Sqrt'   , N=20)
+xps += dpr.EnKF('Sqrt',    N=20)
 xps += dpr.EnKF('PertObs', N=20)
-xps += dpr.EnKF('DEnKF'  , N=20)
-for Lag in [0,1,3]:
-    xps += dpr.EnKS('Sqrt'   , N=20, Lag=Lag)
+xps += dpr.EnKF('DEnKF',   N=20)
+for Lag in [0, 1, 3]:
+    xps += dpr.EnKS('Sqrt',    N=20, Lag=Lag)
     xps += dpr.EnKS('PertObs', N=20, Lag=Lag)
-    xps += dpr.EnKS('DEnKF'  , N=20, Lag=Lag)
-    for nIter in [1,4]:
-        for MDA in [False,True]:
-            xps += dpr.iEnKS('Sqrt'   , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+    xps += dpr.EnKS('DEnKF',   N=20, Lag=Lag)
+    for nIter in [1, 4]:
+        for MDA in [False, True]:
+            xps += dpr.iEnKS('Sqrt',    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
             xps += dpr.iEnKS('PertObs', N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-            xps += dpr.iEnKS('Order1' , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+            xps += dpr.iEnKS('Order1',  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
 # yapf: enable
 
 for xp in xps:
@@ -139,7 +139,7 @@ def test_PertObs_Lag3_u():
 # f/a stats all equal except for nIter>1:
 def test_Order1():
     ii = find(upd_a='DEnKF') +\
-         find(upd_a='Order1',nIter=1)
+         find(upd_a='Order1', nIter=1)
     assert _allsame(_rmse('a', ii))
     assert _allsame(_rmse('f', ii))
 
@@ -160,20 +160,20 @@ def test_Order1_nIter4_MDA1():
 
 # u   stats equal for EnKS/iEnKS(nIter=1) for a given Lag:
 def test_Order1_nIter1_Lag0_u():
-    ii = find(strict=0,upd_a='DEnKF' ,Lag=0) +\
-         find(upd_a='Order1',Lag=0,nIter=1)
+    ii = find(strict=0, upd_a='DEnKF', Lag=0) +\
+         find(upd_a='Order1', Lag=0, nIter=1)
     assert _allsame(_rmse('u', ii))
 
 
 def test_Order1_nIter1_Lag1_u():
-    ii = find(da=dpr.EnKS, upd_a='DEnKF' ,Lag=1) +\
-         find(upd_a='Order1',Lag=1,nIter=1)
+    ii = find(da=dpr.EnKS, upd_a='DEnKF', Lag=1) +\
+         find(upd_a='Order1', Lag=1, nIter=1)
     assert _allsame(_rmse('u', ii))
 
 
 def test_Order1_nIter1_Lag3_u():
-    ii = find(da=dpr.EnKS, upd_a='DEnKF' ,Lag=3) +\
-         find(upd_a='Order1',Lag=3,nIter=1)
+    ii = find(da=dpr.EnKS, upd_a='DEnKF', Lag=3) +\
+         find(upd_a='Order1', Lag=3, nIter=1)
     assert _allsame(_rmse('u', ii))
 
 
