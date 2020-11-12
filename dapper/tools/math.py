@@ -1,34 +1,39 @@
-# Misc math
+"""Math tools."""
+# pylint: disable=unused-argument
 
-from IPython.lib.pretty import pretty as pretty_repr
-import dapper.tools.utils as utils
-import numpy as np
-import scipy.linalg as sla
 import functools
 
+import numpy as np
+import scipy.linalg as sla
+from IPython.lib.pretty import pretty as pretty_repr
+
+import dapper.tools.utils as utils
 
 ########################
 # Array manip
 ########################
 
 def is1d(a):
-    """ Works for list and row/column arrays and matrices"""
+    """Works for list and row/column arrays and matrices"""
     return np.sum(np.asarray(np.asarray(a).shape) > 1) <= 1
 
 
 def exactly_1d(a):
+    "Ensure a is 1d."
     a = np.atleast_1d(a)
     assert a.ndim == 1
     return a
 
 
 def exactly_2d(a):
+    "Ensure a is 2d."
     a = np.atleast_2d(a)
     assert a.ndim == 2
     return a
 
 
 def ccat(*args, axis=0):
+    "Convenience wrapper around np.concatenate."
     args = [np.atleast_1d(x) for x in args]
     return np.concatenate(args, axis=axis)
 
@@ -78,6 +83,7 @@ def mean0(E, axis=0, rescale=True):
 
 
 def inflate_ens(E, factor):
+    "Inflate the ensemble (center, inflate, re-combine)."
     if factor == 1:
         return E
     X, x = center(E)
@@ -85,6 +91,7 @@ def inflate_ens(E, factor):
 
 
 def weight_degeneracy(w, prec=1e-10):
+    "Are weights degenerate?"
     return (1-w.max()) < prec
 
 
@@ -109,6 +116,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 # fmt: off
 def rk4(f, x, t, dt, order=4):
     """Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers."""
+    # pylint: disable=R1705, W0311
     if order >=1: k1 = dt * f(t     , x)                        # noqa
     if order >=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
     if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
@@ -153,10 +161,11 @@ def with_recursion(func, prog=False):
         xx = np.zeros((k+1,)+x0.shape)
         xx[0] = x0
 
+        rg = range(k)
         if isinstance(prog, str):
-            rg = utils.progbar(range(k), prog)
+            rg = utils.progbar(rg, prog)
         elif prog:
-            rg = utils.progbar(range(k), 'Recurs.')
+            rg = utils.progbar(rg, 'Recurs.')
 
         for i in rg:
             xx[i+1] = func(xx[i], *args, **kwargs)
@@ -255,8 +264,7 @@ def ndecimal(x):
     if x == 0 or not np.isfinite(x):
         # "Behaviour not defined" => should not be relied upon.
         return 1
-    else:
-        return -int(np.floor(np.log10(np.abs(x))))
+    return -int(np.floor(np.log10(np.abs(x))))
 
 
 @np.vectorize
@@ -373,10 +381,12 @@ def circulant_ACF(C, do_abs=False):
 # Linear Algebra
 ########################
 def mrdiv(b, A):
+    "b/A"
     return sla.solve(A.T, b.T).T
 
 
 def mldiv(A, b):
+    "A \\ b"
     return sla.solve(A, b)
 
 
@@ -454,11 +464,11 @@ def svd0(A):
     M, N = A.shape
     if M > N:
         return sla.svd(A, full_matrices=True)
-    else:
-        return sla.svd(A, full_matrices=False)
+    return sla.svd(A, full_matrices=False)
 
 
 def pad0(ss, N):
+    "Pad ss with zeros so that len(ss)==N."
     out = np.zeros(N)
     out[:len(ss)] = ss
     return out
@@ -495,10 +505,12 @@ def trank(A, *kargs, **kwargs):
 ########################
 
 def Id_op():
+    "Id operator."
     return utils.NamedFunc(lambda *args: args[0], "Id operator")
 
 
 def Id_mat(M):
+    "Id matrix."
     Id = np.eye(M)
     return utils.NamedFunc(lambda x, t: Id, "Id("+str(M)+") matrix")
 
@@ -526,7 +538,7 @@ def linear_model_setup(ModelMatrix, dt0):
     @functools.lru_cache(maxsize=1)
     def MatPow(dt):
         assert is_whole(dt/dt0), "Mat. exponentiation unique only for integer powers."
-        return sla.matrix_power(Mat, int(round(dt/dt0)))
+        return sla.fractional_matrix_power(Mat, int(round(dt/dt0)))
 
     @ens_compatible
     def model(x, t, dt): return MatPow(dt) @ x
@@ -553,6 +565,7 @@ def direct_obs_matrix(Nx, obs_inds):
 
 
 def partial_Id_Obs(Nx, obs_inds):
+    "Id observations of a subset of obs. indices."
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
@@ -567,4 +580,5 @@ def partial_Id_Obs(Nx, obs_inds):
 
 
 def Id_Obs(Nx):
+    "Id obs of entire state."
     return partial_Id_Obs(Nx, np.arange(Nx))
