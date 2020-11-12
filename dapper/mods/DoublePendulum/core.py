@@ -1,7 +1,8 @@
-from dapper import *
+from dapper.mods.Lorenz63.core import LPs as L63_LPs
 import dapper as dpr
 from dapper.tools.math import FD_Jac
 import numpy as np
+from numpy import cos, sin
 
 # Based on double_pendulum_animated.html from matplotlib.org.
 # which was based on physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
@@ -13,7 +14,8 @@ M1 = 1.0  # mass of pendulum 1 in kg
 M2 = 1.0  # mass of pendulum 2 in kg
 
 # Initial condition: th1, w1, th2, w2
-x0 = np.radians([ 130,  0, -10,  0])
+x0 = np.radians([130,  0, -10,  0])
+
 
 @dpr.ens_compatible
 def dxdt(x):
@@ -24,7 +26,7 @@ def dxdt(x):
     dydx[0] = w1  # d(th1)/dt =: w1
     dydx[2] = w2  # d(th1)/dt =: w2
 
-    D = th2 - th1 # abbreviate
+    D = th2 - th1  # abbreviate
 
     # d(w1)/dt
     Denom1 = (M1 + M2)*L1 - M2*L1*cos(D)*cos(D)
@@ -49,18 +51,18 @@ step = dpr.with_rk4(dxdt, autonom=True)
 
 dstep_dx = FD_Jac(step)
 
+
 def energy(x):
     """Compute total energy of system."""
     th1, th1d, th2, th2d = x.T
     # Potential
     V = -(M1+M2)*L1*G*np.cos(th1) - M2*L2*G*np.cos(th2)
     # Kinetic
-    T = 0.5*M1* (L1*th1d)**2 + \
+    T = 0.5*M1 * (L1*th1d)**2 + \
         0.5*M2*((L1*th1d)**2 + (L2*th2d)**2
-        + 2*L1*L2*th1d*th2d*np.cos(th1-th2))
+                + 2*L1*L2*th1d*th2d*np.cos(th1-th2))
     # Sum
     return T + V
 
 
-from dapper.mods.Lorenz63.core import LPs as L63_LPs
-LP_setup = lambda jj: L63_LPs(jj, params=dict())
+def LP_setup(jj): return L63_LPs(jj, params=dict())
