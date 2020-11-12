@@ -23,7 +23,8 @@ class LivePlot:
      - Which liveploters to call.
      - plot_u
      - Figure window (title and number)."""
-    def __init__(self,stats,liveplots,key0=(0,None,'u'),E=None,P=None,speed=1.0,replay=False,**kwargs):
+    def __init__(self,stats,liveplots,key0=(0,None,'u'),
+                 E=None,P=None,speed=1.0,replay=False,**kwargs):
         """
         Initialize plots.
         - liveplots: figures to plot; alternatives:
@@ -32,9 +33,11 @@ class LivePlot:
           - non-empty list   : Only the figures with these numbers (int) or names (str).
           - False            : None.
         - speed: speed of animation.
-            - np.inf : instantaneous (works well for replays)
-            - 1      : default (as quick as possible while allowing for plt.draw())
-            - below 1: slower."""
+            - >100: instantaneous
+            - 1   : (default) as quick as possible allowing for
+                    plt.draw() to work on a moderately fast computer.
+            - <1  : slower.
+        """
 
         # Disable if not rc.liveplotting
         self.any_figs = False
@@ -51,7 +54,10 @@ class LivePlot:
             'pause_u' : 0.001,
         }
         for pause in ["pause_"+x for x in "fau"]:
+            # If speed>100: set to inf. Coz pause=1e-99 causes hangup.
+            speed = speed if speed < 100 else np.inf
             self.params[pause] /= speed
+
         # Write params
         self.params.update(getattr(stats.xp, "LP_kwargs", dict()))
         self.params.update(kwargs)
