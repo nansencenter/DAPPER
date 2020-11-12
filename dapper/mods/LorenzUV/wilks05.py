@@ -1,11 +1,11 @@
 """Uses nU, J, F as in core.py, which is taken from wilks05.
 Obs settings taken from different places (=> quasi-linear regime)."""
 
-from dapper import *
 import numpy as np
+from dapper.mods.LorenzUV.core import model_instance
 import dapper as dpr
 import dapper.tools.utils as utils
-from dapper.mods.LorenzUV.core import model_instance
+
 LUV = model_instance()
 nU = LUV.nU
 
@@ -19,25 +19,25 @@ nU = LUV.nU
 ################
 
 # t = dpr.Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
-t = dpr.Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)  # requires rk4
+t = dpr.Chronology(dt=0.005, dtObs=0.05, T=4**3, BurnIn=6)  # requires rk4
 
 
 Dyn = {
-    'M'      : LUV.M,
-    'model'  : dpr.with_rk4(LUV.dxdt,autonom=True),
-    'noise'  : 0,
-    'linear' : LUV.dstep_dx,
+    'M': LUV.M,
+    'model': dpr.with_rk4(LUV.dxdt, autonom=True),
+    'noise': 0,
+    'linear': LUV.dstep_dx,
 }
 
-X0 = dpr.GaussRV(mu=LUV.x0,C=0.01)
+X0 = dpr.GaussRV(mu=LUV.x0, C=0.01)
 
 R = 0.1
 jj = np.arange(nU)
-Obs = dpr.partial_Id_Obs(LUV.M,jj)
+Obs = dpr.partial_Id_Obs(LUV.M, jj)
 Obs['noise'] = R
 
 other = {'name': utils.rel2mods(__file__)+'_full'}
-HMM_full = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
+HMM_full = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
 
 ################
@@ -45,33 +45,34 @@ HMM_full = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 ################
 
 # Just change dt from 005 to 05
-t = dpr.Chronology(dt=0.05, dtObs=0.05,T=4**3,BurnIn=6)
+t = dpr.Chronology(dt=0.05, dtObs=0.05, T=4**3, BurnIn=6)
 
 Dyn = {
-    'M'    : nU,
+    'M': nU,
     'model': dpr.with_rk4(LUV.dxdt_parameterized),
     'noise': 0,
 }
 
-X0 = dpr.GaussRV(mu=LUV.x0[:nU],C=0.01)
+X0 = dpr.GaussRV(mu=LUV.x0[:nU], C=0.01)
 
 jj = np.arange(nU)
-Obs = dpr.partial_Id_Obs(nU,jj)
+Obs = dpr.partial_Id_Obs(nU, jj)
 Obs['noise'] = R
 
 other = {'name': utils.rel2mods(__file__)+'_trunc'}
-HMM_trunc = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
+HMM_trunc = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
-LUV.prmzt = lambda t,x: polynom_prmzt(t,x,1)
+LUV.prmzt = lambda t, x: polynom_prmzt(t, x, 1)
 
-def polynom_prmzt(t,x,order):
+
+def polynom_prmzt(t, x, order):
     """
     Polynomial (deterministic) parameterization of fast variables (Y).
 
     NB: Only valid for system settings of Wilks'2005.
 
     Note: In order to observe an improvement in DA performance w
-          higher orders, the EnKF must be reasonably tuned with 
+          higher orders, the EnKF must be reasonably tuned with
           There is very little improvement gained above order=1.
     """
     if order == 4:
@@ -97,7 +98,7 @@ def polynom_prmzt(t,x,order):
 ####################
 # Suggested tuning
 ####################
-# Using HMM_full                                          # Expected rmse.a:
-# xps += Climatology()                                    # 0.93
-# xps += Var3D(xB=2.0)                                    # 0.39
-# xps += EnKF_N(N=20)                                     # 0.27
+# Using HMM_full                    # Expected rmse.a:
+# xps += Climatology()              # 0.93
+# xps += Var3D(xB=2.0)              # 0.39
+# xps += EnKF_N(N=20)               # 0.27

@@ -1,86 +1,86 @@
 """Prettier, static illustration of Lorenz two-speed/scale/layer model."""
 # Sorry for the mess.
 
-from dapper import *
+from dapper.mods.LorenzUV.lorenz96 import LUV
 import dapper as dpr
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-from dapper.tools.utils import progbar
 import numpy as np
 from matplotlib import cm
 
 # Setup
 sd0 = dpr.set_seed(4)
 # from dapper.mods.LorenzUV.wilks05 import LUV
-from dapper.mods.LorenzUV.lorenz96 import LUV
 nU, J = LUV.nU, LUV.J
 
 dt = 0.005
 t0 = np.nan
 K  = int(10/dt)
 
-step_1 = dpr.with_rk4(LUV.dxdt,autonom=True)
-step_K = dpr.with_recursion(step_1,prog=1)
+step_1 = dpr.with_rk4(LUV.dxdt, autonom=True)
+step_K = dpr.with_recursion(step_1, prog=1)
 
 x0 = 0.01*dpr.randn(LUV.M)
-x0 = step_K(x0,int(2/dt),t0,dt)[-1] # BurnIn
-xx = step_K(x0,K        ,t0,dt)
+x0 = step_K(x0, int(2/dt), t0, dt)[-1]  # BurnIn
+xx = step_K(x0, K, t0, dt)
 
 # Grab parts of state vector
 ii = np.arange(nU+1)
 jj = np.arange(nU*J+1)
-circU = np.mod(ii  ,nU)
-circV = np.mod(jj,nU*J) + nU
+circU = np.mod(ii, nU)
+circV = np.mod(jj, nU*J) + nU
 iU = np.hstack([0, 0.5+np.arange(nU), nU])
+
+
 def Ui(xx):
     interp = (xx[0]+xx[-1])/2
     return np.hstack([interp, xx, interp])
+
 
 # Overlay linear
 fg = plt.figure(2)
 fg.clear()
 ax = fg.gca()
-L = 20 # Num of lines to plot
+L = 20  # Num of lines to plot
 start = int(3e5*dt)
 step  = 3
-for i,Ny in enumerate(range(L)):
+for i, Ny in enumerate(range(L)):
     k = start + Ny*step
     c = cm.viridis(1-Ny/L)
     a = 0.8-0.2*Ny/L
-    plt.plot(iU  ,Ui(xx[k][:nU]),color=c,lw=2  ,alpha=a)[0]
-    if i%2==0:
-        plt.plot(jj/J,xx[k][circV]  ,color=c,lw=0.7,alpha=a)[0]
+    plt.plot(iU, Ui(xx[k][:nU]), color=c, lw=2, alpha=a)[0]
+    if i % 2 == 0:
+        plt.plot(jj/J, xx[k][circV], color=c, lw=0.7, alpha=a)[0]
 # Make ticks, ticklabels, grid
 ax.set_xticks([])
-ym,yM = -4,10
-ax.set_ylim(ym,yM)
-ax.set_xlim(0,nU)
-dY = 4 # SET TO: 1 for wilks05, 4 for lorenz96
+ym, yM = -4, 10
+ax.set_ylim(ym, yM)
+ax.set_xlim(0, nU)
+dY = 4  # SET TO: 1 for wilks05, 4 for lorenz96
 # U-vars: major
 tU = iU[1:-1]
 lU = np.array([str(i+1) for i in range(nU)])
-tU = dpr.ccat(tU[0],tU[dY-1::dY])
-lU = dpr.ccat(lU[0],lU[dY-1::dY])
-for t, l in zip(tU,lU):
-    ax.text(t,ym-.6,l,fontsize=mpl.rcParams['xtick.labelsize'],horizontalalignment='center')
-    ax.vlines(t, ym, -3.78, 'k',lw=mpl.rcParams['xtick.major.width'])
+tU = dpr.ccat(tU[0], tU[dY-1::dY])
+lU = dpr.ccat(lU[0], lU[dY-1::dY])
+for t, l in zip(tU, lU):
+    ax.text(t, ym-.6, l,
+            fontsize=mpl.rcParams['xtick.labelsize'], horizontalalignment='center')
+    ax.vlines(t, ym, -3.78, 'k', lw=mpl.rcParams['xtick.major.width'])
 # V-vars: minor
 tV = np.arange(nU+1)
 lV = ['1'] + [str((i+1)*J) for i in circU]
-for i, (t, l) in enumerate(zip(tV,lV)):
-    if i%dY==0:
-        ax.text(t,-5.0,l,fontsize=9,horizontalalignment='center')
-        ax.vlines(t,ym,yM,lw=0.3)
-    ax.vlines(t, ym, -3.9, 'k',lw=mpl.rcParams['xtick.minor.width'])
-ax.grid(color='k',alpha=0.6,lw=0.4,axis='y',which='major')
+for i, (t, l) in enumerate(zip(tV, lV)):
+    if i % dY == 0:
+        ax.text(t, -5.0, l, fontsize=9, horizontalalignment='center')
+        ax.vlines(t, ym, yM, lw=0.3)
+    ax.vlines(t, ym, -3.9, 'k', lw=mpl.rcParams['xtick.minor.width'])
+ax.grid(color='k', alpha=0.6, lw=0.4, axis='y', which='major')
 
 plt.show()
 
 
-
-
 # # Convert to circular coordinates
-# # Should have used instead: projection='polar' 
+# # Should have used instead: projection='polar'
 # def tU(zz):
 #     xx  = (40 + 3*zz)*np.cos(2*np.pi*ii/nU)
 #     yy  = (40 + 3*zz)*np.sin(2*np.pi*ii/nU)
@@ -89,12 +89,13 @@ plt.show()
 #     xx  = (80 + 15*zz)*np.cos(2*np.pi*jj/nU/J)
 #     yy  = (80 + 15*zz)*np.sin(2*np.pi*jj/nU/J)
 #     return xx,yy
-# 
-# 
+#
+#
 # # Animate circ
 # plt.figure(3)
 # lhU   = plt.plot(*tU(xx[-1][circU]),'b',lw=3)[0]
 # lhV   = plt.plot(*tV(xx[-1][circV]),'g',lw=1)[0]
+# from dapper.tools.utils import progbar
 # for k in progbar(range(K),'Plotting'):
 #     dataU = tU(xx[k][circU])
 #     dataV = tV(xx[k][circV])
@@ -103,8 +104,8 @@ plt.show()
 #     lhV.set_xdata(dataV[0])
 #     lhV.set_ydata(dataV[1])
 #     plt.pause(0.001)
-# 
-# 
+#
+#
 # # Overlay circ
 # from matplotlib import cm
 # fg = plt.figure(4)

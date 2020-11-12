@@ -1,39 +1,46 @@
-# Parameters set so as to have chaotic dynamics.
-# Refs: wikipedia.org/wiki/Competitive_Lotka%E2%80%93Volterra_equations
-#       Vano et al (2006): "Chaos in low-dimensional Lotka-Volterra models of competition".
+"""Parameters set so as to have chaotic dynamics.
+Refs:
+ - wikipedia.org/wiki/Competitive_Lotka%E2%80%93Volterra_equations
+ - Vano et al (2006): "Chaos in low-dimensional Lotka-Volterra models of competition".
+"""
 
 import numpy as np
-from dapper import *
+
+from dapper.mods.Lorenz63.core import LPs as L63_LPs
 import dapper as dpr
 from dapper.tools.math import integrate_TLM
 
 Nx = 4
 
 # "growth" coefficients
-r = np.array([1 , 0.72 , 1.53 , 1.27])
+r = np.array([1, 0.72, 1.53, 1.27])
 
 # "interaction" coefficients
 A = np.array([
-    [ 1    , 1.09 , 1.52 , 0    ] ,
-    [ 0    , 1    , 0.44 , 1.36 ] ,
-    [ 2.33 , 0    , 1    , 0.47 ] ,
-    [ 1.21 , 0.51 , 0.35 , 1    ]
+    [1,     1.09,  1.52,  0],
+    [0,     1,     0.44,  1.36],
+    [2.33,  0,     1,     0.47],
+    [1.21,  0.51,  0.35,  1]
 ])
 
 x0 = 0.25*np.ones(Nx)
 
+
 def dxdt(x):
     return (r*x) * (1 - x@A.T)
 
-step = dpr.with_rk4(dxdt,autonom=True)
+
+step = dpr.with_rk4(dxdt, autonom=True)
 
 Tplot = 100
 
+
 def d2x_dtdx(x):
-    return np.diag(r - r*(A@x)) - (r*x)[:,None]*A 
-def dstep_dx(x,t,dt):
-    return integrate_TLM(d2x_dtdx(x),dt,method='approx')
+    return np.diag(r - r*(A@x)) - (r*x)[:, None]*A
 
 
-from dapper.mods.Lorenz63.core import LPs as L63_LPs
-LP_setup = lambda jj: L63_LPs(jj, params=dict())
+def dstep_dx(x, t, dt):
+    return integrate_TLM(d2x_dtdx(x), dt, method='approx')
+
+
+def LP_setup(jj): return L63_LPs(jj, params=dict())
