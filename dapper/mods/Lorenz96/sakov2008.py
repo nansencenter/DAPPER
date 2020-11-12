@@ -12,7 +12,6 @@ some of which are mentioned below.
 """
 
 import numpy as np
-from dapper import *
 import dapper as dpr
 
 from dapper.mods.Lorenz96.core import step, dstep_dx, x0, Tplot, LPs
@@ -25,20 +24,20 @@ Nx = 40
 x0 = x0(Nx)
 
 Dyn = {
-    'M'     : Nx,
-    'model' : step,
+    'M': Nx,
+    'model': step,
     'linear': dstep_dx,
-    'noise' : 0
+    'noise': 0
 }
 
 X0 = dpr.GaussRV(mu=x0, C=0.001)
 
-jj = np.arange(Nx) # obs_inds
+jj = np.arange(Nx)  # obs_inds
 Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
-Obs['localizer'] = nd_Id_localization( (Nx,), (2,) )
+Obs['localizer'] = nd_Id_localization((Nx,), (2,))
 
-HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 HMM.liveplotters = LPs(jj)
 
@@ -64,14 +63,14 @@ HMM.liveplotters = LPs(jj)
 # xps += EnKF_N(N=24,rot=True,xN=2.0)                          # 0.18
 #
 # Baseline methods
-# xps += Climatology()                                         # 3.6 
-# xps += OptInterp()                                           # 0.95 
+# xps += Climatology()                                         # 3.6
+# xps += OptInterp()                                           # 0.95
 # xps += Var3D(xB=0.02)                                        # 0.41
-# xps += ExtKF(infl=10)                                        # 0.24 
+# xps += ExtKF(infl=10)                                        # 0.24
 
 # Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6:
 # --------------------------------------------------------------------------------
-# xps += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')  # 
+# xps += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')  #
 # Other localized:
 # xps += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4)      # 0.22
 # xps += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)      # 0.23
@@ -103,9 +102,9 @@ HMM.liveplotters = LPs(jj)
 # Tests with the Particle filter, with N=3000, KObs=10'000.
 # da_method  NER  reg  |  rmse.a   rmv.a
 # --------- ----  ---  -  ------  ------
-# PartFilt  0.05  1.2  |  0.35    0.40  
-# PartFilt  0.05  1.6  |  0.41    0.45  
-# PartFilt  0.5   0.7  |  0.26    0.29  
-# PartFilt  0.5   0.9  |  0.30    0.34  
-# PartFilt  0.5   1.2  |  0.36    0.40  
+# PartFilt  0.05  1.2  |  0.35    0.40
+# PartFilt  0.05  1.6  |  0.41    0.45
+# PartFilt  0.5   0.7  |  0.26    0.29
+# PartFilt  0.5   0.9  |  0.30    0.34
+# PartFilt  0.5   1.2  |  0.36    0.40
 # Using NER=0.9 yielded rather poor results.

@@ -22,7 +22,7 @@ class RV(NicePrint):
          - func <func(N)> : use this sampling function. Example:
                             RV(M=4,func=lambda N: rand((N,4))
          - file <str>     : draw from file. Example:
-                            RV(M=4,file=rc.dirs.data/'tmp.npz')
+                            RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')
         The following kwords (versions) are available,
         but should not be used for anything serious
         (use instead subclasses, like GaussRV).

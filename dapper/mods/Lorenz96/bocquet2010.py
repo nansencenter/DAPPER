@@ -2,27 +2,26 @@
 in Geophysical Data Assimilation'."""
 
 import numpy as np
-from dapper import *
-import dapper as dpr
 
 from dapper.mods.Lorenz96 import core
+import dapper as dpr
 
-t = dpr.Chronology(0.05,dkObs=1,T=4**3,BurnIn=20)
+t = dpr.Chronology(0.05, dkObs=1, T=4**3, BurnIn=20)
 
 Nx = 10
 Dyn = {
-    'M'    : Nx,
+    'M': Nx,
     'model': core.step,
     'noise': 0
 }
 
 X0 = dpr.GaussRV(M=Nx, C=0.001)
 
-jj = np.arange(0,Nx,2)
-Obs = dpr.partial_Id_Obs(Nx,jj)
+jj = np.arange(0, Nx, 2)
+Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1.5
 
-HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 ####################
 # Suggested tuning

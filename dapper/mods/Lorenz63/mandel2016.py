@@ -1,8 +1,8 @@
-# As in
-# J. Mandel, E. Bergou, S. Gürol, S. Gratton, and I. Kasanický (2016)
-# "Hybrid Levenberg–Marquardt and weak-constraint ensemble Kalman smoother method"
+"""As in
+J. Mandel, E. Bergou, S. Gürol, S. Gratton, and I. Kasanický (2016)
+"Hybrid Levenberg–Marquardt and weak-constraint ensemble Kalman smoother method"
+"""
 
-from dapper import *
 import dapper as dpr
 from dapper.mods.Lorenz63.sakov2012 import HMM
 
@@ -10,14 +10,16 @@ from dapper.mods.Lorenz63.sakov2012 import HMM
 # But it's pretty safe to shorten the BurnIn and KObs.
 
 HMM.Obs = dpr.Operator(**{
-    'M'    : 3,
-    'model': lambda x,t: x**3,
+    'M': 3,
+    'model': lambda x, t: x**3,
     'noise': 8
 })
 
 # It is unclear whether the model error (cov Q) is used
 # just for the DA method, or also for the truth.
-Q = lambda dkObs: dpr.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))
+
+
+def Q(dkObs): return dpr.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))
 
 
 ####################

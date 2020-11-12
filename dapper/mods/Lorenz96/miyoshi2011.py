@@ -7,7 +7,7 @@ inspired by MWR 1998 by E. N. Lorenz and K. A. Emanuel:
 
 
 import numpy as np
-from dapper.mods.Lorenz96.sakov2008 import *
+from dapper.mods.Lorenz96.sakov2008 import Tplot, Nx, X0, Dyn, LPs
 from dapper.tools.localization import nd_Id_localization
 import dapper as dpr
 
@@ -16,17 +16,18 @@ OneYear = 0.05 * (24/6) * 365
 t = dpr.Chronology(0.005, dtObs=0.05, T=110*OneYear, Tplot=Tplot, BurnIn=10*OneYear)
 
 land_sites  = np.arange(Nx//2)
-ocean_sites = np.arange(Nx//2,Nx)
+ocean_sites = np.arange(Nx//2, Nx)
 
 jj = land_sites
 Obs = dpr.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
-Obs['localizer'] = nd_Id_localization( (Nx,), (1,), jj )
+Obs['localizer'] = nd_Id_localization((Nx,), (1,), jj)
 
-HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,
-          LP=LPs(jj),
-          sectors={'land':land_sites, 'ocean': ocean_sites}
-      )
+HMM = dpr.HiddenMarkovModel(
+    Dyn, Obs, t, X0,
+    LP=LPs(jj),
+    sectors={'land': land_sites, 'ocean': ocean_sites}
+)
 
 ####################
 # Suggested tuning

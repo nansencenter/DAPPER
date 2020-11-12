@@ -67,7 +67,7 @@
 # Am I missing something?
 
 
-from dapper.mods.Lorenz96.sakov2008 import *
+from dapper.mods.Lorenz96.sakov2008 import Nx, Dyn, t
 import dapper as dpr
 import numpy as np
 
@@ -78,28 +78,29 @@ Ny = 12
 
 X0 = dpr.GaussRV(M=Nx, C=0.001)
 
-def make_H(Ny,Nx):
-    xx = np.linspace(-1,1,Nx+1)[1:]
-    H = np.zeros((Ny,Nx))
+
+def make_H(Ny, Nx):
+    xx   = np.linspace(-1, 1, Nx+1)[1:]
+    H    = np.zeros((Ny, Nx))
     H[0] = 1/np.sqrt(2)
-    for k in range(-(Ny//2),(Ny+1)//2):
-        ind = 2*abs(k) - (k < 0)
+    for k in range(-(Ny//2), (Ny+1)//2):
+        ind    = 2*abs(k) - (k < 0)
         H[ind] = np.sin(np.pi*k*xx + np.pi/4)
     H /= np.sqrt(Nx/2)
     return H
 
 
-H = make_H(Ny,Nx)
+H = make_H(Ny, Nx)
 # plt.figure(1).gca().matshow(H)
 # plt.figure(2).gca().matshow(H @ H.T)
 
 Obs = {
     'M': Ny,
-    'model': lambda x,t: x @ H.T,
+    'model': lambda x, t: x @ H.T,
     'noise': dpr.GaussRV(C=0.01*np.eye(Ny)),
 }
 
-HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 ####################
 # Obs plotting -- needs updating

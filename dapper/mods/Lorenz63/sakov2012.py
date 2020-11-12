@@ -1,7 +1,6 @@
 """Reproduce results from Table 1 of Sakov, Oliver, Bertino (2012):
 'An Iterative EnKF for Strongly Nonlinear Systems'"""
 
-from dapper import *
 import numpy as np
 import dapper as dpr
 
@@ -12,19 +11,19 @@ t = dpr.Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 Nx = len(x0)
 
 Dyn = {
-    'M'      : Nx,
-    'model'  : step,
-    'linear' : dstep_dx,
-    'noise'  : 0
+    'M': Nx,
+    'model': step,
+    'linear': dstep_dx,
+    'noise': 0
 }
 
-X0 = dpr.GaussRV(C=2,mu=x0)
+X0 = dpr.GaussRV(C=2, mu=x0)
 
-jj = np.arange(Nx) # obs_inds
+jj = np.arange(Nx)  # obs_inds
 Obs = dpr.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 2 # dpr.GaussRV(C=CovMat(2*eye(Nx)))
+Obs['noise'] = 2  # dpr.GaussRV(C=CovMat(2*eye(Nx)))
 
-HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 HMM.liveplotters = LPs(jj)
 

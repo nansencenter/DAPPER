@@ -1,26 +1,25 @@
 # Settings not taken from anywhere
 
-from dapper import *
 import dapper as dpr
 
 from dapper.mods.DoublePendulum.core import step, x0, LP_setup, dstep_dx
 
-t = dpr.Chronology(0.01,dkObs=100,T=30,BurnIn=10)
+t = dpr.Chronology(0.01, dkObs=100, T=30, BurnIn=10)
 
 Dyn = {
-    'M'     : len(x0),
-    'model' : step,
-    'noise' : 0,
+    'M': len(x0),
+    'model': step,
+    'noise': 0,
     'linear': dstep_dx,
 }
 
-X0 = dpr.GaussRV(mu=x0,C=0.01**2)
+X0 = dpr.GaussRV(mu=x0, C=0.01**2)
 
-jj = [0,2]
-Obs = dpr.partial_Id_Obs(len(x0),jj)
+jj = [0, 2]
+Obs = dpr.partial_Id_Obs(len(x0), jj)
 Obs['noise'] = 0.1**2
 
-HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0,LP=LP_setup(jj))
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(jj))
 
 ####################
 # Suggested tuning

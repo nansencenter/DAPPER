@@ -181,7 +181,7 @@ def save_xps(xps, save_as, nDir=100):
 
     Example: rename attr n_iter to nIter:
     >>> proj_name = "Stein"
-    >>> dd = rc.dirs.data / proj_name
+    >>> dd = dpr.rc.dirs.data / proj_name
     >>> save_as = dd / "run_2020-09-22__19:36:13"
     >>>
     >>> for save_as in os.listdir(dd):

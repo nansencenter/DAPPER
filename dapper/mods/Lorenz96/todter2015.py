@@ -3,31 +3,30 @@
 for Nonlinear Data Assimilation'"""
 
 import numpy as np
-from dapper import *
-import dapper as dpr
-import dapper.tools.randvars as RVs
 
 from dapper.mods.Lorenz96 import core
 from dapper.tools.localization import nd_Id_localization
+import dapper.tools.randvars as RVs
+import dapper as dpr
 
-t = dpr.Chronology(0.05,dkObs=2,T=4**5,BurnIn=20)
+t = dpr.Chronology(0.05, dkObs=2, T=4**5, BurnIn=20)
 
 Nx = 80
 Dyn = {
-    'M'    : Nx,
+    'M': Nx,
     'model': core.step,
     'noise': 0
 }
 
 X0 = dpr.GaussRV(M=Nx, C=0.001)
 
-jj = np.arange(0,Nx,2)
-Obs = dpr.partial_Id_Obs(Nx,jj)
-Obs['localizer'] = nd_Id_localization( (Nx,), (1,), jj )
+jj = np.arange(0, Nx, 2)
+Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs['localizer'] = nd_Id_localization((Nx,), (1,), jj)
 # Obs['noise'] = RVs.LaplaceRV(C=1,M=len(jj))
-Obs['noise'] = RVs.LaplaceParallelRV(C=1,M=len(jj))
+Obs['noise'] = RVs.LaplaceParallelRV(C=1, M=len(jj))
 
-HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 ####################
 # Suggested tuning
@@ -50,7 +49,7 @@ HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
 # - Our rmse scores for the local NETF
 #   - with N=80 seems to be equal
 #   - with N=40 is worse
-# 
+#
 # These results (contradict and) pretty much void the merit of the NETF,
 # especially considering how the Laplace obs-error favours the NETF.
 # A possible explanation is that they use T=100 (unit-less),

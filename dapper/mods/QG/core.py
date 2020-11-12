@@ -30,7 +30,7 @@ try:
     from dapper.mods.QG.f90.py_mod import interface_mod as fortran
 except ImportError as err:
     raise Exception("Have you compiled the (Fortran) model? "
-                    f"See README in folder {rc.dirs.dapper}/mods/QG/f90") from err
+                    f"See README in folder {dpr.rc.dirs.dapper}/mods/QG/f90") from err
 
 default_prms = dict(
     # These parameters may be interesting to change.

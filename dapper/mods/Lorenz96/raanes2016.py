@@ -1,11 +1,9 @@
-# Reproduce raanes'2016 ("EnRTS and EnKS")
-
-from dapper import *
-import dapper as dpr
+"""Reproduce raanes'2016 ("EnRTS and EnKS")"""
 
 from dapper.mods.Lorenz96.sakov2008 import HMM
+import dapper as dpr
 
-HMM.t = dpr.Chronology(0.01,dkObs=15,T=4**5,BurnIn=20)
+HMM.t = dpr.Chronology(0.01, dkObs=15, T=4**5, BurnIn=20)
 
 # from dapper.mods.Lorenz96.raanes2016 import HMM
 # xps += EnKS ('Sqrt',N=25,infl=1.08,rot=False,Lag=12)

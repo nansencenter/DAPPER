@@ -151,7 +151,8 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         # v = Zj - Yj (from paper) requires Y==HX.
                         # Instead: mult` should be c*ones(Nx) so we can
                         # project v into ker(A) such that v@A is null.
-                        mult  = (v@A) / (Yj@A) # noqa TODO 2
+                        # TODO 2: Yj undefined
+                        mult  = (v@A) / (Yj@A) # noqa
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v

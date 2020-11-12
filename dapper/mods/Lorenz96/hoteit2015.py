@@ -7,7 +7,7 @@ from dapper.mods.Lorenz96.sakov2008 import HMM
 HMM.t.T = 365
 HMM.t.BurnIn = 4
 # Further settings used in paper:
-# Experiments repeated 10 times. 
+# Experiments repeated 10 times.
 # Sometimes used: dkObs=4.
 # Sometimes used: obs_inds = arange(Nx)[::2].
 # Used localization: as in Whitaker/Hamill'2002: GC.
@@ -17,7 +17,8 @@ HMM.t.BurnIn = 4
 # Suggested tuning
 ####################
 
-# DAPPER only has localization implemented for the ETKF (LETKF) and the serial EAKF (SL_EAKF).
+# DAPPER only has localization implemented for
+# the ETKF (LETKF) and the serial EAKF (SL_EAKF).
 # Thus, direction comparison to paper (which always uses localization) is difficult.
 # Still, these LETKF scores can be compared with Fig. 2 of the paper.
 # They indicate that the LETKF is a little better than any scheme in the paper.

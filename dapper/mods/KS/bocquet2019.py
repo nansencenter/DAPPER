@@ -1,4 +1,3 @@
-from dapper import *
 import dapper as dpr
 import numpy as np
 from dapper.tools.math import Id_Obs
@@ -14,19 +13,19 @@ Nx = KS.Nx
 t = dpr.Chronology(KS.dt, dkObs=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
 
 Dyn = {
-    'M'     : Nx,
-    'model' : KS.step,
+    'M': Nx,
+    'model': KS.step,
     'linear': KS.dstep_dx,
-    'noise' : 0
+    'noise': 0
 }
 
-X0 = dpr.GaussRV(mu=KS.x0, C=0.001) 
+X0 = dpr.GaussRV(mu=KS.x0, C=0.001)
 
 Obs = Id_Obs(Nx)
 Obs['noise'] = 1
-Obs['localizer'] = nd_Id_localization( (Nx,), (4,) )
+Obs['localizer'] = nd_Id_localization((Nx,), (4,))
 
-HMM = dpr.HiddenMarkovModel(Dyn,Obs,t,X0)
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 HMM.liveplotters = LPs(np.arange(Nx))
 
