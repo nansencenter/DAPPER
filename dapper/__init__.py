@@ -7,6 +7,7 @@ using synthetic/twin experiments.
 __version__ = "0.9.6"
 
 import sys
+
 assert sys.version_info >= (3,8), "Need Python>=3.8"
 
 # Profiling.
@@ -20,38 +21,27 @@ except AttributeError:
 
 
 
-##################################
-# Imports from DAPPER package
-##################################
-# from .dict_tools import *
+from dapper.tools.series import UncertainQtty
+
+from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
+                    seed_and_simulate, xpList)
+from .da_methods.baseline import Climatology, OptInterp, Var3D
+# DA methods
+from .da_methods.ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
+from .da_methods.extended import ExtKF, ExtRTS
+from .da_methods.other import LNETF, RHF
+from .da_methods.particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
+from .da_methods.variational import Var4D, iEnKS
+from .data_management import (default_fig_adjustments, default_styles,
+                              discretize_cmap, load_xps, make_label, rel_index,
+                              xpSpace)
 from .dpr_config import rc
-# from .tools.colors import *
-# from .tools.utils import *
-# from .tools.math import *
-from .tools.math import ens_compatible, with_rk4, with_recursion,\
-    round2, linspace_int, partial_Id_Obs
-from .tools.stoch import set_seed, rand, randn
+from .stats import register_stat
+from .tools.chronos import Chronology
+from .tools.magic import magic_naming, spell_out
+from .tools.math import (ens_compatible, linspace_int, partial_Id_Obs, round2,
+                         with_recursion, with_rk4)
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
-from .tools.chronos import Chronology
-import dapper.tools.series as series
-from dapper.tools.series import UncertainQtty
+from .tools.stoch import rand, randn, set_seed
 from .tools.viz import freshfig
-# from .tools.liveplotting import *
-from .tools.magic import magic_naming, spell_out
-# from .tools.localization import *
-# from .tools.multiprocessing import *
-# from .tools.remote.uplink import *
-from .stats import register_stat
-from .admin import HiddenMarkovModel, Operator, da_method,\
-    seed_and_simulate, xpList, get_param_setter
-from .data_management import load_xps, xpSpace, make_label,\
-    default_styles, rel_index, discretize_cmap, default_fig_adjustments
-
-# DA methods
-from .da_methods.ensemble import EnKF, EnKS, EnRTS, SL_EAKF, LETKF, EnKF_N
-from .da_methods.particle import PartFilt, OptPF, PFa, PFxN_EnKF, PFxN
-from .da_methods.extended import ExtKF, ExtRTS
-from .da_methods.baseline import Climatology, OptInterp, Var3D
-from .da_methods.variational import Var4D, iEnKS
-from .da_methods.other import LNETF, RHF
