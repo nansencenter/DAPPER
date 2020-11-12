@@ -54,7 +54,7 @@ def _intersect(iterable, criteria, inv=False):
     as evaluated by flexcomp().
 
     Returns dict/list if ``iterable`` is dict/iterable."""
-    negate = lambda x: (not x) if inv else x
+    def negate(x): return (not x) if inv else x
     keys = [k for k in iterable if negate(flexcomp(k, *criteria))]
     if isinstance(iterable, dict):  # Dict
         return {k: iterable[k] for k in keys}
@@ -104,10 +104,11 @@ def transpose_dicts(DD, safe=True):
     {'A': {'a': 0, 'b': 10, 'c': 20}, 'B': {'a': 1, 'b': 11, 'c': 21}}
     """
     new = {}
+    prev = "UNINITIALIZED"
     for i in DD:
 
         # Validate column keys
-        if safe and new:
+        if safe and prev != "UNINITIALIZED":
             assert prev == DD[i].keys(), f"Key mismatch for row {i}"
         prev = DD[i].keys()
 
@@ -125,10 +126,10 @@ def transps(thing2d, *args, **kwargs):
     item0 = get0(thing2d) if dict1 else thing2d[0]  # fine since py3.7
     dict2 = isinstance(item0, dict)
 
-    if       dict1 and     dict2: f = transpose_dicts
-    elif     dict1 and not dict2: f = transpose_dict_of_lists
-    elif not dict1 and     dict2: f = transpose_list_of_dicts
-    elif not dict1 and not dict2: f = transpose_lists
+    if       dict1 and     dict2: f = transpose_dicts           # noqa
+    elif     dict1 and not dict2: f = transpose_dict_of_lists   # noqa
+    elif not dict1 and     dict2: f = transpose_list_of_dicts   # noqa
+    elif not dict1 and not dict2: f = transpose_lists           # noqa
 
     return f(thing2d, *args, **kwargs)
 
@@ -144,10 +145,11 @@ def transpose_list_of_dicts(LD, safe=True):
     {'a': [0, 0, 0], 'b': [1, 1, 1]}
     """
     new = {}
+    prev = "UNINITIALIZED"
     for i, D in enumerate(LD):
 
         # Validate column keys
-        if safe and new:
+        if safe and prev != "UNINITIALIZED":
             assert prev == D.keys(), f"Key mismatch for dict number {i}"
         prev = D.keys()
 
@@ -227,6 +229,11 @@ def deep_hasattr(obj, name):
 
 MIN_LINEWIDTH = 5
 
+# TODO 4: should also be made thread-safe? Ref _is_being_printed.
+_linewidth = None
+_top_dog = None
+_is_being_printed = set()
+
 
 @contextmanager
 def _shorten_linewidth_by(n):
@@ -235,9 +242,9 @@ def _shorten_linewidth_by(n):
     # Avoid (overhead of) importing numpy if not required.
     # https://stackoverflow.com/a/30483269/38281
     if "numpy" in sys.modules:
-        np_lw = lambda lw: np.set_printoptions(linewidth=lw)
+        def np_lw(lw): return np.set_printoptions(linewidth=lw)
     else:  # Provide pass-through
-        np_lw = lambda lw: lw
+        def np_lw(lw): return lw
 
     # Structured (store, try, finally) just like np.printoptions().
     global _linewidth
@@ -252,12 +259,6 @@ def _shorten_linewidth_by(n):
         # Restore lw
         _linewidth = old
         np_lw(old)
-
-
-# TODO 4: should also be made thread-safe? Ref _is_being_printed.
-_linewidth = None
-_top_dog = None
-_is_being_printed = set()
 
 
 def _init(user_function):
@@ -390,7 +391,9 @@ class AlignedDict(dict):
             # RIGHT-aligned keys -- indent ~ on keys, and val can start on key's line
             kWidth = max([len(format_key(k)) for k in dct], default=0)
             val_indent = " " * len(bullet) + " " * kWidth + spinechar.ljust(len(sep))
-            format_key = lambda key, old=format_key: old(key).rjust(kWidth)
+
+            def format_key(key, old=format_key):
+                return old(key).rjust(kWidth)
 
         def iRepr(key, val):
             trim = len(val_indent + comma)

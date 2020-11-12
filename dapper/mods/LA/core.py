@@ -78,9 +78,8 @@ def sinusoidal_sample(Nx,k,N):
 
     # Note: Each sample member is centered
     # -- Not the sample as a whole.
-    sample = np.asmatrix(sample)
-    sample = sample - np.mean(sample,1)
-    sample = np.asarray(sample)
+    sample = sample - np.mean(sample,axis=1,keepdims=True)
+
     return sample
 
 

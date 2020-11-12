@@ -9,10 +9,10 @@ from IPython.lib.pretty import pretty as pretty_repr
 
 import dapper.tools.utils as utils
 
+
 ########################
 # Array manip
 ########################
-
 def is1d(a):
     """Works for list and row/column arrays and matrices"""
     return np.sum(np.asarray(np.asarray(a).shape) > 1) <= 1
@@ -41,7 +41,6 @@ def ccat(*args, axis=0):
 ########################
 # Ensemble matrix manip
 ########################
-
 def ens_compatible(func):
     """Tranpose before and after.
 

@@ -659,7 +659,7 @@ class xpSpace(SparseSpace):
             axes[role] = aa
         return axes
 
-    def table_tree(xp_dict, statkey, axes):
+    def table_tree(self, statkey, axes):
         """Hierarchical nest(): xp_dict>outer>inner>mean>optim.
 
         as specified by ``axes``. Returns this new xpSpace.
@@ -675,7 +675,7 @@ class xpSpace(SparseSpace):
               because it's not (obviously) meaningful
               when optimizing over tuning_axes.
         """
-        axes = xp_dict.validate_axes(axes)
+        axes = self.validate_axes(axes)
 
         def mean_tune(xp_dict):
             """Take mean, then tune.
@@ -690,7 +690,7 @@ class xpSpace(SparseSpace):
             uq_dict = uq_dict.tune(axes['optim'])
             return uq_dict
 
-        xp_dict = mean_tune(xp_dict)
+        self = mean_tune(self)
         # Prefer calling mean_tune() [also see its docstring]
         # before doing outer/inner nesting. This is because then the axes of
         # a row (xpSpace) should not include mean&optim, and thus:
@@ -705,7 +705,7 @@ class xpSpace(SparseSpace):
         #  - Each level of the output from table_tree
         #    is a smaller (and more manageable) dict.
 
-        tables = xp_dict.nest(outer_axes=axes['outer'])
+        tables = self.nest(outer_axes=axes['outer'])
         for table_coord, table in tables.items():
             # table = mean_tune(table)
 
@@ -727,7 +727,7 @@ class xpSpace(SparseSpace):
         """Axis ticks without None"""
         return [x for x in self.ticks[axis_name] if x is not None]
 
-    def print(xp_dict, statkey="rmse.a", axes=AXES_ROLES,
+    def print(self, statkey="rmse.a", axes=AXES_ROLES,
               subcols=True, decimals=None):
         """Print tables of results.
 
@@ -836,7 +836,7 @@ class xpSpace(SparseSpace):
             print("Averages in time only"
                   " (=> the 1σ estimates may be unreliable).")
 
-        axes, tables = xp_dict.table_tree(statkey, axes)
+        axes, tables = self.table_tree(statkey, axes)
         for table_coord, table in tables.items():
 
             # Get this table's column coords (cc). Use dict for sorted&unique.
@@ -883,7 +883,7 @@ class xpSpace(SparseSpace):
             headers, *rows = rows
             print(utils.tab(rows, headers).replace('␣', ' '))
 
-    def plot(xp_dict, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
+    def plot(self, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,
              title2=None, costfun=None, unique_labels=True):
         """Plot the avrgs of ``statkey`` as a function of ``axis["inner"]``.
@@ -927,8 +927,8 @@ class xpSpace(SparseSpace):
 
         # Nest axes through table_tree()
         assert len(axes["inner"]) == 1, "You must chose the abscissa."
-        axes, tables = xp_dict.table_tree(statkey, axes)
-        xticks = xp_dict.tickz(axes["inner"][0])
+        axes, tables = self.table_tree(statkey, axes)
+        xticks = self.tickz(axes["inner"][0])
 
         # Figure panels
         if panels is None:
@@ -994,7 +994,7 @@ class xpSpace(SparseSpace):
                     panel.set_ylabel(f"Optim.\n{a}")
 
         tables.fig = fig
-        tables.xp_dict = xp_dict
+        tables.xp_dict = self
         tables.axes_roles = axes
         return tables
 

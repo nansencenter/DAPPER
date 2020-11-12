@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 
-import setuptools, os, re
+import setuptools
+import os
+import re
 
 # with open("README.md", "r") as fh:
 #     long_description = fh.read()
-long_description = """DAPPER is a set of templates for benchmarking the performance of data assimilation (DA). See full README at github.com/nansencenter/DAPPER.
-"""
+long_description = """DAPPER is a set of templates for benchmarking"""
+""" the performance of data assimilation (DA)."""
+""" See full README at github.com/nansencenter/DAPPER."""
+
 
 def filter_dirs(x):
-    val  = x!='__pycache__'
-    val &= x!='.DS_Store'
-    val &= x!='pyks'
+    val  = x != '__pycache__'
+    val &= x != '.DS_Store'
+    val &= x != 'pyks'
     val &= not x.endswith('.py')
     return val
-
 
 
 def find_version(*file_paths):
@@ -31,7 +34,6 @@ def find_version(*file_paths):
     if version_match:
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
-
 
 
 setuptools.setup(
@@ -53,13 +55,13 @@ setuptools.setup(
     install_requires=[
         'scipy>=1.1',
         'ipython>=5.1',
-        'matplotlib~=3.1', # >=3.1 to avoid Mac's framework-build issues
+        'matplotlib~=3.1',  # >=3.1 to avoid Mac's framework-build issues
         'tqdm~=4.31',
         'pyyaml',
         'ipdb',
         'colorama~=0.4.1',
         'tabulate~=0.8.3',
-        'dill==0.3.2', # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
+        'dill==0.3.2',  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
         'pandas'
     ],
     # Optional
@@ -69,8 +71,8 @@ setuptools.setup(
             'multiprocessing-on-dill==3.5.0a4',
             'psutil',
         ],
-        'Qt':  ['PyQt5','qtpy'],
-        'Dev':  ['line_profiler','ipdb','pytest'],
+        'Qt':  ['PyQt5', 'qtpy'],
+        'Dev':  ['line_profiler', 'ipdb', 'pytest'],
     },
     # Other packages used, but not explicitly required
     #
@@ -110,16 +112,16 @@ setuptools.setup(
 
     # File inclusion
     # Note: find_packages() only works on __init__ dirs.
-    packages=setuptools.find_packages()+\
-        ['dapper.da_methods','dapper.tools','dapper.mods']+\
-        ['dapper.mods.'+x for x in os.listdir('dapper/mods') if filter_dirs(x)]+\
-        ['dapper.mods.QG.f90'],
+    packages=setuptools.find_packages() +\
+    ['dapper.da_methods', 'dapper.tools', 'dapper.mods'] +\
+    ['dapper.mods.'+x for x in os.listdir('dapper/mods') if filter_dirs(x)] +\
+    ['dapper.mods.QG.f90'],
     package_data={
-        '': ['*.txt','*.md','*.png'],
-        'dapper.mods.QG.f90': ['*.txt','*.md','*.png','Makefile','*.f90'],
+        '': ['*.txt', '*.md', '*.png'],
+        'dapper.mods.QG.f90': ['*.txt', '*.md', '*.png', 'Makefile', '*.f90'],
     },
 
-    py_modules=["example_1","example_2","example_3"],
+    py_modules=["example_1", "example_2", "example_3"],
 
     # Detailed meta
     classifiers=[
@@ -136,9 +138,12 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/nansencenter/DAPPER",
-    keywords='data-assimilation enkf kalman-filtering state-estimation particle-filter kalman bayesian-methods bayesian-filter chaos',
+    keywords=("data-assimilation enkf kalman-filtering"
+              " state-estimation particle-filter kalman"
+              " bayesian-methods bayesian-filter chaos"),
     # project_urls={
-        # 'Documentation': 'https://packaging.python.org/tutorials/distributing-packages/',
+        # 'Documentation':
+        # 'https://packaging.python.org/tutorials/distributing-packages/',
         # 'Funding': 'https://donate.pypi.org',
         # 'Say Thanks!': 'http://saythanks.io/to/example',
         # 'Source': 'https://github.com/pypa/sampleproject/',

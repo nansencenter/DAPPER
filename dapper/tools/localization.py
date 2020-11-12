@@ -11,6 +11,7 @@ CUTOFF   = 1e-3
 TAG      = 'GC'
 PERIODIC = True
 
+
 def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
     """Euclidian distance (un-squared) between pts in A and B.
 
@@ -31,7 +32,8 @@ def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
     NB: Behaviour not defined for any(A.max(0) > domain), and likewise for B.
     """
 
-    if B is None: B = A
+    if B is None:
+        B = A
 
     # Prep A,B
     A = np.asarray(A)
@@ -42,10 +44,10 @@ def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
     A = np.atleast_2d(A)
     B = np.atleast_2d(B)
 
-    d = A[:,None] - B # shape=(npts_A,npts_B,ndim)
+    d = A[:, None] - B  # shape=(npts_A,npts_B,ndim)
 
     if periodic:
-        domain = np.reshape(domain ,(1,1,-1)) # for broadcasting
+        domain = np.reshape(domain, (1, 1, -1))  # for broadcasting
         d = abs(d)
         d = np.minimum(d, domain-d)
 
@@ -77,17 +79,17 @@ def dist2coeff(dists, radius, tag=None):
         R = radius
         coeffs = np.exp(-0.5 * (dists/R)**3)
     elif tag == 'Cubic':
-        R            = radius * 1.87 # Sakov: 1.8676
+        R            = radius * 1.87  # Sakov: 1.8676
         inds         = dists <= R
         coeffs[inds] = (1 - (dists[inds] / R) ** 3) ** 3
     elif tag == 'Quadro':
-        R            = radius * 1.64 # Sakov: 1.7080
+        R            = radius * 1.64  # Sakov: 1.7080
         inds         = dists <= R
         coeffs[inds] = (1 - (dists[inds] / R) ** 4) ** 4
-    elif tag == 'GC': # eqn 4.10 of Gaspari-Cohn'99, or eqn 25 of Sakov2011relation
-        R = radius * 1.82 # =np.sqrt(10/3). Sakov: 1.7386
+    elif tag == 'GC':  # eqn 4.10 of Gaspari-Cohn'99, or eqn 25 of Sakov2011relation
+        R = radius * 1.82  # =np.sqrt(10/3). Sakov: 1.7386
         # 1st segment
-        ind1         = dists<=R
+        ind1         = dists <= R
         r2           = (dists[ind1] / R) ** 2
         r3           = (dists[ind1] / R) ** 3
         coeffs[ind1] = 1 + r2 * (- r3 / 4 + r2 / 2) + r3 * (5 / 8) - r2 * (5 / 3)
@@ -96,7 +98,8 @@ def dist2coeff(dists, radius, tag=None):
         r1           = (dists[ind2] / R)
         r2           = (dists[ind2] / R) ** 2
         r3           = (dists[ind2] / R) ** 3
-        coeffs[ind2] = r2 * (r3 / 12 - r2 / 2) + r3 * (5 / 8) + r2 * (5 / 3) - r1 * 5 + 4 - (2 / 3) / r1
+        coeffs[ind2] = r2 * (r3 / 12 - r2 / 2) + r3 * (5 / 8) \
+            + r2 * (5 / 3) - r1 * 5 + 4 - (2 / 3) / r1
     elif tag == 'Step':
         R            = radius
         inds         = dists <= R
@@ -124,9 +127,9 @@ def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
     return inds, coeffs
 
 
-def localization_setup(y2x_distances,batches):
+def localization_setup(y2x_distances, batches):
 
-    def localization_now(radius,direction,t,tag=None):
+    def localization_now(radius, direction, t, tag=None):
         "Provide localization setup for time t."
         y2x = y2x_distances(t)
 
@@ -149,27 +152,29 @@ def localization_setup(y2x_distances,batches):
     return localization_now
 
 
-def no_localization(Nx,Ny):
+def no_localization(Nx, Ny):
 
-    def obs_taperer(batch ): return np.arange(Ny), np.ones(Ny)
-    def state_taperer(iObs): return np.arange(Nx), np.ones(Nx)
+    def obs_taperer(batch):
+        return np.arange(Ny), np.ones(Ny)
 
-    def localization_now(radius,direction,t,tag=None):
+    def state_taperer(iObs):
+        return np.arange(Nx), np.ones(Nx)
+
+    def localization_now(radius, direction, t, tag=None):
         """Returns all indices, with all tapering coeffs=1.
 
         Used to validate local DA methods [eg LETKF<==>EnKF('Sqrt')]."""
         assert radius == np.inf, "Localization functions not specified"
 
-        if   direction == 'x2y': return [np.arange(Nx)], obs_taperer
-        elif direction == 'y2x': return                state_taperer
+        if direction == 'x2y':
+            return [np.arange(Nx)], obs_taperer
+        elif direction == 'y2x':
+            return state_taperer
 
     return localization_now
 
 
-
-
-
-def rectangular_partitioning(shape,steps,do_ind=True):
+def rectangular_partitioning(shape, steps, do_ind=True):
     """N-D rectangular batch generation.
 
     shape: [len(grid[dim]) for dim in range(ndim)]
@@ -190,21 +195,23 @@ def rectangular_partitioning(shape,steps,do_ind=True):
     >>>   Z[tuple(b)] = values[ib]
     >>> plt.imshow(Z)
     """
-    assert len(shape)==len(steps)
-    ndim = len(steps)
+    assert len(shape) == len(steps)
+    # ndim = len(steps)
 
     # An ndim list of (average) local grid lengths:
-    nLocs = [round(n/d) for n,d in zip(shape,steps)]
-    # An ndim list of (marginal) grid partitions [array_split() handles non-divisibility]:
-    edge_partitions = [np.array_split(np.arange(n),nLoc) for n,nLoc in zip(shape,nLocs)]
+    nLocs = [round(n/d) for n, d in zip(shape, steps)]
+    # An ndim list of (marginal) grid partitions
+    # [array_split() handles non-divisibility]:
+    edge_partitions = [np.array_split(np.arange(n), nLoc)
+                       for n, nLoc in zip(shape, nLocs)]
 
     batches = []
     for batch_edges in itertools.product(*edge_partitions):
         # The 'indexing' argument below is actually inconsequential:
         # it merely changes batch's internal ordering.
         batch_rect  = np.meshgrid(*batch_edges, indexing='ij')
-        coords      = [ ii.flatten() for ii in batch_rect]
-        batches    += [ coords ]
+        coords      = [ii.flatten() for ii in batch_rect]
+        batches    += [coords]
 
     if do_ind:
         def sub2ind(sub):
@@ -218,8 +225,10 @@ def rectangular_partitioning(shape,steps,do_ind=True):
 # That would require calling ind2sub len(batches) times per analysis,
 # and the result cannot be easily cached, because of multiprocessing.
 def safe_eval(fun, t):
-    try:              return fun(t)
-    except TypeError: return fun
+    try:
+        return fun(t)
+    except TypeError:
+        return fun
 
 
 # NB: Why is the 'order' argument not supported by this module? Because:
@@ -231,14 +240,18 @@ def safe_eval(fun, t):
 
 
 def nd_Id_localization(shape,
-                       batch_shape=None,obs_inds=None,periodic=PERIODIC):
+                       batch_shape=None,
+                       obs_inds=None,
+                       periodic=PERIODIC):
     """Localize Id (direct) point obs of an
     N-D, homogeneous, rectangular domain."""
 
     M = np.prod(shape)
 
-    if batch_shape is None: batch_shape = (1,)*len(shape)
-    if obs_inds    is None: obs_inds    = np.arange(M)
+    if batch_shape is None:
+        batch_shape = (1,)*len(shape)
+    if obs_inds is None:
+        obs_inds = np.arange(M)
 
     def ind2sub(ind):
         return np.asarray(np.unravel_index(ind, shape)).T
@@ -248,7 +261,7 @@ def nd_Id_localization(shape,
     state_coord = ind2sub(np.arange(M))
 
     def y2x_distances(t):
-        obs_coord = ind2sub( safe_eval(obs_inds,t) )
+        obs_coord = ind2sub(safe_eval(obs_inds, t))
         return pairwise_distances(obs_coord, state_coord, periodic, shape)
 
-    return localization_setup(y2x_distances,batches)
+    return localization_setup(y2x_distances, batches)

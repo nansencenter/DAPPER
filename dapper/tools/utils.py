@@ -146,7 +146,7 @@ try:
 except ImportError:
     # Windows
     try:
-        import msvcrt
+        import msvcrt  # noqa
 
         def _read1():
             if msvcrt.kbhit():
@@ -175,7 +175,7 @@ def print_cropped_traceback(ERR):
         msg = "Traceback (most recent call last):\n"
         try:
             # If in IPython, use its coloring functionality
-            __IPYTHON__
+            __IPYTHON__  # noqa
             from IPython.core.debugger import Pdb
             pdb_instance = Pdb()
             pdb_instance.curframe = inspect.currentframe()

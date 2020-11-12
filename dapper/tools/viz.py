@@ -451,7 +451,7 @@ def get_screen_size():
     """Get **available** screen size/resolution."""
     if mpl.get_backend().startswith('Qt'):
         # Inspired by spyder/widgets/shortcutssummary.py
-        from qtpy.QtWidgets import QDesktopWidget
+        from qtpy.QtWidgets import QDesktopWidget  # noqa
         widget = QDesktopWidget()
         sg = widget.availableGeometry(widget.primaryScreen())
         x0 = sg.x()
