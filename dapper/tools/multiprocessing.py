@@ -14,7 +14,7 @@ try:
     import multiprocessing_on_dill as mpd
 
     # Deciding on core numbers
-    from psutil import cpu_percent, cpu_count
+    # from psutil import cpu_percent, cpu_count
 
     # Enforcing individual core usage.
     # Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
@@ -62,12 +62,12 @@ except ImportError:
 #########################################
 
 if no_MP:
-    def multiproc_map(func,xx,**kwargs):
+    def multiproc_map(func, xx, **kwargs):
         MP_warn()
         return [func(x, **kwargs) for x in xx]
 
 else:
-    def multiproc_map(func,xx,**kwargs):
+    def multiproc_map(func, xx, **kwargs):
         """A parallelized version of map.
 
         Similar to::
@@ -111,13 +111,12 @@ else:
         # where the execution is currently at when Ctrl-C is pressed)
         # => testing is difficult.
         #
-        # Alternative to try: 
+        # Alternative to try:
         # - Use concurrent.futures, as the bug seems to have been patched there:
         #   https://bugs.python.org/issue9205. However, does this work with dill?
         # - Multithreading: has the advantage of sharing memory,
         #   but was significantly slower than using processes,
         #   testing on DAPPER-relevant.
-
 
         # Ignore Ctrl-C.
         # Alternative: Pool(initializer=[ignore sig]).
@@ -126,17 +125,17 @@ else:
         orig = signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         # Setup multiprocessing pool (pool workers should ignore Ctrl-C)
-        NPROC = None # None => multiprocessing.cpu_count()
+        NPROC = None  # None => multiprocessing.cpu_count()
         pool = mpd.Pool(NPROC)
 
         # Restore Ctrl-C action
         signal.signal(signal.SIGINT, orig)
 
         try:
-            f = functools.partial(func,**kwargs) # Fix kwargs
+            f = functools.partial(func, **kwargs)  # Fix kwargs
 
             # map vs imap: https://stackoverflow.com/a/26521507
-            result = pool.map(f,xx) 
+            result = pool.map(f, xx)
 
             # Relating to Ctrl-C issue, map_async was preferred:
             # https://stackoverflow.com/a/1408476
@@ -145,7 +144,7 @@ else:
             # timeout = 60 # Required for get() to not ignore signals.
             # result = result.get(timeout)
 
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             try:
                 pool.terminate()
                 # Attempts to propagate "Ctrl-C" with reasonable traceback print:
@@ -159,21 +158,22 @@ else:
                 # raise KeyboardInterrupt
                 # ALTERNATIVE 4:
                 was_interrupted = True
-            except KeyboardInterrupt as e2:
-                # Sometimes the KeyboardInterrupt caught above just causes things to hang,
-                # and another "Ctrl-C" is required, which is then caught by this 2nd try-catch.
+            except KeyboardInterrupt:
+                # Sometimes the KeyboardInterrupt caught above
+                # just causes things to hang, and another "Ctrl-C" is required,
+                # which is then caught by this 2nd try-catch.
                 pool.terminate()
                 was_interrupted = True
         else:
             # Resume normal execution
             was_interrupted = False
-            pool.close() # => Processes will terminate once their jobs are done.
+            pool.close()  # => Processes will terminate once their jobs are done.
 
         try:
             # Helps with debugging,
             # according to https://stackoverflow.com/a/38271957
-            pool.join() 
-        except KeyboardInterrupt as e:
+            pool.join()
+        except KeyboardInterrupt:
             # Also need to handle Ctrl-C in join()...
             # This might necessitate pressing Ctrl-C again, but it's
             # better than getting spammed by traceback full of garbage.
