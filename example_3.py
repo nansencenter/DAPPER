@@ -24,23 +24,28 @@ https://github.com/nansencenter/DAPPER#highlights
      http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf .
 """
 
-from dapper import *
 import dapper as dpr
+import numpy as np
 from matplotlib import pyplot as plt
+
 
 ##############################
 # Hidden Markov Model
 ##############################
 from dapper.mods.Lorenz96.bocquet2015loc import HMM
 
-def setup(hmm,xp):
+
+def setup(hmm, xp):
     """Experiment init.: Set Lorenz-96 forcing. Seed. Simulate truth/obs."""
     import dapper.mods.Lorenz96.core as core
+    import dapper as dpr
     core.Force = xp.F
-    return dpr.seed_and_simulate(hmm,xp)
+    return dpr.seed_and_simulate(hmm, xp)
+
 
 # This is shorter than Ref[1], but we also use repetitions (a seed list).
 HMM.t.KObs = 10**4
+
 
 ##############################
 # DA Configurations
@@ -54,7 +59,7 @@ params = dict(
 )
 
 xps = dpr.xpList()
-for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8,10])
+for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8, 10])
 xps += for_params(dpr.Climatology)
 xps += for_params(dpr.OptInterp)
 xps += for_params(dpr.Var3D, B="eye")
@@ -69,12 +74,12 @@ xps += for_params(dpr.LETKF)
 ##############################
 
 # Paralellize/distribute experiments across CPUs.
-mp = False    # 1 CPU only
-# mp = 7        # 7 CPUs (requires that you pip-installed DAPPER with [MP])
-# mp = True     # All CPUs 
-# mp = "Google" # Requires access to DAPPER cluster
+mp = False     # 1 CPU only
+# mp = 7         # 7 CPUs (requires that you pip-installed DAPPER with [MP])
+# mp = True      # All CPUs
+# mp = "Google"  # Requires access to DAPPER cluster
 
-save_as = xps.launch(HMM,__file__,mp,setup)
+save_as = xps.launch(HMM, __file__, mp, setup)
 
 
 ##############################
@@ -82,7 +87,8 @@ save_as = xps.launch(HMM,__file__,mp,setup)
 ##############################
 # The following "section" **only** uses saved data.
 # => Can run as a separate script, by setting save_as manually, e.g.
-# save_as = rc.dirs.data / "example_3" / "run2"
+# save_as = dpr.rc.dirs.data / "example_3" / ""run_2020-11-11__20:36:36"
+save_as = dpr.rc.dirs.data / "example_3" / "run_2020-11-11__20:36:36"
 
 # Load
 xps = dpr.load_xps(save_as)
@@ -97,28 +103,35 @@ xp_dict = dpr.xpSpace.from_list(xps)
 # Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
 #       as well as rot=True (better scores can be obtained without rot).
 point_out = xp_dict.label_xSection
-point_out('NO-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
-point_out('NO-infl/loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
+point_out('NO-infl', ('infl'), da_method='LETKF', infl=1.01, rot=True)
+point_out('NO-infl/loc', ('infl'), da_method='EnKF', infl=1.01, rot=True)
 
 # Print, with columns: `inner`. Also try setting `outer=None`.
-tunable = {'loc_rad','infl','xB','rot'}
-axes = dict(outer="F",inner="N",mean="seed",optim=tunable)
+tunable = {'loc_rad', 'infl', 'xB', 'rot'}
+axes = dict(outer="F", inner="N", mean="seed", optim=tunable)
 xp_dict.print("rmse.a", axes, subcols=False)
 
-# Line colors, etc
+
 def get_style(coord):
     """Quick and dirty styling."""
-    S = dpr.default_styles(coord,True)
+    S = dpr.default_styles(coord, True)
     if coord.da_method == "EnKF":
-        upd_a = getattr(coord,"upd_a",None)
-        if   upd_a == "PertObs": S.c = "C2"
-        elif upd_a == "Sqrt":    S.c = "C1"
-    elif coord.da_method == "LETKF": S.c = "C3"
-    if getattr(coord,"rot"  ,False): S.marker = "+"
-    Const = getattr(coord,"Const",False)
+        upd_a = getattr(coord, "upd_a", None)
+        if upd_a == "PertObs":
+            S.c = "C2"
+        elif upd_a == "Sqrt":
+            S.c = "C1"
+    elif coord.da_method == "LETKF":
+        S.c = "C3"
+    if getattr(coord, "rot", False):
+        S.marker = "+"
+    Const = getattr(coord, "Const", False)
     if str(Const).startswith("NO-"):
-        S.ls = "--"; S.marker = None; S.label=Const
+        S.ls = "--"
+        S.marker = None
+        S.label = Const
     return S
+
 
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style, title2=save_as)
@@ -129,35 +142,36 @@ plt.pause(1)
 ##############################
 #  Plot with color gradient  #
 ##############################
-
 # Remove experiments we don't want to plot here
-xps = [xp for xp in xps if getattr(xp,"Const",None)==None]
-xp_dict = dpr.xpSpace.from_list(xps) 
+xps = [xp for xp in xps if getattr(xp, "Const", None) == None]
+xp_dict = dpr.xpSpace.from_list(xps)
 
-# Setup mapping: loc_rad --> color gradient 
+# Setup mapping: loc_rad --> color gradient
 graded = "loc_rad"
 axes["optim"] -= {graded}
 grades = xp_dict.tickz(graded)
 # cmap, sm = dpr.discretize_cmap(cm.Reds, len(grades), .2)
-cmap, sm = dpr.discretize_cmap(cm.rainbow, len(grades))
+cmap, sm = dpr.discretize_cmap(plt.cm.rainbow, len(grades))
 
-# Line colors, etc
+
 def get_style_with_gradient(coord):
     S = get_style(coord)
-    if coord.da_method=="LETKF":
-        grade = dpr.rel_index(getattr(coord,graded),grades,1)
+    if coord.da_method == "LETKF":
+        grade = dpr.rel_index(getattr(coord, graded), grades, 1)
         S.c = cmap(grade)
         S.marker = None
-        S.label = dpr.make_label(coord,exclude=[graded])
+        S.label = dpr.make_label(coord, exclude=[graded])
     return S
+
 
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
 dpr.default_fig_adjustments(tables)
 
 # Colorbar
-cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0],label=graded)
-cb.set_ticks(np.arange(len(grades))); cb.set_ticklabels(grades)
+cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0], label=graded)
+cb.set_ticks(np.arange(len(grades)))
+cb.set_ticklabels(grades)
 
 plt.pause(1)
 

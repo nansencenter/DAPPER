@@ -1,19 +1,17 @@
 """Illustrate usage of DAPPER to (interactively) run a 'twin experiment'."""
 
-# Load DAPPER
-from dapper import *
 import dapper as dpr
-import numpy as np
+
+# Load experiment setup: the hidden Markov model (HMM)
+from dapper.mods.Lorenz63.sakov2012 import HMM
 
 # Generate the same random numbers every time
 dpr.set_seed(3000)
 
-# Load experiment setup: the hidden Markov model (HMM)
-from dapper.mods.Lorenz63.sakov2012 import HMM
-HMM.t.T = 30 # shorten experiment
+HMM.t.T = 30  # shorten experiment
 
 # Simulate synthetic truth (xx) and noisy obs (yy)
-xx,yy = HMM.simulate()
+xx, yy = HMM.simulate()
 
 # Specify a DA method configuration ("xp" for "experiment")
 xp = dpr.EnKF('Sqrt', N=10, infl=1.02, rot=True)
@@ -27,10 +25,10 @@ xp.assimilate(HMM, xx, yy, liveplots=True)
 xp.stats.average_in_time()
 
 # Print some averages
-print(xp.avrgs.tabulate(['rmse.a','rmv.a']))
+print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 
 # Replay liveplotters
-xp.stats.replay(speed=np.inf)
+xp.stats.replay(speed=100)
 
 # Further diagnostic plots:
 # import dapper.tools.viz as viz
