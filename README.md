@@ -8,24 +8,27 @@
 ! 
 -->
 
-DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods.
-The tests provide experimental support and guidance for new developments in DA. Example diagnostics:
+DAPPER is a set of templates for benchmarking the performance of
+data assimilation (DA) methods.
+The tests provide experimental support and guidance for
+new developments in DA. Example diagnostics:
 
 ![EnKF - Lorenz'63](./dpr_data/figs/anims/DAPPER_illust_v2.jpg)
 
 The typical set-up is a **synthetic (twin) experiment**, where you
-- specify a
-    - dynamic model`*`
-    - observational model`*`
-- use these to generate a synthetic
-    - "truth"
-    - and observations thereof`*`
-- assess how different DA methods perform in estimating the truth,
-    given the above starred (`*`) items.
 
+- specify a
+  - dynamic model`*`
+  - observational model`*`
+- use these to generate a synthetic
+  - "truth"
+  - and observations thereof`*`
+- assess how different DA methods perform in estimating the truth,
+  given the above starred (`*`) items.
 
 Highlights
 ================================================
+
 DAPPER enables the numerical investigation of DA methods
 through a variety of typical test cases and statistics.
 It (a) reproduces numerical benchmarks results reported in the literature,
@@ -44,33 +47,35 @@ Also see its [drawbacks](#alternative-projects).
 
 Installation
 ================================================
+
 Works on Linux/Windows/Mac.
 
 1. **Prerequisite**: Python>=3.8.  
    If you're not an admin or expert:  
    1a. Install Python with [Anaconda](https://www.anaconda.com/download).  
-   1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda) to run the commands below.
+   1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
+   to run the commands below.
 
 2. **Install**:  
    Download and extract (or `git clone`) DAPPER,  
    `cd` into the resulting folder
-	 *(ensure you're in the folder with a `setup.py` file)*:  
+   *(ensure you're in the folder with a `setup.py` file)*:  
    `pip install -e .` (don't forget the `.`).
    If you want multiprocessing options, install with:  
    `pip install -e .[MP]`
-
 
 3. **Test** by running: `python example_1.py`  
 
 Step 2 can be replaced by running
 `pip install da-dapper`
-but this is not recommended since this hides away DAPPER as a library in your python path.
+but this is not recommended since this hides away DAPPER
+as a library in your python path.
 
 If the installation fails, you probably need to [create a new Python environment](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments).
 
-
 Getting started
 ================================================
+
 Read, run, and understand the scripts `example_{1,2,3}.py`.
 Then, get familiar with the code.
 
@@ -78,14 +83,14 @@ The [docs](https://dapper.readthedocs.io/en/latest/)
 provide processed docstrings,
 but are far from complete.
 
-Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials) for an intro to DA.
-
+Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
+for an intro to DA.
 
 Methods
 ================================================
 
 Method                                                 | Literature reproduced
------------------------------------------------------- | ---------------------------------------
+------------------------------------------------------ | ------------------------
 EnKF <sup>1</sup>                                      | Sak08, Hot15
 EnKF-N                                                 | Boc12, Boc15
 EnKS, EnRTS                                            | Raa16b
@@ -96,9 +101,9 @@ Particle filter (bootstrap) <sup>3</sup>               | Boc10
 Optimal/implicit Particle filter  <sup>3</sup>         | Boc10
 NETF                                                   | Töd15, Wil16
 Rank histogram filter (RHF)                            | And10
-4D-Var                                                 | 
-3D-Var                                                 | 
-Extended KF                                            | 
+4D-Var                                                 |
+3D-Var                                                 |
+Extended KF                                            |
 Optimal interpolation                                  |
 Climatology                                            |
 
@@ -107,17 +112,20 @@ Climatology                                            |
 <sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).
 Serial forms are also available.  
 Tuned with inflation and "random, orthogonal rotations".  
-<sup>2</sup>: Also supports the bundle version, and "EnKF-N"-type inflation.  
-<sup>3</sup>: Resampling: multinomial (including systematic/universal and residual).  
-The particle filter is tuned with "effective-N monitoring", "regularization/jittering" strength, and more.
+<sup>2</sup>: Also supports the bundle version,
+and "EnKF-N"-type inflation.  
+<sup>3</sup>: Resampling: multinomial
+(including systematic/universal and residual).  
+The particle filter is tuned with "effective-N monitoring",
+"regularization/jittering" strength, and more.
 
+For a list of ready-made experiments with suitable,
+tuned settings for a given method (e.g. the `iEnKS`), use gnu's grep:
 
-For a list of ready-made experiments with suitable, tuned settings for a given method (e.g. the `iEnKS`), use gnu's grep:
-
-    $ cd dapper/mods
-    $ grep -r "iEnKS.*("
-
-
+```sh
+$ cd dapper/mods
+$ grep -r "iEnKS.*("
+```
 
 Models
 ================================================
@@ -137,7 +145,6 @@ Quasi-Geost (QG)     | No   | No   | Yes   | 2d        | 129²≈17k  | ≈140  
 
 *: flexible; set as necessary
 
-
 The models are found as subdirectories within `dapper/mods`.
 A model should be defined in a file named `core.py`,
 and illustrated by a file named `demo.py`.
@@ -155,8 +162,10 @@ along with their expected, average rmse.a score for that experiment.
 The complete list of included experiment files can be obtained with
 gnu's `find`:
 
-    $ cd dapper/mods
-    $ find . -iname "[a-z]*20[0-9].py"
+```sh
+$ cd dapper/mods
+$ find . -iname "[a-z]*20[0-9].py"
+```
 
 Some of these files contain settings that have been used in several papers.
 As mentioned [above](#Methods),
@@ -164,17 +173,16 @@ DAPPER reproduces literature results.
 There are also results in the literature that DAPPER does not reproduce.
 Typically, this means that the published results are incorrect.
 
-
-
-
 Alternative projects
 ================================================
+
 DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:
- * It is not suited for very big models (>60k unknowns).
- * Time-dependent error covariances and changes in lengths of state/obs
-     (although the Dyn and Obs models may otherwise be time-dependent).
- * Non-uniform time sequences not fully supported.
+
+- It is not suited for very big models (>60k unknowns).
+- Time-dependent error covariances and changes in lengths of state/obs
+  (although the Dyn and Obs models may otherwise be time-dependent).
+- Non-uniform time sequences not fully supported.
 
 Also, DAPPER comes with no guarantees/support.
 Therefore, if you have an *operational* (real-world) application,
@@ -206,7 +214,8 @@ Datum              | Raanes                | Matlab, personal publications
 IEnKS code         | Bocquet               | Python, personal publications
 [pyda][16]         | Hickman               | Python, personal publications
 
-The `EnKF-Matlab` and `IEnKS` codes have been inspirational in the development of DAPPER. 
+The `EnKF-Matlab` and `IEnKS` codes have been inspirational
+in the development of DAPPER.
 
 *: AWI/Liege/CNRS/NERSC/Reading/Delft
 
@@ -230,9 +239,9 @@ The `EnKF-Matlab` and `IEnKS` codes have been inspirational in the development o
 [17]: https://github.com/sakov/enkf-c
 [18]: https://github.com/kingaa/pomp
 
-
 Contributors
 ================================================
+
 Patrick N. Raanes,
 Colin Grudzien,
 Maxime Tondeur,
@@ -253,12 +262,14 @@ If you use this software in a publication, please cite as follows.
 
 Publication list
 ================================================
-- https://www.geosci-model-dev-discuss.net/gmd-2019-136/
-- https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.3386
-- https://www.nonlin-processes-geophys-discuss.net/npg-2019-10
+
+- <https://www.geosci-model-dev-discuss.net/gmd-2019-136/>
+- <https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.3386>
+- <https://www.nonlin-processes-geophys-discuss.net/npg-2019-10>
 
 Powered by
 ================================================
+
 <div>
 <img src="./dpr_data/figs/logos/python.png"  alt="Python"  height="100">
 <img src="./dpr_data/figs/logos/numpy.png"   alt="Numpy"   height="100">
@@ -267,9 +278,25 @@ Powered by
 </div>
 
 <!--
+Badges.
 
-[![DOI](https://zenodo.org/badge/62547494.svg)](https://zenodo.org/badge/latestdoi/62547494)
+[![DOI](https://zenodo.org/badge/62547494.svg)]
+(https://zenodo.org/badge/latestdoi/62547494)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./licence.txt)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]
+(./licence.txt)
+-->
 
+<!-- markdownlint-configure-file
+{
+  "hr-style": {
+    "style": "---"
+  },
+  "no-trailing-spaces": false,
+  "no-inline-html": {
+    "allowed_elements" : [ "sup", "img", "div" ]
+  },
+  "commands-show-output": false,
+  "first-line-h1": false
+}
 -->
