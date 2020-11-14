@@ -39,9 +39,14 @@ from .dpr_config import rc
 from .stats import register_stat
 from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.math import (ens_compatible, linspace_int, partial_Id_Obs, round2,
+from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, round2,
                          with_recursion, with_rk4)
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
 from .tools.stoch import rand, randn, set_seed
 from .tools.viz import freshfig
+
+# import dapper.tools as tools
+# import dapper.admin as admin
+# import dapper.stats as stats
+# import dapper.data_management as data_management

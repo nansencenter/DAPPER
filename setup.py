@@ -72,7 +72,8 @@ setuptools.setup(
             'psutil',
         ],
         'Qt':  ['PyQt5', 'qtpy'],
-        'Dev':  ['line_profiler', 'ipdb', 'pytest'],
+        'Dev':  ['line_profiler', 'ipdb', 'pytest',
+                 'sphinx', 'recommonmark', 'sphinx_rtd_theme'],
     },
     # Other packages used, but not explicitly required
     #

@@ -90,7 +90,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
         if 'explicit' in upd_a:
             # Not recommended due to numerical costs and instability.
             # Implementation using inv (in ens space)
-            Pw = np.inv(Y @ R.inv @ Y.T + N1*eye(N))
+            Pw = sla.inv(Y @ R.inv @ Y.T + N1*eye(N))
             T  = sla.sqrtm(Pw) * sqrt(N1)
             HK = R.inv @ Y.T @ Pw @ Y
             # KG = R.inv @ Y.T @ Pw @ A

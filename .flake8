@@ -20,7 +20,8 @@ ignore=E24,W503,E123,E226,E704,E121,W504,E126,
     E711, E712
 
 
-; Doesn't work with autopep8 (only flake8), but it only changes whitespace errors,
+; Doesn't work with autopep8 (only flake8),
+; but it only changes whitespace errors,
 ; so I guess it doesn't matter.
 per-file-ignores=
     explore_props.py:F811

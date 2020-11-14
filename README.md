@@ -79,9 +79,8 @@ Getting started
 Read, run, and understand the scripts `example_{1,2,3}.py`.
 Then, get familiar with the code.
 
-The [docs](https://dapper.readthedocs.io/en/latest/)
-provide processed docstrings,
-but are far from complete.
+The [documentation](https://dapper.readthedocs.io/en/latest/)
+provide rendered docstrings, but are far from complete.
 
 Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
 for an intro to DA.

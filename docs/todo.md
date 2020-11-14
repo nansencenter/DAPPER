@@ -3,14 +3,18 @@ Todo
 
 Minor:
 
-* Ensure it works with Stein, EmblAUS
+* Badges
+* Improve docs
 * Publish version
-* Pause after Enter doesn't work on Ubuntu?
-* Do some todos
 
 Major:
 
-* Improve docs
+* Do some todos
+* Make autoscaler.py work also for other users
+  (I dont know if it's condor_* that outputs user-specific numbers,
+  or glcoud resize command that is user-specific, or what.)
+* Pause after Enter doesn't work on Ubuntu?
+
 * Make superclasses for the filter, smoother, and iterative smoother.
 * Simplify and/or generalize time management?
 

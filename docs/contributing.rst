@@ -5,7 +5,7 @@ Making a release
 --------------------------
 
 - ``cd DAPPER``
-- Bump version number in ``__init__.py``
+- Bump version number in ``__init__.py`` . Also in docs/conf.py ?
 - Merge dev1 into master::
 
     git checkout master

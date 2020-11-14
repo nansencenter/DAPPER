@@ -70,6 +70,8 @@ class SubmissionConnection:
 
         # Show progress
         if prog:
+            # TODO 3: Implement rsync check for when new rsync
+            # isnt available which supports --info=progress2
             prog = ("--info=progress2", "--no-inc-recursive")
         else:
             prog = []
@@ -296,7 +298,7 @@ def monitor_progress(self):
         if job_status["held"]:
             print("NB: There were %d failed jobs" % job_status["held"])
             print(f"View errors at {self.xps_path}/JOBNUMBER/out")
-            clear_queue(self)
+            clear_queue(self) # TODO 3: this runs also if sucessfull. Ok?
 
 
 def list_job_dirs(xps_path):

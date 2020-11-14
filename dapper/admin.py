@@ -526,8 +526,7 @@ class xpList(list):
             mp = dict(server="local", NPROC=mp)
         elif mp in ["GCP", "Google"]:
             mp = dict(server="GCP", files=[], code="")
-        else:
-            assert isinstance(mp, dict)
+        assert isinstance(mp, dict)
 
         # Parse fail_gently
         if fail_gently is None:
