@@ -10,12 +10,12 @@ import dapper.tools.viz as viz
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
 import numpy as np
+
 dpr.set_seed(3000)
 
 ########################
 # Model selection
 ########################
-
 mod = "L63"
 
 # Lyapunov exponents: [ 1.05  0.   -0.01 -1.05]

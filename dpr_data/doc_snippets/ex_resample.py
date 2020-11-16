@@ -46,12 +46,12 @@ xx   = np.linspace(0, XL, 201)
 bins = np.linspace(0, XL, 50)
 
 # Illustrate
-axs[0].hist(P, bins, normed=True, label='Example sample')
-axs[1].hist(q, bins, normed=True, label='Proposal sample and pdf')
-axs[2].hist(q, bins, normed=True, label='Proposal sample - weighted', weights=w)
-axs[3].hist(r, bins, normed=True, label='resmpl: Residual')
-axs[4].hist(s, bins, normed=True, label='resmpl: Systematic')
-axs[5].hist(t, bins, normed=True, label='resmpl: Stochastic')
+axs[0].hist(P, bins, density=True, label='Example sample')
+axs[1].hist(q, bins, density=True, label='Proposal sample and pdf')
+axs[2].hist(q, bins, density=True, label='Proposal sample - weighted', weights=w)
+axs[3].hist(r, bins, density=True, label='resmpl: Residual')
+axs[4].hist(s, bins, density=True, label='resmpl: Systematic')
+axs[5].hist(t, bins, density=True, label='resmpl: Stochastic')
 
 # Add actual pdfs
 axs[0].plot(xx, pdf(xx, dof), label='pdf: Target')
@@ -68,3 +68,5 @@ axs[6].plot(xx, kde(t, 'c', bw=[0.1]).pdf(xx), label='kde: Stochastic')
 axs[0].set_yticklabels([])
 for ax in f.axes:
     ax.legend()
+
+plt.pause(.1)
