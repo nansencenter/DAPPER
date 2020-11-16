@@ -4,7 +4,11 @@ DAPPER is a set of templates for benchmarking the performance of data assimilati
 using synthetic/twin experiments.
 
 See the full introduction in the [README](https://github.com/nansencenter/DAPPER)
+In particular
+[installation](https://github.com/nansencenter/DAPPER#installation)
+and [getting started](https://github.com/nansencenter/DAPPER#getting-started)
 
+$$ a = \\frac{a}{b} $$
 """
 
 __version__ = "0.9.6"
@@ -54,7 +58,7 @@ from .tools.viz import freshfig
 # Documentation management
 # ---
 # # Generation:
-# $ pdoc --force --html -o ./docs dapper
+# $ pdoc --force --html --config latex_math=True -o ./docs dapper
 # Push updated docs to github
 # # Hosting:
 # In the main github settings of the repo,
