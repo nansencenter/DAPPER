@@ -18,16 +18,15 @@ new developments in DA. Example diagnostics:
 The typical set-up is a **synthetic (twin) experiment**, where you
 
 - specify a
-  - dynamic model`*`
-  - observational model`*`
+    - dynamic model`*`
+    - observational model`*`
 - use these to generate a synthetic
-  - "truth"
-  - and observations thereof`*`
+    - "truth"
+    - and observations thereof`*`
 - assess how different DA methods perform in estimating the truth,
   given the above starred (`*`) items.
 
-Highlights
-================================================
+## Highlights
 
 DAPPER enables the numerical investigation of DA methods
 through a variety of typical test cases and statistics.
@@ -45,8 +44,7 @@ and makes it easy to adapt and extend.
 In summary, it is well suited for teaching and fundamental DA research.
 Also see its [drawbacks](#alternative-projects).
 
-Installation
-================================================
+## Installation
 
 Works on Linux/Windows/Mac.
 
@@ -73,8 +71,7 @@ as a library in your python path.
 
 If the installation fails, you probably need to [create a new Python environment](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments).
 
-Getting started
-================================================
+## Getting started
 
 Read, run, and understand the scripts `example_{1,2,3}.py`.
 Then, get familiar with the code.
@@ -85,8 +82,7 @@ provide rendered docstrings, but are far from complete.
 Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
 for an intro to DA.
 
-Methods
-================================================
+## Methods
 
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ------------------------
@@ -126,8 +122,7 @@ $ cd dapper/mods
 $ grep -r "iEnKS.*("
 ```
 
-Models
-================================================
+## Models
 
 Model                | Lin? | TLM? | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer
 -----------          | ---- | ---- | ----  | --------- | --------- | ------ | ----------
@@ -172,8 +167,7 @@ DAPPER reproduces literature results.
 There are also results in the literature that DAPPER does not reproduce.
 Typically, this means that the published results are incorrect.
 
-Alternative projects
-================================================
+## Alternative projects
 
 DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:
@@ -238,8 +232,7 @@ in the development of DAPPER.
 [17]: https://github.com/sakov/enkf-c
 [18]: https://github.com/kingaa/pomp
 
-Contributors
-================================================
+## Contributors
 
 Patrick N. Raanes,
 Colin Grudzien,
@@ -259,22 +252,11 @@ If you use this software in a publication, please cite as follows.
 }
 ```
 
-Publication list
-================================================
+## Publication list
 
 - <https://www.geosci-model-dev-discuss.net/gmd-2019-136/>
 - <https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.3386>
 - <https://www.nonlin-processes-geophys-discuss.net/npg-2019-10>
-
-Powered by
-================================================
-
-<div>
-<img src="./dpr_data/figs/logos/python.png"  alt="Python"  height="100">
-<img src="./dpr_data/figs/logos/numpy.png"   alt="Numpy"   height="100">
-<img src="./dpr_data/figs/logos/pandas.png"  alt="Pandas"  height="100">
-<img src="./dpr_data/figs/logos/jupyter.png" alt="Jupyter" height="100">
-</div>
 
 <!--
 Badges.
@@ -284,18 +266,4 @@ Badges.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]
 (./licence.txt)
--->
-
-<!-- markdownlint-configure-file
-{
-  "hr-style": {
-    "style": "---"
-  },
-  "no-trailing-spaces": false,
-  "no-inline-html": {
-    "allowed_elements" : [ "sup", "img", "div" ]
-  },
-  "commands-show-output": false,
-  "first-line-h1": false
-}
 -->
