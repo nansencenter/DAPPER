@@ -1,4 +1,4 @@
-"""Provide the stats class which defines the "builtin" stats to be computed."""
+"""Stats computation for the assessment of DA methods."""
 
 from dapper.dict_tools import DotDict
 from dapper.tools.matrices import CovMat

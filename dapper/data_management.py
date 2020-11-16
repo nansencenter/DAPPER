@@ -1,6 +1,4 @@
-"""Define xpSpace (subclasses SparseSpace (subclasses dict)),
-
-which is handles the **presentation** of experiment (xp) results."""
+"""Tools (notably xpSpace) for processing and presenting experiment data."""
 
 from pathlib import Path
 import os

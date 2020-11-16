@@ -1,4 +1,4 @@
-"""Define high-level API in DAPPER.
+"""High-level API. I.e. the main "user-interface".
 
 Used for experiment (xp) specification/administration, including:
 

@@ -1,4 +1,6 @@
-"""Load DAPPER configuration settings into `rc`."""
+"""Load default and user configurations into the rc dict.
+
+This includes disabling liveplotting if necessary."""
 
 import os
 import sys
