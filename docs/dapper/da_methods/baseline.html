@@ -25,176 +25,6 @@
 <section id="section-intro">
 <p>Methods often used to compare against to indicate baselines performance.</p>
 <p>Many are based on [Raa16a]_.</p>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">&#34;&#34;&#34;Methods often used to compare against to indicate baselines performance.
-
-Many are based on [Raa16a]_.
-&#34;&#34;&#34;
-import numpy as np
-from typing import Optional
-
-from dapper.admin import da_method
-import dapper.tools.series as series
-from dapper.tools.utils import progbar
-from dapper.tools.matrices import CovMat
-import dapper.tools.math as mtools
-
-
-@da_method()
-class Climatology:
-    &#34;&#34;&#34;A baseline/reference method.
-
-    Note that the &#34;climatology&#34; is computed from truth, which might be
-    (unfairly) advantageous if the simulation is too short (vs mixing time).&#34;&#34;&#34;
-
-    def assimilate(self, HMM, xx, yy):
-        chrono, stats = HMM.t, self.stats
-
-        muC = np.mean(xx, 0)
-        AC  = xx - muC
-        PC  = CovMat(AC, &#39;A&#39;)
-
-        stats.assess(0, mu=muC, Cov=PC)
-        stats.trHK[:] = 0
-
-        for k, kObs, _, _ in progbar(chrono.ticker):
-            fau = &#39;u&#39; if kObs is None else &#39;fau&#39;
-            stats.assess(k, kObs, fau, mu=muC, Cov=PC)
-
-
-@da_method()
-class OptInterp:
-    &#34;&#34;&#34;Optimal Interpolation -- a baseline/reference method.
-
-    Uses the Kalman filter equations,
-    but with a prior from the Climatology.&#34;&#34;&#34;
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.t, self.stats
-
-        # Compute &#34;climatological&#34; Kalman gain
-        muC = np.mean(xx, 0)
-        AC  = xx - muC
-        PC  = (AC.T @ AC) / (xx.shape[0] - 1)
-
-        # Setup scalar &#34;time-series&#34; covariance dynamics.
-        # ONLY USED FOR DIAGNOSTICS, not to affect the Kalman gain.
-        L  = series.estimate_corr_length(AC.ravel(order=&#39;F&#39;))
-        SM = fit_sigmoid(1/2, L, 0)
-
-        # Init
-        mu = muC
-        stats.assess(0, mu=mu, Cov=PC)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            # Forecast
-            mu = Dyn(mu, t-dt, dt)
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, mu=muC, Cov=PC)
-
-                # Analysis
-                H  = Obs.linear(muC, t)
-                KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
-                mu = muC + KG@(yy[kObs] - Obs(muC, t))
-
-                P  = (np.eye(Dyn.M) - KG@H) @ PC
-                SM = fit_sigmoid(P.trace()/PC.trace(), L, k)
-
-            stats.assess(k, kObs, mu=mu, Cov=2*PC*SM(k))
-
-
-@da_method()
-class Var3D:
-    &#34;&#34;&#34;
-    3D-Var -- a baseline/reference method.
-
-    This implementation is not &#34;Var&#34;-ish: there is no *iterative* optimzt.
-    Instead, it does the full analysis update in one step: the Kalman filter,
-    with the background covariance being user specified, through B and xB.&#34;&#34;&#34;
-    B: Optional[np.ndarray] = None
-    xB: float               = 1.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-
-        if self.B in (None, &#39;clim&#39;):
-            # Use climatological cov, ...
-            B = np.cov(xx.T)  # ... estimated from truth
-        elif self.B == &#39;eye&#39;:
-            B = np.eye(HMM.Nx)
-        else:
-            B = self.B
-        B *= self.xB
-
-        # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
-        CC = 2*np.cov(xx.T)
-        L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order=&#39;F&#39;))
-        P  = X0.C.full
-        SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
-
-        # Init
-        mu = X0.mu
-        stats.assess(0, mu=mu, Cov=P)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            # Forecast
-            mu = Dyn(mu, t-dt, dt)
-            P  = CC*SM(k)
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, mu=mu, Cov=P)
-
-                # Analysis
-                H  = Obs.linear(mu, t)
-                KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
-                mu = mu + KG@(yy[kObs] - Obs(mu, t))
-
-                # Re-calibrate fit_sigmoid with new W0 = Pa/B
-                P = (np.eye(Dyn.M) - KG@H) @ B
-                SM = fit_sigmoid(P.trace()/CC.trace(), L, k)
-
-            stats.assess(k, kObs, mu=mu, Cov=P)
-
-
-def fit_sigmoid(Sb, L, kb):
-    &#34;&#34;&#34;Return a sigmoid [function S(k)] for approximating error dynamics.
-
-    We use the logistic function for the sigmoid; it&#39;s the solution of the
-    &#34;population growth&#34; ODE: dS/dt = a*S*(1-S/S(∞)).
-    NB: It might be better to use the &#34;error growth ODE&#34; of Lorenz/Dalcher/Kalnay,
-    but this has a significantly more complicated closed-form solution,
-    and reduces to the above ODE when there&#39;s no model error (ODE source term).
-
-    The &#34;normalized&#34; sigmoid, S1, is symmetric around 0, and S1(-∞)=0 and S1(∞)=1.
-
-    The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see doc_snippets/sigmoid.jpg) with
-
-    - a corresponding to a given corr. length L.
-    - b to match values of S(kb) and Sb&#34;&#34;&#34;
-
-    def sigmoid(k): return 1/(1+np.exp(-k))  # normalized sigmoid
-    def inv_sig(s): return np.log(s/(1-s))  # its inverse
-
-    a = 1/L
-    b = inv_sig(Sb)
-
-    def S(k):
-        return sigmoid(b + a*(k-kb))
-
-    return S
-
-
-@da_method()
-class EnCheat:
-    &#34;&#34;&#34;A baseline/reference method.
-
-    Should be implemented as part of Stats instead.&#34;&#34;&#34;
-
-    def assimilate(self, HMM, xx, yy): pass</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -219,37 +49,6 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <li>a corresponding to a given corr. length L.</li>
 <li>b to match values of S(kb) and Sb</li>
 </ul></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fit_sigmoid(Sb, L, kb):
-    &#34;&#34;&#34;Return a sigmoid [function S(k)] for approximating error dynamics.
-
-    We use the logistic function for the sigmoid; it&#39;s the solution of the
-    &#34;population growth&#34; ODE: dS/dt = a*S*(1-S/S(∞)).
-    NB: It might be better to use the &#34;error growth ODE&#34; of Lorenz/Dalcher/Kalnay,
-    but this has a significantly more complicated closed-form solution,
-    and reduces to the above ODE when there&#39;s no model error (ODE source term).
-
-    The &#34;normalized&#34; sigmoid, S1, is symmetric around 0, and S1(-∞)=0 and S1(∞)=1.
-
-    The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see doc_snippets/sigmoid.jpg) with
-
-    - a corresponding to a given corr. length L.
-    - b to match values of S(kb) and Sb&#34;&#34;&#34;
-
-    def sigmoid(k): return 1/(1+np.exp(-k))  # normalized sigmoid
-    def inv_sig(s): return np.log(s/(1-s))  # its inverse
-
-    a = 1/L
-    b = inv_sig(Sb)
-
-    def S(k):
-        return sigmoid(b + a*(k-kb))
-
-    return S</code></pre>
-</details>
 </dd>
 </dl>
 </section>
@@ -263,30 +62,6 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <div class="desc"><p>A baseline/reference method.</p>
 <p>Note that the "climatology" is computed from truth, which might be
 (unfairly) advantageous if the simulation is too short (vs mixing time).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Climatology:
-    &#34;&#34;&#34;A baseline/reference method.
-
-    Note that the &#34;climatology&#34; is computed from truth, which might be
-    (unfairly) advantageous if the simulation is too short (vs mixing time).&#34;&#34;&#34;
-
-    def assimilate(self, HMM, xx, yy):
-        chrono, stats = HMM.t, self.stats
-
-        muC = np.mean(xx, 0)
-        AC  = xx - muC
-        PC  = CovMat(AC, &#39;A&#39;)
-
-        stats.assess(0, mu=muC, Cov=PC)
-        stats.trHK[:] = 0
-
-        for k, kObs, _, _ in progbar(chrono.ticker):
-            fau = &#39;u&#39; if kObs is None else &#39;fau&#39;
-            stats.assess(k, kObs, fau, mu=muC, Cov=PC)</code></pre>
-</details>
 <h3>Class variables</h3>
 <dl>
 <dt id="dapper.da_methods.baseline.Climatology.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
@@ -301,64 +76,6 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    chrono, stats = HMM.t, self.stats
-
-    muC = np.mean(xx, 0)
-    AC  = xx - muC
-    PC  = CovMat(AC, &#39;A&#39;)
-
-    stats.assess(0, mu=muC, Cov=PC)
-    stats.trHK[:] = 0
-
-    for k, kObs, _, _ in progbar(chrono.ticker):
-        fau = &#39;u&#39; if kObs is None else &#39;fau&#39;
-        stats.assess(k, kObs, fau, mu=muC, Cov=PC)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="dapper.da_methods.baseline.EnCheat"><code class="flex name class">
-<span>class <span class="ident">EnCheat</span></span>
-</code></dt>
-<dd>
-<div class="desc"><p>A baseline/reference method.</p>
-<p>Should be implemented as part of Stats instead.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class EnCheat:
-    &#34;&#34;&#34;A baseline/reference method.
-
-    Should be implemented as part of Stats instead.&#34;&#34;&#34;
-
-    def assimilate(self, HMM, xx, yy): pass</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="dapper.da_methods.baseline.EnCheat.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="dapper.da_methods.baseline.EnCheat.assimilate"><code class="name flex">
-<span>def <span class="ident">assimilate</span></span>(<span>self, HMM, xx, yy)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy): pass</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -369,49 +86,6 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <div class="desc"><p>Optimal Interpolation &ndash; a baseline/reference method.</p>
 <p>Uses the Kalman filter equations,
 but with a prior from the Climatology.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class OptInterp:
-    &#34;&#34;&#34;Optimal Interpolation -- a baseline/reference method.
-
-    Uses the Kalman filter equations,
-    but with a prior from the Climatology.&#34;&#34;&#34;
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.t, self.stats
-
-        # Compute &#34;climatological&#34; Kalman gain
-        muC = np.mean(xx, 0)
-        AC  = xx - muC
-        PC  = (AC.T @ AC) / (xx.shape[0] - 1)
-
-        # Setup scalar &#34;time-series&#34; covariance dynamics.
-        # ONLY USED FOR DIAGNOSTICS, not to affect the Kalman gain.
-        L  = series.estimate_corr_length(AC.ravel(order=&#39;F&#39;))
-        SM = fit_sigmoid(1/2, L, 0)
-
-        # Init
-        mu = muC
-        stats.assess(0, mu=mu, Cov=PC)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            # Forecast
-            mu = Dyn(mu, t-dt, dt)
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, mu=muC, Cov=PC)
-
-                # Analysis
-                H  = Obs.linear(muC, t)
-                KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
-                mu = muC + KG@(yy[kObs] - Obs(muC, t))
-
-                P  = (np.eye(Dyn.M) - KG@H) @ PC
-                SM = fit_sigmoid(P.trace()/PC.trace(), L, k)
-
-            stats.assess(k, kObs, mu=mu, Cov=2*PC*SM(k))</code></pre>
-</details>
 <h3>Class variables</h3>
 <dl>
 <dt id="dapper.da_methods.baseline.OptInterp.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
@@ -426,43 +100,6 @@ but with a prior from the Climatology.</p></div>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.t, self.stats
-
-    # Compute &#34;climatological&#34; Kalman gain
-    muC = np.mean(xx, 0)
-    AC  = xx - muC
-    PC  = (AC.T @ AC) / (xx.shape[0] - 1)
-
-    # Setup scalar &#34;time-series&#34; covariance dynamics.
-    # ONLY USED FOR DIAGNOSTICS, not to affect the Kalman gain.
-    L  = series.estimate_corr_length(AC.ravel(order=&#39;F&#39;))
-    SM = fit_sigmoid(1/2, L, 0)
-
-    # Init
-    mu = muC
-    stats.assess(0, mu=mu, Cov=PC)
-
-    for k, kObs, t, dt in progbar(chrono.ticker):
-        # Forecast
-        mu = Dyn(mu, t-dt, dt)
-        if kObs is not None:
-            stats.assess(k, kObs, &#39;f&#39;, mu=muC, Cov=PC)
-
-            # Analysis
-            H  = Obs.linear(muC, t)
-            KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
-            mu = muC + KG@(yy[kObs] - Obs(muC, t))
-
-            P  = (np.eye(Dyn.M) - KG@H) @ PC
-            SM = fit_sigmoid(P.trace()/PC.trace(), L, k)
-
-        stats.assess(k, kObs, mu=mu, Cov=2*PC*SM(k))</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -475,72 +112,17 @@ but with a prior from the Climatology.</p></div>
 <p>This implementation is not "Var"-ish: there is no <em>iterative</em> optimzt.
 Instead, it does the full analysis update in one step: the Kalman filter,
 with the background covariance being user specified, through B and xB.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Var3D:
-    &#34;&#34;&#34;
-    3D-Var -- a baseline/reference method.
-
-    This implementation is not &#34;Var&#34;-ish: there is no *iterative* optimzt.
-    Instead, it does the full analysis update in one step: the Kalman filter,
-    with the background covariance being user specified, through B and xB.&#34;&#34;&#34;
-    B: Optional[np.ndarray] = None
-    xB: float               = 1.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-
-        if self.B in (None, &#39;clim&#39;):
-            # Use climatological cov, ...
-            B = np.cov(xx.T)  # ... estimated from truth
-        elif self.B == &#39;eye&#39;:
-            B = np.eye(HMM.Nx)
-        else:
-            B = self.B
-        B *= self.xB
-
-        # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
-        CC = 2*np.cov(xx.T)
-        L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order=&#39;F&#39;))
-        P  = X0.C.full
-        SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
-
-        # Init
-        mu = X0.mu
-        stats.assess(0, mu=mu, Cov=P)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            # Forecast
-            mu = Dyn(mu, t-dt, dt)
-            P  = CC*SM(k)
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, mu=mu, Cov=P)
-
-                # Analysis
-                H  = Obs.linear(mu, t)
-                KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
-                mu = mu + KG@(yy[kObs] - Obs(mu, t))
-
-                # Re-calibrate fit_sigmoid with new W0 = Pa/B
-                P = (np.eye(Dyn.M) - KG@H) @ B
-                SM = fit_sigmoid(P.trace()/CC.trace(), L, k)
-
-            stats.assess(k, kObs, mu=mu, Cov=P)</code></pre>
-</details>
 <h3>Class variables</h3>
 <dl>
 <dt id="dapper.da_methods.baseline.Var3D.B"><code class="name">var <span class="ident">B</span> : Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.baseline.Var3D.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
+<dt id="dapper.da_methods.baseline.Var3D.xB"><code class="name">var <span class="ident">xB</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.baseline.Var3D.xB"><code class="name">var <span class="ident">xB</span> : float</code></dt>
+<dt id="dapper.da_methods.baseline.Var3D.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -552,51 +134,29 @@ with the background covariance being user specified, through B and xB.</p></div>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-
-    if self.B in (None, &#39;clim&#39;):
-        # Use climatological cov, ...
-        B = np.cov(xx.T)  # ... estimated from truth
-    elif self.B == &#39;eye&#39;:
-        B = np.eye(HMM.Nx)
-    else:
-        B = self.B
-    B *= self.xB
-
-    # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
-    CC = 2*np.cov(xx.T)
-    L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order=&#39;F&#39;))
-    P  = X0.C.full
-    SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
-
-    # Init
-    mu = X0.mu
-    stats.assess(0, mu=mu, Cov=P)
-
-    for k, kObs, t, dt in progbar(chrono.ticker):
-        # Forecast
-        mu = Dyn(mu, t-dt, dt)
-        P  = CC*SM(k)
-
-        if kObs is not None:
-            stats.assess(k, kObs, &#39;f&#39;, mu=mu, Cov=P)
-
-            # Analysis
-            H  = Obs.linear(mu, t)
-            KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
-            mu = mu + KG@(yy[kObs] - Obs(mu, t))
-
-            # Re-calibrate fit_sigmoid with new W0 = Pa/B
-            P = (np.eye(Dyn.M) - KG@H) @ B
-            SM = fit_sigmoid(P.trace()/CC.trace(), L, k)
-
-        stats.assess(k, kObs, mu=mu, Cov=P)</code></pre>
-</details>
+</dd>
+</dl>
+</dd>
+<dt id="dapper.da_methods.baseline.EnCheat"><code class="flex name class">
+<span>class <span class="ident">EnCheat</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>A baseline/reference method.</p>
+<p>Should be implemented as part of Stats instead.</p></div>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.da_methods.baseline.EnCheat.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="dapper.da_methods.baseline.EnCheat.assimilate"><code class="name flex">
+<span>def <span class="ident">assimilate</span></span>(<span>self, HMM, xx, yy)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -629,13 +189,6 @@ with the background covariance being user specified, through B and xB.</p></div>
 </ul>
 </li>
 <li>
-<h4><code><a title="dapper.da_methods.baseline.EnCheat" href="#dapper.da_methods.baseline.EnCheat">EnCheat</a></code></h4>
-<ul class="">
-<li><code><a title="dapper.da_methods.baseline.EnCheat.assimilate" href="#dapper.da_methods.baseline.EnCheat.assimilate">assimilate</a></code></li>
-<li><code><a title="dapper.da_methods.baseline.EnCheat.da_method" href="#dapper.da_methods.baseline.EnCheat.da_method">da_method</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="dapper.da_methods.baseline.OptInterp" href="#dapper.da_methods.baseline.OptInterp">OptInterp</a></code></h4>
 <ul class="">
 <li><code><a title="dapper.da_methods.baseline.OptInterp.assimilate" href="#dapper.da_methods.baseline.OptInterp.assimilate">assimilate</a></code></li>
@@ -645,10 +198,17 @@ with the background covariance being user specified, through B and xB.</p></div>
 <li>
 <h4><code><a title="dapper.da_methods.baseline.Var3D" href="#dapper.da_methods.baseline.Var3D">Var3D</a></code></h4>
 <ul class="">
-<li><code><a title="dapper.da_methods.baseline.Var3D.B" href="#dapper.da_methods.baseline.Var3D.B">B</a></code></li>
 <li><code><a title="dapper.da_methods.baseline.Var3D.assimilate" href="#dapper.da_methods.baseline.Var3D.assimilate">assimilate</a></code></li>
-<li><code><a title="dapper.da_methods.baseline.Var3D.da_method" href="#dapper.da_methods.baseline.Var3D.da_method">da_method</a></code></li>
+<li><code><a title="dapper.da_methods.baseline.Var3D.B" href="#dapper.da_methods.baseline.Var3D.B">B</a></code></li>
 <li><code><a title="dapper.da_methods.baseline.Var3D.xB" href="#dapper.da_methods.baseline.Var3D.xB">xB</a></code></li>
+<li><code><a title="dapper.da_methods.baseline.Var3D.da_method" href="#dapper.da_methods.baseline.Var3D.da_method">da_method</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dapper.da_methods.baseline.EnCheat" href="#dapper.da_methods.baseline.EnCheat">EnCheat</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.da_methods.baseline.EnCheat.assimilate" href="#dapper.da_methods.baseline.EnCheat.assimilate">assimilate</a></code></li>
+<li><code><a title="dapper.da_methods.baseline.EnCheat.da_method" href="#dapper.da_methods.baseline.EnCheat.da_method">da_method</a></code></li>
 </ul>
 </li>
 </ul>

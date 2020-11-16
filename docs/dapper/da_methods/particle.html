@@ -23,652 +23,6 @@
 <h1 class="title">Module <code>dapper.da_methods.particle</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">import numpy as np
-from dapper.admin import da_method
-import dapper.tools.utils as utils
-import dapper.tools.math
-from dapper.tools.matrices import funm_psd, chol_reduce
-from dapper.tools.stoch import rand, randn
-from dapper.tools.math import mrdiv, mldiv, svd0, pad0, tinv
-from dapper.tools.utils import progbar
-
-
-@da_method
-class particle_method:
-    &#34;Declare default particle arguments.&#34;
-    NER: float = 1.0
-    resampl: str = &#39;Sys&#39;
-
-
-@particle_method
-class PartFilt:
-    r&#34;&#34;&#34;Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
-
-    Refs: [Wik07]_, [van09]_, [Che03]_
-
-    This is the bootstrap version: the proposal density is just
-    :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
-
-    Tuning settings:
-
-     - NER: Trigger resampling whenever N_eff &lt;= N*NER.
-       If resampling with some variant of &#39;Multinomial&#39;,
-       no systematic bias is introduced.
-     - qroot: &#34;Inflate&#34; (anneal) the proposal noise kernels
-       by this root to increase diversity.
-       The weights are updated to maintain un-biased-ness.
-       See [Che03]_, section VI-M.2
-    &#34;&#34;&#34;
-    N: int
-    reg: float   = 0
-    nuj: bool    = True
-    qroot: float = 1.0
-    wroot: float = 1.0
-
-    # TODO 4:
-    # if miN &lt; 1:
-    # miN = N*miN
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-        E = X0.sample(N)
-        w = 1/N*np.ones(N)
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                D  = randn((N, Nx))
-                E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
-
-                if self.qroot != 1.0:
-                    # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
-                    w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
-                    w /= w.sum()
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-
-                innovs = (yy[kObs] - Obs(E, t)) @ Rm12.T
-                w      = reweight(w, innovs=innovs)
-
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                    # C12  *= np.sqrt(rroot) # Re-include?
-                    idx, w  = resample(w, self.resampl, wroot=self.wroot)
-                    E, chi2 = regularize(C12, E, idx, self.nuj)
-                    # if rroot != 1.0:
-                    #     # Compensate for rroot
-                    #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
-                    #     w /= w.sum()
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)
-
-
-@particle_method
-class OptPF:
-    &#34;&#34;&#34;&#39;Optimal proposal&#39; particle filter, also known as &#39;Implicit particle filter&#39;.
-
-    Ref: [Boc10]_.
-
-    .. note:: Regularization (``Qs``) is here added BEFORE Bayes&#39; rule.
-              If ``Qs==0``: OptPF should be equal to
-              the bootstrap filter :func:`PartFilt`.
-    &#34;&#34;&#34;
-    N: int
-    Qs: float
-    reg: float   = 0
-    nuj: bool    = True
-    wroot: float = 1.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, Nx, R = self.N, Dyn.M, Obs.noise.C.full
-
-        E = X0.sample(N)
-        w = 1/N*np.ones(N)
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-                y = yy[kObs]
-
-                Eo = Obs(E, t)
-                innovs = y - Eo
-
-                # EnKF-ish update
-                s   = self.Qs*auto_bandw(N, Nx)
-                As  = s*raw_C12(E, w)
-                Ys  = s*raw_C12(Eo, w)
-                C   = Ys.T@Ys + R
-                KG  = As.T@mrdiv(Ys, C)
-                E  += sample_quickly_with(As)[0]
-                D   = Obs.noise.sample(N)
-                dE  = KG @ (y-Obs(E, t)-D).T
-                E   = E + dE.T
-
-                # Importance weighting
-                chi2   = innovs*mldiv(C, innovs.T).T
-                logL   = -0.5 * np.sum(chi2, axis=1)
-                w      = reweight(w, logL=logL)
-
-                # Resampling
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                    idx, w  = resample(w, self.resampl, wroot=self.wroot)
-                    E, _    = regularize(C12, E, idx, self.nuj)
-
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)
-
-
-@particle_method
-class PFa:
-    &#34;&#34;&#34;PF with weight adjustment withOUT
-
-    compensating for the bias it introduces.
-
-    &#39;alpha&#39; sets wroot before resampling such that N_effective becomes &gt;alpha*N.
-
-    Using alpha≈NER usually works well.
-
-    Explanation:
-    Recall that the bootstrap particle filter has &#34;no&#34; bias,
-    but significant variance (which is reflected in the weights).
-    The EnKF is quite the opposite.
-    Similarly, by adjusting the weights we play on the bias-variance spectrum.
-
-    NB: This does not mean that we make a PF-EnKF hybrid
-    -- we&#39;re only playing on the weights.
-
-    Hybridization with xN did not show much promise.
-    &#34;&#34;&#34;
-    N: int
-    alpha: float
-    reg: float   = 0
-    nuj: bool    = True
-    qroot: float = 1.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-        E = X0.sample(N)
-        w = 1/N*np.ones(N)
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                D  = randn((N, Nx))
-                E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
-
-                if self.qroot != 1.0:
-                    # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
-                    w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
-                    w /= w.sum()
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-
-                innovs = (yy[kObs] - Obs(E, t)) @ Rm12.T
-                w      = reweight(w, innovs=innovs)
-
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    C12    = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                    # C12  *= np.sqrt(rroot) # Re-include?
-
-                    wroot = 1.0
-                    while True:
-                        s   = (w**(1/wroot - 1)).clip(max=1e100)
-                        s  /= (s*w).sum()
-                        sw  = s*w
-                        if 1/(sw@sw) &lt; N*self.alpha:
-                            wroot += 0.2
-                        else:
-                            stats.wroot[kObs] = wroot
-                            break
-                    idx, w  = resample(sw, self.resampl, wroot=1)
-
-                    E, chi2 = regularize(C12, E, idx, self.nuj)
-                    # if rroot != 1.0:
-                    #     Compensate for rroot
-                    #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
-                    #     w /= w.sum()
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)
-
-
-@particle_method
-class PFxN_EnKF:
-    &#34;&#34;&#34;Particle filter with EnKF-based proposal, q.
-
-    Also employs xN duplication, as in PFxN.
-
-    Recall that the proposals:
-    Opt.: q_n(x) = c_n·N(x|x_n,Q     )·N(y|Hx,R)  (1)
-    EnKF: q_n(x) = c_n·N(x|x_n,bar{B})·N(y|Hx,R)  (2)
-    with c_n = p(y|x^{k-1}_n) being the composite proposal-analysis weight,
-    and with Q possibly from regularization (rather than actual model noise).
-
-    Here, we will use the posterior mean of (2) and cov of (1).
-    Or maybe we should use x_a^n distributed according to a sqrt update?
-    &#34;&#34;&#34;
-    N: int
-    Qs: float
-    xN: int
-    re_use: bool = True
-    wroot_max: float = 5.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, xN, Nx, Rm12, Ri = \
-            self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
-
-        E = X0.sample(N)
-        w = 1/N*np.ones(N)
-
-        DD = None
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-                y  = yy[kObs]
-                Eo = Obs(E, t)
-                wD = w.copy()
-
-                # Importance weighting
-                innovs = (y - Eo) @ Rm12.T
-                w      = reweight(w, innovs=innovs)
-
-                # Resampling
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    # Weighted covariance factors
-                    Aw = raw_C12(E, wD)
-                    Yw = raw_C12(Eo, wD)
-
-                    # EnKF-without-pertubations update
-                    if N &gt; Nx:
-                        C       = Yw.T @ Yw + Obs.noise.C.full
-                        KG      = mrdiv(Aw.T@Yw, C)
-                        cntrs   = E + (y-Eo)@KG.T
-                        Pa      = Aw.T@Aw - KG@Yw.T@Aw
-                        P_cholU = funm_psd(Pa, np.sqrt)
-                        if DD is None or not self.re_use:
-                            DD    = randn((N*xN, Nx))
-                            chi2  = np.sum(DD**2, axis=1) * Nx/N
-                            log_q = -0.5 * chi2
-                    else:
-                        V, sig, UT = svd0(Yw @ Rm12.T)
-                        dgn      = pad0(sig**2, N) + 1
-                        Pw       = (V * dgn**(-1.0)) @ V.T
-                        cntrs    = E + (y-Eo)@Ri@Yw.T@Pw@Aw
-                        P_cholU  = (V*dgn**(-0.5)).T @ Aw
-                        # Generate N·xN random numbers from NormDist(0,1),
-                        # and compute log(q(x))
-                        if DD is None or not self.re_use:
-                            rnk   = min(Nx, N-1)
-                            DD    = randn((N*xN, N))
-                            chi2  = np.sum(DD**2, axis=1) * rnk/N
-                            log_q = -0.5 * chi2
-                        # NB: the DoF_linalg/DoF_stoch correction
-                        # is only correct &#34;on average&#34;.
-                        # It is inexact &#34;in proportion&#34; to V@V.T-Id,
-                        # where V,s,UT = tsvd(Aw).
-                        # Anyways, we&#39;re computing the tsvd of Aw below,
-                        # so might as well compute q(x) instead of q(xi).
-
-                    # Duplicate
-                    ED  = cntrs.repeat(xN, 0)
-                    wD  = wD.repeat(xN) / xN
-
-                    # Sample q
-                    AD = DD@P_cholU
-                    ED = ED + AD
-
-                    # log(prior_kernel(x))
-                    s         = self.Qs*auto_bandw(N, Nx)
-                    innovs_pf = AD @ tinv(s*Aw)
-                    # NB: Correct: innovs_pf = (ED-E_orig) @ tinv(s*Aw)
-                    #     But it seems to make no difference on well-tuned performance !
-                    log_pf    = -0.5 * np.sum(innovs_pf**2, axis=1)
-
-                    # log(likelihood(x))
-                    innovs = (y - Obs(ED, t)) @ Rm12.T
-                    log_L  = -0.5 * np.sum(innovs**2, axis=1)
-
-                    # Update weights
-                    log_tot = log_L + log_pf - log_q
-                    wD      = reweight(wD, logL=log_tot)
-
-                    # Resample and reduce
-                    wroot = 1.0
-                    while wroot &lt; self.wroot_max:
-                        idx, w = resample(wD, self.resampl, wroot=wroot, N=N)
-                        dups   = sum(mask_unique_of_sorted(idx))
-                        if dups == 0:
-                            E = ED[idx]
-                            break
-                        else:
-                            wroot += 0.1
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)
-
-
-@particle_method
-class PFxN:
-    &#34;&#34;&#34;Particle filter with buckshot duplication during analysis.
-
-    Idea: sample xN duplicates from each of the N kernels.
-    Let resampling reduce it to N.
-
-    Additional idea: employ w-adjustment to obtain N unique particles,
-    without jittering.
-    &#34;&#34;&#34;
-    N: int
-    Qs: float
-    xN: int
-    re_use: bool = True
-    wroot_max: float = 5.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, xN, Nx, Rm12 = self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-        DD = None
-        E  = X0.sample(N)
-        w  = 1/N*np.ones(N)
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-                y  = yy[kObs]
-                wD = w.copy()
-
-                innovs = (y - Obs(E, t)) @ Rm12.T
-                w      = reweight(w, innovs=innovs)
-
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    # Compute kernel colouring matrix
-                    cholR = self.Qs*auto_bandw(N, Nx)*raw_C12(E, wD)
-                    cholR = chol_reduce(cholR)
-
-                    # Generate N·xN random numbers from NormDist(0,1)
-                    if DD is None or not self.re_use:
-                        DD = randn((N*xN, Nx))
-
-                    # Duplicate and jitter
-                    ED  = E.repeat(xN, 0)
-                    wD  = wD.repeat(xN) / xN
-                    ED += DD[:, :len(cholR)]@cholR
-
-                    # Update weights
-                    innovs = (y - Obs(ED, t)) @ Rm12.T
-                    wD     = reweight(wD, innovs=innovs)
-
-                    # Resample and reduce
-                    wroot = 1.0
-                    while wroot &lt; self.wroot_max:
-                        idx, w = resample(wD, self.resampl, wroot=wroot, N=N)
-                        dups   = sum(mask_unique_of_sorted(idx))
-                        if dups == 0:
-                            E = ED[idx]
-                            break
-                        else:
-                            wroot += 0.1
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)
-
-
-def trigger_resampling(w, NER, stat_args):
-    &#34;Return boolean: N_effective &lt;= threshold. Also write stats.&#34;
-
-    N_eff       = 1/(w@w)
-    do_resample = N_eff &lt;= len(w)*NER
-
-    # Unpack stat args
-    stats, E, k, kObs = stat_args
-
-    stats.N_eff[kObs]  = N_eff
-    stats.resmpl[kObs] = 1 if do_resample else 0
-
-    # Why have we put stats.assess() here?
-    # Because we need to write stats.N_eff and stats.resmpl before calling
-    # assess() so that these curves (in sliding_diagnostics liveplotting
-    # are not eliminated (as inactive).
-    stats.assess(k, kObs, &#39;a&#39;, E=E, w=w)
-
-    return do_resample
-
-
-def reweight(w, lklhd=None, logL=None, innovs=None):
-    &#34;&#34;&#34;Do Bayes&#39; rule (for the empirical distribution of an importance sample).
-
-    Do computations in log-space, for at least 2 reasons:
-    - Normalization: will fail if sum==0 (if all innov&#39;s are large).
-    - Num. precision: lklhd*w should have better precision in log space.
-    Output is non-log, for the purpose of assessment and resampling.
-
-    If input is &#39;innovs&#39;: likelihood := NormDist(innovs|0,Id).
-    &#34;&#34;&#34;
-    assert utils.all_but_1_is_None(lklhd, logL, innovs), \
-        &#34;Input error. Only specify one of lklhd, logL, innovs&#34;
-
-    # Get log-values.
-    # Use context manager &#39;errstate&#39; to not warn for log(0) = -inf.
-    # Note: the case when all(w==0) will cause nan&#39;s,
-    #       which should cause errors outside.
-    with np.errstate(divide=&#39;ignore&#39;):
-        logw = np.log(w)
-        if lklhd is not None:
-            logL = np.log(lklhd)
-        elif innovs is not None:
-            chi2 = np.sum(innovs**2, axis=1)
-            logL = -0.5 * chi2
-
-    logw   = logw + logL   # Bayes&#39; rule in log-space
-    logw  -= logw.max()    # Avoid numerical error
-    w      = np.exp(logw)  # non-log
-    w     /= w.sum()       # normalize
-    return w
-
-
-def raw_C12(E, w):
-    &#34;&#34;&#34;Compute the &#39;raw&#39; matrix-square-root of the ensemble&#39; covariance.
-
-    The weights are used both for the mean and anomalies (raw sqrt).
-
-    Note: anomalies (and thus cov) are weighted,
-    and also computed based on a weighted mean.
-    &#34;&#34;&#34;
-    # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.math.weight_degeneracy(w):
-        w = np.ones(len(w))/len(w)
-        # PS: &#39;avoid_pathological&#39; already treated here.
-
-    mu  = w@E
-    A   = E - mu
-    ub  = dapper.tools.math.unbias_var(w, avoid_pathological=False)
-    C12 = np.sqrt(ub*w[:, None]) * A
-    return C12
-
-
-def mask_unique_of_sorted(idx):
-    &#34;NB: returns a mask which is True at [i] iff idx[i] is NOT unique.&#34;
-    duplicates  = idx == np.roll(idx, 1)
-    duplicates |= idx == np.roll(idx, -1)
-    return duplicates
-
-
-def auto_bandw(N, M):
-    &#34;&#34;&#34;&#34;Optimal bandwidth (not bandwidth^2), as per Scott&#39;s rule-of-thumb.
-
-    Refs: [Dou01]_ section 12.2.2, and [Wik17]_ section &#34;Rule_of_thumb&#34;
-    &#34;&#34;&#34;
-    return N**(-1/(M+4))
-
-
-def regularize(C12, E, idx, no_uniq_jitter):
-    &#34;&#34;&#34;Jitter (add noise).
-
-    After resampling some of the particles will be identical.
-    Therefore, if noise.is_deterministic: some noise must be added.
-    This is adjusted by the regularization &#39;reg&#39; factor
-    (so-named because Dirac-deltas are approximated  Gaussian kernels),
-    which controls the strength of the jitter.
-    This causes a bias. But, as N--&gt;∞, the reg. bandwidth--&gt;0, i.e. bias--&gt;0.
-    Ref: [Dou01]_, section 12.2.2.
-    &#34;&#34;&#34;
-    # Select
-    E = E[idx]
-
-    # Jitter
-    if no_uniq_jitter:
-        dups         = mask_unique_of_sorted(idx)
-        sample, chi2 = sample_quickly_with(C12, N=sum(dups))
-        E[dups]     += sample
-    else:
-        sample, chi2 = sample_quickly_with(C12, N=len(E))
-        E           += sample
-
-    return E, chi2
-
-
-def resample(w, kind=&#39;Systematic&#39;, N=None, wroot=1.0):
-    &#34;&#34;&#34;Multinomial resampling [Dou09]_, [van09]_, [Liu01]_.
-
-    - kind: &#39;Systematic&#39;, &#39;Residual&#39; or &#39;Stochastic&#39;.
-      &#39;Stochastic&#39; corresponds to np.random.choice() or np.random.multinomial().
-      &#39;Systematic&#39; and &#39;Residual&#39; are more systematic (less stochastic)
-      varaitions of &#39;Stochastic&#39; sampling.
-      Among the three, &#39;Systematic&#39; is fastest, introduces the least noise,
-      and brings continuity benefits for localized particle filters,
-      and is therefore generally prefered.
-      Example: see dpr_data/doc_snippets/ex_resample.py.
-
-    - N can be different from len(w)
-      (e.g. in case some particles have been elimintated).
-
-    - wroot: Adjust weights before resampling by this root to
-      promote particle diversity and mitigate thinning.
-      The outcomes of the resampling are then weighted to maintain un-biased-ness.
-      Ref: [Liu01]_, section 3.1
-
-    Note: (a) resampling methods are beneficial because they discard
-    low-weight (&#34;doomed&#34;) particles and reduce the variance of the weights.
-    However, (b) even unbiased/rigorous resampling methods introduce noise;
-    (increases the var of any empirical estimator, see [1], section 3.4).
-    How to unify the seemingly contrary statements of (a) and (b) ?
-    By recognizing that we&#39;re in the *sequential/dynamical* setting,
-    and that *future* variance may be expected to be lower by focusing
-    on the high-weight particles which we anticipate will
-    have more informative (and less variable) future likelihoods.
-    &#34;&#34;&#34;
-
-    assert(abs(w.sum()-1) &lt; 1e-5)
-
-    # Input parsing
-    N_o = len(w)   # N _original
-    if N is None:  # N to sample
-        N = N_o
-
-    # Compute factors s such that s*w := w**(1/wroot).
-    if wroot != 1.0:
-        s   = (w**(1/wroot - 1)).clip(max=1e100)
-        s  /= (s*w).sum()
-        sw  = s*w
-    else:
-        s   = np.ones(N_o)
-        sw  = w
-
-    # Do the actual resampling
-    idx = _resample(sw, kind, N_o, N)
-
-    w  = 1/s[idx]  # compensate for above scaling by s
-    w /= w.sum()   # normalize
-
-    return idx, w
-
-
-def _resample(w, kind, N_o, N):
-    &#34;&#34;&#34;Core functionality for :func:`resample`.&#34;&#34;&#34;
-    if kind in [&#39;Stochastic&#39;, &#39;Stoch&#39;]:
-        # van Leeuwen [2] also calls this &#34;probabilistic&#34; resampling
-        idx = np.random.choice(N_o, N, replace=True, p=w)
-        # np.random.multinomial is faster (slightly different usage) ?
-    elif kind in [&#39;Residual&#39;, &#39;Res&#39;]:
-        # Doucet [1] also calls this &#34;stratified&#34; resampling.
-        w_N   = w*N              # upscale
-        w_I   = w_N.astype(int)  # integer part
-        w_D   = w_N-w_I          # decimal part
-        # Create duplicate indices for integer parts
-        idx_I = [i*np.ones(wi, dtype=int) for i, wi in enumerate(w_I)]
-        idx_I = np.concatenate(idx_I)
-        # Multinomial sampling of decimal parts
-        N_I   = w_I.sum()  # == len(idx_I)
-        N_D   = N - N_I
-        idx_D = np.random.choice(N_o, N_D, replace=True, p=w_D/w_D.sum())
-        # Concatenate
-        idx   = np.hstack((idx_I, idx_D))
-    elif kind in [&#39;Systematic&#39;, &#39;Sys&#39;]:
-        # van Leeuwen [2] also calls this &#34;stochastic universal&#34; resampling
-        U     = rand(1) / N
-        CDF_a = U + np.arange(N)/N
-        CDF_o = np.cumsum(w)
-        # idx = CDF_a &lt;= CDF_o[:,None]
-        # idx = np.argmax(idx,axis=0) # Finds 1st. SO/a/16244044/
-        idx   = np.searchsorted(CDF_o, CDF_a)
-    else:
-        raise KeyError
-    return idx
-
-
-def sample_quickly_with(C12, N=None):
-    &#34;&#34;&#34;Gaussian sampling in the quickest fashion.
-
-    Method depends on the size of the colouring matrix ``C12``.
-    &#34;&#34;&#34;
-    (N_, M) = C12.shape
-    if N is None:
-        N = N_
-    if N_ &gt; 2*M:
-        cholR  = chol_reduce(C12)
-        D      = randn((N, cholR.shape[0]))
-        chi2   = np.sum(D**2, axis=1)
-        sample = D@cholR
-    else:
-        chi2_compensate_for_rank = min(M/N_, 1.0)
-        D      = randn((N, N_))
-        chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
-        sample = D@C12
-    return sample, chi2</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -677,39 +31,22 @@ def sample_quickly_with(C12, N=None):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.da_methods.particle.auto_bandw"><code class="name flex">
-<span>def <span class="ident">auto_bandw</span></span>(<span>N, M)</span>
+<dt id="dapper.da_methods.particle.trigger_resampling"><code class="name flex">
+<span>def <span class="ident">trigger_resampling</span></span>(<span>w, NER, stat_args)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.</p>
-<p>Refs: [Dou01]<em> section 12.2.2, and [Wik17]</em> section "Rule_of_thumb"</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def auto_bandw(N, M):
-    &#34;&#34;&#34;&#34;Optimal bandwidth (not bandwidth^2), as per Scott&#39;s rule-of-thumb.
-
-    Refs: [Dou01]_ section 12.2.2, and [Wik17]_ section &#34;Rule_of_thumb&#34;
-    &#34;&#34;&#34;
-    return N**(-1/(M+4))</code></pre>
-</details>
+<div class="desc"><p>Return boolean: N_effective &lt;= threshold. Also write stats.</p></div>
 </dd>
-<dt id="dapper.da_methods.particle.mask_unique_of_sorted"><code class="name flex">
-<span>def <span class="ident">mask_unique_of_sorted</span></span>(<span>idx)</span>
+<dt id="dapper.da_methods.particle.reweight"><code class="name flex">
+<span>def <span class="ident">reweight</span></span>(<span>w, lklhd=None, logL=None, innovs=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>NB: returns a mask which is True at [i] iff idx[i] is NOT unique.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def mask_unique_of_sorted(idx):
-    &#34;NB: returns a mask which is True at [i] iff idx[i] is NOT unique.&#34;
-    duplicates  = idx == np.roll(idx, 1)
-    duplicates |= idx == np.roll(idx, -1)
-    return duplicates</code></pre>
-</details>
+<div class="desc"><p>Do Bayes' rule (for the empirical distribution of an importance sample).</p>
+<p>Do computations in log-space, for at least 2 reasons:
+- Normalization: will fail if sum==0 (if all innov's are large).
+- Num. precision: lklhd*w should have better precision in log space.
+Output is non-log, for the purpose of assessment and resampling.</p>
+<p>If input is 'innovs': likelihood := NormDist(innovs|0,Id).</p></div>
 </dd>
 <dt id="dapper.da_methods.particle.raw_C12"><code class="name flex">
 <span>def <span class="ident">raw_C12</span></span>(<span>E, w)</span>
@@ -719,29 +56,19 @@ def sample_quickly_with(C12, N=None):
 <p>The weights are used both for the mean and anomalies (raw sqrt).</p>
 <p>Note: anomalies (and thus cov) are weighted,
 and also computed based on a weighted mean.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def raw_C12(E, w):
-    &#34;&#34;&#34;Compute the &#39;raw&#39; matrix-square-root of the ensemble&#39; covariance.
-
-    The weights are used both for the mean and anomalies (raw sqrt).
-
-    Note: anomalies (and thus cov) are weighted,
-    and also computed based on a weighted mean.
-    &#34;&#34;&#34;
-    # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.math.weight_degeneracy(w):
-        w = np.ones(len(w))/len(w)
-        # PS: &#39;avoid_pathological&#39; already treated here.
-
-    mu  = w@E
-    A   = E - mu
-    ub  = dapper.tools.math.unbias_var(w, avoid_pathological=False)
-    C12 = np.sqrt(ub*w[:, None]) * A
-    return C12</code></pre>
-</details>
+</dd>
+<dt id="dapper.da_methods.particle.mask_unique_of_sorted"><code class="name flex">
+<span>def <span class="ident">mask_unique_of_sorted</span></span>(<span>idx)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>NB: returns a mask which is True at [i] iff idx[i] is NOT unique.</p></div>
+</dd>
+<dt id="dapper.da_methods.particle.auto_bandw"><code class="name flex">
+<span>def <span class="ident">auto_bandw</span></span>(<span>N, M)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.</p>
+<p>Refs: [Dou01]<em> section 12.2.2, and [Wik17]</em> section "Rule_of_thumb"</p></div>
 </dd>
 <dt id="dapper.da_methods.particle.regularize"><code class="name flex">
 <span>def <span class="ident">regularize</span></span>(<span>C12, E, idx, no_uniq_jitter)</span>
@@ -756,35 +83,6 @@ Gaussian kernels),
 which controls the strength of the jitter.
 This causes a bias. But, as N&ndash;&gt;∞, the reg. bandwidth&ndash;&gt;0, i.e. bias&ndash;&gt;0.
 Ref: [Dou01]_, section 12.2.2.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def regularize(C12, E, idx, no_uniq_jitter):
-    &#34;&#34;&#34;Jitter (add noise).
-
-    After resampling some of the particles will be identical.
-    Therefore, if noise.is_deterministic: some noise must be added.
-    This is adjusted by the regularization &#39;reg&#39; factor
-    (so-named because Dirac-deltas are approximated  Gaussian kernels),
-    which controls the strength of the jitter.
-    This causes a bias. But, as N--&gt;∞, the reg. bandwidth--&gt;0, i.e. bias--&gt;0.
-    Ref: [Dou01]_, section 12.2.2.
-    &#34;&#34;&#34;
-    # Select
-    E = E[idx]
-
-    # Jitter
-    if no_uniq_jitter:
-        dups         = mask_unique_of_sorted(idx)
-        sample, chi2 = sample_quickly_with(C12, N=sum(dups))
-        E[dups]     += sample
-    else:
-        sample, chi2 = sample_quickly_with(C12, N=len(E))
-        E           += sample
-
-    return E, chi2</code></pre>
-</details>
 </dd>
 <dt id="dapper.da_methods.particle.resample"><code class="name flex">
 <span>def <span class="ident">resample</span></span>(<span>w, kind='Systematic', N=None, wroot=1.0)</span>
@@ -822,111 +120,6 @@ By recognizing that we're in the <em>sequential/dynamical</em> setting,
 and that <em>future</em> variance may be expected to be lower by focusing
 on the high-weight particles which we anticipate will
 have more informative (and less variable) future likelihoods.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def resample(w, kind=&#39;Systematic&#39;, N=None, wroot=1.0):
-    &#34;&#34;&#34;Multinomial resampling [Dou09]_, [van09]_, [Liu01]_.
-
-    - kind: &#39;Systematic&#39;, &#39;Residual&#39; or &#39;Stochastic&#39;.
-      &#39;Stochastic&#39; corresponds to np.random.choice() or np.random.multinomial().
-      &#39;Systematic&#39; and &#39;Residual&#39; are more systematic (less stochastic)
-      varaitions of &#39;Stochastic&#39; sampling.
-      Among the three, &#39;Systematic&#39; is fastest, introduces the least noise,
-      and brings continuity benefits for localized particle filters,
-      and is therefore generally prefered.
-      Example: see dpr_data/doc_snippets/ex_resample.py.
-
-    - N can be different from len(w)
-      (e.g. in case some particles have been elimintated).
-
-    - wroot: Adjust weights before resampling by this root to
-      promote particle diversity and mitigate thinning.
-      The outcomes of the resampling are then weighted to maintain un-biased-ness.
-      Ref: [Liu01]_, section 3.1
-
-    Note: (a) resampling methods are beneficial because they discard
-    low-weight (&#34;doomed&#34;) particles and reduce the variance of the weights.
-    However, (b) even unbiased/rigorous resampling methods introduce noise;
-    (increases the var of any empirical estimator, see [1], section 3.4).
-    How to unify the seemingly contrary statements of (a) and (b) ?
-    By recognizing that we&#39;re in the *sequential/dynamical* setting,
-    and that *future* variance may be expected to be lower by focusing
-    on the high-weight particles which we anticipate will
-    have more informative (and less variable) future likelihoods.
-    &#34;&#34;&#34;
-
-    assert(abs(w.sum()-1) &lt; 1e-5)
-
-    # Input parsing
-    N_o = len(w)   # N _original
-    if N is None:  # N to sample
-        N = N_o
-
-    # Compute factors s such that s*w := w**(1/wroot).
-    if wroot != 1.0:
-        s   = (w**(1/wroot - 1)).clip(max=1e100)
-        s  /= (s*w).sum()
-        sw  = s*w
-    else:
-        s   = np.ones(N_o)
-        sw  = w
-
-    # Do the actual resampling
-    idx = _resample(sw, kind, N_o, N)
-
-    w  = 1/s[idx]  # compensate for above scaling by s
-    w /= w.sum()   # normalize
-
-    return idx, w</code></pre>
-</details>
-</dd>
-<dt id="dapper.da_methods.particle.reweight"><code class="name flex">
-<span>def <span class="ident">reweight</span></span>(<span>w, lklhd=None, logL=None, innovs=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Do Bayes' rule (for the empirical distribution of an importance sample).</p>
-<p>Do computations in log-space, for at least 2 reasons:
-- Normalization: will fail if sum==0 (if all innov's are large).
-- Num. precision: lklhd*w should have better precision in log space.
-Output is non-log, for the purpose of assessment and resampling.</p>
-<p>If input is 'innovs': likelihood := NormDist(innovs|0,Id).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def reweight(w, lklhd=None, logL=None, innovs=None):
-    &#34;&#34;&#34;Do Bayes&#39; rule (for the empirical distribution of an importance sample).
-
-    Do computations in log-space, for at least 2 reasons:
-    - Normalization: will fail if sum==0 (if all innov&#39;s are large).
-    - Num. precision: lklhd*w should have better precision in log space.
-    Output is non-log, for the purpose of assessment and resampling.
-
-    If input is &#39;innovs&#39;: likelihood := NormDist(innovs|0,Id).
-    &#34;&#34;&#34;
-    assert utils.all_but_1_is_None(lklhd, logL, innovs), \
-        &#34;Input error. Only specify one of lklhd, logL, innovs&#34;
-
-    # Get log-values.
-    # Use context manager &#39;errstate&#39; to not warn for log(0) = -inf.
-    # Note: the case when all(w==0) will cause nan&#39;s,
-    #       which should cause errors outside.
-    with np.errstate(divide=&#39;ignore&#39;):
-        logw = np.log(w)
-        if lklhd is not None:
-            logL = np.log(lklhd)
-        elif innovs is not None:
-            chi2 = np.sum(innovs**2, axis=1)
-            logL = -0.5 * chi2
-
-    logw   = logw + logL   # Bayes&#39; rule in log-space
-    logw  -= logw.max()    # Avoid numerical error
-    w      = np.exp(logw)  # non-log
-    w     /= w.sum()       # normalize
-    return w</code></pre>
-</details>
 </dd>
 <dt id="dapper.da_methods.particle.sample_quickly_with"><code class="name flex">
 <span>def <span class="ident">sample_quickly_with</span></span>(<span>C12, N=None)</span>
@@ -934,66 +127,76 @@ Output is non-log, for the purpose of assessment and resampling.</p>
 <dd>
 <div class="desc"><p>Gaussian sampling in the quickest fashion.</p>
 <p>Method depends on the size of the colouring matrix <code>C12</code>.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def sample_quickly_with(C12, N=None):
-    &#34;&#34;&#34;Gaussian sampling in the quickest fashion.
-
-    Method depends on the size of the colouring matrix ``C12``.
-    &#34;&#34;&#34;
-    (N_, M) = C12.shape
-    if N is None:
-        N = N_
-    if N_ &gt; 2*M:
-        cholR  = chol_reduce(C12)
-        D      = randn((N, cholR.shape[0]))
-        chi2   = np.sum(D**2, axis=1)
-        sample = D@cholR
-    else:
-        chi2_compensate_for_rank = min(M/N_, 1.0)
-        D      = randn((N, N_))
-        chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
-        sample = D@C12
-    return sample, chi2</code></pre>
-</details>
-</dd>
-<dt id="dapper.da_methods.particle.trigger_resampling"><code class="name flex">
-<span>def <span class="ident">trigger_resampling</span></span>(<span>w, NER, stat_args)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Return boolean: N_effective &lt;= threshold. Also write stats.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def trigger_resampling(w, NER, stat_args):
-    &#34;Return boolean: N_effective &lt;= threshold. Also write stats.&#34;
-
-    N_eff       = 1/(w@w)
-    do_resample = N_eff &lt;= len(w)*NER
-
-    # Unpack stat args
-    stats, E, k, kObs = stat_args
-
-    stats.N_eff[kObs]  = N_eff
-    stats.resmpl[kObs] = 1 if do_resample else 0
-
-    # Why have we put stats.assess() here?
-    # Because we need to write stats.N_eff and stats.resmpl before calling
-    # assess() so that these curves (in sliding_diagnostics liveplotting
-    # are not eliminated (as inactive).
-    stats.assess(k, kObs, &#39;a&#39;, E=E, w=w)
-
-    return do_resample</code></pre>
-</details>
 </dd>
 </dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="dapper.da_methods.particle.PartFilt"><code class="flex name class">
+<span>class <span class="ident">PartFilt</span></span>
+<span>(</span><span>N: int, reg: float = 0, nuj: bool = True, qroot: float = 1.0, wroot: float = 1.0, NER: float = 1.0, resampl: str = 'Sys')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Particle filter ≡ Sequential importance (re)sampling SIS (SIR).</p>
+<p>Refs: [Wik07]<em>, [van09]</em>, [Che03]_</p>
+<p>This is the bootstrap version: the proposal density is just
+:math:<code>q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})</code></p>
+<p>Tuning settings:</p>
+<ul>
+<li>NER: Trigger resampling whenever N_eff &lt;= N*NER.
+If resampling with some variant of 'Multinomial',
+no systematic bias is introduced.</li>
+<li>qroot: "Inflate" (anneal) the proposal noise kernels
+by this root to increase diversity.
+The weights are updated to maintain un-biased-ness.
+See [Che03]_, section VI-M.2</li>
+</ul></div>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.da_methods.particle.PartFilt.N"><code class="name">var <span class="ident">N</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PartFilt.reg"><code class="name">var <span class="ident">reg</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PartFilt.nuj"><code class="name">var <span class="ident">nuj</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PartFilt.qroot"><code class="name">var <span class="ident">qroot</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PartFilt.wroot"><code class="name">var <span class="ident">wroot</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PartFilt.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PartFilt.resampl"><code class="name">var <span class="ident">resampl</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PartFilt.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="dapper.da_methods.particle.PartFilt.assimilate"><code class="name flex">
+<span>def <span class="ident">assimilate</span></span>(<span>self, HMM, xx, yy)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="dapper.da_methods.particle.OptPF"><code class="flex name class">
 <span>class <span class="ident">OptPF</span></span>
 <span>(</span><span>N: int, Qs: float, reg: float = 0, nuj: bool = True, wroot: float = 1.0, NER: float = 1.0, resampl: str = 'Sys')</span>
@@ -1006,78 +209,9 @@ Output is non-log, for the purpose of assessment and resampling.</p>
 <p>If <code>Qs==0</code>: OptPF should be equal to
 the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" href="#dapper.da_methods.particle.PartFilt">PartFilt</a></code>.</p>
 </div></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class OptPF:
-    &#34;&#34;&#34;&#39;Optimal proposal&#39; particle filter, also known as &#39;Implicit particle filter&#39;.
-
-    Ref: [Boc10]_.
-
-    .. note:: Regularization (``Qs``) is here added BEFORE Bayes&#39; rule.
-              If ``Qs==0``: OptPF should be equal to
-              the bootstrap filter :func:`PartFilt`.
-    &#34;&#34;&#34;
-    N: int
-    Qs: float
-    reg: float   = 0
-    nuj: bool    = True
-    wroot: float = 1.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, Nx, R = self.N, Dyn.M, Obs.noise.C.full
-
-        E = X0.sample(N)
-        w = 1/N*np.ones(N)
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-                y = yy[kObs]
-
-                Eo = Obs(E, t)
-                innovs = y - Eo
-
-                # EnKF-ish update
-                s   = self.Qs*auto_bandw(N, Nx)
-                As  = s*raw_C12(E, w)
-                Ys  = s*raw_C12(Eo, w)
-                C   = Ys.T@Ys + R
-                KG  = As.T@mrdiv(Ys, C)
-                E  += sample_quickly_with(As)[0]
-                D   = Obs.noise.sample(N)
-                dE  = KG @ (y-Obs(E, t)-D).T
-                E   = E + dE.T
-
-                # Importance weighting
-                chi2   = innovs*mldiv(C, innovs.T).T
-                logL   = -0.5 * np.sum(chi2, axis=1)
-                w      = reweight(w, logL=logL)
-
-                # Resampling
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                    idx, w  = resample(w, self.resampl, wroot=self.wroot)
-                    E, _    = regularize(C12, E, idx, self.nuj)
-
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
 <h3>Class variables</h3>
 <dl>
 <dt id="dapper.da_methods.particle.OptPF.N"><code class="name">var <span class="ident">N</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.OptPF.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1085,7 +219,7 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.OptPF.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
+<dt id="dapper.da_methods.particle.OptPF.reg"><code class="name">var <span class="ident">reg</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1093,7 +227,11 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.OptPF.reg"><code class="name">var <span class="ident">reg</span> : float</code></dt>
+<dt id="dapper.da_methods.particle.OptPF.wroot"><code class="name">var <span class="ident">wroot</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.OptPF.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1101,7 +239,7 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.OptPF.wroot"><code class="name">var <span class="ident">wroot</span> : float</code></dt>
+<dt id="dapper.da_methods.particle.OptPF.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1113,56 +251,6 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    Dyn, Obs, chrono, X0, stats = \
-        HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-    N, Nx, R = self.N, Dyn.M, Obs.noise.C.full
-
-    E = X0.sample(N)
-    w = 1/N*np.ones(N)
-
-    stats.assess(0, E=E, w=w)
-
-    for k, kObs, t, dt in progbar(chrono.ticker):
-        E = Dyn(E, t-dt, dt)
-        if Dyn.noise.C != 0:
-            E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-        if kObs is not None:
-            stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-            y = yy[kObs]
-
-            Eo = Obs(E, t)
-            innovs = y - Eo
-
-            # EnKF-ish update
-            s   = self.Qs*auto_bandw(N, Nx)
-            As  = s*raw_C12(E, w)
-            Ys  = s*raw_C12(Eo, w)
-            C   = Ys.T@Ys + R
-            KG  = As.T@mrdiv(Ys, C)
-            E  += sample_quickly_with(As)[0]
-            D   = Obs.noise.sample(N)
-            dE  = KG @ (y-Obs(E, t)-D).T
-            E   = E + dE.T
-
-            # Importance weighting
-            chi2   = innovs*mldiv(C, innovs.T).T
-            logL   = -0.5 * np.sum(chi2, axis=1)
-            w      = reweight(w, logL=logL)
-
-            # Resampling
-            if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                idx, w  = resample(w, self.resampl, wroot=self.wroot)
-                E, _    = regularize(C12, E, idx, self.nuj)
-
-        stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -1183,93 +271,9 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 <p>NB: This does not mean that we make a PF-EnKF hybrid
 &ndash; we're only playing on the weights.</p>
 <p>Hybridization with xN did not show much promise.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PFa:
-    &#34;&#34;&#34;PF with weight adjustment withOUT
-
-    compensating for the bias it introduces.
-
-    &#39;alpha&#39; sets wroot before resampling such that N_effective becomes &gt;alpha*N.
-
-    Using alpha≈NER usually works well.
-
-    Explanation:
-    Recall that the bootstrap particle filter has &#34;no&#34; bias,
-    but significant variance (which is reflected in the weights).
-    The EnKF is quite the opposite.
-    Similarly, by adjusting the weights we play on the bias-variance spectrum.
-
-    NB: This does not mean that we make a PF-EnKF hybrid
-    -- we&#39;re only playing on the weights.
-
-    Hybridization with xN did not show much promise.
-    &#34;&#34;&#34;
-    N: int
-    alpha: float
-    reg: float   = 0
-    nuj: bool    = True
-    qroot: float = 1.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-        E = X0.sample(N)
-        w = 1/N*np.ones(N)
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                D  = randn((N, Nx))
-                E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
-
-                if self.qroot != 1.0:
-                    # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
-                    w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
-                    w /= w.sum()
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-
-                innovs = (yy[kObs] - Obs(E, t)) @ Rm12.T
-                w      = reweight(w, innovs=innovs)
-
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    C12    = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                    # C12  *= np.sqrt(rroot) # Re-include?
-
-                    wroot = 1.0
-                    while True:
-                        s   = (w**(1/wroot - 1)).clip(max=1e100)
-                        s  /= (s*w).sum()
-                        sw  = s*w
-                        if 1/(sw@sw) &lt; N*self.alpha:
-                            wroot += 0.2
-                        else:
-                            stats.wroot[kObs] = wroot
-                            break
-                    idx, w  = resample(sw, self.resampl, wroot=1)
-
-                    E, chi2 = regularize(C12, E, idx, self.nuj)
-                    # if rroot != 1.0:
-                    #     Compensate for rroot
-                    #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
-                    #     w /= w.sum()
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
 <h3>Class variables</h3>
 <dl>
 <dt id="dapper.da_methods.particle.PFa.N"><code class="name">var <span class="ident">N</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFa.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1277,7 +281,7 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PFa.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
+<dt id="dapper.da_methods.particle.PFa.reg"><code class="name">var <span class="ident">reg</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1289,11 +293,15 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PFa.reg"><code class="name">var <span class="ident">reg</span> : float</code></dt>
+<dt id="dapper.da_methods.particle.PFa.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 <dt id="dapper.da_methods.particle.PFa.resampl"><code class="name">var <span class="ident">resampl</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PFa.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1305,246 +313,6 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    Dyn, Obs, chrono, X0, stats = \
-        HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-    N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-    E = X0.sample(N)
-    w = 1/N*np.ones(N)
-
-    stats.assess(0, E=E, w=w)
-
-    for k, kObs, t, dt in progbar(chrono.ticker):
-        E = Dyn(E, t-dt, dt)
-        if Dyn.noise.C != 0:
-            D  = randn((N, Nx))
-            E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
-
-            if self.qroot != 1.0:
-                # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
-                w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
-                w /= w.sum()
-
-        if kObs is not None:
-            stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-
-            innovs = (yy[kObs] - Obs(E, t)) @ Rm12.T
-            w      = reweight(w, innovs=innovs)
-
-            if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                C12    = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                # C12  *= np.sqrt(rroot) # Re-include?
-
-                wroot = 1.0
-                while True:
-                    s   = (w**(1/wroot - 1)).clip(max=1e100)
-                    s  /= (s*w).sum()
-                    sw  = s*w
-                    if 1/(sw@sw) &lt; N*self.alpha:
-                        wroot += 0.2
-                    else:
-                        stats.wroot[kObs] = wroot
-                        break
-                idx, w  = resample(sw, self.resampl, wroot=1)
-
-                E, chi2 = regularize(C12, E, idx, self.nuj)
-                # if rroot != 1.0:
-                #     Compensate for rroot
-                #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
-                #     w /= w.sum()
-        stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN"><code class="flex name class">
-<span>class <span class="ident">PFxN</span></span>
-<span>(</span><span>N: int, Qs: float, xN: int, re_use: bool = True, wroot_max: float = 5.0, NER: float = 1.0, resampl: str = 'Sys')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Particle filter with buckshot duplication during analysis.</p>
-<p>Idea: sample xN duplicates from each of the N kernels.
-Let resampling reduce it to N.</p>
-<p>Additional idea: employ w-adjustment to obtain N unique particles,
-without jittering.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PFxN:
-    &#34;&#34;&#34;Particle filter with buckshot duplication during analysis.
-
-    Idea: sample xN duplicates from each of the N kernels.
-    Let resampling reduce it to N.
-
-    Additional idea: employ w-adjustment to obtain N unique particles,
-    without jittering.
-    &#34;&#34;&#34;
-    N: int
-    Qs: float
-    xN: int
-    re_use: bool = True
-    wroot_max: float = 5.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, xN, Nx, Rm12 = self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-        DD = None
-        E  = X0.sample(N)
-        w  = 1/N*np.ones(N)
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-                y  = yy[kObs]
-                wD = w.copy()
-
-                innovs = (y - Obs(E, t)) @ Rm12.T
-                w      = reweight(w, innovs=innovs)
-
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    # Compute kernel colouring matrix
-                    cholR = self.Qs*auto_bandw(N, Nx)*raw_C12(E, wD)
-                    cholR = chol_reduce(cholR)
-
-                    # Generate N·xN random numbers from NormDist(0,1)
-                    if DD is None or not self.re_use:
-                        DD = randn((N*xN, Nx))
-
-                    # Duplicate and jitter
-                    ED  = E.repeat(xN, 0)
-                    wD  = wD.repeat(xN) / xN
-                    ED += DD[:, :len(cholR)]@cholR
-
-                    # Update weights
-                    innovs = (y - Obs(ED, t)) @ Rm12.T
-                    wD     = reweight(wD, innovs=innovs)
-
-                    # Resample and reduce
-                    wroot = 1.0
-                    while wroot &lt; self.wroot_max:
-                        idx, w = resample(wD, self.resampl, wroot=wroot, N=N)
-                        dups   = sum(mask_unique_of_sorted(idx))
-                        if dups == 0:
-                            E = ED[idx]
-                            break
-                        else:
-                            wroot += 0.1
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="dapper.da_methods.particle.PFxN.N"><code class="name">var <span class="ident">N</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN.Qs"><code class="name">var <span class="ident">Qs</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN.re_use"><code class="name">var <span class="ident">re_use</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN.resampl"><code class="name">var <span class="ident">resampl</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN.wroot_max"><code class="name">var <span class="ident">wroot_max</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN.xN"><code class="name">var <span class="ident">xN</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="dapper.da_methods.particle.PFxN.assimilate"><code class="name flex">
-<span>def <span class="ident">assimilate</span></span>(<span>self, HMM, xx, yy)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    Dyn, Obs, chrono, X0, stats = \
-        HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-    N, xN, Nx, Rm12 = self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-    DD = None
-    E  = X0.sample(N)
-    w  = 1/N*np.ones(N)
-
-    stats.assess(0, E=E, w=w)
-
-    for k, kObs, t, dt in progbar(chrono.ticker):
-        E = Dyn(E, t-dt, dt)
-        if Dyn.noise.C != 0:
-            E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-        if kObs is not None:
-            stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-            y  = yy[kObs]
-            wD = w.copy()
-
-            innovs = (y - Obs(E, t)) @ Rm12.T
-            w      = reweight(w, innovs=innovs)
-
-            if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                # Compute kernel colouring matrix
-                cholR = self.Qs*auto_bandw(N, Nx)*raw_C12(E, wD)
-                cholR = chol_reduce(cholR)
-
-                # Generate N·xN random numbers from NormDist(0,1)
-                if DD is None or not self.re_use:
-                    DD = randn((N*xN, Nx))
-
-                # Duplicate and jitter
-                ED  = E.repeat(xN, 0)
-                wD  = wD.repeat(xN) / xN
-                ED += DD[:, :len(cholR)]@cholR
-
-                # Update weights
-                innovs = (y - Obs(ED, t)) @ Rm12.T
-                wD     = reweight(wD, innovs=innovs)
-
-                # Resample and reduce
-                wroot = 1.0
-                while wroot &lt; self.wroot_max:
-                    idx, w = resample(wD, self.resampl, wroot=wroot, N=N)
-                    dups   = sum(mask_unique_of_sorted(idx))
-                    if dups == 0:
-                        E = ED[idx]
-                        break
-                    else:
-                        wroot += 0.1
-        stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -1565,137 +333,9 @@ with c_n = p(y|x^{k-1}_n) being the composite proposal-analysis weight,
 and with Q possibly from regularization (rather than actual model noise).</p>
 <p>Here, we will use the posterior mean of (2) and cov of (1).
 Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PFxN_EnKF:
-    &#34;&#34;&#34;Particle filter with EnKF-based proposal, q.
-
-    Also employs xN duplication, as in PFxN.
-
-    Recall that the proposals:
-    Opt.: q_n(x) = c_n·N(x|x_n,Q     )·N(y|Hx,R)  (1)
-    EnKF: q_n(x) = c_n·N(x|x_n,bar{B})·N(y|Hx,R)  (2)
-    with c_n = p(y|x^{k-1}_n) being the composite proposal-analysis weight,
-    and with Q possibly from regularization (rather than actual model noise).
-
-    Here, we will use the posterior mean of (2) and cov of (1).
-    Or maybe we should use x_a^n distributed according to a sqrt update?
-    &#34;&#34;&#34;
-    N: int
-    Qs: float
-    xN: int
-    re_use: bool = True
-    wroot_max: float = 5.0
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, xN, Nx, Rm12, Ri = \
-            self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
-
-        E = X0.sample(N)
-        w = 1/N*np.ones(N)
-
-        DD = None
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-                y  = yy[kObs]
-                Eo = Obs(E, t)
-                wD = w.copy()
-
-                # Importance weighting
-                innovs = (y - Eo) @ Rm12.T
-                w      = reweight(w, innovs=innovs)
-
-                # Resampling
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    # Weighted covariance factors
-                    Aw = raw_C12(E, wD)
-                    Yw = raw_C12(Eo, wD)
-
-                    # EnKF-without-pertubations update
-                    if N &gt; Nx:
-                        C       = Yw.T @ Yw + Obs.noise.C.full
-                        KG      = mrdiv(Aw.T@Yw, C)
-                        cntrs   = E + (y-Eo)@KG.T
-                        Pa      = Aw.T@Aw - KG@Yw.T@Aw
-                        P_cholU = funm_psd(Pa, np.sqrt)
-                        if DD is None or not self.re_use:
-                            DD    = randn((N*xN, Nx))
-                            chi2  = np.sum(DD**2, axis=1) * Nx/N
-                            log_q = -0.5 * chi2
-                    else:
-                        V, sig, UT = svd0(Yw @ Rm12.T)
-                        dgn      = pad0(sig**2, N) + 1
-                        Pw       = (V * dgn**(-1.0)) @ V.T
-                        cntrs    = E + (y-Eo)@Ri@Yw.T@Pw@Aw
-                        P_cholU  = (V*dgn**(-0.5)).T @ Aw
-                        # Generate N·xN random numbers from NormDist(0,1),
-                        # and compute log(q(x))
-                        if DD is None or not self.re_use:
-                            rnk   = min(Nx, N-1)
-                            DD    = randn((N*xN, N))
-                            chi2  = np.sum(DD**2, axis=1) * rnk/N
-                            log_q = -0.5 * chi2
-                        # NB: the DoF_linalg/DoF_stoch correction
-                        # is only correct &#34;on average&#34;.
-                        # It is inexact &#34;in proportion&#34; to V@V.T-Id,
-                        # where V,s,UT = tsvd(Aw).
-                        # Anyways, we&#39;re computing the tsvd of Aw below,
-                        # so might as well compute q(x) instead of q(xi).
-
-                    # Duplicate
-                    ED  = cntrs.repeat(xN, 0)
-                    wD  = wD.repeat(xN) / xN
-
-                    # Sample q
-                    AD = DD@P_cholU
-                    ED = ED + AD
-
-                    # log(prior_kernel(x))
-                    s         = self.Qs*auto_bandw(N, Nx)
-                    innovs_pf = AD @ tinv(s*Aw)
-                    # NB: Correct: innovs_pf = (ED-E_orig) @ tinv(s*Aw)
-                    #     But it seems to make no difference on well-tuned performance !
-                    log_pf    = -0.5 * np.sum(innovs_pf**2, axis=1)
-
-                    # log(likelihood(x))
-                    innovs = (y - Obs(ED, t)) @ Rm12.T
-                    log_L  = -0.5 * np.sum(innovs**2, axis=1)
-
-                    # Update weights
-                    log_tot = log_L + log_pf - log_q
-                    wD      = reweight(wD, logL=log_tot)
-
-                    # Resample and reduce
-                    wroot = 1.0
-                    while wroot &lt; self.wroot_max:
-                        idx, w = resample(wD, self.resampl, wroot=wroot, N=N)
-                        dups   = sum(mask_unique_of_sorted(idx))
-                        if dups == 0:
-                            E = ED[idx]
-                            break
-                        else:
-                            wroot += 0.1
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
 <h3>Class variables</h3>
 <dl>
 <dt id="dapper.da_methods.particle.PFxN_EnKF.N"><code class="name">var <span class="ident">N</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.particle.PFxN_EnKF.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1703,7 +343,7 @@ Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PFxN_EnKF.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
+<dt id="dapper.da_methods.particle.PFxN_EnKF.xN"><code class="name">var <span class="ident">xN</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1711,15 +351,19 @@ Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PFxN_EnKF.resampl"><code class="name">var <span class="ident">resampl</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="dapper.da_methods.particle.PFxN_EnKF.wroot_max"><code class="name">var <span class="ident">wroot_max</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PFxN_EnKF.xN"><code class="name">var <span class="ident">xN</span> : int</code></dt>
+<dt id="dapper.da_methods.particle.PFxN_EnKF.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PFxN_EnKF.resampl"><code class="name">var <span class="ident">resampl</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.da_methods.particle.PFxN_EnKF.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1731,286 +375,61 @@ Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    Dyn, Obs, chrono, X0, stats = \
-        HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-    N, xN, Nx, Rm12, Ri = \
-        self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
-
-    E = X0.sample(N)
-    w = 1/N*np.ones(N)
-
-    DD = None
-
-    stats.assess(0, E=E, w=w)
-
-    for k, kObs, t, dt in progbar(chrono.ticker):
-        E = Dyn(E, t-dt, dt)
-        if Dyn.noise.C != 0:
-            E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
-
-        if kObs is not None:
-            stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-            y  = yy[kObs]
-            Eo = Obs(E, t)
-            wD = w.copy()
-
-            # Importance weighting
-            innovs = (y - Eo) @ Rm12.T
-            w      = reweight(w, innovs=innovs)
-
-            # Resampling
-            if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                # Weighted covariance factors
-                Aw = raw_C12(E, wD)
-                Yw = raw_C12(Eo, wD)
-
-                # EnKF-without-pertubations update
-                if N &gt; Nx:
-                    C       = Yw.T @ Yw + Obs.noise.C.full
-                    KG      = mrdiv(Aw.T@Yw, C)
-                    cntrs   = E + (y-Eo)@KG.T
-                    Pa      = Aw.T@Aw - KG@Yw.T@Aw
-                    P_cholU = funm_psd(Pa, np.sqrt)
-                    if DD is None or not self.re_use:
-                        DD    = randn((N*xN, Nx))
-                        chi2  = np.sum(DD**2, axis=1) * Nx/N
-                        log_q = -0.5 * chi2
-                else:
-                    V, sig, UT = svd0(Yw @ Rm12.T)
-                    dgn      = pad0(sig**2, N) + 1
-                    Pw       = (V * dgn**(-1.0)) @ V.T
-                    cntrs    = E + (y-Eo)@Ri@Yw.T@Pw@Aw
-                    P_cholU  = (V*dgn**(-0.5)).T @ Aw
-                    # Generate N·xN random numbers from NormDist(0,1),
-                    # and compute log(q(x))
-                    if DD is None or not self.re_use:
-                        rnk   = min(Nx, N-1)
-                        DD    = randn((N*xN, N))
-                        chi2  = np.sum(DD**2, axis=1) * rnk/N
-                        log_q = -0.5 * chi2
-                    # NB: the DoF_linalg/DoF_stoch correction
-                    # is only correct &#34;on average&#34;.
-                    # It is inexact &#34;in proportion&#34; to V@V.T-Id,
-                    # where V,s,UT = tsvd(Aw).
-                    # Anyways, we&#39;re computing the tsvd of Aw below,
-                    # so might as well compute q(x) instead of q(xi).
-
-                # Duplicate
-                ED  = cntrs.repeat(xN, 0)
-                wD  = wD.repeat(xN) / xN
-
-                # Sample q
-                AD = DD@P_cholU
-                ED = ED + AD
-
-                # log(prior_kernel(x))
-                s         = self.Qs*auto_bandw(N, Nx)
-                innovs_pf = AD @ tinv(s*Aw)
-                # NB: Correct: innovs_pf = (ED-E_orig) @ tinv(s*Aw)
-                #     But it seems to make no difference on well-tuned performance !
-                log_pf    = -0.5 * np.sum(innovs_pf**2, axis=1)
-
-                # log(likelihood(x))
-                innovs = (y - Obs(ED, t)) @ Rm12.T
-                log_L  = -0.5 * np.sum(innovs**2, axis=1)
-
-                # Update weights
-                log_tot = log_L + log_pf - log_q
-                wD      = reweight(wD, logL=log_tot)
-
-                # Resample and reduce
-                wroot = 1.0
-                while wroot &lt; self.wroot_max:
-                    idx, w = resample(wD, self.resampl, wroot=wroot, N=N)
-                    dups   = sum(mask_unique_of_sorted(idx))
-                    if dups == 0:
-                        E = ED[idx]
-                        break
-                    else:
-                        wroot += 0.1
-        stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
-<dt id="dapper.da_methods.particle.PartFilt"><code class="flex name class">
-<span>class <span class="ident">PartFilt</span></span>
-<span>(</span><span>N: int, reg: float = 0, nuj: bool = True, qroot: float = 1.0, wroot: float = 1.0, NER: float = 1.0, resampl: str = 'Sys')</span>
+<dt id="dapper.da_methods.particle.PFxN"><code class="flex name class">
+<span>class <span class="ident">PFxN</span></span>
+<span>(</span><span>N: int, Qs: float, xN: int, re_use: bool = True, wroot_max: float = 5.0, NER: float = 1.0, resampl: str = 'Sys')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Particle filter ≡ Sequential importance (re)sampling SIS (SIR).</p>
-<p>Refs: [Wik07]<em>, [van09]</em>, [Che03]_</p>
-<p>This is the bootstrap version: the proposal density is just
-:math:<code>q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})</code></p>
-<p>Tuning settings:</p>
-<ul>
-<li>NER: Trigger resampling whenever N_eff &lt;= N*NER.
-If resampling with some variant of 'Multinomial',
-no systematic bias is introduced.</li>
-<li>qroot: "Inflate" (anneal) the proposal noise kernels
-by this root to increase diversity.
-The weights are updated to maintain un-biased-ness.
-See [Che03]_, section VI-M.2</li>
-</ul></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PartFilt:
-    r&#34;&#34;&#34;Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
-
-    Refs: [Wik07]_, [van09]_, [Che03]_
-
-    This is the bootstrap version: the proposal density is just
-    :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
-
-    Tuning settings:
-
-     - NER: Trigger resampling whenever N_eff &lt;= N*NER.
-       If resampling with some variant of &#39;Multinomial&#39;,
-       no systematic bias is introduced.
-     - qroot: &#34;Inflate&#34; (anneal) the proposal noise kernels
-       by this root to increase diversity.
-       The weights are updated to maintain un-biased-ness.
-       See [Che03]_, section VI-M.2
-    &#34;&#34;&#34;
-    N: int
-    reg: float   = 0
-    nuj: bool    = True
-    qroot: float = 1.0
-    wroot: float = 1.0
-
-    # TODO 4:
-    # if miN &lt; 1:
-    # miN = N*miN
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-        E = X0.sample(N)
-        w = 1/N*np.ones(N)
-
-        stats.assess(0, E=E, w=w)
-
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            if Dyn.noise.C != 0:
-                D  = randn((N, Nx))
-                E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
-
-                if self.qroot != 1.0:
-                    # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
-                    w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
-                    w /= w.sum()
-
-            if kObs is not None:
-                stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-
-                innovs = (yy[kObs] - Obs(E, t)) @ Rm12.T
-                w      = reweight(w, innovs=innovs)
-
-                if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                    C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                    # C12  *= np.sqrt(rroot) # Re-include?
-                    idx, w  = resample(w, self.resampl, wroot=self.wroot)
-                    E, chi2 = regularize(C12, E, idx, self.nuj)
-                    # if rroot != 1.0:
-                    #     # Compensate for rroot
-                    #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
-                    #     w /= w.sum()
-            stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
+<div class="desc"><p>Particle filter with buckshot duplication during analysis.</p>
+<p>Idea: sample xN duplicates from each of the N kernels.
+Let resampling reduce it to N.</p>
+<p>Additional idea: employ w-adjustment to obtain N unique particles,
+without jittering.</p></div>
 <h3>Class variables</h3>
 <dl>
-<dt id="dapper.da_methods.particle.PartFilt.N"><code class="name">var <span class="ident">N</span> : int</code></dt>
+<dt id="dapper.da_methods.particle.PFxN.N"><code class="name">var <span class="ident">N</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PartFilt.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
+<dt id="dapper.da_methods.particle.PFxN.Qs"><code class="name">var <span class="ident">Qs</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PartFilt.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
+<dt id="dapper.da_methods.particle.PFxN.xN"><code class="name">var <span class="ident">xN</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PartFilt.nuj"><code class="name">var <span class="ident">nuj</span> : bool</code></dt>
+<dt id="dapper.da_methods.particle.PFxN.re_use"><code class="name">var <span class="ident">re_use</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PartFilt.qroot"><code class="name">var <span class="ident">qroot</span> : float</code></dt>
+<dt id="dapper.da_methods.particle.PFxN.wroot_max"><code class="name">var <span class="ident">wroot_max</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PartFilt.reg"><code class="name">var <span class="ident">reg</span> : float</code></dt>
+<dt id="dapper.da_methods.particle.PFxN.NER"><code class="name">var <span class="ident">NER</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PartFilt.resampl"><code class="name">var <span class="ident">resampl</span> : str</code></dt>
+<dt id="dapper.da_methods.particle.PFxN.resampl"><code class="name">var <span class="ident">resampl</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="dapper.da_methods.particle.PartFilt.wroot"><code class="name">var <span class="ident">wroot</span> : float</code></dt>
+<dt id="dapper.da_methods.particle.PFxN.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="dapper.da_methods.particle.PartFilt.assimilate"><code class="name flex">
+<dt id="dapper.da_methods.particle.PFxN.assimilate"><code class="name flex">
 <span>def <span class="ident">assimilate</span></span>(<span>self, HMM, xx, yy)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    Dyn, Obs, chrono, X0, stats = \
-        HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-    N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
-
-    E = X0.sample(N)
-    w = 1/N*np.ones(N)
-
-    stats.assess(0, E=E, w=w)
-
-    for k, kObs, t, dt in progbar(chrono.ticker):
-        E = Dyn(E, t-dt, dt)
-        if Dyn.noise.C != 0:
-            D  = randn((N, Nx))
-            E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
-
-            if self.qroot != 1.0:
-                # Evaluate p/q (for each col of D) when q:=p**(1/self.qroot).
-                w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
-                w /= w.sum()
-
-        if kObs is not None:
-            stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
-
-            innovs = (yy[kObs] - Obs(E, t)) @ Rm12.T
-            w      = reweight(w, innovs=innovs)
-
-            if trigger_resampling(w, self.NER, [stats, E, k, kObs]):
-                C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
-                # C12  *= np.sqrt(rroot) # Re-include?
-                idx, w  = resample(w, self.resampl, wroot=self.wroot)
-                E, chi2 = regularize(C12, E, idx, self.nuj)
-                # if rroot != 1.0:
-                #     # Compensate for rroot
-                #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
-                #     w /= w.sum()
-        stats.assess(k, kObs, &#39;u&#39;, E=E, w=w)</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -2030,86 +449,86 @@ See [Che03]_, section VI-M.2</li>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="dapper.da_methods.particle.auto_bandw" href="#dapper.da_methods.particle.auto_bandw">auto_bandw</a></code></li>
-<li><code><a title="dapper.da_methods.particle.mask_unique_of_sorted" href="#dapper.da_methods.particle.mask_unique_of_sorted">mask_unique_of_sorted</a></code></li>
+<li><code><a title="dapper.da_methods.particle.trigger_resampling" href="#dapper.da_methods.particle.trigger_resampling">trigger_resampling</a></code></li>
+<li><code><a title="dapper.da_methods.particle.reweight" href="#dapper.da_methods.particle.reweight">reweight</a></code></li>
 <li><code><a title="dapper.da_methods.particle.raw_C12" href="#dapper.da_methods.particle.raw_C12">raw_C12</a></code></li>
+<li><code><a title="dapper.da_methods.particle.mask_unique_of_sorted" href="#dapper.da_methods.particle.mask_unique_of_sorted">mask_unique_of_sorted</a></code></li>
+<li><code><a title="dapper.da_methods.particle.auto_bandw" href="#dapper.da_methods.particle.auto_bandw">auto_bandw</a></code></li>
 <li><code><a title="dapper.da_methods.particle.regularize" href="#dapper.da_methods.particle.regularize">regularize</a></code></li>
 <li><code><a title="dapper.da_methods.particle.resample" href="#dapper.da_methods.particle.resample">resample</a></code></li>
-<li><code><a title="dapper.da_methods.particle.reweight" href="#dapper.da_methods.particle.reweight">reweight</a></code></li>
 <li><code><a title="dapper.da_methods.particle.sample_quickly_with" href="#dapper.da_methods.particle.sample_quickly_with">sample_quickly_with</a></code></li>
-<li><code><a title="dapper.da_methods.particle.trigger_resampling" href="#dapper.da_methods.particle.trigger_resampling">trigger_resampling</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="dapper.da_methods.particle.PartFilt" href="#dapper.da_methods.particle.PartFilt">PartFilt</a></code></h4>
+<ul class="two-column">
+<li><code><a title="dapper.da_methods.particle.PartFilt.assimilate" href="#dapper.da_methods.particle.PartFilt.assimilate">assimilate</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PartFilt.N" href="#dapper.da_methods.particle.PartFilt.N">N</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PartFilt.reg" href="#dapper.da_methods.particle.PartFilt.reg">reg</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PartFilt.nuj" href="#dapper.da_methods.particle.PartFilt.nuj">nuj</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PartFilt.qroot" href="#dapper.da_methods.particle.PartFilt.qroot">qroot</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PartFilt.wroot" href="#dapper.da_methods.particle.PartFilt.wroot">wroot</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PartFilt.NER" href="#dapper.da_methods.particle.PartFilt.NER">NER</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PartFilt.resampl" href="#dapper.da_methods.particle.PartFilt.resampl">resampl</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PartFilt.da_method" href="#dapper.da_methods.particle.PartFilt.da_method">da_method</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="dapper.da_methods.particle.OptPF" href="#dapper.da_methods.particle.OptPF">OptPF</a></code></h4>
 <ul class="two-column">
-<li><code><a title="dapper.da_methods.particle.OptPF.N" href="#dapper.da_methods.particle.OptPF.N">N</a></code></li>
-<li><code><a title="dapper.da_methods.particle.OptPF.NER" href="#dapper.da_methods.particle.OptPF.NER">NER</a></code></li>
-<li><code><a title="dapper.da_methods.particle.OptPF.Qs" href="#dapper.da_methods.particle.OptPF.Qs">Qs</a></code></li>
 <li><code><a title="dapper.da_methods.particle.OptPF.assimilate" href="#dapper.da_methods.particle.OptPF.assimilate">assimilate</a></code></li>
-<li><code><a title="dapper.da_methods.particle.OptPF.da_method" href="#dapper.da_methods.particle.OptPF.da_method">da_method</a></code></li>
-<li><code><a title="dapper.da_methods.particle.OptPF.nuj" href="#dapper.da_methods.particle.OptPF.nuj">nuj</a></code></li>
+<li><code><a title="dapper.da_methods.particle.OptPF.N" href="#dapper.da_methods.particle.OptPF.N">N</a></code></li>
+<li><code><a title="dapper.da_methods.particle.OptPF.Qs" href="#dapper.da_methods.particle.OptPF.Qs">Qs</a></code></li>
 <li><code><a title="dapper.da_methods.particle.OptPF.reg" href="#dapper.da_methods.particle.OptPF.reg">reg</a></code></li>
-<li><code><a title="dapper.da_methods.particle.OptPF.resampl" href="#dapper.da_methods.particle.OptPF.resampl">resampl</a></code></li>
+<li><code><a title="dapper.da_methods.particle.OptPF.nuj" href="#dapper.da_methods.particle.OptPF.nuj">nuj</a></code></li>
 <li><code><a title="dapper.da_methods.particle.OptPF.wroot" href="#dapper.da_methods.particle.OptPF.wroot">wroot</a></code></li>
+<li><code><a title="dapper.da_methods.particle.OptPF.NER" href="#dapper.da_methods.particle.OptPF.NER">NER</a></code></li>
+<li><code><a title="dapper.da_methods.particle.OptPF.resampl" href="#dapper.da_methods.particle.OptPF.resampl">resampl</a></code></li>
+<li><code><a title="dapper.da_methods.particle.OptPF.da_method" href="#dapper.da_methods.particle.OptPF.da_method">da_method</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="dapper.da_methods.particle.PFa" href="#dapper.da_methods.particle.PFa">PFa</a></code></h4>
 <ul class="two-column">
-<li><code><a title="dapper.da_methods.particle.PFa.N" href="#dapper.da_methods.particle.PFa.N">N</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFa.NER" href="#dapper.da_methods.particle.PFa.NER">NER</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFa.alpha" href="#dapper.da_methods.particle.PFa.alpha">alpha</a></code></li>
 <li><code><a title="dapper.da_methods.particle.PFa.assimilate" href="#dapper.da_methods.particle.PFa.assimilate">assimilate</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFa.da_method" href="#dapper.da_methods.particle.PFa.da_method">da_method</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFa.N" href="#dapper.da_methods.particle.PFa.N">N</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFa.alpha" href="#dapper.da_methods.particle.PFa.alpha">alpha</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFa.reg" href="#dapper.da_methods.particle.PFa.reg">reg</a></code></li>
 <li><code><a title="dapper.da_methods.particle.PFa.nuj" href="#dapper.da_methods.particle.PFa.nuj">nuj</a></code></li>
 <li><code><a title="dapper.da_methods.particle.PFa.qroot" href="#dapper.da_methods.particle.PFa.qroot">qroot</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFa.reg" href="#dapper.da_methods.particle.PFa.reg">reg</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFa.NER" href="#dapper.da_methods.particle.PFa.NER">NER</a></code></li>
 <li><code><a title="dapper.da_methods.particle.PFa.resampl" href="#dapper.da_methods.particle.PFa.resampl">resampl</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="dapper.da_methods.particle.PFxN" href="#dapper.da_methods.particle.PFxN">PFxN</a></code></h4>
-<ul class="two-column">
-<li><code><a title="dapper.da_methods.particle.PFxN.N" href="#dapper.da_methods.particle.PFxN.N">N</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN.NER" href="#dapper.da_methods.particle.PFxN.NER">NER</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN.Qs" href="#dapper.da_methods.particle.PFxN.Qs">Qs</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN.assimilate" href="#dapper.da_methods.particle.PFxN.assimilate">assimilate</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN.da_method" href="#dapper.da_methods.particle.PFxN.da_method">da_method</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN.re_use" href="#dapper.da_methods.particle.PFxN.re_use">re_use</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN.resampl" href="#dapper.da_methods.particle.PFxN.resampl">resampl</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN.wroot_max" href="#dapper.da_methods.particle.PFxN.wroot_max">wroot_max</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN.xN" href="#dapper.da_methods.particle.PFxN.xN">xN</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFa.da_method" href="#dapper.da_methods.particle.PFa.da_method">da_method</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="dapper.da_methods.particle.PFxN_EnKF" href="#dapper.da_methods.particle.PFxN_EnKF">PFxN_EnKF</a></code></h4>
 <ul class="two-column">
-<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.N" href="#dapper.da_methods.particle.PFxN_EnKF.N">N</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.NER" href="#dapper.da_methods.particle.PFxN_EnKF.NER">NER</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.Qs" href="#dapper.da_methods.particle.PFxN_EnKF.Qs">Qs</a></code></li>
 <li><code><a title="dapper.da_methods.particle.PFxN_EnKF.assimilate" href="#dapper.da_methods.particle.PFxN_EnKF.assimilate">assimilate</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.da_method" href="#dapper.da_methods.particle.PFxN_EnKF.da_method">da_method</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.re_use" href="#dapper.da_methods.particle.PFxN_EnKF.re_use">re_use</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.resampl" href="#dapper.da_methods.particle.PFxN_EnKF.resampl">resampl</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.wroot_max" href="#dapper.da_methods.particle.PFxN_EnKF.wroot_max">wroot_max</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.N" href="#dapper.da_methods.particle.PFxN_EnKF.N">N</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.Qs" href="#dapper.da_methods.particle.PFxN_EnKF.Qs">Qs</a></code></li>
 <li><code><a title="dapper.da_methods.particle.PFxN_EnKF.xN" href="#dapper.da_methods.particle.PFxN_EnKF.xN">xN</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.re_use" href="#dapper.da_methods.particle.PFxN_EnKF.re_use">re_use</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.wroot_max" href="#dapper.da_methods.particle.PFxN_EnKF.wroot_max">wroot_max</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.NER" href="#dapper.da_methods.particle.PFxN_EnKF.NER">NER</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.resampl" href="#dapper.da_methods.particle.PFxN_EnKF.resampl">resampl</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN_EnKF.da_method" href="#dapper.da_methods.particle.PFxN_EnKF.da_method">da_method</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="dapper.da_methods.particle.PartFilt" href="#dapper.da_methods.particle.PartFilt">PartFilt</a></code></h4>
+<h4><code><a title="dapper.da_methods.particle.PFxN" href="#dapper.da_methods.particle.PFxN">PFxN</a></code></h4>
 <ul class="two-column">
-<li><code><a title="dapper.da_methods.particle.PartFilt.N" href="#dapper.da_methods.particle.PartFilt.N">N</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PartFilt.NER" href="#dapper.da_methods.particle.PartFilt.NER">NER</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PartFilt.assimilate" href="#dapper.da_methods.particle.PartFilt.assimilate">assimilate</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PartFilt.da_method" href="#dapper.da_methods.particle.PartFilt.da_method">da_method</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PartFilt.nuj" href="#dapper.da_methods.particle.PartFilt.nuj">nuj</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PartFilt.qroot" href="#dapper.da_methods.particle.PartFilt.qroot">qroot</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PartFilt.reg" href="#dapper.da_methods.particle.PartFilt.reg">reg</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PartFilt.resampl" href="#dapper.da_methods.particle.PartFilt.resampl">resampl</a></code></li>
-<li><code><a title="dapper.da_methods.particle.PartFilt.wroot" href="#dapper.da_methods.particle.PartFilt.wroot">wroot</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.assimilate" href="#dapper.da_methods.particle.PFxN.assimilate">assimilate</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.N" href="#dapper.da_methods.particle.PFxN.N">N</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.Qs" href="#dapper.da_methods.particle.PFxN.Qs">Qs</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.xN" href="#dapper.da_methods.particle.PFxN.xN">xN</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.re_use" href="#dapper.da_methods.particle.PFxN.re_use">re_use</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.wroot_max" href="#dapper.da_methods.particle.PFxN.wroot_max">wroot_max</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.NER" href="#dapper.da_methods.particle.PFxN.NER">NER</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.resampl" href="#dapper.da_methods.particle.PFxN.resampl">resampl</a></code></li>
+<li><code><a title="dapper.da_methods.particle.PFxN.da_method" href="#dapper.da_methods.particle.PFxN.da_method">da_method</a></code></li>
 </ul>
 </li>
 </ul>

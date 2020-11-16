@@ -23,290 +23,6 @@
 <h1 class="title">Module <code>dapper.tools.chronos</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python"># Time sequence management
-
-import dapper.dict_tools as dict_tools
-import dapper.tools.utils as utils
-from dapper.tools.math import is_int
-import numpy as np
-
-
-class Chronology():
-    &#34;&#34;&#34;Time schedules with consistency checks.
-
-    - Uses int records =&gt; tt[k] == k*dt.
-    - Uses generators  =&gt; time series may be arbitrarily long.
-
-    Illustration:
-
-    .. code-block:: none
-
-                           &lt;----dtObs----&gt;
-                    &lt;--dt--&gt;
-      tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
-      kk:    0      1      2      3      4      5      K
-             |------|------|------|------|------|------|
-      kObs:  None   None   0      None   1      None   KObs
-      kkObs:               2             4             6
-                           &lt;----dkObs----&gt;
-
-    .. warning:: By convention, there is no obs at 0.
-                 This is hardcorded in DAPPER,
-                 whose cycling starts by the forecast.
-
-    Identities (subject to precision)::
-
-      len(kk)    == len(tt)    == K   +1
-      len(kkObs) == len(ttObs) == KObs+1
-
-      kkObs[0]   == dkObs      == dtObs/dt == K/(KObs+1)
-      kkObs[-1]  == K          == T/dt
-      KObs       == T/dtObs-1
-
-    These attributes may be set (altered) after init: dt, dkObs, K, T.
-    Other attributes may not, due to ambiguity
-    (e.g. should dtObs*=2 yield a doubling of T too?)
-    &#34;&#34;&#34;
-
-    def __init__(self, dt=None, dtObs=None, T=None, BurnIn=-1,
-                 dkObs=None, KObs=None, K=None, Tplot=None):
-
-        assert 3 == [dt, dtObs, T, dkObs, KObs, K].count(None), \
-            &#39;Chronology is specified using exactly 3 parameters.&#39;
-
-        # Reduce all to &#34;state vars&#34; dt,dkObs,K
-        if not dt:
-            if T and K:
-                dt = T/K
-            elif dkObs and dtObs:
-                dt = dtObs/dkObs
-            elif T and dkObs and KObs:
-                dt = T/(KObs+1)/dkObs
-            else:
-                raise TypeError(&#39;Unable to interpret time setup&#39;)
-        if not dkObs:
-            if dtObs:
-                dkObs = round(dtObs/dt)
-                assert abs(dtObs - dkObs*dt) &lt; dt*1e-9
-            else:
-                raise TypeError(&#39;Unable to interpret time setup&#39;)
-        assert is_int(dkObs)
-        if not K:
-            if T:
-                K = round(T/dt)
-                assert abs(T - K*dt) &lt; dt*1e-9
-            elif KObs:
-                K = dkObs*(KObs+1)
-            else:
-                raise TypeError(&#39;Unable to interpret time setup&#39;)
-        K = int(np.ceil(K/dkObs)*dkObs)
-
-        # &#34;State vars&#34;
-        self._dt      = dt
-        self._dkObs   = dkObs
-        self._K       = K
-
-        # BurnIn, Tplot
-        assert self.T &gt;= BurnIn, &#34;Experiment duration &lt; BurnIn time&#34;
-        self.BurnIn = BurnIn
-        if Tplot is None:
-            Tplot = BurnIn
-        self.Tplot = Tplot  # don&#39;t enforce &lt;T here
-
-        assert len(self.kkObs) == self.KObs+1
-
-    ######################################
-    # &#34;State vars&#34;. Can be set (changed).
-    ######################################
-
-    @property
-    def dt(self):
-        return self._dt
-
-    @dt.setter
-    def dt(self, value):
-        dkObs_new = self.dkObs * self.dt/value
-        if not np.isclose(int(dkObs_new), dkObs_new):
-            raise ValueError(&#39;New value is amgiguous with respect to dkObs&#39;)
-        dkObs_new = int(dkObs_new)
-        self.__init__(dt=value, dkObs=dkObs_new, T=self.T,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    @property
-    def dkObs(self):
-        return self._dkObs
-
-    @dkObs.setter
-    def dkObs(self, value):
-        ratio = value/self.dkObs
-        self.__init__(dt=self.dt, dkObs=value, T=ratio*self.T,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    @property
-    def K(self):
-        return self._K
-
-    @K.setter
-    def K(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, K=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    ######################################
-    # Read/write (though not state var)
-    ######################################
-    @property
-    def T(self):
-        return self.dt*self.K
-
-    @T.setter
-    def T(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, T=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    @property
-    def KObs(self):
-        return int(self.K/self.dkObs)-1
-
-    @KObs.setter
-    def KObs(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, KObs=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    ######################################
-    # Read-only
-    ######################################
-    @property
-    def dtObs(self):
-        return self.dkObs*self.dt
-
-    @property
-    def kk(self):
-        return np.arange(self.K+1)
-
-    @property
-    def kkObs(self):
-        return self.kk[self.dkObs::self.dkObs]
-
-    @property
-    def tt(self):
-        return self.kk * self.dt
-
-    @property
-    def ttObs(self):
-        return self.kkObs * self.dt
-
-    # Burn In. NB: uses &gt; (strict inequality)
-    @property
-    def mask_BI(self):
-        &#34;Example use: kk_BI = kk[mask_BI]&#34;
-        return self.tt &gt; self.BurnIn
-
-    @property
-    def maskObs_BI(self):
-        &#34;Example use: kkObs_BI = kkObs[maskObs_BI]&#34;
-        return self.ttObs &gt; self.BurnIn
-
-    ######################################
-    # Other
-    ######################################
-    @property
-    def ticker(self):
-        &#34;&#34;&#34;&#34;Fancy version of range(1,K+1).
-
-        Also yields t, dt, and kObs.
-        &#34;&#34;&#34;
-        tckr = Ticker(self.tt, self.kkObs)
-        next(tckr)
-        return tckr
-
-    def cycle(self, kObs):
-        &#34;&#34;&#34;The range (in kk) between observation kObs-1 and kObs.
-
-        Also yields t and dt.
-        &#34;&#34;&#34;
-        for k in kObs * self.dkObs + np.arange(1, self.dkObs+1):
-            t  = self.tt[k]
-            dt = t - self.tt[k-1]
-            yield k, t, dt
-
-    def __str__(self):
-        printable = [&#39;K&#39;, &#39;KObs&#39;, &#39;T&#39;, &#39;BurnIn&#39;, &#39;dtObs&#39;, &#39;dt&#39;]
-        return str(dict_tools.AlignedDict([(k, getattr(self, k)) for k in printable]))
-
-    def __repr__(self):
-        return utils.repr_type_and_name(self) + &#34;\n&#34; + str(self)
-
-    ######################################
-    # Utilities
-    ######################################
-    def copy(self):
-        &#34;Copy via state vars.&#34;
-        return Chronology(dt=self.dt, dkObs=self.dkObs, K=self.K, BurnIn=self.BurnIn)
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-
-class Ticker:
-    &#34;&#34;&#34;Iterator over kk and kkObs, yielding (k,kObs,t,dt).
-
-    Includes __len__ for progressbar usage.
-
-    kObs = kkObs.index(k), or None otherwise,
-    but computed without this repeated look-up operation.
-    &#34;&#34;&#34;
-
-    def __init__(self, tt, kkObs):
-        self.tt  = tt
-        self.kkO = kkObs
-        self.reset()
-
-    def reset(self):
-        self.k   = 0
-        self._kO = 0
-        self.kO  = None
-
-    def __len__(self):
-        return len(self.tt) - self.k
-
-    def __iter__(self): return self
-
-    def __next__(self):
-        if self.k &gt;= len(self.tt):
-            raise StopIteration
-        t    = self.tt[self.k]
-        dt   = t - self.tt[self.k-1] if self.k &gt; 0 else np.NaN
-        tple = (self.k, self.kO, t, dt)
-        self.k += 1
-        if self._kO &lt; len(self.kkO) and self.k == self.kkO[self._kO]:
-            self.kO = self._kO
-            self._kO += 1
-        else:
-            self.kO = None
-        return tple
-
-
-def format_time(k, kObs, t):
-    if k is None:
-        k    = &#34;init&#34;
-        t    = &#34;init&#34;
-        kObs = &#34;N/A&#34;
-    else:
-        t    = &#34;   t=%g&#34; % t
-        k    = &#34;   k=%d&#34; % k
-        kObs = &#34;kObs=%s&#34; % kObs
-    s = &#34;\n&#34;.join([t, k, kObs])
-    return s</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -320,22 +36,6 @@ def format_time(k, kObs, t):
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def format_time(k, kObs, t):
-    if k is None:
-        k    = &#34;init&#34;
-        t    = &#34;init&#34;
-        kObs = &#34;N/A&#34;
-    else:
-        t    = &#34;   t=%g&#34; % t
-        k    = &#34;   k=%d&#34; % k
-        kObs = &#34;kObs=%s&#34; % kObs
-    s = &#34;\n&#34;.join([t, k, kObs])
-    return s</code></pre>
-</details>
 </dd>
 </dl>
 </section>
@@ -410,434 +110,76 @@ KObs
 <p>These attributes may be set (altered) after init: dt, dkObs, K, T.
 Other attributes may not, due to ambiguity
 (e.g. should dtObs*=2 yield a doubling of T too?)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Chronology():
-    &#34;&#34;&#34;Time schedules with consistency checks.
-
-    - Uses int records =&gt; tt[k] == k*dt.
-    - Uses generators  =&gt; time series may be arbitrarily long.
-
-    Illustration:
-
-    .. code-block:: none
-
-                           &lt;----dtObs----&gt;
-                    &lt;--dt--&gt;
-      tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
-      kk:    0      1      2      3      4      5      K
-             |------|------|------|------|------|------|
-      kObs:  None   None   0      None   1      None   KObs
-      kkObs:               2             4             6
-                           &lt;----dkObs----&gt;
-
-    .. warning:: By convention, there is no obs at 0.
-                 This is hardcorded in DAPPER,
-                 whose cycling starts by the forecast.
-
-    Identities (subject to precision)::
-
-      len(kk)    == len(tt)    == K   +1
-      len(kkObs) == len(ttObs) == KObs+1
-
-      kkObs[0]   == dkObs      == dtObs/dt == K/(KObs+1)
-      kkObs[-1]  == K          == T/dt
-      KObs       == T/dtObs-1
-
-    These attributes may be set (altered) after init: dt, dkObs, K, T.
-    Other attributes may not, due to ambiguity
-    (e.g. should dtObs*=2 yield a doubling of T too?)
-    &#34;&#34;&#34;
-
-    def __init__(self, dt=None, dtObs=None, T=None, BurnIn=-1,
-                 dkObs=None, KObs=None, K=None, Tplot=None):
-
-        assert 3 == [dt, dtObs, T, dkObs, KObs, K].count(None), \
-            &#39;Chronology is specified using exactly 3 parameters.&#39;
-
-        # Reduce all to &#34;state vars&#34; dt,dkObs,K
-        if not dt:
-            if T and K:
-                dt = T/K
-            elif dkObs and dtObs:
-                dt = dtObs/dkObs
-            elif T and dkObs and KObs:
-                dt = T/(KObs+1)/dkObs
-            else:
-                raise TypeError(&#39;Unable to interpret time setup&#39;)
-        if not dkObs:
-            if dtObs:
-                dkObs = round(dtObs/dt)
-                assert abs(dtObs - dkObs*dt) &lt; dt*1e-9
-            else:
-                raise TypeError(&#39;Unable to interpret time setup&#39;)
-        assert is_int(dkObs)
-        if not K:
-            if T:
-                K = round(T/dt)
-                assert abs(T - K*dt) &lt; dt*1e-9
-            elif KObs:
-                K = dkObs*(KObs+1)
-            else:
-                raise TypeError(&#39;Unable to interpret time setup&#39;)
-        K = int(np.ceil(K/dkObs)*dkObs)
-
-        # &#34;State vars&#34;
-        self._dt      = dt
-        self._dkObs   = dkObs
-        self._K       = K
-
-        # BurnIn, Tplot
-        assert self.T &gt;= BurnIn, &#34;Experiment duration &lt; BurnIn time&#34;
-        self.BurnIn = BurnIn
-        if Tplot is None:
-            Tplot = BurnIn
-        self.Tplot = Tplot  # don&#39;t enforce &lt;T here
-
-        assert len(self.kkObs) == self.KObs+1
-
-    ######################################
-    # &#34;State vars&#34;. Can be set (changed).
-    ######################################
-
-    @property
-    def dt(self):
-        return self._dt
-
-    @dt.setter
-    def dt(self, value):
-        dkObs_new = self.dkObs * self.dt/value
-        if not np.isclose(int(dkObs_new), dkObs_new):
-            raise ValueError(&#39;New value is amgiguous with respect to dkObs&#39;)
-        dkObs_new = int(dkObs_new)
-        self.__init__(dt=value, dkObs=dkObs_new, T=self.T,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    @property
-    def dkObs(self):
-        return self._dkObs
-
-    @dkObs.setter
-    def dkObs(self, value):
-        ratio = value/self.dkObs
-        self.__init__(dt=self.dt, dkObs=value, T=ratio*self.T,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    @property
-    def K(self):
-        return self._K
-
-    @K.setter
-    def K(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, K=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    ######################################
-    # Read/write (though not state var)
-    ######################################
-    @property
-    def T(self):
-        return self.dt*self.K
-
-    @T.setter
-    def T(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, T=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    @property
-    def KObs(self):
-        return int(self.K/self.dkObs)-1
-
-    @KObs.setter
-    def KObs(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, KObs=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
-
-    ######################################
-    # Read-only
-    ######################################
-    @property
-    def dtObs(self):
-        return self.dkObs*self.dt
-
-    @property
-    def kk(self):
-        return np.arange(self.K+1)
-
-    @property
-    def kkObs(self):
-        return self.kk[self.dkObs::self.dkObs]
-
-    @property
-    def tt(self):
-        return self.kk * self.dt
-
-    @property
-    def ttObs(self):
-        return self.kkObs * self.dt
-
-    # Burn In. NB: uses &gt; (strict inequality)
-    @property
-    def mask_BI(self):
-        &#34;Example use: kk_BI = kk[mask_BI]&#34;
-        return self.tt &gt; self.BurnIn
-
-    @property
-    def maskObs_BI(self):
-        &#34;Example use: kkObs_BI = kkObs[maskObs_BI]&#34;
-        return self.ttObs &gt; self.BurnIn
-
-    ######################################
-    # Other
-    ######################################
-    @property
-    def ticker(self):
-        &#34;&#34;&#34;&#34;Fancy version of range(1,K+1).
-
-        Also yields t, dt, and kObs.
-        &#34;&#34;&#34;
-        tckr = Ticker(self.tt, self.kkObs)
-        next(tckr)
-        return tckr
-
-    def cycle(self, kObs):
-        &#34;&#34;&#34;The range (in kk) between observation kObs-1 and kObs.
-
-        Also yields t and dt.
-        &#34;&#34;&#34;
-        for k in kObs * self.dkObs + np.arange(1, self.dkObs+1):
-            t  = self.tt[k]
-            dt = t - self.tt[k-1]
-            yield k, t, dt
-
-    def __str__(self):
-        printable = [&#39;K&#39;, &#39;KObs&#39;, &#39;T&#39;, &#39;BurnIn&#39;, &#39;dtObs&#39;, &#39;dt&#39;]
-        return str(dict_tools.AlignedDict([(k, getattr(self, k)) for k in printable]))
-
-    def __repr__(self):
-        return utils.repr_type_and_name(self) + &#34;\n&#34; + str(self)
-
-    ######################################
-    # Utilities
-    ######################################
-    def copy(self):
-        &#34;Copy via state vars.&#34;
-        return Chronology(dt=self.dt, dkObs=self.dkObs, K=self.K, BurnIn=self.BurnIn)
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)</code></pre>
-</details>
 <h3>Instance variables</h3>
 <dl>
-<dt id="dapper.tools.chronos.Chronology.K"><code class="name">var <span class="ident">K</span></code></dt>
+<dt id="dapper.tools.chronos.Chronology.dt"><code class="name">var <span class="ident">dt</span></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def K(self):
-    return self._K</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.chronos.Chronology.KObs"><code class="name">var <span class="ident">KObs</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def KObs(self):
-    return int(self.K/self.dkObs)-1</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.chronos.Chronology.T"><code class="name">var <span class="ident">T</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def T(self):
-    return self.dt*self.K</code></pre>
-</details>
 </dd>
 <dt id="dapper.tools.chronos.Chronology.dkObs"><code class="name">var <span class="ident">dkObs</span></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def dkObs(self):
-    return self._dkObs</code></pre>
-</details>
 </dd>
-<dt id="dapper.tools.chronos.Chronology.dt"><code class="name">var <span class="ident">dt</span></code></dt>
+<dt id="dapper.tools.chronos.Chronology.K"><code class="name">var <span class="ident">K</span></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def dt(self):
-    return self._dt</code></pre>
-</details>
+</dd>
+<dt id="dapper.tools.chronos.Chronology.T"><code class="name">var <span class="ident">T</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.tools.chronos.Chronology.KObs"><code class="name">var <span class="ident">KObs</span></code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 <dt id="dapper.tools.chronos.Chronology.dtObs"><code class="name">var <span class="ident">dtObs</span></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def dtObs(self):
-    return self.dkObs*self.dt</code></pre>
-</details>
 </dd>
 <dt id="dapper.tools.chronos.Chronology.kk"><code class="name">var <span class="ident">kk</span></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def kk(self):
-    return np.arange(self.K+1)</code></pre>
-</details>
 </dd>
 <dt id="dapper.tools.chronos.Chronology.kkObs"><code class="name">var <span class="ident">kkObs</span></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def kkObs(self):
-    return self.kk[self.dkObs::self.dkObs]</code></pre>
-</details>
 </dd>
-<dt id="dapper.tools.chronos.Chronology.maskObs_BI"><code class="name">var <span class="ident">maskObs_BI</span></code></dt>
+<dt id="dapper.tools.chronos.Chronology.tt"><code class="name">var <span class="ident">tt</span></code></dt>
 <dd>
-<div class="desc"><p>Example use: kkObs_BI = kkObs[maskObs_BI]</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def maskObs_BI(self):
-    &#34;Example use: kkObs_BI = kkObs[maskObs_BI]&#34;
-    return self.ttObs &gt; self.BurnIn</code></pre>
-</details>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.tools.chronos.Chronology.ttObs"><code class="name">var <span class="ident">ttObs</span></code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 <dt id="dapper.tools.chronos.Chronology.mask_BI"><code class="name">var <span class="ident">mask_BI</span></code></dt>
 <dd>
 <div class="desc"><p>Example use: kk_BI = kk[mask_BI]</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def mask_BI(self):
-    &#34;Example use: kk_BI = kk[mask_BI]&#34;
-    return self.tt &gt; self.BurnIn</code></pre>
-</details>
+</dd>
+<dt id="dapper.tools.chronos.Chronology.maskObs_BI"><code class="name">var <span class="ident">maskObs_BI</span></code></dt>
+<dd>
+<div class="desc"><p>Example use: kkObs_BI = kkObs[maskObs_BI]</p></div>
 </dd>
 <dt id="dapper.tools.chronos.Chronology.ticker"><code class="name">var <span class="ident">ticker</span></code></dt>
 <dd>
 <div class="desc"><p>"Fancy version of range(1,K+1).</p>
 <p>Also yields t, dt, and kObs.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def ticker(self):
-    &#34;&#34;&#34;&#34;Fancy version of range(1,K+1).
-
-    Also yields t, dt, and kObs.
-    &#34;&#34;&#34;
-    tckr = Ticker(self.tt, self.kkObs)
-    next(tckr)
-    return tckr</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.chronos.Chronology.tt"><code class="name">var <span class="ident">tt</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def tt(self):
-    return self.kk * self.dt</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.chronos.Chronology.ttObs"><code class="name">var <span class="ident">ttObs</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def ttObs(self):
-    return self.kkObs * self.dt</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="dapper.tools.chronos.Chronology.copy"><code class="name flex">
-<span>def <span class="ident">copy</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Copy via state vars.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def copy(self):
-    &#34;Copy via state vars.&#34;
-    return Chronology(dt=self.dt, dkObs=self.dkObs, K=self.K, BurnIn=self.BurnIn)</code></pre>
-</details>
-</dd>
 <dt id="dapper.tools.chronos.Chronology.cycle"><code class="name flex">
 <span>def <span class="ident">cycle</span></span>(<span>self, kObs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The range (in kk) between observation kObs-1 and kObs.</p>
 <p>Also yields t and dt.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def cycle(self, kObs):
-    &#34;&#34;&#34;The range (in kk) between observation kObs-1 and kObs.
-
-    Also yields t and dt.
-    &#34;&#34;&#34;
-    for k in kObs * self.dkObs + np.arange(1, self.dkObs+1):
-        t  = self.tt[k]
-        dt = t - self.tt[k-1]
-        yield k, t, dt</code></pre>
-</details>
+</dd>
+<dt id="dapper.tools.chronos.Chronology.copy"><code class="name flex">
+<span>def <span class="ident">copy</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Copy via state vars.</p></div>
 </dd>
 </dl>
 </dd>
@@ -850,48 +192,6 @@ def ttObs(self):
 <p>Includes <strong>len</strong> for progressbar usage.</p>
 <p>kObs = kkObs.index(k), or None otherwise,
 but computed without this repeated look-up operation.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Ticker:
-    &#34;&#34;&#34;Iterator over kk and kkObs, yielding (k,kObs,t,dt).
-
-    Includes __len__ for progressbar usage.
-
-    kObs = kkObs.index(k), or None otherwise,
-    but computed without this repeated look-up operation.
-    &#34;&#34;&#34;
-
-    def __init__(self, tt, kkObs):
-        self.tt  = tt
-        self.kkO = kkObs
-        self.reset()
-
-    def reset(self):
-        self.k   = 0
-        self._kO = 0
-        self.kO  = None
-
-    def __len__(self):
-        return len(self.tt) - self.k
-
-    def __iter__(self): return self
-
-    def __next__(self):
-        if self.k &gt;= len(self.tt):
-            raise StopIteration
-        t    = self.tt[self.k]
-        dt   = t - self.tt[self.k-1] if self.k &gt; 0 else np.NaN
-        tple = (self.k, self.kO, t, dt)
-        self.k += 1
-        if self._kO &lt; len(self.kkO) and self.k == self.kkO[self._kO]:
-            self.kO = self._kO
-            self._kO += 1
-        else:
-            self.kO = None
-        return tple</code></pre>
-</details>
 <h3>Methods</h3>
 <dl>
 <dt id="dapper.tools.chronos.Ticker.reset"><code class="name flex">
@@ -899,15 +199,6 @@ but computed without this repeated look-up operation.</p></div>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def reset(self):
-    self.k   = 0
-    self._kO = 0
-    self.kO  = None</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -935,21 +226,21 @@ but computed without this repeated look-up operation.</p></div>
 <li>
 <h4><code><a title="dapper.tools.chronos.Chronology" href="#dapper.tools.chronos.Chronology">Chronology</a></code></h4>
 <ul class="two-column">
-<li><code><a title="dapper.tools.chronos.Chronology.K" href="#dapper.tools.chronos.Chronology.K">K</a></code></li>
-<li><code><a title="dapper.tools.chronos.Chronology.KObs" href="#dapper.tools.chronos.Chronology.KObs">KObs</a></code></li>
-<li><code><a title="dapper.tools.chronos.Chronology.T" href="#dapper.tools.chronos.Chronology.T">T</a></code></li>
-<li><code><a title="dapper.tools.chronos.Chronology.copy" href="#dapper.tools.chronos.Chronology.copy">copy</a></code></li>
 <li><code><a title="dapper.tools.chronos.Chronology.cycle" href="#dapper.tools.chronos.Chronology.cycle">cycle</a></code></li>
-<li><code><a title="dapper.tools.chronos.Chronology.dkObs" href="#dapper.tools.chronos.Chronology.dkObs">dkObs</a></code></li>
+<li><code><a title="dapper.tools.chronos.Chronology.copy" href="#dapper.tools.chronos.Chronology.copy">copy</a></code></li>
 <li><code><a title="dapper.tools.chronos.Chronology.dt" href="#dapper.tools.chronos.Chronology.dt">dt</a></code></li>
+<li><code><a title="dapper.tools.chronos.Chronology.dkObs" href="#dapper.tools.chronos.Chronology.dkObs">dkObs</a></code></li>
+<li><code><a title="dapper.tools.chronos.Chronology.K" href="#dapper.tools.chronos.Chronology.K">K</a></code></li>
+<li><code><a title="dapper.tools.chronos.Chronology.T" href="#dapper.tools.chronos.Chronology.T">T</a></code></li>
+<li><code><a title="dapper.tools.chronos.Chronology.KObs" href="#dapper.tools.chronos.Chronology.KObs">KObs</a></code></li>
 <li><code><a title="dapper.tools.chronos.Chronology.dtObs" href="#dapper.tools.chronos.Chronology.dtObs">dtObs</a></code></li>
 <li><code><a title="dapper.tools.chronos.Chronology.kk" href="#dapper.tools.chronos.Chronology.kk">kk</a></code></li>
 <li><code><a title="dapper.tools.chronos.Chronology.kkObs" href="#dapper.tools.chronos.Chronology.kkObs">kkObs</a></code></li>
-<li><code><a title="dapper.tools.chronos.Chronology.maskObs_BI" href="#dapper.tools.chronos.Chronology.maskObs_BI">maskObs_BI</a></code></li>
-<li><code><a title="dapper.tools.chronos.Chronology.mask_BI" href="#dapper.tools.chronos.Chronology.mask_BI">mask_BI</a></code></li>
-<li><code><a title="dapper.tools.chronos.Chronology.ticker" href="#dapper.tools.chronos.Chronology.ticker">ticker</a></code></li>
 <li><code><a title="dapper.tools.chronos.Chronology.tt" href="#dapper.tools.chronos.Chronology.tt">tt</a></code></li>
 <li><code><a title="dapper.tools.chronos.Chronology.ttObs" href="#dapper.tools.chronos.Chronology.ttObs">ttObs</a></code></li>
+<li><code><a title="dapper.tools.chronos.Chronology.mask_BI" href="#dapper.tools.chronos.Chronology.mask_BI">mask_BI</a></code></li>
+<li><code><a title="dapper.tools.chronos.Chronology.maskObs_BI" href="#dapper.tools.chronos.Chronology.maskObs_BI">maskObs_BI</a></code></li>
+<li><code><a title="dapper.tools.chronos.Chronology.ticker" href="#dapper.tools.chronos.Chronology.ticker">ticker</a></code></li>
 </ul>
 </li>
 <li>

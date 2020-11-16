@@ -30,112 +30,6 @@ Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
 Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
 "Extending the square root method to account for
 additive forecast noise in ensemble methods."</p>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">&#34;&#34;&#34;Reproduce results from fig2 of
-Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
-&#34;Extending the square root method to account for
-additive forecast noise in ensemble methods.&#34;
-&#34;&#34;&#34;
-
-import numpy as np
-
-from dapper.mods.LA.core import sinusoidal_sample, Fmat
-from dapper.mods.Lorenz96.core import LPs
-from dapper.tools.math import tsvd, center
-import dapper as dpr
-
-# Burn-in allows damp*x and x+noise balance out
-tseq = dpr.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)
-
-Nx = 1000
-Ny = 40
-
-jj = dpr.linspace_int(Nx, Ny)
-Obs = dpr.partial_Id_Obs(Nx, jj)
-Obs[&#39;noise&#39;] = 0.01
-
-
-#################
-#  Noise setup  #
-#################
-# Instead of sampling model noise from sinusoidal_sample(),
-# we will replicate it below by a covariance matrix approach.
-# But, for strict equivalence, one would have to use
-# uniform (i.e. not Gaussian) random numbers.
-wnumQ = 25
-sample_filename = dpr.rc.dirs.samples/(&#39;LA_Q_wnum%d.npz&#39; % wnumQ)
-
-try:
-    # Load pre-generated
-    L = np.load(sample_filename)[&#39;Left&#39;]
-except FileNotFoundError:
-    # First-time use
-    print(&#39;Did not find sample file&#39;, sample_filename,
-          &#39;for experiment initialization. Generating...&#39;)
-    NQ        = 20000  # Must have NQ &gt; (2*wnumQ+1)
-    A         = sinusoidal_sample(Nx, wnumQ, NQ)
-    A         = 1/10 * center(A)[0] / np.sqrt(NQ)
-    Q         = A.T @ A
-    U, s, _     = tsvd(Q)
-    L         = U*np.sqrt(s)
-    np.savez(sample_filename, Left=L)
-
-X0 = dpr.GaussRV(C=dpr.CovMat(np.sqrt(5)*L, &#39;Left&#39;))
-
-
-###################
-#  Forward model  #
-###################
-damp = 0.98
-Fm = Fmat(Nx, -1, 1, tseq.dt)
-
-
-def step(x, t, dt):
-    assert dt == tseq.dt
-    return x @ Fm.T
-
-
-Dyn = {
-    &#39;M&#39;: Nx,
-    &#39;model&#39;: lambda x, t, dt: damp * step(x, t, dt),
-    &#39;linear&#39;: lambda x, t, dt: damp * Fm,
-    &#39;noise&#39;: dpr.GaussRV(C=dpr.CovMat(L, &#39;Left&#39;)),
-}
-
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
-
-
-####################
-# Suggested tuning
-####################
-
-# Expected rmse.a = 0.3
-# xp = EnKF(&#39;PertObs&#39;,N=30,infl=3.2)
-# Note that infl=1 may yield approx optimal rmse, even though then rmv &lt;&lt; rmse.
-# Why is rmse so INsensitive to inflation, especially for PertObs?
-
-# Reproduce raanes&#39;2015 &#34;extending sqrt method to model noise&#34;:
-# xp = EnKF(&#39;Sqrt&#39;,fnoise_treatm=&#39;XXX&#39;,N=30,infl=1.0),
-# where XXX is one of:
-# - Stoch
-# - Mult-1
-# - Mult-M
-# - Sqrt-Core
-# - Sqrt-Add-Z
-# - Sqrt-Dep
-
-# Other notes:
-# - Multidim. multiplicative noise incorporation
-#   has a tendency to go awry.
-#   The main reason is that it changes the ensemble subspace,
-#   away from the &#34;model&#34; subspace.
-# - There are also some very strong, regular correlation
-#   patters that arise when dt=1 (dt = c*dx).
-# - It also happens if X0pat does not use centering.</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -149,14 +43,6 @@ HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def step(x, t, dt):
-    assert dt == tseq.dt
-    return x @ Fm.T</code></pre>
-</details>
 </dd>
 </dl>
 </section>

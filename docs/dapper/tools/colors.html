@@ -24,108 +24,6 @@
 </header>
 <section id="section-intro">
 <p>Provide (terminal and matplotlib) color definitions and functionality.</p>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">&#34;&#34;&#34;Provide (terminal and matplotlib) color definitions and functionality.&#34;&#34;&#34;
-
-import builtins
-import contextlib
-
-import colorama
-import matplotlib as mpl
-import numpy as np
-
-# Makes stdout/err color codes work on windows too.
-colorama.init()
-
-
-#########################################
-# Colouring for the terminal / console
-#########################################
-def color_text(text, *color_codes):
-
-    if len(color_codes) == 0:
-        color_codes = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
-
-    return &#34;&#34;.join(color_codes) + text + colorama.Style.RESET_ALL
-
-
-@contextlib.contextmanager
-def coloring(*color_codes):
-    &#34;&#34;&#34;Color printing using &#39;with&#39;.
-
-    Example:
-    &gt;&gt;&gt; with coloring(colorama.Fore.GREEN): print(&#34;This is in color&#34;)
-    &#34;&#34;&#34;
-
-    orig_print = builtins.print
-
-    def _print(*args, sep=&#34; &#34;, end=&#34;\n&#34;, flush=True, **kwargs):
-        # Implemented with a single print statement, so as to
-        # puts the trailing terminal code before newline.
-        text = sep.join([str(k) for k in args])
-        text = color_text(text, *color_codes)
-        orig_print(text, end=end, flush=flush, **kwargs)
-
-    try:
-        builtins.print = _print
-        yield
-    finally:
-        builtins.print = orig_print
-
-
-#########################################
-# Colouring for matplotlib
-#########################################
-# Matlab (new) colors.
-ml_colors = np.array(
-    [[0.,    0.447, 0.741],
-     [0.85,  0.325, 0.098],
-     [0.929, 0.694, 0.125],
-     [0.494, 0.184, 0.556],
-     [0.466, 0.674, 0.188],
-     [0.301, 0.745, 0.933],
-     [0.635, 0.078, 0.184]])
-# Load into matplotlib color dictionary
-for code, color in zip(&#39;boyvgcr&#39;, ml_colors):
-    mpl.colors.ColorConverter.colors[&#39;ml&#39;+code] = color
-    mpl.colors.colorConverter. cache[&#39;ml&#39;+code] = color
-
-# Seaborn colors
-sns_colors = np.array(
-    [[0.298, 0.447, 0.69],
-     [0.333, 0.658, 0.407],
-     [0.768, 0.305, 0.321],
-     [0.505, 0.447, 0.698],
-     [0.8,   0.725, 0.454],
-     [0.392, 0.709, 0.803],
-     [0.1,   0.1,   0.1],
-     [1.,    1.,    1.]])
-# Overwrite default color codes
-for code, color in zip(&#39;bgrmyckw&#39;, sns_colors):
-    mpl.colors.colorConverter.colors[code] = color
-    mpl.colors.colorConverter. cache[code] = color
-
-
-# MPL colors -- cheat sheet:
-# --------------
-# Equivalent:
-# cmap = plt.get_cmap(&#34;tab10&#34;)
-# cmap = plt.cm.get_cmap(&#34;tab10&#34;)
-# cmap = mpl.cm.get_cmap(&#34;tab10&#34;)
-# cmap = mpl.cm.tab10
-# Equivalent:
-# c = cmap( cmap.N//2 ) # using int
-# c = cmap( .5 )        # using float
-# Equivalent:
-# clist = cmap.colors # (only for ListedColormap) =&gt; 2D tuple,
-# clist = cmap(np.arange(0,.9,.1))              # =&gt; 2D ndarray
-#
-# Choosing cmap: https://matplotlib.org/3.3.1/tutorials/colors/colormaps.html
-# Color codes: https://matplotlib.org/tutorials/colors/colors.html</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -139,17 +37,6 @@ for code, color in zip(&#39;bgrmyckw&#39;, sns_colors):
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def color_text(text, *color_codes):
-
-    if len(color_codes) == 0:
-        color_codes = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
-
-    return &#34;&#34;.join(color_codes) + text + colorama.Style.RESET_ALL</code></pre>
-</details>
 </dd>
 <dt id="dapper.tools.colors.coloring"><code class="name flex">
 <span>def <span class="ident">coloring</span></span>(<span>*color_codes)</span>
@@ -159,33 +46,6 @@ for code, color in zip(&#39;bgrmyckw&#39;, sns_colors):
 <p>Example:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; with coloring(colorama.Fore.GREEN): print(&quot;This is in color&quot;)
 </code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@contextlib.contextmanager
-def coloring(*color_codes):
-    &#34;&#34;&#34;Color printing using &#39;with&#39;.
-
-    Example:
-    &gt;&gt;&gt; with coloring(colorama.Fore.GREEN): print(&#34;This is in color&#34;)
-    &#34;&#34;&#34;
-
-    orig_print = builtins.print
-
-    def _print(*args, sep=&#34; &#34;, end=&#34;\n&#34;, flush=True, **kwargs):
-        # Implemented with a single print statement, so as to
-        # puts the trailing terminal code before newline.
-        text = sep.join([str(k) for k in args])
-        text = color_text(text, *color_codes)
-        orig_print(text, end=end, flush=flush, **kwargs)
-
-    try:
-        builtins.print = _print
-        yield
-    finally:
-        builtins.print = orig_print</code></pre>
-</details>
 </dd>
 </dl>
 </section>

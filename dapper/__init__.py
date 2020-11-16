@@ -7,8 +7,6 @@ See the full introduction in the [README](https://github.com/nansencenter/DAPPER
 In particular
 [installation](https://github.com/nansencenter/DAPPER#installation)
 and [getting started](https://github.com/nansencenter/DAPPER#getting-started)
-
-$$ a = \\frac{a}{b} $$
 """
 
 __version__ = "0.9.6"
@@ -57,10 +55,11 @@ from .tools.viz import freshfig
 
 # Documentation management
 # ---
-# # Generation:
-# $ pdoc --force --html --config latex_math=True -o ./docs dapper
-# Push updated docs to github
-# # Hosting:
+# # 1. Generation:
+# $ pdoc --force --html --template-dir docs -o ./docs dapper
+# $ open docs/index.html
+# # 2. Hosting:
+# Push updated docs to github.
 # In the main github settings of the repo,
 # go to the "GitHub Pages" section,
 # and set the source to the docs folder.

@@ -24,73 +24,6 @@
 </header>
 <section id="section-intro">
 <p>Random number generation.</p>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">&#34;&#34;&#34;Random number generation.&#34;&#34;&#34;
-
-import time
-import numpy as np
-
-
-def set_seed(sd=&#34;clock&#34;):
-    &#34;&#34;&#34;Essentially ``np.random.seed(sd)``, but also returning ``sd``.
-
-    The disadvantage of ``np.random.seed()`` is that it produces a
-    RandomState that cannot be represented by a simple seed
-    (the mapping seed--&gt;state being non-surjective).
-    By contrast, when ``sd in [None,&#34;clock&#34;]``, set_seed(sd) generates
-    the seed from the time (in microseconds), which can then be returned.
-
-    If ``sd==False``: do nothing.
-
-    Seed management enables reproducibility of random experiments.
-    Moreover, using the same seed for each method in a comparative experiment
-    may yield a form of &#34;Variance reduction&#34;, eg. CRN, ref Wikipedia.
-    This CRN trick is often handy for speeding-up comparisons
-    but should not be relied upon in publications,
-    which should simply use converged statistics.
-
-    Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-    Example use: Nimbus 3000. André 3000. I love you 3000.
-
-    Note: why are we using global generator?
-    Because that&#39;s what we were used to.
-    And we&#39;re not not worried about thread safety.
-
-    Example:
-    &gt;&gt;&gt; def prnt(sd):
-    &gt;&gt;&gt;     print(str(sd).ljust(10), np.random.randint(0,99))
-    &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed(sd); prnt(sd)
-    &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
-    &#34;&#34;&#34;
-
-    if (sd is not False) and sd == 0:
-        msg = (&#34;Seeding with 0 is not a good idea, because\n&#34;
-               &#34;- Might be confused with [None, False].\n&#34;
-               &#34;- Sometimes people seed experiment k with seed(k*sd),\n&#34;
-               &#34;  which is intended to vary with k, but is 0 ∀k.&#34;)
-        raise RuntimeError(msg)
-
-    if sd in [None, &#34;clock&#34;]:
-        microsec = int(10**6 * time.time())
-        MAXSEED = 2**32
-        sd = microsec % MAXSEED
-
-    if sd:
-        np.random.seed(sd)
-
-    return sd
-
-
-# TODO 2: rm
-def rand(shape=(1,)): return np.random.uniform(0, 1, shape)
-def randn(shape=(1,)): return np.random.normal(0, 1, shape)</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -99,30 +32,6 @@ def randn(shape=(1,)): return np.random.normal(0, 1, shape)</code></pre>
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.tools.stoch.rand"><code class="name flex">
-<span>def <span class="ident">rand</span></span>(<span>shape=(1,))</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rand(shape=(1,)): return np.random.uniform(0, 1, shape)</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.stoch.randn"><code class="name flex">
-<span>def <span class="ident">randn</span></span>(<span>shape=(1,))</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def randn(shape=(1,)): return np.random.normal(0, 1, shape)</code></pre>
-</details>
-</dd>
 <dt id="dapper.tools.stoch.set_seed"><code class="name flex">
 <span>def <span class="ident">set_seed</span></span>(<span>sd='clock')</span>
 </code></dt>
@@ -154,62 +63,18 @@ And we're not not worried about thread safety.</p>
 &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
 &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
 </code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def set_seed(sd=&#34;clock&#34;):
-    &#34;&#34;&#34;Essentially ``np.random.seed(sd)``, but also returning ``sd``.
-
-    The disadvantage of ``np.random.seed()`` is that it produces a
-    RandomState that cannot be represented by a simple seed
-    (the mapping seed--&gt;state being non-surjective).
-    By contrast, when ``sd in [None,&#34;clock&#34;]``, set_seed(sd) generates
-    the seed from the time (in microseconds), which can then be returned.
-
-    If ``sd==False``: do nothing.
-
-    Seed management enables reproducibility of random experiments.
-    Moreover, using the same seed for each method in a comparative experiment
-    may yield a form of &#34;Variance reduction&#34;, eg. CRN, ref Wikipedia.
-    This CRN trick is often handy for speeding-up comparisons
-    but should not be relied upon in publications,
-    which should simply use converged statistics.
-
-    Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-    Example use: Nimbus 3000. André 3000. I love you 3000.
-
-    Note: why are we using global generator?
-    Because that&#39;s what we were used to.
-    And we&#39;re not not worried about thread safety.
-
-    Example:
-    &gt;&gt;&gt; def prnt(sd):
-    &gt;&gt;&gt;     print(str(sd).ljust(10), np.random.randint(0,99))
-    &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed(sd); prnt(sd)
-    &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
-    &#34;&#34;&#34;
-
-    if (sd is not False) and sd == 0:
-        msg = (&#34;Seeding with 0 is not a good idea, because\n&#34;
-               &#34;- Might be confused with [None, False].\n&#34;
-               &#34;- Sometimes people seed experiment k with seed(k*sd),\n&#34;
-               &#34;  which is intended to vary with k, but is 0 ∀k.&#34;)
-        raise RuntimeError(msg)
-
-    if sd in [None, &#34;clock&#34;]:
-        microsec = int(10**6 * time.time())
-        MAXSEED = 2**32
-        sd = microsec % MAXSEED
-
-    if sd:
-        np.random.seed(sd)
-
-    return sd</code></pre>
-</details>
+</dd>
+<dt id="dapper.tools.stoch.rand"><code class="name flex">
+<span>def <span class="ident">rand</span></span>(<span>shape=(1,))</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.tools.stoch.randn"><code class="name flex">
+<span>def <span class="ident">randn</span></span>(<span>shape=(1,))</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </section>
@@ -229,9 +94,9 @@ And we're not not worried about thread safety.</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="dapper.tools.stoch.set_seed" href="#dapper.tools.stoch.set_seed">set_seed</a></code></li>
 <li><code><a title="dapper.tools.stoch.rand" href="#dapper.tools.stoch.rand">rand</a></code></li>
 <li><code><a title="dapper.tools.stoch.randn" href="#dapper.tools.stoch.randn">randn</a></code></li>
-<li><code><a title="dapper.tools.stoch.set_seed" href="#dapper.tools.stoch.set_seed">set_seed</a></code></li>
 </ul>
 </li>
 </ul>

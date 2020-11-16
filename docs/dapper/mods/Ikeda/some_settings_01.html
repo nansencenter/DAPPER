@@ -24,42 +24,6 @@
 </header>
 <section id="section-intro">
 <p>Setup parameters for twin experiments.</p>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">&#34;&#34;&#34;Setup parameters for twin experiments.&#34;&#34;&#34;
-
-import numpy as np
-import dapper as dpr
-
-from .core import step, x0, Tplot, LPs
-
-t = dpr.Chronology(1, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
-
-Nx = len(x0)
-
-Dyn = {
-    &#39;M&#39;: Nx,
-    &#39;model&#39;: step,
-    &#39;noise&#39;: 0
-}
-
-X0 = dpr.GaussRV(C=.1, mu=x0)
-
-jj = np.arange(Nx)  # obs_inds
-Obs = dpr.partial_Id_Obs(Nx, jj)
-Obs[&#39;noise&#39;] = .1  # dpr.GaussRV(C=CovMat(1*eye(Nx)))
-
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
-
-HMM.liveplotters = LPs(jj)
-
-
-####################
-# Suggested tuning
-####################</code></pre>
-</details>
 </section>
 <section>
 </section>

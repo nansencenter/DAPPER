@@ -23,123 +23,6 @@
 <h1 class="title">Module <code>dapper.mods.LorenzUV.core</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">####################################
-# Lorenz96 two-scale/layer version
-####################################
-# See Wilks 2005 &#34;Effects of stochastic parametrizations in the Lorenz &#39;96 system&#34;
-# U:  large amp, low frequency vars: convective events
-# V:  small amp, high frequency vars: large-scale synoptic events
-#
-# Typically, the DA system will only use the truncated system
-# (containing only the U variables),
-# where the V&#39;s are parameterized as model noise,
-# while the truth is simulated by the full system.
-#
-# Stochastic parmateterization:
-# Wilks: benefit of including stochastic noise negligible
-# unless its temporal auto-corr is taken into account (as AR(1))
-# (but spatial auto-corr can be neglected).
-# But AR(1) noise is technically difficult because DAPPER
-# is built around the Markov assumption.
-
-import numpy as np
-import dapper.tools.liveplotting as LP
-import dapper.mods.Lorenz96.core as L96
-from dapper.tools.math import integrate_TLM
-
-
-def reversible(fun):
-    &#34;Reverse input/output (instead of manipulating indices).&#34;&#34;&#34;
-    def newfun(x, *args, reverse=False, **kwargs):
-        if reverse:
-            x = np.flip(x)  # flip ALL dims
-        y = fun(x, *args, **kwargs)  # call fun()
-        if reverse:
-            y = np.flip(y)  # flip ALL dims
-        return y
-    return newfun
-
-
-dxdt_auto     = reversible(L96.dxdt_autonomous)
-d2x_dtdx_auto = reversible(L96.d2x_dtdx)
-
-
-class model_instance():
-    &#34;&#34;&#34;
-    Use OOP to facilitate having multiple parameter settings simultaneously.
-    Default parameters from Wilks&#39;2005.
-    &#34;&#34;&#34;
-
-    def __init__(self, nU=8, J=32, F=20, h=1, b=10, c=10):
-
-        # System size
-        self.nU = nU        # num of U
-        self.J  = J         # num of V per U
-        self.M  = (J+1)*nU  # =&gt; Total state length
-
-        # Other parameters
-        self.F  = F  # forcing
-        self.h  = h  # coupling constant
-        self.b  = b  # Spatial scale ratio
-        self.c  = c  # time scale ratio
-
-        # Indices for coupling
-        self.iiU = (np.arange(J*nU)/J).astype(int)
-        self.iiV = np.arange(J*nU)
-
-        # Init with perturbation
-        self.x0 = np.eye(self.M)[0]
-
-    def unpack(self, x):
-        nU, J, h, b, c = self.nU, self.J, self.h, self.b, self.c
-        U, V = x[..., :nU], x[..., nU:]
-        return nU, J, h, b, c, U, V
-
-    def dxdt_trunc(self, x):
-        &#34;&#34;&#34;Truncated dxdt: slow variables (U) only.&#34;&#34;&#34;
-        assert x.shape[-1] == self.nU
-        return dxdt_auto(x) + self.F
-
-    def dxdt_parameterized(self, t, x):
-        &#34;&#34;&#34;Truncated dxdt with parameterization of fast variables (V).&#34;&#34;&#34;
-        d  = self.dxdt_trunc(x)
-        d -= self.prmzt(t, x)  # must (of course) be set first
-        return d
-
-    def dxdt(self, x):
-        &#34;&#34;&#34;Full (coupled) dxdt.&#34;&#34;&#34;
-        nU, J, h, b, c, U, V = self.unpack(x)
-
-        d = np.zeros_like(x)
-        d[..., :nU]  = self.dxdt_trunc(U)                                # dU/dt
-        d[..., :nU] += -h*c/b * V.reshape(V.shape[:-1]+(nU, J)).sum(-1)  # Couple U&lt;--V
-        d[..., nU:]  = c/b*dxdt_auto(b*V, reverse=True)  # dV/dt
-        d[..., nU:] += h*c/b * U[..., self.iiU]          # Couple V&lt;--U
-
-        return d
-
-    def d2x_dtdx(self, x):
-        nU, J, h, b, c, U, V = self.unpack(x)
-        iiU, iiV = self.iiU, self.iiV+nU
-
-        F = np.zeros((self.M, self.M))
-        F[:nU, :nU] = d2x_dtdx_auto(U)  # dU/dU
-        F[iiU, iiV] = -h*c/b            # dU/dV
-        F[nU:, nU:] = c * d2x_dtdx_auto(b*V, reverse=True)  # dV/dV
-        F[iiV, iiU] = h*c/b                                 # dV/dU
-
-        return F
-
-    def dstep_dx(self, x, t, dt):
-        return integrate_TLM(self.d2x_dtdx_auto(x), dt, method=&#39;analytic&#39;)
-
-    def LPs(self, jj):
-        return [(11, 1, LP.spatial1d(jj, dims=list(range(self.nU))))]</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -148,62 +31,23 @@ class model_instance():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.mods.LorenzUV.core.d2x_dtdx_auto"><code class="name flex">
-<span>def <span class="ident">d2x_dtdx_auto</span></span>(<span>x, *args, reverse=False, **kwargs)</span>
+<dt id="dapper.mods.LorenzUV.core.reversible"><code class="name flex">
+<span>def <span class="ident">reversible</span></span>(<span>fun)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def newfun(x, *args, reverse=False, **kwargs):
-    if reverse:
-        x = np.flip(x)  # flip ALL dims
-    y = fun(x, *args, **kwargs)  # call fun()
-    if reverse:
-        y = np.flip(y)  # flip ALL dims
-    return y</code></pre>
-</details>
+<div class="desc"><p>Reverse input/output (instead of manipulating indices).</p></div>
 </dd>
 <dt id="dapper.mods.LorenzUV.core.dxdt_auto"><code class="name flex">
 <span>def <span class="ident">dxdt_auto</span></span>(<span>x, *args, reverse=False, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def newfun(x, *args, reverse=False, **kwargs):
-    if reverse:
-        x = np.flip(x)  # flip ALL dims
-    y = fun(x, *args, **kwargs)  # call fun()
-    if reverse:
-        y = np.flip(y)  # flip ALL dims
-    return y</code></pre>
-</details>
 </dd>
-<dt id="dapper.mods.LorenzUV.core.reversible"><code class="name flex">
-<span>def <span class="ident">reversible</span></span>(<span>fun)</span>
+<dt id="dapper.mods.LorenzUV.core.d2x_dtdx_auto"><code class="name flex">
+<span>def <span class="ident">d2x_dtdx_auto</span></span>(<span>x, *args, reverse=False, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Reverse input/output (instead of manipulating indices).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def reversible(fun):
-    &#34;Reverse input/output (instead of manipulating indices).&#34;&#34;&#34;
-    def newfun(x, *args, reverse=False, **kwargs):
-        if reverse:
-            x = np.flip(x)  # flip ALL dims
-        y = fun(x, *args, **kwargs)  # call fun()
-        if reverse:
-            y = np.flip(y)  # flip ALL dims
-        return y
-    return newfun</code></pre>
-</details>
+<div class="desc"></div>
 </dd>
 </dl>
 </section>
@@ -217,199 +61,49 @@ class model_instance():
 <dd>
 <div class="desc"><p>Use OOP to facilitate having multiple parameter settings simultaneously.
 Default parameters from Wilks'2005.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class model_instance():
-    &#34;&#34;&#34;
-    Use OOP to facilitate having multiple parameter settings simultaneously.
-    Default parameters from Wilks&#39;2005.
-    &#34;&#34;&#34;
-
-    def __init__(self, nU=8, J=32, F=20, h=1, b=10, c=10):
-
-        # System size
-        self.nU = nU        # num of U
-        self.J  = J         # num of V per U
-        self.M  = (J+1)*nU  # =&gt; Total state length
-
-        # Other parameters
-        self.F  = F  # forcing
-        self.h  = h  # coupling constant
-        self.b  = b  # Spatial scale ratio
-        self.c  = c  # time scale ratio
-
-        # Indices for coupling
-        self.iiU = (np.arange(J*nU)/J).astype(int)
-        self.iiV = np.arange(J*nU)
-
-        # Init with perturbation
-        self.x0 = np.eye(self.M)[0]
-
-    def unpack(self, x):
-        nU, J, h, b, c = self.nU, self.J, self.h, self.b, self.c
-        U, V = x[..., :nU], x[..., nU:]
-        return nU, J, h, b, c, U, V
-
-    def dxdt_trunc(self, x):
-        &#34;&#34;&#34;Truncated dxdt: slow variables (U) only.&#34;&#34;&#34;
-        assert x.shape[-1] == self.nU
-        return dxdt_auto(x) + self.F
-
-    def dxdt_parameterized(self, t, x):
-        &#34;&#34;&#34;Truncated dxdt with parameterization of fast variables (V).&#34;&#34;&#34;
-        d  = self.dxdt_trunc(x)
-        d -= self.prmzt(t, x)  # must (of course) be set first
-        return d
-
-    def dxdt(self, x):
-        &#34;&#34;&#34;Full (coupled) dxdt.&#34;&#34;&#34;
-        nU, J, h, b, c, U, V = self.unpack(x)
-
-        d = np.zeros_like(x)
-        d[..., :nU]  = self.dxdt_trunc(U)                                # dU/dt
-        d[..., :nU] += -h*c/b * V.reshape(V.shape[:-1]+(nU, J)).sum(-1)  # Couple U&lt;--V
-        d[..., nU:]  = c/b*dxdt_auto(b*V, reverse=True)  # dV/dt
-        d[..., nU:] += h*c/b * U[..., self.iiU]          # Couple V&lt;--U
-
-        return d
-
-    def d2x_dtdx(self, x):
-        nU, J, h, b, c, U, V = self.unpack(x)
-        iiU, iiV = self.iiU, self.iiV+nU
-
-        F = np.zeros((self.M, self.M))
-        F[:nU, :nU] = d2x_dtdx_auto(U)  # dU/dU
-        F[iiU, iiV] = -h*c/b            # dU/dV
-        F[nU:, nU:] = c * d2x_dtdx_auto(b*V, reverse=True)  # dV/dV
-        F[iiV, iiU] = h*c/b                                 # dV/dU
-
-        return F
-
-    def dstep_dx(self, x, t, dt):
-        return integrate_TLM(self.d2x_dtdx_auto(x), dt, method=&#39;analytic&#39;)
-
-    def LPs(self, jj):
-        return [(11, 1, LP.spatial1d(jj, dims=list(range(self.nU))))]</code></pre>
-</details>
 <h3>Methods</h3>
 <dl>
-<dt id="dapper.mods.LorenzUV.core.model_instance.LPs"><code class="name flex">
-<span>def <span class="ident">LPs</span></span>(<span>self, jj)</span>
+<dt id="dapper.mods.LorenzUV.core.model_instance.unpack"><code class="name flex">
+<span>def <span class="ident">unpack</span></span>(<span>self, x)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def LPs(self, jj):
-    return [(11, 1, LP.spatial1d(jj, dims=list(range(self.nU))))]</code></pre>
-</details>
-</dd>
-<dt id="dapper.mods.LorenzUV.core.model_instance.d2x_dtdx"><code class="name flex">
-<span>def <span class="ident">d2x_dtdx</span></span>(<span>self, x)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def d2x_dtdx(self, x):
-    nU, J, h, b, c, U, V = self.unpack(x)
-    iiU, iiV = self.iiU, self.iiV+nU
-
-    F = np.zeros((self.M, self.M))
-    F[:nU, :nU] = d2x_dtdx_auto(U)  # dU/dU
-    F[iiU, iiV] = -h*c/b            # dU/dV
-    F[nU:, nU:] = c * d2x_dtdx_auto(b*V, reverse=True)  # dV/dV
-    F[iiV, iiU] = h*c/b                                 # dV/dU
-
-    return F</code></pre>
-</details>
-</dd>
-<dt id="dapper.mods.LorenzUV.core.model_instance.dstep_dx"><code class="name flex">
-<span>def <span class="ident">dstep_dx</span></span>(<span>self, x, t, dt)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dstep_dx(self, x, t, dt):
-    return integrate_TLM(self.d2x_dtdx_auto(x), dt, method=&#39;analytic&#39;)</code></pre>
-</details>
-</dd>
-<dt id="dapper.mods.LorenzUV.core.model_instance.dxdt"><code class="name flex">
-<span>def <span class="ident">dxdt</span></span>(<span>self, x)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Full (coupled) dxdt.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dxdt(self, x):
-    &#34;&#34;&#34;Full (coupled) dxdt.&#34;&#34;&#34;
-    nU, J, h, b, c, U, V = self.unpack(x)
-
-    d = np.zeros_like(x)
-    d[..., :nU]  = self.dxdt_trunc(U)                                # dU/dt
-    d[..., :nU] += -h*c/b * V.reshape(V.shape[:-1]+(nU, J)).sum(-1)  # Couple U&lt;--V
-    d[..., nU:]  = c/b*dxdt_auto(b*V, reverse=True)  # dV/dt
-    d[..., nU:] += h*c/b * U[..., self.iiU]          # Couple V&lt;--U
-
-    return d</code></pre>
-</details>
-</dd>
-<dt id="dapper.mods.LorenzUV.core.model_instance.dxdt_parameterized"><code class="name flex">
-<span>def <span class="ident">dxdt_parameterized</span></span>(<span>self, t, x)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Truncated dxdt with parameterization of fast variables (V).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dxdt_parameterized(self, t, x):
-    &#34;&#34;&#34;Truncated dxdt with parameterization of fast variables (V).&#34;&#34;&#34;
-    d  = self.dxdt_trunc(x)
-    d -= self.prmzt(t, x)  # must (of course) be set first
-    return d</code></pre>
-</details>
 </dd>
 <dt id="dapper.mods.LorenzUV.core.model_instance.dxdt_trunc"><code class="name flex">
 <span>def <span class="ident">dxdt_trunc</span></span>(<span>self, x)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Truncated dxdt: slow variables (U) only.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dxdt_trunc(self, x):
-    &#34;&#34;&#34;Truncated dxdt: slow variables (U) only.&#34;&#34;&#34;
-    assert x.shape[-1] == self.nU
-    return dxdt_auto(x) + self.F</code></pre>
-</details>
 </dd>
-<dt id="dapper.mods.LorenzUV.core.model_instance.unpack"><code class="name flex">
-<span>def <span class="ident">unpack</span></span>(<span>self, x)</span>
+<dt id="dapper.mods.LorenzUV.core.model_instance.dxdt_parameterized"><code class="name flex">
+<span>def <span class="ident">dxdt_parameterized</span></span>(<span>self, t, x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Truncated dxdt with parameterization of fast variables (V).</p></div>
+</dd>
+<dt id="dapper.mods.LorenzUV.core.model_instance.dxdt"><code class="name flex">
+<span>def <span class="ident">dxdt</span></span>(<span>self, x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Full (coupled) dxdt.</p></div>
+</dd>
+<dt id="dapper.mods.LorenzUV.core.model_instance.d2x_dtdx"><code class="name flex">
+<span>def <span class="ident">d2x_dtdx</span></span>(<span>self, x)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def unpack(self, x):
-    nU, J, h, b, c = self.nU, self.J, self.h, self.b, self.c
-    U, V = x[..., :nU], x[..., nU:]
-    return nU, J, h, b, c, U, V</code></pre>
-</details>
+</dd>
+<dt id="dapper.mods.LorenzUV.core.model_instance.dstep_dx"><code class="name flex">
+<span>def <span class="ident">dstep_dx</span></span>(<span>self, x, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.mods.LorenzUV.core.model_instance.LPs"><code class="name flex">
+<span>def <span class="ident">LPs</span></span>(<span>self, jj)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -429,9 +123,9 @@ Default parameters from Wilks'2005.</p></div>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="dapper.mods.LorenzUV.core.d2x_dtdx_auto" href="#dapper.mods.LorenzUV.core.d2x_dtdx_auto">d2x_dtdx_auto</a></code></li>
-<li><code><a title="dapper.mods.LorenzUV.core.dxdt_auto" href="#dapper.mods.LorenzUV.core.dxdt_auto">dxdt_auto</a></code></li>
 <li><code><a title="dapper.mods.LorenzUV.core.reversible" href="#dapper.mods.LorenzUV.core.reversible">reversible</a></code></li>
+<li><code><a title="dapper.mods.LorenzUV.core.dxdt_auto" href="#dapper.mods.LorenzUV.core.dxdt_auto">dxdt_auto</a></code></li>
+<li><code><a title="dapper.mods.LorenzUV.core.d2x_dtdx_auto" href="#dapper.mods.LorenzUV.core.d2x_dtdx_auto">d2x_dtdx_auto</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -439,13 +133,13 @@ Default parameters from Wilks'2005.</p></div>
 <li>
 <h4><code><a title="dapper.mods.LorenzUV.core.model_instance" href="#dapper.mods.LorenzUV.core.model_instance">model_instance</a></code></h4>
 <ul class="two-column">
-<li><code><a title="dapper.mods.LorenzUV.core.model_instance.LPs" href="#dapper.mods.LorenzUV.core.model_instance.LPs">LPs</a></code></li>
+<li><code><a title="dapper.mods.LorenzUV.core.model_instance.unpack" href="#dapper.mods.LorenzUV.core.model_instance.unpack">unpack</a></code></li>
+<li><code><a title="dapper.mods.LorenzUV.core.model_instance.dxdt_trunc" href="#dapper.mods.LorenzUV.core.model_instance.dxdt_trunc">dxdt_trunc</a></code></li>
+<li><code><a title="dapper.mods.LorenzUV.core.model_instance.dxdt_parameterized" href="#dapper.mods.LorenzUV.core.model_instance.dxdt_parameterized">dxdt_parameterized</a></code></li>
+<li><code><a title="dapper.mods.LorenzUV.core.model_instance.dxdt" href="#dapper.mods.LorenzUV.core.model_instance.dxdt">dxdt</a></code></li>
 <li><code><a title="dapper.mods.LorenzUV.core.model_instance.d2x_dtdx" href="#dapper.mods.LorenzUV.core.model_instance.d2x_dtdx">d2x_dtdx</a></code></li>
 <li><code><a title="dapper.mods.LorenzUV.core.model_instance.dstep_dx" href="#dapper.mods.LorenzUV.core.model_instance.dstep_dx">dstep_dx</a></code></li>
-<li><code><a title="dapper.mods.LorenzUV.core.model_instance.dxdt" href="#dapper.mods.LorenzUV.core.model_instance.dxdt">dxdt</a></code></li>
-<li><code><a title="dapper.mods.LorenzUV.core.model_instance.dxdt_parameterized" href="#dapper.mods.LorenzUV.core.model_instance.dxdt_parameterized">dxdt_parameterized</a></code></li>
-<li><code><a title="dapper.mods.LorenzUV.core.model_instance.dxdt_trunc" href="#dapper.mods.LorenzUV.core.model_instance.dxdt_trunc">dxdt_trunc</a></code></li>
-<li><code><a title="dapper.mods.LorenzUV.core.model_instance.unpack" href="#dapper.mods.LorenzUV.core.model_instance.unpack">unpack</a></code></li>
+<li><code><a title="dapper.mods.LorenzUV.core.model_instance.LPs" href="#dapper.mods.LorenzUV.core.model_instance.LPs">LPs</a></code></li>
 </ul>
 </li>
 </ul>

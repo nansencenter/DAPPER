@@ -31,105 +31,6 @@ In particular
 <a href="https://github.com/nansencenter/DAPPER#installation">installation</a>
 and <a href="https://github.com/nansencenter/DAPPER#getting-started">getting started</a></p>
 <p><span><span class="MathJax_Preview"> a = \frac{a}{b} </span><script type="math/tex; mode=display"> a = \frac{a}{b} </script></span></p>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">&#34;&#34;&#34;Data Assimilation with Python: a Package for Experimental Research (DAPPER).
-
-DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods
-using synthetic/twin experiments.
-
-See the full introduction in the [README](https://github.com/nansencenter/DAPPER)
-In particular
-[installation](https://github.com/nansencenter/DAPPER#installation)
-and [getting started](https://github.com/nansencenter/DAPPER#getting-started)
-
-$$ a = \\frac{a}{b} $$
-&#34;&#34;&#34;
-
-__version__ = &#34;0.9.6&#34;
-
-import sys
-
-assert sys.version_info &gt;= (3,8), &#34;Need Python&gt;=3.8&#34;
-
-
-# Profiling.
-# Launch python script: $ kernprof -l -v myprog.py
-# Functions decorated with &#39;profile&#39; from below will be timed.
-try:
-    import builtins
-    profile = builtins.profile     # will exists if launched via kernprof
-except AttributeError:
-    def profile(func): return func # provide a pass-through version.
-
-
-
-from dapper.tools.series import UncertainQtty
-
-from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
-                    seed_and_simulate, xpList)
-from .da_methods.baseline import Climatology, OptInterp, Var3D
-# DA methods
-from .da_methods.ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
-from .da_methods.extended import ExtKF, ExtRTS
-from .da_methods.other import LNETF, RHF
-from .da_methods.particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
-from .da_methods.variational import Var4D, iEnKS
-from .data_management import (default_fig_adjustments, default_styles,
-                              discretize_cmap, load_xps, make_label, rel_index,
-                              xpSpace)
-from .dpr_config import rc
-from .stats import register_stat
-from .tools.chronos import Chronology
-from .tools.magic import magic_naming, spell_out
-from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, round2,
-                         with_recursion, with_rk4)
-from .tools.matrices import CovMat
-from .tools.randvars import RV, GaussRV
-from .tools.stoch import rand, randn, set_seed
-from .tools.viz import freshfig
-
-
-# Documentation management
-# ---
-# # Generation:
-# $ pdoc --force --html -o ./docs dapper
-# Push updated docs to github
-# # Hosting:
-# In the main github settings of the repo,
-# go to the &#34;GitHub Pages&#34; section,
-# and set the source to the docs folder.
-def _find_demos(as_path=False):
-    &#34;Find all model demo.py scripts.&#34;
-    lst = []
-    for d in (rc.dirs.dapper/&#34;mods&#34;).iterdir():
-        x = d/&#34;demo.py&#34;
-        if x.is_file():
-            x = x.relative_to(rc.dirs.DAPPER)
-            if not as_path:
-                x = str(x.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
-            lst.append(x)
-    return lst
-
-# This generates a lot of warnings:
-# &#34;&#34;&#34;UserWarning: __pdoc__-overriden key ... does not exist in module&#34;&#34;&#34;.
-# AFAICT that&#39;s fine. https://github.com/pdoc3/pdoc/issues/206
-# Alternative: Insert this at top of each script to exclude
-# &gt;&gt;&gt; if __name__ != &#34;__main__&#34;:
-# &gt;&gt;&gt;     raise RuntimeError(&#34;This module may only be run as script.&#34;)
-# and run pdoc with --skip-errors.
-__pdoc__ = {
-    &#34;tools.remote.autoscaler&#34;: False,
-    **{demo:False for demo in _find_demos()},
-    &#34;dapper.mods.KS.compare_schemes&#34;: False,
-    &#34;dapper.mods.LorenzUV.illust_LorenzUV&#34;: False,
-    &#34;dapper.mods.LorenzUV.illust_parameterizations&#34;: False,
-    &#34;dapper.mods.explore_props&#34;: False,
-    &#34;dapper.mods.QG.f90&#34;: False,
-}</code></pre>
-</details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
@@ -178,12 +79,6 @@ __pdoc__ = {
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def profile(func): return func # provide a pass-through version.</code></pre>
-</details>
 </dd>
 </dl>
 </section>

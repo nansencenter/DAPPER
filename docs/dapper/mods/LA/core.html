@@ -23,137 +23,6 @@
 <h1 class="title">Module <code>dapper.mods.LA.core</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python"># &#34;Linear advection&#34;  model.
-# Optimal solution provided by Kalman filter (ExtKF).
-# System is typically used with a relatively large size (Nx=1000),
-# but initialized with a moderate wavenumber (k),
-# which a DA method should hopefully be able to exploit.
-#
-# A summary for the purpose of DA is provided in section 3.3
-# of thesis found at
-# ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
-
-import dapper as dpr
-import numpy as np
-import scipy.linalg as sla
-from scipy import sparse
-
-
-def Fmat(Nx, c, dx, dt):
-    &#34;&#34;&#34;
-    Nx - System size
-    c  - Velocity of wave. Wave travels to the rigth for c&gt;0.
-    dx - Grid spacing
-    dt - Time step
-
-    Note that the 1st-order upwind scheme used here is exact
-    (vis-a-vis the analytic solution) only for dt = abs(dx/c),
-    in which case it corresponds to
-    np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.
-    &#34;&#34;&#34;
-    assert np.abs(c*dt/dx) &lt;= 1, &#34;Must satisfy CFL condition&#34;
-    # 1st order explicit upwind scheme
-    row1     = np.zeros(Nx)
-    row1[-1] = +(np.sign(c)+1)/2
-    row1[+1] = -(np.sign(c)-1)/2
-    row1[0]  = -1
-    L        = sla.circulant(row1)
-    F        = np.eye(Nx) + (dt/dx*np.abs(c))*L
-    F        = sparse.dia_matrix(F)
-    return F
-
-
-def basis_vector(Nx, k):
-    &#34;&#34;&#34;
-    Nx - state vector length
-    k  - max wavenumber (wavelengths to fit into interval 1:Nx)
-    &#34;&#34;&#34;
-    mm = np.arange(1, Nx+1) / Nx
-    kk = np.arange(k+1)[:, None]  # Wavenumbers
-    aa = dpr.rand(k+1)          # Amplitudes
-    pp = dpr.rand(k+1)[:, None]  # Phases
-
-    s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
-
-    # % Normalise
-    sd = np.std(s, ddof=1)
-    # if Nx &gt;= (2*k + 1)
-    # % See analytic_normzt.m
-    # sd = np.sqrt(sum(aa(2:end).^2)*(Nx/2)/(Nx-1));
-    s  = s/sd
-
-    return s
-
-
-# Initialization as suggested by sakov&#39;2008 &#34;implications of...&#34;,
-# (but with some minor differences).
-def sinusoidal_sample(Nx, k, N):
-    &#34;&#34;&#34; Generate N basis vectors, and center them.
-    The centring is not naturally a part of the basis generation,
-    but serves to avoid the initial transitory regime
-    if the model is dissipative(, and more ?).
-
-    Example:
-    &gt; E = sinusoidal_sample(100,4,5)
-    &gt; plt.plot(E.T)
-    &#34;&#34;&#34;
-    sample = np.zeros((N, Nx))
-    for n in range(N):
-        sample[n] = basis_vector(Nx, k)
-
-    # Note: Each sample member is centered
-    # -- Not the sample as a whole.
-    sample = sample - np.mean(sample, axis=1, keepdims=True)
-
-    return sample
-
-
-def periodic_distance_range(M):
-    return np.minimum(np.arange(M), np.arange(M, 0, -1))
-    # return np.roll(np.abs(np.arange(M) - M//2), (M+1)//2)
-    # return np.concatenate((range((M+1)//2), range(M//2,0,-1)))
-
-
-# Initialization as suggested by evensen2009
-def homogeneous_1D_cov(M, d, kind=&#39;Expo&#39;):
-    &#34;&#34;&#34;
-    Generate initial correlations for Linear Advection experiment.
-    d - decorr length, where the unit distance = M(i)-M(i-1) for all i
-    &#34;&#34;&#34;
-    row1 = periodic_distance_range(M)
-
-    # If the correlation function is strictly non-negative,
-    # the correlation length is often defined as the area under
-    # the normailsed correlation function (ie. corr(0) = 1).
-    #
-    # This can be motivated by looking at the exponential correlation function,
-    #         corr(h) = exp(-h/d).
-    # The area under the curve (from 0 to infty) equals d, which is also
-    # the point where the initial tangent hits the x-axis.
-    #
-    # For the gaussian correlation function,
-    #         corr(h) = exp(-h^2/a^2)
-    # the area under the curve equals sqrt(pi*a^2)/2.
-    # Thus we should set a^2 = 4/pi*d^2 ~= d^2.
-
-    if kind == &#39;Gauss&#39;:
-        # Gaussian covariance
-        nugget = 1e-5
-        a = 2/np.sqrt(np.pi)*d
-        C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
-    elif kind == &#39;Expo&#39;:
-        # Exponential covariance
-        nugget = 1e-2
-        C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/d))
-    else:
-        raise KeyError
-
-    return C</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -175,33 +44,6 @@ dt - Time step</p>
 (vis-a-vis the analytic solution) only for dt = abs(dx/c),
 in which case it corresponds to
 np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def Fmat(Nx, c, dx, dt):
-    &#34;&#34;&#34;
-    Nx - System size
-    c  - Velocity of wave. Wave travels to the rigth for c&gt;0.
-    dx - Grid spacing
-    dt - Time step
-
-    Note that the 1st-order upwind scheme used here is exact
-    (vis-a-vis the analytic solution) only for dt = abs(dx/c),
-    in which case it corresponds to
-    np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.
-    &#34;&#34;&#34;
-    assert np.abs(c*dt/dx) &lt;= 1, &#34;Must satisfy CFL condition&#34;
-    # 1st order explicit upwind scheme
-    row1     = np.zeros(Nx)
-    row1[-1] = +(np.sign(c)+1)/2
-    row1[+1] = -(np.sign(c)-1)/2
-    row1[0]  = -1
-    L        = sla.circulant(row1)
-    F        = np.eye(Nx) + (dt/dx*np.abs(c))*L
-    F        = sparse.dia_matrix(F)
-    return F</code></pre>
-</details>
 </dd>
 <dt id="dapper.mods.LA.core.basis_vector"><code class="name flex">
 <span>def <span class="ident">basis_vector</span></span>(<span>Nx, k)</span>
@@ -210,90 +52,6 @@ np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.</p></div>
 <div class="desc"><p>Nx - state vector length
 k
 - max wavenumber (wavelengths to fit into interval 1:Nx)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def basis_vector(Nx, k):
-    &#34;&#34;&#34;
-    Nx - state vector length
-    k  - max wavenumber (wavelengths to fit into interval 1:Nx)
-    &#34;&#34;&#34;
-    mm = np.arange(1, Nx+1) / Nx
-    kk = np.arange(k+1)[:, None]  # Wavenumbers
-    aa = dpr.rand(k+1)          # Amplitudes
-    pp = dpr.rand(k+1)[:, None]  # Phases
-
-    s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
-
-    # % Normalise
-    sd = np.std(s, ddof=1)
-    # if Nx &gt;= (2*k + 1)
-    # % See analytic_normzt.m
-    # sd = np.sqrt(sum(aa(2:end).^2)*(Nx/2)/(Nx-1));
-    s  = s/sd
-
-    return s</code></pre>
-</details>
-</dd>
-<dt id="dapper.mods.LA.core.homogeneous_1D_cov"><code class="name flex">
-<span>def <span class="ident">homogeneous_1D_cov</span></span>(<span>M, d, kind='Expo')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Generate initial correlations for Linear Advection experiment.
-d - decorr length, where the unit distance = M(i)-M(i-1) for all i</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def homogeneous_1D_cov(M, d, kind=&#39;Expo&#39;):
-    &#34;&#34;&#34;
-    Generate initial correlations for Linear Advection experiment.
-    d - decorr length, where the unit distance = M(i)-M(i-1) for all i
-    &#34;&#34;&#34;
-    row1 = periodic_distance_range(M)
-
-    # If the correlation function is strictly non-negative,
-    # the correlation length is often defined as the area under
-    # the normailsed correlation function (ie. corr(0) = 1).
-    #
-    # This can be motivated by looking at the exponential correlation function,
-    #         corr(h) = exp(-h/d).
-    # The area under the curve (from 0 to infty) equals d, which is also
-    # the point where the initial tangent hits the x-axis.
-    #
-    # For the gaussian correlation function,
-    #         corr(h) = exp(-h^2/a^2)
-    # the area under the curve equals sqrt(pi*a^2)/2.
-    # Thus we should set a^2 = 4/pi*d^2 ~= d^2.
-
-    if kind == &#39;Gauss&#39;:
-        # Gaussian covariance
-        nugget = 1e-5
-        a = 2/np.sqrt(np.pi)*d
-        C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
-    elif kind == &#39;Expo&#39;:
-        # Exponential covariance
-        nugget = 1e-2
-        C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/d))
-    else:
-        raise KeyError
-
-    return C</code></pre>
-</details>
-</dd>
-<dt id="dapper.mods.LA.core.periodic_distance_range"><code class="name flex">
-<span>def <span class="ident">periodic_distance_range</span></span>(<span>M)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def periodic_distance_range(M):
-    return np.minimum(np.arange(M), np.arange(M, 0, -1))</code></pre>
-</details>
 </dd>
 <dt id="dapper.mods.LA.core.sinusoidal_sample"><code class="name flex">
 <span>def <span class="ident">sinusoidal_sample</span></span>(<span>Nx, k, N)</span>
@@ -308,30 +66,19 @@ if the model is dissipative(, and more ?).</p>
 <p>E = sinusoidal_sample(100,4,5)
 plt.plot(E.T)</p>
 </blockquote></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def sinusoidal_sample(Nx, k, N):
-    &#34;&#34;&#34; Generate N basis vectors, and center them.
-    The centring is not naturally a part of the basis generation,
-    but serves to avoid the initial transitory regime
-    if the model is dissipative(, and more ?).
-
-    Example:
-    &gt; E = sinusoidal_sample(100,4,5)
-    &gt; plt.plot(E.T)
-    &#34;&#34;&#34;
-    sample = np.zeros((N, Nx))
-    for n in range(N):
-        sample[n] = basis_vector(Nx, k)
-
-    # Note: Each sample member is centered
-    # -- Not the sample as a whole.
-    sample = sample - np.mean(sample, axis=1, keepdims=True)
-
-    return sample</code></pre>
-</details>
+</dd>
+<dt id="dapper.mods.LA.core.periodic_distance_range"><code class="name flex">
+<span>def <span class="ident">periodic_distance_range</span></span>(<span>M)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.mods.LA.core.homogeneous_1D_cov"><code class="name flex">
+<span>def <span class="ident">homogeneous_1D_cov</span></span>(<span>M, d, kind='Expo')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate initial correlations for Linear Advection experiment.
+d - decorr length, where the unit distance = M(i)-M(i-1) for all i</p></div>
 </dd>
 </dl>
 </section>
@@ -353,9 +100,9 @@ plt.plot(E.T)</p>
 <ul class="">
 <li><code><a title="dapper.mods.LA.core.Fmat" href="#dapper.mods.LA.core.Fmat">Fmat</a></code></li>
 <li><code><a title="dapper.mods.LA.core.basis_vector" href="#dapper.mods.LA.core.basis_vector">basis_vector</a></code></li>
-<li><code><a title="dapper.mods.LA.core.homogeneous_1D_cov" href="#dapper.mods.LA.core.homogeneous_1D_cov">homogeneous_1D_cov</a></code></li>
-<li><code><a title="dapper.mods.LA.core.periodic_distance_range" href="#dapper.mods.LA.core.periodic_distance_range">periodic_distance_range</a></code></li>
 <li><code><a title="dapper.mods.LA.core.sinusoidal_sample" href="#dapper.mods.LA.core.sinusoidal_sample">sinusoidal_sample</a></code></li>
+<li><code><a title="dapper.mods.LA.core.periodic_distance_range" href="#dapper.mods.LA.core.periodic_distance_range">periodic_distance_range</a></code></li>
+<li><code><a title="dapper.mods.LA.core.homogeneous_1D_cov" href="#dapper.mods.LA.core.homogeneous_1D_cov">homogeneous_1D_cov</a></code></li>
 </ul>
 </li>
 </ul>

@@ -28,278 +28,6 @@ Sakov (2011), Computational Geosciences:
 <p>A good introduction to localization:
 Sakov (2011), Computational Geosciences:
 'Relation between two common localisation methods for the EnKF'.</p>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">&#34;&#34;&#34;A good introduction to localization:
-Sakov (2011), Computational Geosciences:
-&#39;Relation between two common localisation methods for the EnKF&#39;.
-&#34;&#34;&#34;
-
-import itertools
-import numpy as np
-
-# Defaults
-CUTOFF   = 1e-3
-TAG      = &#39;GC&#39;
-PERIODIC = True
-
-
-def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
-    &#34;&#34;&#34;Euclidian distance (un-squared) between pts in A and B.
-
-    - A: 2-dim array of shape (npts,ndim).
-         If A is 1-dim, then (ndim)&lt;--A.shape, npts&lt;--(,).
-    - B: same as for A (npts can differ).
-    - returns distances as an array of shape (npts_A, npts_B)
-
-    These are equal:
-    &gt;&gt;&gt; pairwise_distances(A,periodic=False)
-    &gt;&gt;&gt; squareform(pdist(A)) # 2x slower
-
-    But pairwise_distances allows comparing two different pts A to pts B
-    (without the augmentation/block tricks needed for pdist).
-
-    Also, the ``periodic`` option is provided.
-    It assumes the domain is a hyper-rectangle with edge lengths: ``domain``.
-    NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.
-    &#34;&#34;&#34;
-
-    if B is None:
-        B = A
-
-    # Prep A,B
-    A = np.asarray(A)
-    B = np.asarray(B)
-    npts_A = A.shape[:A.ndim-1]
-    npts_B = B.shape[:B.ndim-1]
-    # assert A.shape[-1] == B.shape[-1] # == ndim
-    A = np.atleast_2d(A)
-    B = np.atleast_2d(B)
-
-    d = A[:, None] - B  # shape=(npts_A,npts_B,ndim)
-
-    if periodic:
-        domain = np.reshape(domain, (1, 1, -1))  # for broadcasting
-        d = abs(d)
-        d = np.minimum(d, domain-d)
-
-    # scipy.linalg.norm(d,axis=-1)
-    distances = np.sqrt((d**2).sum(axis=-1))
-
-    return distances.reshape(npts_A+npts_B)
-
-
-def dist2coeff(dists, radius, tag=None):
-    &#34;&#34;&#34;Compute tapering coefficients corresponding to a distances.
-
-    NB: The radius is internally adjusted such that, independently of &#39;tag&#39;,
-    coeff==np.exp(-0.5) when distance==radius.
-
-    This is largely based on Sakov&#39;s enkf-matlab code. Two bugs have here been fixed:
-     - The constants were slightly wrong, as noted in comments below.
-     - It forgot to take sqrt() of coeffs when applying them through &#39;local analysis&#39;.
-    &#34;&#34;&#34;
-    coeffs = np.zeros(dists.shape)
-
-    if tag is None:
-        tag = TAG
-
-    if tag == &#39;Gauss&#39;:
-        R = radius
-        coeffs = np.exp(-0.5 * (dists/R)**2)
-    elif tag == &#39;Exp&#39;:
-        R = radius
-        coeffs = np.exp(-0.5 * (dists/R)**3)
-    elif tag == &#39;Cubic&#39;:
-        R            = radius * 1.87  # Sakov: 1.8676
-        inds         = dists &lt;= R
-        coeffs[inds] = (1 - (dists[inds] / R) ** 3) ** 3
-    elif tag == &#39;Quadro&#39;:
-        R            = radius * 1.64  # Sakov: 1.7080
-        inds         = dists &lt;= R
-        coeffs[inds] = (1 - (dists[inds] / R) ** 4) ** 4
-    elif tag == &#39;GC&#39;:  # eqn 4.10 of Gaspari-Cohn&#39;99, or eqn 25 of Sakov2011relation
-        R = radius * 1.82  # =np.sqrt(10/3). Sakov: 1.7386
-        # 1st segment
-        ind1         = dists &lt;= R
-        r2           = (dists[ind1] / R) ** 2
-        r3           = (dists[ind1] / R) ** 3
-        coeffs[ind1] = 1 + r2 * (- r3 / 4 + r2 / 2) + r3 * (5 / 8) - r2 * (5 / 3)
-        # 2nd segment
-        ind2         = np.logical_and(R &lt; dists, dists &lt;= 2*R)
-        r1           = (dists[ind2] / R)
-        r2           = (dists[ind2] / R) ** 2
-        r3           = (dists[ind2] / R) ** 3
-        coeffs[ind2] = r2 * (r3 / 12 - r2 / 2) + r3 * (5 / 8) \
-            + r2 * (5 / 3) - r1 * 5 + 4 - (2 / 3) / r1
-    elif tag == &#39;Step&#39;:
-        R            = radius
-        inds         = dists &lt;= R
-        coeffs[inds] = 1
-    else:
-        raise KeyError(&#39;No such coeff function.&#39;)
-
-    return coeffs
-
-
-def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
-    &#34;&#34;&#34;Returns
-    inds   : the indices of pts that are &#34;close to&#34; centre.
-    coeffs : the corresponding tapering coefficients.
-    &#34;&#34;&#34;
-    if cutoff is None:
-        cutoff = CUTOFF
-
-    coeffs = dist2coeff(dists, radius, tag)
-
-    # Truncate using cut-off
-    inds   = np.arange(len(dists))[coeffs &gt; cutoff]
-    coeffs = coeffs[inds]
-
-    return inds, coeffs
-
-
-def localization_setup(y2x_distances, batches):
-
-    def localization_now(radius, direction, t, tag=None):
-        &#34;Provide localization setup for time t.&#34;
-        y2x = y2x_distances(t)
-
-        if direction == &#39;x2y&#39;:
-            def obs_taperer(batch):
-                # Don&#39;t use ``batch = batches[iBatch]``
-                # (with iBatch as this function&#39;s input).
-                # This would slow down multiproc.,
-                # coz batches gets copied to each process.
-                x2y = y2x.T
-                dists = x2y[batch].mean(axis=0)
-                return inds_and_coeffs(dists, radius, tag=tag)
-            return batches, obs_taperer
-
-        elif direction == &#39;y2x&#39;:
-            def state_taperer(iObs):
-                return inds_and_coeffs(y2x[iObs], radius, tag=tag)
-            return state_taperer
-
-    return localization_now
-
-
-def no_localization(Nx, Ny):
-
-    def obs_taperer(batch):
-        return np.arange(Ny), np.ones(Ny)
-
-    def state_taperer(iObs):
-        return np.arange(Nx), np.ones(Nx)
-
-    def localization_now(radius, direction, t, tag=None):
-        &#34;&#34;&#34;Returns all indices, with all tapering coeffs=1.
-
-        Used to validate local DA methods [eg LETKF&lt;==&gt;EnKF(&#39;Sqrt&#39;)].&#34;&#34;&#34;
-        assert radius == np.inf, &#34;Localization functions not specified&#34;
-
-        if direction == &#39;x2y&#39;:
-            return [np.arange(Nx)], obs_taperer
-        elif direction == &#39;y2x&#39;:
-            return state_taperer
-
-    return localization_now
-
-
-def rectangular_partitioning(shape, steps, do_ind=True):
-    &#34;&#34;&#34;N-D rectangular batch generation.
-
-    shape: [len(grid[dim]) for dim in range(ndim)]
-    steps: [step_len[dim]  for dim in range(ndim)]
-
-    returns a list of batches,
-    where each element (batch) is a list of indices
-
-    # Example, with visualization:
-    &gt;&gt;&gt; shape   = [4,13]
-    &gt;&gt;&gt; steps   = [2,4]
-    &gt;&gt;&gt; batches = rectangular_partitioning(shape, steps, do_ind=False)
-    &gt;&gt;&gt; M       = np.prod(shape)
-    &gt;&gt;&gt; nB      = len(batches)
-    &gt;&gt;&gt; values  = np.random.choice(arange(nB),nB,0)
-    &gt;&gt;&gt; Z       = np.zeros(shape)
-    &gt;&gt;&gt; for ib,b in enumerate(batches):
-    &gt;&gt;&gt;   Z[tuple(b)] = values[ib]
-    &gt;&gt;&gt; plt.imshow(Z)
-    &#34;&#34;&#34;
-    assert len(shape) == len(steps)
-    # ndim = len(steps)
-
-    # An ndim list of (average) local grid lengths:
-    nLocs = [round(n/d) for n, d in zip(shape, steps)]
-    # An ndim list of (marginal) grid partitions
-    # [array_split() handles non-divisibility]:
-    edge_partitions = [np.array_split(np.arange(n), nLoc)
-                       for n, nLoc in zip(shape, nLocs)]
-
-    batches = []
-    for batch_edges in itertools.product(*edge_partitions):
-        # The &#39;indexing&#39; argument below is actually inconsequential:
-        # it merely changes batch&#39;s internal ordering.
-        batch_rect  = np.meshgrid(*batch_edges, indexing=&#39;ij&#39;)
-        coords      = [ii.flatten() for ii in batch_rect]
-        batches    += [coords]
-
-    if do_ind:
-        def sub2ind(sub):
-            return np.ravel_multi_index(sub, shape)
-        batches = [sub2ind(b) for b in batches]
-
-    return batches
-
-
-# NB: Don&#39;t try to put the time-dependence of obs_inds inside obs_taperer().
-# That would require calling ind2sub len(batches) times per analysis,
-# and the result cannot be easily cached, because of multiprocessing.
-def safe_eval(fun, t):
-    try:
-        return fun(t)
-    except TypeError:
-        return fun
-
-
-# NB: Why is the &#39;order&#39; argument not supported by this module? Because:
-#  1) Assuming only order (orientation) &#39;C&#39; simplifies the module&#39;s code.
-#  2) It&#39;s not necessary, because the module only communicates to *exterior* via indices
-#     [of what assumes to be X.flatten(order=&#39;C&#39;)], and not coordinates!
-#     Thus, the only adaptation necessary if the order is &#39;F&#39; is to reverse
-#     the shape parameter passed to these functions (example: mods/QG/sakov2008).
-
-
-def nd_Id_localization(shape,
-                       batch_shape=None,
-                       obs_inds=None,
-                       periodic=PERIODIC):
-    &#34;&#34;&#34;Localize Id (direct) point obs of an
-    N-D, homogeneous, rectangular domain.&#34;&#34;&#34;
-
-    M = np.prod(shape)
-
-    if batch_shape is None:
-        batch_shape = (1,)*len(shape)
-    if obs_inds is None:
-        obs_inds = np.arange(M)
-
-    def ind2sub(ind):
-        return np.asarray(np.unravel_index(ind, shape)).T
-
-    batches = rectangular_partitioning(shape, batch_shape)
-
-    state_coord = ind2sub(np.arange(M))
-
-    def y2x_distances(t):
-        obs_coord = ind2sub(safe_eval(obs_inds, t))
-        return pairwise_distances(obs_coord, state_coord, periodic, shape)
-
-    return localization_setup(y2x_distances, batches)</code></pre>
-</details>
 </section>
 <section>
 </section>
@@ -308,205 +36,6 @@ def nd_Id_localization(shape,
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.tools.localization.dist2coeff"><code class="name flex">
-<span>def <span class="ident">dist2coeff</span></span>(<span>dists, radius, tag=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Compute tapering coefficients corresponding to a distances.</p>
-<p>NB: The radius is internally adjusted such that, independently of 'tag',
-coeff==np.exp(-0.5) when distance==radius.</p>
-<p>This is largely based on Sakov's enkf-matlab code. Two bugs have here been fixed:
-- The constants were slightly wrong, as noted in comments below.
-- It forgot to take sqrt() of coeffs when applying them through 'local analysis'.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dist2coeff(dists, radius, tag=None):
-    &#34;&#34;&#34;Compute tapering coefficients corresponding to a distances.
-
-    NB: The radius is internally adjusted such that, independently of &#39;tag&#39;,
-    coeff==np.exp(-0.5) when distance==radius.
-
-    This is largely based on Sakov&#39;s enkf-matlab code. Two bugs have here been fixed:
-     - The constants were slightly wrong, as noted in comments below.
-     - It forgot to take sqrt() of coeffs when applying them through &#39;local analysis&#39;.
-    &#34;&#34;&#34;
-    coeffs = np.zeros(dists.shape)
-
-    if tag is None:
-        tag = TAG
-
-    if tag == &#39;Gauss&#39;:
-        R = radius
-        coeffs = np.exp(-0.5 * (dists/R)**2)
-    elif tag == &#39;Exp&#39;:
-        R = radius
-        coeffs = np.exp(-0.5 * (dists/R)**3)
-    elif tag == &#39;Cubic&#39;:
-        R            = radius * 1.87  # Sakov: 1.8676
-        inds         = dists &lt;= R
-        coeffs[inds] = (1 - (dists[inds] / R) ** 3) ** 3
-    elif tag == &#39;Quadro&#39;:
-        R            = radius * 1.64  # Sakov: 1.7080
-        inds         = dists &lt;= R
-        coeffs[inds] = (1 - (dists[inds] / R) ** 4) ** 4
-    elif tag == &#39;GC&#39;:  # eqn 4.10 of Gaspari-Cohn&#39;99, or eqn 25 of Sakov2011relation
-        R = radius * 1.82  # =np.sqrt(10/3). Sakov: 1.7386
-        # 1st segment
-        ind1         = dists &lt;= R
-        r2           = (dists[ind1] / R) ** 2
-        r3           = (dists[ind1] / R) ** 3
-        coeffs[ind1] = 1 + r2 * (- r3 / 4 + r2 / 2) + r3 * (5 / 8) - r2 * (5 / 3)
-        # 2nd segment
-        ind2         = np.logical_and(R &lt; dists, dists &lt;= 2*R)
-        r1           = (dists[ind2] / R)
-        r2           = (dists[ind2] / R) ** 2
-        r3           = (dists[ind2] / R) ** 3
-        coeffs[ind2] = r2 * (r3 / 12 - r2 / 2) + r3 * (5 / 8) \
-            + r2 * (5 / 3) - r1 * 5 + 4 - (2 / 3) / r1
-    elif tag == &#39;Step&#39;:
-        R            = radius
-        inds         = dists &lt;= R
-        coeffs[inds] = 1
-    else:
-        raise KeyError(&#39;No such coeff function.&#39;)
-
-    return coeffs</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.localization.inds_and_coeffs"><code class="name flex">
-<span>def <span class="ident">inds_and_coeffs</span></span>(<span>dists, radius, cutoff=None, tag=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Returns
-inds
-: the indices of pts that are "close to" centre.
-coeffs : the corresponding tapering coefficients.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
-    &#34;&#34;&#34;Returns
-    inds   : the indices of pts that are &#34;close to&#34; centre.
-    coeffs : the corresponding tapering coefficients.
-    &#34;&#34;&#34;
-    if cutoff is None:
-        cutoff = CUTOFF
-
-    coeffs = dist2coeff(dists, radius, tag)
-
-    # Truncate using cut-off
-    inds   = np.arange(len(dists))[coeffs &gt; cutoff]
-    coeffs = coeffs[inds]
-
-    return inds, coeffs</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.localization.localization_setup"><code class="name flex">
-<span>def <span class="ident">localization_setup</span></span>(<span>y2x_distances, batches)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def localization_setup(y2x_distances, batches):
-
-    def localization_now(radius, direction, t, tag=None):
-        &#34;Provide localization setup for time t.&#34;
-        y2x = y2x_distances(t)
-
-        if direction == &#39;x2y&#39;:
-            def obs_taperer(batch):
-                # Don&#39;t use ``batch = batches[iBatch]``
-                # (with iBatch as this function&#39;s input).
-                # This would slow down multiproc.,
-                # coz batches gets copied to each process.
-                x2y = y2x.T
-                dists = x2y[batch].mean(axis=0)
-                return inds_and_coeffs(dists, radius, tag=tag)
-            return batches, obs_taperer
-
-        elif direction == &#39;y2x&#39;:
-            def state_taperer(iObs):
-                return inds_and_coeffs(y2x[iObs], radius, tag=tag)
-            return state_taperer
-
-    return localization_now</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.localization.nd_Id_localization"><code class="name flex">
-<span>def <span class="ident">nd_Id_localization</span></span>(<span>shape, batch_shape=None, obs_inds=None, periodic=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Localize Id (direct) point obs of an
-N-D, homogeneous, rectangular domain.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def nd_Id_localization(shape,
-                       batch_shape=None,
-                       obs_inds=None,
-                       periodic=PERIODIC):
-    &#34;&#34;&#34;Localize Id (direct) point obs of an
-    N-D, homogeneous, rectangular domain.&#34;&#34;&#34;
-
-    M = np.prod(shape)
-
-    if batch_shape is None:
-        batch_shape = (1,)*len(shape)
-    if obs_inds is None:
-        obs_inds = np.arange(M)
-
-    def ind2sub(ind):
-        return np.asarray(np.unravel_index(ind, shape)).T
-
-    batches = rectangular_partitioning(shape, batch_shape)
-
-    state_coord = ind2sub(np.arange(M))
-
-    def y2x_distances(t):
-        obs_coord = ind2sub(safe_eval(obs_inds, t))
-        return pairwise_distances(obs_coord, state_coord, periodic, shape)
-
-    return localization_setup(y2x_distances, batches)</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.localization.no_localization"><code class="name flex">
-<span>def <span class="ident">no_localization</span></span>(<span>Nx, Ny)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def no_localization(Nx, Ny):
-
-    def obs_taperer(batch):
-        return np.arange(Ny), np.ones(Ny)
-
-    def state_taperer(iObs):
-        return np.arange(Nx), np.ones(Nx)
-
-    def localization_now(radius, direction, t, tag=None):
-        &#34;&#34;&#34;Returns all indices, with all tapering coeffs=1.
-
-        Used to validate local DA methods [eg LETKF&lt;==&gt;EnKF(&#39;Sqrt&#39;)].&#34;&#34;&#34;
-        assert radius == np.inf, &#34;Localization functions not specified&#34;
-
-        if direction == &#39;x2y&#39;:
-            return [np.arange(Nx)], obs_taperer
-        elif direction == &#39;y2x&#39;:
-            return state_taperer
-
-    return localization_now</code></pre>
-</details>
-</dd>
 <dt id="dapper.tools.localization.pairwise_distances"><code class="name flex">
 <span>def <span class="ident">pairwise_distances</span></span>(<span>A, B=None, periodic=True, domain=None)</span>
 </code></dt>
@@ -527,54 +56,38 @@ If A is 1-dim, then (ndim)&lt;&ndash;A.shape, npts&lt;&ndash;(,).</li>
 <p>Also, the <code>periodic</code> option is provided.
 It assumes the domain is a hyper-rectangle with edge lengths: <code>domain</code>.
 NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
-    &#34;&#34;&#34;Euclidian distance (un-squared) between pts in A and B.
-
-    - A: 2-dim array of shape (npts,ndim).
-         If A is 1-dim, then (ndim)&lt;--A.shape, npts&lt;--(,).
-    - B: same as for A (npts can differ).
-    - returns distances as an array of shape (npts_A, npts_B)
-
-    These are equal:
-    &gt;&gt;&gt; pairwise_distances(A,periodic=False)
-    &gt;&gt;&gt; squareform(pdist(A)) # 2x slower
-
-    But pairwise_distances allows comparing two different pts A to pts B
-    (without the augmentation/block tricks needed for pdist).
-
-    Also, the ``periodic`` option is provided.
-    It assumes the domain is a hyper-rectangle with edge lengths: ``domain``.
-    NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.
-    &#34;&#34;&#34;
-
-    if B is None:
-        B = A
-
-    # Prep A,B
-    A = np.asarray(A)
-    B = np.asarray(B)
-    npts_A = A.shape[:A.ndim-1]
-    npts_B = B.shape[:B.ndim-1]
-    # assert A.shape[-1] == B.shape[-1] # == ndim
-    A = np.atleast_2d(A)
-    B = np.atleast_2d(B)
-
-    d = A[:, None] - B  # shape=(npts_A,npts_B,ndim)
-
-    if periodic:
-        domain = np.reshape(domain, (1, 1, -1))  # for broadcasting
-        d = abs(d)
-        d = np.minimum(d, domain-d)
-
-    # scipy.linalg.norm(d,axis=-1)
-    distances = np.sqrt((d**2).sum(axis=-1))
-
-    return distances.reshape(npts_A+npts_B)</code></pre>
-</details>
+</dd>
+<dt id="dapper.tools.localization.dist2coeff"><code class="name flex">
+<span>def <span class="ident">dist2coeff</span></span>(<span>dists, radius, tag=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute tapering coefficients corresponding to a distances.</p>
+<p>NB: The radius is internally adjusted such that, independently of 'tag',
+coeff==np.exp(-0.5) when distance==radius.</p>
+<p>This is largely based on Sakov's enkf-matlab code. Two bugs have here been fixed:
+- The constants were slightly wrong, as noted in comments below.
+- It forgot to take sqrt() of coeffs when applying them through 'local analysis'.</p></div>
+</dd>
+<dt id="dapper.tools.localization.inds_and_coeffs"><code class="name flex">
+<span>def <span class="ident">inds_and_coeffs</span></span>(<span>dists, radius, cutoff=None, tag=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns
+inds
+: the indices of pts that are "close to" centre.
+coeffs : the corresponding tapering coefficients.</p></div>
+</dd>
+<dt id="dapper.tools.localization.localization_setup"><code class="name flex">
+<span>def <span class="ident">localization_setup</span></span>(<span>y2x_distances, batches)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.tools.localization.no_localization"><code class="name flex">
+<span>def <span class="ident">no_localization</span></span>(<span>Nx, Ny)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 <dt id="dapper.tools.localization.rectangular_partitioning"><code class="name flex">
 <span>def <span class="ident">rectangular_partitioning</span></span>(<span>shape, steps, do_ind=True)</span>
@@ -598,72 +111,19 @@ where each element (batch) is a list of indices</p>
 &gt;&gt;&gt;   Z[tuple(b)] = values[ib]
 &gt;&gt;&gt; plt.imshow(Z)
 </code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rectangular_partitioning(shape, steps, do_ind=True):
-    &#34;&#34;&#34;N-D rectangular batch generation.
-
-    shape: [len(grid[dim]) for dim in range(ndim)]
-    steps: [step_len[dim]  for dim in range(ndim)]
-
-    returns a list of batches,
-    where each element (batch) is a list of indices
-
-    # Example, with visualization:
-    &gt;&gt;&gt; shape   = [4,13]
-    &gt;&gt;&gt; steps   = [2,4]
-    &gt;&gt;&gt; batches = rectangular_partitioning(shape, steps, do_ind=False)
-    &gt;&gt;&gt; M       = np.prod(shape)
-    &gt;&gt;&gt; nB      = len(batches)
-    &gt;&gt;&gt; values  = np.random.choice(arange(nB),nB,0)
-    &gt;&gt;&gt; Z       = np.zeros(shape)
-    &gt;&gt;&gt; for ib,b in enumerate(batches):
-    &gt;&gt;&gt;   Z[tuple(b)] = values[ib]
-    &gt;&gt;&gt; plt.imshow(Z)
-    &#34;&#34;&#34;
-    assert len(shape) == len(steps)
-    # ndim = len(steps)
-
-    # An ndim list of (average) local grid lengths:
-    nLocs = [round(n/d) for n, d in zip(shape, steps)]
-    # An ndim list of (marginal) grid partitions
-    # [array_split() handles non-divisibility]:
-    edge_partitions = [np.array_split(np.arange(n), nLoc)
-                       for n, nLoc in zip(shape, nLocs)]
-
-    batches = []
-    for batch_edges in itertools.product(*edge_partitions):
-        # The &#39;indexing&#39; argument below is actually inconsequential:
-        # it merely changes batch&#39;s internal ordering.
-        batch_rect  = np.meshgrid(*batch_edges, indexing=&#39;ij&#39;)
-        coords      = [ii.flatten() for ii in batch_rect]
-        batches    += [coords]
-
-    if do_ind:
-        def sub2ind(sub):
-            return np.ravel_multi_index(sub, shape)
-        batches = [sub2ind(b) for b in batches]
-
-    return batches</code></pre>
-</details>
 </dd>
 <dt id="dapper.tools.localization.safe_eval"><code class="name flex">
 <span>def <span class="ident">safe_eval</span></span>(<span>fun, t)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def safe_eval(fun, t):
-    try:
-        return fun(t)
-    except TypeError:
-        return fun</code></pre>
-</details>
+</dd>
+<dt id="dapper.tools.localization.nd_Id_localization"><code class="name flex">
+<span>def <span class="ident">nd_Id_localization</span></span>(<span>shape, batch_shape=None, obs_inds=None, periodic=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Localize Id (direct) point obs of an
+N-D, homogeneous, rectangular domain.</p></div>
 </dd>
 </dl>
 </section>
@@ -683,14 +143,14 @@ where each element (batch) is a list of indices</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="dapper.tools.localization.pairwise_distances" href="#dapper.tools.localization.pairwise_distances">pairwise_distances</a></code></li>
 <li><code><a title="dapper.tools.localization.dist2coeff" href="#dapper.tools.localization.dist2coeff">dist2coeff</a></code></li>
 <li><code><a title="dapper.tools.localization.inds_and_coeffs" href="#dapper.tools.localization.inds_and_coeffs">inds_and_coeffs</a></code></li>
 <li><code><a title="dapper.tools.localization.localization_setup" href="#dapper.tools.localization.localization_setup">localization_setup</a></code></li>
-<li><code><a title="dapper.tools.localization.nd_Id_localization" href="#dapper.tools.localization.nd_Id_localization">nd_Id_localization</a></code></li>
 <li><code><a title="dapper.tools.localization.no_localization" href="#dapper.tools.localization.no_localization">no_localization</a></code></li>
-<li><code><a title="dapper.tools.localization.pairwise_distances" href="#dapper.tools.localization.pairwise_distances">pairwise_distances</a></code></li>
 <li><code><a title="dapper.tools.localization.rectangular_partitioning" href="#dapper.tools.localization.rectangular_partitioning">rectangular_partitioning</a></code></li>
 <li><code><a title="dapper.tools.localization.safe_eval" href="#dapper.tools.localization.safe_eval">safe_eval</a></code></li>
+<li><code><a title="dapper.tools.localization.nd_Id_localization" href="#dapper.tools.localization.nd_Id_localization">nd_Id_localization</a></code></li>
 </ul>
 </li>
 </ul>

@@ -23,46 +23,6 @@
 <h1 class="title">Module <code>dapper.mods.LotkaVolterra.settings101</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python"># Settings not taken from anywhere
-
-import dapper as dpr
-
-from dapper.mods.LotkaVolterra.core import step, dstep_dx, x0, LP_setup, Tplot
-
-# dt has been chosen after noting that
-# using dt up to 0.7 does not change the chaotic properties much,
-# as adjudged with eye-ball and Lyapunov measures.
-
-t = dpr.Chronology(0.5, dtObs=10, T=1000, BurnIn=Tplot, Tplot=Tplot)
-
-Nx = len(x0)
-
-Dyn = {
-    &#39;M&#39;: Nx,
-    &#39;model&#39;: step,
-    &#39;linear&#39;: dstep_dx,
-    &#39;noise&#39;: 0
-    }
-
-X0 = dpr.GaussRV(mu=x0, C=0.01**2)
-
-jj = [1, 3]
-Obs = dpr.partial_Id_Obs(Nx, jj)
-Obs[&#39;noise&#39;] = 0.04**2
-
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(jj))
-
-####################
-# Suggested tuning
-####################
-# Not carefully tuned:
-# xps += EnKF_N(N=6)
-# xps += ExtKF(infl=1.02)</code></pre>
-</details>
 </section>
 <section>
 </section>
