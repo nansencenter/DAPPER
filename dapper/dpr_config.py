@@ -21,7 +21,9 @@ for d in [dapper_dir, "~", sys.path[0]]:
     for prefix in [".", ""]:
         f = d / (prefix+"dpr_config.yaml")
         if f.is_file():
-            rc.update(yaml.load(open(f), Loader=yaml.SafeLoader))
+            dct = yaml.load(open(f), Loader=yaml.SafeLoader)
+            if dct:
+                rc.update(dct)
 
 
 ##################################
