@@ -2,6 +2,9 @@
 
 DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods
 using synthetic/twin experiments.
+
+.. include:: ../README.md
+
 """
 
 __version__ = "0.9.6"
@@ -49,6 +52,14 @@ from .tools.viz import freshfig
 
 
 # Documentation management
+# ---
+# # Generation:
+# $ pdoc --force --html -o ./docs dapper
+# Push updated docs to github
+# # Hosting:
+# In the main github settings of the repo,
+# go to the "GitHub Pages" section,
+# and set the source to the docs folder.
 def _find_demos(as_path=False):
     "Find all model demo.py scripts."
     lst = []
