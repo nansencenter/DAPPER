@@ -34,7 +34,8 @@ def Model(dt=0.25, DL=32, Nx=128):
     # wave nums for rfft
     kk = np.append(np.arange(0, Nx/2), 0)*2/DL
     # wave nums for fft
-    # kk = dpr.ccat([np.arange(0,Nx/2),[0], np.arange(-Nx/2+1,0)])*2/DL
+    # from dapper.tools.math import ccat
+    # kk = ccat([np.arange(0,Nx/2),[0], np.arange(-Nx/2+1,0)])*2/DL
     # Alternative method:
     # kk = np.fft.fftfreq(Nx, DL/Nx/2)
     # Operators

@@ -1,12 +1,13 @@
 """Prettier, static illustration of Lorenz two-speed/scale/layer model."""
 # Sorry for the mess.
 
-from dapper.mods.LorenzUV.lorenz96 import LUV
-import dapper as dpr
+import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-import numpy as np
-from matplotlib import cm
+
+from dapper.mods.LorenzUV.lorenz96 import LUV
+import dapper as dpr
+from dapper.tools.math import ccat
 
 # Setup
 sd0 = dpr.set_seed(4)
@@ -46,7 +47,7 @@ start = int(3e5*dt)
 step  = 3
 for i, Ny in enumerate(range(L)):
     k = start + Ny*step
-    c = cm.viridis(1-Ny/L)
+    c = mpl.cm.viridis(1-Ny/L)
     a = 0.8-0.2*Ny/L
     plt.plot(iU, Ui(xx[k][:nU]), color=c, lw=2, alpha=a)[0]
     if i % 2 == 0:
@@ -60,8 +61,8 @@ dY = 4  # SET TO: 1 for wilks05, 4 for lorenz96
 # U-vars: major
 tU = iU[1:-1]
 lU = np.array([str(i+1) for i in range(nU)])
-tU = dpr.ccat(tU[0], tU[dY-1::dY])
-lU = dpr.ccat(lU[0], lU[dY-1::dY])
+tU = ccat(tU[0], tU[dY-1::dY])
+lU = ccat(lU[0], lU[dY-1::dY])
 for t, l in zip(tU, lU):
     ax.text(t, ym-.6, l,
             fontsize=mpl.rcParams['xtick.labelsize'], horizontalalignment='center')
@@ -107,7 +108,6 @@ plt.show()
 #
 #
 # # Overlay circ
-# from matplotlib import cm
 # fg = plt.figure(4)
 # fg.clear()
 # plt.plot(*tU(4.52*np.ones_like(circU)),color='k',lw=1)[0]
@@ -119,7 +119,7 @@ plt.show()
 # L = 40 # Num of lines to plot
 # for Ny in range(L):
 #     k = 143 + Ny*3
-#     c = cm.viridis(1-Ny/L)
+#     c = mpl.cm.viridis(1-Ny/L)
 #     a = 0.8-0.2*Ny/L
 #     plt.plot(*tU(xx[k][circU]),color=c,lw=2,alpha=a)[0]
 #     plt.plot(*tV(xx[k][circV]),color=c,lw=1,alpha=a)[0]
