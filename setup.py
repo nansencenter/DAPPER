@@ -73,7 +73,8 @@ setuptools.setup(
         ],
         'Qt':  ['PyQt5', 'qtpy'],
         'Dev':  ['line_profiler', 'ipdb', 'pytest',
-                 'sphinx', 'recommonmark', 'sphinx_rtd_theme'],
+                 'sphinx', 'recommonmark', 'sphinx_rtd_theme',
+                 'pdoc3'],
     },
     # Other packages used, but not explicitly required
     #
