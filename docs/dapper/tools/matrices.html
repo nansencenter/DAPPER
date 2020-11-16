@@ -1,0 +1,1463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>dapper.tools.matrices API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>dapper.tools.matrices</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from dapper.tools.stoch import randn
+from dapper.tools.math import mrdiv, truncate_rank, svd0, exactly_1d, exactly_2d
+import dapper.tools.utils as utils
+
+import numpy as np
+from numpy import sqrt, ones, zeros
+import scipy.linalg as sla
+import functools
+
+
+class lazy_property:
+    &#34;&#34;&#34;Lazy evaluation of property.
+
+    Should represent non-mutable data,
+    as it replaces itself.
+
+    From https://stackoverflow.com/q/3012421
+    &#34;&#34;&#34;
+
+    def __init__(self, fget):
+        self.fget = fget
+        self.func_name = fget.__name__
+
+    def __get__(self, obj, cls):
+        value = self.fget(obj)
+        setattr(obj, self.func_name, value)
+        return value
+
+
+# Test matrices
+def randcov(M):
+    &#34;&#34;&#34;(Makeshift) random cov mat.&#34;&#34;&#34;
+    N = int(np.ceil(2+M**1.2))
+    E = randn((N, M))
+    return E.T @ E
+
+
+def randcorr(M):
+    &#34;&#34;&#34;(Makeshift) random corr mat.&#34;&#34;&#34;
+    Cov = randcov(M)
+    Dm12 = np.diag(np.diag(Cov)**(-0.5))
+    return Dm12@Cov@Dm12
+
+
+def genOG(M):
+    &#34;&#34;&#34;Generate random orthonormal matrix.&#34;&#34;&#34;
+    # TODO 3: This (using Householder) is (slightly?) wrong,
+    # as per section 4 of mezzadri2006generate.
+    Q, R = sla.qr(randn((M, M)))
+    for i in range(M):
+        if R[i, i] &lt; 0:
+            Q[:, i] = -Q[:, i]
+    return Q
+
+
+def genOG_modified(M, opts=(0, 1.0)):
+    &#34;&#34;&#34;genOG with modifications.
+
+    Caution: although &#39;degree&#39; ∈ (0,1) for all versions,
+             they&#39;re not supposed going to be strictly equivalent.
+
+    Testing: scripts/sqrt_rotations.py
+    &#34;&#34;&#34;
+
+    # Parse opts
+    if not opts:
+        # Shot-circuit in case of False or 0
+        return np.eye(M)
+    elif isinstance(opts, bool) or opts == 1:
+        return genOG(M)
+    elif isinstance(opts, float):
+        ver = 1
+        degree = opts
+    else:
+        ver = opts[0]
+        degree = opts[1]
+
+    if ver == 1:
+        # Only rotate &#34;once in a while&#34;
+        dc = 1/degree  # = &#34;while&#34;
+        # Retrieve/store persistent variable
+        counter = getattr(genOG_modified, &#34;counter&#34;, 0) + 1
+        setattr(genOG_modified, &#34;counter&#34;, counter)
+        # Compute rot or skip
+        if np.mod(counter, dc) &lt; 1:
+            Q = genOG(M)
+        else:
+            Q = np.eye(M)
+    elif ver == 2:
+        # Decompose and reduce angle of (complex) diagonal. Background:
+        # https://stackoverflow.com/q/38426349
+        # https://en.wikipedia.org/wiki/Orthogonal_matrix
+        Q = genOG(M)
+        s, U = sla.eig(Q)
+        s2 = np.exp(1j*np.angle(s)*degree)  # reduce angles
+        Q = mrdiv(U * s2, U)
+        Q = Q.real
+    elif ver == 3:
+        # Reduce Given&#39;s rotations in QR algo
+        raise NotImplementedError
+    elif ver == 4:
+        # Introduce correlation between columns of randn((M,M))
+        raise NotImplementedError
+    elif ver == 5:
+        # https://stats.stackexchange.com/q/25552
+        raise NotImplementedError
+    else:
+        raise KeyError
+    return Q
+
+
+# This is actually very cheap compared to genOG,
+# so caching doesn&#39;t help much.
+@functools.lru_cache(maxsize=1)
+def basis_beginning_with_ones(ndim):
+    &#34;&#34;&#34;Basis whose first vector is ones(ndim).&#34;&#34;&#34;
+    e = ones((ndim, 1))
+    return sla.svd(e)[0]
+
+
+def genOG_1(N, opts=()):
+    &#34;&#34;&#34;
+    Random orthonormal mean-preserving matrix.
+    Source: ienks code of Sakov/Bocquet.
+    &#34;&#34;&#34;
+    V = basis_beginning_with_ones(N)
+    if opts == ():
+        Q = genOG(N-1)
+    else:
+        Q = genOG_modified(N-1, opts)
+    return V @ sla.block_diag(1, Q) @ V.T
+
+
+def funm_psd(a, fun, check_finite=False):
+    &#34;&#34;&#34;Matrix function evaluation for pos-sem-def mat.
+
+    Adapted from sla.funm() doc.
+
+    Example::
+
+    &gt;&gt;&gt; def sqrtm_psd(A):
+    &gt;&gt;&gt;     return funm_psd(A, sqrt)
+    &#34;&#34;&#34;
+    w, v = sla.eigh(a, check_finite=check_finite)
+    w = np.maximum(w, 0)
+    w = fun(w)
+    return (v * w) @ v.T
+
+
+def chol_reduce(Right):
+    &#34;&#34;&#34;Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
+
+    Example::
+
+    &gt;&gt;&gt; A = dpr.mean0(randn((20,5)),axis=1)
+    &gt;&gt;&gt; C = A.T @ A
+    &gt;&gt;&gt; # sla.cholesky(C) throws error
+    &gt;&gt;&gt; R = chol_reduce(A)
+    &gt;&gt;&gt; R.shape[1] == 4
+    &#34;&#34;&#34;
+    _, sig, UT = sla.svd(Right, full_matrices=False)
+    R = sig[:, None]*UT
+
+    # The below is DEPRECATED, coz it fails e.g. with Q from dapper.mods.LA.raanes2015.
+    # from scipy.linalg.lapack import get_lapack_funcs
+    # potrf, = get_lapack_funcs((&#39;potrf&#39;,), (C,))
+    # R, info = potrf(C, lower=False, overwrite_a=False, clean=True)
+    #  if info!=0:
+    # R = R[:info]
+    #  Explanation: R is truncated when cholesky() finds a &#39;leading negative minor&#39;.
+    #  Thus, R is rectangular, with height ∈ [rank, M].
+
+    return R
+
+
+class CovMat():
+    &#34;&#34;&#34;Covariance matrix class.
+
+    Main tasks:
+      - Unifying the covariance representations:
+        full, diagonal, reduced-rank sqrt.
+      - Convenience constructor and printing.
+      - Convenience transformations with memoization.
+        E.g. replaces:
+        &gt;if not hasattr(noise.C,&#39;sym_sqrt&#39;):
+        &gt;  S = funm_psd(noise.C, sqrt)
+        &gt;  noise.C.sym_sqrt = S
+        This (hiding it internally) becomes particularly useful
+        if the covariance matrix changes with time (but repeat).
+    &#34;&#34;&#34;
+
+    ##################################
+    # Init
+    ##################################
+    def __init__(self, data, kind=&#39;full_or_diag&#39;, trunc=1.0):
+        &#34;&#34;&#34;The covariance (say P) can be input (specified in the following ways):
+
+        kind    : data
+        ----------------------
+        &#39;full&#39;  : full M-by-M array (P)
+        &#39;diag&#39;  : diagonal of P (assumed diagonal)
+        &#39;E&#39;     : ensemble (N-by-M) with sample cov P
+        &#39;A&#39;     : as &#39;E&#39;, but pre-centred by mean(E,axis=0)
+        &#39;Right&#39; : any R such that P = R.T@R (e.g. weighted form of &#39;A&#39;)
+        &#39;Left&#39;  : any L such that P = L@L.T
+        &#34;&#34;&#34;
+
+        # Cascade if&#39;s down to &#39;Right&#39;
+        if kind == &#39;E&#39;:
+            mu      = np.mean(data, 0)
+            data    = data - mu
+            kind    = &#39;A&#39;
+        if kind == &#39;A&#39;:
+            N       = len(data)
+            data    = data / sqrt(N-1)
+            kind    = &#39;Right&#39;
+        if kind == &#39;Left&#39;:
+            data    = data.T
+            kind    = &#39;Right&#39;
+        if kind == &#39;Right&#39;:
+            # If a cholesky factor has been input, we will not
+            # automatically go for the EVD, seeing as e.g. the
+            # diagonal can be computed without it.
+            R       = exactly_2d(data)
+            self._R = R
+            self._m = R.shape[1]
+        else:
+            if kind == &#39;full_or_diag&#39;:
+                data = np.atleast_1d(data)
+                if data.ndim == 1 and len(data) &gt; 1:
+                    kind = &#39;diag&#39;
+                else:
+                    kind = &#39;full&#39;
+            if kind == &#39;full&#39;:
+                # If full has been imput, then we have memory for an EVD,
+                # which will probably be put to use in the DA.
+                C           = exactly_2d(data)
+                self._C     = C
+                M           = len(C)
+                d, V        = sla.eigh(C)
+                d           = CovMat._clip(d)
+                rk          = (d &gt; 0).sum()
+                d           = d[-rk:][::-1]
+                V           = (V.T[-rk:][::-1]).T
+                self._assign_EVD(M, rk, d, V)
+            elif kind == &#39;diag&#39;:
+                # With diagonal input, it would be great to use a sparse
+                # (or non-existant) representation of V,
+                # but that would require so much other adaption of other code.
+                d         = exactly_1d(data)
+                self.diag = d
+                M         = len(d)
+                if np.all(d == d[0]):
+                    V   = np.eye(M)
+                    rk  = M
+                else:
+                    # Clip and sort diag
+                    d   = CovMat._clip(d)
+                    idx = np.argsort(d)[::-1]
+                    rk  = (d &gt; 0).sum()
+                    # Sort d
+                    d = d[idx][:rk]
+                    # Make rectangular V that un-sorts d
+                    V = zeros((M, rk))
+                    V[idx[:rk],  np.arange(rk)] = 1
+                self._assign_EVD(M, rk, d, V)
+            else:
+                raise KeyError
+
+        self._kind  = kind
+        self._trunc = trunc
+
+    ##################################
+    # Protected
+    ##################################
+
+    @property
+    def M(self):
+        &#34;&#34;&#34;ndims&#34;&#34;&#34;
+        return self._m
+
+    @property
+    def kind(self):
+        &#34;&#34;&#34;Form in which matrix was specified.&#34;&#34;&#34;
+        return self._kind
+
+    @property
+    def trunc(self):
+        &#34;&#34;&#34;Truncation threshold.&#34;&#34;&#34;
+        return self._trunc
+
+    ##################################
+    # &#34;Non-EVD&#34; stuff
+    ##################################
+    @property
+    def full(self):
+        &#34;Full covariance matrix&#34;
+        if hasattr(self, &#39;_C&#39;):
+            return self._C
+        else:
+            C = self.Left @ self.Left.T
+        self._C = C
+        return C
+
+    @lazy_property
+    def diag(self):
+        &#34;Diagonal of covariance matrix&#34;
+        if hasattr(self, &#39;_C&#39;):
+            return np.diag(self._C)
+        else:
+            return (self.Left**2).sum(axis=1)
+
+    @property
+    def Left(self):
+        &#34;&#34;&#34;L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
+        and that its width is somewhere betwen the rank and M.&#34;&#34;&#34;
+        if hasattr(self, &#39;_R&#39;):
+            return self._R.T
+        else:
+            return self.V * sqrt(self.ews)
+
+    @property
+    def Right(self):
+        &#34;&#34;&#34;R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
+        and that its height is somewhere betwen the rank and M.&#34;&#34;&#34;
+        if hasattr(self, &#39;_R&#39;):
+            return self._R
+        else:
+            return self.Left.T
+
+    ##################################
+    # EVD stuff
+    ##################################
+    def _assign_EVD(self, M, rk, d, V):
+        self._m   = M
+        self._d   = d
+        self._V   = V
+        self._rk  = rk
+
+    @staticmethod
+    def _clip(d):
+        return np.where(d &lt; 1e-8*d.max(), 0, d)
+
+    def _do_EVD(self):
+        if not self.has_done_EVD():
+            V, s, UT = svd0(self._R)
+            M        = UT.shape[1]
+            d        = s**2
+            d        = CovMat._clip(d)
+            rk       = (d &gt; 0).sum()
+            d        = d[:rk]
+            V        = UT[:rk].T
+            self._assign_EVD(M, rk, d, V)
+
+    def has_done_EVD(self):
+        &#34;&#34;&#34;Whether or not eigenvalue decomposition has been done for matrix.&#34;&#34;&#34;
+        return all([key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;]])
+
+    @property
+    def ews(self):
+        &#34;&#34;&#34;Eigenvalues. Only outputs the positive values (i.e. len(ews)==rk).&#34;&#34;&#34;
+        self._do_EVD()
+        return self._d
+
+    @property
+    def V(self):
+        &#34;&#34;&#34;Eigenvectors, output corresponding to ews.&#34;&#34;&#34;
+        self._do_EVD()
+        return self._V
+
+    @property
+    def rk(self):
+        &#34;&#34;&#34;Rank, i.e. the number of positive eigenvalues.&#34;&#34;&#34;
+        self._do_EVD()
+        return self._rk
+
+    ##################################
+    # transform_by properties
+    ##################################
+    def transform_by(self, fun):
+        &#34;&#34;&#34;Generalize scalar functions to covariance matrices
+        (via Taylor expansion).
+        &#34;&#34;&#34;
+
+        r = truncate_rank(self.ews, self.trunc, True)
+        V = self.V[:, :r]
+        w = self.ews[:r]
+
+        return (V * fun(w)) @ V.T
+
+    @lazy_property
+    def sym_sqrt(self):
+        &#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;
+        return self.transform_by(sqrt)
+
+    @lazy_property
+    def sym_sqrt_inv(self):
+        &#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;
+        return self.transform_by(lambda x: 1/sqrt(x))
+
+    @lazy_property
+    def pinv(self):
+        &#34;Pseudo-inverse. Uses trunc-level.&#34;
+        return self.transform_by(lambda x: 1/x)
+
+    @lazy_property
+    def inv(self):
+        if self.M != self.rk:
+            raise RuntimeError(&#34;Matrix is rank deficient, &#34;
+                               + &#34;and cannot be inverted. Use .tinv() instead?&#34;)
+        # Temporarily remove any truncation
+        tmp = self.trunc
+        self._trunc = 1.0
+        # Compute and restore truncation level
+        Inv = self.pinv
+        self._trunc = tmp
+        return Inv
+
+    ##################################
+    # __repr__
+    ##################################
+    def __repr__(self):
+        s  = &#34;\n    M: &#34; + str(self.M)
+        s += &#34;\n kind: &#34; + repr(self.kind)
+        s += &#34;\ntrunc: &#34; + str(self.trunc)
+
+        # Rank
+        s += &#34;\n   rk: &#34;
+        if self.has_done_EVD():
+            s += str(self.rk)
+        else:
+            s += &#34;&lt;=&#34; + str(self.Right.shape[0])
+
+        # Full (as affordable)
+        s += &#34;\n full:&#34;
+        if hasattr(self, &#39;_C&#39;) or np.get_printoptions()[&#39;threshold&#39;] &gt; self.M**2:
+            # We can afford to compute full matrix
+            t = &#34;\n&#34; + str(self.full)
+        else:
+            # Only compute corners of full matrix
+            K  = np.get_printoptions()[&#39;edgeitems&#39;]
+            s += &#34; (only computing/printing corners)&#34;
+            if hasattr(self, &#39;_R&#39;):
+                U = self.Left[:K, :]  # Upper
+                L = self.Left[-K:, :]  # Lower
+            else:
+                U = self.V[:K, :] * sqrt(self.ews)
+                L = self.V[-K:, :] * sqrt(self.ews)
+
+            # Corners
+            NW = U@U.T
+            NE = U@L.T
+            SW = L@U.T
+            SE = L@L.T
+
+            # Concatenate corners. Fill &#34;cross&#34; between them with nan&#39;s
+            N  = np.hstack([NW, np.nan*ones((K, 1)), NE])
+            S  = np.hstack([SW, np.nan*ones((K, 1)), SE])
+            All = np.vstack([N, np.nan*ones(2*K+1), S])
+
+            with np.printoptions(threshold=0):
+                t = &#34;\n&#34; + str(All)
+
+        # Indent all of cov array, and add to s
+        s += t.replace(&#34;\n&#34;, &#34;\n   &#34;)
+
+        # Add diag. Indent array +1 vs cov array
+        with np.printoptions(threshold=0):
+            s += &#34;\n diag:\n   &#34; + &#34; &#34; + str(self.diag)
+
+        s = utils.repr_type_and_name(self) + s.replace(&#34;\n&#34;, &#34;\n  &#34;)
+        return s
+
+# Note: The diagonal representation is NOT memory-efficient.
+#
+# But there&#39;s no simple way of making so, especially since the sparse class
+# (which would hold the eigenvectors) is a subclass of the matrix class,
+# which interprets * as @, and so, when using this class,
+# one would have to be always careful about it
+#
+# One could try to overload +-@/ (for CovMat),
+# but unfortunately there&#39;s no right/post-application version of @ and /
+# (indeed, how could there be for binary operators?)
+# which makes this less interesting.
+# Hopefully this restriction is not an issue,
+# as diagonal matrices are mainly used for observation error covariance,
+# which are usually not infeasibly large.
+#
+# Another potential solution is to subclass the sparse matrix,
+# and revert its operator definitions to that of ndarray.
+# and use it for the V (eigenvector) matrix that gets output
+# by various fields of CovMat.</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.tools.matrices.basis_beginning_with_ones"><code class="name flex">
+<span>def <span class="ident">basis_beginning_with_ones</span></span>(<span>ndim)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Basis whose first vector is ones(ndim).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@functools.lru_cache(maxsize=1)
+def basis_beginning_with_ones(ndim):
+    &#34;&#34;&#34;Basis whose first vector is ones(ndim).&#34;&#34;&#34;
+    e = ones((ndim, 1))
+    return sla.svd(e)[0]</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.chol_reduce"><code class="name flex">
+<span>def <span class="ident">chol_reduce</span></span>(<span>Right)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.</p>
+<p>Example::</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; A = dpr.mean0(randn((20,5)),axis=1)
+&gt;&gt;&gt; C = A.T @ A
+&gt;&gt;&gt; # sla.cholesky(C) throws error
+&gt;&gt;&gt; R = chol_reduce(A)
+&gt;&gt;&gt; R.shape[1] == 4
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def chol_reduce(Right):
+    &#34;&#34;&#34;Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
+
+    Example::
+
+    &gt;&gt;&gt; A = dpr.mean0(randn((20,5)),axis=1)
+    &gt;&gt;&gt; C = A.T @ A
+    &gt;&gt;&gt; # sla.cholesky(C) throws error
+    &gt;&gt;&gt; R = chol_reduce(A)
+    &gt;&gt;&gt; R.shape[1] == 4
+    &#34;&#34;&#34;
+    _, sig, UT = sla.svd(Right, full_matrices=False)
+    R = sig[:, None]*UT
+
+    # The below is DEPRECATED, coz it fails e.g. with Q from dapper.mods.LA.raanes2015.
+    # from scipy.linalg.lapack import get_lapack_funcs
+    # potrf, = get_lapack_funcs((&#39;potrf&#39;,), (C,))
+    # R, info = potrf(C, lower=False, overwrite_a=False, clean=True)
+    #  if info!=0:
+    # R = R[:info]
+    #  Explanation: R is truncated when cholesky() finds a &#39;leading negative minor&#39;.
+    #  Thus, R is rectangular, with height ∈ [rank, M].
+
+    return R</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.funm_psd"><code class="name flex">
+<span>def <span class="ident">funm_psd</span></span>(<span>a, fun, check_finite=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Matrix function evaluation for pos-sem-def mat.</p>
+<p>Adapted from sla.funm() doc.</p>
+<p>Example::</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; def sqrtm_psd(A):
+&gt;&gt;&gt;     return funm_psd(A, sqrt)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def funm_psd(a, fun, check_finite=False):
+    &#34;&#34;&#34;Matrix function evaluation for pos-sem-def mat.
+
+    Adapted from sla.funm() doc.
+
+    Example::
+
+    &gt;&gt;&gt; def sqrtm_psd(A):
+    &gt;&gt;&gt;     return funm_psd(A, sqrt)
+    &#34;&#34;&#34;
+    w, v = sla.eigh(a, check_finite=check_finite)
+    w = np.maximum(w, 0)
+    w = fun(w)
+    return (v * w) @ v.T</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.genOG"><code class="name flex">
+<span>def <span class="ident">genOG</span></span>(<span>M)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate random orthonormal matrix.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def genOG(M):
+    &#34;&#34;&#34;Generate random orthonormal matrix.&#34;&#34;&#34;
+    # TODO 3: This (using Householder) is (slightly?) wrong,
+    # as per section 4 of mezzadri2006generate.
+    Q, R = sla.qr(randn((M, M)))
+    for i in range(M):
+        if R[i, i] &lt; 0:
+            Q[:, i] = -Q[:, i]
+    return Q</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.genOG_1"><code class="name flex">
+<span>def <span class="ident">genOG_1</span></span>(<span>N, opts=())</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Random orthonormal mean-preserving matrix.
+Source: ienks code of Sakov/Bocquet.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def genOG_1(N, opts=()):
+    &#34;&#34;&#34;
+    Random orthonormal mean-preserving matrix.
+    Source: ienks code of Sakov/Bocquet.
+    &#34;&#34;&#34;
+    V = basis_beginning_with_ones(N)
+    if opts == ():
+        Q = genOG(N-1)
+    else:
+        Q = genOG_modified(N-1, opts)
+    return V @ sla.block_diag(1, Q) @ V.T</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.genOG_modified"><code class="name flex">
+<span>def <span class="ident">genOG_modified</span></span>(<span>M, opts=(0, 1.0))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>genOG with modifications.</p>
+<p>Caution: although 'degree' ∈ (0,1) for all versions,
+they're not supposed going to be strictly equivalent.</p>
+<p>Testing: scripts/sqrt_rotations.py</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def genOG_modified(M, opts=(0, 1.0)):
+    &#34;&#34;&#34;genOG with modifications.
+
+    Caution: although &#39;degree&#39; ∈ (0,1) for all versions,
+             they&#39;re not supposed going to be strictly equivalent.
+
+    Testing: scripts/sqrt_rotations.py
+    &#34;&#34;&#34;
+
+    # Parse opts
+    if not opts:
+        # Shot-circuit in case of False or 0
+        return np.eye(M)
+    elif isinstance(opts, bool) or opts == 1:
+        return genOG(M)
+    elif isinstance(opts, float):
+        ver = 1
+        degree = opts
+    else:
+        ver = opts[0]
+        degree = opts[1]
+
+    if ver == 1:
+        # Only rotate &#34;once in a while&#34;
+        dc = 1/degree  # = &#34;while&#34;
+        # Retrieve/store persistent variable
+        counter = getattr(genOG_modified, &#34;counter&#34;, 0) + 1
+        setattr(genOG_modified, &#34;counter&#34;, counter)
+        # Compute rot or skip
+        if np.mod(counter, dc) &lt; 1:
+            Q = genOG(M)
+        else:
+            Q = np.eye(M)
+    elif ver == 2:
+        # Decompose and reduce angle of (complex) diagonal. Background:
+        # https://stackoverflow.com/q/38426349
+        # https://en.wikipedia.org/wiki/Orthogonal_matrix
+        Q = genOG(M)
+        s, U = sla.eig(Q)
+        s2 = np.exp(1j*np.angle(s)*degree)  # reduce angles
+        Q = mrdiv(U * s2, U)
+        Q = Q.real
+    elif ver == 3:
+        # Reduce Given&#39;s rotations in QR algo
+        raise NotImplementedError
+    elif ver == 4:
+        # Introduce correlation between columns of randn((M,M))
+        raise NotImplementedError
+    elif ver == 5:
+        # https://stats.stackexchange.com/q/25552
+        raise NotImplementedError
+    else:
+        raise KeyError
+    return Q</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.randcorr"><code class="name flex">
+<span>def <span class="ident">randcorr</span></span>(<span>M)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>(Makeshift) random corr mat.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def randcorr(M):
+    &#34;&#34;&#34;(Makeshift) random corr mat.&#34;&#34;&#34;
+    Cov = randcov(M)
+    Dm12 = np.diag(np.diag(Cov)**(-0.5))
+    return Dm12@Cov@Dm12</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.randcov"><code class="name flex">
+<span>def <span class="ident">randcov</span></span>(<span>M)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>(Makeshift) random cov mat.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def randcov(M):
+    &#34;&#34;&#34;(Makeshift) random cov mat.&#34;&#34;&#34;
+    N = int(np.ceil(2+M**1.2))
+    E = randn((N, M))
+    return E.T @ E</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="dapper.tools.matrices.CovMat"><code class="flex name class">
+<span>class <span class="ident">CovMat</span></span>
+<span>(</span><span>data, kind='full_or_diag', trunc=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Covariance matrix class.</p>
+<p>Main tasks:
+- Unifying the covariance representations:
+full, diagonal, reduced-rank sqrt.
+- Convenience constructor and printing.
+- Convenience transformations with memoization.
+E.g. replaces:
+&gt;if not hasattr(noise.C,'sym_sqrt'):
+&gt;
+S = funm_psd(noise.C, sqrt)
+&gt;
+noise.C.sym_sqrt = S
+This (hiding it internally) becomes particularly useful
+if the covariance matrix changes with time (but repeat).</p>
+<p>The covariance (say P) can be input (specified in the following ways):</p>
+<h2 id="kind-data">kind
+: data</h2>
+<p>'full'
+: full M-by-M array (P)
+'diag'
+: diagonal of P (assumed diagonal)
+'E'
+: ensemble (N-by-M) with sample cov P
+'A'
+: as 'E', but pre-centred by mean(E,axis=0)
+'Right' : any R such that P = R.T@R (e.g. weighted form of 'A')
+'Left'
+: any L such that P = L@L.T</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CovMat():
+    &#34;&#34;&#34;Covariance matrix class.
+
+    Main tasks:
+      - Unifying the covariance representations:
+        full, diagonal, reduced-rank sqrt.
+      - Convenience constructor and printing.
+      - Convenience transformations with memoization.
+        E.g. replaces:
+        &gt;if not hasattr(noise.C,&#39;sym_sqrt&#39;):
+        &gt;  S = funm_psd(noise.C, sqrt)
+        &gt;  noise.C.sym_sqrt = S
+        This (hiding it internally) becomes particularly useful
+        if the covariance matrix changes with time (but repeat).
+    &#34;&#34;&#34;
+
+    ##################################
+    # Init
+    ##################################
+    def __init__(self, data, kind=&#39;full_or_diag&#39;, trunc=1.0):
+        &#34;&#34;&#34;The covariance (say P) can be input (specified in the following ways):
+
+        kind    : data
+        ----------------------
+        &#39;full&#39;  : full M-by-M array (P)
+        &#39;diag&#39;  : diagonal of P (assumed diagonal)
+        &#39;E&#39;     : ensemble (N-by-M) with sample cov P
+        &#39;A&#39;     : as &#39;E&#39;, but pre-centred by mean(E,axis=0)
+        &#39;Right&#39; : any R such that P = R.T@R (e.g. weighted form of &#39;A&#39;)
+        &#39;Left&#39;  : any L such that P = L@L.T
+        &#34;&#34;&#34;
+
+        # Cascade if&#39;s down to &#39;Right&#39;
+        if kind == &#39;E&#39;:
+            mu      = np.mean(data, 0)
+            data    = data - mu
+            kind    = &#39;A&#39;
+        if kind == &#39;A&#39;:
+            N       = len(data)
+            data    = data / sqrt(N-1)
+            kind    = &#39;Right&#39;
+        if kind == &#39;Left&#39;:
+            data    = data.T
+            kind    = &#39;Right&#39;
+        if kind == &#39;Right&#39;:
+            # If a cholesky factor has been input, we will not
+            # automatically go for the EVD, seeing as e.g. the
+            # diagonal can be computed without it.
+            R       = exactly_2d(data)
+            self._R = R
+            self._m = R.shape[1]
+        else:
+            if kind == &#39;full_or_diag&#39;:
+                data = np.atleast_1d(data)
+                if data.ndim == 1 and len(data) &gt; 1:
+                    kind = &#39;diag&#39;
+                else:
+                    kind = &#39;full&#39;
+            if kind == &#39;full&#39;:
+                # If full has been imput, then we have memory for an EVD,
+                # which will probably be put to use in the DA.
+                C           = exactly_2d(data)
+                self._C     = C
+                M           = len(C)
+                d, V        = sla.eigh(C)
+                d           = CovMat._clip(d)
+                rk          = (d &gt; 0).sum()
+                d           = d[-rk:][::-1]
+                V           = (V.T[-rk:][::-1]).T
+                self._assign_EVD(M, rk, d, V)
+            elif kind == &#39;diag&#39;:
+                # With diagonal input, it would be great to use a sparse
+                # (or non-existant) representation of V,
+                # but that would require so much other adaption of other code.
+                d         = exactly_1d(data)
+                self.diag = d
+                M         = len(d)
+                if np.all(d == d[0]):
+                    V   = np.eye(M)
+                    rk  = M
+                else:
+                    # Clip and sort diag
+                    d   = CovMat._clip(d)
+                    idx = np.argsort(d)[::-1]
+                    rk  = (d &gt; 0).sum()
+                    # Sort d
+                    d = d[idx][:rk]
+                    # Make rectangular V that un-sorts d
+                    V = zeros((M, rk))
+                    V[idx[:rk],  np.arange(rk)] = 1
+                self._assign_EVD(M, rk, d, V)
+            else:
+                raise KeyError
+
+        self._kind  = kind
+        self._trunc = trunc
+
+    ##################################
+    # Protected
+    ##################################
+
+    @property
+    def M(self):
+        &#34;&#34;&#34;ndims&#34;&#34;&#34;
+        return self._m
+
+    @property
+    def kind(self):
+        &#34;&#34;&#34;Form in which matrix was specified.&#34;&#34;&#34;
+        return self._kind
+
+    @property
+    def trunc(self):
+        &#34;&#34;&#34;Truncation threshold.&#34;&#34;&#34;
+        return self._trunc
+
+    ##################################
+    # &#34;Non-EVD&#34; stuff
+    ##################################
+    @property
+    def full(self):
+        &#34;Full covariance matrix&#34;
+        if hasattr(self, &#39;_C&#39;):
+            return self._C
+        else:
+            C = self.Left @ self.Left.T
+        self._C = C
+        return C
+
+    @lazy_property
+    def diag(self):
+        &#34;Diagonal of covariance matrix&#34;
+        if hasattr(self, &#39;_C&#39;):
+            return np.diag(self._C)
+        else:
+            return (self.Left**2).sum(axis=1)
+
+    @property
+    def Left(self):
+        &#34;&#34;&#34;L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
+        and that its width is somewhere betwen the rank and M.&#34;&#34;&#34;
+        if hasattr(self, &#39;_R&#39;):
+            return self._R.T
+        else:
+            return self.V * sqrt(self.ews)
+
+    @property
+    def Right(self):
+        &#34;&#34;&#34;R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
+        and that its height is somewhere betwen the rank and M.&#34;&#34;&#34;
+        if hasattr(self, &#39;_R&#39;):
+            return self._R
+        else:
+            return self.Left.T
+
+    ##################################
+    # EVD stuff
+    ##################################
+    def _assign_EVD(self, M, rk, d, V):
+        self._m   = M
+        self._d   = d
+        self._V   = V
+        self._rk  = rk
+
+    @staticmethod
+    def _clip(d):
+        return np.where(d &lt; 1e-8*d.max(), 0, d)
+
+    def _do_EVD(self):
+        if not self.has_done_EVD():
+            V, s, UT = svd0(self._R)
+            M        = UT.shape[1]
+            d        = s**2
+            d        = CovMat._clip(d)
+            rk       = (d &gt; 0).sum()
+            d        = d[:rk]
+            V        = UT[:rk].T
+            self._assign_EVD(M, rk, d, V)
+
+    def has_done_EVD(self):
+        &#34;&#34;&#34;Whether or not eigenvalue decomposition has been done for matrix.&#34;&#34;&#34;
+        return all([key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;]])
+
+    @property
+    def ews(self):
+        &#34;&#34;&#34;Eigenvalues. Only outputs the positive values (i.e. len(ews)==rk).&#34;&#34;&#34;
+        self._do_EVD()
+        return self._d
+
+    @property
+    def V(self):
+        &#34;&#34;&#34;Eigenvectors, output corresponding to ews.&#34;&#34;&#34;
+        self._do_EVD()
+        return self._V
+
+    @property
+    def rk(self):
+        &#34;&#34;&#34;Rank, i.e. the number of positive eigenvalues.&#34;&#34;&#34;
+        self._do_EVD()
+        return self._rk
+
+    ##################################
+    # transform_by properties
+    ##################################
+    def transform_by(self, fun):
+        &#34;&#34;&#34;Generalize scalar functions to covariance matrices
+        (via Taylor expansion).
+        &#34;&#34;&#34;
+
+        r = truncate_rank(self.ews, self.trunc, True)
+        V = self.V[:, :r]
+        w = self.ews[:r]
+
+        return (V * fun(w)) @ V.T
+
+    @lazy_property
+    def sym_sqrt(self):
+        &#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;
+        return self.transform_by(sqrt)
+
+    @lazy_property
+    def sym_sqrt_inv(self):
+        &#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;
+        return self.transform_by(lambda x: 1/sqrt(x))
+
+    @lazy_property
+    def pinv(self):
+        &#34;Pseudo-inverse. Uses trunc-level.&#34;
+        return self.transform_by(lambda x: 1/x)
+
+    @lazy_property
+    def inv(self):
+        if self.M != self.rk:
+            raise RuntimeError(&#34;Matrix is rank deficient, &#34;
+                               + &#34;and cannot be inverted. Use .tinv() instead?&#34;)
+        # Temporarily remove any truncation
+        tmp = self.trunc
+        self._trunc = 1.0
+        # Compute and restore truncation level
+        Inv = self.pinv
+        self._trunc = tmp
+        return Inv
+
+    ##################################
+    # __repr__
+    ##################################
+    def __repr__(self):
+        s  = &#34;\n    M: &#34; + str(self.M)
+        s += &#34;\n kind: &#34; + repr(self.kind)
+        s += &#34;\ntrunc: &#34; + str(self.trunc)
+
+        # Rank
+        s += &#34;\n   rk: &#34;
+        if self.has_done_EVD():
+            s += str(self.rk)
+        else:
+            s += &#34;&lt;=&#34; + str(self.Right.shape[0])
+
+        # Full (as affordable)
+        s += &#34;\n full:&#34;
+        if hasattr(self, &#39;_C&#39;) or np.get_printoptions()[&#39;threshold&#39;] &gt; self.M**2:
+            # We can afford to compute full matrix
+            t = &#34;\n&#34; + str(self.full)
+        else:
+            # Only compute corners of full matrix
+            K  = np.get_printoptions()[&#39;edgeitems&#39;]
+            s += &#34; (only computing/printing corners)&#34;
+            if hasattr(self, &#39;_R&#39;):
+                U = self.Left[:K, :]  # Upper
+                L = self.Left[-K:, :]  # Lower
+            else:
+                U = self.V[:K, :] * sqrt(self.ews)
+                L = self.V[-K:, :] * sqrt(self.ews)
+
+            # Corners
+            NW = U@U.T
+            NE = U@L.T
+            SW = L@U.T
+            SE = L@L.T
+
+            # Concatenate corners. Fill &#34;cross&#34; between them with nan&#39;s
+            N  = np.hstack([NW, np.nan*ones((K, 1)), NE])
+            S  = np.hstack([SW, np.nan*ones((K, 1)), SE])
+            All = np.vstack([N, np.nan*ones(2*K+1), S])
+
+            with np.printoptions(threshold=0):
+                t = &#34;\n&#34; + str(All)
+
+        # Indent all of cov array, and add to s
+        s += t.replace(&#34;\n&#34;, &#34;\n   &#34;)
+
+        # Add diag. Indent array +1 vs cov array
+        with np.printoptions(threshold=0):
+            s += &#34;\n diag:\n   &#34; + &#34; &#34; + str(self.diag)
+
+        s = utils.repr_type_and_name(self) + s.replace(&#34;\n&#34;, &#34;\n  &#34;)
+        return s</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="dapper.tools.matrices.CovMat.Left"><code class="name">var <span class="ident">Left</span></code></dt>
+<dd>
+<div class="desc"><p>L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
+and that its width is somewhere betwen the rank and M.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def Left(self):
+    &#34;&#34;&#34;L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
+    and that its width is somewhere betwen the rank and M.&#34;&#34;&#34;
+    if hasattr(self, &#39;_R&#39;):
+        return self._R.T
+    else:
+        return self.V * sqrt(self.ews)</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.M"><code class="name">var <span class="ident">M</span></code></dt>
+<dd>
+<div class="desc"><p>ndims</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def M(self):
+    &#34;&#34;&#34;ndims&#34;&#34;&#34;
+    return self._m</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.Right"><code class="name">var <span class="ident">Right</span></code></dt>
+<dd>
+<div class="desc"><p>R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
+and that its height is somewhere betwen the rank and M.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def Right(self):
+    &#34;&#34;&#34;R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
+    and that its height is somewhere betwen the rank and M.&#34;&#34;&#34;
+    if hasattr(self, &#39;_R&#39;):
+        return self._R
+    else:
+        return self.Left.T</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.V"><code class="name">var <span class="ident">V</span></code></dt>
+<dd>
+<div class="desc"><p>Eigenvectors, output corresponding to ews.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def V(self):
+    &#34;&#34;&#34;Eigenvectors, output corresponding to ews.&#34;&#34;&#34;
+    self._do_EVD()
+    return self._V</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.diag"><code class="name">var <span class="ident">diag</span></code></dt>
+<dd>
+<div class="desc"><p>Lazy evaluation of property.</p>
+<p>Should represent non-mutable data,
+as it replaces itself.</p>
+<p>From <a href="https://stackoverflow.com/q/3012421">https://stackoverflow.com/q/3012421</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@lazy_property
+def diag(self):
+    &#34;Diagonal of covariance matrix&#34;
+    if hasattr(self, &#39;_C&#39;):
+        return np.diag(self._C)
+    else:
+        return (self.Left**2).sum(axis=1)</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.ews"><code class="name">var <span class="ident">ews</span></code></dt>
+<dd>
+<div class="desc"><p>Eigenvalues. Only outputs the positive values (i.e. len(ews)==rk).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def ews(self):
+    &#34;&#34;&#34;Eigenvalues. Only outputs the positive values (i.e. len(ews)==rk).&#34;&#34;&#34;
+    self._do_EVD()
+    return self._d</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.full"><code class="name">var <span class="ident">full</span></code></dt>
+<dd>
+<div class="desc"><p>Full covariance matrix</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def full(self):
+    &#34;Full covariance matrix&#34;
+    if hasattr(self, &#39;_C&#39;):
+        return self._C
+    else:
+        C = self.Left @ self.Left.T
+    self._C = C
+    return C</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.inv"><code class="name">var <span class="ident">inv</span></code></dt>
+<dd>
+<div class="desc"><p>Lazy evaluation of property.</p>
+<p>Should represent non-mutable data,
+as it replaces itself.</p>
+<p>From <a href="https://stackoverflow.com/q/3012421">https://stackoverflow.com/q/3012421</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@lazy_property
+def inv(self):
+    if self.M != self.rk:
+        raise RuntimeError(&#34;Matrix is rank deficient, &#34;
+                           + &#34;and cannot be inverted. Use .tinv() instead?&#34;)
+    # Temporarily remove any truncation
+    tmp = self.trunc
+    self._trunc = 1.0
+    # Compute and restore truncation level
+    Inv = self.pinv
+    self._trunc = tmp
+    return Inv</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.kind"><code class="name">var <span class="ident">kind</span></code></dt>
+<dd>
+<div class="desc"><p>Form in which matrix was specified.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def kind(self):
+    &#34;&#34;&#34;Form in which matrix was specified.&#34;&#34;&#34;
+    return self._kind</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.pinv"><code class="name">var <span class="ident">pinv</span></code></dt>
+<dd>
+<div class="desc"><p>Lazy evaluation of property.</p>
+<p>Should represent non-mutable data,
+as it replaces itself.</p>
+<p>From <a href="https://stackoverflow.com/q/3012421">https://stackoverflow.com/q/3012421</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@lazy_property
+def pinv(self):
+    &#34;Pseudo-inverse. Uses trunc-level.&#34;
+    return self.transform_by(lambda x: 1/x)</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.rk"><code class="name">var <span class="ident">rk</span></code></dt>
+<dd>
+<div class="desc"><p>Rank, i.e. the number of positive eigenvalues.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def rk(self):
+    &#34;&#34;&#34;Rank, i.e. the number of positive eigenvalues.&#34;&#34;&#34;
+    self._do_EVD()
+    return self._rk</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.sym_sqrt"><code class="name">var <span class="ident">sym_sqrt</span></code></dt>
+<dd>
+<div class="desc"><p>Lazy evaluation of property.</p>
+<p>Should represent non-mutable data,
+as it replaces itself.</p>
+<p>From <a href="https://stackoverflow.com/q/3012421">https://stackoverflow.com/q/3012421</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@lazy_property
+def sym_sqrt(self):
+    &#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;
+    return self.transform_by(sqrt)</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.sym_sqrt_inv"><code class="name">var <span class="ident">sym_sqrt_inv</span></code></dt>
+<dd>
+<div class="desc"><p>Lazy evaluation of property.</p>
+<p>Should represent non-mutable data,
+as it replaces itself.</p>
+<p>From <a href="https://stackoverflow.com/q/3012421">https://stackoverflow.com/q/3012421</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@lazy_property
+def sym_sqrt_inv(self):
+    &#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;
+    return self.transform_by(lambda x: 1/sqrt(x))</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.trunc"><code class="name">var <span class="ident">trunc</span></code></dt>
+<dd>
+<div class="desc"><p>Truncation threshold.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def trunc(self):
+    &#34;&#34;&#34;Truncation threshold.&#34;&#34;&#34;
+    return self._trunc</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="dapper.tools.matrices.CovMat.has_done_EVD"><code class="name flex">
+<span>def <span class="ident">has_done_EVD</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Whether or not eigenvalue decomposition has been done for matrix.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_done_EVD(self):
+    &#34;&#34;&#34;Whether or not eigenvalue decomposition has been done for matrix.&#34;&#34;&#34;
+    return all([key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;]])</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.matrices.CovMat.transform_by"><code class="name flex">
+<span>def <span class="ident">transform_by</span></span>(<span>self, fun)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generalize scalar functions to covariance matrices
+(via Taylor expansion).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transform_by(self, fun):
+    &#34;&#34;&#34;Generalize scalar functions to covariance matrices
+    (via Taylor expansion).
+    &#34;&#34;&#34;
+
+    r = truncate_rank(self.ews, self.trunc, True)
+    V = self.V[:, :r]
+    w = self.ews[:r]
+
+    return (V * fun(w)) @ V.T</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="dapper.tools.matrices.lazy_property"><code class="flex name class">
+<span>class <span class="ident">lazy_property</span></span>
+<span>(</span><span>fget)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Lazy evaluation of property.</p>
+<p>Should represent non-mutable data,
+as it replaces itself.</p>
+<p>From <a href="https://stackoverflow.com/q/3012421">https://stackoverflow.com/q/3012421</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class lazy_property:
+    &#34;&#34;&#34;Lazy evaluation of property.
+
+    Should represent non-mutable data,
+    as it replaces itself.
+
+    From https://stackoverflow.com/q/3012421
+    &#34;&#34;&#34;
+
+    def __init__(self, fget):
+        self.fget = fget
+        self.func_name = fget.__name__
+
+    def __get__(self, obj, cls):
+        value = self.fget(obj)
+        setattr(obj, self.func_name, value)
+        return value</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="dapper.tools" href="index.html">dapper.tools</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.tools.matrices.basis_beginning_with_ones" href="#dapper.tools.matrices.basis_beginning_with_ones">basis_beginning_with_ones</a></code></li>
+<li><code><a title="dapper.tools.matrices.chol_reduce" href="#dapper.tools.matrices.chol_reduce">chol_reduce</a></code></li>
+<li><code><a title="dapper.tools.matrices.funm_psd" href="#dapper.tools.matrices.funm_psd">funm_psd</a></code></li>
+<li><code><a title="dapper.tools.matrices.genOG" href="#dapper.tools.matrices.genOG">genOG</a></code></li>
+<li><code><a title="dapper.tools.matrices.genOG_1" href="#dapper.tools.matrices.genOG_1">genOG_1</a></code></li>
+<li><code><a title="dapper.tools.matrices.genOG_modified" href="#dapper.tools.matrices.genOG_modified">genOG_modified</a></code></li>
+<li><code><a title="dapper.tools.matrices.randcorr" href="#dapper.tools.matrices.randcorr">randcorr</a></code></li>
+<li><code><a title="dapper.tools.matrices.randcov" href="#dapper.tools.matrices.randcov">randcov</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="dapper.tools.matrices.CovMat" href="#dapper.tools.matrices.CovMat">CovMat</a></code></h4>
+<ul class="two-column">
+<li><code><a title="dapper.tools.matrices.CovMat.Left" href="#dapper.tools.matrices.CovMat.Left">Left</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.M" href="#dapper.tools.matrices.CovMat.M">M</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.Right" href="#dapper.tools.matrices.CovMat.Right">Right</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.V" href="#dapper.tools.matrices.CovMat.V">V</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.diag" href="#dapper.tools.matrices.CovMat.diag">diag</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.ews" href="#dapper.tools.matrices.CovMat.ews">ews</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.full" href="#dapper.tools.matrices.CovMat.full">full</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.has_done_EVD" href="#dapper.tools.matrices.CovMat.has_done_EVD">has_done_EVD</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.inv" href="#dapper.tools.matrices.CovMat.inv">inv</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.kind" href="#dapper.tools.matrices.CovMat.kind">kind</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.pinv" href="#dapper.tools.matrices.CovMat.pinv">pinv</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.rk" href="#dapper.tools.matrices.CovMat.rk">rk</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.sym_sqrt" href="#dapper.tools.matrices.CovMat.sym_sqrt">sym_sqrt</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.sym_sqrt_inv" href="#dapper.tools.matrices.CovMat.sym_sqrt_inv">sym_sqrt_inv</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.transform_by" href="#dapper.tools.matrices.CovMat.transform_by">transform_by</a></code></li>
+<li><code><a title="dapper.tools.matrices.CovMat.trunc" href="#dapper.tools.matrices.CovMat.trunc">trunc</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dapper.tools.matrices.lazy_property" href="#dapper.tools.matrices.lazy_property">lazy_property</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

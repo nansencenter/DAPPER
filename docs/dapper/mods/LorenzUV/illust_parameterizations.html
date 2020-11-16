@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>dapper.mods.LorenzUV.illust_parameterizations API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>dapper.mods.LorenzUV.illust_parameterizations</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Plot scattergram of &#34;unresolved tendency&#34;
+# and the parameterization that emulate it.
+# We plot the diff:
+#   model_step/dt - true_step/dt    (1)
+# Whereas Wilks plots
+#   model_dxdt    - true_step/dt    (2)
+# Another option is:
+#   model_dxdt    - true_dxdt       (3)
+# Thus, for us (eqn 1), the model integration scheme matters.
+# Also, Wilks uses
+#  dt=0.001 for truth
+#  dt=0.005 for model.
+
+import numpy as np
+import matplotlib as mpl
+from matplotlib import pyplot as plt
+
+import dapper as dpr
+from dapper.tools.math import with_rk4, with_recursion
+# mpl.rcParams[&#39;toolbar&#39;] = &#39;None&#39;
+
+###########################
+# Setup
+###########################
+PRMS = &#39;Lorenz&#39;
+if PRMS == &#39;Wilks&#39;:
+    from dapper.mods.LorenzUV.wilks05 import LUV
+else:
+    from dapper.mods.LorenzUV.lorenz96 import LUV
+nU = LUV.nU
+
+K  = 400
+dt = 0.005
+t0 = np.nan
+
+dpr.set_seed(30)  # 3 5 7 13 15 30
+x0 = dpr.randn(LUV.M)
+
+true_step  = with_rk4(LUV.dxdt, autonom=True)
+model_step = with_rk4(LUV.dxdt_trunc, autonom=True)
+true_K     = with_recursion(true_step, prog=1)
+
+###########################
+# Compute truth trajectory
+###########################
+x0 = true_K(x0, int(2/dt), t0, dt)[-1]  # BurnIn
+xx = true_K(x0, K, t0, dt)
+
+###########################
+# Compute unresovled scales
+###########################
+gg = np.zeros((K, nU))  # &#34;Unresolved tendency&#34;
+for k, x in enumerate(xx[:-1]):
+    X = x[:nU]
+    Z = model_step(X, t0, dt)
+    D = Z - xx[k+1, :nU]
+    gg[k] = 1/dt*D
+
+# Automated regression for deterministic parameterizations
+pc = {}
+for order in [0, 1, 2, 3, 4]:
+    pc[order] = np.polyfit(xx[:-1, :nU].ravel(), gg.ravel(), deg=order)
+
+
+###########################
+# Scatter plot
+###########################
+def blend_rgb(rgb, a, bg_rgb=np.ones(3)):
+    &#34;&#34;&#34;
+    Fake RGB transparency by blending it to some background.
+    Useful for creating gradients.
+
+    Also useful for creating &#39;transparency&#39; for exporting to eps.
+    But there&#39;s no actualy transparency, so superposition of lines
+    will not work. For that: export to pdf, or make do without.
+
+     - rgb: N-by-3 rgb, or a color code.
+     - a: alpha value
+     - bg_rgb: background in rgb. Default: white
+
+    Based on stackoverflow.com/a/33375738/38281
+    &#34;&#34;&#34;
+    if isinstance(rgb, str):
+        rgb = mpl.colors.colorConverter.to_rgb(rgb)
+    return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]
+
+
+xx = xx[:-1, :nU]
+dk = int(8/dt/50)  # step size
+xx = xx[::dk].ravel()
+gg = gg[::dk].ravel()
+
+fig, ax = plt.subplots()
+ax.scatter(xx, gg, facecolors=&#39;none&#39;, edgecolors=blend_rgb(&#39;k&#39;, 0.5), s=40)
+# ax.plot(xx,gg,&#39;o&#39;,color=[0.7]*3)
+ax.set_ylabel(r&#39;Unresolved tendency ($q_{k,i}/\Delta t$)&#39;)
+ax.set_xlabel(&#39;Resolved variable ($X_{k,i}$)&#39;)
+
+###########################
+# Lorenz&#39;96 Parameterization annotations
+###########################
+if PRMS != &#39;Wilks&#39;:
+    ax.set_xlim(-8, 12)
+    ax.set_ylim(-3, 6)
+    uu = np.linspace(*ax.get_xlim(), 201)
+
+    # Plot pc
+    ax.plot(uu, np.poly1d(pc[0])(uu), &#39;g&#39;, lw=4.0)
+    ax.plot(uu, np.poly1d(pc[1])(uu), &#39;r&#39;, lw=4.0)
+    ax.plot(uu, np.poly1d(pc[4])(uu), &#39;b&#39;, lw=4.0)
+
+###########################
+# Wilks2005 Parameterization annotations
+###########################
+else:
+    ax.set_xlim(-10, 17)
+    ax.set_ylim(-10, 20)
+    uu = np.linspace(*ax.get_xlim(), 201)
+
+    def p0(x): return 3.82+0.00*x
+    # lin.reg(gg,xx)
+    def p1(x): return 0.74+0.82*x
+    # Arnold&#39;2013:
+    def p3(x): return .341+1.30*x - .0136*x**2 - .00235*x**3
+    # Wilks&#39;2005:
+    def p4(x): return .262+1.45*x - .0121*x**2 - .00713*x**3 + .000296*x**4
+    uu = np.linspace(-10, 17, 201)
+    plt.plot(uu, p0(uu), &#39;g&#39;, lw=4.0)
+    plt.plot(uu, p1(uu), &#39;r&#39;, lw=4.0)
+    plt.plot(uu, p4(uu), &#39;b&#39;, lw=4.0)
+    # plt.plot(uu,p3(uu),&#39;y&#39;,lw=3.0)
+
+    def an(T, xy, xyT, HA=&#39;left&#39;):
+        ah = ax.annotate(T,
+                         xy    =xy,   xycoords=&#39;data&#39;,
+                         xytext=xyT, textcoords=&#39;data&#39;,
+                         fontsize=16,
+                         horizontalalignment=HA,
+                         arrowprops=dict(
+                             arrowstyle=&#34;-&gt;&#34;,
+                             connectionstyle=&#34;arc3&#34;, lw=2)
+                         )
+        return ah
+
+    s4 = &#39;$0.262$\n$+1.45X$\n$-0.0121X^2$\n$-0.00713X^3$\n$+0.000296X^4$&#39;
+    an(&#39;$3.82$&#39;, (10, 3.82), (10, -2), &#39;center&#39;)
+    an(&#39;$0.74+0.82X$&#39;, (-7.4, -5.4), (1, -6))
+    an(s4, (7, 8), (0, 10), &#39;right&#39;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.mods.LorenzUV.illust_parameterizations.blend_rgb"><code class="name flex">
+<span>def <span class="ident">blend_rgb</span></span>(<span>rgb, a, bg_rgb=array([1., 1., 1.]))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fake RGB transparency by blending it to some background.
+Useful for creating gradients.</p>
+<p>Also useful for creating 'transparency' for exporting to eps.
+But there's no actualy transparency, so superposition of lines
+will not work. For that: export to pdf, or make do without.</p>
+<ul>
+<li>rgb: N-by-3 rgb, or a color code.</li>
+<li>a: alpha value</li>
+<li>bg_rgb: background in rgb. Default: white</li>
+</ul>
+<p>Based on stackoverflow.com/a/33375738/38281</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def blend_rgb(rgb, a, bg_rgb=np.ones(3)):
+    &#34;&#34;&#34;
+    Fake RGB transparency by blending it to some background.
+    Useful for creating gradients.
+
+    Also useful for creating &#39;transparency&#39; for exporting to eps.
+    But there&#39;s no actualy transparency, so superposition of lines
+    will not work. For that: export to pdf, or make do without.
+
+     - rgb: N-by-3 rgb, or a color code.
+     - a: alpha value
+     - bg_rgb: background in rgb. Default: white
+
+    Based on stackoverflow.com/a/33375738/38281
+    &#34;&#34;&#34;
+    if isinstance(rgb, str):
+        rgb = mpl.colors.colorConverter.to_rgb(rgb)
+    return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="dapper.mods.LorenzUV" href="index.html">dapper.mods.LorenzUV</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.mods.LorenzUV.illust_parameterizations.blend_rgb" href="#dapper.mods.LorenzUV.illust_parameterizations.blend_rgb">blend_rgb</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

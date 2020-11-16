@@ -10,6 +10,7 @@ import sys
 
 assert sys.version_info >= (3,8), "Need Python>=3.8"
 
+
 # Profiling.
 # Launch python script: $ kernprof -l -v myprog.py
 # Functions decorated with 'profile' from below will be timed.
@@ -46,7 +47,33 @@ from .tools.randvars import RV, GaussRV
 from .tools.stoch import rand, randn, set_seed
 from .tools.viz import freshfig
 
-# import dapper.tools as tools
-# import dapper.admin as admin
-# import dapper.stats as stats
-# import dapper.data_management as data_management
+
+# Documentation management
+def _find_demos(as_path=False):
+    "Find all model demo.py scripts."
+    lst = []
+    for d in (rc.dirs.dapper/"mods").iterdir():
+        x = d/"demo.py"
+        if x.is_file():
+            x = x.relative_to(rc.dirs.DAPPER)
+            if not as_path:
+                x = str(x.with_suffix("")).replace("/", ".")
+            lst.append(x)
+    return lst
+
+# This generates a lot of warnings:
+# """UserWarning: __pdoc__-overriden key ... does not exist in module""".
+# AFAICT that's fine. https://github.com/pdoc3/pdoc/issues/206
+# Alternative: Insert this at top of each script to exclude
+# >>> if __name__ != "__main__":
+# >>>     raise RuntimeError("This module may only be run as script.")
+# and run pdoc with --skip-errors.
+__pdoc__ = {
+    "tools.remote.autoscaler": False,
+    **{demo:False for demo in _find_demos()},
+    "dapper.mods.KS.compare_schemes": False,
+    "dapper.mods.LorenzUV.illust_LorenzUV": False,
+    "dapper.mods.LorenzUV.illust_parameterizations": False,
+    "dapper.mods.explore_props": False,
+    "dapper.mods.QG.f90": False,
+}

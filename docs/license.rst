@@ -1,3 +1,0 @@
-License
-=========
-.. include:: ../LICENCE.txt

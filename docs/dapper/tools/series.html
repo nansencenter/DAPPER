@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>dapper.tools.series API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>dapper.tools.series</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from dapper.dict_tools import NicePrint
+from dapper.dpr_config import rc
+import dapper.tools.utils as utils
+import dapper.tools.math as mtools
+from dataclasses import dataclass
+import numpy as np
+from numpy import nan
+
+# TODO 3: change L to &#39;nlags&#39;, with nlags=L-1, to conform with
+# the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
+
+
+def auto_cov(xx, L=5, zero_mean=False, corr=False):
+    &#34;&#34;&#34;
+    Auto covariance function, computed along axis 0.
+    L   : max lag (offset) for which to compute acf.
+    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
+    &#34;&#34;&#34;
+    assert L &lt;= len(xx)
+
+    N = len(xx)
+    A = xx if zero_mean else mtools.center(xx)[0]
+    acovf = np.zeros((L,)+xx.shape[1:])
+
+    for i in range(L):
+        Left  = A[np.arange(N-i)]
+        Right = A[np.arange(i, N)]
+        acovf[i] = (Left*Right).sum(0)/(N-i)
+
+    if corr:
+        acovf /= acovf[0]
+
+    return acovf
+
+
+def fit_acf_by_AR1(acf_empir, L=None):
+    &#34;&#34;&#34;
+    Fit an empirical auto cov function (ACF) by that of an AR1 process.
+    acf_empir: auto-corr/cov-function.
+    L: length of ACF to use in AR(1) fitting
+    &#34;&#34;&#34;
+    if L is None:
+        L = len(acf_empir)
+
+    # geometric_mean = ss.mstats.gmean
+    def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
+
+    def mean_ratio(xx):
+        return geometric_mean([xx[i]/xx[i-1] for i in range(1, len(xx))])
+
+    # Negative correlation =&gt; Truncate ACF
+    neg_ind   = utils.find_1st_ind(np.array(acf_empir) &lt;= 0)
+    acf_empir = acf_empir[:neg_ind]
+
+    if len(acf_empir) == 0:
+        return 0
+    elif len(acf_empir) == 1:
+        return 0.01
+    else:
+        return mean_ratio(acf_empir)
+
+
+def estimate_corr_length(xx):
+    &#34;&#34;&#34;
+    For explanation, see mods.LA.core: homogeneous_1D_cov().
+    Also note that, for exponential corr function, as assumed here,
+    corr(L) = exp(-1) = ca 0.368
+    &#34;&#34;&#34;
+    assert mtools.is1d(xx)
+    acovf = auto_cov(xx, min(100, len(xx)-2))
+    a     = fit_acf_by_AR1(acovf)
+    if a == 0:
+        L = 0
+    else:
+        L = 1/np.log(1/a)
+    return L
+
+
+@dataclass
+class UncertainQtty():
+    val: float
+    conf: float
+
+    def round(self, mult=1.0):
+        &#34;&#34;&#34;Round intelligently:
+
+        - conf to 1 sigfig.
+        - val:
+            - to precision: mult*conf.
+            - fallback: rc.sigfig
+        &#34;&#34;&#34;
+        with np.errstate(all=&#39;ignore&#39;):
+            conf = mtools.round2(self.conf, 1)
+            val  = self.val
+            if not np.isnan(conf) and conf &gt; 0:
+                val = mtools.round2(val, mult*conf)
+            else:
+                val = mtools.round2(val, rc.sigfig)
+            return val, conf
+
+    def __str__(self):
+        return &#34;{} ±{}&#34;.format(*self.round())
+
+    def __repr__(self):
+        vc = &#34;(val={:.4g}, conf={:.1g})&#34;.format(*self.round(1e-9))
+        return self.__class__.__name__ + vc
+
+
+def mean_with_conf(xx):
+    &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
+
+    Also provide confidence of mean,
+    as estimated from its correlation-corrected variance.
+    &#34;&#34;&#34;
+    mu = np.mean(xx)
+    N  = len(xx)
+    if (not np.isfinite(mu)) or N &lt;= 5:
+        uq = UncertainQtty(mu, np.nan)
+    elif np.allclose(xx, mu):
+        uq = UncertainQtty(mu, 0)
+    else:
+        acovf = auto_cov(xx, 5)
+        var   = acovf[0]
+        var  /= N
+        # Estimate (fit) ACF
+        a = fit_acf_by_AR1(acovf)
+        # If xx[k] where independent of xx[k-1],
+        # then std_of_mu is the end of the story.
+        # The following corrects for the correlation in the time series.
+        #
+        # See https://stats.stackexchange.com/q/90062
+        # c = sum([(N-k)*a**k for k in range(1,N)])
+        # But this series is analytically tractable:
+        c = ((N-1)*a - N*a**2 + a**(N+1)) / (1-a)**2
+        confidence_correction = 1 + 2/N * c
+        var *= confidence_correction
+        uq = UncertainQtty(mu, np.sqrt(var))
+    return uq
+
+
+class StatPrint(NicePrint):
+    &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
+    printopts = dict(
+        excluded=NicePrint.printopts[&#34;excluded&#34;]+[&#34;HMM&#34;, &#34;LP_instance&#34;],
+        ordering=&#34;linenumber&#34;,
+        reverse=True,
+        indent=2,
+        aliases={
+            &#39;f&#39;: &#39;Forecast  (.f)&#39;,
+            &#39;a&#39;: &#39;Analysis  (.a)&#39;,
+            &#39;s&#39;: &#39;Smoothed  (.s)&#39;,
+            &#39;u&#39;: &#39;Universal (.u)&#39;,
+            &#39;m&#39;: &#39;Field mean (.m)&#39;,
+            &#39;ma&#39;: &#39;Field mean-abs (.ma)&#39;,
+            &#39;rms&#39;: &#39;Field root-mean-square (.rms)&#39;,
+            &#39;gm&#39;: &#39;Field geometric-mean (.gm)&#39;
+        },
+    )
+
+    # Adjust np.printoptions before NicePrint
+    def __repr__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return super().__repr__()
+
+    def __str__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return super().__str__()
+
+
+@utils.monitor_setitem
+class DataSeries(StatPrint):
+    &#34;&#34;&#34;Basically just an ``np.ndarray``. But adds:
+
+    - Possibility of adding attributes.
+    - The class (type) provides way to acertain if an attribute is a series.
+
+    Note: subclassing ``ndarray`` is too dirty =&gt; We&#39;ll just use the
+    ``array`` attribute, and provide ``{s,g}etitem``.&#34;&#34;&#34;
+
+    def __init__(self, shape, **kwargs):
+        self.array = np.full(shape, nan, **kwargs)
+
+    def __len__(self): return len(self.array)
+    def __getitem__(self, key): return self.array[key]
+    def __setitem__(self, key, val):           self.array[key] = val
+
+
+@utils.monitor_setitem
+class FAUSt(DataSeries, StatPrint):
+    &#34;&#34;&#34;Container for time series of a statistic from filtering.
+
+    Four attributes, each of which is an ndarray:
+
+     - .f for forecast      , (KObs+1,)+item_shape
+     - .a for analysis      , (KObs+1,)+item_shape
+     - .s for smoothed      , (KObs+1,)+item_shape
+     - .u for universial/all, (K   +1,)+item_shape
+
+    If store_u=False, then .u series has shape (1,)+item_shape,
+    wherein only the most-recently-written item is stored.
+
+    Series can also be indexed as in
+    &gt;&gt;&gt; self[kObs,&#39;a&#39;]
+    &gt;&gt;&gt; self[whatever,kObs,&#39;a&#39;]
+    &gt;&gt;&gt; # ... and likewise for &#39;f&#39; and &#39;s&#39;. For &#39;u&#39;, can use:
+    &gt;&gt;&gt; self[k,&#39;u&#39;]
+    &gt;&gt;&gt; self[k,whatever,&#39;u&#39;]
+
+    .. note:: If a data series only pertains to the analysis,
+              then you should use a plain np.array instead.
+    &#34;&#34;&#34;
+
+    def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
+        &#34;&#34;&#34;Constructor.
+
+         - item_shape : shape of an item in the series.
+         - store_u    : if False: only the current value is stored.
+         - kwargs     : passed on to ndarrays.
+        &#34;&#34;&#34;
+
+        self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        if store_s:
+            self.s = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        if store_u:
+            self.u = np.full((K   + 1,)+item_shape, nan, **kwargs)
+        else:
+            self.u = np.full((1,)+item_shape, nan, **kwargs)
+
+    # We could just store the input values for these attrs, but using
+    # property =&gt; Won&#39;t be listed in vars(self), and un-writeable.
+    item_shape = property(lambda self: self.a.shape[1:])
+    store_u    = property(lambda self: len(self.u) &gt; 1)
+
+    def _ind(self, key):
+        &#34;Aux function to unpack ``key`` (k,kObs,faus)&#34;
+        if key[-1] == &#39;u&#39;:
+            return key[0] if self.store_u else 0
+        else:
+            return key[-2]
+
+    def __setitem__(self, key, item):  getattr(self, key[-1])[self._ind(key)] = item
+    def __getitem__(self, key): return getattr(self, key[-1])[self._ind(key)]
+
+
+class RollingArray:
+    &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
+    Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
+
+    def __init__(self, shape, fillval=nan):
+        self.array = np.full(shape, fillval)
+        self.k1 = 0      # previous k
+        self.nFilled = 0
+
+    def insert(self, k, val):
+        dk = k-self.k1
+
+        # Old (more readable?) version:
+        # if dk in [0,1]: # case: forecast or analysis update
+        # self.array = np.roll(self.array, -1, axis=0)
+        # elif dk&gt;1:      # case: user has skipped ahead (w/o liveplotting)
+        # self.array = np.roll(self.array, -dk, axis=0)
+        # self.array[-dk:] = nan
+        # self.array[-1] = val
+
+        dk = max(1, dk)
+        # TODO 4: Should have used deque?
+        self.array = np.roll(self.array, -dk, axis=0)
+        self.array[-dk:] = nan
+        self.array[-1:] = val
+
+        self.k1 = k
+        self.nFilled = min(len(self), self.nFilled+dk)
+
+    def leftmost(self):
+        return self[len(self)-self.nFilled]
+
+    def span(self):
+        return (self.leftmost(),  self[-1])
+
+    @property
+    def T(self):
+        return self.array.T
+
+    def __array__(self, dtype=None): return self.array
+    def __len__(self): return len(self.array)
+    def __repr__(self): return &#39;RollingArray:\n%s&#39; % str(self.array)
+    def __getitem__(self, key): return self.array[key]
+
+    def __setitem__(self, key, val):
+        # Don&#39;t implement __setitem__ coz leftmost() is then
+        # not generally meaningful (i.e. if an element is set in the middle).
+        # Of course self.array can still be messed with.
+        raise AttributeError(&#34;Values should be set with update()&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.tools.series.auto_cov"><code class="name flex">
+<span>def <span class="ident">auto_cov</span></span>(<span>xx, L=5, zero_mean=False, corr=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Auto covariance function, computed along axis 0.
+L
+: max lag (offset) for which to compute acf.
+corr: normalize acf by acf[0] so as to return auto-CORRELATION.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def auto_cov(xx, L=5, zero_mean=False, corr=False):
+    &#34;&#34;&#34;
+    Auto covariance function, computed along axis 0.
+    L   : max lag (offset) for which to compute acf.
+    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
+    &#34;&#34;&#34;
+    assert L &lt;= len(xx)
+
+    N = len(xx)
+    A = xx if zero_mean else mtools.center(xx)[0]
+    acovf = np.zeros((L,)+xx.shape[1:])
+
+    for i in range(L):
+        Left  = A[np.arange(N-i)]
+        Right = A[np.arange(i, N)]
+        acovf[i] = (Left*Right).sum(0)/(N-i)
+
+    if corr:
+        acovf /= acovf[0]
+
+    return acovf</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.series.estimate_corr_length"><code class="name flex">
+<span>def <span class="ident">estimate_corr_length</span></span>(<span>xx)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>For explanation, see mods.LA.core: homogeneous_1D_cov().
+Also note that, for exponential corr function, as assumed here,
+corr(L) = exp(-1) = ca 0.368</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def estimate_corr_length(xx):
+    &#34;&#34;&#34;
+    For explanation, see mods.LA.core: homogeneous_1D_cov().
+    Also note that, for exponential corr function, as assumed here,
+    corr(L) = exp(-1) = ca 0.368
+    &#34;&#34;&#34;
+    assert mtools.is1d(xx)
+    acovf = auto_cov(xx, min(100, len(xx)-2))
+    a     = fit_acf_by_AR1(acovf)
+    if a == 0:
+        L = 0
+    else:
+        L = 1/np.log(1/a)
+    return L</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.series.fit_acf_by_AR1"><code class="name flex">
+<span>def <span class="ident">fit_acf_by_AR1</span></span>(<span>acf_empir, L=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fit an empirical auto cov function (ACF) by that of an AR1 process.
+acf_empir: auto-corr/cov-function.
+L: length of ACF to use in AR(1) fitting</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit_acf_by_AR1(acf_empir, L=None):
+    &#34;&#34;&#34;
+    Fit an empirical auto cov function (ACF) by that of an AR1 process.
+    acf_empir: auto-corr/cov-function.
+    L: length of ACF to use in AR(1) fitting
+    &#34;&#34;&#34;
+    if L is None:
+        L = len(acf_empir)
+
+    # geometric_mean = ss.mstats.gmean
+    def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
+
+    def mean_ratio(xx):
+        return geometric_mean([xx[i]/xx[i-1] for i in range(1, len(xx))])
+
+    # Negative correlation =&gt; Truncate ACF
+    neg_ind   = utils.find_1st_ind(np.array(acf_empir) &lt;= 0)
+    acf_empir = acf_empir[:neg_ind]
+
+    if len(acf_empir) == 0:
+        return 0
+    elif len(acf_empir) == 1:
+        return 0.01
+    else:
+        return mean_ratio(acf_empir)</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.series.mean_with_conf"><code class="name flex">
+<span>def <span class="ident">mean_with_conf</span></span>(<span>xx)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the mean of a 1d iterable <code>xx</code>.</p>
+<p>Also provide confidence of mean,
+as estimated from its correlation-corrected variance.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mean_with_conf(xx):
+    &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
+
+    Also provide confidence of mean,
+    as estimated from its correlation-corrected variance.
+    &#34;&#34;&#34;
+    mu = np.mean(xx)
+    N  = len(xx)
+    if (not np.isfinite(mu)) or N &lt;= 5:
+        uq = UncertainQtty(mu, np.nan)
+    elif np.allclose(xx, mu):
+        uq = UncertainQtty(mu, 0)
+    else:
+        acovf = auto_cov(xx, 5)
+        var   = acovf[0]
+        var  /= N
+        # Estimate (fit) ACF
+        a = fit_acf_by_AR1(acovf)
+        # If xx[k] where independent of xx[k-1],
+        # then std_of_mu is the end of the story.
+        # The following corrects for the correlation in the time series.
+        #
+        # See https://stats.stackexchange.com/q/90062
+        # c = sum([(N-k)*a**k for k in range(1,N)])
+        # But this series is analytically tractable:
+        c = ((N-1)*a - N*a**2 + a**(N+1)) / (1-a)**2
+        confidence_correction = 1 + 2/N * c
+        var *= confidence_correction
+        uq = UncertainQtty(mu, np.sqrt(var))
+    return uq</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="dapper.tools.series.DataSeries"><code class="flex name class">
+<span>class <span class="ident">DataSeries</span></span>
+<span>(</span><span>shape, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Basically just an <code>np.ndarray</code>. But adds:</p>
+<ul>
+<li>Possibility of adding attributes.</li>
+<li>The class (type) provides way to acertain if an attribute is a series.</li>
+</ul>
+<p>Note: subclassing <code>ndarray</code> is too dirty =&gt; We'll just use the
+<code>array</code> attribute, and provide <code>{s,g}etitem</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataSeries(StatPrint):
+    &#34;&#34;&#34;Basically just an ``np.ndarray``. But adds:
+
+    - Possibility of adding attributes.
+    - The class (type) provides way to acertain if an attribute is a series.
+
+    Note: subclassing ``ndarray`` is too dirty =&gt; We&#39;ll just use the
+    ``array`` attribute, and provide ``{s,g}etitem``.&#34;&#34;&#34;
+
+    def __init__(self, shape, **kwargs):
+        self.array = np.full(shape, nan, **kwargs)
+
+    def __len__(self): return len(self.array)
+    def __getitem__(self, key): return self.array[key]
+    def __setitem__(self, key, val):           self.array[key] = val</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="dapper.tools.series.StatPrint" href="#dapper.tools.series.StatPrint">StatPrint</a></li>
+<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="dapper.tools.series.FAUSt" href="#dapper.tools.series.FAUSt">FAUSt</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.tools.series.DataSeries.were_changed"><code class="name">var <span class="ident">were_changed</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="dapper.tools.series.FAUSt"><code class="flex name class">
+<span>class <span class="ident">FAUSt</span></span>
+<span>(</span><span>K, KObs, item_shape, store_u, store_s, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Container for time series of a statistic from filtering.</p>
+<p>Four attributes, each of which is an ndarray:</p>
+<ul>
+<li>.f for forecast
+, (KObs+1,)+item_shape</li>
+<li>.a for analysis
+, (KObs+1,)+item_shape</li>
+<li>.s for smoothed
+, (KObs+1,)+item_shape</li>
+<li>.u for universial/all, (K
++1,)+item_shape</li>
+</ul>
+<p>If store_u=False, then .u series has shape (1,)+item_shape,
+wherein only the most-recently-written item is stored.</p>
+<p>Series can also be indexed as in</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; self[kObs,'a']
+&gt;&gt;&gt; self[whatever,kObs,'a']
+&gt;&gt;&gt; # ... and likewise for 'f' and 's'. For 'u', can use:
+&gt;&gt;&gt; self[k,'u']
+&gt;&gt;&gt; self[k,whatever,'u']
+</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note:&ensp;If a data series only pertains to the analysis,</p>
+<p>then you should use a plain np.array instead.</p>
+</div>
+<p>Constructor.</p>
+<ul>
+<li>item_shape : shape of an item in the series.</li>
+<li>store_u
+: if False: only the current value is stored.</li>
+<li>kwargs
+: passed on to ndarrays.</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FAUSt(DataSeries, StatPrint):
+    &#34;&#34;&#34;Container for time series of a statistic from filtering.
+
+    Four attributes, each of which is an ndarray:
+
+     - .f for forecast      , (KObs+1,)+item_shape
+     - .a for analysis      , (KObs+1,)+item_shape
+     - .s for smoothed      , (KObs+1,)+item_shape
+     - .u for universial/all, (K   +1,)+item_shape
+
+    If store_u=False, then .u series has shape (1,)+item_shape,
+    wherein only the most-recently-written item is stored.
+
+    Series can also be indexed as in
+    &gt;&gt;&gt; self[kObs,&#39;a&#39;]
+    &gt;&gt;&gt; self[whatever,kObs,&#39;a&#39;]
+    &gt;&gt;&gt; # ... and likewise for &#39;f&#39; and &#39;s&#39;. For &#39;u&#39;, can use:
+    &gt;&gt;&gt; self[k,&#39;u&#39;]
+    &gt;&gt;&gt; self[k,whatever,&#39;u&#39;]
+
+    .. note:: If a data series only pertains to the analysis,
+              then you should use a plain np.array instead.
+    &#34;&#34;&#34;
+
+    def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
+        &#34;&#34;&#34;Constructor.
+
+         - item_shape : shape of an item in the series.
+         - store_u    : if False: only the current value is stored.
+         - kwargs     : passed on to ndarrays.
+        &#34;&#34;&#34;
+
+        self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        if store_s:
+            self.s = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        if store_u:
+            self.u = np.full((K   + 1,)+item_shape, nan, **kwargs)
+        else:
+            self.u = np.full((1,)+item_shape, nan, **kwargs)
+
+    # We could just store the input values for these attrs, but using
+    # property =&gt; Won&#39;t be listed in vars(self), and un-writeable.
+    item_shape = property(lambda self: self.a.shape[1:])
+    store_u    = property(lambda self: len(self.u) &gt; 1)
+
+    def _ind(self, key):
+        &#34;Aux function to unpack ``key`` (k,kObs,faus)&#34;
+        if key[-1] == &#39;u&#39;:
+            return key[0] if self.store_u else 0
+        else:
+            return key[-2]
+
+    def __setitem__(self, key, item):  getattr(self, key[-1])[self._ind(key)] = item
+    def __getitem__(self, key): return getattr(self, key[-1])[self._ind(key)]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="dapper.tools.series.DataSeries" href="#dapper.tools.series.DataSeries">DataSeries</a></li>
+<li><a title="dapper.tools.series.StatPrint" href="#dapper.tools.series.StatPrint">StatPrint</a></li>
+<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.tools.series.FAUSt.were_changed"><code class="name">var <span class="ident">were_changed</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="dapper.tools.series.FAUSt.item_shape"><code class="name">var <span class="ident">item_shape</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">item_shape = property(lambda self: self.a.shape[1:])</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.series.FAUSt.store_u"><code class="name">var <span class="ident">store_u</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">store_u    = property(lambda self: len(self.u) &gt; 1)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="dapper.tools.series.RollingArray"><code class="flex name class">
+<span>class <span class="ident">RollingArray</span></span>
+<span>(</span><span>shape, fillval=nan)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ND-Array that implements "leftward rolling" along axis 0.
+Used for data that gets plotted in sliding graphs.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RollingArray:
+    &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
+    Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
+
+    def __init__(self, shape, fillval=nan):
+        self.array = np.full(shape, fillval)
+        self.k1 = 0      # previous k
+        self.nFilled = 0
+
+    def insert(self, k, val):
+        dk = k-self.k1
+
+        # Old (more readable?) version:
+        # if dk in [0,1]: # case: forecast or analysis update
+        # self.array = np.roll(self.array, -1, axis=0)
+        # elif dk&gt;1:      # case: user has skipped ahead (w/o liveplotting)
+        # self.array = np.roll(self.array, -dk, axis=0)
+        # self.array[-dk:] = nan
+        # self.array[-1] = val
+
+        dk = max(1, dk)
+        # TODO 4: Should have used deque?
+        self.array = np.roll(self.array, -dk, axis=0)
+        self.array[-dk:] = nan
+        self.array[-1:] = val
+
+        self.k1 = k
+        self.nFilled = min(len(self), self.nFilled+dk)
+
+    def leftmost(self):
+        return self[len(self)-self.nFilled]
+
+    def span(self):
+        return (self.leftmost(),  self[-1])
+
+    @property
+    def T(self):
+        return self.array.T
+
+    def __array__(self, dtype=None): return self.array
+    def __len__(self): return len(self.array)
+    def __repr__(self): return &#39;RollingArray:\n%s&#39; % str(self.array)
+    def __getitem__(self, key): return self.array[key]
+
+    def __setitem__(self, key, val):
+        # Don&#39;t implement __setitem__ coz leftmost() is then
+        # not generally meaningful (i.e. if an element is set in the middle).
+        # Of course self.array can still be messed with.
+        raise AttributeError(&#34;Values should be set with update()&#34;)</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="dapper.tools.series.RollingArray.T"><code class="name">var <span class="ident">T</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def T(self):
+    return self.array.T</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="dapper.tools.series.RollingArray.insert"><code class="name flex">
+<span>def <span class="ident">insert</span></span>(<span>self, k, val)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def insert(self, k, val):
+    dk = k-self.k1
+
+    # Old (more readable?) version:
+    # if dk in [0,1]: # case: forecast or analysis update
+    # self.array = np.roll(self.array, -1, axis=0)
+    # elif dk&gt;1:      # case: user has skipped ahead (w/o liveplotting)
+    # self.array = np.roll(self.array, -dk, axis=0)
+    # self.array[-dk:] = nan
+    # self.array[-1] = val
+
+    dk = max(1, dk)
+    # TODO 4: Should have used deque?
+    self.array = np.roll(self.array, -dk, axis=0)
+    self.array[-dk:] = nan
+    self.array[-1:] = val
+
+    self.k1 = k
+    self.nFilled = min(len(self), self.nFilled+dk)</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.series.RollingArray.leftmost"><code class="name flex">
+<span>def <span class="ident">leftmost</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def leftmost(self):
+    return self[len(self)-self.nFilled]</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.series.RollingArray.span"><code class="name flex">
+<span>def <span class="ident">span</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def span(self):
+    return (self.leftmost(),  self[-1])</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="dapper.tools.series.StatPrint"><code class="flex name class">
+<span>class <span class="ident">StatPrint</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Set NicePrint options suitable for stats.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StatPrint(NicePrint):
+    &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
+    printopts = dict(
+        excluded=NicePrint.printopts[&#34;excluded&#34;]+[&#34;HMM&#34;, &#34;LP_instance&#34;],
+        ordering=&#34;linenumber&#34;,
+        reverse=True,
+        indent=2,
+        aliases={
+            &#39;f&#39;: &#39;Forecast  (.f)&#39;,
+            &#39;a&#39;: &#39;Analysis  (.a)&#39;,
+            &#39;s&#39;: &#39;Smoothed  (.s)&#39;,
+            &#39;u&#39;: &#39;Universal (.u)&#39;,
+            &#39;m&#39;: &#39;Field mean (.m)&#39;,
+            &#39;ma&#39;: &#39;Field mean-abs (.ma)&#39;,
+            &#39;rms&#39;: &#39;Field root-mean-square (.rms)&#39;,
+            &#39;gm&#39;: &#39;Field geometric-mean (.gm)&#39;
+        },
+    )
+
+    # Adjust np.printoptions before NicePrint
+    def __repr__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return super().__repr__()
+
+    def __str__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return super().__str__()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="dapper.stats.Avrgs" href="../stats.html#dapper.stats.Avrgs">Avrgs</a></li>
+<li><a title="dapper.stats.Stats" href="../stats.html#dapper.stats.Stats">Stats</a></li>
+<li><a title="dapper.tools.series.DataSeries" href="#dapper.tools.series.DataSeries">DataSeries</a></li>
+<li><a title="dapper.tools.series.FAUSt" href="#dapper.tools.series.FAUSt">FAUSt</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.tools.series.StatPrint.printopts"><code class="name">var <span class="ident">printopts</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="dapper.tools.series.UncertainQtty"><code class="flex name class">
+<span>class <span class="ident">UncertainQtty</span></span>
+<span>(</span><span>val: float, conf: float)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>UncertainQtty(val: float, conf: float)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UncertainQtty():
+    val: float
+    conf: float
+
+    def round(self, mult=1.0):
+        &#34;&#34;&#34;Round intelligently:
+
+        - conf to 1 sigfig.
+        - val:
+            - to precision: mult*conf.
+            - fallback: rc.sigfig
+        &#34;&#34;&#34;
+        with np.errstate(all=&#39;ignore&#39;):
+            conf = mtools.round2(self.conf, 1)
+            val  = self.val
+            if not np.isnan(conf) and conf &gt; 0:
+                val = mtools.round2(val, mult*conf)
+            else:
+                val = mtools.round2(val, rc.sigfig)
+            return val, conf
+
+    def __str__(self):
+        return &#34;{} ±{}&#34;.format(*self.round())
+
+    def __repr__(self):
+        vc = &#34;(val={:.4g}, conf={:.1g})&#34;.format(*self.round(1e-9))
+        return self.__class__.__name__ + vc</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.tools.series.UncertainQtty.conf"><code class="name">var <span class="ident">conf</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="dapper.tools.series.UncertainQtty.val"><code class="name">var <span class="ident">val</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="dapper.tools.series.UncertainQtty.round"><code class="name flex">
+<span>def <span class="ident">round</span></span>(<span>self, mult=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Round intelligently:</p>
+<ul>
+<li>conf to 1 sigfig.</li>
+<li>val:<ul>
+<li>to precision: mult*conf.</li>
+<li>fallback: rc.sigfig</li>
+</ul>
+</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def round(self, mult=1.0):
+    &#34;&#34;&#34;Round intelligently:
+
+    - conf to 1 sigfig.
+    - val:
+        - to precision: mult*conf.
+        - fallback: rc.sigfig
+    &#34;&#34;&#34;
+    with np.errstate(all=&#39;ignore&#39;):
+        conf = mtools.round2(self.conf, 1)
+        val  = self.val
+        if not np.isnan(conf) and conf &gt; 0:
+            val = mtools.round2(val, mult*conf)
+        else:
+            val = mtools.round2(val, rc.sigfig)
+        return val, conf</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="dapper.tools" href="index.html">dapper.tools</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.tools.series.auto_cov" href="#dapper.tools.series.auto_cov">auto_cov</a></code></li>
+<li><code><a title="dapper.tools.series.estimate_corr_length" href="#dapper.tools.series.estimate_corr_length">estimate_corr_length</a></code></li>
+<li><code><a title="dapper.tools.series.fit_acf_by_AR1" href="#dapper.tools.series.fit_acf_by_AR1">fit_acf_by_AR1</a></code></li>
+<li><code><a title="dapper.tools.series.mean_with_conf" href="#dapper.tools.series.mean_with_conf">mean_with_conf</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="dapper.tools.series.DataSeries" href="#dapper.tools.series.DataSeries">DataSeries</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.tools.series.DataSeries.were_changed" href="#dapper.tools.series.DataSeries.were_changed">were_changed</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dapper.tools.series.FAUSt" href="#dapper.tools.series.FAUSt">FAUSt</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.tools.series.FAUSt.item_shape" href="#dapper.tools.series.FAUSt.item_shape">item_shape</a></code></li>
+<li><code><a title="dapper.tools.series.FAUSt.store_u" href="#dapper.tools.series.FAUSt.store_u">store_u</a></code></li>
+<li><code><a title="dapper.tools.series.FAUSt.were_changed" href="#dapper.tools.series.FAUSt.were_changed">were_changed</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dapper.tools.series.RollingArray" href="#dapper.tools.series.RollingArray">RollingArray</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.tools.series.RollingArray.T" href="#dapper.tools.series.RollingArray.T">T</a></code></li>
+<li><code><a title="dapper.tools.series.RollingArray.insert" href="#dapper.tools.series.RollingArray.insert">insert</a></code></li>
+<li><code><a title="dapper.tools.series.RollingArray.leftmost" href="#dapper.tools.series.RollingArray.leftmost">leftmost</a></code></li>
+<li><code><a title="dapper.tools.series.RollingArray.span" href="#dapper.tools.series.RollingArray.span">span</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dapper.tools.series.StatPrint" href="#dapper.tools.series.StatPrint">StatPrint</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.tools.series.StatPrint.printopts" href="#dapper.tools.series.StatPrint.printopts">printopts</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dapper.tools.series.UncertainQtty" href="#dapper.tools.series.UncertainQtty">UncertainQtty</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.tools.series.UncertainQtty.conf" href="#dapper.tools.series.UncertainQtty.conf">conf</a></code></li>
+<li><code><a title="dapper.tools.series.UncertainQtty.round" href="#dapper.tools.series.UncertainQtty.round">round</a></code></li>
+<li><code><a title="dapper.tools.series.UncertainQtty.val" href="#dapper.tools.series.UncertainQtty.val">val</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
