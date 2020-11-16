@@ -3,7 +3,7 @@
 DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods
 using synthetic/twin experiments.
 
-.. include:: ../README.md
+See the full introduction in the [README](https://github.com/nansencenter/DAPPER)
 
 """
 
