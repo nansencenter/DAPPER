@@ -10,7 +10,7 @@
 
 # DAPPER
 
-![Logo](./docs/logo_wtxt.png)
+![Logo](./docs/logo.png)
 
 DAPPER is a set of templates for benchmarking the performance of
 data assimilation (DA) methods.
