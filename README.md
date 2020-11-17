@@ -8,12 +8,14 @@
 ! 
 -->
 
+# DAPPER
+
+![Logo](./docs/logo.png)
+
 DAPPER is a set of templates for benchmarking the performance of
 data assimilation (DA) methods.
 The tests provide experimental support and guidance for
-new developments in DA. Example diagnostics:
-
-![EnKF - Lorenz'63](./dpr_data/figs/anims/DAPPER_illust_v2.jpg)
+new developments in DA.
 
 The typical set-up is a **synthetic (twin) experiment**, where you
 
@@ -41,6 +43,12 @@ reproduction from this [book on DA](https://books.google.no/books?id=FtDZDQAAQBA
 DAPPER is (c) open source, written in Python, and (d) focuses on readability;
 this promotes the (c) reproduction and (d) dissemination of the underlying science,
 and makes it easy to adapt and extend.
+It also comes with a battery of diagnostics and statistics,
+and live plotting (on-line with the assimilation) facilities,
+including pause/inspect options, as illustrated below
+
+![EnKF - Lorenz'63](./dpr_data/figs/anims/DAPPER_illust_v2.jpg)
+
 In summary, it is well suited for teaching and fundamental DA research.
 Also see its [drawbacks](#alternative-projects).
 

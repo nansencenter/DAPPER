@@ -105,8 +105,9 @@ def tV(zz):
 #     plt.pause(0.001)
 
 
+##
 # Overlay circ
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(10,3))
 plt.plot(*tU(4.52*np.ones_like(circU)), color='k', lw=1)[0]
 plt.plot(*tV(0.15*np.ones_like(circV)), color='k', lw=1)[0]
 ax = fig.axes[0]
@@ -120,5 +121,12 @@ for Ny in range(L):
     a = 0.8-0.2*Ny/L
     plt.plot(*tU(xx[k][circU]), color=c, lw=2, alpha=a)[0]
     plt.plot(*tV(xx[k][circV]), color=c, lw=1, alpha=a)[0]
+
+if True:
+    ax.text(95,0,"DAPPER",ha="left",va="center",fontdict=dict(
+        fontsize="80", name="Signpainter"
+    ))
+    ax.plot([348,348.001],[28,28])
+    fig.savefig("docs/logo_wtxt.png", bbox_inches="tight", pad_inches=0)
 
 plt.show()

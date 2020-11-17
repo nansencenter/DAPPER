@@ -1,12 +1,9 @@
 """(Data Assimilation with Python: a Package for Experimental Research)
 
-# documentation
-
 ## README
 
 Make sure you've browsed these sections in the README:
 
-- [Highlights](https://github.com/nansencenter/DAPPER#Highlights)
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
 - [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
@@ -14,7 +11,31 @@ Make sure you've browsed these sections in the README:
 
 ## Reference/API docs
 The documentation contained in docstrings can be browsed
-by clicking the links at the bottom (or on the left) of this page.
+by clicking the links at the left (or bottom) of this page.
+
+## Features
+Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README:
+
+- Parallelisation:
+    - (Independent) experiments can run in parallel; see `example_3.py`
+    - Forecast parallelisation is possible since
+        the (user-implemented) model has access to the full ensemble;
+        see example in `mods.QG`.
+    - Analysis parallelisation over local domains;
+        see example in `da_methods.ensemble.LETKF`
+- Classes that simplify treating:
+    - Time sequences use via `tools.chronos.Chronology`
+      and`tools.chronos.Ticker`.
+    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
+      as well as support for custom sampling functions.
+    - Covariance matrices via `tools.matrices.CovMat`: provides input flexibility/overloading,
+      lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
+- Diagnostics and statistics with
+    - Confidence interval on times series (e.g. rmse) averages with
+        - automatic correction for autocorrelation 
+        - significant digits printing
+    - Automatic averaging of several types for sub-domains
+      (e.g. "ocean", "land", etc.)
 
 ## Usage
 Do you wish to illustrate and run benchmarks with your own
@@ -32,7 +53,38 @@ Then, read the documentation here
 - `mods`
 - `da_methods`
 
-## Contributing
+## Development
+
+### Implementation choices
+
+- Python version `>=3.7` for dicts to maintain ordering.
+- Ensemble (data) matrices are np.ndarrays with shape `N-by-Nx`.
+  This shape (orientation) is contrary to the EnKF literature,
+  but has the following advantages:
+    - Improves speed in row-by-row accessing,
+      since that's `np`'s default orientation.
+    - Facilitates broadcasting for, e.g. centering the matrix.
+    - Fewer indices: `[n,:]` yields same as `[n]`
+    - Beneficial operator precedence without `()`.
+      E.g. `dy @ Rinv @ Y.T @ Pw` (where `dy` is a vector)
+    - Less transposing for for ens-space formulae.
+    - It's the standard for data matrices in
+      statistical regression literature.
+- Naming conventions:
+    - `E`: ensemble matrix
+    - `w`: ensemble weights or coefficients
+    - `X`: centered ensemble
+    - `N`: ensemble size
+    - `Nx`: state size
+    - `Ny`: obs size
+    - *Double letters* means a sequence of something.
+      For example:
+        - `xx`: Time series of truth; shape (K+1, Nx)
+        - `yy`: Time series of obs; shape (KObs+1, Nx)
+        - `EE`: Time series of ensemble matrices
+        - `ii`, `jj`: Sequences of indices (integers)
+    - `xps`: an `xpList` or `xpDict`,
+      where `xp` abbreviates "experiment".
 
 ### Profiling
 
@@ -44,9 +96,70 @@ Then, read the documentation here
 
 ### Making a release
 
-- ``cd DAPPER``
-- Bump version number in ``__init__.py`` . Also in docs/conf.py ?
-- Merge dev1 into master::
+- `cd DAPPER`
+- Bump version number in `__init__.py`
+- Merge `dev1` into `master`  
+  `git checkout master`
+  `git merge --no-commit --no-ff dev1`
+  `# Fix conflicts, e.g`
+  `# git rm <unwanted-file>`
+  `git commit`
+
+- Make docs (including bib)
+- Tag
+
+        git tag -a v$(python setup.py --version) -m 'My description'
+        git push origin --tags
+
+- Clean  
+  `rm -rf build/ dist *.egg-info .eggs`
+
+- Add new files to `package_data` and `packages` in `setup.py`
+
+- Build  
+  `./setup.py sdist bdist_wheel`
+
+- Upload to PyPI  
+  `twine upload --repository pypi dist/*`
+
+
+- Upload to Test.PyPI  
+  `twine upload --repository testpypi dist/*`  
+  where `~/.pypirc` contains
+
+        [distutils]
+        index-servers=
+                        pypi
+                        testpypi
+        
+        [pypi]
+        username: myuser
+        password: mypass
+        
+        [testpypi]
+        repository: https://test.pypi.org/legacy/
+        username: myuser
+        password: mypass
+
+- Upload to `Test.PyPI`  
+  `git checkout dev1`
+
+#### Test installation
+
+- Install from `Test.PyPI`  
+  `pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER`
+
+- Install from `PyPI`  
+  `pip install DA-DAPPER`
+
+    - Install into specific dir (includes all of the dependencies)  
+      `pip install DA-DAPPER -t MyDir`
+
+    - Install with options  
+      `pip install DA-DAPPER[Qt,MP]`
+
+- Install from local (makes installation accessible from everywhere)  
+  `pip install -e .`
 
 """
 
