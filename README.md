@@ -8,12 +8,14 @@
 ! 
 -->
 
+# DAPPER
+
+![Logo](./docs/logo.png)
+
 DAPPER is a set of templates for benchmarking the performance of
 data assimilation (DA) methods.
 The tests provide experimental support and guidance for
-new developments in DA. Example diagnostics:
-
-![EnKF - Lorenz'63](./dpr_data/figs/anims/DAPPER_illust_v2.jpg)
+new developments in DA.
 
 The typical set-up is a **synthetic (twin) experiment**, where you
 
@@ -41,6 +43,12 @@ reproduction from this [book on DA](https://books.google.no/books?id=FtDZDQAAQBA
 DAPPER is (c) open source, written in Python, and (d) focuses on readability;
 this promotes the (c) reproduction and (d) dissemination of the underlying science,
 and makes it easy to adapt and extend.
+It also comes with a battery of diagnostics and statistics,
+and live plotting (on-line with the assimilation) facilities,
+including pause/inspect options, as illustrated below
+
+![EnKF - Lorenz'63](./dpr_data/figs/anims/DAPPER_illust_v2.jpg)
+
 In summary, it is well suited for teaching and fundamental DA research.
 Also see its [drawbacks](#alternative-projects).
 
@@ -82,7 +90,7 @@ provide rendered docstrings, but are far from complete.
 Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
 for an intro to DA.
 
-## Methods
+## DA methods
 
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ------------------------
@@ -122,7 +130,7 @@ $ cd dapper/mods
 $ grep -r "iEnKS.*("
 ```
 
-## Models
+## Test cases (models)
 
 Model                | Lin? | TLM? | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer
 -----------          | ---- | ---- | ----  | --------- | --------- | ------ | ----------
@@ -167,7 +175,7 @@ DAPPER reproduces literature results.
 There are also results in the literature that DAPPER does not reproduce.
 Typically, this means that the published results are incorrect.
 
-## Alternative projects
+## Similar projects
 
 DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:

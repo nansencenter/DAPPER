@@ -28,6 +28,45 @@
 this facililates the reliability, reproducibility, and transparency
 of DA experiments.</p>
 <p>See DAPPER's README for an overview of the models.</p>
+<h2 id="defining-your-own-model">Defining your own model</h2>
+<p>Follow the example of one of the models within the <code>dapper/mods</code> folder.
+Essentially, you just need to define all of the attributes of a
+<code><a title="dapper.admin.HiddenMarkovModel" href="../admin.html#dapper.admin.HiddenMarkovModel">HiddenMarkovModel</a></code>.
+To make sure this is working, we suggest the following structure:</p>
+<ul>
+<li>Make a dir: <code>my_model</code></li>
+<li>Make a file: <code>my_model/__init__.py</code> where you define the core
+workings of the model.
+Typically, this culminates in a <code>step(x, t, dt)</code> function.<ul>
+<li>The model step operator (and the obs operator) must support
+2D-array (i.e. ensemble) and 1D-array (single realization) input.
+See the <code>core.py</code> file in <code>mods/Lorenz63</code> and <code>mods/Lorenz96</code> for typical
+implementations, and <code>mods/QG</code> for how to parallelize the ensemble simulations.</li>
+<li>Optional: To use the (extended) Kalman filter, or 4D-Var,
+you will need to define the model linearization.
+Note: this only needs to support 1D input (single realization).</li>
+</ul>
+</li>
+<li>Make a file: <code>my_model/demo.py</code> to visually showcase
+a simulation of the model.</li>
+<li>Make a file: <code>my_model/my_settings_1.py</code> that define a complete
+Hidden Markov Model ready for a synthetic experiment
+(also called "twin experiment" or OSSE).</li>
+</ul>
+<!--
+* To begin with, test whether the model works
+* on 1 realization
+* on several realizations (simultaneously)
+* Thereafter, try assimilating using
+* a big ensemble
+* a safe (e.g. 1.2) inflation value
+* small initial perturbations
+(big/sharp noises might cause model blow up)
+* small(er) integrational time step
+(assimilation might create instabilities)
+* very large observation noise (free run)
+* or very small observation noise (perfectly observed system)
+-->
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -38,7 +77,49 @@ The models are all simple;
 this facililates the reliability, reproducibility, and transparency
 of DA experiments.
 
-See DAPPER&#39;s README for an overview of the models.&#34;&#34;&#34;</code></pre>
+See DAPPER&#39;s README for an overview of the models.
+
+
+## Defining your own model
+
+Follow the example of one of the models within the `dapper/mods` folder.
+Essentially, you just need to define all of the attributes of a
+`dapper.admin.HiddenMarkovModel`.
+To make sure this is working, we suggest the following structure:
+
+- Make a dir: `my_model`
+- Make a file: `my_model/__init__.py` where you define the core
+  workings of the model.
+  Typically, this culminates in a `step(x, t, dt)` function.
+    - The model step operator (and the obs operator) must support
+      2D-array (i.e. ensemble) and 1D-array (single realization) input.
+      See the `core.py` file in `mods/Lorenz63` and `mods/Lorenz96` for typical
+      implementations, and `mods/QG` for how to parallelize the ensemble simulations.
+    - Optional: To use the (extended) Kalman filter, or 4D-Var,
+      you will need to define the model linearization.
+      Note: this only needs to support 1D input (single realization).
+- Make a file: `my_model/demo.py` to visually showcase
+  a simulation of the model.
+- Make a file: `my_model/my_settings_1.py` that define a complete
+  Hidden Markov Model ready for a synthetic experiment
+  (also called &#34;twin experiment&#34; or OSSE).
+
+
+&lt;!--
+* To begin with, test whether the model works
+    * on 1 realization
+    * on several realizations (simultaneously)
+* Thereafter, try assimilating using
+    * a big ensemble
+    * a safe (e.g. 1.2) inflation value
+    * small initial perturbations
+      (big/sharp noises might cause model blow up)
+    * small(er) integrational time step
+      (assimilation might create instabilities)
+    * very large observation noise (free run)
+    * or very small observation noise (perfectly observed system)
+--&gt;
+&#34;&#34;&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -127,7 +208,9 @@ Refs:
 </header>
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#defining-your-own-model">Defining your own model</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
