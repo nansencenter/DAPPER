@@ -71,7 +71,7 @@ as a library in your python path.
 
 If the installation fails, you probably need to [create a new Python environment](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments).
 
-## Getting started
+## Quickstart
 
 Read, run, and understand the scripts `example_{1,2,3}.py`.
 Then, get familiar with the code.

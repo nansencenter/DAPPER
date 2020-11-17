@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>dapper.mods.Lorenz96 API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="The &#34;Lorenz-96&#34; (or 96) model …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -20,9 +20,92 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Namespace <code>dapper.mods.Lorenz96</code></h1>
+<h1 class="title">Module <code>dapper.mods.Lorenz96</code></h1>
 </header>
 <section id="section-intro">
+<p>The "Lorenz-96" (or 96) model.</p>
+<p>From "Predictability &ndash; a problem partly solved" by E. N. Lorenz (1996).
+Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.</p>
+<p>For a short introduction, see
+- demo.py and
+- "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials</p>
+<p>Note: the implementation is ndim-agnostic.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;The &#34;Lorenz-96&#34; (or 96) model.
+
+From &#34;Predictability -- a problem partly solved&#34; by E. N. Lorenz (1996).
+Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.
+
+For a short introduction, see
+ - demo.py and
+ - &#34;Dynamical systems, chaos, Lorenz.ipynb&#34; from the DA-tutorials
+
+Note: the implementation is ndim-agnostic.
+&#39;&#39;&#39;
+
+import dapper.tools.liveplotting as LP
+import numpy as np
+from dapper.tools.math import is1d, rk4, integrate_TLM
+
+Force = 8.0
+
+Tplot = 10
+
+
+def x0(M): return np.eye(M)[0]
+
+
+def shift(x, n):
+    return np.roll(x, -n, axis=-1)
+
+
+def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x
+def dxdt(x): return dxdt_autonomous(x) + Force
+
+
+def step(x0, t, dt):
+    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)
+
+
+################################################
+# OPTIONAL (not required by EnKF or PartFilt):
+################################################
+def d2x_dtdx(x):
+    assert is1d(x)
+    M = len(x)
+    F = np.zeros((M, M))
+    def md(i): return np.mod(i, M)  # modulo
+
+    for i in range(M):
+        F[i, i]       = -1.0
+        F[i,   i-2]   = -x[i-1]
+        F[i, md(i+1)] = +x[i-1]
+        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+
+    return F
+
+# dstep_dx = FD_Jac(step)
+
+
+def dstep_dx(x, t, dt):
+    # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;analytic&#39;)
+
+
+################################################
+# Add some non-default liveplotters
+################################################
+def LPs(jj=None): return [
+    (11, 1, LP.spatial1d(jj)),
+    (12, 1, LP.correlations),
+    (15, 0, LP.spectral_errors),
+    (13, 0, LP.phase_particles(True, jj)),
+    (14, 0, LP.sliding_marginals(jj)),
+]</code></pre>
+</details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
@@ -53,12 +136,6 @@ in Geophysical Data Assimilation'.</p></div>
 <dd>
 <div class="desc"><p>From Bocquet (2015):
 'Localization and the iterative ensemble Kalman smoother'</p></div>
-</dd>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.Lorenz96.core" href="core.html">core</a></code></dt>
-<dd>
-<div class="desc"><p>The "Lorenz-96" (or 96) model …</p></div>
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -120,6 +197,127 @@ for Nonlinear Data Assimilation'</p></div>
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.mods.Lorenz96.x0"><code class="name flex">
+<span>def <span class="ident">x0</span></span>(<span>M)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def x0(M): return np.eye(M)[0]</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.shift"><code class="name flex">
+<span>def <span class="ident">shift</span></span>(<span>x, n)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shift(x, n):
+    return np.roll(x, -n, axis=-1)</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.dxdt_autonomous"><code class="name flex">
+<span>def <span class="ident">dxdt_autonomous</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.dxdt"><code class="name flex">
+<span>def <span class="ident">dxdt</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dxdt(x): return dxdt_autonomous(x) + Force</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.step"><code class="name flex">
+<span>def <span class="ident">step</span></span>(<span>x0, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step(x0, t, dt):
+    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.d2x_dtdx"><code class="name flex">
+<span>def <span class="ident">d2x_dtdx</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def d2x_dtdx(x):
+    assert is1d(x)
+    M = len(x)
+    F = np.zeros((M, M))
+    def md(i): return np.mod(i, M)  # modulo
+
+    for i in range(M):
+        F[i, i]       = -1.0
+        F[i,   i-2]   = -x[i-1]
+        F[i, md(i+1)] = +x[i-1]
+        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+
+    return F</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.dstep_dx"><code class="name flex">
+<span>def <span class="ident">dstep_dx</span></span>(<span>x, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dstep_dx(x, t, dt):
+    # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;analytic&#39;)</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.LPs"><code class="name flex">
+<span>def <span class="ident">LPs</span></span>(<span>jj=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def LPs(jj=None): return [
+    (11, 1, LP.spatial1d(jj)),
+    (12, 1, LP.correlations),
+    (15, 0, LP.spectral_errors),
+    (13, 0, LP.phase_particles(True, jj)),
+    (14, 0, LP.sliding_marginals(jj)),
+]</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -156,9 +354,6 @@ for Nonlinear Data Assimilation'</p></div>
 <li><code><a title="dapper.mods.Lorenz96.bocquet2015loc" href="bocquet2015loc.html">bocquet2015loc</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.Lorenz96.core" href="core.html">core</a></code></li>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz96.frei2013bridging" href="frei2013bridging.html">frei2013bridging</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -181,6 +376,18 @@ for Nonlinear Data Assimilation'</p></div>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz96.todter2015_G" href="todter2015_G.html">todter2015_G</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="dapper.mods.Lorenz96.x0" href="#dapper.mods.Lorenz96.x0">x0</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.shift" href="#dapper.mods.Lorenz96.shift">shift</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.dxdt_autonomous" href="#dapper.mods.Lorenz96.dxdt_autonomous">dxdt_autonomous</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.dxdt" href="#dapper.mods.Lorenz96.dxdt">dxdt</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.step" href="#dapper.mods.Lorenz96.step">step</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.d2x_dtdx" href="#dapper.mods.Lorenz96.d2x_dtdx">d2x_dtdx</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.dstep_dx" href="#dapper.mods.Lorenz96.dstep_dx">dstep_dx</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.LPs" href="#dapper.mods.Lorenz96.LPs">LPs</a></code></li>
 </ul>
 </li>
 </ul>

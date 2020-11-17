@@ -35,7 +35,7 @@ in Geophysical Data Assimilation&#39;.&#34;&#34;&#34;
 
 import numpy as np
 
-from dapper.mods.Lorenz96 import core
+from dapper.mods.Lorenz96 import step
 import dapper as dpr
 
 t = dpr.Chronology(0.05, dkObs=1, T=4**3, BurnIn=20)
@@ -43,7 +43,7 @@ t = dpr.Chronology(0.05, dkObs=1, T=4**3, BurnIn=20)
 Nx = 10
 Dyn = {
     &#39;M&#39;: Nx,
-    &#39;model&#39;: core.step,
+    &#39;model&#39;: step,
     &#39;noise&#39;: 0
 }
 

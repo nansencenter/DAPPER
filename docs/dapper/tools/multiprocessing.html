@@ -114,7 +114,7 @@ else:
             In fact, ``func`` should not reference ``self`` at all,
             because its serialization is rather slow.
 
-        See example use in mods/QG/core.py.
+        See example use in mods/QG/__init__.py.
 
         Technicalities dealt with:
          - passing kwargs
@@ -240,7 +240,7 @@ so ensure <code>func</code> does not reference <code>self.stats.LP_instance</cod
 where <code>self</code> is a <code>@da_method</code> object.
 In fact, <code>func</code> should not reference <code>self</code> at all,
 because its serialization is rather slow.</p>
-<p>See example use in mods/QG/core.py.</p>
+<p>See example use in mods/QG/<strong>init</strong>.py.</p>
 <p>Technicalities dealt with:
 - passing kwargs
 - join(), close()</p>
@@ -268,7 +268,7 @@ something which is quite tricky to achieve with multiprocessing.</p></div>
         In fact, ``func`` should not reference ``self`` at all,
         because its serialization is rather slow.
 
-    See example use in mods/QG/core.py.
+    See example use in mods/QG/__init__.py.
 
     Technicalities dealt with:
      - passing kwargs

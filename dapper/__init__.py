@@ -1,13 +1,44 @@
 """Data Assimilation with Python: a Package for Experimental Research (DAPPER).
 
-See the [**installation**](https://github.com/nansencenter/DAPPER#installation)
-and [**getting started**](https://github.com/nansencenter/DAPPER#getting-started)
-guides in the README.
+# Documentation
 
-# A
+## README
 
-## Test
-blah
+The README contains the most important documentation. Sections:
+
+- [Highlights](https://github.com/nansencenter/DAPPER#Highlights)
+- [Installation](https://github.com/nansencenter/DAPPER#Installation)
+- [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
+- [Methods](https://github.com/nansencenter/DAPPER#Methods)
+- [Models](https://github.com/nansencenter/DAPPER#Models)
+- [Alternative projects](https://github.com/nansencenter/DAPPER#Alternative projects)
+- [Contributors](https://github.com/nansencenter/DAPPER#Contributors)
+- [Publication list](https://github.com/nansencenter/DAPPER#Publication-list)
+
+## Reference/API docs
+The documentation contained in docstrings can be browsed
+by clicking the links below or in the right sidebar.
+
+## Contributing
+
+### Profiling
+
+```
+# Launch python script: $ kernprof -l -v myprog.py
+# Functions decorated with 'profile' from below will be timed.
+try:
+    import builtins
+    profile = builtins.profile     # will exists if launched via kernprof
+except AttributeError:
+    def profile(func): return func # provide a pass-through version.
+```
+
+### Making a release
+
+- ``cd DAPPER``
+- Bump version number in ``__init__.py`` . Also in docs/conf.py ?
+- Merge dev1 into master::
+
 """
 
 __version__ = "0.9.6"

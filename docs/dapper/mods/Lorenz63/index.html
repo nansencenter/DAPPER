@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>dapper.mods.Lorenz63 API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="The &#34;Lorenz-63&#34; model: the classic exhibitor of chaos.
+Phase-plot looks like a butterfly.
+See demo.py for more info." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -20,9 +22,87 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Namespace <code>dapper.mods.Lorenz63</code></h1>
+<h1 class="title">Module <code>dapper.mods.Lorenz63</code></h1>
 </header>
 <section id="section-intro">
+<p>The "Lorenz-63" model: the classic exhibitor of chaos.
+Phase-plot looks like a butterfly.
+See demo.py for more info.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;The &#34;Lorenz-63&#34; model: the classic exhibitor of chaos.
+Phase-plot looks like a butterfly.
+See demo.py for more info.
+&#34;&#34;&#34;
+
+
+import dapper.tools.liveplotting as LP
+import numpy as np
+import dapper as dpr
+from dapper.tools.math import integrate_TLM
+
+# Constants
+sig = 10.0
+rho = 28.0
+beta = 8.0/3
+
+
+@dpr.ens_compatible
+def dxdt(x):
+    &#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;
+    d     = np.zeros_like(x)
+    x, y, z = x
+    d[0]  = sig*(y - x)
+    d[1]  = rho*x - y - x*z
+    d[2]  = x*y - beta*z
+    return d
+
+
+# Time-step integration.
+step = dpr.with_rk4(dxdt, autonom=True)
+
+# Time span for plotting. Typically: ≈10 * &#34;system time scale&#34;.
+Tplot = 4.0
+
+# Example initial state -- should not matter for benchmarks,
+# coz system is chaotic, and we average stats after a BurnIn time.
+# But it&#39;s often convenient to have a point on the attractor, or basin,
+# or at least ensure &#34;physicality&#34;.
+x0 = np.array([1.509, -1.531, 25.46])
+
+
+################################################
+# OPTIONAL (not necessary for EnKF or PartFilt):
+################################################
+def d2x_dtdx(x):
+    &#34;&#34;&#34;Tangent linear model (TLM): Jacobian of dxdt(x).&#34;&#34;&#34;
+    x, y, z = x
+    A = np.array(
+        [[-sig, sig, 0],
+         [rho-z, -1, -x],
+         [y, x, -beta]])
+    return A
+
+
+def dstep_dx(x, t, dt):
+    &#34;&#34;&#34;Resolvent (propagator) of the TLM: Jacobian of step(x).&#34;&#34;&#34;
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)
+
+
+################################################
+# Add some non-default liveplotters
+################################################
+params = dict(labels=&#39;xyz&#39;, Tplot=1)
+
+
+def LPs(jj=None, params=params): return [
+    (12, 1, LP.correlations),
+    (14, 1, LP.sliding_marginals(jj, zoomy=0.8, **params)),
+    (13, 1, LP.phase_particles(is_3d=True, obs_inds=jj, **params)),
+]</code></pre>
+</details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
@@ -40,14 +120,6 @@
 <div class="desc"><p>Reproduce results from Fig 11 of
 M. Bocquet and P. Sakov (2012): 'Combining inflation-free and
 iterative ensemble Kalman filters for strongly …</p></div>
-</dd>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.Lorenz63.core" href="core.html">core</a></code></dt>
-<dd>
-<div class="desc"><p>The "Lorenz-63" model: the classic exhibitor of chaos.
-Phase-plot looks like a butterfly.
-See demo.py for more info.</p></div>
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -77,6 +149,78 @@ author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},</p></div>
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.mods.Lorenz63.dxdt"><code class="name flex">
+<span>def <span class="ident">dxdt</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Evolution equation (coupled ODEs) specifying the dynamics.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dpr.ens_compatible
+def dxdt(x):
+    &#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;
+    d     = np.zeros_like(x)
+    x, y, z = x
+    d[0]  = sig*(y - x)
+    d[1]  = rho*x - y - x*z
+    d[2]  = x*y - beta*z
+    return d</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz63.d2x_dtdx"><code class="name flex">
+<span>def <span class="ident">d2x_dtdx</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tangent linear model (TLM): Jacobian of dxdt(x).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def d2x_dtdx(x):
+    &#34;&#34;&#34;Tangent linear model (TLM): Jacobian of dxdt(x).&#34;&#34;&#34;
+    x, y, z = x
+    A = np.array(
+        [[-sig, sig, 0],
+         [rho-z, -1, -x],
+         [y, x, -beta]])
+    return A</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz63.dstep_dx"><code class="name flex">
+<span>def <span class="ident">dstep_dx</span></span>(<span>x, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resolvent (propagator) of the TLM: Jacobian of step(x).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dstep_dx(x, t, dt):
+    &#34;&#34;&#34;Resolvent (propagator) of the TLM: Jacobian of step(x).&#34;&#34;&#34;
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz63.LPs"><code class="name flex">
+<span>def <span class="ident">LPs</span></span>(<span>jj=None, params={'labels': 'xyz', 'Tplot': 1})</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def LPs(jj=None, params=params): return [
+    (12, 1, LP.correlations),
+    (14, 1, LP.sliding_marginals(jj, zoomy=0.8, **params)),
+    (13, 1, LP.phase_particles(is_3d=True, obs_inds=jj, **params)),
+]</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -107,9 +251,6 @@ author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},</p></div>
 <li><code><a title="dapper.mods.Lorenz63.bocquet2012" href="bocquet2012.html">bocquet2012</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.Lorenz63.core" href="core.html">core</a></code></li>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz63.mandel2016" href="mandel2016.html">mandel2016</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -117,6 +258,14 @@ author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},</p></div>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz63.wiljes2017" href="wiljes2017.html">wiljes2017</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.mods.Lorenz63.dxdt" href="#dapper.mods.Lorenz63.dxdt">dxdt</a></code></li>
+<li><code><a title="dapper.mods.Lorenz63.d2x_dtdx" href="#dapper.mods.Lorenz63.d2x_dtdx">d2x_dtdx</a></code></li>
+<li><code><a title="dapper.mods.Lorenz63.dstep_dx" href="#dapper.mods.Lorenz63.dstep_dx">dstep_dx</a></code></li>
+<li><code><a title="dapper.mods.Lorenz63.LPs" href="#dapper.mods.Lorenz63.LPs">LPs</a></code></li>
 </ul>
 </li>
 </ul>

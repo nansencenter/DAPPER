@@ -20,19 +20,199 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Namespace <code>dapper.mods.QG</code></h1>
+<h1 class="title">Module <code>dapper.mods.QG</code></h1>
 </header>
 <section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># &#34;QG&#34; Quasi-Geostrophic model.
+#
+# Taken from Sakov&#39;s enkf-matlab package.
+# Model is described in:
+# Sakov, Pavel, and Peter R. Oke.:
+#   &#34;A deterministic formulation of the ensemble Kalman filter:
+#   an alternative to ensemble square root filters.&#34;
+#   Tellus A 60.2 (2008): 361-371.
+#
+# More info:
+#  - DAPPER/mods/QG/governing_eqn.png
+#  - DAPPER/mods/QG/demo.py
+#  - ψ (psi) is the stream function (i.e. surface elevation)
+#  - Doubling time &#34;between 25 and 50&#34;
+#  - Note Sakov&#39;s trick of increasing RKH2 from 2.0e-12 to 2.0e-11 to stabilize
+#    the ensemble integration, which may be necessary for EnKF&#39;s with small N.
+#    See example in mods/QG/counillon2009.py.
+
+from pathlib import Path
+import matplotlib as mpl
+import numpy as np
+
+import dapper as dpr
+import dapper.tools.multiprocessing as mp
+import dapper.tools.liveplotting as LP
+
+#########################
+# Model
+#########################
+try:
+    from dapper.mods.QG.f90.py_mod import interface_mod as fortran
+except ImportError as err:
+    raise Exception(&#34;Have you compiled the (Fortran) model? &#34;
+                    f&#34;See README in folder {dpr.rc.dirs.dapper}/mods/QG/f90&#34;) from err
+
+default_prms = dict(
+    # These parameters may be interesting to change.
+    dtout        = 5.0,      # dt for output to DAPPER.
+    dt           = 1.25,     # dt used internally by Fortran. CFL = 2.0
+    RKB          = 0,        # bottom     friction
+    RKH          = 0,        # horizontal friction
+    RKH2         = 2.0e-12,  # horizontal friction, biharmonic
+    F            = 1600,     # Froud number
+    R            = 1.0e-5,   # ≈ Rossby number
+    scheme       = &#34;&#39;rk4&#39;&#34;,  # One of (2ndorder, rk4, dp5)
+    # Do not change the following:
+    tend         = 0,        # Only used by standalone QG
+    verbose      = 0,        # Turn off
+    rstart       = 0,        # Restart: switch
+    restartfname = &#34;&#39;&#39;&#34;,     # Restart: read file
+    outfname     = &#34;&#39;&#39;&#34;,     # Restart: write file
+)
+
+
+class model_config:
+    &#34;&#34;&#34;
+    Helps to ensure consistency between prms file (that Fortran module reads)
+    and Python calls to step(), for example for dt.
+    &#34;&#34;&#34;
+
+    def __init__(self, name, prms, mp=True):
+        &#34;Use prms={} to get the default configuration.&#34;
+
+        # Insert prms. Assert key is present in defaults.
+        D = default_prms.copy()
+        for key in prms:
+            assert key in D
+            D[key] = prms[key]
+
+        # Fortran code does not adjust its dt to divide dtout.
+        # Nor is it worth implementing -- just assert:
+        assert D[&#39;dtout&#39;] % D[&#39;dt&#39;] == 0, &#34;Must be integer multiple&#34;
+
+        self.prms  = D
+        self.mp    = mp
+        self.name  = name
+        self.fname = Path(__file__).parent / &#39;f90&#39; / f&#39;prms_{name}.txt&#39;
+
+        # Create string
+        text = [&#34;  %s = %s&#34; % (key.ljust(20), str(D[key])) for key in D]
+        text = &#34;&#34;&#34;! Parameter namelist (&#34;%s&#34;) generated via Python
+        &amp;parameters\n&#34;&#34;&#34; % name + &#34;\n&#34;.join(text) + &#34;&#34;&#34;\n/\n&#34;&#34;&#34;
+
+        # Write string to file
+        with open(self.fname, &#39;w&#39;) as f:
+            f.write(text)
+
+    def step_1(self, x0, t, dt):
+        &#34;&#34;&#34;Step a single state vector.&#34;&#34;&#34;
+        # Coz fortran.step() reads dt (dtout) from prms file:
+        assert self.prms[&#34;dtout&#34;] == dt
+        # Coz Fortran is typed.
+        assert isinstance(t, float)
+        # QG is autonomous, but Fortran doesn&#39;t like nan/inf.
+        assert np.isfinite(t)
+        # Copy coz Fortran will modify in-place.
+        psi = py2f(x0.copy())
+        # Call Fortran model.
+        fortran.step(t, psi, self.fname)
+        # Flattening
+        x = f2py(psi)
+        return x
+
+    def step(self, E, t, dt):
+        &#34;&#34;&#34;Vector and 2D-array (ens) input, with multiproc for ens case.&#34;&#34;&#34;
+        if E.ndim == 1:
+            return self.step_1(E, t, dt)
+        if E.ndim == 2:
+            if self.mp:  # PARALLELIZED:
+                # Note: the relative overhead for parallelization decreases
+                # as the ratio dtout/dt increases.
+                # But the overhead is already negligible with a ratio of 4.
+                E = np.array(mp.map(self.step_1, E, t=t, dt=dt))
+            else:  # NON-PARALLELIZED:
+                for n, x in enumerate(E):
+                    E[n] = self.step_1(x, t, dt)
+            return E
+
+
+#########################
+# Domain management
+#########################
+# Domain size &#34;hardcoded&#34; in f90/parameters.f90.
+
+# &#34;Physical&#34; domain length -- copied from f90/parameters.f90.
+# In my tests, only square domains generate any dynamics of interest.
+NX1 = 2
+NY1 = 2
+# Resolution level -- copied MREFIN from parameters.f90
+res = 7
+# Grid lengths.
+nx = NX1 * 2 ** (res - 1) + 1  # (axis=1)
+ny = NY1 * 2 ** (res - 1) + 1  # (axis=0)
+# Actually, the BCs are psi = nabla psi = nabla^2 psi = 0,
+# =&gt; psi should always be zero on the boundries.
+# =&gt; it&#39;d be safer to rm boundries from the DA state vector,
+#    yielding ndim(state)=(nx-2)*(ny-2), but this is not done here.
+
+# Fortran model (e.g. f90/interface.f90) requires orientation: X[ix,iy].
+shape = (nx, ny)
+# Passing arrays to/from Fortran requries that flags[&#39;F_CONTIGUOUS&#39;]==True.
+order = &#39;F&#39;
+def py2f(x): return x.reshape(shape, order=order)
+def f2py(X): return X.flatten(order=order)
+# However, FOR PRINTING/PLOTTING PURPOSES, the y-axis should be vertical
+# [imshow(mat) uses the same orientation as print(mat)].
+def square(x): return x.reshape(shape[::-1])
+def ind2sub(ind): return np.unravel_index(ind, shape[::-1])
+
+
+#########################
+# Free run
+#########################
+def gen_sample(model, nSamples, SpinUp, Spacing):
+    simulator = dpr.with_recursion(model.step, prog=&#34;Simulating&#34;)
+    K         = SpinUp + nSamples*Spacing
+    Nx        = np.prod(shape)  # total state length
+    sample    = simulator(np.zeros(Nx), K, 0.0, model.prms[&#34;dtout&#34;])
+    return sample[SpinUp::Spacing]
+
+
+sample_filename = dpr.rc.dirs.samples/&#39;QG_samples.npz&#39;
+if not sample_filename.is_file():
+    print(&#39;Did not find sample file&#39;, sample_filename,
+          &#39;for experiment initialization. Generating...&#39;)
+    sample = gen_sample(model_config(&#34;sample_generation&#34;, {}), 400, 700, 10)
+    np.savez(sample_filename, sample=sample)
+
+
+#########################
+# Liveplotting
+#########################
+cm   = mpl.colors.ListedColormap(0.85*mpl.cm.jet(np.arange(256)))
+cntr = nx*int(ny/2) + int(0.5*nx)
+
+
+def LP_setup(jj=None): return [
+    (11, 1, LP.spatial2d(square, ind2sub, jj, cm)),
+    (15, 0, LP.spectral_errors),
+    (14, 0, LP.sliding_marginals(dims=cntr+np.arange(4))),
+]</code></pre>
+</details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.QG.core" href="core.html">core</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.QG.counillon2009" href="counillon2009.html">counillon2009</a></code></dt>
@@ -52,8 +232,226 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p></div>
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.mods.QG.py2f"><code class="name flex">
+<span>def <span class="ident">py2f</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def py2f(x): return x.reshape(shape, order=order)</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.QG.f2py"><code class="name flex">
+<span>def <span class="ident">f2py</span></span>(<span>X)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def f2py(X): return X.flatten(order=order)</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.QG.square"><code class="name flex">
+<span>def <span class="ident">square</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def square(x): return x.reshape(shape[::-1])</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.QG.ind2sub"><code class="name flex">
+<span>def <span class="ident">ind2sub</span></span>(<span>ind)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ind2sub(ind): return np.unravel_index(ind, shape[::-1])</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.QG.gen_sample"><code class="name flex">
+<span>def <span class="ident">gen_sample</span></span>(<span>model, nSamples, SpinUp, Spacing)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_sample(model, nSamples, SpinUp, Spacing):
+    simulator = dpr.with_recursion(model.step, prog=&#34;Simulating&#34;)
+    K         = SpinUp + nSamples*Spacing
+    Nx        = np.prod(shape)  # total state length
+    sample    = simulator(np.zeros(Nx), K, 0.0, model.prms[&#34;dtout&#34;])
+    return sample[SpinUp::Spacing]</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.QG.LP_setup"><code class="name flex">
+<span>def <span class="ident">LP_setup</span></span>(<span>jj=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def LP_setup(jj=None): return [
+    (11, 1, LP.spatial2d(square, ind2sub, jj, cm)),
+    (15, 0, LP.spectral_errors),
+    (14, 0, LP.sliding_marginals(dims=cntr+np.arange(4))),
+]</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="dapper.mods.QG.model_config"><code class="flex name class">
+<span>class <span class="ident">model_config</span></span>
+<span>(</span><span>name, prms, mp=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Helps to ensure consistency between prms file (that Fortran module reads)
+and Python calls to step(), for example for dt.</p>
+<p>Use prms={} to get the default configuration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class model_config:
+    &#34;&#34;&#34;
+    Helps to ensure consistency between prms file (that Fortran module reads)
+    and Python calls to step(), for example for dt.
+    &#34;&#34;&#34;
+
+    def __init__(self, name, prms, mp=True):
+        &#34;Use prms={} to get the default configuration.&#34;
+
+        # Insert prms. Assert key is present in defaults.
+        D = default_prms.copy()
+        for key in prms:
+            assert key in D
+            D[key] = prms[key]
+
+        # Fortran code does not adjust its dt to divide dtout.
+        # Nor is it worth implementing -- just assert:
+        assert D[&#39;dtout&#39;] % D[&#39;dt&#39;] == 0, &#34;Must be integer multiple&#34;
+
+        self.prms  = D
+        self.mp    = mp
+        self.name  = name
+        self.fname = Path(__file__).parent / &#39;f90&#39; / f&#39;prms_{name}.txt&#39;
+
+        # Create string
+        text = [&#34;  %s = %s&#34; % (key.ljust(20), str(D[key])) for key in D]
+        text = &#34;&#34;&#34;! Parameter namelist (&#34;%s&#34;) generated via Python
+        &amp;parameters\n&#34;&#34;&#34; % name + &#34;\n&#34;.join(text) + &#34;&#34;&#34;\n/\n&#34;&#34;&#34;
+
+        # Write string to file
+        with open(self.fname, &#39;w&#39;) as f:
+            f.write(text)
+
+    def step_1(self, x0, t, dt):
+        &#34;&#34;&#34;Step a single state vector.&#34;&#34;&#34;
+        # Coz fortran.step() reads dt (dtout) from prms file:
+        assert self.prms[&#34;dtout&#34;] == dt
+        # Coz Fortran is typed.
+        assert isinstance(t, float)
+        # QG is autonomous, but Fortran doesn&#39;t like nan/inf.
+        assert np.isfinite(t)
+        # Copy coz Fortran will modify in-place.
+        psi = py2f(x0.copy())
+        # Call Fortran model.
+        fortran.step(t, psi, self.fname)
+        # Flattening
+        x = f2py(psi)
+        return x
+
+    def step(self, E, t, dt):
+        &#34;&#34;&#34;Vector and 2D-array (ens) input, with multiproc for ens case.&#34;&#34;&#34;
+        if E.ndim == 1:
+            return self.step_1(E, t, dt)
+        if E.ndim == 2:
+            if self.mp:  # PARALLELIZED:
+                # Note: the relative overhead for parallelization decreases
+                # as the ratio dtout/dt increases.
+                # But the overhead is already negligible with a ratio of 4.
+                E = np.array(mp.map(self.step_1, E, t=t, dt=dt))
+            else:  # NON-PARALLELIZED:
+                for n, x in enumerate(E):
+                    E[n] = self.step_1(x, t, dt)
+            return E</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="dapper.mods.QG.model_config.step_1"><code class="name flex">
+<span>def <span class="ident">step_1</span></span>(<span>self, x0, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Step a single state vector.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step_1(self, x0, t, dt):
+    &#34;&#34;&#34;Step a single state vector.&#34;&#34;&#34;
+    # Coz fortran.step() reads dt (dtout) from prms file:
+    assert self.prms[&#34;dtout&#34;] == dt
+    # Coz Fortran is typed.
+    assert isinstance(t, float)
+    # QG is autonomous, but Fortran doesn&#39;t like nan/inf.
+    assert np.isfinite(t)
+    # Copy coz Fortran will modify in-place.
+    psi = py2f(x0.copy())
+    # Call Fortran model.
+    fortran.step(t, psi, self.fname)
+    # Flattening
+    x = f2py(psi)
+    return x</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.QG.model_config.step"><code class="name flex">
+<span>def <span class="ident">step</span></span>(<span>self, E, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Vector and 2D-array (ens) input, with multiproc for ens case.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step(self, E, t, dt):
+    &#34;&#34;&#34;Vector and 2D-array (ens) input, with multiproc for ens case.&#34;&#34;&#34;
+    if E.ndim == 1:
+        return self.step_1(E, t, dt)
+    if E.ndim == 2:
+        if self.mp:  # PARALLELIZED:
+            # Note: the relative overhead for parallelization decreases
+            # as the ratio dtout/dt increases.
+            # But the overhead is already negligible with a ratio of 4.
+            E = np.array(mp.map(self.step_1, E, t=t, dt=dt))
+        else:  # NON-PARALLELIZED:
+            for n, x in enumerate(E):
+                E[n] = self.step_1(x, t, dt)
+        return E</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -76,13 +474,31 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p></div>
 <ul>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.QG.core" href="core.html">core</a></code></li>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.QG.counillon2009" href="counillon2009.html">counillon2009</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.QG.sakov2008" href="sakov2008.html">sakov2008</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="dapper.mods.QG.py2f" href="#dapper.mods.QG.py2f">py2f</a></code></li>
+<li><code><a title="dapper.mods.QG.f2py" href="#dapper.mods.QG.f2py">f2py</a></code></li>
+<li><code><a title="dapper.mods.QG.square" href="#dapper.mods.QG.square">square</a></code></li>
+<li><code><a title="dapper.mods.QG.ind2sub" href="#dapper.mods.QG.ind2sub">ind2sub</a></code></li>
+<li><code><a title="dapper.mods.QG.gen_sample" href="#dapper.mods.QG.gen_sample">gen_sample</a></code></li>
+<li><code><a title="dapper.mods.QG.LP_setup" href="#dapper.mods.QG.LP_setup">LP_setup</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="dapper.mods.QG.model_config" href="#dapper.mods.QG.model_config">model_config</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.mods.QG.model_config.step_1" href="#dapper.mods.QG.model_config.step_1">step_1</a></code></li>
+<li><code><a title="dapper.mods.QG.model_config.step" href="#dapper.mods.QG.model_config.step">step</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

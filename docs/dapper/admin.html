@@ -563,18 +563,17 @@ class xpList(list):
 
         # Parse mp option
         if not mp:
-            mp = False
+            mp = dict()
         elif mp in [True, &#34;MP&#34;]:
             mp = dict(server=&#34;local&#34;)
         elif isinstance(mp, int):
             mp = dict(server=&#34;local&#34;, NPROC=mp)
         elif mp in [&#34;GCP&#34;, &#34;Google&#34;]:
             mp = dict(server=&#34;GCP&#34;, files=[], code=&#34;&#34;)
-        assert isinstance(mp, dict)
 
         # Parse fail_gently
         if fail_gently is None:
-            if isinstance(mp, dict) and mp[&#34;server&#34;] == &#34;GCP&#34;:
+            if mp and mp[&#34;server&#34;] == &#34;GCP&#34;:
                 fail_gently = False
                 # coz cloud processing is entirely de-coupled anyways
             else:
@@ -1446,18 +1445,17 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 
         # Parse mp option
         if not mp:
-            mp = False
+            mp = dict()
         elif mp in [True, &#34;MP&#34;]:
             mp = dict(server=&#34;local&#34;)
         elif isinstance(mp, int):
             mp = dict(server=&#34;local&#34;, NPROC=mp)
         elif mp in [&#34;GCP&#34;, &#34;Google&#34;]:
             mp = dict(server=&#34;GCP&#34;, files=[], code=&#34;&#34;)
-        assert isinstance(mp, dict)
 
         # Parse fail_gently
         if fail_gently is None:
-            if isinstance(mp, dict) and mp[&#34;server&#34;] == &#34;GCP&#34;:
+            if mp and mp[&#34;server&#34;] == &#34;GCP&#34;:
                 fail_gently = False
                 # coz cloud processing is entirely de-coupled anyways
             else:
@@ -1846,18 +1844,17 @@ unless <code>save_as</code> is False/None.</p>
 
     # Parse mp option
     if not mp:
-        mp = False
+        mp = dict()
     elif mp in [True, &#34;MP&#34;]:
         mp = dict(server=&#34;local&#34;)
     elif isinstance(mp, int):
         mp = dict(server=&#34;local&#34;, NPROC=mp)
     elif mp in [&#34;GCP&#34;, &#34;Google&#34;]:
         mp = dict(server=&#34;GCP&#34;, files=[], code=&#34;&#34;)
-    assert isinstance(mp, dict)
 
     # Parse fail_gently
     if fail_gently is None:
-        if isinstance(mp, dict) and mp[&#34;server&#34;] == &#34;GCP&#34;:
+        if mp and mp[&#34;server&#34;] == &#34;GCP&#34;:
             fail_gently = False
             # coz cloud processing is entirely de-coupled anyways
         else:
