@@ -24,9 +24,9 @@
 </header>
 <section id="section-intro">
 <p>Data Assimilation with Python: a Package for Experimental Research (DAPPER).</p>
-<h1 id="introduction">Introduction</h1>
-<h2 id="readme">Readme</h2>
-<p>The following info is in the README:</p>
+<h1 id="documentation">Documentation</h1>
+<h2 id="readme">README</h2>
+<p>The README contains the most important documentation. Sections:</p>
 <ul>
 <li><a href="https://github.com/nansencenter/DAPPER#Highlights">Highlights</a></li>
 <li><a href="https://github.com/nansencenter/DAPPER#Installation">Installation</a></li>
@@ -37,18 +37,36 @@
 <li><a href="https://github.com/nansencenter/DAPPER#Contributors">Contributors</a></li>
 <li><a href="https://github.com/nansencenter/DAPPER#Publication-list">Publication list</a></li>
 </ul>
-<h2 id="_1"></h2>
+<h2 id="referenceapi-docs">Reference/API docs</h2>
+<p>The documentation contained in docstrings can be browsed
+by clicking the links below or in the right sidebar.</p>
+<h2 id="contributing">Contributing</h2>
+<h3 id="profiling">Profiling</h3>
+<pre><code># Launch python script: $ kernprof -l -v myprog.py
+# Functions decorated with 'profile' from below will be timed.
+try:
+    import builtins
+    profile = builtins.profile     # will exists if launched via kernprof
+except AttributeError:
+    def profile(func): return func # provide a pass-through version.
+</code></pre>
+<h3 id="making-a-release">Making a release</h3>
+<ul>
+<li><code>cd DAPPER</code></li>
+<li>Bump version number in <code>__init__.py</code> . Also in docs/conf.py ?</li>
+<li>Merge dev1 into master::</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Data Assimilation with Python: a Package for Experimental Research (DAPPER).
 
-# Introduction
+# Documentation
 
-## Readme
+## README
 
-The following info is in the README:
+The README contains the most important documentation. Sections:
 
 - [Highlights](https://github.com/nansencenter/DAPPER#Highlights)
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
@@ -59,7 +77,29 @@ The following info is in the README:
 - [Contributors](https://github.com/nansencenter/DAPPER#Contributors)
 - [Publication list](https://github.com/nansencenter/DAPPER#Publication-list)
 
-## 
+## Reference/API docs
+The documentation contained in docstrings can be browsed
+by clicking the links below or in the right sidebar.
+
+## Contributing
+
+### Profiling
+
+```
+# Launch python script: $ kernprof -l -v myprog.py
+# Functions decorated with &#39;profile&#39; from below will be timed.
+try:
+    import builtins
+    profile = builtins.profile     # will exists if launched via kernprof
+except AttributeError:
+    def profile(func): return func # provide a pass-through version.
+```
+
+### Making a release
+
+- ``cd DAPPER``
+- Bump version number in ``__init__.py`` . Also in docs/conf.py ?
+- Merge dev1 into master::
 
 &#34;&#34;&#34;
 
@@ -210,9 +250,14 @@ __pdoc__ = {
 <h1>Index</h1>
 <div class="toc">
 <ul>
-<li><a href="#introduction">Introduction</a><ul>
-<li><a href="#readme">Readme</a></li>
-<li><a href="#_1"></a></li>
+<li><a href="#documentation">Documentation</a><ul>
+<li><a href="#readme">README</a></li>
+<li><a href="#referenceapi-docs">Reference/API docs</a></li>
+<li><a href="#contributing">Contributing</a><ul>
+<li><a href="#profiling">Profiling</a></li>
+<li><a href="#making-a-release">Making a release</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
