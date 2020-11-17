@@ -15,18 +15,6 @@ import sys
 
 assert sys.version_info >= (3,8), "Need Python>=3.8"
 
-
-# Profiling.
-# Launch python script: $ kernprof -l -v myprog.py
-# Functions decorated with 'profile' from below will be timed.
-try:
-    import builtins
-    profile = builtins.profile     # will exists if launched via kernprof
-except AttributeError:
-    def profile(func): return func # provide a pass-through version.
-
-
-
 from dapper.tools.series import UncertainQtty
 
 from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
