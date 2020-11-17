@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>dapper API documentation</title>
-<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research (DAPPER) …" />
+<meta name="description" content="(Data Assimilation with Python: a Package for Experimental Research) …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,33 +23,43 @@
 <h1 class="title">Package <code>dapper</code></h1>
 </header>
 <section id="section-intro">
-<p>Data Assimilation with Python: a Package for Experimental Research (DAPPER).</p>
-<h1 id="documentation">Documentation</h1>
+<p>(Data Assimilation with Python: a Package for Experimental Research)</p>
+<h1 id="documentation">documentation</h1>
 <h2 id="readme">README</h2>
-<p>The README contains the most important documentation. Sections:</p>
+<p>Make sure you've browsed these sections in the README:</p>
 <ul>
 <li><a href="https://github.com/nansencenter/DAPPER#Highlights">Highlights</a></li>
 <li><a href="https://github.com/nansencenter/DAPPER#Installation">Installation</a></li>
 <li><a href="https://github.com/nansencenter/DAPPER#Quickstart">Quickstart</a></li>
-<li><a href="https://github.com/nansencenter/DAPPER#Methods">Methods</a></li>
-<li><a href="https://github.com/nansencenter/DAPPER#Models">Models</a></li>
-<li><a href="https://github.com/nansencenter/DAPPER#Alternative projects">Alternative projects</a></li>
-<li><a href="https://github.com/nansencenter/DAPPER#Contributors">Contributors</a></li>
-<li><a href="https://github.com/nansencenter/DAPPER#Publication-list">Publication list</a></li>
+<li><a href="https://github.com/nansencenter/DAPPER#DA-Methods">DA Methods</a></li>
+<li><a href="https://github.com/nansencenter/DAPPER#Test-cases-(models)">Test cases (models)</a></li>
 </ul>
 <h2 id="referenceapi-docs">Reference/API docs</h2>
 <p>The documentation contained in docstrings can be browsed
-by clicking the links below or in the right sidebar.</p>
+by clicking the links at the bottom (or on the left) of this page.</p>
+<h2 id="usage">Usage</h2>
+<p>Do you wish to illustrate and run benchmarks with your own
+<strong>models</strong> and/or <strong>methods</strong>?</p>
+<p>If these are complicated, you may be better off using DAPPER
+merely as inspiration (but you should still
+<a href="https://github.com/nansencenter/DAPPER#Contributors">cite it</a>)
+rather than trying to squeeze everything into its templates.</p>
+<p>If these are simple, however, you may well want to use DAPPER.
+First, make sure you've got a good feel for all of <code>example_{1,2,3}.py</code>.
+Then, read the documentation here</p>
+<ul>
+<li><code><a title="dapper.mods" href="mods/index.html">dapper.mods</a></code></li>
+<li><code><a title="dapper.da_methods" href="da_methods/index.html">dapper.da_methods</a></code></li>
+</ul>
 <h2 id="contributing">Contributing</h2>
 <h3 id="profiling">Profiling</h3>
-<pre><code># Launch python script: $ kernprof -l -v myprog.py
-# Functions decorated with 'profile' from below will be timed.
-try:
-    import builtins
-    profile = builtins.profile     # will exists if launched via kernprof
-except AttributeError:
-    def profile(func): return func # provide a pass-through version.
-</code></pre>
+<ul>
+<li>Launch your python script using <code>kernprof -l -v my_script.py</code></li>
+<li><em>Functions</em> decorated with <code>profile</code> will be timed, line-by-line.</li>
+<li>If your script is launched regularly, then <code>profile</code> will not be
+present in the <code>builtins.</code> Instead of deleting your decorations,
+you could also define a pass-through fallback.</li>
+</ul>
 <h3 id="making-a-release">Making a release</h3>
 <ul>
 <li><code>cd DAPPER</code></li>
@@ -60,40 +70,49 @@ except AttributeError:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Data Assimilation with Python: a Package for Experimental Research (DAPPER).
+<pre><code class="python">&#34;&#34;&#34;(Data Assimilation with Python: a Package for Experimental Research)
 
-# Documentation
+# documentation
 
 ## README
 
-The README contains the most important documentation. Sections:
+Make sure you&#39;ve browsed these sections in the README:
 
 - [Highlights](https://github.com/nansencenter/DAPPER#Highlights)
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
-- [Methods](https://github.com/nansencenter/DAPPER#Methods)
-- [Models](https://github.com/nansencenter/DAPPER#Models)
-- [Alternative projects](https://github.com/nansencenter/DAPPER#Alternative projects)
-- [Contributors](https://github.com/nansencenter/DAPPER#Contributors)
-- [Publication list](https://github.com/nansencenter/DAPPER#Publication-list)
+- [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
+- [Test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-(models))
 
 ## Reference/API docs
 The documentation contained in docstrings can be browsed
-by clicking the links below or in the right sidebar.
+by clicking the links at the bottom (or on the left) of this page.
+
+## Usage
+Do you wish to illustrate and run benchmarks with your own
+**models** and/or **methods**?
+
+If these are complicated, you may be better off using DAPPER
+merely as inspiration (but you should still
+[cite it](https://github.com/nansencenter/DAPPER#Contributors))
+rather than trying to squeeze everything into its templates.
+
+If these are simple, however, you may well want to use DAPPER.
+First, make sure you&#39;ve got a good feel for all of `example_{1,2,3}.py`.
+Then, read the documentation here
+
+- `mods`
+- `da_methods`
 
 ## Contributing
 
 ### Profiling
 
-```
-# Launch python script: $ kernprof -l -v myprog.py
-# Functions decorated with &#39;profile&#39; from below will be timed.
-try:
-    import builtins
-    profile = builtins.profile     # will exists if launched via kernprof
-except AttributeError:
-    def profile(func): return func # provide a pass-through version.
-```
+- Launch your python script using `kernprof -l -v my_script.py`
+- *Functions* decorated with `profile` will be timed, line-by-line.
+- If your script is launched regularly, then `profile` will not be
+  present in the `builtins.` Instead of deleting your decorations,
+  you could also define a pass-through fallback.
 
 ### Making a release
 
@@ -188,7 +207,7 @@ __pdoc__ = {
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></dt>
 <dd>
-<div class="desc"><p>Data assimilation methods included with DAPPER.</p></div>
+<div class="desc"><p>Data assimilation methods included with DAPPER …</p></div>
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -201,12 +220,6 @@ __pdoc__ = {
 <dt><code class="name"><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></dt>
 <dd>
 <div class="desc"><p>Tools for dicts (and lists) …</p></div>
-</dd>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.doc_extras" href="doc_extras/index.html">doc_extras</a></code></dt>
-<dd>
-<div class="desc"><p>How to contribute to DAPPER.</p></div>
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -250,9 +263,10 @@ __pdoc__ = {
 <h1>Index</h1>
 <div class="toc">
 <ul>
-<li><a href="#documentation">Documentation</a><ul>
+<li><a href="#documentation">documentation</a><ul>
 <li><a href="#readme">README</a></li>
 <li><a href="#referenceapi-docs">Reference/API docs</a></li>
+<li><a href="#usage">Usage</a></li>
 <li><a href="#contributing">Contributing</a><ul>
 <li><a href="#profiling">Profiling</a></li>
 <li><a href="#making-a-release">Making a release</a></li>
@@ -277,9 +291,6 @@ __pdoc__ = {
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></li>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.doc_extras" href="doc_extras/index.html">doc_extras</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.dpr_config" href="dpr_config.html">dpr_config</a></code></li>

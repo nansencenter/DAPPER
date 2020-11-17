@@ -82,7 +82,7 @@ provide rendered docstrings, but are far from complete.
 Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
 for an intro to DA.
 
-## Methods
+## DA methods
 
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ------------------------
@@ -122,7 +122,7 @@ $ cd dapper/mods
 $ grep -r "iEnKS.*("
 ```
 
-## Models
+## Test cases (models)
 
 Model                | Lin? | TLM? | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer
 -----------          | ---- | ---- | ----  | --------- | --------- | ------ | ----------
@@ -167,7 +167,7 @@ DAPPER reproduces literature results.
 There are also results in the literature that DAPPER does not reproduce.
 Typically, this means that the published results are incorrect.
 
-## Alternative projects
+## Similar projects
 
 DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:

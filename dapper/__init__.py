@@ -1,37 +1,46 @@
-"""Data Assimilation with Python: a Package for Experimental Research (DAPPER).
+"""(Data Assimilation with Python: a Package for Experimental Research)
 
-# Documentation
+# documentation
 
 ## README
 
-The README contains the most important documentation. Sections:
+Make sure you've browsed these sections in the README:
 
 - [Highlights](https://github.com/nansencenter/DAPPER#Highlights)
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
-- [Methods](https://github.com/nansencenter/DAPPER#Methods)
-- [Models](https://github.com/nansencenter/DAPPER#Models)
-- [Alternative projects](https://github.com/nansencenter/DAPPER#Alternative projects)
-- [Contributors](https://github.com/nansencenter/DAPPER#Contributors)
-- [Publication list](https://github.com/nansencenter/DAPPER#Publication-list)
+- [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
+- [Test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-(models))
 
 ## Reference/API docs
 The documentation contained in docstrings can be browsed
-by clicking the links below or in the right sidebar.
+by clicking the links at the bottom (or on the left) of this page.
+
+## Usage
+Do you wish to illustrate and run benchmarks with your own
+**models** and/or **methods**?
+
+If these are complicated, you may be better off using DAPPER
+merely as inspiration (but you should still
+[cite it](https://github.com/nansencenter/DAPPER#Contributors))
+rather than trying to squeeze everything into its templates.
+
+If these are simple, however, you may well want to use DAPPER.
+First, make sure you've got a good feel for all of `example_{1,2,3}.py`.
+Then, read the documentation here
+
+- `mods`
+- `da_methods`
 
 ## Contributing
 
 ### Profiling
 
-```
-# Launch python script: $ kernprof -l -v myprog.py
-# Functions decorated with 'profile' from below will be timed.
-try:
-    import builtins
-    profile = builtins.profile     # will exists if launched via kernprof
-except AttributeError:
-    def profile(func): return func # provide a pass-through version.
-```
+- Launch your python script using `kernprof -l -v my_script.py`
+- *Functions* decorated with `profile` will be timed, line-by-line.
+- If your script is launched regularly, then `profile` will not be
+  present in the `builtins.` Instead of deleting your decorations,
+  you could also define a pass-through fallback.
 
 ### Making a release
 
