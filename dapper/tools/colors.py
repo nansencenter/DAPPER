@@ -1,110 +1,97 @@
-from dapper import *
+"""Color definitions & functionality for matplotlib and the terminal."""
 
+import builtins
+import contextlib
 
+import colorama
+import matplotlib as mpl
+import numpy as np
+
+# Makes stdout/err color codes work on windows too.
+colorama.init()
 
 
 #########################################
 # Colouring for the terminal / console
 #########################################
-import colorama
-colorama.init() # Makes stdout/err color codes work on windows too.
-from colorama import Fore as cFG # Foreground color codes
-from colorama import Back as cBG # Background color codes
+def color_text(text, *color_codes):
 
-import contextlib
+    if len(color_codes) == 0:
+        color_codes = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
+
+    return "".join(color_codes) + text + colorama.Style.RESET_ALL
+
+
 @contextlib.contextmanager
 def coloring(*color_codes):
-  """
-  Color printing using 'with'. Example:
-  >>> with coloring(cFG.GREEN): print("This is in color")
-  """
-  if len(color_codes)==0:
-    color_codes = [colorama.Style.BRIGHT, cFG.BLUE]
+    """Color printing using 'with'.
 
-  print(*color_codes, end="")
-  yield 
-  print(colorama.Style.RESET_ALL, end="", flush=True)
+    Example:
+    >>> with coloring(colorama.Fore.GREEN): print("This is in color")
+    """
 
+    orig_print = builtins.print
 
-def print_c(*args,color='blue',**kwargs):
-  """Print with color.
-  But I prefer using the coloring context manager defined above."""
-  s = ' '.join([str(k) for k in args])
-  print(termcolors[color] + s + termcolors['ENDC'],**kwargs)
+    def _print(*args, sep=" ", end="\n", flush=True, **kwargs):
+        # Implemented with a single print statement, so as to
+        # puts the trailing terminal code before newline.
+        text = sep.join([str(k) for k in args])
+        text = color_text(text, *color_codes)
+        orig_print(text, end=end, flush=flush, **kwargs)
 
-# Terminal color codes. Better to use colorama (above) instead.
-termcolors={
-    'blue'      : '\033[94m',
-    'green'     : '\033[92m',
-    'OKblue'    : '\033[94m',
-    'OKgreen'   : '\033[92m',
-    'WARNING'   : '\033[93m',
-    'FAIL'      : '\033[91m',
-    'ENDC'      : '\033[0m' ,
-    'header'    : '\033[95m',
-    'bold'      : '\033[1m' ,
-    'underline' : '\033[4m' ,
-}
+    try:
+        builtins.print = _print
+        yield
+    finally:
+        builtins.print = orig_print
 
 
 #########################################
 # Colouring for matplotlib
 #########################################
-sns_bg = array([0.9176, 0.9176, 0.9490])
-
-# Standard color codes
-RGBs = {c: array(mpl.colors.colorConverter.to_rgb(c)) for c in 'bgrmyckw'}
-#RGBs = [mpl.colors.colorConverter.to_rgb(c) for c in 'bgrmyckw']
-
 # Matlab (new) colors.
-ml_colors = np.array(np.matrix("""
-     0    0.4470    0.7410;
-0.8500    0.3250    0.0980;
-0.9290    0.6940    0.1250;
-0.4940    0.1840    0.5560;
-0.4660    0.6740    0.1880;
-0.3010    0.7450    0.9330;
-0.6350    0.0780    0.1840 
-"""))
+ml_colors = np.array(
+    [[0.,    0.447, 0.741],
+     [0.85,  0.325, 0.098],
+     [0.929, 0.694, 0.125],
+     [0.494, 0.184, 0.556],
+     [0.466, 0.674, 0.188],
+     [0.301, 0.745, 0.933],
+     [0.635, 0.078, 0.184]])
 # Load into matplotlib color dictionary
 for code, color in zip('boyvgcr', ml_colors):
-  mpl.colors.ColorConverter.colors['ml'+code] = color
-  mpl.colors.colorConverter.cache ['ml'+code] = color
+    mpl.colors.ColorConverter.colors['ml'+code] = color
+    mpl.colors.colorConverter. cache['ml'+code] = color
 
 # Seaborn colors
-sns_colors = np.array(np.matrix("""
-0.298 , 0.447 , 0.690 ; 
-0.333 , 0.658 , 0.407 ; 
-0.768 , 0.305 , 0.321 ; 
-0.505 , 0.447 , 0.698 ; 
-0.8   , 0.725 , 0.454 ; 
-0.392 , 0.709 , 0.803 ; 
-0.1   , 0.1   , 0.1   ; 
-1.0   , 1.0   , 1.0    
-"""))
+sns_colors = np.array(
+    [[0.298, 0.447, 0.69],
+     [0.333, 0.658, 0.407],
+     [0.768, 0.305, 0.321],
+     [0.505, 0.447, 0.698],
+     [0.8,   0.725, 0.454],
+     [0.392, 0.709, 0.803],
+     [0.1,   0.1,   0.1],
+     [1.,    1.,    1.]])
 # Overwrite default color codes
 for code, color in zip('bgrmyckw', sns_colors):
     mpl.colors.colorConverter.colors[code] = color
-    mpl.colors.colorConverter.cache [code] = color
+    mpl.colors.colorConverter. cache[code] = color
 
 
-def blend_rgb(rgb, a, bg_rgb=ones(3)):
-  """
-  Fake RGB transparency by blending it to some background.
-  Useful for creating gradients.
-
-  Also useful for creating 'transparency' for exporting to eps.
-  But there's no actualy transparency, so superposition of lines
-  will not work. For that: export to pdf, or make do without.
-
-   - rgb: N-by-3 rgb, or a color code.
-   - a: alpha value
-   - bg_rgb: background in rgb. Default: white
-
-  Based on stackoverflow.com/a/33375738/38281
-  """ 
-  if isinstance(rgb,str):
-    rgb = mpl.colors.colorConverter.to_rgb(rgb)
-  return [a*c1 + (1-a)*c2 for (c1, c2) in zip(rgb, bg_rgb)]
-
-
+# MPL colors -- cheat sheet:
+# --------------
+# Equivalent:
+# cmap = plt.get_cmap("tab10")
+# cmap = plt.cm.get_cmap("tab10")
+# cmap = mpl.cm.get_cmap("tab10")
+# cmap = mpl.cm.tab10
+# Equivalent:
+# c = cmap( cmap.N//2 ) # using int
+# c = cmap( .5 )        # using float
+# Equivalent:
+# clist = cmap.colors # (only for ListedColormap) => 2D tuple,
+# clist = cmap(np.arange(0,.9,.1))              # => 2D ndarray
+#
+# Choosing cmap: https://matplotlib.org/3.3.1/tutorials/colors/colormaps.html
+# Color codes: https://matplotlib.org/tutorials/colors/colors.html

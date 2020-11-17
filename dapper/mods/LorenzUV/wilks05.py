@@ -1,8 +1,11 @@
-# Uses nU, J, F as in core.py, which is taken from Wilks2005.
-# Obs settings taken from different places (=> quasi-linear regime).
+"""Uses nU, J, F as in __init__.py, which is taken from wilks05.
+Obs settings taken from different places (=> quasi-linear regime)."""
 
-from dapper import *
-from dapper.mods.LorenzUV.core import model_instance
+import numpy as np
+from dapper.mods.LorenzUV import model_instance
+import dapper as dpr
+import dapper.tools.utils as utils
+
 LUV = model_instance()
 nU = LUV.nU
 
@@ -15,26 +18,26 @@ nU = LUV.nU
 # Full
 ################
 
-# t = Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
-t = Chronology(dt=0.005,dtObs=0.05,T=4**3,BurnIn=6)  # requires rk4
+# t = dpr.Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
+t = dpr.Chronology(dt=0.005, dtObs=0.05, T=4**3, BurnIn=6)  # requires rk4
 
 
 Dyn = {
-    'M'      : LUV.M,
-    'model'  : with_rk4(LUV.dxdt,autonom=True),
-    'noise'  : 0,
-    'linear' : LUV.dstep_dx,
-    }
+    'M': LUV.M,
+    'model': dpr.with_rk4(LUV.dxdt, autonom=True),
+    'noise': 0,
+    'linear': LUV.dstep_dx,
+}
 
-X0 = GaussRV(mu=LUV.x0,C=0.01)
+X0 = dpr.GaussRV(mu=LUV.x0, C=0.01)
 
 R = 0.1
-jj = arange(nU)
-Obs = partial_Id_Obs(LUV.M,jj)
+jj = np.arange(nU)
+Obs = dpr.partial_Id_Obs(LUV.M, jj)
 Obs['noise'] = R
 
-other = {'name': rel_path(__file__,'mods/')+'_full'}
-HMM_full = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
+other = {'name': utils.rel2mods(__file__)+'_full'}
+HMM_full = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
 
 ################
@@ -42,63 +45,60 @@ HMM_full = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 ################
 
 # Just change dt from 005 to 05
-t = Chronology(dt=0.05, dtObs=0.05,T=4**3,BurnIn=6)
+t = dpr.Chronology(dt=0.05, dtObs=0.05, T=4**3, BurnIn=6)
 
 Dyn = {
-    'M'    : nU,
-    'model': with_rk4(LUV.dxdt_parameterized),
+    'M': nU,
+    'model': dpr.with_rk4(LUV.dxdt_parameterized),
     'noise': 0,
-    }
+}
 
-X0 = GaussRV(mu=LUV.x0[:nU],C=0.01)
+X0 = dpr.GaussRV(mu=LUV.x0[:nU], C=0.01)
 
-jj = arange(nU)
-Obs = partial_Id_Obs(nU,jj)
+jj = np.arange(nU)
+Obs = dpr.partial_Id_Obs(nU, jj)
 Obs['noise'] = R
- 
-other = {'name': rel_path(__file__,'mods/')+'_trunc'}
-HMM_trunc = HiddenMarkovModel(Dyn,Obs,t,X0,LP=LUV.LPs(jj),**other)
 
-LUV.prmzt = lambda t,x: polynom_prmzt(t,x,1)
+other = {'name': utils.rel2mods(__file__)+'_trunc'}
+HMM_trunc = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
-def polynom_prmzt(t,x,order):
-  """
-  Polynomial (deterministic) parameterization of fast variables (Y).
-  
-  NB: Only valid for system settings of Wilks'2005.
-
-  Note: In order to observe an improvement in DA performance w
-        higher orders, the EnKF must be reasonably tuned with 
-        There is very little improvement gained above order=1.
-  """
-  if   order==4:
-    # From Wilks
-    d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
-  elif order==3:
-    # From Arnold
-    d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
-  elif order==1:
-    # From me -- see AdInf/illust_parameterizations.py
-    d = 0.74 + 0.82*x
-  elif order==0:
-    # From me -- see AdInf/illust_parameterizations.py
-    d = 3.82
-  elif order==-1:
-    # Leave as dxdt_trunc
-    d = 0
-  else:
-    raise NotImplementedError
-  return d
+LUV.prmzt = lambda t, x: polynom_prmzt(t, x, 1)
 
 
+def polynom_prmzt(t, x, order):
+    """
+    Polynomial (deterministic) parameterization of fast variables (Y).
+
+    NB: Only valid for system settings of Wilks'2005.
+
+    Note: In order to observe an improvement in DA performance w
+          higher orders, the EnKF must be reasonably tuned with
+          There is very little improvement gained above order=1.
+    """
+    if order == 4:
+        # From Wilks
+        d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
+    elif order == 3:
+        # From Arnold
+        d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
+    elif order == 1:
+        # From me -- see AdInf/illust_parameterizations.py
+        d = 0.74 + 0.82*x
+    elif order == 0:
+        # From me -- see AdInf/illust_parameterizations.py
+        d = 3.82
+    elif order == -1:
+        # Leave as dxdt_trunc
+        d = 0
+    else:
+        raise NotImplementedError
+    return d
 
 
 ####################
 # Suggested tuning
 ####################
-# Using HMM_full                                           # Expected RMSE_a:
-# cfgs += Climatology()                                    # 0.93
-# cfgs += Var3D(xB=2.0)                                    # 0.39
-# cfgs += EnKF_N(N=20)                                     # 0.27
-
-
+# Using HMM_full                    # Expected rmse.a:
+# xps += Climatology()              # 0.93
+# xps += Var3D(xB=2.0)              # 0.39
+# xps += EnKF_N(N=20)               # 0.27

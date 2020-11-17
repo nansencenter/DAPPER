@@ -1,612 +1,669 @@
-"""Define high-level objects frequently used in DAPPER."""
+"""High-level API. I.e. the main "user-interface".
 
-from dapper import *
+Used for experiment (xp) specification/administration, including:
 
-class HiddenMarkovModel(NestedPrint):
-  """Container for attributes of a Hidden Markov Model (HMM).
-  
-  This container contains the specification of a "twin experiment",
-  i.e. an "OSSE (observing system simulation experiment)".
-  """
+ - da_method decorator
+ - xpList
+ - save_data
+ - run_experiment
+ - run_from_file
 
-  def __init__(self,Dyn,Obs,t,X0,**kwargs):
-    self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn)
-    self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs)
-    self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)
-    self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)
+ - HiddenMarkovModel
+ - Operator
+"""
 
-    # Assign name by file (using inspect magic)
-    # Fails if used after running a script from the model dir (e.g. demo.py),
-    # (but only then?). Buggy?
-    name = inspect.getfile(inspect.stack()[1][0])
-    self.name = os.path.relpath(name,'mods/')
+import dapper.stats
+import dapper.dict_tools as dict_tools
+from dapper.tools.chronos import Chronology
+from dapper.tools.randvars import RV, GaussRV
+from dapper.tools.stoch import set_seed
+from dapper.dpr_config import rc
+from dapper.tools.remote.uplink import submit_job_GCP
+import dapper.tools.utils as utils
+from dapper.tools.localization import no_localization
+from dapper.tools.math import Id_op, Id_mat
+from pathlib import Path
+import dataclasses as dcs
+import copy
+from textwrap import dedent
+import os
+import sys
+import re
+import time
+import numpy as np
+import inspect
 
-    # Write the rest of parameters
-    de_abbreviate(kwargs, [('LP','liveplotters')])
-    for key, value in kwargs.items():
-      setattr(self, key, value)
-
-    # Allow running LETKF, SL_EAKF etc without localization
-    if not hasattr(self.Obs,"localizer"):
-      self.Obs.localizer = no_localization(self.Nx, self.Ny)
-
-    # Validation
-    if self.Obs.noise.C==0 or self.Obs.noise.C.rk!=self.Obs.noise.C.M:
-        raise ValueError("Rank-deficient R not supported.")
-  
-  # ndim shortcuts
-  @property
-  def Nx(self): return self.Dyn.M
-  @property
-  def Ny(self): return self.Obs.M
-
-  # Print options
-  ordering = ['Dyn','Obs','t','X0']
+import functools
+import dill
+import shutil
+from datetime import datetime
 
 
-class Operator(NestedPrint):
-  """Container for operators (models)."""
-  def __init__(self,M,model=None,noise=None,**kwargs):
-    self.M = M
+class HiddenMarkovModel(dict_tools.NicePrint):
+    """Container for attributes of a Hidden Markov Model (HMM).
 
-    # None => Identity model
-    if model is None:
-      model = Id_op()
-      kwargs['linear'] = lambda x,t,dt: Id_mat(M)
-    self.model = model
-
-    # None/0 => No noise
-    if isinstance(noise,RV):
-      self.noise = noise
-    else:
-      if noise is None: noise = 0
-      if np.isscalar(noise):
-        self.noise = GaussRV(C=noise,M=M)
-      else:
-        self.noise = GaussRV(C=noise)
-
-    # Write attributes
-    for key, value in kwargs.items():
-      setattr(self, key, value)
-  
-  def __call__(self,*args,**kwargs):
-    return self.model(*args,**kwargs)
-
-  # Print options
-  ordering = ['M','model','noise']
-
-
-
-def DA_Config(da_method):
-  """Wraps a da_method to an instance of the DAC (DA Configuration) class.
-
-  Purpose: make a da_method brief and readable. Features:
-   - argument treatment: since assimilator() is nested under a da_method,
-     this enables builtin argument default systemization (via da_method's signature),
-     and enables processing before the assimilation run.
-     In contrast to the system of passing dicts, this avoids unpacking.
-   - stats auto-initialized here, before calling assimilator()
-   - provides fail_gently
-
-  We could have achieved much the same with less hacking (less 'inspect')
-  using classes for the da_methods. But that would have required onerous
-  read/write via 'self'.
-  """
-
-  f_arg_names = da_method.__code__.co_varnames[:da_method.__code__.co_argcount]
-
-  @functools.wraps(da_method)
-  def wrapr(*args,**kwargs):
-      ############################
-      # Validate signature/return
-      #---------------------------
-      assimilator = da_method(*args,**kwargs)
-      if assimilator.__name__ != 'assimilator':
-        raise Exception("DAPPER convention requires that "
-        + da_method.__name__ + " return a function named 'assimilator'.")
-      run_args = ('stats','HMM','xx','yy')
-      if assimilator.__code__.co_varnames[:len(run_args)] != run_args:
-        raise Exception("DAPPER convention requires that "+
-        "the arguments of 'assimilator' be " + str(run_args))
-
-      ############################
-      # Make assimilation caller
-      #---------------------------
-      def assim_caller(HMM,xx,yy):
-        name_hook = da_method.__name__ # for pdesc of progbar
-
-        # Init stats
-        stats = Stats(cfg,HMM,xx,yy)
-
-        def crop_traceback(ERR,lvl):
-            msg = []
-            try:
-              # If IPython, use its coloring functionality
-              __IPYTHON__
-              from IPython.core.debugger import Pdb
-              import traceback as tb
-              pdb_instance = Pdb()
-              pdb_instance.curframe = inspect.currentframe() # first frame: this one
-              for i, frame_lineno in enumerate(tb.walk_tb(ERR.__traceback__)):
-                if i<lvl: continue # skip first frame
-                msg += [pdb_instance.format_stack_entry(frame_lineno,context=5)]
-            except (NameError,ImportError):
-              # No coloring
-              msg += ["\n".join(s for s in traceback.format_tb(ERR.__traceback__))]
-            return msg
-
-        # Put assimilator inside try/catch to allow gentle failure
-        try:
-          try:
-              assimilator(stats,HMM,xx,yy)
-          except (AssimFailedError,ValueError,np.linalg.LinAlgError) as ERR:
-              if getattr(cfg,'fail_gently',rc['fail_gently']):
-                msg  = ["\n\nCaught exception during assimilation. Printing traceback:"]
-                msg += ["<"*20 + "\n"]
-                msg += crop_traceback(ERR,1) + [str(ERR)]
-                msg += ["\n" + ">"*20]
-                msg += ["Returning stats (time series) object in its "+\
-                    "current (incompleted) state,\nand resuming program execution.\n"+\
-                    "Turn off the fail_gently attribute of the DA config to fully raise the exception.\n"]
-                for s in msg:
-                  print(s,file=sys.stderr)
-              else: # Don't fail gently.
-                raise ERR
-        except Exception as ERR:
-              #print(*crop_traceback(ERR,2), str(ERR))
-              # How to avoid duplicate traceback printouts?
-              # Don't want to replace 'raise' by 'sys.exit(1)',
-              # coz then %debug would start here.
-              raise ERR
-
-        return stats
-
-      assim_caller.__doc__ = "Calls assimilator() from " +\
-          da_method.__name__ +", passing it the (output) stats object. " +\
-          "Returns stats (even if an AssimFailedError is caught)."
-
-      ############################
-      # Grab argument names/values
-      #---------------------------
-      # Process abbreviations, aliases
-      de_abbreviate(kwargs, [('LP','liveplotting')])
-
-      cfg = OrderedDict()
-      i   = 0
-      # 1) Insert args into cfg with signature-names.
-      for i,val in enumerate(args):
-        cfg[f_arg_names[i]] = val
-      # 2) Insert kwargs, ordered as in signature.
-      for key in f_arg_names[i:]:
-        try:
-          cfg[key] = kwargs.pop(key)
-        except KeyError:
-          pass
-      # 3) Insert kwargs not listed in signature.
-      cfg.update(kwargs)
-
-      ############################
-      # Wrap
-      #---------------------------
-      cfg['da_method']  = da_method
-      cfg['assimilate'] = assim_caller
-      cfg = DAC(cfg)
-      return cfg
-  return wrapr
-
-
-
-class DAC(ImmutableAttributes,NestedPrint):
-  """DA configs (settings).
-
-  This class just contains the parameters grabbed by the DA_Config wrapper.
-
-  NB: re-assigning these would only change their value in this container,
-      (i.e. not as they are known by the assimilator() funtions)
-      and has therefore been disabled ("frozen").
-      However, parameter changes can be made using update_settings().
-  """
-
-  # Defaults
-  dflts = {
-      'liveplotting': False,
-      'store_u'     : rc['store_u'],
-      }
-
-  # Print settings
-  excluded = ['assimilate','da_method','name',re.compile('^_'),'ordering']
-  excluded += list(dflts)
-
-  def __init__(self,odict):
-    self.ordering = list(odict.keys())                              # Keep ordering (4 printing)
-    for key, value in self.dflts.items(): setattr(self, key, value) # Set defaults
-    for key, value in      odict.items(): setattr(self, key, value) # Set argument
-    if 'name' not in odict: self.name = self.da_method.__name__     # Set name
-    self._freeze(filter_out(odict.keys(),*self.dflts,'name'))       # Freeze
-
-  def update_settings(self,**kwargs):
+    This container contains the specification of a "twin experiment",
+    i.e. an "OSSE (observing system simulation experiment)".
     """
-    Returns new DAC with new "instance" of the da_method with the updated setting.
+
+    def __init__(self, Dyn, Obs, t, X0, **kwargs):
+        # fmt: off
+        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
+        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
+        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
+        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
+        # fmt: on
+
+        # Name
+        self.name = kwargs.pop("name", "")
+        if not self.name:
+            name = inspect.getfile(inspect.stack()[1][0])
+            try:
+                self.name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
+            except ValueError:
+                self.name = str(Path(name))
+
+        # Kwargs
+        abbrevs = {'LP': 'liveplotters'}
+        for key in kwargs:
+            setattr(self, abbrevs.get(key, key), kwargs[key])
+
+        # Defaults
+        if not hasattr(self.Obs, "localizer"):
+            self.Obs.localizer = no_localization(self.Nx, self.Ny)
+        if not hasattr(self, "sectors"):
+            self.sectors = {}
+
+        # Validation
+        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
+            raise ValueError("Rank-deficient R not supported.")
+
+    # ndim shortcuts
+    @property
+    def Nx(self): return self.Dyn.M
+    @property
+    def Ny(self): return self.Obs.M
+
+    printopts = {'ordering': ['Dyn', 'Obs', 't', 'X0']}
+
+    def simulate(self, desc='Truth & Obs'):
+        """Generate synthetic truth and observations."""
+        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
+
+        # Init
+        xx    = np.zeros((chrono.K   + 1, Dyn.M))
+        yy    = np.zeros((chrono.KObs+1, Obs.M))
+
+        xx[0] = X0.sample(1)
+
+        # Loop
+        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+            if kObs is not None:
+                yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
+
+        return xx, yy
+
+
+class Operator(dict_tools.NicePrint):
+    """Container for operators (models)."""
+
+    def __init__(self, M, model=None, noise=None, **kwargs):
+        self.M = M
+
+        # None => Identity model
+        if model is None:
+            model = Id_op()
+            kwargs['linear'] = lambda x, t, dt: Id_mat(M)
+        self.model = model
+
+        # None/0 => No noise
+        if isinstance(noise, RV):
+            self.noise = noise
+        else:
+            if noise is None:
+                noise = 0
+            if np.isscalar(noise):
+                self.noise = GaussRV(C=noise, M=M)
+            else:
+                self.noise = GaussRV(C=noise)
+
+        # Write attributes
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+    printopts = {'ordering': ['M', 'model', 'noise']}
+
+
+def da_method(*default_dataclasses):
+    """Make the decorator that makes the DA classes.
 
     Example:
-    >>> for iC,C in enumerate(cfgs):
-    >>>   cfgs[iC] = C.update_settings(liveplotting=True)
+    >>> @da_method()
+    >>> class Sleeper():
+    >>>     "Do nothing."
+    >>>     seconds : int  = 10
+    >>>     success : bool = True
+    >>>     def assimilate(self,*args,**kwargs):
+    >>>         for k in utils.progbar(range(self.seconds)):
+    >>>             time.sleep(1)
+    >>>         if not self.success:
+    >>>             raise RuntimeError("Sleep over. Failing as intended.")
+
+    Example:
+    >>> @dcs.dataclass
+    >>> class ens_defaults:
+    >>>   infl : float = 1.0
+    >>>   rot  : bool  = False
+    >>>
+    >>> @da_method(ens_defaults)
+    >>> class EnKF:
+    >>>     N     : int
+    >>>     upd_a : str = "Sqrt"
+    >>>
+    >>>     def assimilate(self,HMM,xx,yy):
+    >>>         ...
     """
 
-    old = self.ordering
-    old += filter_out(self.__dict__,*self.ordering)
-    old = filter_out(old,'assimilate','da_method',re.compile('^_'),'ordering')
-    dct = {**{key: getattr(self,key) for key in old}, **kwargs}
-    return DA_Config(self.da_method)(**dct)
+    def dataclass_with_defaults(cls):
+        """Decorator based on dataclass.
 
-  # def __repr__(self):
-    # keys  = self.ordering                               # + ordered keys
-    # keys += filter_out(self.__dict__,*self.ordering)    # + other attributes
-    # keys  = filter_out(keys,*self.excluded)             # - excluded
-    # attributes = ", ".join([k+"="+repr(getattr(self,k)) for k in keys])
-    # return self.da_method.__name__ + '(' + attributes + ')'
+        This adds __init__, __repr__, __eq__, ..., but also includes
+        inherited defaults (see https://stackoverflow.com/a/58130805 ).
 
-  def __eq__(self, config):
-    prep = lambda obj: {k:v for k,v in obj.__dict__.items() if
-        k!="assimilate" and not k.startswith("_")}
-    eq = prep(self)==prep(config)
-    # EDIT: deepdiff causes horrible input bug with QtConsole.
-    # eq = not DeepDiff(self,config) # slow, but works well.
-    return eq
+        Also:
+        - Wraps assimilate() to provide gentle_fail functionality.
+        - Initialises and writes the Stats object."""
 
-  def _is(self,decorated_da_method):
-    "Test if cfg is an instance of the decorator of the da_method."
-    return self.da_method.__name__ == decorated_da_method.__name__
+        # Default fields invovle: (1) annotations and (2) attributes.
+        def set_field(name, type, val):
+            if not hasattr(cls, '__annotations__'):
+                cls.__annotations__ = {}
+            cls.__annotations__[name] = type
+            if not isinstance(val, dcs.Field):
+                val = dcs.field(default=val)
+            setattr(cls, name, val)
+
+        # APPend default fields without overwriting.
+        # Don't implement (by PREpending?) non-default args -- to messy!
+        for D in default_dataclasses:
+            # NB: Calling dataclass twice always makes repr=True, so avoid this.
+            for F in dcs.fields(dcs.dataclass(D)):
+                if F.name not in cls.__annotations__:
+                    set_field(F.name, F.type, F)
+
+        # Create new class (NB: old/new classes have same id)
+        cls = dcs.dataclass(cls)
+
+        # Shortcut for self.__class__.__name__
+        cls.da_method = cls.__name__
+
+        def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
+            # Progressbar name
+            pb_name_hook = self.da_method if desc is None else desc # noqa
+            # Init stats
+            self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
+            # Assimilate
+            time_start = time.time()
+            old_assimilate(self, HMM, xx, yy)
+            dapper.stats.register_stat(self.stats, "duration", time.time()-time_start)
+
+        old_assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+
+        return cls
+    return dataclass_with_defaults
 
 
-class List_of_Configs(list):
-  """List of DA configs.
+def seed_and_simulate(HMM, xp):
+    """Default experiment setup. Set seed and simulate truth and obs.
 
-  This class is quite hackey. But convenience is king for its purposes:
-   - pretty printing (using common/distinct attrs)
-   - make += accept (a single) item
-   - unique kw.
-   - indexing with lists.
-   - searching for indices by attributes [inds()].
-  """
+    Note: if there is no ``xp.seed`` then then the seed is not set.
+    Thus, different experiments will produce different truth and obs."""
+    set_seed(getattr(xp, 'seed', False))
+    xx, yy = HMM.simulate()
+    return xx, yy
 
-  # Print settings
-  excluded = filter_out(DAC.excluded,'da_method')
-  ordering = ['da_method','N','upd_a','infl','rot']
 
-  def __init__(self,*args,unique=False):
+def run_experiment(xp, label, savedir, HMM,
+                   setup=None, free=True, statkeys=False, fail_gently=False,
+                   **stat_kwargs):
+    """Used by xpList.launch() to run each single experiment.
+
+    This involves steps similar to ``example_1.py``, i.e.:
+
+    - setup()                    : Call function given by user. Should set
+                                   params, eg HMM.Force, seed, and return
+                                   (simulated/loaded) truth and obs series.
+    - xp.assimilate()            : run DA, pass on exception if fail_gently
+    - xp.stats.average_in_time() : result averaging
+    - xp.avrgs.tabulate()        : result printing
+    - dill.dump()                : result storage
     """
-    List_of_Configs() -> new empty list
-    List_of_Configs(iterable) -> new list initialized from iterable's items
 
-    If unique: don't append duplicate entries.
-    """
-    self.unique = unique
-    for cfg in args:
-      if isinstance(cfg, DAC):
-        self.append(cfg)
-      elif isinstance(cfg, list):
-        for b in cfg:
-          self.append(b)
+    # We should copy HMM so as not to cause any nasty surprises such as
+    # expecting param=1 when param=2 (coz it's not been reset).
+    # NB: won't copy implicitly ref'd obj's (like L96's core). => bug w/ MP?
+    hmm = copy.deepcopy(HMM)
 
-  def __iadd__(self,cfg):
-    if not hasattr(cfg,'__iter__'):
-      cfg = [cfg]
-    for item in cfg:
-      self.append(item)
-    return self
+    # GENERATE TRUTH/OBS
+    xx, yy = setup(hmm, xp)
 
-  def append(self,cfg):
-    "Implemented in order to support 'unique'"
-    if self.unique and cfg in self:
-      return
-    else:
-      super().append(cfg)
+    # ASSIMILATE
+    try:
+        xp.assimilate(hmm, xx, yy, label, **stat_kwargs)
+    except Exception as ERR:
+        if fail_gently:
+            xp.crashed = True
+            if fail_gently not in ["silent", "quiet"]:
+                utils.print_cropped_traceback(ERR)
+        else:
+            raise ERR
 
-  def __getitem__(self, keys):
-    """Implement indexing by a list"""
-    try:              B=List_of_Configs([self[k] for k in keys]) # list
-    except TypeError: B=list.__getitem__(self, keys)             # int, slice
-    return B
+    # AVERAGE
+    xp.stats.average_in_time(free=free)
 
+    # PRINT
+    if statkeys:
+        statkeys = () if statkeys is True else statkeys
+        print(xp.avrgs.tabulate(statkeys))
 
-  # NB: In principle, it is possible to list fewer attributes as distinct,
-  #     by using groupings. However, doing so intelligently is difficult,
-  #     and I wasted a lot of time trying. So don't go there...
-  def separate_distinct_common(self):
-    """
-    Compile the attributes of the DAC's in the List_of_Confgs,
-    and partition them in two sets: distinct and common.
-    Insert None's for cfgs that don't have that attribute.
-    """
-    dist = {}
-    comn = {}
-
-    # Find all keys
-    keys = {}
-    for config in self:
-      keys |= config.__dict__.keys()
-    keys = list(keys)
-
-    # Partition attributes into distinct and common
-    for key in keys:
-      vals = [getattr(config,key,None) for config in self]
-
-      try:
-        allsame = all(v == vals[0] for v in vals) # and len(self)>1:
-      except ValueError:
-        allsame = False
-
-      if allsame: comn[key] = vals[0]
-      else:       dist[key] = vals
-
-    # Sort. Do it here so that the same sort is used for
-    # repr(List_of_Configs) and print_averages().
-    def sortr(item):
-      key = item[0]
-      try:
-        # Find index in self.ordering.
-        # Do chr(65+) to compare alphabetically,
-        # for keys not in ordering list.
-        return chr(65+self.ordering.index(key))
-      except:
-        return key.upper()
-    dist = OrderedDict(sorted(dist.items(), key=sortr))
-
-    return dist, comn
-
-  def distinct_attrs(self): return self.separate_distinct_common()[0]
-  def   common_attrs(self): return self.separate_distinct_common()[1]
+    # SAVE
+    if savedir:
+        with open(Path(savedir)/"xp", "wb") as FILE:
+            dill.dump({'xp': xp}, FILE)
 
 
-  def __repr__(self):
-    if len(self):
-      # Prepare
-      s = '<List_of_Configs> with attributes:\n'
-      dist,comn = self.separate_distinct_common()
-      # Distinct
-      headr = filter_out(dist,*self.excluded)
-      mattr = [dist[key] for key in headr]
-      s    += tabulate(mattr, headr)
-      # Common
-      keys  = filter_out(comn,*self.excluded)
-      comn  = {k: formatr(comn[k]) for k in keys}
-      s    += "\n---\nCommon attributes:\n" + str(AlignedDict(comn))
-    else:
-      s = "List_of_Configs([])"
-    return s
+# TODO 2: check collections.userlist
+# TODO 2: __add__ vs __iadd__
+class xpList(list):
+    """List, subclassed for holding experiment ("xp") objects.
 
-  @property
-  def da_names(self):
-    return [config.da_method.__name__ for config in self]
+    Main use: administrate experiment **launches**.
+    Also see: ``xpSpace`` for experiment **result presentation**.
 
-  def gen_names(self,abbrev=4,trim=False,tab=False,xcld=[]):
+     Modifications to ``list``:
 
-    # 1st column: da_method's names
-    columns = self.da_names
-    MxWidth = max([len(n) for n in columns])
-    columns = [n.ljust(MxWidth) + ' ' for n in columns]
+     - ``__iadd__`` (append) also for single items;
+       this is hackey, but convenience is king.
+     - ``append()`` supports ``unique`` to enable lazy xp declaration.
+     - ``__getitem__`` supports lists.
+     - pretty printing (using common/distinct attrs).
 
-    # Get distinct attributes
-    dist  = self.distinct_attrs()
-    keys  = filter_out(dist, *self.excluded,'da_method',*xcld)
+     Add-ons:
 
-    # Process attributes into strings 
-    for i,k in enumerate(keys):
-      vals = dist[k]
-
-      # Make label strings
-      A = 4 if abbrev is True else 99 if abbrev==False else abbrev # Set abbrev length A
-      if A: lbls = k                     + ':'                     # Standard label
-      else: lbls = k[:A-1] + '~' + k[-1] + ':'                     # Abbreviated label
-      lbls = ('' if i==0 else ' ') + lbls                          # Column spacing 
-      lbls = [' '*len(lbls) if v is None else lbls for v in vals]  # Erase label where val=None
-
-      # Make value strings
-      if trim and all(v in [find_1st(vals),None] for v in vals):
-        # If all values  are identical (or None): only keep label.
-        lbls = [x[:-1] for x in lbls] # Remove colon
-        vals = [''     for x in lbls] # Make empty val
-      else: # Format data
-        vals = typeset(vals,tab=True)
-
-      # Form column: join columns, lbls and vals.
-      columns = [''.join(x) for x in zip(columns,lbls,vals)]           
-
-    # Undo all tabulation inside column all at once:
-    if not tab: columns = [" ".join(n.split()) for n in columns]
-
-    return columns
-
-  def assign_names(self,ow=False,tab=False):
-    """
-    Assign distinct_names to the individual DAC's.
-    If ow: do_overwrite.
-    """
-    # Process attributes into strings 
-    names = self.gen_names(tab)
-    
-    # Assign strings to configs
-    for name,config in zip(names,self):
-      t = getattr(config,'name',None)
-      if ow is False:
-        if t: s = t
-      elif ow == 'append':
-        if t: s = t+' '+s
-      elif ow == 'prepend':
-        if t: s = s+' '+t
-      config.name = s
-
-
-  def inds(self,strict=True,da=None,**kw):
-    """Find indices of configs with attributes matching the kw dict.
-     - strict: If True, then configs lacking a requested attribute will match.
-     - da: the da_method.
+     - ``launch()``
+     - ``print_averages()``
+     - ``gen_names()``
+     - ``inds()`` to search by kw-attrs.
      """
 
-    def fill(fillval):
-      return 'empties_dont_match' if strict else fillval
+    def __init__(self, *args, unique=False):
+        """Initialize without args, or with a list of configs.
 
-    def matches(C, kw):
-      kw_match = all( getattr(C,k,fill(v))==v for k,v in kw.items())
-      da_match = True if da is None else C._is(da)
-      return (kw_match and da_match)
+        If ``unique``: duplicates won't get appended.
+        This makes ``append()`` (and ``__iadd__()``) relatively slow.
+        Use ``extend()`` or ``__add__()`` to bypass this validation."""
 
-    return [i for i,C in enumerate(self) if matches(C,kw)]
+        self.unique = unique
+        super().__init__(*args)
 
+    def __iadd__(self, xp):
+        if not hasattr(xp, '__iter__'):
+            xp = [xp]
+        for item in xp:
+            self.append(item)
+        return self
 
-    
+    def append(self, xp):
+        """Append if not unique & present."""
+        if not (self.unique and xp in self):
+            super().append(xp)
 
-def _print_averages(cfgs,avrgs,attrkeys=(),statkeys=()):
-  """Pretty print the structure containing the averages.
+    def __getitem__(self, keys):
+        """Indexing, also by a list"""
+        try:
+            B = [self[k] for k in keys]    # if keys is list
+        except TypeError:
+            B = super().__getitem__(keys)  # if keys is int, slice
+        if hasattr(B, '__len__'):
+            B = xpList(B)                  # Cast
+        return B
 
-  Essentially, for c in cfgs:
-    Print c[attrkeys], avrgs[c][statkeys]
+    def inds(self, strict=True, missingval="NONSENSE", **kws):
+        """Find (all) indices of configs whose attributes match kws.
 
-  - attrkeys: list of attributes to include.
-      - if -1: only print da_method.
-      - if  0: print distinct_attrs
-  - statkeys: list of statistics to include.
-  """
-  # Convert single cfg to list
-  if isinstance(cfgs,DAC):
-    cfgs     = List_of_Configs(cfgs)
-    avrgs    = [avrgs]
+        If strict, then xp's lacking a requested attr will not match,
+        unless the missingval (e.g. None) matches the required value.
+        """
+        def match(xp):
+            def missing(v): return missingval if strict else v
+            matches = [getattr(xp, k, missing(v)) == v for k, v in kws.items()]
+            return all(matches)
 
-  # Set excluded attributes
-  excluded = list(cfgs.excluded)
-  if len(cfgs)==1:
-    excluded += list(cfgs[0].dflts)
+        return [i for i, xp in enumerate(self) if match(xp)]
 
-  # Defaults averages
-  if not statkeys:
-    #statkeys = ['rmse_a','rmv_a','logp_m_a']
-    statkeys = ['rmse_a','rmv_a','rmse_f']
+    @property
+    def da_methods(self):
+        return [xp.da_method for xp in self]
 
-  # Defaults attributes
-  if not attrkeys:       headr = list(cfgs.distinct_attrs())
-  elif   attrkeys == -1: headr = ['da_method']
-  else:                  headr = list(attrkeys)
+    def split_attrs(self, nomerge=()):
+        """Compile the attrs of all xps; split as distinct, redundant, common.
 
-  # Filter excluded
-  headr = filter_out(headr, *excluded)
-  
-  # Get attribute values
-  mattr = [cfgs.distinct_attrs()[key] for key in headr]
+        Insert None if an attribute is distinct but not in xp."""
 
-  # Add separator
-  headr += ['|']
-  mattr += [['|']*len(cfgs)]
+        def _aggregate_keys():
+            "Aggregate keys from all xps"
 
-  # Fill in stats
-  for key in statkeys:
-    # Generate column, including header (for cropping purposes)
-    col = ['{0:@>9} ±'.format(key)]
-    for i in range(len(cfgs)):
-      # Format entry
-      try:
-        val  = avrgs[i][key].val
-        conf = avrgs[i][key].conf
-        col.append('{0:@>9.4g} {1: <6g} '.format(val,round2sigfig(conf)))
-      except KeyError:
-        col.append(' ') # gets filled by tabulate
-    # Crop
-    crop= min([s.count('@') for s in col])
-    col = [s[crop:]         for s in col]
-    # Split column into headr/mattr
-    headr.append(col[0])
-    mattr.append(col[1:])
+            if len(self) == 0:
+                return []
 
-  # Used @'s to avoid auto-cropping by tabulate().
-  table = tabulate(mattr, headr).replace('@',' ')
-  return table
+            # Start with da_method
+            aggregate = ['da_method']
 
-@functools.wraps(_print_averages)
-def print_averages(*args,**kwargs):
-  print(_print_averages(*args,**kwargs))
+            # Aggregate all other keys
+            for xp in self:
 
+                # Get dataclass fields
+                try:
+                    dc_fields = dcs.fields(xp.__class__)
+                    dc_names = [F.name for F in dc_fields]
+                    keys = xp.__dict__.keys()
+                except TypeError:
+                    # Assume namedtuple
+                    dc_names = []
+                    keys = xp._fields
 
-def formatr(x):
-  """Abbreviated formatting"""
-  if hasattr(x,'__name__'): return x.__name__
-  if isinstance(x,bool)   : return '1' if x else '0'
-  if isinstance(x,float)  : return '{0:.5g}'.format(x)
-  if x is None: return ''
-  return str(x)
+                # For all potential keys:
+                for k in keys:
+                    # If not already present:
+                    if k not in aggregate:
 
-def typeset(lst,tab):
-  """
-  Convert lst elements to string.
-  If tab: pad to min fixed width.
-  """
-  ss = list(map(formatr, lst))
-  if tab:
-    width = max([len(s)     for s in ss])
-    ss    = [s.ljust(width) for s in ss]
-  return ss
+                        # If dataclass, check repr:
+                        if k in dc_names:
+                            if dc_fields[dc_names.index(k)].repr:
+                                aggregate.append(k)
+                        # Else, just append
+                        else:
+                            aggregate.append(k)
 
+            # Remove unwanted
+            excluded  = [re.compile('^_'), 'avrgs', 'stats', 'HMM', 'duration']
+            aggregate = dict_tools.complement(aggregate, excluded)
+            return aggregate
 
+        distinct, redundant, common = {}, {}, {}
 
+        for key in _aggregate_keys():
 
-import dill
-def save_data(name,*args,**kwargs):
-  """"Utility for saving experimental data.
+            # Want to distinguish actual None's from empty ("N/A").
+            # => Don't use getattr(obj,key,None)
+            vals = [getattr(xp, key, "N/A") for xp in self]
 
-  Takes care of:
-   - Path management.
-   - Calling dill.dump().
-   - Default naming of certain types of arguments.
-
-  The advantage of dill is that it can seriealize (and hence store) nearly anything.
-  Also, dill automatically uses np.save() for arrays for memory/disk efficiency.
-  """
-
-  filename  = save_dir(name,host=False) + "run_"
-  filename += str(1 + max(get_numbering(filename),default=0)) + ".pickle"
-  print("Saving data to",filename)
-
-  def name_args():
-      data = OrderedDict()
-      nNone = 0 # count of non-classified objects
-
-      nameable_classes = OrderedDict(
-            HMM  = lambda x: isinstance(x,HiddenMarkovModel),
-            cfgs = lambda x: isinstance(x,List_of_Configs),
-            DAC  = lambda x: isinstance(x,DAC),
-            stat = lambda x: isinstance(x,Stats),
-            avrg = lambda x: getattr(x,"_isavrg",False),
-          )
-
-      def classify(x):
-          for name, test in nameable_classes.items():
-            if test(x): return name
-          # Defaults:
-          if isinstance(x,list): return "list"
-          else:                  return None
-
-      for x in args:
-          Class = classify(x)
-
-          if Class == "list":
-            Class0 = classify(x[0])
-            if Class0 in nameable_classes and all([Class0==classify(y) for y in x]):
-              Class = Class0 + "s" # plural
+            # Sort (assign dct) into distinct, redundant, common
+            if dict_tools.flexcomp(key, *nomerge):
+                # nomerge => Distinct
+                dct, vals = distinct, vals
+            elif all(vals[0] == v for v in vals):
+                # all values equal => common
+                dct, vals = common, vals[0]
             else:
-              Class = None
+                v0 = next(v for v in vals if "N/A" != v)
+                if all(v == "N/A" or v == v0 for v in vals):
+                    # all values equal or "N/A" => redundant
+                    dct, vals = redundant, v0
+                else:
+                    # otherwise => distinct
+                    dct, vals = distinct, vals
 
-          elif Class is None:
-            nNone += 1
-            Class = "obj%d"%nNone
+            # Replace "N/A" by None
+            def sub(v): return None if v == "N/A" else v
+            if isinstance(vals, str):
+                vals = sub(vals)
+            else:
+                try:
+                    vals = [sub(v) for v in vals]
+                except TypeError:
+                    vals = sub(vals)
 
-          data[Class] = x
-      return data
+            dct[key] = vals
 
-  with open(filename,"wb") as filestream:
-      dill.dump({**kwargs, **name_args()}, filestream)
+        return distinct, redundant, common
 
-  return filename
+    def __repr__(self):
+        distinct, redundant, common = self.split_attrs()
+        s = '<xpList> of length %d with attributes:\n' % len(self)
+        s += utils.tab(distinct, headers="keys", showindex=True)
+        s += "\nOther attributes:\n"
+        s += str(dict_tools.AlignedDict({**redundant, **common}))
+        return s
+
+    def gen_names(self, abbrev=6, tab=False):
+        """Similiar to ``self.__repr__()``, but:
+
+        - returns *list* of names
+        - tabulation is optional
+        - attaches (abbreviated) labels to each attribute
+        """
+        distinct, redundant, common = self.split_attrs(nomerge=["da_method"])
+        labels = distinct.keys()
+        values = distinct.values()
+
+        # Label abbreviation
+        labels = [utils.collapse_str(k, abbrev) for k in labels]
+
+        # Make label columns: insert None or lbl+":", depending on value
+        def column(lbl, vals):
+            return [None if v is None else lbl+":" for v in vals]
+        labels = [column(lbl, vals) for lbl, vals in zip(labels, values)]
+
+        # Interlace labels and values
+        table = [x for (a, b) in zip(labels, values) for x in (a, b)]
+
+        # Rm da_method label (but keep value)
+        table.pop(0)
+
+        # Transpose
+        table = list(map(list, zip(*table)))
+
+        # Tabulate
+        table = utils.tab(table, tablefmt="plain")
+
+        # Rm space between lbls/vals
+        table = re.sub(':  +', ':', table)
+
+        # Rm alignment
+        if not tab:
+            table = re.sub(r' +', r' ', table)
+
+        return table.splitlines()
+
+    def tabulate_avrgs(self, *args, **kwargs):
+        """Pretty (tabulated) repr of xps & their avrgs.
+
+        Similar to stats.tabulate_avrgs(), but for the entire list of xps."""
+        distinct, redundant, common = self.split_attrs()
+        averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
+        columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
+        return utils.tab(columns, headers="keys", showindex=True).replace('␣', ' ')
+
+    def launch(self, HMM, save_as="noname", mp=False,
+               setup=seed_and_simulate, fail_gently=None, **kwargs):
+        """For each xp in self: run_experiment(xp, ...).
+
+        The results are saved in ``rc.dirs['data']/save_as.stem``,
+        unless ``save_as`` is False/None.
+
+        Depending on ``mp``, run_experiment() is delegated to one of:
+         - caller process (no parallelisation)
+         - multiprocessing on this host
+         - GCP (Google Cloud Computing) with HTCondor
+
+        If ``setup == None``: use ``seed_and_simulate()``.
+
+        The kwargs are forwarded to run_experiment().
+
+        See ``example_2.py`` and ``example_3.py`` for example use.
+        """
+        # TODO 2: doc files and code options in mp, e.g
+        # `files` get added to PYTHONPATH and have dir-structure preserved.
+        # Setup: Experiment initialisation. Default: seed_and_simulate().
+        #   Enables setting experiment variables that are not parameters of a da_method.
+
+        # Collect common args forwarded to run_experiment
+        kwargs['HMM'] = HMM
+        kwargs["setup"] = setup
+
+        # Parse mp option
+        if not mp:
+            mp = dict()
+        elif mp in [True, "MP"]:
+            mp = dict(server="local")
+        elif isinstance(mp, int):
+            mp = dict(server="local", NPROC=mp)
+        elif mp in ["GCP", "Google"]:
+            mp = dict(server="GCP", files=[], code="")
+
+        # Parse fail_gently
+        if fail_gently is None:
+            if mp and mp["server"] == "GCP":
+                fail_gently = False
+                # coz cloud processing is entirely de-coupled anyways
+            else:
+                fail_gently = True
+                # True unless otherwise requested
+        kwargs["fail_gently"] = fail_gently
+
+        # Parse save_as
+        if save_as in [None, False]:
+            assert not mp, "Multiprocessing requires saving data."
+            # Parallelization w/o storing is possible, especially w/ threads.
+            # But it involves more complicated communication set-up.
+            def xpi_dir(*args): return None
+        else:
+            save_as = rc.dirs.data / Path(save_as).stem
+            save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
+            os.makedirs(save_as)
+            print(f"Experiment stored at {save_as}")
+
+            def xpi_dir(i):
+                path = save_as / str(i)
+                os.mkdir(path)
+                return path
+
+        # No parallelization
+        if not mp:
+            for ixp, (xp, label) in enumerate(zip(self, self.gen_names())):
+                run_experiment(xp, label, xpi_dir(ixp), **kwargs)
+
+        # Local multiprocessing
+        elif mp["server"].lower() == "local":
+            def run_with_fixed_args(arg):
+                xp, ixp = arg
+                run_experiment(xp, None, xpi_dir(ixp), **kwargs)
+            args = zip(self, range(len(self)))
+
+            utils.disable_progbar          = True
+            utils.disable_user_interaction = True
+            NPROC = mp.get("NPROC", None)  # None => mp.cpu_count()
+            from dapper.tools.multiprocessing import mpd  # will fail on GCP
+            with mpd.Pool(NPROC) as pool:
+                list(utils.tqdm.tqdm(
+                    pool.imap(
+                        run_with_fixed_args, args),
+                    total=len(self),
+                    desc="Parallel experim's",
+                    smoothing=0.1))
+            utils.disable_progbar          = False
+            utils.disable_user_interaction = False
+
+        # Google cloud platform, multiprocessing
+        elif mp["server"] == "GCP":
+            for ixp, xp in enumerate(self):
+                with open(xpi_dir(ixp)/"xp.var", "wb") as f:
+                    dill.dump(dict(xp=xp), f)
+
+            with open(save_as/"xp.com", "wb") as f:
+                dill.dump(kwargs, f)
+
+            # mkdir extra_files
+            extra_files = save_as / "extra_files"
+            os.mkdir(extra_files)
+            # Default files: .py files in sys.path[0] (main script's path)
+            if not mp.get("files", []):
+                # Todo 4: also intersect(..., sys.modules).
+                # Todo 4: use git ls-tree instead?
+                ff = os.listdir(sys.path[0])
+                mp["files"] = [f for f in ff if f.endswith(".py")]
+            # Copy files into extra_files
+            for f in mp["files"]:
+                if isinstance(f, (str, Path)):
+                    # Example: f = "A.py"
+                    path = Path(sys.path[0]) / f
+                    dst = f
+                else:  # instance of tuple(path, root)
+                    # Example: f = ("~/E/G/A.py", "G")
+                    path, root = f
+                    dst = Path(path).relative_to(root)
+                dst = extra_files / dst
+                os.makedirs(dst.parent, exist_ok=True)
+                try:
+                    shutil.copytree(path, dst)  # dir -r
+                except OSError:
+                    shutil.copy2(path, dst)  # file
+
+            # Loads PWD/xp_{var,com} and calls run_experiment()
+            with open(extra_files/"load_and_run.py", "w") as f:
+                f.write(dedent("""\
+                import dill
+                from dapper.admin import run_experiment
+
+                # Load
+                with open("xp.com", "rb") as f: com = dill.load(f)
+                with open("xp.var", "rb") as f: var = dill.load(f)
+
+                # User-defined code
+                %s
+
+                # Run
+                result = run_experiment(var['xp'], None, ".", **com)
+                """) % dedent(mp["code"]))
+
+            with open(extra_files/"dpr_config.yaml", "w") as f:
+                f.write("\n".join([
+                    "data_root: '$cwd'",
+                    "liveplotting: no",
+                    "welcome_message: no"]))
+            submit_job_GCP(save_as)
+
+        return save_as
 
 
+def get_param_setter(param_dict, **glob_dict):
+    """Mass creation of xp's by combining the value lists in the parameter dicts.
 
+    The parameters are trimmed to the ones available for the given method.
+    This is a good deal more efficient than relying on xpList's unique=True.
 
+    Beware! If, eg., [infl,rot] are in the param_dict, aimed at the EnKF,
+    but you forget that they are also attributes some method where you don't
+    actually want to use them (eg. SVGDF),
+    then you'll create many more than you intend.
+    """
+    def for_params(method, **fixed_params):
+        dc_fields = [f.name for f in dcs.fields(method)]
+        params = dict_tools.intersect(param_dict, dc_fields)
+        params = dict_tools.complement(params, fixed_params)
+        params = {**glob_dict, **params}  # glob_dict 1st
 
+        def xp1(dct):
+            xp = method(**dict_tools.intersect(dct, dc_fields), **fixed_params)
+            for key, v in dict_tools.intersect(dct, glob_dict).items():
+                setattr(xp, key, v)
+            return xp
+
+        return [xp1(dct) for dct in dict_tools.prodct(params)]
+    return for_params

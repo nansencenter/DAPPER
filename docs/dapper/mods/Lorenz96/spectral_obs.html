@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>dapper.mods.Lorenz96.spectral_obs API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>dapper.mods.Lorenz96.spectral_obs</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Lorenz96 is highly sensitive to large gradients.
+# Therefore, if we only observe every 4th (e.g.) state component,
+# the members might &#34;blow up&#34; during the forecast,
+# because the assimilation created large gradients.
+# (Of course, this will depend on R and dtObs).
+# Therefore, the HMM below instead uses &#34;global obs&#34;,
+# where each observation captures information about the entire state vector.
+# The idea is that we can then remove observations, (rows of H)
+# one-by-one, to a much larger degree than for H = Identity.
+
+# Ideally, we want the observations to be independent,
+# and possibly of the same magnitude
+# (i.e. we that the rows of H be orthonormal).
+# Furthermore, we want that each observation gives equal weight
+# (&#34;consideration&#34;) to each state component.
+# This can be shown to be equivalent to requiring that the state
+# component is equally resolved by each observation,
+# and moreover, that the magnitude (abs) of each element of H
+# be a constant (1/sqrt(Nx)).
+
+# Can such an H be constructed/found?
+# In the 2d case: H = [1, 1; 1, -1] / sqrt(2).
+# In the 3d case: no, as can be shown by enumeration.
+# (note, however, how easy my geometric intuition was fooled.
+# Try rotating the 3-dim stensil.
+# Intuitively I thought that it would yield the 3d H of +/- 1&#39;s).
+# ...
+# In fact, only in the 2^n - dimensional case is it possible
+# (our conjecture: Madleine/Patrick, based on analogy with the FFT).
+#
+# Another idea is then to evaluate the value of 40 orthogonal basis
+# functions at 40 equidistant locations
+# (corresponding to the indices of Lorenz96).
+# This will not yield a matrix of +/- 1&#39;s,
+# but should nevertheless give nicely distributed weights.
+
+# Note that the legendre polynomials are not orthogonal when
+# (the inner product is) evaluated on discrete, equidistant points.
+# Moreover, the actual orthogonal polynomial basis
+# (which I think goes under the name of Gram polynomials, and can be
+# constructed by qr-decomp (gram-schmidt) of a 40-dim Vandermonde matrix).
+# would in fact not be a good idea:
+# it is well-known that not only will the qr-decomp be numerically unstable,
+# the exact polynomial interpolant of 40 equidistant points
+# is subject to the &#34;horrible&#34; Runge phenomenon.
+#
+# Another basis is the harmonic (sine/cosine) functions. Advantages:
+#  - will be orthogonal when evaluated on 40 discrete equidistant points.
+#  - the domain of Lorenz96 is periodic: as are sine/cosine.
+#  - (conjecture) in the 2^n dim. case, it yields a matrix of +/- 1&#39;s.
+#  - nice &#34;spectral/frequency&#34; interpretation of each observation.
+# Disadvatages:
+#  - 40 is not 2^n for any n
+#  - Too obvious (not very original).
+#
+# In conclusion, we will use the harmonic functions.
+#
+#
+# Update: It appears that we were wrong concerning the 2^n case.
+# That is, sine/cosine functions do not yield only +/- 1&#39;s for n&gt;2
+# The question then remains (to be proven combinatorically?)
+# if the +/- 1 matrices exist for dim&gt;4
+# Furthermore, experiments do not seem to indicate that I can push
+# Ny much lower than for the case H = Identity,
+# even though the rmse is a lot lower with spectral H.
+# Am I missing something?
+
+
+from dapper.mods.Lorenz96.sakov2008 import Nx, Dyn, t
+import dapper as dpr
+import numpy as np
+
+# The (Nx-Ny) highest frequency observation modes are left out of H below.
+# If Ny&gt;Nx, then H no longer has independent (let alone orthogonal) columns,
+# yet more information is gained, since the observations are noisy.
+Ny = 12
+
+X0 = dpr.GaussRV(M=Nx, C=0.001)
+
+
+def make_H(Ny, Nx):
+    xx   = np.linspace(-1, 1, Nx+1)[1:]
+    H    = np.zeros((Ny, Nx))
+    H[0] = 1/np.sqrt(2)
+    for k in range(-(Ny//2), (Ny+1)//2):
+        ind    = 2*abs(k) - (k &lt; 0)
+        H[ind] = np.sin(np.pi*k*xx + np.pi/4)
+    H /= np.sqrt(Nx/2)
+    return H
+
+
+H = make_H(Ny, Nx)
+# plt.figure(1).gca().matshow(H)
+# plt.figure(2).gca().matshow(H @ H.T)
+
+Obs = {
+    &#39;M&#39;: Ny,
+    &#39;model&#39;: lambda x, t: x @ H.T,
+    &#39;noise&#39;: dpr.GaussRV(C=0.01*np.eye(Ny)),
+}
+
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+
+####################
+# Obs plotting -- needs updating
+####################
+# &#34;raw&#34; obs plotting
+# if Ny&lt;=Nx:
+#     Hinv = H.T
+# else:
+#     Hinv = sla.pinv2(H)
+# def yplot(y):
+#     lh = plt.plot(y @ Hinv.T,&#39;g&#39;)[0]
+#     return lh
+
+# &#34;implicit&#34; (interpolated sine/cosine) obs plotting
+# Hplot = make_H(Ny,max(Ny,201))
+# Hplot_inv = Hplot.T
+# def yplot(y):
+#     x = y @ Hplot_inv.T
+#     ii = np.linspace(0,Nx-1,len(x))
+#     lh = plt.plot(ii,x,&#39;g&#39;)[0]
+#     return lh
+
+
+####################
+# Suggested tuning
+####################
+# xps += EnKF (&#39;Sqrt&#39;,N=40, infl=1.01)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.mods.Lorenz96.spectral_obs.make_H"><code class="name flex">
+<span>def <span class="ident">make_H</span></span>(<span>Ny, Nx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_H(Ny, Nx):
+    xx   = np.linspace(-1, 1, Nx+1)[1:]
+    H    = np.zeros((Ny, Nx))
+    H[0] = 1/np.sqrt(2)
+    for k in range(-(Ny//2), (Ny+1)//2):
+        ind    = 2*abs(k) - (k &lt; 0)
+        H[ind] = np.sin(np.pi*k*xx + np.pi/4)
+    H /= np.sqrt(Nx/2)
+    return H</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+</a>
+</header>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="dapper.mods.Lorenz96" href="index.html">dapper.mods.Lorenz96</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.mods.Lorenz96.spectral_obs.make_H" href="#dapper.mods.Lorenz96.spectral_obs.make_H">make_H</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

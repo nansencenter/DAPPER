@@ -77,3 +77,16 @@ scripts/
 
 dapper/mods/KS/kursiv.m
 
+# Diff
+*.new
+*.old
+
+old_version.zip
+dapper/tools/remote/README.md
+dapper/tools/remote/autoscaler.py
+dapper/tools/remote/deployment/
+dapper/tools/remote/image-creation/
+
+.vim/
+OLDD
+.pylintrc

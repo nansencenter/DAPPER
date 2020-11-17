@@ -1,171 +1,113 @@
 """Data Assimilation with Python: a Package for Experimental Research (DAPPER).
 
-DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods
-using synthetic/twin experiments.
+# Documentation
+
+## README
+
+The README contains the most important documentation. Sections:
+
+- [Highlights](https://github.com/nansencenter/DAPPER#Highlights)
+- [Installation](https://github.com/nansencenter/DAPPER#Installation)
+- [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
+- [Methods](https://github.com/nansencenter/DAPPER#Methods)
+- [Models](https://github.com/nansencenter/DAPPER#Models)
+- [Alternative projects](https://github.com/nansencenter/DAPPER#Alternative projects)
+- [Contributors](https://github.com/nansencenter/DAPPER#Contributors)
+- [Publication list](https://github.com/nansencenter/DAPPER#Publication-list)
+
+## Reference/API docs
+The documentation contained in docstrings can be browsed
+by clicking the links below or in the right sidebar.
+
+## Contributing
+
+### Profiling
+
+```
+# Launch python script: $ kernprof -l -v myprog.py
+# Functions decorated with 'profile' from below will be timed.
+try:
+    import builtins
+    profile = builtins.profile     # will exists if launched via kernprof
+except AttributeError:
+    def profile(func): return func # provide a pass-through version.
+```
+
+### Making a release
+
+- ``cd DAPPER``
+- Bump version number in ``__init__.py`` . Also in docs/conf.py ?
+- Merge dev1 into master::
+
 """
 
 __version__ = "0.9.6"
 
-##################################
-# Standard lib
-##################################
 import sys
-import os
-import itertools
-import warnings
-import traceback
-import re
-import functools
-import configparser
-import builtins
-from time import sleep
-from collections import OrderedDict
 
-assert sys.version_info >= (3,6), "Need Python>=3.6"
+assert sys.version_info >= (3,8), "Need Python>=3.8"
 
+from dapper.tools.series import UncertainQtty
 
-##################################
-# Config
-##################################
-dirs = {}
-dirs['dapper']    = os.path.dirname(os.path.abspath(__file__))
-dirs['DAPPER']    = os.path.dirname(dirs['dapper'])
-
-_rc = configparser.ConfigParser()
-# Load rc files from dapper, user-home, and cwd
-_rc.read(os.path.join(x,'dpr_config.ini') for x in
-    [dirs['dapper'], os.path.expanduser("~"), os.curdir])
-# Convert to dict
-rc = {s:dict(_rc.items(s)) for s in _rc.sections() if s not in ['int','bool']}
-# Parse
-rc['plot']['styles'] = rc['plot']['styles'].replace('$dapper',dirs['dapper']).replace('/',os.path.sep)
-for x in _rc['int' ]: rc[x] = _rc['int' ].getint(x)
-for x in _rc['bool']: rc[x] = _rc['bool'].getboolean(x)
-
-# Define paths
-dirs['data_root'] = os.getcwd() if rc['dirs']['data']=="cwd" else dirs['DAPPER']
-dirs['data_base'] = "dpr_data"
-dirs['data']      = os.path.join(dirs['data_root'], dirs['data_base'])
-dirs['samples']   = os.path.join(dirs['DAPPER']   , dirs['data_base'], "samples")
-
-# Profiling. Decorate the function you wish to time with 'profile' below
-# Then launch program as: $ kernprof -l -v myprog.py
-try:
-    profile = builtins.profile     # will exists if launched via kernprof
-except AttributeError:
-    def profile(func): return func # provide a pass-through version.
-
-if rc['welcome_message']:
-  print("Initializing DAPPER...",flush=True)
+from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
+                    seed_and_simulate, xpList)
+from .da_methods.baseline import Climatology, OptInterp, Var3D
+# DA methods
+from .da_methods.ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
+from .da_methods.extended import ExtKF, ExtRTS
+from .da_methods.other import LNETF, RHF
+from .da_methods.particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
+from .da_methods.variational import Var4D, iEnKS
+from .data_management import (default_fig_adjustments, default_styles,
+                              discretize_cmap, load_xps, make_label, rel_index,
+                              xpSpace)
+from .dpr_config import rc
+from .stats import register_stat
+from .tools.chronos import Chronology
+from .tools.magic import magic_naming, spell_out
+from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, round2,
+                         with_recursion, with_rk4)
+from .tools.matrices import CovMat
+from .tools.randvars import RV, GaussRV
+from .tools.stoch import rand, randn, set_seed
+from .tools.viz import freshfig
 
 
-##################################
-# Scientific
-##################################
-import numpy as np
-import scipy as sp
-import numpy.random
-import scipy.linalg as sla
-import numpy.linalg as nla
-import scipy.stats as ss
+# Documentation management
+# ---
+# # 1. Generation:
+# $ pdoc --force --html --template-dir docs -o ./docs dapper
+# $ open docs/index.html
+# # 2. Hosting:
+# Push updated docs to github.
+# In the main github settings of the repo,
+# go to the "GitHub Pages" section,
+# and set the source to the docs folder.
+def _find_demos(as_path=False):
+    "Find all model demo.py scripts."
+    lst = []
+    for d in (rc.dirs.dapper/"mods").iterdir():
+        x = d/"demo.py"
+        if x.is_file():
+            x = x.relative_to(rc.dirs.DAPPER)
+            if not as_path:
+                x = str(x.with_suffix("")).replace("/", ".")
+            lst.append(x)
+    return lst
 
-from scipy.linalg import svd
-from numpy.linalg import eig
-# eig() of scipy.linalg necessitates using np.real_if_close().
-from scipy.linalg import sqrtm, inv, eigh
-
-from numpy import \
-    pi, nan, \
-    log, log10, exp, sin, cos, tan, \
-    sqrt, floor, ceil, \
-    mean, prod, \
-    diff, cumsum, \
-    array, asarray, asmatrix, \
-    linspace, arange, reshape, \
-    eye, zeros, ones, diag, trace \
-# Don't shadow builtins: sum, max, abs, round, pow
-
-
-##################################
-# Plotting settings
-##################################
-import matplotlib as mpl
-
-# user_is_patrick
-import getpass
-user_is_patrick = getpass.getuser() == 'pataan'
-
-if user_is_patrick:
-  from sys import platform
-  # Try to detect notebook
-  try:
-    __IPYTHON__
-    from IPython import get_ipython
-    is_notebook_or_qt = 'zmq' in str(type(get_ipython())).lower()
-  except (NameError,ImportError):
-    is_notebook_or_qt = False
-  # Switch backend
-  if is_notebook_or_qt:
-    pass # Don't change backend
-  elif platform == 'darwin':
-    try:
-      mpl.use('Qt5Agg') # pip install PyQt5 (and get_screen_size needs qtpy).
-      import matplotlib.pyplot # Trigger (i.e. test) the actual import
-    except ImportError:
-      # Was prettier/stabler/faster than Qt4Agg, but Qt5Agg has caught up.
-      mpl.use('MacOSX')
-
-_BE = mpl.get_backend().lower()
-_LP = rc['liveplotting_enabled']
-if _LP: # Check if we should disable anyway:
-  _LP &= not any([_BE==x for x in ['agg','ps','pdf','svg','cairo','gdk']])
-  # Also disable for inline backends, which are buggy with liveplotting
-  _LP &= 'inline' not in _BE
-  _LP &= 'nbagg'  not in _BE
-  if not _LP:
-    print("\nWarning: interactive/live plotting was requested,")
-    print("but is not supported by current backend: %s."%mpl.get_backend())
-    print("Try another backend in your settings, e.g., mpl.use('Qt5Agg').")
-rc['liveplotting_enabled'] = _LP
-
-# Get Matlab-like interface, and enable interactive plotting
-import matplotlib.pyplot as plt 
-plt.ion()
-
-# Styles
-plt.style.use(rc['plot']['styles'].split(","))
-
-
-##################################
-# Imports from DAPPER package
-##################################
-from .tools.colors import *
-from .tools.utils import *
-from .tools.multiprocessing import *
-from .tools.math import *
-from .tools.chronos import *
-from .tools.stoch import *
-from .tools.series import *
-from .tools.matrices import *
-from .tools.randvars import *
-from .tools.viz import *
-from .tools.liveplotting import *
-from .tools.localization import *
-from .tools.convenience import *
-from .tools.data_management import *
-from .stats import *
-from .admin import *
-from .da_methods.ensemble import *
-from .da_methods.particle import *
-from .da_methods.extended import *
-from .da_methods.baseline import *
-from .da_methods.variational import *
-from .da_methods.other import *
-
-
-if rc['welcome_message']:
-  print("...Done") # ... initializing DAPPER
-  print("PS: Turn off this message in your configuration: dpr_config.ini")
-
-
-
+# This generates a lot of warnings:
+# """UserWarning: __pdoc__-overriden key ... does not exist in module""".
+# AFAICT that's fine. https://github.com/pdoc3/pdoc/issues/206
+# Alternative: Insert this at top of each script to exclude
+# >>> if __name__ != "__main__":
+# >>>     raise RuntimeError("This module may only be run as script.")
+# and run pdoc with --skip-errors.
+__pdoc__ = {
+    "tools.remote.autoscaler": False,
+    **{demo:False for demo in _find_demos()},
+    "dapper.mods.KS.compare_schemes": False,
+    "dapper.mods.LorenzUV.illust_LorenzUV": False,
+    "dapper.mods.LorenzUV.illust_parameterizations": False,
+    "dapper.mods.explore_props": False,
+    "dapper.mods.QG.f90": False,
+}

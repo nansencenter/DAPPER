@@ -1,0 +1,26 @@
+# DAPPER configuration file. DO NOT MODIFY.
+# Instead, overrule it by putting a copy of this file
+# in your home folder or working directory.
+
+
+# Where to store the experimental settings and results.
+# For example, you don't want this to be in your Dropbox.
+# Use "$cwd" for cwd, "$dapper" for where the DAPPER dir is.
+data_root: "~"
+
+# Methods used to average multivariate ("field") stats
+field_summaries:
+  - m    # plain mean
+  - rms  # root-mean-square
+  - ma   # mean-absolute
+  #- gm   # geometric mean
+
+# Curtail heavy computations
+comp_threshold_a: -1
+comp_threshold_b: 51
+comp_threshold_c: -1
+
+sigfig: 4             # Default significant figures
+store_u: no           # Store stats between analysis times?
+liveplotting: yes     # Enable liveplotting?
+place_figs: False     # Place (certain) figures automatically (buggy) ?

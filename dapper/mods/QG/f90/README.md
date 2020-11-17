@@ -30,9 +30,9 @@ contains Fortran90 code for the QG model for building
  1. a python extension module `py_mod`
  2. a standalone program 
 
-Both requires an f90 compiler (tested with g95 and gfortran).  
-In addition  `py_mod` requires `f2py`, while `qg` requires `netcdf` libraries.  
 DAPPER only requires `py_mod` (also to generate intial sample).
+Both require an f90 compiler (tested with g95 and gfortran).  
+In addition  `py_mod` requires `f2py`, while `qg` requires `netcdf` libraries.  
 
 
 ### For DAPPER,

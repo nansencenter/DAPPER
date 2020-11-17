@@ -1,0 +1,1399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>dapper.dict_tools API documentation</title>
+<meta name="description" content="Tools for dicts (and lists) …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>dapper.dict_tools</code></h1>
+</header>
+<section id="section-intro">
+<p>Tools for dicts (and lists).</p>
+<p>Bonus: also some list tools.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Tools for dicts (and lists).
+
+Bonus: also some list tools.&#34;&#34;&#34;
+
+# TODO 9
+# - Make pip package, answer SO.com questions about
+#   https://www.google.com/search?q=python+aligned+dict&amp;oq=python+aligned+dict
+
+import itertools
+import shutil
+import sys
+
+# Since textwrap() only treats strings, while pprint is python-aware,
+# I would have preferred pprint.pformat(width=lw,compact=True,sort_dicts=False),
+# but pprint refuses to use my repr.
+# It also could mess up my recursion guard, which inserts &#34;&lt;Recursion...&gt;&#34;,
+# because it tests for x.startswith(&#34;&lt;&#34;).
+import textwrap
+from _thread import get_ident
+from contextlib import contextmanager
+
+import numpy as np
+
+
+def get0(dct):
+    &#34;&#34;&#34;Get first value.&#34;&#34;&#34;
+    # Bad?: dct[list(dct.keys())[0]]
+    return next(iter(dct.values()))
+
+
+# TODO 4: rm?
+def flexcomp(x, *criteria):
+    &#34;&#34;&#34;Compare in various ways.&#34;&#34;&#34;
+
+    def _compare(x, y):
+        # Callable (condition) compare
+        try:
+            return y(x)
+        except TypeError:
+            pass
+        # Regex compare -- should be compiled on the outside
+        try:
+            return bool(y.search(x))
+        except AttributeError:
+            # Value compare
+            return y == x
+
+    return any(_compare(x, y) for y in criteria)
+
+
+def _intersect(iterable, criteria, inv=False):
+    &#34;&#34;&#34;Keep elements of ``iterable`` that match **any** criteria,
+
+    as evaluated by flexcomp().
+
+    Returns dict/list if ``iterable`` is dict/iterable.&#34;&#34;&#34;
+    def negate(x): return (not x) if inv else x
+    keys = [k for k in iterable if negate(flexcomp(k, *criteria))]
+    if isinstance(iterable, dict):  # Dict
+        return {k: iterable[k] for k in keys}
+    return keys
+
+
+# For some reason, _intersect (with the `inv` switch) is
+# for the brain to parse. Use intersect and complement instead.
+def intersect(iterable, wanteds):
+    return _intersect(iterable, wanteds, inv=False)
+
+
+def complement(iterable, unwanteds):
+    return _intersect(iterable, unwanteds, inv=True)
+
+
+# Complement should be called &#34;relative complement&#34; (or set diff)
+
+
+def prodct(dct):
+    &#34;&#34;&#34;Cartesian/Outer product, for dicts.
+
+    Example:
+    &gt;&gt;&gt; list(prodct(dict(n=[1,2], c=&#39;ab&#39;)))
+    [{&#39;n&#39;: 1, &#39;c&#39;: &#39;a&#39;},
+     {&#39;n&#39;: 1, &#39;c&#39;: &#39;b&#39;},
+     {&#39;n&#39;: 2, &#39;c&#39;: &#39;a&#39;},
+     {&#39;n&#39;: 2, &#39;c&#39;: &#39;b&#39;}]
+
+    Source: https://stackoverflow.com/a/40623158/38281.&#34;&#34;&#34;
+    return (dict(zip(dct, x)) for x in itertools.product(*dct.values()))
+
+
+def transpose_dicts(DD, safe=True):
+    &#34;&#34;&#34;As the name says.
+
+    Incredibly, it is difficult to make this less verbose
+    (the one-liner is unpredicable for non-rectangular cases)
+
+    Example:
+    &gt;&gt;&gt; DD = {chr(97+i): {chr(65+j):i*10+j for j in range(2)}
+                                           for i in range(3)}
+    &gt;&gt;&gt; DD
+    {&#39;a&#39;: {&#39;A&#39;: 0, &#39;B&#39;: 1}, &#39;b&#39;: {&#39;A&#39;: 10, &#39;B&#39;: 11}, &#39;c&#39;: {&#39;A&#39;: 20, &#39;B&#39;: 21}}
+
+    &gt;&gt;&gt; transpose_dicts(DD)
+    {&#39;A&#39;: {&#39;a&#39;: 0, &#39;b&#39;: 10, &#39;c&#39;: 20}, &#39;B&#39;: {&#39;a&#39;: 1, &#39;b&#39;: 11, &#39;c&#39;: 21}}
+    &#34;&#34;&#34;
+    new = {}
+    prev = &#34;UNINITIALIZED&#34;
+    for i in DD:
+
+        # Validate column keys
+        if safe and prev != &#34;UNINITIALIZED&#34;:
+            assert prev == DD[i].keys(), f&#34;Key mismatch for row {i}&#34;
+        prev = DD[i].keys()
+
+        for j in DD[i]:
+            new.setdefault(j, {})[i] = DD[i][j]
+
+    return new
+
+
+def transps(thing2d, *args, **kwargs):
+    &#34;&#34;&#34;Delegates transpose operation to the appropriate function.&#34;&#34;&#34;
+
+    # Is dict? Otherwise assume list (tuple also works).
+    dict1 = isinstance(thing2d, dict)
+    item0 = get0(thing2d) if dict1 else thing2d[0]  # fine since py3.7
+    dict2 = isinstance(item0, dict)
+
+    if       dict1 and     dict2: f = transpose_dicts           # noqa
+    elif     dict1 and not dict2: f = transpose_dict_of_lists   # noqa
+    elif not dict1 and     dict2: f = transpose_list_of_dicts   # noqa
+    elif not dict1 and not dict2: f = transpose_lists           # noqa
+
+    return f(thing2d, *args, **kwargs)
+
+
+def transpose_list_of_dicts(LD, safe=True):
+    &#34;&#34;&#34;
+
+    Example:
+    &gt;&gt;&gt; LD = [{chr(97+j):j for j in range(2)} for i in range(3)]
+    &gt;&gt;&gt; LD
+    [{&#39;a&#39;: 0, &#39;b&#39;: 1}, {&#39;a&#39;: 0, &#39;b&#39;: 1}, {&#39;a&#39;: 0, &#39;b&#39;: 1}]
+    &gt;&gt;&gt; transpose_list_of_dicts(LD)
+    {&#39;a&#39;: [0, 0, 0], &#39;b&#39;: [1, 1, 1]}
+    &#34;&#34;&#34;
+    new = {}
+    prev = &#34;UNINITIALIZED&#34;
+    for i, D in enumerate(LD):
+
+        # Validate column keys
+        if safe and prev != &#34;UNINITIALIZED&#34;:
+            assert prev == D.keys(), f&#34;Key mismatch for dict number {i}&#34;
+        prev = D.keys()
+
+        for j in D:
+            new.setdefault(j, []).append(D[j])
+
+    return new
+
+
+def transpose_dict_of_lists(DL, safe=True):
+    &#34;&#34;&#34;This is essentially a one-liner.
+
+    However, the validation of `safe=True` requires some effort.
+
+    Example:
+    &gt;&gt;&gt; DL = {chr(97+i): [i*10+j for j in range(2)] for i in range(3)}
+    &gt;&gt;&gt; DL
+    {&#39;a&#39;: [0, 1], &#39;b&#39;: [10, 11], &#39;c&#39;: [20, 21]}
+    &gt;&gt;&gt; transpose_dict_of_lists(DL)
+    [{&#39;a&#39;: 0, &#39;b&#39;: 10, &#39;c&#39;: 20}, {&#39;a&#39;: 1, &#39;b&#39;: 11, &#39;c&#39;: 21}]
+    &#34;&#34;&#34;
+
+    # Validate row length
+    if safe:
+        lens = [len(DL[k]) for k in DL]
+        assert all(lens[0] == L for L in lens), &#34;Rows have unqual lengths.&#34;
+
+    # https://stackoverflow.com/q/5558418
+    new = [dict(zip(DL, t)) for t in zip(*DL.values())]
+
+    return new
+
+
+def transpose_lists(LL, safe=True, as_list=False):
+    &#34;&#34;&#34;This is essentially `zip(*LL)`.
+
+    However, the validation of `safe=True` requires some effort,
+    and converting to an explicit list requires another bit.
+
+    Example:
+    &gt;&gt;&gt; LL = [[i*10 + j for j in range(2)] for i in range(3)]
+    &gt;&gt;&gt; LL
+    [[0, 1], [10, 11], [20, 21]]
+    &gt;&gt;&gt; transpose_lists(LL,as_list=True)
+    [[0, 10, 20], [1, 11, 21]]
+    &#34;&#34;&#34;
+    if safe:
+        assert all(len(LL[0]) == len(row) for row in LL)
+
+    new = zip(*LL)  # transpose
+
+    if as_list:
+        # new = list(map(list, new))
+        new = [list(row) for row in new]
+
+    return new
+
+
+# from https://pingfive.typepad.com/blog/2010/04/
+def deep_getattr(obj, name, *default):
+    for n in name.split(&#34;.&#34;):
+        obj = getattr(obj, n, *default)
+    return obj
+
+
+# Rm&#39;d coz it&#39;s what type of obj to set at intermediate hierarchy levels:
+# deep_setattr()
+
+
+def deep_hasattr(obj, name):
+    try:
+        deep_getattr(obj, name)
+        return True
+    except AttributeError:
+        return False
+
+
+MIN_LINEWIDTH = 5
+
+# TODO 4: should also be made thread-safe? Ref _is_being_printed.
+_linewidth = None
+_top_dog = None
+_is_being_printed = set()
+
+
+@contextmanager
+def _shorten_linewidth_by(n):
+    &#34;&#34;&#34;Shorten linewidth parameter. Also works on numpy.&#34;&#34;&#34;
+
+    # Avoid (overhead of) importing numpy if not required.
+    # https://stackoverflow.com/a/30483269/38281
+    if &#34;numpy&#34; in sys.modules:
+        def np_lw(lw): return np.set_printoptions(linewidth=lw)
+    else:  # Provide pass-through
+        def np_lw(lw): return lw
+
+    # Structured (store, try, finally) just like np.printoptions().
+    global _linewidth
+    old = _linewidth
+    try:
+        # Set lw
+        _linewidth -= n
+        _linewidth = max(_linewidth, MIN_LINEWIDTH)
+        np_lw(_linewidth)
+        yield _linewidth
+    finally:
+        # Restore lw
+        _linewidth = old
+        np_lw(old)
+
+
+def _init(user_function):
+    &#34;&#34;&#34;Does two things:
+
+    - Monitor recursion of self.
+
+      - This is done is just like in ``reprlib``
+        whence I learned how to make it thread-safe.
+        One diff. is that here _repr_running is global,
+        which works better for this convoluted example:
+        &gt;&gt;&gt; d1 = AlignedDict(a=1)
+        &gt;&gt;&gt; d1[&#34;d2&#34;] = AlignedDict(self=d1)
+        &gt;&gt;&gt; d1[&#34;lst&#34;] = [d1[&#34;d2&#34;]]
+
+      - Sibling repetition is not recursion.
+
+    - Initializes the linewidth with ``get_terminal_size()``,
+      unless the ``_linewidth`` variable has been set.
+
+    Note: Both of these actions also require clean-up,
+    so there&#39;s a ``finally`` section as well.
+
+    Note: Cannot apply to core printing function (AlignedDict._repr),
+    because each call to AlignedDict creates new (unregistered) id&#39;s.&#34;&#34;&#34;
+
+    def wrapped(self):
+
+        # Set linewidth
+        global _top_dog, _linewidth
+        old_linewidth = _linewidth
+        if _top_dog is None:
+            _top_dog = id(self)
+
+            if _linewidth is None:
+                _linewidth, _ = shutil.get_terminal_size()
+
+        # Turn ON recursion guard
+        id_thread = id(self), get_ident()
+        if id_thread in _is_being_printed:
+            return &#34;&lt;Recurs-%d&gt;&#34; % id(self)
+        # return &#34;...&#34;
+        _is_being_printed.add(id_thread)
+
+        try:
+            result = user_function(self)
+
+        finally:
+            # Turn OFF recursion guard
+            _is_being_printed.discard(id_thread)
+
+            # Restore linewidth
+            if id(self) == _top_dog:
+                _top_dog = None
+                _linewidth = old_linewidth
+
+        return result
+
+    return wrapped
+
+
+class AlignedDict(dict):
+    &#34;&#34;&#34;Dict whose items are printed aligned and line-wrapped.
+
+    Initialized and used just like a regular dict, since only
+    difference to ``dict`` is __str__ and __repr__ (of which
+    the other functions are auxiliaries and hidden).
+
+    Also provides printopts. Example:
+
+    &gt;&gt;&gt; a = np.arange(24)
+    &gt;&gt;&gt; A = a.reshape((4,-1))
+    &gt;&gt;&gt; dct = AlignedDict(a=a, b=99, z=3, A=A)
+    &gt;&gt;&gt; dct[&#34;self&#34;] = dct
+    &gt;&gt;&gt; dct[&#34;sub&#34;] = AlignedDict(x=1,text=&#34;lorem&#34;,self=dct)
+    &gt;&gt;&gt; dct.printopts = dict(excluded=[&#34;z&#34;], aliases={&#34;A&#34;:&#34;matrix&#34;})
+    &gt;&gt;&gt; print(repr(dct))
+
+    Note on ``printopts[&#34;indent&#34;]``:
+    - If not set,
+      then the keys are right-aligned (so that the colons line up),
+      and the values (including multi-line) are printed to their right,
+      allowing them to be placed on the same line as the key.
+      This setting is pretty, unless the keys are really long.
+    - If set (to an integer), then the values are printed on a new line,
+      indented by that (unchanging) length (unless they&#39;re one-liners).
+
+    A similar class is scipy.optimize.OptimizeResult
+
+    See also:
+    - pprint.pformat(x,linewidth,compact=True,sort_dicts=False)
+    - json.dumps(x, indent=4, sort_keys=False, default=repr)
+    But, both of these work recursively, which is NOT our aim.
+    In particular, they need to implement behaviour for all types.
+    &#34;&#34;&#34;
+
+    @_init
+    def __str__(self):
+        return self._repr(is_repr=False)
+
+    @_init
+    def __repr__(self):
+        return self._repr(is_repr=True)
+
+    def _repr(self, is_repr=False):
+        &#34;&#34;&#34;Both __str__ and __repr__ in one!
+
+        Note: if ``self`` is printed as part of a standard object,
+        __repr__ gets called, not __str__.&#34;&#34;&#34;
+
+        # Constants
+        sep = &#34;: &#34;
+        bullet = &#34; &#34; if is_repr else &#34;  - &#34;
+        comma = &#34;,&#34; if is_repr else &#34;&#34;
+        spinechar = &#34; &#34; if is_repr else &#34;¦&#34;  # ¦, ┆, │, ⎸, ▏
+        format_key = repr if is_repr else str
+        format_val = repr if is_repr else str
+
+        # Apply print options
+        dct = self
+        opt = getattr(self, &#34;printopts&#34;, {})
+        dct = intersect(dct,  opt.get(&#34;included&#34;, dct))
+        dct = complement(dct, opt.get(&#34;excluded&#34;, []))
+        dct = {opt.get(&#34;aliases&#34;, {}).get(k, k): v for k, v in dct.items()}
+
+        if &#34;indent&#34; in opt:
+            # LEFT-aligned keys -- indent is fixed, and val is always on newline
+            val_indent = &#34; &#34; * len(bullet) + spinechar.ljust(opt[&#34;indent&#34;])
+        else:
+            # RIGHT-aligned keys -- indent ~ on keys, and val can start on key&#39;s line
+            kWidth = max([len(format_key(k)) for k in dct], default=0)
+            val_indent = &#34; &#34; * len(bullet) + &#34; &#34; * kWidth + spinechar.ljust(len(sep))
+
+            def format_key(key, old=format_key):
+                return old(key).rjust(kWidth)
+
+        def iRepr(key, val):
+            trim = len(val_indent + comma)
+
+            # Try placing on 1 line, but use max() to insure against wrapping
+            if &#34;indent&#34; in opt and (&#34;\n&#34; not in format_val(val)):
+                trim = max(trim, len(bullet + format_key(key) + sep + comma))
+
+            with _shorten_linewidth_by(trim):
+                val = self._wrap_item(format_val(val))
+
+            val = (&#34;\n&#34; + val_indent).join(val)
+
+            if &#34;indent&#34; in opt and (&#34;\n&#34; in val):
+                val = &#34;\n&#34; + val_indent + val  # 1st line also on new line
+
+            return format_key(key) + sep + val
+
+        # dct --&gt; text
+        items = [iRepr(k, v) for k, v in dct.items()]
+
+        # Sort
+        items = self._sort(zip(dct, items))
+
+        # Join
+        txt = (comma + &#34;\n&#34; + bullet).join(items)
+        if len(items) &gt; 1:
+            txt = &#34;\n&#34; + bullet + txt + &#34;\n&#34;
+
+        # Add braces, etc
+        if is_repr:
+            txt = &#34;{&#34; + txt + &#34;}&#34;
+
+        return txt
+
+    # AUX FUNCTIONS
+    @staticmethod
+    def _wrap_item(txt):
+        &#34;&#34;&#34;Wrap txt.&#34;&#34;&#34;
+        lines = txt.splitlines()
+        ll = [textwrap.wrap(line, _linewidth) for line in lines]  # list of lists
+        hang = &#34; &#34;  # No need to shorten_lw for this
+        ll = [w[:1] + [hang + line for line in w[1:]] for w in ll]
+        ll = [k for w in ll for k in w]  # flatten list-of-lists
+        return ll
+
+    def _sort(self, dict_and_texts):
+        ORDR = getattr(self, &#34;printopts&#34;, {}).get(&#34;ordering&#34;, []) or []
+        reverse = getattr(self, &#34;printopts&#34;, {}).get(&#34;reverse&#34;, False)
+
+        def indexer(key_text):
+            key, text = key_text
+            if not isinstance(ORDR, str):  # assume list
+                # Manual ordering.
+                if key in ORDR:
+                    # -10000 =&gt; priority
+                    idx = -10000 + ORDR.index(key)
+                else:
+                    idx = 0  # neutral
+            elif &#34;line&#34; in ORDR:
+                # Line-number count
+                idx = 100 * text.count(&#34;\n&#34;)
+                # Line-length count
+                idx += max(len(line) for line in text.splitlines())
+            elif &#34;alpha&#34; in ORDR:
+                # Alphabetic (tuple compare)
+                idx = key.lower()
+            return idx
+
+        pairs = sorted(dict_and_texts, key=indexer, reverse=reverse)
+        return [text for key, text in pairs]
+
+
+class NicePrint:
+    &#34;&#34;&#34;Provides __repr__ and __str__ by AlignedDict(vars(self)).
+
+    Example usage:
+    &gt;&gt;&gt; class MyClass(NicePrint):
+    &gt;&gt;&gt;     printopts = NicePrint.printopts.copy()
+    &gt;&gt;&gt;     printopts[&#34;excluded&#34;] += [&#34;my_hidden_var&#34;]
+    &gt;&gt;&gt;     printopts[&#34;aliases&#34;] = {&#34;asdf&#34;:&#34;better_name&#34;}
+    &gt;&gt;&gt;     ...
+    &#34;&#34;&#34;
+
+    # _underscored = re.compile(&#39;^_&#39;)
+    _underscored = lambda s: s.startswith(&#34;_&#34;) # noqa
+    printopts = dict(excluded=[_underscored, &#34;printopts&#34;])
+
+    def _repr(self, is_repr=True):
+        cls_name = type(self).__name__ + &#34;(&#34; if is_repr else &#34;&#34;
+        dct = AlignedDict(vars(self))
+        dct.printopts = self.printopts
+        with _shorten_linewidth_by(len(cls_name)):
+            txt = repr(dct) if is_repr else str(dct)
+            txt = (&#34;\n&#34; + &#34; &#34; * len(cls_name)).join(txt.splitlines())
+        return cls_name + txt + (&#34;)&#34; if is_repr else &#34;&#34;)
+
+    @_init
+    def __str__(self):
+        return self._repr(is_repr=False)
+
+    @_init
+    def __repr__(self):
+        return self._repr(is_repr=True)
+
+
+class DotDict(AlignedDict):
+    &#34;&#34;&#34;Dict that *also* supports attribute (dot) access.
+
+    Benefit compared to a dict:
+
+     - Verbosity of ``d[&#39;a&#39;]`` vs. ``d.a``.
+     - Includes ``AlignedDict``.
+
+    DotDict is not terribly hackey, and is quite robust.
+    Similar constructs are quite common, eg IPython/utils/ipstruct.py.
+
+    Main inspiration: https://stackoverflow.com/a/14620633
+    &#34;&#34;&#34;
+
+    printopts = dict(excluded=[&#34;printopts&#34;])
+
+    def __init__(self, *args, **kwargs):
+        &#34;&#34;&#34;Init like a normal dict.&#34;&#34;&#34;
+        super().__init__(*args, **kwargs)  # Make a (normal) dict
+        self.__dict__ = self  # Assign it to self.__dict__
+
+
+# def print_nested(dct):
+#     &#34;&#34;&#34;Print nested dicts&#34;&#34;&#34;
+#
+#     # Note: if a dict is inside of a list (for example),
+#     # it will be printed in the standard fashion,
+#     # despite our overriding the builtins.repr.
+#     # There appears to be no way around this, except,
+#     # like reprlib does, defining custom treatment for each
+#     # type (dicts, list, sets, tuples, deques, etc).
+#
+#     # Another issue is that I dont know how to check if an object
+#     # is suitable for AlignedDict printing or not,
+#     # so this function is restricted to dicts.
+#
+#     @_init
+#     def new_repr(obj):
+#         if hasattr(obj,&#34;items&#34;):
+#             obj = AlignedDict(obj)
+#         return orig_repr(obj)
+#
+#     import builtins
+#     orig_repr = builtins.repr
+#     try:
+#         builtins.repr = new_repr
+#         txt = repr(dct)
+#     finally:
+#         builtins.repr = orig_repr
+#
+#     print(txt)
+
+
+if __name__ == &#34;__main__&#34;:
+    # Note: this setup is purposely messy,
+    # in order to test recursion treatments.
+
+    a = np.arange(24)
+    A = a.reshape((4, -1))
+
+    d1 = dict(a=a, b=99, z=3, A=A)
+    d2 = dict(x=1, lorem=&#34;ipsum&#34;)
+
+    # Dont move this block below (coz then it will contain
+    # d1/d2 recursions, rather than a1/a2)
+    a1 = AlignedDict(d1)
+    a2 = AlignedDict(d2)
+
+    # Json -- cannot handle recursions
+    # import json
+
+    d1[&#34;d2&#34;] = d2
+    # print(&#34;\njson.dumps:\n================&#34;)
+    # print(json.dumps(d1, indent=4, default=repr))
+
+    # pprint
+    # import pprint
+
+    d1[&#34;d2&#34;] = d2
+    d2[&#34;d1&#34;] = d1
+    d1[&#34;lst&#34;] = [0, 1, d2]
+    # print(&#34;\npprint:\n================&#34;)
+    # pprint.pprint(d1,compact=True)
+
+    # Regular dict/print
+    # print(&#34;\nRegular dict/print:\n================&#34;)
+    # print(d1)
+
+    # Add recursions similar to d1/d2
+    # print(&#34;\nAlignedDict:\n================&#34;)
+    a2[&#34;a1&#34;] = a1
+    a1[&#34;a2&#34;] = a2
+    a1[&#34;one&#34;] = AlignedDict(item=&#34;hello&#34;)
+    a1[&#34;empty&#34;] = AlignedDict()
+    a1[&#34;really long name that goes on and on&#34;] = [0, 1, a2]
+
+    a1.printopts = dict(
+        excluded=[&#34;z&#34;],
+        aliases={&#34;A&#34;: &#34;aMatrix&#34;},
+        ordering=&#34;line&#34;,  # or alpha or [&#34;a2&#34;, &#34;self&#34;]
+        # reverse=True,
+    )
+    print(&#34;\nstr:\n================&#34;)
+    print(a1)
+    print(&#34;\nrepr:\n================&#34;)
+    print(repr(a1))
+
+    print(&#34;\n================\nwith const. indent:\n================&#34;)
+
+    a1.printopts[&#34;indent&#34;] = 1
+    a2.printopts = dict(indent=1)
+    print(&#34;\nstr:\n================&#34;)
+    print(a1)
+    print(&#34;\nrepr:\n================&#34;)
+    print(repr(a1))
+
+    print(&#34;\nNicePrint:\n================&#34;)
+
+    class MyClass(NicePrint):
+        printopts = NicePrint.printopts.copy()
+
+        def __init__(self):
+            self._a = 99
+            self.a = np.arange(24)
+            # self.a = 1
+            # self.lorem = &#34;ipsum&#34;
+            # self.lst = np.arange(20)
+
+    obj1 = MyClass()
+    # obj1.obj2 = MyClass()
+    # obj1.self = obj1
+    obj1.printopts[&#34;excluded&#34;] += [&#34;lst&#34;]
+    print(repr(obj1))
+    print(obj1)
+
+    print(&#34;\nDotDict:\n================&#34;)
+    dd = DotDict(a=a, b=99, z=3, A=A)
+    dd.dd2 = DotDict(a=a, b=99, z=3, A=A)
+    dd.self = dd
+    dd.printopts[&#34;excluded&#34;] += [&#34;A&#34;]
+    print(repr(dd))
+    print(dd)
+
+    # Other tests
+    print(&#34;\ndeep_getattr:\n================&#34;)
+    key2 = &#34;self.self.self.self.a&#34;
+    print(key2, &#34;:&#34;, deep_getattr(dd, key2))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.dict_tools.get0"><code class="name flex">
+<span>def <span class="ident">get0</span></span>(<span>dct)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get first value.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get0(dct):
+    &#34;&#34;&#34;Get first value.&#34;&#34;&#34;
+    # Bad?: dct[list(dct.keys())[0]]
+    return next(iter(dct.values()))</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.flexcomp"><code class="name flex">
+<span>def <span class="ident">flexcomp</span></span>(<span>x, *criteria)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compare in various ways.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flexcomp(x, *criteria):
+    &#34;&#34;&#34;Compare in various ways.&#34;&#34;&#34;
+
+    def _compare(x, y):
+        # Callable (condition) compare
+        try:
+            return y(x)
+        except TypeError:
+            pass
+        # Regex compare -- should be compiled on the outside
+        try:
+            return bool(y.search(x))
+        except AttributeError:
+            # Value compare
+            return y == x
+
+    return any(_compare(x, y) for y in criteria)</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.intersect"><code class="name flex">
+<span>def <span class="ident">intersect</span></span>(<span>iterable, wanteds)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def intersect(iterable, wanteds):
+    return _intersect(iterable, wanteds, inv=False)</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.complement"><code class="name flex">
+<span>def <span class="ident">complement</span></span>(<span>iterable, unwanteds)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def complement(iterable, unwanteds):
+    return _intersect(iterable, unwanteds, inv=True)</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.prodct"><code class="name flex">
+<span>def <span class="ident">prodct</span></span>(<span>dct)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cartesian/Outer product, for dicts.</p>
+<p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; list(prodct(dict(n=[1,2], c='ab')))
+[{'n': 1, 'c': 'a'},
+ {'n': 1, 'c': 'b'},
+ {'n': 2, 'c': 'a'},
+ {'n': 2, 'c': 'b'}]
+</code></pre>
+<p>Source: <a href="https://stackoverflow.com/a/40623158/38281.">https://stackoverflow.com/a/40623158/38281.</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def prodct(dct):
+    &#34;&#34;&#34;Cartesian/Outer product, for dicts.
+
+    Example:
+    &gt;&gt;&gt; list(prodct(dict(n=[1,2], c=&#39;ab&#39;)))
+    [{&#39;n&#39;: 1, &#39;c&#39;: &#39;a&#39;},
+     {&#39;n&#39;: 1, &#39;c&#39;: &#39;b&#39;},
+     {&#39;n&#39;: 2, &#39;c&#39;: &#39;a&#39;},
+     {&#39;n&#39;: 2, &#39;c&#39;: &#39;b&#39;}]
+
+    Source: https://stackoverflow.com/a/40623158/38281.&#34;&#34;&#34;
+    return (dict(zip(dct, x)) for x in itertools.product(*dct.values()))</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.transpose_dicts"><code class="name flex">
+<span>def <span class="ident">transpose_dicts</span></span>(<span>DD, safe=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>As the name says.</p>
+<p>Incredibly, it is difficult to make this less verbose
+(the one-liner is unpredicable for non-rectangular cases)</p>
+<p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; DD = {chr(97+i): {chr(65+j):i*10+j for j in range(2)}
+                                       for i in range(3)}
+&gt;&gt;&gt; DD
+{'a': {'A': 0, 'B': 1}, 'b': {'A': 10, 'B': 11}, 'c': {'A': 20, 'B': 21}}
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; transpose_dicts(DD)
+{'A': {'a': 0, 'b': 10, 'c': 20}, 'B': {'a': 1, 'b': 11, 'c': 21}}
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transpose_dicts(DD, safe=True):
+    &#34;&#34;&#34;As the name says.
+
+    Incredibly, it is difficult to make this less verbose
+    (the one-liner is unpredicable for non-rectangular cases)
+
+    Example:
+    &gt;&gt;&gt; DD = {chr(97+i): {chr(65+j):i*10+j for j in range(2)}
+                                           for i in range(3)}
+    &gt;&gt;&gt; DD
+    {&#39;a&#39;: {&#39;A&#39;: 0, &#39;B&#39;: 1}, &#39;b&#39;: {&#39;A&#39;: 10, &#39;B&#39;: 11}, &#39;c&#39;: {&#39;A&#39;: 20, &#39;B&#39;: 21}}
+
+    &gt;&gt;&gt; transpose_dicts(DD)
+    {&#39;A&#39;: {&#39;a&#39;: 0, &#39;b&#39;: 10, &#39;c&#39;: 20}, &#39;B&#39;: {&#39;a&#39;: 1, &#39;b&#39;: 11, &#39;c&#39;: 21}}
+    &#34;&#34;&#34;
+    new = {}
+    prev = &#34;UNINITIALIZED&#34;
+    for i in DD:
+
+        # Validate column keys
+        if safe and prev != &#34;UNINITIALIZED&#34;:
+            assert prev == DD[i].keys(), f&#34;Key mismatch for row {i}&#34;
+        prev = DD[i].keys()
+
+        for j in DD[i]:
+            new.setdefault(j, {})[i] = DD[i][j]
+
+    return new</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.transps"><code class="name flex">
+<span>def <span class="ident">transps</span></span>(<span>thing2d, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Delegates transpose operation to the appropriate function.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transps(thing2d, *args, **kwargs):
+    &#34;&#34;&#34;Delegates transpose operation to the appropriate function.&#34;&#34;&#34;
+
+    # Is dict? Otherwise assume list (tuple also works).
+    dict1 = isinstance(thing2d, dict)
+    item0 = get0(thing2d) if dict1 else thing2d[0]  # fine since py3.7
+    dict2 = isinstance(item0, dict)
+
+    if       dict1 and     dict2: f = transpose_dicts           # noqa
+    elif     dict1 and not dict2: f = transpose_dict_of_lists   # noqa
+    elif not dict1 and     dict2: f = transpose_list_of_dicts   # noqa
+    elif not dict1 and not dict2: f = transpose_lists           # noqa
+
+    return f(thing2d, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.transpose_list_of_dicts"><code class="name flex">
+<span>def <span class="ident">transpose_list_of_dicts</span></span>(<span>LD, safe=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; LD = [{chr(97+j):j for j in range(2)} for i in range(3)]
+&gt;&gt;&gt; LD
+[{'a': 0, 'b': 1}, {'a': 0, 'b': 1}, {'a': 0, 'b': 1}]
+&gt;&gt;&gt; transpose_list_of_dicts(LD)
+{'a': [0, 0, 0], 'b': [1, 1, 1]}
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transpose_list_of_dicts(LD, safe=True):
+    &#34;&#34;&#34;
+
+    Example:
+    &gt;&gt;&gt; LD = [{chr(97+j):j for j in range(2)} for i in range(3)]
+    &gt;&gt;&gt; LD
+    [{&#39;a&#39;: 0, &#39;b&#39;: 1}, {&#39;a&#39;: 0, &#39;b&#39;: 1}, {&#39;a&#39;: 0, &#39;b&#39;: 1}]
+    &gt;&gt;&gt; transpose_list_of_dicts(LD)
+    {&#39;a&#39;: [0, 0, 0], &#39;b&#39;: [1, 1, 1]}
+    &#34;&#34;&#34;
+    new = {}
+    prev = &#34;UNINITIALIZED&#34;
+    for i, D in enumerate(LD):
+
+        # Validate column keys
+        if safe and prev != &#34;UNINITIALIZED&#34;:
+            assert prev == D.keys(), f&#34;Key mismatch for dict number {i}&#34;
+        prev = D.keys()
+
+        for j in D:
+            new.setdefault(j, []).append(D[j])
+
+    return new</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.transpose_dict_of_lists"><code class="name flex">
+<span>def <span class="ident">transpose_dict_of_lists</span></span>(<span>DL, safe=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This is essentially a one-liner.</p>
+<p>However, the validation of <code>safe=True</code> requires some effort.</p>
+<p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; DL = {chr(97+i): [i*10+j for j in range(2)] for i in range(3)}
+&gt;&gt;&gt; DL
+{'a': [0, 1], 'b': [10, 11], 'c': [20, 21]}
+&gt;&gt;&gt; transpose_dict_of_lists(DL)
+[{'a': 0, 'b': 10, 'c': 20}, {'a': 1, 'b': 11, 'c': 21}]
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transpose_dict_of_lists(DL, safe=True):
+    &#34;&#34;&#34;This is essentially a one-liner.
+
+    However, the validation of `safe=True` requires some effort.
+
+    Example:
+    &gt;&gt;&gt; DL = {chr(97+i): [i*10+j for j in range(2)] for i in range(3)}
+    &gt;&gt;&gt; DL
+    {&#39;a&#39;: [0, 1], &#39;b&#39;: [10, 11], &#39;c&#39;: [20, 21]}
+    &gt;&gt;&gt; transpose_dict_of_lists(DL)
+    [{&#39;a&#39;: 0, &#39;b&#39;: 10, &#39;c&#39;: 20}, {&#39;a&#39;: 1, &#39;b&#39;: 11, &#39;c&#39;: 21}]
+    &#34;&#34;&#34;
+
+    # Validate row length
+    if safe:
+        lens = [len(DL[k]) for k in DL]
+        assert all(lens[0] == L for L in lens), &#34;Rows have unqual lengths.&#34;
+
+    # https://stackoverflow.com/q/5558418
+    new = [dict(zip(DL, t)) for t in zip(*DL.values())]
+
+    return new</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.transpose_lists"><code class="name flex">
+<span>def <span class="ident">transpose_lists</span></span>(<span>LL, safe=True, as_list=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This is essentially <code>zip(*LL)</code>.</p>
+<p>However, the validation of <code>safe=True</code> requires some effort,
+and converting to an explicit list requires another bit.</p>
+<p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; LL = [[i*10 + j for j in range(2)] for i in range(3)]
+&gt;&gt;&gt; LL
+[[0, 1], [10, 11], [20, 21]]
+&gt;&gt;&gt; transpose_lists(LL,as_list=True)
+[[0, 10, 20], [1, 11, 21]]
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transpose_lists(LL, safe=True, as_list=False):
+    &#34;&#34;&#34;This is essentially `zip(*LL)`.
+
+    However, the validation of `safe=True` requires some effort,
+    and converting to an explicit list requires another bit.
+
+    Example:
+    &gt;&gt;&gt; LL = [[i*10 + j for j in range(2)] for i in range(3)]
+    &gt;&gt;&gt; LL
+    [[0, 1], [10, 11], [20, 21]]
+    &gt;&gt;&gt; transpose_lists(LL,as_list=True)
+    [[0, 10, 20], [1, 11, 21]]
+    &#34;&#34;&#34;
+    if safe:
+        assert all(len(LL[0]) == len(row) for row in LL)
+
+    new = zip(*LL)  # transpose
+
+    if as_list:
+        # new = list(map(list, new))
+        new = [list(row) for row in new]
+
+    return new</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.deep_getattr"><code class="name flex">
+<span>def <span class="ident">deep_getattr</span></span>(<span>obj, name, *default)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deep_getattr(obj, name, *default):
+    for n in name.split(&#34;.&#34;):
+        obj = getattr(obj, n, *default)
+    return obj</code></pre>
+</details>
+</dd>
+<dt id="dapper.dict_tools.deep_hasattr"><code class="name flex">
+<span>def <span class="ident">deep_hasattr</span></span>(<span>obj, name)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deep_hasattr(obj, name):
+    try:
+        deep_getattr(obj, name)
+        return True
+    except AttributeError:
+        return False</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="dapper.dict_tools.AlignedDict"><code class="flex name class">
+<span>class <span class="ident">AlignedDict</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dict whose items are printed aligned and line-wrapped.</p>
+<p>Initialized and used just like a regular dict, since only
+difference to <code>dict</code> is <strong>str</strong> and <strong>repr</strong> (of which
+the other functions are auxiliaries and hidden).</p>
+<p>Also provides printopts. Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; a = np.arange(24)
+&gt;&gt;&gt; A = a.reshape((4,-1))
+&gt;&gt;&gt; dct = AlignedDict(a=a, b=99, z=3, A=A)
+&gt;&gt;&gt; dct[&quot;self&quot;] = dct
+&gt;&gt;&gt; dct[&quot;sub&quot;] = AlignedDict(x=1,text=&quot;lorem&quot;,self=dct)
+&gt;&gt;&gt; dct.printopts = dict(excluded=[&quot;z&quot;], aliases={&quot;A&quot;:&quot;matrix&quot;})
+&gt;&gt;&gt; print(repr(dct))
+</code></pre>
+<p>Note on <code>printopts["indent"]</code>:
+- If not set,
+then the keys are right-aligned (so that the colons line up),
+and the values (including multi-line) are printed to their right,
+allowing them to be placed on the same line as the key.
+This setting is pretty, unless the keys are really long.
+- If set (to an integer), then the values are printed on a new line,
+indented by that (unchanging) length (unless they're one-liners).</p>
+<p>A similar class is scipy.optimize.OptimizeResult</p>
+<p>See also:
+- pprint.pformat(x,linewidth,compact=True,sort_dicts=False)
+- json.dumps(x, indent=4, sort_keys=False, default=repr)
+But, both of these work recursively, which is NOT our aim.
+In particular, they need to implement behaviour for all types.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AlignedDict(dict):
+    &#34;&#34;&#34;Dict whose items are printed aligned and line-wrapped.
+
+    Initialized and used just like a regular dict, since only
+    difference to ``dict`` is __str__ and __repr__ (of which
+    the other functions are auxiliaries and hidden).
+
+    Also provides printopts. Example:
+
+    &gt;&gt;&gt; a = np.arange(24)
+    &gt;&gt;&gt; A = a.reshape((4,-1))
+    &gt;&gt;&gt; dct = AlignedDict(a=a, b=99, z=3, A=A)
+    &gt;&gt;&gt; dct[&#34;self&#34;] = dct
+    &gt;&gt;&gt; dct[&#34;sub&#34;] = AlignedDict(x=1,text=&#34;lorem&#34;,self=dct)
+    &gt;&gt;&gt; dct.printopts = dict(excluded=[&#34;z&#34;], aliases={&#34;A&#34;:&#34;matrix&#34;})
+    &gt;&gt;&gt; print(repr(dct))
+
+    Note on ``printopts[&#34;indent&#34;]``:
+    - If not set,
+      then the keys are right-aligned (so that the colons line up),
+      and the values (including multi-line) are printed to their right,
+      allowing them to be placed on the same line as the key.
+      This setting is pretty, unless the keys are really long.
+    - If set (to an integer), then the values are printed on a new line,
+      indented by that (unchanging) length (unless they&#39;re one-liners).
+
+    A similar class is scipy.optimize.OptimizeResult
+
+    See also:
+    - pprint.pformat(x,linewidth,compact=True,sort_dicts=False)
+    - json.dumps(x, indent=4, sort_keys=False, default=repr)
+    But, both of these work recursively, which is NOT our aim.
+    In particular, they need to implement behaviour for all types.
+    &#34;&#34;&#34;
+
+    @_init
+    def __str__(self):
+        return self._repr(is_repr=False)
+
+    @_init
+    def __repr__(self):
+        return self._repr(is_repr=True)
+
+    def _repr(self, is_repr=False):
+        &#34;&#34;&#34;Both __str__ and __repr__ in one!
+
+        Note: if ``self`` is printed as part of a standard object,
+        __repr__ gets called, not __str__.&#34;&#34;&#34;
+
+        # Constants
+        sep = &#34;: &#34;
+        bullet = &#34; &#34; if is_repr else &#34;  - &#34;
+        comma = &#34;,&#34; if is_repr else &#34;&#34;
+        spinechar = &#34; &#34; if is_repr else &#34;¦&#34;  # ¦, ┆, │, ⎸, ▏
+        format_key = repr if is_repr else str
+        format_val = repr if is_repr else str
+
+        # Apply print options
+        dct = self
+        opt = getattr(self, &#34;printopts&#34;, {})
+        dct = intersect(dct,  opt.get(&#34;included&#34;, dct))
+        dct = complement(dct, opt.get(&#34;excluded&#34;, []))
+        dct = {opt.get(&#34;aliases&#34;, {}).get(k, k): v for k, v in dct.items()}
+
+        if &#34;indent&#34; in opt:
+            # LEFT-aligned keys -- indent is fixed, and val is always on newline
+            val_indent = &#34; &#34; * len(bullet) + spinechar.ljust(opt[&#34;indent&#34;])
+        else:
+            # RIGHT-aligned keys -- indent ~ on keys, and val can start on key&#39;s line
+            kWidth = max([len(format_key(k)) for k in dct], default=0)
+            val_indent = &#34; &#34; * len(bullet) + &#34; &#34; * kWidth + spinechar.ljust(len(sep))
+
+            def format_key(key, old=format_key):
+                return old(key).rjust(kWidth)
+
+        def iRepr(key, val):
+            trim = len(val_indent + comma)
+
+            # Try placing on 1 line, but use max() to insure against wrapping
+            if &#34;indent&#34; in opt and (&#34;\n&#34; not in format_val(val)):
+                trim = max(trim, len(bullet + format_key(key) + sep + comma))
+
+            with _shorten_linewidth_by(trim):
+                val = self._wrap_item(format_val(val))
+
+            val = (&#34;\n&#34; + val_indent).join(val)
+
+            if &#34;indent&#34; in opt and (&#34;\n&#34; in val):
+                val = &#34;\n&#34; + val_indent + val  # 1st line also on new line
+
+            return format_key(key) + sep + val
+
+        # dct --&gt; text
+        items = [iRepr(k, v) for k, v in dct.items()]
+
+        # Sort
+        items = self._sort(zip(dct, items))
+
+        # Join
+        txt = (comma + &#34;\n&#34; + bullet).join(items)
+        if len(items) &gt; 1:
+            txt = &#34;\n&#34; + bullet + txt + &#34;\n&#34;
+
+        # Add braces, etc
+        if is_repr:
+            txt = &#34;{&#34; + txt + &#34;}&#34;
+
+        return txt
+
+    # AUX FUNCTIONS
+    @staticmethod
+    def _wrap_item(txt):
+        &#34;&#34;&#34;Wrap txt.&#34;&#34;&#34;
+        lines = txt.splitlines()
+        ll = [textwrap.wrap(line, _linewidth) for line in lines]  # list of lists
+        hang = &#34; &#34;  # No need to shorten_lw for this
+        ll = [w[:1] + [hang + line for line in w[1:]] for w in ll]
+        ll = [k for w in ll for k in w]  # flatten list-of-lists
+        return ll
+
+    def _sort(self, dict_and_texts):
+        ORDR = getattr(self, &#34;printopts&#34;, {}).get(&#34;ordering&#34;, []) or []
+        reverse = getattr(self, &#34;printopts&#34;, {}).get(&#34;reverse&#34;, False)
+
+        def indexer(key_text):
+            key, text = key_text
+            if not isinstance(ORDR, str):  # assume list
+                # Manual ordering.
+                if key in ORDR:
+                    # -10000 =&gt; priority
+                    idx = -10000 + ORDR.index(key)
+                else:
+                    idx = 0  # neutral
+            elif &#34;line&#34; in ORDR:
+                # Line-number count
+                idx = 100 * text.count(&#34;\n&#34;)
+                # Line-length count
+                idx += max(len(line) for line in text.splitlines())
+            elif &#34;alpha&#34; in ORDR:
+                # Alphabetic (tuple compare)
+                idx = key.lower()
+            return idx
+
+        pairs = sorted(dict_and_texts, key=indexer, reverse=reverse)
+        return [text for key, text in pairs]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="dapper.dict_tools.DotDict" href="#dapper.dict_tools.DotDict">DotDict</a></li>
+</ul>
+</dd>
+<dt id="dapper.dict_tools.NicePrint"><code class="flex name class">
+<span>class <span class="ident">NicePrint</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Provides <strong>repr</strong> and <strong>str</strong> by AlignedDict(vars(self)).</p>
+<p>Example usage:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; class MyClass(NicePrint):
+&gt;&gt;&gt;     printopts = NicePrint.printopts.copy()
+&gt;&gt;&gt;     printopts[&quot;excluded&quot;] += [&quot;my_hidden_var&quot;]
+&gt;&gt;&gt;     printopts[&quot;aliases&quot;] = {&quot;asdf&quot;:&quot;better_name&quot;}
+&gt;&gt;&gt;     ...
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class NicePrint:
+    &#34;&#34;&#34;Provides __repr__ and __str__ by AlignedDict(vars(self)).
+
+    Example usage:
+    &gt;&gt;&gt; class MyClass(NicePrint):
+    &gt;&gt;&gt;     printopts = NicePrint.printopts.copy()
+    &gt;&gt;&gt;     printopts[&#34;excluded&#34;] += [&#34;my_hidden_var&#34;]
+    &gt;&gt;&gt;     printopts[&#34;aliases&#34;] = {&#34;asdf&#34;:&#34;better_name&#34;}
+    &gt;&gt;&gt;     ...
+    &#34;&#34;&#34;
+
+    # _underscored = re.compile(&#39;^_&#39;)
+    _underscored = lambda s: s.startswith(&#34;_&#34;) # noqa
+    printopts = dict(excluded=[_underscored, &#34;printopts&#34;])
+
+    def _repr(self, is_repr=True):
+        cls_name = type(self).__name__ + &#34;(&#34; if is_repr else &#34;&#34;
+        dct = AlignedDict(vars(self))
+        dct.printopts = self.printopts
+        with _shorten_linewidth_by(len(cls_name)):
+            txt = repr(dct) if is_repr else str(dct)
+            txt = (&#34;\n&#34; + &#34; &#34; * len(cls_name)).join(txt.splitlines())
+        return cls_name + txt + (&#34;)&#34; if is_repr else &#34;&#34;)
+
+    @_init
+    def __str__(self):
+        return self._repr(is_repr=False)
+
+    @_init
+    def __repr__(self):
+        return self._repr(is_repr=True)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="dapper.admin.HiddenMarkovModel" href="admin.html#dapper.admin.HiddenMarkovModel">HiddenMarkovModel</a></li>
+<li><a title="dapper.admin.Operator" href="admin.html#dapper.admin.Operator">Operator</a></li>
+<li><a title="dapper.tools.randvars.RV" href="tools/randvars.html#dapper.tools.randvars.RV">RV</a></li>
+<li><a title="dapper.tools.series.StatPrint" href="tools/series.html#dapper.tools.series.StatPrint">StatPrint</a></li>
+<li><a title="dapper.tools.viz.FigSaver" href="tools/viz.html#dapper.tools.viz.FigSaver">FigSaver</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.dict_tools.NicePrint.printopts"><code class="name">var <span class="ident">printopts</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="dapper.dict_tools.DotDict"><code class="flex name class">
+<span>class <span class="ident">DotDict</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dict that <em>also</em> supports attribute (dot) access.</p>
+<p>Benefit compared to a dict:</p>
+<ul>
+<li>Verbosity of <code>d['a']</code> vs. <code>d.a</code>.</li>
+<li>Includes <code><a title="dapper.dict_tools.AlignedDict" href="#dapper.dict_tools.AlignedDict">AlignedDict</a></code>.</li>
+</ul>
+<p>DotDict is not terribly hackey, and is quite robust.
+Similar constructs are quite common, eg IPython/utils/ipstruct.py.</p>
+<p>Main inspiration: <a href="https://stackoverflow.com/a/14620633">https://stackoverflow.com/a/14620633</a></p>
+<p>Init like a normal dict.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DotDict(AlignedDict):
+    &#34;&#34;&#34;Dict that *also* supports attribute (dot) access.
+
+    Benefit compared to a dict:
+
+     - Verbosity of ``d[&#39;a&#39;]`` vs. ``d.a``.
+     - Includes ``AlignedDict``.
+
+    DotDict is not terribly hackey, and is quite robust.
+    Similar constructs are quite common, eg IPython/utils/ipstruct.py.
+
+    Main inspiration: https://stackoverflow.com/a/14620633
+    &#34;&#34;&#34;
+
+    printopts = dict(excluded=[&#34;printopts&#34;])
+
+    def __init__(self, *args, **kwargs):
+        &#34;&#34;&#34;Init like a normal dict.&#34;&#34;&#34;
+        super().__init__(*args, **kwargs)  # Make a (normal) dict
+        self.__dict__ = self  # Assign it to self.__dict__</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="dapper.dict_tools.AlignedDict" href="#dapper.dict_tools.AlignedDict">AlignedDict</a></li>
+<li>builtins.dict</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="dapper.stats.Avrgs" href="stats.html#dapper.stats.Avrgs">Avrgs</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.dict_tools.DotDict.printopts"><code class="name">var <span class="ident">printopts</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+</a>
+</header>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="dapper" href="index.html">dapper</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.dict_tools.get0" href="#dapper.dict_tools.get0">get0</a></code></li>
+<li><code><a title="dapper.dict_tools.flexcomp" href="#dapper.dict_tools.flexcomp">flexcomp</a></code></li>
+<li><code><a title="dapper.dict_tools.intersect" href="#dapper.dict_tools.intersect">intersect</a></code></li>
+<li><code><a title="dapper.dict_tools.complement" href="#dapper.dict_tools.complement">complement</a></code></li>
+<li><code><a title="dapper.dict_tools.prodct" href="#dapper.dict_tools.prodct">prodct</a></code></li>
+<li><code><a title="dapper.dict_tools.transpose_dicts" href="#dapper.dict_tools.transpose_dicts">transpose_dicts</a></code></li>
+<li><code><a title="dapper.dict_tools.transps" href="#dapper.dict_tools.transps">transps</a></code></li>
+<li><code><a title="dapper.dict_tools.transpose_list_of_dicts" href="#dapper.dict_tools.transpose_list_of_dicts">transpose_list_of_dicts</a></code></li>
+<li><code><a title="dapper.dict_tools.transpose_dict_of_lists" href="#dapper.dict_tools.transpose_dict_of_lists">transpose_dict_of_lists</a></code></li>
+<li><code><a title="dapper.dict_tools.transpose_lists" href="#dapper.dict_tools.transpose_lists">transpose_lists</a></code></li>
+<li><code><a title="dapper.dict_tools.deep_getattr" href="#dapper.dict_tools.deep_getattr">deep_getattr</a></code></li>
+<li><code><a title="dapper.dict_tools.deep_hasattr" href="#dapper.dict_tools.deep_hasattr">deep_hasattr</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="dapper.dict_tools.AlignedDict" href="#dapper.dict_tools.AlignedDict">AlignedDict</a></code></h4>
+</li>
+<li>
+<h4><code><a title="dapper.dict_tools.NicePrint" href="#dapper.dict_tools.NicePrint">NicePrint</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.dict_tools.NicePrint.printopts" href="#dapper.dict_tools.NicePrint.printopts">printopts</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dapper.dict_tools.DotDict" href="#dapper.dict_tools.DotDict">DotDict</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.dict_tools.DotDict.printopts" href="#dapper.dict_tools.DotDict.printopts">printopts</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

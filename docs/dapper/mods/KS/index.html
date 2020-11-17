@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>dapper.mods.KS API documentation</title>
+<meta name="description" content="Implement Kuramoto-Sivashinsky (K-S) system, defined by the nonlinear PDE: …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>dapper.mods.KS</code></h1>
+</header>
+<section id="section-intro">
+<p>Implement Kuramoto-Sivashinsky (K-S) system, defined by the nonlinear PDE:</p>
+<p>u_t = -u*u_x - u_xx - u_xxxx</p>
+<p>See compare_schemes.py for a comparison of time-step integration schemes.
+See demo.py for further description.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Implement Kuramoto-Sivashinsky (K-S) system, defined by the nonlinear PDE:
+
+u_t = -u*u_x - u_xx - u_xxxx
+
+See compare_schemes.py for a comparison of time-step integration schemes.
+See demo.py for further description.
+&#34;&#34;&#34;
+
+import numpy as np
+from dapper.tools.math import with_rk4, integrate_TLM, is1d
+from dapper.dpr_config import DotDict
+from dapper.tools.magic import magic_naming
+import functools
+
+
+# To &amp; from time/Fourier domain -- use reals-only fft
+def fft(u): return np. fft. rfft(u, axis=-1)  # F
+def ifft(v): return np.fft.irfft(v, axis=-1)  # F^{-1}
+
+
+# Do fft to/from Fourier-domain for wrapped function.
+def byFourier(func):
+    @functools.wraps(func)
+    def newfunc(u, *args, **kwargs):
+        return ifft(func(fft(u), *args, **kwargs))
+    return newfunc
+
+
+def Model(dt=0.25, DL=32, Nx=128):
+    &#34;Define step(), x0, etc. Alternative schemes (step_XXX) also implemented.&#34;
+    h = dt  # alias -- prevents o/w in step()
+
+    # Fourier stuff
+    # wave nums for rfft
+    kk = np.append(np.arange(0, Nx/2), 0)*2/DL
+    # wave nums for fft
+    # from dapper.tools.math import ccat
+    # kk = ccat([np.arange(0,Nx/2),[0], np.arange(-Nx/2+1,0)])*2/DL
+    # Alternative method:
+    # kk = np.fft.fftfreq(Nx, DL/Nx/2)
+    # Operators
+    D = 1j*kk          # Differentiation to compute:  F[ u_x ]
+    L = kk**2 - kk**4  # Linear operator for K-S eqn: F[ - u_xx - u_xxxx]
+
+    # NonLinear term (-u*u_x) in Fourier domain via time domain
+    def NL(v):
+        return -0.5 * D * fft(ifft(v).real ** 2)
+
+    # Evolution equation
+    @byFourier
+    def dxdt(v):
+        return NL(v) + L*v
+
+    # Jacobian of dxdt(u)
+    def d2x_dtdx(u):
+        assert is1d(u)
+        dL  = ifft(L * fft(np.eye(Nx))) . T
+        dNL = - ifft(D * fft(np.diag(u))) . T
+        return dL + dNL
+
+    # dstep_dx = FD_Jac(step)
+    def dstep_dx(x, t, dt):
+        return integrate_TLM(d2x_dtdx(x), dt, method=&#39;analytic&#39;)
+
+    # Runge-Kutta -- Requries dt&lt;1e-2:
+    # ------------------------------------------------
+    step_RK4 = with_rk4(dxdt, autonom=True)           # Bad, not recommended.
+    step_RK1 = with_rk4(dxdt, autonom=True, order=1)  # Truly terrible.
+
+    # &#34;Semi-implicit RK3&#34;: explicit RK3 for nonlinear term,
+    # ------------------------------------------------
+    # implicit trapezoidal adjustment for linear term.
+    # Based on github.com/jswhit/pyks (Jeff Whitaker),
+    # who got it from doi.org/10.1175/MWR3214.1.
+    @byFourier
+    def step_SI_RK3(v, t, dt):
+        v0 = v.copy()
+        for n in range(3):
+            dt3 = h/(3-n)
+            v = v0 + dt3*NL(v)
+            v = (v + 0.5*L*dt3*v0)/(1 - 0.5*L*dt3)
+        return v
+
+    # ETD-RK4 -- Integration factor (IF) technique, mixed with RK4.
+    # ------------------------------------------------
+    # Based on kursiv.m of Kassam and Trefethen, 2002,
+    # doi.org/10.1137/S1064827502410633.
+    #
+    # Precompute ETDRK4 scalar quantities
+    E  = np.exp(h*L)       # Integrating factor, eval at dt
+    E2 = np.exp(h*L/2)     # Integrating factor, eval at dt/2
+    # Roots of unity are used to discretize a circular countour...
+    nRoots = 16
+    roots = np.exp(1j * np.pi * (0.5+np.arange(nRoots))/nRoots)
+    # ... the associated integral then reduces to the mean,
+    # g(CL).mean(axis=-1) ~= g(L), whose computation is more stable.
+    CL = h * L[:, None] + roots  # Contour for (each element of) L
+    # E * exact_integral of integrating factor:
+    Q  = h * ((np.exp(CL/2)-1)         / CL).mean(axis=-1).real
+    # RK4 coefficients (modified by Cox-Matthews):
+    f1 = h * ((-4-CL + np.exp(CL)*(4-3*CL+CL**2)) / CL**3).mean(axis=-1).real
+    f2 = h * ((2+CL  + np.exp(CL)*(-2+CL))        / CL**3).mean(axis=-1).real
+    f3 = h * ((-4-3*CL-CL**2+np.exp(CL)*(4-CL))   / CL**3).mean(axis=-1).real
+    #
+
+    @byFourier
+    def step_ETD_RK4(v, t, dt):
+        assert dt == h, \
+            &#34;Model is instantiated with a pre-set dt, &#34; +\
+            &#34;which differs from the requested value&#34;
+        N1  = NL(v)
+        v1  = E2*v  + Q*N1
+        N2a = NL(v1)
+        v2a = E2*v  + Q*N2a
+        N2b = NL(v2a)
+        v2b = E2*v1 + Q*(2*N2b-N1)
+        N3  = NL(v2b)
+        v   = E * v  + N1*f1 + 2*(N2a+N2b)*f2 + N3*f3
+        return v
+
+    # Select the &#34;official&#34; step method
+    step = step_ETD_RK4
+
+    # Generate IC as end-point of ex. from Kassam and Trefethen.
+    # x0_Kassam isn&#39;t convenient, coz prefer {x0 ∈ attractor} to {x0 ∈ basin}.
+    grid = DL*np.pi*np.linspace(0, 1, Nx+1)[1:]
+    x0_Kassam = np.cos(grid/16) * (1 + np.sin(grid/16))
+    x0 = x0_Kassam.copy()
+    for k in range(int(150/h)):
+        x0 = step(x0, np.nan, h)
+
+    # Return dict
+    dd = DotDict(**magic_naming(
+        dt, DL, Nx, x0, x0_Kassam, grid, step,
+        step_ETD_RK4, step_SI_RK3, step_RK4, step_RK1,
+        dxdt, d2x_dtdx, dstep_dx))
+    return dd
+
+
+Tplot = 10</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.mods.KS.bocquet2019" href="bocquet2019.html">bocquet2019</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.mods.KS.fft"><code class="name flex">
+<span>def <span class="ident">fft</span></span>(<span>u)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fft(u): return np. fft. rfft(u, axis=-1)  # F</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.KS.ifft"><code class="name flex">
+<span>def <span class="ident">ifft</span></span>(<span>v)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ifft(v): return np.fft.irfft(v, axis=-1)  # F^{-1}</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.KS.byFourier"><code class="name flex">
+<span>def <span class="ident">byFourier</span></span>(<span>func)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def byFourier(func):
+    @functools.wraps(func)
+    def newfunc(u, *args, **kwargs):
+        return ifft(func(fft(u), *args, **kwargs))
+    return newfunc</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.KS.Model"><code class="name flex">
+<span>def <span class="ident">Model</span></span>(<span>dt=0.25, DL=32, Nx=128)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Define step(), x0, etc. Alternative schemes (step_XXX) also implemented.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Model(dt=0.25, DL=32, Nx=128):
+    &#34;Define step(), x0, etc. Alternative schemes (step_XXX) also implemented.&#34;
+    h = dt  # alias -- prevents o/w in step()
+
+    # Fourier stuff
+    # wave nums for rfft
+    kk = np.append(np.arange(0, Nx/2), 0)*2/DL
+    # wave nums for fft
+    # from dapper.tools.math import ccat
+    # kk = ccat([np.arange(0,Nx/2),[0], np.arange(-Nx/2+1,0)])*2/DL
+    # Alternative method:
+    # kk = np.fft.fftfreq(Nx, DL/Nx/2)
+    # Operators
+    D = 1j*kk          # Differentiation to compute:  F[ u_x ]
+    L = kk**2 - kk**4  # Linear operator for K-S eqn: F[ - u_xx - u_xxxx]
+
+    # NonLinear term (-u*u_x) in Fourier domain via time domain
+    def NL(v):
+        return -0.5 * D * fft(ifft(v).real ** 2)
+
+    # Evolution equation
+    @byFourier
+    def dxdt(v):
+        return NL(v) + L*v
+
+    # Jacobian of dxdt(u)
+    def d2x_dtdx(u):
+        assert is1d(u)
+        dL  = ifft(L * fft(np.eye(Nx))) . T
+        dNL = - ifft(D * fft(np.diag(u))) . T
+        return dL + dNL
+
+    # dstep_dx = FD_Jac(step)
+    def dstep_dx(x, t, dt):
+        return integrate_TLM(d2x_dtdx(x), dt, method=&#39;analytic&#39;)
+
+    # Runge-Kutta -- Requries dt&lt;1e-2:
+    # ------------------------------------------------
+    step_RK4 = with_rk4(dxdt, autonom=True)           # Bad, not recommended.
+    step_RK1 = with_rk4(dxdt, autonom=True, order=1)  # Truly terrible.
+
+    # &#34;Semi-implicit RK3&#34;: explicit RK3 for nonlinear term,
+    # ------------------------------------------------
+    # implicit trapezoidal adjustment for linear term.
+    # Based on github.com/jswhit/pyks (Jeff Whitaker),
+    # who got it from doi.org/10.1175/MWR3214.1.
+    @byFourier
+    def step_SI_RK3(v, t, dt):
+        v0 = v.copy()
+        for n in range(3):
+            dt3 = h/(3-n)
+            v = v0 + dt3*NL(v)
+            v = (v + 0.5*L*dt3*v0)/(1 - 0.5*L*dt3)
+        return v
+
+    # ETD-RK4 -- Integration factor (IF) technique, mixed with RK4.
+    # ------------------------------------------------
+    # Based on kursiv.m of Kassam and Trefethen, 2002,
+    # doi.org/10.1137/S1064827502410633.
+    #
+    # Precompute ETDRK4 scalar quantities
+    E  = np.exp(h*L)       # Integrating factor, eval at dt
+    E2 = np.exp(h*L/2)     # Integrating factor, eval at dt/2
+    # Roots of unity are used to discretize a circular countour...
+    nRoots = 16
+    roots = np.exp(1j * np.pi * (0.5+np.arange(nRoots))/nRoots)
+    # ... the associated integral then reduces to the mean,
+    # g(CL).mean(axis=-1) ~= g(L), whose computation is more stable.
+    CL = h * L[:, None] + roots  # Contour for (each element of) L
+    # E * exact_integral of integrating factor:
+    Q  = h * ((np.exp(CL/2)-1)         / CL).mean(axis=-1).real
+    # RK4 coefficients (modified by Cox-Matthews):
+    f1 = h * ((-4-CL + np.exp(CL)*(4-3*CL+CL**2)) / CL**3).mean(axis=-1).real
+    f2 = h * ((2+CL  + np.exp(CL)*(-2+CL))        / CL**3).mean(axis=-1).real
+    f3 = h * ((-4-3*CL-CL**2+np.exp(CL)*(4-CL))   / CL**3).mean(axis=-1).real
+    #
+
+    @byFourier
+    def step_ETD_RK4(v, t, dt):
+        assert dt == h, \
+            &#34;Model is instantiated with a pre-set dt, &#34; +\
+            &#34;which differs from the requested value&#34;
+        N1  = NL(v)
+        v1  = E2*v  + Q*N1
+        N2a = NL(v1)
+        v2a = E2*v  + Q*N2a
+        N2b = NL(v2a)
+        v2b = E2*v1 + Q*(2*N2b-N1)
+        N3  = NL(v2b)
+        v   = E * v  + N1*f1 + 2*(N2a+N2b)*f2 + N3*f3
+        return v
+
+    # Select the &#34;official&#34; step method
+    step = step_ETD_RK4
+
+    # Generate IC as end-point of ex. from Kassam and Trefethen.
+    # x0_Kassam isn&#39;t convenient, coz prefer {x0 ∈ attractor} to {x0 ∈ basin}.
+    grid = DL*np.pi*np.linspace(0, 1, Nx+1)[1:]
+    x0_Kassam = np.cos(grid/16) * (1 + np.sin(grid/16))
+    x0 = x0_Kassam.copy()
+    for k in range(int(150/h)):
+        x0 = step(x0, np.nan, h)
+
+    # Return dict
+    dd = DotDict(**magic_naming(
+        dt, DL, Nx, x0, x0_Kassam, grid, step,
+        step_ETD_RK4, step_SI_RK3, step_RK4, step_RK1,
+        dxdt, d2x_dtdx, dstep_dx))
+    return dd</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+</a>
+</header>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="dapper.mods" href="../index.html">dapper.mods</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.mods.KS.bocquet2019" href="bocquet2019.html">bocquet2019</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.mods.KS.fft" href="#dapper.mods.KS.fft">fft</a></code></li>
+<li><code><a title="dapper.mods.KS.ifft" href="#dapper.mods.KS.ifft">ifft</a></code></li>
+<li><code><a title="dapper.mods.KS.byFourier" href="#dapper.mods.KS.byFourier">byFourier</a></code></li>
+<li><code><a title="dapper.mods.KS.Model" href="#dapper.mods.KS.Model">Model</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
