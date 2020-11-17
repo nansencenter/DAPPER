@@ -1,4 +1,4 @@
-"""Math tools."""
+"""Math tools: integrators, linear algebra, and convenience funcs."""
 # pylint: disable=unused-argument
 
 import functools

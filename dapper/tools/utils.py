@@ -1,4 +1,4 @@
-"""Utilities (non-math)."""
+"""Utilities (misc, non-math)."""
 
 from pathlib import Path
 import inspect

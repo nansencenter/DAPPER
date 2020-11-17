@@ -1,4 +1,4 @@
-"""Provide (terminal and matplotlib) color definitions and functionality."""
+"""Color definitions & functionality for matplotlib and the terminal."""
 
 import builtins
 import contextlib

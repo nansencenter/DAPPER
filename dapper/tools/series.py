@@ -1,3 +1,5 @@
+"""Time series management and processing."""
+
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
 import dapper.tools.utils as utils

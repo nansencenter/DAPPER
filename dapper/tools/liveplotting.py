@@ -1,3 +1,5 @@
+"""On-line (live) plots of the DA process for various models and methods."""
+
 from dapper.dpr_config import rc
 from dapper.dict_tools import DotDict, deep_getattr
 import dapper.tools.viz as viz

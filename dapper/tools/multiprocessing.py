@@ -1,3 +1,4 @@
+"""Paralellisation via multiprocessing. Wraps pool.map for convenience."""
 
 import functools
 import textwrap
@@ -62,12 +63,12 @@ except ImportError:
 #########################################
 
 if no_MP:
-    def multiproc_map(func, xx, **kwargs):
+    def map(func, xx, **kwargs):
         MP_warn()
         return [func(x, **kwargs) for x in xx]
 
 else:
-    def multiproc_map(func, xx, **kwargs):
+    def map(func, xx, **kwargs):
         """A parallelized version of map.
 
         Similar to::

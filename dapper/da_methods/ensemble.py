@@ -10,7 +10,7 @@ from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0,\
     pad0, reconst, tinv
 from dapper.tools.utils import progbar
 from dapper.tools.matrices import genOG_1, funm_psd
-from dapper.tools.multiprocessing import multiproc_map
+import dapper.tools.multiprocessing as mp
 
 
 @da_method
@@ -546,7 +546,7 @@ class LETKF:
             HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
         R, N1 = HMM.Obs.noise.C, N-1
 
-        _map = multiproc_map if self.mp else map
+        _map = mp.map if self.mp else map
 
         E = X0.sample(N)
         stats.assess(0, E=E)

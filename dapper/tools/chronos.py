@@ -1,4 +1,4 @@
-# Time sequence management
+"""Time sequence management, notably Chronology and Ticker."""
 
 import dapper.dict_tools as dict_tools
 import dapper.tools.utils as utils

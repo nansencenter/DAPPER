@@ -1,12 +1,13 @@
 """Data Assimilation with Python: a Package for Experimental Research (DAPPER).
 
-DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods
-using synthetic/twin experiments.
+See the [**installation**](https://github.com/nansencenter/DAPPER#installation)
+and [**getting started**](https://github.com/nansencenter/DAPPER#getting-started)
+guides in the README.
 
-See the full introduction in the [README](https://github.com/nansencenter/DAPPER)
-In particular
-[installation](https://github.com/nansencenter/DAPPER#installation)
-and [getting started](https://github.com/nansencenter/DAPPER#getting-started)
+# A
+
+## Test
+blah
 """
 
 __version__ = "0.9.6"

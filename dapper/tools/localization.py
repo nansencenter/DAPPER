@@ -1,4 +1,6 @@
-"""A good introduction to localization:
+"""Localization tools, including distance and tapering comps.
+
+A good introduction to localization:
 Sakov (2011), Computational Geosciences:
 'Relation between two common localisation methods for the EnKF'.
 """

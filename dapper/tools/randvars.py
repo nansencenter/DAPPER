@@ -1,4 +1,4 @@
-# Random variables
+"""Classes of random variables."""
 
 from dapper.dict_tools import NicePrint
 from dapper.tools.math import exactly_1d

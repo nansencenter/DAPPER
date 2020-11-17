@@ -1,3 +1,5 @@
+"""Covariance matrix tools."""
+
 from dapper.tools.stoch import randn
 from dapper.tools.math import mrdiv, truncate_rank, svd0, exactly_1d, exactly_2d
 import dapper.tools.utils as utils
