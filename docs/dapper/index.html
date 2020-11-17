@@ -30,40 +30,147 @@ using synthetic/twin experiments.</p>
 In particular
 <a href="https://github.com/nansencenter/DAPPER#installation">installation</a>
 and <a href="https://github.com/nansencenter/DAPPER#getting-started">getting started</a></p>
-<p><span><span class="MathJax_Preview"> a = \frac{a}{b} </span><script type="math/tex; mode=display"> a = \frac{a}{b} </script></span></p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Data Assimilation with Python: a Package for Experimental Research (DAPPER).
+
+DAPPER is a set of templates for benchmarking the performance of data assimilation (DA) methods
+using synthetic/twin experiments.
+
+See the full introduction in the [README](https://github.com/nansencenter/DAPPER)
+In particular
+[installation](https://github.com/nansencenter/DAPPER#installation)
+and [getting started](https://github.com/nansencenter/DAPPER#getting-started)
+&#34;&#34;&#34;
+
+__version__ = &#34;0.9.6&#34;
+
+import sys
+
+assert sys.version_info &gt;= (3,8), &#34;Need Python&gt;=3.8&#34;
+
+from dapper.tools.series import UncertainQtty
+
+from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
+                    seed_and_simulate, xpList)
+from .da_methods.baseline import Climatology, OptInterp, Var3D
+# DA methods
+from .da_methods.ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
+from .da_methods.extended import ExtKF, ExtRTS
+from .da_methods.other import LNETF, RHF
+from .da_methods.particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
+from .da_methods.variational import Var4D, iEnKS
+from .data_management import (default_fig_adjustments, default_styles,
+                              discretize_cmap, load_xps, make_label, rel_index,
+                              xpSpace)
+from .dpr_config import rc
+from .stats import register_stat
+from .tools.chronos import Chronology
+from .tools.magic import magic_naming, spell_out
+from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, round2,
+                         with_recursion, with_rk4)
+from .tools.matrices import CovMat
+from .tools.randvars import RV, GaussRV
+from .tools.stoch import rand, randn, set_seed
+from .tools.viz import freshfig
+
+
+# Documentation management
+# ---
+# # 1. Generation:
+# $ pdoc --force --html --template-dir docs -o ./docs dapper
+# $ open docs/index.html
+# # 2. Hosting:
+# Push updated docs to github.
+# In the main github settings of the repo,
+# go to the &#34;GitHub Pages&#34; section,
+# and set the source to the docs folder.
+def _find_demos(as_path=False):
+    &#34;Find all model demo.py scripts.&#34;
+    lst = []
+    for d in (rc.dirs.dapper/&#34;mods&#34;).iterdir():
+        x = d/&#34;demo.py&#34;
+        if x.is_file():
+            x = x.relative_to(rc.dirs.DAPPER)
+            if not as_path:
+                x = str(x.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
+            lst.append(x)
+    return lst
+
+# This generates a lot of warnings:
+# &#34;&#34;&#34;UserWarning: __pdoc__-overriden key ... does not exist in module&#34;&#34;&#34;.
+# AFAICT that&#39;s fine. https://github.com/pdoc3/pdoc/issues/206
+# Alternative: Insert this at top of each script to exclude
+# &gt;&gt;&gt; if __name__ != &#34;__main__&#34;:
+# &gt;&gt;&gt;     raise RuntimeError(&#34;This module may only be run as script.&#34;)
+# and run pdoc with --skip-errors.
+__pdoc__ = {
+    &#34;tools.remote.autoscaler&#34;: False,
+    **{demo:False for demo in _find_demos()},
+    &#34;dapper.mods.KS.compare_schemes&#34;: False,
+    &#34;dapper.mods.LorenzUV.illust_LorenzUV&#34;: False,
+    &#34;dapper.mods.LorenzUV.illust_parameterizations&#34;: False,
+    &#34;dapper.mods.explore_props&#34;: False,
+    &#34;dapper.mods.QG.f90&#34;: False,
+}</code></pre>
+</details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="dapper.admin" href="admin.html">dapper.admin</a></code></dt>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.admin" href="admin.html">admin</a></code></dt>
 <dd>
 <div class="desc"><p>High-level API. I.e. the main "user-interface" …</p></div>
 </dd>
-<dt><code class="name"><a title="dapper.da_methods" href="da_methods/index.html">dapper.da_methods</a></code></dt>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></dt>
 <dd>
 <div class="desc"><p>Data assimilation methods included with DAPPER.</p></div>
 </dd>
-<dt><code class="name"><a title="dapper.data_management" href="data_management.html">dapper.data_management</a></code></dt>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.data_management" href="data_management.html">data_management</a></code></dt>
 <dd>
 <div class="desc"><p>Tools (notably xpSpace) for processing and presenting experiment data.</p></div>
 </dd>
-<dt><code class="name"><a title="dapper.dict_tools" href="dict_tools.html">dapper.dict_tools</a></code></dt>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></dt>
 <dd>
-<div class="desc"><p>Tools for working with dicts …</p></div>
+<div class="desc"><p>Tools for dicts (and lists) …</p></div>
 </dd>
-<dt><code class="name"><a title="dapper.dpr_config" href="dpr_config.html">dapper.dpr_config</a></code></dt>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.doc_extras" href="doc_extras/index.html">doc_extras</a></code></dt>
+<dd>
+<div class="desc"><p>How to contribute to DAPPER.</p></div>
+</dd>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.dpr_config" href="dpr_config.html">dpr_config</a></code></dt>
 <dd>
 <div class="desc"><p>Load default and user configurations into the rc dict …</p></div>
 </dd>
-<dt><code class="name"><a title="dapper.mods" href="mods/index.html">dapper.mods</a></code></dt>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.mods" href="mods/index.html">mods</a></code></dt>
 <dd>
 <div class="desc"><p>Models included with DAPPER …</p></div>
 </dd>
-<dt><code class="name"><a title="dapper.stats" href="stats.html">dapper.stats</a></code></dt>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.stats" href="stats.html">stats</a></code></dt>
 <dd>
 <div class="desc"><p>Stats computation for the assessment of DA methods.</p></div>
 </dd>
-<dt><code class="name"><a title="dapper.tools" href="tools/index.html">dapper.tools</a></code></dt>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.tools" href="tools/index.html">tools</a></code></dt>
 <dd>
 <div class="desc"><p>If the only tool you have is a hammer, it's hard to eat spaghetti.</p></div>
 </dd>
@@ -72,20 +179,16 @@ and <a href="https://github.com/nansencenter/DAPPER#getting-started">getting sta
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="dapper.profile"><code class="name flex">
-<span>def <span class="ident">profile</span></span>(<span>func)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>
@@ -93,19 +196,33 @@ and <a href="https://github.com/nansencenter/DAPPER#getting-started">getting sta
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="dapper.admin" href="admin.html">dapper.admin</a></code></li>
-<li><code><a title="dapper.da_methods" href="da_methods/index.html">dapper.da_methods</a></code></li>
-<li><code><a title="dapper.data_management" href="data_management.html">dapper.data_management</a></code></li>
-<li><code><a title="dapper.dict_tools" href="dict_tools.html">dapper.dict_tools</a></code></li>
-<li><code><a title="dapper.dpr_config" href="dpr_config.html">dapper.dpr_config</a></code></li>
-<li><code><a title="dapper.mods" href="mods/index.html">dapper.mods</a></code></li>
-<li><code><a title="dapper.stats" href="stats.html">dapper.stats</a></code></li>
-<li><code><a title="dapper.tools" href="tools/index.html">dapper.tools</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="dapper.profile" href="#dapper.profile">profile</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.admin" href="admin.html">admin</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.data_management" href="data_management.html">data_management</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.doc_extras" href="doc_extras/index.html">doc_extras</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.dpr_config" href="dpr_config.html">dpr_config</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.mods" href="mods/index.html">mods</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.stats" href="stats.html">stats</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.tools" href="tools/index.html">tools</a></code></li>
 </ul>
 </li>
 </ul>

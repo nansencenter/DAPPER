@@ -28,6 +28,43 @@ iterative ensemble Kalman filters for strongly …" />
 <p>Reproduce results from Fig 11 of
 M. Bocquet and P. Sakov (2012): 'Combining inflation-free and
 iterative ensemble Kalman filters for strongly nonlinear systems'</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Reproduce results from Fig 11 of
+M. Bocquet and P. Sakov (2012): &#39;Combining inflation-free and
+iterative ensemble Kalman filters for strongly nonlinear systems&#39;&#34;&#34;&#34;
+
+import numpy as np
+
+from dapper.mods.Lorenz63.sakov2012 import HMM
+import dapper as dpr
+# The only diff to sakov2012 is R:
+# bocquet2012 uses 1 and 8, sakov2012 uses 2 (and 8)
+
+HMM.Obs.noise.C = dpr.CovMat(np.eye(3))
+
+HMM.name = HMM.name.replace(&#34;sakov&#34;, &#34;bocquet&#34;)
+
+####################
+# Suggested tuning
+####################
+# from dapper.mods.Lorenz63.bocquet2012 import HMM         # rmse.a:
+# HMM.t.dkObs = 25
+# xps += iEnKS(&#39;Sqrt&#39;, N=10,infl=1.02,rot=True)            # 0.22
+# xps += iEnKS(&#39;Sqrt&#39;, N=3, infl=1.04)                     # 0.23
+# xps += iEnKS(&#39;Sqrt&#39;, N=3, xN=1.0)                        # 0.22
+#
+# HMM.t.dkObs = 5
+# xps += iEnKS(&#39;Sqrt&#39;, N=10,infl=1.02,rot=True)            # 0.13
+# xps += iEnKS(&#39;Sqrt&#39;, N=3, infl=1.02)                     # 0.13
+# xps += iEnKS(&#39;Sqrt&#39;, N=3, xN=1.0)                        # 0.15
+# xps += iEnKS(&#39;Sqrt&#39;, N=3, xN=2.0)                        # 0.14
+#
+# HMM.t.dkObs = 25 and R=8*eye(3):
+# xps += iEnKS(&#39;Sqrt&#39;, N=3, xN=1.0)                        # 0.70</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -39,6 +76,11 @@ iterative ensemble Kalman filters for strongly nonlinear systems'</p>
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

@@ -25,6 +25,81 @@
 <section id="section-intro">
 <p>Load default and user configurations into the rc dict.</p>
 <p>This includes disabling liveplotting if necessary.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Load default and user configurations into the rc dict.
+
+This includes disabling liveplotting if necessary.&#34;&#34;&#34;
+
+import os
+import sys
+from pathlib import Path
+
+import matplotlib as mpl
+import yaml
+
+from dapper.dict_tools import DotDict
+
+##################################
+# Load configurations
+##################################
+dapper_dir = Path(__file__).absolute().parent
+rc = DotDict()
+for d in [dapper_dir, &#34;~&#34;, sys.path[0]]:
+    d = Path(d).expanduser()
+    for prefix in [&#34;.&#34;, &#34;&#34;]:
+        f = d / (prefix+&#34;dpr_config.yaml&#34;)
+        if f.is_file():
+            dct = yaml.load(open(f), Loader=yaml.SafeLoader)
+            if dct:
+                rc.update(dct)
+
+
+##################################
+# Setup dir paths
+##################################
+rc.dirs = DotDict()
+rc.dirs.dapper = dapper_dir
+rc.dirs.DAPPER = rc.dirs.dapper.parent
+# Data path
+x = rc.pop(&#34;data_root&#34;)
+if x.lower() == &#34;$cwd&#34;:
+    x = Path.cwd()
+elif x.lower() == &#34;$dapper&#34;:
+    x = rc.dirs.DAPPER
+else:
+    x = Path(x)
+rc.dirs.data = x / &#34;dpr_data&#34;
+rc.dirs.samples = rc.dirs.data / &#34;samples&#34;
+
+# Expanduser, create dir
+for d in rc.dirs:
+    rc.dirs[d] = rc.dirs[d].expanduser()
+    os.makedirs(rc.dirs[d], exist_ok=True)
+
+
+##################################
+# Disable rc.liveplotting ?
+##################################
+LP = rc.liveplotting
+if LP:
+    backend = mpl.get_backend().lower()
+    non_interactive = [&#39;agg&#39;, &#39;ps&#39;, &#39;pdf&#39;, &#39;svg&#39;, &#39;cairo&#39;, &#39;gdk&#39;]
+    LP &amp;= not any([backend == x for x in non_interactive])
+    # Also disable for inline backends, which are buggy with liveplotting
+    LP &amp;= &#39;inline&#39; not in backend
+    LP &amp;= &#39;nbagg&#39; not in backend
+    if not LP:
+        print(&#34;\nWarning: You have not disableed interactive/live plotting&#34;
+              &#34; in your dpr_config.py,&#34;
+              &#34; but this is not supported by current backend:&#34;
+              f&#34; {mpl.get_backend()}.&#34;
+              &#34; To enable it, try using another backend,&#34;
+              &#34; e.g., mpl.use(&#39;Qt5Agg&#39;).\n&#34;)
+rc.liveplotting = LP</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -36,6 +111,11 @@
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

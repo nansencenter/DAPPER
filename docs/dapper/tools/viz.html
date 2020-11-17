@@ -24,6 +24,836 @@
 </header>
 <section id="section-intro">
 <p>Tools for plotting.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Tools for plotting.&#34;&#34;&#34;
+
+import itertools
+import os
+import warnings
+from pathlib import Path
+import textwrap
+import time
+import inspect
+
+import numpy as np
+from numpy import array, arange
+import scipy.linalg as sla
+
+import matplotlib as mpl
+from matplotlib import pyplot as plt
+from matplotlib import ticker
+from matplotlib import transforms as mtransforms
+from matplotlib.ticker import MaxNLocator
+from matplotlib.patches import Ellipse
+from matplotlib.animation import FuncAnimation
+from matplotlib.gridspec import GridSpec
+from matplotlib.widgets import CheckButtons
+from scipy.interpolate import interp1d
+
+from dapper.tools.math import ccat
+import dapper.tools.series as series
+from dapper.dict_tools import NicePrint
+from dapper.dpr_config import rc
+import dapper.tools.utils as utils
+from dapper.tools.math import round2
+
+
+def setup_wrapping(M, periodicity=None):
+    &#34;&#34;&#34;
+    Wrap the state indices and
+    create a function that does the same for state vectors (or and ensemble thereof).
+
+    - &#39;periodicity&#39; defines the mode of the wrapping.
+      Default: &#34;+1&#34;, meaning that the first element is appended after the last.
+    &#34;&#34;&#34;
+
+    if periodicity in (None, True):
+        periodicity = &#34;+1&#34;
+
+    if periodicity == &#34;+1&#34;:
+        ii = arange(M+1)
+
+        def wrap(E):
+            return E[..., list(range(M))+[0]]
+
+    elif periodicity == &#34;+/-05&#34;:
+        ii = np.hstack([-0.5, arange(M), M-0.5])
+
+        def wrap(E):
+            midpoint = (E[..., [0]] + E[..., [-1]])/2
+            return ccat(midpoint, E, midpoint, axis=-1)
+
+    else:
+        ii = arange(M)
+        def wrap(x): return x
+
+    return ii, wrap
+
+
+def amplitude_animation(EE, dt=None, interval=1,
+                        periodicity=None, blit=True,
+                        fignum=None, repeat=False):
+    fig, ax = freshfig(fignum)
+    ax.set_xlabel(&#39;State index&#39;)
+    ax.set_ylabel(&#39;Amplitue&#39;)
+    ax.set_ylim(*stretch(*xtrema(EE), 1.1))
+
+    if EE.ndim == 2:
+        EE = np.expand_dims(EE, 1)
+    K, N, Nx = EE.shape
+
+    ii, wrap = setup_wrapping(Nx, periodicity)
+
+    lines = ax.plot(ii, wrap(EE[0]).T)
+    ax.set_xlim(*xtrema(ii))
+
+    if dt is not None:
+        times = &#39;time = %.1f&#39;
+        lines += [ax.text(0.05, 0.9, &#39;&#39;, transform=ax.transAxes)]
+
+    def anim(k):
+        Ek = wrap(EE[k])
+        for n in range(N):
+            lines[n].set_ydata(Ek[n])
+        if len(lines) &gt; N:
+            lines[-1].set_text(times % (dt*k))
+        return lines
+
+    return FuncAnimation(fig, anim, range(K),
+                         interval=interval, blit=blit,
+                         repeat=repeat)
+
+
+def adjust_position(ax, adjust_extent=False, **kwargs):
+    &#34;&#34;&#34;
+    Adjust values (add) to get_position().
+    kwarg must be one of &#39;x0&#39;,&#39;y0&#39;,&#39;width&#39;,&#39;height&#39;.
+    &#34;&#34;&#34;
+    # Load get_position into d
+    pos = ax.get_position()
+    d = {}
+    for key in [&#39;x0&#39;, &#39;y0&#39;, &#39;width&#39;, &#39;height&#39;]:
+        d[key] = getattr(pos, key)
+    # Make adjustments
+    for key, item in kwargs.items():
+        d[key] += item
+        if adjust_extent:
+            if key == &#39;x0&#39;:
+                d[&#39;width&#39;]  -= item
+            if key == &#39;y0&#39;:
+                d[&#39;height&#39;] -= item
+    # Set
+    ax.set_position(d.values())
+
+
+def xtrema(xx, axis=None):
+    a = np.nanmin(xx, axis)
+    b = np.nanmax(xx, axis)
+    return a, b
+
+
+def stretch(a, b, factor=1, int=False):
+    &#34;&#34;&#34;
+    Stretch distance a-b by factor.
+    Return a,b.
+    If int: floor(a) and ceil(b)
+    &#34;&#34;&#34;
+    c = (a+b)/2
+    a = c + factor*(a-c)
+    b = c + factor*(b-c)
+    if int:
+        a = np.floor(a)
+        b = np.ceil(b)
+    return a, b
+
+
+def set_ilim(ax, i, Min=None, Max=None):
+    &#34;&#34;&#34;Set bounds on axis i.&#34;&#34;&#34;
+    if i == 0:
+        ax.set_xlim(Min, Max)
+    if i == 1:
+        ax.set_ylim(Min, Max)
+    if i == 2:
+        ax.set_zlim(Min, Max)
+
+# Examples:
+# K_lag = estimate_good_plot_length(stats.xx,chrono,mult = 80)
+
+
+def estimate_good_plot_length(xx, chrono=None, mult=100):
+    &#34;&#34;&#34;
+    Estimate good length for plotting stuff
+    from the time scale of the system.
+    Provide sensible fall-backs (better if chrono is supplied).
+    &#34;&#34;&#34;
+    if xx.ndim == 2:
+        # If mult-dim, then average over dims (by ravel)....
+        # But for inhomogeneous variables, it is important
+        # to subtract the mean first!
+        xx = xx - np.mean(xx, axis=0)
+        xx = xx.ravel(order=&#39;F&#39;)
+
+    try:
+        K = mult * series.estimate_corr_length(xx)
+    except ValueError:
+        K = 0
+
+    if chrono is not None:
+        t = chrono
+        K = int(min(max(K, t.dkObs), t.K))
+        T = round2(t.tt[K], 2)  # Could return T; T&gt;tt[-1]
+        K = utils.find_1st_ind(t.tt &gt;= T)
+        if K:
+            return K
+        else:
+            return t.K
+    else:
+        K = int(min(max(K, 1), len(xx)))
+        T = round2(K, 2)
+        return K
+
+
+def plot_pause(interval):
+    &#34;&#34;&#34;Similar to plt.pause(), but doesn&#39;t focus window.
+
+    NB: doesn&#39;t create windows either.
+    For that, use plt.pause() or plt.show() instead.&#34;&#34;&#34;
+
+    # plt.pause(0) just seems to freeze execution.
+    if interval == 0:
+        return
+
+    try:
+        # Implement plt.pause() that doesn&#39;t focus window, c.f.
+        # https://github.com/matplotlib/matplotlib/issues/11131
+        # https://stackoverflow.com/q/45729092
+        # Only necessary for some platforms (e.g. Windows) and mpl versions.
+        # Even then, mere figure creation may steal the focus.
+        # This was done deliberately:
+        # https://github.com/matplotlib/matplotlib/pull/6384#issue-69259165
+        # https://github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
+        # from matplotlib import _pylab_helpers
+
+        def _plot_pause(interval,  focus_figure=True):
+            canvas = plt.gcf().canvas
+            manager = canvas.manager
+            if manager is not None:
+                if canvas.figure.stale:
+                    canvas.draw_idle()
+                if focus_figure:
+                    plt.show(block=False)
+                # if not is_notebook: # also see below
+                if True:
+                    canvas.start_event_loop(interval)
+            else:
+                time.sleep(interval)
+        _plot_pause(interval, focus_figure=False)
+
+    except: # noqa
+        # Jupyter notebook support: https://stackoverflow.com/q/34486642
+        # Note: no longer needed with the above _plot_pause()?
+        plt.gcf().canvas.draw()
+        time.sleep(0.1)
+
+
+def plot_hovmoller(xx, chrono=None, **kwargs):
+    &#34;&#34;&#34;
+    Plot Hovmöller diagram.
+    &#34;&#34;&#34;
+    fig, ax = freshfig(26, figsize=(4, 3.5), loc=&#39;331-22&#39;)
+
+    if chrono is not None:
+        mask = chrono.tt &lt;= chrono.Tplot*2
+        kk   = chrono.kk[mask]
+        tt   = chrono.tt[mask]
+        ax.set_ylabel(&#39;Time (t)&#39;)
+    else:
+        K    = estimate_good_plot_length(xx, mult=20)
+        kk   = arange(K)
+        tt   = kk
+        ax.set_ylabel(&#39;Time indices (k)&#39;)
+
+    plt.contourf(arange(xx.shape[1]), tt, xx[kk], 25)
+    plt.colorbar()
+    ax.get_xaxis().set_major_locator(MaxNLocator(integer=True))
+    ax.set_title(&#34;Hovmoller diagram (of &#39;Truth&#39;)&#34;)
+    ax.set_xlabel(&#39;Dimension index (i)&#39;)
+
+    plot_pause(0.1)
+    plt.tight_layout()
+
+
+def integer_hist(E, N, centrd=False, weights=None, **kwargs):
+    &#34;&#34;&#34;Histogram for integers.&#34;&#34;&#34;
+    ax = plt.gca()
+    rnge = (-0.5, N+0.5) if centrd else (0, N+1)
+    ax.hist(E, bins=N+1, range=rnge, density=True, weights=weights, **kwargs)
+    ax.set_xlim(rnge)
+
+
+def not_available_text(ax, txt=None, fs=20):
+    if txt is None:
+        txt = &#39;[Not available]&#39;
+    else:
+        txt = &#39;[&#39; + txt + &#39;]&#39;
+    ax.text(0.5, 0.5, txt,
+            fontsize=fs,
+            transform=ax.transAxes,
+            va=&#39;center&#39;, ha=&#39;center&#39;,
+            wrap=True)
+
+
+def plot_err_components(stats):
+    &#34;&#34;&#34;Plot components of the error.
+
+    .. note::
+      it was chosen to plot(ii, mean_in_time(abs(err_i))),
+      and thus the corresponding spread measure is MAD.
+      If one chose instead: plot(ii, std_in_time(err_i)),
+      then the corresponding measure of spread would have been std.
+      This choice was made in part because (wrt. subplot 2)
+      the singular values (svals) correspond to rotated MADs,
+      and because rms(umisf) seems to convoluted for interpretation.
+    &#34;&#34;&#34;
+    fig, (ax0, ax1, ax2) = freshfig(25, figsize=(6, 6), loc=&#39;1313&#39;, nrows=3)
+
+    chrono = stats.HMM.t
+    Nx     = stats.xx.shape[1]
+
+    err   = np.mean(np.abs(stats.err  .a), 0)
+    sprd  = np.mean(stats.mad  .a, 0)
+    umsft = np.mean(np.abs(stats.umisf.a), 0)
+    usprd = np.mean(stats.svals.a, 0)
+
+    ax0.plot(arange(Nx),               err, &#39;k&#39;, lw=2, label=&#39;Error&#39;)
+    if Nx &lt; 10**3:
+        ax0.fill_between(arange(Nx), [0]*len(sprd), sprd, alpha=0.7, label=&#39;Spread&#39;)
+    else:
+        ax0.plot(arange(Nx),              sprd, alpha=0.7, label=&#39;Spread&#39;)
+    # ax0.set_yscale(&#39;log&#39;)
+    ax0.set_title(&#39;Element-wise error comparison&#39;)
+    ax0.set_xlabel(&#39;Dimension index (i)&#39;)
+    ax0.set_ylabel(&#39;Time-average (_a) magnitude&#39;)
+    ax0.set_xlim(0, Nx-1)
+    ax0.get_xaxis().set_major_locator(MaxNLocator(integer=True))
+    ax0.legend(loc=&#39;upper right&#39;)
+
+    ax1.set_xlim(0, Nx-1)
+    ax1.set_xlabel(&#39;Principal component index&#39;)
+    ax1.set_ylabel(&#39;Time-average (_a) magnitude&#39;)
+    ax1.set_title(&#39;Spectral error comparison&#39;)
+    has_been_computed = np.any(np.isfinite(umsft))
+    if has_been_computed:
+        L = len(umsft)
+        ax1.plot(arange(L),      umsft, &#39;k&#39;, lw=2, label=&#39;Error&#39;)
+        ax1.fill_between(arange(L), [0]*L, usprd, alpha=0.7, label=&#39;Spread&#39;)
+        ax1.set_yscale(&#39;log&#39;)
+        ax1.get_xaxis().set_major_locator(MaxNLocator(integer=True))
+    else:
+        not_available_text(ax1)
+
+    rmse = stats.err_rms.a[chrono.maskObs_BI]
+    ax2.hist(rmse, bins=30, density=False)
+    ax2.set_ylabel(&#39;Num. of occurence (_a)&#39;)
+    ax2.set_xlabel(&#39;RMSE&#39;)
+    ax2.set_title(&#39;Histogram of RMSE values&#39;)
+    ax2.set_xlim(left=0)
+
+    plot_pause(0.1)
+    plt.tight_layout()
+
+
+def plot_rank_histogram(stats):
+    chrono = stats.HMM.t
+
+    has_been_computed = \
+        hasattr(stats, &#39;rh&#39;) and \
+        not all(stats.rh.a[-1] == array(np.nan).astype(int))
+
+    fig, ax = freshfig(24, (6, 3), loc=&#34;3313&#34;)
+    ax.set_title(&#39;(Mean of marginal) rank histogram (_a)&#39;)
+    ax.set_ylabel(&#39;Freq. of occurence\n (of truth in interval n)&#39;)
+    ax.set_xlabel(&#39;ensemble member index (n)&#39;)
+
+    if has_been_computed:
+        ranks = stats.rh.a[chrono.maskObs_BI]
+        Nx    = ranks.shape[1]
+        N     = stats.xp.N
+        if not hasattr(stats, &#39;w&#39;):
+            # Ensemble rank histogram
+            integer_hist(ranks.ravel(), N)
+        else:
+            # Experimental: weighted rank histogram.
+            # Weight ranks by inverse of particle weight. Why? Coz, with correct
+            # importance weights, the &#34;expected value&#34; histogram is then flat.
+            # Potential improvement: interpolate weights between particles.
+            w  = stats.w.a[chrono.maskObs_BI]
+            K  = len(w)
+            w  = np.hstack([w, np.ones((K, 1))/N])  # define weights for rank N+1
+            w  = array([w[arange(K), ranks[arange(K), i]] for i in range(Nx)])
+            w  = w.T.ravel()
+            # Artificial cap. Reduces variance, but introduces bias.
+            w  = np.maximum(w, 1/N/100)
+            w  = 1/w
+            integer_hist(ranks.ravel(), N, weights=w)
+    else:
+        not_available_text(ax)
+
+    plot_pause(0.1)
+    plt.tight_layout()
+
+
+def adjustable_box_or_forced():
+    &#34;For set_aspect(), adjustable=&#39;box-forced&#39; replaced by &#39;box&#39; since mpl 2.2.0.&#34;
+    from pkg_resources import parse_version as pv
+    return &#39;box-forced&#39; if pv(mpl.__version__) &lt; pv(&#34;2.2.0&#34;) else &#39;box&#39;
+
+
+def freshfig(num=None, figsize=None, *args, **kwargs):
+    &#34;&#34;&#34;Create/clear figure.
+
+    Similar to::
+
+      fig, ax = suplots(*args,**kwargs)
+
+    With the modification that:
+
+    - If the figure does not exist: create it.
+      This allows for figure sizing -- even with mpl backend MacOS.
+      Also place figure.
+    - Otherwise: clear figure.
+      Avoids closing/opening so as to keep pos and size.
+    &#34;&#34;&#34;
+    exists = plt.fignum_exists(num)
+
+    fig = plt.figure(num=num, figsize=figsize)
+
+    # Deal with warning bug
+    # https://github.com/matplotlib/matplotlib/issues/9970
+    with warnings.catch_warnings():
+        warnings.simplefilter(&#34;ignore&#34;, category=UserWarning)
+        fig.clf()
+
+    loc = kwargs.pop(&#39;loc&#39;, None)
+    if not exists and loc:
+        fig_place(loc, fig)
+
+    _, ax = plt.subplots(num=fig.number, *args, **kwargs)
+    return fig, ax
+
+
+def show_figs(fignums=None):
+    &#34;&#34;&#34;Move all fig windows to top&#34;&#34;&#34;
+    if fignums is None:
+        fignums = plt.get_fignums()
+    try:
+        fignums = list(fignums)
+    except: # noqa
+        fignums = [fignums]
+    for f in fignums:
+        plt.figure(f)
+        fmw = plt.get_current_fig_manager().window
+        fmw.attributes(&#39;-topmost&#39;, 1)  # Bring to front, but
+        fmw.attributes(&#39;-topmost&#39;, 0)  # don&#39;t keep in front
+
+
+def get_fig(fignum=None):
+    &#34;Get/validate fig handle&#34;
+    if fignum is None:
+        return plt.gcf()
+    elif isinstance(fignum, mpl.figure.Figure):
+        return fignum
+    else:
+        return plt.figure(fignum)
+
+
+def get_fmw(fignum=None):
+    fig = get_fig(fignum)
+    fmw = fig.canvas.manager.window
+    # fmw = plt.get_current_fig_manager().window
+    return fmw
+
+
+def get_screen_size():
+    &#34;&#34;&#34;Get **available** screen size/resolution.&#34;&#34;&#34;
+    if mpl.get_backend().startswith(&#39;Qt&#39;):
+        # Inspired by spyder/widgets/shortcutssummary.py
+        from qtpy.QtWidgets import QDesktopWidget  # noqa
+        widget = QDesktopWidget()
+        sg = widget.availableGeometry(widget.primaryScreen())
+        x0 = sg.x()
+        y0 = sg.y()
+        w0 = sg.width()
+        h0 = sg.height()
+    elif mpl.get_backend() == &#34;TkAgg&#34;:
+        # https://stackoverflow.com/a/42951711/38281
+        window = plt.get_current_fig_manager().window
+        x0, y0 = 0, 0
+        w0, h0 = window.wm_maxsize()
+        # h = window.winfo_screenheight()
+        # w = window.winfo_screenwidth()
+    else:
+        # Mac Retina Early 2013
+        x0 = 0
+        y0 = 23
+        w0 = 1280
+        h0 = 773
+    return x0, y0, w0, h0
+
+
+def fig_rel_geometry(fignum=None, x=None, y=None, w=None, h=None):
+    &#34;&#34;&#34;Place figure on screen, in coordinates relative (between 0 and 1).&#34;&#34;&#34;
+    try:
+        fmw = get_fmw(fignum)
+    except AttributeError:
+        return  # do nothing
+
+    x0, y0, w0, h0 = get_screen_size()
+
+    # It seems the window footers are not taken into account
+    # by the geometry settings. Correct for this:
+    footer = 0.028*(h0+y0)
+
+    # Current values (Qt4Agg only!):
+    w = w if w is not None else fmw.width() / w0
+    h = h if h is not None else fmw.height()/h0
+    x = x if x is not None else fmw.x()     / w0
+    y = y if y is not None else fmw.y()     / h0
+
+    x = x0 + x*w0
+    y = y0 + y*h0 + footer
+    w = w*w0
+    h = h*h0 - footer
+
+    try:  # For Qt4Agg/Qt5Agg
+        fmw.setGeometry(x, y, w, h)
+    except: # noqa # For TkAgg
+        geo = f&#34;{int(w)}x{int(h)}+{int(x)}+{int(y)}&#34;
+        fmw.geometry(newGeometry=geo)
+
+
+def fig_place(loc, fignum=None):
+    &#34;&#34;&#34;Place figure on screen.
+
+    - loc: string that defines the figures new geometry, given either as
+       * NW, E, ...
+       * 4 digits (as str or int) to define grid M,N,i,j.
+
+    Example:
+    &gt;&gt;&gt; N = 3
+    &gt;&gt;&gt; for i in 1+arange(N):
+    &gt;&gt;&gt;   loc = str(N)*2 + str(i)*2
+    &gt;&gt;&gt;   fig_place(loc, i)
+    &#34;&#34;&#34;
+
+    # NB: Experimental. Fails on some systems/backends.
+    if not rc.place_figs:
+        return
+
+    loc = str(loc)
+    loc = loc.replace(&#34;,&#34;, &#34;&#34;)
+    if not loc[:4].isnumeric():
+        if loc.startswith(&#39;NW&#39;):
+            loc = &#39;2211&#39;
+        elif loc.startswith(&#39;SW&#39;):
+            loc = &#39;2221&#39;
+        elif loc.startswith(&#39;NE&#39;):
+            loc = &#39;2212&#39;
+        elif loc.startswith(&#39;SE&#39;):
+            loc = &#39;2222&#39;
+        elif loc.startswith(&#39;W&#39;):
+            loc = &#39;1211&#39;
+        elif loc.startswith(&#39;E&#39;):
+            loc = &#39;1212&#39;
+        elif loc.startswith(&#39;S&#39;):
+            loc = &#39;2121&#39;
+        elif loc.startswith(&#39;N&#39;):
+            loc = &#39;2111&#39;
+
+    # Split digits
+    M, N = int(loc[0]), int(loc[1])
+    if loc[3] == &#39;-&#39;:
+        i1, i2 = int(loc[2]), int(loc[4])
+    else:
+        i1, i2 = int(loc[2]), int(loc[2])
+    if loc[-2] == &#39;-&#39;:
+        j1, j2 = int(loc[-3]), int(loc[-1])
+    else:
+        j1, j2 = int(loc[-1]), int(loc[-1])
+    # Validate
+    assert M &gt;= i2 &gt;= i1 &gt; 0, &#34;The specified col index is invalid.&#34;
+    assert N &gt;= j2 &gt;= j1 &gt; 0, &#34;The specified row index is invalid.&#34;
+
+    # Place
+    di = i2-i1+1
+    dj = j2-j1+1
+    fig_rel_geometry(fignum,  (j1-1)/N,   (i1-1)/M,   dj/N,   di/M)
+
+
+# https://stackoverflow.com/a/7396313
+
+
+def autoscale_based_on(ax, line_handles):
+    &#34;Autoscale axis based (only) on line_handles.&#34;
+    ax.dataLim = mtransforms.Bbox.unit()
+    for iL, lh in enumerate(line_handles):
+        xy = np.vstack(lh.get_data()).T
+        ax.dataLim.update_from_data_xy(xy, ignore=(iL == 0))
+    ax.autoscale_view()
+
+
+def toggle_lines(ax=None, autoscl=True, numbering=False,
+                 txtwidth=15, txtsize=None, state=None):
+    &#34;&#34;&#34;
+    Make checkbuttons to toggle visibility of each line in current plot.
+    autoscl  : Rescale axis limits as required by currently visible lines.
+    numbering: Add numbering to labels.
+    txtwidth : Wrap labels to this length.
+
+    State of checkboxes can be inquired by
+    OnOff = [lh.get_visible() for lh in
+    ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]
+    &#34;&#34;&#34;
+
+    if ax is None:
+        ax = plt.gca()
+    if txtsize is None:
+        txtsize = mpl.rcParams[&#39;font.size&#39;]
+
+    # Get lines and their properties
+    lines = {&#39;handle&#39;: list(ax.get_lines())}
+    for prop in [&#39;label&#39;, &#39;color&#39;, &#39;visible&#39;]:
+        lines[prop] = [plt.getp(x, prop) for x in lines[&#39;handle&#39;]]
+
+    # Rm those that start with _
+    not_ = [not x.startswith(&#39;_&#39;) for x in lines[&#39;label&#39;]]
+    for prop in lines:
+        lines[prop] = list(itertools.compress(lines[prop], not_))
+    N = len(lines[&#39;handle&#39;])
+
+    # Adjust labels
+    if numbering:
+        lines[&#39;label&#39;] = [str(i)+&#39;: &#39;+x for i, x in enumerate(lines[&#39;label&#39;])]
+    if txtwidth:
+        lines[&#39;label&#39;] = [textwrap.fill(x, width=txtwidth) for x in lines[&#39;label&#39;]]
+
+    # Set state. BUGGY? sometimes causes MPL complaints after clicking boxes
+    if state is not None:
+        state = array(state).astype(bool)
+        lines[&#39;visible&#39;] = state
+        for i, x in enumerate(state):
+            lines[&#39;handle&#39;][i].set_visible(x)
+
+    # Setup buttons
+    # When there&#39;s many, the box-sizing is awful, but difficult to fix.
+    W       = 0.23 * txtwidth/15 * txtsize/10
+    nBreaks = sum(x.count(&#39;\n&#39;) for x in lines[&#39;label&#39;])  # count linebreaks
+    H       = min(1, 0.05*(N+nBreaks))
+    plt.subplots_adjust(left=W+0.12, right=0.97)
+    rax = plt.axes([0.05, 0.5-H/2, W, H])
+    check = CheckButtons(rax, lines[&#39;label&#39;], lines[&#39;visible&#39;])
+
+    # Adjust button style
+    for i in range(N):
+        check.rectangles[i].set(lw=0, facecolor=lines[&#39;color&#39;][i])
+        check.labels[i].set(color=lines[&#39;color&#39;][i])
+        if txtsize:
+            check.labels[i].set(size=txtsize)
+
+    # Callback
+    def toggle_visible(label):
+        ind    = lines[&#39;label&#39;].index(label)
+        handle = lines[&#39;handle&#39;][ind]
+        vs     = not lines[&#39;visible&#39;][ind]
+        handle.set_visible(vs)
+        lines[&#39;visible&#39;][ind] = vs
+        if autoscl:
+            autoscale_based_on(ax, list(itertools.compress(
+                lines[&#39;handle&#39;], lines[&#39;visible&#39;])))
+        plt.draw()
+    check.on_clicked(toggle_visible)
+
+    # Return focus
+    plt.sca(ax)
+
+    # Must return (and be received) so as not to expire.
+    return check
+
+
+def toggle_viz(*handles, prompt=False, legend=False, pause=True):
+    &#34;&#34;&#34;Toggle visibility of the graphics with handle handles.&#34;&#34;&#34;
+
+    are_viz = []
+    for h in handles:
+
+        # Core functionality: turn on/off
+        is_viz = not h.get_visible()
+        h.set_visible(is_viz)
+        are_viz += [is_viz]
+
+        # Legend updating. Basic version: works by
+        #  - setting line&#39;s label to actual_label/&#39;_nolegend_&#39; if is_viz/not
+        #  - re-calling legend()
+        if legend:
+            if is_viz:
+                try:
+                    h.set_label(h.actual_label)
+                except AttributeError:
+                    pass
+            else:
+                h.actual_label = h.get_label()
+                h.set_label(&#39;_nolegend_&#39;)
+            # Legend refresh
+            ax = h.axes
+            with warnings.catch_warnings():
+                warnings.simplefilter(&#34;error&#34;, category=UserWarning)
+                try:
+                    ax.legend()
+                except UserWarning:
+                    # If all labels are &#39;_nolabel_&#39; then ax.legend() throws warning,
+                    # and quits before refreshing.
+                    # =&gt; Refresh by creating/rm another legend.
+                    ax.legend(&#39;TMP&#39;).remove()
+
+    if prompt:
+        input(&#34;Press &lt;Enter&gt; to continue...&#34;)
+    if pause:
+        plt.pause(0.02)
+
+    return are_viz
+
+
+class FigSaver(NicePrint):
+    &#34;&#34;&#34;
+    Simplify exporting a figure, especially when it&#39;s part of a series.
+    &#34;&#34;&#34;
+
+    def __init__(self, script=None, basename=None, n=-1, ext=&#39;.pdf&#39;):
+
+        # Defaults
+        if script is None:  # Get __file__ of caller
+            script = inspect.getfile(inspect.stack()[1][0])
+        if basename is None:
+            basename = &#39;figure&#39;
+        # Prep save dir
+        sdir = rc.dirs.data / Path(script).stem
+        os.makedirs(sdir, exist_ok=True)
+        # Set state
+        self.fname = sdir + basename
+        self.n     = n
+        self.ext   = ext
+
+    @property
+    def fullname(self):
+        f = self.fname            # Abbrev
+        if self.n &gt;= 0:           # If indexing:
+            f += &#39;_n%d&#39; % self.n  # Add index
+        f += self.ext             # Add extension
+        return f
+
+    def save(self):
+        f = self.fullname           # Abbrev
+        print(&#34;Saving fig to:&#34;, f)  # Print
+        plt.savefig(f)              # Save
+        if self.n &gt;= 0:             # If indexing:
+            self.n += 1                 # Increment
+            plt.pause(0.1)              # For safety
+
+
+def nrowcol(nTotal, AR=1):
+    &#34;Return integer nrows and ncols such that nTotal ≈ nrows*ncols.&#34;
+    nrows = int(np.floor(np.sqrt(nTotal)/AR))
+    ncols = int(np.ceil(nTotal/nrows))
+    return nrows, ncols
+
+
+def axes_with_marginals(n_joint, n_marg, **kwargs):
+    &#34;&#34;&#34;
+    Create a joint axis along with two marginal axes.
+
+    Example:
+    &gt;&gt;&gt; ax_s, ax_x, ax_y = axes_with_marginals(4, 1)
+    &gt;&gt;&gt; x, y = np.random.randn(2,500)
+    &gt;&gt;&gt; ax_s.scatter(x,y)
+    &gt;&gt;&gt; ax_x.hist(x)
+    &gt;&gt;&gt; ax_y.hist(y,orientation=&#34;horizontal&#34;)
+    &#34;&#34;&#34;
+
+    N = n_joint + n_marg
+
+    # Method 1
+    # fig, ((ax_s, ax_y), (ax_x, _)) = plt.subplots(2,2,num=plt.gcf().number,
+    # sharex=&#39;col&#39;,sharey=&#39;row&#39;,gridspec_kw={
+    #     &#39;height_ratios&#39;:[n_joint,n_marg],
+    #     &#39;width_ratios&#39; :[n_joint,n_marg]})
+    # _.set_visible(False) # Actually removing would bug the axis ticks etc.
+
+    # Method 2
+    gs   = GridSpec(N, N, **kwargs)
+    fig  = plt.gcf()
+    ax_s = fig.add_subplot(gs[n_marg:N, 0:n_joint])
+    ax_x = fig.add_subplot(gs[0:n_marg, 0:n_joint], sharex=ax_s)
+    ax_y = fig.add_subplot(gs[n_marg:N, n_joint:N], sharey=ax_s)
+    # Cannot delete ticks coz axis are shared
+    plt.setp(ax_x.get_xticklabels(), visible=False)
+    plt.setp(ax_y.get_yticklabels(), visible=False)
+
+    return ax_s, ax_x, ax_y
+
+
+def cov_ellipse(ax, mu, sigma, **kwargs):
+    &#34;&#34;&#34;
+    Draw ellipse corresponding to (Gaussian) 1-sigma countour of cov matrix.
+
+    Inspired by https://stackoverflow.com/q/17952171
+
+    Example:
+    &gt;&gt;&gt; ellipse = cov_ellipse(ax, y, R,
+    &gt;&gt;&gt;           facecolor=&#39;none&#39;, edgecolor=&#39;y&#39;,lw=4,label=&#39;$1\\sigma$&#39;)
+    &#34;&#34;&#34;
+
+    # Cov --&gt; Width, Height, Theta
+    vals, vecs = sla.eigh(sigma)
+    x, y       = vecs[:, -1]  # x-y components of largest (last) eigenvector
+    theta      = np.degrees(np.arctan2(y, x))
+    theta      = theta % 180
+
+    h, w       = 2 * np.sqrt(vals.clip(0))
+
+    # Get artist
+    e = Ellipse(mu, w, h, theta, **kwargs)
+
+    ax.add_patch(e)
+    e.set_clip_box(ax.bbox)  # why is this necessary?
+
+    # Return artist
+    return e
+
+
+def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
+    &#34;&#34;&#34;Scale axis so that the arr entries appear equidistant.
+
+    The full transformation is piecewise-linear.&#34;&#34;&#34;
+    yy = array([y for y in arr if y is not None], dtype=float)  # rm None
+
+    # Make transformation
+    xx = arange(len(yy))
+    func = interp1d(xx, yy, fill_value=&#34;extrapolate&#34;)
+    invf = interp1d(yy, xx, fill_value=&#34;extrapolate&#34;)
+
+    # Set transformation
+    set_scale = eval(f&#34;ax.set_{axis}scale&#34;)
+    set_scale(&#39;function&#39;, functions=(invf, func))
+
+    # Adjust axis ticks
+    _axis = getattr(ax, axis+&#34;axis&#34;)
+    _axis.set_major_locator(ticker.FixedLocator(yy, nbins=nbins))
+    _axis.set_minor_locator(ticker.FixedLocator(yy))
+    _axis.set_minor_formatter(ticker.NullFormatter())</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -42,12 +872,84 @@ create a function that does the same for state vectors (or and ensemble thereof)
 <li>'periodicity' defines the mode of the wrapping.
 Default: "+1", meaning that the first element is appended after the last.</li>
 </ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup_wrapping(M, periodicity=None):
+    &#34;&#34;&#34;
+    Wrap the state indices and
+    create a function that does the same for state vectors (or and ensemble thereof).
+
+    - &#39;periodicity&#39; defines the mode of the wrapping.
+      Default: &#34;+1&#34;, meaning that the first element is appended after the last.
+    &#34;&#34;&#34;
+
+    if periodicity in (None, True):
+        periodicity = &#34;+1&#34;
+
+    if periodicity == &#34;+1&#34;:
+        ii = arange(M+1)
+
+        def wrap(E):
+            return E[..., list(range(M))+[0]]
+
+    elif periodicity == &#34;+/-05&#34;:
+        ii = np.hstack([-0.5, arange(M), M-0.5])
+
+        def wrap(E):
+            midpoint = (E[..., [0]] + E[..., [-1]])/2
+            return ccat(midpoint, E, midpoint, axis=-1)
+
+    else:
+        ii = arange(M)
+        def wrap(x): return x
+
+    return ii, wrap</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.amplitude_animation"><code class="name flex">
 <span>def <span class="ident">amplitude_animation</span></span>(<span>EE, dt=None, interval=1, periodicity=None, blit=True, fignum=None, repeat=False)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def amplitude_animation(EE, dt=None, interval=1,
+                        periodicity=None, blit=True,
+                        fignum=None, repeat=False):
+    fig, ax = freshfig(fignum)
+    ax.set_xlabel(&#39;State index&#39;)
+    ax.set_ylabel(&#39;Amplitue&#39;)
+    ax.set_ylim(*stretch(*xtrema(EE), 1.1))
+
+    if EE.ndim == 2:
+        EE = np.expand_dims(EE, 1)
+    K, N, Nx = EE.shape
+
+    ii, wrap = setup_wrapping(Nx, periodicity)
+
+    lines = ax.plot(ii, wrap(EE[0]).T)
+    ax.set_xlim(*xtrema(ii))
+
+    if dt is not None:
+        times = &#39;time = %.1f&#39;
+        lines += [ax.text(0.05, 0.9, &#39;&#39;, transform=ax.transAxes)]
+
+    def anim(k):
+        Ek = wrap(EE[k])
+        for n in range(N):
+            lines[n].set_ydata(Ek[n])
+        if len(lines) &gt; N:
+            lines[-1].set_text(times % (dt*k))
+        return lines
+
+    return FuncAnimation(fig, anim, range(K),
+                         interval=interval, blit=blit,
+                         repeat=repeat)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.adjust_position"><code class="name flex">
 <span>def <span class="ident">adjust_position</span></span>(<span>ax, adjust_extent=False, **kwargs)</span>
@@ -55,12 +957,46 @@ Default: "+1", meaning that the first element is appended after the last.</li>
 <dd>
 <div class="desc"><p>Adjust values (add) to get_position().
 kwarg must be one of 'x0','y0','width','height'.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def adjust_position(ax, adjust_extent=False, **kwargs):
+    &#34;&#34;&#34;
+    Adjust values (add) to get_position().
+    kwarg must be one of &#39;x0&#39;,&#39;y0&#39;,&#39;width&#39;,&#39;height&#39;.
+    &#34;&#34;&#34;
+    # Load get_position into d
+    pos = ax.get_position()
+    d = {}
+    for key in [&#39;x0&#39;, &#39;y0&#39;, &#39;width&#39;, &#39;height&#39;]:
+        d[key] = getattr(pos, key)
+    # Make adjustments
+    for key, item in kwargs.items():
+        d[key] += item
+        if adjust_extent:
+            if key == &#39;x0&#39;:
+                d[&#39;width&#39;]  -= item
+            if key == &#39;y0&#39;:
+                d[&#39;height&#39;] -= item
+    # Set
+    ax.set_position(d.values())</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.xtrema"><code class="name flex">
 <span>def <span class="ident">xtrema</span></span>(<span>xx, axis=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def xtrema(xx, axis=None):
+    a = np.nanmin(xx, axis)
+    b = np.nanmax(xx, axis)
+    return a, b</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.stretch"><code class="name flex">
 <span>def <span class="ident">stretch</span></span>(<span>a, b, factor=1, int=False)</span>
@@ -69,12 +1005,43 @@ kwarg must be one of 'x0','y0','width','height'.</p></div>
 <div class="desc"><p>Stretch distance a-b by factor.
 Return a,b.
 If int: floor(a) and ceil(b)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stretch(a, b, factor=1, int=False):
+    &#34;&#34;&#34;
+    Stretch distance a-b by factor.
+    Return a,b.
+    If int: floor(a) and ceil(b)
+    &#34;&#34;&#34;
+    c = (a+b)/2
+    a = c + factor*(a-c)
+    b = c + factor*(b-c)
+    if int:
+        a = np.floor(a)
+        b = np.ceil(b)
+    return a, b</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.set_ilim"><code class="name flex">
 <span>def <span class="ident">set_ilim</span></span>(<span>ax, i, Min=None, Max=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Set bounds on axis i.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_ilim(ax, i, Min=None, Max=None):
+    &#34;&#34;&#34;Set bounds on axis i.&#34;&#34;&#34;
+    if i == 0:
+        ax.set_xlim(Min, Max)
+    if i == 1:
+        ax.set_ylim(Min, Max)
+    if i == 2:
+        ax.set_zlim(Min, Max)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.estimate_good_plot_length"><code class="name flex">
 <span>def <span class="ident">estimate_good_plot_length</span></span>(<span>xx, chrono=None, mult=100)</span>
@@ -83,6 +1050,42 @@ If int: floor(a) and ceil(b)</p></div>
 <div class="desc"><p>Estimate good length for plotting stuff
 from the time scale of the system.
 Provide sensible fall-backs (better if chrono is supplied).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def estimate_good_plot_length(xx, chrono=None, mult=100):
+    &#34;&#34;&#34;
+    Estimate good length for plotting stuff
+    from the time scale of the system.
+    Provide sensible fall-backs (better if chrono is supplied).
+    &#34;&#34;&#34;
+    if xx.ndim == 2:
+        # If mult-dim, then average over dims (by ravel)....
+        # But for inhomogeneous variables, it is important
+        # to subtract the mean first!
+        xx = xx - np.mean(xx, axis=0)
+        xx = xx.ravel(order=&#39;F&#39;)
+
+    try:
+        K = mult * series.estimate_corr_length(xx)
+    except ValueError:
+        K = 0
+
+    if chrono is not None:
+        t = chrono
+        K = int(min(max(K, t.dkObs), t.K))
+        T = round2(t.tt[K], 2)  # Could return T; T&gt;tt[-1]
+        K = utils.find_1st_ind(t.tt &gt;= T)
+        if K:
+            return K
+        else:
+            return t.K
+    else:
+        K = int(min(max(K, 1), len(xx)))
+        T = round2(K, 2)
+        return K</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.plot_pause"><code class="name flex">
 <span>def <span class="ident">plot_pause</span></span>(<span>interval)</span>
@@ -91,24 +1094,126 @@ Provide sensible fall-backs (better if chrono is supplied).</p></div>
 <div class="desc"><p>Similar to plt.pause(), but doesn't focus window.</p>
 <p>NB: doesn't create windows either.
 For that, use plt.pause() or plt.show() instead.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_pause(interval):
+    &#34;&#34;&#34;Similar to plt.pause(), but doesn&#39;t focus window.
+
+    NB: doesn&#39;t create windows either.
+    For that, use plt.pause() or plt.show() instead.&#34;&#34;&#34;
+
+    # plt.pause(0) just seems to freeze execution.
+    if interval == 0:
+        return
+
+    try:
+        # Implement plt.pause() that doesn&#39;t focus window, c.f.
+        # https://github.com/matplotlib/matplotlib/issues/11131
+        # https://stackoverflow.com/q/45729092
+        # Only necessary for some platforms (e.g. Windows) and mpl versions.
+        # Even then, mere figure creation may steal the focus.
+        # This was done deliberately:
+        # https://github.com/matplotlib/matplotlib/pull/6384#issue-69259165
+        # https://github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
+        # from matplotlib import _pylab_helpers
+
+        def _plot_pause(interval,  focus_figure=True):
+            canvas = plt.gcf().canvas
+            manager = canvas.manager
+            if manager is not None:
+                if canvas.figure.stale:
+                    canvas.draw_idle()
+                if focus_figure:
+                    plt.show(block=False)
+                # if not is_notebook: # also see below
+                if True:
+                    canvas.start_event_loop(interval)
+            else:
+                time.sleep(interval)
+        _plot_pause(interval, focus_figure=False)
+
+    except: # noqa
+        # Jupyter notebook support: https://stackoverflow.com/q/34486642
+        # Note: no longer needed with the above _plot_pause()?
+        plt.gcf().canvas.draw()
+        time.sleep(0.1)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.plot_hovmoller"><code class="name flex">
 <span>def <span class="ident">plot_hovmoller</span></span>(<span>xx, chrono=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot Hovmöller diagram.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_hovmoller(xx, chrono=None, **kwargs):
+    &#34;&#34;&#34;
+    Plot Hovmöller diagram.
+    &#34;&#34;&#34;
+    fig, ax = freshfig(26, figsize=(4, 3.5), loc=&#39;331-22&#39;)
+
+    if chrono is not None:
+        mask = chrono.tt &lt;= chrono.Tplot*2
+        kk   = chrono.kk[mask]
+        tt   = chrono.tt[mask]
+        ax.set_ylabel(&#39;Time (t)&#39;)
+    else:
+        K    = estimate_good_plot_length(xx, mult=20)
+        kk   = arange(K)
+        tt   = kk
+        ax.set_ylabel(&#39;Time indices (k)&#39;)
+
+    plt.contourf(arange(xx.shape[1]), tt, xx[kk], 25)
+    plt.colorbar()
+    ax.get_xaxis().set_major_locator(MaxNLocator(integer=True))
+    ax.set_title(&#34;Hovmoller diagram (of &#39;Truth&#39;)&#34;)
+    ax.set_xlabel(&#39;Dimension index (i)&#39;)
+
+    plot_pause(0.1)
+    plt.tight_layout()</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.integer_hist"><code class="name flex">
 <span>def <span class="ident">integer_hist</span></span>(<span>E, N, centrd=False, weights=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Histogram for integers.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def integer_hist(E, N, centrd=False, weights=None, **kwargs):
+    &#34;&#34;&#34;Histogram for integers.&#34;&#34;&#34;
+    ax = plt.gca()
+    rnge = (-0.5, N+0.5) if centrd else (0, N+1)
+    ax.hist(E, bins=N+1, range=rnge, density=True, weights=weights, **kwargs)
+    ax.set_xlim(rnge)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.not_available_text"><code class="name flex">
 <span>def <span class="ident">not_available_text</span></span>(<span>ax, txt=None, fs=20)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def not_available_text(ax, txt=None, fs=20):
+    if txt is None:
+        txt = &#39;[Not available]&#39;
+    else:
+        txt = &#39;[&#39; + txt + &#39;]&#39;
+    ax.text(0.5, 0.5, txt,
+            fontsize=fs,
+            transform=ax.transAxes,
+            va=&#39;center&#39;, ha=&#39;center&#39;,
+            wrap=True)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.plot_err_components"><code class="name flex">
 <span>def <span class="ident">plot_err_components</span></span>(<span>stats)</span>
@@ -125,18 +1230,133 @@ This choice was made in part because (wrt. subplot 2)
 the singular values (svals) correspond to rotated MADs,
 and because rms(umisf) seems to convoluted for interpretation.</p>
 </div></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_err_components(stats):
+    &#34;&#34;&#34;Plot components of the error.
+
+    .. note::
+      it was chosen to plot(ii, mean_in_time(abs(err_i))),
+      and thus the corresponding spread measure is MAD.
+      If one chose instead: plot(ii, std_in_time(err_i)),
+      then the corresponding measure of spread would have been std.
+      This choice was made in part because (wrt. subplot 2)
+      the singular values (svals) correspond to rotated MADs,
+      and because rms(umisf) seems to convoluted for interpretation.
+    &#34;&#34;&#34;
+    fig, (ax0, ax1, ax2) = freshfig(25, figsize=(6, 6), loc=&#39;1313&#39;, nrows=3)
+
+    chrono = stats.HMM.t
+    Nx     = stats.xx.shape[1]
+
+    err   = np.mean(np.abs(stats.err  .a), 0)
+    sprd  = np.mean(stats.mad  .a, 0)
+    umsft = np.mean(np.abs(stats.umisf.a), 0)
+    usprd = np.mean(stats.svals.a, 0)
+
+    ax0.plot(arange(Nx),               err, &#39;k&#39;, lw=2, label=&#39;Error&#39;)
+    if Nx &lt; 10**3:
+        ax0.fill_between(arange(Nx), [0]*len(sprd), sprd, alpha=0.7, label=&#39;Spread&#39;)
+    else:
+        ax0.plot(arange(Nx),              sprd, alpha=0.7, label=&#39;Spread&#39;)
+    # ax0.set_yscale(&#39;log&#39;)
+    ax0.set_title(&#39;Element-wise error comparison&#39;)
+    ax0.set_xlabel(&#39;Dimension index (i)&#39;)
+    ax0.set_ylabel(&#39;Time-average (_a) magnitude&#39;)
+    ax0.set_xlim(0, Nx-1)
+    ax0.get_xaxis().set_major_locator(MaxNLocator(integer=True))
+    ax0.legend(loc=&#39;upper right&#39;)
+
+    ax1.set_xlim(0, Nx-1)
+    ax1.set_xlabel(&#39;Principal component index&#39;)
+    ax1.set_ylabel(&#39;Time-average (_a) magnitude&#39;)
+    ax1.set_title(&#39;Spectral error comparison&#39;)
+    has_been_computed = np.any(np.isfinite(umsft))
+    if has_been_computed:
+        L = len(umsft)
+        ax1.plot(arange(L),      umsft, &#39;k&#39;, lw=2, label=&#39;Error&#39;)
+        ax1.fill_between(arange(L), [0]*L, usprd, alpha=0.7, label=&#39;Spread&#39;)
+        ax1.set_yscale(&#39;log&#39;)
+        ax1.get_xaxis().set_major_locator(MaxNLocator(integer=True))
+    else:
+        not_available_text(ax1)
+
+    rmse = stats.err_rms.a[chrono.maskObs_BI]
+    ax2.hist(rmse, bins=30, density=False)
+    ax2.set_ylabel(&#39;Num. of occurence (_a)&#39;)
+    ax2.set_xlabel(&#39;RMSE&#39;)
+    ax2.set_title(&#39;Histogram of RMSE values&#39;)
+    ax2.set_xlim(left=0)
+
+    plot_pause(0.1)
+    plt.tight_layout()</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.plot_rank_histogram"><code class="name flex">
 <span>def <span class="ident">plot_rank_histogram</span></span>(<span>stats)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_rank_histogram(stats):
+    chrono = stats.HMM.t
+
+    has_been_computed = \
+        hasattr(stats, &#39;rh&#39;) and \
+        not all(stats.rh.a[-1] == array(np.nan).astype(int))
+
+    fig, ax = freshfig(24, (6, 3), loc=&#34;3313&#34;)
+    ax.set_title(&#39;(Mean of marginal) rank histogram (_a)&#39;)
+    ax.set_ylabel(&#39;Freq. of occurence\n (of truth in interval n)&#39;)
+    ax.set_xlabel(&#39;ensemble member index (n)&#39;)
+
+    if has_been_computed:
+        ranks = stats.rh.a[chrono.maskObs_BI]
+        Nx    = ranks.shape[1]
+        N     = stats.xp.N
+        if not hasattr(stats, &#39;w&#39;):
+            # Ensemble rank histogram
+            integer_hist(ranks.ravel(), N)
+        else:
+            # Experimental: weighted rank histogram.
+            # Weight ranks by inverse of particle weight. Why? Coz, with correct
+            # importance weights, the &#34;expected value&#34; histogram is then flat.
+            # Potential improvement: interpolate weights between particles.
+            w  = stats.w.a[chrono.maskObs_BI]
+            K  = len(w)
+            w  = np.hstack([w, np.ones((K, 1))/N])  # define weights for rank N+1
+            w  = array([w[arange(K), ranks[arange(K), i]] for i in range(Nx)])
+            w  = w.T.ravel()
+            # Artificial cap. Reduces variance, but introduces bias.
+            w  = np.maximum(w, 1/N/100)
+            w  = 1/w
+            integer_hist(ranks.ravel(), N, weights=w)
+    else:
+        not_available_text(ax)
+
+    plot_pause(0.1)
+    plt.tight_layout()</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.adjustable_box_or_forced"><code class="name flex">
 <span>def <span class="ident">adjustable_box_or_forced</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>For set_aspect(), adjustable='box-forced' replaced by 'box' since mpl 2.2.0.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def adjustable_box_or_forced():
+    &#34;For set_aspect(), adjustable=&#39;box-forced&#39; replaced by &#39;box&#39; since mpl 2.2.0.&#34;
+    from pkg_resources import parse_version as pv
+    return &#39;box-forced&#39; if pv(mpl.__version__) &lt; pv(&#34;2.2.0&#34;) else &#39;box&#39;</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.freshfig"><code class="name flex">
 <span>def <span class="ident">freshfig</span></span>(<span>num=None, figsize=None, *args, **kwargs)</span>
@@ -153,36 +1373,177 @@ Also place figure.</li>
 <li>Otherwise: clear figure.
 Avoids closing/opening so as to keep pos and size.</li>
 </ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def freshfig(num=None, figsize=None, *args, **kwargs):
+    &#34;&#34;&#34;Create/clear figure.
+
+    Similar to::
+
+      fig, ax = suplots(*args,**kwargs)
+
+    With the modification that:
+
+    - If the figure does not exist: create it.
+      This allows for figure sizing -- even with mpl backend MacOS.
+      Also place figure.
+    - Otherwise: clear figure.
+      Avoids closing/opening so as to keep pos and size.
+    &#34;&#34;&#34;
+    exists = plt.fignum_exists(num)
+
+    fig = plt.figure(num=num, figsize=figsize)
+
+    # Deal with warning bug
+    # https://github.com/matplotlib/matplotlib/issues/9970
+    with warnings.catch_warnings():
+        warnings.simplefilter(&#34;ignore&#34;, category=UserWarning)
+        fig.clf()
+
+    loc = kwargs.pop(&#39;loc&#39;, None)
+    if not exists and loc:
+        fig_place(loc, fig)
+
+    _, ax = plt.subplots(num=fig.number, *args, **kwargs)
+    return fig, ax</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.show_figs"><code class="name flex">
 <span>def <span class="ident">show_figs</span></span>(<span>fignums=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Move all fig windows to top</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_figs(fignums=None):
+    &#34;&#34;&#34;Move all fig windows to top&#34;&#34;&#34;
+    if fignums is None:
+        fignums = plt.get_fignums()
+    try:
+        fignums = list(fignums)
+    except: # noqa
+        fignums = [fignums]
+    for f in fignums:
+        plt.figure(f)
+        fmw = plt.get_current_fig_manager().window
+        fmw.attributes(&#39;-topmost&#39;, 1)  # Bring to front, but
+        fmw.attributes(&#39;-topmost&#39;, 0)  # don&#39;t keep in front</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.get_fig"><code class="name flex">
 <span>def <span class="ident">get_fig</span></span>(<span>fignum=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get/validate fig handle</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_fig(fignum=None):
+    &#34;Get/validate fig handle&#34;
+    if fignum is None:
+        return plt.gcf()
+    elif isinstance(fignum, mpl.figure.Figure):
+        return fignum
+    else:
+        return plt.figure(fignum)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.get_fmw"><code class="name flex">
 <span>def <span class="ident">get_fmw</span></span>(<span>fignum=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_fmw(fignum=None):
+    fig = get_fig(fignum)
+    fmw = fig.canvas.manager.window
+    # fmw = plt.get_current_fig_manager().window
+    return fmw</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.get_screen_size"><code class="name flex">
 <span>def <span class="ident">get_screen_size</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get <strong>available</strong> screen size/resolution.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_screen_size():
+    &#34;&#34;&#34;Get **available** screen size/resolution.&#34;&#34;&#34;
+    if mpl.get_backend().startswith(&#39;Qt&#39;):
+        # Inspired by spyder/widgets/shortcutssummary.py
+        from qtpy.QtWidgets import QDesktopWidget  # noqa
+        widget = QDesktopWidget()
+        sg = widget.availableGeometry(widget.primaryScreen())
+        x0 = sg.x()
+        y0 = sg.y()
+        w0 = sg.width()
+        h0 = sg.height()
+    elif mpl.get_backend() == &#34;TkAgg&#34;:
+        # https://stackoverflow.com/a/42951711/38281
+        window = plt.get_current_fig_manager().window
+        x0, y0 = 0, 0
+        w0, h0 = window.wm_maxsize()
+        # h = window.winfo_screenheight()
+        # w = window.winfo_screenwidth()
+    else:
+        # Mac Retina Early 2013
+        x0 = 0
+        y0 = 23
+        w0 = 1280
+        h0 = 773
+    return x0, y0, w0, h0</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.fig_rel_geometry"><code class="name flex">
 <span>def <span class="ident">fig_rel_geometry</span></span>(<span>fignum=None, x=None, y=None, w=None, h=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Place figure on screen, in coordinates relative (between 0 and 1).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fig_rel_geometry(fignum=None, x=None, y=None, w=None, h=None):
+    &#34;&#34;&#34;Place figure on screen, in coordinates relative (between 0 and 1).&#34;&#34;&#34;
+    try:
+        fmw = get_fmw(fignum)
+    except AttributeError:
+        return  # do nothing
+
+    x0, y0, w0, h0 = get_screen_size()
+
+    # It seems the window footers are not taken into account
+    # by the geometry settings. Correct for this:
+    footer = 0.028*(h0+y0)
+
+    # Current values (Qt4Agg only!):
+    w = w if w is not None else fmw.width() / w0
+    h = h if h is not None else fmw.height()/h0
+    x = x if x is not None else fmw.x()     / w0
+    y = y if y is not None else fmw.y()     / h0
+
+    x = x0 + x*w0
+    y = y0 + y*h0 + footer
+    w = w*w0
+    h = h*h0 - footer
+
+    try:  # For Qt4Agg/Qt5Agg
+        fmw.setGeometry(x, y, w, h)
+    except: # noqa # For TkAgg
+        geo = f&#34;{int(w)}x{int(h)}+{int(x)}+{int(y)}&#34;
+        fmw.geometry(newGeometry=geo)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.fig_place"><code class="name flex">
 <span>def <span class="ident">fig_place</span></span>(<span>loc, fignum=None)</span>
@@ -200,12 +1561,85 @@ Avoids closing/opening so as to keep pos and size.</li>
 &gt;&gt;&gt;   loc = str(N)*2 + str(i)*2
 &gt;&gt;&gt;   fig_place(loc, i)
 </code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fig_place(loc, fignum=None):
+    &#34;&#34;&#34;Place figure on screen.
+
+    - loc: string that defines the figures new geometry, given either as
+       * NW, E, ...
+       * 4 digits (as str or int) to define grid M,N,i,j.
+
+    Example:
+    &gt;&gt;&gt; N = 3
+    &gt;&gt;&gt; for i in 1+arange(N):
+    &gt;&gt;&gt;   loc = str(N)*2 + str(i)*2
+    &gt;&gt;&gt;   fig_place(loc, i)
+    &#34;&#34;&#34;
+
+    # NB: Experimental. Fails on some systems/backends.
+    if not rc.place_figs:
+        return
+
+    loc = str(loc)
+    loc = loc.replace(&#34;,&#34;, &#34;&#34;)
+    if not loc[:4].isnumeric():
+        if loc.startswith(&#39;NW&#39;):
+            loc = &#39;2211&#39;
+        elif loc.startswith(&#39;SW&#39;):
+            loc = &#39;2221&#39;
+        elif loc.startswith(&#39;NE&#39;):
+            loc = &#39;2212&#39;
+        elif loc.startswith(&#39;SE&#39;):
+            loc = &#39;2222&#39;
+        elif loc.startswith(&#39;W&#39;):
+            loc = &#39;1211&#39;
+        elif loc.startswith(&#39;E&#39;):
+            loc = &#39;1212&#39;
+        elif loc.startswith(&#39;S&#39;):
+            loc = &#39;2121&#39;
+        elif loc.startswith(&#39;N&#39;):
+            loc = &#39;2111&#39;
+
+    # Split digits
+    M, N = int(loc[0]), int(loc[1])
+    if loc[3] == &#39;-&#39;:
+        i1, i2 = int(loc[2]), int(loc[4])
+    else:
+        i1, i2 = int(loc[2]), int(loc[2])
+    if loc[-2] == &#39;-&#39;:
+        j1, j2 = int(loc[-3]), int(loc[-1])
+    else:
+        j1, j2 = int(loc[-1]), int(loc[-1])
+    # Validate
+    assert M &gt;= i2 &gt;= i1 &gt; 0, &#34;The specified col index is invalid.&#34;
+    assert N &gt;= j2 &gt;= j1 &gt; 0, &#34;The specified row index is invalid.&#34;
+
+    # Place
+    di = i2-i1+1
+    dj = j2-j1+1
+    fig_rel_geometry(fignum,  (j1-1)/N,   (i1-1)/M,   dj/N,   di/M)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.autoscale_based_on"><code class="name flex">
 <span>def <span class="ident">autoscale_based_on</span></span>(<span>ax, line_handles)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Autoscale axis based (only) on line_handles.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def autoscale_based_on(ax, line_handles):
+    &#34;Autoscale axis based (only) on line_handles.&#34;
+    ax.dataLim = mtransforms.Bbox.unit()
+    for iL, lh in enumerate(line_handles):
+        xy = np.vstack(lh.get_data()).T
+        ax.dataLim.update_from_data_xy(xy, ignore=(iL == 0))
+    ax.autoscale_view()</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.toggle_lines"><code class="name flex">
 <span>def <span class="ident">toggle_lines</span></span>(<span>ax=None, autoscl=True, numbering=False, txtwidth=15, txtsize=None, state=None)</span>
@@ -219,18 +1653,155 @@ txtwidth : Wrap labels to this length.</p>
 <p>State of checkboxes can be inquired by
 OnOff = [lh.get_visible() for lh in
 ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def toggle_lines(ax=None, autoscl=True, numbering=False,
+                 txtwidth=15, txtsize=None, state=None):
+    &#34;&#34;&#34;
+    Make checkbuttons to toggle visibility of each line in current plot.
+    autoscl  : Rescale axis limits as required by currently visible lines.
+    numbering: Add numbering to labels.
+    txtwidth : Wrap labels to this length.
+
+    State of checkboxes can be inquired by
+    OnOff = [lh.get_visible() for lh in
+    ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]
+    &#34;&#34;&#34;
+
+    if ax is None:
+        ax = plt.gca()
+    if txtsize is None:
+        txtsize = mpl.rcParams[&#39;font.size&#39;]
+
+    # Get lines and their properties
+    lines = {&#39;handle&#39;: list(ax.get_lines())}
+    for prop in [&#39;label&#39;, &#39;color&#39;, &#39;visible&#39;]:
+        lines[prop] = [plt.getp(x, prop) for x in lines[&#39;handle&#39;]]
+
+    # Rm those that start with _
+    not_ = [not x.startswith(&#39;_&#39;) for x in lines[&#39;label&#39;]]
+    for prop in lines:
+        lines[prop] = list(itertools.compress(lines[prop], not_))
+    N = len(lines[&#39;handle&#39;])
+
+    # Adjust labels
+    if numbering:
+        lines[&#39;label&#39;] = [str(i)+&#39;: &#39;+x for i, x in enumerate(lines[&#39;label&#39;])]
+    if txtwidth:
+        lines[&#39;label&#39;] = [textwrap.fill(x, width=txtwidth) for x in lines[&#39;label&#39;]]
+
+    # Set state. BUGGY? sometimes causes MPL complaints after clicking boxes
+    if state is not None:
+        state = array(state).astype(bool)
+        lines[&#39;visible&#39;] = state
+        for i, x in enumerate(state):
+            lines[&#39;handle&#39;][i].set_visible(x)
+
+    # Setup buttons
+    # When there&#39;s many, the box-sizing is awful, but difficult to fix.
+    W       = 0.23 * txtwidth/15 * txtsize/10
+    nBreaks = sum(x.count(&#39;\n&#39;) for x in lines[&#39;label&#39;])  # count linebreaks
+    H       = min(1, 0.05*(N+nBreaks))
+    plt.subplots_adjust(left=W+0.12, right=0.97)
+    rax = plt.axes([0.05, 0.5-H/2, W, H])
+    check = CheckButtons(rax, lines[&#39;label&#39;], lines[&#39;visible&#39;])
+
+    # Adjust button style
+    for i in range(N):
+        check.rectangles[i].set(lw=0, facecolor=lines[&#39;color&#39;][i])
+        check.labels[i].set(color=lines[&#39;color&#39;][i])
+        if txtsize:
+            check.labels[i].set(size=txtsize)
+
+    # Callback
+    def toggle_visible(label):
+        ind    = lines[&#39;label&#39;].index(label)
+        handle = lines[&#39;handle&#39;][ind]
+        vs     = not lines[&#39;visible&#39;][ind]
+        handle.set_visible(vs)
+        lines[&#39;visible&#39;][ind] = vs
+        if autoscl:
+            autoscale_based_on(ax, list(itertools.compress(
+                lines[&#39;handle&#39;], lines[&#39;visible&#39;])))
+        plt.draw()
+    check.on_clicked(toggle_visible)
+
+    # Return focus
+    plt.sca(ax)
+
+    # Must return (and be received) so as not to expire.
+    return check</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.toggle_viz"><code class="name flex">
 <span>def <span class="ident">toggle_viz</span></span>(<span>*handles, prompt=False, legend=False, pause=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Toggle visibility of the graphics with handle handles.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def toggle_viz(*handles, prompt=False, legend=False, pause=True):
+    &#34;&#34;&#34;Toggle visibility of the graphics with handle handles.&#34;&#34;&#34;
+
+    are_viz = []
+    for h in handles:
+
+        # Core functionality: turn on/off
+        is_viz = not h.get_visible()
+        h.set_visible(is_viz)
+        are_viz += [is_viz]
+
+        # Legend updating. Basic version: works by
+        #  - setting line&#39;s label to actual_label/&#39;_nolegend_&#39; if is_viz/not
+        #  - re-calling legend()
+        if legend:
+            if is_viz:
+                try:
+                    h.set_label(h.actual_label)
+                except AttributeError:
+                    pass
+            else:
+                h.actual_label = h.get_label()
+                h.set_label(&#39;_nolegend_&#39;)
+            # Legend refresh
+            ax = h.axes
+            with warnings.catch_warnings():
+                warnings.simplefilter(&#34;error&#34;, category=UserWarning)
+                try:
+                    ax.legend()
+                except UserWarning:
+                    # If all labels are &#39;_nolabel_&#39; then ax.legend() throws warning,
+                    # and quits before refreshing.
+                    # =&gt; Refresh by creating/rm another legend.
+                    ax.legend(&#39;TMP&#39;).remove()
+
+    if prompt:
+        input(&#34;Press &lt;Enter&gt; to continue...&#34;)
+    if pause:
+        plt.pause(0.02)
+
+    return are_viz</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.nrowcol"><code class="name flex">
 <span>def <span class="ident">nrowcol</span></span>(<span>nTotal, AR=1)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Return integer nrows and ncols such that nTotal ≈ nrows*ncols.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nrowcol(nTotal, AR=1):
+    &#34;Return integer nrows and ncols such that nTotal ≈ nrows*ncols.&#34;
+    nrows = int(np.floor(np.sqrt(nTotal)/AR))
+    ncols = int(np.ceil(nTotal/nrows))
+    return nrows, ncols</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.axes_with_marginals"><code class="name flex">
 <span>def <span class="ident">axes_with_marginals</span></span>(<span>n_joint, n_marg, **kwargs)</span>
@@ -244,6 +1815,43 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 &gt;&gt;&gt; ax_x.hist(x)
 &gt;&gt;&gt; ax_y.hist(y,orientation=&quot;horizontal&quot;)
 </code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def axes_with_marginals(n_joint, n_marg, **kwargs):
+    &#34;&#34;&#34;
+    Create a joint axis along with two marginal axes.
+
+    Example:
+    &gt;&gt;&gt; ax_s, ax_x, ax_y = axes_with_marginals(4, 1)
+    &gt;&gt;&gt; x, y = np.random.randn(2,500)
+    &gt;&gt;&gt; ax_s.scatter(x,y)
+    &gt;&gt;&gt; ax_x.hist(x)
+    &gt;&gt;&gt; ax_y.hist(y,orientation=&#34;horizontal&#34;)
+    &#34;&#34;&#34;
+
+    N = n_joint + n_marg
+
+    # Method 1
+    # fig, ((ax_s, ax_y), (ax_x, _)) = plt.subplots(2,2,num=plt.gcf().number,
+    # sharex=&#39;col&#39;,sharey=&#39;row&#39;,gridspec_kw={
+    #     &#39;height_ratios&#39;:[n_joint,n_marg],
+    #     &#39;width_ratios&#39; :[n_joint,n_marg]})
+    # _.set_visible(False) # Actually removing would bug the axis ticks etc.
+
+    # Method 2
+    gs   = GridSpec(N, N, **kwargs)
+    fig  = plt.gcf()
+    ax_s = fig.add_subplot(gs[n_marg:N, 0:n_joint])
+    ax_x = fig.add_subplot(gs[0:n_marg, 0:n_joint], sharex=ax_s)
+    ax_y = fig.add_subplot(gs[n_marg:N, n_joint:N], sharey=ax_s)
+    # Cannot delete ticks coz axis are shared
+    plt.setp(ax_x.get_xticklabels(), visible=False)
+    plt.setp(ax_y.get_yticklabels(), visible=False)
+
+    return ax_s, ax_x, ax_y</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.cov_ellipse"><code class="name flex">
 <span>def <span class="ident">cov_ellipse</span></span>(<span>ax, mu, sigma, **kwargs)</span>
@@ -255,6 +1863,38 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <pre><code class="language-python-repl">&gt;&gt;&gt; ellipse = cov_ellipse(ax, y, R,
 &gt;&gt;&gt;           facecolor='none', edgecolor='y',lw=4,label='$1\sigma$')
 </code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cov_ellipse(ax, mu, sigma, **kwargs):
+    &#34;&#34;&#34;
+    Draw ellipse corresponding to (Gaussian) 1-sigma countour of cov matrix.
+
+    Inspired by https://stackoverflow.com/q/17952171
+
+    Example:
+    &gt;&gt;&gt; ellipse = cov_ellipse(ax, y, R,
+    &gt;&gt;&gt;           facecolor=&#39;none&#39;, edgecolor=&#39;y&#39;,lw=4,label=&#39;$1\\sigma$&#39;)
+    &#34;&#34;&#34;
+
+    # Cov --&gt; Width, Height, Theta
+    vals, vecs = sla.eigh(sigma)
+    x, y       = vecs[:, -1]  # x-y components of largest (last) eigenvector
+    theta      = np.degrees(np.arctan2(y, x))
+    theta      = theta % 180
+
+    h, w       = 2 * np.sqrt(vals.clip(0))
+
+    # Get artist
+    e = Ellipse(mu, w, h, theta, **kwargs)
+
+    ax.add_patch(e)
+    e.set_clip_box(ax.bbox)  # why is this necessary?
+
+    # Return artist
+    return e</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.viz.axis_scale_by_array"><code class="name flex">
 <span>def <span class="ident">axis_scale_by_array</span></span>(<span>ax, arr, axis='y', nbins=3)</span>
@@ -262,6 +1902,31 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <dd>
 <div class="desc"><p>Scale axis so that the arr entries appear equidistant.</p>
 <p>The full transformation is piecewise-linear.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
+    &#34;&#34;&#34;Scale axis so that the arr entries appear equidistant.
+
+    The full transformation is piecewise-linear.&#34;&#34;&#34;
+    yy = array([y for y in arr if y is not None], dtype=float)  # rm None
+
+    # Make transformation
+    xx = arange(len(yy))
+    func = interp1d(xx, yy, fill_value=&#34;extrapolate&#34;)
+    invf = interp1d(yy, xx, fill_value=&#34;extrapolate&#34;)
+
+    # Set transformation
+    set_scale = eval(f&#34;ax.set_{axis}scale&#34;)
+    set_scale(&#39;function&#39;, functions=(invf, func))
+
+    # Adjust axis ticks
+    _axis = getattr(ax, axis+&#34;axis&#34;)
+    _axis.set_major_locator(ticker.FixedLocator(yy, nbins=nbins))
+    _axis.set_minor_locator(ticker.FixedLocator(yy))
+    _axis.set_minor_formatter(ticker.NullFormatter())</code></pre>
+</details>
 </dd>
 </dl>
 </section>
@@ -274,6 +1939,46 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Simplify exporting a figure, especially when it's part of a series.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FigSaver(NicePrint):
+    &#34;&#34;&#34;
+    Simplify exporting a figure, especially when it&#39;s part of a series.
+    &#34;&#34;&#34;
+
+    def __init__(self, script=None, basename=None, n=-1, ext=&#39;.pdf&#39;):
+
+        # Defaults
+        if script is None:  # Get __file__ of caller
+            script = inspect.getfile(inspect.stack()[1][0])
+        if basename is None:
+            basename = &#39;figure&#39;
+        # Prep save dir
+        sdir = rc.dirs.data / Path(script).stem
+        os.makedirs(sdir, exist_ok=True)
+        # Set state
+        self.fname = sdir + basename
+        self.n     = n
+        self.ext   = ext
+
+    @property
+    def fullname(self):
+        f = self.fname            # Abbrev
+        if self.n &gt;= 0:           # If indexing:
+            f += &#39;_n%d&#39; % self.n  # Add index
+        f += self.ext             # Add extension
+        return f
+
+    def save(self):
+        f = self.fullname           # Abbrev
+        print(&#34;Saving fig to:&#34;, f)  # Print
+        plt.savefig(f)              # Save
+        if self.n &gt;= 0:             # If indexing:
+            self.n += 1                 # Increment
+            plt.pause(0.1)              # For safety</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
@@ -283,6 +1988,18 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <dt id="dapper.tools.viz.FigSaver.fullname"><code class="name">var <span class="ident">fullname</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def fullname(self):
+    f = self.fname            # Abbrev
+    if self.n &gt;= 0:           # If indexing:
+        f += &#39;_n%d&#39; % self.n  # Add index
+    f += self.ext             # Add extension
+    return f</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -292,6 +2009,18 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save(self):
+    f = self.fullname           # Abbrev
+    print(&#34;Saving fig to:&#34;, f)  # Print
+    plt.savefig(f)              # Save
+    if self.n &gt;= 0:             # If indexing:
+        self.n += 1                 # Increment
+        plt.pause(0.1)              # For safety</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -299,6 +2028,11 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

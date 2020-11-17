@@ -32,6 +32,58 @@ Physica D: Nonlinear Phenomena 241.7 (2012): 775-788.</p>
 <p>There is nothing to reproduce from the paper as there are no
 statistically converged numbers.</p>
 <p>More interesting settings: mods.Lorenz84.harder</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Settings from Pajonk, Oliver, et al.
+&#39;A deterministic filter for non-Gaussian Bayesian estimation—applications
+to dynamical system estimation with noisy measurements.&#39;
+Physica D: Nonlinear Phenomena 241.7 (2012): 775-788.
+
+There is nothing to reproduce from the paper as there are no
+statistically converged numbers.
+
+More interesting settings: mods.Lorenz84.harder
+&#34;&#34;&#34;
+
+import numpy as np
+
+from dapper.mods.Lorenz84.core import step, dstep_dx, x0
+from dapper.mods.Lorenz63.core import LPs
+
+import dapper as dpr
+
+Nx = len(x0)
+Ny = Nx
+
+day = 0.05/6 * 24  # coz dt=0.05 &lt;--&gt; 6h in &#34;model time scale&#34;
+t = dpr.Chronology(0.05, dkObs=1, T=200*day, BurnIn=10*day)
+
+Dyn = {
+    &#39;M&#39;: Nx,
+    &#39;model&#39;: step,
+    &#39;linear&#39;: dstep_dx,
+    &#39;noise&#39;: 0
+}
+
+# X0 = dpr.GaussRV(C=0.01,M=Nx) # Decreased from Pajonk&#39;s C=1.
+X0 = dpr.GaussRV(C=0.01, mu=x0)
+
+jj = np.arange(Nx)
+Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs[&#39;noise&#39;] = 0.1
+
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LPs(jj))
+
+####################
+# Suggested tuning
+####################
+# xps += ExtKF(infl=2)
+# xps += EnKF(&#39;Sqrt&#39;,N=3,infl=1.01)
+# xps += PartFilt(reg=1.0, N=100, NER=0.4) # add reg!
+# xps += PartFilt(reg=1.0, N=1000, NER=0.1) # add reg!</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -43,6 +95,11 @@ statistically converged numbers.</p>
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

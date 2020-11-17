@@ -23,6 +23,305 @@
 <h1 class="title">Module <code>dapper.tools.series</code></h1>
 </header>
 <section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from dapper.dict_tools import NicePrint
+from dapper.dpr_config import rc
+import dapper.tools.utils as utils
+import dapper.tools.math as mtools
+from dataclasses import dataclass
+import numpy as np
+from numpy import nan
+
+# TODO 3: change L to &#39;nlags&#39;, with nlags=L-1, to conform with
+# the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
+
+
+def auto_cov(xx, L=5, zero_mean=False, corr=False):
+    &#34;&#34;&#34;
+    Auto covariance function, computed along axis 0.
+    L   : max lag (offset) for which to compute acf.
+    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
+    &#34;&#34;&#34;
+    assert L &lt;= len(xx)
+
+    N = len(xx)
+    A = xx if zero_mean else mtools.center(xx)[0]
+    acovf = np.zeros((L,)+xx.shape[1:])
+
+    for i in range(L):
+        Left  = A[np.arange(N-i)]
+        Right = A[np.arange(i, N)]
+        acovf[i] = (Left*Right).sum(0)/(N-i)
+
+    if corr:
+        acovf /= acovf[0]
+
+    return acovf
+
+
+def fit_acf_by_AR1(acf_empir, L=None):
+    &#34;&#34;&#34;
+    Fit an empirical auto cov function (ACF) by that of an AR1 process.
+    acf_empir: auto-corr/cov-function.
+    L: length of ACF to use in AR(1) fitting
+    &#34;&#34;&#34;
+    if L is None:
+        L = len(acf_empir)
+
+    # geometric_mean = ss.mstats.gmean
+    def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
+
+    def mean_ratio(xx):
+        return geometric_mean([xx[i]/xx[i-1] for i in range(1, len(xx))])
+
+    # Negative correlation =&gt; Truncate ACF
+    neg_ind   = utils.find_1st_ind(np.array(acf_empir) &lt;= 0)
+    acf_empir = acf_empir[:neg_ind]
+
+    if len(acf_empir) == 0:
+        return 0
+    elif len(acf_empir) == 1:
+        return 0.01
+    else:
+        return mean_ratio(acf_empir)
+
+
+def estimate_corr_length(xx):
+    &#34;&#34;&#34;
+    For explanation, see mods.LA.core: homogeneous_1D_cov().
+    Also note that, for exponential corr function, as assumed here,
+    corr(L) = exp(-1) = ca 0.368
+    &#34;&#34;&#34;
+    assert mtools.is1d(xx)
+    acovf = auto_cov(xx, min(100, len(xx)-2))
+    a     = fit_acf_by_AR1(acovf)
+    if a == 0:
+        L = 0
+    else:
+        L = 1/np.log(1/a)
+    return L
+
+
+@dataclass
+class UncertainQtty():
+    val: float
+    conf: float
+
+    def round(self, mult=1.0):
+        &#34;&#34;&#34;Round intelligently:
+
+        - conf to 1 sigfig.
+        - val:
+            - to precision: mult*conf.
+            - fallback: rc.sigfig
+        &#34;&#34;&#34;
+        with np.errstate(all=&#39;ignore&#39;):
+            conf = mtools.round2(self.conf, 1)
+            val  = self.val
+            if not np.isnan(conf) and conf &gt; 0:
+                val = mtools.round2(val, mult*conf)
+            else:
+                val = mtools.round2(val, rc.sigfig)
+            return val, conf
+
+    def __str__(self):
+        return &#34;{} ±{}&#34;.format(*self.round())
+
+    def __repr__(self):
+        vc = &#34;(val={:.4g}, conf={:.1g})&#34;.format(*self.round(1e-9))
+        return self.__class__.__name__ + vc
+
+
+def mean_with_conf(xx):
+    &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
+
+    Also provide confidence of mean,
+    as estimated from its correlation-corrected variance.
+    &#34;&#34;&#34;
+    mu = np.mean(xx)
+    N  = len(xx)
+    if (not np.isfinite(mu)) or N &lt;= 5:
+        uq = UncertainQtty(mu, np.nan)
+    elif np.allclose(xx, mu):
+        uq = UncertainQtty(mu, 0)
+    else:
+        acovf = auto_cov(xx, 5)
+        var   = acovf[0]
+        var  /= N
+        # Estimate (fit) ACF
+        a = fit_acf_by_AR1(acovf)
+        # If xx[k] where independent of xx[k-1],
+        # then std_of_mu is the end of the story.
+        # The following corrects for the correlation in the time series.
+        #
+        # See https://stats.stackexchange.com/q/90062
+        # c = sum([(N-k)*a**k for k in range(1,N)])
+        # But this series is analytically tractable:
+        c = ((N-1)*a - N*a**2 + a**(N+1)) / (1-a)**2
+        confidence_correction = 1 + 2/N * c
+        var *= confidence_correction
+        uq = UncertainQtty(mu, np.sqrt(var))
+    return uq
+
+
+class StatPrint(NicePrint):
+    &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
+    printopts = dict(
+        excluded=NicePrint.printopts[&#34;excluded&#34;]+[&#34;HMM&#34;, &#34;LP_instance&#34;],
+        ordering=&#34;linenumber&#34;,
+        reverse=True,
+        indent=2,
+        aliases={
+            &#39;f&#39;: &#39;Forecast  (.f)&#39;,
+            &#39;a&#39;: &#39;Analysis  (.a)&#39;,
+            &#39;s&#39;: &#39;Smoothed  (.s)&#39;,
+            &#39;u&#39;: &#39;Universal (.u)&#39;,
+            &#39;m&#39;: &#39;Field mean (.m)&#39;,
+            &#39;ma&#39;: &#39;Field mean-abs (.ma)&#39;,
+            &#39;rms&#39;: &#39;Field root-mean-square (.rms)&#39;,
+            &#39;gm&#39;: &#39;Field geometric-mean (.gm)&#39;
+        },
+    )
+
+    # Adjust np.printoptions before NicePrint
+    def __repr__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return super().__repr__()
+
+    def __str__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return super().__str__()
+
+
+@utils.monitor_setitem
+class DataSeries(StatPrint):
+    &#34;&#34;&#34;Basically just an ``np.ndarray``. But adds:
+
+    - Possibility of adding attributes.
+    - The class (type) provides way to acertain if an attribute is a series.
+
+    Note: subclassing ``ndarray`` is too dirty =&gt; We&#39;ll just use the
+    ``array`` attribute, and provide ``{s,g}etitem``.&#34;&#34;&#34;
+
+    def __init__(self, shape, **kwargs):
+        self.array = np.full(shape, nan, **kwargs)
+
+    def __len__(self): return len(self.array)
+    def __getitem__(self, key): return self.array[key]
+    def __setitem__(self, key, val):           self.array[key] = val
+
+
+@utils.monitor_setitem
+class FAUSt(DataSeries, StatPrint):
+    &#34;&#34;&#34;Container for time series of a statistic from filtering.
+
+    Four attributes, each of which is an ndarray:
+
+     - .f for forecast      , (KObs+1,)+item_shape
+     - .a for analysis      , (KObs+1,)+item_shape
+     - .s for smoothed      , (KObs+1,)+item_shape
+     - .u for universial/all, (K   +1,)+item_shape
+
+    If store_u=False, then .u series has shape (1,)+item_shape,
+    wherein only the most-recently-written item is stored.
+
+    Series can also be indexed as in
+    &gt;&gt;&gt; self[kObs,&#39;a&#39;]
+    &gt;&gt;&gt; self[whatever,kObs,&#39;a&#39;]
+    &gt;&gt;&gt; # ... and likewise for &#39;f&#39; and &#39;s&#39;. For &#39;u&#39;, can use:
+    &gt;&gt;&gt; self[k,&#39;u&#39;]
+    &gt;&gt;&gt; self[k,whatever,&#39;u&#39;]
+
+    .. note:: If a data series only pertains to the analysis,
+              then you should use a plain np.array instead.
+    &#34;&#34;&#34;
+
+    def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
+        &#34;&#34;&#34;Constructor.
+
+         - item_shape : shape of an item in the series.
+         - store_u    : if False: only the current value is stored.
+         - kwargs     : passed on to ndarrays.
+        &#34;&#34;&#34;
+
+        self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        if store_s:
+            self.s = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        if store_u:
+            self.u = np.full((K   + 1,)+item_shape, nan, **kwargs)
+        else:
+            self.u = np.full((1,)+item_shape, nan, **kwargs)
+
+    # We could just store the input values for these attrs, but using
+    # property =&gt; Won&#39;t be listed in vars(self), and un-writeable.
+    item_shape = property(lambda self: self.a.shape[1:])
+    store_u    = property(lambda self: len(self.u) &gt; 1)
+
+    def _ind(self, key):
+        &#34;Aux function to unpack ``key`` (k,kObs,faus)&#34;
+        if key[-1] == &#39;u&#39;:
+            return key[0] if self.store_u else 0
+        else:
+            return key[-2]
+
+    def __setitem__(self, key, item):  getattr(self, key[-1])[self._ind(key)] = item
+    def __getitem__(self, key): return getattr(self, key[-1])[self._ind(key)]
+
+
+class RollingArray:
+    &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
+    Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
+
+    def __init__(self, shape, fillval=nan):
+        self.array = np.full(shape, fillval)
+        self.k1 = 0      # previous k
+        self.nFilled = 0
+
+    def insert(self, k, val):
+        dk = k-self.k1
+
+        # Old (more readable?) version:
+        # if dk in [0,1]: # case: forecast or analysis update
+        # self.array = np.roll(self.array, -1, axis=0)
+        # elif dk&gt;1:      # case: user has skipped ahead (w/o liveplotting)
+        # self.array = np.roll(self.array, -dk, axis=0)
+        # self.array[-dk:] = nan
+        # self.array[-1] = val
+
+        dk = max(1, dk)
+        # TODO 4: Should have used deque?
+        self.array = np.roll(self.array, -dk, axis=0)
+        self.array[-dk:] = nan
+        self.array[-1:] = val
+
+        self.k1 = k
+        self.nFilled = min(len(self), self.nFilled+dk)
+
+    def leftmost(self):
+        return self[len(self)-self.nFilled]
+
+    def span(self):
+        return (self.leftmost(),  self[-1])
+
+    @property
+    def T(self):
+        return self.array.T
+
+    def __array__(self, dtype=None): return self.array
+    def __len__(self): return len(self.array)
+    def __repr__(self): return &#39;RollingArray:\n%s&#39; % str(self.array)
+    def __getitem__(self, key): return self.array[key]
+
+    def __setitem__(self, key, val):
+        # Don&#39;t implement __setitem__ coz leftmost() is then
+        # not generally meaningful (i.e. if an element is set in the middle).
+        # Of course self.array can still be messed with.
+        raise AttributeError(&#34;Values should be set with update()&#34;)</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -39,6 +338,32 @@
 L
 : max lag (offset) for which to compute acf.
 corr: normalize acf by acf[0] so as to return auto-CORRELATION.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def auto_cov(xx, L=5, zero_mean=False, corr=False):
+    &#34;&#34;&#34;
+    Auto covariance function, computed along axis 0.
+    L   : max lag (offset) for which to compute acf.
+    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
+    &#34;&#34;&#34;
+    assert L &lt;= len(xx)
+
+    N = len(xx)
+    A = xx if zero_mean else mtools.center(xx)[0]
+    acovf = np.zeros((L,)+xx.shape[1:])
+
+    for i in range(L):
+        Left  = A[np.arange(N-i)]
+        Right = A[np.arange(i, N)]
+        acovf[i] = (Left*Right).sum(0)/(N-i)
+
+    if corr:
+        acovf /= acovf[0]
+
+    return acovf</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.series.fit_acf_by_AR1"><code class="name flex">
 <span>def <span class="ident">fit_acf_by_AR1</span></span>(<span>acf_empir, L=None)</span>
@@ -47,6 +372,36 @@ corr: normalize acf by acf[0] so as to return auto-CORRELATION.</p></div>
 <div class="desc"><p>Fit an empirical auto cov function (ACF) by that of an AR1 process.
 acf_empir: auto-corr/cov-function.
 L: length of ACF to use in AR(1) fitting</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit_acf_by_AR1(acf_empir, L=None):
+    &#34;&#34;&#34;
+    Fit an empirical auto cov function (ACF) by that of an AR1 process.
+    acf_empir: auto-corr/cov-function.
+    L: length of ACF to use in AR(1) fitting
+    &#34;&#34;&#34;
+    if L is None:
+        L = len(acf_empir)
+
+    # geometric_mean = ss.mstats.gmean
+    def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
+
+    def mean_ratio(xx):
+        return geometric_mean([xx[i]/xx[i-1] for i in range(1, len(xx))])
+
+    # Negative correlation =&gt; Truncate ACF
+    neg_ind   = utils.find_1st_ind(np.array(acf_empir) &lt;= 0)
+    acf_empir = acf_empir[:neg_ind]
+
+    if len(acf_empir) == 0:
+        return 0
+    elif len(acf_empir) == 1:
+        return 0.01
+    else:
+        return mean_ratio(acf_empir)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.series.estimate_corr_length"><code class="name flex">
 <span>def <span class="ident">estimate_corr_length</span></span>(<span>xx)</span>
@@ -55,6 +410,25 @@ L: length of ACF to use in AR(1) fitting</p></div>
 <div class="desc"><p>For explanation, see mods.LA.core: homogeneous_1D_cov().
 Also note that, for exponential corr function, as assumed here,
 corr(L) = exp(-1) = ca 0.368</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def estimate_corr_length(xx):
+    &#34;&#34;&#34;
+    For explanation, see mods.LA.core: homogeneous_1D_cov().
+    Also note that, for exponential corr function, as assumed here,
+    corr(L) = exp(-1) = ca 0.368
+    &#34;&#34;&#34;
+    assert mtools.is1d(xx)
+    acovf = auto_cov(xx, min(100, len(xx)-2))
+    a     = fit_acf_by_AR1(acovf)
+    if a == 0:
+        L = 0
+    else:
+        L = 1/np.log(1/a)
+    return L</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.series.mean_with_conf"><code class="name flex">
 <span>def <span class="ident">mean_with_conf</span></span>(<span>xx)</span>
@@ -63,6 +437,41 @@ corr(L) = exp(-1) = ca 0.368</p></div>
 <div class="desc"><p>Compute the mean of a 1d iterable <code>xx</code>.</p>
 <p>Also provide confidence of mean,
 as estimated from its correlation-corrected variance.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mean_with_conf(xx):
+    &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
+
+    Also provide confidence of mean,
+    as estimated from its correlation-corrected variance.
+    &#34;&#34;&#34;
+    mu = np.mean(xx)
+    N  = len(xx)
+    if (not np.isfinite(mu)) or N &lt;= 5:
+        uq = UncertainQtty(mu, np.nan)
+    elif np.allclose(xx, mu):
+        uq = UncertainQtty(mu, 0)
+    else:
+        acovf = auto_cov(xx, 5)
+        var   = acovf[0]
+        var  /= N
+        # Estimate (fit) ACF
+        a = fit_acf_by_AR1(acovf)
+        # If xx[k] where independent of xx[k-1],
+        # then std_of_mu is the end of the story.
+        # The following corrects for the correlation in the time series.
+        #
+        # See https://stats.stackexchange.com/q/90062
+        # c = sum([(N-k)*a**k for k in range(1,N)])
+        # But this series is analytically tractable:
+        c = ((N-1)*a - N*a**2 + a**(N+1)) / (1-a)**2
+        confidence_correction = 1 + 2/N * c
+        var *= confidence_correction
+        uq = UncertainQtty(mu, np.sqrt(var))
+    return uq</code></pre>
+</details>
 </dd>
 </dl>
 </section>
@@ -75,6 +484,38 @@ as estimated from its correlation-corrected variance.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>UncertainQtty(val: float, conf: float)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UncertainQtty():
+    val: float
+    conf: float
+
+    def round(self, mult=1.0):
+        &#34;&#34;&#34;Round intelligently:
+
+        - conf to 1 sigfig.
+        - val:
+            - to precision: mult*conf.
+            - fallback: rc.sigfig
+        &#34;&#34;&#34;
+        with np.errstate(all=&#39;ignore&#39;):
+            conf = mtools.round2(self.conf, 1)
+            val  = self.val
+            if not np.isnan(conf) and conf &gt; 0:
+                val = mtools.round2(val, mult*conf)
+            else:
+                val = mtools.round2(val, rc.sigfig)
+            return val, conf
+
+    def __str__(self):
+        return &#34;{} ±{}&#34;.format(*self.round())
+
+    def __repr__(self):
+        vc = &#34;(val={:.4g}, conf={:.1g})&#34;.format(*self.round(1e-9))
+        return self.__class__.__name__ + vc</code></pre>
+</details>
 <h3>Class variables</h3>
 <dl>
 <dt id="dapper.tools.series.UncertainQtty.val"><code class="name">var <span class="ident">val</span> : float</code></dt>
@@ -101,6 +542,27 @@ as estimated from its correlation-corrected variance.</p></div>
 </ul>
 </li>
 </ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def round(self, mult=1.0):
+    &#34;&#34;&#34;Round intelligently:
+
+    - conf to 1 sigfig.
+    - val:
+        - to precision: mult*conf.
+        - fallback: rc.sigfig
+    &#34;&#34;&#34;
+    with np.errstate(all=&#39;ignore&#39;):
+        conf = mtools.round2(self.conf, 1)
+        val  = self.val
+        if not np.isnan(conf) and conf &gt; 0:
+            val = mtools.round2(val, mult*conf)
+        else:
+            val = mtools.round2(val, rc.sigfig)
+        return val, conf</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -109,6 +571,38 @@ as estimated from its correlation-corrected variance.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Set NicePrint options suitable for stats.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StatPrint(NicePrint):
+    &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
+    printopts = dict(
+        excluded=NicePrint.printopts[&#34;excluded&#34;]+[&#34;HMM&#34;, &#34;LP_instance&#34;],
+        ordering=&#34;linenumber&#34;,
+        reverse=True,
+        indent=2,
+        aliases={
+            &#39;f&#39;: &#39;Forecast  (.f)&#39;,
+            &#39;a&#39;: &#39;Analysis  (.a)&#39;,
+            &#39;s&#39;: &#39;Smoothed  (.s)&#39;,
+            &#39;u&#39;: &#39;Universal (.u)&#39;,
+            &#39;m&#39;: &#39;Field mean (.m)&#39;,
+            &#39;ma&#39;: &#39;Field mean-abs (.ma)&#39;,
+            &#39;rms&#39;: &#39;Field root-mean-square (.rms)&#39;,
+            &#39;gm&#39;: &#39;Field geometric-mean (.gm)&#39;
+        },
+    )
+
+    # Adjust np.printoptions before NicePrint
+    def __repr__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return super().__repr__()
+
+    def __str__(self):
+        with np.printoptions(threshold=10, precision=3):
+            return super().__str__()</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
@@ -140,6 +634,26 @@ as estimated from its correlation-corrected variance.</p></div>
 </ul>
 <p>Note: subclassing <code>ndarray</code> is too dirty =&gt; We'll just use the
 <code>array</code> attribute, and provide <code>{s,g}etitem</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataSeries(StatPrint):
+    &#34;&#34;&#34;Basically just an ``np.ndarray``. But adds:
+
+    - Possibility of adding attributes.
+    - The class (type) provides way to acertain if an attribute is a series.
+
+    Note: subclassing ``ndarray`` is too dirty =&gt; We&#39;ll just use the
+    ``array`` attribute, and provide ``{s,g}etitem``.&#34;&#34;&#34;
+
+    def __init__(self, shape, **kwargs):
+        self.array = np.full(shape, nan, **kwargs)
+
+    def __len__(self): return len(self.array)
+    def __getitem__(self, key): return self.array[key]
+    def __setitem__(self, key, val):           self.array[key] = val</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.tools.series.StatPrint" href="#dapper.tools.series.StatPrint">StatPrint</a></li>
@@ -195,6 +709,66 @@ wherein only the most-recently-written item is stored.</p>
 <li>kwargs
 : passed on to ndarrays.</li>
 </ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FAUSt(DataSeries, StatPrint):
+    &#34;&#34;&#34;Container for time series of a statistic from filtering.
+
+    Four attributes, each of which is an ndarray:
+
+     - .f for forecast      , (KObs+1,)+item_shape
+     - .a for analysis      , (KObs+1,)+item_shape
+     - .s for smoothed      , (KObs+1,)+item_shape
+     - .u for universial/all, (K   +1,)+item_shape
+
+    If store_u=False, then .u series has shape (1,)+item_shape,
+    wherein only the most-recently-written item is stored.
+
+    Series can also be indexed as in
+    &gt;&gt;&gt; self[kObs,&#39;a&#39;]
+    &gt;&gt;&gt; self[whatever,kObs,&#39;a&#39;]
+    &gt;&gt;&gt; # ... and likewise for &#39;f&#39; and &#39;s&#39;. For &#39;u&#39;, can use:
+    &gt;&gt;&gt; self[k,&#39;u&#39;]
+    &gt;&gt;&gt; self[k,whatever,&#39;u&#39;]
+
+    .. note:: If a data series only pertains to the analysis,
+              then you should use a plain np.array instead.
+    &#34;&#34;&#34;
+
+    def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
+        &#34;&#34;&#34;Constructor.
+
+         - item_shape : shape of an item in the series.
+         - store_u    : if False: only the current value is stored.
+         - kwargs     : passed on to ndarrays.
+        &#34;&#34;&#34;
+
+        self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        if store_s:
+            self.s = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        if store_u:
+            self.u = np.full((K   + 1,)+item_shape, nan, **kwargs)
+        else:
+            self.u = np.full((1,)+item_shape, nan, **kwargs)
+
+    # We could just store the input values for these attrs, but using
+    # property =&gt; Won&#39;t be listed in vars(self), and un-writeable.
+    item_shape = property(lambda self: self.a.shape[1:])
+    store_u    = property(lambda self: len(self.u) &gt; 1)
+
+    def _ind(self, key):
+        &#34;Aux function to unpack ``key`` (k,kObs,faus)&#34;
+        if key[-1] == &#39;u&#39;:
+            return key[0] if self.store_u else 0
+        else:
+            return key[-2]
+
+    def __setitem__(self, key, item):  getattr(self, key[-1])[self._ind(key)] = item
+    def __getitem__(self, key): return getattr(self, key[-1])[self._ind(key)]</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.tools.series.DataSeries" href="#dapper.tools.series.DataSeries">DataSeries</a></li>
@@ -213,10 +787,22 @@ wherein only the most-recently-written item is stored.</p>
 <dt id="dapper.tools.series.FAUSt.item_shape"><code class="name">var <span class="ident">item_shape</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">item_shape = property(lambda self: self.a.shape[1:])</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.series.FAUSt.store_u"><code class="name">var <span class="ident">store_u</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">store_u    = property(lambda self: len(self.u) &gt; 1)</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -227,11 +813,73 @@ wherein only the most-recently-written item is stored.</p>
 <dd>
 <div class="desc"><p>ND-Array that implements "leftward rolling" along axis 0.
 Used for data that gets plotted in sliding graphs.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RollingArray:
+    &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
+    Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
+
+    def __init__(self, shape, fillval=nan):
+        self.array = np.full(shape, fillval)
+        self.k1 = 0      # previous k
+        self.nFilled = 0
+
+    def insert(self, k, val):
+        dk = k-self.k1
+
+        # Old (more readable?) version:
+        # if dk in [0,1]: # case: forecast or analysis update
+        # self.array = np.roll(self.array, -1, axis=0)
+        # elif dk&gt;1:      # case: user has skipped ahead (w/o liveplotting)
+        # self.array = np.roll(self.array, -dk, axis=0)
+        # self.array[-dk:] = nan
+        # self.array[-1] = val
+
+        dk = max(1, dk)
+        # TODO 4: Should have used deque?
+        self.array = np.roll(self.array, -dk, axis=0)
+        self.array[-dk:] = nan
+        self.array[-1:] = val
+
+        self.k1 = k
+        self.nFilled = min(len(self), self.nFilled+dk)
+
+    def leftmost(self):
+        return self[len(self)-self.nFilled]
+
+    def span(self):
+        return (self.leftmost(),  self[-1])
+
+    @property
+    def T(self):
+        return self.array.T
+
+    def __array__(self, dtype=None): return self.array
+    def __len__(self): return len(self.array)
+    def __repr__(self): return &#39;RollingArray:\n%s&#39; % str(self.array)
+    def __getitem__(self, key): return self.array[key]
+
+    def __setitem__(self, key, val):
+        # Don&#39;t implement __setitem__ coz leftmost() is then
+        # not generally meaningful (i.e. if an element is set in the middle).
+        # Of course self.array can still be messed with.
+        raise AttributeError(&#34;Values should be set with update()&#34;)</code></pre>
+</details>
 <h3>Instance variables</h3>
 <dl>
 <dt id="dapper.tools.series.RollingArray.T"><code class="name">var <span class="ident">T</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def T(self):
+    return self.array.T</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -241,18 +889,56 @@ Used for data that gets plotted in sliding graphs.</p></div>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def insert(self, k, val):
+    dk = k-self.k1
+
+    # Old (more readable?) version:
+    # if dk in [0,1]: # case: forecast or analysis update
+    # self.array = np.roll(self.array, -1, axis=0)
+    # elif dk&gt;1:      # case: user has skipped ahead (w/o liveplotting)
+    # self.array = np.roll(self.array, -dk, axis=0)
+    # self.array[-dk:] = nan
+    # self.array[-1] = val
+
+    dk = max(1, dk)
+    # TODO 4: Should have used deque?
+    self.array = np.roll(self.array, -dk, axis=0)
+    self.array[-dk:] = nan
+    self.array[-1:] = val
+
+    self.k1 = k
+    self.nFilled = min(len(self), self.nFilled+dk)</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.series.RollingArray.leftmost"><code class="name flex">
 <span>def <span class="ident">leftmost</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def leftmost(self):
+    return self[len(self)-self.nFilled]</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.series.RollingArray.span"><code class="name flex">
 <span>def <span class="ident">span</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def span(self):
+    return (self.leftmost(),  self[-1])</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -260,6 +946,11 @@ Used for data that gets plotted in sliding graphs.</p></div>
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

@@ -24,6 +24,73 @@
 </header>
 <section id="section-intro">
 <p>As in Lorenz 1996 'Predictability&hellip;'</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;As in Lorenz 1996 &#39;Predictability...&#39;&#34;&#34;&#34;
+
+import numpy as np
+import dapper as dpr
+import dapper.tools.utils as utils
+
+from dapper.mods.LorenzUV.core import model_instance
+LUV = model_instance(nU=36, J=10, F=10)
+nU = LUV.nU
+
+
+################
+# Full
+################
+
+t = dpr.Chronology(dt=0.005, dtObs=0.05, T=4**3, BurnIn=6)
+
+
+Dyn = {
+    &#39;M&#39;: LUV.M,
+    &#39;model&#39;: dpr.with_rk4(LUV.dxdt, autonom=True),
+    &#39;noise&#39;: 0,
+    &#39;linear&#39;: LUV.dstep_dx,
+}
+
+X0 = dpr.GaussRV(mu=LUV.x0, C=0.01)
+
+R = 1.0
+jj = np.arange(nU)
+Obs = dpr.partial_Id_Obs(LUV.M, jj)
+Obs[&#39;noise&#39;] = R
+
+other = {&#39;name&#39;: utils.rel2mods(__file__)+&#39;_full&#39;}
+HMM_full = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, **other)
+
+
+################
+# Truncated
+################
+
+# Just change dt from 005 to 05
+t = dpr.Chronology(dt=0.05, dtObs=0.05, T=4**3, BurnIn=6)
+
+Dyn = {
+    &#39;M&#39;: nU,
+    &#39;model&#39;: dpr.with_rk4(LUV.dxdt_parameterized),
+    &#39;noise&#39;: 0,
+}
+
+X0 = dpr.GaussRV(mu=LUV.x0[:nU], C=0.01)
+
+jj = np.arange(nU)
+Obs = dpr.partial_Id_Obs(nU, jj)
+Obs[&#39;noise&#39;] = R
+
+other = {&#39;name&#39;: utils.rel2mods(__file__)+&#39;_trunc&#39;}
+HMM_trunc = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, **other)
+
+####################
+# Suggested tuning
+####################
+#                     # Expected rmse.a (&#34;U&#34;-vars only!)</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -35,6 +102,11 @@
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

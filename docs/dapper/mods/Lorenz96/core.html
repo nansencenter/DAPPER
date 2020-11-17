@@ -30,6 +30,82 @@ Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.</p
 - demo.py and
 - "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials</p>
 <p>Note: the implementation is ndim-agnostic.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;The &#34;Lorenz-96&#34; (or 96) model.
+
+From &#34;Predictability -- a problem partly solved&#34; by E. N. Lorenz (1996).
+Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.
+
+For a short introduction, see
+ - demo.py and
+ - &#34;Dynamical systems, chaos, Lorenz.ipynb&#34; from the DA-tutorials
+
+Note: the implementation is ndim-agnostic.
+&#39;&#39;&#39;
+
+import dapper.tools.liveplotting as LP
+import numpy as np
+from dapper.tools.math import is1d, rk4, integrate_TLM
+
+Force = 8.0
+
+Tplot = 10
+
+
+def x0(M): return np.eye(M)[0]
+
+
+def shift(x, n):
+    return np.roll(x, -n, axis=-1)
+
+
+def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x
+def dxdt(x): return dxdt_autonomous(x) + Force
+
+
+def step(x0, t, dt):
+    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)
+
+
+################################################
+# OPTIONAL (not required by EnKF or PartFilt):
+################################################
+def d2x_dtdx(x):
+    assert is1d(x)
+    M = len(x)
+    F = np.zeros((M, M))
+    def md(i): return np.mod(i, M)  # modulo
+
+    for i in range(M):
+        F[i, i]       = -1.0
+        F[i,   i-2]   = -x[i-1]
+        F[i, md(i+1)] = +x[i-1]
+        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+
+    return F
+
+# dstep_dx = FD_Jac(step)
+
+
+def dstep_dx(x, t, dt):
+    # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;analytic&#39;)
+
+
+################################################
+# Add some non-default liveplotters
+################################################
+def LPs(jj=None): return [
+    (11, 1, LP.spatial1d(jj)),
+    (12, 1, LP.correlations),
+    (15, 0, LP.spectral_errors),
+    (13, 0, LP.phase_particles(True, jj)),
+    (14, 0, LP.sliding_marginals(jj)),
+]</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -43,48 +119,118 @@ Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.</p
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def x0(M): return np.eye(M)[0]</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.Lorenz96.core.shift"><code class="name flex">
 <span>def <span class="ident">shift</span></span>(<span>x, n)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shift(x, n):
+    return np.roll(x, -n, axis=-1)</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.Lorenz96.core.dxdt_autonomous"><code class="name flex">
 <span>def <span class="ident">dxdt_autonomous</span></span>(<span>x)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.Lorenz96.core.dxdt"><code class="name flex">
 <span>def <span class="ident">dxdt</span></span>(<span>x)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dxdt(x): return dxdt_autonomous(x) + Force</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.Lorenz96.core.step"><code class="name flex">
 <span>def <span class="ident">step</span></span>(<span>x0, t, dt)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step(x0, t, dt):
+    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.Lorenz96.core.d2x_dtdx"><code class="name flex">
 <span>def <span class="ident">d2x_dtdx</span></span>(<span>x)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def d2x_dtdx(x):
+    assert is1d(x)
+    M = len(x)
+    F = np.zeros((M, M))
+    def md(i): return np.mod(i, M)  # modulo
+
+    for i in range(M):
+        F[i, i]       = -1.0
+        F[i,   i-2]   = -x[i-1]
+        F[i, md(i+1)] = +x[i-1]
+        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+
+    return F</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.Lorenz96.core.dstep_dx"><code class="name flex">
 <span>def <span class="ident">dstep_dx</span></span>(<span>x, t, dt)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dstep_dx(x, t, dt):
+    # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;analytic&#39;)</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.Lorenz96.core.LPs"><code class="name flex">
 <span>def <span class="ident">LPs</span></span>(<span>jj=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def LPs(jj=None): return [
+    (11, 1, LP.spatial1d(jj)),
+    (12, 1, LP.correlations),
+    (15, 0, LP.spectral_errors),
+    (13, 0, LP.phase_particles(True, jj)),
+    (14, 0, LP.sliding_marginals(jj)),
+]</code></pre>
+</details>
 </dd>
 </dl>
 </section>
@@ -92,6 +238,11 @@ Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.</p
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

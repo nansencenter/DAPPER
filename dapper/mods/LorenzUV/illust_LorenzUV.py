@@ -39,9 +39,7 @@ def Ui(xx):
 
 
 # Overlay linear
-fg = plt.figure(2)
-fg.clear()
-ax = fg.gca()
+fig, ax = plt.subplots()
 L = 20  # Num of lines to plot
 start = int(3e5*dt)
 step  = 3
@@ -77,23 +75,23 @@ for i, (t, l) in enumerate(zip(tV, lV)):
     ax.vlines(t, ym, -3.9, 'k', lw=mpl.rcParams['xtick.minor.width'])
 ax.grid(color='k', alpha=0.6, lw=0.4, axis='y', which='major')
 
-plt.show()
+
+# Convert to circular coordinates
+# Should have used instead: projection='polar'
+def tU(zz):
+    xx  = (40 + 3*zz)*np.cos(2*np.pi*ii/nU)
+    yy  = (40 + 3*zz)*np.sin(2*np.pi*ii/nU)
+    return xx, yy
 
 
-# # Convert to circular coordinates
-# # Should have used instead: projection='polar'
-# def tU(zz):
-#     xx  = (40 + 3*zz)*np.cos(2*np.pi*ii/nU)
-#     yy  = (40 + 3*zz)*np.sin(2*np.pi*ii/nU)
-#     return xx,yy
-# def tV(zz):
-#     xx  = (80 + 15*zz)*np.cos(2*np.pi*jj/nU/J)
-#     yy  = (80 + 15*zz)*np.sin(2*np.pi*jj/nU/J)
-#     return xx,yy
-#
-#
+def tV(zz):
+    xx  = (80 + 15*zz)*np.cos(2*np.pi*jj/nU/J)
+    yy  = (80 + 15*zz)*np.sin(2*np.pi*jj/nU/J)
+    return xx, yy
+
+
 # # Animate circ
-# plt.figure(3)
+# plt.subplots()
 # lhU   = plt.plot(*tU(xx[-1][circU]),'b',lw=3)[0]
 # lhV   = plt.plot(*tV(xx[-1][circV]),'g',lw=1)[0]
 # from dapper.tools.utils import progbar
@@ -105,21 +103,22 @@ plt.show()
 #     lhV.set_xdata(dataV[0])
 #     lhV.set_ydata(dataV[1])
 #     plt.pause(0.001)
-#
-#
-# # Overlay circ
-# fg = plt.figure(4)
-# fg.clear()
-# plt.plot(*tU(4.52*np.ones_like(circU)),color='k',lw=1)[0]
-# plt.plot(*tV(0.15*np.ones_like(circV)),color='k',lw=1)[0]
-# ax = fg.axes[0]
-# ax.set_axis_off()
-# ax.set_facecolor('white')
-# ax.set_aspect('equal')
-# L = 40 # Num of lines to plot
-# for Ny in range(L):
-#     k = 143 + Ny*3
-#     c = mpl.cm.viridis(1-Ny/L)
-#     a = 0.8-0.2*Ny/L
-#     plt.plot(*tU(xx[k][circU]),color=c,lw=2,alpha=a)[0]
-#     plt.plot(*tV(xx[k][circV]),color=c,lw=1,alpha=a)[0]
+
+
+# Overlay circ
+fig, ax = plt.subplots()
+plt.plot(*tU(4.52*np.ones_like(circU)), color='k', lw=1)[0]
+plt.plot(*tV(0.15*np.ones_like(circV)), color='k', lw=1)[0]
+ax = fig.axes[0]
+ax.set_axis_off()
+ax.set_facecolor('white')
+ax.set_aspect('equal')
+L = 40  # Num of lines to plot
+for Ny in range(L):
+    k = 143 + Ny*3
+    c = mpl.cm.viridis(1-Ny/L)
+    a = 0.8-0.2*Ny/L
+    plt.plot(*tU(xx[k][circU]), color=c, lw=2, alpha=a)[0]
+    plt.plot(*tV(xx[k][circV]), color=c, lw=1, alpha=a)[0]
+
+plt.show()

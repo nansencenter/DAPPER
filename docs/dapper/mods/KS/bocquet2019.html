@@ -23,6 +23,58 @@
 <h1 class="title">Module <code>dapper.mods.KS.bocquet2019</code></h1>
 </header>
 <section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import dapper as dpr
+import numpy as np
+from dapper.tools.math import Id_Obs
+
+from dapper.mods.Lorenz96.core import LPs
+from dapper.tools.localization import nd_Id_localization
+
+from dapper.mods.KS.core import Model, Tplot
+KS = Model(dt=0.5)
+Nx = KS.Nx
+
+# nRepeat=10
+t = dpr.Chronology(KS.dt, dkObs=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
+
+Dyn = {
+    &#39;M&#39;: Nx,
+    &#39;model&#39;: KS.step,
+    &#39;linear&#39;: KS.dstep_dx,
+    &#39;noise&#39;: 0
+}
+
+X0 = dpr.GaussRV(mu=KS.x0, C=0.001)
+
+Obs = Id_Obs(Nx)
+Obs[&#39;noise&#39;] = 1
+Obs[&#39;localizer&#39;] = nd_Id_localization((Nx,), (4,))
+
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+
+HMM.liveplotters = LPs(np.arange(Nx))
+
+
+####################
+# Suggested tuning
+####################
+
+# Reproduce (top-right panel) of Fig. 4 of bocquet2019consistency    # Expected rmse.a:
+# --------------------------------------------------------------------------------
+# xps += LETKF(N=4 , loc_rad=15/1.82, infl=1.11,rot=True,taper=&#39;GC&#39;) # 0.18
+# xps += LETKF(N=6,  loc_rad=25/1.82, infl=1.06,rot=True,taper=&#39;GC&#39;) # 0.14
+# xps += LETKF(N=16, loc_rad=51/1.82, infl=1.02,rot=True,taper=&#39;GC&#39;) # 0.11
+#
+# Other:
+# xps += Climatology()                                               # 1.3
+# xps += OptInterp()                                                 # 0.5
+# xps += EnKF(&#39;Sqrt&#39;, N=13,           infl=1.60,rot=True)            # 0.5
+# xps += EnKF(&#39;Sqrt&#39;, N=20,           infl=1.03,rot=True)            # 0.115</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -34,6 +86,11 @@
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

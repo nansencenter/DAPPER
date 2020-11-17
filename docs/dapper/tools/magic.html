@@ -24,6 +24,174 @@
 </header>
 <section id="section-intro">
 <p>Dirty magic. Should never be used. Ever.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Dirty magic. Should never be used. Ever.&#34;&#34;&#34;
+
+# Answers SO questions # 54476645, 28244921
+
+import ast
+import inspect
+from dapper.tools.colors import coloring
+
+
+def get_call():
+    &#34;&#34;&#34;Get calling statement (even if it is multi-lined), 2 frames back.
+
+    NB: returns full lines (may include junk before/after calls)
+        coz real parsing (brackets, commas, backslash, etc) is complicated.
+
+    Also returns caller args&#39; names, and caller&#39;s namespace.
+
+    Old method was based on looping backwards until func_name is found.
+    But that doesn&#39;t work since f_lineno now (since python 3.8) yields
+    the 1st line of a multi-line call (https://bugs.python.org/issue38283).
+    New method (using AST) is actually a good deal more robust, because
+    we get actual argnames and dont need to resort to regex.
+    &#34;&#34;&#34;
+    # Introspection
+    f0         = inspect.currentframe()  # this frame
+    f1         = f0.f_back  # frame of the function whose call we want to get
+    f2         = f1.f_back  # frame of the calling
+    code, shift = inspect.getsourcelines(f2)
+    func_name  = f1.f_code.co_name
+
+    # Using stack instead
+    # iFrame = 2
+    # frame,filename,n1,fname,lines,index = inspect.stack()[iFrame]
+
+    # Note: it may be that using one of
+    #     code = inspect.getsource(f2)
+    #     code = open(f2.f_code.co_filename).read().splitlines(True)
+    # is less problematic with regards to
+    # - indentation, which gets parsed by ast.NodeVisitor
+    # - fix01 and fix10
+    # because it reads the entire module or something.
+    # On the other hand, it might be less efficient,
+    # and less general (does it work when the call is in the interpreter?)
+    # Need a large battery of tests to really decide what&#39;s best.
+
+    # Get call&#39;s line number
+    n1  = f2.f_lineno
+    n1 -= shift
+    # I really don&#39;t know why these become necessary
+    fix01 = 0 if shift else 1
+    fix10 = 1 if shift else 0
+    # print(&#34;n1:&#34;,n1)
+    # print(&#34;code[n1-fix01]:\n&#34;,code[n1])
+
+    # Walk syntax tree
+    class Visitor(ast.NodeVisitor):
+        &#34;&#34;&#34;Get info on call if name and lineno match.&#34;&#34;&#34;
+        # Inspiration for relevant parts of AST:
+        # https://docs.python.org/3/library/ast.html#abstract-grammar
+        # https://docs.python.org/3/library/ast.html#ast.Call
+        # http://alexleone.blogspot.com/2010/01/python-ast-pretty-printer.html
+
+        def visit_Call(self, node):
+            node_id = getattr(node.func, &#34;id&#34;, None)
+            if node_id == func_name:
+                if node.lineno == (n1 + fix10):
+                    assert info == {}, &#34;Matched with multiple calls.&#34;
+                    info[&#34;n1&#34;] = node.lineno
+                    info[&#34;c1&#34;] = node.col_offset
+                    info[&#34;n2&#34;] = node.end_lineno
+                    info[&#34;c2&#34;] = node.end_col_offset
+                    try:
+                        info[&#34;argnames&#34;] = [arg.id for arg in node.args]
+                    except AttributeError:
+                        pass  # argnames will not be present
+            self.generic_visit(node)
+
+    info = {}
+    Visitor().visit(ast.parse(&#34;&#34;.join(code)))
+    assert &#34;n2&#34; in info, &#34;Failed to find caller in its file.&#34;
+
+    call_text = &#34;&#34;.join(code[n1-fix01: info[&#34;n2&#34;]])
+    call_text = call_text.rstrip()  # rm trailing newline
+
+    return call_text, info.get(&#34;argnames&#34;, None), f2.f_locals
+
+
+def magic_naming(*args, **kwargs):
+    &#34;&#34;&#34;Convert args (by their names in the call) to kwargs.
+
+    Example:
+    &gt;&gt;&gt; a,b,c = 1,2,3
+    &gt;&gt;&gt; dct = magic_naming(a,b,c,d=e)
+    &#34;&#34;&#34;
+    call, argnames, locvars = get_call()  # pylint: disable=unused-variable
+    assert len(args) == len(argnames), &#34;Something&#39;s gone wrong.&#34;
+
+    # Obsolete (works with call rather than argnames).
+    # Insert args. Matches arg to a name by
+    # # - M1: id to a variable in the local namespace, and
+    # # - M2: the presence of said variable in the call.
+    # for i,arg in enumerate(args):
+    #     # List of candidate names for arg i
+    #     nn = [name for name in locvars if locvars[name] is arg]         # (M1)
+    #     nn = [name for name in nn if re.search(r&#34;\b&#34;+name+r&#34;\b&#34;, call)] # (M2)
+    #     if not nn:
+    #         raise RuntimeError(&#34;Couldn&#39;t find the name for &#34;+str(arg))
+    #     # Associating arg to ALL matching names.
+    #     for name in nn:
+    #         dct[name] = arg
+
+    dct = {name: arg for arg, name in zip(args, argnames)}
+    dct.update(kwargs)
+    return dct
+
+
+def spell_out(*args):
+    &#34;&#34;&#34;Print (args) including variable names.
+
+    Example:
+    &gt;&gt;&gt; spell_out(3*2)
+    &gt;&gt;&gt; 3*2:
+    &gt;&gt;&gt; 6
+    &#34;&#34;&#34;
+
+    call, _, loc = get_call()
+
+    # Find opening/closing brackets
+    left  = call. find(&#34;(&#34;)
+    right = call.rfind(&#34;)&#34;)
+
+    # Print header
+    with coloring():
+        print(call[left+1:right] + &#34;:&#34;)
+    # Print (normal)
+    print(*args)
+
+
+if __name__ == &#34;__main__&#34;:
+    lst = [chr(97+i) for i in range(7)]
+    dct2 = {c: c for c in lst}
+    a, b, c, d, e, f, g = lst
+
+    print(magic_naming(a, b,
+                       c, d,  # fawef
+                       e, f, g))
+
+    spell_out(a, b*2, 3*4)
+
+    ###########
+    #  tests  #
+    ###########
+    # pytest reports failure on the following assertions.
+    # But intorspection is brittle, so that&#39;s not surprising.
+
+    d2 = magic_naming(a, b, c, d, e, f, g)
+    assert d2 == dct2
+
+    # Ugly call
+    assert \
+        {&#34;b&#34;: &#34;b&#34;, &#34;a&#34;: 3} == \
+        magic_naming(b, a=3,
+                     )</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -45,6 +213,87 @@ But that doesn't work since f_lineno now (since python 3.8) yields
 the 1st line of a multi-line call (<a href="https://bugs.python.org/issue38283">https://bugs.python.org/issue38283</a>).
 New method (using AST) is actually a good deal more robust, because
 we get actual argnames and dont need to resort to regex.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_call():
+    &#34;&#34;&#34;Get calling statement (even if it is multi-lined), 2 frames back.
+
+    NB: returns full lines (may include junk before/after calls)
+        coz real parsing (brackets, commas, backslash, etc) is complicated.
+
+    Also returns caller args&#39; names, and caller&#39;s namespace.
+
+    Old method was based on looping backwards until func_name is found.
+    But that doesn&#39;t work since f_lineno now (since python 3.8) yields
+    the 1st line of a multi-line call (https://bugs.python.org/issue38283).
+    New method (using AST) is actually a good deal more robust, because
+    we get actual argnames and dont need to resort to regex.
+    &#34;&#34;&#34;
+    # Introspection
+    f0         = inspect.currentframe()  # this frame
+    f1         = f0.f_back  # frame of the function whose call we want to get
+    f2         = f1.f_back  # frame of the calling
+    code, shift = inspect.getsourcelines(f2)
+    func_name  = f1.f_code.co_name
+
+    # Using stack instead
+    # iFrame = 2
+    # frame,filename,n1,fname,lines,index = inspect.stack()[iFrame]
+
+    # Note: it may be that using one of
+    #     code = inspect.getsource(f2)
+    #     code = open(f2.f_code.co_filename).read().splitlines(True)
+    # is less problematic with regards to
+    # - indentation, which gets parsed by ast.NodeVisitor
+    # - fix01 and fix10
+    # because it reads the entire module or something.
+    # On the other hand, it might be less efficient,
+    # and less general (does it work when the call is in the interpreter?)
+    # Need a large battery of tests to really decide what&#39;s best.
+
+    # Get call&#39;s line number
+    n1  = f2.f_lineno
+    n1 -= shift
+    # I really don&#39;t know why these become necessary
+    fix01 = 0 if shift else 1
+    fix10 = 1 if shift else 0
+    # print(&#34;n1:&#34;,n1)
+    # print(&#34;code[n1-fix01]:\n&#34;,code[n1])
+
+    # Walk syntax tree
+    class Visitor(ast.NodeVisitor):
+        &#34;&#34;&#34;Get info on call if name and lineno match.&#34;&#34;&#34;
+        # Inspiration for relevant parts of AST:
+        # https://docs.python.org/3/library/ast.html#abstract-grammar
+        # https://docs.python.org/3/library/ast.html#ast.Call
+        # http://alexleone.blogspot.com/2010/01/python-ast-pretty-printer.html
+
+        def visit_Call(self, node):
+            node_id = getattr(node.func, &#34;id&#34;, None)
+            if node_id == func_name:
+                if node.lineno == (n1 + fix10):
+                    assert info == {}, &#34;Matched with multiple calls.&#34;
+                    info[&#34;n1&#34;] = node.lineno
+                    info[&#34;c1&#34;] = node.col_offset
+                    info[&#34;n2&#34;] = node.end_lineno
+                    info[&#34;c2&#34;] = node.end_col_offset
+                    try:
+                        info[&#34;argnames&#34;] = [arg.id for arg in node.args]
+                    except AttributeError:
+                        pass  # argnames will not be present
+            self.generic_visit(node)
+
+    info = {}
+    Visitor().visit(ast.parse(&#34;&#34;.join(code)))
+    assert &#34;n2&#34; in info, &#34;Failed to find caller in its file.&#34;
+
+    call_text = &#34;&#34;.join(code[n1-fix01: info[&#34;n2&#34;]])
+    call_text = call_text.rstrip()  # rm trailing newline
+
+    return call_text, info.get(&#34;argnames&#34;, None), f2.f_locals</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.magic.magic_naming"><code class="name flex">
 <span>def <span class="ident">magic_naming</span></span>(<span>*args, **kwargs)</span>
@@ -55,6 +304,38 @@ we get actual argnames and dont need to resort to regex.</p></div>
 <pre><code class="language-python-repl">&gt;&gt;&gt; a,b,c = 1,2,3
 &gt;&gt;&gt; dct = magic_naming(a,b,c,d=e)
 </code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def magic_naming(*args, **kwargs):
+    &#34;&#34;&#34;Convert args (by their names in the call) to kwargs.
+
+    Example:
+    &gt;&gt;&gt; a,b,c = 1,2,3
+    &gt;&gt;&gt; dct = magic_naming(a,b,c,d=e)
+    &#34;&#34;&#34;
+    call, argnames, locvars = get_call()  # pylint: disable=unused-variable
+    assert len(args) == len(argnames), &#34;Something&#39;s gone wrong.&#34;
+
+    # Obsolete (works with call rather than argnames).
+    # Insert args. Matches arg to a name by
+    # # - M1: id to a variable in the local namespace, and
+    # # - M2: the presence of said variable in the call.
+    # for i,arg in enumerate(args):
+    #     # List of candidate names for arg i
+    #     nn = [name for name in locvars if locvars[name] is arg]         # (M1)
+    #     nn = [name for name in nn if re.search(r&#34;\b&#34;+name+r&#34;\b&#34;, call)] # (M2)
+    #     if not nn:
+    #         raise RuntimeError(&#34;Couldn&#39;t find the name for &#34;+str(arg))
+    #     # Associating arg to ALL matching names.
+    #     for name in nn:
+    #         dct[name] = arg
+
+    dct = {name: arg for arg, name in zip(args, argnames)}
+    dct.update(kwargs)
+    return dct</code></pre>
+</details>
 </dd>
 <dt id="dapper.tools.magic.spell_out"><code class="name flex">
 <span>def <span class="ident">spell_out</span></span>(<span>*args)</span>
@@ -66,6 +347,31 @@ we get actual argnames and dont need to resort to regex.</p></div>
 &gt;&gt;&gt; 3*2:
 &gt;&gt;&gt; 6
 </code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def spell_out(*args):
+    &#34;&#34;&#34;Print (args) including variable names.
+
+    Example:
+    &gt;&gt;&gt; spell_out(3*2)
+    &gt;&gt;&gt; 3*2:
+    &gt;&gt;&gt; 6
+    &#34;&#34;&#34;
+
+    call, _, loc = get_call()
+
+    # Find opening/closing brackets
+    left  = call. find(&#34;(&#34;)
+    right = call.rfind(&#34;)&#34;)
+
+    # Print header
+    with coloring():
+        print(call[left+1:right] + &#34;:&#34;)
+    # Print (normal)
+    print(*args)</code></pre>
+</details>
 </dd>
 </dl>
 </section>
@@ -73,6 +379,11 @@ we get actual argnames and dont need to resort to regex.</p></div>
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

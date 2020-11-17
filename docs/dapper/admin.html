@@ -38,6 +38,681 @@
 </li>
 <li>Operator</li>
 </ul>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;High-level API. I.e. the main &#34;user-interface&#34;.
+
+Used for experiment (xp) specification/administration, including:
+
+ - da_method decorator
+ - xpList
+ - save_data
+ - run_experiment
+ - run_from_file
+
+ - HiddenMarkovModel
+ - Operator
+&#34;&#34;&#34;
+
+import dapper.stats
+import dapper.dict_tools as dict_tools
+from dapper.tools.chronos import Chronology
+from dapper.tools.randvars import RV, GaussRV
+from dapper.tools.stoch import set_seed
+from dapper.dpr_config import rc
+from dapper.tools.remote.uplink import submit_job_GCP
+import dapper.tools.utils as utils
+from dapper.tools.localization import no_localization
+from dapper.tools.math import Id_op, Id_mat
+from pathlib import Path
+import dataclasses as dcs
+import copy
+from textwrap import dedent
+import os
+import sys
+import re
+import time
+import numpy as np
+import inspect
+
+import functools
+import dill
+import shutil
+from datetime import datetime
+
+
+class HiddenMarkovModel(dict_tools.NicePrint):
+    &#34;&#34;&#34;Container for attributes of a Hidden Markov Model (HMM).
+
+    This container contains the specification of a &#34;twin experiment&#34;,
+    i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
+    &#34;&#34;&#34;
+
+    def __init__(self, Dyn, Obs, t, X0, **kwargs):
+        # fmt: off
+        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
+        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
+        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
+        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
+        # fmt: on
+
+        # Name
+        self.name = kwargs.pop(&#34;name&#34;, &#34;&#34;)
+        if not self.name:
+            name = inspect.getfile(inspect.stack()[1][0])
+            try:
+                self.name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
+            except ValueError:
+                self.name = str(Path(name))
+
+        # Kwargs
+        abbrevs = {&#39;LP&#39;: &#39;liveplotters&#39;}
+        for key in kwargs:
+            setattr(self, abbrevs.get(key, key), kwargs[key])
+
+        # Defaults
+        if not hasattr(self.Obs, &#34;localizer&#34;):
+            self.Obs.localizer = no_localization(self.Nx, self.Ny)
+        if not hasattr(self, &#34;sectors&#34;):
+            self.sectors = {}
+
+        # Validation
+        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
+            raise ValueError(&#34;Rank-deficient R not supported.&#34;)
+
+    # ndim shortcuts
+    @property
+    def Nx(self): return self.Dyn.M
+    @property
+    def Ny(self): return self.Obs.M
+
+    printopts = {&#39;ordering&#39;: [&#39;Dyn&#39;, &#39;Obs&#39;, &#39;t&#39;, &#39;X0&#39;]}
+
+    def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
+        &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
+        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
+
+        # Init
+        xx    = np.zeros((chrono.K   + 1, Dyn.M))
+        yy    = np.zeros((chrono.KObs+1, Obs.M))
+
+        xx[0] = X0.sample(1)
+
+        # Loop
+        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+            if kObs is not None:
+                yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
+
+        return xx, yy
+
+
+class Operator(dict_tools.NicePrint):
+    &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;
+
+    def __init__(self, M, model=None, noise=None, **kwargs):
+        self.M = M
+
+        # None =&gt; Identity model
+        if model is None:
+            model = Id_op()
+            kwargs[&#39;linear&#39;] = lambda x, t, dt: Id_mat(M)
+        self.model = model
+
+        # None/0 =&gt; No noise
+        if isinstance(noise, RV):
+            self.noise = noise
+        else:
+            if noise is None:
+                noise = 0
+            if np.isscalar(noise):
+                self.noise = GaussRV(C=noise, M=M)
+            else:
+                self.noise = GaussRV(C=noise)
+
+        # Write attributes
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+    printopts = {&#39;ordering&#39;: [&#39;M&#39;, &#39;model&#39;, &#39;noise&#39;]}
+
+
+def da_method(*default_dataclasses):
+    &#34;&#34;&#34;Make the decorator that makes the DA classes.
+
+    Example:
+    &gt;&gt;&gt; @da_method()
+    &gt;&gt;&gt; class Sleeper():
+    &gt;&gt;&gt;     &#34;Do nothing.&#34;
+    &gt;&gt;&gt;     seconds : int  = 10
+    &gt;&gt;&gt;     success : bool = True
+    &gt;&gt;&gt;     def assimilate(self,*args,**kwargs):
+    &gt;&gt;&gt;         for k in utils.progbar(range(self.seconds)):
+    &gt;&gt;&gt;             time.sleep(1)
+    &gt;&gt;&gt;         if not self.success:
+    &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
+
+    Example:
+    &gt;&gt;&gt; @dcs.dataclass
+    &gt;&gt;&gt; class ens_defaults:
+    &gt;&gt;&gt;   infl : float = 1.0
+    &gt;&gt;&gt;   rot  : bool  = False
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; @da_method(ens_defaults)
+    &gt;&gt;&gt; class EnKF:
+    &gt;&gt;&gt;     N     : int
+    &gt;&gt;&gt;     upd_a : str = &#34;Sqrt&#34;
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
+    &gt;&gt;&gt;         ...
+    &#34;&#34;&#34;
+
+    def dataclass_with_defaults(cls):
+        &#34;&#34;&#34;Decorator based on dataclass.
+
+        This adds __init__, __repr__, __eq__, ..., but also includes
+        inherited defaults (see https://stackoverflow.com/a/58130805 ).
+
+        Also:
+        - Wraps assimilate() to provide gentle_fail functionality.
+        - Initialises and writes the Stats object.&#34;&#34;&#34;
+
+        # Default fields invovle: (1) annotations and (2) attributes.
+        def set_field(name, type, val):
+            if not hasattr(cls, &#39;__annotations__&#39;):
+                cls.__annotations__ = {}
+            cls.__annotations__[name] = type
+            if not isinstance(val, dcs.Field):
+                val = dcs.field(default=val)
+            setattr(cls, name, val)
+
+        # APPend default fields without overwriting.
+        # Don&#39;t implement (by PREpending?) non-default args -- to messy!
+        for D in default_dataclasses:
+            # NB: Calling dataclass twice always makes repr=True, so avoid this.
+            for F in dcs.fields(dcs.dataclass(D)):
+                if F.name not in cls.__annotations__:
+                    set_field(F.name, F.type, F)
+
+        # Create new class (NB: old/new classes have same id)
+        cls = dcs.dataclass(cls)
+
+        # Shortcut for self.__class__.__name__
+        cls.da_method = cls.__name__
+
+        def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
+            # Progressbar name
+            pb_name_hook = self.da_method if desc is None else desc # noqa
+            # Init stats
+            self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
+            # Assimilate
+            time_start = time.time()
+            old_assimilate(self, HMM, xx, yy)
+            dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
+
+        old_assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+
+        return cls
+    return dataclass_with_defaults
+
+
+def seed_and_simulate(HMM, xp):
+    &#34;&#34;&#34;Default experiment setup. Set seed and simulate truth and obs.
+
+    Note: if there is no ``xp.seed`` then then the seed is not set.
+    Thus, different experiments will produce different truth and obs.&#34;&#34;&#34;
+    set_seed(getattr(xp, &#39;seed&#39;, False))
+    xx, yy = HMM.simulate()
+    return xx, yy
+
+
+def run_experiment(xp, label, savedir, HMM,
+                   setup=None, free=True, statkeys=False, fail_gently=False,
+                   **stat_kwargs):
+    &#34;&#34;&#34;Used by xpList.launch() to run each single experiment.
+
+    This involves steps similar to ``example_1.py``, i.e.:
+
+    - setup()                    : Call function given by user. Should set
+                                   params, eg HMM.Force, seed, and return
+                                   (simulated/loaded) truth and obs series.
+    - xp.assimilate()            : run DA, pass on exception if fail_gently
+    - xp.stats.average_in_time() : result averaging
+    - xp.avrgs.tabulate()        : result printing
+    - dill.dump()                : result storage
+    &#34;&#34;&#34;
+
+    # We should copy HMM so as not to cause any nasty surprises such as
+    # expecting param=1 when param=2 (coz it&#39;s not been reset).
+    # NB: won&#39;t copy implicitly ref&#39;d obj&#39;s (like L96&#39;s core). =&gt; bug w/ MP?
+    hmm = copy.deepcopy(HMM)
+
+    # GENERATE TRUTH/OBS
+    xx, yy = setup(hmm, xp)
+
+    # ASSIMILATE
+    try:
+        xp.assimilate(hmm, xx, yy, label, **stat_kwargs)
+    except Exception as ERR:
+        if fail_gently:
+            xp.crashed = True
+            if fail_gently not in [&#34;silent&#34;, &#34;quiet&#34;]:
+                utils.print_cropped_traceback(ERR)
+        else:
+            raise ERR
+
+    # AVERAGE
+    xp.stats.average_in_time(free=free)
+
+    # PRINT
+    if statkeys:
+        statkeys = () if statkeys is True else statkeys
+        print(xp.avrgs.tabulate(statkeys))
+
+    # SAVE
+    if savedir:
+        with open(Path(savedir)/&#34;xp&#34;, &#34;wb&#34;) as FILE:
+            dill.dump({&#39;xp&#39;: xp}, FILE)
+
+
+# TODO 2: check collections.userlist
+# TODO 2: __add__ vs __iadd__
+class xpList(list):
+    &#34;&#34;&#34;List, subclassed for holding experiment (&#34;xp&#34;) objects.
+
+    Main use: administrate experiment **launches**.
+    Also see: ``xpSpace`` for experiment **result presentation**.
+
+     Modifications to ``list``:
+
+     - ``__iadd__`` (append) also for single items;
+       this is hackey, but convenience is king.
+     - ``append()`` supports ``unique`` to enable lazy xp declaration.
+     - ``__getitem__`` supports lists.
+     - pretty printing (using common/distinct attrs).
+
+     Add-ons:
+
+     - ``launch()``
+     - ``print_averages()``
+     - ``gen_names()``
+     - ``inds()`` to search by kw-attrs.
+     &#34;&#34;&#34;
+
+    def __init__(self, *args, unique=False):
+        &#34;&#34;&#34;Initialize without args, or with a list of configs.
+
+        If ``unique``: duplicates won&#39;t get appended.
+        This makes ``append()`` (and ``__iadd__()``) relatively slow.
+        Use ``extend()`` or ``__add__()`` to bypass this validation.&#34;&#34;&#34;
+
+        self.unique = unique
+        super().__init__(*args)
+
+    def __iadd__(self, xp):
+        if not hasattr(xp, &#39;__iter__&#39;):
+            xp = [xp]
+        for item in xp:
+            self.append(item)
+        return self
+
+    def append(self, xp):
+        &#34;&#34;&#34;Append if not unique &amp; present.&#34;&#34;&#34;
+        if not (self.unique and xp in self):
+            super().append(xp)
+
+    def __getitem__(self, keys):
+        &#34;&#34;&#34;Indexing, also by a list&#34;&#34;&#34;
+        try:
+            B = [self[k] for k in keys]    # if keys is list
+        except TypeError:
+            B = super().__getitem__(keys)  # if keys is int, slice
+        if hasattr(B, &#39;__len__&#39;):
+            B = xpList(B)                  # Cast
+        return B
+
+    def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
+        &#34;&#34;&#34;Find (all) indices of configs whose attributes match kws.
+
+        If strict, then xp&#39;s lacking a requested attr will not match,
+        unless the missingval (e.g. None) matches the required value.
+        &#34;&#34;&#34;
+        def match(xp):
+            def missing(v): return missingval if strict else v
+            matches = [getattr(xp, k, missing(v)) == v for k, v in kws.items()]
+            return all(matches)
+
+        return [i for i, xp in enumerate(self) if match(xp)]
+
+    @property
+    def da_methods(self):
+        return [xp.da_method for xp in self]
+
+    def split_attrs(self, nomerge=()):
+        &#34;&#34;&#34;Compile the attrs of all xps; split as distinct, redundant, common.
+
+        Insert None if an attribute is distinct but not in xp.&#34;&#34;&#34;
+
+        def _aggregate_keys():
+            &#34;Aggregate keys from all xps&#34;
+
+            if len(self) == 0:
+                return []
+
+            # Start with da_method
+            aggregate = [&#39;da_method&#39;]
+
+            # Aggregate all other keys
+            for xp in self:
+
+                # Get dataclass fields
+                try:
+                    dc_fields = dcs.fields(xp.__class__)
+                    dc_names = [F.name for F in dc_fields]
+                    keys = xp.__dict__.keys()
+                except TypeError:
+                    # Assume namedtuple
+                    dc_names = []
+                    keys = xp._fields
+
+                # For all potential keys:
+                for k in keys:
+                    # If not already present:
+                    if k not in aggregate:
+
+                        # If dataclass, check repr:
+                        if k in dc_names:
+                            if dc_fields[dc_names.index(k)].repr:
+                                aggregate.append(k)
+                        # Else, just append
+                        else:
+                            aggregate.append(k)
+
+            # Remove unwanted
+            excluded  = [re.compile(&#39;^_&#39;), &#39;avrgs&#39;, &#39;stats&#39;, &#39;HMM&#39;, &#39;duration&#39;]
+            aggregate = dict_tools.complement(aggregate, excluded)
+            return aggregate
+
+        distinct, redundant, common = {}, {}, {}
+
+        for key in _aggregate_keys():
+
+            # Want to distinguish actual None&#39;s from empty (&#34;N/A&#34;).
+            # =&gt; Don&#39;t use getattr(obj,key,None)
+            vals = [getattr(xp, key, &#34;N/A&#34;) for xp in self]
+
+            # Sort (assign dct) into distinct, redundant, common
+            if dict_tools.flexcomp(key, *nomerge):
+                # nomerge =&gt; Distinct
+                dct, vals = distinct, vals
+            elif all(vals[0] == v for v in vals):
+                # all values equal =&gt; common
+                dct, vals = common, vals[0]
+            else:
+                v0 = next(v for v in vals if &#34;N/A&#34; != v)
+                if all(v == &#34;N/A&#34; or v == v0 for v in vals):
+                    # all values equal or &#34;N/A&#34; =&gt; redundant
+                    dct, vals = redundant, v0
+                else:
+                    # otherwise =&gt; distinct
+                    dct, vals = distinct, vals
+
+            # Replace &#34;N/A&#34; by None
+            def sub(v): return None if v == &#34;N/A&#34; else v
+            if isinstance(vals, str):
+                vals = sub(vals)
+            else:
+                try:
+                    vals = [sub(v) for v in vals]
+                except TypeError:
+                    vals = sub(vals)
+
+            dct[key] = vals
+
+        return distinct, redundant, common
+
+    def __repr__(self):
+        distinct, redundant, common = self.split_attrs()
+        s = &#39;&lt;xpList&gt; of length %d with attributes:\n&#39; % len(self)
+        s += utils.tab(distinct, headers=&#34;keys&#34;, showindex=True)
+        s += &#34;\nOther attributes:\n&#34;
+        s += str(dict_tools.AlignedDict({**redundant, **common}))
+        return s
+
+    def gen_names(self, abbrev=6, tab=False):
+        &#34;&#34;&#34;Similiar to ``self.__repr__()``, but:
+
+        - returns *list* of names
+        - tabulation is optional
+        - attaches (abbreviated) labels to each attribute
+        &#34;&#34;&#34;
+        distinct, redundant, common = self.split_attrs(nomerge=[&#34;da_method&#34;])
+        labels = distinct.keys()
+        values = distinct.values()
+
+        # Label abbreviation
+        labels = [utils.collapse_str(k, abbrev) for k in labels]
+
+        # Make label columns: insert None or lbl+&#34;:&#34;, depending on value
+        def column(lbl, vals):
+            return [None if v is None else lbl+&#34;:&#34; for v in vals]
+        labels = [column(lbl, vals) for lbl, vals in zip(labels, values)]
+
+        # Interlace labels and values
+        table = [x for (a, b) in zip(labels, values) for x in (a, b)]
+
+        # Rm da_method label (but keep value)
+        table.pop(0)
+
+        # Transpose
+        table = list(map(list, zip(*table)))
+
+        # Tabulate
+        table = utils.tab(table, tablefmt=&#34;plain&#34;)
+
+        # Rm space between lbls/vals
+        table = re.sub(&#39;:  +&#39;, &#39;:&#39;, table)
+
+        # Rm alignment
+        if not tab:
+            table = re.sub(r&#39; +&#39;, r&#39; &#39;, table)
+
+        return table.splitlines()
+
+    def tabulate_avrgs(self, *args, **kwargs):
+        &#34;&#34;&#34;Pretty (tabulated) repr of xps &amp; their avrgs.
+
+        Similar to stats.tabulate_avrgs(), but for the entire list of xps.&#34;&#34;&#34;
+        distinct, redundant, common = self.split_attrs()
+        averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
+        columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
+        return utils.tab(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)
+
+    def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
+               setup=seed_and_simulate, fail_gently=None, **kwargs):
+        &#34;&#34;&#34;For each xp in self: run_experiment(xp, ...).
+
+        The results are saved in ``rc.dirs[&#39;data&#39;]/save_as.stem``,
+        unless ``save_as`` is False/None.
+
+        Depending on ``mp``, run_experiment() is delegated to one of:
+         - caller process (no parallelisation)
+         - multiprocessing on this host
+         - GCP (Google Cloud Computing) with HTCondor
+
+        If ``setup == None``: use ``seed_and_simulate()``.
+
+        The kwargs are forwarded to run_experiment().
+
+        See ``example_2.py`` and ``example_3.py`` for example use.
+        &#34;&#34;&#34;
+        # TODO 2: doc files and code options in mp, e.g
+        # `files` get added to PYTHONPATH and have dir-structure preserved.
+        # Setup: Experiment initialisation. Default: seed_and_simulate().
+        #   Enables setting experiment variables that are not parameters of a da_method.
+
+        # Collect common args forwarded to run_experiment
+        kwargs[&#39;HMM&#39;] = HMM
+        kwargs[&#34;setup&#34;] = setup
+
+        # Parse mp option
+        if not mp:
+            mp = False
+        elif mp in [True, &#34;MP&#34;]:
+            mp = dict(server=&#34;local&#34;)
+        elif isinstance(mp, int):
+            mp = dict(server=&#34;local&#34;, NPROC=mp)
+        elif mp in [&#34;GCP&#34;, &#34;Google&#34;]:
+            mp = dict(server=&#34;GCP&#34;, files=[], code=&#34;&#34;)
+        assert isinstance(mp, dict)
+
+        # Parse fail_gently
+        if fail_gently is None:
+            if isinstance(mp, dict) and mp[&#34;server&#34;] == &#34;GCP&#34;:
+                fail_gently = False
+                # coz cloud processing is entirely de-coupled anyways
+            else:
+                fail_gently = True
+                # True unless otherwise requested
+        kwargs[&#34;fail_gently&#34;] = fail_gently
+
+        # Parse save_as
+        if save_as in [None, False]:
+            assert not mp, &#34;Multiprocessing requires saving data.&#34;
+            # Parallelization w/o storing is possible, especially w/ threads.
+            # But it involves more complicated communication set-up.
+            def xpi_dir(*args): return None
+        else:
+            save_as = rc.dirs.data / Path(save_as).stem
+            save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H:%M:%S&#34;)
+            os.makedirs(save_as)
+            print(f&#34;Experiment stored at {save_as}&#34;)
+
+            def xpi_dir(i):
+                path = save_as / str(i)
+                os.mkdir(path)
+                return path
+
+        # No parallelization
+        if not mp:
+            for ixp, (xp, label) in enumerate(zip(self, self.gen_names())):
+                run_experiment(xp, label, xpi_dir(ixp), **kwargs)
+
+        # Local multiprocessing
+        elif mp[&#34;server&#34;].lower() == &#34;local&#34;:
+            def run_with_fixed_args(arg):
+                xp, ixp = arg
+                run_experiment(xp, None, xpi_dir(ixp), **kwargs)
+            args = zip(self, range(len(self)))
+
+            utils.disable_progbar          = True
+            utils.disable_user_interaction = True
+            NPROC = mp.get(&#34;NPROC&#34;, None)  # None =&gt; mp.cpu_count()
+            from dapper.tools.multiprocessing import mpd  # will fail on GCP
+            with mpd.Pool(NPROC) as pool:
+                list(utils.tqdm.tqdm(
+                    pool.imap(
+                        run_with_fixed_args, args),
+                    total=len(self),
+                    desc=&#34;Parallel experim&#39;s&#34;,
+                    smoothing=0.1))
+            utils.disable_progbar          = False
+            utils.disable_user_interaction = False
+
+        # Google cloud platform, multiprocessing
+        elif mp[&#34;server&#34;] == &#34;GCP&#34;:
+            for ixp, xp in enumerate(self):
+                with open(xpi_dir(ixp)/&#34;xp.var&#34;, &#34;wb&#34;) as f:
+                    dill.dump(dict(xp=xp), f)
+
+            with open(save_as/&#34;xp.com&#34;, &#34;wb&#34;) as f:
+                dill.dump(kwargs, f)
+
+            # mkdir extra_files
+            extra_files = save_as / &#34;extra_files&#34;
+            os.mkdir(extra_files)
+            # Default files: .py files in sys.path[0] (main script&#39;s path)
+            if not mp.get(&#34;files&#34;, []):
+                # Todo 4: also intersect(..., sys.modules).
+                # Todo 4: use git ls-tree instead?
+                ff = os.listdir(sys.path[0])
+                mp[&#34;files&#34;] = [f for f in ff if f.endswith(&#34;.py&#34;)]
+            # Copy files into extra_files
+            for f in mp[&#34;files&#34;]:
+                if isinstance(f, (str, Path)):
+                    # Example: f = &#34;A.py&#34;
+                    path = Path(sys.path[0]) / f
+                    dst = f
+                else:  # instance of tuple(path, root)
+                    # Example: f = (&#34;~/E/G/A.py&#34;, &#34;G&#34;)
+                    path, root = f
+                    dst = Path(path).relative_to(root)
+                dst = extra_files / dst
+                os.makedirs(dst.parent, exist_ok=True)
+                try:
+                    shutil.copytree(path, dst)  # dir -r
+                except OSError:
+                    shutil.copy2(path, dst)  # file
+
+            # Loads PWD/xp_{var,com} and calls run_experiment()
+            with open(extra_files/&#34;load_and_run.py&#34;, &#34;w&#34;) as f:
+                f.write(dedent(&#34;&#34;&#34;\
+                import dill
+                from dapper.admin import run_experiment
+
+                # Load
+                with open(&#34;xp.com&#34;, &#34;rb&#34;) as f: com = dill.load(f)
+                with open(&#34;xp.var&#34;, &#34;rb&#34;) as f: var = dill.load(f)
+
+                # User-defined code
+                %s
+
+                # Run
+                result = run_experiment(var[&#39;xp&#39;], None, &#34;.&#34;, **com)
+                &#34;&#34;&#34;) % dedent(mp[&#34;code&#34;]))
+
+            with open(extra_files/&#34;dpr_config.yaml&#34;, &#34;w&#34;) as f:
+                f.write(&#34;\n&#34;.join([
+                    &#34;data_root: &#39;$cwd&#39;&#34;,
+                    &#34;liveplotting: no&#34;,
+                    &#34;welcome_message: no&#34;]))
+            submit_job_GCP(save_as)
+
+        return save_as
+
+
+def get_param_setter(param_dict, **glob_dict):
+    &#34;&#34;&#34;Mass creation of xp&#39;s by combining the value lists in the parameter dicts.
+
+    The parameters are trimmed to the ones available for the given method.
+    This is a good deal more efficient than relying on xpList&#39;s unique=True.
+
+    Beware! If, eg., [infl,rot] are in the param_dict, aimed at the EnKF,
+    but you forget that they are also attributes some method where you don&#39;t
+    actually want to use them (eg. SVGDF),
+    then you&#39;ll create many more than you intend.
+    &#34;&#34;&#34;
+    def for_params(method, **fixed_params):
+        dc_fields = [f.name for f in dcs.fields(method)]
+        params = dict_tools.intersect(param_dict, dc_fields)
+        params = dict_tools.complement(params, fixed_params)
+        params = {**glob_dict, **params}  # glob_dict 1st
+
+        def xp1(dct):
+            xp = method(**dict_tools.intersect(dct, dc_fields), **fixed_params)
+            for key, v in dict_tools.intersect(dct, glob_dict).items():
+                setattr(xp, key, v)
+            return xp
+
+        return [xp1(dct) for dct in dict_tools.prodct(params)]
+    return for_params</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -77,6 +752,89 @@
 &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
 &gt;&gt;&gt;         ...
 </code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def da_method(*default_dataclasses):
+    &#34;&#34;&#34;Make the decorator that makes the DA classes.
+
+    Example:
+    &gt;&gt;&gt; @da_method()
+    &gt;&gt;&gt; class Sleeper():
+    &gt;&gt;&gt;     &#34;Do nothing.&#34;
+    &gt;&gt;&gt;     seconds : int  = 10
+    &gt;&gt;&gt;     success : bool = True
+    &gt;&gt;&gt;     def assimilate(self,*args,**kwargs):
+    &gt;&gt;&gt;         for k in utils.progbar(range(self.seconds)):
+    &gt;&gt;&gt;             time.sleep(1)
+    &gt;&gt;&gt;         if not self.success:
+    &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
+
+    Example:
+    &gt;&gt;&gt; @dcs.dataclass
+    &gt;&gt;&gt; class ens_defaults:
+    &gt;&gt;&gt;   infl : float = 1.0
+    &gt;&gt;&gt;   rot  : bool  = False
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; @da_method(ens_defaults)
+    &gt;&gt;&gt; class EnKF:
+    &gt;&gt;&gt;     N     : int
+    &gt;&gt;&gt;     upd_a : str = &#34;Sqrt&#34;
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
+    &gt;&gt;&gt;         ...
+    &#34;&#34;&#34;
+
+    def dataclass_with_defaults(cls):
+        &#34;&#34;&#34;Decorator based on dataclass.
+
+        This adds __init__, __repr__, __eq__, ..., but also includes
+        inherited defaults (see https://stackoverflow.com/a/58130805 ).
+
+        Also:
+        - Wraps assimilate() to provide gentle_fail functionality.
+        - Initialises and writes the Stats object.&#34;&#34;&#34;
+
+        # Default fields invovle: (1) annotations and (2) attributes.
+        def set_field(name, type, val):
+            if not hasattr(cls, &#39;__annotations__&#39;):
+                cls.__annotations__ = {}
+            cls.__annotations__[name] = type
+            if not isinstance(val, dcs.Field):
+                val = dcs.field(default=val)
+            setattr(cls, name, val)
+
+        # APPend default fields without overwriting.
+        # Don&#39;t implement (by PREpending?) non-default args -- to messy!
+        for D in default_dataclasses:
+            # NB: Calling dataclass twice always makes repr=True, so avoid this.
+            for F in dcs.fields(dcs.dataclass(D)):
+                if F.name not in cls.__annotations__:
+                    set_field(F.name, F.type, F)
+
+        # Create new class (NB: old/new classes have same id)
+        cls = dcs.dataclass(cls)
+
+        # Shortcut for self.__class__.__name__
+        cls.da_method = cls.__name__
+
+        def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
+            # Progressbar name
+            pb_name_hook = self.da_method if desc is None else desc # noqa
+            # Init stats
+            self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
+            # Assimilate
+            time_start = time.time()
+            old_assimilate(self, HMM, xx, yy)
+            dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
+
+        old_assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+
+        return cls
+    return dataclass_with_defaults</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.seed_and_simulate"><code class="name flex">
 <span>def <span class="ident">seed_and_simulate</span></span>(<span>HMM, xp)</span>
@@ -85,6 +843,19 @@
 <div class="desc"><p>Default experiment setup. Set seed and simulate truth and obs.</p>
 <p>Note: if there is no <code>xp.seed</code> then then the seed is not set.
 Thus, different experiments will produce different truth and obs.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def seed_and_simulate(HMM, xp):
+    &#34;&#34;&#34;Default experiment setup. Set seed and simulate truth and obs.
+
+    Note: if there is no ``xp.seed`` then then the seed is not set.
+    Thus, different experiments will produce different truth and obs.&#34;&#34;&#34;
+    set_seed(getattr(xp, &#39;seed&#39;, False))
+    xx, yy = HMM.simulate()
+    return xx, yy</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.run_experiment"><code class="name flex">
 <span>def <span class="ident">run_experiment</span></span>(<span>xp, label, savedir, HMM, setup=None, free=True, statkeys=False, fail_gently=False, **stat_kwargs)</span>
@@ -105,6 +876,58 @@ params, eg HMM.Force, seed, and return
 <li>dill.dump()
 : result storage</li>
 </ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_experiment(xp, label, savedir, HMM,
+                   setup=None, free=True, statkeys=False, fail_gently=False,
+                   **stat_kwargs):
+    &#34;&#34;&#34;Used by xpList.launch() to run each single experiment.
+
+    This involves steps similar to ``example_1.py``, i.e.:
+
+    - setup()                    : Call function given by user. Should set
+                                   params, eg HMM.Force, seed, and return
+                                   (simulated/loaded) truth and obs series.
+    - xp.assimilate()            : run DA, pass on exception if fail_gently
+    - xp.stats.average_in_time() : result averaging
+    - xp.avrgs.tabulate()        : result printing
+    - dill.dump()                : result storage
+    &#34;&#34;&#34;
+
+    # We should copy HMM so as not to cause any nasty surprises such as
+    # expecting param=1 when param=2 (coz it&#39;s not been reset).
+    # NB: won&#39;t copy implicitly ref&#39;d obj&#39;s (like L96&#39;s core). =&gt; bug w/ MP?
+    hmm = copy.deepcopy(HMM)
+
+    # GENERATE TRUTH/OBS
+    xx, yy = setup(hmm, xp)
+
+    # ASSIMILATE
+    try:
+        xp.assimilate(hmm, xx, yy, label, **stat_kwargs)
+    except Exception as ERR:
+        if fail_gently:
+            xp.crashed = True
+            if fail_gently not in [&#34;silent&#34;, &#34;quiet&#34;]:
+                utils.print_cropped_traceback(ERR)
+        else:
+            raise ERR
+
+    # AVERAGE
+    xp.stats.average_in_time(free=free)
+
+    # PRINT
+    if statkeys:
+        statkeys = () if statkeys is True else statkeys
+        print(xp.avrgs.tabulate(statkeys))
+
+    # SAVE
+    if savedir:
+        with open(Path(savedir)/&#34;xp&#34;, &#34;wb&#34;) as FILE:
+            dill.dump({&#39;xp&#39;: xp}, FILE)</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.get_param_setter"><code class="name flex">
 <span>def <span class="ident">get_param_setter</span></span>(<span>param_dict, **glob_dict)</span>
@@ -117,6 +940,36 @@ This is a good deal more efficient than relying on xpList's unique=True.</p>
 but you forget that they are also attributes some method where you don't
 actually want to use them (eg. SVGDF),
 then you'll create many more than you intend.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_param_setter(param_dict, **glob_dict):
+    &#34;&#34;&#34;Mass creation of xp&#39;s by combining the value lists in the parameter dicts.
+
+    The parameters are trimmed to the ones available for the given method.
+    This is a good deal more efficient than relying on xpList&#39;s unique=True.
+
+    Beware! If, eg., [infl,rot] are in the param_dict, aimed at the EnKF,
+    but you forget that they are also attributes some method where you don&#39;t
+    actually want to use them (eg. SVGDF),
+    then you&#39;ll create many more than you intend.
+    &#34;&#34;&#34;
+    def for_params(method, **fixed_params):
+        dc_fields = [f.name for f in dcs.fields(method)]
+        params = dict_tools.intersect(param_dict, dc_fields)
+        params = dict_tools.complement(params, fixed_params)
+        params = {**glob_dict, **params}  # glob_dict 1st
+
+        def xp1(dct):
+            xp = method(**dict_tools.intersect(dct, dc_fields), **fixed_params)
+            for key, v in dict_tools.intersect(dct, glob_dict).items():
+                setattr(xp, key, v)
+            return xp
+
+        return [xp1(dct) for dct in dict_tools.prodct(params)]
+    return for_params</code></pre>
+</details>
 </dd>
 </dl>
 </section>
@@ -131,6 +984,75 @@ then you'll create many more than you intend.</p></div>
 <div class="desc"><p>Container for attributes of a Hidden Markov Model (HMM).</p>
 <p>This container contains the specification of a "twin experiment",
 i.e. an "OSSE (observing system simulation experiment)".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class HiddenMarkovModel(dict_tools.NicePrint):
+    &#34;&#34;&#34;Container for attributes of a Hidden Markov Model (HMM).
+
+    This container contains the specification of a &#34;twin experiment&#34;,
+    i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
+    &#34;&#34;&#34;
+
+    def __init__(self, Dyn, Obs, t, X0, **kwargs):
+        # fmt: off
+        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
+        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
+        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
+        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
+        # fmt: on
+
+        # Name
+        self.name = kwargs.pop(&#34;name&#34;, &#34;&#34;)
+        if not self.name:
+            name = inspect.getfile(inspect.stack()[1][0])
+            try:
+                self.name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
+            except ValueError:
+                self.name = str(Path(name))
+
+        # Kwargs
+        abbrevs = {&#39;LP&#39;: &#39;liveplotters&#39;}
+        for key in kwargs:
+            setattr(self, abbrevs.get(key, key), kwargs[key])
+
+        # Defaults
+        if not hasattr(self.Obs, &#34;localizer&#34;):
+            self.Obs.localizer = no_localization(self.Nx, self.Ny)
+        if not hasattr(self, &#34;sectors&#34;):
+            self.sectors = {}
+
+        # Validation
+        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
+            raise ValueError(&#34;Rank-deficient R not supported.&#34;)
+
+    # ndim shortcuts
+    @property
+    def Nx(self): return self.Dyn.M
+    @property
+    def Ny(self): return self.Obs.M
+
+    printopts = {&#39;ordering&#39;: [&#39;Dyn&#39;, &#39;Obs&#39;, &#39;t&#39;, &#39;X0&#39;]}
+
+    def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
+        &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
+        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
+
+        # Init
+        xx    = np.zeros((chrono.K   + 1, Dyn.M))
+        yy    = np.zeros((chrono.KObs+1, Obs.M))
+
+        xx[0] = X0.sample(1)
+
+        # Loop
+        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+            if kObs is not None:
+                yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
+
+        return xx, yy</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.dict_tools.NicePrint" href="dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
@@ -147,10 +1069,24 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
 <dt id="dapper.admin.HiddenMarkovModel.Nx"><code class="name">var <span class="ident">Nx</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def Nx(self): return self.Dyn.M</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.HiddenMarkovModel.Ny"><code class="name">var <span class="ident">Ny</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def Ny(self): return self.Obs.M</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -160,6 +1096,28 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Generate synthetic truth and observations.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
+    &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
+    Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
+
+    # Init
+    xx    = np.zeros((chrono.K   + 1, Dyn.M))
+    yy    = np.zeros((chrono.KObs+1, Obs.M))
+
+    xx[0] = X0.sample(1)
+
+    # Loop
+    for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+        xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+        if kObs is not None:
+            yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
+
+    return xx, yy</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -169,6 +1127,42 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Container for operators (models).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Operator(dict_tools.NicePrint):
+    &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;
+
+    def __init__(self, M, model=None, noise=None, **kwargs):
+        self.M = M
+
+        # None =&gt; Identity model
+        if model is None:
+            model = Id_op()
+            kwargs[&#39;linear&#39;] = lambda x, t, dt: Id_mat(M)
+        self.model = model
+
+        # None/0 =&gt; No noise
+        if isinstance(noise, RV):
+            self.noise = noise
+        else:
+            if noise is None:
+                noise = 0
+            if np.isscalar(noise):
+                self.noise = GaussRV(C=noise, M=M)
+            else:
+                self.noise = GaussRV(C=noise)
+
+        # Write attributes
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+    printopts = {&#39;ordering&#39;: [&#39;M&#39;, &#39;model&#39;, &#39;noise&#39;]}</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.dict_tools.NicePrint" href="dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
@@ -208,6 +1202,373 @@ this is hackey, but convenience is king.</li>
 <p>If <code>unique</code>: duplicates won't get appended.
 This makes <code>append()</code> (and <code>__iadd__()</code>) relatively slow.
 Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class xpList(list):
+    &#34;&#34;&#34;List, subclassed for holding experiment (&#34;xp&#34;) objects.
+
+    Main use: administrate experiment **launches**.
+    Also see: ``xpSpace`` for experiment **result presentation**.
+
+     Modifications to ``list``:
+
+     - ``__iadd__`` (append) also for single items;
+       this is hackey, but convenience is king.
+     - ``append()`` supports ``unique`` to enable lazy xp declaration.
+     - ``__getitem__`` supports lists.
+     - pretty printing (using common/distinct attrs).
+
+     Add-ons:
+
+     - ``launch()``
+     - ``print_averages()``
+     - ``gen_names()``
+     - ``inds()`` to search by kw-attrs.
+     &#34;&#34;&#34;
+
+    def __init__(self, *args, unique=False):
+        &#34;&#34;&#34;Initialize without args, or with a list of configs.
+
+        If ``unique``: duplicates won&#39;t get appended.
+        This makes ``append()`` (and ``__iadd__()``) relatively slow.
+        Use ``extend()`` or ``__add__()`` to bypass this validation.&#34;&#34;&#34;
+
+        self.unique = unique
+        super().__init__(*args)
+
+    def __iadd__(self, xp):
+        if not hasattr(xp, &#39;__iter__&#39;):
+            xp = [xp]
+        for item in xp:
+            self.append(item)
+        return self
+
+    def append(self, xp):
+        &#34;&#34;&#34;Append if not unique &amp; present.&#34;&#34;&#34;
+        if not (self.unique and xp in self):
+            super().append(xp)
+
+    def __getitem__(self, keys):
+        &#34;&#34;&#34;Indexing, also by a list&#34;&#34;&#34;
+        try:
+            B = [self[k] for k in keys]    # if keys is list
+        except TypeError:
+            B = super().__getitem__(keys)  # if keys is int, slice
+        if hasattr(B, &#39;__len__&#39;):
+            B = xpList(B)                  # Cast
+        return B
+
+    def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
+        &#34;&#34;&#34;Find (all) indices of configs whose attributes match kws.
+
+        If strict, then xp&#39;s lacking a requested attr will not match,
+        unless the missingval (e.g. None) matches the required value.
+        &#34;&#34;&#34;
+        def match(xp):
+            def missing(v): return missingval if strict else v
+            matches = [getattr(xp, k, missing(v)) == v for k, v in kws.items()]
+            return all(matches)
+
+        return [i for i, xp in enumerate(self) if match(xp)]
+
+    @property
+    def da_methods(self):
+        return [xp.da_method for xp in self]
+
+    def split_attrs(self, nomerge=()):
+        &#34;&#34;&#34;Compile the attrs of all xps; split as distinct, redundant, common.
+
+        Insert None if an attribute is distinct but not in xp.&#34;&#34;&#34;
+
+        def _aggregate_keys():
+            &#34;Aggregate keys from all xps&#34;
+
+            if len(self) == 0:
+                return []
+
+            # Start with da_method
+            aggregate = [&#39;da_method&#39;]
+
+            # Aggregate all other keys
+            for xp in self:
+
+                # Get dataclass fields
+                try:
+                    dc_fields = dcs.fields(xp.__class__)
+                    dc_names = [F.name for F in dc_fields]
+                    keys = xp.__dict__.keys()
+                except TypeError:
+                    # Assume namedtuple
+                    dc_names = []
+                    keys = xp._fields
+
+                # For all potential keys:
+                for k in keys:
+                    # If not already present:
+                    if k not in aggregate:
+
+                        # If dataclass, check repr:
+                        if k in dc_names:
+                            if dc_fields[dc_names.index(k)].repr:
+                                aggregate.append(k)
+                        # Else, just append
+                        else:
+                            aggregate.append(k)
+
+            # Remove unwanted
+            excluded  = [re.compile(&#39;^_&#39;), &#39;avrgs&#39;, &#39;stats&#39;, &#39;HMM&#39;, &#39;duration&#39;]
+            aggregate = dict_tools.complement(aggregate, excluded)
+            return aggregate
+
+        distinct, redundant, common = {}, {}, {}
+
+        for key in _aggregate_keys():
+
+            # Want to distinguish actual None&#39;s from empty (&#34;N/A&#34;).
+            # =&gt; Don&#39;t use getattr(obj,key,None)
+            vals = [getattr(xp, key, &#34;N/A&#34;) for xp in self]
+
+            # Sort (assign dct) into distinct, redundant, common
+            if dict_tools.flexcomp(key, *nomerge):
+                # nomerge =&gt; Distinct
+                dct, vals = distinct, vals
+            elif all(vals[0] == v for v in vals):
+                # all values equal =&gt; common
+                dct, vals = common, vals[0]
+            else:
+                v0 = next(v for v in vals if &#34;N/A&#34; != v)
+                if all(v == &#34;N/A&#34; or v == v0 for v in vals):
+                    # all values equal or &#34;N/A&#34; =&gt; redundant
+                    dct, vals = redundant, v0
+                else:
+                    # otherwise =&gt; distinct
+                    dct, vals = distinct, vals
+
+            # Replace &#34;N/A&#34; by None
+            def sub(v): return None if v == &#34;N/A&#34; else v
+            if isinstance(vals, str):
+                vals = sub(vals)
+            else:
+                try:
+                    vals = [sub(v) for v in vals]
+                except TypeError:
+                    vals = sub(vals)
+
+            dct[key] = vals
+
+        return distinct, redundant, common
+
+    def __repr__(self):
+        distinct, redundant, common = self.split_attrs()
+        s = &#39;&lt;xpList&gt; of length %d with attributes:\n&#39; % len(self)
+        s += utils.tab(distinct, headers=&#34;keys&#34;, showindex=True)
+        s += &#34;\nOther attributes:\n&#34;
+        s += str(dict_tools.AlignedDict({**redundant, **common}))
+        return s
+
+    def gen_names(self, abbrev=6, tab=False):
+        &#34;&#34;&#34;Similiar to ``self.__repr__()``, but:
+
+        - returns *list* of names
+        - tabulation is optional
+        - attaches (abbreviated) labels to each attribute
+        &#34;&#34;&#34;
+        distinct, redundant, common = self.split_attrs(nomerge=[&#34;da_method&#34;])
+        labels = distinct.keys()
+        values = distinct.values()
+
+        # Label abbreviation
+        labels = [utils.collapse_str(k, abbrev) for k in labels]
+
+        # Make label columns: insert None or lbl+&#34;:&#34;, depending on value
+        def column(lbl, vals):
+            return [None if v is None else lbl+&#34;:&#34; for v in vals]
+        labels = [column(lbl, vals) for lbl, vals in zip(labels, values)]
+
+        # Interlace labels and values
+        table = [x for (a, b) in zip(labels, values) for x in (a, b)]
+
+        # Rm da_method label (but keep value)
+        table.pop(0)
+
+        # Transpose
+        table = list(map(list, zip(*table)))
+
+        # Tabulate
+        table = utils.tab(table, tablefmt=&#34;plain&#34;)
+
+        # Rm space between lbls/vals
+        table = re.sub(&#39;:  +&#39;, &#39;:&#39;, table)
+
+        # Rm alignment
+        if not tab:
+            table = re.sub(r&#39; +&#39;, r&#39; &#39;, table)
+
+        return table.splitlines()
+
+    def tabulate_avrgs(self, *args, **kwargs):
+        &#34;&#34;&#34;Pretty (tabulated) repr of xps &amp; their avrgs.
+
+        Similar to stats.tabulate_avrgs(), but for the entire list of xps.&#34;&#34;&#34;
+        distinct, redundant, common = self.split_attrs()
+        averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
+        columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
+        return utils.tab(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)
+
+    def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
+               setup=seed_and_simulate, fail_gently=None, **kwargs):
+        &#34;&#34;&#34;For each xp in self: run_experiment(xp, ...).
+
+        The results are saved in ``rc.dirs[&#39;data&#39;]/save_as.stem``,
+        unless ``save_as`` is False/None.
+
+        Depending on ``mp``, run_experiment() is delegated to one of:
+         - caller process (no parallelisation)
+         - multiprocessing on this host
+         - GCP (Google Cloud Computing) with HTCondor
+
+        If ``setup == None``: use ``seed_and_simulate()``.
+
+        The kwargs are forwarded to run_experiment().
+
+        See ``example_2.py`` and ``example_3.py`` for example use.
+        &#34;&#34;&#34;
+        # TODO 2: doc files and code options in mp, e.g
+        # `files` get added to PYTHONPATH and have dir-structure preserved.
+        # Setup: Experiment initialisation. Default: seed_and_simulate().
+        #   Enables setting experiment variables that are not parameters of a da_method.
+
+        # Collect common args forwarded to run_experiment
+        kwargs[&#39;HMM&#39;] = HMM
+        kwargs[&#34;setup&#34;] = setup
+
+        # Parse mp option
+        if not mp:
+            mp = False
+        elif mp in [True, &#34;MP&#34;]:
+            mp = dict(server=&#34;local&#34;)
+        elif isinstance(mp, int):
+            mp = dict(server=&#34;local&#34;, NPROC=mp)
+        elif mp in [&#34;GCP&#34;, &#34;Google&#34;]:
+            mp = dict(server=&#34;GCP&#34;, files=[], code=&#34;&#34;)
+        assert isinstance(mp, dict)
+
+        # Parse fail_gently
+        if fail_gently is None:
+            if isinstance(mp, dict) and mp[&#34;server&#34;] == &#34;GCP&#34;:
+                fail_gently = False
+                # coz cloud processing is entirely de-coupled anyways
+            else:
+                fail_gently = True
+                # True unless otherwise requested
+        kwargs[&#34;fail_gently&#34;] = fail_gently
+
+        # Parse save_as
+        if save_as in [None, False]:
+            assert not mp, &#34;Multiprocessing requires saving data.&#34;
+            # Parallelization w/o storing is possible, especially w/ threads.
+            # But it involves more complicated communication set-up.
+            def xpi_dir(*args): return None
+        else:
+            save_as = rc.dirs.data / Path(save_as).stem
+            save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H:%M:%S&#34;)
+            os.makedirs(save_as)
+            print(f&#34;Experiment stored at {save_as}&#34;)
+
+            def xpi_dir(i):
+                path = save_as / str(i)
+                os.mkdir(path)
+                return path
+
+        # No parallelization
+        if not mp:
+            for ixp, (xp, label) in enumerate(zip(self, self.gen_names())):
+                run_experiment(xp, label, xpi_dir(ixp), **kwargs)
+
+        # Local multiprocessing
+        elif mp[&#34;server&#34;].lower() == &#34;local&#34;:
+            def run_with_fixed_args(arg):
+                xp, ixp = arg
+                run_experiment(xp, None, xpi_dir(ixp), **kwargs)
+            args = zip(self, range(len(self)))
+
+            utils.disable_progbar          = True
+            utils.disable_user_interaction = True
+            NPROC = mp.get(&#34;NPROC&#34;, None)  # None =&gt; mp.cpu_count()
+            from dapper.tools.multiprocessing import mpd  # will fail on GCP
+            with mpd.Pool(NPROC) as pool:
+                list(utils.tqdm.tqdm(
+                    pool.imap(
+                        run_with_fixed_args, args),
+                    total=len(self),
+                    desc=&#34;Parallel experim&#39;s&#34;,
+                    smoothing=0.1))
+            utils.disable_progbar          = False
+            utils.disable_user_interaction = False
+
+        # Google cloud platform, multiprocessing
+        elif mp[&#34;server&#34;] == &#34;GCP&#34;:
+            for ixp, xp in enumerate(self):
+                with open(xpi_dir(ixp)/&#34;xp.var&#34;, &#34;wb&#34;) as f:
+                    dill.dump(dict(xp=xp), f)
+
+            with open(save_as/&#34;xp.com&#34;, &#34;wb&#34;) as f:
+                dill.dump(kwargs, f)
+
+            # mkdir extra_files
+            extra_files = save_as / &#34;extra_files&#34;
+            os.mkdir(extra_files)
+            # Default files: .py files in sys.path[0] (main script&#39;s path)
+            if not mp.get(&#34;files&#34;, []):
+                # Todo 4: also intersect(..., sys.modules).
+                # Todo 4: use git ls-tree instead?
+                ff = os.listdir(sys.path[0])
+                mp[&#34;files&#34;] = [f for f in ff if f.endswith(&#34;.py&#34;)]
+            # Copy files into extra_files
+            for f in mp[&#34;files&#34;]:
+                if isinstance(f, (str, Path)):
+                    # Example: f = &#34;A.py&#34;
+                    path = Path(sys.path[0]) / f
+                    dst = f
+                else:  # instance of tuple(path, root)
+                    # Example: f = (&#34;~/E/G/A.py&#34;, &#34;G&#34;)
+                    path, root = f
+                    dst = Path(path).relative_to(root)
+                dst = extra_files / dst
+                os.makedirs(dst.parent, exist_ok=True)
+                try:
+                    shutil.copytree(path, dst)  # dir -r
+                except OSError:
+                    shutil.copy2(path, dst)  # file
+
+            # Loads PWD/xp_{var,com} and calls run_experiment()
+            with open(extra_files/&#34;load_and_run.py&#34;, &#34;w&#34;) as f:
+                f.write(dedent(&#34;&#34;&#34;\
+                import dill
+                from dapper.admin import run_experiment
+
+                # Load
+                with open(&#34;xp.com&#34;, &#34;rb&#34;) as f: com = dill.load(f)
+                with open(&#34;xp.var&#34;, &#34;rb&#34;) as f: var = dill.load(f)
+
+                # User-defined code
+                %s
+
+                # Run
+                result = run_experiment(var[&#39;xp&#39;], None, &#34;.&#34;, **com)
+                &#34;&#34;&#34;) % dedent(mp[&#34;code&#34;]))
+
+            with open(extra_files/&#34;dpr_config.yaml&#34;, &#34;w&#34;) as f:
+                f.write(&#34;\n&#34;.join([
+                    &#34;data_root: &#39;$cwd&#39;&#34;,
+                    &#34;liveplotting: no&#34;,
+                    &#34;welcome_message: no&#34;]))
+            submit_job_GCP(save_as)
+
+        return save_as</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.list</li>
@@ -217,6 +1578,14 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 <dt id="dapper.admin.xpList.da_methods"><code class="name">var <span class="ident">da_methods</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def da_methods(self):
+    return [xp.da_method for xp in self]</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -226,6 +1595,15 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 </code></dt>
 <dd>
 <div class="desc"><p>Append if not unique &amp; present.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append(self, xp):
+    &#34;&#34;&#34;Append if not unique &amp; present.&#34;&#34;&#34;
+    if not (self.unique and xp in self):
+        super().append(xp)</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.xpList.inds"><code class="name flex">
 <span>def <span class="ident">inds</span></span>(<span>self, strict=True, missingval='NONSENSE', **kws)</span>
@@ -234,6 +1612,23 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 <div class="desc"><p>Find (all) indices of configs whose attributes match kws.</p>
 <p>If strict, then xp's lacking a requested attr will not match,
 unless the missingval (e.g. None) matches the required value.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
+    &#34;&#34;&#34;Find (all) indices of configs whose attributes match kws.
+
+    If strict, then xp&#39;s lacking a requested attr will not match,
+    unless the missingval (e.g. None) matches the required value.
+    &#34;&#34;&#34;
+    def match(xp):
+        def missing(v): return missingval if strict else v
+        matches = [getattr(xp, k, missing(v)) == v for k, v in kws.items()]
+        return all(matches)
+
+    return [i for i, xp in enumerate(self) if match(xp)]</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.xpList.split_attrs"><code class="name flex">
 <span>def <span class="ident">split_attrs</span></span>(<span>self, nomerge=())</span>
@@ -241,6 +1636,93 @@ unless the missingval (e.g. None) matches the required value.</p></div>
 <dd>
 <div class="desc"><p>Compile the attrs of all xps; split as distinct, redundant, common.</p>
 <p>Insert None if an attribute is distinct but not in xp.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def split_attrs(self, nomerge=()):
+    &#34;&#34;&#34;Compile the attrs of all xps; split as distinct, redundant, common.
+
+    Insert None if an attribute is distinct but not in xp.&#34;&#34;&#34;
+
+    def _aggregate_keys():
+        &#34;Aggregate keys from all xps&#34;
+
+        if len(self) == 0:
+            return []
+
+        # Start with da_method
+        aggregate = [&#39;da_method&#39;]
+
+        # Aggregate all other keys
+        for xp in self:
+
+            # Get dataclass fields
+            try:
+                dc_fields = dcs.fields(xp.__class__)
+                dc_names = [F.name for F in dc_fields]
+                keys = xp.__dict__.keys()
+            except TypeError:
+                # Assume namedtuple
+                dc_names = []
+                keys = xp._fields
+
+            # For all potential keys:
+            for k in keys:
+                # If not already present:
+                if k not in aggregate:
+
+                    # If dataclass, check repr:
+                    if k in dc_names:
+                        if dc_fields[dc_names.index(k)].repr:
+                            aggregate.append(k)
+                    # Else, just append
+                    else:
+                        aggregate.append(k)
+
+        # Remove unwanted
+        excluded  = [re.compile(&#39;^_&#39;), &#39;avrgs&#39;, &#39;stats&#39;, &#39;HMM&#39;, &#39;duration&#39;]
+        aggregate = dict_tools.complement(aggregate, excluded)
+        return aggregate
+
+    distinct, redundant, common = {}, {}, {}
+
+    for key in _aggregate_keys():
+
+        # Want to distinguish actual None&#39;s from empty (&#34;N/A&#34;).
+        # =&gt; Don&#39;t use getattr(obj,key,None)
+        vals = [getattr(xp, key, &#34;N/A&#34;) for xp in self]
+
+        # Sort (assign dct) into distinct, redundant, common
+        if dict_tools.flexcomp(key, *nomerge):
+            # nomerge =&gt; Distinct
+            dct, vals = distinct, vals
+        elif all(vals[0] == v for v in vals):
+            # all values equal =&gt; common
+            dct, vals = common, vals[0]
+        else:
+            v0 = next(v for v in vals if &#34;N/A&#34; != v)
+            if all(v == &#34;N/A&#34; or v == v0 for v in vals):
+                # all values equal or &#34;N/A&#34; =&gt; redundant
+                dct, vals = redundant, v0
+            else:
+                # otherwise =&gt; distinct
+                dct, vals = distinct, vals
+
+        # Replace &#34;N/A&#34; by None
+        def sub(v): return None if v == &#34;N/A&#34; else v
+        if isinstance(vals, str):
+            vals = sub(vals)
+        else:
+            try:
+                vals = [sub(v) for v in vals]
+            except TypeError:
+                vals = sub(vals)
+
+        dct[key] = vals
+
+    return distinct, redundant, common</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.xpList.gen_names"><code class="name flex">
 <span>def <span class="ident">gen_names</span></span>(<span>self, abbrev=6, tab=False)</span>
@@ -252,6 +1734,50 @@ unless the missingval (e.g. None) matches the required value.</p></div>
 <li>tabulation is optional</li>
 <li>attaches (abbreviated) labels to each attribute</li>
 </ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_names(self, abbrev=6, tab=False):
+    &#34;&#34;&#34;Similiar to ``self.__repr__()``, but:
+
+    - returns *list* of names
+    - tabulation is optional
+    - attaches (abbreviated) labels to each attribute
+    &#34;&#34;&#34;
+    distinct, redundant, common = self.split_attrs(nomerge=[&#34;da_method&#34;])
+    labels = distinct.keys()
+    values = distinct.values()
+
+    # Label abbreviation
+    labels = [utils.collapse_str(k, abbrev) for k in labels]
+
+    # Make label columns: insert None or lbl+&#34;:&#34;, depending on value
+    def column(lbl, vals):
+        return [None if v is None else lbl+&#34;:&#34; for v in vals]
+    labels = [column(lbl, vals) for lbl, vals in zip(labels, values)]
+
+    # Interlace labels and values
+    table = [x for (a, b) in zip(labels, values) for x in (a, b)]
+
+    # Rm da_method label (but keep value)
+    table.pop(0)
+
+    # Transpose
+    table = list(map(list, zip(*table)))
+
+    # Tabulate
+    table = utils.tab(table, tablefmt=&#34;plain&#34;)
+
+    # Rm space between lbls/vals
+    table = re.sub(&#39;:  +&#39;, &#39;:&#39;, table)
+
+    # Rm alignment
+    if not tab:
+        table = re.sub(r&#39; +&#39;, r&#39; &#39;, table)
+
+    return table.splitlines()</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.xpList.tabulate_avrgs"><code class="name flex">
 <span>def <span class="ident">tabulate_avrgs</span></span>(<span>self, *args, **kwargs)</span>
@@ -259,6 +1785,19 @@ unless the missingval (e.g. None) matches the required value.</p></div>
 <dd>
 <div class="desc"><p>Pretty (tabulated) repr of xps &amp; their avrgs.</p>
 <p>Similar to stats.tabulate_avrgs(), but for the entire list of xps.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tabulate_avrgs(self, *args, **kwargs):
+    &#34;&#34;&#34;Pretty (tabulated) repr of xps &amp; their avrgs.
+
+    Similar to stats.tabulate_avrgs(), but for the entire list of xps.&#34;&#34;&#34;
+    distinct, redundant, common = self.split_attrs()
+    averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
+    columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
+    return utils.tab(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)</code></pre>
+</details>
 </dd>
 <dt id="dapper.admin.xpList.launch"><code class="name flex">
 <span>def <span class="ident">launch</span></span>(<span>self, HMM, save_as='noname', mp=False, setup=&lt;function seed_and_simulate&gt;, fail_gently=None, **kwargs)</span>
@@ -274,6 +1813,162 @@ unless <code>save_as</code> is False/None.</p>
 <p>If <code>setup == None</code>: use <code><a title="dapper.admin.seed_and_simulate" href="#dapper.admin.seed_and_simulate">seed_and_simulate()</a></code>.</p>
 <p>The kwargs are forwarded to run_experiment().</p>
 <p>See <code>example_2.py</code> and <code>example_3.py</code> for example use.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
+           setup=seed_and_simulate, fail_gently=None, **kwargs):
+    &#34;&#34;&#34;For each xp in self: run_experiment(xp, ...).
+
+    The results are saved in ``rc.dirs[&#39;data&#39;]/save_as.stem``,
+    unless ``save_as`` is False/None.
+
+    Depending on ``mp``, run_experiment() is delegated to one of:
+     - caller process (no parallelisation)
+     - multiprocessing on this host
+     - GCP (Google Cloud Computing) with HTCondor
+
+    If ``setup == None``: use ``seed_and_simulate()``.
+
+    The kwargs are forwarded to run_experiment().
+
+    See ``example_2.py`` and ``example_3.py`` for example use.
+    &#34;&#34;&#34;
+    # TODO 2: doc files and code options in mp, e.g
+    # `files` get added to PYTHONPATH and have dir-structure preserved.
+    # Setup: Experiment initialisation. Default: seed_and_simulate().
+    #   Enables setting experiment variables that are not parameters of a da_method.
+
+    # Collect common args forwarded to run_experiment
+    kwargs[&#39;HMM&#39;] = HMM
+    kwargs[&#34;setup&#34;] = setup
+
+    # Parse mp option
+    if not mp:
+        mp = False
+    elif mp in [True, &#34;MP&#34;]:
+        mp = dict(server=&#34;local&#34;)
+    elif isinstance(mp, int):
+        mp = dict(server=&#34;local&#34;, NPROC=mp)
+    elif mp in [&#34;GCP&#34;, &#34;Google&#34;]:
+        mp = dict(server=&#34;GCP&#34;, files=[], code=&#34;&#34;)
+    assert isinstance(mp, dict)
+
+    # Parse fail_gently
+    if fail_gently is None:
+        if isinstance(mp, dict) and mp[&#34;server&#34;] == &#34;GCP&#34;:
+            fail_gently = False
+            # coz cloud processing is entirely de-coupled anyways
+        else:
+            fail_gently = True
+            # True unless otherwise requested
+    kwargs[&#34;fail_gently&#34;] = fail_gently
+
+    # Parse save_as
+    if save_as in [None, False]:
+        assert not mp, &#34;Multiprocessing requires saving data.&#34;
+        # Parallelization w/o storing is possible, especially w/ threads.
+        # But it involves more complicated communication set-up.
+        def xpi_dir(*args): return None
+    else:
+        save_as = rc.dirs.data / Path(save_as).stem
+        save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H:%M:%S&#34;)
+        os.makedirs(save_as)
+        print(f&#34;Experiment stored at {save_as}&#34;)
+
+        def xpi_dir(i):
+            path = save_as / str(i)
+            os.mkdir(path)
+            return path
+
+    # No parallelization
+    if not mp:
+        for ixp, (xp, label) in enumerate(zip(self, self.gen_names())):
+            run_experiment(xp, label, xpi_dir(ixp), **kwargs)
+
+    # Local multiprocessing
+    elif mp[&#34;server&#34;].lower() == &#34;local&#34;:
+        def run_with_fixed_args(arg):
+            xp, ixp = arg
+            run_experiment(xp, None, xpi_dir(ixp), **kwargs)
+        args = zip(self, range(len(self)))
+
+        utils.disable_progbar          = True
+        utils.disable_user_interaction = True
+        NPROC = mp.get(&#34;NPROC&#34;, None)  # None =&gt; mp.cpu_count()
+        from dapper.tools.multiprocessing import mpd  # will fail on GCP
+        with mpd.Pool(NPROC) as pool:
+            list(utils.tqdm.tqdm(
+                pool.imap(
+                    run_with_fixed_args, args),
+                total=len(self),
+                desc=&#34;Parallel experim&#39;s&#34;,
+                smoothing=0.1))
+        utils.disable_progbar          = False
+        utils.disable_user_interaction = False
+
+    # Google cloud platform, multiprocessing
+    elif mp[&#34;server&#34;] == &#34;GCP&#34;:
+        for ixp, xp in enumerate(self):
+            with open(xpi_dir(ixp)/&#34;xp.var&#34;, &#34;wb&#34;) as f:
+                dill.dump(dict(xp=xp), f)
+
+        with open(save_as/&#34;xp.com&#34;, &#34;wb&#34;) as f:
+            dill.dump(kwargs, f)
+
+        # mkdir extra_files
+        extra_files = save_as / &#34;extra_files&#34;
+        os.mkdir(extra_files)
+        # Default files: .py files in sys.path[0] (main script&#39;s path)
+        if not mp.get(&#34;files&#34;, []):
+            # Todo 4: also intersect(..., sys.modules).
+            # Todo 4: use git ls-tree instead?
+            ff = os.listdir(sys.path[0])
+            mp[&#34;files&#34;] = [f for f in ff if f.endswith(&#34;.py&#34;)]
+        # Copy files into extra_files
+        for f in mp[&#34;files&#34;]:
+            if isinstance(f, (str, Path)):
+                # Example: f = &#34;A.py&#34;
+                path = Path(sys.path[0]) / f
+                dst = f
+            else:  # instance of tuple(path, root)
+                # Example: f = (&#34;~/E/G/A.py&#34;, &#34;G&#34;)
+                path, root = f
+                dst = Path(path).relative_to(root)
+            dst = extra_files / dst
+            os.makedirs(dst.parent, exist_ok=True)
+            try:
+                shutil.copytree(path, dst)  # dir -r
+            except OSError:
+                shutil.copy2(path, dst)  # file
+
+        # Loads PWD/xp_{var,com} and calls run_experiment()
+        with open(extra_files/&#34;load_and_run.py&#34;, &#34;w&#34;) as f:
+            f.write(dedent(&#34;&#34;&#34;\
+            import dill
+            from dapper.admin import run_experiment
+
+            # Load
+            with open(&#34;xp.com&#34;, &#34;rb&#34;) as f: com = dill.load(f)
+            with open(&#34;xp.var&#34;, &#34;rb&#34;) as f: var = dill.load(f)
+
+            # User-defined code
+            %s
+
+            # Run
+            result = run_experiment(var[&#39;xp&#39;], None, &#34;.&#34;, **com)
+            &#34;&#34;&#34;) % dedent(mp[&#34;code&#34;]))
+
+        with open(extra_files/&#34;dpr_config.yaml&#34;, &#34;w&#34;) as f:
+            f.write(&#34;\n&#34;.join([
+                &#34;data_root: &#39;$cwd&#39;&#34;,
+                &#34;liveplotting: no&#34;,
+                &#34;welcome_message: no&#34;]))
+        submit_job_GCP(save_as)
+
+    return save_as</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -281,6 +1976,11 @@ unless <code>save_as</code> is False/None.</p>
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

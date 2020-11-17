@@ -30,6 +30,57 @@ Refs:
 Refs:
 - wikipedia.org/wiki/Competitive_Lotka%E2%80%93Volterra_equations
 - Vano et al (2006): "Chaos in low-dimensional Lotka-Volterra models of competition".</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Parameters set so as to have chaotic dynamics.
+Refs:
+ - wikipedia.org/wiki/Competitive_Lotka%E2%80%93Volterra_equations
+ - Vano et al (2006): &#34;Chaos in low-dimensional Lotka-Volterra models of competition&#34;.
+&#34;&#34;&#34;
+
+import numpy as np
+
+from dapper.mods.Lorenz63.core import LPs as L63_LPs
+import dapper as dpr
+from dapper.tools.math import integrate_TLM
+
+Nx = 4
+
+# &#34;growth&#34; coefficients
+r = np.array([1, 0.72, 1.53, 1.27])
+
+# &#34;interaction&#34; coefficients
+A = np.array([
+    [1,     1.09,  1.52,  0],
+    [0,     1,     0.44,  1.36],
+    [2.33,  0,     1,     0.47],
+    [1.21,  0.51,  0.35,  1]
+])
+
+x0 = 0.25*np.ones(Nx)
+
+
+def dxdt(x):
+    return (r*x) * (1 - x@A.T)
+
+
+step = dpr.with_rk4(dxdt, autonom=True)
+
+Tplot = 100
+
+
+def d2x_dtdx(x):
+    return np.diag(r - r*(A@x)) - (r*x)[:, None]*A
+
+
+def dstep_dx(x, t, dt):
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)
+
+
+def LP_setup(jj): return L63_LPs(jj, params=dict())</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -43,24 +94,51 @@ Refs:
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dxdt(x):
+    return (r*x) * (1 - x@A.T)</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.LotkaVolterra.core.d2x_dtdx"><code class="name flex">
 <span>def <span class="ident">d2x_dtdx</span></span>(<span>x)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def d2x_dtdx(x):
+    return np.diag(r - r*(A@x)) - (r*x)[:, None]*A</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.LotkaVolterra.core.dstep_dx"><code class="name flex">
 <span>def <span class="ident">dstep_dx</span></span>(<span>x, t, dt)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dstep_dx(x, t, dt):
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)</code></pre>
+</details>
 </dd>
 <dt id="dapper.mods.LotkaVolterra.core.LP_setup"><code class="name flex">
 <span>def <span class="ident">LP_setup</span></span>(<span>jj)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def LP_setup(jj): return L63_LPs(jj, params=dict())</code></pre>
+</details>
 </dd>
 </dl>
 </section>
@@ -68,6 +146,11 @@ Refs:
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

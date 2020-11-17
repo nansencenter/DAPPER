@@ -23,6 +23,65 @@
 <h1 class="title">Module <code>dapper.mods.Lorenz96.frei2013bridging</code></h1>
 </header>
 <section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># As in:
+#  - Frei, Marco, and Hans R. Künsch.
+#    &#34;Bridging the ensemble Kalman and particle filters.&#34;
+#    Biometrika 100.4 (2013): 781-800.
+# who aloso cite its use in:
+#  - BENGTSSON, T., SNYDER, C. &amp; NYCHKA, D. (2003).
+#    &#34;Toward a nonlinear ensemble filter for high-dimensional systems.&#34;
+#    J. Geophys. Res. 108, 8775.
+#  - LEI, J. &amp; BICKEL, P. (2011).
+#    &#34;A moment matching ensemble filter for nonlinear non-Gaussian data assimilation.&#34;
+#    Mon. Weather Rev. 139, 3964–73
+#  - FREI, M. &amp; KUNSCH H. R. (2013).
+#    &#34;Mixture ensemble Kalman filters&#34;
+#    Comp. Statist. Data Anal. 58, 127–38.
+
+
+import numpy as np
+import dapper as dpr
+
+from dapper.mods.Lorenz96.core import step, dstep_dx
+from dapper.tools.localization import nd_Id_localization
+
+t = dpr.Chronology(0.05, dtObs=0.4, T=4**5, BurnIn=20)
+
+Nx = 40
+Dyn = {
+    &#39;M&#39;: Nx,
+    &#39;model&#39;: step,
+    &#39;linear&#39;: dstep_dx,
+    &#39;noise&#39;: 0
+}
+
+X0 = dpr.GaussRV(M=Nx, C=0.001)
+
+jj = 1 + np.arange(0, Nx, 2)
+Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs[&#39;noise&#39;] = 0.5
+Obs[&#39;localizer&#39;] = nd_Id_localization((Nx,), (2,), jj)
+
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+
+
+####################
+# Suggested tuning
+####################
+# Compare to Table 1 and 3 from frei2013bridging. Note:
+#  - N is too large to be very interesting.
+#  - We obtain better EnKF scores than they report,
+#    and use inflation and sqrt updating,
+#    and don&#39;t really need localization.
+# from dapper.mods.Lorenz96.frei2013bridging import HMM     # rmse.a
+# xps += EnKF_N(N=400,rot=1)                                # 0.80
+# xps += LETKF( N=400,rot=True,infl=1.01,loc_rad=10/1.82)   # 0.79 # short xp. only
+# xps += Var3D()                                            # 2.42 # short xp. only</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -34,6 +93,11 @@
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

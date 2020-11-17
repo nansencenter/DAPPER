@@ -23,6 +23,77 @@
 <h1 class="title">Module <code>dapper.mods.DoublePendulum.settings101</code></h1>
 </header>
 <section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Settings not taken from anywhere
+
+import dapper as dpr
+
+from dapper.mods.DoublePendulum.core import step, x0, LP_setup, dstep_dx
+
+t = dpr.Chronology(0.01, dkObs=100, T=30, BurnIn=10)
+
+Dyn = {
+    &#39;M&#39;: len(x0),
+    &#39;model&#39;: step,
+    &#39;noise&#39;: 0,
+    &#39;linear&#39;: dstep_dx,
+}
+
+X0 = dpr.GaussRV(mu=x0, C=0.01**2)
+
+jj = [0, 2]
+Obs = dpr.partial_Id_Obs(len(x0), jj)
+Obs[&#39;noise&#39;] = 0.1**2
+
+HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(jj))
+
+####################
+# Suggested tuning
+####################
+# from dapper.mods.DoublePendulum.settings101 import HMM # Expct rmse.a:
+
+# HMM.t.dkObs = anything
+# xps += Climatology()                                 # 5
+# xps += OptInterp()                                   # 2.5
+
+# HMM.t.dkObs = 7 # &lt;-- max dkObs for tolerable performance with Var3D
+# xps += Var3D(xB=0.1)                                 # 0.81
+
+# HMM.t.dkObs = 10
+# xps += ExtKF(infl=2)                                 # 0.12
+# xps += EnKF(&#39;Sqrt&#39;, N=3  ,infl=1.03,rot=True)        # 0.12
+# xps += EnKF(&#39;Sqrt&#39;, N=5  ,infl=1.01,rot=True)        # 0.10
+# xps += PartFilt(    N=40  ,reg=1.0,NER=0.9)          # 0.12
+
+# HMM.t.dkObs = 20 # &lt;-- max dkObs for tolerable performance with ExtKF
+# xps += ExtKF(infl=3)                                 # 0.18
+# xps += EnKF(&#39;Sqrt&#39;, N=20 ,infl=1.02,rot=True)        # 0.15
+# xps += PartFilt(    N=100  ,reg=1.0,NER=0.9)         # 0.13
+# xps += PartFilt(    N=400  ,reg=1.0,NER=0.9)         # 0.12
+# xps += PartFilt(    N=1000 ,reg=1.0,NER=0.9)         # 0.11
+
+# HMM.t.dkObs = 30 # &lt;-- for larger dkObs, EnKF deteriorates quickly
+# xps += EnKF(&#39;Sqrt&#39;, N=20 ,infl=1.01,rot=True)        # 0.17
+# xps += PartFilt(    N=100  ,reg=1.0,NER=0.9)         # 0.14
+# xps += PartFilt(    N=400  ,reg=1.0,NER=0.9)         # 0.13
+# xps += PartFilt(    N=1000 ,reg=1.0,NER=0.9)         # 0.12
+
+# HMM.t.dkObs = 60
+# xps += EnKF( &#39;Sqrt&#39;,N=20      ,infl=1.01,rot=True)   # 0.41
+# xps += iEnKS(&#39;Sqrt&#39;,N=10,Lag=2,infl=1.01,rot=True)   # 0.14
+# xps += PartFilt(    N=400  ,reg=1.0,NER=0.9)         # 0.15
+
+# HMM.t.dkObs=100
+# xps += EnKF(&#39;Sqrt&#39;, N=40,rot=True,infl=1.01)         # 1.9
+# xps += iEnKS(&#39;Sqrt&#39;,N=10,Lag=1,infl=1.01,rot=True)   # 0.19
+# xps += PartFilt(    N=400  ,reg=2.0,NER=0.9)         # 0.23
+# xps += PartFilt(    N=1000 ,reg=1.0,NER=0.9)         # 0.19
+
+# TODO 3: implement cartesian obs</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -34,6 +105,11 @@
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>

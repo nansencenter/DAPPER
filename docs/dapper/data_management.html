@@ -24,6 +24,1045 @@
 </header>
 <section id="section-intro">
 <p>Tools (notably xpSpace) for processing and presenting experiment data.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Tools (notably xpSpace) for processing and presenting experiment data.&#34;&#34;&#34;
+
+from pathlib import Path
+import os
+import copy
+import warnings
+import collections
+import logging
+import shutil
+
+import numpy as np
+import matplotlib as mpl
+from matplotlib import cm, ticker
+import colorama
+import dill
+
+
+from dapper.tools.colors import color_text
+from dapper.tools.viz import axis_scale_by_array, freshfig
+from dapper.tools.series import UncertainQtty
+from dapper.stats import tabulate_column, unpack_uqs
+from dapper.admin import xpList
+import dapper.dict_tools as dict_tools
+import dapper.tools.remote.uplink as uplink
+import dapper.tools.utils as utils
+
+mpl_logger = logging.getLogger(&#39;matplotlib&#39;)
+
+NO_KEY = (&#34;da_method&#34;, &#34;Const&#34;, &#34;upd_a&#34;)
+
+
+def make_label(coord, no_key=NO_KEY, exclude=()):
+    dct = {a: v for a, v in coord._asdict().items() if v != None}
+    lbl = &#39;&#39;
+    for k, v in dct.items():
+        if k not in exclude:
+            if any(x in k for x in no_key):
+                lbl = lbl + f&#39; {v}&#39;
+            else:
+                lbl = lbl + f&#39; {utils.collapse_str(k,7)}:{v}&#39;
+    return lbl[1:]
+
+
+def default_styles(coord, baseline_legends=False):
+    &#34;&#34;&#34;Quick and dirty (but somewhat robust) styling.&#34;&#34;&#34;
+    style = dict_tools.DotDict(ms=8)
+    style.label = make_label(coord)
+
+    try:
+        if coord.da_method == &#34;Climatology&#34;:
+            style.ls = &#34;:&#34;
+            style.c = &#34;k&#34;
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == &#34;OptInterp&#34;:
+            style.ls = &#34;:&#34;
+            style.c = .7*np.ones(3)
+            style.label = &#34;Opt. Interp.&#34;
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == &#34;Var3D&#34;:
+            style.ls = &#34;:&#34;
+            style.c = .5*np.ones(3)
+            style.label = &#34;3D-Var&#34;
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == &#34;EnKF&#34;:
+            style.marker = &#34;*&#34;
+            style.c = &#34;C1&#34;
+
+        elif coord.da_method == &#34;PartFilt&#34;:
+            style.marker = &#34;X&#34;
+            style.c = &#34;C2&#34;
+
+        else:
+            style.marker = &#34;.&#34;
+
+    except AttributeError:
+        pass
+
+    return style
+
+
+def rel_index(elem, lst, default=None):
+    &#34;&#34;&#34;``lst.index(elem) / len(lst)`` with fallback.&#34;&#34;&#34;
+    try:
+        return lst.index(elem) / len(lst)
+    except ValueError:
+        if default == None:
+            raise
+        return default
+
+
+def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
+    &#34;&#34;&#34;Discretize cmap so that it partitions [0,1] into N segments.
+
+    I.e. cmap(k/N) == cmap(k/N + eps).
+
+    Also provide the ScalarMappable ``sm``
+    that maps range(N) to the segment centers,
+    as will be reflected by ``cb = fig.colorbar(sm)``.
+    You can then re-label the ticks using
+    ``cb.set_ticks(np.arange(N)); cb.set_ticklabels([&#34;A&#34;,&#34;B&#34;,&#34;C&#34;,...])``.&#34;&#34;&#34;
+    # cmap(k/N)
+    from_list = mpl.colors.LinearSegmentedColormap.from_list
+    colors = cmap(np.linspace(val0, val1, N))
+    cmap = from_list(name, colors, N)
+    # sm
+    cNorm = mpl.colors.Normalize(-.5, -.5+N)
+    sm = mpl.cm.ScalarMappable(cNorm, cmap)
+    return cmap, sm
+
+
+def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
+    &#34;&#34;&#34;Map cmap for coord.axis ∈ [0, len(ticks)].&#34;&#34;&#34;
+    def link(coord):
+        &#34;&#34;&#34;Essentially: cmap(ticks.index(coord.axis))&#34;&#34;&#34;
+        if hasattr(coord, axis):
+            ticks = xp_dict.ticks[axis]
+            cNorm = mpl.colors.Normalize(vmin, vmax + len(ticks))
+            ScMap = cm.ScalarMappable(cNorm, cmap).to_rgba
+            index = ticks.index(getattr(coord, axis))
+            return ScMap(index)
+        else:
+            return cmap(0.5)
+    return link
+
+
+def in_idx(coord, indices, xp_dict, axis):
+    &#34;&#34;&#34;Essentially: coord.axis in ticks[indices]&#34;&#34;&#34;
+    if hasattr(coord, axis):
+        ticks = np.array(xp_dict.ticks[axis])[indices]
+        return getattr(coord, axis) in ticks
+    else:
+        return True
+
+
+def load_HMM(save_as):
+    save_as = Path(save_as).expanduser()
+    HMM = dill.load(open(save_as/&#34;xp.com&#34;, &#34;rb&#34;))[&#34;HMM&#34;]
+    return HMM
+
+
+def load_xps(save_as):
+    &#34;&#34;&#34;Load ``xps`` (as a simple list) from dir.&#34;&#34;&#34;
+    save_as = Path(save_as).expanduser()
+    files = [d/&#34;xp&#34; for d in uplink.list_job_dirs(save_as)]
+
+    def load_any(filepath):
+        &#34;&#34;&#34;Load any/all ``xp&#39;s`` from ``filepath``.&#34;&#34;&#34;
+        with open(filepath, &#34;rb&#34;) as F:
+            # If experiment crashed, then xp will be empty
+            try:
+                data = dill.load(F)
+            except EOFError:
+                return []
+            # Always return list
+            try:
+                return data[&#34;xps&#34;]
+            except KeyError:
+                return [data[&#34;xp&#34;]]
+
+    print(&#34;Loading %d files from %s&#34; % (len(files), save_as))
+    xps = []  # NB: progbar wont clean up properly w/ list compr.
+    for f in utils.progbar(files, desc=&#34;Loading&#34;):
+        xps.extend(load_any(f))
+
+    if len(xps) &lt; len(files):
+        print(f&#34;{len(files)-len(xps)} files could not be loaded.&#34;)
+
+    return xps
+
+
+def save_xps(xps, save_as, nDir=100):
+    &#34;&#34;&#34;Split xps and save in save_as/i for i in range(nDir).
+
+    Example: rename attr n_iter to nIter:
+    &gt;&gt;&gt; proj_name = &#34;Stein&#34;
+    &gt;&gt;&gt; dd = dpr.rc.dirs.data / proj_name
+    &gt;&gt;&gt; save_as = dd / &#34;run_2020-09-22__19:36:13&#34;
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; for save_as in os.listdir(dd):
+    &gt;&gt;&gt;     save_as = dd / save_as
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;     xps = load_xps(save_as)
+    &gt;&gt;&gt;     HMM = load_HMM(save_as)
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;     for xp in xps:
+    &gt;&gt;&gt;         if hasattr(xp,&#34;n_iter&#34;):
+    &gt;&gt;&gt;             xp.nIter = xp.n_iter
+    &gt;&gt;&gt;             del xp.n_iter
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;     overwrite_xps(xps, save_as)
+    &#34;&#34;&#34;
+
+    save_as = Path(save_as).expanduser()
+    save_as.mkdir(parents=False, exist_ok=False)
+
+    splitting = np.array_split(xps, nDir)
+    for i, sub_xps in enumerate(utils.tqdm.tqdm(splitting, desc=&#34;Saving&#34;)):
+        if len(sub_xps):
+            iDir = save_as / str(i)
+            os.mkdir(iDir)
+            with open(iDir/&#34;xp&#34;, &#34;wb&#34;) as F:
+                dill.dump({&#39;xps&#39;: sub_xps}, F)
+
+
+def overwrite_xps(xps, save_as, nDir=100):
+    &#34;&#34;&#34;Save xps in save_as, but safely (by first saving to tmp).&#34;&#34;&#34;
+    save_xps(xps, save_as/&#34;tmp&#34;, nDir)
+
+    # Delete
+    for d in utils.tqdm.tqdm(uplink.list_job_dirs(save_as),
+                             desc=&#34;Deleting old&#34;):
+        shutil.rmtree(d)
+
+    # Mv up from tmp/ -- goes quick, coz there are not many.
+    for d in os.listdir(save_as/&#34;tmp&#34;):
+        shutil.move(save_as/&#34;tmp&#34;/d, save_as/d)
+
+    shutil.rmtree(save_as/&#34;tmp&#34;)
+
+
+def reduce_inodes(save_as, nDir=100):
+    &#34;&#34;&#34;Reduce the number of ``xp`` dirs
+
+    by packing multiple ``xp``s into lists (``xps``).
+
+    This reduces the **number** of files (inodes) on the system,
+    which limits storage capacity (along with **size**).
+
+    It also deletes files &#34;xp.var&#34; and &#34;out&#34;
+    (which tends to be relatively large coz of the progbar).
+    This is probably also the reason that the loading time is sometimes reduced.&#34;&#34;&#34;
+    overwrite_xps(load_xps(save_as), save_as, nDir)
+
+
+class SparseSpace(dict):
+    &#34;&#34;&#34;Dict, subclassed enforce key conformity (to a coord. sys, i.e. a space).
+
+    The coordinate system is specified by its &#34;axes&#34;,
+    which is used to produce self.Coord (a namedtuple class).
+
+    As a normal dict, it can hold any type of objects.
+
+    In normal use, this space is highly sparse,
+    coz there are many coordinates with no matching experiment,
+    eg. coord(da_method=Climatology, rot=True, ...).
+
+    Indeed, operations across (potentially multiple simultaneous) axes,
+    such as optimization or averaging, should be carried out by iterating
+    -- not over the axis -- but over the the list of items.
+
+    The most important method is ``nest()``,
+    which is used (by xpSpace.table_tree) to separate tables/columns,
+    and also to carry out the mean/optim operations.
+
+    In addition, __getitem__() is very flexible, allowing accessing by:
+    - The actual key, a self.Coord object. Returns single item.
+    - A dict match against (part of) the coordinates. Returns subspace.
+    - An int. Returns list(self)[key].
+    - A list of any of the above. Returns list.
+    This flexibility can cause bugs, but it&#39;s probably still worth it).
+    Also see __call__(), get_for(), and coords(), for further convenience.
+
+    Inspired by https://stackoverflow.com/a/7728830
+    Also see https://stackoverflow.com/q/3387691 &#34;&#34;&#34;
+
+    @property
+    def axes(self):
+        return self.Coord._fields
+
+    def __init__(self, axes, *args, **kwargs):
+        # Define coordinate system
+        self.Coord = collections.namedtuple(&#39;Coord&#39;, axes)
+        # Write dict
+        self.update(*args, **kwargs)
+        # Add repr/str
+        self.Coord.__repr__ = lambda c: &#34;,&#34;.join(
+            f&#34;{k}={v!r}&#34; for k, v in zip(c._fields, c))
+        self.Coord.__str__  = lambda c: &#34;,&#34;.join(str(v) for v in c)
+
+    def update(self, *args, **kwargs):
+        &#34;&#34;&#34;Update using custom __setitem__().&#34;&#34;&#34;
+        # See https://stackoverflow.com/a/2588648
+        # and https://stackoverflow.com/a/2390997
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
+
+    def __setitem__(self, key, val):
+        &#34;&#34;&#34;Setitem ensuring coordinate conforms.&#34;&#34;&#34;
+        try:
+            key = self.Coord(*key)
+        except TypeError:
+            raise TypeError(
+                f&#34;The key {key!r} did not fit the coord. system &#34;
+                f&#34;which has axes {self.axes}&#34;)
+        super().__setitem__(key, val)
+
+    def __getitem__(self, key):
+        &#34;&#34;&#34;Flexible indexing.&#34;&#34;&#34;
+
+        # List of items (by a list of indices).
+        # Also see get_for().
+        if isinstance(key, list):
+            return [self[k] for k in key]
+
+        # Single (by integer) or list (by Slice)
+        # Note: NOT validating np.int64 here catches quite a few bugs.
+        elif isinstance(key, int) or isinstance(key, slice):
+            return [*self.values()][key]
+
+        # Subspace (by dict, ie. an informal, partial coordinate)
+        elif isinstance(key, dict):
+            outer = self.nest(outer_axes=list(key))  # nest
+            coord = outer.Coord(*key.values())      # create coord
+            inner = outer[coord]                    # chose subspace
+            return inner
+
+        # Single item (by Coord object, coz an integer (eg)
+        # gets interpreted (above) as a list index)
+        else:
+            # NB: Dont&#39;t use isinstance(key, self.Coord)
+            # coz it fails when the namedtuple (Coord) has been
+            # instantiated in different places (but with equal params).
+            # Also see bugs.python.org/issue7796
+            return super().__getitem__(key)
+
+    def __getkey__(self, entry):
+        &#34;&#34;&#34;Inverse of dict.__getitem__(), but also works on coords.
+
+        Note: This dunder method is not a &#34;builtin&#34; naming convention.&#34;&#34;&#34;
+        coord = (getattr(entry, a, None) for a in self.axes)
+        return self.Coord(*coord)
+
+    def __call__(self, **kwargs):
+        &#34;&#34;&#34;Convenience, that enables, eg.:
+        &gt;&gt;&gt; xp_dict(da_method=&#34;EnKF&#34;, infl=1, seed=3)
+        &#34;&#34;&#34;
+        return self.__getitem__(kwargs)
+
+    def get_for(self, ticks, default=None):
+        &#34;&#34;&#34;Almost ``[self.get(Coord(x)) for x in ticks]``.
+
+        NB: using the &#34;naive&#34; thing: ``[self[x] for x in ticks]``
+        would probably be a BUG coz x gets interpreted as indices
+        for the internal list.&#34;&#34;&#34;
+        singleton = not hasattr(ticks[0], &#34;__iter__&#34;)
+        def coord(xyz): return self.Coord(xyz if singleton else xyz)
+        return [self.get(coord(x), default) for x in ticks]
+
+    def coords(self, **kwargs):
+        &#34;&#34;&#34;Get all ``coord``s matching kwargs.
+
+        Unlike ``__getitem__(kwargs)``,
+        - A list is returned, not a subspace.
+        - This list constains keys (coords), not values.
+        - The coords refer to the original space, not the subspace.
+
+        The last point is especially useful for label_xSection().
+        &#34;&#34;&#34;
+
+        def embed(coord): return {**kwargs, **coord._asdict()}
+        return [self.Coord(**embed(x)) for x in self[kwargs]]
+
+        # Old implementation.
+        # - I prefer the new version for its re-use of __getitem__&#39;s
+        #   nesting, evidencing their mutual relationship)
+        # - Note that unlike xpList.inds(): missingval shenanigans
+        #   are here unnecessary coz each coordinate is complete.
+        # match  = lambda x: all(getattr(x,k)==kwargs[k] for k in kwargs)
+        # return [x for x in self if match(x)]
+
+    def __repr__(self):
+        # Note: print(xpList(self)) produces more human-readable key listing,
+        # but we don&#39;t want to implement it here, coz it requires split_attrs(),
+        # which we don&#39;t really want to call again.
+        L = 2
+        keys = [str(k) for k in self]
+        if 2*L &lt; len(keys):
+            keys = keys[:L] + [&#34;...&#34;] + keys[-L:]
+        keys = &#34;[\n  &#34; + &#34;,\n  &#34;.join(keys) + &#34;\n]&#34;
+        txt = f&#34;&lt;{self.__class__.__name__}&gt; with {len(self)} keys: {keys}&#34;
+        # txt += &#34; befitting the coord. sys. with axes &#34;
+        txt += &#34;\nplaced in a coord-sys with axes &#34;
+        try:
+            txt += &#34;(and ticks):&#34; + str(dict_tools.AlignedDict(self.ticks))
+        except AttributeError:
+            txt += &#34;:\n&#34; + str(self.axes)
+        return txt
+
+    def nest(self, inner_axes=None, outer_axes=None):
+        &#34;&#34;&#34;Return a new xpSpace with axes ``outer_axes``,
+
+        obtained by projecting along the ``inner_axes``.
+        The entries of this ``xpSpace`` are themselves ``xpSpace``s,
+        with axes ``inner_axes``,
+        each one regrouping the entries with the same (projected) coordinate.
+
+        Note: is also called by ``__getitem__(key)`` if ``key`` is dict.&#34;&#34;&#34;
+
+        # Default: a singleton outer space,
+        # with everything contained in the inner (projection) space.
+        if inner_axes is None and outer_axes is None:
+            outer_axes = ()
+
+        # Validate axes
+        if inner_axes is None:
+            assert outer_axes is not None
+            inner_axes = dict_tools.complement(self.axes, outer_axes)
+        else:
+            assert outer_axes is None
+            outer_axes = dict_tools.complement(self.axes, inner_axes)
+
+        # Fill spaces
+        outer_space = self.__class__(outer_axes)
+        for coord, entry in self.items():
+            outer_coord = outer_space.__getkey__(coord)
+            try:
+                inner_space = outer_space[outer_coord]
+            except KeyError:
+                inner_space = self.__class__(inner_axes)
+                outer_space[outer_coord] = inner_space
+            inner_space[inner_space.__getkey__(coord)] = entry
+
+        return outer_space
+
+    def add_axis(self, axis):
+        self.__init__(self.axes+(axis,))
+        for coord in list(self):
+            entry = self.pop(coord)
+            self[coord + (None,)] = entry
+
+    def intersect_axes(self, attrs):
+        &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
+
+        This allows errors in the axes allotment, for ease-of-use.&#34;&#34;&#34;
+        absent = dict_tools.complement(attrs, self.axes)
+        if absent:
+            print(color_text(&#34;Warning:&#34;, colorama.Fore.RED),
+                  &#34;The requested attributes&#34;,
+                  color_text(str(absent), colorama.Fore.RED),
+                  (&#34;were not found among the&#34;
+                   &#34; xpSpace axes (attrs. used as coordinates&#34;
+                   &#34; for the set of experiments).&#34;
+                   &#34; This may be no problem if the attr. is redundant&#34;
+                   &#34; for the coord-sys.&#34;
+                   &#34; However, if it is caused by confusion or mis-spelling,&#34;
+                   &#34; then it is likely to cause mis-interpretation&#34;
+                   &#34; of the shown results.&#34;))
+            attrs = dict_tools.complement(attrs, absent)
+        return attrs
+
+    def label_xSection(self, label, *NoneAttrs, **sub_coord):
+        &#34;&#34;&#34;Insert duplicate entries for the cross section
+
+        whose ``coord``s match ``sub_coord``,
+        adding the attr ``Const=label`` to their ``coord``,
+        reflecting the &#34;constance/constraint/fixation&#34; this represents.
+
+        This distinguishes the entries in this fixed-affine subspace,
+        preventing them from being gobbled up in ``nest()``.
+
+        If you wish, you can specify the ``NoneAttrs``,
+        which are consequently set to None for the duplicated entries,
+        preventing them from getting plotted in tuning panels.
+        &#34;&#34;&#34;
+
+        if &#34;Const&#34; not in self.axes:
+            self.add_axis(&#39;Const&#39;)
+
+        for coord in self.coords(**self.intersect_axes(sub_coord)):
+            entry = copy.deepcopy(self[coord])
+            coord = coord._replace(Const=label)
+            coord = coord._replace(**{a: None for a in NoneAttrs})
+            self[coord] = entry
+
+
+AXES_ROLES = dict(outer=None, inner=None, mean=None, optim=None)
+
+
+class xpSpace(SparseSpace):
+    &#34;&#34;&#34;Functionality to facilitate working with ``xps`` and their results.
+
+    The function ``from_list()`` initializes a ``SparseSpace`` from a list
+    of objects, typically experiments referred to as ``xps``, by
+    (1) computing the relevant axes from the attributes, and
+    (2) filling the dict by ``xps``.
+
+    The main use of xpSpace is through its ``print()`` &amp; ``plot()``,
+    both of which call ``table_tree()`` to nest the axes of the SparseSpace.
+    For custom plotting, you will likely want to start with ``table_tree()``.
+
+    Using ``from_list(xps)`` creates a SparseSpace holding ``xps``.
+    However, the nested ``xpSpace``s output by ``table_tree()``, will hold
+    objects of type ``UncertainQtty``,
+    coz ``table_tree()`` calls ``mean()`` calls ``field(statkey)``.&#34;&#34;&#34;
+
+    @classmethod
+    def from_list(cls, xps):
+        &#34;&#34;&#34;Init xpSpace from xpList.&#34;&#34;&#34;
+
+        def make_ticks(axes, ordering=dict(
+                    N         = &#39;default&#39;,
+                    seed      = &#39;default&#39;,
+                    infl      = &#39;default&#39;,
+                    loc_rad   = &#39;default&#39;,
+                    rot       = &#39;as_found&#39;,
+                    da_method = &#39;as_found&#39;,
+                    )):
+            &#34;&#34;&#34;Unique &amp; sort, for each axis (individually) in axes.&#34;&#34;&#34;
+
+            for ax_name, arr in axes.items():
+                ticks = set(arr)  # unique (jumbles order)
+
+                # Sort
+                order = ordering.get(ax_name, &#39;default&#39;).lower()
+                if hasattr(order, &#39;__call__&#39;):  # eg. mylist.index
+                    ticks = sorted(ticks, key=order)
+                elif &#39;as_found&#39; in order:
+                    ticks = sorted(ticks, key=arr.index)
+                else:  # default sorting, with None placed at the end
+                    ticks = sorted(ticks, key= lambda x: (x is None, x))
+                if any(x in order for x in [&#39;rev&#39;, &#39;inv&#39;]):
+                    ticks = ticks[::-1]
+                axes[ax_name] = ticks
+
+        # Define axes
+        xp_list = xpList(xps)
+        axes = xp_list.split_attrs(nomerge=[&#39;Const&#39;])[0]
+        make_ticks(axes)
+        self = cls(axes.keys())
+
+        # Note: this attr (ticks) will not be propagated through nest().
+        # That is fine. Otherwise we should have to prune the ticks
+        # (if they are to be useful), which we don&#39;t want to do.
+        self.ticks = axes
+
+        # Fill
+        self.update({self.__getkey__(xp): xp for xp in xps})
+
+        return self
+
+    def field(self, statkey=&#34;rmse.a&#34;):
+        &#34;&#34;&#34;Extract ``statkey`` for each item in ``self``.&#34;&#34;&#34;
+
+        # Init a new xpDict to hold field
+        avrgs = self.__class__(self.axes)
+
+        found_anything = False
+        for coord, xp in self.items():
+            val = getattr(xp.avrgs, statkey, None)
+            avrgs[coord] = val
+            found_anything = found_anything or (val is not None)
+
+        if not found_anything:
+            raise AttributeError(
+                f&#34;The stat. field &#39;{statkey}&#39; was not found&#34;
+                &#34; among any of the xp&#39;s.&#34;)
+
+        return avrgs
+
+    def mean(self, axes=None):
+        # Note: The case ``axes=()`` should work w/o special treatment.
+        if axes is None:
+            return self
+
+        nested = self.nest(axes)
+        for coord, space in nested.items():
+
+            def getval(uq): return uq.val if isinstance(uq, UncertainQtty) else uq
+            vals = [getval(uq) for uq in space.values()]
+
+            # Don&#39;t use nanmean! It would give false impressions.
+            mu = np.mean(vals)
+
+            with warnings.catch_warnings():
+                warnings.simplefilter(&#34;ignore&#34;, category=RuntimeWarning)
+                # Don&#39;t print warnings caused by N=1.
+                # It already correctly yield nan&#39;s.
+                var = np.var(vals, ddof=1)
+
+            N = len(vals)
+            uq = UncertainQtty(mu, np.sqrt(var/N))
+            uq.nTotal   = N
+            uq.nFail    = N - np.isfinite(vals).sum()
+            uq.nSuccess = N - uq.nFail
+
+            nested[coord] = uq
+        return nested
+
+    def tune(self, axes=None, costfun=None):
+        &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
+
+        # Define cost-function
+        costfun = (costfun or &#39;increasing&#39;).lower()
+        if &#39;increas&#39; in costfun:
+            costfun = (lambda x: +x)
+        elif &#39;decreas&#39; in costfun:
+            costfun = (lambda x: -x)
+        else:
+            assert hasattr(costfun, &#39;__call__&#39;)  # custom
+
+        # Note: The case ``axes=()`` should work w/o special treatment.
+        if axes is None:
+            return self
+
+        nested = self.nest(axes)
+        for coord, space in nested.items():
+
+            # Find optimal value and coord within space
+            MIN = np.inf
+            for i, (inner_coord, uq) in enumerate(space.items()):
+                cost = costfun(uq.val)
+                if cost &lt;= MIN:
+                    MIN                = cost
+                    uq_opt             = uq
+                    uq_opt.tuned_coord = inner_coord
+
+            nested[coord] = uq_opt
+
+        return nested
+
+    def validate_axes(self, axes):
+        &#34;&#34;&#34;Validate axes.
+
+        Note: This does not convert None to (),
+              allowing None to remain special.
+              Use ``axis or ()`` wherever tuples are required.
+        &#34;&#34;&#34;
+        roles = {}  # &#34;inv&#34;
+        for role in set(axes) | set(AXES_ROLES):
+            assert role in AXES_ROLES, f&#34;Invalid role {role!r}&#34;
+            aa = axes.get(role, AXES_ROLES[role])
+
+            if aa is None:
+                pass  # Purposely special
+            else:
+                # Ensure iterable
+                if isinstance(aa, str) or not hasattr(aa, &#34;__iter__&#34;):
+                    aa = (aa,)
+
+                aa = self.intersect_axes(aa)
+
+                for axis in aa:
+
+                    # Ensure unique
+                    if axis in roles:
+                        raise TypeError(
+                            f&#34;An axis (here {axis!r}) cannot be assigned to 2&#34;
+                            f&#34; roles (here {role!r} and {roles[axis]!r}).&#34;)
+                    else:
+                        roles[axis] = role
+            axes[role] = aa
+        return axes
+
+    def table_tree(self, statkey, axes):
+        &#34;&#34;&#34;Hierarchical nest(): xp_dict&gt;outer&gt;inner&gt;mean&gt;optim.
+
+        as specified by ``axes``. Returns this new xpSpace.
+
+        - print_1d / plot_1d (respectively) separate
+          tables / panel(row)s for ``axes[&#39;outer&#39;]``, and
+          columns/ x-axis      for ``axes[&#39;inner&#39;]``.
+
+        - The ``axes[&#39;mean&#39;]`` and ``axes[&#39;optim&#39;]`` get eliminated
+          by the mean()/tune() operations.
+
+        Note: cannot support multiple statkeys
+              because it&#39;s not (obviously) meaningful
+              when optimizing over tuning_axes.
+        &#34;&#34;&#34;
+        axes = self.validate_axes(axes)
+
+        def mean_tune(xp_dict):
+            &#34;&#34;&#34;Take mean, then tune.
+
+            Note: the SparseDict implementation should be sufficiently
+            &#34;uncluttered&#34; that mean_tune() (or a few of its code lines)
+            could be called anywhere above/between/below
+            the ``nest()``ing of ``outer`` or ``inner``.
+            These possibile call locations are commented in the code.&#34;&#34;&#34;
+            uq_dict = xp_dict.field(statkey)
+            uq_dict = uq_dict.mean(axes[&#39;mean&#39;])
+            uq_dict = uq_dict.tune(axes[&#39;optim&#39;])
+            return uq_dict
+
+        self = mean_tune(self)
+        # Prefer calling mean_tune() [also see its docstring]
+        # before doing outer/inner nesting. This is because then the axes of
+        # a row (xpSpace) should not include mean&amp;optim, and thus:
+        #  - Column header/coords may be had directly as row.keys(),
+        #    without extraction by __getkey__() from (e.g.) row[0].
+        #  - Don&#39;t need to propagate mean&amp;optim axes down to the row level.
+        #    which would require defining rows by the nesting:
+        #    rows = table.nest(outer_axes=dict_tools.complement(table.axes,
+        #        *(axes[&#39;inner&#39;] or ()),
+        #        *(axes[&#39;mean&#39;]  or ()),
+        #        *(axes[&#39;optim&#39;] or ()) ))
+        #  - Each level of the output from table_tree
+        #    is a smaller (and more manageable) dict.
+
+        tables = self.nest(outer_axes=axes[&#39;outer&#39;])
+        for table_coord, table in tables.items():
+            # table = mean_tune(table)
+
+            # Should not be used (nesting as rows is more natural,
+            # and is required for getting distinct/row_keys).
+            # cols = table.nest(outer_axes=axes[&#39;inner&#39;])
+
+            rows = table.nest(inner_axes=axes[&#39;inner&#39;] or ())
+
+            # Overwrite table by its nesting as rows
+            tables[table_coord] = rows
+
+            # for row_coord, row in rows.items():
+            # rows[row_coord] = mean_tune(row)
+
+        return axes, tables
+
+    def tickz(self, axis_name):
+        &#34;&#34;&#34;Axis ticks without None&#34;&#34;&#34;
+        return [x for x in self.ticks[axis_name] if x is not None]
+
+    def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,
+              subcols=True, decimals=None):
+        &#34;&#34;&#34;Print tables of results.
+
+        - statkey: The statistical field from the experiments to report.
+
+        - subcols: If True, then subcolumns are added to indicate the
+                   1σ confidence interval, and potentially some other stuff.
+
+        - axes: Allots (maps) each role to a set of axis of the xp_dict.
+          Suggestion:
+          &gt;&gt;&gt; dict(
+          &gt;&gt;&gt;    outer=&#39;da_method&#39;, inner=&#39;N&#39;, mean=&#39;seed&#39;,
+          &gt;&gt;&gt;    optim=(&#39;infl&#39;,&#39;loc_rad&#39;))
+
+          Example: If ``mean`` is assigned to:
+
+          - (&#34;seed&#34;,): Experiments are averaged accross seeds,
+                       and the 1σ (sub)col is computed as sqrt(var(xps)/N),
+                       where xps is a set of experiments.
+
+          - ()       : Experiments are averaged across nothing
+                       (i.e. this is an edge case).
+
+          - None     : Experiments are not averaged
+                       (i.e. the values are the same as above),
+                       and the 1σ (sub)col is computed from
+                       the time series of that single experiment.
+        &#34;&#34;&#34;
+
+        import pandas as pd
+
+        def align_subcols(rows, cc, subcols, h2):
+            &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
+
+            # Define subcol formats
+            subc = dict()
+            subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
+            subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
+            subc[&#39;frmts&#39;]    = [None, None]
+            subc[&#39;spaces&#39;]   = [&#39; ±&#39;, ]  # last one gets appended below.
+            subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
+            if axes[&#39;optim&#39;] is not None:
+                subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
+                subc[&#39;headers&#39;] += [axes[&#39;optim&#39;]]
+                subc[&#39;frmts&#39;]   += [lambda x: tuple(a for a in x)]
+                subc[&#39;spaces&#39;]  += [&#39; *&#39;]
+                subc[&#39;aligns&#39;]  += [&#39;&lt;&#39;]
+            elif axes[&#39;mean&#39;] is not None:
+                subc[&#39;keys&#39;]    += [&#34;nFail&#34;, &#34;nSuccess&#34;]
+                subc[&#39;headers&#39;] += [&#39;☠&#39;, &#39;✓&#39;]  # use width-1 symbols!
+                subc[&#39;frmts&#39;]   += [None, None]
+                subc[&#39;spaces&#39;]  += [&#39; &#39;, &#39; &#39;]
+                subc[&#39;aligns&#39;]  += [&#39;&gt;&#39;, &#39;&gt;&#39;]
+            subc[&#39;spaces&#39;].append(&#39;&#39;)  # no space after last subcol
+            template = &#39;{}&#39; + &#39;{}&#39;.join(subc[&#39;spaces&#39;])
+
+            # Transpose
+            columns = [list(x) for x in zip(*rows)]
+
+            # Iterate over columns.
+            for j, (col_coord, column) in enumerate(zip(cc, columns)):
+
+                # Tabulate columns
+                if subcols:
+                    column = unpack_uqs(column, decimals, subc[&#34;keys&#34;])
+                    # Tabulate subcolumns
+                    subheaders = []
+                    for key, header, frmt, _, align in zip(*subc.values()):
+                        column[key] = tabulate_column(
+                            column[key], header, frmt=frmt)[1:]
+                        L = len(column[-1][key])
+                        if align == &#39;&lt;&#39;:
+                            subheaders += [str(header).ljust(L)]
+                        else:
+                            subheaders += [str(header).rjust(L)]
+                    # Join subcolumns:
+                    matter = [
+                        template.format(*[row[k] for k in subc[&#39;keys&#39;]])
+                        for row in column
+                    ]
+                    header = template.format(*subheaders)
+                else:
+                    column = unpack_uqs(column, decimals)[&#34;val&#34;]
+                    column = tabulate_column(column, statkey)
+                    header, matter = column[0], column[1:]
+
+                if h2:  # Do super_header
+                    if j:
+                        super_header = str(col_coord)
+                    else:
+                        super_header = repr(col_coord)
+                    width = len(header)  # += 1 if using unicode chars like ✔️
+                    super_header = super_header.center(width, &#34;_&#34;)
+                    header = super_header + &#34;\n&#34; + header
+
+                columns[j] = [header]+matter
+            # Un-transpose
+            rows = [list(x) for x in zip(*columns)]
+
+            return rows
+
+        # Inform axes[&#34;mean&#34;]
+        if axes.get(&#39;mean&#39;, None):
+            print(f&#34;Averages (in time and) over {axes[&#39;mean&#39;]}.&#34;)
+        else:
+            print(&#34;Averages in time only&#34;
+                  &#34; (=&gt; the 1σ estimates may be unreliable).&#34;)
+
+        axes, tables = self.table_tree(statkey, axes)
+        for table_coord, table in tables.items():
+
+            # Get this table&#39;s column coords (cc). Use dict for sorted&amp;unique.
+            # cc = xp_dict.ticks[axes[&#34;inner&#34;]] # May be larger than needed.
+            # cc = table[0].keys()              # May be too small a set.
+            cc = {c: None for row in table.values() for c in row}
+
+            # Convert table (rows) into rows (lists) of equal length
+            rows = [[row.get(c, None) for c in cc] for row in table.values()]
+
+            if False:  # ****************** Simple (for debugging) table
+                for i, (row_coord, row) in enumerate(zip(table, rows)):
+                    row_key = &#34;, &#34;.join(str(v) for v in row_coord)
+                    rows[i] = [row_key]         + row
+                rows.insert(0, [f&#34;{table.axes}&#34;] + [repr(c) for c in cc])
+            else:  # ********************** Elegant table.
+                h2 = &#34;\n&#34; if len(cc) &gt; 1 else &#34;&#34;  # do column-super-header
+                rows = align_subcols(rows, cc, subcols, h2)
+
+                # Make and prepend left-side table
+                # - It&#39;s prettier if row_keys don&#39;t have unnecessary cols.
+                #   For example, the table of Climatology should not have an
+                #   entire column repeatedly displaying &#34;infl=None&#34;.
+                #   =&gt; split_attrs().
+                # - Why didn&#39;t we do this for the column attrs?
+                #   Coz there we have no ambition to split the attrs,
+                #   which would also require excessive processing:
+                #   nesting the table as cols, and then split_attrs() on cols.
+                row_keys = xpList(table.keys()).split_attrs()[0]
+                row_keys = pd.DataFrame.from_dict(
+                    row_keys, dtype=&#34;O&#34;)  # allow storing None
+                if len(row_keys.columns):
+                    # Header
+                    rows[0] = [h2+k for k in row_keys] + [h2+&#39;⑊&#39;] + rows[0]
+                    # Matter
+                    for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
+                        rows[i+1] = [*key] + [&#39;|&#39;] + row
+
+            # Print
+            print(&#34;\n&#34;, end=&#34;&#34;)
+            if axes[&#39;outer&#39;]:
+                table_title = &#34;Table for &#34; + repr(table_coord)
+                print(color_text(table_title, colorama.Back.YELLOW))
+            headers, *rows = rows
+            print(utils.tab(rows, headers).replace(&#39;␣&#39;, &#39; &#39;))
+
+    def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
+             fignum=None, figsize=None, panels=None,
+             title2=None, costfun=None, unique_labels=True):
+        &#34;&#34;&#34;Plot the avrgs of ``statkey`` as a function of ``axis[&#34;inner&#34;]``.
+
+        Firs of all, though, mean and optimum computations are done for
+        ``axis[&#34;mean&#34;]`` and ``axis[&#34;optim&#34;]``.
+
+        The optimal parameters are plotted in panels below the main plot.
+        This can be prevented by providing the figure axes in ``panels``.
+
+        Optionally, the experiments can be grouped by ``axis[&#34;outer&#34;]``,
+        producing a figure with columns of panels.&#34;&#34;&#34;
+
+        def plot1(panelcol, row, style):
+            &#34;&#34;&#34;Plot a given line (row) in the main panel and the optim panels.
+
+            Involves: Sort, insert None&#39;s, handle constant lines.&#34;&#34;&#34;
+
+            # Make a full row (yy) of vals, whether is_constant or not.
+            # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
+            row.is_constant = all(x == row.Coord(None) for x in row)
+            yy = [row[0] if row.is_constant else y for y in row.get_for(xticks)]
+
+            # Plot main
+            row.vals = [getattr(y, &#39;val&#39;, None) for y in yy]
+            row.handles = {}
+            row.handles[&#34;main_panel&#34;] = panelcol[0].plot(xticks, row.vals, **style)[0]
+
+            # Plot tuning params
+            row.tuned_coords = {}  # Store ordered, &#34;transposed&#34; argmins
+            argmins = [getattr(y, &#39;tuned_coord&#39;, None) for y in yy]
+            for a, panel in zip(axes[&#34;optim&#34;], panelcol[1:]):
+                yy = [getattr(coord, a, None) for coord in argmins]
+                row.tuned_coords[a] = yy
+
+                # Plotting all None&#39;s sets axes units (like any plotting call)
+                # which can cause trouble if the axes units were actually supposed
+                # to be categorical (eg upd_a), but this is only revealed later.
+                if not all(y == None for y in yy):
+                    row.handles[a] = panel.plot(xticks, yy, **style)
+
+        # Nest axes through table_tree()
+        assert len(axes[&#34;inner&#34;]) == 1, &#34;You must chose the abscissa.&#34;
+        axes, tables = self.table_tree(statkey, axes)
+        xticks = self.tickz(axes[&#34;inner&#34;][0])
+
+        # Figure panels
+        if panels is None:
+            nrows   = len(axes[&#39;optim&#39;] or ()) + 1
+            ncols   = len(tables)
+            maxW    = 12.7  # my mac screen
+            figsize = figsize or (min(5*ncols, maxW), 7)
+            gs      = dict(
+                height_ratios=[6]+[1]*(nrows-1),
+                hspace=0.05, wspace=0.05,
+                # eyeballed:
+                left=0.15/(1+np.log(ncols)),
+                right=0.97, bottom=0.06, top=0.9)
+            # Create
+            _, panels = freshfig(num=fignum, figsize=figsize,
+                                 nrows=nrows, sharex=True,
+                                 ncols=ncols, sharey=&#39;row&#39;,
+                                 gridspec_kw=gs)
+            panels = np.ravel(panels).reshape((-1, ncols))
+        else:
+            panels = np.atleast_2d(panels)
+
+        # Title
+        fig = panels[0, 0].figure
+        fig_title = &#34;Average wrt. time&#34;
+        if axes[&#34;mean&#34;] is not None:
+            fig_title += f&#34; and {axes[&#39;mean&#39;]}&#34;
+        if title2 is not None:
+            fig_title += &#34;\n&#34; + str(title2)
+        fig.suptitle(fig_title)
+
+        # Loop outer
+        label_register = set()  # mv inside loop to get legend on each panel
+        for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
+            table.panels = table_panels
+            title = &#39;&#39; if axes[&#34;outer&#34;] is None else repr(table_coord)
+
+            # Plot
+            for coord, row in table.items():
+                style = get_style(coord)
+
+                # Rm duplicate labels (contrary to coords, labels can
+                # be &#34;tampered&#34; with, and so can be duplicate)
+                if unique_labels:
+                    if style.get(&#34;label&#34;, None) in label_register:
+                        del style[&#34;label&#34;]
+                    else:
+                        label_register.add(style[&#34;label&#34;])
+
+                plot1(table.panels, row, style)
+
+            # Beautify
+            panel0 = table.panels[0]
+            panel0.set_title(title)
+            if panel0.is_first_col():
+                panel0.set_ylabel(statkey)
+            with utils.set_tmp(mpl_logger, &#39;level&#39;, 99):  # silence &#34;no label&#34; msg
+                panel0.legend()
+            table.panels[-1].set_xlabel(axes[&#34;inner&#34;][0])
+            # Tuning panels:
+            for a, panel in zip(axes[&#34;optim&#34;] or (), table.panels[1:]):
+                if panel.is_first_col():
+                    panel.set_ylabel(f&#34;Optim.\n{a}&#34;)
+
+        tables.fig = fig
+        tables.xp_dict = self
+        tables.axes_roles = axes
+        return tables
+
+
+def default_fig_adjustments(tables):
+    &#34;&#34;&#34;Beautify. These settings do not generalize well.&#34;&#34;&#34;
+    # Get axs as 2d-array
+    axs = np.array([table.panels for table in tables.values()]).T
+
+    # Main panels (top row) only:
+    sensible_f = ticker.FormatStrFormatter(&#39;%g&#39;)
+    for ax in axs[0, :]:
+        for direction, nPanel in zip([&#39;y&#39;, &#39;x&#39;], axs.shape):
+            if nPanel &lt; 6:
+                eval(f&#34;ax.set_{direction}scale(&#39;log&#39;)&#34;)
+                eval(f&#34;ax.{direction}axis&#34;).set_minor_formatter(sensible_f)
+            eval(f&#34;ax.{direction}axis&#34;).set_major_formatter(sensible_f)
+
+    # Tuning panels only
+    table = tables[0]
+    for a, panel in zip(tables.axes_roles[&#34;optim&#34;] or (), table.panels[1:]):
+        yy = tables.xp_dict.tickz(a)
+        axis_scale_by_array(panel, yy, &#34;y&#34;)
+        # set_ymargin doesn&#39;t work for wonky scales. Do so manually:
+        alpha = len(yy)/10
+        y0, y1, y2, y3 = yy[0], yy[1], yy[-2], yy[-1]
+        panel.set_ylim(y0-alpha*(y1-y0), y3+alpha*(y3-y2))
+
+    # All panels
+    for ax in axs.ravel():
+        for direction, nPanel in zip([&#39;y&#39;, &#39;x&#39;], axs.shape):
+            if nPanel &lt; 6:
+                ax.grid(True, which=&#34;minor&#34;, axis=direction)
+
+    # Not strictly compatible with gridspec height_ratios,
+    # (throws warning), but still works ok.
+    with warnings.catch_warnings():
+        warnings.simplefilter(&#34;ignore&#34;, category=UserWarning)
+        axs[0, 0].figure.tight_layout()</code></pre>
+</details>
 </section>
 <section>
 </section>
@@ -37,18 +1076,92 @@
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_label(coord, no_key=NO_KEY, exclude=()):
+    dct = {a: v for a, v in coord._asdict().items() if v != None}
+    lbl = &#39;&#39;
+    for k, v in dct.items():
+        if k not in exclude:
+            if any(x in k for x in no_key):
+                lbl = lbl + f&#39; {v}&#39;
+            else:
+                lbl = lbl + f&#39; {utils.collapse_str(k,7)}:{v}&#39;
+    return lbl[1:]</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.default_styles"><code class="name flex">
 <span>def <span class="ident">default_styles</span></span>(<span>coord, baseline_legends=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Quick and dirty (but somewhat robust) styling.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def default_styles(coord, baseline_legends=False):
+    &#34;&#34;&#34;Quick and dirty (but somewhat robust) styling.&#34;&#34;&#34;
+    style = dict_tools.DotDict(ms=8)
+    style.label = make_label(coord)
+
+    try:
+        if coord.da_method == &#34;Climatology&#34;:
+            style.ls = &#34;:&#34;
+            style.c = &#34;k&#34;
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == &#34;OptInterp&#34;:
+            style.ls = &#34;:&#34;
+            style.c = .7*np.ones(3)
+            style.label = &#34;Opt. Interp.&#34;
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == &#34;Var3D&#34;:
+            style.ls = &#34;:&#34;
+            style.c = .5*np.ones(3)
+            style.label = &#34;3D-Var&#34;
+            if not baseline_legends:
+                style.label = None
+
+        elif coord.da_method == &#34;EnKF&#34;:
+            style.marker = &#34;*&#34;
+            style.c = &#34;C1&#34;
+
+        elif coord.da_method == &#34;PartFilt&#34;:
+            style.marker = &#34;X&#34;
+            style.c = &#34;C2&#34;
+
+        else:
+            style.marker = &#34;.&#34;
+
+    except AttributeError:
+        pass
+
+    return style</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.rel_index"><code class="name flex">
 <span>def <span class="ident">rel_index</span></span>(<span>elem, lst, default=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p><code>lst.index(elem) / len(lst)</code> with fallback.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rel_index(elem, lst, default=None):
+    &#34;&#34;&#34;``lst.index(elem) / len(lst)`` with fallback.&#34;&#34;&#34;
+    try:
+        return lst.index(elem) / len(lst)
+    except ValueError:
+        if default == None:
+            raise
+        return default</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.discretize_cmap"><code class="name flex">
 <span>def <span class="ident">discretize_cmap</span></span>(<span>cmap, N, val0=0, val1=1, name=None)</span>
@@ -61,30 +1174,125 @@ that maps range(N) to the segment centers,
 as will be reflected by <code>cb = fig.colorbar(sm)</code>.
 You can then re-label the ticks using
 <code>cb.set_ticks(np.arange(N)); cb.set_ticklabels(["A","B","C",...])</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
+    &#34;&#34;&#34;Discretize cmap so that it partitions [0,1] into N segments.
+
+    I.e. cmap(k/N) == cmap(k/N + eps).
+
+    Also provide the ScalarMappable ``sm``
+    that maps range(N) to the segment centers,
+    as will be reflected by ``cb = fig.colorbar(sm)``.
+    You can then re-label the ticks using
+    ``cb.set_ticks(np.arange(N)); cb.set_ticklabels([&#34;A&#34;,&#34;B&#34;,&#34;C&#34;,...])``.&#34;&#34;&#34;
+    # cmap(k/N)
+    from_list = mpl.colors.LinearSegmentedColormap.from_list
+    colors = cmap(np.linspace(val0, val1, N))
+    cmap = from_list(name, colors, N)
+    # sm
+    cNorm = mpl.colors.Normalize(-.5, -.5+N)
+    sm = mpl.cm.ScalarMappable(cNorm, cmap)
+    return cmap, sm</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.cm_bond"><code class="name flex">
 <span>def <span class="ident">cm_bond</span></span>(<span>cmap, xp_dict, axis, vmin=0, vmax=0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Map cmap for coord.axis ∈ [0, len(ticks)].</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
+    &#34;&#34;&#34;Map cmap for coord.axis ∈ [0, len(ticks)].&#34;&#34;&#34;
+    def link(coord):
+        &#34;&#34;&#34;Essentially: cmap(ticks.index(coord.axis))&#34;&#34;&#34;
+        if hasattr(coord, axis):
+            ticks = xp_dict.ticks[axis]
+            cNorm = mpl.colors.Normalize(vmin, vmax + len(ticks))
+            ScMap = cm.ScalarMappable(cNorm, cmap).to_rgba
+            index = ticks.index(getattr(coord, axis))
+            return ScMap(index)
+        else:
+            return cmap(0.5)
+    return link</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.in_idx"><code class="name flex">
 <span>def <span class="ident">in_idx</span></span>(<span>coord, indices, xp_dict, axis)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Essentially: coord.axis in ticks[indices]</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def in_idx(coord, indices, xp_dict, axis):
+    &#34;&#34;&#34;Essentially: coord.axis in ticks[indices]&#34;&#34;&#34;
+    if hasattr(coord, axis):
+        ticks = np.array(xp_dict.ticks[axis])[indices]
+        return getattr(coord, axis) in ticks
+    else:
+        return True</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.load_HMM"><code class="name flex">
 <span>def <span class="ident">load_HMM</span></span>(<span>save_as)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_HMM(save_as):
+    save_as = Path(save_as).expanduser()
+    HMM = dill.load(open(save_as/&#34;xp.com&#34;, &#34;rb&#34;))[&#34;HMM&#34;]
+    return HMM</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.load_xps"><code class="name flex">
 <span>def <span class="ident">load_xps</span></span>(<span>save_as)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Load <code>xps</code> (as a simple list) from dir.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_xps(save_as):
+    &#34;&#34;&#34;Load ``xps`` (as a simple list) from dir.&#34;&#34;&#34;
+    save_as = Path(save_as).expanduser()
+    files = [d/&#34;xp&#34; for d in uplink.list_job_dirs(save_as)]
+
+    def load_any(filepath):
+        &#34;&#34;&#34;Load any/all ``xp&#39;s`` from ``filepath``.&#34;&#34;&#34;
+        with open(filepath, &#34;rb&#34;) as F:
+            # If experiment crashed, then xp will be empty
+            try:
+                data = dill.load(F)
+            except EOFError:
+                return []
+            # Always return list
+            try:
+                return data[&#34;xps&#34;]
+            except KeyError:
+                return [data[&#34;xp&#34;]]
+
+    print(&#34;Loading %d files from %s&#34; % (len(files), save_as))
+    xps = []  # NB: progbar wont clean up properly w/ list compr.
+    for f in utils.progbar(files, desc=&#34;Loading&#34;):
+        xps.extend(load_any(f))
+
+    if len(xps) &lt; len(files):
+        print(f&#34;{len(files)-len(xps)} files could not be loaded.&#34;)
+
+    return xps</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.save_xps"><code class="name flex">
 <span>def <span class="ident">save_xps</span></span>(<span>xps, save_as, nDir=100)</span>
@@ -109,12 +1317,68 @@ You can then re-label the ticks using
 &gt;&gt;&gt;
 &gt;&gt;&gt;     overwrite_xps(xps, save_as)
 </code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_xps(xps, save_as, nDir=100):
+    &#34;&#34;&#34;Split xps and save in save_as/i for i in range(nDir).
+
+    Example: rename attr n_iter to nIter:
+    &gt;&gt;&gt; proj_name = &#34;Stein&#34;
+    &gt;&gt;&gt; dd = dpr.rc.dirs.data / proj_name
+    &gt;&gt;&gt; save_as = dd / &#34;run_2020-09-22__19:36:13&#34;
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; for save_as in os.listdir(dd):
+    &gt;&gt;&gt;     save_as = dd / save_as
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;     xps = load_xps(save_as)
+    &gt;&gt;&gt;     HMM = load_HMM(save_as)
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;     for xp in xps:
+    &gt;&gt;&gt;         if hasattr(xp,&#34;n_iter&#34;):
+    &gt;&gt;&gt;             xp.nIter = xp.n_iter
+    &gt;&gt;&gt;             del xp.n_iter
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;     overwrite_xps(xps, save_as)
+    &#34;&#34;&#34;
+
+    save_as = Path(save_as).expanduser()
+    save_as.mkdir(parents=False, exist_ok=False)
+
+    splitting = np.array_split(xps, nDir)
+    for i, sub_xps in enumerate(utils.tqdm.tqdm(splitting, desc=&#34;Saving&#34;)):
+        if len(sub_xps):
+            iDir = save_as / str(i)
+            os.mkdir(iDir)
+            with open(iDir/&#34;xp&#34;, &#34;wb&#34;) as F:
+                dill.dump({&#39;xps&#39;: sub_xps}, F)</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.overwrite_xps"><code class="name flex">
 <span>def <span class="ident">overwrite_xps</span></span>(<span>xps, save_as, nDir=100)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Save xps in save_as, but safely (by first saving to tmp).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def overwrite_xps(xps, save_as, nDir=100):
+    &#34;&#34;&#34;Save xps in save_as, but safely (by first saving to tmp).&#34;&#34;&#34;
+    save_xps(xps, save_as/&#34;tmp&#34;, nDir)
+
+    # Delete
+    for d in utils.tqdm.tqdm(uplink.list_job_dirs(save_as),
+                             desc=&#34;Deleting old&#34;):
+        shutil.rmtree(d)
+
+    # Mv up from tmp/ -- goes quick, coz there are not many.
+    for d in os.listdir(save_as/&#34;tmp&#34;):
+        shutil.move(save_as/&#34;tmp&#34;/d, save_as/d)
+
+    shutil.rmtree(save_as/&#34;tmp&#34;)</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.reduce_inodes"><code class="name flex">
 <span>def <span class="ident">reduce_inodes</span></span>(<span>save_as, nDir=100)</span>
@@ -127,12 +1391,69 @@ which limits storage capacity (along with <strong>size</strong>).</p>
 <p>It also deletes files "xp.var" and "out"
 (which tends to be relatively large coz of the progbar).
 This is probably also the reason that the loading time is sometimes reduced.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reduce_inodes(save_as, nDir=100):
+    &#34;&#34;&#34;Reduce the number of ``xp`` dirs
+
+    by packing multiple ``xp``s into lists (``xps``).
+
+    This reduces the **number** of files (inodes) on the system,
+    which limits storage capacity (along with **size**).
+
+    It also deletes files &#34;xp.var&#34; and &#34;out&#34;
+    (which tends to be relatively large coz of the progbar).
+    This is probably also the reason that the loading time is sometimes reduced.&#34;&#34;&#34;
+    overwrite_xps(load_xps(save_as), save_as, nDir)</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.default_fig_adjustments"><code class="name flex">
 <span>def <span class="ident">default_fig_adjustments</span></span>(<span>tables)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Beautify. These settings do not generalize well.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def default_fig_adjustments(tables):
+    &#34;&#34;&#34;Beautify. These settings do not generalize well.&#34;&#34;&#34;
+    # Get axs as 2d-array
+    axs = np.array([table.panels for table in tables.values()]).T
+
+    # Main panels (top row) only:
+    sensible_f = ticker.FormatStrFormatter(&#39;%g&#39;)
+    for ax in axs[0, :]:
+        for direction, nPanel in zip([&#39;y&#39;, &#39;x&#39;], axs.shape):
+            if nPanel &lt; 6:
+                eval(f&#34;ax.set_{direction}scale(&#39;log&#39;)&#34;)
+                eval(f&#34;ax.{direction}axis&#34;).set_minor_formatter(sensible_f)
+            eval(f&#34;ax.{direction}axis&#34;).set_major_formatter(sensible_f)
+
+    # Tuning panels only
+    table = tables[0]
+    for a, panel in zip(tables.axes_roles[&#34;optim&#34;] or (), table.panels[1:]):
+        yy = tables.xp_dict.tickz(a)
+        axis_scale_by_array(panel, yy, &#34;y&#34;)
+        # set_ymargin doesn&#39;t work for wonky scales. Do so manually:
+        alpha = len(yy)/10
+        y0, y1, y2, y3 = yy[0], yy[1], yy[-2], yy[-1]
+        panel.set_ylim(y0-alpha*(y1-y0), y3+alpha*(y3-y2))
+
+    # All panels
+    for ax in axs.ravel():
+        for direction, nPanel in zip([&#39;y&#39;, &#39;x&#39;], axs.shape):
+            if nPanel &lt; 6:
+                ax.grid(True, which=&#34;minor&#34;, axis=direction)
+
+    # Not strictly compatible with gridspec height_ratios,
+    # (throws warning), but still works ok.
+    with warnings.catch_warnings():
+        warnings.simplefilter(&#34;ignore&#34;, category=UserWarning)
+        axs[0, 0].figure.tight_layout()</code></pre>
+</details>
 </dd>
 </dl>
 </section>
@@ -166,6 +1487,250 @@ This flexibility can cause bugs, but it's probably still worth it).
 Also see <strong>call</strong>(), get_for(), and coords(), for further convenience.</p>
 <p>Inspired by <a href="https://stackoverflow.com/a/7728830">https://stackoverflow.com/a/7728830</a>
 Also see <a href="https://stackoverflow.com/q/3387691">https://stackoverflow.com/q/3387691</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SparseSpace(dict):
+    &#34;&#34;&#34;Dict, subclassed enforce key conformity (to a coord. sys, i.e. a space).
+
+    The coordinate system is specified by its &#34;axes&#34;,
+    which is used to produce self.Coord (a namedtuple class).
+
+    As a normal dict, it can hold any type of objects.
+
+    In normal use, this space is highly sparse,
+    coz there are many coordinates with no matching experiment,
+    eg. coord(da_method=Climatology, rot=True, ...).
+
+    Indeed, operations across (potentially multiple simultaneous) axes,
+    such as optimization or averaging, should be carried out by iterating
+    -- not over the axis -- but over the the list of items.
+
+    The most important method is ``nest()``,
+    which is used (by xpSpace.table_tree) to separate tables/columns,
+    and also to carry out the mean/optim operations.
+
+    In addition, __getitem__() is very flexible, allowing accessing by:
+    - The actual key, a self.Coord object. Returns single item.
+    - A dict match against (part of) the coordinates. Returns subspace.
+    - An int. Returns list(self)[key].
+    - A list of any of the above. Returns list.
+    This flexibility can cause bugs, but it&#39;s probably still worth it).
+    Also see __call__(), get_for(), and coords(), for further convenience.
+
+    Inspired by https://stackoverflow.com/a/7728830
+    Also see https://stackoverflow.com/q/3387691 &#34;&#34;&#34;
+
+    @property
+    def axes(self):
+        return self.Coord._fields
+
+    def __init__(self, axes, *args, **kwargs):
+        # Define coordinate system
+        self.Coord = collections.namedtuple(&#39;Coord&#39;, axes)
+        # Write dict
+        self.update(*args, **kwargs)
+        # Add repr/str
+        self.Coord.__repr__ = lambda c: &#34;,&#34;.join(
+            f&#34;{k}={v!r}&#34; for k, v in zip(c._fields, c))
+        self.Coord.__str__  = lambda c: &#34;,&#34;.join(str(v) for v in c)
+
+    def update(self, *args, **kwargs):
+        &#34;&#34;&#34;Update using custom __setitem__().&#34;&#34;&#34;
+        # See https://stackoverflow.com/a/2588648
+        # and https://stackoverflow.com/a/2390997
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
+
+    def __setitem__(self, key, val):
+        &#34;&#34;&#34;Setitem ensuring coordinate conforms.&#34;&#34;&#34;
+        try:
+            key = self.Coord(*key)
+        except TypeError:
+            raise TypeError(
+                f&#34;The key {key!r} did not fit the coord. system &#34;
+                f&#34;which has axes {self.axes}&#34;)
+        super().__setitem__(key, val)
+
+    def __getitem__(self, key):
+        &#34;&#34;&#34;Flexible indexing.&#34;&#34;&#34;
+
+        # List of items (by a list of indices).
+        # Also see get_for().
+        if isinstance(key, list):
+            return [self[k] for k in key]
+
+        # Single (by integer) or list (by Slice)
+        # Note: NOT validating np.int64 here catches quite a few bugs.
+        elif isinstance(key, int) or isinstance(key, slice):
+            return [*self.values()][key]
+
+        # Subspace (by dict, ie. an informal, partial coordinate)
+        elif isinstance(key, dict):
+            outer = self.nest(outer_axes=list(key))  # nest
+            coord = outer.Coord(*key.values())      # create coord
+            inner = outer[coord]                    # chose subspace
+            return inner
+
+        # Single item (by Coord object, coz an integer (eg)
+        # gets interpreted (above) as a list index)
+        else:
+            # NB: Dont&#39;t use isinstance(key, self.Coord)
+            # coz it fails when the namedtuple (Coord) has been
+            # instantiated in different places (but with equal params).
+            # Also see bugs.python.org/issue7796
+            return super().__getitem__(key)
+
+    def __getkey__(self, entry):
+        &#34;&#34;&#34;Inverse of dict.__getitem__(), but also works on coords.
+
+        Note: This dunder method is not a &#34;builtin&#34; naming convention.&#34;&#34;&#34;
+        coord = (getattr(entry, a, None) for a in self.axes)
+        return self.Coord(*coord)
+
+    def __call__(self, **kwargs):
+        &#34;&#34;&#34;Convenience, that enables, eg.:
+        &gt;&gt;&gt; xp_dict(da_method=&#34;EnKF&#34;, infl=1, seed=3)
+        &#34;&#34;&#34;
+        return self.__getitem__(kwargs)
+
+    def get_for(self, ticks, default=None):
+        &#34;&#34;&#34;Almost ``[self.get(Coord(x)) for x in ticks]``.
+
+        NB: using the &#34;naive&#34; thing: ``[self[x] for x in ticks]``
+        would probably be a BUG coz x gets interpreted as indices
+        for the internal list.&#34;&#34;&#34;
+        singleton = not hasattr(ticks[0], &#34;__iter__&#34;)
+        def coord(xyz): return self.Coord(xyz if singleton else xyz)
+        return [self.get(coord(x), default) for x in ticks]
+
+    def coords(self, **kwargs):
+        &#34;&#34;&#34;Get all ``coord``s matching kwargs.
+
+        Unlike ``__getitem__(kwargs)``,
+        - A list is returned, not a subspace.
+        - This list constains keys (coords), not values.
+        - The coords refer to the original space, not the subspace.
+
+        The last point is especially useful for label_xSection().
+        &#34;&#34;&#34;
+
+        def embed(coord): return {**kwargs, **coord._asdict()}
+        return [self.Coord(**embed(x)) for x in self[kwargs]]
+
+        # Old implementation.
+        # - I prefer the new version for its re-use of __getitem__&#39;s
+        #   nesting, evidencing their mutual relationship)
+        # - Note that unlike xpList.inds(): missingval shenanigans
+        #   are here unnecessary coz each coordinate is complete.
+        # match  = lambda x: all(getattr(x,k)==kwargs[k] for k in kwargs)
+        # return [x for x in self if match(x)]
+
+    def __repr__(self):
+        # Note: print(xpList(self)) produces more human-readable key listing,
+        # but we don&#39;t want to implement it here, coz it requires split_attrs(),
+        # which we don&#39;t really want to call again.
+        L = 2
+        keys = [str(k) for k in self]
+        if 2*L &lt; len(keys):
+            keys = keys[:L] + [&#34;...&#34;] + keys[-L:]
+        keys = &#34;[\n  &#34; + &#34;,\n  &#34;.join(keys) + &#34;\n]&#34;
+        txt = f&#34;&lt;{self.__class__.__name__}&gt; with {len(self)} keys: {keys}&#34;
+        # txt += &#34; befitting the coord. sys. with axes &#34;
+        txt += &#34;\nplaced in a coord-sys with axes &#34;
+        try:
+            txt += &#34;(and ticks):&#34; + str(dict_tools.AlignedDict(self.ticks))
+        except AttributeError:
+            txt += &#34;:\n&#34; + str(self.axes)
+        return txt
+
+    def nest(self, inner_axes=None, outer_axes=None):
+        &#34;&#34;&#34;Return a new xpSpace with axes ``outer_axes``,
+
+        obtained by projecting along the ``inner_axes``.
+        The entries of this ``xpSpace`` are themselves ``xpSpace``s,
+        with axes ``inner_axes``,
+        each one regrouping the entries with the same (projected) coordinate.
+
+        Note: is also called by ``__getitem__(key)`` if ``key`` is dict.&#34;&#34;&#34;
+
+        # Default: a singleton outer space,
+        # with everything contained in the inner (projection) space.
+        if inner_axes is None and outer_axes is None:
+            outer_axes = ()
+
+        # Validate axes
+        if inner_axes is None:
+            assert outer_axes is not None
+            inner_axes = dict_tools.complement(self.axes, outer_axes)
+        else:
+            assert outer_axes is None
+            outer_axes = dict_tools.complement(self.axes, inner_axes)
+
+        # Fill spaces
+        outer_space = self.__class__(outer_axes)
+        for coord, entry in self.items():
+            outer_coord = outer_space.__getkey__(coord)
+            try:
+                inner_space = outer_space[outer_coord]
+            except KeyError:
+                inner_space = self.__class__(inner_axes)
+                outer_space[outer_coord] = inner_space
+            inner_space[inner_space.__getkey__(coord)] = entry
+
+        return outer_space
+
+    def add_axis(self, axis):
+        self.__init__(self.axes+(axis,))
+        for coord in list(self):
+            entry = self.pop(coord)
+            self[coord + (None,)] = entry
+
+    def intersect_axes(self, attrs):
+        &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
+
+        This allows errors in the axes allotment, for ease-of-use.&#34;&#34;&#34;
+        absent = dict_tools.complement(attrs, self.axes)
+        if absent:
+            print(color_text(&#34;Warning:&#34;, colorama.Fore.RED),
+                  &#34;The requested attributes&#34;,
+                  color_text(str(absent), colorama.Fore.RED),
+                  (&#34;were not found among the&#34;
+                   &#34; xpSpace axes (attrs. used as coordinates&#34;
+                   &#34; for the set of experiments).&#34;
+                   &#34; This may be no problem if the attr. is redundant&#34;
+                   &#34; for the coord-sys.&#34;
+                   &#34; However, if it is caused by confusion or mis-spelling,&#34;
+                   &#34; then it is likely to cause mis-interpretation&#34;
+                   &#34; of the shown results.&#34;))
+            attrs = dict_tools.complement(attrs, absent)
+        return attrs
+
+    def label_xSection(self, label, *NoneAttrs, **sub_coord):
+        &#34;&#34;&#34;Insert duplicate entries for the cross section
+
+        whose ``coord``s match ``sub_coord``,
+        adding the attr ``Const=label`` to their ``coord``,
+        reflecting the &#34;constance/constraint/fixation&#34; this represents.
+
+        This distinguishes the entries in this fixed-affine subspace,
+        preventing them from being gobbled up in ``nest()``.
+
+        If you wish, you can specify the ``NoneAttrs``,
+        which are consequently set to None for the duplicated entries,
+        preventing them from getting plotted in tuning panels.
+        &#34;&#34;&#34;
+
+        if &#34;Const&#34; not in self.axes:
+            self.add_axis(&#39;Const&#39;)
+
+        for coord in self.coords(**self.intersect_axes(sub_coord)):
+            entry = copy.deepcopy(self[coord])
+            coord = coord._replace(Const=label)
+            coord = coord._replace(**{a: None for a in NoneAttrs})
+            self[coord] = entry</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.dict</li>
@@ -179,6 +1744,14 @@ Also see <a href="https://stackoverflow.com/q/3387691">https://stackoverflow.com
 <dt id="dapper.data_management.SparseSpace.axes"><code class="name">var <span class="ident">axes</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def axes(self):
+    return self.Coord._fields</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -188,6 +1761,17 @@ Also see <a href="https://stackoverflow.com/q/3387691">https://stackoverflow.com
 </code></dt>
 <dd>
 <div class="desc"><p>Update using custom <strong>setitem</strong>().</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update(self, *args, **kwargs):
+    &#34;&#34;&#34;Update using custom __setitem__().&#34;&#34;&#34;
+    # See https://stackoverflow.com/a/2588648
+    # and https://stackoverflow.com/a/2390997
+    for k, v in dict(*args, **kwargs).items():
+        self[k] = v</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.SparseSpace.get_for"><code class="name flex">
 <span>def <span class="ident">get_for</span></span>(<span>self, ticks, default=None)</span>
@@ -197,6 +1781,20 @@ Also see <a href="https://stackoverflow.com/q/3387691">https://stackoverflow.com
 <p>NB: using the "naive" thing: <code>[self[x] for x in ticks]</code>
 would probably be a BUG coz x gets interpreted as indices
 for the internal list.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_for(self, ticks, default=None):
+    &#34;&#34;&#34;Almost ``[self.get(Coord(x)) for x in ticks]``.
+
+    NB: using the &#34;naive&#34; thing: ``[self[x] for x in ticks]``
+    would probably be a BUG coz x gets interpreted as indices
+    for the internal list.&#34;&#34;&#34;
+    singleton = not hasattr(ticks[0], &#34;__iter__&#34;)
+    def coord(xyz): return self.Coord(xyz if singleton else xyz)
+    return [self.get(coord(x), default) for x in ticks]</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.SparseSpace.coords"><code class="name flex">
 <span>def <span class="ident">coords</span></span>(<span>self, **kwargs)</span>
@@ -208,6 +1806,24 @@ for the internal list.</p></div>
 - This list constains keys (coords), not values.
 - The coords refer to the original space, not the subspace.</p>
 <p>The last point is especially useful for label_xSection().</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coords(self, **kwargs):
+    &#34;&#34;&#34;Get all ``coord``s matching kwargs.
+
+    Unlike ``__getitem__(kwargs)``,
+    - A list is returned, not a subspace.
+    - This list constains keys (coords), not values.
+    - The coords refer to the original space, not the subspace.
+
+    The last point is especially useful for label_xSection().
+    &#34;&#34;&#34;
+
+    def embed(coord): return {**kwargs, **coord._asdict()}
+    return [self.Coord(**embed(x)) for x in self[kwargs]]</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.SparseSpace.nest"><code class="name flex">
 <span>def <span class="ident">nest</span></span>(<span>self, inner_axes=None, outer_axes=None)</span>
@@ -219,12 +1835,62 @@ The entries of this <code><a title="dapper.data_management.xpSpace" href="#dappe
 with axes <code>inner_axes</code>,
 each one regrouping the entries with the same (projected) coordinate.</p>
 <p>Note: is also called by <code>__getitem__(key)</code> if <code>key</code> is dict.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nest(self, inner_axes=None, outer_axes=None):
+    &#34;&#34;&#34;Return a new xpSpace with axes ``outer_axes``,
+
+    obtained by projecting along the ``inner_axes``.
+    The entries of this ``xpSpace`` are themselves ``xpSpace``s,
+    with axes ``inner_axes``,
+    each one regrouping the entries with the same (projected) coordinate.
+
+    Note: is also called by ``__getitem__(key)`` if ``key`` is dict.&#34;&#34;&#34;
+
+    # Default: a singleton outer space,
+    # with everything contained in the inner (projection) space.
+    if inner_axes is None and outer_axes is None:
+        outer_axes = ()
+
+    # Validate axes
+    if inner_axes is None:
+        assert outer_axes is not None
+        inner_axes = dict_tools.complement(self.axes, outer_axes)
+    else:
+        assert outer_axes is None
+        outer_axes = dict_tools.complement(self.axes, inner_axes)
+
+    # Fill spaces
+    outer_space = self.__class__(outer_axes)
+    for coord, entry in self.items():
+        outer_coord = outer_space.__getkey__(coord)
+        try:
+            inner_space = outer_space[outer_coord]
+        except KeyError:
+            inner_space = self.__class__(inner_axes)
+            outer_space[outer_coord] = inner_space
+        inner_space[inner_space.__getkey__(coord)] = entry
+
+    return outer_space</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.SparseSpace.add_axis"><code class="name flex">
 <span>def <span class="ident">add_axis</span></span>(<span>self, axis)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_axis(self, axis):
+    self.__init__(self.axes+(axis,))
+    for coord in list(self):
+        entry = self.pop(coord)
+        self[coord + (None,)] = entry</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.SparseSpace.intersect_axes"><code class="name flex">
 <span>def <span class="ident">intersect_axes</span></span>(<span>self, attrs)</span>
@@ -232,6 +1898,30 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <dd>
 <div class="desc"><p>Rm those a in attrs that are not in self.axes.</p>
 <p>This allows errors in the axes allotment, for ease-of-use.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def intersect_axes(self, attrs):
+    &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
+
+    This allows errors in the axes allotment, for ease-of-use.&#34;&#34;&#34;
+    absent = dict_tools.complement(attrs, self.axes)
+    if absent:
+        print(color_text(&#34;Warning:&#34;, colorama.Fore.RED),
+              &#34;The requested attributes&#34;,
+              color_text(str(absent), colorama.Fore.RED),
+              (&#34;were not found among the&#34;
+               &#34; xpSpace axes (attrs. used as coordinates&#34;
+               &#34; for the set of experiments).&#34;
+               &#34; This may be no problem if the attr. is redundant&#34;
+               &#34; for the coord-sys.&#34;
+               &#34; However, if it is caused by confusion or mis-spelling,&#34;
+               &#34; then it is likely to cause mis-interpretation&#34;
+               &#34; of the shown results.&#34;))
+        attrs = dict_tools.complement(attrs, absent)
+    return attrs</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.SparseSpace.label_xSection"><code class="name flex">
 <span>def <span class="ident">label_xSection</span></span>(<span>self, label, *NoneAttrs, **sub_coord)</span>
@@ -246,6 +1936,34 @@ preventing them from being gobbled up in <code>nest()</code>.</p>
 <p>If you wish, you can specify the <code>NoneAttrs</code>,
 which are consequently set to None for the duplicated entries,
 preventing them from getting plotted in tuning panels.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def label_xSection(self, label, *NoneAttrs, **sub_coord):
+    &#34;&#34;&#34;Insert duplicate entries for the cross section
+
+    whose ``coord``s match ``sub_coord``,
+    adding the attr ``Const=label`` to their ``coord``,
+    reflecting the &#34;constance/constraint/fixation&#34; this represents.
+
+    This distinguishes the entries in this fixed-affine subspace,
+    preventing them from being gobbled up in ``nest()``.
+
+    If you wish, you can specify the ``NoneAttrs``,
+    which are consequently set to None for the duplicated entries,
+    preventing them from getting plotted in tuning panels.
+    &#34;&#34;&#34;
+
+    if &#34;Const&#34; not in self.axes:
+        self.add_axis(&#39;Const&#39;)
+
+    for coord in self.coords(**self.intersect_axes(sub_coord)):
+        entry = copy.deepcopy(self[coord])
+        coord = coord._replace(Const=label)
+        coord = coord._replace(**{a: None for a in NoneAttrs})
+        self[coord] = entry</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -266,6 +1984,524 @@ For custom plotting, you will likely want to start with <code>table_tree()</code
 However, the nested <code><a title="dapper.data_management.xpSpace" href="#dapper.data_management.xpSpace">xpSpace</a></code>s output by <code>table_tree()</code>, will hold
 objects of type <code>UncertainQtty</code>,
 coz <code>table_tree()</code> calls <code>mean()</code> calls <code>field(statkey)</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class xpSpace(SparseSpace):
+    &#34;&#34;&#34;Functionality to facilitate working with ``xps`` and their results.
+
+    The function ``from_list()`` initializes a ``SparseSpace`` from a list
+    of objects, typically experiments referred to as ``xps``, by
+    (1) computing the relevant axes from the attributes, and
+    (2) filling the dict by ``xps``.
+
+    The main use of xpSpace is through its ``print()`` &amp; ``plot()``,
+    both of which call ``table_tree()`` to nest the axes of the SparseSpace.
+    For custom plotting, you will likely want to start with ``table_tree()``.
+
+    Using ``from_list(xps)`` creates a SparseSpace holding ``xps``.
+    However, the nested ``xpSpace``s output by ``table_tree()``, will hold
+    objects of type ``UncertainQtty``,
+    coz ``table_tree()`` calls ``mean()`` calls ``field(statkey)``.&#34;&#34;&#34;
+
+    @classmethod
+    def from_list(cls, xps):
+        &#34;&#34;&#34;Init xpSpace from xpList.&#34;&#34;&#34;
+
+        def make_ticks(axes, ordering=dict(
+                    N         = &#39;default&#39;,
+                    seed      = &#39;default&#39;,
+                    infl      = &#39;default&#39;,
+                    loc_rad   = &#39;default&#39;,
+                    rot       = &#39;as_found&#39;,
+                    da_method = &#39;as_found&#39;,
+                    )):
+            &#34;&#34;&#34;Unique &amp; sort, for each axis (individually) in axes.&#34;&#34;&#34;
+
+            for ax_name, arr in axes.items():
+                ticks = set(arr)  # unique (jumbles order)
+
+                # Sort
+                order = ordering.get(ax_name, &#39;default&#39;).lower()
+                if hasattr(order, &#39;__call__&#39;):  # eg. mylist.index
+                    ticks = sorted(ticks, key=order)
+                elif &#39;as_found&#39; in order:
+                    ticks = sorted(ticks, key=arr.index)
+                else:  # default sorting, with None placed at the end
+                    ticks = sorted(ticks, key= lambda x: (x is None, x))
+                if any(x in order for x in [&#39;rev&#39;, &#39;inv&#39;]):
+                    ticks = ticks[::-1]
+                axes[ax_name] = ticks
+
+        # Define axes
+        xp_list = xpList(xps)
+        axes = xp_list.split_attrs(nomerge=[&#39;Const&#39;])[0]
+        make_ticks(axes)
+        self = cls(axes.keys())
+
+        # Note: this attr (ticks) will not be propagated through nest().
+        # That is fine. Otherwise we should have to prune the ticks
+        # (if they are to be useful), which we don&#39;t want to do.
+        self.ticks = axes
+
+        # Fill
+        self.update({self.__getkey__(xp): xp for xp in xps})
+
+        return self
+
+    def field(self, statkey=&#34;rmse.a&#34;):
+        &#34;&#34;&#34;Extract ``statkey`` for each item in ``self``.&#34;&#34;&#34;
+
+        # Init a new xpDict to hold field
+        avrgs = self.__class__(self.axes)
+
+        found_anything = False
+        for coord, xp in self.items():
+            val = getattr(xp.avrgs, statkey, None)
+            avrgs[coord] = val
+            found_anything = found_anything or (val is not None)
+
+        if not found_anything:
+            raise AttributeError(
+                f&#34;The stat. field &#39;{statkey}&#39; was not found&#34;
+                &#34; among any of the xp&#39;s.&#34;)
+
+        return avrgs
+
+    def mean(self, axes=None):
+        # Note: The case ``axes=()`` should work w/o special treatment.
+        if axes is None:
+            return self
+
+        nested = self.nest(axes)
+        for coord, space in nested.items():
+
+            def getval(uq): return uq.val if isinstance(uq, UncertainQtty) else uq
+            vals = [getval(uq) for uq in space.values()]
+
+            # Don&#39;t use nanmean! It would give false impressions.
+            mu = np.mean(vals)
+
+            with warnings.catch_warnings():
+                warnings.simplefilter(&#34;ignore&#34;, category=RuntimeWarning)
+                # Don&#39;t print warnings caused by N=1.
+                # It already correctly yield nan&#39;s.
+                var = np.var(vals, ddof=1)
+
+            N = len(vals)
+            uq = UncertainQtty(mu, np.sqrt(var/N))
+            uq.nTotal   = N
+            uq.nFail    = N - np.isfinite(vals).sum()
+            uq.nSuccess = N - uq.nFail
+
+            nested[coord] = uq
+        return nested
+
+    def tune(self, axes=None, costfun=None):
+        &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
+
+        # Define cost-function
+        costfun = (costfun or &#39;increasing&#39;).lower()
+        if &#39;increas&#39; in costfun:
+            costfun = (lambda x: +x)
+        elif &#39;decreas&#39; in costfun:
+            costfun = (lambda x: -x)
+        else:
+            assert hasattr(costfun, &#39;__call__&#39;)  # custom
+
+        # Note: The case ``axes=()`` should work w/o special treatment.
+        if axes is None:
+            return self
+
+        nested = self.nest(axes)
+        for coord, space in nested.items():
+
+            # Find optimal value and coord within space
+            MIN = np.inf
+            for i, (inner_coord, uq) in enumerate(space.items()):
+                cost = costfun(uq.val)
+                if cost &lt;= MIN:
+                    MIN                = cost
+                    uq_opt             = uq
+                    uq_opt.tuned_coord = inner_coord
+
+            nested[coord] = uq_opt
+
+        return nested
+
+    def validate_axes(self, axes):
+        &#34;&#34;&#34;Validate axes.
+
+        Note: This does not convert None to (),
+              allowing None to remain special.
+              Use ``axis or ()`` wherever tuples are required.
+        &#34;&#34;&#34;
+        roles = {}  # &#34;inv&#34;
+        for role in set(axes) | set(AXES_ROLES):
+            assert role in AXES_ROLES, f&#34;Invalid role {role!r}&#34;
+            aa = axes.get(role, AXES_ROLES[role])
+
+            if aa is None:
+                pass  # Purposely special
+            else:
+                # Ensure iterable
+                if isinstance(aa, str) or not hasattr(aa, &#34;__iter__&#34;):
+                    aa = (aa,)
+
+                aa = self.intersect_axes(aa)
+
+                for axis in aa:
+
+                    # Ensure unique
+                    if axis in roles:
+                        raise TypeError(
+                            f&#34;An axis (here {axis!r}) cannot be assigned to 2&#34;
+                            f&#34; roles (here {role!r} and {roles[axis]!r}).&#34;)
+                    else:
+                        roles[axis] = role
+            axes[role] = aa
+        return axes
+
+    def table_tree(self, statkey, axes):
+        &#34;&#34;&#34;Hierarchical nest(): xp_dict&gt;outer&gt;inner&gt;mean&gt;optim.
+
+        as specified by ``axes``. Returns this new xpSpace.
+
+        - print_1d / plot_1d (respectively) separate
+          tables / panel(row)s for ``axes[&#39;outer&#39;]``, and
+          columns/ x-axis      for ``axes[&#39;inner&#39;]``.
+
+        - The ``axes[&#39;mean&#39;]`` and ``axes[&#39;optim&#39;]`` get eliminated
+          by the mean()/tune() operations.
+
+        Note: cannot support multiple statkeys
+              because it&#39;s not (obviously) meaningful
+              when optimizing over tuning_axes.
+        &#34;&#34;&#34;
+        axes = self.validate_axes(axes)
+
+        def mean_tune(xp_dict):
+            &#34;&#34;&#34;Take mean, then tune.
+
+            Note: the SparseDict implementation should be sufficiently
+            &#34;uncluttered&#34; that mean_tune() (or a few of its code lines)
+            could be called anywhere above/between/below
+            the ``nest()``ing of ``outer`` or ``inner``.
+            These possibile call locations are commented in the code.&#34;&#34;&#34;
+            uq_dict = xp_dict.field(statkey)
+            uq_dict = uq_dict.mean(axes[&#39;mean&#39;])
+            uq_dict = uq_dict.tune(axes[&#39;optim&#39;])
+            return uq_dict
+
+        self = mean_tune(self)
+        # Prefer calling mean_tune() [also see its docstring]
+        # before doing outer/inner nesting. This is because then the axes of
+        # a row (xpSpace) should not include mean&amp;optim, and thus:
+        #  - Column header/coords may be had directly as row.keys(),
+        #    without extraction by __getkey__() from (e.g.) row[0].
+        #  - Don&#39;t need to propagate mean&amp;optim axes down to the row level.
+        #    which would require defining rows by the nesting:
+        #    rows = table.nest(outer_axes=dict_tools.complement(table.axes,
+        #        *(axes[&#39;inner&#39;] or ()),
+        #        *(axes[&#39;mean&#39;]  or ()),
+        #        *(axes[&#39;optim&#39;] or ()) ))
+        #  - Each level of the output from table_tree
+        #    is a smaller (and more manageable) dict.
+
+        tables = self.nest(outer_axes=axes[&#39;outer&#39;])
+        for table_coord, table in tables.items():
+            # table = mean_tune(table)
+
+            # Should not be used (nesting as rows is more natural,
+            # and is required for getting distinct/row_keys).
+            # cols = table.nest(outer_axes=axes[&#39;inner&#39;])
+
+            rows = table.nest(inner_axes=axes[&#39;inner&#39;] or ())
+
+            # Overwrite table by its nesting as rows
+            tables[table_coord] = rows
+
+            # for row_coord, row in rows.items():
+            # rows[row_coord] = mean_tune(row)
+
+        return axes, tables
+
+    def tickz(self, axis_name):
+        &#34;&#34;&#34;Axis ticks without None&#34;&#34;&#34;
+        return [x for x in self.ticks[axis_name] if x is not None]
+
+    def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,
+              subcols=True, decimals=None):
+        &#34;&#34;&#34;Print tables of results.
+
+        - statkey: The statistical field from the experiments to report.
+
+        - subcols: If True, then subcolumns are added to indicate the
+                   1σ confidence interval, and potentially some other stuff.
+
+        - axes: Allots (maps) each role to a set of axis of the xp_dict.
+          Suggestion:
+          &gt;&gt;&gt; dict(
+          &gt;&gt;&gt;    outer=&#39;da_method&#39;, inner=&#39;N&#39;, mean=&#39;seed&#39;,
+          &gt;&gt;&gt;    optim=(&#39;infl&#39;,&#39;loc_rad&#39;))
+
+          Example: If ``mean`` is assigned to:
+
+          - (&#34;seed&#34;,): Experiments are averaged accross seeds,
+                       and the 1σ (sub)col is computed as sqrt(var(xps)/N),
+                       where xps is a set of experiments.
+
+          - ()       : Experiments are averaged across nothing
+                       (i.e. this is an edge case).
+
+          - None     : Experiments are not averaged
+                       (i.e. the values are the same as above),
+                       and the 1σ (sub)col is computed from
+                       the time series of that single experiment.
+        &#34;&#34;&#34;
+
+        import pandas as pd
+
+        def align_subcols(rows, cc, subcols, h2):
+            &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
+
+            # Define subcol formats
+            subc = dict()
+            subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
+            subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
+            subc[&#39;frmts&#39;]    = [None, None]
+            subc[&#39;spaces&#39;]   = [&#39; ±&#39;, ]  # last one gets appended below.
+            subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
+            if axes[&#39;optim&#39;] is not None:
+                subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
+                subc[&#39;headers&#39;] += [axes[&#39;optim&#39;]]
+                subc[&#39;frmts&#39;]   += [lambda x: tuple(a for a in x)]
+                subc[&#39;spaces&#39;]  += [&#39; *&#39;]
+                subc[&#39;aligns&#39;]  += [&#39;&lt;&#39;]
+            elif axes[&#39;mean&#39;] is not None:
+                subc[&#39;keys&#39;]    += [&#34;nFail&#34;, &#34;nSuccess&#34;]
+                subc[&#39;headers&#39;] += [&#39;☠&#39;, &#39;✓&#39;]  # use width-1 symbols!
+                subc[&#39;frmts&#39;]   += [None, None]
+                subc[&#39;spaces&#39;]  += [&#39; &#39;, &#39; &#39;]
+                subc[&#39;aligns&#39;]  += [&#39;&gt;&#39;, &#39;&gt;&#39;]
+            subc[&#39;spaces&#39;].append(&#39;&#39;)  # no space after last subcol
+            template = &#39;{}&#39; + &#39;{}&#39;.join(subc[&#39;spaces&#39;])
+
+            # Transpose
+            columns = [list(x) for x in zip(*rows)]
+
+            # Iterate over columns.
+            for j, (col_coord, column) in enumerate(zip(cc, columns)):
+
+                # Tabulate columns
+                if subcols:
+                    column = unpack_uqs(column, decimals, subc[&#34;keys&#34;])
+                    # Tabulate subcolumns
+                    subheaders = []
+                    for key, header, frmt, _, align in zip(*subc.values()):
+                        column[key] = tabulate_column(
+                            column[key], header, frmt=frmt)[1:]
+                        L = len(column[-1][key])
+                        if align == &#39;&lt;&#39;:
+                            subheaders += [str(header).ljust(L)]
+                        else:
+                            subheaders += [str(header).rjust(L)]
+                    # Join subcolumns:
+                    matter = [
+                        template.format(*[row[k] for k in subc[&#39;keys&#39;]])
+                        for row in column
+                    ]
+                    header = template.format(*subheaders)
+                else:
+                    column = unpack_uqs(column, decimals)[&#34;val&#34;]
+                    column = tabulate_column(column, statkey)
+                    header, matter = column[0], column[1:]
+
+                if h2:  # Do super_header
+                    if j:
+                        super_header = str(col_coord)
+                    else:
+                        super_header = repr(col_coord)
+                    width = len(header)  # += 1 if using unicode chars like ✔️
+                    super_header = super_header.center(width, &#34;_&#34;)
+                    header = super_header + &#34;\n&#34; + header
+
+                columns[j] = [header]+matter
+            # Un-transpose
+            rows = [list(x) for x in zip(*columns)]
+
+            return rows
+
+        # Inform axes[&#34;mean&#34;]
+        if axes.get(&#39;mean&#39;, None):
+            print(f&#34;Averages (in time and) over {axes[&#39;mean&#39;]}.&#34;)
+        else:
+            print(&#34;Averages in time only&#34;
+                  &#34; (=&gt; the 1σ estimates may be unreliable).&#34;)
+
+        axes, tables = self.table_tree(statkey, axes)
+        for table_coord, table in tables.items():
+
+            # Get this table&#39;s column coords (cc). Use dict for sorted&amp;unique.
+            # cc = xp_dict.ticks[axes[&#34;inner&#34;]] # May be larger than needed.
+            # cc = table[0].keys()              # May be too small a set.
+            cc = {c: None for row in table.values() for c in row}
+
+            # Convert table (rows) into rows (lists) of equal length
+            rows = [[row.get(c, None) for c in cc] for row in table.values()]
+
+            if False:  # ****************** Simple (for debugging) table
+                for i, (row_coord, row) in enumerate(zip(table, rows)):
+                    row_key = &#34;, &#34;.join(str(v) for v in row_coord)
+                    rows[i] = [row_key]         + row
+                rows.insert(0, [f&#34;{table.axes}&#34;] + [repr(c) for c in cc])
+            else:  # ********************** Elegant table.
+                h2 = &#34;\n&#34; if len(cc) &gt; 1 else &#34;&#34;  # do column-super-header
+                rows = align_subcols(rows, cc, subcols, h2)
+
+                # Make and prepend left-side table
+                # - It&#39;s prettier if row_keys don&#39;t have unnecessary cols.
+                #   For example, the table of Climatology should not have an
+                #   entire column repeatedly displaying &#34;infl=None&#34;.
+                #   =&gt; split_attrs().
+                # - Why didn&#39;t we do this for the column attrs?
+                #   Coz there we have no ambition to split the attrs,
+                #   which would also require excessive processing:
+                #   nesting the table as cols, and then split_attrs() on cols.
+                row_keys = xpList(table.keys()).split_attrs()[0]
+                row_keys = pd.DataFrame.from_dict(
+                    row_keys, dtype=&#34;O&#34;)  # allow storing None
+                if len(row_keys.columns):
+                    # Header
+                    rows[0] = [h2+k for k in row_keys] + [h2+&#39;⑊&#39;] + rows[0]
+                    # Matter
+                    for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
+                        rows[i+1] = [*key] + [&#39;|&#39;] + row
+
+            # Print
+            print(&#34;\n&#34;, end=&#34;&#34;)
+            if axes[&#39;outer&#39;]:
+                table_title = &#34;Table for &#34; + repr(table_coord)
+                print(color_text(table_title, colorama.Back.YELLOW))
+            headers, *rows = rows
+            print(utils.tab(rows, headers).replace(&#39;␣&#39;, &#39; &#39;))
+
+    def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
+             fignum=None, figsize=None, panels=None,
+             title2=None, costfun=None, unique_labels=True):
+        &#34;&#34;&#34;Plot the avrgs of ``statkey`` as a function of ``axis[&#34;inner&#34;]``.
+
+        Firs of all, though, mean and optimum computations are done for
+        ``axis[&#34;mean&#34;]`` and ``axis[&#34;optim&#34;]``.
+
+        The optimal parameters are plotted in panels below the main plot.
+        This can be prevented by providing the figure axes in ``panels``.
+
+        Optionally, the experiments can be grouped by ``axis[&#34;outer&#34;]``,
+        producing a figure with columns of panels.&#34;&#34;&#34;
+
+        def plot1(panelcol, row, style):
+            &#34;&#34;&#34;Plot a given line (row) in the main panel and the optim panels.
+
+            Involves: Sort, insert None&#39;s, handle constant lines.&#34;&#34;&#34;
+
+            # Make a full row (yy) of vals, whether is_constant or not.
+            # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
+            row.is_constant = all(x == row.Coord(None) for x in row)
+            yy = [row[0] if row.is_constant else y for y in row.get_for(xticks)]
+
+            # Plot main
+            row.vals = [getattr(y, &#39;val&#39;, None) for y in yy]
+            row.handles = {}
+            row.handles[&#34;main_panel&#34;] = panelcol[0].plot(xticks, row.vals, **style)[0]
+
+            # Plot tuning params
+            row.tuned_coords = {}  # Store ordered, &#34;transposed&#34; argmins
+            argmins = [getattr(y, &#39;tuned_coord&#39;, None) for y in yy]
+            for a, panel in zip(axes[&#34;optim&#34;], panelcol[1:]):
+                yy = [getattr(coord, a, None) for coord in argmins]
+                row.tuned_coords[a] = yy
+
+                # Plotting all None&#39;s sets axes units (like any plotting call)
+                # which can cause trouble if the axes units were actually supposed
+                # to be categorical (eg upd_a), but this is only revealed later.
+                if not all(y == None for y in yy):
+                    row.handles[a] = panel.plot(xticks, yy, **style)
+
+        # Nest axes through table_tree()
+        assert len(axes[&#34;inner&#34;]) == 1, &#34;You must chose the abscissa.&#34;
+        axes, tables = self.table_tree(statkey, axes)
+        xticks = self.tickz(axes[&#34;inner&#34;][0])
+
+        # Figure panels
+        if panels is None:
+            nrows   = len(axes[&#39;optim&#39;] or ()) + 1
+            ncols   = len(tables)
+            maxW    = 12.7  # my mac screen
+            figsize = figsize or (min(5*ncols, maxW), 7)
+            gs      = dict(
+                height_ratios=[6]+[1]*(nrows-1),
+                hspace=0.05, wspace=0.05,
+                # eyeballed:
+                left=0.15/(1+np.log(ncols)),
+                right=0.97, bottom=0.06, top=0.9)
+            # Create
+            _, panels = freshfig(num=fignum, figsize=figsize,
+                                 nrows=nrows, sharex=True,
+                                 ncols=ncols, sharey=&#39;row&#39;,
+                                 gridspec_kw=gs)
+            panels = np.ravel(panels).reshape((-1, ncols))
+        else:
+            panels = np.atleast_2d(panels)
+
+        # Title
+        fig = panels[0, 0].figure
+        fig_title = &#34;Average wrt. time&#34;
+        if axes[&#34;mean&#34;] is not None:
+            fig_title += f&#34; and {axes[&#39;mean&#39;]}&#34;
+        if title2 is not None:
+            fig_title += &#34;\n&#34; + str(title2)
+        fig.suptitle(fig_title)
+
+        # Loop outer
+        label_register = set()  # mv inside loop to get legend on each panel
+        for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
+            table.panels = table_panels
+            title = &#39;&#39; if axes[&#34;outer&#34;] is None else repr(table_coord)
+
+            # Plot
+            for coord, row in table.items():
+                style = get_style(coord)
+
+                # Rm duplicate labels (contrary to coords, labels can
+                # be &#34;tampered&#34; with, and so can be duplicate)
+                if unique_labels:
+                    if style.get(&#34;label&#34;, None) in label_register:
+                        del style[&#34;label&#34;]
+                    else:
+                        label_register.add(style[&#34;label&#34;])
+
+                plot1(table.panels, row, style)
+
+            # Beautify
+            panel0 = table.panels[0]
+            panel0.set_title(title)
+            if panel0.is_first_col():
+                panel0.set_ylabel(statkey)
+            with utils.set_tmp(mpl_logger, &#39;level&#39;, 99):  # silence &#34;no label&#34; msg
+                panel0.legend()
+            table.panels[-1].set_xlabel(axes[&#34;inner&#34;][0])
+            # Tuning panels:
+            for a, panel in zip(axes[&#34;optim&#34;] or (), table.panels[1:]):
+                if panel.is_first_col():
+                    panel.set_ylabel(f&#34;Optim.\n{a}&#34;)
+
+        tables.fig = fig
+        tables.xp_dict = self
+        tables.axes_roles = axes
+        return tables</code></pre>
+</details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.data_management.SparseSpace" href="#dapper.data_management.SparseSpace">SparseSpace</a></li>
@@ -278,6 +2514,55 @@ coz <code>table_tree()</code> calls <code>mean()</code> calls <code>field(statke
 </code></dt>
 <dd>
 <div class="desc"><p>Init xpSpace from xpList.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_list(cls, xps):
+    &#34;&#34;&#34;Init xpSpace from xpList.&#34;&#34;&#34;
+
+    def make_ticks(axes, ordering=dict(
+                N         = &#39;default&#39;,
+                seed      = &#39;default&#39;,
+                infl      = &#39;default&#39;,
+                loc_rad   = &#39;default&#39;,
+                rot       = &#39;as_found&#39;,
+                da_method = &#39;as_found&#39;,
+                )):
+        &#34;&#34;&#34;Unique &amp; sort, for each axis (individually) in axes.&#34;&#34;&#34;
+
+        for ax_name, arr in axes.items():
+            ticks = set(arr)  # unique (jumbles order)
+
+            # Sort
+            order = ordering.get(ax_name, &#39;default&#39;).lower()
+            if hasattr(order, &#39;__call__&#39;):  # eg. mylist.index
+                ticks = sorted(ticks, key=order)
+            elif &#39;as_found&#39; in order:
+                ticks = sorted(ticks, key=arr.index)
+            else:  # default sorting, with None placed at the end
+                ticks = sorted(ticks, key= lambda x: (x is None, x))
+            if any(x in order for x in [&#39;rev&#39;, &#39;inv&#39;]):
+                ticks = ticks[::-1]
+            axes[ax_name] = ticks
+
+    # Define axes
+    xp_list = xpList(xps)
+    axes = xp_list.split_attrs(nomerge=[&#39;Const&#39;])[0]
+    make_ticks(axes)
+    self = cls(axes.keys())
+
+    # Note: this attr (ticks) will not be propagated through nest().
+    # That is fine. Otherwise we should have to prune the ticks
+    # (if they are to be useful), which we don&#39;t want to do.
+    self.ticks = axes
+
+    # Fill
+    self.update({self.__getkey__(xp): xp for xp in xps})
+
+    return self</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -287,18 +2572,110 @@ coz <code>table_tree()</code> calls <code>mean()</code> calls <code>field(statke
 </code></dt>
 <dd>
 <div class="desc"><p>Extract <code>statkey</code> for each item in <code>self</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def field(self, statkey=&#34;rmse.a&#34;):
+    &#34;&#34;&#34;Extract ``statkey`` for each item in ``self``.&#34;&#34;&#34;
+
+    # Init a new xpDict to hold field
+    avrgs = self.__class__(self.axes)
+
+    found_anything = False
+    for coord, xp in self.items():
+        val = getattr(xp.avrgs, statkey, None)
+        avrgs[coord] = val
+        found_anything = found_anything or (val is not None)
+
+    if not found_anything:
+        raise AttributeError(
+            f&#34;The stat. field &#39;{statkey}&#39; was not found&#34;
+            &#34; among any of the xp&#39;s.&#34;)
+
+    return avrgs</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.xpSpace.mean"><code class="name flex">
 <span>def <span class="ident">mean</span></span>(<span>self, axes=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mean(self, axes=None):
+    # Note: The case ``axes=()`` should work w/o special treatment.
+    if axes is None:
+        return self
+
+    nested = self.nest(axes)
+    for coord, space in nested.items():
+
+        def getval(uq): return uq.val if isinstance(uq, UncertainQtty) else uq
+        vals = [getval(uq) for uq in space.values()]
+
+        # Don&#39;t use nanmean! It would give false impressions.
+        mu = np.mean(vals)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter(&#34;ignore&#34;, category=RuntimeWarning)
+            # Don&#39;t print warnings caused by N=1.
+            # It already correctly yield nan&#39;s.
+            var = np.var(vals, ddof=1)
+
+        N = len(vals)
+        uq = UncertainQtty(mu, np.sqrt(var/N))
+        uq.nTotal   = N
+        uq.nFail    = N - np.isfinite(vals).sum()
+        uq.nSuccess = N - uq.nFail
+
+        nested[coord] = uq
+    return nested</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.xpSpace.tune"><code class="name flex">
 <span>def <span class="ident">tune</span></span>(<span>self, axes=None, costfun=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get (compile/tabulate) a stat field optimised wrt. tuning params.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tune(self, axes=None, costfun=None):
+    &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
+
+    # Define cost-function
+    costfun = (costfun or &#39;increasing&#39;).lower()
+    if &#39;increas&#39; in costfun:
+        costfun = (lambda x: +x)
+    elif &#39;decreas&#39; in costfun:
+        costfun = (lambda x: -x)
+    else:
+        assert hasattr(costfun, &#39;__call__&#39;)  # custom
+
+    # Note: The case ``axes=()`` should work w/o special treatment.
+    if axes is None:
+        return self
+
+    nested = self.nest(axes)
+    for coord, space in nested.items():
+
+        # Find optimal value and coord within space
+        MIN = np.inf
+        for i, (inner_coord, uq) in enumerate(space.items()):
+            cost = costfun(uq.val)
+            if cost &lt;= MIN:
+                MIN                = cost
+                uq_opt             = uq
+                uq_opt.tuned_coord = inner_coord
+
+        nested[coord] = uq_opt
+
+    return nested</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.xpSpace.validate_axes"><code class="name flex">
 <span>def <span class="ident">validate_axes</span></span>(<span>self, axes)</span>
@@ -308,6 +2685,43 @@ coz <code>table_tree()</code> calls <code>mean()</code> calls <code>field(statke
 <p>Note: This does not convert None to (),
 allowing None to remain special.
 Use <code>axis or ()</code> wherever tuples are required.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_axes(self, axes):
+    &#34;&#34;&#34;Validate axes.
+
+    Note: This does not convert None to (),
+          allowing None to remain special.
+          Use ``axis or ()`` wherever tuples are required.
+    &#34;&#34;&#34;
+    roles = {}  # &#34;inv&#34;
+    for role in set(axes) | set(AXES_ROLES):
+        assert role in AXES_ROLES, f&#34;Invalid role {role!r}&#34;
+        aa = axes.get(role, AXES_ROLES[role])
+
+        if aa is None:
+            pass  # Purposely special
+        else:
+            # Ensure iterable
+            if isinstance(aa, str) or not hasattr(aa, &#34;__iter__&#34;):
+                aa = (aa,)
+
+            aa = self.intersect_axes(aa)
+
+            for axis in aa:
+
+                # Ensure unique
+                if axis in roles:
+                    raise TypeError(
+                        f&#34;An axis (here {axis!r}) cannot be assigned to 2&#34;
+                        f&#34; roles (here {role!r} and {roles[axis]!r}).&#34;)
+                else:
+                    roles[axis] = role
+        axes[role] = aa
+    return axes</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.xpSpace.table_tree"><code class="name flex">
 <span>def <span class="ident">table_tree</span></span>(<span>self, statkey, axes)</span>
@@ -330,12 +2744,88 @@ by the mean()/tune() operations.</p>
 <p>Note: cannot support multiple statkeys
 because it's not (obviously) meaningful
 when optimizing over tuning_axes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def table_tree(self, statkey, axes):
+    &#34;&#34;&#34;Hierarchical nest(): xp_dict&gt;outer&gt;inner&gt;mean&gt;optim.
+
+    as specified by ``axes``. Returns this new xpSpace.
+
+    - print_1d / plot_1d (respectively) separate
+      tables / panel(row)s for ``axes[&#39;outer&#39;]``, and
+      columns/ x-axis      for ``axes[&#39;inner&#39;]``.
+
+    - The ``axes[&#39;mean&#39;]`` and ``axes[&#39;optim&#39;]`` get eliminated
+      by the mean()/tune() operations.
+
+    Note: cannot support multiple statkeys
+          because it&#39;s not (obviously) meaningful
+          when optimizing over tuning_axes.
+    &#34;&#34;&#34;
+    axes = self.validate_axes(axes)
+
+    def mean_tune(xp_dict):
+        &#34;&#34;&#34;Take mean, then tune.
+
+        Note: the SparseDict implementation should be sufficiently
+        &#34;uncluttered&#34; that mean_tune() (or a few of its code lines)
+        could be called anywhere above/between/below
+        the ``nest()``ing of ``outer`` or ``inner``.
+        These possibile call locations are commented in the code.&#34;&#34;&#34;
+        uq_dict = xp_dict.field(statkey)
+        uq_dict = uq_dict.mean(axes[&#39;mean&#39;])
+        uq_dict = uq_dict.tune(axes[&#39;optim&#39;])
+        return uq_dict
+
+    self = mean_tune(self)
+    # Prefer calling mean_tune() [also see its docstring]
+    # before doing outer/inner nesting. This is because then the axes of
+    # a row (xpSpace) should not include mean&amp;optim, and thus:
+    #  - Column header/coords may be had directly as row.keys(),
+    #    without extraction by __getkey__() from (e.g.) row[0].
+    #  - Don&#39;t need to propagate mean&amp;optim axes down to the row level.
+    #    which would require defining rows by the nesting:
+    #    rows = table.nest(outer_axes=dict_tools.complement(table.axes,
+    #        *(axes[&#39;inner&#39;] or ()),
+    #        *(axes[&#39;mean&#39;]  or ()),
+    #        *(axes[&#39;optim&#39;] or ()) ))
+    #  - Each level of the output from table_tree
+    #    is a smaller (and more manageable) dict.
+
+    tables = self.nest(outer_axes=axes[&#39;outer&#39;])
+    for table_coord, table in tables.items():
+        # table = mean_tune(table)
+
+        # Should not be used (nesting as rows is more natural,
+        # and is required for getting distinct/row_keys).
+        # cols = table.nest(outer_axes=axes[&#39;inner&#39;])
+
+        rows = table.nest(inner_axes=axes[&#39;inner&#39;] or ())
+
+        # Overwrite table by its nesting as rows
+        tables[table_coord] = rows
+
+        # for row_coord, row in rows.items():
+        # rows[row_coord] = mean_tune(row)
+
+    return axes, tables</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.xpSpace.tickz"><code class="name flex">
 <span>def <span class="ident">tickz</span></span>(<span>self, axis_name)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Axis ticks without None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tickz(self, axis_name):
+    &#34;&#34;&#34;Axis ticks without None&#34;&#34;&#34;
+    return [x for x in self.ticks[axis_name] if x is not None]</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.xpSpace.print"><code class="name flex">
 <span>def <span class="ident">print</span></span>(<span>self, statkey='rmse.a', axes={'outer': None, 'inner': None, 'mean': None, 'optim': None}, subcols=True, decimals=None)</span>
@@ -384,6 +2874,166 @@ and the 1σ (sub)col is computed from
 the time series of that single experiment.</p>
 </li>
 </ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,
+          subcols=True, decimals=None):
+    &#34;&#34;&#34;Print tables of results.
+
+    - statkey: The statistical field from the experiments to report.
+
+    - subcols: If True, then subcolumns are added to indicate the
+               1σ confidence interval, and potentially some other stuff.
+
+    - axes: Allots (maps) each role to a set of axis of the xp_dict.
+      Suggestion:
+      &gt;&gt;&gt; dict(
+      &gt;&gt;&gt;    outer=&#39;da_method&#39;, inner=&#39;N&#39;, mean=&#39;seed&#39;,
+      &gt;&gt;&gt;    optim=(&#39;infl&#39;,&#39;loc_rad&#39;))
+
+      Example: If ``mean`` is assigned to:
+
+      - (&#34;seed&#34;,): Experiments are averaged accross seeds,
+                   and the 1σ (sub)col is computed as sqrt(var(xps)/N),
+                   where xps is a set of experiments.
+
+      - ()       : Experiments are averaged across nothing
+                   (i.e. this is an edge case).
+
+      - None     : Experiments are not averaged
+                   (i.e. the values are the same as above),
+                   and the 1σ (sub)col is computed from
+                   the time series of that single experiment.
+    &#34;&#34;&#34;
+
+    import pandas as pd
+
+    def align_subcols(rows, cc, subcols, h2):
+        &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
+
+        # Define subcol formats
+        subc = dict()
+        subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
+        subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
+        subc[&#39;frmts&#39;]    = [None, None]
+        subc[&#39;spaces&#39;]   = [&#39; ±&#39;, ]  # last one gets appended below.
+        subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
+        if axes[&#39;optim&#39;] is not None:
+            subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
+            subc[&#39;headers&#39;] += [axes[&#39;optim&#39;]]
+            subc[&#39;frmts&#39;]   += [lambda x: tuple(a for a in x)]
+            subc[&#39;spaces&#39;]  += [&#39; *&#39;]
+            subc[&#39;aligns&#39;]  += [&#39;&lt;&#39;]
+        elif axes[&#39;mean&#39;] is not None:
+            subc[&#39;keys&#39;]    += [&#34;nFail&#34;, &#34;nSuccess&#34;]
+            subc[&#39;headers&#39;] += [&#39;☠&#39;, &#39;✓&#39;]  # use width-1 symbols!
+            subc[&#39;frmts&#39;]   += [None, None]
+            subc[&#39;spaces&#39;]  += [&#39; &#39;, &#39; &#39;]
+            subc[&#39;aligns&#39;]  += [&#39;&gt;&#39;, &#39;&gt;&#39;]
+        subc[&#39;spaces&#39;].append(&#39;&#39;)  # no space after last subcol
+        template = &#39;{}&#39; + &#39;{}&#39;.join(subc[&#39;spaces&#39;])
+
+        # Transpose
+        columns = [list(x) for x in zip(*rows)]
+
+        # Iterate over columns.
+        for j, (col_coord, column) in enumerate(zip(cc, columns)):
+
+            # Tabulate columns
+            if subcols:
+                column = unpack_uqs(column, decimals, subc[&#34;keys&#34;])
+                # Tabulate subcolumns
+                subheaders = []
+                for key, header, frmt, _, align in zip(*subc.values()):
+                    column[key] = tabulate_column(
+                        column[key], header, frmt=frmt)[1:]
+                    L = len(column[-1][key])
+                    if align == &#39;&lt;&#39;:
+                        subheaders += [str(header).ljust(L)]
+                    else:
+                        subheaders += [str(header).rjust(L)]
+                # Join subcolumns:
+                matter = [
+                    template.format(*[row[k] for k in subc[&#39;keys&#39;]])
+                    for row in column
+                ]
+                header = template.format(*subheaders)
+            else:
+                column = unpack_uqs(column, decimals)[&#34;val&#34;]
+                column = tabulate_column(column, statkey)
+                header, matter = column[0], column[1:]
+
+            if h2:  # Do super_header
+                if j:
+                    super_header = str(col_coord)
+                else:
+                    super_header = repr(col_coord)
+                width = len(header)  # += 1 if using unicode chars like ✔️
+                super_header = super_header.center(width, &#34;_&#34;)
+                header = super_header + &#34;\n&#34; + header
+
+            columns[j] = [header]+matter
+        # Un-transpose
+        rows = [list(x) for x in zip(*columns)]
+
+        return rows
+
+    # Inform axes[&#34;mean&#34;]
+    if axes.get(&#39;mean&#39;, None):
+        print(f&#34;Averages (in time and) over {axes[&#39;mean&#39;]}.&#34;)
+    else:
+        print(&#34;Averages in time only&#34;
+              &#34; (=&gt; the 1σ estimates may be unreliable).&#34;)
+
+    axes, tables = self.table_tree(statkey, axes)
+    for table_coord, table in tables.items():
+
+        # Get this table&#39;s column coords (cc). Use dict for sorted&amp;unique.
+        # cc = xp_dict.ticks[axes[&#34;inner&#34;]] # May be larger than needed.
+        # cc = table[0].keys()              # May be too small a set.
+        cc = {c: None for row in table.values() for c in row}
+
+        # Convert table (rows) into rows (lists) of equal length
+        rows = [[row.get(c, None) for c in cc] for row in table.values()]
+
+        if False:  # ****************** Simple (for debugging) table
+            for i, (row_coord, row) in enumerate(zip(table, rows)):
+                row_key = &#34;, &#34;.join(str(v) for v in row_coord)
+                rows[i] = [row_key]         + row
+            rows.insert(0, [f&#34;{table.axes}&#34;] + [repr(c) for c in cc])
+        else:  # ********************** Elegant table.
+            h2 = &#34;\n&#34; if len(cc) &gt; 1 else &#34;&#34;  # do column-super-header
+            rows = align_subcols(rows, cc, subcols, h2)
+
+            # Make and prepend left-side table
+            # - It&#39;s prettier if row_keys don&#39;t have unnecessary cols.
+            #   For example, the table of Climatology should not have an
+            #   entire column repeatedly displaying &#34;infl=None&#34;.
+            #   =&gt; split_attrs().
+            # - Why didn&#39;t we do this for the column attrs?
+            #   Coz there we have no ambition to split the attrs,
+            #   which would also require excessive processing:
+            #   nesting the table as cols, and then split_attrs() on cols.
+            row_keys = xpList(table.keys()).split_attrs()[0]
+            row_keys = pd.DataFrame.from_dict(
+                row_keys, dtype=&#34;O&#34;)  # allow storing None
+            if len(row_keys.columns):
+                # Header
+                rows[0] = [h2+k for k in row_keys] + [h2+&#39;⑊&#39;] + rows[0]
+                # Matter
+                for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
+                    rows[i+1] = [*key] + [&#39;|&#39;] + row
+
+        # Print
+        print(&#34;\n&#34;, end=&#34;&#34;)
+        if axes[&#39;outer&#39;]:
+            table_title = &#34;Table for &#34; + repr(table_coord)
+            print(color_text(table_title, colorama.Back.YELLOW))
+        headers, *rows = rows
+        print(utils.tab(rows, headers).replace(&#39;␣&#39;, &#39; &#39;))</code></pre>
+</details>
 </dd>
 <dt id="dapper.data_management.xpSpace.plot"><code class="name flex">
 <span>def <span class="ident">plot</span></span>(<span>self, statkey='rmse.a', axes={'outer': None, 'inner': None, 'mean': None, 'optim': None}, get_style=&lt;function default_styles&gt;, fignum=None, figsize=None, panels=None, title2=None, costfun=None, unique_labels=True)</span>
@@ -396,6 +3046,125 @@ the time series of that single experiment.</p>
 This can be prevented by providing the figure axes in <code>panels</code>.</p>
 <p>Optionally, the experiments can be grouped by <code>axis["outer"]</code>,
 producing a figure with columns of panels.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
+         fignum=None, figsize=None, panels=None,
+         title2=None, costfun=None, unique_labels=True):
+    &#34;&#34;&#34;Plot the avrgs of ``statkey`` as a function of ``axis[&#34;inner&#34;]``.
+
+    Firs of all, though, mean and optimum computations are done for
+    ``axis[&#34;mean&#34;]`` and ``axis[&#34;optim&#34;]``.
+
+    The optimal parameters are plotted in panels below the main plot.
+    This can be prevented by providing the figure axes in ``panels``.
+
+    Optionally, the experiments can be grouped by ``axis[&#34;outer&#34;]``,
+    producing a figure with columns of panels.&#34;&#34;&#34;
+
+    def plot1(panelcol, row, style):
+        &#34;&#34;&#34;Plot a given line (row) in the main panel and the optim panels.
+
+        Involves: Sort, insert None&#39;s, handle constant lines.&#34;&#34;&#34;
+
+        # Make a full row (yy) of vals, whether is_constant or not.
+        # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
+        row.is_constant = all(x == row.Coord(None) for x in row)
+        yy = [row[0] if row.is_constant else y for y in row.get_for(xticks)]
+
+        # Plot main
+        row.vals = [getattr(y, &#39;val&#39;, None) for y in yy]
+        row.handles = {}
+        row.handles[&#34;main_panel&#34;] = panelcol[0].plot(xticks, row.vals, **style)[0]
+
+        # Plot tuning params
+        row.tuned_coords = {}  # Store ordered, &#34;transposed&#34; argmins
+        argmins = [getattr(y, &#39;tuned_coord&#39;, None) for y in yy]
+        for a, panel in zip(axes[&#34;optim&#34;], panelcol[1:]):
+            yy = [getattr(coord, a, None) for coord in argmins]
+            row.tuned_coords[a] = yy
+
+            # Plotting all None&#39;s sets axes units (like any plotting call)
+            # which can cause trouble if the axes units were actually supposed
+            # to be categorical (eg upd_a), but this is only revealed later.
+            if not all(y == None for y in yy):
+                row.handles[a] = panel.plot(xticks, yy, **style)
+
+    # Nest axes through table_tree()
+    assert len(axes[&#34;inner&#34;]) == 1, &#34;You must chose the abscissa.&#34;
+    axes, tables = self.table_tree(statkey, axes)
+    xticks = self.tickz(axes[&#34;inner&#34;][0])
+
+    # Figure panels
+    if panels is None:
+        nrows   = len(axes[&#39;optim&#39;] or ()) + 1
+        ncols   = len(tables)
+        maxW    = 12.7  # my mac screen
+        figsize = figsize or (min(5*ncols, maxW), 7)
+        gs      = dict(
+            height_ratios=[6]+[1]*(nrows-1),
+            hspace=0.05, wspace=0.05,
+            # eyeballed:
+            left=0.15/(1+np.log(ncols)),
+            right=0.97, bottom=0.06, top=0.9)
+        # Create
+        _, panels = freshfig(num=fignum, figsize=figsize,
+                             nrows=nrows, sharex=True,
+                             ncols=ncols, sharey=&#39;row&#39;,
+                             gridspec_kw=gs)
+        panels = np.ravel(panels).reshape((-1, ncols))
+    else:
+        panels = np.atleast_2d(panels)
+
+    # Title
+    fig = panels[0, 0].figure
+    fig_title = &#34;Average wrt. time&#34;
+    if axes[&#34;mean&#34;] is not None:
+        fig_title += f&#34; and {axes[&#39;mean&#39;]}&#34;
+    if title2 is not None:
+        fig_title += &#34;\n&#34; + str(title2)
+    fig.suptitle(fig_title)
+
+    # Loop outer
+    label_register = set()  # mv inside loop to get legend on each panel
+    for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
+        table.panels = table_panels
+        title = &#39;&#39; if axes[&#34;outer&#34;] is None else repr(table_coord)
+
+        # Plot
+        for coord, row in table.items():
+            style = get_style(coord)
+
+            # Rm duplicate labels (contrary to coords, labels can
+            # be &#34;tampered&#34; with, and so can be duplicate)
+            if unique_labels:
+                if style.get(&#34;label&#34;, None) in label_register:
+                    del style[&#34;label&#34;]
+                else:
+                    label_register.add(style[&#34;label&#34;])
+
+            plot1(table.panels, row, style)
+
+        # Beautify
+        panel0 = table.panels[0]
+        panel0.set_title(title)
+        if panel0.is_first_col():
+            panel0.set_ylabel(statkey)
+        with utils.set_tmp(mpl_logger, &#39;level&#39;, 99):  # silence &#34;no label&#34; msg
+            panel0.legend()
+        table.panels[-1].set_xlabel(axes[&#34;inner&#34;][0])
+        # Tuning panels:
+        for a, panel in zip(axes[&#34;optim&#34;] or (), table.panels[1:]):
+            if panel.is_first_col():
+                panel.set_ylabel(f&#34;Optim.\n{a}&#34;)
+
+    tables.fig = fig
+    tables.xp_dict = self
+    tables.axes_roles = axes
+    return tables</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Inherited members</h3>
@@ -416,6 +3185,11 @@ producing a figure with columns of panels.</p></div>
 </section>
 </article>
 <nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="pdoc Home" href="https://nansencenter.github.io/DAPPER">
+<img src="https://nansencenter.github.io/DAPPER/logo.png" alt=""> pdoc
+</a>
+</header>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>
