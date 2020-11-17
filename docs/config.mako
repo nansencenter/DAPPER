@@ -3,6 +3,6 @@
 
     sort_identifiers = False
     # show_type_annotations = True
-    show_source_code = False
+    # show_source_code = False
     latex_math = True
 %>
