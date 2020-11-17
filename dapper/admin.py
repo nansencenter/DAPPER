@@ -519,18 +519,17 @@ class xpList(list):
 
         # Parse mp option
         if not mp:
-            mp = False
+            mp = dict()
         elif mp in [True, "MP"]:
             mp = dict(server="local")
         elif isinstance(mp, int):
             mp = dict(server="local", NPROC=mp)
         elif mp in ["GCP", "Google"]:
             mp = dict(server="GCP", files=[], code="")
-        assert isinstance(mp, dict)
 
         # Parse fail_gently
         if fail_gently is None:
-            if isinstance(mp, dict) and mp["server"] == "GCP":
+            if mp and mp["server"] == "GCP":
                 fail_gently = False
                 # coz cloud processing is entirely de-coupled anyways
             else:
