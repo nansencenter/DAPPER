@@ -1,4 +1,4 @@
-"""Tools for working with dicts.
+"""Tools for dicts (and lists).
 
 Bonus: also some list tools."""
 
