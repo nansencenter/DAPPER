@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from dapper.mods.LA.core import Fmat, homogeneous_1D_cov
-from dapper.mods.Lorenz96.core import LPs
+from dapper.mods.LA import Fmat, homogeneous_1D_cov
+from dapper.mods.Lorenz96 import LPs
 import dapper as dpr
 
 tseq = dpr.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)

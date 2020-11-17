@@ -19,7 +19,7 @@
 
 import numpy as np
 import dapper.tools.liveplotting as LP
-import dapper.mods.Lorenz96.core as L96
+import dapper.mods.Lorenz96 as L96
 from dapper.tools.math import integrate_TLM
 
 

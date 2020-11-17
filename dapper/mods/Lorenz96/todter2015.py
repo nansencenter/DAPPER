@@ -4,7 +4,7 @@ for Nonlinear Data Assimilation'"""
 
 import numpy as np
 
-from dapper.mods.Lorenz96 import core
+from dapper.mods.Lorenz96 import step
 from dapper.tools.localization import nd_Id_localization
 import dapper.tools.randvars as RVs
 import dapper as dpr
@@ -14,7 +14,7 @@ t = dpr.Chronology(0.05, dkObs=2, T=4**5, BurnIn=20)
 Nx = 80
 Dyn = {
     'M': Nx,
-    'model': core.step,
+    'model': step,
     'noise': 0
 }
 

@@ -6,7 +6,7 @@
 from numpy import eye
 from matplotlib import pyplot as plt
 
-from dapper.mods.Lorenz96.core import step, x0
+from dapper.mods.Lorenz96 import step, x0
 import dapper as dpr
 from dapper.tools.viz import amplitude_animation
 

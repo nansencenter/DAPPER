@@ -64,7 +64,7 @@ def fit_acf_by_AR1(acf_empir, L=None):
 
 def estimate_corr_length(xx):
     """
-    For explanation, see mods.LA.core: homogeneous_1D_cov().
+    For explanation, see mods.LA.__init__.py: homogeneous_1D_cov().
     Also note that, for exponential corr function, as assumed here,
     corr(L) = exp(-1) = ca 0.368
     """

@@ -84,7 +84,7 @@ else:
             In fact, ``func`` should not reference ``self`` at all,
             because its serialization is rather slow.
 
-        See example use in mods/QG/core.py.
+        See example use in mods/QG/__init__.py.
 
         Technicalities dealt with:
          - passing kwargs

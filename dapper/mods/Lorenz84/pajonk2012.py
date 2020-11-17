@@ -11,8 +11,8 @@ More interesting settings: mods.Lorenz84.harder
 
 import numpy as np
 
-from dapper.mods.Lorenz84.core import step, dstep_dx, x0
-from dapper.mods.Lorenz63.core import LPs
+from dapper.mods.Lorenz84 import step, dstep_dx, x0
+from dapper.mods.Lorenz63 import LPs
 
 import dapper as dpr
 

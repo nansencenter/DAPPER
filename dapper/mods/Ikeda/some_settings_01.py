@@ -3,7 +3,7 @@
 import numpy as np
 import dapper as dpr
 
-from .core import step, x0, Tplot, LPs
+from dapper.mods.Ikeda import step, x0, Tplot, LPs
 
 t = dpr.Chronology(1, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 

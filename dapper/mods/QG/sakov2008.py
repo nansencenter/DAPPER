@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from dapper.mods.QG.core import model_config, shape, sample_filename, LP_setup
+from dapper.mods.QG import model_config, shape, sample_filename, LP_setup
 import dapper as dpr
 from dapper.tools.localization import nd_Id_localization
 

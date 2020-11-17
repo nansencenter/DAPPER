@@ -20,7 +20,7 @@ mod = "L63"
 
 # Lyapunov exponents: [ 1.05  0.   -0.01 -1.05]
 if mod == "DP":
-    from dapper.mods.DoublePendulum.core import step, x0
+    from dapper.mods.DoublePendulum import step, x0
     T   = 5e2
     dt  = 0.005
     eps = 0.0002
@@ -30,7 +30,7 @@ if mod == "DP":
 
 # Lyapunov exponents: [0.02  0 -0.28 -1.03]
 if mod == "LV":
-    from dapper.mods.LotkaVolterra.core import step, x0
+    from dapper.mods.LotkaVolterra import step, x0
     T   = 1e3
     dt  = 0.2
     eps = 0.0002
@@ -39,7 +39,7 @@ if mod == "LV":
 
 # Lyapunov exponents: [ 0.51 -0.72]
 if mod == "Ikeda":
-    from dapper.mods.Ikeda.core import step, x0
+    from dapper.mods.Ikeda import step, x0
     T   = 5e3
     dt  = 1
     eps = 1e-5
@@ -48,7 +48,7 @@ if mod == "Ikeda":
 
 # Lyapunov exponents: [0.906, 0, -14.572]
 if mod == "L63":
-    from dapper.mods.Lorenz63.core import step, x0
+    from dapper.mods.Lorenz63 import step, x0
     T   = 1e2
     dt  = 0.04
     Nx  = len(x0)
@@ -57,7 +57,7 @@ if mod == "L63":
 
 # Lyapunov exponents: [ 0.22, 0, -0.52]
 if mod == "L84":
-    from dapper.mods.Lorenz84.core import step, x0
+    from dapper.mods.Lorenz84 import step, x0
     T   = 1e3
     dt  = 0.05
     Nx  = len(x0)
@@ -68,7 +68,7 @@ if mod == "L84":
 # when setting M=36, F=8, dt=0.0083="1hour":  LyapExps ∈ ( −0.97, 0.33 ) /hour.
 # In unitless time (as used here), this means LyapExps ∈ ( −4.87, 1.66 ) .
 if mod == "L96":
-    from dapper.mods.Lorenz96.core import step
+    from dapper.mods.Lorenz96 import step
     Nx  = 40             # State size (flexible). Usually 36 or 40
     T   = 1e3            # Length of experiment (unitless time).
     dt  = 0.1            # Step length
@@ -93,7 +93,7 @@ if mod == "LUV":
 
 # Lyapunov exponents: [  0.08   0.07   0.06 ... -37.9  -39.09 -41.55]
 if mod == "KS":
-    from dapper.mods.KS.core import Model
+    from dapper.mods.KS import Model
     KS   = Model()
     step = KS.step
     x0   = KS.x0
@@ -106,7 +106,7 @@ if mod == "KS":
 
 # n0 ≈ 140
 if mod == "QG":
-    from dapper.mods.QG.core import model_config, shape, sample_filename
+    from dapper.mods.QG import model_config, shape, sample_filename
     # NB: There may arise an ipython/multiprocessing bug/issue.
     # Ref https://stackoverflow.com/a/45720872 . If so, set mp=False,
     # or run outside of ipython. However, I did not encounter lately.

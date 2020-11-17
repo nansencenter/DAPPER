@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import scipy.ndimage.filters as filters
 
-from dapper.mods.QG.core import sample_filename, nx, square, default_prms
+from dapper.mods.QG import sample_filename, nx, square, default_prms
 import dapper.tools.viz as viz
 from dapper.tools.utils import progbar
 

@@ -4,7 +4,7 @@
 import numpy as np
 import dapper as dpr
 
-from dapper.mods.Lorenz63.core import step, dstep_dx, x0, Tplot, LPs
+from dapper.mods.Lorenz63 import step, dstep_dx, x0, Tplot, LPs
 
 t = dpr.Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 

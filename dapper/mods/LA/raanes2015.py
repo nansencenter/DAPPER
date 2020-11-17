@@ -6,8 +6,8 @@ additive forecast noise in ensemble methods."
 
 import numpy as np
 
-from dapper.mods.LA.core import sinusoidal_sample, Fmat
-from dapper.mods.Lorenz96.core import LPs
+from dapper.mods.LA import sinusoidal_sample, Fmat
+from dapper.mods.Lorenz96 import LPs
 from dapper.tools.math import tsvd, center
 import dapper as dpr
 

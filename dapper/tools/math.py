@@ -50,7 +50,7 @@ def ens_compatible(func):
     but that is more messy than necessary.
 
     Note: this is not the_way™ -- other tricks are sometimes more practical.
-    See for example core.py:dxdt() of LorenzUV, Lorenz96, LotkaVolterra.
+    See for example dxdt() in __init__.py for LorenzUV, Lorenz96, LotkaVolterra.
     """
     @functools.wraps(func)
     def wrapr(x, *args, **kwargs):

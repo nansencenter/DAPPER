@@ -4,7 +4,7 @@ Plot settings inspired by Wikipedia."""
 
 from matplotlib import pyplot as plt
 
-from dapper.mods.Ikeda import core
+import dapper.mods.Ikeda as core
 import dapper as dpr
 
 

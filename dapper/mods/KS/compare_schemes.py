@@ -7,7 +7,7 @@
 import numpy as np
 import time
 from matplotlib import pyplot as plt
-from dapper.mods.KS.core import Model
+from dapper.mods.KS import Model
 model = Model()
 
 print("THERE WILL BE WARNINGS GENERATED.")

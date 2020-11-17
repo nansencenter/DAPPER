@@ -2,10 +2,10 @@ import dapper as dpr
 import numpy as np
 from dapper.tools.math import Id_Obs
 
-from dapper.mods.Lorenz96.core import LPs
+from dapper.mods.Lorenz96 import LPs
 from dapper.tools.localization import nd_Id_localization
 
-from dapper.mods.KS.core import Model, Tplot
+from dapper.mods.KS import Model, Tplot
 KS = Model(dt=0.5)
 Nx = KS.Nx
 

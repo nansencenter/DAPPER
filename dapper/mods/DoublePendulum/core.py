@@ -1,4 +1,4 @@
-from dapper.mods.Lorenz63.core import LPs as L63_LPs
+from dapper.mods.Lorenz63 import LPs
 import dapper as dpr
 from dapper.tools.math import FD_Jac
 import numpy as np
@@ -65,4 +65,4 @@ def energy(x):
     return T + V
 
 
-def LP_setup(jj): return L63_LPs(jj, params=dict())
+def LP_setup(jj): return LPs(jj, params=dict())

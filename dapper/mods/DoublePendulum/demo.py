@@ -6,7 +6,7 @@ from numpy import sin, cos
 from matplotlib.animation import FuncAnimation
 from matplotlib import pyplot as plt
 
-from dapper.mods.DoublePendulum.core import step, x0, L1, L2
+from dapper.mods.DoublePendulum import step, x0, L1, L2
 import dapper as dpr
 
 E0 = x0 + 0.01*dpr.randn((3, 4))

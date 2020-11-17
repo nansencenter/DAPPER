@@ -1,8 +1,8 @@
-"""Uses nU, J, F as in core.py, which is taken from wilks05.
+"""Uses nU, J, F as in __init__.py, which is taken from wilks05.
 Obs settings taken from different places (=> quasi-linear regime)."""
 
 import numpy as np
-from dapper.mods.LorenzUV.core import model_instance
+from dapper.mods.LorenzUV import model_instance
 import dapper as dpr
 import dapper.tools.utils as utils
 

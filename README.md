@@ -140,7 +140,7 @@ Quasi-Geost (QG)     | No   | No   | Yes   | 2d        | 129²≈17k  | ≈140  
 *: flexible; set as necessary
 
 The models are found as subdirectories within `dapper/mods`.
-A model should be defined in a file named `core.py`,
+A model should be defined in a file named `__init__.py`,
 and illustrated by a file named `demo.py`.
 Ideally, both of these files do not rely on the rest of DAPPER.
 [More info](https://dapper.readthedocs.io/en/latest/adding.html).

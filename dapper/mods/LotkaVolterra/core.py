@@ -6,7 +6,7 @@ Refs:
 
 import numpy as np
 
-from dapper.mods.Lorenz63.core import LPs as L63_LPs
+from dapper.mods.Lorenz63 import LPs
 import dapper as dpr
 from dapper.tools.math import integrate_TLM
 
@@ -43,4 +43,4 @@ def dstep_dx(x, t, dt):
     return integrate_TLM(d2x_dtdx(x), dt, method='approx')
 
 
-def LP_setup(jj): return L63_LPs(jj, params=dict())
+def LP_setup(jj): return LPs(jj, params=dict())

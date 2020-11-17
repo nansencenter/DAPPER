@@ -5,7 +5,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-from dapper.mods.Lorenz63.core import step, x0
+from dapper.mods.Lorenz63 import step, x0
 import dapper as dpr
 
 simulator = dpr.with_recursion(step, prog="Simulating")
