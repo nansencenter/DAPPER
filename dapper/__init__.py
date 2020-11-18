@@ -7,7 +7,7 @@ Make sure you've browsed these sections in the README:
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
 - [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
-- [Test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-(models))
+- [Test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
 
 ## Reference/API docs
 The documentation contained in docstrings can be browsed

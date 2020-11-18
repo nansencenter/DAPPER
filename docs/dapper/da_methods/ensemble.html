@@ -130,7 +130,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
             d       = pad0(s**2, N) + N1
             Pw      = (V * d**(-1.0)) @ V.T
             T       = (V * d**(-0.5)) @ V.T * sqrt(N1)
-            # dpr_data/doc_snippets/trHK.jpg
+            # docs/snippets/trHK.jpg
             trHK    = np.sum((s**2+N1)**(-1.0) * s**2)
         elif &#39;sS&#39; in upd_a:
             # Same as &#39;svd&#39;, but with slightly different notation
@@ -140,7 +140,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
             d       = pad0(s**2, N) + 1
             Pw      = (V * d**(-1.0))@V.T / N1  # = G/(N1)
             T       = (V * d**(-0.5))@V.T
-            # dpr_data/doc_snippets/trHK.jpg
+            # docs/snippets/trHK.jpg
             trHK    = np.sum((s**2 + 1)**(-1.0)*s**2)
         else:  # &#39;eig&#39; in upd_a:
             # Implementation using eig. val. decomp.
@@ -1035,7 +1035,7 @@ class EnKF_N:
             d       = pad0(s**2, N) + N1
             Pw      = (V * d**(-1.0)) @ V.T
             T       = (V * d**(-0.5)) @ V.T * sqrt(N1)
-            # dpr_data/doc_snippets/trHK.jpg
+            # docs/snippets/trHK.jpg
             trHK    = np.sum((s**2+N1)**(-1.0) * s**2)
         elif &#39;sS&#39; in upd_a:
             # Same as &#39;svd&#39;, but with slightly different notation
@@ -1045,7 +1045,7 @@ class EnKF_N:
             d       = pad0(s**2, N) + 1
             Pw      = (V * d**(-1.0))@V.T / N1  # = G/(N1)
             T       = (V * d**(-0.5))@V.T
-            # dpr_data/doc_snippets/trHK.jpg
+            # docs/snippets/trHK.jpg
             trHK    = np.sum((s**2 + 1)**(-1.0)*s**2)
         else:  # &#39;eig&#39; in upd_a:
             # Implementation using eig. val. decomp.
@@ -2744,7 +2744,8 @@ Further description in hyperprior_coeffs().</p></div>
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://nansencenter.github.io/DAPPER/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>

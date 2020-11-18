@@ -241,7 +241,7 @@ class iEnKS:
                 # (i) avoid re-running the model and
                 # (ii) reproduce EnKF in case nIter==1.
                 final_increment = (dw+T-T_old)@Xf
-                # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
+                # See docs/snippets/iEnKS_Ea.jpg.
                 stats.assess(k, kObs, &#39;a&#39;, E=E+final_increment)
                 stats.iters[kObs] = iteration+1
                 if self.xN:
@@ -767,7 +767,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                 # (i) avoid re-running the model and
                 # (ii) reproduce EnKF in case nIter==1.
                 final_increment = (dw+T-T_old)@Xf
-                # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
+                # See docs/snippets/iEnKS_Ea.jpg.
                 stats.assess(k, kObs, &#39;a&#39;, E=E+final_increment)
                 stats.iters[kObs] = iteration+1
                 if self.xN:
@@ -974,7 +974,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
             # (i) avoid re-running the model and
             # (ii) reproduce EnKF in case nIter==1.
             final_increment = (dw+T-T_old)@Xf
-            # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
+            # See docs/snippets/iEnKS_Ea.jpg.
             stats.assess(k, kObs, &#39;a&#39;, E=E+final_increment)
             stats.iters[kObs] = iteration+1
             if self.xN:
@@ -1605,7 +1605,8 @@ there is no benefit to the adjoint trick (back-propagation).
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://nansencenter.github.io/DAPPER/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
