@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>dapper.mods.KS API documentation</title>
-<meta name="description" content="Implement Kuramoto-Sivashinsky (K-S) system, defined by the nonlinear PDE: …" />
+<meta name="description" content="Kuramoto-Sivashinsky (KS) system: the simplest (?) PDE admitting chaos …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,20 +23,26 @@
 <h1 class="title">Module <code>dapper.mods.KS</code></h1>
 </header>
 <section id="section-intro">
-<p>Implement Kuramoto-Sivashinsky (K-S) system, defined by the nonlinear PDE:</p>
-<p>u_t = -u*u_x - u_xx - u_xxxx</p>
-<p>See compare_schemes.py for a comparison of time-step integration schemes.
-See demo.py for further description.</p>
+<p>Kuramoto-Sivashinsky (KS) system: the simplest (?) PDE admitting chaos.</p>
+<p>Defined by:</p>
+<pre><code>u_t = -u*u_x - u_xx - u_xxxx
+</code></pre>
+<ul>
+<li>See compare_schemes.py for a comparison of time-step integration schemes.</li>
+<li>See demo.py for further description.</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Implement Kuramoto-Sivashinsky (K-S) system, defined by the nonlinear PDE:
+<pre><code class="python">&#34;&#34;&#34;Kuramoto-Sivashinsky (KS) system: the simplest (?) PDE admitting chaos.
 
-u_t = -u*u_x - u_xx - u_xxxx
+Defined by:
 
-See compare_schemes.py for a comparison of time-step integration schemes.
-See demo.py for further description.
+    u_t = -u*u_x - u_xx - u_xxxx
+
+- See compare_schemes.py for a comparison of time-step integration schemes.
+- See demo.py for further description.
 &#34;&#34;&#34;
 
 import numpy as np
@@ -72,8 +78,8 @@ def Model(dt=0.25, DL=32, Nx=128):
     # Alternative method:
     # kk = np.fft.fftfreq(Nx, DL/Nx/2)
     # Operators
-    D = 1j*kk          # Differentiation to compute:  F[ u_x ]
-    L = kk**2 - kk**4  # Linear operator for K-S eqn: F[ - u_xx - u_xxxx]
+    D = 1j*kk          # Differentiation to compute: F[ u_x ]
+    L = kk**2 - kk**4  # Linear operator for KS eqn: F[ - u_xx - u_xxxx]
 
     # NonLinear term (-u*u_x) in Fourier domain via time domain
     def NL(v):
@@ -251,8 +257,8 @@ Tplot = 10</code></pre>
     # Alternative method:
     # kk = np.fft.fftfreq(Nx, DL/Nx/2)
     # Operators
-    D = 1j*kk          # Differentiation to compute:  F[ u_x ]
-    L = kk**2 - kk**4  # Linear operator for K-S eqn: F[ - u_xx - u_xxxx]
+    D = 1j*kk          # Differentiation to compute: F[ u_x ]
+    L = kk**2 - kk**4  # Linear operator for KS eqn: F[ - u_xx - u_xxxx]
 
     # NonLinear term (-u*u_x) in Fourier domain via time domain
     def NL(v):

@@ -1,5 +1,6 @@
 """Demonstrate the Kuramoto-Sivashinsky (KS) system."""
-# The Kuramoto-Sivashinsky (K-S) system:
+
+# The Kuramoto-Sivashinsky (KS) system:
 #    u_t = -u*u_x - u_xx - u_xxxx,
 #    where x ∈ [0, L],  periodic BCs,
 # is the simplest (?) PDE that admits chaos (requires L>=12?):
@@ -67,7 +68,7 @@ plt.contourf(model.grid, tt, EE[:, n, :], 60)
 plt.colorbar()
 plt.set_cmap('seismic')
 plt.axis('tight')
-plt.title('Hovmoller for K-S system, member %d' % n)
+plt.title('Hovmoller for KS system, member %d' % n)
 plt.ylabel('Time (t)')
 plt.xlabel('Space (x)')
 plt.show()

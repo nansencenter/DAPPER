@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>dapper.mods.LA API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Linear advection (i.e. translation) in 1D …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,19 +23,32 @@
 <h1 class="title">Module <code>dapper.mods.LA</code></h1>
 </header>
 <section id="section-intro">
+<p>Linear advection (i.e. translation) in 1D.</p>
+<p>Optimal solution provided by Kalman filter (ExtKF).
+System is typically used with a relatively large size (Nx=1000),
+but initialized with a moderate wavenumber (k),
+which a DA method should hopefully be able to exploit.</p>
+<p>The system (and the impact on the DA) can also be adjusted by
+selecting non-optimal time steps, and/or various noise configs.</p>
+<p>A summary for the purpose of DA is provided in section 3.3 of thesis found at
+ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python"># &#34;Linear advection&#34;  model.
-# Optimal solution provided by Kalman filter (ExtKF).
-# System is typically used with a relatively large size (Nx=1000),
-# but initialized with a moderate wavenumber (k),
-# which a DA method should hopefully be able to exploit.
-#
-# A summary for the purpose of DA is provided in section 3.3
-# of thesis found at
-# ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
+<pre><code class="python">&#34;&#34;&#34;Linear advection (i.e. translation) in 1D.
+
+Optimal solution provided by Kalman filter (ExtKF).
+System is typically used with a relatively large size (Nx=1000),
+but initialized with a moderate wavenumber (k),
+which a DA method should hopefully be able to exploit.
+
+The system (and the impact on the DA) can also be adjusted by
+selecting non-optimal time steps, and/or various noise configs.
+
+A summary for the purpose of DA is provided in section 3.3 of thesis found at
+ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
+&#34;&#34;&#34;
 
 import dapper as dpr
 import numpy as np

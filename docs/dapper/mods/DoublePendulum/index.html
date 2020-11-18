@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>dapper.mods.DoublePendulum API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="The motion of a pendulum with another pendulum attached to its end …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,18 +23,33 @@
 <h1 class="title">Module <code>dapper.mods.DoublePendulum</code></h1>
 </header>
 <section id="section-intro">
+<p>The motion of a pendulum with another pendulum attached to its end.</p>
+<p>Refs:</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Double_pendulum">https://en.wikipedia.org/wiki/Double_pendulum</a></li>
+<li><a href="https://matplotlib.org/3.1.1/gallery/animation/double_pendulum_sgskip.html">https://matplotlib.org/3.1.1/gallery/animation/double_pendulum_sgskip.html</a>
+which is based on this c code:</li>
+<li><a href="http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c">http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c</a></li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from dapper.mods.Lorenz63 import LPs
+<pre><code class="python">&#34;&#34;&#34;The motion of a pendulum with another pendulum attached to its end.
+
+Refs:
+
+- https://en.wikipedia.org/wiki/Double_pendulum
+- https://matplotlib.org/3.1.1/gallery/animation/double_pendulum_sgskip.html
+  which is based on this c code:
+- http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
+&#34;&#34;&#34;
+
+from dapper.mods.Lorenz63 import LPs
 import dapper as dpr
 from dapper.tools.math import FD_Jac
 import numpy as np
 from numpy import cos, sin
-
-# Based on double_pendulum_animated.html from matplotlib.org.
-# which was based on physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
 
 G  = 9.8  # acceleration due to gravity, in m/s^2
 L1 = 1.0  # length of pendulum 1 in m

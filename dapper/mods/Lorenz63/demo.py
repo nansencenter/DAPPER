@@ -1,5 +1,6 @@
 """For a deeper introduction, see
-"DAPPER/tutorials/T4 - Dynamical systems, chaos, Lorenz.ipynb"
+
+"DA-tutorials/T4 - Dynamical systems, chaos, Lorenz.ipynb"
 """
 
 from matplotlib import pyplot as plt

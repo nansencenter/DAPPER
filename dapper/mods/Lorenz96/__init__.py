@@ -1,14 +1,14 @@
-'''The "Lorenz-96" (or 96) model.
+"""A 1D emulator of chaotic atmospheric behaviour.
 
 From "Predictability -- a problem partly solved" by E. N. Lorenz (1996).
 Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.
 
 For a short introduction, see
- - demo.py and
- - "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials
+- demo.py and
+- "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials
 
 Note: the implementation is ndim-agnostic.
-'''
+"""
 
 import dapper.tools.liveplotting as LP
 import numpy as np

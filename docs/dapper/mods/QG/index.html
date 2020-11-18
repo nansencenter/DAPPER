@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>dapper.mods.QG API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Quasi-geostraphic 2D flow …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,27 +23,45 @@
 <h1 class="title">Module <code>dapper.mods.QG</code></h1>
 </header>
 <section id="section-intro">
+<p>Quasi-geostraphic 2D flow.</p>
+<p>Adapted from Pavel Sakov's enkf-matlab package.</p>
+<p>Model is described in detail by Sakov, Pavel, and Peter R. Oke.:
+"A deterministic formulation of the ensemble Kalman filter:
+an alternative to ensemble square root filters."
+Tellus A 60.2 (2008): 361-371.</p>
+<p>More info:</p>
+<ul>
+<li><code>governing_eqn.png</code></li>
+<li><code>demo.py</code></li>
+<li>ψ (psi) is the stream function (i.e. surface elevation)</li>
+<li>Doubling time "between 25 and 50"</li>
+<li>Note Sakov's trick of increasing RKH2 from 2.0e-12 to 2.0e-11 to stabilize
+the ensemble integration, which may be necessary for EnKF's with small N.
+See example in <code>counillon2009.py</code>.</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python"># &#34;QG&#34; Quasi-Geostrophic model.
-#
-# Taken from Sakov&#39;s enkf-matlab package.
-# Model is described in:
-# Sakov, Pavel, and Peter R. Oke.:
-#   &#34;A deterministic formulation of the ensemble Kalman filter:
-#   an alternative to ensemble square root filters.&#34;
-#   Tellus A 60.2 (2008): 361-371.
-#
-# More info:
-#  - DAPPER/mods/QG/governing_eqn.png
-#  - DAPPER/mods/QG/demo.py
-#  - ψ (psi) is the stream function (i.e. surface elevation)
-#  - Doubling time &#34;between 25 and 50&#34;
-#  - Note Sakov&#39;s trick of increasing RKH2 from 2.0e-12 to 2.0e-11 to stabilize
-#    the ensemble integration, which may be necessary for EnKF&#39;s with small N.
-#    See example in mods/QG/counillon2009.py.
+<pre><code class="python">&#34;&#34;&#34;Quasi-geostraphic 2D flow.
+
+Adapted from Pavel Sakov&#39;s enkf-matlab package.
+
+Model is described in detail by Sakov, Pavel, and Peter R. Oke.:
+  &#34;A deterministic formulation of the ensemble Kalman filter:
+  an alternative to ensemble square root filters.&#34;
+  Tellus A 60.2 (2008): 361-371.
+
+More info:
+
+- `governing_eqn.png`
+- `demo.py`
+- ψ (psi) is the stream function (i.e. surface elevation)
+- Doubling time &#34;between 25 and 50&#34;
+- Note Sakov&#39;s trick of increasing RKH2 from 2.0e-12 to 2.0e-11 to stabilize
+  the ensemble integration, which may be necessary for EnKF&#39;s with small N.
+  See example in `counillon2009.py`.
+&#34;&#34;&#34;
 
 from pathlib import Path
 import matplotlib as mpl

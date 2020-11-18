@@ -1,4 +1,4 @@
-# Compare integration time-stepping schemes for K-S equation.
+# Compare integration time-stepping schemes for KS equation.
 # Conclusions: 'ETD-RK4' is superior to 'SI-RK3',
 #  - Superiority deteriorates when adding noise to ICs.
 #  - Superiority fairly independent of N.

@@ -1,8 +1,8 @@
-"""The "Ikeda" map.
+"""The "Ikeda map" is a discrete-time, 2D, dynamical system.
 
 Source: https://en.wikipedia.org/wiki/Ikeda_map and Colin Grudzen.
 
-See demo.py for more info.
+See `demo.py` for more info.
 """
 
 

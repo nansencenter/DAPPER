@@ -1,12 +1,16 @@
-# "Linear advection"  model.
-# Optimal solution provided by Kalman filter (ExtKF).
-# System is typically used with a relatively large size (Nx=1000),
-# but initialized with a moderate wavenumber (k),
-# which a DA method should hopefully be able to exploit.
-#
-# A summary for the purpose of DA is provided in section 3.3
-# of thesis found at
-# ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
+"""Linear advection (i.e. translation) in 1D.
+
+Optimal solution provided by Kalman filter (ExtKF).
+System is typically used with a relatively large size (Nx=1000),
+but initialized with a moderate wavenumber (k),
+which a DA method should hopefully be able to exploit.
+
+The system (and the impact on the DA) can also be adjusted by
+selecting non-optimal time steps, and/or various noise configs.
+
+A summary for the purpose of DA is provided in section 3.3 of thesis found at
+ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
+"""
 
 import dapper as dpr
 import numpy as np
