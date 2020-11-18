@@ -8,7 +8,7 @@
 ! 
 -->
 
-<img src="/docs/imgs/logo_wtxt.png" width="250"/>
+<img src="/docs/imgs/logo_wtxt.png" align="left" width="250"/>
 
 DAPPER is a set of templates for benchmarking the performance of
 data assimilation (DA) methods.
@@ -85,7 +85,7 @@ If the installation fails, you probably need to [create a new Python environment
 Read, run, and understand the scripts `example_{1,2,3}.py`.
 Then, get familiar with the code.
 
-The [documentation](https://dapper.readthedocs.io/en/latest/)
+The [documentation](https://nansencenter.github.io/DAPPER)
 provide rendered docstrings, but are far from complete.
 
 Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
