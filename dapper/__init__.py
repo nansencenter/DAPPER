@@ -13,30 +13,6 @@ Make sure you've browsed these sections in the README:
 The documentation contained in docstrings can be browsed
 by clicking the links at the left (or bottom) of this page.
 
-## Features
-Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README:
-
-- Parallelisation:
-    - (Independent) experiments can run in parallel; see `example_3.py`
-    - Forecast parallelisation is possible since
-        the (user-implemented) model has access to the full ensemble;
-        see example in `mods.QG`.
-    - Analysis parallelisation over local domains;
-        see example in `da_methods.ensemble.LETKF`
-- Classes that simplify treating:
-    - Time sequences use via `tools.chronos.Chronology`
-      and`tools.chronos.Ticker`.
-    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
-      as well as support for custom sampling functions.
-    - Covariance matrices via `tools.matrices.CovMat`: provides input flexibility/overloading,
-      lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
-- Diagnostics and statistics with
-    - Confidence interval on times series (e.g. rmse) averages with
-        - automatic correction for autocorrelation 
-        - significant digits printing
-    - Automatic averaging of several types for sub-domains
-      (e.g. "ocean", "land", etc.)
-
 ## Usage
 Do you wish to illustrate and run benchmarks with your own
 **models** and/or **methods**?
@@ -52,6 +28,32 @@ Then, read the documentation here
 
 - `mods`
 - `da_methods`
+
+## Features
+Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README):
+
+- Parallelisation:
+    - (Independent) experiments can run in parallel; see `example_3.py`
+    - Forecast parallelisation is possible since
+        the (user-implemented) model has access to the full ensemble;
+        see example in `mods.QG`.
+    - Analysis parallelisation over local domains;
+        see example in `da_methods.ensemble.LETKF`
+- Classes that simplify treating:
+    - Experiment administration and launch via `admin.xpList`
+      and data processing and presentation via `data_management.xpSpace`.
+    - Time sequences use via `tools.chronos.Chronology`
+      and`tools.chronos.Ticker`.
+    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
+      as well as support for custom sampling functions.
+    - Covariance matrices via `tools.matrices.CovMat`: provides input flexibility/overloading,
+      lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
+- Diagnostics and statistics with
+    - Confidence interval on times series (e.g. rmse) averages with
+        - automatic correction for autocorrelation 
+        - significant digits printing
+    - Automatic averaging of several types for sub-domains
+      (e.g. "ocean", "land", etc.)
 
 ## Development
 
