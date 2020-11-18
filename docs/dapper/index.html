@@ -35,8 +35,22 @@
 <h2 id="referenceapi-docs">Reference/API docs</h2>
 <p>The documentation contained in docstrings can be browsed
 by clicking the links at the left (or bottom) of this page.</p>
+<h2 id="usage">Usage</h2>
+<p>Do you wish to illustrate and run benchmarks with your own
+<strong>models</strong> and/or <strong>methods</strong>?</p>
+<p>If these are complicated, you may be better off using DAPPER
+merely as inspiration (but you should still
+<a href="https://github.com/nansencenter/DAPPER#Contributors">cite it</a>)
+rather than trying to squeeze everything into its templates.</p>
+<p>If these are simple, however, you may well want to use DAPPER.
+First, make sure you've got a good feel for all of <code>example_{1,2,3}.py</code>.
+Then, read the documentation here</p>
+<ul>
+<li><code><a title="dapper.mods" href="mods/index.html">dapper.mods</a></code></li>
+<li><code><a title="dapper.da_methods" href="da_methods/index.html">dapper.da_methods</a></code></li>
+</ul>
 <h2 id="features">Features</h2>
-<p>Features not <a href="https://github.com/nansencenter/DAPPER#Highlights">highlighted</a> by README:</p>
+<p>Features (beyond what was <a href="https://github.com/nansencenter/DAPPER#Highlights">highlighted</a> by README):</p>
 <ul>
 <li>Parallelisation:<ul>
 <li>(Independent) experiments can run in parallel; see <code>example_3.py</code></li>
@@ -48,6 +62,8 @@ see example in <code><a title="dapper.da_methods.ensemble.LETKF" href="da_method
 </ul>
 </li>
 <li>Classes that simplify treating:<ul>
+<li>Experiment administration and launch via <code><a title="dapper.admin.xpList" href="admin.html#dapper.admin.xpList">xpList</a></code>
+and data processing and presentation via <code><a title="dapper.data_management.xpSpace" href="data_management.html#dapper.data_management.xpSpace">xpSpace</a></code>.</li>
 <li>Time sequences use via <code><a title="dapper.tools.chronos.Chronology" href="tools/chronos.html#dapper.tools.chronos.Chronology">Chronology</a></code>
 and<code><a title="dapper.tools.chronos.Ticker" href="tools/chronos.html#dapper.tools.chronos.Ticker">Ticker</a></code>.</li>
 <li>Random variables via <code><a title="dapper.tools.randvars.RV" href="tools/randvars.html#dapper.tools.randvars.RV">RV</a></code>: Gaussian, Student-t, Laplace, Uniform, &hellip;,
@@ -66,20 +82,6 @@ lazy eval that facilitates the use of non-diagnoal covariance matrices (whether 
 (e.g. "ocean", "land", etc.)</li>
 </ul>
 </li>
-</ul>
-<h2 id="usage">Usage</h2>
-<p>Do you wish to illustrate and run benchmarks with your own
-<strong>models</strong> and/or <strong>methods</strong>?</p>
-<p>If these are complicated, you may be better off using DAPPER
-merely as inspiration (but you should still
-<a href="https://github.com/nansencenter/DAPPER#Contributors">cite it</a>)
-rather than trying to squeeze everything into its templates.</p>
-<p>If these are simple, however, you may well want to use DAPPER.
-First, make sure you've got a good feel for all of <code>example_{1,2,3}.py</code>.
-Then, read the documentation here</p>
-<ul>
-<li><code><a title="dapper.mods" href="mods/index.html">dapper.mods</a></code></li>
-<li><code><a title="dapper.da_methods" href="da_methods/index.html">dapper.da_methods</a></code></li>
 </ul>
 <h2 id="development">Development</h2>
 <h3 id="implementation-choices">Implementation choices</h3>
@@ -231,30 +233,6 @@ Make sure you&#39;ve browsed these sections in the README:
 The documentation contained in docstrings can be browsed
 by clicking the links at the left (or bottom) of this page.
 
-## Features
-Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README:
-
-- Parallelisation:
-    - (Independent) experiments can run in parallel; see `example_3.py`
-    - Forecast parallelisation is possible since
-        the (user-implemented) model has access to the full ensemble;
-        see example in `mods.QG`.
-    - Analysis parallelisation over local domains;
-        see example in `da_methods.ensemble.LETKF`
-- Classes that simplify treating:
-    - Time sequences use via `tools.chronos.Chronology`
-      and`tools.chronos.Ticker`.
-    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
-      as well as support for custom sampling functions.
-    - Covariance matrices via `tools.matrices.CovMat`: provides input flexibility/overloading,
-      lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
-- Diagnostics and statistics with
-    - Confidence interval on times series (e.g. rmse) averages with
-        - automatic correction for autocorrelation 
-        - significant digits printing
-    - Automatic averaging of several types for sub-domains
-      (e.g. &#34;ocean&#34;, &#34;land&#34;, etc.)
-
 ## Usage
 Do you wish to illustrate and run benchmarks with your own
 **models** and/or **methods**?
@@ -270,6 +248,32 @@ Then, read the documentation here
 
 - `mods`
 - `da_methods`
+
+## Features
+Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README):
+
+- Parallelisation:
+    - (Independent) experiments can run in parallel; see `example_3.py`
+    - Forecast parallelisation is possible since
+        the (user-implemented) model has access to the full ensemble;
+        see example in `mods.QG`.
+    - Analysis parallelisation over local domains;
+        see example in `da_methods.ensemble.LETKF`
+- Classes that simplify treating:
+    - Experiment administration and launch via `admin.xpList`
+      and data processing and presentation via `data_management.xpSpace`.
+    - Time sequences use via `tools.chronos.Chronology`
+      and`tools.chronos.Ticker`.
+    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
+      as well as support for custom sampling functions.
+    - Covariance matrices via `tools.matrices.CovMat`: provides input flexibility/overloading,
+      lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
+- Diagnostics and statistics with
+    - Confidence interval on times series (e.g. rmse) averages with
+        - automatic correction for autocorrelation 
+        - significant digits printing
+    - Automatic averaging of several types for sub-domains
+      (e.g. &#34;ocean&#34;, &#34;land&#34;, etc.)
 
 ## Development
 
@@ -531,8 +535,8 @@ __pdoc__ = {
 <ul>
 <li><a href="#readme">README</a></li>
 <li><a href="#referenceapi-docs">Reference/API docs</a></li>
-<li><a href="#features">Features</a></li>
 <li><a href="#usage">Usage</a></li>
+<li><a href="#features">Features</a></li>
 <li><a href="#development">Development</a><ul>
 <li><a href="#implementation-choices">Implementation choices</a></li>
 <li><a href="#profiling">Profiling</a></li>
