@@ -9,38 +9,36 @@ import numpy as np
 class Chronology():
     """Time schedules with consistency checks.
 
-    - Uses int records => tt[k] == k*dt.
+    - Uses int records => `tt[k] == k*dt`.
     - Uses generators  => time series may be arbitrarily long.
 
-    Illustration:
+    Example illustration:
 
-    .. code-block:: none
-
-                           <----dtObs---->
-                    <--dt-->
-      tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
-      kk:    0      1      2      3      4      5      K
-             |------|------|------|------|------|------|
-      kObs:  None   None   0      None   1      None   KObs
-      kkObs:               2             4             6
-                           <----dkObs---->
+                             <----dtObs---->
+                      <--dt-->
+        tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
+        kk:    0      1      2      3      4      5      K
+               |------|------|------|------|------|------|
+        kObs:  None   None   0      None   1      None   KObs
+        kkObs:               2             4             6
+                             <----dkObs---->
 
     .. warning:: By convention, there is no obs at 0.
                  This is hardcorded in DAPPER,
                  whose cycling starts by the forecast.
 
-    Identities (subject to precision)::
+    Identities (subject to precision):
 
-      len(kk)    == len(tt)    == K   +1
-      len(kkObs) == len(ttObs) == KObs+1
+        len(kk)    == len(tt)    == K   +1
+        len(kkObs) == len(ttObs) == KObs+1
 
-      kkObs[0]   == dkObs      == dtObs/dt == K/(KObs+1)
-      kkObs[-1]  == K          == T/dt
-      KObs       == T/dtObs-1
+        kkObs[0]   == dkObs      == dtObs/dt == K/(KObs+1)
+        kkObs[-1]  == K          == T/dt
+        KObs       == T/dtObs-1
 
-    These attributes may be set (altered) after init: dt, dkObs, K, T.
+    These attributes may be set (altered) after init: `dt, dkObs, K, T`.
     Other attributes may not, due to ambiguity
-    (e.g. should dtObs*=2 yield a doubling of T too?)
+    (e.g. should `dtObs*=2` yield a doubling of `T` too?)
     """
 
     def __init__(self, dt=None, dtObs=None, T=None, BurnIn=-1,
@@ -173,12 +171,12 @@ class Chronology():
     # Burn In. NB: uses > (strict inequality)
     @property
     def mask_BI(self):
-        "Example use: kk_BI = kk[mask_BI]"
+        "Example use: `kk_BI = kk[mask_BI]`"
         return self.tt > self.BurnIn
 
     @property
     def maskObs_BI(self):
-        "Example use: kkObs_BI = kkObs[maskObs_BI]"
+        "Example use: `kkObs_BI = kkObs[maskObs_BI]`"
         return self.ttObs > self.BurnIn
 
     ######################################
@@ -186,18 +184,18 @@ class Chronology():
     ######################################
     @property
     def ticker(self):
-        """"Fancy version of range(1,K+1).
+        """"Fancy version of `range(1,K+1)`.
 
-        Also yields t, dt, and kObs.
+        Also yields `t`, `dt`, and `kObs`.
         """
         tckr = Ticker(self.tt, self.kkObs)
         next(tckr)
         return tckr
 
     def cycle(self, kObs):
-        """The range (in kk) between observation kObs-1 and kObs.
+        """The range (in `kk`) between observation `kObs-1` and `kObs`.
 
-        Also yields t and dt.
+        Also yields `t` and `dt`.
         """
         for k in kObs * self.dkObs + np.arange(1, self.dkObs+1):
             t  = self.tt[k]
@@ -228,11 +226,11 @@ class Chronology():
 
 
 class Ticker:
-    """Iterator over kk and kkObs, yielding (k,kObs,t,dt).
+    """Iterator over kk and `kkObs`, yielding `(k,kObs,t,dt)`.
 
-    Includes __len__ for progressbar usage.
+    Includes `__len__` for progressbar usage.
 
-    kObs = kkObs.index(k), or None otherwise,
+    `kObs = kkObs.index(k)`, or `None` otherwise,
     but computed without this repeated look-up operation.
     """
 

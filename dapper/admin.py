@@ -280,7 +280,7 @@ def run_experiment(xp, label, savedir, HMM,
 # TODO 2: check collections.userlist
 # TODO 2: __add__ vs __iadd__
 class xpList(list):
-    """List, subclassed for holding experiment ("xp") objects.
+    """Subclass of `list` specialized for experiment ("xp") objects.
 
     Main use: administrate experiment **launches**.
     Also see: ``xpSpace`` for experiment **result presentation**.
@@ -498,6 +498,7 @@ class xpList(list):
         unless ``save_as`` is False/None.
 
         Depending on ``mp``, run_experiment() is delegated to one of:
+
          - caller process (no parallelisation)
          - multiprocessing on this host
          - GCP (Google Cloud Computing) with HTCondor

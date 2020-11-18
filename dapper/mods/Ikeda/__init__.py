@@ -1,4 +1,4 @@
-"""The "Ikeda map" is a discrete-time, 2D, dynamical system.
+"""The "Ikeda map" is a discrete-time dynamical system of size 2.
 
 Source: https://en.wikipedia.org/wiki/Ikeda_map and Colin Grudzen.
 

@@ -324,7 +324,7 @@ def run_experiment(xp, label, savedir, HMM,
 # TODO 2: check collections.userlist
 # TODO 2: __add__ vs __iadd__
 class xpList(list):
-    &#34;&#34;&#34;List, subclassed for holding experiment (&#34;xp&#34;) objects.
+    &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
     Main use: administrate experiment **launches**.
     Also see: ``xpSpace`` for experiment **result presentation**.
@@ -542,6 +542,7 @@ class xpList(list):
         unless ``save_as`` is False/None.
 
         Depending on ``mp``, run_experiment() is delegated to one of:
+
          - caller process (no parallelisation)
          - multiprocessing on this host
          - GCP (Google Cloud Computing) with HTCondor
@@ -1179,7 +1180,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <span>(</span><span>*args, unique=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>List, subclassed for holding experiment ("xp") objects.</p>
+<div class="desc"><p>Subclass of <code>list</code> specialized for experiment ("xp") objects.</p>
 <p>Main use: administrate experiment <strong>launches</strong>.
 Also see: <code>xpSpace</code> for experiment <strong>result presentation</strong>.</p>
 <p>Modifications to <code>list</code>:</p>
@@ -1206,7 +1207,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class xpList(list):
-    &#34;&#34;&#34;List, subclassed for holding experiment (&#34;xp&#34;) objects.
+    &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
     Main use: administrate experiment **launches**.
     Also see: ``xpSpace`` for experiment **result presentation**.
@@ -1424,6 +1425,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         unless ``save_as`` is False/None.
 
         Depending on ``mp``, run_experiment() is delegated to one of:
+
          - caller process (no parallelisation)
          - multiprocessing on this host
          - GCP (Google Cloud Computing) with HTCondor
@@ -1804,10 +1806,12 @@ unless the missingval (e.g. None) matches the required value.</p></div>
 <div class="desc"><p>For each xp in self: run_experiment(xp, &hellip;).</p>
 <p>The results are saved in <code>rc.dirs['data']/save_as.stem</code>,
 unless <code>save_as</code> is False/None.</p>
-<p>Depending on <code>mp</code>, run_experiment() is delegated to one of:
-- caller process (no parallelisation)
-- multiprocessing on this host
-- GCP (Google Cloud Computing) with HTCondor</p>
+<p>Depending on <code>mp</code>, run_experiment() is delegated to one of:</p>
+<ul>
+<li>caller process (no parallelisation)</li>
+<li>multiprocessing on this host</li>
+<li>GCP (Google Cloud Computing) with HTCondor</li>
+</ul>
 <p>If <code>setup == None</code>: use <code><a title="dapper.admin.seed_and_simulate" href="#dapper.admin.seed_and_simulate">seed_and_simulate()</a></code>.</p>
 <p>The kwargs are forwarded to run_experiment().</p>
 <p>See <code>example_2.py</code> and <code>example_3.py</code> for example use.</p></div>
@@ -1823,6 +1827,7 @@ unless <code>save_as</code> is False/None.</p>
     unless ``save_as`` is False/None.
 
     Depending on ``mp``, run_experiment() is delegated to one of:
+
      - caller process (no parallelisation)
      - multiprocessing on this host
      - GCP (Google Cloud Computing) with HTCondor

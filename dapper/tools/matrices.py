@@ -179,14 +179,17 @@ class CovMat():
     """Covariance matrix class.
 
     Main tasks:
+
       - Unifying the covariance representations:
         full, diagonal, reduced-rank sqrt.
       - Convenience constructor and printing.
       - Convenience transformations with memoization.
         E.g. replaces:
-        >if not hasattr(noise.C,'sym_sqrt'):
-        >  S = funm_psd(noise.C, sqrt)
-        >  noise.C.sym_sqrt = S
+
+            >>> if not hasattr(noise.C,'sym_sqrt'):
+            >>>     S = funm_psd(noise.C, sqrt)
+            >>>     noise.C.sym_sqrt = S
+
         This (hiding it internally) becomes particularly useful
         if the covariance matrix changes with time (but repeat).
     """
@@ -197,14 +200,14 @@ class CovMat():
     def __init__(self, data, kind='full_or_diag', trunc=1.0):
         """The covariance (say P) can be input (specified in the following ways):
 
-        kind    : data
-        ----------------------
-        'full'  : full M-by-M array (P)
-        'diag'  : diagonal of P (assumed diagonal)
-        'E'     : ensemble (N-by-M) with sample cov P
-        'A'     : as 'E', but pre-centred by mean(E,axis=0)
-        'Right' : any R such that P = R.T@R (e.g. weighted form of 'A')
-        'Left'  : any L such that P = L@L.T
+            kind    | data
+            --------|-------------
+            'full'  | full M-by-M array (P)
+            'diag'  | diagonal of P (assumed diagonal)
+            'E'     | ensemble (N-by-M) with sample cov P
+            'A'     | as 'E', but pre-centred by mean(E,axis=0)
+            'Right' | any R such that P = R.T@R (e.g. weighted form of 'A')
+            'Left'  | any L such that P = L@L.T
         """
 
         # Cascade if's down to 'Right'

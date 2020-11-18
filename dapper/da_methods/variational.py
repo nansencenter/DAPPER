@@ -1,4 +1,4 @@
-"""Variational methods (iEnKS, 4D-Var, etc)"""
+"""Variational DA methods (iEnKS, 4D-Var, etc)"""
 
 from typing import Optional
 

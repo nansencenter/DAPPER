@@ -84,9 +84,10 @@ else:
             In fact, ``func`` should not reference ``self`` at all,
             because its serialization is rather slow.
 
-        See example use in mods/QG/__init__.py.
+        See example use in `dapper.mods.QG`
 
         Technicalities dealt with:
+
          - passing kwargs
          - join(), close()
 

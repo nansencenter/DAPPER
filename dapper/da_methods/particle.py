@@ -1,3 +1,5 @@
+"""Weight- & resampling-based DA methods."""
+
 import numpy as np
 from dapper.admin import da_method
 import dapper.tools.utils as utils

@@ -42,8 +42,9 @@ workings of the model.
 Typically, this culminates in a <code>step(x, t, dt)</code> function.<ul>
 <li>The model step operator (and the obs operator) must support
 2D-array (i.e. ensemble) and 1D-array (single realization) input.
-See the <code>core.py</code> file in <code>mods/Lorenz63</code> and <code>mods/Lorenz96</code> for typical
-implementations, and <code>mods/QG</code> for how to parallelize the ensemble simulations.</li>
+See <code><a title="dapper.mods.Lorenz63" href="Lorenz63/index.html">dapper.mods.Lorenz63</a></code> and <code><a title="dapper.mods.Lorenz96" href="Lorenz96/index.html">dapper.mods.Lorenz96</a></code>
+for typical implementations,
+and <code>dapper.mods/QG</code> for how to parallelize the ensemble simulations.</li>
 <li>Optional: To use the (extended) Kalman filter, or 4D-Var,
 you will need to define the model linearization.
 Note: this only needs to support 1D input (single realization).</li>
@@ -96,8 +97,9 @@ To make sure this is working, we suggest the following structure:
   Typically, this culminates in a `step(x, t, dt)` function.
     - The model step operator (and the obs operator) must support
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
-      See the `core.py` file in `mods/Lorenz63` and `mods/Lorenz96` for typical
-      implementations, and `mods/QG` for how to parallelize the ensemble simulations.
+      See `dapper.mods.Lorenz63` and `dapper.mods.Lorenz96`
+      for typical implementations,
+      and `dapper.mods/QG` for how to parallelize the ensemble simulations.
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).
@@ -138,7 +140,7 @@ To make sure this is working, we suggest the following structure:
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Ikeda" href="Ikeda/index.html">Ikeda</a></code></dt>
 <dd>
-<div class="desc"><p>The "Ikeda map" is a discrete-time, 2D, dynamical system …</p></div>
+<div class="desc"><p>The "Ikeda map" is a discrete-time dynamical system of size 2 …</p></div>
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -156,7 +158,7 @@ To make sure this is working, we suggest the following structure:
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz63" href="Lorenz63/index.html">Lorenz63</a></code></dt>
 <dd>
-<div class="desc"><p>The Lorenz-63 model: the classic exhibitor of chaos …</p></div>
+<div class="desc"><p>The classic exhibitor of chaos, consisting of 3 coupled ODEs …</p></div>
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->

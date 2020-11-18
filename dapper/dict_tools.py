@@ -1,6 +1,4 @@
-"""Tools for dicts (and lists).
-
-Bonus: also some list tools."""
+"""Tools for dicts (and lists)."""
 
 # TODO 9
 # - Make pip package, answer SO.com questions about

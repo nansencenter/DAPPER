@@ -239,35 +239,41 @@ def reduce_inodes(save_as, nDir=100):
 
 
 class SparseSpace(dict):
-    """Dict, subclassed enforce key conformity (to a coord. sys, i.e. a space).
+    """Subclass of `dict` to enforce key conformity (to a coord. sys, i.e. a space).
 
     The coordinate system is specified by its "axes",
-    which is used to produce self.Coord (a namedtuple class).
+    which is used to produce `self.Coord` (a `namedtuple` class).
 
-    As a normal dict, it can hold any type of objects.
+    As a normal `dict,` it can hold any type of objects.
 
     In normal use, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
-    eg. coord(da_method=Climatology, rot=True, ...).
+    eg. `coord(da_method=Climatology, rot=True, ...)`.
 
     Indeed, operations across (potentially multiple simultaneous) axes,
     such as optimization or averaging, should be carried out by iterating
     -- not over the axis -- but over the the list of items.
 
     The most important method is ``nest()``,
-    which is used (by xpSpace.table_tree) to separate tables/columns,
+    which is used (by `xpSpace.table_tree`) to separate tables/columns,
     and also to carry out the mean/optim operations.
 
     In addition, __getitem__() is very flexible, allowing accessing by:
-    - The actual key, a self.Coord object. Returns single item.
-    - A dict match against (part of) the coordinates. Returns subspace.
-    - An int. Returns list(self)[key].
-    - A list of any of the above. Returns list.
-    This flexibility can cause bugs, but it's probably still worth it).
-    Also see __call__(), get_for(), and coords(), for further convenience.
 
-    Inspired by https://stackoverflow.com/a/7728830
-    Also see https://stackoverflow.com/q/3387691 """
+    - The actual key, a `self.Coord` object. Returns single item.
+    - A `dict` to match against (part of) the coordinates. Returns subspace.
+    - An `int`. Returns `list(self)[key]`.
+    - A list of any of the above. Returns list.
+
+    This flexibility can cause bugs, but it's probably still worth it.
+    Also see `__call__()`, `get_for()`, and `coords()`,
+    for further convenience.
+
+    Inspired by
+
+    - https://stackoverflow.com/a/7728830
+    - https://stackoverflow.com/q/3387691
+    """
 
     @property
     def axes(self):
@@ -490,14 +496,14 @@ class xpSpace(SparseSpace):
     (1) computing the relevant axes from the attributes, and
     (2) filling the dict by ``xps``.
 
+    Using ``from_list(xps)`` creates a SparseSpace holding ``xps``.
+    However, the nested ``xpSpace``s output by ``table_tree()`` will hold
+    objects of type ``UncertainQtty``,
+    coz ``table_tree()`` calls ``mean()`` calls ``field(statkey)``.
+
     The main use of xpSpace is through its ``print()`` & ``plot()``,
     both of which call ``table_tree()`` to nest the axes of the SparseSpace.
-    For custom plotting, you will likely want to start with ``table_tree()``.
-
-    Using ``from_list(xps)`` creates a SparseSpace holding ``xps``.
-    However, the nested ``xpSpace``s output by ``table_tree()``, will hold
-    objects of type ``UncertainQtty``,
-    coz ``table_tree()`` calls ``mean()`` calls ``field(statkey)``."""
+    """
 
     @classmethod
     def from_list(cls, xps):

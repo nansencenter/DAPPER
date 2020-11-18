@@ -51,9 +51,10 @@ class LivePlot:
     &#34;&#34;&#34;Live plotting manager.
 
     Deals with
+
      - Pause, skip.
      - Which liveploters to call.
-     - plot_u
+     - `plot_u`
      - Figure window (title and number).&#34;&#34;&#34;
 
     def __init__(self,
@@ -67,16 +68,18 @@ class LivePlot:
                  **kwargs):
         &#34;&#34;&#34;
         Initialize plots.
+
         - liveplots: figures to plot; alternatives:
-          - &#34;default&#34;/[]/True: All default figures for this HMM.
-          - &#34;all&#34;            : Even more.
-          - non-empty list   : Only the figures with these numbers (int) or names (str).
-          - False            : None.
+            - `&#34;default&#34;/[]/True`: All default figures for this HMM.
+            - `&#34;all&#34;`            : Even more.
+            - non-empty `list`   : Only the figures with these numbers
+                                 (int) or names (str).
+            - `False`            : None.
         - speed: speed of animation.
-            - &gt;100: instantaneous
-            - 1   : (default) as quick as possible allowing for
-                    plt.draw() to work on a moderately fast computer.
-            - &lt;1  : slower.
+            - `&gt;100`: instantaneous
+            - `1`   : (default) as quick as possible allowing for
+                      plt.draw() to work on a moderately fast computer.
+            - `&lt;1`  : slower.
         &#34;&#34;&#34;
 
         # Disable if not rc.liveplotting
@@ -925,12 +928,12 @@ def phase_particles(
 
 
 def validate_lag(Tplot, chrono):
-    &#34;&#34;&#34;Return validated T_lag such that is is:
+    &#34;&#34;&#34;Return validated `T_lag` such that is is:
 
-     - equal to Tplot with fallback: HMM.t.Tplot.
-     - no longer than HMM.t.T.
+     - equal to `Tplot` with fallback: `HMM.t.Tplot`.
+     - no longer than `HMM.t.T`.
 
-     Also return corresponding K_lag, a_lag.&#34;&#34;&#34;
+     Also return corresponding `K_lag`, `a_lag`.&#34;&#34;&#34;
 
     # Defaults
     if Tplot is None:
@@ -1013,20 +1016,19 @@ _Ea = [None]  # persistent storage for ens
 
 
 def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
-    &#34;&#34;&#34;Provide new ylim&#39;s intelligently,
-    computed from percentiles of the data.
+    &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
 
-    - data: iterable of arrays for computing percentiles.
-    - pp: percentiles
+    - `data`: iterable of arrays for computing percentiles.
+    - `pp`: percentiles
 
-    - ax: If present, then the delta_zoom in/out is also considered.
+    - `ax`: If present, then the delta_zoom in/out is also considered.
 
-      - cE: exansion (widenting) rate ∈ [0,1].
+      - `cE`: exansion (widenting) rate ∈ [0,1].
         Default: 1, which immediately expands to percentile.
-      - cC: compression (narrowing) rate ∈ [0,1].
+      - `cC`: compression (narrowing) rate ∈ [0,1].
         Default: 0, which does not allow compression.
 
-    - Min/Max: bounds
+    - `Min`/`Max`: bounds
 
     Despite being a little involved,
     the cost of this subroutine is typically not substantial
@@ -1643,23 +1645,23 @@ default_liveplotters = [
 <span>def <span class="ident">validate_lag</span></span>(<span>Tplot, chrono)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Return validated T_lag such that is is:</p>
+<div class="desc"><p>Return validated <code>T_lag</code> such that is is:</p>
 <ul>
-<li>equal to Tplot with fallback: HMM.t.Tplot.</li>
-<li>no longer than HMM.t.T.</li>
+<li>equal to <code>Tplot</code> with fallback: <code>HMM.t.Tplot</code>.</li>
+<li>no longer than <code>HMM.t.T</code>.</li>
 </ul>
-<p>Also return corresponding K_lag, a_lag.</p></div>
+<p>Also return corresponding <code>K_lag</code>, <code>a_lag</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_lag(Tplot, chrono):
-    &#34;&#34;&#34;Return validated T_lag such that is is:
+    &#34;&#34;&#34;Return validated `T_lag` such that is is:
 
-     - equal to Tplot with fallback: HMM.t.Tplot.
-     - no longer than HMM.t.T.
+     - equal to `Tplot` with fallback: `HMM.t.Tplot`.
+     - no longer than `HMM.t.T`.
 
-     Also return corresponding K_lag, a_lag.&#34;&#34;&#34;
+     Also return corresponding `K_lag`, `a_lag`.&#34;&#34;&#34;
 
     # Defaults
     if Tplot is None:
@@ -1769,26 +1771,25 @@ default_liveplotters = [
 <span>def <span class="ident">d_ylim</span></span>(<span>data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e+20, Max=1e+20)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Provide new ylim's intelligently,
-computed from percentiles of the data.</p>
+<div class="desc"><p>Provide new ylim's intelligently, from percentiles of the data.</p>
 <ul>
-<li>data: iterable of arrays for computing percentiles.</li>
+<li><code>data</code>: iterable of arrays for computing percentiles.</li>
 <li>
-<p>pp: percentiles</p>
+<p><code>pp</code>: percentiles</p>
 </li>
 <li>
-<p>ax: If present, then the delta_zoom in/out is also considered.</p>
+<p><code>ax</code>: If present, then the delta_zoom in/out is also considered.</p>
 </li>
 <li>
-<p>cE: exansion (widenting) rate ∈ [0,1].
+<p><code>cE</code>: exansion (widenting) rate ∈ [0,1].
 Default: 1, which immediately expands to percentile.</p>
 </li>
 <li>
-<p>cC: compression (narrowing) rate ∈ [0,1].
+<p><code>cC</code>: compression (narrowing) rate ∈ [0,1].
 Default: 0, which does not allow compression.</p>
 </li>
 <li>
-<p>Min/Max: bounds</p>
+<p><code>Min</code>/<code>Max</code>: bounds</p>
 </li>
 </ul>
 <p>Despite being a little involved,
@@ -1799,20 +1800,19 @@ because there's usually not that much data to sort through.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
-    &#34;&#34;&#34;Provide new ylim&#39;s intelligently,
-    computed from percentiles of the data.
+    &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
 
-    - data: iterable of arrays for computing percentiles.
-    - pp: percentiles
+    - `data`: iterable of arrays for computing percentiles.
+    - `pp`: percentiles
 
-    - ax: If present, then the delta_zoom in/out is also considered.
+    - `ax`: If present, then the delta_zoom in/out is also considered.
 
-      - cE: exansion (widenting) rate ∈ [0,1].
+      - `cE`: exansion (widenting) rate ∈ [0,1].
         Default: 1, which immediately expands to percentile.
-      - cC: compression (narrowing) rate ∈ [0,1].
+      - `cC`: compression (narrowing) rate ∈ [0,1].
         Default: 0, which does not allow compression.
 
-    - Min/Max: bounds
+    - `Min`/`Max`: bounds
 
     Despite being a little involved,
     the cost of this subroutine is typically not substantial
@@ -2114,27 +2114,36 @@ because there's usually not that much data to sort through.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Live plotting manager.</p>
-<p>Deals with
-- Pause, skip.
-- Which liveploters to call.
-- plot_u
-- Figure window (title and number).</p>
-<p>Initialize plots.
-- liveplots: figures to plot; alternatives:
-- "default"/[]/True: All default figures for this HMM.
-- "all"
-: Even more.
-- non-empty list
-: Only the figures with these numbers (int) or names (str).
-- False
-: None.
-- speed: speed of animation.
-- &gt;100: instantaneous
-- 1
+<p>Deals with</p>
+<ul>
+<li>Pause, skip.</li>
+<li>Which liveploters to call.</li>
+<li><code>plot_u</code></li>
+<li>Figure window (title and number).</li>
+</ul>
+<p>Initialize plots.</p>
+<ul>
+<li>liveplots: figures to plot; alternatives:<ul>
+<li><code>"default"/[]/True</code>: All default figures for this HMM.</li>
+<li><code>"all"</code>
+: Even more.</li>
+<li>non-empty <code>list</code>
+: Only the figures with these numbers
+(int) or names (str).</li>
+<li><code>False</code>
+: None.</li>
+</ul>
+</li>
+<li>speed: speed of animation.<ul>
+<li><code>&gt;100</code>: instantaneous</li>
+<li><code>1</code>
 : (default) as quick as possible allowing for
-plt.draw() to work on a moderately fast computer.
-- &lt;1
-: slower.</p></div>
+plt.draw() to work on a moderately fast computer.</li>
+<li><code>&lt;1</code>
+: slower.</li>
+</ul>
+</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2143,9 +2152,10 @@ plt.draw() to work on a moderately fast computer.
     &#34;&#34;&#34;Live plotting manager.
 
     Deals with
+
      - Pause, skip.
      - Which liveploters to call.
-     - plot_u
+     - `plot_u`
      - Figure window (title and number).&#34;&#34;&#34;
 
     def __init__(self,
@@ -2159,16 +2169,18 @@ plt.draw() to work on a moderately fast computer.
                  **kwargs):
         &#34;&#34;&#34;
         Initialize plots.
+
         - liveplots: figures to plot; alternatives:
-          - &#34;default&#34;/[]/True: All default figures for this HMM.
-          - &#34;all&#34;            : Even more.
-          - non-empty list   : Only the figures with these numbers (int) or names (str).
-          - False            : None.
+            - `&#34;default&#34;/[]/True`: All default figures for this HMM.
+            - `&#34;all&#34;`            : Even more.
+            - non-empty `list`   : Only the figures with these numbers
+                                 (int) or names (str).
+            - `False`            : None.
         - speed: speed of animation.
-            - &gt;100: instantaneous
-            - 1   : (default) as quick as possible allowing for
-                    plt.draw() to work on a moderately fast computer.
-            - &lt;1  : slower.
+            - `&gt;100`: instantaneous
+            - `1`   : (default) as quick as possible allowing for
+                      plt.draw() to work on a moderately fast computer.
+            - `&lt;1`  : slower.
         &#34;&#34;&#34;
 
         # Disable if not rc.liveplotting

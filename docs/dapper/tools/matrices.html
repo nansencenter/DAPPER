@@ -209,14 +209,17 @@ class CovMat():
     &#34;&#34;&#34;Covariance matrix class.
 
     Main tasks:
+
       - Unifying the covariance representations:
         full, diagonal, reduced-rank sqrt.
       - Convenience constructor and printing.
       - Convenience transformations with memoization.
         E.g. replaces:
-        &gt;if not hasattr(noise.C,&#39;sym_sqrt&#39;):
-        &gt;  S = funm_psd(noise.C, sqrt)
-        &gt;  noise.C.sym_sqrt = S
+
+            &gt;&gt;&gt; if not hasattr(noise.C,&#39;sym_sqrt&#39;):
+            &gt;&gt;&gt;     S = funm_psd(noise.C, sqrt)
+            &gt;&gt;&gt;     noise.C.sym_sqrt = S
+
         This (hiding it internally) becomes particularly useful
         if the covariance matrix changes with time (but repeat).
     &#34;&#34;&#34;
@@ -227,14 +230,14 @@ class CovMat():
     def __init__(self, data, kind=&#39;full_or_diag&#39;, trunc=1.0):
         &#34;&#34;&#34;The covariance (say P) can be input (specified in the following ways):
 
-        kind    : data
-        ----------------------
-        &#39;full&#39;  : full M-by-M array (P)
-        &#39;diag&#39;  : diagonal of P (assumed diagonal)
-        &#39;E&#39;     : ensemble (N-by-M) with sample cov P
-        &#39;A&#39;     : as &#39;E&#39;, but pre-centred by mean(E,axis=0)
-        &#39;Right&#39; : any R such that P = R.T@R (e.g. weighted form of &#39;A&#39;)
-        &#39;Left&#39;  : any L such that P = L@L.T
+            kind    | data
+            --------|-------------
+            &#39;full&#39;  | full M-by-M array (P)
+            &#39;diag&#39;  | diagonal of P (assumed diagonal)
+            &#39;E&#39;     | ensemble (N-by-M) with sample cov P
+            &#39;A&#39;     | as &#39;E&#39;, but pre-centred by mean(E,axis=0)
+            &#39;Right&#39; | any R such that P = R.T@R (e.g. weighted form of &#39;A&#39;)
+            &#39;Left&#39;  | any L such that P = L@L.T
         &#34;&#34;&#34;
 
         # Cascade if&#39;s down to &#39;Right&#39;
@@ -805,33 +808,57 @@ as it replaces itself.</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Covariance matrix class.</p>
-<p>Main tasks:
-- Unifying the covariance representations:
-full, diagonal, reduced-rank sqrt.
-- Convenience constructor and printing.
-- Convenience transformations with memoization.
-E.g. replaces:
-&gt;if not hasattr(noise.C,'sym_sqrt'):
-&gt;
-S = funm_psd(noise.C, sqrt)
-&gt;
-noise.C.sym_sqrt = S
-This (hiding it internally) becomes particularly useful
+<p>Main tasks:</p>
+<ul>
+<li>Unifying the covariance representations:
+full, diagonal, reduced-rank sqrt.</li>
+<li>Convenience constructor and printing.</li>
+<li>
+<p>Convenience transformations with memoization.
+E.g. replaces:</p>
+<pre><code>&gt;&gt;&gt; if not hasattr(noise.C,'sym_sqrt'):
+&gt;&gt;&gt;     S = funm_psd(noise.C, sqrt)
+&gt;&gt;&gt;     noise.C.sym_sqrt = S
+</code></pre>
+<p>This (hiding it internally) becomes particularly useful
 if the covariance matrix changes with time (but repeat).</p>
+</li>
+</ul>
 <p>The covariance (say P) can be input (specified in the following ways):</p>
-<h2 id="kind-data">kind
-: data</h2>
-<p>'full'
-: full M-by-M array (P)
-'diag'
-: diagonal of P (assumed diagonal)
-'E'
-: ensemble (N-by-M) with sample cov P
-'A'
-: as 'E', but pre-centred by mean(E,axis=0)
-'Right' : any R such that P = R.T@R (e.g. weighted form of 'A')
-'Left'
-: any L such that P = L@L.T</p></div>
+<table>
+<thead>
+<tr>
+<th>kind</th>
+<th>data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>'full'</td>
+<td>full M-by-M array (P)</td>
+</tr>
+<tr>
+<td>'diag'</td>
+<td>diagonal of P (assumed diagonal)</td>
+</tr>
+<tr>
+<td>'E'</td>
+<td>ensemble (N-by-M) with sample cov P</td>
+</tr>
+<tr>
+<td>'A'</td>
+<td>as 'E', but pre-centred by mean(E,axis=0)</td>
+</tr>
+<tr>
+<td>'Right'</td>
+<td>any R such that P = R.T@R (e.g. weighted form of 'A')</td>
+</tr>
+<tr>
+<td>'Left'</td>
+<td>any L such that P = L@L.T</td>
+</tr>
+</tbody>
+</table></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -840,14 +867,17 @@ if the covariance matrix changes with time (but repeat).</p>
     &#34;&#34;&#34;Covariance matrix class.
 
     Main tasks:
+
       - Unifying the covariance representations:
         full, diagonal, reduced-rank sqrt.
       - Convenience constructor and printing.
       - Convenience transformations with memoization.
         E.g. replaces:
-        &gt;if not hasattr(noise.C,&#39;sym_sqrt&#39;):
-        &gt;  S = funm_psd(noise.C, sqrt)
-        &gt;  noise.C.sym_sqrt = S
+
+            &gt;&gt;&gt; if not hasattr(noise.C,&#39;sym_sqrt&#39;):
+            &gt;&gt;&gt;     S = funm_psd(noise.C, sqrt)
+            &gt;&gt;&gt;     noise.C.sym_sqrt = S
+
         This (hiding it internally) becomes particularly useful
         if the covariance matrix changes with time (but repeat).
     &#34;&#34;&#34;
@@ -858,14 +888,14 @@ if the covariance matrix changes with time (but repeat).</p>
     def __init__(self, data, kind=&#39;full_or_diag&#39;, trunc=1.0):
         &#34;&#34;&#34;The covariance (say P) can be input (specified in the following ways):
 
-        kind    : data
-        ----------------------
-        &#39;full&#39;  : full M-by-M array (P)
-        &#39;diag&#39;  : diagonal of P (assumed diagonal)
-        &#39;E&#39;     : ensemble (N-by-M) with sample cov P
-        &#39;A&#39;     : as &#39;E&#39;, but pre-centred by mean(E,axis=0)
-        &#39;Right&#39; : any R such that P = R.T@R (e.g. weighted form of &#39;A&#39;)
-        &#39;Left&#39;  : any L such that P = L@L.T
+            kind    | data
+            --------|-------------
+            &#39;full&#39;  | full M-by-M array (P)
+            &#39;diag&#39;  | diagonal of P (assumed diagonal)
+            &#39;E&#39;     | ensemble (N-by-M) with sample cov P
+            &#39;A&#39;     | as &#39;E&#39;, but pre-centred by mean(E,axis=0)
+            &#39;Right&#39; | any R such that P = R.T@R (e.g. weighted form of &#39;A&#39;)
+            &#39;Left&#39;  | any L such that P = L@L.T
         &#34;&#34;&#34;
 
         # Cascade if&#39;s down to &#39;Right&#39;

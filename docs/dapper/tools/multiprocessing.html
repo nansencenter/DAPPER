@@ -114,9 +114,10 @@ else:
             In fact, ``func`` should not reference ``self`` at all,
             because its serialization is rather slow.
 
-        See example use in mods/QG/__init__.py.
+        See example use in `dapper.mods.QG`
 
         Technicalities dealt with:
+
          - passing kwargs
          - join(), close()
 
@@ -240,10 +241,12 @@ so ensure <code>func</code> does not reference <code>self.stats.LP_instance</cod
 where <code>self</code> is a <code>@da_method</code> object.
 In fact, <code>func</code> should not reference <code>self</code> at all,
 because its serialization is rather slow.</p>
-<p>See example use in mods/QG/<strong>init</strong>.py.</p>
-<p>Technicalities dealt with:
-- passing kwargs
-- join(), close()</p>
+<p>See example use in <code><a title="dapper.mods.QG" href="../mods/QG/index.html">dapper.mods.QG</a></code></p>
+<p>Technicalities dealt with:</p>
+<ul>
+<li>passing kwargs</li>
+<li>join(), close()</li>
+</ul>
 <p>However, the main achievement of this helper function is to make
 "Ctrl+C", i.e. KeyboardInterruption,
 stop the execution of the program, and do so "gracefully",
@@ -268,9 +271,10 @@ something which is quite tricky to achieve with multiprocessing.</p></div>
         In fact, ``func`` should not reference ``self`` at all,
         because its serialization is rather slow.
 
-    See example use in mods/QG/__init__.py.
+    See example use in `dapper.mods.QG`
 
     Technicalities dealt with:
+
      - passing kwargs
      - join(), close()
 

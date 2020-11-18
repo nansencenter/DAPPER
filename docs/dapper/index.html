@@ -81,8 +81,7 @@ lazy eval that facilitates the use of non-diagnoal covariance matrices (whether 
 </ul>
 </li>
 </ul>
-<h2 id="development">Development</h2>
-<h3 id="implementation-choices">Implementation choices</h3>
+<h2 id="conventions">Conventions</h2>
 <ul>
 <li>Python version <code>&gt;=3.7</code> for dicts to maintain ordering.</li>
 <li>Ensemble (data) matrices are np.ndarrays with shape <code>N-by-Nx</code>.
@@ -99,7 +98,7 @@ E.g. <code>dy @ Rinv @ Y.T @ Pw</code> (where <code>dy</code> is a vector)</li>
 statistical regression literature.</li>
 </ul>
 </li>
-<li>Naming conventions:<ul>
+<li>Naming:<ul>
 <li><code>E</code>: ensemble matrix</li>
 <li><code>w</code>: ensemble weights or coefficients</li>
 <li><code>X</code>: centered ensemble</li>
@@ -117,99 +116,6 @@ For example:<ul>
 <li><code>xps</code>: an <code>xpList</code> or <code>xpDict</code>,
 where <code>xp</code> abbreviates "experiment".</li>
 </ul>
-</li>
-</ul>
-<h3 id="profiling">Profiling</h3>
-<ul>
-<li>Launch your python script using <code>kernprof -l -v my_script.py</code></li>
-<li><em>Functions</em> decorated with <code>profile</code> will be timed, line-by-line.</li>
-<li>If your script is launched regularly, then <code>profile</code> will not be
-present in the <code>builtins.</code> Instead of deleting your decorations,
-you could also define a pass-through fallback.</li>
-</ul>
-<h3 id="making-a-release">Making a release</h3>
-<ul>
-<li><code>cd DAPPER</code></li>
-<li>Bump version number in <code>__init__.py</code></li>
-<li>
-<p>Merge <code>dev1</code> into <code>master</code><br>
-<code>git checkout master</code>
-<code>git merge --no-commit --no-ff dev1</code>
-<code># Fix conflicts, e.g</code>
-<code># git rm &lt;unwanted-file&gt;</code>
-<code>git commit</code></p>
-</li>
-<li>
-<p>Make docs (including bib)</p>
-</li>
-<li>
-<p>Tag</p>
-<pre><code>git tag -a v$(python setup.py --version) -m 'My description'
-git push origin --tags
-</code></pre>
-</li>
-<li>
-<p>Clean<br>
-<code>rm -rf build/ dist *.egg-info .eggs</code></p>
-</li>
-<li>
-<p>Add new files to <code>package_data</code> and <code>packages</code> in <code>setup.py</code></p>
-</li>
-<li>
-<p>Build<br>
-<code>./setup.py sdist bdist_wheel</code></p>
-</li>
-<li>
-<p>Upload to PyPI<br>
-<code>twine upload --repository pypi dist/*</code></p>
-</li>
-<li>
-<p>Upload to Test.PyPI<br>
-<code>twine upload --repository testpypi dist/*</code><br>
-where <code>~/.pypirc</code> contains</p>
-<pre><code>[distutils]
-index-servers=
-                pypi
-                testpypi
-
-[pypi]
-username: myuser
-password: mypass
-
-[testpypi]
-repository: &lt;https://test.pypi.org/legacy/&gt;
-username: myuser
-password: mypass
-</code></pre>
-</li>
-<li>
-<p>Upload to <code>Test.PyPI</code><br>
-<code>git checkout dev1</code></p>
-</li>
-</ul>
-<h4 id="test-installation">Test installation</h4>
-<ul>
-<li>
-<p>Install from <code>Test.PyPI</code><br>
-<code>pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER</code></p>
-</li>
-<li>
-<p>Install from <code>PyPI</code><br>
-<code>pip install DA-DAPPER</code></p>
-<ul>
-<li>
-<p>Install into specific dir (includes all of the dependencies)<br>
-<code>pip install DA-DAPPER -t MyDir</code></p>
-</li>
-<li>
-<p>Install with options<br>
-<code>pip install DA-DAPPER[Qt,MP]</code></p>
-</li>
-</ul>
-</li>
-<li>
-<p>Install from local (makes installation accessible from everywhere)<br>
-<code>pip install -e .</code></p>
 </li>
 </ul>
 <details class="source">
@@ -271,9 +177,8 @@ Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#H
     - Automatic averaging of several types for sub-domains
       (e.g. &#34;ocean&#34;, &#34;land&#34;, etc.)
 
-## Development
 
-### Implementation choices
+## Conventions
 
 - Python version `&gt;=3.7` for dicts to maintain ordering.
 - Ensemble (data) matrices are np.ndarrays with shape `N-by-Nx`.
@@ -288,7 +193,7 @@ Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#H
     - Less transposing for for ens-space formulae.
     - It&#39;s the standard for data matrices in
       statistical regression literature.
-- Naming conventions:
+- Naming:
     - `E`: ensemble matrix
     - `w`: ensemble weights or coefficients
     - `X`: centered ensemble
@@ -303,82 +208,6 @@ Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#H
         - `ii`, `jj`: Sequences of indices (integers)
     - `xps`: an `xpList` or `xpDict`,
       where `xp` abbreviates &#34;experiment&#34;.
-
-### Profiling
-
-- Launch your python script using `kernprof -l -v my_script.py`
-- *Functions* decorated with `profile` will be timed, line-by-line.
-- If your script is launched regularly, then `profile` will not be
-  present in the `builtins.` Instead of deleting your decorations,
-  you could also define a pass-through fallback.
-
-### Making a release
-
-- `cd DAPPER`
-- Bump version number in `__init__.py`
-- Merge `dev1` into `master`  
-  `git checkout master`
-  `git merge --no-commit --no-ff dev1`
-  `# Fix conflicts, e.g`
-  `# git rm &lt;unwanted-file&gt;`
-  `git commit`
-
-- Make docs (including bib)
-- Tag
-
-        git tag -a v$(python setup.py --version) -m &#39;My description&#39;
-        git push origin --tags
-
-- Clean  
-  `rm -rf build/ dist *.egg-info .eggs`
-
-- Add new files to `package_data` and `packages` in `setup.py`
-
-- Build  
-  `./setup.py sdist bdist_wheel`
-
-- Upload to PyPI  
-  `twine upload --repository pypi dist/*`
-
-
-- Upload to Test.PyPI  
-  `twine upload --repository testpypi dist/*`  
-  where `~/.pypirc` contains
-
-        [distutils]
-        index-servers=
-                        pypi
-                        testpypi
-        
-        [pypi]
-        username: myuser
-        password: mypass
-        
-        [testpypi]
-        repository: https://test.pypi.org/legacy/
-        username: myuser
-        password: mypass
-
-- Upload to `Test.PyPI`  
-  `git checkout dev1`
-
-#### Test installation
-
-- Install from `Test.PyPI`  
-  `pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER`
-
-- Install from `PyPI`  
-  `pip install DA-DAPPER`
-
-    - Install into specific dir (includes all of the dependencies)  
-      `pip install DA-DAPPER -t MyDir`
-
-    - Install with options  
-      `pip install DA-DAPPER[Qt,MP]`
-
-- Install from local (makes installation accessible from everywhere)  
-  `pip install -e .`
-
 &#34;&#34;&#34;
 
 __version__ = &#34;0.9.6&#34;
@@ -482,9 +311,15 @@ __pdoc__ = {
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.dev_guide" href="dev_guide.html">dev_guide</a></code></dt>
+<dd>
+<div class="desc"><p>Profiling …</p></div>
+</dd>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></dt>
 <dd>
-<div class="desc"><p>Tools for dicts (and lists) …</p></div>
+<div class="desc"><p>Tools for dicts (and lists).</p></div>
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -533,15 +368,7 @@ __pdoc__ = {
 <li><a href="#api-reference">API reference</a></li>
 <li><a href="#usage">Usage</a></li>
 <li><a href="#features">Features</a></li>
-<li><a href="#development">Development</a><ul>
-<li><a href="#implementation-choices">Implementation choices</a></li>
-<li><a href="#profiling">Profiling</a></li>
-<li><a href="#making-a-release">Making a release</a><ul>
-<li><a href="#test-installation">Test installation</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a href="#conventions">Conventions</a></li>
 </ul>
 </div>
 <ul id="index">
@@ -559,6 +386,9 @@ __pdoc__ = {
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.data_management" href="data_management.html">data_management</a></code></li>
+<!-- Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.dev_guide" href="dev_guide.html">dev_guide</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></li>

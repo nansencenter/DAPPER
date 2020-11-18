@@ -1,4 +1,4 @@
-"""Methods often used to compare against to indicate baselines performance.
+""""Unsophisticated" but robust (widely applicable) DA methods.
 
 Many are based on [Raa16a]_.
 """

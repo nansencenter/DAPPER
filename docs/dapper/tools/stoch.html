@@ -40,7 +40,7 @@ def set_seed(sd=&#34;clock&#34;):
     The disadvantage of ``np.random.seed()`` is that it produces a
     RandomState that cannot be represented by a simple seed
     (the mapping seed--&gt;state being non-surjective).
-    By contrast, when ``sd in [None,&#34;clock&#34;]``, set_seed(sd) generates
+    By contrast, when ``sd in [None,&#34;clock&#34;]``, `set_seed` generates
     the seed from the time (in microseconds), which can then be returned.
 
     If ``sd==False``: do nothing.
@@ -53,7 +53,7 @@ def set_seed(sd=&#34;clock&#34;):
     which should simply use converged statistics.
 
     Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-    Example use: Nimbus 3000. André 3000. I love you 3000.
+    Example use: &#34;Nimbus 3000&#34;, &#34;André 3000&#34;, &#34;I love you 3000&#34;.
 
     Note: why are we using global generator?
     Because that&#39;s what we were used to.
@@ -107,7 +107,7 @@ def randn(shape=(1,)): return np.random.normal(0, 1, shape)</code></pre>
 <p>The disadvantage of <code>np.random.seed()</code> is that it produces a
 RandomState that cannot be represented by a simple seed
 (the mapping seed&ndash;&gt;state being non-surjective).
-By contrast, when <code>sd in [None,"clock"]</code>, set_seed(sd) generates
+By contrast, when <code>sd in [None,"clock"]</code>, <code><a title="dapper.tools.stoch.set_seed" href="#dapper.tools.stoch.set_seed">set_seed()</a></code> generates
 the seed from the time (in microseconds), which can then be returned.</p>
 <p>If <code>sd==False</code>: do nothing.</p>
 <p>Seed management enables reproducibility of random experiments.
@@ -117,7 +117,7 @@ This CRN trick is often handy for speeding-up comparisons
 but should not be relied upon in publications,
 which should simply use converged statistics.</p>
 <p>Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-Example use: Nimbus 3000. André 3000. I love you 3000.</p>
+Example use: "Nimbus 3000", "André 3000", "I love you 3000".</p>
 <p>Note: why are we using global generator?
 Because that's what we were used to.
 And we're not not worried about thread safety.</p>
@@ -140,7 +140,7 @@ And we're not not worried about thread safety.</p>
     The disadvantage of ``np.random.seed()`` is that it produces a
     RandomState that cannot be represented by a simple seed
     (the mapping seed--&gt;state being non-surjective).
-    By contrast, when ``sd in [None,&#34;clock&#34;]``, set_seed(sd) generates
+    By contrast, when ``sd in [None,&#34;clock&#34;]``, `set_seed` generates
     the seed from the time (in microseconds), which can then be returned.
 
     If ``sd==False``: do nothing.
@@ -153,7 +153,7 @@ And we're not not worried about thread safety.</p>
     which should simply use converged statistics.
 
     Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-    Example use: Nimbus 3000. André 3000. I love you 3000.
+    Example use: &#34;Nimbus 3000&#34;, &#34;André 3000&#34;, &#34;I love you 3000&#34;.
 
     Note: why are we using global generator?
     Because that&#39;s what we were used to.
