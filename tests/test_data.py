@@ -100,7 +100,7 @@ def _print(xp_dict, *args, **kwargs):
 
 
 ##
-save_as = dpr.rc.dirs.DAPPER / "dpr_data" / "test_data"
+save_as = dpr.rc.dirs.DAPPER / "tests" / "data"
 xps = dpr.load_xps(save_as)
 xps = dpr.xpSpace.from_list(xps)
 

@@ -127,7 +127,7 @@ if True:
         fontsize="80", name="Signpainter"
     ))
     ax.plot([348, 348.001], [28, 28])
-    fig.savefig("docs/logo_wtxt.png",
+    fig.savefig("docs/imgs/logo_wtxt.png",
                 bbox_inches="tight",
                 pad_inches=0,
                 dpi=200)

@@ -211,7 +211,7 @@ class iEnKS:
                 # (i) avoid re-running the model and
                 # (ii) reproduce EnKF in case nIter==1.
                 final_increment = (dw+T-T_old)@Xf
-                # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
+                # See docs/snippets/iEnKS_Ea.jpg.
                 stats.assess(k, kObs, 'a', E=E+final_increment)
                 stats.iters[kObs] = iteration+1
                 if self.xN:

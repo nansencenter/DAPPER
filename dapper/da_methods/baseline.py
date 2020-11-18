@@ -139,7 +139,7 @@ def fit_sigmoid(Sb, L, kb):
 
     The "normalized" sigmoid, S1, is symmetric around 0, and S1(-∞)=0 and S1(∞)=1.
 
-    The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see doc_snippets/sigmoid.jpg) with
+    The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see docs/snippets/sigmoid.jpg) with
 
     - a corresponding to a given corr. length L.
     - b to match values of S(kb) and Sb"""
