@@ -4,8 +4,9 @@ The models are all simple;
 this facililates the reliability, reproducibility, and transparency
 of DA experiments.
 
-See DAPPER's README for an overview of the models.
-
+See the README section on
+[test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
+for an overview of the models included with DAPPER.
 
 ## Defining your own model
 

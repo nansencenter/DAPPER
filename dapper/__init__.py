@@ -1,16 +1,14 @@
 """(Data Assimilation with Python: a Package for Experimental Research)
 
-## README
+## In the README
 
 Make sure you've browsed these sections in the README:
 
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
-- [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
-- [Test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
 
-## Reference/API docs
-The documentation contained in docstrings can be browsed
+## API reference
+The rendered docstrings can be browsed
 by clicking the links at the left (or bottom) of this page.
 
 ## Usage
