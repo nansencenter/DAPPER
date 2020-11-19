@@ -725,7 +725,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
 
     - Reason 1: mode correction.
       These parameters bridge the Jeffreys (xN=1) and Dirac (xN=Inf) hyperpriors
-      for the prior covariance, B, as discussed in [Boc15]_.
+      for the prior covariance, B, as discussed in `bib.Boc15`.
       Indeed, mode correction becomes necessary when :math:`R \\rightarrow \\infty`.
       because then there should be no ensemble update (and also no inflation!).
       More specifically, the mode of ``l1``'s should be adjusted towards 1

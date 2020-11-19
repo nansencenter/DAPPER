@@ -15,7 +15,7 @@ More info:
 - Doubling time "between 25 and 50"
 - Note Sakov's trick of increasing RKH2 from 2.0e-12 to 2.0e-11 to stabilize
   the ensemble integration, which may be necessary for EnKF's with small N.
-  See example in `counillon2009.py`.
+  See example in `mods.QG.counillon2009`.
 """
 
 from pathlib import Path
