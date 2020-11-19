@@ -1,6 +1,6 @@
 """"Unsophisticated" but robust (widely applicable) DA methods.
 
-Many are based on [Raa16a]_.
+Many are based on `bib.raanes2016thesis`.
 """
 import numpy as np
 from typing import Optional

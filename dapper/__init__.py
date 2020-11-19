@@ -20,7 +20,7 @@ Do you wish to illustrate and run benchmarks with your own
     - `mods`
     - `da_methods`
 
-## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights):
+## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
 
 - Parallelisation:
     - (Independent) experiments can run in parallel; see `example_3.py`
@@ -120,16 +120,7 @@ from .tools.stoch import rand, randn, set_seed
 from .tools.viz import freshfig
 
 
-# Documentation management
-# ---
-# # 1. Generation:
-# $ pdoc --force --html --template-dir docs -o ./docs dapper
-# $ open docs/index.html
-# # 2. Hosting:
-# Push updated docs to github.
-# In the main github settings of the repo,
-# go to the "GitHub Pages" section,
-# and set the source to the docs folder.
+# Documentation generation
 def _find_demos(as_path=False):
     "Find all model demo.py scripts."
     lst = []
@@ -141,14 +132,6 @@ def _find_demos(as_path=False):
                 x = str(x.with_suffix("")).replace("/", ".")
             lst.append(x)
     return lst
-
-# This generates a lot of warnings:
-# """UserWarning: __pdoc__-overriden key ... does not exist in module""".
-# AFAICT that's fine. https://github.com/pdoc3/pdoc/issues/206
-# Alternative: Insert this at top of each script to exclude
-# >>> if __name__ != "__main__":
-# >>>     raise RuntimeError("This module may only be run as script.")
-# and run pdoc with --skip-errors.
 __pdoc__ = {
     "tools.remote.autoscaler": False,
     **{demo:False for demo in _find_demos()},

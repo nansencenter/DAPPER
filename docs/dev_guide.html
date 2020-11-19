@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>dev_guide API documentation</title>
-<meta name="description" content="Profiling …" />
+<meta name="description" content="Documentation generation …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -16,8 +16,10 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 <link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
 <title>DAPPER doc</title>
 <meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
 </head>
 <body>
 <main>
@@ -26,6 +28,30 @@
 <h1 class="title">Module <code>dev_guide</code></h1>
 </header>
 <section id="section-intro">
+<h3 id="documentation-generation">Documentation generation</h3>
+<h5 id="update-bib">Update bib</h5>
+<p>Copy new bibtex items into <code>docs/bib/refs.bib</code>,
+then convert to <code>bib.py</code> using
+</p>
+<pre><code class="language-sh">docs/bib/make_bib.py
+</code></pre>
+<h5 id="run-pdoc">Run pdoc</h5>
+<pre><code class="language-sh">pdoc --force --html --template-dir docs/templates -o ./docs docs/bib/bib.py docs/dev_guide.py dapper
+open docs/index.html # preview
+</code></pre>
+<p>This generates a lot of warnings of the type
+"UserWarning: <strong>pdoc</strong>-overriden key &hellip; does not exist in module".
+AFAICT that's fine. <a href="https://github.com/pdoc3/pdoc/issues/206">https://github.com/pdoc3/pdoc/issues/206</a>
+Alternative: Insert this at top of each script to exclude
+and run pdoc with &ndash;skip-errors.</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; if __name__ != &quot;__main__&quot;:
+&gt;&gt;&gt;     raise RuntimeError(&quot;This module may only be run as script.&quot;)
+</code></pre>
+<h5 id="hosting">Hosting:</h5>
+<p>Push updated docs to github.
+In the main github settings of the repo,
+go to the "GitHub Pages" section,
+and set the source to the docs folder.</p>
 <h3 id="profiling">Profiling</h3>
 <ul>
 <li>Launch your python script using <code>kernprof -l -v my_script.py</code></li>
@@ -35,46 +61,35 @@ present in the <code>builtins.</code> Instead of deleting your decorations,
 you could also define a pass-through fallback.</li>
 </ul>
 <h3 id="making-a-release">Making a release</h3>
-<ul>
-<li><code>cd DAPPER</code></li>
-<li>Bump version number in <code>__init__.py</code></li>
-<li>
-<p>Merge <code>dev1</code> into <code>master</code>
-<code>git checkout master</code><br>
-<code>git merge --no-commit --no-ff dev1</code><br>
-<code># Fix conflicts, e.g</code><br>
-<code># git rm &lt;unwanted-file&gt;</code><br>
-<code>git commit</code></p>
-</li>
-<li>
-<p>Make docs (including bib)</p>
-</li>
-<li>
-<p>Tag</p>
-<pre><code>git tag -a v$(python setup.py --version) -m 'My description'
+<p><code>cd DAPPER</code></p>
+<p>Bump version number in <code>__init__.py</code></p>
+<p>Merge <code>dev1</code> into <code>master</code></p>
+<pre><code class="language-sh">git checkout master
+git merge --no-commit --no-ff dev1
+# Fix conflicts, e.g
+# git rm &lt;unwanted-file&gt;
+git commit
+</code></pre>
+<p>Make docs (including bib)
+Tag</p>
+<pre><code class="language-sh">git tag -a v$(python setup.py --version) -m 'My description'
 git push origin --tags
 </code></pre>
-</li>
-<li>
-<p>Clean<br>
-<code>rm -rf build/ dist *.egg-info .eggs</code></p>
-</li>
-<li>
+<p>Clean</p>
+<pre><code class="language-sh">rm -rf build/ dist *.egg-info .eggs
+</code></pre>
 <p>Add new files to <code>package_data</code> and <code>packages</code> in <code>setup.py</code></p>
-</li>
-<li>
-<p>Build<br>
-<code>./setup.py sdist bdist_wheel</code></p>
-</li>
-<li>
-<p>Upload to PyPI<br>
-<code>twine upload --repository pypi dist/*</code></p>
-</li>
-<li>
-<p>Upload to Test.PyPI<br>
-<code>twine upload --repository testpypi dist/*</code><br>
-where <code>~/.pypirc</code> contains</p>
-<pre><code>[distutils]
+<p>Build</p>
+<pre><code class="language-sh">./setup.py sdist bdist_wheel
+</code></pre>
+<p>Upload to PyPI</p>
+<pre><code class="language-sh">twine upload --repository pypi dist/*
+</code></pre>
+<p>Upload to Test.PyPI</p>
+<pre><code class="language-sh">twine upload --repository testpypi dist/*
+</code></pre>
+<p>where ~/.pypirc contains</p>
+<pre><code class="language-ini">[distutils]
 index-servers=
                 pypi
                 testpypi
@@ -84,25 +99,20 @@ username: myuser
 password: mypass
 
 [testpypi]
-repository: &lt;https://test.pypi.org/legacy/&gt;
+repository: https://test.pypi.org/legacy/
 username: myuser
 password: mypass
 </code></pre>
-</li>
-<li>
-<p>Upload to <code>Test.PyPI</code><br>
-<code>git checkout dev1</code></p>
-</li>
-</ul>
+<p>Upload to <code>Test.PyPI</code></p>
+<pre><code class="language-sh">git checkout dev1
+</code></pre>
 <h4 id="test-installation">Test installation</h4>
-<ul>
-<li>
-<p>Install from <code>Test.PyPI</code><br>
-<code>pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER</code></p>
-</li>
-<li>
-<p>Install from <code>PyPI</code><br>
-<code>pip install DA-DAPPER</code></p>
+<p>Install from <code>Test.PyPI</code></p>
+<pre><code class="language-sh">pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER
+</code></pre>
+<p>Install from <code>PyPI</code></p>
+<pre><code class="language-sh">pip install DA-DAPPER
+</code></pre>
 <ul>
 <li>
 <p>Install into specific dir (includes all of the dependencies)<br>
@@ -113,17 +123,44 @@ password: mypass
 <code>pip install DA-DAPPER[Qt,MP]</code></p>
 </li>
 </ul>
-</li>
-<li>
-<p>Install from local (makes installation accessible from everywhere)<br>
-<code>pip install -e .</code></p>
-</li>
-</ul>
+<p>Install from local (makes installation accessible from everywhere)</p>
+<pre><code class="language-sh">pip install -e .
+</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
+### Documentation generation
+
+##### Update bib
+Copy new bibtex items into `docs/bib/refs.bib`,
+then convert to `bib.py` using  
+```sh
+docs/bib/make_bib.py
+```
+
+##### Run pdoc
+```sh
+pdoc --force --html --template-dir docs/templates -o ./docs docs/bib/bib.py docs/dev_guide.py dapper
+open docs/index.html # preview
+```
+This generates a lot of warnings of the type
+&#34;UserWarning: __pdoc__-overriden key ... does not exist in module&#34;.
+AFAICT that&#39;s fine. https://github.com/pdoc3/pdoc/issues/206
+Alternative: Insert this at top of each script to exclude
+and run pdoc with --skip-errors.
+
+&gt;&gt;&gt; if __name__ != &#34;__main__&#34;:
+&gt;&gt;&gt;     raise RuntimeError(&#34;This module may only be run as script.&#34;)
+
+##### Hosting:
+Push updated docs to github.
+In the main github settings of the repo,
+go to the &#34;GitHub Pages&#34; section,
+and set the source to the docs folder.
+
+
 ### Profiling
 
 - Launch your python script using `kernprof -l -v my_script.py`
@@ -134,70 +171,104 @@ password: mypass
 
 ### Making a release
 
-- `cd DAPPER`
-- Bump version number in `__init__.py`
-- Merge `dev1` into `master` 
-  `git checkout master`  
-  `git merge --no-commit --no-ff dev1`  
-  `# Fix conflicts, e.g`  
-  `# git rm &lt;unwanted-file&gt;`  
-  `git commit`
+`cd DAPPER`
 
-- Make docs (including bib)
-- Tag
+Bump version number in `__init__.py`
 
-        git tag -a v$(python setup.py --version) -m &#39;My description&#39;
-        git push origin --tags
+Merge `dev1` into `master`
 
-- Clean  
-  `rm -rf build/ dist *.egg-info .eggs`
+```sh
+git checkout master
+git merge --no-commit --no-ff dev1
+# Fix conflicts, e.g
+# git rm &lt;unwanted-file&gt;
+git commit
+```
 
-- Add new files to `package_data` and `packages` in `setup.py`
+Make docs (including bib)
+Tag
 
-- Build  
-  `./setup.py sdist bdist_wheel`
+```sh
+git tag -a v$(python setup.py --version) -m &#39;My description&#39;
+git push origin --tags
+```
 
-- Upload to PyPI  
-  `twine upload --repository pypi dist/*`
+Clean
+
+```sh
+rm -rf build/ dist *.egg-info .eggs
+```
+
+Add new files to `package_data` and `packages` in `setup.py`
+
+Build
+
+```sh
+./setup.py sdist bdist_wheel
+```
+
+Upload to PyPI
+
+```sh
+twine upload --repository pypi dist/*
+```
 
 
-- Upload to Test.PyPI  
-  `twine upload --repository testpypi dist/*`  
-  where `~/.pypirc` contains
+Upload to Test.PyPI
 
-        [distutils]
-        index-servers=
-                        pypi
-                        testpypi
-        
-        [pypi]
-        username: myuser
-        password: mypass
-        
-        [testpypi]
-        repository: https://test.pypi.org/legacy/
-        username: myuser
-        password: mypass
+```sh
+twine upload --repository testpypi dist/*
+```
 
-- Upload to `Test.PyPI`  
-  `git checkout dev1`
+where ~/.pypirc contains
+
+```ini
+[distutils]
+index-servers=
+                pypi
+                testpypi
+
+[pypi]
+username: myuser
+password: mypass
+
+[testpypi]
+repository: https://test.pypi.org/legacy/
+username: myuser
+password: mypass
+```
+
+Upload to `Test.PyPI`
+
+```sh
+git checkout dev1
+```
 
 #### Test installation
 
-- Install from `Test.PyPI`  
-  `pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER`
+Install from `Test.PyPI`
 
-- Install from `PyPI`  
-  `pip install DA-DAPPER`
+```sh
+pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER
+```
 
-    - Install into specific dir (includes all of the dependencies)  
-      `pip install DA-DAPPER -t MyDir`
+Install from `PyPI`
 
-    - Install with options  
-      `pip install DA-DAPPER[Qt,MP]`
+```sh
+pip install DA-DAPPER
+```
 
-- Install from local (makes installation accessible from everywhere)  
-  `pip install -e .`
+  - Install into specific dir (includes all of the dependencies)  
+    `pip install DA-DAPPER -t MyDir`
+
+  - Install with options  
+    `pip install DA-DAPPER[Qt,MP]`
+
+Install from local (makes installation accessible from everywhere)
+
+```sh
+pip install -e .
+```
 &#34;&#34;&#34;</code></pre>
 </details>
 </section>
@@ -220,6 +291,12 @@ password: mypass
 <h1>Index</h1>
 <div class="toc">
 <ul>
+<li><a href="#documentation-generation">Documentation generation</a><ul>
+<li><a href="#update-bib">Update bib</a></li>
+<li><a href="#run-pdoc">Run pdoc</a></li>
+<li><a href="#hosting">Hosting:</a></li>
+</ul>
+</li>
 <li><a href="#profiling">Profiling</a></li>
 <li><a href="#making-a-release">Making a release</a><ul>
 <li><a href="#test-installation">Test installation</a></li>

@@ -89,7 +89,7 @@ class PartFilt:
 class OptPF:
     """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
-    Ref: [Boc10]_.
+    Ref: `bib.bocquet2010beyond`.
 
     .. note:: Regularization (``Qs``) is here added BEFORE Bayes' rule.
               If ``Qs==0``: OptPF should be equal to
@@ -534,7 +534,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
 
 
 def resample(w, kind='Systematic', N=None, wroot=1.0):
-    """Multinomial resampling [Dou09]_, [van09]_, [Liu01]_.
+    """Multinomial resampling [Dou09]_, [van09]_, `bib.Liu01`.
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
       'Stochastic' corresponds to np.random.choice() or np.random.multinomial().
@@ -551,7 +551,7 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
     - wroot: Adjust weights before resampling by this root to
       promote particle diversity and mitigate thinning.
       The outcomes of the resampling are then weighted to maintain un-biased-ness.
-      Ref: [Liu01]_, section 3.1
+      Ref: `bib.Liu01`, section 3.1
 
     Note: (a) resampling methods are beneficial because they discard
     low-weight ("doomed") particles and reduce the variance of the weights.

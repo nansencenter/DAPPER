@@ -16,8 +16,10 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 <link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
 <title>DAPPER doc</title>
 <meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
 </head>
 <body>
 <main>
@@ -48,7 +50,7 @@ In that case, read this:<ul>
 </ul>
 </li>
 </ul>
-<h2 id="features-beyond-the-readmehighlights">Features beyond the <a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a>:</h2>
+<h2 id="features-beyond-the-readmehighlights">Features beyond the <a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a></h2>
 <ul>
 <li>Parallelisation:<ul>
 <li>(Independent) experiments can run in parallel; see <code>example_3.py</code></li>
@@ -151,7 +153,7 @@ Do you wish to illustrate and run benchmarks with your own
     - `mods`
     - `da_methods`
 
-## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights):
+## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
 
 - Parallelisation:
     - (Independent) experiments can run in parallel; see `example_3.py`
@@ -251,16 +253,7 @@ from .tools.stoch import rand, randn, set_seed
 from .tools.viz import freshfig
 
 
-# Documentation management
-# ---
-# # 1. Generation:
-# $ pdoc --force --html --template-dir docs -o ./docs dapper
-# $ open docs/index.html
-# # 2. Hosting:
-# Push updated docs to github.
-# In the main github settings of the repo,
-# go to the &#34;GitHub Pages&#34; section,
-# and set the source to the docs folder.
+# Documentation generation
 def _find_demos(as_path=False):
     &#34;Find all model demo.py scripts.&#34;
     lst = []
@@ -272,14 +265,6 @@ def _find_demos(as_path=False):
                 x = str(x.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
             lst.append(x)
     return lst
-
-# This generates a lot of warnings:
-# &#34;&#34;&#34;UserWarning: __pdoc__-overriden key ... does not exist in module&#34;&#34;&#34;.
-# AFAICT that&#39;s fine. https://github.com/pdoc3/pdoc/issues/206
-# Alternative: Insert this at top of each script to exclude
-# &gt;&gt;&gt; if __name__ != &#34;__main__&#34;:
-# &gt;&gt;&gt;     raise RuntimeError(&#34;This module may only be run as script.&#34;)
-# and run pdoc with --skip-errors.
 __pdoc__ = {
     &#34;tools.remote.autoscaler&#34;: False,
     **{demo:False for demo in _find_demos()},
@@ -363,7 +348,7 @@ __pdoc__ = {
 <ul>
 <li><a href="#in-the-readme">In the README</a></li>
 <li><a href="#usage">Usage</a></li>
-<li><a href="#features-beyond-the-readmehighlights">Features beyond the README/highlights:</a></li>
+<li><a href="#features-beyond-the-readmehighlights">Features beyond the README/highlights</a></li>
 <li><a href="#conventions">Conventions</a></li>
 <li><a href="#dev-guide">Dev guide</a></li>
 <li><a href="#bibliographyreferences">Bibliography/references</a></li>
