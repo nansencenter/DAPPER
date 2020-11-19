@@ -14,10 +14,12 @@ max-line-length = 88
 ; - Allow operator (eg =) alignment for dicts: E251
 ; - Allow if-list alignment: E271, E701, and more...
 ; - Ignore "Comparison to True/None should be with 'is'": E711, E712
+; - Allow ## block comments
 ignore=E24,W503,E123,E226,E704,E121,W504,E126,
     E221,
     E251,
     E711, E712
+    E266
 
 
 ; Doesn't work with autopep8 (only flake8),
