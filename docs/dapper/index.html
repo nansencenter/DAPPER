@@ -15,6 +15,7 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png">
 </head>
 <body>
 <main>
@@ -30,25 +31,22 @@
 <li><a href="https://github.com/nansencenter/DAPPER#Installation">Installation</a></li>
 <li><a href="https://github.com/nansencenter/DAPPER#Quickstart">Quickstart</a></li>
 </ul>
-<h2 id="api-reference">API reference</h2>
-<p>The rendered docstrings can be browsed
-by clicking the links at the left (or bottom) of this page.</p>
 <h2 id="usage">Usage</h2>
 <p>Do you wish to illustrate and run benchmarks with your own
-<strong>models</strong> and/or <strong>methods</strong>?</p>
-<p>If these are complicated, you may be better off using DAPPER
+<strong>model</strong> or <strong>method</strong>?</p>
+<ul>
+<li>If it is a complex one, you may be better off using DAPPER
 merely as inspiration (but you should still
 <a href="https://github.com/nansencenter/DAPPER#Contributors">cite it</a>)
-rather than trying to squeeze everything into its templates.</p>
-<p>If these are simple, however, you may well want to use DAPPER.
-First, make sure you've got a good feel for all of <code>example_{1,2,3}.py</code>.
-Then, read the documentation here</p>
-<ul>
+rather than trying to squeeze everything into its templates.</li>
+<li>If it is relatively simple, however, you may well want to use DAPPER.
+In that case, read this:<ul>
 <li><code><a title="dapper.mods" href="mods/index.html">dapper.mods</a></code></li>
 <li><code><a title="dapper.da_methods" href="da_methods/index.html">dapper.da_methods</a></code></li>
 </ul>
-<h2 id="features">Features</h2>
-<p>Features (beyond what was <a href="https://github.com/nansencenter/DAPPER#Highlights">highlighted</a> by README):</p>
+</li>
+</ul>
+<h2 id="features-beyond-the-readmehighlights">Features beyond the <a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a>:</h2>
 <ul>
 <li>Parallelisation:<ul>
 <li>(Independent) experiments can run in parallel; see <code>example_3.py</code></li>
@@ -118,6 +116,10 @@ where <code>xp</code> abbreviates "experiment".</li>
 </ul>
 </li>
 </ul>
+<p>If you are going to contribute to DAPPER, please read <code><a title="dev_guide" href="../dev_guide.html">dev_guide</a></code>.</p>
+<h2 id="api-reference">API reference</h2>
+<p>The rendered docstrings can be browsed
+through the following links, which are also available in the left sidebar.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -131,28 +133,20 @@ Make sure you&#39;ve browsed these sections in the README:
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
 
-## API reference
-The rendered docstrings can be browsed
-by clicking the links at the left (or bottom) of this page.
-
 ## Usage
 Do you wish to illustrate and run benchmarks with your own
-**models** and/or **methods**?
+**model** or **method**?
 
-If these are complicated, you may be better off using DAPPER
-merely as inspiration (but you should still
-[cite it](https://github.com/nansencenter/DAPPER#Contributors))
-rather than trying to squeeze everything into its templates.
+- If it is a complex one, you may be better off using DAPPER
+  merely as inspiration (but you should still
+  [cite it](https://github.com/nansencenter/DAPPER#Contributors))
+  rather than trying to squeeze everything into its templates.
+- If it is relatively simple, however, you may well want to use DAPPER.
+  In that case, read this:
+    - `mods`
+    - `da_methods`
 
-If these are simple, however, you may well want to use DAPPER.
-First, make sure you&#39;ve got a good feel for all of `example_{1,2,3}.py`.
-Then, read the documentation here
-
-- `mods`
-- `da_methods`
-
-## Features
-Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README):
+## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights):
 
 - Parallelisation:
     - (Independent) experiments can run in parallel; see `example_3.py`
@@ -208,6 +202,12 @@ Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#H
         - `ii`, `jj`: Sequences of indices (integers)
     - `xps`: an `xpList` or `xpDict`,
       where `xp` abbreviates &#34;experiment&#34;.
+
+If you are going to contribute to DAPPER, please read `dev_guide`.
+
+## API reference
+The rendered docstrings can be browsed
+through the following links, which are also available in the left sidebar.
 &#34;&#34;&#34;
 
 __version__ = &#34;0.9.6&#34;
@@ -293,12 +293,6 @@ __pdoc__ = {
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.bib" href="bib.html">bib</a></code></dt>
-<dd>
-<div class="desc"><p>Bibliography.</p></div>
-</dd>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></dt>
 <dd>
 <div class="desc"><p>Data assimilation methods included with DAPPER …</p></div>
@@ -308,12 +302,6 @@ __pdoc__ = {
 <dt><code class="name"><a title="dapper.data_management" href="data_management.html">data_management</a></code></dt>
 <dd>
 <div class="desc"><p>Tools (notably xpSpace) for processing and presenting experiment data.</p></div>
-</dd>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.dev_guide" href="dev_guide.html">dev_guide</a></code></dt>
-<dd>
-<div class="desc"><p>Profiling …</p></div>
 </dd>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -365,10 +353,10 @@ __pdoc__ = {
 <div class="toc">
 <ul>
 <li><a href="#in-the-readme">In the README</a></li>
-<li><a href="#api-reference">API reference</a></li>
 <li><a href="#usage">Usage</a></li>
-<li><a href="#features">Features</a></li>
+<li><a href="#features-beyond-the-readmehighlights">Features beyond the README/highlights:</a></li>
 <li><a href="#conventions">Conventions</a></li>
+<li><a href="#api-reference">API reference</a></li>
 </ul>
 </div>
 <ul id="index">
@@ -379,16 +367,10 @@ __pdoc__ = {
 <li><code><a title="dapper.admin" href="admin.html">admin</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.bib" href="bib.html">bib</a></code></li>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.data_management" href="data_management.html">data_management</a></code></li>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.dev_guide" href="dev_guide.html">dev_guide</a></code></li>
 <!-- Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></li>
