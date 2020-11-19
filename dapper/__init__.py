@@ -77,7 +77,11 @@ Do you wish to illustrate and run benchmarks with your own
     - `xps`: an `xpList` or `xpDict`,
       where `xp` abbreviates "experiment".
 
+## Dev guide
 If you are going to contribute to DAPPER, please read `dev_guide`.
+
+## Bibliography/references
+See `bib`.
 
 ## API reference
 The rendered docstrings can be browsed
