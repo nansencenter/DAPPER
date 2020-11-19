@@ -7,28 +7,20 @@ Make sure you've browsed these sections in the README:
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
 
-## API reference
-The rendered docstrings can be browsed
-by clicking the links at the left (or bottom) of this page.
-
 ## Usage
 Do you wish to illustrate and run benchmarks with your own
-**models** and/or **methods**?
+**model** or **method**?
 
-If these are complicated, you may be better off using DAPPER
-merely as inspiration (but you should still
-[cite it](https://github.com/nansencenter/DAPPER#Contributors))
-rather than trying to squeeze everything into its templates.
+- If it is a complex one, you may be better off using DAPPER
+  merely as inspiration (but you should still
+  [cite it](https://github.com/nansencenter/DAPPER#Contributors))
+  rather than trying to squeeze everything into its templates.
+- If it is relatively simple, however, you may well want to use DAPPER.
+  In that case, read this:
+    - `mods`
+    - `da_methods`
 
-If these are simple, however, you may well want to use DAPPER.
-First, make sure you've got a good feel for all of `example_{1,2,3}.py`.
-Then, read the documentation here
-
-- `mods`
-- `da_methods`
-
-## Features
-Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README):
+## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights):
 
 - Parallelisation:
     - (Independent) experiments can run in parallel; see `example_3.py`
@@ -84,6 +76,12 @@ Features (beyond what was [highlighted](https://github.com/nansencenter/DAPPER#H
         - `ii`, `jj`: Sequences of indices (integers)
     - `xps`: an `xpList` or `xpDict`,
       where `xp` abbreviates "experiment".
+
+If you are going to contribute to DAPPER, please read `dev_guide`.
+
+## API reference
+The rendered docstrings can be browsed
+through the following links, which are also available in the left sidebar.
 """
 
 __version__ = "0.9.6"
