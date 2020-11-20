@@ -4,10 +4,10 @@
 
 Usage:
 
-- Run this before pdoc to update the bib.py file.
-- Put the references you refer to in dapper's docstrings
-  in refs.bib.
-  
+- Put the references you refer to in dapper's docstrings in refs.bib.
+  Consider using `copy_refs.py` for this purpose.
+- Run this to update the bib.py file.
+- Run pdoc.
 
 Note: requires pandoc, and presumably latex too.
 """
@@ -34,7 +34,9 @@ nocite: '@*'
 # Convert to .rst (to process the references)
 # NB: Unfortunately, converting directly to .md
 #     outputs in a verbose "list-ish" format.
-run(["pandoc", "--citeproc", "-s", "bib.md", "-o", "bib.rst"], check=True)
+# Note: for CSL styles see https://editor.citationstyles.org/about/
+run(["pandoc", "--citeproc", "--csl=data-science-journal.csl",
+     "-s", "bib.md", "-o", "bib.rst"], check=True)
 
 
 # Parse rst
