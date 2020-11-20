@@ -1,7 +1,6 @@
 """Numerical validation of TLM (d2x_dtdx)."""
 
 import numpy as np
-import dapper as dpr
 from dapper.tools.math import FD_Jac
 
 EPS = 1e-6
@@ -38,7 +37,7 @@ def test_LUV():
 
 def test_Ikeda():
     from dapper.mods.Ikeda import step, dstep_dx, x0
-    x0 = dpr.randn(x0.shape)
+    x0 = np.random.randn(*x0.shape)
     def fun1(x): return step(x, np.nan, np.nan)
     def Jacob1(x): return dstep_dx(x, np.nan, np.nan)
     assert _allclose(fun1, Jacob1, x0)

@@ -116,7 +116,7 @@ from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, r
                          with_recursion, with_rk4)
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
-from .tools.stoch import rand, randn, set_seed
+from .tools.stoch import set_seed
 from .tools.viz import freshfig
 
 

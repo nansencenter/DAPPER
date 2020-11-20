@@ -3,10 +3,10 @@
 from typing import Optional
 
 import numpy as np
+from numpy.random import randn
 import scipy.linalg as sla
 
 from dapper.admin import da_method
-from dapper.tools.stoch import randn
 from dapper.tools.utils import progbar
 from dapper.tools.matrices import CovMat
 from dapper.tools.math import center, mean0, svd0, inflate_ens, pad0, tinv
@@ -169,13 +169,13 @@ class iEnKS:
                     if self.MDA:  # View update as annealing (progressive assimilation).
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
-                        if 'PertObs' in self.upd_a:  # == "ES-MDA". By Emerick/Reynolds.
-                            D     = mean0(randn(Y.shape)) * np.sqrt(self.nIter)
-                            T    -= (Y + D) @ Y.T @ Cow1
-                        elif 'Sqrt' in self.upd_a:  # == "ETKF-ish". By Raanes.
-                            T     = Cowp(0.5) * np.sqrt(za) @ T
+                        if 'PertObs' in self.upd_a:   # == "ES-MDA". By Emerick/Reynolds.
+                            D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                            T  -= (Y + D) @ Y.T @ Cow1
+                        elif 'Sqrt' in self.upd_a:    # == "ETKF-ish". By Raanes.
+                            T   = Cowp(0.5) * np.sqrt(za) @ T
                         elif 'Order1' in self.upd_a:  # == "DEnKF-ish". By Emerick.
-                            T    -= 0.5 * Y @ Y.T @ Cow1
+                            T  -= 0.5 * Y @ Y.T @ Cow1
                         # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
                     else:  # View update as Gauss-Newton optimzt. of log-posterior.
@@ -189,7 +189,7 @@ class iEnKS:
                             # Tinv saves time [vs tinv(T)] when Nx<N
                         # "EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
                         elif 'PertObs' in self.upd_a:
-                            D     = mean0(randn(Y.shape)) if iteration == 0 else D
+                            D     = mean0(randn(*Y.shape)) if iteration == 0 else D
                             gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable

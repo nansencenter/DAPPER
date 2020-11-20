@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from dapper.mods.DoublePendulum import step, x0, L1, L2
 import dapper as dpr
 
-E0 = x0 + 0.01*dpr.randn((3, 4))
+E0 = x0 + 0.01*np.random.randn(3, 4)
 simulator = dpr.with_recursion(step)
 dt = 0.01
 EE = simulator(E0, k=10**4, t0=0, dt=dt)

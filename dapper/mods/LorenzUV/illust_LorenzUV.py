@@ -21,7 +21,7 @@ K  = int(10/dt)
 step_1 = dpr.with_rk4(LUV.dxdt, autonom=True)
 step_K = dpr.with_recursion(step_1, prog=1)
 
-x0 = 0.01*dpr.randn(LUV.M)
+x0 = 0.01*np.random.randn(LUV.M)
 x0 = step_K(x0, int(2/dt), t0, dt)[-1]  # BurnIn
 xx = step_K(x0, K, t0, dt)
 

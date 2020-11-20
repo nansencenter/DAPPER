@@ -10,6 +10,7 @@ import dapper.tools.viz as viz
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
 import numpy as np
+from numpy.random import randn
 
 dpr.set_seed(3000)
 
@@ -73,7 +74,7 @@ if mod == "L96":
     T   = 1e3            # Length of experiment (unitless time).
     dt  = 0.1            # Step length
     # dt = 0.0083        # Any dt<0.1 yield "almost correct" Lyapunov expos.
-    x0  = dpr.randn(Nx)  # Init condition.
+    x0  = randn(Nx)      # Init condition.
     eps = 0.0002         # Ens rescaling factor.
     N   = Nx             # Num of perturbations used.
 
@@ -86,7 +87,7 @@ if mod == "LUV":
     T     = 1e2
     dt    = 0.005
     LUV.F = 10
-    x0    = 0.01*dpr.randn(LUV.M)
+    x0    = 0.01*randn(LUV.M)
     eps   = 0.001
     N     = 66  # Don't need all Nx for a good approximation of upper spectrum.
 

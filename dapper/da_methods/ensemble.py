@@ -2,10 +2,10 @@
 
 import numpy as np
 from numpy import eye, diag, zeros, sqrt
+from numpy.random import rand, randn
 import scipy.linalg as sla
 
 from dapper.admin import da_method
-from dapper.tools.stoch import rand, randn
 from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0,\
     pad0, reconst, tinv
 from dapper.tools.utils import progbar
@@ -311,7 +311,7 @@ def add_noise(E, dt, noise, method):
         E, _, Qa12 = sqrt_core()
         if N <= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn((Z.shape[1], N))).T
+            E += sqrt(dt)*(Z@randn(Z.shape[1], N)).T
 
     elif method == 'Sqrt-Dep':
         E, T, Qa12 = sqrt_core()
@@ -326,7 +326,7 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn((rQ, N))
+            Xi_til = (eye(rQ) - Q_hat12_proj)@randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
