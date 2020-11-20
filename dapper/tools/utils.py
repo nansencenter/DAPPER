@@ -251,12 +251,22 @@ def rel2mods(path):
 #     setattr(obj,attr,tmp)
 
 
-# TODO 2: use finally?
 @contextlib.contextmanager
 def set_tmp(obj, attr, val):
     """Temporarily set an attribute.
 
-    http://code.activestate.com/recipes/577089/"""
+    Example:
+    >>> class A:
+    >>>     pass
+    >>> a = A()
+    >>> a.x = 1  # Try deleting this line
+    >>> with set_tmp(a,"x","TEMPVAL"):
+    >>>     print(a.x)
+    >>> print(a.x)
+
+    Based on
+    http://code.activestate.com/recipes/577089/
+    """
 
     was_there = False
     tmp = None
@@ -271,12 +281,15 @@ def set_tmp(obj, attr, val):
             tmp = getattr(obj, attr)
     setattr(obj, attr, val)
 
-    yield  # was_there, tmp
-
-    if not was_there:
-        delattr(obj, attr)
-    else:
-        setattr(obj, attr, tmp)
+    try:
+        yield  # was_there, tmp
+    except BaseException:
+        raise
+    finally:
+        if not was_there:
+            delattr(obj, attr)
+        else:
+            setattr(obj, attr, tmp)
 
 
 # Better than tic-toc !
