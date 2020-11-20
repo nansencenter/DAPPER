@@ -12,7 +12,7 @@ from .ensemble import ens_method
 
 @ens_method
 class RHF:
-    """Rank histogram filter [And10]_.
+    """Rank histogram filter `bib.And10`.
 
     Quick & dirty implementation without attention to (de)tails.
     """
@@ -75,9 +75,9 @@ class RHF:
 
 @ens_method
 class LNETF:
-    """The Nonlinear-Ensemble-Transform-Filter (localized) [Wil16]_, [Töd15]_.
+    """The Nonlinear-Ensemble-Transform-Filter (localized) `bib.Wil16`, `bib.Töd15`.
 
-    It is (supposedly) a deterministic upgrade of the NLEAF of [Lei11]_.
+    It is (supposedly) a deterministic upgrade of the NLEAF of `bib.Lei11`.
     """
     N: int
     loc_rad: float

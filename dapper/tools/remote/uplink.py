@@ -100,6 +100,7 @@ def submit_job_GCP(xps_path, **kwargs):
     sc = SubmissionConnection(xps_path, **kwargs)
     sync_job(sc)
 
+    # TODO 2: use subprocess.run(timeout=5*60) instead?
     try:
         # Timeout functionality for ssh -c submit
         def submit():
@@ -342,7 +343,8 @@ def sys_cmd(args, split=True):
     try:
         ps = subprocess.run(args, check=True, capture_output=True)
     except subprocess.CalledProcessError as error:
-        # CalledProcessError doesnt print its .stderr, so we raise it this way:
+        # CalledProcessError doesnt print its .stderr,
+        # so we raise it this way:
         raise subprocess.SubprocessError(
             f"Command {error.cmd} returned non-zero exit status, "
             f"with stderr:\n{error.stderr.decode()}") from error

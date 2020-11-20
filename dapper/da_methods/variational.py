@@ -25,10 +25,10 @@ class var_method:
 class iEnKS:
     """Iterative EnKS.
 
-    Special cases: EnRML, ES-MDA, iEnKF, EnKF [Raa19b]_.
+    Special cases: EnRML, ES-MDA, iEnKF, EnKF `bib.Raa19b`.
 
-    As in [Boc14]_, optimization uses Gauss-Newton.
-    See [Boc12]_ for Levenberg-Marquardt.
+    As in `bib.bocquet2014iterative`, optimization uses Gauss-Newton.
+    See `bib.Boc12` for Levenberg-Marquardt.
     If MDA=True, then there's not really any optimization,
     but rather Gaussian annealing.
 
@@ -38,13 +38,13 @@ class iEnKS:
 
         - "Sqrt"   : as in ETKF  , using a deterministic matrix square root transform.
         - "PertObs": as in EnRML , using stochastic, perturbed-observations.
-        - "Order1" : as in DEnKF of [Sak08a]_.
+        - "Order1" : as in DEnKF of `bib.Sak08a`.
 
       Lag:
         Length of the DA window (DAW), in multiples of dkObs (i.e. cycles).
 
-        - Lag=1 (default) => iterative "filter" iEnKF [Sak12]_.
-        - Lag=0           => maximum-likelihood filter [Zup05]_.
+        - Lag=1 (default) => iterative "filter" iEnKF `bib.Sak12`.
+        - Lag=0           => maximum-likelihood filter `bib.Zup05`.
 
       Shift : How far (in cycles) to slide the DAW.
               Fixed at 1 for code simplicity.
@@ -66,7 +66,7 @@ class iEnKS:
     Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     (due to boundary cases: only asymptotically valid)
 
-    References: [Boc12]_, [Boc13]_, [Boc14]_,
+    References: `bib.Boc12`, `bib.Boc13`, `bib.bocquet2014iterative`,
     """
     upd_a: str
     N: int
@@ -236,7 +236,7 @@ class iEnKS:
 
 @var_method
 class iLEnKS:
-    """Iterative, Localized EnKS-N. [Boc16]_
+    """Iterative, Localized EnKS-N. `bib.Boc16`
 
     Based on iEnKS() and LETKF() codes,
     which describes the other input arguments.

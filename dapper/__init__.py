@@ -120,7 +120,7 @@ from .tools.stoch import rand, randn, set_seed
 from .tools.viz import freshfig
 
 
-# Documentation generation
+# Documentation generation -- exclusion
 def _find_demos(as_path=False):
     "Find all model demo.py scripts."
     lst = []

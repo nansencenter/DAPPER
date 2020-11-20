@@ -21,7 +21,7 @@ class particle_method:
 class PartFilt:
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
-    Refs: [Wik07]_, [van09]_, [Che03]_
+    Refs: `bib.Wik07`, `bib.van09`, `bib.Che03`
 
     This is the bootstrap version: the proposal density is just
     :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
@@ -34,7 +34,7 @@ class PartFilt:
      - qroot: "Inflate" (anneal) the proposal noise kernels
        by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
-       See [Che03]_, section VI-M.2
+       See `bib.Che03`, section VI-M.2
     """
     N: int
     reg: float   = 0
@@ -502,7 +502,7 @@ def mask_unique_of_sorted(idx):
 def auto_bandw(N, M):
     """"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
 
-    Refs: [Dou01]_ section 12.2.2, and [Wik17]_ section "Rule_of_thumb"
+    Refs: `bib.Dou01` section 12.2.2, and [Wik17]_ section "Rule_of_thumb"
     """
     return N**(-1/(M+4))
 
@@ -516,7 +516,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
     (so-named because Dirac-deltas are approximated  Gaussian kernels),
     which controls the strength of the jitter.
     This causes a bias. But, as N-->∞, the reg. bandwidth-->0, i.e. bias-->0.
-    Ref: [Dou01]_, section 12.2.2.
+    Ref: `bib.Dou01`, section 12.2.2.
     """
     # Select
     E = E[idx]
@@ -534,7 +534,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
 
 
 def resample(w, kind='Systematic', N=None, wroot=1.0):
-    """Multinomial resampling [Dou09]_, [van09]_, `bib.Liu01`.
+    """Multinomial resampling `bib.Dou09`, `bib.van09`, `bib.Liu01`.
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
       'Stochastic' corresponds to np.random.choice() or np.random.multinomial().

@@ -23,7 +23,7 @@ class ens_method:
 
 @ens_method
 class EnKF:
-    """The ensemble Kalman filter [Eve09]_"""
+    """The ensemble Kalman filter `bib.Eve09`"""
     upd_a: str
     N: int
 
@@ -55,7 +55,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
 
     The update is specified via 'upd_a'.
 
-    Main references: [Sak08a]_, [Sak08b]_, [Hot15]_
+    Main references: `bib.Sak08a`, `bib.Sak08b`, `bib.Hot15`
     """
     R     = hnoise.C     # Obs noise cov
     N, Nx = E.shape      # Dimensionality
@@ -247,7 +247,7 @@ def post_process(E, infl, rot):
 
 
 def add_noise(E, dt, noise, method):
-    """Treatment of additive noise for ensembles [Raa15]_."""
+    """Treatment of additive noise for ensembles `bib.Raa15`."""
 
     if noise.C == 0:
         return E
@@ -338,7 +338,7 @@ def add_noise(E, dt, noise, method):
 
 @ens_method
 class EnKS:
-    """The ensemble Kalman smoother [Eve09]_.
+    """The ensemble Kalman smoother `bib.Eve09`.
 
     The only difference to the EnKF
     is the management of the lag and the reshapings."""
@@ -395,7 +395,7 @@ class EnKS:
 
 @ens_method
 class EnRTS:
-    """EnRTS (Rauch-Tung-Striebel) smoother [Raa16b]_."""
+    """EnRTS (Rauch-Tung-Striebel) smoother `bib.Raa16b`."""
     upd_a: str
     N: int
     cntr: float
@@ -456,7 +456,7 @@ def serial_inds(upd_a, y, cvR, A):
 
 @ens_method
 class SL_EAKF:
-    """Serial, covariance-localized EAKF [Kar07]_.
+    """Serial, covariance-localized EAKF `bib.Kar07`.
 
     Used without localization, this should be equivalent (full ensemble equality)
     to the :func:`EnKF` with ``upd_a='Serial'``."""
@@ -528,7 +528,7 @@ class SL_EAKF:
 
 @ens_method
 class LETKF:
-    """Same as EnKF (sqrt), but with localization [Hun07]_.
+    """Same as EnKF (sqrt), but with localization `bib.Hun07`.
 
     NB: Multiprocessing yields slow-down for L96, even with batch_size=(1,).
         But for QG (batch_size=(2,2) or less) it is quicker.
@@ -737,7 +737,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
     - Reason 2: Boosting the inflation prior's certainty from N to xN*N.
       The aim is to take advantage of the fact that the ensemble may not
       have quite as much sampling error as a fully stochastic sample,
-      as illustrated in section 2.1 of [Raa19a]_.
+      as illustrated in section 2.1 of `bib.Raa19a`.
 
     - Its damping effect is similar to work done by J. Anderson.
 
@@ -756,7 +756,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
     eN = (N+1)/N
     cL = (N+g)/N1
 
-    # Mode correction (almost) as in eqn 36 of [Boc15]_
+    # Mode correction (almost) as in eqn 36 of `bib.Boc15`
     prior_mode = eN/cL                        # Mode of l1 (before correction)
     diagonal   = pad0(s**2, N) + N1           # diag of Y@R.inv@Y + N1*I
     #                                           (Hessian of J)
@@ -791,7 +791,7 @@ def zeta_a(eN, cL, w):
 
 @ens_method
 class EnKF_N:
-    """Finite-size EnKF (EnKF-N) [Boc11]_, [Boc15]_
+    """Finite-size EnKF (EnKF-N) `bib.Boc11`, `bib.Boc15`
 
     This implementation is pedagogical, prioritizing the "dual" form.
     In consequence, the efficiency of the "primal" form suffers a bit.
@@ -909,7 +909,7 @@ class EnKF_N:
                 # Uncomment to revert to ETKF
                 # l1 = 1.0
 
-                # Explicitly inflate prior => formulae look different from [Boc15]_.
+                # Explicitly inflate prior => formulae look different from `bib.Boc15`.
                 A *= l1
                 Y *= l1
 
@@ -924,7 +924,7 @@ class EnKF_N:
                 else:
                     # Also include angular-radial co-dependence.
                     # Note: denominator not squared coz
-                    # unlike [Boc15]_ we have inflated Y.
+                    # unlike `bib.Boc15` we have inflated Y.
                     Hw = Y@R.inv@Y.T/N1 + eye(N) - 2*np.outer(w, w)/(eN + w@w)
                     T  = funm_psd(Hw, lambda x: x**-.5)  # is there a sqrtm Woodbury?
 
