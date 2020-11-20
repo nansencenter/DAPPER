@@ -50,6 +50,7 @@ HMM.t.KObs = 10**4
 ##############################
 # DA Configurations
 ##############################
+# Param ranges
 params = dict(
     xB       = [.1, .2, .4, 1],
     N        = [5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50],
@@ -57,9 +58,10 @@ params = dict(
     rot      = [True, False],
     loc_rad  = dpr.round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]),
 )
+# Combines all of the params as suitable. Faster than "manual" for-loops.
+for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8, 10])
 
 xps = dpr.xpList()
-for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8, 10])
 xps += for_params(dpr.Climatology)
 xps += for_params(dpr.OptInterp)
 xps += for_params(dpr.Var3D, B="eye")
@@ -83,7 +85,7 @@ save_as = xps.launch(HMM, __file__, mp, setup)
 
 
 ##############################
-# Plot results
+# Present results
 ##############################
 # The following "section" **only** uses saved data.
 # => Can run as a separate script, by setting save_as manually, e.g.
@@ -161,7 +163,6 @@ def get_style_with_gradient(coord):
         S.marker = None
         S.label = dpr.make_label(coord, exclude=[graded])
     return S
-
 
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
