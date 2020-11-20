@@ -47,7 +47,7 @@ from .ensemble import ens_method
 
 @ens_method
 class RHF:
-    &#34;&#34;&#34;Rank histogram filter [And10]_.
+    &#34;&#34;&#34;Rank histogram filter `bib.anderson2010non`.
 
     Quick &amp; dirty implementation without attention to (de)tails.
     &#34;&#34;&#34;
@@ -110,9 +110,9 @@ class RHF:
 
 @ens_method
 class LNETF:
-    &#34;&#34;&#34;The Nonlinear-Ensemble-Transform-Filter (localized) [Wil16]_, [Töd15]_.
+    &#34;&#34;&#34;The Nonlinear-Ensemble-Transform-Filter (localized) `bib.wiljes2016second`, `bib.todter2015second`.
 
-    It is (supposedly) a deterministic upgrade of the NLEAF of [Lei11]_.
+    It is (supposedly) a deterministic upgrade of the NLEAF of `bib.lei2011moment`.
     &#34;&#34;&#34;
     N: int
     loc_rad: float
@@ -225,14 +225,14 @@ p(x) = exp(-sqrt(2)*|x|_1) / sqrt(2).</p></div>
 <span>(</span><span>N: int, ordr: str = 'rand', infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Rank histogram filter [And10]_.</p>
+<div class="desc"><p>Rank histogram filter <code><a title="bib.anderson2010non" href="../../bib.html#bib.anderson2010non">anderson2010non</a></code>.</p>
 <p>Quick &amp; dirty implementation without attention to (de)tails.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class RHF:
-    &#34;&#34;&#34;Rank histogram filter [And10]_.
+    &#34;&#34;&#34;Rank histogram filter `bib.anderson2010non`.
 
     Quick &amp; dirty implementation without attention to (de)tails.
     &#34;&#34;&#34;
@@ -391,16 +391,16 @@ p(x) = exp(-sqrt(2)*|x|_1) / sqrt(2).</p></div>
 <span>(</span><span>N: int, loc_rad: float, taper: str = 'GC', Rs: float = 1.0, infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>The Nonlinear-Ensemble-Transform-Filter (localized) [Wil16]<em>, [Töd15]</em>.</p>
-<p>It is (supposedly) a deterministic upgrade of the NLEAF of [Lei11]_.</p></div>
+<div class="desc"><p>The Nonlinear-Ensemble-Transform-Filter (localized) <code><a title="bib.wiljes2016second" href="../../bib.html#bib.wiljes2016second">wiljes2016second</a></code>, <code><a title="bib.todter2015second" href="../../bib.html#bib.todter2015second">todter2015second</a></code>.</p>
+<p>It is (supposedly) a deterministic upgrade of the NLEAF of <code><a title="bib.lei2011moment" href="../../bib.html#bib.lei2011moment">lei2011moment</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class LNETF:
-    &#34;&#34;&#34;The Nonlinear-Ensemble-Transform-Filter (localized) [Wil16]_, [Töd15]_.
+    &#34;&#34;&#34;The Nonlinear-Ensemble-Transform-Filter (localized) `bib.wiljes2016second`, `bib.todter2015second`.
 
-    It is (supposedly) a deterministic upgrade of the NLEAF of [Lei11]_.
+    It is (supposedly) a deterministic upgrade of the NLEAF of `bib.lei2011moment`.
     &#34;&#34;&#34;
     N: int
     loc_rad: float

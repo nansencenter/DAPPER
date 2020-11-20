@@ -56,7 +56,7 @@ class particle_method:
 class PartFilt:
     r&#34;&#34;&#34;Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
-    Refs: [Wik07]_, [van09]_, [Che03]_
+    Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
 
     This is the bootstrap version: the proposal density is just
     :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
@@ -69,7 +69,7 @@ class PartFilt:
      - qroot: &#34;Inflate&#34; (anneal) the proposal noise kernels
        by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
-       See [Che03]_, section VI-M.2
+       See `bib.chen2003bayesian`, section VI-M.2
     &#34;&#34;&#34;
     N: int
     reg: float   = 0
@@ -537,7 +537,7 @@ def mask_unique_of_sorted(idx):
 def auto_bandw(N, M):
     &#34;&#34;&#34;&#34;Optimal bandwidth (not bandwidth^2), as per Scott&#39;s rule-of-thumb.
 
-    Refs: [Dou01]_ section 12.2.2, and [Wik17]_ section &#34;Rule_of_thumb&#34;
+    Refs: `bib.doucet2001sequential` section 12.2.2, and [Wik17]_ section &#34;Rule_of_thumb&#34;
     &#34;&#34;&#34;
     return N**(-1/(M+4))
 
@@ -551,7 +551,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
     (so-named because Dirac-deltas are approximated  Gaussian kernels),
     which controls the strength of the jitter.
     This causes a bias. But, as N--&gt;∞, the reg. bandwidth--&gt;0, i.e. bias--&gt;0.
-    Ref: [Dou01]_, section 12.2.2.
+    Ref: `bib.doucet2001sequential`, section 12.2.2.
     &#34;&#34;&#34;
     # Select
     E = E[idx]
@@ -569,7 +569,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
 
 
 def resample(w, kind=&#39;Systematic&#39;, N=None, wroot=1.0):
-    &#34;&#34;&#34;Multinomial resampling [Dou09]_, [van09]_, `bib.Liu01`.
+    &#34;&#34;&#34;Multinomial resampling `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
 
     - kind: &#39;Systematic&#39;, &#39;Residual&#39; or &#39;Stochastic&#39;.
       &#39;Stochastic&#39; corresponds to np.random.choice() or np.random.multinomial().
@@ -586,7 +586,7 @@ def resample(w, kind=&#39;Systematic&#39;, N=None, wroot=1.0):
     - wroot: Adjust weights before resampling by this root to
       promote particle diversity and mitigate thinning.
       The outcomes of the resampling are then weighted to maintain un-biased-ness.
-      Ref: `bib.Liu01`, section 3.1
+      Ref: `bib.liu2001theoretical`, section 3.1
 
     Note: (a) resampling methods are beneficial because they discard
     low-weight (&#34;doomed&#34;) particles and reduce the variance of the weights.
@@ -814,7 +814,7 @@ and also computed based on a weighted mean.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.</p>
-<p>Refs: [Dou01]<em> section 12.2.2, and [Wik17]</em> section "Rule_of_thumb"</p></div>
+<p>Refs: <code><a title="bib.doucet2001sequential" href="../../bib.html#bib.doucet2001sequential">doucet2001sequential</a></code> section 12.2.2, and [Wik17]_ section "Rule_of_thumb"</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -822,7 +822,7 @@ and also computed based on a weighted mean.</p></div>
 <pre><code class="python">def auto_bandw(N, M):
     &#34;&#34;&#34;&#34;Optimal bandwidth (not bandwidth^2), as per Scott&#39;s rule-of-thumb.
 
-    Refs: [Dou01]_ section 12.2.2, and [Wik17]_ section &#34;Rule_of_thumb&#34;
+    Refs: `bib.doucet2001sequential` section 12.2.2, and [Wik17]_ section &#34;Rule_of_thumb&#34;
     &#34;&#34;&#34;
     return N**(-1/(M+4))</code></pre>
 </details>
@@ -839,7 +839,7 @@ This is adjusted by the regularization 'reg' factor
 Gaussian kernels),
 which controls the strength of the jitter.
 This causes a bias. But, as N&ndash;&gt;∞, the reg. bandwidth&ndash;&gt;0, i.e. bias&ndash;&gt;0.
-Ref: [Dou01]_, section 12.2.2.</p></div>
+Ref: <code><a title="bib.doucet2001sequential" href="../../bib.html#bib.doucet2001sequential">doucet2001sequential</a></code>, section 12.2.2.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -853,7 +853,7 @@ Ref: [Dou01]_, section 12.2.2.</p></div>
     (so-named because Dirac-deltas are approximated  Gaussian kernels),
     which controls the strength of the jitter.
     This causes a bias. But, as N--&gt;∞, the reg. bandwidth--&gt;0, i.e. bias--&gt;0.
-    Ref: [Dou01]_, section 12.2.2.
+    Ref: `bib.doucet2001sequential`, section 12.2.2.
     &#34;&#34;&#34;
     # Select
     E = E[idx]
@@ -874,7 +874,7 @@ Ref: [Dou01]_, section 12.2.2.</p></div>
 <span>def <span class="ident">resample</span></span>(<span>w, kind='Systematic', N=None, wroot=1.0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Multinomial resampling [Dou09]<em>, [van09]</em>, <code>bib.Liu01</code>.</p>
+<div class="desc"><p>Multinomial resampling <code><a title="bib.doucet2009tutorial" href="../../bib.html#bib.doucet2009tutorial">doucet2009tutorial</a></code>, <code><a title="bib.van2009particle" href="../../bib.html#bib.van2009particle">van2009particle</a></code>, <code><a title="bib.liu2001theoretical" href="../../bib.html#bib.liu2001theoretical">liu2001theoretical</a></code>.</p>
 <ul>
 <li>
 <p>kind: 'Systematic', 'Residual' or 'Stochastic'.
@@ -894,7 +894,7 @@ Example: see docs/snippets/ex_resample.py.</p>
 <p>wroot: Adjust weights before resampling by this root to
 promote particle diversity and mitigate thinning.
 The outcomes of the resampling are then weighted to maintain un-biased-ness.
-Ref: <code>bib.Liu01</code>, section 3.1</p>
+Ref: <code><a title="bib.liu2001theoretical" href="../../bib.html#bib.liu2001theoretical">liu2001theoretical</a></code>, section 3.1</p>
 </li>
 </ul>
 <p>Note: (a) resampling methods are beneficial because they discard
@@ -911,7 +911,7 @@ have more informative (and less variable) future likelihoods.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def resample(w, kind=&#39;Systematic&#39;, N=None, wroot=1.0):
-    &#34;&#34;&#34;Multinomial resampling [Dou09]_, [van09]_, `bib.Liu01`.
+    &#34;&#34;&#34;Multinomial resampling `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
 
     - kind: &#39;Systematic&#39;, &#39;Residual&#39; or &#39;Stochastic&#39;.
       &#39;Stochastic&#39; corresponds to np.random.choice() or np.random.multinomial().
@@ -928,7 +928,7 @@ have more informative (and less variable) future likelihoods.</p></div>
     - wroot: Adjust weights before resampling by this root to
       promote particle diversity and mitigate thinning.
       The outcomes of the resampling are then weighted to maintain un-biased-ness.
-      Ref: `bib.Liu01`, section 3.1
+      Ref: `bib.liu2001theoretical`, section 3.1
 
     Note: (a) resampling methods are beneficial because they discard
     low-weight (&#34;doomed&#34;) particles and reduce the variance of the weights.
@@ -1008,7 +1008,7 @@ have more informative (and less variable) future likelihoods.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Particle filter ≡ Sequential importance (re)sampling SIS (SIR).</p>
-<p>Refs: [Wik07]<em>, [van09]</em>, [Che03]_</p>
+<p>Refs: <code><a title="bib.wikle2007bayesian" href="../../bib.html#bib.wikle2007bayesian">wikle2007bayesian</a></code>, <code><a title="bib.van2009particle" href="../../bib.html#bib.van2009particle">van2009particle</a></code>, <code><a title="bib.chen2003bayesian" href="../../bib.html#bib.chen2003bayesian">chen2003bayesian</a></code></p>
 <p>This is the bootstrap version: the proposal density is just
 :math:<code>q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})</code></p>
 <p>Tuning settings:</p>
@@ -1019,7 +1019,7 @@ no systematic bias is introduced.</li>
 <li>qroot: "Inflate" (anneal) the proposal noise kernels
 by this root to increase diversity.
 The weights are updated to maintain un-biased-ness.
-See [Che03]_, section VI-M.2</li>
+See <code><a title="bib.chen2003bayesian" href="../../bib.html#bib.chen2003bayesian">chen2003bayesian</a></code>, section VI-M.2</li>
 </ul></div>
 <details class="source">
 <summary>
@@ -1028,7 +1028,7 @@ See [Che03]_, section VI-M.2</li>
 <pre><code class="python">class PartFilt:
     r&#34;&#34;&#34;Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
-    Refs: [Wik07]_, [van09]_, [Che03]_
+    Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
 
     This is the bootstrap version: the proposal density is just
     :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
@@ -1041,7 +1041,7 @@ See [Che03]_, section VI-M.2</li>
      - qroot: &#34;Inflate&#34; (anneal) the proposal noise kernels
        by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
-       See [Che03]_, section VI-M.2
+       See `bib.chen2003bayesian`, section VI-M.2
     &#34;&#34;&#34;
     N: int
     reg: float   = 0
