@@ -38,7 +38,7 @@
 
 Requires rsync, gcloud and ssh access to the DAPPER cluster.&#34;&#34;&#34;
 
-# TODO 5: use Fabric? https://www.fabfile.org/
+# TODO 9: use Fabric? https://www.fabfile.org/
 
 import time
 from tqdm import tqdm
@@ -61,6 +61,7 @@ class SubmissionConnection:
                  proj=&#34;mc-tut&#34;):
         # Job info
         self.xps_path = xps_path
+        self.nJobs    = len(list_job_dirs(xps_path))
         # Submit-node info
         self.name     = name
         self.proj     = proj
@@ -70,7 +71,7 @@ class SubmissionConnection:
         self.ip       = get_ip(name)
 
         print(&#34;Preparing ssh connection&#34;)
-        sys_cmd(&#34;gcloud compute config-ssh&#34;)
+        sub_run(&#34;gcloud compute config-ssh&#34;, shell=True)
         # Use multiplexing to enable simultaneous connections.
         # Possible alternative: alter MaxStartups in sshd_config,
         # or other configurations:
@@ -82,15 +83,15 @@ class SubmissionConnection:
             &#39;&#39;&#39; -o ControlPath=~/.ssh/%r@%h:%p.socket -o ControlPersist=1m&#39;&#39;&#39;)
 
         # print_condor_status()
-        print(&#34;autoscaler.py%s detected&#34; % (&#34;&#34; if detect_autoscaler(self) else &#34; NOT&#34;))
+        print(&#34;autoscaler.py%s detected&#34; % (&#34;&#34; if _detect_autoscaler(self) else &#34; NOT&#34;))
 
-    def remote_cmd(self, cmd_string):
+    def remote_cmd(self, cmd_string, **kwargs):
         &#34;&#34;&#34;Run command at self.host via multiplexed ssh.&#34;&#34;&#34;
         # Old version (uses gcloud):
         #     command = &#34;&#34;&#34;--command=&#34;&#34;&#34; + command
         #     connect = &#34;gcloud compute ssh condor-submit&#34;.split()
-        #     output = sys_cmd(connect + [command], split=False)
-        return sys_cmd([*self.ssh_M.split(), self.ip, cmd_string], split=False)
+        #     output = sub_run(connect + [command])
+        return sub_run([*self.ssh_M.split(), self.ip, cmd_string], **kwargs)
 
     def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
         # Prepare: opts
@@ -104,10 +105,15 @@ class SubmissionConnection:
         if rev:
             src, dst = dst, src
 
+        # Get rsync version
+        v = sub_run(&#34;rsync --version&#34;, shell=True).splitlines()[0].split()
+        i = v.index(&#34;version&#34;)
+        v = v[i+1]  # =&gt; &#39;3.2.3&#39;
+        v = [int(w) for w in v.split(&#34;.&#34;)]
+        has_prog2 = (v[0] &gt;= 3) and (v[1] &gt;= 1)
+
         # Show progress
-        if prog:
-            # TODO 3: Implement rsync check for when new rsync
-            # isnt available which supports --info=progress2
+        if prog and has_prog2:
             prog = (&#34;--info=progress2&#34;, &#34;--no-inc-recursive&#34;)
         else:
             prog = []
@@ -127,61 +133,48 @@ class SubmissionConnection:
             return &#34; &#34;.join(cmd)
         else:
             # Sync
-            _ = subprocess.run(cmd, check=True)
+            subprocess.run(cmd, check=True)
             return None
 
 
 def submit_job_GCP(xps_path, **kwargs):
     &#34;&#34;&#34;GCP/HTCondor launcher&#34;&#34;&#34;
     sc = SubmissionConnection(xps_path, **kwargs)
-    sync_job(sc)
+    _sync_job(sc)
 
-    # TODO 2: use subprocess.run(timeout=5*60) instead?
+    _submit_job(sc)
+
+    # Prepare download command
+    print(&#34;To download results (before completion) use:&#34;)
+    xcldd = [&#34;xp.com&#34;, &#34;DAPPER&#34;, &#34;runlog&#34;, &#34;err&#34;]  # &#34;out\\.*&#34;
+    xcldd = [&#34;--exclude=&#34;+x for x in xcldd]
+    print(sc.rsync(
+        xps_path.parent, f&#34;~/{xps_path.name}&#34;,
+        rev=True, opts=xcldd, dry=True, use_M=False))
+
     try:
-        # Timeout functionality for ssh -c submit
-        def submit():
-            print(&#34;Submitting jobs&#34;)
-            sc.remote_cmd(
-                f&#34;&#34;&#34;cd {xps_path.name}; condor_submit&#34;&#34;&#34;
-                f&#34;&#34;&#34; -batch-name {xps_path.name} submit-description&#34;&#34;&#34;)
-        import multiprocessing_on_dill as mpd  # fails on GCP
-        p = mpd.Process(target=submit)
-        p.start()
-        p.join(5*60)
-        if p.is_alive():
-            print(&#39;The ssh seems to hang, &#39;
-                  &#39;but the jobs are probably submitted.&#39;)
-            p.terminate()
-            p.join()
-
-        # Prepare download command
-        print(&#34;To download results (before completion) use:&#34;)
-        xcldd = [&#34;xp.com&#34;, &#34;DAPPER&#34;, &#34;runlog&#34;, &#34;err&#34;]  # &#34;out\\.*&#34;
-        xcldd = [&#34;--exclude=&#34;+x for x in xcldd]
-        print(sc.rsync(
-            xps_path.parent, f&#34;~/{xps_path.name}&#34;,
-            rev=True, opts=xcldd, dry=True, use_M=False))
-
-        monitor_progress(sc)
-    except Exception:
+        _monitor_progress(sc)
+    except (KeyboardInterrupt, Exception):
         inpt = input(&#34;Do you wish to clear the job queue? (Y/n): &#34;).lower()
         if inpt in [&#34;&#34;, &#34;y&#34;, &#34;yes&#34;]:
             print(&#34;Clearing queue&#34;)
-            clear_queue(sc)
+            _clear_queue(sc)
         raise
     else:
         print(&#34;Downloading results&#34;)
-        sc.rsync(xps_path.parent, f&#34;~/{xps_path.name}&#34;, rev=True, opts=xcldd, prog=True)
+        sc.rsync(xps_path.parent, f&#34;~/{xps_path.name}&#34;,
+                 rev=True, opts=xcldd, prog=True)
     finally:
-        # print(&#34;Checking for autoscaler cron job:&#34;) # let user know smth&#39;s happenin
-        if not detect_autoscaler(sc):
+        # let user know smth&#39;s happenin
+        # print(&#34;Checking for autoscaler cron job:&#34;)
+        if not _detect_autoscaler(sc):
             print(&#34;Warning: autoscaler.py NOT detected!\n    &#34;
                   &#34;Shut down the compute nodes yourself using:\n    &#34;
                   &#34;gcloud compute instance-groups managed &#34;
                   &#34;resize condor-compute-pvm-igm --size 0&#34;)
 
 
-def detect_autoscaler(self, minutes=10):
+def _detect_autoscaler(self, minutes=10):
     &#34;&#34;&#34;Grep syslog for autoscaler.
 
     Also get remote&#39;s date (time), to avoid another (slow) ssh.&#34;&#34;&#34;
@@ -205,11 +198,27 @@ def detect_autoscaler(self, minutes=10):
     return True
 
 
-def sync_job(self):
+def _submit_job(self):
+    print(&#34;Submitting jobs&#34;)
     xps_path = self.xps_path
 
-    jobs = list_job_dirs(xps_path)
-    print(&#34;Syncing %d jobs&#34; % len(jobs))
+    # I used to have a timeout in the remote_cmd() below,
+    # because I thought that ssh would hang when the condor submission
+    # was taking long. However, I think it is simply the submission
+    # being slow, and we had better wait for it to finish,
+    # because querying condor_q before then will fail,
+    # causing _monitor_progress to crash.
+    if self.nJobs &gt; 4000:
+        print(&#34;This might take a while&#34;)
+
+    self.remote_cmd(
+        f&#34;&#34;&#34;cd {xps_path.name}; condor_submit&#34;&#34;&#34;
+        f&#34;&#34;&#34; -batch-name {xps_path.name} submit-description&#34;&#34;&#34;)
+
+
+def _sync_job(self):
+    print(&#34;Syncing %d jobs&#34; % self.nJobs)
+    xps_path = self.xps_path
 
     # NB: --delete =&gt; Must precede other rsync&#39;s!
     self.rsync(xps_path, &#34;~/&#34;, &#34;--delete&#34;)
@@ -217,22 +226,17 @@ def sync_job(self):
     htcondor = str(rc.dirs.DAPPER/&#34;dapper&#34;/&#34;tools&#34;/&#34;remote&#34;/&#34;htcondor&#34;) + os.sep
     self.rsync(htcondor, &#34;~/&#34;+xps_path.name)
 
-    print(&#34;Copying xp.com to initdirs&#34;)
-    self.remote_cmd(
-        f&#34;&#34;&#34;cd {xps_path.name}; for ixp in [0-999999];&#34;&#34;&#34;
-        f&#34;&#34;&#34; do cp xp.com $ixp/; done&#34;&#34;&#34;)
-
-    sync_DAPPER(self)
+    _sync_DAPPER(self)
 
 
-def sync_DAPPER(self):
+def _sync_DAPPER(self):
     &#34;&#34;&#34;Sync DAPPER (as it currently exists, not a specific version)
 
     to compute-nodes, which don&#39;t have external IP addresses.
     &#34;&#34;&#34;
     # Get list of files: whatever mentioned by .git
     repo  = f&#34;--git-dir={rc.dirs.DAPPER}/.git&#34;
-    files = sys_cmd(f&#34;git {repo} ls-tree -r --name-only HEAD&#34;).split()
+    files = sub_run(f&#34;git {repo} ls-tree -r --name-only HEAD&#34;, shell=True).split()
 
     def xcldd(f):
         return f.startswith(&#34;docs/&#34;) or f.endswith(&#34;.jpg&#34;) or f.endswith(&#34;.png&#34;)
@@ -265,7 +269,7 @@ def print_condor_status(self):
         print(&#34;[No compute nodes found]&#34;)
 
 
-def clear_queue(self):
+def _clear_queue(self):
     &#34;&#34;&#34;Use condor_rm to clear the job queue of the submission.&#34;&#34;&#34;
     try:
         batch = f&#34;&#34;&#34;-constraint &#39;JobBatchName == &#34;{self.xps_path.name}&#34;&#39;&#34;&#34;&#34;
@@ -280,7 +284,7 @@ def clear_queue(self):
             raise
 
 
-def get_job_status(self):
+def _get_job_status(self):
     &#34;&#34;&#34;Parse condor_q to get number idle, held, etc, jobs&#34;&#34;&#34;
     # The autoscaler.py script from Google uses
     # &#39;condor_q -totals -format &#34;%d &#34; Jobs -format &#34;%d &#34; Idle -format &#34;%d &#34; Held&#39;
@@ -308,14 +312,14 @@ def get_job_status(self):
     return {k: int(qsum[qsum.index(v)-1]) for k, v in status.items()}
 
 
-def monitor_progress(self):
+def _monitor_progress(self):
     &#34;&#34;&#34;Use condor_q to monitor job progress.&#34;&#34;&#34;
-    num_jobs = len(list_job_dirs(self.xps_path))
+    num_jobs = self.nJobs
     pbar = tqdm(total=num_jobs, desc=&#34;Processing jobs&#34;)
     try:
         unfinished = num_jobs
         while unfinished:
-            job_status     = get_job_status(self)
+            job_status     = _get_job_status(self)
             unlisted       = num_jobs - job_status[&#34;jobs&#34;]  # completed w/ success
             finished       = job_status[&#34;held&#34;] + unlisted  # failed + suceeded
             unfinished_new = num_jobs - finished
@@ -324,9 +328,9 @@ def monitor_progress(self):
             # print(job_status)
             pbar.update(increment)
             time.sleep(1)  # dont clog the ssh connection
-    except Exception:
+    except (KeyboardInterrupt, Exception):
         print(&#34;Some kind of exception occured,&#34;
-              &#34; while %d jobs were not even run.&#34; % unfinished)
+              &#34; while %d jobs did not run at all.&#34; % unfinished)
         raise
     else:
         print(&#34;All jobs finished without failure.&#34;)
@@ -335,7 +339,6 @@ def monitor_progress(self):
         if job_status[&#34;held&#34;]:
             print(&#34;NB: There were %d failed jobs&#34; % job_status[&#34;held&#34;])
             print(f&#34;View errors at {self.xps_path}/JOBNUMBER/out&#34;)
-            clear_queue(self) # TODO 3: this runs also if sucessfull. Ok?
 
 
 def list_job_dirs(xps_path):
@@ -356,7 +359,8 @@ def get_ip(instance):
 
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = &#39;get(networkInterfaces[0].accessConfigs[0].natIP)&#39;
-    ip = sys_cmd(f&#34;gcloud compute instances describe {instance} --format={getip}&#34;)
+    ip = sub_run((f&#34;gcloud compute instances describe {instance}&#34;
+                 f&#34; --format={getip}&#34;).split())
     return ip.strip()
 
     # # Parse ssh/config for the &#34;Host&#34; of condor-submit.
@@ -372,20 +376,31 @@ def get_ip(instance):
     #     return ln[ln.index(&#34;condor&#34;):].strip()
 
 
-def sys_cmd(args, split=True):
-    &#34;&#34;&#34;Run subprocess, capture output, raise exception.&#34;&#34;&#34;
-    if split:
-        args = args.split()
+def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
+    &#34;&#34;&#34;`subprocess.run`, with other defaults, and return stdout.
+
+    Example:
+    &gt;&gt;&gt; gitfiles = sub_run([&#34;git&#34;, &#34;ls-tree&#34;, &#34;-r&#34;, &#34;--name-only&#34;, &#34;HEAD&#34;])
+    &gt;&gt;&gt; # Alternatively:
+    &gt;&gt;&gt; # gitfiles = sub_run(&#34;git ls-tree -r --name-only HEAD&#34;, shell=True)
+    &gt;&gt;&gt; # Only .py files:
+    &gt;&gt;&gt; gitfiles = [f for f in gitfiles.split(&#34;\n&#34;) if f.endswith(&#34;.py&#34;)]
+    &#34;&#34;&#34;
+
     try:
-        ps = subprocess.run(args, check=True, capture_output=True)
+        x = subprocess.run(
+            *args, **kwargs,
+            check=check, capture_output=capture_output, text=text)
+
     except subprocess.CalledProcessError as error:
         # CalledProcessError doesnt print its .stderr,
         # so we raise it this way:
         raise subprocess.SubprocessError(
             f&#34;Command {error.cmd} returned non-zero exit status, &#34;
-            f&#34;with stderr:\n{error.stderr.decode()}&#34;) from error
-    output = ps.stdout.decode()
-    return output</code></pre>
+            f&#34;with stderr:\n{error.stderr}&#34;) from error
+
+    if capture_output:
+        return x.stdout</code></pre>
 </details>
 </section>
 <section>
@@ -407,153 +422,38 @@ def sys_cmd(args, split=True):
 <pre><code class="python">def submit_job_GCP(xps_path, **kwargs):
     &#34;&#34;&#34;GCP/HTCondor launcher&#34;&#34;&#34;
     sc = SubmissionConnection(xps_path, **kwargs)
-    sync_job(sc)
+    _sync_job(sc)
 
-    # TODO 2: use subprocess.run(timeout=5*60) instead?
+    _submit_job(sc)
+
+    # Prepare download command
+    print(&#34;To download results (before completion) use:&#34;)
+    xcldd = [&#34;xp.com&#34;, &#34;DAPPER&#34;, &#34;runlog&#34;, &#34;err&#34;]  # &#34;out\\.*&#34;
+    xcldd = [&#34;--exclude=&#34;+x for x in xcldd]
+    print(sc.rsync(
+        xps_path.parent, f&#34;~/{xps_path.name}&#34;,
+        rev=True, opts=xcldd, dry=True, use_M=False))
+
     try:
-        # Timeout functionality for ssh -c submit
-        def submit():
-            print(&#34;Submitting jobs&#34;)
-            sc.remote_cmd(
-                f&#34;&#34;&#34;cd {xps_path.name}; condor_submit&#34;&#34;&#34;
-                f&#34;&#34;&#34; -batch-name {xps_path.name} submit-description&#34;&#34;&#34;)
-        import multiprocessing_on_dill as mpd  # fails on GCP
-        p = mpd.Process(target=submit)
-        p.start()
-        p.join(5*60)
-        if p.is_alive():
-            print(&#39;The ssh seems to hang, &#39;
-                  &#39;but the jobs are probably submitted.&#39;)
-            p.terminate()
-            p.join()
-
-        # Prepare download command
-        print(&#34;To download results (before completion) use:&#34;)
-        xcldd = [&#34;xp.com&#34;, &#34;DAPPER&#34;, &#34;runlog&#34;, &#34;err&#34;]  # &#34;out\\.*&#34;
-        xcldd = [&#34;--exclude=&#34;+x for x in xcldd]
-        print(sc.rsync(
-            xps_path.parent, f&#34;~/{xps_path.name}&#34;,
-            rev=True, opts=xcldd, dry=True, use_M=False))
-
-        monitor_progress(sc)
-    except Exception:
+        _monitor_progress(sc)
+    except (KeyboardInterrupt, Exception):
         inpt = input(&#34;Do you wish to clear the job queue? (Y/n): &#34;).lower()
         if inpt in [&#34;&#34;, &#34;y&#34;, &#34;yes&#34;]:
             print(&#34;Clearing queue&#34;)
-            clear_queue(sc)
+            _clear_queue(sc)
         raise
     else:
         print(&#34;Downloading results&#34;)
-        sc.rsync(xps_path.parent, f&#34;~/{xps_path.name}&#34;, rev=True, opts=xcldd, prog=True)
+        sc.rsync(xps_path.parent, f&#34;~/{xps_path.name}&#34;,
+                 rev=True, opts=xcldd, prog=True)
     finally:
-        # print(&#34;Checking for autoscaler cron job:&#34;) # let user know smth&#39;s happenin
-        if not detect_autoscaler(sc):
+        # let user know smth&#39;s happenin
+        # print(&#34;Checking for autoscaler cron job:&#34;)
+        if not _detect_autoscaler(sc):
             print(&#34;Warning: autoscaler.py NOT detected!\n    &#34;
                   &#34;Shut down the compute nodes yourself using:\n    &#34;
                   &#34;gcloud compute instance-groups managed &#34;
                   &#34;resize condor-compute-pvm-igm --size 0&#34;)</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.remote.uplink.detect_autoscaler"><code class="name flex">
-<span>def <span class="ident">detect_autoscaler</span></span>(<span>self, minutes=10)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Grep syslog for autoscaler.</p>
-<p>Also get remote's date (time), to avoid another (slow) ssh.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def detect_autoscaler(self, minutes=10):
-    &#34;&#34;&#34;Grep syslog for autoscaler.
-
-    Also get remote&#39;s date (time), to avoid another (slow) ssh.&#34;&#34;&#34;
-
-    command = &#34;&#34;&#34;grep CRON /var/log/syslog | grep autoscaler | tail; date&#34;&#34;&#34;
-    output  = self.remote_cmd(command).splitlines()
-    recent_crons, now = output[:-1], output[-1]
-
-    if not recent_crons:
-        return False
-
-    # Get timestamp of last cron job
-    last_cron = recent_crons[-1].split(self.name)[0]
-    log_time  = datetime_parse(last_cron).replace(tzinfo=timezone.utc)
-    now       = datetime_parse(now)
-    pause     = timedelta(minutes=minutes)
-
-    if log_time + pause &lt; now:
-        return False
-
-    return True</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.remote.uplink.sync_job"><code class="name flex">
-<span>def <span class="ident">sync_job</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def sync_job(self):
-    xps_path = self.xps_path
-
-    jobs = list_job_dirs(xps_path)
-    print(&#34;Syncing %d jobs&#34; % len(jobs))
-
-    # NB: --delete =&gt; Must precede other rsync&#39;s!
-    self.rsync(xps_path, &#34;~/&#34;, &#34;--delete&#34;)
-
-    htcondor = str(rc.dirs.DAPPER/&#34;dapper&#34;/&#34;tools&#34;/&#34;remote&#34;/&#34;htcondor&#34;) + os.sep
-    self.rsync(htcondor, &#34;~/&#34;+xps_path.name)
-
-    print(&#34;Copying xp.com to initdirs&#34;)
-    self.remote_cmd(
-        f&#34;&#34;&#34;cd {xps_path.name}; for ixp in [0-999999];&#34;&#34;&#34;
-        f&#34;&#34;&#34; do cp xp.com $ixp/; done&#34;&#34;&#34;)
-
-    sync_DAPPER(self)</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.remote.uplink.sync_DAPPER"><code class="name flex">
-<span>def <span class="ident">sync_DAPPER</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Sync DAPPER (as it currently exists, not a specific version)</p>
-<p>to compute-nodes, which don't have external IP addresses.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def sync_DAPPER(self):
-    &#34;&#34;&#34;Sync DAPPER (as it currently exists, not a specific version)
-
-    to compute-nodes, which don&#39;t have external IP addresses.
-    &#34;&#34;&#34;
-    # Get list of files: whatever mentioned by .git
-    repo  = f&#34;--git-dir={rc.dirs.DAPPER}/.git&#34;
-    files = sys_cmd(f&#34;git {repo} ls-tree -r --name-only HEAD&#34;).split()
-
-    def xcldd(f):
-        return f.startswith(&#34;docs/&#34;) or f.endswith(&#34;.jpg&#34;) or f.endswith(&#34;.png&#34;)
-    files = [f for f in files if not xcldd(f)]
-
-    with tempfile.NamedTemporaryFile(&#34;w&#34;, delete=False) as synclist:
-        print(&#34;\n&#34;.join(files), file=synclist)
-
-    print(&#34;Syncing DAPPER&#34;)
-    try:
-        self.rsync(
-            rc.dirs.DAPPER,
-            f&#34;~/{self.xps_path.name}/DAPPER&#34;,
-            &#34;--files-from=&#34;+synclist.name)
-    except subprocess.SubprocessError as error:
-        # Suggest common source of error in the message.
-        msg = error.args[0] + \
-            &#34;\nDid you mv/rm files (and not registering it with .git)?&#34;
-        raise subprocess.SubprocessError(msg) from error</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.remote.uplink.print_condor_status"><code class="name flex">
@@ -574,106 +474,6 @@ def sys_cmd(args, split=True):
             print(line)
     else:
         print(&#34;[No compute nodes found]&#34;)</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.remote.uplink.clear_queue"><code class="name flex">
-<span>def <span class="ident">clear_queue</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Use condor_rm to clear the job queue of the submission.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def clear_queue(self):
-    &#34;&#34;&#34;Use condor_rm to clear the job queue of the submission.&#34;&#34;&#34;
-    try:
-        batch = f&#34;&#34;&#34;-constraint &#39;JobBatchName == &#34;{self.xps_path.name}&#34;&#39;&#34;&#34;&#34;
-        self.remote_cmd(f&#34;&#34;&#34;condor_rm {batch}&#34;&#34;&#34;)
-        print(&#34;Queue cleared.&#34;)
-    except subprocess.SubprocessError as error:
-        if &#34;matching&#34; in error.args[0]:
-            # Queue probably already cleared, as happens upon
-            # KeyboardInterrupt, when there&#39;s also &#34;held&#34; jobs.
-            pass
-        else:
-            raise</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.remote.uplink.get_job_status"><code class="name flex">
-<span>def <span class="ident">get_job_status</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Parse condor_q to get number idle, held, etc, jobs</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_job_status(self):
-    &#34;&#34;&#34;Parse condor_q to get number idle, held, etc, jobs&#34;&#34;&#34;
-    # The autoscaler.py script from Google uses
-    # &#39;condor_q -totals -format &#34;%d &#34; Jobs -format &#34;%d &#34; Idle -format &#34;%d &#34; Held&#39;
-    # But in both condor versions I&#39;ve tried, -totals does not mix well with -format,
-    # and the ClassAd attributes (&#34;Jobs&#34;, &#34;Idle&#34;, &#34;Held&#34;) are not available,
-    # as listed by:
-    #  - condor_q -l
-    #  - Appendix &#34;Job ClassAd Attributes&#34; of the condor-manual (online).
-    #  Condor version 8.6 (higher than 8.4 used by GCP tutorial)
-    #  enables labelling jobs with -batch-name, and thus multiple jobs
-    #  can be submitted and run (queried for progress, rm&#39;d, downloaded) simultaneously.
-    #  One alternative is to query job status with
-    #  condor_q -constraint &#39;JobStatus == 5&#39;,
-    #  but I prefer to parse the -totals output instead.
-
-    batch = f&#34;&#34;&#34;-constraint &#39;JobBatchName == &#34;{self.xps_path.name}&#34;&#39;&#34;&#34;&#34;
-    qsum = self.remote_cmd(f&#34;&#34;&#34;condor_q {batch}&#34;&#34;&#34;).split()
-    status = dict(jobs=&#34;jobs;&#34;, completed=&#34;completed,&#34;, removed=&#34;removed,&#34;,
-                  idle=&#34;idle,&#34;, running=&#34;running,&#34;, held=&#34;held,&#34;, suspended=&#34;suspended&#34;)
-    # Another way to get total num. of jobs:
-    # int(self.remote_cmd(
-    #     f&#34;&#34;&#34;cd {self.xps_path.name}; ls -1 | grep -o &#39;[0-9]*&#39; | wc -l&#34;&#34;&#34;))
-    # Another way to parse qsum:
-    # int(re.search(&#34;&#34;&#34;(\d+) idle&#34;&#34;&#34;,condor_q).group(1))
-    return {k: int(qsum[qsum.index(v)-1]) for k, v in status.items()}</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.remote.uplink.monitor_progress"><code class="name flex">
-<span>def <span class="ident">monitor_progress</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Use condor_q to monitor job progress.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def monitor_progress(self):
-    &#34;&#34;&#34;Use condor_q to monitor job progress.&#34;&#34;&#34;
-    num_jobs = len(list_job_dirs(self.xps_path))
-    pbar = tqdm(total=num_jobs, desc=&#34;Processing jobs&#34;)
-    try:
-        unfinished = num_jobs
-        while unfinished:
-            job_status     = get_job_status(self)
-            unlisted       = num_jobs - job_status[&#34;jobs&#34;]  # completed w/ success
-            finished       = job_status[&#34;held&#34;] + unlisted  # failed + suceeded
-            unfinished_new = num_jobs - finished
-            increment      = unfinished - unfinished_new
-            unfinished     = unfinished_new
-            # print(job_status)
-            pbar.update(increment)
-            time.sleep(1)  # dont clog the ssh connection
-    except Exception:
-        print(&#34;Some kind of exception occured,&#34;
-              &#34; while %d jobs were not even run.&#34; % unfinished)
-        raise
-    else:
-        print(&#34;All jobs finished without failure.&#34;)
-    finally:
-        pbar.close()
-        if job_status[&#34;held&#34;]:
-            print(&#34;NB: There were %d failed jobs&#34; % job_status[&#34;held&#34;])
-            print(f&#34;View errors at {self.xps_path}/JOBNUMBER/out&#34;)
-            clear_queue(self) # TODO 3: this runs also if sucessfull. Ok?</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.remote.uplink.list_job_dirs"><code class="name flex">
@@ -718,33 +518,53 @@ and that you've already logged into the instance once using (eg)
 
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = &#39;get(networkInterfaces[0].accessConfigs[0].natIP)&#39;
-    ip = sys_cmd(f&#34;gcloud compute instances describe {instance} --format={getip}&#34;)
+    ip = sub_run((f&#34;gcloud compute instances describe {instance}&#34;
+                 f&#34; --format={getip}&#34;).split())
     return ip.strip()</code></pre>
 </details>
 </dd>
-<dt id="dapper.tools.remote.uplink.sys_cmd"><code class="name flex">
-<span>def <span class="ident">sys_cmd</span></span>(<span>args, split=True)</span>
+<dt id="dapper.tools.remote.uplink.sub_run"><code class="name flex">
+<span>def <span class="ident">sub_run</span></span>(<span>*args, check=True, capture_output=True, text=True, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Run subprocess, capture output, raise exception.</p></div>
+<div class="desc"><p><code>subprocess.run</code>, with other defaults, and return stdout.</p>
+<pre><code>Example:
+&gt;&gt;&gt; gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])
+&gt;&gt;&gt; # Alternatively:
+&gt;&gt;&gt; # gitfiles = sub_run("git ls-tree -r --name-only HEAD", shell=True)
+&gt;&gt;&gt; # Only .py files:
+&gt;&gt;&gt; gitfiles = [f for f in gitfiles.split("
+</code></pre>
+<p>") if f.endswith(".py")]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sys_cmd(args, split=True):
-    &#34;&#34;&#34;Run subprocess, capture output, raise exception.&#34;&#34;&#34;
-    if split:
-        args = args.split()
+<pre><code class="python">def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
+    &#34;&#34;&#34;`subprocess.run`, with other defaults, and return stdout.
+
+    Example:
+    &gt;&gt;&gt; gitfiles = sub_run([&#34;git&#34;, &#34;ls-tree&#34;, &#34;-r&#34;, &#34;--name-only&#34;, &#34;HEAD&#34;])
+    &gt;&gt;&gt; # Alternatively:
+    &gt;&gt;&gt; # gitfiles = sub_run(&#34;git ls-tree -r --name-only HEAD&#34;, shell=True)
+    &gt;&gt;&gt; # Only .py files:
+    &gt;&gt;&gt; gitfiles = [f for f in gitfiles.split(&#34;\n&#34;) if f.endswith(&#34;.py&#34;)]
+    &#34;&#34;&#34;
+
     try:
-        ps = subprocess.run(args, check=True, capture_output=True)
+        x = subprocess.run(
+            *args, **kwargs,
+            check=check, capture_output=capture_output, text=text)
+
     except subprocess.CalledProcessError as error:
         # CalledProcessError doesnt print its .stderr,
         # so we raise it this way:
         raise subprocess.SubprocessError(
             f&#34;Command {error.cmd} returned non-zero exit status, &#34;
-            f&#34;with stderr:\n{error.stderr.decode()}&#34;) from error
-    output = ps.stdout.decode()
-    return output</code></pre>
+            f&#34;with stderr:\n{error.stderr}&#34;) from error
+
+    if capture_output:
+        return x.stdout</code></pre>
 </details>
 </dd>
 </dl>
@@ -772,6 +592,7 @@ and that you've already logged into the instance once using (eg)
                  proj=&#34;mc-tut&#34;):
         # Job info
         self.xps_path = xps_path
+        self.nJobs    = len(list_job_dirs(xps_path))
         # Submit-node info
         self.name     = name
         self.proj     = proj
@@ -781,7 +602,7 @@ and that you've already logged into the instance once using (eg)
         self.ip       = get_ip(name)
 
         print(&#34;Preparing ssh connection&#34;)
-        sys_cmd(&#34;gcloud compute config-ssh&#34;)
+        sub_run(&#34;gcloud compute config-ssh&#34;, shell=True)
         # Use multiplexing to enable simultaneous connections.
         # Possible alternative: alter MaxStartups in sshd_config,
         # or other configurations:
@@ -793,15 +614,15 @@ and that you've already logged into the instance once using (eg)
             &#39;&#39;&#39; -o ControlPath=~/.ssh/%r@%h:%p.socket -o ControlPersist=1m&#39;&#39;&#39;)
 
         # print_condor_status()
-        print(&#34;autoscaler.py%s detected&#34; % (&#34;&#34; if detect_autoscaler(self) else &#34; NOT&#34;))
+        print(&#34;autoscaler.py%s detected&#34; % (&#34;&#34; if _detect_autoscaler(self) else &#34; NOT&#34;))
 
-    def remote_cmd(self, cmd_string):
+    def remote_cmd(self, cmd_string, **kwargs):
         &#34;&#34;&#34;Run command at self.host via multiplexed ssh.&#34;&#34;&#34;
         # Old version (uses gcloud):
         #     command = &#34;&#34;&#34;--command=&#34;&#34;&#34; + command
         #     connect = &#34;gcloud compute ssh condor-submit&#34;.split()
-        #     output = sys_cmd(connect + [command], split=False)
-        return sys_cmd([*self.ssh_M.split(), self.ip, cmd_string], split=False)
+        #     output = sub_run(connect + [command])
+        return sub_run([*self.ssh_M.split(), self.ip, cmd_string], **kwargs)
 
     def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
         # Prepare: opts
@@ -815,10 +636,15 @@ and that you've already logged into the instance once using (eg)
         if rev:
             src, dst = dst, src
 
+        # Get rsync version
+        v = sub_run(&#34;rsync --version&#34;, shell=True).splitlines()[0].split()
+        i = v.index(&#34;version&#34;)
+        v = v[i+1]  # =&gt; &#39;3.2.3&#39;
+        v = [int(w) for w in v.split(&#34;.&#34;)]
+        has_prog2 = (v[0] &gt;= 3) and (v[1] &gt;= 1)
+
         # Show progress
-        if prog:
-            # TODO 3: Implement rsync check for when new rsync
-            # isnt available which supports --info=progress2
+        if prog and has_prog2:
             prog = (&#34;--info=progress2&#34;, &#34;--no-inc-recursive&#34;)
         else:
             prog = []
@@ -838,13 +664,13 @@ and that you've already logged into the instance once using (eg)
             return &#34; &#34;.join(cmd)
         else:
             # Sync
-            _ = subprocess.run(cmd, check=True)
+            subprocess.run(cmd, check=True)
             return None</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="dapper.tools.remote.uplink.SubmissionConnection.remote_cmd"><code class="name flex">
-<span>def <span class="ident">remote_cmd</span></span>(<span>self, cmd_string)</span>
+<span>def <span class="ident">remote_cmd</span></span>(<span>self, cmd_string, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Run command at self.host via multiplexed ssh.</p></div>
@@ -852,13 +678,13 @@ and that you've already logged into the instance once using (eg)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def remote_cmd(self, cmd_string):
+<pre><code class="python">def remote_cmd(self, cmd_string, **kwargs):
     &#34;&#34;&#34;Run command at self.host via multiplexed ssh.&#34;&#34;&#34;
     # Old version (uses gcloud):
     #     command = &#34;&#34;&#34;--command=&#34;&#34;&#34; + command
     #     connect = &#34;gcloud compute ssh condor-submit&#34;.split()
-    #     output = sys_cmd(connect + [command], split=False)
-    return sys_cmd([*self.ssh_M.split(), self.ip, cmd_string], split=False)</code></pre>
+    #     output = sub_run(connect + [command])
+    return sub_run([*self.ssh_M.split(), self.ip, cmd_string], **kwargs)</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.remote.uplink.SubmissionConnection.rsync"><code class="name flex">
@@ -882,10 +708,15 @@ and that you've already logged into the instance once using (eg)
     if rev:
         src, dst = dst, src
 
+    # Get rsync version
+    v = sub_run(&#34;rsync --version&#34;, shell=True).splitlines()[0].split()
+    i = v.index(&#34;version&#34;)
+    v = v[i+1]  # =&gt; &#39;3.2.3&#39;
+    v = [int(w) for w in v.split(&#34;.&#34;)]
+    has_prog2 = (v[0] &gt;= 3) and (v[1] &gt;= 1)
+
     # Show progress
-    if prog:
-        # TODO 3: Implement rsync check for when new rsync
-        # isnt available which supports --info=progress2
+    if prog and has_prog2:
         prog = (&#34;--info=progress2&#34;, &#34;--no-inc-recursive&#34;)
     else:
         prog = []
@@ -905,7 +736,7 @@ and that you've already logged into the instance once using (eg)
         return &#34; &#34;.join(cmd)
     else:
         # Sync
-        _ = subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True)
         return None</code></pre>
 </details>
 </dd>
@@ -932,18 +763,12 @@ and that you've already logged into the instance once using (eg)
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="dapper.tools.remote.uplink.submit_job_GCP" href="#dapper.tools.remote.uplink.submit_job_GCP">submit_job_GCP</a></code></li>
-<li><code><a title="dapper.tools.remote.uplink.detect_autoscaler" href="#dapper.tools.remote.uplink.detect_autoscaler">detect_autoscaler</a></code></li>
-<li><code><a title="dapper.tools.remote.uplink.sync_job" href="#dapper.tools.remote.uplink.sync_job">sync_job</a></code></li>
-<li><code><a title="dapper.tools.remote.uplink.sync_DAPPER" href="#dapper.tools.remote.uplink.sync_DAPPER">sync_DAPPER</a></code></li>
 <li><code><a title="dapper.tools.remote.uplink.print_condor_status" href="#dapper.tools.remote.uplink.print_condor_status">print_condor_status</a></code></li>
-<li><code><a title="dapper.tools.remote.uplink.clear_queue" href="#dapper.tools.remote.uplink.clear_queue">clear_queue</a></code></li>
-<li><code><a title="dapper.tools.remote.uplink.get_job_status" href="#dapper.tools.remote.uplink.get_job_status">get_job_status</a></code></li>
-<li><code><a title="dapper.tools.remote.uplink.monitor_progress" href="#dapper.tools.remote.uplink.monitor_progress">monitor_progress</a></code></li>
 <li><code><a title="dapper.tools.remote.uplink.list_job_dirs" href="#dapper.tools.remote.uplink.list_job_dirs">list_job_dirs</a></code></li>
 <li><code><a title="dapper.tools.remote.uplink.get_ip" href="#dapper.tools.remote.uplink.get_ip">get_ip</a></code></li>
-<li><code><a title="dapper.tools.remote.uplink.sys_cmd" href="#dapper.tools.remote.uplink.sys_cmd">sys_cmd</a></code></li>
+<li><code><a title="dapper.tools.remote.uplink.sub_run" href="#dapper.tools.remote.uplink.sub_run">sub_run</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

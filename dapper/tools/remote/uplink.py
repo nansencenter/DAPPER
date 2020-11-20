@@ -2,7 +2,7 @@
 
 Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 
-# TODO 5: use Fabric? https://www.fabfile.org/
+# TODO 9: use Fabric? https://www.fabfile.org/
 
 import time
 from tqdm import tqdm
@@ -25,6 +25,7 @@ class SubmissionConnection:
                  proj="mc-tut"):
         # Job info
         self.xps_path = xps_path
+        self.nJobs    = len(list_job_dirs(xps_path))
         # Submit-node info
         self.name     = name
         self.proj     = proj
@@ -34,7 +35,7 @@ class SubmissionConnection:
         self.ip       = get_ip(name)
 
         print("Preparing ssh connection")
-        sys_cmd("gcloud compute config-ssh")
+        sub_run("gcloud compute config-ssh", shell=True)
         # Use multiplexing to enable simultaneous connections.
         # Possible alternative: alter MaxStartups in sshd_config,
         # or other configurations:
@@ -46,15 +47,15 @@ class SubmissionConnection:
             ''' -o ControlPath=~/.ssh/%r@%h:%p.socket -o ControlPersist=1m''')
 
         # print_condor_status()
-        print("autoscaler.py%s detected" % ("" if detect_autoscaler(self) else " NOT"))
+        print("autoscaler.py%s detected" % ("" if _detect_autoscaler(self) else " NOT"))
 
-    def remote_cmd(self, cmd_string):
+    def remote_cmd(self, cmd_string, **kwargs):
         """Run command at self.host via multiplexed ssh."""
         # Old version (uses gcloud):
         #     command = """--command=""" + command
         #     connect = "gcloud compute ssh condor-submit".split()
-        #     output = sys_cmd(connect + [command], split=False)
-        return sys_cmd([*self.ssh_M.split(), self.ip, cmd_string], split=False)
+        #     output = sub_run(connect + [command])
+        return sub_run([*self.ssh_M.split(), self.ip, cmd_string], **kwargs)
 
     def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
         # Prepare: opts
@@ -68,10 +69,15 @@ class SubmissionConnection:
         if rev:
             src, dst = dst, src
 
+        # Get rsync version
+        v = sub_run("rsync --version", shell=True).splitlines()[0].split()
+        i = v.index("version")
+        v = v[i+1]  # => '3.2.3'
+        v = [int(w) for w in v.split(".")]
+        has_prog2 = (v[0] >= 3) and (v[1] >= 1)
+
         # Show progress
-        if prog:
-            # TODO 3: Implement rsync check for when new rsync
-            # isnt available which supports --info=progress2
+        if prog and has_prog2:
             prog = ("--info=progress2", "--no-inc-recursive")
         else:
             prog = []
@@ -91,61 +97,48 @@ class SubmissionConnection:
             return " ".join(cmd)
         else:
             # Sync
-            _ = subprocess.run(cmd, check=True)
+            subprocess.run(cmd, check=True)
             return None
 
 
 def submit_job_GCP(xps_path, **kwargs):
     """GCP/HTCondor launcher"""
     sc = SubmissionConnection(xps_path, **kwargs)
-    sync_job(sc)
+    _sync_job(sc)
 
-    # TODO 2: use subprocess.run(timeout=5*60) instead?
+    _submit_job(sc)
+
+    # Prepare download command
+    print("To download results (before completion) use:")
+    xcldd = ["xp.com", "DAPPER", "runlog", "err"]  # "out\\.*"
+    xcldd = ["--exclude="+x for x in xcldd]
+    print(sc.rsync(
+        xps_path.parent, f"~/{xps_path.name}",
+        rev=True, opts=xcldd, dry=True, use_M=False))
+
     try:
-        # Timeout functionality for ssh -c submit
-        def submit():
-            print("Submitting jobs")
-            sc.remote_cmd(
-                f"""cd {xps_path.name}; condor_submit"""
-                f""" -batch-name {xps_path.name} submit-description""")
-        import multiprocessing_on_dill as mpd  # fails on GCP
-        p = mpd.Process(target=submit)
-        p.start()
-        p.join(5*60)
-        if p.is_alive():
-            print('The ssh seems to hang, '
-                  'but the jobs are probably submitted.')
-            p.terminate()
-            p.join()
-
-        # Prepare download command
-        print("To download results (before completion) use:")
-        xcldd = ["xp.com", "DAPPER", "runlog", "err"]  # "out\\.*"
-        xcldd = ["--exclude="+x for x in xcldd]
-        print(sc.rsync(
-            xps_path.parent, f"~/{xps_path.name}",
-            rev=True, opts=xcldd, dry=True, use_M=False))
-
-        monitor_progress(sc)
-    except Exception:
+        _monitor_progress(sc)
+    except (KeyboardInterrupt, Exception):
         inpt = input("Do you wish to clear the job queue? (Y/n): ").lower()
         if inpt in ["", "y", "yes"]:
             print("Clearing queue")
-            clear_queue(sc)
+            _clear_queue(sc)
         raise
     else:
         print("Downloading results")
-        sc.rsync(xps_path.parent, f"~/{xps_path.name}", rev=True, opts=xcldd, prog=True)
+        sc.rsync(xps_path.parent, f"~/{xps_path.name}",
+                 rev=True, opts=xcldd, prog=True)
     finally:
-        # print("Checking for autoscaler cron job:") # let user know smth's happenin
-        if not detect_autoscaler(sc):
+        # let user know smth's happenin
+        # print("Checking for autoscaler cron job:")
+        if not _detect_autoscaler(sc):
             print("Warning: autoscaler.py NOT detected!\n    "
                   "Shut down the compute nodes yourself using:\n    "
                   "gcloud compute instance-groups managed "
                   "resize condor-compute-pvm-igm --size 0")
 
 
-def detect_autoscaler(self, minutes=10):
+def _detect_autoscaler(self, minutes=10):
     """Grep syslog for autoscaler.
 
     Also get remote's date (time), to avoid another (slow) ssh."""
@@ -169,11 +162,27 @@ def detect_autoscaler(self, minutes=10):
     return True
 
 
-def sync_job(self):
+def _submit_job(self):
+    print("Submitting jobs")
     xps_path = self.xps_path
 
-    jobs = list_job_dirs(xps_path)
-    print("Syncing %d jobs" % len(jobs))
+    # I used to have a timeout in the remote_cmd() below,
+    # because I thought that ssh would hang when the condor submission
+    # was taking long. However, I think it is simply the submission
+    # being slow, and we had better wait for it to finish,
+    # because querying condor_q before then will fail,
+    # causing _monitor_progress to crash.
+    if self.nJobs > 4000:
+        print("This might take a while")
+
+    self.remote_cmd(
+        f"""cd {xps_path.name}; condor_submit"""
+        f""" -batch-name {xps_path.name} submit-description""")
+
+
+def _sync_job(self):
+    print("Syncing %d jobs" % self.nJobs)
+    xps_path = self.xps_path
 
     # NB: --delete => Must precede other rsync's!
     self.rsync(xps_path, "~/", "--delete")
@@ -181,22 +190,17 @@ def sync_job(self):
     htcondor = str(rc.dirs.DAPPER/"dapper"/"tools"/"remote"/"htcondor") + os.sep
     self.rsync(htcondor, "~/"+xps_path.name)
 
-    print("Copying xp.com to initdirs")
-    self.remote_cmd(
-        f"""cd {xps_path.name}; for ixp in [0-999999];"""
-        f""" do cp xp.com $ixp/; done""")
-
-    sync_DAPPER(self)
+    _sync_DAPPER(self)
 
 
-def sync_DAPPER(self):
+def _sync_DAPPER(self):
     """Sync DAPPER (as it currently exists, not a specific version)
 
     to compute-nodes, which don't have external IP addresses.
     """
     # Get list of files: whatever mentioned by .git
     repo  = f"--git-dir={rc.dirs.DAPPER}/.git"
-    files = sys_cmd(f"git {repo} ls-tree -r --name-only HEAD").split()
+    files = sub_run(f"git {repo} ls-tree -r --name-only HEAD", shell=True).split()
 
     def xcldd(f):
         return f.startswith("docs/") or f.endswith(".jpg") or f.endswith(".png")
@@ -229,7 +233,7 @@ def print_condor_status(self):
         print("[No compute nodes found]")
 
 
-def clear_queue(self):
+def _clear_queue(self):
     """Use condor_rm to clear the job queue of the submission."""
     try:
         batch = f"""-constraint 'JobBatchName == "{self.xps_path.name}"'"""
@@ -244,7 +248,7 @@ def clear_queue(self):
             raise
 
 
-def get_job_status(self):
+def _get_job_status(self):
     """Parse condor_q to get number idle, held, etc, jobs"""
     # The autoscaler.py script from Google uses
     # 'condor_q -totals -format "%d " Jobs -format "%d " Idle -format "%d " Held'
@@ -272,14 +276,14 @@ def get_job_status(self):
     return {k: int(qsum[qsum.index(v)-1]) for k, v in status.items()}
 
 
-def monitor_progress(self):
+def _monitor_progress(self):
     """Use condor_q to monitor job progress."""
-    num_jobs = len(list_job_dirs(self.xps_path))
+    num_jobs = self.nJobs
     pbar = tqdm(total=num_jobs, desc="Processing jobs")
     try:
         unfinished = num_jobs
         while unfinished:
-            job_status     = get_job_status(self)
+            job_status     = _get_job_status(self)
             unlisted       = num_jobs - job_status["jobs"]  # completed w/ success
             finished       = job_status["held"] + unlisted  # failed + suceeded
             unfinished_new = num_jobs - finished
@@ -288,9 +292,9 @@ def monitor_progress(self):
             # print(job_status)
             pbar.update(increment)
             time.sleep(1)  # dont clog the ssh connection
-    except Exception:
+    except (KeyboardInterrupt, Exception):
         print("Some kind of exception occured,"
-              " while %d jobs were not even run." % unfinished)
+              " while %d jobs did not run at all." % unfinished)
         raise
     else:
         print("All jobs finished without failure.")
@@ -299,7 +303,6 @@ def monitor_progress(self):
         if job_status["held"]:
             print("NB: There were %d failed jobs" % job_status["held"])
             print(f"View errors at {self.xps_path}/JOBNUMBER/out")
-            clear_queue(self) # TODO 3: this runs also if sucessfull. Ok?
 
 
 def list_job_dirs(xps_path):
@@ -320,7 +323,8 @@ def get_ip(instance):
 
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = 'get(networkInterfaces[0].accessConfigs[0].natIP)'
-    ip = sys_cmd(f"gcloud compute instances describe {instance} --format={getip}")
+    ip = sub_run((f"gcloud compute instances describe {instance}"
+                 f" --format={getip}").split())
     return ip.strip()
 
     # # Parse ssh/config for the "Host" of condor-submit.
@@ -336,17 +340,28 @@ def get_ip(instance):
     #     return ln[ln.index("condor"):].strip()
 
 
-def sys_cmd(args, split=True):
-    """Run subprocess, capture output, raise exception."""
-    if split:
-        args = args.split()
+def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
+    """`subprocess.run`, with other defaults, and return stdout.
+
+    Example:
+    >>> gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])
+    >>> # Alternatively:
+    >>> # gitfiles = sub_run("git ls-tree -r --name-only HEAD", shell=True)
+    >>> # Only .py files:
+    >>> gitfiles = [f for f in gitfiles.split("\n") if f.endswith(".py")]
+    """
+
     try:
-        ps = subprocess.run(args, check=True, capture_output=True)
+        x = subprocess.run(
+            *args, **kwargs,
+            check=check, capture_output=capture_output, text=text)
+
     except subprocess.CalledProcessError as error:
         # CalledProcessError doesnt print its .stderr,
         # so we raise it this way:
         raise subprocess.SubprocessError(
             f"Command {error.cmd} returned non-zero exit status, "
-            f"with stderr:\n{error.stderr.decode()}") from error
-    output = ps.stdout.decode()
-    return output
+            f"with stderr:\n{error.stderr}") from error
+
+    if capture_output:
+        return x.stdout
