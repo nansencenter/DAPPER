@@ -761,6 +761,7 @@ class xpSpace(SparseSpace):
                        the time series of that single experiment.
         """
 
+        # TODO 3: rm pandas requirement
         import pandas as pd
 
         def align_subcols(rows, cc, subcols, h2):
