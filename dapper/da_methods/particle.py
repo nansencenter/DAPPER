@@ -21,7 +21,7 @@ class particle_method:
 class PartFilt:
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
-    Refs: `bib.Wik07`, `bib.van09`, `bib.Che03`
+    Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
 
     This is the bootstrap version: the proposal density is just
     :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
@@ -34,7 +34,7 @@ class PartFilt:
      - qroot: "Inflate" (anneal) the proposal noise kernels
        by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
-       See `bib.Che03`, section VI-M.2
+       See `bib.chen2003bayesian`, section VI-M.2
     """
     N: int
     reg: float   = 0
@@ -502,7 +502,7 @@ def mask_unique_of_sorted(idx):
 def auto_bandw(N, M):
     """"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
 
-    Refs: `bib.Dou01` section 12.2.2, and [Wik17]_ section "Rule_of_thumb"
+    Refs: `bib.doucet2001sequential` section 12.2.2, and [Wik17]_ section "Rule_of_thumb"
     """
     return N**(-1/(M+4))
 
@@ -516,7 +516,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
     (so-named because Dirac-deltas are approximated  Gaussian kernels),
     which controls the strength of the jitter.
     This causes a bias. But, as N-->∞, the reg. bandwidth-->0, i.e. bias-->0.
-    Ref: `bib.Dou01`, section 12.2.2.
+    Ref: `bib.doucet2001sequential`, section 12.2.2.
     """
     # Select
     E = E[idx]
@@ -534,7 +534,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
 
 
 def resample(w, kind='Systematic', N=None, wroot=1.0):
-    """Multinomial resampling `bib.Dou09`, `bib.van09`, `bib.Liu01`.
+    """Multinomial resampling `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
       'Stochastic' corresponds to np.random.choice() or np.random.multinomial().
@@ -551,7 +551,7 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
     - wroot: Adjust weights before resampling by this root to
       promote particle diversity and mitigate thinning.
       The outcomes of the resampling are then weighted to maintain un-biased-ness.
-      Ref: `bib.Liu01`, section 3.1
+      Ref: `bib.liu2001theoretical`, section 3.1
 
     Note: (a) resampling methods are beneficial because they discard
     low-weight ("doomed") particles and reduce the variance of the weights.
