@@ -3,28 +3,28 @@
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
 import dapper.tools.utils as utils
-import dapper.tools.math as mtools
+from dapper.tools.math import center, is1d, round2
 from dataclasses import dataclass
 import numpy as np
 from numpy import nan
 
-# TODO 3: change L to 'nlags', with nlags=L-1, to conform with
-# the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
 
+def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
+    """Auto covariance function, computed along axis 0.
 
-def auto_cov(xx, L=5, zero_mean=False, corr=False):
+    - `nlags`: max lag (offset) for which to compute acf.
+    - `corr` : normalize acf by `acf[0]` so as to return auto-CORRELATION.
+
+    With `corr=True`, this is identical to
+    `statsmodels.tsa.stattools.acf(xx,True,nlags)`
     """
-    Auto covariance function, computed along axis 0.
-    L   : max lag (offset) for which to compute acf.
-    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
-    """
-    assert L <= len(xx)
+    assert nlags < len(xx)
 
     N = len(xx)
-    A = xx if zero_mean else mtools.center(xx)[0]
-    acovf = np.zeros((L,)+xx.shape[1:])
+    A = xx if zero_mean else center(xx)[0]
+    acovf = np.zeros((nlags+1,)+xx.shape[1:])
 
-    for i in range(L):
+    for i in range(nlags+1):
         Left  = A[np.arange(N-i)]
         Right = A[np.arange(i, N)]
         acovf[i] = (Left*Right).sum(0)/(N-i)
@@ -35,14 +35,14 @@ def auto_cov(xx, L=5, zero_mean=False, corr=False):
     return acovf
 
 
-def fit_acf_by_AR1(acf_empir, L=None):
+def fit_acf_by_AR1(acf_empir, nlags=None):
     """
     Fit an empirical auto cov function (ACF) by that of an AR1 process.
     acf_empir: auto-corr/cov-function.
-    L: length of ACF to use in AR(1) fitting
+    nlags: length of ACF to use in AR(1) fitting
     """
-    if L is None:
-        L = len(acf_empir)
+    if nlags is None:
+        nlags = len(acf_empir)
 
     # geometric_mean = ss.mstats.gmean
     def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
@@ -64,11 +64,12 @@ def fit_acf_by_AR1(acf_empir, L=None):
 
 def estimate_corr_length(xx):
     """
-    For explanation, see mods.LA.__init__.py: homogeneous_1D_cov().
+    For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
-    corr(L) = exp(-1) = ca 0.368
+
+    $$ corr(L) = exp(-1) = ca 0.368$$
     """
-    assert mtools.is1d(xx)
+    assert is1d(xx)
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
@@ -92,12 +93,12 @@ class UncertainQtty():
             - fallback: rc.sigfig
         """
         with np.errstate(all='ignore'):
-            conf = mtools.round2(self.conf, 1)
+            conf = round2(self.conf, 1)
             val  = self.val
             if not np.isnan(conf) and conf > 0:
-                val = mtools.round2(val, mult*conf)
+                val = round2(val, mult*conf)
             else:
-                val = mtools.round2(val, rc.sigfig)
+                val = round2(val, rc.sigfig)
             return val, conf
 
     def __str__(self):
@@ -121,7 +122,7 @@ def mean_with_conf(xx):
     elif np.allclose(xx, mu):
         uq = UncertainQtty(mu, 0)
     else:
-        acovf = auto_cov(xx, 5)
+        acovf = auto_cov(xx)
         var   = acovf[0]
         var  /= N
         # Estimate (fit) ACF

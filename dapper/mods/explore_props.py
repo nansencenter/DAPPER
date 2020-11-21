@@ -141,9 +141,9 @@ fig, ax = dpr.freshfig(4)
 if "ii" not in locals():
     ii = np.arange(min(100, Nx))
 if "nlags" not in locals():
-    nlags = min(100, K)
+    nlags = min(100, K-1)
 ax.plot(tt[:nlags], np.nanmean(series.auto_cov(
-    xx[:nlags, ii], L=nlags, corr=1), axis=1))
+    xx[:nlags, ii], nlags=nlags, corr=1), axis=1))
 ax.set_xlabel('Time (t)')
 ax.set_ylabel('Auto-corr')
 viz.plot_pause(0.1)

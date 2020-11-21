@@ -38,28 +38,28 @@
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
 import dapper.tools.utils as utils
-import dapper.tools.math as mtools
+from dapper.tools.math import center, is1d, round2
 from dataclasses import dataclass
 import numpy as np
 from numpy import nan
 
-# TODO 3: change L to &#39;nlags&#39;, with nlags=L-1, to conform with
-# the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
 
+def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
+    &#34;&#34;&#34;Auto covariance function, computed along axis 0.
 
-def auto_cov(xx, L=5, zero_mean=False, corr=False):
+    - `nlags`: max lag (offset) for which to compute acf.
+    - `corr` : normalize acf by `acf[0]` so as to return auto-CORRELATION.
+
+    With `corr=True`, this is identical to
+    `statsmodels.tsa.stattools.acf(xx,True,nlags)`
     &#34;&#34;&#34;
-    Auto covariance function, computed along axis 0.
-    L   : max lag (offset) for which to compute acf.
-    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
-    &#34;&#34;&#34;
-    assert L &lt;= len(xx)
+    assert nlags &lt; len(xx)
 
     N = len(xx)
-    A = xx if zero_mean else mtools.center(xx)[0]
-    acovf = np.zeros((L,)+xx.shape[1:])
+    A = xx if zero_mean else center(xx)[0]
+    acovf = np.zeros((nlags+1,)+xx.shape[1:])
 
-    for i in range(L):
+    for i in range(nlags+1):
         Left  = A[np.arange(N-i)]
         Right = A[np.arange(i, N)]
         acovf[i] = (Left*Right).sum(0)/(N-i)
@@ -70,14 +70,14 @@ def auto_cov(xx, L=5, zero_mean=False, corr=False):
     return acovf
 
 
-def fit_acf_by_AR1(acf_empir, L=None):
+def fit_acf_by_AR1(acf_empir, nlags=None):
     &#34;&#34;&#34;
     Fit an empirical auto cov function (ACF) by that of an AR1 process.
     acf_empir: auto-corr/cov-function.
-    L: length of ACF to use in AR(1) fitting
+    nlags: length of ACF to use in AR(1) fitting
     &#34;&#34;&#34;
-    if L is None:
-        L = len(acf_empir)
+    if nlags is None:
+        nlags = len(acf_empir)
 
     # geometric_mean = ss.mstats.gmean
     def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
@@ -99,11 +99,12 @@ def fit_acf_by_AR1(acf_empir, L=None):
 
 def estimate_corr_length(xx):
     &#34;&#34;&#34;
-    For explanation, see mods.LA.__init__.py: homogeneous_1D_cov().
+    For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
-    corr(L) = exp(-1) = ca 0.368
+
+    $$ corr(L) = exp(-1) = ca 0.368$$
     &#34;&#34;&#34;
-    assert mtools.is1d(xx)
+    assert is1d(xx)
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
@@ -127,12 +128,12 @@ class UncertainQtty():
             - fallback: rc.sigfig
         &#34;&#34;&#34;
         with np.errstate(all=&#39;ignore&#39;):
-            conf = mtools.round2(self.conf, 1)
+            conf = round2(self.conf, 1)
             val  = self.val
             if not np.isnan(conf) and conf &gt; 0:
-                val = mtools.round2(val, mult*conf)
+                val = round2(val, mult*conf)
             else:
-                val = mtools.round2(val, rc.sigfig)
+                val = round2(val, rc.sigfig)
             return val, conf
 
     def __str__(self):
@@ -156,7 +157,7 @@ def mean_with_conf(xx):
     elif np.allclose(xx, mu):
         uq = UncertainQtty(mu, 0)
     else:
-        acovf = auto_cov(xx, 5)
+        acovf = auto_cov(xx)
         var   = acovf[0]
         var  /= N
         # Estimate (fit) ACF
@@ -339,30 +340,36 @@ class RollingArray:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="dapper.tools.series.auto_cov"><code class="name flex">
-<span>def <span class="ident">auto_cov</span></span>(<span>xx, L=5, zero_mean=False, corr=False)</span>
+<span>def <span class="ident">auto_cov</span></span>(<span>xx, nlags=4, zero_mean=False, corr=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Auto covariance function, computed along axis 0.
-L
-: max lag (offset) for which to compute acf.
-corr: normalize acf by acf[0] so as to return auto-CORRELATION.</p></div>
+<div class="desc"><p>Auto covariance function, computed along axis 0.</p>
+<ul>
+<li><code>nlags</code>: max lag (offset) for which to compute acf.</li>
+<li><code>corr</code> : normalize acf by <code>acf[0]</code> so as to return auto-CORRELATION.</li>
+</ul>
+<p>With <code>corr=True</code>, this is identical to
+<code>statsmodels.tsa.stattools.acf(xx,True,nlags)</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def auto_cov(xx, L=5, zero_mean=False, corr=False):
+<pre><code class="python">def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
+    &#34;&#34;&#34;Auto covariance function, computed along axis 0.
+
+    - `nlags`: max lag (offset) for which to compute acf.
+    - `corr` : normalize acf by `acf[0]` so as to return auto-CORRELATION.
+
+    With `corr=True`, this is identical to
+    `statsmodels.tsa.stattools.acf(xx,True,nlags)`
     &#34;&#34;&#34;
-    Auto covariance function, computed along axis 0.
-    L   : max lag (offset) for which to compute acf.
-    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
-    &#34;&#34;&#34;
-    assert L &lt;= len(xx)
+    assert nlags &lt; len(xx)
 
     N = len(xx)
-    A = xx if zero_mean else mtools.center(xx)[0]
-    acovf = np.zeros((L,)+xx.shape[1:])
+    A = xx if zero_mean else center(xx)[0]
+    acovf = np.zeros((nlags+1,)+xx.shape[1:])
 
-    for i in range(L):
+    for i in range(nlags+1):
         Left  = A[np.arange(N-i)]
         Right = A[np.arange(i, N)]
         acovf[i] = (Left*Right).sum(0)/(N-i)
@@ -374,24 +381,24 @@ corr: normalize acf by acf[0] so as to return auto-CORRELATION.</p></div>
 </details>
 </dd>
 <dt id="dapper.tools.series.fit_acf_by_AR1"><code class="name flex">
-<span>def <span class="ident">fit_acf_by_AR1</span></span>(<span>acf_empir, L=None)</span>
+<span>def <span class="ident">fit_acf_by_AR1</span></span>(<span>acf_empir, nlags=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Fit an empirical auto cov function (ACF) by that of an AR1 process.
 acf_empir: auto-corr/cov-function.
-L: length of ACF to use in AR(1) fitting</p></div>
+nlags: length of ACF to use in AR(1) fitting</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fit_acf_by_AR1(acf_empir, L=None):
+<pre><code class="python">def fit_acf_by_AR1(acf_empir, nlags=None):
     &#34;&#34;&#34;
     Fit an empirical auto cov function (ACF) by that of an AR1 process.
     acf_empir: auto-corr/cov-function.
-    L: length of ACF to use in AR(1) fitting
+    nlags: length of ACF to use in AR(1) fitting
     &#34;&#34;&#34;
-    if L is None:
-        L = len(acf_empir)
+    if nlags is None:
+        nlags = len(acf_empir)
 
     # geometric_mean = ss.mstats.gmean
     def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
@@ -415,20 +422,21 @@ L: length of ACF to use in AR(1) fitting</p></div>
 <span>def <span class="ident">estimate_corr_length</span></span>(<span>xx)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>For explanation, see mods.LA.<strong>init</strong>.py: homogeneous_1D_cov().
-Also note that, for exponential corr function, as assumed here,
-corr(L) = exp(-1) = ca 0.368</p></div>
+<div class="desc"><p>For explanation, see <code><a title="dapper.mods.LA.homogeneous_1D_cov" href="../mods/LA/index.html#dapper.mods.LA.homogeneous_1D_cov">homogeneous_1D_cov()</a></code>.
+Also note that, for exponential corr function, as assumed here,</p>
+<p><span><span class="MathJax_Preview"> corr(L) = exp(-1) = ca 0.368</span><script type="math/tex; mode=display"> corr(L) = exp(-1) = ca 0.368</script></span></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def estimate_corr_length(xx):
     &#34;&#34;&#34;
-    For explanation, see mods.LA.__init__.py: homogeneous_1D_cov().
+    For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
-    corr(L) = exp(-1) = ca 0.368
+
+    $$ corr(L) = exp(-1) = ca 0.368$$
     &#34;&#34;&#34;
-    assert mtools.is1d(xx)
+    assert is1d(xx)
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
@@ -462,7 +470,7 @@ as estimated from its correlation-corrected variance.</p></div>
     elif np.allclose(xx, mu):
         uq = UncertainQtty(mu, 0)
     else:
-        acovf = auto_cov(xx, 5)
+        acovf = auto_cov(xx)
         var   = acovf[0]
         var  /= N
         # Estimate (fit) ACF
@@ -509,12 +517,12 @@ as estimated from its correlation-corrected variance.</p></div>
             - fallback: rc.sigfig
         &#34;&#34;&#34;
         with np.errstate(all=&#39;ignore&#39;):
-            conf = mtools.round2(self.conf, 1)
+            conf = round2(self.conf, 1)
             val  = self.val
             if not np.isnan(conf) and conf &gt; 0:
-                val = mtools.round2(val, mult*conf)
+                val = round2(val, mult*conf)
             else:
-                val = mtools.round2(val, rc.sigfig)
+                val = round2(val, rc.sigfig)
             return val, conf
 
     def __str__(self):
@@ -563,12 +571,12 @@ as estimated from its correlation-corrected variance.</p></div>
         - fallback: rc.sigfig
     &#34;&#34;&#34;
     with np.errstate(all=&#39;ignore&#39;):
-        conf = mtools.round2(self.conf, 1)
+        conf = round2(self.conf, 1)
         val  = self.val
         if not np.isnan(conf) and conf &gt; 0:
-            val = mtools.round2(val, mult*conf)
+            val = round2(val, mult*conf)
         else:
-            val = mtools.round2(val, rc.sigfig)
+            val = round2(val, rc.sigfig)
         return val, conf</code></pre>
 </details>
 </dd>
