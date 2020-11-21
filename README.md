@@ -28,8 +28,7 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 
 <!-- Inspiration: https://github.com/Naereen/badges -->
 [![Doc link](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=appveyor)](https://nansencenter.github.io/DAPPER)
-<!--[![GitHub license](https://img.shields.io/github/license/nansencenter/DAPPER?style=for-the-badge&logo=appveyor)](https://github.com/nansencenter/DAPPER/blob/master/LICENSE)-->
-[![image](https://travis-ci.org/nansencenter/DAPPER.svg?branch=master)](https://travis-ci.org/nansencenter/DAPPER)
+[![image](https://travis-ci.org/nansencenter/DAPPER.svg?branch=master?style=for-the-badge&logo=appveyor)](https://travis-ci.org/nansencenter/DAPPER)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=appveyor)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=appveyor)](https://pypi.org/project/DA-DAPPER)
 [![HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge&logo=appveyor)](http://hits.dwyl.com/nansencenter/DAPPER)
@@ -282,6 +281,8 @@ and the Nansen Environmental and Remote Sensing Center
 - <https://www.geosci-model-dev-discuss.net/gmd-2019-136/>
 - <https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.3386>
 - <https://www.nonlin-processes-geophys-discuss.net/npg-2019-10>
+- Stein
+- EmblAUS/Springer chapter
 
 <!--
 Badges.
