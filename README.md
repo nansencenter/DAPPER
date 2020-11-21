@@ -28,6 +28,7 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 
 
 [![Generic badge](https://img.shields.io/badge/Documentation%3F-yes-green.svg)](https://shields.io/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper)](https://pypi.org/project/DA-DAPPER)
 
 ## Highlights
 
