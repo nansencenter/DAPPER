@@ -26,8 +26,9 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 - assess how different DA methods perform in estimating the truth,
   given the above starred (`*`) items.
 
-
+<!-- Inspiration: https://github.com/Naereen/badges -->
 [![Doc link](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=appveyor)](https://nansencenter.github.io/DAPPER)
+[![GitHub license](https://img.shields.io/github/license/nansencenter/DAPPER)](https://github.com/nansencenter/DAPPER/blob/master/LICENSE)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=appveyor)](https://pypi.org/project/DA-DAPPER)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=appveyor)](https://pypi.python.org/pypi/da-dapper/)
 [![HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge&logo=appveyor)](http://hits.dwyl.com/nansencenter/DAPPER)
