@@ -761,9 +761,6 @@ class xpSpace(SparseSpace):
                        the time series of that single experiment.
         """
 
-        # TODO 3: rm pandas requirement
-        import pandas as pd
-
         def align_subcols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
 
@@ -871,14 +868,13 @@ class xpSpace(SparseSpace):
                 #   which would also require excessive processing:
                 #   nesting the table as cols, and then split_attrs() on cols.
                 row_keys = xpList(table.keys()).split_attrs()[0]
-                row_keys = pd.DataFrame.from_dict(
-                    row_keys, dtype="O")  # allow storing None
-                if len(row_keys.columns):
+                if len(row_keys):
                     # Header
                     rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
                     # Matter
-                    for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
-                        rows[i+1] = [*key] + ['|'] + row
+                    for i, (row, key) in enumerate(zip(
+                            rows[1:], dict_tools.transps(row_keys))):
+                        rows[i+1] = [*key.values()] + ['|'] + row
 
             # Print
             print("\n", end="")
