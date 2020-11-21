@@ -38,7 +38,7 @@ from datetime import datetime
 
 
 class HiddenMarkovModel(dict_tools.NicePrint):
-    """Container for attributes of a Hidden Markov Model (HMM).
+    """Container for a Hidden Markov Model (HMM).
 
     This container contains the specification of a "twin experiment",
     i.e. an "OSSE (observing system simulation experiment)".
@@ -227,11 +227,11 @@ def da_method(*default_dataclasses):
             self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
             # Assimilate
             time_start = time.time()
-            old_assimilate(self, HMM, xx, yy)
+            _assimilate(self, HMM, xx, yy)
             dapper.stats.register_stat(self.stats, "duration", time.time()-time_start)
 
-        old_assimilate = cls.assimilate
-        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+        _assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(_assimilate)(assimilate)
 
         return cls
     return dataclass_with_defaults
