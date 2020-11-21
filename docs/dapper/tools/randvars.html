@@ -35,12 +35,13 @@
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Classes of random variables.&#34;&#34;&#34;
 
+import numpy as np
+from numpy.random import rand, randn
+from numpy import sqrt
+
 from dapper.dict_tools import NicePrint
 from dapper.tools.math import exactly_1d
-from dapper.tools.stoch import rand, randn
 from dapper.tools.matrices import CovMat
-import numpy as np
-from numpy import sqrt
 
 
 class RV(NicePrint):
@@ -55,7 +56,7 @@ class RV(NicePrint):
          - M    &lt;int&gt;     : ndim
          - is0  &lt;bool&gt;    : if True, the random variable is identically 0
          - func &lt;func(N)&gt; : use this sampling function. Example:
-                            RV(M=4,func=lambda N: rand((N,4))
+                            RV(M=4,func=lambda N: rand(N,4)
          - file &lt;str&gt;     : draw from file. Example:
                             RV(M=4,file=dpr.rc.dirs.data/&#39;tmp.npz&#39;)
         The following kwords (versions) are available,
@@ -92,7 +93,7 @@ class RV(NicePrint):
         elif hasattr(self, &#39;icdf&#39;):
             # Independent &#34;inverse transform&#34; sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rand((N, self.M))
+            uu   = rand(N, self.M)
             E    = icdf(uu)
         elif hasattr(self, &#39;cdf&#39;):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -107,7 +108,7 @@ class RV(NicePrint):
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu, xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = rand((N, self.M))
+            uu = rand(N, self.M)
             E  = self.icdf_interp(uu)
         elif hasattr(self, &#39;pdf&#39;):
             # &#34;acceptance-rejection&#34; sampling
@@ -118,7 +119,7 @@ class RV(NicePrint):
         return E
 
 
-# TODO 2: improve constructor (treatment of arg cases is too fragile).
+# TODO 4: improve constructor (treatment of arg cases is too fragile).
 class RV_with_mean_and_cov(RV):
     &#34;&#34;&#34;Generic multivariate random variable characterized by mean and cov.
 
@@ -198,7 +199,7 @@ class GaussRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn((N, len(R))) @ R
+        D = randn(N, len(R)) @ R
         return D
 
 
@@ -212,7 +213,7 @@ class LaplaceRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         z = np.random.exponential(1, N)
-        D = randn((N, len(R)))
+        D = randn(N, len(R))
         D = z[:, None]*D
         return D @ R / sqrt(2)
 
@@ -246,8 +247,8 @@ class StudRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         nu = self.dof
-        r = nu/np.sum(randn((N, nu))**2, axis=1)  # InvChi2
-        D = sqrt(r)[:, None]*randn((N, len(R)))
+        r = nu/np.sum(randn(N, nu)**2, axis=1)  # InvChi2
+        D = sqrt(r)[:, None]*randn(N, len(R))
         return D @ R * sqrt((nu-2)/nu)
 
 
@@ -261,7 +262,7 @@ class UniRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn((N, len(R)))
+        D = randn(N, len(R))
         r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None]*D
         return D @ R * 2
@@ -276,7 +277,7 @@ class UniParallelRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = rand((N, len(R)))-0.5
+        D = rand(N, len(R))-0.5
         return D @ R * sqrt(12)</code></pre>
 </details>
 </section>
@@ -285,6 +286,99 @@ class UniParallelRV(RV_with_mean_and_cov):
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.tools.randvars.rand"><code class="name flex">
+<span>def <span class="ident">rand</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>rand(d0, d1, &hellip;, dn)</p>
+<p>Random values in a given shape.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a convenience function for users porting code from Matlab,
+and wraps <code>random_sample</code>. That function takes a
+tuple to specify the size of the output, which is consistent with
+other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
+</div>
+<p>Create an array of the given shape and populate it with
+random samples from a uniform distribution
+over <code>[0, 1)</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<p>d0, d1, &hellip;, dn : int, optional
+The dimensions of the returned array, must be non-negative.
+If no argument is given a single Python float is returned.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>out</code></strong> :&ensp;`ndarray, shape ``(d0, d1, &hellip;, dn)```</dt>
+<dd>Random values.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<p><code>random</code></p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.rand(3,2)
+array([[ 0.14022471,  0.96360618],  #random
+       [ 0.37601032,  0.25528411],  #random
+       [ 0.49313049,  0.94909878]]) #random
+</code></pre></div>
+</dd>
+<dt id="dapper.tools.randvars.randn"><code class="name flex">
+<span>def <span class="ident">randn</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>randn(d0, d1, &hellip;, dn)</p>
+<p>Return a sample (or samples) from the "standard normal" distribution.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a convenience function for users porting code from Matlab,
+and wraps <code>standard_normal</code>. That function takes a
+tuple to specify the size of the output, which is consistent with
+other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
+instance instead; please see the :ref:<code>random-quick-start</code>.</p>
+</div>
+<p>If positive int_like arguments are provided, <code><a title="dapper.tools.randvars.randn" href="#dapper.tools.randvars.randn">RandomState.randn()</a></code> generates an array
+of shape <code>(d0, d1, &hellip;, dn)</code>, filled
+with random floats sampled from a univariate "normal" (Gaussian)
+distribution of mean 0 and variance 1. A single float randomly sampled
+from the distribution is returned if no argument is provided.</p>
+<h2 id="parameters">Parameters</h2>
+<p>d0, d1, &hellip;, dn : int, optional
+The dimensions of the returned array, must be non-negative.
+If no argument is given a single Python float is returned.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Z</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
+<dd>A <code>(d0, d1, &hellip;, dn)</code>-shaped array of floating-point samples from
+the standard normal distribution, or a single such float if
+no parameters were supplied.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code>standard_normal</code></dt>
+<dd>Similar, but takes a tuple as its argument.</dd>
+<dt><code>normal</code></dt>
+<dd>Also accepts mu and sigma arguments.</dd>
+<dt><code>Generator.standard_normal</code></dt>
+<dd>which should be used for new code.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>For random samples from :math:<code>N(\mu, \sigma^2)</code>, use:</p>
+<p><code>sigma * np.random.randn(...) + mu</code></p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randn()
+2.1923875335537315  # random
+</code></pre>
+<p>Two-by-four array of samples from N(3, 6.25):</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; 3 + 2.5 * np.random.randn(2, 4)
+array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
+       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
+</code></pre></div>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -303,7 +397,7 @@ class UniParallelRV(RV_with_mean_and_cov):
 <bool>
 : if True, the random variable is identically 0</li>
 <li>func <func(N)> : use this sampling function. Example:
-RV(M=4,func=lambda N: rand((N,4))</li>
+RV(M=4,func=lambda N: rand(N,4)</li>
 <li>file <str>
 : draw from file. Example:
 RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')
@@ -335,7 +429,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
          - M    &lt;int&gt;     : ndim
          - is0  &lt;bool&gt;    : if True, the random variable is identically 0
          - func &lt;func(N)&gt; : use this sampling function. Example:
-                            RV(M=4,func=lambda N: rand((N,4))
+                            RV(M=4,func=lambda N: rand(N,4)
          - file &lt;str&gt;     : draw from file. Example:
                             RV(M=4,file=dpr.rc.dirs.data/&#39;tmp.npz&#39;)
         The following kwords (versions) are available,
@@ -372,7 +466,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
         elif hasattr(self, &#39;icdf&#39;):
             # Independent &#34;inverse transform&#34; sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rand((N, self.M))
+            uu   = rand(N, self.M)
             E    = icdf(uu)
         elif hasattr(self, &#39;cdf&#39;):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -387,7 +481,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu, xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = rand((N, self.M))
+            uu = rand(N, self.M)
             E  = self.icdf_interp(uu)
         elif hasattr(self, &#39;pdf&#39;):
             # &#34;acceptance-rejection&#34; sampling
@@ -444,7 +538,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
     elif hasattr(self, &#39;icdf&#39;):
         # Independent &#34;inverse transform&#34; sampling
         icdf = np.vectorize(self.icdf)
-        uu   = rand((N, self.M))
+        uu   = rand(N, self.M)
         E    = icdf(uu)
     elif hasattr(self, &#39;cdf&#39;):
         # Like above, but with inv-cdf approximate, from interpolation
@@ -459,7 +553,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
             uu     = np.vectorize(cdf)(xx)
             icdf   = interp1d(uu, xx)
             self.icdf_interp = np.vectorize(icdf)
-        uu = rand((N, self.M))
+        uu = rand(N, self.M)
         E  = self.icdf_interp(uu)
     elif hasattr(self, &#39;pdf&#39;):
         # &#34;acceptance-rejection&#34; sampling
@@ -618,7 +712,7 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn((N, len(R))) @ R
+        D = randn(N, len(R)) @ R
         return D</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -659,7 +753,7 @@ Eltoft (2006) "On the Multivariate Laplace Distribution".</p>
     def _sample(self, N):
         R = self.C.Right
         z = np.random.exponential(1, N)
-        D = randn((N, len(R)))
+        D = randn(N, len(R))
         D = z[:, None]*D
         return D @ R / sqrt(2)</code></pre>
 </details>
@@ -748,8 +842,8 @@ since chi2 is sampled via Gaussians.</p>
     def _sample(self, N):
         R = self.C.Right
         nu = self.dof
-        r = nu/np.sum(randn((N, nu))**2, axis=1)  # InvChi2
-        D = sqrt(r)[:, None]*randn((N, len(R)))
+        r = nu/np.sum(randn(N, nu)**2, axis=1)  # InvChi2
+        D = sqrt(r)[:, None]*randn(N, len(R))
         return D @ R * sqrt((nu-2)/nu)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -791,7 +885,7 @@ vectors and coordinates from the n-sphere and n-ball"</p>
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn((N, len(R)))
+        D = randn(N, len(R))
         r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None]*D
         return D @ R * 2</code></pre>
@@ -833,7 +927,7 @@ applied to the (corners of) the hypercube.</p>
 
     def _sample(self, N):
         R = self.C.Right
-        D = rand((N, len(R)))-0.5
+        D = rand(N, len(R))-0.5
         return D @ R * sqrt(12)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -869,6 +963,12 @@ applied to the (corners of) the hypercube.</p>
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="dapper.tools" href="index.html">dapper.tools</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.tools.randvars.rand" href="#dapper.tools.randvars.rand">rand</a></code></li>
+<li><code><a title="dapper.tools.randvars.randn" href="#dapper.tools.randvars.randn">randn</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

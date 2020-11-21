@@ -35,14 +35,15 @@
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Covariance matrix tools.&#34;&#34;&#34;
 
-from dapper.tools.stoch import randn
-from dapper.tools.math import mrdiv, truncate_rank, svd0, exactly_1d, exactly_2d
-import dapper.tools.utils as utils
-
 import numpy as np
 from numpy import sqrt, ones, zeros
 import scipy.linalg as sla
 import functools
+from numpy.random import randn
+
+from dapper.tools.math import mrdiv, truncate_rank, svd0, exactly_1d, exactly_2d
+import dapper.tools.utils as utils
+
 
 
 class lazy_property:
@@ -68,7 +69,7 @@ class lazy_property:
 def randcov(M):
     &#34;&#34;&#34;(Makeshift) random cov mat.&#34;&#34;&#34;
     N = int(np.ceil(2+M**1.2))
-    E = randn((N, M))
+    E = randn(N, M)
     return E.T @ E
 
 
@@ -81,9 +82,9 @@ def randcorr(M):
 
 def genOG(M):
     &#34;&#34;&#34;Generate random orthonormal matrix.&#34;&#34;&#34;
-    # TODO 3: This (using Householder) is (slightly?) wrong,
+    # TODO 4: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
-    Q, R = sla.qr(randn((M, M)))
+    Q, R = sla.qr(randn(M, M))
     for i in range(M):
         if R[i, i] &lt; 0:
             Q[:, i] = -Q[:, i]
@@ -136,7 +137,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         # Reduce Given&#39;s rotations in QR algo
         raise NotImplementedError
     elif ver == 4:
-        # Introduce correlation between columns of randn((M,M))
+        # Introduce correlation between columns of randn(M,M)
         raise NotImplementedError
     elif ver == 5:
         # https://stats.stackexchange.com/q/25552
@@ -189,7 +190,7 @@ def chol_reduce(Right):
 
     Example::
 
-    &gt;&gt;&gt; A = dpr.mean0(randn((20,5)),axis=1)
+    &gt;&gt;&gt; A = dpr.mean0(randn(20,5),axis=1)
     &gt;&gt;&gt; C = A.T @ A
     &gt;&gt;&gt; # sla.cholesky(C) throws error
     &gt;&gt;&gt; R = chol_reduce(A)
@@ -539,6 +540,62 @@ class CovMat():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="dapper.tools.matrices.randn"><code class="name flex">
+<span>def <span class="ident">randn</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>randn(d0, d1, &hellip;, dn)</p>
+<p>Return a sample (or samples) from the "standard normal" distribution.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a convenience function for users porting code from Matlab,
+and wraps <code>standard_normal</code>. That function takes a
+tuple to specify the size of the output, which is consistent with
+other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
+instance instead; please see the :ref:<code>random-quick-start</code>.</p>
+</div>
+<p>If positive int_like arguments are provided, <code><a title="dapper.tools.matrices.randn" href="#dapper.tools.matrices.randn">RandomState.randn()</a></code> generates an array
+of shape <code>(d0, d1, &hellip;, dn)</code>, filled
+with random floats sampled from a univariate "normal" (Gaussian)
+distribution of mean 0 and variance 1. A single float randomly sampled
+from the distribution is returned if no argument is provided.</p>
+<h2 id="parameters">Parameters</h2>
+<p>d0, d1, &hellip;, dn : int, optional
+The dimensions of the returned array, must be non-negative.
+If no argument is given a single Python float is returned.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Z</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
+<dd>A <code>(d0, d1, &hellip;, dn)</code>-shaped array of floating-point samples from
+the standard normal distribution, or a single such float if
+no parameters were supplied.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code>standard_normal</code></dt>
+<dd>Similar, but takes a tuple as its argument.</dd>
+<dt><code>normal</code></dt>
+<dd>Also accepts mu and sigma arguments.</dd>
+<dt><code>Generator.standard_normal</code></dt>
+<dd>which should be used for new code.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>For random samples from :math:<code>N(\mu, \sigma^2)</code>, use:</p>
+<p><code>sigma * np.random.randn(...) + mu</code></p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randn()
+2.1923875335537315  # random
+</code></pre>
+<p>Two-by-four array of samples from N(3, 6.25):</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; 3 + 2.5 * np.random.randn(2, 4)
+array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
+       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
+</code></pre></div>
+</dd>
 <dt id="dapper.tools.matrices.randcov"><code class="name flex">
 <span>def <span class="ident">randcov</span></span>(<span>M)</span>
 </code></dt>
@@ -551,7 +608,7 @@ class CovMat():
 <pre><code class="python">def randcov(M):
     &#34;&#34;&#34;(Makeshift) random cov mat.&#34;&#34;&#34;
     N = int(np.ceil(2+M**1.2))
-    E = randn((N, M))
+    E = randn(N, M)
     return E.T @ E</code></pre>
 </details>
 </dd>
@@ -582,9 +639,9 @@ class CovMat():
 </summary>
 <pre><code class="python">def genOG(M):
     &#34;&#34;&#34;Generate random orthonormal matrix.&#34;&#34;&#34;
-    # TODO 3: This (using Householder) is (slightly?) wrong,
+    # TODO 4: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
-    Q, R = sla.qr(randn((M, M)))
+    Q, R = sla.qr(randn(M, M))
     for i in range(M):
         if R[i, i] &lt; 0:
             Q[:, i] = -Q[:, i]
@@ -649,7 +706,7 @@ they're not supposed going to be strictly equivalent.</p>
         # Reduce Given&#39;s rotations in QR algo
         raise NotImplementedError
     elif ver == 4:
-        # Introduce correlation between columns of randn((M,M))
+        # Introduce correlation between columns of randn(M,M)
         raise NotImplementedError
     elif ver == 5:
         # https://stats.stackexchange.com/q/25552
@@ -734,7 +791,7 @@ Source: ienks code of Sakov/Bocquet.</p></div>
 <dd>
 <div class="desc"><p>Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.</p>
 <p>Example::</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; A = dpr.mean0(randn((20,5)),axis=1)
+<pre><code class="language-python-repl">&gt;&gt;&gt; A = dpr.mean0(randn(20,5),axis=1)
 &gt;&gt;&gt; C = A.T @ A
 &gt;&gt;&gt; # sla.cholesky(C) throws error
 &gt;&gt;&gt; R = chol_reduce(A)
@@ -749,7 +806,7 @@ Source: ienks code of Sakov/Bocquet.</p></div>
 
     Example::
 
-    &gt;&gt;&gt; A = dpr.mean0(randn((20,5)),axis=1)
+    &gt;&gt;&gt; A = dpr.mean0(randn(20,5),axis=1)
     &gt;&gt;&gt; C = A.T @ A
     &gt;&gt;&gt; # sla.cholesky(C) throws error
     &gt;&gt;&gt; R = chol_reduce(A)
@@ -1460,6 +1517,7 @@ def inv(self):
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="dapper.tools.matrices.randn" href="#dapper.tools.matrices.randn">randn</a></code></li>
 <li><code><a title="dapper.tools.matrices.randcov" href="#dapper.tools.matrices.randcov">randcov</a></code></li>
 <li><code><a title="dapper.tools.matrices.randcorr" href="#dapper.tools.matrices.randcorr">randcorr</a></code></li>
 <li><code><a title="dapper.tools.matrices.genOG" href="#dapper.tools.matrices.genOG">genOG</a></code></li>

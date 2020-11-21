@@ -55,7 +55,6 @@ A summary for the purpose of DA is provided in section 3.3 of thesis found at
 ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
 &#34;&#34;&#34;
 
-import dapper as dpr
 import numpy as np
 import scipy.linalg as sla
 from scipy import sparse
@@ -91,9 +90,9 @@ def basis_vector(Nx, k):
     k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     &#34;&#34;&#34;
     mm = np.arange(1, Nx+1) / Nx
-    kk = np.arange(k+1)[:, None]  # Wavenumbers
-    aa = dpr.rand(k+1)          # Amplitudes
-    pp = dpr.rand(k+1)[:, None]  # Phases
+    kk = np.arange(k+1)[:, None]       # Wavenumbers
+    aa = np.random.rand(k+1)           # Amplitudes
+    pp = np.random.rand(k+1)[:, None]  # Phases
 
     s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
 
@@ -262,9 +261,9 @@ k
     k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     &#34;&#34;&#34;
     mm = np.arange(1, Nx+1) / Nx
-    kk = np.arange(k+1)[:, None]  # Wavenumbers
-    aa = dpr.rand(k+1)          # Amplitudes
-    pp = dpr.rand(k+1)[:, None]  # Phases
+    kk = np.arange(k+1)[:, None]       # Wavenumbers
+    aa = np.random.rand(k+1)           # Amplitudes
+    pp = np.random.rand(k+1)[:, None]  # Phases
 
     s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
 

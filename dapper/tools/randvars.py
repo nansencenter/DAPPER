@@ -84,7 +84,7 @@ class RV(NicePrint):
         return E
 
 
-# TODO 2: improve constructor (treatment of arg cases is too fragile).
+# TODO 4: improve constructor (treatment of arg cases is too fragile).
 class RV_with_mean_and_cov(RV):
     """Generic multivariate random variable characterized by mean and cov.
 

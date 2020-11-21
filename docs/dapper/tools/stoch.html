@@ -89,12 +89,7 @@ def set_seed(sd=&#34;clock&#34;):
     if sd:
         np.random.seed(sd)
 
-    return sd
-
-
-# TODO 2: rm
-def rand(shape=(1,)): return np.random.uniform(0, 1, shape)
-def randn(shape=(1,)): return np.random.normal(0, 1, shape)</code></pre>
+    return sd</code></pre>
 </details>
 </section>
 <section>
@@ -192,30 +187,6 @@ And we're not not worried about thread safety.</p>
     return sd</code></pre>
 </details>
 </dd>
-<dt id="dapper.tools.stoch.rand"><code class="name flex">
-<span>def <span class="ident">rand</span></span>(<span>shape=(1,))</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rand(shape=(1,)): return np.random.uniform(0, 1, shape)</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.stoch.randn"><code class="name flex">
-<span>def <span class="ident">randn</span></span>(<span>shape=(1,))</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def randn(shape=(1,)): return np.random.normal(0, 1, shape)</code></pre>
-</details>
-</dd>
 </dl>
 </section>
 <section>
@@ -241,8 +212,6 @@ And we're not not worried about thread safety.</p>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="dapper.tools.stoch.set_seed" href="#dapper.tools.stoch.set_seed">set_seed</a></code></li>
-<li><code><a title="dapper.tools.stoch.rand" href="#dapper.tools.stoch.rand">rand</a></code></li>
-<li><code><a title="dapper.tools.stoch.randn" href="#dapper.tools.stoch.randn">randn</a></code></li>
 </ul>
 </li>
 </ul>

@@ -1,15 +1,13 @@
 """High-level API. I.e. the main "user-interface".
 
-Used for experiment (xp) specification/administration, including:
+Used for experiment (`xp`) specification/administration.
+Highlights:
 
- - da_method decorator
- - xpList
- - save_data
- - run_experiment
- - run_from_file
-
- - HiddenMarkovModel
- - Operator
+- `Operator`
+- `HiddenMarkovModel`
+- `da_method` decorator (creates `xp` objects)
+- `xpList` (subclass of list for `xp` objects)
+- `run_experiment` (run experiment specifiied by an `xp`)
 """
 
 import dapper.stats
@@ -139,7 +137,19 @@ class Operator(dict_tools.NicePrint):
 
 
 def da_method(*default_dataclasses):
-    """Make the decorator that makes the DA classes.
+    """Wrapper for classes that define DA methods.
+
+    These classes must be defined like dataclasses, except decorated
+    by `@da_method()` instead of `@dataclass`.
+    They must also define a method called `assimilate`
+    which gets slightly enhanced by this wrapper to provide:
+        - Initialisation of the `Stats` object
+        - `fail_gently` functionality.
+        - Duration timing
+        - Progressbar naming magic.
+
+    Instances of these classes are what is referred to as `xp`s.
+    I.e. `xp`s are essentially just data containers.
 
     Example:
     >>> @da_method()
@@ -152,6 +162,11 @@ def da_method(*default_dataclasses):
     >>>             time.sleep(1)
     >>>         if not self.success:
     >>>             raise RuntimeError("Sleep over. Failing as intended.")
+
+    Note that `da_method` is actually a "two-level decorator",
+    which is why the empty parenthesis were used above.
+    The outer level can be used to define defaults that are re-used
+    for similar DA methods:
 
     Example:
     >>> @dcs.dataclass
@@ -166,17 +181,21 @@ def da_method(*default_dataclasses):
     >>>
     >>>     def assimilate(self,HMM,xx,yy):
     >>>         ...
+    >>>
+    >>>
+    >>> @da_method(ens_defaults)
+    >>> class LETKF:
+    >>>     ...
     """
 
     def dataclass_with_defaults(cls):
         """Decorator based on dataclass.
 
-        This adds __init__, __repr__, __eq__, ..., but also includes
-        inherited defaults (see https://stackoverflow.com/a/58130805 ).
-
-        Also:
-        - Wraps assimilate() to provide gentle_fail functionality.
-        - Initialises and writes the Stats object."""
+        This adds `__init__`, `__repr__`, `__eq__`, ...,
+        but also includes inherited defaults
+        (see https://stackoverflow.com/a/58130805 ),
+        and enhances the `assimilate` method.
+        """
 
         # Default fields invovle: (1) annotations and (2) attributes.
         def set_field(name, type, val):
@@ -221,9 +240,18 @@ def da_method(*default_dataclasses):
 def seed_and_simulate(HMM, xp):
     """Default experiment setup. Set seed and simulate truth and obs.
 
-    Note: if there is no ``xp.seed`` then then the seed is not set.
-    Thus, different experiments will produce different truth and obs."""
+    .. note:: `xp.seed` should be an integer. Otherwise:
+        If there is no `xp.seed` then then the seed is not set.
+        Although different `xp`s will then use different seeds
+        (unless you do some funky hacking),
+        reproducibility for your script as a whole would still be obtained
+        by setting the seed at the outset (i.e. in the script).
+        On the other hand, if `xp.seed in [None, "clock"]`
+        then the seed is from the clock (for each xp),
+        which would not provide exact reproducibility.
+    """
     set_seed(getattr(xp, 'seed', False))
+
     xx, yy = HMM.simulate()
     return xx, yy
 
@@ -231,17 +259,17 @@ def seed_and_simulate(HMM, xp):
 def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
-    """Used by xpList.launch() to run each single experiment.
+    """Used by `xpList.launch` to run each single experiment.
 
-    This involves steps similar to ``example_1.py``, i.e.:
+    This involves steps similar to `example_1.py`, i.e.:
 
-    - setup()                    : Call function given by user. Should set
+    - `setup`                    : Call function given by user. Should set
                                    params, eg HMM.Force, seed, and return
                                    (simulated/loaded) truth and obs series.
-    - xp.assimilate()            : run DA, pass on exception if fail_gently
-    - xp.stats.average_in_time() : result averaging
-    - xp.avrgs.tabulate()        : result printing
-    - dill.dump()                : result storage
+    - `xp.assimilate`            : run DA, pass on exception if fail_gently
+    - `xp.stats.average_in_time` : result averaging
+    - `xp.avrgs.tabulate`        : result printing
+    - `dill.dump`                : result storage
     """
 
     # We should copy HMM so as not to cause any nasty surprises such as
@@ -277,36 +305,34 @@ def run_experiment(xp, label, savedir, HMM,
             dill.dump({'xp': xp}, FILE)
 
 
-# TODO 2: check collections.userlist
-# TODO 2: __add__ vs __iadd__
 class xpList(list):
     """Subclass of `list` specialized for experiment ("xp") objects.
 
     Main use: administrate experiment **launches**.
-    Also see: ``xpSpace`` for experiment **result presentation**.
+    Also see: `xpSpace` for experiment **result presentation**.
 
-     Modifications to ``list``:
+    Modifications to `list`:
 
-     - ``__iadd__`` (append) also for single items;
-       this is hackey, but convenience is king.
-     - ``append()`` supports ``unique`` to enable lazy xp declaration.
-     - ``__getitem__`` supports lists.
-     - pretty printing (using common/distinct attrs).
+    - `__iadd__` (append) also for single items;
+      this is hackey, but convenience is king.
+    - `append()` supports `unique` to enable lazy xp declaration.
+    - `__getitem__` supports lists.
+    - pretty printing (using common/distinct attrs).
 
-     Add-ons:
+    Add-ons:
 
-     - ``launch()``
-     - ``print_averages()``
-     - ``gen_names()``
-     - ``inds()`` to search by kw-attrs.
-     """
+    - `launch()`
+    - `print_averages()`
+    - `gen_names()`
+    - `inds()` to search by kw-attrs.
+    """
 
     def __init__(self, *args, unique=False):
-        """Initialize without args, or with a list of configs.
+        """Initialize without args, or with a list of `xp`s.
 
-        If ``unique``: duplicates won't get appended.
-        This makes ``append()`` (and ``__iadd__()``) relatively slow.
-        Use ``extend()`` or ``__add__()`` to bypass this validation."""
+        If `unique`: duplicates won't get appended.
+        This makes `append()` (and `__iadd__()`) relatively slow.
+        Use `extend()` or `__add__()` to bypass this validation."""
 
         self.unique = unique
         super().__init__(*args)
@@ -319,7 +345,7 @@ class xpList(list):
         return self
 
     def append(self, xp):
-        """Append if not unique & present."""
+        """Append if not `self.unique` & present."""
         if not (self.unique and xp in self):
             super().append(xp)
 
@@ -334,10 +360,10 @@ class xpList(list):
         return B
 
     def inds(self, strict=True, missingval="NONSENSE", **kws):
-        """Find (all) indices of configs whose attributes match kws.
+        """Find (all) indices of `xps` whose attributes match kws.
 
-        If strict, then xp's lacking a requested attr will not match,
-        unless the missingval (e.g. None) matches the required value.
+        If strict, then `xp`s lacking a requested attr will not match,
+        unless the missingval (e.g. `None`) matches the required value.
         """
         def match(xp):
             def missing(v): return missingval if strict else v
@@ -351,12 +377,12 @@ class xpList(list):
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
-        """Compile the attrs of all xps; split as distinct, redundant, common.
+        """Compile attrs of all `xp`s; split into distinct, redundant, common.
 
-        Insert None if an attribute is distinct but not in xp."""
+        Insert `None` if an attribute is distinct but not in `xp`."""
 
         def _aggregate_keys():
-            "Aggregate keys from all xps"
+            "Aggregate keys from all `xp`"
 
             if len(self) == 0:
                 return []
@@ -442,7 +468,7 @@ class xpList(list):
         return s
 
     def gen_names(self, abbrev=6, tab=False):
-        """Similiar to ``self.__repr__()``, but:
+        """Similiar to `self.__repr__()`, but:
 
         - returns *list* of names
         - tabulation is optional
@@ -482,9 +508,9 @@ class xpList(list):
         return table.splitlines()
 
     def tabulate_avrgs(self, *args, **kwargs):
-        """Pretty (tabulated) repr of xps & their avrgs.
+        """Pretty (tabulated) `repr` of `xps` & their `avrgs.`
 
-        Similar to stats.tabulate_avrgs(), but for the entire list of xps."""
+        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`."""
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
@@ -492,27 +518,35 @@ class xpList(list):
 
     def launch(self, HMM, save_as="noname", mp=False,
                setup=seed_and_simulate, fail_gently=None, **kwargs):
-        """For each xp in self: run_experiment(xp, ...).
+        """Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
-        The results are saved in ``rc.dirs['data']/save_as.stem``,
-        unless ``save_as`` is False/None.
+        The results are saved in `rc.dirs['data']/save_as`,
+        unless `save_as` is False/None.
 
-        Depending on ``mp``, run_experiment() is delegated to one of:
+        Depending on `mp`, `run_experiment` is delegated as follows:
 
-         - caller process (no parallelisation)
-         - multiprocessing on this host
-         - GCP (Google Cloud Computing) with HTCondor
+        - `False`: caller process (no parallelisation)
+        - `True` or "MP" or an `int`: multiprocessing on this host
+        - `"GCP"` or `"Google"` or `dict(server="GCP")`: the DAPPER server
+          (Google Cloud Computing with HTCondor).
+            - Specify a list of files as `mp["files"]` to include them
+              in working directory of the server workers.
+            - In order to use absolute paths, the list should cosist
+              of tuples, where the first item is relative to the second
+              (which is an absolute path). The root is then not included
+              in the working directory of the server.
+            - If this dict field is empty, then all python files
+              in `sys.path[0]` are uploaded.
 
-        If ``setup == None``: use ``seed_and_simulate()``.
+        If `setup == None`: use `seed_and_simulate`.
+        Specify your own setup function
+        (possibly calling `seed_and_simulate`)
+        in order to set (general) experiment parameters that are not
+        (i.e. those that are not inherently used by the da_method
+        of that `xp`).
 
-        The kwargs are forwarded to run_experiment().
-
-        See ``example_2.py`` and ``example_3.py`` for example use.
+        See `example_2.py` and `example_3.py` for example use.
         """
-        # TODO 2: doc files and code options in mp, e.g
-        # `files` get added to PYTHONPATH and have dir-structure preserved.
-        # Setup: Experiment initialisation. Default: seed_and_simulate().
-        #   Enables setting experiment variables that are not parameters of a da_method.
 
         # Collect common args forwarded to run_experiment
         kwargs['HMM'] = HMM
@@ -595,8 +629,6 @@ class xpList(list):
             os.mkdir(extra_files)
             # Default files: .py files in sys.path[0] (main script's path)
             if not mp.get("files", []):
-                # Todo 4: also intersect(..., sys.modules).
-                # Todo 4: use git ls-tree instead?
                 ff = os.listdir(sys.path[0])
                 mp["files"] = [f for f in ff if f.endswith(".py")]
             # Copy files into extra_files
@@ -644,12 +676,12 @@ class xpList(list):
 
 
 def get_param_setter(param_dict, **glob_dict):
-    """Mass creation of xp's by combining the value lists in the parameter dicts.
+    """Mass creation of `xp`'s by combining the value lists in the parameter dicts.
 
     The parameters are trimmed to the ones available for the given method.
     This is a good deal more efficient than relying on xpList's unique=True.
 
-    Beware! If, eg., [infl,rot] are in the param_dict, aimed at the EnKF,
+    Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
     but you forget that they are also attributes some method where you don't
     actually want to use them (eg. SVGDF),
     then you'll create many more than you intend.

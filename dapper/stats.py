@@ -424,7 +424,7 @@ class Stats(StatPrint):
 
         # Ens does not get stored in stats, so we cannot replay that.
         # If the LPs are initialized with P0!=None, then they will avoid ens plotting.
-        # TODO 2: This system for switching from Ens to stats must be replaced.
+        # TODO 4: This system for switching from Ens to stats must be replaced.
         #       It breaks down when M is very large.
         try:
             P0 = np.full_like(self.HMM.X0.C.full, np.nan)

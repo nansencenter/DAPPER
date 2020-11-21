@@ -286,12 +286,22 @@ def rel2mods(path):
 #     setattr(obj,attr,tmp)
 
 
-# TODO 2: use finally?
 @contextlib.contextmanager
 def set_tmp(obj, attr, val):
     &#34;&#34;&#34;Temporarily set an attribute.
 
-    http://code.activestate.com/recipes/577089/&#34;&#34;&#34;
+    Example:
+    &gt;&gt;&gt; class A:
+    &gt;&gt;&gt;     pass
+    &gt;&gt;&gt; a = A()
+    &gt;&gt;&gt; a.x = 1  # Try deleting this line
+    &gt;&gt;&gt; with set_tmp(a,&#34;x&#34;,&#34;TEMPVAL&#34;):
+    &gt;&gt;&gt;     print(a.x)
+    &gt;&gt;&gt; print(a.x)
+
+    Based on
+    http://code.activestate.com/recipes/577089/
+    &#34;&#34;&#34;
 
     was_there = False
     tmp = None
@@ -306,12 +316,15 @@ def set_tmp(obj, attr, val):
             tmp = getattr(obj, attr)
     setattr(obj, attr, val)
 
-    yield  # was_there, tmp
-
-    if not was_there:
-        delattr(obj, attr)
-    else:
-        setattr(obj, attr, tmp)
+    try:
+        yield  # was_there, tmp
+    except BaseException:
+        raise
+    finally:
+        if not was_there:
+            delattr(obj, attr)
+        else:
+            setattr(obj, attr, tmp)
 
 
 # Better than tic-toc !
@@ -638,7 +651,17 @@ def monitor_setitem(cls):
 </code></dt>
 <dd>
 <div class="desc"><p>Temporarily set an attribute.</p>
-<p><a href="http://code.activestate.com/recipes/577089/">http://code.activestate.com/recipes/577089/</a></p></div>
+<p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; class A:
+&gt;&gt;&gt;     pass
+&gt;&gt;&gt; a = A()
+&gt;&gt;&gt; a.x = 1  # Try deleting this line
+&gt;&gt;&gt; with set_tmp(a,&quot;x&quot;,&quot;TEMPVAL&quot;):
+&gt;&gt;&gt;     print(a.x)
+&gt;&gt;&gt; print(a.x)
+</code></pre>
+<p>Based on
+<a href="http://code.activestate.com/recipes/577089/">http://code.activestate.com/recipes/577089/</a></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -647,7 +670,18 @@ def monitor_setitem(cls):
 def set_tmp(obj, attr, val):
     &#34;&#34;&#34;Temporarily set an attribute.
 
-    http://code.activestate.com/recipes/577089/&#34;&#34;&#34;
+    Example:
+    &gt;&gt;&gt; class A:
+    &gt;&gt;&gt;     pass
+    &gt;&gt;&gt; a = A()
+    &gt;&gt;&gt; a.x = 1  # Try deleting this line
+    &gt;&gt;&gt; with set_tmp(a,&#34;x&#34;,&#34;TEMPVAL&#34;):
+    &gt;&gt;&gt;     print(a.x)
+    &gt;&gt;&gt; print(a.x)
+
+    Based on
+    http://code.activestate.com/recipes/577089/
+    &#34;&#34;&#34;
 
     was_there = False
     tmp = None
@@ -662,12 +696,15 @@ def set_tmp(obj, attr, val):
             tmp = getattr(obj, attr)
     setattr(obj, attr, val)
 
-    yield  # was_there, tmp
-
-    if not was_there:
-        delattr(obj, attr)
-    else:
-        setattr(obj, attr, tmp)</code></pre>
+    try:
+        yield  # was_there, tmp
+    except BaseException:
+        raise
+    finally:
+        if not was_there:
+            delattr(obj, attr)
+        else:
+            setattr(obj, attr, tmp)</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.utils.find_1st_ind"><code class="name flex">
