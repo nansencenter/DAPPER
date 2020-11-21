@@ -28,7 +28,7 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 
 <!-- Inspiration: https://github.com/Naereen/badges -->
 [![Docs](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=github)](https://nansencenter.github.io/DAPPER)
-[![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci?logoColor=violet)](https://travis-ci.org/nansencenter/DAPPER)
+[![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci&logoColor=violet)](https://travis-ci.org/nansencenter/DAPPER)
 [![Coveralls](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
 [![Python](https://img.shields.io/badge/Made%20with-Python-blue?style=for-the-badge&logo=python)](https://www.python.org/)
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi)](https://pypi.python.org/pypi/da-dapper/)
