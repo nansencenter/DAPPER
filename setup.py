@@ -72,6 +72,7 @@ setuptools.setup(
         'Dev':  ['line_profiler', 'pdbpp',
                  'pytest', 'pytest-cov', 'coverage',
                  'flake8', 'pre-commit',
+                 'twine',
                  'pdoc3'],
     },
     # Other packages used, but not explicitly required
@@ -117,7 +118,7 @@ setuptools.setup(
     ['dapper.mods.'+x for x in os.listdir('dapper/mods') if filter_dirs(x)] +\
     ['dapper.mods.QG.f90'],
     package_data={
-        '': ['*.txt', '*.md', '*.png'],
+        '': ['*.txt', '*.md', '*.png', '*.yaml'],
         'dapper.mods.QG.f90': ['*.txt', '*.md', '*.png', 'Makefile', '*.f90'],
     },
 
