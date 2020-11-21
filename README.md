@@ -27,11 +27,11 @@ The typical set-up is a **synthetic (twin) experiment**, where you
   given the above starred (`*`) items.
 
 <!-- Inspiration: https://github.com/Naereen/badges -->
-[![Doc link](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=github)](https://nansencenter.github.io/DAPPER)
+[![Docs](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=github)](https://nansencenter.github.io/DAPPER)
 [![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci)](https://travis-ci.org/nansencenter/DAPPER)
-[![image](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
-[![Made-with-python](https://img.shields.io/badge/Made%20with-Python-blue?style=for-the-badge&logo=python)](https://www.python.org/)
-[![PyPI by shields.io](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi)](https://pypi.python.org/pypi/da-dapper/)
+[![Coveralls](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
+[![Python](https://img.shields.io/badge/Made%20with-Python-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi)](https://pypi.org/project/DA-DAPPER)
 [![Github HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge)](http://hits.dwyl.com/nansencenter/DAPPER)
 
