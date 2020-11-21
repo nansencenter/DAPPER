@@ -27,9 +27,11 @@ The typical set-up is a **synthetic (twin) experiment**, where you
   given the above starred (`*`) items.
 
 
-[![Generic badge](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=appveyor)](https://nansencenter.github.io/DAPPER)
+[![Doc link](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=appveyor)](https://nansencenter.github.io/DAPPER)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=appveyor)](https://pypi.org/project/DA-DAPPER)
-[![abc](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge&logo=appveyor)](http://hits.dwyl.com/nansencenter/DAPPER)
+[![HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge&logo=appveyor)](http://hits.dwyl.com/nansencenter/DAPPER)
+[![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/)
 
 ## Highlights
 
