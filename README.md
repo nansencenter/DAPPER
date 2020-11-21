@@ -29,9 +29,9 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 
 [![Doc link](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=appveyor)](https://nansencenter.github.io/DAPPER)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=appveyor)](https://pypi.org/project/DA-DAPPER)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=appveyor)](https://pypi.python.org/pypi/da-dapper/)
 [![HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge&logo=appveyor)](http://hits.dwyl.com/nansencenter/DAPPER)
 [![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
-[![PyPI version shields.io](https://img.shields.io/pypi/v/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/)
 
 ## Highlights
 
