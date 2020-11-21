@@ -69,7 +69,10 @@ setuptools.setup(
     # Optional
     extras_require={
         'Qt':  ['PyQt5', 'qtpy'],
-        'Dev':  ['line_profiler', 'pytest', 'pdoc3'],
+        'Dev':  ['line_profiler', 'pdbpp',
+                 'pytest', 'pytest-cov', 'coverage',
+                 'flake8', 'pre-commit',
+                 'pdoc3'],
     },
     # Other packages used, but not explicitly required
     #

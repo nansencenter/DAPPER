@@ -90,3 +90,4 @@ dapper/tools/remote/image-creation/
 .vim/
 OLDD
 .pylintrc
+.coverage
