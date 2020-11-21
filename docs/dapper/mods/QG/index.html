@@ -49,7 +49,7 @@ See example in <code>mods.QG.counillon2009</code>.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L0-L182" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L0-L182" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Quasi-geostraphic 2D flow.
 
@@ -268,7 +268,7 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L145-L145" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L145-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def py2f(x): return x.reshape(shape, order=order)</code></pre>
 </details>
@@ -281,7 +281,7 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L146-L146" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L146-L146" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def f2py(X): return X.flatten(order=order)</code></pre>
 </details>
@@ -294,7 +294,7 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L149-L149" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L149-L149" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def square(x): return x.reshape(shape[::-1])</code></pre>
 </details>
@@ -307,7 +307,7 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L150-L150" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L150-L150" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def ind2sub(ind): return np.unravel_index(ind, shape[::-1])</code></pre>
 </details>
@@ -320,7 +320,7 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L156-L161" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L156-L161" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_sample(model, nSamples, SpinUp, Spacing):
     simulator = dpr.with_recursion(model.step, prog=&#34;Simulating&#34;)
@@ -338,7 +338,7 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L179-L183" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L179-L183" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LP_setup(jj=None): return [
     (11, 1, LP.spatial2d(square, ind2sub, jj, cm)),
@@ -363,7 +363,7 @@ and Python calls to step(), for example for dt.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L57-L119" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L57-L119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class model_config:
     &#34;&#34;&#34;
@@ -439,7 +439,7 @@ and Python calls to step(), for example for dt.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L90-L104" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L90-L104" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step_1(self, x0, t, dt):
     &#34;&#34;&#34;Step a single state vector.&#34;&#34;&#34;
@@ -466,7 +466,7 @@ and Python calls to step(), for example for dt.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/QG/__init__.py#L106-L119" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/QG/__init__.py#L106-L119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step(self, E, t, dt):
     &#34;&#34;&#34;Vector and 2D-array (ens) input, with multiproc for ens case.&#34;&#34;&#34;

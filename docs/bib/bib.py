@@ -152,6 +152,14 @@ Meteorological Society*, 145(718): 53–75. DOI:
 https://doi.org/10.1002/qj.3386
 """
 
+raanes2014ext = None
+"""
+**Raanes**, **P N**, **Carrassi**, **A**, and **Bertino**, **L**
+2015 Extending the square root method to account for model noise
+in the ensemble Kalman filter. *Monthly Weather Review*, 143(10):
+3857–3873.
+"""
+
 raanes2019revising = None
 """
 **Raanes**, **Patrick Nima**, **Stordal**, **A S**, and

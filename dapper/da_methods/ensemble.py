@@ -246,7 +246,7 @@ def post_process(E, infl, rot):
 
 
 def add_noise(E, dt, noise, method):
-    """Treatment of additive noise for ensembles `bib.raanes2015rts`."""
+    """Treatment of additive noise for ensembles `bib.raanes2014ext`."""
 
     if noise.C == 0:
         return E

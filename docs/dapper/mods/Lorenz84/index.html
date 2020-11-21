@@ -39,7 +39,7 @@ Tellus A 57 (2005) 1–11</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/Lorenz84/__init__.py#L0-L46" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz84/__init__.py#L0-L46" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;A chaotic system of size 3, like Lorenz-63, but with +complex geometry.
 
@@ -122,7 +122,7 @@ to dynamical system estimation with …</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/Lorenz84/__init__.py#L22-L29" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz84/__init__.py#L22-L29" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@dpr.ens_compatible
 def dxdt(x):
@@ -142,7 +142,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/Lorenz84/__init__.py#L37-L43" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz84/__init__.py#L37-L43" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
     x, y, z = x
@@ -161,7 +161,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/Lorenz84/__init__.py#L46-L47" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz84/__init__.py#L46-L47" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)</code></pre>

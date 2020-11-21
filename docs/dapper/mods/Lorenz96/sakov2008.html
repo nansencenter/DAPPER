@@ -44,7 +44,7 @@ some of which are mentioned below.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/mods/Lorenz96/sakov2008.py#L0-L109" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz96/sakov2008.py#L0-L109" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Set-up as in Sakov&#39;s 2008 article in Tellus
 &#34;A deterministic formulation of the ensemble Kalman filter:
@@ -94,7 +94,7 @@ HMM.liveplotters = LPs(jj)
 # Suggested tuning
 ####################
 
-# Reproduce Table1 of Sakov&#39;2008 &#34;deterministic&#34;               # Expected rmse.a:
+# Reproduce Table1 of sakov2008deterministic        # Expected rmse.a:
 # --------------------------------------------------------------------------------
 # xps += EnKF(&#39;PertObs&#39;        ,N=40, infl=1.06)               # 0.22
 # xps += EnKF(&#39;DEnKF&#39;          ,N=40, infl=1.01)               # 0.18
@@ -116,7 +116,7 @@ HMM.liveplotters = LPs(jj)
 # xps += Var3D(xB=0.02)                                        # 0.41
 # xps += ExtKF(infl=10)                                        # 0.24
 
-# Reproduce LETKF scores from Bocquet&#39;2011 &#34;EnKF-N&#34; fig 6:
+# Reproduce LETKF scores from bocquet2011ensemble fig 6:
 # --------------------------------------------------------------------------------
 # xps += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper=&#39;Step&#39;)  #
 # Other localized:

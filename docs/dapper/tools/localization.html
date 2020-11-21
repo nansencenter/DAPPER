@@ -37,7 +37,7 @@ Sakov (2011), Computational Geosciences:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L0-L268" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L0-L268" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Localization tools, including distance and tapering comps.
 
@@ -340,7 +340,7 @@ NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L17-L59" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L17-L59" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
     &#34;&#34;&#34;Euclidian distance (un-squared) between pts in A and B.
@@ -400,7 +400,7 @@ coeff==np.exp(-0.5) when distance==radius.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L62-L112" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L62-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dist2coeff(dists, radius, tag=None):
     &#34;&#34;&#34;Compute tapering coefficients corresponding to a distances.
@@ -466,7 +466,7 @@ coeffs : the corresponding tapering coefficients.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L115-L129" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L115-L129" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
     &#34;&#34;&#34;Returns
@@ -493,7 +493,7 @@ coeffs : the corresponding tapering coefficients.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L132-L154" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L132-L154" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def localization_setup(y2x_distances, batches):
 
@@ -528,7 +528,7 @@ coeffs : the corresponding tapering coefficients.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L157-L176" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L157-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def no_localization(Nx, Ny):
 
@@ -577,7 +577,7 @@ where each element (batch) is a list of indices</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L179-L223" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L179-L223" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rectangular_partitioning(shape, steps, do_ind=True):
     &#34;&#34;&#34;N-D rectangular batch generation.
@@ -634,7 +634,7 @@ where each element (batch) is a list of indices</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L229-L233" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L229-L233" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def safe_eval(fun, t):
     try:
@@ -652,7 +652,7 @@ N-D, homogeneous, rectangular domain.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/tools/localization.py#L244-L269" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/tools/localization.py#L244-L269" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def nd_Id_localization(shape,
                        batch_shape=None,
