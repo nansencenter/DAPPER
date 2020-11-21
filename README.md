@@ -32,7 +32,8 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 [![PyPI version shields.io](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=appveyor)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=appveyor)](https://pypi.org/project/DA-DAPPER)
 [![HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge&logo=appveyor)](http://hits.dwyl.com/nansencenter/DAPPER)
-[![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
+[![made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
+[![ForTheBadge winter-is-coming](http://ForTheBadge.com/images/badges/winter-is-coming.svg)](http://ForTheBadge.com)
 
 ## Highlights
 
@@ -268,6 +269,8 @@ If you use this software in a publication, please cite as follows.
   url    = {https://doi.org/10.5281/zenodo.2029296}
 }
 ```
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296)
 
 DAPPER is built and maintained at
 NORCE (Norwegian Research Institute)
