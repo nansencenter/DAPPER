@@ -82,7 +82,7 @@ class iEnKS:
     # => Any changes to this function must be unit-tested via
     # scripts/test_iEnKS.py.
 
-    # TODO 4:
+    # TODO 6:
     # - step length
     # - Implement quasi-static assimilation. Boc notes:
     #   * The 'balancing step' is complicated.

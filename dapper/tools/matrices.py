@@ -47,7 +47,7 @@ def randcorr(M):
 
 def genOG(M):
     """Generate random orthonormal matrix."""
-    # TODO 4: This (using Householder) is (slightly?) wrong,
+    # TODO 5: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
     Q, R = sla.qr(randn(M, M))
     for i in range(M):

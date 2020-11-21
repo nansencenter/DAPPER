@@ -56,7 +56,7 @@ class ExtKF:
             stats.assess(k, kObs, mu=mu, Cov=P)
 
 
-# TODO 4: Clean up
+# TODO 5: Clean up
 @da_method()
 class ExtRTS:
     """

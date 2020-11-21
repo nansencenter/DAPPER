@@ -222,7 +222,7 @@ class LivePlot:
             ipdb.set_trace(inspect.stack()[2].frame)
 
 
-# TODO 4:
+# TODO 6:
 # - iEnKS diagnostics don't work at all when store_u=False
 star = "${}^*$"
 
@@ -1216,7 +1216,7 @@ def spatial2d(
         ax_21.set_title('std. '+sx)
         ax_22.set_title('err. '+sx)
 
-        # TODO 4
+        # TODO 7
         # for ax in axs.flatten():
         # Crop boundries (which should be 0, i.e. yield harsh q gradients):
         # lims = (1, nx-2)

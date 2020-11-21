@@ -268,7 +268,7 @@ class RollingArray:
         # self.array[-1] = val
 
         dk = max(1, dk)
-        # TODO 4: Should have used deque?
+        # TODO 7: Should have used deque?
         self.array = np.roll(self.array, -dk, axis=0)
         self.array[-dk:] = nan
         self.array[-1:] = val
