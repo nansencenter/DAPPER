@@ -26,6 +26,9 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 - assess how different DA methods perform in estimating the truth,
   given the above starred (`*`) items.
 
+
+[![Generic badge](https://img.shields.io/badge/Documentation%3F-yes-green.svg)](https://shields.io/)
+
 ## Highlights
 
 DAPPER enables the numerical investigation of DA methods
