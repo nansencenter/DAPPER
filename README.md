@@ -119,8 +119,6 @@ Extended KF                                            |
 Optimal interpolation                                  |
 Climatology                                            |
 
-[References](https://dapper.readthedocs.io/en/latest/bib/bib.html)
-
 <sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).
 Serial forms are also available.  
 Tuned with inflation and "random, orthogonal rotations".  
