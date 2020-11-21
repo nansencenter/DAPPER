@@ -434,7 +434,7 @@ def truncate_rank(s, threshold, avoid_pathological):
         r += 1  # Hence the strict inequality above
         if avoid_pathological:
             # If not avoid_pathological, then the last 4 diag. entries of
-            # reconst( *tsvd(np.eye(400),0.99) )
+            # svdi( *tsvd(np.eye(400),0.99) )
             # will be zero. This is probably not intended.
             r += np.sum(np.isclose(s[r-1], s[r:]))
     else:
@@ -508,16 +508,16 @@ def pad0(ss, N):
     return out
 
 
-def reconst(U, s, VT):
-    &#34;&#34;&#34;Reconstruct matrix from svd. Supports truncated svd&#39;s.
+def svdi(U, s, VT):
+    &#34;&#34;&#34;Reconstruct matrix from (t)svd.
 
     Example::
 
-    &gt;&gt;&gt; A == reconst(*tsvd(A,1.0)).
+    &gt;&gt;&gt; A == svdi(*tsvd(A,1.0)).
 
     .. seealso:: sla.diagsvd().
     &#34;&#34;&#34;
-    return (U * s) @ VT
+    return (U[:, :len(s)] * s) @ VT
 
 
 def tinv(A, *kargs, **kwargs):
@@ -1208,7 +1208,7 @@ x[k]
         r += 1  # Hence the strict inequality above
         if avoid_pathological:
             # If not avoid_pathological, then the last 4 diag. entries of
-            # reconst( *tsvd(np.eye(400),0.99) )
+            # svdi( *tsvd(np.eye(400),0.99) )
             # will be zero. This is probably not intended.
             r += np.sum(np.isclose(s[r-1], s[r:]))
     else:
@@ -1341,13 +1341,13 @@ both of which always compute the reduced svd.</p>
     return out</code></pre>
 </details>
 </dd>
-<dt id="dapper.tools.math.reconst"><code class="name flex">
-<span>def <span class="ident">reconst</span></span>(<span>U, s, VT)</span>
+<dt id="dapper.tools.math.svdi"><code class="name flex">
+<span>def <span class="ident">svdi</span></span>(<span>U, s, VT)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Reconstruct matrix from svd. Supports truncated svd's.</p>
+<div class="desc"><p>Reconstruct matrix from (t)svd.</p>
 <p>Example::</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; A == reconst(*tsvd(A,1.0)).
+<pre><code class="language-python-repl">&gt;&gt;&gt; A == svdi(*tsvd(A,1.0)).
 </code></pre>
 <div class="admonition seealso">
 <p class="admonition-title">Seealso:&ensp;sla.diagsvd().</p>
@@ -1356,16 +1356,16 @@ both of which always compute the reduced svd.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def reconst(U, s, VT):
-    &#34;&#34;&#34;Reconstruct matrix from svd. Supports truncated svd&#39;s.
+<pre><code class="python">def svdi(U, s, VT):
+    &#34;&#34;&#34;Reconstruct matrix from (t)svd.
 
     Example::
 
-    &gt;&gt;&gt; A == reconst(*tsvd(A,1.0)).
+    &gt;&gt;&gt; A == svdi(*tsvd(A,1.0)).
 
     .. seealso:: sla.diagsvd().
     &#34;&#34;&#34;
-    return (U * s) @ VT</code></pre>
+    return (U[:, :len(s)] * s) @ VT</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.math.tinv"><code class="name flex">
@@ -1592,7 +1592,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p></d
 <li><code><a title="dapper.tools.math.tsvd" href="#dapper.tools.math.tsvd">tsvd</a></code></li>
 <li><code><a title="dapper.tools.math.svd0" href="#dapper.tools.math.svd0">svd0</a></code></li>
 <li><code><a title="dapper.tools.math.pad0" href="#dapper.tools.math.pad0">pad0</a></code></li>
-<li><code><a title="dapper.tools.math.reconst" href="#dapper.tools.math.reconst">reconst</a></code></li>
+<li><code><a title="dapper.tools.math.svdi" href="#dapper.tools.math.svdi">svdi</a></code></li>
 <li><code><a title="dapper.tools.math.tinv" href="#dapper.tools.math.tinv">tinv</a></code></li>
 <li><code><a title="dapper.tools.math.trank" href="#dapper.tools.math.trank">trank</a></code></li>
 <li><code><a title="dapper.tools.math.Id_op" href="#dapper.tools.math.Id_op">Id_op</a></code></li>

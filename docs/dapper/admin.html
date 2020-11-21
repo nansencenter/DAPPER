@@ -82,7 +82,7 @@ from datetime import datetime
 
 
 class HiddenMarkovModel(dict_tools.NicePrint):
-    &#34;&#34;&#34;Container for attributes of a Hidden Markov Model (HMM).
+    &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
 
     This container contains the specification of a &#34;twin experiment&#34;,
     i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
@@ -271,11 +271,11 @@ def da_method(*default_dataclasses):
             self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
             # Assimilate
             time_start = time.time()
-            old_assimilate(self, HMM, xx, yy)
+            _assimilate(self, HMM, xx, yy)
             dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
 
-        old_assimilate = cls.assimilate
-        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+        _assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(_assimilate)(assimilate)
 
         return cls
     return dataclass_with_defaults
@@ -898,11 +898,11 @@ for similar DA methods:</p>
             self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
             # Assimilate
             time_start = time.time()
-            old_assimilate(self, HMM, xx, yy)
+            _assimilate(self, HMM, xx, yy)
             dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
 
-        old_assimilate = cls.assimilate
-        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+        _assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(_assimilate)(assimilate)
 
         return cls
     return dataclass_with_defaults</code></pre>
@@ -1071,7 +1071,7 @@ then you'll create many more than you intend.</p></div>
 <span>(</span><span>Dyn, Obs, t, X0, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Container for attributes of a Hidden Markov Model (HMM).</p>
+<div class="desc"><p>Container for a Hidden Markov Model (HMM).</p>
 <p>This container contains the specification of a "twin experiment",
 i.e. an "OSSE (observing system simulation experiment)".</p></div>
 <details class="source">
@@ -1079,7 +1079,7 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class HiddenMarkovModel(dict_tools.NicePrint):
-    &#34;&#34;&#34;Container for attributes of a Hidden Markov Model (HMM).
+    &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
 
     This container contains the specification of a &#34;twin experiment&#34;,
     i.e. an &#34;OSSE (observing system simulation experiment)&#34;.

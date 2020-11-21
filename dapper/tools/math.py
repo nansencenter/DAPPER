@@ -399,7 +399,7 @@ def truncate_rank(s, threshold, avoid_pathological):
         r += 1  # Hence the strict inequality above
         if avoid_pathological:
             # If not avoid_pathological, then the last 4 diag. entries of
-            # reconst( *tsvd(np.eye(400),0.99) )
+            # svdi( *tsvd(np.eye(400),0.99) )
             # will be zero. This is probably not intended.
             r += np.sum(np.isclose(s[r-1], s[r:]))
     else:
@@ -473,16 +473,16 @@ def pad0(ss, N):
     return out
 
 
-def reconst(U, s, VT):
-    """Reconstruct matrix from svd. Supports truncated svd's.
+def svdi(U, s, VT):
+    """Reconstruct matrix from (t)svd.
 
     Example::
 
-    >>> A == reconst(*tsvd(A,1.0)).
+    >>> A == svdi(*tsvd(A,1.0)).
 
     .. seealso:: sla.diagsvd().
     """
-    return (U * s) @ VT
+    return (U[:, :len(s)] * s) @ VT
 
 
 def tinv(A, *kargs, **kwargs):

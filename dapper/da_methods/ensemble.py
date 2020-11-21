@@ -7,7 +7,7 @@ import scipy.linalg as sla
 
 from dapper.admin import da_method
 from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0,\
-    pad0, reconst, tinv
+    pad0, svdi, tinv
 from dapper.tools.utils import progbar
 from dapper.tools.matrices import genOG_1, funm_psd
 import dapper.tools.multiprocessing as mp
@@ -141,9 +141,9 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                     # "2nd-O exact perturbation sampling"
                     if i == 0:
                         # Init -- increase nullspace by 1
-                        V, s, UT = tsvd(A, N1)
+                        V, s, UT = svd0(A)
                         s[N-2:] = 0
-                        A = reconst(V, s, UT)
+                        A = svdi(V, s, UT)
                         v = V[:, N-2]
                     else:
                         # Orthogonalize v wrt. the new A
@@ -151,9 +151,8 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         # v = Zj - Yj (from paper) requires Y==HX.
                         # Instead: mult` should be c*ones(Nx) so we can
                         # project v into ker(A) such that v@A is null.
-                        # TODO 2: Yj undefined
-                        mult  = (v@A) / (Yj@A) # noqa
-                        v     = v - mult[0]*Yj # noqa
+                        mult  = (v@A) / (Yj@A)
+                        v     = v - mult[0]*Yj
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
                     Zj *= np.sign(rand()-0.5)  # Random sign
@@ -285,13 +284,13 @@ def add_noise(E, dt, noise, method):
         varE   = np.var(E, axis=0, ddof=1).sum()
         ratio  = (varE + dt*diag(Q).sum())/varE
         E      = mu + sqrt(ratio)*A
-        E      = reconst(*tsvd(E, 0.999))  # Explained in Datum
+        E      = svdi(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Mult-M':
         varE   = np.var(E, axis=0)
         ratios = sqrt((varE + dt*diag(Q))/varE)
         E      = mu + A*ratios
-        E      = reconst(*tsvd(E, 0.999))  # Explained in Datum
+        E      = svdi(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Sqrt-Core':
         E = sqrt_core()[0]
@@ -305,7 +304,7 @@ def add_noise(E, dt, noise, method):
             varE1   = np.var(E, axis=0, ddof=1).sum()
             ratio   = varE2/varE1
             E       = mu + sqrt(ratio)*A
-            E       = reconst(*tsvd(E, 0.999))  # Explained in Datum
+            E       = svdi(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Sqrt-Add-Z':
         E, _, Qa12 = sqrt_core()
