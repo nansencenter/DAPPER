@@ -30,8 +30,8 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 [![Doc link](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=flat-square)](https://nansencenter.github.io/DAPPER)
 [![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=flat-square)](https://travis-ci.org/nansencenter/DAPPER)
 [![Made-with-python](https://img.shields.io/badge/Made%20with-Python-blue?style=flat-square&logo=python)](https://www.python.org/)
-[![PyPI by shields.io](https://img.shields.io/pypi/v/da-dapper.svg?style=flat-square)](https://pypi.python.org/pypi/da-dapper/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=flat-square)](https://pypi.org/project/DA-DAPPER)
+[![PyPI by shields.io](https://img.shields.io/pypi/v/da-dapper.svg?style=flat-square&logo=pypi)](https://pypi.python.org/pypi/da-dapper/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=flat-square&logo=pypi)](https://pypi.org/project/DA-DAPPER)
 [![Github HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=flat-square)](http://hits.dwyl.com/nansencenter/DAPPER)
 
 ## Highlights
