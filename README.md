@@ -33,8 +33,6 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
 [![Github HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge)](http://hits.dwyl.com/nansencenter/DAPPER)
-[![GitHub license](https://img.shields.io/github/license/nansencenter/DAPPER?style=for-the-badge&logo=appveyor)](https://github.com/nansencenter/DAPPER/blob/master/LICENSE)
-[![Python](https://img.shields.io/badge/Made%20with-Python-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 
 ## Highlights
 
