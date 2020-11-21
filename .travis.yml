@@ -10,8 +10,8 @@ matrix:
   fast_finish: true
   include:
     - python: 3.8
-      env: DISTRIB="ubuntu" TOX_PYTHON_VERSION="py38" COVERAGE="false"
-    - env: DISTRIB="conda" PYTHON_VERSION="3.8" COVERAGE="false"
+      env: DISTRIB="ubuntu" TOX_PYTHON_VERSION="py38" COVERAGE="false" TRAVIS="true"
+    - env: DISTRIB="conda" PYTHON_VERSION="3.8" COVERAGE="false" TRAVIS="true"
 install:
   - source tests/travis_install.sh
 before_script:

@@ -14,9 +14,8 @@ modules_with_HMM = []
 for root, dir, files in os.walk("."):
     if "mods" in root:
 
-        # Can uncomment if you have compiled and generated samples
-        # if "QG" in root:
-        #     continue
+        if os.environ.get("TRAVIS", False) and ("QG" in root):
+            continue
 
         for f in sorted(files):
             if f.endswith(".py"):
