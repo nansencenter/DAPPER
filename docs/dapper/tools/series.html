@@ -71,10 +71,10 @@ def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
 
 
 def fit_acf_by_AR1(acf_empir, nlags=None):
-    &#34;&#34;&#34;
-    Fit an empirical auto cov function (ACF) by that of an AR1 process.
-    acf_empir: auto-corr/cov-function.
-    nlags: length of ACF to use in AR(1) fitting
+    &#34;&#34;&#34;Fit an empirical auto cov function (ACF) by that of an AR1 process.
+
+    - `acf_empir`: auto-corr/cov-function.
+    - `nlags`: length of ACF to use in AR(1) fitting
     &#34;&#34;&#34;
     if nlags is None:
         nlags = len(acf_empir)
@@ -102,7 +102,7 @@ def estimate_corr_length(xx):
     For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
 
-    $$ corr(L) = exp(-1) = ca 0.368$$
+    $$\\text{corr}(L) = \\exp(-1) \\approx 0.368$$
     &#34;&#34;&#34;
     assert is1d(xx)
     acovf = auto_cov(xx, min(100, len(xx)-2))
@@ -229,10 +229,10 @@ class FAUSt(DataSeries, StatPrint):
 
     Four attributes, each of which is an ndarray:
 
-     - .f for forecast      , (KObs+1,)+item_shape
-     - .a for analysis      , (KObs+1,)+item_shape
-     - .s for smoothed      , (KObs+1,)+item_shape
-     - .u for universial/all, (K   +1,)+item_shape
+    - .f for forecast      , (KObs+1,)+item_shape
+    - .a for analysis      , (KObs+1,)+item_shape
+    - .s for smoothed      , (KObs+1,)+item_shape
+    - .u for universial/all, (K   +1,)+item_shape
 
     If store_u=False, then .u series has shape (1,)+item_shape,
     wherein only the most-recently-written item is stored.
@@ -283,6 +283,7 @@ class FAUSt(DataSeries, StatPrint):
 
 class RollingArray:
     &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
+
     Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
 
     def __init__(self, shape, fillval=nan):
@@ -384,18 +385,20 @@ class RollingArray:
 <span>def <span class="ident">fit_acf_by_AR1</span></span>(<span>acf_empir, nlags=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Fit an empirical auto cov function (ACF) by that of an AR1 process.
-acf_empir: auto-corr/cov-function.
-nlags: length of ACF to use in AR(1) fitting</p></div>
+<div class="desc"><p>Fit an empirical auto cov function (ACF) by that of an AR1 process.</p>
+<ul>
+<li><code>acf_empir</code>: auto-corr/cov-function.</li>
+<li><code>nlags</code>: length of ACF to use in AR(1) fitting</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def fit_acf_by_AR1(acf_empir, nlags=None):
-    &#34;&#34;&#34;
-    Fit an empirical auto cov function (ACF) by that of an AR1 process.
-    acf_empir: auto-corr/cov-function.
-    nlags: length of ACF to use in AR(1) fitting
+    &#34;&#34;&#34;Fit an empirical auto cov function (ACF) by that of an AR1 process.
+
+    - `acf_empir`: auto-corr/cov-function.
+    - `nlags`: length of ACF to use in AR(1) fitting
     &#34;&#34;&#34;
     if nlags is None:
         nlags = len(acf_empir)
@@ -424,7 +427,7 @@ nlags: length of ACF to use in AR(1) fitting</p></div>
 <dd>
 <div class="desc"><p>For explanation, see <code><a title="dapper.mods.LA.homogeneous_1D_cov" href="../mods/LA/index.html#dapper.mods.LA.homogeneous_1D_cov">homogeneous_1D_cov()</a></code>.
 Also note that, for exponential corr function, as assumed here,</p>
-<p><span><span class="MathJax_Preview"> corr(L) = exp(-1) = ca 0.368</span><script type="math/tex; mode=display"> corr(L) = exp(-1) = ca 0.368</script></span></p></div>
+<p><span><span class="MathJax_Preview">\text{corr}(L) = \exp(-1) \approx 0.368</span><script type="math/tex; mode=display">\text{corr}(L) = \exp(-1) \approx 0.368</script></span></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -434,7 +437,7 @@ Also note that, for exponential corr function, as assumed here,</p>
     For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
 
-    $$ corr(L) = exp(-1) = ca 0.368$$
+    $$\\text{corr}(L) = \\exp(-1) \\approx 0.368$$
     &#34;&#34;&#34;
     assert is1d(xx)
     acovf = auto_cov(xx, min(100, len(xx)-2))
@@ -734,10 +737,10 @@ wherein only the most-recently-written item is stored.</p>
 
     Four attributes, each of which is an ndarray:
 
-     - .f for forecast      , (KObs+1,)+item_shape
-     - .a for analysis      , (KObs+1,)+item_shape
-     - .s for smoothed      , (KObs+1,)+item_shape
-     - .u for universial/all, (K   +1,)+item_shape
+    - .f for forecast      , (KObs+1,)+item_shape
+    - .a for analysis      , (KObs+1,)+item_shape
+    - .s for smoothed      , (KObs+1,)+item_shape
+    - .u for universial/all, (K   +1,)+item_shape
 
     If store_u=False, then .u series has shape (1,)+item_shape,
     wherein only the most-recently-written item is stored.
@@ -827,14 +830,15 @@ wherein only the most-recently-written item is stored.</p>
 <span>(</span><span>shape, fillval=nan)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>ND-Array that implements "leftward rolling" along axis 0.
-Used for data that gets plotted in sliding graphs.</p></div>
+<div class="desc"><p>ND-Array that implements "leftward rolling" along axis 0.</p>
+<p>Used for data that gets plotted in sliding graphs.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class RollingArray:
     &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
+
     Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
 
     def __init__(self, shape, fillval=nan):
