@@ -31,11 +31,6 @@ and set the source to the docs folder.
 
 ## TODOs
 
-Note: 
-
-There are also TODO labels scattered in the code,
-including a priority number (1-9, lower is more important).
-
 Minor:
 
 - Badges
@@ -62,6 +57,11 @@ Major:
 - For xpList, could also subclass collections.UserList,
   although I don't know if it would be any better
   <https://stackoverflow.com/q/25464647>
+
+Note: 
+
+There are also TODO labels scattered in the code,
+including a priority number (1-9, lower is more important).
 
 ## Profiling
 
