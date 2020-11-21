@@ -796,9 +796,6 @@ class xpSpace(SparseSpace):
                        the time series of that single experiment.
         &#34;&#34;&#34;
 
-        # TODO 3: rm pandas requirement
-        import pandas as pd
-
         def align_subcols(rows, cc, subcols, h2):
             &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
 
@@ -906,14 +903,13 @@ class xpSpace(SparseSpace):
                 #   which would also require excessive processing:
                 #   nesting the table as cols, and then split_attrs() on cols.
                 row_keys = xpList(table.keys()).split_attrs()[0]
-                row_keys = pd.DataFrame.from_dict(
-                    row_keys, dtype=&#34;O&#34;)  # allow storing None
-                if len(row_keys.columns):
+                if len(row_keys):
                     # Header
                     rows[0] = [h2+k for k in row_keys] + [h2+&#39;⑊&#39;] + rows[0]
                     # Matter
-                    for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
-                        rows[i+1] = [*key] + [&#39;|&#39;] + row
+                    for i, (row, key) in enumerate(zip(
+                            rows[1:], dict_tools.transps(row_keys))):
+                        rows[i+1] = [*key.values()] + [&#39;|&#39;] + row
 
             # Print
             print(&#34;\n&#34;, end=&#34;&#34;)
@@ -2284,9 +2280,6 @@ both of which call <code>table_tree()</code> to nest the axes of the SparseSpace
                        the time series of that single experiment.
         &#34;&#34;&#34;
 
-        # TODO 3: rm pandas requirement
-        import pandas as pd
-
         def align_subcols(rows, cc, subcols, h2):
             &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
 
@@ -2394,14 +2387,13 @@ both of which call <code>table_tree()</code> to nest the axes of the SparseSpace
                 #   which would also require excessive processing:
                 #   nesting the table as cols, and then split_attrs() on cols.
                 row_keys = xpList(table.keys()).split_attrs()[0]
-                row_keys = pd.DataFrame.from_dict(
-                    row_keys, dtype=&#34;O&#34;)  # allow storing None
-                if len(row_keys.columns):
+                if len(row_keys):
                     # Header
                     rows[0] = [h2+k for k in row_keys] + [h2+&#39;⑊&#39;] + rows[0]
                     # Matter
-                    for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
-                        rows[i+1] = [*key] + [&#39;|&#39;] + row
+                    for i, (row, key) in enumerate(zip(
+                            rows[1:], dict_tools.transps(row_keys))):
+                        rows[i+1] = [*key.values()] + [&#39;|&#39;] + row
 
             # Print
             print(&#34;\n&#34;, end=&#34;&#34;)
@@ -2932,9 +2924,6 @@ the time series of that single experiment.</p>
                    the time series of that single experiment.
     &#34;&#34;&#34;
 
-    # TODO 3: rm pandas requirement
-    import pandas as pd
-
     def align_subcols(rows, cc, subcols, h2):
         &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
 
@@ -3042,14 +3031,13 @@ the time series of that single experiment.</p>
             #   which would also require excessive processing:
             #   nesting the table as cols, and then split_attrs() on cols.
             row_keys = xpList(table.keys()).split_attrs()[0]
-            row_keys = pd.DataFrame.from_dict(
-                row_keys, dtype=&#34;O&#34;)  # allow storing None
-            if len(row_keys.columns):
+            if len(row_keys):
                 # Header
                 rows[0] = [h2+k for k in row_keys] + [h2+&#39;⑊&#39;] + rows[0]
                 # Matter
-                for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
-                    rows[i+1] = [*key] + [&#39;|&#39;] + row
+                for i, (row, key) in enumerate(zip(
+                        rows[1:], dict_tools.transps(row_keys))):
+                    rows[i+1] = [*key.values()] + [&#39;|&#39;] + row
 
         # Print
         print(&#34;\n&#34;, end=&#34;&#34;)

@@ -1,16 +1,17 @@
 """
-### Documentation generation
+## Documentation generation
 
-##### Update bib
+### Update bib
 Copy new bibtex items into `docs/bib/refs.bib`,
-then convert to `bib.py` using  
+then convert to bib.py using  
 ```sh
 docs/bib/make_bib.py
 ```
 
-##### Run pdoc
+### Run pdoc
 ```sh
-pdoc --force --html --template-dir docs/templates -o ./docs docs/bib/bib.py docs/dev_guide.py dapper
+pdoc --force --html --template-dir docs/templates -o ./docs \
+docs/bib/bib.py docs/dev_guide.py dapper
 open docs/index.html # preview
 ```
 This generates a lot of warnings of the type
@@ -22,14 +23,47 @@ and run pdoc with --skip-errors.
 >>> if __name__ != "__main__":
 >>>     raise RuntimeError("This module may only be run as script.")
 
-##### Hosting:
+### Hosting:
 Push updated docs to github.
 In the main github settings of the repo,
 go to the "GitHub Pages" section,
 and set the source to the docs folder.
 
+## TODOs
 
-### Profiling
+Note: 
+
+There are also TODO labels scattered in the code,
+including a priority number (1-9, lower is more important).
+
+Minor:
+
+- Badges
+- Add to publication list
+- Publish version
+
+Major:
+
+- Improve docs
+- Make autoscaler.py work also for other users
+  (I dont know if it's condor_- that outputs user-specific numbers,
+  or glcoud resize command that is user-specific, or what.)
+- Pause after Enter doesn't work on Ubuntu?
+
+- Make superclasses for the filter, smoother, and iterative smoother.
+- Simplify and/or generalize time management?
+
+- k,kObs only, yielded by ticker
+- Change KObs to KObs-1
+- Note (somewhere) the implicit dependence on t=0 being special
+
+- Simplify and/or improve cov matrix stuff.
+
+- For xpList, could also subclass collections.UserList,
+  although I don't know if it would be any better
+  <https://stackoverflow.com/q/25464647>
+
+## Profiling
 
 - Launch your python script using `kernprof -l -v my_script.py`
 - *Functions* decorated with `profile` will be timed, line-by-line.
@@ -37,7 +71,7 @@ and set the source to the docs folder.
   present in the `builtins.` Instead of deleting your decorations,
   you could also define a pass-through fallback.
 
-### Making a release
+## Making a release
 
 `cd DAPPER`
 

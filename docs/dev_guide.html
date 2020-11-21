@@ -28,14 +28,14 @@
 <h1 class="title">Module <code>dev_guide</code></h1>
 </header>
 <section id="section-intro">
-<h3 id="documentation-generation">Documentation generation</h3>
-<h5 id="update-bib">Update bib</h5>
+<h2 id="documentation-generation">Documentation generation</h2>
+<h3 id="update-bib">Update bib</h3>
 <p>Copy new bibtex items into <code>docs/bib/refs.bib</code>,
-then convert to <code>bib.py</code> using
+then convert to bib.py using
 </p>
 <pre><code class="language-sh">docs/bib/make_bib.py
 </code></pre>
-<h5 id="run-pdoc">Run pdoc</h5>
+<h3 id="run-pdoc">Run pdoc</h3>
 <pre><code class="language-sh">pdoc --force --html --template-dir docs/templates -o ./docs docs/bib/bib.py docs/dev_guide.py dapper
 open docs/index.html # preview
 </code></pre>
@@ -47,12 +47,53 @@ and run pdoc with &ndash;skip-errors.</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; if __name__ != &quot;__main__&quot;:
 &gt;&gt;&gt;     raise RuntimeError(&quot;This module may only be run as script.&quot;)
 </code></pre>
-<h5 id="hosting">Hosting:</h5>
+<h3 id="hosting">Hosting:</h3>
 <p>Push updated docs to github.
 In the main github settings of the repo,
 go to the "GitHub Pages" section,
 and set the source to the docs folder.</p>
-<h3 id="profiling">Profiling</h3>
+<h2 id="todo">TODO</h2>
+<p>Note: </p>
+<p>There are also TODO labels scattered in the code,
+including a priority number (1-9, lower is more important).</p>
+<p>Minor:</p>
+<ul>
+<li>Badges</li>
+<li>Add to publication list</li>
+<li>Publish version</li>
+</ul>
+<p>Major:</p>
+<ul>
+<li>Improve docs</li>
+<li>Make autoscaler.py work also for other users
+(I dont know if it's condor_- that outputs user-specific numbers,
+or glcoud resize command that is user-specific, or what.)</li>
+<li>
+<p>Pause after Enter doesn't work on Ubuntu?</p>
+</li>
+<li>
+<p>Make superclasses for the filter, smoother, and iterative smoother.</p>
+</li>
+<li>
+<p>Simplify and/or generalize time management?</p>
+</li>
+<li>
+<p>k,kObs only, yielded by ticker</p>
+</li>
+<li>Change KObs to KObs-1</li>
+<li>
+<p>Note (somewhere) the implicit dependence on t=0 being special</p>
+</li>
+<li>
+<p>Simplify and/or improve cov matrix stuff.</p>
+</li>
+<li>
+<p>For xpList, could also subclass collections.UserList,
+although I don't know if it would be any better
+<a href="https://stackoverflow.com/q/25464647">https://stackoverflow.com/q/25464647</a></p>
+</li>
+</ul>
+<h2 id="profiling">Profiling</h2>
 <ul>
 <li>Launch your python script using <code>kernprof -l -v my_script.py</code></li>
 <li><em>Functions</em> decorated with <code>profile</code> will be timed, line-by-line.</li>
@@ -60,7 +101,7 @@ and set the source to the docs folder.</p>
 present in the <code>builtins.</code> Instead of deleting your decorations,
 you could also define a pass-through fallback.</li>
 </ul>
-<h3 id="making-a-release">Making a release</h3>
+<h2 id="making-a-release">Making a release</h2>
 <p><code>cd DAPPER</code></p>
 <p>Bump version number in <code>__init__.py</code></p>
 <p>Merge <code>dev1</code> into <code>master</code></p>
@@ -131,18 +172,19 @@ password: mypass
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
-### Documentation generation
+## Documentation generation
 
-##### Update bib
+### Update bib
 Copy new bibtex items into `docs/bib/refs.bib`,
-then convert to `bib.py` using  
+then convert to bib.py using  
 ```sh
 docs/bib/make_bib.py
 ```
 
-##### Run pdoc
+### Run pdoc
 ```sh
-pdoc --force --html --template-dir docs/templates -o ./docs docs/bib/bib.py docs/dev_guide.py dapper
+pdoc --force --html --template-dir docs/templates -o ./docs \
+docs/bib/bib.py docs/dev_guide.py dapper
 open docs/index.html # preview
 ```
 This generates a lot of warnings of the type
@@ -154,14 +196,47 @@ and run pdoc with --skip-errors.
 &gt;&gt;&gt; if __name__ != &#34;__main__&#34;:
 &gt;&gt;&gt;     raise RuntimeError(&#34;This module may only be run as script.&#34;)
 
-##### Hosting:
+### Hosting:
 Push updated docs to github.
 In the main github settings of the repo,
 go to the &#34;GitHub Pages&#34; section,
 and set the source to the docs folder.
 
+## TODO
 
-### Profiling
+Note: 
+
+There are also TODO labels scattered in the code,
+including a priority number (1-9, lower is more important).
+
+Minor:
+
+- Badges
+- Add to publication list
+- Publish version
+
+Major:
+
+- Improve docs
+- Make autoscaler.py work also for other users
+  (I dont know if it&#39;s condor_- that outputs user-specific numbers,
+  or glcoud resize command that is user-specific, or what.)
+- Pause after Enter doesn&#39;t work on Ubuntu?
+
+- Make superclasses for the filter, smoother, and iterative smoother.
+- Simplify and/or generalize time management?
+
+- k,kObs only, yielded by ticker
+- Change KObs to KObs-1
+- Note (somewhere) the implicit dependence on t=0 being special
+
+- Simplify and/or improve cov matrix stuff.
+
+- For xpList, could also subclass collections.UserList,
+  although I don&#39;t know if it would be any better
+  &lt;https://stackoverflow.com/q/25464647&gt;
+
+## Profiling
 
 - Launch your python script using `kernprof -l -v my_script.py`
 - *Functions* decorated with `profile` will be timed, line-by-line.
@@ -169,7 +244,7 @@ and set the source to the docs folder.
   present in the `builtins.` Instead of deleting your decorations,
   you could also define a pass-through fallback.
 
-### Making a release
+## Making a release
 
 `cd DAPPER`
 
@@ -297,6 +372,7 @@ pip install -e .
 <li><a href="#hosting">Hosting:</a></li>
 </ul>
 </li>
+<li><a href="#todo">TODO</a></li>
 <li><a href="#profiling">Profiling</a></li>
 <li><a href="#making-a-release">Making a release</a><ul>
 <li><a href="#test-installation">Test installation</a></li>
