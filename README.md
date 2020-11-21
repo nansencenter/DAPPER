@@ -27,8 +27,8 @@ The typical set-up is a **synthetic (twin) experiment**, where you
   given the above starred (`*`) items.
 
 
-[![Generic badge](https://img.shields.io/badge/Documentation%3F-yes-green.svg)](https://shields.io/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper)](https://pypi.org/project/DA-DAPPER)
+[![Generic badge](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=appveyor)](https://shields.io/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=appveyor)](https://pypi.org/project/DA-DAPPER)
 
 ## Highlights
 
