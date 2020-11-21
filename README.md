@@ -65,7 +65,7 @@ Also see its [drawbacks](#alternative-projects).
 
 Works on Linux/Windows/Mac.
 
-1. **Prerequisite**: Python>=3.8.  
+1. **Prerequisite**: Python=3.8.  
    If you're not an admin or expert:  
    1a. Install Python with [Anaconda](https://www.anaconda.com/download).  
    1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
@@ -76,8 +76,8 @@ Works on Linux/Windows/Mac.
    `cd` into the resulting folder
    *(ensure you're in the folder with a `setup.py` file)*:  
    `pip install -e .` (don't forget the `.`).
-   If you want multiprocessing options, install with:  
-   `pip install -e .[MP]`
+   If you want dev tools, install with:  
+   `pip install -e .[Dev]`
 
 3. **Test** by running: `python example_1.py`  
 
@@ -103,7 +103,7 @@ for an intro to DA.
 
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ------------------------
-EnKF <sup>1</sup>                                      | Sak08, Hot15
+EnKF <sup>1</sup>                                      | [Sakov2008](https://nansencenter.github.io/DAPPER/bib.html#bib.sakov2008deterministic), [Hoteit15](https://nansencenter.github.io/DAPPER/bib.html#bib.hoteit2015mitigating)
 EnKF-N                                                 | Boc12, Boc15
 EnKS, EnRTS                                            | Raa16b
 iEnKS / iEnKF / EnRML / ES-MDA <sup>2</sup>            | Sak12, Boc12, Boc14
