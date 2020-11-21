@@ -1,3 +1,4 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -20,6 +21,7 @@
 <title>DAPPER doc</title>
 <meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
 -->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -32,6 +34,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L0-L935" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The EnKF and other ensemble-based methods&#34;&#34;&#34;
 
@@ -1078,6 +1081,7 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L53-L217" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
     &#34;&#34;&#34;The EnKF analysis update, in many flavours and forms.
@@ -1261,6 +1265,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L220-L245" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def post_process(E, infl, rot):
     &#34;&#34;&#34;Inflate, Rotate.
@@ -1298,6 +1303,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L248-L335" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_noise(E, dt, noise, method):
     &#34;&#34;&#34;Treatment of additive noise for ensembles `bib.raanes2015rts`.&#34;&#34;&#34;
@@ -1397,6 +1403,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L440-L453" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def serial_inds(upd_a, y, cvR, A):
     if &#39;mono&#39; in upd_a:
@@ -1423,6 +1430,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L627-L669" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def effective_N(YR, dyR, xN, g):
     &#34;&#34;&#34;Effective ensemble size N.
@@ -1477,6 +1485,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L697-L713" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Newton_m(fun, deriv, x0, is_inverted=False,
              conf=1.0, xtol=1e-4, ytol=1e-7, itermax=10**2):
@@ -1544,6 +1553,7 @@ as if N were smaller than it truly is.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L716-L774" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def hyperprior_coeffs(s, N, xN=1, g=0):
     &#34;&#34;&#34;EnKF-N inflation prior may be specified by the constants:
@@ -1617,6 +1627,7 @@ effectively blends the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L777-L788" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def zeta_a(eN, cL, w):
     &#34;&#34;&#34;EnKF-N inflation estimation via w.
@@ -1646,6 +1657,7 @@ effectively blends the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L25-L50" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EnKF:
     &#34;&#34;&#34;The ensemble Kalman filter `bib.evensen2009ensemble`&#34;&#34;&#34;
@@ -1711,6 +1723,7 @@ effectively blends the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L30-L50" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1748,6 +1761,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L339-L392" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EnKS:
     &#34;&#34;&#34;The ensemble Kalman smoother `bib.evensen2009ensemble`.
@@ -1845,6 +1859,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L350-L352" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reshape_to(self, E):
     K, N, Nx = E.shape
@@ -1859,6 +1874,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L354-L357" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reshape_fr(self, E, Nx):
     N, Km = E.shape
@@ -1874,6 +1890,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L359-L392" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1922,6 +1939,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L396-L437" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EnRTS:
     &#34;&#34;&#34;EnRTS (Rauch-Tung-Striebel) smoother `bib.raanes2016thesis`.&#34;&#34;&#34;
@@ -2007,6 +2025,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L402-L437" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -2059,6 +2078,7 @@ to the :func:<code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_m
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L457-L525" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SL_EAKF:
     &#34;&#34;&#34;Serial, covariance-localized EAKF `bib.karspeck2007experimental`.
@@ -2175,6 +2195,7 @@ to the :func:<code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_m
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L467-L525" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -2251,6 +2272,7 @@ But for QG (batch_size=(2,2) or less) it is quicker.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L529-L624" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LETKF:
     &#34;&#34;&#34;Same as EnKF (sqrt), but with localization `bib.hunt2007efficient`.
@@ -2402,6 +2424,7 @@ But for QG (batch_size=(2,2) or less) it is quicker.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L543-L624" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -2513,6 +2536,7 @@ Further description in hyperprior_coeffs().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L792-L936" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EnKF_N:
     &#34;&#34;&#34;Finite-size EnKF (EnKF-N) `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
@@ -2709,6 +2733,7 @@ Further description in hyperprior_coeffs().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/91cadb83d47e4f391a4b21b5037f75206ec9bc9f/dapper/da_methods/ensemble.py#L820-L936" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     # Unpack
