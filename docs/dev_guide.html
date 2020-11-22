@@ -49,19 +49,14 @@ and run pdoc with &ndash;skip-errors.</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; if __name__ != &quot;__main__&quot;:
 &gt;&gt;&gt;     raise RuntimeError(&quot;This module may only be run as script.&quot;)
 </code></pre>
-<h3 id="hosting">Hosting:</h3>
+<h3 id="hosting">Hosting</h3>
 <p>Push updated docs to github.
 In the main github settings of the repo,
 go to the "GitHub Pages" section,
 and set the source to the docs folder.</p>
 <h2 id="todos">TODOs</h2>
-<p>Minor:</p>
-<ul>
-<li>Badges</li>
-<li>Add to publication list</li>
-<li>Publish version</li>
-</ul>
-<p>Major:</p>
+<h3 id="minor">Minor:</h3>
+<h3 id="major">Major:</h3>
 <ul>
 <li>Improve docs</li>
 <li>Make autoscaler.py work also for other users
@@ -92,7 +87,7 @@ although I don't know if it would be any better
 <a href="https://stackoverflow.com/q/25464647">https://stackoverflow.com/q/25464647</a></p>
 </li>
 </ul>
-<p>Note: </p>
+<h3 id="misc">Misc:</h3>
 <p>There are also TODO labels scattered in the code,
 including a priority number (1-9, lower is more important).</p>
 <h2 id="profiling">Profiling</h2>
@@ -172,7 +167,7 @@ password: mypass
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/docs/dev_guide.py#L0-L173" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/docs/dev_guide.py#L0-L169" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 ## Documentation generation
@@ -199,7 +194,7 @@ and run pdoc with --skip-errors.
 &gt;&gt;&gt; if __name__ != &#34;__main__&#34;:
 &gt;&gt;&gt;     raise RuntimeError(&#34;This module may only be run as script.&#34;)
 
-### Hosting:
+### Hosting
 Push updated docs to github.
 In the main github settings of the repo,
 go to the &#34;GitHub Pages&#34; section,
@@ -207,13 +202,9 @@ and set the source to the docs folder.
 
 ## TODOs
 
-Minor:
+### Minor:
 
-- Badges
-- Add to publication list
-- Publish version
-
-Major:
+### Major:
 
 - Improve docs
 - Make autoscaler.py work also for other users
@@ -234,7 +225,7 @@ Major:
   although I don&#39;t know if it would be any better
   &lt;https://stackoverflow.com/q/25464647&gt;
 
-Note: 
+### Misc: 
 
 There are also TODO labels scattered in the code,
 including a priority number (1-9, lower is more important).
@@ -372,10 +363,15 @@ pip install -e .
 <li><a href="#documentation-generation">Documentation generation</a><ul>
 <li><a href="#update-bib">Update bib</a></li>
 <li><a href="#run-pdoc">Run pdoc</a></li>
-<li><a href="#hosting">Hosting:</a></li>
+<li><a href="#hosting">Hosting</a></li>
 </ul>
 </li>
-<li><a href="#todos">TODOs</a></li>
+<li><a href="#todos">TODOs</a><ul>
+<li><a href="#minor">Minor:</a></li>
+<li><a href="#major">Major:</a></li>
+<li><a href="#misc">Misc:</a></li>
+</ul>
+</li>
 <li><a href="#profiling">Profiling</a></li>
 <li><a href="#making-a-release">Making a release</a><ul>
 <li><a href="#test-installation">Test installation</a></li>

@@ -35,7 +35,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L0-L164" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L0-L164" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;&#34;Unsophisticated&#34; but robust (widely applicable) DA methods.
 
@@ -230,7 +230,7 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L131-L156" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L131-L156" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def fit_sigmoid(Sb, L, kb):
     &#34;&#34;&#34;Return a sigmoid [function S(k)] for approximating error dynamics.
@@ -275,7 +275,7 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L16-L34" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L16-L34" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Climatology:
     &#34;&#34;&#34;A baseline/reference method.
@@ -314,7 +314,7 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L22-L34" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L22-L34" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     chrono, stats = HMM.t, self.stats
@@ -343,7 +343,7 @@ but with a prior from the Climatology.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L38-L75" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L38-L75" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class OptInterp:
     &#34;&#34;&#34;Optimal Interpolation -- a baseline/reference method.
@@ -401,7 +401,7 @@ but with a prior from the Climatology.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L44-L75" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L44-L75" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.t, self.stats
@@ -451,7 +451,7 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L79-L128" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L79-L128" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Var3D:
     &#34;&#34;&#34;
@@ -529,7 +529,7 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L89-L128" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L89-L128" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -584,7 +584,7 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L160-L165" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L160-L165" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EnCheat:
     &#34;&#34;&#34;A baseline/reference method.
@@ -610,7 +610,7 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/da_methods/baseline.py#L165-L165" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/baseline.py#L165-L165" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy): pass</code></pre>
 </details>

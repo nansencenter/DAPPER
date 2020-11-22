@@ -23,7 +23,7 @@ and run pdoc with --skip-errors.
 >>> if __name__ != "__main__":
 >>>     raise RuntimeError("This module may only be run as script.")
 
-### Hosting:
+### Hosting
 Push updated docs to github.
 In the main github settings of the repo,
 go to the "GitHub Pages" section,
@@ -31,13 +31,9 @@ and set the source to the docs folder.
 
 ## TODOs
 
-Minor:
+### Minor:
 
-- Badges
-- Add to publication list
-- Publish version
-
-Major:
+### Major:
 
 - Improve docs
 - Make autoscaler.py work also for other users
@@ -58,7 +54,7 @@ Major:
   although I don't know if it would be any better
   <https://stackoverflow.com/q/25464647>
 
-Note: 
+### Misc: 
 
 There are also TODO labels scattered in the code,
 including a priority number (1-9, lower is more important).

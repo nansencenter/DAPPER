@@ -39,7 +39,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/LotkaVolterra/__init__.py#L0-L47" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/LotkaVolterra/__init__.py#L0-L47" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The generalized predator-prey model, with settings for chaotic dynamics.
 
@@ -115,7 +115,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/LotkaVolterra/__init__.py#L31-L32" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/LotkaVolterra/__init__.py#L31-L32" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt(x):
     return (r*x) * (1 - x@A.T)</code></pre>
@@ -129,7 +129,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/LotkaVolterra/__init__.py#L40-L41" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/LotkaVolterra/__init__.py#L40-L41" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
     return np.diag(r - r*(A@x)) - (r*x)[:, None]*A</code></pre>
@@ -143,7 +143,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/LotkaVolterra/__init__.py#L44-L45" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/LotkaVolterra/__init__.py#L44-L45" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)</code></pre>
@@ -157,7 +157,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/LotkaVolterra/__init__.py#L48-L48" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/LotkaVolterra/__init__.py#L48-L48" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 </details>

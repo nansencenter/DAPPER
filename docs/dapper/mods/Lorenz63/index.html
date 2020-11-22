@@ -38,7 +38,7 @@ the fluid convection between horizontal plates with different temperatures.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz63/__init__.py#L0-L74" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/Lorenz63/__init__.py#L0-L74" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The classic exhibitor of chaos, consisting of 3 coupled ODEs.
 
@@ -172,7 +172,7 @@ author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz63/__init__.py#L23-L31" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/Lorenz63/__init__.py#L23-L31" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@dpr.ens_compatible
 def dxdt(x):
@@ -193,7 +193,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz63/__init__.py#L50-L57" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/Lorenz63/__init__.py#L50-L57" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
     &#34;&#34;&#34;Tangent linear model (TLM): Jacobian of dxdt(x).&#34;&#34;&#34;
@@ -213,7 +213,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz63/__init__.py#L60-L62" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/Lorenz63/__init__.py#L60-L62" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     &#34;&#34;&#34;Resolvent (propagator) of the TLM: Jacobian of step(x).&#34;&#34;&#34;
@@ -228,7 +228,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/mods/Lorenz63/__init__.py#L71-L75" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/Lorenz63/__init__.py#L71-L75" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None, params=params): return [
     (12, 1, LP.correlations),

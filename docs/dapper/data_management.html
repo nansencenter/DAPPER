@@ -34,7 +34,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L0-L1036" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L0-L1036" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably xpSpace) for processing and presenting experiment data.&#34;&#34;&#34;
 
@@ -1090,7 +1090,7 @@ def default_fig_adjustments(tables):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L32-L41" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L32-L41" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def make_label(coord, no_key=NO_KEY, exclude=()):
     dct = {a: v for a, v in coord._asdict().items() if v != None}
@@ -1112,7 +1112,7 @@ def default_fig_adjustments(tables):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L44-L84" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L44-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def default_styles(coord, baseline_legends=False):
     &#34;&#34;&#34;Quick and dirty (but somewhat robust) styling.&#34;&#34;&#34;
@@ -1165,7 +1165,7 @@ def default_fig_adjustments(tables):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L87-L94" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L87-L94" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rel_index(elem, lst, default=None):
     &#34;&#34;&#34;``lst.index(elem) / len(lst)`` with fallback.&#34;&#34;&#34;
@@ -1191,7 +1191,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L97-L114" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L97-L114" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
     &#34;&#34;&#34;Discretize cmap so that it partitions [0,1] into N segments.
@@ -1221,7 +1221,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L117-L129" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L117-L129" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
     &#34;&#34;&#34;Map cmap for coord.axis ∈ [0, len(ticks)].&#34;&#34;&#34;
@@ -1246,7 +1246,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L132-L138" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L132-L138" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def in_idx(coord, indices, xp_dict, axis):
     &#34;&#34;&#34;Essentially: coord.axis in ticks[indices]&#34;&#34;&#34;
@@ -1265,7 +1265,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L141-L144" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L141-L144" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def load_HMM(save_as):
     save_as = Path(save_as).expanduser()
@@ -1281,7 +1281,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L147-L174" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L147-L174" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def load_xps(save_as):
     &#34;&#34;&#34;Load ``xps`` (as a simple list) from dir.&#34;&#34;&#34;
@@ -1339,7 +1339,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L177-L208" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L177-L208" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save_xps(xps, save_as, nDir=100):
     &#34;&#34;&#34;Split xps and save in save_as/i for i in range(nDir).
@@ -1383,7 +1383,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L211-L224" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L211-L224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def overwrite_xps(xps, save_as, nDir=100):
     &#34;&#34;&#34;Save xps in save_as, but safely (by first saving to tmp).&#34;&#34;&#34;
@@ -1415,7 +1415,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L227-L238" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L227-L238" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reduce_inodes(save_as, nDir=100):
     &#34;&#34;&#34;Reduce the number of ``xp`` dirs
@@ -1439,7 +1439,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L1003-L1037" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L1003-L1037" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def default_fig_adjustments(tables):
     &#34;&#34;&#34;Beautify. These settings do not generalize well.&#34;&#34;&#34;
@@ -1519,7 +1519,7 @@ for further convenience.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L241-L485" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L241-L485" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SparseSpace(dict):
     &#34;&#34;&#34;Subclass of `dict` to enforce key conformity (to a coord. sys, i.e. a space).
@@ -1783,7 +1783,7 @@ for further convenience.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L278-L280" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L278-L280" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def axes(self):
@@ -1801,7 +1801,7 @@ def axes(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L292-L297" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L292-L297" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, *args, **kwargs):
     &#34;&#34;&#34;Update using custom __setitem__().&#34;&#34;&#34;
@@ -1822,7 +1822,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L351-L359" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L351-L359" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_for(self, ticks, default=None):
     &#34;&#34;&#34;Almost ``[self.get(Coord(x)) for x in ticks]``.
@@ -1848,7 +1848,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L361-L373" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L361-L373" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def coords(self, **kwargs):
     &#34;&#34;&#34;Get all ``coord``s matching kwargs.
@@ -1878,7 +1878,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L401-L435" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L401-L435" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def nest(self, inner_axes=None, outer_axes=None):
     &#34;&#34;&#34;Return a new xpSpace with axes ``outer_axes``,
@@ -1925,7 +1925,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L437-L441" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L437-L441" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_axis(self, axis):
     self.__init__(self.axes+(axis,))
@@ -1943,7 +1943,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L443-L461" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L443-L461" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def intersect_axes(self, attrs):
     &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
@@ -1982,7 +1982,7 @@ preventing them from getting plotted in tuning panels.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L463-L485" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L463-L485" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def label_xSection(self, label, *NoneAttrs, **sub_coord):
     &#34;&#34;&#34;Insert duplicate entries for the cross section
@@ -2030,7 +2030,7 @@ both of which call <code>table_tree()</code> to nest the axes of the SparseSpace
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L491-L1000" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L491-L1000" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpSpace(SparseSpace):
     &#34;&#34;&#34;Functionality to facilitate working with ``xps`` and their results.
@@ -2558,7 +2558,7 @@ both of which call <code>table_tree()</code> to nest the axes of the SparseSpace
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L508-L551" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L508-L551" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def from_list(cls, xps):
@@ -2617,7 +2617,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L553-L570" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L553-L570" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def field(self, statkey=&#34;rmse.a&#34;):
     &#34;&#34;&#34;Extract ``statkey`` for each item in ``self``.&#34;&#34;&#34;
@@ -2647,7 +2647,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L572-L599" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L572-L599" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean(self, axes=None):
     # Note: The case ``axes=()`` should work w/o special treatment.
@@ -2687,7 +2687,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L601-L631" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L601-L631" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tune(self, axes=None, costfun=None):
     &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
@@ -2733,7 +2733,7 @@ Use <code>axis or ()</code> wherever tuples are required.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L633-L664" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L633-L664" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_axes(self, axes):
     &#34;&#34;&#34;Validate axes.
@@ -2793,7 +2793,7 @@ when optimizing over tuning_axes.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L666-L728" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L666-L728" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def table_tree(self, statkey, axes):
     &#34;&#34;&#34;Hierarchical nest(): xp_dict&gt;outer&gt;inner&gt;mean&gt;optim.
@@ -2868,7 +2868,7 @@ when optimizing over tuning_axes.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L730-L732" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L730-L732" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tickz(self, axis_name):
     &#34;&#34;&#34;Axis ticks without None&#34;&#34;&#34;
@@ -2925,7 +2925,7 @@ the time series of that single experiment.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L734-L885" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L734-L885" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,
           subcols=True, decimals=None):
@@ -3095,7 +3095,7 @@ producing a figure with columns of panels.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/a5d70a17ee7f66b393c0ff68855d7664250bcf64/dapper/data_management.py#L887-L1000" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/data_management.py#L887-L1000" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
          fignum=None, figsize=None, panels=None,

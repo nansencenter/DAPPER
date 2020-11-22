@@ -88,11 +88,9 @@ The rendered docstrings can be browsed
 through the following links, which are also available in the left sidebar.
 """
 
-__version__ = "0.9.7"
+__version__ = "0.9.8"
 
 import sys
-
-assert sys.version_info >= (3,8), "Need Python>=3.8"
 
 from dapper.tools.series import UncertainQtty
 
