@@ -6,9 +6,10 @@ import re
 
 # with open("README.md", "r") as fh:
 #     long_description = fh.read()
-long_description = """DAPPER is a set of templates for benchmarking"""
-""" the performance of data assimilation (DA)."""
-""" See full README at github.com/nansencenter/DAPPER."""
+long_description = (
+    "DAPPER is a set of templates for benchmarking"
+    " the performance of data assimilation (DA)."
+    " See full README at github.com/nansencenter/DAPPER.")
 
 
 def filter_dirs(x):
