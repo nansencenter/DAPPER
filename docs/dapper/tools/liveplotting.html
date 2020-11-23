@@ -34,25 +34,26 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L0-L1278" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L0-L1280" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;On-line (live) plots of the DA process for various models and methods.&#34;&#34;&#34;
 
-from dapper.dpr_config import rc
-from dapper.dict_tools import DotDict, deep_getattr
-import dapper.tools.viz as viz
-from dapper.tools.viz import plot_pause, not_available_text, freshfig
-from dapper.tools.matrices import CovMat
-import dapper.tools.utils as utils
-from dapper.tools.chronos import format_time
-from dapper.tools.series import FAUSt, RollingArray
-import dapper.tools.math
 import matplotlib as mpl
 import numpy as np
-from numpy import arange, ones, nan
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
+from numpy import arange, nan, ones
+
+import dapper.tools.math
+import dapper.tools.utils as utils
+import dapper.tools.viz as viz
+from dapper.dict_tools import DotDict, deep_getattr
+from dapper.dpr_config import rc
+from dapper.tools.chronos import format_time
+from dapper.tools.matrices import CovMat
+from dapper.tools.series import FAUSt, RollingArray
+from dapper.tools.viz import freshfig, not_available_text, plot_pause
 
 
 class LivePlot:
@@ -252,8 +253,9 @@ class LivePlot:
 
         if self.run_ipdb:
             self.run_ipdb = False
-            import ipdb
             import inspect
+
+            import ipdb
             print(&#34;Entering debug mode (ipdb).&#34;)
             print(&#34;Type &#39;?&#39; (and Enter) for usage help.&#34;)
             print(&#34;Type &#39;c&#39; to continue the assimilation.&#34;)
@@ -1332,7 +1334,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L416-L435" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L418-L437" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_xlim(ax, tt, lag, margin=False):
     dt = lag/20 if margin else 0
@@ -1364,7 +1366,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L624-L762" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L626-L764" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_marginals(
     obs_inds     = [],
@@ -1515,7 +1517,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L765-L897" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L767-L899" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def phase_particles(
     is_3d        = True,
@@ -1665,7 +1667,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L900-L925" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L902-L927" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_lag(Tplot, chrono):
     &#34;&#34;&#34;Return validated `T_lag` such that is is:
@@ -1703,7 +1705,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L928-L932" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L930-L934" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def comp_K_plot(K_lag, a_lag, plot_u):
     K_plot = 2*a_lag     # Sum of lags of {f,a} series.
@@ -1720,7 +1722,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L935-L959" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L937-L961" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update_alpha(key, stats, lines, scatters=None):
     &#34;Adjust color alpha (for particle filters)&#34;
@@ -1757,7 +1759,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L962-L982" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L964-L984" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
     &#34;Particle filter: insert breaks for resampled particles.&#34;
@@ -1813,7 +1815,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L988-L1052" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L990-L1054" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
     &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
@@ -1890,7 +1892,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L1055-L1160" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L1057-L1162" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial1d(
     obs_inds     = None,
@@ -2008,7 +2010,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L1163-L1271" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L1165-L1273" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial2d(
     square,
@@ -2165,7 +2167,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L20-L222" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L21-L224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LivePlot:
     &#34;&#34;&#34;Live plotting manager.
@@ -2364,8 +2366,9 @@ plt.draw() to work on a moderately fast computer.</li>
 
         if self.run_ipdb:
             self.run_ipdb = False
-            import ipdb
             import inspect
+
+            import ipdb
             print(&#34;Entering debug mode (ipdb).&#34;)
             print(&#34;Type &#39;?&#39; (and Enter) for usage help.&#34;)
             print(&#34;Type &#39;c&#39; to continue the assimilation.&#34;)
@@ -2381,7 +2384,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L144-L222" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L145-L224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, key, E, P):
     &#34;&#34;&#34;Update liveplots&#34;&#34;&#34;
@@ -2456,8 +2459,9 @@ plt.draw() to work on a moderately fast computer.</li>
 
     if self.run_ipdb:
         self.run_ipdb = False
-        import ipdb
         import inspect
+
+        import ipdb
         print(&#34;Entering debug mode (ipdb).&#34;)
         print(&#34;Type &#39;?&#39; (and Enter) for usage help.&#34;)
         print(&#34;Type &#39;c&#39; to continue the assimilation.&#34;)
@@ -2475,7 +2479,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L230-L413" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L232-L415" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class sliding_diagnostics:
 
@@ -2672,7 +2676,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L438-L474" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L440-L476" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class weight_histogram:
 
@@ -2722,7 +2726,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L477-L521" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L479-L523" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class spectral_errors:
 
@@ -2780,7 +2784,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/liveplotting.py#L524-L621" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/liveplotting.py#L526-L623" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class correlations:
     half = True  # Whether to show half/full (symmetric) corr matrix.

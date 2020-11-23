@@ -34,14 +34,14 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/QG/sakov2008.py#L0-L118" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/mods/QG/sakov2008.py#L0-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Reproduce results from Sakov and Oke &#39;DEnKF&#39; paper from 2008.&#34;&#34;&#34;
 
 import numpy as np
 
-from dapper.mods.QG import model_config, shape, sample_filename, LP_setup
 import dapper as dpr
+from dapper.mods.QG import LP_setup, model_config, sample_filename, shape
 from dapper.tools.localization import nd_Id_localization
 
 ############################
@@ -172,7 +172,7 @@ HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(obs_inds))
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/QG/sakov2008.py#L46-L49" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/mods/QG/sakov2008.py#L46-L49" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def random_offset(t):
     rstream.seed(int(t/model.prms[&#39;dtout&#39;]*100))
@@ -188,7 +188,7 @@ HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(obs_inds))
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/QG/sakov2008.py#L52-L53" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/mods/QG/sakov2008.py#L52-L53" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def obs_inds(t):
     return jj + random_offset(t)</code></pre>
@@ -202,7 +202,7 @@ HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(obs_inds))
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/QG/sakov2008.py#L56-L58" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/mods/QG/sakov2008.py#L56-L58" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@dpr.ens_compatible
 def hmod(E, t):

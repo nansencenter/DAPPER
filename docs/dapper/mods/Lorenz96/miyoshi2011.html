@@ -38,7 +38,7 @@ Adaptive Covariance Inflation and Its Implementation with the LETKF'</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/Lorenz96/miyoshi2011.py#L0-L41" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/mods/Lorenz96/miyoshi2011.py#L0-L42" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;A land-ocean setup for Lorenz-96 from Miyoshi&#39;2011: &#39;The Gaussian Approach to
 Adaptive Covariance Inflation and Its Implementation with the LETKF&#39;
@@ -49,9 +49,10 @@ inspired by MWR 1998 by E. N. Lorenz and K. A. Emanuel:
 
 
 import numpy as np
-from dapper.mods.Lorenz96.sakov2008 import Tplot, Nx, X0, Dyn, LPs
-from dapper.tools.localization import nd_Id_localization
+
 import dapper as dpr
+from dapper.mods.Lorenz96.sakov2008 import X0, Dyn, LPs, Nx, Tplot
+from dapper.tools.localization import nd_Id_localization
 
 # Use small dt to &#34;cope with&#34; ocean sector blow up
 # (due to spatially-constant infl)

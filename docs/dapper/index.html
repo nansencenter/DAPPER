@@ -132,7 +132,7 @@ through the following links, which are also available in the left sidebar.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/__init__.py#L0-L142" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/__init__.py#L0-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;(Data Assimilation with Python: a Package for Experimental Research)
 
@@ -224,11 +224,9 @@ The rendered docstrings can be browsed
 through the following links, which are also available in the left sidebar.
 &#34;&#34;&#34;
 
-__version__ = &#34;0.9.7&#34;
+__version__ = &#34;0.9.9&#34;
 
 import sys
-
-assert sys.version_info &gt;= (3,8), &#34;Need Python&gt;=3.8&#34;
 
 from dapper.tools.series import UncertainQtty
 
@@ -248,8 +246,8 @@ from .dpr_config import rc
 from .stats import register_stat
 from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, round2,
-                         with_recursion, with_rk4)
+from .tools.math import (Id_Obs, ens_compatible, linspace_int, partial_Id_Obs,
+                         round2, with_recursion, with_rk4)
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
 from .tools.stoch import set_seed

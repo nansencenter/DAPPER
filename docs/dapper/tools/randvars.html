@@ -34,13 +34,13 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L0-L245" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L0-L245" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Classes of random variables.&#34;&#34;&#34;
 
 import numpy as np
-from numpy.random import rand, randn
 from numpy import sqrt
+from numpy.random import rand, randn
 
 from dapper.dict_tools import NicePrint
 from dapper.tools.math import exactly_1d
@@ -419,7 +419,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L12-L84" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L12-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RV(NicePrint):
     &#34;Class to represent random variables.&#34;
@@ -520,7 +520,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L40-L84" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L40-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample(self, N):
     if getattr(self, &#39;is0&#39;, False):
@@ -583,7 +583,7 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L88-L159" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L88-L159" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RV_with_mean_and_cov(RV):
     &#34;&#34;&#34;Generic multivariate random variable characterized by mean and cov.
@@ -685,7 +685,7 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L145-L156" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L145-L156" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample(self, N):
     &#34;&#34;&#34;Sample N realizations. Returns N-by-M (ndim) sample matrix.
@@ -713,7 +713,7 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L162-L168" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L162-L168" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class GaussRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;Gaussian (Normal) multivariate random variable.&#34;&#34;&#34;
@@ -750,7 +750,7 @@ Eltoft (2006) "On the Multivariate Laplace Distribution".</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L171-L183" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L171-L183" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LaplaceRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -792,7 +792,7 @@ the Laplace (double exponential) random variable.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L186-L196" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L186-L196" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LaplaceParallelRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -835,7 +835,7 @@ since chi2 is sampled via Gaussians.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L199-L217" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L199-L217" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class StudRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -885,7 +885,7 @@ vectors and coordinates from the n-sphere and n-ball"</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L220-L233" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L220-L233" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UniRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -929,7 +929,7 @@ applied to the (corners of) the hypercube.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/randvars.py#L236-L246" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/randvars.py#L236-L246" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UniParallelRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;

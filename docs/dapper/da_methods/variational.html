@@ -34,21 +34,21 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/variational.py#L0-L339" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/da_methods/variational.py#L0-L340" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Variational DA methods (iEnKS, 4D-Var, etc)&#34;&#34;&#34;
 
 from typing import Optional
 
 import numpy as np
-from numpy.random import randn
 import scipy.linalg as sla
+from numpy.random import randn
 
 from dapper.admin import da_method
-from dapper.tools.utils import progbar
+from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
+from dapper.tools.math import center, inflate_ens, mean0, pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
-from dapper.tools.math import center, mean0, svd0, inflate_ens, pad0, tinv
-from dapper.da_methods.ensemble import post_process, hyperprior_coeffs, zeta_a
+from dapper.tools.utils import progbar
 
 
 @da_method
@@ -104,7 +104,8 @@ class iEnKS:
     Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     (due to boundary cases: only asymptotically valid)
 
-    References: `bib.bocquet2012combining`, `bib.bocquet2013joint`, `bib.bocquet2014iterative`,
+    Refs: `bib.bocquet2012combining`, `bib.bocquet2013joint`,
+    `bib.bocquet2014iterative`.
     &#34;&#34;&#34;
     upd_a: str
     N: int
@@ -207,12 +208,12 @@ class iEnKS:
                     if self.MDA:  # View update as annealing (progressive assimilation).
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
-                        if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds.
+                        if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
                             D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
                             T  -= (Y + D) @ Y.T @ Cow1
-                        elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes.
+                        elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
                             T   = Cowp(0.5) * np.sqrt(za) @ T
-                        elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick.
+                        elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick
                             T  -= 0.5 * Y @ Y.T @ Cow1
                         # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
@@ -493,11 +494,12 @@ Makes the iEnKS very much alike the iterative, extended KF (IEKS).</dd>
 : If set, use EnKF_N() pre-inflation. See further documentation there.
 Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 (due to boundary cases: only asymptotically valid)</p>
-<p>References: <code><a title="bib.bocquet2012combining" href="../../bib.html#bib.bocquet2012combining">bocquet2012combining</a></code>, <code><a title="bib.bocquet2013joint" href="../../bib.html#bib.bocquet2013joint">bocquet2013joint</a></code>, <code><a title="bib.bocquet2014iterative" href="../../bib.html#bib.bocquet2014iterative">bocquet2014iterative</a></code>,</p></div>
+<p>Refs: <code><a title="bib.bocquet2012combining" href="../../bib.html#bib.bocquet2012combining">bocquet2012combining</a></code>, <code><a title="bib.bocquet2013joint" href="../../bib.html#bib.bocquet2013joint">bocquet2013joint</a></code>,
+<code><a title="bib.bocquet2014iterative" href="../../bib.html#bib.bocquet2014iterative">bocquet2014iterative</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/variational.py#L25-L231" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/da_methods/variational.py#L25-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class iEnKS:
     &#34;&#34;&#34;Iterative EnKS.
@@ -543,7 +545,8 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     (due to boundary cases: only asymptotically valid)
 
-    References: `bib.bocquet2012combining`, `bib.bocquet2013joint`, `bib.bocquet2014iterative`,
+    Refs: `bib.bocquet2012combining`, `bib.bocquet2013joint`,
+    `bib.bocquet2014iterative`.
     &#34;&#34;&#34;
     upd_a: str
     N: int
@@ -646,12 +649,12 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                     if self.MDA:  # View update as annealing (progressive assimilation).
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
-                        if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds.
+                        if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
                             D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
                             T  -= (Y + D) @ Y.T @ Cow1
-                        elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes.
+                        elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
                             T   = Cowp(0.5) * np.sqrt(za) @ T
-                        elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick.
+                        elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick
                             T  -= 0.5 * Y @ Y.T @ Cow1
                         # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
@@ -768,7 +771,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/variational.py#L91-L231" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/da_methods/variational.py#L92-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -851,12 +854,12 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                 if self.MDA:  # View update as annealing (progressive assimilation).
                     Cow1 = Cow1 @ T  # apply previous update
                     dw = dy @ Y.T @ Cow1
-                    if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds.
+                    if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
                         D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
                         T  -= (Y + D) @ Y.T @ Cow1
-                    elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes.
+                    elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
                         T   = Cowp(0.5) * np.sqrt(za) @ T
-                    elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick.
+                    elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick
                         T  -= 0.5 * Y @ Y.T @ Cow1
                     # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
@@ -933,7 +936,7 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/variational.py#L235-L340" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/da_methods/variational.py#L236-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Var4D:
     &#34;&#34;&#34;4D-Var.
@@ -1079,7 +1082,7 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/da_methods/variational.py#L253-L340" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/da_methods/variational.py#L254-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats

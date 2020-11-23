@@ -38,15 +38,15 @@ by F. Counillon, P. Sakov, and L. Bertino (2009).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/QG/counillon2009.py#L0-L35" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/mods/QG/counillon2009.py#L0-L35" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Reproduce experiments from
 &#39;Application of a hybrid EnKF-OI to ocean forecasting&#39;
 by F. Counillon, P. Sakov, and L. Bertino (2009).&#34;&#34;&#34;
 
 import dapper as dpr
-from dapper.mods.QG.sakov2008 import HMM
 from dapper.mods.QG import model_config
+from dapper.mods.QG.sakov2008 import HMM
 
 dt = 1.25 * 10  # 10 steps between obs (also requires dkObs=1)
 HMM.t = dpr.Chronology(dt=dt, dkObs=1, T=1000*dt, BurnIn=10*dt)

@@ -34,7 +34,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/multiprocessing.py#L0-L87" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/multiprocessing.py#L0-L87" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Paralellisation via multiprocessing. Wraps pool.map for convenience.&#34;&#34;&#34;
 
@@ -45,12 +45,6 @@ import functools
 # and is being used by &#39;multiprocessing_on_dill&#39;,
 # and the better-maintained pathos
 import multiprocessing_on_dill as mpd
-
-# Deciding on core numbers
-# ---------
-# Unnecessary. Just use NPROC=None.
-# from psutil import cpu_percent, cpu_count
-
 # Enforcing individual core usage.
 # ---------
 # Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
@@ -78,6 +72,12 @@ import multiprocessing_on_dill as mpd
 # &gt;&gt;&gt; with threadpool_limits(limits=1, user_api=&#39;blas&#39;):
 # &gt;&gt;&gt;   a2 = a @ a
 import threadpoolctl
+
+# Deciding on core numbers
+# ---------
+# Unnecessary. Just use NPROC=None.
+# from psutil import cpu_percent, cpu_count
+
 threadpoolctl.threadpool_limits(1)
 
 
@@ -160,7 +160,7 @@ because its serialization is rather slow.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/multiprocessing.py#L46-L88" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/multiprocessing.py#L46-L88" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def map(func, xx, **kwargs):
     &#34;&#34;&#34;A parallelized version of map.

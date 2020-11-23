@@ -34,7 +34,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L0-L646" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L0-L645" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools for dicts (and lists).&#34;&#34;&#34;
 
@@ -45,7 +45,6 @@
 import itertools
 import shutil
 import sys
-
 # Since textwrap() only treats strings, while pprint is python-aware,
 # I would have preferred pprint.pformat(width=lw,compact=True,sort_dicts=False),
 # but pprint refuses to use my repr.
@@ -700,7 +699,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L23-L26" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L22-L25" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get0(dct):
     &#34;&#34;&#34;Get first value.&#34;&#34;&#34;
@@ -716,7 +715,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L30-L46" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L29-L45" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def flexcomp(x, *criteria):
     &#34;&#34;&#34;Compare in various ways.&#34;&#34;&#34;
@@ -745,7 +744,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L64-L65" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L63-L64" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def intersect(iterable, wanteds):
     return _intersect(iterable, wanteds, inv=False)</code></pre>
@@ -759,7 +758,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L68-L69" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L67-L68" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def complement(iterable, unwanteds):
     return _intersect(iterable, unwanteds, inv=True)</code></pre>
@@ -781,7 +780,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L75-L86" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L74-L85" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def prodct(dct):
     &#34;&#34;&#34;Cartesian/Outer product, for dicts.
@@ -816,7 +815,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L89-L116" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L88-L115" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def transpose_dicts(DD, safe=True):
     &#34;&#34;&#34;As the name says.
@@ -856,7 +855,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L119-L132" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L118-L131" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def transps(thing2d, *args, **kwargs):
     &#34;&#34;&#34;Delegates transpose operation to the appropriate function.&#34;&#34;&#34;
@@ -888,7 +887,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L135-L157" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L134-L156" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def transpose_list_of_dicts(LD, safe=True):
     &#34;&#34;&#34;
@@ -931,7 +930,7 @@ if __name__ == &#34;__main__&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L160-L181" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L159-L180" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def transpose_dict_of_lists(DL, safe=True):
     &#34;&#34;&#34;This is essentially a one-liner.
@@ -974,7 +973,7 @@ and converting to an explicit list requires another bit.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L184-L206" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L183-L205" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def transpose_lists(LL, safe=True, as_list=False):
     &#34;&#34;&#34;This is essentially `zip(*LL)`.
@@ -1009,7 +1008,7 @@ and converting to an explicit list requires another bit.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L210-L213" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L209-L212" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def deep_getattr(obj, name, *default):
     for n in name.split(&#34;.&#34;):
@@ -1025,7 +1024,7 @@ and converting to an explicit list requires another bit.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L220-L225" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L219-L224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def deep_hasattr(obj, name):
     try:
@@ -1075,7 +1074,7 @@ In particular, they need to implement behaviour for all types.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L321-L465" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L320-L464" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class AlignedDict(dict):
     &#34;&#34;&#34;Dict whose items are printed aligned and line-wrapped.
@@ -1247,7 +1246,7 @@ In particular, they need to implement behaviour for all types.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L468-L498" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L467-L497" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NicePrint:
     &#34;&#34;&#34;Provides __repr__ and __str__ by AlignedDict(vars(self)).
@@ -1315,7 +1314,7 @@ Similar constructs are quite common, eg IPython/utils/ipstruct.py.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/dict_tools.py#L501-L520" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/dict_tools.py#L500-L519" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class DotDict(AlignedDict):
     &#34;&#34;&#34;Dict that *also* supports attribute (dot) access.

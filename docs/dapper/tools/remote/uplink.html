@@ -35,7 +35,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L0-L366" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L0-L368" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools related to running experimentes remotely
 
@@ -43,15 +43,17 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster.&#34;&#34;&#34;
 
 # TODO 9: use Fabric? https://www.fabfile.org/
 
-import time
-from tqdm import tqdm
-from dapper.dpr_config import rc
-import dapper.tools.utils as utils
-from datetime import timezone, timedelta
-from dateutil.parser import parse as datetime_parse
 import os
-import tempfile
 import subprocess
+import tempfile
+import time
+from datetime import timedelta, timezone
+
+from dateutil.parser import parse as datetime_parse
+from tqdm import tqdm
+
+import dapper.tools.utils as utils
+from dapper.dpr_config import rc
 
 
 class SubmissionConnection:
@@ -421,7 +423,7 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L104-L138" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L106-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def submit_job_GCP(xps_path, **kwargs):
     &#34;&#34;&#34;GCP/HTCondor launcher&#34;&#34;&#34;
@@ -468,7 +470,7 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L225-L233" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L227-L235" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def print_condor_status(self):
     status = &#34;&#34;&#34;condor_status -total&#34;&#34;&#34;
@@ -489,7 +491,7 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L308-L310" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L310-L312" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def list_job_dirs(xps_path):
     dirs = [xps_path/d for d in utils.sorted_human(os.listdir(xps_path))]
@@ -510,7 +512,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L313-L328" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L315-L330" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_ip(instance):
     &#34;&#34;&#34;Get ip-address of instance.
@@ -546,7 +548,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L343-L367" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L345-L369" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
     &#34;&#34;&#34;`subprocess.run`, with other defaults, and return stdout.
@@ -589,7 +591,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L18-L101" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L20-L103" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SubmissionConnection:
     &#34;&#34;&#34;Establish multiplexed ssh to a given submit-node for a given xps_path.&#34;&#34;&#34;
@@ -686,7 +688,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L52-L58" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L54-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def remote_cmd(self, cmd_string, **kwargs):
     &#34;&#34;&#34;Run command at self.host via multiplexed ssh.&#34;&#34;&#34;
@@ -705,7 +707,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/tools/remote/uplink.py#L60-L101" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/tools/remote/uplink.py#L62-L103" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
     # Prepare: opts

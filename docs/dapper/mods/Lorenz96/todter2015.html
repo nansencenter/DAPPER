@@ -38,7 +38,7 @@ for Nonlinear Data Assimilation'</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/e22645bd5a861a91b5c64724d37391b9ee10997d/dapper/mods/Lorenz96/todter2015.py#L0-L58" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/dapper/mods/Lorenz96/todter2015.py#L0-L58" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Concerns figure 4 of Todter and Ahrens (2015):
 &#39;A Second-Order Exact Ensemble Square Root Filter
@@ -46,10 +46,10 @@ for Nonlinear Data Assimilation&#39;&#34;&#34;&#34;
 
 import numpy as np
 
+import dapper as dpr
+import dapper.tools.randvars as RVs
 from dapper.mods.Lorenz96 import step
 from dapper.tools.localization import nd_Id_localization
-import dapper.tools.randvars as RVs
-import dapper as dpr
 
 t = dpr.Chronology(0.05, dkObs=2, T=4**5, BurnIn=20)
 
