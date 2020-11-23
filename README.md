@@ -71,8 +71,8 @@ Works on Linux/Windows/Mac.
 
 If you're not an admin or expert:  
 
-- 1a. Install Python with [Anaconda](https://www.anaconda.com/download).
-- 1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
+- Install Python with [Anaconda](https://www.anaconda.com/download).
+- Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
   to run the commands below.
 
 If the installation below fails, you probably need to
@@ -80,7 +80,12 @@ If the installation below fails, you probably need to
 
 ### Install
 
-Do you simply want to run a script that requires DAPPER?
+- Do you simply want to run a script that requires DAPPER?  
+  Then "install as library".
+- Do you want the DAPPER code readily available to look into?  
+  Then "install for development".
+
+#### Install as library
 
 - If the script come with a `requirements.txt` file, then do  
   `pip install -r requirements.txt`.
@@ -89,7 +94,7 @@ Do you simply want to run a script that requires DAPPER?
 - You should now be able to do run your script with  
   `python the_script.py`  
     
-Do you want to look into the DAPPER code to understand the models and methods?
+#### Install for development
 
 - Download and extract (or `git clone`) DAPPER.
 - `cd` into the resulting folder.
