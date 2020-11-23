@@ -27,9 +27,10 @@ The typical set-up is a **synthetic (twin) experiment**, where you
   given the above starred (`*`) items.
 
 <!-- Inspiration: https://github.com/Naereen/badges -->
-[![Docs](https://img.shields.io/badge/Documentation%3F-yes-green.svg?style=for-the-badge&logo=github)](https://nansencenter.github.io/DAPPER)
+[![Docs](https://img.shields.io/badge/Documentation%3F-yes-brightgreen.svg?style=for-the-badge&logo=github)](https://nansencenter.github.io/DAPPER)
 [![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci&logoColor=white)](https://travis-ci.org/nansencenter/DAPPER)
 [![Coveralls](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge&logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
 [![Github HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge)](http://hits.dwyl.com/nansencenter/DAPPER)
