@@ -88,7 +88,7 @@ The rendered docstrings can be browsed
 through the following links, which are also available in the left sidebar.
 """
 
-__version__ = "0.9.9"
+__version__ = "1.0.0"
 
 import sys
 
