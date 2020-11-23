@@ -8,11 +8,13 @@ Defined by:
 - See demo.py for further description.
 """
 
+import functools
+
 import numpy as np
-from dapper.tools.math import with_rk4, integrate_TLM, is1d
+
 from dapper.dpr_config import DotDict
 from dapper.tools.magic import magic_naming
-import functools
+from dapper.tools.math import integrate_TLM, is1d, with_rk4
 
 
 # To & from time/Fourier domain -- use reals-only fft

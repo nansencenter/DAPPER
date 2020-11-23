@@ -3,14 +3,14 @@
 from typing import Optional
 
 import numpy as np
-from numpy.random import randn
 import scipy.linalg as sla
+from numpy.random import randn
 
 from dapper.admin import da_method
-from dapper.tools.utils import progbar
+from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
+from dapper.tools.math import center, inflate_ens, mean0, pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
-from dapper.tools.math import center, mean0, svd0, inflate_ens, pad0, tinv
-from dapper.da_methods.ensemble import post_process, hyperprior_coeffs, zeta_a
+from dapper.tools.utils import progbar
 
 
 @da_method

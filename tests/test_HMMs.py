@@ -1,12 +1,14 @@
 """Test HMM found in model directories."""
 
-import pytest
 import os
-from pathlib import Path
 from importlib import import_module
+from pathlib import Path
+
+import pytest
 
 import dapper as dpr
 import dapper.tools.utils as utils
+
 utils.disable_progbar = True
 
 modules_with_HMM = []

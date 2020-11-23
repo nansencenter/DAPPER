@@ -1,34 +1,32 @@
 """Tools for plotting."""
 
+import inspect
 import itertools
 import os
-import warnings
-from pathlib import Path
 import textwrap
 import time
-import inspect
-
-import numpy as np
-from numpy import array, arange
-import scipy.linalg as sla
+import warnings
+from pathlib import Path
 
 import matplotlib as mpl
+import numpy as np
+import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib import ticker
 from matplotlib import transforms as mtransforms
-from matplotlib.ticker import MaxNLocator
-from matplotlib.patches import Ellipse
 from matplotlib.animation import FuncAnimation
 from matplotlib.gridspec import GridSpec
+from matplotlib.patches import Ellipse
+from matplotlib.ticker import MaxNLocator
 from matplotlib.widgets import CheckButtons
+from numpy import arange, array
 from scipy.interpolate import interp1d
 
-from dapper.tools.math import ccat
 import dapper.tools.series as series
+import dapper.tools.utils as utils
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
-import dapper.tools.utils as utils
-from dapper.tools.math import round2
+from dapper.tools.math import ccat, round2
 
 
 def setup_wrapping(M, periodicity=None):

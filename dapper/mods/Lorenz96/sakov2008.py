@@ -12,9 +12,9 @@ some of which are mentioned below.
 """
 
 import numpy as np
-import dapper as dpr
 
-from dapper.mods.Lorenz96 import step, dstep_dx, x0, Tplot, LPs
+import dapper as dpr
+from dapper.mods.Lorenz96 import LPs, Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05

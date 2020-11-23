@@ -3,8 +3,8 @@
 import numpy as np
 
 from dapper.admin import da_method
-from dapper.tools.utils import progbar
 from dapper.tools.math import mrdiv
+from dapper.tools.utils import progbar
 
 
 @da_method()

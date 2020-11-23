@@ -2,11 +2,12 @@
 
 import numpy as np
 
-from dapper.tools.utils import progbar
-from dapper.da_methods.ensemble import post_process, add_noise, serial_inds
-from dapper.da_methods.particle import reweight
 import dapper.tools.math as mtools
+from dapper.da_methods.ensemble import add_noise, post_process, serial_inds
+from dapper.da_methods.particle import reweight
 from dapper.tools.matrices import funm_psd
+from dapper.tools.utils import progbar
+
 from .ensemble import ens_method
 
 

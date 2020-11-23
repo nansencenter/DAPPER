@@ -7,9 +7,10 @@ inspired by MWR 1998 by E. N. Lorenz and K. A. Emanuel:
 
 
 import numpy as np
-from dapper.mods.Lorenz96.sakov2008 import Tplot, Nx, X0, Dyn, LPs
-from dapper.tools.localization import nd_Id_localization
+
 import dapper as dpr
+from dapper.mods.Lorenz96.sakov2008 import X0, Dyn, LPs, Nx, Tplot
+from dapper.tools.localization import nd_Id_localization
 
 # Use small dt to "cope with" ocean sector blow up
 # (due to spatially-constant infl)

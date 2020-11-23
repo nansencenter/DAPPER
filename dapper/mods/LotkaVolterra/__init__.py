@@ -8,8 +8,8 @@ Refs:
 
 import numpy as np
 
-from dapper.mods.Lorenz63 import LPs
 import dapper as dpr
+from dapper.mods.Lorenz63 import LPs
 from dapper.tools.math import integrate_TLM
 
 Nx = 4

@@ -6,6 +6,7 @@ Sakov (2011), Computational Geosciences:
 """
 
 import itertools
+
 import numpy as np
 
 # Defaults

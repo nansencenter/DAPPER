@@ -1,7 +1,8 @@
 """Just stupidly compare the full results table."""
 
-import pytest
 import numpy as np
+import pytest
+
 import dapper as dpr
 
 statkeys = ["err.rms.a", "err.rms.f", "err.rms.u"]

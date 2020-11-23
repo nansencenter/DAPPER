@@ -2,15 +2,16 @@
 
 An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}."""
 
-import dapper as dpr
-import dapper.tools.series as series
-from dapper.tools.math import with_rk4, with_recursion
-from dapper.tools.utils import progbar
-import dapper.tools.viz as viz
+import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
-import numpy as np
 from numpy.random import randn
+
+import dapper as dpr
+import dapper.tools.series as series
+import dapper.tools.viz as viz
+from dapper.tools.math import with_recursion, with_rk4
+from dapper.tools.utils import progbar
 
 dpr.set_seed(3000)
 
@@ -107,7 +108,8 @@ if mod == "KS":
 
 # n0 ≈ 140
 if mod == "QG":
-    from dapper.mods.QG import model_config, shape, sample_filename
+    from dapper.mods.QG import model_config, sample_filename, shape
+
     # NB: There may arise an ipython/multiprocessing bug/issue.
     # Ref https://stackoverflow.com/a/45720872 . If so, set mp=False,
     # or run outside of ipython. However, I did not encounter lately.

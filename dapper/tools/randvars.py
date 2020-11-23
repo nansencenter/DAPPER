@@ -1,8 +1,8 @@
 """Classes of random variables."""
 
 import numpy as np
-from numpy.random import rand, randn
 from numpy import sqrt
+from numpy.random import rand, randn
 
 from dapper.dict_tools import NicePrint
 from dapper.tools.math import exactly_1d

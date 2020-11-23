@@ -10,9 +10,10 @@ For a short introduction, see
 Note: the implementation is ndim-agnostic.
 """
 
-import dapper.tools.liveplotting as LP
 import numpy as np
-from dapper.tools.math import is1d, rk4, integrate_TLM
+
+import dapper.tools.liveplotting as LP
+from dapper.tools.math import integrate_TLM, is1d, rk4
 
 Force = 8.0
 

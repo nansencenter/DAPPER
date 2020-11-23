@@ -1,20 +1,21 @@
 """On-line (live) plots of the DA process for various models and methods."""
 
-from dapper.dpr_config import rc
-from dapper.dict_tools import DotDict, deep_getattr
-import dapper.tools.viz as viz
-from dapper.tools.viz import plot_pause, not_available_text, freshfig
-from dapper.tools.matrices import CovMat
-import dapper.tools.utils as utils
-from dapper.tools.chronos import format_time
-from dapper.tools.series import FAUSt, RollingArray
-import dapper.tools.math
 import matplotlib as mpl
 import numpy as np
-from numpy import arange, ones, nan
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
+from numpy import arange, nan, ones
+
+import dapper.tools.math
+import dapper.tools.utils as utils
+import dapper.tools.viz as viz
+from dapper.dict_tools import DotDict, deep_getattr
+from dapper.dpr_config import rc
+from dapper.tools.chronos import format_time
+from dapper.tools.matrices import CovMat
+from dapper.tools.series import FAUSt, RollingArray
+from dapper.tools.viz import freshfig, not_available_text, plot_pause
 
 
 class LivePlot:
@@ -214,8 +215,9 @@ class LivePlot:
 
         if self.run_ipdb:
             self.run_ipdb = False
-            import ipdb
             import inspect
+
+            import ipdb
             print("Entering debug mode (ipdb).")
             print("Type '?' (and Enter) for usage help.")
             print("Type 'c' to continue the assimilation.")

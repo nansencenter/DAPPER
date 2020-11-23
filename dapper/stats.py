@@ -1,18 +1,20 @@
 """Stats computation for the assessment of DA methods."""
 
-from dapper.dict_tools import DotDict
-from dapper.tools.matrices import CovMat
-import dapper.dict_tools as dict_tools
-from matplotlib import pyplot as plt
-from dapper.dpr_config import rc
-import dapper.tools.liveplotting as liveplotting
-import dapper.tools.series as series
-from dapper.tools.series import StatPrint, DataSeries
-import dapper.tools.utils as utils
-from dapper.tools.math import unbias_var
+import warnings
+
 import numpy as np
 import scipy.linalg as sla
-import warnings
+from matplotlib import pyplot as plt
+
+import dapper.dict_tools as dict_tools
+import dapper.tools.liveplotting as liveplotting
+import dapper.tools.series as series
+import dapper.tools.utils as utils
+from dapper.dict_tools import DotDict
+from dapper.dpr_config import rc
+from dapper.tools.math import unbias_var
+from dapper.tools.matrices import CovMat
+from dapper.tools.series import DataSeries, StatPrint
 
 
 class Stats(StatPrint):

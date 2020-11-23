@@ -4,8 +4,9 @@ iterative ensemble Kalman filters for strongly nonlinear systems'"""
 
 import numpy as np
 
-from dapper.mods.Lorenz63.sakov2012 import HMM
 import dapper as dpr
+from dapper.mods.Lorenz63.sakov2012 import HMM
+
 # The only diff to sakov2012 is R:
 # bocquet2012 uses 1 and 8, sakov2012 uses 2 (and 8)
 

@@ -5,10 +5,10 @@
 
 import numpy as np
 
-from dapper.mods.Lorenz96.sakov2008 import Dyn, X0, Tplot, Nx, LPs
-from dapper.tools.viz import xtrema
-from dapper.tools.localization import localization_setup, pairwise_distances
 import dapper as dpr
+from dapper.mods.Lorenz96.sakov2008 import X0, Dyn, LPs, Nx, Tplot
+from dapper.tools.localization import localization_setup, pairwise_distances
+from dapper.tools.viz import xtrema
 
 t = dpr.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
 

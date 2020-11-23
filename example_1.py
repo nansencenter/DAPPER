@@ -1,7 +1,6 @@
 """Illustrate usage of DAPPER to (interactively) run a 'twin experiment'."""
 
 import dapper as dpr
-
 # Load experiment setup: the hidden Markov model (HMM)
 from dapper.mods.Lorenz63.sakov2012 import HMM
 

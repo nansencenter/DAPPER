@@ -1,14 +1,14 @@
 """Test data loading and presentation functionality."""
 
-import sys
-import dapper as dpr
-import inspect
-from dataclasses import dataclass
 import functools
-
+import inspect
 # Capture stdout
 import io
+import sys
 from contextlib import redirect_stdout
+from dataclasses import dataclass
+
+import dapper as dpr
 
 
 # https://stackoverflow.com/a/22434594

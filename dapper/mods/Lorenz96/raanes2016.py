@@ -1,7 +1,7 @@
 """Reproduce raanes'2016 ("EnRTS and EnKS")"""
 
-from dapper.mods.Lorenz96.sakov2008 import HMM
 import dapper as dpr
+from dapper.mods.Lorenz96.sakov2008 import HMM
 
 HMM.t = dpr.Chronology(0.01, dkObs=15, T=4**5, BurnIn=20)
 

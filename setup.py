@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-import setuptools
 import os
 import re
+
+import setuptools
 
 # with open("README.md", "r") as fh:
 #     long_description = fh.read()

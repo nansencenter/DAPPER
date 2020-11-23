@@ -8,11 +8,12 @@ Refs:
 - http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
 """
 
-from dapper.mods.Lorenz63 import LPs
-import dapper as dpr
-from dapper.tools.math import FD_Jac
 import numpy as np
 from numpy import cos, sin
+
+import dapper as dpr
+from dapper.mods.Lorenz63 import LPs
+from dapper.tools.math import FD_Jac
 
 G  = 9.8  # acceleration due to gravity, in m/s^2
 L1 = 1.0  # length of pendulum 1 in m

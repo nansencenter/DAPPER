@@ -8,9 +8,10 @@
 #     For that purpose, see mods/LA/raanes2015.py instead.
 
 import numpy as np
-from dapper.mods.LA import sinusoidal_sample, Fmat
-from dapper.mods.Lorenz96 import LPs
+
 import dapper as dpr
+from dapper.mods.LA import Fmat, sinusoidal_sample
+from dapper.mods.Lorenz96 import LPs
 
 Nx = 1000
 Ny = 4

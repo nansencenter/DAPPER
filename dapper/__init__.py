@@ -110,8 +110,8 @@ from .dpr_config import rc
 from .stats import register_stat
 from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, round2,
-                         with_recursion, with_rk4)
+from .tools.math import (Id_Obs, ens_compatible, linspace_int, partial_Id_Obs,
+                         round2, with_recursion, with_rk4)
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
 from .tools.stoch import set_seed

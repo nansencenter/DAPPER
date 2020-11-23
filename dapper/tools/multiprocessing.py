@@ -7,12 +7,6 @@ import functools
 # and is being used by 'multiprocessing_on_dill',
 # and the better-maintained pathos
 import multiprocessing_on_dill as mpd
-
-# Deciding on core numbers
-# ---------
-# Unnecessary. Just use NPROC=None.
-# from psutil import cpu_percent, cpu_count
-
 # Enforcing individual core usage.
 # ---------
 # Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
@@ -40,6 +34,12 @@ import multiprocessing_on_dill as mpd
 # >>> with threadpool_limits(limits=1, user_api='blas'):
 # >>>   a2 = a @ a
 import threadpoolctl
+
+# Deciding on core numbers
+# ---------
+# Unnecessary. Just use NPROC=None.
+# from psutil import cpu_percent, cpu_count
+
 threadpoolctl.threadpool_limits(1)
 
 

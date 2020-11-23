@@ -35,9 +35,10 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
-from dapper.tools.viz import amplitude_animation
 
 from dapper.mods.KS import Model
+from dapper.tools.viz import amplitude_animation
+
 model = Model()
 
 # Time settings

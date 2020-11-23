@@ -1,11 +1,11 @@
 """Demonstrate the QG (quasi-geostrophic) model."""
 
 import numpy as np
-from matplotlib import pyplot as plt
 import scipy.ndimage.filters as filters
+from matplotlib import pyplot as plt
 
-from dapper.mods.QG import sample_filename, nx, square, default_prms
 import dapper.tools.viz as viz
+from dapper.mods.QG import default_prms, nx, sample_filename, square
 from dapper.tools.utils import progbar
 
 

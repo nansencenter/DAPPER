@@ -1,28 +1,27 @@
 """Tools (notably xpSpace) for processing and presenting experiment data."""
 
-from pathlib import Path
-import os
-import copy
-import warnings
 import collections
+import copy
 import logging
+import os
 import shutil
+import warnings
+from pathlib import Path
 
-import numpy as np
-import matplotlib as mpl
-from matplotlib import cm, ticker
 import colorama
 import dill
+import matplotlib as mpl
+import numpy as np
+from matplotlib import cm, ticker
 
-
-from dapper.tools.colors import color_text
-from dapper.tools.viz import axis_scale_by_array, freshfig
-from dapper.tools.series import UncertainQtty
-from dapper.stats import tabulate_column, unpack_uqs
-from dapper.admin import xpList
 import dapper.dict_tools as dict_tools
 import dapper.tools.remote.uplink as uplink
 import dapper.tools.utils as utils
+from dapper.admin import xpList
+from dapper.stats import tabulate_column, unpack_uqs
+from dapper.tools.colors import color_text
+from dapper.tools.series import UncertainQtty
+from dapper.tools.viz import axis_scale_by_array, freshfig
 
 mpl_logger = logging.getLogger('matplotlib')
 

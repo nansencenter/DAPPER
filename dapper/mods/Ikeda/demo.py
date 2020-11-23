@@ -2,11 +2,11 @@
 
 Plot settings inspired by Wikipedia."""
 
-from matplotlib import pyplot as plt
 import numpy as np
+from matplotlib import pyplot as plt
 
-import dapper.mods.Ikeda as core
 import dapper as dpr
+import dapper.mods.Ikeda as core
 
 
 def demo(u, s0, N, as_points, ends):

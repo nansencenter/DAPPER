@@ -2,14 +2,15 @@
 
 Many are based on `bib.raanes2016thesis`.
 """
-import numpy as np
 from typing import Optional
 
-from dapper.admin import da_method
-import dapper.tools.series as series
-from dapper.tools.utils import progbar
-from dapper.tools.matrices import CovMat
+import numpy as np
+
 import dapper.tools.math as mtools
+import dapper.tools.series as series
+from dapper.admin import da_method
+from dapper.tools.matrices import CovMat
+from dapper.tools.utils import progbar
 
 
 @da_method()

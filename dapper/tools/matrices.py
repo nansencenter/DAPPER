@@ -1,13 +1,15 @@
 """Covariance matrix tools."""
 
-import numpy as np
-from numpy import sqrt, ones, zeros
-import scipy.linalg as sla
 import functools
+
+import numpy as np
+import scipy.linalg as sla
+from numpy import ones, sqrt, zeros
 from numpy.random import randn
 
-from dapper.tools.math import mrdiv, truncate_rank, svd0, exactly_1d, exactly_2d
 import dapper.tools.utils as utils
+from dapper.tools.math import (exactly_1d, exactly_2d, mrdiv, svd0,
+                               truncate_rank)
 
 
 class lazy_property:

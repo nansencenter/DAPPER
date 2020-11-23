@@ -6,10 +6,11 @@ See `demo.py` for more info.
 """
 
 
-import dapper.tools.liveplotting as LP
 import numpy as np
 from numpy import cos, sin
+
 import dapper as dpr
+import dapper.tools.liveplotting as LP
 
 # Constant 0.6 <= u <= 1.
 u = 0.9

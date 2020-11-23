@@ -1,9 +1,10 @@
 """Time sequence management, notably Chronology and Ticker."""
 
+import numpy as np
+
 import dapper.dict_tools as dict_tools
 import dapper.tools.utils as utils
 from dapper.tools.math import is_int
-import numpy as np
 
 
 class Chronology():

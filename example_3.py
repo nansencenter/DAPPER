@@ -24,11 +24,10 @@ https://github.com/nansencenter/DAPPER#highlights
      http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf .
 """
 
-import dapper as dpr
 import numpy as np
 from matplotlib import pyplot as plt
 
-
+import dapper as dpr
 ##############################
 # Hidden Markov Model
 ##############################
@@ -37,8 +36,8 @@ from dapper.mods.Lorenz96.bocquet2015loc import HMM
 
 def setup(hmm, xp):
     """Experiment init.: Set Lorenz-96 forcing. Seed. Simulate truth/obs."""
-    import dapper.mods.Lorenz96 as core
     import dapper as dpr
+    import dapper.mods.Lorenz96 as core
     core.Force = xp.F
     return dpr.seed_and_simulate(hmm, xp)
 

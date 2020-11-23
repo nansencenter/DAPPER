@@ -2,12 +2,12 @@
 # https://en.wikipedia.org/wiki/Double_pendulum
 
 import numpy as np
-from numpy import sin, cos
-from matplotlib.animation import FuncAnimation
 from matplotlib import pyplot as plt
+from matplotlib.animation import FuncAnimation
+from numpy import cos, sin
 
-from dapper.mods.DoublePendulum import step, x0, L1, L2
 import dapper as dpr
+from dapper.mods.DoublePendulum import L1, L2, step, x0
 
 E0 = x0 + 0.01*np.random.randn(3, 4)
 simulator = dpr.with_recursion(step)

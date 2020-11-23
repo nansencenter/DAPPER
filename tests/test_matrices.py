@@ -1,6 +1,7 @@
 """Test bug (issue 11) reported by Julien Brajard."""
 
 import numpy as np
+
 import dapper as dpr
 
 

@@ -1,16 +1,16 @@
 """The EnKF and other ensemble-based methods"""
 
 import numpy as np
-from numpy import eye, diag, zeros, sqrt
-from numpy.random import rand, randn
 import scipy.linalg as sla
+from numpy import diag, eye, sqrt, zeros
+from numpy.random import rand, randn
 
-from dapper.admin import da_method
-from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0,\
-    pad0, svdi, tinv
-from dapper.tools.utils import progbar
-from dapper.tools.matrices import genOG_1, funm_psd
 import dapper.tools.multiprocessing as mp
+from dapper.admin import da_method
+from dapper.tools.math import (center, mean0, mldiv, mrdiv, pad0, svd0, svdi,
+                               tinv, tsvd)
+from dapper.tools.matrices import funm_psd, genOG_1
+from dapper.tools.utils import progbar
 
 
 @da_method

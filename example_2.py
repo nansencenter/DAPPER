@@ -1,6 +1,7 @@
 """Illustrate usage of DAPPER to benchmark multiple DA methods."""
 
 import dapper as dpr
+
 dpr.set_seed(3000)
 
 ##############################
@@ -8,7 +9,8 @@ dpr.set_seed(3000)
 ##############################
 xps = dpr.xpList()
 
-from dapper.mods.Lorenz63.sakov2012 import HMM     # Expected rmse.a:
+from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
+
 xps += dpr.Climatology()                                      # 7.6
 xps += dpr.OptInterp()                                        # 1.25
 xps += dpr.Var3D(xB=0.1)                                      # 1.03

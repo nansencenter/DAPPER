@@ -19,8 +19,9 @@ is built around the Markov assumption.
 
 """
 import numpy as np
-import dapper.tools.liveplotting as LP
+
 import dapper.mods.Lorenz96 as L96
+import dapper.tools.liveplotting as LP
 from dapper.tools.math import integrate_TLM
 
 

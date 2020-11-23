@@ -4,10 +4,13 @@
 #  - Superiority fairly independent of N.
 #  - The naive methods (rk4, rk1) are quite terrible.
 
-import numpy as np
 import time
+
+import numpy as np
 from matplotlib import pyplot as plt
+
 from dapper.mods.KS import Model
+
 model = Model()
 
 print("THERE WILL BE WARNINGS GENERATED.")

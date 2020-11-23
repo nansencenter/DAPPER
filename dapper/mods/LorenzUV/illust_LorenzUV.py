@@ -1,12 +1,12 @@
 """Prettier, static illustration of Lorenz two-speed/scale/layer model."""
 # Sorry for the mess.
 
-import numpy as np
 import matplotlib as mpl
+import numpy as np
 from matplotlib import pyplot as plt
 
-from dapper.mods.LorenzUV.lorenz96 import LUV
 import dapper as dpr
+from dapper.mods.LorenzUV.lorenz96 import LUV
 from dapper.tools.math import ccat
 
 # Setup

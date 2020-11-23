@@ -3,11 +3,11 @@
 # For a deeper introduction, see
 # "DA-tutorials/T4 - Dynamical systems, chaos, Lorenz.ipynb"
 
-from numpy import eye
 from matplotlib import pyplot as plt
+from numpy import eye
 
-from dapper.mods.Lorenz96 import step, x0
 import dapper as dpr
+from dapper.mods.Lorenz96 import step, x0
 from dapper.tools.viz import amplitude_animation
 
 simulator = dpr.with_recursion(step, prog="Simulating")

@@ -3,11 +3,11 @@
 import numpy as np
 from numpy.random import rand, randn
 
-from dapper.admin import da_method
-import dapper.tools.utils as utils
 import dapper.tools.math
-from dapper.tools.matrices import funm_psd, chol_reduce
-from dapper.tools.math import mrdiv, mldiv, svd0, pad0, tinv
+import dapper.tools.utils as utils
+from dapper.admin import da_method
+from dapper.tools.math import mldiv, mrdiv, pad0, svd0, tinv
+from dapper.tools.matrices import chol_reduce, funm_psd
 from dapper.tools.utils import progbar
 
 

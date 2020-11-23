@@ -4,15 +4,17 @@ Requires rsync, gcloud and ssh access to the DAPPER cluster."""
 
 # TODO 9: use Fabric? https://www.fabfile.org/
 
-import time
-from tqdm import tqdm
-from dapper.dpr_config import rc
-import dapper.tools.utils as utils
-from datetime import timezone, timedelta
-from dateutil.parser import parse as datetime_parse
 import os
-import tempfile
 import subprocess
+import tempfile
+import time
+from datetime import timedelta, timezone
+
+from dateutil.parser import parse as datetime_parse
+from tqdm import tqdm
+
+import dapper.tools.utils as utils
+from dapper.dpr_config import rc
 
 
 class SubmissionConnection:

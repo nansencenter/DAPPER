@@ -2,9 +2,9 @@
 'An Iterative EnKF for Strongly Nonlinear Systems'"""
 
 import numpy as np
-import dapper as dpr
 
-from dapper.mods.Lorenz63 import step, dstep_dx, x0, Tplot, LPs
+import dapper as dpr
+from dapper.mods.Lorenz63 import LPs, Tplot, dstep_dx, step, x0
 
 t = dpr.Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 

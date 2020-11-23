@@ -3,8 +3,8 @@
 by F. Counillon, P. Sakov, and L. Bertino (2009)."""
 
 import dapper as dpr
-from dapper.mods.QG.sakov2008 import HMM
 from dapper.mods.QG import model_config
+from dapper.mods.QG.sakov2008 import HMM
 
 dt = 1.25 * 10  # 10 steps between obs (also requires dkObs=1)
 HMM.t = dpr.Chronology(dt=dt, dkObs=1, T=1000*dt, BurnIn=10*dt)

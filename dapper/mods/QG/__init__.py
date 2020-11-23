@@ -19,12 +19,13 @@ More info:
 """
 
 from pathlib import Path
+
 import matplotlib as mpl
 import numpy as np
 
 import dapper as dpr
-import dapper.tools.multiprocessing as mp
 import dapper.tools.liveplotting as LP
+import dapper.tools.multiprocessing as mp
 
 #########################
 # Model

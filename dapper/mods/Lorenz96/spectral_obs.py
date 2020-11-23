@@ -67,9 +67,10 @@
 # Am I missing something?
 
 
-from dapper.mods.Lorenz96.sakov2008 import Nx, Dyn, t
-import dapper as dpr
 import numpy as np
+
+import dapper as dpr
+from dapper.mods.Lorenz96.sakov2008 import Dyn, Nx, t
 
 # The (Nx-Ny) highest frequency observation modes are left out of H below.
 # If Ny>Nx, then H no longer has independent (let alone orthogonal) columns,

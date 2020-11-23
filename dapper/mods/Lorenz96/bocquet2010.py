@@ -3,8 +3,8 @@ in Geophysical Data Assimilation'."""
 
 import numpy as np
 
-from dapper.mods.Lorenz96 import step
 import dapper as dpr
+from dapper.mods.Lorenz96 import step
 
 t = dpr.Chronology(0.05, dkObs=1, T=4**3, BurnIn=20)
 

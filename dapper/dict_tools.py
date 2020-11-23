@@ -7,7 +7,6 @@
 import itertools
 import shutil
 import sys
-
 # Since textwrap() only treats strings, while pprint is python-aware,
 # I would have preferred pprint.pformat(width=lw,compact=True,sort_dicts=False),
 # but pprint refuses to use my repr.

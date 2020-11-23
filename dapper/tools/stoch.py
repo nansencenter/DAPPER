@@ -1,6 +1,7 @@
 """Random number generation."""
 
 import time
+
 import numpy as np
 
 

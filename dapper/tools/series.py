@@ -1,12 +1,14 @@
 """Time series management and processing."""
 
-from dapper.dict_tools import NicePrint
-from dapper.dpr_config import rc
-import dapper.tools.utils as utils
-from dapper.tools.math import center, is1d, round2
 from dataclasses import dataclass
+
 import numpy as np
 from numpy import nan
+
+import dapper.tools.utils as utils
+from dapper.dict_tools import NicePrint
+from dapper.dpr_config import rc
+from dapper.tools.math import center, is1d, round2
 
 
 def auto_cov(xx, nlags=4, zero_mean=False, corr=False):

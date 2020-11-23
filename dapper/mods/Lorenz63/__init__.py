@@ -9,9 +9,10 @@ See demo.py for more info.
 """
 
 
-import dapper.tools.liveplotting as LP
 import numpy as np
+
 import dapper as dpr
+import dapper.tools.liveplotting as LP
 from dapper.tools.math import integrate_TLM
 
 # Constants

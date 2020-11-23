@@ -3,8 +3,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from dapper.mods.LotkaVolterra import step, x0
 import dapper as dpr
+from dapper.mods.LotkaVolterra import step, x0
 
 simulator = dpr.with_recursion(step, prog="Simulating")
 

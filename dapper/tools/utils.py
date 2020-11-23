@@ -1,21 +1,22 @@
 """Utilities (misc, non-math)."""
 
-from pathlib import Path
-import inspect
 import contextlib
-import time
-import traceback as tb
+import functools
+import inspect
 import os
 import re
 import sys
-import functools
+import time
+import traceback as tb
+from pathlib import Path
+
+import tabulate
+import tqdm
+from tabulate import tabulate as tab  # noqa
 
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
 
-import tqdm
-import tabulate
-from tabulate import tabulate as tab # noqa
 tabulate.MIN_PADDING = 0
 
 
