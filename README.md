@@ -34,6 +34,7 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
 [![Github HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge)](http://hits.dwyl.com/nansencenter/DAPPER)
 
+
 ## Highlights
 
 DAPPER enables the numerical investigation of DA methods
@@ -61,32 +62,44 @@ including pause/inspect options, as illustrated below
 In summary, it is well suited for teaching and fundamental DA research.
 Also see its [drawbacks](#alternative-projects).
 
+
 ## Installation
 
 Works on Linux/Windows/Mac.
 
-1. **Prerequisite**: Python=3.8.  
-   If you're not an admin or expert:  
-   1a. Install Python with [Anaconda](https://www.anaconda.com/download).  
-   1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
-   to run the commands below.
+### Prerequisite: Python>=3.7
 
-2. **Install**:  
-   Download and extract (or `git clone`) DAPPER,  
-   `cd` into the resulting folder
-   *(ensure you're in the folder with a `setup.py` file)*:  
-   `pip install -e .` (don't forget the `.`).
-   If you want dev tools, install with:  
+If you're not an admin or expert:  
+
+- 1a. Install Python with [Anaconda](https://www.anaconda.com/download).
+- 1b. Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
+  to run the commands below.
+
+If the installation below fails, you probably need to
+[create a new Python environment](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments).
+
+### Install
+
+Do you simply want to run a script that requires DAPPER?
+
+- If the script come with a `requirements.txt` file, then do  
+  `pip install -r requirements.txt`.
+- If not, hopefully you know the version of DAPPER needed. Run    
+  `pip install DA-DAPPER==1.0.0` to get version `1.0.0`.
+- You should now be able to do run your script with  
+  `python the_script.py`  
+    
+Do you want to look into the DAPPER code to understand the models and methods?
+
+- Download and extract (or `git clone`) DAPPER.
+- `cd` into the resulting folder.
+   *(ensure you're in the folder with a `setup.py` file)*.
+- `pip install -e .` (don't forget the `.`).  
+  Alternatively, if you want to develop the code, install with
    `pip install -e .[Dev]`
+- You should now be able to do  
+  `python example_1.py`
 
-3. **Test** by running: `python example_1.py`  
-
-Step 2 can be replaced by running
-`pip install da-dapper`
-but this is not recommended since this hides away DAPPER
-as a library in your python path.
-
-If the installation fails, you probably need to [create a new Python environment](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments).
 
 ## Quickstart
 
@@ -98,6 +111,7 @@ provide rendered docstrings, but are far from complete.
 
 Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
 for an intro to DA.
+
 
 ## DA methods
 
@@ -136,6 +150,7 @@ tuned settings for a given method (e.g. the `iEnKS`), use gnu's grep:
 $ cd dapper/mods
 $ grep -r "iEnKS.*("
 ```
+
 
 ## Test cases (models)
 
@@ -182,6 +197,7 @@ As mentioned [above](#Methods),
 DAPPER reproduces literature results.
 There are also results in the literature that DAPPER does not reproduce.
 Typically, this means that the published results are incorrect.
+
 
 ## Similar projects
 
@@ -248,6 +264,7 @@ in the development of DAPPER.
 [17]: https://github.com/sakov/enkf-c
 [18]: https://github.com/kingaa/pomp
 
+
 ## Contributors
 
 Patrick N. Raanes,
@@ -277,6 +294,7 @@ and the Nansen Environmental and Remote Sensing Center
 ![NORCE](./docs/imgs/norce-logo.png)
 ![NERSC](./docs/imgs/nansen-logo.png)
 
+
 ## Publication list
 
 - <https://www.geosci-model-dev-discuss.net/gmd-2019-136/>
@@ -285,12 +303,5 @@ and the Nansen Environmental and Remote Sensing Center
 - Stein
 - EmblAUS/Springer chapter
 
-<!--
-Badges.
 
-[![DOI](https://zenodo.org/badge/62547494.svg)]
-(https://zenodo.org/badge/latestdoi/62547494)
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]
-(./licence.txt)
--->
+<!-- markdownlint-disable-file no-multiple-blanks -->
