@@ -71,40 +71,52 @@ Works on Linux/Windows/Mac.
 
 If you're not an admin or expert:  
 
-- Install Python with [Anaconda](https://www.anaconda.com/download).
-- Use the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
-  to run the commands below.
+- Install [Anaconda](https://www.anaconda.com/download).
+- Open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
+  and run the following commands:
 
-If the installation below fails, you probably need to
-[create a new Python environment](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments).
+      conda create --yes --name my-DA-env python=3.8
+      conda activate my-DA-env
+      python -c 'import sys; print("Version:", sys.version.split()[0])'
+
+  Ensure the output at the end gives a version bigger than 3.7.  
+  Keep using the same terminal for the commands below. 
 
 ### Install
 
-- Do you simply want to run a script that requires DAPPER?  
-  Then "install as library".
-- Do you want the DAPPER code readily available to look into?  
-  Then "install for development".
+#### *Either*: Install as library
 
-#### Install as library
+*Do you simply want to run a script that requires DAPPER?* Then
 
 - If the script come with a `requirements.txt` file, then do  
-  `pip install -r requirements.txt`.
+  `pip install -r path/to/requirements.txt`.
 - If not, hopefully you know the version of DAPPER needed. Run    
   `pip install DA-DAPPER==1.0.0` to get version `1.0.0`.
-- You should now be able to do run your script with  
-  `python the_script.py`  
     
-#### Install for development
+#### *Or*: Install for development
 
-- Download and extract (or `git clone`) DAPPER.
-- `cd` into the resulting folder.
-   *(ensure you're in the folder with a `setup.py` file)*.
+*Do you want the DAPPER code readily available to look into?* Then
+
+- Download and unzip (or `git clone`) DAPPER.
+- Move the resulting folder wherever you like,  
+  and `cd` into it
+  *(ensure you're in the folder with a `setup.py` file)*.
 - `pip install -e .` (don't forget the `.`).  
   Alternatively, if you want to develop the code, install with
-   `pip install -e .[Dev]`
-- You should now be able to do  
-  `python example_1.py`
+  `pip install -e .[Dev]`
 
+#### *Finally*: Test the installation
+
+You should now be able to do run your script with
+`python path/to/script.py`.  
+For example, if you are in the DAPPER dir,
+
+    python example_1.py
+
+If you've closed the terminal (or shut down your computer),
+you first need to open the (anaconda) terminal and run this:
+
+    conda activate my-DA-env
 
 ## Quickstart
 
@@ -112,10 +124,10 @@ Read, run, and understand the scripts `example_{1,2,3}.py`.
 Then, get familiar with the code.
 
 The [documentation](https://nansencenter.github.io/DAPPER)
-provide rendered docstrings, but are far from complete.
+provide the API reference, but is not very mature.
 
-Alternatively, see [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
-for an intro to DA.
+Alternatively, [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
+provides a python-based introduction to DA.
 
 
 ## DA methods
