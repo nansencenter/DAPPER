@@ -503,7 +503,7 @@ def mask_unique_of_sorted(idx):
 def auto_bandw(N, M):
     """"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
 
-    Refs: `bib.doucet2001sequential` section 12.2.2, and [Wik17]_ section "Rule_of_thumb"
+    Refs: `bib.doucet2001sequential` section 12.2.2, [Wik17]_ section "Rule_of_thumb"
     """
     return N**(-1/(M+4))
 
@@ -535,7 +535,9 @@ def regularize(C12, E, idx, no_uniq_jitter):
 
 
 def resample(w, kind='Systematic', N=None, wroot=1.0):
-    """Multinomial resampling `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
+    """Multinomial resampling.
+
+    Refs: `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
       'Stochastic' corresponds to np.random.choice() or np.random.multinomial().

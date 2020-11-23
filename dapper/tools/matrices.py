@@ -10,7 +10,6 @@ from dapper.tools.math import mrdiv, truncate_rank, svd0, exactly_1d, exactly_2d
 import dapper.tools.utils as utils
 
 
-
 class lazy_property:
     """Lazy evaluation of property.
 

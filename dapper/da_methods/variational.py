@@ -66,7 +66,8 @@ class iEnKS:
     Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     (due to boundary cases: only asymptotically valid)
 
-    References: `bib.bocquet2012combining`, `bib.bocquet2013joint`, `bib.bocquet2014iterative`,
+    Refs: `bib.bocquet2012combining`, `bib.bocquet2013joint`,
+    `bib.bocquet2014iterative`.
     """
     upd_a: str
     N: int
@@ -169,12 +170,12 @@ class iEnKS:
                     if self.MDA:  # View update as annealing (progressive assimilation).
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
-                        if 'PertObs' in self.upd_a:   # == "ES-MDA". By Emerick/Reynolds.
+                        if 'PertObs' in self.upd_a:   # == "ES-MDA". By Emerick/Reynolds
                             D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
                             T  -= (Y + D) @ Y.T @ Cow1
-                        elif 'Sqrt' in self.upd_a:    # == "ETKF-ish". By Raanes.
+                        elif 'Sqrt' in self.upd_a:    # == "ETKF-ish". By Raanes
                             T   = Cowp(0.5) * np.sqrt(za) @ T
-                        elif 'Order1' in self.upd_a:  # == "DEnKF-ish". By Emerick.
+                        elif 'Order1' in self.upd_a:  # == "DEnKF-ish". By Emerick
                             T  -= 0.5 * Y @ Y.T @ Cow1
                         # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 

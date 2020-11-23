@@ -55,7 +55,8 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
 
     The update is specified via 'upd_a'.
 
-    Main references: `bib.sakov2008deterministic`, `bib.sakov2008implications`, `bib.hoteit2015mitigating`
+    Main references: `bib.sakov2008deterministic`,
+    `bib.sakov2008implications`, `bib.hoteit2015mitigating`
     """
     R     = hnoise.C     # Obs noise cov
     N, Nx = E.shape      # Dimensionality
@@ -151,8 +152,8 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         # v = Zj - Yj (from paper) requires Y==HX.
                         # Instead: mult` should be c*ones(Nx) so we can
                         # project v into ker(A) such that v@A is null.
-                        mult  = (v@A) / (Yj@A)
-                        v     = v - mult[0]*Yj
+                        mult  = (v@A) / (Yj@A) # noqa
+                        v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
                     Zj *= np.sign(rand()-0.5)  # Random sign
@@ -908,7 +909,8 @@ class EnKF_N:
                 # Uncomment to revert to ETKF
                 # l1 = 1.0
 
-                # Explicitly inflate prior => formulae look different from `bib.bocquet2015expanding`.
+                # Explicitly inflate prior
+                # => formulae look different from `bib.bocquet2015expanding`.
                 A *= l1
                 Y *= l1
 

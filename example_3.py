@@ -164,6 +164,7 @@ def get_style_with_gradient(coord):
         S.label = dpr.make_label(coord, exclude=[graded])
     return S
 
+
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
 dpr.default_fig_adjustments(tables)

@@ -28,3 +28,9 @@ repos:
     -   id: requirements-txt-fixer
     -   id: mixed-line-ending
         args: ['--fix=no']
+
+-   repo: https://gitlab.com/PyCQA/flake8
+    rev: 3.8.3
+    hooks:
+    -   id: flake8
+        args: [--max-line-length=88]  # default of Black

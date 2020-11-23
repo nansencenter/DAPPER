@@ -75,7 +75,9 @@ class RHF:
 
 @ens_method
 class LNETF:
-    """The Nonlinear-Ensemble-Transform-Filter (localized) `bib.wiljes2016second`, `bib.todter2015second`.
+    """The Nonlinear-Ensemble-Transform-Filter (localized).
+
+    Refs: `bib.wiljes2016second`, `bib.todter2015second`.
 
     It is (supposedly) a deterministic upgrade of the NLEAF of `bib.lei2011moment`.
     """
