@@ -31,33 +31,51 @@ and set the source to the docs folder.
 
 ## TODOs
 
-### Minor:
+- There are also TODO labels scattered in the code,
+  including a priority number (1-9, lower is more important).
 
-### Major:
+- The documentation always needs improvement.
+  The documentation uses pdoc3 to auto-generate API reference,
+  so improving function and class docstrings is very helpful.
 
-- Improve docs
-- Make autoscaler.py work also for other users
-  (I dont know if it's condor_- that outputs user-specific numbers,
-  or glcoud resize command that is user-specific, or what.)
-- Pause after Enter doesn't work on Ubuntu?
+- Write an example script (and/or make changes to DAPPER) to show how to:
+    - do parameter estimation.
+    - use different models for Truth and DA-methods.
+    - work with real data.
+    - pretend variable-length state or obs are fixed-length.
+
+- Simplify, improve and generalize (total rewrite?) time sequence management.
+    - At the moment, `t` (absolute time) is "too important" in the code,
+     compared to `k` (the time index). For example,
+
+        - `dxdt` have signature `dxdt(x,t,dt)` instead of `dxdt(x,k,dt)`.
+          But a common situation is that `dxdt` needs to look-up some
+          property (e.g. parmeter value) from a pre-defined table.
+          For that purpose, `k` is better suited that `t` because it is
+          and integer, not a fload.
+        - If models simply have the signature `HMM.dyn(x,k)`
+          (i.e. `ticker` would only yield `k` and `kObs`)
+          then variable dt is effectively supported.
+    - Change KObs to KObs-1 ?
+    - Highlight the fact that `t=0` is special
+        - There shoult not be any obs then
+        - Some of the plotting functionality are maybe
+          assuming that `tt[0] == 0`.
+
+- Simplify and/or improve (total rewrite?) the CovMat class.
 
 - Make superclasses for the filter, smoother, and iterative smoother.
-- Simplify and/or generalize time management?
 
-- k,kObs only, yielded by ticker
-- Change KObs to KObs-1
-- Note (somewhere) the implicit dependence on t=0 being special
-
-- Simplify and/or improve cov matrix stuff.
+- Pause after Enter doesn't work on Ubuntu?
 
 - For xpList, could also subclass collections.UserList,
   although I don't know if it would be any better
   <https://stackoverflow.com/q/25464647>
 
-### Misc: 
+- Make autoscaler.py work also for other users
+  (I dont know if it's condor_- that outputs user-specific numbers,
+  or glcoud resize command that is user-specific, or what.)
 
-There are also TODO labels scattered in the code,
-including a priority number (1-9, lower is more important).
 
 ## Profiling
 
