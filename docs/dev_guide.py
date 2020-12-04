@@ -56,6 +56,7 @@ and set the source to the docs folder.
         - If models simply have the signature `HMM.dyn(x,k)`
           (i.e. `ticker` would only yield `k` and `kObs`)
           then variable dt is effectively supported.
+
     - Change KObs to KObs-1 ?
     - Highlight the fact that `t=0` is special
         - There shoult not be any obs then
