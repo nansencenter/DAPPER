@@ -55,41 +55,71 @@ In the main github settings of the repo,
 go to the "GitHub Pages" section,
 and set the source to the docs folder.</p>
 <h2 id="todos">TODOs</h2>
-<h3 id="minor">Minor:</h3>
-<h3 id="major">Major:</h3>
 <ul>
-<li>Improve docs</li>
-<li>Make autoscaler.py work also for other users
-(I dont know if it's condor_- that outputs user-specific numbers,
-or glcoud resize command that is user-specific, or what.)</li>
 <li>
-<p>Pause after Enter doesn't work on Ubuntu?</p>
+<p>There are also TODO labels scattered in the code,
+including a priority number (1-9, lower is more important).</p>
+</li>
+<li>
+<p>The documentation always needs improvement.
+The documentation uses pdoc3 to auto-generate API reference,
+so improving function and class docstrings is very helpful.</p>
+</li>
+<li>
+<p>Write an example script (and/or make changes to DAPPER) to show how to:</p>
+<ul>
+<li>do parameter estimation.</li>
+<li>use different models for Truth and DA-methods.</li>
+<li>work with real data.</li>
+<li>pretend variable-length state or obs are fixed-length.</li>
+</ul>
+</li>
+<li>
+<p>Simplify, improve and generalize (total rewrite?) time sequence management.</p>
+<ul>
+<li>
+<p>At the moment, <code>t</code> (absolute time) is "too important" in the code,
+compared to <code>k</code> (the time index). For example,</p>
+<ul>
+<li><code>dxdt</code> have signature <code>dxdt(x,t,dt)</code> instead of <code>dxdt(x,k,dt)</code>.
+But a common situation is that <code>dxdt</code> needs to look-up some
+property (e.g. parmeter value) from a pre-defined table.
+For that purpose, <code>k</code> is better suited that <code>t</code> because it is
+and integer, not a fload.</li>
+<li>If models simply have the signature <code>HMM.dyn(x,k)</code>
+(i.e. <code>ticker</code> would only yield <code>k</code> and <code>kObs</code>)
+then variable dt is effectively supported.<ul>
+<li>Change KObs to KObs-1 ?</li>
+<li>Highlight the fact that <code>t=0</code> is special</li>
+</ul>
+</li>
+<li>There shoult not be any obs then</li>
+<li>Some of the plotting functionality are maybe
+assuming that <code>tt[0] == 0</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Simplify and/or improve (total rewrite?) the CovMat class.</p>
 </li>
 <li>
 <p>Make superclasses for the filter, smoother, and iterative smoother.</p>
 </li>
 <li>
-<p>Simplify and/or generalize time management?</p>
-</li>
-<li>
-<p>k,kObs only, yielded by ticker</p>
-</li>
-<li>Change KObs to KObs-1</li>
-<li>
-<p>Note (somewhere) the implicit dependence on t=0 being special</p>
-</li>
-<li>
-<p>Simplify and/or improve cov matrix stuff.</p>
+<p>Pause after Enter doesn't work on Ubuntu?</p>
 </li>
 <li>
 <p>For xpList, could also subclass collections.UserList,
 although I don't know if it would be any better
 <a href="https://stackoverflow.com/q/25464647">https://stackoverflow.com/q/25464647</a></p>
 </li>
+<li>
+<p>Make autoscaler.py work also for other users
+(I dont know if it's condor_- that outputs user-specific numbers,
+or glcoud resize command that is user-specific, or what.)</p>
+</li>
 </ul>
-<h3 id="misc">Misc:</h3>
-<p>There are also TODO labels scattered in the code,
-including a priority number (1-9, lower is more important).</p>
 <h2 id="profiling">Profiling</h2>
 <ul>
 <li>Launch your python script using <code>kernprof -l -v my_script.py</code></li>
@@ -167,7 +197,7 @@ password: mypass
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/82457dbb2b14ab2d70d16e084f4b0ff2dec5d537/docs/dev_guide.py#L0-L169" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/ccc318e8adf727405b7095d5d43fe51260d00294/docs/dev_guide.py#L0-L187" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 ## Documentation generation
@@ -202,33 +232,51 @@ and set the source to the docs folder.
 
 ## TODOs
 
-### Minor:
+- There are also TODO labels scattered in the code,
+  including a priority number (1-9, lower is more important).
 
-### Major:
+- The documentation always needs improvement.
+  The documentation uses pdoc3 to auto-generate API reference,
+  so improving function and class docstrings is very helpful.
 
-- Improve docs
-- Make autoscaler.py work also for other users
-  (I dont know if it&#39;s condor_- that outputs user-specific numbers,
-  or glcoud resize command that is user-specific, or what.)
-- Pause after Enter doesn&#39;t work on Ubuntu?
+- Write an example script (and/or make changes to DAPPER) to show how to:
+    - do parameter estimation.
+    - use different models for Truth and DA-methods.
+    - work with real data.
+    - pretend variable-length state or obs are fixed-length.
+
+- Simplify, improve and generalize (total rewrite?) time sequence management.
+    - At the moment, `t` (absolute time) is &#34;too important&#34; in the code,
+     compared to `k` (the time index). For example,
+
+        - `dxdt` have signature `dxdt(x,t,dt)` instead of `dxdt(x,k,dt)`.
+          But a common situation is that `dxdt` needs to look-up some
+          property (e.g. parmeter value) from a pre-defined table.
+          For that purpose, `k` is better suited that `t` because it is
+          and integer, not a fload.
+        - If models simply have the signature `HMM.dyn(x,k)`
+          (i.e. `ticker` would only yield `k` and `kObs`)
+          then variable dt is effectively supported.
+    - Change KObs to KObs-1 ?
+    - Highlight the fact that `t=0` is special
+        - There shoult not be any obs then
+        - Some of the plotting functionality are maybe
+          assuming that `tt[0] == 0`.
+
+- Simplify and/or improve (total rewrite?) the CovMat class.
 
 - Make superclasses for the filter, smoother, and iterative smoother.
-- Simplify and/or generalize time management?
 
-- k,kObs only, yielded by ticker
-- Change KObs to KObs-1
-- Note (somewhere) the implicit dependence on t=0 being special
-
-- Simplify and/or improve cov matrix stuff.
+- Pause after Enter doesn&#39;t work on Ubuntu?
 
 - For xpList, could also subclass collections.UserList,
   although I don&#39;t know if it would be any better
   &lt;https://stackoverflow.com/q/25464647&gt;
 
-### Misc: 
+- Make autoscaler.py work also for other users
+  (I dont know if it&#39;s condor_- that outputs user-specific numbers,
+  or glcoud resize command that is user-specific, or what.)
 
-There are also TODO labels scattered in the code,
-including a priority number (1-9, lower is more important).
 
 ## Profiling
 
@@ -366,12 +414,7 @@ pip install -e .
 <li><a href="#hosting">Hosting</a></li>
 </ul>
 </li>
-<li><a href="#todos">TODOs</a><ul>
-<li><a href="#minor">Minor:</a></li>
-<li><a href="#major">Major:</a></li>
-<li><a href="#misc">Misc:</a></li>
-</ul>
-</li>
+<li><a href="#todos">TODOs</a></li>
 <li><a href="#profiling">Profiling</a></li>
 <li><a href="#making-a-release">Making a release</a><ul>
 <li><a href="#test-installation">Test installation</a></li>
