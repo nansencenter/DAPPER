@@ -8,8 +8,13 @@ Make sure you've browsed these sections in the README:
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
 
 ## Usage
-Do you wish to illustrate and run benchmarks with your own
-**model** or **method**?
+Adapt one of the examples scripts to your needs.
+
+Fork DAPPER and make changes to its source if you need to
+(which is quite likely because the generality of DAPPER is limited)
+
+If, in particular, you wish to illustrate and run benchmarks with
+your own **model** or **method**, then
 
 - If it is a complex one, you may be better off using DAPPER
   merely as inspiration (but you should still
