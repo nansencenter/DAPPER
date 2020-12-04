@@ -61,7 +61,7 @@ including pause/inspect options, as illustrated below
 ![EnKF - Lorenz'63](./docs/imgs/ex1.jpg)
 
 In summary, it is well suited for teaching and fundamental DA research.
-Also see its [drawbacks](#alternative-projects).
+Also see its [drawbacks](#similar-projects).
 
 
 ## Installation
@@ -76,8 +76,8 @@ If you're not an admin or expert:
 - Open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
   and run the following commands:
 
-      conda create --yes --name my-DA-env python=3.8
-      conda activate my-DA-env
+      conda create --yes --name my-env python=3.8
+      conda activate my-env
       python -c 'import sys; print("Version:", sys.version.split()[0])'
 
   Ensure the output at the end gives a version bigger than 3.7.  
@@ -117,7 +117,7 @@ For example, if you are in the DAPPER dir,
 If you've closed the terminal (or shut down your computer),
 you first need to open the (anaconda) terminal and run this:
 
-    conda activate my-DA-env
+    conda activate my-env
 
 ## Quickstart
 
