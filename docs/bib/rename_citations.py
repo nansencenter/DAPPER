@@ -8,7 +8,7 @@ from pathlib import Path
 from textwrap import dedent
 import os
 from dapper.dpr_config import rc
-from pylib.std import rewrite, sub_run
+from patlib.std import rewrite, sub_run
 
 
 renaming = dict(

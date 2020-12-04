@@ -16,7 +16,7 @@ from subprocess import run
 from textwrap import dedent
 import os
 from dapper.dpr_config import rc
-from pylib.std import sub_run
+from patlib.std import sub_run
 
 def parse_bib(bibfile):
     "Parse .bib file into dict."
