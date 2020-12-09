@@ -4,8 +4,6 @@
 DAPPER for (e.g.) `bib.Boc11` and change it to `bib.bocquet2011ensemble`.
 """
 
-from pathlib import Path
-from textwrap import dedent
 import os
 from dapper.dpr_config import rc
 from patlib.std import rewrite, sub_run
@@ -45,8 +43,6 @@ renaming = dict(
 
 def rename_citation(file_list):
     "Extract references in use."
-    PATTERN = r'`bib\.\w{0,30}`'
-    citations = []
     for f in file_list:
         with rewrite(f) as lines:
             for i, ln in enumerate(lines):
