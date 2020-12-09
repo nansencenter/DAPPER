@@ -100,9 +100,9 @@ class iEnKS:
             " See Sakov et al 2017: 'An iEnKF with mod. error'")
 
         if self.bundle:
-            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
+            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...
         else:
-            EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
+            EPS = 1.0  # ... prefer using  T=EPS*T, yielding a conditional cloud shape
 
         # Initial ensemble
         E = X0.sample(N)

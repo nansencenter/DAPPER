@@ -663,7 +663,7 @@ def toggle_viz(*handles, prompt=False, legend=False, pause=True):
         are_viz += [is_viz]
 
         # Legend updating. Basic version: works by
-        #  - setting line's label to actual_label/'_nolegend_' if is_viz/not
+        #  - setting line's label (to /'_nolegend_' if off)
         #  - re-calling legend()
         if legend:
             if is_viz:
@@ -686,6 +686,7 @@ def toggle_viz(*handles, prompt=False, legend=False, pause=True):
                     # => Refresh by creating/rm another legend.
                     ax.legend('TMP').remove()
 
+    # Pause at where used (typically sequentially in script)
     if prompt:
         input("Press <Enter> to continue...")
     if pause:
