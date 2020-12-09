@@ -244,7 +244,7 @@ def FD_Jac(ens_compatible_function, eps=1e-7):
 
 @np.vectorize
 def _round2prec(num, prec):
-    """Don't use! Instead, use round2(). The issue is that:
+    """Don't use directly! Instead, use round2(). The issue is that:
     >>> _round2prec(0.7,.1) != 0.7
     """
     return prec * round(num / prec)
@@ -252,13 +252,23 @@ def _round2prec(num, prec):
 
 @np.vectorize
 def ndecimal(x):
-    """Convert precision to num. of decimals. Example:
-    >>> ndecimal(10)    # --> -1
-    >>> ndecimal(1)     # --> 0
-    >>> ndecimal(0.1)   # --> 1
-    >>> ndecimal(0.01)  # --> 2
-    >>> ndecimal(0.02)  # --> 2
-    >>> ndecimal(0.099) # --> 2 # yes, this is what we want
+    """Convert precision to num. of decimals.
+
+    Example:
+    >>> ndecimal(10)
+    -1
+    >>> ndecimal(1)
+    0
+    >>> ndecimal(0.1)
+    1
+    >>> ndecimal(0.01)
+    2
+    >>> ndecimal(0.02)
+    2
+    >>> ndecimal(0.027)
+    2
+    >>> ndecimal(0.099)
+    2
     """
     if x == 0 or not np.isfinite(x):
         # "Behaviour not defined" => should not be relied upon.
@@ -267,27 +277,59 @@ def ndecimal(x):
 
 
 @np.vectorize
-def round2(num, param=1):
-    """Round num as specified by ``param``. Always returns floats.
+def round2(num, prec=1):
+    """Round num as specified by ``prec``. Always returns floats.
 
-    If ``param`` is int: round to ``param`` num. of *significant* digits.
-    Otherwise          : round to ``param`` precison (must be float).
+    If ``prec`` is int: round to ``prec`` num. of *significant* digits.
+    Otherwise         : round to ``prec`` precison (must be float).
+
     By contrast, ``round`` (builtin and np) takes the num. of *decimals*.
 
-    Examples:
-    >>> xx = curvedspace(1e-3,1e2,15,.5)
-    >>> with np.printoptions(precision=100):
-    >>>     spell_out(_round2prec (xx, 1e-2))
-    >>>     spell_out(round2      (xx, 1e-2))
-    >>>     spell_out(round2      (xx,    1))
+    The rounding is designed to be both relevant, and pretty.
+    So, when presented with a float for `prec`, the rounding happens in 2 stages:
+    1. Round number to multiple of `prec`
+    2. Round number to multiple of `ndecimal`
+
+    Thus, for example:
+    >>> round2(0.1, 0.3)
+    0
+    >>> round2(0.2, 0.3)
+    0.3
+    >>> round2(0.4, 0.3)
+    0.3
+    >>> round2(0.5, 0.3)
+    0.6
+
+    More complicated to wrap your head around:
+    >>> round2(18.4, 12.3)
+    10
+
+    This value occurs because it first rounded to multiple of `12.3`, i.e. `12.3`,
+    then to a multiple of `10**ndecimal(12.3)`, i.e. `10`, yielding `10`.
+
+    By contrast, `18.5` will be rounded to `24.6`,
+    then to multiple of `10`, yielding `20`.
+
+    >>> round2(18.5, 12.3)
+    20
+
+    Even more mind-boggling, but still desirable:
+
+    >>> round2(148.7, 99.2)
+    100
+    >>> round2(148.8, 99.2)
+    200
+    >>> round2(150.4, 100.3)
+    100
+    >>> round2(150.5, 100.3)
+    200
     """
-    if is_int(param):
+    if is_int(prec):
         # round2sigfig
-        nfig = param-1
+        nfig = prec-1
         n = nfig + ndecimal(num)
     else:
         # round2prec
-        prec = param
         n = ndecimal(prec)
         num = _round2prec(num, prec)
 
