@@ -284,9 +284,9 @@ def log10int(x):
 
 @np.vectorize
 def round2(x, prec=1.0):
-    """Round to a nice precision.
+    """Round to a nice precision, namely
 
-    $$ 10^{floor(-log_{10}|prec|)} $$
+    $$ 10^{\\text{floor}(-\\log_{10}|\\text{prec}|)} $$
 
     Parameters
     ----------
@@ -301,7 +301,8 @@ def round2(x, prec=1.0):
     --------
     round2sigfig
 
-    Examples:
+    Examples
+    ----------
     >>> round2(1.65, 0.543)
     1.6
     >>> round2(1.66, 0.543)
