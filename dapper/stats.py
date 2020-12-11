@@ -569,7 +569,7 @@ def tabulate_column(col, header, pad='␣', missingval='', frmt=None):
 
 
 def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
-    """Make array whose (named) cols are ``[uq.col for uq in uq_list]``.
+    """Make array whose (named) cols are `[uq.col for uq in uq_list]`.
 
     Embellishments:
     - Insert None (in each col) if uq is None.
@@ -579,9 +579,10 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
     def unpack1(arr, i, uq):
         if uq is None:
             return
+        # TODO 3: review rounding
         # val/conf
         if decimals is None:
-            v, c = uq.round(mult=0.1)
+            v, c = uq.round()
         else:
             v, c = np.round([uq.val, uq.conf], decimals)
         arr["val"][i], arr["conf"][i] = v, c
