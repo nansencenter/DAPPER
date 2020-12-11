@@ -44,6 +44,16 @@ and set the source to the docs folder.
     - work with real data.
     - pretend variable-length state or obs are fixed-length.
 
+- Right now each column in `tabulate_avrgs` and `xpSpace.print`
+  is treated independently, so that they may be aligned on the decimal point.
+  But ideally the number of decimals printed in uq.val is determined by uq.conf.
+  This is already the case, *somewhat*, since `unpack_uqs` uses `uq.round`
+  But, trailing zeros will still get truncated. I.e. 0.3023 +/- 0.01
+  gets tabulate-printed as 0.3 instead of 0.30. Should be fixed.
+
+- Merge UncertainQtty with the ca class, including its __eq__ ?
+  Rename Ca ?
+
 - Simplify, improve and generalize (total rewrite?) time sequence management.
     - At the moment, `t` (absolute time) is "too important" in the code,
      compared to `k` (the time index). For example,
