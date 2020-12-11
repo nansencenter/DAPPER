@@ -18,7 +18,7 @@ import dapper.dict_tools as dict_tools
 import dapper.tools.remote.uplink as uplink
 import dapper.tools.utils as utils
 from dapper.admin import xpList
-from dapper.stats import tabulate_column, unpack_uqs
+from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.series import UncertainQtty
 from dapper.tools.viz import axis_scale_by_array, freshfig
@@ -797,7 +797,7 @@ class xpSpace(SparseSpace):
                     # Tabulate subcolumns
                     subheaders = []
                     for key, header, frmt, _, align in zip(*subc.values()):
-                        column[key] = tabulate_column(
+                        column[key] = align_col(
                             column[key], header, frmt=frmt)[1:]
                         L = len(column[-1][key])
                         if align == '<':
@@ -812,7 +812,7 @@ class xpSpace(SparseSpace):
                     header = template.format(*subheaders)
                 else:
                     column = unpack_uqs(column, decimals)["val"]
-                    column = tabulate_column(column, statkey)
+                    column = align_col(column, statkey)
                     header, matter = column[0], column[1:]
 
                 if h2:  # Do super_header

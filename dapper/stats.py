@@ -515,7 +515,7 @@ def warn_zero_variance(err, flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def tabulate_column(col, header, pad='␣', missingval='', frmt=None):
+def align_col(col, header, pad='␣', missingval='', frmt=None):
     """Format a single column, return as list.
 
     - Use tabulate() to get decimal point alignment.
@@ -612,8 +612,8 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     for stat in statkeys:
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals   = tabulate_column(column["val"], stat)
-        confs  = tabulate_column(column["conf"], '1σ')
+        vals   = align_col(column["val"], stat)
+        confs  = align_col(column["conf"], '1σ')
         headr  = vals[0]+'  1σ'
         mattr  = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr
