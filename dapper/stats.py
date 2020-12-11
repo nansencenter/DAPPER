@@ -579,7 +579,6 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
     def unpack1(arr, i, uq):
         if uq is None:
             return
-        # TODO 3: review rounding
         # val/conf
         if decimals is None:
             v, c = uq.round()
