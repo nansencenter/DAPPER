@@ -26,7 +26,7 @@ import dapper.tools.series as series
 import dapper.tools.utils as utils
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
-from dapper.tools.math import ccat, round2
+from dapper.tools.math import ccat, round2sigfig
 
 
 def setup_wrapping(M, periodicity=None):
@@ -172,7 +172,7 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
     if chrono is not None:
         t = chrono
         K = int(min(max(K, t.dkObs), t.K))
-        T = round2(t.tt[K], 2)  # Could return T; T>tt[-1]
+        T = round2sigfig(t.tt[K], 2)  # Could return T; T>tt[-1]
         K = utils.find_1st_ind(t.tt >= T)
         if K:
             return K
@@ -180,7 +180,7 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
             return t.K
     else:
         K = int(min(max(K, 1), len(xx)))
-        T = round2(K, 2)
+        T = round2sigfig(K, 2)
         return K
 
 

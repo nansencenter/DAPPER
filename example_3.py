@@ -55,7 +55,7 @@ params = dict(
     N        = [5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50],
     infl     = 1+np.array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]),
     rot      = [True, False],
-    loc_rad  = dpr.round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]),
+    loc_rad  = dpr.round2sigfig([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]], 2),
 )
 # Combines all the params suitable for a method. Faster than "manual" for-loops.
 for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8, 10])

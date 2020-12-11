@@ -8,7 +8,7 @@ from numpy import nan
 import dapper.tools.utils as utils
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
-from dapper.tools.math import center, is1d, round2
+from dapper.tools.math import center, is1d, log10int, round2, round2sigfig
 
 
 def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
@@ -83,6 +83,22 @@ def estimate_corr_length(xx):
 
 @dataclass
 class UncertainQtty():
+    """Container associating an uncertainty with a quantity.
+
+    Includes rounding function for the purpose of pretty prints.
+
+    Examples:
+    >>> print(UncertainQtty(1.2345, .1))
+    1.2 ±0.1
+    >>> print(UncertainQtty(1.2345, .9))
+    1.2 ±0.9
+    >>> print(UncertainQtty(1.300, 0.01))
+    1.30 ±0.01
+    >>> print(UncertainQtty(14, 12))
+    10 ±10
+    >>> UncertainQtty(1.2345, 1)
+    UncertainQtty(val=1, conf=1)
+    """
     val: float
     conf: float
 
@@ -94,21 +110,28 @@ class UncertainQtty():
             - to precision: mult*conf.
             - fallback: rc.sigfig
         """
-        with np.errstate(all='ignore'):
-            conf = round2(self.conf, 1)
-            val  = self.val
-            if not np.isnan(conf) and conf > 0:
-                val = round2(val, mult*conf)
-            else:
-                val = round2(val, rc.sigfig)
-            return val, conf
+        # Extreme cases
+        if np.isnan(self.conf):
+            c = self.conf
+            v = round2sigfig(self.val, rc.sigfig)
+        # Normal case
+        else:
+            c = round2sigfig(self.conf, 1)
+            v = round2(self.val, mult*self.conf)
+        return v, c
 
     def __str__(self):
-        return "{} ±{}".format(*self.round())
+        # Round nicely
+        v, c = self.round()
+        # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01.
+        n = log10int(c)
+        frmt = "%.f" if n >= 0 else "%%0.%df" % -n
+        v = frmt % v
+        return "{} ±{}".format(v, c)
 
     def __repr__(self):
-        vc = "(val={:.4g}, conf={:.1g})".format(*self.round(1e-9))
-        return self.__class__.__name__ + vc
+        v, c = str(self).split(" ±")
+        return self.__class__.__name__ + f"(val={v}, conf={c})"
 
 
 def mean_with_conf(xx):
@@ -119,6 +142,7 @@ def mean_with_conf(xx):
     """
     mu = np.mean(xx)
     N  = len(xx)
+    # TODO 3: review
     if (not np.isfinite(mu)) or N <= 5:
         uq = UncertainQtty(mu, np.nan)
     elif np.allclose(xx, mu):
@@ -187,7 +211,7 @@ class DataSeries(StatPrint):
 
     def __len__(self): return len(self.array)
     def __getitem__(self, key): return self.array[key]
-    def __setitem__(self, key, val):           self.array[key] = val
+    def __setitem__(self, key, val): self.array[key] = val
 
 
 @utils.monitor_setitem
@@ -205,11 +229,12 @@ class FAUSt(DataSeries, StatPrint):
     wherein only the most-recently-written item is stored.
 
     Series can also be indexed as in
-    >>> self[kObs,'a']
-    >>> self[whatever,kObs,'a']
-    >>> # ... and likewise for 'f' and 's'. For 'u', can use:
-    >>> self[k,'u']
-    >>> self[k,whatever,'u']
+
+        self[kObs,'a']
+        self[whatever,kObs,'a']
+        # ... and likewise for 'f' and 's'. For 'u', can use:
+        self[k,'u']
+        self[k,whatever,'u']
 
     .. note:: If a data series only pertains to the analysis,
               then you should use a plain np.array instead.

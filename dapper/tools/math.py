@@ -244,96 +244,105 @@ def FD_Jac(ens_compatible_function, eps=1e-7):
 
 @np.vectorize
 def _round2prec(num, prec):
-    """Don't use directly! Instead, use round2(). The issue is that:
-    >>> _round2prec(0.7,.1) != 0.7
+    """Don't use (directly)! Suffers from numerical precision.
+
+    This function is left here just for reference. Use `round2` instead.
+
+    The issue is that:
+    >>> _round2prec(0.7,.1)
+    0.7000000000000001
     """
     return prec * round(num / prec)
 
 
 @np.vectorize
-def ndecimal(x):
-    """Convert precision to num. of decimals.
+def log10int(x):
+    """Compute decimal order, rounded down.
 
-    Example:
-    >>> ndecimal(10)
-    -1
-    >>> ndecimal(1)
-    0
-    >>> ndecimal(0.1)
-    1
-    >>> ndecimal(0.01)
-    2
-    >>> ndecimal(0.02)
-    2
-    >>> ndecimal(0.027)
-    2
-    >>> ndecimal(0.099)
-    2
+    Conversion to `int` means that we cannot return nan's or +/- infinity,
+    even though this could be meaningful. Instead, we return integers of magnitude
+    a little less than IEEE floating point max/min-ima instead.
+    This avoids a lot of clauses in the parent/callers to this function.
+
+    Examples:
+    >>> log10int([1e-1, 1e-2, 1, 3, 10, np.inf, -np.inf, np.nan])
+    array([  -1,   -2,    0,    0,    1,  300, -300, -300])
     """
-    if x == 0 or not np.isfinite(x):
-        # "Behaviour not defined" => should not be relied upon.
-        return 1
-    return -int(np.floor(np.log10(np.abs(x))))
+
+    # Extreme cases -- https://stackoverflow.com/q/65248379
+    if np.isnan(x):
+        y = -300
+    elif x < 1e-300:
+        y = -300
+    elif x > 1e+300:
+        y = +300
+    # Normal case
+    else:
+        y = int(np.floor(np.log10(np.abs(x))))
+    return y
 
 
 @np.vectorize
-def round2(num, prec=1):
-    """Round num as specified by ``prec``. Always returns floats.
+def round2(x, prec=1.0):
+    """Round to a nice precision.
 
-    If ``prec`` is int: round to ``prec`` num. of *significant* digits.
-    Otherwise         : round to ``prec`` precison (must be float).
+    $$ 10^{floor(-log_{10}|prec|)} $$
 
-    By contrast, ``round`` (builtin and np) takes the num. of *decimals*.
+    Parameters
+    ----------
+    x : Value to be rounded.
+    prec : Precision, before prettify.
 
-    The rounding is designed to be both relevant, and pretty.
-    So, when presented with a float for `prec`, the rounding happens in 2 stages:
-    1. Round number to multiple of `prec`
-    2. Round number to multiple of `ndecimal`
+    Returns
+    -------
+    Rounded value (always a float).
 
-    Thus, for example:
-    >>> round2(0.1, 0.3)
-    0
-    >>> round2(0.2, 0.3)
-    0.3
-    >>> round2(0.4, 0.3)
-    0.3
-    >>> round2(0.5, 0.3)
-    0.6
+    See also
+    --------
+    round2sigfig
 
-    More complicated to wrap your head around:
-    >>> round2(18.4, 12.3)
-    10
-
-    This value occurs because it first rounded to multiple of `12.3`, i.e. `12.3`,
-    then to a multiple of `10**ndecimal(12.3)`, i.e. `10`, yielding `10`.
-
-    By contrast, `18.5` will be rounded to `24.6`,
-    then to multiple of `10`, yielding `20`.
-
-    >>> round2(18.5, 12.3)
-    20
-
-    Even more mind-boggling, but still desirable:
-
-    >>> round2(148.7, 99.2)
-    100
-    >>> round2(148.8, 99.2)
-    200
-    >>> round2(150.4, 100.3)
-    100
-    >>> round2(150.5, 100.3)
-    200
+    Examples:
+    >>> round2(1.65, 0.543)
+    1.6
+    >>> round2(1.66, 0.543)
+    1.7
+    >>> round2(1.65, 1.234)
+    2.0
     """
-    if is_int(prec):
-        # round2sigfig
-        nfig = prec-1
-        n = nfig + ndecimal(num)
-    else:
-        # round2prec
-        n = ndecimal(prec)
-        num = _round2prec(num, prec)
+    if np.isnan(prec):
+        return x
+    ndecimal = -log10int(prec)
+    return np.round(x, ndecimal)
 
-    return np.round(num, n)  # n specified => float (always)
+
+@np.vectorize
+def round2sigfig(x, sigfig=1):
+    """Round to significant figures.
+
+    Parameters
+    ----------
+    x : Value to be rounded.
+    sigfig : Number of significant figures to include.
+
+    Returns
+    -------
+    rounded value (always a float).
+
+    See also
+    --------
+    round2
+    np.round, which rounds to a given number of *decimals*.
+
+    Examples:
+    >>> round2sigfig(1234.5678, 1)
+    1000
+    >>> round2sigfig(1234.5678, 4)
+    1234
+    >>> round2sigfig(1234.5678, 6)
+    1234.57
+    """
+    ndecimal = sigfig - log10int(x) - 1
+    return np.round(x, ndecimal)
 
 
 # https://stackoverflow.com/q/37726830
