@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.da_methods.variational API documentation</title>
 <meta name="description" content="Variational DA methods (iEnKS, 4D-Var, etc)" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -34,7 +34,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/da_methods/variational.py#L0-L340" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L0-L340" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Variational DA methods (iEnKS, 4D-Var, etc)&#34;&#34;&#34;
 
@@ -138,9 +138,9 @@ class iEnKS:
             &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
 
         if self.bundle:
-            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
+            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...
         else:
-            EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
+            EPS = 1.0  # ... prefer using  T=EPS*T, yielding a conditional cloud shape
 
         # Initial ensemble
         E = X0.sample(N)
@@ -402,7 +402,7 @@ other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; please see the :ref:<code>random-quick-start</code>.</p>
+instance instead; see <code>random-quick-start</code>.</p>
 </div>
 <p>If positive int_like arguments are provided, <code><a title="dapper.da_methods.variational.randn" href="#dapper.da_methods.variational.randn">RandomState.randn()</a></code> generates an array
 of shape <code>(d0, d1, &hellip;, dn)</code>, filled
@@ -499,7 +499,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/da_methods/variational.py#L25-L232" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L25-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class iEnKS:
     &#34;&#34;&#34;Iterative EnKS.
@@ -579,9 +579,9 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
             &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
 
         if self.bundle:
-            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
+            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...
         else:
-            EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
+            EPS = 1.0  # ... prefer using  T=EPS*T, yielding a conditional cloud shape
 
         # Initial ensemble
         E = X0.sample(N)
@@ -771,7 +771,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/da_methods/variational.py#L92-L232" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L92-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -784,9 +784,9 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
         &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
 
     if self.bundle:
-        EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
+        EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...
     else:
-        EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
+        EPS = 1.0  # ... prefer using  T=EPS*T, yielding a conditional cloud shape
 
     # Initial ensemble
     E = X0.sample(N)
@@ -936,7 +936,7 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/da_methods/variational.py#L236-L341" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L236-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Var4D:
     &#34;&#34;&#34;4D-Var.
@@ -1082,7 +1082,7 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/da_methods/variational.py#L254-L341" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L254-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -1239,7 +1239,7 @@ there is no benefit to the adjoint trick (back-propagation).
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.mods.LorenzUV API documentation</title>
 <meta name="description" content="The 2-scale/layer/speed coupled version of Lorenz-96 …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -50,7 +50,7 @@ is built around the Markov assumption.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L0-L113" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L0-L113" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The 2-scale/layer/speed coupled version of Lorenz-96.
 
@@ -199,7 +199,7 @@ Obs settings taken from different places (=&gt; quasi-linear regime).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L28-L37" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L28-L37" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reversible(fun):
     &#34;Reverse input/output (instead of manipulating indices).&#34;&#34;&#34;
@@ -221,7 +221,7 @@ Obs settings taken from different places (=&gt; quasi-linear regime).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L30-L36" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L30-L36" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def newfun(x, *args, reverse=False, **kwargs):
     if reverse:
@@ -240,7 +240,7 @@ Obs settings taken from different places (=&gt; quasi-linear regime).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L30-L36" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L30-L36" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def newfun(x, *args, reverse=False, **kwargs):
     if reverse:
@@ -266,7 +266,7 @@ Default parameters from Wilks'2005.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L44-L114" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L44-L114" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class model_instance():
     &#34;&#34;&#34;
@@ -350,7 +350,7 @@ Default parameters from Wilks'2005.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L70-L73" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L70-L73" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unpack(self, x):
     nU, J, h, b, c = self.nU, self.J, self.h, self.b, self.c
@@ -366,7 +366,7 @@ Default parameters from Wilks'2005.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L75-L78" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L75-L78" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt_trunc(self, x):
     &#34;&#34;&#34;Truncated dxdt: slow variables (U) only.&#34;&#34;&#34;
@@ -382,7 +382,7 @@ Default parameters from Wilks'2005.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L80-L84" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L80-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt_parameterized(self, t, x):
     &#34;&#34;&#34;Truncated dxdt with parameterization of fast variables (V).&#34;&#34;&#34;
@@ -399,7 +399,7 @@ Default parameters from Wilks'2005.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L86-L96" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L86-L96" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt(self, x):
     &#34;&#34;&#34;Full (coupled) dxdt.&#34;&#34;&#34;
@@ -422,7 +422,7 @@ Default parameters from Wilks'2005.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L98-L108" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L98-L108" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(self, x):
     nU, J, h, b, c, U, V = self.unpack(x)
@@ -445,7 +445,7 @@ Default parameters from Wilks'2005.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L110-L111" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L110-L111" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(self, x, t, dt):
     return integrate_TLM(self.d2x_dtdx_auto(x), dt, method=&#39;analytic&#39;)</code></pre>
@@ -459,7 +459,7 @@ Default parameters from Wilks'2005.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/5934ba322bc094708032312d02a501f7f2a7ba53/dapper/mods/LorenzUV/__init__.py#L113-L114" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LorenzUV/__init__.py#L113-L114" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(self, jj):
     return [(11, 1, LP.spatial1d(jj, dims=list(range(self.nU))))]</code></pre>
@@ -524,7 +524,7 @@ Default parameters from Wilks'2005.</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>
