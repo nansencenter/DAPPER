@@ -28,7 +28,7 @@ for root, dir, files in os.walk("."):
                     modules_with_HMM.append(filepath)
 
 
-@pytest.mark.parametrize(("path"), modules_with_HMM)
+@pytest.mark.parametrize(("path"), modules_with_HMM, ids=str)
 def test_HMM(path):
     """Test that any HMM in module can be simulated."""
     p = str(path.with_suffix("")).replace("/", ".")
