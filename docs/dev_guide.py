@@ -1,5 +1,8 @@
 """
-## Documentation generation
+## Run tests
+See `tests`.
+
+## Documentation gen.
 
 ### Update bib
 Copy new bibtex items into `docs/bib/refs.bib`,
