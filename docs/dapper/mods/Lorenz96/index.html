@@ -40,7 +40,7 @@ Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.</p
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L0-L71" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L0-L71" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;A 1D emulator of chaotic atmospheric behaviour.
 
@@ -216,7 +216,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L23-L23" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L23-L23" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def x0(M): return np.eye(M)[0]</code></pre>
 </details>
@@ -229,7 +229,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L26-L27" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L26-L27" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def shift(x, n):
     return np.roll(x, -n, axis=-1)</code></pre>
@@ -243,7 +243,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L30-L30" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L30-L30" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x</code></pre>
 </details>
@@ -256,7 +256,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L31-L31" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L31-L31" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt(x): return dxdt_autonomous(x) + Force</code></pre>
 </details>
@@ -269,7 +269,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L34-L35" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L34-L35" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step(x0, t, dt):
     return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)</code></pre>
@@ -283,7 +283,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L41-L53" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L41-L53" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
     assert is1d(x)
@@ -308,7 +308,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L58-L60" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L58-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
@@ -323,7 +323,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/dapper/mods/Lorenz96/__init__.py#L66-L72" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/dapper/mods/Lorenz96/__init__.py#L66-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None): return [
     (11, 1, LP.spatial1d(jj)),

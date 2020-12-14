@@ -36,7 +36,7 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L0-L184" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L0-L189" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tests with the LA model, which are very useful for testing
 boundary cases of the iEnKS (e.g. nIter=1, Lag=0).&#34;&#34;&#34;
@@ -45,49 +45,54 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0).&#34;&#34;&#34;
 # Preamble
 ##############################
 import numpy as np
+import pytest
 
 import dapper as dpr
 from dapper.dict_tools import deep_getattr
-from dapper.mods.LA.small import HMM
 
-HMM.t.BurnIn = 0
-HMM.t.KObs = 10
 
-xps = dpr.xpList(unique=True)
+@pytest.fixture(scope=&#34;module&#34;)
+def data():
+    from dapper.mods.LA.small import HMM
 
-# yapf: disable
-xps += dpr.EnKF(&#39;Sqrt&#39;,    N=20)
-xps += dpr.EnKF(&#39;PertObs&#39;, N=20)
-xps += dpr.EnKF(&#39;DEnKF&#39;,   N=20)
-for Lag in [0, 1, 3]:
-    xps += dpr.EnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag)
-    xps += dpr.EnKS(&#39;PertObs&#39;, N=20, Lag=Lag)
-    xps += dpr.EnKS(&#39;DEnKF&#39;,   N=20, Lag=Lag)
-    for nIter in [1, 4]:
-        for MDA in [False, True]:
-            xps += dpr.iEnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-            xps += dpr.iEnKS(&#39;PertObs&#39;, N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-            xps += dpr.iEnKS(&#39;Order1&#39;,  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-# yapf: enable
+    HMM.t.BurnIn = 0
+    HMM.t.KObs = 10
 
-for xp in xps:
-    xp.seed = 3000
+    xps = dpr.xpList(unique=True)
 
-xps.launch(HMM, store_u=True, save_as=False)
-print(xps.tabulate_avrgs([&#34;rmse.a&#34;, &#34;rmse.f&#34;, &#34;rmse.u&#34;, &#34;rmse.s&#34;]))
+    # yapf: disable
+    xps += dpr.EnKF(&#39;Sqrt&#39;,    N=20)
+    xps += dpr.EnKF(&#39;PertObs&#39;, N=20)
+    xps += dpr.EnKF(&#39;DEnKF&#39;,   N=20)
+    for Lag in [0, 1, 3]:
+        xps += dpr.EnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag)
+        xps += dpr.EnKS(&#39;PertObs&#39;, N=20, Lag=Lag)
+        xps += dpr.EnKS(&#39;DEnKF&#39;,   N=20, Lag=Lag)
+        for nIter in [1, 4]:
+            for MDA in [False, True]:
+                xps += dpr.iEnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += dpr.iEnKS(&#39;PertObs&#39;, N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += dpr.iEnKS(&#39;Order1&#39;,  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+    # yapf: enable
+
+    for xp in xps:
+        xp.seed = 3000
+
+    xps.launch(HMM, store_u=True, save_as=False)
+    print(xps.tabulate_avrgs([&#34;rmse.a&#34;, &#34;rmse.f&#34;, &#34;rmse.u&#34;, &#34;rmse.s&#34;]))
+
+    return xps
+
 
 ##############################
 # Test aux functions
 ##############################
-find = xps.inds  # lookup inds
-
-
 def _allsame(xx):
     # rtol=0 =&gt; only atol matters.
     return np.allclose(xx, xx[0], atol=1e-10, rtol=0)
 
 
-def _rmse(sub, indices):
+def _rmse(xps, sub, indices):
     def get_val(i):
         try:
             return deep_getattr(xps[i].avrgs, &#39;err.rms.&#39; + sub).val
@@ -110,111 +115,111 @@ def _rmse(sub, indices):
 # For Sqrt flavour:
 # All filter/analysis (f/a) stats should be equal
 # for all EnKF/EnKS/iEnKS(nIter/Lag/MDA).
-def test_Sqrt():
-    ii = find(strict=1, upd_a=&#39;Sqrt&#39;)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))
+def test_Sqrt(data):
+    ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))
 
 
 # However, the u stats depend on the Lag, of course.
 # Test together with non-iter filters:
-def test_Sqrt_u():
-    ii = find(strict=0, upd_a=&#39;Sqrt&#39;, Lag=0)
-    assert _allsame(_rmse(&#39;u&#39;, ii))
+def test_Sqrt_u(data):
+    ii = data.inds(strict=0, upd_a=&#39;Sqrt&#39;, Lag=0)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
 
 
 # Idem for s stats (not def&#39;d for filters)
-def test_Sqrt_Lag1_u():
-    ii = find(strict=1, upd_a=&#39;Sqrt&#39;, Lag=1)
-    assert _allsame(_rmse(&#39;u&#39;, ii))
-    assert _allsame(_rmse(&#39;s&#39;, ii))
+def test_Sqrt_Lag1_u(data):
+    ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;, Lag=1)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
+    assert _allsame(_rmse(data, &#39;s&#39;, ii))
 
 
-def test_Sqrt_Lag3_u():
-    ii = find(strict=1, upd_a=&#39;Sqrt&#39;, Lag=3)
-    assert _allsame(_rmse(&#39;u&#39;, ii))
-    assert _allsame(_rmse(&#39;s&#39;, ii))
+def test_Sqrt_Lag3_u(data):
+    ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;, Lag=3)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
+    assert _allsame(_rmse(data, &#39;s&#39;, ii))
 
 
 # For PertObs flavour::
 # - f/a stats all equal except for MDA with nIter&gt;1.
-def test_PertObs():
-    ii = (find(strict=0, upd_a=&#39;PertObs&#39;, MDA=0) +
-          find(strict=1, upd_a=&#39;PertObs&#39;, MDA=1, nIter=1))
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))
+def test_PertObs(data):
+    ii = (data.inds(strict=0, upd_a=&#39;PertObs&#39;, MDA=0) +
+          data.inds(strict=1, upd_a=&#39;PertObs&#39;, MDA=1, nIter=1))
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))
 
 
 # - Still with nIter=4, f/a stats of MDA does not depend on Lag.
-def test_PertObs_nIter4():
-    ii = find(strict=1, upd_a=&#39;PertObs&#39;, nIter=4, MDA=1)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))
+def test_PertObs_nIter4(data):
+    ii = data.inds(strict=1, upd_a=&#39;PertObs&#39;, nIter=4, MDA=1)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))
 
 
 # - u stats equal for filter and (iter/non-iter) smoothers with Lag=0, except MDA with nIter&gt;1:
-def test_PertObs_u():
-    ii = (find(strict=0, upd_a=&#39;PertObs&#39;, MDA=0, Lag=0) +
-          find(strict=1, upd_a=&#39;PertObs&#39;, MDA=1, Lag=0, nIter=1))
-    assert _allsame(_rmse(&#39;u&#39;, ii))
+def test_PertObs_u(data):
+    ii = (data.inds(strict=0, upd_a=&#39;PertObs&#39;, MDA=0, Lag=0) +
+          data.inds(strict=1, upd_a=&#39;PertObs&#39;, MDA=1, Lag=0, nIter=1))
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
 
 
 # - u stats equal for            (iter/non-iter) smoothers with Lag=1, except MDA with nIter&gt;1:
-def test_PertObs_Lag1_u():
-    ii = find(upd_a=&#39;PertObs&#39;, Lag=1)
-    ii.remove(find(upd_a=&#39;PertObs&#39;, Lag=1, MDA=1, nIter=4)[0])
-    assert _allsame(_rmse(&#39;u&#39;, ii))
-    assert _allsame(_rmse(&#39;s&#39;, ii))
+def test_PertObs_Lag1_u(data):
+    ii = data.inds(upd_a=&#39;PertObs&#39;, Lag=1)
+    ii.remove(data.inds(upd_a=&#39;PertObs&#39;, Lag=1, MDA=1, nIter=4)[0])
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
+    assert _allsame(_rmse(data, &#39;s&#39;, ii))
 
 
 # - u stats equal for            (iter/non-iter) smoothers with Lag=3, except MDA with nIter&gt;1:
-def test_PertObs_Lag3_u():
-    ii = find(upd_a=&#39;PertObs&#39;, Lag=3)
-    ii.remove(find(upd_a=&#39;PertObs&#39;, Lag=3, MDA=1, nIter=4)[0])
-    assert _allsame(_rmse(&#39;u&#39;, ii))
-    assert _allsame(_rmse(&#39;s&#39;, ii))
+def test_PertObs_Lag3_u(data):
+    ii = data.inds(upd_a=&#39;PertObs&#39;, Lag=3)
+    ii.remove(data.inds(upd_a=&#39;PertObs&#39;, Lag=3, MDA=1, nIter=4)[0])
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
+    assert _allsame(_rmse(data, &#39;s&#39;, ii))
 
 
 # For Order1 (DEnKF) flavour:
 # f/a stats all equal except for nIter&gt;1:
-def test_Order1():
-    ii = find(upd_a=&#39;DEnKF&#39;) +\
-         find(upd_a=&#39;Order1&#39;, nIter=1)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))
+def test_Order1(data):
+    ii = data.inds(upd_a=&#39;DEnKF&#39;) +\
+         data.inds(upd_a=&#39;Order1&#39;, nIter=1)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))
 
 
 # f/a stats independent of Lag for non-MDA and a given nIter:
-def test_Order1_nIter4_MDA0():
-    ii = find(upd_a=&#39;Order1&#39;, nIter=4, MDA=0)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))
+def test_Order1_nIter4_MDA0(data):
+    ii = data.inds(upd_a=&#39;Order1&#39;, nIter=4, MDA=0)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))
 
 
 # f/a stats independent of Lag for     MDA and a given nIter:
-def test_Order1_nIter4_MDA1():
-    ii = find(upd_a=&#39;Order1&#39;, nIter=4, MDA=1)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))
+def test_Order1_nIter4_MDA1(data):
+    ii = data.inds(upd_a=&#39;Order1&#39;, nIter=4, MDA=1)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))
 
 
 # u   stats equal for EnKS/iEnKS(nIter=1) for a given Lag:
-def test_Order1_nIter1_Lag0_u():
-    ii = find(strict=0, upd_a=&#39;DEnKF&#39;, Lag=0) +\
-         find(upd_a=&#39;Order1&#39;, Lag=0, nIter=1)
-    assert _allsame(_rmse(&#39;u&#39;, ii))
+def test_Order1_nIter1_Lag0_u(data):
+    ii = data.inds(strict=0, upd_a=&#39;DEnKF&#39;, Lag=0) +\
+         data.inds(upd_a=&#39;Order1&#39;, Lag=0, nIter=1)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
 
 
-def test_Order1_nIter1_Lag1_u():
-    ii = find(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
-         find(upd_a=&#39;Order1&#39;, Lag=1, nIter=1)
-    assert _allsame(_rmse(&#39;u&#39;, ii))
+def test_Order1_nIter1_Lag1_u(data):
+    ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
+         data.inds(upd_a=&#39;Order1&#39;, Lag=1, nIter=1)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
 
 
-def test_Order1_nIter1_Lag3_u():
-    ii = find(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\
-         find(upd_a=&#39;Order1&#39;, Lag=3, nIter=1)
-    assert _allsame(_rmse(&#39;u&#39;, ii))
+def test_Order1_nIter1_Lag3_u(data):
+    ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\
+         data.inds(upd_a=&#39;Order1&#39;, Lag=3, nIter=1)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
 
 
 # For nonlinear dynamics, the (non-iterative) EnKF (f/a/u stats)
@@ -232,247 +237,290 @@ def test_Order1_nIter1_Lag3_u():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="tests.test_iEnKS.test_Sqrt"><code class="name flex">
-<span>def <span class="ident">test_Sqrt</span></span>(<span>)</span>
+<dt id="tests.test_iEnKS.data"><code class="name flex">
+<span>def <span class="ident">data</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L73-L76" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L14-L44" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Sqrt():
-    ii = find(strict=1, upd_a=&#39;Sqrt&#39;)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))</code></pre>
+<pre><code class="python">@pytest.fixture(scope=&#34;module&#34;)
+def data():
+    from dapper.mods.LA.small import HMM
+
+    HMM.t.BurnIn = 0
+    HMM.t.KObs = 10
+
+    xps = dpr.xpList(unique=True)
+
+    # yapf: disable
+    xps += dpr.EnKF(&#39;Sqrt&#39;,    N=20)
+    xps += dpr.EnKF(&#39;PertObs&#39;, N=20)
+    xps += dpr.EnKF(&#39;DEnKF&#39;,   N=20)
+    for Lag in [0, 1, 3]:
+        xps += dpr.EnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag)
+        xps += dpr.EnKS(&#39;PertObs&#39;, N=20, Lag=Lag)
+        xps += dpr.EnKS(&#39;DEnKF&#39;,   N=20, Lag=Lag)
+        for nIter in [1, 4]:
+            for MDA in [False, True]:
+                xps += dpr.iEnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += dpr.iEnKS(&#39;PertObs&#39;, N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += dpr.iEnKS(&#39;Order1&#39;,  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+    # yapf: enable
+
+    for xp in xps:
+        xp.seed = 3000
+
+    xps.launch(HMM, store_u=True, save_as=False)
+    print(xps.tabulate_avrgs([&#34;rmse.a&#34;, &#34;rmse.f&#34;, &#34;rmse.u&#34;, &#34;rmse.s&#34;]))
+
+    return xps</code></pre>
+</details>
+</dd>
+<dt id="tests.test_iEnKS.test_Sqrt"><code class="name flex">
+<span>def <span class="ident">test_Sqrt</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L78-L81" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def test_Sqrt(data):
+    ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Sqrt_u"><code class="name flex">
-<span>def <span class="ident">test_Sqrt_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_Sqrt_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L81-L83" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L86-L88" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Sqrt_u():
-    ii = find(strict=0, upd_a=&#39;Sqrt&#39;, Lag=0)
-    assert _allsame(_rmse(&#39;u&#39;, ii))</code></pre>
+<pre><code class="python">def test_Sqrt_u(data):
+    ii = data.inds(strict=0, upd_a=&#39;Sqrt&#39;, Lag=0)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Sqrt_Lag1_u"><code class="name flex">
-<span>def <span class="ident">test_Sqrt_Lag1_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_Sqrt_Lag1_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L87-L90" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L92-L95" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Sqrt_Lag1_u():
-    ii = find(strict=1, upd_a=&#39;Sqrt&#39;, Lag=1)
-    assert _allsame(_rmse(&#39;u&#39;, ii))
-    assert _allsame(_rmse(&#39;s&#39;, ii))</code></pre>
+<pre><code class="python">def test_Sqrt_Lag1_u(data):
+    ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;, Lag=1)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
+    assert _allsame(_rmse(data, &#39;s&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Sqrt_Lag3_u"><code class="name flex">
-<span>def <span class="ident">test_Sqrt_Lag3_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_Sqrt_Lag3_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L93-L96" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L98-L101" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Sqrt_Lag3_u():
-    ii = find(strict=1, upd_a=&#39;Sqrt&#39;, Lag=3)
-    assert _allsame(_rmse(&#39;u&#39;, ii))
-    assert _allsame(_rmse(&#39;s&#39;, ii))</code></pre>
+<pre><code class="python">def test_Sqrt_Lag3_u(data):
+    ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;, Lag=3)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
+    assert _allsame(_rmse(data, &#39;s&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_PertObs"><code class="name flex">
-<span>def <span class="ident">test_PertObs</span></span>(<span>)</span>
+<span>def <span class="ident">test_PertObs</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L101-L105" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L106-L110" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_PertObs():
-    ii = (find(strict=0, upd_a=&#39;PertObs&#39;, MDA=0) +
-          find(strict=1, upd_a=&#39;PertObs&#39;, MDA=1, nIter=1))
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))</code></pre>
+<pre><code class="python">def test_PertObs(data):
+    ii = (data.inds(strict=0, upd_a=&#39;PertObs&#39;, MDA=0) +
+          data.inds(strict=1, upd_a=&#39;PertObs&#39;, MDA=1, nIter=1))
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_PertObs_nIter4"><code class="name flex">
-<span>def <span class="ident">test_PertObs_nIter4</span></span>(<span>)</span>
+<span>def <span class="ident">test_PertObs_nIter4</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L109-L112" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L114-L117" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_PertObs_nIter4():
-    ii = find(strict=1, upd_a=&#39;PertObs&#39;, nIter=4, MDA=1)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))</code></pre>
+<pre><code class="python">def test_PertObs_nIter4(data):
+    ii = data.inds(strict=1, upd_a=&#39;PertObs&#39;, nIter=4, MDA=1)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_PertObs_u"><code class="name flex">
-<span>def <span class="ident">test_PertObs_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_PertObs_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L116-L119" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L121-L124" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_PertObs_u():
-    ii = (find(strict=0, upd_a=&#39;PertObs&#39;, MDA=0, Lag=0) +
-          find(strict=1, upd_a=&#39;PertObs&#39;, MDA=1, Lag=0, nIter=1))
-    assert _allsame(_rmse(&#39;u&#39;, ii))</code></pre>
+<pre><code class="python">def test_PertObs_u(data):
+    ii = (data.inds(strict=0, upd_a=&#39;PertObs&#39;, MDA=0, Lag=0) +
+          data.inds(strict=1, upd_a=&#39;PertObs&#39;, MDA=1, Lag=0, nIter=1))
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_PertObs_Lag1_u"><code class="name flex">
-<span>def <span class="ident">test_PertObs_Lag1_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_PertObs_Lag1_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L123-L127" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L128-L132" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_PertObs_Lag1_u():
-    ii = find(upd_a=&#39;PertObs&#39;, Lag=1)
-    ii.remove(find(upd_a=&#39;PertObs&#39;, Lag=1, MDA=1, nIter=4)[0])
-    assert _allsame(_rmse(&#39;u&#39;, ii))
-    assert _allsame(_rmse(&#39;s&#39;, ii))</code></pre>
+<pre><code class="python">def test_PertObs_Lag1_u(data):
+    ii = data.inds(upd_a=&#39;PertObs&#39;, Lag=1)
+    ii.remove(data.inds(upd_a=&#39;PertObs&#39;, Lag=1, MDA=1, nIter=4)[0])
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
+    assert _allsame(_rmse(data, &#39;s&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_PertObs_Lag3_u"><code class="name flex">
-<span>def <span class="ident">test_PertObs_Lag3_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_PertObs_Lag3_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L131-L135" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L136-L140" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_PertObs_Lag3_u():
-    ii = find(upd_a=&#39;PertObs&#39;, Lag=3)
-    ii.remove(find(upd_a=&#39;PertObs&#39;, Lag=3, MDA=1, nIter=4)[0])
-    assert _allsame(_rmse(&#39;u&#39;, ii))
-    assert _allsame(_rmse(&#39;s&#39;, ii))</code></pre>
+<pre><code class="python">def test_PertObs_Lag3_u(data):
+    ii = data.inds(upd_a=&#39;PertObs&#39;, Lag=3)
+    ii.remove(data.inds(upd_a=&#39;PertObs&#39;, Lag=3, MDA=1, nIter=4)[0])
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))
+    assert _allsame(_rmse(data, &#39;s&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Order1"><code class="name flex">
-<span>def <span class="ident">test_Order1</span></span>(<span>)</span>
+<span>def <span class="ident">test_Order1</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L140-L144" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L145-L149" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Order1():
-    ii = find(upd_a=&#39;DEnKF&#39;) +\
-         find(upd_a=&#39;Order1&#39;, nIter=1)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))</code></pre>
+<pre><code class="python">def test_Order1(data):
+    ii = data.inds(upd_a=&#39;DEnKF&#39;) +\
+         data.inds(upd_a=&#39;Order1&#39;, nIter=1)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Order1_nIter4_MDA0"><code class="name flex">
-<span>def <span class="ident">test_Order1_nIter4_MDA0</span></span>(<span>)</span>
+<span>def <span class="ident">test_Order1_nIter4_MDA0</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L148-L151" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L153-L156" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Order1_nIter4_MDA0():
-    ii = find(upd_a=&#39;Order1&#39;, nIter=4, MDA=0)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))</code></pre>
+<pre><code class="python">def test_Order1_nIter4_MDA0(data):
+    ii = data.inds(upd_a=&#39;Order1&#39;, nIter=4, MDA=0)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Order1_nIter4_MDA1"><code class="name flex">
-<span>def <span class="ident">test_Order1_nIter4_MDA1</span></span>(<span>)</span>
+<span>def <span class="ident">test_Order1_nIter4_MDA1</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L155-L158" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L160-L163" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Order1_nIter4_MDA1():
-    ii = find(upd_a=&#39;Order1&#39;, nIter=4, MDA=1)
-    assert _allsame(_rmse(&#39;a&#39;, ii))
-    assert _allsame(_rmse(&#39;f&#39;, ii))</code></pre>
+<pre><code class="python">def test_Order1_nIter4_MDA1(data):
+    ii = data.inds(upd_a=&#39;Order1&#39;, nIter=4, MDA=1)
+    assert _allsame(_rmse(data, &#39;a&#39;, ii))
+    assert _allsame(_rmse(data, &#39;f&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Order1_nIter1_Lag0_u"><code class="name flex">
-<span>def <span class="ident">test_Order1_nIter1_Lag0_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_Order1_nIter1_Lag0_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L162-L165" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L167-L170" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Order1_nIter1_Lag0_u():
-    ii = find(strict=0, upd_a=&#39;DEnKF&#39;, Lag=0) +\
-         find(upd_a=&#39;Order1&#39;, Lag=0, nIter=1)
-    assert _allsame(_rmse(&#39;u&#39;, ii))</code></pre>
+<pre><code class="python">def test_Order1_nIter1_Lag0_u(data):
+    ii = data.inds(strict=0, upd_a=&#39;DEnKF&#39;, Lag=0) +\
+         data.inds(upd_a=&#39;Order1&#39;, Lag=0, nIter=1)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Order1_nIter1_Lag1_u"><code class="name flex">
-<span>def <span class="ident">test_Order1_nIter1_Lag1_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_Order1_nIter1_Lag1_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L168-L171" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L173-L176" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Order1_nIter1_Lag1_u():
-    ii = find(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
-         find(upd_a=&#39;Order1&#39;, Lag=1, nIter=1)
-    assert _allsame(_rmse(&#39;u&#39;, ii))</code></pre>
+<pre><code class="python">def test_Order1_nIter1_Lag1_u(data):
+    ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
+         data.inds(upd_a=&#39;Order1&#39;, Lag=1, nIter=1)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))</code></pre>
 </details>
 </dd>
 <dt id="tests.test_iEnKS.test_Order1_nIter1_Lag3_u"><code class="name flex">
-<span>def <span class="ident">test_Order1_nIter1_Lag3_u</span></span>(<span>)</span>
+<span>def <span class="ident">test_Order1_nIter1_Lag3_u</span></span>(<span>data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/ddc727161422eb382ed0e3d76718108bd532c93b/tests/test_iEnKS.py#L174-L177" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/cf177f0b33fe57b3cbba69c98ccfffb3e7596b8d/tests/test_iEnKS.py#L179-L182" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def test_Order1_nIter1_Lag3_u():
-    ii = find(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\
-         find(upd_a=&#39;Order1&#39;, Lag=3, nIter=1)
-    assert _allsame(_rmse(&#39;u&#39;, ii))</code></pre>
+<pre><code class="python">def test_Order1_nIter1_Lag3_u(data):
+    ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\
+         data.inds(upd_a=&#39;Order1&#39;, Lag=3, nIter=1)
+    assert _allsame(_rmse(data, &#39;u&#39;, ii))</code></pre>
 </details>
 </dd>
 </dl>
@@ -499,6 +547,7 @@ def test_Order1_nIter1_Lag3_u():
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="tests.test_iEnKS.data" href="#tests.test_iEnKS.data">data</a></code></li>
 <li><code><a title="tests.test_iEnKS.test_Sqrt" href="#tests.test_iEnKS.test_Sqrt">test_Sqrt</a></code></li>
 <li><code><a title="tests.test_iEnKS.test_Sqrt_u" href="#tests.test_iEnKS.test_Sqrt_u">test_Sqrt_u</a></code></li>
 <li><code><a title="tests.test_iEnKS.test_Sqrt_Lag1_u" href="#tests.test_iEnKS.test_Sqrt_Lag1_u">test_Sqrt_Lag1_u</a></code></li>
