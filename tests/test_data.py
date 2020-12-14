@@ -7,12 +7,12 @@ then there is no test generation, but rather:
    but with updated printouts in place of the `old`s.
 
 Notes:
-- Enables re-use of ``old`` variable name (by capturing its value).
-- Parameterization -- pytest.mark.parametrize not used.
-  Avoids having to decorate an explicit function
-  (and thus enables naming functions through test_ind).
+- Parameterization -- A custom, hacky way to do this is used instead off
+  pytest.mark.parametrize. Maybe not the best idea, but I have learned
+  a fair amount doing it.
 - Capturing stdout -- xpSpace.print() only called once for each ``old``
   (unlike a pytest fixture with capsys) => fast.
+- To better understand failing tests, use `pytest -vv` with pytest-clarity installed.
 - To debug, insert a breakpoint above the desired call to `gen_test_set`.
   Once within the debugging session, set another one within `cap_stdout`,
   and step-in from there.
@@ -29,6 +29,7 @@ from dataclasses import dataclass
 import dapper as dpr
 
 if "--replace" in sys.argv:
+    replacements = []
 
     @dataclass
     class Replacement:
@@ -36,18 +37,18 @@ if "--replace" in sys.argv:
         nOpen: int
         nClose: int
 
-    def backtrack_until_finding(substr, lineno):
-        while True:
-            lineno -= 1
-            if substr in orig_code[lineno]:
-                return lineno
-
-    replacements = []
-    orig_code = open(__file__, "r").readlines()
-
 else:  # Test -- insert test_funcs in locals().
     test_register = locals()
-    test_ind = 0
+
+
+def backtrack_until_finding(substr, lineno):
+    while True:
+        lineno -= 1
+        if substr in orig_code[lineno]:
+            return lineno
+
+
+orig_code = open(__file__, "r").readlines()
 
 
 # https://stackoverflow.com/a/22434594
@@ -65,35 +66,30 @@ def gen_test_set(xp_dict, *args, **kwargs):
     # Get stdout of xpSpace.print()
     output = cap_stdout(xp_dict.print, *args, **kwargs)
 
+    # introspection
+    caller_lineno = inspect.currentframe().f_back.f_lineno
+    nClose = backtrack_until_finding('"""\n', caller_lineno)
+    nOpen = backtrack_until_finding('"""', nClose)
+
     if "--print" in sys.argv:
         print(output)
         return
-    else:
-        output = output.splitlines(True)
 
     if "--replace" in sys.argv:
-        caller_lineno = inspect.currentframe().f_back.f_lineno
-        nClose = backtrack_until_finding('"""\n', caller_lineno)
-        nOpen = backtrack_until_finding('"""', nClose)
-        replacements.append(Replacement(output, nOpen, nClose))
+        replacements.append(Replacement(output.splitlines(True), nOpen, nClose))
 
     else:  # Generate & register tests
-        global test_ind
-        test_ind += 1
 
-        # Capture ``old``
-        _old = old.splitlines(True)  # keepends
+        # Split string into tables
+        lineno = nOpen + 1
+        for table_old, table_new in zip(old.split("\n\n"), output.split("\n\n")):
+            # Use kwargs to bind current values of table_old/_new
+            def compare(expected=table_old, printout=table_new):
+                assert printout == expected
 
-        # Loop over rows
-        for lineno, (old_bound, new_bound) in enumerate(zip(_old, output)):
+            test_register[f"test_table_starting_on_line_{lineno}"] = compare
 
-            # Define test function.
-            def compare(old_line=old_bound, new_line=new_bound):
-                assert new_line == old_line
-                # assert new_line.strip() == old_line.strip()
-
-            # Register test
-            test_register[f"test_{test_ind}_line_{lineno}"] = compare
+            lineno += table_old.count("\n") + 2
 
 
 ##
