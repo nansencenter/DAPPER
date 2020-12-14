@@ -479,7 +479,7 @@ def raw_C12(E, w):
     and also computed based on a weighted mean.
     """
     # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.math.weight_degeneracy(w):
+    if dapper.tools.math.is_degenerate_weight(w):
         w = np.ones(len(w))/len(w)
         # PS: 'avoid_pathological' already treated here.
 

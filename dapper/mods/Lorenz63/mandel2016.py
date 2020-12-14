@@ -1,5 +1,5 @@
 """As in
-J. Mandel, E. Bergou, S. Gürol, S. Gratton, and I. Kasanický (2016)
+J. Mandel, E. Bergou, S. Guerol, S. Gratton, and I. Kasanickyi (2016)
 "Hybrid Levenberg–Marquardt and weak-constraint ensemble Kalman smoother method"
 """
 

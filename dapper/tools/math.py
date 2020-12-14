@@ -14,26 +14,77 @@ import dapper.tools.utils as utils
 # Array manip
 ########################
 def is1d(a):
-    """Works for list and row/column arrays and matrices"""
+    """
+    Check if input is a 1D array.
+
+    Parameters
+    ----------
+    a : ndarray
+        Any array to check if it is one-dimensional
+
+    Returns
+    -------
+      : logical
+        True if it is one dimensional otherwise False
+    """
+    # return np.asarray(a).ndim == 1
     return np.sum(np.asarray(np.asarray(a).shape) > 1) <= 1
 
 
 def exactly_1d(a):
-    "Ensure a is 1d."
+    """
+    Turn one-dimensional list/array into array and check 
+    the dimension of input array, if not 1D raise
+    an error.
+    ----------
+    a : ndarray or list
+        Only 1-D array or list are expected
+
+    Returns
+    -------
+    a : ndarray
+        1-D array
+    """    
     a = np.atleast_1d(a)
-    assert a.ndim == 1
+    assert a.ndim == 1, "input array should be exactly one dimensional"
     return a
 
 
 def exactly_2d(a):
-    "Ensure a is 2d."
+    """
+    Turn two-dimensional list/array into array and check 
+    the dimension of input array, if not 2D raise
+    an error.
+    ----------
+    a : ndarray or list
+        Only 2-D array or list are expected
+
+    Returns
+    -------
+    a : ndarray
+        2-D array
+    """
     a = np.atleast_2d(a)
-    assert a.ndim == 2
+    assert a.ndim == 2, 'Input array must be 2-D'
     return a
 
 
 def ccat(*args, axis=0):
-    "Convenience wrapper around np.concatenate."
+    """
+    Concatenate multiple arrays/lists into one array
+    for given axis. By default it concatenate the 
+    first dimension.
+    ----------
+    *args : array_like
+        array_like instances to be concatenated.
+
+    axis : int, optional
+        The dimension to be concatenated. Default: 0
+    Returns
+    -------
+      : ndarray
+        Array concatenated in the given axis
+    """
     args = [np.atleast_1d(x) for x in args]
     return np.concatenate(args, axis=axis)
 
@@ -42,12 +93,13 @@ def ccat(*args, axis=0):
 # Ensemble matrix manip
 ########################
 def ens_compatible(func):
-    """Tranpose before and after.
+    """
+    Function decorator used to tranpose the input and returned array.
 
     Helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    An older version also used np.atleast_2d and squeeze(),
-    but that is more messy than necessary.
+    An older version also used np.atleast_2d and squeeze(), but that is more
+    messy than necessary.
 
     Note: this is not the_way™ -- other tricks are sometimes more practical.
     See for example dxdt() in __init__.py for LorenzUV, Lorenz96, LotkaVolterra.
@@ -59,11 +111,32 @@ def ens_compatible(func):
 
 
 def center(E, axis=0, rescale=False):
-    """Center ensemble.
+    """
+    Center ensemble.
 
-    Makes use of np features: keepdims and broadcasting.
+   Makes use of np features: keepdims and broadcasting.
+    
+   Parameters
+   ----------
+    E : numpy array
+        Ensemble which going to be inflated
 
-    - rescale: Inflate to compensate for reduction in the expected variance."""
+    axis : int, optional
+        The axis to be centered. Default: 0
+
+    rescale: logical, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is $\sqrt(\frac{N}{N - 1})$ 
+        where N is the ensemble size. Default: False
+
+    Returns
+    -------
+    X : numpy array
+        Ensemble anomaly
+
+    x : numpy array
+        Mean of the ensemble
+    """
     x = np.mean(E, axis=axis, keepdims=True)
     X = E - x
 
@@ -77,31 +150,108 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    "Same as: center(E,rescale=True)[0]"
+    """
+    Same as: center(E,rescale=True)[0]
+
+    Parameters
+    ----------
+    E : numpy array
+        Ensemble which going to be inflated
+
+    axis : int, optional
+        The axis to be centered. Default: 0
+
+    rescale: logical, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is $\sqrt(\frac{N}{N - 1})$. Act as a way for 
+        unbiased variance estimation?
+        where N is the ensemble size. Default: True
+
+
+    Returns
+    -------
+    X : numpy array
+        Ensemble anomaly
+    """
     return center(E, axis=axis, rescale=rescale)[0]
 
 
 def inflate_ens(E, factor):
-    "Inflate the ensemble (center, inflate, re-combine)."
-    if factor == 1:
+    """
+    Inflate the ensemble E by an multiplicative factor
+
+    Parameters
+    ----------
+    E : numpy array
+        Ensemble which going to be inflated
+
+    factor: float
+        Inflation factor
+
+
+    Returns
+    -------
+    E : numpy array
+        Inflated ensemble
+    """
+    if np.isclose(factor, 1.):
         return E
     X, x = center(E)
     return x + X*factor
 
 
-def weight_degeneracy(w, prec=1e-10):
-    "Are weights degenerate?"
-    return (1-w.max()) < prec
+def is_degenerate_weight(w, prec=1e-10):
+    """
+    Check if the input w (weight) is degenerate
+    If it is degenerate, the maximum weight
+    should be nearly one since sum(w) = 1
+    Parameters
+    ----------
+    w : numpy array
+        Weight of something. Sum(w) = 1
+
+    prec: float, optional
+        Tolerance of the distance between w and one. Default:1e-10
+
+    Returns
+    -------
+    l : logical
+        If weight is degenerate True, else False
+    """
+    return np.isclose(1, w.max(), rtol = prec, atol = prec)
 
 
 def unbias_var(w=None, N_eff=None, avoid_pathological=False):
-    """Compute unbias-ing factor for variance estimation.
+    """
+    Compute unbias-ing factor for variance estimation.
 
+    Parameters
+    ----------
+    w : numpy array, optional
+        Weight of something. Sum(w) = 1. 
+        Only one of w and N_eff can be None. Default: None
+
+    N_eff: float, optional
+        Tolerance of the distance between w and one. 
+        Only one of w and N_eff can be None.  Default: None
+
+    avoid_pathological: logical, optional
+        Avoid weight collapse. Default: False
+
+    Returns
+    -------
+    ub : float
+        factor used to unbiasing variance
+
+    See Also
+    --------
     wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
+
+    
     """
     if N_eff is None:
         N_eff = 1/(w@w)
-    if avoid_pathological and weight_degeneracy(w):
+    if avoid_pathological and is_degenerate_weight(w):
         ub = 1  # Don't do in case of weights collapse
     else:
         ub = 1/(1 - 1/N_eff)  # =N/(N-1) if w==ones(N)/N.
@@ -114,8 +264,32 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 
 # fmt: off
 def rk4(f, x, t, dt, order=4):
-    """Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers."""
-    # pylint: disable=R1705, W0311
+    """
+    Runge-Kutta N-th order (explicit, non-adaptive, up to 4th order) numerical ODE solvers.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    x : numpy array or float
+        State vector of the forcing term
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    order : integer, optional
+        The order of RK method. Default: 4
+
+    Returns
+    -------
+    x : numpy array
+        State vector at the new time step t+dt
+
+    """
     if order >=1: k1 = dt * f(t     , x)                        # noqa
     if order >=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
     if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
@@ -131,7 +305,27 @@ def rk4(f, x, t, dt, order=4):
 
 
 def with_rk4(dxdt, autonom=False, order=4):
-    """Wrap dxdt in rk4"""
+    """
+    Helper method for RK4
+
+    Parameters
+    ----------
+    dxdt : function
+        The forcing of the ODE
+
+    autonom : logical, optional
+        If the function is autonomous (only dependent on x and not t),
+        set it to be true. Default: False
+
+    order : integer, optional
+        The order of RK method. Default: 4
+
+    Returns
+    -------
+    step : function
+        A function used to do numerical integration with RK-order
+
+    """
     integrator = functools.partial(rk4, order=order)
     if autonom:
         def step(x0, t0, dt):
@@ -145,16 +339,17 @@ def with_rk4(dxdt, autonom=False, order=4):
 
 
 def with_recursion(func, prog=False):
-    """Make function recursive in its 1st arg.
+    """
+    Make function recursive in its 1st arg.
 
     Return a version of func() whose 2nd argument (k)
     specifies the number of times to times apply func on its output.
 
     Example::
 
-      def step(x,t,dt): ...
-      step_k = with_recursion(step)
-      x[k]   = step_k(x0,k,t=np.nan,dt)[-1]
+        def step(x,t,dt): ...
+        step_k = with_recursion(step)
+        x[k]   = step_k(x0,k,t=NaN,dt)[-1]
     """
     def fun_k(x0, k, *args, **kwargs):
         xx = np.zeros((k+1,)+x0.shape)
@@ -243,14 +438,6 @@ def FD_Jac(ens_compatible_function, eps=1e-7):
 ########################
 
 @np.vectorize
-def _round2prec(num, prec):
-    """Don't use! Instead, use round2(). The issue is that:
-    >>> _round2prec(0.7,.1) != 0.7
-    """
-    return prec * round(num / prec)
-
-
-@np.vectorize
 def ndecimal(x):
     """Convert precision to num. of decimals. Example:
     >>> ndecimal(10)    # --> -1
@@ -277,51 +464,110 @@ def round2(num, param=1):
     Examples:
     >>> xx = curvedspace(1e-3,1e2,15,.5)
     >>> with np.printoptions(precision=100):
-    >>>     spell_out(_round2prec (xx, 1e-2))
     >>>     spell_out(round2      (xx, 1e-2))
     >>>     spell_out(round2      (xx,    1))
     """
     if is_int(param):
-        # round2sigfig
+        # round to significant figure
         nfig = param-1
         n = nfig + ndecimal(num)
     else:
-        # round2prec
+        # round to precision
         prec = param
         n = ndecimal(prec)
-        num = _round2prec(num, prec)
+        num = prec * np.round(num / prec)
+        print(num)
 
     return np.round(num, n)  # n specified => float (always)
 
 
 # https://stackoverflow.com/q/37726830
 def is_int(a):
+    """
+    Check if the input is any type of integer
+    
+    Parameters
+    ----------
+    a : any
+        Values to be checked
+
+    Returns
+    -------
+     : logical
+        True if it is int, otherwise False
+    """
     return np.issubdtype(type(a), np.integer)
 
 
 def is_whole(x):
+    """
+    Check if rounded x is close to the original value
+    
+    Parameters
+    ----------
+    x : float or ndarray
+        Values to be checked
+
+    Returns
+    -------
+     : logical
+        True if rounded x is close to x, otherwise False
+    """
     return np.isclose(x, round(x))
 
 
-def validate_int(x):
-    assert is_whole(x)
-    return round(x)  # convert to int
+# def validate_int(x):
+#     """
+#     Get rounded input if it does not affect the accuracy of the value
+#     If rounded value affects the accuracy of x, raise Error
+
+#     Parameters
+#     ----------
+#     x : float or ndarray
+#         Values to be rounded
+
+#     Returns
+#     -------
+#      : float or ndarray
+#         Rounded value
+#     """
+#     assert is_whole(x)
+#     return round(x)  # convert to int
 
 
-def isNone(x):
-    """x==None that also works for x being an np.ndarray.
+# def is_None(x):
+#     """x==None that also works for x being an np.ndarray.
 
-    Since python3.8 ``x is None`` throws warning.
+#     Since python3.8 ``x is None`` throws warning.
 
-    Ref: np.isscalar docstring."""
-    return np.ndim(x) == 0 and x == None
+#     Ref: np.isscalar docstring."""
+#     return np.ndim(x) == 0 and x == None
 
 
 ########################
 # Misc
 ########################
 def linspace_int(Nx, Ny, periodic=True):
-    """Provide a range of Ny equispaced integers between 0 and Nx-1"""
+    """
+    Provide a range of Ny equispaced integers between 0 and Nx-1
+    
+    Parameters
+    ----------
+    Nx : int
+        Range of integers
+    Ny : int
+        Number of integers
+    periodic : logical, optional
+        Whether the vector is periodic. 
+        Determines if the Nx == 0.
+        Default: True
+
+    Returns
+    -------
+     : vector
+        Generated vectors.
+
+    """
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
     else:

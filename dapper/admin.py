@@ -285,7 +285,7 @@ class xpList(list):
     Main use: administrate experiment **launches**.
     Also see: ``xpSpace`` for experiment **result presentation**.
 
-     Modifications to ``list``:
+    Modifications to ``list``:
 
      - ``__iadd__`` (append) also for single items;
        this is hackey, but convenience is king.
@@ -293,13 +293,13 @@ class xpList(list):
      - ``__getitem__`` supports lists.
      - pretty printing (using common/distinct attrs).
 
-     Add-ons:
+    Add-ons:
 
      - ``launch()``
      - ``print_averages()``
      - ``gen_names()``
      - ``inds()`` to search by kw-attrs.
-     """
+    """
 
     def __init__(self, *args, unique=False):
         """Initialize without args, or with a list of configs.
@@ -545,7 +545,7 @@ class xpList(list):
             def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
+            save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
             os.makedirs(save_as)
             print(f"Experiment stored at {save_as}")
 
