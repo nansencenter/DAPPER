@@ -1,24 +1,25 @@
-"""Test data loading and `dpr.xpSpace.print()`.
+"""Test data loading and `dapper.data_management.xpSpace.print`.
 
 If script is run with one of these command-line arguments,
 then there is no test generation, but rather:
- - `--print` causes actual printing.
- - `--replace` causes creation of a copy of this file (suffix `.new`),
-   but with updated printouts in place of the `old`s.
+
+- `--print` causes actual printing.
+- `--replace` causes creation of a copy of this file (suffix `.new`),
+  but with updated printouts in place of the `old`s.
 
 Notes:
+
 - Parameterization -- A custom, hacky way to do this is used instead off
   pytest.mark.parametrize. Maybe not the best idea, but I have learned
   a fair amount doing it.
-- Capturing stdout -- xpSpace.print() only called once for each ``old``
-  (unlike a pytest fixture with capsys) => fast.
+- Capturing stdout -- `xpSpace.print` only called once for each `old`
+  (unlike a pytest fixture with capsys) `=>` fast.
 - To better understand failing tests, use `pytest -vv` with pytest-clarity installed.
 - To debug, insert a breakpoint above the desired call to `gen_test_set`.
   Once within the debugging session, set another one within `cap_stdout`,
   and step-in from there.
 """
 
-import functools
 import inspect
 # Capture stdout
 import io
@@ -27,6 +28,8 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass
 
 import dapper as dpr
+
+__pdoc__ = {}
 
 if "--replace" in sys.argv:
     replacements = []
@@ -59,9 +62,8 @@ def cap_stdout(fun, *args, **kwargs):
         return stringbuf.getvalue()
 
 
-@functools.wraps(dpr.xpSpace.print)
 def gen_test_set(xp_dict, *args, **kwargs):
-    """Capture printout of `dpr.xpSpace.print`, gen & register 1 test per line."""
+    """Capture printout of `dapper.data_management.xpSpace.print`, gen tests."""
 
     # Get stdout of xpSpace.print()
     output = cap_stdout(xp_dict.print, *args, **kwargs)
@@ -87,7 +89,9 @@ def gen_test_set(xp_dict, *args, **kwargs):
             def compare(expected=table_old, printout=table_new):
                 assert printout == expected
 
-            test_register[f"test_table_starting_on_line_{lineno}"] = compare
+            name = f"test_table_starting_on_line_{lineno}"
+            test_register[name] = compare
+            __pdoc__[name] = False
 
             lineno += table_old.count("\n") + 2
 

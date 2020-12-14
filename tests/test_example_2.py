@@ -1,4 +1,4 @@
-"""Just stupidly compare the full results table."""
+"""Stupidly compare the full results table."""
 
 import numpy as np
 import pytest

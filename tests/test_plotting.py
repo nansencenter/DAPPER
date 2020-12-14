@@ -1,4 +1,5 @@
 """Test graphics/plotting.
+
 This won't automatically verify if the plots are correct,
 only whether they cause errors or not."""
 

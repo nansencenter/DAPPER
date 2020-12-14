@@ -1,3 +1,5 @@
+"""Test `demo.py` files in model dirs."""
+
 from importlib import import_module
 
 import pytest
