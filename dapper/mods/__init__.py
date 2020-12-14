@@ -4,8 +4,9 @@ The models are all simple;
 this facililates the reliability, reproducibility, and transparency
 of DA experiments.
 
-See DAPPER's README for an overview of the models.
-
+See the README section on
+[test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
+for an overview of the models included with DAPPER.
 
 ## Defining your own model
 
@@ -20,8 +21,9 @@ To make sure this is working, we suggest the following structure:
   Typically, this culminates in a `step(x, t, dt)` function.
     - The model step operator (and the obs operator) must support
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
-      See the `core.py` file in `mods/Lorenz63` and `mods/Lorenz96` for typical
-      implementations, and `mods/QG` for how to parallelize the ensemble simulations.
+      See `dapper.mods.Lorenz63` and `dapper.mods.Lorenz96`
+      for typical implementations,
+      and `dapper.mods/QG` for how to parallelize the ensemble simulations.
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).

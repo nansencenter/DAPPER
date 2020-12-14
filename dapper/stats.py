@@ -1,18 +1,20 @@
 """Stats computation for the assessment of DA methods."""
 
-from dapper.dict_tools import DotDict
-from dapper.tools.matrices import CovMat
-import dapper.dict_tools as dict_tools
-from matplotlib import pyplot as plt
-from dapper.dpr_config import rc
-import dapper.tools.liveplotting as liveplotting
-import dapper.tools.series as series
-from dapper.tools.series import StatPrint, DataSeries
-import dapper.tools.utils as utils
-from dapper.tools.math import unbias_var
+import warnings
+
 import numpy as np
 import scipy.linalg as sla
-import warnings
+from matplotlib import pyplot as plt
+
+import dapper.dict_tools as dict_tools
+import dapper.tools.liveplotting as liveplotting
+import dapper.tools.series as series
+import dapper.tools.utils as utils
+from dapper.dict_tools import DotDict
+from dapper.dpr_config import rc
+from dapper.tools.math import unbias_var
+from dapper.tools.matrices import CovMat
+from dapper.tools.series import DataSeries, StatPrint
 
 
 class Stats(StatPrint):
@@ -424,7 +426,7 @@ class Stats(StatPrint):
 
         # Ens does not get stored in stats, so we cannot replay that.
         # If the LPs are initialized with P0!=None, then they will avoid ens plotting.
-        # TODO 2: This system for switching from Ens to stats must be replaced.
+        # TODO 4: This system for switching from Ens to stats must be replaced.
         #       It breaks down when M is very large.
         try:
             P0 = np.full_like(self.HMM.X0.C.full, np.nan)
@@ -513,7 +515,7 @@ def warn_zero_variance(err, flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def tabulate_column(col, header, pad='␣', missingval='', frmt=None):
+def align_col(col, header, pad='␣', missingval='', frmt=None):
     """Format a single column, return as list.
 
     - Use tabulate() to get decimal point alignment.
@@ -567,7 +569,7 @@ def tabulate_column(col, header, pad='␣', missingval='', frmt=None):
 
 
 def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
-    """Make array whose (named) cols are ``[uq.col for uq in uq_list]``.
+    """Make array whose (named) cols are `[uq.col for uq in uq_list]`.
 
     Embellishments:
     - Insert None (in each col) if uq is None.
@@ -579,7 +581,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
             return
         # val/conf
         if decimals is None:
-            v, c = uq.round(mult=0.1)
+            v, c = uq.round()
         else:
             v, c = np.round([uq.val, uq.conf], decimals)
         arr["val"][i], arr["conf"][i] = v, c
@@ -609,8 +611,8 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     for stat in statkeys:
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals   = tabulate_column(column["val"], stat)
-        confs  = tabulate_column(column["conf"], '1σ')
+        vals   = align_col(column["val"], stat)
+        confs  = align_col(column["conf"], '1σ')
         headr  = vals[0]+'  1σ'
         mattr  = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr

@@ -1,8 +1,8 @@
 """Demonstrate the Linear Advection (LA) model."""
 from matplotlib import pyplot as plt
 
-from dapper.mods.LA.raanes2015 import step, X0
 import dapper as dpr
+from dapper.mods.LA.raanes2015 import X0, step
 from dapper.tools.viz import amplitude_animation
 
 simulator = dpr.with_recursion(step, prog="Simulating")

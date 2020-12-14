@@ -1,21 +1,22 @@
 """Utilities (misc, non-math)."""
 
-from pathlib import Path
-import inspect
 import contextlib
-import time
-import traceback as tb
+import functools
+import inspect
 import os
 import re
 import sys
-import functools
+import time
+import traceback as tb
+from pathlib import Path
+
+import tabulate
+import tqdm
+from tabulate import tabulate as tab  # noqa
 
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
 
-import tqdm
-import tabulate
-from tabulate import tabulate as tab # noqa
 tabulate.MIN_PADDING = 0
 
 
@@ -251,12 +252,22 @@ def rel2mods(path):
 #     setattr(obj,attr,tmp)
 
 
-# TODO 2: use finally?
 @contextlib.contextmanager
 def set_tmp(obj, attr, val):
     """Temporarily set an attribute.
 
-    http://code.activestate.com/recipes/577089/"""
+    Example:
+    >>> class A:
+    >>>     pass
+    >>> a = A()
+    >>> a.x = 1  # Try deleting this line
+    >>> with set_tmp(a,"x","TEMPVAL"):
+    >>>     print(a.x)
+    >>> print(a.x)
+
+    Based on
+    http://code.activestate.com/recipes/577089/
+    """
 
     was_there = False
     tmp = None
@@ -271,12 +282,15 @@ def set_tmp(obj, attr, val):
             tmp = getattr(obj, attr)
     setattr(obj, attr, val)
 
-    yield  # was_there, tmp
-
-    if not was_there:
-        delattr(obj, attr)
-    else:
-        setattr(obj, attr, tmp)
+    try:
+        yield  # was_there, tmp
+    except BaseException:
+        raise
+    finally:
+        if not was_there:
+            delattr(obj, attr)
+        else:
+            setattr(obj, attr, tmp)
 
 
 # Better than tic-toc !

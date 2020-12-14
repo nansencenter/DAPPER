@@ -1,9 +1,10 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.mods API documentation</title>
 <meta name="description" content="Models included with DAPPER …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -15,6 +16,12 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -27,7 +34,9 @@
 <p>The models are all simple;
 this facililates the reliability, reproducibility, and transparency
 of DA experiments.</p>
-<p>See DAPPER's README for an overview of the models.</p>
+<p>See the README section on
+<a href="https://github.com/nansencenter/DAPPER#Test-cases-models">test cases (models)</a>
+for an overview of the models included with DAPPER.</p>
 <h2 id="defining-your-own-model">Defining your own model</h2>
 <p>Follow the example of one of the models within the <code>dapper/mods</code> folder.
 Essentially, you just need to define all of the attributes of a
@@ -40,8 +49,9 @@ workings of the model.
 Typically, this culminates in a <code>step(x, t, dt)</code> function.<ul>
 <li>The model step operator (and the obs operator) must support
 2D-array (i.e. ensemble) and 1D-array (single realization) input.
-See the <code>core.py</code> file in <code>mods/Lorenz63</code> and <code>mods/Lorenz96</code> for typical
-implementations, and <code>mods/QG</code> for how to parallelize the ensemble simulations.</li>
+See <code><a title="dapper.mods.Lorenz63" href="Lorenz63/index.html">dapper.mods.Lorenz63</a></code> and <code><a title="dapper.mods.Lorenz96" href="Lorenz96/index.html">dapper.mods.Lorenz96</a></code>
+for typical implementations,
+and <code>dapper.mods/QG</code> for how to parallelize the ensemble simulations.</li>
 <li>Optional: To use the (extended) Kalman filter, or 4D-Var,
 you will need to define the model linearization.
 Note: this only needs to support 1D input (single realization).</li>
@@ -70,6 +80,7 @@ Hidden Markov Model ready for a synthetic experiment
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/__init__.py#L0-L50" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Models included with DAPPER.
 
@@ -77,8 +88,9 @@ The models are all simple;
 this facililates the reliability, reproducibility, and transparency
 of DA experiments.
 
-See DAPPER&#39;s README for an overview of the models.
-
+See the README section on
+[test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
+for an overview of the models included with DAPPER.
 
 ## Defining your own model
 
@@ -93,8 +105,9 @@ To make sure this is working, we suggest the following structure:
   Typically, this culminates in a `step(x, t, dt)` function.
     - The model step operator (and the obs operator) must support
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
-      See the `core.py` file in `mods/Lorenz63` and `mods/Lorenz96` for typical
-      implementations, and `mods/QG` for how to parallelize the ensemble simulations.
+      See `dapper.mods.Lorenz63` and `dapper.mods.Lorenz96`
+      for typical implementations,
+      and `dapper.mods/QG` for how to parallelize the ensemble simulations.
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).
@@ -125,71 +138,65 @@ To make sure this is working, we suggest the following structure:
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.DoublePendulum" href="DoublePendulum/index.html">DoublePendulum</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>The motion of a pendulum with another pendulum attached to its end …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Ikeda" href="Ikeda/index.html">Ikeda</a></code></dt>
 <dd>
-<div class="desc"><p>The "Ikeda" map …</p></div>
+<div class="desc"><p>The "Ikeda map" is a discrete-time dynamical system of size 2 …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.KS" href="KS/index.html">KS</a></code></dt>
 <dd>
-<div class="desc"><p>Implement Kuramoto-Sivashinsky (K-S) system, defined by the nonlinear PDE: …</p></div>
+<div class="desc"><p>Kuramoto-Sivashinsky (KS) system: the simplest (?) PDE admitting chaos …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LA" href="LA/index.html">LA</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Linear advection (i.e. translation) in 1D …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz63" href="Lorenz63/index.html">Lorenz63</a></code></dt>
 <dd>
-<div class="desc"><p>The "Lorenz-63" model: the classic exhibitor of chaos.
-Phase-plot looks like a butterfly.
-See demo.py for more info.</p></div>
+<div class="desc"><p>The classic exhibitor of chaos, consisting of 3 coupled ODEs …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz84" href="Lorenz84/index.html">Lorenz84</a></code></dt>
 <dd>
-<div class="desc"><p>'Lorenz-84'
-model …</p></div>
+<div class="desc"><p>A chaotic system of size 3, like Lorenz-63, but with +complex geometry …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96" href="Lorenz96/index.html">Lorenz96</a></code></dt>
 <dd>
-<div class="desc"><p>The "Lorenz-96" (or 96) model …</p></div>
+<div class="desc"><p>A 1D emulator of chaotic atmospheric behaviour …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LorenzUV" href="LorenzUV/index.html">LorenzUV</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>The 2-scale/layer/speed coupled version of Lorenz-96 …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LotkaVolterra" href="LotkaVolterra/index.html">LotkaVolterra</a></code></dt>
 <dd>
-<div class="desc"><p>Parameters set so as to have chaotic dynamics.
-Refs:
-- wikipedia.org/wiki/Competitive_Lotka%E2%80%93Volterra_equations
-- Vano et al (2006): "Chaos …</p></div>
+<div class="desc"><p>The generalized predator-prey model, with settings for chaotic dynamics …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.QG" href="QG/index.html">QG</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Quasi-geostraphic 2D flow …</p></div>
 </dd>
 </dl>
 </section>
@@ -203,7 +210,8 @@ Refs:
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
@@ -220,34 +228,34 @@ Refs:
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.DoublePendulum" href="DoublePendulum/index.html">DoublePendulum</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Ikeda" href="Ikeda/index.html">Ikeda</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.KS" href="KS/index.html">KS</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.LA" href="LA/index.html">LA</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz63" href="Lorenz63/index.html">Lorenz63</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz84" href="Lorenz84/index.html">Lorenz84</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz96" href="Lorenz96/index.html">Lorenz96</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.LorenzUV" href="LorenzUV/index.html">LorenzUV</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.LotkaVolterra" href="LotkaVolterra/index.html">LotkaVolterra</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.QG" href="QG/index.html">QG</a></code></li>
 </ul>
@@ -256,7 +264,7 @@ Refs:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

@@ -1,20 +1,31 @@
 """(Data Assimilation with Python: a Package for Experimental Research)
 
-## README
+## In the README
 
 Make sure you've browsed these sections in the README:
 
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
-- [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
-- [Test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-(models))
 
-## Reference/API docs
-The documentation contained in docstrings can be browsed
-by clicking the links at the left (or bottom) of this page.
+## Usage
+Adapt one of the examples scripts to your needs.
 
-## Features
-Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README:
+Fork DAPPER and make changes to its source if you need to
+(which is quite likely because the generality of DAPPER is limited)
+
+If, in particular, you wish to illustrate and run benchmarks with
+your own **model** or **method**, then
+
+- If it is a complex one, you may be better off using DAPPER
+  merely as inspiration (but you should still
+  [cite it](https://github.com/nansencenter/DAPPER#Contributors))
+  rather than trying to squeeze everything into its templates.
+- If it is relatively simple, however, you may well want to use DAPPER.
+  In that case, read this:
+    - `mods`
+    - `da_methods`
+
+## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
 
 - Parallelisation:
     - (Independent) experiments can run in parallel; see `example_3.py`
@@ -24,6 +35,8 @@ Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by
     - Analysis parallelisation over local domains;
         see example in `da_methods.ensemble.LETKF`
 - Classes that simplify treating:
+    - Experiment administration and launch via `admin.xpList`
+      and data processing and presentation via `data_management.xpSpace`.
     - Time sequences use via `tools.chronos.Chronology`
       and`tools.chronos.Ticker`.
     - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
@@ -37,25 +50,8 @@ Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by
     - Automatic averaging of several types for sub-domains
       (e.g. "ocean", "land", etc.)
 
-## Usage
-Do you wish to illustrate and run benchmarks with your own
-**models** and/or **methods**?
 
-If these are complicated, you may be better off using DAPPER
-merely as inspiration (but you should still
-[cite it](https://github.com/nansencenter/DAPPER#Contributors))
-rather than trying to squeeze everything into its templates.
-
-If these are simple, however, you may well want to use DAPPER.
-First, make sure you've got a good feel for all of `example_{1,2,3}.py`.
-Then, read the documentation here
-
-- `mods`
-- `da_methods`
-
-## Development
-
-### Implementation choices
+## Conventions
 
 - Python version `>=3.7` for dicts to maintain ordering.
 - Ensemble (data) matrices are np.ndarrays with shape `N-by-Nx`.
@@ -70,7 +66,7 @@ Then, read the documentation here
     - Less transposing for for ens-space formulae.
     - It's the standard for data matrices in
       statistical regression literature.
-- Naming conventions:
+- Naming:
     - `E`: ensemble matrix
     - `w`: ensemble weights or coefficients
     - `X`: centered ensemble
@@ -86,88 +82,20 @@ Then, read the documentation here
     - `xps`: an `xpList` or `xpDict`,
       where `xp` abbreviates "experiment".
 
-### Profiling
+## Dev guide
+If you are going to contribute to DAPPER, please read `dev_guide`.
 
-- Launch your python script using `kernprof -l -v my_script.py`
-- *Functions* decorated with `profile` will be timed, line-by-line.
-- If your script is launched regularly, then `profile` will not be
-  present in the `builtins.` Instead of deleting your decorations,
-  you could also define a pass-through fallback.
+## Bibliography/references
+See `bib`.
 
-### Making a release
-
-- `cd DAPPER`
-- Bump version number in `__init__.py`
-- Merge `dev1` into `master`  
-  `git checkout master`
-  `git merge --no-commit --no-ff dev1`
-  `# Fix conflicts, e.g`
-  `# git rm <unwanted-file>`
-  `git commit`
-
-- Make docs (including bib)
-- Tag
-
-        git tag -a v$(python setup.py --version) -m 'My description'
-        git push origin --tags
-
-- Clean  
-  `rm -rf build/ dist *.egg-info .eggs`
-
-- Add new files to `package_data` and `packages` in `setup.py`
-
-- Build  
-  `./setup.py sdist bdist_wheel`
-
-- Upload to PyPI  
-  `twine upload --repository pypi dist/*`
-
-
-- Upload to Test.PyPI  
-  `twine upload --repository testpypi dist/*`  
-  where `~/.pypirc` contains
-
-        [distutils]
-        index-servers=
-                        pypi
-                        testpypi
-        
-        [pypi]
-        username: myuser
-        password: mypass
-        
-        [testpypi]
-        repository: https://test.pypi.org/legacy/
-        username: myuser
-        password: mypass
-
-- Upload to `Test.PyPI`  
-  `git checkout dev1`
-
-#### Test installation
-
-- Install from `Test.PyPI`  
-  `pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER`
-
-- Install from `PyPI`  
-  `pip install DA-DAPPER`
-
-    - Install into specific dir (includes all of the dependencies)  
-      `pip install DA-DAPPER -t MyDir`
-
-    - Install with options  
-      `pip install DA-DAPPER[Qt,MP]`
-
-- Install from local (makes installation accessible from everywhere)  
-  `pip install -e .`
-
+## API reference
+The rendered docstrings can be browsed
+through the following links, which are also available in the left sidebar.
 """
 
-__version__ = "0.9.6"
+__version__ = "1.0.0"
 
 import sys
-
-assert sys.version_info >= (3,8), "Need Python>=3.8"
 
 from dapper.tools.series import UncertainQtty
 
@@ -187,24 +115,15 @@ from .dpr_config import rc
 from .stats import register_stat
 from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, round2,
-                         with_recursion, with_rk4)
+from .tools.math import (Id_Obs, ens_compatible, linspace_int, partial_Id_Obs,
+                         round2, round2sigfig, with_recursion, with_rk4)
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
-from .tools.stoch import rand, randn, set_seed
+from .tools.stoch import set_seed
 from .tools.viz import freshfig
 
 
-# Documentation management
-# ---
-# # 1. Generation:
-# $ pdoc --force --html --template-dir docs -o ./docs dapper
-# $ open docs/index.html
-# # 2. Hosting:
-# Push updated docs to github.
-# In the main github settings of the repo,
-# go to the "GitHub Pages" section,
-# and set the source to the docs folder.
+# Documentation generation -- exclusion
 def _find_demos(as_path=False):
     "Find all model demo.py scripts."
     lst = []
@@ -216,14 +135,6 @@ def _find_demos(as_path=False):
                 x = str(x.with_suffix("")).replace("/", ".")
             lst.append(x)
     return lst
-
-# This generates a lot of warnings:
-# """UserWarning: __pdoc__-overriden key ... does not exist in module""".
-# AFAICT that's fine. https://github.com/pdoc3/pdoc/issues/206
-# Alternative: Insert this at top of each script to exclude
-# >>> if __name__ != "__main__":
-# >>>     raise RuntimeError("This module may only be run as script.")
-# and run pdoc with --skip-errors.
 __pdoc__ = {
     "tools.remote.autoscaler": False,
     **{demo:False for demo in _find_demos()},

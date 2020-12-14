@@ -2,17 +2,18 @@
 
 import numpy as np
 
-from dapper.tools.utils import progbar
-from dapper.da_methods.ensemble import post_process, add_noise, serial_inds
-from dapper.da_methods.particle import reweight
 import dapper.tools.math as mtools
+from dapper.da_methods.ensemble import add_noise, post_process, serial_inds
+from dapper.da_methods.particle import reweight
 from dapper.tools.matrices import funm_psd
+from dapper.tools.utils import progbar
+
 from .ensemble import ens_method
 
 
 @ens_method
 class RHF:
-    """Rank histogram filter [And10]_.
+    """Rank histogram filter `bib.anderson2010non`.
 
     Quick & dirty implementation without attention to (de)tails.
     """
@@ -75,9 +76,11 @@ class RHF:
 
 @ens_method
 class LNETF:
-    """The Nonlinear-Ensemble-Transform-Filter (localized) [Wil16]_, [Töd15]_.
+    """The Nonlinear-Ensemble-Transform-Filter (localized).
 
-    It is (supposedly) a deterministic upgrade of the NLEAF of [Lei11]_.
+    Refs: `bib.wiljes2016second`, `bib.todter2015second`.
+
+    It is (supposedly) a deterministic upgrade of the NLEAF of `bib.lei2011moment`.
     """
     N: int
     loc_rad: float

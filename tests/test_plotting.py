@@ -3,8 +3,10 @@ This won't automatically verify if the plots are correct,
 only whether they cause errors or not."""
 
 import numpy as np
+
 import dapper as dpr
 import dapper.tools.utils as utils
+
 utils.disable_user_interaction = True  # NB remember to set to True
 
 

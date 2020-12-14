@@ -1,0 +1,33 @@
+# Travis configuration file using the build matrix feature
+# Read more under http://docs.travis-ci.com/user/build-configuration/
+# THIS SCRIPT IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
+
+sudo: false
+language: python
+virtualenv:
+  system_site_packages: false
+matrix:
+  fast_finish: true
+  include:
+    - python: 3.8
+      env: DISTRIB="ubuntu" TOX_PYTHON_VERSION="py38" COVERAGE="true" TRAVIS="true"
+    - env: DISTRIB="conda" PYTHON_VERSION="3.8" COVERAGE="false" TRAVIS="true"
+install:
+  - source tests/travis_install.sh
+before_script:
+  - git config --global user.email "patrick.n.raanes@gmail.com"
+  - git config --global user.name "Patrick N. Raanes"
+script:
+  - python setup.py develop
+  - pytest --cov=dapper --ignore=tests/test_plotting.py --ignore=tests/test_demos.py
+after_success:
+  - |
+    if [[ "$COVERAGE" == "true" ]]; then
+       coveralls || echo "failed"
+    fi
+after_script:
+  - travis-cleanup
+cache:
+  pip: true
+  directories:
+    - $HOME/miniconda

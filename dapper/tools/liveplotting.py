@@ -1,29 +1,31 @@
 """On-line (live) plots of the DA process for various models and methods."""
 
-from dapper.dpr_config import rc
-from dapper.dict_tools import DotDict, deep_getattr
-import dapper.tools.viz as viz
-from dapper.tools.viz import plot_pause, not_available_text, freshfig
-from dapper.tools.matrices import CovMat
-import dapper.tools.utils as utils
-from dapper.tools.chronos import format_time
-from dapper.tools.series import FAUSt, RollingArray
-import dapper.tools.math
 import matplotlib as mpl
 import numpy as np
-from numpy import arange, ones, nan
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
+from numpy import arange, nan, ones
+
+import dapper.tools.math
+import dapper.tools.utils as utils
+import dapper.tools.viz as viz
+from dapper.dict_tools import DotDict, deep_getattr
+from dapper.dpr_config import rc
+from dapper.tools.chronos import format_time
+from dapper.tools.matrices import CovMat
+from dapper.tools.series import FAUSt, RollingArray
+from dapper.tools.viz import freshfig, not_available_text, plot_pause
 
 
 class LivePlot:
     """Live plotting manager.
 
     Deals with
+
      - Pause, skip.
      - Which liveploters to call.
-     - plot_u
+     - `plot_u`
      - Figure window (title and number)."""
 
     def __init__(self,
@@ -37,16 +39,18 @@ class LivePlot:
                  **kwargs):
         """
         Initialize plots.
+
         - liveplots: figures to plot; alternatives:
-          - "default"/[]/True: All default figures for this HMM.
-          - "all"            : Even more.
-          - non-empty list   : Only the figures with these numbers (int) or names (str).
-          - False            : None.
+            - `"default"/[]/True`: All default figures for this HMM.
+            - `"all"`            : Even more.
+            - non-empty `list`   : Only the figures with these numbers
+                                 (int) or names (str).
+            - `False`            : None.
         - speed: speed of animation.
-            - >100: instantaneous
-            - 1   : (default) as quick as possible allowing for
-                    plt.draw() to work on a moderately fast computer.
-            - <1  : slower.
+            - `>100`: instantaneous
+            - `1`   : (default) as quick as possible allowing for
+                      plt.draw() to work on a moderately fast computer.
+            - `<1`  : slower.
         """
 
         # Disable if not rc.liveplotting
@@ -211,15 +215,16 @@ class LivePlot:
 
         if self.run_ipdb:
             self.run_ipdb = False
-            import ipdb
             import inspect
+
+            import ipdb
             print("Entering debug mode (ipdb).")
             print("Type '?' (and Enter) for usage help.")
             print("Type 'c' to continue the assimilation.")
             ipdb.set_trace(inspect.stack()[2].frame)
 
 
-# TODO 4:
+# TODO 6:
 # - iEnKS diagnostics don't work at all when store_u=False
 star = "${}^*$"
 
@@ -895,12 +900,12 @@ def phase_particles(
 
 
 def validate_lag(Tplot, chrono):
-    """Return validated T_lag such that is is:
+    """Return validated `T_lag` such that is is:
 
-     - equal to Tplot with fallback: HMM.t.Tplot.
-     - no longer than HMM.t.T.
+     - equal to `Tplot` with fallback: `HMM.t.Tplot`.
+     - no longer than `HMM.t.T`.
 
-     Also return corresponding K_lag, a_lag."""
+     Also return corresponding `K_lag`, `a_lag`."""
 
     # Defaults
     if Tplot is None:
@@ -983,20 +988,19 @@ _Ea = [None]  # persistent storage for ens
 
 
 def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
-    """Provide new ylim's intelligently,
-    computed from percentiles of the data.
+    """Provide new ylim's intelligently, from percentiles of the data.
 
-    - data: iterable of arrays for computing percentiles.
-    - pp: percentiles
+    - `data`: iterable of arrays for computing percentiles.
+    - `pp`: percentiles
 
-    - ax: If present, then the delta_zoom in/out is also considered.
+    - `ax`: If present, then the delta_zoom in/out is also considered.
 
-      - cE: exansion (widenting) rate ∈ [0,1].
+      - `cE`: exansion (widenting) rate ∈ [0,1].
         Default: 1, which immediately expands to percentile.
-      - cC: compression (narrowing) rate ∈ [0,1].
+      - `cC`: compression (narrowing) rate ∈ [0,1].
         Default: 0, which does not allow compression.
 
-    - Min/Max: bounds
+    - `Min`/`Max`: bounds
 
     Despite being a little involved,
     the cost of this subroutine is typically not substantial
@@ -1214,7 +1218,7 @@ def spatial2d(
         ax_21.set_title('std. '+sx)
         ax_22.set_title('err. '+sx)
 
-        # TODO 4
+        # TODO 7
         # for ax in axs.flatten():
         # Crop boundries (which should be 0, i.e. yield harsh q gradients):
         # lims = (1, nx-2)

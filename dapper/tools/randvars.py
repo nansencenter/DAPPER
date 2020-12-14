@@ -1,11 +1,12 @@
 """Classes of random variables."""
 
-from dapper.dict_tools import NicePrint
-from dapper.tools.math import exactly_1d
-from dapper.tools.stoch import rand, randn
-from dapper.tools.matrices import CovMat
 import numpy as np
 from numpy import sqrt
+from numpy.random import rand, randn
+
+from dapper.dict_tools import NicePrint
+from dapper.tools.math import exactly_1d
+from dapper.tools.matrices import CovMat
 
 
 class RV(NicePrint):
@@ -20,7 +21,7 @@ class RV(NicePrint):
          - M    <int>     : ndim
          - is0  <bool>    : if True, the random variable is identically 0
          - func <func(N)> : use this sampling function. Example:
-                            RV(M=4,func=lambda N: rand((N,4))
+                            RV(M=4,func=lambda N: rand(N,4)
          - file <str>     : draw from file. Example:
                             RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')
         The following kwords (versions) are available,
@@ -57,7 +58,7 @@ class RV(NicePrint):
         elif hasattr(self, 'icdf'):
             # Independent "inverse transform" sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rand((N, self.M))
+            uu   = rand(N, self.M)
             E    = icdf(uu)
         elif hasattr(self, 'cdf'):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -72,7 +73,7 @@ class RV(NicePrint):
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu, xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = rand((N, self.M))
+            uu = rand(N, self.M)
             E  = self.icdf_interp(uu)
         elif hasattr(self, 'pdf'):
             # "acceptance-rejection" sampling
@@ -83,7 +84,7 @@ class RV(NicePrint):
         return E
 
 
-# TODO 2: improve constructor (treatment of arg cases is too fragile).
+# TODO 4: improve constructor (treatment of arg cases is too fragile).
 class RV_with_mean_and_cov(RV):
     """Generic multivariate random variable characterized by mean and cov.
 
@@ -163,7 +164,7 @@ class GaussRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn((N, len(R))) @ R
+        D = randn(N, len(R)) @ R
         return D
 
 
@@ -177,7 +178,7 @@ class LaplaceRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         z = np.random.exponential(1, N)
-        D = randn((N, len(R)))
+        D = randn(N, len(R))
         D = z[:, None]*D
         return D @ R / sqrt(2)
 
@@ -211,8 +212,8 @@ class StudRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         nu = self.dof
-        r = nu/np.sum(randn((N, nu))**2, axis=1)  # InvChi2
-        D = sqrt(r)[:, None]*randn((N, len(R)))
+        r = nu/np.sum(randn(N, nu)**2, axis=1)  # InvChi2
+        D = sqrt(r)[:, None]*randn(N, len(R))
         return D @ R * sqrt((nu-2)/nu)
 
 
@@ -226,7 +227,7 @@ class UniRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn((N, len(R)))
+        D = randn(N, len(R))
         r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None]*D
         return D @ R * 2
@@ -241,5 +242,5 @@ class UniParallelRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = rand((N, len(R)))-0.5
+        D = rand(N, len(R))-0.5
         return D @ R * sqrt(12)

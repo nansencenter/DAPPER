@@ -1,25 +1,27 @@
-####################################
-# Lorenz96 two-scale/layer version
-####################################
-# See Wilks 2005 "Effects of stochastic parametrizations in the Lorenz '96 system"
-# U:  large amp, low frequency vars: convective events
-# V:  small amp, high frequency vars: large-scale synoptic events
-#
-# Typically, the DA system will only use the truncated system
-# (containing only the U variables),
-# where the V's are parameterized as model noise,
-# while the truth is simulated by the full system.
-#
-# Stochastic parmateterization:
-# Wilks: benefit of including stochastic noise negligible
-# unless its temporal auto-corr is taken into account (as AR(1))
-# (but spatial auto-corr can be neglected).
-# But AR(1) noise is technically difficult because DAPPER
-# is built around the Markov assumption.
+"""The 2-scale/layer/speed coupled version of Lorenz-96.
 
+See Wilks 2005: "Effects of stochastic
+parametrizations in the Lorenz '96 system"
+- U:  large amp, low frequency vars: convective events
+- V:  small amp, high frequency vars: large-scale synoptic events
+
+Typically, the DA system will only use the truncated system
+(containing only the U variables),
+where the V's are parameterized as model noise,
+while the truth is simulated by the full system.
+
+Stochastic parmateterization:
+Wilks: benefit of including stochastic noise negligible
+unless its temporal auto-corr is taken into account (as AR(1))
+(but spatial auto-corr can be neglected).
+But AR(1) noise is technically difficult because DAPPER
+is built around the Markov assumption.
+
+"""
 import numpy as np
-import dapper.tools.liveplotting as LP
+
 import dapper.mods.Lorenz96 as L96
+import dapper.tools.liveplotting as LP
 from dapper.tools.math import integrate_TLM
 
 

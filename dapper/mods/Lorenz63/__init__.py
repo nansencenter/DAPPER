@@ -1,12 +1,18 @@
-"""The "Lorenz-63" model: the classic exhibitor of chaos.
-Phase-plot looks like a butterfly.
+"""The classic exhibitor of chaos, consisting of 3 coupled ODEs.
+
+The ODEs are derived by modelling, with many simplifications,
+the fluid convection between horizontal plates with different temperatures.
+
+Its phase-plot (with typical param settings) looks like a butterfly.
+
 See demo.py for more info.
 """
 
 
-import dapper.tools.liveplotting as LP
 import numpy as np
+
 import dapper as dpr
+import dapper.tools.liveplotting as LP
 from dapper.tools.math import integrate_TLM
 
 # Constants

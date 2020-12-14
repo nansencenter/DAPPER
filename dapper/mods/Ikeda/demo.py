@@ -2,10 +2,11 @@
 
 Plot settings inspired by Wikipedia."""
 
+import numpy as np
 from matplotlib import pyplot as plt
 
-import dapper.mods.Ikeda as core
 import dapper as dpr
+import dapper.mods.Ikeda as core
 
 
 def demo(u, s0, N, as_points, ends):
@@ -18,7 +19,7 @@ def demo(u, s0, N, as_points, ends):
     simulator = dpr.with_recursion(core.step, prog="Simulating")
 
     # Initial ensemble
-    E0 = core.x0 + s0*dpr.randn((N, 2))
+    E0 = core.x0 + s0*np.random.randn(N, 2)
 
     # Simulate
     EE = simulator(E0, K, 0, 1)

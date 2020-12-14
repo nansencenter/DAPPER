@@ -1,9 +1,10 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.tools.series API documentation</title>
 <meta name="description" content="Time series management and processing." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -15,6 +16,12 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -27,34 +34,37 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L0-L324" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Time series management and processing.&#34;&#34;&#34;
 
-from dapper.dict_tools import NicePrint
-from dapper.dpr_config import rc
-import dapper.tools.utils as utils
-import dapper.tools.math as mtools
 from dataclasses import dataclass
+
 import numpy as np
 from numpy import nan
 
-# TODO 3: change L to &#39;nlags&#39;, with nlags=L-1, to conform with
-# the faster statsmodels.tsa.stattools.acf(xx,True,nlags=L-1,fft=False)
+import dapper.tools.utils as utils
+from dapper.dict_tools import NicePrint
+from dapper.dpr_config import rc
+from dapper.tools.math import center, is1d, log10int, round2, round2sigfig
 
 
-def auto_cov(xx, L=5, zero_mean=False, corr=False):
+def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
+    &#34;&#34;&#34;Auto covariance function, computed along axis 0.
+
+    - `nlags`: max lag (offset) for which to compute acf.
+    - `corr` : normalize acf by `acf[0]` so as to return auto-CORRELATION.
+
+    With `corr=True`, this is identical to
+    `statsmodels.tsa.stattools.acf(xx,True,nlags)`
     &#34;&#34;&#34;
-    Auto covariance function, computed along axis 0.
-    L   : max lag (offset) for which to compute acf.
-    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
-    &#34;&#34;&#34;
-    assert L &lt;= len(xx)
+    assert nlags &lt; len(xx)
 
     N = len(xx)
-    A = xx if zero_mean else mtools.center(xx)[0]
-    acovf = np.zeros((L,)+xx.shape[1:])
+    A = xx if zero_mean else center(xx)[0]
+    acovf = np.zeros((nlags+1,)+xx.shape[1:])
 
-    for i in range(L):
+    for i in range(nlags+1):
         Left  = A[np.arange(N-i)]
         Right = A[np.arange(i, N)]
         acovf[i] = (Left*Right).sum(0)/(N-i)
@@ -65,14 +75,14 @@ def auto_cov(xx, L=5, zero_mean=False, corr=False):
     return acovf
 
 
-def fit_acf_by_AR1(acf_empir, L=None):
+def fit_acf_by_AR1(acf_empir, nlags=None):
+    &#34;&#34;&#34;Fit an empirical auto cov function (ACF) by that of an AR1 process.
+
+    - `acf_empir`: auto-corr/cov-function.
+    - `nlags`: length of ACF to use in AR(1) fitting
     &#34;&#34;&#34;
-    Fit an empirical auto cov function (ACF) by that of an AR1 process.
-    acf_empir: auto-corr/cov-function.
-    L: length of ACF to use in AR(1) fitting
-    &#34;&#34;&#34;
-    if L is None:
-        L = len(acf_empir)
+    if nlags is None:
+        nlags = len(acf_empir)
 
     # geometric_mean = ss.mstats.gmean
     def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
@@ -94,11 +104,12 @@ def fit_acf_by_AR1(acf_empir, L=None):
 
 def estimate_corr_length(xx):
     &#34;&#34;&#34;
-    For explanation, see mods.LA.__init__.py: homogeneous_1D_cov().
+    For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
-    corr(L) = exp(-1) = ca 0.368
+
+    $$\\text{corr}(L) = \\exp(-1) \\approx 0.368$$
     &#34;&#34;&#34;
-    assert mtools.is1d(xx)
+    assert is1d(xx)
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
@@ -110,6 +121,22 @@ def estimate_corr_length(xx):
 
 @dataclass
 class UncertainQtty():
+    &#34;&#34;&#34;Container associating an uncertainty with a quantity.
+
+    Includes rounding function for the purpose of pretty prints.
+
+    Examples:
+    &gt;&gt;&gt; print(UncertainQtty(1.2345, .1))
+    1.2 ±0.1
+    &gt;&gt;&gt; print(UncertainQtty(1.2345, .9))
+    1.2 ±0.9
+    &gt;&gt;&gt; print(UncertainQtty(1.300, 0.01))
+    1.30 ±0.01
+    &gt;&gt;&gt; print(UncertainQtty(14, 12))
+    10 ±10
+    &gt;&gt;&gt; UncertainQtty(1.2345, 1)
+    UncertainQtty(val=1, conf=1)
+    &#34;&#34;&#34;
     val: float
     conf: float
 
@@ -121,21 +148,28 @@ class UncertainQtty():
             - to precision: mult*conf.
             - fallback: rc.sigfig
         &#34;&#34;&#34;
-        with np.errstate(all=&#39;ignore&#39;):
-            conf = mtools.round2(self.conf, 1)
-            val  = self.val
-            if not np.isnan(conf) and conf &gt; 0:
-                val = mtools.round2(val, mult*conf)
-            else:
-                val = mtools.round2(val, rc.sigfig)
-            return val, conf
+        # Extreme cases
+        if np.isnan(self.conf):
+            c = self.conf
+            v = round2sigfig(self.val, rc.sigfig)
+        # Normal case
+        else:
+            c = round2sigfig(self.conf, 1)
+            v = round2(self.val, mult*self.conf)
+        return v, c
 
     def __str__(self):
-        return &#34;{} ±{}&#34;.format(*self.round())
+        # Round nicely
+        v, c = self.round()
+        # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01.
+        n = log10int(c)
+        frmt = &#34;%.f&#34; if n &gt;= 0 else &#34;%%0.%df&#34; % -n
+        v = frmt % v
+        return &#34;{} ±{}&#34;.format(v, c)
 
     def __repr__(self):
-        vc = &#34;(val={:.4g}, conf={:.1g})&#34;.format(*self.round(1e-9))
-        return self.__class__.__name__ + vc
+        v, c = str(self).split(&#34; ±&#34;)
+        return self.__class__.__name__ + f&#34;(val={v}, conf={c})&#34;
 
 
 def mean_with_conf(xx):
@@ -146,12 +180,13 @@ def mean_with_conf(xx):
     &#34;&#34;&#34;
     mu = np.mean(xx)
     N  = len(xx)
+    # TODO 3: review
     if (not np.isfinite(mu)) or N &lt;= 5:
         uq = UncertainQtty(mu, np.nan)
     elif np.allclose(xx, mu):
         uq = UncertainQtty(mu, 0)
     else:
-        acovf = auto_cov(xx, 5)
+        acovf = auto_cov(xx)
         var   = acovf[0]
         var  /= N
         # Estimate (fit) ACF
@@ -214,7 +249,7 @@ class DataSeries(StatPrint):
 
     def __len__(self): return len(self.array)
     def __getitem__(self, key): return self.array[key]
-    def __setitem__(self, key, val):           self.array[key] = val
+    def __setitem__(self, key, val): self.array[key] = val
 
 
 @utils.monitor_setitem
@@ -223,20 +258,21 @@ class FAUSt(DataSeries, StatPrint):
 
     Four attributes, each of which is an ndarray:
 
-     - .f for forecast      , (KObs+1,)+item_shape
-     - .a for analysis      , (KObs+1,)+item_shape
-     - .s for smoothed      , (KObs+1,)+item_shape
-     - .u for universial/all, (K   +1,)+item_shape
+    - .f for forecast      , (KObs+1,)+item_shape
+    - .a for analysis      , (KObs+1,)+item_shape
+    - .s for smoothed      , (KObs+1,)+item_shape
+    - .u for universial/all, (K   +1,)+item_shape
 
     If store_u=False, then .u series has shape (1,)+item_shape,
     wherein only the most-recently-written item is stored.
 
     Series can also be indexed as in
-    &gt;&gt;&gt; self[kObs,&#39;a&#39;]
-    &gt;&gt;&gt; self[whatever,kObs,&#39;a&#39;]
-    &gt;&gt;&gt; # ... and likewise for &#39;f&#39; and &#39;s&#39;. For &#39;u&#39;, can use:
-    &gt;&gt;&gt; self[k,&#39;u&#39;]
-    &gt;&gt;&gt; self[k,whatever,&#39;u&#39;]
+
+        self[kObs,&#39;a&#39;]
+        self[whatever,kObs,&#39;a&#39;]
+        # ... and likewise for &#39;f&#39; and &#39;s&#39;. For &#39;u&#39;, can use:
+        self[k,&#39;u&#39;]
+        self[k,whatever,&#39;u&#39;]
 
     .. note:: If a data series only pertains to the analysis,
               then you should use a plain np.array instead.
@@ -277,6 +313,7 @@ class FAUSt(DataSeries, StatPrint):
 
 class RollingArray:
     &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
+
     Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
 
     def __init__(self, shape, fillval=nan):
@@ -296,7 +333,7 @@ class RollingArray:
         # self.array[-1] = val
 
         dk = max(1, dk)
-        # TODO 4: Should have used deque?
+        # TODO 7: Should have used deque?
         self.array = np.roll(self.array, -dk, axis=0)
         self.array[-dk:] = nan
         self.array[-1:] = val
@@ -334,30 +371,37 @@ class RollingArray:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="dapper.tools.series.auto_cov"><code class="name flex">
-<span>def <span class="ident">auto_cov</span></span>(<span>xx, L=5, zero_mean=False, corr=False)</span>
+<span>def <span class="ident">auto_cov</span></span>(<span>xx, nlags=4, zero_mean=False, corr=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Auto covariance function, computed along axis 0.
-L
-: max lag (offset) for which to compute acf.
-corr: normalize acf by acf[0] so as to return auto-CORRELATION.</p></div>
+<div class="desc"><p>Auto covariance function, computed along axis 0.</p>
+<ul>
+<li><code>nlags</code>: max lag (offset) for which to compute acf.</li>
+<li><code>corr</code> : normalize acf by <code>acf[0]</code> so as to return auto-CORRELATION.</li>
+</ul>
+<p>With <code>corr=True</code>, this is identical to
+<code>statsmodels.tsa.stattools.acf(xx,True,nlags)</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L14-L37" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def auto_cov(xx, L=5, zero_mean=False, corr=False):
+<pre><code class="python">def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
+    &#34;&#34;&#34;Auto covariance function, computed along axis 0.
+
+    - `nlags`: max lag (offset) for which to compute acf.
+    - `corr` : normalize acf by `acf[0]` so as to return auto-CORRELATION.
+
+    With `corr=True`, this is identical to
+    `statsmodels.tsa.stattools.acf(xx,True,nlags)`
     &#34;&#34;&#34;
-    Auto covariance function, computed along axis 0.
-    L   : max lag (offset) for which to compute acf.
-    corr: normalize acf by acf[0] so as to return auto-CORRELATION.
-    &#34;&#34;&#34;
-    assert L &lt;= len(xx)
+    assert nlags &lt; len(xx)
 
     N = len(xx)
-    A = xx if zero_mean else mtools.center(xx)[0]
-    acovf = np.zeros((L,)+xx.shape[1:])
+    A = xx if zero_mean else center(xx)[0]
+    acovf = np.zeros((nlags+1,)+xx.shape[1:])
 
-    for i in range(L):
+    for i in range(nlags+1):
         Left  = A[np.arange(N-i)]
         Right = A[np.arange(i, N)]
         acovf[i] = (Left*Right).sum(0)/(N-i)
@@ -369,24 +413,27 @@ corr: normalize acf by acf[0] so as to return auto-CORRELATION.</p></div>
 </details>
 </dd>
 <dt id="dapper.tools.series.fit_acf_by_AR1"><code class="name flex">
-<span>def <span class="ident">fit_acf_by_AR1</span></span>(<span>acf_empir, L=None)</span>
+<span>def <span class="ident">fit_acf_by_AR1</span></span>(<span>acf_empir, nlags=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Fit an empirical auto cov function (ACF) by that of an AR1 process.
-acf_empir: auto-corr/cov-function.
-L: length of ACF to use in AR(1) fitting</p></div>
+<div class="desc"><p>Fit an empirical auto cov function (ACF) by that of an AR1 process.</p>
+<ul>
+<li><code>acf_empir</code>: auto-corr/cov-function.</li>
+<li><code>nlags</code>: length of ACF to use in AR(1) fitting</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L40-L64" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def fit_acf_by_AR1(acf_empir, L=None):
+<pre><code class="python">def fit_acf_by_AR1(acf_empir, nlags=None):
+    &#34;&#34;&#34;Fit an empirical auto cov function (ACF) by that of an AR1 process.
+
+    - `acf_empir`: auto-corr/cov-function.
+    - `nlags`: length of ACF to use in AR(1) fitting
     &#34;&#34;&#34;
-    Fit an empirical auto cov function (ACF) by that of an AR1 process.
-    acf_empir: auto-corr/cov-function.
-    L: length of ACF to use in AR(1) fitting
-    &#34;&#34;&#34;
-    if L is None:
-        L = len(acf_empir)
+    if nlags is None:
+        nlags = len(acf_empir)
 
     # geometric_mean = ss.mstats.gmean
     def geometric_mean(xx): return np.exp(np.mean(np.log(xx)))
@@ -410,20 +457,22 @@ L: length of ACF to use in AR(1) fitting</p></div>
 <span>def <span class="ident">estimate_corr_length</span></span>(<span>xx)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>For explanation, see mods.LA.<strong>init</strong>.py: homogeneous_1D_cov().
-Also note that, for exponential corr function, as assumed here,
-corr(L) = exp(-1) = ca 0.368</p></div>
+<div class="desc"><p>For explanation, see <code><a title="dapper.mods.LA.homogeneous_1D_cov" href="../mods/LA/index.html#dapper.mods.LA.homogeneous_1D_cov">homogeneous_1D_cov()</a></code>.
+Also note that, for exponential corr function, as assumed here,</p>
+<p><span><span class="MathJax_Preview">\text{corr}(L) = \exp(-1) \approx 0.368</span><script type="math/tex; mode=display">\text{corr}(L) = \exp(-1) \approx 0.368</script></span></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L67-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def estimate_corr_length(xx):
     &#34;&#34;&#34;
-    For explanation, see mods.LA.__init__.py: homogeneous_1D_cov().
+    For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
-    corr(L) = exp(-1) = ca 0.368
+
+    $$\\text{corr}(L) = \\exp(-1) \\approx 0.368$$
     &#34;&#34;&#34;
-    assert mtools.is1d(xx)
+    assert is1d(xx)
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
@@ -443,6 +492,7 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L137-L167" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean_with_conf(xx):
     &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
@@ -452,12 +502,13 @@ as estimated from its correlation-corrected variance.</p></div>
     &#34;&#34;&#34;
     mu = np.mean(xx)
     N  = len(xx)
+    # TODO 3: review
     if (not np.isfinite(mu)) or N &lt;= 5:
         uq = UncertainQtty(mu, np.nan)
     elif np.allclose(xx, mu):
         uq = UncertainQtty(mu, 0)
     else:
-        acovf = auto_cov(xx, 5)
+        acovf = auto_cov(xx)
         var   = acovf[0]
         var  /= N
         # Estimate (fit) ACF
@@ -486,12 +537,42 @@ as estimated from its correlation-corrected variance.</p></div>
 <span>(</span><span>val: float, conf: float)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>UncertainQtty(val: float, conf: float)</p></div>
+<div class="desc"><p>Container associating an uncertainty with a quantity.</p>
+<p>Includes rounding function for the purpose of pretty prints.</p>
+<p>Examples:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; print(UncertainQtty(1.2345, .1))
+1.2 ±0.1
+&gt;&gt;&gt; print(UncertainQtty(1.2345, .9))
+1.2 ±0.9
+&gt;&gt;&gt; print(UncertainQtty(1.300, 0.01))
+1.30 ±0.01
+&gt;&gt;&gt; print(UncertainQtty(14, 12))
+10 ±10
+&gt;&gt;&gt; UncertainQtty(1.2345, 1)
+UncertainQtty(val=1, conf=1)
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L85-L134" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UncertainQtty():
+    &#34;&#34;&#34;Container associating an uncertainty with a quantity.
+
+    Includes rounding function for the purpose of pretty prints.
+
+    Examples:
+    &gt;&gt;&gt; print(UncertainQtty(1.2345, .1))
+    1.2 ±0.1
+    &gt;&gt;&gt; print(UncertainQtty(1.2345, .9))
+    1.2 ±0.9
+    &gt;&gt;&gt; print(UncertainQtty(1.300, 0.01))
+    1.30 ±0.01
+    &gt;&gt;&gt; print(UncertainQtty(14, 12))
+    10 ±10
+    &gt;&gt;&gt; UncertainQtty(1.2345, 1)
+    UncertainQtty(val=1, conf=1)
+    &#34;&#34;&#34;
     val: float
     conf: float
 
@@ -503,21 +584,28 @@ as estimated from its correlation-corrected variance.</p></div>
             - to precision: mult*conf.
             - fallback: rc.sigfig
         &#34;&#34;&#34;
-        with np.errstate(all=&#39;ignore&#39;):
-            conf = mtools.round2(self.conf, 1)
-            val  = self.val
-            if not np.isnan(conf) and conf &gt; 0:
-                val = mtools.round2(val, mult*conf)
-            else:
-                val = mtools.round2(val, rc.sigfig)
-            return val, conf
+        # Extreme cases
+        if np.isnan(self.conf):
+            c = self.conf
+            v = round2sigfig(self.val, rc.sigfig)
+        # Normal case
+        else:
+            c = round2sigfig(self.conf, 1)
+            v = round2(self.val, mult*self.conf)
+        return v, c
 
     def __str__(self):
-        return &#34;{} ±{}&#34;.format(*self.round())
+        # Round nicely
+        v, c = self.round()
+        # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01.
+        n = log10int(c)
+        frmt = &#34;%.f&#34; if n &gt;= 0 else &#34;%%0.%df&#34; % -n
+        v = frmt % v
+        return &#34;{} ±{}&#34;.format(v, c)
 
     def __repr__(self):
-        vc = &#34;(val={:.4g}, conf={:.1g})&#34;.format(*self.round(1e-9))
-        return self.__class__.__name__ + vc</code></pre>
+        v, c = str(self).split(&#34; ±&#34;)
+        return self.__class__.__name__ + f&#34;(val={v}, conf={c})&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -548,6 +636,7 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L105-L121" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def round(self, mult=1.0):
     &#34;&#34;&#34;Round intelligently:
@@ -557,14 +646,15 @@ as estimated from its correlation-corrected variance.</p></div>
         - to precision: mult*conf.
         - fallback: rc.sigfig
     &#34;&#34;&#34;
-    with np.errstate(all=&#39;ignore&#39;):
-        conf = mtools.round2(self.conf, 1)
-        val  = self.val
-        if not np.isnan(conf) and conf &gt; 0:
-            val = mtools.round2(val, mult*conf)
-        else:
-            val = mtools.round2(val, rc.sigfig)
-        return val, conf</code></pre>
+    # Extreme cases
+    if np.isnan(self.conf):
+        c = self.conf
+        v = round2sigfig(self.val, rc.sigfig)
+    # Normal case
+    else:
+        c = round2sigfig(self.conf, 1)
+        v = round2(self.val, mult*self.conf)
+    return v, c</code></pre>
 </details>
 </dd>
 </dl>
@@ -577,6 +667,7 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L170-L196" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class StatPrint(NicePrint):
     &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
@@ -640,6 +731,7 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L200-L214" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class DataSeries(StatPrint):
     &#34;&#34;&#34;Basically just an ``np.ndarray``. But adds:
@@ -655,7 +747,7 @@ as estimated from its correlation-corrected variance.</p></div>
 
     def __len__(self): return len(self.array)
     def __getitem__(self, key): return self.array[key]
-    def __setitem__(self, key, val):           self.array[key] = val</code></pre>
+    def __setitem__(self, key, val): self.array[key] = val</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -694,11 +786,11 @@ as estimated from its correlation-corrected variance.</p></div>
 <p>If store_u=False, then .u series has shape (1,)+item_shape,
 wherein only the most-recently-written item is stored.</p>
 <p>Series can also be indexed as in</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; self[kObs,'a']
-&gt;&gt;&gt; self[whatever,kObs,'a']
-&gt;&gt;&gt; # ... and likewise for 'f' and 's'. For 'u', can use:
-&gt;&gt;&gt; self[k,'u']
-&gt;&gt;&gt; self[k,whatever,'u']
+<pre><code>self[kObs,'a']
+self[whatever,kObs,'a']
+# ... and likewise for 'f' and 's'. For 'u', can use:
+self[k,'u']
+self[k,whatever,'u']
 </code></pre>
 <div class="admonition note">
 <p class="admonition-title">Note:&ensp;If a data series only pertains to the analysis,</p>
@@ -715,26 +807,28 @@ wherein only the most-recently-written item is stored.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L218-L273" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class FAUSt(DataSeries, StatPrint):
     &#34;&#34;&#34;Container for time series of a statistic from filtering.
 
     Four attributes, each of which is an ndarray:
 
-     - .f for forecast      , (KObs+1,)+item_shape
-     - .a for analysis      , (KObs+1,)+item_shape
-     - .s for smoothed      , (KObs+1,)+item_shape
-     - .u for universial/all, (K   +1,)+item_shape
+    - .f for forecast      , (KObs+1,)+item_shape
+    - .a for analysis      , (KObs+1,)+item_shape
+    - .s for smoothed      , (KObs+1,)+item_shape
+    - .u for universial/all, (K   +1,)+item_shape
 
     If store_u=False, then .u series has shape (1,)+item_shape,
     wherein only the most-recently-written item is stored.
 
     Series can also be indexed as in
-    &gt;&gt;&gt; self[kObs,&#39;a&#39;]
-    &gt;&gt;&gt; self[whatever,kObs,&#39;a&#39;]
-    &gt;&gt;&gt; # ... and likewise for &#39;f&#39; and &#39;s&#39;. For &#39;u&#39;, can use:
-    &gt;&gt;&gt; self[k,&#39;u&#39;]
-    &gt;&gt;&gt; self[k,whatever,&#39;u&#39;]
+
+        self[kObs,&#39;a&#39;]
+        self[whatever,kObs,&#39;a&#39;]
+        # ... and likewise for &#39;f&#39; and &#39;s&#39;. For &#39;u&#39;, can use:
+        self[k,&#39;u&#39;]
+        self[k,whatever,&#39;u&#39;]
 
     .. note:: If a data series only pertains to the analysis,
               then you should use a plain np.array instead.
@@ -793,6 +887,7 @@ wherein only the most-recently-written item is stored.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L262-L262" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">item_shape = property(lambda self: self.a.shape[1:])</code></pre>
 </details>
@@ -803,6 +898,7 @@ wherein only the most-recently-written item is stored.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L263-L263" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">store_u    = property(lambda self: len(self.u) &gt; 1)</code></pre>
 </details>
@@ -814,14 +910,16 @@ wherein only the most-recently-written item is stored.</p>
 <span>(</span><span>shape, fillval=nan)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>ND-Array that implements "leftward rolling" along axis 0.
-Used for data that gets plotted in sliding graphs.</p></div>
+<div class="desc"><p>ND-Array that implements "leftward rolling" along axis 0.</p>
+<p>Used for data that gets plotted in sliding graphs.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L276-L325" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RollingArray:
     &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
+
     Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
 
     def __init__(self, shape, fillval=nan):
@@ -841,7 +939,7 @@ Used for data that gets plotted in sliding graphs.</p></div>
         # self.array[-1] = val
 
         dk = max(1, dk)
-        # TODO 4: Should have used deque?
+        # TODO 7: Should have used deque?
         self.array = np.roll(self.array, -dk, axis=0)
         self.array[-dk:] = nan
         self.array[-1:] = val
@@ -878,6 +976,7 @@ Used for data that gets plotted in sliding graphs.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L312-L314" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def T(self):
@@ -895,6 +994,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L286-L304" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def insert(self, k, val):
     dk = k-self.k1
@@ -908,7 +1008,7 @@ def T(self):
     # self.array[-1] = val
 
     dk = max(1, dk)
-    # TODO 4: Should have used deque?
+    # TODO 7: Should have used deque?
     self.array = np.roll(self.array, -dk, axis=0)
     self.array[-dk:] = nan
     self.array[-1:] = val
@@ -925,6 +1025,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L306-L307" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def leftmost(self):
     return self[len(self)-self.nFilled]</code></pre>
@@ -938,6 +1039,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/series.py#L309-L310" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def span(self):
     return (self.leftmost(),  self[-1])</code></pre>
@@ -951,7 +1053,8 @@ def T(self):
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
@@ -1017,7 +1120,7 @@ def T(self):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

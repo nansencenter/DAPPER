@@ -1,10 +1,11 @@
 """As in Lorenz 1996 'Predictability...'"""
 
 import numpy as np
+
 import dapper as dpr
 import dapper.tools.utils as utils
-
 from dapper.mods.LorenzUV import model_instance
+
 LUV = model_instance(nU=36, J=10, F=10)
 nU = LUV.nU
 

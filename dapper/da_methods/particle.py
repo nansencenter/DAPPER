@@ -1,10 +1,13 @@
+"""Weight- & resampling-based DA methods."""
+
 import numpy as np
-from dapper.admin import da_method
-import dapper.tools.utils as utils
+from numpy.random import rand, randn
+
 import dapper.tools.math
-from dapper.tools.matrices import funm_psd, chol_reduce
-from dapper.tools.stoch import rand, randn
-from dapper.tools.math import mrdiv, mldiv, svd0, pad0, tinv
+import dapper.tools.utils as utils
+from dapper.admin import da_method
+from dapper.tools.math import mldiv, mrdiv, pad0, svd0, tinv
+from dapper.tools.matrices import chol_reduce, funm_psd
 from dapper.tools.utils import progbar
 
 
@@ -19,7 +22,7 @@ class particle_method:
 class PartFilt:
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
-    Refs: [Wik07]_, [van09]_, [Che03]_
+    Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
 
     This is the bootstrap version: the proposal density is just
     :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
@@ -32,7 +35,7 @@ class PartFilt:
      - qroot: "Inflate" (anneal) the proposal noise kernels
        by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
-       See [Che03]_, section VI-M.2
+       See `bib.chen2003bayesian`, section VI-M.2
     """
     N: int
     reg: float   = 0
@@ -40,7 +43,7 @@ class PartFilt:
     qroot: float = 1.0
     wroot: float = 1.0
 
-    # TODO 4:
+    # TODO 6:
     # if miN < 1:
     # miN = N*miN
 
@@ -57,7 +60,7 @@ class PartFilt:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn((N, Nx))
+                D  = randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -87,7 +90,7 @@ class PartFilt:
 class OptPF:
     """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
-    Ref: [Boc10]_.
+    Ref: `bib.bocquet2010beyond`.
 
     .. note:: Regularization (``Qs``) is here added BEFORE Bayes' rule.
               If ``Qs==0``: OptPF should be equal to
@@ -112,7 +115,7 @@ class OptPF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -186,7 +189,7 @@ class PFa:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn((N, Nx))
+                D  = randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -261,7 +264,7 @@ class PFxN_EnKF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -287,7 +290,7 @@ class PFxN_EnKF:
                         Pa      = Aw.T@Aw - KG@Yw.T@Aw
                         P_cholU = funm_psd(Pa, np.sqrt)
                         if DD is None or not self.re_use:
-                            DD    = randn((N*xN, Nx))
+                            DD    = randn(N*xN, Nx)
                             chi2  = np.sum(DD**2, axis=1) * Nx/N
                             log_q = -0.5 * chi2
                     else:
@@ -300,7 +303,7 @@ class PFxN_EnKF:
                         # and compute log(q(x))
                         if DD is None or not self.re_use:
                             rnk   = min(Nx, N-1)
-                            DD    = randn((N*xN, N))
+                            DD    = randn(N*xN, N)
                             chi2  = np.sum(DD**2, axis=1) * rnk/N
                             log_q = -0.5 * chi2
                         # NB: the DoF_linalg/DoF_stoch correction
@@ -376,7 +379,7 @@ class PFxN:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn((N, Nx))@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -393,7 +396,7 @@ class PFxN:
 
                     # Generate N·xN random numbers from NormDist(0,1)
                     if DD is None or not self.re_use:
-                        DD = randn((N*xN, Nx))
+                        DD = randn(N*xN, Nx)
 
                     # Duplicate and jitter
                     ED  = E.repeat(xN, 0)
@@ -500,7 +503,7 @@ def mask_unique_of_sorted(idx):
 def auto_bandw(N, M):
     """"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
 
-    Refs: [Dou01]_ section 12.2.2, and [Wik17]_ section "Rule_of_thumb"
+    Refs: `bib.doucet2001sequential` section 12.2.2, [Wik17]_ section "Rule_of_thumb"
     """
     return N**(-1/(M+4))
 
@@ -514,7 +517,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
     (so-named because Dirac-deltas are approximated  Gaussian kernels),
     which controls the strength of the jitter.
     This causes a bias. But, as N-->∞, the reg. bandwidth-->0, i.e. bias-->0.
-    Ref: [Dou01]_, section 12.2.2.
+    Ref: `bib.doucet2001sequential`, section 12.2.2.
     """
     # Select
     E = E[idx]
@@ -532,7 +535,9 @@ def regularize(C12, E, idx, no_uniq_jitter):
 
 
 def resample(w, kind='Systematic', N=None, wroot=1.0):
-    """Multinomial resampling [Dou09]_, [van09]_, [Liu01]_.
+    """Multinomial resampling.
+
+    Refs: `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
       'Stochastic' corresponds to np.random.choice() or np.random.multinomial().
@@ -541,7 +546,7 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
       Among the three, 'Systematic' is fastest, introduces the least noise,
       and brings continuity benefits for localized particle filters,
       and is therefore generally prefered.
-      Example: see dpr_data/doc_snippets/ex_resample.py.
+      Example: see docs/snippets/ex_resample.py.
 
     - N can be different from len(w)
       (e.g. in case some particles have been elimintated).
@@ -549,7 +554,7 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
     - wroot: Adjust weights before resampling by this root to
       promote particle diversity and mitigate thinning.
       The outcomes of the resampling are then weighted to maintain un-biased-ness.
-      Ref: [Liu01]_, section 3.1
+      Ref: `bib.liu2001theoretical`, section 3.1
 
     Note: (a) resampling methods are beneficial because they discard
     low-weight ("doomed") particles and reduce the variance of the weights.
@@ -630,12 +635,12 @@ def sample_quickly_with(C12, N=None):
         N = N_
     if N_ > 2*M:
         cholR  = chol_reduce(C12)
-        D      = randn((N, cholR.shape[0]))
+        D      = randn(N, cholR.shape[0])
         chi2   = np.sum(D**2, axis=1)
         sample = D@cholR
     else:
         chi2_compensate_for_rank = min(M/N_, 1.0)
-        D      = randn((N, N_))
+        D      = randn(N, N_)
         chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
         sample = D@C12
     return sample, chi2

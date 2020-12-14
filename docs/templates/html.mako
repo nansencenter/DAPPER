@@ -1,3 +1,4 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <%
   import os
 
@@ -140,7 +141,7 @@
     <h2 class="section-title" id="header-submodules">Sub-modules</h2>
     <dl>
     % for m in submodules:
-      <!-- Short submodule name -->
+      <!-- CHANGE: Short submodule name -->
       <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
       <dt><code class="name">${ link(m, name=m.name.split('.')[-1]) }</code></dt>
       <dd>${show_desc(m, short=True)}</dd>
@@ -316,7 +317,7 @@
     <li><h3><a href="#header-submodules">Sub-modules</a></h3>
       <ul>
       % for m in submodules:
-        <!-- Short submodule name -->
+        <!-- CHANGE: Short submodule name -->
         <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
         <li><code>${ link(m, name=m.name.split('.')[-1]) }</code></li>
       % endfor

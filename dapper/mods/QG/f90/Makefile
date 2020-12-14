@@ -1,6 +1,6 @@
 ## Copyright (C) 2008 Pavel Sakov
-## 
-## This file is part of EnKF-Matlab. EnKF-Matlab is a free software. See 
+##
+## This file is part of EnKF-Matlab. EnKF-Matlab is a free software. See
 ## LICENSE for details.
 
 SHELL = /bin/bash

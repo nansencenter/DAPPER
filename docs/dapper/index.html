@@ -1,9 +1,10 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper API documentation</title>
 <meta name="description" content="(Data Assimilation with Python: a Package for Experimental Research) …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -15,6 +16,12 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -24,19 +31,31 @@
 </header>
 <section id="section-intro">
 <p>(Data Assimilation with Python: a Package for Experimental Research)</p>
-<h2 id="readme">README</h2>
+<h2 id="in-the-readme">In the README</h2>
 <p>Make sure you've browsed these sections in the README:</p>
 <ul>
 <li><a href="https://github.com/nansencenter/DAPPER#Installation">Installation</a></li>
 <li><a href="https://github.com/nansencenter/DAPPER#Quickstart">Quickstart</a></li>
-<li><a href="https://github.com/nansencenter/DAPPER#DA-Methods">DA Methods</a></li>
-<li><a href="https://github.com/nansencenter/DAPPER#Test-cases-(models)">Test cases (models)</a></li>
 </ul>
-<h2 id="referenceapi-docs">Reference/API docs</h2>
-<p>The documentation contained in docstrings can be browsed
-by clicking the links at the left (or bottom) of this page.</p>
-<h2 id="features">Features</h2>
-<p>Features not <a href="https://github.com/nansencenter/DAPPER#Highlights">highlighted</a> by README:</p>
+<h2 id="usage">Usage</h2>
+<p>Adapt one of the examples scripts to your needs.</p>
+<p>Fork DAPPER and make changes to its source if you need to
+(which is quite likely because the generality of DAPPER is limited)</p>
+<p>If, in particular, you wish to illustrate and run benchmarks with
+your own <strong>model</strong> or <strong>method</strong>, then</p>
+<ul>
+<li>If it is a complex one, you may be better off using DAPPER
+merely as inspiration (but you should still
+<a href="https://github.com/nansencenter/DAPPER#Contributors">cite it</a>)
+rather than trying to squeeze everything into its templates.</li>
+<li>If it is relatively simple, however, you may well want to use DAPPER.
+In that case, read this:<ul>
+<li><code><a title="dapper.mods" href="mods/index.html">dapper.mods</a></code></li>
+<li><code><a title="dapper.da_methods" href="da_methods/index.html">dapper.da_methods</a></code></li>
+</ul>
+</li>
+</ul>
+<h2 id="features-beyond-the-readmehighlights">Features beyond the <a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a></h2>
 <ul>
 <li>Parallelisation:<ul>
 <li>(Independent) experiments can run in parallel; see <code>example_3.py</code></li>
@@ -48,6 +67,8 @@ see example in <code><a title="dapper.da_methods.ensemble.LETKF" href="da_method
 </ul>
 </li>
 <li>Classes that simplify treating:<ul>
+<li>Experiment administration and launch via <code><a title="dapper.admin.xpList" href="admin.html#dapper.admin.xpList">xpList</a></code>
+and data processing and presentation via <code><a title="dapper.data_management.xpSpace" href="data_management.html#dapper.data_management.xpSpace">xpSpace</a></code>.</li>
 <li>Time sequences use via <code><a title="dapper.tools.chronos.Chronology" href="tools/chronos.html#dapper.tools.chronos.Chronology">Chronology</a></code>
 and<code><a title="dapper.tools.chronos.Ticker" href="tools/chronos.html#dapper.tools.chronos.Ticker">Ticker</a></code>.</li>
 <li>Random variables via <code><a title="dapper.tools.randvars.RV" href="tools/randvars.html#dapper.tools.randvars.RV">RV</a></code>: Gaussian, Student-t, Laplace, Uniform, &hellip;,
@@ -67,22 +88,7 @@ lazy eval that facilitates the use of non-diagnoal covariance matrices (whether 
 </ul>
 </li>
 </ul>
-<h2 id="usage">Usage</h2>
-<p>Do you wish to illustrate and run benchmarks with your own
-<strong>models</strong> and/or <strong>methods</strong>?</p>
-<p>If these are complicated, you may be better off using DAPPER
-merely as inspiration (but you should still
-<a href="https://github.com/nansencenter/DAPPER#Contributors">cite it</a>)
-rather than trying to squeeze everything into its templates.</p>
-<p>If these are simple, however, you may well want to use DAPPER.
-First, make sure you've got a good feel for all of <code>example_{1,2,3}.py</code>.
-Then, read the documentation here</p>
-<ul>
-<li><code><a title="dapper.mods" href="mods/index.html">dapper.mods</a></code></li>
-<li><code><a title="dapper.da_methods" href="da_methods/index.html">dapper.da_methods</a></code></li>
-</ul>
-<h2 id="development">Development</h2>
-<h3 id="implementation-choices">Implementation choices</h3>
+<h2 id="conventions">Conventions</h2>
 <ul>
 <li>Python version <code>&gt;=3.7</code> for dicts to maintain ordering.</li>
 <li>Ensemble (data) matrices are np.ndarrays with shape <code>N-by-Nx</code>.
@@ -99,7 +105,7 @@ E.g. <code>dy @ Rinv @ Y.T @ Pw</code> (where <code>dy</code> is a vector)</li>
 statistical regression literature.</li>
 </ul>
 </li>
-<li>Naming conventions:<ul>
+<li>Naming:<ul>
 <li><code>E</code>: ensemble matrix</li>
 <li><code>w</code>: ensemble weights or coefficients</li>
 <li><code>X</code>: centered ensemble</li>
@@ -119,120 +125,46 @@ where <code>xp</code> abbreviates "experiment".</li>
 </ul>
 </li>
 </ul>
-<h3 id="profiling">Profiling</h3>
-<ul>
-<li>Launch your python script using <code>kernprof -l -v my_script.py</code></li>
-<li><em>Functions</em> decorated with <code>profile</code> will be timed, line-by-line.</li>
-<li>If your script is launched regularly, then <code>profile</code> will not be
-present in the <code>builtins.</code> Instead of deleting your decorations,
-you could also define a pass-through fallback.</li>
-</ul>
-<h3 id="making-a-release">Making a release</h3>
-<ul>
-<li><code>cd DAPPER</code></li>
-<li>Bump version number in <code>__init__.py</code></li>
-<li>
-<p>Merge <code>dev1</code> into <code>master</code><br>
-<code>git checkout master</code>
-<code>git merge --no-commit --no-ff dev1</code>
-<code># Fix conflicts, e.g</code>
-<code># git rm &lt;unwanted-file&gt;</code>
-<code>git commit</code></p>
-</li>
-<li>
-<p>Make docs (including bib)</p>
-</li>
-<li>
-<p>Tag</p>
-<pre><code>git tag -a v$(python setup.py --version) -m 'My description'
-git push origin --tags
-</code></pre>
-</li>
-<li>
-<p>Clean<br>
-<code>rm -rf build/ dist *.egg-info .eggs</code></p>
-</li>
-<li>
-<p>Add new files to <code>package_data</code> and <code>packages</code> in <code>setup.py</code></p>
-</li>
-<li>
-<p>Build<br>
-<code>./setup.py sdist bdist_wheel</code></p>
-</li>
-<li>
-<p>Upload to PyPI<br>
-<code>twine upload --repository pypi dist/*</code></p>
-</li>
-<li>
-<p>Upload to Test.PyPI<br>
-<code>twine upload --repository testpypi dist/*</code><br>
-where <code>~/.pypirc</code> contains</p>
-<pre><code>[distutils]
-index-servers=
-                pypi
-                testpypi
-
-[pypi]
-username: myuser
-password: mypass
-
-[testpypi]
-repository: &lt;https://test.pypi.org/legacy/&gt;
-username: myuser
-password: mypass
-</code></pre>
-</li>
-<li>
-<p>Upload to <code>Test.PyPI</code><br>
-<code>git checkout dev1</code></p>
-</li>
-</ul>
-<h4 id="test-installation">Test installation</h4>
-<ul>
-<li>
-<p>Install from <code>Test.PyPI</code><br>
-<code>pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER</code></p>
-</li>
-<li>
-<p>Install from <code>PyPI</code><br>
-<code>pip install DA-DAPPER</code></p>
-<ul>
-<li>
-<p>Install into specific dir (includes all of the dependencies)<br>
-<code>pip install DA-DAPPER -t MyDir</code></p>
-</li>
-<li>
-<p>Install with options<br>
-<code>pip install DA-DAPPER[Qt,MP]</code></p>
-</li>
-</ul>
-</li>
-<li>
-<p>Install from local (makes installation accessible from everywhere)<br>
-<code>pip install -e .</code></p>
-</li>
-</ul>
+<h2 id="dev-guide">Dev guide</h2>
+<p>If you are going to contribute to DAPPER, please read <code><a title="dev_guide" href="../dev_guide.html">dev_guide</a></code>.</p>
+<h2 id="bibliographyreferences">Bibliography/references</h2>
+<p>See <code><a title="bib" href="../bib.html">bib</a></code>.</p>
+<h2 id="api-reference">API reference</h2>
+<p>The rendered docstrings can be browsed
+through the following links, which are also available in the left sidebar.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/__init__.py#L0-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;(Data Assimilation with Python: a Package for Experimental Research)
 
-## README
+## In the README
 
 Make sure you&#39;ve browsed these sections in the README:
 
 - [Installation](https://github.com/nansencenter/DAPPER#Installation)
 - [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
-- [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
-- [Test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-(models))
 
-## Reference/API docs
-The documentation contained in docstrings can be browsed
-by clicking the links at the left (or bottom) of this page.
+## Usage
+Adapt one of the examples scripts to your needs.
 
-## Features
-Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by README:
+Fork DAPPER and make changes to its source if you need to
+(which is quite likely because the generality of DAPPER is limited)
+
+If, in particular, you wish to illustrate and run benchmarks with
+your own **model** or **method**, then
+
+- If it is a complex one, you may be better off using DAPPER
+  merely as inspiration (but you should still
+  [cite it](https://github.com/nansencenter/DAPPER#Contributors))
+  rather than trying to squeeze everything into its templates.
+- If it is relatively simple, however, you may well want to use DAPPER.
+  In that case, read this:
+    - `mods`
+    - `da_methods`
+
+## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
 
 - Parallelisation:
     - (Independent) experiments can run in parallel; see `example_3.py`
@@ -242,6 +174,8 @@ Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by
     - Analysis parallelisation over local domains;
         see example in `da_methods.ensemble.LETKF`
 - Classes that simplify treating:
+    - Experiment administration and launch via `admin.xpList`
+      and data processing and presentation via `data_management.xpSpace`.
     - Time sequences use via `tools.chronos.Chronology`
       and`tools.chronos.Ticker`.
     - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
@@ -255,25 +189,8 @@ Features not [highlighted](https://github.com/nansencenter/DAPPER#Highlights) by
     - Automatic averaging of several types for sub-domains
       (e.g. &#34;ocean&#34;, &#34;land&#34;, etc.)
 
-## Usage
-Do you wish to illustrate and run benchmarks with your own
-**models** and/or **methods**?
 
-If these are complicated, you may be better off using DAPPER
-merely as inspiration (but you should still
-[cite it](https://github.com/nansencenter/DAPPER#Contributors))
-rather than trying to squeeze everything into its templates.
-
-If these are simple, however, you may well want to use DAPPER.
-First, make sure you&#39;ve got a good feel for all of `example_{1,2,3}.py`.
-Then, read the documentation here
-
-- `mods`
-- `da_methods`
-
-## Development
-
-### Implementation choices
+## Conventions
 
 - Python version `&gt;=3.7` for dicts to maintain ordering.
 - Ensemble (data) matrices are np.ndarrays with shape `N-by-Nx`.
@@ -288,7 +205,7 @@ Then, read the documentation here
     - Less transposing for for ens-space formulae.
     - It&#39;s the standard for data matrices in
       statistical regression literature.
-- Naming conventions:
+- Naming:
     - `E`: ensemble matrix
     - `w`: ensemble weights or coefficients
     - `X`: centered ensemble
@@ -304,88 +221,20 @@ Then, read the documentation here
     - `xps`: an `xpList` or `xpDict`,
       where `xp` abbreviates &#34;experiment&#34;.
 
-### Profiling
+## Dev guide
+If you are going to contribute to DAPPER, please read `dev_guide`.
 
-- Launch your python script using `kernprof -l -v my_script.py`
-- *Functions* decorated with `profile` will be timed, line-by-line.
-- If your script is launched regularly, then `profile` will not be
-  present in the `builtins.` Instead of deleting your decorations,
-  you could also define a pass-through fallback.
+## Bibliography/references
+See `bib`.
 
-### Making a release
-
-- `cd DAPPER`
-- Bump version number in `__init__.py`
-- Merge `dev1` into `master`  
-  `git checkout master`
-  `git merge --no-commit --no-ff dev1`
-  `# Fix conflicts, e.g`
-  `# git rm &lt;unwanted-file&gt;`
-  `git commit`
-
-- Make docs (including bib)
-- Tag
-
-        git tag -a v$(python setup.py --version) -m &#39;My description&#39;
-        git push origin --tags
-
-- Clean  
-  `rm -rf build/ dist *.egg-info .eggs`
-
-- Add new files to `package_data` and `packages` in `setup.py`
-
-- Build  
-  `./setup.py sdist bdist_wheel`
-
-- Upload to PyPI  
-  `twine upload --repository pypi dist/*`
-
-
-- Upload to Test.PyPI  
-  `twine upload --repository testpypi dist/*`  
-  where `~/.pypirc` contains
-
-        [distutils]
-        index-servers=
-                        pypi
-                        testpypi
-        
-        [pypi]
-        username: myuser
-        password: mypass
-        
-        [testpypi]
-        repository: https://test.pypi.org/legacy/
-        username: myuser
-        password: mypass
-
-- Upload to `Test.PyPI`  
-  `git checkout dev1`
-
-#### Test installation
-
-- Install from `Test.PyPI`  
-  `pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER`
-
-- Install from `PyPI`  
-  `pip install DA-DAPPER`
-
-    - Install into specific dir (includes all of the dependencies)  
-      `pip install DA-DAPPER -t MyDir`
-
-    - Install with options  
-      `pip install DA-DAPPER[Qt,MP]`
-
-- Install from local (makes installation accessible from everywhere)  
-  `pip install -e .`
-
+## API reference
+The rendered docstrings can be browsed
+through the following links, which are also available in the left sidebar.
 &#34;&#34;&#34;
 
-__version__ = &#34;0.9.6&#34;
+__version__ = &#34;1.0.0&#34;
 
 import sys
-
-assert sys.version_info &gt;= (3,8), &#34;Need Python&gt;=3.8&#34;
 
 from dapper.tools.series import UncertainQtty
 
@@ -405,24 +254,15 @@ from .dpr_config import rc
 from .stats import register_stat
 from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.math import (ens_compatible, linspace_int, Id_Obs, partial_Id_Obs, round2,
-                         with_recursion, with_rk4)
+from .tools.math import (Id_Obs, ens_compatible, linspace_int, partial_Id_Obs,
+                         round2, round2sigfig, with_recursion, with_rk4)
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
-from .tools.stoch import rand, randn, set_seed
+from .tools.stoch import set_seed
 from .tools.viz import freshfig
 
 
-# Documentation management
-# ---
-# # 1. Generation:
-# $ pdoc --force --html --template-dir docs -o ./docs dapper
-# $ open docs/index.html
-# # 2. Hosting:
-# Push updated docs to github.
-# In the main github settings of the repo,
-# go to the &#34;GitHub Pages&#34; section,
-# and set the source to the docs folder.
+# Documentation generation -- exclusion
 def _find_demos(as_path=False):
     &#34;Find all model demo.py scripts.&#34;
     lst = []
@@ -434,14 +274,6 @@ def _find_demos(as_path=False):
                 x = str(x.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
             lst.append(x)
     return lst
-
-# This generates a lot of warnings:
-# &#34;&#34;&#34;UserWarning: __pdoc__-overriden key ... does not exist in module&#34;&#34;&#34;.
-# AFAICT that&#39;s fine. https://github.com/pdoc3/pdoc/issues/206
-# Alternative: Insert this at top of each script to exclude
-# &gt;&gt;&gt; if __name__ != &#34;__main__&#34;:
-# &gt;&gt;&gt;     raise RuntimeError(&#34;This module may only be run as script.&#34;)
-# and run pdoc with --skip-errors.
 __pdoc__ = {
     &#34;tools.remote.autoscaler&#34;: False,
     **{demo:False for demo in _find_demos()},
@@ -456,55 +288,49 @@ __pdoc__ = {
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.admin" href="admin.html">admin</a></code></dt>
 <dd>
 <div class="desc"><p>High-level API. I.e. the main "user-interface" …</p></div>
 </dd>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.bib" href="bib.html">bib</a></code></dt>
-<dd>
-<div class="desc"><p>Bibliography.</p></div>
-</dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></dt>
 <dd>
 <div class="desc"><p>Data assimilation methods included with DAPPER …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.data_management" href="data_management.html">data_management</a></code></dt>
 <dd>
 <div class="desc"><p>Tools (notably xpSpace) for processing and presenting experiment data.</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></dt>
 <dd>
-<div class="desc"><p>Tools for dicts (and lists) …</p></div>
+<div class="desc"><p>Tools for dicts (and lists).</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.dpr_config" href="dpr_config.html">dpr_config</a></code></dt>
 <dd>
 <div class="desc"><p>Load default and user configurations into the rc dict …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods" href="mods/index.html">mods</a></code></dt>
 <dd>
 <div class="desc"><p>Models included with DAPPER …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.stats" href="stats.html">stats</a></code></dt>
 <dd>
 <div class="desc"><p>Stats computation for the assessment of DA methods.</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.tools" href="tools/index.html">tools</a></code></dt>
 <dd>
@@ -522,55 +348,47 @@ __pdoc__ = {
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
 <div class="toc">
 <ul>
-<li><a href="#readme">README</a></li>
-<li><a href="#referenceapi-docs">Reference/API docs</a></li>
-<li><a href="#features">Features</a></li>
+<li><a href="#in-the-readme">In the README</a></li>
 <li><a href="#usage">Usage</a></li>
-<li><a href="#development">Development</a><ul>
-<li><a href="#implementation-choices">Implementation choices</a></li>
-<li><a href="#profiling">Profiling</a></li>
-<li><a href="#making-a-release">Making a release</a><ul>
-<li><a href="#test-installation">Test installation</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a href="#features-beyond-the-readmehighlights">Features beyond the README/highlights</a></li>
+<li><a href="#conventions">Conventions</a></li>
+<li><a href="#dev-guide">Dev guide</a></li>
+<li><a href="#bibliographyreferences">Bibliography/references</a></li>
+<li><a href="#api-reference">API reference</a></li>
 </ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.admin" href="admin.html">admin</a></code></li>
-<!-- Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.bib" href="bib.html">bib</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.data_management" href="data_management.html">data_management</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.dpr_config" href="dpr_config.html">dpr_config</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods" href="mods/index.html">mods</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.stats" href="stats.html">stats</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.tools" href="tools/index.html">tools</a></code></li>
 </ul>
@@ -579,7 +397,7 @@ __pdoc__ = {
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

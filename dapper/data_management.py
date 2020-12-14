@@ -1,28 +1,27 @@
 """Tools (notably xpSpace) for processing and presenting experiment data."""
 
-from pathlib import Path
-import os
-import copy
-import warnings
 import collections
+import copy
 import logging
+import os
 import shutil
+import warnings
+from pathlib import Path
 
-import numpy as np
-import matplotlib as mpl
-from matplotlib import cm, ticker
 import colorama
 import dill
+import matplotlib as mpl
+import numpy as np
+from matplotlib import cm, ticker
 
-
-from dapper.tools.colors import color_text
-from dapper.tools.viz import axis_scale_by_array, freshfig
-from dapper.tools.series import UncertainQtty
-from dapper.stats import tabulate_column, unpack_uqs
-from dapper.admin import xpList
 import dapper.dict_tools as dict_tools
 import dapper.tools.remote.uplink as uplink
 import dapper.tools.utils as utils
+from dapper.admin import xpList
+from dapper.stats import align_col, unpack_uqs
+from dapper.tools.colors import color_text
+from dapper.tools.series import UncertainQtty
+from dapper.tools.viz import axis_scale_by_array, freshfig
 
 mpl_logger = logging.getLogger('matplotlib')
 
@@ -239,35 +238,41 @@ def reduce_inodes(save_as, nDir=100):
 
 
 class SparseSpace(dict):
-    """Dict, subclassed enforce key conformity (to a coord. sys, i.e. a space).
+    """Subclass of `dict` to enforce key conformity (to a coord. sys, i.e. a space).
 
     The coordinate system is specified by its "axes",
-    which is used to produce self.Coord (a namedtuple class).
+    which is used to produce `self.Coord` (a `namedtuple` class).
 
-    As a normal dict, it can hold any type of objects.
+    As a normal `dict,` it can hold any type of objects.
 
     In normal use, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
-    eg. coord(da_method=Climatology, rot=True, ...).
+    eg. `coord(da_method=Climatology, rot=True, ...)`.
 
     Indeed, operations across (potentially multiple simultaneous) axes,
     such as optimization or averaging, should be carried out by iterating
     -- not over the axis -- but over the the list of items.
 
     The most important method is ``nest()``,
-    which is used (by xpSpace.table_tree) to separate tables/columns,
+    which is used (by `xpSpace.table_tree`) to separate tables/columns,
     and also to carry out the mean/optim operations.
 
     In addition, __getitem__() is very flexible, allowing accessing by:
-    - The actual key, a self.Coord object. Returns single item.
-    - A dict match against (part of) the coordinates. Returns subspace.
-    - An int. Returns list(self)[key].
-    - A list of any of the above. Returns list.
-    This flexibility can cause bugs, but it's probably still worth it).
-    Also see __call__(), get_for(), and coords(), for further convenience.
 
-    Inspired by https://stackoverflow.com/a/7728830
-    Also see https://stackoverflow.com/q/3387691 """
+    - The actual key, a `self.Coord` object. Returns single item.
+    - A `dict` to match against (part of) the coordinates. Returns subspace.
+    - An `int`. Returns `list(self)[key]`.
+    - A list of any of the above. Returns list.
+
+    This flexibility can cause bugs, but it's probably still worth it.
+    Also see `__call__()`, `get_for()`, and `coords()`,
+    for further convenience.
+
+    Inspired by
+
+    - https://stackoverflow.com/a/7728830
+    - https://stackoverflow.com/q/3387691
+    """
 
     @property
     def axes(self):
@@ -490,14 +495,14 @@ class xpSpace(SparseSpace):
     (1) computing the relevant axes from the attributes, and
     (2) filling the dict by ``xps``.
 
+    Using ``from_list(xps)`` creates a SparseSpace holding ``xps``.
+    However, the nested ``xpSpace``s output by ``table_tree()`` will hold
+    objects of type ``UncertainQtty``,
+    coz ``table_tree()`` calls ``mean()`` calls ``field(statkey)``.
+
     The main use of xpSpace is through its ``print()`` & ``plot()``,
     both of which call ``table_tree()`` to nest the axes of the SparseSpace.
-    For custom plotting, you will likely want to start with ``table_tree()``.
-
-    Using ``from_list(xps)`` creates a SparseSpace holding ``xps``.
-    However, the nested ``xpSpace``s output by ``table_tree()``, will hold
-    objects of type ``UncertainQtty``,
-    coz ``table_tree()`` calls ``mean()`` calls ``field(statkey)``."""
+    """
 
     @classmethod
     def from_list(cls, xps):
@@ -755,8 +760,6 @@ class xpSpace(SparseSpace):
                        the time series of that single experiment.
         """
 
-        import pandas as pd
-
         def align_subcols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
 
@@ -794,7 +797,7 @@ class xpSpace(SparseSpace):
                     # Tabulate subcolumns
                     subheaders = []
                     for key, header, frmt, _, align in zip(*subc.values()):
-                        column[key] = tabulate_column(
+                        column[key] = align_col(
                             column[key], header, frmt=frmt)[1:]
                         L = len(column[-1][key])
                         if align == '<':
@@ -809,7 +812,7 @@ class xpSpace(SparseSpace):
                     header = template.format(*subheaders)
                 else:
                     column = unpack_uqs(column, decimals)["val"]
-                    column = tabulate_column(column, statkey)
+                    column = align_col(column, statkey)
                     header, matter = column[0], column[1:]
 
                 if h2:  # Do super_header
@@ -864,14 +867,13 @@ class xpSpace(SparseSpace):
                 #   which would also require excessive processing:
                 #   nesting the table as cols, and then split_attrs() on cols.
                 row_keys = xpList(table.keys()).split_attrs()[0]
-                row_keys = pd.DataFrame.from_dict(
-                    row_keys, dtype="O")  # allow storing None
-                if len(row_keys.columns):
+                if len(row_keys):
                     # Header
                     rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
                     # Matter
-                    for row, (i, key) in zip(rows[1:], row_keys.iterrows()):
-                        rows[i+1] = [*key] + ['|'] + row
+                    for i, (row, key) in enumerate(zip(
+                            rows[1:], dict_tools.transps(row_keys))):
+                        rows[i+1] = [*key.values()] + ['|'] + row
 
             # Print
             print("\n", end="")

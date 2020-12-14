@@ -1,34 +1,32 @@
 """Tools for plotting."""
 
+import inspect
 import itertools
 import os
-import warnings
-from pathlib import Path
 import textwrap
 import time
-import inspect
-
-import numpy as np
-from numpy import array, arange
-import scipy.linalg as sla
+import warnings
+from pathlib import Path
 
 import matplotlib as mpl
+import numpy as np
+import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib import ticker
 from matplotlib import transforms as mtransforms
-from matplotlib.ticker import MaxNLocator
-from matplotlib.patches import Ellipse
 from matplotlib.animation import FuncAnimation
 from matplotlib.gridspec import GridSpec
+from matplotlib.patches import Ellipse
+from matplotlib.ticker import MaxNLocator
 from matplotlib.widgets import CheckButtons
+from numpy import arange, array
 from scipy.interpolate import interp1d
 
-from dapper.tools.math import ccat
 import dapper.tools.series as series
+import dapper.tools.utils as utils
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
-import dapper.tools.utils as utils
-from dapper.tools.math import round2
+from dapper.tools.math import ccat, round2sigfig
 
 
 def setup_wrapping(M, periodicity=None):
@@ -174,7 +172,7 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
     if chrono is not None:
         t = chrono
         K = int(min(max(K, t.dkObs), t.K))
-        T = round2(t.tt[K], 2)  # Could return T; T>tt[-1]
+        T = round2sigfig(t.tt[K], 2)  # Could return T; T>tt[-1]
         K = utils.find_1st_ind(t.tt >= T)
         if K:
             return K
@@ -182,7 +180,7 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
             return t.K
     else:
         K = int(min(max(K, 1), len(xx)))
-        T = round2(K, 2)
+        T = round2sigfig(K, 2)
         return K
 
 
@@ -665,7 +663,7 @@ def toggle_viz(*handles, prompt=False, legend=False, pause=True):
         are_viz += [is_viz]
 
         # Legend updating. Basic version: works by
-        #  - setting line's label to actual_label/'_nolegend_' if is_viz/not
+        #  - setting line's label (to /'_nolegend_' if off)
         #  - re-calling legend()
         if legend:
             if is_viz:
@@ -688,6 +686,7 @@ def toggle_viz(*handles, prompt=False, legend=False, pause=True):
                     # => Refresh by creating/rm another legend.
                     ax.legend('TMP').remove()
 
+    # Pause at where used (typically sequentially in script)
     if prompt:
         input("Press <Enter> to continue...")
     if pause:

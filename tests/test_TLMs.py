@@ -1,7 +1,7 @@
 """Numerical validation of TLM (d2x_dtdx)."""
 
 import numpy as np
-import dapper as dpr
+
 from dapper.tools.math import FD_Jac
 
 EPS = 1e-6
@@ -16,17 +16,17 @@ def _allclose(fun, jacob, x):
 
 
 def test_L63():
-    from dapper.mods.Lorenz63 import dxdt, d2x_dtdx, x0
+    from dapper.mods.Lorenz63 import d2x_dtdx, dxdt, x0
     assert _allclose(dxdt, d2x_dtdx, x0)
 
 
 def test_L84():
-    from dapper.mods.Lorenz84 import dxdt, d2x_dtdx, x0
+    from dapper.mods.Lorenz84 import d2x_dtdx, dxdt, x0
     assert _allclose(dxdt, d2x_dtdx, x0)
 
 
 def test_L96():
-    from dapper.mods.Lorenz96 import dxdt, d2x_dtdx, x0
+    from dapper.mods.Lorenz96 import d2x_dtdx, dxdt, x0
     assert _allclose(dxdt, d2x_dtdx, x0(40))
 
 
@@ -37,8 +37,8 @@ def test_LUV():
 
 
 def test_Ikeda():
-    from dapper.mods.Ikeda import step, dstep_dx, x0
-    x0 = dpr.randn(x0.shape)
+    from dapper.mods.Ikeda import dstep_dx, step, x0
+    x0 = np.random.randn(*x0.shape)
     def fun1(x): return step(x, np.nan, np.nan)
     def Jacob1(x): return dstep_dx(x, np.nan, np.nan)
     assert _allclose(fun1, Jacob1, x0)
@@ -51,5 +51,5 @@ def test_KS():
 
 
 def test_LV():
-    from dapper.mods.LotkaVolterra import dxdt, d2x_dtdx, x0
+    from dapper.mods.LotkaVolterra import d2x_dtdx, dxdt, x0
     assert _allclose(dxdt, d2x_dtdx, x0)

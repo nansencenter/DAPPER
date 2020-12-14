@@ -1,11 +1,19 @@
-from dapper.mods.Lorenz63 import LPs
-import dapper as dpr
-from dapper.tools.math import FD_Jac
+"""The motion of a pendulum with another pendulum attached to its end.
+
+Refs:
+
+- https://en.wikipedia.org/wiki/Double_pendulum
+- https://matplotlib.org/3.1.1/gallery/animation/double_pendulum_sgskip.html
+  which is based on this c code:
+- http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
+"""
+
 import numpy as np
 from numpy import cos, sin
 
-# Based on double_pendulum_animated.html from matplotlib.org.
-# which was based on physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
+import dapper as dpr
+from dapper.mods.Lorenz63 import LPs
+from dapper.tools.math import FD_Jac
 
 G  = 9.8  # acceleration due to gravity, in m/s^2
 L1 = 1.0  # length of pendulum 1 in m

@@ -1,9 +1,10 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.tools.liveplotting API documentation</title>
 <meta name="description" content="On-line (live) plots of the DA process for various models and methods." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -15,6 +16,12 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -27,33 +34,36 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L0-L1280" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;On-line (live) plots of the DA process for various models and methods.&#34;&#34;&#34;
 
-from dapper.dpr_config import rc
-from dapper.dict_tools import DotDict, deep_getattr
-import dapper.tools.viz as viz
-from dapper.tools.viz import plot_pause, not_available_text, freshfig
-from dapper.tools.matrices import CovMat
-import dapper.tools.utils as utils
-from dapper.tools.chronos import format_time
-from dapper.tools.series import FAUSt, RollingArray
-import dapper.tools.math
 import matplotlib as mpl
 import numpy as np
-from numpy import arange, ones, nan
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
+from numpy import arange, nan, ones
+
+import dapper.tools.math
+import dapper.tools.utils as utils
+import dapper.tools.viz as viz
+from dapper.dict_tools import DotDict, deep_getattr
+from dapper.dpr_config import rc
+from dapper.tools.chronos import format_time
+from dapper.tools.matrices import CovMat
+from dapper.tools.series import FAUSt, RollingArray
+from dapper.tools.viz import freshfig, not_available_text, plot_pause
 
 
 class LivePlot:
     &#34;&#34;&#34;Live plotting manager.
 
     Deals with
+
      - Pause, skip.
      - Which liveploters to call.
-     - plot_u
+     - `plot_u`
      - Figure window (title and number).&#34;&#34;&#34;
 
     def __init__(self,
@@ -67,16 +77,18 @@ class LivePlot:
                  **kwargs):
         &#34;&#34;&#34;
         Initialize plots.
+
         - liveplots: figures to plot; alternatives:
-          - &#34;default&#34;/[]/True: All default figures for this HMM.
-          - &#34;all&#34;            : Even more.
-          - non-empty list   : Only the figures with these numbers (int) or names (str).
-          - False            : None.
+            - `&#34;default&#34;/[]/True`: All default figures for this HMM.
+            - `&#34;all&#34;`            : Even more.
+            - non-empty `list`   : Only the figures with these numbers
+                                 (int) or names (str).
+            - `False`            : None.
         - speed: speed of animation.
-            - &gt;100: instantaneous
-            - 1   : (default) as quick as possible allowing for
-                    plt.draw() to work on a moderately fast computer.
-            - &lt;1  : slower.
+            - `&gt;100`: instantaneous
+            - `1`   : (default) as quick as possible allowing for
+                      plt.draw() to work on a moderately fast computer.
+            - `&lt;1`  : slower.
         &#34;&#34;&#34;
 
         # Disable if not rc.liveplotting
@@ -241,15 +253,16 @@ class LivePlot:
 
         if self.run_ipdb:
             self.run_ipdb = False
-            import ipdb
             import inspect
+
+            import ipdb
             print(&#34;Entering debug mode (ipdb).&#34;)
             print(&#34;Type &#39;?&#39; (and Enter) for usage help.&#34;)
             print(&#34;Type &#39;c&#39; to continue the assimilation.&#34;)
             ipdb.set_trace(inspect.stack()[2].frame)
 
 
-# TODO 4:
+# TODO 6:
 # - iEnKS diagnostics don&#39;t work at all when store_u=False
 star = &#34;${}^*$&#34;
 
@@ -925,12 +938,12 @@ def phase_particles(
 
 
 def validate_lag(Tplot, chrono):
-    &#34;&#34;&#34;Return validated T_lag such that is is:
+    &#34;&#34;&#34;Return validated `T_lag` such that is is:
 
-     - equal to Tplot with fallback: HMM.t.Tplot.
-     - no longer than HMM.t.T.
+     - equal to `Tplot` with fallback: `HMM.t.Tplot`.
+     - no longer than `HMM.t.T`.
 
-     Also return corresponding K_lag, a_lag.&#34;&#34;&#34;
+     Also return corresponding `K_lag`, `a_lag`.&#34;&#34;&#34;
 
     # Defaults
     if Tplot is None:
@@ -1013,20 +1026,19 @@ _Ea = [None]  # persistent storage for ens
 
 
 def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
-    &#34;&#34;&#34;Provide new ylim&#39;s intelligently,
-    computed from percentiles of the data.
+    &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
 
-    - data: iterable of arrays for computing percentiles.
-    - pp: percentiles
+    - `data`: iterable of arrays for computing percentiles.
+    - `pp`: percentiles
 
-    - ax: If present, then the delta_zoom in/out is also considered.
+    - `ax`: If present, then the delta_zoom in/out is also considered.
 
-      - cE: exansion (widenting) rate ∈ [0,1].
+      - `cE`: exansion (widenting) rate ∈ [0,1].
         Default: 1, which immediately expands to percentile.
-      - cC: compression (narrowing) rate ∈ [0,1].
+      - `cC`: compression (narrowing) rate ∈ [0,1].
         Default: 0, which does not allow compression.
 
-    - Min/Max: bounds
+    - `Min`/`Max`: bounds
 
     Despite being a little involved,
     the cost of this subroutine is typically not substantial
@@ -1244,7 +1256,7 @@ def spatial2d(
         ax_21.set_title(&#39;std. &#39;+sx)
         ax_22.set_title(&#39;err. &#39;+sx)
 
-        # TODO 4
+        # TODO 7
         # for ax in axs.flatten():
         # Crop boundries (which should be 0, i.e. yield harsh q gradients):
         # lims = (1, nx-2)
@@ -1322,6 +1334,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L418-L437" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_xlim(ax, tt, lag, margin=False):
     dt = lag/20 if margin else 0
@@ -1353,6 +1366,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L626-L764" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_marginals(
     obs_inds     = [],
@@ -1503,6 +1517,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L767-L899" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def phase_particles(
     is_3d        = True,
@@ -1643,23 +1658,24 @@ default_liveplotters = [
 <span>def <span class="ident">validate_lag</span></span>(<span>Tplot, chrono)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Return validated T_lag such that is is:</p>
+<div class="desc"><p>Return validated <code>T_lag</code> such that is is:</p>
 <ul>
-<li>equal to Tplot with fallback: HMM.t.Tplot.</li>
-<li>no longer than HMM.t.T.</li>
+<li>equal to <code>Tplot</code> with fallback: <code>HMM.t.Tplot</code>.</li>
+<li>no longer than <code>HMM.t.T</code>.</li>
 </ul>
-<p>Also return corresponding K_lag, a_lag.</p></div>
+<p>Also return corresponding <code>K_lag</code>, <code>a_lag</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L902-L927" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_lag(Tplot, chrono):
-    &#34;&#34;&#34;Return validated T_lag such that is is:
+    &#34;&#34;&#34;Return validated `T_lag` such that is is:
 
-     - equal to Tplot with fallback: HMM.t.Tplot.
-     - no longer than HMM.t.T.
+     - equal to `Tplot` with fallback: `HMM.t.Tplot`.
+     - no longer than `HMM.t.T`.
 
-     Also return corresponding K_lag, a_lag.&#34;&#34;&#34;
+     Also return corresponding `K_lag`, `a_lag`.&#34;&#34;&#34;
 
     # Defaults
     if Tplot is None:
@@ -1689,6 +1705,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L930-L934" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def comp_K_plot(K_lag, a_lag, plot_u):
     K_plot = 2*a_lag     # Sum of lags of {f,a} series.
@@ -1705,6 +1722,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L937-L961" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update_alpha(key, stats, lines, scatters=None):
     &#34;Adjust color alpha (for particle filters)&#34;
@@ -1741,6 +1759,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L964-L984" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
     &#34;Particle filter: insert breaks for resampled particles.&#34;
@@ -1769,26 +1788,25 @@ default_liveplotters = [
 <span>def <span class="ident">d_ylim</span></span>(<span>data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e+20, Max=1e+20)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Provide new ylim's intelligently,
-computed from percentiles of the data.</p>
+<div class="desc"><p>Provide new ylim's intelligently, from percentiles of the data.</p>
 <ul>
-<li>data: iterable of arrays for computing percentiles.</li>
+<li><code>data</code>: iterable of arrays for computing percentiles.</li>
 <li>
-<p>pp: percentiles</p>
+<p><code>pp</code>: percentiles</p>
 </li>
 <li>
-<p>ax: If present, then the delta_zoom in/out is also considered.</p>
+<p><code>ax</code>: If present, then the delta_zoom in/out is also considered.</p>
 </li>
 <li>
-<p>cE: exansion (widenting) rate ∈ [0,1].
+<p><code>cE</code>: exansion (widenting) rate ∈ [0,1].
 Default: 1, which immediately expands to percentile.</p>
 </li>
 <li>
-<p>cC: compression (narrowing) rate ∈ [0,1].
+<p><code>cC</code>: compression (narrowing) rate ∈ [0,1].
 Default: 0, which does not allow compression.</p>
 </li>
 <li>
-<p>Min/Max: bounds</p>
+<p><code>Min</code>/<code>Max</code>: bounds</p>
 </li>
 </ul>
 <p>Despite being a little involved,
@@ -1797,22 +1815,22 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L990-L1054" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
-    &#34;&#34;&#34;Provide new ylim&#39;s intelligently,
-    computed from percentiles of the data.
+    &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
 
-    - data: iterable of arrays for computing percentiles.
-    - pp: percentiles
+    - `data`: iterable of arrays for computing percentiles.
+    - `pp`: percentiles
 
-    - ax: If present, then the delta_zoom in/out is also considered.
+    - `ax`: If present, then the delta_zoom in/out is also considered.
 
-      - cE: exansion (widenting) rate ∈ [0,1].
+      - `cE`: exansion (widenting) rate ∈ [0,1].
         Default: 1, which immediately expands to percentile.
-      - cC: compression (narrowing) rate ∈ [0,1].
+      - `cC`: compression (narrowing) rate ∈ [0,1].
         Default: 0, which does not allow compression.
 
-    - Min/Max: bounds
+    - `Min`/`Max`: bounds
 
     Despite being a little involved,
     the cost of this subroutine is typically not substantial
@@ -1874,6 +1892,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L1057-L1162" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial1d(
     obs_inds     = None,
@@ -1991,6 +2010,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L1165-L1273" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial2d(
     square,
@@ -2048,7 +2068,7 @@ because there's usually not that much data to sort through.</p></div>
         ax_21.set_title(&#39;std. &#39;+sx)
         ax_22.set_title(&#39;err. &#39;+sx)
 
-        # TODO 4
+        # TODO 7
         # for ax in axs.flatten():
         # Crop boundries (which should be 0, i.e. yield harsh q gradients):
         # lims = (1, nx-2)
@@ -2114,38 +2134,49 @@ because there's usually not that much data to sort through.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Live plotting manager.</p>
-<p>Deals with
-- Pause, skip.
-- Which liveploters to call.
-- plot_u
-- Figure window (title and number).</p>
-<p>Initialize plots.
-- liveplots: figures to plot; alternatives:
-- "default"/[]/True: All default figures for this HMM.
-- "all"
-: Even more.
-- non-empty list
-: Only the figures with these numbers (int) or names (str).
-- False
-: None.
-- speed: speed of animation.
-- &gt;100: instantaneous
-- 1
+<p>Deals with</p>
+<ul>
+<li>Pause, skip.</li>
+<li>Which liveploters to call.</li>
+<li><code>plot_u</code></li>
+<li>Figure window (title and number).</li>
+</ul>
+<p>Initialize plots.</p>
+<ul>
+<li>liveplots: figures to plot; alternatives:<ul>
+<li><code>"default"/[]/True</code>: All default figures for this HMM.</li>
+<li><code>"all"</code>
+: Even more.</li>
+<li>non-empty <code>list</code>
+: Only the figures with these numbers
+(int) or names (str).</li>
+<li><code>False</code>
+: None.</li>
+</ul>
+</li>
+<li>speed: speed of animation.<ul>
+<li><code>&gt;100</code>: instantaneous</li>
+<li><code>1</code>
 : (default) as quick as possible allowing for
-plt.draw() to work on a moderately fast computer.
-- &lt;1
-: slower.</p></div>
+plt.draw() to work on a moderately fast computer.</li>
+<li><code>&lt;1</code>
+: slower.</li>
+</ul>
+</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L21-L224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LivePlot:
     &#34;&#34;&#34;Live plotting manager.
 
     Deals with
+
      - Pause, skip.
      - Which liveploters to call.
-     - plot_u
+     - `plot_u`
      - Figure window (title and number).&#34;&#34;&#34;
 
     def __init__(self,
@@ -2159,16 +2190,18 @@ plt.draw() to work on a moderately fast computer.
                  **kwargs):
         &#34;&#34;&#34;
         Initialize plots.
+
         - liveplots: figures to plot; alternatives:
-          - &#34;default&#34;/[]/True: All default figures for this HMM.
-          - &#34;all&#34;            : Even more.
-          - non-empty list   : Only the figures with these numbers (int) or names (str).
-          - False            : None.
+            - `&#34;default&#34;/[]/True`: All default figures for this HMM.
+            - `&#34;all&#34;`            : Even more.
+            - non-empty `list`   : Only the figures with these numbers
+                                 (int) or names (str).
+            - `False`            : None.
         - speed: speed of animation.
-            - &gt;100: instantaneous
-            - 1   : (default) as quick as possible allowing for
-                    plt.draw() to work on a moderately fast computer.
-            - &lt;1  : slower.
+            - `&gt;100`: instantaneous
+            - `1`   : (default) as quick as possible allowing for
+                      plt.draw() to work on a moderately fast computer.
+            - `&lt;1`  : slower.
         &#34;&#34;&#34;
 
         # Disable if not rc.liveplotting
@@ -2333,8 +2366,9 @@ plt.draw() to work on a moderately fast computer.
 
         if self.run_ipdb:
             self.run_ipdb = False
-            import ipdb
             import inspect
+
+            import ipdb
             print(&#34;Entering debug mode (ipdb).&#34;)
             print(&#34;Type &#39;?&#39; (and Enter) for usage help.&#34;)
             print(&#34;Type &#39;c&#39; to continue the assimilation.&#34;)
@@ -2350,6 +2384,7 @@ plt.draw() to work on a moderately fast computer.
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L145-L224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, key, E, P):
     &#34;&#34;&#34;Update liveplots&#34;&#34;&#34;
@@ -2424,8 +2459,9 @@ plt.draw() to work on a moderately fast computer.
 
     if self.run_ipdb:
         self.run_ipdb = False
-        import ipdb
         import inspect
+
+        import ipdb
         print(&#34;Entering debug mode (ipdb).&#34;)
         print(&#34;Type &#39;?&#39; (and Enter) for usage help.&#34;)
         print(&#34;Type &#39;c&#39; to continue the assimilation.&#34;)
@@ -2443,6 +2479,7 @@ plt.draw() to work on a moderately fast computer.
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L232-L415" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class sliding_diagnostics:
 
@@ -2639,6 +2676,7 @@ plt.draw() to work on a moderately fast computer.
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L440-L476" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class weight_histogram:
 
@@ -2688,6 +2726,7 @@ plt.draw() to work on a moderately fast computer.
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L479-L523" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class spectral_errors:
 
@@ -2745,6 +2784,7 @@ plt.draw() to work on a moderately fast computer.
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/liveplotting.py#L526-L623" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class correlations:
     half = True  # Whether to show half/full (symmetric) corr matrix.
@@ -2859,7 +2899,8 @@ plt.draw() to work on a moderately fast computer.
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
@@ -2915,7 +2956,7 @@ plt.draw() to work on a moderately fast computer.
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

@@ -72,4 +72,3 @@ Example: here's how I compiled the standalone on my Mac:
    * Capitalized m,n
    * Swapped NY1 and NX1 in definitions of M,N 
  - Made `interface.f90` for Python.
-

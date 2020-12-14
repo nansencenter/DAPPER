@@ -12,9 +12,9 @@ some of which are mentioned below.
 """
 
 import numpy as np
-import dapper as dpr
 
-from dapper.mods.Lorenz96 import step, dstep_dx, x0, Tplot, LPs
+import dapper as dpr
+from dapper.mods.Lorenz96 import LPs, Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
@@ -46,7 +46,7 @@ HMM.liveplotters = LPs(jj)
 # Suggested tuning
 ####################
 
-# Reproduce Table1 of Sakov'2008 "deterministic"               # Expected rmse.a:
+# Reproduce Table1 of sakov2008deterministic        # Expected rmse.a:
 # --------------------------------------------------------------------------------
 # xps += EnKF('PertObs'        ,N=40, infl=1.06)               # 0.22
 # xps += EnKF('DEnKF'          ,N=40, infl=1.01)               # 0.18
@@ -68,7 +68,7 @@ HMM.liveplotters = LPs(jj)
 # xps += Var3D(xB=0.02)                                        # 0.41
 # xps += ExtKF(infl=10)                                        # 0.24
 
-# Reproduce LETKF scores from Bocquet'2011 "EnKF-N" fig 6:
+# Reproduce LETKF scores from bocquet2011ensemble fig 6:
 # --------------------------------------------------------------------------------
 # xps += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')  #
 # Other localized:

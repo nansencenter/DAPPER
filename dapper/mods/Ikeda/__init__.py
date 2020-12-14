@@ -1,15 +1,16 @@
-"""The "Ikeda" map.
+"""The "Ikeda map" is a discrete-time dynamical system of size 2.
 
 Source: https://en.wikipedia.org/wiki/Ikeda_map and Colin Grudzen.
 
-See demo.py for more info.
+See `demo.py` for more info.
 """
 
 
-import dapper.tools.liveplotting as LP
 import numpy as np
 from numpy import cos, sin
+
 import dapper as dpr
+import dapper.tools.liveplotting as LP
 
 # Constant 0.6 <= u <= 1.
 u = 0.9

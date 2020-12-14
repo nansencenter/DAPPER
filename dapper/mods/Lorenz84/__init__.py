@@ -1,16 +1,14 @@
-"""'Lorenz-84'  model.
-
-Like Lorenz-63, the Lorenz-84 is also a strange attractor of dimension 3,
-but it has a more complex geometry.
+"""A chaotic system of size 3, like Lorenz-63, but with +complex geometry.
 
 Refs:
-E.N. Lorenz, Irregularity: a fundamental property of the atmosphere,
+- E.N. Lorenz, Irregularity: a fundamental property of the atmosphere,
   Tellus A 36 (1984) 98–110.
-E.N. Lorenz, Alook at some details of the growth of initial uncertainties,
+- E.N. Lorenz, Alook at some details of the growth of initial uncertainties,
   Tellus A 57 (2005) 1–11
 """
 
 import numpy as np
+
 import dapper as dpr
 from dapper.tools.math import integrate_TLM
 

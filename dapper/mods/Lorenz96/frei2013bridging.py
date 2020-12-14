@@ -15,9 +15,9 @@
 
 
 import numpy as np
-import dapper as dpr
 
-from dapper.mods.Lorenz96 import step, dstep_dx
+import dapper as dpr
+from dapper.mods.Lorenz96 import dstep_dx, step
 from dapper.tools.localization import nd_Id_localization
 
 t = dpr.Chronology(0.05, dtObs=0.4, T=4**5, BurnIn=20)

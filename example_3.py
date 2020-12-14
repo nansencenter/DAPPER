@@ -24,11 +24,10 @@ https://github.com/nansencenter/DAPPER#highlights
      http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf .
 """
 
-import dapper as dpr
 import numpy as np
 from matplotlib import pyplot as plt
 
-
+import dapper as dpr
 ##############################
 # Hidden Markov Model
 ##############################
@@ -37,8 +36,8 @@ from dapper.mods.Lorenz96.bocquet2015loc import HMM
 
 def setup(hmm, xp):
     """Experiment init.: Set Lorenz-96 forcing. Seed. Simulate truth/obs."""
-    import dapper.mods.Lorenz96 as core
     import dapper as dpr
+    import dapper.mods.Lorenz96 as core
     core.Force = xp.F
     return dpr.seed_and_simulate(hmm, xp)
 
@@ -50,16 +49,18 @@ HMM.t.KObs = 10**4
 ##############################
 # DA Configurations
 ##############################
+# Param ranges
 params = dict(
     xB       = [.1, .2, .4, 1],
     N        = [5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50],
     infl     = 1+np.array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]),
     rot      = [True, False],
-    loc_rad  = dpr.round2([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]]),
+    loc_rad  = dpr.round2sigfig([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]], 2),
 )
+# Combines all the params suitable for a method. Faster than "manual" for-loops.
+for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8, 10])
 
 xps = dpr.xpList()
-for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8, 10])
 xps += for_params(dpr.Climatology)
 xps += for_params(dpr.OptInterp)
 xps += for_params(dpr.Var3D, B="eye")
@@ -83,7 +84,7 @@ save_as = xps.launch(HMM, __file__, mp, setup)
 
 
 ##############################
-# Plot results
+# Present results
 ##############################
 # The following "section" **only** uses saved data.
 # => Can run as a separate script, by setting save_as manually, e.g.

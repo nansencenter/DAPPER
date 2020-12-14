@@ -63,4 +63,4 @@ HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(jj))
 # xps += PartFilt(    N=400  ,reg=2.0,NER=0.9)         # 0.23
 # xps += PartFilt(    N=1000 ,reg=1.0,NER=0.9)         # 0.19
 
-# TODO 3: implement cartesian obs
+# TODO 7: implement cartesian obs

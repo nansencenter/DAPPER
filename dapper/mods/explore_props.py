@@ -2,14 +2,16 @@
 
 An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}."""
 
-import dapper as dpr
-import dapper.tools.series as series
-from dapper.tools.math import with_rk4, with_recursion
-from dapper.tools.utils import progbar
-import dapper.tools.viz as viz
+import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
-import numpy as np
+from numpy.random import randn
+
+import dapper as dpr
+import dapper.tools.series as series
+import dapper.tools.viz as viz
+from dapper.tools.math import with_recursion, with_rk4
+from dapper.tools.utils import progbar
 
 dpr.set_seed(3000)
 
@@ -73,7 +75,7 @@ if mod == "L96":
     T   = 1e3            # Length of experiment (unitless time).
     dt  = 0.1            # Step length
     # dt = 0.0083        # Any dt<0.1 yield "almost correct" Lyapunov expos.
-    x0  = dpr.randn(Nx)  # Init condition.
+    x0  = randn(Nx)      # Init condition.
     eps = 0.0002         # Ens rescaling factor.
     N   = Nx             # Num of perturbations used.
 
@@ -86,7 +88,7 @@ if mod == "LUV":
     T     = 1e2
     dt    = 0.005
     LUV.F = 10
-    x0    = 0.01*dpr.randn(LUV.M)
+    x0    = 0.01*randn(LUV.M)
     eps   = 0.001
     N     = 66  # Don't need all Nx for a good approximation of upper spectrum.
 
@@ -106,7 +108,8 @@ if mod == "KS":
 
 # n0 ≈ 140
 if mod == "QG":
-    from dapper.mods.QG import model_config, shape, sample_filename
+    from dapper.mods.QG import model_config, sample_filename, shape
+
     # NB: There may arise an ipython/multiprocessing bug/issue.
     # Ref https://stackoverflow.com/a/45720872 . If so, set mp=False,
     # or run outside of ipython. However, I did not encounter lately.
@@ -140,9 +143,9 @@ fig, ax = dpr.freshfig(4)
 if "ii" not in locals():
     ii = np.arange(min(100, Nx))
 if "nlags" not in locals():
-    nlags = min(100, K)
+    nlags = min(100, K-1)
 ax.plot(tt[:nlags], np.nanmean(series.auto_cov(
-    xx[:nlags, ii], L=nlags, corr=1), axis=1))
+    xx[:nlags, ii], nlags=nlags, corr=1), axis=1))
 ax.set_xlabel('Time (t)')
 ax.set_ylabel('Auto-corr')
 viz.plot_pause(0.1)

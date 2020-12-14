@@ -1,12 +1,12 @@
 """Prettier, static illustration of Lorenz two-speed/scale/layer model."""
 # Sorry for the mess.
 
-import numpy as np
 import matplotlib as mpl
+import numpy as np
 from matplotlib import pyplot as plt
 
-from dapper.mods.LorenzUV.lorenz96 import LUV
 import dapper as dpr
+from dapper.mods.LorenzUV.lorenz96 import LUV
 from dapper.tools.math import ccat
 
 # Setup
@@ -21,7 +21,7 @@ K  = int(10/dt)
 step_1 = dpr.with_rk4(LUV.dxdt, autonom=True)
 step_K = dpr.with_recursion(step_1, prog=1)
 
-x0 = 0.01*dpr.randn(LUV.M)
+x0 = 0.01*np.random.randn(LUV.M)
 x0 = step_K(x0, int(2/dt), t0, dt)[-1]  # BurnIn
 xx = step_K(x0, K, t0, dt)
 
@@ -105,9 +105,8 @@ def tV(zz):
 #     plt.pause(0.001)
 
 
-##
-# Overlay circ
-fig, ax = plt.subplots(figsize=(10,3))
+## Logo -- Overlay circ
+fig, ax = plt.subplots()
 plt.plot(*tU(4.52*np.ones_like(circU)), color='k', lw=1)[0]
 plt.plot(*tV(0.15*np.ones_like(circV)), color='k', lw=1)[0]
 ax = fig.axes[0]
@@ -122,11 +121,24 @@ for Ny in range(L):
     plt.plot(*tU(xx[k][circU]), color=c, lw=2, alpha=a)[0]
     plt.plot(*tV(xx[k][circV]), color=c, lw=1, alpha=a)[0]
 
-if True:
-    ax.text(95,0,"DAPPER",ha="left",va="center",fontdict=dict(
+# Add DAPPER text label
+if False:
+    ax.text(95, 0, "DAPPER", ha="left", va="center", fontdict=dict(
         fontsize="80", name="Signpainter"
     ))
-    ax.plot([348,348.001],[28,28])
-    fig.savefig("docs/logo_wtxt.png", bbox_inches="tight", pad_inches=0)
+
+    # Adjust xlim to include everything
+    ax.set_xlim((-100, 400))
+
+    # bbox_inches="tight" doesnt manage with this font,
+    # so plot something almost invisible
+    ax.plot([348, 348.001], [28, 28])
+
+
+if False:
+    fig.savefig("docs/imgs/logo_wtxt.png",
+                bbox_inches="tight",
+                pad_inches=0,
+                dpi=200)
 
 plt.show()

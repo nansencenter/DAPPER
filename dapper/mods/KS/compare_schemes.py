@@ -1,13 +1,16 @@
-# Compare integration time-stepping schemes for K-S equation.
+# Compare integration time-stepping schemes for KS equation.
 # Conclusions: 'ETD-RK4' is superior to 'SI-RK3',
 #  - Superiority deteriorates when adding noise to ICs.
 #  - Superiority fairly independent of N.
 #  - The naive methods (rk4, rk1) are quite terrible.
 
-import numpy as np
 import time
+
+import numpy as np
 from matplotlib import pyplot as plt
+
 from dapper.mods.KS import Model
+
 model = Model()
 
 print("THERE WILL BE WARNINGS GENERATED.")

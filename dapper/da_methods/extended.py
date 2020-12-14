@@ -3,8 +3,8 @@
 import numpy as np
 
 from dapper.admin import da_method
-from dapper.tools.utils import progbar
 from dapper.tools.math import mrdiv
+from dapper.tools.utils import progbar
 
 
 @da_method()
@@ -56,7 +56,7 @@ class ExtKF:
             stats.assess(k, kObs, mu=mu, Cov=P)
 
 
-# TODO 4: Clean up
+# TODO 5: Clean up
 @da_method()
 class ExtRTS:
     """

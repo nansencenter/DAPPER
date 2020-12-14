@@ -438,47 +438,107 @@ def FD_Jac(ens_compatible_function, eps=1e-7):
 ########################
 
 @np.vectorize
-def ndecimal(x):
-    """Convert precision to num. of decimals. Example:
-    >>> ndecimal(10)    # --> -1
-    >>> ndecimal(1)     # --> 0
-    >>> ndecimal(0.1)   # --> 1
-    >>> ndecimal(0.01)  # --> 2
-    >>> ndecimal(0.02)  # --> 2
-    >>> ndecimal(0.099) # --> 2 # yes, this is what we want
+def _round2prec(num, prec):
+    """Don't use (directly)! Suffers from numerical precision.
+
+    This function is left here just for reference. Use `round2` instead.
+
+    The issue is that:
+    >>> _round2prec(0.7,.1)
+    0.7000000000000001
     """
-    if x == 0 or not np.isfinite(x):
-        # "Behaviour not defined" => should not be relied upon.
-        return 1
-    return -int(np.floor(np.log10(np.abs(x))))
+    return prec * round(num / prec)
 
 
 @np.vectorize
-def round2(num, param=1):
-    """Round num as specified by ``param``. Always returns floats.
+def log10int(x):
+    """Compute decimal order, rounded down.
 
-    If ``param`` is int: round to ``param`` num. of *significant* digits.
-    Otherwise          : round to ``param`` precison (must be float).
-    By contrast, ``round`` (builtin and np) takes the num. of *decimals*.
+    Conversion to `int` means that we cannot return nan's or +/- infinity,
+    even though this could be meaningful. Instead, we return integers of magnitude
+    a little less than IEEE floating point max/min-ima instead.
+    This avoids a lot of clauses in the parent/callers to this function.
 
     Examples:
-    >>> xx = curvedspace(1e-3,1e2,15,.5)
-    >>> with np.printoptions(precision=100):
-    >>>     spell_out(round2      (xx, 1e-2))
-    >>>     spell_out(round2      (xx,    1))
+    >>> log10int([1e-1, 1e-2, 1, 3, 10, np.inf, -np.inf, np.nan])
+    array([  -1,   -2,    0,    0,    1,  300, -300, -300])    
     """
-    if is_int(param):
-        # round to significant figure
-        nfig = param-1
-        n = nfig + ndecimal(num)
-    else:
-        # round to precision
-        prec = param
-        n = ndecimal(prec)
-        num = prec * np.round(num / prec)
-        print(num)
 
-    return np.round(num, n)  # n specified => float (always)
+    # Extreme cases -- https://stackoverflow.com/q/65248379
+    if np.isnan(x):
+        y = -300
+    elif x < 1e-300:
+        y = -300
+    elif x > 1e+300:
+        y = +300
+    # Normal case
+    else:
+        y = int(np.floor(np.log10(np.abs(x))))
+    return y
+
+
+@np.vectorize
+def round2(x, prec=1.0):
+    """Round to a nice precision, namely
+
+    $$ 10^{\\text{floor}(-\\log_{10}|\\text{prec}|)} $$
+
+    Parameters
+    ----------
+    x : Value to be rounded.
+    prec : Precision, before prettify.
+
+    Returns
+    -------
+    Rounded value (always a float).
+
+    See also
+    --------
+    round2sigfig
+
+    Examples
+    ----------
+    >>> round2(1.65, 0.543)
+    1.6
+    >>> round2(1.66, 0.543)
+    1.7
+    >>> round2(1.65, 1.234)
+    2.0
+    """
+    if np.isnan(prec):
+        return x
+    ndecimal = -log10int(prec)
+    return np.round(x, ndecimal)
+
+
+@np.vectorize
+def round2sigfig(x, sigfig=1):
+    """Round to significant figures.
+
+    Parameters
+    ----------
+    x : Value to be rounded.
+    sigfig : Number of significant figures to include.
+
+    Returns
+    -------
+    rounded value (always a float).
+
+    See also
+    --------
+    round2
+    np.round, which rounds to a given number of *decimals*.
+
+    Examples:
+    >>> round2sigfig(1234.5678, 1)
+    1000
+    >>> round2sigfig(1234.5678, 4)
+    1234
+    >>> round2sigfig(1234.5678, 6)
+    1234.57
+    """
+    ndecimal = sigfig - log10int(x) - 1
+    return np.round(x, ndecimal)
 
 
 # https://stackoverflow.com/q/37726830
@@ -645,7 +705,7 @@ def truncate_rank(s, threshold, avoid_pathological):
         r += 1  # Hence the strict inequality above
         if avoid_pathological:
             # If not avoid_pathological, then the last 4 diag. entries of
-            # reconst( *tsvd(np.eye(400),0.99) )
+            # svdi( *tsvd(np.eye(400),0.99) )
             # will be zero. This is probably not intended.
             r += np.sum(np.isclose(s[r-1], s[r:]))
     else:
@@ -719,16 +779,16 @@ def pad0(ss, N):
     return out
 
 
-def reconst(U, s, VT):
-    """Reconstruct matrix from svd. Supports truncated svd's.
+def svdi(U, s, VT):
+    """Reconstruct matrix from (t)svd.
 
     Example::
 
-    >>> A == reconst(*tsvd(A,1.0)).
+    >>> A == svdi(*tsvd(A,1.0)).
 
     .. seealso:: sla.diagsvd().
     """
-    return (U * s) @ VT
+    return (U[:, :len(s)] * s) @ VT
 
 
 def tinv(A, *kargs, **kwargs):

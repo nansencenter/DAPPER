@@ -5,8 +5,8 @@ author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},
 """
 
 import numpy as np
-import dapper as dpr
 
+import dapper as dpr
 from dapper.mods.Lorenz63.sakov2012 import HMM, Nx
 
 HMM.t = dpr.Chronology(0.01, dkObs=12, T=4**5, BurnIn=4)

@@ -1,6 +1,7 @@
 """Random number generation."""
 
 import time
+
 import numpy as np
 
 
@@ -10,7 +11,7 @@ def set_seed(sd="clock"):
     The disadvantage of ``np.random.seed()`` is that it produces a
     RandomState that cannot be represented by a simple seed
     (the mapping seed-->state being non-surjective).
-    By contrast, when ``sd in [None,"clock"]``, set_seed(sd) generates
+    By contrast, when ``sd in [None,"clock"]``, `set_seed` generates
     the seed from the time (in microseconds), which can then be returned.
 
     If ``sd==False``: do nothing.
@@ -23,7 +24,7 @@ def set_seed(sd="clock"):
     which should simply use converged statistics.
 
     Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-    Example use: Nimbus 3000. André 3000. I love you 3000.
+    Example use: "Nimbus 3000", "André 3000", "I love you 3000".
 
     Note: why are we using global generator?
     Because that's what we were used to.
@@ -55,8 +56,3 @@ def set_seed(sd="clock"):
         np.random.seed(sd)
 
     return sd
-
-
-# TODO 2: rm
-def rand(shape=(1,)): return np.random.uniform(0, 1, shape)
-def randn(shape=(1,)): return np.random.normal(0, 1, shape)

@@ -14,10 +14,12 @@ max-line-length = 88
 ; - Allow operator (eg =) alignment for dicts: E251
 ; - Allow if-list alignment: E271, E701, and more...
 ; - Ignore "Comparison to True/None should be with 'is'": E711, E712
+; - Allow ## block comments
 ignore=E24,W503,E123,E226,E704,E121,W504,E126,
     E221,
     E251,
     E711, E712
+    E266
 
 
 ; Doesn't work with autopep8 (only flake8),
@@ -26,6 +28,7 @@ ignore=E24,W503,E123,E226,E704,E121,W504,E126,
 per-file-ignores=
     explore_props.py:F811
     tests/test_*.py:E501
+    tests/test_round2.py:E203
     tests/test_data.py:E501,W291
     tests/test_example_2.py:E501,E402
     example_2.py:E402,E201,E231

@@ -1,11 +1,12 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.mods.LA API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Linear advection (i.e. translation) in 1D …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -15,6 +16,12 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -23,21 +30,34 @@
 <h1 class="title">Module <code>dapper.mods.LA</code></h1>
 </header>
 <section id="section-intro">
+<p>Linear advection (i.e. translation) in 1D.</p>
+<p>Optimal solution provided by Kalman filter (ExtKF).
+System is typically used with a relatively large size (Nx=1000),
+but initialized with a moderate wavenumber (k),
+which a DA method should hopefully be able to exploit.</p>
+<p>The system (and the impact on the DA) can also be adjusted by
+selecting non-optimal time steps, and/or various noise configs.</p>
+<p>A summary for the purpose of DA is provided in section 3.3 of thesis found at
+ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LA/__init__.py#L0-L128" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python"># &#34;Linear advection&#34;  model.
-# Optimal solution provided by Kalman filter (ExtKF).
-# System is typically used with a relatively large size (Nx=1000),
-# but initialized with a moderate wavenumber (k),
-# which a DA method should hopefully be able to exploit.
-#
-# A summary for the purpose of DA is provided in section 3.3
-# of thesis found at
-# ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
+<pre><code class="python">&#34;&#34;&#34;Linear advection (i.e. translation) in 1D.
 
-import dapper as dpr
+Optimal solution provided by Kalman filter (ExtKF).
+System is typically used with a relatively large size (Nx=1000),
+but initialized with a moderate wavenumber (k),
+which a DA method should hopefully be able to exploit.
+
+The system (and the impact on the DA) can also be adjusted by
+selecting non-optimal time steps, and/or various noise configs.
+
+A summary for the purpose of DA is provided in section 3.3 of thesis found at
+ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
+&#34;&#34;&#34;
+
 import numpy as np
 import scipy.linalg as sla
 from scipy import sparse
@@ -73,9 +93,9 @@ def basis_vector(Nx, k):
     k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     &#34;&#34;&#34;
     mm = np.arange(1, Nx+1) / Nx
-    kk = np.arange(k+1)[:, None]  # Wavenumbers
-    aa = dpr.rand(k+1)          # Amplitudes
-    pp = dpr.rand(k+1)[:, None]  # Phases
+    kk = np.arange(k+1)[:, None]       # Wavenumbers
+    aa = np.random.rand(k+1)           # Amplitudes
+    pp = np.random.rand(k+1)[:, None]  # Phases
 
     s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
 
@@ -158,13 +178,13 @@ def homogeneous_1D_cov(M, d, kind=&#39;Expo&#39;):
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LA.evensen2009" href="evensen2009.html">evensen2009</a></code></dt>
 <dd>
 <div class="desc"><p>A mix of Evensen'2009 and Sakov'2008</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LA.raanes2015" href="raanes2015.html">raanes2015</a></code></dt>
 <dd>
@@ -173,7 +193,7 @@ Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
 "Extending the square root method to account for
 …</p></div>
 </dd>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LA.small" href="small.html">small</a></code></dt>
 <dd>
@@ -202,6 +222,7 @@ np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LA/__init__.py#L20-L41" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Fmat(Nx, c, dx, dt):
     &#34;&#34;&#34;
@@ -237,6 +258,7 @@ k
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LA/__init__.py#L44-L63" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def basis_vector(Nx, k):
     &#34;&#34;&#34;
@@ -244,9 +266,9 @@ k
     k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     &#34;&#34;&#34;
     mm = np.arange(1, Nx+1) / Nx
-    kk = np.arange(k+1)[:, None]  # Wavenumbers
-    aa = dpr.rand(k+1)          # Amplitudes
-    pp = dpr.rand(k+1)[:, None]  # Phases
+    kk = np.arange(k+1)[:, None]       # Wavenumbers
+    aa = np.random.rand(k+1)           # Amplitudes
+    pp = np.random.rand(k+1)[:, None]  # Phases
 
     s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
 
@@ -276,6 +298,7 @@ plt.plot(E.T)</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LA/__init__.py#L68-L86" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sinusoidal_sample(Nx, k, N):
     &#34;&#34;&#34; Generate N basis vectors, and center them.
@@ -306,6 +329,7 @@ plt.plot(E.T)</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LA/__init__.py#L89-L90" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def periodic_distance_range(M):
     return np.minimum(np.arange(M), np.arange(M, 0, -1))</code></pre>
@@ -320,6 +344,7 @@ d - decorr length, where the unit distance = M(i)-M(i-1) for all i</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/LA/__init__.py#L96-L129" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def homogeneous_1D_cov(M, d, kind=&#39;Expo&#39;):
     &#34;&#34;&#34;
@@ -365,7 +390,8 @@ d - decorr length, where the unit distance = M(i)-M(i-1) for all i</p></div>
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
@@ -380,13 +406,13 @@ d - decorr length, where the unit distance = M(i)-M(i-1) for all i</p></div>
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.LA.evensen2009" href="evensen2009.html">evensen2009</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.LA.raanes2015" href="raanes2015.html">raanes2015</a></code></li>
-<!-- Short submodule name -->
+<!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.LA.small" href="small.html">small</a></code></li>
 </ul>
@@ -404,7 +430,7 @@ d - decorr length, where the unit distance = M(i)-M(i-1) for all i</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

@@ -1,6 +1,4 @@
-"""Tools for dicts (and lists).
-
-Bonus: also some list tools."""
+"""Tools for dicts (and lists)."""
 
 # TODO 9
 # - Make pip package, answer SO.com questions about
@@ -9,7 +7,6 @@ Bonus: also some list tools."""
 import itertools
 import shutil
 import sys
-
 # Since textwrap() only treats strings, while pprint is python-aware,
 # I would have preferred pprint.pformat(width=lw,compact=True,sort_dicts=False),
 # but pprint refuses to use my repr.

@@ -4,10 +4,10 @@ for Nonlinear Data Assimilation'"""
 
 import numpy as np
 
+import dapper as dpr
+import dapper.tools.randvars as RVs
 from dapper.mods.Lorenz96 import step
 from dapper.tools.localization import nd_Id_localization
-import dapper.tools.randvars as RVs
-import dapper as dpr
 
 t = dpr.Chronology(0.05, dkObs=2, T=4**5, BurnIn=20)
 

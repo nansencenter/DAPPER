@@ -1,9 +1,8 @@
 """Test printing"""
 
 import dapper as dpr
-from dapper.tools.magic import spell_out
-
 import dapper.tools.utils as utils
+from dapper.tools.magic import spell_out
 
 utils.disable_user_interaction = True
 

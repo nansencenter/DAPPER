@@ -1,13 +1,15 @@
 """Covariance matrix tools."""
 
-from dapper.tools.stoch import randn
-from dapper.tools.math import mrdiv, truncate_rank, svd0, exactly_1d, exactly_2d
-import dapper.tools.utils as utils
+import functools
 
 import numpy as np
-from numpy import sqrt, ones, zeros
 import scipy.linalg as sla
-import functools
+from numpy import ones, sqrt, zeros
+from numpy.random import randn
+
+import dapper.tools.utils as utils
+from dapper.tools.math import (exactly_1d, exactly_2d, mrdiv, svd0,
+                               truncate_rank)
 
 
 class lazy_property:
@@ -33,7 +35,7 @@ class lazy_property:
 def randcov(M):
     """(Makeshift) random cov mat."""
     N = int(np.ceil(2+M**1.2))
-    E = randn((N, M))
+    E = randn(N, M)
     return E.T @ E
 
 
@@ -46,9 +48,9 @@ def randcorr(M):
 
 def genOG(M):
     """Generate random orthonormal matrix."""
-    # TODO 3: This (using Householder) is (slightly?) wrong,
+    # TODO 5: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
-    Q, R = sla.qr(randn((M, M)))
+    Q, R = sla.qr(randn(M, M))
     for i in range(M):
         if R[i, i] < 0:
             Q[:, i] = -Q[:, i]
@@ -101,7 +103,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         # Reduce Given's rotations in QR algo
         raise NotImplementedError
     elif ver == 4:
-        # Introduce correlation between columns of randn((M,M))
+        # Introduce correlation between columns of randn(M,M)
         raise NotImplementedError
     elif ver == 5:
         # https://stats.stackexchange.com/q/25552
@@ -154,7 +156,7 @@ def chol_reduce(Right):
 
     Example::
 
-    >>> A = dpr.mean0(randn((20,5)),axis=1)
+    >>> A = dpr.mean0(randn(20,5),axis=1)
     >>> C = A.T @ A
     >>> # sla.cholesky(C) throws error
     >>> R = chol_reduce(A)
@@ -179,14 +181,17 @@ class CovMat():
     """Covariance matrix class.
 
     Main tasks:
+
       - Unifying the covariance representations:
         full, diagonal, reduced-rank sqrt.
       - Convenience constructor and printing.
       - Convenience transformations with memoization.
         E.g. replaces:
-        >if not hasattr(noise.C,'sym_sqrt'):
-        >  S = funm_psd(noise.C, sqrt)
-        >  noise.C.sym_sqrt = S
+
+            >>> if not hasattr(noise.C,'sym_sqrt'):
+            >>>     S = funm_psd(noise.C, sqrt)
+            >>>     noise.C.sym_sqrt = S
+
         This (hiding it internally) becomes particularly useful
         if the covariance matrix changes with time (but repeat).
     """
@@ -197,14 +202,14 @@ class CovMat():
     def __init__(self, data, kind='full_or_diag', trunc=1.0):
         """The covariance (say P) can be input (specified in the following ways):
 
-        kind    : data
-        ----------------------
-        'full'  : full M-by-M array (P)
-        'diag'  : diagonal of P (assumed diagonal)
-        'E'     : ensemble (N-by-M) with sample cov P
-        'A'     : as 'E', but pre-centred by mean(E,axis=0)
-        'Right' : any R such that P = R.T@R (e.g. weighted form of 'A')
-        'Left'  : any L such that P = L@L.T
+            kind    | data
+            --------|-------------
+            'full'  | full M-by-M array (P)
+            'diag'  | diagonal of P (assumed diagonal)
+            'E'     | ensemble (N-by-M) with sample cov P
+            'A'     | as 'E', but pre-centred by mean(E,axis=0)
+            'Right' | any R such that P = R.T@R (e.g. weighted form of 'A')
+            'Left'  | any L such that P = L@L.T
         """
 
         # Cascade if's down to 'Right'

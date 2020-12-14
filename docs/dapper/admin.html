@@ -1,9 +1,10 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.admin API documentation</title>
 <meta name="description" content="High-level API. I.e. the main &#34;user-interface&#34; …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -15,6 +16,12 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -24,67 +31,62 @@
 </header>
 <section id="section-intro">
 <p>High-level API. I.e. the main "user-interface".</p>
-<p>Used for experiment (xp) specification/administration, including:</p>
+<p>Used for experiment (<code>xp</code>) specification/administration.
+Highlights:</p>
 <ul>
-<li>da_method decorator</li>
-<li>xpList</li>
-<li>save_data</li>
-<li>run_experiment</li>
-<li>
-<p>run_from_file</p>
-</li>
-<li>
-<p>HiddenMarkovModel</p>
-</li>
-<li>Operator</li>
+<li><code><a title="dapper.admin.Operator" href="#dapper.admin.Operator">Operator</a></code></li>
+<li><code><a title="dapper.admin.HiddenMarkovModel" href="#dapper.admin.HiddenMarkovModel">HiddenMarkovModel</a></code></li>
+<li><code><a title="dapper.admin.da_method" href="#dapper.admin.da_method">da_method()</a></code> decorator (creates <code>xp</code> objects)</li>
+<li><code><a title="dapper.admin.xpList" href="#dapper.admin.xpList">xpList</a></code> (subclass of list for <code>xp</code> objects)</li>
+<li><code><a title="dapper.admin.run_experiment" href="#dapper.admin.run_experiment">run_experiment()</a></code> (run experiment specifiied by an <code>xp</code>)</li>
 </ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L0-L702" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;High-level API. I.e. the main &#34;user-interface&#34;.
 
-Used for experiment (xp) specification/administration, including:
+Used for experiment (`xp`) specification/administration.
+Highlights:
 
- - da_method decorator
- - xpList
- - save_data
- - run_experiment
- - run_from_file
-
- - HiddenMarkovModel
- - Operator
+- `Operator`
+- `HiddenMarkovModel`
+- `da_method` decorator (creates `xp` objects)
+- `xpList` (subclass of list for `xp` objects)
+- `run_experiment` (run experiment specifiied by an `xp`)
 &#34;&#34;&#34;
 
-import dapper.stats
-import dapper.dict_tools as dict_tools
-from dapper.tools.chronos import Chronology
-from dapper.tools.randvars import RV, GaussRV
-from dapper.tools.stoch import set_seed
-from dapper.dpr_config import rc
-from dapper.tools.remote.uplink import submit_job_GCP
-import dapper.tools.utils as utils
-from dapper.tools.localization import no_localization
-from dapper.tools.math import Id_op, Id_mat
-from pathlib import Path
-import dataclasses as dcs
 import copy
-from textwrap import dedent
-import os
-import sys
-import re
-import time
-import numpy as np
-import inspect
-
+import dataclasses as dcs
 import functools
-import dill
+import inspect
+import os
+import re
 import shutil
+import sys
+import time
 from datetime import datetime
+from pathlib import Path
+from textwrap import dedent
+
+import dill
+import numpy as np
+
+import dapper.dict_tools as dict_tools
+import dapper.stats
+import dapper.tools.utils as utils
+from dapper.dpr_config import rc
+from dapper.tools.chronos import Chronology
+from dapper.tools.localization import no_localization
+from dapper.tools.math import Id_mat, Id_op
+from dapper.tools.randvars import RV, GaussRV
+from dapper.tools.remote.uplink import submit_job_GCP
+from dapper.tools.stoch import set_seed
 
 
 class HiddenMarkovModel(dict_tools.NicePrint):
-    &#34;&#34;&#34;Container for attributes of a Hidden Markov Model (HMM).
+    &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
 
     This container contains the specification of a &#34;twin experiment&#34;,
     i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
@@ -183,7 +185,19 @@ class Operator(dict_tools.NicePrint):
 
 
 def da_method(*default_dataclasses):
-    &#34;&#34;&#34;Make the decorator that makes the DA classes.
+    &#34;&#34;&#34;Wrapper for classes that define DA methods.
+
+    These classes must be defined like dataclasses, except decorated
+    by `@da_method()` instead of `@dataclass`.
+    They must also define a method called `assimilate`
+    which gets slightly enhanced by this wrapper to provide:
+        - Initialisation of the `Stats` object
+        - `fail_gently` functionality.
+        - Duration timing
+        - Progressbar naming magic.
+
+    Instances of these classes are what is referred to as `xp`s.
+    I.e. `xp`s are essentially just data containers.
 
     Example:
     &gt;&gt;&gt; @da_method()
@@ -196,6 +210,11 @@ def da_method(*default_dataclasses):
     &gt;&gt;&gt;             time.sleep(1)
     &gt;&gt;&gt;         if not self.success:
     &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
+
+    Note that `da_method` is actually a &#34;two-level decorator&#34;,
+    which is why the empty parenthesis were used above.
+    The outer level can be used to define defaults that are re-used
+    for similar DA methods:
 
     Example:
     &gt;&gt;&gt; @dcs.dataclass
@@ -210,17 +229,21 @@ def da_method(*default_dataclasses):
     &gt;&gt;&gt;
     &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
     &gt;&gt;&gt;         ...
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; @da_method(ens_defaults)
+    &gt;&gt;&gt; class LETKF:
+    &gt;&gt;&gt;     ...
     &#34;&#34;&#34;
 
     def dataclass_with_defaults(cls):
         &#34;&#34;&#34;Decorator based on dataclass.
 
-        This adds __init__, __repr__, __eq__, ..., but also includes
-        inherited defaults (see https://stackoverflow.com/a/58130805 ).
-
-        Also:
-        - Wraps assimilate() to provide gentle_fail functionality.
-        - Initialises and writes the Stats object.&#34;&#34;&#34;
+        This adds `__init__`, `__repr__`, `__eq__`, ...,
+        but also includes inherited defaults
+        (see https://stackoverflow.com/a/58130805 ),
+        and enhances the `assimilate` method.
+        &#34;&#34;&#34;
 
         # Default fields invovle: (1) annotations and (2) attributes.
         def set_field(name, type, val):
@@ -252,11 +275,11 @@ def da_method(*default_dataclasses):
             self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
             # Assimilate
             time_start = time.time()
-            old_assimilate(self, HMM, xx, yy)
+            _assimilate(self, HMM, xx, yy)
             dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
 
-        old_assimilate = cls.assimilate
-        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+        _assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(_assimilate)(assimilate)
 
         return cls
     return dataclass_with_defaults
@@ -265,9 +288,18 @@ def da_method(*default_dataclasses):
 def seed_and_simulate(HMM, xp):
     &#34;&#34;&#34;Default experiment setup. Set seed and simulate truth and obs.
 
-    Note: if there is no ``xp.seed`` then then the seed is not set.
-    Thus, different experiments will produce different truth and obs.&#34;&#34;&#34;
+    .. note:: `xp.seed` should be an integer. Otherwise:
+        If there is no `xp.seed` then then the seed is not set.
+        Although different `xp`s will then use different seeds
+        (unless you do some funky hacking),
+        reproducibility for your script as a whole would still be obtained
+        by setting the seed at the outset (i.e. in the script).
+        On the other hand, if `xp.seed in [None, &#34;clock&#34;]`
+        then the seed is from the clock (for each xp),
+        which would not provide exact reproducibility.
+    &#34;&#34;&#34;
     set_seed(getattr(xp, &#39;seed&#39;, False))
+
     xx, yy = HMM.simulate()
     return xx, yy
 
@@ -275,17 +307,17 @@ def seed_and_simulate(HMM, xp):
 def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
-    &#34;&#34;&#34;Used by xpList.launch() to run each single experiment.
+    &#34;&#34;&#34;Used by `xpList.launch` to run each single experiment.
 
-    This involves steps similar to ``example_1.py``, i.e.:
+    This involves steps similar to `example_1.py`, i.e.:
 
-    - setup()                    : Call function given by user. Should set
+    - `setup`                    : Call function given by user. Should set
                                    params, eg HMM.Force, seed, and return
                                    (simulated/loaded) truth and obs series.
-    - xp.assimilate()            : run DA, pass on exception if fail_gently
-    - xp.stats.average_in_time() : result averaging
-    - xp.avrgs.tabulate()        : result printing
-    - dill.dump()                : result storage
+    - `xp.assimilate`            : run DA, pass on exception if fail_gently
+    - `xp.stats.average_in_time` : result averaging
+    - `xp.avrgs.tabulate`        : result printing
+    - `dill.dump`                : result storage
     &#34;&#34;&#34;
 
     # We should copy HMM so as not to cause any nasty surprises such as
@@ -321,36 +353,34 @@ def run_experiment(xp, label, savedir, HMM,
             dill.dump({&#39;xp&#39;: xp}, FILE)
 
 
-# TODO 2: check collections.userlist
-# TODO 2: __add__ vs __iadd__
 class xpList(list):
-    &#34;&#34;&#34;List, subclassed for holding experiment (&#34;xp&#34;) objects.
+    &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
     Main use: administrate experiment **launches**.
-    Also see: ``xpSpace`` for experiment **result presentation**.
+    Also see: `xpSpace` for experiment **result presentation**.
 
-     Modifications to ``list``:
+    Modifications to `list`:
 
-     - ``__iadd__`` (append) also for single items;
-       this is hackey, but convenience is king.
-     - ``append()`` supports ``unique`` to enable lazy xp declaration.
-     - ``__getitem__`` supports lists.
-     - pretty printing (using common/distinct attrs).
+    - `__iadd__` (append) also for single items;
+      this is hackey, but convenience is king.
+    - `append()` supports `unique` to enable lazy xp declaration.
+    - `__getitem__` supports lists.
+    - pretty printing (using common/distinct attrs).
 
-     Add-ons:
+    Add-ons:
 
-     - ``launch()``
-     - ``print_averages()``
-     - ``gen_names()``
-     - ``inds()`` to search by kw-attrs.
-     &#34;&#34;&#34;
+    - `launch()`
+    - `print_averages()`
+    - `gen_names()`
+    - `inds()` to search by kw-attrs.
+    &#34;&#34;&#34;
 
     def __init__(self, *args, unique=False):
-        &#34;&#34;&#34;Initialize without args, or with a list of configs.
+        &#34;&#34;&#34;Initialize without args, or with a list of `xp`s.
 
-        If ``unique``: duplicates won&#39;t get appended.
-        This makes ``append()`` (and ``__iadd__()``) relatively slow.
-        Use ``extend()`` or ``__add__()`` to bypass this validation.&#34;&#34;&#34;
+        If `unique`: duplicates won&#39;t get appended.
+        This makes `append()` (and `__iadd__()`) relatively slow.
+        Use `extend()` or `__add__()` to bypass this validation.&#34;&#34;&#34;
 
         self.unique = unique
         super().__init__(*args)
@@ -363,7 +393,7 @@ class xpList(list):
         return self
 
     def append(self, xp):
-        &#34;&#34;&#34;Append if not unique &amp; present.&#34;&#34;&#34;
+        &#34;&#34;&#34;Append if not `self.unique` &amp; present.&#34;&#34;&#34;
         if not (self.unique and xp in self):
             super().append(xp)
 
@@ -378,10 +408,10 @@ class xpList(list):
         return B
 
     def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
-        &#34;&#34;&#34;Find (all) indices of configs whose attributes match kws.
+        &#34;&#34;&#34;Find (all) indices of `xps` whose attributes match kws.
 
-        If strict, then xp&#39;s lacking a requested attr will not match,
-        unless the missingval (e.g. None) matches the required value.
+        If strict, then `xp`s lacking a requested attr will not match,
+        unless the missingval (e.g. `None`) matches the required value.
         &#34;&#34;&#34;
         def match(xp):
             def missing(v): return missingval if strict else v
@@ -395,12 +425,12 @@ class xpList(list):
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
-        &#34;&#34;&#34;Compile the attrs of all xps; split as distinct, redundant, common.
+        &#34;&#34;&#34;Compile attrs of all `xp`s; split into distinct, redundant, common.
 
-        Insert None if an attribute is distinct but not in xp.&#34;&#34;&#34;
+        Insert `None` if an attribute is distinct but not in `xp`.&#34;&#34;&#34;
 
         def _aggregate_keys():
-            &#34;Aggregate keys from all xps&#34;
+            &#34;Aggregate keys from all `xp`&#34;
 
             if len(self) == 0:
                 return []
@@ -486,7 +516,7 @@ class xpList(list):
         return s
 
     def gen_names(self, abbrev=6, tab=False):
-        &#34;&#34;&#34;Similiar to ``self.__repr__()``, but:
+        &#34;&#34;&#34;Similiar to `self.__repr__()`, but:
 
         - returns *list* of names
         - tabulation is optional
@@ -526,9 +556,9 @@ class xpList(list):
         return table.splitlines()
 
     def tabulate_avrgs(self, *args, **kwargs):
-        &#34;&#34;&#34;Pretty (tabulated) repr of xps &amp; their avrgs.
+        &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` &amp; their `avrgs.`
 
-        Similar to stats.tabulate_avrgs(), but for the entire list of xps.&#34;&#34;&#34;
+        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
@@ -536,26 +566,35 @@ class xpList(list):
 
     def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
                setup=seed_and_simulate, fail_gently=None, **kwargs):
-        &#34;&#34;&#34;For each xp in self: run_experiment(xp, ...).
+        &#34;&#34;&#34;Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
-        The results are saved in ``rc.dirs[&#39;data&#39;]/save_as.stem``,
-        unless ``save_as`` is False/None.
+        The results are saved in `rc.dirs[&#39;data&#39;]/save_as`,
+        unless `save_as` is False/None.
 
-        Depending on ``mp``, run_experiment() is delegated to one of:
-         - caller process (no parallelisation)
-         - multiprocessing on this host
-         - GCP (Google Cloud Computing) with HTCondor
+        Depending on `mp`, `run_experiment` is delegated as follows:
 
-        If ``setup == None``: use ``seed_and_simulate()``.
+        - `False`: caller process (no parallelisation)
+        - `True` or &#34;MP&#34; or an `int`: multiprocessing on this host
+        - `&#34;GCP&#34;` or `&#34;Google&#34;` or `dict(server=&#34;GCP&#34;)`: the DAPPER server
+          (Google Cloud Computing with HTCondor).
+            - Specify a list of files as `mp[&#34;files&#34;]` to include them
+              in working directory of the server workers.
+            - In order to use absolute paths, the list should cosist
+              of tuples, where the first item is relative to the second
+              (which is an absolute path). The root is then not included
+              in the working directory of the server.
+            - If this dict field is empty, then all python files
+              in `sys.path[0]` are uploaded.
 
-        The kwargs are forwarded to run_experiment().
+        If `setup == None`: use `seed_and_simulate`.
+        Specify your own setup function
+        (possibly calling `seed_and_simulate`)
+        in order to set (general) experiment parameters that are not
+        (i.e. those that are not inherently used by the da_method
+        of that `xp`).
 
-        See ``example_2.py`` and ``example_3.py`` for example use.
+        See `example_2.py` and `example_3.py` for example use.
         &#34;&#34;&#34;
-        # TODO 2: doc files and code options in mp, e.g
-        # `files` get added to PYTHONPATH and have dir-structure preserved.
-        # Setup: Experiment initialisation. Default: seed_and_simulate().
-        #   Enables setting experiment variables that are not parameters of a da_method.
 
         # Collect common args forwarded to run_experiment
         kwargs[&#39;HMM&#39;] = HMM
@@ -638,8 +677,6 @@ class xpList(list):
             os.mkdir(extra_files)
             # Default files: .py files in sys.path[0] (main script&#39;s path)
             if not mp.get(&#34;files&#34;, []):
-                # Todo 4: also intersect(..., sys.modules).
-                # Todo 4: use git ls-tree instead?
                 ff = os.listdir(sys.path[0])
                 mp[&#34;files&#34;] = [f for f in ff if f.endswith(&#34;.py&#34;)]
             # Copy files into extra_files
@@ -687,12 +724,12 @@ class xpList(list):
 
 
 def get_param_setter(param_dict, **glob_dict):
-    &#34;&#34;&#34;Mass creation of xp&#39;s by combining the value lists in the parameter dicts.
+    &#34;&#34;&#34;Mass creation of `xp`&#39;s by combining the value lists in the parameter dicts.
 
     The parameters are trimmed to the ones available for the given method.
     This is a good deal more efficient than relying on xpList&#39;s unique=True.
 
-    Beware! If, eg., [infl,rot] are in the param_dict, aimed at the EnKF,
+    Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
     but you forget that they are also attributes some method where you don&#39;t
     actually want to use them (eg. SVGDF),
     then you&#39;ll create many more than you intend.
@@ -724,7 +761,17 @@ def get_param_setter(param_dict, **glob_dict):
 <span>def <span class="ident">da_method</span></span>(<span>*default_dataclasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Make the decorator that makes the DA classes.</p>
+<div class="desc"><p>Wrapper for classes that define DA methods.</p>
+<p>These classes must be defined like dataclasses, except decorated
+by <code>@da_method()</code> instead of <code>@dataclass</code>.
+They must also define a method called <code>assimilate</code>
+which gets slightly enhanced by this wrapper to provide:
+- Initialisation of the <code>Stats</code> object
+- <code>fail_gently</code> functionality.
+- Duration timing
+- Progressbar naming magic.</p>
+<p>Instances of these classes are what is referred to as <code>xp</code>s.
+I.e. <code>xp</code>s are essentially just data containers.</p>
 <p>Example:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; @da_method()
 &gt;&gt;&gt; class Sleeper():
@@ -737,6 +784,10 @@ def get_param_setter(param_dict, **glob_dict):
 &gt;&gt;&gt;         if not self.success:
 &gt;&gt;&gt;             raise RuntimeError(&quot;Sleep over. Failing as intended.&quot;)
 </code></pre>
+<p>Note that <code><a title="dapper.admin.da_method" href="#dapper.admin.da_method">da_method()</a></code> is actually a "two-level decorator",
+which is why the empty parenthesis were used above.
+The outer level can be used to define defaults that are re-used
+for similar DA methods:</p>
 <p>Example:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; @dcs.dataclass
 &gt;&gt;&gt; class ens_defaults:
@@ -750,13 +801,31 @@ def get_param_setter(param_dict, **glob_dict):
 &gt;&gt;&gt;
 &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
 &gt;&gt;&gt;         ...
+&gt;&gt;&gt;
+&gt;&gt;&gt;
+&gt;&gt;&gt; @da_method(ens_defaults)
+&gt;&gt;&gt; class LETKF:
+&gt;&gt;&gt;     ...
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L140-L238" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def da_method(*default_dataclasses):
-    &#34;&#34;&#34;Make the decorator that makes the DA classes.
+    &#34;&#34;&#34;Wrapper for classes that define DA methods.
+
+    These classes must be defined like dataclasses, except decorated
+    by `@da_method()` instead of `@dataclass`.
+    They must also define a method called `assimilate`
+    which gets slightly enhanced by this wrapper to provide:
+        - Initialisation of the `Stats` object
+        - `fail_gently` functionality.
+        - Duration timing
+        - Progressbar naming magic.
+
+    Instances of these classes are what is referred to as `xp`s.
+    I.e. `xp`s are essentially just data containers.
 
     Example:
     &gt;&gt;&gt; @da_method()
@@ -769,6 +838,11 @@ def get_param_setter(param_dict, **glob_dict):
     &gt;&gt;&gt;             time.sleep(1)
     &gt;&gt;&gt;         if not self.success:
     &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
+
+    Note that `da_method` is actually a &#34;two-level decorator&#34;,
+    which is why the empty parenthesis were used above.
+    The outer level can be used to define defaults that are re-used
+    for similar DA methods:
 
     Example:
     &gt;&gt;&gt; @dcs.dataclass
@@ -783,17 +857,21 @@ def get_param_setter(param_dict, **glob_dict):
     &gt;&gt;&gt;
     &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
     &gt;&gt;&gt;         ...
+    &gt;&gt;&gt;
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; @da_method(ens_defaults)
+    &gt;&gt;&gt; class LETKF:
+    &gt;&gt;&gt;     ...
     &#34;&#34;&#34;
 
     def dataclass_with_defaults(cls):
         &#34;&#34;&#34;Decorator based on dataclass.
 
-        This adds __init__, __repr__, __eq__, ..., but also includes
-        inherited defaults (see https://stackoverflow.com/a/58130805 ).
-
-        Also:
-        - Wraps assimilate() to provide gentle_fail functionality.
-        - Initialises and writes the Stats object.&#34;&#34;&#34;
+        This adds `__init__`, `__repr__`, `__eq__`, ...,
+        but also includes inherited defaults
+        (see https://stackoverflow.com/a/58130805 ),
+        and enhances the `assimilate` method.
+        &#34;&#34;&#34;
 
         # Default fields invovle: (1) annotations and (2) attributes.
         def set_field(name, type, val):
@@ -825,11 +903,11 @@ def get_param_setter(param_dict, **glob_dict):
             self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
             # Assimilate
             time_start = time.time()
-            old_assimilate(self, HMM, xx, yy)
+            _assimilate(self, HMM, xx, yy)
             dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
 
-        old_assimilate = cls.assimilate
-        cls.assimilate = functools.wraps(old_assimilate)(assimilate)
+        _assimilate = cls.assimilate
+        cls.assimilate = functools.wraps(_assimilate)(assimilate)
 
         return cls
     return dataclass_with_defaults</code></pre>
@@ -840,18 +918,37 @@ def get_param_setter(param_dict, **glob_dict):
 </code></dt>
 <dd>
 <div class="desc"><p>Default experiment setup. Set seed and simulate truth and obs.</p>
-<p>Note: if there is no <code>xp.seed</code> then then the seed is not set.
-Thus, different experiments will produce different truth and obs.</p></div>
+<div class="admonition note">
+<p class="admonition-title">Note:&ensp;<code>xp.seed</code> should be an integer. Otherwise:</p>
+<p>If there is no <code>xp.seed</code> then then the seed is not set.
+Although different <code>xp</code>s will then use different seeds
+(unless you do some funky hacking),
+reproducibility for your script as a whole would still be obtained
+by setting the seed at the outset (i.e. in the script).
+On the other hand, if <code>xp.seed in [None, "clock"]</code>
+then the seed is from the clock (for each xp),
+which would not provide exact reproducibility.</p>
+</div></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L241-L257" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def seed_and_simulate(HMM, xp):
     &#34;&#34;&#34;Default experiment setup. Set seed and simulate truth and obs.
 
-    Note: if there is no ``xp.seed`` then then the seed is not set.
-    Thus, different experiments will produce different truth and obs.&#34;&#34;&#34;
+    .. note:: `xp.seed` should be an integer. Otherwise:
+        If there is no `xp.seed` then then the seed is not set.
+        Although different `xp`s will then use different seeds
+        (unless you do some funky hacking),
+        reproducibility for your script as a whole would still be obtained
+        by setting the seed at the outset (i.e. in the script).
+        On the other hand, if `xp.seed in [None, &#34;clock&#34;]`
+        then the seed is from the clock (for each xp),
+        which would not provide exact reproducibility.
+    &#34;&#34;&#34;
     set_seed(getattr(xp, &#39;seed&#39;, False))
+
     xx, yy = HMM.simulate()
     return xx, yy</code></pre>
 </details>
@@ -860,39 +957,40 @@ Thus, different experiments will produce different truth and obs.</p></div>
 <span>def <span class="ident">run_experiment</span></span>(<span>xp, label, savedir, HMM, setup=None, free=True, statkeys=False, fail_gently=False, **stat_kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Used by xpList.launch() to run each single experiment.</p>
+<div class="desc"><p>Used by <code><a title="dapper.admin.xpList.launch" href="#dapper.admin.xpList.launch">xpList.launch()</a></code> to run each single experiment.</p>
 <p>This involves steps similar to <code>example_1.py</code>, i.e.:</p>
 <ul>
-<li>setup()
+<li><code>setup</code>
 : Call function given by user. Should set
 params, eg HMM.Force, seed, and return
 (simulated/loaded) truth and obs series.</li>
-<li>xp.assimilate()
+<li><code>xp.assimilate</code>
 : run DA, pass on exception if fail_gently</li>
-<li>xp.stats.average_in_time() : result averaging</li>
-<li>xp.avrgs.tabulate()
+<li><code>xp.stats.average_in_time</code> : result averaging</li>
+<li><code>xp.avrgs.tabulate</code>
 : result printing</li>
-<li>dill.dump()
+<li><code>dill.dump</code>
 : result storage</li>
 </ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L260-L306" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
-    &#34;&#34;&#34;Used by xpList.launch() to run each single experiment.
+    &#34;&#34;&#34;Used by `xpList.launch` to run each single experiment.
 
-    This involves steps similar to ``example_1.py``, i.e.:
+    This involves steps similar to `example_1.py`, i.e.:
 
-    - setup()                    : Call function given by user. Should set
+    - `setup`                    : Call function given by user. Should set
                                    params, eg HMM.Force, seed, and return
                                    (simulated/loaded) truth and obs series.
-    - xp.assimilate()            : run DA, pass on exception if fail_gently
-    - xp.stats.average_in_time() : result averaging
-    - xp.avrgs.tabulate()        : result printing
-    - dill.dump()                : result storage
+    - `xp.assimilate`            : run DA, pass on exception if fail_gently
+    - `xp.stats.average_in_time` : result averaging
+    - `xp.avrgs.tabulate`        : result printing
+    - `dill.dump`                : result storage
     &#34;&#34;&#34;
 
     # We should copy HMM so as not to cause any nasty surprises such as
@@ -932,24 +1030,25 @@ params, eg HMM.Force, seed, and return
 <span>def <span class="ident">get_param_setter</span></span>(<span>param_dict, **glob_dict)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Mass creation of xp's by combining the value lists in the parameter dicts.</p>
+<div class="desc"><p>Mass creation of <code>xp</code>'s by combining the value lists in the parameter dicts.</p>
 <p>The parameters are trimmed to the ones available for the given method.
 This is a good deal more efficient than relying on xpList's unique=True.</p>
-<p>Beware! If, eg., [infl,rot] are in the param_dict, aimed at the EnKF,
+<p>Beware! If, eg., <code>infl</code> or <code>rot</code> are in the param_dict, aimed at the EnKF,
 but you forget that they are also attributes some method where you don't
 actually want to use them (eg. SVGDF),
 then you'll create many more than you intend.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L679-L703" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_param_setter(param_dict, **glob_dict):
-    &#34;&#34;&#34;Mass creation of xp&#39;s by combining the value lists in the parameter dicts.
+    &#34;&#34;&#34;Mass creation of `xp`&#39;s by combining the value lists in the parameter dicts.
 
     The parameters are trimmed to the ones available for the given method.
     This is a good deal more efficient than relying on xpList&#39;s unique=True.
 
-    Beware! If, eg., [infl,rot] are in the param_dict, aimed at the EnKF,
+    Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
     but you forget that they are also attributes some method where you don&#39;t
     actually want to use them (eg. SVGDF),
     then you&#39;ll create many more than you intend.
@@ -980,15 +1079,16 @@ then you'll create many more than you intend.</p></div>
 <span>(</span><span>Dyn, Obs, t, X0, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Container for attributes of a Hidden Markov Model (HMM).</p>
+<div class="desc"><p>Container for a Hidden Markov Model (HMM).</p>
 <p>This container contains the specification of a "twin experiment",
 i.e. an "OSSE (observing system simulation experiment)".</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L41-L104" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HiddenMarkovModel(dict_tools.NicePrint):
-    &#34;&#34;&#34;Container for attributes of a Hidden Markov Model (HMM).
+    &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
 
     This container contains the specification of a &#34;twin experiment&#34;,
     i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
@@ -1071,6 +1171,7 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L81-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Nx(self): return self.Dyn.M</code></pre>
@@ -1082,6 +1183,7 @@ def Nx(self): return self.Dyn.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L83-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Ny(self): return self.Obs.M</code></pre>
@@ -1098,6 +1200,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L88-L104" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
     &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
@@ -1129,6 +1232,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L107-L137" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Operator(dict_tools.NicePrint):
     &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;
@@ -1179,7 +1283,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <span>(</span><span>*args, unique=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>List, subclassed for holding experiment ("xp") objects.</p>
+<div class="desc"><p>Subclass of <code>list</code> specialized for experiment ("xp") objects.</p>
 <p>Main use: administrate experiment <strong>launches</strong>.
 Also see: <code>xpSpace</code> for experiment <strong>result presentation</strong>.</p>
 <p>Modifications to <code>list</code>:</p>
@@ -1197,42 +1301,43 @@ this is hackey, but convenience is king.</li>
 <li><code>gen_names()</code></li>
 <li><code>inds()</code> to search by kw-attrs.</li>
 </ul>
-<p>Initialize without args, or with a list of configs.</p>
+<p>Initialize without args, or with a list of <code>xp</code>s.</p>
 <p>If <code>unique</code>: duplicates won't get appended.
 This makes <code>append()</code> (and <code>__iadd__()</code>) relatively slow.
 Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L309-L676" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpList(list):
-    &#34;&#34;&#34;List, subclassed for holding experiment (&#34;xp&#34;) objects.
+    &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
     Main use: administrate experiment **launches**.
-    Also see: ``xpSpace`` for experiment **result presentation**.
+    Also see: `xpSpace` for experiment **result presentation**.
 
-     Modifications to ``list``:
+    Modifications to `list`:
 
-     - ``__iadd__`` (append) also for single items;
-       this is hackey, but convenience is king.
-     - ``append()`` supports ``unique`` to enable lazy xp declaration.
-     - ``__getitem__`` supports lists.
-     - pretty printing (using common/distinct attrs).
+    - `__iadd__` (append) also for single items;
+      this is hackey, but convenience is king.
+    - `append()` supports `unique` to enable lazy xp declaration.
+    - `__getitem__` supports lists.
+    - pretty printing (using common/distinct attrs).
 
-     Add-ons:
+    Add-ons:
 
-     - ``launch()``
-     - ``print_averages()``
-     - ``gen_names()``
-     - ``inds()`` to search by kw-attrs.
-     &#34;&#34;&#34;
+    - `launch()`
+    - `print_averages()`
+    - `gen_names()`
+    - `inds()` to search by kw-attrs.
+    &#34;&#34;&#34;
 
     def __init__(self, *args, unique=False):
-        &#34;&#34;&#34;Initialize without args, or with a list of configs.
+        &#34;&#34;&#34;Initialize without args, or with a list of `xp`s.
 
-        If ``unique``: duplicates won&#39;t get appended.
-        This makes ``append()`` (and ``__iadd__()``) relatively slow.
-        Use ``extend()`` or ``__add__()`` to bypass this validation.&#34;&#34;&#34;
+        If `unique`: duplicates won&#39;t get appended.
+        This makes `append()` (and `__iadd__()`) relatively slow.
+        Use `extend()` or `__add__()` to bypass this validation.&#34;&#34;&#34;
 
         self.unique = unique
         super().__init__(*args)
@@ -1245,7 +1350,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         return self
 
     def append(self, xp):
-        &#34;&#34;&#34;Append if not unique &amp; present.&#34;&#34;&#34;
+        &#34;&#34;&#34;Append if not `self.unique` &amp; present.&#34;&#34;&#34;
         if not (self.unique and xp in self):
             super().append(xp)
 
@@ -1260,10 +1365,10 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         return B
 
     def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
-        &#34;&#34;&#34;Find (all) indices of configs whose attributes match kws.
+        &#34;&#34;&#34;Find (all) indices of `xps` whose attributes match kws.
 
-        If strict, then xp&#39;s lacking a requested attr will not match,
-        unless the missingval (e.g. None) matches the required value.
+        If strict, then `xp`s lacking a requested attr will not match,
+        unless the missingval (e.g. `None`) matches the required value.
         &#34;&#34;&#34;
         def match(xp):
             def missing(v): return missingval if strict else v
@@ -1277,12 +1382,12 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
-        &#34;&#34;&#34;Compile the attrs of all xps; split as distinct, redundant, common.
+        &#34;&#34;&#34;Compile attrs of all `xp`s; split into distinct, redundant, common.
 
-        Insert None if an attribute is distinct but not in xp.&#34;&#34;&#34;
+        Insert `None` if an attribute is distinct but not in `xp`.&#34;&#34;&#34;
 
         def _aggregate_keys():
-            &#34;Aggregate keys from all xps&#34;
+            &#34;Aggregate keys from all `xp`&#34;
 
             if len(self) == 0:
                 return []
@@ -1368,7 +1473,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         return s
 
     def gen_names(self, abbrev=6, tab=False):
-        &#34;&#34;&#34;Similiar to ``self.__repr__()``, but:
+        &#34;&#34;&#34;Similiar to `self.__repr__()`, but:
 
         - returns *list* of names
         - tabulation is optional
@@ -1408,9 +1513,9 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         return table.splitlines()
 
     def tabulate_avrgs(self, *args, **kwargs):
-        &#34;&#34;&#34;Pretty (tabulated) repr of xps &amp; their avrgs.
+        &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` &amp; their `avrgs.`
 
-        Similar to stats.tabulate_avrgs(), but for the entire list of xps.&#34;&#34;&#34;
+        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
@@ -1418,26 +1523,35 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 
     def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
                setup=seed_and_simulate, fail_gently=None, **kwargs):
-        &#34;&#34;&#34;For each xp in self: run_experiment(xp, ...).
+        &#34;&#34;&#34;Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
-        The results are saved in ``rc.dirs[&#39;data&#39;]/save_as.stem``,
-        unless ``save_as`` is False/None.
+        The results are saved in `rc.dirs[&#39;data&#39;]/save_as`,
+        unless `save_as` is False/None.
 
-        Depending on ``mp``, run_experiment() is delegated to one of:
-         - caller process (no parallelisation)
-         - multiprocessing on this host
-         - GCP (Google Cloud Computing) with HTCondor
+        Depending on `mp`, `run_experiment` is delegated as follows:
 
-        If ``setup == None``: use ``seed_and_simulate()``.
+        - `False`: caller process (no parallelisation)
+        - `True` or &#34;MP&#34; or an `int`: multiprocessing on this host
+        - `&#34;GCP&#34;` or `&#34;Google&#34;` or `dict(server=&#34;GCP&#34;)`: the DAPPER server
+          (Google Cloud Computing with HTCondor).
+            - Specify a list of files as `mp[&#34;files&#34;]` to include them
+              in working directory of the server workers.
+            - In order to use absolute paths, the list should cosist
+              of tuples, where the first item is relative to the second
+              (which is an absolute path). The root is then not included
+              in the working directory of the server.
+            - If this dict field is empty, then all python files
+              in `sys.path[0]` are uploaded.
 
-        The kwargs are forwarded to run_experiment().
+        If `setup == None`: use `seed_and_simulate`.
+        Specify your own setup function
+        (possibly calling `seed_and_simulate`)
+        in order to set (general) experiment parameters that are not
+        (i.e. those that are not inherently used by the da_method
+        of that `xp`).
 
-        See ``example_2.py`` and ``example_3.py`` for example use.
+        See `example_2.py` and `example_3.py` for example use.
         &#34;&#34;&#34;
-        # TODO 2: doc files and code options in mp, e.g
-        # `files` get added to PYTHONPATH and have dir-structure preserved.
-        # Setup: Experiment initialisation. Default: seed_and_simulate().
-        #   Enables setting experiment variables that are not parameters of a da_method.
 
         # Collect common args forwarded to run_experiment
         kwargs[&#39;HMM&#39;] = HMM
@@ -1520,8 +1634,6 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
             os.mkdir(extra_files)
             # Default files: .py files in sys.path[0] (main script&#39;s path)
             if not mp.get(&#34;files&#34;, []):
-                # Todo 4: also intersect(..., sys.modules).
-                # Todo 4: use git ls-tree instead?
                 ff = os.listdir(sys.path[0])
                 mp[&#34;files&#34;] = [f for f in ff if f.endswith(&#34;.py&#34;)]
             # Copy files into extra_files
@@ -1579,6 +1691,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L376-L378" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def da_methods(self):
@@ -1592,13 +1705,14 @@ def da_methods(self):
 <span>def <span class="ident">append</span></span>(<span>self, xp)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Append if not unique &amp; present.</p></div>
+<div class="desc"><p>Append if not <code>self.unique</code> &amp; present.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L348-L351" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def append(self, xp):
-    &#34;&#34;&#34;Append if not unique &amp; present.&#34;&#34;&#34;
+    &#34;&#34;&#34;Append if not `self.unique` &amp; present.&#34;&#34;&#34;
     if not (self.unique and xp in self):
         super().append(xp)</code></pre>
 </details>
@@ -1607,18 +1721,19 @@ def da_methods(self):
 <span>def <span class="ident">inds</span></span>(<span>self, strict=True, missingval='NONSENSE', **kws)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Find (all) indices of configs whose attributes match kws.</p>
-<p>If strict, then xp's lacking a requested attr will not match,
-unless the missingval (e.g. None) matches the required value.</p></div>
+<div class="desc"><p>Find (all) indices of <code>xps</code> whose attributes match kws.</p>
+<p>If strict, then <code>xp</code>s lacking a requested attr will not match,
+unless the missingval (e.g. <code>None</code>) matches the required value.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L363-L374" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
-    &#34;&#34;&#34;Find (all) indices of configs whose attributes match kws.
+    &#34;&#34;&#34;Find (all) indices of `xps` whose attributes match kws.
 
-    If strict, then xp&#39;s lacking a requested attr will not match,
-    unless the missingval (e.g. None) matches the required value.
+    If strict, then `xp`s lacking a requested attr will not match,
+    unless the missingval (e.g. `None`) matches the required value.
     &#34;&#34;&#34;
     def match(xp):
         def missing(v): return missingval if strict else v
@@ -1632,19 +1747,20 @@ unless the missingval (e.g. None) matches the required value.</p></div>
 <span>def <span class="ident">split_attrs</span></span>(<span>self, nomerge=())</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compile the attrs of all xps; split as distinct, redundant, common.</p>
-<p>Insert None if an attribute is distinct but not in xp.</p></div>
+<div class="desc"><p>Compile attrs of all <code>xp</code>s; split into distinct, redundant, common.</p>
+<p>Insert <code>None</code> if an attribute is distinct but not in <code>xp</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L380-L461" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def split_attrs(self, nomerge=()):
-    &#34;&#34;&#34;Compile the attrs of all xps; split as distinct, redundant, common.
+    &#34;&#34;&#34;Compile attrs of all `xp`s; split into distinct, redundant, common.
 
-    Insert None if an attribute is distinct but not in xp.&#34;&#34;&#34;
+    Insert `None` if an attribute is distinct but not in `xp`.&#34;&#34;&#34;
 
     def _aggregate_keys():
-        &#34;Aggregate keys from all xps&#34;
+        &#34;Aggregate keys from all `xp`&#34;
 
         if len(self) == 0:
             return []
@@ -1735,9 +1851,10 @@ unless the missingval (e.g. None) matches the required value.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L471-L509" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_names(self, abbrev=6, tab=False):
-    &#34;&#34;&#34;Similiar to ``self.__repr__()``, but:
+    &#34;&#34;&#34;Similiar to `self.__repr__()`, but:
 
     - returns *list* of names
     - tabulation is optional
@@ -1781,16 +1898,17 @@ unless the missingval (e.g. None) matches the required value.</p></div>
 <span>def <span class="ident">tabulate_avrgs</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Pretty (tabulated) repr of xps &amp; their avrgs.</p>
-<p>Similar to stats.tabulate_avrgs(), but for the entire list of xps.</p></div>
+<div class="desc"><p>Pretty (tabulated) <code>repr</code> of <code>xps</code> &amp; their <code>avrgs.</code></p>
+<p>Similar to <code>stats.tabulate_avrgs</code>, but for the entire list of <code>xps</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L511-L518" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(self, *args, **kwargs):
-    &#34;&#34;&#34;Pretty (tabulated) repr of xps &amp; their avrgs.
+    &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` &amp; their `avrgs.`
 
-    Similar to stats.tabulate_avrgs(), but for the entire list of xps.&#34;&#34;&#34;
+    Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
     distinct, redundant, common = self.split_attrs()
     averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
     columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
@@ -1801,42 +1919,69 @@ unless the missingval (e.g. None) matches the required value.</p></div>
 <span>def <span class="ident">launch</span></span>(<span>self, HMM, save_as='noname', mp=False, setup=&lt;function seed_and_simulate&gt;, fail_gently=None, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>For each xp in self: run_experiment(xp, &hellip;).</p>
-<p>The results are saved in <code>rc.dirs['data']/save_as.stem</code>,
+<div class="desc"><p>Essentially: <code>for xp in self: run_experiment(xp, ..., **kwargs)</code>.</p>
+<p>The results are saved in <code>rc.dirs['data']/save_as</code>,
 unless <code>save_as</code> is False/None.</p>
-<p>Depending on <code>mp</code>, run_experiment() is delegated to one of:
-- caller process (no parallelisation)
-- multiprocessing on this host
-- GCP (Google Cloud Computing) with HTCondor</p>
-<p>If <code>setup == None</code>: use <code><a title="dapper.admin.seed_and_simulate" href="#dapper.admin.seed_and_simulate">seed_and_simulate()</a></code>.</p>
-<p>The kwargs are forwarded to run_experiment().</p>
+<p>Depending on <code>mp</code>, <code><a title="dapper.admin.run_experiment" href="#dapper.admin.run_experiment">run_experiment()</a></code> is delegated as follows:</p>
+<ul>
+<li><code>False</code>: caller process (no parallelisation)</li>
+<li><code>True</code> or "MP" or an <code>int</code>: multiprocessing on this host</li>
+<li><code>"GCP"</code> or <code>"Google"</code> or <code>dict(server="GCP")</code>: the DAPPER server
+(Google Cloud Computing with HTCondor).<ul>
+<li>Specify a list of files as <code>mp["files"]</code> to include them
+in working directory of the server workers.</li>
+<li>In order to use absolute paths, the list should cosist
+of tuples, where the first item is relative to the second
+(which is an absolute path). The root is then not included
+in the working directory of the server.</li>
+<li>If this dict field is empty, then all python files
+in <code>sys.path[0]</code> are uploaded.</li>
+</ul>
+</li>
+</ul>
+<p>If <code>setup == None</code>: use <code><a title="dapper.admin.seed_and_simulate" href="#dapper.admin.seed_and_simulate">seed_and_simulate()</a></code>.
+Specify your own setup function
+(possibly calling <code><a title="dapper.admin.seed_and_simulate" href="#dapper.admin.seed_and_simulate">seed_and_simulate()</a></code>)
+in order to set (general) experiment parameters that are not
+(i.e. those that are not inherently used by the da_method
+of that <code>xp</code>).</p>
 <p>See <code>example_2.py</code> and <code>example_3.py</code> for example use.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/admin.py#L520-L676" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
            setup=seed_and_simulate, fail_gently=None, **kwargs):
-    &#34;&#34;&#34;For each xp in self: run_experiment(xp, ...).
+    &#34;&#34;&#34;Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
-    The results are saved in ``rc.dirs[&#39;data&#39;]/save_as.stem``,
-    unless ``save_as`` is False/None.
+    The results are saved in `rc.dirs[&#39;data&#39;]/save_as`,
+    unless `save_as` is False/None.
 
-    Depending on ``mp``, run_experiment() is delegated to one of:
-     - caller process (no parallelisation)
-     - multiprocessing on this host
-     - GCP (Google Cloud Computing) with HTCondor
+    Depending on `mp`, `run_experiment` is delegated as follows:
 
-    If ``setup == None``: use ``seed_and_simulate()``.
+    - `False`: caller process (no parallelisation)
+    - `True` or &#34;MP&#34; or an `int`: multiprocessing on this host
+    - `&#34;GCP&#34;` or `&#34;Google&#34;` or `dict(server=&#34;GCP&#34;)`: the DAPPER server
+      (Google Cloud Computing with HTCondor).
+        - Specify a list of files as `mp[&#34;files&#34;]` to include them
+          in working directory of the server workers.
+        - In order to use absolute paths, the list should cosist
+          of tuples, where the first item is relative to the second
+          (which is an absolute path). The root is then not included
+          in the working directory of the server.
+        - If this dict field is empty, then all python files
+          in `sys.path[0]` are uploaded.
 
-    The kwargs are forwarded to run_experiment().
+    If `setup == None`: use `seed_and_simulate`.
+    Specify your own setup function
+    (possibly calling `seed_and_simulate`)
+    in order to set (general) experiment parameters that are not
+    (i.e. those that are not inherently used by the da_method
+    of that `xp`).
 
-    See ``example_2.py`` and ``example_3.py`` for example use.
+    See `example_2.py` and `example_3.py` for example use.
     &#34;&#34;&#34;
-    # TODO 2: doc files and code options in mp, e.g
-    # `files` get added to PYTHONPATH and have dir-structure preserved.
-    # Setup: Experiment initialisation. Default: seed_and_simulate().
-    #   Enables setting experiment variables that are not parameters of a da_method.
 
     # Collect common args forwarded to run_experiment
     kwargs[&#39;HMM&#39;] = HMM
@@ -1919,8 +2064,6 @@ unless <code>save_as</code> is False/None.</p>
         os.mkdir(extra_files)
         # Default files: .py files in sys.path[0] (main script&#39;s path)
         if not mp.get(&#34;files&#34;, []):
-            # Todo 4: also intersect(..., sys.modules).
-            # Todo 4: use git ls-tree instead?
             ff = os.listdir(sys.path[0])
             mp[&#34;files&#34;] = [f for f in ff if f.endswith(&#34;.py&#34;)]
         # Copy files into extra_files
@@ -1975,7 +2118,8 @@ unless <code>save_as</code> is False/None.</p>
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
@@ -2031,7 +2175,7 @@ unless <code>save_as</code> is False/None.</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

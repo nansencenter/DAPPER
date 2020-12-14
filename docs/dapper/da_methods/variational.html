@@ -1,11 +1,12 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.da_methods.variational API documentation</title>
-<meta name="description" content="Variational methods (iEnKS, 4D-Var, etc)" />
+<meta name="description" content="Variational DA methods (iEnKS, 4D-Var, etc)" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -15,6 +16,12 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -23,24 +30,25 @@
 <h1 class="title">Module <code>dapper.da_methods.variational</code></h1>
 </header>
 <section id="section-intro">
-<p>Variational methods (iEnKS, 4D-Var, etc)</p>
+<p>Variational DA methods (iEnKS, 4D-Var, etc)</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L0-L340" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Variational methods (iEnKS, 4D-Var, etc)&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34;Variational DA methods (iEnKS, 4D-Var, etc)&#34;&#34;&#34;
 
 from typing import Optional
 
 import numpy as np
 import scipy.linalg as sla
+from numpy.random import randn
 
 from dapper.admin import da_method
-from dapper.tools.stoch import randn
-from dapper.tools.utils import progbar
+from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
+from dapper.tools.math import center, inflate_ens, mean0, pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
-from dapper.tools.math import center, mean0, svd0, inflate_ens, pad0, tinv
-from dapper.da_methods.ensemble import post_process, hyperprior_coeffs, zeta_a
+from dapper.tools.utils import progbar
 
 
 @da_method
@@ -55,10 +63,10 @@ class var_method:
 class iEnKS:
     &#34;&#34;&#34;Iterative EnKS.
 
-    Special cases: EnRML, ES-MDA, iEnKF, EnKF [Raa19b]_.
+    Special cases: EnRML, ES-MDA, iEnKF, EnKF `bib.raanes2019revising`.
 
-    As in [Boc14]_, optimization uses Gauss-Newton.
-    See [Boc12]_ for Levenberg-Marquardt.
+    As in `bib.bocquet2014iterative`, optimization uses Gauss-Newton.
+    See `bib.bocquet2012combining` for Levenberg-Marquardt.
     If MDA=True, then there&#39;s not really any optimization,
     but rather Gaussian annealing.
 
@@ -68,13 +76,13 @@ class iEnKS:
 
         - &#34;Sqrt&#34;   : as in ETKF  , using a deterministic matrix square root transform.
         - &#34;PertObs&#34;: as in EnRML , using stochastic, perturbed-observations.
-        - &#34;Order1&#34; : as in DEnKF of [Sak08a]_.
+        - &#34;Order1&#34; : as in DEnKF of `bib.sakov2008deterministic`.
 
       Lag:
         Length of the DA window (DAW), in multiples of dkObs (i.e. cycles).
 
-        - Lag=1 (default) =&gt; iterative &#34;filter&#34; iEnKF [Sak12]_.
-        - Lag=0           =&gt; maximum-likelihood filter [Zup05]_.
+        - Lag=1 (default) =&gt; iterative &#34;filter&#34; iEnKF `bib.sakov2012iterative`.
+        - Lag=0           =&gt; maximum-likelihood filter `bib.zupanski2005maximum`.
 
       Shift : How far (in cycles) to slide the DAW.
               Fixed at 1 for code simplicity.
@@ -96,7 +104,8 @@ class iEnKS:
     Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     (due to boundary cases: only asymptotically valid)
 
-    References: [Boc12]_, [Boc13]_, [Boc14]_,
+    Refs: `bib.bocquet2012combining`, `bib.bocquet2013joint`,
+    `bib.bocquet2014iterative`.
     &#34;&#34;&#34;
     upd_a: str
     N: int
@@ -112,7 +121,7 @@ class iEnKS:
     # =&gt; Any changes to this function must be unit-tested via
     # scripts/test_iEnKS.py.
 
-    # TODO 4:
+    # TODO 6:
     # - step length
     # - Implement quasi-static assimilation. Boc notes:
     #   * The &#39;balancing step&#39; is complicated.
@@ -129,9 +138,9 @@ class iEnKS:
             &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
 
         if self.bundle:
-            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
+            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...
         else:
-            EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
+            EPS = 1.0  # ... prefer using  T=EPS*T, yielding a conditional cloud shape
 
         # Initial ensemble
         E = X0.sample(N)
@@ -199,13 +208,13 @@ class iEnKS:
                     if self.MDA:  # View update as annealing (progressive assimilation).
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
-                        if &#39;PertObs&#39; in self.upd_a:  # == &#34;ES-MDA&#34;. By Emerick/Reynolds.
-                            D     = mean0(randn(Y.shape)) * np.sqrt(self.nIter)
-                            T    -= (Y + D) @ Y.T @ Cow1
-                        elif &#39;Sqrt&#39; in self.upd_a:  # == &#34;ETKF-ish&#34;. By Raanes.
-                            T     = Cowp(0.5) * np.sqrt(za) @ T
-                        elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick.
-                            T    -= 0.5 * Y @ Y.T @ Cow1
+                        if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
+                            D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                            T  -= (Y + D) @ Y.T @ Cow1
+                        elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
+                            T   = Cowp(0.5) * np.sqrt(za) @ T
+                        elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick
+                            T  -= 0.5 * Y @ Y.T @ Cow1
                         # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
                     else:  # View update as Gauss-Newton optimzt. of log-posterior.
@@ -219,7 +228,7 @@ class iEnKS:
                             # Tinv saves time [vs tinv(T)] when Nx&lt;N
                         # &#34;EnRML&#34;. By Oliver/Chen/Raanes/Evensen/Stordal.
                         elif &#39;PertObs&#39; in self.upd_a:
-                            D     = mean0(randn(Y.shape)) if iteration == 0 else D
+                            D     = mean0(randn(*Y.shape)) if iteration == 0 else D
                             gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable
@@ -234,14 +243,13 @@ class iEnKS:
                     w += dw
                     if dw@dw &lt; self.wtol*N:
                         break
-                # END loop iteration
 
                 # Assess (analysis) stats.
                 # The final_increment is a linearization to
                 # (i) avoid re-running the model and
                 # (ii) reproduce EnKF in case nIter==1.
                 final_increment = (dw+T-T_old)@Xf
-                # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
+                # See docs/snippets/iEnKS_Ea.jpg.
                 stats.assess(k, kObs, &#39;a&#39;, E=E+final_increment)
                 stats.iters[kObs] = iteration+1
                 if self.xN:
@@ -250,7 +258,6 @@ class iEnKS:
                 # Final (smoothed) estimate of E at [kLag].
                 E = x0 + (w+T)@X0
                 E = post_process(E, self.infl, self.rot)
-            # END assimilation block
 
             # Slide/shift DAW by propagating smoothed (&#39;s&#39;) ensemble from [kLag].
             if -1 &lt;= kLag &lt; KObs:
@@ -260,149 +267,7 @@ class iEnKS:
                     stats.assess(k-1, None, &#39;u&#39;, E=E)
                     E = Dyn(E, t-dt, dt)
 
-        # END loop kObs
         stats.assess(k, KObs, &#39;us&#39;, E=E)
-
-
-@var_method
-class iLEnKS:
-    &#34;&#34;&#34;Iterative, Localized EnKS-N. [Boc16]_
-
-    Based on iEnKS() and LETKF() codes,
-    which describes the other input arguments.
-
-    - upd_a : - &#39;Sqrt&#39; (i.e. ETKF)
-              - &#39;-N&#39; (i.e. EnKF-N)
-    &#34;&#34;&#34;
-    upd_a: str
-    N: int
-    loc_rad: float
-    taper: str   = &#39;GC&#39;
-    xN: float = None
-    infl: float = 1.0
-    rot: bool  = False
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats, N = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
-        R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
-        assert Dyn.noise.C == 0, (
-            &#34;Q&gt;0 not yet supported.&#34;
-            &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
-
-        # Init DA cycles
-        E = X0.sample(N)
-
-        # Loop DA cycles
-        for kObs in progbar(np.arange(KObs+1)):
-            # Set (shifting) DA Window. Shift is 1.
-            DAW_0  = kObs-self.Lag+1
-            DAW    = np.arange(max(0, DAW_0), DAW_0+self.Lag)
-            DAW_dt = chrono.ttObs[DAW[-1]] - chrono.ttObs[DAW[0]] + chrono.dtObs
-
-            # Get localization setup (at time t)
-            state_batches, obs_taperer = Obs.localizer(
-                self.loc_rad, &#39;x2y&#39;, chrono.ttObs[kObs], self.taper)
-            nBatch = len(state_batches)
-
-            # Store 0th (iteration) estimate as (x0,A0)
-            A0, x0  = center(E)
-            # Init iterations
-            w      = np.tile(np.zeros(N), (nBatch, 1))
-            Tinv   = np.tile(np.eye(N), (nBatch, 1, 1))
-            T      = np.tile(np.eye(N), (nBatch, 1, 1))
-
-            # Loop iterations
-            for iteration in np.arange(self.nIter):
-
-                # Assemble current estimate of E[kObs-Lag]
-                for ib, ii in enumerate(state_batches):
-                    E[:, ii] = x0[ii] + w[ib]@A0[:, ii] + T[ib]@A0[:, ii]
-
-                # Forecast
-                for kDAW in DAW:                           # Loop Lag cycles
-                    # Loop dkObs steps (1 cycle)
-                    for k, t, dt in chrono.cycle(kDAW):
-                        # Forecast 1 dt step (1 dkObs)
-                        E = Dyn(E, t-dt, dt)
-
-                if iteration == 0:
-                    stats.assess(k, kObs, &#39;f&#39;, E=E)
-
-                # Analysis of y[kObs] (already assim&#39;d [:kObs])
-                y    = yy[kObs]
-                Y, xo = center(Obs(E, t))
-                # Transform obs space
-                Y  = Y        @ R.sym_sqrt_inv.T
-                dy = (y - xo) @ R.sym_sqrt_inv.T
-
-                # Inflation estimation.
-                # Set &#34;effective ensemble size&#34;, za = (N-1)/pre-inflation^2.
-                if self.upd_a == &#39;Sqrt&#39;:
-                    za = N1  # no inflation
-                elif self.upd_a == &#39;-N&#39;:
-                    # Careful not to overwrite w,T,Tinv !
-                    V, s, UT = svd0(Y)
-                    grad   = Y@dy
-                    Pw     = (V * (pad0(s**2, N) + N1)**-1.0) @ V.T
-                    w_glob = Pw@grad
-                    za     = zeta_a(*hyperprior_coeffs(s, N, self.xN), w_glob)
-                else:
-                    raise KeyError(&#34;upd_a: &#39;&#34; + self.upd_a + &#34;&#39; not matched.&#34;)
-
-                for ib, ii in enumerate(state_batches):
-                    # Shift indices (to adjust for time difference)
-                    ii_kObs = Obs.loc_shift(ii, DAW_dt)
-                    # Localize
-                    jj, tapering = obs_taperer(ii_kObs)
-                    if len(jj) == 0:
-                        continue
-                    Y_jj   = Y[:, jj] * np.sqrt(tapering)
-                    dy_jj  = dy[jj]  * np.sqrt(tapering)
-
-                    # &#34;Uncondition&#34; the observation anomalies
-                    # (and yet this linearization of Obs.mod improves with iterations)
-                    Y_jj     = Tinv[ib] @ Y_jj
-                    # Prepare analysis: do SVD
-                    V, s, UT   = svd0(Y_jj)
-                    # Gauss-Newton ingredients
-                    grad     = -Y_jj@dy_jj + w[ib]*za
-                    Pw       = (V * (pad0(s**2, N) + za)**-1.0) @ V.T
-                    # Conditioning for anomalies (discrete linearlizations)
-                    T[ib]    = (V * (pad0(s**2, N) + za)**-0.5) @ V.T * np.sqrt(N1)
-                    Tinv[ib] = (V * (pad0(s**2, N) + za)**+0.5) @ V.T / np.sqrt(N1)
-                    # Gauss-Newton step
-                    dw       = Pw@grad
-                    w[ib]   -= dw
-
-                # Stopping condition # TODO 2
-                # if np.linalg.norm(dw) &lt; N*1e-4:
-                    # break
-
-            # Analysis &#39;a&#39; stats for E[kObs].
-            stats.assess(k, kObs, &#39;a&#39;, E=E)
-            stats.trHK[kObs] = np.trace(Y.T @ Pw @ Y)/HMM.Ny
-            stats.infl[kObs] = np.sqrt(N1/za)
-            stats.iters[kObs] = iteration+1
-
-            # Final (smoothed) estimate of E[kObs-Lag]
-            for ib, ii in enumerate(state_batches):
-                E[:, ii] = x0[ii] + w[ib]@A0[:, ii] + T[ib]@A0[:, ii]
-
-            E = post_process(E, self.infl, self.rot)
-
-            # Forecast smoothed ensemble by shift (1*dkObs)
-            if DAW_0 &gt;= 0:
-                for k, t, dt in chrono.cycle(DAW_0):
-                    stats.assess(k-1, None, &#39;u&#39;, E=E)
-                    E = Dyn(E, t-dt, dt)
-
-        # Assess the last (Lag-1) obs ranges
-        for kDAW in np.arange(DAW[0]+1, KObs+1):
-            for k, t, dt in chrono.cycle(kDAW):
-                stats.assess(k-1, None, &#39;u&#39;, E=E)
-                E = Dyn(E, t-dt, dt)
-        stats.assess(chrono.K, None, &#39;u&#39;, E=E)
 
 
 @var_method
@@ -422,7 +287,7 @@ class Var4D:
     Incremental formulation is used, so the formulae look like the ones in iEnKS.
     &#34;&#34;&#34;
     B: Optional[np.ndarray] = None
-    xB: float                = 1.0
+    xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -492,7 +357,6 @@ class Var4D:
 
                     if dw@dw &lt; self.wtol*Nx:
                         break
-                # END loop iteration
 
                 # Assess (analysis) stats.
                 final_increment = X@dw
@@ -502,7 +366,6 @@ class Var4D:
                 # Final (smoothed) estimate at [kLag].
                 x = x0 + B12@w
                 X = B12
-            # END assimilation block
 
             # Slide/shift DAW by propagating smoothed (&#39;s&#39;) state from [kLag].
             if -1 &lt;= kLag &lt; KObs:
@@ -513,7 +376,6 @@ class Var4D:
                     X = Dyn.linear(x, t-dt, dt) @ X
                     x = Dyn(x, t-dt, dt)
 
-        # END loop kObs
         stats.assess(k, KObs, &#39;us&#39;, mu=x, Cov=X@Cow1@X.T)</code></pre>
 </details>
 </section>
@@ -522,6 +384,65 @@ class Var4D:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.da_methods.variational.randn"><code class="name flex">
+<span>def <span class="ident">randn</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>randn(d0, d1, &hellip;, dn)</p>
+<p>Return a sample (or samples) from the "standard normal" distribution.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a convenience function for users porting code from Matlab,
+and wraps <code>standard_normal</code>. That function takes a
+tuple to specify the size of the output, which is consistent with
+other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
+instance instead; see <code>random-quick-start</code>.</p>
+</div>
+<p>If positive int_like arguments are provided, <code><a title="dapper.da_methods.variational.randn" href="#dapper.da_methods.variational.randn">RandomState.randn()</a></code> generates an array
+of shape <code>(d0, d1, &hellip;, dn)</code>, filled
+with random floats sampled from a univariate "normal" (Gaussian)
+distribution of mean 0 and variance 1. A single float randomly sampled
+from the distribution is returned if no argument is provided.</p>
+<h2 id="parameters">Parameters</h2>
+<p>d0, d1, &hellip;, dn : int, optional
+The dimensions of the returned array, must be non-negative.
+If no argument is given a single Python float is returned.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Z</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
+<dd>A <code>(d0, d1, &hellip;, dn)</code>-shaped array of floating-point samples from
+the standard normal distribution, or a single such float if
+no parameters were supplied.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code>standard_normal</code></dt>
+<dd>Similar, but takes a tuple as its argument.</dd>
+<dt><code>normal</code></dt>
+<dd>Also accepts mu and sigma arguments.</dd>
+<dt><code>Generator.standard_normal</code></dt>
+<dd>which should be used for new code.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>For random samples from :math:<code>N(\mu, \sigma^2)</code>, use:</p>
+<p><code>sigma * np.random.randn(...) + mu</code></p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randn()
+2.1923875335537315  # random
+</code></pre>
+<p>Two-by-four array of samples from N(3, 6.25):</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; 3 + 2.5 * np.random.randn(2, 4)
+array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
+       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
+</code></pre></div>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -532,9 +453,9 @@ class Var4D:
 </code></dt>
 <dd>
 <div class="desc"><p>Iterative EnKS.</p>
-<p>Special cases: EnRML, ES-MDA, iEnKF, EnKF [Raa19b]_.</p>
-<p>As in [Boc14]<em>, optimization uses Gauss-Newton.
-See [Boc12]</em> for Levenberg-Marquardt.
+<p>Special cases: EnRML, ES-MDA, iEnKF, EnKF <code><a title="bib.raanes2019revising" href="../../bib.html#bib.raanes2019revising">raanes2019revising</a></code>.</p>
+<p>As in <code><a title="bib.bocquet2014iterative" href="../../bib.html#bib.bocquet2014iterative">bocquet2014iterative</a></code>, optimization uses Gauss-Newton.
+See <code><a title="bib.bocquet2012combining" href="../../bib.html#bib.bocquet2012combining">bocquet2012combining</a></code> for Levenberg-Marquardt.
 If MDA=True, then there's not really any optimization,
 but rather Gaussian annealing.</p>
 <h2 id="args">Args</h2>
@@ -545,14 +466,14 @@ Analysis update form (flavour). One of:</p>
 : as in ETKF
 , using a deterministic matrix square root transform.</li>
 <li>"PertObs": as in EnRML , using stochastic, perturbed-observations.</li>
-<li>"Order1" : as in DEnKF of [Sak08a]_.</li>
+<li>"Order1" : as in DEnKF of <code><a title="bib.sakov2008deterministic" href="../../bib.html#bib.sakov2008deterministic">sakov2008deterministic</a></code>.</li>
 </ul>
 <p>Lag:
 Length of the DA window (DAW), in multiples of dkObs (i.e. cycles).</p>
 <ul>
-<li>Lag=1 (default) =&gt; iterative "filter" iEnKF [Sak12]_.</li>
+<li>Lag=1 (default) =&gt; iterative "filter" iEnKF <code><a title="bib.sakov2012iterative" href="../../bib.html#bib.sakov2012iterative">sakov2012iterative</a></code>.</li>
 <li>Lag=0
-=&gt; maximum-likelihood filter [Zup05]_.</li>
+=&gt; maximum-likelihood filter <code><a title="bib.zupanski2005maximum" href="../../bib.html#bib.zupanski2005maximum">zupanski2005maximum</a></code>.</li>
 </ul>
 <p>Shift : How far (in cycles) to slide the DAW.
 Fixed at 1 for code simplicity.</p>
@@ -573,18 +494,20 @@ Makes the iEnKS very much alike the iterative, extended KF (IEKS).</dd>
 : If set, use EnKF_N() pre-inflation. See further documentation there.
 Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 (due to boundary cases: only asymptotically valid)</p>
-<p>References: [Boc12]<em>, [Boc13]</em>, [Boc14]_,</p></div>
+<p>Refs: <code><a title="bib.bocquet2012combining" href="../../bib.html#bib.bocquet2012combining">bocquet2012combining</a></code>, <code><a title="bib.bocquet2013joint" href="../../bib.html#bib.bocquet2013joint">bocquet2013joint</a></code>,
+<code><a title="bib.bocquet2014iterative" href="../../bib.html#bib.bocquet2014iterative">bocquet2014iterative</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L25-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class iEnKS:
     &#34;&#34;&#34;Iterative EnKS.
 
-    Special cases: EnRML, ES-MDA, iEnKF, EnKF [Raa19b]_.
+    Special cases: EnRML, ES-MDA, iEnKF, EnKF `bib.raanes2019revising`.
 
-    As in [Boc14]_, optimization uses Gauss-Newton.
-    See [Boc12]_ for Levenberg-Marquardt.
+    As in `bib.bocquet2014iterative`, optimization uses Gauss-Newton.
+    See `bib.bocquet2012combining` for Levenberg-Marquardt.
     If MDA=True, then there&#39;s not really any optimization,
     but rather Gaussian annealing.
 
@@ -594,13 +517,13 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 
         - &#34;Sqrt&#34;   : as in ETKF  , using a deterministic matrix square root transform.
         - &#34;PertObs&#34;: as in EnRML , using stochastic, perturbed-observations.
-        - &#34;Order1&#34; : as in DEnKF of [Sak08a]_.
+        - &#34;Order1&#34; : as in DEnKF of `bib.sakov2008deterministic`.
 
       Lag:
         Length of the DA window (DAW), in multiples of dkObs (i.e. cycles).
 
-        - Lag=1 (default) =&gt; iterative &#34;filter&#34; iEnKF [Sak12]_.
-        - Lag=0           =&gt; maximum-likelihood filter [Zup05]_.
+        - Lag=1 (default) =&gt; iterative &#34;filter&#34; iEnKF `bib.sakov2012iterative`.
+        - Lag=0           =&gt; maximum-likelihood filter `bib.zupanski2005maximum`.
 
       Shift : How far (in cycles) to slide the DAW.
               Fixed at 1 for code simplicity.
@@ -622,7 +545,8 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     (due to boundary cases: only asymptotically valid)
 
-    References: [Boc12]_, [Boc13]_, [Boc14]_,
+    Refs: `bib.bocquet2012combining`, `bib.bocquet2013joint`,
+    `bib.bocquet2014iterative`.
     &#34;&#34;&#34;
     upd_a: str
     N: int
@@ -638,7 +562,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
     # =&gt; Any changes to this function must be unit-tested via
     # scripts/test_iEnKS.py.
 
-    # TODO 4:
+    # TODO 6:
     # - step length
     # - Implement quasi-static assimilation. Boc notes:
     #   * The &#39;balancing step&#39; is complicated.
@@ -655,9 +579,9 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
             &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
 
         if self.bundle:
-            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
+            EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...
         else:
-            EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
+            EPS = 1.0  # ... prefer using  T=EPS*T, yielding a conditional cloud shape
 
         # Initial ensemble
         E = X0.sample(N)
@@ -725,13 +649,13 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                     if self.MDA:  # View update as annealing (progressive assimilation).
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
-                        if &#39;PertObs&#39; in self.upd_a:  # == &#34;ES-MDA&#34;. By Emerick/Reynolds.
-                            D     = mean0(randn(Y.shape)) * np.sqrt(self.nIter)
-                            T    -= (Y + D) @ Y.T @ Cow1
-                        elif &#39;Sqrt&#39; in self.upd_a:  # == &#34;ETKF-ish&#34;. By Raanes.
-                            T     = Cowp(0.5) * np.sqrt(za) @ T
-                        elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick.
-                            T    -= 0.5 * Y @ Y.T @ Cow1
+                        if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
+                            D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                            T  -= (Y + D) @ Y.T @ Cow1
+                        elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
+                            T   = Cowp(0.5) * np.sqrt(za) @ T
+                        elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick
+                            T  -= 0.5 * Y @ Y.T @ Cow1
                         # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
                     else:  # View update as Gauss-Newton optimzt. of log-posterior.
@@ -745,7 +669,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                             # Tinv saves time [vs tinv(T)] when Nx&lt;N
                         # &#34;EnRML&#34;. By Oliver/Chen/Raanes/Evensen/Stordal.
                         elif &#39;PertObs&#39; in self.upd_a:
-                            D     = mean0(randn(Y.shape)) if iteration == 0 else D
+                            D     = mean0(randn(*Y.shape)) if iteration == 0 else D
                             gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable
@@ -760,14 +684,13 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                     w += dw
                     if dw@dw &lt; self.wtol*N:
                         break
-                # END loop iteration
 
                 # Assess (analysis) stats.
                 # The final_increment is a linearization to
                 # (i) avoid re-running the model and
                 # (ii) reproduce EnKF in case nIter==1.
                 final_increment = (dw+T-T_old)@Xf
-                # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
+                # See docs/snippets/iEnKS_Ea.jpg.
                 stats.assess(k, kObs, &#39;a&#39;, E=E+final_increment)
                 stats.iters[kObs] = iteration+1
                 if self.xN:
@@ -776,7 +699,6 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                 # Final (smoothed) estimate of E at [kLag].
                 E = x0 + (w+T)@X0
                 E = post_process(E, self.infl, self.rot)
-            # END assimilation block
 
             # Slide/shift DAW by propagating smoothed (&#39;s&#39;) ensemble from [kLag].
             if -1 &lt;= kLag &lt; KObs:
@@ -786,7 +708,6 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                     stats.assess(k-1, None, &#39;u&#39;, E=E)
                     E = Dyn(E, t-dt, dt)
 
-        # END loop kObs
         stats.assess(k, KObs, &#39;us&#39;, E=E)</code></pre>
 </details>
 <h3>Class variables</h3>
@@ -850,6 +771,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L92-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -862,9 +784,9 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
         &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
 
     if self.bundle:
-        EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I
+        EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...
     else:
-        EPS = 1.0  # prefer using  T=EPS*T, yielding a conditional cloud shape
+        EPS = 1.0  # ... prefer using  T=EPS*T, yielding a conditional cloud shape
 
     # Initial ensemble
     E = X0.sample(N)
@@ -932,13 +854,13 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                 if self.MDA:  # View update as annealing (progressive assimilation).
                     Cow1 = Cow1 @ T  # apply previous update
                     dw = dy @ Y.T @ Cow1
-                    if &#39;PertObs&#39; in self.upd_a:  # == &#34;ES-MDA&#34;. By Emerick/Reynolds.
-                        D     = mean0(randn(Y.shape)) * np.sqrt(self.nIter)
-                        T    -= (Y + D) @ Y.T @ Cow1
-                    elif &#39;Sqrt&#39; in self.upd_a:  # == &#34;ETKF-ish&#34;. By Raanes.
-                        T     = Cowp(0.5) * np.sqrt(za) @ T
-                    elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick.
-                        T    -= 0.5 * Y @ Y.T @ Cow1
+                    if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
+                        D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                        T  -= (Y + D) @ Y.T @ Cow1
+                    elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
+                        T   = Cowp(0.5) * np.sqrt(za) @ T
+                    elif &#39;Order1&#39; in self.upd_a:  # == &#34;DEnKF-ish&#34;. By Emerick
+                        T  -= 0.5 * Y @ Y.T @ Cow1
                     # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
                 else:  # View update as Gauss-Newton optimzt. of log-posterior.
@@ -952,7 +874,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                         # Tinv saves time [vs tinv(T)] when Nx&lt;N
                     # &#34;EnRML&#34;. By Oliver/Chen/Raanes/Evensen/Stordal.
                     elif &#39;PertObs&#39; in self.upd_a:
-                        D     = mean0(randn(Y.shape)) if iteration == 0 else D
+                        D     = mean0(randn(*Y.shape)) if iteration == 0 else D
                         gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                         T     = T + gradT@Cow1
                         # Tinv= tinv(T, threshold=N1)  # unstable
@@ -967,14 +889,13 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                 w += dw
                 if dw@dw &lt; self.wtol*N:
                     break
-            # END loop iteration
 
             # Assess (analysis) stats.
             # The final_increment is a linearization to
             # (i) avoid re-running the model and
             # (ii) reproduce EnKF in case nIter==1.
             final_increment = (dw+T-T_old)@Xf
-            # See dpr_data/doc_snippets/iEnKS_Ea.jpg.
+            # See docs/snippets/iEnKS_Ea.jpg.
             stats.assess(k, kObs, &#39;a&#39;, E=E+final_increment)
             stats.iters[kObs] = iteration+1
             if self.xN:
@@ -983,7 +904,6 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
             # Final (smoothed) estimate of E at [kLag].
             E = x0 + (w+T)@X0
             E = post_process(E, self.infl, self.rot)
-        # END assimilation block
 
         # Slide/shift DAW by propagating smoothed (&#39;s&#39;) ensemble from [kLag].
         if -1 &lt;= kLag &lt; KObs:
@@ -993,346 +913,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
                 stats.assess(k-1, None, &#39;u&#39;, E=E)
                 E = Dyn(E, t-dt, dt)
 
-    # END loop kObs
     stats.assess(k, KObs, &#39;us&#39;, E=E)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS"><code class="flex name class">
-<span>class <span class="ident">iLEnKS</span></span>
-<span>(</span><span>upd_a: str, N: int, loc_rad: float, taper: str = 'GC', xN: float = None, infl: float = 1.0, rot: bool = False, Lag: int = 1, nIter: int = 10, wtol: float = 0)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Iterative, Localized EnKS-N. [Boc16]_</p>
-<p>Based on iEnKS() and LETKF() codes,
-which describes the other input arguments.</p>
-<ul>
-<li>upd_a : - 'Sqrt' (i.e. ETKF)
-- '-N' (i.e. EnKF-N)</li>
-</ul></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class iLEnKS:
-    &#34;&#34;&#34;Iterative, Localized EnKS-N. [Boc16]_
-
-    Based on iEnKS() and LETKF() codes,
-    which describes the other input arguments.
-
-    - upd_a : - &#39;Sqrt&#39; (i.e. ETKF)
-              - &#39;-N&#39; (i.e. EnKF-N)
-    &#34;&#34;&#34;
-    upd_a: str
-    N: int
-    loc_rad: float
-    taper: str   = &#39;GC&#39;
-    xN: float = None
-    infl: float = 1.0
-    rot: bool  = False
-
-    def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats, N = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
-        R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
-        assert Dyn.noise.C == 0, (
-            &#34;Q&gt;0 not yet supported.&#34;
-            &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
-
-        # Init DA cycles
-        E = X0.sample(N)
-
-        # Loop DA cycles
-        for kObs in progbar(np.arange(KObs+1)):
-            # Set (shifting) DA Window. Shift is 1.
-            DAW_0  = kObs-self.Lag+1
-            DAW    = np.arange(max(0, DAW_0), DAW_0+self.Lag)
-            DAW_dt = chrono.ttObs[DAW[-1]] - chrono.ttObs[DAW[0]] + chrono.dtObs
-
-            # Get localization setup (at time t)
-            state_batches, obs_taperer = Obs.localizer(
-                self.loc_rad, &#39;x2y&#39;, chrono.ttObs[kObs], self.taper)
-            nBatch = len(state_batches)
-
-            # Store 0th (iteration) estimate as (x0,A0)
-            A0, x0  = center(E)
-            # Init iterations
-            w      = np.tile(np.zeros(N), (nBatch, 1))
-            Tinv   = np.tile(np.eye(N), (nBatch, 1, 1))
-            T      = np.tile(np.eye(N), (nBatch, 1, 1))
-
-            # Loop iterations
-            for iteration in np.arange(self.nIter):
-
-                # Assemble current estimate of E[kObs-Lag]
-                for ib, ii in enumerate(state_batches):
-                    E[:, ii] = x0[ii] + w[ib]@A0[:, ii] + T[ib]@A0[:, ii]
-
-                # Forecast
-                for kDAW in DAW:                           # Loop Lag cycles
-                    # Loop dkObs steps (1 cycle)
-                    for k, t, dt in chrono.cycle(kDAW):
-                        # Forecast 1 dt step (1 dkObs)
-                        E = Dyn(E, t-dt, dt)
-
-                if iteration == 0:
-                    stats.assess(k, kObs, &#39;f&#39;, E=E)
-
-                # Analysis of y[kObs] (already assim&#39;d [:kObs])
-                y    = yy[kObs]
-                Y, xo = center(Obs(E, t))
-                # Transform obs space
-                Y  = Y        @ R.sym_sqrt_inv.T
-                dy = (y - xo) @ R.sym_sqrt_inv.T
-
-                # Inflation estimation.
-                # Set &#34;effective ensemble size&#34;, za = (N-1)/pre-inflation^2.
-                if self.upd_a == &#39;Sqrt&#39;:
-                    za = N1  # no inflation
-                elif self.upd_a == &#39;-N&#39;:
-                    # Careful not to overwrite w,T,Tinv !
-                    V, s, UT = svd0(Y)
-                    grad   = Y@dy
-                    Pw     = (V * (pad0(s**2, N) + N1)**-1.0) @ V.T
-                    w_glob = Pw@grad
-                    za     = zeta_a(*hyperprior_coeffs(s, N, self.xN), w_glob)
-                else:
-                    raise KeyError(&#34;upd_a: &#39;&#34; + self.upd_a + &#34;&#39; not matched.&#34;)
-
-                for ib, ii in enumerate(state_batches):
-                    # Shift indices (to adjust for time difference)
-                    ii_kObs = Obs.loc_shift(ii, DAW_dt)
-                    # Localize
-                    jj, tapering = obs_taperer(ii_kObs)
-                    if len(jj) == 0:
-                        continue
-                    Y_jj   = Y[:, jj] * np.sqrt(tapering)
-                    dy_jj  = dy[jj]  * np.sqrt(tapering)
-
-                    # &#34;Uncondition&#34; the observation anomalies
-                    # (and yet this linearization of Obs.mod improves with iterations)
-                    Y_jj     = Tinv[ib] @ Y_jj
-                    # Prepare analysis: do SVD
-                    V, s, UT   = svd0(Y_jj)
-                    # Gauss-Newton ingredients
-                    grad     = -Y_jj@dy_jj + w[ib]*za
-                    Pw       = (V * (pad0(s**2, N) + za)**-1.0) @ V.T
-                    # Conditioning for anomalies (discrete linearlizations)
-                    T[ib]    = (V * (pad0(s**2, N) + za)**-0.5) @ V.T * np.sqrt(N1)
-                    Tinv[ib] = (V * (pad0(s**2, N) + za)**+0.5) @ V.T / np.sqrt(N1)
-                    # Gauss-Newton step
-                    dw       = Pw@grad
-                    w[ib]   -= dw
-
-                # Stopping condition # TODO 2
-                # if np.linalg.norm(dw) &lt; N*1e-4:
-                    # break
-
-            # Analysis &#39;a&#39; stats for E[kObs].
-            stats.assess(k, kObs, &#39;a&#39;, E=E)
-            stats.trHK[kObs] = np.trace(Y.T @ Pw @ Y)/HMM.Ny
-            stats.infl[kObs] = np.sqrt(N1/za)
-            stats.iters[kObs] = iteration+1
-
-            # Final (smoothed) estimate of E[kObs-Lag]
-            for ib, ii in enumerate(state_batches):
-                E[:, ii] = x0[ii] + w[ib]@A0[:, ii] + T[ib]@A0[:, ii]
-
-            E = post_process(E, self.infl, self.rot)
-
-            # Forecast smoothed ensemble by shift (1*dkObs)
-            if DAW_0 &gt;= 0:
-                for k, t, dt in chrono.cycle(DAW_0):
-                    stats.assess(k-1, None, &#39;u&#39;, E=E)
-                    E = Dyn(E, t-dt, dt)
-
-        # Assess the last (Lag-1) obs ranges
-        for kDAW in np.arange(DAW[0]+1, KObs+1):
-            for k, t, dt in chrono.cycle(kDAW):
-                stats.assess(k-1, None, &#39;u&#39;, E=E)
-                E = Dyn(E, t-dt, dt)
-        stats.assess(chrono.K, None, &#39;u&#39;, E=E)</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="dapper.da_methods.variational.iLEnKS.upd_a"><code class="name">var <span class="ident">upd_a</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.N"><code class="name">var <span class="ident">N</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.loc_rad"><code class="name">var <span class="ident">loc_rad</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.taper"><code class="name">var <span class="ident">taper</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.xN"><code class="name">var <span class="ident">xN</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.infl"><code class="name">var <span class="ident">infl</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.rot"><code class="name">var <span class="ident">rot</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.Lag"><code class="name">var <span class="ident">Lag</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.nIter"><code class="name">var <span class="ident">nIter</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.wtol"><code class="name">var <span class="ident">wtol</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="dapper.da_methods.variational.iLEnKS.da_method"><code class="name">var <span class="ident">da_method</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="dapper.da_methods.variational.iLEnKS.assimilate"><code class="name flex">
-<span>def <span class="ident">assimilate</span></span>(<span>self, HMM, xx, yy)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def assimilate(self, HMM, xx, yy):
-    Dyn, Obs, chrono, X0, stats, N = \
-        HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
-    R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
-    assert Dyn.noise.C == 0, (
-        &#34;Q&gt;0 not yet supported.&#34;
-        &#34; See Sakov et al 2017: &#39;An iEnKF with mod. error&#39;&#34;)
-
-    # Init DA cycles
-    E = X0.sample(N)
-
-    # Loop DA cycles
-    for kObs in progbar(np.arange(KObs+1)):
-        # Set (shifting) DA Window. Shift is 1.
-        DAW_0  = kObs-self.Lag+1
-        DAW    = np.arange(max(0, DAW_0), DAW_0+self.Lag)
-        DAW_dt = chrono.ttObs[DAW[-1]] - chrono.ttObs[DAW[0]] + chrono.dtObs
-
-        # Get localization setup (at time t)
-        state_batches, obs_taperer = Obs.localizer(
-            self.loc_rad, &#39;x2y&#39;, chrono.ttObs[kObs], self.taper)
-        nBatch = len(state_batches)
-
-        # Store 0th (iteration) estimate as (x0,A0)
-        A0, x0  = center(E)
-        # Init iterations
-        w      = np.tile(np.zeros(N), (nBatch, 1))
-        Tinv   = np.tile(np.eye(N), (nBatch, 1, 1))
-        T      = np.tile(np.eye(N), (nBatch, 1, 1))
-
-        # Loop iterations
-        for iteration in np.arange(self.nIter):
-
-            # Assemble current estimate of E[kObs-Lag]
-            for ib, ii in enumerate(state_batches):
-                E[:, ii] = x0[ii] + w[ib]@A0[:, ii] + T[ib]@A0[:, ii]
-
-            # Forecast
-            for kDAW in DAW:                           # Loop Lag cycles
-                # Loop dkObs steps (1 cycle)
-                for k, t, dt in chrono.cycle(kDAW):
-                    # Forecast 1 dt step (1 dkObs)
-                    E = Dyn(E, t-dt, dt)
-
-            if iteration == 0:
-                stats.assess(k, kObs, &#39;f&#39;, E=E)
-
-            # Analysis of y[kObs] (already assim&#39;d [:kObs])
-            y    = yy[kObs]
-            Y, xo = center(Obs(E, t))
-            # Transform obs space
-            Y  = Y        @ R.sym_sqrt_inv.T
-            dy = (y - xo) @ R.sym_sqrt_inv.T
-
-            # Inflation estimation.
-            # Set &#34;effective ensemble size&#34;, za = (N-1)/pre-inflation^2.
-            if self.upd_a == &#39;Sqrt&#39;:
-                za = N1  # no inflation
-            elif self.upd_a == &#39;-N&#39;:
-                # Careful not to overwrite w,T,Tinv !
-                V, s, UT = svd0(Y)
-                grad   = Y@dy
-                Pw     = (V * (pad0(s**2, N) + N1)**-1.0) @ V.T
-                w_glob = Pw@grad
-                za     = zeta_a(*hyperprior_coeffs(s, N, self.xN), w_glob)
-            else:
-                raise KeyError(&#34;upd_a: &#39;&#34; + self.upd_a + &#34;&#39; not matched.&#34;)
-
-            for ib, ii in enumerate(state_batches):
-                # Shift indices (to adjust for time difference)
-                ii_kObs = Obs.loc_shift(ii, DAW_dt)
-                # Localize
-                jj, tapering = obs_taperer(ii_kObs)
-                if len(jj) == 0:
-                    continue
-                Y_jj   = Y[:, jj] * np.sqrt(tapering)
-                dy_jj  = dy[jj]  * np.sqrt(tapering)
-
-                # &#34;Uncondition&#34; the observation anomalies
-                # (and yet this linearization of Obs.mod improves with iterations)
-                Y_jj     = Tinv[ib] @ Y_jj
-                # Prepare analysis: do SVD
-                V, s, UT   = svd0(Y_jj)
-                # Gauss-Newton ingredients
-                grad     = -Y_jj@dy_jj + w[ib]*za
-                Pw       = (V * (pad0(s**2, N) + za)**-1.0) @ V.T
-                # Conditioning for anomalies (discrete linearlizations)
-                T[ib]    = (V * (pad0(s**2, N) + za)**-0.5) @ V.T * np.sqrt(N1)
-                Tinv[ib] = (V * (pad0(s**2, N) + za)**+0.5) @ V.T / np.sqrt(N1)
-                # Gauss-Newton step
-                dw       = Pw@grad
-                w[ib]   -= dw
-
-            # Stopping condition # TODO 2
-            # if np.linalg.norm(dw) &lt; N*1e-4:
-                # break
-
-        # Analysis &#39;a&#39; stats for E[kObs].
-        stats.assess(k, kObs, &#39;a&#39;, E=E)
-        stats.trHK[kObs] = np.trace(Y.T @ Pw @ Y)/HMM.Ny
-        stats.infl[kObs] = np.sqrt(N1/za)
-        stats.iters[kObs] = iteration+1
-
-        # Final (smoothed) estimate of E[kObs-Lag]
-        for ib, ii in enumerate(state_batches):
-            E[:, ii] = x0[ii] + w[ib]@A0[:, ii] + T[ib]@A0[:, ii]
-
-        E = post_process(E, self.infl, self.rot)
-
-        # Forecast smoothed ensemble by shift (1*dkObs)
-        if DAW_0 &gt;= 0:
-            for k, t, dt in chrono.cycle(DAW_0):
-                stats.assess(k-1, None, &#39;u&#39;, E=E)
-                E = Dyn(E, t-dt, dt)
-
-    # Assess the last (Lag-1) obs ranges
-    for kDAW in np.arange(DAW[0]+1, KObs+1):
-        for k, t, dt in chrono.cycle(kDAW):
-            stats.assess(k-1, None, &#39;u&#39;, E=E)
-            E = Dyn(E, t-dt, dt)
-    stats.assess(chrono.K, None, &#39;u&#39;, E=E)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1355,6 +936,7 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L236-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Var4D:
     &#34;&#34;&#34;4D-Var.
@@ -1372,7 +954,7 @@ there is no benefit to the adjoint trick (back-propagation).
     Incremental formulation is used, so the formulae look like the ones in iEnKS.
     &#34;&#34;&#34;
     B: Optional[np.ndarray] = None
-    xB: float                = 1.0
+    xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -1442,7 +1024,6 @@ there is no benefit to the adjoint trick (back-propagation).
 
                     if dw@dw &lt; self.wtol*Nx:
                         break
-                # END loop iteration
 
                 # Assess (analysis) stats.
                 final_increment = X@dw
@@ -1452,7 +1033,6 @@ there is no benefit to the adjoint trick (back-propagation).
                 # Final (smoothed) estimate at [kLag].
                 x = x0 + B12@w
                 X = B12
-            # END assimilation block
 
             # Slide/shift DAW by propagating smoothed (&#39;s&#39;) state from [kLag].
             if -1 &lt;= kLag &lt; KObs:
@@ -1463,7 +1043,6 @@ there is no benefit to the adjoint trick (back-propagation).
                     X = Dyn.linear(x, t-dt, dt) @ X
                     x = Dyn(x, t-dt, dt)
 
-        # END loop kObs
         stats.assess(k, KObs, &#39;us&#39;, mu=x, Cov=X@Cow1@X.T)</code></pre>
 </details>
 <h3>Class variables</h3>
@@ -1503,6 +1082,7 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/da_methods/variational.py#L254-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -1572,7 +1152,6 @@ there is no benefit to the adjoint trick (back-propagation).
 
                 if dw@dw &lt; self.wtol*Nx:
                     break
-            # END loop iteration
 
             # Assess (analysis) stats.
             final_increment = X@dw
@@ -1582,7 +1161,6 @@ there is no benefit to the adjoint trick (back-propagation).
             # Final (smoothed) estimate at [kLag].
             x = x0 + B12@w
             X = B12
-        # END assimilation block
 
         # Slide/shift DAW by propagating smoothed (&#39;s&#39;) state from [kLag].
         if -1 &lt;= kLag &lt; KObs:
@@ -1593,7 +1171,6 @@ there is no benefit to the adjoint trick (back-propagation).
                 X = Dyn.linear(x, t-dt, dt) @ X
                 x = Dyn(x, t-dt, dt)
 
-    # END loop kObs
     stats.assess(k, KObs, &#39;us&#39;, mu=x, Cov=X@Cow1@X.T)</code></pre>
 </details>
 </dd>
@@ -1605,7 +1182,8 @@ there is no benefit to the adjoint trick (back-propagation).
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
@@ -1616,6 +1194,11 @@ there is no benefit to the adjoint trick (back-propagation).
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="dapper.da_methods" href="index.html">dapper.da_methods</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.da_methods.variational.randn" href="#dapper.da_methods.variational.randn">randn</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -1639,23 +1222,6 @@ there is no benefit to the adjoint trick (back-propagation).
 </ul>
 </li>
 <li>
-<h4><code><a title="dapper.da_methods.variational.iLEnKS" href="#dapper.da_methods.variational.iLEnKS">iLEnKS</a></code></h4>
-<ul class="two-column">
-<li><code><a title="dapper.da_methods.variational.iLEnKS.assimilate" href="#dapper.da_methods.variational.iLEnKS.assimilate">assimilate</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.upd_a" href="#dapper.da_methods.variational.iLEnKS.upd_a">upd_a</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.N" href="#dapper.da_methods.variational.iLEnKS.N">N</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.loc_rad" href="#dapper.da_methods.variational.iLEnKS.loc_rad">loc_rad</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.taper" href="#dapper.da_methods.variational.iLEnKS.taper">taper</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.xN" href="#dapper.da_methods.variational.iLEnKS.xN">xN</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.infl" href="#dapper.da_methods.variational.iLEnKS.infl">infl</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.rot" href="#dapper.da_methods.variational.iLEnKS.rot">rot</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.Lag" href="#dapper.da_methods.variational.iLEnKS.Lag">Lag</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.nIter" href="#dapper.da_methods.variational.iLEnKS.nIter">nIter</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.wtol" href="#dapper.da_methods.variational.iLEnKS.wtol">wtol</a></code></li>
-<li><code><a title="dapper.da_methods.variational.iLEnKS.da_method" href="#dapper.da_methods.variational.iLEnKS.da_method">da_method</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="dapper.da_methods.variational.Var4D" href="#dapper.da_methods.variational.Var4D">Var4D</a></code></h4>
 <ul class="two-column">
 <li><code><a title="dapper.da_methods.variational.Var4D.assimilate" href="#dapper.da_methods.variational.Var4D.assimilate">assimilate</a></code></li>
@@ -1673,7 +1239,7 @@ there is no benefit to the adjoint trick (back-propagation).
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

@@ -1,8 +1,8 @@
 """Same as bocquet2010, except that here ndim=40 (i.e. Fig. 5 of paper)"""
 import numpy as np
 
-from dapper.mods.Lorenz96.bocquet2010 import Dyn, t
 import dapper as dpr
+from dapper.mods.Lorenz96.bocquet2010 import Dyn, t
 
 Nx = 40
 Dyn['M'] = Nx

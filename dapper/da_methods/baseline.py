@@ -1,15 +1,16 @@
-"""Methods often used to compare against to indicate baselines performance.
+""""Unsophisticated" but robust (widely applicable) DA methods.
 
-Many are based on [Raa16a]_.
+Many are based on `bib.raanes2016thesis`.
 """
-import numpy as np
 from typing import Optional
 
-from dapper.admin import da_method
-import dapper.tools.series as series
-from dapper.tools.utils import progbar
-from dapper.tools.matrices import CovMat
+import numpy as np
+
 import dapper.tools.math as mtools
+import dapper.tools.series as series
+from dapper.admin import da_method
+from dapper.tools.matrices import CovMat
+from dapper.tools.utils import progbar
 
 
 @da_method()
@@ -139,7 +140,7 @@ def fit_sigmoid(Sb, L, kb):
 
     The "normalized" sigmoid, S1, is symmetric around 0, and S1(-∞)=0 and S1(∞)=1.
 
-    The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see doc_snippets/sigmoid.jpg) with
+    The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see docs/snippets/sigmoid.jpg) with
 
     - a corresponding to a given corr. length L.
     - b to match values of S(kb) and Sb"""

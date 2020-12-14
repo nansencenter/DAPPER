@@ -1,12 +1,12 @@
 """Demonstrate the Lorenz two-speed/scale/layer model."""
 
-from matplotlib import pyplot as plt
 import numpy as np
+from matplotlib import pyplot as plt
 
-from dapper.mods.LorenzUV.lorenz96 import LUV
 import dapper as dpr
-from dapper.tools.viz import setup_wrapping
+from dapper.mods.LorenzUV.lorenz96 import LUV
 from dapper.tools.utils import progbar
+from dapper.tools.viz import setup_wrapping
 
 nU, J = LUV.nU, LUV.J
 

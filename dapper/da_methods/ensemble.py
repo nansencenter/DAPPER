@@ -1,16 +1,16 @@
 """The EnKF and other ensemble-based methods"""
 
 import numpy as np
-from numpy import eye, diag, zeros, sqrt
 import scipy.linalg as sla
+from numpy import diag, eye, sqrt, zeros
+from numpy.random import rand, randn
 
-from dapper.admin import da_method
-from dapper.tools.stoch import rand, randn
-from dapper.tools.math import center, mean0, mrdiv, mldiv, tsvd, svd0,\
-    pad0, reconst, tinv
-from dapper.tools.utils import progbar
-from dapper.tools.matrices import genOG_1, funm_psd
 import dapper.tools.multiprocessing as mp
+from dapper.admin import da_method
+from dapper.tools.math import (center, mean0, mldiv, mrdiv, pad0, svd0, svdi,
+                               tinv, tsvd)
+from dapper.tools.matrices import funm_psd, genOG_1
+from dapper.tools.utils import progbar
 
 
 @da_method
@@ -23,7 +23,7 @@ class ens_method:
 
 @ens_method
 class EnKF:
-    """The ensemble Kalman filter [Eve09]_"""
+    """The ensemble Kalman filter `bib.evensen2009ensemble`"""
     upd_a: str
     N: int
 
@@ -55,7 +55,8 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
 
     The update is specified via 'upd_a'.
 
-    Main references: [Sak08a]_, [Sak08b]_, [Hot15]_
+    Main references: `bib.sakov2008deterministic`,
+    `bib.sakov2008implications`, `bib.hoteit2015mitigating`
     """
     R     = hnoise.C     # Obs noise cov
     N, Nx = E.shape      # Dimensionality
@@ -100,7 +101,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
             d       = pad0(s**2, N) + N1
             Pw      = (V * d**(-1.0)) @ V.T
             T       = (V * d**(-0.5)) @ V.T * sqrt(N1)
-            # dpr_data/doc_snippets/trHK.jpg
+            # docs/snippets/trHK.jpg
             trHK    = np.sum((s**2+N1)**(-1.0) * s**2)
         elif 'sS' in upd_a:
             # Same as 'svd', but with slightly different notation
@@ -110,7 +111,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
             d       = pad0(s**2, N) + 1
             Pw      = (V * d**(-1.0))@V.T / N1  # = G/(N1)
             T       = (V * d**(-0.5))@V.T
-            # dpr_data/doc_snippets/trHK.jpg
+            # docs/snippets/trHK.jpg
             trHK    = np.sum((s**2 + 1)**(-1.0)*s**2)
         else:  # 'eig' in upd_a:
             # Implementation using eig. val. decomp.
@@ -141,9 +142,9 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                     # "2nd-O exact perturbation sampling"
                     if i == 0:
                         # Init -- increase nullspace by 1
-                        V, s, UT = tsvd(A, N1)
+                        V, s, UT = svd0(A)
                         s[N-2:] = 0
-                        A = reconst(V, s, UT)
+                        A = svdi(V, s, UT)
                         v = V[:, N-2]
                     else:
                         # Orthogonalize v wrt. the new A
@@ -151,7 +152,6 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         # v = Zj - Yj (from paper) requires Y==HX.
                         # Instead: mult` should be c*ones(Nx) so we can
                         # project v into ker(A) such that v@A is null.
-                        # TODO 2: Yj undefined
                         mult  = (v@A) / (Yj@A) # noqa
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
@@ -247,7 +247,7 @@ def post_process(E, infl, rot):
 
 
 def add_noise(E, dt, noise, method):
-    """Treatment of additive noise for ensembles [Raa15]_."""
+    """Treatment of additive noise for ensembles `bib.raanes2014ext`."""
 
     if noise.C == 0:
         return E
@@ -285,13 +285,13 @@ def add_noise(E, dt, noise, method):
         varE   = np.var(E, axis=0, ddof=1).sum()
         ratio  = (varE + dt*diag(Q).sum())/varE
         E      = mu + sqrt(ratio)*A
-        E      = reconst(*tsvd(E, 0.999))  # Explained in Datum
+        E      = svdi(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Mult-M':
         varE   = np.var(E, axis=0)
         ratios = sqrt((varE + dt*diag(Q))/varE)
         E      = mu + A*ratios
-        E      = reconst(*tsvd(E, 0.999))  # Explained in Datum
+        E      = svdi(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Sqrt-Core':
         E = sqrt_core()[0]
@@ -305,13 +305,13 @@ def add_noise(E, dt, noise, method):
             varE1   = np.var(E, axis=0, ddof=1).sum()
             ratio   = varE2/varE1
             E       = mu + sqrt(ratio)*A
-            E       = reconst(*tsvd(E, 0.999))  # Explained in Datum
+            E       = svdi(*tsvd(E, 0.999))  # Explained in Datum
 
     elif method == 'Sqrt-Add-Z':
         E, _, Qa12 = sqrt_core()
         if N <= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn((Z.shape[1], N))).T
+            E += sqrt(dt)*(Z@randn(Z.shape[1], N)).T
 
     elif method == 'Sqrt-Dep':
         E, T, Qa12 = sqrt_core()
@@ -326,7 +326,7 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn((rQ, N))
+            Xi_til = (eye(rQ) - Q_hat12_proj)@randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -338,7 +338,7 @@ def add_noise(E, dt, noise, method):
 
 @ens_method
 class EnKS:
-    """The ensemble Kalman smoother [Eve09]_.
+    """The ensemble Kalman smoother `bib.evensen2009ensemble`.
 
     The only difference to the EnKF
     is the management of the lag and the reshapings."""
@@ -395,7 +395,7 @@ class EnKS:
 
 @ens_method
 class EnRTS:
-    """EnRTS (Rauch-Tung-Striebel) smoother [Raa16b]_."""
+    """EnRTS (Rauch-Tung-Striebel) smoother `bib.raanes2016thesis`."""
     upd_a: str
     N: int
     cntr: float
@@ -456,7 +456,7 @@ def serial_inds(upd_a, y, cvR, A):
 
 @ens_method
 class SL_EAKF:
-    """Serial, covariance-localized EAKF [Kar07]_.
+    """Serial, covariance-localized EAKF `bib.karspeck2007experimental`.
 
     Used without localization, this should be equivalent (full ensemble equality)
     to the :func:`EnKF` with ``upd_a='Serial'``."""
@@ -528,7 +528,7 @@ class SL_EAKF:
 
 @ens_method
 class LETKF:
-    """Same as EnKF (sqrt), but with localization [Hun07]_.
+    """Same as EnKF (sqrt), but with localization `bib.hunt2007efficient`.
 
     NB: Multiprocessing yields slow-down for L96, even with batch_size=(1,).
         But for QG (batch_size=(2,2) or less) it is quicker.
@@ -725,7 +725,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
 
     - Reason 1: mode correction.
       These parameters bridge the Jeffreys (xN=1) and Dirac (xN=Inf) hyperpriors
-      for the prior covariance, B, as discussed in [Boc15]_.
+      for the prior covariance, B, as discussed in `bib.bocquet2015expanding`.
       Indeed, mode correction becomes necessary when :math:`R \\rightarrow \\infty`.
       because then there should be no ensemble update (and also no inflation!).
       More specifically, the mode of ``l1``'s should be adjusted towards 1
@@ -737,7 +737,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
     - Reason 2: Boosting the inflation prior's certainty from N to xN*N.
       The aim is to take advantage of the fact that the ensemble may not
       have quite as much sampling error as a fully stochastic sample,
-      as illustrated in section 2.1 of [Raa19a]_.
+      as illustrated in section 2.1 of `bib.raanes2019adaptive`.
 
     - Its damping effect is similar to work done by J. Anderson.
 
@@ -756,7 +756,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
     eN = (N+1)/N
     cL = (N+g)/N1
 
-    # Mode correction (almost) as in eqn 36 of [Boc15]_
+    # Mode correction (almost) as in eqn 36 of `bib.bocquet2015expanding`
     prior_mode = eN/cL                        # Mode of l1 (before correction)
     diagonal   = pad0(s**2, N) + N1           # diag of Y@R.inv@Y + N1*I
     #                                           (Hessian of J)
@@ -791,7 +791,7 @@ def zeta_a(eN, cL, w):
 
 @ens_method
 class EnKF_N:
-    """Finite-size EnKF (EnKF-N) [Boc11]_, [Boc15]_
+    """Finite-size EnKF (EnKF-N) `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
 
     This implementation is pedagogical, prioritizing the "dual" form.
     In consequence, the efficiency of the "primal" form suffers a bit.
@@ -909,7 +909,8 @@ class EnKF_N:
                 # Uncomment to revert to ETKF
                 # l1 = 1.0
 
-                # Explicitly inflate prior => formulae look different from [Boc15]_.
+                # Explicitly inflate prior
+                # => formulae look different from `bib.bocquet2015expanding`.
                 A *= l1
                 Y *= l1
 
@@ -924,7 +925,7 @@ class EnKF_N:
                 else:
                     # Also include angular-radial co-dependence.
                     # Note: denominator not squared coz
-                    # unlike [Boc15]_ we have inflated Y.
+                    # unlike `bib.bocquet2015expanding` we have inflated Y.
                     Hw = Y@R.inv@Y.T/N1 + eye(N) - 2*np.outer(w, w)/(eN + w@w)
                     T  = funm_psd(Hw, lambda x: x**-.5)  # is there a sqrtm Woodbury?
 

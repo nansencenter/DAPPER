@@ -1,16 +1,20 @@
-"""Implement Kuramoto-Sivashinsky (K-S) system, defined by the nonlinear PDE:
+"""Kuramoto-Sivashinsky (KS) system: the simplest (?) PDE admitting chaos.
 
-u_t = -u*u_x - u_xx - u_xxxx
+Defined by:
 
-See compare_schemes.py for a comparison of time-step integration schemes.
-See demo.py for further description.
+    u_t = -u*u_x - u_xx - u_xxxx
+
+- See compare_schemes.py for a comparison of time-step integration schemes.
+- See demo.py for further description.
 """
 
+import functools
+
 import numpy as np
-from dapper.tools.math import with_rk4, integrate_TLM, is1d
+
 from dapper.dpr_config import DotDict
 from dapper.tools.magic import magic_naming
-import functools
+from dapper.tools.math import integrate_TLM, is1d, with_rk4
 
 
 # To & from time/Fourier domain -- use reals-only fft
@@ -39,8 +43,8 @@ def Model(dt=0.25, DL=32, Nx=128):
     # Alternative method:
     # kk = np.fft.fftfreq(Nx, DL/Nx/2)
     # Operators
-    D = 1j*kk          # Differentiation to compute:  F[ u_x ]
-    L = kk**2 - kk**4  # Linear operator for K-S eqn: F[ - u_xx - u_xxxx]
+    D = 1j*kk          # Differentiation to compute: F[ u_x ]
+    L = kk**2 - kk**4  # Linear operator for KS eqn: F[ - u_xx - u_xxxx]
 
     # NonLinear term (-u*u_x) in Fourier domain via time domain
     def NL(v):

@@ -1,9 +1,10 @@
+<!-- Search file for "CHANGE" for my own changes -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.tools.multiprocessing API documentation</title>
 <meta name="description" content="Paralellisation via multiprocessing. Wraps pool.map for convenience." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -15,6 +16,12 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </head>
 <body>
 <main>
@@ -27,195 +34,96 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/multiprocessing.py#L0-L87" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Paralellisation via multiprocessing. Wraps pool.map for convenience.&#34;&#34;&#34;
 
 import functools
-import textwrap
-import dapper.tools.utils as utils
 
-# Multiprocessing is kept as an option in DAPPER,
-# since some of these libraries are experimental.
-# TODO 2: make it mandatory?
-try:
-    # Multiprocessing requries pickling. The package &#39;dill&#39; is able to
-    # pickle much more than basic pickle (e.g. nested functions),
-    # and is being used by &#39;multiprocessing_on_dill&#39;.
-    # Alternatively, the package pathos also enables multiprocessing with dill.
-    import multiprocessing_on_dill as mpd
+# Multiprocessing requries pickling. The package &#39;dill&#39; is able to
+# pickle much more than basic pickle (e.g. nested functions),
+# and is being used by &#39;multiprocessing_on_dill&#39;,
+# and the better-maintained pathos
+import multiprocessing_on_dill as mpd
+# Enforcing individual core usage.
+# ---------
+# Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
+#   This may yield some performance gain, but typically not much
+#   compared to manual parallelization over independent experiments,
+#   ensemble forecasts simulations, or local analyses.
+# Therefore: force numpy to only use a single core.
+#
+# Ref https://stackoverflow.com/a/53224849
+# for envar in [
+#     &#34;OMP_NUM_THREADS&#34;,        # openmp
+#     &#34;OPENBLAS_NUM_THREADS&#34;,   # openblas
+#     &#34;MKL_NUM_THREADS&#34;,        # mkl
+#     &#34;VECLIB_MAXIMUM_THREADS&#34;, # accelerate
+#     &#34;NUMEXPR_NUM_THREADS&#34;]:   # numexpr
+#     os.environ[envar] = &#34;1&#34;
+# The above may be the safest way to limit thread use on all systems,
+# but requires importing before np. =&gt; Instead, use threadpoolctl!
+#
+# &gt;&gt;&gt; import numpy as np
+# &gt;&gt;&gt; from threadpoolctl import threadpool_limits
+# &gt;&gt;&gt; N  = 4*10**3
+# &gt;&gt;&gt; a  = np.random.randn(N, N)
+# &gt;&gt;&gt; # Now start monitoring CPU usage (with e.g. htop).
+# &gt;&gt;&gt; with threadpool_limits(limits=1, user_api=&#39;blas&#39;):
+# &gt;&gt;&gt;   a2 = a @ a
+import threadpoolctl
 
-    # Deciding on core numbers
-    # from psutil import cpu_percent, cpu_count
+# Deciding on core numbers
+# ---------
+# Unnecessary. Just use NPROC=None.
+# from psutil import cpu_percent, cpu_count
 
-    # Enforcing individual core usage.
-    # Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
-    #   This may yield some performance gain, but typically not much
-    #   compared to manual parallelization over independent experiments,
-    #   ensemble forecasts simulations, or local analyses.
-    # Therefore: force numpy to only use a single core.
-    #
-    # Ref https://stackoverflow.com/a/53224849
-    # for envar in [
-    #     &#34;OMP_NUM_THREADS&#34;,        # openmp
-    #     &#34;OPENBLAS_NUM_THREADS&#34;,   # openblas
-    #     &#34;MKL_NUM_THREADS&#34;,        # mkl
-    #     &#34;VECLIB_MAXIMUM_THREADS&#34;, # accelerate
-    #     &#34;NUMEXPR_NUM_THREADS&#34;]:   # numexpr
-    #     os.environ[envar] = &#34;1&#34;
-    # The above may be the safest way to limit thread use on all systems,
-    # but requires importing before np. =&gt; Instead, use threadpoolctl!
-    #
-    # &gt;&gt;&gt; import numpy as np
-    # &gt;&gt;&gt; from threadpoolctl import threadpool_limits
-    # &gt;&gt;&gt; N  = 4*10**3
-    # &gt;&gt;&gt; a  = np.random.randn(N, N)
-    # &gt;&gt;&gt; # Now start monitoring CPU usage (with e.g. htop).
-    # &gt;&gt;&gt; with threadpool_limits(limits=1, user_api=&#39;blas&#39;):
-    # &gt;&gt;&gt;   a2 = a @ a
-    import threadpoolctl
-    threadpoolctl.threadpool_limits(1)
-
-    no_MP = False
-except ImportError:
-    no_MP = True
-
-    @utils.do_once
-    def MP_warn():
-        print(textwrap.dedent(&#34;&#34;&#34;
-        Warning: Multiprocessing (MP) was requsted during execution,
-        but has not been properly installed.
-        Try re-installing DAPPER with `pip install -e &lt;path-to-DAPPER&gt;[MP]`.
-        &#34;&#34;&#34;))
+threadpoolctl.threadpool_limits(1)
 
 
-#########################################
-# Multiprocessing
-#########################################
+def map(func, xx, **kwargs):
+    &#34;&#34;&#34;A parallelized version of map.
 
-if no_MP:
-    def map(func, xx, **kwargs):
-        MP_warn()
-        return [func(x, **kwargs) for x in xx]
+    Similar to:
 
-else:
-    def map(func, xx, **kwargs):
-        &#34;&#34;&#34;A parallelized version of map.
+    &gt;&gt;&gt; result = [func(x, **kwargs) for x in xx]
 
-        Similar to::
+    Also deals with:
 
-        &gt;&gt;&gt; result = [func(x, **kwargs) for x in xx]
+     - passing kwargs
+     - join(), close()
 
-        Note: unlike reading, writing &#34;in-place&#34; does not work with multiprocessing
-        (unless &#34;shared&#34; arrays are used, but this has not been tried out here).
+    Note: in contrast to reading operations, writing &#34;in-place&#34;
+    does not work with multiprocessing. This changes with
+    &#34;shared&#34; arrays, but this has not been tried out here.
+    Multithreading shares memory,
+    but was significantly slower in the tested (pertinent) cases.
 
-        NB: multiprocessing does not mix with matplotlib,
-            so ensure ``func`` does not reference ``self.stats.LP_instance``,
-            where ``self`` is a ``@da_method`` object.
-            In fact, ``func`` should not reference ``self`` at all,
-            because its serialization is rather slow.
+    NB: multiprocessing does not mix with matplotlib,
+        so ensure ``func`` does not reference ``self.stats.LP_instance``,
+        where ``self`` is a ``@da_method`` object.
+        In fact, ``func`` should not reference ``self`` at all,
+        because its serialization is rather slow.
 
-        See example use in mods/QG/__init__.py.
+    See example use in `dapper.mods.QG`
+    &#34;&#34;&#34;
 
-        Technicalities dealt with:
-         - passing kwargs
-         - join(), close()
+    NPROC = None  # None =&gt; multiprocessing.cpu_count()
+    pool = mpd.Pool(NPROC)
 
-        However, the main achievement of this helper function is to make
-        &#34;Ctrl+C&#34;, i.e. KeyboardInterruption,
-        stop the execution of the program, and do so &#34;gracefully&#34;,
-        something which is quite tricky to achieve with multiprocessing.
-        &#34;&#34;&#34;
+    try:
+        f = functools.partial(func, **kwargs)  # Fix kwargs
 
-        # The Ctrl-C issue is mainly cosmetic, but an annoying issue. E.g.
-        #  - Pressing ctrl-c should terminate execution.
-        #  - It should only be necessary to press Ctrl-C once.
-        #  - The traceback does not extend beyond the multiprocessing management
-        #    (not into the worker codes), and should therefore be cropped before then.
-        #
-        # NB: Here be fuckin dragons!
-        # This solution is mostly based on https://stackoverflow.com/a/35134329
-        # I don&#39;t (fully) understand why the issues arise,
-        # nor why my patchwork solution somewhat works.
-        #
-        # I urge great caution in modifying this code because
-        # issue reproduction is difficult (coz behaviour depends on
-        # where the execution is currently at when Ctrl-C is pressed)
-        # =&gt; testing is difficult.
-        #
-        # Alternative to try:
-        # - Use concurrent.futures, as the bug seems to have been patched there:
-        #   https://bugs.python.org/issue9205. However, does this work with dill?
-        # - Multithreading: has the advantage of sharing memory,
-        #   but was significantly slower than using processes,
-        #   testing on DAPPER-relevant.
+        # map vs imap: https://stackoverflow.com/a/26521507
+        result = pool.map(f, xx)
 
-        # Ignore Ctrl-C.
-        # Alternative: Pool(initializer=[ignore sig]).
-        # But the following way seems to work better.
-        import signal
-        orig = signal.signal(signal.SIGINT, signal.SIG_IGN)
+    except Exception:
+        pool.terminate()
+        pool.close()
+        pool.join()
+        raise
 
-        # Setup multiprocessing pool (pool workers should ignore Ctrl-C)
-        NPROC = None  # None =&gt; multiprocessing.cpu_count()
-        pool = mpd.Pool(NPROC)
-
-        # Restore Ctrl-C action
-        signal.signal(signal.SIGINT, orig)
-
-        try:
-            f = functools.partial(func, **kwargs)  # Fix kwargs
-
-            # map vs imap: https://stackoverflow.com/a/26521507
-            result = pool.map(f, xx)
-
-            # Relating to Ctrl-C issue, map_async was preferred:
-            # https://stackoverflow.com/a/1408476
-            # However, this does not appear to be necessary anymore...
-            # result = pool.map_async(f, xx)
-            # timeout = 60 # Required for get() to not ignore signals.
-            # result = result.get(timeout)
-
-        except KeyboardInterrupt:
-            try:
-                pool.terminate()
-                # Attempts to propagate &#34;Ctrl-C&#34; with reasonable traceback print:
-                # ------------------------------------------------------------------
-                # ALTERNATIVE 1: ------- shit coz: only includes multiprocessing trace.
-                # traceback.print_tb(e.__traceback__,limit=1)
-                # sys.exit(0)
-                # ALTERNATIVE 2: ------- shit coz: includes multiprocessing trace.
-                # raise e
-                # ALTERNATIVE 3: ------- shit coz: includes multiprocessing trace.
-                # raise KeyboardInterrupt
-                # ALTERNATIVE 4:
-                was_interrupted = True
-            except KeyboardInterrupt:
-                # Sometimes the KeyboardInterrupt caught above
-                # just causes things to hang, and another &#34;Ctrl-C&#34; is required,
-                # which is then caught by this 2nd try-catch.
-                pool.terminate()
-                was_interrupted = True
-        else:
-            # Resume normal execution
-            was_interrupted = False
-            pool.close()  # =&gt; Processes will terminate once their jobs are done.
-
-        try:
-            # Helps with debugging,
-            # according to https://stackoverflow.com/a/38271957
-            pool.join()
-        except KeyboardInterrupt:
-            # Also need to handle Ctrl-C in join()...
-            # This might necessitate pressing Ctrl-C again, but it&#39;s
-            # better than getting spammed by traceback full of garbage.
-            pool.terminate()
-            was_interrupted = True
-
-        # Start the KeyboardInterrupt trace here.
-        if was_interrupted:
-            raise KeyboardInterrupt
-
-        return result</code></pre>
+    return result</code></pre>
 </details>
 </section>
 <section>
@@ -230,37 +138,47 @@ else:
 </code></dt>
 <dd>
 <div class="desc"><p>A parallelized version of map.</p>
-<p>Similar to::</p>
+<p>Similar to:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; result = [func(x, **kwargs) for x in xx]
 </code></pre>
-<p>Note: unlike reading, writing "in-place" does not work with multiprocessing
-(unless "shared" arrays are used, but this has not been tried out here).</p>
+<p>Also deals with:</p>
+<ul>
+<li>passing kwargs</li>
+<li>join(), close()</li>
+</ul>
+<p>Note: in contrast to reading operations, writing "in-place"
+does not work with multiprocessing. This changes with
+"shared" arrays, but this has not been tried out here.
+Multithreading shares memory,
+but was significantly slower in the tested (pertinent) cases.</p>
 <p>NB: multiprocessing does not mix with matplotlib,
 so ensure <code>func</code> does not reference <code>self.stats.LP_instance</code>,
 where <code>self</code> is a <code>@da_method</code> object.
 In fact, <code>func</code> should not reference <code>self</code> at all,
 because its serialization is rather slow.</p>
-<p>See example use in mods/QG/<strong>init</strong>.py.</p>
-<p>Technicalities dealt with:
-- passing kwargs
-- join(), close()</p>
-<p>However, the main achievement of this helper function is to make
-"Ctrl+C", i.e. KeyboardInterruption,
-stop the execution of the program, and do so "gracefully",
-something which is quite tricky to achieve with multiprocessing.</p></div>
+<p>See example use in <code><a title="dapper.mods.QG" href="../mods/QG/index.html">dapper.mods.QG</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/multiprocessing.py#L46-L88" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def map(func, xx, **kwargs):
     &#34;&#34;&#34;A parallelized version of map.
 
-    Similar to::
+    Similar to:
 
     &gt;&gt;&gt; result = [func(x, **kwargs) for x in xx]
 
-    Note: unlike reading, writing &#34;in-place&#34; does not work with multiprocessing
-    (unless &#34;shared&#34; arrays are used, but this has not been tried out here).
+    Also deals with:
+
+     - passing kwargs
+     - join(), close()
+
+    Note: in contrast to reading operations, writing &#34;in-place&#34;
+    does not work with multiprocessing. This changes with
+    &#34;shared&#34; arrays, but this has not been tried out here.
+    Multithreading shares memory,
+    but was significantly slower in the tested (pertinent) cases.
 
     NB: multiprocessing does not mix with matplotlib,
         so ensure ``func`` does not reference ``self.stats.LP_instance``,
@@ -268,53 +186,11 @@ something which is quite tricky to achieve with multiprocessing.</p></div>
         In fact, ``func`` should not reference ``self`` at all,
         because its serialization is rather slow.
 
-    See example use in mods/QG/__init__.py.
-
-    Technicalities dealt with:
-     - passing kwargs
-     - join(), close()
-
-    However, the main achievement of this helper function is to make
-    &#34;Ctrl+C&#34;, i.e. KeyboardInterruption,
-    stop the execution of the program, and do so &#34;gracefully&#34;,
-    something which is quite tricky to achieve with multiprocessing.
+    See example use in `dapper.mods.QG`
     &#34;&#34;&#34;
 
-    # The Ctrl-C issue is mainly cosmetic, but an annoying issue. E.g.
-    #  - Pressing ctrl-c should terminate execution.
-    #  - It should only be necessary to press Ctrl-C once.
-    #  - The traceback does not extend beyond the multiprocessing management
-    #    (not into the worker codes), and should therefore be cropped before then.
-    #
-    # NB: Here be fuckin dragons!
-    # This solution is mostly based on https://stackoverflow.com/a/35134329
-    # I don&#39;t (fully) understand why the issues arise,
-    # nor why my patchwork solution somewhat works.
-    #
-    # I urge great caution in modifying this code because
-    # issue reproduction is difficult (coz behaviour depends on
-    # where the execution is currently at when Ctrl-C is pressed)
-    # =&gt; testing is difficult.
-    #
-    # Alternative to try:
-    # - Use concurrent.futures, as the bug seems to have been patched there:
-    #   https://bugs.python.org/issue9205. However, does this work with dill?
-    # - Multithreading: has the advantage of sharing memory,
-    #   but was significantly slower than using processes,
-    #   testing on DAPPER-relevant.
-
-    # Ignore Ctrl-C.
-    # Alternative: Pool(initializer=[ignore sig]).
-    # But the following way seems to work better.
-    import signal
-    orig = signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-    # Setup multiprocessing pool (pool workers should ignore Ctrl-C)
     NPROC = None  # None =&gt; multiprocessing.cpu_count()
     pool = mpd.Pool(NPROC)
-
-    # Restore Ctrl-C action
-    signal.signal(signal.SIGINT, orig)
 
     try:
         f = functools.partial(func, **kwargs)  # Fix kwargs
@@ -322,52 +198,11 @@ something which is quite tricky to achieve with multiprocessing.</p></div>
         # map vs imap: https://stackoverflow.com/a/26521507
         result = pool.map(f, xx)
 
-        # Relating to Ctrl-C issue, map_async was preferred:
-        # https://stackoverflow.com/a/1408476
-        # However, this does not appear to be necessary anymore...
-        # result = pool.map_async(f, xx)
-        # timeout = 60 # Required for get() to not ignore signals.
-        # result = result.get(timeout)
-
-    except KeyboardInterrupt:
-        try:
-            pool.terminate()
-            # Attempts to propagate &#34;Ctrl-C&#34; with reasonable traceback print:
-            # ------------------------------------------------------------------
-            # ALTERNATIVE 1: ------- shit coz: only includes multiprocessing trace.
-            # traceback.print_tb(e.__traceback__,limit=1)
-            # sys.exit(0)
-            # ALTERNATIVE 2: ------- shit coz: includes multiprocessing trace.
-            # raise e
-            # ALTERNATIVE 3: ------- shit coz: includes multiprocessing trace.
-            # raise KeyboardInterrupt
-            # ALTERNATIVE 4:
-            was_interrupted = True
-        except KeyboardInterrupt:
-            # Sometimes the KeyboardInterrupt caught above
-            # just causes things to hang, and another &#34;Ctrl-C&#34; is required,
-            # which is then caught by this 2nd try-catch.
-            pool.terminate()
-            was_interrupted = True
-    else:
-        # Resume normal execution
-        was_interrupted = False
-        pool.close()  # =&gt; Processes will terminate once their jobs are done.
-
-    try:
-        # Helps with debugging,
-        # according to https://stackoverflow.com/a/38271957
-        pool.join()
-    except KeyboardInterrupt:
-        # Also need to handle Ctrl-C in join()...
-        # This might necessitate pressing Ctrl-C again, but it&#39;s
-        # better than getting spammed by traceback full of garbage.
+    except Exception:
         pool.terminate()
-        was_interrupted = True
-
-    # Start the KeyboardInterrupt trace here.
-    if was_interrupted:
-        raise KeyboardInterrupt
+        pool.close()
+        pool.join()
+        raise
 
     return result</code></pre>
 </details>
@@ -380,7 +215,8 @@ something which is quite tricky to achieve with multiprocessing.</p></div>
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
-<img src="https://nansencenter.github.io/DAPPER/logo.png" style="width:200px;" alt="">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
 </a>
 </header>
 <h1>Index</h1>
@@ -402,7 +238,7 @@ something which is quite tricky to achieve with multiprocessing.</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>
