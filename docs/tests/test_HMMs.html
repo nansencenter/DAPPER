@@ -5,9 +5,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>dapper.mods.LorenzUV.wilks05 API documentation</title>
-<meta name="description" content="Uses nU, J, F as in __init__.py, which is taken from wilks05.
-Obs settings taken from different places (=&gt; quasi-linear regime)." />
+<title>tests.test_HMMs API documentation</title>
+<meta name="description" content="Test HMM found in model directories." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -28,121 +27,63 @@ Obs settings taken from different places (=&gt; quasi-linear regime)." />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>dapper.mods.LorenzUV.wilks05</code></h1>
+<h1 class="title">Module <code>tests.test_HMMs</code></h1>
 </header>
 <section id="section-intro">
-<p>Uses nU, J, F as in <strong>init</strong>.py, which is taken from wilks05.
-Obs settings taken from different places (=&gt; quasi-linear regime).</p>
+<p>Test HMM found in model directories.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/dapper/mods/LorenzUV/wilks05.py#L0-L104" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/tests/test_HMMs.py#L0-L47" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Uses nU, J, F as in __init__.py, which is taken from wilks05.
-Obs settings taken from different places (=&gt; quasi-linear regime).&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34;Test HMM found in model directories.&#34;&#34;&#34;
 
-import numpy as np
+import os
+from importlib import import_module
+from pathlib import Path
+
+import pytest
 
 import dapper as dpr
 import dapper.tools.utils as utils
-from dapper.mods.LorenzUV import model_instance
 
-LUV = model_instance()
-nU = LUV.nU
+utils.disable_progbar = True
 
-# Wilks2005 uses dt=1e-4 with RK4 for the full model,
-# and dt=5e-3 with RK2 for the forecast/truncated model.
-# As berry2014linear notes, this is possible coz
-# &#34;numerical stiffness disappears when fast processes are removed&#34;.
+modules_with_HMM = []
 
-################
-# Full
-################
+for root, dir, files in os.walk(&#34;.&#34;):
+    if &#34;mods&#34; in root:
 
-# t = dpr.Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
-t = dpr.Chronology(dt=0.005, dtObs=0.05, T=4**3, BurnIn=6)  # requires rk4
+        if os.environ.get(&#34;TRAVIS&#34;, False) and (&#34;QG&#34; in root):
+            continue
 
+        for f in sorted(files):
+            if f.endswith(&#34;.py&#34;):
+                filepath = Path(root) / f
 
-Dyn = {
-    &#39;M&#39;: LUV.M,
-    &#39;model&#39;: dpr.with_rk4(LUV.dxdt, autonom=True),
-    &#39;noise&#39;: 0,
-    &#39;linear&#39;: LUV.dstep_dx,
-}
-
-X0 = dpr.GaussRV(mu=LUV.x0, C=0.01)
-
-R = 0.1
-jj = np.arange(nU)
-Obs = dpr.partial_Id_Obs(LUV.M, jj)
-Obs[&#39;noise&#39;] = R
-
-other = {&#39;name&#39;: utils.rel2mods(__file__)+&#39;_full&#39;}
-HMM_full = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
+                lines = &#34;&#34;.join(open(filepath).readlines())
+                if &#34;HiddenMarkovModel&#34; in lines:
+                    modules_with_HMM.append(filepath)
 
 
-################
-# Truncated
-################
+@pytest.mark.parametrize((&#34;path&#34;), modules_with_HMM, ids=str)
+def test_HMM(path):
+    &#34;&#34;&#34;Test that any HMM in module can be simulated.&#34;&#34;&#34;
+    p = str(path.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
+    module = import_module(p)
 
-# Just change dt from 005 to 05
-t = dpr.Chronology(dt=0.05, dtObs=0.05, T=4**3, BurnIn=6)
+    def exclude(key, HMM):
+        &#34;&#34;&#34;Exclude HMMs that are not testable w/o further configuration.&#34;&#34;&#34;
+        if key == &#34;HMM_trunc&#34;:
+            return True
+        return False
 
-Dyn = {
-    &#39;M&#39;: nU,
-    &#39;model&#39;: dpr.with_rk4(LUV.dxdt_parameterized),
-    &#39;noise&#39;: 0,
-}
-
-X0 = dpr.GaussRV(mu=LUV.x0[:nU], C=0.01)
-
-jj = np.arange(nU)
-Obs = dpr.partial_Id_Obs(nU, jj)
-Obs[&#39;noise&#39;] = R
-
-other = {&#39;name&#39;: utils.rel2mods(__file__)+&#39;_trunc&#39;}
-HMM_trunc = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
-
-LUV.prmzt = lambda t, x: polynom_prmzt(t, x, 1)
-
-
-def polynom_prmzt(t, x, order):
-    &#34;&#34;&#34;
-    Polynomial (deterministic) parameterization of fast variables (Y).
-
-    NB: Only valid for system settings of Wilks&#39;2005.
-
-    Note: In order to observe an improvement in DA performance w
-          higher orders, the EnKF must be reasonably tuned with
-          There is very little improvement gained above order=1.
-    &#34;&#34;&#34;
-    if order == 4:
-        # From Wilks
-        d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
-    elif order == 3:
-        # From Arnold
-        d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
-    elif order == 1:
-        # From me -- see AdInf/illust_parameterizations.py
-        d = 0.74 + 0.82*x
-    elif order == 0:
-        # From me -- see AdInf/illust_parameterizations.py
-        d = 3.82
-    elif order == -1:
-        # Leave as dxdt_trunc
-        d = 0
-    else:
-        raise NotImplementedError
-    return d
-
-
-####################
-# Suggested tuning
-####################
-# Using HMM_full                    # Expected rmse.a:
-# xps += Climatology()              # 0.93
-# xps += Var3D(xB=2.0)              # 0.39
-# xps += EnKF_N(N=20)               # 0.27</code></pre>
+    for key, HMM in vars(module).items():
+        if isinstance(HMM, dpr.HiddenMarkovModel) and not exclude(key, HMM):
+            HMM.t.BurnIn = 0
+            HMM.t.KObs = 1
+            xx, yy = HMM.simulate()
+            assert True</code></pre>
 </details>
 </section>
 <section>
@@ -152,48 +93,34 @@ def polynom_prmzt(t, x, order):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.mods.LorenzUV.wilks05.polynom_prmzt"><code class="name flex">
-<span>def <span class="ident">polynom_prmzt</span></span>(<span>t, x, order)</span>
+<dt id="tests.test_HMMs.test_HMM"><code class="name flex">
+<span>def <span class="ident">test_HMM</span></span>(<span>path)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Polynomial (deterministic) parameterization of fast variables (Y).</p>
-<p>NB: Only valid for system settings of Wilks'2005.</p>
-<p>Note: In order to observe an improvement in DA performance w
-higher orders, the EnKF must be reasonably tuned with
-There is very little improvement gained above order=1.</p></div>
+<div class="desc"><p>Test that any HMM in module can be simulated.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/dapper/mods/LorenzUV/wilks05.py#L69-L96" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/tests/test_HMMs.py#L31-L48" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def polynom_prmzt(t, x, order):
-    &#34;&#34;&#34;
-    Polynomial (deterministic) parameterization of fast variables (Y).
+<pre><code class="python">@pytest.mark.parametrize((&#34;path&#34;), modules_with_HMM, ids=str)
+def test_HMM(path):
+    &#34;&#34;&#34;Test that any HMM in module can be simulated.&#34;&#34;&#34;
+    p = str(path.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
+    module = import_module(p)
 
-    NB: Only valid for system settings of Wilks&#39;2005.
+    def exclude(key, HMM):
+        &#34;&#34;&#34;Exclude HMMs that are not testable w/o further configuration.&#34;&#34;&#34;
+        if key == &#34;HMM_trunc&#34;:
+            return True
+        return False
 
-    Note: In order to observe an improvement in DA performance w
-          higher orders, the EnKF must be reasonably tuned with
-          There is very little improvement gained above order=1.
-    &#34;&#34;&#34;
-    if order == 4:
-        # From Wilks
-        d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
-    elif order == 3:
-        # From Arnold
-        d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
-    elif order == 1:
-        # From me -- see AdInf/illust_parameterizations.py
-        d = 0.74 + 0.82*x
-    elif order == 0:
-        # From me -- see AdInf/illust_parameterizations.py
-        d = 3.82
-    elif order == -1:
-        # Leave as dxdt_trunc
-        d = 0
-    else:
-        raise NotImplementedError
-    return d</code></pre>
+    for key, HMM in vars(module).items():
+        if isinstance(HMM, dpr.HiddenMarkovModel) and not exclude(key, HMM):
+            HMM.t.BurnIn = 0
+            HMM.t.KObs = 1
+            xx, yy = HMM.simulate()
+            assert True</code></pre>
 </details>
 </dd>
 </dl>
@@ -215,12 +142,12 @@ There is very little improvement gained above order=1.</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="dapper.mods.LorenzUV" href="index.html">dapper.mods.LorenzUV</a></code></li>
+<li><code><a title="tests" href="index.html">tests</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="dapper.mods.LorenzUV.wilks05.polynom_prmzt" href="#dapper.mods.LorenzUV.wilks05.polynom_prmzt">polynom_prmzt</a></code></li>
+<li><code><a title="tests.test_HMMs.test_HMM" href="#tests.test_HMMs.test_HMM">test_HMM</a></code></li>
 </ul>
 </li>
 </ul>

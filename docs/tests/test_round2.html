@@ -5,9 +5,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>dapper.mods.LorenzUV.wilks05 API documentation</title>
-<meta name="description" content="Uses nU, J, F as in __init__.py, which is taken from wilks05.
-Obs settings taken from different places (=&gt; quasi-linear regime)." />
+<title>tests.test_round2 API documentation</title>
+<meta name="description" content="Tests for `round2` and `round2sigfig`." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -28,121 +27,144 @@ Obs settings taken from different places (=&gt; quasi-linear regime)." />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>dapper.mods.LorenzUV.wilks05</code></h1>
+<h1 class="title">Module <code>tests.test_round2</code></h1>
 </header>
 <section id="section-intro">
-<p>Uses nU, J, F as in <strong>init</strong>.py, which is taken from wilks05.
-Obs settings taken from different places (=&gt; quasi-linear regime).</p>
+<p>Tests for <code>round2</code> and <code>round2sigfig</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/dapper/mods/LorenzUV/wilks05.py#L0-L104" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/tests/test_round2.py#L0-L128" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Uses nU, J, F as in __init__.py, which is taken from wilks05.
-Obs settings taken from different places (=&gt; quasi-linear regime).&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34;Tests for `round2` and `round2sigfig`.&#34;&#34;&#34;
 
 import numpy as np
+import pytest
 
-import dapper as dpr
-import dapper.tools.utils as utils
-from dapper.mods.LorenzUV import model_instance
-
-LUV = model_instance()
-nU = LUV.nU
-
-# Wilks2005 uses dt=1e-4 with RK4 for the full model,
-# and dt=5e-3 with RK2 for the forecast/truncated model.
-# As berry2014linear notes, this is possible coz
-# &#34;numerical stiffness disappears when fast processes are removed&#34;.
-
-################
-# Full
-################
-
-# t = dpr.Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
-t = dpr.Chronology(dt=0.005, dtObs=0.05, T=4**3, BurnIn=6)  # requires rk4
+import dapper.tools.math as dm
 
 
-Dyn = {
-    &#39;M&#39;: LUV.M,
-    &#39;model&#39;: dpr.with_rk4(LUV.dxdt, autonom=True),
-    &#39;noise&#39;: 0,
-    &#39;linear&#39;: LUV.dstep_dx,
-}
+class ca(float):
+    &#34;&#34;&#34;Make `==` approximate.
 
-X0 = dpr.GaussRV(mu=LUV.x0, C=0.01)
+    Example:
+    &gt;&gt;&gt; ca(1 + 1e-6) == 1
+    True
 
-R = 0.1
-jj = np.arange(nU)
-Obs = dpr.partial_Id_Obs(LUV.M, jj)
-Obs[&#39;noise&#39;] = R
-
-other = {&#39;name&#39;: utils.rel2mods(__file__)+&#39;_full&#39;}
-HMM_full = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
-
-
-################
-# Truncated
-################
-
-# Just change dt from 005 to 05
-t = dpr.Chronology(dt=0.05, dtObs=0.05, T=4**3, BurnIn=6)
-
-Dyn = {
-    &#39;M&#39;: nU,
-    &#39;model&#39;: dpr.with_rk4(LUV.dxdt_parameterized),
-    &#39;noise&#39;: 0,
-}
-
-X0 = dpr.GaussRV(mu=LUV.x0[:nU], C=0.01)
-
-jj = np.arange(nU)
-Obs = dpr.partial_Id_Obs(nU, jj)
-Obs[&#39;noise&#39;] = R
-
-other = {&#39;name&#39;: utils.rel2mods(__file__)+&#39;_trunc&#39;}
-HMM_trunc = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
-
-LUV.prmzt = lambda t, x: polynom_prmzt(t, x, 1)
-
-
-def polynom_prmzt(t, x, order):
+    This might be a roundabout way to execute `np.isclose`,
+    but it is a fun way.
     &#34;&#34;&#34;
-    Polynomial (deterministic) parameterization of fast variables (Y).
 
-    NB: Only valid for system settings of Wilks&#39;2005.
+    def __new__(cls, val, tol=1e-5):
+        self = super().__new__(cls, val)
+        self.tol = tol
+        return self
 
-    Note: In order to observe an improvement in DA performance w
-          higher orders, the EnKF must be reasonably tuned with
-          There is very little improvement gained above order=1.
-    &#34;&#34;&#34;
-    if order == 4:
-        # From Wilks
-        d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
-    elif order == 3:
-        # From Arnold
-        d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
-    elif order == 1:
-        # From me -- see AdInf/illust_parameterizations.py
-        d = 0.74 + 0.82*x
-    elif order == 0:
-        # From me -- see AdInf/illust_parameterizations.py
-        d = 3.82
-    elif order == -1:
-        # Leave as dxdt_trunc
-        d = 0
-    else:
-        raise NotImplementedError
-    return d
+    def __eq__(self, other):
+        return np.isclose(self, other, self.tol)
 
 
-####################
-# Suggested tuning
-####################
-# Using HMM_full                    # Expected rmse.a:
-# xps += Climatology()              # 0.93
-# xps += Var3D(xB=2.0)              # 0.39
-# xps += EnKF_N(N=20)               # 0.27</code></pre>
+# Demonstrate `ca`.
+numbers = [
+    1 + 1e-6,
+    1 + 1e-4,
+]
+for x in numbers:
+    print(&#34;\nx:&#34;, x)
+    values = {
+        &#34;=&#34;: x,
+        &#34;≈&#34;: ca(x),
+    }
+    for mode, x2 in values.items():
+        print(f&#34;x {mode} 1 {mode} x:&#34;, x2 == 1 == x2)
+
+
+# Test cases for round2sigfig
+lst1 = [
+    (1   , 0, 0)   ,
+    (11  , 0, 0)   ,
+    (111 , 0, 0)   ,
+    (1   , 1, 1)   ,
+    (11  , 1, 10)  ,
+    (111 , 1, 100) ,
+    (1   , 2, 1)   ,
+    (11  , 2, 11)  ,
+    (111 , 2, 110) ,
+    (1   , 3, 1)   ,
+    (11  , 3, 11)  ,
+    (111 , 3, 111) ,
+    (1   , 4, 1)   ,
+    (11  , 4, 11)  ,
+    (111 , 4, 111) ,
+    (1.11, 1, 1)   ,
+    (1.11, 2, 1.1) ,
+    (1.11, 3, 1.11),
+    (1.11, 4, 1.11),
+]
+
+# Test cases for round2
+lst2 = [
+    (1.2345, 1.0  , 1)     ,
+    (12.345, 1.0  , 12)    ,
+    (123.45, 1.0  , 123)   ,
+    (1234.5, 1.0  , 1234)  ,
+    (12345., 1.0  , 12345) ,
+
+    (1.2345, 9.0  , 1)     ,
+    (12.345, 9.0  , 12)    ,
+    (123.45, 9.0  , 123)   ,
+    (1234.5, 9.0  , 1234)  ,
+    (12345., 9.0  , 12345) ,
+
+    (1.2345, 10.  , 0)     ,
+    (12.345, 10.  , 10)    ,
+    (123.45, 10.  , 120)   ,
+    (1234.5, 10.  , 1230)  ,
+    (12345., 10.  , 12340) ,
+
+    (1.2345, 0.1  , 1.2)   ,
+    (12.345, 0.1  , 12.3)  ,
+    (123.45, 0.1  , 123.4) ,
+    (1234.5, 0.1  , 1234.5),
+    (12345., 0.1  , 12345) ,
+
+    (1.2345, 0.2  , 1.2)   ,
+    (12.345, 0.2  , 12.3)  ,
+    (123.45, 0.2  , 123.4) ,
+    (1234.5, 0.2  , 1234.5),
+    (12345., 0.2  , 12345) ,
+
+    (0.1   , 0.3  , 0.1)   ,
+    (0.2   , 0.3  , 0.2)   ,
+    (0.3   , 0.3  , 0.3)   ,
+
+    (1.65  , 1.234, 2.0)   ,
+    (1.65  , 0.543, 1.6)   ,
+    (1.87  , 0.543, 1.9)   ,
+    (1.92  , 0.543, 1.9)   ,
+]
+
+
+# For inspiration:
+# p = 99.3
+# print(p)
+# for x in range(10):
+#     x = 148.5 + .1*x
+#     print(f&#34;x: {x:.1f}:&#34;, dm.round2(x, p))
+
+
+@pytest.mark.parametrize(&#34;x, p, y&#34;, lst1)
+def test_round2sigfig(x, p, y):
+    rounded = dm.round2sigfig(x, p).item()
+    desired = ca(y, 1e-9)
+    assert rounded == desired
+
+
+@pytest.mark.parametrize(&#34;x, p, y&#34;, lst2)
+def test_round2(x, p, y):
+    rounded = dm.round2(x, p).item()
+    desired = ca(y, 1e-9)
+    assert rounded == desired</code></pre>
 </details>
 </section>
 <section>
@@ -152,53 +174,87 @@ def polynom_prmzt(t, x, order):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.mods.LorenzUV.wilks05.polynom_prmzt"><code class="name flex">
-<span>def <span class="ident">polynom_prmzt</span></span>(<span>t, x, order)</span>
+<dt id="tests.test_round2.test_round2sigfig"><code class="name flex">
+<span>def <span class="ident">test_round2sigfig</span></span>(<span>x, p, y)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Polynomial (deterministic) parameterization of fast variables (Y).</p>
-<p>NB: Only valid for system settings of Wilks'2005.</p>
-<p>Note: In order to observe an improvement in DA performance w
-higher orders, the EnKF must be reasonably tuned with
-There is very little improvement gained above order=1.</p></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/dapper/mods/LorenzUV/wilks05.py#L69-L96" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/tests/test_round2.py#L118-L122" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def polynom_prmzt(t, x, order):
-    &#34;&#34;&#34;
-    Polynomial (deterministic) parameterization of fast variables (Y).
-
-    NB: Only valid for system settings of Wilks&#39;2005.
-
-    Note: In order to observe an improvement in DA performance w
-          higher orders, the EnKF must be reasonably tuned with
-          There is very little improvement gained above order=1.
-    &#34;&#34;&#34;
-    if order == 4:
-        # From Wilks
-        d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
-    elif order == 3:
-        # From Arnold
-        d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
-    elif order == 1:
-        # From me -- see AdInf/illust_parameterizations.py
-        d = 0.74 + 0.82*x
-    elif order == 0:
-        # From me -- see AdInf/illust_parameterizations.py
-        d = 3.82
-    elif order == -1:
-        # Leave as dxdt_trunc
-        d = 0
-    else:
-        raise NotImplementedError
-    return d</code></pre>
+<pre><code class="python">@pytest.mark.parametrize(&#34;x, p, y&#34;, lst1)
+def test_round2sigfig(x, p, y):
+    rounded = dm.round2sigfig(x, p).item()
+    desired = ca(y, 1e-9)
+    assert rounded == desired</code></pre>
+</details>
+</dd>
+<dt id="tests.test_round2.test_round2"><code class="name flex">
+<span>def <span class="ident">test_round2</span></span>(<span>x, p, y)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/tests/test_round2.py#L125-L129" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#34;x, p, y&#34;, lst2)
+def test_round2(x, p, y):
+    rounded = dm.round2(x, p).item()
+    desired = ca(y, 1e-9)
+    assert rounded == desired</code></pre>
 </details>
 </dd>
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="tests.test_round2.ca"><code class="flex name class">
+<span>class <span class="ident">ca</span></span>
+<span>(</span><span>val, tol=1e-05)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Make <code>==</code> approximate.</p>
+<p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; ca(1 + 1e-6) == 1
+True
+</code></pre>
+<p>This might be a roundabout way to execute <code>np.isclose</code>,
+but it is a fun way.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/c3114add20530fd2bfe6521b9f5b46d825149385/tests/test_round2.py#L9-L26" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class ca(float):
+    &#34;&#34;&#34;Make `==` approximate.
+
+    Example:
+    &gt;&gt;&gt; ca(1 + 1e-6) == 1
+    True
+
+    This might be a roundabout way to execute `np.isclose`,
+    but it is a fun way.
+    &#34;&#34;&#34;
+
+    def __new__(cls, val, tol=1e-5):
+        self = super().__new__(cls, val)
+        self.tol = tol
+        return self
+
+    def __eq__(self, other):
+        return np.isclose(self, other, self.tol)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.float</li>
+</ul>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -215,12 +271,20 @@ There is very little improvement gained above order=1.</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="dapper.mods.LorenzUV" href="index.html">dapper.mods.LorenzUV</a></code></li>
+<li><code><a title="tests" href="index.html">tests</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="dapper.mods.LorenzUV.wilks05.polynom_prmzt" href="#dapper.mods.LorenzUV.wilks05.polynom_prmzt">polynom_prmzt</a></code></li>
+<li><code><a title="tests.test_round2.test_round2sigfig" href="#tests.test_round2.test_round2sigfig">test_round2sigfig</a></code></li>
+<li><code><a title="tests.test_round2.test_round2" href="#tests.test_round2.test_round2">test_round2</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="tests.test_round2.ca" href="#tests.test_round2.ca">ca</a></code></h4>
+</li>
 </ul>
 </li>
 </ul>
