@@ -14,6 +14,12 @@ statkeys = ["err.rms.a", "err.rms.f", "err.rms.u"]
 ##############################
 @pytest.fixture(scope="module")
 def L63_table():
+    xps = L63_gen()
+    table = xps.tabulate_avrgs(statkeys, decimals=4)
+    return table.splitlines(True)
+
+
+def L63_gen():
     from dapper.mods.Lorenz63.sakov2012 import HMM
 
     HMM.t.BurnIn = 0
@@ -39,9 +45,7 @@ def L63_table():
 
     # Run
     xps.launch(HMM, False, store_u=True)
-
-    table = xps.tabulate_avrgs(statkeys, decimals=4)
-    return table.splitlines(True)
+    return xps
 
 
 L63_old = """
@@ -62,6 +66,10 @@ L63_old = """
 12  PFxN                           30         1000       0.2   |     0.5848 ±0.0926     0.9573 ±0.2248     0.7203 ±0.187
 """[1:-1].splitlines(True)
 
+# Example use of pytest-benchmark
+# def test_duration(benchmark):
+#     benchmark(L63_gen)
+
 
 def test_len63(L63_table):
     assert len(L63_old) == len(L63_table)
@@ -74,6 +82,9 @@ def test_tables_L63(L63_table, lineno):
     assert new == expected
 
 
+##############################
+# L96
+##############################
 @pytest.fixture(scope="module")
 def L96_table():
     from dapper.mods.Lorenz96.sakov2008 import HMM
