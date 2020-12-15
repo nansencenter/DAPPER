@@ -24,7 +24,7 @@ def set_seed(sd="clock"):
     which should simply use converged statistics.
 
     Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-    Example use: "Nimbus 3000", "André 3000", "I love you 3000".
+    Example use: "André 3000", "I love you 3000".
 
     Note: why are we using global generator?
     Because that's what we were used to.
