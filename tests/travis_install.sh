@@ -11,7 +11,9 @@ set -e
 if [[ "$DISTRIB" == "conda" ]]; then
     # Deactivate the travis-provided virtual environment and setup a
     # conda-based environment instead
-    deactivate
+    if [ "$TRAVIS_OS_NAME" != "osx" ]; then
+        deactivate
+    fi
 
     if [[ -f "$HOME/miniconda/bin/conda" ]]; then
         echo "Skip install conda [cached]"
