@@ -19,7 +19,14 @@ before_script:
   - git config --global user.name "Patrick N. Raanes"
 script:
   - python setup.py develop
-  - pytest --cov=dapper --ignore=tests/test_plotting.py --ignore=tests/test_demos.py
+  - |
+    if [[ "$COVERAGE" == "true" ]]; then
+      pre-commit install
+      pre-commit run --all-files
+      pytest --ignore=tests/test_plotting.py --ignore=tests/test_demos.py
+    else
+      pytest --cov=dapper --ignore=tests/test_plotting.py --ignore=tests/test_demos.py
+    fi
 after_success:
   - |
     if [[ "$COVERAGE" == "true" ]]; then
