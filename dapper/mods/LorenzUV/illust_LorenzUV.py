@@ -7,7 +7,6 @@ from matplotlib import pyplot as plt
 
 import dapper as dpr
 from dapper.mods.LorenzUV.lorenz96 import LUV
-from dapper.tools.math import ccat
 
 # Setup
 sd0 = dpr.set_seed(4)
@@ -59,8 +58,8 @@ dY = 4  # SET TO: 1 for wilks05, 4 for lorenz96
 # U-vars: major
 tU = iU[1:-1]
 lU = np.array([str(i+1) for i in range(nU)])
-tU = ccat(tU[0], tU[dY-1::dY])
-lU = ccat(lU[0], lU[dY-1::dY])
+tU = np.concatenate([[tU[0]], tU[dY-1::dY]])
+lU = np.concatenate([[lU[0]], lU[dY-1::dY]])
 for t, l in zip(tU, lU):
     ax.text(t, ym-.6, l,
             fontsize=mpl.rcParams['xtick.labelsize'], horizontalalignment='center')

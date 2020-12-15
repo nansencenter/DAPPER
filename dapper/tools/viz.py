@@ -26,7 +26,7 @@ import dapper.tools.series as series
 import dapper.tools.utils as utils
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
-from dapper.tools.math import ccat, round2sigfig
+from dapper.tools.math import round2sigfig
 
 
 def setup_wrapping(M, periodicity=None):
@@ -52,7 +52,7 @@ def setup_wrapping(M, periodicity=None):
 
         def wrap(E):
             midpoint = (E[..., [0]] + E[..., [-1]])/2
-            return ccat(midpoint, E, midpoint, axis=-1)
+            return np.concatenate([midpoint, E, midpoint], axis=-1)
 
     else:
         ii = arange(M)
