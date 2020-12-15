@@ -14,7 +14,7 @@ import numpy as np
 
 from dapper.dpr_config import DotDict
 from dapper.tools.magic import magic_naming
-from dapper.tools.math import integrate_TLM, is1d, with_rk4
+from dapper.tools.math import integrate_TLM, with_rk4
 
 
 # To & from time/Fourier domain -- use reals-only fft
@@ -57,7 +57,6 @@ def Model(dt=0.25, DL=32, Nx=128):
 
     # Jacobian of dxdt(u)
     def d2x_dtdx(u):
-        assert is1d(u)
         dL  = ifft(L * fft(np.eye(Nx))) . T
         dNL = - ifft(D * fft(np.diag(u))) . T
         return dL + dNL

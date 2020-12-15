@@ -13,11 +13,6 @@ import dapper.tools.utils as utils
 ########################
 # Array manip
 ########################
-def is1d(a):
-    """Works for list and row/column arrays and matrices"""
-    return np.sum(np.asarray(np.asarray(a).shape) > 1) <= 1
-
-
 def exactly_1d(a):
     "Ensure a is 1d."
     a = np.atleast_1d(a)

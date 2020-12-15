@@ -13,7 +13,7 @@ Note: the implementation is ndim-agnostic.
 import numpy as np
 
 import dapper.tools.liveplotting as LP
-from dapper.tools.math import integrate_TLM, is1d, rk4
+from dapper.tools.math import integrate_TLM, rk4
 
 Force = 8.0
 
@@ -39,7 +39,6 @@ def step(x0, t, dt):
 # OPTIONAL (not required by EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
-    assert is1d(x)
     M = len(x)
     F = np.zeros((M, M))
     def md(i): return np.mod(i, M)  # modulo

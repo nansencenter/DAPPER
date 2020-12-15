@@ -8,7 +8,7 @@ from numpy import nan
 import dapper.tools.utils as utils
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
-from dapper.tools.math import center, is1d, log10int, round2, round2sigfig
+from dapper.tools.math import center, log10int, round2, round2sigfig
 
 
 def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
@@ -71,7 +71,6 @@ def estimate_corr_length(xx):
 
     $$\\text{corr}(L) = \\exp(-1) \\approx 0.368$$
     """
-    assert is1d(xx)
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
