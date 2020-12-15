@@ -45,7 +45,7 @@ your own **model** or **method**, then
       lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
 - Diagnostics and statistics with
     - Confidence interval on times series (e.g. rmse) averages with
-        - automatic correction for autocorrelation 
+        - automatic correction for autocorrelation
         - significant digits printing
     - Automatic averaging of several types for sub-domains
       (e.g. "ocean", "land", etc.)

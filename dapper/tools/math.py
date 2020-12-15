@@ -242,7 +242,14 @@ def FD_Jac(ens_compatible_function, eps=1e-7):
 # Rounding
 ########################
 
-@np.vectorize
+def np_vectorize(f):
+    """Like `numpy.vectorize`, but including `functools.wraps`."""
+    new = np.vectorize(f)
+    new = functools.wraps(f)(new)
+    return new
+
+
+@np_vectorize
 def _round2prec(num, prec):
     """Don't use (directly)! Suffers from numerical precision.
 
@@ -255,7 +262,7 @@ def _round2prec(num, prec):
     return prec * round(num / prec)
 
 
-@np.vectorize
+@np_vectorize
 def log10int(x):
     """Compute decimal order, rounded down.
 
@@ -282,7 +289,7 @@ def log10int(x):
     return y
 
 
-@np.vectorize
+@np_vectorize
 def round2(x, prec=1.0):
     """Round to a nice precision, namely
 
@@ -290,8 +297,10 @@ def round2(x, prec=1.0):
 
     Parameters
     ----------
-    x : Value to be rounded.
-    prec : Precision, before prettify.
+    x : array_like
+          Value to be rounded.
+    prec
+        Precision, before prettify.
 
     Returns
     -------
@@ -316,7 +325,7 @@ def round2(x, prec=1.0):
     return np.round(x, ndecimal)
 
 
-@np.vectorize
+@np_vectorize
 def round2sigfig(x, sigfig=1):
     """Round to significant figures.
 
