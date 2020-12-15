@@ -6,11 +6,6 @@ sudo: false
 language: python
 virtualenv:
   system_site_packages: false
-os:
-- linux
-#- osx
-# It's difficult to get newer python versions on Travis/osx. Ref
-# https://docs.travis-ci.com/user/languages/python/#running-python-tests-on-multiple-operating-systems
 env:
   # Does not increase build matrix
   global:
@@ -34,6 +29,9 @@ jobs:
     - env: COVERAGE="true"
     #- env: TOX_PYTHON_VERSION="py39" COVERAGE="true" # similar to pyscaffold
     - env: DISTRIB="conda" PYTHON_VERSION="3.8"
+    - os: osx
+      env: DISTRIB="conda" PYTHON_VERSION="3.8"
+      language: shell
 # before_install:
 #   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update ; fi
 install:
