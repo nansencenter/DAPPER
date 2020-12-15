@@ -1,6 +1,5 @@
 # Refs
 # - http://docs.travis-ci.com/user/build-configuration/
-# - https://docs.travis-ci.com/user/languages/python/#python-37-and-higher
 
 sudo: false
 language: python
@@ -29,6 +28,8 @@ jobs:
     - env: COVERAGE="true"
     #- env: TOX_PYTHON_VERSION="py39" COVERAGE="true" # similar to pyscaffold
     - env: DISTRIB="conda" PYTHON_VERSION="3.8"
+  # Use conda with osx coz otherwise it's difficult to get a recent version
+  # https://docs.travis-ci.com/user/languages/python/#python-37-and-higher
     - os: osx
       env: DISTRIB="conda" PYTHON_VERSION="3.8"
       language: shell
