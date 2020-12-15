@@ -6,7 +6,7 @@ virtualenv:
   system_site_packages: false
 os:
 - linux
-#- osx
+- osx
 env:
   # Does not increase build matrix
   global:
@@ -38,7 +38,8 @@ before_script:
   - git config --global user.email "patrick.n.raanes@gmail.com"
   - git config --global user.name "Patrick N. Raanes"
 script:
-  - python setup.py develop
+  #- python setup.py develop
+  - pip install -e .
   # Run flake8 via pre-commit instead.
   #- flake8 . # Use --exit-zero to ignore failure
   - |
