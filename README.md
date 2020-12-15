@@ -18,11 +18,11 @@ new developments in DA.
 The typical set-up is a **synthetic (twin) experiment**, where you
 
 - specify a
-    - dynamic model`*`
-    - observational model`*`
+  - dynamic model`*`
+  - observational model`*`
 - use these to generate a synthetic
-    - "truth"
-    - and observations thereof`*`
+  - "truth"
+  - and observations thereof`*`
 - assess how different DA methods perform in estimating the truth,
   given the above starred (`*`) items.
 
@@ -33,7 +33,7 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge&logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
-[![Github HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg?style=for-the-badge)](http://hits.dwyl.com/nansencenter/DAPPER)
+[![Github HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg)](http://hits.dwyl.com/nansencenter/DAPPER)
 
 
 ## Highlights
@@ -81,7 +81,7 @@ If you're not an admin or expert:
       python -c 'import sys; print("Version:", sys.version.split()[0])'
 
   Ensure the output at the end gives a version bigger than 3.8.  
-  Keep using the same terminal for the commands below. 
+  Keep using the same terminal for the commands below.
 
 ### Install
 
@@ -91,9 +91,9 @@ If you're not an admin or expert:
 
 - If the script come with a `requirements.txt` file, then do  
   `pip install -r path/to/requirements.txt`.
-- If not, hopefully you know the version of DAPPER needed. Run    
+- If not, hopefully you know the version of DAPPER needed. Run  
   `pip install DA-DAPPER==1.0.0` to get version `1.0.0`.
-    
+
 #### *Or*: Install for development
 
 *Do you want the DAPPER code readily available to look into?* Then
@@ -133,6 +133,8 @@ provides a python-based introduction to DA.
 
 ## DA methods
 
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable line-length -->
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ------------------------
 EnKF <sup>1</sup>                                      | [Sakov08](https://nansencenter.github.io/DAPPER/bib.html#bib.sakov2008deterministic), [Hoteit15](https://nansencenter.github.io/DAPPER/bib.html#bib.hoteit2015mitigating)
@@ -150,6 +152,7 @@ Rank histogram filter (RHF)                            | [Anderson10](https://na
 Extended KF                                            |
 Optimal interpolation                                  |
 Climatology                                            |
+<!-- markdownlint-restore -->
 
 <sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).
 Serial forms are also available.  
@@ -165,8 +168,8 @@ For a list of ready-made experiments with suitable,
 tuned settings for a given method (e.g. the `iEnKS`), use gnu's grep:
 
 ```sh
-$ cd dapper/mods
-$ grep -r "iEnKS.*("
+cd dapper/mods
+grep -r "iEnKS.*("
 ```
 
 
@@ -206,8 +209,8 @@ The complete list of included experiment files can be obtained with
 gnu's `find`:
 
 ```sh
-$ cd dapper/mods
-$ find . -iname "[a-z]*20[0-9].py"
+cd dapper/mods
+find . -iname "[a-z]*20[0-9].py"
 ```
 
 Some of these files contain settings that have been used in several papers.
@@ -322,4 +325,14 @@ and the Nansen Environmental and Remote Sensing Center
 - EmblAUS/Springer chapter
 
 
-<!-- markdownlint-disable-file no-multiple-blanks -->
+<!-- markdownlint-configure-file
+{
+  "no-multiple-blanks": false,
+  "first-line-h1": false,
+  "no-inline-html": {
+    "allowed_elements": [ "img", "sup" ]
+  },
+  "code-block-style": false,
+  "ul-indent": { "indent": 2 }
+}
+-->
