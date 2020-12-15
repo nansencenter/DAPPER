@@ -13,13 +13,6 @@ import dapper.tools.utils as utils
 ########################
 # Array manip
 ########################
-def exactly_1d(a):
-    "Ensure a is 1d."
-    a = np.atleast_1d(a)
-    assert a.ndim == 1
-    return a
-
-
 def exactly_2d(a):
     "Ensure a is 2d."
     a = np.atleast_2d(a)

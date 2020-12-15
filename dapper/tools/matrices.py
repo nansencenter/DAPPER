@@ -8,8 +8,7 @@ from numpy import ones, sqrt, zeros
 from numpy.random import randn
 
 import dapper.tools.utils as utils
-from dapper.tools.math import (exactly_1d, exactly_2d, mrdiv, svd0,
-                               truncate_rank)
+from dapper.tools.math import exactly_2d, mrdiv, svd0, truncate_rank
 
 
 class lazy_property:
@@ -254,7 +253,8 @@ class CovMat():
                 # With diagonal input, it would be great to use a sparse
                 # (or non-existant) representation of V,
                 # but that would require so much other adaption of other code.
-                d         = exactly_1d(data)
+                d         = np.atleast_1d(data)
+                assert d.ndim == 1
                 self.diag = d
                 M         = len(d)
                 if np.all(d == d[0]):

@@ -5,7 +5,6 @@ from numpy import sqrt
 from numpy.random import rand, randn
 
 from dapper.dict_tools import NicePrint
-from dapper.tools.math import exactly_1d
 from dapper.tools.matrices import CovMat
 
 
@@ -100,7 +99,8 @@ class RV_with_mean_and_cov(RV):
                             + "Use kword syntax (C=...) ?")
 
         # Set mu
-        mu = exactly_1d(mu)
+        mu = np.atleast_1d(mu)
+        assert mu.ndim == 1
         if len(mu) > 1:
             if M is None:
                 M = len(mu)
