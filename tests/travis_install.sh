@@ -5,8 +5,6 @@
 # in the .travis.yml in the top level folder of the project.
 #
 # This script is inspired by Scikit-Learn (http://scikit-learn.org/)
-#
-# THIS SCRIPT IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
 
 set -e
 

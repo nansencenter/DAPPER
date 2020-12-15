@@ -1,22 +1,37 @@
-# Travis configuration file using the build matrix feature
-# Read more under http://docs.travis-ci.com/user/build-configuration/
-# THIS SCRIPT IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
+# Ref http://docs.travis-ci.com/user/build-configuration/
 
 sudo: false
 language: python
 virtualenv:
   system_site_packages: false
 os:
-  #- osx
-  - linux
+- linux
+#- osx
 env:
-  - TRAVIS="true" pytest_args="--ignore=tests/test_plotting.py --ignore=tests/test_demos.py"
-matrix:
+  # Does not increase build matrix
+  global:
+    - TRAVIS="true"
+    - PYTEST_ARGS="--ignore=tests/test_plotting.py --ignore=tests/test_demos.py"
+    - COVERAGE="false"
+    - DISTRIB="included" # the python distribution
+  # Increases the build matrix (multiplies it by the number of jobs)
+  # jobs:
+  #   - COVERAGE="true"
+python:
+- 3.9
+- 3.8
+- 3.7
+jobs:
   fast_finish: true
+  # Special cases
+  # NB: inherits the "top" python version (and os version?) above.
+  #     However, the DISTRIB=conda downloads conda on top of it.
   include:
-    - python: 3.8
-      env: DISTRIB="ubuntu" COVERAGE="true"
-    - env: DISTRIB="conda" PYTHON_VERSION="3.8" COVERAGE="false"
+    - env: COVERAGE="true"
+    #- env: TOX_PYTHON_VERSION="py39" COVERAGE="true" # similar to pyscaffold
+    - env: DISTRIB="conda" PYTHON_VERSION="3.8"
+# before_install:
+#   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update ; fi
 install:
   - source tests/travis_install.sh
 before_script:
@@ -24,15 +39,15 @@ before_script:
   - git config --global user.name "Patrick N. Raanes"
 script:
   - python setup.py develop
-  # flake8 is run by pre-commit
-  #- flake8 . --exit-zero # dont fail
+  # Run flake8 via pre-commit instead.
+  #- flake8 . # Use --exit-zero to ignore failure
   - |
     if [[ "$COVERAGE" == "true" ]]; then
       pre-commit install
       pre-commit run --all-files
-      pytest --cov=dapper $pytest_args
+      pytest $PYTEST_ARGS --cov=dapper
     else
-      pytest $pytest_args
+      pytest $PYTEST_ARGS
     fi
 after_success:
   - |
