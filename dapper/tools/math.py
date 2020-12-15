@@ -10,16 +10,6 @@ from IPython.lib.pretty import pretty as pretty_repr
 import dapper.tools.utils as utils
 
 
-########################
-# Array manip
-########################
-def exactly_2d(a):
-    "Ensure a is 2d."
-    a = np.atleast_2d(a)
-    assert a.ndim == 2
-    return a
-
-
 def ccat(*args, axis=0):
     "Convenience wrapper around np.concatenate."
     args = [np.atleast_1d(x) for x in args]

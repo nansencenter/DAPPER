@@ -8,7 +8,7 @@ from numpy import ones, sqrt, zeros
 from numpy.random import randn
 
 import dapper.tools.utils as utils
-from dapper.tools.math import exactly_2d, mrdiv, svd0, truncate_rank
+from dapper.tools.math import mrdiv, svd0, truncate_rank
 
 
 class lazy_property:
@@ -227,7 +227,8 @@ class CovMat():
             # If a cholesky factor has been input, we will not
             # automatically go for the EVD, seeing as e.g. the
             # diagonal can be computed without it.
-            R       = exactly_2d(data)
+            R       = np.atleast_2d(data)
+            assert R.ndim == 2
             self._R = R
             self._m = R.shape[1]
         else:
@@ -240,7 +241,8 @@ class CovMat():
             if kind == 'full':
                 # If full has been imput, then we have memory for an EVD,
                 # which will probably be put to use in the DA.
-                C           = exactly_2d(data)
+                C           = np.atleast_2d(data)
+                assert C.ndim == 2
                 self._C     = C
                 M           = len(C)
                 d, V        = sla.eigh(C)
