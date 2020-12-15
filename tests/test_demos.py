@@ -2,11 +2,13 @@
 
 from importlib import import_module
 
+import matplotlib as mpl
 import pytest
 from matplotlib import pyplot as plt
 
 import dapper as dpr
 
+mpl.use("Qt5Agg")
 plt.ion()
 
 
