@@ -68,7 +68,7 @@ Also see its [drawbacks](#similar-projects).
 
 Works on Linux/Windows/Mac.
 
-### Prerequisite: Python>=3.7
+### Prerequisite: Python>=3.8
 
 If you're not an admin or expert:  
 
@@ -80,7 +80,7 @@ If you're not an admin or expert:
       conda activate my-env
       python -c 'import sys; print("Version:", sys.version.split()[0])'
 
-  Ensure the output at the end gives a version bigger than 3.7.  
+  Ensure the output at the end gives a version bigger than 3.8.  
   Keep using the same terminal for the commands below. 
 
 ### Install

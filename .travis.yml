@@ -1,4 +1,6 @@
-# Ref http://docs.travis-ci.com/user/build-configuration/
+# Refs
+# - http://docs.travis-ci.com/user/build-configuration/
+# - https://docs.travis-ci.com/user/languages/python/#python-37-and-higher
 
 sudo: false
 language: python
@@ -6,7 +8,9 @@ virtualenv:
   system_site_packages: false
 os:
 - linux
-- osx
+#- osx
+# It's difficult to get newer python versions on Travis/osx. Ref
+# https://docs.travis-ci.com/user/languages/python/#running-python-tests-on-multiple-operating-systems
 env:
   # Does not increase build matrix
   global:
@@ -20,7 +24,7 @@ env:
 python:
 - 3.9
 - 3.8
-- 3.7
+#- 3.7 doesnt work with magic_naming() and spell_out()
 jobs:
   fast_finish: true
   # Special cases

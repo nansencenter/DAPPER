@@ -53,7 +53,7 @@ setuptools.setup(
     # >=3.7 (for dataclass, capture_output, dict ordering).
     # =3.8 (if you wish to use the the DAPPER/GCP cluster,
     #       since dill doesnt guarantee compat. accross versions).
-    python_requires='>=3.7',
+    python_requires='>=3.8',
 
     # Dependencies
     install_requires=[
