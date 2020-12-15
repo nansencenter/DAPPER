@@ -6,4 +6,5 @@
     # show_type_annotations = True
     # show_source_code = False
     latex_math = True
+    search_query = 'inurl:github.com/nansencenter/DAPPER  site:DAPPER.github.io'
 %>
