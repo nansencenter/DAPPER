@@ -25,8 +25,13 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
         # Use the miniconda installer for faster download / install of conda
         # itself
-        wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-            -O miniconda.sh
+        if [ "$TRAVIS_OS_NAME" != "osx" ]; then
+            wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+                -O miniconda.sh
+        else
+            wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86.sh \
+                -O miniconda.sh
+        fi
         chmod +x miniconda.sh && ./miniconda.sh -b -p $HOME/miniconda
     fi
     export PATH=$HOME/miniconda/bin:$PATH
