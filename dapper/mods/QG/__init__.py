@@ -25,7 +25,7 @@ import numpy as np
 
 import dapper as dpr
 import dapper.tools.liveplotting as LP
-import dapper.tools.multiprocessing as mp
+import dapper.tools.multiproc as mp
 
 #########################
 # Model

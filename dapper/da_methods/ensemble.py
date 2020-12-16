@@ -5,7 +5,7 @@ import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
 from numpy.random import rand, randn
 
-import dapper.tools.multiprocessing as mp
+import dapper.tools.multiproc as mp
 from dapper.admin import da_method
 from dapper.tools.maths import (center, mean0, mldiv, mrdiv, pad0, svd0, svdi,
                                 tinv, tsvd)
