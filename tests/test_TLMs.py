@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from dapper.tools.math import FD_Jac
+from dapper.tools.maths import FD_Jac
 
 EPS = 1e-6
 

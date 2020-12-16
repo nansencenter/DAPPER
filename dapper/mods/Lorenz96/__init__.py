@@ -13,7 +13,7 @@ Note: the implementation is ndim-agnostic.
 import numpy as np
 
 import dapper.tools.liveplotting as LP
-from dapper.tools.math import integrate_TLM, rk4
+from dapper.tools.maths import integrate_TLM, rk4
 
 Force = 8.0
 

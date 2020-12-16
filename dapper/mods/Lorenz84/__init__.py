@@ -10,7 +10,7 @@ Refs:
 import numpy as np
 
 import dapper as dpr
-from dapper.tools.math import integrate_TLM
+from dapper.tools.maths import integrate_TLM
 
 # Constants
 a = 0.25

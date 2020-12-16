@@ -16,7 +16,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 import dapper as dpr
-from dapper.tools.math import with_recursion, with_rk4
+from dapper.tools.maths import with_recursion, with_rk4
 
 # mpl.rcParams['toolbar'] = 'None'
 

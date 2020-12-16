@@ -4,7 +4,7 @@ import numpy as np
 
 import dapper.dict_tools as dict_tools
 import dapper.tools.utils as utils
-from dapper.tools.math import is_int
+from dapper.tools.maths import is_int
 
 
 class Chronology():

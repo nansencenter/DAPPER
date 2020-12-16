@@ -12,7 +12,7 @@ import dapper.tools.series as series
 import dapper.tools.utils as utils
 from dapper.dict_tools import DotDict
 from dapper.dpr_config import rc
-from dapper.tools.math import unbias_var
+from dapper.tools.maths import unbias_var
 from dapper.tools.matrices import CovMat
 from dapper.tools.series import DataSeries, StatPrint
 

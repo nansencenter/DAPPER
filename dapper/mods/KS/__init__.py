@@ -14,7 +14,7 @@ import numpy as np
 
 from dapper.dpr_config import DotDict
 from dapper.tools.magic import magic_naming
-from dapper.tools.math import integrate_TLM, with_rk4
+from dapper.tools.maths import integrate_TLM, with_rk4
 
 
 # To & from time/Fourier domain -- use reals-only fft

@@ -8,7 +8,7 @@ from numpy import ones, sqrt, zeros
 from numpy.random import randn
 
 import dapper.tools.utils as utils
-from dapper.tools.math import mrdiv, svd0, truncate_rank
+from dapper.tools.maths import mrdiv, svd0, truncate_rank
 
 
 class lazy_property:

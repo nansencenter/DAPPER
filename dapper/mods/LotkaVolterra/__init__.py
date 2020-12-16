@@ -10,7 +10,7 @@ import numpy as np
 
 import dapper as dpr
 from dapper.mods.Lorenz63 import LPs
-from dapper.tools.math import integrate_TLM
+from dapper.tools.maths import integrate_TLM
 
 Nx = 4
 

@@ -6,7 +6,7 @@ from typing import Optional
 
 import numpy as np
 
-import dapper.tools.math as mtools
+import dapper.tools.maths as mtools
 import dapper.tools.series as series
 from dapper.admin import da_method
 from dapper.tools.matrices import CovMat

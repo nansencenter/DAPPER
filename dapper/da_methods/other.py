@@ -2,7 +2,7 @@
 
 import numpy as np
 
-import dapper.tools.math as mtools
+import dapper.tools.maths as mtools
 from dapper.da_methods.ensemble import add_noise, post_process, serial_inds
 from dapper.da_methods.particle import reweight
 from dapper.tools.matrices import funm_psd

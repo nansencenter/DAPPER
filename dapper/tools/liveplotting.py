@@ -7,7 +7,7 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 from numpy import arange, nan, ones
 
-import dapper.tools.math
+import dapper.tools.maths
 import dapper.tools.utils as utils
 import dapper.tools.viz as viz
 from dapper.dict_tools import DotDict, deep_getattr
@@ -617,8 +617,8 @@ class correlations:
         # Plot
         self.im.set_data(C)
         # Auto-corr function
-        ACF = dapper.tools.math.circulant_ACF(C)
-        AAF = dapper.tools.math.circulant_ACF(C, do_abs=True)
+        ACF = dapper.tools.maths.circulant_ACF(C)
+        AAF = dapper.tools.maths.circulant_ACF(C, do_abs=True)
         self.line_AC.set_ydata(ACF)
         self.line_AA.set_ydata(AAF)
 
@@ -654,7 +654,7 @@ def sliding_marginals(
         # Chose marginal dims to plot
         if p.dims == []:
             Nx      = min(10, xx.shape[-1])
-            DimsX   = dapper.tools.math.linspace_int(xx.shape[-1], Nx)
+            DimsX   = dapper.tools.maths.linspace_int(xx.shape[-1], Nx)
         else:
             Nx      = len(p.dims)
             DimsX   = p.dims

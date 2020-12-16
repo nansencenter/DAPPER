@@ -3,10 +3,10 @@
 import numpy as np
 from numpy.random import rand, randn
 
-import dapper.tools.math
+import dapper.tools.maths
 import dapper.tools.utils as utils
 from dapper.admin import da_method
-from dapper.tools.math import mldiv, mrdiv, pad0, svd0, tinv
+from dapper.tools.maths import mldiv, mrdiv, pad0, svd0, tinv
 from dapper.tools.matrices import chol_reduce, funm_psd
 from dapper.tools.utils import progbar
 
@@ -482,13 +482,13 @@ def raw_C12(E, w):
     and also computed based on a weighted mean.
     """
     # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.math.weight_degeneracy(w):
+    if dapper.tools.maths.weight_degeneracy(w):
         w = np.ones(len(w))/len(w)
         # PS: 'avoid_pathological' already treated here.
 
     mu  = w@E
     A   = E - mu
-    ub  = dapper.tools.math.unbias_var(w, avoid_pathological=False)
+    ub  = dapper.tools.maths.unbias_var(w, avoid_pathological=False)
     C12 = np.sqrt(ub*w[:, None]) * A
     return C12
 

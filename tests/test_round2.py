@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-import dapper.tools.math as dm
+import dapper.tools.maths as dm
 
 
 class ca(float):
