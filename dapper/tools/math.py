@@ -18,11 +18,16 @@ def ens_compatible(func):
 
     Helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    An older version also used np.atleast_2d and squeeze(),
-    but that is more messy than necessary.
+    .. note:: this is not the_way™ -- other tricks are sometimes more practical.
 
-    Note: this is not the_way™ -- other tricks are sometimes more practical.
-    See for example dxdt() in __init__.py for LorenzUV, Lorenz96, LotkaVolterra.
+    Examples
+    --------
+    - `dapper.mods.Lorenz63.dxdt`
+    - `dapper.mods.DoublePendulum.dxdt`
+
+    See also
+    --------
+    np.atleast_2d, np.squeeze, np.vectorize
     """
     @functools.wraps(func)
     def wrapr(x, *args, **kwargs):
@@ -33,9 +38,17 @@ def ens_compatible(func):
 def center(E, axis=0, rescale=False):
     """Center ensemble.
 
-    Makes use of np features: keepdims and broadcasting.
+    Makes use of `np` features: keepdims and broadcasting.
 
-    - rescale: Inflate to compensate for reduction in the expected variance."""
+    Parameters
+    ----------
+    rescale: bool
+        Whether to inflate to compensate for reduction in the expected variance.
+
+    Returns
+    -------
+    Centered ensemble, and its mean.
+    """
     x = np.mean(E, axis=axis, keepdims=True)
     X = E - x
 
@@ -49,7 +62,7 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    "Same as: center(E,rescale=True)[0]"
+    "Same as `center(E,rescale=True)[0]`"
     return center(E, axis=axis, rescale=rescale)[0]
 
 
@@ -69,7 +82,7 @@ def weight_degeneracy(w, prec=1e-10):
 def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     """Compute unbias-ing factor for variance estimation.
 
-    wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
+    [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
     """
     if N_eff is None:
         N_eff = 1/(w@w)
@@ -86,7 +99,13 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 
 # fmt: off
 def rk4(f, x, t, dt, order=4):
-    """Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers."""
+    """Runge-Kutta (explicit, non-adaptive) numerical ODE solvers.
+
+    Parameters
+    ----------
+    order: int
+        The order of the scheme.
+    """
     # pylint: disable=R1705, W0311
     if order >=1: k1 = dt * f(t     , x)                        # noqa
     if order >=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
@@ -103,7 +122,7 @@ def rk4(f, x, t, dt, order=4):
 
 
 def with_rk4(dxdt, autonom=False, order=4):
-    """Wrap dxdt in rk4"""
+    """Wrap `dxdt` in `rk4`"""
     integrator = functools.partial(rk4, order=order)
     if autonom:
         def step(x0, t0, dt):
@@ -119,14 +138,19 @@ def with_rk4(dxdt, autonom=False, order=4):
 def with_recursion(func, prog=False):
     """Make function recursive in its 1st arg.
 
-    Return a version of func() whose 2nd argument (k)
+    Return a version of `func` whose 2nd argument (`k`)
     specifies the number of times to times apply func on its output.
 
-    Example::
-
-      def step(x,t,dt): ...
-      step_k = with_recursion(step)
-      x[k]   = step_k(x0,k,t=np.nan,dt)[-1]
+    Example
+    -------
+    >>> def dxdt(x, t):
+    >>>     # implement dynamics here
+    >>>     return x
+    >>> step_1 = with_rk4(dxdt)
+    >>> step_k = with_recursion(step_1)
+    >>> x0     = np.zeros(3) # for example
+    >>> xk     = step_k(x0, k, t=0, 0.05)[-1]
+    array([0., 0., 0.])
     """
     def fun_k(x0, k, *args, **kwargs):
         xx = np.zeros((k+1,)+x0.shape)
@@ -151,20 +175,25 @@ def integrate_TLM(TLM, dt, method='approx'):
 
     The resolvent may also be called
 
-     - the Jacobian of the step func.
-     - the integral of dU/dt = TLM@U, with U0=eye.
+    - the Jacobian of the step func.
+    - the integral of (with *M* as the TLM):
+      $$ \\frac{d U}{d t} = M U, \\quad U_0 = I .$$
 
-    .. note:: the TLM is assumed constant.
+    .. note:: the tangent linear model (TLM)
+              is assumed constant (for each `method` below).
 
-    method:
-
-     - 'analytic': exact (assuming TLM is constant).
-     - 'approx'  : derived from the forward-euler scheme.
-     - 'rk4'     : higher-precision approx (still assumes TLM constant).
+    Parameters
+    ----------
+    method : str
+        - `'analytic'`: exact.
+        - `'approx'`  : derived from the forward-euler scheme.
+        - `'rk4'`     : higher-precision approx.
 
     .. caution:: 'analytic' typically requries higher inflation in the ExtKF.
 
-    .. seealso:: FD_Jac.
+    See also
+    --------
+    FD_Jac.
     """
     if method == 'analytic':
         Lambda, V = sla.eig(TLM)
@@ -181,18 +210,29 @@ def integrate_TLM(TLM, dt, method='approx'):
     return resolvent
 
 
-def FD_Jac(ens_compatible_function, eps=1e-7):
-    """Finite-diff approx. for functions compatible with 1D and 2D input.
+def FD_Jac(func, eps=1e-7):
+    """Finite-diff approx. of a function
 
-    Example:
+    The function `func(x)` must be compatible with `x.ndim == 1` and `2`,
+    where, in the 2D case, each row is seen as one function input.
+
+    Returns
+    -------
+    function
+        The first input argument is that of which the derivative is taken.
+
+
+    Example
+    -------
     >>> dstep_dx = FD_Jac(step)
     """
-    def Jacf(x, *args, **kwargs):
-        def f(xx): return ens_compatible_function(xx, *args, **kwargs)
+    def Jac(x, *args, **kwargs):
+        def f(y):
+            return func(y, *args, **kwargs)
         E = x + eps*np.eye(len(x))  # row-oriented ensemble
         FT = (f(E) - f(x))/eps      # => correct broadcasting
         return FT.T                 # => Jac[i,j] = df_i/dx_j
-    return Jacf
+    return Jac
 
 # Transpose explanation:
 # - Let F[i,j] = df_i/dx_j be the Jacobian matrix such that
@@ -215,7 +255,7 @@ def FD_Jac(ens_compatible_function, eps=1e-7):
 ########################
 
 def np_vectorize(f):
-    """Like `numpy.vectorize`, but including `functools.wraps`."""
+    """Like `np.vectorize`, but including `functools.wraps`."""
     new = np.vectorize(f)
     new = functools.wraps(f)(new)
     return new
@@ -243,7 +283,8 @@ def log10int(x):
     a little less than IEEE floating point max/min-ima instead.
     This avoids a lot of clauses in the parent/callers to this function.
 
-    Examples:
+    Examples
+    --------
     >>> log10int([1e-1, 1e-2, 1, 3, 10, np.inf, -np.inf, np.nan])
     array([  -1,   -2,    0,    0,    1,  300, -300, -300])
     """
@@ -283,7 +324,7 @@ def round2(x, prec=1.0):
     round2sigfig
 
     Examples
-    ----------
+    --------
     >>> round2(1.65, 0.543)
     1.6
     >>> round2(1.66, 0.543)
@@ -303,8 +344,10 @@ def round2sigfig(x, sigfig=1):
 
     Parameters
     ----------
-    x : Value to be rounded.
-    sigfig : Number of significant figures to include.
+    x
+        Value to be rounded.
+    sigfig
+        Number of significant figures to include.
 
     Returns
     -------
@@ -312,10 +355,11 @@ def round2sigfig(x, sigfig=1):
 
     See also
     --------
-    round2
-    np.round, which rounds to a given number of *decimals*.
+    np.round : rounds to a given number of *decimals*.
+    round2 : rounds to a given *precision*.
 
-    Examples:
+    Examples
+    --------
     >>> round2sigfig(1234.5678, 1)
     1000
     >>> round2sigfig(1234.5678, 4)
@@ -327,26 +371,31 @@ def round2sigfig(x, sigfig=1):
     return np.round(x, ndecimal)
 
 
-# https://stackoverflow.com/q/37726830
 def is_int(a):
+    """Check if the type of `a` is integer.
+
+    [Stackoverflow](https://stackoverflow.com/q/37726830)
+    """
     return np.issubdtype(type(a), np.integer)
 
 
-def is_whole(x):
-    return np.isclose(x, round(x))
+def is_whole(x, **kwargs):
+    """Check if a float is a whole/natural number to precision given by `np.isclose`."""
+    return np.isclose(x, round(x), **kwargs)
 
 
 def validate_int(x):
+    """Combines `is_whole` and `round`."""
     assert is_whole(x)
     return round(x)  # convert to int
 
 
 def isNone(x):
-    """x==None that also works for x being an np.ndarray.
+    """Like `x==None`, but also works for x being an np.ndarray.
 
-    Since python3.8 ``x is None`` throws warning.
+    Since python3.8 `x is None` throws warning.
 
-    Ref: np.isscalar docstring."""
+    Ref: `np.isscalar` docstring."""
     return np.ndim(x) == 0 and x == None
 
 
@@ -354,7 +403,7 @@ def isNone(x):
 # Misc
 ########################
 def linspace_int(Nx, Ny, periodic=True):
-    """Provide a range of Ny equispaced integers between 0 and Nx-1"""
+    """Provide a range of `Ny` equispaced integers between `0` and `Nx-1`"""
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
     else:
@@ -366,19 +415,24 @@ def linspace_int(Nx, Ny, periodic=True):
 def curvedspace(start, end, N, curvature=1):
     """A length (func. of curvature) of logspace, normlzd to [start,end]
 
-    - curvature== 0: ==> linspace (start,end,N)
-    - curvature==+1: ==> geomspace(start,end,N)
-    - curvature==-1: ==> idem, but reflected about y=x
+    Parameters
+    ----------
+    curvature: float
+        Special cases:
 
-    Example:
+        - 0 produces linspace (start,end,N)
+        - +1 produces geomspace(start,end,N)
+        - -1 produces same as `+1`, but reflected about y=x
+
+    Example
+    -------
     >>> ax.plot(np.geomspace(1e-1, 10, 201) ,label="geomspace")
     >>> ax.plot(np.linspace (1e-1, 10, 201) ,label="linspace")
     >>> ax.plot( curvedspace(1e-1, 10, 201, 0.5),'y--')
 
-    Also see:
-    - linspace_int
-    - np.logspace
-    - np.geomspace
+    See also
+    --------
+    linspace_int, np.logspace, np.geomspace
     """
     if -1e-12 < curvature < 1e-12:
         # Define curvature-->0, which is troublesome
@@ -393,7 +447,7 @@ def curvedspace(start, end, N, curvature=1):
 
 
 def circulant_ACF(C, do_abs=False):
-    """Compute the ACF of C.
+    """Compute the auto-covariance-function corresponding to `C`.
 
     This assumes it is the cov/corr matrix of a 1D periodic domain."""
     M = len(C)
@@ -413,17 +467,17 @@ def circulant_ACF(C, do_abs=False):
 # Linear Algebra
 ########################
 def mrdiv(b, A):
-    "b/A"
+    """b/A"""
     return sla.solve(A.T, b.T).T
 
 
 def mldiv(A, b):
-    "A \\ b"
+    """A \\ b"""
     return sla.solve(A, b)
 
 
 def truncate_rank(s, threshold, avoid_pathological):
-    "Find r such that s[:r] contains the threshold proportion of s."
+    "Find `r` such that `s[:r]` contains the threshold proportion of `s`."
     assert isinstance(threshold, float)
     if threshold == 1.0:
         r = len(s)
@@ -445,14 +499,18 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
 
     Also automates 'full_matrices' flag.
 
-    - threshold:
+    Parameters
+    ----------
+    avoid_pathological: bool
+        Avoid truncating (e.g.) the identity matrix.
+        NB: only applies for float threshold.
 
-      - if float, < 1.0 then "rank" = lowest number
-        such that the "energy" retained >= threshold
-      - if int,  >= 1   then "rank" = threshold
+    threshold: float or int
 
-    - avoid_pathological: avoid truncating (e.g.) the identity matrix.
-      NB: only applies for float threshold.
+    - if float, < 1.0 then "rank" = lowest number
+      such that the "energy" retained >= threshold
+    - if int,  >= 1   then "rank" = threshold
+
     """
     M, N = A.shape
     full_matrices = False
@@ -479,19 +537,22 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
 
 
 def svd0(A):
-    """Similar to Matlab's svd(A,0).
+    """Similar to Matlab's `svd(A,0)`.
 
     Compute the
 
-     - full    svd if nrows > ncols
-     - reduced svd otherwise.
+    - full    svd if `nrows > ncols`
+    - reduced svd otherwise.
 
-    As in Matlab: svd(A,0),
+    As in Matlab: `svd(A,0)`,
     except that the input and output are transposed, in keeping with DAPPER convention.
-    It contrasts with scipy.linalg's svd(full_matrice=False) and Matlab's svd(A,'econ'),
-    both of which always compute the reduced svd.
+    It contrasts with `scipy.linalg.svd(full_matrice=False)`
+    and Matlab's `svd(A,'econ')`, both of which always compute the reduced svd.
 
-    .. seealso:: tsvd() for rank (and threshold) truncation.
+
+    See also
+    --------
+    tsvd : rank (and threshold) truncation.
     """
     M, N = A.shape
     if M > N:
@@ -499,29 +560,35 @@ def svd0(A):
     return sla.svd(A, full_matrices=False)
 
 
-def pad0(ss, N):
-    "Pad ss with zeros so that len(ss)==N."
+def pad0(x, N):
+    "Pad `x` with zeros so that `len(x)==N`."
     out = np.zeros(N)
-    out[:len(ss)] = ss
+    out[:len(x)] = x
     return out
 
 
 def svdi(U, s, VT):
     """Reconstruct matrix from (t)svd.
 
-    Example::
+    Example
+    -------
+    >>> A = np.arange(12).reshape((3,-1))
+    >>> A == svdi(*tsvd(A, 1.0))
+    array([])
 
-    >>> A == svdi(*tsvd(A,1.0)).
-
-    .. seealso:: sla.diagsvd().
+    See also
+    --------
+    sla.diagsvd
     """
     return (U[:, :len(s)] * s) @ VT
 
 
 def tinv(A, *kargs, **kwargs):
-    """
-    Inverse based on truncated svd.
-    Also see sla.pinv2().
+    """Inverse based on truncated svd.
+
+    See also
+    --------
+    sla.pinv2().
     """
     U, s, VT = tsvd(A, *kargs, **kwargs)
     return (VT.T * s**(-1.0)) @ U.T
