@@ -10,12 +10,6 @@ from IPython.lib.pretty import pretty as pretty_repr
 import dapper.tools.utils as utils
 
 
-def ccat(*args, axis=0):
-    "Convenience wrapper around np.concatenate."
-    args = [np.atleast_1d(x) for x in args]
-    return np.concatenate(args, axis=axis)
-
-
 ########################
 # Ensemble matrix manip
 ########################
