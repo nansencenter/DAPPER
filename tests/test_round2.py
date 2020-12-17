@@ -117,13 +117,13 @@ lst2 = [
 
 @pytest.mark.parametrize("x, p, y", lst1)
 def test_round2sigfig(x, p, y):
-    rounded = dm.round2sigfig(x, p).item()
+    rounded = dm.round2sigfig(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired
 
 
 @pytest.mark.parametrize("x, p, y", lst2)
 def test_round2(x, p, y):
-    rounded = dm.round2(x, p).item()
+    rounded = dm.round2(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired

@@ -255,9 +255,20 @@ def FD_Jac(func, eps=1e-7):
 ########################
 
 def np_vectorize(f):
-    """Like `np.vectorize`, but including `functools.wraps`."""
-    new = np.vectorize(f)
-    new = functools.wraps(f)(new)
+    """Like `np.vectorize`, but with some embellishments.
+
+    - Includes `functools.wraps`
+    - Applies `.item()` to output if input was a scalar.
+    """
+    vectorized = np.vectorize(f)
+
+    @functools.wraps(f)
+    def new(*args, **kwargs):
+        output = vectorized(*args, **kwargs)
+        if np.isscalar(args[0]) and not isinstance(args[0], np.ndarray):
+            output = output.item()
+        return output
+
     return new
 
 
