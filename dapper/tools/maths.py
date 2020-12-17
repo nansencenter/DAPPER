@@ -14,16 +14,16 @@ import dapper.tools.utils as utils
 # Ensemble matrix manip
 ########################
 def ens_compatible(func):
-    """Tranpose before and after.
+    """Decorator to apply the tranpose before and after `func`.
 
-    Helpful to make functions compatible with both 1d and 2d ndarrays.
+    Specifically, the transpose is applied to the first argument, and the output.
+    This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
     .. note:: this is not the_way™ -- other tricks are sometimes more practical.
 
     Examples
     --------
-    - `dapper.mods.Lorenz63.dxdt`
-    - `dapper.mods.DoublePendulum.dxdt`
+    `dapper.mods.Lorenz63.dxdt`, `dapper.mods.DoublePendulum.dxdt`
 
     See also
     --------
@@ -141,16 +141,21 @@ def with_recursion(func, prog=False):
     Return a version of `func` whose 2nd argument (`k`)
     specifies the number of times to times apply func on its output.
 
-    Example
-    -------
-    >>> def dxdt(x, t):
-    >>>     # implement dynamics here
-    >>>     return x
-    >>> step_1 = with_rk4(dxdt)
-    >>> step_k = with_recursion(step_1)
-    >>> x0     = np.zeros(3) # for example
-    >>> xk     = step_k(x0, k, t=0, 0.05)[-1]
-    array([0., 0., 0.])
+    .. caution:: Only the first argument to `func` will change,
+        so, for example, if `func` is `step(x, t, dt)`,
+        it will get fed the same `t` and `dt` at each iteration.
+
+    Examples
+    --------
+    >>> def dxdt(x):
+    ...     return -x
+    >>> step_1  = with_rk4(dxdt, autonom=True)
+    >>> step_k  = with_recursion(step_1)
+    >>> x0      = np.arange(3)
+    >>> x7      = step_k(x0, 7, t0=np.nan, dt=0.1)[-1]
+    >>> x7_true = x0 * np.exp(-0.7)
+    >>> np.allclose(x7, x7_true)
+    True
     """
     def fun_k(x0, k, *args, **kwargs):
         xx = np.zeros((k+1,)+x0.shape)
@@ -222,9 +227,10 @@ def FD_Jac(func, eps=1e-7):
         The first input argument is that of which the derivative is taken.
 
 
-    Example
-    -------
-    >>> dstep_dx = FD_Jac(step)
+    Examples
+    --------
+    >>>
+    >> dstep_dx = FD_Jac(step)
     """
     def Jac(x, *args, **kwargs):
         def f(y):
@@ -372,9 +378,9 @@ def round2sigfig(x, sigfig=1):
     Examples
     --------
     >>> round2sigfig(1234.5678, 1)
-    1000
+    1000.0
     >>> round2sigfig(1234.5678, 4)
-    1234
+    1235.0
     >>> round2sigfig(1234.5678, 6)
     1234.57
     """
@@ -435,11 +441,13 @@ def curvedspace(start, end, N, curvature=1):
         - +1 produces geomspace(start,end,N)
         - -1 produces same as `+1`, but reflected about y=x
 
-    Example
-    -------
-    >>> ax.plot(np.geomspace(1e-1, 10, 201) ,label="geomspace")
-    >>> ax.plot(np.linspace (1e-1, 10, 201) ,label="linspace")
-    >>> ax.plot( curvedspace(1e-1, 10, 201, 0.5),'y--')
+    Examples
+    --------
+    >>>
+    >> fig, ax = plt.subplots()
+    >> ax.plot(np.geomspace(1e-1, 10, 201) ,label="geomspace")
+    >> ax.plot(np.linspace (1e-1, 10, 201) ,label="linspace")
+    >> ax.plot( curvedspace(1e-1, 10, 201, 0.5),'y--')
 
     See also
     --------
@@ -521,7 +529,6 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
     - if float, < 1.0 then "rank" = lowest number
       such that the "energy" retained >= threshold
     - if int,  >= 1   then "rank" = threshold
-
     """
     M, N = A.shape
     full_matrices = False
@@ -579,13 +586,14 @@ def pad0(x, N):
 
 
 def svdi(U, s, VT):
-    """Reconstruct matrix from (t)svd.
+    """Reconstruct matrix from `sla.svd` or `tsvd`.
 
-    Example
-    -------
+    Examples
+    --------
     >>> A = np.arange(12).reshape((3,-1))
-    >>> A == svdi(*tsvd(A, 1.0))
-    array([])
+    >>> B = svdi(*tsvd(A, 1.0))
+    >>> np.allclose(A, B)
+    True
 
     See also
     --------
@@ -595,18 +603,18 @@ def svdi(U, s, VT):
 
 
 def tinv(A, *kargs, **kwargs):
-    """Inverse based on truncated svd.
+    """Psuedo-inverse using `tsvd`.
 
     See also
     --------
-    sla.pinv2().
+    sla.pinv2.
     """
     U, s, VT = tsvd(A, *kargs, **kwargs)
     return (VT.T * s**(-1.0)) @ U.T
 
 
 def trank(A, *kargs, **kwargs):
-    """Rank following truncation"""
+    """Compute rank via `tsvd`, i.e. as "seen" by `tsvd`."""
     return len(tsvd(A, *kargs, **kwargs)[1])
 
 
@@ -626,20 +634,25 @@ def Id_mat(M):
 
 
 def linear_model_setup(ModelMatrix, dt0):
-    r"""Make a dictionary the Dyn/Obs field of HMM representing a linear model.
+    r"""Make the Dyn/Obs field of a HMM representing a linear model.
 
+    Let *M* be the model matrix. Then
     .. math::
 
-      x(t+dt) = \texttt{ModelMatrix}^{dt/dt0} x(t),
+      x(t+dt) = M^{dt/dt0} x(t),
 
     i.e.
 
     .. math::
 
-      \frac{dx}{dt} = \frac{\log(\texttt{ModelMatrix})}{dt0} x(t).
+      \frac{dx}{dt} = \frac{\log(M)}{dt0} x(t).
 
     In typical use, ``dt0==dt`` (where ``dt`` is defined by the chronology).
     Anyways, ``dt`` must be an integer multiple of ``dt0``.
+
+    Returns
+    -------
+    Data container (`dict`) with keys: 'M', 'model', 'linear'.
     """
 
     Mat = np.asarray(ModelMatrix)  # does not support sparse and matrix-class
