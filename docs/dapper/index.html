@@ -85,7 +85,7 @@ lazy eval that facilitates the use of non-diagnoal covariance matrices (whether 
 </li>
 <li>Diagnostics and statistics with<ul>
 <li>Confidence interval on times series (e.g. rmse) averages with<ul>
-<li>automatic correction for autocorrelation </li>
+<li>automatic correction for autocorrelation</li>
 <li>significant digits printing</li>
 </ul>
 </li>
@@ -141,7 +141,6 @@ through the following links, which are also available in the left sidebar.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/__init__.py#L0-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;(Data Assimilation with Python: a Package for Experimental Research)
 
@@ -190,7 +189,7 @@ your own **model** or **method**, then
       lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
 - Diagnostics and statistics with
     - Confidence interval on times series (e.g. rmse) averages with
-        - automatic correction for autocorrelation 
+        - automatic correction for autocorrelation
         - significant digits printing
     - Automatic averaging of several types for sub-domains
       (e.g. &#34;ocean&#34;, &#34;land&#34;, etc.)
@@ -260,8 +259,8 @@ from .dpr_config import rc
 from .stats import register_stat
 from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.math import (Id_Obs, ens_compatible, linspace_int, partial_Id_Obs,
-                         round2, round2sigfig, with_recursion, with_rk4)
+from .tools.maths import (Id_Obs, ens_compatible, linspace_int, partial_Id_Obs,
+                          round2, round2sigfig, with_recursion, with_rk4)
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
 from .tools.stoch import set_seed

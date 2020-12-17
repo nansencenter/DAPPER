@@ -40,14 +40,13 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/extended.py#L0-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The extended KF (EKF) and the (Rauch-Tung-Striebel) smoother.&#34;&#34;&#34;
 
 import numpy as np
 
 from dapper.admin import da_method
-from dapper.tools.math import mrdiv
+from dapper.tools.maths import mrdiv
 from dapper.tools.utils import progbar
 
 
@@ -184,9 +183,9 @@ Specifying it this way (per unit time) means less tuning.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/extended.py#L11-L56" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class ExtKF:
+<pre><code class="python">@da_method()
+class ExtKF:
     &#34;&#34;&#34;The extended Kalman filter. A baseline/reference method.
 
     If everything is linear-Gaussian, this provides the exact solution
@@ -254,7 +253,6 @@ Specifying it this way (per unit time) means less tuning.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/extended.py#L25-L56" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -301,9 +299,9 @@ Specifying it this way (per unit time) means less tuning.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/extended.py#L61-L113" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class ExtRTS:
+<pre><code class="python">@da_method()
+class ExtRTS:
     &#34;&#34;&#34;
     &#34;&#34;&#34;
     infl: float = 1.0
@@ -378,7 +376,6 @@ Specifying it this way (per unit time) means less tuning.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/extended.py#L66-L113" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats

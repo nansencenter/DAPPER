@@ -40,7 +40,6 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L0-L823" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools for plotting.&#34;&#34;&#34;
 
@@ -70,7 +69,7 @@ import dapper.tools.series as series
 import dapper.tools.utils as utils
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
-from dapper.tools.math import ccat, round2sigfig
+from dapper.tools.maths import round2sigfig
 
 
 def setup_wrapping(M, periodicity=None):
@@ -96,7 +95,7 @@ def setup_wrapping(M, periodicity=None):
 
         def wrap(E):
             midpoint = (E[..., [0]] + E[..., [-1]])/2
-            return ccat(midpoint, E, midpoint, axis=-1)
+            return np.concatenate([midpoint, E, midpoint], axis=-1)
 
     else:
         ii = arange(M)
@@ -888,7 +887,6 @@ Default: "+1", meaning that the first element is appended after the last.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L32-L61" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def setup_wrapping(M, periodicity=None):
     &#34;&#34;&#34;
@@ -913,7 +911,7 @@ Default: "+1", meaning that the first element is appended after the last.</li>
 
         def wrap(E):
             midpoint = (E[..., [0]] + E[..., [-1]])/2
-            return ccat(midpoint, E, midpoint, axis=-1)
+            return np.concatenate([midpoint, E, midpoint], axis=-1)
 
     else:
         ii = arange(M)
@@ -930,7 +928,6 @@ Default: "+1", meaning that the first element is appended after the last.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L64-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def amplitude_animation(EE, dt=None, interval=1,
                         periodicity=None, blit=True,
@@ -975,7 +972,6 @@ kwarg must be one of 'x0','y0','width','height'.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L98-L117" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def adjust_position(ax, adjust_extent=False, **kwargs):
     &#34;&#34;&#34;
@@ -1007,7 +1003,6 @@ kwarg must be one of 'x0','y0','width','height'.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L120-L123" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def xtrema(xx, axis=None):
     a = np.nanmin(xx, axis)
@@ -1025,7 +1020,6 @@ If int: floor(a) and ceil(b)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L126-L138" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def stretch(a, b, factor=1, int=False):
     &#34;&#34;&#34;
@@ -1050,7 +1044,6 @@ If int: floor(a) and ceil(b)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L141-L148" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def set_ilim(ax, i, Min=None, Max=None):
     &#34;&#34;&#34;Set bounds on axis i.&#34;&#34;&#34;
@@ -1072,7 +1065,6 @@ Provide sensible fall-backs (better if chrono is supplied).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L154-L184" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def estimate_good_plot_length(xx, chrono=None, mult=100):
     &#34;&#34;&#34;
@@ -1117,7 +1109,6 @@ For that, use plt.pause() or plt.show() instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L187-L227" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_pause(interval):
     &#34;&#34;&#34;Similar to plt.pause(), but doesn&#39;t focus window.
@@ -1170,7 +1161,6 @@ For that, use plt.pause() or plt.show() instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L230-L254" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_hovmoller(xx, chrono=None, **kwargs):
     &#34;&#34;&#34;
@@ -1207,7 +1197,6 @@ For that, use plt.pause() or plt.show() instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L257-L262" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def integer_hist(E, N, centrd=False, weights=None, **kwargs):
     &#34;&#34;&#34;Histogram for integers.&#34;&#34;&#34;
@@ -1225,7 +1214,6 @@ For that, use plt.pause() or plt.show() instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L265-L274" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def not_available_text(ax, txt=None, fs=20):
     if txt is None:
@@ -1257,7 +1245,6 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L277-L334" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_err_components(stats):
     &#34;&#34;&#34;Plot components of the error.
@@ -1327,7 +1314,6 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L337-L374" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_rank_histogram(stats):
     chrono = stats.HMM.t
@@ -1377,7 +1363,6 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L377-L380" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def adjustable_box_or_forced():
     &#34;For set_aspect(), adjustable=&#39;box-forced&#39; replaced by &#39;box&#39; since mpl 2.2.0.&#34;
@@ -1403,7 +1388,6 @@ Avoids closing/opening so as to keep pos and size.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L383-L413" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def freshfig(num=None, figsize=None, *args, **kwargs):
     &#34;&#34;&#34;Create/clear figure.
@@ -1446,7 +1430,6 @@ Avoids closing/opening so as to keep pos and size.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L416-L428" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def show_figs(fignums=None):
     &#34;&#34;&#34;Move all fig windows to top&#34;&#34;&#34;
@@ -1471,7 +1454,6 @@ Avoids closing/opening so as to keep pos and size.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L431-L438" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_fig(fignum=None):
     &#34;Get/validate fig handle&#34;
@@ -1491,7 +1473,6 @@ Avoids closing/opening so as to keep pos and size.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L441-L445" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_fmw(fignum=None):
     fig = get_fig(fignum)
@@ -1508,7 +1489,6 @@ Avoids closing/opening so as to keep pos and size.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L448-L472" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_screen_size():
     &#34;&#34;&#34;Get **available** screen size/resolution.&#34;&#34;&#34;
@@ -1545,7 +1525,6 @@ Avoids closing/opening so as to keep pos and size.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L475-L503" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def fig_rel_geometry(fignum=None, x=None, y=None, w=None, h=None):
     &#34;&#34;&#34;Place figure on screen, in coordinates relative (between 0 and 1).&#34;&#34;&#34;
@@ -1597,7 +1576,6 @@ Avoids closing/opening so as to keep pos and size.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L506-L561" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def fig_place(loc, fignum=None):
     &#34;&#34;&#34;Place figure on screen.
@@ -1665,7 +1643,6 @@ Avoids closing/opening so as to keep pos and size.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L567-L573" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def autoscale_based_on(ax, line_handles):
     &#34;Autoscale axis based (only) on line_handles.&#34;
@@ -1691,7 +1668,6 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L576-L651" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def toggle_lines(ax=None, autoscl=True, numbering=False,
                  txtwidth=15, txtsize=None, state=None):
@@ -1779,7 +1755,6 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L654-L695" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def toggle_viz(*handles, prompt=False, legend=False, pause=True):
     &#34;&#34;&#34;Toggle visibility of the graphics with handle handles.&#34;&#34;&#34;
@@ -1833,7 +1808,6 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L735-L739" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def nrowcol(nTotal, AR=1):
     &#34;Return integer nrows and ncols such that nTotal ≈ nrows*ncols.&#34;
@@ -1857,7 +1831,6 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L742-L773" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def axes_with_marginals(n_joint, n_marg, **kwargs):
     &#34;&#34;&#34;
@@ -1906,7 +1879,6 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L776-L802" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def cov_ellipse(ax, mu, sigma, **kwargs):
     &#34;&#34;&#34;
@@ -1946,7 +1918,6 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L805-L824" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
     &#34;&#34;&#34;Scale axis so that the arr entries appear equidistant.
@@ -1984,7 +1955,6 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L698-L732" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class FigSaver(NicePrint):
     &#34;&#34;&#34;
@@ -2034,7 +2004,6 @@ ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L718-L724" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def fullname(self):
@@ -2056,7 +2025,6 @@ def fullname(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/viz.py#L726-L732" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save(self):
     f = self.fullname           # Abbrev

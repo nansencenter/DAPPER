@@ -40,17 +40,16 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L0-L645" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Weight- &amp; resampling-based DA methods.&#34;&#34;&#34;
 
 import numpy as np
 from numpy.random import rand, randn
 
-import dapper.tools.math
+import dapper.tools.maths
 import dapper.tools.utils as utils
 from dapper.admin import da_method
-from dapper.tools.math import mldiv, mrdiv, pad0, svd0, tinv
+from dapper.tools.maths import mldiv, mrdiv, pad0, svd0, tinv
 from dapper.tools.matrices import chol_reduce, funm_psd
 from dapper.tools.utils import progbar
 
@@ -526,13 +525,13 @@ def raw_C12(E, w):
     and also computed based on a weighted mean.
     &#34;&#34;&#34;
     # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.math.weight_degeneracy(w):
+    if dapper.tools.maths.weight_degeneracy(w):
         w = np.ones(len(w))/len(w)
         # PS: &#39;avoid_pathological&#39; already treated here.
 
     mu  = w@E
     A   = E - mu
-    ub  = dapper.tools.math.unbias_var(w, avoid_pathological=False)
+    ub  = dapper.tools.maths.unbias_var(w, avoid_pathological=False)
     C12 = np.sqrt(ub*w[:, None]) * A
     return C12
 
@@ -747,7 +746,7 @@ other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; see <code>random-quick-start</code>.</p>
+instance instead; please see the :ref:<code>random-quick-start</code>.</p>
 </div>
 <p>If positive int_like arguments are provided, <code><a title="dapper.da_methods.particle.randn" href="#dapper.da_methods.particle.randn">RandomState.randn()</a></code> generates an array
 of shape <code>(d0, d1, &hellip;, dn)</code>, filled
@@ -795,7 +794,6 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L423-L441" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def trigger_resampling(w, NER, stat_args):
     &#34;Return boolean: N_effective &lt;= threshold. Also write stats.&#34;
@@ -831,7 +829,6 @@ Output is non-log, for the purpose of assessment and resampling.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L444-L473" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reweight(w, lklhd=None, logL=None, innovs=None):
     &#34;&#34;&#34;Do Bayes&#39; rule (for the empirical distribution of an importance sample).
@@ -876,7 +873,6 @@ and also computed based on a weighted mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L476-L493" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def raw_C12(E, w):
     &#34;&#34;&#34;Compute the &#39;raw&#39; matrix-square-root of the ensemble&#39; covariance.
@@ -887,13 +883,13 @@ and also computed based on a weighted mean.</p></div>
     and also computed based on a weighted mean.
     &#34;&#34;&#34;
     # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.math.weight_degeneracy(w):
+    if dapper.tools.maths.weight_degeneracy(w):
         w = np.ones(len(w))/len(w)
         # PS: &#39;avoid_pathological&#39; already treated here.
 
     mu  = w@E
     A   = E - mu
-    ub  = dapper.tools.math.unbias_var(w, avoid_pathological=False)
+    ub  = dapper.tools.maths.unbias_var(w, avoid_pathological=False)
     C12 = np.sqrt(ub*w[:, None]) * A
     return C12</code></pre>
 </details>
@@ -906,7 +902,6 @@ and also computed based on a weighted mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L496-L500" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mask_unique_of_sorted(idx):
     &#34;NB: returns a mask which is True at [i] iff idx[i] is NOT unique.&#34;
@@ -924,7 +919,6 @@ and also computed based on a weighted mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L503-L508" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def auto_bandw(N, M):
     &#34;&#34;&#34;&#34;Optimal bandwidth (not bandwidth^2), as per Scott&#39;s rule-of-thumb.
@@ -950,7 +944,6 @@ Ref: <code><a title="bib.doucet2001sequential" href="../../bib.html#bib.doucet20
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L511-L534" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def regularize(C12, E, idx, no_uniq_jitter):
     &#34;&#34;&#34;Jitter (add noise).
@@ -1018,7 +1011,6 @@ have more informative (and less variable) future likelihoods.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L537-L592" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def resample(w, kind=&#39;Systematic&#39;, N=None, wroot=1.0):
     &#34;&#34;&#34;Multinomial resampling.
@@ -1087,7 +1079,6 @@ have more informative (and less variable) future likelihoods.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L628-L646" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample_quickly_with(C12, N=None):
     &#34;&#34;&#34;Gaussian sampling in the quickest fashion.
@@ -1137,9 +1128,9 @@ See <code><a title="bib.chen2003bayesian" href="../../bib.html#bib.chen2003bayes
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L22-L86" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class PartFilt:
+<pre><code class="python">@particle_method
+class PartFilt:
     r&#34;&#34;&#34;Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
     Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
@@ -1250,7 +1241,6 @@ See <code><a title="bib.chen2003bayesian" href="../../bib.html#bib.chen2003bayes
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L50-L86" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1308,9 +1298,9 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L90-L149" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class OptPF:
+<pre><code class="python">@particle_method
+class OptPF:
     &#34;&#34;&#34;&#39;Optimal proposal&#39; particle filter, also known as &#39;Implicit particle filter&#39;.
 
     Ref: `bib.bocquet2010beyond`.
@@ -1416,7 +1406,6 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L105-L149" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1487,9 +1476,9 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L153-L227" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class PFa:
+<pre><code class="python">@particle_method
+class PFa:
     &#34;&#34;&#34;PF with weight adjustment withOUT
 
     compensating for the bias it introduces.
@@ -1610,7 +1599,6 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L179-L227" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1685,9 +1673,9 @@ Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L231-L349" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class PFxN_EnKF:
+<pre><code class="python">@particle_method
+class PFxN_EnKF:
     &#34;&#34;&#34;Particle filter with EnKF-based proposal, q.
 
     Also employs xN duplication, as in PFxN.
@@ -1852,7 +1840,6 @@ Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L251-L349" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1970,9 +1957,9 @@ without jittering.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L353-L420" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class PFxN:
+<pre><code class="python">@particle_method
+class PFxN:
     &#34;&#34;&#34;Particle filter with buckshot duplication during analysis.
 
     Idea: sample xN duplicates from each of the N kernels.
@@ -2086,7 +2073,6 @@ without jittering.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/particle.py#L368-L420" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \

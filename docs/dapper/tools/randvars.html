@@ -40,7 +40,6 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L0-L245" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Classes of random variables.&#34;&#34;&#34;
 
@@ -49,7 +48,6 @@ from numpy import sqrt
 from numpy.random import rand, randn
 
 from dapper.dict_tools import NicePrint
-from dapper.tools.math import exactly_1d
 from dapper.tools.matrices import CovMat
 
 
@@ -144,7 +142,8 @@ class RV_with_mean_and_cov(RV):
                             + &#34;Use kword syntax (C=...) ?&#34;)
 
         # Set mu
-        mu = exactly_1d(mu)
+        mu = np.atleast_1d(mu)
+        assert mu.ndim == 1
         if len(mu) &gt; 1:
             if M is None:
                 M = len(mu)
@@ -347,7 +346,7 @@ other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; see <code>random-quick-start</code>.</p>
+instance instead; please see the :ref:<code>random-quick-start</code>.</p>
 </div>
 <p>If positive int_like arguments are provided, <code><a title="dapper.tools.randvars.randn" href="#dapper.tools.randvars.randn">RandomState.randn()</a></code> generates an array
 of shape <code>(d0, d1, &hellip;, dn)</code>, filled
@@ -425,7 +424,6 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L12-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RV(NicePrint):
     &#34;Class to represent random variables.&#34;
@@ -526,7 +524,6 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L40-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample(self, N):
     if getattr(self, &#39;is0&#39;, False):
@@ -589,7 +586,6 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L88-L159" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RV_with_mean_and_cov(RV):
     &#34;&#34;&#34;Generic multivariate random variable characterized by mean and cov.
@@ -606,7 +602,8 @@ i.e. its main purpose is provide a common convenience constructor.</p>
                             + &#34;Use kword syntax (C=...) ?&#34;)
 
         # Set mu
-        mu = exactly_1d(mu)
+        mu = np.atleast_1d(mu)
+        assert mu.ndim == 1
         if len(mu) &gt; 1:
             if M is None:
                 M = len(mu)
@@ -691,7 +688,6 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L145-L156" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample(self, N):
     &#34;&#34;&#34;Sample N realizations. Returns N-by-M (ndim) sample matrix.
@@ -719,7 +715,6 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L162-L168" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class GaussRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;Gaussian (Normal) multivariate random variable.&#34;&#34;&#34;
@@ -756,7 +751,6 @@ Eltoft (2006) "On the Multivariate Laplace Distribution".</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L171-L183" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LaplaceRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -798,7 +792,6 @@ the Laplace (double exponential) random variable.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L186-L196" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LaplaceParallelRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -841,7 +834,6 @@ since chi2 is sampled via Gaussians.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L199-L217" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class StudRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -891,7 +883,6 @@ vectors and coordinates from the n-sphere and n-ball"</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L220-L233" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UniRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -935,7 +926,6 @@ applied to the (corners of) the hypercube.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/randvars.py#L236-L246" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UniParallelRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;

@@ -40,17 +40,18 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_demos.py#L0-L15" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Test `demo.py` files in model dirs.&#34;&#34;&#34;
 
 from importlib import import_module
 
+import matplotlib as mpl
 import pytest
 from matplotlib import pyplot as plt
 
 import dapper as dpr
 
+mpl.use(&#34;Qt5Agg&#34;)
 plt.ion()
 
 
@@ -75,7 +76,6 @@ def test_imp(path):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_demos.py#L13-L16" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize((&#34;path&#34;), dpr._find_demos())
 def test_imp(path):

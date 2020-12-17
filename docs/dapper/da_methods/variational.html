@@ -40,7 +40,6 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/variational.py#L0-L340" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Variational DA methods (iEnKS, 4D-Var, etc)&#34;&#34;&#34;
 
@@ -52,7 +51,7 @@ from numpy.random import randn
 
 from dapper.admin import da_method
 from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
-from dapper.tools.math import center, inflate_ens, mean0, pad0, svd0, tinv
+from dapper.tools.maths import center, inflate_ens, mean0, pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
 from dapper.tools.utils import progbar
 
@@ -408,7 +407,7 @@ other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; see <code>random-quick-start</code>.</p>
+instance instead; please see the :ref:<code>random-quick-start</code>.</p>
 </div>
 <p>If positive int_like arguments are provided, <code><a title="dapper.da_methods.variational.randn" href="#dapper.da_methods.variational.randn">RandomState.randn()</a></code> generates an array
 of shape <code>(d0, d1, &hellip;, dn)</code>, filled
@@ -505,9 +504,9 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/variational.py#L25-L232" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class iEnKS:
+<pre><code class="python">@var_method
+class iEnKS:
     &#34;&#34;&#34;Iterative EnKS.
 
     Special cases: EnRML, ES-MDA, iEnKF, EnKF `bib.raanes2019revising`.
@@ -777,7 +776,6 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/variational.py#L92-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -926,7 +924,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 </dd>
 <dt id="dapper.da_methods.variational.Var4D"><code class="flex name class">
 <span>class <span class="ident">Var4D</span></span>
-<span>(</span><span>B: Union[numpy.ndarray, NoneType] = None, xB: float = 1.0, Lag: int = 1, nIter: int = 10, wtol: float = 0)</span>
+<span>(</span><span>B: Optional[numpy.ndarray] = None, xB: float = 1.0, Lag: int = 1, nIter: int = 10, wtol: float = 0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>4D-Var.</p>
@@ -942,9 +940,9 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/variational.py#L236-L341" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class Var4D:
+<pre><code class="python">@var_method
+class Var4D:
     &#34;&#34;&#34;4D-Var.
 
     Cycling scheme is same as in iEnKS (i.e. the shift is always 1*kObs).
@@ -1053,7 +1051,7 @@ there is no benefit to the adjoint trick (back-propagation).
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="dapper.da_methods.variational.Var4D.B"><code class="name">var <span class="ident">B</span> : Union[numpy.ndarray, NoneType]</code></dt>
+<dt id="dapper.da_methods.variational.Var4D.B"><code class="name">var <span class="ident">B</span> : Optional[numpy.ndarray]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1088,7 +1086,6 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/da_methods/variational.py#L254-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats

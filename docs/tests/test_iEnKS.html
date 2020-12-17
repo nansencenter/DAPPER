@@ -42,7 +42,6 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L0-L189" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tests with the LA model, which are very useful for testing
 boundary cases of the iEnKS (e.g. nIter=1, Lag=0).&#34;&#34;&#34;
@@ -251,7 +250,6 @@ def test_Order1_nIter1_Lag3_u(data):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L14-L44" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;module&#34;)
 def data():
@@ -294,7 +292,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L78-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Sqrt(data):
     ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;)
@@ -310,7 +307,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L86-L88" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Sqrt_u(data):
     ii = data.inds(strict=0, upd_a=&#39;Sqrt&#39;, Lag=0)
@@ -325,7 +321,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L92-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Sqrt_Lag1_u(data):
     ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;, Lag=1)
@@ -341,7 +336,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L98-L101" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Sqrt_Lag3_u(data):
     ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;, Lag=3)
@@ -357,7 +351,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L106-L110" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs(data):
     ii = (data.inds(strict=0, upd_a=&#39;PertObs&#39;, MDA=0) +
@@ -374,7 +367,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L114-L117" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs_nIter4(data):
     ii = data.inds(strict=1, upd_a=&#39;PertObs&#39;, nIter=4, MDA=1)
@@ -390,7 +382,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L121-L124" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs_u(data):
     ii = (data.inds(strict=0, upd_a=&#39;PertObs&#39;, MDA=0, Lag=0) +
@@ -406,7 +397,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L128-L132" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs_Lag1_u(data):
     ii = data.inds(upd_a=&#39;PertObs&#39;, Lag=1)
@@ -423,7 +413,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L136-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs_Lag3_u(data):
     ii = data.inds(upd_a=&#39;PertObs&#39;, Lag=3)
@@ -440,7 +429,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L145-L149" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1(data):
     ii = data.inds(upd_a=&#39;DEnKF&#39;) +\
@@ -457,7 +445,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L153-L156" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter4_MDA0(data):
     ii = data.inds(upd_a=&#39;Order1&#39;, nIter=4, MDA=0)
@@ -473,7 +460,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L160-L163" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter4_MDA1(data):
     ii = data.inds(upd_a=&#39;Order1&#39;, nIter=4, MDA=1)
@@ -489,7 +475,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L167-L170" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter1_Lag0_u(data):
     ii = data.inds(strict=0, upd_a=&#39;DEnKF&#39;, Lag=0) +\
@@ -505,7 +490,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L173-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter1_Lag1_u(data):
     ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
@@ -521,7 +505,6 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/tests/test_iEnKS.py#L179-L182" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter1_Lag3_u(data):
     ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\

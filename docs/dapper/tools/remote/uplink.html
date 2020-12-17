@@ -41,7 +41,6 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L0-L368" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools related to running experimentes remotely
 
@@ -429,7 +428,6 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L106-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def submit_job_GCP(xps_path, **kwargs):
     &#34;&#34;&#34;GCP/HTCondor launcher&#34;&#34;&#34;
@@ -476,7 +474,6 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L227-L235" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def print_condor_status(self):
     status = &#34;&#34;&#34;condor_status -total&#34;&#34;&#34;
@@ -497,7 +494,6 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L310-L312" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def list_job_dirs(xps_path):
     dirs = [xps_path/d for d in utils.sorted_human(os.listdir(xps_path))]
@@ -518,7 +514,6 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L315-L330" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_ip(instance):
     &#34;&#34;&#34;Get ip-address of instance.
@@ -535,7 +530,19 @@ and that you've already logged into the instance once using (eg)
     getip = &#39;get(networkInterfaces[0].accessConfigs[0].natIP)&#39;
     ip = sub_run((f&#34;gcloud compute instances describe {instance}&#34;
                  f&#34; --format={getip}&#34;).split())
-    return ip.strip()</code></pre>
+    return ip.strip()
+
+    # # Parse ssh/config for the &#34;Host&#34; of condor-submit.
+    # # Q: how reliable/portable is it?
+    # from pathlib import Path
+    # with open(Path(&#34;~&#34;).expanduser()/&#34;.ssh&#34;/&#34;config&#34;) as ssh_config:
+    #     for ln in ssh_config:
+    #         if ln.startswith(&#34;Host condor-submit&#34;):
+    #             break
+    #     else:
+    #         raise RuntimeError(
+    #             &#34;Did not find condor-submit Host in .ssh/config.&#34;)
+    #     return ln[ln.index(&#34;condor&#34;):].strip()</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.remote.uplink.sub_run"><code class="name flex">
@@ -554,7 +561,6 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L345-L369" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
     &#34;&#34;&#34;`subprocess.run`, with other defaults, and return stdout.
@@ -597,7 +603,6 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L20-L103" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SubmissionConnection:
     &#34;&#34;&#34;Establish multiplexed ssh to a given submit-node for a given xps_path.&#34;&#34;&#34;
@@ -694,7 +699,6 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L54-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def remote_cmd(self, cmd_string, **kwargs):
     &#34;&#34;&#34;Run command at self.host via multiplexed ssh.&#34;&#34;&#34;
@@ -713,7 +717,6 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/tools/remote/uplink.py#L62-L103" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
     # Prepare: opts

@@ -42,7 +42,6 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/mods/Ikeda/__init__.py#L0-L63" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The &#34;Ikeda map&#34; is a discrete-time dynamical system of size 2.
 
@@ -134,7 +133,6 @@ def LPs(jj=None, params=params): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/mods/Ikeda/__init__.py#L19-L22" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@dpr.ens_compatible
 def step(x, _t, _dt):
@@ -150,7 +148,6 @@ def step(x, _t, _dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/mods/Ikeda/__init__.py#L25-L32" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def aux(x, y):
     &#34;&#34;&#34;Comps used both by step and its jacobian.&#34;&#34;&#34;
@@ -170,7 +167,6 @@ def step(x, _t, _dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/mods/Ikeda/__init__.py#L40-L53" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, _t, _dt):
     &#34;&#34;&#34;Used by ExtKF and 4D-Var&#34;&#34;&#34;
@@ -196,7 +192,6 @@ def step(x, _t, _dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/fd0ab63fd88586dc8d040da70063a382d36e36d9/dapper/mods/Ikeda/__init__.py#L60-L64" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None, params=params): return [
     (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
