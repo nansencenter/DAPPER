@@ -13,7 +13,7 @@ import dapper.tools.utils as utils
 # Ensemble matrix manip
 ########################
 def ens_compatible(func):
-    """Decorate to transpose before after, i.e. `func(input.T).T`.
+    """Decorate to transpose before and after, i.e. `func(input.T).T`.
 
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
