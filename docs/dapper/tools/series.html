@@ -40,6 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L0-L323" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Time series management and processing.&#34;&#34;&#34;
 
@@ -388,6 +389,7 @@ class RollingArray:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L14-L37" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
     &#34;&#34;&#34;Auto covariance function, computed along axis 0.
@@ -427,6 +429,7 @@ class RollingArray:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L40-L64" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def fit_acf_by_AR1(acf_empir, nlags=None):
     &#34;&#34;&#34;Fit an empirical auto cov function (ACF) by that of an AR1 process.
@@ -465,6 +468,7 @@ Also note that, for exponential corr function, as assumed here,</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L67-L80" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def estimate_corr_length(xx):
     &#34;&#34;&#34;
@@ -492,6 +496,7 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L136-L166" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean_with_conf(xx):
     &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
@@ -553,6 +558,7 @@ UncertainQtty(val=1, conf=1)
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L83-L133" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@dataclass
 class UncertainQtty():
@@ -635,6 +641,7 @@ class UncertainQtty():
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L104-L120" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def round(self, mult=1.0):
     &#34;&#34;&#34;Round intelligently:
@@ -665,6 +672,7 @@ class UncertainQtty():
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L169-L195" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class StatPrint(NicePrint):
     &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
@@ -728,6 +736,7 @@ class UncertainQtty():
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L198-L213" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@utils.monitor_setitem
 class DataSeries(StatPrint):
@@ -804,6 +813,7 @@ self[k,whatever,'u']
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L216-L272" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@utils.monitor_setitem
 class FAUSt(DataSeries, StatPrint):
@@ -884,6 +894,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L261-L261" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">item_shape = property(lambda self: self.a.shape[1:])</code></pre>
 </details>
@@ -894,6 +905,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L262-L262" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">store_u    = property(lambda self: len(self.u) &gt; 1)</code></pre>
 </details>
@@ -910,6 +922,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L275-L324" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RollingArray:
     &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
@@ -970,6 +983,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L311-L313" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def T(self):
@@ -987,6 +1001,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L285-L303" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def insert(self, k, val):
     dk = k-self.k1
@@ -1017,6 +1032,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L305-L306" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def leftmost(self):
     return self[len(self)-self.nFilled]</code></pre>
@@ -1030,6 +1046,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L308-L309" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def span(self):
     return (self.leftmost(),  self[-1])</code></pre>

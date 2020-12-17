@@ -40,6 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L0-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The extended KF (EKF) and the (Rauch-Tung-Striebel) smoother.&#34;&#34;&#34;
 
@@ -183,6 +184,7 @@ Specifying it this way (per unit time) means less tuning.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L10-L56" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@da_method()
 class ExtKF:
@@ -253,6 +255,7 @@ class ExtKF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L25-L56" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -299,6 +302,7 @@ class ExtKF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L60-L113" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@da_method()
 class ExtRTS:
@@ -376,6 +380,7 @@ class ExtRTS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L66-L113" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats

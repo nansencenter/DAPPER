@@ -40,6 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L0-L699" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Math tools: integrators, linear algebra, and convenience funcs.&#34;&#34;&#34;
 
@@ -56,7 +57,7 @@ import dapper.tools.utils as utils
 # Ensemble matrix manip
 ########################
 def ens_compatible(func):
-    &#34;&#34;&#34;Decorate to transpose before after, i.e. `func(input.T).T`.
+    &#34;&#34;&#34;Decorate to transpose before and after, i.e. `func(input.T).T`.
 
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
@@ -754,7 +755,7 @@ def Id_Obs(Nx):
 <span>def <span class="ident">ens_compatible</span></span>(<span>func)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Decorate to transpose before after, i.e. <code>func(input.T).T</code>.</p>
+<div class="desc"><p>Decorate to transpose before and after, i.e. <code>func(input.T).T</code>.</p>
 <p>This is helpful to make functions compatible with both 1d and 2d ndarrays.</p>
 <div class="admonition note">
 <p class="admonition-title">Note:&ensp;this is not the_way™ &ndash; other tricks are sometimes more practical.</p>
@@ -766,9 +767,10 @@ def Id_Obs(Nx):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L15-L33" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def ens_compatible(func):
-    &#34;&#34;&#34;Decorate to transpose before after, i.e. `func(input.T).T`.
+    &#34;&#34;&#34;Decorate to transpose before and after, i.e. `func(input.T).T`.
 
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
@@ -804,6 +806,7 @@ def Id_Obs(Nx):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L36-L59" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def center(E, axis=0, rescale=False):
     &#34;&#34;&#34;Center ensemble.
@@ -839,6 +842,7 @@ def Id_Obs(Nx):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L62-L64" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean0(E, axis=0, rescale=True):
     &#34;&#34;&#34;Center, but only return the anomalies (not the mean).&#34;&#34;&#34;
@@ -853,6 +857,7 @@ def Id_Obs(Nx):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L67-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inflate_ens(E, factor):
     &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).&#34;&#34;&#34;
@@ -870,6 +875,7 @@ def Id_Obs(Nx):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L75-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def weight_degeneracy(w, prec=1e-10):
     &#34;&#34;&#34;Check if the weights are degenerate.&#34;&#34;&#34;
@@ -885,6 +891,7 @@ def Id_Obs(Nx):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L80-L91" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
@@ -913,6 +920,7 @@ def Id_Obs(Nx):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L99-L117" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rk4(f, x, t, dt, order=4):
     &#34;&#34;&#34;Runge-Kutta (explicit, non-adaptive) numerical ODE solvers.
@@ -943,6 +951,7 @@ def Id_Obs(Nx):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L121-L132" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def with_rk4(dxdt, autonom=False, order=4):
     &#34;&#34;&#34;Wrap `dxdt` in `rk4`.&#34;&#34;&#34;
@@ -984,6 +993,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L135-L172" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def with_recursion(func, prog=False):
     &#34;&#34;&#34;Make function recursive in its 1st arg.
@@ -1061,6 +1071,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L175-L212" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def integrate_TLM(TLM, dt, method=&#39;approx&#39;):
     r&#34;&#34;&#34;Compute the resolvent.
@@ -1120,6 +1131,7 @@ where, in the 2D case, each row is seen as one function input.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L215-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def FD_Jac(func, eps=1e-7):
     &#34;&#34;&#34;Finite-diff approx. of Jacobian of `func`.
@@ -1158,6 +1170,7 @@ where, in the 2D case, each row is seen as one function input.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L259-L274" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def np_vectorize(f):
     &#34;&#34;&#34;Like `np.vectorize`, but with some embellishments.
@@ -1193,6 +1206,7 @@ array([  -1,   -2,    0,    0,    1,  300, -300, -300])
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L290-L314" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def log10int(x):
@@ -1249,6 +1263,7 @@ def log10int(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L317-L349" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def round2(x, prec=1.0):
@@ -1317,6 +1332,7 @@ def round2(x, prec=1.0):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L352-L382" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def round2sigfig(x, sigfig=1):
@@ -1360,6 +1376,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L385-L390" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is_int(a):
     &#34;&#34;&#34;Check if the type of `a` is integer.
@@ -1377,6 +1394,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L393-L395" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is_whole(x, **kwargs):
     &#34;&#34;&#34;Check if a float is a whole/natural number to precision given by `np.isclose`.&#34;&#34;&#34;
@@ -1391,6 +1409,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L398-L401" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_int(x):
     &#34;&#34;&#34;Combine `is_whole` and `round`.&#34;&#34;&#34;
@@ -1408,6 +1427,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L404-L411" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def isNone(x):
     &#34;&#34;&#34;Like `x==None`, but also works for x being an np.ndarray.
@@ -1427,6 +1447,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L417-L424" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linspace_int(Nx, Ny, periodic=True):
     &#34;&#34;&#34;Provide a range of `Ny` equispaced integers between `0` and `Nx-1`.&#34;&#34;&#34;
@@ -1465,6 +1486,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L427-L458" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def curvedspace(start, end, N, curvature=1):
     &#34;&#34;&#34;Take a segment of logspace, and scale it to [start,end].
@@ -1509,6 +1531,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L461-L476" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def circulant_ACF(C, do_abs=False):
     &#34;&#34;&#34;Compute the auto-covariance-function corresponding to `C`.
@@ -1536,6 +1559,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L482-L484" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mrdiv(b, A):
     &#34;&#34;&#34;b/A.&#34;&#34;&#34;
@@ -1550,6 +1574,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L487-L489" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mldiv(A, b):
     r&#34;&#34;&#34;A\b.&#34;&#34;&#34;
@@ -1564,6 +1589,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L492-L507" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def truncate_rank(s, threshold, avoid_pathological):
     &#34;&#34;&#34;Find `r` such that `s[:r]` contains the threshold proportion of `s`.&#34;&#34;&#34;
@@ -1607,6 +1633,7 @@ then "rank" = threshold</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L510-L548" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tsvd(A, threshold=0.99999, avoid_pathological=True):
     &#34;&#34;&#34;Compute the truncated svd.
@@ -1672,6 +1699,7 @@ and Matlab's <code>svd(A,'econ')</code>, both of which always compute the reduce
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L551-L572" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def svd0(A):
     &#34;&#34;&#34;Similar to Matlab&#39;s `svd(A,0)`.
@@ -1705,6 +1733,7 @@ and Matlab's <code>svd(A,'econ')</code>, both of which always compute the reduce
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L575-L579" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def pad0(x, N):
     &#34;&#34;&#34;Pad `x` with zeros so that `len(x)==N`.&#34;&#34;&#34;
@@ -1729,6 +1758,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L582-L596" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def svdi(U, s, VT):
     &#34;&#34;&#34;Reconstruct matrix from `sla.svd` or `tsvd`.
@@ -1757,6 +1787,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L599-L607" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tinv(A, *kargs, **kwargs):
     &#34;&#34;&#34;Psuedo-inverse using `tsvd`.
@@ -1777,6 +1808,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L610-L612" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def trank(A, *kargs, **kwargs):
     &#34;&#34;&#34;Compute rank via `tsvd`, i.e. as &#34;seen&#34; by `tsvd`.&#34;&#34;&#34;
@@ -1791,6 +1823,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L619-L621" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_op():
     &#34;&#34;&#34;Id operator.&#34;&#34;&#34;
@@ -1805,6 +1838,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L624-L627" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_mat(M):
     &#34;&#34;&#34;Id matrix.&#34;&#34;&#34;
@@ -1828,6 +1862,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L630-L668" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linear_model_setup(ModelMatrix, dt0):
     r&#34;&#34;&#34;Make the Dyn/Obs field of a HMM representing a linear model.
@@ -1878,6 +1913,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L671-L680" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def direct_obs_matrix(Nx, obs_inds):
     &#34;&#34;&#34;Generate matrix that &#34;picks&#34; state elements `obs_inds` out of `range(Nx)`.&#34;&#34;&#34;
@@ -1899,6 +1935,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L683-L695" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def partial_Id_Obs(Nx, obs_inds):
     &#34;&#34;&#34;Specify identity observations of a subset of obs. indices.&#34;&#34;&#34;
@@ -1923,6 +1960,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/maths.py#L698-L700" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_Obs(Nx):
     &#34;&#34;&#34;Specify identity observations of entire state.&#34;&#34;&#34;

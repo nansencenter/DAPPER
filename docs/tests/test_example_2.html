@@ -41,6 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L0-L143" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Stupidly compare the full results table.
 
@@ -203,6 +204,7 @@ def test_tables_L96(L96_table, lineno):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L15-L19" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;module&#34;)
 def L63_table():
@@ -219,6 +221,7 @@ def L63_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L22-L48" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def L63_gen():
     from dapper.mods.Lorenz63.sakov2012 import HMM
@@ -257,6 +260,7 @@ def L63_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L74-L75" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_len63(L63_table):
     assert len(L63_old) == len(L63_table)</code></pre>
@@ -270,6 +274,7 @@ def L63_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L78-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize((&#34;lineno&#34;), range(len(L63_old)))
 def test_tables_L63(L63_table, lineno):
@@ -286,6 +291,7 @@ def test_tables_L63(L63_table, lineno):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L88-L116" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;module&#34;)
 def L96_table():
@@ -326,6 +332,7 @@ def L96_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L136-L137" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_len96(L96_table):
     assert len(L96_old) == len(L96_table)</code></pre>
@@ -339,6 +346,7 @@ def L96_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L140-L144" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize((&#34;lineno&#34;), range(len(L96_old)))
 def test_tables_L96(L96_table, lineno):

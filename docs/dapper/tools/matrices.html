@@ -40,6 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L0-L500" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Covariance matrix tools.&#34;&#34;&#34;
 
@@ -615,6 +616,7 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L34-L38" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def randcov(M):
     &#34;&#34;&#34;(Makeshift) random cov mat.&#34;&#34;&#34;
@@ -631,6 +633,7 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L41-L45" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def randcorr(M):
     &#34;&#34;&#34;(Makeshift) random corr mat.&#34;&#34;&#34;
@@ -647,6 +650,7 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L48-L56" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def genOG(M):
     &#34;&#34;&#34;Generate random orthonormal matrix.&#34;&#34;&#34;
@@ -670,6 +674,7 @@ they're not supposed going to be strictly equivalent.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L59-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def genOG_modified(M, opts=(0, 1.0)):
     &#34;&#34;&#34;genOG with modifications.
@@ -735,6 +740,7 @@ they're not supposed going to be strictly equivalent.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L117-L121" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@functools.lru_cache(maxsize=1)
 def basis_beginning_with_ones(ndim):
@@ -752,6 +758,7 @@ Source: ienks code of Sakov/Bocquet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L124-L134" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def genOG_1(N, opts=()):
     &#34;&#34;&#34;
@@ -779,6 +786,7 @@ Source: ienks code of Sakov/Bocquet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L137-L150" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def funm_psd(a, fun, check_finite=False):
     &#34;&#34;&#34;Matrix function evaluation for pos-sem-def mat.
@@ -811,6 +819,7 @@ Source: ienks code of Sakov/Bocquet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L153-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def chol_reduce(Right):
     &#34;&#34;&#34;Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
@@ -855,6 +864,7 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L14-L30" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class lazy_property:
     &#34;&#34;&#34;Lazy evaluation of property.
@@ -935,6 +945,7 @@ if the covariance matrix changes with time (but repeat).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L179-L481" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class CovMat():
     &#34;&#34;&#34;Covariance matrix class.
@@ -1248,6 +1259,7 @@ if the covariance matrix changes with time (but repeat).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L286-L289" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def M(self):
@@ -1261,6 +1273,7 @@ def M(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L291-L294" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def kind(self):
@@ -1274,6 +1287,7 @@ def kind(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L296-L299" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def trunc(self):
@@ -1287,6 +1301,7 @@ def trunc(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L304-L312" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def full(self):
@@ -1308,6 +1323,7 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L314-L320" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def diag(self):
@@ -1325,6 +1341,7 @@ and that its width is somewhere betwen the rank and M.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L322-L329" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Left(self):
@@ -1343,6 +1360,7 @@ and that its height is somewhere betwen the rank and M.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L331-L338" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Right(self):
@@ -1360,6 +1378,7 @@ def Right(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L368-L372" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def ews(self):
@@ -1374,6 +1393,7 @@ def ews(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L374-L378" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def V(self):
@@ -1388,6 +1408,7 @@ def V(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L380-L384" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def rk(self):
@@ -1405,6 +1426,7 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L400-L403" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def sym_sqrt(self):
@@ -1421,6 +1443,7 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L405-L408" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def sym_sqrt_inv(self):
@@ -1437,6 +1460,7 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L410-L413" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def pinv(self):
@@ -1453,6 +1477,7 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L415-L426" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def inv(self):
@@ -1479,6 +1504,7 @@ def inv(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L364-L366" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def has_done_EVD(self):
     &#34;&#34;&#34;Whether or not eigenvalue decomposition has been done for matrix.&#34;&#34;&#34;
@@ -1494,6 +1520,7 @@ def inv(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L389-L398" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def transform_by(self, fun):
     &#34;&#34;&#34;Generalize scalar functions to covariance matrices
