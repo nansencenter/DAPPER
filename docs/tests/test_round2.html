@@ -40,14 +40,14 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L0-L128" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L0-L130" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tests for `round2` and `round2sigfig`.&#34;&#34;&#34;
 
 import numpy as np
 import pytest
 
-import dapper.tools.maths as dm
+from dapper.tools.rounding import round2, round2sigfig
 
 
 class ca(float):
@@ -62,11 +62,13 @@ class ca(float):
     &#34;&#34;&#34;
 
     def __new__(cls, val, tol=1e-5):
+        &#34;&#34;&#34;From &lt;https://stackoverflow.com/q/35943789&gt;.&#34;&#34;&#34;
         self = super().__new__(cls, val)
         self.tol = tol
         return self
 
     def __eq__(self, other):
+        &#34;&#34;&#34;Make equality comparison approximate.&#34;&#34;&#34;
         return np.isclose(self, other, self.tol)
 
 
@@ -156,19 +158,19 @@ lst2 = [
 # print(p)
 # for x in range(10):
 #     x = 148.5 + .1*x
-#     print(f&#34;x: {x:.1f}:&#34;, dm.round2(x, p))
+#     print(f&#34;x: {x:.1f}:&#34;, round2(x, p))
 
 
 @pytest.mark.parametrize(&#34;x, p, y&#34;, lst1)
 def test_round2sigfig(x, p, y):
-    rounded = dm.round2sigfig(x, p)
+    rounded = round2sigfig(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired
 
 
 @pytest.mark.parametrize(&#34;x, p, y&#34;, lst2)
 def test_round2(x, p, y):
-    rounded = dm.round2(x, p)
+    rounded = round2(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired</code></pre>
 </details>
@@ -188,11 +190,11 @@ def test_round2(x, p, y):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L118-L122" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L120-L124" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize(&#34;x, p, y&#34;, lst1)
 def test_round2sigfig(x, p, y):
-    rounded = dm.round2sigfig(x, p)
+    rounded = round2sigfig(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired</code></pre>
 </details>
@@ -205,11 +207,11 @@ def test_round2sigfig(x, p, y):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L125-L129" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L127-L131" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize(&#34;x, p, y&#34;, lst2)
 def test_round2(x, p, y):
-    rounded = dm.round2(x, p)
+    rounded = round2(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired</code></pre>
 </details>
@@ -234,7 +236,7 @@ but it is a fun way.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L9-L26" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L9-L28" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class ca(float):
     &#34;&#34;&#34;Make `==` approximate.
@@ -248,11 +250,13 @@ but it is a fun way.</p></div>
     &#34;&#34;&#34;
 
     def __new__(cls, val, tol=1e-5):
+        &#34;&#34;&#34;From &lt;https://stackoverflow.com/q/35943789&gt;.&#34;&#34;&#34;
         self = super().__new__(cls, val)
         self.tol = tol
         return self
 
     def __eq__(self, other):
+        &#34;&#34;&#34;Make equality comparison approximate.&#34;&#34;&#34;
         return np.isclose(self, other, self.tol)</code></pre>
 </details>
 <h3>Ancestors</h3>

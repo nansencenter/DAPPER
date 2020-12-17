@@ -41,7 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L0-L165" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L0-L166" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;&#34;Unsophisticated&#34; but robust (widely applicable) DA methods.
 
@@ -51,9 +51,10 @@ from typing import Optional
 
 import numpy as np
 
-import dapper.tools.maths as mtools
 import dapper.tools.series as series
 from dapper.admin import da_method
+from dapper.tools.linalg import mrdiv
+from dapper.tools.maths import center
 from dapper.tools.matrices import CovMat
 from dapper.tools.utils import progbar
 
@@ -112,7 +113,7 @@ class OptInterp:
 
                 # Analysis
                 H  = Obs.linear(muC, t)
-                KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
+                KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
                 mu = muC + KG@(yy[kObs] - Obs(muC, t))
 
                 P  = (np.eye(Dyn.M) - KG@H) @ PC
@@ -146,7 +147,7 @@ class Var3D:
 
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
         CC = 2*np.cov(xx.T)
-        L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order=&#39;F&#39;))
+        L  = series.estimate_corr_length(center(xx)[0].ravel(order=&#39;F&#39;))
         P  = X0.C.full
         SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
 
@@ -164,7 +165,7 @@ class Var3D:
 
                 # Analysis
                 H  = Obs.linear(mu, t)
-                KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
+                KG = mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
                 mu = mu + KG@(yy[kObs] - Obs(mu, t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
@@ -237,7 +238,7 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L132-L157" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L133-L158" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def fit_sigmoid(Sb, L, kb):
     &#34;&#34;&#34;Return a sigmoid [function S(k)] for approximating error dynamics.
@@ -282,7 +283,7 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L16-L35" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L17-L36" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@da_method()
 class Climatology:
@@ -322,7 +323,7 @@ class Climatology:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L23-L35" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L24-L36" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     chrono, stats = HMM.t, self.stats
@@ -351,7 +352,7 @@ but with a prior from the Climatology.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L38-L76" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L39-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@da_method()
 class OptInterp:
@@ -385,7 +386,7 @@ class OptInterp:
 
                 # Analysis
                 H  = Obs.linear(muC, t)
-                KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
+                KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
                 mu = muC + KG@(yy[kObs] - Obs(muC, t))
 
                 P  = (np.eye(Dyn.M) - KG@H) @ PC
@@ -410,7 +411,7 @@ class OptInterp:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L45-L76" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L46-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.t, self.stats
@@ -437,7 +438,7 @@ class OptInterp:
 
             # Analysis
             H  = Obs.linear(muC, t)
-            KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
+            KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
             mu = muC + KG@(yy[kObs] - Obs(muC, t))
 
             P  = (np.eye(Dyn.M) - KG@H) @ PC
@@ -460,7 +461,7 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L79-L129" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L80-L130" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@da_method()
 class Var3D:
@@ -487,7 +488,7 @@ class Var3D:
 
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
         CC = 2*np.cov(xx.T)
-        L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order=&#39;F&#39;))
+        L  = series.estimate_corr_length(center(xx)[0].ravel(order=&#39;F&#39;))
         P  = X0.C.full
         SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
 
@@ -505,7 +506,7 @@ class Var3D:
 
                 # Analysis
                 H  = Obs.linear(mu, t)
-                KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
+                KG = mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
                 mu = mu + KG@(yy[kObs] - Obs(mu, t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
@@ -539,7 +540,7 @@ class Var3D:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L90-L129" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L91-L130" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -555,7 +556,7 @@ class Var3D:
 
     # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
     CC = 2*np.cov(xx.T)
-    L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order=&#39;F&#39;))
+    L  = series.estimate_corr_length(center(xx)[0].ravel(order=&#39;F&#39;))
     P  = X0.C.full
     SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
 
@@ -573,7 +574,7 @@ class Var3D:
 
             # Analysis
             H  = Obs.linear(mu, t)
-            KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
+            KG = mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
             mu = mu + KG@(yy[kObs] - Obs(mu, t))
 
             # Re-calibrate fit_sigmoid with new W0 = Pa/B
@@ -594,7 +595,7 @@ class Var3D:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L160-L166" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L161-L167" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@da_method()
 class EnCheat:
@@ -621,7 +622,7 @@ class EnCheat:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L166-L166" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L167-L167" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy): pass</code></pre>
 </details>

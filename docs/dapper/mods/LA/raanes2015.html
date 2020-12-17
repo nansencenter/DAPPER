@@ -46,7 +46,7 @@ additive forecast noise in ensemble methods."</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/raanes2015.py#L0-L100" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/raanes2015.py#L0-L101" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Reproduce results from fig2 of
 Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
@@ -59,7 +59,8 @@ import numpy as np
 import dapper as dpr
 from dapper.mods.LA import Fmat, sinusoidal_sample
 from dapper.mods.Lorenz96 import LPs
-from dapper.tools.maths import center, tsvd
+from dapper.tools.linalg import tsvd
+from dapper.tools.maths import center
 
 # Burn-in allows damp*x and x+noise balance out
 tseq = dpr.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)
@@ -166,7 +167,7 @@ HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/raanes2015.py#L60-L62" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/raanes2015.py#L61-L63" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step(x, t, dt):
     assert dt == tseq.dt

@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L0-L340" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L0-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Variational DA methods (iEnKS, 4D-Var, etc)&#34;&#34;&#34;
 
@@ -52,7 +52,8 @@ from numpy.random import randn
 
 from dapper.admin import da_method
 from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
-from dapper.tools.maths import center, inflate_ens, mean0, pad0, svd0, tinv
+from dapper.tools.linalg import pad0, svd0, tinv
+from dapper.tools.maths import center, inflate_ens, mean0
 from dapper.tools.matrices import CovMat
 from dapper.tools.utils import progbar
 
@@ -505,7 +506,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L24-L232" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L25-L233" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@var_method
 class iEnKS:
@@ -778,7 +779,7 @@ class iEnKS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L92-L232" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L93-L233" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -943,7 +944,7 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L235-L341" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L236-L342" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@var_method
 class Var4D:
@@ -1090,7 +1091,7 @@ class Var4D:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L254-L341" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L255-L342" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
