@@ -3,8 +3,6 @@
 import numpy as np
 
 import dapper.dict_tools as dict_tools
-import dapper.tools.utils as utils
-from dapper.tools.maths import is_int
 
 
 class Chronology():
@@ -64,7 +62,7 @@ class Chronology():
                 assert abs(dtObs - dkObs*dt) < dt*1e-9
             else:
                 raise TypeError('Unable to interpret time setup')
-        assert is_int(dkObs)
+        assert isinstance(dkObs, int)
         if not K:
             if T:
                 K = round(T/dt)
@@ -208,7 +206,7 @@ class Chronology():
         return str(dict_tools.AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):
-        return utils.repr_type_and_name(self) + "\n" + str(self)
+        return "<" + type(self).__name__ + '>' + "\n" + str(self)
 
     ######################################
     # Utilities

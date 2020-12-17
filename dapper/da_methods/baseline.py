@@ -6,9 +6,10 @@ from typing import Optional
 
 import numpy as np
 
-import dapper.tools.maths as mtools
 import dapper.tools.series as series
 from dapper.admin import da_method
+from dapper.tools.linalg import mrdiv
+from dapper.tools.maths import center
 from dapper.tools.matrices import CovMat
 from dapper.tools.utils import progbar
 
@@ -67,7 +68,7 @@ class OptInterp:
 
                 # Analysis
                 H  = Obs.linear(muC, t)
-                KG  = mtools.mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
+                KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
                 mu = muC + KG@(yy[kObs] - Obs(muC, t))
 
                 P  = (np.eye(Dyn.M) - KG@H) @ PC
@@ -101,7 +102,7 @@ class Var3D:
 
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
         CC = 2*np.cov(xx.T)
-        L  = series.estimate_corr_length(mtools.center(xx)[0].ravel(order='F'))
+        L  = series.estimate_corr_length(center(xx)[0].ravel(order='F'))
         P  = X0.C.full
         SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
 
@@ -119,7 +120,7 @@ class Var3D:
 
                 # Analysis
                 H  = Obs.linear(mu, t)
-                KG = mtools.mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
+                KG = mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
                 mu = mu + KG@(yy[kObs] - Obs(mu, t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B

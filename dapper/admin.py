@@ -30,9 +30,9 @@ import dapper.dict_tools as dict_tools
 import dapper.stats
 import dapper.tools.utils as utils
 from dapper.dpr_config import rc
+from dapper.mods.utils import Id_mat, Id_op
 from dapper.tools.chronos import Chronology
 from dapper.tools.localization import no_localization
-from dapper.tools.maths import Id_mat, Id_op
 from dapper.tools.randvars import RV, GaussRV
 from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.stoch import set_seed

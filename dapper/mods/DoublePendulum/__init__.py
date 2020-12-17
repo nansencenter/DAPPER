@@ -12,8 +12,8 @@ import numpy as np
 from numpy import cos, sin
 
 import dapper as dpr
+from dapper.mods.integration import FD_Jac
 from dapper.mods.Lorenz63 import LPs
-from dapper.tools.maths import FD_Jac
 
 G  = 9.8  # acceleration due to gravity, in m/s^2
 L1 = 1.0  # length of pendulum 1 in m

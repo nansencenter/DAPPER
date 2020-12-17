@@ -7,8 +7,7 @@ import scipy.linalg as sla
 from numpy import ones, sqrt, zeros
 from numpy.random import randn
 
-import dapper.tools.utils as utils
-from dapper.tools.maths import mrdiv, svd0, truncate_rank
+from dapper.tools.linalg import mrdiv, svd0, truncate_rank
 
 
 class lazy_property:
@@ -477,7 +476,7 @@ class CovMat():
         with np.printoptions(threshold=0):
             s += "\n diag:\n   " + " " + str(self.diag)
 
-        s = utils.repr_type_and_name(self) + s.replace("\n", "\n  ")
+        s = "<" + type(self).__name__ + '>' + s.replace("\n", "\n  ")
         return s
 
 # Note: The diagonal representation is NOT memory-efficient.

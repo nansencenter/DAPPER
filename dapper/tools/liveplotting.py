@@ -12,6 +12,7 @@ import dapper.tools.utils as utils
 import dapper.tools.viz as viz
 from dapper.dict_tools import DotDict, deep_getattr
 from dapper.dpr_config import rc
+from dapper.mods.utils import linspace_int
 from dapper.tools.chronos import format_time
 from dapper.tools.matrices import CovMat
 from dapper.tools.series import FAUSt, RollingArray
@@ -654,7 +655,7 @@ def sliding_marginals(
         # Chose marginal dims to plot
         if p.dims == []:
             Nx      = min(10, xx.shape[-1])
-            DimsX   = dapper.tools.maths.linspace_int(xx.shape[-1], Nx)
+            DimsX   = linspace_int(xx.shape[-1], Nx)
         else:
             Nx      = len(p.dims)
             DimsX   = p.dims

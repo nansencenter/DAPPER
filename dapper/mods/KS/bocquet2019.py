@@ -3,8 +3,8 @@ import numpy as np
 import dapper as dpr
 from dapper.mods.KS import Model, Tplot
 from dapper.mods.Lorenz96 import LPs
+from dapper.mods.utils import Id_Obs
 from dapper.tools.localization import nd_Id_localization
-from dapper.tools.maths import Id_Obs
 
 KS = Model(dt=0.5)
 Nx = KS.Nx

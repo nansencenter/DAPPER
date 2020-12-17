@@ -3,7 +3,7 @@
 import numpy as np
 
 from dapper.admin import da_method
-from dapper.tools.maths import mrdiv
+from dapper.tools.linalg import mrdiv
 from dapper.tools.utils import progbar
 
 

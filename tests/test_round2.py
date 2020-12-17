@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-import dapper.tools.maths as dm
+from dapper.tools.rounding import round2, round2sigfig
 
 
 class ca(float):
@@ -18,11 +18,13 @@ class ca(float):
     """
 
     def __new__(cls, val, tol=1e-5):
+        """From <https://stackoverflow.com/q/35943789>."""
         self = super().__new__(cls, val)
         self.tol = tol
         return self
 
     def __eq__(self, other):
+        """Make equality comparison approximate."""
         return np.isclose(self, other, self.tol)
 
 
@@ -112,18 +114,18 @@ lst2 = [
 # print(p)
 # for x in range(10):
 #     x = 148.5 + .1*x
-#     print(f"x: {x:.1f}:", dm.round2(x, p))
+#     print(f"x: {x:.1f}:", round2(x, p))
 
 
 @pytest.mark.parametrize("x, p, y", lst1)
 def test_round2sigfig(x, p, y):
-    rounded = dm.round2sigfig(x, p)
+    rounded = round2sigfig(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired
 
 
 @pytest.mark.parametrize("x, p, y", lst2)
 def test_round2(x, p, y):
-    rounded = dm.round2(x, p)
+    rounded = round2(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired

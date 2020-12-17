@@ -9,7 +9,8 @@ import numpy as np
 import dapper as dpr
 from dapper.mods.LA import Fmat, sinusoidal_sample
 from dapper.mods.Lorenz96 import LPs
-from dapper.tools.maths import center, tsvd
+from dapper.tools.linalg import tsvd
+from dapper.tools.maths import center
 
 # Burn-in allows damp*x and x+noise balance out
 tseq = dpr.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)

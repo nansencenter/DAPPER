@@ -7,8 +7,8 @@ from numpy.random import rand, randn
 
 import dapper.tools.multiproc as mp
 from dapper.admin import da_method
-from dapper.tools.maths import (center, mean0, mldiv, mrdiv, pad0, svd0, svdi,
-                                tinv, tsvd)
+from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, svdi, tinv, tsvd
+from dapper.tools.maths import center, mean0
 from dapper.tools.matrices import funm_psd, genOG_1
 from dapper.tools.utils import progbar
 

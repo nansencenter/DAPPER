@@ -22,7 +22,7 @@ import numpy as np
 
 import dapper.mods.Lorenz96 as L96
 import dapper.tools.liveplotting as LP
-from dapper.tools.maths import integrate_TLM
+from dapper.mods.integration import integrate_TLM
 
 
 def reversible(fun):

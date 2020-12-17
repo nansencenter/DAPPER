@@ -1,7 +1,6 @@
 """Utilities (misc, non-math)."""
 
 import contextlib
-import functools
 import inspect
 import os
 import re
@@ -197,42 +196,6 @@ def print_cropped_traceback(ERR):
     msg += "\n\nResuming execution. " \
         "Use `fail_gently=False` to raise exception & halt execution.\n"
     print(msg, file=sys.stderr)
-
-
-def repr_type_and_name(thing):
-    """Print thing's type [and name]"""
-    s = "<" + type(thing).__name__ + '>'
-    if hasattr(thing, 'name'):
-        s += ': ' + thing.name
-    return s
-
-
-# https://stackoverflow.com/q/22797580
-# https://stackoverflow.com/q/10875442
-class NamedFunc():
-    "Provides custom repr for functions."
-
-    def __init__(self, func, name):
-        self._function = func
-        self._old_name = func.__name__
-        self._new_name = name
-        functools.update_wrapper(self, func)
-
-    def __call__(self, *args, **kwargs):
-        return self._function(*args, **kwargs)
-
-    def __str__(self):
-        return self._new_name + "()"
-
-    def __repr__(self):
-        return str(self) + f" <NamedFunc of {self._old_name}>"
-
-
-def name_func(name):
-    """Decorator for creating NamedFunc."""
-    def namer(func):
-        return NamedFunc(func, name)
-    return namer
 
 
 #########################################
