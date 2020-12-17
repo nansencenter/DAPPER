@@ -136,7 +136,7 @@ def magic_naming(*args, **kwargs):
     &gt;&gt;&gt; a,b,c = 1,2,3
     &gt;&gt;&gt; dct = magic_naming(a,b,c,d=e)
     &#34;&#34;&#34;
-    call, argnames, locvars = get_call()  # pylint: disable=unused-variable
+    call, argnames, locvars = get_call()
     assert len(args) == len(argnames), &#34;Something&#39;s gone wrong.&#34;
 
     # Obsolete (works with call rather than argnames).
@@ -329,7 +329,7 @@ we get actual argnames and dont need to resort to regex.</p></div>
     &gt;&gt;&gt; a,b,c = 1,2,3
     &gt;&gt;&gt; dct = magic_naming(a,b,c,d=e)
     &#34;&#34;&#34;
-    call, argnames, locvars = get_call()  # pylint: disable=unused-variable
+    call, argnames, locvars = get_call()
     assert len(args) == len(argnames), &#34;Something&#39;s gone wrong.&#34;
 
     # Obsolete (works with call rather than argnames).
