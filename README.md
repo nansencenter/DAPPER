@@ -33,7 +33,7 @@ The typical set-up is a **synthetic (twin) experiment**, where you
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge&logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
-[![Github HitCount](http://hits.dwyl.com/nansencenter/DAPPER.svg)](http://hits.dwyl.com/nansencenter/DAPPER)
+[![Github HitCount](https://views.whatilearened.today/views/github/nansencenter/DAPPER.svg)](https://views.whatilearened.today/views/github/nansencenter/DAPPER)
 
 
 ## Highlights
