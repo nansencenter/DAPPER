@@ -252,11 +252,11 @@ Name               | Developers            | Purpose (approximately)
 [DASoftware][13]   | Yue Li, Stanford      | Matlab, large-scale
 [Pomp][18]         | U of Michigan         | R, general state-estimation
 [PyIT][14]         | CIPR                  | Real-world petroleum DA (?)
-Datum              | Raanes                | Matlab, personal publications
 [EnKF-Matlab][15]  | Sakov                 | Matlab, personal publications and intro
 [EnKF-C][17]       | Sakov                 | C, light-weight EnKF, off-line
-IEnKS code         | Bocquet               | Python, personal publications
 [pyda][16]         | Hickman               | Python, personal publications
+Datum              | Raanes                | Matlab, personal publications
+IEnKS code         | Bocquet               | Python, personal publications
 
 The `EnKF-Matlab` and `IEnKS` codes have been inspirational
 in the development of DAPPER.
