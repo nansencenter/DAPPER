@@ -2,13 +2,12 @@
 
 import matplotlib as mpl
 import numpy as np
+import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 from numpy import arange, nan, ones
 
-import dapper.tools.maths
-import dapper.tools.utils as utils
 import dapper.tools.viz as viz
 from dapper.dict_tools import DotDict, deep_getattr
 from dapper.dpr_config import rc
@@ -16,6 +15,7 @@ from dapper.mods.utils import linspace_int
 from dapper.tools.chronos import format_time
 from dapper.tools.matrices import CovMat
 from dapper.tools.series import FAUSt, RollingArray
+from dapper.tools.utils import read1
 from dapper.tools.viz import freshfig, not_available_text, plot_pause
 
 
@@ -161,7 +161,7 @@ class LivePlot:
 
         def pause():
             "Loop until user decision is made."
-            ch = utils.read1()
+            ch = read1()
             while True:
                 # Set state (pause, skipping, ipdb)
                 if ch in ENTERs:
@@ -171,7 +171,7 @@ class LivePlot:
                 # If keypress valid, resume execution
                 if ch in ENTERs + [SPACE, CHAR_I]:
                     break
-                ch = utils.read1()
+                ch = read1()
                 # Pause to enable zoom, pan, etc. of mpl GUI
                 plot_pause(0.01)  # Don't use time.sleep()!
 
@@ -184,7 +184,7 @@ class LivePlot:
                 # Skip read1 for key0 (coz it blocks)
                 pass
             else:
-                ch = utils.read1()
+                ch = read1()
                 if ch == SPACE:
                     # Pause
                     self.paused = True
@@ -618,10 +618,28 @@ class correlations:
         # Plot
         self.im.set_data(C)
         # Auto-corr function
-        ACF = dapper.tools.maths.circulant_ACF(C)
-        AAF = dapper.tools.maths.circulant_ACF(C, do_abs=True)
+        ACF = circulant_ACF(C)
+        AAF = circulant_ACF(C, do_abs=True)
         self.line_AC.set_ydata(ACF)
         self.line_AA.set_ydata(AAF)
+
+
+def circulant_ACF(C, do_abs=False):
+    """Compute the auto-covariance-function corresponding to `C`.
+
+    This assumes it is the cov/corr matrix of a 1D periodic domain.
+    """
+    M = len(C)
+    # cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
+    cols = sla.circulant(np.arange(M))
+    ACF = np.zeros(M)
+    for i in range(M):
+        row = C[i, cols[i]]
+        if do_abs:
+            row = abs(row)
+        ACF += row
+        # Note: this actually also accesses masked values in C.
+    return ACF/M
 
 
 def sliding_marginals(

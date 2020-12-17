@@ -8,7 +8,6 @@ from numpy import nan
 import dapper.tools.utils as utils
 from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
-from dapper.tools.maths import center
 from dapper.tools.rounding import log10int, round2, round2sigfig
 
 
@@ -24,7 +23,7 @@ def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
     assert nlags < len(xx)
 
     N = len(xx)
-    A = xx if zero_mean else center(xx)[0]
+    A = xx if zero_mean else (xx - xx.mean(0))
     acovf = np.zeros((nlags+1,)+xx.shape[1:])
 
     for i in range(nlags+1):

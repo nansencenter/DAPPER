@@ -154,7 +154,7 @@ def chol_reduce(Right):
 
     Example::
 
-    >>> A = dpr.mean0(randn(20,5),axis=1)
+    >>> A = mean0(randn(20,5),axis=1)
     >>> C = A.T @ A
     >>> # sla.cholesky(C) throws error
     >>> R = chol_reduce(A)

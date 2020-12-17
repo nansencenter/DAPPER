@@ -10,7 +10,6 @@ import dapper as dpr
 from dapper.mods.LA import Fmat, sinusoidal_sample
 from dapper.mods.Lorenz96 import LPs
 from dapper.tools.linalg import tsvd
-from dapper.tools.maths import center
 
 # Burn-in allows damp*x and x+noise balance out
 tseq = dpr.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)
@@ -42,7 +41,7 @@ except FileNotFoundError:
           'for experiment initialization. Generating...')
     NQ        = 20000  # Must have NQ > (2*wnumQ+1)
     A         = sinusoidal_sample(Nx, wnumQ, NQ)
-    A         = 1/10 * center(A)[0] / np.sqrt(NQ)
+    A         = 1/10 * (A - A.mean(0)) / np.sqrt(NQ)
     Q         = A.T @ A
     U, s, _     = tsvd(Q)
     L         = U*np.sqrt(s)

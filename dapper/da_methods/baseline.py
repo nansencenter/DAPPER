@@ -9,9 +9,10 @@ import numpy as np
 import dapper.tools.series as series
 from dapper.admin import da_method
 from dapper.tools.linalg import mrdiv
-from dapper.tools.maths import center
 from dapper.tools.matrices import CovMat
 from dapper.tools.utils import progbar
+
+from .utils import center
 
 
 @da_method()

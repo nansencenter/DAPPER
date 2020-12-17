@@ -10,9 +10,9 @@ import dapper.dict_tools as dict_tools
 import dapper.tools.liveplotting as liveplotting
 import dapper.tools.series as series
 import dapper.tools.utils as utils
+from dapper.da_methods.utils import unbias_var
 from dapper.dict_tools import DotDict
 from dapper.dpr_config import rc
-from dapper.tools.maths import unbias_var
 from dapper.tools.matrices import CovMat
 from dapper.tools.series import DataSeries, StatPrint
 

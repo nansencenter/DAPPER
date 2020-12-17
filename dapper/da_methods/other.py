@@ -2,13 +2,13 @@
 
 import numpy as np
 
-import dapper.tools.maths as mtools
 from dapper.da_methods.ensemble import add_noise, post_process, serial_inds
 from dapper.da_methods.particle import reweight
 from dapper.tools.matrices import funm_psd
 from dapper.tools.utils import progbar
 
 from .ensemble import ens_method
+from .utils import center
 
 
 @ens_method
@@ -41,7 +41,7 @@ class RHF:
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E)
                 y    = yy[kObs]
-                inds = serial_inds(self.ordr, y, R, mtools.center(E)[0])
+                inds = serial_inds(self.ordr, y, R, center(E)[0])
 
                 for i, j in enumerate(inds):
                     Eo = Obs(E, t)
