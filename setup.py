@@ -37,8 +37,8 @@ EXTRAS = {
     'dev': ['line_profiler', 'pdbpp', 'pre-commit'],
     'test': ['pytest', 'pytest-cov', 'coverage',
              'pytest-sugar', 'pytest-benchmark', 'pytest-clarity', 'pytest-xdist'],
-    'lint': ['flake8', 'flakehell', 'flake8-docstrings',
-             'flake8-bugbear', 'flake8-comprehensions'],
+    'lint': ['flake8', 'flakehell'],
+    # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
     'build': ['twine', 'pdoc3'],
 }
 EXTRAS['dev'] += EXTRAS['test'] + EXTRAS['lint'] + EXTRAS['build']
