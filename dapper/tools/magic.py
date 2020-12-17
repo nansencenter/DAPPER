@@ -93,7 +93,7 @@ def magic_naming(*args, **kwargs):
     >>> a,b,c = 1,2,3
     >>> dct = magic_naming(a,b,c,d=e)
     """
-    call, argnames, locvars = get_call()  # pylint: disable=unused-variable
+    call, argnames, locvars = get_call()
     assert len(args) == len(argnames), "Something's gone wrong."
 
     # Obsolete (works with call rather than argnames).

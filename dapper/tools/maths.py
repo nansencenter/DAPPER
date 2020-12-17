@@ -1,5 +1,4 @@
 """Math tools: integrators, linear algebra, and convenience funcs."""
-# pylint: disable=unused-argument
 
 import functools
 
@@ -14,9 +13,8 @@ import dapper.tools.utils as utils
 # Ensemble matrix manip
 ########################
 def ens_compatible(func):
-    """Decorator to apply the tranpose before and after `func`.
+    """Decorate to transpose before after, i.e. `func(input.T).T`.
 
-    Specifically, the transpose is applied to the first argument, and the output.
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
     .. note:: this is not the_way™ -- other tricks are sometimes more practical.
@@ -25,7 +23,7 @@ def ens_compatible(func):
     --------
     `dapper.mods.Lorenz63.dxdt`, `dapper.mods.DoublePendulum.dxdt`
 
-    See also
+    See Also
     --------
     np.atleast_2d, np.squeeze, np.vectorize
     """
@@ -62,12 +60,12 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    "Same as `center(E,rescale=True)[0]`"
+    """Center, but only return the anomalies (not the mean)."""
     return center(E, axis=axis, rescale=rescale)[0]
 
 
 def inflate_ens(E, factor):
-    "Inflate the ensemble (center, inflate, re-combine)."
+    """Inflate the ensemble (center, inflate, re-combine)."""
     if factor == 1:
         return E
     X, x = center(E)
@@ -75,7 +73,7 @@ def inflate_ens(E, factor):
 
 
 def weight_degeneracy(w, prec=1e-10):
-    "Are weights degenerate?"
+    """Check if the weights are degenerate."""
     return (1-w.max()) < prec
 
 
@@ -106,7 +104,6 @@ def rk4(f, x, t, dt, order=4):
     order: int
         The order of the scheme.
     """
-    # pylint: disable=R1705, W0311
     if order >=1: k1 = dt * f(t     , x)                        # noqa
     if order >=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
     if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
@@ -122,7 +119,7 @@ def rk4(f, x, t, dt, order=4):
 
 
 def with_rk4(dxdt, autonom=False, order=4):
-    """Wrap `dxdt` in `rk4`"""
+    """Wrap `dxdt` in `rk4`."""
     integrator = functools.partial(rk4, order=order)
     if autonom:
         def step(x0, t0, dt):
@@ -176,13 +173,13 @@ def with_recursion(func, prog=False):
 
 
 def integrate_TLM(TLM, dt, method='approx'):
-    """Compute the resolvent.
+    r"""Compute the resolvent.
 
     The resolvent may also be called
 
     - the Jacobian of the step func.
     - the integral of (with *M* as the TLM):
-      $$ \\frac{d U}{d t} = M U, \\quad U_0 = I .$$
+      $$ \frac{d U}{d t} = M U, \quad U_0 = I .$$
 
     .. note:: the tangent linear model (TLM)
               is assumed constant (for each `method` below).
@@ -196,7 +193,7 @@ def integrate_TLM(TLM, dt, method='approx'):
 
     .. caution:: 'analytic' typically requries higher inflation in the ExtKF.
 
-    See also
+    See Also
     --------
     FD_Jac.
     """
@@ -216,7 +213,7 @@ def integrate_TLM(TLM, dt, method='approx'):
 
 
 def FD_Jac(func, eps=1e-7):
-    """Finite-diff approx. of a function
+    """Finite-diff approx. of Jacobian of `func`.
 
     The function `func(x)` must be compatible with `x.ndim == 1` and `2`,
     where, in the 2D case, each row is seen as one function input.
@@ -229,8 +226,7 @@ def FD_Jac(func, eps=1e-7):
 
     Examples
     --------
-    >>>
-    >> dstep_dx = FD_Jac(step)
+    >>> dstep_dx = FD_Jac(step) # doctest: +SKIP
     """
     def Jac(x, *args, **kwargs):
         def f(y):
@@ -305,7 +301,6 @@ def log10int(x):
     >>> log10int([1e-1, 1e-2, 1, 3, 10, np.inf, -np.inf, np.nan])
     array([  -1,   -2,    0,    0,    1,  300, -300, -300])
     """
-
     # Extreme cases -- https://stackoverflow.com/q/65248379
     if np.isnan(x):
         y = -300
@@ -321,22 +316,21 @@ def log10int(x):
 
 @np_vectorize
 def round2(x, prec=1.0):
-    """Round to a nice precision, namely
-
-    $$ 10^{\\text{floor}(-\\log_{10}|\\text{prec}|)} $$
+    r"""Round to a nice precision.
 
     Parameters
     ----------
     x : array_like
           Value to be rounded.
-    prec
-        Precision, before prettify.
+    prec: float
+        Precision, before prettify, which is given by
+        $$ \text{prec} = 10^{\text{floor}(-\log_{10}|\text{prec}|)} $$
 
     Returns
     -------
     Rounded value (always a float).
 
-    See also
+    See Also
     --------
     round2sigfig
 
@@ -370,7 +364,7 @@ def round2sigfig(x, sigfig=1):
     -------
     rounded value (always a float).
 
-    See also
+    See Also
     --------
     np.round : rounds to a given number of *decimals*.
     round2 : rounds to a given *precision*.
@@ -402,7 +396,7 @@ def is_whole(x, **kwargs):
 
 
 def validate_int(x):
-    """Combines `is_whole` and `round`."""
+    """Combine `is_whole` and `round`."""
     assert is_whole(x)
     return round(x)  # convert to int
 
@@ -412,7 +406,8 @@ def isNone(x):
 
     Since python3.8 `x is None` throws warning.
 
-    Ref: `np.isscalar` docstring."""
+    Ref: `np.isscalar` docstring.
+    """
     return np.ndim(x) == 0 and x == None
 
 
@@ -420,7 +415,7 @@ def isNone(x):
 # Misc
 ########################
 def linspace_int(Nx, Ny, periodic=True):
-    """Provide a range of `Ny` equispaced integers between `0` and `Nx-1`"""
+    """Provide a range of `Ny` equispaced integers between `0` and `Nx-1`."""
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
     else:
@@ -430,26 +425,24 @@ def linspace_int(Nx, Ny, periodic=True):
 
 
 def curvedspace(start, end, N, curvature=1):
-    """A length (func. of curvature) of logspace, normlzd to [start,end]
+    """Take a segment of logspace, and scale it to [start,end].
 
     Parameters
     ----------
     curvature: float
         Special cases:
 
-        - 0 produces linspace (start,end,N)
-        - +1 produces geomspace(start,end,N)
-        - -1 produces same as `+1`, but reflected about y=x
+        - 0 produces `linspace(start, end, N)`
+        - +1 produces `geomspace(start, end, N)`
+        - -1 produces same as `+1`, but reflected about `y=x`
 
     Examples
     --------
-    >>>
-    >> fig, ax = plt.subplots()
-    >> ax.plot(np.geomspace(1e-1, 10, 201) ,label="geomspace")
-    >> ax.plot(np.linspace (1e-1, 10, 201) ,label="linspace")
-    >> ax.plot( curvedspace(1e-1, 10, 201, 0.5),'y--')
+    >>> plt.plot(np.geomspace(1e-1, 10, 201) ,label="geom") # doctest: +SKIP
+    >>> plt.plot(np.linspace (1e-1, 10, 201) ,label="lin")  # doctest: +SKIP
+    >>> plt.plot(curvedspace (1e-1, 10, 201, 0.5),'y--')    # doctest: +SKIP
 
-    See also
+    See Also
     --------
     linspace_int, np.logspace, np.geomspace
     """
@@ -468,7 +461,8 @@ def curvedspace(start, end, N, curvature=1):
 def circulant_ACF(C, do_abs=False):
     """Compute the auto-covariance-function corresponding to `C`.
 
-    This assumes it is the cov/corr matrix of a 1D periodic domain."""
+    This assumes it is the cov/corr matrix of a 1D periodic domain.
+    """
     M = len(C)
     # cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
     cols = sla.circulant(np.arange(M))
@@ -486,17 +480,17 @@ def circulant_ACF(C, do_abs=False):
 # Linear Algebra
 ########################
 def mrdiv(b, A):
-    """b/A"""
+    """b/A."""
     return sla.solve(A.T, b.T).T
 
 
 def mldiv(A, b):
-    """A \\ b"""
+    r"""A\b."""
     return sla.solve(A, b)
 
 
 def truncate_rank(s, threshold, avoid_pathological):
-    "Find `r` such that `s[:r]` contains the threshold proportion of `s`."
+    """Find `r` such that `s[:r]` contains the threshold proportion of `s`."""
     assert isinstance(threshold, float)
     if threshold == 1.0:
         r = len(s)
@@ -514,7 +508,7 @@ def truncate_rank(s, threshold, avoid_pathological):
 
 
 def tsvd(A, threshold=0.99999, avoid_pathological=True):
-    """Truncated svd.
+    """Compute the truncated svd.
 
     Also automates 'full_matrices' flag.
 
@@ -568,7 +562,7 @@ def svd0(A):
     and Matlab's `svd(A,'econ')`, both of which always compute the reduced svd.
 
 
-    See also
+    See Also
     --------
     tsvd : rank (and threshold) truncation.
     """
@@ -579,7 +573,7 @@ def svd0(A):
 
 
 def pad0(x, N):
-    "Pad `x` with zeros so that `len(x)==N`."
+    """Pad `x` with zeros so that `len(x)==N`."""
     out = np.zeros(N)
     out[:len(x)] = x
     return out
@@ -595,7 +589,7 @@ def svdi(U, s, VT):
     >>> np.allclose(A, B)
     True
 
-    See also
+    See Also
     --------
     sla.diagsvd
     """
@@ -605,7 +599,7 @@ def svdi(U, s, VT):
 def tinv(A, *kargs, **kwargs):
     """Psuedo-inverse using `tsvd`.
 
-    See also
+    See Also
     --------
     sla.pinv2.
     """
@@ -623,12 +617,12 @@ def trank(A, *kargs, **kwargs):
 ########################
 
 def Id_op():
-    "Id operator."
+    """Id operator."""
     return utils.NamedFunc(lambda *args: args[0], "Id operator")
 
 
 def Id_mat(M):
-    "Id matrix."
+    """Id matrix."""
     Id = np.eye(M)
     return utils.NamedFunc(lambda x, t: Id, "Id("+str(M)+") matrix")
 
@@ -652,9 +646,8 @@ def linear_model_setup(ModelMatrix, dt0):
 
     Returns
     -------
-    Data container (`dict`) with keys: 'M', 'model', 'linear'.
+    A `dict` with keys: 'M', 'model', 'linear'.
     """
-
     Mat = np.asarray(ModelMatrix)  # does not support sparse and matrix-class
 
     # Compute and cache ModelMatrix^(dt/dt0).
@@ -676,7 +669,7 @@ def linear_model_setup(ModelMatrix, dt0):
 
 
 def direct_obs_matrix(Nx, obs_inds):
-    """Matrix that "picks" state elements obs_inds out of range(Nx)"""
+    """Generate matrix that "picks" state elements `obs_inds` out of `range(Nx)`."""
     Ny = len(obs_inds)
     H = np.zeros((Ny, Nx))
     H[range(Ny), obs_inds] = 1
@@ -688,7 +681,7 @@ def direct_obs_matrix(Nx, obs_inds):
 
 
 def partial_Id_Obs(Nx, obs_inds):
-    "Id observations of a subset of obs. indices."
+    """Specify identity observations of a subset of obs. indices."""
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
@@ -703,5 +696,5 @@ def partial_Id_Obs(Nx, obs_inds):
 
 
 def Id_Obs(Nx):
-    "Id obs of entire state."
+    """Specify identity observations of entire state."""
     return partial_Id_Obs(Nx, np.arange(Nx))
