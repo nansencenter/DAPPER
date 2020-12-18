@@ -139,7 +139,7 @@ xx = with_recursion(step, prog="Reference")(x, K, t0, dt)
 # ACF
 ########################
 # NB: Won't work with QG (too big, and BCs==0).
-fig, ax = dpr.freshfig(4)
+fig, ax = viz.freshfig(4)
 if "ii" not in locals():
     ii = np.arange(min(100, Nx))
 if "nlags" not in locals():
