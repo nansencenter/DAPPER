@@ -32,10 +32,12 @@ per-file-ignores=
     tests/test_data.py:E501,W291
     tests/test_example_2.py:E501,E402
     example_2.py:E402,E201,E231
+    example_3.py:C408
     miyoshi2011.py:E501
 
 exclude=
     dapper/__init__.py
+    dapper/da_methods/__init__.py
     autoscaler.py
     scripts/*
     docs/*

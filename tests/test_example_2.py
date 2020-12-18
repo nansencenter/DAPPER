@@ -5,6 +5,7 @@ Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail."""
 import pytest
 
 import dapper as dpr
+import dapper.da_methods as da
 
 statkeys = ["err.rms.a", "err.rms.f", "err.rms.u"]
 
@@ -29,19 +30,19 @@ def L63_gen():
 
     # xps
     xps = dpr.xpList()
-    xps += dpr.Climatology()
-    xps += dpr.OptInterp()
-    xps += dpr.Var3D(xB=0.1)
-    xps += dpr.ExtKF(infl=90)
-    xps += dpr.EnKF("Sqrt", N=3, infl=1.30)
-    xps += dpr.EnKF("Sqrt", N=10, infl=1.02, rot=True)
-    xps += dpr.EnKF("PertObs", N=500, infl=0.95, rot=False)
-    xps += dpr.EnKF_N(N=10, rot=True)
-    xps += dpr.iEnKS("Sqrt", N=10, infl=1.02, rot=True)
-    xps += dpr.PartFilt(N=100, reg=2.4, NER=0.3)
-    xps += dpr.PartFilt(N=800, reg=0.9, NER=0.2)
-    xps += dpr.PartFilt(N=4000, reg=0.7, NER=0.05)
-    xps += dpr.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
+    xps += da.Climatology()
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.1)
+    xps += da.ExtKF(infl=90)
+    xps += da.EnKF("Sqrt", N=3, infl=1.30)
+    xps += da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
+    xps += da.EnKF("PertObs", N=500, infl=0.95, rot=False)
+    xps += da.EnKF_N(N=10, rot=True)
+    xps += da.iEnKS("Sqrt", N=10, infl=1.02, rot=True)
+    xps += da.PartFilt(N=100, reg=2.4, NER=0.3)
+    xps += da.PartFilt(N=800, reg=0.9, NER=0.2)
+    xps += da.PartFilt(N=4000, reg=0.7, NER=0.05)
+    xps += da.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
 
     # Run
     xps.launch(HMM, False, store_u=True)
@@ -96,19 +97,19 @@ def L96_table():
 
     # xps
     xps = dpr.xpList()
-    xps += dpr.Climatology()
-    xps += dpr.OptInterp()
-    xps += dpr.Var3D(xB=0.02)
-    xps += dpr.ExtKF(infl=6)
-    xps += dpr.EnKF("PertObs", N=40, infl=1.06)
-    xps += dpr.EnKF("Sqrt", N=28, infl=1.02, rot=True)
+    xps += da.Climatology()
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.02)
+    xps += da.ExtKF(infl=6)
+    xps += da.EnKF("PertObs", N=40, infl=1.06)
+    xps += da.EnKF("Sqrt", N=28, infl=1.02, rot=True)
 
-    xps += dpr.EnKF_N(N=24, rot=True)
-    xps += dpr.EnKF_N(N=24, rot=True, xN=2)
-    xps += dpr.iEnKS("Sqrt", N=40, infl=1.01, rot=True)
+    xps += da.EnKF_N(N=24, rot=True)
+    xps += da.EnKF_N(N=24, rot=True, xN=2)
+    xps += da.iEnKS("Sqrt", N=40, infl=1.01, rot=True)
 
-    xps += dpr.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
-    xps += dpr.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
+    xps += da.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
+    xps += da.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
 
     xps.launch(HMM, store_u=True)
 

@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 import dapper as dpr
+import dapper.da_methods as da
 from dapper.dict_tools import deep_getattr
 
 
@@ -21,18 +22,18 @@ def data():
     xps = dpr.xpList(unique=True)
 
     # yapf: disable
-    xps += dpr.EnKF('Sqrt',    N=20)
-    xps += dpr.EnKF('PertObs', N=20)
-    xps += dpr.EnKF('DEnKF',   N=20)
+    xps += da.EnKF('Sqrt',    N=20)
+    xps += da.EnKF('PertObs', N=20)
+    xps += da.EnKF('DEnKF',   N=20)
     for Lag in [0, 1, 3]:
-        xps += dpr.EnKS('Sqrt',    N=20, Lag=Lag)
-        xps += dpr.EnKS('PertObs', N=20, Lag=Lag)
-        xps += dpr.EnKS('DEnKF',   N=20, Lag=Lag)
+        xps += da.EnKS('Sqrt',    N=20, Lag=Lag)
+        xps += da.EnKS('PertObs', N=20, Lag=Lag)
+        xps += da.EnKS('DEnKF',   N=20, Lag=Lag)
         for nIter in [1, 4]:
             for MDA in [False, True]:
-                xps += dpr.iEnKS('Sqrt',    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-                xps += dpr.iEnKS('PertObs', N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-                xps += dpr.iEnKS('Order1',  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS('Sqrt',    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS('PertObs', N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS('Order1',  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
     # yapf: enable
 
     for xp in xps:
@@ -171,13 +172,13 @@ def test_Order1_nIter1_Lag0_u(data):
 
 
 def test_Order1_nIter1_Lag1_u(data):
-    ii = data.inds(da=dpr.EnKS, upd_a='DEnKF', Lag=1) +\
+    ii = data.inds(da=da.EnKS, upd_a='DEnKF', Lag=1) +\
          data.inds(upd_a='Order1', Lag=1, nIter=1)
     assert _allsame(_rmse(data, 'u', ii))
 
 
 def test_Order1_nIter1_Lag3_u(data):
-    ii = data.inds(da=dpr.EnKS, upd_a='DEnKF', Lag=3) +\
+    ii = data.inds(da=da.EnKS, upd_a='DEnKF', Lag=3) +\
          data.inds(upd_a='Order1', Lag=3, nIter=1)
     assert _allsame(_rmse(data, 'u', ii))
 

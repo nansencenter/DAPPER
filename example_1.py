@@ -1,8 +1,10 @@
 """Illustrate usage of DAPPER to (interactively) run a 'twin experiment'."""
 
 import dapper as dpr
+import dapper.da_methods as da
+
 # Load experiment setup: the hidden Markov model (HMM)
-from dapper.mods.Lorenz63.sakov2012 import HMM
+from dapper.mods.Lorenz63.sakov2012 import HMM  # isort:skip
 
 # Generate the same random numbers every time
 dpr.set_seed(3000)
@@ -13,9 +15,9 @@ HMM.t.T = 30  # shorten experiment
 xx, yy = HMM.simulate()
 
 # Specify a DA method configuration ("xp" for "experiment")
-xp = dpr.EnKF('Sqrt', N=10, infl=1.02, rot=True)
-# xp = dpr.Var3D()
-# xp = dpr.PartFilt(N=100,reg=2.4,NER=0.3)
+xp = da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
+# xp = da.Var3D()
+# xp = da.PartFilt(N=100,reg=2.4,NER=0.3)
 
 # Assimilate yy, knowing the HMM; xx is used to assess the performance
 xp.assimilate(HMM, xx, yy, liveplots=True)

@@ -97,17 +97,11 @@ __version__ = "1.0.0"
 
 import sys
 
+# TODO 4: rm little-used imports.
 from dapper.tools.series import UncertainQtty
 
 from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
                     seed_and_simulate, xpList)
-from .da_methods.baseline import Climatology, OptInterp, Var3D
-# DA methods
-from .da_methods.ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
-from .da_methods.extended import ExtKF, ExtRTS
-from .da_methods.other import LNETF, RHF
-from .da_methods.particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
-from .da_methods.variational import Var4D, iEnKS
 from .data_management import (default_fig_adjustments, default_styles,
                               discretize_cmap, load_xps, make_label, rel_index,
                               xpSpace)

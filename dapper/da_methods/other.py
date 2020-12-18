@@ -4,11 +4,11 @@ import numpy as np
 
 from dapper.da_methods.ensemble import add_noise, post_process, serial_inds
 from dapper.da_methods.particle import reweight
+from dapper.stats import center
 from dapper.tools.matrices import funm_psd
 from dapper.tools.utils import progbar
 
 from .ensemble import ens_method
-from .utils import center
 
 
 @ens_method

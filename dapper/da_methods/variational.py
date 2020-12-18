@@ -8,11 +8,10 @@ from numpy.random import randn
 
 from dapper.admin import da_method
 from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
+from dapper.stats import center, inflate_ens, mean0
 from dapper.tools.linalg import pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
 from dapper.tools.utils import progbar
-
-from .utils import center, inflate_ens, mean0
 
 
 @da_method

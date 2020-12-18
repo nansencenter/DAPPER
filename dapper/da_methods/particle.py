@@ -5,11 +5,10 @@ from numpy.random import rand, randn
 
 import dapper.tools.utils as utils
 from dapper.admin import da_method
+from dapper.stats import unbias_var, weight_degeneracy
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, tinv
 from dapper.tools.matrices import chol_reduce, funm_psd
 from dapper.tools.utils import progbar
-
-from .utils import unbias_var, weight_degeneracy
 
 
 @da_method
