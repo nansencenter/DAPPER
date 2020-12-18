@@ -13,9 +13,9 @@ import dill
 import matplotlib as mpl
 import numpy as np
 from matplotlib import cm, ticker
+from tqdm import tqdm
 
 import dapper.dict_tools as dict_tools
-import dapper.tools.progressbar as pbar
 import dapper.tools.remote.uplink as uplink
 import dapper.tools.utils as utils
 from dapper.admin import xpList
@@ -165,7 +165,7 @@ def load_xps(save_as):
 
     print("Loading %d files from %s" % (len(files), save_as))
     xps = []  # NB: progbar wont clean up properly w/ list compr.
-    for f in pbar.progbar(files, desc="Loading"):
+    for f in tqdm(files, desc="Loading"):
         xps.extend(load_any(f))
 
     if len(xps) < len(files):
@@ -200,7 +200,7 @@ def save_xps(xps, save_as, nDir=100):
     save_as.mkdir(parents=False, exist_ok=False)
 
     splitting = np.array_split(xps, nDir)
-    for i, sub_xps in enumerate(pbar.tqdm.tqdm(splitting, desc="Saving")):
+    for i, sub_xps in enumerate(tqdm(splitting, desc="Saving")):
         if len(sub_xps):
             iDir = save_as / str(i)
             os.mkdir(iDir)
@@ -213,8 +213,8 @@ def overwrite_xps(xps, save_as, nDir=100):
     save_xps(xps, save_as/"tmp", nDir)
 
     # Delete
-    for d in pbar.tqdm.tqdm(uplink.list_job_dirs(save_as),
-                            desc="Deleting old"):
+    for d in tqdm(uplink.list_job_dirs(save_as),
+                  desc="Deleting old"):
         shutil.rmtree(d)
 
     # Mv up from tmp/ -- goes quick, coz there are not many.

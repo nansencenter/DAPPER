@@ -8,12 +8,12 @@ from matplotlib import pyplot as plt
 
 import dapper.dict_tools as dict_tools
 import dapper.tools.liveplotting as liveplotting
-import dapper.tools.progressbar as pbar
 import dapper.tools.series as series
 import dapper.tools.utils as utils
 from dapper.dict_tools import DotDict
 from dapper.dpr_config import rc
 from dapper.tools.matrices import CovMat
+from dapper.tools.progressbar import progbar
 from dapper.tools.series import DataSeries, StatPrint
 
 
@@ -442,7 +442,7 @@ class Stats(StatPrint):
         desc = self.xp.da_method + " (replay)"
 
         # Play through assimilation cycles
-        for k, kObs, t, dt in pbar.progbar(chrono.ticker, desc):
+        for k, kObs, t, dt in progbar(chrono.ticker, desc):
             if t1 <= t <= t2:
                 if kObs is not None:
                     LP.update((k, kObs, 'f'), None, None)
