@@ -12,10 +12,10 @@ import colorama
 import dill
 import matplotlib as mpl
 import numpy as np
+import struct_tools
 from matplotlib import cm, ticker
 from tqdm import tqdm
 
-import dapper.dict_tools as dict_tools
 import dapper.tools.remote.uplink as uplink
 import dapper.tools.utils as utils
 from dapper.admin import xpList
@@ -43,7 +43,7 @@ def make_label(coord, no_key=NO_KEY, exclude=()):
 
 def default_styles(coord, baseline_legends=False):
     """Quick and dirty (but somewhat robust) styling."""
-    style = dict_tools.DotDict(ms=8)
+    style = struct_tools.DotDict(ms=8)
     style.label = make_label(coord)
 
     try:
@@ -393,7 +393,7 @@ class SparseSpace(dict):
         # txt += " befitting the coord. sys. with axes "
         txt += "\nplaced in a coord-sys with axes "
         try:
-            txt += "(and ticks):" + str(dict_tools.AlignedDict(self.ticks))
+            txt += "(and ticks):" + str(struct_tools.AlignedDict(self.ticks))
         except AttributeError:
             txt += ":\n" + str(self.axes)
         return txt
@@ -416,10 +416,10 @@ class SparseSpace(dict):
         # Validate axes
         if inner_axes is None:
             assert outer_axes is not None
-            inner_axes = dict_tools.complement(self.axes, outer_axes)
+            inner_axes = struct_tools.complement(self.axes, outer_axes)
         else:
             assert outer_axes is None
-            outer_axes = dict_tools.complement(self.axes, inner_axes)
+            outer_axes = struct_tools.complement(self.axes, inner_axes)
 
         # Fill spaces
         outer_space = self.__class__(outer_axes)
@@ -444,7 +444,7 @@ class SparseSpace(dict):
         """Rm those a in attrs that are not in self.axes.
 
         This allows errors in the axes allotment, for ease-of-use."""
-        absent = dict_tools.complement(attrs, self.axes)
+        absent = struct_tools.complement(attrs, self.axes)
         if absent:
             print(color_text("Warning:", colorama.Fore.RED),
                   "The requested attributes",
@@ -457,7 +457,7 @@ class SparseSpace(dict):
                    " However, if it is caused by confusion or mis-spelling,"
                    " then it is likely to cause mis-interpretation"
                    " of the shown results."))
-            attrs = dict_tools.complement(attrs, absent)
+            attrs = struct_tools.complement(attrs, absent)
         return attrs
 
     def label_xSection(self, label, *NoneAttrs, **sub_coord):
@@ -702,7 +702,7 @@ class xpSpace(SparseSpace):
         #    without extraction by __getkey__() from (e.g.) row[0].
         #  - Don't need to propagate mean&optim axes down to the row level.
         #    which would require defining rows by the nesting:
-        #    rows = table.nest(outer_axes=dict_tools.complement(table.axes,
+        #    rows = table.nest(outer_axes=struct_tools.complement(table.axes,
         #        *(axes['inner'] or ()),
         #        *(axes['mean']  or ()),
         #        *(axes['optim'] or ()) ))
@@ -873,7 +873,7 @@ class xpSpace(SparseSpace):
                     rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
                     # Matter
                     for i, (row, key) in enumerate(zip(
-                            rows[1:], dict_tools.transps(row_keys))):
+                            rows[1:], struct_tools.transps(row_keys))):
                         rows[i+1] = [*key.values()] + ['|'] + row
 
             # Print

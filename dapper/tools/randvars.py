@@ -3,8 +3,8 @@
 import numpy as np
 from numpy import sqrt
 from numpy.random import rand, randn
+from struct_tools import NicePrint
 
-from dapper.dict_tools import NicePrint
 from dapper.tools.matrices import CovMat
 
 

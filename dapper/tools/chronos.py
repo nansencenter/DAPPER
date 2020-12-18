@@ -1,8 +1,7 @@
 """Time sequence management, notably Chronology and Ticker."""
 
 import numpy as np
-
-import dapper.dict_tools as dict_tools
+from struct_tools import AlignedDict
 
 
 class Chronology():
@@ -203,7 +202,7 @@ class Chronology():
 
     def __str__(self):
         printable = ['K', 'KObs', 'T', 'BurnIn', 'dtObs', 'dt']
-        return str(dict_tools.AlignedDict([(k, getattr(self, k)) for k in printable]))
+        return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):
         return "<" + type(self).__name__ + '>' + "\n" + str(self)

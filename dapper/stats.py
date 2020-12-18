@@ -4,13 +4,12 @@ import warnings
 
 import numpy as np
 import scipy.linalg as sla
+import struct_tools
 from matplotlib import pyplot as plt
 
-import dapper.dict_tools as dict_tools
 import dapper.tools.liveplotting as liveplotting
 import dapper.tools.series as series
 import dapper.tools.utils as utils
-from dapper.dict_tools import DotDict
 from dapper.dpr_config import rc
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
@@ -59,8 +58,8 @@ class Stats(StatPrint):
             gm  = lambda x: np.exp(np.mean(np.log(x))),  # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = dict_tools.intersect(self.field_summaries,
-                                                    rc.field_summaries)
+        self.field_summaries = struct_tools.intersect(self.field_summaries,
+                                                      rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
@@ -157,7 +156,7 @@ class Stats(StatPrint):
             if MS == 'sec':
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split('.')
-                    make_series(dict_tools.deep_getattr(
+                    make_series(struct_tools.deep_getattr(
                         self, f"{name}.{suffix}"), sector, ())
 
     @property
@@ -230,7 +229,7 @@ class Stats(StatPrint):
 
             # Write current stats to series
             for name, val in stats_now.items():
-                stat = dict_tools.deep_getattr(self, name)
+                stat = struct_tools.deep_getattr(self, name)
                 isFaust = isinstance(stat, series.FAUSt)
                 stat[(k, kObs, sub) if isFaust else kObs] = val
 
@@ -250,7 +249,7 @@ class Stats(StatPrint):
                 field = now[stat]
                 for suffix, formula in formulae.items():
                     statpath = stat+'.'+suffix
-                    if dict_tools.deep_hasattr(self, statpath):
+                    if struct_tools.deep_hasattr(self, statpath):
                         now[statpath] = formula(field)
 
     def derivative_stats(self, now):
@@ -465,7 +464,7 @@ def register_stat(self, name, value):
     self.stat_register.append(name)
 
 
-class Avrgs(StatPrint, DotDict):
+class Avrgs(StatPrint, struct_tools.DotDict):
     """A DotDict specialized for stat. averages.
 
     Embellishments:
@@ -488,7 +487,7 @@ class Avrgs(StatPrint, DotDict):
         key = '.'.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split('.'))
 
         if "." in key:
-            return dict_tools.deep_getattr(self, key)
+            return struct_tools.deep_getattr(self, key)
         else:
             return super().__getattribute__(key)
 
@@ -586,7 +585,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
             v, c = np.round([uq.val, uq.conf], decimals)
         arr["val"][i], arr["conf"][i] = v, c
         # Others
-        for col in dict_tools.complement(cols, ["val", "conf"]):
+        for col in struct_tools.complement(cols, ["val", "conf"]):
             try:
                 arr[col][i] = getattr(uq, col)
             except AttributeError:

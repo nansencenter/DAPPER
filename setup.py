@@ -28,6 +28,7 @@ INSTALL_REQUIRES = [
     'colorama~=0.4.1',
     'tabulate~=0.8.3',
     'dill==0.3.2',  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
+    'struct-tools==0.2.1',
     'multiprocessing-on-dill==3.5.0a4',
     'threadpoolctl==1.0.0',
 ]

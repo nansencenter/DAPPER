@@ -8,8 +8,7 @@ from pathlib import Path
 
 import matplotlib as mpl
 import yaml
-
-from dapper.dict_tools import DotDict
+from struct_tools import DotDict
 
 ##################################
 # Load configurations

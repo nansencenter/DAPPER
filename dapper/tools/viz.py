@@ -21,10 +21,10 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib.widgets import CheckButtons
 from numpy import arange, array
 from scipy.interpolate import interp1d
+from struct_tools import NicePrint
 
 import dapper.tools.series as series
 import dapper.tools.utils as utils
-from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
 from dapper.tools.rounding import round2sigfig
 

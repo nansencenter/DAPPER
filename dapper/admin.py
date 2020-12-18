@@ -25,9 +25,9 @@ from textwrap import dedent
 
 import dill
 import numpy as np
+import struct_tools
 from tqdm import tqdm
 
-import dapper.dict_tools as dict_tools
 import dapper.stats
 import dapper.tools.progressbar as pb
 import dapper.tools.utils as utils
@@ -40,7 +40,7 @@ from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
 
 
-class HiddenMarkovModel(dict_tools.NicePrint):
+class HiddenMarkovModel(struct_tools.NicePrint):
     """Container for a Hidden Markov Model (HMM).
 
     This container contains the specification of a "twin experiment",
@@ -106,7 +106,7 @@ class HiddenMarkovModel(dict_tools.NicePrint):
         return xx, yy
 
 
-class Operator(dict_tools.NicePrint):
+class Operator(struct_tools.NicePrint):
     """Container for operators (models)."""
 
     def __init__(self, M, model=None, noise=None, **kwargs):
@@ -421,7 +421,7 @@ class xpList(list):
 
             # Remove unwanted
             excluded  = [re.compile('^_'), 'avrgs', 'stats', 'HMM', 'duration']
-            aggregate = dict_tools.complement(aggregate, excluded)
+            aggregate = struct_tools.complement(aggregate, excluded)
             return aggregate
 
         distinct, redundant, common = {}, {}, {}
@@ -433,7 +433,7 @@ class xpList(list):
             vals = [getattr(xp, key, "N/A") for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
-            if dict_tools.flexcomp(key, *nomerge):
+            if struct_tools.flexcomp(key, *nomerge):
                 # nomerge => Distinct
                 dct, vals = distinct, vals
             elif all(vals[0] == v for v in vals):
@@ -467,7 +467,7 @@ class xpList(list):
         s = '<xpList> of length %d with attributes:\n' % len(self)
         s += utils.tab(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
-        s += str(dict_tools.AlignedDict({**redundant, **common}))
+        s += str(struct_tools.AlignedDict({**redundant, **common}))
         return s
 
     def gen_names(self, abbrev=6, tab=False):
@@ -691,15 +691,15 @@ def get_param_setter(param_dict, **glob_dict):
     """
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dcs.fields(method)]
-        params = dict_tools.intersect(param_dict, dc_fields)
-        params = dict_tools.complement(params, fixed_params)
+        params = struct_tools.intersect(param_dict, dc_fields)
+        params = struct_tools.complement(params, fixed_params)
         params = {**glob_dict, **params}  # glob_dict 1st
 
         def xp1(dct):
-            xp = method(**dict_tools.intersect(dct, dc_fields), **fixed_params)
-            for key, v in dict_tools.intersect(dct, glob_dict).items():
+            xp = method(**struct_tools.intersect(dct, dc_fields), **fixed_params)
+            for key, v in struct_tools.intersect(dct, glob_dict).items():
                 setattr(xp, key, v)
             return xp
 
-        return [xp1(dct) for dct in dict_tools.prodct(params)]
+        return [xp1(dct) for dct in struct_tools.prodct(params)]
     return for_params

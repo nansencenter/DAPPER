@@ -8,9 +8,8 @@ import time
 import traceback as tb
 
 import tabulate
+from struct_tools import NicePrint
 from tabulate import tabulate as tab  # noqa
-
-from dapper.dict_tools import NicePrint
 
 tabulate.MIN_PADDING = 0
 

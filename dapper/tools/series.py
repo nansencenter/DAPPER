@@ -4,9 +4,9 @@ from dataclasses import dataclass
 
 import numpy as np
 from numpy import nan
+from struct_tools import NicePrint
 
 import dapper.tools.utils as utils
-from dapper.dict_tools import NicePrint
 from dapper.dpr_config import rc
 from dapper.tools.rounding import log10int, round2, round2sigfig
 
