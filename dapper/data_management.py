@@ -19,11 +19,10 @@ from tabulate import tabulate
 from tqdm import tqdm
 
 import dapper.tools.remote.uplink as uplink
-from dapper.admin import xpList
+from dapper.admin import collapse_str, xpList
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.series import UncertainQtty
-from dapper.tools.utils import collapse_str
 from dapper.tools.viz import axis_scale_by_array, freshfig
 
 mpl_logger = logging.getLogger('matplotlib')

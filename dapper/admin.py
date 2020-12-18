@@ -19,6 +19,7 @@ import re
 import shutil
 import sys
 import time
+import traceback as tb
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
@@ -32,7 +33,6 @@ from tqdm import tqdm
 
 import dapper.stats
 import dapper.tools.progressbar as pb
-import dapper.tools.utils as utils
 from dapper.dpr_config import rc
 from dapper.mods.utils import Id_mat, Id_op
 from dapper.tools.chronos import Chronology
@@ -294,7 +294,7 @@ def run_experiment(xp, label, savedir, HMM,
         if fail_gently:
             xp.crashed = True
             if fail_gently not in ["silent", "quiet"]:
-                utils.print_cropped_traceback(ERR)
+                print_cropped_traceback(ERR)
         else:
             raise ERR
 
@@ -310,6 +310,43 @@ def run_experiment(xp, label, savedir, HMM,
     if savedir:
         with open(Path(savedir)/"xp", "wb") as FILE:
             dill.dump({'xp': xp}, FILE)
+
+
+def print_cropped_traceback(ERR):
+
+    def crop_traceback(ERR, lvl):
+        msg = "Traceback (most recent call last):\n"
+        try:
+            # If in IPython, use its coloring functionality
+            __IPYTHON__  # noqa
+            from IPython.core.debugger import Pdb
+            pdb_instance = Pdb()
+            pdb_instance.curframe = inspect.currentframe()
+
+            for i, frame in enumerate(tb.walk_tb(ERR.__traceback__)):
+                if i < lvl:
+                    continue  # skip frames
+                if i == lvl:
+                    msg += "   ⋮ [cropped] \n"
+                msg += pdb_instance.format_stack_entry(frame, context=3)
+
+        except (NameError, ImportError):
+            msg += "".join(tb.format_tb(ERR.__traceback__))
+
+        return msg
+
+    msg = crop_traceback(ERR, 1) + "\nError message: " + str(ERR)
+    msg += "\n\nResuming execution. " \
+        "Use `fail_gently=False` to raise exception & halt execution.\n"
+    print(msg, file=sys.stderr)
+
+
+def collapse_str(string, length=6):
+    """Abbreviate string to ``length``"""
+    if len(string) <= length:
+        return string
+    else:
+        return string[:length-2]+'~'+string[-1]
 
 
 class xpList(list):
@@ -486,7 +523,7 @@ class xpList(list):
         values = distinct.values()
 
         # Label abbreviation
-        labels = [utils.collapse_str(k, abbrev) for k in labels]
+        labels = [collapse_str(k, abbrev) for k in labels]
 
         # Make label columns: insert None or lbl+":", depending on value
         def column(lbl, vals):

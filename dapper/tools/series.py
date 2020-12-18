@@ -7,7 +7,6 @@ from numpy import nan
 from patlib.std import find_1st_ind
 from struct_tools import NicePrint
 
-import dapper.tools.utils as utils
 from dapper.dpr_config import rc
 from dapper.tools.rounding import log10int, round2, round2sigfig
 
@@ -196,7 +195,29 @@ class StatPrint(NicePrint):
             return super().__str__()
 
 
-@utils.monitor_setitem
+def monitor_setitem(cls):
+    """Modify cls to track of whether its ``__setitem__`` has been called.
+
+    See sub.py for a sublcass solution (drawback: creates a new class)."""
+
+    orig_setitem = cls.__setitem__
+
+    def setitem(self, key, val):
+        orig_setitem(self, key, val)
+        self.were_changed = True
+    cls.__setitem__ = setitem
+
+    # Using class var for were_changed => don't need explicit init
+    cls.were_changed = False
+
+    if issubclass(cls, NicePrint):
+        cls.printopts['excluded'] = \
+                cls.printopts.get('excluded', []) + ['were_changed']
+
+    return cls
+
+
+@monitor_setitem
 class DataSeries(StatPrint):
     """Basically just an ``np.ndarray``. But adds:
 
@@ -214,7 +235,7 @@ class DataSeries(StatPrint):
     def __setitem__(self, key, val): self.array[key] = val
 
 
-@utils.monitor_setitem
+@monitor_setitem
 class FAUSt(DataSeries, StatPrint):
     """Container for time series of a statistic from filtering.
 
