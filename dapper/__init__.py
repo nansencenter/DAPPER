@@ -114,7 +114,7 @@ from .tools.magic import magic_naming, spell_out
 from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
 from .tools.rounding import round2, round2sigfig
-from .tools.stoch import set_seed
+from .tools.seeding import set_seed
 from .tools.viz import freshfig
 
 

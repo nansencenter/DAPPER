@@ -35,7 +35,7 @@ from dapper.tools.chronos import Chronology
 from dapper.tools.localization import no_localization
 from dapper.tools.randvars import RV, GaussRV
 from dapper.tools.remote.uplink import submit_job_GCP
-from dapper.tools.stoch import set_seed
+from dapper.tools.seeding import set_seed
 
 
 class HiddenMarkovModel(dict_tools.NicePrint):
