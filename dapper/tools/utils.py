@@ -7,11 +7,7 @@ import sys
 import time
 import traceback as tb
 
-import tabulate
 from struct_tools import NicePrint
-from tabulate import tabulate as tab  # noqa
-
-tabulate.MIN_PADDING = 0
 
 
 def print_cropped_traceback(ERR):

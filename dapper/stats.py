@@ -6,6 +6,7 @@ import numpy as np
 import scipy.linalg as sla
 import struct_tools
 from matplotlib import pyplot as plt
+from tabulate import tabulate
 
 import dapper.tools.liveplotting as liveplotting
 import dapper.tools.series as series
@@ -475,7 +476,7 @@ class Avrgs(StatPrint, struct_tools.DotDict):
 
     def tabulate(self, statkeys=()):
         columns = tabulate_avrgs([self], statkeys, decimals=None)
-        return utils.tab(columns, headers="keys").replace('␣', ' ')
+        return tabulate(columns, headers="keys").replace('␣', ' ')
 
     abbrevs = {'rmse': 'err.rms', 'rmss': 'std.rms', 'rmv': 'std.rms'}
 
@@ -551,7 +552,7 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
 
     # Make text column, aligned
     col = [[preprocess(x)] for x in col]
-    col = utils.tab(col, [header], 'plain')
+    col = tabulate(col, [header], 'plain')
     col = col.split("\n")  # NOTE: dont use splitlines (removes empty lines)
 
     # Undo nan/inf treatment

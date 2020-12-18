@@ -14,14 +14,15 @@ import matplotlib as mpl
 import numpy as np
 import struct_tools
 from matplotlib import cm, ticker
+from tabulate import tabulate
 from tqdm import tqdm
 
 import dapper.tools.remote.uplink as uplink
-import dapper.tools.utils as utils
 from dapper.admin import xpList
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.series import UncertainQtty
+from dapper.tools.utils import collapse_str, set_tmp
 from dapper.tools.viz import axis_scale_by_array, freshfig
 
 mpl_logger = logging.getLogger('matplotlib')
@@ -37,7 +38,7 @@ def make_label(coord, no_key=NO_KEY, exclude=()):
             if any(x in k for x in no_key):
                 lbl = lbl + f' {v}'
             else:
-                lbl = lbl + f' {utils.collapse_str(k,7)}:{v}'
+                lbl = lbl + f' {collapse_str(k,7)}:{v}'
     return lbl[1:]
 
 
@@ -882,7 +883,7 @@ class xpSpace(SparseSpace):
                 table_title = "Table for " + repr(table_coord)
                 print(color_text(table_title, colorama.Back.YELLOW))
             headers, *rows = rows
-            print(utils.tab(rows, headers).replace('␣', ' '))
+            print(tabulate(rows, headers).replace('␣', ' '))
 
     def plot(self, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,
@@ -986,7 +987,7 @@ class xpSpace(SparseSpace):
             panel0.set_title(title)
             if panel0.is_first_col():
                 panel0.set_ylabel(statkey)
-            with utils.set_tmp(mpl_logger, 'level', 99):  # silence "no label" msg
+            with set_tmp(mpl_logger, 'level', 99):  # silence "no label" msg
                 panel0.legend()
             table.panels[-1].set_xlabel(axes["inner"][0])
             # Tuning panels:

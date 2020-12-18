@@ -26,6 +26,8 @@ from textwrap import dedent
 import dill
 import numpy as np
 import struct_tools
+import tabulate as _tabulate
+from tabulate import tabulate
 from tqdm import tqdm
 
 import dapper.stats
@@ -38,6 +40,8 @@ from dapper.tools.localization import no_localization
 from dapper.tools.randvars import RV, GaussRV
 from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
+
+_tabulate.MIN_PADDING = 0
 
 
 class HiddenMarkovModel(struct_tools.NicePrint):
@@ -465,7 +469,7 @@ class xpList(list):
     def __repr__(self):
         distinct, redundant, common = self.split_attrs()
         s = '<xpList> of length %d with attributes:\n' % len(self)
-        s += utils.tab(distinct, headers="keys", showindex=True)
+        s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
         s += str(struct_tools.AlignedDict({**redundant, **common}))
         return s
@@ -499,7 +503,7 @@ class xpList(list):
         table = list(map(list, zip(*table)))
 
         # Tabulate
-        table = utils.tab(table, tablefmt="plain")
+        table = tabulate(table, tablefmt="plain")
 
         # Rm space between lbls/vals
         table = re.sub(':  +', ':', table)
@@ -517,7 +521,7 @@ class xpList(list):
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
-        return utils.tab(columns, headers="keys", showindex=True).replace('␣', ' ')
+        return tabulate(columns, headers="keys", showindex=True).replace('␣', ' ')
 
     def launch(self, HMM, save_as="noname", mp=False,
                setup=seed_and_simulate, fail_gently=None, **kwargs):
