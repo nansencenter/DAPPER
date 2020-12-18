@@ -6,11 +6,11 @@ import numpy as np
 import scipy.linalg as sla
 import struct_tools
 from matplotlib import pyplot as plt
+from patlib.std import do_once
 from tabulate import tabulate
 
 import dapper.tools.liveplotting as liveplotting
 import dapper.tools.series as series
-import dapper.tools.utils as utils
 from dapper.dpr_config import rc
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
@@ -504,7 +504,7 @@ class Avrgs(StatPrint, struct_tools.DotDict):
 # ...
 
 
-@utils.do_once
+@do_once
 def warn_zero_variance(err, flag):
     msg = "\n".join(["Numerical error in stat comps.",
                      "Probably caused by a sample variance of 0."])

@@ -14,6 +14,7 @@ import matplotlib as mpl
 import numpy as np
 import struct_tools
 from matplotlib import cm, ticker
+from patlib.std import set_tmp
 from tabulate import tabulate
 from tqdm import tqdm
 
@@ -22,7 +23,7 @@ from dapper.admin import xpList
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.series import UncertainQtty
-from dapper.tools.utils import collapse_str, set_tmp
+from dapper.tools.utils import collapse_str
 from dapper.tools.viz import axis_scale_by_array, freshfig
 
 mpl_logger = logging.getLogger('matplotlib')

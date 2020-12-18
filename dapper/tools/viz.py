@@ -20,11 +20,11 @@ from matplotlib.patches import Ellipse
 from matplotlib.ticker import MaxNLocator
 from matplotlib.widgets import CheckButtons
 from numpy import arange, array
+from patlib.std import find_1st_ind
 from scipy.interpolate import interp1d
 from struct_tools import NicePrint
 
 import dapper.tools.series as series
-import dapper.tools.utils as utils
 from dapper.dpr_config import rc
 from dapper.tools.rounding import round2sigfig
 
@@ -173,7 +173,7 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
         t = chrono
         K = int(min(max(K, t.dkObs), t.K))
         T = round2sigfig(t.tt[K], 2)  # Could return T; T>tt[-1]
-        K = utils.find_1st_ind(t.tt >= T)
+        K = find_1st_ind(t.tt >= T)
         if K:
             return K
         else:

@@ -3,7 +3,6 @@
 import numpy as np
 from numpy.random import rand, randn
 
-import dapper.tools.utils as utils
 from dapper.admin import da_method
 from dapper.stats import unbias_var, weight_degeneracy
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, tinv
@@ -441,6 +440,11 @@ def trigger_resampling(w, NER, stat_args):
     return do_resample
 
 
+def all_but_1_is_None(*args):
+    "Check if only 1 of the items in list are Truthy"
+    return sum(x is not None for x in args) == 1
+
+
 def reweight(w, lklhd=None, logL=None, innovs=None):
     """Do Bayes' rule (for the empirical distribution of an importance sample).
 
@@ -451,7 +455,7 @@ def reweight(w, lklhd=None, logL=None, innovs=None):
 
     If input is 'innovs': likelihood := NormDist(innovs|0,Id).
     """
-    assert utils.all_but_1_is_None(lklhd, logL, innovs), \
+    assert all_but_1_is_None(lklhd, logL, innovs), \
         "Input error. Only specify one of lklhd, logL, innovs"
 
     # Get log-values.

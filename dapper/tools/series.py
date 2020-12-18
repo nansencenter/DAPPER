@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from numpy import nan
+from patlib.std import find_1st_ind
 from struct_tools import NicePrint
 
 import dapper.tools.utils as utils
@@ -53,7 +54,7 @@ def fit_acf_by_AR1(acf_empir, nlags=None):
         return geometric_mean([xx[i]/xx[i-1] for i in range(1, len(xx))])
 
     # Negative correlation => Truncate ACF
-    neg_ind   = utils.find_1st_ind(np.array(acf_empir) <= 0)
+    neg_ind   = find_1st_ind(np.array(acf_empir) <= 0)
     acf_empir = acf_empir[:neg_ind]
 
     if len(acf_empir) == 0:
