@@ -15,11 +15,13 @@ max-line-length = 88
 ; - Allow if-list alignment: E271, E701, and more...
 ; - Ignore "Comparison to True/None should be with 'is'": E711, E712
 ; - Allow ## block comments
+; - Prefer {} to dict(): C408
 ignore=E24,W503,E123,E226,E704,E121,W504,E126,
     E221,
     E251,
     E711, E712
     E266
+    C408
 
 
 ; Doesn't work with autopep8 (only flake8),
@@ -32,7 +34,6 @@ per-file-ignores=
     tests/test_data.py:E501,W291
     tests/test_example_2.py:E501,E402
     example_2.py:E402,E201,E231
-    example_3.py:C408
     miyoshi2011.py:E501
 
 exclude=

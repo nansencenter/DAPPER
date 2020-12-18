@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 import dapper as dpr
 from dapper.mods.LorenzUV.lorenz96 import LUV
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 from dapper.tools.viz import setup_wrapping
 
 nU, J = LUV.nU, LUV.J

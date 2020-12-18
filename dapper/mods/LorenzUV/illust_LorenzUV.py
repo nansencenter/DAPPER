@@ -93,7 +93,7 @@ def tV(zz):
 # plt.subplots()
 # lhU   = plt.plot(*tU(xx[-1][circU]),'b',lw=3)[0]
 # lhV   = plt.plot(*tV(xx[-1][circV]),'g',lw=1)[0]
-# from dapper.tools.utils import progbar
+# from dapper.tools.progressbar import progbar
 # for k in progbar(range(K),'Plotting'):
 #     dataU = tU(xx[k][circU])
 #     dataV = tV(xx[k][circV])

@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 import dapper.tools.viz as viz
 from dapper.mods.QG import default_prms, nx, sample_filename, square
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 
 def show(x0, psi=True, ax=None):

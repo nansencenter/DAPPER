@@ -6,7 +6,7 @@ import numpy as np
 import scipy.linalg as sla
 from IPython.lib.pretty import pretty as pretty_repr
 
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 from .utils import NamedFunc
 

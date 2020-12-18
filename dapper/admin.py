@@ -28,6 +28,7 @@ import numpy as np
 
 import dapper.dict_tools as dict_tools
 import dapper.stats
+import dapper.tools.progressbar as pbar
 import dapper.tools.utils as utils
 from dapper.dpr_config import rc
 from dapper.mods.utils import Id_mat, Id_op
@@ -96,7 +97,7 @@ class HiddenMarkovModel(dict_tools.NicePrint):
         xx[0] = X0.sample(1)
 
         # Loop
-        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+        for k, kObs, t, dt in pbar.progbar(chrono.ticker, desc):
             xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
             if kObs is not None:
                 yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
@@ -159,7 +160,7 @@ def da_method(*default_dataclasses):
     >>>     seconds : int  = 10
     >>>     success : bool = True
     >>>     def assimilate(self,*args,**kwargs):
-    >>>         for k in utils.progbar(range(self.seconds)):
+    >>>         for k in pbar.progbar(range(self.seconds)):
     >>>             time.sleep(1)
     >>>         if not self.success:
     >>>             raise RuntimeError("Sleep over. Failing as intended.")
@@ -602,19 +603,19 @@ class xpList(list):
                 run_experiment(xp, None, xpi_dir(ixp), **kwargs)
             args = zip(self, range(len(self)))
 
-            utils.disable_progbar          = True
-            utils.disable_user_interaction = True
+            pbar.disable_progbar          = True
+            pbar.disable_user_interaction = True
             NPROC = mp.get("NPROC", None)  # None => mp.cpu_count()
             from dapper.tools.multiproc import mpd  # will fail on GCP
             with mpd.Pool(NPROC) as pool:
-                list(utils.tqdm.tqdm(
+                list(pbar.tqdm.tqdm(
                     pool.imap(
                         run_with_fixed_args, args),
                     total=len(self),
                     desc="Parallel experim's",
                     smoothing=0.1))
-            utils.disable_progbar          = False
-            utils.disable_user_interaction = False
+            pbar.disable_progbar          = False
+            pbar.disable_user_interaction = False
 
         # Google cloud platform, multiprocessing
         elif mp["server"] == "GCP":

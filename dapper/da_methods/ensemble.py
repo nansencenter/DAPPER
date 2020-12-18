@@ -10,7 +10,7 @@ from dapper.admin import da_method
 from dapper.stats import center, mean0
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, svdi, tinv, tsvd
 from dapper.tools.matrices import funm_psd, genOG_1
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 
 @da_method

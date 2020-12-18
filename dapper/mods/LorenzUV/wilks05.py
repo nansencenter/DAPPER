@@ -4,8 +4,9 @@ Obs settings taken from different places (=> quasi-linear regime)."""
 import numpy as np
 
 import dapper as dpr
-import dapper.tools.utils as utils
 from dapper.mods.LorenzUV import model_instance
+
+from ..utils import rel2mods
 
 LUV = model_instance()
 nU = LUV.nU
@@ -37,7 +38,7 @@ jj = np.arange(nU)
 Obs = dpr.partial_Id_Obs(LUV.M, jj)
 Obs['noise'] = R
 
-other = {'name': utils.rel2mods(__file__)+'_full'}
+other = {'name': rel2mods(__file__)+'_full'}
 HMM_full = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
 
@@ -60,7 +61,7 @@ jj = np.arange(nU)
 Obs = dpr.partial_Id_Obs(nU, jj)
 Obs['noise'] = R
 
-other = {'name': utils.rel2mods(__file__)+'_trunc'}
+other = {'name': rel2mods(__file__)+'_trunc'}
 HMM_trunc = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
 LUV.prmzt = lambda t, x: polynom_prmzt(t, x, 1)

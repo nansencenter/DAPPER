@@ -11,7 +11,7 @@ from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
 from dapper.stats import center, inflate_ens, mean0
 from dapper.tools.linalg import pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 
 @da_method

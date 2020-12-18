@@ -11,7 +11,7 @@ import dapper as dpr
 import dapper.tools.series as series
 import dapper.tools.viz as viz
 from dapper.mods.integration import with_recursion, with_rk4
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 dpr.set_seed(3000)
 

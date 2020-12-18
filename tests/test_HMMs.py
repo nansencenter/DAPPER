@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 
 import dapper as dpr
-import dapper.tools.utils as utils
+import dapper.tools.progressbar
 
-utils.disable_progbar = True
+dapper.tools.progressbar.disable_progbar = True
 
 modules_with_HMM = []
 

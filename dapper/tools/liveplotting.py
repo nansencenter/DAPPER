@@ -14,8 +14,8 @@ from dapper.dpr_config import rc
 from dapper.mods.utils import linspace_int
 from dapper.tools.chronos import format_time
 from dapper.tools.matrices import CovMat
+from dapper.tools.progressbar import read1
 from dapper.tools.series import FAUSt, RollingArray
-from dapper.tools.utils import read1
 from dapper.tools.viz import freshfig, not_available_text, plot_pause
 
 
@@ -75,7 +75,7 @@ class LivePlot:
             self.params[pause] /= speed
 
         # Write params
-        self.params.update(getattr(stats.xp, "LP_kwargs", dict()))
+        self.params.update(getattr(stats.xp, "LP_kwargs", {}))
         self.params.update(kwargs)
 
         def get_name(init):
@@ -90,7 +90,7 @@ class LivePlot:
         for num, show, init in default_liveplotters:
             potential_LPs[get_name(init)] = num, show, init
         # Add HMM-specific liveplotters
-        for num, show, init in getattr(stats.HMM, 'liveplotters', dict()):
+        for num, show, init in getattr(stats.HMM, 'liveplotters', {}):
             assert num > 10, ("Liveplotters specified in the HMM"
                               " should have fignum>10.")
             potential_LPs[get_name(init)] = num, show, init
@@ -149,7 +149,7 @@ class LivePlot:
         # Check if there are still open figures
         if self.any_figs:
             open_figns = plt.get_fignums()
-            live_figns = set(num for (num, updater) in self.figures.values())
+            live_figns = {num for (num, updater) in self.figures.values()}
             self.any_figs = bool(live_figns.intersection(open_figns))
         else:
             return
@@ -207,7 +207,7 @@ class LivePlot:
         if not self.skipping:
             faus = key[-1]
             if faus != 'u' or self.plot_u:
-                for name, (num, updater) in self.figures.items():
+                for _name, (num, updater) in self.figures.items():
                     if plt.fignum_exists(num) and \
                             getattr(updater, 'is_active', 1):
                         _ = plt.figure(num)
@@ -371,7 +371,7 @@ class sliding_diagnostics:
                 return xx, yy
 
             nDirac = 1
-            for name, ln in lines.items():
+            for _name, ln in lines.items():
                 ln['handle'].set_data(*bend_into(ln['shape'], ln['tt'], ln['data']))
 
         def finalize_init(ax, lines, mm):

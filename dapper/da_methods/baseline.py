@@ -11,7 +11,7 @@ from dapper.admin import da_method
 from dapper.stats import center
 from dapper.tools.linalg import mrdiv
 from dapper.tools.matrices import CovMat
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 
 @da_method()

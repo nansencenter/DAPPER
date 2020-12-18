@@ -8,7 +8,7 @@ from dapper.admin import da_method
 from dapper.stats import unbias_var, weight_degeneracy
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, tinv
 from dapper.tools.matrices import chol_reduce, funm_psd
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 
 @da_method
