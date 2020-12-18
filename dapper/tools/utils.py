@@ -308,19 +308,6 @@ def all_but_1_is_None(*args):
     return sum(x is not None for x in args) == 1
 
 
-def isNone(x):
-    """Like `x==None`, but also works for x being an np.ndarray.
-
-    Since python3.8 `x is None` throws warning.
-
-    Ref: `np.isscalar` docstring.
-    """
-    try:
-        return x.ndim == 0 and x == None
-    except AttributeError:
-        return x == None
-
-
 def do_once(fun):
     def new(*args, **kwargs):
         if new.already_done:
