@@ -9,7 +9,7 @@ See `demo.py` for more info.
 import numpy as np
 from numpy import cos, sin
 
-import dapper as dpr
+import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
 
 __pdoc__ = {"demo": False}
@@ -18,7 +18,7 @@ __pdoc__ = {"demo": False}
 u = 0.9
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def step(x, _t, _dt):
     s, t, x1, y1 = aux(*x)
     return 1+u*x1, u*y1

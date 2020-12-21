@@ -4,13 +4,13 @@ iterative ensemble Kalman filters for strongly nonlinear systems'"""
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz63.sakov2012 import HMM
 
 # The only diff to sakov2012 is R:
 # bocquet2012 uses 1 and 8, sakov2012 uses 2 (and 8)
 
-HMM.Obs.noise.C = dpr.CovMat(np.eye(3))
+HMM.Obs.noise.C = modelling.CovMat(np.eye(3))
 
 HMM.name = HMM.name.replace("sakov", "bocquet")
 

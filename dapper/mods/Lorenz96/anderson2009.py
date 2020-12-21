@@ -5,12 +5,12 @@
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz96.sakov2008 import X0, Dyn, LPs, Nx, Tplot
 from dapper.tools.localization import localization_setup, pairwise_distances
 from dapper.tools.viz import xtrema
 
-t = dpr.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
+t = modelling.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
 
 # Define obs sites
 obs_sites = 0.395 + 0.01*np.arange(1, 21)
@@ -38,8 +38,9 @@ Obs = {
     'localizer': localization_setup(lambda t: y2x_dists, batches),
 }
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LPs(),
-                            sectors={'land': np.arange(*xtrema(obs_sites)).astype(int)})
+HMM = modelling.HiddenMarkovModel(
+    Dyn, Obs, t, X0, LP=LPs(),
+    sectors={'land': np.arange(*xtrema(obs_sites)).astype(int)})
 
 ####################
 # Suggested tuning

@@ -3,10 +3,10 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LotkaVolterra import step, x0
 
-simulator = dpr.with_recursion(step, prog="Simulating")
+simulator = modelling.with_recursion(step, prog="Simulating")
 
 dt = 0.7
 K  = int(1*10**3 / dt)

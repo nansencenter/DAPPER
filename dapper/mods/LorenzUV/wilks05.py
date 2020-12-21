@@ -3,7 +3,7 @@ Obs settings taken from different places (=> quasi-linear regime)."""
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LorenzUV import model_instance
 
 from ..utils import rel2mods
@@ -20,26 +20,26 @@ nU = LUV.nU
 # Full
 ################
 
-# t = dpr.Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
-t = dpr.Chronology(dt=0.005, dtObs=0.05, T=4**3, BurnIn=6)  # requires rk4
+# t = modelling.Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
+t = modelling.Chronology(dt=0.005, dtObs=0.05, T=4**3, BurnIn=6)  # requires rk4
 
 
 Dyn = {
     'M': LUV.M,
-    'model': dpr.with_rk4(LUV.dxdt, autonom=True),
+    'model': modelling.with_rk4(LUV.dxdt, autonom=True),
     'noise': 0,
     'linear': LUV.dstep_dx,
 }
 
-X0 = dpr.GaussRV(mu=LUV.x0, C=0.01)
+X0 = modelling.GaussRV(mu=LUV.x0, C=0.01)
 
 R = 0.1
 jj = np.arange(nU)
-Obs = dpr.partial_Id_Obs(LUV.M, jj)
+Obs = modelling.partial_Id_Obs(LUV.M, jj)
 Obs['noise'] = R
 
 other = {'name': rel2mods(__file__)+'_full'}
-HMM_full = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
+HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
 
 ################
@@ -47,22 +47,22 @@ HMM_full = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 ################
 
 # Just change dt from 005 to 05
-t = dpr.Chronology(dt=0.05, dtObs=0.05, T=4**3, BurnIn=6)
+t = modelling.Chronology(dt=0.05, dtObs=0.05, T=4**3, BurnIn=6)
 
 Dyn = {
     'M': nU,
-    'model': dpr.with_rk4(LUV.dxdt_parameterized),
+    'model': modelling.with_rk4(LUV.dxdt_parameterized),
     'noise': 0,
 }
 
-X0 = dpr.GaussRV(mu=LUV.x0[:nU], C=0.01)
+X0 = modelling.GaussRV(mu=LUV.x0[:nU], C=0.01)
 
 jj = np.arange(nU)
-Obs = dpr.partial_Id_Obs(nU, jj)
+Obs = modelling.partial_Id_Obs(nU, jj)
 Obs['noise'] = R
 
 other = {'name': rel2mods(__file__)+'_trunc'}
-HMM_trunc = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
+HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
 LUV.prmzt = lambda t, x: polynom_prmzt(t, x, 1)
 

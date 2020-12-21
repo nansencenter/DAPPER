@@ -3,10 +3,10 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz84 import step, x0
 
-simulator = dpr.with_recursion(step, prog="Simulating")
+simulator = modelling.with_recursion(step, prog="Simulating")
 
 N  = 400
 K  = 10

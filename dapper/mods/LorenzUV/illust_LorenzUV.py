@@ -5,11 +5,11 @@ import matplotlib as mpl
 import numpy as np
 from matplotlib import pyplot as plt
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LorenzUV.lorenz96 import LUV
 
 # Setup
-sd0 = dpr.set_seed(4)
+sd0 = modelling.set_seed(4)
 # from dapper.mods.LorenzUV.wilks05 import LUV
 nU, J = LUV.nU, LUV.J
 
@@ -17,8 +17,8 @@ dt = 0.005
 t0 = np.nan
 K  = int(10/dt)
 
-step_1 = dpr.with_rk4(LUV.dxdt, autonom=True)
-step_K = dpr.with_recursion(step_1, prog=1)
+step_1 = modelling.with_rk4(LUV.dxdt, autonom=True)
+step_K = modelling.with_recursion(step_1, prog=1)
 
 x0 = 0.01*np.random.randn(LUV.M)
 x0 = step_K(x0, int(2/dt), t0, dt)[-1]  # BurnIn

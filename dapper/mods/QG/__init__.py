@@ -23,7 +23,7 @@ from pathlib import Path
 import matplotlib as mpl
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
 import dapper.tools.multiproc as mp
 
@@ -36,7 +36,7 @@ try:
     from dapper.mods.QG.f90.py_mod import interface_mod as fortran
 except ImportError as err:
     raise Exception("Have you compiled the (Fortran) model? "
-                    f"See README in folder {dpr.rc.dirs.dapper}/mods/QG/f90") from err
+                    f"See README in folder {modelling.rc.dirs.dapper}/mods/QG/f90") from err
 
 default_prms = dict(
     # These parameters may be interesting to change.
@@ -157,14 +157,14 @@ def ind2sub(ind): return np.unravel_index(ind, shape[::-1])
 # Free run
 #########################
 def gen_sample(model, nSamples, SpinUp, Spacing):
-    simulator = dpr.with_recursion(model.step, prog="Simulating")
+    simulator = modelling.with_recursion(model.step, prog="Simulating")
     K         = SpinUp + nSamples*Spacing
     Nx        = np.prod(shape)  # total state length
     sample    = simulator(np.zeros(Nx), K, 0.0, model.prms["dtout"])
     return sample[SpinUp::Spacing]
 
 
-sample_filename = dpr.rc.dirs.samples/'QG_samples.npz'
+sample_filename = modelling.rc.dirs.samples/'QG_samples.npz'
 if not sample_filename.is_file():
     print('Did not find sample file', sample_filename,
           'for experiment initialization. Generating...')

@@ -16,11 +16,11 @@
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz96 import dstep_dx, step
 from dapper.tools.localization import nd_Id_localization
 
-t = dpr.Chronology(0.05, dtObs=0.4, T=4**5, BurnIn=20)
+t = modelling.Chronology(0.05, dtObs=0.4, T=4**5, BurnIn=20)
 
 Nx = 40
 Dyn = {
@@ -30,14 +30,14 @@ Dyn = {
     'noise': 0
 }
 
-X0 = dpr.GaussRV(M=Nx, C=0.001)
+X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 jj = 1 + np.arange(0, Nx, 2)
-Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.5
 Obs['localizer'] = nd_Id_localization((Nx,), (2,), jj)
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 
 ####################

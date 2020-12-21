@@ -8,7 +8,7 @@ Refs:
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.integration import integrate_TLM
 from dapper.mods.Lorenz63 import LPs
 
@@ -34,7 +34,7 @@ def dxdt(x):
     return (r*x) * (1 - x@A.T)
 
 
-step = dpr.with_rk4(dxdt, autonom=True)
+step = modelling.with_rk4(dxdt, autonom=True)
 
 Tplot = 100
 

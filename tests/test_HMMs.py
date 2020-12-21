@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-import dapper as dpr
 import dapper.tools.progressbar
+from dapper.mods import HiddenMarkovModel
 
 dapper.tools.progressbar.disable_progbar = True
 
@@ -41,7 +41,7 @@ def test_HMM(path):
         return False
 
     for key, HMM in vars(module).items():
-        if isinstance(HMM, dpr.HiddenMarkovModel) and not exclude(key, HMM):
+        if isinstance(HMM, HiddenMarkovModel) and not exclude(key, HMM):
             HMM.t.BurnIn = 0
             HMM.t.KObs = 1
             xx, yy = HMM.simulate()

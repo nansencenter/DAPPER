@@ -11,7 +11,7 @@ See demo.py for more info.
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
 from dapper.mods.integration import integrate_TLM
 
@@ -23,7 +23,7 @@ rho = 28.0
 beta = 8.0/3
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def dxdt(x):
     "Evolution equation (coupled ODEs) specifying the dynamics."
     d     = np.zeros_like(x)
@@ -35,7 +35,7 @@ def dxdt(x):
 
 
 # Time-step integration.
-step = dpr.with_rk4(dxdt, autonom=True)
+step = modelling.with_rk4(dxdt, autonom=True)
 
 # Time span for plotting. Typically: ≈10 * "system time scale".
 Tplot = 4.0

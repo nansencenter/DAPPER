@@ -11,7 +11,7 @@ More interesting settings: mods.Lorenz84.harder
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz63 import LPs
 from dapper.mods.Lorenz84 import dstep_dx, step, x0
 
@@ -19,7 +19,7 @@ Nx = len(x0)
 Ny = Nx
 
 day = 0.05/6 * 24  # coz dt=0.05 <--> 6h in "model time scale"
-t = dpr.Chronology(0.05, dkObs=1, T=200*day, BurnIn=10*day)
+t = modelling.Chronology(0.05, dkObs=1, T=200*day, BurnIn=10*day)
 
 Dyn = {
     'M': Nx,
@@ -28,14 +28,14 @@ Dyn = {
     'noise': 0
 }
 
-# X0 = dpr.GaussRV(C=0.01,M=Nx) # Decreased from Pajonk's C=1.
-X0 = dpr.GaussRV(C=0.01, mu=x0)
+# X0 = modelling.GaussRV(C=0.01,M=Nx) # Decreased from Pajonk's C=1.
+X0 = modelling.GaussRV(C=0.01, mu=x0)
 
 jj = np.arange(Nx)
-Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.1
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LPs(jj))
 
 ####################
 # Suggested tuning

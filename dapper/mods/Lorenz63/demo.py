@@ -6,10 +6,10 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz63 import step, x0
 
-simulator = dpr.with_recursion(step, prog="Simulating")
+simulator = modelling.with_recursion(step, prog="Simulating")
 
 xx = simulator(x0, k=5*10**3, t0=0, dt=0.01)
 

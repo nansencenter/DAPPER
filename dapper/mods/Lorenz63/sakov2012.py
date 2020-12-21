@@ -3,10 +3,10 @@
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz63 import LPs, Tplot, dstep_dx, step, x0
 
-t = dpr.Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
+t = modelling.Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
 Nx = len(x0)
 
@@ -17,13 +17,13 @@ Dyn = {
     'noise': 0
 }
 
-X0 = dpr.GaussRV(C=2, mu=x0)
+X0 = modelling.GaussRV(C=2, mu=x0)
 
 jj = np.arange(Nx)  # obs_inds
-Obs = dpr.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 2  # dpr.GaussRV(C=CovMat(2*eye(Nx)))
+Obs = modelling.partial_Id_Obs(Nx, jj)
+Obs['noise'] = 2  # modelling.GaussRV(C=CovMat(2*eye(Nx)))
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 HMM.liveplotters = LPs(jj)
 

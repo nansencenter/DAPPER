@@ -11,7 +11,7 @@ Refs:
 import numpy as np
 from numpy import cos, sin
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.integration import FD_Jac
 from dapper.mods.Lorenz63 import LPs
 
@@ -27,7 +27,7 @@ M2 = 1.0  # mass of pendulum 2 in kg
 x0 = np.radians([130,  0, -10,  0])
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def dxdt(x):
     th1, w1, th2, w2 = x
 
@@ -57,7 +57,7 @@ def dxdt(x):
 
 # Note: scipy's integrate.odeint can use larger dt,
 #       (without leaking energy), but ain't faster.
-step = dpr.with_rk4(dxdt, autonom=True)
+step = modelling.with_rk4(dxdt, autonom=True)
 
 dstep_dx = FD_Jac(step)
 

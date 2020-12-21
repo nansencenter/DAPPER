@@ -1,9 +1,9 @@
 """Like todter2015 but with Gaussian likelihood."""
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz96.todter2015 import HMM
 
-HMM.Obs.noise = dpr.GaussRV(C=HMM.Obs.noise.C)
+HMM.Obs.noise = modelling.GaussRV(C=HMM.Obs.noise.C)
 
 ####################
 # Suggested tuning

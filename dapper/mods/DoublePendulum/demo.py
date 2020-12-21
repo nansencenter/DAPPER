@@ -6,11 +6,11 @@ from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from numpy import cos, sin
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.DoublePendulum import L1, L2, step, x0
 
 E0 = x0 + 0.01*np.random.randn(3, 4)
-simulator = dpr.with_recursion(step)
+simulator = modelling.with_recursion(step)
 dt = 0.01
 EE = simulator(E0, k=10**4, t0=0, dt=dt)
 

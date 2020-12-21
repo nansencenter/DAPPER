@@ -9,15 +9,15 @@
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LA import Fmat, sinusoidal_sample
 from dapper.mods.Lorenz96 import LPs
 
 Nx = 1000
 Ny = 4
-jj = dpr.linspace_int(Nx, Ny)
+jj = modelling.linspace_int(Nx, Ny)
 
-tseq = dpr.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)
+tseq = modelling.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)
 
 # WITHOUT explicit matrix (assumes dt == dx/c):
 # step = lambda x,t,dt: np.roll(x,1,axis=x.ndim-1)
@@ -43,12 +43,12 @@ Dyn = {
 # yields (multivariate) uniform (random numbers) -- not Gaussian.
 wnum  = 25
 a = np.sqrt(5)/10
-X0 = dpr.RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx, wnum, N))
+X0 = modelling.RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx, wnum, N))
 
-Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.01
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
 
 
 ####################

@@ -13,12 +13,12 @@ some of which are mentioned below.
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz96 import LPs, Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
-t = dpr.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
+t = modelling.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
 
 Nx = 40
 x0 = x0(Nx)
@@ -30,14 +30,14 @@ Dyn = {
     'noise': 0
 }
 
-X0 = dpr.GaussRV(mu=x0, C=0.001)
+X0 = modelling.GaussRV(mu=x0, C=0.001)
 
 jj = np.arange(Nx)  # obs_inds
-Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization((Nx,), (2,))
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 HMM.liveplotters = LPs(jj)
 

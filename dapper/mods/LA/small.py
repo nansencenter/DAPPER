@@ -3,11 +3,11 @@
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LA import Fmat, homogeneous_1D_cov
 from dapper.mods.Lorenz96 import LPs
 
-tseq = dpr.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)
+tseq = modelling.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)
 
 Nx = 100
 
@@ -28,15 +28,15 @@ Dyn = {
     'noise': 0
 }
 
-X0 = dpr.GaussRV(mu=np.zeros(Nx), C=homogeneous_1D_cov(Nx, Nx/8, kind='Gauss'))
+X0 = modelling.GaussRV(mu=np.zeros(Nx), C=homogeneous_1D_cov(Nx, Nx/8, kind='Gauss'))
 
 Ny  = 4
-jj  = dpr.linspace_int(Nx, Ny)
-Obs = dpr.partial_Id_Obs(Nx, jj)
+jj  = modelling.linspace_int(Nx, Ny)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.01
 
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
 
 
 ####################

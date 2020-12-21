@@ -9,7 +9,7 @@ Refs:
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.integration import integrate_TLM
 
 __pdoc__ = {"demo": False}
@@ -22,7 +22,7 @@ G = 1.23
 # G = 1.0
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def dxdt(x):
     d = np.zeros_like(x)
     x, y, z = x
@@ -32,7 +32,7 @@ def dxdt(x):
     return d
 
 
-step = dpr.with_rk4(dxdt, autonom=True)
+step = modelling.with_rk4(dxdt, autonom=True)
 
 x0 = np.array([1.65,  0.49,  1.21])
 
