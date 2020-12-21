@@ -4,7 +4,6 @@ from typing import Optional
 
 import numpy as np
 import scipy.linalg as sla
-from numpy.random import randn
 
 from dapper.admin import da_method
 from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
@@ -172,7 +171,7 @@ class iEnKS:
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
                         if 'PertObs' in self.upd_a:   # == "ES-MDA". By Emerick/Reynolds
-                            D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                            D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(self.nIter)
                             T  -= (Y + D) @ Y.T @ Cow1
                         elif 'Sqrt' in self.upd_a:    # == "ETKF-ish". By Raanes
                             T   = Cowp(0.5) * np.sqrt(za) @ T
@@ -191,7 +190,8 @@ class iEnKS:
                             # Tinv saves time [vs tinv(T)] when Nx<N
                         # "EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
                         elif 'PertObs' in self.upd_a:
-                            D     = mean0(randn(*Y.shape)) if iteration == 0 else D
+                            D     = mean0(np.random.randn(*Y.shape)) \
+                                if iteration == 0 else D
                             gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable

@@ -1,7 +1,6 @@
 """Weight- & resampling-based DA methods."""
 
 import numpy as np
-from numpy.random import rand, randn
 
 from dapper.admin import da_method
 from dapper.stats import unbias_var, weight_degeneracy
@@ -59,7 +58,7 @@ class PartFilt:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn(N, Nx)
+                D  = np.random.randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -114,7 +113,7 @@ class OptPF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -188,7 +187,7 @@ class PFa:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn(N, Nx)
+                D  = np.random.randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -263,7 +262,7 @@ class PFxN_EnKF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -289,7 +288,7 @@ class PFxN_EnKF:
                         Pa      = Aw.T@Aw - KG@Yw.T@Aw
                         P_cholU = funm_psd(Pa, np.sqrt)
                         if DD is None or not self.re_use:
-                            DD    = randn(N*xN, Nx)
+                            DD    = np.random.randn(N*xN, Nx)
                             chi2  = np.sum(DD**2, axis=1) * Nx/N
                             log_q = -0.5 * chi2
                     else:
@@ -302,7 +301,7 @@ class PFxN_EnKF:
                         # and compute log(q(x))
                         if DD is None or not self.re_use:
                             rnk   = min(Nx, N-1)
-                            DD    = randn(N*xN, N)
+                            DD    = np.random.randn(N*xN, N)
                             chi2  = np.sum(DD**2, axis=1) * rnk/N
                             log_q = -0.5 * chi2
                         # NB: the DoF_linalg/DoF_stoch correction
@@ -378,7 +377,7 @@ class PFxN:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -395,7 +394,7 @@ class PFxN:
 
                     # Generate N·xN random numbers from NormDist(0,1)
                     if DD is None or not self.re_use:
-                        DD = randn(N*xN, Nx)
+                        DD = np.random.randn(N*xN, Nx)
 
                     # Duplicate and jitter
                     ED  = E.repeat(xN, 0)
@@ -618,7 +617,7 @@ def _resample(w, kind, N_o, N):
         idx   = np.hstack((idx_I, idx_D))
     elif kind in ['Systematic', 'Sys']:
         # van Leeuwen [2] also calls this "stochastic universal" resampling
-        U     = rand(1) / N
+        U     = np.random.rand(1) / N
         CDF_a = U + np.arange(N)/N
         CDF_o = np.cumsum(w)
         # idx = CDF_a <= CDF_o[:,None]
@@ -639,12 +638,12 @@ def sample_quickly_with(C12, N=None):
         N = N_
     if N_ > 2*M:
         cholR  = chol_reduce(C12)
-        D      = randn(N, cholR.shape[0])
+        D      = np.random.randn(N, cholR.shape[0])
         chi2   = np.sum(D**2, axis=1)
         sample = D@cholR
     else:
         chi2_compensate_for_rank = min(M/N_, 1.0)
-        D      = randn(N, N_)
+        D      = np.random.randn(N, N_)
         chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
         sample = D@C12
     return sample, chi2

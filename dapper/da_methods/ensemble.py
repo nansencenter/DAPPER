@@ -3,7 +3,6 @@
 import numpy as np
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
-from numpy.random import rand, randn
 
 import dapper.tools.multiproc as mp
 from dapper.admin import da_method
@@ -156,10 +155,10 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(rand()-0.5)  # Random sign
+                    Zj *= np.sign(np.random.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(randn(N))  # Un-coloured noise
+                    Zj = mean0(np.random.randn(N))  # Un-coloured noise
                     if 'Var1' in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -311,7 +310,7 @@ def add_noise(E, dt, noise, method):
         E, _, Qa12 = sqrt_core()
         if N <= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@np.random.randn(Z.shape[1], N)).T
 
     elif method == 'Sqrt-Dep':
         E, T, Qa12 = sqrt_core()
@@ -326,7 +325,7 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@np.random.randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
