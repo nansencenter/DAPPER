@@ -97,7 +97,7 @@ __version__ = "1.0.0"
 
 import sys
 
-from .admin import da_method, get_param_setter, seed_and_simulate, xpList
+from .admin import get_param_setter, seed_and_simulate, xpList
 from .data_management import (default_fig_adjustments, default_styles,
                               discretize_cmap, load_xps, make_label, rel_index,
                               xpSpace)

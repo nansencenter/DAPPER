@@ -7,11 +7,12 @@ from typing import Optional
 import numpy as np
 
 import dapper.tools.series as series
-from dapper.admin import da_method
 from dapper.stats import center
 from dapper.tools.linalg import mrdiv
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method()

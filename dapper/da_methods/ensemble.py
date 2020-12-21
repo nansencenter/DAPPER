@@ -5,11 +5,12 @@ import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
 
 import dapper.tools.multiproc as mp
-from dapper.admin import da_method
 from dapper.stats import center, mean0
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, svdi, tinv, tsvd
 from dapper.tools.matrices import funm_psd, genOG_1
 from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method

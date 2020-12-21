@@ -2,9 +2,10 @@
 
 import numpy as np
 
-from dapper.admin import da_method
 from dapper.tools.linalg import mrdiv
 from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method()
