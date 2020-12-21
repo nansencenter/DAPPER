@@ -35,8 +35,8 @@ your own **model** or **method**, then
     - Analysis parallelisation over local domains;
         see example in `da_methods.ensemble.LETKF`
 - Classes that simplify treating:
-    - Experiment administration and launch via `admin.xpList`
-      and data processing and presentation via `data_management.xpSpace`.
+    - Experiment administration and launch via `xp_launch.xpList`
+      and data processing and presentation via `xp_process.xpSpace`.
     - Time sequences use via `tools.chronos.Chronology`
       and`tools.chronos.Ticker`.
     - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
@@ -97,10 +97,10 @@ __version__ = "1.0.0"
 
 import sys
 
-from .admin import get_param_setter, seed_and_simulate, xpList
-from .data_management import (default_fig_adjustments, default_styles,
-                              discretize_cmap, load_xps, make_label, rel_index,
-                              xpSpace)
 from .dpr_config import rc
 from .tools.magic import magic_naming, spell_out
 from .tools.seeding import set_seed
+from .xp_launch import get_param_setter, seed_and_simulate, xpList
+from .xp_process import (default_fig_adjustments, default_styles,
+                         discretize_cmap, load_xps, make_label, rel_index,
+                         xpSpace)

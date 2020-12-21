@@ -1,11 +1,5 @@
-"""High-level API. I.e. the main "user-interface".
+"""Experiment ("xp") setup and running.
 
-Used for experiment (`xp`) specification/administration.
-Highlights:
-
-- `Operator`
-- `HiddenMarkovModel`
-- `da_method` decorator (creates `xp` objects)
 - `xpList` (subclass of list for `xp` objects)
 - `run_experiment` (run experiment specifiied by an `xp`)
 """
@@ -489,7 +483,7 @@ class xpList(list):
             with open(extra_files/"load_and_run.py", "w") as f:
                 f.write(dedent("""\
                 import dill
-                from dapper.admin import run_experiment
+                from dapper.xp_launch import run_experiment
 
                 # Load
                 with open("xp.com", "rb") as f: com = dill.load(f)

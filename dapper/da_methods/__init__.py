@@ -1,5 +1,7 @@
 """Data assimilation methods included with DAPPER.
 
+- `da_method` decorator (creates `xp` objects)
+
 See the README section on
 [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
 for an overview of the methods included with DAPPER.

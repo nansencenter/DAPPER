@@ -7,11 +7,15 @@ of DA experiments.
 See the README section on
 [test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
 for an overview of the models included with DAPPER.
+
+- `Operator`
+- `HiddenMarkovModel`
+
 ## Defining your own model
 
 Follow the example of one of the models within the `dapper/mods` folder.
 Essentially, you just need to define all of the attributes of a
-`dapper.admin.HiddenMarkovModel`.
+`dapper.mods.HiddenMarkovModel`.
 To make sure this is working, we suggest the following structure:
 
 - Make a dir: `my_model`
@@ -22,7 +26,7 @@ To make sure this is working, we suggest the following structure:
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
       See `dapper.mods.Lorenz63` and `dapper.mods.Lorenz96`
       for typical implementations,
-      and `dapper.mods/QG` for how to parallelize the ensemble simulations.
+      and `dapper.mods.QG` for how to parallelize the ensemble simulations.
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).
