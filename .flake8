@@ -37,8 +37,7 @@ per-file-ignores=
     miyoshi2011.py:E501
 
 exclude=
-    dapper/__init__.py
-    dapper/da_methods/__init__.py
+    __init__.py
     autoscaler.py
     scripts/*
     docs/*
