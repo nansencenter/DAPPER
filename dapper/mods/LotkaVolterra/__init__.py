@@ -12,6 +12,8 @@ import dapper as dpr
 from dapper.mods.integration import integrate_TLM
 from dapper.mods.Lorenz63 import LPs
 
+__pdoc__ = {"demo": False}
+
 Nx = 4
 
 # "growth" coefficients

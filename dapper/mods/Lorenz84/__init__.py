@@ -12,6 +12,8 @@ import numpy as np
 import dapper as dpr
 from dapper.mods.integration import integrate_TLM
 
+__pdoc__ = {"demo": False}
+
 # Constants
 a = 0.25
 b = 4

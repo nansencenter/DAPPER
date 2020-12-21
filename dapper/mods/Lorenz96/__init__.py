@@ -15,6 +15,8 @@ import numpy as np
 import dapper.tools.liveplotting as LP
 from dapper.mods.integration import integrate_TLM, rk4
 
+__pdoc__ = {"demo": False}
+
 Force = 8.0
 
 Tplot = 10

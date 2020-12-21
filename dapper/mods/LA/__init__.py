@@ -16,6 +16,8 @@ import numpy as np
 import scipy.linalg as sla
 from scipy import sparse
 
+__pdoc__ = {"demo": False}
+
 
 def Fmat(Nx, c, dx, dt):
     """

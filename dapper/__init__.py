@@ -111,26 +111,3 @@ from .tools.matrices import CovMat
 from .tools.randvars import RV, GaussRV
 from .tools.rounding import round2, round2sigfig
 from .tools.seeding import set_seed
-
-
-# Documentation generation -- exclusion
-def _find_demos(as_path=False):
-    "Find all model demo.py scripts."
-    lst = []
-    for d in (rc.dirs.dapper/"mods").iterdir():
-        x = d/"demo.py"
-        if x.is_file():
-            x = x.relative_to(rc.dirs.DAPPER)
-            if not as_path:
-                x = str(x.with_suffix("")).replace("/", ".")
-            lst.append(x)
-    return lst
-__pdoc__ = {
-    "tools.remote.autoscaler": False,
-    **{demo:False for demo in _find_demos()},
-    "dapper.mods.KS.compare_schemes": False,
-    "dapper.mods.LorenzUV.illust_LorenzUV": False,
-    "dapper.mods.LorenzUV.illust_parameterizations": False,
-    "dapper.mods.explore_props": False,
-    "dapper.mods.QG.f90": False,
-}

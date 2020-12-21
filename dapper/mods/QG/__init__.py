@@ -27,6 +27,8 @@ import dapper as dpr
 import dapper.tools.liveplotting as LP
 import dapper.tools.multiproc as mp
 
+__pdoc__ = {"demo": False}
+
 #########################
 # Model
 #########################

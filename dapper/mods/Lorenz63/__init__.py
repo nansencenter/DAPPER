@@ -15,6 +15,8 @@ import dapper as dpr
 import dapper.tools.liveplotting as LP
 from dapper.mods.integration import integrate_TLM
 
+__pdoc__ = {"demo": False}
+
 # Constants
 sig = 10.0
 rho = 28.0

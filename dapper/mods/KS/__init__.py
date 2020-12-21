@@ -16,6 +16,8 @@ from dapper.dpr_config import DotDict
 from dapper.mods.integration import integrate_TLM, with_rk4
 from dapper.tools.magic import magic_naming
 
+__pdoc__ = {mod: False for mod in ["demo", "compare_schemes"]}
+
 
 # To & from time/Fourier domain -- use reals-only fft
 def fft(u): return np. fft. rfft(u, axis=-1)  # F

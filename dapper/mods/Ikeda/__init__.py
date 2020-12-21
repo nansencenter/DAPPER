@@ -12,6 +12,8 @@ from numpy import cos, sin
 import dapper as dpr
 import dapper.tools.liveplotting as LP
 
+__pdoc__ = {"demo": False}
+
 # Constant 0.6 <= u <= 1.
 u = 0.9
 
