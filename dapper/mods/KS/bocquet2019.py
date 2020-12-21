@@ -1,9 +1,9 @@
 import numpy as np
 
 import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.KS import Model, Tplot
 from dapper.mods.Lorenz96 import LPs
-from dapper.mods.utils import Id_Obs
 from dapper.tools.localization import nd_Id_localization
 
 KS = Model(dt=0.5)
@@ -21,7 +21,7 @@ Dyn = {
 
 X0 = dpr.GaussRV(mu=KS.x0, C=0.001)
 
-Obs = Id_Obs(Nx)
+Obs = modelling.Id_Obs(Nx)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization((Nx,), (4,))
 

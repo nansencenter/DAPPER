@@ -97,17 +97,10 @@ __version__ = "1.0.0"
 
 import sys
 
-from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
-                    seed_and_simulate, xpList)
+from .admin import da_method, get_param_setter, seed_and_simulate, xpList
 from .data_management import (default_fig_adjustments, default_styles,
                               discretize_cmap, load_xps, make_label, rel_index,
                               xpSpace)
 from .dpr_config import rc
-from .mods.integration import with_recursion, with_rk4
-from .mods.utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
-from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.matrices import CovMat
-from .tools.randvars import RV, GaussRV
-from .tools.rounding import round2, round2sigfig
 from .tools.seeding import set_seed

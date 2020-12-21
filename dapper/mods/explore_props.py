@@ -10,8 +10,9 @@ from numpy.random import randn
 import dapper as dpr
 import dapper.tools.series as series
 import dapper.tools.viz as viz
-from dapper.mods.integration import with_recursion, with_rk4
 from dapper.tools.progressbar import progbar
+
+from . import with_recursion, with_rk4
 
 dpr.set_seed(3000)
 
