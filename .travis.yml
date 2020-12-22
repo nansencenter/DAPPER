@@ -13,7 +13,7 @@ env:
     - PYTEST_ARGS="tests
       --ignore=tests/test_plotting.py --ignore=tests/test_demos.py
       --doctest-modules
-      dapper/tools/maths.py dapper/tools/series.py"
+      dapper/tools/series.py"
     - COVERAGE="false"
   # Increases the build matrix (multiplies it by the number of jobs)
   # jobs:
