@@ -21,6 +21,7 @@ DOCLINES = __doc__.split('\n')
 INSTALL_REQUIRES = [
     'scipy>=1.1',
     'ipython>=5.1',
+    'jupyter',
     'matplotlib~=3.1',  # >=3.1 to avoid Mac's framework-build issues
     'tqdm~=4.31',
     'pyyaml',
@@ -36,7 +37,7 @@ INSTALL_REQUIRES = [
 
 EXTRAS = {
     'Qt':  ['PyQt5', 'qtpy'],
-    'dev': ['line_profiler', 'pdbpp', 'pre-commit'],
+    'dev': ['line_profiler', 'pdbpp', 'pre-commit', 'jupytext'],
     'test': ['pytest', 'pytest-cov', 'coverage',
              'pytest-sugar', 'pytest-benchmark', 'pytest-clarity', 'pytest-xdist'],
     'lint': ['flake8', 'flakehell'],
