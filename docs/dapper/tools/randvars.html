@@ -40,15 +40,14 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L0-L245" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L0-L244" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Classes of random variables.&#34;&#34;&#34;
 
 import numpy as np
 from numpy import sqrt
-from numpy.random import rand, randn
+from struct_tools import NicePrint
 
-from dapper.dict_tools import NicePrint
 from dapper.tools.matrices import CovMat
 
 
@@ -101,7 +100,7 @@ class RV(NicePrint):
         elif hasattr(self, &#39;icdf&#39;):
             # Independent &#34;inverse transform&#34; sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rand(N, self.M)
+            uu   = np.random.rand(N, self.M)
             E    = icdf(uu)
         elif hasattr(self, &#39;cdf&#39;):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -116,7 +115,7 @@ class RV(NicePrint):
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu, xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = rand(N, self.M)
+            uu = np.random.rand(N, self.M)
             E  = self.icdf_interp(uu)
         elif hasattr(self, &#39;pdf&#39;):
             # &#34;acceptance-rejection&#34; sampling
@@ -208,7 +207,7 @@ class GaussRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn(N, len(R)) @ R
+        D = np.random.randn(N, len(R)) @ R
         return D
 
 
@@ -222,7 +221,7 @@ class LaplaceRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         z = np.random.exponential(1, N)
-        D = randn(N, len(R))
+        D = np.random.randn(N, len(R))
         D = z[:, None]*D
         return D @ R / sqrt(2)
 
@@ -256,8 +255,8 @@ class StudRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         nu = self.dof
-        r = nu/np.sum(randn(N, nu)**2, axis=1)  # InvChi2
-        D = sqrt(r)[:, None]*randn(N, len(R))
+        r = nu/np.sum(np.random.randn(N, nu)**2, axis=1)  # InvChi2
+        D = sqrt(r)[:, None]*np.random.randn(N, len(R))
         return D @ R * sqrt((nu-2)/nu)
 
 
@@ -271,8 +270,8 @@ class UniRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn(N, len(R))
-        r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
+        D = np.random.randn(N, len(R))
+        r = np.random.rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None]*D
         return D @ R * 2
 
@@ -286,7 +285,7 @@ class UniParallelRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = rand(N, len(R))-0.5
+        D = np.random.rand(N, len(R))-0.5
         return D @ R * sqrt(12)</code></pre>
 </details>
 </section>
@@ -295,99 +294,6 @@ class UniParallelRV(RV_with_mean_and_cov):
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="dapper.tools.randvars.rand"><code class="name flex">
-<span>def <span class="ident">rand</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>rand(d0, d1, &hellip;, dn)</p>
-<p>Random values in a given shape.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>random_sample</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<p>Create an array of the given shape and populate it with
-random samples from a uniform distribution
-over <code>[0, 1)</code>.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>out</code></strong> :&ensp;`ndarray, shape ``(d0, d1, &hellip;, dn)```</dt>
-<dd>Random values.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<p><code>random</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.rand(3,2)
-array([[ 0.14022471,  0.96360618],  #random
-       [ 0.37601032,  0.25528411],  #random
-       [ 0.49313049,  0.94909878]]) #random
-</code></pre></div>
-</dd>
-<dt id="dapper.tools.randvars.randn"><code class="name flex">
-<span>def <span class="ident">randn</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>randn(d0, d1, &hellip;, dn)</p>
-<p>Return a sample (or samples) from the "standard normal" distribution.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>standard_normal</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; please see the :ref:<code>random-quick-start</code>.</p>
-</div>
-<p>If positive int_like arguments are provided, <code><a title="dapper.tools.randvars.randn" href="#dapper.tools.randvars.randn">RandomState.randn()</a></code> generates an array
-of shape <code>(d0, d1, &hellip;, dn)</code>, filled
-with random floats sampled from a univariate "normal" (Gaussian)
-distribution of mean 0 and variance 1. A single float randomly sampled
-from the distribution is returned if no argument is provided.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>Z</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
-<dd>A <code>(d0, d1, &hellip;, dn)</code>-shaped array of floating-point samples from
-the standard normal distribution, or a single such float if
-no parameters were supplied.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<dl>
-<dt><code>standard_normal</code></dt>
-<dd>Similar, but takes a tuple as its argument.</dd>
-<dt><code>normal</code></dt>
-<dd>Also accepts mu and sigma arguments.</dd>
-<dt><code>Generator.standard_normal</code></dt>
-<dd>which should be used for new code.</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p>For random samples from :math:<code>N(\mu, \sigma^2)</code>, use:</p>
-<p><code>sigma * np.random.randn(...) + mu</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randn()
-2.1923875335537315  # random
-</code></pre>
-<p>Two-by-four array of samples from N(3, 6.25):</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; 3 + 2.5 * np.random.randn(2, 4)
-array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
-       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
-</code></pre></div>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -425,7 +331,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L11-L83" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L10-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RV(NicePrint):
     &#34;Class to represent random variables.&#34;
@@ -476,7 +382,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
         elif hasattr(self, &#39;icdf&#39;):
             # Independent &#34;inverse transform&#34; sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rand(N, self.M)
+            uu   = np.random.rand(N, self.M)
             E    = icdf(uu)
         elif hasattr(self, &#39;cdf&#39;):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -491,7 +397,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu, xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = rand(N, self.M)
+            uu = np.random.rand(N, self.M)
             E  = self.icdf_interp(uu)
         elif hasattr(self, &#39;pdf&#39;):
             # &#34;acceptance-rejection&#34; sampling
@@ -503,7 +409,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -526,7 +432,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L39-L83" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L38-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample(self, N):
     if getattr(self, &#39;is0&#39;, False):
@@ -549,7 +455,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
     elif hasattr(self, &#39;icdf&#39;):
         # Independent &#34;inverse transform&#34; sampling
         icdf = np.vectorize(self.icdf)
-        uu   = rand(N, self.M)
+        uu   = np.random.rand(N, self.M)
         E    = icdf(uu)
     elif hasattr(self, &#39;cdf&#39;):
         # Like above, but with inv-cdf approximate, from interpolation
@@ -564,7 +470,7 @@ Example: RV(M=4,cdf = scipy.stats.norm.cdf)</li>
             uu     = np.vectorize(cdf)(xx)
             icdf   = interp1d(uu, xx)
             self.icdf_interp = np.vectorize(icdf)
-        uu = rand(N, self.M)
+        uu = np.random.rand(N, self.M)
         E  = self.icdf_interp(uu)
     elif hasattr(self, &#39;pdf&#39;):
         # &#34;acceptance-rejection&#34; sampling
@@ -589,7 +495,7 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L87-L159" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L86-L158" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RV_with_mean_and_cov(RV):
     &#34;&#34;&#34;Generic multivariate random variable characterized by mean and cov.
@@ -668,7 +574,7 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.tools.randvars.RV" href="#dapper.tools.randvars.RV">RV</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -692,7 +598,7 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L145-L156" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L144-L155" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample(self, N):
     &#34;&#34;&#34;Sample N realizations. Returns N-by-M (ndim) sample matrix.
@@ -720,21 +626,21 @@ i.e. its main purpose is provide a common convenience constructor.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L162-L168" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L161-L167" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class GaussRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;Gaussian (Normal) multivariate random variable.&#34;&#34;&#34;
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn(N, len(R)) @ R
+        D = np.random.randn(N, len(R)) @ R
         return D</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.tools.randvars.RV_with_mean_and_cov" href="#dapper.tools.randvars.RV_with_mean_and_cov">RV_with_mean_and_cov</a></li>
 <li><a title="dapper.tools.randvars.RV" href="#dapper.tools.randvars.RV">RV</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -757,7 +663,7 @@ Eltoft (2006) "On the Multivariate Laplace Distribution".</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L171-L183" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L170-L182" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LaplaceRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -769,7 +675,7 @@ Eltoft (2006) "On the Multivariate Laplace Distribution".</p>
     def _sample(self, N):
         R = self.C.Right
         z = np.random.exponential(1, N)
-        D = randn(N, len(R))
+        D = np.random.randn(N, len(R))
         D = z[:, None]*D
         return D @ R / sqrt(2)</code></pre>
 </details>
@@ -777,7 +683,7 @@ Eltoft (2006) "On the Multivariate Laplace Distribution".</p>
 <ul class="hlist">
 <li><a title="dapper.tools.randvars.RV_with_mean_and_cov" href="#dapper.tools.randvars.RV_with_mean_and_cov">RV_with_mean_and_cov</a></li>
 <li><a title="dapper.tools.randvars.RV" href="#dapper.tools.randvars.RV">RV</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -799,7 +705,7 @@ the Laplace (double exponential) random variable.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L186-L196" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L185-L195" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LaplaceParallelRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -817,7 +723,7 @@ the Laplace (double exponential) random variable.</p>
 <ul class="hlist">
 <li><a title="dapper.tools.randvars.RV_with_mean_and_cov" href="#dapper.tools.randvars.RV_with_mean_and_cov">RV_with_mean_and_cov</a></li>
 <li><a title="dapper.tools.randvars.RV" href="#dapper.tools.randvars.RV">RV</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -842,7 +748,7 @@ since chi2 is sampled via Gaussians.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L199-L217" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L198-L216" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class StudRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -860,15 +766,15 @@ since chi2 is sampled via Gaussians.</p>
     def _sample(self, N):
         R = self.C.Right
         nu = self.dof
-        r = nu/np.sum(randn(N, nu)**2, axis=1)  # InvChi2
-        D = sqrt(r)[:, None]*randn(N, len(R))
+        r = nu/np.sum(np.random.randn(N, nu)**2, axis=1)  # InvChi2
+        D = sqrt(r)[:, None]*np.random.randn(N, len(R))
         return D @ R * sqrt((nu-2)/nu)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.tools.randvars.RV_with_mean_and_cov" href="#dapper.tools.randvars.RV_with_mean_and_cov">RV_with_mean_and_cov</a></li>
 <li><a title="dapper.tools.randvars.RV" href="#dapper.tools.randvars.RV">RV</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -892,7 +798,7 @@ vectors and coordinates from the n-sphere and n-ball"</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L220-L233" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L219-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UniRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -904,8 +810,8 @@ vectors and coordinates from the n-sphere and n-ball"</p>
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn(N, len(R))
-        r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
+        D = np.random.randn(N, len(R))
+        r = np.random.rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None]*D
         return D @ R * 2</code></pre>
 </details>
@@ -913,7 +819,7 @@ vectors and coordinates from the n-sphere and n-ball"</p>
 <ul class="hlist">
 <li><a title="dapper.tools.randvars.RV_with_mean_and_cov" href="#dapper.tools.randvars.RV_with_mean_and_cov">RV_with_mean_and_cov</a></li>
 <li><a title="dapper.tools.randvars.RV" href="#dapper.tools.randvars.RV">RV</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -936,7 +842,7 @@ applied to the (corners of) the hypercube.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L236-L246" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/randvars.py#L235-L245" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UniParallelRV(RV_with_mean_and_cov):
     &#34;&#34;&#34;
@@ -947,14 +853,14 @@ applied to the (corners of) the hypercube.</p>
 
     def _sample(self, N):
         R = self.C.Right
-        D = rand(N, len(R))-0.5
+        D = np.random.rand(N, len(R))-0.5
         return D @ R * sqrt(12)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.tools.randvars.RV_with_mean_and_cov" href="#dapper.tools.randvars.RV_with_mean_and_cov">RV_with_mean_and_cov</a></li>
 <li><a title="dapper.tools.randvars.RV" href="#dapper.tools.randvars.RV">RV</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="../dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -987,12 +893,6 @@ data-gaCategoryParameter="dapper.tools.randvars">
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="dapper.tools" href="index.html">dapper.tools</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="dapper.tools.randvars.rand" href="#dapper.tools.randvars.rand">rand</a></code></li>
-<li><code><a title="dapper.tools.randvars.randn" href="#dapper.tools.randvars.randn">randn</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

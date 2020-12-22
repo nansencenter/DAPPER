@@ -40,13 +40,12 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L0-L275" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L0-L274" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Time sequence management, notably Chronology and Ticker.&#34;&#34;&#34;
 
 import numpy as np
-
-import dapper.dict_tools as dict_tools
+from struct_tools import AlignedDict
 
 
 class Chronology():
@@ -247,7 +246,7 @@ class Chronology():
 
     def __str__(self):
         printable = [&#39;K&#39;, &#39;KObs&#39;, &#39;T&#39;, &#39;BurnIn&#39;, &#39;dtObs&#39;, &#39;dt&#39;]
-        return str(dict_tools.AlignedDict([(k, getattr(self, k)) for k in printable]))
+        return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):
         return &#34;&lt;&#34; + type(self).__name__ + &#39;&gt;&#39; + &#34;\n&#34; + str(self)
@@ -335,7 +334,7 @@ def format_time(k, kObs, t):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L266-L276" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L265-L275" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def format_time(k, kObs, t):
     if k is None:
@@ -395,7 +394,7 @@ Other attributes may not, due to ambiguity
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L8-L224" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L7-L223" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Chronology():
     &#34;&#34;&#34;Time schedules with consistency checks.
@@ -595,7 +594,7 @@ Other attributes may not, due to ambiguity
 
     def __str__(self):
         printable = [&#39;K&#39;, &#39;KObs&#39;, &#39;T&#39;, &#39;BurnIn&#39;, &#39;dtObs&#39;, &#39;dt&#39;]
-        return str(dict_tools.AlignedDict([(k, getattr(self, k)) for k in printable]))
+        return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):
         return &#34;&lt;&#34; + type(self).__name__ + &#39;&gt;&#39; + &#34;\n&#34; + str(self)
@@ -623,7 +622,7 @@ Other attributes may not, due to ambiguity
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L94-L96" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L93-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def dt(self):
@@ -636,7 +635,7 @@ def dt(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L107-L109" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L106-L108" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def dkObs(self):
@@ -649,7 +648,7 @@ def dkObs(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L117-L119" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L116-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def K(self):
@@ -662,7 +661,7 @@ def K(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L129-L131" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L128-L130" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def T(self):
@@ -675,7 +674,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L138-L140" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L137-L139" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def KObs(self):
@@ -688,7 +687,7 @@ def KObs(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L150-L152" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L149-L151" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def dtObs(self):
@@ -701,7 +700,7 @@ def dtObs(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L154-L156" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L153-L155" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def kk(self):
@@ -714,7 +713,7 @@ def kk(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L158-L160" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L157-L159" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def kkObs(self):
@@ -727,7 +726,7 @@ def kkObs(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L162-L164" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L161-L163" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def tt(self):
@@ -740,7 +739,7 @@ def tt(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L166-L168" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L165-L167" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def ttObs(self):
@@ -753,7 +752,7 @@ def ttObs(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L171-L174" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L170-L173" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def mask_BI(self):
@@ -767,7 +766,7 @@ def mask_BI(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L176-L179" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L175-L178" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def maskObs_BI(self):
@@ -782,7 +781,7 @@ def maskObs_BI(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L184-L192" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L183-L191" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def ticker(self):
@@ -807,7 +806,7 @@ def ticker(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L194-L202" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L193-L201" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def cycle(self, kObs):
     &#34;&#34;&#34;The range (in `kk`) between observation `kObs-1` and `kObs`.
@@ -828,7 +827,7 @@ def ticker(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L214-L216" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L213-L215" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def copy(self):
     &#34;Copy via state vars.&#34;
@@ -849,7 +848,7 @@ but computed without this repeated look-up operation.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L227-L263" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L226-L262" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Ticker:
     &#34;&#34;&#34;Iterator over kk and `kkObs`, yielding `(k,kObs,t,dt)`.
@@ -899,7 +898,7 @@ but computed without this repeated look-up operation.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L241-L244" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/chronos.py#L240-L243" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reset(self):
     self.k   = 0

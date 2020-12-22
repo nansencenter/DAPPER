@@ -48,7 +48,7 @@ ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L0-L128" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L0-L130" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Linear advection (i.e. translation) in 1D.
 
@@ -67,6 +67,8 @@ ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
 import numpy as np
 import scipy.linalg as sla
 from scipy import sparse
+
+__pdoc__ = {&#34;demo&#34;: False}
 
 
 def Fmat(Nx, c, dx, dt):
@@ -188,22 +190,19 @@ def homogeneous_1D_cov(M, d, kind=&#39;Expo&#39;):
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LA.evensen2009" href="evensen2009.html">evensen2009</a></code></dt>
 <dd>
-<div class="desc"><p>A mix of Evensen'2009 and Sakov'2008</p></div>
+<div class="desc"><p>A mix of <code><a title="bib.evensen2009ensemble" href="../../../bib.html#bib.evensen2009ensemble">evensen2009ensemble</a></code> and <code><a title="bib.sakov2008implications" href="../../../bib.html#bib.sakov2008implications">sakov2008implications</a></code> …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LA.raanes2015" href="raanes2015.html">raanes2015</a></code></dt>
 <dd>
-<div class="desc"><p>Reproduce results from fig2 of
-Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
-"Extending the square root method to account for
-…</p></div>
+<div class="desc"><p>Reproduce results from Fig. 2 of <code><a title="bib.raanes2014ext" href="../../../bib.html#bib.raanes2014ext">raanes2014ext</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LA.small" href="small.html">small</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Smaller version …</p></div>
 </dd>
 </dl>
 </section>
@@ -228,7 +227,7 @@ np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L20-L41" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L22-L43" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Fmat(Nx, c, dx, dt):
     &#34;&#34;&#34;
@@ -264,7 +263,7 @@ k
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L44-L63" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L46-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def basis_vector(Nx, k):
     &#34;&#34;&#34;
@@ -304,7 +303,7 @@ plt.plot(E.T)</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L68-L86" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L70-L88" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sinusoidal_sample(Nx, k, N):
     &#34;&#34;&#34; Generate N basis vectors, and center them.
@@ -335,7 +334,7 @@ plt.plot(E.T)</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L89-L92" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L91-L94" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def periodic_distance_range(M):
     return np.minimum(np.arange(M), np.arange(M, 0, -1))
@@ -352,7 +351,7 @@ d - decorr length, where the unit distance = M(i)-M(i-1) for all i</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L96-L129" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/__init__.py#L98-L131" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def homogeneous_1D_cov(M, d, kind=&#39;Expo&#39;):
     &#34;&#34;&#34;

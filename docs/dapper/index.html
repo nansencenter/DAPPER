@@ -73,8 +73,8 @@ see example in <code><a title="dapper.da_methods.ensemble.LETKF" href="da_method
 </ul>
 </li>
 <li>Classes that simplify treating:<ul>
-<li>Experiment administration and launch via <code><a title="dapper.admin.xpList" href="admin.html#dapper.admin.xpList">xpList</a></code>
-and data processing and presentation via <code><a title="dapper.data_management.xpSpace" href="data_management.html#dapper.data_management.xpSpace">xpSpace</a></code>.</li>
+<li>Experiment administration and launch via <code><a title="dapper.xp_launch.xpList" href="xp_launch.html#dapper.xp_launch.xpList">xpList</a></code>
+and data processing and presentation via <code><a title="dapper.xp_process.xpSpace" href="xp_process.html#dapper.xp_process.xpSpace">xpSpace</a></code>.</li>
 <li>Time sequences use via <code><a title="dapper.tools.chronos.Chronology" href="tools/chronos.html#dapper.tools.chronos.Chronology">Chronology</a></code>
 and<code><a title="dapper.tools.chronos.Ticker" href="tools/chronos.html#dapper.tools.chronos.Ticker">Ticker</a></code>.</li>
 <li>Random variables via <code><a title="dapper.tools.randvars.RV" href="tools/randvars.html#dapper.tools.randvars.RV">RV</a></code>: Gaussian, Student-t, Laplace, Uniform, &hellip;,
@@ -141,7 +141,7 @@ through the following links, which are also available in the left sidebar.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/__init__.py#L0-L146" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/__init__.py#L0-L106" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;(Data Assimilation with Python: a Package for Experimental Research)
 
@@ -180,8 +180,8 @@ your own **model** or **method**, then
     - Analysis parallelisation over local domains;
         see example in `da_methods.ensemble.LETKF`
 - Classes that simplify treating:
-    - Experiment administration and launch via `admin.xpList`
-      and data processing and presentation via `data_management.xpSpace`.
+    - Experiment administration and launch via `xp_launch.xpList`
+      and data processing and presentation via `xp_process.xpSpace`.
     - Time sequences use via `tools.chronos.Chronology`
       and`tools.chronos.Ticker`.
     - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
@@ -242,54 +242,14 @@ __version__ = &#34;1.0.0&#34;
 
 import sys
 
-from dapper.tools.series import UncertainQtty
-
-from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
-                    seed_and_simulate, xpList)
-from .da_methods.baseline import Climatology, OptInterp, Var3D
-# DA methods
-from .da_methods.ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
-from .da_methods.extended import ExtKF, ExtRTS
-from .da_methods.other import LNETF, RHF
-from .da_methods.particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
-from .da_methods.variational import Var4D, iEnKS
-from .data_management import (default_fig_adjustments, default_styles,
-                              discretize_cmap, load_xps, make_label, rel_index,
-                              xpSpace)
+# Imports used by examples
 from .dpr_config import rc
-from .mods.integration import with_recursion, with_rk4
-from .mods.utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
-from .stats import register_stat
-from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.matrices import CovMat
-from .tools.randvars import RV, GaussRV
-from .tools.rounding import round2, round2sigfig
-from .tools.stoch import set_seed
-from .tools.viz import freshfig
-
-
-# Documentation generation -- exclusion
-def _find_demos(as_path=False):
-    &#34;Find all model demo.py scripts.&#34;
-    lst = []
-    for d in (rc.dirs.dapper/&#34;mods&#34;).iterdir():
-        x = d/&#34;demo.py&#34;
-        if x.is_file():
-            x = x.relative_to(rc.dirs.DAPPER)
-            if not as_path:
-                x = str(x.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
-            lst.append(x)
-    return lst
-__pdoc__ = {
-    &#34;tools.remote.autoscaler&#34;: False,
-    **{demo:False for demo in _find_demos()},
-    &#34;dapper.mods.KS.compare_schemes&#34;: False,
-    &#34;dapper.mods.LorenzUV.illust_LorenzUV&#34;: False,
-    &#34;dapper.mods.LorenzUV.illust_parameterizations&#34;: False,
-    &#34;dapper.mods.explore_props&#34;: False,
-    &#34;dapper.mods.QG.f90&#34;: False,
-}</code></pre>
+from .tools.seeding import set_seed
+from .xp_launch import get_param_setter, seed_and_simulate, xpList
+from .xp_process import (default_fig_adjustments, default_styles,
+                         discretize_cmap, load_xps, make_label, rel_index,
+                         xpSpace)</code></pre>
 </details>
 </section>
 <section>
@@ -297,27 +257,9 @@ __pdoc__ = {
 <dl>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.admin" href="admin.html">admin</a></code></dt>
-<dd>
-<div class="desc"><p>High-level API. I.e. the main "user-interface" …</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></dt>
 <dd>
-<div class="desc"><p>Data assimilation methods included with DAPPER …</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.data_management" href="data_management.html">data_management</a></code></dt>
-<dd>
-<div class="desc"><p>Tools (notably xpSpace) for processing and presenting experiment data.</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></dt>
-<dd>
-<div class="desc"><p>Tools for dicts (and lists).</p></div>
+<div class="desc"><p>Contains the data assimilation methods included with DAPPER …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -342,6 +284,18 @@ __pdoc__ = {
 <dt><code class="name"><a title="dapper.tools" href="tools/index.html">tools</a></code></dt>
 <dd>
 <div class="desc"><p>If the only tool you have is a hammer, it's hard to eat spaghetti.</p></div>
+</dd>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.xp_launch" href="xp_launch.html">xp_launch</a></code></dt>
+<dd>
+<div class="desc"><p>Tools (notably <code>xpList</code>) for setup and running of experiments (known as <code>xp</code>s) …</p></div>
+</dd>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.xp_process" href="xp_process.html">xp_process</a></code></dt>
+<dd>
+<div class="desc"><p>Tools (notably <code>xpSpace</code>) for processing and presenting experiment data.</p></div>
 </dd>
 </dl>
 </section>
@@ -380,16 +334,7 @@ data-gaCategoryParameter="dapper">
 <ul>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.admin" href="admin.html">admin</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.data_management" href="data_management.html">data_management</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></li>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.dpr_config" href="dpr_config.html">dpr_config</a></code></li>
@@ -402,6 +347,12 @@ data-gaCategoryParameter="dapper">
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.tools" href="tools/index.html">tools</a></code></li>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.xp_launch" href="xp_launch.html">xp_launch</a></code></li>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.xp_process" href="xp_process.html">xp_process</a></code></li>
 </ul>
 </li>
 </ul>

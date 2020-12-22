@@ -40,25 +40,26 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_printing.py#L0-L85" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_printing.py#L0-L86" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Test printing&#34;&#34;&#34;
 
 import dapper as dpr
-import dapper.tools.utils as utils
+import dapper.da_methods as da
+import dapper.tools.progressbar as pb
 from dapper.tools.magic import spell_out
 
-utils.disable_user_interaction = True
+pb.disable_user_interaction = True
 
 
 def test_L63():
     from dapper.mods.Lorenz63.sakov2012 import HMM
 
     xps = dpr.xpList()
-    xps += dpr.EnKF(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
-    xps += dpr.PartFilt(N=20, reg=2.4, NER=0.3)
-    xps += dpr.OptInterp()
-    # xps += dpr.iEnKS(&#39;Sqrt&#39;,  N=10,  infl=1.02,rot=True)
+    xps += da.EnKF(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
+    xps += da.PartFilt(N=20, reg=2.4, NER=0.3)
+    xps += da.OptInterp()
+    # xps += da.iEnKS(&#39;Sqrt&#39;,  N=10,  infl=1.02,rot=True)
 
     HMM.t.BurnIn = HMM.t.dtObs
     HMM.t.KObs = 1
@@ -88,17 +89,17 @@ def test_L96():
 
     from dapper.mods.Lorenz96.sakov2008 import HMM
 
-    xps += dpr.EnKF(&#34;PertObs&#34;, N=40, infl=1.06)
-    xps += dpr.EnKF(&#34;Serial&#34;, N=28, infl=1.02, rot=True)
-    xps += dpr.OptInterp()
-    xps += dpr.Var3D(xB=0.02)
-    xps += dpr.ExtKF(infl=10)
-    xps += dpr.LETKF(N=6, rot=True, infl=1.05, loc_rad=4, taper=&#34;Step&#34;)
+    xps += da.EnKF(&#34;PertObs&#34;, N=40, infl=1.06)
+    xps += da.EnKF(&#34;Serial&#34;, N=28, infl=1.02, rot=True)
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.02)
+    xps += da.ExtKF(infl=10)
+    xps += da.LETKF(N=6, rot=True, infl=1.05, loc_rad=4, taper=&#34;Step&#34;)
 
     # from dapper.mods.Lorenz96.bocquet2015loc import HMM
-    # xps += dpr.EnKF_N(  N=24, rot=True ,infl=1.01)
-    # xps += dpr.PartFilt(N=3000,NER=0.20,reg=1.2)
-    # xps += dpr.PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)
+    # xps += da.EnKF_N(  N=24, rot=True ,infl=1.01)
+    # xps += da.PartFilt(N=3000,NER=0.20,reg=1.2)
+    # xps += da.PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)
 
     # HMM.t.BurnIn = 10*HMM.t.dtObs
     # HMM.t.KObs = 30
@@ -145,16 +146,16 @@ def test_L96():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_printing.py#L10-L39" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_printing.py#L11-L40" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_L63():
     from dapper.mods.Lorenz63.sakov2012 import HMM
 
     xps = dpr.xpList()
-    xps += dpr.EnKF(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
-    xps += dpr.PartFilt(N=20, reg=2.4, NER=0.3)
-    xps += dpr.OptInterp()
-    # xps += dpr.iEnKS(&#39;Sqrt&#39;,  N=10,  infl=1.02,rot=True)
+    xps += da.EnKF(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
+    xps += da.PartFilt(N=20, reg=2.4, NER=0.3)
+    xps += da.OptInterp()
+    # xps += da.iEnKS(&#39;Sqrt&#39;,  N=10,  infl=1.02,rot=True)
 
     HMM.t.BurnIn = HMM.t.dtObs
     HMM.t.KObs = 1
@@ -187,24 +188,24 @@ def test_L96():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_printing.py#L42-L81" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_printing.py#L43-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_L96():
     xps = dpr.xpList()
 
     from dapper.mods.Lorenz96.sakov2008 import HMM
 
-    xps += dpr.EnKF(&#34;PertObs&#34;, N=40, infl=1.06)
-    xps += dpr.EnKF(&#34;Serial&#34;, N=28, infl=1.02, rot=True)
-    xps += dpr.OptInterp()
-    xps += dpr.Var3D(xB=0.02)
-    xps += dpr.ExtKF(infl=10)
-    xps += dpr.LETKF(N=6, rot=True, infl=1.05, loc_rad=4, taper=&#34;Step&#34;)
+    xps += da.EnKF(&#34;PertObs&#34;, N=40, infl=1.06)
+    xps += da.EnKF(&#34;Serial&#34;, N=28, infl=1.02, rot=True)
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.02)
+    xps += da.ExtKF(infl=10)
+    xps += da.LETKF(N=6, rot=True, infl=1.05, loc_rad=4, taper=&#34;Step&#34;)
 
     # from dapper.mods.Lorenz96.bocquet2015loc import HMM
-    # xps += dpr.EnKF_N(  N=24, rot=True ,infl=1.01)
-    # xps += dpr.PartFilt(N=3000,NER=0.20,reg=1.2)
-    # xps += dpr.PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)
+    # xps += da.EnKF_N(  N=24, rot=True ,infl=1.01)
+    # xps += da.PartFilt(N=3000,NER=0.20,reg=1.2)
+    # xps += da.PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)
 
     # HMM.t.BurnIn = 10*HMM.t.dtObs
     # HMM.t.KObs = 30

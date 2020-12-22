@@ -37,33 +37,36 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </header>
 <section id="section-intro">
 <p>A 1D emulator of chaotic atmospheric behaviour.</p>
-<p>From "Predictability &ndash; a problem partly solved" by E. N. Lorenz (1996).
-Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.</p>
-<p>For a short introduction, see
-- demo.py and
-- "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials</p>
-<p>Note: the implementation is ndim-agnostic.</p>
+<p><code><a title="bib.lorenz1996predictability" href="../../../bib.html#bib.lorenz1996predictability">lorenz1996predictability</a></code></p>
+<p>For a short introduction, see</p>
+<ul>
+<li><code>demo</code> and</li>
+<li>"Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials</li>
+</ul>
+<p>Note: the implementation is <code>ndim</code>-agnostic.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L0-L70" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L0-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;A 1D emulator of chaotic atmospheric behaviour.
 
-From &#34;Predictability -- a problem partly solved&#34; by E. N. Lorenz (1996).
-Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.
+`bib.lorenz1996predictability`
 
 For a short introduction, see
-- demo.py and
+
+- `demo` and
 - &#34;Dynamical systems, chaos, Lorenz.ipynb&#34; from the DA-tutorials
 
-Note: the implementation is ndim-agnostic.
+Note: the implementation is `ndim`-agnostic.
 &#34;&#34;&#34;
 
 import numpy as np
 
 import dapper.tools.liveplotting as LP
 from dapper.mods.integration import integrate_TLM, rk4
+
+__pdoc__ = {&#34;demo&#34;: False}
 
 Force = 8.0
 
@@ -128,83 +131,73 @@ def LPs(jj=None): return [
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.anderson2009" href="anderson2009.html">anderson2009</a></code></dt>
 <dd>
-<div class="desc"><p>A land-ocean setup for Lorenz-96 from Anderson's 2009 Tellus A article:
-'Spatially and temporally varying adaptive covariance inflation for ensemble …</p></div>
+<div class="desc"><p>A land-ocean setup from <code><a title="bib.anderson2009spatially" href="../../../bib.html#bib.anderson2009spatially">anderson2009spatially</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.bocquet2010" href="bocquet2010.html">bocquet2010</a></code></dt>
 <dd>
-<div class="desc"><p>From Fig. 1 of Bocquet 2010 'Beyond Gaussian Statistical Modeling
-in Geophysical Data Assimilation'.</p></div>
+<div class="desc"><p>From Fig. 1 of <code><a title="bib.bocquet2010beyond" href="../../../bib.html#bib.bocquet2010beyond">bocquet2010beyond</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.bocquet2010_m40" href="bocquet2010_m40.html">bocquet2010_m40</a></code></dt>
 <dd>
-<div class="desc"><p>Same as bocquet2010, except that here ndim=40 (i.e. Fig. 5 of paper)</p></div>
+<div class="desc"><p>From <code><a title="bib.bocquet2010beyond" href="../../../bib.html#bib.bocquet2010beyond">bocquet2010beyond</a></code> (again), but <code>ndim=40</code> (i.e. Fig. 5 of paper).</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.bocquet2015loc" href="bocquet2015loc.html">bocquet2015loc</a></code></dt>
 <dd>
-<div class="desc"><p>From Bocquet (2015):
-'Localization and the iterative ensemble Kalman smoother'</p></div>
+<div class="desc"><p>Settings as in <code><a title="bib.bocquet2016localization" href="../../../bib.html#bib.bocquet2016localization">bocquet2016localization</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.frei2013bridging" href="frei2013bridging.html">frei2013bridging</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Settings as in <code><a title="bib.frei2013bridging" href="../../../bib.html#bib.frei2013bridging">frei2013bridging</a></code>, who also cite its use in the following: …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.hoteit2015" href="hoteit2015.html">hoteit2015</a></code></dt>
 <dd>
-<div class="desc"><p>Reproduce results from Hoteit et al. (2015):
-"Mitigating Observation Perturbation Sampling Errors in the Stochastic EnKF"
-which introduces the ESOPS …</p></div>
+<div class="desc"><p>Reproduce results from <code><a title="bib.hoteit2015mitigating" href="../../../bib.html#bib.hoteit2015mitigating">hoteit2015mitigating</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.miyoshi2011" href="miyoshi2011.html">miyoshi2011</a></code></dt>
 <dd>
-<div class="desc"><p>A land-ocean setup for Lorenz-96 from Miyoshi'2011: 'The Gaussian Approach to
-Adaptive Covariance Inflation and Its Implementation with the LETKF' …</p></div>
+<div class="desc"><p>A land-ocean setup from <code><a title="bib.miyoshi2011gaussian" href="../../../bib.html#bib.miyoshi2011gaussian">miyoshi2011gaussian</a></code>, inspired by <code><a title="bib.lorenz1998optimal" href="../../../bib.html#bib.lorenz1998optimal">lorenz1998optimal</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.raanes2016" href="raanes2016.html">raanes2016</a></code></dt>
 <dd>
-<div class="desc"><p>Reproduce raanes'2016 ("EnRTS and EnKS")</p></div>
+<div class="desc"><p>Reproduce <code><a title="bib.raanes2015rts" href="../../../bib.html#bib.raanes2015rts">raanes2015rts</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.sakov2008" href="sakov2008.html">sakov2008</a></code></dt>
 <dd>
-<div class="desc"><p>Set-up as in Sakov's 2008 article in Tellus
-"A deterministic formulation of the ensemble Kalman filter:
-an alternative to ensemble square root …</p></div>
+<div class="desc"><p>Settings as in <code><a title="bib.sakov2008deterministic" href="../../../bib.html#bib.sakov2008deterministic">sakov2008deterministic</a></code> …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.spectral_obs" href="spectral_obs.html">spectral_obs</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Settings for a "spectral" obs operator …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.todter2015" href="todter2015.html">todter2015</a></code></dt>
 <dd>
-<div class="desc"><p>Concerns figure 4 of Todter and Ahrens (2015):
-'A Second-Order Exact Ensemble Square Root Filter
-for Nonlinear Data Assimilation'</p></div>
+<div class="desc"><p>Concerns figure 4 of <code><a title="bib.todter2015second" href="../../../bib.html#bib.todter2015second">todter2015second</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.todter2015_G" href="todter2015_G.html">todter2015_G</a></code></dt>
 <dd>
-<div class="desc"><p>Like todter2015 but with Gaussian likelihood.</p></div>
+<div class="desc"><p>From <code><a title="dapper.mods.Lorenz96.todter2015" href="todter2015.html">dapper.mods.Lorenz96.todter2015</a></code> again, but with Gaussian likelihood.</p></div>
 </dd>
 </dl>
 </section>
@@ -221,7 +214,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L23-L23" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L25-L25" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def x0(M): return np.eye(M)[0]</code></pre>
 </details>
@@ -234,7 +227,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L26-L27" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L28-L29" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def shift(x, n):
     return np.roll(x, -n, axis=-1)</code></pre>
@@ -248,7 +241,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L30-L30" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L32-L32" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x</code></pre>
 </details>
@@ -261,7 +254,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L31-L31" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L33-L33" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt(x): return dxdt_autonomous(x) + Force</code></pre>
 </details>
@@ -274,7 +267,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L34-L35" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L36-L37" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step(x0, t, dt):
     return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)</code></pre>
@@ -288,7 +281,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L41-L52" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L43-L54" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
     M = len(x)
@@ -312,7 +305,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L57-L59" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L59-L61" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
@@ -327,7 +320,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L65-L71" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L67-L73" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None): return [
     (11, 1, LP.spatial1d(jj)),

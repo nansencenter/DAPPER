@@ -40,19 +40,18 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L0-L645" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L0-L649" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Weight- &amp; resampling-based DA methods.&#34;&#34;&#34;
 
 import numpy as np
-from numpy.random import rand, randn
 
-import dapper.tools.maths
-import dapper.tools.utils as utils
-from dapper.admin import da_method
+from dapper.stats import unbias_var, weight_degeneracy
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, tinv
 from dapper.tools.matrices import chol_reduce, funm_psd
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method
@@ -104,7 +103,7 @@ class PartFilt:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn(N, Nx)
+                D  = np.random.randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -159,7 +158,7 @@ class OptPF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -233,7 +232,7 @@ class PFa:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn(N, Nx)
+                D  = np.random.randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -308,7 +307,7 @@ class PFxN_EnKF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -334,7 +333,7 @@ class PFxN_EnKF:
                         Pa      = Aw.T@Aw - KG@Yw.T@Aw
                         P_cholU = funm_psd(Pa, np.sqrt)
                         if DD is None or not self.re_use:
-                            DD    = randn(N*xN, Nx)
+                            DD    = np.random.randn(N*xN, Nx)
                             chi2  = np.sum(DD**2, axis=1) * Nx/N
                             log_q = -0.5 * chi2
                     else:
@@ -347,7 +346,7 @@ class PFxN_EnKF:
                         # and compute log(q(x))
                         if DD is None or not self.re_use:
                             rnk   = min(Nx, N-1)
-                            DD    = randn(N*xN, N)
+                            DD    = np.random.randn(N*xN, N)
                             chi2  = np.sum(DD**2, axis=1) * rnk/N
                             log_q = -0.5 * chi2
                         # NB: the DoF_linalg/DoF_stoch correction
@@ -423,7 +422,7 @@ class PFxN:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -440,7 +439,7 @@ class PFxN:
 
                     # Generate N·xN random numbers from NormDist(0,1)
                     if DD is None or not self.re_use:
-                        DD = randn(N*xN, Nx)
+                        DD = np.random.randn(N*xN, Nx)
 
                     # Duplicate and jitter
                     ED  = E.repeat(xN, 0)
@@ -485,6 +484,11 @@ def trigger_resampling(w, NER, stat_args):
     return do_resample
 
 
+def all_but_1_is_None(*args):
+    &#34;Check if only 1 of the items in list are Truthy&#34;
+    return sum(x is not None for x in args) == 1
+
+
 def reweight(w, lklhd=None, logL=None, innovs=None):
     &#34;&#34;&#34;Do Bayes&#39; rule (for the empirical distribution of an importance sample).
 
@@ -495,7 +499,7 @@ def reweight(w, lklhd=None, logL=None, innovs=None):
 
     If input is &#39;innovs&#39;: likelihood := NormDist(innovs|0,Id).
     &#34;&#34;&#34;
-    assert utils.all_but_1_is_None(lklhd, logL, innovs), \
+    assert all_but_1_is_None(lklhd, logL, innovs), \
         &#34;Input error. Only specify one of lklhd, logL, innovs&#34;
 
     # Get log-values.
@@ -526,13 +530,13 @@ def raw_C12(E, w):
     and also computed based on a weighted mean.
     &#34;&#34;&#34;
     # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.maths.weight_degeneracy(w):
+    if weight_degeneracy(w):
         w = np.ones(len(w))/len(w)
         # PS: &#39;avoid_pathological&#39; already treated here.
 
     mu  = w@E
     A   = E - mu
-    ub  = dapper.tools.maths.unbias_var(w, avoid_pathological=False)
+    ub  = unbias_var(w, avoid_pathological=False)
     C12 = np.sqrt(ub*w[:, None]) * A
     return C12
 
@@ -658,7 +662,7 @@ def _resample(w, kind, N_o, N):
         idx   = np.hstack((idx_I, idx_D))
     elif kind in [&#39;Systematic&#39;, &#39;Sys&#39;]:
         # van Leeuwen [2] also calls this &#34;stochastic universal&#34; resampling
-        U     = rand(1) / N
+        U     = np.random.rand(1) / N
         CDF_a = U + np.arange(N)/N
         CDF_o = np.cumsum(w)
         # idx = CDF_a &lt;= CDF_o[:,None]
@@ -679,12 +683,12 @@ def sample_quickly_with(C12, N=None):
         N = N_
     if N_ &gt; 2*M:
         cholR  = chol_reduce(C12)
-        D      = randn(N, cholR.shape[0])
+        D      = np.random.randn(N, cholR.shape[0])
         chi2   = np.sum(D**2, axis=1)
         sample = D@cholR
     else:
         chi2_compensate_for_rank = min(M/N_, 1.0)
-        D      = randn(N, N_)
+        D      = np.random.randn(N, N_)
         chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
         sample = D@C12
     return sample, chi2</code></pre>
@@ -697,96 +701,6 @@ def sample_quickly_with(C12, N=None):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.da_methods.particle.rand"><code class="name flex">
-<span>def <span class="ident">rand</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>rand(d0, d1, &hellip;, dn)</p>
-<p>Random values in a given shape.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>random_sample</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<p>Create an array of the given shape and populate it with
-random samples from a uniform distribution
-over <code>[0, 1)</code>.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>out</code></strong> :&ensp;`ndarray, shape ``(d0, d1, &hellip;, dn)```</dt>
-<dd>Random values.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<p><code>random</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.rand(3,2)
-array([[ 0.14022471,  0.96360618],  #random
-       [ 0.37601032,  0.25528411],  #random
-       [ 0.49313049,  0.94909878]]) #random
-</code></pre></div>
-</dd>
-<dt id="dapper.da_methods.particle.randn"><code class="name flex">
-<span>def <span class="ident">randn</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>randn(d0, d1, &hellip;, dn)</p>
-<p>Return a sample (or samples) from the "standard normal" distribution.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>standard_normal</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; please see the :ref:<code>random-quick-start</code>.</p>
-</div>
-<p>If positive int_like arguments are provided, <code><a title="dapper.da_methods.particle.randn" href="#dapper.da_methods.particle.randn">RandomState.randn()</a></code> generates an array
-of shape <code>(d0, d1, &hellip;, dn)</code>, filled
-with random floats sampled from a univariate "normal" (Gaussian)
-distribution of mean 0 and variance 1. A single float randomly sampled
-from the distribution is returned if no argument is provided.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>Z</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
-<dd>A <code>(d0, d1, &hellip;, dn)</code>-shaped array of floating-point samples from
-the standard normal distribution, or a single such float if
-no parameters were supplied.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<dl>
-<dt><code>standard_normal</code></dt>
-<dd>Similar, but takes a tuple as its argument.</dd>
-<dt><code>normal</code></dt>
-<dd>Also accepts mu and sigma arguments.</dd>
-<dt><code>Generator.standard_normal</code></dt>
-<dd>which should be used for new code.</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p>For random samples from :math:<code>N(\mu, \sigma^2)</code>, use:</p>
-<p><code>sigma * np.random.randn(...) + mu</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randn()
-2.1923875335537315  # random
-</code></pre>
-<p>Two-by-four array of samples from N(3, 6.25):</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; 3 + 2.5 * np.random.randn(2, 4)
-array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
-       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
-</code></pre></div>
-</dd>
 <dt id="dapper.da_methods.particle.trigger_resampling"><code class="name flex">
 <span>def <span class="ident">trigger_resampling</span></span>(<span>w, NER, stat_args)</span>
 </code></dt>
@@ -795,7 +709,7 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L423-L441" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L422-L440" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def trigger_resampling(w, NER, stat_args):
     &#34;Return boolean: N_effective &lt;= threshold. Also write stats.&#34;
@@ -818,6 +732,21 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
     return do_resample</code></pre>
 </details>
 </dd>
+<dt id="dapper.da_methods.particle.all_but_1_is_None"><code class="name flex">
+<span>def <span class="ident">all_but_1_is_None</span></span>(<span>*args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Check if only 1 of the items in list are Truthy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L443-L445" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def all_but_1_is_None(*args):
+    &#34;Check if only 1 of the items in list are Truthy&#34;
+    return sum(x is not None for x in args) == 1</code></pre>
+</details>
+</dd>
 <dt id="dapper.da_methods.particle.reweight"><code class="name flex">
 <span>def <span class="ident">reweight</span></span>(<span>w, lklhd=None, logL=None, innovs=None)</span>
 </code></dt>
@@ -831,7 +760,7 @@ Output is non-log, for the purpose of assessment and resampling.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L444-L473" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L448-L477" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reweight(w, lklhd=None, logL=None, innovs=None):
     &#34;&#34;&#34;Do Bayes&#39; rule (for the empirical distribution of an importance sample).
@@ -843,7 +772,7 @@ Output is non-log, for the purpose of assessment and resampling.</p>
 
     If input is &#39;innovs&#39;: likelihood := NormDist(innovs|0,Id).
     &#34;&#34;&#34;
-    assert utils.all_but_1_is_None(lklhd, logL, innovs), \
+    assert all_but_1_is_None(lklhd, logL, innovs), \
         &#34;Input error. Only specify one of lklhd, logL, innovs&#34;
 
     # Get log-values.
@@ -876,7 +805,7 @@ and also computed based on a weighted mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L476-L493" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L480-L497" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def raw_C12(E, w):
     &#34;&#34;&#34;Compute the &#39;raw&#39; matrix-square-root of the ensemble&#39; covariance.
@@ -887,13 +816,13 @@ and also computed based on a weighted mean.</p></div>
     and also computed based on a weighted mean.
     &#34;&#34;&#34;
     # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.maths.weight_degeneracy(w):
+    if weight_degeneracy(w):
         w = np.ones(len(w))/len(w)
         # PS: &#39;avoid_pathological&#39; already treated here.
 
     mu  = w@E
     A   = E - mu
-    ub  = dapper.tools.maths.unbias_var(w, avoid_pathological=False)
+    ub  = unbias_var(w, avoid_pathological=False)
     C12 = np.sqrt(ub*w[:, None]) * A
     return C12</code></pre>
 </details>
@@ -906,7 +835,7 @@ and also computed based on a weighted mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L496-L500" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L500-L504" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mask_unique_of_sorted(idx):
     &#34;NB: returns a mask which is True at [i] iff idx[i] is NOT unique.&#34;
@@ -924,7 +853,7 @@ and also computed based on a weighted mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L503-L508" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L507-L512" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def auto_bandw(N, M):
     &#34;&#34;&#34;&#34;Optimal bandwidth (not bandwidth^2), as per Scott&#39;s rule-of-thumb.
@@ -950,7 +879,7 @@ Ref: <code><a title="bib.doucet2001sequential" href="../../bib.html#bib.doucet20
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L511-L534" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L515-L538" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def regularize(C12, E, idx, no_uniq_jitter):
     &#34;&#34;&#34;Jitter (add noise).
@@ -1018,7 +947,7 @@ have more informative (and less variable) future likelihoods.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L537-L592" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L541-L596" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def resample(w, kind=&#39;Systematic&#39;, N=None, wroot=1.0):
     &#34;&#34;&#34;Multinomial resampling.
@@ -1087,7 +1016,7 @@ have more informative (and less variable) future likelihoods.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L628-L646" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L632-L650" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample_quickly_with(C12, N=None):
     &#34;&#34;&#34;Gaussian sampling in the quickest fashion.
@@ -1099,12 +1028,12 @@ have more informative (and less variable) future likelihoods.</p></div>
         N = N_
     if N_ &gt; 2*M:
         cholR  = chol_reduce(C12)
-        D      = randn(N, cholR.shape[0])
+        D      = np.random.randn(N, cholR.shape[0])
         chi2   = np.sum(D**2, axis=1)
         sample = D@cholR
     else:
         chi2_compensate_for_rank = min(M/N_, 1.0)
-        D      = randn(N, N_)
+        D      = np.random.randn(N, N_)
         chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
         sample = D@C12
     return sample, chi2</code></pre>
@@ -1137,7 +1066,7 @@ See <code><a title="bib.chen2003bayesian" href="../../bib.html#bib.chen2003bayes
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L21-L86" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L20-L85" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class PartFilt:
@@ -1181,7 +1110,7 @@ class PartFilt:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn(N, Nx)
+                D  = np.random.randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -1251,7 +1180,7 @@ class PartFilt:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L50-L86" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L49-L85" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1266,7 +1195,7 @@ class PartFilt:
     for k, kObs, t, dt in progbar(chrono.ticker):
         E = Dyn(E, t-dt, dt)
         if Dyn.noise.C != 0:
-            D  = randn(N, Nx)
+            D  = np.random.randn(N, Nx)
             E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
             if self.qroot != 1.0:
@@ -1309,7 +1238,7 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L89-L149" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L88-L148" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class OptPF:
@@ -1340,7 +1269,7 @@ class OptPF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -1418,7 +1347,7 @@ class OptPF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L105-L149" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L104-L148" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1433,7 +1362,7 @@ class OptPF:
     for k, kObs, t, dt in progbar(chrono.ticker):
         E = Dyn(E, t-dt, dt)
         if Dyn.noise.C != 0:
-            E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+            E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
         if kObs is not None:
             stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -1489,7 +1418,7 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L152-L227" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L151-L226" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class PFa:
@@ -1531,7 +1460,7 @@ class PFa:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn(N, Nx)
+                D  = np.random.randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -1613,7 +1542,7 @@ class PFa:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L179-L227" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L178-L226" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1628,7 +1557,7 @@ class PFa:
     for k, kObs, t, dt in progbar(chrono.ticker):
         E = Dyn(E, t-dt, dt)
         if Dyn.noise.C != 0:
-            D  = randn(N, Nx)
+            D  = np.random.randn(N, Nx)
             E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
             if self.qroot != 1.0:
@@ -1688,7 +1617,7 @@ Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L230-L349" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L229-L348" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class PFxN_EnKF:
@@ -1727,7 +1656,7 @@ class PFxN_EnKF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -1753,7 +1682,7 @@ class PFxN_EnKF:
                         Pa      = Aw.T@Aw - KG@Yw.T@Aw
                         P_cholU = funm_psd(Pa, np.sqrt)
                         if DD is None or not self.re_use:
-                            DD    = randn(N*xN, Nx)
+                            DD    = np.random.randn(N*xN, Nx)
                             chi2  = np.sum(DD**2, axis=1) * Nx/N
                             log_q = -0.5 * chi2
                     else:
@@ -1766,7 +1695,7 @@ class PFxN_EnKF:
                         # and compute log(q(x))
                         if DD is None or not self.re_use:
                             rnk   = min(Nx, N-1)
-                            DD    = randn(N*xN, N)
+                            DD    = np.random.randn(N*xN, N)
                             chi2  = np.sum(DD**2, axis=1) * rnk/N
                             log_q = -0.5 * chi2
                         # NB: the DoF_linalg/DoF_stoch correction
@@ -1856,7 +1785,7 @@ class PFxN_EnKF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L251-L349" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L250-L348" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1874,7 +1803,7 @@ class PFxN_EnKF:
     for k, kObs, t, dt in progbar(chrono.ticker):
         E = Dyn(E, t-dt, dt)
         if Dyn.noise.C != 0:
-            E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+            E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
         if kObs is not None:
             stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -1900,7 +1829,7 @@ class PFxN_EnKF:
                     Pa      = Aw.T@Aw - KG@Yw.T@Aw
                     P_cholU = funm_psd(Pa, np.sqrt)
                     if DD is None or not self.re_use:
-                        DD    = randn(N*xN, Nx)
+                        DD    = np.random.randn(N*xN, Nx)
                         chi2  = np.sum(DD**2, axis=1) * Nx/N
                         log_q = -0.5 * chi2
                 else:
@@ -1913,7 +1842,7 @@ class PFxN_EnKF:
                     # and compute log(q(x))
                     if DD is None or not self.re_use:
                         rnk   = min(Nx, N-1)
-                        DD    = randn(N*xN, N)
+                        DD    = np.random.randn(N*xN, N)
                         chi2  = np.sum(DD**2, axis=1) * rnk/N
                         log_q = -0.5 * chi2
                     # NB: the DoF_linalg/DoF_stoch correction
@@ -1974,7 +1903,7 @@ without jittering.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L352-L420" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L351-L419" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class PFxN:
@@ -2006,7 +1935,7 @@ class PFxN:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -2023,7 +1952,7 @@ class PFxN:
 
                     # Generate N·xN random numbers from NormDist(0,1)
                     if DD is None or not self.re_use:
-                        DD = randn(N*xN, Nx)
+                        DD = np.random.randn(N*xN, Nx)
 
                     # Duplicate and jitter
                     ED  = E.repeat(xN, 0)
@@ -2091,7 +2020,7 @@ class PFxN:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L368-L420" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L367-L419" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -2107,7 +2036,7 @@ class PFxN:
     for k, kObs, t, dt in progbar(chrono.ticker):
         E = Dyn(E, t-dt, dt)
         if Dyn.noise.C != 0:
-            E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+            E += np.sqrt(dt)*(np.random.randn(N, Nx)@Dyn.noise.C.Right)
 
         if kObs is not None:
             stats.assess(k, kObs, &#39;f&#39;, E=E, w=w)
@@ -2124,7 +2053,7 @@ class PFxN:
 
                 # Generate N·xN random numbers from NormDist(0,1)
                 if DD is None or not self.re_use:
-                    DD = randn(N*xN, Nx)
+                    DD = np.random.randn(N*xN, Nx)
 
                 # Duplicate and jitter
                 ED  = E.repeat(xN, 0)
@@ -2176,9 +2105,8 @@ data-gaCategoryParameter="dapper.da_methods.particle">
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="dapper.da_methods.particle.rand" href="#dapper.da_methods.particle.rand">rand</a></code></li>
-<li><code><a title="dapper.da_methods.particle.randn" href="#dapper.da_methods.particle.randn">randn</a></code></li>
 <li><code><a title="dapper.da_methods.particle.trigger_resampling" href="#dapper.da_methods.particle.trigger_resampling">trigger_resampling</a></code></li>
+<li><code><a title="dapper.da_methods.particle.all_but_1_is_None" href="#dapper.da_methods.particle.all_but_1_is_None">all_but_1_is_None</a></code></li>
 <li><code><a title="dapper.da_methods.particle.reweight" href="#dapper.da_methods.particle.reweight">reweight</a></code></li>
 <li><code><a title="dapper.da_methods.particle.raw_C12" href="#dapper.da_methods.particle.raw_C12">raw_C12</a></code></li>
 <li><code><a title="dapper.da_methods.particle.mask_unique_of_sorted" href="#dapper.da_methods.particle.mask_unique_of_sorted">mask_unique_of_sorted</a></code></li>

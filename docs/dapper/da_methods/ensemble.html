@@ -47,14 +47,14 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 import numpy as np
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
-from numpy.random import rand, randn
 
 import dapper.tools.multiproc as mp
-from dapper.admin import da_method
+from dapper.stats import center, mean0
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, svdi, tinv, tsvd
-from dapper.tools.maths import center, mean0
 from dapper.tools.matrices import funm_psd, genOG_1
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method
@@ -200,10 +200,10 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(rand()-0.5)  # Random sign
+                    Zj *= np.sign(np.random.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(randn(N))  # Un-coloured noise
+                    Zj = mean0(np.random.randn(N))  # Un-coloured noise
                     if &#39;Var1&#39; in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -355,7 +355,7 @@ def add_noise(E, dt, noise, method):
         E, _, Qa12 = sqrt_core()
         if N &lt;= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@np.random.randn(Z.shape[1], N)).T
 
     elif method == &#39;Sqrt-Dep&#39;:
         E, T, Qa12 = sqrt_core()
@@ -370,7 +370,7 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@np.random.randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -989,96 +989,6 @@ class EnKF_N:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.da_methods.ensemble.rand"><code class="name flex">
-<span>def <span class="ident">rand</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>rand(d0, d1, &hellip;, dn)</p>
-<p>Random values in a given shape.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>random_sample</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<p>Create an array of the given shape and populate it with
-random samples from a uniform distribution
-over <code>[0, 1)</code>.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>out</code></strong> :&ensp;`ndarray, shape ``(d0, d1, &hellip;, dn)```</dt>
-<dd>Random values.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<p><code>random</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.rand(3,2)
-array([[ 0.14022471,  0.96360618],  #random
-       [ 0.37601032,  0.25528411],  #random
-       [ 0.49313049,  0.94909878]]) #random
-</code></pre></div>
-</dd>
-<dt id="dapper.da_methods.ensemble.randn"><code class="name flex">
-<span>def <span class="ident">randn</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>randn(d0, d1, &hellip;, dn)</p>
-<p>Return a sample (or samples) from the "standard normal" distribution.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>standard_normal</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; please see the :ref:<code>random-quick-start</code>.</p>
-</div>
-<p>If positive int_like arguments are provided, <code><a title="dapper.da_methods.ensemble.randn" href="#dapper.da_methods.ensemble.randn">RandomState.randn()</a></code> generates an array
-of shape <code>(d0, d1, &hellip;, dn)</code>, filled
-with random floats sampled from a univariate "normal" (Gaussian)
-distribution of mean 0 and variance 1. A single float randomly sampled
-from the distribution is returned if no argument is provided.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>Z</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
-<dd>A <code>(d0, d1, &hellip;, dn)</code>-shaped array of floating-point samples from
-the standard normal distribution, or a single such float if
-no parameters were supplied.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<dl>
-<dt><code>standard_normal</code></dt>
-<dd>Similar, but takes a tuple as its argument.</dd>
-<dt><code>normal</code></dt>
-<dd>Also accepts mu and sigma arguments.</dd>
-<dt><code>Generator.standard_normal</code></dt>
-<dd>which should be used for new code.</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p>For random samples from :math:<code>N(\mu, \sigma^2)</code>, use:</p>
-<p><code>sigma * np.random.randn(...) + mu</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randn()
-2.1923875335537315  # random
-</code></pre>
-<p>Two-by-four array of samples from N(3, 6.25):</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; 3 + 2.5 * np.random.randn(2, 4)
-array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
-       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
-</code></pre></div>
-</dd>
 <dt id="dapper.da_methods.ensemble.EnKF_analysis"><code class="name flex">
 <span>def <span class="ident">EnKF_analysis</span></span>(<span>E, Eo, hnoise, y, upd_a, stats, kObs)</span>
 </code></dt>
@@ -1198,10 +1108,10 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(rand()-0.5)  # Random sign
+                    Zj *= np.sign(np.random.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(randn(N))  # Un-coloured noise
+                    Zj = mean0(np.random.randn(N))  # Un-coloured noise
                     if &#39;Var1&#39; in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -1380,7 +1290,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
         E, _, Qa12 = sqrt_core()
         if N &lt;= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@np.random.randn(Z.shape[1], N)).T
 
     elif method == &#39;Sqrt-Dep&#39;:
         E, T, Qa12 = sqrt_core()
@@ -1395,7 +1305,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@np.random.randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -2900,8 +2810,6 @@ data-gaCategoryParameter="dapper.da_methods.ensemble">
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
-<li><code><a title="dapper.da_methods.ensemble.rand" href="#dapper.da_methods.ensemble.rand">rand</a></code></li>
-<li><code><a title="dapper.da_methods.ensemble.randn" href="#dapper.da_methods.ensemble.randn">randn</a></code></li>
 <li><code><a title="dapper.da_methods.ensemble.EnKF_analysis" href="#dapper.da_methods.ensemble.EnKF_analysis">EnKF_analysis</a></code></li>
 <li><code><a title="dapper.da_methods.ensemble.post_process" href="#dapper.da_methods.ensemble.post_process">post_process</a></code></li>
 <li><code><a title="dapper.da_methods.ensemble.add_noise" href="#dapper.da_methods.ensemble.add_noise">add_noise</a></code></li>

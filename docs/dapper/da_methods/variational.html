@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L0-L341" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L0-L342" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Variational DA methods (iEnKS, 4D-Var, etc)&#34;&#34;&#34;
 
@@ -48,14 +48,14 @@ from typing import Optional
 
 import numpy as np
 import scipy.linalg as sla
-from numpy.random import randn
 
-from dapper.admin import da_method
 from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
+from dapper.stats import center, inflate_ens, mean0
 from dapper.tools.linalg import pad0, svd0, tinv
-from dapper.tools.maths import center, inflate_ens, mean0
 from dapper.tools.matrices import CovMat
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method
@@ -216,7 +216,7 @@ class iEnKS:
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
                         if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
-                            D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                            D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(self.nIter)
                             T  -= (Y + D) @ Y.T @ Cow1
                         elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
                             T   = Cowp(0.5) * np.sqrt(za) @ T
@@ -235,7 +235,8 @@ class iEnKS:
                             # Tinv saves time [vs tinv(T)] when Nx&lt;N
                         # &#34;EnRML&#34;. By Oliver/Chen/Raanes/Evensen/Stordal.
                         elif &#39;PertObs&#39; in self.upd_a:
-                            D     = mean0(randn(*Y.shape)) if iteration == 0 else D
+                            D     = mean0(np.random.randn(*Y.shape)) \
+                                if iteration == 0 else D
                             gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable
@@ -391,65 +392,6 @@ class Var4D:
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="dapper.da_methods.variational.randn"><code class="name flex">
-<span>def <span class="ident">randn</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>randn(d0, d1, &hellip;, dn)</p>
-<p>Return a sample (or samples) from the "standard normal" distribution.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>standard_normal</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; please see the :ref:<code>random-quick-start</code>.</p>
-</div>
-<p>If positive int_like arguments are provided, <code><a title="dapper.da_methods.variational.randn" href="#dapper.da_methods.variational.randn">RandomState.randn()</a></code> generates an array
-of shape <code>(d0, d1, &hellip;, dn)</code>, filled
-with random floats sampled from a univariate "normal" (Gaussian)
-distribution of mean 0 and variance 1. A single float randomly sampled
-from the distribution is returned if no argument is provided.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>Z</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
-<dd>A <code>(d0, d1, &hellip;, dn)</code>-shaped array of floating-point samples from
-the standard normal distribution, or a single such float if
-no parameters were supplied.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<dl>
-<dt><code>standard_normal</code></dt>
-<dd>Similar, but takes a tuple as its argument.</dd>
-<dt><code>normal</code></dt>
-<dd>Also accepts mu and sigma arguments.</dd>
-<dt><code>Generator.standard_normal</code></dt>
-<dd>which should be used for new code.</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p>For random samples from :math:<code>N(\mu, \sigma^2)</code>, use:</p>
-<p><code>sigma * np.random.randn(...) + mu</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randn()
-2.1923875335537315  # random
-</code></pre>
-<p>Two-by-four array of samples from N(3, 6.25):</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; 3 + 2.5 * np.random.randn(2, 4)
-array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
-       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
-</code></pre></div>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -506,7 +448,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L25-L233" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L25-L234" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@var_method
 class iEnKS:
@@ -658,7 +600,7 @@ class iEnKS:
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
                         if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
-                            D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                            D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(self.nIter)
                             T  -= (Y + D) @ Y.T @ Cow1
                         elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
                             T   = Cowp(0.5) * np.sqrt(za) @ T
@@ -677,7 +619,8 @@ class iEnKS:
                             # Tinv saves time [vs tinv(T)] when Nx&lt;N
                         # &#34;EnRML&#34;. By Oliver/Chen/Raanes/Evensen/Stordal.
                         elif &#39;PertObs&#39; in self.upd_a:
-                            D     = mean0(randn(*Y.shape)) if iteration == 0 else D
+                            D     = mean0(np.random.randn(*Y.shape)) \
+                                if iteration == 0 else D
                             gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable
@@ -779,7 +722,7 @@ class iEnKS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L93-L233" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L93-L234" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -863,7 +806,7 @@ class iEnKS:
                     Cow1 = Cow1 @ T  # apply previous update
                     dw = dy @ Y.T @ Cow1
                     if &#39;PertObs&#39; in self.upd_a:   # == &#34;ES-MDA&#34;. By Emerick/Reynolds
-                        D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                        D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(self.nIter)
                         T  -= (Y + D) @ Y.T @ Cow1
                     elif &#39;Sqrt&#39; in self.upd_a:    # == &#34;ETKF-ish&#34;. By Raanes
                         T   = Cowp(0.5) * np.sqrt(za) @ T
@@ -882,7 +825,8 @@ class iEnKS:
                         # Tinv saves time [vs tinv(T)] when Nx&lt;N
                     # &#34;EnRML&#34;. By Oliver/Chen/Raanes/Evensen/Stordal.
                     elif &#39;PertObs&#39; in self.upd_a:
-                        D     = mean0(randn(*Y.shape)) if iteration == 0 else D
+                        D     = mean0(np.random.randn(*Y.shape)) \
+                            if iteration == 0 else D
                         gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                         T     = T + gradT@Cow1
                         # Tinv= tinv(T, threshold=N1)  # unstable
@@ -944,7 +888,7 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L236-L342" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L237-L343" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@var_method
 class Var4D:
@@ -1091,7 +1035,7 @@ class Var4D:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L255-L342" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L256-L343" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -1207,11 +1151,6 @@ data-gaCategoryParameter="dapper.da_methods.variational">
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="dapper.da_methods" href="index.html">dapper.da_methods</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="dapper.da_methods.variational.randn" href="#dapper.da_methods.variational.randn">randn</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

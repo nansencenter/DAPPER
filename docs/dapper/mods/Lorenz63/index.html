@@ -44,7 +44,7 @@ the fluid convection between horizontal plates with different temperatures.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L0-L75" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L0-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The classic exhibitor of chaos, consisting of 3 coupled ODEs.
 
@@ -59,9 +59,11 @@ See demo.py for more info.
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
 from dapper.mods.integration import integrate_TLM
+
+__pdoc__ = {&#34;demo&#34;: False}
 
 # Constants
 sig = 10.0
@@ -69,7 +71,7 @@ rho = 28.0
 beta = 8.0/3
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def dxdt(x):
     &#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;
     d     = np.zeros_like(x)
@@ -81,7 +83,7 @@ def dxdt(x):
 
 
 # Time-step integration.
-step = dpr.with_rk4(dxdt, autonom=True)
+step = modelling.with_rk4(dxdt, autonom=True)
 
 # Time span for plotting. Typically: ≈10 * &#34;system time scale&#34;.
 Tplot = 4.0
@@ -131,38 +133,31 @@ def LPs(jj=None, params=params): return [
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz63.anderson2010rhf" href="anderson2010rhf.html">anderson2010rhf</a></code></dt>
 <dd>
-<div class="desc"><p>As in Anderson 2010 rank histogram filter</p></div>
+<div class="desc"><p>Settings from <code><a title="bib.anderson2010non" href="../../../bib.html#bib.anderson2010non">anderson2010non</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz63.bocquet2012" href="bocquet2012.html">bocquet2012</a></code></dt>
 <dd>
-<div class="desc"><p>Reproduce results from Fig 11 of
-M. Bocquet and P. Sakov (2012): 'Combining inflation-free and
-iterative ensemble Kalman filters for strongly …</p></div>
+<div class="desc"><p>Reproduce results from Fig 11 of <code><a title="bib.bocquet2012combining" href="../../../bib.html#bib.bocquet2012combining">bocquet2012combining</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz63.mandel2016" href="mandel2016.html">mandel2016</a></code></dt>
 <dd>
-<div class="desc"><p>As in
-J. Mandel, E. Bergou, S. Gürol, S. Gratton, and I. Kasanický (2016)
-"Hybrid Levenberg–Marquardt and weak-constraint ensemble Kalman smoother …</p></div>
+<div class="desc"><p>Settings from <code><a title="bib.mandel2016hybrid" href="../../../bib.html#bib.mandel2016hybrid">mandel2016hybrid</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz63.sakov2012" href="sakov2012.html">sakov2012</a></code></dt>
 <dd>
-<div class="desc"><p>Reproduce results from Table 1 of Sakov, Oliver, Bertino (2012):
-'An Iterative EnKF for Strongly Nonlinear Systems'</p></div>
+<div class="desc"><p>Reproduce results from Table 1 <code><a title="bib.sakov2012iterative" href="../../../bib.html#bib.sakov2012iterative">sakov2012iterative</a></code></p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz63.wiljes2017" href="wiljes2017.html">wiljes2017</a></code></dt>
 <dd>
-<div class="desc"><p>Settings from
-title={Second-order accurate ensemble transform particle filters},
-author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},</p></div>
+<div class="desc"><p>Settings from <code><a title="bib.wiljes2016second" href="../../../bib.html#bib.wiljes2016second">wiljes2016second</a></code>.</p></div>
 </dd>
 </dl>
 </section>
@@ -179,9 +174,9 @@ author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L24-L32" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L26-L34" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@dpr.ens_compatible
+<pre><code class="python">@modelling.ens_compatible
 def dxdt(x):
     &#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;
     d     = np.zeros_like(x)
@@ -200,7 +195,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L51-L58" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L53-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
     &#34;&#34;&#34;Tangent linear model (TLM): Jacobian of dxdt(x).&#34;&#34;&#34;
@@ -220,7 +215,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L61-L63" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L63-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     &#34;&#34;&#34;Resolvent (propagator) of the TLM: Jacobian of step(x).&#34;&#34;&#34;
@@ -235,7 +230,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L72-L76" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L74-L78" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None, params=params): return [
     (12, 1, LP.correlations),

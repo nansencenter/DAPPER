@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_demos.py#L0-L17" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_demos.py#L0-L30" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Test `demo.py` files in model dirs.&#34;&#34;&#34;
 
@@ -56,7 +56,20 @@ mpl.use(&#34;Qt5Agg&#34;)
 plt.ion()
 
 
-@pytest.mark.parametrize((&#34;path&#34;), dpr._find_demos())
+def _find_demos(as_path=False):
+    &#34;Find all model demo.py scripts.&#34;
+    lst = []
+    for d in (dpr.rc.dirs.dapper/&#34;mods&#34;).iterdir():
+        x = d/&#34;demo.py&#34;
+        if x.is_file():
+            x = x.relative_to(dpr.rc.dirs.DAPPER)
+            if not as_path:
+                x = str(x.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
+            lst.append(x)
+    return lst
+
+
+@pytest.mark.parametrize((&#34;path&#34;), _find_demos())
 def test_imp(path):
     import_module(path)
     assert True</code></pre>
@@ -77,9 +90,9 @@ def test_imp(path):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_demos.py#L15-L18" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_demos.py#L28-L31" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@pytest.mark.parametrize((&#34;path&#34;), dpr._find_demos())
+<pre><code class="python">@pytest.mark.parametrize((&#34;path&#34;), _find_demos())
 def test_imp(path):
     import_module(path)
     assert True</code></pre>

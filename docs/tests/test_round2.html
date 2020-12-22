@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L0-L130" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L0-L131" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tests for `round2` and `round2sigfig`.&#34;&#34;&#34;
 
@@ -70,21 +70,6 @@ class ca(float):
     def __eq__(self, other):
         &#34;&#34;&#34;Make equality comparison approximate.&#34;&#34;&#34;
         return np.isclose(self, other, self.tol)
-
-
-# Demonstrate `ca`.
-numbers = [
-    1 + 1e-6,
-    1 + 1e-4,
-]
-for x in numbers:
-    print(&#34;\nx:&#34;, x)
-    values = {
-        &#34;=&#34;: x,
-        &#34;≈&#34;: ca(x),
-    }
-    for mode, x2 in values.items():
-        print(f&#34;x {mode} 1 {mode} x:&#34;, x2 == 1 == x2)
 
 
 # Test cases for round2sigfig
@@ -172,7 +157,23 @@ def test_round2sigfig(x, p, y):
 def test_round2(x, p, y):
     rounded = round2(x, p)
     desired = ca(y, 1e-9)
-    assert rounded == desired</code></pre>
+    assert rounded == desired
+
+
+if __name__ == &#34;__main__&#34;:
+    # Demonstrate `ca`.
+    numbers = [
+        1 + 1e-6,
+        1 + 1e-4,
+    ]
+    for x in numbers:
+        print(&#34;\nx:&#34;, x)
+        values = {
+            &#34;=&#34;: x,
+            &#34;≈&#34;: ca(x),
+        }
+        for mode, x2 in values.items():
+            print(f&#34;x {mode} 1 {mode} x:&#34;, x2 == 1 == x2)</code></pre>
 </details>
 </section>
 <section>
@@ -190,7 +191,7 @@ def test_round2(x, p, y):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L120-L124" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L105-L109" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize(&#34;x, p, y&#34;, lst1)
 def test_round2sigfig(x, p, y):
@@ -207,7 +208,7 @@ def test_round2sigfig(x, p, y):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L127-L131" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_round2.py#L112-L116" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize(&#34;x, p, y&#34;, lst2)
 def test_round2(x, p, y):

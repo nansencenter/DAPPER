@@ -5,8 +5,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>dapper.admin API documentation</title>
-<meta name="description" content="High-level API. I.e. the main &#34;user-interface&#34; …" />
+<title>dapper.xp_launch API documentation</title>
+<meta name="description" content="Tools (notably `xpList`) for setup and running of experiments (known as `xp`s) …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -33,276 +33,74 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>dapper.admin</code></h1>
+<h1 class="title">Module <code>dapper.xp_launch</code></h1>
 </header>
 <section id="section-intro">
-<p>High-level API. I.e. the main "user-interface".</p>
-<p>Used for experiment (<code>xp</code>) specification/administration.
-Highlights:</p>
-<ul>
-<li><code><a title="dapper.admin.Operator" href="#dapper.admin.Operator">Operator</a></code></li>
-<li><code><a title="dapper.admin.HiddenMarkovModel" href="#dapper.admin.HiddenMarkovModel">HiddenMarkovModel</a></code></li>
-<li><code><a title="dapper.admin.da_method" href="#dapper.admin.da_method">da_method()</a></code> decorator (creates <code>xp</code> objects)</li>
-<li><code><a title="dapper.admin.xpList" href="#dapper.admin.xpList">xpList</a></code> (subclass of list for <code>xp</code> objects)</li>
-<li><code><a title="dapper.admin.run_experiment" href="#dapper.admin.run_experiment">run_experiment()</a></code> (run experiment specifiied by an <code>xp</code>)</li>
-</ul>
+<p>Tools (notably <code><a title="dapper.xp_launch.xpList" href="#dapper.xp_launch.xpList">xpList</a></code>) for setup and running of experiments (known as <code>xp</code>s).</p>
+<p>See <code><a title="dapper.da_methods.da_method" href="da_methods/index.html#dapper.da_methods.da_method">da_method()</a></code> for the strict definition of <code>xp</code>s.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L0-L702" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L590" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;High-level API. I.e. the main &#34;user-interface&#34;.
+<pre><code class="python">&#34;&#34;&#34;Tools (notably `xpList`) for setup and running of experiments (known as `xp`s).
 
-Used for experiment (`xp`) specification/administration.
-Highlights:
-
-- `Operator`
-- `HiddenMarkovModel`
-- `da_method` decorator (creates `xp` objects)
-- `xpList` (subclass of list for `xp` objects)
-- `run_experiment` (run experiment specifiied by an `xp`)
+See `dapper.da_methods.da_method` for the strict definition of `xp`s.
 &#34;&#34;&#34;
 
 import copy
 import dataclasses as dcs
-import functools
 import inspect
 import os
 import re
 import shutil
 import sys
-import time
+import traceback
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
 
 import dill
-import numpy as np
+import struct_tools
+import tabulate as _tabulate
+from tabulate import tabulate
+from tqdm import tqdm
 
-import dapper.dict_tools as dict_tools
 import dapper.stats
-import dapper.tools.utils as utils
+import dapper.tools.progressbar as pb
 from dapper.dpr_config import rc
-from dapper.mods.utils import Id_mat, Id_op
-from dapper.tools.chronos import Chronology
-from dapper.tools.localization import no_localization
-from dapper.tools.randvars import RV, GaussRV
 from dapper.tools.remote.uplink import submit_job_GCP
-from dapper.tools.stoch import set_seed
+from dapper.tools.seeding import set_seed
 
-
-class HiddenMarkovModel(dict_tools.NicePrint):
-    &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
-
-    This container contains the specification of a &#34;twin experiment&#34;,
-    i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
-    &#34;&#34;&#34;
-
-    def __init__(self, Dyn, Obs, t, X0, **kwargs):
-        # fmt: off
-        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
-        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
-        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
-        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
-        # fmt: on
-
-        # Name
-        self.name = kwargs.pop(&#34;name&#34;, &#34;&#34;)
-        if not self.name:
-            name = inspect.getfile(inspect.stack()[1][0])
-            try:
-                self.name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
-            except ValueError:
-                self.name = str(Path(name))
-
-        # Kwargs
-        abbrevs = {&#39;LP&#39;: &#39;liveplotters&#39;}
-        for key in kwargs:
-            setattr(self, abbrevs.get(key, key), kwargs[key])
-
-        # Defaults
-        if not hasattr(self.Obs, &#34;localizer&#34;):
-            self.Obs.localizer = no_localization(self.Nx, self.Ny)
-        if not hasattr(self, &#34;sectors&#34;):
-            self.sectors = {}
-
-        # Validation
-        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
-            raise ValueError(&#34;Rank-deficient R not supported.&#34;)
-
-    # ndim shortcuts
-    @property
-    def Nx(self): return self.Dyn.M
-    @property
-    def Ny(self): return self.Obs.M
-
-    printopts = {&#39;ordering&#39;: [&#39;Dyn&#39;, &#39;Obs&#39;, &#39;t&#39;, &#39;X0&#39;]}
-
-    def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
-        &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
-        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
-
-        # Init
-        xx    = np.zeros((chrono.K   + 1, Dyn.M))
-        yy    = np.zeros((chrono.KObs+1, Obs.M))
-
-        xx[0] = X0.sample(1)
-
-        # Loop
-        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
-            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
-            if kObs is not None:
-                yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
-
-        return xx, yy
-
-
-class Operator(dict_tools.NicePrint):
-    &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;
-
-    def __init__(self, M, model=None, noise=None, **kwargs):
-        self.M = M
-
-        # None =&gt; Identity model
-        if model is None:
-            model = Id_op()
-            kwargs[&#39;linear&#39;] = lambda x, t, dt: Id_mat(M)
-        self.model = model
-
-        # None/0 =&gt; No noise
-        if isinstance(noise, RV):
-            self.noise = noise
-        else:
-            if noise is None:
-                noise = 0
-            if np.isscalar(noise):
-                self.noise = GaussRV(C=noise, M=M)
-            else:
-                self.noise = GaussRV(C=noise)
-
-        # Write attributes
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-    def __call__(self, *args, **kwargs):
-        return self.model(*args, **kwargs)
-
-    printopts = {&#39;ordering&#39;: [&#39;M&#39;, &#39;model&#39;, &#39;noise&#39;]}
-
-
-def da_method(*default_dataclasses):
-    &#34;&#34;&#34;Wrapper for classes that define DA methods.
-
-    These classes must be defined like dataclasses, except decorated
-    by `@da_method()` instead of `@dataclass`.
-    They must also define a method called `assimilate`
-    which gets slightly enhanced by this wrapper to provide:
-        - Initialisation of the `Stats` object
-        - `fail_gently` functionality.
-        - Duration timing
-        - Progressbar naming magic.
-
-    Instances of these classes are what is referred to as `xp`s.
-    I.e. `xp`s are essentially just data containers.
-
-    Example:
-    &gt;&gt;&gt; @da_method()
-    &gt;&gt;&gt; class Sleeper():
-    &gt;&gt;&gt;     &#34;Do nothing.&#34;
-    &gt;&gt;&gt;     seconds : int  = 10
-    &gt;&gt;&gt;     success : bool = True
-    &gt;&gt;&gt;     def assimilate(self,*args,**kwargs):
-    &gt;&gt;&gt;         for k in utils.progbar(range(self.seconds)):
-    &gt;&gt;&gt;             time.sleep(1)
-    &gt;&gt;&gt;         if not self.success:
-    &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
-
-    Note that `da_method` is actually a &#34;two-level decorator&#34;,
-    which is why the empty parenthesis were used above.
-    The outer level can be used to define defaults that are re-used
-    for similar DA methods:
-
-    Example:
-    &gt;&gt;&gt; @dcs.dataclass
-    &gt;&gt;&gt; class ens_defaults:
-    &gt;&gt;&gt;   infl : float = 1.0
-    &gt;&gt;&gt;   rot  : bool  = False
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; @da_method(ens_defaults)
-    &gt;&gt;&gt; class EnKF:
-    &gt;&gt;&gt;     N     : int
-    &gt;&gt;&gt;     upd_a : str = &#34;Sqrt&#34;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
-    &gt;&gt;&gt;         ...
-    &gt;&gt;&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; @da_method(ens_defaults)
-    &gt;&gt;&gt; class LETKF:
-    &gt;&gt;&gt;     ...
-    &#34;&#34;&#34;
-
-    def dataclass_with_defaults(cls):
-        &#34;&#34;&#34;Decorator based on dataclass.
-
-        This adds `__init__`, `__repr__`, `__eq__`, ...,
-        but also includes inherited defaults
-        (see https://stackoverflow.com/a/58130805 ),
-        and enhances the `assimilate` method.
-        &#34;&#34;&#34;
-
-        # Default fields invovle: (1) annotations and (2) attributes.
-        def set_field(name, type, val):
-            if not hasattr(cls, &#39;__annotations__&#39;):
-                cls.__annotations__ = {}
-            cls.__annotations__[name] = type
-            if not isinstance(val, dcs.Field):
-                val = dcs.field(default=val)
-            setattr(cls, name, val)
-
-        # APPend default fields without overwriting.
-        # Don&#39;t implement (by PREpending?) non-default args -- to messy!
-        for D in default_dataclasses:
-            # NB: Calling dataclass twice always makes repr=True, so avoid this.
-            for F in dcs.fields(dcs.dataclass(D)):
-                if F.name not in cls.__annotations__:
-                    set_field(F.name, F.type, F)
-
-        # Create new class (NB: old/new classes have same id)
-        cls = dcs.dataclass(cls)
-
-        # Shortcut for self.__class__.__name__
-        cls.da_method = cls.__name__
-
-        def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
-            # Progressbar name
-            pb_name_hook = self.da_method if desc is None else desc # noqa
-            # Init stats
-            self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
-            # Assimilate
-            time_start = time.time()
-            _assimilate(self, HMM, xx, yy)
-            dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
-
-        _assimilate = cls.assimilate
-        cls.assimilate = functools.wraps(_assimilate)(assimilate)
-
-        return cls
-    return dataclass_with_defaults
+_tabulate.MIN_PADDING = 0
 
 
 def seed_and_simulate(HMM, xp):
-    &#34;&#34;&#34;Default experiment setup. Set seed and simulate truth and obs.
+    &#34;&#34;&#34;Default experiment setup (sets seed and simulates truth and obs).
 
-    .. note:: `xp.seed` should be an integer. Otherwise:
-        If there is no `xp.seed` then then the seed is not set.
-        Although different `xp`s will then use different seeds
-        (unless you do some funky hacking),
-        reproducibility for your script as a whole would still be obtained
-        by setting the seed at the outset (i.e. in the script).
-        On the other hand, if `xp.seed in [None, &#34;clock&#34;]`
-        then the seed is from the clock (for each xp),
-        which would not provide exact reproducibility.
+    Used by `xpList.launch`.
+
+    Parameters
+    ----------
+    HMM: HiddenMarkovModel
+        Container defining the system.
+    xp: object
+        Type: a `dapper.da_methods.da_method`-decorated class.
+
+        .. note:: `xp.seed` should be an integer. Otherwise:
+            If there is no `xp.seed` then then the seed is not set.
+            Although different `xp`s will then use different seeds
+            (unless you do some funky hacking),
+            reproducibility for your script as a whole would still be obtained
+            by setting the seed at the outset (i.e. in the script).
+            On the other hand, if `xp.seed in [None, &#34;clock&#34;]`
+            then the seed is from the clock (for each xp),
+            which would not provide exact reproducibility.
+
+    Returns
+    -------
+    tuple (xx, yy)
+        The simulated truth and observations.
     &#34;&#34;&#34;
     set_seed(getattr(xp, &#39;seed&#39;, False))
 
@@ -313,17 +111,39 @@ def seed_and_simulate(HMM, xp):
 def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
-    &#34;&#34;&#34;Used by `xpList.launch` to run each single experiment.
+    &#34;&#34;&#34;Used by `xpList.launch` to run each single (DA) experiment.
 
     This involves steps similar to `example_1.py`, i.e.:
 
-    - `setup`                    : Call function given by user. Should set
-                                   params, eg HMM.Force, seed, and return
-                                   (simulated/loaded) truth and obs series.
+    - `setup`                    : Initialize experiment.
     - `xp.assimilate`            : run DA, pass on exception if fail_gently
     - `xp.stats.average_in_time` : result averaging
     - `xp.avrgs.tabulate`        : result printing
     - `dill.dump`                : result storage
+
+    Parameters
+    ----------
+    xp: object
+        Type: a `dapper.da_methods.da_method`-decorated class.
+    label: str
+        Name attached to progressbar during assimilation.
+    savedir: str
+        Path of folder wherein to store the experiment data.
+    HMM: HiddenMarkovModel
+        Container defining the system.
+    setup: function
+        Should set params, eg `HMM.Force`, seed, and return (simulated/loaded)
+        truth and obs series. Example: `seed_and_simulate`.
+    free: bool
+        Whether (or not) to `del xp.stats` after the experiment is done,
+        so as to free up memory and/or not save this data
+        (just keeping `xp.avrgs`).
+    statkeys: list
+        A list of names (possibly in the form of abbreviations) of the
+        statistical averages that should be printed immediately afther
+        this xp.
+    fail_gently: bool
+        Whether (or not) to propagate exceptions.
     &#34;&#34;&#34;
 
     # We should copy HMM so as not to cause any nasty surprises such as
@@ -341,7 +161,7 @@ def run_experiment(xp, label, savedir, HMM,
         if fail_gently:
             xp.crashed = True
             if fail_gently not in [&#34;silent&#34;, &#34;quiet&#34;]:
-                utils.print_cropped_traceback(ERR)
+                _print_cropped_traceback(ERR)
         else:
             raise ERR
 
@@ -359,11 +179,47 @@ def run_experiment(xp, label, savedir, HMM,
             dill.dump({&#39;xp&#39;: xp}, FILE)
 
 
+def _print_cropped_traceback(ERR):
+
+    def crop_traceback(ERR, lvl):
+        msg = &#34;Traceback (most recent call last):\n&#34;
+        try:
+            # If in IPython, use its coloring functionality
+            __IPYTHON__  # noqa
+            from IPython.core.debugger import Pdb
+            pdb_instance = Pdb()
+            pdb_instance.curframe = inspect.currentframe()
+
+            for i, frame in enumerate(traceback.walk_tb(ERR.__traceback__)):
+                if i &lt; lvl:
+                    continue  # skip frames
+                if i == lvl:
+                    msg += &#34;   ⋮ [cropped] \n&#34;
+                msg += pdb_instance.format_stack_entry(frame, context=3)
+
+        except (NameError, ImportError):
+            msg += &#34;&#34;.join(traceback.format_tb(ERR.__traceback__))
+
+        return msg
+
+    msg = crop_traceback(ERR, 1) + &#34;\nError message: &#34; + str(ERR)
+    msg += &#34;\n\nResuming execution. &#34; \
+        &#34;Use `fail_gently=False` to raise exception &amp; halt execution.\n&#34;
+    print(msg, file=sys.stderr)
+
+
+def collapse_str(string, length=6):
+    &#34;&#34;&#34;Truncate a string (in the middle) to the given `length`&#34;&#34;&#34;
+    if len(string) &lt;= length:
+        return string
+    else:
+        return string[:length-2]+&#39;~&#39;+string[-1]
+
+
 class xpList(list):
     &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
     Main use: administrate experiment **launches**.
-    Also see: `xpSpace` for experiment **result presentation**.
 
     Modifications to `list`:
 
@@ -379,14 +235,26 @@ class xpList(list):
     - `print_averages()`
     - `gen_names()`
     - `inds()` to search by kw-attrs.
+
+    Also see
+    --------
+    - Examples: `example_2`, `example_3`
+    - Experiment **presentation**: `dapper.xp_process.xpSpace`
     &#34;&#34;&#34;
 
     def __init__(self, *args, unique=False):
-        &#34;&#34;&#34;Initialize without args, or with a list of `xp`s.
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        args: entries
+            Nothing, or a list of `xp`s.
 
-        If `unique`: duplicates won&#39;t get appended.
-        This makes `append()` (and `__iadd__()`) relatively slow.
-        Use `extend()` or `__add__()` to bypass this validation.&#34;&#34;&#34;
+        unique: bool
+            Duplicates won&#39;t get appended.
+            This makes `append` (and `__iadd__`) relatively slow.
+            Use `extend` or `__add__` or `get_param_setter`
+            to bypass this validation.
+        &#34;&#34;&#34;
 
         self.unique = unique
         super().__init__(*args)
@@ -399,7 +267,7 @@ class xpList(list):
         return self
 
     def append(self, xp):
-        &#34;&#34;&#34;Append if not `self.unique` &amp; present.&#34;&#34;&#34;
+        &#34;&#34;&#34;Append **if** not `self.unique` &amp; present.&#34;&#34;&#34;
         if not (self.unique and xp in self):
             super().append(xp)
 
@@ -428,12 +296,23 @@ class xpList(list):
 
     @property
     def da_methods(self):
+        &#34;List `da_method` attributes in this list.&#34;
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
-        &#34;&#34;&#34;Compile attrs of all `xp`s; split into distinct, redundant, common.
+        &#34;&#34;&#34;Classify each/every attribute of the `xp`s into: distinct, redundant, common.
 
-        Insert `None` if an attribute is distinct but not in `xp`.&#34;&#34;&#34;
+        Insert `None` if an attribute is distinct but not in `xp`.
+
+        Used by `repr(xpList)` to make a nice table of the list,
+        in which only the attributes that differ among the `xp`s
+        need be included.
+
+        Parameters
+        ----------
+        nomerge: list
+            Attributes that should always be seen as distinct.
+        &#34;&#34;&#34;
 
         def _aggregate_keys():
             &#34;Aggregate keys from all `xp`&#34;
@@ -472,7 +351,7 @@ class xpList(list):
 
             # Remove unwanted
             excluded  = [re.compile(&#39;^_&#39;), &#39;avrgs&#39;, &#39;stats&#39;, &#39;HMM&#39;, &#39;duration&#39;]
-            aggregate = dict_tools.complement(aggregate, excluded)
+            aggregate = struct_tools.complement(aggregate, excluded)
             return aggregate
 
         distinct, redundant, common = {}, {}, {}
@@ -484,7 +363,7 @@ class xpList(list):
             vals = [getattr(xp, key, &#34;N/A&#34;) for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
-            if dict_tools.flexcomp(key, *nomerge):
+            if struct_tools.flexcomp(key, *nomerge):
                 # nomerge =&gt; Distinct
                 dct, vals = distinct, vals
             elif all(vals[0] == v for v in vals):
@@ -516,9 +395,9 @@ class xpList(list):
     def __repr__(self):
         distinct, redundant, common = self.split_attrs()
         s = &#39;&lt;xpList&gt; of length %d with attributes:\n&#39; % len(self)
-        s += utils.tab(distinct, headers=&#34;keys&#34;, showindex=True)
+        s += tabulate(distinct, headers=&#34;keys&#34;, showindex=True)
         s += &#34;\nOther attributes:\n&#34;
-        s += str(dict_tools.AlignedDict({**redundant, **common}))
+        s += str(struct_tools.AlignedDict({**redundant, **common}))
         return s
 
     def gen_names(self, abbrev=6, tab=False):
@@ -533,7 +412,7 @@ class xpList(list):
         values = distinct.values()
 
         # Label abbreviation
-        labels = [utils.collapse_str(k, abbrev) for k in labels]
+        labels = [collapse_str(k, abbrev) for k in labels]
 
         # Make label columns: insert None or lbl+&#34;:&#34;, depending on value
         def column(lbl, vals):
@@ -550,7 +429,7 @@ class xpList(list):
         table = list(map(list, zip(*table)))
 
         # Tabulate
-        table = utils.tab(table, tablefmt=&#34;plain&#34;)
+        table = tabulate(table, tablefmt=&#34;plain&#34;)
 
         # Rm space between lbls/vals
         table = re.sub(&#39;:  +&#39;, &#39;:&#39;, table)
@@ -562,25 +441,25 @@ class xpList(list):
         return table.splitlines()
 
     def tabulate_avrgs(self, *args, **kwargs):
-        &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` &amp; their `avrgs.`
+        &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
 
         Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
-        return utils.tab(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)
+        return tabulate(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)
 
     def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
                setup=seed_and_simulate, fail_gently=None, **kwargs):
         &#34;&#34;&#34;Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
         The results are saved in `rc.dirs[&#39;data&#39;]/save_as`,
-        unless `save_as` is False/None.
+        unless `save_as` is `False`/`None`.
 
         Depending on `mp`, `run_experiment` is delegated as follows:
 
         - `False`: caller process (no parallelisation)
-        - `True` or &#34;MP&#34; or an `int`: multiprocessing on this host
+        - `True` or `&#34;MP&#34;` or an `int`: multiprocessing on this host
         - `&#34;GCP&#34;` or `&#34;Google&#34;` or `dict(server=&#34;GCP&#34;)`: the DAPPER server
           (Google Cloud Computing with HTCondor).
             - Specify a list of files as `mp[&#34;files&#34;]` to include them
@@ -655,19 +534,19 @@ class xpList(list):
                 run_experiment(xp, None, xpi_dir(ixp), **kwargs)
             args = zip(self, range(len(self)))
 
-            utils.disable_progbar          = True
-            utils.disable_user_interaction = True
+            pb.disable_progbar          = True
+            pb.disable_user_interaction = True
             NPROC = mp.get(&#34;NPROC&#34;, None)  # None =&gt; mp.cpu_count()
             from dapper.tools.multiproc import mpd  # will fail on GCP
             with mpd.Pool(NPROC) as pool:
-                list(utils.tqdm.tqdm(
+                list(tqdm(
                     pool.imap(
                         run_with_fixed_args, args),
                     total=len(self),
                     desc=&#34;Parallel experim&#39;s&#34;,
                     smoothing=0.1))
-            utils.disable_progbar          = False
-            utils.disable_user_interaction = False
+            pb.disable_progbar          = False
+            pb.disable_user_interaction = False
 
         # Google cloud platform, multiprocessing
         elif mp[&#34;server&#34;] == &#34;GCP&#34;:
@@ -706,7 +585,7 @@ class xpList(list):
             with open(extra_files/&#34;load_and_run.py&#34;, &#34;w&#34;) as f:
                 f.write(dedent(&#34;&#34;&#34;\
                 import dill
-                from dapper.admin import run_experiment
+                from dapper.xp_launch import run_experiment
 
                 # Load
                 with open(&#34;xp.com&#34;, &#34;rb&#34;) as f: com = dill.load(f)
@@ -733,26 +612,27 @@ def get_param_setter(param_dict, **glob_dict):
     &#34;&#34;&#34;Mass creation of `xp`&#39;s by combining the value lists in the parameter dicts.
 
     The parameters are trimmed to the ones available for the given method.
-    This is a good deal more efficient than relying on xpList&#39;s unique=True.
+    This is a good deal more efficient than relying on `xpList`&#39;s `unique=True`.
 
-    Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
-    but you forget that they are also attributes some method where you don&#39;t
-    actually want to use them (eg. SVGDF),
-    then you&#39;ll create many more than you intend.
+    .. caution::
+        Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
+        but you forget that they are also attributes some method where you don&#39;t
+        actually want to use them (eg. SVGDF),
+        then you&#39;ll create many more than you intend.
     &#34;&#34;&#34;
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dcs.fields(method)]
-        params = dict_tools.intersect(param_dict, dc_fields)
-        params = dict_tools.complement(params, fixed_params)
+        params = struct_tools.intersect(param_dict, dc_fields)
+        params = struct_tools.complement(params, fixed_params)
         params = {**glob_dict, **params}  # glob_dict 1st
 
         def xp1(dct):
-            xp = method(**dict_tools.intersect(dct, dc_fields), **fixed_params)
-            for key, v in dict_tools.intersect(dct, glob_dict).items():
+            xp = method(**struct_tools.intersect(dct, dc_fields), **fixed_params)
+            for key, v in struct_tools.intersect(dct, glob_dict).items():
                 setattr(xp, key, v)
             return xp
 
-        return [xp1(dct) for dct in dict_tools.prodct(params)]
+        return [xp1(dct) for dct in struct_tools.prodct(params)]
     return for_params</code></pre>
 </details>
 </section>
@@ -763,167 +643,19 @@ def get_param_setter(param_dict, **glob_dict):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.admin.da_method"><code class="name flex">
-<span>def <span class="ident">da_method</span></span>(<span>*default_dataclasses)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Wrapper for classes that define DA methods.</p>
-<p>These classes must be defined like dataclasses, except decorated
-by <code>@da_method()</code> instead of <code>@dataclass</code>.
-They must also define a method called <code>assimilate</code>
-which gets slightly enhanced by this wrapper to provide:
-- Initialisation of the <code>Stats</code> object
-- <code>fail_gently</code> functionality.
-- Duration timing
-- Progressbar naming magic.</p>
-<p>Instances of these classes are what is referred to as <code>xp</code>s.
-I.e. <code>xp</code>s are essentially just data containers.</p>
-<p>Example:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; @da_method()
-&gt;&gt;&gt; class Sleeper():
-&gt;&gt;&gt;     &quot;Do nothing.&quot;
-&gt;&gt;&gt;     seconds : int  = 10
-&gt;&gt;&gt;     success : bool = True
-&gt;&gt;&gt;     def assimilate(self,*args,**kwargs):
-&gt;&gt;&gt;         for k in utils.progbar(range(self.seconds)):
-&gt;&gt;&gt;             time.sleep(1)
-&gt;&gt;&gt;         if not self.success:
-&gt;&gt;&gt;             raise RuntimeError(&quot;Sleep over. Failing as intended.&quot;)
-</code></pre>
-<p>Note that <code><a title="dapper.admin.da_method" href="#dapper.admin.da_method">da_method()</a></code> is actually a "two-level decorator",
-which is why the empty parenthesis were used above.
-The outer level can be used to define defaults that are re-used
-for similar DA methods:</p>
-<p>Example:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; @dcs.dataclass
-&gt;&gt;&gt; class ens_defaults:
-&gt;&gt;&gt;   infl : float = 1.0
-&gt;&gt;&gt;   rot  : bool  = False
-&gt;&gt;&gt;
-&gt;&gt;&gt; @da_method(ens_defaults)
-&gt;&gt;&gt; class EnKF:
-&gt;&gt;&gt;     N     : int
-&gt;&gt;&gt;     upd_a : str = &quot;Sqrt&quot;
-&gt;&gt;&gt;
-&gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
-&gt;&gt;&gt;         ...
-&gt;&gt;&gt;
-&gt;&gt;&gt;
-&gt;&gt;&gt; @da_method(ens_defaults)
-&gt;&gt;&gt; class LETKF:
-&gt;&gt;&gt;     ...
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L140-L238" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def da_method(*default_dataclasses):
-    &#34;&#34;&#34;Wrapper for classes that define DA methods.
-
-    These classes must be defined like dataclasses, except decorated
-    by `@da_method()` instead of `@dataclass`.
-    They must also define a method called `assimilate`
-    which gets slightly enhanced by this wrapper to provide:
-        - Initialisation of the `Stats` object
-        - `fail_gently` functionality.
-        - Duration timing
-        - Progressbar naming magic.
-
-    Instances of these classes are what is referred to as `xp`s.
-    I.e. `xp`s are essentially just data containers.
-
-    Example:
-    &gt;&gt;&gt; @da_method()
-    &gt;&gt;&gt; class Sleeper():
-    &gt;&gt;&gt;     &#34;Do nothing.&#34;
-    &gt;&gt;&gt;     seconds : int  = 10
-    &gt;&gt;&gt;     success : bool = True
-    &gt;&gt;&gt;     def assimilate(self,*args,**kwargs):
-    &gt;&gt;&gt;         for k in utils.progbar(range(self.seconds)):
-    &gt;&gt;&gt;             time.sleep(1)
-    &gt;&gt;&gt;         if not self.success:
-    &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
-
-    Note that `da_method` is actually a &#34;two-level decorator&#34;,
-    which is why the empty parenthesis were used above.
-    The outer level can be used to define defaults that are re-used
-    for similar DA methods:
-
-    Example:
-    &gt;&gt;&gt; @dcs.dataclass
-    &gt;&gt;&gt; class ens_defaults:
-    &gt;&gt;&gt;   infl : float = 1.0
-    &gt;&gt;&gt;   rot  : bool  = False
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; @da_method(ens_defaults)
-    &gt;&gt;&gt; class EnKF:
-    &gt;&gt;&gt;     N     : int
-    &gt;&gt;&gt;     upd_a : str = &#34;Sqrt&#34;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
-    &gt;&gt;&gt;         ...
-    &gt;&gt;&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; @da_method(ens_defaults)
-    &gt;&gt;&gt; class LETKF:
-    &gt;&gt;&gt;     ...
-    &#34;&#34;&#34;
-
-    def dataclass_with_defaults(cls):
-        &#34;&#34;&#34;Decorator based on dataclass.
-
-        This adds `__init__`, `__repr__`, `__eq__`, ...,
-        but also includes inherited defaults
-        (see https://stackoverflow.com/a/58130805 ),
-        and enhances the `assimilate` method.
-        &#34;&#34;&#34;
-
-        # Default fields invovle: (1) annotations and (2) attributes.
-        def set_field(name, type, val):
-            if not hasattr(cls, &#39;__annotations__&#39;):
-                cls.__annotations__ = {}
-            cls.__annotations__[name] = type
-            if not isinstance(val, dcs.Field):
-                val = dcs.field(default=val)
-            setattr(cls, name, val)
-
-        # APPend default fields without overwriting.
-        # Don&#39;t implement (by PREpending?) non-default args -- to messy!
-        for D in default_dataclasses:
-            # NB: Calling dataclass twice always makes repr=True, so avoid this.
-            for F in dcs.fields(dcs.dataclass(D)):
-                if F.name not in cls.__annotations__:
-                    set_field(F.name, F.type, F)
-
-        # Create new class (NB: old/new classes have same id)
-        cls = dcs.dataclass(cls)
-
-        # Shortcut for self.__class__.__name__
-        cls.da_method = cls.__name__
-
-        def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
-            # Progressbar name
-            pb_name_hook = self.da_method if desc is None else desc # noqa
-            # Init stats
-            self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
-            # Assimilate
-            time_start = time.time()
-            _assimilate(self, HMM, xx, yy)
-            dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
-
-        _assimilate = cls.assimilate
-        cls.assimilate = functools.wraps(_assimilate)(assimilate)
-
-        return cls
-    return dataclass_with_defaults</code></pre>
-</details>
-</dd>
-<dt id="dapper.admin.seed_and_simulate"><code class="name flex">
+<dt id="dapper.xp_launch.seed_and_simulate"><code class="name flex">
 <span>def <span class="ident">seed_and_simulate</span></span>(<span>HMM, xp)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Default experiment setup. Set seed and simulate truth and obs.</p>
+<div class="desc"><p>Default experiment setup (sets seed and simulates truth and obs).</p>
+<p>Used by <code><a title="dapper.xp_launch.xpList.launch" href="#dapper.xp_launch.xpList.launch">xpList.launch()</a></code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>HMM</code></strong> :&ensp;<code>HiddenMarkovModel</code></dt>
+<dd>Container defining the system.</dd>
+<dt><strong><code>xp</code></strong> :&ensp;<code>object</code></dt>
+<dd>
+<p>Type: a <code><a title="dapper.da_methods.da_method" href="da_methods/index.html#dapper.da_methods.da_method">da_method()</a></code>-decorated class.</p>
 <div class="admonition note">
 <p class="admonition-title">Note:&ensp;<code>xp.seed</code> should be an integer. Otherwise:</p>
 <p>If there is no <code>xp.seed</code> then then the seed is not set.
@@ -934,24 +666,45 @@ by setting the seed at the outset (i.e. in the script).
 On the other hand, if <code>xp.seed in [None, "clock"]</code>
 then the seed is from the clock (for each xp),
 which would not provide exact reproducibility.</p>
-</div></div>
+</div>
+</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple (xx, yy)</code></dt>
+<dd>The simulated truth and observations.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L241-L257" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L33-L63" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def seed_and_simulate(HMM, xp):
-    &#34;&#34;&#34;Default experiment setup. Set seed and simulate truth and obs.
+    &#34;&#34;&#34;Default experiment setup (sets seed and simulates truth and obs).
 
-    .. note:: `xp.seed` should be an integer. Otherwise:
-        If there is no `xp.seed` then then the seed is not set.
-        Although different `xp`s will then use different seeds
-        (unless you do some funky hacking),
-        reproducibility for your script as a whole would still be obtained
-        by setting the seed at the outset (i.e. in the script).
-        On the other hand, if `xp.seed in [None, &#34;clock&#34;]`
-        then the seed is from the clock (for each xp),
-        which would not provide exact reproducibility.
+    Used by `xpList.launch`.
+
+    Parameters
+    ----------
+    HMM: HiddenMarkovModel
+        Container defining the system.
+    xp: object
+        Type: a `dapper.da_methods.da_method`-decorated class.
+
+        .. note:: `xp.seed` should be an integer. Otherwise:
+            If there is no `xp.seed` then then the seed is not set.
+            Although different `xp`s will then use different seeds
+            (unless you do some funky hacking),
+            reproducibility for your script as a whole would still be obtained
+            by setting the seed at the outset (i.e. in the script).
+            On the other hand, if `xp.seed in [None, &#34;clock&#34;]`
+            then the seed is from the clock (for each xp),
+            which would not provide exact reproducibility.
+
+    Returns
+    -------
+    tuple (xx, yy)
+        The simulated truth and observations.
     &#34;&#34;&#34;
     set_seed(getattr(xp, &#39;seed&#39;, False))
 
@@ -959,17 +712,15 @@ which would not provide exact reproducibility.</p>
     return xx, yy</code></pre>
 </details>
 </dd>
-<dt id="dapper.admin.run_experiment"><code class="name flex">
+<dt id="dapper.xp_launch.run_experiment"><code class="name flex">
 <span>def <span class="ident">run_experiment</span></span>(<span>xp, label, savedir, HMM, setup=None, free=True, statkeys=False, fail_gently=False, **stat_kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Used by <code><a title="dapper.admin.xpList.launch" href="#dapper.admin.xpList.launch">xpList.launch()</a></code> to run each single experiment.</p>
+<div class="desc"><p>Used by <code><a title="dapper.xp_launch.xpList.launch" href="#dapper.xp_launch.xpList.launch">xpList.launch()</a></code> to run each single (DA) experiment.</p>
 <p>This involves steps similar to <code>example_1.py</code>, i.e.:</p>
 <ul>
 <li><code>setup</code>
-: Call function given by user. Should set
-params, eg HMM.Force, seed, and return
-(simulated/loaded) truth and obs series.</li>
+: Initialize experiment.</li>
 <li><code>xp.assimilate</code>
 : run DA, pass on exception if fail_gently</li>
 <li><code>xp.stats.average_in_time</code> : result averaging</li>
@@ -977,26 +728,72 @@ params, eg HMM.Force, seed, and return
 : result printing</li>
 <li><code>dill.dump</code>
 : result storage</li>
-</ul></div>
+</ul>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>xp</code></strong> :&ensp;<code>object</code></dt>
+<dd>Type: a <code><a title="dapper.da_methods.da_method" href="da_methods/index.html#dapper.da_methods.da_method">da_method()</a></code>-decorated class.</dd>
+<dt><strong><code>label</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name attached to progressbar during assimilation.</dd>
+<dt><strong><code>savedir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path of folder wherein to store the experiment data.</dd>
+<dt><strong><code>HMM</code></strong> :&ensp;<code>HiddenMarkovModel</code></dt>
+<dd>Container defining the system.</dd>
+<dt><strong><code>setup</code></strong> :&ensp;<code>function</code></dt>
+<dd>Should set params, eg <code>HMM.Force</code>, seed, and return (simulated/loaded)
+truth and obs series. Example: <code><a title="dapper.xp_launch.seed_and_simulate" href="#dapper.xp_launch.seed_and_simulate">seed_and_simulate()</a></code>.</dd>
+<dt><strong><code>free</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether (or not) to <code>del xp.stats</code> after the experiment is done,
+so as to free up memory and/or not save this data
+(just keeping <code>xp.avrgs</code>).</dd>
+<dt><strong><code>statkeys</code></strong> :&ensp;<code>list</code></dt>
+<dd>A list of names (possibly in the form of abbreviations) of the
+statistical averages that should be printed immediately afther
+this xp.</dd>
+<dt><strong><code>fail_gently</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether (or not) to propagate exceptions.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L260-L306" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L66-L134" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
-    &#34;&#34;&#34;Used by `xpList.launch` to run each single experiment.
+    &#34;&#34;&#34;Used by `xpList.launch` to run each single (DA) experiment.
 
     This involves steps similar to `example_1.py`, i.e.:
 
-    - `setup`                    : Call function given by user. Should set
-                                   params, eg HMM.Force, seed, and return
-                                   (simulated/loaded) truth and obs series.
+    - `setup`                    : Initialize experiment.
     - `xp.assimilate`            : run DA, pass on exception if fail_gently
     - `xp.stats.average_in_time` : result averaging
     - `xp.avrgs.tabulate`        : result printing
     - `dill.dump`                : result storage
+
+    Parameters
+    ----------
+    xp: object
+        Type: a `dapper.da_methods.da_method`-decorated class.
+    label: str
+        Name attached to progressbar during assimilation.
+    savedir: str
+        Path of folder wherein to store the experiment data.
+    HMM: HiddenMarkovModel
+        Container defining the system.
+    setup: function
+        Should set params, eg `HMM.Force`, seed, and return (simulated/loaded)
+        truth and obs series. Example: `seed_and_simulate`.
+    free: bool
+        Whether (or not) to `del xp.stats` after the experiment is done,
+        so as to free up memory and/or not save this data
+        (just keeping `xp.avrgs`).
+    statkeys: list
+        A list of names (possibly in the form of abbreviations) of the
+        statistical averages that should be printed immediately afther
+        this xp.
+    fail_gently: bool
+        Whether (or not) to propagate exceptions.
     &#34;&#34;&#34;
 
     # We should copy HMM so as not to cause any nasty surprises such as
@@ -1014,7 +811,7 @@ params, eg HMM.Force, seed, and return
         if fail_gently:
             xp.crashed = True
             if fail_gently not in [&#34;silent&#34;, &#34;quiet&#34;]:
-                utils.print_cropped_traceback(ERR)
+                _print_cropped_traceback(ERR)
         else:
             raise ERR
 
@@ -1032,46 +829,68 @@ params, eg HMM.Force, seed, and return
             dill.dump({&#39;xp&#39;: xp}, FILE)</code></pre>
 </details>
 </dd>
-<dt id="dapper.admin.get_param_setter"><code class="name flex">
+<dt id="dapper.xp_launch.collapse_str"><code class="name flex">
+<span>def <span class="ident">collapse_str</span></span>(<span>string, length=6)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Truncate a string (in the middle) to the given <code>length</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L166-L171" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def collapse_str(string, length=6):
+    &#34;&#34;&#34;Truncate a string (in the middle) to the given `length`&#34;&#34;&#34;
+    if len(string) &lt;= length:
+        return string
+    else:
+        return string[:length-2]+&#39;~&#39;+string[-1]</code></pre>
+</details>
+</dd>
+<dt id="dapper.xp_launch.get_param_setter"><code class="name flex">
 <span>def <span class="ident">get_param_setter</span></span>(<span>param_dict, **glob_dict)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Mass creation of <code>xp</code>'s by combining the value lists in the parameter dicts.</p>
 <p>The parameters are trimmed to the ones available for the given method.
-This is a good deal more efficient than relying on xpList's unique=True.</p>
+This is a good deal more efficient than relying on <code><a title="dapper.xp_launch.xpList" href="#dapper.xp_launch.xpList">xpList</a></code>'s <code>unique=True</code>.</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
 <p>Beware! If, eg., <code>infl</code> or <code>rot</code> are in the param_dict, aimed at the EnKF,
 but you forget that they are also attributes some method where you don't
 actually want to use them (eg. SVGDF),
-then you'll create many more than you intend.</p></div>
+then you'll create many more than you intend.</p>
+</div></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L679-L703" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L566-L591" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_param_setter(param_dict, **glob_dict):
     &#34;&#34;&#34;Mass creation of `xp`&#39;s by combining the value lists in the parameter dicts.
 
     The parameters are trimmed to the ones available for the given method.
-    This is a good deal more efficient than relying on xpList&#39;s unique=True.
+    This is a good deal more efficient than relying on `xpList`&#39;s `unique=True`.
 
-    Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
-    but you forget that they are also attributes some method where you don&#39;t
-    actually want to use them (eg. SVGDF),
-    then you&#39;ll create many more than you intend.
+    .. caution::
+        Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
+        but you forget that they are also attributes some method where you don&#39;t
+        actually want to use them (eg. SVGDF),
+        then you&#39;ll create many more than you intend.
     &#34;&#34;&#34;
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dcs.fields(method)]
-        params = dict_tools.intersect(param_dict, dc_fields)
-        params = dict_tools.complement(params, fixed_params)
+        params = struct_tools.intersect(param_dict, dc_fields)
+        params = struct_tools.complement(params, fixed_params)
         params = {**glob_dict, **params}  # glob_dict 1st
 
         def xp1(dct):
-            xp = method(**dict_tools.intersect(dct, dc_fields), **fixed_params)
-            for key, v in dict_tools.intersect(dct, glob_dict).items():
+            xp = method(**struct_tools.intersect(dct, dc_fields), **fixed_params)
+            for key, v in struct_tools.intersect(dct, glob_dict).items():
                 setattr(xp, key, v)
             return xp
 
-        return [xp1(dct) for dct in dict_tools.prodct(params)]
+        return [xp1(dct) for dct in struct_tools.prodct(params)]
     return for_params</code></pre>
 </details>
 </dd>
@@ -1080,218 +899,13 @@ then you'll create many more than you intend.</p></div>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="dapper.admin.HiddenMarkovModel"><code class="flex name class">
-<span>class <span class="ident">HiddenMarkovModel</span></span>
-<span>(</span><span>Dyn, Obs, t, X0, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Container for a Hidden Markov Model (HMM).</p>
-<p>This container contains the specification of a "twin experiment",
-i.e. an "OSSE (observing system simulation experiment)".</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L41-L104" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">class HiddenMarkovModel(dict_tools.NicePrint):
-    &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
-
-    This container contains the specification of a &#34;twin experiment&#34;,
-    i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
-    &#34;&#34;&#34;
-
-    def __init__(self, Dyn, Obs, t, X0, **kwargs):
-        # fmt: off
-        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
-        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
-        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
-        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
-        # fmt: on
-
-        # Name
-        self.name = kwargs.pop(&#34;name&#34;, &#34;&#34;)
-        if not self.name:
-            name = inspect.getfile(inspect.stack()[1][0])
-            try:
-                self.name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
-            except ValueError:
-                self.name = str(Path(name))
-
-        # Kwargs
-        abbrevs = {&#39;LP&#39;: &#39;liveplotters&#39;}
-        for key in kwargs:
-            setattr(self, abbrevs.get(key, key), kwargs[key])
-
-        # Defaults
-        if not hasattr(self.Obs, &#34;localizer&#34;):
-            self.Obs.localizer = no_localization(self.Nx, self.Ny)
-        if not hasattr(self, &#34;sectors&#34;):
-            self.sectors = {}
-
-        # Validation
-        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
-            raise ValueError(&#34;Rank-deficient R not supported.&#34;)
-
-    # ndim shortcuts
-    @property
-    def Nx(self): return self.Dyn.M
-    @property
-    def Ny(self): return self.Obs.M
-
-    printopts = {&#39;ordering&#39;: [&#39;Dyn&#39;, &#39;Obs&#39;, &#39;t&#39;, &#39;X0&#39;]}
-
-    def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
-        &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
-        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
-
-        # Init
-        xx    = np.zeros((chrono.K   + 1, Dyn.M))
-        yy    = np.zeros((chrono.KObs+1, Obs.M))
-
-        xx[0] = X0.sample(1)
-
-        # Loop
-        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
-            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
-            if kObs is not None:
-                yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
-
-        return xx, yy</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="dapper.dict_tools.NicePrint" href="dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="dapper.admin.HiddenMarkovModel.printopts"><code class="name">var <span class="ident">printopts</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Instance variables</h3>
-<dl>
-<dt id="dapper.admin.HiddenMarkovModel.Nx"><code class="name">var <span class="ident">Nx</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L81-L82" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">@property
-def Nx(self): return self.Dyn.M</code></pre>
-</details>
-</dd>
-<dt id="dapper.admin.HiddenMarkovModel.Ny"><code class="name">var <span class="ident">Ny</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L83-L84" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">@property
-def Ny(self): return self.Obs.M</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="dapper.admin.HiddenMarkovModel.simulate"><code class="name flex">
-<span>def <span class="ident">simulate</span></span>(<span>self, desc='Truth & Obs')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Generate synthetic truth and observations.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L88-L104" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
-    &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
-    Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
-
-    # Init
-    xx    = np.zeros((chrono.K   + 1, Dyn.M))
-    yy    = np.zeros((chrono.KObs+1, Obs.M))
-
-    xx[0] = X0.sample(1)
-
-    # Loop
-    for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
-        xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
-        if kObs is not None:
-            yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
-
-    return xx, yy</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="dapper.admin.Operator"><code class="flex name class">
-<span>class <span class="ident">Operator</span></span>
-<span>(</span><span>M, model=None, noise=None, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Container for operators (models).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L107-L137" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">class Operator(dict_tools.NicePrint):
-    &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;
-
-    def __init__(self, M, model=None, noise=None, **kwargs):
-        self.M = M
-
-        # None =&gt; Identity model
-        if model is None:
-            model = Id_op()
-            kwargs[&#39;linear&#39;] = lambda x, t, dt: Id_mat(M)
-        self.model = model
-
-        # None/0 =&gt; No noise
-        if isinstance(noise, RV):
-            self.noise = noise
-        else:
-            if noise is None:
-                noise = 0
-            if np.isscalar(noise):
-                self.noise = GaussRV(C=noise, M=M)
-            else:
-                self.noise = GaussRV(C=noise)
-
-        # Write attributes
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-    def __call__(self, *args, **kwargs):
-        return self.model(*args, **kwargs)
-
-    printopts = {&#39;ordering&#39;: [&#39;M&#39;, &#39;model&#39;, &#39;noise&#39;]}</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="dapper.dict_tools.NicePrint" href="dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="dapper.admin.Operator.printopts"><code class="name">var <span class="ident">printopts</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
-<dt id="dapper.admin.xpList"><code class="flex name class">
+<dt id="dapper.xp_launch.xpList"><code class="flex name class">
 <span>class <span class="ident">xpList</span></span>
 <span>(</span><span>*args, unique=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Subclass of <code>list</code> specialized for experiment ("xp") objects.</p>
-<p>Main use: administrate experiment <strong>launches</strong>.
-Also see: <code>xpSpace</code> for experiment <strong>result presentation</strong>.</p>
+<p>Main use: administrate experiment <strong>launches</strong>.</p>
 <p>Modifications to <code>list</code>:</p>
 <ul>
 <li><code>__iadd__</code> (append) also for single items;
@@ -1307,20 +921,30 @@ this is hackey, but convenience is king.</li>
 <li><code>gen_names()</code></li>
 <li><code>inds()</code> to search by kw-attrs.</li>
 </ul>
-<p>Initialize without args, or with a list of <code>xp</code>s.</p>
-<p>If <code>unique</code>: duplicates won't get appended.
-This makes <code>append()</code> (and <code>__iadd__()</code>) relatively slow.
-Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</p></div>
+<h2 id="also-see">Also See</h2>
+<ul>
+<li>Examples: <code>example_2</code>, <code>example_3</code></li>
+<li>Experiment <strong>presentation</strong>: <code><a title="dapper.xp_process.xpSpace" href="xp_process.html#dapper.xp_process.xpSpace">xpSpace</a></code></li>
+</ul>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>args</code></strong> :&ensp;<code>entries</code></dt>
+<dd>Nothing, or a list of <code>xp</code>s.</dd>
+<dt><strong><code>unique</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Duplicates won't get appended.
+This makes <code>append</code> (and <code>__iadd__</code>) relatively slow.
+Use <code>extend</code> or <code>__add__</code> or <code><a title="dapper.xp_launch.get_param_setter" href="#dapper.xp_launch.get_param_setter">get_param_setter()</a></code>
+to bypass this validation.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L309-L676" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L174-L563" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpList(list):
     &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
     Main use: administrate experiment **launches**.
-    Also see: `xpSpace` for experiment **result presentation**.
 
     Modifications to `list`:
 
@@ -1336,14 +960,26 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
     - `print_averages()`
     - `gen_names()`
     - `inds()` to search by kw-attrs.
+
+    Also see
+    --------
+    - Examples: `example_2`, `example_3`
+    - Experiment **presentation**: `dapper.xp_process.xpSpace`
     &#34;&#34;&#34;
 
     def __init__(self, *args, unique=False):
-        &#34;&#34;&#34;Initialize without args, or with a list of `xp`s.
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        args: entries
+            Nothing, or a list of `xp`s.
 
-        If `unique`: duplicates won&#39;t get appended.
-        This makes `append()` (and `__iadd__()`) relatively slow.
-        Use `extend()` or `__add__()` to bypass this validation.&#34;&#34;&#34;
+        unique: bool
+            Duplicates won&#39;t get appended.
+            This makes `append` (and `__iadd__`) relatively slow.
+            Use `extend` or `__add__` or `get_param_setter`
+            to bypass this validation.
+        &#34;&#34;&#34;
 
         self.unique = unique
         super().__init__(*args)
@@ -1356,7 +992,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         return self
 
     def append(self, xp):
-        &#34;&#34;&#34;Append if not `self.unique` &amp; present.&#34;&#34;&#34;
+        &#34;&#34;&#34;Append **if** not `self.unique` &amp; present.&#34;&#34;&#34;
         if not (self.unique and xp in self):
             super().append(xp)
 
@@ -1385,12 +1021,23 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 
     @property
     def da_methods(self):
+        &#34;List `da_method` attributes in this list.&#34;
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
-        &#34;&#34;&#34;Compile attrs of all `xp`s; split into distinct, redundant, common.
+        &#34;&#34;&#34;Classify each/every attribute of the `xp`s into: distinct, redundant, common.
 
-        Insert `None` if an attribute is distinct but not in `xp`.&#34;&#34;&#34;
+        Insert `None` if an attribute is distinct but not in `xp`.
+
+        Used by `repr(xpList)` to make a nice table of the list,
+        in which only the attributes that differ among the `xp`s
+        need be included.
+
+        Parameters
+        ----------
+        nomerge: list
+            Attributes that should always be seen as distinct.
+        &#34;&#34;&#34;
 
         def _aggregate_keys():
             &#34;Aggregate keys from all `xp`&#34;
@@ -1429,7 +1076,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 
             # Remove unwanted
             excluded  = [re.compile(&#39;^_&#39;), &#39;avrgs&#39;, &#39;stats&#39;, &#39;HMM&#39;, &#39;duration&#39;]
-            aggregate = dict_tools.complement(aggregate, excluded)
+            aggregate = struct_tools.complement(aggregate, excluded)
             return aggregate
 
         distinct, redundant, common = {}, {}, {}
@@ -1441,7 +1088,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
             vals = [getattr(xp, key, &#34;N/A&#34;) for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
-            if dict_tools.flexcomp(key, *nomerge):
+            if struct_tools.flexcomp(key, *nomerge):
                 # nomerge =&gt; Distinct
                 dct, vals = distinct, vals
             elif all(vals[0] == v for v in vals):
@@ -1473,9 +1120,9 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
     def __repr__(self):
         distinct, redundant, common = self.split_attrs()
         s = &#39;&lt;xpList&gt; of length %d with attributes:\n&#39; % len(self)
-        s += utils.tab(distinct, headers=&#34;keys&#34;, showindex=True)
+        s += tabulate(distinct, headers=&#34;keys&#34;, showindex=True)
         s += &#34;\nOther attributes:\n&#34;
-        s += str(dict_tools.AlignedDict({**redundant, **common}))
+        s += str(struct_tools.AlignedDict({**redundant, **common}))
         return s
 
     def gen_names(self, abbrev=6, tab=False):
@@ -1490,7 +1137,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         values = distinct.values()
 
         # Label abbreviation
-        labels = [utils.collapse_str(k, abbrev) for k in labels]
+        labels = [collapse_str(k, abbrev) for k in labels]
 
         # Make label columns: insert None or lbl+&#34;:&#34;, depending on value
         def column(lbl, vals):
@@ -1507,7 +1154,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         table = list(map(list, zip(*table)))
 
         # Tabulate
-        table = utils.tab(table, tablefmt=&#34;plain&#34;)
+        table = tabulate(table, tablefmt=&#34;plain&#34;)
 
         # Rm space between lbls/vals
         table = re.sub(&#39;:  +&#39;, &#39;:&#39;, table)
@@ -1519,25 +1166,25 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
         return table.splitlines()
 
     def tabulate_avrgs(self, *args, **kwargs):
-        &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` &amp; their `avrgs.`
+        &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
 
         Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
-        return utils.tab(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)
+        return tabulate(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)
 
     def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
                setup=seed_and_simulate, fail_gently=None, **kwargs):
         &#34;&#34;&#34;Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
         The results are saved in `rc.dirs[&#39;data&#39;]/save_as`,
-        unless `save_as` is False/None.
+        unless `save_as` is `False`/`None`.
 
         Depending on `mp`, `run_experiment` is delegated as follows:
 
         - `False`: caller process (no parallelisation)
-        - `True` or &#34;MP&#34; or an `int`: multiprocessing on this host
+        - `True` or `&#34;MP&#34;` or an `int`: multiprocessing on this host
         - `&#34;GCP&#34;` or `&#34;Google&#34;` or `dict(server=&#34;GCP&#34;)`: the DAPPER server
           (Google Cloud Computing with HTCondor).
             - Specify a list of files as `mp[&#34;files&#34;]` to include them
@@ -1612,19 +1259,19 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
                 run_experiment(xp, None, xpi_dir(ixp), **kwargs)
             args = zip(self, range(len(self)))
 
-            utils.disable_progbar          = True
-            utils.disable_user_interaction = True
+            pb.disable_progbar          = True
+            pb.disable_user_interaction = True
             NPROC = mp.get(&#34;NPROC&#34;, None)  # None =&gt; mp.cpu_count()
             from dapper.tools.multiproc import mpd  # will fail on GCP
             with mpd.Pool(NPROC) as pool:
-                list(utils.tqdm.tqdm(
+                list(tqdm(
                     pool.imap(
                         run_with_fixed_args, args),
                     total=len(self),
                     desc=&#34;Parallel experim&#39;s&#34;,
                     smoothing=0.1))
-            utils.disable_progbar          = False
-            utils.disable_user_interaction = False
+            pb.disable_progbar          = False
+            pb.disable_user_interaction = False
 
         # Google cloud platform, multiprocessing
         elif mp[&#34;server&#34;] == &#34;GCP&#34;:
@@ -1663,7 +1310,7 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
             with open(extra_files/&#34;load_and_run.py&#34;, &#34;w&#34;) as f:
                 f.write(dedent(&#34;&#34;&#34;\
                 import dill
-                from dapper.admin import run_experiment
+                from dapper.xp_launch import run_experiment
 
                 # Load
                 with open(&#34;xp.com&#34;, &#34;rb&#34;) as f: com = dill.load(f)
@@ -1691,39 +1338,40 @@ Use <code>extend()</code> or <code>__add__()</code> to bypass this validation.</
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="dapper.admin.xpList.da_methods"><code class="name">var <span class="ident">da_methods</span></code></dt>
+<dt id="dapper.xp_launch.xpList.da_methods"><code class="name">var <span class="ident">da_methods</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>List <code>da_method</code> attributes in this list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L376-L378" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L252-L255" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def da_methods(self):
+    &#34;List `da_method` attributes in this list.&#34;
     return [xp.da_method for xp in self]</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="dapper.admin.xpList.append"><code class="name flex">
+<dt id="dapper.xp_launch.xpList.append"><code class="name flex">
 <span>def <span class="ident">append</span></span>(<span>self, xp)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Append if not <code>self.unique</code> &amp; present.</p></div>
+<div class="desc"><p>Append <strong>if</strong> not <code>self.unique</code> &amp; present.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L348-L351" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L224-L227" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def append(self, xp):
-    &#34;&#34;&#34;Append if not `self.unique` &amp; present.&#34;&#34;&#34;
+    &#34;&#34;&#34;Append **if** not `self.unique` &amp; present.&#34;&#34;&#34;
     if not (self.unique and xp in self):
         super().append(xp)</code></pre>
 </details>
 </dd>
-<dt id="dapper.admin.xpList.inds"><code class="name flex">
+<dt id="dapper.xp_launch.xpList.inds"><code class="name flex">
 <span>def <span class="ident">inds</span></span>(<span>self, strict=True, missingval='NONSENSE', **kws)</span>
 </code></dt>
 <dd>
@@ -1733,7 +1381,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L363-L374" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L239-L250" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
     &#34;&#34;&#34;Find (all) indices of `xps` whose attributes match kws.
@@ -1749,21 +1397,39 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
     return [i for i, xp in enumerate(self) if match(xp)]</code></pre>
 </details>
 </dd>
-<dt id="dapper.admin.xpList.split_attrs"><code class="name flex">
+<dt id="dapper.xp_launch.xpList.split_attrs"><code class="name flex">
 <span>def <span class="ident">split_attrs</span></span>(<span>self, nomerge=())</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compile attrs of all <code>xp</code>s; split into distinct, redundant, common.</p>
-<p>Insert <code>None</code> if an attribute is distinct but not in <code>xp</code>.</p></div>
+<div class="desc"><p>Classify each/every attribute of the <code>xp</code>s into: distinct, redundant, common.</p>
+<p>Insert <code>None</code> if an attribute is distinct but not in <code>xp</code>.</p>
+<p>Used by <code>repr(<a title="dapper.xp_launch.xpList" href="#dapper.xp_launch.xpList">xpList</a>)</code> to make a nice table of the list,
+in which only the attributes that differ among the <code>xp</code>s
+need be included.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nomerge</code></strong> :&ensp;<code>list</code></dt>
+<dd>Attributes that should always be seen as distinct.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L380-L461" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L257-L348" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def split_attrs(self, nomerge=()):
-    &#34;&#34;&#34;Compile attrs of all `xp`s; split into distinct, redundant, common.
+    &#34;&#34;&#34;Classify each/every attribute of the `xp`s into: distinct, redundant, common.
 
-    Insert `None` if an attribute is distinct but not in `xp`.&#34;&#34;&#34;
+    Insert `None` if an attribute is distinct but not in `xp`.
+
+    Used by `repr(xpList)` to make a nice table of the list,
+    in which only the attributes that differ among the `xp`s
+    need be included.
+
+    Parameters
+    ----------
+    nomerge: list
+        Attributes that should always be seen as distinct.
+    &#34;&#34;&#34;
 
     def _aggregate_keys():
         &#34;Aggregate keys from all `xp`&#34;
@@ -1802,7 +1468,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
 
         # Remove unwanted
         excluded  = [re.compile(&#39;^_&#39;), &#39;avrgs&#39;, &#39;stats&#39;, &#39;HMM&#39;, &#39;duration&#39;]
-        aggregate = dict_tools.complement(aggregate, excluded)
+        aggregate = struct_tools.complement(aggregate, excluded)
         return aggregate
 
     distinct, redundant, common = {}, {}, {}
@@ -1814,7 +1480,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
         vals = [getattr(xp, key, &#34;N/A&#34;) for xp in self]
 
         # Sort (assign dct) into distinct, redundant, common
-        if dict_tools.flexcomp(key, *nomerge):
+        if struct_tools.flexcomp(key, *nomerge):
             # nomerge =&gt; Distinct
             dct, vals = distinct, vals
         elif all(vals[0] == v for v in vals):
@@ -1844,7 +1510,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
     return distinct, redundant, common</code></pre>
 </details>
 </dd>
-<dt id="dapper.admin.xpList.gen_names"><code class="name flex">
+<dt id="dapper.xp_launch.xpList.gen_names"><code class="name flex">
 <span>def <span class="ident">gen_names</span></span>(<span>self, abbrev=6, tab=False)</span>
 </code></dt>
 <dd>
@@ -1857,7 +1523,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L471-L509" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L358-L396" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_names(self, abbrev=6, tab=False):
     &#34;&#34;&#34;Similiar to `self.__repr__()`, but:
@@ -1871,7 +1537,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
     values = distinct.values()
 
     # Label abbreviation
-    labels = [utils.collapse_str(k, abbrev) for k in labels]
+    labels = [collapse_str(k, abbrev) for k in labels]
 
     # Make label columns: insert None or lbl+&#34;:&#34;, depending on value
     def column(lbl, vals):
@@ -1888,7 +1554,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
     table = list(map(list, zip(*table)))
 
     # Tabulate
-    table = utils.tab(table, tablefmt=&#34;plain&#34;)
+    table = tabulate(table, tablefmt=&#34;plain&#34;)
 
     # Rm space between lbls/vals
     table = re.sub(&#39;:  +&#39;, &#39;:&#39;, table)
@@ -1900,38 +1566,38 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
     return table.splitlines()</code></pre>
 </details>
 </dd>
-<dt id="dapper.admin.xpList.tabulate_avrgs"><code class="name flex">
+<dt id="dapper.xp_launch.xpList.tabulate_avrgs"><code class="name flex">
 <span>def <span class="ident">tabulate_avrgs</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Pretty (tabulated) <code>repr</code> of <code>xps</code> &amp; their <code>avrgs.</code></p>
+<div class="desc"><p>Pretty (tabulated) <code>repr</code> of <code>xps</code> <strong>and</strong> their <code>avrgs.</code></p>
 <p>Similar to <code>stats.tabulate_avrgs</code>, but for the entire list of <code>xps</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L511-L518" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L398-L405" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(self, *args, **kwargs):
-    &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` &amp; their `avrgs.`
+    &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
 
     Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
     distinct, redundant, common = self.split_attrs()
     averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
     columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
-    return utils.tab(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)</code></pre>
+    return tabulate(columns, headers=&#34;keys&#34;, showindex=True).replace(&#39;␣&#39;, &#39; &#39;)</code></pre>
 </details>
 </dd>
-<dt id="dapper.admin.xpList.launch"><code class="name flex">
+<dt id="dapper.xp_launch.xpList.launch"><code class="name flex">
 <span>def <span class="ident">launch</span></span>(<span>self, HMM, save_as='noname', mp=False, setup=&lt;function seed_and_simulate&gt;, fail_gently=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Essentially: <code>for xp in self: run_experiment(xp, ..., **kwargs)</code>.</p>
 <p>The results are saved in <code>rc.dirs['data']/save_as</code>,
-unless <code>save_as</code> is False/None.</p>
-<p>Depending on <code>mp</code>, <code><a title="dapper.admin.run_experiment" href="#dapper.admin.run_experiment">run_experiment()</a></code> is delegated as follows:</p>
+unless <code>save_as</code> is <code>False</code>/<code>None</code>.</p>
+<p>Depending on <code>mp</code>, <code><a title="dapper.xp_launch.run_experiment" href="#dapper.xp_launch.run_experiment">run_experiment()</a></code> is delegated as follows:</p>
 <ul>
 <li><code>False</code>: caller process (no parallelisation)</li>
-<li><code>True</code> or "MP" or an <code>int</code>: multiprocessing on this host</li>
+<li><code>True</code> or <code>"MP"</code> or an <code>int</code>: multiprocessing on this host</li>
 <li><code>"GCP"</code> or <code>"Google"</code> or <code>dict(server="GCP")</code>: the DAPPER server
 (Google Cloud Computing with HTCondor).<ul>
 <li>Specify a list of files as <code>mp["files"]</code> to include them
@@ -1945,9 +1611,9 @@ in <code>sys.path[0]</code> are uploaded.</li>
 </ul>
 </li>
 </ul>
-<p>If <code>setup == None</code>: use <code><a title="dapper.admin.seed_and_simulate" href="#dapper.admin.seed_and_simulate">seed_and_simulate()</a></code>.
+<p>If <code>setup == None</code>: use <code><a title="dapper.xp_launch.seed_and_simulate" href="#dapper.xp_launch.seed_and_simulate">seed_and_simulate()</a></code>.
 Specify your own setup function
-(possibly calling <code><a title="dapper.admin.seed_and_simulate" href="#dapper.admin.seed_and_simulate">seed_and_simulate()</a></code>)
+(possibly calling <code><a title="dapper.xp_launch.seed_and_simulate" href="#dapper.xp_launch.seed_and_simulate">seed_and_simulate()</a></code>)
 in order to set (general) experiment parameters that are not
 (i.e. those that are not inherently used by the da_method
 of that <code>xp</code>).</p>
@@ -1955,19 +1621,19 @@ of that <code>xp</code>).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/admin.py#L520-L676" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L407-L563" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
            setup=seed_and_simulate, fail_gently=None, **kwargs):
     &#34;&#34;&#34;Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
     The results are saved in `rc.dirs[&#39;data&#39;]/save_as`,
-    unless `save_as` is False/None.
+    unless `save_as` is `False`/`None`.
 
     Depending on `mp`, `run_experiment` is delegated as follows:
 
     - `False`: caller process (no parallelisation)
-    - `True` or &#34;MP&#34; or an `int`: multiprocessing on this host
+    - `True` or `&#34;MP&#34;` or an `int`: multiprocessing on this host
     - `&#34;GCP&#34;` or `&#34;Google&#34;` or `dict(server=&#34;GCP&#34;)`: the DAPPER server
       (Google Cloud Computing with HTCondor).
         - Specify a list of files as `mp[&#34;files&#34;]` to include them
@@ -2042,19 +1708,19 @@ of that <code>xp</code>).</p>
             run_experiment(xp, None, xpi_dir(ixp), **kwargs)
         args = zip(self, range(len(self)))
 
-        utils.disable_progbar          = True
-        utils.disable_user_interaction = True
+        pb.disable_progbar          = True
+        pb.disable_user_interaction = True
         NPROC = mp.get(&#34;NPROC&#34;, None)  # None =&gt; mp.cpu_count()
         from dapper.tools.multiproc import mpd  # will fail on GCP
         with mpd.Pool(NPROC) as pool:
-            list(utils.tqdm.tqdm(
+            list(tqdm(
                 pool.imap(
                     run_with_fixed_args, args),
                 total=len(self),
                 desc=&#34;Parallel experim&#39;s&#34;,
                 smoothing=0.1))
-        utils.disable_progbar          = False
-        utils.disable_user_interaction = False
+        pb.disable_progbar          = False
+        pb.disable_user_interaction = False
 
     # Google cloud platform, multiprocessing
     elif mp[&#34;server&#34;] == &#34;GCP&#34;:
@@ -2093,7 +1759,7 @@ of that <code>xp</code>).</p>
         with open(extra_files/&#34;load_and_run.py&#34;, &#34;w&#34;) as f:
             f.write(dedent(&#34;&#34;&#34;\
             import dill
-            from dapper.admin import run_experiment
+            from dapper.xp_launch import run_experiment
 
             # Load
             with open(&#34;xp.com&#34;, &#34;rb&#34;) as f: com = dill.load(f)
@@ -2130,7 +1796,7 @@ of that <code>xp</code>).</p>
 </header>
 <div class="gcse-search" style="height: 70px"
 data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
-data-gaCategoryParameter="dapper.admin">
+data-gaCategoryParameter="dapper.xp_launch">
 </div>
 <h1>Index</h1>
 <div class="toc">
@@ -2144,39 +1810,24 @@ data-gaCategoryParameter="dapper.admin">
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="dapper.admin.da_method" href="#dapper.admin.da_method">da_method</a></code></li>
-<li><code><a title="dapper.admin.seed_and_simulate" href="#dapper.admin.seed_and_simulate">seed_and_simulate</a></code></li>
-<li><code><a title="dapper.admin.run_experiment" href="#dapper.admin.run_experiment">run_experiment</a></code></li>
-<li><code><a title="dapper.admin.get_param_setter" href="#dapper.admin.get_param_setter">get_param_setter</a></code></li>
+<li><code><a title="dapper.xp_launch.seed_and_simulate" href="#dapper.xp_launch.seed_and_simulate">seed_and_simulate</a></code></li>
+<li><code><a title="dapper.xp_launch.run_experiment" href="#dapper.xp_launch.run_experiment">run_experiment</a></code></li>
+<li><code><a title="dapper.xp_launch.collapse_str" href="#dapper.xp_launch.collapse_str">collapse_str</a></code></li>
+<li><code><a title="dapper.xp_launch.get_param_setter" href="#dapper.xp_launch.get_param_setter">get_param_setter</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="dapper.admin.HiddenMarkovModel" href="#dapper.admin.HiddenMarkovModel">HiddenMarkovModel</a></code></h4>
-<ul class="">
-<li><code><a title="dapper.admin.HiddenMarkovModel.simulate" href="#dapper.admin.HiddenMarkovModel.simulate">simulate</a></code></li>
-<li><code><a title="dapper.admin.HiddenMarkovModel.Nx" href="#dapper.admin.HiddenMarkovModel.Nx">Nx</a></code></li>
-<li><code><a title="dapper.admin.HiddenMarkovModel.Ny" href="#dapper.admin.HiddenMarkovModel.Ny">Ny</a></code></li>
-<li><code><a title="dapper.admin.HiddenMarkovModel.printopts" href="#dapper.admin.HiddenMarkovModel.printopts">printopts</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="dapper.admin.Operator" href="#dapper.admin.Operator">Operator</a></code></h4>
-<ul class="">
-<li><code><a title="dapper.admin.Operator.printopts" href="#dapper.admin.Operator.printopts">printopts</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="dapper.admin.xpList" href="#dapper.admin.xpList">xpList</a></code></h4>
+<h4><code><a title="dapper.xp_launch.xpList" href="#dapper.xp_launch.xpList">xpList</a></code></h4>
 <ul class="two-column">
-<li><code><a title="dapper.admin.xpList.append" href="#dapper.admin.xpList.append">append</a></code></li>
-<li><code><a title="dapper.admin.xpList.inds" href="#dapper.admin.xpList.inds">inds</a></code></li>
-<li><code><a title="dapper.admin.xpList.split_attrs" href="#dapper.admin.xpList.split_attrs">split_attrs</a></code></li>
-<li><code><a title="dapper.admin.xpList.gen_names" href="#dapper.admin.xpList.gen_names">gen_names</a></code></li>
-<li><code><a title="dapper.admin.xpList.tabulate_avrgs" href="#dapper.admin.xpList.tabulate_avrgs">tabulate_avrgs</a></code></li>
-<li><code><a title="dapper.admin.xpList.launch" href="#dapper.admin.xpList.launch">launch</a></code></li>
-<li><code><a title="dapper.admin.xpList.da_methods" href="#dapper.admin.xpList.da_methods">da_methods</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.append" href="#dapper.xp_launch.xpList.append">append</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.inds" href="#dapper.xp_launch.xpList.inds">inds</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.split_attrs" href="#dapper.xp_launch.xpList.split_attrs">split_attrs</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.gen_names" href="#dapper.xp_launch.xpList.gen_names">gen_names</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.tabulate_avrgs" href="#dapper.xp_launch.xpList.tabulate_avrgs">tabulate_avrgs</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.launch" href="#dapper.xp_launch.xpList.launch">launch</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.da_methods" href="#dapper.xp_launch.xpList.da_methods">da_methods</a></code></li>
 </ul>
 </li>
 </ul>

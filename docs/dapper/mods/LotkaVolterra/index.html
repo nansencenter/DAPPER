@@ -37,29 +37,28 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </header>
 <section id="section-intro">
 <p>The generalized predator-prey model, with settings for chaotic dynamics.</p>
-<p>Refs:</p>
-<ul>
-<li><a href="https://en.wikipedia.org/wiki/Competitive_Lotka-Volterra_equations">https://en.wikipedia.org/wiki/Competitive_Lotka-Volterra_equations</a></li>
-<li>Vano et al (2006): "Chaos in low-dimensional Lotka-Volterra models of competition".</li>
-</ul>
+<p>Refs:
+<a href="https://en.wikipedia.org/wiki/Competitive_Lotka-Volterra_equations">Wiki</a>,
+<code><a title="bib.vano2006chaos" href="../../../bib.html#bib.vano2006chaos">vano2006chaos</a></code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L0-L47" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L0-L48" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The generalized predator-prey model, with settings for chaotic dynamics.
 
 Refs:
-
-- https://en.wikipedia.org/wiki/Competitive_Lotka-Volterra_equations
-- Vano et al (2006): &#34;Chaos in low-dimensional Lotka-Volterra models of competition&#34;.
+[Wiki](https://en.wikipedia.org/wiki/Competitive_Lotka-Volterra_equations),
+`bib.vano2006chaos`.
 &#34;&#34;&#34;
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.integration import integrate_TLM
 from dapper.mods.Lorenz63 import LPs
+
+__pdoc__ = {&#34;demo&#34;: False}
 
 Nx = 4
 
@@ -81,7 +80,7 @@ def dxdt(x):
     return (r*x) * (1 - x@A.T)
 
 
-step = dpr.with_rk4(dxdt, autonom=True)
+step = modelling.with_rk4(dxdt, autonom=True)
 
 Tplot = 100
 
@@ -104,7 +103,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.LotkaVolterra.settings101" href="settings101.html">settings101</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Settings that produce somewhat interesting/challenging DA problems …</p></div>
 </dd>
 </dl>
 </section>
@@ -121,7 +120,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L31-L32" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L32-L33" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt(x):
     return (r*x) * (1 - x@A.T)</code></pre>
@@ -135,7 +134,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L40-L41" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L41-L42" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
     return np.diag(r - r*(A@x)) - (r*x)[:, None]*A</code></pre>
@@ -149,7 +148,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L44-L45" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L45-L46" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)</code></pre>
@@ -163,7 +162,7 @@ def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L48-L48" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LotkaVolterra/__init__.py#L49-L49" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LP_setup(jj): return LPs(jj, params=dict())</code></pre>
 </details>

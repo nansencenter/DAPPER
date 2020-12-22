@@ -40,16 +40,23 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L0-L150" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L0-L157" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Utilities to help define hidden Markov models.&#34;&#34;&#34;
 
 import functools
+from pathlib import Path
 
 import numpy as np
 import scipy.linalg as sla
 
 from dapper.tools.rounding import is_whole
+
+
+def rel2mods(path):
+    mods = Path(__file__).parent
+    path = Path(path).relative_to(mods).with_suffix(&#34;&#34;)
+    return str(path)
 
 
 # https://stackoverflow.com/q/22797580
@@ -202,6 +209,22 @@ def linspace_int(Nx, Ny, periodic=True):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="dapper.mods.utils.rel2mods"><code class="name flex">
+<span>def <span class="ident">rel2mods</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L12-L15" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def rel2mods(path):
+    mods = Path(__file__).parent
+    path = Path(path).relative_to(mods).with_suffix(&#34;&#34;)
+    return str(path)</code></pre>
+</details>
+</dd>
 <dt id="dapper.mods.utils.name_func"><code class="name flex">
 <span>def <span class="ident">name_func</span></span>(<span>name)</span>
 </code></dt>
@@ -210,7 +233,7 @@ def linspace_int(Nx, Ny, periodic=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L32-L36" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L39-L43" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def name_func(name):
     &#34;&#34;&#34;Decorator for creating NamedFunc.&#34;&#34;&#34;
@@ -235,7 +258,7 @@ def linspace_int(Nx, Ny, periodic=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L39-L57" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L46-L64" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def ens_compatible(func):
     &#34;&#34;&#34;Decorate to transpose before and after, i.e. `func(input.T).T`.
@@ -266,7 +289,7 @@ def linspace_int(Nx, Ny, periodic=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L60-L62" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L67-L69" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_op():
     &#34;&#34;&#34;Id operator.&#34;&#34;&#34;
@@ -281,7 +304,7 @@ def linspace_int(Nx, Ny, periodic=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L65-L68" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L72-L75" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_mat(M):
     &#34;&#34;&#34;Id matrix.&#34;&#34;&#34;
@@ -305,7 +328,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L71-L109" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L78-L116" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linear_model_setup(ModelMatrix, dt0):
     r&#34;&#34;&#34;Make the Dyn/Obs field of a HMM representing a linear model.
@@ -356,7 +379,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L112-L121" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L119-L128" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def direct_obs_matrix(Nx, obs_inds):
     &#34;&#34;&#34;Generate matrix that &#34;picks&#34; state elements `obs_inds` out of `range(Nx)`.&#34;&#34;&#34;
@@ -378,7 +401,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L124-L136" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L131-L143" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def partial_Id_Obs(Nx, obs_inds):
     &#34;&#34;&#34;Specify identity observations of a subset of obs. indices.&#34;&#34;&#34;
@@ -403,7 +426,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L139-L141" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L146-L148" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_Obs(Nx):
     &#34;&#34;&#34;Specify identity observations of entire state.&#34;&#34;&#34;
@@ -418,7 +441,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L144-L151" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L151-L158" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linspace_int(Nx, Ny, periodic=True):
     &#34;&#34;&#34;Provide a range of `Ny` equispaced integers between `0` and `Nx-1`.&#34;&#34;&#34;
@@ -444,7 +467,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L13-L29" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L20-L36" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NamedFunc():
     &#34;Provides custom repr for functions.&#34;
@@ -491,6 +514,7 @@ data-gaCategoryParameter="dapper.mods.utils">
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
+<li><code><a title="dapper.mods.utils.rel2mods" href="#dapper.mods.utils.rel2mods">rel2mods</a></code></li>
 <li><code><a title="dapper.mods.utils.name_func" href="#dapper.mods.utils.name_func">name_func</a></code></li>
 <li><code><a title="dapper.mods.utils.ens_compatible" href="#dapper.mods.utils.ens_compatible">ens_compatible</a></code></li>
 <li><code><a title="dapper.mods.utils.Id_op" href="#dapper.mods.utils.Id_op">Id_op</a></code></li>

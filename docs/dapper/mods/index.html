@@ -37,16 +37,16 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </header>
 <section id="section-intro">
 <p>Models included with DAPPER.</p>
-<p>The models are all simple;
-this facililates the reliability, reproducibility, and transparency
-of DA experiments.</p>
 <p>See the README section on
 <a href="https://github.com/nansencenter/DAPPER#Test-cases-models">test cases (models)</a>
 for an overview of the models included with DAPPER.</p>
+<p>The models are all simple;
+this facililates the reliability, reproducibility, and transparency
+of DA experiments.</p>
 <h2 id="defining-your-own-model">Defining your own model</h2>
 <p>Follow the example of one of the models within the <code>dapper/mods</code> folder.
 Essentially, you just need to define all of the attributes of a
-<code><a title="dapper.admin.HiddenMarkovModel" href="../admin.html#dapper.admin.HiddenMarkovModel">HiddenMarkovModel</a></code>.
+<code><a title="dapper.mods.HiddenMarkovModel" href="#dapper.mods.HiddenMarkovModel">HiddenMarkovModel</a></code>.
 To make sure this is working, we suggest the following structure:</p>
 <ul>
 <li>Make a dir: <code>my_model</code></li>
@@ -57,7 +57,7 @@ Typically, this culminates in a <code>step(x, t, dt)</code> function.<ul>
 2D-array (i.e. ensemble) and 1D-array (single realization) input.
 See <code><a title="dapper.mods.Lorenz63" href="Lorenz63/index.html">dapper.mods.Lorenz63</a></code> and <code><a title="dapper.mods.Lorenz96" href="Lorenz96/index.html">dapper.mods.Lorenz96</a></code>
 for typical implementations,
-and <code>dapper.mods/QG</code> for how to parallelize the ensemble simulations.</li>
+and <code><a title="dapper.mods.QG" href="QG/index.html">dapper.mods.QG</a></code> for how to parallelize the ensemble simulations.</li>
 <li>Optional: To use the (extended) Kalman filter, or 4D-Var,
 you will need to define the model linearization.
 Note: this only needs to support 1D input (single realization).</li>
@@ -86,23 +86,23 @@ Hidden Markov Model ready for a synthetic experiment
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L0-L50" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L0-L170" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Models included with DAPPER.
-
-The models are all simple;
-this facililates the reliability, reproducibility, and transparency
-of DA experiments.
 
 See the README section on
 [test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
 for an overview of the models included with DAPPER.
 
+The models are all simple;
+this facililates the reliability, reproducibility, and transparency
+of DA experiments.
+
 ## Defining your own model
 
 Follow the example of one of the models within the `dapper/mods` folder.
 Essentially, you just need to define all of the attributes of a
-`dapper.admin.HiddenMarkovModel`.
+`dapper.mods.HiddenMarkovModel`.
 To make sure this is working, we suggest the following structure:
 
 - Make a dir: `my_model`
@@ -113,7 +113,7 @@ To make sure this is working, we suggest the following structure:
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
       See `dapper.mods.Lorenz63` and `dapper.mods.Lorenz96`
       for typical implementations,
-      and `dapper.mods/QG` for how to parallelize the ensemble simulations.
+      and `dapper.mods.QG` for how to parallelize the ensemble simulations.
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).
@@ -138,7 +138,127 @@ To make sure this is working, we suggest the following structure:
     * very large observation noise (free run)
     * or very small observation noise (perfectly observed system)
 --&gt;
-&#34;&#34;&#34;</code></pre>
+&#34;&#34;&#34;
+
+__pdoc__ = {&#34;explore_props&#34;: False}
+
+import inspect
+from pathlib import Path
+
+import numpy as np
+import struct_tools
+
+# Imports used to set up HMMs
+import dapper.tools.progressbar as pb
+from dapper.dpr_config import rc
+from dapper.mods.utils import Id_mat, Id_op
+from dapper.tools.chronos import Chronology
+from dapper.tools.localization import no_localization
+from dapper.tools.matrices import CovMat
+from dapper.tools.randvars import RV, GaussRV
+from dapper.tools.seeding import set_seed
+
+from .integration import with_recursion, with_rk4
+from .utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
+
+
+class HiddenMarkovModel(struct_tools.NicePrint):
+    &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
+
+    This container contains the specification of a &#34;twin experiment&#34;,
+    i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
+    &#34;&#34;&#34;
+
+    def __init__(self, Dyn, Obs, t, X0, **kwargs):
+        # fmt: off
+        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
+        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
+        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
+        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
+        # fmt: on
+
+        # Name
+        self.name = kwargs.pop(&#34;name&#34;, &#34;&#34;)
+        if not self.name:
+            name = inspect.getfile(inspect.stack()[1][0])
+            try:
+                self.name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
+            except ValueError:
+                self.name = str(Path(name))
+
+        # Kwargs
+        abbrevs = {&#39;LP&#39;: &#39;liveplotters&#39;}
+        for key in kwargs:
+            setattr(self, abbrevs.get(key, key), kwargs[key])
+
+        # Defaults
+        if not hasattr(self.Obs, &#34;localizer&#34;):
+            self.Obs.localizer = no_localization(self.Nx, self.Ny)
+        if not hasattr(self, &#34;sectors&#34;):
+            self.sectors = {}
+
+        # Validation
+        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
+            raise ValueError(&#34;Rank-deficient R not supported.&#34;)
+
+    # ndim shortcuts
+    @property
+    def Nx(self): return self.Dyn.M
+    @property
+    def Ny(self): return self.Obs.M
+
+    printopts = {&#39;ordering&#39;: [&#39;Dyn&#39;, &#39;Obs&#39;, &#39;t&#39;, &#39;X0&#39;]}
+
+    def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
+        &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
+        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
+
+        # Init
+        xx    = np.zeros((chrono.K   + 1, Dyn.M))
+        yy    = np.zeros((chrono.KObs+1, Obs.M))
+
+        xx[0] = X0.sample(1)
+
+        # Loop
+        for k, kObs, t, dt in pb.progbar(chrono.ticker, desc):
+            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+            if kObs is not None:
+                yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
+
+        return xx, yy
+
+
+class Operator(struct_tools.NicePrint):
+    &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;
+
+    def __init__(self, M, model=None, noise=None, **kwargs):
+        self.M = M
+
+        # None =&gt; Identity model
+        if model is None:
+            model = Id_op()
+            kwargs[&#39;linear&#39;] = lambda x, t, dt: Id_mat(M)
+        self.model = model
+
+        # None/0 =&gt; No noise
+        if isinstance(noise, RV):
+            self.noise = noise
+        else:
+            if noise is None:
+                noise = 0
+            if np.isscalar(noise):
+                self.noise = GaussRV(C=noise, M=M)
+            else:
+                self.noise = GaussRV(C=noise)
+
+        # Write attributes
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+    printopts = {&#39;ordering&#39;: [&#39;M&#39;, &#39;model&#39;, &#39;noise&#39;]}</code></pre>
 </details>
 </section>
 <section>
@@ -202,7 +322,7 @@ To make sure this is working, we suggest the following structure:
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.QG" href="QG/index.html">QG</a></code></dt>
 <dd>
-<div class="desc"><p>Quasi-geostraphic 2D flow …</p></div>
+<div class="desc"><p>Quasi-geostraphic 2D flow. Described in detail by <code><a title="bib.sakov2008deterministic" href="../../bib.html#bib.sakov2008deterministic">sakov2008deterministic</a></code> …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -223,6 +343,213 @@ To make sure this is working, we suggest the following structure:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="dapper.mods.HiddenMarkovModel"><code class="flex name class">
+<span>class <span class="ident">HiddenMarkovModel</span></span>
+<span>(</span><span>Dyn, Obs, t, X0, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Container for a Hidden Markov Model (HMM).</p>
+<p>This container contains the specification of a "twin experiment",
+i.e. an "OSSE (observing system simulation experiment)".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L75-L138" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class HiddenMarkovModel(struct_tools.NicePrint):
+    &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
+
+    This container contains the specification of a &#34;twin experiment&#34;,
+    i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
+    &#34;&#34;&#34;
+
+    def __init__(self, Dyn, Obs, t, X0, **kwargs):
+        # fmt: off
+        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
+        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
+        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
+        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
+        # fmt: on
+
+        # Name
+        self.name = kwargs.pop(&#34;name&#34;, &#34;&#34;)
+        if not self.name:
+            name = inspect.getfile(inspect.stack()[1][0])
+            try:
+                self.name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
+            except ValueError:
+                self.name = str(Path(name))
+
+        # Kwargs
+        abbrevs = {&#39;LP&#39;: &#39;liveplotters&#39;}
+        for key in kwargs:
+            setattr(self, abbrevs.get(key, key), kwargs[key])
+
+        # Defaults
+        if not hasattr(self.Obs, &#34;localizer&#34;):
+            self.Obs.localizer = no_localization(self.Nx, self.Ny)
+        if not hasattr(self, &#34;sectors&#34;):
+            self.sectors = {}
+
+        # Validation
+        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
+            raise ValueError(&#34;Rank-deficient R not supported.&#34;)
+
+    # ndim shortcuts
+    @property
+    def Nx(self): return self.Dyn.M
+    @property
+    def Ny(self): return self.Obs.M
+
+    printopts = {&#39;ordering&#39;: [&#39;Dyn&#39;, &#39;Obs&#39;, &#39;t&#39;, &#39;X0&#39;]}
+
+    def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
+        &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
+        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
+
+        # Init
+        xx    = np.zeros((chrono.K   + 1, Dyn.M))
+        yy    = np.zeros((chrono.KObs+1, Obs.M))
+
+        xx[0] = X0.sample(1)
+
+        # Loop
+        for k, kObs, t, dt in pb.progbar(chrono.ticker, desc):
+            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+            if kObs is not None:
+                yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
+
+        return xx, yy</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>struct_tools.NicePrint</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.mods.HiddenMarkovModel.printopts"><code class="name">var <span class="ident">printopts</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="dapper.mods.HiddenMarkovModel.Nx"><code class="name">var <span class="ident">Nx</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L115-L116" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@property
+def Nx(self): return self.Dyn.M</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.HiddenMarkovModel.Ny"><code class="name">var <span class="ident">Ny</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L117-L118" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@property
+def Ny(self): return self.Obs.M</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="dapper.mods.HiddenMarkovModel.simulate"><code class="name flex">
+<span>def <span class="ident">simulate</span></span>(<span>self, desc='Truth & Obs')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate synthetic truth and observations.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L122-L138" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
+    &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
+    Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
+
+    # Init
+    xx    = np.zeros((chrono.K   + 1, Dyn.M))
+    yy    = np.zeros((chrono.KObs+1, Obs.M))
+
+    xx[0] = X0.sample(1)
+
+    # Loop
+    for k, kObs, t, dt in pb.progbar(chrono.ticker, desc):
+        xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+        if kObs is not None:
+            yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
+
+    return xx, yy</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="dapper.mods.Operator"><code class="flex name class">
+<span>class <span class="ident">Operator</span></span>
+<span>(</span><span>M, model=None, noise=None, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Container for operators (models).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L141-L171" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class Operator(struct_tools.NicePrint):
+    &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;
+
+    def __init__(self, M, model=None, noise=None, **kwargs):
+        self.M = M
+
+        # None =&gt; Identity model
+        if model is None:
+            model = Id_op()
+            kwargs[&#39;linear&#39;] = lambda x, t, dt: Id_mat(M)
+        self.model = model
+
+        # None/0 =&gt; No noise
+        if isinstance(noise, RV):
+            self.noise = noise
+        else:
+            if noise is None:
+                noise = 0
+            if np.isscalar(noise):
+                self.noise = GaussRV(C=noise, M=M)
+            else:
+                self.noise = GaussRV(C=noise)
+
+        # Write attributes
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+    printopts = {&#39;ordering&#39;: [&#39;M&#39;, &#39;model&#39;, &#39;noise&#39;]}</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>struct_tools.NicePrint</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="dapper.mods.Operator.printopts"><code class="name">var <span class="ident">printopts</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -286,6 +613,25 @@ data-gaCategoryParameter="dapper.mods">
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.utils" href="utils.html">utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="dapper.mods.HiddenMarkovModel" href="#dapper.mods.HiddenMarkovModel">HiddenMarkovModel</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.mods.HiddenMarkovModel.simulate" href="#dapper.mods.HiddenMarkovModel.simulate">simulate</a></code></li>
+<li><code><a title="dapper.mods.HiddenMarkovModel.Nx" href="#dapper.mods.HiddenMarkovModel.Nx">Nx</a></code></li>
+<li><code><a title="dapper.mods.HiddenMarkovModel.Ny" href="#dapper.mods.HiddenMarkovModel.Ny">Ny</a></code></li>
+<li><code><a title="dapper.mods.HiddenMarkovModel.printopts" href="#dapper.mods.HiddenMarkovModel.printopts">printopts</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="dapper.mods.Operator" href="#dapper.mods.Operator">Operator</a></code></h4>
+<ul class="">
+<li><code><a title="dapper.mods.Operator.printopts" href="#dapper.mods.Operator.printopts">printopts</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

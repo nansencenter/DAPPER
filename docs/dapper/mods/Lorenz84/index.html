@@ -37,29 +37,23 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </header>
 <section id="section-intro">
 <p>A chaotic system of size 3, like Lorenz-63, but with +complex geometry.</p>
-<p>Refs:
-- E.N. Lorenz, Irregularity: a fundamental property of the atmosphere,
-Tellus A 36 (1984) 98–110.
-- E.N. Lorenz, Alook at some details of the growth of initial uncertainties,
-Tellus A 57 (2005) 1–11</p>
+<p>Refs: <code><a title="bib.lorenz1984irregularity" href="../../../bib.html#bib.lorenz1984irregularity">lorenz1984irregularity</a></code>, <code><a title="bib.lorenz2005look" href="../../../bib.html#bib.lorenz2005look">lorenz2005look</a></code></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/__init__.py#L0-L47" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/__init__.py#L0-L45" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;A chaotic system of size 3, like Lorenz-63, but with +complex geometry.
 
-Refs:
-- E.N. Lorenz, Irregularity: a fundamental property of the atmosphere,
-  Tellus A 36 (1984) 98–110.
-- E.N. Lorenz, Alook at some details of the growth of initial uncertainties,
-  Tellus A 57 (2005) 1–11
+Refs: `bib.lorenz1984irregularity`, `bib.lorenz2005look`
 &#34;&#34;&#34;
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.integration import integrate_TLM
+
+__pdoc__ = {&#34;demo&#34;: False}
 
 # Constants
 a = 0.25
@@ -69,7 +63,7 @@ G = 1.23
 # G = 1.0
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def dxdt(x):
     d = np.zeros_like(x)
     x, y, z = x
@@ -79,7 +73,7 @@ def dxdt(x):
     return d
 
 
-step = dpr.with_rk4(dxdt, autonom=True)
+step = modelling.with_rk4(dxdt, autonom=True)
 
 x0 = np.array([1.65,  0.49,  1.21])
 
@@ -104,15 +98,13 @@ def dstep_dx(x, t, dt):
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz84.harder" href="harder.html">harder</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>The settings of <code><a title="dapper.mods.Lorenz84.pajonk2012" href="pajonk2012.html">dapper.mods.Lorenz84.pajonk2012</a></code> are too easy: the average value of <code>trHK</code> is 0.013 …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz84.pajonk2012" href="pajonk2012.html">pajonk2012</a></code></dt>
 <dd>
-<div class="desc"><p>Settings from Pajonk, Oliver, et al.
-'A deterministic filter for non-Gaussian Bayesian estimation—applications
-to dynamical system estimation with …</p></div>
+<div class="desc"><p>Settings from <code><a title="bib.pajonk2012deterministic" href="../../../bib.html#bib.pajonk2012deterministic">pajonk2012deterministic</a></code> …</p></div>
 </dd>
 </dl>
 </section>
@@ -129,9 +121,9 @@ to dynamical system estimation with …</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/__init__.py#L23-L30" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/__init__.py#L21-L28" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@dpr.ens_compatible
+<pre><code class="python">@modelling.ens_compatible
 def dxdt(x):
     d = np.zeros_like(x)
     x, y, z = x
@@ -149,7 +141,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/__init__.py#L38-L44" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/__init__.py#L36-L42" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
     x, y, z = x
@@ -168,7 +160,7 @@ def dxdt(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/__init__.py#L47-L48" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/__init__.py#L45-L46" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)</code></pre>

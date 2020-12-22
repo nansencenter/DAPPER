@@ -42,7 +42,7 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L0-L189" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L0-L190" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tests with the LA model, which are very useful for testing
 boundary cases of the iEnKS (e.g. nIter=1, Lag=0).&#34;&#34;&#34;
@@ -52,9 +52,10 @@ boundary cases of the iEnKS (e.g. nIter=1, Lag=0).&#34;&#34;&#34;
 ##############################
 import numpy as np
 import pytest
+from struct_tools import deep_getattr
 
 import dapper as dpr
-from dapper.dict_tools import deep_getattr
+import dapper.da_methods as da
 
 
 @pytest.fixture(scope=&#34;module&#34;)
@@ -67,18 +68,18 @@ def data():
     xps = dpr.xpList(unique=True)
 
     # yapf: disable
-    xps += dpr.EnKF(&#39;Sqrt&#39;,    N=20)
-    xps += dpr.EnKF(&#39;PertObs&#39;, N=20)
-    xps += dpr.EnKF(&#39;DEnKF&#39;,   N=20)
+    xps += da.EnKF(&#39;Sqrt&#39;,    N=20)
+    xps += da.EnKF(&#39;PertObs&#39;, N=20)
+    xps += da.EnKF(&#39;DEnKF&#39;,   N=20)
     for Lag in [0, 1, 3]:
-        xps += dpr.EnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag)
-        xps += dpr.EnKS(&#39;PertObs&#39;, N=20, Lag=Lag)
-        xps += dpr.EnKS(&#39;DEnKF&#39;,   N=20, Lag=Lag)
+        xps += da.EnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag)
+        xps += da.EnKS(&#39;PertObs&#39;, N=20, Lag=Lag)
+        xps += da.EnKS(&#39;DEnKF&#39;,   N=20, Lag=Lag)
         for nIter in [1, 4]:
             for MDA in [False, True]:
-                xps += dpr.iEnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-                xps += dpr.iEnKS(&#39;PertObs&#39;, N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-                xps += dpr.iEnKS(&#39;Order1&#39;,  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS(&#39;PertObs&#39;, N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS(&#39;Order1&#39;,  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
     # yapf: enable
 
     for xp in xps:
@@ -217,13 +218,13 @@ def test_Order1_nIter1_Lag0_u(data):
 
 
 def test_Order1_nIter1_Lag1_u(data):
-    ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
+    ii = data.inds(da=da.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
          data.inds(upd_a=&#39;Order1&#39;, Lag=1, nIter=1)
     assert _allsame(_rmse(data, &#39;u&#39;, ii))
 
 
 def test_Order1_nIter1_Lag3_u(data):
-    ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\
+    ii = data.inds(da=da.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\
          data.inds(upd_a=&#39;Order1&#39;, Lag=3, nIter=1)
     assert _allsame(_rmse(data, &#39;u&#39;, ii))
 
@@ -251,7 +252,7 @@ def test_Order1_nIter1_Lag3_u(data):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L14-L44" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L15-L45" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;module&#34;)
 def data():
@@ -263,18 +264,18 @@ def data():
     xps = dpr.xpList(unique=True)
 
     # yapf: disable
-    xps += dpr.EnKF(&#39;Sqrt&#39;,    N=20)
-    xps += dpr.EnKF(&#39;PertObs&#39;, N=20)
-    xps += dpr.EnKF(&#39;DEnKF&#39;,   N=20)
+    xps += da.EnKF(&#39;Sqrt&#39;,    N=20)
+    xps += da.EnKF(&#39;PertObs&#39;, N=20)
+    xps += da.EnKF(&#39;DEnKF&#39;,   N=20)
     for Lag in [0, 1, 3]:
-        xps += dpr.EnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag)
-        xps += dpr.EnKS(&#39;PertObs&#39;, N=20, Lag=Lag)
-        xps += dpr.EnKS(&#39;DEnKF&#39;,   N=20, Lag=Lag)
+        xps += da.EnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag)
+        xps += da.EnKS(&#39;PertObs&#39;, N=20, Lag=Lag)
+        xps += da.EnKS(&#39;DEnKF&#39;,   N=20, Lag=Lag)
         for nIter in [1, 4]:
             for MDA in [False, True]:
-                xps += dpr.iEnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-                xps += dpr.iEnKS(&#39;PertObs&#39;, N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-                xps += dpr.iEnKS(&#39;Order1&#39;,  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS(&#39;Sqrt&#39;,    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS(&#39;PertObs&#39;, N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS(&#39;Order1&#39;,  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
     # yapf: enable
 
     for xp in xps:
@@ -294,7 +295,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L78-L81" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L79-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Sqrt(data):
     ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;)
@@ -310,7 +311,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L86-L88" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L87-L89" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Sqrt_u(data):
     ii = data.inds(strict=0, upd_a=&#39;Sqrt&#39;, Lag=0)
@@ -325,7 +326,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L92-L95" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L93-L96" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Sqrt_Lag1_u(data):
     ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;, Lag=1)
@@ -341,7 +342,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L98-L101" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L99-L102" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Sqrt_Lag3_u(data):
     ii = data.inds(strict=1, upd_a=&#39;Sqrt&#39;, Lag=3)
@@ -357,7 +358,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L106-L110" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L107-L111" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs(data):
     ii = (data.inds(strict=0, upd_a=&#39;PertObs&#39;, MDA=0) +
@@ -374,7 +375,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L114-L117" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L115-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs_nIter4(data):
     ii = data.inds(strict=1, upd_a=&#39;PertObs&#39;, nIter=4, MDA=1)
@@ -390,7 +391,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L121-L124" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L122-L125" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs_u(data):
     ii = (data.inds(strict=0, upd_a=&#39;PertObs&#39;, MDA=0, Lag=0) +
@@ -406,7 +407,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L128-L132" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L129-L133" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs_Lag1_u(data):
     ii = data.inds(upd_a=&#39;PertObs&#39;, Lag=1)
@@ -423,7 +424,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L136-L140" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L137-L141" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_PertObs_Lag3_u(data):
     ii = data.inds(upd_a=&#39;PertObs&#39;, Lag=3)
@@ -440,7 +441,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L145-L149" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L146-L150" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1(data):
     ii = data.inds(upd_a=&#39;DEnKF&#39;) +\
@@ -457,7 +458,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L153-L156" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L154-L157" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter4_MDA0(data):
     ii = data.inds(upd_a=&#39;Order1&#39;, nIter=4, MDA=0)
@@ -473,7 +474,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L160-L163" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L161-L164" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter4_MDA1(data):
     ii = data.inds(upd_a=&#39;Order1&#39;, nIter=4, MDA=1)
@@ -489,7 +490,7 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L167-L170" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L168-L171" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter1_Lag0_u(data):
     ii = data.inds(strict=0, upd_a=&#39;DEnKF&#39;, Lag=0) +\
@@ -505,10 +506,10 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L173-L176" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L174-L177" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter1_Lag1_u(data):
-    ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
+    ii = data.inds(da=da.EnKS, upd_a=&#39;DEnKF&#39;, Lag=1) +\
          data.inds(upd_a=&#39;Order1&#39;, Lag=1, nIter=1)
     assert _allsame(_rmse(data, &#39;u&#39;, ii))</code></pre>
 </details>
@@ -521,10 +522,10 @@ def data():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L179-L182" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_iEnKS.py#L180-L183" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_Order1_nIter1_Lag3_u(data):
-    ii = data.inds(da=dpr.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\
+    ii = data.inds(da=da.EnKS, upd_a=&#39;DEnKF&#39;, Lag=3) +\
          data.inds(upd_a=&#39;Order1&#39;, Lag=3, nIter=1)
     assert _allsame(_rmse(data, &#39;u&#39;, ii))</code></pre>
 </details>

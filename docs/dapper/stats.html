@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L619" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L677" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Stats computation for the assessment of DA methods.&#34;&#34;&#34;
 
@@ -48,16 +48,16 @@ import warnings
 
 import numpy as np
 import scipy.linalg as sla
+import struct_tools
 from matplotlib import pyplot as plt
+from patlib.std import do_once
+from tabulate import tabulate
 
-import dapper.dict_tools as dict_tools
 import dapper.tools.liveplotting as liveplotting
 import dapper.tools.series as series
-import dapper.tools.utils as utils
-from dapper.dict_tools import DotDict
 from dapper.dpr_config import rc
-from dapper.tools.maths import unbias_var
 from dapper.tools.matrices import CovMat
+from dapper.tools.progressbar import progbar
 from dapper.tools.series import DataSeries, StatPrint
 
 
@@ -103,8 +103,8 @@ class Stats(StatPrint):
             gm  = lambda x: np.exp(np.mean(np.log(x))),  # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = dict_tools.intersect(self.field_summaries,
-                                                    rc.field_summaries)
+        self.field_summaries = struct_tools.intersect(self.field_summaries,
+                                                      rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
@@ -201,7 +201,7 @@ class Stats(StatPrint):
             if MS == &#39;sec&#39;:
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split(&#39;.&#39;)
-                    make_series(dict_tools.deep_getattr(
+                    make_series(struct_tools.deep_getattr(
                         self, f&#34;{name}.{suffix}&#34;), sector, ())
 
     @property
@@ -274,7 +274,7 @@ class Stats(StatPrint):
 
             # Write current stats to series
             for name, val in stats_now.items():
-                stat = dict_tools.deep_getattr(self, name)
+                stat = struct_tools.deep_getattr(self, name)
                 isFaust = isinstance(stat, series.FAUSt)
                 stat[(k, kObs, sub) if isFaust else kObs] = val
 
@@ -294,7 +294,7 @@ class Stats(StatPrint):
                 field = now[stat]
                 for suffix, formula in formulae.items():
                     statpath = stat+&#39;.&#39;+suffix
-                    if dict_tools.deep_hasattr(self, statpath):
+                    if struct_tools.deep_hasattr(self, statpath):
                         now[statpath] = formula(field)
 
     def derivative_stats(self, now):
@@ -486,7 +486,7 @@ class Stats(StatPrint):
         desc = self.xp.da_method + &#34; (replay)&#34;
 
         # Play through assimilation cycles
-        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+        for k, kObs, t, dt in progbar(chrono.ticker, desc):
             if t1 &lt;= t &lt;= t2:
                 if kObs is not None:
                     LP.update((k, kObs, &#39;f&#39;), None, None)
@@ -509,7 +509,7 @@ def register_stat(self, name, value):
     self.stat_register.append(name)
 
 
-class Avrgs(StatPrint, DotDict):
+class Avrgs(StatPrint, struct_tools.DotDict):
     &#34;&#34;&#34;A DotDict specialized for stat. averages.
 
     Embellishments:
@@ -520,7 +520,7 @@ class Avrgs(StatPrint, DotDict):
 
     def tabulate(self, statkeys=()):
         columns = tabulate_avrgs([self], statkeys, decimals=None)
-        return utils.tab(columns, headers=&#34;keys&#34;).replace(&#39;␣&#39;, &#39; &#39;)
+        return tabulate(columns, headers=&#34;keys&#34;).replace(&#39;␣&#39;, &#39; &#39;)
 
     abbrevs = {&#39;rmse&#39;: &#39;err.rms&#39;, &#39;rmss&#39;: &#39;std.rms&#39;, &#39;rmv&#39;: &#39;std.rms&#39;}
 
@@ -532,7 +532,7 @@ class Avrgs(StatPrint, DotDict):
         key = &#39;.&#39;.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split(&#39;.&#39;))
 
         if &#34;.&#34; in key:
-            return dict_tools.deep_getattr(self, key)
+            return struct_tools.deep_getattr(self, key)
         else:
             return super().__getattribute__(key)
 
@@ -548,7 +548,7 @@ class Avrgs(StatPrint, DotDict):
 # ...
 
 
-@utils.do_once
+@do_once
 def warn_zero_variance(err, flag):
     msg = &#34;\n&#34;.join([&#34;Numerical error in stat comps.&#34;,
                      &#34;Probably caused by a sample variance of 0.&#34;])
@@ -596,7 +596,7 @@ def align_col(col, header, pad=&#39;␣&#39;, missingval=&#39;&#39;, frmt=None):
 
     # Make text column, aligned
     col = [[preprocess(x)] for x in col]
-    col = utils.tab(col, [header], &#39;plain&#39;)
+    col = tabulate(col, [header], &#39;plain&#39;)
     col = col.split(&#34;\n&#34;)  # NOTE: dont use splitlines (removes empty lines)
 
     # Undo nan/inf treatment
@@ -630,7 +630,7 @@ def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
             v, c = np.round([uq.val, uq.conf], decimals)
         arr[&#34;val&#34;][i], arr[&#34;conf&#34;][i] = v, c
         # Others
-        for col in dict_tools.complement(cols, [&#34;val&#34;, &#34;conf&#34;]):
+        for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;conf&#34;]):
             try:
                 arr[col][i] = getattr(uq, col)
             except AttributeError:
@@ -661,7 +661,65 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
         mattr  = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr
 
-    return columns</code></pre>
+    return columns
+
+
+def center(E, axis=0, rescale=False):
+    &#34;&#34;&#34;Center ensemble.
+
+    Makes use of `np` features: keepdims and broadcasting.
+
+    Parameters
+    ----------
+    rescale: bool
+        Whether to inflate to compensate for reduction in the expected variance.
+
+    Returns
+    -------
+    Centered ensemble, and its mean.
+    &#34;&#34;&#34;
+    x = np.mean(E, axis=axis, keepdims=True)
+    X = E - x
+
+    if rescale:
+        N = E.shape[axis]
+        X *= np.sqrt(N/(N-1))
+
+    x = x.squeeze()
+
+    return X, x
+
+
+def mean0(E, axis=0, rescale=True):
+    &#34;&#34;&#34;Center, but only return the anomalies (not the mean).&#34;&#34;&#34;
+    return center(E, axis=axis, rescale=rescale)[0]
+
+
+def inflate_ens(E, factor):
+    &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).&#34;&#34;&#34;
+    if factor == 1:
+        return E
+    X, x = center(E)
+    return x + X*factor
+
+
+def weight_degeneracy(w, prec=1e-10):
+    &#34;&#34;&#34;Check if the weights are degenerate.&#34;&#34;&#34;
+    return (1-w.max()) &lt; prec
+
+
+def unbias_var(w=None, N_eff=None, avoid_pathological=False):
+    &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
+
+    [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
+    &#34;&#34;&#34;
+    if N_eff is None:
+        N_eff = 1/(w@w)
+    if avoid_pathological and weight_degeneracy(w):
+        ub = 1  # Don&#39;t do in case of weights collapse
+    else:
+        ub = 1/(1 - 1/N_eff)  # =N/(N-1) if w==ones(N)/N.
+    return ub</code></pre>
 </details>
 </section>
 <section>
@@ -742,7 +800,7 @@ Custom <code>frmt</code> also supported.</li>
 
     # Make text column, aligned
     col = [[preprocess(x)] for x in col]
-    col = utils.tab(col, [header], &#39;plain&#39;)
+    col = tabulate(col, [header], &#39;plain&#39;)
     col = col.split(&#34;\n&#34;)  # NOTE: dont use splitlines (removes empty lines)
 
     # Undo nan/inf treatment
@@ -789,7 +847,7 @@ Custom <code>frmt</code> also supported.</li>
             v, c = np.round([uq.val, uq.conf], decimals)
         arr[&#34;val&#34;][i], arr[&#34;conf&#34;][i] = v, c
         # Others
-        for col in dict_tools.complement(cols, [&#34;val&#34;, &#34;conf&#34;]):
+        for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;conf&#34;]):
             try:
                 arr[col][i] = getattr(uq, col)
             except AttributeError:
@@ -831,6 +889,123 @@ Custom <code>frmt</code> also supported.</li>
         columns[headr] = mattr
 
     return columns</code></pre>
+</details>
+</dd>
+<dt id="dapper.stats.center"><code class="name flex">
+<span>def <span class="ident">center</span></span>(<span>E, axis=0, rescale=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Center ensemble.</p>
+<p>Makes use of <code>np</code> features: keepdims and broadcasting.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>rescale</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to inflate to compensate for reduction in the expected variance.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Centered ensemble, and its mean.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L623-L646" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def center(E, axis=0, rescale=False):
+    &#34;&#34;&#34;Center ensemble.
+
+    Makes use of `np` features: keepdims and broadcasting.
+
+    Parameters
+    ----------
+    rescale: bool
+        Whether to inflate to compensate for reduction in the expected variance.
+
+    Returns
+    -------
+    Centered ensemble, and its mean.
+    &#34;&#34;&#34;
+    x = np.mean(E, axis=axis, keepdims=True)
+    X = E - x
+
+    if rescale:
+        N = E.shape[axis]
+        X *= np.sqrt(N/(N-1))
+
+    x = x.squeeze()
+
+    return X, x</code></pre>
+</details>
+</dd>
+<dt id="dapper.stats.mean0"><code class="name flex">
+<span>def <span class="ident">mean0</span></span>(<span>E, axis=0, rescale=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Center, but only return the anomalies (not the mean).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L649-L651" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def mean0(E, axis=0, rescale=True):
+    &#34;&#34;&#34;Center, but only return the anomalies (not the mean).&#34;&#34;&#34;
+    return center(E, axis=axis, rescale=rescale)[0]</code></pre>
+</details>
+</dd>
+<dt id="dapper.stats.inflate_ens"><code class="name flex">
+<span>def <span class="ident">inflate_ens</span></span>(<span>E, factor)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inflate the ensemble (center, inflate, re-combine).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L654-L659" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def inflate_ens(E, factor):
+    &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).&#34;&#34;&#34;
+    if factor == 1:
+        return E
+    X, x = center(E)
+    return x + X*factor</code></pre>
+</details>
+</dd>
+<dt id="dapper.stats.weight_degeneracy"><code class="name flex">
+<span>def <span class="ident">weight_degeneracy</span></span>(<span>w, prec=1e-10)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Check if the weights are degenerate.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L662-L664" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def weight_degeneracy(w, prec=1e-10):
+    &#34;&#34;&#34;Check if the weights are degenerate.&#34;&#34;&#34;
+    return (1-w.max()) &lt; prec</code></pre>
+</details>
+</dd>
+<dt id="dapper.stats.unbias_var"><code class="name flex">
+<span>def <span class="ident">unbias_var</span></span>(<span>w=None, N_eff=None, avoid_pathological=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute unbias-ing factor for variance estimation.</p>
+<p><a href="https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights">Wikipedia</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L667-L678" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def unbias_var(w=None, N_eff=None, avoid_pathological=False):
+    &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
+
+    [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
+    &#34;&#34;&#34;
+    if N_eff is None:
+        N_eff = 1/(w@w)
+    if avoid_pathological and weight_degeneracy(w):
+        ub = 1  # Don&#39;t do in case of weights collapse
+    else:
+        ub = 1/(1 - 1/N_eff)  # =N/(N-1) if w==ones(N)/N.
+    return ub</code></pre>
 </details>
 </dd>
 </dl>
@@ -896,8 +1071,8 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
             gm  = lambda x: np.exp(np.mean(np.log(x))),  # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = dict_tools.intersect(self.field_summaries,
-                                                    rc.field_summaries)
+        self.field_summaries = struct_tools.intersect(self.field_summaries,
+                                                      rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
@@ -994,7 +1169,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
             if MS == &#39;sec&#39;:
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split(&#39;.&#39;)
-                    make_series(dict_tools.deep_getattr(
+                    make_series(struct_tools.deep_getattr(
                         self, f&#34;{name}.{suffix}&#34;), sector, ())
 
     @property
@@ -1067,7 +1242,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
 
             # Write current stats to series
             for name, val in stats_now.items():
-                stat = dict_tools.deep_getattr(self, name)
+                stat = struct_tools.deep_getattr(self, name)
                 isFaust = isinstance(stat, series.FAUSt)
                 stat[(k, kObs, sub) if isFaust else kObs] = val
 
@@ -1087,7 +1262,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
                 field = now[stat]
                 for suffix, formula in formulae.items():
                     statpath = stat+&#39;.&#39;+suffix
-                    if dict_tools.deep_hasattr(self, statpath):
+                    if struct_tools.deep_hasattr(self, statpath):
                         now[statpath] = formula(field)
 
     def derivative_stats(self, now):
@@ -1279,7 +1454,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         desc = self.xp.da_method + &#34; (replay)&#34;
 
         # Play through assimilation cycles
-        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+        for k, kObs, t, dt in progbar(chrono.ticker, desc):
             if t1 &lt;= t &lt;= t2:
                 if kObs is not None:
                     LP.update((k, kObs, &#39;f&#39;), None, None)
@@ -1297,7 +1472,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.tools.series.StatPrint" href="tools/series.html#dapper.tools.series.StatPrint">StatPrint</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
+<li>struct_tools.NicePrint</li>
 </ul>
 <h3>Instance variables</h3>
 <dl>
@@ -1376,7 +1551,7 @@ to avoid plotting stats that are not being used.
         if MS == &#39;sec&#39;:
             for ss in self.sector_summaries:
                 suffix, sector = ss.split(&#39;.&#39;)
-                make_series(dict_tools.deep_getattr(
+                make_series(struct_tools.deep_getattr(
                     self, f&#34;{name}.{suffix}&#34;), sector, ())</code></pre>
 </details>
 </dd>
@@ -1462,7 +1637,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 
         # Write current stats to series
         for name, val in stats_now.items():
-            stat = dict_tools.deep_getattr(self, name)
+            stat = struct_tools.deep_getattr(self, name)
             isFaust = isinstance(stat, series.FAUSt)
             stat[(k, kObs, sub) if isFaust else kObs] = val
 
@@ -1493,7 +1668,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
             field = now[stat]
             for suffix, formula in formulae.items():
                 statpath = stat+&#39;.&#39;+suffix
-                if dict_tools.deep_hasattr(self, statpath):
+                if struct_tools.deep_hasattr(self, statpath):
                     now[statpath] = formula(field)</code></pre>
 </details>
 </dd>
@@ -1757,7 +1932,7 @@ time inds for averaging</li>
     desc = self.xp.da_method + &#34; (replay)&#34;
 
     # Play through assimilation cycles
-    for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+    for k, kObs, t, dt in progbar(chrono.ticker, desc):
         if t1 &lt;= t &lt;= t2:
             if kObs is not None:
                 LP.update((k, kObs, &#39;f&#39;), None, None)
@@ -1791,7 +1966,7 @@ time inds for averaging</li>
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L468-L493" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class Avrgs(StatPrint, DotDict):
+<pre><code class="python">class Avrgs(StatPrint, struct_tools.DotDict):
     &#34;&#34;&#34;A DotDict specialized for stat. averages.
 
     Embellishments:
@@ -1802,7 +1977,7 @@ time inds for averaging</li>
 
     def tabulate(self, statkeys=()):
         columns = tabulate_avrgs([self], statkeys, decimals=None)
-        return utils.tab(columns, headers=&#34;keys&#34;).replace(&#39;␣&#39;, &#39; &#39;)
+        return tabulate(columns, headers=&#34;keys&#34;).replace(&#39;␣&#39;, &#39; &#39;)
 
     abbrevs = {&#39;rmse&#39;: &#39;err.rms&#39;, &#39;rmss&#39;: &#39;std.rms&#39;, &#39;rmv&#39;: &#39;std.rms&#39;}
 
@@ -1814,16 +1989,16 @@ time inds for averaging</li>
         key = &#39;.&#39;.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split(&#39;.&#39;))
 
         if &#34;.&#34; in key:
-            return dict_tools.deep_getattr(self, key)
+            return struct_tools.deep_getattr(self, key)
         else:
             return super().__getattribute__(key)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="dapper.tools.series.StatPrint" href="tools/series.html#dapper.tools.series.StatPrint">StatPrint</a></li>
-<li><a title="dapper.dict_tools.NicePrint" href="dict_tools.html#dapper.dict_tools.NicePrint">NicePrint</a></li>
-<li><a title="dapper.dict_tools.DotDict" href="dict_tools.html#dapper.dict_tools.DotDict">DotDict</a></li>
-<li><a title="dapper.dict_tools.AlignedDict" href="dict_tools.html#dapper.dict_tools.AlignedDict">AlignedDict</a></li>
+<li>struct_tools.NicePrint</li>
+<li>struct_tools.DotDict</li>
+<li>struct_tools.AlignedDict</li>
 <li>builtins.dict</li>
 </ul>
 <h3>Class variables</h3>
@@ -1847,7 +2022,7 @@ time inds for averaging</li>
 </summary>
 <pre><code class="python">def tabulate(self, statkeys=()):
     columns = tabulate_avrgs([self], statkeys, decimals=None)
-    return utils.tab(columns, headers=&#34;keys&#34;).replace(&#39;␣&#39;, &#39; &#39;)</code></pre>
+    return tabulate(columns, headers=&#34;keys&#34;).replace(&#39;␣&#39;, &#39; &#39;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1877,11 +2052,16 @@ data-gaCategoryParameter="dapper.stats">
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="dapper.stats.register_stat" href="#dapper.stats.register_stat">register_stat</a></code></li>
 <li><code><a title="dapper.stats.align_col" href="#dapper.stats.align_col">align_col</a></code></li>
 <li><code><a title="dapper.stats.unpack_uqs" href="#dapper.stats.unpack_uqs">unpack_uqs</a></code></li>
 <li><code><a title="dapper.stats.tabulate_avrgs" href="#dapper.stats.tabulate_avrgs">tabulate_avrgs</a></code></li>
+<li><code><a title="dapper.stats.center" href="#dapper.stats.center">center</a></code></li>
+<li><code><a title="dapper.stats.mean0" href="#dapper.stats.mean0">mean0</a></code></li>
+<li><code><a title="dapper.stats.inflate_ens" href="#dapper.stats.inflate_ens">inflate_ens</a></code></li>
+<li><code><a title="dapper.stats.weight_degeneracy" href="#dapper.stats.weight_degeneracy">weight_degeneracy</a></code></li>
+<li><code><a title="dapper.stats.unbias_var" href="#dapper.stats.unbias_var">unbias_var</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

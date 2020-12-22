@@ -40,25 +40,25 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L0-L1281" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L0-L1299" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;On-line (live) plots of the DA process for various models and methods.&#34;&#34;&#34;
 
 import matplotlib as mpl
 import numpy as np
+import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
 from numpy import arange, nan, ones
+from struct_tools import DotDict, deep_getattr
 
-import dapper.tools.maths
-import dapper.tools.utils as utils
 import dapper.tools.viz as viz
-from dapper.dict_tools import DotDict, deep_getattr
 from dapper.dpr_config import rc
 from dapper.mods.utils import linspace_int
 from dapper.tools.chronos import format_time
 from dapper.tools.matrices import CovMat
+from dapper.tools.progressbar import read1
 from dapper.tools.series import FAUSt, RollingArray
 from dapper.tools.viz import freshfig, not_available_text, plot_pause
 
@@ -119,7 +119,7 @@ class LivePlot:
             self.params[pause] /= speed
 
         # Write params
-        self.params.update(getattr(stats.xp, &#34;LP_kwargs&#34;, dict()))
+        self.params.update(getattr(stats.xp, &#34;LP_kwargs&#34;, {}))
         self.params.update(kwargs)
 
         def get_name(init):
@@ -134,7 +134,7 @@ class LivePlot:
         for num, show, init in default_liveplotters:
             potential_LPs[get_name(init)] = num, show, init
         # Add HMM-specific liveplotters
-        for num, show, init in getattr(stats.HMM, &#39;liveplotters&#39;, dict()):
+        for num, show, init in getattr(stats.HMM, &#39;liveplotters&#39;, {}):
             assert num &gt; 10, (&#34;Liveplotters specified in the HMM&#34;
                               &#34; should have fignum&gt;10.&#34;)
             potential_LPs[get_name(init)] = num, show, init
@@ -193,7 +193,7 @@ class LivePlot:
         # Check if there are still open figures
         if self.any_figs:
             open_figns = plt.get_fignums()
-            live_figns = set(num for (num, updater) in self.figures.values())
+            live_figns = {num for (num, updater) in self.figures.values()}
             self.any_figs = bool(live_figns.intersection(open_figns))
         else:
             return
@@ -205,7 +205,7 @@ class LivePlot:
 
         def pause():
             &#34;Loop until user decision is made.&#34;
-            ch = utils.read1()
+            ch = read1()
             while True:
                 # Set state (pause, skipping, ipdb)
                 if ch in ENTERs:
@@ -215,7 +215,7 @@ class LivePlot:
                 # If keypress valid, resume execution
                 if ch in ENTERs + [SPACE, CHAR_I]:
                     break
-                ch = utils.read1()
+                ch = read1()
                 # Pause to enable zoom, pan, etc. of mpl GUI
                 plot_pause(0.01)  # Don&#39;t use time.sleep()!
 
@@ -228,7 +228,7 @@ class LivePlot:
                 # Skip read1 for key0 (coz it blocks)
                 pass
             else:
-                ch = utils.read1()
+                ch = read1()
                 if ch == SPACE:
                     # Pause
                     self.paused = True
@@ -251,7 +251,7 @@ class LivePlot:
         if not self.skipping:
             faus = key[-1]
             if faus != &#39;u&#39; or self.plot_u:
-                for name, (num, updater) in self.figures.items():
+                for _name, (num, updater) in self.figures.items():
                     if plt.fignum_exists(num) and \
                             getattr(updater, &#39;is_active&#39;, 1):
                         _ = plt.figure(num)
@@ -415,7 +415,7 @@ class sliding_diagnostics:
                 return xx, yy
 
             nDirac = 1
-            for name, ln in lines.items():
+            for _name, ln in lines.items():
                 ln[&#39;handle&#39;].set_data(*bend_into(ln[&#39;shape&#39;], ln[&#39;tt&#39;], ln[&#39;data&#39;]))
 
         def finalize_init(ax, lines, mm):
@@ -662,10 +662,28 @@ class correlations:
         # Plot
         self.im.set_data(C)
         # Auto-corr function
-        ACF = dapper.tools.maths.circulant_ACF(C)
-        AAF = dapper.tools.maths.circulant_ACF(C, do_abs=True)
+        ACF = circulant_ACF(C)
+        AAF = circulant_ACF(C, do_abs=True)
         self.line_AC.set_ydata(ACF)
         self.line_AA.set_ydata(AAF)
+
+
+def circulant_ACF(C, do_abs=False):
+    &#34;&#34;&#34;Compute the auto-covariance-function corresponding to `C`.
+
+    This assumes it is the cov/corr matrix of a 1D periodic domain.
+    &#34;&#34;&#34;
+    M = len(C)
+    # cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
+    cols = sla.circulant(np.arange(M))
+    ACF = np.zeros(M)
+    for i in range(M):
+        row = C[i, cols[i]]
+        if do_abs:
+            row = abs(row)
+        ACF += row
+        # Note: this actually also accesses masked values in C.
+    return ACF/M
 
 
 def sliding_marginals(
@@ -1365,6 +1383,35 @@ default_liveplotters = [
     ax.set_xlim(t1, t2 + dt)  # Set xlim to span</code></pre>
 </details>
 </dd>
+<dt id="dapper.tools.liveplotting.circulant_ACF"><code class="name flex">
+<span>def <span class="ident">circulant_ACF</span></span>(<span>C, do_abs=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the auto-covariance-function corresponding to <code>C</code>.</p>
+<p>This assumes it is the cov/corr matrix of a 1D periodic domain.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L627-L642" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def circulant_ACF(C, do_abs=False):
+    &#34;&#34;&#34;Compute the auto-covariance-function corresponding to `C`.
+
+    This assumes it is the cov/corr matrix of a 1D periodic domain.
+    &#34;&#34;&#34;
+    M = len(C)
+    # cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
+    cols = sla.circulant(np.arange(M))
+    ACF = np.zeros(M)
+    for i in range(M):
+        row = C[i, cols[i]]
+        if do_abs:
+            row = abs(row)
+        ACF += row
+        # Note: this actually also accesses masked values in C.
+    return ACF/M</code></pre>
+</details>
+</dd>
 <dt id="dapper.tools.liveplotting.sliding_marginals"><code class="name flex">
 <span>def <span class="ident">sliding_marginals</span></span>(<span>obs_inds=[], dims=[], labels=[], Tplot=None, ens_props={'alpha': 0.4}, zoomy=1.0)</span>
 </code></dt>
@@ -1373,7 +1420,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L627-L765" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L645-L783" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_marginals(
     obs_inds     = [],
@@ -1524,7 +1571,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L768-L900" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L786-L918" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def phase_particles(
     is_3d        = True,
@@ -1674,7 +1721,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L903-L928" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L921-L946" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_lag(Tplot, chrono):
     &#34;&#34;&#34;Return validated `T_lag` such that is is:
@@ -1712,7 +1759,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L931-L935" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L949-L953" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def comp_K_plot(K_lag, a_lag, plot_u):
     K_plot = 2*a_lag     # Sum of lags of {f,a} series.
@@ -1729,7 +1776,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L938-L962" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L956-L980" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update_alpha(key, stats, lines, scatters=None):
     &#34;Adjust color alpha (for particle filters)&#34;
@@ -1766,7 +1813,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L965-L985" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L983-L1003" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
     &#34;Particle filter: insert breaks for resampled particles.&#34;
@@ -1822,7 +1869,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L991-L1055" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1009-L1073" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
     &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
@@ -1899,7 +1946,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1058-L1163" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1076-L1181" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial1d(
     obs_inds     = None,
@@ -2017,7 +2064,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1166-L1274" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1184-L1292" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial2d(
     square,
@@ -2232,7 +2279,7 @@ plt.draw() to work on a moderately fast computer.</li>
             self.params[pause] /= speed
 
         # Write params
-        self.params.update(getattr(stats.xp, &#34;LP_kwargs&#34;, dict()))
+        self.params.update(getattr(stats.xp, &#34;LP_kwargs&#34;, {}))
         self.params.update(kwargs)
 
         def get_name(init):
@@ -2247,7 +2294,7 @@ plt.draw() to work on a moderately fast computer.</li>
         for num, show, init in default_liveplotters:
             potential_LPs[get_name(init)] = num, show, init
         # Add HMM-specific liveplotters
-        for num, show, init in getattr(stats.HMM, &#39;liveplotters&#39;, dict()):
+        for num, show, init in getattr(stats.HMM, &#39;liveplotters&#39;, {}):
             assert num &gt; 10, (&#34;Liveplotters specified in the HMM&#34;
                               &#34; should have fignum&gt;10.&#34;)
             potential_LPs[get_name(init)] = num, show, init
@@ -2306,7 +2353,7 @@ plt.draw() to work on a moderately fast computer.</li>
         # Check if there are still open figures
         if self.any_figs:
             open_figns = plt.get_fignums()
-            live_figns = set(num for (num, updater) in self.figures.values())
+            live_figns = {num for (num, updater) in self.figures.values()}
             self.any_figs = bool(live_figns.intersection(open_figns))
         else:
             return
@@ -2318,7 +2365,7 @@ plt.draw() to work on a moderately fast computer.</li>
 
         def pause():
             &#34;Loop until user decision is made.&#34;
-            ch = utils.read1()
+            ch = read1()
             while True:
                 # Set state (pause, skipping, ipdb)
                 if ch in ENTERs:
@@ -2328,7 +2375,7 @@ plt.draw() to work on a moderately fast computer.</li>
                 # If keypress valid, resume execution
                 if ch in ENTERs + [SPACE, CHAR_I]:
                     break
-                ch = utils.read1()
+                ch = read1()
                 # Pause to enable zoom, pan, etc. of mpl GUI
                 plot_pause(0.01)  # Don&#39;t use time.sleep()!
 
@@ -2341,7 +2388,7 @@ plt.draw() to work on a moderately fast computer.</li>
                 # Skip read1 for key0 (coz it blocks)
                 pass
             else:
-                ch = utils.read1()
+                ch = read1()
                 if ch == SPACE:
                     # Pause
                     self.paused = True
@@ -2364,7 +2411,7 @@ plt.draw() to work on a moderately fast computer.</li>
         if not self.skipping:
             faus = key[-1]
             if faus != &#39;u&#39; or self.plot_u:
-                for name, (num, updater) in self.figures.items():
+                for _name, (num, updater) in self.figures.items():
                     if plt.fignum_exists(num) and \
                             getattr(updater, &#39;is_active&#39;, 1):
                         _ = plt.figure(num)
@@ -2399,7 +2446,7 @@ plt.draw() to work on a moderately fast computer.</li>
     # Check if there are still open figures
     if self.any_figs:
         open_figns = plt.get_fignums()
-        live_figns = set(num for (num, updater) in self.figures.values())
+        live_figns = {num for (num, updater) in self.figures.values()}
         self.any_figs = bool(live_figns.intersection(open_figns))
     else:
         return
@@ -2411,7 +2458,7 @@ plt.draw() to work on a moderately fast computer.</li>
 
     def pause():
         &#34;Loop until user decision is made.&#34;
-        ch = utils.read1()
+        ch = read1()
         while True:
             # Set state (pause, skipping, ipdb)
             if ch in ENTERs:
@@ -2421,7 +2468,7 @@ plt.draw() to work on a moderately fast computer.</li>
             # If keypress valid, resume execution
             if ch in ENTERs + [SPACE, CHAR_I]:
                 break
-            ch = utils.read1()
+            ch = read1()
             # Pause to enable zoom, pan, etc. of mpl GUI
             plot_pause(0.01)  # Don&#39;t use time.sleep()!
 
@@ -2434,7 +2481,7 @@ plt.draw() to work on a moderately fast computer.</li>
             # Skip read1 for key0 (coz it blocks)
             pass
         else:
-            ch = utils.read1()
+            ch = read1()
             if ch == SPACE:
                 # Pause
                 self.paused = True
@@ -2457,7 +2504,7 @@ plt.draw() to work on a moderately fast computer.</li>
     if not self.skipping:
         faus = key[-1]
         if faus != &#39;u&#39; or self.plot_u:
-            for name, (num, updater) in self.figures.items():
+            for _name, (num, updater) in self.figures.items():
                 if plt.fignum_exists(num) and \
                         getattr(updater, &#39;is_active&#39;, 1):
                     _ = plt.figure(num)
@@ -2629,7 +2676,7 @@ plt.draw() to work on a moderately fast computer.</li>
                 return xx, yy
 
             nDirac = 1
-            for name, ln in lines.items():
+            for _name, ln in lines.items():
                 ln[&#39;handle&#39;].set_data(*bend_into(ln[&#39;shape&#39;], ln[&#39;tt&#39;], ln[&#39;data&#39;]))
 
         def finalize_init(ax, lines, mm):
@@ -2887,8 +2934,8 @@ plt.draw() to work on a moderately fast computer.</li>
         # Plot
         self.im.set_data(C)
         # Auto-corr function
-        ACF = dapper.tools.maths.circulant_ACF(C)
-        AAF = dapper.tools.maths.circulant_ACF(C, do_abs=True)
+        ACF = circulant_ACF(C)
+        AAF = circulant_ACF(C, do_abs=True)
         self.line_AC.set_ydata(ACF)
         self.line_AA.set_ydata(AAF)</code></pre>
 </details>
@@ -2927,6 +2974,7 @@ data-gaCategoryParameter="dapper.tools.liveplotting">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="dapper.tools.liveplotting.sliding_xlim" href="#dapper.tools.liveplotting.sliding_xlim">sliding_xlim</a></code></li>
+<li><code><a title="dapper.tools.liveplotting.circulant_ACF" href="#dapper.tools.liveplotting.circulant_ACF">circulant_ACF</a></code></li>
 <li><code><a title="dapper.tools.liveplotting.sliding_marginals" href="#dapper.tools.liveplotting.sliding_marginals">sliding_marginals</a></code></li>
 <li><code><a title="dapper.tools.liveplotting.phase_particles" href="#dapper.tools.liveplotting.phase_particles">phase_particles</a></code></li>
 <li><code><a title="dapper.tools.liveplotting.validate_lag" href="#dapper.tools.liveplotting.validate_lag">validate_lag</a></code></li>

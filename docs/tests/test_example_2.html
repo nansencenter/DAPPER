@@ -41,7 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L0-L143" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L0-L144" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Stupidly compare the full results table.
 
@@ -50,6 +50,7 @@ Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail.&#34;
 import pytest
 
 import dapper as dpr
+import dapper.da_methods as da
 
 statkeys = [&#34;err.rms.a&#34;, &#34;err.rms.f&#34;, &#34;err.rms.u&#34;]
 
@@ -74,19 +75,19 @@ def L63_gen():
 
     # xps
     xps = dpr.xpList()
-    xps += dpr.Climatology()
-    xps += dpr.OptInterp()
-    xps += dpr.Var3D(xB=0.1)
-    xps += dpr.ExtKF(infl=90)
-    xps += dpr.EnKF(&#34;Sqrt&#34;, N=3, infl=1.30)
-    xps += dpr.EnKF(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
-    xps += dpr.EnKF(&#34;PertObs&#34;, N=500, infl=0.95, rot=False)
-    xps += dpr.EnKF_N(N=10, rot=True)
-    xps += dpr.iEnKS(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
-    xps += dpr.PartFilt(N=100, reg=2.4, NER=0.3)
-    xps += dpr.PartFilt(N=800, reg=0.9, NER=0.2)
-    xps += dpr.PartFilt(N=4000, reg=0.7, NER=0.05)
-    xps += dpr.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
+    xps += da.Climatology()
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.1)
+    xps += da.ExtKF(infl=90)
+    xps += da.EnKF(&#34;Sqrt&#34;, N=3, infl=1.30)
+    xps += da.EnKF(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
+    xps += da.EnKF(&#34;PertObs&#34;, N=500, infl=0.95, rot=False)
+    xps += da.EnKF_N(N=10, rot=True)
+    xps += da.iEnKS(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
+    xps += da.PartFilt(N=100, reg=2.4, NER=0.3)
+    xps += da.PartFilt(N=800, reg=0.9, NER=0.2)
+    xps += da.PartFilt(N=4000, reg=0.7, NER=0.05)
+    xps += da.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
 
     # Run
     xps.launch(HMM, False, store_u=True)
@@ -141,19 +142,19 @@ def L96_table():
 
     # xps
     xps = dpr.xpList()
-    xps += dpr.Climatology()
-    xps += dpr.OptInterp()
-    xps += dpr.Var3D(xB=0.02)
-    xps += dpr.ExtKF(infl=6)
-    xps += dpr.EnKF(&#34;PertObs&#34;, N=40, infl=1.06)
-    xps += dpr.EnKF(&#34;Sqrt&#34;, N=28, infl=1.02, rot=True)
+    xps += da.Climatology()
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.02)
+    xps += da.ExtKF(infl=6)
+    xps += da.EnKF(&#34;PertObs&#34;, N=40, infl=1.06)
+    xps += da.EnKF(&#34;Sqrt&#34;, N=28, infl=1.02, rot=True)
 
-    xps += dpr.EnKF_N(N=24, rot=True)
-    xps += dpr.EnKF_N(N=24, rot=True, xN=2)
-    xps += dpr.iEnKS(&#34;Sqrt&#34;, N=40, infl=1.01, rot=True)
+    xps += da.EnKF_N(N=24, rot=True)
+    xps += da.EnKF_N(N=24, rot=True, xN=2)
+    xps += da.iEnKS(&#34;Sqrt&#34;, N=40, infl=1.01, rot=True)
 
-    xps += dpr.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
-    xps += dpr.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
+    xps += da.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
+    xps += da.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
 
     xps.launch(HMM, store_u=True)
 
@@ -204,7 +205,7 @@ def test_tables_L96(L96_table, lineno):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L15-L19" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L16-L20" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;module&#34;)
 def L63_table():
@@ -221,7 +222,7 @@ def L63_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L22-L48" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L23-L49" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def L63_gen():
     from dapper.mods.Lorenz63.sakov2012 import HMM
@@ -233,19 +234,19 @@ def L63_table():
 
     # xps
     xps = dpr.xpList()
-    xps += dpr.Climatology()
-    xps += dpr.OptInterp()
-    xps += dpr.Var3D(xB=0.1)
-    xps += dpr.ExtKF(infl=90)
-    xps += dpr.EnKF(&#34;Sqrt&#34;, N=3, infl=1.30)
-    xps += dpr.EnKF(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
-    xps += dpr.EnKF(&#34;PertObs&#34;, N=500, infl=0.95, rot=False)
-    xps += dpr.EnKF_N(N=10, rot=True)
-    xps += dpr.iEnKS(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
-    xps += dpr.PartFilt(N=100, reg=2.4, NER=0.3)
-    xps += dpr.PartFilt(N=800, reg=0.9, NER=0.2)
-    xps += dpr.PartFilt(N=4000, reg=0.7, NER=0.05)
-    xps += dpr.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
+    xps += da.Climatology()
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.1)
+    xps += da.ExtKF(infl=90)
+    xps += da.EnKF(&#34;Sqrt&#34;, N=3, infl=1.30)
+    xps += da.EnKF(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
+    xps += da.EnKF(&#34;PertObs&#34;, N=500, infl=0.95, rot=False)
+    xps += da.EnKF_N(N=10, rot=True)
+    xps += da.iEnKS(&#34;Sqrt&#34;, N=10, infl=1.02, rot=True)
+    xps += da.PartFilt(N=100, reg=2.4, NER=0.3)
+    xps += da.PartFilt(N=800, reg=0.9, NER=0.2)
+    xps += da.PartFilt(N=4000, reg=0.7, NER=0.05)
+    xps += da.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
 
     # Run
     xps.launch(HMM, False, store_u=True)
@@ -260,7 +261,7 @@ def L63_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L74-L75" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L75-L76" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_len63(L63_table):
     assert len(L63_old) == len(L63_table)</code></pre>
@@ -274,7 +275,7 @@ def L63_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L78-L82" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L79-L83" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize((&#34;lineno&#34;), range(len(L63_old)))
 def test_tables_L63(L63_table, lineno):
@@ -291,7 +292,7 @@ def test_tables_L63(L63_table, lineno):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L88-L116" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L89-L117" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;module&#34;)
 def L96_table():
@@ -304,19 +305,19 @@ def L96_table():
 
     # xps
     xps = dpr.xpList()
-    xps += dpr.Climatology()
-    xps += dpr.OptInterp()
-    xps += dpr.Var3D(xB=0.02)
-    xps += dpr.ExtKF(infl=6)
-    xps += dpr.EnKF(&#34;PertObs&#34;, N=40, infl=1.06)
-    xps += dpr.EnKF(&#34;Sqrt&#34;, N=28, infl=1.02, rot=True)
+    xps += da.Climatology()
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.02)
+    xps += da.ExtKF(infl=6)
+    xps += da.EnKF(&#34;PertObs&#34;, N=40, infl=1.06)
+    xps += da.EnKF(&#34;Sqrt&#34;, N=28, infl=1.02, rot=True)
 
-    xps += dpr.EnKF_N(N=24, rot=True)
-    xps += dpr.EnKF_N(N=24, rot=True, xN=2)
-    xps += dpr.iEnKS(&#34;Sqrt&#34;, N=40, infl=1.01, rot=True)
+    xps += da.EnKF_N(N=24, rot=True)
+    xps += da.EnKF_N(N=24, rot=True, xN=2)
+    xps += da.iEnKS(&#34;Sqrt&#34;, N=40, infl=1.01, rot=True)
 
-    xps += dpr.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
-    xps += dpr.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
+    xps += da.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
+    xps += da.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
 
     xps.launch(HMM, store_u=True)
 
@@ -332,7 +333,7 @@ def L96_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L136-L137" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L137-L138" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def test_len96(L96_table):
     assert len(L96_old) == len(L96_table)</code></pre>
@@ -346,7 +347,7 @@ def L96_table():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L140-L144" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_example_2.py#L141-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@pytest.mark.parametrize((&#34;lineno&#34;), range(len(L96_old)))
 def test_tables_L96(L96_table, lineno):

@@ -37,32 +37,34 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </header>
 <section id="section-intro">
 <p>The "Ikeda map" is a discrete-time dynamical system of size 2.</p>
-<p>Source: <a href="https://en.wikipedia.org/wiki/Ikeda_map">https://en.wikipedia.org/wiki/Ikeda_map</a> and Colin Grudzen.</p>
-<p>See <code>demo.py</code> for more info.</p>
+<p>Source: <a href="https://en.wikipedia.org/wiki/Ikeda_map">Wiki</a> and Colin Grudzen.</p>
+<p>See <code>demo</code> for more info.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L0-L63" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L0-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The &#34;Ikeda map&#34; is a discrete-time dynamical system of size 2.
 
-Source: https://en.wikipedia.org/wiki/Ikeda_map and Colin Grudzen.
+Source: [Wiki](https://en.wikipedia.org/wiki/Ikeda_map) and Colin Grudzen.
 
-See `demo.py` for more info.
+See `demo` for more info.
 &#34;&#34;&#34;
 
 
 import numpy as np
 from numpy import cos, sin
 
-import dapper as dpr
+import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
+
+__pdoc__ = {&#34;demo&#34;: False}
 
 # Constant 0.6 &lt;= u &lt;= 1.
 u = 0.9
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def step(x, _t, _dt):
     s, t, x1, y1 = aux(*x)
     return 1+u*x1, u*y1
@@ -117,7 +119,7 @@ def LPs(jj=None, params=params): return [
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Ikeda.some_settings_01" href="some_settings_01.html">some_settings_01</a></code></dt>
 <dd>
-<div class="desc"><p>Setup parameters for twin experiments.</p></div>
+<div class="desc"><p>Settings that produce somewhat interesting/challenging DA problems.</p></div>
 </dd>
 </dl>
 </section>
@@ -134,9 +136,9 @@ def LPs(jj=None, params=params): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L19-L22" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L21-L24" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@dpr.ens_compatible
+<pre><code class="python">@modelling.ens_compatible
 def step(x, _t, _dt):
     s, t, x1, y1 = aux(*x)
     return 1+u*x1, u*y1</code></pre>
@@ -150,7 +152,7 @@ def step(x, _t, _dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L25-L32" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L27-L34" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def aux(x, y):
     &#34;&#34;&#34;Comps used both by step and its jacobian.&#34;&#34;&#34;
@@ -170,7 +172,7 @@ def step(x, _t, _dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L40-L53" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L42-L55" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, _t, _dt):
     &#34;&#34;&#34;Used by ExtKF and 4D-Var&#34;&#34;&#34;
@@ -196,7 +198,7 @@ def step(x, _t, _dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L60-L64" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L62-L66" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None, params=params): return [
     (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),

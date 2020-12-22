@@ -6,10 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.mods.LA.raanes2015 API documentation</title>
-<meta name="description" content="Reproduce results from fig2 of
-Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
-&#34;Extending the square root method to account for
-…" />
+<meta name="description" content="Reproduce results from Fig. 2 of `bib.raanes2014ext`." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -39,37 +36,29 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <h1 class="title">Module <code>dapper.mods.LA.raanes2015</code></h1>
 </header>
 <section id="section-intro">
-<p>Reproduce results from fig2 of
-Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
-"Extending the square root method to account for
-additive forecast noise in ensemble methods."</p>
+<p>Reproduce results from Fig. 2 of <code><a title="bib.raanes2014ext" href="../../../bib.html#bib.raanes2014ext">raanes2014ext</a></code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/raanes2015.py#L0-L101" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/raanes2015.py#L0-L96" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Reproduce results from fig2 of
-Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
-&#34;Extending the square root method to account for
-additive forecast noise in ensemble methods.&#34;
-&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34;Reproduce results from Fig. 2 of `bib.raanes2014ext`.&#34;&#34;&#34;
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LA import Fmat, sinusoidal_sample
 from dapper.mods.Lorenz96 import LPs
 from dapper.tools.linalg import tsvd
-from dapper.tools.maths import center
 
 # Burn-in allows damp*x and x+noise balance out
-tseq = dpr.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)
+tseq = modelling.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)
 
 Nx = 1000
 Ny = 40
 
-jj = dpr.linspace_int(Nx, Ny)
-Obs = dpr.partial_Id_Obs(Nx, jj)
+jj = modelling.linspace_int(Nx, Ny)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs[&#39;noise&#39;] = 0.01
 
 
@@ -81,7 +70,7 @@ Obs[&#39;noise&#39;] = 0.01
 # But, for strict equivalence, one would have to use
 # uniform (i.e. not Gaussian) random numbers.
 wnumQ = 25
-sample_filename = dpr.rc.dirs.samples/(&#39;LA_Q_wnum%d.npz&#39; % wnumQ)
+sample_filename = modelling.rc.dirs.samples/(&#39;LA_Q_wnum%d.npz&#39; % wnumQ)
 
 try:
     # Load pre-generated
@@ -92,13 +81,13 @@ except FileNotFoundError:
           &#39;for experiment initialization. Generating...&#39;)
     NQ        = 20000  # Must have NQ &gt; (2*wnumQ+1)
     A         = sinusoidal_sample(Nx, wnumQ, NQ)
-    A         = 1/10 * center(A)[0] / np.sqrt(NQ)
+    A         = 1/10 * (A - A.mean(0)) / np.sqrt(NQ)
     Q         = A.T @ A
     U, s, _     = tsvd(Q)
     L         = U*np.sqrt(s)
     np.savez(sample_filename, Left=L)
 
-X0 = dpr.GaussRV(C=dpr.CovMat(np.sqrt(5)*L, &#39;Left&#39;))
+X0 = modelling.GaussRV(C=modelling.CovMat(np.sqrt(5)*L, &#39;Left&#39;))
 
 
 ###################
@@ -117,10 +106,10 @@ Dyn = {
     &#39;M&#39;: Nx,
     &#39;model&#39;: lambda x, t, dt: damp * step(x, t, dt),
     &#39;linear&#39;: lambda x, t, dt: damp * Fm,
-    &#39;noise&#39;: dpr.GaussRV(C=dpr.CovMat(L, &#39;Left&#39;)),
+    &#39;noise&#39;: modelling.GaussRV(C=modelling.CovMat(L, &#39;Left&#39;)),
 }
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
 
 
 ####################
@@ -167,7 +156,7 @@ HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/raanes2015.py#L61-L63" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LA/raanes2015.py#L56-L58" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step(x, t, dt):
     assert dt == tseq.dt
