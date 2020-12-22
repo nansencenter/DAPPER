@@ -33,6 +33,10 @@ and set the source to the docs folder.
   The documentation uses pdoc3 to auto-generate API reference,
   so improving function and class docstrings is very helpful.
 
+- Make Colab work for notebooks in examples.
+  This requires that Colab upgrades to python 3.7,
+  which I don't know when will happen.
+
 - Write an example script (and/or make changes to DAPPER) to show how to:
     - do parameter estimation.
     - use different models for Truth and DA-methods.
