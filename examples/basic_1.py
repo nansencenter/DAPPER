@@ -2,7 +2,7 @@
 Illustrate usage of DAPPER to (interactively) run a synthetic ("twin") experiment.
 """
 
-# !pip install DA-DAPPER
+# !pip install git+https://github.com/nansencenter/DAPPER.git
 
 import dapper as dpr
 import dapper.da_methods as da

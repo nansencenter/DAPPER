@@ -5,7 +5,7 @@ Illustrate usage of DAPPER to benchmark multiple DA methods.
 ###############################################################################
 # ### Imports
 
-# !pip install DA-DAPPER
+# !pip install git+https://github.com/nansencenter/DAPPER.git
 
 import dapper as dpr
 import dapper.da_methods as da
