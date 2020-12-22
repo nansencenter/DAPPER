@@ -1,11 +1,13 @@
-"""A mix of Evensen'2009 and Sakov'2008"""
+"""A mix of `bib.evensen2009ensemble` and `bib.sakov2008implications`.
 
-# NB: Since there is no noise, and the system is stable,
-#     the rmse's from this HMM go to zero as T-->infty.
-#     => benchmarks largely depend on the initial error,
-#     and so these absolute rmse values are not so useful
-#     for quantatative evaluation of DA methods.
-#     For that purpose, see mods/LA/raanes2015.py instead.
+.. note::
+    Since there is no noise, and the system is stable,
+    the rmse's from this HMM go to zero as `T` goes to infinity.
+    Thus, benchmarks largely depend on the initial error,
+    and so these absolute rmse values are not so useful
+    for quantatative evaluation of DA methods.
+    For that purpose, see `dapper.mods.LA.raanes2015` instead.
+"""
 
 import numpy as np
 

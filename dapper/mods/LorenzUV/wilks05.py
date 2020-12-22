@@ -1,5 +1,7 @@
-"""Uses nU, J, F as in __init__.py, which is taken from wilks05.
-Obs settings taken from different places (=> quasi-linear regime)."""
+"""Uses `nU`, `J`, `F` as in `dapper.mods.LorenzUV` ie. from `bib.wilks2005effects`.
+
+Obs settings taken from different places (=> quasi-linear regime).
+"""
 
 import numpy as np
 

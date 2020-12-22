@@ -1,7 +1,4 @@
-"""A land-ocean setup for Lorenz-96 from Anderson's 2009 Tellus A article:
-'Spatially and temporally varying adaptive covariance inflation for ensemble filters'
-"""
-
+"""A land-ocean setup from `bib.anderson2009spatially`."""
 
 import numpy as np
 

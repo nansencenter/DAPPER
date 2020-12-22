@@ -1,11 +1,6 @@
-"""Quasi-geostraphic 2D flow.
+"""Quasi-geostraphic 2D flow. Described in detail by `bib.sakov2008deterministic`.
 
 Adapted from Pavel Sakov's enkf-matlab package.
-
-Model is described in detail by Sakov, Pavel, and Peter R. Oke.:
-  "A deterministic formulation of the ensemble Kalman filter:
-  an alternative to ensemble square root filters."
-  Tellus A 60.2 (2008): 361-371.
 
 More info:
 
@@ -15,7 +10,7 @@ More info:
 - Doubling time "between 25 and 50"
 - Note Sakov's trick of increasing RKH2 from 2.0e-12 to 2.0e-11 to stabilize
   the ensemble integration, which may be necessary for EnKF's with small N.
-  See example in `mods.QG.counillon2009`.
+  See example in `counillon2009`.
 """
 
 from pathlib import Path

@@ -1,13 +1,13 @@
 """A 1D emulator of chaotic atmospheric behaviour.
 
-From "Predictability -- a problem partly solved" by E. N. Lorenz (1996).
-Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.
+`bib.lorenz1996predictability`
 
 For a short introduction, see
-- demo.py and
+
+- `demo` and
 - "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials
 
-Note: the implementation is ndim-agnostic.
+Note: the implementation is `ndim`-agnostic.
 """
 
 import numpy as np

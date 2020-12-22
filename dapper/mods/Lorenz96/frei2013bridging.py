@@ -1,18 +1,7 @@
-# As in:
-#  - Frei, Marco, and Hans R. Künsch.
-#    "Bridging the ensemble Kalman and particle filters."
-#    Biometrika 100.4 (2013): 781-800.
-# who aloso cite its use in:
-#  - BENGTSSON, T., SNYDER, C. & NYCHKA, D. (2003).
-#    "Toward a nonlinear ensemble filter for high-dimensional systems."
-#    J. Geophys. Res. 108, 8775.
-#  - LEI, J. & BICKEL, P. (2011).
-#    "A moment matching ensemble filter for nonlinear non-Gaussian data assimilation."
-#    Mon. Weather Rev. 139, 3964–73
-#  - FREI, M. & KUNSCH H. R. (2013).
-#    "Mixture ensemble Kalman filters"
-#    Comp. Statist. Data Anal. 58, 127–38.
+"""Settings as in `bib.frei2013bridging`, who also cite its use in the following:
 
+`bib.bengtsson2003toward`, `bib.lei2011moment`, `bib.frei2013mixture`.
+"""
 
 import numpy as np
 

@@ -1,5 +1,8 @@
-# Smaller version.
-# => convenient for debugging, e.g., scripts/test_iEnKS.py
+"""Smaller version.
+
+This is convenient because it's faster in liveplotting,
+and convenient for debugging, e.g., `tests.test_iEnKS`.
+"""
 
 import numpy as np
 

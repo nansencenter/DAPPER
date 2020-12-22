@@ -7,6 +7,20 @@ for data assimilation. *Monthly Weather Review*, 138(11):
 4186–4198.
 """
 
+anderson2009spatially = None
+"""
+**Anderson**, **J L** 2009 Spatially and temporally varying
+adaptive covariance inflation for ensemble filters. *Tellus A*,
+61(1): 72–83.
+"""
+
+bengtsson2003toward = None
+"""
+**Bengtsson**, **T**, **Snyder**, **C**, and **Nychka**, **D**
+2003 Toward a nonlinear ensemble filter for high-dimensional
+systems. *Journal of Geophysical Research: Atmospheres*, 108(D24).
+"""
+
 bocquet2016localization = None
 """
 **Bocquet**, **M** 2016 Localization and the iterative ensemble
@@ -19,6 +33,14 @@ bocquet2011ensemble = None
 **Bocquet**, **M** 2011 Ensemble Kalman filtering without the
 intrinsic need for inflation. *Nonlinear Processes in Geophysics*,
 18(5): 735–750.
+"""
+
+bocquet2019consistency = None
+"""
+**Bocquet**, **M** and **Farchi**, **A** 2019 On the consistency
+of the local ensemble square root kalman filter perturbation
+update. *Tellus A: Dynamic Meteorology and Oceanography*, 71(1):
+1613142.
 """
 
 bocquet2010beyond = None
@@ -64,6 +86,12 @@ chen2003bayesian = None
 particle filters, and beyond. *Statistics*, 182(1): 1–69.
 """
 
+counillon2009application = None
+"""
+**Counillon**, **F**, **Sakov**, **P**, and **Bertino**, **L**
+2009 Application of a hybrid EnKF-OI to ocean forecasting.
+"""
+
 doucet2001sequential = None
 """
 **Doucet**, **A**, **De Freitas**, **N**, and **Gordon**, **N**
@@ -82,6 +110,19 @@ evensen2009ensemble = None
 **Evensen**, **G** 2009 The ensemble Kalman filter for combined
 state and parameter estimation. *Control Systems, IEEE*, 29(3):
 83–104.
+"""
+
+frei2013mixture = None
+"""
+**Frei**, **M** and **Künsch**, **H R** 2013b Mixture ensemble
+kalman filters. *Computational Statistics & Data Analysis*, 58:
+127–138.
+"""
+
+frei2013bridging = None
+"""
+**Frei**, **M** and **Künsch**, **H R** 2013a Bridging the
+ensemble Kalman and particle filters. *Biometrika*, ast020.
 """
 
 hoteit2015mitigating = None
@@ -126,6 +167,58 @@ liu2001theoretical = None
 A theoretical framework for sequential importance sampling with
 resampling. In: *Sequential Monte Carlo Methods in Practice*.
 Springer. pp. 225–246.
+"""
+
+lorenz2005look = None
+"""
+**Lorenz**, **E N** 2005 A look at some details of the growth of
+initial uncertainties. *Tellus A: Dynamic Meteorology and
+Oceanography*, 57(1): 1–11.
+"""
+
+lorenz1996predictability = None
+"""
+**Lorenz**, **E N** 1996 Predictability: A problem partly solved.
+In: *Proc. ECMWF Seminar on Predictability*. Reading, UK. pp.
+1–18.
+"""
+
+lorenz1984irregularity = None
+"""
+**Lorenz**, **E N** 1984 Irregularity: A fundamental property of
+the atmosphere. *Tellus A*, 36(2): 98–110.
+"""
+
+lorenz1998optimal = None
+"""
+**Lorenz**, **E N** and **Emanuel**, **K A** 1998 Optimal sites
+for supplementary weather observations: Simulation with a small
+model. *Journal of the Atmospheric Sciences*, 55(3): 399–414.
+"""
+
+mandel2016hybrid = None
+"""
+**Mandel**, **J**, **Bergou**, **E**, **Gürol**, **S**,
+**Gratton**, **S**, and **Kasanický**, **I** 2016 Hybrid
+Levenberg-Marquardt and weak-constraint ensemble Kalman smoother
+method. *Nonlinear Processes in Geophysics*, 23(2): 59–73.
+"""
+
+miyoshi2011gaussian = None
+"""
+**Miyoshi**, **T** 2011 The Gaussian approach to adaptive
+covariance inflation and its implementation with the local
+ensemble transform Kalman filter. *Monthly Weather Review*,
+139(5): 1519–1535.
+"""
+
+pajonk2012deterministic = None
+"""
+**Pajonk**, **O**, **Rosić**, **B V**, **Litvinenko**, **A**, and
+**Matthies**, **H G** 2012 A deterministic filter for non-Gaussian
+Bayesian estimation—applications to dynamical system estimation
+with noisy measurements. *Physica D: Nonlinear Phenomena*, 241(7):
+775–788.
 """
 
 raanes2016thesis = None
@@ -195,6 +288,14 @@ ensemble square root filter for nonlinear data assimilation.
 *Monthly Weather Review*, 143(4): 1347–1367.
 """
 
+vano2006chaos = None
+"""
+**Vano**, **J A**, **Wildenberg**, **J C**, **Anderson**, **M B**,
+**Noel**, **J K**, and **Sprott**, **J C** 2006 Chaos in
+low-dimensional Lotka–Volterra models of competition.
+*Nonlinearity*, 19(10): 2391.
+"""
+
 wikle2007bayesian = None
 """
 **Wikle**, **C K** and **Berliner**, **L M** 2007 A Bayesian
@@ -207,6 +308,13 @@ wiljes2016second = None
 **Wiljes**, **J** **de**, **Acevedo**, **W**, and **Reich**, **S**
 2016 Second-order accurate ensemble transform particle filters.
 *arXiv preprint arXiv:1608.08179*.
+"""
+
+wilks2005effects = None
+"""
+**Wilks**, **D S** 2005 Effects of stochastic parametrizations in
+the Lorenz’96 system. *Quarterly Journal of the Royal
+Meteorological Society*, 131(606): 389–407.
 """
 
 zupanski2005maximum = None

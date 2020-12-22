@@ -1,4 +1,4 @@
-"""Same as bocquet2010, except that here ndim=40 (i.e. Fig. 5 of paper)"""
+"""From `bib.bocquet2010beyond` (again), but `ndim=40` (i.e. Fig. 5 of paper)."""
 import numpy as np
 
 import dapper.mods as modelling

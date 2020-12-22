@@ -28,21 +28,6 @@ class ca(float):
         return np.isclose(self, other, self.tol)
 
 
-# Demonstrate `ca`.
-numbers = [
-    1 + 1e-6,
-    1 + 1e-4,
-]
-for x in numbers:
-    print("\nx:", x)
-    values = {
-        "=": x,
-        "≈": ca(x),
-    }
-    for mode, x2 in values.items():
-        print(f"x {mode} 1 {mode} x:", x2 == 1 == x2)
-
-
 # Test cases for round2sigfig
 lst1 = [
     (1   , 0, 0)   ,
@@ -129,3 +114,19 @@ def test_round2(x, p, y):
     rounded = round2(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired
+
+
+if __name__ == "__main__":
+    # Demonstrate `ca`.
+    numbers = [
+        1 + 1e-6,
+        1 + 1e-4,
+    ]
+    for x in numbers:
+        print("\nx:", x)
+        values = {
+            "=": x,
+            "≈": ca(x),
+        }
+        for mode, x2 in values.items():
+            print(f"x {mode} 1 {mode} x:", x2 == 1 == x2)

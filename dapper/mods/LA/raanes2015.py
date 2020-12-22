@@ -1,8 +1,4 @@
-"""Reproduce results from fig2 of
-Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
-"Extending the square root method to account for
-additive forecast noise in ensemble methods."
-"""
+"""Reproduce results from Fig. 2 of `bib.raanes2014ext`."""
 
 import numpy as np
 

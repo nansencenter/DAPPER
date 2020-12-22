@@ -1,4 +1,4 @@
-"""Setup parameters for twin experiments."""
+"""Settings that produce somewhat interesting/challenging DA problems."""
 
 import numpy as np
 import dapper.mods as modelling

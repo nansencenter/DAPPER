@@ -1,5 +1,4 @@
-"""From Fig. 1 of Bocquet 2010 'Beyond Gaussian Statistical Modeling
-in Geophysical Data Assimilation'."""
+"""From Fig. 1 of `bib.bocquet2010beyond`."""
 
 import numpy as np
 

@@ -1,10 +1,6 @@
 """A chaotic system of size 3, like Lorenz-63, but with +complex geometry.
 
-Refs:
-- E.N. Lorenz, Irregularity: a fundamental property of the atmosphere,
-  Tellus A 36 (1984) 98–110.
-- E.N. Lorenz, Alook at some details of the growth of initial uncertainties,
-  Tellus A 57 (2005) 1–11
+Refs: `bib.lorenz1984irregularity`, `bib.lorenz2005look`
 """
 
 import numpy as np

@@ -1,14 +1,9 @@
-"""Set-up as in Sakov's 2008 article in Tellus
-"A deterministic formulation of the ensemble Kalman filter:
-an alternative to ensemble square root filters",
+"""Settings as in `bib.sakov2008deterministic`.
 
-Similar to the 1998 MWR article by E. N. Lorenz and K. A. Emanuel:
-'Optimal Sites for Supplementary Weather Observations:
-Simulation with a Small Model',
-except that the observations are from the entire state.
+This HMM is used (with small variations) in many DA papers, for example
 
-This HMM is used (with small variations) in many DA papers,
-some of which are mentioned below.
+`bib.bocquet2011ensemble`, `bib.sakov2012iterative`,
+`bib.bocquet2015expanding`, `bib.bocquet2013joint`.
 """
 
 import numpy as np

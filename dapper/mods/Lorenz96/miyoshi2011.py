@@ -1,10 +1,4 @@
-"""A land-ocean setup for Lorenz-96 from Miyoshi'2011: 'The Gaussian Approach to
-Adaptive Covariance Inflation and Its Implementation with the LETKF'
-
-inspired by MWR 1998 by E. N. Lorenz and K. A. Emanuel:
-"Optimal Sites for Supplementary Weather Observations: Simulation with a Small Model"
-"""
-
+"""A land-ocean setup from `bib.miyoshi2011gaussian`, inspired by `bib.lorenz1998optimal`."""
 
 import numpy as np
 

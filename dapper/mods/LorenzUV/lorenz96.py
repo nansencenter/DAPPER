@@ -1,4 +1,4 @@
-"""As in Lorenz 1996 'Predictability...'"""
+"""As in `bib.lorenz1996predictability`."""
 
 import numpy as np
 

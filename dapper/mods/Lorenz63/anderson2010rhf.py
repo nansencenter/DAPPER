@@ -1,4 +1,4 @@
-"""As in `bib.anderson2010rhf`."""
+"""Settings from `bib.anderson2010non`."""
 
 import numpy as np
 

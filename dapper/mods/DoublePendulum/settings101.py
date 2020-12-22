@@ -1,4 +1,4 @@
-# Settings not taken from anywhere
+"""Settings that produce somewhat interesting/challenging DA problems."""
 
 import dapper.mods as modelling
 

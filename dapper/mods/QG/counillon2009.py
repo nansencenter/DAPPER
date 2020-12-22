@@ -1,6 +1,4 @@
-"""Reproduce experiments from
-'Application of a hybrid EnKF-OI to ocean forecasting'
-by F. Counillon, P. Sakov, and L. Bertino (2009)."""
+"""Reproduce experiments from `bib.counillon2009application`."""
 
 import dapper.mods as modelling
 from dapper.mods.QG import model_config

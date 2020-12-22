@@ -1,12 +1,13 @@
-# Settings not taken from anywhere
+"""Settings that produce somewhat interesting/challenging DA problems.
+
+`dt` has been chosen after noting that
+using `dt` up to 0.7 does not change the chaotic properties much,
+as adjudged with eye-ball and Lyapunov measures.
+"""
 
 import dapper.mods as modelling
 
 from dapper.mods.LotkaVolterra import step, dstep_dx, x0, LP_setup, Tplot
-
-# dt has been chosen after noting that
-# using dt up to 0.7 does not change the chaotic properties much,
-# as adjudged with eye-ball and Lyapunov measures.
 
 t = modelling.Chronology(0.5, dtObs=10, T=1000, BurnIn=Tplot, Tplot=Tplot)
 

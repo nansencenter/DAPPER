@@ -1,7 +1,6 @@
 """The 2-scale/layer/speed coupled version of Lorenz-96.
 
-See Wilks 2005: "Effects of stochastic
-parametrizations in the Lorenz '96 system"
+See `bib.wilks2005effects`
 - U:  large amp, low frequency vars: convective events
 - V:  small amp, high frequency vars: large-scale synoptic events
 

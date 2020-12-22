@@ -2,10 +2,10 @@
 
 Refs:
 
-- https://en.wikipedia.org/wiki/Double_pendulum
-- https://matplotlib.org/3.1.1/gallery/animation/double_pendulum_sgskip.html
+- [Wiki](https://en.wikipedia.org/wiki/Double_pendulum)
+- [MPL](https://matplotlib.org/3.1.1/gallery/animation/double_pendulum_sgskip.html)
   which is based on this c code:
-- http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
+  [USYD](http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c)
 """
 
 import numpy as np

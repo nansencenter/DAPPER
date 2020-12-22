@@ -1,4 +1,4 @@
-"""Reproduce results from Sakov and Oke 'DEnKF' paper from 2008."""
+"""Reproduce results from `bib.sakov2008deterministic`."""
 
 import numpy as np
 

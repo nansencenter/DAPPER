@@ -1,3 +1,4 @@
+"""Settings as in `bib.bocquet2019consistency`."""
 import numpy as np
 
 import dapper.mods as modelling

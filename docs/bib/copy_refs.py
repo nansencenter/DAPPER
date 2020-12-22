@@ -16,6 +16,8 @@ from subprocess import run
 from textwrap import dedent
 import os
 from dapper.dpr_config import rc
+from dapper.tools.colors import coloring
+from colorama import Fore as CF
 from patlib.std import sub_run
 
 def parse_bib(bibfile):
@@ -57,11 +59,15 @@ def parse_citations(file_list):
     # Unique
     citations = set(citations)
 
-    # Rm
+    # Rm known false positives
+    citations.discard("`bib.Boc11`")
+    citations.discard("`bib.someRef`")
     citations.discard("`bib.py`")
+    citations.discard("`bib.`")
 
     # Strip `bib.`
     citations = {c.strip("`")[4:] for c in citations}
+
 
     return citations
 
@@ -91,11 +97,16 @@ with open(refs_bib,"a") as out:
     for c in citations:
 
         if c in refs:
+            with coloring(CF.BLUE):
+                print("Already there:", c)
             pass
 
         elif c in references:
+            with coloring(CF.GREEN):
+                print("Copying:      ", c)
             out.write("\n")
             out.write(references[c])
 
         else:
-            print("Not found:", c)
+            with coloring(CF.RED):
+                print("Not found:    ", c)

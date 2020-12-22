@@ -1,9 +1,8 @@
 """The generalized predator-prey model, with settings for chaotic dynamics.
 
 Refs:
-
-- https://en.wikipedia.org/wiki/Competitive_Lotka-Volterra_equations
-- Vano et al (2006): "Chaos in low-dimensional Lotka-Volterra models of competition".
+[Wiki](https://en.wikipedia.org/wiki/Competitive_Lotka-Volterra_equations),
+`bib.vano2006chaos`.
 """
 
 import numpy as np

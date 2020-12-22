@@ -1,4 +1,4 @@
-"""Reproduce raanes'2016 ("EnRTS and EnKS")"""
+"""Reproduce `bib.raanes2015rts`."""
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz96.sakov2008 import HMM

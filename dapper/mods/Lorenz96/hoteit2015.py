@@ -1,6 +1,4 @@
-"""Reproduce results from Hoteit et al. (2015):
-"Mitigating Observation Perturbation Sampling Errors in the Stochastic EnKF"
-which introduces the ESOPS (2nd-O exact perturbation sampling) method."""
+"""Reproduce results from `bib.hoteit2015mitigating`."""
 
 from dapper.mods.Lorenz96.sakov2008 import HMM
 
