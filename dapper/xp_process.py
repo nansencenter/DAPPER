@@ -1,4 +1,4 @@
-"""Tools (notably xpSpace) for processing and presenting experiment data."""
+"""Tools (notably `xpSpace`) for processing and presenting experiment data."""
 
 import collections
 import copy
@@ -86,7 +86,7 @@ def default_styles(coord, baseline_legends=False):
 
 
 def rel_index(elem, lst, default=None):
-    """``lst.index(elem) / len(lst)`` with fallback."""
+    """`lst.index(elem) / len(lst)` with fallback."""
     try:
         return lst.index(elem) / len(lst)
     except ValueError:
@@ -96,15 +96,15 @@ def rel_index(elem, lst, default=None):
 
 
 def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
-    """Discretize cmap so that it partitions [0,1] into N segments.
+    """Discretize `cmap` so that it partitions `[0,1]` into `N` segments.
 
-    I.e. cmap(k/N) == cmap(k/N + eps).
+    I.e. `cmap(k/N) == cmap(k/N + eps)`.
 
-    Also provide the ScalarMappable ``sm``
+    Also provide the ScalarMappable `sm`
     that maps range(N) to the segment centers,
-    as will be reflected by ``cb = fig.colorbar(sm)``.
+    as will be reflected by `cb = fig.colorbar(sm)`.
     You can then re-label the ticks using
-    ``cb.set_ticks(np.arange(N)); cb.set_ticklabels(["A","B","C",...])``."""
+    `cb.set_ticks(np.arange(N)); cb.set_ticklabels(["A","B","C",...])`."""
     # cmap(k/N)
     from_list = mpl.colors.LinearSegmentedColormap.from_list
     colors = cmap(np.linspace(val0, val1, N))
@@ -116,9 +116,9 @@ def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
 
 
 def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
-    """Map cmap for coord.axis ∈ [0, len(ticks)]."""
+    """Map cmap for `coord.axis ∈ [0, len(ticks)]`."""
     def link(coord):
-        """Essentially: cmap(ticks.index(coord.axis))"""
+        """Essentially: `cmap(ticks.index(coord.axis))`"""
         if hasattr(coord, axis):
             ticks = xp_dict.ticks[axis]
             cNorm = mpl.colors.Normalize(vmin, vmax + len(ticks))
@@ -131,7 +131,7 @@ def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
 
 
 def in_idx(coord, indices, xp_dict, axis):
-    """Essentially: coord.axis in ticks[indices]"""
+    """Essentially: `coord.axis in ticks[indices]`."""
     if hasattr(coord, axis):
         ticks = np.array(xp_dict.ticks[axis])[indices]
         return getattr(coord, axis) in ticks
@@ -146,12 +146,12 @@ def load_HMM(save_as):
 
 
 def load_xps(save_as):
-    """Load ``xps`` (as a simple list) from dir."""
+    """Load `xps` (as a simple list) from dir."""
     save_as = Path(save_as).expanduser()
     files = [d/"xp" for d in uplink.list_job_dirs(save_as)]
 
     def load_any(filepath):
-        """Load any/all ``xp's`` from ``filepath``."""
+        """Load any/all `xp's` from `filepath`."""
         with open(filepath, "rb") as F:
             # If experiment crashed, then xp will be empty
             try:
@@ -226,9 +226,9 @@ def overwrite_xps(xps, save_as, nDir=100):
 
 
 def reduce_inodes(save_as, nDir=100):
-    """Reduce the number of ``xp`` dirs
+    """Reduce the number of `xp` dirs
 
-    by packing multiple ``xp``s into lists (``xps``).
+    by packing multiple `xp`s into lists (`xps`).
 
     This reduces the **number** of files (inodes) on the system,
     which limits storage capacity (along with **size**).
@@ -240,26 +240,28 @@ def reduce_inodes(save_as, nDir=100):
 
 
 class SparseSpace(dict):
-    """Subclass of `dict` to enforce key conformity (to a coord. sys, i.e. a space).
+    """Subclass of `dict` that enforces key conformity to a `namedtuple`.
+
+    Like a normal `dict`, it can hold any type of objects.
+    But, since keys must conform, this effectively defines a coordinate system,
+    i.e. vector **space**.
 
     The coordinate system is specified by its "axes",
     which is used to produce `self.Coord` (a `namedtuple` class).
-
-    As a normal `dict,` it can hold any type of objects.
 
     In normal use, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
     eg. `coord(da_method=Climatology, rot=True, ...)`.
 
-    Indeed, operations across (potentially multiple simultaneous) axes,
+    Indeed, operations across (potentially multiple) axes,
     such as optimization or averaging, should be carried out by iterating
-    -- not over the axis -- but over the the list of items.
+    -- not over the axes -- but over the the list of items.
 
-    The most important method is ``nest()``,
+    The most important method is `nest`,
     which is used (by `xpSpace.table_tree`) to separate tables/columns,
     and also to carry out the mean/optim operations.
 
-    In addition, __getitem__() is very flexible, allowing accessing by:
+    In addition, `__getitem__` is very flexible, allowing accessing by:
 
     - The actual key, a `self.Coord` object. Returns single item.
     - A `dict` to match against (part of) the coordinates. Returns subspace.
@@ -267,7 +269,7 @@ class SparseSpace(dict):
     - A list of any of the above. Returns list.
 
     This flexibility can cause bugs, but it's probably still worth it.
-    Also see `__call__()`, `get_for()`, and `coords()`,
+    Also see `__call__`, `get_for`, and `coords`,
     for further convenience.
 
     Inspired by
@@ -281,6 +283,16 @@ class SparseSpace(dict):
         return self.Coord._fields
 
     def __init__(self, axes, *args, **kwargs):
+        """Usually initialized through `xpSpace`.
+
+        Parameters
+        ----------
+        axes: list
+            The attributes defining the coordinate system.
+
+        args: entries
+            Nothing, or a list of `xp`s.
+        """
         # Define coordinate system
         self.Coord = collections.namedtuple('Coord', axes)
         # Write dict
@@ -291,7 +303,7 @@ class SparseSpace(dict):
         self.Coord.__str__  = lambda c: ",".join(str(v) for v in c)
 
     def update(self, *args, **kwargs):
-        """Update using custom __setitem__()."""
+        """Update using custom `__setitem__`."""
         # See https://stackoverflow.com/a/2588648
         # and https://stackoverflow.com/a/2390997
         for k, v in dict(*args, **kwargs).items():
@@ -337,7 +349,7 @@ class SparseSpace(dict):
             return super().__getitem__(key)
 
     def __getkey__(self, entry):
-        """Inverse of dict.__getitem__(), but also works on coords.
+        """Inverse of `dict.__getitem__`, but also works on coords.
 
         Note: This dunder method is not a "builtin" naming convention."""
         coord = (getattr(entry, a, None) for a in self.axes)
@@ -350,9 +362,9 @@ class SparseSpace(dict):
         return self.__getitem__(kwargs)
 
     def get_for(self, ticks, default=None):
-        """Almost ``[self.get(Coord(x)) for x in ticks]``.
+        """Almost `[self.get(Coord(x)) for x in ticks]`.
 
-        NB: using the "naive" thing: ``[self[x] for x in ticks]``
+        NB: using the "naive" thing: `[self[x] for x in ticks]`
         would probably be a BUG coz x gets interpreted as indices
         for the internal list."""
         singleton = not hasattr(ticks[0], "__iter__")
@@ -360,14 +372,15 @@ class SparseSpace(dict):
         return [self.get(coord(x), default) for x in ticks]
 
     def coords(self, **kwargs):
-        """Get all ``coord``s matching kwargs.
+        """Get all `coord`s matching kwargs.
 
-        Unlike ``__getitem__(kwargs)``,
+        Unlike `__getitem__(kwargs)`,
         - A list is returned, not a subspace.
         - This list constains keys (coords), not values.
         - The coords refer to the original space, not the subspace.
 
-        The last point is especially useful for label_xSection().
+        The last point is especially useful for
+        `SparseSpace.label_xSection`.
         """
 
         def embed(coord): return {**kwargs, **coord._asdict()}
@@ -400,14 +413,14 @@ class SparseSpace(dict):
         return txt
 
     def nest(self, inner_axes=None, outer_axes=None):
-        """Return a new xpSpace with axes ``outer_axes``,
+        """Return a new xpSpace with axes `outer_axes`,
 
-        obtained by projecting along the ``inner_axes``.
-        The entries of this ``xpSpace`` are themselves ``xpSpace``s,
-        with axes ``inner_axes``,
+        obtained by projecting along the `inner_axes`.
+        The entries of this `xpSpace` are themselves `xpSpace`s,
+        with axes `inner_axes`,
         each one regrouping the entries with the same (projected) coordinate.
 
-        Note: is also called by ``__getitem__(key)`` if ``key`` is dict."""
+        Note: is also called by `__getitem__(key)` if `key` is dict."""
 
         # Default: a singleton outer space,
         # with everything contained in the inner (projection) space.
@@ -464,14 +477,14 @@ class SparseSpace(dict):
     def label_xSection(self, label, *NoneAttrs, **sub_coord):
         """Insert duplicate entries for the cross section
 
-        whose ``coord``s match ``sub_coord``,
-        adding the attr ``Const=label`` to their ``coord``,
+        whose `coord`s match `sub_coord`,
+        adding the attr `Const=label` to their `coord`,
         reflecting the "constance/constraint/fixation" this represents.
 
         This distinguishes the entries in this fixed-affine subspace,
-        preventing them from being gobbled up in ``nest()``.
+        preventing them from being gobbled up in `nest`.
 
-        If you wish, you can specify the ``NoneAttrs``,
+        If you wish, you can specify the `NoneAttrs`,
         which are consequently set to None for the duplicated entries,
         preventing them from getting plotted in tuning panels.
         """
@@ -490,20 +503,20 @@ AXES_ROLES = dict(outer=None, inner=None, mean=None, optim=None)
 
 
 class xpSpace(SparseSpace):
-    """Functionality to facilitate working with ``xps`` and their results.
+    """Functionality to facilitate working with `xps` and their results.
 
-    The function ``from_list()`` initializes a ``SparseSpace`` from a list
-    of objects, typically experiments referred to as ``xps``, by
+    `xpSpace.from_list` initializes a `SparseSpace` from a list
+    of objects, typically experiments referred to as `xp`s, by
     (1) computing the relevant axes from the attributes, and
-    (2) filling the dict by ``xps``.
+    (2) filling the dict by `xp`s.
 
-    Using ``from_list(xps)`` creates a SparseSpace holding ``xps``.
-    However, the nested ``xpSpace``s output by ``table_tree()`` will hold
-    objects of type ``UncertainQtty``,
-    coz ``table_tree()`` calls ``mean()`` calls ``field(statkey)``.
+    Using `xpSpace.from_list(xps)` creates a SparseSpace holding `xp`s.
+    However, the nested `xpSpace`s output by `xpSpace.table_tree` will hold
+    objects of type `UncertainQtty`,
+    coz `xpSpace.table_tree` calls `mean` calls `field(statkey)`.
 
-    The main use of xpSpace is through its ``print()`` & ``plot()``,
-    both of which call ``table_tree()`` to nest the axes of the SparseSpace.
+    The main use of `xpSpace` is through `xpSpace.print` & `xpSpace.plot`,
+    both of which call `xpSpace.table_tree` to nest the axes of the `SparseSpace`.
     """
 
     @classmethod
@@ -552,7 +565,7 @@ class xpSpace(SparseSpace):
         return self
 
     def field(self, statkey="rmse.a"):
-        """Extract ``statkey`` for each item in ``self``."""
+        """Extract `statkey` for each item in `self`."""
 
         # Init a new xpDict to hold field
         avrgs = self.__class__(self.axes)
@@ -571,7 +584,7 @@ class xpSpace(SparseSpace):
         return avrgs
 
     def mean(self, axes=None):
-        # Note: The case ``axes=()`` should work w/o special treatment.
+        # Note: The case `axes=()` should work w/o special treatment.
         if axes is None:
             return self
 
@@ -611,7 +624,7 @@ class xpSpace(SparseSpace):
         else:
             assert hasattr(costfun, '__call__')  # custom
 
-        # Note: The case ``axes=()`` should work w/o special treatment.
+        # Note: The case `axes=()` should work w/o special treatment.
         if axes is None:
             return self
 
@@ -636,7 +649,7 @@ class xpSpace(SparseSpace):
 
         Note: This does not convert None to (),
               allowing None to remain special.
-              Use ``axis or ()`` wherever tuples are required.
+              Use `axis or ()` wherever tuples are required.
         """
         roles = {}  # "inv"
         for role in set(axes) | set(AXES_ROLES):
@@ -667,13 +680,13 @@ class xpSpace(SparseSpace):
     def table_tree(self, statkey, axes):
         """Hierarchical nest(): xp_dict>outer>inner>mean>optim.
 
-        as specified by ``axes``. Returns this new xpSpace.
+        as specified by `axes`. Returns this new xpSpace.
 
         - print_1d / plot_1d (respectively) separate
-          tables / panel(row)s for ``axes['outer']``, and
-          columns/ x-axis      for ``axes['inner']``.
+          tables / panel(row)s for `axes['outer']`, and
+          columns/ x-axis      for `axes['inner']`.
 
-        - The ``axes['mean']`` and ``axes['optim']`` get eliminated
+        - The `axes['mean']` and `axes['optim']` get eliminated
           by the mean()/tune() operations.
 
         Note: cannot support multiple statkeys
@@ -688,7 +701,7 @@ class xpSpace(SparseSpace):
             Note: the SparseDict implementation should be sufficiently
             "uncluttered" that mean_tune() (or a few of its code lines)
             could be called anywhere above/between/below
-            the ``nest()``ing of ``outer`` or ``inner``.
+            the `nest()`ing of `outer` or `inner`.
             These possibile call locations are commented in the code."""
             uq_dict = xp_dict.field(statkey)
             uq_dict = uq_dict.mean(axes['mean'])
@@ -736,30 +749,45 @@ class xpSpace(SparseSpace):
               subcols=True, decimals=None):
         """Print tables of results.
 
-        - statkey: The statistical field from the experiments to report.
+        Parameters
+        ----------
+        statkey: str
+            The statistical field from the experiments to report.
+        subcols: bool
+            If `True`, then subcolumns are added to indicate the
+            1σ confidence interval, and potentially some other stuff.
+        axes: dict
+            Allots (maps) each role to a set of axis of the `xpSpace`.
 
-        - subcols: If True, then subcolumns are added to indicate the
-                   1σ confidence interval, and potentially some other stuff.
+                >>> dict(
+                >>>    outer='da_method', inner='N', mean='seed',
+                >>>    optim=('infl','loc_rad'))
 
-        - axes: Allots (maps) each role to a set of axis of the xp_dict.
-          Suggestion:
-          >>> dict(
-          >>>    outer='da_method', inner='N', mean='seed',
-          >>>    optim=('infl','loc_rad'))
+            - Herein, the "role" `outer` should list the axes/attributes
+            used to define the splitting of the results into *separate tables*:
+            one table for each distinct (combination) of attributes.
+            - Similarly , the role `inner` determines which attributes
+            split a table into its columns.
+            - `mean` lists the attributes used over which the mean is taken.
+            - `optim` lists the attributes used over which the optimum result
+               is searched for.
 
-          Example: If ``mean`` is assigned to:
+            Example: If `mean` is assigned to:
 
-          - ("seed",): Experiments are averaged accross seeds,
-                       and the 1σ (sub)col is computed as sqrt(var(xps)/N),
-                       where xps is a set of experiments.
+            - `("seed",)`: Experiments are averaged accross seeds,
+                           and the 1σ (sub)col is computed as sqrt(var(xps)/N),
+                           where xps is a set of experiments.
 
-          - ()       : Experiments are averaged across nothing
-                       (i.e. this is an edge case).
+            - `()`       : Experiments are averaged across nothing
+                           (i.e. this is an edge case).
 
-          - None     : Experiments are not averaged
-                       (i.e. the values are the same as above),
-                       and the 1σ (sub)col is computed from
-                       the time series of that single experiment.
+            - `None`     : Experiments are not averaged
+                           (i.e. the values are the same as above),
+                           and the 1σ (sub)col is computed from
+                           the time series of that single experiment.
+        decimals: int
+            Number of decimals to print.
+            If `None`, this is determined for each statistic by its uncertainty.
         """
 
         def align_subcols(rows, cc, subcols, h2):
@@ -888,16 +916,19 @@ class xpSpace(SparseSpace):
     def plot(self, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,
              title2=None, costfun=None, unique_labels=True):
-        """Plot the avrgs of ``statkey`` as a function of ``axis["inner"]``.
+        """Plot the avrgs of `statkey` as a function of `axis["inner"]`.
 
+        Optionally, the experiments can be grouped by `axis["outer"]`,
+        producing a figure with columns of panels.
         Firs of all, though, mean and optimum computations are done for
-        ``axis["mean"]`` and ``axis["optim"]``.
+        `axis["mean"]` and `axis["optim"]`, where the optimization can
+        be controlled through `costfun` (see `xpSpace.tune`)
 
-        The optimal parameters are plotted in panels below the main plot.
-        This can be prevented by providing the figure axes in ``panels``.
+        This is entirely analogous to the roles of `axis` in `xpSpace.print`.
 
-        Optionally, the experiments can be grouped by ``axis["outer"]``,
-        producing a figure with columns of panels."""
+        The optimal parameters are plotted in smaller panels below the main plot.
+        This can be prevented by providing the figure axes through the `panels` arg.
+        """
 
         def plot1(panelcol, row, style):
             """Plot a given line (row) in the main panel and the optim panels.

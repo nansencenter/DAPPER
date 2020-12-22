@@ -1,7 +1,4 @@
-"""As in
-J. Mandel, E. Bergou, S. Gürol, S. Gratton, and I. Kasanický (2016)
-"Hybrid Levenberg–Marquardt and weak-constraint ensemble Kalman smoother method"
-"""
+"""As in `bib.mandel2016hybrid`."""
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz63.sakov2012 import HMM

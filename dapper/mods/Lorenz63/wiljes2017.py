@@ -1,8 +1,4 @@
-"""
-Settings from
-title={Second-order accurate ensemble transform particle filters},
-author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},
-"""
+"""Settings from `bib.wiljes2016second`."""
 
 import numpy as np
 

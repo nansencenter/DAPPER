@@ -123,7 +123,7 @@ Read, run, and understand the scripts `example_{1,2,3}.py`.
 Then, get familiar with the code.
 
 The [documentation](https://nansencenter.github.io/DAPPER)
-provide the API reference, but is not very mature.
+provides more information, and the API reference.
 
 Alternatively, [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
 provides a python-based introduction to DA.

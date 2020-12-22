@@ -1,6 +1,4 @@
-"""Data assimilation methods included with DAPPER.
-
-- `da_method` decorator (creates `xp` objects)
+"""Contains the data assimilation methods included with DAPPER.
 
 See the README section on
 [DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
@@ -14,27 +12,29 @@ The simplest example is perhaps
 `dapper.da_methods.ensemble.EnKF`.
 """
 
-import dataclasses as dcs
+import dataclasses
 import functools
 import time
+from dataclasses import dataclass
 
 import dapper.stats
 
 
 def da_method(*default_dataclasses):
-    """Wrapper for classes that define DA methods.
+    """Decorator (factory) for classes that define DA methods.
 
-    These classes must be defined like dataclasses, except decorated
-    by `@da_method()` instead of `@dataclass`.
+    These classes must be defined like a `dataclass`,
+    except decorated by `@da_method()` instead of `@dataclass`.
     They must also define a method called `assimilate`
-    which gets slightly enhanced by this wrapper to provide:
-        - Initialisation of the `Stats` object
-        - `fail_gently` functionality.
-        - Duration timing
-        - Progressbar naming magic.
+    which gets slightly enhanced by this wrapper which provides:
+
+    - Initialisation of the `Stats` object
+    - `fail_gently` functionality.
+    - Duration timing
+    - Progressbar naming magic.
 
     Instances of these classes are what is referred to as `xp`s.
-    I.e. `xp`s are essentially just data containers.
+    I.e. `xp`s are essentially just a `dataclass` with some particular attributes.
 
     Example:
     >>> @da_method()
@@ -50,11 +50,11 @@ def da_method(*default_dataclasses):
 
     Note that `da_method` is actually a "two-level decorator",
     which is why the empty parenthesis were used above.
-    The outer level can be used to define defaults that are re-used
-    for similar DA methods:
+    The outer level can be used to define defaults that are "inherited"
+    by similar DA methods:
 
     Example:
-    >>> @dcs.dataclass
+    >>> @dataclass
     >>> class ens_defaults:
     >>>   infl : float = 1.0
     >>>   rot  : bool  = False
@@ -77,8 +77,8 @@ def da_method(*default_dataclasses):
         """Decorator based on dataclass.
 
         This adds `__init__`, `__repr__`, `__eq__`, ...,
-        but also includes inherited defaults
-        (see https://stackoverflow.com/a/58130805 ),
+        but also includes inherited defaults,
+        cf. https://stackoverflow.com/a/58130805,
         and enhances the `assimilate` method.
         """
 
@@ -87,20 +87,20 @@ def da_method(*default_dataclasses):
             if not hasattr(cls, '__annotations__'):
                 cls.__annotations__ = {}
             cls.__annotations__[name] = type
-            if not isinstance(val, dcs.Field):
-                val = dcs.field(default=val)
+            if not isinstance(val, dataclasses.Field):
+                val = dataclasses.field(default=val)
             setattr(cls, name, val)
 
         # APPend default fields without overwriting.
         # Don't implement (by PREpending?) non-default args -- to messy!
         for D in default_dataclasses:
             # NB: Calling dataclass twice always makes repr=True, so avoid this.
-            for F in dcs.fields(dcs.dataclass(D)):
+            for F in dataclasses.fields(dataclass(D)):
                 if F.name not in cls.__annotations__:
                     set_field(F.name, F.type, F)
 
         # Create new class (NB: old/new classes have same id)
-        cls = dcs.dataclass(cls)
+        cls = dataclass(cls)
 
         # Shortcut for self.__class__.__name__
         cls.da_method = cls.__name__

@@ -1,4 +1,4 @@
-"""As in Anderson 2010 rank histogram filter"""
+"""As in `bib.anderson2010rhf`."""
 
 import numpy as np
 

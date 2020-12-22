@@ -1,15 +1,12 @@
 """Models included with DAPPER.
 
-The models are all simple;
-this facililates the reliability, reproducibility, and transparency
-of DA experiments.
-
 See the README section on
 [test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
 for an overview of the models included with DAPPER.
 
-- `Operator`
-- `HiddenMarkovModel`
+The models are all simple;
+this facililates the reliability, reproducibility, and transparency
+of DA experiments.
 
 ## Defining your own model
 
@@ -53,7 +50,7 @@ To make sure this is working, we suggest the following structure:
 -->
 """
 
-# __pdoc__ = {"explore_props": False}
+__pdoc__ = {"explore_props": False}
 
 import inspect
 from pathlib import Path
@@ -61,6 +58,7 @@ from pathlib import Path
 import numpy as np
 import struct_tools
 
+# Imports used to set up HMMs
 import dapper.tools.progressbar as pb
 from dapper.dpr_config import rc
 from dapper.mods.utils import Id_mat, Id_op

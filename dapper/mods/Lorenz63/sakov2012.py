@@ -1,5 +1,4 @@
-"""Reproduce results from Table 1 of Sakov, Oliver, Bertino (2012):
-'An Iterative EnKF for Strongly Nonlinear Systems'"""
+"""Reproduce results from Table 1 `bib.sakov2012iterative`"""
 
 import numpy as np
 

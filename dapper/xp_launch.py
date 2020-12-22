@@ -1,7 +1,6 @@
-"""Experiment ("xp") setup and running.
+"""Tools (notably `xpList`) for setup and running of experiments (known as `xp`s).
 
-- `xpList` (subclass of list for `xp` objects)
-- `run_experiment` (run experiment specifiied by an `xp`)
+See `dapper.da_methods.da_method` for the strict definition of `xp`s.
 """
 
 import copy
@@ -32,17 +31,31 @@ _tabulate.MIN_PADDING = 0
 
 
 def seed_and_simulate(HMM, xp):
-    """Default experiment setup. Set seed and simulate truth and obs.
+    """Default experiment setup (sets seed and simulates truth and obs).
 
-    .. note:: `xp.seed` should be an integer. Otherwise:
-        If there is no `xp.seed` then then the seed is not set.
-        Although different `xp`s will then use different seeds
-        (unless you do some funky hacking),
-        reproducibility for your script as a whole would still be obtained
-        by setting the seed at the outset (i.e. in the script).
-        On the other hand, if `xp.seed in [None, "clock"]`
-        then the seed is from the clock (for each xp),
-        which would not provide exact reproducibility.
+    Used by `xpList.launch`.
+
+    Parameters
+    ----------
+    HMM: HiddenMarkovModel
+        Container defining the system.
+    xp: object
+        Type: a `dapper.da_methods.da_method`-decorated class.
+
+        .. note:: `xp.seed` should be an integer. Otherwise:
+            If there is no `xp.seed` then then the seed is not set.
+            Although different `xp`s will then use different seeds
+            (unless you do some funky hacking),
+            reproducibility for your script as a whole would still be obtained
+            by setting the seed at the outset (i.e. in the script).
+            On the other hand, if `xp.seed in [None, "clock"]`
+            then the seed is from the clock (for each xp),
+            which would not provide exact reproducibility.
+
+    Returns
+    -------
+    tuple (xx, yy)
+        The simulated truth and observations.
     """
     set_seed(getattr(xp, 'seed', False))
 
@@ -53,17 +66,39 @@ def seed_and_simulate(HMM, xp):
 def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
                    **stat_kwargs):
-    """Used by `xpList.launch` to run each single experiment.
+    """Used by `xpList.launch` to run each single (DA) experiment.
 
     This involves steps similar to `example_1.py`, i.e.:
 
-    - `setup`                    : Call function given by user. Should set
-                                   params, eg HMM.Force, seed, and return
-                                   (simulated/loaded) truth and obs series.
+    - `setup`                    : Initialize experiment.
     - `xp.assimilate`            : run DA, pass on exception if fail_gently
     - `xp.stats.average_in_time` : result averaging
     - `xp.avrgs.tabulate`        : result printing
     - `dill.dump`                : result storage
+
+    Parameters
+    ----------
+    xp: object
+        Type: a `dapper.da_methods.da_method`-decorated class.
+    label: str
+        Name attached to progressbar during assimilation.
+    savedir: str
+        Path of folder wherein to store the experiment data.
+    HMM: HiddenMarkovModel
+        Container defining the system.
+    setup: function
+        Should set params, eg `HMM.Force`, seed, and return (simulated/loaded)
+        truth and obs series. Example: `seed_and_simulate`.
+    free: bool
+        Whether (or not) to `del xp.stats` after the experiment is done,
+        so as to free up memory and/or not save this data
+        (just keeping `xp.avrgs`).
+    statkeys: list
+        A list of names (possibly in the form of abbreviations) of the
+        statistical averages that should be printed immediately afther
+        this xp.
+    fail_gently: bool
+        Whether (or not) to propagate exceptions.
     """
 
     # We should copy HMM so as not to cause any nasty surprises such as
@@ -81,7 +116,7 @@ def run_experiment(xp, label, savedir, HMM,
         if fail_gently:
             xp.crashed = True
             if fail_gently not in ["silent", "quiet"]:
-                print_cropped_traceback(ERR)
+                _print_cropped_traceback(ERR)
         else:
             raise ERR
 
@@ -99,7 +134,7 @@ def run_experiment(xp, label, savedir, HMM,
             dill.dump({'xp': xp}, FILE)
 
 
-def print_cropped_traceback(ERR):
+def _print_cropped_traceback(ERR):
 
     def crop_traceback(ERR, lvl):
         msg = "Traceback (most recent call last):\n"
@@ -129,7 +164,7 @@ def print_cropped_traceback(ERR):
 
 
 def collapse_str(string, length=6):
-    """Abbreviate string to ``length``"""
+    """Truncate a string (in the middle) to the given `length`"""
     if len(string) <= length:
         return string
     else:
@@ -140,7 +175,6 @@ class xpList(list):
     """Subclass of `list` specialized for experiment ("xp") objects.
 
     Main use: administrate experiment **launches**.
-    Also see: `xpSpace` for experiment **result presentation**.
 
     Modifications to `list`:
 
@@ -156,14 +190,26 @@ class xpList(list):
     - `print_averages()`
     - `gen_names()`
     - `inds()` to search by kw-attrs.
+
+    Also see
+    --------
+    - Examples: `example_2`, `example_3`
+    - Experiment **presentation**: `dapper.xp_process.xpSpace`
     """
 
     def __init__(self, *args, unique=False):
-        """Initialize without args, or with a list of `xp`s.
+        """
+        Parameters
+        ----------
+        args: entries
+            Nothing, or a list of `xp`s.
 
-        If `unique`: duplicates won't get appended.
-        This makes `append()` (and `__iadd__()`) relatively slow.
-        Use `extend()` or `__add__()` to bypass this validation."""
+        unique: bool
+            Duplicates won't get appended.
+            This makes `append` (and `__iadd__`) relatively slow.
+            Use `extend` or `__add__` or `get_param_setter`
+            to bypass this validation.
+        """
 
         self.unique = unique
         super().__init__(*args)
@@ -176,7 +222,7 @@ class xpList(list):
         return self
 
     def append(self, xp):
-        """Append if not `self.unique` & present."""
+        """Append **if** not `self.unique` & present."""
         if not (self.unique and xp in self):
             super().append(xp)
 
@@ -205,12 +251,23 @@ class xpList(list):
 
     @property
     def da_methods(self):
+        "List `da_method` attributes in this list."
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
-        """Compile attrs of all `xp`s; split into distinct, redundant, common.
+        """Classify each/every attribute of the `xp`s into: distinct, redundant, common.
 
-        Insert `None` if an attribute is distinct but not in `xp`."""
+        Insert `None` if an attribute is distinct but not in `xp`.
+
+        Used by `repr(xpList)` to make a nice table of the list,
+        in which only the attributes that differ among the `xp`s
+        need be included.
+
+        Parameters
+        ----------
+        nomerge: list
+            Attributes that should always be seen as distinct.
+        """
 
         def _aggregate_keys():
             "Aggregate keys from all `xp`"
@@ -339,7 +396,7 @@ class xpList(list):
         return table.splitlines()
 
     def tabulate_avrgs(self, *args, **kwargs):
-        """Pretty (tabulated) `repr` of `xps` & their `avrgs.`
+        """Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
 
         Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`."""
         distinct, redundant, common = self.split_attrs()
@@ -352,12 +409,12 @@ class xpList(list):
         """Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
         The results are saved in `rc.dirs['data']/save_as`,
-        unless `save_as` is False/None.
+        unless `save_as` is `False`/`None`.
 
         Depending on `mp`, `run_experiment` is delegated as follows:
 
         - `False`: caller process (no parallelisation)
-        - `True` or "MP" or an `int`: multiprocessing on this host
+        - `True` or `"MP"` or an `int`: multiprocessing on this host
         - `"GCP"` or `"Google"` or `dict(server="GCP")`: the DAPPER server
           (Google Cloud Computing with HTCondor).
             - Specify a list of files as `mp["files"]` to include them
@@ -510,12 +567,13 @@ def get_param_setter(param_dict, **glob_dict):
     """Mass creation of `xp`'s by combining the value lists in the parameter dicts.
 
     The parameters are trimmed to the ones available for the given method.
-    This is a good deal more efficient than relying on xpList's unique=True.
+    This is a good deal more efficient than relying on `xpList`'s `unique=True`.
 
-    Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
-    but you forget that they are also attributes some method where you don't
-    actually want to use them (eg. SVGDF),
-    then you'll create many more than you intend.
+    .. caution::
+        Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
+        but you forget that they are also attributes some method where you don't
+        actually want to use them (eg. SVGDF),
+        then you'll create many more than you intend.
     """
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dcs.fields(method)]

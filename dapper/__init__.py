@@ -97,6 +97,7 @@ __version__ = "1.0.0"
 
 import sys
 
+# Imports used by examples
 from .dpr_config import rc
 from .tools.magic import magic_naming, spell_out
 from .tools.seeding import set_seed

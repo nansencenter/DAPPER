@@ -1,6 +1,4 @@
-"""Reproduce results from Fig 11 of
-M. Bocquet and P. Sakov (2012): 'Combining inflation-free and
-iterative ensemble Kalman filters for strongly nonlinear systems'"""
+"""Reproduce results from Fig 11 of `bib.bocquet2012combining`."""
 
 import numpy as np
 
