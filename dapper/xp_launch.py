@@ -68,7 +68,7 @@ def run_experiment(xp, label, savedir, HMM,
                    **stat_kwargs):
     """Used by `xpList.launch` to run each single (DA) experiment.
 
-    This involves steps similar to `example_1.py`, i.e.:
+    This involves steps similar to `examples/basic_1.py`, i.e.:
 
     - `setup`                    : Initialize experiment.
     - `xp.assimilate`            : run DA, pass on exception if fail_gently
@@ -193,7 +193,7 @@ class xpList(list):
 
     Also see
     --------
-    - Examples: `example_2`, `example_3`
+    - Examples: `examples/basic_2`, `examples/basic_3`
     - Experiment **presentation**: `dapper.xp_process.xpSpace`
     """
 
@@ -433,7 +433,7 @@ class xpList(list):
         (i.e. those that are not inherently used by the da_method
         of that `xp`).
 
-        See `example_2.py` and `example_3.py` for example use.
+        See `examples/basic_2.py` and `examples/basic_3.py` for example use.
         """
 
         # Collect common args forwarded to run_experiment

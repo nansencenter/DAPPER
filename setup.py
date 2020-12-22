@@ -89,7 +89,7 @@ setup(
     extras_require=EXTRAS,
 
     packages=find_packages(),
-    py_modules=["example_1", "example_2", "example_3"],
+    py_modules=["examples.basic_1", "examples.basic_2", "examples.basic_3"],
     package_data={
         '': ['*.txt', '*.md', '*.png', '*.yaml'],
         'dapper.mods.QG.f90': ['*.txt', '*.md', '*.png', 'Makefile', '*.f90'],

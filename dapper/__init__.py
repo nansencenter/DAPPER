@@ -28,7 +28,7 @@ your own **model** or **method**, then
 ## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
 
 - Parallelisation:
-    - (Independent) experiments can run in parallel; see `example_3.py`
+    - (Independent) experiments can run in parallel; see `examples/basic_3.py`
     - Forecast parallelisation is possible since
         the (user-implemented) model has access to the full ensemble;
         see example in `mods.QG`.
@@ -100,6 +100,7 @@ import sys
 # Imports used by examples
 from .dpr_config import rc
 from .tools.magic import magic_naming, spell_out
+from .tools.rounding import round2, round2sigfig
 from .tools.seeding import set_seed
 from .xp_launch import get_param_setter, seed_and_simulate, xpList
 from .xp_process import (default_fig_adjustments, default_styles,
