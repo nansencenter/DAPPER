@@ -1,4 +1,8 @@
-"""Illustrate usage of DAPPER to (interactively) run a 'twin experiment'."""
+"""
+Illustrate usage of DAPPER to (interactively) run a synthetic ("twin") experiment.
+"""
+
+# !pip install DA-DAPPER
 
 import dapper as dpr
 import dapper.da_methods as da
@@ -31,30 +35,37 @@ print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 # Replay liveplotters
 xp.stats.replay(speed=100)
 
-# Further diagnostic plots:
+# #### Further diagnostic plots
+
+# +
 # import dapper.tools.viz as viz
 # viz.plot_rank_histogram(xp.stats)
 # viz.plot_err_components(xp.stats)
 # viz.plot_hovmoller(xx)
+# -
 
-# Explore objects:
+# #### Explore objects
+
+# +
 # print(HMM)
 # print(xp)
 # print(xp.stats)
 # print(xp.avrgs)
+# -
 
-# Excercise: Why does the replay look jagged?
+# #### Excercise: Why does the replay look jagged?
 # Hint: provide the keyword store_u=True to assimilate() to avoid this.
 
-# Excercise: Why does the replay only contain the blue lines?
+# #### Excercise: Why does the replay only contain the blue lines?
 
-# Excercise: Try using
+# #### Excercise: Try using
 # - Optimal interpolation
 # - The (extended) Kalman filter
 # - The iterative EnKS
+#
 # Hint: suggested DA xp's are listed in the HMM file
 
-# Excercise: Run an experiment for each of the models:
+# #### Excercise: Run an experiment for each of these models
 # - LotkaVolterra
 # - Lorenz96
 # - LA

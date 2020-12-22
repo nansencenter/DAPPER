@@ -1,13 +1,20 @@
-"""Illustrate usage of DAPPER to benchmark multiple DA methods."""
+"""
+Illustrate usage of DAPPER to benchmark multiple DA methods.
+"""
+
+###############################################################################
+# ### Imports
+
+# !pip install DA-DAPPER
 
 import dapper as dpr
 import dapper.da_methods as da
 
 dpr.set_seed(3000)
 
-##############################
-# DA method configurations
-##############################
+###############################################################################
+# ### DA method configurations
+
 xps = dpr.xpList()
 
 from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
@@ -26,7 +33,7 @@ xps += da.PartFilt(       N=800,  reg=0.9,   NER=0.2)        # 0.28
 # xps += da.PartFilt(       N=4000, reg=0.7  , NER=0.05)       # 0.27
 # xps += da.PFxN(xN=1000,   N=30  , Qs=2     , NER=0.2)        # 0.56
 
-# from dapper.mods.Lorenz96.sakov2008 import HMM    # Expected rmse.a:
+# from dapper.mods.Lorenz96.sakov2008 import HMM   # Expected rmse.a:
 # xps += da.Climatology()                                     # 3.6
 # xps += da.OptInterp()                                       # 0.95
 # xps += da.Var3D(xB=0.02)                                    # 0.41
@@ -46,9 +53,8 @@ xps += da.PartFilt(       N=800,  reg=0.9,   NER=0.2)        # 0.28
 # from dapper.mods.KS           .bocquet2019 import HMM
 # from dapper.mods.LotkaVolterra.settings101 import HMM
 
-##############################
-# Run experiment
-##############################
+###############################################################################
+# ### Run experiment
 # Adjust experiment duration
 HMM.t.BurnIn = 2
 HMM.t.T = 50
