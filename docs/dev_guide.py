@@ -17,14 +17,6 @@ pdoc --force --html --template-dir docs/templates -o ./docs \
 docs/bib/bib.py docs/dev_guide.py dapper
 open docs/index.html # preview
 ```
-This generates a lot of warnings of the type
-"UserWarning: __pdoc__-overriden key ... does not exist in module".
-AFAICT that's fine. https://github.com/pdoc3/pdoc/issues/206
-Alternative: Insert this at top of each script to exclude
-and run pdoc with --skip-errors.
-
->>> if __name__ != "__main__":
->>>     raise RuntimeError("This module may only be run as script.")
 
 ### Hosting
 Push updated docs to github.

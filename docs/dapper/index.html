@@ -64,7 +64,7 @@ In that case, read this:<ul>
 <h2 id="features-beyond-the-readmehighlights">Features beyond the <a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a></h2>
 <ul>
 <li>Parallelisation:<ul>
-<li>(Independent) experiments can run in parallel; see <code>example_3.py</code></li>
+<li>(Independent) experiments can run in parallel; see <code>examples/basic_3.py</code></li>
 <li>Forecast parallelisation is possible since
 the (user-implemented) model has access to the full ensemble;
 see example in <code><a title="dapper.mods.QG" href="mods/QG/index.html">dapper.mods.QG</a></code>.</li>
@@ -141,7 +141,7 @@ through the following links, which are also available in the left sidebar.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/__init__.py#L0-L106" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/__init__.py#L0-L107" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;(Data Assimilation with Python: a Package for Experimental Research)
 
@@ -173,7 +173,7 @@ your own **model** or **method**, then
 ## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
 
 - Parallelisation:
-    - (Independent) experiments can run in parallel; see `example_3.py`
+    - (Independent) experiments can run in parallel; see `examples/basic_3.py`
     - Forecast parallelisation is possible since
         the (user-implemented) model has access to the full ensemble;
         see example in `mods.QG`.
@@ -238,13 +238,14 @@ The rendered docstrings can be browsed
 through the following links, which are also available in the left sidebar.
 &#34;&#34;&#34;
 
-__version__ = &#34;1.0.0&#34;
+__version__ = &#34;1.0.8&#34;
 
 import sys
 
 # Imports used by examples
 from .dpr_config import rc
 from .tools.magic import magic_naming, spell_out
+from .tools.rounding import round2, round2sigfig
 from .tools.seeding import set_seed
 from .xp_launch import get_param_setter, seed_and_simulate, xpList
 from .xp_process import (default_fig_adjustments, default_styles,

@@ -50,14 +50,6 @@ then convert to bib.py using
 <pre><code class="language-sh">pdoc --force --html --template-dir docs/templates -o ./docs docs/bib/bib.py docs/dev_guide.py dapper
 open docs/index.html # preview
 </code></pre>
-<p>This generates a lot of warnings of the type
-"UserWarning: <strong>pdoc</strong>-overriden key &hellip; does not exist in module".
-AFAICT that's fine. <a href="https://github.com/pdoc3/pdoc/issues/206">https://github.com/pdoc3/pdoc/issues/206</a>
-Alternative: Insert this at top of each script to exclude
-and run pdoc with &ndash;skip-errors.</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; if __name__ != &quot;__main__&quot;:
-&gt;&gt;&gt;     raise RuntimeError(&quot;This module may only be run as script.&quot;)
-</code></pre>
 <h3 id="hosting">Hosting</h3>
 <p>Push updated docs to github.
 In the main github settings of the repo,
@@ -220,7 +212,7 @@ password: mypass
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/docs/dev_guide.py#L0-L201" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/docs/dev_guide.py#L0-L193" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 ## Run tests
@@ -241,14 +233,6 @@ pdoc --force --html --template-dir docs/templates -o ./docs \
 docs/bib/bib.py docs/dev_guide.py dapper
 open docs/index.html # preview
 ```
-This generates a lot of warnings of the type
-&#34;UserWarning: __pdoc__-overriden key ... does not exist in module&#34;.
-AFAICT that&#39;s fine. https://github.com/pdoc3/pdoc/issues/206
-Alternative: Insert this at top of each script to exclude
-and run pdoc with --skip-errors.
-
-&gt;&gt;&gt; if __name__ != &#34;__main__&#34;:
-&gt;&gt;&gt;     raise RuntimeError(&#34;This module may only be run as script.&#34;)
 
 ### Hosting
 Push updated docs to github.
