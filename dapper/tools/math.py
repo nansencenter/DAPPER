@@ -27,6 +27,7 @@ def is1d(a):
       : logical
         True if it is one dimensional otherwise False
     """
+
     # return np.asarray(a).ndim == 1
     return np.sum(np.asarray(np.asarray(a).shape) > 1) <= 1
 
@@ -36,6 +37,8 @@ def exactly_1d(a):
     Turn one-dimensional list/array into array and check 
     the dimension of input array, if not 1D raise
     an error.
+
+    Parameters
     ----------
     a : ndarray or list
         Only 1-D array or list are expected
@@ -44,7 +47,8 @@ def exactly_1d(a):
     -------
     a : ndarray
         1-D array
-    """    
+    """ 
+
     a = np.atleast_1d(a)
     assert a.ndim == 1, "input array should be exactly one dimensional"
     return a
@@ -55,6 +59,8 @@ def exactly_2d(a):
     Turn two-dimensional list/array into array and check 
     the dimension of input array, if not 2D raise
     an error.
+
+    Parameters
     ----------
     a : ndarray or list
         Only 2-D array or list are expected
@@ -74,17 +80,21 @@ def ccat(*args, axis=0):
     Concatenate multiple arrays/lists into one array
     for given axis. By default it concatenate the 
     first dimension.
+
+    Parameters
     ----------
     *args : array_like
         array_like instances to be concatenated.
 
     axis : int, optional
         The dimension to be concatenated. Default: 0
+        
     Returns
     -------
       : ndarray
         Array concatenated in the given axis
     """
+
     args = [np.atleast_1d(x) for x in args]
     return np.concatenate(args, axis=axis)
 
@@ -303,6 +313,92 @@ def rk4(f, x, t, dt, order=4):
     else: raise NotImplementedError                             # noqa
 # fmt: on
 
+def RK4_adj(f, f_adj, x0, t, dt):
+    """
+    Runge-Kutta 4-th order (explicit, non-adaptive) numerical solver
+    for adjoint equations.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    f_adjoint : function
+        The product of M.T@dx where M.T is the transpose of the 
+        Jacobian of the f(t, x)
+
+    x0 : sequence
+        State vector of the forcing term as the first element 
+        dx as the second element
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    Returns
+    -------
+    x : numpy array
+        State vector at the new time step t+dt
+
+    """    
+    x, dx = x0[0], x0[1]
+    k1 = dt*f(t, x)
+    k2 = dt*f(t+dt/2, x+k1/2)
+    k3 = dt*f(t+dt/2, x+k2/2)
+
+    k1 = dt*f_adj(t, (x + k3, dx))
+    k2 = dt*f_adj(t, (x + 0.5*k2, dx + 0.5*k1))
+
+    k3 = dt*f_adj(t, (x + 0.5*k1, dx + 0.5*k2))
+
+    k4 = dt*f_adj(t, (x, dx + k3))
+
+    return dx + (k1 + 2.*(k2 + k3) + k4)/6.
+
+def RK4_linear(f, f_tangent, x, M, t, dt):
+    """
+    Runge-Kutta 4-th order (explicit, non-adaptive) numerical solver
+    for tangent linear matrix.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    f_tangent : function
+        The function for the Jacobian of forcing terms, which returns
+        a matrix M.
+
+    x : numpy array or float
+        State vector of the forcing term
+
+    M : numpy array
+        Usually an identity matrix for the RK4 integration of the 
+        tangent linear matrix
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    Returns
+    -------
+    x : numpy array
+        State vector at the new time step t+dt
+
+    """    
+    k1_f = dt*f(t, x)
+    k2_f = dt*f(t+dt/2, x+k1_f/2)
+    k3_f = dt*f(t+dt/2, x+k2_f/2)
+
+    k1 = dt*f_tangent(t, x, M)
+    k2 = dt*f_tangent(t+dt/2, x+k1_f/2., M+k1/2.)
+    k3 = dt*f_tangent(t+dt/2, x+k2_f/2., M+k2/2.)
+    k4 = dt*f_tangent(t+dt/2, x+k3_f, M+k3)
+    return M + (k1 + 2*(k2 + k3) + k4)/6
 
 def with_rk4(dxdt, autonom=False, order=4):
     """
@@ -394,7 +490,7 @@ def integrate_TLM(TLM, dt, method='approx'):
         resolvent = (V * np.exp(dt*Lambda)) @ np.linalg.inv(V)
         resolvent = np.real_if_close(resolvent, tol=10**5)
     else:
-        Id = np.eye(TLM.shape[0])
+        Id = np.eye(TLM.shape[-1])
         if method == 'rk4':
             resolvent = rk4(lambda t, U: TLM@U, Id, np.nan, dt)
         elif method.lower().startswith('approx'):
@@ -439,7 +535,8 @@ def FD_Jac(ens_compatible_function, eps=1e-7):
 
 @np.vectorize
 def _round2prec(num, prec):
-    """Don't use (directly)! Suffers from numerical precision.
+    """
+    Don't use (directly)! Suffers from numerical precision.
 
     This function is left here just for reference. Use `round2` instead.
 
@@ -497,7 +594,7 @@ def round2(x, prec=1.0):
     round2sigfig
 
     Examples
-    ----------
+    --------
     >>> round2(1.65, 0.543)
     1.6
     >>> round2(1.66, 0.543)
@@ -529,7 +626,8 @@ def round2sigfig(x, sigfig=1):
     round2
     np.round, which rounds to a given number of *decimals*.
 
-    Examples:
+    Examples
+    --------
     >>> round2sigfig(1234.5678, 1)
     1000
     >>> round2sigfig(1234.5678, 4)
@@ -821,7 +919,8 @@ def Id_mat(M):
 
 
 def linear_model_setup(ModelMatrix, dt0):
-    r"""Make a dictionary the Dyn/Obs field of HMM representing a linear model.
+    r"""
+    Make a dictionary the Dyn/Obs field of HMM representing a linear model.
 
     .. math::
 
@@ -858,7 +957,22 @@ def linear_model_setup(ModelMatrix, dt0):
 
 
 def direct_obs_matrix(Nx, obs_inds):
-    """Matrix that "picks" state elements obs_inds out of range(Nx)"""
+    """
+    Matrix that "picks" state elements obs_inds out of range(Nx)
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+    obs_inds : ndarray
+        The observed indices.
+
+    Returns
+    -------
+    H : ndarray
+        The observation matrix for direct partial observations.
+
+    """
     Ny = len(obs_inds)
     H = np.zeros((Ny, Nx))
     H[range(Ny), obs_inds] = 1
@@ -870,7 +984,23 @@ def direct_obs_matrix(Nx, obs_inds):
 
 
 def partial_Id_Obs(Nx, obs_inds):
-    "Id observations of a subset of obs. indices."
+    """
+    Observation operator for partial variable observations.
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+    obs_inds : ndarray
+        The observed indices.
+
+    Returns
+    -------
+    Obs : dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    """
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
@@ -885,5 +1015,19 @@ def partial_Id_Obs(Nx, obs_inds):
 
 
 def Id_Obs(Nx):
-    "Id obs of entire state."
+    """
+    Observation operator for all variable observations.
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+
+    Returns
+    -------
+    Obs : dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    """    
     return partial_Id_Obs(Nx, np.arange(Nx))
