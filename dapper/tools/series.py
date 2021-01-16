@@ -111,10 +111,10 @@ class UncertainQtty():
             - fallback: rc.sigfig
         """
         # Extreme cases
-        if np.isnan(self.conf):
+        if np.isnan(self.conf) or self.conf == 0:
             c = self.conf
             v = round2sigfig(self.val, rc.sigfig)
-        # Normal case
+        # Normla case
         else:
             c = round2sigfig(self.conf, 1)
             v = round2(self.val, mult*self.conf)
@@ -125,6 +125,7 @@ class UncertainQtty():
         v, c = self.round()
         # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01.
         n = log10int(c)
+        if abs(n) == 300: return "{} ±{}".format(v, c)
         frmt = "%.f" if n >= 0 else "%%0.%df" % -n
         v = frmt % v
         return "{} ±{}".format(v, c)
