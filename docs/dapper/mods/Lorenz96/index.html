@@ -40,7 +40,7 @@ Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.</p
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L0-L71" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L0-L89" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;A 1D emulator of chaotic atmospheric behaviour.
 
@@ -57,7 +57,7 @@ Note: the implementation is ndim-agnostic.
 import numpy as np
 
 import dapper.tools.liveplotting as LP
-from dapper.tools.math import integrate_TLM, is1d, rk4
+from dapper.tools.math import integrate_TLM, is1d, rk4, RK4_adj, RK4_linear
 
 Force = 8.0
 
@@ -83,21 +83,39 @@ def step(x0, t, dt):
 # OPTIONAL (not required by EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
-    assert is1d(x)
-    M = len(x)
-    F = np.zeros((M, M))
+    # assert is1d(x)
+    M = x.shape[-1]
+    N = len(x)
+    F = np.zeros((N, M, M))
     def md(i): return np.mod(i, M)  # modulo
 
     for i in range(M):
-        F[i, i]       = -1.0
-        F[i,   i-2]   = -x[i-1]
-        F[i, md(i+1)] = +x[i-1]
-        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+        F[..., i, i]       = -1.0
+        F[..., i,   i-2]   = -x[..., i-1]
+        F[..., i, md(i+1)] = +x[..., i-1]
+        # print(md(i+2))
+        F[..., i,   i-1]   = x[..., md(i+1)]-x[..., i-2]
 
     return F
 
 # dstep_dx = FD_Jac(step)
+def d2x_dtdx_adjoint(X):
+    
+    x, dx = X[0], X[1]
+    M = x.shape[-1]
+    dx_new = np.zeros_like(x)
+    def md(i): return np.mod(i, M)  # modulo
 
+    for i in range(M):
+        dx_new[...,i] = dx[...,i-1]*x[...,i-2] - dx[...,i] + dx[...,md(i+1)]*(x[...,md(i+2)] - x[...,i-1]) - dx[...,md(i+2)]*x[...,md(i+1)]
+    return dx_new
+
+def adjoint_step(x0, t, dt):
+    return RK4_adj(lambda t, x: dxdt(x), lambda t, x: d2x_dtdx_adjoint(x), x0, np.nan, dt)
+
+def linear_step(x, M0, t, dt):
+    return RK4_linear(lambda t, x: dxdt(x), lambda t, x, M: d2x_dtdx(x)@M, x, M0, t, dt)
+    # return integrate_TLM(d2x_dtdx(x), dt, method=&#39;rk4&#39;)
 
 def dstep_dx(x, t, dt):
     # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
@@ -216,7 +234,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L23-L23" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L23-L23" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def x0(M): return np.eye(M)[0]</code></pre>
 </details>
@@ -229,7 +247,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L26-L27" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L26-L27" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def shift(x, n):
     return np.roll(x, -n, axis=-1)</code></pre>
@@ -243,7 +261,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L30-L30" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L30-L30" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x</code></pre>
 </details>
@@ -256,7 +274,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L31-L31" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L31-L31" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt(x): return dxdt_autonomous(x) + Force</code></pre>
 </details>
@@ -269,7 +287,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L34-L35" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L34-L35" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step(x0, t, dt):
     return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)</code></pre>
@@ -283,21 +301,73 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L41-L53" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L41-L55" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
-    assert is1d(x)
-    M = len(x)
-    F = np.zeros((M, M))
+    # assert is1d(x)
+    M = x.shape[-1]
+    N = len(x)
+    F = np.zeros((N, M, M))
     def md(i): return np.mod(i, M)  # modulo
 
     for i in range(M):
-        F[i, i]       = -1.0
-        F[i,   i-2]   = -x[i-1]
-        F[i, md(i+1)] = +x[i-1]
-        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+        F[..., i, i]       = -1.0
+        F[..., i,   i-2]   = -x[..., i-1]
+        F[..., i, md(i+1)] = +x[..., i-1]
+        # print(md(i+2))
+        F[..., i,   i-1]   = x[..., md(i+1)]-x[..., i-2]
 
     return F</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.d2x_dtdx_adjoint"><code class="name flex">
+<span>def <span class="ident">d2x_dtdx_adjoint</span></span>(<span>X)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L58-L67" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def d2x_dtdx_adjoint(X):
+    
+    x, dx = X[0], X[1]
+    M = x.shape[-1]
+    dx_new = np.zeros_like(x)
+    def md(i): return np.mod(i, M)  # modulo
+
+    for i in range(M):
+        dx_new[...,i] = dx[...,i-1]*x[...,i-2] - dx[...,i] + dx[...,md(i+1)]*(x[...,md(i+2)] - x[...,i-1]) - dx[...,md(i+2)]*x[...,md(i+1)]
+    return dx_new</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.adjoint_step"><code class="name flex">
+<span>def <span class="ident">adjoint_step</span></span>(<span>x0, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L69-L70" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def adjoint_step(x0, t, dt):
+    return RK4_adj(lambda t, x: dxdt(x), lambda t, x: d2x_dtdx_adjoint(x), x0, np.nan, dt)</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz96.linear_step"><code class="name flex">
+<span>def <span class="ident">linear_step</span></span>(<span>x, M0, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L72-L73" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def linear_step(x, M0, t, dt):
+    return RK4_linear(lambda t, x: dxdt(x), lambda t, x, M: d2x_dtdx(x)@M, x, M0, t, dt)</code></pre>
 </details>
 </dd>
 <dt id="dapper.mods.Lorenz96.dstep_dx"><code class="name flex">
@@ -308,7 +378,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L58-L60" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L76-L78" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
@@ -323,7 +393,7 @@ for Nonlinear Data Assimilation'</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/mods/Lorenz96/__init__.py#L66-L72" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/mods/Lorenz96/__init__.py#L84-L90" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None): return [
     (11, 1, LP.spatial1d(jj)),
@@ -404,6 +474,9 @@ for Nonlinear Data Assimilation'</p></div>
 <li><code><a title="dapper.mods.Lorenz96.dxdt" href="#dapper.mods.Lorenz96.dxdt">dxdt</a></code></li>
 <li><code><a title="dapper.mods.Lorenz96.step" href="#dapper.mods.Lorenz96.step">step</a></code></li>
 <li><code><a title="dapper.mods.Lorenz96.d2x_dtdx" href="#dapper.mods.Lorenz96.d2x_dtdx">d2x_dtdx</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.d2x_dtdx_adjoint" href="#dapper.mods.Lorenz96.d2x_dtdx_adjoint">d2x_dtdx_adjoint</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.adjoint_step" href="#dapper.mods.Lorenz96.adjoint_step">adjoint_step</a></code></li>
+<li><code><a title="dapper.mods.Lorenz96.linear_step" href="#dapper.mods.Lorenz96.linear_step">linear_step</a></code></li>
 <li><code><a title="dapper.mods.Lorenz96.dstep_dx" href="#dapper.mods.Lorenz96.dstep_dx">dstep_dx</a></code></li>
 <li><code><a title="dapper.mods.Lorenz96.LPs" href="#dapper.mods.Lorenz96.LPs">LPs</a></code></li>
 </ul>

@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.tools.math API documentation</title>
-<meta name="description" content="Math tools: integrators, linear algebra, and convenience funcs." />
+<meta name="description" content="Math tools: integrators, linear algebra, and convenience funcs …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -31,12 +31,22 @@
 </header>
 <section id="section-intro">
 <p>Math tools: integrators, linear algebra, and convenience funcs.</p>
+<h2 id="note">Note</h2>
+<p>The following functions are not auto-documented by pdoc:
+<code>log10int</code>, <code>round2</code>, <code>round2sigfig</code></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L0-L634" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L0-L1083" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Math tools: integrators, linear algebra, and convenience funcs.&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34;
+Math tools: integrators, linear algebra, and convenience funcs.
+
+Note
+----
+The following functions are not auto-documented by pdoc:
+`log10int`, `round2`, `round2sigfig`
+&#34;&#34;&#34;
 # pylint: disable=unused-argument
 
 import functools
@@ -52,26 +62,87 @@ import dapper.tools.utils as utils
 # Array manip
 ########################
 def is1d(a):
-    &#34;&#34;&#34;Works for list and row/column arrays and matrices&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Check if input is a 1D array.
+
+    Parameters
+    ----------
+    a : `ndarray`
+        Any array to check if it is one-dimensional
+
+    Returns
+    -------
+    logical
+        True if it is one dimensional otherwise False
+    &#34;&#34;&#34;
+
+    # return np.asarray(a).ndim == 1
     return np.sum(np.asarray(np.asarray(a).shape) &gt; 1) &lt;= 1
 
 
 def exactly_1d(a):
-    &#34;Ensure a is 1d.&#34;
+    &#34;&#34;&#34;
+    Turn one-dimensional list/array into array and check 
+    the dimension of input array, if not 1D raise
+    an error.
+
+    Parameters
+    ----------
+    a : `sequence`
+        Only 1-D sequences are expected
+
+    Returns
+    -------
+    a : `ndarray`
+        1-D array
+    &#34;&#34;&#34; 
+
     a = np.atleast_1d(a)
-    assert a.ndim == 1
+    assert a.ndim == 1, &#34;input array should be exactly one dimensional&#34;
     return a
 
 
 def exactly_2d(a):
-    &#34;Ensure a is 2d.&#34;
+    &#34;&#34;&#34;
+    Turn two-dimensional list/array into array and check 
+    the dimension of input array, if not 2D raise
+    an error.
+
+    Parameters
+    ----------
+    a : `sequence`
+        Only 2-D sequences are expected
+
+    Returns
+    -------
+    a : `ndarray`
+        2-D array
+    &#34;&#34;&#34;
     a = np.atleast_2d(a)
-    assert a.ndim == 2
+    assert a.ndim == 2, &#39;Input array must be 2-D&#39;
     return a
 
 
 def ccat(*args, axis=0):
-    &#34;Convenience wrapper around np.concatenate.&#34;
+    &#34;&#34;&#34;
+    Concatenate multiple arrays/lists into one array
+    for given axis. By default it concatenate the 
+    first dimension.
+
+    Parameters
+    ----------
+    *args : `sequence`
+        sequences to be concatenated.
+
+    axis : `int`, `optional`
+        The dimension to be concatenated. Default: 0
+        
+    Returns
+    -------
+    arr : ndarray
+        Array concatenated in the given axis
+    &#34;&#34;&#34;
+
     args = [np.atleast_1d(x) for x in args]
     return np.concatenate(args, axis=axis)
 
@@ -80,14 +151,17 @@ def ccat(*args, axis=0):
 # Ensemble matrix manip
 ########################
 def ens_compatible(func):
-    &#34;&#34;&#34;Tranpose before and after.
+    &#34;&#34;&#34;
+    Function decorator used to tranpose the input and returned array.
 
     Helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    An older version also used np.atleast_2d and squeeze(),
-    but that is more messy than necessary.
+    An older version also used np.atleast_2d and squeeze(), but that is more
+    messy than necessary.
 
-    Note: this is not the_way™ -- other tricks are sometimes more practical.
+    Note
+    ----
+    This is not the_way™ -- other tricks are sometimes more practical.
     See for example dxdt() in __init__.py for LorenzUV, Lorenz96, LotkaVolterra.
     &#34;&#34;&#34;
     @functools.wraps(func)
@@ -97,11 +171,32 @@ def ens_compatible(func):
 
 
 def center(E, axis=0, rescale=False):
-    &#34;&#34;&#34;Center ensemble.
+    &#34;&#34;&#34;
+    Center ensemble.
 
     Makes use of np features: keepdims and broadcasting.
+     
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
 
-    - rescale: Inflate to compensate for reduction in the expected variance.&#34;&#34;&#34;
+    axis : int, optional
+        The axis to be centered. Default: 0
+
+    rescale: logical, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\) 
+        where N is the ensemble size. Default: False
+
+    Returns
+    -------
+    X : ndarray
+        Ensemble anomaly
+
+    x : ndarray
+        Mean of the ensemble
+    &#34;&#34;&#34;
     x = np.mean(E, axis=axis, keepdims=True)
     X = E - x
 
@@ -115,31 +210,107 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    &#34;Same as: center(E,rescale=True)[0]&#34;
+    &#34;&#34;&#34;
+    Same as: center(E,rescale=True)[0]
+
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
+
+    axis : int, optional
+        The axis to be centered. Default: 0
+
+    rescale: logical, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\). Act as a way for 
+        unbiased variance estimation?
+        where N is the ensemble size. Default: True
+
+
+    Returns
+    -------
+    X : ndarray
+        Ensemble anomaly
+    &#34;&#34;&#34;
     return center(E, axis=axis, rescale=rescale)[0]
 
 
 def inflate_ens(E, factor):
-    &#34;Inflate the ensemble (center, inflate, re-combine).&#34;
-    if factor == 1:
+    &#34;&#34;&#34;
+    Inflate the ensemble E by an multiplicative factor
+
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
+
+    factor: `float`
+        Inflation factor
+
+
+    Returns
+    -------
+    E : ndarray
+        Inflated ensemble
+    &#34;&#34;&#34;
+    if np.isclose(factor, 1.):
         return E
     X, x = center(E)
     return x + X*factor
 
 
-def weight_degeneracy(w, prec=1e-10):
-    &#34;Are weights degenerate?&#34;
-    return (1-w.max()) &lt; prec
+def is_degenerate_weight(w, prec=1e-10):
+    &#34;&#34;&#34;
+    Check if the input w (weight) is degenerate
+    If it is degenerate, the maximum weight
+    should be nearly one since sum(w) = 1
+
+    Parameters
+    ----------
+    w : ndarray
+        Weight of something. Sum(w) = 1
+
+    prec: float, optional
+        Tolerance of the distance between w and one. Default:1e-10
+
+    Returns
+    -------
+    l : logical
+        If weight is degenerate True, else False
+    &#34;&#34;&#34;
+    return np.isclose(1, w.max(), rtol = prec, atol = prec)
 
 
 def unbias_var(w=None, N_eff=None, avoid_pathological=False):
-    &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
+    &#34;&#34;&#34;
+    Compute unbias-ing factor for variance estimation.
 
-    wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
+    Parameters
+    ----------
+    w : ndarray, optional
+        Weight of something. Sum(w) = 1. 
+        Only one of w and N_eff can be None. Default: None
+
+    N_eff: float, optional
+        Tolerance of the distance between w and one. 
+        Only one of w and N_eff can be None.  Default: None
+
+    avoid_pathological: logical, optional
+        Avoid weight collapse. Default: False
+
+    Returns
+    -------
+    ub : float
+        factor used to unbiasing variance
+
+    See Also
+    --------
+    `https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights`
     &#34;&#34;&#34;
     if N_eff is None:
         N_eff = 1/(w@w)
-    if avoid_pathological and weight_degeneracy(w):
+    if avoid_pathological and is_degenerate_weight(w):
         ub = 1  # Don&#39;t do in case of weights collapse
     else:
         ub = 1/(1 - 1/N_eff)  # =N/(N-1) if w==ones(N)/N.
@@ -152,8 +323,32 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 
 # fmt: off
 def rk4(f, x, t, dt, order=4):
-    &#34;&#34;&#34;Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers.&#34;&#34;&#34;
-    # pylint: disable=R1705, W0311
+    &#34;&#34;&#34;
+    Runge-Kutta N-th order (explicit, non-adaptive, up to 4th order) numerical ODE solvers.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    x : ndarray or float
+        State vector of the forcing term
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    order : integer, optional
+        The order of RK method. Default: 4
+
+    Returns
+    -------
+    x : ndarray
+        State vector at the new time step t+dt
+
+    &#34;&#34;&#34;
     if order &gt;=1: k1 = dt * f(t     , x)                        # noqa
     if order &gt;=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
     if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
@@ -167,9 +362,115 @@ def rk4(f, x, t, dt, order=4):
     else: raise NotImplementedError                             # noqa
 # fmt: on
 
+def RK4_adj(f, f_adj, x0, t, dt):
+    &#34;&#34;&#34;
+    Runge-Kutta 4-th order (explicit, non-adaptive) numerical solver
+    for adjoint equations.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    f_adjoint : function
+        The product of M.T@dx where M.T is the transpose of the 
+        Jacobian of the f(t, x) and x is a sequence of x and dx
+
+    x0 : sequence
+        State vector of the forcing term as the first element 
+        dx as the second element
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    Returns
+    -------
+    x : ndarray
+        State vector at the new time step t+dt
+
+    &#34;&#34;&#34;    
+    x, dx = x0[0], x0[1]
+    k1 = dt*f(t, x)
+    k2 = dt*f(t+dt/2, x+k1/2)
+    k3 = dt*f(t+dt/2, x+k2/2)
+
+    k1 = dt*f_adj(t, (x + k3, dx))
+    k2 = dt*f_adj(t, (x + 0.5*k2, dx + 0.5*k1))
+
+    k3 = dt*f_adj(t, (x + 0.5*k1, dx + 0.5*k2))
+
+    k4 = dt*f_adj(t, (x, dx + k3))
+
+    return dx + (k1 + 2.*(k2 + k3) + k4)/6.
+
+def RK4_linear(f, f_tangent, x, M, t, dt):
+    &#34;&#34;&#34;
+    Runge-Kutta 4-th order (explicit, non-adaptive) numerical solver
+    for tangent linear matrix.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    f_tangent : function
+        The function for the Jacobian of forcing terms, which returns
+        a matrix M.
+
+    x : ndarray or float
+        State vector of the forcing term
+
+    M : ndarray
+        Usually an identity matrix for the RK4 integration of the 
+        tangent linear matrix
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    Returns
+    -------
+    x : ndarray
+        State vector at the new time step t+dt
+
+    &#34;&#34;&#34;    
+    k1_f = dt*f(t, x)
+    k2_f = dt*f(t+dt/2, x+k1_f/2)
+    k3_f = dt*f(t+dt/2, x+k2_f/2)
+
+    k1 = dt*f_tangent(t, x, M)
+    k2 = dt*f_tangent(t+dt/2, x+k1_f/2., M+k1/2.)
+    k3 = dt*f_tangent(t+dt/2, x+k2_f/2., M+k2/2.)
+    k4 = dt*f_tangent(t+dt/2, x+k3_f, M+k3)
+    return M + (k1 + 2*(k2 + k3) + k4)/6
 
 def with_rk4(dxdt, autonom=False, order=4):
-    &#34;&#34;&#34;Wrap dxdt in rk4&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Helper method for RK4
+
+    Parameters
+    ----------
+    dxdt : function
+        The forcing of the ODE
+
+    autonom : logical, optional
+        If the function is autonomous (only dependent on x and not t),
+        set it to be true. Default: False
+
+    order : int, optional
+        The order of RK method. Default: 4
+
+    Returns
+    -------
+    step : function
+        A function used to do numerical integration with RK-order
+
+    &#34;&#34;&#34;
     integrator = functools.partial(rk4, order=order)
     if autonom:
         def step(x0, t0, dt):
@@ -183,18 +484,56 @@ def with_rk4(dxdt, autonom=False, order=4):
 
 
 def with_recursion(func, prog=False):
-    &#34;&#34;&#34;Make function recursive in its 1st arg.
+    &#34;&#34;&#34;
+    Make function recursive in its 1st arg.
 
-    Return a version of func() whose 2nd argument (k)
-    specifies the number of times to times apply func on its output.
 
-    Example::
+    Parameters
+    ----------
+    func : func
+        Run the input function recursively.
 
-      def step(x,t,dt): ...
-      step_k = with_recursion(step)
-      x[k]   = step_k(x0,k,t=np.nan,dt)[-1]
+    prog : logical or str
+        Determine the mode of progress bar.    
+
+    Returns
+    -------
+    fun_k : func
+        A function that returns the sequence generated by recursively
+        run func.
+
+        Stepping of dynamical system
+
+        Parameters
+        ----------
+        x0 : `float`
+            initial condition or first entry of the recursive function
+
+        k : int
+            number of recursive time
+
+        *args : `any`
+            args for the input func
+
+        **kwargs : `any`
+            keyword arguments for the input func
+
+        Returns
+        -------
+        xx : ndarray
+            Trajectory of model evolution
+
+    Examples
+    -------
+
+    &gt;&gt;&gt; def step(x,t,dt): 
+    ...     ...
+    &gt;&gt;&gt; step_k = with_recursion(step)
+    &gt;&gt;&gt; x[k]   = step_k(x0,k,t=NaN,dt)[-1]
     &#34;&#34;&#34;
     def fun_k(x0, k, *args, **kwargs):
+
+     
         xx = np.zeros((k+1,)+x0.shape)
         xx[0] = x0
 
@@ -230,14 +569,16 @@ def integrate_TLM(TLM, dt, method=&#39;approx&#39;):
 
     .. caution:: &#39;analytic&#39; typically requries higher inflation in the ExtKF.
 
-    .. seealso:: FD_Jac.
+    See Also
+    --------
+    `FD_Jac`
     &#34;&#34;&#34;
     if method == &#39;analytic&#39;:
         Lambda, V = sla.eig(TLM)
         resolvent = (V * np.exp(dt*Lambda)) @ np.linalg.inv(V)
         resolvent = np.real_if_close(resolvent, tol=10**5)
     else:
-        Id = np.eye(TLM.shape[0])
+        Id = np.eye(TLM.shape[-1])
         if method == &#39;rk4&#39;:
             resolvent = rk4(lambda t, U: TLM@U, Id, np.nan, dt)
         elif method.lower().startswith(&#39;approx&#39;):
@@ -282,7 +623,8 @@ def FD_Jac(ens_compatible_function, eps=1e-7):
 
 @np.vectorize
 def _round2prec(num, prec):
-    &#34;&#34;&#34;Don&#39;t use (directly)! Suffers from numerical precision.
+    &#34;&#34;&#34;
+    Don&#39;t use (directly)! Suffers from numerical precision.
 
     This function is left here just for reference. Use `round2` instead.
 
@@ -295,16 +637,18 @@ def _round2prec(num, prec):
 
 @np.vectorize
 def log10int(x):
-    &#34;&#34;&#34;Compute decimal order, rounded down.
+    &#34;&#34;&#34;
+    Compute decimal order, rounded down.
 
     Conversion to `int` means that we cannot return nan&#39;s or +/- infinity,
     even though this could be meaningful. Instead, we return integers of magnitude
     a little less than IEEE floating point max/min-ima instead.
     This avoids a lot of clauses in the parent/callers to this function.
 
-    Examples:
+    Examples
+    --------
     &gt;&gt;&gt; log10int([1e-1, 1e-2, 1, 3, 10, np.inf, -np.inf, np.nan])
-    array([  -1,   -2,    0,    0,    1,  300, -300, -300])
+    array([  -1,   -2,    0,    0,    1,  300, -300, -300])    
     &#34;&#34;&#34;
 
     # Extreme cases -- https://stackoverflow.com/q/65248379
@@ -340,7 +684,7 @@ def round2(x, prec=1.0):
     round2sigfig
 
     Examples
-    ----------
+    --------
     &gt;&gt;&gt; round2(1.65, 0.543)
     1.6
     &gt;&gt;&gt; round2(1.66, 0.543)
@@ -372,7 +716,8 @@ def round2sigfig(x, sigfig=1):
     round2
     np.round, which rounds to a given number of *decimals*.
 
-    Examples:
+    Examples
+    --------
     &gt;&gt;&gt; round2sigfig(1234.5678, 1)
     1000
     &gt;&gt;&gt; round2sigfig(1234.5678, 4)
@@ -383,35 +728,96 @@ def round2sigfig(x, sigfig=1):
     ndecimal = sigfig - log10int(x) - 1
     return np.round(x, ndecimal)
 
-
-# https://stackoverflow.com/q/37726830
 def is_int(a):
+    &#34;&#34;&#34;
+    Check if the input is any type of integer
+    
+    Parameters
+    ----------
+    a : any
+        Values to be checked
+
+    Returns
+    -------
+    l : logical
+        True if it is int, otherwise False
+
+    See Also
+    --------
+    &#39;https://stackoverflow.com/q/37726830&#39;
+    &#34;&#34;&#34;
     return np.issubdtype(type(a), np.integer)
 
 
 def is_whole(x):
+    &#34;&#34;&#34;
+    Check if rounded x is close to the original value
+    
+    Parameters
+    ----------
+    x : float or ndarray
+        Values to be checked
+
+    Returns
+    -------
+    l : logical
+        True if rounded x is close to x, otherwise False
+    &#34;&#34;&#34;
     return np.isclose(x, round(x))
 
 
-def validate_int(x):
-    assert is_whole(x)
-    return round(x)  # convert to int
+# def validate_int(x):
+#     &#34;&#34;&#34;
+#     Get rounded input if it does not affect the accuracy of the value
+#     If rounded value affects the accuracy of x, raise Error
+
+#     Parameters
+#     ----------
+#     x : float or ndarray
+#         Values to be rounded
+
+#     Returns
+#     -------
+#      : float or ndarray
+#         Rounded value
+#     &#34;&#34;&#34;
+#     assert is_whole(x)
+#     return round(x)  # convert to int
 
 
-def isNone(x):
-    &#34;&#34;&#34;x==None that also works for x being an np.ndarray.
+# def is_None(x):
+#     &#34;&#34;&#34;x==None that also works for x being an np.ndarray.
 
-    Since python3.8 ``x is None`` throws warning.
+#     Since python3.8 ``x is None`` throws warning.
 
-    Ref: np.isscalar docstring.&#34;&#34;&#34;
-    return np.ndim(x) == 0 and x == None
+#     Ref: np.isscalar docstring.&#34;&#34;&#34;
+#     return np.ndim(x) == 0 and x == None
 
 
 ########################
 # Misc
 ########################
 def linspace_int(Nx, Ny, periodic=True):
-    &#34;&#34;&#34;Provide a range of Ny equispaced integers between 0 and Nx-1&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Provide a range of Ny equispaced integers between 0 and Nx-1
+    
+    Parameters
+    ----------
+    Nx : int
+        Range of integers
+    Ny : int
+        Number of integers
+    periodic : logical, optional
+        Whether the vector is periodic. 
+        Determines if the Nx == 0.
+        Default: True
+
+    Returns
+    -------
+     : vector
+        Generated vectors.
+
+    &#34;&#34;&#34;
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
     else:
@@ -605,7 +1011,8 @@ def Id_mat(M):
 
 
 def linear_model_setup(ModelMatrix, dt0):
-    r&#34;&#34;&#34;Make a dictionary the Dyn/Obs field of HMM representing a linear model.
+    r&#34;&#34;&#34;
+    Make a dictionary the Dyn/Obs field of HMM representing a linear model.
 
     .. math::
 
@@ -642,7 +1049,22 @@ def linear_model_setup(ModelMatrix, dt0):
 
 
 def direct_obs_matrix(Nx, obs_inds):
-    &#34;&#34;&#34;Matrix that &#34;picks&#34; state elements obs_inds out of range(Nx)&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Matrix that &#34;picks&#34; state elements obs_inds out of range(Nx)
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+    obs_inds : ndarray
+        The observed indices.
+
+    Returns
+    -------
+    H : ndarray
+        The observation matrix for direct partial observations.
+
+    &#34;&#34;&#34;
     Ny = len(obs_inds)
     H = np.zeros((Ny, Nx))
     H[range(Ny), obs_inds] = 1
@@ -654,7 +1076,23 @@ def direct_obs_matrix(Nx, obs_inds):
 
 
 def partial_Id_Obs(Nx, obs_inds):
-    &#34;Id observations of a subset of obs. indices.&#34;
+    &#34;&#34;&#34;
+    Observation operator for partial variable observations.
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+    obs_inds : ndarray
+        The observed indices.
+
+    Returns
+    -------
+    Obs : dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    &#34;&#34;&#34;
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
@@ -669,7 +1107,21 @@ def partial_Id_Obs(Nx, obs_inds):
 
 
 def Id_Obs(Nx):
-    &#34;Id obs of entire state.&#34;
+    &#34;&#34;&#34;
+    Observation operator for all variable observations.
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+
+    Returns
+    -------
+    Obs : dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    &#34;&#34;&#34;    
     return partial_Id_Obs(Nx, np.arange(Nx))</code></pre>
 </details>
 </section>
@@ -684,14 +1136,38 @@ def Id_Obs(Nx):
 <span>def <span class="ident">is1d</span></span>(<span>a)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Works for list and row/column arrays and matrices</p></div>
+<div class="desc"><p>Check if input is a 1D array.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Any array to check if it is one-dimensional</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>logical</code></dt>
+<dd>True if it is one dimensional otherwise False</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L16-L18" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L23-L39" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is1d(a):
-    &#34;&#34;&#34;Works for list and row/column arrays and matrices&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Check if input is a 1D array.
+
+    Parameters
+    ----------
+    a : `ndarray`
+        Any array to check if it is one-dimensional
+
+    Returns
+    -------
+    logical
+        True if it is one dimensional otherwise False
+    &#34;&#34;&#34;
+
+    # return np.asarray(a).ndim == 1
     return np.sum(np.asarray(np.asarray(a).shape) &gt; 1) &lt;= 1</code></pre>
 </details>
 </dd>
@@ -699,16 +1175,43 @@ def Id_Obs(Nx):
 <span>def <span class="ident">exactly_1d</span></span>(<span>a)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Ensure a is 1d.</p></div>
+<div class="desc"><p>Turn one-dimensional list/array into array and check
+the dimension of input array, if not 1D raise
+an error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>sequence</code></dt>
+<dd>Only 1-D sequences are expected</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>1-D array</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L21-L25" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L42-L61" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def exactly_1d(a):
-    &#34;Ensure a is 1d.&#34;
+    &#34;&#34;&#34;
+    Turn one-dimensional list/array into array and check 
+    the dimension of input array, if not 1D raise
+    an error.
+
+    Parameters
+    ----------
+    a : `sequence`
+        Only 1-D sequences are expected
+
+    Returns
+    -------
+    a : `ndarray`
+        1-D array
+    &#34;&#34;&#34; 
+
     a = np.atleast_1d(a)
-    assert a.ndim == 1
+    assert a.ndim == 1, &#34;input array should be exactly one dimensional&#34;
     return a</code></pre>
 </details>
 </dd>
@@ -716,16 +1219,42 @@ def Id_Obs(Nx):
 <span>def <span class="ident">exactly_2d</span></span>(<span>a)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Ensure a is 2d.</p></div>
+<div class="desc"><p>Turn two-dimensional list/array into array and check
+the dimension of input array, if not 2D raise
+an error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>sequence</code></dt>
+<dd>Only 2-D sequences are expected</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>2-D array</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L28-L32" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L64-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def exactly_2d(a):
-    &#34;Ensure a is 2d.&#34;
+    &#34;&#34;&#34;
+    Turn two-dimensional list/array into array and check 
+    the dimension of input array, if not 2D raise
+    an error.
+
+    Parameters
+    ----------
+    a : `sequence`
+        Only 2-D sequences are expected
+
+    Returns
+    -------
+    a : `ndarray`
+        2-D array
+    &#34;&#34;&#34;
     a = np.atleast_2d(a)
-    assert a.ndim == 2
+    assert a.ndim == 2, &#39;Input array must be 2-D&#39;
     return a</code></pre>
 </details>
 </dd>
@@ -733,14 +1262,46 @@ def Id_Obs(Nx):
 <span>def <span class="ident">ccat</span></span>(<span>*args, axis=0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Convenience wrapper around np.concatenate.</p></div>
+<div class="desc"><p>Concatenate multiple arrays/lists into one array
+for given axis. By default it concatenate the
+first dimension.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>*args</code></strong> :&ensp;<code>sequence</code></dt>
+<dd>sequences to be concatenated.</dd>
+<dt><strong><code>axis</code></strong> :&ensp;<code>int<code>,</code>optional</code></dt>
+<dd>The dimension to be concatenated. Default: 0</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>arr</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Array concatenated in the given axis</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L35-L38" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L85-L106" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def ccat(*args, axis=0):
-    &#34;Convenience wrapper around np.concatenate.&#34;
+    &#34;&#34;&#34;
+    Concatenate multiple arrays/lists into one array
+    for given axis. By default it concatenate the 
+    first dimension.
+
+    Parameters
+    ----------
+    *args : `sequence`
+        sequences to be concatenated.
+
+    axis : `int`, `optional`
+        The dimension to be concatenated. Default: 0
+        
+    Returns
+    -------
+    arr : ndarray
+        Array concatenated in the given axis
+    &#34;&#34;&#34;
+
     args = [np.atleast_1d(x) for x in args]
     return np.concatenate(args, axis=axis)</code></pre>
 </details>
@@ -749,26 +1310,30 @@ def Id_Obs(Nx):
 <span>def <span class="ident">ens_compatible</span></span>(<span>func)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Tranpose before and after.</p>
+<div class="desc"><p>Function decorator used to tranpose the input and returned array.</p>
 <p>Helpful to make functions compatible with both 1d and 2d ndarrays.</p>
-<p>An older version also used np.atleast_2d and squeeze(),
-but that is more messy than necessary.</p>
-<p>Note: this is not the_way™ &ndash; other tricks are sometimes more practical.
+<p>An older version also used np.atleast_2d and squeeze(), but that is more
+messy than necessary.</p>
+<h2 id="note">Note</h2>
+<p>This is not the_way™ &ndash; other tricks are sometimes more practical.
 See for example dxdt() in <strong>init</strong>.py for LorenzUV, Lorenz96, LotkaVolterra.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L44-L58" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L112-L129" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def ens_compatible(func):
-    &#34;&#34;&#34;Tranpose before and after.
+    &#34;&#34;&#34;
+    Function decorator used to tranpose the input and returned array.
 
     Helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    An older version also used np.atleast_2d and squeeze(),
-    but that is more messy than necessary.
+    An older version also used np.atleast_2d and squeeze(), but that is more
+    messy than necessary.
 
-    Note: this is not the_way™ -- other tricks are sometimes more practical.
+    Note
+    ----
+    This is not the_way™ -- other tricks are sometimes more practical.
     See for example dxdt() in __init__.py for LorenzUV, Lorenz96, LotkaVolterra.
     &#34;&#34;&#34;
     @functools.wraps(func)
@@ -783,20 +1348,56 @@ See for example dxdt() in <strong>init</strong>.py for LorenzUV, Lorenz96, Lotka
 <dd>
 <div class="desc"><p>Center ensemble.</p>
 <p>Makes use of np features: keepdims and broadcasting.</p>
-<ul>
-<li>rescale: Inflate to compensate for reduction in the expected variance.</li>
-</ul></div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>E</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble which going to be inflated</dd>
+<dt><strong><code>axis</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The axis to be centered. Default: 0</dd>
+<dt><strong><code>rescale</code></strong> :&ensp;<code>logical</code>, optional</dt>
+<dd>If True, inflate to compensate for reduction in the expected variance.
+The inflation factor is <span><span class="MathJax_Preview">\sqrt{\frac{N}{N - 1}}</span><script type="math/tex">\sqrt{\frac{N}{N - 1}}</script></span>
+where N is the ensemble size. Default: False</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble anomaly</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Mean of the ensemble</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L61-L76" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L132-L168" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def center(E, axis=0, rescale=False):
-    &#34;&#34;&#34;Center ensemble.
+    &#34;&#34;&#34;
+    Center ensemble.
 
     Makes use of np features: keepdims and broadcasting.
+     
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
 
-    - rescale: Inflate to compensate for reduction in the expected variance.&#34;&#34;&#34;
+    axis : int, optional
+        The axis to be centered. Default: 0
+
+    rescale: logical, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\) 
+        where N is the ensemble size. Default: False
+
+    Returns
+    -------
+    X : ndarray
+        Ensemble anomaly
+
+    x : ndarray
+        Mean of the ensemble
+    &#34;&#34;&#34;
     x = np.mean(E, axis=axis, keepdims=True)
     X = E - x
 
@@ -813,14 +1414,53 @@ See for example dxdt() in <strong>init</strong>.py for LorenzUV, Lorenz96, Lotka
 <span>def <span class="ident">mean0</span></span>(<span>E, axis=0, rescale=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Same as: center(E,rescale=True)[0]</p></div>
+<div class="desc"><p>Same as: center(E,rescale=True)[0]</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>E</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble which going to be inflated</dd>
+<dt><strong><code>axis</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The axis to be centered. Default: 0</dd>
+<dt><strong><code>rescale</code></strong> :&ensp;<code>logical</code>, optional</dt>
+<dd>If True, inflate to compensate for reduction in the expected variance.
+The inflation factor is <span><span class="MathJax_Preview">\sqrt{\frac{N}{N - 1}}</span><script type="math/tex">\sqrt{\frac{N}{N - 1}}</script></span>. Act as a way for
+unbiased variance estimation?
+where N is the ensemble size. Default: True</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble anomaly</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L79-L81" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L171-L195" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean0(E, axis=0, rescale=True):
-    &#34;Same as: center(E,rescale=True)[0]&#34;
+    &#34;&#34;&#34;
+    Same as: center(E,rescale=True)[0]
+
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
+
+    axis : int, optional
+        The axis to be centered. Default: 0
+
+    rescale: logical, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\). Act as a way for 
+        unbiased variance estimation?
+        where N is the ensemble size. Default: True
+
+
+    Returns
+    -------
+    X : ndarray
+        Ensemble anomaly
+    &#34;&#34;&#34;
     return center(E, axis=axis, rescale=rescale)[0]</code></pre>
 </details>
 </dd>
@@ -828,33 +1468,92 @@ See for example dxdt() in <strong>init</strong>.py for LorenzUV, Lorenz96, Lotka
 <span>def <span class="ident">inflate_ens</span></span>(<span>E, factor)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Inflate the ensemble (center, inflate, re-combine).</p></div>
+<div class="desc"><p>Inflate the ensemble E by an multiplicative factor</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>E</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble which going to be inflated</dd>
+<dt><strong><code>factor</code></strong> :&ensp;<code>float</code></dt>
+<dd>Inflation factor</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>E</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Inflated ensemble</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L84-L89" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L198-L219" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inflate_ens(E, factor):
-    &#34;Inflate the ensemble (center, inflate, re-combine).&#34;
-    if factor == 1:
+    &#34;&#34;&#34;
+    Inflate the ensemble E by an multiplicative factor
+
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
+
+    factor: `float`
+        Inflation factor
+
+
+    Returns
+    -------
+    E : ndarray
+        Inflated ensemble
+    &#34;&#34;&#34;
+    if np.isclose(factor, 1.):
         return E
     X, x = center(E)
     return x + X*factor</code></pre>
 </details>
 </dd>
-<dt id="dapper.tools.math.weight_degeneracy"><code class="name flex">
-<span>def <span class="ident">weight_degeneracy</span></span>(<span>w, prec=1e-10)</span>
+<dt id="dapper.tools.math.is_degenerate_weight"><code class="name flex">
+<span>def <span class="ident">is_degenerate_weight</span></span>(<span>w, prec=1e-10)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Are weights degenerate?</p></div>
+<div class="desc"><p>Check if the input w (weight) is degenerate
+If it is degenerate, the maximum weight
+should be nearly one since sum(w) = 1</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>w</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Weight of something. Sum(w) = 1</dd>
+<dt><strong><code>prec</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Tolerance of the distance between w and one. Default:1e-10</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>l</code></strong> :&ensp;<code>logical</code></dt>
+<dd>If weight is degenerate True, else False</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L92-L94" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L222-L241" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def weight_degeneracy(w, prec=1e-10):
-    &#34;Are weights degenerate?&#34;
-    return (1-w.max()) &lt; prec</code></pre>
+<pre><code class="python">def is_degenerate_weight(w, prec=1e-10):
+    &#34;&#34;&#34;
+    Check if the input w (weight) is degenerate
+    If it is degenerate, the maximum weight
+    should be nearly one since sum(w) = 1
+
+    Parameters
+    ----------
+    w : ndarray
+        Weight of something. Sum(w) = 1
+
+    prec: float, optional
+        Tolerance of the distance between w and one. Default:1e-10
+
+    Returns
+    -------
+    l : logical
+        If weight is degenerate True, else False
+    &#34;&#34;&#34;
+    return np.isclose(1, w.max(), rtol = prec, atol = prec)</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.math.unbias_var"><code class="name flex">
@@ -862,20 +1561,59 @@ See for example dxdt() in <strong>init</strong>.py for LorenzUV, Lorenz96, Lotka
 </code></dt>
 <dd>
 <div class="desc"><p>Compute unbias-ing factor for variance estimation.</p>
-<p>wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights</p></div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>w</code></strong> :&ensp;<code>ndarray</code>, optional</dt>
+<dd>Weight of something. Sum(w) = 1.
+Only one of w and N_eff can be None. Default: None</dd>
+<dt><strong><code>N_eff</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Tolerance of the distance between w and one.
+Only one of w and N_eff can be None.
+Default: None</dd>
+<dt><strong><code>avoid_pathological</code></strong> :&ensp;<code>logical</code>, optional</dt>
+<dd>Avoid weight collapse. Default: False</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>ub</code></strong> :&ensp;<code>float</code></dt>
+<dd>factor used to unbiasing variance</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<p><code>https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L97-L108" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L244-L276" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unbias_var(w=None, N_eff=None, avoid_pathological=False):
-    &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
+    &#34;&#34;&#34;
+    Compute unbias-ing factor for variance estimation.
 
-    wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
+    Parameters
+    ----------
+    w : ndarray, optional
+        Weight of something. Sum(w) = 1. 
+        Only one of w and N_eff can be None. Default: None
+
+    N_eff: float, optional
+        Tolerance of the distance between w and one. 
+        Only one of w and N_eff can be None.  Default: None
+
+    avoid_pathological: logical, optional
+        Avoid weight collapse. Default: False
+
+    Returns
+    -------
+    ub : float
+        factor used to unbiasing variance
+
+    See Also
+    --------
+    `https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights`
     &#34;&#34;&#34;
     if N_eff is None:
         N_eff = 1/(w@w)
-    if avoid_pathological and weight_degeneracy(w):
+    if avoid_pathological and is_degenerate_weight(w):
         ub = 1  # Don&#39;t do in case of weights collapse
     else:
         ub = 1/(1 - 1/N_eff)  # =N/(N-1) if w==ones(N)/N.
@@ -886,15 +1624,57 @@ See for example dxdt() in <strong>init</strong>.py for LorenzUV, Lorenz96, Lotka
 <span>def <span class="ident">rk4</span></span>(<span>f, x, t, dt, order=4)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers.</p></div>
+<div class="desc"><p>Runge-Kutta N-th order (explicit, non-adaptive, up to 4th order) numerical ODE solvers.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>f</code></strong> :&ensp;<code>function</code></dt>
+<dd>The forcing of the ODE must a function of the form f(t, x)</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
+<dd>State vector of the forcing term</dd>
+<dt><strong><code>t</code></strong> :&ensp;<code>float</code></dt>
+<dd>Starting time of the integration</dd>
+<dt><strong><code>dt</code></strong> :&ensp;<code>float</code></dt>
+<dd>Time step interval of the ODE solver</dd>
+<dt><strong><code>order</code></strong> :&ensp;<code>integer</code>, optional</dt>
+<dd>The order of RK method. Default: 4</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>State vector at the new time step t+dt</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L116-L129" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L284-L321" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rk4(f, x, t, dt, order=4):
-    &#34;&#34;&#34;Runge-Kutta N-th order (explicit, non-adaptive) numerical ODE solvers.&#34;&#34;&#34;
-    # pylint: disable=R1705, W0311
+    &#34;&#34;&#34;
+    Runge-Kutta N-th order (explicit, non-adaptive, up to 4th order) numerical ODE solvers.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    x : ndarray or float
+        State vector of the forcing term
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    order : integer, optional
+        The order of RK method. Default: 4
+
+    Returns
+    -------
+    x : ndarray
+        State vector at the new time step t+dt
+
+    &#34;&#34;&#34;
     if order &gt;=1: k1 = dt * f(t     , x)                        # noqa
     if order &gt;=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
     if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
@@ -908,18 +1688,206 @@ See for example dxdt() in <strong>init</strong>.py for LorenzUV, Lorenz96, Lotka
     else: raise NotImplementedError                             # noqa</code></pre>
 </details>
 </dd>
+<dt id="dapper.tools.math.RK4_adj"><code class="name flex">
+<span>def <span class="ident">RK4_adj</span></span>(<span>f, f_adj, x0, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Runge-Kutta 4-th order (explicit, non-adaptive) numerical solver
+for adjoint equations.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>f</code></strong> :&ensp;<code>function</code></dt>
+<dd>The forcing of the ODE must a function of the form f(t, x)</dd>
+<dt><strong><code>f_adjoint</code></strong> :&ensp;<code>function</code></dt>
+<dd>The product of M.T@dx where M.T is the transpose of the
+Jacobian of the f(t, x) and x is a sequence of x and dx</dd>
+<dt><strong><code>x0</code></strong> :&ensp;<code>sequence</code></dt>
+<dd>State vector of the forcing term as the first element
+dx as the second element</dd>
+<dt><strong><code>t</code></strong> :&ensp;<code>float</code></dt>
+<dd>Starting time of the integration</dd>
+<dt><strong><code>dt</code></strong> :&ensp;<code>float</code></dt>
+<dd>Time step interval of the ODE solver</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>State vector at the new time step t+dt</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L324-L366" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def RK4_adj(f, f_adj, x0, t, dt):
+    &#34;&#34;&#34;
+    Runge-Kutta 4-th order (explicit, non-adaptive) numerical solver
+    for adjoint equations.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    f_adjoint : function
+        The product of M.T@dx where M.T is the transpose of the 
+        Jacobian of the f(t, x) and x is a sequence of x and dx
+
+    x0 : sequence
+        State vector of the forcing term as the first element 
+        dx as the second element
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    Returns
+    -------
+    x : ndarray
+        State vector at the new time step t+dt
+
+    &#34;&#34;&#34;    
+    x, dx = x0[0], x0[1]
+    k1 = dt*f(t, x)
+    k2 = dt*f(t+dt/2, x+k1/2)
+    k3 = dt*f(t+dt/2, x+k2/2)
+
+    k1 = dt*f_adj(t, (x + k3, dx))
+    k2 = dt*f_adj(t, (x + 0.5*k2, dx + 0.5*k1))
+
+    k3 = dt*f_adj(t, (x + 0.5*k1, dx + 0.5*k2))
+
+    k4 = dt*f_adj(t, (x, dx + k3))
+
+    return dx + (k1 + 2.*(k2 + k3) + k4)/6.</code></pre>
+</details>
+</dd>
+<dt id="dapper.tools.math.RK4_linear"><code class="name flex">
+<span>def <span class="ident">RK4_linear</span></span>(<span>f, f_tangent, x, M, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Runge-Kutta 4-th order (explicit, non-adaptive) numerical solver
+for tangent linear matrix.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>f</code></strong> :&ensp;<code>function</code></dt>
+<dd>The forcing of the ODE must a function of the form f(t, x)</dd>
+<dt><strong><code>f_tangent</code></strong> :&ensp;<code>function</code></dt>
+<dd>The function for the Jacobian of forcing terms, which returns
+a matrix M.</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
+<dd>State vector of the forcing term</dd>
+<dt><strong><code>M</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Usually an identity matrix for the RK4 integration of the
+tangent linear matrix</dd>
+<dt><strong><code>t</code></strong> :&ensp;<code>float</code></dt>
+<dd>Starting time of the integration</dd>
+<dt><strong><code>dt</code></strong> :&ensp;<code>float</code></dt>
+<dd>Time step interval of the ODE solver</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>State vector at the new time step t+dt</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L368-L409" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def RK4_linear(f, f_tangent, x, M, t, dt):
+    &#34;&#34;&#34;
+    Runge-Kutta 4-th order (explicit, non-adaptive) numerical solver
+    for tangent linear matrix.
+
+    Parameters
+    ----------
+    f : function
+        The forcing of the ODE must a function of the form f(t, x)
+
+    f_tangent : function
+        The function for the Jacobian of forcing terms, which returns
+        a matrix M.
+
+    x : ndarray or float
+        State vector of the forcing term
+
+    M : ndarray
+        Usually an identity matrix for the RK4 integration of the 
+        tangent linear matrix
+
+    t : float
+        Starting time of the integration
+
+    dt : float
+        Time step interval of the ODE solver
+
+    Returns
+    -------
+    x : ndarray
+        State vector at the new time step t+dt
+
+    &#34;&#34;&#34;    
+    k1_f = dt*f(t, x)
+    k2_f = dt*f(t+dt/2, x+k1_f/2)
+    k3_f = dt*f(t+dt/2, x+k2_f/2)
+
+    k1 = dt*f_tangent(t, x, M)
+    k2 = dt*f_tangent(t+dt/2, x+k1_f/2., M+k1/2.)
+    k3 = dt*f_tangent(t+dt/2, x+k2_f/2., M+k2/2.)
+    k4 = dt*f_tangent(t+dt/2, x+k3_f, M+k3)
+    return M + (k1 + 2*(k2 + k3) + k4)/6</code></pre>
+</details>
+</dd>
 <dt id="dapper.tools.math.with_rk4"><code class="name flex">
 <span>def <span class="ident">with_rk4</span></span>(<span>dxdt, autonom=False, order=4)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrap dxdt in rk4</p></div>
+<div class="desc"><p>Helper method for RK4</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dxdt</code></strong> :&ensp;<code>function</code></dt>
+<dd>The forcing of the ODE</dd>
+<dt><strong><code>autonom</code></strong> :&ensp;<code>logical</code>, optional</dt>
+<dd>If the function is autonomous (only dependent on x and not t),
+set it to be true. Default: False</dd>
+<dt><strong><code>order</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The order of RK method. Default: 4</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>step</code></strong> :&ensp;<code>function</code></dt>
+<dd>A function used to do numerical integration with RK-order</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L133-L144" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L411-L442" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def with_rk4(dxdt, autonom=False, order=4):
-    &#34;&#34;&#34;Wrap dxdt in rk4&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Helper method for RK4
+
+    Parameters
+    ----------
+    dxdt : function
+        The forcing of the ODE
+
+    autonom : logical, optional
+        If the function is autonomous (only dependent on x and not t),
+        set it to be true. Default: False
+
+    order : int, optional
+        The order of RK method. Default: 4
+
+    Returns
+    -------
+    step : function
+        A function used to do numerical integration with RK-order
+
+    &#34;&#34;&#34;
     integrator = functools.partial(rk4, order=order)
     if autonom:
         def step(x0, t0, dt):
@@ -937,31 +1905,96 @@ See for example dxdt() in <strong>init</strong>.py for LorenzUV, Lorenz96, Lotka
 </code></dt>
 <dd>
 <div class="desc"><p>Make function recursive in its 1st arg.</p>
-<p>Return a version of func() whose 2nd argument (k)
-specifies the number of times to times apply func on its output.</p>
-<p>Example::</p>
-<p>def step(x,t,dt): &hellip;
-step_k = with_recursion(step)
-x[k]
-= step_k(x0,k,t=np.nan,dt)[-1]</p></div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>func</code></strong> :&ensp;<code>func</code></dt>
+<dd>Run the input function recursively.</dd>
+<dt><strong><code>prog</code></strong> :&ensp;<code>logical</code> or <code>str</code></dt>
+<dd>Determine the mode of progress bar.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>fun_k</code></strong> :&ensp;<code>func</code></dt>
+<dd>
+<p>A function that returns the sequence generated by recursively
+run func.</p>
+<p>Stepping of dynamical system</p>
+<h2 id="parameters_1">Parameters</h2>
+<p>x0 : <code>float</code>
+initial condition or first entry of the recursive function</p>
+<p>k : int
+number of recursive time</p>
+<p>*args : <code>any</code>
+args for the input func</p>
+<p>**kwargs : <code>any</code>
+keyword arguments for the input func</p>
+<h2 id="returns_1">Returns</h2>
+<p>xx : ndarray
+Trajectory of model evolution</p>
+</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; def step(x,t,dt): 
+...     ...
+&gt;&gt;&gt; step_k = with_recursion(step)
+&gt;&gt;&gt; x[k]   = step_k(x0,k,t=NaN,dt)[-1]
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L147-L174" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L445-L510" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def with_recursion(func, prog=False):
-    &#34;&#34;&#34;Make function recursive in its 1st arg.
+    &#34;&#34;&#34;
+    Make function recursive in its 1st arg.
 
-    Return a version of func() whose 2nd argument (k)
-    specifies the number of times to times apply func on its output.
 
-    Example::
+    Parameters
+    ----------
+    func : func
+        Run the input function recursively.
 
-      def step(x,t,dt): ...
-      step_k = with_recursion(step)
-      x[k]   = step_k(x0,k,t=np.nan,dt)[-1]
+    prog : logical or str
+        Determine the mode of progress bar.    
+
+    Returns
+    -------
+    fun_k : func
+        A function that returns the sequence generated by recursively
+        run func.
+
+        Stepping of dynamical system
+
+        Parameters
+        ----------
+        x0 : `float`
+            initial condition or first entry of the recursive function
+
+        k : int
+            number of recursive time
+
+        *args : `any`
+            args for the input func
+
+        **kwargs : `any`
+            keyword arguments for the input func
+
+        Returns
+        -------
+        xx : ndarray
+            Trajectory of model evolution
+
+    Examples
+    -------
+
+    &gt;&gt;&gt; def step(x,t,dt): 
+    ...     ...
+    &gt;&gt;&gt; step_k = with_recursion(step)
+    &gt;&gt;&gt; x[k]   = step_k(x0,k,t=NaN,dt)[-1]
     &#34;&#34;&#34;
     def fun_k(x0, k, *args, **kwargs):
+
+     
         xx = np.zeros((k+1,)+x0.shape)
         xx[0] = x0
 
@@ -1003,13 +2036,12 @@ x[k]
 <div class="admonition caution">
 <p class="admonition-title">Caution:&ensp;'analytic' typically requries higher inflation in the ExtKF.</p>
 </div>
-<div class="admonition seealso">
-<p class="admonition-title">Seealso:&ensp;FD_Jac.</p>
-</div></div>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="dapper.tools.math.FD_Jac" href="#dapper.tools.math.FD_Jac">FD_Jac()</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L177-L209" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L513-L547" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def integrate_TLM(TLM, dt, method=&#39;approx&#39;):
     &#34;&#34;&#34;Compute the resolvent.
@@ -1029,14 +2061,16 @@ x[k]
 
     .. caution:: &#39;analytic&#39; typically requries higher inflation in the ExtKF.
 
-    .. seealso:: FD_Jac.
+    See Also
+    --------
+    `FD_Jac`
     &#34;&#34;&#34;
     if method == &#39;analytic&#39;:
         Lambda, V = sla.eig(TLM)
         resolvent = (V * np.exp(dt*Lambda)) @ np.linalg.inv(V)
         resolvent = np.real_if_close(resolvent, tol=10**5)
     else:
-        Id = np.eye(TLM.shape[0])
+        Id = np.eye(TLM.shape[-1])
         if method == &#39;rk4&#39;:
             resolvent = rk4(lambda t, U: TLM@U, Id, np.nan, dt)
         elif method.lower().startswith(&#39;approx&#39;):
@@ -1057,7 +2091,7 @@ x[k]
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L212-L223" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L550-L561" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def FD_Jac(ens_compatible_function, eps=1e-7):
     &#34;&#34;&#34;Finite-diff approx. for functions compatible with 1D and 2D input.
@@ -1077,13 +2111,42 @@ x[k]
 <span>def <span class="ident">is_int</span></span>(<span>a)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Check if the input is any type of integer</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>any</code></dt>
+<dd>Values to be checked</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>l</code></strong> :&ensp;<code>logical</code></dt>
+<dd>True if it is int, otherwise False</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<p><code>'https://stackoverflow.com/q/37726830'</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L350-L351" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L690-L708" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is_int(a):
+    &#34;&#34;&#34;
+    Check if the input is any type of integer
+    
+    Parameters
+    ----------
+    a : any
+        Values to be checked
+
+    Returns
+    -------
+    l : logical
+        True if it is int, otherwise False
+
+    See Also
+    --------
+    &#39;https://stackoverflow.com/q/37726830&#39;
+    &#34;&#34;&#34;
     return np.issubdtype(type(a), np.integer)</code></pre>
 </details>
 </dd>
@@ -1091,64 +2154,86 @@ x[k]
 <span>def <span class="ident">is_whole</span></span>(<span>x)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Check if rounded x is close to the original value</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>float</code> or <code>ndarray</code></dt>
+<dd>Values to be checked</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>l</code></strong> :&ensp;<code>logical</code></dt>
+<dd>True if rounded x is close to x, otherwise False</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L354-L355" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L711-L725" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is_whole(x):
+    &#34;&#34;&#34;
+    Check if rounded x is close to the original value
+    
+    Parameters
+    ----------
+    x : float or ndarray
+        Values to be checked
+
+    Returns
+    -------
+    l : logical
+        True if rounded x is close to x, otherwise False
+    &#34;&#34;&#34;
     return np.isclose(x, round(x))</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.math.validate_int"><code class="name flex">
-<span>def <span class="ident">validate_int</span></span>(<span>x)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L358-L360" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def validate_int(x):
-    assert is_whole(x)
-    return round(x)  # convert to int</code></pre>
-</details>
-</dd>
-<dt id="dapper.tools.math.isNone"><code class="name flex">
-<span>def <span class="ident">isNone</span></span>(<span>x)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>x==None that also works for x being an np.ndarray.</p>
-<p>Since python3.8 <code>x is None</code> throws warning.</p>
-<p>Ref: np.isscalar docstring.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L363-L369" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def isNone(x):
-    &#34;&#34;&#34;x==None that also works for x being an np.ndarray.
-
-    Since python3.8 ``x is None`` throws warning.
-
-    Ref: np.isscalar docstring.&#34;&#34;&#34;
-    return np.ndim(x) == 0 and x == None</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.math.linspace_int"><code class="name flex">
 <span>def <span class="ident">linspace_int</span></span>(<span>Nx, Ny, periodic=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Provide a range of Ny equispaced integers between 0 and Nx-1</p></div>
+<div class="desc"><p>Provide a range of Ny equispaced integers between 0 and Nx-1</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Nx</code></strong> :&ensp;<code>int</code></dt>
+<dd>Range of integers</dd>
+<dt><strong><code>Ny</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of integers</dd>
+<dt><strong><code>periodic</code></strong> :&ensp;<code>logical</code>, optional</dt>
+<dd>Whether the vector is periodic.
+Determines if the Nx == 0.
+Default: True</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dd>vector
+Generated vectors.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L375-L382" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L759-L785" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linspace_int(Nx, Ny, periodic=True):
-    &#34;&#34;&#34;Provide a range of Ny equispaced integers between 0 and Nx-1&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Provide a range of Ny equispaced integers between 0 and Nx-1
+    
+    Parameters
+    ----------
+    Nx : int
+        Range of integers
+    Ny : int
+        Number of integers
+    periodic : logical, optional
+        Whether the vector is periodic. 
+        Determines if the Nx == 0.
+        Default: True
+
+    Returns
+    -------
+     : vector
+        Generated vectors.
+
+    &#34;&#34;&#34;
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
     else:
@@ -1179,7 +2264,7 @@ x[k]
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L385-L411" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L788-L814" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def curvedspace(start, end, N, curvature=1):
     &#34;&#34;&#34;A length (func. of curvature) of logspace, normlzd to [start,end]
@@ -1219,7 +2304,7 @@ x[k]
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L414-L428" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L817-L831" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def circulant_ACF(C, do_abs=False):
     &#34;&#34;&#34;Compute the ACF of C.
@@ -1246,7 +2331,7 @@ x[k]
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L434-L436" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L837-L839" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mrdiv(b, A):
     &#34;b/A&#34;
@@ -1261,7 +2346,7 @@ x[k]
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L439-L441" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L842-L844" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mldiv(A, b):
     &#34;A \\ b&#34;
@@ -1276,7 +2361,7 @@ x[k]
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L444-L459" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L847-L862" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def truncate_rank(s, threshold, avoid_pathological):
     &#34;Find r such that s[:r] contains the threshold proportion of s.&#34;
@@ -1323,7 +2408,7 @@ NB: only applies for float threshold.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L462-L497" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L865-L900" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tsvd(A, threshold=0.99999, avoid_pathological=True):
     &#34;&#34;&#34;Truncated svd.
@@ -1384,7 +2469,7 @@ both of which always compute the reduced svd.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L500-L518" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L903-L921" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def svd0(A):
     &#34;&#34;&#34;Similar to Matlab&#39;s svd(A,0).
@@ -1415,7 +2500,7 @@ both of which always compute the reduced svd.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L521-L525" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L924-L928" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def pad0(ss, N):
     &#34;Pad ss with zeros so that len(ss)==N.&#34;
@@ -1438,7 +2523,7 @@ both of which always compute the reduced svd.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L528-L537" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L931-L940" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def svdi(U, s, VT):
     &#34;&#34;&#34;Reconstruct matrix from (t)svd.
@@ -1461,7 +2546,7 @@ Also see sla.pinv2().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L540-L546" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L943-L949" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tinv(A, *kargs, **kwargs):
     &#34;&#34;&#34;
@@ -1480,7 +2565,7 @@ Also see sla.pinv2().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L549-L551" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L952-L954" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def trank(A, *kargs, **kwargs):
     &#34;&#34;&#34;Rank following truncation&#34;&#34;&#34;
@@ -1495,7 +2580,7 @@ Also see sla.pinv2().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L558-L560" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L961-L963" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_op():
     &#34;Id operator.&#34;
@@ -1510,7 +2595,7 @@ Also see sla.pinv2().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L563-L566" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L966-L969" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_mat(M):
     &#34;Id matrix.&#34;
@@ -1531,10 +2616,11 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p></d
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L569-L603" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L972-L1007" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linear_model_setup(ModelMatrix, dt0):
-    r&#34;&#34;&#34;Make a dictionary the Dyn/Obs field of HMM representing a linear model.
+    r&#34;&#34;&#34;
+    Make a dictionary the Dyn/Obs field of HMM representing a linear model.
 
     .. math::
 
@@ -1574,14 +2660,41 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p></d
 <span>def <span class="ident">direct_obs_matrix</span></span>(<span>Nx, obs_inds)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Matrix that "picks" state elements obs_inds out of range(Nx)</p></div>
+<div class="desc"><p>Matrix that "picks" state elements obs_inds out of range(Nx)</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Nx</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of total length of state vector</dd>
+<dt><strong><code>obs_inds</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>The observed indices.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>H</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>The observation matrix for direct partial observations.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L606-L615" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L1010-L1034" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def direct_obs_matrix(Nx, obs_inds):
-    &#34;&#34;&#34;Matrix that &#34;picks&#34; state elements obs_inds out of range(Nx)&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Matrix that &#34;picks&#34; state elements obs_inds out of range(Nx)
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+    obs_inds : ndarray
+        The observed indices.
+
+    Returns
+    -------
+    H : ndarray
+        The observation matrix for direct partial observations.
+
+    &#34;&#34;&#34;
     Ny = len(obs_inds)
     H = np.zeros((Ny, Nx))
     H[range(Ny), obs_inds] = 1
@@ -1596,14 +2709,44 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p></d
 <span>def <span class="ident">partial_Id_Obs</span></span>(<span>Nx, obs_inds)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Id observations of a subset of obs. indices.</p></div>
+<div class="desc"><p>Observation operator for partial variable observations.
+It is not a function of time.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Nx</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of total length of state vector</dd>
+<dt><strong><code>obs_inds</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>The observed indices.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Obs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Observation operator including size of the observation space,
+observation operator/model and tangent linear observation operator</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L618-L630" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L1037-L1065" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def partial_Id_Obs(Nx, obs_inds):
-    &#34;Id observations of a subset of obs. indices.&#34;
+    &#34;&#34;&#34;
+    Observation operator for partial variable observations.
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+    obs_inds : ndarray
+        The observed indices.
+
+    Returns
+    -------
+    Obs : dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    &#34;&#34;&#34;
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
@@ -1621,14 +2764,40 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p></d
 <span>def <span class="ident">Id_Obs</span></span>(<span>Nx)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Id obs of entire state.</p></div>
+<div class="desc"><p>Observation operator for all variable observations.
+It is not a function of time.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Nx</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of total length of state vector</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Obs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Observation operator including size of the observation space,
+observation operator/model and tangent linear observation operator</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/29983b0ca457e78425b467e6f45f883cda7ef883/dapper/tools/math.py#L633-L635" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/tools/math.py#L1068-L1084" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_Obs(Nx):
-    &#34;Id obs of entire state.&#34;
+    &#34;&#34;&#34;
+    Observation operator for all variable observations.
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx : int
+        Number of total length of state vector
+
+    Returns
+    -------
+    Obs : dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    &#34;&#34;&#34;    
     return partial_Id_Obs(Nx, np.arange(Nx))</code></pre>
 </details>
 </dd>
@@ -1646,7 +2815,9 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p></d
 </header>
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#note">Note</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
@@ -1655,7 +2826,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p></d
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="dapper.tools.math.is1d" href="#dapper.tools.math.is1d">is1d</a></code></li>
 <li><code><a title="dapper.tools.math.exactly_1d" href="#dapper.tools.math.exactly_1d">exactly_1d</a></code></li>
 <li><code><a title="dapper.tools.math.exactly_2d" href="#dapper.tools.math.exactly_2d">exactly_2d</a></code></li>
@@ -1664,17 +2835,17 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p></d
 <li><code><a title="dapper.tools.math.center" href="#dapper.tools.math.center">center</a></code></li>
 <li><code><a title="dapper.tools.math.mean0" href="#dapper.tools.math.mean0">mean0</a></code></li>
 <li><code><a title="dapper.tools.math.inflate_ens" href="#dapper.tools.math.inflate_ens">inflate_ens</a></code></li>
-<li><code><a title="dapper.tools.math.weight_degeneracy" href="#dapper.tools.math.weight_degeneracy">weight_degeneracy</a></code></li>
+<li><code><a title="dapper.tools.math.is_degenerate_weight" href="#dapper.tools.math.is_degenerate_weight">is_degenerate_weight</a></code></li>
 <li><code><a title="dapper.tools.math.unbias_var" href="#dapper.tools.math.unbias_var">unbias_var</a></code></li>
 <li><code><a title="dapper.tools.math.rk4" href="#dapper.tools.math.rk4">rk4</a></code></li>
+<li><code><a title="dapper.tools.math.RK4_adj" href="#dapper.tools.math.RK4_adj">RK4_adj</a></code></li>
+<li><code><a title="dapper.tools.math.RK4_linear" href="#dapper.tools.math.RK4_linear">RK4_linear</a></code></li>
 <li><code><a title="dapper.tools.math.with_rk4" href="#dapper.tools.math.with_rk4">with_rk4</a></code></li>
 <li><code><a title="dapper.tools.math.with_recursion" href="#dapper.tools.math.with_recursion">with_recursion</a></code></li>
 <li><code><a title="dapper.tools.math.integrate_TLM" href="#dapper.tools.math.integrate_TLM">integrate_TLM</a></code></li>
 <li><code><a title="dapper.tools.math.FD_Jac" href="#dapper.tools.math.FD_Jac">FD_Jac</a></code></li>
 <li><code><a title="dapper.tools.math.is_int" href="#dapper.tools.math.is_int">is_int</a></code></li>
 <li><code><a title="dapper.tools.math.is_whole" href="#dapper.tools.math.is_whole">is_whole</a></code></li>
-<li><code><a title="dapper.tools.math.validate_int" href="#dapper.tools.math.validate_int">validate_int</a></code></li>
-<li><code><a title="dapper.tools.math.isNone" href="#dapper.tools.math.isNone">isNone</a></code></li>
 <li><code><a title="dapper.tools.math.linspace_int" href="#dapper.tools.math.linspace_int">linspace_int</a></code></li>
 <li><code><a title="dapper.tools.math.curvedspace" href="#dapper.tools.math.curvedspace">curvedspace</a></code></li>
 <li><code><a title="dapper.tools.math.circulant_ACF" href="#dapper.tools.math.circulant_ACF">circulant_ACF</a></code></li>

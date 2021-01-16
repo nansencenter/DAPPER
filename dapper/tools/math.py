@@ -1,4 +1,11 @@
-"""Math tools: integrators, linear algebra, and convenience funcs."""
+"""
+Math tools: integrators, linear algebra, and convenience funcs.
+
+Note
+----
+The following functions are not auto-documented by pdoc:
+`log10int`, `round2`, `round2sigfig`
+"""
 # pylint: disable=unused-argument
 
 import functools
@@ -19,12 +26,12 @@ def is1d(a):
 
     Parameters
     ----------
-    a : ndarray
+    a : `ndarray`
         Any array to check if it is one-dimensional
 
     Returns
     -------
-      : logical
+    logical
         True if it is one dimensional otherwise False
     """
 
@@ -40,12 +47,12 @@ def exactly_1d(a):
 
     Parameters
     ----------
-    a : ndarray or list
-        Only 1-D array or list are expected
+    a : `sequence`
+        Only 1-D sequences are expected
 
     Returns
     -------
-    a : ndarray
+    a : `ndarray`
         1-D array
     """ 
 
@@ -62,12 +69,12 @@ def exactly_2d(a):
 
     Parameters
     ----------
-    a : ndarray or list
-        Only 2-D array or list are expected
+    a : `sequence`
+        Only 2-D sequences are expected
 
     Returns
     -------
-    a : ndarray
+    a : `ndarray`
         2-D array
     """
     a = np.atleast_2d(a)
@@ -83,15 +90,15 @@ def ccat(*args, axis=0):
 
     Parameters
     ----------
-    *args : array_like
-        array_like instances to be concatenated.
+    *args : `sequence`
+        sequences to be concatenated.
 
-    axis : int, optional
+    axis : `int`, `optional`
         The dimension to be concatenated. Default: 0
         
     Returns
     -------
-      : ndarray
+    ndarray
         Array concatenated in the given axis
     """
 
@@ -111,7 +118,9 @@ def ens_compatible(func):
     An older version also used np.atleast_2d and squeeze(), but that is more
     messy than necessary.
 
-    Note: this is not the_way™ -- other tricks are sometimes more practical.
+    Note
+    ----
+    This is not the_way™ -- other tricks are sometimes more practical.
     See for example dxdt() in __init__.py for LorenzUV, Lorenz96, LotkaVolterra.
     """
     @functools.wraps(func)
@@ -124,11 +133,11 @@ def center(E, axis=0, rescale=False):
     """
     Center ensemble.
 
-   Makes use of np features: keepdims and broadcasting.
-    
-   Parameters
-   ----------
-    E : numpy array
+    Makes use of np features: keepdims and broadcasting.
+     
+    Parameters
+    ----------
+    E : ndarray
         Ensemble which going to be inflated
 
     axis : int, optional
@@ -136,15 +145,15 @@ def center(E, axis=0, rescale=False):
 
     rescale: logical, optional
         If True, inflate to compensate for reduction in the expected variance.
-        The inflation factor is $\sqrt(\frac{N}{N - 1})$ 
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\) 
         where N is the ensemble size. Default: False
 
     Returns
     -------
-    X : numpy array
+    X : ndarray
         Ensemble anomaly
 
-    x : numpy array
+    x : ndarray
         Mean of the ensemble
     """
     x = np.mean(E, axis=axis, keepdims=True)
@@ -165,7 +174,7 @@ def mean0(E, axis=0, rescale=True):
 
     Parameters
     ----------
-    E : numpy array
+    E : ndarray
         Ensemble which going to be inflated
 
     axis : int, optional
@@ -173,15 +182,15 @@ def mean0(E, axis=0, rescale=True):
 
     rescale: logical, optional
         If True, inflate to compensate for reduction in the expected variance.
-        The inflation factor is $\sqrt(\frac{N}{N - 1})$. Act as a way for 
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\). Act as a way for 
         unbiased variance estimation?
         where N is the ensemble size. Default: True
 
 
     Returns
     -------
-    X : numpy array
-        Ensemble anomaly
+    ndarray
+        Ensemble mean
     """
     return center(E, axis=axis, rescale=rescale)[0]
 
@@ -192,16 +201,16 @@ def inflate_ens(E, factor):
 
     Parameters
     ----------
-    E : numpy array
+    E : ndarray
         Ensemble which going to be inflated
 
-    factor: float
+    factor: `float`
         Inflation factor
 
 
     Returns
     -------
-    E : numpy array
+    ndarray
         Inflated ensemble
     """
     if np.isclose(factor, 1.):
@@ -215,9 +224,10 @@ def is_degenerate_weight(w, prec=1e-10):
     Check if the input w (weight) is degenerate
     If it is degenerate, the maximum weight
     should be nearly one since sum(w) = 1
+
     Parameters
     ----------
-    w : numpy array
+    w : ndarray
         Weight of something. Sum(w) = 1
 
     prec: float, optional
@@ -225,7 +235,7 @@ def is_degenerate_weight(w, prec=1e-10):
 
     Returns
     -------
-    l : logical
+    logical
         If weight is degenerate True, else False
     """
     return np.isclose(1, w.max(), rtol = prec, atol = prec)
@@ -237,7 +247,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 
     Parameters
     ----------
-    w : numpy array, optional
+    w : ndarray, optional
         Weight of something. Sum(w) = 1. 
         Only one of w and N_eff can be None. Default: None
 
@@ -255,9 +265,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 
     See Also
     --------
-    wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
-
-    
+    `https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights`
     """
     if N_eff is None:
         N_eff = 1/(w@w)
@@ -282,7 +290,7 @@ def rk4(f, x, t, dt, order=4):
     f : function
         The forcing of the ODE must a function of the form f(t, x)
 
-    x : numpy array or float
+    x : ndarray or float
         State vector of the forcing term
 
     t : float
@@ -296,7 +304,7 @@ def rk4(f, x, t, dt, order=4):
 
     Returns
     -------
-    x : numpy array
+    ndarray
         State vector at the new time step t+dt
 
     """
@@ -325,7 +333,7 @@ def RK4_adj(f, f_adj, x0, t, dt):
 
     f_adjoint : function
         The product of M.T@dx where M.T is the transpose of the 
-        Jacobian of the f(t, x)
+        Jacobian of the f(t, x) and x is a sequence of x and dx
 
     x0 : sequence
         State vector of the forcing term as the first element 
@@ -339,7 +347,7 @@ def RK4_adj(f, f_adj, x0, t, dt):
 
     Returns
     -------
-    x : numpy array
+    x : ndarray
         State vector at the new time step t+dt
 
     """    
@@ -371,10 +379,10 @@ def RK4_linear(f, f_tangent, x, M, t, dt):
         The function for the Jacobian of forcing terms, which returns
         a matrix M.
 
-    x : numpy array or float
+    x : ndarray or float
         State vector of the forcing term
 
-    M : numpy array
+    M : ndarray
         Usually an identity matrix for the RK4 integration of the 
         tangent linear matrix
 
@@ -386,7 +394,7 @@ def RK4_linear(f, f_tangent, x, M, t, dt):
 
     Returns
     -------
-    x : numpy array
+    x : ndarray
         State vector at the new time step t+dt
 
     """    
@@ -413,7 +421,7 @@ def with_rk4(dxdt, autonom=False, order=4):
         If the function is autonomous (only dependent on x and not t),
         set it to be true. Default: False
 
-    order : integer, optional
+    order : int, optional
         The order of RK method. Default: 4
 
     Returns
@@ -438,16 +446,53 @@ def with_recursion(func, prog=False):
     """
     Make function recursive in its 1st arg.
 
-    Return a version of func() whose 2nd argument (k)
-    specifies the number of times to times apply func on its output.
 
-    Example::
+    Parameters
+    ----------
+    func : func
+        Run the input function recursively.
 
-        def step(x,t,dt): ...
-        step_k = with_recursion(step)
-        x[k]   = step_k(x0,k,t=NaN,dt)[-1]
+    prog : logical or str
+        Determine the mode of progress bar.    
+
+    Returns
+    -------
+    fun_k : func
+        A function that returns the sequence generated by recursively
+        run func.
+
+        Stepping of dynamical system
+
+        Parameters
+        ----------
+        x0 : `float`
+            initial condition or first entry of the recursive function
+
+        k : int
+            number of recursive time
+
+        *args : `any`
+            args for the input func
+
+        **kwargs : `any`
+            keyword arguments for the input func
+
+        Returns
+        -------
+        xx : ndarray
+            Trajectory of model evolution
+
+    Examples
+    -------
+
+    >>> def step(x,t,dt): 
+    ...     ...
+    >>> step_k = with_recursion(step)
+    >>> x[k]   = step_k(x0,k,t=NaN,dt)[-1]
     """
     def fun_k(x0, k, *args, **kwargs):
+
+     
         xx = np.zeros((k+1,)+x0.shape)
         xx[0] = x0
 
@@ -483,7 +528,9 @@ def integrate_TLM(TLM, dt, method='approx'):
 
     .. caution:: 'analytic' typically requries higher inflation in the ExtKF.
 
-    .. seealso:: FD_Jac.
+    See Also
+    --------
+    `FD_Jac`
     """
     if method == 'analytic':
         Lambda, V = sla.eig(TLM)
@@ -549,14 +596,16 @@ def _round2prec(num, prec):
 
 @np.vectorize
 def log10int(x):
-    """Compute decimal order, rounded down.
+    """
+    Compute decimal order, rounded down.
 
     Conversion to `int` means that we cannot return nan's or +/- infinity,
     even though this could be meaningful. Instead, we return integers of magnitude
     a little less than IEEE floating point max/min-ima instead.
     This avoids a lot of clauses in the parent/callers to this function.
 
-    Examples:
+    Examples
+    --------
     >>> log10int([1e-1, 1e-2, 1, 3, 10, np.inf, -np.inf, np.nan])
     array([  -1,   -2,    0,    0,    1,  300, -300, -300])    
     """
@@ -638,8 +687,6 @@ def round2sigfig(x, sigfig=1):
     ndecimal = sigfig - log10int(x) - 1
     return np.round(x, ndecimal)
 
-
-# https://stackoverflow.com/q/37726830
 def is_int(a):
     """
     Check if the input is any type of integer
@@ -651,8 +698,12 @@ def is_int(a):
 
     Returns
     -------
-     : logical
+    l : logical
         True if it is int, otherwise False
+
+    See Also
+    --------
+    'https://stackoverflow.com/q/37726830'
     """
     return np.issubdtype(type(a), np.integer)
 
@@ -668,7 +719,7 @@ def is_whole(x):
 
     Returns
     -------
-     : logical
+    l : logical
         True if rounded x is close to x, otherwise False
     """
     return np.isclose(x, round(x))
@@ -725,6 +776,15 @@ def linspace_int(Nx, Ny, periodic=True):
      : vector
         Generated vectors.
 
+    Examples
+    --------
+    >>> linspace_int(10, 10)
+    array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    >>> linspace_int(10, 4)
+    array([0, 2, 5, 7])
+    >>> linspace_int(10, 5)
+    array([0, 2, 4, 6, 8])
+    >>>
     """
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
@@ -764,9 +824,11 @@ def curvedspace(start, end, N, curvature=1):
 
 
 def circulant_ACF(C, do_abs=False):
-    """Compute the ACF of C.
+    """
+    Compute the ACF of C.
 
-    This assumes it is the cov/corr matrix of a 1D periodic domain."""
+    This assumes it is the cov/corr matrix of a 1D periodic domain.
+    """
     M = len(C)
     # cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
     cols = sla.circulant(np.arange(M))
@@ -784,17 +846,17 @@ def circulant_ACF(C, do_abs=False):
 # Linear Algebra
 ########################
 def mrdiv(b, A):
-    "b/A"
+    """b/A"""
     return sla.solve(A.T, b.T).T
 
 
 def mldiv(A, b):
-    "A \\ b"
+    """A \\ b"""
     return sla.solve(A, b)
 
 
 def truncate_rank(s, threshold, avoid_pathological):
-    "Find r such that s[:r] contains the threshold proportion of s."
+    """Find r such that s[:r] contains the threshold proportion of s."""
     assert isinstance(threshold, float)
     if threshold == 1.0:
         r = len(s)
