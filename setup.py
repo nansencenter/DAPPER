@@ -3,7 +3,6 @@
 
 It is best to install from source,
 so that you the code is readily available to play with.
-
 See full README on [github](https://github.com/nansencenter/DAPPER).
 """
 
@@ -70,6 +69,7 @@ if sys.argv[-1] == 'publish':
     os.system('twine upload dist/*')
     sys.exit(0)
 
+
 setup(
     # Basic meta
     name="DA-DAPPER",
@@ -80,11 +80,11 @@ setup(
     long_description='\n'.join(DOCLINES[2:]),
     long_description_content_type="text/markdown",
 
-    # >= 3.5 (for @),
-    # >=3.6 (for mpl==3.1),
-    # >=3.7 (for dataclass, capture_output, dict ordering).
-    # =3.8 (if you wish to use the the DAPPER/GCP cluster,
-    #       since dill doesnt guarantee compat. accross versions).
+    # >=3.5 for @.
+    # >=3.6 for mpl>=3.1.
+    # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
+    # ==3.8 if you wish to use the the DAPPER/GCP cluster,
+    #       since dill doesnt guarantee compat. accross versions.
     python_requires='>=3.8',
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS,
@@ -108,7 +108,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    url="https://github.com/nansencenter/DAPPER",
     keywords=("data-assimilation enkf kalman-filtering"
               " state-estimation particle-filter kalman"
               " bayesian-methods bayesian-filter chaos"),
@@ -119,4 +118,5 @@ setup(
         # 'Funding': 'https://donate.pypi.org',
         # 'Say Thanks!': 'http://saythanks.io/to/example',
     },
+    # url="https://github.com/nansencenter/DAPPER",
 )
