@@ -40,7 +40,6 @@ x0 = np.zeros(2)
 
 
 def dstep_dx(x, _t, _dt):
-    """Used by ExtKF and 4D-Var"""
     s, t, x1, y1 = aux(*x)
     x, y = x
 
@@ -62,5 +61,5 @@ params = dict(labels='xy')
 def LPs(jj=None, params=params): return [
     (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
     (13, 1, LP.phase_particles(
-        is_3d=False, obs_inds=jj, zoom=0.8,  Tplot=0,  **params)),
+        is_3d=False, obs_inds=jj, zoom=0.8, Tplot=0, **params)),
 ]

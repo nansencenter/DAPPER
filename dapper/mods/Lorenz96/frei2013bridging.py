@@ -1,4 +1,6 @@
-"""Settings as in `bib.frei2013bridging`, who also cite its use in the following:
+"""Settings as in `bib.frei2013bridging`.
+
+They also cite its use in the following:
 
 `bib.bengtsson2003toward`, `bib.lei2011moment`, `bib.frei2013mixture`.
 """
@@ -16,7 +18,7 @@ Dyn = {
     'M': Nx,
     'model': step,
     'linear': dstep_dx,
-    'noise': 0
+    'noise': 0,
 }
 
 X0 = modelling.GaussRV(M=Nx, C=0.001)

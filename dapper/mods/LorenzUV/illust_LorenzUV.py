@@ -123,8 +123,7 @@ for Ny in range(L):
 # Add DAPPER text label
 if False:
     ax.text(95, 0, "DAPPER", ha="left", va="center", fontdict=dict(
-        fontsize="80", name="Signpainter"
-    ))
+        fontsize="80", name="Signpainter"))
 
     # Adjust xlim to include everything
     ax.set_xlim((-100, 400))

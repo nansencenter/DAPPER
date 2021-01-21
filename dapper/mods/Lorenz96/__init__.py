@@ -46,10 +46,10 @@ def d2x_dtdx(x):
     def md(i): return np.mod(i, M)  # modulo
 
     for i in range(M):
-        F[i, i]       = -1.0
-        F[i,   i-2]   = -x[i-1]
+        F[i   , i]    = -1.0
+        F[i   , i-2]  = -x[i-1]
         F[i, md(i+1)] = +x[i-1]
-        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+        F[i   , i-1]  = x[md(i+1)]-x[i-2]
 
     return F
 

@@ -13,10 +13,13 @@ from .ensemble import ens_method
 
 @ens_method
 class RHF:
-    """Rank histogram filter `bib.anderson2010non`.
+    """Rank histogram filter.
+
+    Refs: `bib.anderson2010non`.
 
     Quick & dirty implementation without attention to (de)tails.
     """
+
     N: int
     ordr: str = 'rand'
 
@@ -43,7 +46,7 @@ class RHF:
                 y    = yy[kObs]
                 inds = serial_inds(self.ordr, y, R, center(E)[0])
 
-                for i, j in enumerate(inds):
+                for _, j in enumerate(inds):
                     Eo = Obs(E, t)
                     xo = np.mean(Eo, 0)
                     Y  = Eo - xo
@@ -82,6 +85,7 @@ class LNETF:
 
     It is (supposedly) a deterministic upgrade of the NLEAF of `bib.lei2011moment`.
     """
+
     N: int
     loc_rad: float
     taper: str = 'GC'

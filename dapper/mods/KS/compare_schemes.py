@@ -1,8 +1,11 @@
-# Compare integration time-stepping schemes for KS equation.
-# Conclusions: 'ETD-RK4' is superior to 'SI-RK3',
-#  - Superiority deteriorates when adding noise to ICs.
-#  - Superiority fairly independent of N.
-#  - The naive methods (rk4, rk1) are quite terrible.
+"""Compare integration time-stepping schemes for KS equation.
+
+Conclusions: 'ETD-RK4' is superior to 'SI-RK3',
+
+- Superiority deteriorates when adding noise to ICs.
+- Superiority fairly independent of N.
+- The naive methods (rk4, rk1) are quite terrible.
+"""
 
 import time
 
@@ -44,7 +47,7 @@ for i, dt in enumerate(hh):
         E = E0.copy()
         t0 = time.time()
         # Integration
-        for k in 1+np.arange(int(round(T/dt))):
+        for _ in 1+np.arange(int(round(T/dt))):
             E = model[m](E, np.nan, dt)
         durations[m][i] = time.time() - t0
 

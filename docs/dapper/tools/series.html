@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L0-L345" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L0-L347" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Time series management and processing.&#34;&#34;&#34;
 
@@ -109,18 +109,19 @@ def fit_acf_by_AR1(acf_empir, nlags=None):
 
 
 def estimate_corr_length(xx):
-    &#34;&#34;&#34;
+    r&#34;&#34;&#34;Estimate the correlation length of a time series.
+
     For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
 
-    $$\\text{corr}(L) = \\exp(-1) \\approx 0.368$$
+    $$\text{corr}(L) = \exp(-1) \approx 0.368$$
     &#34;&#34;&#34;
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
         L = 0
     else:
-        L = 1/np.log(1/a)
+        L = 1/np.log(1/a)  # type: ignore
     return L
 
 
@@ -142,11 +143,12 @@ class UncertainQtty():
     &gt;&gt;&gt; UncertainQtty(1.2345, 1)
     UncertainQtty(val=1, conf=1)
     &#34;&#34;&#34;
+
     val: float
     conf: float
 
-    def round(self, mult=1.0):
-        &#34;&#34;&#34;Round intelligently:
+    def round(self, mult=1.0):  # noqa
+        &#34;&#34;&#34;Round intelligently.
 
         - conf to 1 sigfig.
         - val:
@@ -378,7 +380,7 @@ class RollingArray:
     def T(self):
         return self.array.T
 
-    def __array__(self, dtype=None): return self.array
+    def __array__(self, dtype=None): return self.array(dtype=dtype)
     def __len__(self): return len(self.array)
     def __repr__(self): return &#39;RollingArray:\n%s&#39; % str(self.array)
     def __getitem__(self, key): return self.array[key]
@@ -484,27 +486,29 @@ class RollingArray:
 <span>def <span class="ident">estimate_corr_length</span></span>(<span>xx)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>For explanation, see <code><a title="dapper.mods.LA.homogeneous_1D_cov" href="../mods/LA/index.html#dapper.mods.LA.homogeneous_1D_cov">homogeneous_1D_cov()</a></code>.
+<div class="desc"><p>Estimate the correlation length of a time series.</p>
+<p>For explanation, see <code><a title="dapper.mods.LA.homogeneous_1D_cov" href="../mods/LA/index.html#dapper.mods.LA.homogeneous_1D_cov">homogeneous_1D_cov()</a></code>.
 Also note that, for exponential corr function, as assumed here,</p>
 <p><span><span class="MathJax_Preview">\text{corr}(L) = \exp(-1) \approx 0.368</span><script type="math/tex; mode=display">\text{corr}(L) = \exp(-1) \approx 0.368</script></span></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L67-L80" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L67-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def estimate_corr_length(xx):
-    &#34;&#34;&#34;
+    r&#34;&#34;&#34;Estimate the correlation length of a time series.
+
     For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
 
-    $$\\text{corr}(L) = \\exp(-1) \\approx 0.368$$
+    $$\text{corr}(L) = \exp(-1) \approx 0.368$$
     &#34;&#34;&#34;
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
     if a == 0:
         L = 0
     else:
-        L = 1/np.log(1/a)
+        L = 1/np.log(1/a)  # type: ignore
     return L</code></pre>
 </details>
 </dd>
@@ -518,7 +522,7 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L136-L166" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L138-L168" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean_with_conf(xx):
     &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
@@ -562,7 +566,7 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L198-L217" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L200-L219" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def monitor_setitem(cls):
     &#34;&#34;&#34;Modify cls to track of whether its ``__setitem__`` has been called.
@@ -613,7 +617,7 @@ UncertainQtty(val=1, conf=1)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L83-L133" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L84-L135" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@dataclass
 class UncertainQtty():
@@ -633,11 +637,12 @@ class UncertainQtty():
     &gt;&gt;&gt; UncertainQtty(1.2345, 1)
     UncertainQtty(val=1, conf=1)
     &#34;&#34;&#34;
+
     val: float
     conf: float
 
-    def round(self, mult=1.0):
-        &#34;&#34;&#34;Round intelligently:
+    def round(self, mult=1.0):  # noqa
+        &#34;&#34;&#34;Round intelligently.
 
         - conf to 1 sigfig.
         - val:
@@ -684,7 +689,7 @@ class UncertainQtty():
 <span>def <span class="ident">round</span></span>(<span>self, mult=1.0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Round intelligently:</p>
+<div class="desc"><p>Round intelligently.</p>
 <ul>
 <li>conf to 1 sigfig.</li>
 <li>val:<ul>
@@ -696,10 +701,10 @@ class UncertainQtty():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L104-L120" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L106-L122" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def round(self, mult=1.0):
-    &#34;&#34;&#34;Round intelligently:
+<pre><code class="python">def round(self, mult=1.0):  # noqa
+    &#34;&#34;&#34;Round intelligently.
 
     - conf to 1 sigfig.
     - val:
@@ -727,7 +732,7 @@ class UncertainQtty():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L169-L195" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L171-L197" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class StatPrint(NicePrint):
     &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
@@ -791,7 +796,7 @@ class UncertainQtty():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L220-L235" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L222-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@monitor_setitem
 class DataSeries(StatPrint):
@@ -868,7 +873,7 @@ self[k,whatever,'u']
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L238-L294" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L240-L296" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@monitor_setitem
 class FAUSt(DataSeries, StatPrint):
@@ -949,7 +954,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L283-L283" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L285-L285" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">item_shape = property(lambda self: self.a.shape[1:])</code></pre>
 </details>
@@ -960,7 +965,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L284-L284" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L286-L286" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">store_u    = property(lambda self: len(self.u) &gt; 1)</code></pre>
 </details>
@@ -977,7 +982,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L297-L346" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L299-L348" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RollingArray:
     &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
@@ -1019,7 +1024,7 @@ class FAUSt(DataSeries, StatPrint):
     def T(self):
         return self.array.T
 
-    def __array__(self, dtype=None): return self.array
+    def __array__(self, dtype=None): return self.array(dtype=dtype)
     def __len__(self): return len(self.array)
     def __repr__(self): return &#39;RollingArray:\n%s&#39; % str(self.array)
     def __getitem__(self, key): return self.array[key]
@@ -1038,7 +1043,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L333-L335" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L335-L337" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def T(self):
@@ -1056,7 +1061,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L307-L325" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L309-L327" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def insert(self, k, val):
     dk = k-self.k1
@@ -1087,7 +1092,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L327-L328" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L329-L330" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def leftmost(self):
     return self[len(self)-self.nFilled]</code></pre>
@@ -1101,7 +1106,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L330-L331" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L332-L333" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def span(self):
     return (self.leftmost(),  self[-1])</code></pre>

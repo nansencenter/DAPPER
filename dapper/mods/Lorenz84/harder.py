@@ -1,6 +1,10 @@
-"""The settings of `pajonk2012` are too easy: the average value of `trHK` is 0.013.
+"""Harder settings than in `dapper.mods.Lorenz84.pajonk2012`.
 
-Here we increase `dkObs` to make the DA problem more difficult."""
+This was adjudged by noting that with their settings,
+the average val. of `trHK` is 0.013.
+
+Here we increase `dkObs` to make the DA problem more difficult.
+"""
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz84.pajonk2012 import HMM

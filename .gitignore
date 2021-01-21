@@ -90,3 +90,7 @@ old_version.zip
 .coverage
 
 todo.md
+docs/imgs/NORCE-logo-blue.png
+
+.ignore
+pyrightconfig.json

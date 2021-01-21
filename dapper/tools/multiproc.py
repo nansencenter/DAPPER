@@ -43,7 +43,7 @@ import threadpoolctl
 threadpoolctl.threadpool_limits(1)
 
 
-def map(func, xx, **kwargs):
+def map(func, xx, **kwargs):  # noqa
     """A parallelized version of map.
 
     Similar to:
@@ -69,7 +69,6 @@ def map(func, xx, **kwargs):
 
     See example use in `dapper.mods.QG`
     """
-
     NPROC = None  # None => multiprocessing.cpu_count()
     pool = mpd.Pool(NPROC)
 

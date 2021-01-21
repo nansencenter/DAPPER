@@ -16,25 +16,24 @@ PERIODIC = True
 
 
 def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
-    """Euclidian distance (un-squared) between pts in A and B.
+    """Euclidian distance (un-squared) between pts. in `A` and `B`.
 
-    - A: 2-dim array of shape (npts,ndim).
-         If A is 1-dim, then (ndim)<--A.shape, npts<--(,).
-    - B: same as for A (npts can differ).
-    - returns distances as an array of shape (npts_A, npts_B)
+    - `A`: 2-dim array of shape `(npts, ndim)`.
+      If `A` is 1-dim, then `(ndim)<--A.shape, npts<--(,)`.
+    - `B`: same as for `A` (`npts` can differ).
+    - returns distances as an array of shape `(npts_A, npts_B)`
 
     These are equal:
-    >>> pairwise_distances(A,periodic=False)
+    >>> pairwise_distances(A, periodic=False)
     >>> squareform(pdist(A)) # 2x slower
 
-    But pairwise_distances allows comparing two different pts A to pts B
+    But `pairwise_distances` allows comparing two different pts `A` to pts `B`
     (without the augmentation/block tricks needed for pdist).
 
-    Also, the ``periodic`` option is provided.
-    It assumes the domain is a hyper-rectangle with edge lengths: ``domain``.
+    Also, the `periodic` option is provided.
+    It assumes the domain is a hyper-rectangle with edge lengths: `domain`.
     NB: Behaviour not defined for any(A.max(0) > domain), and likewise for B.
     """
-
     if B is None:
         B = A
 
@@ -114,9 +113,10 @@ def dist2coeff(dists, radius, tag=None):
 
 
 def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
-    """Returns
-    inds   : the indices of pts that are "close to" centre.
-    coeffs : the corresponding tapering coefficients.
+    """Compute indices and coefficients of localization.
+
+    - inds   : the indices of pts that are "close to" centre.
+    - coeffs : the corresponding tapering coefficients.
     """
     if cutoff is None:
         cutoff = CUTOFF
@@ -133,12 +133,12 @@ def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
 def localization_setup(y2x_distances, batches):
 
     def localization_now(radius, direction, t, tag=None):
-        "Provide localization setup for time t."
+        """Provide localization setup for time t."""
         y2x = y2x_distances(t)
 
         if direction == 'x2y':
             def obs_taperer(batch):
-                # Don't use ``batch = batches[iBatch]``
+                # Don't use `batch = batches[iBatch]`
                 # (with iBatch as this function's input).
                 # This would slow down multiproc.,
                 # coz batches gets copied to each process.
@@ -164,9 +164,10 @@ def no_localization(Nx, Ny):
         return np.arange(Nx), np.ones(Nx)
 
     def localization_now(radius, direction, t, tag=None):
-        """Returns all indices, with all tapering coeffs=1.
+        """Returns all of the indices, with all tapering coeffs. set to 1.
 
-        Used to validate local DA methods [eg LETKF<==>EnKF('Sqrt')]."""
+        Used to validate local DA methods, eg. `LETKF<==>EnKF('Sqrt')`.
+        """
         assert radius == np.inf, "Localization functions not specified"
 
         if direction == 'x2y':
@@ -246,9 +247,7 @@ def nd_Id_localization(shape,
                        batch_shape=None,
                        obs_inds=None,
                        periodic=PERIODIC):
-    """Localize Id (direct) point obs of an
-    N-D, homogeneous, rectangular domain."""
-
+    """Localize Id (direct) point obs of an N-D, homogeneous, rectangular domain."""
     M = np.prod(shape)
 
     if batch_shape is None:

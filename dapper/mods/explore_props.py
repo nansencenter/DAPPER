@@ -1,6 +1,6 @@
-"""Estimtate the Lyapunov spectrum using an ensemble of perturbations.
+"""Estimtate the Lyapunov spectrum using an ensemble of perturbations."""
 
-An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}."""
+# An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}.
 
 import numpy as np
 import scipy.linalg as sla

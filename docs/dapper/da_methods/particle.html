@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L0-L649" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L0-L654" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Weight- &amp; resampling-based DA methods.&#34;&#34;&#34;
 
@@ -56,7 +56,8 @@ from . import da_method
 
 @da_method
 class particle_method:
-    &#34;Declare default particle arguments.&#34;
+    &#34;&#34;&#34;Declare default particle arguments.&#34;&#34;&#34;
+
     NER: float = 1.0
     resampl: str = &#39;Sys&#39;
 
@@ -80,6 +81,7 @@ class PartFilt:
        The weights are updated to maintain un-biased-ness.
        See `bib.chen2003bayesian`, section VI-M.2
     &#34;&#34;&#34;
+
     N: int
     reg: float   = 0
     nuj: bool    = True
@@ -139,6 +141,7 @@ class OptPF:
               If ``Qs==0``: OptPF should be equal to
               the bootstrap filter :func:`PartFilt`.
     &#34;&#34;&#34;
+
     N: int
     Qs: float
     reg: float   = 0
@@ -194,9 +197,7 @@ class OptPF:
 
 @particle_method
 class PFa:
-    &#34;&#34;&#34;PF with weight adjustment withOUT
-
-    compensating for the bias it introduces.
+    &#34;&#34;&#34;PF with weight adjustment withOUT compensating for the bias it introduces.
 
     &#39;alpha&#39; sets wroot before resampling such that N_effective becomes &gt;alpha*N.
 
@@ -213,6 +214,7 @@ class PFa:
 
     Hybridization with xN did not show much promise.
     &#34;&#34;&#34;
+
     N: int
     alpha: float
     reg: float   = 0
@@ -285,6 +287,7 @@ class PFxN_EnKF:
     Here, we will use the posterior mean of (2) and cov of (1).
     Or maybe we should use x_a^n distributed according to a sqrt update?
     &#34;&#34;&#34;
+
     N: int
     Qs: float
     xN: int
@@ -402,6 +405,7 @@ class PFxN:
     Additional idea: employ w-adjustment to obtain N unique particles,
     without jittering.
     &#34;&#34;&#34;
+
     N: int
     Qs: float
     xN: int
@@ -464,8 +468,7 @@ class PFxN:
 
 
 def trigger_resampling(w, NER, stat_args):
-    &#34;Return boolean: N_effective &lt;= threshold. Also write stats.&#34;
-
+    &#34;&#34;&#34;Return boolean: N_effective &lt;= threshold. Also write stats.&#34;&#34;&#34;
     N_eff       = 1/(w@w)
     do_resample = N_eff &lt;= len(w)*NER
 
@@ -485,7 +488,7 @@ def trigger_resampling(w, NER, stat_args):
 
 
 def all_but_1_is_None(*args):
-    &#34;Check if only 1 of the items in list are Truthy&#34;
+    &#34;&#34;&#34;Check if only 1 of the items in list are Truthy.&#34;&#34;&#34;
     return sum(x is not None for x in args) == 1
 
 
@@ -542,7 +545,9 @@ def raw_C12(E, w):
 
 
 def mask_unique_of_sorted(idx):
-    &#34;NB: returns a mask which is True at [i] iff idx[i] is NOT unique.&#34;
+    &#34;&#34;&#34;Find unique values assuming `idx` is sorted.
+
+    NB: returns a mask which is `True` at `[i]` iff `idx[i]` is *not* unique.&#34;&#34;&#34;
     duplicates  = idx == np.roll(idx, 1)
     duplicates |= idx == np.roll(idx, -1)
     return duplicates
@@ -709,11 +714,10 @@ def sample_quickly_with(C12, N=None):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L422-L440" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L426-L443" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def trigger_resampling(w, NER, stat_args):
-    &#34;Return boolean: N_effective &lt;= threshold. Also write stats.&#34;
-
+    &#34;&#34;&#34;Return boolean: N_effective &lt;= threshold. Also write stats.&#34;&#34;&#34;
     N_eff       = 1/(w@w)
     do_resample = N_eff &lt;= len(w)*NER
 
@@ -736,14 +740,14 @@ def sample_quickly_with(C12, N=None):
 <span>def <span class="ident">all_but_1_is_None</span></span>(<span>*args)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Check if only 1 of the items in list are Truthy</p></div>
+<div class="desc"><p>Check if only 1 of the items in list are Truthy.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L443-L445" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L446-L448" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def all_but_1_is_None(*args):
-    &#34;Check if only 1 of the items in list are Truthy&#34;
+    &#34;&#34;&#34;Check if only 1 of the items in list are Truthy.&#34;&#34;&#34;
     return sum(x is not None for x in args) == 1</code></pre>
 </details>
 </dd>
@@ -760,7 +764,7 @@ Output is non-log, for the purpose of assessment and resampling.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L448-L477" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L451-L480" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reweight(w, lklhd=None, logL=None, innovs=None):
     &#34;&#34;&#34;Do Bayes&#39; rule (for the empirical distribution of an importance sample).
@@ -805,7 +809,7 @@ and also computed based on a weighted mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L480-L497" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L483-L500" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def raw_C12(E, w):
     &#34;&#34;&#34;Compute the &#39;raw&#39; matrix-square-root of the ensemble&#39; covariance.
@@ -831,14 +835,17 @@ and also computed based on a weighted mean.</p></div>
 <span>def <span class="ident">mask_unique_of_sorted</span></span>(<span>idx)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>NB: returns a mask which is True at [i] iff idx[i] is NOT unique.</p></div>
+<div class="desc"><p>Find unique values assuming <code>idx</code> is sorted.</p>
+<p>NB: returns a mask which is <code>True</code> at <code>[i]</code> iff <code>idx[i]</code> is <em>not</em> unique.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L500-L504" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L503-L509" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mask_unique_of_sorted(idx):
-    &#34;NB: returns a mask which is True at [i] iff idx[i] is NOT unique.&#34;
+    &#34;&#34;&#34;Find unique values assuming `idx` is sorted.
+
+    NB: returns a mask which is `True` at `[i]` iff `idx[i]` is *not* unique.&#34;&#34;&#34;
     duplicates  = idx == np.roll(idx, 1)
     duplicates |= idx == np.roll(idx, -1)
     return duplicates</code></pre>
@@ -853,7 +860,7 @@ and also computed based on a weighted mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L507-L512" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L512-L517" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def auto_bandw(N, M):
     &#34;&#34;&#34;&#34;Optimal bandwidth (not bandwidth^2), as per Scott&#39;s rule-of-thumb.
@@ -879,7 +886,7 @@ Ref: <code><a title="bib.doucet2001sequential" href="../../bib.html#bib.doucet20
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L515-L538" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L520-L543" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def regularize(C12, E, idx, no_uniq_jitter):
     &#34;&#34;&#34;Jitter (add noise).
@@ -947,7 +954,7 @@ have more informative (and less variable) future likelihoods.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L541-L596" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L546-L601" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def resample(w, kind=&#39;Systematic&#39;, N=None, wroot=1.0):
     &#34;&#34;&#34;Multinomial resampling.
@@ -1016,7 +1023,7 @@ have more informative (and less variable) future likelihoods.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L632-L650" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L637-L655" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample_quickly_with(C12, N=None):
     &#34;&#34;&#34;Gaussian sampling in the quickest fashion.
@@ -1066,7 +1073,7 @@ See <code><a title="bib.chen2003bayesian" href="../../bib.html#bib.chen2003bayes
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L20-L85" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L21-L87" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class PartFilt:
@@ -1087,6 +1094,7 @@ class PartFilt:
        The weights are updated to maintain un-biased-ness.
        See `bib.chen2003bayesian`, section VI-M.2
     &#34;&#34;&#34;
+
     N: int
     reg: float   = 0
     nuj: bool    = True
@@ -1180,7 +1188,7 @@ class PartFilt:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L49-L85" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L51-L87" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1238,7 +1246,7 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L88-L148" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L90-L151" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class OptPF:
@@ -1250,6 +1258,7 @@ class OptPF:
               If ``Qs==0``: OptPF should be equal to
               the bootstrap filter :func:`PartFilt`.
     &#34;&#34;&#34;
+
     N: int
     Qs: float
     reg: float   = 0
@@ -1347,7 +1356,7 @@ class OptPF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L104-L148" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L107-L151" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1403,8 +1412,7 @@ class OptPF:
 <span>(</span><span>N: int, alpha: float, reg: float = 0, nuj: bool = True, qroot: float = 1.0, NER: float = 1.0, resampl: str = 'Sys')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>PF with weight adjustment withOUT</p>
-<p>compensating for the bias it introduces.</p>
+<div class="desc"><p>PF with weight adjustment withOUT compensating for the bias it introduces.</p>
 <p>'alpha' sets wroot before resampling such that N_effective becomes &gt;alpha*N.</p>
 <p>Using alpha≈NER usually works well.</p>
 <p>Explanation:
@@ -1418,13 +1426,11 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L151-L226" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L154-L228" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class PFa:
-    &#34;&#34;&#34;PF with weight adjustment withOUT
-
-    compensating for the bias it introduces.
+    &#34;&#34;&#34;PF with weight adjustment withOUT compensating for the bias it introduces.
 
     &#39;alpha&#39; sets wroot before resampling such that N_effective becomes &gt;alpha*N.
 
@@ -1441,6 +1447,7 @@ class PFa:
 
     Hybridization with xN did not show much promise.
     &#34;&#34;&#34;
+
     N: int
     alpha: float
     reg: float   = 0
@@ -1542,7 +1549,7 @@ class PFa:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L178-L226" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L180-L228" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1617,7 +1624,7 @@ Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L229-L348" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L231-L351" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class PFxN_EnKF:
@@ -1634,6 +1641,7 @@ class PFxN_EnKF:
     Here, we will use the posterior mean of (2) and cov of (1).
     Or maybe we should use x_a^n distributed according to a sqrt update?
     &#34;&#34;&#34;
+
     N: int
     Qs: float
     xN: int
@@ -1785,7 +1793,7 @@ class PFxN_EnKF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L250-L348" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L253-L351" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1903,7 +1911,7 @@ without jittering.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L351-L419" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L354-L423" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@particle_method
 class PFxN:
@@ -1915,6 +1923,7 @@ class PFxN:
     Additional idea: employ w-adjustment to obtain N unique particles,
     without jittering.
     &#34;&#34;&#34;
+
     N: int
     Qs: float
     xN: int
@@ -2020,7 +2029,7 @@ class PFxN:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L367-L419" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L371-L423" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \

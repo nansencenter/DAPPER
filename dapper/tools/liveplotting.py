@@ -24,10 +24,11 @@ class LivePlot:
 
     Deals with
 
-     - Pause, skip.
-     - Which liveploters to call.
-     - `plot_u`
-     - Figure window (title and number)."""
+    - Pause, skip.
+    - Which liveploters to call.
+    - `plot_u`
+    - Figure window (title and number).
+    """
 
     def __init__(self,
                  stats,
@@ -53,7 +54,6 @@ class LivePlot:
                       plt.draw() to work on a moderately fast computer.
             - `<1`  : slower.
         """
-
         # Disable if not rc.liveplotting
         self.any_figs = False
         if not rc.liveplotting:
@@ -79,7 +79,7 @@ class LivePlot:
         self.params.update(kwargs)
 
         def get_name(init):
-            "Get name of liveplotter function/class."
+            """Get name of liveplotter function/class."""
             try:
                 return init.__qualname__.split(".")[0]
             except AttributeError:
@@ -96,7 +96,7 @@ class LivePlot:
             potential_LPs[get_name(init)] = num, show, init
 
         def parse_figlist(lst):
-            "Figures requested for this xp. Convert to list."
+            """Figures requested for this xp. Convert to list."""
             if isinstance(lst, str):
                 fn = lst.lower()
                 if "all" == fn:
@@ -145,7 +145,6 @@ class LivePlot:
 
     def update(self, key, E, P):
         """Update liveplots"""
-
         # Check if there are still open figures
         if self.any_figs:
             open_figns = plt.get_fignums()
@@ -160,7 +159,7 @@ class LivePlot:
         ENTERs = [b'\n', b'\r']  # Linux + Windows
 
         def pause():
-            "Loop until user decision is made."
+            """Loop until user decision is made."""
             ch = read1()
             while True:
                 # Set state (pause, skipping, ipdb)
@@ -231,6 +230,7 @@ star = "${}^*$"
 
 
 class sliding_diagnostics:
+    """Plots a sliding window (like a heart rate monitor) of certain diagnostics."""
 
     def __init__(self, fignum, stats, key0, plot_u,
                  E, P, Tplot=None, **kwargs):
@@ -406,7 +406,7 @@ class sliding_diagnostics:
         # Set y-limits
         data0 = [ln['data'].array for ln in self.d[0].values()]
         data1 = [ln['data'].array for ln in self.d[1].values()]
-        ax0.set_ylim(0, d_ylim(data0, ax0,              cC=0.2, cE=0.9)[1])
+        ax0.set_ylim(0, d_ylim(data0, ax0             , cC=0.2, cE=0.9)[1])
         ax1.set_ylim(*d_ylim(data1, ax1, Max=4, Min=-4, cC=0.3, cE=0.9))
 
         # Init legend. Rm nan lines.
@@ -439,6 +439,7 @@ def sliding_xlim(ax, tt, lag, margin=False):
 
 
 class weight_histogram:
+    """Plots histogram of weights. Refreshed each analysis."""
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
         if not hasattr(stats, 'w'):
@@ -478,6 +479,7 @@ class weight_histogram:
 
 
 class spectral_errors:
+    """Plots the (spatial-RMS) error as a functional of the SVD index."""
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
         fig, ax = freshfig(fignum, (6, 3), loc='3333')
@@ -525,6 +527,8 @@ class spectral_errors:
 
 
 class correlations:
+    """Plots the state (auto-)correlation matrix."""
+
     half = True  # Whether to show half/full (symmetric) corr matrix.
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
@@ -643,11 +647,11 @@ def circulant_ACF(C, do_abs=False):
 
 
 def sliding_marginals(
-    obs_inds     = [],
-    dims         = [],
-    labels       = [],
+    obs_inds     = (),
+    dims         = (),
+    labels       = (),
     Tplot        = None,
-    ens_props    = dict(alpha=0.4),
+    ens_props    = dict(alpha=0.4),  # noqa
     zoomy        = 1.0,
 ):
 
@@ -728,7 +732,7 @@ def sliding_marginals(
             h.s  = []
 
         # Plot (invisible coz everything here is nan, for the moment).
-        for ix, (m, iy, ax) in enumerate(zip(DimsX, DimsY, axs)):
+        for ix, (_m, iy, ax) in enumerate(zip(DimsX, DimsY, axs)):
             if True:
                 h.x  += ax.plot(d.t, d.x[:, ix], 'k')
             if iy != None:
@@ -763,7 +767,7 @@ def sliding_marginals(
                     d.x .insert(ind, xx[k, DimsX])
 
             # Update graphs
-            for ix, (m, iy, ax) in enumerate(zip(DimsX, DimsY, axs)):
+            for ix, (_m, iy, ax) in enumerate(zip(DimsX, DimsY, axs)):
                 sliding_xlim(ax, d.t, T_lag, True)
                 if True:
                     h.x[ix]   .set_data(d.t, d.x[:, ix])
@@ -785,11 +789,11 @@ def sliding_marginals(
 
 def phase_particles(
     is_3d        = True,
-    obs_inds     = [],
-    dims         = [],
-    labels       = [],
+    obs_inds     = (),
+    dims         = (),
+    labels       = (),
     Tplot        = None,
-    ens_props    = dict(alpha=0.4),
+    ens_props    = dict(alpha=0.4),  # noqa
     zoom         = 1.5,
 ):
 
@@ -865,10 +869,11 @@ def phase_particles(
             s.E   = ax.scatter(*E.T[p.dims], s=3 ** 2,
                                c=[hn  .get_color() for hn in h.E])
         if 'mu' in d:
-            s.mu  = ax.scatter(*ones(M), s=8 ** 2, c=[h.mu.get_color(), ])
+            s.mu  = ax.scatter(*ones(M), s=8 ** 2,
+                               c=[(h.mu.get_color(), )])
         if True:
             s.x   = ax.scatter(*ones(M), s=14**2,
-                               c=[h.x.get_color(), ], marker=(5, 1), zorder=99)
+                               c=[(h.x.get_color(), )], marker=(5, 1), zorder=99)
 
         def update(key, E, P):
             k, kObs, faus = key
@@ -921,11 +926,11 @@ def phase_particles(
 def validate_lag(Tplot, chrono):
     """Return validated `T_lag` such that is is:
 
-     - equal to `Tplot` with fallback: `HMM.t.Tplot`.
-     - no longer than `HMM.t.T`.
+    - equal to `Tplot` with fallback: `HMM.t.Tplot`.
+    - no longer than `HMM.t.T`.
 
-     Also return corresponding `K_lag`, `a_lag`."""
-
+    Also return corresponding `K_lag`, `a_lag`.
+    """
     # Defaults
     if Tplot is None:
         Tplot = chrono.Tplot
@@ -954,8 +959,7 @@ def comp_K_plot(K_lag, a_lag, plot_u):
 
 
 def update_alpha(key, stats, lines, scatters=None):
-    "Adjust color alpha (for particle filters)"
-
+    """Adjust color alpha (for particle filters)."""
     k, kObs, faus = key
     if kObs is None:
         return
@@ -981,7 +985,7 @@ def update_alpha(key, stats, lines, scatters=None):
 
 
 def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
-    "Particle filter: insert breaks for resampled particles."
+    """Particle filter: insert breaks for resampled particles."""
     if E is None:
         return [E]
     EE = []
@@ -1025,7 +1029,6 @@ def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
     the cost of this subroutine is typically not substantial
     because there's usually not that much data to sort through.
     """
-
     # Find "reasonable" limits (by percentiles), looping over data
     maxv = minv = -np.inf  # init
     for d in data:
@@ -1076,8 +1079,8 @@ def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
 def spatial1d(
     obs_inds     = None,
     periodicity  = None,
-    dims         = [],
-    ens_props    = {'color': 'k', 'alpha': 0.1},
+    dims         = (),
+    ens_props    = {'color': 'k', 'alpha': 0.1},  # noqa
     conf_mult    = None,
 ):
 
@@ -1118,14 +1121,12 @@ def spatial1d(
             line_mu, = ax.plot(ii, nan1, 'b-', lw=2, label='DA mean')
         else:
             nanE     = nan*ones((stats.xp.N, M))
-            lines_E  = ax.plot(ii, wrap(nanE[0]),    **p.ens_props, lw=1,
-                               label='Ensemble')
+            lines_E  = ax.plot(ii, wrap(nanE[0]), **p.ens_props, lw=1, label='Ensemble')
             lines_E += ax.plot(ii, wrap(nanE[1:]).T, **p.ens_props, lw=1)
         # Truth, Obs
-        line_x,      = ax.plot(ii, nan1, 'k-', lw=3, label='Truth')
+        (line_x, )   = ax.plot(ii, nan1, 'k-', lw=3, label='Truth')
         if p.obs_inds is not None:
-            line_y,  = ax.plot(p.obs_inds, nan*p.obs_inds, 'g*', ms=5,
-                               label='Obs')
+            (line_y, ) = ax.plot(p.obs_inds, nan*p.obs_inds, 'g*', ms=5, label='Obs')
 
         # Tune plot
         ax.set_ylim(*viz.xtrema(xx))
@@ -1186,7 +1187,7 @@ def spatial2d(
     ind2sub,
     obs_inds = None,
     cm       = plt.cm.jet,
-    clims    = [(-40, 40), (-40, 40), (-10, 10), (-10, 10)],
+    clims    = ((-40, 40), (-40, 40), (-10, 10), (-10, 10)),
 ):
 
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
@@ -1293,8 +1294,11 @@ def spatial2d(
 
 
 # List of liveplotters available for all HMMs.
+# Columns:
+# - fignum
+# - show_by_default
+# - function/class
 default_liveplotters = [
-    # num  show_by_default  function/class
-    (1,  1,               sliding_diagnostics),
-    (4,  1,               weight_histogram),
+    (1, 1, sliding_diagnostics),
+    (4, 1, weight_histogram),
 ]

@@ -56,11 +56,11 @@ def get_call():
     # Walk syntax tree
     class Visitor(ast.NodeVisitor):
         """Get info on call if name and lineno match."""
+
         # Inspiration for relevant parts of AST:
         # https://docs.python.org/3/library/ast.html#abstract-grammar
         # https://docs.python.org/3/library/ast.html#ast.Call
         # http://alexleone.blogspot.com/2010/01/python-ast-pretty-printer.html
-
         def visit_Call(self, node):
             node_id = getattr(node.func, "id", None)
             if node_id == func_name:
@@ -123,7 +123,6 @@ def spell_out(*args):
     >>> 3*2:
     >>> 6
     """
-
     call, _, loc = get_call()
 
     # Find opening/closing brackets

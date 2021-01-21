@@ -30,7 +30,6 @@ class Stats(StatPrint):
         add custom stat. series to a Stat instance within a particular method,
         for example. Use ``new_series`` to get automatic averaging too.
         """
-
         ######################################
         # Preamble
         ######################################
@@ -47,7 +46,7 @@ class Stats(StatPrint):
         Nx   = xx.shape[1]
         KObs = yy.shape[0]-1
         Ny   = yy.shape[1]
-        self.K,    self.Nx = K, Nx
+        self.K   , self.Nx = K, Nx
         self.KObs, self.Ny = KObs, Ny
 
         # Methods for summarizing multivariate stats ("fields") as scalars
@@ -73,13 +72,13 @@ class Stats(StatPrint):
         ######################################
         # Allocate time series of various stats
         ######################################
-        self.new_series('mu',     Nx, MS='sec')  # Mean
-        self.new_series('std',    Nx, MS='sec')  # Std. dev. ("spread")
-        self.new_series('err',    Nx, MS='sec')  # Error (mu - truth)
+        self.new_series('mu'    , Nx, MS='sec')  # Mean
+        self.new_series('std'   , Nx, MS='sec')  # Std. dev. ("spread")
+        self.new_series('err'   , Nx, MS='sec')  # Error (mu - truth)
         self.new_series('gscore', Nx, MS='sec')  # Gaussian (log) score
 
         # To save memory, we only store these field means:
-        self.new_series('mad',  1)  # Mean abs deviations
+        self.new_series('mad' , 1)  # Mean abs deviations
         self.new_series('skew', 1)  # Skewness
         self.new_series('kurt', 1)  # Kurtosis
 
@@ -106,13 +105,13 @@ class Stats(StatPrint):
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series('trHK',  1, KObs+1)
-        self.new_series('infl',  1, KObs+1)
+        self.new_series('trHK' , 1, KObs+1)
+        self.new_series('infl' , 1, KObs+1)
         self.new_series('iters', 1, KObs+1)
 
         # Weight-related
-        self.new_series('N_eff',  1, KObs+1)
-        self.new_series('wroot',  1, KObs+1)
+        self.new_series('N_eff' , 1, KObs+1)
+        self.new_series('wroot' , 1, KObs+1)
         self.new_series('resmpl', 1, KObs+1)
 
     def new_series(self, name, shape, length='FAUSt', MS=False, **kws):
@@ -127,7 +126,6 @@ class Stats(StatPrint):
             to avoid plotting stats that are not being used.
             => Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
         """
-
         # Convert int shape to tuple
         if not hasattr(shape, '__len__'):
             if shape == 1:
@@ -176,7 +174,6 @@ class Stats(StatPrint):
               the forecast/analysis/universal attribute.
               Default: 'u' if kObs is None else 'au' ('a' and 'u').
         """
-
         # Initial consistency checks.
         if k == 0:
             if kObs is not None:
@@ -242,7 +239,7 @@ class Stats(StatPrint):
                     self, self.liveplots, (k, kObs, sub), E, Cov)
 
     def summarize_marginals(self, now):
-        "Compute Mean-field and RMS values"
+        """Compute Mean-field and RMS values"""
         formulae = {**self.field_summaries, **self.sector_summaries}
 
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -418,7 +415,6 @@ class Stats(StatPrint):
         .. note:: Ensembles are generally not stored in the stats
         and so cannot be replayed.
         """
-
         # Time settings
         chrono = self.HMM.t
         if t2 is None:
@@ -442,7 +438,7 @@ class Stats(StatPrint):
         desc = self.xp.da_method + " (replay)"
 
         # Play through assimilation cycles
-        for k, kObs, t, dt in progbar(chrono.ticker, desc):
+        for k, kObs, t, _dt in progbar(chrono.ticker, desc):
             if t1 <= t <= t2:
                 if kObs is not None:
                     LP.update((k, kObs, 'f'), None, None)
@@ -452,7 +448,7 @@ class Stats(StatPrint):
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
         if LP.any_figs:
-            for name, (num, updater) in LP.figures.items():
+            for _name, (num, updater) in LP.figures.items():
                 if plt.fignum_exists(num) and getattr(updater, 'is_active', 1):
                     plt.figure(num)
                     plt.pause(0.01)
@@ -483,7 +479,6 @@ class Avrgs(StatPrint, struct_tools.DotDict):
     # Use getattribute coz it gets called before getattr.
     def __getattribute__(self, key):
         """Support deep and abbreviated lookup."""
-
         # key = abbrevs[key] # Instead of this, also support rmse.a:
         key = '.'.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split('.'))
 
@@ -524,7 +519,6 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
       Custom ``frmt`` also supported.
     - Pad (on the right) each row so that the widths are equal.
     """
-
     def preprocess(x):
         try:
             # Custom frmt supplied
@@ -575,7 +569,6 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
     - Insert None (in each col) if uq is None.
     - Apply uq.round() when extracting val & conf.
     """
-
     def unpack1(arr, i, uq):
         if uq is None:
             return
@@ -603,7 +596,6 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
 
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     """Tabulate avrgs (val±conf)."""
-
     if not statkeys:
         statkeys = ['rmse.a', 'rmv.a', 'rmse.f']
 

@@ -25,7 +25,11 @@ your own **model** or **method**, then
     - `mods`
     - `da_methods`
 
-## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
+## Features
+
+The main features are listed in
+[README/highlights](https://github.com/nansencenter/DAPPER#Highlights).
+Additionally, there is:
 
 - Parallelisation:
     - (Independent) experiments can run in parallel; see `examples/basic_3.py`
@@ -39,10 +43,12 @@ your own **model** or **method**, then
       and data processing and presentation via `xp_process.xpSpace`.
     - Time sequences use via `tools.chronos.Chronology`
       and`tools.chronos.Ticker`.
-    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
-      as well as support for custom sampling functions.
-    - Covariance matrices via `tools.matrices.CovMat`: provides input flexibility/overloading,
-      lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
+    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform,
+      ..., as well as support for custom sampling functions.
+    - Covariance matrices via `tools.matrices.CovMat`:
+      provides input flexibility/overloading,
+      lazy eval that facilitates the use of non-diagnoal
+      covariance matrices (whether sparse or full).
 - Diagnostics and statistics with
     - Confidence interval on times series (e.g. rmse) averages with
         - automatic correction for autocorrelation

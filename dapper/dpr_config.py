@@ -1,6 +1,7 @@
 """Load default and user configurations into the rc dict.
 
-This includes disabling liveplotting if necessary."""
+This includes disabling liveplotting if necessary.
+"""
 
 import os
 import sys
@@ -55,7 +56,7 @@ LP = rc.liveplotting
 if LP:
     backend = mpl.get_backend().lower()
     non_interactive = ['agg', 'ps', 'pdf', 'svg', 'cairo', 'gdk']
-    LP &= not any([backend == x for x in non_interactive])
+    LP &= not any(backend == x for x in non_interactive)
     # Also disable for inline backends, which are buggy with liveplotting
     LP &= 'inline' not in backend
     LP &= 'nbagg' not in backend

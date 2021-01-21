@@ -25,7 +25,7 @@ beta = 8.0/3
 
 @modelling.ens_compatible
 def dxdt(x):
-    "Evolution equation (coupled ODEs) specifying the dynamics."
+    """Evolution equation (coupled ODEs) specifying the dynamics."""
     d     = np.zeros_like(x)
     x, y, z = x
     d[0]  = sig*(y - x)
@@ -51,7 +51,7 @@ x0 = np.array([1.509, -1.531, 25.46])
 # OPTIONAL (not necessary for EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
-    """Tangent linear model (TLM): Jacobian of dxdt(x)."""
+    """Tangent linear model (TLM). I.e. the Jacobian of dxdt(x)."""
     x, y, z = x
     A = np.array(
         [[-sig, sig, 0],
@@ -61,7 +61,7 @@ def d2x_dtdx(x):
 
 
 def dstep_dx(x, t, dt):
-    """Resolvent (propagator) of the TLM: Jacobian of step(x)."""
+    """Compute resolvent (propagator) of the TLM. I.e. the Jacobian of `step(x)`."""
     return integrate_TLM(d2x_dtdx(x), dt, method='approx')
 
 

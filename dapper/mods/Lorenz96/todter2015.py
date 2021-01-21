@@ -13,7 +13,7 @@ Nx = 80
 Dyn = {
     'M': Nx,
     'model': step,
-    'noise': 0
+    'noise': 0,
 }
 
 X0 = modelling.GaussRV(M=Nx, C=0.001)

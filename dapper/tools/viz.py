@@ -30,14 +30,14 @@ from dapper.tools.rounding import round2sigfig
 
 
 def setup_wrapping(M, periodicity=None):
-    """
-    Wrap the state indices and
-    create a function that does the same for state vectors (or and ensemble thereof).
+    """Make state indices representative for periodic system.
+
+    More accurately: Wrap the state indices and create a function that
+    does the same for state vectors (or and ensemble thereof).
 
     - 'periodicity' defines the mode of the wrapping.
       Default: "+1", meaning that the first element is appended after the last.
     """
-
     if periodicity in (None, True):
         periodicity = "+1"
 
@@ -96,9 +96,9 @@ def amplitude_animation(EE, dt=None, interval=1,
 
 
 def adjust_position(ax, adjust_extent=False, **kwargs):
-    """
-    Adjust values (add) to get_position().
-    kwarg must be one of 'x0','y0','width','height'.
+    """Adjust values (add) to get_position().
+
+    `kwarg` must be one of `x0`, `y0`, `width`, `height`.
     """
     # Load get_position into d
     pos = ax.get_position()
@@ -123,16 +123,16 @@ def xtrema(xx, axis=None):
     return a, b
 
 
-def stretch(a, b, factor=1, int=False):
-    """
-    Stretch distance a-b by factor.
-    Return a,b.
-    If int: floor(a) and ceil(b)
+def stretch(a, b, factor=1, int_=False):
+    """Stretch distance `a-b` by factor.
+
+    Return a, b.
+    If int_: `floor(a)` and `ceil(b)`
     """
     c = (a+b)/2
     a = c + factor*(a-c)
     b = c + factor*(b-c)
-    if int:
+    if int_:
         a = np.floor(a)
         b = np.ceil(b)
     return a, b
@@ -152,9 +152,9 @@ def set_ilim(ax, i, Min=None, Max=None):
 
 
 def estimate_good_plot_length(xx, chrono=None, mult=100):
-    """
-    Estimate good length for plotting stuff
-    from the time scale of the system.
+    """Estimate good length for plotting stuff.
+
+    Tries to estimate the time scale of the system.
     Provide sensible fall-backs (better if chrono is supplied).
     """
     if xx.ndim == 2:
@@ -185,11 +185,11 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
 
 
 def plot_pause(interval):
-    """Similar to plt.pause(), but doesn't focus window.
+    """Similar to `plt.pause`, but doesn't focus window.
 
     NB: doesn't create windows either.
-    For that, use plt.pause() or plt.show() instead."""
-
+    For that, use `plt.pause` or `plt.show` instead.
+    """
     # plt.pause(0) just seems to freeze execution.
     if interval == 0:
         return
@@ -205,7 +205,7 @@ def plot_pause(interval):
         # https://github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
         # from matplotlib import _pylab_helpers
 
-        def _plot_pause(interval,  focus_figure=True):
+        def _plot_pause(interval, focus_figure=True):
             canvas = plt.gcf().canvas
             manager = canvas.manager
             if manager is not None:
@@ -228,9 +228,7 @@ def plot_pause(interval):
 
 
 def plot_hovmoller(xx, chrono=None, **kwargs):
-    """
-    Plot Hovmöller diagram.
-    """
+    """Plot Hovmöller diagram."""
     fig, ax = freshfig(26, figsize=(4, 3.5), loc='331-22')
 
     if chrono is not None:
@@ -296,11 +294,11 @@ def plot_err_components(stats):
     umsft = np.mean(np.abs(stats.umisf.a), 0)
     usprd = np.mean(stats.svals.a, 0)
 
-    ax0.plot(arange(Nx),               err, 'k', lw=2, label='Error')
+    ax0.plot(arange(Nx), err, 'k', lw=2, label='Error')
     if Nx < 10**3:
         ax0.fill_between(arange(Nx), [0]*len(sprd), sprd, alpha=0.7, label='Spread')
     else:
-        ax0.plot(arange(Nx),              sprd, alpha=0.7, label='Spread')
+        ax0.plot(arange(Nx), sprd, alpha=0.7, label='Spread')
     # ax0.set_yscale('log')
     ax0.set_title('Element-wise error comparison')
     ax0.set_xlabel('Dimension index (i)')
@@ -316,7 +314,7 @@ def plot_err_components(stats):
     has_been_computed = np.any(np.isfinite(umsft))
     if has_been_computed:
         L = len(umsft)
-        ax1.plot(arange(L),      umsft, 'k', lw=2, label='Error')
+        ax1.plot(arange(L), umsft, 'k', lw=2, label='Error')
         ax1.fill_between(arange(L), [0]*L, usprd, alpha=0.7, label='Spread')
         ax1.set_yscale('log')
         ax1.get_xaxis().set_major_locator(MaxNLocator(integer=True))
@@ -375,7 +373,7 @@ def plot_rank_histogram(stats):
 
 
 def adjustable_box_or_forced():
-    "For set_aspect(), adjustable='box-forced' replaced by 'box' since mpl 2.2.0."
+    """For set_aspect(), adjustable='box-forced' replaced by 'box' since mpl 2.2.0."""
     from pkg_resources import parse_version as pv
     return 'box-forced' if pv(mpl.__version__) < pv("2.2.0") else 'box'
 
@@ -429,7 +427,7 @@ def show_figs(fignums=None):
 
 
 def get_fig(fignum=None):
-    "Get/validate fig handle"
+    """Get/validate fig handle"""
     if fignum is None:
         return plt.gcf()
     elif isinstance(fignum, mpl.figure.Figure):
@@ -516,7 +514,6 @@ def fig_place(loc, fignum=None):
     >>>   loc = str(N)*2 + str(i)*2
     >>>   fig_place(loc, i)
     """
-
     # NB: Experimental. Fails on some systems/backends.
     if not rc.place_figs:
         return
@@ -558,14 +555,14 @@ def fig_place(loc, fignum=None):
     # Place
     di = i2-i1+1
     dj = j2-j1+1
-    fig_rel_geometry(fignum,  (j1-1)/N,   (i1-1)/M,   dj/N,   di/M)
+    fig_rel_geometry(fignum, (j1-1)/N, (i1-1)/M, dj/N, di/M)
 
 
 # https://stackoverflow.com/a/7396313
 
 
 def autoscale_based_on(ax, line_handles):
-    "Autoscale axis based (only) on line_handles."
+    """Autoscale axis based (only) on line_handles."""
     ax.dataLim = mtransforms.Bbox.unit()
     for iL, lh in enumerate(line_handles):
         xy = np.vstack(lh.get_data()).T
@@ -575,17 +572,16 @@ def autoscale_based_on(ax, line_handles):
 
 def toggle_lines(ax=None, autoscl=True, numbering=False,
                  txtwidth=15, txtsize=None, state=None):
-    """
-    Make checkbuttons to toggle visibility of each line in current plot.
-    autoscl  : Rescale axis limits as required by currently visible lines.
-    numbering: Add numbering to labels.
-    txtwidth : Wrap labels to this length.
+    """Make checkbuttons to toggle visibility of each line in current plot.
+
+    - `autoscl`  : Rescale axis limits as required by currently visible lines.
+    - `numbering`: Add numbering to labels.
+    - `txtwidth` : Wrap labels to this length.
 
     State of checkboxes can be inquired by
-    OnOff = [lh.get_visible() for lh in
-    ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]
+    >>> OnOff = [lh.get_visible() for lh in
+    ...          ax.findobj(lambda x: isinstance(x,mpl.lines.Line2D))[::2]]
     """
-
     if ax is None:
         ax = plt.gca()
     if txtsize is None:
@@ -653,7 +649,6 @@ def toggle_lines(ax=None, autoscl=True, numbering=False,
 
 def toggle_viz(*handles, prompt=False, legend=False, pause=True):
     """Toggle visibility of the graphics with handle handles."""
-
     are_viz = []
     for h in handles:
 
@@ -696,12 +691,9 @@ def toggle_viz(*handles, prompt=False, legend=False, pause=True):
 
 
 class FigSaver(NicePrint):
-    """
-    Simplify exporting a figure, especially when it's part of a series.
-    """
+    """Simplify exporting a figure, especially when it's part of a series."""
 
     def __init__(self, script=None, basename=None, n=-1, ext='.pdf'):
-
         # Defaults
         if script is None:  # Get __file__ of caller
             script = inspect.getfile(inspect.stack()[1][0])
@@ -733,15 +725,14 @@ class FigSaver(NicePrint):
 
 
 def nrowcol(nTotal, AR=1):
-    "Return integer nrows and ncols such that nTotal ≈ nrows*ncols."
+    """Return integer nrows and ncols such that nTotal ≈ nrows*ncols."""
     nrows = int(np.floor(np.sqrt(nTotal)/AR))
     ncols = int(np.ceil(nTotal/nrows))
     return nrows, ncols
 
 
 def axes_with_marginals(n_joint, n_marg, **kwargs):
-    """
-    Create a joint axis along with two marginal axes.
+    """Create a joint axis along with two marginal axes.
 
     Example:
     >>> ax_s, ax_x, ax_y = axes_with_marginals(4, 1)
@@ -750,7 +741,6 @@ def axes_with_marginals(n_joint, n_marg, **kwargs):
     >>> ax_x.hist(x)
     >>> ax_y.hist(y,orientation="horizontal")
     """
-
     N = n_joint + n_marg
 
     # Method 1
@@ -774,16 +764,14 @@ def axes_with_marginals(n_joint, n_marg, **kwargs):
 
 
 def cov_ellipse(ax, mu, sigma, **kwargs):
-    """
-    Draw ellipse corresponding to (Gaussian) 1-sigma countour of cov matrix.
+    r"""Draw ellipse corresponding to (Gaussian) 1-sigma countour of cov matrix.
 
-    Inspired by https://stackoverflow.com/q/17952171
+    [Inspiration](https://stackoverflow.com/q/17952171)
 
     Example:
     >>> ellipse = cov_ellipse(ax, y, R,
     >>>           facecolor='none', edgecolor='y',lw=4,label='$1\\sigma$')
     """
-
     # Cov --> Width, Height, Theta
     vals, vecs = sla.eigh(sigma)
     x, y       = vecs[:, -1]  # x-y components of largest (last) eigenvector
@@ -805,7 +793,8 @@ def cov_ellipse(ax, mu, sigma, **kwargs):
 def axis_scale_by_array(ax, arr, axis='y', nbins=3):
     """Scale axis so that the arr entries appear equidistant.
 
-    The full transformation is piecewise-linear."""
+    The full transformation is piecewise-linear.
+    """
     yy = array([y for y in arr if y is not None], dtype=float)  # rm None
 
     # Make transformation

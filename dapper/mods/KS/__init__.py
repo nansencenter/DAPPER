@@ -33,7 +33,7 @@ def byFourier(func):
 
 
 def Model(dt=0.25, DL=32, Nx=128):
-    "Define step(), x0, etc. Alternative schemes (step_XXX) also implemented."
+    """Define `step`, `x0`, `etc`. Alternative schemes (`step_XXX`) also implemented."""
     h = dt  # alias -- prevents o/w in step()
 
     # Fourier stuff
@@ -130,7 +130,7 @@ def Model(dt=0.25, DL=32, Nx=128):
     grid = DL*np.pi*np.linspace(0, 1, Nx+1)[1:]
     x0_Kassam = np.cos(grid/16) * (1 + np.sin(grid/16))
     x0 = x0_Kassam.copy()
-    for k in range(int(150/h)):
+    for _ in range(int(150/h)):
         x0 = step(x0, np.nan, h)
 
     # Return dict

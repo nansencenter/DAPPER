@@ -1,5 +1,7 @@
-"""Tests with the LA model, which are very useful for testing
-boundary cases of the iEnKS (e.g. nIter=1, Lag=0)."""
+"""Tests with the LA model for the iEnKS.
+
+These are very useful for testing boundary cases of the iEnKS (e.g. nIter=1, Lag=0).
+"""
 
 ##############################
 # Preamble
@@ -22,18 +24,18 @@ def data():
     xps = dpr.xpList(unique=True)
 
     # yapf: disable
-    xps += da.EnKF('Sqrt',    N=20)
+    xps += da.EnKF('Sqrt'   , N=20)
     xps += da.EnKF('PertObs', N=20)
-    xps += da.EnKF('DEnKF',   N=20)
+    xps += da.EnKF('DEnKF'  , N=20)
     for Lag in [0, 1, 3]:
-        xps += da.EnKS('Sqrt',    N=20, Lag=Lag)
+        xps += da.EnKS('Sqrt'   , N=20, Lag=Lag)
         xps += da.EnKS('PertObs', N=20, Lag=Lag)
-        xps += da.EnKS('DEnKF',   N=20, Lag=Lag)
+        xps += da.EnKS('DEnKF'  , N=20, Lag=Lag)
         for nIter in [1, 4]:
             for MDA in [False, True]:
-                xps += da.iEnKS('Sqrt',    N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS('Sqrt'   , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
                 xps += da.iEnKS('PertObs', N=20, Lag=Lag, nIter=nIter, MDA=MDA)
-                xps += da.iEnKS('Order1',  N=20, Lag=Lag, nIter=nIter, MDA=MDA)
+                xps += da.iEnKS('Order1' , N=20, Lag=Lag, nIter=nIter, MDA=MDA)
     # yapf: enable
 
     for xp in xps:
@@ -118,14 +120,16 @@ def test_PertObs_nIter4(data):
     assert _allsame(_rmse(data, 'f', ii))
 
 
-# - u stats equal for filter and (iter/non-iter) smoothers with Lag=0, except MDA with nIter>1:
+# - u stats equal for filter and (iter/non-iter) smoothers with Lag=0,
+#   except MDA with nIter>1:
 def test_PertObs_u(data):
     ii = (data.inds(strict=0, upd_a='PertObs', MDA=0, Lag=0) +
           data.inds(strict=1, upd_a='PertObs', MDA=1, Lag=0, nIter=1))
     assert _allsame(_rmse(data, 'u', ii))
 
 
-# - u stats equal for            (iter/non-iter) smoothers with Lag=1, except MDA with nIter>1:
+# - u stats equal for            (iter/non-iter) smoothers with Lag=1,
+#   except MDA with nIter>1:
 def test_PertObs_Lag1_u(data):
     ii = data.inds(upd_a='PertObs', Lag=1)
     ii.remove(data.inds(upd_a='PertObs', Lag=1, MDA=1, nIter=4)[0])
@@ -133,7 +137,8 @@ def test_PertObs_Lag1_u(data):
     assert _allsame(_rmse(data, 's', ii))
 
 
-# - u stats equal for            (iter/non-iter) smoothers with Lag=3, except MDA with nIter>1:
+# - u stats equal for            (iter/non-iter) smoothers with Lag=3,
+#   except MDA with nIter>1:
 def test_PertObs_Lag3_u(data):
     ii = data.inds(upd_a='PertObs', Lag=3)
     ii.remove(data.inds(upd_a='PertObs', Lag=3, MDA=1, nIter=4)[0])

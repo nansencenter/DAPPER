@@ -100,7 +100,6 @@ def run_experiment(xp, label, savedir, HMM,
     fail_gently: bool
         Whether (or not) to propagate exceptions.
     """
-
     # We should copy HMM so as not to cause any nasty surprises such as
     # expecting param=1 when param=2 (coz it's not been reset).
     # NB: won't copy implicitly ref'd obj's (like L96's core). => bug w/ MP?
@@ -140,7 +139,7 @@ def _print_cropped_traceback(ERR):
         msg = "Traceback (most recent call last):\n"
         try:
             # If in IPython, use its coloring functionality
-            __IPYTHON__  # noqa
+            __IPYTHON__  # type: ignore
             from IPython.core.debugger import Pdb
             pdb_instance = Pdb()
             pdb_instance.curframe = inspect.currentframe()
@@ -198,7 +197,8 @@ class xpList(list):
     """
 
     def __init__(self, *args, unique=False):
-        """
+        """Construct as follows.
+
         Parameters
         ----------
         args: entries
@@ -210,7 +210,6 @@ class xpList(list):
             Use `extend` or `__add__` or `get_param_setter`
             to bypass this validation.
         """
-
         self.unique = unique
         super().__init__(*args)
 
@@ -251,7 +250,7 @@ class xpList(list):
 
     @property
     def da_methods(self):
-        "List `da_method` attributes in this list."
+        """List `da_method` attributes in this list."""
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
@@ -268,10 +267,8 @@ class xpList(list):
         nomerge: list
             Attributes that should always be seen as distinct.
         """
-
         def _aggregate_keys():
-            "Aggregate keys from all `xp`"
-
+            """Aggregate keys from all `xp`"""
             if len(self) == 0:
                 return []
 
@@ -398,7 +395,8 @@ class xpList(list):
     def tabulate_avrgs(self, *args, **kwargs):
         """Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
 
-        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`."""
+        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.
+        """
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
@@ -435,7 +433,6 @@ class xpList(list):
 
         See `examples/basic_2.py` and `examples/basic_3.py` for example use.
         """
-
         # Collect common args forwarded to run_experiment
         kwargs['HMM'] = HMM
         kwargs["setup"] = setup

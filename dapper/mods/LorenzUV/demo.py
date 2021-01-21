@@ -24,7 +24,7 @@ jj, wrapV = setup_wrapping(nU*J)
 
 # Animate linear
 plt.figure()
-lhU = plt.plot(ii,   wrapU(xx[-1, :nU]), 'b', lw=3)[0]
+lhU = plt.plot(ii  , wrapU(xx[-1, :nU]), 'b', lw=3)[0]
 lhV = plt.plot(jj/J, wrapV(xx[-1, nU:]), 'g', lw=2)[0]
 for k in progbar(range(K), 'Plotting'):
     lhU.set_ydata(wrapU(xx[k, :nU]))

@@ -87,10 +87,10 @@ If you're not an admin or expert:
 
 *Do you simply want to run a script that requires DAPPER?* Then
 
-- If the script come with a `requirements.txt` file, then do  
+- If the script comes with a `requirements.txt` file, then do  
   `pip install -r path/to/requirements.txt`.
 - If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install DA-DAPPER==1.0.0` to get version `1.0.0`.
+  `pip install DA-DAPPER==1.0.0` to get version `1.0.0` (as an example).
 
 #### *Or*: Install for development
 

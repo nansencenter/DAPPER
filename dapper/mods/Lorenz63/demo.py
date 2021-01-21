@@ -1,4 +1,6 @@
-"""For a deeper introduction, see
+"""Demonstrate the Lorenz-63 model.
+
+For a deeper introduction, see
 
 "DA-tutorials/T4 - Dynamical systems, chaos, Lorenz.ipynb"
 """

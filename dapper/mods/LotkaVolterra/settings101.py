@@ -17,7 +17,7 @@ Dyn = {
     'M': Nx,
     'model': step,
     'linear': dstep_dx,
-    'noise': 0
+    'noise': 0,
     }
 
 X0 = modelling.GaussRV(mu=x0, C=0.01**2)

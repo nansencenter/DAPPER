@@ -21,7 +21,7 @@ import dapper.stats
 
 
 def da_method(*default_dataclasses):
-    """Decorator (factory) for classes that define DA methods.
+    """Decorate classes that define DA methods.
 
     These classes must be defined like a `dataclass`,
     except decorated by `@da_method()` instead of `@dataclass`.
@@ -48,8 +48,8 @@ def da_method(*default_dataclasses):
     >>>         if not self.success:
     >>>             raise RuntimeError("Sleep over. Failing as intended.")
 
-    Note that `da_method` is actually a "two-level decorator",
-    which is why the empty parenthesis were used above.
+    Note that `da_method` is actually a "decorator factory", or
+    a "two-level decorator", which is why the empty parenthesis were used above.
     The outer level can be used to define defaults that are "inherited"
     by similar DA methods:
 
@@ -74,19 +74,18 @@ def da_method(*default_dataclasses):
     """
 
     def dataclass_with_defaults(cls):
-        """Decorator based on dataclass.
+        """Decorate a class like dataclasses, and add some DAPPER-specific things.
 
         This adds `__init__`, `__repr__`, `__eq__`, ...,
         but also includes inherited defaults,
         cf. https://stackoverflow.com/a/58130805,
         and enhances the `assimilate` method.
         """
-
         # Default fields invovle: (1) annotations and (2) attributes.
-        def set_field(name, type, val):
+        def set_field(name, type_, val):
             if not hasattr(cls, '__annotations__'):
                 cls.__annotations__ = {}
-            cls.__annotations__[name] = type
+            cls.__annotations__[name] = type_
             if not isinstance(val, dataclasses.Field):
                 val = dataclasses.field(default=val)
             setattr(cls, name, val)

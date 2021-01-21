@@ -1,4 +1,4 @@
-"""Reproduce results from Table 1 `bib.sakov2012iterative`"""
+"""Reproduce results from Table 1 `bib.sakov2012iterative`."""
 
 import numpy as np
 
@@ -13,7 +13,7 @@ Dyn = {
     'M': Nx,
     'model': step,
     'linear': dstep_dx,
-    'noise': 0
+    'noise': 0,
 }
 
 X0 = modelling.GaussRV(C=2, mu=x0)

@@ -55,14 +55,13 @@ def genOG(M):
 
 
 def genOG_modified(M, opts=(0, 1.0)):
-    """genOG with modifications.
+    """Do `genOG` with modifications.
 
     Caution: although 'degree' ∈ (0,1) for all versions,
              they're not supposed going to be strictly equivalent.
 
     Testing: scripts/sqrt_rotations.py
     """
-
     # Parse opts
     if not opts:
         # Shot-circuit in case of False or 0
@@ -81,7 +80,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         dc = 1/degree  # = "while"
         # Retrieve/store persistent variable
         counter = getattr(genOG_modified, "counter", 0) + 1
-        setattr(genOG_modified, "counter", counter)
+        genOG_modified.counter = counter
         # Compute rot or skip
         if np.mod(counter, dc) < 1:
             Q = genOG(M)
@@ -120,8 +119,8 @@ def basis_beginning_with_ones(ndim):
 
 
 def genOG_1(N, opts=()):
-    """
-    Random orthonormal mean-preserving matrix.
+    """Random orthonormal mean-preserving matrix.
+
     Source: ienks code of Sakov/Bocquet.
     """
     V = basis_beginning_with_ones(N)
@@ -135,10 +134,9 @@ def genOG_1(N, opts=()):
 def funm_psd(a, fun, check_finite=False):
     """Matrix function evaluation for pos-sem-def mat.
 
-    Adapted from sla.funm() doc.
+    Adapted from `sla.funm` doc.
 
-    Example::
-
+    Example:
     >>> def sqrtm_psd(A):
     >>>     return funm_psd(A, sqrt)
     """
@@ -151,8 +149,7 @@ def funm_psd(a, fun, check_finite=False):
 def chol_reduce(Right):
     """Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
 
-    Example::
-
+    Example:
     >>> A = mean0(np.random.randn(20,5),axis=1)
     >>> C = A.T @ A
     >>> # sla.cholesky(C) throws error
@@ -183,7 +180,7 @@ class CovMat():
         full, diagonal, reduced-rank sqrt.
       - Convenience constructor and printing.
       - Convenience transformations with memoization.
-        E.g. replaces:
+        Replaces (for example):
 
             >>> if not hasattr(noise.C,'sym_sqrt'):
             >>>     S = funm_psd(noise.C, sqrt)
@@ -197,7 +194,9 @@ class CovMat():
     # Init
     ##################################
     def __init__(self, data, kind='full_or_diag', trunc=1.0):
-        """The covariance (say P) can be input (specified in the following ways):
+        """Construct object.
+
+        The covariance (say P) can be input (specified in the following ways):
 
             kind    | data
             --------|-------------
@@ -208,7 +207,6 @@ class CovMat():
             'Right' | any R such that P = R.T@R (e.g. weighted form of 'A')
             'Left'  | any L such that P = L@L.T
         """
-
         # Cascade if's down to 'Right'
         if kind == 'E':
             mu      = np.mean(data, 0)
@@ -269,7 +267,7 @@ class CovMat():
                     d = d[idx][:rk]
                     # Make rectangular V that un-sorts d
                     V = zeros((M, rk))
-                    V[idx[:rk],  np.arange(rk)] = 1
+                    V[idx[:rk], np.arange(rk)] = 1
                 self._assign_EVD(M, rk, d, V)
             else:
                 raise KeyError
@@ -283,7 +281,7 @@ class CovMat():
 
     @property
     def M(self):
-        """ndims"""
+        """`ndims`"""
         return self._m
 
     @property
@@ -301,7 +299,7 @@ class CovMat():
     ##################################
     @property
     def full(self):
-        "Full covariance matrix"
+        """Full covariance matrix"""
         if hasattr(self, '_C'):
             return self._C
         else:
@@ -311,7 +309,7 @@ class CovMat():
 
     @lazy_property
     def diag(self):
-        "Diagonal of covariance matrix"
+        """Diagonal of covariance matrix"""
         if hasattr(self, '_C'):
             return np.diag(self._C)
         else:
@@ -319,8 +317,13 @@ class CovMat():
 
     @property
     def Left(self):
-        """L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
-        and that its width is somewhere betwen the rank and M."""
+        """Left sqrt.
+
+        `L` such that $$ C = L L^T .$$
+
+        Note that `L` is typically rectangular, but not triangular,
+        and that its width is somewhere betwen the rank and `M`.
+        """
         if hasattr(self, '_R'):
             return self._R.T
         else:
@@ -328,8 +331,7 @@ class CovMat():
 
     @property
     def Right(self):
-        """R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
-        and that its height is somewhere betwen the rank and M."""
+        """Right sqrt. Ref `CovMat.Left`."""
         if hasattr(self, '_R'):
             return self._R
         else:
@@ -361,7 +363,7 @@ class CovMat():
 
     def has_done_EVD(self):
         """Whether or not eigenvalue decomposition has been done for matrix."""
-        return all([key in vars(self) for key in ['_V', '_d', '_rk']])
+        return all(key in vars(self) for key in ['_V', '_d', '_rk'])
 
     @property
     def ews(self):
@@ -385,10 +387,7 @@ class CovMat():
     # transform_by properties
     ##################################
     def transform_by(self, fun):
-        """Generalize scalar functions to covariance matrices
-        (via Taylor expansion).
-        """
-
+        """Generalize scalar functions to covariance matrices (via Taylor expansion)."""
         r = truncate_rank(self.ews, self.trunc, True)
         V = self.V[:, :r]
         w = self.ews[:r]
@@ -397,24 +396,26 @@ class CovMat():
 
     @lazy_property
     def sym_sqrt(self):
-        "S such that C = S@S (and i.e. S is square). Uses trunc-level."
+        """S such that C = S@S (and i.e. S is square). Uses trunc-level."""
         return self.transform_by(sqrt)
 
     @lazy_property
     def sym_sqrt_inv(self):
-        "S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level."
+        """S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level."""
         return self.transform_by(lambda x: 1/sqrt(x))
 
     @lazy_property
     def pinv(self):
-        "Pseudo-inverse. Uses trunc-level."
+        """Pseudo-inverse. Uses trunc-level."""
         return self.transform_by(lambda x: 1/x)
 
     @lazy_property
     def inv(self):
         if self.M != self.rk:
-            raise RuntimeError("Matrix is rank deficient, "
-                               + "and cannot be inverted. Use .tinv() instead?")
+            raise RuntimeError(
+                "Matrix is rank deficient, "
+                "and cannot be inverted. "
+                "Use .tinv() instead?")
         # Temporarily remove any truncation
         tmp = self.trunc
         self._trunc = 1.0

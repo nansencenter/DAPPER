@@ -39,7 +39,6 @@ def set_seed(sd="clock"):
     >>> sd = set_seed(3) ; prnt(sd)
     >>> sd = set_seed()  ; prnt(sd)
     """
-
     if (sd is not False) and sd == 0:
         msg = ("Seeding with 0 is not a good idea, because\n"
                "- Might be confused with [None, False].\n"

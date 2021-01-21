@@ -12,7 +12,7 @@ Nx = len(x0)
 Dyn = {
     'M': Nx,
     'model': step,
-    'noise': 0
+    'noise': 0,
 }
 
 X0 = modelling.GaussRV(C=.1, mu=x0)

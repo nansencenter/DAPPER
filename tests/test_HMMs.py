@@ -13,7 +13,7 @@ dapper.tools.progressbar.disable_progbar = True
 
 modules_with_HMM = []
 
-for root, dir, files in os.walk("."):
+for root, _dir, files in os.walk("."):
     if "mods" in root:
 
         if os.environ.get("TRAVIS", False) and ("QG" in root):

@@ -96,7 +96,7 @@ def rel_index(elem, lst, default=None):
 
 
 def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
-    """Discretize `cmap` so that it partitions `[0,1]` into `N` segments.
+    """Discretize `cmap` so that it partitions `[0, 1]` into `N` segments.
 
     I.e. `cmap(k/N) == cmap(k/N + eps)`.
 
@@ -104,7 +104,8 @@ def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
     that maps range(N) to the segment centers,
     as will be reflected by `cb = fig.colorbar(sm)`.
     You can then re-label the ticks using
-    `cb.set_ticks(np.arange(N)); cb.set_ticklabels(["A","B","C",...])`."""
+    `cb.set_ticks(np.arange(N)); cb.set_ticklabels(["A","B","C",...])`.
+    """
     # cmap(k/N)
     from_list = mpl.colors.LinearSegmentedColormap.from_list
     colors = cmap(np.linspace(val0, val1, N))
@@ -196,7 +197,6 @@ def save_xps(xps, save_as, nDir=100):
     >>>
     >>>     overwrite_xps(xps, save_as)
     """
-
     save_as = Path(save_as).expanduser()
     save_as.mkdir(parents=False, exist_ok=False)
 
@@ -235,7 +235,8 @@ def reduce_inodes(save_as, nDir=100):
 
     It also deletes files "xp.var" and "out"
     (which tends to be relatively large coz of the progbar).
-    This is probably also the reason that the loading time is sometimes reduced."""
+    This is probably also the reason that the loading time is sometimes reduced.
+    """
     overwrite_xps(load_xps(save_as), save_as, nDir)
 
 
@@ -321,7 +322,6 @@ class SparseSpace(dict):
 
     def __getitem__(self, key):
         """Flexible indexing."""
-
         # List of items (by a list of indices).
         # Also see get_for().
         if isinstance(key, list):
@@ -351,12 +351,15 @@ class SparseSpace(dict):
     def __getkey__(self, entry):
         """Inverse of `dict.__getitem__`, but also works on coords.
 
-        Note: This dunder method is not a "builtin" naming convention."""
+        Note: This dunder method is not a "builtin" naming convention.
+        """
         coord = (getattr(entry, a, None) for a in self.axes)
         return self.Coord(*coord)
 
     def __call__(self, **kwargs):
-        """Convenience, that enables, eg.:
+        """Convenience.
+
+        Enables
         >>> xp_dict(da_method="EnKF", infl=1, seed=3)
         """
         return self.__getitem__(kwargs)
@@ -366,7 +369,8 @@ class SparseSpace(dict):
 
         NB: using the "naive" thing: `[self[x] for x in ticks]`
         would probably be a BUG coz x gets interpreted as indices
-        for the internal list."""
+        for the internal list.
+        """
         singleton = not hasattr(ticks[0], "__iter__")
         def coord(xyz): return self.Coord(xyz if singleton else xyz)
         return [self.get(coord(x), default) for x in ticks]
@@ -382,7 +386,6 @@ class SparseSpace(dict):
         The last point is especially useful for
         `SparseSpace.label_xSection`.
         """
-
         def embed(coord): return {**kwargs, **coord._asdict()}
         return [self.Coord(**embed(x)) for x in self[kwargs]]
 
@@ -420,8 +423,8 @@ class SparseSpace(dict):
         with axes `inner_axes`,
         each one regrouping the entries with the same (projected) coordinate.
 
-        Note: is also called by `__getitem__(key)` if `key` is dict."""
-
+        Note: is also called by `__getitem__(key)` if `key` is dict.
+        """
         # Default: a singleton outer space,
         # with everything contained in the inner (projection) space.
         if inner_axes is None and outer_axes is None:
@@ -457,7 +460,8 @@ class SparseSpace(dict):
     def intersect_axes(self, attrs):
         """Rm those a in attrs that are not in self.axes.
 
-        This allows errors in the axes allotment, for ease-of-use."""
+        This allows errors in the axes allotment, for ease-of-use.
+        """
         absent = struct_tools.complement(attrs, self.axes)
         if absent:
             print(color_text("Warning:", colorama.Fore.RED),
@@ -488,7 +492,6 @@ class SparseSpace(dict):
         which are consequently set to None for the duplicated entries,
         preventing them from getting plotted in tuning panels.
         """
-
         if "Const" not in self.axes:
             self.add_axis('Const')
 
@@ -522,8 +525,7 @@ class xpSpace(SparseSpace):
     @classmethod
     def from_list(cls, xps):
         """Init xpSpace from xpList."""
-
-        def make_ticks(axes, ordering=dict(
+        def make_ticks(axes, ordering=dict(  # noqa TODO 5
                     N         = 'default',
                     seed      = 'default',
                     infl      = 'default',
@@ -532,13 +534,12 @@ class xpSpace(SparseSpace):
                     da_method = 'as_found',
                     )):
             """Unique & sort, for each axis (individually) in axes."""
-
             for ax_name, arr in axes.items():
                 ticks = set(arr)  # unique (jumbles order)
 
                 # Sort
                 order = ordering.get(ax_name, 'default').lower()
-                if hasattr(order, '__call__'):  # eg. mylist.index
+                if callable(order):  # eg. mylist.index
                     ticks = sorted(ticks, key=order)
                 elif 'as_found' in order:
                     ticks = sorted(ticks, key=arr.index)
@@ -566,7 +567,6 @@ class xpSpace(SparseSpace):
 
     def field(self, statkey="rmse.a"):
         """Extract `statkey` for each item in `self`."""
-
         # Init a new xpDict to hold field
         avrgs = self.__class__(self.axes)
 
@@ -614,7 +614,6 @@ class xpSpace(SparseSpace):
 
     def tune(self, axes=None, costfun=None):
         """Get (compile/tabulate) a stat field optimised wrt. tuning params."""
-
         # Define cost-function
         costfun = (costfun or 'increasing').lower()
         if 'increas' in costfun:
@@ -622,7 +621,7 @@ class xpSpace(SparseSpace):
         elif 'decreas' in costfun:
             costfun = (lambda x: -x)
         else:
-            assert hasattr(costfun, '__call__')  # custom
+            assert callable(costfun)  # custom
 
         # Note: The case `axes=()` should work w/o special treatment.
         if axes is None:
@@ -633,7 +632,7 @@ class xpSpace(SparseSpace):
 
             # Find optimal value and coord within space
             MIN = np.inf
-            for i, (inner_coord, uq) in enumerate(space.items()):
+            for inner_coord, uq in space.items():
                 cost = costfun(uq.val)
                 if cost <= MIN:
                     MIN                = cost
@@ -702,7 +701,8 @@ class xpSpace(SparseSpace):
             "uncluttered" that mean_tune() (or a few of its code lines)
             could be called anywhere above/between/below
             the `nest()`ing of `outer` or `inner`.
-            These possibile call locations are commented in the code."""
+            These possibile call locations are commented in the code.
+            """
             uq_dict = xp_dict.field(statkey)
             uq_dict = uq_dict.mean(axes['mean'])
             uq_dict = uq_dict.tune(axes['optim'])
@@ -745,7 +745,7 @@ class xpSpace(SparseSpace):
         """Axis ticks without None"""
         return [x for x in self.ticks[axis_name] if x is not None]
 
-    def print(self, statkey="rmse.a", axes=AXES_ROLES,
+    def print(self, statkey="rmse.a", axes=AXES_ROLES,  # noqa
               subcols=True, decimals=None):
         """Print tables of results.
 
@@ -789,16 +789,14 @@ class xpSpace(SparseSpace):
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
         """
-
         def align_subcols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
-
             # Define subcol formats
             subc = dict()
             subc['keys']     = ["val", "conf"]
             subc['headers']  = [statkey, '1σ']
             subc['frmts']    = [None, None]
-            subc['spaces']   = [' ±', ]  # last one gets appended below.
+            subc['spaces']   = [(' ±', )]  # last one gets appended below.
             subc['aligns']   = ['>', '<']  # 4 header -- matter gets decimal-aligned.
             if axes['optim'] is not None:
                 subc['keys']    += ["tuned_coord"]
@@ -929,12 +927,11 @@ class xpSpace(SparseSpace):
         The optimal parameters are plotted in smaller panels below the main plot.
         This can be prevented by providing the figure axes through the `panels` arg.
         """
-
         def plot1(panelcol, row, style):
             """Plot a given line (row) in the main panel and the optim panels.
 
-            Involves: Sort, insert None's, handle constant lines."""
-
+            Involves: Sort, insert None's, handle constant lines.
+            """
             # Make a full row (yy) of vals, whether is_constant or not.
             # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
             row.is_constant = all(x == row.Coord(None) for x in row)
@@ -1039,7 +1036,7 @@ def default_fig_adjustments(tables):
 
     # Main panels (top row) only:
     sensible_f = ticker.FormatStrFormatter('%g')
-    for ax in axs[0, :]:
+    for ax in axs[0, :]:  # noqa
         for direction, nPanel in zip(['y', 'x'], axs.shape):
             if nPanel < 6:
                 eval(f"ax.set_{direction}scale('log')")

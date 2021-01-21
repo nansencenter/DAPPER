@@ -7,7 +7,7 @@ then there is no test generation, but rather:
 - `--replace` causes creation of a copy of this file (suffix `.new`),
   but with updated printouts in place of the `old`s.
 
-Notes:
+Some notes:
 
 - Parameterization -- A custom, hacky way to do this is used instead off
   pytest.mark.parametrize. Maybe not the best idea, but I have learned
@@ -35,7 +35,7 @@ if "--replace" in sys.argv:
     replacements = []
 
     @dataclass
-    class Replacement:
+    class _Replacement:
         lines: list
         nOpen: int
         nClose: int
@@ -64,7 +64,6 @@ def cap_stdout(fun, *args, **kwargs):
 
 def gen_test_set(xp_dict, *args, **kwargs):
     """Capture printout of `dapper.xp_process.xpSpace.print`, gen tests."""
-
     # Get stdout of xpSpace.print()
     output = cap_stdout(xp_dict.print, *args, **kwargs)
 
@@ -78,7 +77,7 @@ def gen_test_set(xp_dict, *args, **kwargs):
         return
 
     if "--replace" in sys.argv:
-        replacements.append(Replacement(output.splitlines(True), nOpen, nClose))
+        replacements.append(_Replacement(output.splitlines(True), nOpen, nClose))
 
     else:  # Generate & register tests
 
@@ -102,7 +101,7 @@ xps = dpr.load_xps(save_as)
 xps = dpr.xpSpace.from_list(xps)
 
 xps_shorter = dpr.xpSpace.from_list(
-    [xp for xp in xps.values() if getattr(xp, "da_method") != "LETKF"])
+    [xp for xp in xps.values() if getattr(xp, "da_method") != "LETKF"])  # noqa
 
 ##
 old = """Averages (in time and) over seed.

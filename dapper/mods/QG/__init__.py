@@ -30,8 +30,10 @@ __pdoc__ = {"demo": False}
 try:
     from dapper.mods.QG.f90.py_mod import interface_mod as fortran
 except ImportError as err:
-    raise Exception("Have you compiled the (Fortran) model? "
-                    f"See README in folder {modelling.rc.dirs.dapper}/mods/QG/f90") from err
+    raise Exception(
+        "Have you compiled the (Fortran) model? "
+        f"See README in folder {modelling.rc.dirs.dapper}/mods/QG/f90"
+        "") from err
 
 default_prms = dict(
     # These parameters may be interesting to change.
@@ -53,14 +55,14 @@ default_prms = dict(
 
 
 class model_config:
-    """
-    Helps to ensure consistency between prms file (that Fortran module reads)
+    """Define model.
+
+    Helps ensure consistency between prms file (that Fortran module reads)
     and Python calls to step(), for example for dt.
     """
 
     def __init__(self, name, prms, mp=True):
-        "Use prms={} to get the default configuration."
-
+        """Use `prms={}` to get the default configuration."""
         # Insert prms. Assert key is present in defaults.
         D = default_prms.copy()
         for key in prms:

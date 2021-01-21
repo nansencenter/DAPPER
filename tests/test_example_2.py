@@ -1,6 +1,7 @@
 """Stupidly compare the full results table.
 
-Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail."""
+Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail.
+"""
 
 import pytest
 

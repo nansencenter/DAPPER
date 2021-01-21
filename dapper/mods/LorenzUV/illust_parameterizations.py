@@ -1,15 +1,19 @@
-# Plot scattergram of "unresolved tendency"
-# and the parameterization that emulate it.
-# We plot the diff:
-#   model_step/dt - true_step/dt    (1)
-# Whereas Wilks plots
-#   model_dxdt    - true_step/dt    (2)
-# Another option is:
-#   model_dxdt    - true_dxdt       (3)
-# Thus, for us (eqn 1), the model integration scheme matters.
-# Also, Wilks uses
-#  dt=0.001 for truth
-#  dt=0.005 for model.
+"""Illusrate parameterizations.
+
+Plot scattergram of "unresolved tendency" and the parameterization that emulate it.
+
+We plot the diff:
+  `model_step/dt - true_step/dt    (1)`
+Whereas Wilks plots
+  `model_dxdt    - true_step/dt    (2)`
+Another option is:
+  `model_dxdt    - true_dxdt       (3)`
+
+Thus, for us (eqn 1), the model integration scheme matters.
+Also, Wilks uses
+- `dt = 0.001` for truth
+- `dt = 0.005` for model.
+"""
 
 import matplotlib as mpl
 import numpy as np
@@ -66,18 +70,18 @@ for order in [0, 1, 2, 3, 4]:
 ###########################
 # Scatter plot
 ###########################
-def blend_rgb(rgb, a, bg_rgb=np.ones(3)):
-    """
-    Fake RGB transparency by blending it to some background.
+def blend_rgb(rgb, a, bg_rgb=(1, 1, 1)):
+    """Fake RGB transparency by blending it to some background.
+
     Useful for creating gradients.
 
     Also useful for creating 'transparency' for exporting to eps.
     But there's no actualy transparency, so superposition of lines
     will not work. For that: export to pdf, or make do without.
 
-     - rgb: N-by-3 rgb, or a color code.
-     - a: alpha value
-     - bg_rgb: background in rgb. Default: white
+    - `rgb`: N-by-3 rgb, or a color code.
+    - `a`: alpha value
+    - `bg_rgb`: background in rgb. Default: white
 
     Based on stackoverflow.com/a/33375738/38281
     """
@@ -133,14 +137,13 @@ else:
 
     def an(T, xy, xyT, HA='left'):
         ah = ax.annotate(T,
-                         xy    =xy,   xycoords='data',
+                         xy=xy, xycoords='data',
                          xytext=xyT, textcoords='data',
                          fontsize=16,
                          horizontalalignment=HA,
                          arrowprops=dict(
                              arrowstyle="->",
-                             connectionstyle="arc3", lw=2)
-                         )
+                             connectionstyle="arc3", lw=2))
         return ah
 
     s4 = '$0.262$\n$+1.45X$\n$-0.0121X^2$\n$-0.00713X^3$\n$+0.000296X^4$'

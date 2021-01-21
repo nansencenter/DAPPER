@@ -1,4 +1,4 @@
-""""Unsophisticated" but robust (widely applicable) DA methods.
+"""Unsophisticated" but robust (widely applicable) DA methods.
 
 Many are based on `bib.raanes2016thesis`.
 """
@@ -20,7 +20,8 @@ class Climatology:
     """A baseline/reference method.
 
     Note that the "climatology" is computed from truth, which might be
-    (unfairly) advantageous if the simulation is too short (vs mixing time)."""
+    (unfairly) advantageous if the simulation is too short (vs mixing time).
+    """
 
     def assimilate(self, HMM, xx, yy):
         chrono, stats = HMM.t, self.stats
@@ -42,7 +43,8 @@ class OptInterp:
     """Optimal Interpolation -- a baseline/reference method.
 
     Uses the Kalman filter equations,
-    but with a prior from the Climatology."""
+    but with a prior from the Climatology.
+    """
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.t, self.stats
@@ -80,12 +82,13 @@ class OptInterp:
 
 @da_method()
 class Var3D:
-    """
-    3D-Var -- a baseline/reference method.
+    """3D-Var -- a baseline/reference method.
 
     This implementation is not "Var"-ish: there is no *iterative* optimzt.
     Instead, it does the full analysis update in one step: the Kalman filter,
-    with the background covariance being user specified, through B and xB."""
+    with the background covariance being user specified, through B and xB.
+    """
+
     B: Optional[np.ndarray] = None
     xB: float               = 1.0
 
@@ -145,7 +148,8 @@ def fit_sigmoid(Sb, L, kb):
     The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see docs/snippets/sigmoid.jpg) with
 
     - a corresponding to a given corr. length L.
-    - b to match values of S(kb) and Sb"""
+    - b to match values of S(kb) and Sb
+    """
 
     def sigmoid(k): return 1/(1+np.exp(-k))  # normalized sigmoid
     def inv_sig(s): return np.log(s/(1-s))  # its inverse
@@ -163,6 +167,7 @@ def fit_sigmoid(Sb, L, kb):
 class EnCheat:
     """A baseline/reference method.
 
-    Should be implemented as part of Stats instead."""
+    Should be implemented as part of Stats instead.
+    """
 
     def assimilate(self, HMM, xx, yy): pass

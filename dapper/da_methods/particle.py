@@ -12,7 +12,8 @@ from . import da_method
 
 @da_method
 class particle_method:
-    "Declare default particle arguments."
+    """Declare default particle arguments."""
+
     NER: float = 1.0
     resampl: str = 'Sys'
 
@@ -24,11 +25,12 @@ class PartFilt:
     Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
 
     This is the bootstrap version: the proposal density is just
-    :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
+
+    $$ q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1}) $$
 
     Tuning settings:
 
-     - NER: Trigger resampling whenever N_eff <= N*NER.
+     - NER: Trigger resampling whenever `N_eff <= N*NER`.
        If resampling with some variant of 'Multinomial',
        no systematic bias is introduced.
      - qroot: "Inflate" (anneal) the proposal noise kernels
@@ -36,6 +38,7 @@ class PartFilt:
        The weights are updated to maintain un-biased-ness.
        See `bib.chen2003bayesian`, section VI-M.2
     """
+
     N: int
     reg: float   = 0
     nuj: bool    = True
@@ -95,6 +98,7 @@ class OptPF:
               If ``Qs==0``: OptPF should be equal to
               the bootstrap filter :func:`PartFilt`.
     """
+
     N: int
     Qs: float
     reg: float   = 0
@@ -150,9 +154,7 @@ class OptPF:
 
 @particle_method
 class PFa:
-    """PF with weight adjustment withOUT
-
-    compensating for the bias it introduces.
+    """PF with weight adjustment withOUT compensating for the bias it introduces.
 
     'alpha' sets wroot before resampling such that N_effective becomes >alpha*N.
 
@@ -169,6 +171,7 @@ class PFa:
 
     Hybridization with xN did not show much promise.
     """
+
     N: int
     alpha: float
     reg: float   = 0
@@ -241,6 +244,7 @@ class PFxN_EnKF:
     Here, we will use the posterior mean of (2) and cov of (1).
     Or maybe we should use x_a^n distributed according to a sqrt update?
     """
+
     N: int
     Qs: float
     xN: int
@@ -358,6 +362,7 @@ class PFxN:
     Additional idea: employ w-adjustment to obtain N unique particles,
     without jittering.
     """
+
     N: int
     Qs: float
     xN: int
@@ -420,8 +425,7 @@ class PFxN:
 
 
 def trigger_resampling(w, NER, stat_args):
-    "Return boolean: N_effective <= threshold. Also write stats."
-
+    """Return boolean: N_effective <= threshold. Also write stats."""
     N_eff       = 1/(w@w)
     do_resample = N_eff <= len(w)*NER
 
@@ -441,19 +445,22 @@ def trigger_resampling(w, NER, stat_args):
 
 
 def all_but_1_is_None(*args):
-    "Check if only 1 of the items in list are Truthy"
+    """Check if only 1 of the items in list are Truthy."""
     return sum(x is not None for x in args) == 1
 
 
 def reweight(w, lklhd=None, logL=None, innovs=None):
-    """Do Bayes' rule (for the empirical distribution of an importance sample).
+    r"""Do Bayes' rule (for the empirical distribution of an importance sample).
 
     Do computations in log-space, for at least 2 reasons:
-    - Normalization: will fail if sum==0 (if all innov's are large).
-    - Num. precision: lklhd*w should have better precision in log space.
+
+    - Normalization: will fail if `sum==0` (if all innov's are large).
+    - Num. precision: `lklhd*w` should have better precision in log space.
+
     Output is non-log, for the purpose of assessment and resampling.
 
-    If input is 'innovs': likelihood := NormDist(innovs|0,Id).
+    If input is 'innovs', then
+    $$\text{likelihood} = \mathcal{N}(\text{innovs}|0,I)$$.
     """
     assert all_but_1_is_None(lklhd, logL, innovs), \
         "Input error. Only specify one of lklhd, logL, innovs"
@@ -498,14 +505,17 @@ def raw_C12(E, w):
 
 
 def mask_unique_of_sorted(idx):
-    "NB: returns a mask which is True at [i] iff idx[i] is NOT unique."
+    """Find unique values assuming `idx` is sorted.
+
+    NB: returns a mask which is `True` at `[i]` iff `idx[i]` is *not* unique.
+    """
     duplicates  = idx == np.roll(idx, 1)
     duplicates |= idx == np.roll(idx, -1)
     return duplicates
 
 
 def auto_bandw(N, M):
-    """"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
+    """Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
 
     Refs: `bib.doucet2001sequential` section 12.2.2, [Wik17]_ section "Rule_of_thumb"
     """
@@ -570,7 +580,6 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
     on the high-weight particles which we anticipate will
     have more informative (and less variable) future likelihoods.
     """
-
     assert(abs(w.sum()-1) < 1e-5)
 
     # Input parsing

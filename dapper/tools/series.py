@@ -65,11 +65,12 @@ def fit_acf_by_AR1(acf_empir, nlags=None):
 
 
 def estimate_corr_length(xx):
-    """
+    r"""Estimate the correlation length of a time series.
+
     For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
     Also note that, for exponential corr function, as assumed here,
 
-    $$\\text{corr}(L) = \\exp(-1) \\approx 0.368$$
+    $$\text{corr}(L) = \exp(-1) \approx 0.368$$
     """
     acovf = auto_cov(xx, min(100, len(xx)-2))
     a     = fit_acf_by_AR1(acovf)
@@ -98,11 +99,12 @@ class UncertainQtty():
     >>> UncertainQtty(1.2345, 1)
     UncertainQtty(val=1, conf=1)
     """
+
     val: float
     conf: float
 
-    def round(self, mult=1.0):
-        """Round intelligently:
+    def round(self, mult=1.0):  # noqa
+        """Round intelligently.
 
         - conf to 1 sigfig.
         - val:
@@ -168,6 +170,7 @@ def mean_with_conf(xx):
 
 class StatPrint(NicePrint):
     """Set NicePrint options suitable for stats."""
+
     printopts = dict(
         excluded=NicePrint.printopts["excluded"]+["HMM", "LP_instance"],
         ordering="linenumber",
@@ -181,7 +184,7 @@ class StatPrint(NicePrint):
             'm': 'Field mean (.m)',
             'ma': 'Field mean-abs (.ma)',
             'rms': 'Field root-mean-square (.rms)',
-            'gm': 'Field geometric-mean (.gm)'
+            'gm': 'Field geometric-mean (.gm)',
         },
     )
 
@@ -198,8 +201,8 @@ class StatPrint(NicePrint):
 def monitor_setitem(cls):
     """Modify cls to track of whether its ``__setitem__`` has been called.
 
-    See sub.py for a sublcass solution (drawback: creates a new class)."""
-
+    See sub.py for a sublcass solution (drawback: creates a new class).
+    """
     orig_setitem = cls.__setitem__
 
     def setitem(self, key, val):
@@ -225,7 +228,8 @@ class DataSeries(StatPrint):
     - The class (type) provides way to acertain if an attribute is a series.
 
     Note: subclassing ``ndarray`` is too dirty => We'll just use the
-    ``array`` attribute, and provide ``{s,g}etitem``."""
+    ``array`` attribute, and provide ``{s,g}etitem``.
+    """
 
     def __init__(self, shape, **kwargs):
         self.array = np.full(shape, nan, **kwargs)
@@ -262,13 +266,12 @@ class FAUSt(DataSeries, StatPrint):
     """
 
     def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
-        """Constructor.
+        """Construct object.
 
-         - item_shape : shape of an item in the series.
-         - store_u    : if False: only the current value is stored.
-         - kwargs     : passed on to ndarrays.
+        - item_shape : shape of an item in the series.
+        - store_u    : if False: only the current value is stored.
+        - kwargs     : passed on to ndarrays.
         """
-
         self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
         self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
         if store_s:
@@ -284,20 +287,24 @@ class FAUSt(DataSeries, StatPrint):
     store_u    = property(lambda self: len(self.u) > 1)
 
     def _ind(self, key):
-        "Aux function to unpack ``key`` (k,kObs,faus)"
+        """Aux function to unpack `key` (`k,kObs,faus`)"""
         if key[-1] == 'u':
             return key[0] if self.store_u else 0
         else:
             return key[-2]
 
-    def __setitem__(self, key, item):  getattr(self, key[-1])[self._ind(key)] = item
-    def __getitem__(self, key): return getattr(self, key[-1])[self._ind(key)]
+    def __setitem__(self, key, item):
+        getattr(self, key[-1])[self._ind(key)] = item
+
+    def __getitem__(self, key):
+        return getattr(self, key[-1])[self._ind(key)]
 
 
 class RollingArray:
     """ND-Array that implements "leftward rolling" along axis 0.
 
-    Used for data that gets plotted in sliding graphs."""
+    Used for data that gets plotted in sliding graphs.
+    """
 
     def __init__(self, shape, fillval=nan):
         self.array = np.full(shape, fillval)
@@ -328,13 +335,13 @@ class RollingArray:
         return self[len(self)-self.nFilled]
 
     def span(self):
-        return (self.leftmost(),  self[-1])
+        return (self.leftmost(), self[-1])
 
     @property
     def T(self):
         return self.array.T
 
-    def __array__(self, dtype=None): return self.array
+    def __array__(self, dtype=None): return self.array(dtype=dtype)
     def __len__(self): return len(self.array)
     def __repr__(self): return 'RollingArray:\n%s' % str(self.array)
     def __getitem__(self, key): return self.array[key]

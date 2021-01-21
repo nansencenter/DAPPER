@@ -169,12 +169,12 @@ class Chronology():
     # Burn In. NB: uses > (strict inequality)
     @property
     def mask_BI(self):
-        "Example use: `kk_BI = kk[mask_BI]`"
+        """Example use: `kk_BI = kk[mask_BI]`"""
         return self.tt > self.BurnIn
 
     @property
     def maskObs_BI(self):
-        "Example use: `kkObs_BI = kkObs[maskObs_BI]`"
+        """Example use: `kkObs_BI = kkObs[maskObs_BI]`"""
         return self.ttObs > self.BurnIn
 
     ######################################
@@ -182,7 +182,7 @@ class Chronology():
     ######################################
     @property
     def ticker(self):
-        """"Fancy version of `range(1,K+1)`.
+        """Fancy version of `range(1,K+1)`.
 
         Also yields `t`, `dt`, and `kObs`.
         """
@@ -211,7 +211,7 @@ class Chronology():
     # Utilities
     ######################################
     def copy(self):
-        "Copy via state vars."
+        """Copy via state vars."""
         return Chronology(dt=self.dt, dkObs=self.dkObs, K=self.K, BurnIn=self.BurnIn)
 
     def __eq__(self, other):

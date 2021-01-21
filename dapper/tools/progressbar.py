@@ -1,4 +1,4 @@
-"""Make `progbar` (convenience wrapper to `tqdm`) and `read1`."""
+"""Make `progbar` (wrapper around `tqdm`) and `read1`."""
 
 import inspect
 import os
@@ -10,8 +10,7 @@ disable_progbar = False
 
 
 def pdesc(desc):
-    "Get progbar description by introspection."
-
+    """Get progbar description by introspection."""
     if desc is not None:
         return desc
 
@@ -22,12 +21,12 @@ def pdesc(desc):
     # Go look above in the stack for a name_hook.
     for level in range(2, 6):
         try:
-            locals = stack[level].frame.f_locals
+            locals_ = stack[level].frame.f_locals
         except IndexError:
             pass
         else:
-            if 'pb_name_hook' in locals:
-                name = locals['pb_name_hook']
+            if 'pb_name_hook' in locals_:
+                name = locals_['pb_name_hook']
                 break
     else:
         # Otherwise: just get name of what's
@@ -38,7 +37,7 @@ def pdesc(desc):
 
 
 def progbar(iterable, desc=None, leave=1, **kwargs):
-    "Prints a nice progress bar in the terminal"
+    """Prints a nice progress bar in the terminal"""
     if disable_progbar:
         return iterable
     else:
@@ -144,7 +143,7 @@ except ImportError:
 
 
 def read1():
-    "Get 1 character. Non-blocking, non-echoing."
+    """Get 1 character. Non-blocking, non-echoing."""
     if disable_user_interaction:
         return None
     return _read1()

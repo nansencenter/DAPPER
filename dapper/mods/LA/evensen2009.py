@@ -36,7 +36,7 @@ Dyn = {
     'M': Nx,
     'model': step,
     'linear': lambda x, t, dt: Fm,
-    'noise': 0
+    'noise': 0,
 }
 
 # In the animation, it can sometimes/somewhat occur

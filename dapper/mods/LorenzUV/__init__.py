@@ -28,7 +28,7 @@ __pdoc__ = {mod: False for mod in [
 
 
 def reversible(fun):
-    "Reverse input/output (instead of manipulating indices)."""
+    """Reverse input/output (instead of manipulating indices)."""
     def newfun(x, *args, reverse=False, **kwargs):
         if reverse:
             x = np.flip(x)  # flip ALL dims
@@ -44,9 +44,9 @@ d2x_dtdx_auto = reversible(L96.d2x_dtdx)
 
 
 class model_instance():
-    """
-    Use OOP to facilitate having multiple parameter settings simultaneously.
-    Default parameters from Wilks'2005.
+    """Use OOP to facilitate having multiple parameter settings simultaneously.
+
+    Default parameters from `bib.wilks2005effects`.
     """
 
     def __init__(self, nU=8, J=32, F=20, h=1, b=10, c=10):
@@ -75,18 +75,18 @@ class model_instance():
         return nU, J, h, b, c, U, V
 
     def dxdt_trunc(self, x):
-        """Truncated dxdt: slow variables (U) only."""
+        """Compute truncated `dxdt:` slow variables (`U`) only."""
         assert x.shape[-1] == self.nU
         return dxdt_auto(x) + self.F
 
     def dxdt_parameterized(self, t, x):
-        """Truncated dxdt with parameterization of fast variables (V)."""
+        """Compute truncated `dxdt` with parameterization of fast variables (`V`)."""
         d  = self.dxdt_trunc(x)
         d -= self.prmzt(t, x)  # must (of course) be set first
         return d
 
     def dxdt(self, x):
-        """Full (coupled) dxdt."""
+        """Compute full (coupled) `dxdt`."""
         nU, J, h, b, c, U, V = self.unpack(x)
 
         d = np.zeros_like(x)

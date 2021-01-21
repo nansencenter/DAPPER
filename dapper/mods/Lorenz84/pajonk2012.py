@@ -20,7 +20,7 @@ Dyn = {
     'M': Nx,
     'model': step,
     'linear': dstep_dx,
-    'noise': 0
+    'noise': 0,
 }
 
 # X0 = modelling.GaussRV(C=0.01,M=Nx) # Decreased from Pajonk's C=1.

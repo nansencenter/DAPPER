@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L0-L113" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L0-L114" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The extended KF (EKF) and the (Rauch-Tung-Striebel) smoother.&#34;&#34;&#34;
 
@@ -54,7 +54,7 @@ from . import da_method
 
 @da_method()
 class ExtKF:
-    &#34;&#34;&#34;The extended Kalman filter. A baseline/reference method.
+    &#34;&#34;&#34;The extended Kalman filter.
 
     If everything is linear-Gaussian, this provides the exact solution
     to the Bayesian filtering equations.
@@ -65,6 +65,7 @@ class ExtKF:
       infl_per_unit_time == infl.
       Specifying it this way (per unit time) means less tuning.
     &#34;&#34;&#34;
+
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
@@ -104,8 +105,8 @@ class ExtKF:
 # TODO 5: Clean up
 @da_method()
 class ExtRTS:
-    &#34;&#34;&#34;
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;The extended Rauch-Tung-Striebel (or &#34;two-pass&#34;) smoother.&#34;&#34;&#34;
+
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
@@ -172,7 +173,7 @@ class ExtRTS:
 <span>(</span><span>infl: float = 1.0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>The extended Kalman filter. A baseline/reference method.</p>
+<div class="desc"><p>The extended Kalman filter.</p>
 <p>If everything is linear-Gaussian, this provides the exact solution
 to the Bayesian filtering equations.</p>
 <ul>
@@ -185,11 +186,11 @@ Specifying it this way (per unit time) means less tuning.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L11-L57" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L11-L58" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@da_method()
 class ExtKF:
-    &#34;&#34;&#34;The extended Kalman filter. A baseline/reference method.
+    &#34;&#34;&#34;The extended Kalman filter.
 
     If everything is linear-Gaussian, this provides the exact solution
     to the Bayesian filtering equations.
@@ -200,6 +201,7 @@ class ExtKF:
       infl_per_unit_time == infl.
       Specifying it this way (per unit time) means less tuning.
     &#34;&#34;&#34;
+
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
@@ -256,7 +258,7 @@ class ExtKF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L26-L57" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L27-L58" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -299,16 +301,16 @@ class ExtKF:
 <span>(</span><span>infl: float = 1.0)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>The extended Rauch-Tung-Striebel (or "two-pass") smoother.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L61-L114" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L62-L115" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@da_method()
 class ExtRTS:
-    &#34;&#34;&#34;
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;The extended Rauch-Tung-Striebel (or &#34;two-pass&#34;) smoother.&#34;&#34;&#34;
+
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
@@ -381,7 +383,7 @@ class ExtRTS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L67-L114" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L68-L115" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats

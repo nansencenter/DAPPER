@@ -1,4 +1,4 @@
-"""Variational DA methods (iEnKS, 4D-Var, etc)"""
+"""Variational DA methods (iEnKS, 4D-Var, etc)."""
 
 from typing import Optional
 
@@ -16,7 +16,8 @@ from . import da_method
 
 @da_method
 class var_method:
-    "Declare default variational arguments."
+    """Declare default variational arguments."""
+
     Lag: int    = 1
     nIter: int  = 10
     wtol: float = 0
@@ -70,6 +71,7 @@ class iEnKS:
     Refs: `bib.bocquet2012combining`, `bib.bocquet2013joint`,
     `bib.bocquet2014iterative`.
     """
+
     upd_a: str
     N: int
     MDA: bool    = False
@@ -129,7 +131,7 @@ class iEnKS:
                     E = x0 + (w + EPS*T)@X0
                     # Forecast.
                     for kCycle in DAW:
-                        for k, t, dt in chrono.cycle(kCycle):
+                        for k, t, dt in chrono.cycle(kCycle):  # noqa
                             E = Dyn(E, t-dt, dt)
                     # Observe.
                     Eo = Obs(E, t)
@@ -250,6 +252,7 @@ class Var4D:
 
     Incremental formulation is used, so the formulae look like the ones in iEnKS.
     """
+
     B: Optional[np.ndarray] = None
     xB: float               = 1.0
 
@@ -292,7 +295,7 @@ class Var4D:
                     X = B12  # Aggregate composite TLMs onto B12
                     # Forecast.
                     for kCycle in DAW:
-                        for k, t, dt in chrono.cycle(kCycle):
+                        for k, t, dt in chrono.cycle(kCycle):  # noqa
                             X = Dyn.linear(x, t-dt, dt) @ X
                             x = Dyn(x, t-dt, dt)
 
@@ -324,7 +327,7 @@ class Var4D:
 
                 # Assess (analysis) stats.
                 final_increment = X@dw
-                stats.assess(k,   kObs, 'a', mu=x+final_increment, Cov=X@Cow1@X.T)
+                stats.assess(k, kObs, 'a', mu=x+final_increment, Cov=X@Cow1@X.T)
                 stats.iters[kObs] = iteration+1
 
                 # Final (smoothed) estimate at [kLag].

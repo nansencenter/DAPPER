@@ -1,6 +1,7 @@
 """Demonstrate the Ikeda map.
 
-Plot settings inspired by Wikipedia."""
+Plot settings inspired by Wikipedia.
+"""
 
 import numpy as np
 from matplotlib import pyplot as plt
