@@ -1,8 +1,105 @@
 """Functions for rounding numbers."""
 
 import functools
+from dataclasses import dataclass
 
 import numpy as np
+
+from dapper.dpr_config import rc
+
+
+@dataclass
+class UncertainQtty():
+    """Data container associating uncertainty (confidence) to a quantity.
+
+    Includes intelligent rounding and printing functionality.
+
+    Examples:
+    >>> for c in [.01, .1, .2, .9, 1]:
+    ...    print(UncertainQtty(1.2345, c))
+    1.23 ±0.01
+    1.2 ±0.1
+    1.2 ±0.2
+    1.2 ±0.9
+    1 ±1
+
+    >>> for c in [.01, 1e-10, 1e-17, 0]:
+    ...    print(UncertainQtty(1.2, c))
+    1.20 ±0.01
+    1.2000000000 ±1e-10
+    1.19999999999999996 ±1e-17
+    1.2000000000 ±0
+
+    Note that in the case of a confidence of exactly 0,
+    it defaults to 10 decimal places.
+    Meanwhile, a NaN confidence yields printing using `rc.sigfig`:
+
+    >>> print(UncertainQtty(1.234567, np.nan))
+    1.235 ±nan
+
+    Also note the effect of large uncertainty:
+
+    >>> for c in [1, 9, 10, 11, 20, 100, np.inf]:
+    ...    print(UncertainQtty(12, c))
+    12 ±1
+    12 ±9
+    10 ±10
+    10 ±10
+    10 ±20
+    0 ±100
+    0 ±inf
+    """
+
+    val: float
+    conf: float
+
+    def round(self, mult=1.0):  # noqa
+        """Round intelligently.
+
+        - `conf` to 1 sig. fig.
+        - `val`:
+            - to precision: `mult*conf`
+            - fallback: `rc.sigfig`
+        """
+        if np.isnan(self.conf):
+            # Fallback to rc.sigfig
+            c = self.conf
+            v = round2sigfig(self.val, rc.sigfig)
+        else:
+            # Normal/general case
+            c = round2sigfig(self.conf, 1)
+            v = round2(self.val, mult*self.conf)
+        return v, c
+
+    def __str__(self):
+        """Returns 'val ±conf'.
+
+        The value string contains the number of decimals required by the confidence.
+
+        Note: the special cases require processing on top of `round`.
+        """
+        v, c = self.round()
+        if np.isnan(c):
+            # Rounding to fallback (rc.sigfig) already took place
+            return f"{v} ±{c}"
+        if c == 0:
+            # 0 (i.e. not 1e-300) never arises "naturally" => Treat it "magically"
+            # by truncating to a default. Also see https://stackoverflow.com/a/25899600
+            n = -10
+        else:
+            # Normal/general case.
+            n = log10int(c)
+        frmt = "%.f"
+        if n < 0:
+            # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
+            frmt = "%%0.%df" % -n
+        v = frmt % v
+        return f"{v} ±{c}"
+
+    def __repr__(self):
+        """Essentially the same as `__str__`."""
+        v, c = str(self).split(" ±")
+        return self.__class__.__name__ + f"(val={v}, conf={c})"
 
 
 def np_vectorize(f):

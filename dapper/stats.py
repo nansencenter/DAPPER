@@ -575,7 +575,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
     decimals: int
         Desired number of decimals.
         Used for the columns "val" and "conf", and only these.
-        If `None`, it is left to the `UncertainQtty` objects themselves.
+        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
 
     cols: tuple[str]
         Names of columns to extract.
