@@ -606,7 +606,7 @@ def align_col(col, header, pad=&#39;␣&#39;, missingval=&#39;&#39;, frmt=None):
     return col
 
 
-def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
+def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;prec&#34;)):
     &#34;&#34;&#34;Make `uq_list` into array with named columns of attributes.
 
     None is inserted (in each col) if `uq` itself is None.
@@ -618,8 +618,8 @@ def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
 
     decimals: int
         Desired number of decimals.
-        Used for the columns &#34;val&#34; and &#34;conf&#34;, and only these.
-        If `None`, it is left to the `UncertainQtty` objects themselves.
+        Used for the columns &#34;val&#34; and &#34;prec&#34;, and only these.
+        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
 
     cols: tuple[str]
         Names of columns to extract.
@@ -627,14 +627,14 @@ def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
     def unpack1(arr, i, uq):
         if uq is None:
             return
-        # Columns: val/conf
+        # Columns: val/prec
         if decimals is None:
             v, c = uq.round()
         else:
-            v, c = np.round([uq.val, uq.conf], decimals)
-        arr[&#34;val&#34;][i], arr[&#34;conf&#34;][i] = v, c
+            v, c = np.round([uq.val, uq.prec], decimals)
+        arr[&#34;val&#34;][i], arr[&#34;prec&#34;][i] = v, c
         # Columns: others
-        for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;conf&#34;]):
+        for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;prec&#34;]):
             try:
                 arr[col][i] = getattr(uq, col)
             except AttributeError:
@@ -650,7 +650,7 @@ def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
 
 
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
-    &#34;&#34;&#34;Tabulate avrgs (val±conf).&#34;&#34;&#34;
+    &#34;&#34;&#34;Tabulate avrgs (val±prec).&#34;&#34;&#34;
     if not statkeys:
         statkeys = [&#39;rmse.a&#39;, &#39;rmv.a&#39;, &#39;rmse.f&#39;]
 
@@ -659,7 +659,7 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
         vals  = align_col(column[&#34;val&#34;], stat)
-        confs = align_col(column[&#34;conf&#34;], &#39;1σ&#39;)
+        confs = align_col(column[&#34;prec&#34;], &#39;1σ&#39;)
         headr = vals[0]+&#39;  1σ&#39;
         mattr = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr
@@ -819,7 +819,7 @@ Custom <code>frmt</code> also supported.</li>
 </details>
 </dd>
 <dt id="dapper.stats.unpack_uqs"><code class="name flex">
-<span>def <span class="ident">unpack_uqs</span></span>(<span>uq_list, decimals=None, cols=('val', 'conf'))</span>
+<span>def <span class="ident">unpack_uqs</span></span>(<span>uq_list, decimals=None, cols=('val', 'prec'))</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Make <code>uq_list</code> into array with named columns of attributes.</p>
@@ -830,8 +830,8 @@ Custom <code>frmt</code> also supported.</li>
 <dd>List of objects.</dd>
 <dt><strong><code>decimals</code></strong> :&ensp;<code>int</code></dt>
 <dd>Desired number of decimals.
-Used for the columns "val" and "conf", and only these.
-If <code>None</code>, it is left to the <code>UncertainQtty</code> objects themselves.</dd>
+Used for the columns "val" and "prec", and only these.
+If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.UncertainQtty" href="tools/rounding.html#dapper.tools.rounding.UncertainQtty">UncertainQtty</a></code> objects.</dd>
 <dt><strong><code>cols</code></strong> :&ensp;<code>tuple[str]</code></dt>
 <dd>Names of columns to extract.</dd>
 </dl></div>
@@ -840,7 +840,7 @@ If <code>None</code>, it is left to the <code>UncertainQtty</code> objects thems
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L565-L605" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
+<pre><code class="python">def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;prec&#34;)):
     &#34;&#34;&#34;Make `uq_list` into array with named columns of attributes.
 
     None is inserted (in each col) if `uq` itself is None.
@@ -852,8 +852,8 @@ If <code>None</code>, it is left to the <code>UncertainQtty</code> objects thems
 
     decimals: int
         Desired number of decimals.
-        Used for the columns &#34;val&#34; and &#34;conf&#34;, and only these.
-        If `None`, it is left to the `UncertainQtty` objects themselves.
+        Used for the columns &#34;val&#34; and &#34;prec&#34;, and only these.
+        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
 
     cols: tuple[str]
         Names of columns to extract.
@@ -861,14 +861,14 @@ If <code>None</code>, it is left to the <code>UncertainQtty</code> objects thems
     def unpack1(arr, i, uq):
         if uq is None:
             return
-        # Columns: val/conf
+        # Columns: val/prec
         if decimals is None:
             v, c = uq.round()
         else:
-            v, c = np.round([uq.val, uq.conf], decimals)
-        arr[&#34;val&#34;][i], arr[&#34;conf&#34;][i] = v, c
+            v, c = np.round([uq.val, uq.prec], decimals)
+        arr[&#34;val&#34;][i], arr[&#34;prec&#34;][i] = v, c
         # Columns: others
-        for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;conf&#34;]):
+        for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;prec&#34;]):
             try:
                 arr[col][i] = getattr(uq, col)
             except AttributeError:
@@ -887,14 +887,14 @@ If <code>None</code>, it is left to the <code>UncertainQtty</code> objects thems
 <span>def <span class="ident">tabulate_avrgs</span></span>(<span>avrgs_list, statkeys=(), decimals=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Tabulate avrgs (val±conf).</p></div>
+<div class="desc"><p>Tabulate avrgs (val±prec).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L608-L623" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
-    &#34;&#34;&#34;Tabulate avrgs (val±conf).&#34;&#34;&#34;
+    &#34;&#34;&#34;Tabulate avrgs (val±prec).&#34;&#34;&#34;
     if not statkeys:
         statkeys = [&#39;rmse.a&#39;, &#39;rmv.a&#39;, &#39;rmse.f&#39;]
 
@@ -903,7 +903,7 @@ If <code>None</code>, it is left to the <code>UncertainQtty</code> objects thems
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
         vals  = align_col(column[&#34;val&#34;], stat)
-        confs = align_col(column[&#34;conf&#34;], &#39;1σ&#39;)
+        confs = align_col(column[&#34;prec&#34;], &#39;1σ&#39;)
         headr = vals[0]+&#39;  1σ&#39;
         mattr = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr

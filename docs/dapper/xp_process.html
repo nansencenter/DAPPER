@@ -65,7 +65,7 @@ from tqdm import tqdm
 import dapper.tools.remote.uplink as uplink
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
-from dapper.tools.series import UncertainQtty
+from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import axis_scale_by_array, freshfig
 from dapper.xp_launch import collapse_str, xpList
 
@@ -837,7 +837,7 @@ class xpSpace(SparseSpace):
             &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
             # Define subcol formats
             subc = dict()
-            subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
+            subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;prec&#34;]
             subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
             subc[&#39;frmts&#39;]    = [None, None]
             subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
@@ -2399,7 +2399,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
             &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
             # Define subcol formats
             subc = dict()
-            subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
+            subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;prec&#34;]
             subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
             subc[&#39;frmts&#39;]    = [None, None]
             subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
@@ -3070,7 +3070,7 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
         &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
         # Define subcol formats
         subc = dict()
-        subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
+        subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;prec&#34;]
         subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
         subc[&#39;frmts&#39;]    = [None, None]
         subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
