@@ -4,7 +4,7 @@
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov --cov-report term-missing"
+#addopts = "--cov --cov-report term-missing"
 #testpaths = ["tests", "integration"] # norecursedirs suffices
 norecursedirs = """.* build dist CVS _darcs {arch} *.egg venv \
 tmp*""" # add tmp to the above (defaults)
