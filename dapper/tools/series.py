@@ -12,7 +12,8 @@ from dapper.tools.math import center, is1d, log10int, round2, round2sigfig
 
 
 def auto_cov(xx, nlags=4, zero_mean=False, corr=False):
-    """Auto covariance function, computed along axis 0.
+    """
+    Auto covariance function, computed along axis 0.
 
     - `nlags`: max lag (offset) for which to compute acf.
     - `corr` : normalize acf by `acf[0]` so as to return auto-CORRELATION.
@@ -80,60 +81,98 @@ def estimate_corr_length(xx):
         L = 1/np.log(1/a)
     return L
 
-
 @dataclass
 class UncertainQtty():
-    """Container associating an uncertainty with a quantity.
+    """Data container associating uncertainty (confidence) to a quantity.
 
-    Includes rounding function for the purpose of pretty prints.
+    Includes intelligent rounding and printing functionality.
 
     Examples:
-    >>> print(UncertainQtty(1.2345, .1))
+    >>> for c in [.01, .1, .2, .9, 1]:
+    ...    print(UncertainQtty(1.2345, c))
+    1.23 ±0.01
     1.2 ±0.1
-    >>> print(UncertainQtty(1.2345, .9))
+    1.2 ±0.2
     1.2 ±0.9
-    >>> print(UncertainQtty(1.300, 0.01))
-    1.30 ±0.01
-    >>> print(UncertainQtty(14, 12))
+    1 ±1
+
+    >>> for c in [.01, 1e-10, 1e-17, 0]:
+    ...    print(UncertainQtty(1.2, c))
+    1.20 ±0.01
+    1.2000000000 ±1e-10
+    1.19999999999999996 ±1e-17
+    1.2000000000 ±0
+
+    Note that in the case of a confidence of exactly 0,
+    it defaults to 10 decimal places.
+    Meanwhile, a NaN confidence yields printing using `rc.sigfig`:
+
+    >>> print(UncertainQtty(1.234567, np.nan))
+    1.235 ±nan
+
+    Also note the effect of large uncertainty:
+
+    >>> for c in [1, 9, 10, 11, 20, 100, np.inf]:
+    ...    print(UncertainQtty(12, c))
+    12 ±1
+    12 ±9
     10 ±10
-    >>> UncertainQtty(1.2345, 1)
-    UncertainQtty(val=1, conf=1)
+    10 ±10
+    10 ±20
+    0 ±100
+    0 ±inf
     """
+
     val: float
     conf: float
 
-    def round(self, mult=1.0):
-        """Round intelligently:
+    def round(self, mult=1.0):  # noqa
+        """Round intelligently.
 
-        - conf to 1 sigfig.
-        - val:
-            - to precision: mult*conf.
-            - fallback: rc.sigfig
+        - `conf` to 1 sig. fig.
+        - `val`:
+            - to precision: `mult*conf`
+            - fallback: `rc.sigfig`
         """
-        # Extreme cases
-        if np.isnan(self.conf) or self.conf == 0:
+        if np.isnan(self.conf):
+            # Fallback to rc.sigfig
             c = self.conf
             v = round2sigfig(self.val, rc.sigfig)
-        # Normla case
         else:
+            # Normal/general case
             c = round2sigfig(self.conf, 1)
             v = round2(self.val, mult*self.conf)
         return v, c
 
     def __str__(self):
-        # Round nicely
+        """Returns 'val ±conf'.
+
+        The value string contains the number of decimals required by the confidence.
+
+        Note: the special cases require processing on top of `round`.
+        """
         v, c = self.round()
-        # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01.
-        n = log10int(c)
-        if abs(n) == 300: return "{} ±{}".format(v, c)
-        frmt = "%.f" if n >= 0 else "%%0.%df" % -n
+        if np.isnan(c):
+            # Rounding to fallback (rc.sigfig) already took place
+            return f"{v} ±{c}"
+        if c == 0:
+            # 0 (i.e. not 1e-300) never arises "naturally" => Treat it "magically"
+            # by truncating to a default. Also see https://stackoverflow.com/a/25899600
+            n = -10
+        else:
+            # Normal/general case.
+            n = log10int(c)
+        # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
+        frmt = "%.f"
+        if n < 0:
+            frmt = "%%0.%df" % -n
         v = frmt % v
-        return "{} ±{}".format(v, c)
+        return f"{v} ±{c}"
 
     def __repr__(self):
+        """Essentially the same as `__str__`."""
         v, c = str(self).split(" ±")
         return self.__class__.__name__ + f"(val={v}, conf={c})"
-
 
 def mean_with_conf(xx):
     """Compute the mean of a 1d iterable ``xx``.
