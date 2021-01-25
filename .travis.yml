@@ -40,9 +40,6 @@ jobs:
 #   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update ; fi
 install:
   - source tests/travis_install.sh
-before_script:
-  - git config --global user.email "patrick.n.raanes@gmail.com"
-  - git config --global user.name "Patrick N. Raanes"
 script:
   #- python setup.py develop
   - pip install -e .
