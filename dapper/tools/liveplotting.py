@@ -675,7 +675,7 @@ def sliding_marginals(
             K_plot += a_lag
 
         # Chose marginal dims to plot
-        if p.dims == []:
+        if not p.dims:
             Nx      = min(10, xx.shape[-1])
             DimsX   = linspace_int(xx.shape[-1], Nx)
         else:
@@ -822,7 +822,7 @@ def phase_particles(
                 K_plot += a_lag
 
         # Dimension settings
-        if p.dims   == []:
+        if not p.dims:
             p.dims   = arange(M)
         if p.labels == []:
             p.labels = ["$x_%d$" % d for d in p.dims]
@@ -866,14 +866,14 @@ def phase_particles(
         # Scatter. NB: don't init with nan's coz it's buggy
         # (wrt. get_color() and _offsets3d) since mpl 3.1.
         if 'E' in d:
-            s.E   = ax.scatter(*E.T[p.dims], s=3 ** 2,
-                               c=[hn  .get_color() for hn in h.E])
+            s.E   = ax.scatter(*E.T[p.dims], s=3**2,
+                               c=[hn.get_color() for hn in h.E])
         if 'mu' in d:
-            s.mu  = ax.scatter(*ones(M), s=8 ** 2,
-                               c=[(h.mu.get_color(), )])
+            s.mu  = ax.scatter(*ones(M), s=8**2,
+                               c=[h.mu.get_color()])
         if True:
-            s.x   = ax.scatter(*ones(M), s=14**2,
-                               c=[(h.x.get_color(), )], marker=(5, 1), zorder=99)
+            s.x  = ax.scatter(*ones(M), s=14**2,
+                              c=[h.x.get_color()], marker=(5, 1), zorder=99)
 
         def update(key, E, P):
             k, kObs, faus = key
@@ -1094,7 +1094,7 @@ def spatial1d(
         p = DotDict(**{
             kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
 
-        if p.dims == []:
+        if not p.dims:
             M = xx.shape[-1]
             p.dims = arange(M)
         else:
