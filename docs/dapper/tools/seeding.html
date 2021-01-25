@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/seeding.py#L0-L57" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/seeding.py#L0-L56" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Random number generation.&#34;&#34;&#34;
 
@@ -83,7 +83,6 @@ def set_seed(sd=&#34;clock&#34;):
     &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
     &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
     &#34;&#34;&#34;
-
     if (sd is not False) and sd == 0:
         msg = (&#34;Seeding with 0 is not a good idea, because\n&#34;
                &#34;- Might be confused with [None, False].\n&#34;
@@ -143,7 +142,7 @@ And we're not not worried about thread safety.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/seeding.py#L8-L58" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/seeding.py#L8-L57" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def set_seed(sd=&#34;clock&#34;):
     &#34;&#34;&#34;Essentially ``np.random.seed(sd)``, but also returning ``sd``.
@@ -179,7 +178,6 @@ And we're not not worried about thread safety.</p>
     &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
     &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
     &#34;&#34;&#34;
-
     if (sd is not False) and sd == 0:
         msg = (&#34;Seeding with 0 is not a good idea, because\n&#34;
                &#34;- Might be confused with [None, False].\n&#34;

@@ -61,7 +61,10 @@ In that case, read this:<ul>
 </ul>
 </li>
 </ul>
-<h2 id="features-beyond-the-readmehighlights">Features beyond the <a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a></h2>
+<h2 id="features">Features</h2>
+<p>The main features are listed in
+<a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a>.
+Additionally, there is:</p>
 <ul>
 <li>Parallelisation:<ul>
 <li>(Independent) experiments can run in parallel; see <code>examples/basic_3.py</code></li>
@@ -77,10 +80,12 @@ see example in <code><a title="dapper.da_methods.ensemble.LETKF" href="da_method
 and data processing and presentation via <code><a title="dapper.xp_process.xpSpace" href="xp_process.html#dapper.xp_process.xpSpace">xpSpace</a></code>.</li>
 <li>Time sequences use via <code><a title="dapper.tools.chronos.Chronology" href="tools/chronos.html#dapper.tools.chronos.Chronology">Chronology</a></code>
 and<code><a title="dapper.tools.chronos.Ticker" href="tools/chronos.html#dapper.tools.chronos.Ticker">Ticker</a></code>.</li>
-<li>Random variables via <code><a title="dapper.tools.randvars.RV" href="tools/randvars.html#dapper.tools.randvars.RV">RV</a></code>: Gaussian, Student-t, Laplace, Uniform, &hellip;,
-as well as support for custom sampling functions.</li>
-<li>Covariance matrices via <code><a title="dapper.tools.matrices.CovMat" href="tools/matrices.html#dapper.tools.matrices.CovMat">CovMat</a></code>: provides input flexibility/overloading,
-lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).</li>
+<li>Random variables via <code><a title="dapper.tools.randvars.RV" href="tools/randvars.html#dapper.tools.randvars.RV">RV</a></code>: Gaussian, Student-t, Laplace, Uniform,
+&hellip;, as well as support for custom sampling functions.</li>
+<li>Covariance matrices via <code><a title="dapper.tools.matrices.CovMat" href="tools/matrices.html#dapper.tools.matrices.CovMat">CovMat</a></code>:
+provides input flexibility/overloading,
+lazy eval that facilitates the use of non-diagnoal
+covariance matrices (whether sparse or full).</li>
 </ul>
 </li>
 <li>Diagnostics and statistics with<ul>
@@ -141,7 +146,7 @@ through the following links, which are also available in the left sidebar.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/__init__.py#L0-L107" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/__init__.py#L0-L113" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;(Data Assimilation with Python: a Package for Experimental Research)
 
@@ -170,7 +175,11 @@ your own **model** or **method**, then
     - `mods`
     - `da_methods`
 
-## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
+## Features
+
+The main features are listed in
+[README/highlights](https://github.com/nansencenter/DAPPER#Highlights).
+Additionally, there is:
 
 - Parallelisation:
     - (Independent) experiments can run in parallel; see `examples/basic_3.py`
@@ -184,10 +193,12 @@ your own **model** or **method**, then
       and data processing and presentation via `xp_process.xpSpace`.
     - Time sequences use via `tools.chronos.Chronology`
       and`tools.chronos.Ticker`.
-    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
-      as well as support for custom sampling functions.
-    - Covariance matrices via `tools.matrices.CovMat`: provides input flexibility/overloading,
-      lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
+    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform,
+      ..., as well as support for custom sampling functions.
+    - Covariance matrices via `tools.matrices.CovMat`:
+      provides input flexibility/overloading,
+      lazy eval that facilitates the use of non-diagnoal
+      covariance matrices (whether sparse or full).
 - Diagnostics and statistics with
     - Confidence interval on times series (e.g. rmse) averages with
         - automatic correction for autocorrelation
@@ -323,7 +334,7 @@ data-gaCategoryParameter="dapper">
 <ul>
 <li><a href="#in-the-readme">In the README</a></li>
 <li><a href="#usage">Usage</a></li>
-<li><a href="#features-beyond-the-readmehighlights">Features beyond the README/highlights</a></li>
+<li><a href="#features">Features</a></li>
 <li><a href="#conventions">Conventions</a></li>
 <li><a href="#dev-guide">Dev guide</a></li>
 <li><a href="#bibliographyreferences">Bibliography/references</a></li>

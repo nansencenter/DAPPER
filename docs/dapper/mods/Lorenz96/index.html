@@ -97,10 +97,10 @@ def d2x_dtdx(x):
     def md(i): return np.mod(i, M)  # modulo
 
     for i in range(M):
-        F[i, i]       = -1.0
-        F[i,   i-2]   = -x[i-1]
+        F[i   , i]    = -1.0
+        F[i   , i-2]  = -x[i-1]
         F[i, md(i+1)] = +x[i-1]
-        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+        F[i   , i-1]  = x[md(i+1)]-x[i-2]
 
     return F
 
@@ -155,7 +155,7 @@ def LPs(jj=None): return [
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.frei2013bridging" href="frei2013bridging.html">frei2013bridging</a></code></dt>
 <dd>
-<div class="desc"><p>Settings as in <code><a title="bib.frei2013bridging" href="../../../bib.html#bib.frei2013bridging">frei2013bridging</a></code>, who also cite its use in the following: …</p></div>
+<div class="desc"><p>Settings as in <code><a title="bib.frei2013bridging" href="../../../bib.html#bib.frei2013bridging">frei2013bridging</a></code> …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -167,7 +167,7 @@ def LPs(jj=None): return [
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz96.miyoshi2011" href="miyoshi2011.html">miyoshi2011</a></code></dt>
 <dd>
-<div class="desc"><p>A land-ocean setup from <code><a title="bib.miyoshi2011gaussian" href="../../../bib.html#bib.miyoshi2011gaussian">miyoshi2011gaussian</a></code>, inspired by <code><a title="bib.lorenz1998optimal" href="../../../bib.html#bib.lorenz1998optimal">lorenz1998optimal</a></code>.</p></div>
+<div class="desc"><p>A land-ocean setup …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -289,10 +289,10 @@ def LPs(jj=None): return [
     def md(i): return np.mod(i, M)  # modulo
 
     for i in range(M):
-        F[i, i]       = -1.0
-        F[i,   i-2]   = -x[i-1]
+        F[i   , i]    = -1.0
+        F[i   , i-2]  = -x[i-1]
         F[i, md(i+1)] = +x[i-1]
-        F[i,   i-1]   = x[md(i+1)]-x[i-2]
+        F[i   , i-1]  = x[md(i+1)]-x[i-2]
 
     return F</code></pre>
 </details>

@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L677" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L680" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Stats computation for the assessment of DA methods.&#34;&#34;&#34;
 
@@ -74,7 +74,6 @@ class Stats(StatPrint):
         add custom stat. series to a Stat instance within a particular method,
         for example. Use ``new_series`` to get automatic averaging too.
         &#34;&#34;&#34;
-
         ######################################
         # Preamble
         ######################################
@@ -91,7 +90,7 @@ class Stats(StatPrint):
         Nx   = xx.shape[1]
         KObs = yy.shape[0]-1
         Ny   = yy.shape[1]
-        self.K,    self.Nx = K, Nx
+        self.K   , self.Nx = K, Nx
         self.KObs, self.Ny = KObs, Ny
 
         # Methods for summarizing multivariate stats (&#34;fields&#34;) as scalars
@@ -117,13 +116,13 @@ class Stats(StatPrint):
         ######################################
         # Allocate time series of various stats
         ######################################
-        self.new_series(&#39;mu&#39;,     Nx, MS=&#39;sec&#39;)  # Mean
-        self.new_series(&#39;std&#39;,    Nx, MS=&#39;sec&#39;)  # Std. dev. (&#34;spread&#34;)
-        self.new_series(&#39;err&#39;,    Nx, MS=&#39;sec&#39;)  # Error (mu - truth)
+        self.new_series(&#39;mu&#39;    , Nx, MS=&#39;sec&#39;)  # Mean
+        self.new_series(&#39;std&#39;   , Nx, MS=&#39;sec&#39;)  # Std. dev. (&#34;spread&#34;)
+        self.new_series(&#39;err&#39;   , Nx, MS=&#39;sec&#39;)  # Error (mu - truth)
         self.new_series(&#39;gscore&#39;, Nx, MS=&#39;sec&#39;)  # Gaussian (log) score
 
         # To save memory, we only store these field means:
-        self.new_series(&#39;mad&#39;,  1)  # Mean abs deviations
+        self.new_series(&#39;mad&#39; , 1)  # Mean abs deviations
         self.new_series(&#39;skew&#39;, 1)  # Skewness
         self.new_series(&#39;kurt&#39;, 1)  # Kurtosis
 
@@ -150,13 +149,13 @@ class Stats(StatPrint):
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series(&#39;trHK&#39;,  1, KObs+1)
-        self.new_series(&#39;infl&#39;,  1, KObs+1)
+        self.new_series(&#39;trHK&#39; , 1, KObs+1)
+        self.new_series(&#39;infl&#39; , 1, KObs+1)
         self.new_series(&#39;iters&#39;, 1, KObs+1)
 
         # Weight-related
-        self.new_series(&#39;N_eff&#39;,  1, KObs+1)
-        self.new_series(&#39;wroot&#39;,  1, KObs+1)
+        self.new_series(&#39;N_eff&#39; , 1, KObs+1)
+        self.new_series(&#39;wroot&#39; , 1, KObs+1)
         self.new_series(&#39;resmpl&#39;, 1, KObs+1)
 
     def new_series(self, name, shape, length=&#39;FAUSt&#39;, MS=False, **kws):
@@ -171,7 +170,6 @@ class Stats(StatPrint):
             to avoid plotting stats that are not being used.
             =&gt; Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
         &#34;&#34;&#34;
-
         # Convert int shape to tuple
         if not hasattr(shape, &#39;__len__&#39;):
             if shape == 1:
@@ -220,7 +218,6 @@ class Stats(StatPrint):
               the forecast/analysis/universal attribute.
               Default: &#39;u&#39; if kObs is None else &#39;au&#39; (&#39;a&#39; and &#39;u&#39;).
         &#34;&#34;&#34;
-
         # Initial consistency checks.
         if k == 0:
             if kObs is not None:
@@ -286,7 +283,7 @@ class Stats(StatPrint):
                     self, self.liveplots, (k, kObs, sub), E, Cov)
 
     def summarize_marginals(self, now):
-        &#34;Compute Mean-field and RMS values&#34;
+        &#34;&#34;&#34;Compute Mean-field and RMS values&#34;&#34;&#34;
         formulae = {**self.field_summaries, **self.sector_summaries}
 
         with np.errstate(divide=&#39;ignore&#39;, invalid=&#39;ignore&#39;):
@@ -462,7 +459,6 @@ class Stats(StatPrint):
         .. note:: Ensembles are generally not stored in the stats
         and so cannot be replayed.
         &#34;&#34;&#34;
-
         # Time settings
         chrono = self.HMM.t
         if t2 is None:
@@ -486,7 +482,7 @@ class Stats(StatPrint):
         desc = self.xp.da_method + &#34; (replay)&#34;
 
         # Play through assimilation cycles
-        for k, kObs, t, dt in progbar(chrono.ticker, desc):
+        for k, kObs, t, _dt in progbar(chrono.ticker, desc):
             if t1 &lt;= t &lt;= t2:
                 if kObs is not None:
                     LP.update((k, kObs, &#39;f&#39;), None, None)
@@ -496,7 +492,7 @@ class Stats(StatPrint):
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
         if LP.any_figs:
-            for name, (num, updater) in LP.figures.items():
+            for _name, (num, updater) in LP.figures.items():
                 if plt.fignum_exists(num) and getattr(updater, &#39;is_active&#39;, 1):
                     plt.figure(num)
                     plt.pause(0.01)
@@ -527,7 +523,6 @@ class Avrgs(StatPrint, struct_tools.DotDict):
     # Use getattribute coz it gets called before getattr.
     def __getattribute__(self, key):
         &#34;&#34;&#34;Support deep and abbreviated lookup.&#34;&#34;&#34;
-
         # key = abbrevs[key] # Instead of this, also support rmse.a:
         key = &#39;.&#39;.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split(&#39;.&#39;))
 
@@ -568,7 +563,6 @@ def align_col(col, header, pad=&#39;␣&#39;, missingval=&#39;&#39;, frmt=None):
       Custom ``frmt`` also supported.
     - Pad (on the right) each row so that the widths are equal.
     &#34;&#34;&#34;
-
     def preprocess(x):
         try:
             # Custom frmt supplied
@@ -613,23 +607,33 @@ def align_col(col, header, pad=&#39;␣&#39;, missingval=&#39;&#39;, frmt=None):
 
 
 def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
-    &#34;&#34;&#34;Make array whose (named) cols are `[uq.col for uq in uq_list]`.
+    &#34;&#34;&#34;Make `uq_list` into array with named columns of attributes.
 
-    Embellishments:
-    - Insert None (in each col) if uq is None.
-    - Apply uq.round() when extracting val &amp; conf.
+    None is inserted (in each col) if `uq` itself is None.
+
+    Parameters
+    ----------
+    uqlist: list
+        List of objects.
+
+    decimals: int
+        Desired number of decimals.
+        Used for the columns &#34;val&#34; and &#34;conf&#34;, and only these.
+        If `None`, it is left to the `UncertainQtty` objects themselves.
+
+    cols: tuple[str]
+        Names of columns to extract.
     &#34;&#34;&#34;
-
     def unpack1(arr, i, uq):
         if uq is None:
             return
-        # val/conf
+        # Columns: val/conf
         if decimals is None:
             v, c = uq.round()
         else:
             v, c = np.round([uq.val, uq.conf], decimals)
         arr[&#34;val&#34;][i], arr[&#34;conf&#34;][i] = v, c
-        # Others
+        # Columns: others
         for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;conf&#34;]):
             try:
                 arr[col][i] = getattr(uq, col)
@@ -647,7 +651,6 @@ def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
 
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     &#34;&#34;&#34;Tabulate avrgs (val±conf).&#34;&#34;&#34;
-
     if not statkeys:
         statkeys = [&#39;rmse.a&#39;, &#39;rmv.a&#39;, &#39;rmse.f&#39;]
 
@@ -655,10 +658,10 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     for stat in statkeys:
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals   = align_col(column[&#34;val&#34;], stat)
-        confs  = align_col(column[&#34;conf&#34;], &#39;1σ&#39;)
-        headr  = vals[0]+&#39;  1σ&#39;
-        mattr  = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
+        vals  = align_col(column[&#34;val&#34;], stat)
+        confs = align_col(column[&#34;conf&#34;], &#39;1σ&#39;)
+        headr = vals[0]+&#39;  1σ&#39;
+        mattr = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr
 
     return columns
@@ -737,7 +740,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L461-L465" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L457-L461" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def register_stat(self, name, value):
     setattr(self, name, value)
@@ -761,7 +764,7 @@ Custom <code>frmt</code> also supported.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L518-L568" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L513-L562" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def align_col(col, header, pad=&#39;␣&#39;, missingval=&#39;&#39;, frmt=None):
     &#34;&#34;&#34;Format a single column, return as list.
@@ -772,7 +775,6 @@ Custom <code>frmt</code> also supported.</li>
       Custom ``frmt`` also supported.
     - Pad (on the right) each row so that the widths are equal.
     &#34;&#34;&#34;
-
     def preprocess(x):
         try:
             # Custom frmt supplied
@@ -820,33 +822,52 @@ Custom <code>frmt</code> also supported.</li>
 <span>def <span class="ident">unpack_uqs</span></span>(<span>uq_list, decimals=None, cols=('val', 'conf'))</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Make array whose (named) cols are <code>[uq.col for uq in uq_list]</code>.</p>
-<p>Embellishments:
-- Insert None (in each col) if uq is None.
-- Apply uq.round() when extracting val &amp; conf.</p></div>
+<div class="desc"><p>Make <code>uq_list</code> into array with named columns of attributes.</p>
+<p>None is inserted (in each col) if <code>uq</code> itself is None.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>uqlist</code></strong> :&ensp;<code>list</code></dt>
+<dd>List of objects.</dd>
+<dt><strong><code>decimals</code></strong> :&ensp;<code>int</code></dt>
+<dd>Desired number of decimals.
+Used for the columns "val" and "conf", and only these.
+If <code>None</code>, it is left to the <code>UncertainQtty</code> objects themselves.</dd>
+<dt><strong><code>cols</code></strong> :&ensp;<code>tuple[str]</code></dt>
+<dd>Names of columns to extract.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L571-L601" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L565-L605" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;conf&#34;)):
-    &#34;&#34;&#34;Make array whose (named) cols are `[uq.col for uq in uq_list]`.
+    &#34;&#34;&#34;Make `uq_list` into array with named columns of attributes.
 
-    Embellishments:
-    - Insert None (in each col) if uq is None.
-    - Apply uq.round() when extracting val &amp; conf.
+    None is inserted (in each col) if `uq` itself is None.
+
+    Parameters
+    ----------
+    uqlist: list
+        List of objects.
+
+    decimals: int
+        Desired number of decimals.
+        Used for the columns &#34;val&#34; and &#34;conf&#34;, and only these.
+        If `None`, it is left to the `UncertainQtty` objects themselves.
+
+    cols: tuple[str]
+        Names of columns to extract.
     &#34;&#34;&#34;
-
     def unpack1(arr, i, uq):
         if uq is None:
             return
-        # val/conf
+        # Columns: val/conf
         if decimals is None:
             v, c = uq.round()
         else:
             v, c = np.round([uq.val, uq.conf], decimals)
         arr[&#34;val&#34;][i], arr[&#34;conf&#34;][i] = v, c
-        # Others
+        # Columns: others
         for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;conf&#34;]):
             try:
                 arr[col][i] = getattr(uq, col)
@@ -870,11 +891,10 @@ Custom <code>frmt</code> also supported.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L604-L620" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L608-L623" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     &#34;&#34;&#34;Tabulate avrgs (val±conf).&#34;&#34;&#34;
-
     if not statkeys:
         statkeys = [&#39;rmse.a&#39;, &#39;rmv.a&#39;, &#39;rmse.f&#39;]
 
@@ -882,10 +902,10 @@ Custom <code>frmt</code> also supported.</li>
     for stat in statkeys:
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals   = align_col(column[&#34;val&#34;], stat)
-        confs  = align_col(column[&#34;conf&#34;], &#39;1σ&#39;)
-        headr  = vals[0]+&#39;  1σ&#39;
-        mattr  = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
+        vals  = align_col(column[&#34;val&#34;], stat)
+        confs = align_col(column[&#34;conf&#34;], &#39;1σ&#39;)
+        headr = vals[0]+&#39;  1σ&#39;
+        mattr = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr
 
     return columns</code></pre>
@@ -907,7 +927,7 @@ Custom <code>frmt</code> also supported.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L623-L646" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L626-L649" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def center(E, axis=0, rescale=False):
     &#34;&#34;&#34;Center ensemble.
@@ -943,7 +963,7 @@ Custom <code>frmt</code> also supported.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L649-L651" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L652-L654" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean0(E, axis=0, rescale=True):
     &#34;&#34;&#34;Center, but only return the anomalies (not the mean).&#34;&#34;&#34;
@@ -958,7 +978,7 @@ Custom <code>frmt</code> also supported.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L654-L659" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L657-L662" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inflate_ens(E, factor):
     &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).&#34;&#34;&#34;
@@ -976,7 +996,7 @@ Custom <code>frmt</code> also supported.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L662-L664" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L665-L667" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def weight_degeneracy(w, prec=1e-10):
     &#34;&#34;&#34;Check if the weights are degenerate.&#34;&#34;&#34;
@@ -992,7 +1012,7 @@ Custom <code>frmt</code> also supported.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L667-L678" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L670-L681" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
@@ -1027,7 +1047,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L20-L458" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L20-L454" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Stats(StatPrint):
     &#34;&#34;&#34;Contains and computes statistics of the DA methods.
@@ -1042,7 +1062,6 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         add custom stat. series to a Stat instance within a particular method,
         for example. Use ``new_series`` to get automatic averaging too.
         &#34;&#34;&#34;
-
         ######################################
         # Preamble
         ######################################
@@ -1059,7 +1078,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         Nx   = xx.shape[1]
         KObs = yy.shape[0]-1
         Ny   = yy.shape[1]
-        self.K,    self.Nx = K, Nx
+        self.K   , self.Nx = K, Nx
         self.KObs, self.Ny = KObs, Ny
 
         # Methods for summarizing multivariate stats (&#34;fields&#34;) as scalars
@@ -1085,13 +1104,13 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         ######################################
         # Allocate time series of various stats
         ######################################
-        self.new_series(&#39;mu&#39;,     Nx, MS=&#39;sec&#39;)  # Mean
-        self.new_series(&#39;std&#39;,    Nx, MS=&#39;sec&#39;)  # Std. dev. (&#34;spread&#34;)
-        self.new_series(&#39;err&#39;,    Nx, MS=&#39;sec&#39;)  # Error (mu - truth)
+        self.new_series(&#39;mu&#39;    , Nx, MS=&#39;sec&#39;)  # Mean
+        self.new_series(&#39;std&#39;   , Nx, MS=&#39;sec&#39;)  # Std. dev. (&#34;spread&#34;)
+        self.new_series(&#39;err&#39;   , Nx, MS=&#39;sec&#39;)  # Error (mu - truth)
         self.new_series(&#39;gscore&#39;, Nx, MS=&#39;sec&#39;)  # Gaussian (log) score
 
         # To save memory, we only store these field means:
-        self.new_series(&#39;mad&#39;,  1)  # Mean abs deviations
+        self.new_series(&#39;mad&#39; , 1)  # Mean abs deviations
         self.new_series(&#39;skew&#39;, 1)  # Skewness
         self.new_series(&#39;kurt&#39;, 1)  # Kurtosis
 
@@ -1118,13 +1137,13 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series(&#39;trHK&#39;,  1, KObs+1)
-        self.new_series(&#39;infl&#39;,  1, KObs+1)
+        self.new_series(&#39;trHK&#39; , 1, KObs+1)
+        self.new_series(&#39;infl&#39; , 1, KObs+1)
         self.new_series(&#39;iters&#39;, 1, KObs+1)
 
         # Weight-related
-        self.new_series(&#39;N_eff&#39;,  1, KObs+1)
-        self.new_series(&#39;wroot&#39;,  1, KObs+1)
+        self.new_series(&#39;N_eff&#39; , 1, KObs+1)
+        self.new_series(&#39;wroot&#39; , 1, KObs+1)
         self.new_series(&#39;resmpl&#39;, 1, KObs+1)
 
     def new_series(self, name, shape, length=&#39;FAUSt&#39;, MS=False, **kws):
@@ -1139,7 +1158,6 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
             to avoid plotting stats that are not being used.
             =&gt; Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
         &#34;&#34;&#34;
-
         # Convert int shape to tuple
         if not hasattr(shape, &#39;__len__&#39;):
             if shape == 1:
@@ -1188,7 +1206,6 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
               the forecast/analysis/universal attribute.
               Default: &#39;u&#39; if kObs is None else &#39;au&#39; (&#39;a&#39; and &#39;u&#39;).
         &#34;&#34;&#34;
-
         # Initial consistency checks.
         if k == 0:
             if kObs is not None:
@@ -1254,7 +1271,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
                     self, self.liveplots, (k, kObs, sub), E, Cov)
 
     def summarize_marginals(self, now):
-        &#34;Compute Mean-field and RMS values&#34;
+        &#34;&#34;&#34;Compute Mean-field and RMS values&#34;&#34;&#34;
         formulae = {**self.field_summaries, **self.sector_summaries}
 
         with np.errstate(divide=&#39;ignore&#39;, invalid=&#39;ignore&#39;):
@@ -1430,7 +1447,6 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         .. note:: Ensembles are generally not stored in the stats
         and so cannot be replayed.
         &#34;&#34;&#34;
-
         # Time settings
         chrono = self.HMM.t
         if t2 is None:
@@ -1454,7 +1470,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         desc = self.xp.da_method + &#34; (replay)&#34;
 
         # Play through assimilation cycles
-        for k, kObs, t, dt in progbar(chrono.ticker, desc):
+        for k, kObs, t, _dt in progbar(chrono.ticker, desc):
             if t1 &lt;= t &lt;= t2:
                 if kObs is not None:
                     LP.update((k, kObs, &#39;f&#39;), None, None)
@@ -1464,7 +1480,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
         if LP.any_figs:
-            for name, (num, updater) in LP.figures.items():
+            for _name, (num, updater) in LP.figures.items():
                 if plt.fignum_exists(num) and getattr(updater, &#39;is_active&#39;, 1):
                     plt.figure(num)
                     plt.pause(0.01)</code></pre>
@@ -1482,7 +1498,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L163-L165" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L161-L163" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def data_series(self):
@@ -1507,7 +1523,7 @@ to avoid plotting stats that are not being used.
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L118-L161" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L117-L159" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def new_series(self, name, shape, length=&#39;FAUSt&#39;, MS=False, **kws):
     &#34;&#34;&#34;Create (and register) a statistics time series.
@@ -1521,7 +1537,6 @@ to avoid plotting stats that are not being used.
         to avoid plotting stats that are not being used.
         =&gt; Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
     &#34;&#34;&#34;
-
     # Convert int shape to tuple
     if not hasattr(shape, &#39;__len__&#39;):
         if shape == 1:
@@ -1569,7 +1584,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L167-L242" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L165-L239" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assess(self, k, kObs=None, faus=None,
            E=None, w=None, mu=None, Cov=None):
@@ -1583,7 +1598,6 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
           the forecast/analysis/universal attribute.
           Default: &#39;u&#39; if kObs is None else &#39;au&#39; (&#39;a&#39; and &#39;u&#39;).
     &#34;&#34;&#34;
-
     # Initial consistency checks.
     if k == 0:
         if kObs is not None:
@@ -1657,10 +1671,10 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L244-L254" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L241-L251" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def summarize_marginals(self, now):
-    &#34;Compute Mean-field and RMS values&#34;
+    &#34;&#34;&#34;Compute Mean-field and RMS values&#34;&#34;&#34;
     formulae = {**self.field_summaries, **self.sector_summaries}
 
     with np.errstate(divide=&#39;ignore&#39;, invalid=&#39;ignore&#39;):
@@ -1680,7 +1694,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L256-L258" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L253-L255" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def derivative_stats(self, now):
     &#34;&#34;&#34;Stats that derive from others (=&gt; not specific for _ens or _ext).&#34;&#34;&#34;
@@ -1695,7 +1709,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L260-L322" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L257-L319" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assess_ens(self, now, x, E, w):
     &#34;&#34;&#34;Ensemble and Particle filter (weighted/importance) assessment.&#34;&#34;&#34;
@@ -1770,7 +1784,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L324-L345" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L321-L342" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assess_ext(self, now, x, mu, P):
     &#34;&#34;&#34;Kalman filter (Gaussian) assessment.&#34;&#34;&#34;
@@ -1809,7 +1823,7 @@ time inds for averaging</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L347-L407" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L344-L404" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def average_in_time(self, kk=None, kkObs=None, free=False):
     &#34;&#34;&#34;Avarage all univariate (scalar) time series.
@@ -1894,7 +1908,7 @@ time inds for averaging</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L409-L458" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L406-L454" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def replay(self, figlist=&#34;default&#34;, speed=np.inf, t1=0, t2=None, **kwargs):
     &#34;&#34;&#34;Replay LivePlot with what&#39;s been stored in &#39;self&#39;.
@@ -1908,7 +1922,6 @@ time inds for averaging</li>
     .. note:: Ensembles are generally not stored in the stats
     and so cannot be replayed.
     &#34;&#34;&#34;
-
     # Time settings
     chrono = self.HMM.t
     if t2 is None:
@@ -1932,7 +1945,7 @@ time inds for averaging</li>
     desc = self.xp.da_method + &#34; (replay)&#34;
 
     # Play through assimilation cycles
-    for k, kObs, t, dt in progbar(chrono.ticker, desc):
+    for k, kObs, t, _dt in progbar(chrono.ticker, desc):
         if t1 &lt;= t &lt;= t2:
             if kObs is not None:
                 LP.update((k, kObs, &#39;f&#39;), None, None)
@@ -1942,7 +1955,7 @@ time inds for averaging</li>
     # Pause required when speed=inf.
     # On Mac, it was also necessary to do it for each fig.
     if LP.any_figs:
-        for name, (num, updater) in LP.figures.items():
+        for _name, (num, updater) in LP.figures.items():
             if plt.fignum_exists(num) and getattr(updater, &#39;is_active&#39;, 1):
                 plt.figure(num)
                 plt.pause(0.01)</code></pre>
@@ -1964,7 +1977,7 @@ time inds for averaging</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L468-L493" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L464-L488" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Avrgs(StatPrint, struct_tools.DotDict):
     &#34;&#34;&#34;A DotDict specialized for stat. averages.
@@ -1984,7 +1997,6 @@ time inds for averaging</li>
     # Use getattribute coz it gets called before getattr.
     def __getattribute__(self, key):
         &#34;&#34;&#34;Support deep and abbreviated lookup.&#34;&#34;&#34;
-
         # key = abbrevs[key] # Instead of this, also support rmse.a:
         key = &#39;.&#39;.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split(&#39;.&#39;))
 
@@ -2018,7 +2030,7 @@ time inds for averaging</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L477-L479" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L473-L475" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate(self, statkeys=()):
     columns = tabulate_avrgs([self], statkeys, decimals=None)

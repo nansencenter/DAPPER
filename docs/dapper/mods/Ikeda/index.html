@@ -42,7 +42,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L0-L65" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L0-L64" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The &#34;Ikeda map&#34; is a discrete-time dynamical system of size 2.
 
@@ -86,7 +86,6 @@ x0 = np.zeros(2)
 
 
 def dstep_dx(x, _t, _dt):
-    &#34;&#34;&#34;Used by ExtKF and 4D-Var&#34;&#34;&#34;
     s, t, x1, y1 = aux(*x)
     x, y = x
 
@@ -108,7 +107,7 @@ params = dict(labels=&#39;xy&#39;)
 def LPs(jj=None, params=params): return [
     (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
     (13, 1, LP.phase_particles(
-        is_3d=False, obs_inds=jj, zoom=0.8,  Tplot=0,  **params)),
+        is_3d=False, obs_inds=jj, zoom=0.8, Tplot=0, **params)),
 ]</code></pre>
 </details>
 </section>
@@ -168,14 +167,13 @@ def step(x, _t, _dt):
 <span>def <span class="ident">dstep_dx</span></span>(<span>x, _t, _dt)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Used by ExtKF and 4D-Var</p></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L42-L55" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L42-L54" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, _t, _dt):
-    &#34;&#34;&#34;Used by ExtKF and 4D-Var&#34;&#34;&#34;
     s, t, x1, y1 = aux(*x)
     x, y = x
 
@@ -198,12 +196,12 @@ def step(x, _t, _dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L62-L66" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L61-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None, params=params): return [
     (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
     (13, 1, LP.phase_particles(
-        is_3d=False, obs_inds=jj, zoom=0.8,  Tplot=0,  **params)),
+        is_3d=False, obs_inds=jj, zoom=0.8, Tplot=0, **params)),
 ]</code></pre>
 </details>
 </dd>

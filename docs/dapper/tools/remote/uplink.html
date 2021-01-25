@@ -41,11 +41,12 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L0-L367" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L0-L366" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools related to running experimentes remotely
 
-Requires rsync, gcloud and ssh access to the DAPPER cluster.&#34;&#34;&#34;
+Requires rsync, gcloud and ssh access to the DAPPER cluster.
+&#34;&#34;&#34;
 
 # TODO 9: use Fabric? https://www.fabfile.org/
 
@@ -103,7 +104,7 @@ class SubmissionConnection:
         #     output = sub_run(connect + [command])
         return sub_run([*self.ssh_M.split(), self.ip, cmd_string], **kwargs)
 
-    def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
+    def rsync(self, src, dst, opts=(), rev=False, prog=False, dry=False, use_M=True):
         # Prepare: opts
         if isinstance(opts, str):
             opts = opts.split()
@@ -187,8 +188,8 @@ def submit_job_GCP(xps_path, **kwargs):
 def _detect_autoscaler(self, minutes=10):
     &#34;&#34;&#34;Grep syslog for autoscaler.
 
-    Also get remote&#39;s date (time), to avoid another (slow) ssh.&#34;&#34;&#34;
-
+    Also get remote&#39;s date (time), to avoid another (slow) ssh.
+    &#34;&#34;&#34;
     command = &#34;&#34;&#34;grep CRON /var/log/syslog | grep autoscaler | tail; date&#34;&#34;&#34;
     output  = self.remote_cmd(command).splitlines()
     recent_crons, now = output[:-1], output[-1]
@@ -366,7 +367,6 @@ def get_ip(instance):
     and that you&#39;ve already logged into the instance once using (eg)
     ``ssh condor-submit.us-central1-f.mc-tut``.
     &#34;&#34;&#34;
-
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = &#39;get(networkInterfaces[0].accessConfigs[0].natIP)&#39;
     ip = sub_run((f&#34;gcloud compute instances describe {instance}&#34;
@@ -387,7 +387,7 @@ def get_ip(instance):
 
 
 def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
-    &#34;&#34;&#34;`subprocess.run`, with other defaults, and return stdout.
+    r&#34;&#34;&#34;Run `subprocess.run`, with other defaults, and return stdout.
 
     Example:
     &gt;&gt;&gt; gitfiles = sub_run([&#34;git&#34;, &#34;ls-tree&#34;, &#34;-r&#34;, &#34;--name-only&#34;, &#34;HEAD&#34;])
@@ -396,7 +396,6 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
     &gt;&gt;&gt; # Only .py files:
     &gt;&gt;&gt; gitfiles = [f for f in gitfiles.split(&#34;\n&#34;) if f.endswith(&#34;.py&#34;)]
     &#34;&#34;&#34;
-
     try:
         x = subprocess.run(
             *args, **kwargs,
@@ -428,7 +427,7 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L105-L139" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L106-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def submit_job_GCP(xps_path, **kwargs):
     &#34;&#34;&#34;GCP/HTCondor launcher&#34;&#34;&#34;
@@ -475,7 +474,7 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L226-L234" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L227-L235" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def print_condor_status(self):
     status = &#34;&#34;&#34;condor_status -total&#34;&#34;&#34;
@@ -496,7 +495,7 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L309-L311" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L310-L312" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def list_job_dirs(xps_path):
     dirs = [xps_path/d for d in sorted(os.listdir(xps_path))]
@@ -517,7 +516,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L314-L341" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L315-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_ip(instance):
     &#34;&#34;&#34;Get ip-address of instance.
@@ -529,7 +528,6 @@ and that you've already logged into the instance once using (eg)
     and that you&#39;ve already logged into the instance once using (eg)
     ``ssh condor-submit.us-central1-f.mc-tut``.
     &#34;&#34;&#34;
-
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = &#39;get(networkInterfaces[0].accessConfigs[0].natIP)&#39;
     ip = sub_run((f&#34;gcloud compute instances describe {instance}&#34;
@@ -553,22 +551,21 @@ and that you've already logged into the instance once using (eg)
 <span>def <span class="ident">sub_run</span></span>(<span>*args, check=True, capture_output=True, text=True, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><code>subprocess.run</code>, with other defaults, and return stdout.</p>
-<pre><code>Example:
-&gt;&gt;&gt; gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])
+<div class="desc"><p>Run <code>subprocess.run</code>, with other defaults, and return stdout.</p>
+<p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; gitfiles = sub_run([&quot;git&quot;, &quot;ls-tree&quot;, &quot;-r&quot;, &quot;--name-only&quot;, &quot;HEAD&quot;])
 &gt;&gt;&gt; # Alternatively:
-&gt;&gt;&gt; # gitfiles = sub_run("git ls-tree -r --name-only HEAD", shell=True)
+&gt;&gt;&gt; # gitfiles = sub_run(&quot;git ls-tree -r --name-only HEAD&quot;, shell=True)
 &gt;&gt;&gt; # Only .py files:
-&gt;&gt;&gt; gitfiles = [f for f in gitfiles.split("
-</code></pre>
-<p>") if f.endswith(".py")]</p></div>
+&gt;&gt;&gt; gitfiles = [f for f in gitfiles.split(&quot;\n&quot;) if f.endswith(&quot;.py&quot;)]
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L344-L368" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L344-L367" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
-    &#34;&#34;&#34;`subprocess.run`, with other defaults, and return stdout.
+    r&#34;&#34;&#34;Run `subprocess.run`, with other defaults, and return stdout.
 
     Example:
     &gt;&gt;&gt; gitfiles = sub_run([&#34;git&#34;, &#34;ls-tree&#34;, &#34;-r&#34;, &#34;--name-only&#34;, &#34;HEAD&#34;])
@@ -577,7 +574,6 @@ and that you've already logged into the instance once using (eg)
     &gt;&gt;&gt; # Only .py files:
     &gt;&gt;&gt; gitfiles = [f for f in gitfiles.split(&#34;\n&#34;) if f.endswith(&#34;.py&#34;)]
     &#34;&#34;&#34;
-
     try:
         x = subprocess.run(
             *args, **kwargs,
@@ -608,7 +604,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L19-L102" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L20-L103" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SubmissionConnection:
     &#34;&#34;&#34;Establish multiplexed ssh to a given submit-node for a given xps_path.&#34;&#34;&#34;
@@ -652,7 +648,7 @@ and that you've already logged into the instance once using (eg)
         #     output = sub_run(connect + [command])
         return sub_run([*self.ssh_M.split(), self.ip, cmd_string], **kwargs)
 
-    def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
+    def rsync(self, src, dst, opts=(), rev=False, prog=False, dry=False, use_M=True):
         # Prepare: opts
         if isinstance(opts, str):
             opts = opts.split()
@@ -705,7 +701,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L53-L59" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L54-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def remote_cmd(self, cmd_string, **kwargs):
     &#34;&#34;&#34;Run command at self.host via multiplexed ssh.&#34;&#34;&#34;
@@ -717,16 +713,16 @@ and that you've already logged into the instance once using (eg)
 </details>
 </dd>
 <dt id="dapper.tools.remote.uplink.SubmissionConnection.rsync"><code class="name flex">
-<span>def <span class="ident">rsync</span></span>(<span>self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True)</span>
+<span>def <span class="ident">rsync</span></span>(<span>self, src, dst, opts=(), rev=False, prog=False, dry=False, use_M=True)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L61-L102" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L62-L103" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
+<pre><code class="python">def rsync(self, src, dst, opts=(), rev=False, prog=False, dry=False, use_M=True):
     # Prepare: opts
     if isinstance(opts, str):
         opts = opts.split()

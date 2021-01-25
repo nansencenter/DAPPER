@@ -51,7 +51,7 @@ from dapper.mods.QG.sakov2008 import HMM
 dt = 1.25 * 10  # 10 steps between obs (also requires dkObs=1)
 HMM.t = modelling.Chronology(dt=dt, dkObs=1, T=1000*dt, BurnIn=10*dt)
 
-HMM.Dyn.model = model_config(&#34;counillon2009_ens&#34;,   {&#34;dtout&#34;: dt, &#39;RKH2&#39;: 2.0e-11}).step
+HMM.Dyn.model = model_config(&#34;counillon2009_ens&#34;  , {&#34;dtout&#34;: dt, &#39;RKH2&#39;: 2.0e-11}).step
 truth_model   = model_config(&#34;counillon2009_truth&#34;, {&#34;dtout&#34;: dt}).step
 
 ####################

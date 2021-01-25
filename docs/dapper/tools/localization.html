@@ -43,7 +43,7 @@ Sakov (2011), Computational Geosciences:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L0-L269" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L0-L268" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Localization tools, including distance and tapering comps.
 
@@ -63,25 +63,24 @@ PERIODIC = True
 
 
 def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
-    &#34;&#34;&#34;Euclidian distance (un-squared) between pts in A and B.
+    &#34;&#34;&#34;Euclidian distance (un-squared) between pts. in `A` and `B`.
 
-    - A: 2-dim array of shape (npts,ndim).
-         If A is 1-dim, then (ndim)&lt;--A.shape, npts&lt;--(,).
-    - B: same as for A (npts can differ).
-    - returns distances as an array of shape (npts_A, npts_B)
+    - `A`: 2-dim array of shape `(npts, ndim)`.
+      If `A` is 1-dim, then `(ndim)&lt;--A.shape, npts&lt;--(,)`.
+    - `B`: same as for `A` (`npts` can differ).
+    - returns distances as an array of shape `(npts_A, npts_B)`
 
     These are equal:
-    &gt;&gt;&gt; pairwise_distances(A,periodic=False)
+    &gt;&gt;&gt; pairwise_distances(A, periodic=False)
     &gt;&gt;&gt; squareform(pdist(A)) # 2x slower
 
-    But pairwise_distances allows comparing two different pts A to pts B
+    But `pairwise_distances` allows comparing two different pts `A` to pts `B`
     (without the augmentation/block tricks needed for pdist).
 
-    Also, the ``periodic`` option is provided.
-    It assumes the domain is a hyper-rectangle with edge lengths: ``domain``.
+    Also, the `periodic` option is provided.
+    It assumes the domain is a hyper-rectangle with edge lengths: `domain`.
     NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.
     &#34;&#34;&#34;
-
     if B is None:
         B = A
 
@@ -161,9 +160,10 @@ def dist2coeff(dists, radius, tag=None):
 
 
 def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
-    &#34;&#34;&#34;Returns
-    inds   : the indices of pts that are &#34;close to&#34; centre.
-    coeffs : the corresponding tapering coefficients.
+    &#34;&#34;&#34;Compute indices and coefficients of localization.
+
+    - inds   : the indices of pts that are &#34;close to&#34; centre.
+    - coeffs : the corresponding tapering coefficients.
     &#34;&#34;&#34;
     if cutoff is None:
         cutoff = CUTOFF
@@ -180,12 +180,12 @@ def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
 def localization_setup(y2x_distances, batches):
 
     def localization_now(radius, direction, t, tag=None):
-        &#34;Provide localization setup for time t.&#34;
+        &#34;&#34;&#34;Provide localization setup for time t.&#34;&#34;&#34;
         y2x = y2x_distances(t)
 
         if direction == &#39;x2y&#39;:
             def obs_taperer(batch):
-                # Don&#39;t use ``batch = batches[iBatch]``
+                # Don&#39;t use `batch = batches[iBatch]`
                 # (with iBatch as this function&#39;s input).
                 # This would slow down multiproc.,
                 # coz batches gets copied to each process.
@@ -211,9 +211,10 @@ def no_localization(Nx, Ny):
         return np.arange(Nx), np.ones(Nx)
 
     def localization_now(radius, direction, t, tag=None):
-        &#34;&#34;&#34;Returns all indices, with all tapering coeffs=1.
+        &#34;&#34;&#34;Returns all of the indices, with all tapering coeffs. set to 1.
 
-        Used to validate local DA methods [eg LETKF&lt;==&gt;EnKF(&#39;Sqrt&#39;)].&#34;&#34;&#34;
+        Used to validate local DA methods, eg. `LETKF&lt;==&gt;EnKF(&#39;Sqrt&#39;)`.
+        &#34;&#34;&#34;
         assert radius == np.inf, &#34;Localization functions not specified&#34;
 
         if direction == &#39;x2y&#39;:
@@ -293,9 +294,7 @@ def nd_Id_localization(shape,
                        batch_shape=None,
                        obs_inds=None,
                        periodic=PERIODIC):
-    &#34;&#34;&#34;Localize Id (direct) point obs of an
-    N-D, homogeneous, rectangular domain.&#34;&#34;&#34;
-
+    &#34;&#34;&#34;Localize Id (direct) point obs of an N-D, homogeneous, rectangular domain.&#34;&#34;&#34;
     M = np.prod(shape)
 
     if batch_shape is None:
@@ -328,18 +327,18 @@ def nd_Id_localization(shape,
 <span>def <span class="ident">pairwise_distances</span></span>(<span>A, B=None, periodic=True, domain=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Euclidian distance (un-squared) between pts in A and B.</p>
+<div class="desc"><p>Euclidian distance (un-squared) between pts. in <code>A</code> and <code>B</code>.</p>
 <ul>
-<li>A: 2-dim array of shape (npts,ndim).
-If A is 1-dim, then (ndim)&lt;&ndash;A.shape, npts&lt;&ndash;(,).</li>
-<li>B: same as for A (npts can differ).</li>
-<li>returns distances as an array of shape (npts_A, npts_B)</li>
+<li><code>A</code>: 2-dim array of shape <code>(npts, ndim)</code>.
+If <code>A</code> is 1-dim, then <code>(ndim)&lt;--A.shape, npts&lt;--(,)</code>.</li>
+<li><code>B</code>: same as for <code>A</code> (<code>npts</code> can differ).</li>
+<li>returns distances as an array of shape <code>(npts_A, npts_B)</code></li>
 </ul>
 <p>These are equal:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; pairwise_distances(A,periodic=False)
+<pre><code class="language-python-repl">&gt;&gt;&gt; pairwise_distances(A, periodic=False)
 &gt;&gt;&gt; squareform(pdist(A)) # 2x slower
 </code></pre>
-<p>But pairwise_distances allows comparing two different pts A to pts B
+<p>But <code><a title="dapper.tools.localization.pairwise_distances" href="#dapper.tools.localization.pairwise_distances">pairwise_distances()</a></code> allows comparing two different pts <code>A</code> to pts <code>B</code>
 (without the augmentation/block tricks needed for pdist).</p>
 <p>Also, the <code>periodic</code> option is provided.
 It assumes the domain is a hyper-rectangle with edge lengths: <code>domain</code>.
@@ -347,28 +346,27 @@ NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L18-L60" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L18-L59" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
-    &#34;&#34;&#34;Euclidian distance (un-squared) between pts in A and B.
+    &#34;&#34;&#34;Euclidian distance (un-squared) between pts. in `A` and `B`.
 
-    - A: 2-dim array of shape (npts,ndim).
-         If A is 1-dim, then (ndim)&lt;--A.shape, npts&lt;--(,).
-    - B: same as for A (npts can differ).
-    - returns distances as an array of shape (npts_A, npts_B)
+    - `A`: 2-dim array of shape `(npts, ndim)`.
+      If `A` is 1-dim, then `(ndim)&lt;--A.shape, npts&lt;--(,)`.
+    - `B`: same as for `A` (`npts` can differ).
+    - returns distances as an array of shape `(npts_A, npts_B)`
 
     These are equal:
-    &gt;&gt;&gt; pairwise_distances(A,periodic=False)
+    &gt;&gt;&gt; pairwise_distances(A, periodic=False)
     &gt;&gt;&gt; squareform(pdist(A)) # 2x slower
 
-    But pairwise_distances allows comparing two different pts A to pts B
+    But `pairwise_distances` allows comparing two different pts `A` to pts `B`
     (without the augmentation/block tricks needed for pdist).
 
-    Also, the ``periodic`` option is provided.
-    It assumes the domain is a hyper-rectangle with edge lengths: ``domain``.
+    Also, the `periodic` option is provided.
+    It assumes the domain is a hyper-rectangle with edge lengths: `domain`.
     NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.
     &#34;&#34;&#34;
-
     if B is None:
         B = A
 
@@ -407,7 +405,7 @@ coeff==np.exp(-0.5) when distance==radius.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L63-L113" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L62-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dist2coeff(dists, radius, tag=None):
     &#34;&#34;&#34;Compute tapering coefficients corresponding to a distances.
@@ -466,19 +464,22 @@ coeff==np.exp(-0.5) when distance==radius.</p>
 <span>def <span class="ident">inds_and_coeffs</span></span>(<span>dists, radius, cutoff=None, tag=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns
-inds
-: the indices of pts that are "close to" centre.
-coeffs : the corresponding tapering coefficients.</p></div>
+<div class="desc"><p>Compute indices and coefficients of localization.</p>
+<ul>
+<li>inds
+: the indices of pts that are "close to" centre.</li>
+<li>coeffs : the corresponding tapering coefficients.</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L116-L130" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L115-L130" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
-    &#34;&#34;&#34;Returns
-    inds   : the indices of pts that are &#34;close to&#34; centre.
-    coeffs : the corresponding tapering coefficients.
+    &#34;&#34;&#34;Compute indices and coefficients of localization.
+
+    - inds   : the indices of pts that are &#34;close to&#34; centre.
+    - coeffs : the corresponding tapering coefficients.
     &#34;&#34;&#34;
     if cutoff is None:
         cutoff = CUTOFF
@@ -505,12 +506,12 @@ coeffs : the corresponding tapering coefficients.</p></div>
 <pre><code class="python">def localization_setup(y2x_distances, batches):
 
     def localization_now(radius, direction, t, tag=None):
-        &#34;Provide localization setup for time t.&#34;
+        &#34;&#34;&#34;Provide localization setup for time t.&#34;&#34;&#34;
         y2x = y2x_distances(t)
 
         if direction == &#39;x2y&#39;:
             def obs_taperer(batch):
-                # Don&#39;t use ``batch = batches[iBatch]``
+                # Don&#39;t use `batch = batches[iBatch]`
                 # (with iBatch as this function&#39;s input).
                 # This would slow down multiproc.,
                 # coz batches gets copied to each process.
@@ -535,7 +536,7 @@ coeffs : the corresponding tapering coefficients.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L158-L177" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L158-L178" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def no_localization(Nx, Ny):
 
@@ -546,9 +547,10 @@ coeffs : the corresponding tapering coefficients.</p></div>
         return np.arange(Nx), np.ones(Nx)
 
     def localization_now(radius, direction, t, tag=None):
-        &#34;&#34;&#34;Returns all indices, with all tapering coeffs=1.
+        &#34;&#34;&#34;Returns all of the indices, with all tapering coeffs. set to 1.
 
-        Used to validate local DA methods [eg LETKF&lt;==&gt;EnKF(&#39;Sqrt&#39;)].&#34;&#34;&#34;
+        Used to validate local DA methods, eg. `LETKF&lt;==&gt;EnKF(&#39;Sqrt&#39;)`.
+        &#34;&#34;&#34;
         assert radius == np.inf, &#34;Localization functions not specified&#34;
 
         if direction == &#39;x2y&#39;:
@@ -584,7 +586,7 @@ where each element (batch) is a list of indices</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L180-L224" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L181-L225" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rectangular_partitioning(shape, steps, do_ind=True):
     &#34;&#34;&#34;N-D rectangular batch generation.
@@ -641,7 +643,7 @@ where each element (batch) is a list of indices</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L230-L234" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L231-L235" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def safe_eval(fun, t):
     try:
@@ -654,20 +656,17 @@ where each element (batch) is a list of indices</p>
 <span>def <span class="ident">nd_Id_localization</span></span>(<span>shape, batch_shape=None, obs_inds=None, periodic=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Localize Id (direct) point obs of an
-N-D, homogeneous, rectangular domain.</p></div>
+<div class="desc"><p>Localize Id (direct) point obs of an N-D, homogeneous, rectangular domain.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L245-L270" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L246-L269" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def nd_Id_localization(shape,
                        batch_shape=None,
                        obs_inds=None,
                        periodic=PERIODIC):
-    &#34;&#34;&#34;Localize Id (direct) point obs of an
-    N-D, homogeneous, rectangular domain.&#34;&#34;&#34;
-
+    &#34;&#34;&#34;Localize Id (direct) point obs of an N-D, homogeneous, rectangular domain.&#34;&#34;&#34;
     M = np.prod(shape)
 
     if batch_shape is None:

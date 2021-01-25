@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L0-L87" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L0-L86" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Paralellisation via multiprocessing. Wraps pool.map for convenience.&#34;&#34;&#34;
 
@@ -87,7 +87,7 @@ import threadpoolctl
 threadpoolctl.threadpool_limits(1)
 
 
-def map(func, xx, **kwargs):
+def map(func, xx, **kwargs):  # noqa
     &#34;&#34;&#34;A parallelized version of map.
 
     Similar to:
@@ -113,7 +113,6 @@ def map(func, xx, **kwargs):
 
     See example use in `dapper.mods.QG`
     &#34;&#34;&#34;
-
     NPROC = None  # None =&gt; multiprocessing.cpu_count()
     pool = mpd.Pool(NPROC)
 
@@ -166,9 +165,9 @@ because its serialization is rather slow.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L46-L88" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L46-L87" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def map(func, xx, **kwargs):
+<pre><code class="python">def map(func, xx, **kwargs):  # noqa
     &#34;&#34;&#34;A parallelized version of map.
 
     Similar to:
@@ -194,7 +193,6 @@ because its serialization is rather slow.</p>
 
     See example use in `dapper.mods.QG`
     &#34;&#34;&#34;
-
     NPROC = None  # None =&gt; multiprocessing.cpu_count()
     pool = mpd.Pool(NPROC)
 

@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L0-L149" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L0-L153" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;More experimental or esoteric DA methods.&#34;&#34;&#34;
 
@@ -57,10 +57,13 @@ from .ensemble import ens_method
 
 @ens_method
 class RHF:
-    &#34;&#34;&#34;Rank histogram filter `bib.anderson2010non`.
+    &#34;&#34;&#34;Rank histogram filter.
+
+    Refs: `bib.anderson2010non`.
 
     Quick &amp; dirty implementation without attention to (de)tails.
     &#34;&#34;&#34;
+
     N: int
     ordr: str = &#39;rand&#39;
 
@@ -87,7 +90,7 @@ class RHF:
                 y    = yy[kObs]
                 inds = serial_inds(self.ordr, y, R, center(E)[0])
 
-                for i, j in enumerate(inds):
+                for _, j in enumerate(inds):
                     Eo = Obs(E, t)
                     xo = np.mean(Eo, 0)
                     Y  = Eo - xo
@@ -126,6 +129,7 @@ class LNETF:
 
     It is (supposedly) a deterministic upgrade of the NLEAF of `bib.lei2011moment`.
     &#34;&#34;&#34;
+
     N: int
     loc_rad: float
     taper: str = &#39;GC&#39;
@@ -212,7 +216,7 @@ p(x) = exp(-sqrt(2)*|x|_1) / sqrt(2).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L139-L150" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L143-L154" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def laplace_lklhd(xx):
     &#34;&#34;&#34;Compute a Laplacian likelihood.
@@ -238,19 +242,23 @@ p(x) = exp(-sqrt(2)*|x|_1) / sqrt(2).</p></div>
 <span>(</span><span>N: int, ordr: str = 'rand', infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Rank histogram filter <code><a title="bib.anderson2010non" href="../../bib.html#bib.anderson2010non">anderson2010non</a></code>.</p>
+<div class="desc"><p>Rank histogram filter.</p>
+<p>Refs: <code><a title="bib.anderson2010non" href="../../bib.html#bib.anderson2010non">anderson2010non</a></code>.</p>
 <p>Quick &amp; dirty implementation without attention to (de)tails.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L14-L74" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L14-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@ens_method
 class RHF:
-    &#34;&#34;&#34;Rank histogram filter `bib.anderson2010non`.
+    &#34;&#34;&#34;Rank histogram filter.
+
+    Refs: `bib.anderson2010non`.
 
     Quick &amp; dirty implementation without attention to (de)tails.
     &#34;&#34;&#34;
+
     N: int
     ordr: str = &#39;rand&#39;
 
@@ -277,7 +285,7 @@ class RHF:
                 y    = yy[kObs]
                 inds = serial_inds(self.ordr, y, R, center(E)[0])
 
-                for i, j in enumerate(inds):
+                for _, j in enumerate(inds):
                     Eo = Obs(E, t)
                     xo = np.mean(Eo, 0)
                     Y  = Eo - xo
@@ -344,7 +352,7 @@ class RHF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L23-L74" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L26-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -369,7 +377,7 @@ class RHF:
             y    = yy[kObs]
             inds = serial_inds(self.ordr, y, R, center(E)[0])
 
-            for i, j in enumerate(inds):
+            for _, j in enumerate(inds):
                 Eo = Obs(E, t)
                 xo = np.mean(Eo, 0)
                 Y  = Eo - xo
@@ -413,7 +421,7 @@ class RHF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L77-L136" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L80-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@ens_method
 class LNETF:
@@ -423,6 +431,7 @@ class LNETF:
 
     It is (supposedly) a deterministic upgrade of the NLEAF of `bib.lei2011moment`.
     &#34;&#34;&#34;
+
     N: int
     loc_rad: float
     taper: str = &#39;GC&#39;
@@ -521,7 +530,7 @@ class LNETF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L90-L136" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/other.py#L94-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats

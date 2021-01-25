@@ -44,7 +44,7 @@ then there is no test generation, but rather:</p>
 <li><code>--replace</code> causes creation of a copy of this file (suffix <code>.new</code>),
 but with updated printouts in place of the <code>old</code>s.</li>
 </ul>
-<p>Notes:</p>
+<p>Some notes:</p>
 <ul>
 <li>Parameterization &ndash; A custom, hacky way to do this is used instead off
 pytest.mark.parametrize. Maybe not the best idea, but I have learned
@@ -59,7 +59,7 @@ and step-in from there.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_data.py#L0-L1373" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_data.py#L0-L1372" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Test data loading and `dapper.xp_process.xpSpace.print`.
 
@@ -70,7 +70,7 @@ then there is no test generation, but rather:
 - `--replace` causes creation of a copy of this file (suffix `.new`),
   but with updated printouts in place of the `old`s.
 
-Notes:
+Some notes:
 
 - Parameterization -- A custom, hacky way to do this is used instead off
   pytest.mark.parametrize. Maybe not the best idea, but I have learned
@@ -98,7 +98,7 @@ if &#34;--replace&#34; in sys.argv:
     replacements = []
 
     @dataclass
-    class Replacement:
+    class _Replacement:
         lines: list
         nOpen: int
         nClose: int
@@ -127,7 +127,6 @@ def cap_stdout(fun, *args, **kwargs):
 
 def gen_test_set(xp_dict, *args, **kwargs):
     &#34;&#34;&#34;Capture printout of `dapper.xp_process.xpSpace.print`, gen tests.&#34;&#34;&#34;
-
     # Get stdout of xpSpace.print()
     output = cap_stdout(xp_dict.print, *args, **kwargs)
 
@@ -141,7 +140,7 @@ def gen_test_set(xp_dict, *args, **kwargs):
         return
 
     if &#34;--replace&#34; in sys.argv:
-        replacements.append(Replacement(output.splitlines(True), nOpen, nClose))
+        replacements.append(_Replacement(output.splitlines(True), nOpen, nClose))
 
     else:  # Generate &amp; register tests
 
@@ -165,7 +164,7 @@ xps = dpr.load_xps(save_as)
 xps = dpr.xpSpace.from_list(xps)
 
 xps_shorter = dpr.xpSpace.from_list(
-    [xp for xp in xps.values() if getattr(xp, &#34;da_method&#34;) != &#34;LETKF&#34;])
+    [xp for xp in xps.values() if getattr(xp, &#34;da_method&#34;) != &#34;LETKF&#34;])  # noqa
 
 ##
 old = &#34;&#34;&#34;Averages (in time and) over seed.
@@ -1486,11 +1485,10 @@ if &#34;--replace&#34; in sys.argv:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_data.py#L65-L96" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/tests/test_data.py#L65-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_test_set(xp_dict, *args, **kwargs):
     &#34;&#34;&#34;Capture printout of `dapper.xp_process.xpSpace.print`, gen tests.&#34;&#34;&#34;
-
     # Get stdout of xpSpace.print()
     output = cap_stdout(xp_dict.print, *args, **kwargs)
 
@@ -1504,7 +1502,7 @@ if &#34;--replace&#34; in sys.argv:
         return
 
     if &#34;--replace&#34; in sys.argv:
-        replacements.append(Replacement(output.splitlines(True), nOpen, nClose))
+        replacements.append(_Replacement(output.splitlines(True), nOpen, nClose))
 
     else:  # Generate &amp; register tests
 

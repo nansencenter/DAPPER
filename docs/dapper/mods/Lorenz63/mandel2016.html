@@ -53,7 +53,7 @@ from dapper.mods.Lorenz63.sakov2012 import HMM
 HMM.Obs = modelling.Operator(**{
     &#39;M&#39;: 3,
     &#39;model&#39;: lambda x, t: x**3,
-    &#39;noise&#39;: 8
+    &#39;noise&#39;: 8,
 })
 
 # It is unclear whether the model error (cov Q) is used

@@ -73,7 +73,7 @@ beta = 8.0/3
 
 @modelling.ens_compatible
 def dxdt(x):
-    &#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;
+    &#34;&#34;&#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;&#34;&#34;
     d     = np.zeros_like(x)
     x, y, z = x
     d[0]  = sig*(y - x)
@@ -99,7 +99,7 @@ x0 = np.array([1.509, -1.531, 25.46])
 # OPTIONAL (not necessary for EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
-    &#34;&#34;&#34;Tangent linear model (TLM): Jacobian of dxdt(x).&#34;&#34;&#34;
+    &#34;&#34;&#34;Tangent linear model (TLM). I.e. the Jacobian of dxdt(x).&#34;&#34;&#34;
     x, y, z = x
     A = np.array(
         [[-sig, sig, 0],
@@ -109,7 +109,7 @@ def d2x_dtdx(x):
 
 
 def dstep_dx(x, t, dt):
-    &#34;&#34;&#34;Resolvent (propagator) of the TLM: Jacobian of step(x).&#34;&#34;&#34;
+    &#34;&#34;&#34;Compute resolvent (propagator) of the TLM. I.e. the Jacobian of `step(x)`.&#34;&#34;&#34;
     return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)
 
 
@@ -151,7 +151,7 @@ def LPs(jj=None, params=params): return [
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.Lorenz63.sakov2012" href="sakov2012.html">sakov2012</a></code></dt>
 <dd>
-<div class="desc"><p>Reproduce results from Table 1 <code><a title="bib.sakov2012iterative" href="../../../bib.html#bib.sakov2012iterative">sakov2012iterative</a></code></p></div>
+<div class="desc"><p>Reproduce results from Table 1 <code><a title="bib.sakov2012iterative" href="../../../bib.html#bib.sakov2012iterative">sakov2012iterative</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -178,7 +178,7 @@ def LPs(jj=None, params=params): return [
 </summary>
 <pre><code class="python">@modelling.ens_compatible
 def dxdt(x):
-    &#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;
+    &#34;&#34;&#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;&#34;&#34;
     d     = np.zeros_like(x)
     x, y, z = x
     d[0]  = sig*(y - x)
@@ -191,14 +191,14 @@ def dxdt(x):
 <span>def <span class="ident">d2x_dtdx</span></span>(<span>x)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Tangent linear model (TLM): Jacobian of dxdt(x).</p></div>
+<div class="desc"><p>Tangent linear model (TLM). I.e. the Jacobian of dxdt(x).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L53-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d2x_dtdx(x):
-    &#34;&#34;&#34;Tangent linear model (TLM): Jacobian of dxdt(x).&#34;&#34;&#34;
+    &#34;&#34;&#34;Tangent linear model (TLM). I.e. the Jacobian of dxdt(x).&#34;&#34;&#34;
     x, y, z = x
     A = np.array(
         [[-sig, sig, 0],
@@ -211,14 +211,14 @@ def dxdt(x):
 <span>def <span class="ident">dstep_dx</span></span>(<span>x, t, dt)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Resolvent (propagator) of the TLM: Jacobian of step(x).</p></div>
+<div class="desc"><p>Compute resolvent (propagator) of the TLM. I.e. the Jacobian of <code>step(x)</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L63-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
-    &#34;&#34;&#34;Resolvent (propagator) of the TLM: Jacobian of step(x).&#34;&#34;&#34;
+    &#34;&#34;&#34;Compute resolvent (propagator) of the TLM. I.e. the Jacobian of `step(x)`.&#34;&#34;&#34;
     return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)</code></pre>
 </details>
 </dd>

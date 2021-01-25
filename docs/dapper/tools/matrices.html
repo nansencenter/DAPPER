@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L0-L498" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L0-L499" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Covariance matrix tools.&#34;&#34;&#34;
 
@@ -99,14 +99,13 @@ def genOG(M):
 
 
 def genOG_modified(M, opts=(0, 1.0)):
-    &#34;&#34;&#34;genOG with modifications.
+    &#34;&#34;&#34;Do `genOG` with modifications.
 
     Caution: although &#39;degree&#39; ∈ (0,1) for all versions,
              they&#39;re not supposed going to be strictly equivalent.
 
     Testing: scripts/sqrt_rotations.py
     &#34;&#34;&#34;
-
     # Parse opts
     if not opts:
         # Shot-circuit in case of False or 0
@@ -125,7 +124,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         dc = 1/degree  # = &#34;while&#34;
         # Retrieve/store persistent variable
         counter = getattr(genOG_modified, &#34;counter&#34;, 0) + 1
-        setattr(genOG_modified, &#34;counter&#34;, counter)
+        genOG_modified.counter = counter
         # Compute rot or skip
         if np.mod(counter, dc) &lt; 1:
             Q = genOG(M)
@@ -164,8 +163,8 @@ def basis_beginning_with_ones(ndim):
 
 
 def genOG_1(N, opts=()):
-    &#34;&#34;&#34;
-    Random orthonormal mean-preserving matrix.
+    &#34;&#34;&#34;Random orthonormal mean-preserving matrix.
+
     Source: ienks code of Sakov/Bocquet.
     &#34;&#34;&#34;
     V = basis_beginning_with_ones(N)
@@ -179,10 +178,9 @@ def genOG_1(N, opts=()):
 def funm_psd(a, fun, check_finite=False):
     &#34;&#34;&#34;Matrix function evaluation for pos-sem-def mat.
 
-    Adapted from sla.funm() doc.
+    Adapted from `sla.funm` doc.
 
-    Example::
-
+    Example:
     &gt;&gt;&gt; def sqrtm_psd(A):
     &gt;&gt;&gt;     return funm_psd(A, sqrt)
     &#34;&#34;&#34;
@@ -195,8 +193,7 @@ def funm_psd(a, fun, check_finite=False):
 def chol_reduce(Right):
     &#34;&#34;&#34;Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
 
-    Example::
-
+    Example:
     &gt;&gt;&gt; A = mean0(np.random.randn(20,5),axis=1)
     &gt;&gt;&gt; C = A.T @ A
     &gt;&gt;&gt; # sla.cholesky(C) throws error
@@ -227,7 +224,7 @@ class CovMat():
         full, diagonal, reduced-rank sqrt.
       - Convenience constructor and printing.
       - Convenience transformations with memoization.
-        E.g. replaces:
+        Replaces (for example):
 
             &gt;&gt;&gt; if not hasattr(noise.C,&#39;sym_sqrt&#39;):
             &gt;&gt;&gt;     S = funm_psd(noise.C, sqrt)
@@ -241,7 +238,9 @@ class CovMat():
     # Init
     ##################################
     def __init__(self, data, kind=&#39;full_or_diag&#39;, trunc=1.0):
-        &#34;&#34;&#34;The covariance (say P) can be input (specified in the following ways):
+        &#34;&#34;&#34;Construct object.
+
+        The covariance (say P) can be input (specified in the following ways):
 
             kind    | data
             --------|-------------
@@ -252,7 +251,6 @@ class CovMat():
             &#39;Right&#39; | any R such that P = R.T@R (e.g. weighted form of &#39;A&#39;)
             &#39;Left&#39;  | any L such that P = L@L.T
         &#34;&#34;&#34;
-
         # Cascade if&#39;s down to &#39;Right&#39;
         if kind == &#39;E&#39;:
             mu      = np.mean(data, 0)
@@ -313,7 +311,7 @@ class CovMat():
                     d = d[idx][:rk]
                     # Make rectangular V that un-sorts d
                     V = zeros((M, rk))
-                    V[idx[:rk],  np.arange(rk)] = 1
+                    V[idx[:rk], np.arange(rk)] = 1
                 self._assign_EVD(M, rk, d, V)
             else:
                 raise KeyError
@@ -327,7 +325,7 @@ class CovMat():
 
     @property
     def M(self):
-        &#34;&#34;&#34;ndims&#34;&#34;&#34;
+        &#34;&#34;&#34;`ndims`&#34;&#34;&#34;
         return self._m
 
     @property
@@ -345,7 +343,7 @@ class CovMat():
     ##################################
     @property
     def full(self):
-        &#34;Full covariance matrix&#34;
+        &#34;&#34;&#34;Full covariance matrix&#34;&#34;&#34;
         if hasattr(self, &#39;_C&#39;):
             return self._C
         else:
@@ -355,7 +353,7 @@ class CovMat():
 
     @lazy_property
     def diag(self):
-        &#34;Diagonal of covariance matrix&#34;
+        &#34;&#34;&#34;Diagonal of covariance matrix&#34;&#34;&#34;
         if hasattr(self, &#39;_C&#39;):
             return np.diag(self._C)
         else:
@@ -363,8 +361,13 @@ class CovMat():
 
     @property
     def Left(self):
-        &#34;&#34;&#34;L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
-        and that its width is somewhere betwen the rank and M.&#34;&#34;&#34;
+        &#34;&#34;&#34;Left sqrt.
+
+        `L` such that $$ C = L L^T .$$
+
+        Note that `L` is typically rectangular, but not triangular,
+        and that its width is somewhere betwen the rank and `M`.
+        &#34;&#34;&#34;
         if hasattr(self, &#39;_R&#39;):
             return self._R.T
         else:
@@ -372,8 +375,7 @@ class CovMat():
 
     @property
     def Right(self):
-        &#34;&#34;&#34;R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
-        and that its height is somewhere betwen the rank and M.&#34;&#34;&#34;
+        &#34;&#34;&#34;Right sqrt. Ref `CovMat.Left`.&#34;&#34;&#34;
         if hasattr(self, &#39;_R&#39;):
             return self._R
         else:
@@ -405,7 +407,7 @@ class CovMat():
 
     def has_done_EVD(self):
         &#34;&#34;&#34;Whether or not eigenvalue decomposition has been done for matrix.&#34;&#34;&#34;
-        return all([key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;]])
+        return all(key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;])
 
     @property
     def ews(self):
@@ -429,10 +431,7 @@ class CovMat():
     # transform_by properties
     ##################################
     def transform_by(self, fun):
-        &#34;&#34;&#34;Generalize scalar functions to covariance matrices
-        (via Taylor expansion).
-        &#34;&#34;&#34;
-
+        &#34;&#34;&#34;Generalize scalar functions to covariance matrices (via Taylor expansion).&#34;&#34;&#34;
         r = truncate_rank(self.ews, self.trunc, True)
         V = self.V[:, :r]
         w = self.ews[:r]
@@ -441,24 +440,26 @@ class CovMat():
 
     @lazy_property
     def sym_sqrt(self):
-        &#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;
+        &#34;&#34;&#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;&#34;&#34;
         return self.transform_by(sqrt)
 
     @lazy_property
     def sym_sqrt_inv(self):
-        &#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;
+        &#34;&#34;&#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;&#34;&#34;
         return self.transform_by(lambda x: 1/sqrt(x))
 
     @lazy_property
     def pinv(self):
-        &#34;Pseudo-inverse. Uses trunc-level.&#34;
+        &#34;&#34;&#34;Pseudo-inverse. Uses trunc-level.&#34;&#34;&#34;
         return self.transform_by(lambda x: 1/x)
 
     @lazy_property
     def inv(self):
         if self.M != self.rk:
-            raise RuntimeError(&#34;Matrix is rank deficient, &#34;
-                               + &#34;and cannot be inverted. Use .tinv() instead?&#34;)
+            raise RuntimeError(
+                &#34;Matrix is rank deficient, &#34;
+                &#34;and cannot be inverted. &#34;
+                &#34;Use .tinv() instead?&#34;)
         # Temporarily remove any truncation
         tmp = self.trunc
         self._trunc = 1.0
@@ -609,24 +610,23 @@ class CovMat():
 <span>def <span class="ident">genOG_modified</span></span>(<span>M, opts=(0, 1.0))</span>
 </code></dt>
 <dd>
-<div class="desc"><p>genOG with modifications.</p>
+<div class="desc"><p>Do <code><a title="dapper.tools.matrices.genOG" href="#dapper.tools.matrices.genOG">genOG()</a></code> with modifications.</p>
 <p>Caution: although 'degree' ∈ (0,1) for all versions,
 they're not supposed going to be strictly equivalent.</p>
 <p>Testing: scripts/sqrt_rotations.py</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L57-L110" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L57-L109" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def genOG_modified(M, opts=(0, 1.0)):
-    &#34;&#34;&#34;genOG with modifications.
+    &#34;&#34;&#34;Do `genOG` with modifications.
 
     Caution: although &#39;degree&#39; ∈ (0,1) for all versions,
              they&#39;re not supposed going to be strictly equivalent.
 
     Testing: scripts/sqrt_rotations.py
     &#34;&#34;&#34;
-
     # Parse opts
     if not opts:
         # Shot-circuit in case of False or 0
@@ -645,7 +645,7 @@ they're not supposed going to be strictly equivalent.</p>
         dc = 1/degree  # = &#34;while&#34;
         # Retrieve/store persistent variable
         counter = getattr(genOG_modified, &#34;counter&#34;, 0) + 1
-        setattr(genOG_modified, &#34;counter&#34;, counter)
+        genOG_modified.counter = counter
         # Compute rot or skip
         if np.mod(counter, dc) &lt; 1:
             Q = genOG(M)
@@ -682,7 +682,7 @@ they're not supposed going to be strictly equivalent.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L115-L119" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L114-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@functools.lru_cache(maxsize=1)
 def basis_beginning_with_ones(ndim):
@@ -695,16 +695,16 @@ def basis_beginning_with_ones(ndim):
 <span>def <span class="ident">genOG_1</span></span>(<span>N, opts=())</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Random orthonormal mean-preserving matrix.
-Source: ienks code of Sakov/Bocquet.</p></div>
+<div class="desc"><p>Random orthonormal mean-preserving matrix.</p>
+<p>Source: ienks code of Sakov/Bocquet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L122-L132" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L121-L131" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def genOG_1(N, opts=()):
-    &#34;&#34;&#34;
-    Random orthonormal mean-preserving matrix.
+    &#34;&#34;&#34;Random orthonormal mean-preserving matrix.
+
     Source: ienks code of Sakov/Bocquet.
     &#34;&#34;&#34;
     V = basis_beginning_with_ones(N)
@@ -720,23 +720,22 @@ Source: ienks code of Sakov/Bocquet.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Matrix function evaluation for pos-sem-def mat.</p>
-<p>Adapted from sla.funm() doc.</p>
-<p>Example::</p>
+<p>Adapted from <code>sla.funm</code> doc.</p>
+<p>Example:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; def sqrtm_psd(A):
 &gt;&gt;&gt;     return funm_psd(A, sqrt)
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L135-L148" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L134-L146" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def funm_psd(a, fun, check_finite=False):
     &#34;&#34;&#34;Matrix function evaluation for pos-sem-def mat.
 
-    Adapted from sla.funm() doc.
+    Adapted from `sla.funm` doc.
 
-    Example::
-
+    Example:
     &gt;&gt;&gt; def sqrtm_psd(A):
     &gt;&gt;&gt;     return funm_psd(A, sqrt)
     &#34;&#34;&#34;
@@ -751,7 +750,7 @@ Source: ienks code of Sakov/Bocquet.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.</p>
-<p>Example::</p>
+<p>Example:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; A = mean0(np.random.randn(20,5),axis=1)
 &gt;&gt;&gt; C = A.T @ A
 &gt;&gt;&gt; # sla.cholesky(C) throws error
@@ -761,13 +760,12 @@ Source: ienks code of Sakov/Bocquet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L151-L174" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L149-L171" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def chol_reduce(Right):
     &#34;&#34;&#34;Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
 
-    Example::
-
+    Example:
     &gt;&gt;&gt; A = mean0(np.random.randn(20,5),axis=1)
     &gt;&gt;&gt; C = A.T @ A
     &gt;&gt;&gt; # sla.cholesky(C) throws error
@@ -840,7 +838,7 @@ full, diagonal, reduced-rank sqrt.</li>
 <li>Convenience constructor and printing.</li>
 <li>
 <p>Convenience transformations with memoization.
-E.g. replaces:</p>
+Replaces (for example):</p>
 <pre><code>&gt;&gt;&gt; if not hasattr(noise.C,'sym_sqrt'):
 &gt;&gt;&gt;     S = funm_psd(noise.C, sqrt)
 &gt;&gt;&gt;     noise.C.sym_sqrt = S
@@ -849,45 +847,21 @@ E.g. replaces:</p>
 if the covariance matrix changes with time (but repeat).</p>
 </li>
 </ul>
+<p>Construct object.</p>
 <p>The covariance (say P) can be input (specified in the following ways):</p>
-<table>
-<thead>
-<tr>
-<th>kind</th>
-<th>data</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>'full'</td>
-<td>full M-by-M array (P)</td>
-</tr>
-<tr>
-<td>'diag'</td>
-<td>diagonal of P (assumed diagonal)</td>
-</tr>
-<tr>
-<td>'E'</td>
-<td>ensemble (N-by-M) with sample cov P</td>
-</tr>
-<tr>
-<td>'A'</td>
-<td>as 'E', but pre-centred by mean(E,axis=0)</td>
-</tr>
-<tr>
-<td>'Right'</td>
-<td>any R such that P = R.T@R (e.g. weighted form of 'A')</td>
-</tr>
-<tr>
-<td>'Left'</td>
-<td>any L such that P = L@L.T</td>
-</tr>
-</tbody>
-</table></div>
+<pre><code>kind    | data
+--------|-------------
+'full'  | full M-by-M array (P)
+'diag'  | diagonal of P (assumed diagonal)
+'E'     | ensemble (N-by-M) with sample cov P
+'A'     | as 'E', but pre-centred by mean(E,axis=0)
+'Right' | any R such that P = R.T@R (e.g. weighted form of 'A')
+'Left'  | any L such that P = L@L.T
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L177-L479" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L174-L480" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class CovMat():
     &#34;&#34;&#34;Covariance matrix class.
@@ -898,7 +872,7 @@ if the covariance matrix changes with time (but repeat).</p>
         full, diagonal, reduced-rank sqrt.
       - Convenience constructor and printing.
       - Convenience transformations with memoization.
-        E.g. replaces:
+        Replaces (for example):
 
             &gt;&gt;&gt; if not hasattr(noise.C,&#39;sym_sqrt&#39;):
             &gt;&gt;&gt;     S = funm_psd(noise.C, sqrt)
@@ -912,7 +886,9 @@ if the covariance matrix changes with time (but repeat).</p>
     # Init
     ##################################
     def __init__(self, data, kind=&#39;full_or_diag&#39;, trunc=1.0):
-        &#34;&#34;&#34;The covariance (say P) can be input (specified in the following ways):
+        &#34;&#34;&#34;Construct object.
+
+        The covariance (say P) can be input (specified in the following ways):
 
             kind    | data
             --------|-------------
@@ -923,7 +899,6 @@ if the covariance matrix changes with time (but repeat).</p>
             &#39;Right&#39; | any R such that P = R.T@R (e.g. weighted form of &#39;A&#39;)
             &#39;Left&#39;  | any L such that P = L@L.T
         &#34;&#34;&#34;
-
         # Cascade if&#39;s down to &#39;Right&#39;
         if kind == &#39;E&#39;:
             mu      = np.mean(data, 0)
@@ -984,7 +959,7 @@ if the covariance matrix changes with time (but repeat).</p>
                     d = d[idx][:rk]
                     # Make rectangular V that un-sorts d
                     V = zeros((M, rk))
-                    V[idx[:rk],  np.arange(rk)] = 1
+                    V[idx[:rk], np.arange(rk)] = 1
                 self._assign_EVD(M, rk, d, V)
             else:
                 raise KeyError
@@ -998,7 +973,7 @@ if the covariance matrix changes with time (but repeat).</p>
 
     @property
     def M(self):
-        &#34;&#34;&#34;ndims&#34;&#34;&#34;
+        &#34;&#34;&#34;`ndims`&#34;&#34;&#34;
         return self._m
 
     @property
@@ -1016,7 +991,7 @@ if the covariance matrix changes with time (but repeat).</p>
     ##################################
     @property
     def full(self):
-        &#34;Full covariance matrix&#34;
+        &#34;&#34;&#34;Full covariance matrix&#34;&#34;&#34;
         if hasattr(self, &#39;_C&#39;):
             return self._C
         else:
@@ -1026,7 +1001,7 @@ if the covariance matrix changes with time (but repeat).</p>
 
     @lazy_property
     def diag(self):
-        &#34;Diagonal of covariance matrix&#34;
+        &#34;&#34;&#34;Diagonal of covariance matrix&#34;&#34;&#34;
         if hasattr(self, &#39;_C&#39;):
             return np.diag(self._C)
         else:
@@ -1034,8 +1009,13 @@ if the covariance matrix changes with time (but repeat).</p>
 
     @property
     def Left(self):
-        &#34;&#34;&#34;L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
-        and that its width is somewhere betwen the rank and M.&#34;&#34;&#34;
+        &#34;&#34;&#34;Left sqrt.
+
+        `L` such that $$ C = L L^T .$$
+
+        Note that `L` is typically rectangular, but not triangular,
+        and that its width is somewhere betwen the rank and `M`.
+        &#34;&#34;&#34;
         if hasattr(self, &#39;_R&#39;):
             return self._R.T
         else:
@@ -1043,8 +1023,7 @@ if the covariance matrix changes with time (but repeat).</p>
 
     @property
     def Right(self):
-        &#34;&#34;&#34;R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
-        and that its height is somewhere betwen the rank and M.&#34;&#34;&#34;
+        &#34;&#34;&#34;Right sqrt. Ref `CovMat.Left`.&#34;&#34;&#34;
         if hasattr(self, &#39;_R&#39;):
             return self._R
         else:
@@ -1076,7 +1055,7 @@ if the covariance matrix changes with time (but repeat).</p>
 
     def has_done_EVD(self):
         &#34;&#34;&#34;Whether or not eigenvalue decomposition has been done for matrix.&#34;&#34;&#34;
-        return all([key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;]])
+        return all(key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;])
 
     @property
     def ews(self):
@@ -1100,10 +1079,7 @@ if the covariance matrix changes with time (but repeat).</p>
     # transform_by properties
     ##################################
     def transform_by(self, fun):
-        &#34;&#34;&#34;Generalize scalar functions to covariance matrices
-        (via Taylor expansion).
-        &#34;&#34;&#34;
-
+        &#34;&#34;&#34;Generalize scalar functions to covariance matrices (via Taylor expansion).&#34;&#34;&#34;
         r = truncate_rank(self.ews, self.trunc, True)
         V = self.V[:, :r]
         w = self.ews[:r]
@@ -1112,24 +1088,26 @@ if the covariance matrix changes with time (but repeat).</p>
 
     @lazy_property
     def sym_sqrt(self):
-        &#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;
+        &#34;&#34;&#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;&#34;&#34;
         return self.transform_by(sqrt)
 
     @lazy_property
     def sym_sqrt_inv(self):
-        &#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;
+        &#34;&#34;&#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;&#34;&#34;
         return self.transform_by(lambda x: 1/sqrt(x))
 
     @lazy_property
     def pinv(self):
-        &#34;Pseudo-inverse. Uses trunc-level.&#34;
+        &#34;&#34;&#34;Pseudo-inverse. Uses trunc-level.&#34;&#34;&#34;
         return self.transform_by(lambda x: 1/x)
 
     @lazy_property
     def inv(self):
         if self.M != self.rk:
-            raise RuntimeError(&#34;Matrix is rank deficient, &#34;
-                               + &#34;and cannot be inverted. Use .tinv() instead?&#34;)
+            raise RuntimeError(
+                &#34;Matrix is rank deficient, &#34;
+                &#34;and cannot be inverted. &#34;
+                &#34;Use .tinv() instead?&#34;)
         # Temporarily remove any truncation
         tmp = self.trunc
         self._trunc = 1.0
@@ -1197,15 +1175,15 @@ if the covariance matrix changes with time (but repeat).</p>
 <dl>
 <dt id="dapper.tools.matrices.CovMat.M"><code class="name">var <span class="ident">M</span></code></dt>
 <dd>
-<div class="desc"><p>ndims</p></div>
+<div class="desc"><p><code>ndims</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L284-L287" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L282-L285" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def M(self):
-    &#34;&#34;&#34;ndims&#34;&#34;&#34;
+    &#34;&#34;&#34;`ndims`&#34;&#34;&#34;
     return self._m</code></pre>
 </details>
 </dd>
@@ -1215,7 +1193,7 @@ def M(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L289-L292" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L287-L290" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def kind(self):
@@ -1229,7 +1207,7 @@ def kind(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L294-L297" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L292-L295" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def trunc(self):
@@ -1243,11 +1221,11 @@ def trunc(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L302-L310" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L300-L308" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def full(self):
-    &#34;Full covariance matrix&#34;
+    &#34;&#34;&#34;Full covariance matrix&#34;&#34;&#34;
     if hasattr(self, &#39;_C&#39;):
         return self._C
     else:
@@ -1265,11 +1243,11 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L312-L318" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L310-L316" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def diag(self):
-    &#34;Diagonal of covariance matrix&#34;
+    &#34;&#34;&#34;Diagonal of covariance matrix&#34;&#34;&#34;
     if hasattr(self, &#39;_C&#39;):
         return np.diag(self._C)
     else:
@@ -1278,17 +1256,24 @@ def diag(self):
 </dd>
 <dt id="dapper.tools.matrices.CovMat.Left"><code class="name">var <span class="ident">Left</span></code></dt>
 <dd>
-<div class="desc"><p>L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
-and that its width is somewhere betwen the rank and M.</p></div>
+<div class="desc"><p>Left sqrt.</p>
+<p><code>L</code> such that <span><span class="MathJax_Preview"> C = L L^T .</span><script type="math/tex; mode=display"> C = L L^T .</script></span></p>
+<p>Note that <code>L</code> is typically rectangular, but not triangular,
+and that its width is somewhere betwen the rank and <code>M</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L320-L327" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L318-L330" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Left(self):
-    &#34;&#34;&#34;L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
-    and that its width is somewhere betwen the rank and M.&#34;&#34;&#34;
+    &#34;&#34;&#34;Left sqrt.
+
+    `L` such that $$ C = L L^T .$$
+
+    Note that `L` is typically rectangular, but not triangular,
+    and that its width is somewhere betwen the rank and `M`.
+    &#34;&#34;&#34;
     if hasattr(self, &#39;_R&#39;):
         return self._R.T
     else:
@@ -1297,17 +1282,15 @@ def Left(self):
 </dd>
 <dt id="dapper.tools.matrices.CovMat.Right"><code class="name">var <span class="ident">Right</span></code></dt>
 <dd>
-<div class="desc"><p>R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
-and that its height is somewhere betwen the rank and M.</p></div>
+<div class="desc"><p>Right sqrt. Ref <code><a title="dapper.tools.matrices.CovMat.Left" href="#dapper.tools.matrices.CovMat.Left">CovMat.Left</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L329-L336" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L332-L338" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Right(self):
-    &#34;&#34;&#34;R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
-    and that its height is somewhere betwen the rank and M.&#34;&#34;&#34;
+    &#34;&#34;&#34;Right sqrt. Ref `CovMat.Left`.&#34;&#34;&#34;
     if hasattr(self, &#39;_R&#39;):
         return self._R
     else:
@@ -1320,7 +1303,7 @@ def Right(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L366-L370" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L368-L372" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def ews(self):
@@ -1335,7 +1318,7 @@ def ews(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L372-L376" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L374-L378" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def V(self):
@@ -1350,7 +1333,7 @@ def V(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L378-L382" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L380-L384" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def rk(self):
@@ -1368,11 +1351,11 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L398-L401" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L397-L400" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def sym_sqrt(self):
-    &#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;
+    &#34;&#34;&#34;S such that C = S@S (and i.e. S is square). Uses trunc-level.&#34;&#34;&#34;
     return self.transform_by(sqrt)</code></pre>
 </details>
 </dd>
@@ -1385,11 +1368,11 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L403-L406" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L402-L405" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def sym_sqrt_inv(self):
-    &#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;
+    &#34;&#34;&#34;S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level.&#34;&#34;&#34;
     return self.transform_by(lambda x: 1/sqrt(x))</code></pre>
 </details>
 </dd>
@@ -1402,11 +1385,11 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L408-L411" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L407-L410" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def pinv(self):
-    &#34;Pseudo-inverse. Uses trunc-level.&#34;
+    &#34;&#34;&#34;Pseudo-inverse. Uses trunc-level.&#34;&#34;&#34;
     return self.transform_by(lambda x: 1/x)</code></pre>
 </details>
 </dd>
@@ -1419,13 +1402,15 @@ as it replaces itself.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L413-L424" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L412-L425" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@lazy_property
 def inv(self):
     if self.M != self.rk:
-        raise RuntimeError(&#34;Matrix is rank deficient, &#34;
-                           + &#34;and cannot be inverted. Use .tinv() instead?&#34;)
+        raise RuntimeError(
+            &#34;Matrix is rank deficient, &#34;
+            &#34;and cannot be inverted. &#34;
+            &#34;Use .tinv() instead?&#34;)
     # Temporarily remove any truncation
     tmp = self.trunc
     self._trunc = 1.0
@@ -1446,29 +1431,25 @@ def inv(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L362-L364" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L364-L366" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def has_done_EVD(self):
     &#34;&#34;&#34;Whether or not eigenvalue decomposition has been done for matrix.&#34;&#34;&#34;
-    return all([key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;]])</code></pre>
+    return all(key in vars(self) for key in [&#39;_V&#39;, &#39;_d&#39;, &#39;_rk&#39;])</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.matrices.CovMat.transform_by"><code class="name flex">
 <span>def <span class="ident">transform_by</span></span>(<span>self, fun)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Generalize scalar functions to covariance matrices
-(via Taylor expansion).</p></div>
+<div class="desc"><p>Generalize scalar functions to covariance matrices (via Taylor expansion).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L387-L396" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/matrices.py#L389-L395" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def transform_by(self, fun):
-    &#34;&#34;&#34;Generalize scalar functions to covariance matrices
-    (via Taylor expansion).
-    &#34;&#34;&#34;
-
+    &#34;&#34;&#34;Generalize scalar functions to covariance matrices (via Taylor expansion).&#34;&#34;&#34;
     r = truncate_rank(self.ews, self.trunc, True)
     V = self.V[:, :r]
     w = self.ews[:r]

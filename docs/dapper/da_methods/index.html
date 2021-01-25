@@ -48,7 +48,7 @@ The simplest example is perhaps
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L0-L129" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L0-L128" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Contains the data assimilation methods included with DAPPER.
 
@@ -73,7 +73,7 @@ import dapper.stats
 
 
 def da_method(*default_dataclasses):
-    &#34;&#34;&#34;Decorator (factory) for classes that define DA methods.
+    &#34;&#34;&#34;Decorate classes that define DA methods.
 
     These classes must be defined like a `dataclass`,
     except decorated by `@da_method()` instead of `@dataclass`.
@@ -100,8 +100,8 @@ def da_method(*default_dataclasses):
     &gt;&gt;&gt;         if not self.success:
     &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
 
-    Note that `da_method` is actually a &#34;two-level decorator&#34;,
-    which is why the empty parenthesis were used above.
+    Note that `da_method` is actually a &#34;decorator factory&#34;, or
+    a &#34;two-level decorator&#34;, which is why the empty parenthesis were used above.
     The outer level can be used to define defaults that are &#34;inherited&#34;
     by similar DA methods:
 
@@ -126,19 +126,18 @@ def da_method(*default_dataclasses):
     &#34;&#34;&#34;
 
     def dataclass_with_defaults(cls):
-        &#34;&#34;&#34;Decorator based on dataclass.
+        &#34;&#34;&#34;Decorate a class like dataclasses, and add some DAPPER-specific things.
 
         This adds `__init__`, `__repr__`, `__eq__`, ...,
         but also includes inherited defaults,
         cf. https://stackoverflow.com/a/58130805,
         and enhances the `assimilate` method.
         &#34;&#34;&#34;
-
         # Default fields invovle: (1) annotations and (2) attributes.
-        def set_field(name, type, val):
+        def set_field(name, type_, val):
             if not hasattr(cls, &#39;__annotations__&#39;):
                 cls.__annotations__ = {}
-            cls.__annotations__[name] = type
+            cls.__annotations__[name] = type_
             if not isinstance(val, dataclasses.Field):
                 val = dataclasses.field(default=val)
             setattr(cls, name, val)
@@ -189,13 +188,13 @@ from .variational import Var4D, iEnKS</code></pre>
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.da_methods.baseline" href="baseline.html">baseline</a></code></dt>
 <dd>
-<div class="desc"><p>"Unsophisticated" but robust (widely applicable) DA methods …</p></div>
+<div class="desc"><p>Unsophisticated" but robust (widely applicable) DA methods …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.da_methods.ensemble" href="ensemble.html">ensemble</a></code></dt>
 <dd>
-<div class="desc"><p>The EnKF and other ensemble-based methods</p></div>
+<div class="desc"><p>The EnKF and other ensemble-based methods.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -219,7 +218,7 @@ from .variational import Var4D, iEnKS</code></pre>
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.da_methods.variational" href="variational.html">variational</a></code></dt>
 <dd>
-<div class="desc"><p>Variational DA methods (iEnKS, 4D-Var, etc)</p></div>
+<div class="desc"><p>Variational DA methods (iEnKS, 4D-Var, etc).</p></div>
 </dd>
 </dl>
 </section>
@@ -232,7 +231,7 @@ from .variational import Var4D, iEnKS</code></pre>
 <span>def <span class="ident">da_method</span></span>(<span>*default_dataclasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Decorator (factory) for classes that define DA methods.</p>
+<div class="desc"><p>Decorate classes that define DA methods.</p>
 <p>These classes must be defined like a <code>dataclass</code>,
 except decorated by <code>@da_method()</code> instead of <code>@dataclass</code>.
 They must also define a method called <code>assimilate</code>
@@ -257,8 +256,8 @@ I.e. <code>xp</code>s are essentially just a <code>dataclass</code> with some pa
 &gt;&gt;&gt;         if not self.success:
 &gt;&gt;&gt;             raise RuntimeError(&quot;Sleep over. Failing as intended.&quot;)
 </code></pre>
-<p>Note that <code><a title="dapper.da_methods.da_method" href="#dapper.da_methods.da_method">da_method()</a></code> is actually a "two-level decorator",
-which is why the empty parenthesis were used above.
+<p>Note that <code><a title="dapper.da_methods.da_method" href="#dapper.da_methods.da_method">da_method()</a></code> is actually a "decorator factory", or
+a "two-level decorator", which is why the empty parenthesis were used above.
 The outer level can be used to define defaults that are "inherited"
 by similar DA methods:</p>
 <p>Example:</p>
@@ -283,10 +282,10 @@ by similar DA methods:</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L23-L122" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L23-L121" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def da_method(*default_dataclasses):
-    &#34;&#34;&#34;Decorator (factory) for classes that define DA methods.
+    &#34;&#34;&#34;Decorate classes that define DA methods.
 
     These classes must be defined like a `dataclass`,
     except decorated by `@da_method()` instead of `@dataclass`.
@@ -313,8 +312,8 @@ by similar DA methods:</p>
     &gt;&gt;&gt;         if not self.success:
     &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
 
-    Note that `da_method` is actually a &#34;two-level decorator&#34;,
-    which is why the empty parenthesis were used above.
+    Note that `da_method` is actually a &#34;decorator factory&#34;, or
+    a &#34;two-level decorator&#34;, which is why the empty parenthesis were used above.
     The outer level can be used to define defaults that are &#34;inherited&#34;
     by similar DA methods:
 
@@ -339,19 +338,18 @@ by similar DA methods:</p>
     &#34;&#34;&#34;
 
     def dataclass_with_defaults(cls):
-        &#34;&#34;&#34;Decorator based on dataclass.
+        &#34;&#34;&#34;Decorate a class like dataclasses, and add some DAPPER-specific things.
 
         This adds `__init__`, `__repr__`, `__eq__`, ...,
         but also includes inherited defaults,
         cf. https://stackoverflow.com/a/58130805,
         and enhances the `assimilate` method.
         &#34;&#34;&#34;
-
         # Default fields invovle: (1) annotations and (2) attributes.
-        def set_field(name, type, val):
+        def set_field(name, type_, val):
             if not hasattr(cls, &#39;__annotations__&#39;):
                 cls.__annotations__ = {}
-            cls.__annotations__[name] = type
+            cls.__annotations__[name] = type_
             if not isinstance(val, dataclasses.Field):
                 val = dataclasses.field(default=val)
             setattr(cls, name, val)

@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L0-L1068" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L0-L1065" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably `xpSpace`) for processing and presenting experiment data.&#34;&#34;&#34;
 
@@ -140,7 +140,7 @@ def rel_index(elem, lst, default=None):
 
 
 def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
-    &#34;&#34;&#34;Discretize `cmap` so that it partitions `[0,1]` into `N` segments.
+    &#34;&#34;&#34;Discretize `cmap` so that it partitions `[0, 1]` into `N` segments.
 
     I.e. `cmap(k/N) == cmap(k/N + eps)`.
 
@@ -148,7 +148,8 @@ def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
     that maps range(N) to the segment centers,
     as will be reflected by `cb = fig.colorbar(sm)`.
     You can then re-label the ticks using
-    `cb.set_ticks(np.arange(N)); cb.set_ticklabels([&#34;A&#34;,&#34;B&#34;,&#34;C&#34;,...])`.&#34;&#34;&#34;
+    `cb.set_ticks(np.arange(N)); cb.set_ticklabels([&#34;A&#34;,&#34;B&#34;,&#34;C&#34;,...])`.
+    &#34;&#34;&#34;
     # cmap(k/N)
     from_list = mpl.colors.LinearSegmentedColormap.from_list
     colors = cmap(np.linspace(val0, val1, N))
@@ -240,7 +241,6 @@ def save_xps(xps, save_as, nDir=100):
     &gt;&gt;&gt;
     &gt;&gt;&gt;     overwrite_xps(xps, save_as)
     &#34;&#34;&#34;
-
     save_as = Path(save_as).expanduser()
     save_as.mkdir(parents=False, exist_ok=False)
 
@@ -279,7 +279,8 @@ def reduce_inodes(save_as, nDir=100):
 
     It also deletes files &#34;xp.var&#34; and &#34;out&#34;
     (which tends to be relatively large coz of the progbar).
-    This is probably also the reason that the loading time is sometimes reduced.&#34;&#34;&#34;
+    This is probably also the reason that the loading time is sometimes reduced.
+    &#34;&#34;&#34;
     overwrite_xps(load_xps(save_as), save_as, nDir)
 
 
@@ -365,7 +366,6 @@ class SparseSpace(dict):
 
     def __getitem__(self, key):
         &#34;&#34;&#34;Flexible indexing.&#34;&#34;&#34;
-
         # List of items (by a list of indices).
         # Also see get_for().
         if isinstance(key, list):
@@ -395,12 +395,15 @@ class SparseSpace(dict):
     def __getkey__(self, entry):
         &#34;&#34;&#34;Inverse of `dict.__getitem__`, but also works on coords.
 
-        Note: This dunder method is not a &#34;builtin&#34; naming convention.&#34;&#34;&#34;
+        Note: This dunder method is not a &#34;builtin&#34; naming convention.
+        &#34;&#34;&#34;
         coord = (getattr(entry, a, None) for a in self.axes)
         return self.Coord(*coord)
 
     def __call__(self, **kwargs):
-        &#34;&#34;&#34;Convenience, that enables, eg.:
+        &#34;&#34;&#34;Convenience.
+
+        Enables
         &gt;&gt;&gt; xp_dict(da_method=&#34;EnKF&#34;, infl=1, seed=3)
         &#34;&#34;&#34;
         return self.__getitem__(kwargs)
@@ -410,7 +413,8 @@ class SparseSpace(dict):
 
         NB: using the &#34;naive&#34; thing: `[self[x] for x in ticks]`
         would probably be a BUG coz x gets interpreted as indices
-        for the internal list.&#34;&#34;&#34;
+        for the internal list.
+        &#34;&#34;&#34;
         singleton = not hasattr(ticks[0], &#34;__iter__&#34;)
         def coord(xyz): return self.Coord(xyz if singleton else xyz)
         return [self.get(coord(x), default) for x in ticks]
@@ -426,7 +430,6 @@ class SparseSpace(dict):
         The last point is especially useful for
         `SparseSpace.label_xSection`.
         &#34;&#34;&#34;
-
         def embed(coord): return {**kwargs, **coord._asdict()}
         return [self.Coord(**embed(x)) for x in self[kwargs]]
 
@@ -464,8 +467,8 @@ class SparseSpace(dict):
         with axes `inner_axes`,
         each one regrouping the entries with the same (projected) coordinate.
 
-        Note: is also called by `__getitem__(key)` if `key` is dict.&#34;&#34;&#34;
-
+        Note: is also called by `__getitem__(key)` if `key` is dict.
+        &#34;&#34;&#34;
         # Default: a singleton outer space,
         # with everything contained in the inner (projection) space.
         if inner_axes is None and outer_axes is None:
@@ -501,7 +504,8 @@ class SparseSpace(dict):
     def intersect_axes(self, attrs):
         &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
 
-        This allows errors in the axes allotment, for ease-of-use.&#34;&#34;&#34;
+        This allows errors in the axes allotment, for ease-of-use.
+        &#34;&#34;&#34;
         absent = struct_tools.complement(attrs, self.axes)
         if absent:
             print(color_text(&#34;Warning:&#34;, colorama.Fore.RED),
@@ -532,7 +536,6 @@ class SparseSpace(dict):
         which are consequently set to None for the duplicated entries,
         preventing them from getting plotted in tuning panels.
         &#34;&#34;&#34;
-
         if &#34;Const&#34; not in self.axes:
             self.add_axis(&#39;Const&#39;)
 
@@ -566,8 +569,7 @@ class xpSpace(SparseSpace):
     @classmethod
     def from_list(cls, xps):
         &#34;&#34;&#34;Init xpSpace from xpList.&#34;&#34;&#34;
-
-        def make_ticks(axes, ordering=dict(
+        def make_ticks(axes, ordering=dict(  # noqa TODO 5
                     N         = &#39;default&#39;,
                     seed      = &#39;default&#39;,
                     infl      = &#39;default&#39;,
@@ -576,13 +578,12 @@ class xpSpace(SparseSpace):
                     da_method = &#39;as_found&#39;,
                     )):
             &#34;&#34;&#34;Unique &amp; sort, for each axis (individually) in axes.&#34;&#34;&#34;
-
             for ax_name, arr in axes.items():
                 ticks = set(arr)  # unique (jumbles order)
 
                 # Sort
                 order = ordering.get(ax_name, &#39;default&#39;).lower()
-                if hasattr(order, &#39;__call__&#39;):  # eg. mylist.index
+                if callable(order):  # eg. mylist.index
                     ticks = sorted(ticks, key=order)
                 elif &#39;as_found&#39; in order:
                     ticks = sorted(ticks, key=arr.index)
@@ -610,7 +611,6 @@ class xpSpace(SparseSpace):
 
     def field(self, statkey=&#34;rmse.a&#34;):
         &#34;&#34;&#34;Extract `statkey` for each item in `self`.&#34;&#34;&#34;
-
         # Init a new xpDict to hold field
         avrgs = self.__class__(self.axes)
 
@@ -658,7 +658,6 @@ class xpSpace(SparseSpace):
 
     def tune(self, axes=None, costfun=None):
         &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
-
         # Define cost-function
         costfun = (costfun or &#39;increasing&#39;).lower()
         if &#39;increas&#39; in costfun:
@@ -666,7 +665,7 @@ class xpSpace(SparseSpace):
         elif &#39;decreas&#39; in costfun:
             costfun = (lambda x: -x)
         else:
-            assert hasattr(costfun, &#39;__call__&#39;)  # custom
+            assert callable(costfun)  # custom
 
         # Note: The case `axes=()` should work w/o special treatment.
         if axes is None:
@@ -677,7 +676,7 @@ class xpSpace(SparseSpace):
 
             # Find optimal value and coord within space
             MIN = np.inf
-            for i, (inner_coord, uq) in enumerate(space.items()):
+            for inner_coord, uq in space.items():
                 cost = costfun(uq.val)
                 if cost &lt;= MIN:
                     MIN                = cost
@@ -746,7 +745,8 @@ class xpSpace(SparseSpace):
             &#34;uncluttered&#34; that mean_tune() (or a few of its code lines)
             could be called anywhere above/between/below
             the `nest()`ing of `outer` or `inner`.
-            These possibile call locations are commented in the code.&#34;&#34;&#34;
+            These possibile call locations are commented in the code.
+            &#34;&#34;&#34;
             uq_dict = xp_dict.field(statkey)
             uq_dict = uq_dict.mean(axes[&#39;mean&#39;])
             uq_dict = uq_dict.tune(axes[&#39;optim&#39;])
@@ -789,7 +789,7 @@ class xpSpace(SparseSpace):
         &#34;&#34;&#34;Axis ticks without None&#34;&#34;&#34;
         return [x for x in self.ticks[axis_name] if x is not None]
 
-    def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,
+    def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,  # noqa
               subcols=True, decimals=None):
         &#34;&#34;&#34;Print tables of results.
 
@@ -833,16 +833,14 @@ class xpSpace(SparseSpace):
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
         &#34;&#34;&#34;
-
         def align_subcols(rows, cc, subcols, h2):
             &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
-
             # Define subcol formats
             subc = dict()
             subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
             subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
             subc[&#39;frmts&#39;]    = [None, None]
-            subc[&#39;spaces&#39;]   = [&#39; ±&#39;, ]  # last one gets appended below.
+            subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
             subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
             if axes[&#39;optim&#39;] is not None:
                 subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
@@ -973,12 +971,11 @@ class xpSpace(SparseSpace):
         The optimal parameters are plotted in smaller panels below the main plot.
         This can be prevented by providing the figure axes through the `panels` arg.
         &#34;&#34;&#34;
-
         def plot1(panelcol, row, style):
             &#34;&#34;&#34;Plot a given line (row) in the main panel and the optim panels.
 
-            Involves: Sort, insert None&#39;s, handle constant lines.&#34;&#34;&#34;
-
+            Involves: Sort, insert None&#39;s, handle constant lines.
+            &#34;&#34;&#34;
             # Make a full row (yy) of vals, whether is_constant or not.
             # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
             row.is_constant = all(x == row.Coord(None) for x in row)
@@ -1083,7 +1080,7 @@ def default_fig_adjustments(tables):
 
     # Main panels (top row) only:
     sensible_f = ticker.FormatStrFormatter(&#39;%g&#39;)
-    for ax in axs[0, :]:
+    for ax in axs[0, :]:  # noqa
         for direction, nPanel in zip([&#39;y&#39;, &#39;x&#39;], axs.shape):
             if nPanel &lt; 6:
                 eval(f&#34;ax.set_{direction}scale(&#39;log&#39;)&#34;)
@@ -1219,7 +1216,7 @@ def default_fig_adjustments(tables):
 <span>def <span class="ident">discretize_cmap</span></span>(<span>cmap, N, val0=0, val1=1, name=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Discretize <code>cmap</code> so that it partitions <code>[0,1]</code> into <code>N</code> segments.</p>
+<div class="desc"><p>Discretize <code>cmap</code> so that it partitions <code>[0, 1]</code> into <code>N</code> segments.</p>
 <p>I.e. <code>cmap(k/N) == cmap(k/N + eps)</code>.</p>
 <p>Also provide the ScalarMappable <code>sm</code>
 that maps range(N) to the segment centers,
@@ -1229,10 +1226,10 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L98-L115" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L98-L116" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
-    &#34;&#34;&#34;Discretize `cmap` so that it partitions `[0,1]` into `N` segments.
+    &#34;&#34;&#34;Discretize `cmap` so that it partitions `[0, 1]` into `N` segments.
 
     I.e. `cmap(k/N) == cmap(k/N + eps)`.
 
@@ -1240,7 +1237,8 @@ You can then re-label the ticks using
     that maps range(N) to the segment centers,
     as will be reflected by `cb = fig.colorbar(sm)`.
     You can then re-label the ticks using
-    `cb.set_ticks(np.arange(N)); cb.set_ticklabels([&#34;A&#34;,&#34;B&#34;,&#34;C&#34;,...])`.&#34;&#34;&#34;
+    `cb.set_ticks(np.arange(N)); cb.set_ticklabels([&#34;A&#34;,&#34;B&#34;,&#34;C&#34;,...])`.
+    &#34;&#34;&#34;
     # cmap(k/N)
     from_list = mpl.colors.LinearSegmentedColormap.from_list
     colors = cmap(np.linspace(val0, val1, N))
@@ -1259,7 +1257,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L118-L130" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L119-L131" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
     &#34;&#34;&#34;Map cmap for `coord.axis ∈ [0, len(ticks)]`.&#34;&#34;&#34;
@@ -1284,7 +1282,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L133-L139" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L134-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def in_idx(coord, indices, xp_dict, axis):
     &#34;&#34;&#34;Essentially: `coord.axis in ticks[indices]`.&#34;&#34;&#34;
@@ -1303,7 +1301,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L142-L145" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L143-L146" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def load_HMM(save_as):
     save_as = Path(save_as).expanduser()
@@ -1319,7 +1317,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L148-L175" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L149-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def load_xps(save_as):
     &#34;&#34;&#34;Load `xps` (as a simple list) from dir.&#34;&#34;&#34;
@@ -1377,7 +1375,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L178-L209" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L179-L209" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save_xps(xps, save_as, nDir=100):
     &#34;&#34;&#34;Split xps and save in save_as/i for i in range(nDir).
@@ -1400,7 +1398,6 @@ You can then re-label the ticks using
     &gt;&gt;&gt;
     &gt;&gt;&gt;     overwrite_xps(xps, save_as)
     &#34;&#34;&#34;
-
     save_as = Path(save_as).expanduser()
     save_as.mkdir(parents=False, exist_ok=False)
 
@@ -1453,7 +1450,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L228-L239" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L228-L240" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reduce_inodes(save_as, nDir=100):
     &#34;&#34;&#34;Reduce the number of `xp` dirs
@@ -1465,7 +1462,8 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 
     It also deletes files &#34;xp.var&#34; and &#34;out&#34;
     (which tends to be relatively large coz of the progbar).
-    This is probably also the reason that the loading time is sometimes reduced.&#34;&#34;&#34;
+    This is probably also the reason that the loading time is sometimes reduced.
+    &#34;&#34;&#34;
     overwrite_xps(load_xps(save_as), save_as, nDir)</code></pre>
 </details>
 </dd>
@@ -1477,7 +1475,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L1035-L1069" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L1032-L1066" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def default_fig_adjustments(tables):
     &#34;&#34;&#34;Beautify. These settings do not generalize well.&#34;&#34;&#34;
@@ -1486,7 +1484,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 
     # Main panels (top row) only:
     sensible_f = ticker.FormatStrFormatter(&#39;%g&#39;)
-    for ax in axs[0, :]:
+    for ax in axs[0, :]:  # noqa
         for direction, nPanel in zip([&#39;y&#39;, &#39;x&#39;], axs.shape):
             if nPanel &lt; 6:
                 eval(f&#34;ax.set_{direction}scale(&#39;log&#39;)&#34;)
@@ -1567,7 +1565,7 @@ for further convenience.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L242-L499" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L243-L502" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SparseSpace(dict):
     &#34;&#34;&#34;Subclass of `dict` that enforces key conformity to a `namedtuple`.
@@ -1651,7 +1649,6 @@ for further convenience.</p>
 
     def __getitem__(self, key):
         &#34;&#34;&#34;Flexible indexing.&#34;&#34;&#34;
-
         # List of items (by a list of indices).
         # Also see get_for().
         if isinstance(key, list):
@@ -1681,12 +1678,15 @@ for further convenience.</p>
     def __getkey__(self, entry):
         &#34;&#34;&#34;Inverse of `dict.__getitem__`, but also works on coords.
 
-        Note: This dunder method is not a &#34;builtin&#34; naming convention.&#34;&#34;&#34;
+        Note: This dunder method is not a &#34;builtin&#34; naming convention.
+        &#34;&#34;&#34;
         coord = (getattr(entry, a, None) for a in self.axes)
         return self.Coord(*coord)
 
     def __call__(self, **kwargs):
-        &#34;&#34;&#34;Convenience, that enables, eg.:
+        &#34;&#34;&#34;Convenience.
+
+        Enables
         &gt;&gt;&gt; xp_dict(da_method=&#34;EnKF&#34;, infl=1, seed=3)
         &#34;&#34;&#34;
         return self.__getitem__(kwargs)
@@ -1696,7 +1696,8 @@ for further convenience.</p>
 
         NB: using the &#34;naive&#34; thing: `[self[x] for x in ticks]`
         would probably be a BUG coz x gets interpreted as indices
-        for the internal list.&#34;&#34;&#34;
+        for the internal list.
+        &#34;&#34;&#34;
         singleton = not hasattr(ticks[0], &#34;__iter__&#34;)
         def coord(xyz): return self.Coord(xyz if singleton else xyz)
         return [self.get(coord(x), default) for x in ticks]
@@ -1712,7 +1713,6 @@ for further convenience.</p>
         The last point is especially useful for
         `SparseSpace.label_xSection`.
         &#34;&#34;&#34;
-
         def embed(coord): return {**kwargs, **coord._asdict()}
         return [self.Coord(**embed(x)) for x in self[kwargs]]
 
@@ -1750,8 +1750,8 @@ for further convenience.</p>
         with axes `inner_axes`,
         each one regrouping the entries with the same (projected) coordinate.
 
-        Note: is also called by `__getitem__(key)` if `key` is dict.&#34;&#34;&#34;
-
+        Note: is also called by `__getitem__(key)` if `key` is dict.
+        &#34;&#34;&#34;
         # Default: a singleton outer space,
         # with everything contained in the inner (projection) space.
         if inner_axes is None and outer_axes is None:
@@ -1787,7 +1787,8 @@ for further convenience.</p>
     def intersect_axes(self, attrs):
         &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
 
-        This allows errors in the axes allotment, for ease-of-use.&#34;&#34;&#34;
+        This allows errors in the axes allotment, for ease-of-use.
+        &#34;&#34;&#34;
         absent = struct_tools.complement(attrs, self.axes)
         if absent:
             print(color_text(&#34;Warning:&#34;, colorama.Fore.RED),
@@ -1818,7 +1819,6 @@ for further convenience.</p>
         which are consequently set to None for the duplicated entries,
         preventing them from getting plotted in tuning panels.
         &#34;&#34;&#34;
-
         if &#34;Const&#34; not in self.axes:
             self.add_axis(&#39;Const&#39;)
 
@@ -1844,7 +1844,7 @@ for further convenience.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L281-L283" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L282-L284" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def axes(self):
@@ -1862,7 +1862,7 @@ def axes(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L305-L310" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L306-L311" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, *args, **kwargs):
     &#34;&#34;&#34;Update using custom `__setitem__`.&#34;&#34;&#34;
@@ -1883,14 +1883,15 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L364-L372" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L367-L376" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_for(self, ticks, default=None):
     &#34;&#34;&#34;Almost `[self.get(Coord(x)) for x in ticks]`.
 
     NB: using the &#34;naive&#34; thing: `[self[x] for x in ticks]`
     would probably be a BUG coz x gets interpreted as indices
-    for the internal list.&#34;&#34;&#34;
+    for the internal list.
+    &#34;&#34;&#34;
     singleton = not hasattr(ticks[0], &#34;__iter__&#34;)
     def coord(xyz): return self.Coord(xyz if singleton else xyz)
     return [self.get(coord(x), default) for x in ticks]</code></pre>
@@ -1910,7 +1911,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L374-L395" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L378-L398" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def coords(self, **kwargs):
     &#34;&#34;&#34;Get all `coord`s matching kwargs.
@@ -1923,7 +1924,6 @@ for the internal list.</p></div>
     The last point is especially useful for
     `SparseSpace.label_xSection`.
     &#34;&#34;&#34;
-
     def embed(coord): return {**kwargs, **coord._asdict()}
     return [self.Coord(**embed(x)) for x in self[kwargs]]
 
@@ -1949,7 +1949,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L415-L449" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L418-L452" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def nest(self, inner_axes=None, outer_axes=None):
     &#34;&#34;&#34;Return a new xpSpace with axes `outer_axes`,
@@ -1959,8 +1959,8 @@ each one regrouping the entries with the same (projected) coordinate.</p>
     with axes `inner_axes`,
     each one regrouping the entries with the same (projected) coordinate.
 
-    Note: is also called by `__getitem__(key)` if `key` is dict.&#34;&#34;&#34;
-
+    Note: is also called by `__getitem__(key)` if `key` is dict.
+    &#34;&#34;&#34;
     # Default: a singleton outer space,
     # with everything contained in the inner (projection) space.
     if inner_axes is None and outer_axes is None:
@@ -1996,7 +1996,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L451-L455" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L454-L458" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_axis(self, axis):
     self.__init__(self.axes+(axis,))
@@ -2014,12 +2014,13 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L457-L475" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L460-L479" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def intersect_axes(self, attrs):
     &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
 
-    This allows errors in the axes allotment, for ease-of-use.&#34;&#34;&#34;
+    This allows errors in the axes allotment, for ease-of-use.
+    &#34;&#34;&#34;
     absent = struct_tools.complement(attrs, self.axes)
     if absent:
         print(color_text(&#34;Warning:&#34;, colorama.Fore.RED),
@@ -2053,7 +2054,7 @@ preventing them from getting plotted in tuning panels.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L477-L499" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L481-L502" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def label_xSection(self, label, *NoneAttrs, **sub_coord):
     &#34;&#34;&#34;Insert duplicate entries for the cross section
@@ -2069,7 +2070,6 @@ preventing them from getting plotted in tuning panels.</p></div>
     which are consequently set to None for the duplicated entries,
     preventing them from getting plotted in tuning panels.
     &#34;&#34;&#34;
-
     if &#34;Const&#34; not in self.axes:
         self.add_axis(&#39;Const&#39;)
 
@@ -2109,7 +2109,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L505-L1032" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L508-L1029" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpSpace(SparseSpace):
     &#34;&#34;&#34;Functionality to facilitate working with `xps` and their results.
@@ -2131,8 +2131,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
     @classmethod
     def from_list(cls, xps):
         &#34;&#34;&#34;Init xpSpace from xpList.&#34;&#34;&#34;
-
-        def make_ticks(axes, ordering=dict(
+        def make_ticks(axes, ordering=dict(  # noqa TODO 5
                     N         = &#39;default&#39;,
                     seed      = &#39;default&#39;,
                     infl      = &#39;default&#39;,
@@ -2141,13 +2140,12 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
                     da_method = &#39;as_found&#39;,
                     )):
             &#34;&#34;&#34;Unique &amp; sort, for each axis (individually) in axes.&#34;&#34;&#34;
-
             for ax_name, arr in axes.items():
                 ticks = set(arr)  # unique (jumbles order)
 
                 # Sort
                 order = ordering.get(ax_name, &#39;default&#39;).lower()
-                if hasattr(order, &#39;__call__&#39;):  # eg. mylist.index
+                if callable(order):  # eg. mylist.index
                     ticks = sorted(ticks, key=order)
                 elif &#39;as_found&#39; in order:
                     ticks = sorted(ticks, key=arr.index)
@@ -2175,7 +2173,6 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 
     def field(self, statkey=&#34;rmse.a&#34;):
         &#34;&#34;&#34;Extract `statkey` for each item in `self`.&#34;&#34;&#34;
-
         # Init a new xpDict to hold field
         avrgs = self.__class__(self.axes)
 
@@ -2223,7 +2220,6 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 
     def tune(self, axes=None, costfun=None):
         &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
-
         # Define cost-function
         costfun = (costfun or &#39;increasing&#39;).lower()
         if &#39;increas&#39; in costfun:
@@ -2231,7 +2227,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
         elif &#39;decreas&#39; in costfun:
             costfun = (lambda x: -x)
         else:
-            assert hasattr(costfun, &#39;__call__&#39;)  # custom
+            assert callable(costfun)  # custom
 
         # Note: The case `axes=()` should work w/o special treatment.
         if axes is None:
@@ -2242,7 +2238,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 
             # Find optimal value and coord within space
             MIN = np.inf
-            for i, (inner_coord, uq) in enumerate(space.items()):
+            for inner_coord, uq in space.items():
                 cost = costfun(uq.val)
                 if cost &lt;= MIN:
                     MIN                = cost
@@ -2311,7 +2307,8 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
             &#34;uncluttered&#34; that mean_tune() (or a few of its code lines)
             could be called anywhere above/between/below
             the `nest()`ing of `outer` or `inner`.
-            These possibile call locations are commented in the code.&#34;&#34;&#34;
+            These possibile call locations are commented in the code.
+            &#34;&#34;&#34;
             uq_dict = xp_dict.field(statkey)
             uq_dict = uq_dict.mean(axes[&#39;mean&#39;])
             uq_dict = uq_dict.tune(axes[&#39;optim&#39;])
@@ -2354,7 +2351,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
         &#34;&#34;&#34;Axis ticks without None&#34;&#34;&#34;
         return [x for x in self.ticks[axis_name] if x is not None]
 
-    def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,
+    def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,  # noqa
               subcols=True, decimals=None):
         &#34;&#34;&#34;Print tables of results.
 
@@ -2398,16 +2395,14 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
         &#34;&#34;&#34;
-
         def align_subcols(rows, cc, subcols, h2):
             &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
-
             # Define subcol formats
             subc = dict()
             subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
             subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
             subc[&#39;frmts&#39;]    = [None, None]
-            subc[&#39;spaces&#39;]   = [&#39; ±&#39;, ]  # last one gets appended below.
+            subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
             subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
             if axes[&#39;optim&#39;] is not None:
                 subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
@@ -2538,12 +2533,11 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
         The optimal parameters are plotted in smaller panels below the main plot.
         This can be prevented by providing the figure axes through the `panels` arg.
         &#34;&#34;&#34;
-
         def plot1(panelcol, row, style):
             &#34;&#34;&#34;Plot a given line (row) in the main panel and the optim panels.
 
-            Involves: Sort, insert None&#39;s, handle constant lines.&#34;&#34;&#34;
-
+            Involves: Sort, insert None&#39;s, handle constant lines.
+            &#34;&#34;&#34;
             # Make a full row (yy) of vals, whether is_constant or not.
             # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
             row.is_constant = all(x == row.Coord(None) for x in row)
@@ -2655,13 +2649,12 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L522-L565" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L525-L566" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def from_list(cls, xps):
     &#34;&#34;&#34;Init xpSpace from xpList.&#34;&#34;&#34;
-
-    def make_ticks(axes, ordering=dict(
+    def make_ticks(axes, ordering=dict(  # noqa TODO 5
                 N         = &#39;default&#39;,
                 seed      = &#39;default&#39;,
                 infl      = &#39;default&#39;,
@@ -2670,13 +2663,12 @@ def from_list(cls, xps):
                 da_method = &#39;as_found&#39;,
                 )):
         &#34;&#34;&#34;Unique &amp; sort, for each axis (individually) in axes.&#34;&#34;&#34;
-
         for ax_name, arr in axes.items():
             ticks = set(arr)  # unique (jumbles order)
 
             # Sort
             order = ordering.get(ax_name, &#39;default&#39;).lower()
-            if hasattr(order, &#39;__call__&#39;):  # eg. mylist.index
+            if callable(order):  # eg. mylist.index
                 ticks = sorted(ticks, key=order)
             elif &#39;as_found&#39; in order:
                 ticks = sorted(ticks, key=arr.index)
@@ -2714,11 +2706,10 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L567-L584" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L568-L584" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def field(self, statkey=&#34;rmse.a&#34;):
     &#34;&#34;&#34;Extract `statkey` for each item in `self`.&#34;&#34;&#34;
-
     # Init a new xpDict to hold field
     avrgs = self.__class__(self.axes)
 
@@ -2784,11 +2775,10 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L615-L645" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L615-L644" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tune(self, axes=None, costfun=None):
     &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
-
     # Define cost-function
     costfun = (costfun or &#39;increasing&#39;).lower()
     if &#39;increas&#39; in costfun:
@@ -2796,7 +2786,7 @@ def from_list(cls, xps):
     elif &#39;decreas&#39; in costfun:
         costfun = (lambda x: -x)
     else:
-        assert hasattr(costfun, &#39;__call__&#39;)  # custom
+        assert callable(costfun)  # custom
 
     # Note: The case `axes=()` should work w/o special treatment.
     if axes is None:
@@ -2807,7 +2797,7 @@ def from_list(cls, xps):
 
         # Find optimal value and coord within space
         MIN = np.inf
-        for i, (inner_coord, uq) in enumerate(space.items()):
+        for inner_coord, uq in space.items():
             cost = costfun(uq.val)
             if cost &lt;= MIN:
                 MIN                = cost
@@ -2830,7 +2820,7 @@ Use <code>axis or ()</code> wherever tuples are required.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L647-L678" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L646-L677" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_axes(self, axes):
     &#34;&#34;&#34;Validate axes.
@@ -2890,7 +2880,7 @@ when optimizing over tuning_axes.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L680-L742" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L679-L742" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def table_tree(self, statkey, axes):
     &#34;&#34;&#34;Hierarchical nest(): xp_dict&gt;outer&gt;inner&gt;mean&gt;optim.
@@ -2917,7 +2907,8 @@ when optimizing over tuning_axes.</p></div>
         &#34;uncluttered&#34; that mean_tune() (or a few of its code lines)
         could be called anywhere above/between/below
         the `nest()`ing of `outer` or `inner`.
-        These possibile call locations are commented in the code.&#34;&#34;&#34;
+        These possibile call locations are commented in the code.
+        &#34;&#34;&#34;
         uq_dict = xp_dict.field(statkey)
         uq_dict = uq_dict.mean(axes[&#39;mean&#39;])
         uq_dict = uq_dict.tune(axes[&#39;optim&#39;])
@@ -3029,9 +3020,9 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L748-L914" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L748-L912" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,
+<pre><code class="python">def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,  # noqa
           subcols=True, decimals=None):
     &#34;&#34;&#34;Print tables of results.
 
@@ -3075,16 +3066,14 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
         Number of decimals to print.
         If `None`, this is determined for each statistic by its uncertainty.
     &#34;&#34;&#34;
-
     def align_subcols(rows, cc, subcols, h2):
         &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
-
         # Define subcol formats
         subc = dict()
         subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;conf&#34;]
         subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
         subc[&#39;frmts&#39;]    = [None, None]
-        subc[&#39;spaces&#39;]   = [&#39; ±&#39;, ]  # last one gets appended below.
+        subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
         subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
         if axes[&#39;optim&#39;] is not None:
             subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
@@ -3216,7 +3205,7 @@ This can be prevented by providing the figure axes through the <code>panels</cod
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L916-L1032" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L914-L1029" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
          fignum=None, figsize=None, panels=None,
@@ -3234,12 +3223,11 @@ This can be prevented by providing the figure axes through the <code>panels</cod
     The optimal parameters are plotted in smaller panels below the main plot.
     This can be prevented by providing the figure axes through the `panels` arg.
     &#34;&#34;&#34;
-
     def plot1(panelcol, row, style):
         &#34;&#34;&#34;Plot a given line (row) in the main panel and the optim panels.
 
-        Involves: Sort, insert None&#39;s, handle constant lines.&#34;&#34;&#34;
-
+        Involves: Sort, insert None&#39;s, handle constant lines.
+        &#34;&#34;&#34;
         # Make a full row (yy) of vals, whether is_constant or not.
         # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
         row.is_constant = all(x == row.Coord(None) for x in row)

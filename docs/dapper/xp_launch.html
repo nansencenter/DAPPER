@@ -41,7 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L590" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L587" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably `xpList`) for setup and running of experiments (known as `xp`s).
 
@@ -145,7 +145,6 @@ def run_experiment(xp, label, savedir, HMM,
     fail_gently: bool
         Whether (or not) to propagate exceptions.
     &#34;&#34;&#34;
-
     # We should copy HMM so as not to cause any nasty surprises such as
     # expecting param=1 when param=2 (coz it&#39;s not been reset).
     # NB: won&#39;t copy implicitly ref&#39;d obj&#39;s (like L96&#39;s core). =&gt; bug w/ MP?
@@ -185,7 +184,7 @@ def _print_cropped_traceback(ERR):
         msg = &#34;Traceback (most recent call last):\n&#34;
         try:
             # If in IPython, use its coloring functionality
-            __IPYTHON__  # noqa
+            __IPYTHON__  # type: ignore
             from IPython.core.debugger import Pdb
             pdb_instance = Pdb()
             pdb_instance.curframe = inspect.currentframe()
@@ -243,7 +242,8 @@ class xpList(list):
     &#34;&#34;&#34;
 
     def __init__(self, *args, unique=False):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Construct as follows.
+
         Parameters
         ----------
         args: entries
@@ -255,7 +255,6 @@ class xpList(list):
             Use `extend` or `__add__` or `get_param_setter`
             to bypass this validation.
         &#34;&#34;&#34;
-
         self.unique = unique
         super().__init__(*args)
 
@@ -296,7 +295,7 @@ class xpList(list):
 
     @property
     def da_methods(self):
-        &#34;List `da_method` attributes in this list.&#34;
+        &#34;&#34;&#34;List `da_method` attributes in this list.&#34;&#34;&#34;
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
@@ -313,10 +312,8 @@ class xpList(list):
         nomerge: list
             Attributes that should always be seen as distinct.
         &#34;&#34;&#34;
-
         def _aggregate_keys():
-            &#34;Aggregate keys from all `xp`&#34;
-
+            &#34;&#34;&#34;Aggregate keys from all `xp`&#34;&#34;&#34;
             if len(self) == 0:
                 return []
 
@@ -443,7 +440,8 @@ class xpList(list):
     def tabulate_avrgs(self, *args, **kwargs):
         &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
 
-        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
+        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.
+        &#34;&#34;&#34;
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
@@ -480,7 +478,6 @@ class xpList(list):
 
         See `examples/basic_2.py` and `examples/basic_3.py` for example use.
         &#34;&#34;&#34;
-
         # Collect common args forwarded to run_experiment
         kwargs[&#39;HMM&#39;] = HMM
         kwargs[&#34;setup&#34;] = setup
@@ -756,7 +753,7 @@ this xp.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L66-L134" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L66-L133" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
@@ -795,7 +792,6 @@ this xp.</dd>
     fail_gently: bool
         Whether (or not) to propagate exceptions.
     &#34;&#34;&#34;
-
     # We should copy HMM so as not to cause any nasty surprises such as
     # expecting param=1 when param=2 (coz it&#39;s not been reset).
     # NB: won&#39;t copy implicitly ref&#39;d obj&#39;s (like L96&#39;s core). =&gt; bug w/ MP?
@@ -837,7 +833,7 @@ this xp.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L166-L171" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L165-L170" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def collapse_str(string, length=6):
     &#34;&#34;&#34;Truncate a string (in the middle) to the given `length`&#34;&#34;&#34;
@@ -864,7 +860,7 @@ then you'll create many more than you intend.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L566-L591" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L563-L588" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_param_setter(param_dict, **glob_dict):
     &#34;&#34;&#34;Mass creation of `xp`&#39;s by combining the value lists in the parameter dicts.
@@ -926,6 +922,7 @@ this is hackey, but convenience is king.</li>
 <li>Examples: <code>examples/basic_2</code>, <code>examples/basic_3</code></li>
 <li>Experiment <strong>presentation</strong>: <code><a title="dapper.xp_process.xpSpace" href="xp_process.html#dapper.xp_process.xpSpace">xpSpace</a></code></li>
 </ul>
+<p>Construct as follows.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>args</code></strong> :&ensp;<code>entries</code></dt>
@@ -939,7 +936,7 @@ to bypass this validation.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L174-L563" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L173-L560" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpList(list):
     &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
@@ -968,7 +965,8 @@ to bypass this validation.</dd>
     &#34;&#34;&#34;
 
     def __init__(self, *args, unique=False):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Construct as follows.
+
         Parameters
         ----------
         args: entries
@@ -980,7 +978,6 @@ to bypass this validation.</dd>
             Use `extend` or `__add__` or `get_param_setter`
             to bypass this validation.
         &#34;&#34;&#34;
-
         self.unique = unique
         super().__init__(*args)
 
@@ -1021,7 +1018,7 @@ to bypass this validation.</dd>
 
     @property
     def da_methods(self):
-        &#34;List `da_method` attributes in this list.&#34;
+        &#34;&#34;&#34;List `da_method` attributes in this list.&#34;&#34;&#34;
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
@@ -1038,10 +1035,8 @@ to bypass this validation.</dd>
         nomerge: list
             Attributes that should always be seen as distinct.
         &#34;&#34;&#34;
-
         def _aggregate_keys():
-            &#34;Aggregate keys from all `xp`&#34;
-
+            &#34;&#34;&#34;Aggregate keys from all `xp`&#34;&#34;&#34;
             if len(self) == 0:
                 return []
 
@@ -1168,7 +1163,8 @@ to bypass this validation.</dd>
     def tabulate_avrgs(self, *args, **kwargs):
         &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
 
-        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
+        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.
+        &#34;&#34;&#34;
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
@@ -1205,7 +1201,6 @@ to bypass this validation.</dd>
 
         See `examples/basic_2.py` and `examples/basic_3.py` for example use.
         &#34;&#34;&#34;
-
         # Collect common args forwarded to run_experiment
         kwargs[&#39;HMM&#39;] = HMM
         kwargs[&#34;setup&#34;] = setup
@@ -1344,11 +1339,11 @@ to bypass this validation.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L252-L255" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L251-L254" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def da_methods(self):
-    &#34;List `da_method` attributes in this list.&#34;
+    &#34;&#34;&#34;List `da_method` attributes in this list.&#34;&#34;&#34;
     return [xp.da_method for xp in self]</code></pre>
 </details>
 </dd>
@@ -1363,7 +1358,7 @@ def da_methods(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L224-L227" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L223-L226" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def append(self, xp):
     &#34;&#34;&#34;Append **if** not `self.unique` &amp; present.&#34;&#34;&#34;
@@ -1381,7 +1376,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L239-L250" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L238-L249" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
     &#34;&#34;&#34;Find (all) indices of `xps` whose attributes match kws.
@@ -1414,7 +1409,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L257-L348" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L256-L345" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def split_attrs(self, nomerge=()):
     &#34;&#34;&#34;Classify each/every attribute of the `xp`s into: distinct, redundant, common.
@@ -1430,10 +1425,8 @@ need be included.</p>
     nomerge: list
         Attributes that should always be seen as distinct.
     &#34;&#34;&#34;
-
     def _aggregate_keys():
-        &#34;Aggregate keys from all `xp`&#34;
-
+        &#34;&#34;&#34;Aggregate keys from all `xp`&#34;&#34;&#34;
         if len(self) == 0:
             return []
 
@@ -1523,7 +1516,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L358-L396" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L355-L393" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_names(self, abbrev=6, tab=False):
     &#34;&#34;&#34;Similiar to `self.__repr__()`, but:
@@ -1575,12 +1568,13 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L398-L405" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L395-L403" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(self, *args, **kwargs):
     &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
 
-    Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.&#34;&#34;&#34;
+    Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.
+    &#34;&#34;&#34;
     distinct, redundant, common = self.split_attrs()
     averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
     columns = {**distinct, &#39;|&#39;: [&#39;|&#39;]*len(self), **averages}  # merge
@@ -1621,7 +1615,7 @@ of that <code>xp</code>).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L407-L563" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L405-L560" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
            setup=seed_and_simulate, fail_gently=None, **kwargs):
@@ -1654,7 +1648,6 @@ of that <code>xp</code>).</p>
 
     See `examples/basic_2.py` and `examples/basic_3.py` for example use.
     &#34;&#34;&#34;
-
     # Collect common args forwarded to run_experiment
     kwargs[&#39;HMM&#39;] = HMM
     kwargs[&#34;setup&#34;] = setup

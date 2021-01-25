@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L0-L347" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L0-L392" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Time series management and processing.&#34;&#34;&#34;
 
@@ -121,27 +121,50 @@ def estimate_corr_length(xx):
     if a == 0:
         L = 0
     else:
-        L = 1/np.log(1/a)  # type: ignore
+        L = 1/np.log(1/a)
     return L
 
 
 @dataclass
 class UncertainQtty():
-    &#34;&#34;&#34;Container associating an uncertainty with a quantity.
+    &#34;&#34;&#34;Data container associating uncertainty (confidence) to a quantity.
 
-    Includes rounding function for the purpose of pretty prints.
+    Includes intelligent rounding and printing functionality.
 
     Examples:
-    &gt;&gt;&gt; print(UncertainQtty(1.2345, .1))
+    &gt;&gt;&gt; for c in [.01, .1, .2, .9, 1]:
+    ...    print(UncertainQtty(1.2345, c))
+    1.23 ±0.01
     1.2 ±0.1
-    &gt;&gt;&gt; print(UncertainQtty(1.2345, .9))
+    1.2 ±0.2
     1.2 ±0.9
-    &gt;&gt;&gt; print(UncertainQtty(1.300, 0.01))
-    1.30 ±0.01
-    &gt;&gt;&gt; print(UncertainQtty(14, 12))
+    1 ±1
+
+    &gt;&gt;&gt; for c in [.01, 1e-10, 1e-17, 0]:
+    ...    print(UncertainQtty(1.2, c))
+    1.20 ±0.01
+    1.2000000000 ±1e-10
+    1.19999999999999996 ±1e-17
+    1.2000000000 ±0
+
+    Note that in the case of a confidence of exactly 0,
+    it defaults to 10 decimal places.
+    Meanwhile, a NaN confidence yields printing using `rc.sigfig`:
+
+    &gt;&gt;&gt; print(UncertainQtty(1.234567, np.nan))
+    1.235 ±nan
+
+    Also note the effect of large uncertainty:
+
+    &gt;&gt;&gt; for c in [1, 9, 10, 11, 20, 100, np.inf]:
+    ...    print(UncertainQtty(12, c))
+    12 ±1
+    12 ±9
     10 ±10
-    &gt;&gt;&gt; UncertainQtty(1.2345, 1)
-    UncertainQtty(val=1, conf=1)
+    10 ±10
+    10 ±20
+    0 ±100
+    0 ±inf
     &#34;&#34;&#34;
 
     val: float
@@ -150,37 +173,54 @@ class UncertainQtty():
     def round(self, mult=1.0):  # noqa
         &#34;&#34;&#34;Round intelligently.
 
-        - conf to 1 sigfig.
-        - val:
-            - to precision: mult*conf.
-            - fallback: rc.sigfig
+        - `conf` to 1 sig. fig.
+        - `val`:
+            - to precision: `mult*conf`
+            - fallback: `rc.sigfig`
         &#34;&#34;&#34;
-        # Extreme cases
         if np.isnan(self.conf):
+            # Fallback to rc.sigfig
             c = self.conf
             v = round2sigfig(self.val, rc.sigfig)
-        # Normal case
         else:
+            # Normal/general case
             c = round2sigfig(self.conf, 1)
             v = round2(self.val, mult*self.conf)
         return v, c
 
     def __str__(self):
-        # Round nicely
+        &#34;&#34;&#34;Returns &#39;val ±conf&#39;.
+
+        The value string contains the number of decimals required by the confidence.
+
+        Note: the special cases require processing on top of `round`.
+        &#34;&#34;&#34;
         v, c = self.round()
-        # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01.
-        n = log10int(c)
-        frmt = &#34;%.f&#34; if n &gt;= 0 else &#34;%%0.%df&#34; % -n
+        if np.isnan(c):
+            # Rounding to fallback (rc.sigfig) already took place
+            return f&#34;{v} ±{c}&#34;
+        if c == 0:
+            # 0 (i.e. not 1e-300) never arises &#34;naturally&#34; =&gt; Treat it &#34;magically&#34;
+            # by truncating to a default. Also see https://stackoverflow.com/a/25899600
+            n = -10
+        else:
+            # Normal/general case.
+            n = log10int(c)
+        frmt = &#34;%.f&#34;
+        if n &lt; 0:
+            # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
+            frmt = &#34;%%0.%df&#34; % -n
         v = frmt % v
-        return &#34;{} ±{}&#34;.format(v, c)
+        return f&#34;{v} ±{c}&#34;
 
     def __repr__(self):
+        &#34;&#34;&#34;Essentially the same as `__str__`.&#34;&#34;&#34;
         v, c = str(self).split(&#34; ±&#34;)
         return self.__class__.__name__ + f&#34;(val={v}, conf={c})&#34;
 
 
 def mean_with_conf(xx):
-    &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
+    &#34;&#34;&#34;Compute the mean of a 1d iterable `xx`.
 
     Also provide confidence of mean,
     as estimated from its correlation-corrected variance.
@@ -213,7 +253,8 @@ def mean_with_conf(xx):
 
 
 class StatPrint(NicePrint):
-    &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
+    &#34;&#34;&#34;Set `NicePrint` options suitable for stats.&#34;&#34;&#34;
+
     printopts = dict(
         excluded=NicePrint.printopts[&#34;excluded&#34;]+[&#34;HMM&#34;, &#34;LP_instance&#34;],
         ordering=&#34;linenumber&#34;,
@@ -227,7 +268,7 @@ class StatPrint(NicePrint):
             &#39;m&#39;: &#39;Field mean (.m)&#39;,
             &#39;ma&#39;: &#39;Field mean-abs (.ma)&#39;,
             &#39;rms&#39;: &#39;Field root-mean-square (.rms)&#39;,
-            &#39;gm&#39;: &#39;Field geometric-mean (.gm)&#39;
+            &#39;gm&#39;: &#39;Field geometric-mean (.gm)&#39;,
         },
     )
 
@@ -242,10 +283,10 @@ class StatPrint(NicePrint):
 
 
 def monitor_setitem(cls):
-    &#34;&#34;&#34;Modify cls to track of whether its ``__setitem__`` has been called.
+    &#34;&#34;&#34;Modify cls to track of whether its `__setitem__` has been called.
 
-    See sub.py for a sublcass solution (drawback: creates a new class).&#34;&#34;&#34;
-
+    See sub.py for a sublcass solution (drawback: creates a new class).
+    &#34;&#34;&#34;
     orig_setitem = cls.__setitem__
 
     def setitem(self, key, val):
@@ -265,13 +306,14 @@ def monitor_setitem(cls):
 
 @monitor_setitem
 class DataSeries(StatPrint):
-    &#34;&#34;&#34;Basically just an ``np.ndarray``. But adds:
+    &#34;&#34;&#34;Basically just an `np.ndarray`. But adds:
 
     - Possibility of adding attributes.
     - The class (type) provides way to acertain if an attribute is a series.
 
-    Note: subclassing ``ndarray`` is too dirty =&gt; We&#39;ll just use the
-    ``array`` attribute, and provide ``{s,g}etitem``.&#34;&#34;&#34;
+    Note: subclassing `ndarray` is too dirty =&gt; We&#39;ll just use the
+    `array` attribute, and provide `{s,g}etitem`.
+    &#34;&#34;&#34;
 
     def __init__(self, shape, **kwargs):
         self.array = np.full(shape, nan, **kwargs)
@@ -287,12 +329,12 @@ class FAUSt(DataSeries, StatPrint):
 
     Four attributes, each of which is an ndarray:
 
-    - .f for forecast      , (KObs+1,)+item_shape
-    - .a for analysis      , (KObs+1,)+item_shape
-    - .s for smoothed      , (KObs+1,)+item_shape
-    - .u for universial/all, (K   +1,)+item_shape
+    - `.f` for forecast      , `(KObs+1,)+item_shape`
+    - `.a` for analysis      , `(KObs+1,)+item_shape`
+    - `.s` for smoothed      , `(KObs+1,)+item_shape`
+    - `.u` for universial/all, `(K   +1,)+item_shape`
 
-    If store_u=False, then .u series has shape (1,)+item_shape,
+    If `store_u=False`, then `.u` series has shape `(1,)+item_shape`,
     wherein only the most-recently-written item is stored.
 
     Series can also be indexed as in
@@ -303,18 +345,17 @@ class FAUSt(DataSeries, StatPrint):
         self[k,&#39;u&#39;]
         self[k,whatever,&#39;u&#39;]
 
-    .. note:: If a data series only pertains to the analysis,
+    .. note:: If a data series only pertains to analysis times,
               then you should use a plain np.array instead.
     &#34;&#34;&#34;
 
     def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
-        &#34;&#34;&#34;Constructor.
+        &#34;&#34;&#34;Construct object.
 
-         - item_shape : shape of an item in the series.
-         - store_u    : if False: only the current value is stored.
-         - kwargs     : passed on to ndarrays.
+        - `item_shape` : shape of an item in the series.
+        - `store_u`    : if False: only the current value is stored.
+        - `kwargs`     : passed on to ndarrays.
         &#34;&#34;&#34;
-
         self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
         self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
         if store_s:
@@ -330,20 +371,24 @@ class FAUSt(DataSeries, StatPrint):
     store_u    = property(lambda self: len(self.u) &gt; 1)
 
     def _ind(self, key):
-        &#34;Aux function to unpack ``key`` (k,kObs,faus)&#34;
+        &#34;&#34;&#34;Aux function to unpack `key` (`k,kObs,faus`)&#34;&#34;&#34;
         if key[-1] == &#39;u&#39;:
             return key[0] if self.store_u else 0
         else:
             return key[-2]
 
-    def __setitem__(self, key, item):  getattr(self, key[-1])[self._ind(key)] = item
-    def __getitem__(self, key): return getattr(self, key[-1])[self._ind(key)]
+    def __setitem__(self, key, item):
+        getattr(self, key[-1])[self._ind(key)] = item
+
+    def __getitem__(self, key):
+        return getattr(self, key[-1])[self._ind(key)]
 
 
 class RollingArray:
     &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
 
-    Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
+    Used for data that gets plotted in sliding graphs.
+    &#34;&#34;&#34;
 
     def __init__(self, shape, fillval=nan):
         self.array = np.full(shape, fillval)
@@ -374,13 +419,13 @@ class RollingArray:
         return self[len(self)-self.nFilled]
 
     def span(self):
-        return (self.leftmost(),  self[-1])
+        return (self.leftmost(), self[-1])
 
     @property
     def T(self):
         return self.array.T
 
-    def __array__(self, dtype=None): return self.array(dtype=dtype)
+    def __array__(self, _dtype=None): return self.array
     def __len__(self): return len(self.array)
     def __repr__(self): return &#39;RollingArray:\n%s&#39; % str(self.array)
     def __getitem__(self, key): return self.array[key]
@@ -508,7 +553,7 @@ Also note that, for exponential corr function, as assumed here,</p>
     if a == 0:
         L = 0
     else:
-        L = 1/np.log(1/a)  # type: ignore
+        L = 1/np.log(1/a)
     return L</code></pre>
 </details>
 </dd>
@@ -522,10 +567,10 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L138-L168" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L178-L208" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean_with_conf(xx):
-    &#34;&#34;&#34;Compute the mean of a 1d iterable ``xx``.
+    &#34;&#34;&#34;Compute the mean of a 1d iterable `xx`.
 
     Also provide confidence of mean,
     as estimated from its correlation-corrected variance.
@@ -566,13 +611,13 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L200-L219" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L241-L260" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def monitor_setitem(cls):
-    &#34;&#34;&#34;Modify cls to track of whether its ``__setitem__`` has been called.
+    &#34;&#34;&#34;Modify cls to track of whether its `__setitem__` has been called.
 
-    See sub.py for a sublcass solution (drawback: creates a new class).&#34;&#34;&#34;
-
+    See sub.py for a sublcass solution (drawback: creates a new class).
+    &#34;&#34;&#34;
     orig_setitem = cls.__setitem__
 
     def setitem(self, key, val):
@@ -600,42 +645,86 @@ as estimated from its correlation-corrected variance.</p></div>
 <span>(</span><span>val: float, conf: float)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Container associating an uncertainty with a quantity.</p>
-<p>Includes rounding function for the purpose of pretty prints.</p>
+<div class="desc"><p>Data container associating uncertainty (confidence) to a quantity.</p>
+<p>Includes intelligent rounding and printing functionality.</p>
 <p>Examples:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; print(UncertainQtty(1.2345, .1))
+<pre><code class="language-python-repl">&gt;&gt;&gt; for c in [.01, .1, .2, .9, 1]:
+...    print(UncertainQtty(1.2345, c))
+1.23 ±0.01
 1.2 ±0.1
-&gt;&gt;&gt; print(UncertainQtty(1.2345, .9))
+1.2 ±0.2
 1.2 ±0.9
-&gt;&gt;&gt; print(UncertainQtty(1.300, 0.01))
-1.30 ±0.01
-&gt;&gt;&gt; print(UncertainQtty(14, 12))
+1 ±1
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; for c in [.01, 1e-10, 1e-17, 0]:
+...    print(UncertainQtty(1.2, c))
+1.20 ±0.01
+1.2000000000 ±1e-10
+1.19999999999999996 ±1e-17
+1.2000000000 ±0
+</code></pre>
+<p>Note that in the case of a confidence of exactly 0,
+it defaults to 10 decimal places.
+Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; print(UncertainQtty(1.234567, np.nan))
+1.235 ±nan
+</code></pre>
+<p>Also note the effect of large uncertainty:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; for c in [1, 9, 10, 11, 20, 100, np.inf]:
+...    print(UncertainQtty(12, c))
+12 ±1
+12 ±9
 10 ±10
-&gt;&gt;&gt; UncertainQtty(1.2345, 1)
-UncertainQtty(val=1, conf=1)
+10 ±10
+10 ±20
+0 ±100
+0 ±inf
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L84-L135" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L84-L175" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@dataclass
 class UncertainQtty():
-    &#34;&#34;&#34;Container associating an uncertainty with a quantity.
+    &#34;&#34;&#34;Data container associating uncertainty (confidence) to a quantity.
 
-    Includes rounding function for the purpose of pretty prints.
+    Includes intelligent rounding and printing functionality.
 
     Examples:
-    &gt;&gt;&gt; print(UncertainQtty(1.2345, .1))
+    &gt;&gt;&gt; for c in [.01, .1, .2, .9, 1]:
+    ...    print(UncertainQtty(1.2345, c))
+    1.23 ±0.01
     1.2 ±0.1
-    &gt;&gt;&gt; print(UncertainQtty(1.2345, .9))
+    1.2 ±0.2
     1.2 ±0.9
-    &gt;&gt;&gt; print(UncertainQtty(1.300, 0.01))
-    1.30 ±0.01
-    &gt;&gt;&gt; print(UncertainQtty(14, 12))
+    1 ±1
+
+    &gt;&gt;&gt; for c in [.01, 1e-10, 1e-17, 0]:
+    ...    print(UncertainQtty(1.2, c))
+    1.20 ±0.01
+    1.2000000000 ±1e-10
+    1.19999999999999996 ±1e-17
+    1.2000000000 ±0
+
+    Note that in the case of a confidence of exactly 0,
+    it defaults to 10 decimal places.
+    Meanwhile, a NaN confidence yields printing using `rc.sigfig`:
+
+    &gt;&gt;&gt; print(UncertainQtty(1.234567, np.nan))
+    1.235 ±nan
+
+    Also note the effect of large uncertainty:
+
+    &gt;&gt;&gt; for c in [1, 9, 10, 11, 20, 100, np.inf]:
+    ...    print(UncertainQtty(12, c))
+    12 ±1
+    12 ±9
     10 ±10
-    &gt;&gt;&gt; UncertainQtty(1.2345, 1)
-    UncertainQtty(val=1, conf=1)
+    10 ±10
+    10 ±20
+    0 ±100
+    0 ±inf
     &#34;&#34;&#34;
 
     val: float
@@ -644,31 +733,48 @@ class UncertainQtty():
     def round(self, mult=1.0):  # noqa
         &#34;&#34;&#34;Round intelligently.
 
-        - conf to 1 sigfig.
-        - val:
-            - to precision: mult*conf.
-            - fallback: rc.sigfig
+        - `conf` to 1 sig. fig.
+        - `val`:
+            - to precision: `mult*conf`
+            - fallback: `rc.sigfig`
         &#34;&#34;&#34;
-        # Extreme cases
         if np.isnan(self.conf):
+            # Fallback to rc.sigfig
             c = self.conf
             v = round2sigfig(self.val, rc.sigfig)
-        # Normal case
         else:
+            # Normal/general case
             c = round2sigfig(self.conf, 1)
             v = round2(self.val, mult*self.conf)
         return v, c
 
     def __str__(self):
-        # Round nicely
+        &#34;&#34;&#34;Returns &#39;val ±conf&#39;.
+
+        The value string contains the number of decimals required by the confidence.
+
+        Note: the special cases require processing on top of `round`.
+        &#34;&#34;&#34;
         v, c = self.round()
-        # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01.
-        n = log10int(c)
-        frmt = &#34;%.f&#34; if n &gt;= 0 else &#34;%%0.%df&#34; % -n
+        if np.isnan(c):
+            # Rounding to fallback (rc.sigfig) already took place
+            return f&#34;{v} ±{c}&#34;
+        if c == 0:
+            # 0 (i.e. not 1e-300) never arises &#34;naturally&#34; =&gt; Treat it &#34;magically&#34;
+            # by truncating to a default. Also see https://stackoverflow.com/a/25899600
+            n = -10
+        else:
+            # Normal/general case.
+            n = log10int(c)
+        frmt = &#34;%.f&#34;
+        if n &lt; 0:
+            # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
+            frmt = &#34;%%0.%df&#34; % -n
         v = frmt % v
-        return &#34;{} ±{}&#34;.format(v, c)
+        return f&#34;{v} ±{c}&#34;
 
     def __repr__(self):
+        &#34;&#34;&#34;Essentially the same as `__str__`.&#34;&#34;&#34;
         v, c = str(self).split(&#34; ±&#34;)
         return self.__class__.__name__ + f&#34;(val={v}, conf={c})&#34;</code></pre>
 </details>
@@ -691,32 +797,32 @@ class UncertainQtty():
 <dd>
 <div class="desc"><p>Round intelligently.</p>
 <ul>
-<li>conf to 1 sigfig.</li>
-<li>val:<ul>
-<li>to precision: mult*conf.</li>
-<li>fallback: rc.sigfig</li>
+<li><code>conf</code> to 1 sig. fig.</li>
+<li><code>val</code>:<ul>
+<li>to precision: <code>mult*conf</code></li>
+<li>fallback: <code>rc.sigfig</code></li>
 </ul>
 </li>
 </ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L106-L122" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L129-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def round(self, mult=1.0):  # noqa
     &#34;&#34;&#34;Round intelligently.
 
-    - conf to 1 sigfig.
-    - val:
-        - to precision: mult*conf.
-        - fallback: rc.sigfig
+    - `conf` to 1 sig. fig.
+    - `val`:
+        - to precision: `mult*conf`
+        - fallback: `rc.sigfig`
     &#34;&#34;&#34;
-    # Extreme cases
     if np.isnan(self.conf):
+        # Fallback to rc.sigfig
         c = self.conf
         v = round2sigfig(self.val, rc.sigfig)
-    # Normal case
     else:
+        # Normal/general case
         c = round2sigfig(self.conf, 1)
         v = round2(self.val, mult*self.conf)
     return v, c</code></pre>
@@ -728,14 +834,15 @@ class UncertainQtty():
 <span>class <span class="ident">StatPrint</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Set NicePrint options suitable for stats.</p></div>
+<div class="desc"><p>Set <code>NicePrint</code> options suitable for stats.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L171-L197" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L211-L238" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class StatPrint(NicePrint):
-    &#34;&#34;&#34;Set NicePrint options suitable for stats.&#34;&#34;&#34;
+    &#34;&#34;&#34;Set `NicePrint` options suitable for stats.&#34;&#34;&#34;
+
     printopts = dict(
         excluded=NicePrint.printopts[&#34;excluded&#34;]+[&#34;HMM&#34;, &#34;LP_instance&#34;],
         ordering=&#34;linenumber&#34;,
@@ -749,7 +856,7 @@ class UncertainQtty():
             &#39;m&#39;: &#39;Field mean (.m)&#39;,
             &#39;ma&#39;: &#39;Field mean-abs (.ma)&#39;,
             &#39;rms&#39;: &#39;Field root-mean-square (.rms)&#39;,
-            &#39;gm&#39;: &#39;Field geometric-mean (.gm)&#39;
+            &#39;gm&#39;: &#39;Field geometric-mean (.gm)&#39;,
         },
     )
 
@@ -796,17 +903,18 @@ class UncertainQtty():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L222-L237" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L263-L279" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@monitor_setitem
 class DataSeries(StatPrint):
-    &#34;&#34;&#34;Basically just an ``np.ndarray``. But adds:
+    &#34;&#34;&#34;Basically just an `np.ndarray`. But adds:
 
     - Possibility of adding attributes.
     - The class (type) provides way to acertain if an attribute is a series.
 
-    Note: subclassing ``ndarray`` is too dirty =&gt; We&#39;ll just use the
-    ``array`` attribute, and provide ``{s,g}etitem``.&#34;&#34;&#34;
+    Note: subclassing `ndarray` is too dirty =&gt; We&#39;ll just use the
+    `array` attribute, and provide `{s,g}etitem`.
+    &#34;&#34;&#34;
 
     def __init__(self, shape, **kwargs):
         self.array = np.full(shape, nan, **kwargs)
@@ -840,16 +948,16 @@ class DataSeries(StatPrint):
 <div class="desc"><p>Container for time series of a statistic from filtering.</p>
 <p>Four attributes, each of which is an ndarray:</p>
 <ul>
-<li>.f for forecast
-, (KObs+1,)+item_shape</li>
-<li>.a for analysis
-, (KObs+1,)+item_shape</li>
-<li>.s for smoothed
-, (KObs+1,)+item_shape</li>
-<li>.u for universial/all, (K
-+1,)+item_shape</li>
+<li><code>.f</code> for forecast
+, <code>(KObs+1,)+item_shape</code></li>
+<li><code>.a</code> for analysis
+, <code>(KObs+1,)+item_shape</code></li>
+<li><code>.s</code> for smoothed
+, <code>(KObs+1,)+item_shape</code></li>
+<li><code>.u</code> for universial/all, <code>(K
++1,)+item_shape</code></li>
 </ul>
-<p>If store_u=False, then .u series has shape (1,)+item_shape,
+<p>If <code>store_u=False</code>, then <code>.u</code> series has shape <code>(1,)+item_shape</code>,
 wherein only the most-recently-written item is stored.</p>
 <p>Series can also be indexed as in</p>
 <pre><code>self[kObs,'a']
@@ -859,21 +967,21 @@ self[k,'u']
 self[k,whatever,'u']
 </code></pre>
 <div class="admonition note">
-<p class="admonition-title">Note:&ensp;If a data series only pertains to the analysis,</p>
+<p class="admonition-title">Note:&ensp;If a data series only pertains to analysis times,</p>
 <p>then you should use a plain np.array instead.</p>
 </div>
-<p>Constructor.</p>
+<p>Construct object.</p>
 <ul>
-<li>item_shape : shape of an item in the series.</li>
-<li>store_u
+<li><code>item_shape</code> : shape of an item in the series.</li>
+<li><code>store_u</code>
 : if False: only the current value is stored.</li>
-<li>kwargs
+<li><code>kwargs</code>
 : passed on to ndarrays.</li>
 </ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L240-L296" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L282-L340" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@monitor_setitem
 class FAUSt(DataSeries, StatPrint):
@@ -881,12 +989,12 @@ class FAUSt(DataSeries, StatPrint):
 
     Four attributes, each of which is an ndarray:
 
-    - .f for forecast      , (KObs+1,)+item_shape
-    - .a for analysis      , (KObs+1,)+item_shape
-    - .s for smoothed      , (KObs+1,)+item_shape
-    - .u for universial/all, (K   +1,)+item_shape
+    - `.f` for forecast      , `(KObs+1,)+item_shape`
+    - `.a` for analysis      , `(KObs+1,)+item_shape`
+    - `.s` for smoothed      , `(KObs+1,)+item_shape`
+    - `.u` for universial/all, `(K   +1,)+item_shape`
 
-    If store_u=False, then .u series has shape (1,)+item_shape,
+    If `store_u=False`, then `.u` series has shape `(1,)+item_shape`,
     wherein only the most-recently-written item is stored.
 
     Series can also be indexed as in
@@ -897,18 +1005,17 @@ class FAUSt(DataSeries, StatPrint):
         self[k,&#39;u&#39;]
         self[k,whatever,&#39;u&#39;]
 
-    .. note:: If a data series only pertains to the analysis,
+    .. note:: If a data series only pertains to analysis times,
               then you should use a plain np.array instead.
     &#34;&#34;&#34;
 
     def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
-        &#34;&#34;&#34;Constructor.
+        &#34;&#34;&#34;Construct object.
 
-         - item_shape : shape of an item in the series.
-         - store_u    : if False: only the current value is stored.
-         - kwargs     : passed on to ndarrays.
+        - `item_shape` : shape of an item in the series.
+        - `store_u`    : if False: only the current value is stored.
+        - `kwargs`     : passed on to ndarrays.
         &#34;&#34;&#34;
-
         self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
         self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
         if store_s:
@@ -924,14 +1031,17 @@ class FAUSt(DataSeries, StatPrint):
     store_u    = property(lambda self: len(self.u) &gt; 1)
 
     def _ind(self, key):
-        &#34;Aux function to unpack ``key`` (k,kObs,faus)&#34;
+        &#34;&#34;&#34;Aux function to unpack `key` (`k,kObs,faus`)&#34;&#34;&#34;
         if key[-1] == &#39;u&#39;:
             return key[0] if self.store_u else 0
         else:
             return key[-2]
 
-    def __setitem__(self, key, item):  getattr(self, key[-1])[self._ind(key)] = item
-    def __getitem__(self, key): return getattr(self, key[-1])[self._ind(key)]</code></pre>
+    def __setitem__(self, key, item):
+        getattr(self, key[-1])[self._ind(key)] = item
+
+    def __getitem__(self, key):
+        return getattr(self, key[-1])[self._ind(key)]</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -954,7 +1064,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L285-L285" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L326-L326" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">item_shape = property(lambda self: self.a.shape[1:])</code></pre>
 </details>
@@ -965,7 +1075,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L286-L286" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L327-L327" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">store_u    = property(lambda self: len(self.u) &gt; 1)</code></pre>
 </details>
@@ -982,12 +1092,13 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L299-L348" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L343-L393" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class RollingArray:
     &#34;&#34;&#34;ND-Array that implements &#34;leftward rolling&#34; along axis 0.
 
-    Used for data that gets plotted in sliding graphs.&#34;&#34;&#34;
+    Used for data that gets plotted in sliding graphs.
+    &#34;&#34;&#34;
 
     def __init__(self, shape, fillval=nan):
         self.array = np.full(shape, fillval)
@@ -1018,13 +1129,13 @@ class FAUSt(DataSeries, StatPrint):
         return self[len(self)-self.nFilled]
 
     def span(self):
-        return (self.leftmost(),  self[-1])
+        return (self.leftmost(), self[-1])
 
     @property
     def T(self):
         return self.array.T
 
-    def __array__(self, dtype=None): return self.array(dtype=dtype)
+    def __array__(self, _dtype=None): return self.array
     def __len__(self): return len(self.array)
     def __repr__(self): return &#39;RollingArray:\n%s&#39; % str(self.array)
     def __getitem__(self, key): return self.array[key]
@@ -1043,7 +1154,7 @@ class FAUSt(DataSeries, StatPrint):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L335-L337" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L380-L382" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def T(self):
@@ -1061,7 +1172,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L309-L327" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L354-L372" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def insert(self, k, val):
     dk = k-self.k1
@@ -1092,7 +1203,7 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L329-L330" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L374-L375" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def leftmost(self):
     return self[len(self)-self.nFilled]</code></pre>
@@ -1106,10 +1217,10 @@ def T(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L332-L333" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L377-L378" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def span(self):
-    return (self.leftmost(),  self[-1])</code></pre>
+    return (self.leftmost(), self[-1])</code></pre>
 </details>
 </dd>
 </dl>

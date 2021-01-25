@@ -51,7 +51,7 @@ See example in <code><a title="dapper.mods.QG.counillon2009" href="counillon2009
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L0-L180" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L0-L182" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Quasi-geostraphic 2D flow. Described in detail by `bib.sakov2008deterministic`.
 
@@ -85,8 +85,10 @@ __pdoc__ = {&#34;demo&#34;: False}
 try:
     from dapper.mods.QG.f90.py_mod import interface_mod as fortran
 except ImportError as err:
-    raise Exception(&#34;Have you compiled the (Fortran) model? &#34;
-                    f&#34;See README in folder {modelling.rc.dirs.dapper}/mods/QG/f90&#34;) from err
+    raise Exception(
+        &#34;Have you compiled the (Fortran) model? &#34;
+        f&#34;See README in folder {modelling.rc.dirs.dapper}/mods/QG/f90&#34;
+        &#34;&#34;) from err
 
 default_prms = dict(
     # These parameters may be interesting to change.
@@ -108,14 +110,14 @@ default_prms = dict(
 
 
 class model_config:
-    &#34;&#34;&#34;
-    Helps to ensure consistency between prms file (that Fortran module reads)
+    &#34;&#34;&#34;Define model.
+
+    Helps ensure consistency between prms file (that Fortran module reads)
     and Python calls to step(), for example for dt.
     &#34;&#34;&#34;
 
     def __init__(self, name, prms, mp=True):
-        &#34;Use prms={} to get the default configuration.&#34;
-
+        &#34;&#34;&#34;Use `prms={}` to get the default configuration.&#34;&#34;&#34;
         # Insert prms. Assert key is present in defaults.
         D = default_prms.copy()
         for key in prms:
@@ -272,7 +274,7 @@ def LP_setup(jj=None): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L143-L143" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L145-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def py2f(x): return x.reshape(shape, order=order)</code></pre>
 </details>
@@ -285,7 +287,7 @@ def LP_setup(jj=None): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L144-L144" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L146-L146" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def f2py(X): return X.flatten(order=order)</code></pre>
 </details>
@@ -298,7 +300,7 @@ def LP_setup(jj=None): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L147-L147" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L149-L149" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def square(x): return x.reshape(shape[::-1])</code></pre>
 </details>
@@ -311,7 +313,7 @@ def LP_setup(jj=None): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L148-L148" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L150-L150" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def ind2sub(ind): return np.unravel_index(ind, shape[::-1])</code></pre>
 </details>
@@ -324,7 +326,7 @@ def LP_setup(jj=None): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L154-L159" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L156-L161" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_sample(model, nSamples, SpinUp, Spacing):
     simulator = modelling.with_recursion(model.step, prog=&#34;Simulating&#34;)
@@ -342,7 +344,7 @@ def LP_setup(jj=None): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L177-L181" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L179-L183" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LP_setup(jj=None): return [
     (11, 1, LP.spatial2d(square, ind2sub, jj, cm)),
@@ -361,23 +363,24 @@ def LP_setup(jj=None): return [
 <span>(</span><span>name, prms, mp=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helps to ensure consistency between prms file (that Fortran module reads)
+<div class="desc"><p>Define model.</p>
+<p>Helps ensure consistency between prms file (that Fortran module reads)
 and Python calls to step(), for example for dt.</p>
-<p>Use prms={} to get the default configuration.</p></div>
+<p>Use <code>prms={}</code> to get the default configuration.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L55-L117" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L57-L119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class model_config:
-    &#34;&#34;&#34;
-    Helps to ensure consistency between prms file (that Fortran module reads)
+    &#34;&#34;&#34;Define model.
+
+    Helps ensure consistency between prms file (that Fortran module reads)
     and Python calls to step(), for example for dt.
     &#34;&#34;&#34;
 
     def __init__(self, name, prms, mp=True):
-        &#34;Use prms={} to get the default configuration.&#34;
-
+        &#34;&#34;&#34;Use `prms={}` to get the default configuration.&#34;&#34;&#34;
         # Insert prms. Assert key is present in defaults.
         D = default_prms.copy()
         for key in prms:
@@ -443,7 +446,7 @@ and Python calls to step(), for example for dt.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L88-L102" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L90-L104" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step_1(self, x0, t, dt):
     &#34;&#34;&#34;Step a single state vector.&#34;&#34;&#34;
@@ -470,7 +473,7 @@ and Python calls to step(), for example for dt.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L104-L117" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/__init__.py#L106-L119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step(self, E, t, dt):
     &#34;&#34;&#34;Vector and 2D-array (ens) input, with multiproc for ens case.&#34;&#34;&#34;

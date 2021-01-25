@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L0-L163" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L0-L162" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Dirty magic. Should never be used. Ever.&#34;&#34;&#34;
 
@@ -100,11 +100,11 @@ def get_call():
     # Walk syntax tree
     class Visitor(ast.NodeVisitor):
         &#34;&#34;&#34;Get info on call if name and lineno match.&#34;&#34;&#34;
+
         # Inspiration for relevant parts of AST:
         # https://docs.python.org/3/library/ast.html#abstract-grammar
         # https://docs.python.org/3/library/ast.html#ast.Call
         # http://alexleone.blogspot.com/2010/01/python-ast-pretty-printer.html
-
         def visit_Call(self, node):
             node_id = getattr(node.func, &#34;id&#34;, None)
             if node_id == func_name:
@@ -167,7 +167,6 @@ def spell_out(*args):
     &gt;&gt;&gt; 3*2:
     &gt;&gt;&gt; 6
     &#34;&#34;&#34;
-
     call, _, loc = get_call()
 
     # Find opening/closing brackets
@@ -281,11 +280,11 @@ we get actual argnames and dont need to resort to regex.</p></div>
     # Walk syntax tree
     class Visitor(ast.NodeVisitor):
         &#34;&#34;&#34;Get info on call if name and lineno match.&#34;&#34;&#34;
+
         # Inspiration for relevant parts of AST:
         # https://docs.python.org/3/library/ast.html#abstract-grammar
         # https://docs.python.org/3/library/ast.html#ast.Call
         # http://alexleone.blogspot.com/2010/01/python-ast-pretty-printer.html
-
         def visit_Call(self, node):
             node_id = getattr(node.func, &#34;id&#34;, None)
             if node_id == func_name:
@@ -367,7 +366,7 @@ we get actual argnames and dont need to resort to regex.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L118-L137" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L118-L136" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spell_out(*args):
     &#34;&#34;&#34;Print (args) including variable names.
@@ -377,7 +376,6 @@ we get actual argnames and dont need to resort to regex.</p></div>
     &gt;&gt;&gt; 3*2:
     &gt;&gt;&gt; 6
     &#34;&#34;&#34;
-
     call, _, loc = get_call()
 
     # Find opening/closing brackets

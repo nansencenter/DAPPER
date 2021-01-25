@@ -74,7 +74,7 @@ Dyn = {
     &#39;M&#39;: Nx,
     &#39;model&#39;: step,
     &#39;linear&#39;: lambda x, t, dt: Fm,
-    &#39;noise&#39;: 0
+    &#39;noise&#39;: 0,
 }
 
 X0 = modelling.GaussRV(mu=np.zeros(Nx), C=homogeneous_1D_cov(Nx, Nx/8, kind=&#39;Gauss&#39;))

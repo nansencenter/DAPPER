@@ -41,11 +41,12 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/dpr_config.py#L0-L68" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/dpr_config.py#L0-L69" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Load default and user configurations into the rc dict.
 
-This includes disabling liveplotting if necessary.&#34;&#34;&#34;
+This includes disabling liveplotting if necessary.
+&#34;&#34;&#34;
 
 import os
 import sys
@@ -100,7 +101,7 @@ LP = rc.liveplotting
 if LP:
     backend = mpl.get_backend().lower()
     non_interactive = [&#39;agg&#39;, &#39;ps&#39;, &#39;pdf&#39;, &#39;svg&#39;, &#39;cairo&#39;, &#39;gdk&#39;]
-    LP &amp;= not any([backend == x for x in non_interactive])
+    LP &amp;= not any(backend == x for x in non_interactive)
     # Also disable for inline backends, which are buggy with liveplotting
     LP &amp;= &#39;inline&#39; not in backend
     LP &amp;= &#39;nbagg&#39; not in backend

@@ -87,7 +87,7 @@ __pdoc__ = {mod: False for mod in [
 
 
 def reversible(fun):
-    &#34;Reverse input/output (instead of manipulating indices).&#34;&#34;&#34;
+    &#34;&#34;&#34;Reverse input/output (instead of manipulating indices).&#34;&#34;&#34;
     def newfun(x, *args, reverse=False, **kwargs):
         if reverse:
             x = np.flip(x)  # flip ALL dims
@@ -103,9 +103,9 @@ d2x_dtdx_auto = reversible(L96.d2x_dtdx)
 
 
 class model_instance():
-    &#34;&#34;&#34;
-    Use OOP to facilitate having multiple parameter settings simultaneously.
-    Default parameters from Wilks&#39;2005.
+    &#34;&#34;&#34;Use OOP to facilitate having multiple parameter settings simultaneously.
+
+    Default parameters from `bib.wilks2005effects`.
     &#34;&#34;&#34;
 
     def __init__(self, nU=8, J=32, F=20, h=1, b=10, c=10):
@@ -134,18 +134,18 @@ class model_instance():
         return nU, J, h, b, c, U, V
 
     def dxdt_trunc(self, x):
-        &#34;&#34;&#34;Truncated dxdt: slow variables (U) only.&#34;&#34;&#34;
+        &#34;&#34;&#34;Compute truncated `dxdt:` slow variables (`U`) only.&#34;&#34;&#34;
         assert x.shape[-1] == self.nU
         return dxdt_auto(x) + self.F
 
     def dxdt_parameterized(self, t, x):
-        &#34;&#34;&#34;Truncated dxdt with parameterization of fast variables (V).&#34;&#34;&#34;
+        &#34;&#34;&#34;Compute truncated `dxdt` with parameterization of fast variables (`V`).&#34;&#34;&#34;
         d  = self.dxdt_trunc(x)
         d -= self.prmzt(t, x)  # must (of course) be set first
         return d
 
     def dxdt(self, x):
-        &#34;&#34;&#34;Full (coupled) dxdt.&#34;&#34;&#34;
+        &#34;&#34;&#34;Compute full (coupled) `dxdt`.&#34;&#34;&#34;
         nU, J, h, b, c, U, V = self.unpack(x)
 
         d = np.zeros_like(x)
@@ -208,7 +208,7 @@ class model_instance():
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LorenzUV/__init__.py#L30-L39" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reversible(fun):
-    &#34;Reverse input/output (instead of manipulating indices).&#34;&#34;&#34;
+    &#34;&#34;&#34;Reverse input/output (instead of manipulating indices).&#34;&#34;&#34;
     def newfun(x, *args, reverse=False, **kwargs):
         if reverse:
             x = np.flip(x)  # flip ALL dims
@@ -267,17 +267,17 @@ class model_instance():
 <span>(</span><span>nU=8, J=32, F=20, h=1, b=10, c=10)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Use OOP to facilitate having multiple parameter settings simultaneously.
-Default parameters from Wilks'2005.</p></div>
+<div class="desc"><p>Use OOP to facilitate having multiple parameter settings simultaneously.</p>
+<p>Default parameters from <code><a title="bib.wilks2005effects" href="../../../bib.html#bib.wilks2005effects">wilks2005effects</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LorenzUV/__init__.py#L46-L116" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class model_instance():
-    &#34;&#34;&#34;
-    Use OOP to facilitate having multiple parameter settings simultaneously.
-    Default parameters from Wilks&#39;2005.
+    &#34;&#34;&#34;Use OOP to facilitate having multiple parameter settings simultaneously.
+
+    Default parameters from `bib.wilks2005effects`.
     &#34;&#34;&#34;
 
     def __init__(self, nU=8, J=32, F=20, h=1, b=10, c=10):
@@ -306,18 +306,18 @@ Default parameters from Wilks'2005.</p></div>
         return nU, J, h, b, c, U, V
 
     def dxdt_trunc(self, x):
-        &#34;&#34;&#34;Truncated dxdt: slow variables (U) only.&#34;&#34;&#34;
+        &#34;&#34;&#34;Compute truncated `dxdt:` slow variables (`U`) only.&#34;&#34;&#34;
         assert x.shape[-1] == self.nU
         return dxdt_auto(x) + self.F
 
     def dxdt_parameterized(self, t, x):
-        &#34;&#34;&#34;Truncated dxdt with parameterization of fast variables (V).&#34;&#34;&#34;
+        &#34;&#34;&#34;Compute truncated `dxdt` with parameterization of fast variables (`V`).&#34;&#34;&#34;
         d  = self.dxdt_trunc(x)
         d -= self.prmzt(t, x)  # must (of course) be set first
         return d
 
     def dxdt(self, x):
-        &#34;&#34;&#34;Full (coupled) dxdt.&#34;&#34;&#34;
+        &#34;&#34;&#34;Compute full (coupled) `dxdt`.&#34;&#34;&#34;
         nU, J, h, b, c, U, V = self.unpack(x)
 
         d = np.zeros_like(x)
@@ -368,14 +368,14 @@ Default parameters from Wilks'2005.</p></div>
 <span>def <span class="ident">dxdt_trunc</span></span>(<span>self, x)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Truncated dxdt: slow variables (U) only.</p></div>
+<div class="desc"><p>Compute truncated <code>dxdt:</code> slow variables (<code>U</code>) only.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LorenzUV/__init__.py#L77-L80" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt_trunc(self, x):
-    &#34;&#34;&#34;Truncated dxdt: slow variables (U) only.&#34;&#34;&#34;
+    &#34;&#34;&#34;Compute truncated `dxdt:` slow variables (`U`) only.&#34;&#34;&#34;
     assert x.shape[-1] == self.nU
     return dxdt_auto(x) + self.F</code></pre>
 </details>
@@ -384,14 +384,14 @@ Default parameters from Wilks'2005.</p></div>
 <span>def <span class="ident">dxdt_parameterized</span></span>(<span>self, t, x)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Truncated dxdt with parameterization of fast variables (V).</p></div>
+<div class="desc"><p>Compute truncated <code>dxdt</code> with parameterization of fast variables (<code>V</code>).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LorenzUV/__init__.py#L82-L86" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt_parameterized(self, t, x):
-    &#34;&#34;&#34;Truncated dxdt with parameterization of fast variables (V).&#34;&#34;&#34;
+    &#34;&#34;&#34;Compute truncated `dxdt` with parameterization of fast variables (`V`).&#34;&#34;&#34;
     d  = self.dxdt_trunc(x)
     d -= self.prmzt(t, x)  # must (of course) be set first
     return d</code></pre>
@@ -401,14 +401,14 @@ Default parameters from Wilks'2005.</p></div>
 <span>def <span class="ident">dxdt</span></span>(<span>self, x)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Full (coupled) dxdt.</p></div>
+<div class="desc"><p>Compute full (coupled) <code>dxdt</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LorenzUV/__init__.py#L88-L98" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dxdt(self, x):
-    &#34;&#34;&#34;Full (coupled) dxdt.&#34;&#34;&#34;
+    &#34;&#34;&#34;Compute full (coupled) `dxdt`.&#34;&#34;&#34;
     nU, J, h, b, c, U, V = self.unpack(x)
 
     d = np.zeros_like(x)
