@@ -700,7 +700,7 @@ def sliding_marginals(
         axs[0].set_title("Marginal time series")
         for ix, (m, ax) in enumerate(zip(DimsX, axs)):
             ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:, m]), 1/p.zoomy))
-            if p.labels == []:
+            if not p.labels:
                 ax.set_ylabel("$x_{%d}$" % m)
             else:
                 ax.set_ylabel(p.labels[ix])
@@ -824,7 +824,7 @@ def phase_particles(
         # Dimension settings
         if not p.dims:
             p.dims   = arange(M)
-        if p.labels == []:
+        if not p.labels:
             p.labels = ["$x_%d$" % d for d in p.dims]
         assert len(p.dims) == M
 
