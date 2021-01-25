@@ -23,13 +23,13 @@ xps += da.Climatology()                                      # 7.6
 xps += da.OptInterp()                                        # 1.25
 xps += da.Var3D(xB=0.1)                                      # 1.03
 xps += da.ExtKF(infl=90)                                     # 0.87
-xps += da.EnKF('Sqrt',    N=3,    infl=1.30)                 # 0.82
-xps += da.EnKF('Sqrt',    N=10,   infl=1.02, rot=True)       # 0.63
-xps += da.EnKF('PertObs', N=500,  infl=0.95, rot=False)      # 0.56
-xps += da.EnKF_N(         N=10,              rot=True)       # 0.54
-xps += da.iEnKS('Sqrt',   N=10,   infl=1.02, rot=True)       # 0.31
-xps += da.PartFilt(       N=100,  reg=2.4,   NER=0.3)        # 0.38
-xps += da.PartFilt(       N=800,  reg=0.9,   NER=0.2)        # 0.28
+xps += da.EnKF('Sqrt'   , N=3   , infl=1.30)                 # 0.82
+xps += da.EnKF('Sqrt'   , N=10  , infl=1.02, rot=True)       # 0.63
+xps += da.EnKF('PertObs', N=500 , infl=0.95, rot=False)      # 0.56
+xps += da.EnKF_N(         N=10             , rot=True)       # 0.54
+xps += da.iEnKS('Sqrt'  , N=10  , infl=1.02, rot=True)       # 0.31
+xps += da.PartFilt(       N=100 , reg=2.4  , NER=0.3)        # 0.38
+xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # xps += da.PartFilt(       N=4000, reg=0.7  , NER=0.05)       # 0.27
 # xps += da.PFxN(xN=1000,   N=30  , Qs=2     , NER=0.2)        # 0.56
 

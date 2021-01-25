@@ -35,7 +35,7 @@ max_line_length = 88
 ignore = "W6"
 
 [tool.flakehell]
-exclude = [".*", "README.*", "examples/*", "autoscaler.py"]
+exclude = [".*", "README.*", "autoscaler.py"]
 max_line_length = 88
 format = "grouped" # also try "stat"
 show_source = false
@@ -95,3 +95,7 @@ pycodestyle = ["-W291", # "trailing whitespace"
 
 [tool.flakehell.exceptions."tests/test_example_2.py"]
 pycodestyle = ["-E501"]
+
+[tool.flakehell.exceptions."examples/"]
+pycodestyle = ["-E201", "-E402"]
+flake8-docstrings = ["-D200"]
