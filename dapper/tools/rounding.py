@@ -51,28 +51,28 @@ class UncertainQtty():
     """
 
     val: float
-    conf: float
+    prec: float
 
     def round(self, mult=1.0):  # noqa
         """Round intelligently.
 
-        - `conf` to 1 sig. fig.
+        - `prec` to 1 sig. fig.
         - `val`:
-            - to precision: `mult*conf`
+            - to precision: `mult*prec`
             - fallback: `rc.sigfig`
         """
-        if np.isnan(self.conf):
+        if np.isnan(self.prec):
             # Fallback to rc.sigfig
-            c = self.conf
+            c = self.prec
             v = round2sigfig(self.val, rc.sigfig)
         else:
             # Normal/general case
-            c = round2sigfig(self.conf, 1)
-            v = round2(self.val, mult*self.conf)
+            c = round2sigfig(self.prec, 1)
+            v = round2(self.val, mult*self.prec)
         return v, c
 
     def __str__(self):
-        """Returns 'val ±conf'.
+        """Returns 'val ±prec'.
 
         The value string contains the number of decimals required by the confidence.
 
@@ -99,7 +99,7 @@ class UncertainQtty():
     def __repr__(self):
         """Essentially the same as `__str__`."""
         v, c = str(self).split(" ±")
-        return self.__class__.__name__ + f"(val={v}, conf={c})"
+        return self.__class__.__name__ + f"(val={v}, prec={c})"
 
 
 def np_vectorize(f):

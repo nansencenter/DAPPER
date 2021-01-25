@@ -562,7 +562,7 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
     return col
 
 
-def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
+def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
     """Make `uq_list` into array with named columns of attributes.
 
     None is inserted (in each col) if `uq` itself is None.
@@ -574,7 +574,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
 
     decimals: int
         Desired number of decimals.
-        Used for the columns "val" and "conf", and only these.
+        Used for the columns "val" and "prec", and only these.
         If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
 
     cols: tuple[str]
@@ -583,14 +583,14 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
     def unpack1(arr, i, uq):
         if uq is None:
             return
-        # Columns: val/conf
+        # Columns: val/prec
         if decimals is None:
             v, c = uq.round()
         else:
-            v, c = np.round([uq.val, uq.conf], decimals)
-        arr["val"][i], arr["conf"][i] = v, c
+            v, c = np.round([uq.val, uq.prec], decimals)
+        arr["val"][i], arr["prec"][i] = v, c
         # Columns: others
-        for col in struct_tools.complement(cols, ["val", "conf"]):
+        for col in struct_tools.complement(cols, ["val", "prec"]):
             try:
                 arr[col][i] = getattr(uq, col)
             except AttributeError:
@@ -606,7 +606,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
 
 
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
-    """Tabulate avrgs (val±conf)."""
+    """Tabulate avrgs (val±prec)."""
     if not statkeys:
         statkeys = ['rmse.a', 'rmv.a', 'rmse.f']
 
@@ -615,7 +615,7 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
         vals  = align_col(column["val"], stat)
-        confs = align_col(column["conf"], '1σ')
+        confs = align_col(column["prec"], '1σ')
         headr = vals[0]+'  1σ'
         mattr = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr

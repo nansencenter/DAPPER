@@ -793,7 +793,7 @@ class xpSpace(SparseSpace):
             """Subcolumns: align, justify, join."""
             # Define subcol formats
             subc = dict()
-            subc['keys']     = ["val", "conf"]
+            subc['keys']     = ["val", "prec"]
             subc['headers']  = [statkey, '1σ']
             subc['frmts']    = [None, None]
             subc['spaces']   = [' ±']  # last one gets appended below.
