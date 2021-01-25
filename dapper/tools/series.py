@@ -176,7 +176,7 @@ class UncertainQtty():
 
 
 def mean_with_conf(xx):
-    """Compute the mean of a 1d iterable ``xx``.
+    """Compute the mean of a 1d iterable `xx`.
 
     Also provide confidence of mean,
     as estimated from its correlation-corrected variance.
@@ -209,7 +209,7 @@ def mean_with_conf(xx):
 
 
 class StatPrint(NicePrint):
-    """Set NicePrint options suitable for stats."""
+    """Set `NicePrint` options suitable for stats."""
 
     printopts = dict(
         excluded=NicePrint.printopts["excluded"]+["HMM", "LP_instance"],
@@ -239,7 +239,7 @@ class StatPrint(NicePrint):
 
 
 def monitor_setitem(cls):
-    """Modify cls to track of whether its ``__setitem__`` has been called.
+    """Modify cls to track of whether its `__setitem__` has been called.
 
     See sub.py for a sublcass solution (drawback: creates a new class).
     """
@@ -262,13 +262,13 @@ def monitor_setitem(cls):
 
 @monitor_setitem
 class DataSeries(StatPrint):
-    """Basically just an ``np.ndarray``. But adds:
+    """Basically just an `np.ndarray`. But adds:
 
     - Possibility of adding attributes.
     - The class (type) provides way to acertain if an attribute is a series.
 
-    Note: subclassing ``ndarray`` is too dirty => We'll just use the
-    ``array`` attribute, and provide ``{s,g}etitem``.
+    Note: subclassing `ndarray` is too dirty => We'll just use the
+    `array` attribute, and provide `{s,g}etitem`.
     """
 
     def __init__(self, shape, **kwargs):
@@ -285,12 +285,12 @@ class FAUSt(DataSeries, StatPrint):
 
     Four attributes, each of which is an ndarray:
 
-    - .f for forecast      , (KObs+1,)+item_shape
-    - .a for analysis      , (KObs+1,)+item_shape
-    - .s for smoothed      , (KObs+1,)+item_shape
-    - .u for universial/all, (K   +1,)+item_shape
+    - `.f` for forecast      , `(KObs+1,)+item_shape`
+    - `.a` for analysis      , `(KObs+1,)+item_shape`
+    - `.s` for smoothed      , `(KObs+1,)+item_shape`
+    - `.u` for universial/all, `(K   +1,)+item_shape`
 
-    If store_u=False, then .u series has shape (1,)+item_shape,
+    If `store_u=False`, then `.u` series has shape `(1,)+item_shape`,
     wherein only the most-recently-written item is stored.
 
     Series can also be indexed as in
@@ -301,16 +301,16 @@ class FAUSt(DataSeries, StatPrint):
         self[k,'u']
         self[k,whatever,'u']
 
-    .. note:: If a data series only pertains to the analysis,
+    .. note:: If a data series only pertains to analysis times,
               then you should use a plain np.array instead.
     """
 
     def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
         """Construct object.
 
-        - item_shape : shape of an item in the series.
-        - store_u    : if False: only the current value is stored.
-        - kwargs     : passed on to ndarrays.
+        - `item_shape` : shape of an item in the series.
+        - `store_u`    : if False: only the current value is stored.
+        - `kwargs`     : passed on to ndarrays.
         """
         self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
         self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
