@@ -563,22 +563,33 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
 
 
 def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
-    """Make array whose (named) cols are `[uq.col for uq in uq_list]`.
+    """Make `uq_list` into array with named columns of attributes.
 
-    Embellishments:
-    - Insert None (in each col) if uq is None.
-    - Apply uq.round() when extracting val & conf.
+    None is inserted (in each col) if `uq` itself is None.
+
+    Parameters
+    ----------
+    uqlist: list
+        List of objects.
+
+    decimals: int
+        Desired number of decimals.
+        Used for the columns "val" and "conf", and only these.
+        If `None`, it is left to the `UncertainQtty` objects themselves.
+
+    cols: tuple[str]
+        Names of columns to extract.
     """
     def unpack1(arr, i, uq):
         if uq is None:
             return
-        # val/conf
+        # Columns: val/conf
         if decimals is None:
             v, c = uq.round()
         else:
             v, c = np.round([uq.val, uq.conf], decimals)
         arr["val"][i], arr["conf"][i] = v, c
-        # Others
+        # Columns: others
         for col in struct_tools.complement(cols, ["val", "conf"]):
             try:
                 arr[col][i] = getattr(uq, col)
