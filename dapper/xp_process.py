@@ -796,7 +796,7 @@ class xpSpace(SparseSpace):
             subc['keys']     = ["val", "conf"]
             subc['headers']  = [statkey, '1σ']
             subc['frmts']    = [None, None]
-            subc['spaces']   = [(' ±', )]  # last one gets appended below.
+            subc['spaces']   = [' ±']  # last one gets appended below.
             subc['aligns']   = ['>', '<']  # 4 header -- matter gets decimal-aligned.
             if axes['optim'] is not None:
                 subc['keys']    += ["tuned_coord"]
