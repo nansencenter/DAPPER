@@ -614,10 +614,10 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     for stat in statkeys:
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals   = align_col(column["val"], stat)
-        confs  = align_col(column["conf"], '1σ')
-        headr  = vals[0]+'  1σ'
-        mattr  = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
+        vals  = align_col(column["val"], stat)
+        confs = align_col(column["conf"], '1σ')
+        headr = vals[0]+'  1σ'
+        mattr = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr
 
     return columns
