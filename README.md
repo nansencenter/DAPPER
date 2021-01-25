@@ -85,7 +85,7 @@ If you're not an admin or expert:
 
 #### *Either*: Install as library
 
-*Do you simply want to run a script that requires DAPPER?* Then
+*Do you just want to run a script that requires DAPPER?* Then
 
 - If the script comes with a `requirements.txt` file, then do  
   `pip install -r path/to/requirements.txt`.
@@ -94,7 +94,7 @@ If you're not an admin or expert:
 
 #### *Or*: Install for development
 
-*Do you want the DAPPER code readily available to look into?* Then
+*Do you want the DAPPER code available play around with?* Then
 
 - Download and unzip (or `git clone`) DAPPER.
 - Move the resulting folder wherever you like,  
