@@ -6,6 +6,7 @@ import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
+from mpl_tools.fig_layout import freshfig
 from numpy import arange, nan, ones
 from struct_tools import DotDict, deep_getattr
 
@@ -16,7 +17,7 @@ from dapper.tools.chronos import format_time
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import read1
 from dapper.tools.series import FAUSt, RollingArray
-from dapper.tools.viz import freshfig, not_available_text, plot_pause
+from dapper.tools.viz import not_available_text, plot_pause
 
 
 class LivePlot:
@@ -256,8 +257,7 @@ class sliding_diagnostics:
 
         nAx = len(styles)
         GS = {'left': 0.125, 'right': 0.76}
-        fig, axs = freshfig(fignum, (5, 1+nAx), loc='2311',
-                            nrows=nAx, sharex=True, gridspec_kw=GS)
+        fig, axs = freshfig(fignum, (5, 1+nAx), nrows=nAx, sharex=True, gridspec_kw=GS)
 
         axs[0].set_title("Diagnostics")
         for style, ax in zip(styles, axs):
@@ -445,8 +445,7 @@ class weight_histogram:
         if not hasattr(stats, 'w'):
             self.is_active = False
             return
-        fig, ax = freshfig(fignum, (7, 3),
-                           loc='3323', gridspec_kw={'bottom': .15})
+        fig, ax = freshfig(fignum, (7, 3), gridspec_kw={'bottom': .15})
 
         ax.set_xscale('log')
         ax.set_xlabel('Weigth')
@@ -482,7 +481,7 @@ class spectral_errors:
     """Plots the (spatial-RMS) error as a functional of the SVD index."""
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
-        fig, ax = freshfig(fignum, (6, 3), loc='3333')
+        fig, ax = freshfig(fignum, (6, 3))
         ax.set_xlabel('Sing. value index')
         ax.set_yscale('log')
         self.init_incomplete = True
@@ -534,8 +533,7 @@ class correlations:
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {'height_ratios': [4, 1], 'hspace': 0.09, 'top': 0.95}
-        fig, (ax, ax2) = freshfig(fignum, (5, 6),
-                                  loc='2321', nrows=2, gridspec_kw=GS)
+        fig, (ax, ax2) = freshfig(fignum, (5, 6), nrows=2, gridspec_kw=GS)
 
         if E is None and np.isnan(
                 P.diag if isinstance(P, CovMat) else P).all():
@@ -691,8 +689,7 @@ def sliding_marginals(
         Ny    = len(iiY)
 
         # Set up figure, axes
-        fig, axs = freshfig(fignum, (5, 7),
-                            loc='231-22', nrows=Nx, sharex=True)
+        fig, axs = freshfig(fignum, (5, 7), nrows=Nx, sharex=True)
         if Nx == 1:
             axs = [axs]
 
@@ -829,7 +826,7 @@ def phase_particles(
         assert len(p.dims) == M
 
         # Set up figure, axes
-        fig, _ = freshfig(fignum, figsize=(5, 5), loc='2321')
+        fig, _ = freshfig(fignum, figsize=(5, 5))
         ax = plt.subplot(111, projection='3d' if is_3d else None)
         ax.set_facecolor('w')
         ax.set_title("Phase space trajectories")
@@ -1104,7 +1101,7 @@ def spatial1d(
         ii, wrap = viz.setup_wrapping(M, p.periodicity)
 
         # Set up figure, axes
-        fig, ax = freshfig(fignum, (8, 5), loc='2312-3')
+        fig, ax = freshfig(fignum, (8, 5))
         fig.suptitle("1d amplitude plot")
 
         # Nans
@@ -1193,9 +1190,8 @@ def spatial2d(
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {'left': 0.125-0.04, 'right': 0.9-0.04}
-        fig, axs = freshfig(fignum, (6, 6), loc='231-22-3',
-                            nrows=2, ncols=2, sharex=True, sharey=True,
-                            gridspec_kw=GS)
+        fig, axs = freshfig(fignum, (6, 6),
+                            nrows=2, ncols=2, sharex=True, sharey=True, gridspec_kw=GS)
 
         for ax in axs.flatten():
             ax.set_aspect('equal', viz.adjustable_box_or_forced())

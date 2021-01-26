@@ -22,6 +22,7 @@ INSTALL_REQUIRES = [
     'ipython>=5.1',
     'jupyter',
     'matplotlib~=3.1',  # >=3.1 to avoid Mac's framework-build issues
+    'mpl_tools==0.2.24',
     'tqdm~=4.31',
     'pyyaml',
     'ipdb',
