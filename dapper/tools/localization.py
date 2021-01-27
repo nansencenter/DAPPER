@@ -9,70 +9,98 @@ import itertools
 
 import numpy as np
 
-# Defaults
-CUTOFF   = 1e-3
-TAG      = 'GC'
-PERIODIC = True
 
+def pairwise_distances(A, B=None, domain=None):
+    """Euclidian distance (not squared) between pts. in `A` and `B`.
 
-def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
-    """Euclidian distance (un-squared) between pts. in `A` and `B`.
+    Parameters
+    ----------
+    A: array of shape (nPoints, nDims).
+        A collection a points.
 
-    - `A`: 2-dim array of shape `(npts, ndim)`.
-      If `A` is 1-dim, then `(ndim)<--A.shape, npts<--(,)`.
-    - `B`: same as for `A` (`npts` can differ).
-    - returns distances as an array of shape `(npts_A, npts_B)`
+    B:
+        Same as `A`, but nPoints can differ.
 
-    These are equal:
-    >>> pairwise_distances(A, periodic=False)
-    >>> squareform(pdist(A)) # 2x slower
+    domain: tuple
+        Assume the domain is a **periodic** hyper-rectangle whose
+        edges along dimension `i` span from 0 to `domain[i]`.
+        NB: Behaviour not defined if `any(A.max(0) > domain)`, and likewise for `B`.
 
-    But `pairwise_distances` allows comparing two different pts `A` to pts `B`
-    (without the augmentation/block tricks needed for pdist).
+    Returns
+    -------
+    Array of of shape `(nPointsA, nPointsB)`.
 
-    Also, the `periodic` option is provided.
-    It assumes the domain is a hyper-rectangle with edge lengths: `domain`.
-    NB: Behaviour not defined for any(A.max(0) > domain), and likewise for B.
+    Examples
+    --------
+    >>> A = [[0, 0], [0, 1], [1, 0], [1, 1]]
+    >>> with np.printoptions(precision=2):
+    ...     print(pairwise_distances(A))
+    [[0.   1.   1.   1.41]
+     [1.   0.   1.41 1.  ]
+     [1.   1.41 0.   1.  ]
+     [1.41 1.   1.   0.  ]]
+
+    The function matches `pdist(..., metric='euclidean')`, but is faster:
+    >>> from scipy.spatial.distance import pdist, squareform
+    >>> (pairwise_distances(A) == squareform(pdist(A))).all()
+    True
+
+    As opposed to `pdist`, it also allows comparing `A` to a different set of points,
+    `B`, without the augmentation/block tricks needed for pdist.
+
+    >>> A = np.arange(4)[:, None]
+    >>> pairwise_distances(A, [[2]]).T
+    array([[2., 1., 0., 1.]])
+
+    Illustration of periodicity:
+    >>> pairwise_distances(A, domain=(4, ))
+    array([[0., 1., 2., 1.],
+           [1., 0., 1., 2.],
+           [2., 1., 0., 1.],
+           [1., 2., 1., 0.]])
+
+    NB: If an input array is 1-dim, it is seen as a single point.
+    >>> pairwise_distances(np.arange(4))
+    array([[0.]])
     """
     if B is None:
         B = A
 
-    # Prep A,B
-    A = np.asarray(A)
-    B = np.asarray(B)
-    npts_A = A.shape[:A.ndim-1]
-    npts_B = B.shape[:B.ndim-1]
-    # assert A.shape[-1] == B.shape[-1] # == ndim
+    # Prep
     A = np.atleast_2d(A)
     B = np.atleast_2d(B)
+    mA, nA = A.shape
+    mB, nB = B.shape
+    assert nA == nB, "The last axis of A and B must have equal length."
 
-    d = A[:, None] - B  # shape=(npts_A,npts_B,ndim)
+    # Diff
+    d = A[:, None] - B  # shape: (mA, mB, nDims)
 
-    if periodic:
+    # Make periodic
+    if domain:
         domain = np.reshape(domain, (1, 1, -1))  # for broadcasting
         d = abs(d)
         d = np.minimum(d, domain-d)
 
-    # scipy.linalg.norm(d,axis=-1)
-    distances = np.sqrt((d**2).sum(axis=-1))
+    distances = np.sqrt((d * d).sum(axis=-1))  # == sla.norm(d, axis=-1)
 
-    return distances.reshape(npts_A+npts_B)
+    return distances.reshape(mA, mB)
 
 
 def dist2coeff(dists, radius, tag=None):
     """Compute tapering coefficients corresponding to a distances.
 
     NB: The radius is internally adjusted such that, independently of 'tag',
-    coeff==np.exp(-0.5) when distance==radius.
+    `coeff==np.exp(-0.5)` when `distance==radius`.
 
     This is largely based on Sakov's enkf-matlab code. Two bugs have here been fixed:
-     - The constants were slightly wrong, as noted in comments below.
-     - It forgot to take sqrt() of coeffs when applying them through 'local analysis'.
+    - The constants were slightly wrong, as noted in comments below.
+    - It forgot to take sqrt() of coeffs when applying them through 'local analysis'.
     """
     coeffs = np.zeros(dists.shape)
 
     if tag is None:
-        tag = TAG
+        tag = 'GC'
 
     if tag == 'Gauss':
         R = radius
@@ -112,15 +140,12 @@ def dist2coeff(dists, radius, tag=None):
     return coeffs
 
 
-def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
+def inds_and_coeffs(dists, radius, cutoff=1e-3, tag=None):
     """Compute indices and coefficients of localization.
 
     - inds   : the indices of pts that are "close to" centre.
     - coeffs : the corresponding tapering coefficients.
     """
-    if cutoff is None:
-        cutoff = CUTOFF
-
     coeffs = dist2coeff(dists, radius, tag)
 
     # Truncate using cut-off
@@ -181,23 +206,28 @@ def no_localization(Nx, Ny):
 def rectangular_partitioning(shape, steps, do_ind=True):
     """N-D rectangular batch generation.
 
-    shape: [len(grid[dim]) for dim in range(ndim)]
-    steps: [step_len[dim]  for dim in range(ndim)]
+    Parameters
+    ----------
+    shape: (len(grid[dim]) for dim in range(ndim))
+    steps: (step_len[dim]  for dim in range(ndim))
 
-    returns a list of batches,
-    where each element (batch) is a list of indices
+    Returns
+    -------
+    A list of batches,
+    where each element (batch) is a list of indices.
 
-    # Example, with visualization:
-    >>> shape   = [4,13]
-    >>> steps   = [2,4]
-    >>> batches = rectangular_partitioning(shape, steps, do_ind=False)
-    >>> M       = np.prod(shape)
-    >>> nB      = len(batches)
-    >>> values  = np.random.choice(arange(nB),nB,0)
-    >>> Z       = np.zeros(shape)
-    >>> for ib,b in enumerate(batches):
-    >>>   Z[tuple(b)] = values[ib]
-    >>> plt.imshow(Z)
+    Example
+    -------
+    >>> shape    = [4, 13]
+    >>> steps    = [2, 4]
+    >>> batches  = rectangular_partitioning(shape, steps, do_ind=False)
+    >>> M        = np.prod(shape)
+    >>> nB       = len(batches)
+    >>> values   = np.random.choice(np.arange(nB), nB, 0)
+    >>> Z        = np.zeros(shape)
+    >>> for ib, b in enumerate(batches):
+    ...     Z[tuple(b)] = values[ib]
+    >>> plt.imshow(Z)  # doctest: +SKIP
     """
     assert len(shape) == len(steps)
     # ndim = len(steps)
@@ -246,7 +276,7 @@ def safe_eval(fun, t):
 def nd_Id_localization(shape,
                        batch_shape=None,
                        obs_inds=None,
-                       periodic=PERIODIC):
+                       periodic=True):
     """Localize Id (direct) point obs of an N-D, homogeneous, rectangular domain."""
     M = np.prod(shape)
 
@@ -264,6 +294,6 @@ def nd_Id_localization(shape,
 
     def y2x_distances(t):
         obs_coord = ind2sub(safe_eval(obs_inds, t))
-        return pairwise_distances(obs_coord, state_coord, periodic, shape)
+        return pairwise_distances(obs_coord, state_coord, shape if periodic else None)
 
     return localization_setup(y2x_distances, batches)
