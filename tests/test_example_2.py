@@ -1,6 +1,11 @@
 """Stupidly compare the full results table.
 
 Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail.
+
+Possible reasons for failing:
+- Random number generation might change on different versions/platforms.
+- pytest --doctest-modules will import dapper/mods/Lorenz63/wiljes2017.py,
+  for example, which modifies HMM.t
 """
 
 import pytest
