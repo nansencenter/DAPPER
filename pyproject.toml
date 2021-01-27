@@ -4,13 +4,18 @@
 [tool.pytest.ini_options]
 minversion = "6.0"
 #addopts = "--cov --cov-report term-missing"
-addopts = """
---ignore=tests/test_plotting.py \
---ignore=tests/test_demos.py \
+addopts = """tests --cov dapper
+    --ignore=tests/test_plotting.py
+    --ignore=tests/test_demos.py
+    --ignore=dapper/mods/QG
+--doctest-modules dapper
+    --ignore-glob=dapper/mods/Lorenz*
+    --ignore-glob=**/autoscaler.py
+    --ignore-glob=**/demo.py
+    --ignore-glob=**/illust_*.py
+    --ignore-glob=dapper/mods/KS/compare_schemes.py
+    --ignore=dapper/mods/explore_props.py
 """
-#testpaths = ["tests", "integration"] # norecursedirs suffices
-norecursedirs = """.* build dist CVS _darcs {arch} *.egg venv \
-tmp*""" # add tmp to the above (defaults)
 
 [tool.coverage.run]
 branch = true # stricter
@@ -43,17 +48,6 @@ setenv =
     IS_TOX = true
 commands =
     pytest {posargs}
-
-[testenv:doctest]
-commands =
-    pytest {posargs} \
-    --doctest-modules dapper \
-    --ignore-glob=**/autoscaler.py \
-    --ignore=dapper/mods/QG \
-    --ignore-glob=**/demo.py \
-    --ignore-glob=**/illust_*.py \
-    --ignore-glob=**/compare_schemes.py \
-    --ignore=dapper/mods/explore_props.py
 """
 
 
