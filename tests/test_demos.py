@@ -13,7 +13,7 @@ plt.ion()
 
 
 def _find_demos(as_path=False):
-    """Find all model demo.py scripts."""
+    """Discover all model demo.py scripts."""
     lst = []
     for d in (dpr.rc.dirs.dapper/"mods").iterdir():
         x = d/"demo.py"

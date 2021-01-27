@@ -119,8 +119,10 @@ class Stats(StatPrint):
 
         Series are initialized with nan's.
 
-        Example: Create ndarray of length KObs+1 for inflation time series:
-        >>> self.new_series('infl', 1, KObs+1)
+        Example
+        -------
+        Create ndarray of length KObs+1 for inflation time series:
+        >>> self.new_series('infl', 1, KObs+1)  # doctest: +SKIP
 
         NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``'s
             to avoid plotting stats that are not being used.

@@ -77,8 +77,8 @@ def sinusoidal_sample(Nx, k, N):
     if the model is dissipative(, and more ?).
 
     Example:
-    >>> E = sinusoidal_sample(100,4,5)
-    >>> plt.plot(E.T)
+    >>> E = sinusoidal_sample(100, 4, 5)
+    >>> plt.plot(E.T)  # doctest: +SKIP
     """
     sample = np.zeros((N, Nx))
     for n in range(N):

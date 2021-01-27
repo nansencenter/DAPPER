@@ -179,23 +179,25 @@ def load_xps(save_as):
 def save_xps(xps, save_as, nDir=100):
     """Split xps and save in save_as/i for i in range(nDir).
 
-    Example: rename attr n_iter to nIter:
+    Example
+    -------
+    Rename attr n_iter to nIter:
     >>> proj_name = "Stein"
-    >>> dd = dpr.rc.dirs.data / proj_name
+    >>> dd = rc.dirs.data / proj_name
     >>> save_as = dd / "run_2020-09-22__19:36:13"
-    >>>
-    >>> for save_as in os.listdir(dd):
-    >>>     save_as = dd / save_as
-    >>>
-    >>>     xps = load_xps(save_as)
-    >>>     HMM = load_HMM(save_as)
-    >>>
-    >>>     for xp in xps:
-    >>>         if hasattr(xp,"n_iter"):
-    >>>             xp.nIter = xp.n_iter
-    >>>             del xp.n_iter
-    >>>
-    >>>     overwrite_xps(xps, save_as)
+
+    >>> for save_as in dd.iterdir():  # doctest: +SKIP
+    ...     save_as = dd / save_as
+    ...
+    ...     xps = load_xps(save_as)
+    ...     HMM = load_HMM(save_as)
+    ...
+    ...     for xp in xps:
+    ...         if hasattr(xp,"n_iter"):
+    ...             xp.nIter = xp.n_iter
+    ...             del xp.n_iter
+    ...
+    ...     overwrite_xps(xps, save_as)
     """
     save_as = Path(save_as).expanduser()
     save_as.mkdir(parents=False, exist_ok=False)
@@ -359,8 +361,9 @@ class SparseSpace(dict):
     def __call__(self, **kwargs):
         """Convenience.
 
-        Enables
-        >>> xp_dict(da_method="EnKF", infl=1, seed=3)
+        Example
+        -------
+        >>> xp_dict(da_method="EnKF", infl=1, seed=3)  # doctest: +SKIP
         """
         return self.__getitem__(kwargs)
 
@@ -759,9 +762,8 @@ class xpSpace(SparseSpace):
         axes: dict
             Allots (maps) each role to a set of axis of the `xpSpace`.
 
-                >>> dict(
-                >>>    outer='da_method', inner='N', mean='seed',
-                >>>    optim=('infl','loc_rad'))
+            >>> dict(outer='da_method', inner='N', mean='seed',  # doctest: +SKIP
+            ...      optim=('infl','loc_rad'))
 
             - Herein, the "role" `outer` should list the axes/attributes
             used to define the splitting of the results into *separate tables*:

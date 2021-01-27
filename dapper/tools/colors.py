@@ -15,11 +15,23 @@ colorama.init()
 # Colouring for the terminal / console
 #########################################
 def color_text(text, *color_codes):
+    """Color a string for the terminal.
 
-    if len(color_codes) == 0:
-        color_codes = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
+    Multiple `color_codes` can be combined.
+    Look them up in `colorama.Back` and `colorama.Fore`.
+    Use the single code `None` for no coloring.
+    """
+    c0 = colorama.Style.RESET_ALL
 
-    return "".join(color_codes) + text + colorama.Style.RESET_ALL
+    if (not color_codes) or color_codes == ("default",):
+        cc = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
+    else:
+        cc = [getattr(colorama.Fore, c.upper(), c) for c in color_codes if c]
+
+    if not cc:
+        return text
+    else:
+        return "".join(cc) + text + c0
 
 
 @contextlib.contextmanager
@@ -27,7 +39,9 @@ def coloring(*color_codes):
     """Color printing using 'with'.
 
     Example:
-    >>> with coloring(colorama.Fore.GREEN): print("This is in color")
+    >>> with coloring(colorama.Fore.GREEN):
+    ...    print("--- This is in color ---")
+    [32m--- This is in color ---[0m
     """
     orig_print = builtins.print
 

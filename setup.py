@@ -38,7 +38,7 @@ INSTALL_REQUIRES = [
 EXTRAS = {
     'Qt': ['PyQt5', 'qtpy'],
     'dev': ['line_profiler', 'pdbpp', 'pre-commit', 'jupytext'],
-    'test': ['pytest', 'pytest-cov', 'coverage',
+    'test': ['tox', 'pytest', 'pytest-cov', 'coverage',
              'pytest-sugar', 'pytest-benchmark', 'pytest-clarity', 'pytest-xdist'],
     'lint': ['flake8', 'flakehell'],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
@@ -84,8 +84,10 @@ setup(
     # >=3.5 for @.
     # >=3.6 for mpl>=3.1.
     # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
-    # ==3.8 if you wish to use the the DAPPER/GCP cluster,
-    #       since dill doesnt guarantee compat. accross versions.
+    # ==3.8 for:
+    #   - dapper/tools/magic.py
+    #   - struct-tools
+    #   - the DAPPER/GCP cluster, since dill isn't compat. across versions.
     python_requires='>=3.8',
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS,

@@ -90,8 +90,9 @@ def magic_naming(*args, **kwargs):
     """Convert args (by their names in the call) to kwargs.
 
     Example:
-    >>> a,b,c = 1,2,3
-    >>> dct = magic_naming(a,b,c,d=e)
+    >>> a, b = 1, 2
+    >>> magic_naming(a, b, c=3)
+    {'a': 1, 'b': 2, 'c': 3}
     """
     call, argnames, locvars = get_call()
     assert len(args) == len(argnames), "Something's gone wrong."
@@ -118,10 +119,11 @@ def magic_naming(*args, **kwargs):
 def spell_out(*args):
     """Print (args) including variable names.
 
-    Example:
+    Example
+    -------
     >>> spell_out(3*2)
-    >>> 3*2:
-    >>> 6
+    3*2:
+    6
     """
     call, _, loc = get_call()
 
@@ -130,8 +132,11 @@ def spell_out(*args):
     right = call.rfind(")")
 
     # Print header
-    with coloring():
+    import sys
+    c = None if "pytest" in sys.modules else "blue"
+    with coloring(c):
         print(call[left+1:right] + ":")
+
     # Print (normal)
     print(*args)
 

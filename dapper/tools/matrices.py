@@ -136,9 +136,10 @@ def funm_psd(a, fun, check_finite=False):
 
     Adapted from `sla.funm` doc.
 
-    Example:
+    Example
+    -------
     >>> def sqrtm_psd(A):
-    >>>     return funm_psd(A, sqrt)
+    ...     return funm_psd(A, sqrt)
     """
     w, v = sla.eigh(a, check_finite=check_finite)
     w = np.maximum(w, 0)
@@ -147,14 +148,17 @@ def funm_psd(a, fun, check_finite=False):
 
 
 def chol_reduce(Right):
-    """Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
+    """Return rnk-by-ndim R such that `R.T@R - R.T@R ≈ 0`.
 
-    Example:
-    >>> A = mean0(np.random.randn(20,5),axis=1)
-    >>> C = A.T @ A
+    Example
+    -------
+    >>> from dapper.stats import mean0
+    >>> X = mean0(np.random.randn(20, 5), axis=1)
+    >>> C = X.T @ X
     >>> # sla.cholesky(C) throws error
-    >>> R = chol_reduce(A)
-    >>> R.shape[1] == 4
+    >>> R = chol_reduce(X)
+    >>> R.shape[1] == 5
+    True
     """
     _, sig, UT = sla.svd(Right, full_matrices=False)
     R = sig[:, None]*UT
@@ -176,18 +180,11 @@ class CovMat():
 
     Main tasks:
 
-      - Unifying the covariance representations:
-        full, diagonal, reduced-rank sqrt.
-      - Convenience constructor and printing.
-      - Convenience transformations with memoization.
-        Replaces (for example):
-
-            >>> if not hasattr(noise.C,'sym_sqrt'):
-            >>>     S = funm_psd(noise.C, sqrt)
-            >>>     noise.C.sym_sqrt = S
-
-        This (hiding it internally) becomes particularly useful
-        if the covariance matrix changes with time (but repeat).
+    - Unify the covariance representations: full, diagonal, reduced-rank sqrt.
+    - Streamline init. and printing.
+    - Convenience transformations with caching/memoization.
+      This (hiding it internally) would be particularly useful
+      if the covariance matrix changes with time (but repeat).
     """
 
     ##################################

@@ -2,40 +2,47 @@
 
 import os
 from importlib import import_module
-from pathlib import Path
 
 import pytest
 
 import dapper.tools.progressbar
+from dapper.dpr_config import rc
 from dapper.mods import HiddenMarkovModel
 
 dapper.tools.progressbar.disable_progbar = True
 
-modules_with_HMM = []
 
-for root, _dir, files in os.walk("."):
-    if "mods" in root:
+def _defines_HMM(path):
 
-        if os.environ.get("TRAVIS", False) and ("QG" in root):
-            continue
+    # Don't run QG on Travis-CI or Tox
+    if "QG" in path.parts and (
+            os.environ.get("IS_TRAVIS", False) or
+            os.environ.get("IS_TOX", False)):
+        return False
 
-        for f in sorted(files):
-            if f.endswith(".py"):
-                filepath = Path(root) / f
+    if (
+        path.suffix == ".py"
+        and path.stem != "__init__"
+        and "HiddenMarkovModel" in "".join(open(path))
+    ):
+        return True
 
-                lines = "".join(open(filepath).readlines())
-                if "HiddenMarkovModel" in lines:
-                    modules_with_HMM.append(filepath)
+    return False
 
 
-@pytest.mark.parametrize(("path"), modules_with_HMM, ids=str)
+mods = rc.dirs.dapper / "mods"
+root = rc.dirs.dapper
+HMMs = [p.relative_to(root) for p in mods.glob("**/*.py") if _defines_HMM(p)]
+
+
+@pytest.mark.parametrize(("path"), HMMs, ids=str)
 def test_HMM(path):
     """Test that any HMM in module can be simulated."""
-    p = str(path.with_suffix("")).replace("/", ".")
-    module = import_module(p)
+    p = "." + str(path.with_suffix("")).replace("/", ".")
+    module = import_module(p, root.stem)
 
     def exclude(key, HMM):
-        """Exclude HMMs that are not testable w/o further configuration."""
+        """Exclude certain, untestable HMMs"""
         if key == "HMM_trunc":
             return True
         return False

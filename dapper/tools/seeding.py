@@ -34,21 +34,21 @@ def set_seed(sd="clock"):
     Examples
     --------
     As mentioned,`set_seed` works essentially just like `seed` of `np.random` (`rnd`):
-    >>> _ = set_seed(3); x =  rnd.randint(9)
-    >>> _ = rnd.seed(3); x == rnd.randint(9)
+    >>> _ = set_seed(3); x =  rnd.randint(999)
+    >>> _ = rnd.seed(3); x == rnd.randint(999)
     True
 
     But this would not be possible with the standard method:
     >>> sd = set_seed()  # Set by clock
-    >>> y =  rnd.randint(9)
+    >>> y =  rnd.randint(999)
     >>> sd = set_seed(sd)  # Use the same seed as previously
-    >>> y == rnd.randint(9)
+    >>> y == rnd.randint(999)
     True
 
     Using the clock method again, later, we get a different outcome.
-    >>> _ = set_seed(3); x == rnd.randint(9)
+    >>> a = set_seed(3); x == rnd.randint(999)
     True
-    >>> _ = set_seed();  y == rnd.randint(9)
+    >>> b = set_seed();  y == rnd.randint(999)
     False
     """
     if (sd is not False) and sd == 0:

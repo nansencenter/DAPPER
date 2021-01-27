@@ -1,10 +1,13 @@
 ##################
 #  Config tests  #
 ##################
-
 [tool.pytest.ini_options]
 minversion = "6.0"
 #addopts = "--cov --cov-report term-missing"
+addopts = """
+--ignore=tests/test_plotting.py \
+--ignore=tests/test_demos.py \
+"""
 #testpaths = ["tests", "integration"] # norecursedirs suffices
 norecursedirs = """.* build dist CVS _darcs {arch} *.egg venv \
 tmp*""" # add tmp to the above (defaults)
@@ -25,6 +28,32 @@ exclude_lines = [
     "if 0:",
     "if __name__ == .__main__.:"
 ]
+
+# Put --doctest-modules in tox because it's difficult
+# to combine its options with that of regular pytest.
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py3{8,9}
+toxworkdir={homedir}/.tox
+
+[testenv]
+platform = linux|darwindeps
+deps = {toxinidir}
+extras = test
+setenv =
+    IS_TOX = true
+commands =
+    pytest {posargs}
+    pytest --doctest-modules dapper \
+    --ignore-glob=**/autoscaler.py \
+    --ignore=dapper/mods/QG \
+    --ignore-glob=**/demo.py \
+    --ignore-glob=**/illust_*.py \
+    --ignore-glob=**/compare_schemes.py \
+    --ignore=dapper/mods/explore_props.py
+"""
+
 
 ####################
 #  Config linting  #

@@ -38,15 +38,15 @@ def da_method(*default_dataclasses):
 
     Example:
     >>> @da_method()
-    >>> class Sleeper():
-    >>>     "Do nothing."
-    >>>     seconds : int  = 10
-    >>>     success : bool = True
-    >>>     def assimilate(self,*args,**kwargs):
-    >>>         for k in range(self.seconds):
-    >>>             time.sleep(1)
-    >>>         if not self.success:
-    >>>             raise RuntimeError("Sleep over. Failing as intended.")
+    ... class Sleeper():
+    ...     "Do nothing."
+    ...     seconds : int  = 10
+    ...     success : bool = True
+    ...     def assimilate(self,*args,**kwargs):
+    ...         for k in range(self.seconds):
+    ...             time.sleep(1)
+    ...         if not self.success:
+    ...             raise RuntimeError("Sleep over. Failing as intended.")
 
     Note that `da_method` is actually a "decorator factory", or
     a "two-level decorator", which is why the empty parenthesis were used above.
@@ -55,22 +55,17 @@ def da_method(*default_dataclasses):
 
     Example:
     >>> @dataclass
-    >>> class ens_defaults:
-    >>>   infl : float = 1.0
-    >>>   rot  : bool  = False
-    >>>
+    ... class ens_defaults:
+    ...   infl : float = 1.0
+    ...   rot  : bool  = False
+
     >>> @da_method(ens_defaults)
-    >>> class EnKF:
-    >>>     N     : int
-    >>>     upd_a : str = "Sqrt"
-    >>>
-    >>>     def assimilate(self,HMM,xx,yy):
-    >>>         ...
-    >>>
-    >>>
-    >>> @da_method(ens_defaults)
-    >>> class LETKF:
-    >>>     ...
+    ... class EnKF:
+    ...     N     : int
+    ...     upd_a : str = "Sqrt"
+    ...
+    ...     def assimilate(self, HMM, xx, yy):
+    ...         ...
     """
 
     def dataclass_with_defaults(cls):
