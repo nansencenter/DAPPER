@@ -29,8 +29,6 @@ exclude_lines = [
     "if __name__ == .__main__.:"
 ]
 
-# Put --doctest-modules in tox because it's difficult
-# to combine its options with that of regular pytest.
 [tool.tox]
 legacy_tox_ini = """
 [tox]
@@ -45,7 +43,11 @@ setenv =
     IS_TOX = true
 commands =
     pytest {posargs}
-    pytest --doctest-modules dapper \
+
+[testenv:doctest]
+commands =
+    pytest {posargs} \
+    --doctest-modules dapper \
     --ignore-glob=**/autoscaler.py \
     --ignore=dapper/mods/QG \
     --ignore-glob=**/demo.py \
