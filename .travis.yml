@@ -10,10 +10,6 @@ env:
   global:
     - IS_TRAVIS="true"
     - DISTRIB="included" # the python distribution
-    - PYTEST_ARGS="tests
-      --ignore=tests/test_plotting.py --ignore=tests/test_demos.py
-      --doctest-modules
-      dapper/tools/series.py"
     - COVERAGE="false"
   # Increases the build matrix (multiplies it by the number of jobs)
   # jobs:
@@ -48,9 +44,9 @@ script:
     if [[ "$COVERAGE" == "true" ]]; then
       pre-commit install
       pre-commit run --all-files
-      pytest $PYTEST_ARGS --cov=dapper
+      pytest --cov=dapper --cov-report term-missing
     else
-      pytest $PYTEST_ARGS
+      pytest
     fi
 after_success:
   - |
