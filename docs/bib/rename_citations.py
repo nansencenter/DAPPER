@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Search DAPPER for (e.g.) `bib.Boc11` and change to `bib.bocquet2011ensemble`."""
+"""Search DAPPER for (e.g.) `bib.bocquet2011ensemble` and change to `bib.bocquet2011ensemble`."""
 
 import os
 from dapper.dpr_config import rc

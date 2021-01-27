@@ -60,7 +60,7 @@ def parse_citations(file_list):
     citations = set(citations)
 
     # Rm known false positives
-    citations.discard("`bib.Boc11`")
+    citations.discard("`bib.bocquet2011ensemble`")
     citations.discard("`bib.someRef`")
     citations.discard("`bib.py`")
     citations.discard("`bib.`")
