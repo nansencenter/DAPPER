@@ -8,7 +8,7 @@ virtualenv:
 env:
   # Does not increase build matrix
   global:
-    - TRAVIS="true"
+    - IS_TRAVIS="true"
     - DISTRIB="included" # the python distribution
     - PYTEST_ARGS="tests
       --ignore=tests/test_plotting.py --ignore=tests/test_demos.py
@@ -21,7 +21,6 @@ env:
 python:
 - 3.9
 - 3.8
-#- 3.7 doesnt work with magic_naming() and spell_out()
 jobs:
   fast_finish: true
   # Special cases
@@ -31,8 +30,8 @@ jobs:
     - env: COVERAGE="true"
     #- env: TOX_PYTHON_VERSION="py39" COVERAGE="true" # similar to pyscaffold
     - env: DISTRIB="conda" PYTHON_VERSION="3.8"
-  # Use conda with osx coz otherwise it's difficult to get a recent version
-  # https://docs.travis-ci.com/user/languages/python/#python-37-and-higher
+    # Use conda with osx coz otherwise it's difficult to get a recent version
+    # https://docs.travis-ci.com/user/languages/python/#python-37-and-higher
     - os: osx
       env: DISTRIB="conda" PYTHON_VERSION="3.8"
       language: shell
