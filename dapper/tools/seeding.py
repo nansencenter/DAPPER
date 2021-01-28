@@ -2,13 +2,13 @@
 
 import time
 
-import numpy as np
+import numpy.random as rnd
 
 
 def set_seed(sd="clock"):
-    """Essentially `np.random.seed(sd)`, but also returning `sd`.
+    """Essentially `rnd.seed(sd)`, but also returning `sd`.
 
-    The disadvantage of `np.random.seed()` is that it produces a
+    The disadvantage of `rnd.seed()` is that it produces a
     RandomState that cannot be represented by a simple seed
     (the mapping seed-->state being non-surjective).
     By contrast, when `sd in [None, "clock"]`, `set_seed` generates
@@ -33,7 +33,7 @@ def set_seed(sd="clock"):
 
     Examples
     --------
-    As mentioned,`set_seed` works essentially just like `seed` of `np.random` (`rnd`):
+    As mentioned,`set_seed` works essentially just like `rnd.seed`:
     >>> _ = set_seed(3); x =  rnd.randint(999)
     >>> _ = rnd.seed(3); x == rnd.randint(999)
     True
@@ -64,6 +64,6 @@ def set_seed(sd="clock"):
         sd = microsec % MAXSEED
 
     if sd:
-        np.random.seed(sd)
+        rnd.seed(sd)
 
     return sd
