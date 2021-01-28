@@ -5,8 +5,8 @@ See the README section on
 for an overview of the models included with DAPPER.
 
 The models are all simple;
-this facililates the reliability, reproducibility, and transparency
-of DA experiments.
+this facililates the reliability, reproducibility, and attributability
+of the experiment results.
 
 ## Defining your own model
 
@@ -29,6 +29,8 @@ To make sure this is working, we suggest the following structure:
       Note: this only needs to support 1D input (single realization).
 - Make a file: `my_model/demo.py` to visually showcase
   a simulation of the model.
+- Ideally, both `my_model/__init__.py` and `my_model/demo.py`
+  do not rely on the rest of DAPPER.
 - Make a file: `my_model/my_settings_1.py` that define a complete
   Hidden Markov Model ready for a synthetic experiment
   (also called "twin experiment" or OSSE).
