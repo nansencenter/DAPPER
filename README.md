@@ -185,16 +185,13 @@ LorenzUV             | No   | Yes   | No    | 2x 1d     | 256 + 8 * | ≈60    |
 Kuramoto-Sivashinsky | No   | Yes   | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
 Quasi-Geost (QG)     | No   | No    | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov
 
-- *: Flexible; set as necessary
-- +: Tangent Linear Model included?
+- `*`: Flexible; set as necessary
+- `+`: Tangent Linear Model included?
 
 The models are found as subdirectories within `dapper/mods`.
 A model should be defined in a file named `__init__.py`,
 and illustrated by a file named `demo.py`.
-Ideally, both of these files do not rely on the rest of DAPPER.
-[More info](https://dapper.readthedocs.io/en/latest/adding.html).
-
-Most of the other files within a model subdirectory
+Most other files within a model subdirectory
 are usually named `authorYEAR.py` and define a `HMM` object,
 which holds the settings of a specific twin experiment,
 using that model,
@@ -207,7 +204,7 @@ gnu's `find`:
 
 ```sh
 cd dapper/mods
-find . -iname "[a-z]*20[0-9].py"
+find . -iname '[a-z]*[0-9]*.py'
 ```
 
 Some of these files contain settings that have been used in several papers.
