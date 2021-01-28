@@ -102,7 +102,7 @@ If you're not an admin or expert:
   *(ensure you're in the folder with a `setup.py` file)*.
 - `pip install -e .` (don't forget the `.`).  
   Alternatively, if you want to develop the code, install with
-  `pip install -e .[Dev]`
+  `pip install -e .[dev]`
 
 #### *Finally*: Test the installation
 
