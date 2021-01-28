@@ -208,7 +208,7 @@ find . -iname '[a-z]*[0-9]*.py'
 ```
 
 Some of these files contain settings that have been used in several papers.
-As mentioned [above](#Methods),
+As mentioned [above](#DA-methods),
 DAPPER reproduces literature results.
 There are also results in the literature that DAPPER does not reproduce.
 Typically, this means that the published results are incorrect.
