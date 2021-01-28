@@ -1,4 +1,5 @@
-"""
+"""# Developer guide
+
 ## Run tests
 See `tests`.
 
@@ -6,7 +7,7 @@ See `tests`.
 
 ### Update bib
 Copy new bibtex items into `docs/bib/refs.bib`,
-then convert to bib.py using  
+then convert to bib.py using
 ```sh
 docs/bib/make_bib.py
 ```
@@ -32,6 +33,16 @@ and set the source to the docs folder.
 - The documentation always needs improvement.
   The documentation uses pdoc3 to auto-generate API reference,
   so improving function and class docstrings is very helpful.
+
+- Consider this code:
+
+        from dapper.mods.Lorenz63.sakov2012 import HMM1
+        from dapper.mods.Lorenz63.wiljes2017 import HMM as HMM2
+
+  Document (somewhere) that `HMM1.t` is changed by the second import,
+  because it itself imports and changes `HMM1`.
+  This became a bug in `test_example_2` when `pytest` was run with
+  `--doctest-modules` because `--doctest-modules` goes through all of the modules.
 
 - Make Colab work for notebooks in examples.
   This requires that Colab upgrades to python 3.7,
