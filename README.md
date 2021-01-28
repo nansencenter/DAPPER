@@ -100,9 +100,8 @@ If you're not an admin or expert:
 - Move the resulting folder wherever you like,  
   and `cd` into it
   *(ensure you're in the folder with a `setup.py` file)*.
-- `pip install -e .` (don't forget the `.`).  
-  Alternatively, if you want to develop the code, install with
-  `pip install -e .[dev]`
+- `pip install -e .[dev]`.  
+  You can omit `[dev]` if you don't need to do serious development.
 
 #### *Finally*: Test the installation
 
