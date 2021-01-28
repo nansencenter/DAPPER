@@ -38,8 +38,9 @@ INSTALL_REQUIRES = [
 EXTRAS = {
     'Qt': ['PyQt5', 'qtpy'],
     'dev': ['line_profiler', 'pdbpp', 'pre-commit', 'jupytext'],
-    'test': ['tox', 'pytest', 'pytest-cov', 'coverage',
-             'pytest-sugar', 'pytest-benchmark', 'pytest-clarity', 'pytest-xdist'],
+    'test': ['tox', 'coverage', 'pytest',
+             'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
+             'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
     'lint': ['flake8', 'flakehell'],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
     'build': ['twine', 'pdoc3'],
