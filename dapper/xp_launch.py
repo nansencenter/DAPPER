@@ -173,43 +173,42 @@ def collapse_str(string, length=6):
 class xpList(list):
     """Subclass of `list` specialized for experiment ("xp") objects.
 
-    Main use: administrate experiment **launches**.
+    Main use: administrate experiment launches.
 
     Modifications to `list`:
 
-    - `__iadd__` (append) also for single items;
+    - `xpList.append` supports `unique` to enable lazy `xp` declaration.
+    - `__iadd__` (`+=`) supports adding single `xp`s.
       this is hackey, but convenience is king.
-    - `append()` supports `unique` to enable lazy xp declaration.
-    - `__getitem__` supports lists.
-    - pretty printing (using common/distinct attrs).
+    - `__getitem__` supports lists, similar to `np.ndarray`
+    - `__repr__`: prints the list as rows of a table,
+      where the columns represent attributes whose value is not shared among all `xp`s.
+      Refer to `xpList.split_attrs` for more information.
 
     Add-ons:
 
-    - `launch()`
-    - `print_averages()`
-    - `gen_names()`
-    - `inds()` to search by kw-attrs.
+    - `xpList.launch`
+    - `xpList.print_averages`
+    - `xpList.gen_names`
+    - `xpList.inds` to search by kw-attrs.
+
+    Parameters
+    ----------
+    args: entries
+        Nothing, or a list of `xp`s.
+
+    unique: bool
+        Duplicates won't get appended. Makes `append` (and `__iadd__`) relatively slow.
+        Use `extend` or `__add__` or `get_param_setter` to bypass this validation.
 
     Also see
     --------
     - Examples: `examples/basic_2`, `examples/basic_3`
-    - Experiment **presentation**: `dapper.xp_process.xpSpace`
+    - `dapper.xp_process.xpSpace`, which is used for experient result **presentation**,
+      as opposed to this class (`xpList`), which handles **launching** experiments.
     """
 
     def __init__(self, *args, unique=False):
-        """Construct as follows.
-
-        Parameters
-        ----------
-        args: entries
-            Nothing, or a list of `xp`s.
-
-        unique: bool
-            Duplicates won't get appended.
-            This makes `append` (and `__iadd__`) relatively slow.
-            Use `extend` or `__add__` or `get_param_setter`
-            to bypass this validation.
-        """
         self.unique = unique
         super().__init__(*args)
 
@@ -258,7 +257,7 @@ class xpList(list):
 
         Insert `None` if an attribute is distinct but not in `xp`.
 
-        Used by `repr(xpList)` to make a nice table of the list,
+        Used by `repr` on `xpList` to make a nice table of the list,
         in which only the attributes that differ among the `xp`s
         need be included.
 

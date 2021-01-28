@@ -107,6 +107,16 @@ def np_vectorize(f):
 
     - Includes `functools.wraps`
     - Applies `.item()` to output if input was a scalar.
+
+    Parameters
+    ----------
+    f: callable
+        Your function.
+
+    Returns
+    -------
+    vectorized: callable
+        Your function, now element-wise applicable to an iterable.
     """
     vectorized = np.vectorize(f)
 
