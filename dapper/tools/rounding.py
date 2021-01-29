@@ -188,7 +188,7 @@ def round2(x, prec=1.0):
 
     See Also
     --------
-    round2sigfig
+    `round2sigfig`
 
     Examples
     --------
@@ -223,7 +223,7 @@ def round2sigfig(x, sigfig=1):
     See Also
     --------
     np.round : rounds to a given number of *decimals*.
-    round2 : rounds to a given *precision*.
+    `round2` : rounds to a given *precision*.
 
     Examples
     --------
@@ -242,5 +242,16 @@ def is_whole(x, **kwargs):
     """Check if a number is a whole/natural number to precision given by `np.isclose`.
 
     For actual type checking, use `isinstance(x, (int, np.integer))`.
+
+    Parameters
+    ----------
+    x: float or ndarray
+        Values to be checked
+
+    Returns
+    -------
+    l: bool
+        True if rounded x is close to x, otherwise False
+    """
     """
     return np.isclose(x, round(x), **kwargs)
