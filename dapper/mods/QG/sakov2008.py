@@ -1,8 +1,8 @@
-"""Reproduce results from Sakov and Oke 'DEnKF' paper from 2008."""
+"""Reproduce results from `bib.sakov2008deterministic`."""
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.QG import LP_setup, model_config, sample_filename, shape
 from dapper.tools.localization import nd_Id_localization
 
@@ -20,11 +20,11 @@ Dyn = {
 # Considering that I have 8GB mem on the Mac, and the estimate:
 # ≈ (8 bytes/float)*(129² float/stat)*(7 stat/k) * K,
 # it should be possible to run experiments of length (K) < 8000.
-t = dpr.Chronology(dt=model.prms['dtout'], dkObs=1, T=1500, BurnIn=250)
+t = modelling.Chronology(dt=model.prms['dtout'], dkObs=1, T=1500, BurnIn=250)
 # In my opinion the burn in should be 400.
 # Sakov also used 10 repetitions.
 
-X0 = dpr.RV(M=Dyn['M'], file=sample_filename)
+X0 = modelling.RV(M=Dyn['M'], file=sample_filename)
 
 
 ############################
@@ -33,7 +33,7 @@ X0 = dpr.RV(M=Dyn['M'], file=sample_filename)
 
 # This will look like satellite tracks when plotted in 2D
 Ny = 300
-jj = dpr.linspace_int(Dyn['M'], Ny)
+jj = modelling.linspace_int(Dyn['M'], Ny)
 
 # Want: random_offset(t1)==random_offset(t2) if t1==t2.
 # Solutions: (1) use caching (ensure maxsize=inf) or (2) stream seeding.
@@ -53,7 +53,7 @@ def obs_inds(t):
     return jj + random_offset(t)
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def hmod(E, t):
     return E[obs_inds(t)]
 
@@ -69,7 +69,7 @@ localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], obs_inds, periodi
 Obs = {
     'M': Ny,
     'model': hmod,
-    'noise': dpr.GaussRV(C=4*np.eye(Ny)),
+    'noise': modelling.GaussRV(C=4*np.eye(Ny)),
     'localizer': localizer,
 }
 
@@ -83,7 +83,7 @@ Obs['loc_shift'] = lambda ii, dt: ii  # no movement (suboptimal, but easy)
 ############################
 # Other
 ############################
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(obs_inds))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(obs_inds))
 
 
 ####################

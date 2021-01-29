@@ -1,21 +1,23 @@
-"""The EnKF and other ensemble-based methods"""
+"""The EnKF and other ensemble-based methods."""
 
 import numpy as np
+import numpy.random as rnd
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
-from numpy.random import rand, randn
 
-import dapper.tools.multiprocessing as mp
-from dapper.admin import da_method
-from dapper.tools.math import (center, mean0, mldiv, mrdiv, pad0, svd0, svdi,
-                               tinv, tsvd)
+import dapper.tools.multiproc as mp
+from dapper.stats import center, mean0
+from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, svdi, tinv, tsvd
 from dapper.tools.matrices import funm_psd, genOG_1
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method
 class ens_method:
-    "Declare default ensemble arguments."
+    """Declare default ensemble arguments."""
+
     infl: float        = 1.0
     rot: bool          = False
     fnoise_treatm: str = 'Stoch'
@@ -23,7 +25,11 @@ class ens_method:
 
 @ens_method
 class EnKF:
-    """The ensemble Kalman filter `bib.evensen2009ensemble`"""
+    """The ensemble Kalman filter.
+
+    Refs: `bib.evensen2009ensemble`.
+    """
+
     upd_a: str
     N: int
 
@@ -51,9 +57,10 @@ class EnKF:
 
 
 def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
-    """The EnKF analysis update, in many flavours and forms.
+    """Perform the EnKF analysis update.
 
-    The update is specified via 'upd_a'.
+    This implementation includes several flavours and forms,
+    specified by `upd_a`.
 
     Main references: `bib.sakov2008deterministic`,
     `bib.sakov2008implications`, `bib.hoteit2015mitigating`
@@ -156,10 +163,10 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(rand()-0.5)  # Random sign
+                    Zj *= np.sign(rnd.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(randn(N))  # Un-coloured noise
+                    Zj = mean0(rnd.randn(N))  # Un-coloured noise
                     if 'Var1' in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -247,8 +254,10 @@ def post_process(E, infl, rot):
 
 
 def add_noise(E, dt, noise, method):
-    """Treatment of additive noise for ensembles `bib.raanes2014ext`."""
+    """Treatment of additive noise for ensembles.
 
+    Refs: `bib.raanes2014ext`
+    """
     if noise.C == 0:
         return E
 
@@ -311,7 +320,7 @@ def add_noise(E, dt, noise, method):
         E, _, Qa12 = sqrt_core()
         if N <= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@rnd.randn(Z.shape[1], N)).T
 
     elif method == 'Sqrt-Dep':
         E, T, Qa12 = sqrt_core()
@@ -326,7 +335,7 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@rnd.randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -338,10 +347,14 @@ def add_noise(E, dt, noise, method):
 
 @ens_method
 class EnKS:
-    """The ensemble Kalman smoother `bib.evensen2009ensemble`.
+    """The ensemble Kalman smoother.
+
+    Refs: `bib.evensen2009ensemble`
 
     The only difference to the EnKF
-    is the management of the lag and the reshapings."""
+    is the management of the lag and the reshapings.
+    """
+
     upd_a: str
     N: int
     Lag: int
@@ -387,7 +400,7 @@ class EnKS:
                 E[k]  = post_process(E[k], self.infl, self.rot)
                 stats.assess(k, kObs, 'a', E=E[k])
 
-        for k, kObs, t, dt in progbar(chrono.ticker, desc='Assessing'):
+        for k, kObs, _, _ in progbar(chrono.ticker, desc='Assessing'):
             stats.assess(k, kObs, 'u', E=E[k])
             if kObs is not None:
                 stats.assess(k, kObs, 's', E=E[k])
@@ -395,7 +408,11 @@ class EnKS:
 
 @ens_method
 class EnRTS:
-    """EnRTS (Rauch-Tung-Striebel) smoother `bib.raanes2016thesis`."""
+    """EnRTS (Rauch-Tung-Striebel) smoother.
+
+    Refs: `bib.raanes2016thesis`
+    """
+
     upd_a: str
     N: int
     cntr: float
@@ -432,13 +449,19 @@ class EnRTS:
 
             E[k] += (E[k+1] - Ef[k+1]) @ J
 
-        for k, kObs, t, dt in progbar(chrono.ticker, desc='Assessing'):
+        for k, kObs, _, _ in progbar(chrono.ticker, desc='Assessing'):
             stats.assess(k, kObs, 'u', E=E[k])
             if kObs is not None:
                 stats.assess(k, kObs, 's', E=E[k])
 
 
 def serial_inds(upd_a, y, cvR, A):
+    """Get the indices used for serial updating.
+
+    - Default: random ordering
+    - if "mono" in `upd_a`: `1, 2, ..., len(y)`
+    - if "sorted" in `upd_a`: sort by variance
+    """
     if 'mono' in upd_a:
         # Not robust?
         inds = np.arange(len(y))
@@ -450,16 +473,20 @@ def serial_inds(upd_a, y, cvR, A):
             dC = np.sum(A*A, 0)/(N-1)
         inds = np.argsort(dC)
     else:  # Default: random ordering
-        inds = np.random.permutation(len(y))
+        inds = rnd.permutation(len(y))
     return inds
 
 
 @ens_method
 class SL_EAKF:
-    """Serial, covariance-localized EAKF `bib.karspeck2007experimental`.
+    """Serial, covariance-localized EAKF.
+
+    Refs: `bib.karspeck2007experimental`.
 
     Used without localization, this should be equivalent (full ensemble equality)
-    to the :func:`EnKF` with ``upd_a='Serial'``."""
+    to the `EnKF` with `upd_a='Serial'`.
+    """
+
     N: int
     loc_rad: float
     taper: str  = 'GC'
@@ -528,12 +555,17 @@ class SL_EAKF:
 
 @ens_method
 class LETKF:
-    """Same as EnKF (sqrt), but with localization `bib.hunt2007efficient`.
+    """Same as EnKF (sqrt), but with localization.
 
-    NB: Multiprocessing yields slow-down for L96, even with batch_size=(1,).
-        But for QG (batch_size=(2,2) or less) it is quicker.
+    Refs: `bib.hunt2007efficient`.
 
-    NB: If len(ii) is small, analysis may be slowed-down with '-N' infl."""
+    NB: Multiproc. yields slow-down for `dapper.mods.Lorenz96`,
+    even with `batch_size=(1,)`. But for `dapper.mods.QG`
+    (`batch_size=(2,2)` or less) it is quicker.
+
+    NB: If `len(ii)` is small, analysis may be slowed-down with '-N' infl.
+    """
+
     N: int
     loc_rad: float
     taper: str = 'GC'
@@ -577,10 +609,13 @@ class LETKF:
                 xN, g, infl = self.xN, self.g, self.infl
 
                 def local_analysis(ii):
-                    """Notation:
-                     - ii: inds for the state batch defining the locality
-                     - jj: inds for the associated obs"""
+                    """Do the local analysis.
 
+                    Notation:
+
+                    - ii: inds for the state batch defining the locality
+                    - jj: inds for the associated obs
+                    """
                     # Locate local obs
                     jj, tapering = obs_taperer(ii)
                     if len(jj) == 0:
@@ -697,7 +732,10 @@ def effective_N(YR, dyR, xN, g):
 #
 def Newton_m(fun, deriv, x0, is_inverted=False,
              conf=1.0, xtol=1e-4, ytol=1e-7, itermax=10**2):
-    "Simple (and fast) implementation of Newton root-finding"
+    """Find root of `fun`.
+
+    This is a simple (and pretty fast) implementation of Newton's method.
+    """
     itr, dx, Jx = 0, np.inf, fun(x0)
     def norm(x): return sqrt(np.sum(x**2))
     while ytol < norm(Jx) and xtol < norm(dx) and itr < itermax:
@@ -715,7 +753,9 @@ def Newton_m(fun, deriv, x0, is_inverted=False,
 
 
 def hyperprior_coeffs(s, N, xN=1, g=0):
-    """EnKF-N inflation prior may be specified by the constants:
+    r"""Set EnKF-N inflation hyperparams.
+
+    The EnKF-N prior may be specified by the constants:
 
     - eN: Effect of unknown mean
     - cL: Coeff in front of log term
@@ -724,12 +764,12 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
     but are further adjusted (corrected and tuned) for the following reasons.
 
     - Reason 1: mode correction.
-      These parameters bridge the Jeffreys (xN=1) and Dirac (xN=Inf) hyperpriors
+      These parameters bridge the Jeffreys (`xN=1`) and Dirac (`xN=Inf`) hyperpriors
       for the prior covariance, B, as discussed in `bib.bocquet2015expanding`.
-      Indeed, mode correction becomes necessary when :math:`R \\rightarrow \\infty`.
+      Indeed, mode correction becomes necessary when $$ R \rightarrow \infty $$
       because then there should be no ensemble update (and also no inflation!).
-      More specifically, the mode of ``l1``'s should be adjusted towards 1
-      as a function of :math:`I-KH` ("prior's weight").
+      More specifically, the mode of `l1`'s should be adjusted towards 1
+      as a function of $$ I - K H $$ ("prior's weight").
       PS: why do we leave the prior mode below 1 at all?
       Because it sets up "tension" (negative feedback) in the inflation cycle:
       the prior pulls downwards, while the likelihood tends to pull upwards.
@@ -743,13 +783,13 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
 
     The tuning is controlled by:
 
-    - xN=1: is fully agnostic, i.e. assumes the ensemble is generated
+    - `xN=1`: is fully agnostic, i.e. assumes the ensemble is generated
       from a highly chaotic or stochastic model.
-    - xN>1: increases the certainty of the hyper-prior,
+    - `xN>1`: increases the certainty of the hyper-prior,
       which is appropriate for more linear and deterministic systems.
-    - xN<1: yields a more (than 'fully') agnostic hyper-prior,
+    - `xN<1`: yields a more (than 'fully') agnostic hyper-prior,
       as if N were smaller than it truly is.
-    - xN<=0 is not meaningful.
+    - `xN<=0` is not meaningful.
     """
     N1 = N-1
 
@@ -778,10 +818,11 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
 def zeta_a(eN, cL, w):
     """EnKF-N inflation estimation via w.
 
-    Returns zeta_a = (N-1)/pre-inflation^2.
+    Returns `zeta_a = (N-1)/pre-inflation^2`.
 
-    Using this inside an iterative minimization as in the iEnKS
-    effectively blends the distinction between the primal and dual EnKF-N.
+    Using this inside an iterative minimization as in the
+    `dapper.da_methods.variational.iEnKS` effectively blends
+    the distinction between the primal and dual EnKF-N.
     """
     N  = len(w)
     N1 = N-1
@@ -791,27 +832,32 @@ def zeta_a(eN, cL, w):
 
 @ens_method
 class EnKF_N:
-    """Finite-size EnKF (EnKF-N) `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
+    """Finite-size EnKF (EnKF-N).
+
+    Refs: `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
 
     This implementation is pedagogical, prioritizing the "dual" form.
     In consequence, the efficiency of the "primal" form suffers a bit.
     The primal form is included for completeness and to demonstrate equivalence.
-    In the iEnKS, however, the primal form is preferred because it
+    In `dapper.da_methods.variational.iEnKS`, however,
+    the primal form is preferred because it
     already does optimization for w (as treatment for nonlinear models).
 
-    'infl' should be unnecessary (assuming no model error, or that Q is correct).
+    `infl` should be unnecessary (assuming no model error, or that Q is correct).
 
-    'Hess': use non-approx Hessian for ensemble transform matrix?
+    `Hess`: use non-approx Hessian for ensemble transform matrix?
 
-    'g' is the nullity of A (state anomalies's), ie. g=max(1,N-Nx),
+    `g` is the nullity of A (state anomalies's), ie. g=max(1,N-Nx),
     compensating for the redundancy in the space of w.
     But we have made it an input argument instead, with default 0,
     because mode-finding (of p(x) via the dual) completely ignores this redundancy,
     and the mode gets (undesireably) modified by g.
 
-    'xN' allows tuning the hyper-prior for the inflation.
+    `xN` allows tuning the hyper-prior for the inflation.
     Usually, I just try setting it to 1 (default), or 2.
-    Further description in hyperprior_coeffs()."""
+    Further description in hyperprior_coeffs().
+    """
+
     N: int
     dual: bool = False
     Hess: bool = False

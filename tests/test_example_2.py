@@ -1,43 +1,61 @@
-"""Just stupidly compare the full results table."""
+"""Stupidly compare the full results table.
 
-import numpy as np
+Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail.
+
+Possible reasons for failing:
+- Random number generation might change on different versions/platforms.
+- pytest --doctest-modules will import dapper/mods/Lorenz63/wiljes2017.py,
+  for example, which modifies HMM.t
+"""
+
 import pytest
 
 import dapper as dpr
+import dapper.da_methods as da
 
 statkeys = ["err.rms.a", "err.rms.f", "err.rms.u"]
+
 
 ##############################
 # L63
 ##############################
-from dapper.mods.Lorenz63.sakov2012 import HMM
+@pytest.fixture(scope="module")
+def L63_table():
+    xps = L63_gen()
+    table = xps.tabulate_avrgs(statkeys, decimals=4)
+    return table.splitlines(True)
 
-HMM.t.BurnIn = 0
-HMM.t.KObs = 10
 
-dpr.set_seed(3000)
+def L63_gen():
+    from dapper.mods.Lorenz63.sakov2012 import HMM
 
-# xps
-xps = dpr.xpList()
-xps += dpr.Climatology()
-xps += dpr.OptInterp()
-xps += dpr.Var3D(xB=0.1)
-xps += dpr.ExtKF(infl=90)
-xps += dpr.EnKF("Sqrt", N=3, infl=1.30)
-xps += dpr.EnKF("Sqrt", N=10, infl=1.02, rot=True)
-xps += dpr.EnKF("PertObs", N=500, infl=0.95, rot=False)
-xps += dpr.EnKF_N(N=10, rot=True)
-xps += dpr.iEnKS("Sqrt", N=10, infl=1.02, rot=True)
-xps += dpr.PartFilt(N=100, reg=2.4, NER=0.3)
-xps += dpr.PartFilt(N=800, reg=0.9, NER=0.2)
-xps += dpr.PartFilt(N=4000, reg=0.7, NER=0.05)
-xps += dpr.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
+    HMM.t.BurnIn = 0
+    HMM.t.KObs = 10
 
-# Run
-xps.launch(HMM, store_u=True)
+    dpr.set_seed(3000)
 
-table = xps.tabulate_avrgs(statkeys, decimals=4)
-old = """
+    # xps
+    xps = dpr.xpList()
+    xps += da.Climatology()
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.1)
+    xps += da.ExtKF(infl=90)
+    xps += da.EnKF("Sqrt", N=3, infl=1.30)
+    xps += da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
+    xps += da.EnKF("PertObs", N=500, infl=0.95, rot=False)
+    xps += da.EnKF_N(N=10, rot=True)
+    xps += da.iEnKS("Sqrt", N=10, infl=1.02, rot=True)
+    xps += da.PartFilt(N=100, reg=2.4, NER=0.3)
+    xps += da.PartFilt(N=800, reg=0.9, NER=0.2)
+    xps += da.PartFilt(N=4000, reg=0.7, NER=0.05)
+    xps += da.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
+
+    # Run
+    xps.launch(HMM, False, store_u=True)
+    return xps
+
+
+L63_old = """
     da_method     infl  upd_a       N  rot      xN  reg   NER  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
 --  -----------  -----  -------  ----  -----  ----  ---  ----  -  -----------------  -----------------  -----------------
  0  Climatology                                                |     7.7676 ±1.2464     7.7676 ±1.2464     7.2044 ±2.4251
@@ -53,48 +71,59 @@ old = """
 10  PartFilt                      800               0.9  0.2   |     0.5229 ±0.0832     1.337  ±0.4291     0.8152 ±0.2085
 11  PartFilt                     4000               0.7  0.05  |     0.2481 ±0.0474     0.647  ±0.2298     0.3855 ±0.1051
 12  PFxN                           30         1000       0.2   |     0.5848 ±0.0926     0.9573 ±0.2248     0.7203 ±0.187
-"""[1:-1]
+"""[1:-1].splitlines(True)
+
+# Example use of pytest-benchmark
+# def test_duration(benchmark):
+#     benchmark(L63_gen)
 
 
-def test_len():
-    assert len(old) == len(table)
+def test_len63(L63_table):
+    assert len(L63_old) == len(L63_table)
 
 
-table = [row.rstrip() for row in table.splitlines()]
-old = [row.rstrip() for row in old.splitlines()]
+@pytest.mark.parametrize(("lineno"), range(len(L63_old)))
+def test_tables_L63(L63_table, lineno):
+    expected = L63_old[lineno].rstrip()
+    new      = L63_table[lineno].rstrip()
+    assert new == expected
 
-L63 = dict(table=table, old=old)
 
 ##############################
 # L96
 ##############################
-from dapper.mods.Lorenz96.sakov2008 import HMM
+@pytest.fixture(scope="module")
+def L96_table():
+    from dapper.mods.Lorenz96.sakov2008 import HMM
 
-HMM.t.BurnIn = 0
-HMM.t.KObs = 10
+    HMM.t.BurnIn = 0
+    HMM.t.KObs = 10
 
-dpr.set_seed(3000)
+    dpr.set_seed(3000)
 
-# xps
-xps = dpr.xpList()
-xps += dpr.Climatology()
-xps += dpr.OptInterp()
-xps += dpr.Var3D(xB=0.02)
-xps += dpr.ExtKF(infl=6)
-xps += dpr.EnKF("PertObs", N=40, infl=1.06)
-xps += dpr.EnKF("Sqrt", N=28, infl=1.02, rot=True)
+    # xps
+    xps = dpr.xpList()
+    xps += da.Climatology()
+    xps += da.OptInterp()
+    xps += da.Var3D(xB=0.02)
+    xps += da.ExtKF(infl=6)
+    xps += da.EnKF("PertObs", N=40, infl=1.06)
+    xps += da.EnKF("Sqrt", N=28, infl=1.02, rot=True)
 
-xps += dpr.EnKF_N(N=24, rot=True)
-xps += dpr.EnKF_N(N=24, rot=True, xN=2)
-xps += dpr.iEnKS("Sqrt", N=40, infl=1.01, rot=True)
+    xps += da.EnKF_N(N=24, rot=True)
+    xps += da.EnKF_N(N=24, rot=True, xN=2)
+    xps += da.iEnKS("Sqrt", N=40, infl=1.01, rot=True)
 
-xps += dpr.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
-xps += dpr.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
+    xps += da.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
+    xps += da.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
 
-xps.launch(HMM, store_u=True)
+    xps.launch(HMM, store_u=True)
 
-table = xps.tabulate_avrgs(statkeys, decimals=4)
-old = """
+    table = xps.tabulate_avrgs(statkeys, decimals=4)
+    return table.splitlines(True)
+
+
+L96_old = """
     da_method    infl  upd_a     N  rot    xN  loc_rad  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
 --  -----------  ----  -------  --  -----  --  -------  -  -----------------  -----------------  -----------------
  0  Climatology                                         |     0.8334 ±0.2326     0.8334 ±0.2326     0.8334 ±0.2326
@@ -108,22 +137,15 @@ old = """
  8  iEnKS        1.01  Sqrt     40  True                |     0.0254 ±0.0009     0.0255 ±0.0009     0.0254 ±0.0008
  9  LETKF        1.04            7  True    1        4  |     0.0319 ±0.0013     0.0317 ±0.0013     0.0319 ±0.0013
 10  SL_EAKF      1.07            7  True             6  |     0.026  ±0.0017     0.0256 ±0.0014     0.026  ±0.0017
-"""[1:-1]
-
-table = [row.rstrip() for row in table.splitlines()]
-old = [row.rstrip() for row in old.splitlines()]
-
-L96 = dict(table=table, old=old)
+"""[1:-1].splitlines(True)
 
 
-##############################
-# Test definitions
-##############################
-@pytest.mark.parametrize(("lineno"), np.arange(len(L63["table"])))
-def test_tables_L63(lineno):
-    assert L63["table"][lineno] == L63["old"][lineno]
+def test_len96(L96_table):
+    assert len(L96_old) == len(L96_table)
 
 
-@pytest.mark.parametrize(("lineno"), np.arange(len(L96["table"])))
-def test_tables_L96(lineno):
-    assert L96["table"][lineno] == L96["old"][lineno]
+@pytest.mark.parametrize(("lineno"), range(len(L96_old)))
+def test_tables_L96(L96_table, lineno):
+    expected = L96_old[lineno].rstrip()
+    new      = L96_table[lineno].rstrip()
+    assert new == expected

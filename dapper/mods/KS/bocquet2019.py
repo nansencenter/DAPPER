@@ -1,31 +1,31 @@
+"""Settings as in `bib.bocquet2019consistency`."""
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.KS import Model, Tplot
 from dapper.mods.Lorenz96 import LPs
 from dapper.tools.localization import nd_Id_localization
-from dapper.tools.math import Id_Obs
 
 KS = Model(dt=0.5)
 Nx = KS.Nx
 
 # nRepeat=10
-t = dpr.Chronology(KS.dt, dkObs=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
+t = modelling.Chronology(KS.dt, dkObs=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
 
 Dyn = {
     'M': Nx,
     'model': KS.step,
     'linear': KS.dstep_dx,
-    'noise': 0
+    'noise': 0,
 }
 
-X0 = dpr.GaussRV(mu=KS.x0, C=0.001)
+X0 = modelling.GaussRV(mu=KS.x0, C=0.001)
 
-Obs = Id_Obs(Nx)
+Obs = modelling.Id_Obs(Nx)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization((Nx,), (4,))
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 HMM.liveplotters = LPs(np.arange(Nx))
 

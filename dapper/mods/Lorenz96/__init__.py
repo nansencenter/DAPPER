@@ -1,19 +1,25 @@
 """A 1D emulator of chaotic atmospheric behaviour.
 
-From "Predictability -- a problem partly solved" by E. N. Lorenz (1996).
-Proc. Seminar on Predictability, Vol. 1, ECMWF, Reading, Berkshire, UK, 1-18.
+`bib.lorenz1996predictability`
 
 For a short introduction, see
-- demo.py and
+
+- `demo` and
 - "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials
 
-Note: the implementation is ndim-agnostic.
+Note: the implementation is `ndim`-agnostic.
 """
 
 import numpy as np
 
 import dapper.tools.liveplotting as LP
+<<<<<<< HEAD
 from dapper.tools.math import integrate_TLM, is1d, rk4, RK4_adj, RK4_linear
+=======
+from dapper.mods.integration import integrate_TLM, rk4
+
+__pdoc__ = {"demo": False}
+>>>>>>> upstream/dev1
 
 Force = 8.0
 
@@ -39,6 +45,7 @@ def step(x0, t, dt):
 # OPTIONAL (not required by EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
+<<<<<<< HEAD
     # assert is1d(x)
     M = x.shape[-1]
     N = len(x)
@@ -51,6 +58,17 @@ def d2x_dtdx(x):
         F[..., i, md(i+1)] = +x[..., i-1]
         # print(md(i+2))
         F[..., i,   i-1]   = x[..., md(i+1)]-x[..., i-2]
+=======
+    M = len(x)
+    F = np.zeros((M, M))
+    def md(i): return np.mod(i, M)  # modulo
+
+    for i in range(M):
+        F[i   , i]    = -1.0
+        F[i   , i-2]  = -x[i-1]
+        F[i, md(i+1)] = +x[i-1]
+        F[i   , i-1]  = x[md(i+1)]-x[i-2]
+>>>>>>> upstream/dev1
 
     return F
 

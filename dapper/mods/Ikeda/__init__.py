@@ -1,22 +1,24 @@
 """The "Ikeda map" is a discrete-time dynamical system of size 2.
 
-Source: https://en.wikipedia.org/wiki/Ikeda_map and Colin Grudzen.
+Source: [Wiki](https://en.wikipedia.org/wiki/Ikeda_map) and Colin Grudzen.
 
-See `demo.py` for more info.
+See `demo` for more info.
 """
 
 
 import numpy as np
 from numpy import cos, sin
 
-import dapper as dpr
+import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
+
+__pdoc__ = {"demo": False}
 
 # Constant 0.6 <= u <= 1.
 u = 0.9
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def step(x, _t, _dt):
     s, t, x1, y1 = aux(*x)
     return 1+u*x1, u*y1
@@ -38,7 +40,6 @@ x0 = np.zeros(2)
 
 
 def dstep_dx(x, _t, _dt):
-    """Used by ExtKF and 4D-Var"""
     s, t, x1, y1 = aux(*x)
     x, y = x
 
@@ -60,5 +61,5 @@ params = dict(labels='xy')
 def LPs(jj=None, params=params): return [
     (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
     (13, 1, LP.phase_particles(
-        is_3d=False, obs_inds=jj, zoom=0.8,  Tplot=0,  **params)),
+        is_3d=False, obs_inds=jj, zoom=0.8, Tplot=0, **params)),
 ]

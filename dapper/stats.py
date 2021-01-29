@@ -4,16 +4,16 @@ import warnings
 
 import numpy as np
 import scipy.linalg as sla
+import struct_tools
 from matplotlib import pyplot as plt
+from patlib.std import do_once
+from tabulate import tabulate
 
-import dapper.dict_tools as dict_tools
 import dapper.tools.liveplotting as liveplotting
 import dapper.tools.series as series
-import dapper.tools.utils as utils
-from dapper.dict_tools import DotDict
 from dapper.dpr_config import rc
-from dapper.tools.math import unbias_var
 from dapper.tools.matrices import CovMat
+from dapper.tools.progressbar import progbar
 from dapper.tools.series import DataSeries, StatPrint
 
 
@@ -30,7 +30,6 @@ class Stats(StatPrint):
         add custom stat. series to a Stat instance within a particular method,
         for example. Use ``new_series`` to get automatic averaging too.
         """
-
         ######################################
         # Preamble
         ######################################
@@ -47,7 +46,7 @@ class Stats(StatPrint):
         Nx   = xx.shape[1]
         KObs = yy.shape[0]-1
         Ny   = yy.shape[1]
-        self.K,    self.Nx = K, Nx
+        self.K   , self.Nx = K, Nx
         self.KObs, self.Ny = KObs, Ny
 
         # Methods for summarizing multivariate stats ("fields") as scalars
@@ -59,8 +58,8 @@ class Stats(StatPrint):
             gm  = lambda x: np.exp(np.mean(np.log(x))),  # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = dict_tools.intersect(self.field_summaries,
-                                                    rc.field_summaries)
+        self.field_summaries = struct_tools.intersect(self.field_summaries,
+                                                      rc.field_summaries)
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
@@ -73,13 +72,13 @@ class Stats(StatPrint):
         ######################################
         # Allocate time series of various stats
         ######################################
-        self.new_series('mu',     Nx, MS='sec')  # Mean
-        self.new_series('std',    Nx, MS='sec')  # Std. dev. ("spread")
-        self.new_series('err',    Nx, MS='sec')  # Error (mu - truth)
+        self.new_series('mu'    , Nx, MS='sec')  # Mean
+        self.new_series('std'   , Nx, MS='sec')  # Std. dev. ("spread")
+        self.new_series('err'   , Nx, MS='sec')  # Error (mu - truth)
         self.new_series('gscore', Nx, MS='sec')  # Gaussian (log) score
 
         # To save memory, we only store these field means:
-        self.new_series('mad',  1)  # Mean abs deviations
+        self.new_series('mad' , 1)  # Mean abs deviations
         self.new_series('skew', 1)  # Skewness
         self.new_series('kurt', 1)  # Kurtosis
 
@@ -106,13 +105,13 @@ class Stats(StatPrint):
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series('trHK',  1, KObs+1)
-        self.new_series('infl',  1, KObs+1)
+        self.new_series('trHK' , 1, KObs+1)
+        self.new_series('infl' , 1, KObs+1)
         self.new_series('iters', 1, KObs+1)
 
         # Weight-related
-        self.new_series('N_eff',  1, KObs+1)
-        self.new_series('wroot',  1, KObs+1)
+        self.new_series('N_eff' , 1, KObs+1)
+        self.new_series('wroot' , 1, KObs+1)
         self.new_series('resmpl', 1, KObs+1)
 
     def new_series(self, name, shape, length='FAUSt', MS=False, **kws):
@@ -120,14 +119,15 @@ class Stats(StatPrint):
 
         Series are initialized with nan's.
 
-        Example: Create ndarray of length KObs+1 for inflation time series:
-        >>> self.new_series('infl', 1, KObs+1)
+        Example
+        -------
+        Create ndarray of length KObs+1 for inflation time series:
+        >>> self.new_series('infl', 1, KObs+1)  # doctest: +SKIP
 
         NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``'s
             to avoid plotting stats that are not being used.
             => Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
         """
-
         # Convert int shape to tuple
         if not hasattr(shape, '__len__'):
             if shape == 1:
@@ -157,7 +157,7 @@ class Stats(StatPrint):
             if MS == 'sec':
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split('.')
-                    make_series(dict_tools.deep_getattr(
+                    make_series(struct_tools.deep_getattr(
                         self, f"{name}.{suffix}"), sector, ())
 
     @property
@@ -176,7 +176,6 @@ class Stats(StatPrint):
               the forecast/analysis/universal attribute.
               Default: 'u' if kObs is None else 'au' ('a' and 'u').
         """
-
         # Initial consistency checks.
         if k == 0:
             if kObs is not None:
@@ -230,7 +229,7 @@ class Stats(StatPrint):
 
             # Write current stats to series
             for name, val in stats_now.items():
-                stat = dict_tools.deep_getattr(self, name)
+                stat = struct_tools.deep_getattr(self, name)
                 isFaust = isinstance(stat, series.FAUSt)
                 stat[(k, kObs, sub) if isFaust else kObs] = val
 
@@ -242,7 +241,7 @@ class Stats(StatPrint):
                     self, self.liveplots, (k, kObs, sub), E, Cov)
 
     def summarize_marginals(self, now):
-        "Compute Mean-field and RMS values"
+        """Compute Mean-field and RMS values"""
         formulae = {**self.field_summaries, **self.sector_summaries}
 
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -250,7 +249,7 @@ class Stats(StatPrint):
                 field = now[stat]
                 for suffix, formula in formulae.items():
                     statpath = stat+'.'+suffix
-                    if dict_tools.deep_hasattr(self, statpath):
+                    if struct_tools.deep_hasattr(self, statpath):
                         now[statpath] = formula(field)
 
     def derivative_stats(self, now):
@@ -418,7 +417,6 @@ class Stats(StatPrint):
         .. note:: Ensembles are generally not stored in the stats
         and so cannot be replayed.
         """
-
         # Time settings
         chrono = self.HMM.t
         if t2 is None:
@@ -442,7 +440,7 @@ class Stats(StatPrint):
         desc = self.xp.da_method + " (replay)"
 
         # Play through assimilation cycles
-        for k, kObs, t, dt in utils.progbar(chrono.ticker, desc):
+        for k, kObs, t, _dt in progbar(chrono.ticker, desc):
             if t1 <= t <= t2:
                 if kObs is not None:
                     LP.update((k, kObs, 'f'), None, None)
@@ -452,7 +450,7 @@ class Stats(StatPrint):
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
         if LP.any_figs:
-            for name, (num, updater) in LP.figures.items():
+            for _name, (num, updater) in LP.figures.items():
                 if plt.fignum_exists(num) and getattr(updater, 'is_active', 1):
                     plt.figure(num)
                     plt.pause(0.01)
@@ -465,7 +463,7 @@ def register_stat(self, name, value):
     self.stat_register.append(name)
 
 
-class Avrgs(StatPrint, DotDict):
+class Avrgs(StatPrint, struct_tools.DotDict):
     """A DotDict specialized for stat. averages.
 
     Embellishments:
@@ -476,19 +474,18 @@ class Avrgs(StatPrint, DotDict):
 
     def tabulate(self, statkeys=()):
         columns = tabulate_avrgs([self], statkeys, decimals=None)
-        return utils.tab(columns, headers="keys").replace('␣', ' ')
+        return tabulate(columns, headers="keys").replace('␣', ' ')
 
     abbrevs = {'rmse': 'err.rms', 'rmss': 'std.rms', 'rmv': 'std.rms'}
 
     # Use getattribute coz it gets called before getattr.
     def __getattribute__(self, key):
         """Support deep and abbreviated lookup."""
-
         # key = abbrevs[key] # Instead of this, also support rmse.a:
         key = '.'.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split('.'))
 
         if "." in key:
-            return dict_tools.deep_getattr(self, key)
+            return struct_tools.deep_getattr(self, key)
         else:
             return super().__getattribute__(key)
 
@@ -504,7 +501,7 @@ class Avrgs(StatPrint, DotDict):
 # ...
 
 
-@utils.do_once
+@do_once
 def warn_zero_variance(err, flag):
     msg = "\n".join(["Numerical error in stat comps.",
                      "Probably caused by a sample variance of 0."])
@@ -524,7 +521,6 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
       Custom ``frmt`` also supported.
     - Pad (on the right) each row so that the widths are equal.
     """
-
     def preprocess(x):
         try:
             # Custom frmt supplied
@@ -552,7 +548,7 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
 
     # Make text column, aligned
     col = [[preprocess(x)] for x in col]
-    col = utils.tab(col, [header], 'plain')
+    col = tabulate(col, [header], 'plain')
     col = col.split("\n")  # NOTE: dont use splitlines (removes empty lines)
 
     # Undo nan/inf treatment
@@ -568,25 +564,35 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
     return col
 
 
-def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
-    """Make array whose (named) cols are `[uq.col for uq in uq_list]`.
+def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
+    """Make `uq_list` into array with named columns of attributes.
 
-    Embellishments:
-    - Insert None (in each col) if uq is None.
-    - Apply uq.round() when extracting val & conf.
+    None is inserted (in each col) if `uq` itself is None.
+
+    Parameters
+    ----------
+    uqlist: list
+        List of objects.
+
+    decimals: int
+        Desired number of decimals.
+        Used for the columns "val" and "prec", and only these.
+        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
+
+    cols: tuple[str]
+        Names of columns to extract.
     """
-
     def unpack1(arr, i, uq):
         if uq is None:
             return
-        # val/conf
+        # Columns: val/prec
         if decimals is None:
             v, c = uq.round()
         else:
-            v, c = np.round([uq.val, uq.conf], decimals)
-        arr["val"][i], arr["conf"][i] = v, c
-        # Others
-        for col in dict_tools.complement(cols, ["val", "conf"]):
+            v, c = np.round([uq.val, uq.prec], decimals)
+        arr["val"][i], arr["prec"][i] = v, c
+        # Columns: others
+        for col in struct_tools.complement(cols, ["val", "prec"]):
             try:
                 arr[col][i] = getattr(uq, col)
             except AttributeError:
@@ -602,8 +608,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "conf")):
 
 
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
-    """Tabulate avrgs (val±conf)."""
-
+    """Tabulate avrgs (val±prec)."""
     if not statkeys:
         statkeys = ['rmse.a', 'rmv.a', 'rmse.f']
 
@@ -611,10 +616,68 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     for stat in statkeys:
         column = unpack_uqs(
             [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals   = align_col(column["val"], stat)
-        confs  = align_col(column["conf"], '1σ')
-        headr  = vals[0]+'  1σ'
-        mattr  = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
+        vals  = align_col(column["val"], stat)
+        confs = align_col(column["prec"], '1σ')
+        headr = vals[0]+'  1σ'
+        mattr = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
         columns[headr] = mattr
 
     return columns
+
+
+def center(E, axis=0, rescale=False):
+    """Center ensemble.
+
+    Makes use of `np` features: keepdims and broadcasting.
+
+    Parameters
+    ----------
+    rescale: bool
+        Whether to inflate to compensate for reduction in the expected variance.
+
+    Returns
+    -------
+    Centered ensemble, and its mean.
+    """
+    x = np.mean(E, axis=axis, keepdims=True)
+    X = E - x
+
+    if rescale:
+        N = E.shape[axis]
+        X *= np.sqrt(N/(N-1))
+
+    x = x.squeeze()
+
+    return X, x
+
+
+def mean0(E, axis=0, rescale=True):
+    """Center, but only return the anomalies (not the mean)."""
+    return center(E, axis=axis, rescale=rescale)[0]
+
+
+def inflate_ens(E, factor):
+    """Inflate the ensemble (center, inflate, re-combine)."""
+    if factor == 1:
+        return E
+    X, x = center(E)
+    return x + X*factor
+
+
+def weight_degeneracy(w, prec=1e-10):
+    """Check if the weights are degenerate."""
+    return (1-w.max()) < prec
+
+
+def unbias_var(w=None, N_eff=None, avoid_pathological=False):
+    """Compute unbias-ing factor for variance estimation.
+
+    [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
+    """
+    if N_eff is None:
+        N_eff = 1/(w@w)
+    if avoid_pathological and weight_degeneracy(w):
+        ub = 1  # Don't do in case of weights collapse
+    else:
+        ub = 1/(1 - 1/N_eff)  # =N/(N-1) if w==ones(N)/N.
+    return ub

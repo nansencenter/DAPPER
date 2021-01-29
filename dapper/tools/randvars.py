@@ -1,37 +1,39 @@
 """Classes of random variables."""
 
 import numpy as np
+import numpy.random as rnd
 from numpy import sqrt
-from numpy.random import rand, randn
+from struct_tools import NicePrint
 
-from dapper.dict_tools import NicePrint
-from dapper.tools.math import exactly_1d
 from dapper.tools.matrices import CovMat
 
 
 class RV(NicePrint):
-    "Class to represent random variables."
+    """Class to represent random variables."""
 
     printopts = NicePrint.printopts.copy()
     printopts["ordering"] = "linenumber"
     printopts["reverse"] = True
 
     def __init__(self, M, **kwargs):
-        """
-         - M    <int>     : ndim
-         - is0  <bool>    : if True, the random variable is identically 0
-         - func <func(N)> : use this sampling function. Example:
-                            RV(M=4,func=lambda N: rand(N,4)
-         - file <str>     : draw from file. Example:
-                            RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')
+        """Initalization arguments:
+
+        - M    <int>     : ndim
+        - is0  <bool>    : if True, the random variable is identically 0
+        - func <func(N)> : use this sampling function. Example:
+                           `RV(M=4,func=lambda N: rand(N,4)`
+        - file <str>     : draw from file. Example:
+                           `RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')`
+
         The following kwords (versions) are available,
         but should not be used for anything serious
-        (use instead subclasses, like GaussRV).
-         - icdf <func(x)> : marginal/independent  "inverse transform" sampling.
-                            Example: RV(M=4,icdf = scipy.stats.norm.ppf)
-         - cdf <func(x)>  : as icdf, but with approximate icdf, from interpolation.
-                            Example: RV(M=4,cdf = scipy.stats.norm.cdf)
-         - pdf  <func(x)> : "acceptance-rejection" sampling. Not implemented.
+        (use instead subclasses, like `GaussRV`).
+
+        - icdf <func(x)> : marginal/independent  "inverse transform" sampling.
+                           Example: `RV(M=4,icdf = scipy.stats.norm.ppf)`
+        - cdf <func(x)>  : as icdf, but with approximate icdf, from interpolation.
+                           Example: `RV(M=4,cdf = scipy.stats.norm.cdf)`
+        - pdf  <func(x)> : "acceptance-rejection" sampling. Not implemented.
         """
         self.M = M
         for key, value in kwargs.items():
@@ -53,12 +55,12 @@ class RV(NicePrint):
                 w = data['w']
             else:
                 w = np.ones(N0)/N0
-            idx = np.random.choice(N0, N, replace=True, p=w)
+            idx = rnd.choice(N0, N, replace=True, p=w)
             E   = sample[idx]
         elif hasattr(self, 'icdf'):
             # Independent "inverse transform" sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rand(N, self.M)
+            uu   = rnd.rand(N, self.M)
             E    = icdf(uu)
         elif hasattr(self, 'cdf'):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -67,13 +69,13 @@ class RV(NicePrint):
                 from scipy.interpolate import interp1d
                 from scipy.optimize import fsolve
                 cdf    = self.cdf
-                Left,  = fsolve(lambda x: cdf(x) - 1e-9, 0.1)
-                Right, = fsolve(lambda x: cdf(x) - (1-1e-9), 0.1)
+                Left,  = fsolve(lambda x: cdf(x) - 1e-9, 0.1)  # noqa
+                Right, = fsolve(lambda x: cdf(x) - (1-1e-9), 0.1)  # noqa
                 xx     = np.linspace(Left, Right, 1001)
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu, xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = rand(N, self.M)
+            uu = rnd.rand(N, self.M)
             E  = self.icdf_interp(uu)
         elif hasattr(self, 'pdf'):
             # "acceptance-rejection" sampling
@@ -94,13 +96,13 @@ class RV_with_mean_and_cov(RV):
 
     def __init__(self, mu=0, C=0, M=None):
         """Init allowing for shortcut notation."""
-
         if isinstance(mu, CovMat):
             raise TypeError("Got a covariance paramter as mu. "
                             + "Use kword syntax (C=...) ?")
 
         # Set mu
-        mu = exactly_1d(mu)
+        mu = np.atleast_1d(mu)
+        assert mu.ndim == 1
         if len(mu) > 1:
             if M is None:
                 M = len(mu)
@@ -145,9 +147,9 @@ class RV_with_mean_and_cov(RV):
     def sample(self, N):
         """Sample N realizations. Returns N-by-M (ndim) sample matrix.
 
-        Example::
-
-        >>> plt.scatter(*(UniRV(C=randcov(2)).sample(10**4).T))
+        Example
+        -------
+        >>> plt.scatter(*(UniRV(C=randcov(2)).sample(10**4).T))  # doctest: +SKIP
         """
         if self.C == 0:
             D = np.zeros((N, self.M))
@@ -164,41 +166,38 @@ class GaussRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn(N, len(R)) @ R
+        D = rnd.randn(N, len(R)) @ R
         return D
 
 
 class LaplaceRV(RV_with_mean_and_cov):
-    """
-    Laplace (double exponential) multivariate random variable.
+    """Laplace (double exponential) multivariate random variable.
+
     This is an elliptical generalization. Ref:
     Eltoft (2006) "On the Multivariate Laplace Distribution".
     """
 
     def _sample(self, N):
         R = self.C.Right
-        z = np.random.exponential(1, N)
-        D = randn(N, len(R))
+        z = rnd.exponential(1, N)
+        D = rnd.randn(N, len(R))
         D = z[:, None]*D
         return D @ R / sqrt(2)
 
 
 class LaplaceParallelRV(RV_with_mean_and_cov):
-    """
-    A NON-elliptical multivariate generalization of
-    the Laplace (double exponential) random variable.
-    """
+    """A NON-elliptical multivariate version of Laplace (double exponential) RV."""
 
     def _sample(self, N):
         # R = self.C.Right   # contour: sheared rectangle
         R = self.C.sym_sqrt  # contour: rotated rectangle
-        D = np.random.laplace(0, 1, (N, len(R)))
+        D = rnd.laplace(0, 1, (N, len(R)))
         return D @ R / sqrt(2)
 
 
 class StudRV(RV_with_mean_and_cov):
-    """
-    Student-t multivariate random variable.
+    """Student-t multivariate random variable.
+
     Assumes the covariance exists,
     which requires degreee-of-freedom (dof) > 1+ndim.
     Also requires that dof be integer,
@@ -212,35 +211,35 @@ class StudRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         nu = self.dof
-        r = nu/np.sum(randn(N, nu)**2, axis=1)  # InvChi2
-        D = sqrt(r)[:, None]*randn(N, len(R))
+        r = nu/np.sum(rnd.randn(N, nu)**2, axis=1)  # InvChi2
+        D = sqrt(r)[:, None]*rnd.randn(N, len(R))
         return D @ R * sqrt((nu-2)/nu)
 
 
 class UniRV(RV_with_mean_and_cov):
-    """
-    Uniform multivariate random variable.
-    with an elliptic-shape support.
+    """Uniform multivariate random variable.
+
+    Has an elliptic-shape support.
     Ref: Voelker et al. (2017) "Efficiently sampling
     vectors and coordinates from the n-sphere and n-ball"
     """
 
     def _sample(self, N):
         R = self.C.Right
-        D = randn(N, len(R))
-        r = rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
+        D = rnd.randn(N, len(R))
+        r = rnd.rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None]*D
         return D @ R * 2
 
 
 class UniParallelRV(RV_with_mean_and_cov):
-    """
-    Uniform multivariate random variable,
-    with a parallelogram-shaped support, as determined by the cholesky factor
+    """Uniform multivariate random variable.
+
+    Has a parallelogram-shaped support, as determined by the cholesky factor
     applied to the (corners of) the hypercube.
     """
 
     def _sample(self, N):
         R = self.C.Right
-        D = rand(N, len(R))-0.5
+        D = rnd.rand(N, len(R))-0.5
         return D @ R * sqrt(12)

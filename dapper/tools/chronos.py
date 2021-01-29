@@ -1,10 +1,7 @@
 """Time sequence management, notably Chronology and Ticker."""
 
 import numpy as np
-
-import dapper.dict_tools as dict_tools
-import dapper.tools.utils as utils
-from dapper.tools.math import is_int
+from struct_tools import AlignedDict
 
 
 class Chronology():
@@ -64,7 +61,7 @@ class Chronology():
                 assert abs(dtObs - dkObs*dt) < dt*1e-9
             else:
                 raise TypeError('Unable to interpret time setup')
-        assert is_int(dkObs)
+        assert isinstance(dkObs, int)
         if not K:
             if T:
                 K = round(T/dt)
@@ -172,12 +169,12 @@ class Chronology():
     # Burn In. NB: uses > (strict inequality)
     @property
     def mask_BI(self):
-        "Example use: `kk_BI = kk[mask_BI]`"
+        """Example use: `kk_BI = kk[mask_BI]`"""
         return self.tt > self.BurnIn
 
     @property
     def maskObs_BI(self):
-        "Example use: `kkObs_BI = kkObs[maskObs_BI]`"
+        """Example use: `kkObs_BI = kkObs[maskObs_BI]`"""
         return self.ttObs > self.BurnIn
 
     ######################################
@@ -185,7 +182,7 @@ class Chronology():
     ######################################
     @property
     def ticker(self):
-        """"Fancy version of `range(1,K+1)`.
+        """Fancy version of `range(1,K+1)`.
 
         Also yields `t`, `dt`, and `kObs`.
         """
@@ -205,16 +202,16 @@ class Chronology():
 
     def __str__(self):
         printable = ['K', 'KObs', 'T', 'BurnIn', 'dtObs', 'dt']
-        return str(dict_tools.AlignedDict([(k, getattr(self, k)) for k in printable]))
+        return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):
-        return utils.repr_type_and_name(self) + "\n" + str(self)
+        return "<" + type(self).__name__ + '>' + "\n" + str(self)
 
     ######################################
     # Utilities
     ######################################
     def copy(self):
-        "Copy via state vars."
+        """Copy via state vars."""
         return Chronology(dt=self.dt, dkObs=self.dkObs, K=self.K, BurnIn=self.BurnIn)
 
     def __eq__(self, other):

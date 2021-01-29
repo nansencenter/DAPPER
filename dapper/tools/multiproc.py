@@ -43,33 +43,29 @@ import threadpoolctl
 threadpoolctl.threadpool_limits(1)
 
 
-def map(func, xx, **kwargs):
+def map(func, xx, **kwargs):  # noqa
     """A parallelized version of map.
 
-    Similar to:
+    Similar to `result = [func(x, **kwargs) for x in xx]`, but also deals with:
 
-    >>> result = [func(x, **kwargs) for x in xx]
-
-    Also deals with:
-
-     - passing kwargs
-     - join(), close()
+    - passing kwargs
+    - join(), close()
+    - KeyboardInterrupt (not any more)
 
     Note: in contrast to reading operations, writing "in-place"
     does not work with multiprocessing. This changes with
     "shared" arrays, but this has not been tried out here.
-    Multithreading shares memory,
+    By contrast, multithreading shares the memory,
     but was significantly slower in the tested (pertinent) cases.
 
     NB: multiprocessing does not mix with matplotlib,
-        so ensure ``func`` does not reference ``self.stats.LP_instance``,
-        where ``self`` is a ``@da_method`` object.
-        In fact, ``func`` should not reference ``self`` at all,
+        so ensure `func` does not reference `self.stats.LP_instance`,
+        where `self` is a `@da_method` object.
+        In fact, `func` should not reference `self` at all,
         because its serialization is rather slow.
 
     See example use in `dapper.mods.QG`
     """
-
     NPROC = None  # None => multiprocessing.cpu_count()
     pool = mpd.Pool(NPROC)
 

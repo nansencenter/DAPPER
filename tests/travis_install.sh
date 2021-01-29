@@ -5,15 +5,15 @@
 # in the .travis.yml in the top level folder of the project.
 #
 # This script is inspired by Scikit-Learn (http://scikit-learn.org/)
-#
-# THIS SCRIPT IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
 
 set -e
 
 if [[ "$DISTRIB" == "conda" ]]; then
     # Deactivate the travis-provided virtual environment and setup a
     # conda-based environment instead
-    deactivate
+    if [ "$TRAVIS_OS_NAME" != "osx" ]; then
+        deactivate
+    fi
 
     if [[ -f "$HOME/miniconda/bin/conda" ]]; then
         echo "Skip install conda [cached]"
@@ -25,8 +25,13 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
         # Use the miniconda installer for faster download / install of conda
         # itself
-        wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-            -O miniconda.sh
+        if [ "$TRAVIS_OS_NAME" != "osx" ]; then
+            wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+                -O miniconda.sh
+        else
+            wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
+                -O miniconda.sh
+        fi
         chmod +x miniconda.sh && ./miniconda.sh -b -p $HOME/miniconda
     fi
     export PATH=$HOME/miniconda/bin:$PATH
@@ -36,17 +41,17 @@ if [[ "$DISTRIB" == "conda" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     # (prefer local venv, since the miniconda folder is cached)
-    conda create -p ./.venv --yes python=${PYTHON_VERSION} pip virtualenv
-    source activate ./.venv
+    conda create -p ./venv --yes python=${PYTHON_VERSION} pip virtualenv
+    source activate ./venv
 fi
 
 # for all
 pip install -U pip setuptools
-pip install tox
-pip install pytest pytest-cov
+#pip install tox
+pip install pytest
 
 if [[ "$COVERAGE" == "true" ]]; then
-    pip install -U pytest-cov pytest-virtualenv coverage coveralls flake8 pre-commit
+    pip install -U pytest-cov pytest-virtualenv coverage coveralls pre-commit
 fi
 
 

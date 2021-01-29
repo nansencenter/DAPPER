@@ -1,24 +1,19 @@
-"""Set-up as in Sakov's 2008 article in Tellus
-"A deterministic formulation of the ensemble Kalman filter:
-an alternative to ensemble square root filters",
+"""Settings as in `bib.sakov2008deterministic`.
 
-Similar to the 1998 MWR article by E. N. Lorenz and K. A. Emanuel:
-'Optimal Sites for Supplementary Weather Observations:
-Simulation with a Small Model',
-except that the observations are from the entire state.
+This HMM is used (with small variations) in many DA papers, for example
 
-This HMM is used (with small variations) in many DA papers,
-some of which are mentioned below.
+`bib.bocquet2011ensemble`, `bib.sakov2012iterative`,
+`bib.bocquet2015expanding`, `bib.bocquet2013joint`.
 """
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz96 import LPs, Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
-t = dpr.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
+t = modelling.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
 
 Nx = 40
 x0 = x0(Nx)
@@ -27,17 +22,17 @@ Dyn = {
     'M': Nx,
     'model': step,
     'linear': dstep_dx,
-    'noise': 0
+    'noise': 0,
 }
 
-X0 = dpr.GaussRV(mu=x0, C=0.001)
+X0 = modelling.GaussRV(mu=x0, C=0.001)
 
 jj = np.arange(Nx)  # obs_inds
-Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization((Nx,), (2,))
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 HMM.liveplotters = LPs(jj)
 

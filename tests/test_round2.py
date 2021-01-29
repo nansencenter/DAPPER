@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-import dapper.tools.math as dm
+from dapper.tools.rounding import round2, round2sigfig
 
 
 class ca(float):
@@ -18,27 +18,14 @@ class ca(float):
     """
 
     def __new__(cls, val, tol=1e-5):
+        """From <https://stackoverflow.com/q/35943789>."""
         self = super().__new__(cls, val)
         self.tol = tol
         return self
 
     def __eq__(self, other):
+        """Make equality comparison approximate."""
         return np.isclose(self, other, self.tol)
-
-
-# Demonstrate `ca`.
-numbers = [
-    1 + 1e-6,
-    1 + 1e-4,
-]
-for x in numbers:
-    print("\nx:", x)
-    values = {
-        "=": x,
-        "≈": ca(x),
-    }
-    for mode, x2 in values.items():
-        print(f"x {mode} 1 {mode} x:", x2 == 1 == x2)
 
 
 # Test cases for round2sigfig
@@ -112,18 +99,34 @@ lst2 = [
 # print(p)
 # for x in range(10):
 #     x = 148.5 + .1*x
-#     print(f"x: {x:.1f}:", dm.round2(x, p))
+#     print(f"x: {x:.1f}:", round2(x, p))
 
 
 @pytest.mark.parametrize("x, p, y", lst1)
 def test_round2sigfig(x, p, y):
-    rounded = dm.round2sigfig(x, p).item()
+    rounded = round2sigfig(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired
 
 
 @pytest.mark.parametrize("x, p, y", lst2)
 def test_round2(x, p, y):
-    rounded = dm.round2(x, p).item()
+    rounded = round2(x, p)
     desired = ca(y, 1e-9)
     assert rounded == desired
+
+
+if __name__ == "__main__":
+    # Demonstrate `ca`.
+    numbers = [
+        1 + 1e-6,
+        1 + 1e-4,
+    ]
+    for x in numbers:
+        print("\nx:", x)
+        values = {
+            "=": x,
+            "≈": ca(x),
+        }
+        for mode, x2 in values.items():
+            print(f"x {mode} 1 {mode} x:", x2 == 1 == x2)

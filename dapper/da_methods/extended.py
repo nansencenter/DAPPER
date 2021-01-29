@@ -2,14 +2,15 @@
 
 import numpy as np
 
-from dapper.admin import da_method
-from dapper.tools.math import mrdiv
-from dapper.tools.utils import progbar
+from dapper.tools.linalg import mrdiv
+from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method()
 class ExtKF:
-    """The extended Kalman filter. A baseline/reference method.
+    """The extended Kalman filter.
 
     If everything is linear-Gaussian, this provides the exact solution
     to the Bayesian filtering equations.
@@ -20,6 +21,7 @@ class ExtKF:
       infl_per_unit_time == infl.
       Specifying it this way (per unit time) means less tuning.
     """
+
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
@@ -59,8 +61,8 @@ class ExtKF:
 # TODO 5: Clean up
 @da_method()
 class ExtRTS:
-    """
-    """
+    """The extended Rauch-Tung-Striebel (or "two-pass") smoother."""
+
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):

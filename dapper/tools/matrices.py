@@ -5,11 +5,8 @@ import functools
 import numpy as np
 import scipy.linalg as sla
 from numpy import ones, sqrt, zeros
-from numpy.random import randn
 
-import dapper.tools.utils as utils
-from dapper.tools.math import (exactly_1d, exactly_2d, mrdiv, svd0,
-                               truncate_rank)
+from dapper.tools.linalg import mrdiv, svd0, truncate_rank
 
 
 class lazy_property:
@@ -35,7 +32,7 @@ class lazy_property:
 def randcov(M):
     """(Makeshift) random cov mat."""
     N = int(np.ceil(2+M**1.2))
-    E = randn(N, M)
+    E = np.random.randn(N, M)
     return E.T @ E
 
 
@@ -50,7 +47,7 @@ def genOG(M):
     """Generate random orthonormal matrix."""
     # TODO 5: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
-    Q, R = sla.qr(randn(M, M))
+    Q, R = sla.qr(np.random.randn(M, M))
     for i in range(M):
         if R[i, i] < 0:
             Q[:, i] = -Q[:, i]
@@ -58,14 +55,13 @@ def genOG(M):
 
 
 def genOG_modified(M, opts=(0, 1.0)):
-    """genOG with modifications.
+    """Do `genOG` with modifications.
 
     Caution: although 'degree' ∈ (0,1) for all versions,
              they're not supposed going to be strictly equivalent.
 
     Testing: scripts/sqrt_rotations.py
     """
-
     # Parse opts
     if not opts:
         # Shot-circuit in case of False or 0
@@ -84,7 +80,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         dc = 1/degree  # = "while"
         # Retrieve/store persistent variable
         counter = getattr(genOG_modified, "counter", 0) + 1
-        setattr(genOG_modified, "counter", counter)
+        genOG_modified.counter = counter
         # Compute rot or skip
         if np.mod(counter, dc) < 1:
             Q = genOG(M)
@@ -123,8 +119,8 @@ def basis_beginning_with_ones(ndim):
 
 
 def genOG_1(N, opts=()):
-    """
-    Random orthonormal mean-preserving matrix.
+    """Random orthonormal mean-preserving matrix.
+
     Source: ienks code of Sakov/Bocquet.
     """
     V = basis_beginning_with_ones(N)
@@ -138,12 +134,12 @@ def genOG_1(N, opts=()):
 def funm_psd(a, fun, check_finite=False):
     """Matrix function evaluation for pos-sem-def mat.
 
-    Adapted from sla.funm() doc.
+    Adapted from `sla.funm` doc.
 
-    Example::
-
+    Example
+    -------
     >>> def sqrtm_psd(A):
-    >>>     return funm_psd(A, sqrt)
+    ...     return funm_psd(A, sqrt)
     """
     w, v = sla.eigh(a, check_finite=check_finite)
     w = np.maximum(w, 0)
@@ -152,15 +148,17 @@ def funm_psd(a, fun, check_finite=False):
 
 
 def chol_reduce(Right):
-    """Return rnk-by-ndim R such that Right.T@Right - R.T@R ≈ 0.
+    """Return rnk-by-ndim R such that `R.T@R - R.T@R ≈ 0`.
 
-    Example::
-
-    >>> A = dpr.mean0(randn(20,5),axis=1)
-    >>> C = A.T @ A
+    Example
+    -------
+    >>> from dapper.stats import mean0
+    >>> X = mean0(np.random.randn(20, 5), axis=1)
+    >>> C = X.T @ X
     >>> # sla.cholesky(C) throws error
-    >>> R = chol_reduce(A)
-    >>> R.shape[1] == 4
+    >>> R = chol_reduce(X)
+    >>> R.shape[1] == 5
+    True
     """
     _, sig, UT = sla.svd(Right, full_matrices=False)
     R = sig[:, None]*UT
@@ -182,25 +180,20 @@ class CovMat():
 
     Main tasks:
 
-      - Unifying the covariance representations:
-        full, diagonal, reduced-rank sqrt.
-      - Convenience constructor and printing.
-      - Convenience transformations with memoization.
-        E.g. replaces:
-
-            >>> if not hasattr(noise.C,'sym_sqrt'):
-            >>>     S = funm_psd(noise.C, sqrt)
-            >>>     noise.C.sym_sqrt = S
-
-        This (hiding it internally) becomes particularly useful
-        if the covariance matrix changes with time (but repeat).
+    - Unify the covariance representations: full, diagonal, reduced-rank sqrt.
+    - Streamline init. and printing.
+    - Convenience transformations with caching/memoization.
+      This (hiding it internally) would be particularly useful
+      if the covariance matrix changes with time (but repeat).
     """
 
     ##################################
     # Init
     ##################################
     def __init__(self, data, kind='full_or_diag', trunc=1.0):
-        """The covariance (say P) can be input (specified in the following ways):
+        """Construct object.
+
+        The covariance (say P) can be input (specified in the following ways):
 
             kind    | data
             --------|-------------
@@ -211,7 +204,6 @@ class CovMat():
             'Right' | any R such that P = R.T@R (e.g. weighted form of 'A')
             'Left'  | any L such that P = L@L.T
         """
-
         # Cascade if's down to 'Right'
         if kind == 'E':
             mu      = np.mean(data, 0)
@@ -228,7 +220,8 @@ class CovMat():
             # If a cholesky factor has been input, we will not
             # automatically go for the EVD, seeing as e.g. the
             # diagonal can be computed without it.
-            R       = exactly_2d(data)
+            R       = np.atleast_2d(data)
+            assert R.ndim == 2
             self._R = R
             self._m = R.shape[1]
         else:
@@ -241,7 +234,8 @@ class CovMat():
             if kind == 'full':
                 # If full has been imput, then we have memory for an EVD,
                 # which will probably be put to use in the DA.
-                C           = exactly_2d(data)
+                C           = np.atleast_2d(data)
+                assert C.ndim == 2
                 self._C     = C
                 M           = len(C)
                 d, V        = sla.eigh(C)
@@ -254,7 +248,8 @@ class CovMat():
                 # With diagonal input, it would be great to use a sparse
                 # (or non-existant) representation of V,
                 # but that would require so much other adaption of other code.
-                d         = exactly_1d(data)
+                d         = np.atleast_1d(data)
+                assert d.ndim == 1
                 self.diag = d
                 M         = len(d)
                 if np.all(d == d[0]):
@@ -269,7 +264,7 @@ class CovMat():
                     d = d[idx][:rk]
                     # Make rectangular V that un-sorts d
                     V = zeros((M, rk))
-                    V[idx[:rk],  np.arange(rk)] = 1
+                    V[idx[:rk], np.arange(rk)] = 1
                 self._assign_EVD(M, rk, d, V)
             else:
                 raise KeyError
@@ -283,7 +278,7 @@ class CovMat():
 
     @property
     def M(self):
-        """ndims"""
+        """`ndims`"""
         return self._m
 
     @property
@@ -301,7 +296,7 @@ class CovMat():
     ##################################
     @property
     def full(self):
-        "Full covariance matrix"
+        """Full covariance matrix"""
         if hasattr(self, '_C'):
             return self._C
         else:
@@ -311,7 +306,7 @@ class CovMat():
 
     @lazy_property
     def diag(self):
-        "Diagonal of covariance matrix"
+        """Diagonal of covariance matrix"""
         if hasattr(self, '_C'):
             return np.diag(self._C)
         else:
@@ -319,8 +314,13 @@ class CovMat():
 
     @property
     def Left(self):
-        """L such that C = L@L.T. Note that L is typically rectangular, but not triangular,
-        and that its width is somewhere betwen the rank and M."""
+        """Left sqrt.
+
+        `L` such that $$ C = L L^T .$$
+
+        Note that `L` is typically rectangular, but not triangular,
+        and that its width is somewhere betwen the rank and `M`.
+        """
         if hasattr(self, '_R'):
             return self._R.T
         else:
@@ -328,8 +328,7 @@ class CovMat():
 
     @property
     def Right(self):
-        """R such that C = R.T@R. Note that R is typically rectangular, but not triangular,
-        and that its height is somewhere betwen the rank and M."""
+        """Right sqrt. Ref `CovMat.Left`."""
         if hasattr(self, '_R'):
             return self._R
         else:
@@ -361,7 +360,7 @@ class CovMat():
 
     def has_done_EVD(self):
         """Whether or not eigenvalue decomposition has been done for matrix."""
-        return all([key in vars(self) for key in ['_V', '_d', '_rk']])
+        return all(key in vars(self) for key in ['_V', '_d', '_rk'])
 
     @property
     def ews(self):
@@ -385,10 +384,7 @@ class CovMat():
     # transform_by properties
     ##################################
     def transform_by(self, fun):
-        """Generalize scalar functions to covariance matrices
-        (via Taylor expansion).
-        """
-
+        """Generalize scalar functions to covariance matrices (via Taylor expansion)."""
         r = truncate_rank(self.ews, self.trunc, True)
         V = self.V[:, :r]
         w = self.ews[:r]
@@ -397,24 +393,26 @@ class CovMat():
 
     @lazy_property
     def sym_sqrt(self):
-        "S such that C = S@S (and i.e. S is square). Uses trunc-level."
+        """S such that C = S@S (and i.e. S is square). Uses trunc-level."""
         return self.transform_by(sqrt)
 
     @lazy_property
     def sym_sqrt_inv(self):
-        "S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level."
+        """S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level."""
         return self.transform_by(lambda x: 1/sqrt(x))
 
     @lazy_property
     def pinv(self):
-        "Pseudo-inverse. Uses trunc-level."
+        """Pseudo-inverse. Uses trunc-level."""
         return self.transform_by(lambda x: 1/x)
 
     @lazy_property
     def inv(self):
         if self.M != self.rk:
-            raise RuntimeError("Matrix is rank deficient, "
-                               + "and cannot be inverted. Use .tinv() instead?")
+            raise RuntimeError(
+                "Matrix is rank deficient, "
+                "and cannot be inverted. "
+                "Use .tinv() instead?")
         # Temporarily remove any truncation
         tmp = self.trunc
         self._trunc = 1.0
@@ -475,7 +473,7 @@ class CovMat():
         with np.printoptions(threshold=0):
             s += "\n diag:\n   " + " " + str(self.diag)
 
-        s = utils.repr_type_and_name(self) + s.replace("\n", "\n  ")
+        s = "<" + type(self).__name__ + '>' + s.replace("\n", "\n  ")
         return s
 
 # Note: The diagonal representation is NOT memory-efficient.

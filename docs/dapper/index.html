@@ -13,6 +13,12 @@
 <style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<link rel="preconnect" href="https://www.google.com">
+<script async src="https://cse.google.com/cse.js?cx=017837193012385208679:pey8ky8gdqw"></script>
+<style>
+.gsc-control-cse {padding:0 !important;margin-top:1em}
+body.gsc-overflow-hidden #sidebar {overflow: visible;}
+</style>
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
@@ -55,10 +61,13 @@ In that case, read this:<ul>
 </ul>
 </li>
 </ul>
-<h2 id="features-beyond-the-readmehighlights">Features beyond the <a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a></h2>
+<h2 id="features">Features</h2>
+<p>The main features are listed in
+<a href="https://github.com/nansencenter/DAPPER#Highlights">README/highlights</a>.
+Additionally, there is:</p>
 <ul>
 <li>Parallelisation:<ul>
-<li>(Independent) experiments can run in parallel; see <code>example_3.py</code></li>
+<li>(Independent) experiments can run in parallel; see <code>examples/basic_3.py</code></li>
 <li>Forecast parallelisation is possible since
 the (user-implemented) model has access to the full ensemble;
 see example in <code><a title="dapper.mods.QG" href="mods/QG/index.html">dapper.mods.QG</a></code>.</li>
@@ -67,19 +76,21 @@ see example in <code><a title="dapper.da_methods.ensemble.LETKF" href="da_method
 </ul>
 </li>
 <li>Classes that simplify treating:<ul>
-<li>Experiment administration and launch via <code><a title="dapper.admin.xpList" href="admin.html#dapper.admin.xpList">xpList</a></code>
-and data processing and presentation via <code><a title="dapper.data_management.xpSpace" href="data_management.html#dapper.data_management.xpSpace">xpSpace</a></code>.</li>
+<li>Experiment administration and launch via <code><a title="dapper.xp_launch.xpList" href="xp_launch.html#dapper.xp_launch.xpList">xpList</a></code>
+and data processing and presentation via <code><a title="dapper.xp_process.xpSpace" href="xp_process.html#dapper.xp_process.xpSpace">xpSpace</a></code>.</li>
 <li>Time sequences use via <code><a title="dapper.tools.chronos.Chronology" href="tools/chronos.html#dapper.tools.chronos.Chronology">Chronology</a></code>
 and<code><a title="dapper.tools.chronos.Ticker" href="tools/chronos.html#dapper.tools.chronos.Ticker">Ticker</a></code>.</li>
-<li>Random variables via <code><a title="dapper.tools.randvars.RV" href="tools/randvars.html#dapper.tools.randvars.RV">RV</a></code>: Gaussian, Student-t, Laplace, Uniform, &hellip;,
-as well as support for custom sampling functions.</li>
-<li>Covariance matrices via <code><a title="dapper.tools.matrices.CovMat" href="tools/matrices.html#dapper.tools.matrices.CovMat">CovMat</a></code>: provides input flexibility/overloading,
-lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).</li>
+<li>Random variables via <code><a title="dapper.tools.randvars.RV" href="tools/randvars.html#dapper.tools.randvars.RV">RV</a></code>: Gaussian, Student-t, Laplace, Uniform,
+&hellip;, as well as support for custom sampling functions.</li>
+<li>Covariance matrices via <code><a title="dapper.tools.matrices.CovMat" href="tools/matrices.html#dapper.tools.matrices.CovMat">CovMat</a></code>:
+provides input flexibility/overloading,
+lazy eval that facilitates the use of non-diagnoal
+covariance matrices (whether sparse or full).</li>
 </ul>
 </li>
 <li>Diagnostics and statistics with<ul>
 <li>Confidence interval on times series (e.g. rmse) averages with<ul>
-<li>automatic correction for autocorrelation </li>
+<li>automatic correction for autocorrelation</li>
 <li>significant digits printing</li>
 </ul>
 </li>
@@ -135,7 +146,7 @@ through the following links, which are also available in the left sidebar.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/__init__.py#L0-L145" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/__init__.py#L0-L113" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;(Data Assimilation with Python: a Package for Experimental Research)
 
@@ -164,27 +175,33 @@ your own **model** or **method**, then
     - `mods`
     - `da_methods`
 
-## Features beyond the [README/highlights](https://github.com/nansencenter/DAPPER#Highlights)
+## Features
+
+The main features are listed in
+[README/highlights](https://github.com/nansencenter/DAPPER#Highlights).
+Additionally, there is:
 
 - Parallelisation:
-    - (Independent) experiments can run in parallel; see `example_3.py`
+    - (Independent) experiments can run in parallel; see `examples/basic_3.py`
     - Forecast parallelisation is possible since
         the (user-implemented) model has access to the full ensemble;
         see example in `mods.QG`.
     - Analysis parallelisation over local domains;
         see example in `da_methods.ensemble.LETKF`
 - Classes that simplify treating:
-    - Experiment administration and launch via `admin.xpList`
-      and data processing and presentation via `data_management.xpSpace`.
+    - Experiment administration and launch via `xp_launch.xpList`
+      and data processing and presentation via `xp_process.xpSpace`.
     - Time sequences use via `tools.chronos.Chronology`
       and`tools.chronos.Ticker`.
-    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform, ...,
-      as well as support for custom sampling functions.
-    - Covariance matrices via `tools.matrices.CovMat`: provides input flexibility/overloading,
-      lazy eval that facilitates the use of non-diagnoal covariance matrices (whether sparse or full).
+    - Random variables via `tools.randvars.RV`: Gaussian, Student-t, Laplace, Uniform,
+      ..., as well as support for custom sampling functions.
+    - Covariance matrices via `tools.matrices.CovMat`:
+      provides input flexibility/overloading,
+      lazy eval that facilitates the use of non-diagnoal
+      covariance matrices (whether sparse or full).
 - Diagnostics and statistics with
     - Confidence interval on times series (e.g. rmse) averages with
-        - automatic correction for autocorrelation 
+        - automatic correction for autocorrelation
         - significant digits printing
     - Automatic averaging of several types for sub-domains
       (e.g. &#34;ocean&#34;, &#34;land&#34;, etc.)
@@ -232,57 +249,19 @@ The rendered docstrings can be browsed
 through the following links, which are also available in the left sidebar.
 &#34;&#34;&#34;
 
-__version__ = &#34;1.0.0&#34;
+__version__ = &#34;1.1.0&#34;
 
 import sys
 
-from dapper.tools.series import UncertainQtty
-
-from .admin import (HiddenMarkovModel, Operator, da_method, get_param_setter,
-                    seed_and_simulate, xpList)
-from .da_methods.baseline import Climatology, OptInterp, Var3D
-# DA methods
-from .da_methods.ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
-from .da_methods.extended import ExtKF, ExtRTS
-from .da_methods.other import LNETF, RHF
-from .da_methods.particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
-from .da_methods.variational import Var4D, iEnKS
-from .data_management import (default_fig_adjustments, default_styles,
-                              discretize_cmap, load_xps, make_label, rel_index,
-                              xpSpace)
+# Imports used by examples
 from .dpr_config import rc
-from .stats import register_stat
-from .tools.chronos import Chronology
 from .tools.magic import magic_naming, spell_out
-from .tools.math import (Id_Obs, ens_compatible, linspace_int, partial_Id_Obs,
-                         round2, round2sigfig, with_recursion, with_rk4)
-from .tools.matrices import CovMat
-from .tools.randvars import RV, GaussRV
-from .tools.stoch import set_seed
-from .tools.viz import freshfig
-
-
-# Documentation generation -- exclusion
-def _find_demos(as_path=False):
-    &#34;Find all model demo.py scripts.&#34;
-    lst = []
-    for d in (rc.dirs.dapper/&#34;mods&#34;).iterdir():
-        x = d/&#34;demo.py&#34;
-        if x.is_file():
-            x = x.relative_to(rc.dirs.DAPPER)
-            if not as_path:
-                x = str(x.with_suffix(&#34;&#34;)).replace(&#34;/&#34;, &#34;.&#34;)
-            lst.append(x)
-    return lst
-__pdoc__ = {
-    &#34;tools.remote.autoscaler&#34;: False,
-    **{demo:False for demo in _find_demos()},
-    &#34;dapper.mods.KS.compare_schemes&#34;: False,
-    &#34;dapper.mods.LorenzUV.illust_LorenzUV&#34;: False,
-    &#34;dapper.mods.LorenzUV.illust_parameterizations&#34;: False,
-    &#34;dapper.mods.explore_props&#34;: False,
-    &#34;dapper.mods.QG.f90&#34;: False,
-}</code></pre>
+from .tools.rounding import round2, round2sigfig
+from .tools.seeding import set_seed
+from .xp_launch import get_param_setter, seed_and_simulate, xpList
+from .xp_process import (default_fig_adjustments, default_styles,
+                         discretize_cmap, load_xps, make_label, rel_index,
+                         xpSpace)</code></pre>
 </details>
 </section>
 <section>
@@ -290,27 +269,9 @@ __pdoc__ = {
 <dl>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.admin" href="admin.html">admin</a></code></dt>
-<dd>
-<div class="desc"><p>High-level API. I.e. the main "user-interface" …</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></dt>
 <dd>
-<div class="desc"><p>Data assimilation methods included with DAPPER …</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.data_management" href="data_management.html">data_management</a></code></dt>
-<dd>
-<div class="desc"><p>Tools (notably xpSpace) for processing and presenting experiment data.</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></dt>
-<dd>
-<div class="desc"><p>Tools for dicts (and lists).</p></div>
+<div class="desc"><p>Contains the data assimilation methods included with DAPPER …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -336,6 +297,18 @@ __pdoc__ = {
 <dd>
 <div class="desc"><p>If the only tool you have is a hammer, it's hard to eat spaghetti.</p></div>
 </dd>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.xp_launch" href="xp_launch.html">xp_launch</a></code></dt>
+<dd>
+<div class="desc"><p>Tools (notably <code>xpList</code>) for setup and running of experiments (known as <code>xp</code>s) …</p></div>
+</dd>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.xp_process" href="xp_process.html">xp_process</a></code></dt>
+<dd>
+<div class="desc"><p>Tools (notably <code>xpSpace</code>) for processing and presenting experiment data.</p></div>
+</dd>
 </dl>
 </section>
 <section>
@@ -352,12 +325,16 @@ __pdoc__ = {
 <!-- can add style="width:200px;" to img -->
 </a>
 </header>
+<div class="gcse-search" style="height: 70px"
+data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-gaCategoryParameter="dapper">
+</div>
 <h1>Index</h1>
 <div class="toc">
 <ul>
 <li><a href="#in-the-readme">In the README</a></li>
 <li><a href="#usage">Usage</a></li>
-<li><a href="#features-beyond-the-readmehighlights">Features beyond the README/highlights</a></li>
+<li><a href="#features">Features</a></li>
 <li><a href="#conventions">Conventions</a></li>
 <li><a href="#dev-guide">Dev guide</a></li>
 <li><a href="#bibliographyreferences">Bibliography/references</a></li>
@@ -369,16 +346,7 @@ __pdoc__ = {
 <ul>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.admin" href="admin.html">admin</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.da_methods" href="da_methods/index.html">da_methods</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.data_management" href="data_management.html">data_management</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.dict_tools" href="dict_tools.html">dict_tools</a></code></li>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.dpr_config" href="dpr_config.html">dpr_config</a></code></li>
@@ -391,6 +359,12 @@ __pdoc__ = {
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.tools" href="tools/index.html">tools</a></code></li>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.xp_launch" href="xp_launch.html">xp_launch</a></code></li>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.xp_process" href="xp_process.html">xp_process</a></code></li>
 </ul>
 </li>
 </ul>

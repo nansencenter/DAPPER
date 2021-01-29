@@ -28,10 +28,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 import dapper as dpr
+import dapper.da_methods as da
+
 ##############################
 # Hidden Markov Model
 ##############################
-from dapper.mods.Lorenz96.bocquet2015loc import HMM
+from dapper.mods.Lorenz96.bocquet2015loc import HMM  # isort:skip
 
 
 def setup(hmm, xp):
@@ -61,13 +63,13 @@ params = dict(
 for_params = dpr.get_param_setter(params, seed=3000+np.arange(10), F=[8, 10])
 
 xps = dpr.xpList()
-xps += for_params(dpr.Climatology)
-xps += for_params(dpr.OptInterp)
-xps += for_params(dpr.Var3D, B="eye")
-xps += for_params(dpr.EnKF, upd_a="PertObs")
-xps += for_params(dpr.EnKF, upd_a="Sqrt")
-xps += for_params(dpr.EnKF_N, infl=1.0)
-xps += for_params(dpr.LETKF)
+xps += for_params(da.Climatology)
+xps += for_params(da.OptInterp)
+xps += for_params(da.Var3D, B="eye")
+xps += for_params(da.EnKF, upd_a="PertObs")
+xps += for_params(da.EnKF, upd_a="Sqrt")
+xps += for_params(da.EnKF_N, infl=1.0)
+xps += for_params(da.LETKF)
 
 
 ##############################
@@ -88,7 +90,7 @@ save_as = xps.launch(HMM, __file__, mp, setup)
 ##############################
 # The following "section" **only** uses saved data.
 # => Can run as a separate script, by setting save_as manually, e.g.
-# save_as = dpr.rc.dirs.data / "example_3" / ""run_2020-11-11__20:36:36"
+# save_as = dpr.rc.dirs.data / "basic_3" / ""run_2020-11-11__20:36:36"
 
 # Load
 xps = dpr.load_xps(save_as)

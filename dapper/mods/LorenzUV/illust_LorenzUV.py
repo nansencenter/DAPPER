@@ -5,12 +5,11 @@ import matplotlib as mpl
 import numpy as np
 from matplotlib import pyplot as plt
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LorenzUV.lorenz96 import LUV
-from dapper.tools.math import ccat
 
 # Setup
-sd0 = dpr.set_seed(4)
+sd0 = modelling.set_seed(4)
 # from dapper.mods.LorenzUV.wilks05 import LUV
 nU, J = LUV.nU, LUV.J
 
@@ -18,8 +17,8 @@ dt = 0.005
 t0 = np.nan
 K  = int(10/dt)
 
-step_1 = dpr.with_rk4(LUV.dxdt, autonom=True)
-step_K = dpr.with_recursion(step_1, prog=1)
+step_1 = modelling.with_rk4(LUV.dxdt, autonom=True)
+step_K = modelling.with_recursion(step_1, prog=1)
 
 x0 = 0.01*np.random.randn(LUV.M)
 x0 = step_K(x0, int(2/dt), t0, dt)[-1]  # BurnIn
@@ -59,8 +58,8 @@ dY = 4  # SET TO: 1 for wilks05, 4 for lorenz96
 # U-vars: major
 tU = iU[1:-1]
 lU = np.array([str(i+1) for i in range(nU)])
-tU = ccat(tU[0], tU[dY-1::dY])
-lU = ccat(lU[0], lU[dY-1::dY])
+tU = np.concatenate([[tU[0]], tU[dY-1::dY]])
+lU = np.concatenate([[lU[0]], lU[dY-1::dY]])
 for t, l in zip(tU, lU):
     ax.text(t, ym-.6, l,
             fontsize=mpl.rcParams['xtick.labelsize'], horizontalalignment='center')
@@ -94,7 +93,7 @@ def tV(zz):
 # plt.subplots()
 # lhU   = plt.plot(*tU(xx[-1][circU]),'b',lw=3)[0]
 # lhV   = plt.plot(*tV(xx[-1][circV]),'g',lw=1)[0]
-# from dapper.tools.utils import progbar
+# from dapper.tools.progressbar import progbar
 # for k in progbar(range(K),'Plotting'):
 #     dataU = tU(xx[k][circU])
 #     dataV = tV(xx[k][circV])
@@ -124,8 +123,7 @@ for Ny in range(L):
 # Add DAPPER text label
 if False:
     ax.text(95, 0, "DAPPER", ha="left", va="center", fontdict=dict(
-        fontsize="80", name="Signpainter"
-    ))
+        fontsize="80", name="Signpainter"))
 
     # Adjust xlim to include everything
     ax.set_xlim((-100, 400))

@@ -1,11 +1,15 @@
-# The settings of Pajonk are too easy:
-# the average value of trHK is 0.013.
-# Here we increase dkObs to make the DA problem more difficult.
+"""Harder settings than in `dapper.mods.Lorenz84.pajonk2012`.
 
-import dapper as dpr
+This was adjudged by noting that with their settings,
+the average val. of `trHK` is 0.013.
+
+Here we increase `dkObs` to make the DA problem more difficult.
+"""
+
+import dapper.mods as modelling
 from dapper.mods.Lorenz84.pajonk2012 import HMM
 
-HMM.t = dpr.Chronology(0.05, dkObs=10, T=4**5, BurnIn=20)
+HMM.t = modelling.Chronology(0.05, dkObs=10, T=4**5, BurnIn=20)
 
 
 ####################

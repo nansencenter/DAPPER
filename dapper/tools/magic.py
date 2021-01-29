@@ -56,11 +56,11 @@ def get_call():
     # Walk syntax tree
     class Visitor(ast.NodeVisitor):
         """Get info on call if name and lineno match."""
+
         # Inspiration for relevant parts of AST:
         # https://docs.python.org/3/library/ast.html#abstract-grammar
         # https://docs.python.org/3/library/ast.html#ast.Call
         # http://alexleone.blogspot.com/2010/01/python-ast-pretty-printer.html
-
         def visit_Call(self, node):
             node_id = getattr(node.func, "id", None)
             if node_id == func_name:
@@ -90,10 +90,11 @@ def magic_naming(*args, **kwargs):
     """Convert args (by their names in the call) to kwargs.
 
     Example:
-    >>> a,b,c = 1,2,3
-    >>> dct = magic_naming(a,b,c,d=e)
+    >>> a, b = 1, 2
+    >>> magic_naming(a, b, c=3)
+    {'a': 1, 'b': 2, 'c': 3}
     """
-    call, argnames, locvars = get_call()  # pylint: disable=unused-variable
+    call, argnames, locvars = get_call()
     assert len(args) == len(argnames), "Something's gone wrong."
 
     # Obsolete (works with call rather than argnames).
@@ -118,12 +119,12 @@ def magic_naming(*args, **kwargs):
 def spell_out(*args):
     """Print (args) including variable names.
 
-    Example:
+    Example
+    -------
     >>> spell_out(3*2)
-    >>> 3*2:
-    >>> 6
+    3*2:
+    6
     """
-
     call, _, loc = get_call()
 
     # Find opening/closing brackets
@@ -131,8 +132,11 @@ def spell_out(*args):
     right = call.rfind(")")
 
     # Print header
-    with coloring():
+    import sys
+    c = None if "pytest" in sys.modules else "blue"
+    with coloring(c):
         print(call[left+1:right] + ":")
+
     # Print (normal)
     print(*args)
 

@@ -1,9 +1,13 @@
-"""
-## Documentation generation
+"""# Developer guide
+
+## Run tests
+See `tests`.
+
+## Documentation gen.
 
 ### Update bib
 Copy new bibtex items into `docs/bib/refs.bib`,
-then convert to bib.py using  
+then convert to bib.py using
 ```sh
 docs/bib/make_bib.py
 ```
@@ -14,14 +18,6 @@ pdoc --force --html --template-dir docs/templates -o ./docs \
 docs/bib/bib.py docs/dev_guide.py dapper
 open docs/index.html # preview
 ```
-This generates a lot of warnings of the type
-"UserWarning: __pdoc__-overriden key ... does not exist in module".
-AFAICT that's fine. https://github.com/pdoc3/pdoc/issues/206
-Alternative: Insert this at top of each script to exclude
-and run pdoc with --skip-errors.
-
->>> if __name__ != "__main__":
->>>     raise RuntimeError("This module may only be run as script.")
 
 ### Hosting
 Push updated docs to github.
@@ -38,6 +34,20 @@ and set the source to the docs folder.
   The documentation uses pdoc3 to auto-generate API reference,
   so improving function and class docstrings is very helpful.
 
+- Consider this code:
+
+        from dapper.mods.Lorenz63.sakov2012 import HMM1
+        from dapper.mods.Lorenz63.wiljes2017 import HMM as HMM2
+
+  Document (somewhere) that `HMM1.t` is changed by the second import,
+  because it itself imports and changes `HMM1`.
+  This became a bug in `test_example_2` when `pytest` was run with
+  `--doctest-modules` because `--doctest-modules` goes through all of the modules.
+
+- Make Colab work for notebooks in examples.
+  This requires that Colab upgrades to python 3.7,
+  which I don't know when will happen.
+
 - Write an example script (and/or make changes to DAPPER) to show how to:
     - do parameter estimation.
     - use different models for Truth and DA-methods.
@@ -46,7 +56,7 @@ and set the source to the docs folder.
 
 - Right now each column in `tabulate_avrgs` and `xpSpace.print`
   is treated independently, so that they may be aligned on the decimal point.
-  But ideally the number of decimals printed in uq.val is determined by uq.conf.
+  But ideally the number of decimals printed in uq.val is determined by uq.prec.
   This is already the case, *somewhat*, since `unpack_uqs` uses `uq.round`
   But, trailing zeros will still get truncated. I.e. 0.3023 +/- 0.01
   gets tabulate-printed as 0.3 instead of 0.30. Should be fixed.

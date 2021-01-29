@@ -1,19 +1,20 @@
 """Weight- & resampling-based DA methods."""
 
 import numpy as np
-from numpy.random import rand, randn
+import numpy.random as rnd
 
-import dapper.tools.math
-import dapper.tools.utils as utils
-from dapper.admin import da_method
-from dapper.tools.math import mldiv, mrdiv, pad0, svd0, tinv
+from dapper.stats import unbias_var, weight_degeneracy
+from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, tinv
 from dapper.tools.matrices import chol_reduce, funm_psd
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method
 class particle_method:
-    "Declare default particle arguments."
+    """Declare default particle arguments."""
+
     NER: float = 1.0
     resampl: str = 'Sys'
 
@@ -25,11 +26,12 @@ class PartFilt:
     Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
 
     This is the bootstrap version: the proposal density is just
-    :math:`q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1})`
+
+    $$ q(x_{0:t} \mid y_{1:t}) = p(x_{0:t}) = p(x_t \mid x_{t-1}) p(x_{0:t-1}) $$
 
     Tuning settings:
 
-     - NER: Trigger resampling whenever N_eff <= N*NER.
+     - NER: Trigger resampling whenever `N_eff <= N*NER`.
        If resampling with some variant of 'Multinomial',
        no systematic bias is introduced.
      - qroot: "Inflate" (anneal) the proposal noise kernels
@@ -37,6 +39,7 @@ class PartFilt:
        The weights are updated to maintain un-biased-ness.
        See `bib.chen2003bayesian`, section VI-M.2
     """
+
     N: int
     reg: float   = 0
     nuj: bool    = True
@@ -60,7 +63,7 @@ class PartFilt:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn(N, Nx)
+                D  = rnd.randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -96,6 +99,7 @@ class OptPF:
               If ``Qs==0``: OptPF should be equal to
               the bootstrap filter :func:`PartFilt`.
     """
+
     N: int
     Qs: float
     reg: float   = 0
@@ -115,7 +119,7 @@ class OptPF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(rnd.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -151,9 +155,7 @@ class OptPF:
 
 @particle_method
 class PFa:
-    """PF with weight adjustment withOUT
-
-    compensating for the bias it introduces.
+    """PF with weight adjustment withOUT compensating for the bias it introduces.
 
     'alpha' sets wroot before resampling such that N_effective becomes >alpha*N.
 
@@ -170,6 +172,7 @@ class PFa:
 
     Hybridization with xN did not show much promise.
     """
+
     N: int
     alpha: float
     reg: float   = 0
@@ -189,7 +192,7 @@ class PFa:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                D  = randn(N, Nx)
+                D  = rnd.randn(N, Nx)
                 E += np.sqrt(dt*self.qroot)*(D@Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -242,6 +245,7 @@ class PFxN_EnKF:
     Here, we will use the posterior mean of (2) and cov of (1).
     Or maybe we should use x_a^n distributed according to a sqrt update?
     """
+
     N: int
     Qs: float
     xN: int
@@ -264,7 +268,7 @@ class PFxN_EnKF:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(rnd.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -290,7 +294,7 @@ class PFxN_EnKF:
                         Pa      = Aw.T@Aw - KG@Yw.T@Aw
                         P_cholU = funm_psd(Pa, np.sqrt)
                         if DD is None or not self.re_use:
-                            DD    = randn(N*xN, Nx)
+                            DD    = rnd.randn(N*xN, Nx)
                             chi2  = np.sum(DD**2, axis=1) * Nx/N
                             log_q = -0.5 * chi2
                     else:
@@ -303,7 +307,7 @@ class PFxN_EnKF:
                         # and compute log(q(x))
                         if DD is None or not self.re_use:
                             rnk   = min(Nx, N-1)
-                            DD    = randn(N*xN, N)
+                            DD    = rnd.randn(N*xN, N)
                             chi2  = np.sum(DD**2, axis=1) * rnk/N
                             log_q = -0.5 * chi2
                         # NB: the DoF_linalg/DoF_stoch correction
@@ -359,6 +363,7 @@ class PFxN:
     Additional idea: employ w-adjustment to obtain N unique particles,
     without jittering.
     """
+
     N: int
     Qs: float
     xN: int
@@ -379,7 +384,7 @@ class PFxN:
         for k, kObs, t, dt in progbar(chrono.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(randn(N, Nx)@Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(rnd.randn(N, Nx)@Dyn.noise.C.Right)
 
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E, w=w)
@@ -396,7 +401,7 @@ class PFxN:
 
                     # Generate N·xN random numbers from NormDist(0,1)
                     if DD is None or not self.re_use:
-                        DD = randn(N*xN, Nx)
+                        DD = rnd.randn(N*xN, Nx)
 
                     # Duplicate and jitter
                     ED  = E.repeat(xN, 0)
@@ -421,8 +426,7 @@ class PFxN:
 
 
 def trigger_resampling(w, NER, stat_args):
-    "Return boolean: N_effective <= threshold. Also write stats."
-
+    """Return boolean: N_effective <= threshold. Also write stats."""
     N_eff       = 1/(w@w)
     do_resample = N_eff <= len(w)*NER
 
@@ -441,17 +445,25 @@ def trigger_resampling(w, NER, stat_args):
     return do_resample
 
 
+def all_but_1_is_None(*args):
+    """Check if only 1 of the items in list are Truthy."""
+    return sum(x is not None for x in args) == 1
+
+
 def reweight(w, lklhd=None, logL=None, innovs=None):
-    """Do Bayes' rule (for the empirical distribution of an importance sample).
+    r"""Do Bayes' rule (for the empirical distribution of an importance sample).
 
     Do computations in log-space, for at least 2 reasons:
-    - Normalization: will fail if sum==0 (if all innov's are large).
-    - Num. precision: lklhd*w should have better precision in log space.
+
+    - Normalization: will fail if `sum==0` (if all innov's are large).
+    - Num. precision: `lklhd*w` should have better precision in log space.
+
     Output is non-log, for the purpose of assessment and resampling.
 
-    If input is 'innovs': likelihood := NormDist(innovs|0,Id).
+    If input is 'innovs', then
+    $$\text{likelihood} = \mathcal{N}(\text{innovs}|0,I)$$.
     """
-    assert utils.all_but_1_is_None(lklhd, logL, innovs), \
+    assert all_but_1_is_None(lklhd, logL, innovs), \
         "Input error. Only specify one of lklhd, logL, innovs"
 
     # Get log-values.
@@ -482,26 +494,29 @@ def raw_C12(E, w):
     and also computed based on a weighted mean.
     """
     # If weights are degenerate: use unweighted covariance to avoid C=0.
-    if dapper.tools.math.is_degenerate_weight(w):
+    if weight_degeneracy(w):
         w = np.ones(len(w))/len(w)
         # PS: 'avoid_pathological' already treated here.
 
     mu  = w@E
     A   = E - mu
-    ub  = dapper.tools.math.unbias_var(w, avoid_pathological=False)
+    ub  = unbias_var(w, avoid_pathological=False)
     C12 = np.sqrt(ub*w[:, None]) * A
     return C12
 
 
 def mask_unique_of_sorted(idx):
-    "NB: returns a mask which is True at [i] iff idx[i] is NOT unique."
+    """Find unique values assuming `idx` is sorted.
+
+    NB: returns a mask which is `True` at `[i]` iff `idx[i]` is *not* unique.
+    """
     duplicates  = idx == np.roll(idx, 1)
     duplicates |= idx == np.roll(idx, -1)
     return duplicates
 
 
 def auto_bandw(N, M):
-    """"Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
+    """Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
 
     Refs: `bib.doucet2001sequential` section 12.2.2, [Wik17]_ section "Rule_of_thumb"
     """
@@ -540,7 +555,7 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
     Refs: `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
-      'Stochastic' corresponds to np.random.choice() or np.random.multinomial().
+      'Stochastic' corresponds to `rnd.choice` or `rnd.multinomial`.
       'Systematic' and 'Residual' are more systematic (less stochastic)
       varaitions of 'Stochastic' sampling.
       Among the three, 'Systematic' is fastest, introduces the least noise,
@@ -566,7 +581,6 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
     on the high-weight particles which we anticipate will
     have more informative (and less variable) future likelihoods.
     """
-
     assert(abs(w.sum()-1) < 1e-5)
 
     # Input parsing
@@ -596,8 +610,8 @@ def _resample(w, kind, N_o, N):
     """Core functionality for :func:`resample`."""
     if kind in ['Stochastic', 'Stoch']:
         # van Leeuwen [2] also calls this "probabilistic" resampling
-        idx = np.random.choice(N_o, N, replace=True, p=w)
-        # np.random.multinomial is faster (slightly different usage) ?
+        idx = rnd.choice(N_o, N, replace=True, p=w)
+        # rnd.multinomial is faster (slightly different usage) ?
     elif kind in ['Residual', 'Res']:
         # Doucet [1] also calls this "stratified" resampling.
         w_N   = w*N              # upscale
@@ -609,12 +623,12 @@ def _resample(w, kind, N_o, N):
         # Multinomial sampling of decimal parts
         N_I   = w_I.sum()  # == len(idx_I)
         N_D   = N - N_I
-        idx_D = np.random.choice(N_o, N_D, replace=True, p=w_D/w_D.sum())
+        idx_D = rnd.choice(N_o, N_D, replace=True, p=w_D/w_D.sum())
         # Concatenate
         idx   = np.hstack((idx_I, idx_D))
     elif kind in ['Systematic', 'Sys']:
         # van Leeuwen [2] also calls this "stochastic universal" resampling
-        U     = rand(1) / N
+        U     = rnd.rand(1) / N
         CDF_a = U + np.arange(N)/N
         CDF_o = np.cumsum(w)
         # idx = CDF_a <= CDF_o[:,None]
@@ -635,12 +649,12 @@ def sample_quickly_with(C12, N=None):
         N = N_
     if N_ > 2*M:
         cholR  = chol_reduce(C12)
-        D      = randn(N, cholR.shape[0])
+        D      = rnd.randn(N, cholR.shape[0])
         chi2   = np.sum(D**2, axis=1)
         sample = D@cholR
     else:
         chi2_compensate_for_rank = min(M/N_, 1.0)
-        D      = randn(N, N_)
+        D      = rnd.randn(N, N_)
         chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
         sample = D@C12
     return sample, chi2

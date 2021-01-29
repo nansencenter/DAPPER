@@ -1,16 +1,13 @@
-"""A land-ocean setup for Lorenz-96 from Anderson's 2009 Tellus A article:
-'Spatially and temporally varying adaptive covariance inflation for ensemble filters'
-"""
-
+"""A land-ocean setup from `bib.anderson2009spatially`."""
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz96.sakov2008 import X0, Dyn, LPs, Nx, Tplot
 from dapper.tools.localization import localization_setup, pairwise_distances
 from dapper.tools.viz import xtrema
 
-t = dpr.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
+t = modelling.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
 
 # Define obs sites
 obs_sites = 0.395 + 0.01*np.arange(1, 21)
@@ -26,8 +23,7 @@ H = np.zeros((20, 40))
 H[np.arange(20), ii_below] = w_below
 H[np.arange(20), ii_above] = w_above
 # Measure obs-state distances
-y2x_dists = pairwise_distances(obs_sites[:, None], np.arange(Nx)[
-                               :, None], periodic=True, domain=(Nx,))
+y2x_dists = pairwise_distances(obs_sites[:, None], np.arange(Nx)[:, None], domain=(Nx,))
 batches = np.arange(40)[:, None]
 # Define operator
 Obs = {
@@ -38,8 +34,9 @@ Obs = {
     'localizer': localization_setup(lambda t: y2x_dists, batches),
 }
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LPs(),
-                            sectors={'land': np.arange(*xtrema(obs_sites)).astype(int)})
+HMM = modelling.HiddenMarkovModel(
+    Dyn, Obs, t, X0, LP=LPs(),
+    sectors={'land': np.arange(*xtrema(obs_sites)).astype(int)})
 
 ####################
 # Suggested tuning

@@ -6,13 +6,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.da_methods.ensemble API documentation</title>
-<meta name="description" content="The EnKF and other ensemble-based methods" />
+<meta name="description" content="The EnKF and other ensemble-based methods." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
 <style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<link rel="preconnect" href="https://www.google.com">
+<script async src="https://cse.google.com/cse.js?cx=017837193012385208679:pey8ky8gdqw"></script>
+<style>
+.gsc-control-cse {padding:0 !important;margin-top:1em}
+body.gsc-overflow-hidden #sidebar {overflow: visible;}
+</style>
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
@@ -30,30 +36,31 @@
 <h1 class="title">Module <code>dapper.da_methods.ensemble</code></h1>
 </header>
 <section id="section-intro">
-<p>The EnKF and other ensemble-based methods</p>
+<p>The EnKF and other ensemble-based methods.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L0-L937" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L0-L982" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;The EnKF and other ensemble-based methods&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34;The EnKF and other ensemble-based methods.&#34;&#34;&#34;
 
 import numpy as np
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
-from numpy.random import rand, randn
 
-import dapper.tools.multiprocessing as mp
-from dapper.admin import da_method
-from dapper.tools.math import (center, mean0, mldiv, mrdiv, pad0, svd0, svdi,
-                               tinv, tsvd)
+import dapper.tools.multiproc as mp
+from dapper.stats import center, mean0
+from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, svdi, tinv, tsvd
 from dapper.tools.matrices import funm_psd, genOG_1
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method
 class ens_method:
-    &#34;Declare default ensemble arguments.&#34;
+    &#34;&#34;&#34;Declare default ensemble arguments.&#34;&#34;&#34;
+
     infl: float        = 1.0
     rot: bool          = False
     fnoise_treatm: str = &#39;Stoch&#39;
@@ -61,7 +68,11 @@ class ens_method:
 
 @ens_method
 class EnKF:
-    &#34;&#34;&#34;The ensemble Kalman filter `bib.evensen2009ensemble`&#34;&#34;&#34;
+    &#34;&#34;&#34;The ensemble Kalman filter.
+
+    Refs: `bib.evensen2009ensemble`.
+    &#34;&#34;&#34;
+
     upd_a: str
     N: int
 
@@ -89,9 +100,10 @@ class EnKF:
 
 
 def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
-    &#34;&#34;&#34;The EnKF analysis update, in many flavours and forms.
+    &#34;&#34;&#34;Perform the EnKF analysis update.
 
-    The update is specified via &#39;upd_a&#39;.
+    This implementation includes several flavours and forms,
+    specified by `upd_a`.
 
     Main references: `bib.sakov2008deterministic`,
     `bib.sakov2008implications`, `bib.hoteit2015mitigating`
@@ -194,10 +206,10 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(rand()-0.5)  # Random sign
+                    Zj *= np.sign(np.random.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(randn(N))  # Un-coloured noise
+                    Zj = mean0(np.random.randn(N))  # Un-coloured noise
                     if &#39;Var1&#39; in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -285,8 +297,10 @@ def post_process(E, infl, rot):
 
 
 def add_noise(E, dt, noise, method):
-    &#34;&#34;&#34;Treatment of additive noise for ensembles `bib.raanes2014ext`.&#34;&#34;&#34;
+    &#34;&#34;&#34;Treatment of additive noise for ensembles.
 
+    Refs: `bib.raanes2014ext`
+    &#34;&#34;&#34;
     if noise.C == 0:
         return E
 
@@ -349,7 +363,7 @@ def add_noise(E, dt, noise, method):
         E, _, Qa12 = sqrt_core()
         if N &lt;= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@np.random.randn(Z.shape[1], N)).T
 
     elif method == &#39;Sqrt-Dep&#39;:
         E, T, Qa12 = sqrt_core()
@@ -364,7 +378,7 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@np.random.randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -376,10 +390,14 @@ def add_noise(E, dt, noise, method):
 
 @ens_method
 class EnKS:
-    &#34;&#34;&#34;The ensemble Kalman smoother `bib.evensen2009ensemble`.
+    &#34;&#34;&#34;The ensemble Kalman smoother.
+
+    Refs: `bib.evensen2009ensemble`
 
     The only difference to the EnKF
-    is the management of the lag and the reshapings.&#34;&#34;&#34;
+    is the management of the lag and the reshapings.
+    &#34;&#34;&#34;
+
     upd_a: str
     N: int
     Lag: int
@@ -425,7 +443,7 @@ class EnKS:
                 E[k]  = post_process(E[k], self.infl, self.rot)
                 stats.assess(k, kObs, &#39;a&#39;, E=E[k])
 
-        for k, kObs, t, dt in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
+        for k, kObs, _, _ in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
             stats.assess(k, kObs, &#39;u&#39;, E=E[k])
             if kObs is not None:
                 stats.assess(k, kObs, &#39;s&#39;, E=E[k])
@@ -433,7 +451,11 @@ class EnKS:
 
 @ens_method
 class EnRTS:
-    &#34;&#34;&#34;EnRTS (Rauch-Tung-Striebel) smoother `bib.raanes2016thesis`.&#34;&#34;&#34;
+    &#34;&#34;&#34;EnRTS (Rauch-Tung-Striebel) smoother.
+
+    Refs: `bib.raanes2016thesis`
+    &#34;&#34;&#34;
+
     upd_a: str
     N: int
     cntr: float
@@ -470,13 +492,19 @@ class EnRTS:
 
             E[k] += (E[k+1] - Ef[k+1]) @ J
 
-        for k, kObs, t, dt in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
+        for k, kObs, _, _ in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
             stats.assess(k, kObs, &#39;u&#39;, E=E[k])
             if kObs is not None:
                 stats.assess(k, kObs, &#39;s&#39;, E=E[k])
 
 
 def serial_inds(upd_a, y, cvR, A):
+    &#34;&#34;&#34;Get the indices used for serial updating.
+
+    - Default: random ordering
+    - if &#34;mono&#34; in `upd_a`: `1, 2, ..., len(y)`
+    - if &#34;sorted&#34; in `upd_a`: sort by variance
+    &#34;&#34;&#34;
     if &#39;mono&#39; in upd_a:
         # Not robust?
         inds = np.arange(len(y))
@@ -494,10 +522,14 @@ def serial_inds(upd_a, y, cvR, A):
 
 @ens_method
 class SL_EAKF:
-    &#34;&#34;&#34;Serial, covariance-localized EAKF `bib.karspeck2007experimental`.
+    &#34;&#34;&#34;Serial, covariance-localized EAKF.
+
+    Refs: `bib.karspeck2007experimental`.
 
     Used without localization, this should be equivalent (full ensemble equality)
-    to the :func:`EnKF` with ``upd_a=&#39;Serial&#39;``.&#34;&#34;&#34;
+    to the `EnKF` with `upd_a=&#39;Serial&#39;`.
+    &#34;&#34;&#34;
+
     N: int
     loc_rad: float
     taper: str  = &#39;GC&#39;
@@ -566,12 +598,17 @@ class SL_EAKF:
 
 @ens_method
 class LETKF:
-    &#34;&#34;&#34;Same as EnKF (sqrt), but with localization `bib.hunt2007efficient`.
+    &#34;&#34;&#34;Same as EnKF (sqrt), but with localization.
 
-    NB: Multiprocessing yields slow-down for L96, even with batch_size=(1,).
-        But for QG (batch_size=(2,2) or less) it is quicker.
+    Refs: `bib.hunt2007efficient`.
 
-    NB: If len(ii) is small, analysis may be slowed-down with &#39;-N&#39; infl.&#34;&#34;&#34;
+    NB: Multiproc. yields slow-down for `dapper.mods.Lorenz96`,
+    even with `batch_size=(1,)`. But for `dapper.mods.QG`
+    (`batch_size=(2,2)` or less) it is quicker.
+
+    NB: If `len(ii)` is small, analysis may be slowed-down with &#39;-N&#39; infl.
+    &#34;&#34;&#34;
+
     N: int
     loc_rad: float
     taper: str = &#39;GC&#39;
@@ -615,10 +652,13 @@ class LETKF:
                 xN, g, infl = self.xN, self.g, self.infl
 
                 def local_analysis(ii):
-                    &#34;&#34;&#34;Notation:
-                     - ii: inds for the state batch defining the locality
-                     - jj: inds for the associated obs&#34;&#34;&#34;
+                    &#34;&#34;&#34;Do the local analysis.
 
+                    Notation:
+
+                    - ii: inds for the state batch defining the locality
+                    - jj: inds for the associated obs
+                    &#34;&#34;&#34;
                     # Locate local obs
                     jj, tapering = obs_taperer(ii)
                     if len(jj) == 0:
@@ -735,7 +775,10 @@ def effective_N(YR, dyR, xN, g):
 #
 def Newton_m(fun, deriv, x0, is_inverted=False,
              conf=1.0, xtol=1e-4, ytol=1e-7, itermax=10**2):
-    &#34;Simple (and fast) implementation of Newton root-finding&#34;
+    &#34;&#34;&#34;Find root of `fun`.
+
+    This is a simple (and pretty fast) implementation of Newton&#39;s method.
+    &#34;&#34;&#34;
     itr, dx, Jx = 0, np.inf, fun(x0)
     def norm(x): return sqrt(np.sum(x**2))
     while ytol &lt; norm(Jx) and xtol &lt; norm(dx) and itr &lt; itermax:
@@ -753,7 +796,9 @@ def Newton_m(fun, deriv, x0, is_inverted=False,
 
 
 def hyperprior_coeffs(s, N, xN=1, g=0):
-    &#34;&#34;&#34;EnKF-N inflation prior may be specified by the constants:
+    r&#34;&#34;&#34;Set EnKF-N inflation hyperparams.
+
+    The EnKF-N prior may be specified by the constants:
 
     - eN: Effect of unknown mean
     - cL: Coeff in front of log term
@@ -762,12 +807,12 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
     but are further adjusted (corrected and tuned) for the following reasons.
 
     - Reason 1: mode correction.
-      These parameters bridge the Jeffreys (xN=1) and Dirac (xN=Inf) hyperpriors
+      These parameters bridge the Jeffreys (`xN=1`) and Dirac (`xN=Inf`) hyperpriors
       for the prior covariance, B, as discussed in `bib.bocquet2015expanding`.
-      Indeed, mode correction becomes necessary when :math:`R \\rightarrow \\infty`.
+      Indeed, mode correction becomes necessary when $$ R \rightarrow \infty $$
       because then there should be no ensemble update (and also no inflation!).
-      More specifically, the mode of ``l1``&#39;s should be adjusted towards 1
-      as a function of :math:`I-KH` (&#34;prior&#39;s weight&#34;).
+      More specifically, the mode of `l1`&#39;s should be adjusted towards 1
+      as a function of $$ I - K H $$ (&#34;prior&#39;s weight&#34;).
       PS: why do we leave the prior mode below 1 at all?
       Because it sets up &#34;tension&#34; (negative feedback) in the inflation cycle:
       the prior pulls downwards, while the likelihood tends to pull upwards.
@@ -781,13 +826,13 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
 
     The tuning is controlled by:
 
-    - xN=1: is fully agnostic, i.e. assumes the ensemble is generated
+    - `xN=1`: is fully agnostic, i.e. assumes the ensemble is generated
       from a highly chaotic or stochastic model.
-    - xN&gt;1: increases the certainty of the hyper-prior,
+    - `xN&gt;1`: increases the certainty of the hyper-prior,
       which is appropriate for more linear and deterministic systems.
-    - xN&lt;1: yields a more (than &#39;fully&#39;) agnostic hyper-prior,
+    - `xN&lt;1`: yields a more (than &#39;fully&#39;) agnostic hyper-prior,
       as if N were smaller than it truly is.
-    - xN&lt;=0 is not meaningful.
+    - `xN&lt;=0` is not meaningful.
     &#34;&#34;&#34;
     N1 = N-1
 
@@ -816,10 +861,11 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
 def zeta_a(eN, cL, w):
     &#34;&#34;&#34;EnKF-N inflation estimation via w.
 
-    Returns zeta_a = (N-1)/pre-inflation^2.
+    Returns `zeta_a = (N-1)/pre-inflation^2`.
 
-    Using this inside an iterative minimization as in the iEnKS
-    effectively blends the distinction between the primal and dual EnKF-N.
+    Using this inside an iterative minimization as in the
+    `dapper.da_methods.variational.iEnKS` effectively blends
+    the distinction between the primal and dual EnKF-N.
     &#34;&#34;&#34;
     N  = len(w)
     N1 = N-1
@@ -829,27 +875,32 @@ def zeta_a(eN, cL, w):
 
 @ens_method
 class EnKF_N:
-    &#34;&#34;&#34;Finite-size EnKF (EnKF-N) `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
+    &#34;&#34;&#34;Finite-size EnKF (EnKF-N).
+
+    Refs: `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
 
     This implementation is pedagogical, prioritizing the &#34;dual&#34; form.
     In consequence, the efficiency of the &#34;primal&#34; form suffers a bit.
     The primal form is included for completeness and to demonstrate equivalence.
-    In the iEnKS, however, the primal form is preferred because it
+    In `dapper.da_methods.variational.iEnKS`, however,
+    the primal form is preferred because it
     already does optimization for w (as treatment for nonlinear models).
 
-    &#39;infl&#39; should be unnecessary (assuming no model error, or that Q is correct).
+    `infl` should be unnecessary (assuming no model error, or that Q is correct).
 
-    &#39;Hess&#39;: use non-approx Hessian for ensemble transform matrix?
+    `Hess`: use non-approx Hessian for ensemble transform matrix?
 
-    &#39;g&#39; is the nullity of A (state anomalies&#39;s), ie. g=max(1,N-Nx),
+    `g` is the nullity of A (state anomalies&#39;s), ie. g=max(1,N-Nx),
     compensating for the redundancy in the space of w.
     But we have made it an input argument instead, with default 0,
     because mode-finding (of p(x) via the dual) completely ignores this redundancy,
     and the mode gets (undesireably) modified by g.
 
-    &#39;xN&#39; allows tuning the hyper-prior for the inflation.
+    `xN` allows tuning the hyper-prior for the inflation.
     Usually, I just try setting it to 1 (default), or 2.
-    Further description in hyperprior_coeffs().&#34;&#34;&#34;
+    Further description in hyperprior_coeffs().
+    &#34;&#34;&#34;
+
     N: int
     dual: bool = False
     Hess: bool = False
@@ -983,113 +1034,25 @@ class EnKF_N:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.da_methods.ensemble.rand"><code class="name flex">
-<span>def <span class="ident">rand</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>rand(d0, d1, &hellip;, dn)</p>
-<p>Random values in a given shape.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>random_sample</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<p>Create an array of the given shape and populate it with
-random samples from a uniform distribution
-over <code>[0, 1)</code>.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>out</code></strong> :&ensp;`ndarray, shape ``(d0, d1, &hellip;, dn)```</dt>
-<dd>Random values.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<p><code>random</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.rand(3,2)
-array([[ 0.14022471,  0.96360618],  #random
-       [ 0.37601032,  0.25528411],  #random
-       [ 0.49313049,  0.94909878]]) #random
-</code></pre></div>
-</dd>
-<dt id="dapper.da_methods.ensemble.randn"><code class="name flex">
-<span>def <span class="ident">randn</span></span>(<span>...)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>randn(d0, d1, &hellip;, dn)</p>
-<p>Return a sample (or samples) from the "standard normal" distribution.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <code>standard_normal</code>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <code>numpy.zeros</code> and <code>numpy.ones</code>.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New code should use the <code>standard_normal</code> method of a <code>default_rng()</code>
-instance instead; please see the :ref:<code>random-quick-start</code>.</p>
-</div>
-<p>If positive int_like arguments are provided, <code><a title="dapper.da_methods.ensemble.randn" href="#dapper.da_methods.ensemble.randn">RandomState.randn()</a></code> generates an array
-of shape <code>(d0, d1, &hellip;, dn)</code>, filled
-with random floats sampled from a univariate "normal" (Gaussian)
-distribution of mean 0 and variance 1. A single float randomly sampled
-from the distribution is returned if no argument is provided.</p>
-<h2 id="parameters">Parameters</h2>
-<p>d0, d1, &hellip;, dn : int, optional
-The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>Z</code></strong> :&ensp;<code>ndarray</code> or <code>float</code></dt>
-<dd>A <code>(d0, d1, &hellip;, dn)</code>-shaped array of floating-point samples from
-the standard normal distribution, or a single such float if
-no parameters were supplied.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<dl>
-<dt><code>standard_normal</code></dt>
-<dd>Similar, but takes a tuple as its argument.</dd>
-<dt><code>normal</code></dt>
-<dd>Also accepts mu and sigma arguments.</dd>
-<dt><code>Generator.standard_normal</code></dt>
-<dd>which should be used for new code.</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p>For random samples from :math:<code>N(\mu, \sigma^2)</code>, use:</p>
-<p><code>sigma * np.random.randn(...) + mu</code></p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randn()
-2.1923875335537315  # random
-</code></pre>
-<p>Two-by-four array of samples from N(3, 6.25):</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; 3 + 2.5 * np.random.randn(2, 4)
-array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
-       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
-</code></pre></div>
-</dd>
 <dt id="dapper.da_methods.ensemble.EnKF_analysis"><code class="name flex">
 <span>def <span class="ident">EnKF_analysis</span></span>(<span>E, Eo, hnoise, y, upd_a, stats, kObs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>The EnKF analysis update, in many flavours and forms.</p>
-<p>The update is specified via 'upd_a'.</p>
+<div class="desc"><p>Perform the EnKF analysis update.</p>
+<p>This implementation includes several flavours and forms,
+specified by <code>upd_a</code>.</p>
 <p>Main references: <code><a title="bib.sakov2008deterministic" href="../../bib.html#bib.sakov2008deterministic">sakov2008deterministic</a></code>,
 <code><a title="bib.sakov2008implications" href="../../bib.html#bib.sakov2008implications">sakov2008implications</a></code>, <code><a title="bib.hoteit2015mitigating" href="../../bib.html#bib.hoteit2015mitigating">hoteit2015mitigating</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L53-L218" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L58-L224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
-    &#34;&#34;&#34;The EnKF analysis update, in many flavours and forms.
+    &#34;&#34;&#34;Perform the EnKF analysis update.
 
-    The update is specified via &#39;upd_a&#39;.
+    This implementation includes several flavours and forms,
+    specified by `upd_a`.
 
     Main references: `bib.sakov2008deterministic`,
     `bib.sakov2008implications`, `bib.hoteit2015mitigating`
@@ -1192,10 +1155,10 @@ array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(rand()-0.5)  # Random sign
+                    Zj *= np.sign(np.random.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(randn(N))  # Un-coloured noise
+                    Zj = mean0(np.random.randn(N))  # Un-coloured noise
                     if &#39;Var1&#39; in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -1269,7 +1232,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L221-L246" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L227-L252" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def post_process(E, infl, rot):
     &#34;&#34;&#34;Inflate, Rotate.
@@ -1303,15 +1266,18 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <span>def <span class="ident">add_noise</span></span>(<span>E, dt, noise, method)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Treatment of additive noise for ensembles <code><a title="bib.raanes2014ext" href="../../bib.html#bib.raanes2014ext">raanes2014ext</a></code>.</p></div>
+<div class="desc"><p>Treatment of additive noise for ensembles.</p>
+<p>Refs: <code><a title="bib.raanes2014ext" href="../../bib.html#bib.raanes2014ext">raanes2014ext</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L249-L336" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L255-L344" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_noise(E, dt, noise, method):
-    &#34;&#34;&#34;Treatment of additive noise for ensembles `bib.raanes2014ext`.&#34;&#34;&#34;
+    &#34;&#34;&#34;Treatment of additive noise for ensembles.
 
+    Refs: `bib.raanes2014ext`
+    &#34;&#34;&#34;
     if noise.C == 0:
         return E
 
@@ -1374,7 +1340,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
         E, _, Qa12 = sqrt_core()
         if N &lt;= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@np.random.randn(Z.shape[1], N)).T
 
     elif method == &#39;Sqrt-Dep&#39;:
         E, T, Qa12 = sqrt_core()
@@ -1389,7 +1355,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@np.random.randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -1403,13 +1369,24 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <span>def <span class="ident">serial_inds</span></span>(<span>upd_a, y, cvR, A)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get the indices used for serial updating.</p>
+<ul>
+<li>Default: random ordering</li>
+<li>if "mono" in <code>upd_a</code>: <code>1, 2, &hellip;, len(y)</code></li>
+<li>if "sorted" in <code>upd_a</code>: sort by variance</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L441-L454" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L457-L476" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def serial_inds(upd_a, y, cvR, A):
+    &#34;&#34;&#34;Get the indices used for serial updating.
+
+    - Default: random ordering
+    - if &#34;mono&#34; in `upd_a`: `1, 2, ..., len(y)`
+    - if &#34;sorted&#34; in `upd_a`: sort by variance
+    &#34;&#34;&#34;
     if &#39;mono&#39; in upd_a:
         # Not robust?
         inds = np.arange(len(y))
@@ -1434,7 +1411,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L628-L670" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L662-L704" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def effective_N(YR, dyR, xN, g):
     &#34;&#34;&#34;Effective ensemble size N.
@@ -1485,15 +1462,19 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <span>def <span class="ident">Newton_m</span></span>(<span>fun, deriv, x0, is_inverted=False, conf=1.0, xtol=0.0001, ytol=1e-07, itermax=100)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Simple (and fast) implementation of Newton root-finding</p></div>
+<div class="desc"><p>Find root of <code>fun</code>.</p>
+<p>This is a simple (and pretty fast) implementation of Newton's method.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L698-L714" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L732-L751" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Newton_m(fun, deriv, x0, is_inverted=False,
              conf=1.0, xtol=1e-4, ytol=1e-7, itermax=10**2):
-    &#34;Simple (and fast) implementation of Newton root-finding&#34;
+    &#34;&#34;&#34;Find root of `fun`.
+
+    This is a simple (and pretty fast) implementation of Newton&#39;s method.
+    &#34;&#34;&#34;
     itr, dx, Jx = 0, np.inf, fun(x0)
     def norm(x): return sqrt(np.sum(x**2))
     while ytol &lt; norm(Jx) and xtol &lt; norm(dx) and itr &lt; itermax:
@@ -1514,7 +1495,8 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <span>def <span class="ident">hyperprior_coeffs</span></span>(<span>s, N, xN=1, g=0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>EnKF-N inflation prior may be specified by the constants:</p>
+<div class="desc"><p>Set EnKF-N inflation hyperparams.</p>
+<p>The EnKF-N prior may be specified by the constants:</p>
 <ul>
 <li>eN: Effect of unknown mean</li>
 <li>cL: Coeff in front of log term</li>
@@ -1524,12 +1506,12 @@ but are further adjusted (corrected and tuned) for the following reasons.</p>
 <ul>
 <li>
 <p>Reason 1: mode correction.
-These parameters bridge the Jeffreys (xN=1) and Dirac (xN=Inf) hyperpriors
+These parameters bridge the Jeffreys (<code>xN=1</code>) and Dirac (<code>xN=Inf</code>) hyperpriors
 for the prior covariance, B, as discussed in <code><a title="bib.bocquet2015expanding" href="../../bib.html#bib.bocquet2015expanding">bocquet2015expanding</a></code>.
-Indeed, mode correction becomes necessary when :math:<code>R \rightarrow \infty</code>.
+Indeed, mode correction becomes necessary when <span><span class="MathJax_Preview"> R \rightarrow \infty </span><script type="math/tex; mode=display"> R \rightarrow \infty </script></span>
 because then there should be no ensemble update (and also no inflation!).
 More specifically, the mode of <code>l1</code>'s should be adjusted towards 1
-as a function of :math:<code>I-KH</code> ("prior's weight").
+as a function of <span><span class="MathJax_Preview"> I - K H </span><script type="math/tex; mode=display"> I - K H </script></span> ("prior's weight").
 PS: why do we leave the prior mode below 1 at all?
 Because it sets up "tension" (negative feedback) in the inflation cycle:
 the prior pulls downwards, while the likelihood tends to pull upwards.</p>
@@ -1546,21 +1528,23 @@ as illustrated in section 2.1 of <code><a title="bib.raanes2019adaptive" href=".
 </ul>
 <p>The tuning is controlled by:</p>
 <ul>
-<li>xN=1: is fully agnostic, i.e. assumes the ensemble is generated
+<li><code>xN=1</code>: is fully agnostic, i.e. assumes the ensemble is generated
 from a highly chaotic or stochastic model.</li>
-<li>xN&gt;1: increases the certainty of the hyper-prior,
+<li><code>xN&gt;1</code>: increases the certainty of the hyper-prior,
 which is appropriate for more linear and deterministic systems.</li>
-<li>xN&lt;1: yields a more (than 'fully') agnostic hyper-prior,
+<li><code>xN&lt;1</code>: yields a more (than 'fully') agnostic hyper-prior,
 as if N were smaller than it truly is.</li>
-<li>xN&lt;=0 is not meaningful.</li>
+<li><code>xN&lt;=0</code> is not meaningful.</li>
 </ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L717-L775" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L754-L814" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def hyperprior_coeffs(s, N, xN=1, g=0):
-    &#34;&#34;&#34;EnKF-N inflation prior may be specified by the constants:
+    r&#34;&#34;&#34;Set EnKF-N inflation hyperparams.
+
+    The EnKF-N prior may be specified by the constants:
 
     - eN: Effect of unknown mean
     - cL: Coeff in front of log term
@@ -1569,12 +1553,12 @@ as if N were smaller than it truly is.</li>
     but are further adjusted (corrected and tuned) for the following reasons.
 
     - Reason 1: mode correction.
-      These parameters bridge the Jeffreys (xN=1) and Dirac (xN=Inf) hyperpriors
+      These parameters bridge the Jeffreys (`xN=1`) and Dirac (`xN=Inf`) hyperpriors
       for the prior covariance, B, as discussed in `bib.bocquet2015expanding`.
-      Indeed, mode correction becomes necessary when :math:`R \\rightarrow \\infty`.
+      Indeed, mode correction becomes necessary when $$ R \rightarrow \infty $$
       because then there should be no ensemble update (and also no inflation!).
-      More specifically, the mode of ``l1``&#39;s should be adjusted towards 1
-      as a function of :math:`I-KH` (&#34;prior&#39;s weight&#34;).
+      More specifically, the mode of `l1`&#39;s should be adjusted towards 1
+      as a function of $$ I - K H $$ (&#34;prior&#39;s weight&#34;).
       PS: why do we leave the prior mode below 1 at all?
       Because it sets up &#34;tension&#34; (negative feedback) in the inflation cycle:
       the prior pulls downwards, while the likelihood tends to pull upwards.
@@ -1588,13 +1572,13 @@ as if N were smaller than it truly is.</li>
 
     The tuning is controlled by:
 
-    - xN=1: is fully agnostic, i.e. assumes the ensemble is generated
+    - `xN=1`: is fully agnostic, i.e. assumes the ensemble is generated
       from a highly chaotic or stochastic model.
-    - xN&gt;1: increases the certainty of the hyper-prior,
+    - `xN&gt;1`: increases the certainty of the hyper-prior,
       which is appropriate for more linear and deterministic systems.
-    - xN&lt;1: yields a more (than &#39;fully&#39;) agnostic hyper-prior,
+    - `xN&lt;1`: yields a more (than &#39;fully&#39;) agnostic hyper-prior,
       as if N were smaller than it truly is.
-    - xN&lt;=0 is not meaningful.
+    - `xN&lt;=0` is not meaningful.
     &#34;&#34;&#34;
     N1 = N-1
 
@@ -1625,21 +1609,23 @@ as if N were smaller than it truly is.</li>
 </code></dt>
 <dd>
 <div class="desc"><p>EnKF-N inflation estimation via w.</p>
-<p>Returns zeta_a = (N-1)/pre-inflation^2.</p>
-<p>Using this inside an iterative minimization as in the iEnKS
-effectively blends the distinction between the primal and dual EnKF-N.</p></div>
+<p>Returns <code>zeta_a = (N-1)/pre-inflation^2</code>.</p>
+<p>Using this inside an iterative minimization as in the
+<code><a title="dapper.da_methods.variational.iEnKS" href="variational.html#dapper.da_methods.variational.iEnKS">iEnKS</a></code> effectively blends
+the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L778-L789" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L817-L829" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def zeta_a(eN, cL, w):
     &#34;&#34;&#34;EnKF-N inflation estimation via w.
 
-    Returns zeta_a = (N-1)/pre-inflation^2.
+    Returns `zeta_a = (N-1)/pre-inflation^2`.
 
-    Using this inside an iterative minimization as in the iEnKS
-    effectively blends the distinction between the primal and dual EnKF-N.
+    Using this inside an iterative minimization as in the
+    `dapper.da_methods.variational.iEnKS` effectively blends
+    the distinction between the primal and dual EnKF-N.
     &#34;&#34;&#34;
     N  = len(w)
     N1 = N-1
@@ -1657,14 +1643,20 @@ effectively blends the distinction between the primal and dual EnKF-N.</p></div>
 <span>(</span><span>upd_a: str, N: int, infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>The ensemble Kalman filter <code><a title="bib.evensen2009ensemble" href="../../bib.html#bib.evensen2009ensemble">evensen2009ensemble</a></code></p></div>
+<div class="desc"><p>The ensemble Kalman filter.</p>
+<p>Refs: <code><a title="bib.evensen2009ensemble" href="../../bib.html#bib.evensen2009ensemble">evensen2009ensemble</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L25-L50" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L25-L55" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnKF:
-    &#34;&#34;&#34;The ensemble Kalman filter `bib.evensen2009ensemble`&#34;&#34;&#34;
+<pre><code class="python">@ens_method
+class EnKF:
+    &#34;&#34;&#34;The ensemble Kalman filter.
+
+    Refs: `bib.evensen2009ensemble`.
+    &#34;&#34;&#34;
+
     upd_a: str
     N: int
 
@@ -1727,7 +1719,7 @@ effectively blends the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L30-L50" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L35-L55" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1759,19 +1751,25 @@ effectively blends the distinction between the primal and dual EnKF-N.</p></div>
 <span>(</span><span>upd_a: str, N: int, Lag: int, infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>The ensemble Kalman smoother <code><a title="bib.evensen2009ensemble" href="../../bib.html#bib.evensen2009ensemble">evensen2009ensemble</a></code>.</p>
+<div class="desc"><p>The ensemble Kalman smoother.</p>
+<p>Refs: <code><a title="bib.evensen2009ensemble" href="../../bib.html#bib.evensen2009ensemble">evensen2009ensemble</a></code></p>
 <p>The only difference to the EnKF
 is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L340-L393" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L347-L405" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnKS:
-    &#34;&#34;&#34;The ensemble Kalman smoother `bib.evensen2009ensemble`.
+<pre><code class="python">@ens_method
+class EnKS:
+    &#34;&#34;&#34;The ensemble Kalman smoother.
+
+    Refs: `bib.evensen2009ensemble`
 
     The only difference to the EnKF
-    is the management of the lag and the reshapings.&#34;&#34;&#34;
+    is the management of the lag and the reshapings.
+    &#34;&#34;&#34;
+
     upd_a: str
     N: int
     Lag: int
@@ -1817,7 +1815,7 @@ is the management of the lag and the reshapings.</p></div>
                 E[k]  = post_process(E[k], self.infl, self.rot)
                 stats.assess(k, kObs, &#39;a&#39;, E=E[k])
 
-        for k, kObs, t, dt in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
+        for k, kObs, _, _ in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
             stats.assess(k, kObs, &#39;u&#39;, E=E[k])
             if kObs is not None:
                 stats.assess(k, kObs, &#39;s&#39;, E=E[k])</code></pre>
@@ -1863,7 +1861,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L351-L353" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L363-L365" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reshape_to(self, E):
     K, N, Nx = E.shape
@@ -1878,7 +1876,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L355-L358" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L367-L370" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reshape_fr(self, E, Nx):
     N, Km = E.shape
@@ -1894,7 +1892,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L360-L393" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L372-L405" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1926,7 +1924,7 @@ is the management of the lag and the reshapings.</p></div>
             E[k]  = post_process(E[k], self.infl, self.rot)
             stats.assess(k, kObs, &#39;a&#39;, E=E[k])
 
-    for k, kObs, t, dt in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
+    for k, kObs, _, _ in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
         stats.assess(k, kObs, &#39;u&#39;, E=E[k])
         if kObs is not None:
             stats.assess(k, kObs, &#39;s&#39;, E=E[k])</code></pre>
@@ -1939,14 +1937,20 @@ is the management of the lag and the reshapings.</p></div>
 <span>(</span><span>upd_a: str, N: int, cntr: float, infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>EnRTS (Rauch-Tung-Striebel) smoother <code><a title="bib.raanes2016thesis" href="../../bib.html#bib.raanes2016thesis">raanes2016thesis</a></code>.</p></div>
+<div class="desc"><p>EnRTS (Rauch-Tung-Striebel) smoother.</p>
+<p>Refs: <code><a title="bib.raanes2016thesis" href="../../bib.html#bib.raanes2016thesis">raanes2016thesis</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L397-L438" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L408-L454" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnRTS:
-    &#34;&#34;&#34;EnRTS (Rauch-Tung-Striebel) smoother `bib.raanes2016thesis`.&#34;&#34;&#34;
+<pre><code class="python">@ens_method
+class EnRTS:
+    &#34;&#34;&#34;EnRTS (Rauch-Tung-Striebel) smoother.
+
+    Refs: `bib.raanes2016thesis`
+    &#34;&#34;&#34;
+
     upd_a: str
     N: int
     cntr: float
@@ -1983,7 +1987,7 @@ is the management of the lag and the reshapings.</p></div>
 
             E[k] += (E[k+1] - Ef[k+1]) @ J
 
-        for k, kObs, t, dt in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
+        for k, kObs, _, _ in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
             stats.assess(k, kObs, &#39;u&#39;, E=E[k])
             if kObs is not None:
                 stats.assess(k, kObs, &#39;s&#39;, E=E[k])</code></pre>
@@ -2029,7 +2033,7 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L403-L438" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L419-L454" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -2063,7 +2067,7 @@ is the management of the lag and the reshapings.</p></div>
 
         E[k] += (E[k+1] - Ef[k+1]) @ J
 
-    for k, kObs, t, dt in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
+    for k, kObs, _, _ in progbar(chrono.ticker, desc=&#39;Assessing&#39;):
         stats.assess(k, kObs, &#39;u&#39;, E=E[k])
         if kObs is not None:
             stats.assess(k, kObs, &#39;s&#39;, E=E[k])</code></pre>
@@ -2076,19 +2080,25 @@ is the management of the lag and the reshapings.</p></div>
 <span>(</span><span>N: int, loc_rad: float, taper: str = 'GC', ordr: str = 'rand', infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Serial, covariance-localized EAKF <code><a title="bib.karspeck2007experimental" href="../../bib.html#bib.karspeck2007experimental">karspeck2007experimental</a></code>.</p>
+<div class="desc"><p>Serial, covariance-localized EAKF.</p>
+<p>Refs: <code><a title="bib.karspeck2007experimental" href="../../bib.html#bib.karspeck2007experimental">karspeck2007experimental</a></code>.</p>
 <p>Used without localization, this should be equivalent (full ensemble equality)
-to the :func:<code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_methods.ensemble.EnKF">EnKF</a></code> with <code>upd_a='Serial'</code>.</p></div>
+to the <code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_methods.ensemble.EnKF">EnKF</a></code> with <code>upd_a='Serial'</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L458-L526" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L479-L552" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class SL_EAKF:
-    &#34;&#34;&#34;Serial, covariance-localized EAKF `bib.karspeck2007experimental`.
+<pre><code class="python">@ens_method
+class SL_EAKF:
+    &#34;&#34;&#34;Serial, covariance-localized EAKF.
+
+    Refs: `bib.karspeck2007experimental`.
 
     Used without localization, this should be equivalent (full ensemble equality)
-    to the :func:`EnKF` with ``upd_a=&#39;Serial&#39;``.&#34;&#34;&#34;
+    to the `EnKF` with `upd_a=&#39;Serial&#39;`.
+    &#34;&#34;&#34;
+
     N: int
     loc_rad: float
     taper: str  = &#39;GC&#39;
@@ -2199,7 +2209,7 @@ to the :func:<code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_m
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L468-L526" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L494-L552" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -2269,22 +2279,30 @@ to the :func:<code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_m
 <span>(</span><span>N: int, loc_rad: float, taper: str = 'GC', xN: float = 1.0, g: int = 0, mp: bool = False, infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Same as EnKF (sqrt), but with localization <code><a title="bib.hunt2007efficient" href="../../bib.html#bib.hunt2007efficient">hunt2007efficient</a></code>.</p>
-<p>NB: Multiprocessing yields slow-down for L96, even with batch_size=(1,).
-But for QG (batch_size=(2,2) or less) it is quicker.</p>
-<p>NB: If len(ii) is small, analysis may be slowed-down with '-N' infl.</p></div>
+<div class="desc"><p>Same as EnKF (sqrt), but with localization.</p>
+<p>Refs: <code><a title="bib.hunt2007efficient" href="../../bib.html#bib.hunt2007efficient">hunt2007efficient</a></code>.</p>
+<p>NB: Multiproc. yields slow-down for <code><a title="dapper.mods.Lorenz96" href="../mods/Lorenz96/index.html">dapper.mods.Lorenz96</a></code>,
+even with <code>batch_size=(1,)</code>. But for <code><a title="dapper.mods.QG" href="../mods/QG/index.html">dapper.mods.QG</a></code>
+(<code>batch_size=(2,2)</code> or less) it is quicker.</p>
+<p>NB: If <code>len(ii)</code> is small, analysis may be slowed-down with '-N' infl.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L530-L625" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L555-L659" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class LETKF:
-    &#34;&#34;&#34;Same as EnKF (sqrt), but with localization `bib.hunt2007efficient`.
+<pre><code class="python">@ens_method
+class LETKF:
+    &#34;&#34;&#34;Same as EnKF (sqrt), but with localization.
 
-    NB: Multiprocessing yields slow-down for L96, even with batch_size=(1,).
-        But for QG (batch_size=(2,2) or less) it is quicker.
+    Refs: `bib.hunt2007efficient`.
 
-    NB: If len(ii) is small, analysis may be slowed-down with &#39;-N&#39; infl.&#34;&#34;&#34;
+    NB: Multiproc. yields slow-down for `dapper.mods.Lorenz96`,
+    even with `batch_size=(1,)`. But for `dapper.mods.QG`
+    (`batch_size=(2,2)` or less) it is quicker.
+
+    NB: If `len(ii)` is small, analysis may be slowed-down with &#39;-N&#39; infl.
+    &#34;&#34;&#34;
+
     N: int
     loc_rad: float
     taper: str = &#39;GC&#39;
@@ -2328,10 +2346,13 @@ But for QG (batch_size=(2,2) or less) it is quicker.</p>
                 xN, g, infl = self.xN, self.g, self.infl
 
                 def local_analysis(ii):
-                    &#34;&#34;&#34;Notation:
-                     - ii: inds for the state batch defining the locality
-                     - jj: inds for the associated obs&#34;&#34;&#34;
+                    &#34;&#34;&#34;Do the local analysis.
 
+                    Notation:
+
+                    - ii: inds for the state batch defining the locality
+                    - jj: inds for the associated obs
+                    &#34;&#34;&#34;
                     # Locate local obs
                     jj, tapering = obs_taperer(ii)
                     if len(jj) == 0:
@@ -2428,7 +2449,7 @@ But for QG (batch_size=(2,2) or less) it is quicker.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L544-L625" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L575-L659" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -2466,10 +2487,13 @@ But for QG (batch_size=(2,2) or less) it is quicker.</p>
             xN, g, infl = self.xN, self.g, self.infl
 
             def local_analysis(ii):
-                &#34;&#34;&#34;Notation:
-                 - ii: inds for the state batch defining the locality
-                 - jj: inds for the associated obs&#34;&#34;&#34;
+                &#34;&#34;&#34;Do the local analysis.
 
+                Notation:
+
+                - ii: inds for the state batch defining the locality
+                - jj: inds for the associated obs
+                &#34;&#34;&#34;
                 # Locate local obs
                 jj, tapering = obs_taperer(ii)
                 if len(jj) == 0:
@@ -2521,49 +2545,57 @@ But for QG (batch_size=(2,2) or less) it is quicker.</p>
 <span>(</span><span>N: int, dual: bool = False, Hess: bool = False, xN: float = 1.0, g: int = 0, infl: float = 1.0, rot: bool = False, fnoise_treatm: str = 'Stoch')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Finite-size EnKF (EnKF-N) <code><a title="bib.bocquet2011ensemble" href="../../bib.html#bib.bocquet2011ensemble">bocquet2011ensemble</a></code>, <code><a title="bib.bocquet2015expanding" href="../../bib.html#bib.bocquet2015expanding">bocquet2015expanding</a></code></p>
+<div class="desc"><p>Finite-size EnKF (EnKF-N).</p>
+<p>Refs: <code><a title="bib.bocquet2011ensemble" href="../../bib.html#bib.bocquet2011ensemble">bocquet2011ensemble</a></code>, <code><a title="bib.bocquet2015expanding" href="../../bib.html#bib.bocquet2015expanding">bocquet2015expanding</a></code></p>
 <p>This implementation is pedagogical, prioritizing the "dual" form.
 In consequence, the efficiency of the "primal" form suffers a bit.
 The primal form is included for completeness and to demonstrate equivalence.
-In the iEnKS, however, the primal form is preferred because it
+In <code><a title="dapper.da_methods.variational.iEnKS" href="variational.html#dapper.da_methods.variational.iEnKS">iEnKS</a></code>, however,
+the primal form is preferred because it
 already does optimization for w (as treatment for nonlinear models).</p>
-<p>'infl' should be unnecessary (assuming no model error, or that Q is correct).</p>
-<p>'Hess': use non-approx Hessian for ensemble transform matrix?</p>
-<p>'g' is the nullity of A (state anomalies's), ie. g=max(1,N-Nx),
+<p><code>infl</code> should be unnecessary (assuming no model error, or that Q is correct).</p>
+<p><code>Hess</code>: use non-approx Hessian for ensemble transform matrix?</p>
+<p><code>g</code> is the nullity of A (state anomalies's), ie. g=max(1,N-Nx),
 compensating for the redundancy in the space of w.
 But we have made it an input argument instead, with default 0,
 because mode-finding (of p(x) via the dual) completely ignores this redundancy,
 and the mode gets (undesireably) modified by g.</p>
-<p>'xN' allows tuning the hyper-prior for the inflation.
+<p><code>xN</code> allows tuning the hyper-prior for the inflation.
 Usually, I just try setting it to 1 (default), or 2.
 Further description in hyperprior_coeffs().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L793-L938" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L832-L983" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnKF_N:
-    &#34;&#34;&#34;Finite-size EnKF (EnKF-N) `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
+<pre><code class="python">@ens_method
+class EnKF_N:
+    &#34;&#34;&#34;Finite-size EnKF (EnKF-N).
+
+    Refs: `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
 
     This implementation is pedagogical, prioritizing the &#34;dual&#34; form.
     In consequence, the efficiency of the &#34;primal&#34; form suffers a bit.
     The primal form is included for completeness and to demonstrate equivalence.
-    In the iEnKS, however, the primal form is preferred because it
+    In `dapper.da_methods.variational.iEnKS`, however,
+    the primal form is preferred because it
     already does optimization for w (as treatment for nonlinear models).
 
-    &#39;infl&#39; should be unnecessary (assuming no model error, or that Q is correct).
+    `infl` should be unnecessary (assuming no model error, or that Q is correct).
 
-    &#39;Hess&#39;: use non-approx Hessian for ensemble transform matrix?
+    `Hess`: use non-approx Hessian for ensemble transform matrix?
 
-    &#39;g&#39; is the nullity of A (state anomalies&#39;s), ie. g=max(1,N-Nx),
+    `g` is the nullity of A (state anomalies&#39;s), ie. g=max(1,N-Nx),
     compensating for the redundancy in the space of w.
     But we have made it an input argument instead, with default 0,
     because mode-finding (of p(x) via the dual) completely ignores this redundancy,
     and the mode gets (undesireably) modified by g.
 
-    &#39;xN&#39; allows tuning the hyper-prior for the inflation.
+    `xN` allows tuning the hyper-prior for the inflation.
     Usually, I just try setting it to 1 (default), or 2.
-    Further description in hyperprior_coeffs().&#34;&#34;&#34;
+    Further description in hyperprior_coeffs().
+    &#34;&#34;&#34;
+
     N: int
     dual: bool = False
     Hess: bool = False
@@ -2738,7 +2770,7 @@ Further description in hyperprior_coeffs().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/4e5b2322f1396e26843e7c93d3dd4f6b93bdd55f/dapper/da_methods/ensemble.py#L821-L938" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L866-L983" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     # Unpack
@@ -2872,6 +2904,10 @@ Further description in hyperprior_coeffs().</p></div>
 <!-- can add style="width:200px;" to img -->
 </a>
 </header>
+<div class="gcse-search" style="height: 70px"
+data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-gaCategoryParameter="dapper.da_methods.ensemble">
+</div>
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>
@@ -2884,8 +2920,6 @@ Further description in hyperprior_coeffs().</p></div>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
-<li><code><a title="dapper.da_methods.ensemble.rand" href="#dapper.da_methods.ensemble.rand">rand</a></code></li>
-<li><code><a title="dapper.da_methods.ensemble.randn" href="#dapper.da_methods.ensemble.randn">randn</a></code></li>
 <li><code><a title="dapper.da_methods.ensemble.EnKF_analysis" href="#dapper.da_methods.ensemble.EnKF_analysis">EnKF_analysis</a></code></li>
 <li><code><a title="dapper.da_methods.ensemble.post_process" href="#dapper.da_methods.ensemble.post_process">post_process</a></code></li>
 <li><code><a title="dapper.da_methods.ensemble.add_noise" href="#dapper.da_methods.ensemble.add_noise">add_noise</a></code></li>

@@ -2,18 +2,20 @@
 
 Refs:
 
-- https://en.wikipedia.org/wiki/Double_pendulum
-- https://matplotlib.org/3.1.1/gallery/animation/double_pendulum_sgskip.html
+- [Wiki](https://en.wikipedia.org/wiki/Double_pendulum)
+- [MPL](https://matplotlib.org/3.1.1/gallery/animation/double_pendulum_sgskip.html)
   which is based on this c code:
-- http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
+  [USYD](http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c)
 """
 
 import numpy as np
 from numpy import cos, sin
 
-import dapper as dpr
+import dapper.mods as modelling
+from dapper.mods.integration import FD_Jac
 from dapper.mods.Lorenz63 import LPs
-from dapper.tools.math import FD_Jac
+
+__pdoc__ = {"demo": False}
 
 G  = 9.8  # acceleration due to gravity, in m/s^2
 L1 = 1.0  # length of pendulum 1 in m
@@ -22,10 +24,10 @@ M1 = 1.0  # mass of pendulum 1 in kg
 M2 = 1.0  # mass of pendulum 2 in kg
 
 # Initial condition: th1, w1, th2, w2
-x0 = np.radians([130,  0, -10,  0])
+x0 = np.radians([130, 0, -10, 0])
 
 
-@dpr.ens_compatible
+@modelling.ens_compatible
 def dxdt(x):
     th1, w1, th2, w2 = x
 
@@ -55,7 +57,7 @@ def dxdt(x):
 
 # Note: scipy's integrate.odeint can use larger dt,
 #       (without leaking energy), but ain't faster.
-step = dpr.with_rk4(dxdt, autonom=True)
+step = modelling.with_rk4(dxdt, autonom=True)
 
 dstep_dx = FD_Jac(step)
 

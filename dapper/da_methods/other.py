@@ -2,21 +2,24 @@
 
 import numpy as np
 
-import dapper.tools.math as mtools
 from dapper.da_methods.ensemble import add_noise, post_process, serial_inds
 from dapper.da_methods.particle import reweight
+from dapper.stats import center
 from dapper.tools.matrices import funm_psd
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 from .ensemble import ens_method
 
 
 @ens_method
 class RHF:
-    """Rank histogram filter `bib.anderson2010non`.
+    """Rank histogram filter.
+
+    Refs: `bib.anderson2010non`.
 
     Quick & dirty implementation without attention to (de)tails.
     """
+
     N: int
     ordr: str = 'rand'
 
@@ -41,9 +44,9 @@ class RHF:
             if kObs is not None:
                 stats.assess(k, kObs, 'f', E=E)
                 y    = yy[kObs]
-                inds = serial_inds(self.ordr, y, R, mtools.center(E)[0])
+                inds = serial_inds(self.ordr, y, R, center(E)[0])
 
-                for i, j in enumerate(inds):
+                for _, j in enumerate(inds):
                     Eo = Obs(E, t)
                     xo = np.mean(Eo, 0)
                     Y  = Eo - xo
@@ -82,6 +85,7 @@ class LNETF:
 
     It is (supposedly) a deterministic upgrade of the NLEAF of `bib.lei2011moment`.
     """
+
     N: int
     loc_rad: float
     taper: str = 'GC'

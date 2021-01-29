@@ -6,11 +6,11 @@
 from matplotlib import pyplot as plt
 from numpy import eye
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz96 import step, x0
 from dapper.tools.viz import amplitude_animation
 
-simulator = dpr.with_recursion(step, prog="Simulating")
+simulator = modelling.with_recursion(step, prog="Simulating")
 
 x0 = x0(40)
 E0 = x0 + 1e-3*eye(len(x0))[:3]

@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 import dapper.tools.viz as viz
 from dapper.mods.QG import default_prms, nx, sample_filename, square
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
 
 
 def show(x0, psi=True, ax=None):
@@ -26,7 +26,6 @@ def show(x0, psi=True, ax=None):
 
     def update(x):
         im.set_data(psi_or_q(square(x)))
-        plt.pause(0.01)
     return update
 
 
@@ -51,12 +50,12 @@ ax1.set_title(r'$\psi$')
 ax2.set_title('$q$')
 
 xx = np.load(sample_filename)['sample']
-setter1 = show(xx[0], psi=True, ax=ax1)
+setter1 = show(xx[0], psi=True , ax=ax1)
 setter2 = show(xx[0], psi=False, ax=ax2)
 
 for k, x in progbar(list(enumerate(xx)), "Animating"):
     if k % 2 == 0:
+        fig.suptitle("k: "+str(k))
         setter1(x)
         setter2(x)
-        fig.suptitle("k: "+str(k))
         plt.pause(0.01)

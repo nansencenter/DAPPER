@@ -1,21 +1,23 @@
-"""Variational DA methods (iEnKS, 4D-Var, etc)"""
+"""Variational DA methods (iEnKS, 4D-Var, etc)."""
 
 from typing import Optional
 
 import numpy as np
 import scipy.linalg as sla
-from numpy.random import randn
 
-from dapper.admin import da_method
 from dapper.da_methods.ensemble import hyperprior_coeffs, post_process, zeta_a
-from dapper.tools.math import center, inflate_ens, mean0, pad0, svd0, tinv
+from dapper.stats import center, inflate_ens, mean0
+from dapper.tools.linalg import pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
-from dapper.tools.utils import progbar
+from dapper.tools.progressbar import progbar
+
+from . import da_method
 
 
 @da_method
 class var_method:
-    "Declare default variational arguments."
+    """Declare default variational arguments."""
+
     Lag: int    = 1
     nIter: int  = 10
     wtol: float = 0
@@ -69,6 +71,7 @@ class iEnKS:
     Refs: `bib.bocquet2012combining`, `bib.bocquet2013joint`,
     `bib.bocquet2014iterative`.
     """
+
     upd_a: str
     N: int
     MDA: bool    = False
@@ -128,7 +131,7 @@ class iEnKS:
                     E = x0 + (w + EPS*T)@X0
                     # Forecast.
                     for kCycle in DAW:
-                        for k, t, dt in chrono.cycle(kCycle):
+                        for k, t, dt in chrono.cycle(kCycle):  # noqa
                             E = Dyn(E, t-dt, dt)
                     # Observe.
                     Eo = Obs(E, t)
@@ -171,7 +174,7 @@ class iEnKS:
                         Cow1 = Cow1 @ T  # apply previous update
                         dw = dy @ Y.T @ Cow1
                         if 'PertObs' in self.upd_a:   # == "ES-MDA". By Emerick/Reynolds
-                            D   = mean0(randn(*Y.shape)) * np.sqrt(self.nIter)
+                            D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(self.nIter)
                             T  -= (Y + D) @ Y.T @ Cow1
                         elif 'Sqrt' in self.upd_a:    # == "ETKF-ish". By Raanes
                             T   = Cowp(0.5) * np.sqrt(za) @ T
@@ -190,7 +193,8 @@ class iEnKS:
                             # Tinv saves time [vs tinv(T)] when Nx<N
                         # "EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
                         elif 'PertObs' in self.upd_a:
-                            D     = mean0(randn(*Y.shape)) if iteration == 0 else D
+                            D     = mean0(np.random.randn(*Y.shape)) \
+                                if iteration == 0 else D
                             gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                             T     = T + gradT@Cow1
                             # Tinv= tinv(T, threshold=N1)  # unstable
@@ -248,6 +252,7 @@ class Var4D:
 
     Incremental formulation is used, so the formulae look like the ones in iEnKS.
     """
+
     B: Optional[np.ndarray] = None
     xB: float               = 1.0
 
@@ -290,7 +295,7 @@ class Var4D:
                     X = B12  # Aggregate composite TLMs onto B12
                     # Forecast.
                     for kCycle in DAW:
-                        for k, t, dt in chrono.cycle(kCycle):
+                        for k, t, dt in chrono.cycle(kCycle):  # noqa
                             X = Dyn.linear(x, t-dt, dt) @ X
                             x = Dyn(x, t-dt, dt)
 
@@ -322,7 +327,7 @@ class Var4D:
 
                 # Assess (analysis) stats.
                 final_increment = X@dw
-                stats.assess(k,   kObs, 'a', mu=x+final_increment, Cov=X@Cow1@X.T)
+                stats.assess(k, kObs, 'a', mu=x+final_increment, Cov=X@Cow1@X.T)
                 stats.iters[kObs] = iteration+1
 
                 # Final (smoothed) estimate at [kLag].

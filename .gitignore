@@ -68,27 +68,29 @@ dpr_data/
 *.mat
 *.npz
 
-tmp[1-4].py
 
-# QG/f90
-prms_*\.txt
-
-scripts/
-
+dapper/mods/QG/f90/prms_*\.txt
 dapper/mods/KS/kursiv.m
 
-# Diff
-*.new
-*.old
-
-old_version.zip
 dapper/tools/remote/README.md
 dapper/tools/remote/autoscaler.py
 dapper/tools/remote/deployment/
 dapper/tools/remote/image-creation/
 
-.vim/
-OLDD
+tmp*
+
+# Diff
+*.new
+*.old
+
+scripts/
+old_version.zip
+
 .pylintrc
 .coverage
+
 todo.md
+docs/imgs/NORCE-logo-blue.png
+
+.ignore
+pyrightconfig.json

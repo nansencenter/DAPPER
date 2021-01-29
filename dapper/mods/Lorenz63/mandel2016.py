@@ -1,25 +1,22 @@
-"""As in
-J. Mandel, E. Bergou, S. Guerol, S. Gratton, and I. Kasanickyi (2016)
-"Hybrid Levenberg–Marquardt and weak-constraint ensemble Kalman smoother method"
-"""
+"""Settings from `bib.mandel2016hybrid`."""
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz63.sakov2012 import HMM
 
-# HMM.t = dpr.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
+# HMM.t = modelling.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
 # But it's pretty safe to shorten the BurnIn and KObs.
 
-HMM.Obs = dpr.Operator(**{
+HMM.Obs = modelling.Operator(**{
     'M': 3,
     'model': lambda x, t: x**3,
-    'noise': 8
+    'noise': 8,
 })
 
 # It is unclear whether the model error (cov Q) is used
 # just for the DA method, or also for the truth.
 
 
-def Q(dkObs): return dpr.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))
+def Q(dkObs): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))
 
 
 ####################

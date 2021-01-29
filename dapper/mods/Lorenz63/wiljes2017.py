@@ -1,20 +1,16 @@
-"""
-Settings from
-title={Second-order accurate ensemble transform particle filters},
-author={de Wiljes, Jana and Acevedo, Walter and Reich, Sebastian},
-"""
+"""Settings from `bib.wiljes2016second`."""
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz63.sakov2012 import HMM, Nx
 
-HMM.t = dpr.Chronology(0.01, dkObs=12, T=4**5, BurnIn=4)
+HMM.t = modelling.Chronology(0.01, dkObs=12, T=4**5, BurnIn=4)
 
 jj = np.array([0])
-Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 8
-HMM.Obs = dpr.Operator(**Obs)
+HMM.Obs = modelling.Operator(**Obs)
 
 ####################
 # Suggested tuning

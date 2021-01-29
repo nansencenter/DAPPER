@@ -1,6 +1,7 @@
 """Tools related to running experimentes remotely
 
-Requires rsync, gcloud and ssh access to the DAPPER cluster."""
+Requires rsync, gcloud and ssh access to the DAPPER cluster.
+"""
 
 # TODO 9: use Fabric? https://www.fabfile.org/
 
@@ -13,7 +14,6 @@ from datetime import timedelta, timezone
 from dateutil.parser import parse as datetime_parse
 from tqdm import tqdm
 
-import dapper.tools.utils as utils
 from dapper.dpr_config import rc
 
 
@@ -59,7 +59,7 @@ class SubmissionConnection:
         #     output = sub_run(connect + [command])
         return sub_run([*self.ssh_M.split(), self.ip, cmd_string], **kwargs)
 
-    def rsync(self, src, dst, opts=[], rev=False, prog=False, dry=False, use_M=True):
+    def rsync(self, src, dst, opts=(), rev=False, prog=False, dry=False, use_M=True):
         # Prepare: opts
         if isinstance(opts, str):
             opts = opts.split()
@@ -143,8 +143,8 @@ def submit_job_GCP(xps_path, **kwargs):
 def _detect_autoscaler(self, minutes=10):
     """Grep syslog for autoscaler.
 
-    Also get remote's date (time), to avoid another (slow) ssh."""
-
+    Also get remote's date (time), to avoid another (slow) ssh.
+    """
     command = """grep CRON /var/log/syslog | grep autoscaler | tail; date"""
     output  = self.remote_cmd(command).splitlines()
     recent_crons, now = output[:-1], output[-1]
@@ -308,7 +308,7 @@ def _monitor_progress(self):
 
 
 def list_job_dirs(xps_path):
-    dirs = [xps_path/d for d in utils.sorted_human(os.listdir(xps_path))]
+    dirs = [xps_path/d for d in sorted(os.listdir(xps_path))]
     return [d for d in dirs if d.is_dir() and d.stem.isnumeric()]
 
 
@@ -322,7 +322,6 @@ def get_ip(instance):
     and that you've already logged into the instance once using (eg)
     ``ssh condor-submit.us-central1-f.mc-tut``.
     """
-
     # cloud.google.com/compute/docs/instances/view-ip-address
     getip = 'get(networkInterfaces[0].accessConfigs[0].natIP)'
     ip = sub_run((f"gcloud compute instances describe {instance}"
@@ -343,7 +342,7 @@ def get_ip(instance):
 
 
 def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
-    """`subprocess.run`, with other defaults, and return stdout.
+    r"""Run `subprocess.run`, with other defaults, and return stdout.
 
     Example:
     >>> gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])
@@ -352,7 +351,6 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
     >>> # Only .py files:
     >>> gitfiles = [f for f in gitfiles.split("\n") if f.endswith(".py")]
     """
-
     try:
         x = subprocess.run(
             *args, **kwargs,

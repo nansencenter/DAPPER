@@ -2,46 +2,53 @@
 
 import os
 from importlib import import_module
-from pathlib import Path
 
 import pytest
 
-import dapper as dpr
-import dapper.tools.utils as utils
+import dapper.tools.progressbar
+from dapper.dpr_config import rc
+from dapper.mods import HiddenMarkovModel
 
-utils.disable_progbar = True
-
-modules_with_HMM = []
-
-for root, dir, files in os.walk("."):
-    if "mods" in root:
-
-        if os.environ.get("TRAVIS", False) and ("QG" in root):
-            continue
-
-        for f in sorted(files):
-            if f.endswith(".py"):
-                filepath = Path(root) / f
-
-                lines = "".join(open(filepath).readlines())
-                if "HiddenMarkovModel" in lines:
-                    modules_with_HMM.append(filepath)
+dapper.tools.progressbar.disable_progbar = True
 
 
-@pytest.mark.parametrize(("path"), modules_with_HMM)
+def _defines_HMM(path):
+
+    # Don't run QG on Travis-CI or Tox
+    if "QG" in path.parts and (
+            os.environ.get("IS_TRAVIS", False) or
+            os.environ.get("IS_TOX", False)):
+        return False
+
+    if (
+        path.suffix == ".py"
+        and path.stem != "__init__"
+        and "HiddenMarkovModel" in "".join(open(path))
+    ):
+        return True
+
+    return False
+
+
+mods = rc.dirs.dapper / "mods"
+root = rc.dirs.dapper
+HMMs = [p.relative_to(root) for p in mods.glob("**/*.py") if _defines_HMM(p)]
+
+
+@pytest.mark.parametrize(("path"), HMMs, ids=str)
 def test_HMM(path):
     """Test that any HMM in module can be simulated."""
-    p = str(path.with_suffix("")).replace("/", ".")
-    module = import_module(p)
+    p = "." + str(path.with_suffix("")).replace("/", ".")
+    module = import_module(p, root.stem)
 
     def exclude(key, HMM):
-        """Exclude HMMs that are not testable w/o further configuration."""
+        """Exclude certain, untestable HMMs"""
         if key == "HMM_trunc":
             return True
         return False
 
     for key, HMM in vars(module).items():
-        if isinstance(HMM, dpr.HiddenMarkovModel) and not exclude(key, HMM):
+        if isinstance(HMM, HiddenMarkovModel) and not exclude(key, HMM):
             HMM.t.BurnIn = 0
             HMM.t.KObs = 1
             xx, yy = HMM.simulate()

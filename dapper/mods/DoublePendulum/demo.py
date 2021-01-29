@@ -1,4 +1,4 @@
-"""Demonstrate the Double Pendulum model."""
+"""Demonstrate the Double-Pendulum model."""
 # https://en.wikipedia.org/wiki/Double_pendulum
 
 import numpy as np
@@ -6,11 +6,11 @@ from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from numpy import cos, sin
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.DoublePendulum import L1, L2, step, x0
 
 E0 = x0 + 0.01*np.random.randn(3, 4)
-simulator = dpr.with_recursion(step)
+simulator = modelling.with_recursion(step)
 dt = 0.01
 EE = simulator(E0, k=10**4, t0=0, dt=dt)
 
@@ -21,7 +21,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111, autoscale_on=False, xlim=(-2, 2), ylim=(-2, 2))
 
 lines = []
-for x in E0:
+for _ in E0:
     lines += [ax.plot([], [], 'o-', lw=2)[0]]
 
 # Need to hide text handle among "lines"
@@ -35,7 +35,7 @@ def init():
     return lines
 
 
-def x012(x): return (0,  L1*sin(x[0]),  L1*sin(x[0]) + L2*sin(x[2]))
+def x012(x): return (0 , L1*sin(x[0]) , L1*sin(x[0]) + L2*sin(x[2]))
 def y012(x): return (0, -L1*cos(x[0]), -L1*cos(x[0]) - L2*cos(x[2]))
 
 

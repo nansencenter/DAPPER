@@ -1,23 +1,25 @@
-"""A mix of Evensen'2009 and Sakov'2008"""
+"""A mix of `bib.evensen2009ensemble` and `bib.sakov2008implications`.
 
-# NB: Since there is no noise, and the system is stable,
-#     the rmse's from this HMM go to zero as T-->infty.
-#     => benchmarks largely depend on the initial error,
-#     and so these absolute rmse values are not so useful
-#     for quantatative evaluation of DA methods.
-#     For that purpose, see mods/LA/raanes2015.py instead.
+.. note::
+    Since there is no noise, and the system is stable,
+    the rmse's from this HMM go to zero as `T` goes to infinity.
+    Thus, benchmarks largely depend on the initial error,
+    and so these absolute rmse values are not so useful
+    for quantatative evaluation of DA methods.
+    For that purpose, see `dapper.mods.LA.raanes2015` instead.
+"""
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LA import Fmat, sinusoidal_sample
 from dapper.mods.Lorenz96 import LPs
 
 Nx = 1000
 Ny = 4
-jj = dpr.linspace_int(Nx, Ny)
+jj = modelling.linspace_int(Nx, Ny)
 
-tseq = dpr.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)
+tseq = modelling.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)
 
 # WITHOUT explicit matrix (assumes dt == dx/c):
 # step = lambda x,t,dt: np.roll(x,1,axis=x.ndim-1)
@@ -34,7 +36,7 @@ Dyn = {
     'M': Nx,
     'model': step,
     'linear': lambda x, t, dt: Fm,
-    'noise': 0
+    'noise': 0,
 }
 
 # In the animation, it can sometimes/somewhat occur
@@ -43,12 +45,12 @@ Dyn = {
 # yields (multivariate) uniform (random numbers) -- not Gaussian.
 wnum  = 25
 a = np.sqrt(5)/10
-X0 = dpr.RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx, wnum, N))
+X0 = modelling.RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx, wnum, N))
 
-Obs = dpr.partial_Id_Obs(Nx, jj)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.01
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
 
 
 ####################

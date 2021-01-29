@@ -1,11 +1,6 @@
-"""Quasi-geostraphic 2D flow.
+"""Quasi-geostraphic 2D flow. Described in detail by `bib.sakov2008deterministic`.
 
 Adapted from Pavel Sakov's enkf-matlab package.
-
-Model is described in detail by Sakov, Pavel, and Peter R. Oke.:
-  "A deterministic formulation of the ensemble Kalman filter:
-  an alternative to ensemble square root filters."
-  Tellus A 60.2 (2008): 361-371.
 
 More info:
 
@@ -15,7 +10,7 @@ More info:
 - Doubling time "between 25 and 50"
 - Note Sakov's trick of increasing RKH2 from 2.0e-12 to 2.0e-11 to stabilize
   the ensemble integration, which may be necessary for EnKF's with small N.
-  See example in `mods.QG.counillon2009`.
+  See example in `counillon2009`.
 """
 
 from pathlib import Path
@@ -23,9 +18,11 @@ from pathlib import Path
 import matplotlib as mpl
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
-import dapper.tools.multiprocessing as mp
+import dapper.tools.multiproc as mp
+
+__pdoc__ = {"demo": False}
 
 #########################
 # Model
@@ -33,8 +30,10 @@ import dapper.tools.multiprocessing as mp
 try:
     from dapper.mods.QG.f90.py_mod import interface_mod as fortran
 except ImportError as err:
-    raise Exception("Have you compiled the (Fortran) model? "
-                    f"See README in folder {dpr.rc.dirs.dapper}/mods/QG/f90") from err
+    raise Exception(
+        "Have you compiled the (Fortran) model? "
+        f"See README in folder {modelling.rc.dirs.dapper}/mods/QG/f90"
+        "") from err
 
 default_prms = dict(
     # These parameters may be interesting to change.
@@ -56,14 +55,14 @@ default_prms = dict(
 
 
 class model_config:
-    """
-    Helps to ensure consistency between prms file (that Fortran module reads)
+    """Define model.
+
+    Helps ensure consistency between prms file (that Fortran module reads)
     and Python calls to step(), for example for dt.
     """
 
     def __init__(self, name, prms, mp=True):
-        "Use prms={} to get the default configuration."
-
+        """Use `prms={}` to get the default configuration."""
         # Insert prms. Assert key is present in defaults.
         D = default_prms.copy()
         for key in prms:
@@ -155,14 +154,14 @@ def ind2sub(ind): return np.unravel_index(ind, shape[::-1])
 # Free run
 #########################
 def gen_sample(model, nSamples, SpinUp, Spacing):
-    simulator = dpr.with_recursion(model.step, prog="Simulating")
+    simulator = modelling.with_recursion(model.step, prog="Simulating")
     K         = SpinUp + nSamples*Spacing
     Nx        = np.prod(shape)  # total state length
     sample    = simulator(np.zeros(Nx), K, 0.0, model.prms["dtout"])
     return sample[SpinUp::Spacing]
 
 
-sample_filename = dpr.rc.dirs.samples/'QG_samples.npz'
+sample_filename = modelling.rc.dirs.samples/'QG_samples.npz'
 if not sample_filename.is_file():
     print('Did not find sample file', sample_filename,
           'for experiment initialization. Generating...')

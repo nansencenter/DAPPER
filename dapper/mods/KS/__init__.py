@@ -13,8 +13,10 @@ import functools
 import numpy as np
 
 from dapper.dpr_config import DotDict
+from dapper.mods.integration import integrate_TLM, with_rk4
 from dapper.tools.magic import magic_naming
-from dapper.tools.math import integrate_TLM, is1d, with_rk4
+
+__pdoc__ = {mod: False for mod in ["demo", "compare_schemes"]}
 
 
 # To & from time/Fourier domain -- use reals-only fft
@@ -31,14 +33,13 @@ def byFourier(func):
 
 
 def Model(dt=0.25, DL=32, Nx=128):
-    "Define step(), x0, etc. Alternative schemes (step_XXX) also implemented."
+    """Define `step`, `x0`, `etc`. Alternative schemes (`step_XXX`) also implemented."""
     h = dt  # alias -- prevents o/w in step()
 
     # Fourier stuff
     # wave nums for rfft
     kk = np.append(np.arange(0, Nx/2), 0)*2/DL
     # wave nums for fft
-    # from dapper.tools.math import ccat
     # kk = ccat([np.arange(0,Nx/2),[0], np.arange(-Nx/2+1,0)])*2/DL
     # Alternative method:
     # kk = np.fft.fftfreq(Nx, DL/Nx/2)
@@ -57,7 +58,6 @@ def Model(dt=0.25, DL=32, Nx=128):
 
     # Jacobian of dxdt(u)
     def d2x_dtdx(u):
-        assert is1d(u)
         dL  = ifft(L * fft(np.eye(Nx))) . T
         dNL = - ifft(D * fft(np.diag(u))) . T
         return dL + dNL
@@ -130,7 +130,7 @@ def Model(dt=0.25, DL=32, Nx=128):
     grid = DL*np.pi*np.linspace(0, 1, Nx+1)[1:]
     x0_Kassam = np.cos(grid/16) * (1 + np.sin(grid/16))
     x0 = x0_Kassam.copy()
-    for k in range(int(150/h)):
+    for _ in range(int(150/h)):
         x0 = step(x0, np.nan, h)
 
     # Return dict

@@ -1,19 +1,19 @@
-"""Estimtate the Lyapunov spectrum using an ensemble of perturbations.
+"""Estimtate the Lyapunov spectrum using an ensemble of perturbations."""
 
-An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}."""
+# An old version using explicit TLMs can be found in EmblAUS/Lyap_L{63,96}.
 
 import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
+from mpl_tools.fig_layout import freshfig
 from numpy.random import randn
 
-import dapper as dpr
 import dapper.tools.series as series
 import dapper.tools.viz as viz
-from dapper.tools.math import with_recursion, with_rk4
-from dapper.tools.utils import progbar
+from dapper.mods import set_seed, with_recursion, with_rk4
+from dapper.tools.progressbar import progbar
 
-dpr.set_seed(3000)
+set_seed(3000)
 
 ########################
 # Model selection
@@ -139,13 +139,14 @@ xx = with_recursion(step, prog="Reference")(x, K, t0, dt)
 # ACF
 ########################
 # NB: Won't work with QG (too big, and BCs==0).
-fig, ax = dpr.freshfig(4)
+fig, ax = freshfig(4)
 if "ii" not in locals():
     ii = np.arange(min(100, Nx))
 if "nlags" not in locals():
     nlags = min(100, K-1)
-ax.plot(tt[:nlags], np.nanmean(series.auto_cov(
-    xx[:nlags, ii], nlags=nlags, corr=1), axis=1))
+ax.plot(tt[:nlags], np.nanmean(
+    series.auto_cov(xx[:nlags, ii], nlags=nlags-1, corr=1),
+    axis=1))
 ax.set_xlabel('Time (t)')
 ax.set_ylabel('Auto-corr')
 viz.plot_pause(0.1)
@@ -184,7 +185,7 @@ print('mean: ', np.mean(xx))
 
 ##
 
-fig, ax = dpr.freshfig(1)
+fig, ax = freshfig(1)
 ax.plot(tt, running_LS, lw=1.2, alpha=0.7)
 ax.set_title('Lyapunov Exponent estimates')
 ax.set_xlabel('Time')

@@ -1,24 +1,20 @@
-"""Reproduce results from fig2 of
-Raanes, Patrick Nima, Alberto Carrassi, and Laurent Bertino (2015):
-"Extending the square root method to account for
-additive forecast noise in ensemble methods."
-"""
+"""Reproduce results from Fig. 2 of `bib.raanes2014ext`."""
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.LA import Fmat, sinusoidal_sample
 from dapper.mods.Lorenz96 import LPs
-from dapper.tools.math import center, tsvd
+from dapper.tools.linalg import tsvd
 
 # Burn-in allows damp*x and x+noise balance out
-tseq = dpr.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)
+tseq = modelling.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)
 
 Nx = 1000
 Ny = 40
 
-jj = dpr.linspace_int(Nx, Ny)
-Obs = dpr.partial_Id_Obs(Nx, jj)
+jj = modelling.linspace_int(Nx, Ny)
+Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.01
 
 
@@ -30,7 +26,7 @@ Obs['noise'] = 0.01
 # But, for strict equivalence, one would have to use
 # uniform (i.e. not Gaussian) random numbers.
 wnumQ = 25
-sample_filename = dpr.rc.dirs.samples/('LA_Q_wnum%d.npz' % wnumQ)
+sample_filename = modelling.rc.dirs.samples/('LA_Q_wnum%d.npz' % wnumQ)
 
 try:
     # Load pre-generated
@@ -41,13 +37,13 @@ except FileNotFoundError:
           'for experiment initialization. Generating...')
     NQ        = 20000  # Must have NQ > (2*wnumQ+1)
     A         = sinusoidal_sample(Nx, wnumQ, NQ)
-    A         = 1/10 * center(A)[0] / np.sqrt(NQ)
+    A         = 1/10 * (A - A.mean(0)) / np.sqrt(NQ)
     Q         = A.T @ A
     U, s, _     = tsvd(Q)
     L         = U*np.sqrt(s)
     np.savez(sample_filename, Left=L)
 
-X0 = dpr.GaussRV(C=dpr.CovMat(np.sqrt(5)*L, 'Left'))
+X0 = modelling.GaussRV(C=modelling.CovMat(np.sqrt(5)*L, 'Left'))
 
 
 ###################
@@ -66,10 +62,10 @@ Dyn = {
     'M': Nx,
     'model': lambda x, t, dt: damp * step(x, t, dt),
     'linear': lambda x, t, dt: damp * Fm,
-    'noise': dpr.GaussRV(C=dpr.CovMat(L, 'Left')),
+    'noise': modelling.GaussRV(C=modelling.CovMat(L, 'Left')),
 }
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))
 
 
 ####################

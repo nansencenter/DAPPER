@@ -1,5 +1,4 @@
-"""From Bocquet (2015):
-'Localization and the iterative ensemble Kalman smoother'"""
+"""Settings as in `bib.bocquet2016localization`."""
 
 import numpy as np
 
@@ -8,7 +7,7 @@ from dapper.mods.Lorenz96.sakov2008 import HMM
 
 # Shift localization indices to adjust for time (i.e. in smoothing)
 def loc_shift(ii, dt):
-    shift = int(np.round(6.0*dt))  # Taken from Fig 4 of bocquet2015localization
+    shift = int(np.round(6.0*dt))  # Taken from Fig 4 of bocquet2016localization
     # NB: don't use builtin round; it returns integers -- except for round(0.0) !!!
     ii_new = ii + shift
     ii_new = np.remainder(ii_new, HMM.Nx)  # periodicity

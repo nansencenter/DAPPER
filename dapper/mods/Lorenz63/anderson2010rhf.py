@@ -1,11 +1,11 @@
-"""As in Anderson 2010 rank histogram filter"""
+"""Settings from `bib.anderson2010non`."""
 
 import numpy as np
 
-import dapper as dpr
+import dapper.mods as modelling
 from dapper.mods.Lorenz63 import Tplot, dstep_dx, step, x0
 
-t = dpr.Chronology(0.01, dkObs=12, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
+t = modelling.Chronology(0.01, dkObs=12, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
 Nx = len(x0)
 
@@ -13,15 +13,15 @@ Dyn = {
     'M': Nx,
     'model': step,
     'linear': dstep_dx,
-    'noise': 0
+    'noise': 0,
 }
 
-X0 = dpr.GaussRV(C=2, mu=x0)
+X0 = modelling.GaussRV(C=2, mu=x0)
 
-Obs = dpr.partial_Id_Obs(Nx, np.arange(Nx))
+Obs = modelling.partial_Id_Obs(Nx, np.arange(Nx))
 Obs['noise'] = 8.0
 
-HMM = dpr.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 
 ####################

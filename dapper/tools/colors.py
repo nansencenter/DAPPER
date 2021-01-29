@@ -15,11 +15,23 @@ colorama.init()
 # Colouring for the terminal / console
 #########################################
 def color_text(text, *color_codes):
+    """Color a string for the terminal.
 
-    if len(color_codes) == 0:
-        color_codes = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
+    Multiple `color_codes` can be combined.
+    Look them up in `colorama.Back` and `colorama.Fore`.
+    Use the single code `None` for no coloring.
+    """
+    c0 = colorama.Style.RESET_ALL
 
-    return "".join(color_codes) + text + colorama.Style.RESET_ALL
+    if (not color_codes) or color_codes == ("default",):
+        cc = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
+    else:
+        cc = [getattr(colorama.Fore, c.upper(), c) for c in color_codes if c]
+
+    if not cc:
+        return text
+    else:
+        return "".join(cc) + text + c0
 
 
 @contextlib.contextmanager
@@ -27,9 +39,10 @@ def coloring(*color_codes):
     """Color printing using 'with'.
 
     Example:
-    >>> with coloring(colorama.Fore.GREEN): print("This is in color")
+    >>> with coloring(colorama.Fore.GREEN):
+    ...    print("--- This is in color ---")
+    [32m--- This is in color ---[0m
     """
-
     orig_print = builtins.print
 
     def _print(*args, sep=" ", end="\n", flush=True, **kwargs):
@@ -51,13 +64,14 @@ def coloring(*color_codes):
 #########################################
 # Matlab (new) colors.
 ml_colors = np.array(
-    [[0.,    0.447, 0.741],
-     [0.85,  0.325, 0.098],
+    [[0.   , 0.447, 0.741],
+     [0.85 , 0.325, 0.098],
      [0.929, 0.694, 0.125],
      [0.494, 0.184, 0.556],
      [0.466, 0.674, 0.188],
      [0.301, 0.745, 0.933],
      [0.635, 0.078, 0.184]])
+
 # Load into matplotlib color dictionary
 for code, color in zip('boyvgcr', ml_colors):
     mpl.colors.ColorConverter.colors['ml'+code] = color
@@ -65,14 +79,14 @@ for code, color in zip('boyvgcr', ml_colors):
 
 # Seaborn colors
 sns_colors = np.array(
-    [[0.298, 0.447, 0.69],
+    [[0.298, 0.447, 0.69 ],
      [0.333, 0.658, 0.407],
      [0.768, 0.305, 0.321],
      [0.505, 0.447, 0.698],
-     [0.8,   0.725, 0.454],
+     [0.8  , 0.725, 0.454],
      [0.392, 0.709, 0.803],
-     [0.1,   0.1,   0.1],
-     [1.,    1.,    1.]])
+     [0.1  , 0.1  , 0.1  ],
+     [1.   , 1.   , 1.   ]])
 # Overwrite default color codes
 for code, color in zip('bgrmyckw', sns_colors):
     mpl.colors.colorConverter.colors[code] = color

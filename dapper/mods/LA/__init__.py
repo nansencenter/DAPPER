@@ -16,18 +16,21 @@ import numpy as np
 import scipy.linalg as sla
 from scipy import sparse
 
+__pdoc__ = {"demo": False}
+
 
 def Fmat(Nx, c, dx, dt):
-    """
-    Nx - System size
-    c  - Velocity of wave. Wave travels to the rigth for c>0.
-    dx - Grid spacing
-    dt - Time step
+    """Generate transition matrix.
+
+    - `Nx` - System size
+    - `c`  - Velocity of wave. Wave travels to the rigth for `c>0`.
+    - `dx` - Grid spacing
+    - `dt` - Time step
 
     Note that the 1st-order upwind scheme used here is exact
-    (vis-a-vis the analytic solution) only for dt = abs(dx/c),
+    (vis-a-vis the analytic solution) only for `dt = abs(dx/c)`,
     in which case it corresponds to
-    np.roll(x,1,axis=x.ndim-1), i.e. circshift in Matlab.
+    `np.roll(x,1,axis=x.ndim-1)`, i.e. circshift in Matlab.
     """
     assert np.abs(c*dt/dx) <= 1, "Must satisfy CFL condition"
     # 1st order explicit upwind scheme
@@ -42,9 +45,10 @@ def Fmat(Nx, c, dx, dt):
 
 
 def basis_vector(Nx, k):
-    """
-    Nx - state vector length
-    k  - max wavenumber (wavelengths to fit into interval 1:Nx)
+    """Generate basis vectors.
+
+    - Nx - state vector length
+    - k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     """
     mm = np.arange(1, Nx+1) / Nx
     kk = np.arange(k+1)[:, None]       # Wavenumbers
@@ -66,14 +70,15 @@ def basis_vector(Nx, k):
 # Initialization as suggested by sakov'2008 "implications of...",
 # (but with some minor differences).
 def sinusoidal_sample(Nx, k, N):
-    """ Generate N basis vectors, and center them.
+    """Generate N basis vectors, and center them.
+
     The centring is not naturally a part of the basis generation,
     but serves to avoid the initial transitory regime
     if the model is dissipative(, and more ?).
 
     Example:
-    > E = sinusoidal_sample(100,4,5)
-    > plt.plot(E.T)
+    >>> E = sinusoidal_sample(100, 4, 5)
+    >>> plt.plot(E.T)  # doctest: +SKIP
     """
     sample = np.zeros((N, Nx))
     for n in range(N):
@@ -94,9 +99,11 @@ def periodic_distance_range(M):
 
 # Initialization as suggested by evensen2009
 def homogeneous_1D_cov(M, d, kind='Expo'):
-    """
+    """Generate a covariance matrix for a 1D homogenous random field.
+
     Generate initial correlations for Linear Advection experiment.
-    d - decorr length, where the unit distance = M(i)-M(i-1) for all i
+
+    `d` - decorr length, where the `unit distance = M(i)-M(i-1)` for all `i`.
     """
     row1 = periodic_distance_range(M)
 

@@ -32,6 +32,7 @@ nocite: '@*'
 
 
 # Convert to .rst (to process the references)
+# Requires recent version of pandoc
 # NB: Unfortunately, converting directly to .md
 #     outputs in a verbose "list-ish" format.
 # Note: for CSL styles see https://editor.citationstyles.org/about/
