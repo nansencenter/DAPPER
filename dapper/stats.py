@@ -626,7 +626,7 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
 
 
 def center(E, axis=0, rescale=False):
-    """Center ensemble.
+    r"""Center ensemble.
 
     Makes use of `np` features: keepdims and broadcasting.
 
@@ -640,7 +640,7 @@ def center(E, axis=0, rescale=False):
 
     rescale: bool, optional
         If True, inflate to compensate for reduction in the expected variance.
-        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\)
+        The inflation factor is \(\sqrt{\frac{N}{N - 1}}\)
         where N is the ensemble size. Default: False
 
     Returns
@@ -664,7 +664,7 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    """`center`, but only return the anomalies (not the mean).
+    r"""`center`, but only return the anomalies (not the mean).
 
     Parameters
     ----------
@@ -676,7 +676,7 @@ def mean0(E, axis=0, rescale=True):
 
     rescale: bool, optional
         If True, inflate to compensate for reduction in the expected variance.
-        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\). Act as a way for
+        The inflation factor is \(\sqrt{\frac{N}{N - 1}}\). Act as a way for
         unbiased variance estimation?
         where N is the ensemble size. Default: True
 
