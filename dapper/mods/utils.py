@@ -119,7 +119,20 @@ def linear_model_setup(ModelMatrix, dt0):
 
 
 def direct_obs_matrix(Nx, obs_inds):
-    """Generate matrix that "picks" state elements `obs_inds` out of `range(Nx)`."""
+    """Generate matrix that "picks" state elements `obs_inds` out of `range(Nx)`.
+
+    Parameters
+    ----------
+    Nx: int
+        Number of total length of state vector
+    obs_inds: ndarray
+        The observed indices.
+
+    Returns
+    -------
+    H: ndarray
+        The observation matrix for direct partial observations.
+    """
     Ny = len(obs_inds)
     H = np.zeros((Ny, Nx))
     H[range(Ny), obs_inds] = 1
@@ -131,7 +144,22 @@ def direct_obs_matrix(Nx, obs_inds):
 
 
 def partial_Id_Obs(Nx, obs_inds):
-    """Specify identity observations of a subset of obs. indices."""
+    """Specify identity observations of a subset of obs. indices.
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx: int
+        Number of total length of state vector
+    obs_inds: ndarray
+        The observed indices.
+
+    Returns
+    -------
+    Obs: dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    """
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
@@ -146,12 +174,51 @@ def partial_Id_Obs(Nx, obs_inds):
 
 
 def Id_Obs(Nx):
-    """Specify identity observations of entire state."""
+    """Specify identity observations of entire state.
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx: int
+        Number of total length of state vector
+
+    Returns
+    -------
+    Obs: dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    """
     return partial_Id_Obs(Nx, np.arange(Nx))
 
 
 def linspace_int(Nx, Ny, periodic=True):
-    """Provide a range of `Ny` equispaced integers between `0` and `Nx-1`."""
+    """Provide a range of `Ny` equispaced integers between `0` and `Nx-1`.
+    Parameters
+    ----------
+    Nx: int
+        Range of integers
+    Ny: int
+        Number of integers
+    periodic: bool, optional
+        Whether the vector is periodic. 
+        Determines if the Nx == 0.
+        Default: True
+
+    Returns
+    -------
+    vector
+        Generated vectors.
+
+    Examples
+    --------
+    >>> linspace_int(10, 10)
+    array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    >>> linspace_int(10, 4)
+    array([0, 2, 5, 7])
+    >>> linspace_int(10, 5)
+    array([0, 2, 4, 6, 8])
+    >>>
+    """
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
     else:
