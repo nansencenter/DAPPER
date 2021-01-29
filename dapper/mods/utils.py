@@ -48,7 +48,9 @@ def ens_compatible(func):
 
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    .. note:: this is not the_way™ -- other tricks are sometimes more practical.
+    Note
+    ----
+    this is not the_way™ -- other tricks are sometimes more practical.
 
     Examples
     --------
