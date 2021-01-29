@@ -629,15 +629,27 @@ def center(E, axis=0, rescale=False):
     """Center ensemble.
 
     Makes use of `np` features: keepdims and broadcasting.
-
+     
     Parameters
     ----------
-    rescale: bool
-        Whether to inflate to compensate for reduction in the expected variance.
+    E: ndarray
+        Ensemble which going to be inflated
+
+    axis: int, optional
+        The axis to be centered. Default: 0
+
+    rescale: bool, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\) 
+        where N is the ensemble size. Default: False
 
     Returns
     -------
-    Centered ensemble, and its mean.
+    X: ndarray
+        Ensemble anomaly
+
+    x: ndarray
+        Mean of the ensemble
     """
     x = np.mean(E, axis=axis, keepdims=True)
     X = E - x
@@ -652,12 +664,48 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    """Center, but only return the anomalies (not the mean)."""
+    """`center`, but only return the anomalies (not the mean).
+
+    Parameters
+    ----------
+    E: ndarray
+        Ensemble which going to be inflated
+
+    axis: int, optional
+        The axis to be centered. Default: 0
+
+    rescale: bool, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\). Act as a way for 
+        unbiased variance estimation?
+        where N is the ensemble size. Default: True
+
+
+    Returns
+    -------
+    ndarray
+        Ensemble anomalies
+    """
     return center(E, axis=axis, rescale=rescale)[0]
 
 
 def inflate_ens(E, factor):
-    """Inflate the ensemble (center, inflate, re-combine)."""
+    """Inflate the ensemble (center, inflate, re-combine).
+
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
+
+    factor: `float`
+        Inflation factor
+
+
+    Returns
+    -------
+    ndarray
+        Inflated ensemble
+    """
     if factor == 1:
         return E
     X, x = center(E)
@@ -665,13 +713,50 @@ def inflate_ens(E, factor):
 
 
 def weight_degeneracy(w, prec=1e-10):
-    """Check if the weights are degenerate."""
+    """Check if the weights are degenerate.
+    
+    If it is degenerate, the maximum weight
+    should be nearly one since sum(w) = 1
+
+    Parameters
+    ----------
+    w: ndarray
+        Weight of something. Sum(w) = 1
+
+    prec: float, optional
+        Tolerance of the distance between w and one. Default:1e-10
+
+    Returns
+    -------
+    bool
+        If weight is degenerate True, else False
+    """
     return (1-w.max()) < prec
 
 
 def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     """Compute unbias-ing factor for variance estimation.
 
+    Parameters
+    ----------
+    w: ndarray, optional
+        Weight of something. Sum(w) = 1. 
+        Only one of w and N_eff can be None. Default: None
+
+    N_eff: float, optional
+        Tolerance of the distance between w and one. 
+        Only one of w and N_eff can be None.  Default: None
+
+    avoid_pathological: bool, optional
+        Avoid weight collapse. Default: False
+
+    Returns
+    -------
+    ub: float
+        factor used to unbiasing variance
+
+    See Also
+    --------
     [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
     """
     if N_eff is None:
