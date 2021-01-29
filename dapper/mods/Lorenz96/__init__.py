@@ -13,13 +13,9 @@ Note: the implementation is `ndim`-agnostic.
 import numpy as np
 
 import dapper.tools.liveplotting as LP
-<<<<<<< HEAD
-from dapper.tools.math import integrate_TLM, is1d, rk4, RK4_adj, RK4_linear
-=======
 from dapper.mods.integration import integrate_TLM, rk4
 
 __pdoc__ = {"demo": False}
->>>>>>> upstream/dev1
 
 Force = 8.0
 
@@ -45,20 +41,6 @@ def step(x0, t, dt):
 # OPTIONAL (not required by EnKF or PartFilt):
 ################################################
 def d2x_dtdx(x):
-<<<<<<< HEAD
-    # assert is1d(x)
-    M = x.shape[-1]
-    N = len(x)
-    F = np.zeros((N, M, M))
-    def md(i): return np.mod(i, M)  # modulo
-
-    for i in range(M):
-        F[..., i, i]       = -1.0
-        F[..., i,   i-2]   = -x[..., i-1]
-        F[..., i, md(i+1)] = +x[..., i-1]
-        # print(md(i+2))
-        F[..., i,   i-1]   = x[..., md(i+1)]-x[..., i-2]
-=======
     M = len(x)
     F = np.zeros((M, M))
     def md(i): return np.mod(i, M)  # modulo
@@ -68,28 +50,10 @@ def d2x_dtdx(x):
         F[i   , i-2]  = -x[i-1]
         F[i, md(i+1)] = +x[i-1]
         F[i   , i-1]  = x[md(i+1)]-x[i-2]
->>>>>>> upstream/dev1
 
     return F
 
-# dstep_dx = FD_Jac(step)
-def d2x_dtdx_adjoint(X):
-    
-    x, dx = X[0], X[1]
-    M = x.shape[-1]
-    dx_new = np.zeros_like(x)
-    def md(i): return np.mod(i, M)  # modulo
 
-    for i in range(M):
-        dx_new[...,i] = dx[...,i-1]*x[...,i-2] - dx[...,i] + dx[...,md(i+1)]*(x[...,md(i+2)] - x[...,i-1]) - dx[...,md(i+2)]*x[...,md(i+1)]
-    return dx_new
-
-def adjoint_step(x0, t, dt):
-    return RK4_adj(lambda t, x: dxdt(x), lambda t, x: d2x_dtdx_adjoint(x), x0, np.nan, dt)
-
-def linear_step(x, M0, t, dt):
-    return RK4_linear(lambda t, x: dxdt(x), lambda t, x, M: d2x_dtdx(x)@M, x, M0, t, dt)
-    # return integrate_TLM(d2x_dtdx(x), dt, method='rk4')
 
 def dstep_dx(x, t, dt):
     # For L96, method='analytic' >> 'approx'
