@@ -81,7 +81,7 @@ def with_recursion(func, prog=False):
         Run the input function recursively.
 
     prog : bool or str
-        Determine the mode of progress bar.    
+        Determine the mode of progress bar.
 
     Returns
     -------

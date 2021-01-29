@@ -253,5 +253,4 @@ def is_whole(x, **kwargs):
     l: bool
         True if rounded x is close to x, otherwise False
     """
-    """
     return np.isclose(x, round(x), **kwargs)

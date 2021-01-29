@@ -200,7 +200,7 @@ def linspace_int(Nx, Ny, periodic=True):
     Ny: int
         Number of integers
     periodic: bool, optional
-        Whether the vector is periodic. 
+        Whether the vector is periodic.
         Determines if the Nx == 0.
         Default: True
 

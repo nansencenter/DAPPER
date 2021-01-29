@@ -629,7 +629,7 @@ def center(E, axis=0, rescale=False):
     """Center ensemble.
 
     Makes use of `np` features: keepdims and broadcasting.
-     
+
     Parameters
     ----------
     E: ndarray
@@ -640,7 +640,7 @@ def center(E, axis=0, rescale=False):
 
     rescale: bool, optional
         If True, inflate to compensate for reduction in the expected variance.
-        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\) 
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\)
         where N is the ensemble size. Default: False
 
     Returns
@@ -676,7 +676,7 @@ def mean0(E, axis=0, rescale=True):
 
     rescale: bool, optional
         If True, inflate to compensate for reduction in the expected variance.
-        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\). Act as a way for 
+        The inflation factor is \(\sqrt{\\frac{N}{N - 1}}\). Act as a way for
         unbiased variance estimation?
         where N is the ensemble size. Default: True
 
@@ -714,7 +714,7 @@ def inflate_ens(E, factor):
 
 def weight_degeneracy(w, prec=1e-10):
     """Check if the weights are degenerate.
-    
+
     If it is degenerate, the maximum weight
     should be nearly one since sum(w) = 1
 
@@ -740,11 +740,11 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     Parameters
     ----------
     w: ndarray, optional
-        Weight of something. Sum(w) = 1. 
+        Weight of something. Sum(w) = 1.
         Only one of w and N_eff can be None. Default: None
 
     N_eff: float, optional
-        Tolerance of the distance between w and one. 
+        Tolerance of the distance between w and one.
         Only one of w and N_eff can be None.  Default: None
 
     avoid_pathological: bool, optional
