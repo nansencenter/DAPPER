@@ -38,6 +38,8 @@ and set the source to the docs folder.
   In particular, the analysis should be separated
   from the time stepping mechanisms.
 
+- Make iEnKS code support MDA as in `bib.bocquet2014iterative`
+
 - Consider this code:
 
         from dapper.mods.Lorenz63.sakov2012 import HMM1
