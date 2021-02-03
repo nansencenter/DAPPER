@@ -59,6 +59,7 @@ class iEnKS:
               Recommended: 1e-5.
 
       MDA   : Use iterations of the "multiple data assimlation" type.
+              Ref `bib.emerick2012history`
 
       bundle: Use finite-diff. linearization instead of of least-squares regression.
               Makes the iEnKS very much alike the iterative, extended KF (IEKS).

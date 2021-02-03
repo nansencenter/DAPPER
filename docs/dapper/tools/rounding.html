@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L0-L235" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L0-L245" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Functions for rounding numbers.&#34;&#34;&#34;
 
@@ -151,6 +151,16 @@ def np_vectorize(f):
 
     - Includes `functools.wraps`
     - Applies `.item()` to output if input was a scalar.
+
+    Parameters
+    ----------
+    f: callable
+        Your function.
+
+    Returns
+    -------
+    vectorized: callable
+        Your function, now element-wise applicable to an iterable.
     &#34;&#34;&#34;
     vectorized = np.vectorize(f)
 
@@ -295,17 +305,37 @@ def is_whole(x, **kwargs):
 <ul>
 <li>Includes <code>functools.wraps</code></li>
 <li>Applies <code>.item()</code> to output if input was a scalar.</li>
-</ul></div>
+</ul>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>f</code></strong> :&ensp;<code>callable</code></dt>
+<dd>Your function.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>vectorized</code></strong> :&ensp;<code>callable</code></dt>
+<dd>Your function, now element-wise applicable to an iterable.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L105-L120" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L105-L130" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def np_vectorize(f):
     &#34;&#34;&#34;Like `np.vectorize`, but with some embellishments.
 
     - Includes `functools.wraps`
     - Applies `.item()` to output if input was a scalar.
+
+    Parameters
+    ----------
+    f: callable
+        Your function.
+
+    Returns
+    -------
+    vectorized: callable
+        Your function, now element-wise applicable to an iterable.
     &#34;&#34;&#34;
     vectorized = np.vectorize(f)
 
@@ -335,7 +365,7 @@ array([  -1,   -2,    0,    0,    1,  300, -300, -300])
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L136-L160" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L146-L170" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def log10int(x):
@@ -392,7 +422,7 @@ def log10int(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L163-L195" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L173-L205" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def round2(x, prec=1.0):
@@ -461,7 +491,7 @@ def round2(x, prec=1.0):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L198-L228" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L208-L238" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def round2sigfig(x, sigfig=1):
@@ -505,7 +535,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L231-L236" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L241-L246" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is_whole(x, **kwargs):
     &#34;&#34;&#34;Check if a number is a whole/natural number to precision given by `np.isclose`.
@@ -563,10 +593,9 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L11-L102" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L12-L102" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@dataclass
-class UncertainQtty():
+<pre><code class="python">class UncertainQtty():
     &#34;&#34;&#34;Data container associating uncertainty (confidence) to a quantity.
 
     Includes intelligent rounding and printing functionality.

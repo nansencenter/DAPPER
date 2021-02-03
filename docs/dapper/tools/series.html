@@ -616,10 +616,9 @@ as estimated from its correlation-corrected variance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L166-L182" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L167-L182" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@monitor_setitem
-class DataSeries(StatPrint):
+<pre><code class="python">class DataSeries(StatPrint):
     &#34;&#34;&#34;Basically just an `np.ndarray`. But adds:
 
     - Possibility of adding attributes.
@@ -694,10 +693,9 @@ self[k,whatever,'u']
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L185-L243" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/series.py#L186-L243" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@monitor_setitem
-class FAUSt(DataSeries, StatPrint):
+<pre><code class="python">class FAUSt(DataSeries, StatPrint):
     &#34;&#34;&#34;Container for time series of a statistic from filtering.
 
     Four attributes, each of which is an ndarray:

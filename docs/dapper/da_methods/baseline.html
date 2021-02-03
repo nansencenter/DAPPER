@@ -290,10 +290,9 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L18-L38" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L19-L38" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@da_method()
-class Climatology:
+<pre><code class="python">class Climatology:
     &#34;&#34;&#34;A baseline/reference method.
 
     Note that the &#34;climatology&#34; is computed from truth, which might be
@@ -360,10 +359,9 @@ but with a prior from the Climatology.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L41-L80" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L42-L80" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@da_method()
-class OptInterp:
+<pre><code class="python">class OptInterp:
     &#34;&#34;&#34;Optimal Interpolation -- a baseline/reference method.
 
     Uses the Kalman filter equations,
@@ -460,7 +458,7 @@ class OptInterp:
 </dd>
 <dt id="dapper.da_methods.baseline.Var3D"><code class="flex name class">
 <span>class <span class="ident">Var3D</span></span>
-<span>(</span><span>B: Optional[numpy.ndarray] = None, xB: float = 1.0)</span>
+<span>(</span><span>B: Union[numpy.ndarray, NoneType] = None, xB: float = 1.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>3D-Var &ndash; a baseline/reference method.</p>
@@ -470,10 +468,9 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L83-L134" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L84-L134" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@da_method()
-class Var3D:
+<pre><code class="python">class Var3D:
     &#34;&#34;&#34;3D-Var -- a baseline/reference method.
 
     This implementation is not &#34;Var&#34;-ish: there is no *iterative* optimzt.
@@ -527,7 +524,7 @@ class Var3D:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="dapper.da_methods.baseline.Var3D.B"><code class="name">var <span class="ident">B</span> : Optional[numpy.ndarray]</code></dt>
+<dt id="dapper.da_methods.baseline.Var3D.B"><code class="name">var <span class="ident">B</span> : Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -605,10 +602,9 @@ class Var3D:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L166-L173" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L167-L173" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@da_method()
-class EnCheat:
+<pre><code class="python">class EnCheat:
     &#34;&#34;&#34;A baseline/reference method.
 
     Should be implemented as part of Stats instead.

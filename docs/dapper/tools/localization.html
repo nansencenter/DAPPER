@@ -43,7 +43,7 @@ Sakov (2011), Computational Geosciences:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L0-L268" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L0-L298" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Localization tools, including distance and tapering comps.
 
@@ -56,70 +56,98 @@ import itertools
 
 import numpy as np
 
-# Defaults
-CUTOFF   = 1e-3
-TAG      = &#39;GC&#39;
-PERIODIC = True
 
+def pairwise_distances(A, B=None, domain=None):
+    &#34;&#34;&#34;Euclidian distance (not squared) between pts. in `A` and `B`.
 
-def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
-    &#34;&#34;&#34;Euclidian distance (un-squared) between pts. in `A` and `B`.
+    Parameters
+    ----------
+    A: array of shape (nPoints, nDims).
+        A collection a points.
 
-    - `A`: 2-dim array of shape `(npts, ndim)`.
-      If `A` is 1-dim, then `(ndim)&lt;--A.shape, npts&lt;--(,)`.
-    - `B`: same as for `A` (`npts` can differ).
-    - returns distances as an array of shape `(npts_A, npts_B)`
+    B:
+        Same as `A`, but nPoints can differ.
 
-    These are equal:
-    &gt;&gt;&gt; pairwise_distances(A, periodic=False)
-    &gt;&gt;&gt; squareform(pdist(A)) # 2x slower
+    domain: tuple
+        Assume the domain is a **periodic** hyper-rectangle whose
+        edges along dimension `i` span from 0 to `domain[i]`.
+        NB: Behaviour not defined if `any(A.max(0) &gt; domain)`, and likewise for `B`.
 
-    But `pairwise_distances` allows comparing two different pts `A` to pts `B`
-    (without the augmentation/block tricks needed for pdist).
+    Returns
+    -------
+    Array of of shape `(nPointsA, nPointsB)`.
 
-    Also, the `periodic` option is provided.
-    It assumes the domain is a hyper-rectangle with edge lengths: `domain`.
-    NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.
+    Examples
+    --------
+    &gt;&gt;&gt; A = [[0, 0], [0, 1], [1, 0], [1, 1]]
+    &gt;&gt;&gt; with np.printoptions(precision=2):
+    ...     print(pairwise_distances(A))
+    [[0.   1.   1.   1.41]
+     [1.   0.   1.41 1.  ]
+     [1.   1.41 0.   1.  ]
+     [1.41 1.   1.   0.  ]]
+
+    The function matches `pdist(..., metric=&#39;euclidean&#39;)`, but is faster:
+    &gt;&gt;&gt; from scipy.spatial.distance import pdist, squareform
+    &gt;&gt;&gt; (pairwise_distances(A) == squareform(pdist(A))).all()
+    True
+
+    As opposed to `pdist`, it also allows comparing `A` to a different set of points,
+    `B`, without the augmentation/block tricks needed for pdist.
+
+    &gt;&gt;&gt; A = np.arange(4)[:, None]
+    &gt;&gt;&gt; pairwise_distances(A, [[2]]).T
+    array([[2., 1., 0., 1.]])
+
+    Illustration of periodicity:
+    &gt;&gt;&gt; pairwise_distances(A, domain=(4, ))
+    array([[0., 1., 2., 1.],
+           [1., 0., 1., 2.],
+           [2., 1., 0., 1.],
+           [1., 2., 1., 0.]])
+
+    NB: If an input array is 1-dim, it is seen as a single point.
+    &gt;&gt;&gt; pairwise_distances(np.arange(4))
+    array([[0.]])
     &#34;&#34;&#34;
     if B is None:
         B = A
 
-    # Prep A,B
-    A = np.asarray(A)
-    B = np.asarray(B)
-    npts_A = A.shape[:A.ndim-1]
-    npts_B = B.shape[:B.ndim-1]
-    # assert A.shape[-1] == B.shape[-1] # == ndim
+    # Prep
     A = np.atleast_2d(A)
     B = np.atleast_2d(B)
+    mA, nA = A.shape
+    mB, nB = B.shape
+    assert nA == nB, &#34;The last axis of A and B must have equal length.&#34;
 
-    d = A[:, None] - B  # shape=(npts_A,npts_B,ndim)
+    # Diff
+    d = A[:, None] - B  # shape: (mA, mB, nDims)
 
-    if periodic:
+    # Make periodic
+    if domain:
         domain = np.reshape(domain, (1, 1, -1))  # for broadcasting
         d = abs(d)
         d = np.minimum(d, domain-d)
 
-    # scipy.linalg.norm(d,axis=-1)
-    distances = np.sqrt((d**2).sum(axis=-1))
+    distances = np.sqrt((d * d).sum(axis=-1))  # == sla.norm(d, axis=-1)
 
-    return distances.reshape(npts_A+npts_B)
+    return distances.reshape(mA, mB)
 
 
 def dist2coeff(dists, radius, tag=None):
     &#34;&#34;&#34;Compute tapering coefficients corresponding to a distances.
 
     NB: The radius is internally adjusted such that, independently of &#39;tag&#39;,
-    coeff==np.exp(-0.5) when distance==radius.
+    `coeff==np.exp(-0.5)` when `distance==radius`.
 
     This is largely based on Sakov&#39;s enkf-matlab code. Two bugs have here been fixed:
-     - The constants were slightly wrong, as noted in comments below.
-     - It forgot to take sqrt() of coeffs when applying them through &#39;local analysis&#39;.
+    - The constants were slightly wrong, as noted in comments below.
+    - It forgot to take sqrt() of coeffs when applying them through &#39;local analysis&#39;.
     &#34;&#34;&#34;
     coeffs = np.zeros(dists.shape)
 
     if tag is None:
-        tag = TAG
+        tag = &#39;GC&#39;
 
     if tag == &#39;Gauss&#39;:
         R = radius
@@ -159,15 +187,12 @@ def dist2coeff(dists, radius, tag=None):
     return coeffs
 
 
-def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
+def inds_and_coeffs(dists, radius, cutoff=1e-3, tag=None):
     &#34;&#34;&#34;Compute indices and coefficients of localization.
 
     - inds   : the indices of pts that are &#34;close to&#34; centre.
     - coeffs : the corresponding tapering coefficients.
     &#34;&#34;&#34;
-    if cutoff is None:
-        cutoff = CUTOFF
-
     coeffs = dist2coeff(dists, radius, tag)
 
     # Truncate using cut-off
@@ -228,23 +253,28 @@ def no_localization(Nx, Ny):
 def rectangular_partitioning(shape, steps, do_ind=True):
     &#34;&#34;&#34;N-D rectangular batch generation.
 
-    shape: [len(grid[dim]) for dim in range(ndim)]
-    steps: [step_len[dim]  for dim in range(ndim)]
+    Parameters
+    ----------
+    shape: (len(grid[dim]) for dim in range(ndim))
+    steps: (step_len[dim]  for dim in range(ndim))
 
-    returns a list of batches,
-    where each element (batch) is a list of indices
+    Returns
+    -------
+    A list of batches,
+    where each element (batch) is a list of indices.
 
-    # Example, with visualization:
-    &gt;&gt;&gt; shape   = [4,13]
-    &gt;&gt;&gt; steps   = [2,4]
-    &gt;&gt;&gt; batches = rectangular_partitioning(shape, steps, do_ind=False)
-    &gt;&gt;&gt; M       = np.prod(shape)
-    &gt;&gt;&gt; nB      = len(batches)
-    &gt;&gt;&gt; values  = np.random.choice(arange(nB),nB,0)
-    &gt;&gt;&gt; Z       = np.zeros(shape)
-    &gt;&gt;&gt; for ib,b in enumerate(batches):
-    &gt;&gt;&gt;   Z[tuple(b)] = values[ib]
-    &gt;&gt;&gt; plt.imshow(Z)
+    Example
+    -------
+    &gt;&gt;&gt; shape    = [4, 13]
+    &gt;&gt;&gt; steps    = [2, 4]
+    &gt;&gt;&gt; batches  = rectangular_partitioning(shape, steps, do_ind=False)
+    &gt;&gt;&gt; M        = np.prod(shape)
+    &gt;&gt;&gt; nB       = len(batches)
+    &gt;&gt;&gt; values   = np.random.choice(np.arange(nB), nB, 0)
+    &gt;&gt;&gt; Z        = np.zeros(shape)
+    &gt;&gt;&gt; for ib, b in enumerate(batches):
+    ...     Z[tuple(b)] = values[ib]
+    &gt;&gt;&gt; plt.imshow(Z)  # doctest: +SKIP
     &#34;&#34;&#34;
     assert len(shape) == len(steps)
     # ndim = len(steps)
@@ -293,7 +323,7 @@ def safe_eval(fun, t):
 def nd_Id_localization(shape,
                        batch_shape=None,
                        obs_inds=None,
-                       periodic=PERIODIC):
+                       periodic=True):
     &#34;&#34;&#34;Localize Id (direct) point obs of an N-D, homogeneous, rectangular domain.&#34;&#34;&#34;
     M = np.prod(shape)
 
@@ -311,7 +341,7 @@ def nd_Id_localization(shape,
 
     def y2x_distances(t):
         obs_coord = ind2sub(safe_eval(obs_inds, t))
-        return pairwise_distances(obs_coord, state_coord, periodic, shape)
+        return pairwise_distances(obs_coord, state_coord, shape if periodic else None)
 
     return localization_setup(y2x_distances, batches)</code></pre>
 </details>
@@ -324,72 +354,134 @@ def nd_Id_localization(shape,
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="dapper.tools.localization.pairwise_distances"><code class="name flex">
-<span>def <span class="ident">pairwise_distances</span></span>(<span>A, B=None, periodic=True, domain=None)</span>
+<span>def <span class="ident">pairwise_distances</span></span>(<span>A, B=None, domain=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Euclidian distance (un-squared) between pts. in <code>A</code> and <code>B</code>.</p>
-<ul>
-<li><code>A</code>: 2-dim array of shape <code>(npts, ndim)</code>.
-If <code>A</code> is 1-dim, then <code>(ndim)&lt;--A.shape, npts&lt;--(,)</code>.</li>
-<li><code>B</code>: same as for <code>A</code> (<code>npts</code> can differ).</li>
-<li>returns distances as an array of shape <code>(npts_A, npts_B)</code></li>
-</ul>
-<p>These are equal:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; pairwise_distances(A, periodic=False)
-&gt;&gt;&gt; squareform(pdist(A)) # 2x slower
+<div class="desc"><p>Euclidian distance (not squared) between pts. in <code>A</code> and <code>B</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<p>A: array of shape (nPoints, nDims).
+A collection a points.</p>
+<p>B:
+Same as <code>A</code>, but nPoints can differ.</p>
+<dl>
+<dt><strong><code>domain</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Assume the domain is a <strong>periodic</strong> hyper-rectangle whose
+edges along dimension <code>i</code> span from 0 to <code>domain[i]</code>.
+NB: Behaviour not defined if <code>any(A.max(0) &gt; domain)</code>, and likewise for <code>B</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Array of of shape <code>(nPointsA, nPointsB)</code>.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; A = [[0, 0], [0, 1], [1, 0], [1, 1]]
+&gt;&gt;&gt; with np.printoptions(precision=2):
+...     print(pairwise_distances(A))
+[[0.   1.   1.   1.41]
+ [1.   0.   1.41 1.  ]
+ [1.   1.41 0.   1.  ]
+ [1.41 1.   1.   0.  ]]
 </code></pre>
-<p>But <code><a title="dapper.tools.localization.pairwise_distances" href="#dapper.tools.localization.pairwise_distances">pairwise_distances()</a></code> allows comparing two different pts <code>A</code> to pts <code>B</code>
-(without the augmentation/block tricks needed for pdist).</p>
-<p>Also, the <code>periodic</code> option is provided.
-It assumes the domain is a hyper-rectangle with edge lengths: <code>domain</code>.
-NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.</p></div>
+<p>The function matches <code>pdist(..., metric='euclidean')</code>, but is faster:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from scipy.spatial.distance import pdist, squareform
+&gt;&gt;&gt; (pairwise_distances(A) == squareform(pdist(A))).all()
+True
+</code></pre>
+<p>As opposed to <code>pdist</code>, it also allows comparing <code>A</code> to a different set of points,
+<code>B</code>, without the augmentation/block tricks needed for pdist.</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; A = np.arange(4)[:, None]
+&gt;&gt;&gt; pairwise_distances(A, [[2]]).T
+array([[2., 1., 0., 1.]])
+</code></pre>
+<p>Illustration of periodicity:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; pairwise_distances(A, domain=(4, ))
+array([[0., 1., 2., 1.],
+       [1., 0., 1., 2.],
+       [2., 1., 0., 1.],
+       [1., 2., 1., 0.]])
+</code></pre>
+<p>NB: If an input array is 1-dim, it is seen as a single point.</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; pairwise_distances(np.arange(4))
+array([[0.]])
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L18-L59" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L13-L87" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def pairwise_distances(A, B=None, periodic=PERIODIC, domain=None):
-    &#34;&#34;&#34;Euclidian distance (un-squared) between pts. in `A` and `B`.
+<pre><code class="python">def pairwise_distances(A, B=None, domain=None):
+    &#34;&#34;&#34;Euclidian distance (not squared) between pts. in `A` and `B`.
 
-    - `A`: 2-dim array of shape `(npts, ndim)`.
-      If `A` is 1-dim, then `(ndim)&lt;--A.shape, npts&lt;--(,)`.
-    - `B`: same as for `A` (`npts` can differ).
-    - returns distances as an array of shape `(npts_A, npts_B)`
+    Parameters
+    ----------
+    A: array of shape (nPoints, nDims).
+        A collection a points.
 
-    These are equal:
-    &gt;&gt;&gt; pairwise_distances(A, periodic=False)
-    &gt;&gt;&gt; squareform(pdist(A)) # 2x slower
+    B:
+        Same as `A`, but nPoints can differ.
 
-    But `pairwise_distances` allows comparing two different pts `A` to pts `B`
-    (without the augmentation/block tricks needed for pdist).
+    domain: tuple
+        Assume the domain is a **periodic** hyper-rectangle whose
+        edges along dimension `i` span from 0 to `domain[i]`.
+        NB: Behaviour not defined if `any(A.max(0) &gt; domain)`, and likewise for `B`.
 
-    Also, the `periodic` option is provided.
-    It assumes the domain is a hyper-rectangle with edge lengths: `domain`.
-    NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.
+    Returns
+    -------
+    Array of of shape `(nPointsA, nPointsB)`.
+
+    Examples
+    --------
+    &gt;&gt;&gt; A = [[0, 0], [0, 1], [1, 0], [1, 1]]
+    &gt;&gt;&gt; with np.printoptions(precision=2):
+    ...     print(pairwise_distances(A))
+    [[0.   1.   1.   1.41]
+     [1.   0.   1.41 1.  ]
+     [1.   1.41 0.   1.  ]
+     [1.41 1.   1.   0.  ]]
+
+    The function matches `pdist(..., metric=&#39;euclidean&#39;)`, but is faster:
+    &gt;&gt;&gt; from scipy.spatial.distance import pdist, squareform
+    &gt;&gt;&gt; (pairwise_distances(A) == squareform(pdist(A))).all()
+    True
+
+    As opposed to `pdist`, it also allows comparing `A` to a different set of points,
+    `B`, without the augmentation/block tricks needed for pdist.
+
+    &gt;&gt;&gt; A = np.arange(4)[:, None]
+    &gt;&gt;&gt; pairwise_distances(A, [[2]]).T
+    array([[2., 1., 0., 1.]])
+
+    Illustration of periodicity:
+    &gt;&gt;&gt; pairwise_distances(A, domain=(4, ))
+    array([[0., 1., 2., 1.],
+           [1., 0., 1., 2.],
+           [2., 1., 0., 1.],
+           [1., 2., 1., 0.]])
+
+    NB: If an input array is 1-dim, it is seen as a single point.
+    &gt;&gt;&gt; pairwise_distances(np.arange(4))
+    array([[0.]])
     &#34;&#34;&#34;
     if B is None:
         B = A
 
-    # Prep A,B
-    A = np.asarray(A)
-    B = np.asarray(B)
-    npts_A = A.shape[:A.ndim-1]
-    npts_B = B.shape[:B.ndim-1]
-    # assert A.shape[-1] == B.shape[-1] # == ndim
+    # Prep
     A = np.atleast_2d(A)
     B = np.atleast_2d(B)
+    mA, nA = A.shape
+    mB, nB = B.shape
+    assert nA == nB, &#34;The last axis of A and B must have equal length.&#34;
 
-    d = A[:, None] - B  # shape=(npts_A,npts_B,ndim)
+    # Diff
+    d = A[:, None] - B  # shape: (mA, mB, nDims)
 
-    if periodic:
+    # Make periodic
+    if domain:
         domain = np.reshape(domain, (1, 1, -1))  # for broadcasting
         d = abs(d)
         d = np.minimum(d, domain-d)
 
-    # scipy.linalg.norm(d,axis=-1)
-    distances = np.sqrt((d**2).sum(axis=-1))
+    distances = np.sqrt((d * d).sum(axis=-1))  # == sla.norm(d, axis=-1)
 
-    return distances.reshape(npts_A+npts_B)</code></pre>
+    return distances.reshape(mA, mB)</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.localization.dist2coeff"><code class="name flex">
@@ -398,29 +490,29 @@ NB: Behaviour not defined for any(A.max(0) &gt; domain), and likewise for B.</p>
 <dd>
 <div class="desc"><p>Compute tapering coefficients corresponding to a distances.</p>
 <p>NB: The radius is internally adjusted such that, independently of 'tag',
-coeff==np.exp(-0.5) when distance==radius.</p>
+<code>coeff==np.exp(-0.5)</code> when <code>distance==radius</code>.</p>
 <p>This is largely based on Sakov's enkf-matlab code. Two bugs have here been fixed:
 - The constants were slightly wrong, as noted in comments below.
 - It forgot to take sqrt() of coeffs when applying them through 'local analysis'.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L62-L112" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L90-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dist2coeff(dists, radius, tag=None):
     &#34;&#34;&#34;Compute tapering coefficients corresponding to a distances.
 
     NB: The radius is internally adjusted such that, independently of &#39;tag&#39;,
-    coeff==np.exp(-0.5) when distance==radius.
+    `coeff==np.exp(-0.5)` when `distance==radius`.
 
     This is largely based on Sakov&#39;s enkf-matlab code. Two bugs have here been fixed:
-     - The constants were slightly wrong, as noted in comments below.
-     - It forgot to take sqrt() of coeffs when applying them through &#39;local analysis&#39;.
+    - The constants were slightly wrong, as noted in comments below.
+    - It forgot to take sqrt() of coeffs when applying them through &#39;local analysis&#39;.
     &#34;&#34;&#34;
     coeffs = np.zeros(dists.shape)
 
     if tag is None:
-        tag = TAG
+        tag = &#39;GC&#39;
 
     if tag == &#39;Gauss&#39;:
         R = radius
@@ -461,7 +553,7 @@ coeff==np.exp(-0.5) when distance==radius.</p>
 </details>
 </dd>
 <dt id="dapper.tools.localization.inds_and_coeffs"><code class="name flex">
-<span>def <span class="ident">inds_and_coeffs</span></span>(<span>dists, radius, cutoff=None, tag=None)</span>
+<span>def <span class="ident">inds_and_coeffs</span></span>(<span>dists, radius, cutoff=0.001, tag=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute indices and coefficients of localization.</p>
@@ -473,17 +565,14 @@ coeff==np.exp(-0.5) when distance==radius.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L115-L130" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L143-L155" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def inds_and_coeffs(dists, radius, cutoff=None, tag=None):
+<pre><code class="python">def inds_and_coeffs(dists, radius, cutoff=1e-3, tag=None):
     &#34;&#34;&#34;Compute indices and coefficients of localization.
 
     - inds   : the indices of pts that are &#34;close to&#34; centre.
     - coeffs : the corresponding tapering coefficients.
     &#34;&#34;&#34;
-    if cutoff is None:
-        cutoff = CUTOFF
-
     coeffs = dist2coeff(dists, radius, tag)
 
     # Truncate using cut-off
@@ -501,7 +590,7 @@ coeff==np.exp(-0.5) when distance==radius.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L133-L155" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L158-L180" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def localization_setup(y2x_distances, batches):
 
@@ -536,7 +625,7 @@ coeff==np.exp(-0.5) when distance==radius.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L158-L178" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L183-L203" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def no_localization(Nx, Ny):
 
@@ -566,48 +655,62 @@ coeff==np.exp(-0.5) when distance==radius.</p>
 </code></dt>
 <dd>
 <div class="desc"><p>N-D rectangular batch generation.</p>
-<p>shape: [len(grid[dim]) for dim in range(ndim)]
-steps: [step_len[dim]
-for dim in range(ndim)]</p>
-<p>returns a list of batches,
-where each element (batch) is a list of indices</p>
-<h1 id="example-with-visualization">Example, with visualization:</h1>
-<pre><code class="language-python-repl">&gt;&gt;&gt; shape   = [4,13]
-&gt;&gt;&gt; steps   = [2,4]
-&gt;&gt;&gt; batches = rectangular_partitioning(shape, steps, do_ind=False)
-&gt;&gt;&gt; M       = np.prod(shape)
-&gt;&gt;&gt; nB      = len(batches)
-&gt;&gt;&gt; values  = np.random.choice(arange(nB),nB,0)
-&gt;&gt;&gt; Z       = np.zeros(shape)
-&gt;&gt;&gt; for ib,b in enumerate(batches):
-&gt;&gt;&gt;   Z[tuple(b)] = values[ib]
-&gt;&gt;&gt; plt.imshow(Z)
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>shape</code></strong> :&ensp;<code>(len(grid[dim]) for dim in range(ndim))</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>steps</code></strong> :&ensp;<code>(step_len[dim]
+for dim in range(ndim))</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>A list</code> of <code>batches,</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<p>where each element (batch) is a list of indices.</p>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; shape    = [4, 13]
+&gt;&gt;&gt; steps    = [2, 4]
+&gt;&gt;&gt; batches  = rectangular_partitioning(shape, steps, do_ind=False)
+&gt;&gt;&gt; M        = np.prod(shape)
+&gt;&gt;&gt; nB       = len(batches)
+&gt;&gt;&gt; values   = np.random.choice(np.arange(nB), nB, 0)
+&gt;&gt;&gt; Z        = np.zeros(shape)
+&gt;&gt;&gt; for ib, b in enumerate(batches):
+...     Z[tuple(b)] = values[ib]
+&gt;&gt;&gt; plt.imshow(Z)  # doctest: +SKIP
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L181-L225" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L206-L255" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rectangular_partitioning(shape, steps, do_ind=True):
     &#34;&#34;&#34;N-D rectangular batch generation.
 
-    shape: [len(grid[dim]) for dim in range(ndim)]
-    steps: [step_len[dim]  for dim in range(ndim)]
+    Parameters
+    ----------
+    shape: (len(grid[dim]) for dim in range(ndim))
+    steps: (step_len[dim]  for dim in range(ndim))
 
-    returns a list of batches,
-    where each element (batch) is a list of indices
+    Returns
+    -------
+    A list of batches,
+    where each element (batch) is a list of indices.
 
-    # Example, with visualization:
-    &gt;&gt;&gt; shape   = [4,13]
-    &gt;&gt;&gt; steps   = [2,4]
-    &gt;&gt;&gt; batches = rectangular_partitioning(shape, steps, do_ind=False)
-    &gt;&gt;&gt; M       = np.prod(shape)
-    &gt;&gt;&gt; nB      = len(batches)
-    &gt;&gt;&gt; values  = np.random.choice(arange(nB),nB,0)
-    &gt;&gt;&gt; Z       = np.zeros(shape)
-    &gt;&gt;&gt; for ib,b in enumerate(batches):
-    &gt;&gt;&gt;   Z[tuple(b)] = values[ib]
-    &gt;&gt;&gt; plt.imshow(Z)
+    Example
+    -------
+    &gt;&gt;&gt; shape    = [4, 13]
+    &gt;&gt;&gt; steps    = [2, 4]
+    &gt;&gt;&gt; batches  = rectangular_partitioning(shape, steps, do_ind=False)
+    &gt;&gt;&gt; M        = np.prod(shape)
+    &gt;&gt;&gt; nB       = len(batches)
+    &gt;&gt;&gt; values   = np.random.choice(np.arange(nB), nB, 0)
+    &gt;&gt;&gt; Z        = np.zeros(shape)
+    &gt;&gt;&gt; for ib, b in enumerate(batches):
+    ...     Z[tuple(b)] = values[ib]
+    &gt;&gt;&gt; plt.imshow(Z)  # doctest: +SKIP
     &#34;&#34;&#34;
     assert len(shape) == len(steps)
     # ndim = len(steps)
@@ -643,7 +746,7 @@ where each element (batch) is a list of indices</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L231-L235" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L261-L265" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def safe_eval(fun, t):
     try:
@@ -660,12 +763,12 @@ where each element (batch) is a list of indices</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L246-L269" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/localization.py#L276-L299" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def nd_Id_localization(shape,
                        batch_shape=None,
                        obs_inds=None,
-                       periodic=PERIODIC):
+                       periodic=True):
     &#34;&#34;&#34;Localize Id (direct) point obs of an N-D, homogeneous, rectangular domain.&#34;&#34;&#34;
     M = np.prod(shape)
 
@@ -683,7 +786,7 @@ where each element (batch) is a list of indices</p>
 
     def y2x_distances(t):
         obs_coord = ind2sub(safe_eval(obs_inds, t))
-        return pairwise_distances(obs_coord, state_coord, periodic, shape)
+        return pairwise_distances(obs_coord, state_coord, shape if periodic else None)
 
     return localization_setup(y2x_distances, batches)</code></pre>
 </details>

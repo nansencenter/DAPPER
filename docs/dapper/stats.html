@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L680" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L682" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Stats computation for the assessment of DA methods.&#34;&#34;&#34;
 
@@ -163,8 +163,10 @@ class Stats(StatPrint):
 
         Series are initialized with nan&#39;s.
 
-        Example: Create ndarray of length KObs+1 for inflation time series:
-        &gt;&gt;&gt; self.new_series(&#39;infl&#39;, 1, KObs+1)
+        Example
+        -------
+        Create ndarray of length KObs+1 for inflation time series:
+        &gt;&gt;&gt; self.new_series(&#39;infl&#39;, 1, KObs+1)  # doctest: +SKIP
 
         NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``&#39;s
             to avoid plotting stats that are not being used.
@@ -740,7 +742,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L457-L461" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L459-L463" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def register_stat(self, name, value):
     setattr(self, name, value)
@@ -764,7 +766,7 @@ Custom <code>frmt</code> also supported.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L513-L562" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L515-L564" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def align_col(col, header, pad=&#39;␣&#39;, missingval=&#39;&#39;, frmt=None):
     &#34;&#34;&#34;Format a single column, return as list.
@@ -838,7 +840,7 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L565-L605" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L567-L607" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;prec&#34;)):
     &#34;&#34;&#34;Make `uq_list` into array with named columns of attributes.
@@ -891,7 +893,7 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L608-L623" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L610-L625" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     &#34;&#34;&#34;Tabulate avrgs (val±prec).&#34;&#34;&#34;
@@ -927,7 +929,7 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L626-L649" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L628-L651" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def center(E, axis=0, rescale=False):
     &#34;&#34;&#34;Center ensemble.
@@ -963,7 +965,7 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L652-L654" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L654-L656" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean0(E, axis=0, rescale=True):
     &#34;&#34;&#34;Center, but only return the anomalies (not the mean).&#34;&#34;&#34;
@@ -978,7 +980,7 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L657-L662" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L659-L664" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inflate_ens(E, factor):
     &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).&#34;&#34;&#34;
@@ -996,7 +998,7 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L665-L667" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L667-L669" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def weight_degeneracy(w, prec=1e-10):
     &#34;&#34;&#34;Check if the weights are degenerate.&#34;&#34;&#34;
@@ -1012,7 +1014,7 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L670-L681" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L672-L683" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
@@ -1047,7 +1049,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L20-L454" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L20-L456" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Stats(StatPrint):
     &#34;&#34;&#34;Contains and computes statistics of the DA methods.
@@ -1151,8 +1153,10 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
 
         Series are initialized with nan&#39;s.
 
-        Example: Create ndarray of length KObs+1 for inflation time series:
-        &gt;&gt;&gt; self.new_series(&#39;infl&#39;, 1, KObs+1)
+        Example
+        -------
+        Create ndarray of length KObs+1 for inflation time series:
+        &gt;&gt;&gt; self.new_series(&#39;infl&#39;, 1, KObs+1)  # doctest: +SKIP
 
         NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``&#39;s
             to avoid plotting stats that are not being used.
@@ -1498,7 +1502,7 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L161-L163" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L163-L165" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def data_series(self):
@@ -1514,8 +1518,9 @@ def data_series(self):
 <dd>
 <div class="desc"><p>Create (and register) a statistics time series.</p>
 <p>Series are initialized with nan's.</p>
-<p>Example: Create ndarray of length KObs+1 for inflation time series:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; self.new_series('infl', 1, KObs+1)
+<h2 id="example">Example</h2>
+<p>Create ndarray of length KObs+1 for inflation time series:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; self.new_series('infl', 1, KObs+1)  # doctest: +SKIP
 </code></pre>
 <p>NB: The <code>sliding_diagnostics</code> liveplotting relies on detecting <code>nan</code>'s
 to avoid plotting stats that are not being used.
@@ -1523,15 +1528,17 @@ to avoid plotting stats that are not being used.
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L117-L159" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L117-L161" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def new_series(self, name, shape, length=&#39;FAUSt&#39;, MS=False, **kws):
     &#34;&#34;&#34;Create (and register) a statistics time series.
 
     Series are initialized with nan&#39;s.
 
-    Example: Create ndarray of length KObs+1 for inflation time series:
-    &gt;&gt;&gt; self.new_series(&#39;infl&#39;, 1, KObs+1)
+    Example
+    -------
+    Create ndarray of length KObs+1 for inflation time series:
+    &gt;&gt;&gt; self.new_series(&#39;infl&#39;, 1, KObs+1)  # doctest: +SKIP
 
     NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``&#39;s
         to avoid plotting stats that are not being used.
@@ -1584,7 +1591,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L165-L239" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L167-L241" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assess(self, k, kObs=None, faus=None,
            E=None, w=None, mu=None, Cov=None):
@@ -1671,7 +1678,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L241-L251" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L243-L253" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def summarize_marginals(self, now):
     &#34;&#34;&#34;Compute Mean-field and RMS values&#34;&#34;&#34;
@@ -1694,7 +1701,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L253-L255" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L255-L257" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def derivative_stats(self, now):
     &#34;&#34;&#34;Stats that derive from others (=&gt; not specific for _ens or _ext).&#34;&#34;&#34;
@@ -1709,7 +1716,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L257-L319" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L259-L321" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assess_ens(self, now, x, E, w):
     &#34;&#34;&#34;Ensemble and Particle filter (weighted/importance) assessment.&#34;&#34;&#34;
@@ -1784,7 +1791,7 @@ Default: 'u' if kObs is None else 'au' ('a' and 'u').</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L321-L342" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L323-L344" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assess_ext(self, now, x, mu, P):
     &#34;&#34;&#34;Kalman filter (Gaussian) assessment.&#34;&#34;&#34;
@@ -1823,7 +1830,7 @@ time inds for averaging</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L344-L404" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L346-L406" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def average_in_time(self, kk=None, kkObs=None, free=False):
     &#34;&#34;&#34;Avarage all univariate (scalar) time series.
@@ -1908,7 +1915,7 @@ time inds for averaging</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L406-L454" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L408-L456" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def replay(self, figlist=&#34;default&#34;, speed=np.inf, t1=0, t2=None, **kwargs):
     &#34;&#34;&#34;Replay LivePlot with what&#39;s been stored in &#39;self&#39;.
@@ -1977,7 +1984,7 @@ time inds for averaging</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L464-L488" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L466-L490" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Avrgs(StatPrint, struct_tools.DotDict):
     &#34;&#34;&#34;A DotDict specialized for stat. averages.
@@ -2030,7 +2037,7 @@ time inds for averaging</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L473-L475" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L475-L477" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate(self, statkeys=()):
     columns = tabulate_avrgs([self], statkeys, decimals=None)

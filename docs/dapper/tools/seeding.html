@@ -40,48 +40,60 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/seeding.py#L0-L56" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/seeding.py#L0-L68" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Random number generation.&#34;&#34;&#34;
 
 import time
 
-import numpy as np
+import numpy.random as rnd
 
 
 def set_seed(sd=&#34;clock&#34;):
-    &#34;&#34;&#34;Essentially ``np.random.seed(sd)``, but also returning ``sd``.
+    &#34;&#34;&#34;Essentially `rnd.seed(sd)`, but also returning `sd`.
 
-    The disadvantage of ``np.random.seed()`` is that it produces a
+    The disadvantage of `rnd.seed()` is that it produces a
     RandomState that cannot be represented by a simple seed
     (the mapping seed--&gt;state being non-surjective).
-    By contrast, when ``sd in [None,&#34;clock&#34;]``, `set_seed` generates
-    the seed from the time (in microseconds), which can then be returned.
+    By contrast, when `sd in [None, &#34;clock&#34;]`, `set_seed` generates
+    a seed from the time (in microseconds), which can then be returned.
 
-    If ``sd==False``: do nothing.
+    If `sd==False`: do nothing.
 
-    Seed management enables reproducibility of random experiments.
+    Why seed management?
+    It enables reproducibility of random experiments.
     Moreover, using the same seed for each method in a comparative experiment
     may yield a form of &#34;Variance reduction&#34;, eg. CRN, ref Wikipedia.
     This CRN trick is often handy for speeding-up comparisons
     but should not be relied upon in publications,
     which should simply use converged statistics.
 
-    Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-    Example use: &#34;André 3000&#34;, &#34;I love you 3000&#34;.
-
-    Note: why are we using global generator?
+    Why are we using global generator?
     Because that&#39;s what we were used to.
     And we&#39;re not not worried about thread safety.
 
-    Example:
-    &gt;&gt;&gt; def prnt(sd):
-    &gt;&gt;&gt;     print(str(sd).ljust(10), np.random.randint(0,99))
-    &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed(sd); prnt(sd)
-    &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
+    Why is sd=3000 used in many places in DAPPER?
+    Coz I like the number. Example use: &#34;André 3000&#34;, &#34;I love you 3000&#34;.
+
+    Examples
+    --------
+    As mentioned,`set_seed` works essentially just like `rnd.seed`:
+    &gt;&gt;&gt; _ = set_seed(3); x =  rnd.randint(999)
+    &gt;&gt;&gt; _ = rnd.seed(3); x == rnd.randint(999)
+    True
+
+    But this would not be possible with the standard method:
+    &gt;&gt;&gt; sd = set_seed()  # Set by clock
+    &gt;&gt;&gt; y =  rnd.randint(999)
+    &gt;&gt;&gt; sd = set_seed(sd)  # Use the same seed as previously
+    &gt;&gt;&gt; y == rnd.randint(999)
+    True
+
+    Using the clock method again, later, we get a different outcome.
+    &gt;&gt;&gt; a = set_seed(3); x == rnd.randint(999)
+    True
+    &gt;&gt;&gt; b = set_seed();  y == rnd.randint(999)
+    False
     &#34;&#34;&#34;
     if (sd is not False) and sd == 0:
         msg = (&#34;Seeding with 0 is not a good idea, because\n&#34;
@@ -96,7 +108,7 @@ def set_seed(sd=&#34;clock&#34;):
         sd = microsec % MAXSEED
 
     if sd:
-        np.random.seed(sd)
+        rnd.seed(sd)
 
     return sd</code></pre>
 </details>
@@ -112,71 +124,94 @@ def set_seed(sd=&#34;clock&#34;):
 <span>def <span class="ident">set_seed</span></span>(<span>sd='clock')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Essentially <code>np.random.seed(sd)</code>, but also returning <code>sd</code>.</p>
-<p>The disadvantage of <code>np.random.seed()</code> is that it produces a
+<div class="desc"><p>Essentially <code>rnd.seed(sd)</code>, but also returning <code>sd</code>.</p>
+<p>The disadvantage of <code>rnd.seed()</code> is that it produces a
 RandomState that cannot be represented by a simple seed
 (the mapping seed&ndash;&gt;state being non-surjective).
-By contrast, when <code>sd in [None,"clock"]</code>, <code><a title="dapper.tools.seeding.set_seed" href="#dapper.tools.seeding.set_seed">set_seed()</a></code> generates
-the seed from the time (in microseconds), which can then be returned.</p>
+By contrast, when <code>sd in [None, "clock"]</code>, <code><a title="dapper.tools.seeding.set_seed" href="#dapper.tools.seeding.set_seed">set_seed()</a></code> generates
+a seed from the time (in microseconds), which can then be returned.</p>
 <p>If <code>sd==False</code>: do nothing.</p>
-<p>Seed management enables reproducibility of random experiments.
+<p>Why seed management?
+It enables reproducibility of random experiments.
 Moreover, using the same seed for each method in a comparative experiment
 may yield a form of "Variance reduction", eg. CRN, ref Wikipedia.
 This CRN trick is often handy for speeding-up comparisons
 but should not be relied upon in publications,
 which should simply use converged statistics.</p>
-<p>Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-Example use: "André 3000", "I love you 3000".</p>
-<p>Note: why are we using global generator?
+<p>Why are we using global generator?
 Because that's what we were used to.
 And we're not not worried about thread safety.</p>
-<p>Example:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; def prnt(sd):
-&gt;&gt;&gt;     print(str(sd).ljust(10), np.random.randint(0,99))
-&gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-&gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
-&gt;&gt;&gt; sd = set_seed(sd); prnt(sd)
-&gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-&gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
+<p>Why is sd=3000 used in many places in DAPPER?
+Coz I like the number. Example use: "André 3000", "I love you 3000".</p>
+<h2 id="examples">Examples</h2>
+<p>As mentioned,<code><a title="dapper.tools.seeding.set_seed" href="#dapper.tools.seeding.set_seed">set_seed()</a></code> works essentially just like <code>rnd.seed</code>:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; _ = set_seed(3); x =  rnd.randint(999)
+&gt;&gt;&gt; _ = rnd.seed(3); x == rnd.randint(999)
+True
+</code></pre>
+<p>But this would not be possible with the standard method:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; sd = set_seed()  # Set by clock
+&gt;&gt;&gt; y =  rnd.randint(999)
+&gt;&gt;&gt; sd = set_seed(sd)  # Use the same seed as previously
+&gt;&gt;&gt; y == rnd.randint(999)
+True
+</code></pre>
+<p>Using the clock method again, later, we get a different outcome.</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; a = set_seed(3); x == rnd.randint(999)
+True
+&gt;&gt;&gt; b = set_seed();  y == rnd.randint(999)
+False
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/seeding.py#L8-L57" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/seeding.py#L8-L69" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def set_seed(sd=&#34;clock&#34;):
-    &#34;&#34;&#34;Essentially ``np.random.seed(sd)``, but also returning ``sd``.
+    &#34;&#34;&#34;Essentially `rnd.seed(sd)`, but also returning `sd`.
 
-    The disadvantage of ``np.random.seed()`` is that it produces a
+    The disadvantage of `rnd.seed()` is that it produces a
     RandomState that cannot be represented by a simple seed
     (the mapping seed--&gt;state being non-surjective).
-    By contrast, when ``sd in [None,&#34;clock&#34;]``, `set_seed` generates
-    the seed from the time (in microseconds), which can then be returned.
+    By contrast, when `sd in [None, &#34;clock&#34;]`, `set_seed` generates
+    a seed from the time (in microseconds), which can then be returned.
 
-    If ``sd==False``: do nothing.
+    If `sd==False`: do nothing.
 
-    Seed management enables reproducibility of random experiments.
+    Why seed management?
+    It enables reproducibility of random experiments.
     Moreover, using the same seed for each method in a comparative experiment
     may yield a form of &#34;Variance reduction&#34;, eg. CRN, ref Wikipedia.
     This CRN trick is often handy for speeding-up comparisons
     but should not be relied upon in publications,
     which should simply use converged statistics.
 
-    Why is sd=3000 used in many places in DAPPER? Coz I like the number.
-    Example use: &#34;André 3000&#34;, &#34;I love you 3000&#34;.
-
-    Note: why are we using global generator?
+    Why are we using global generator?
     Because that&#39;s what we were used to.
     And we&#39;re not not worried about thread safety.
 
-    Example:
-    &gt;&gt;&gt; def prnt(sd):
-    &gt;&gt;&gt;     print(str(sd).ljust(10), np.random.randint(0,99))
-    &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed(sd); prnt(sd)
-    &gt;&gt;&gt; sd = set_seed(3) ; prnt(sd)
-    &gt;&gt;&gt; sd = set_seed()  ; prnt(sd)
+    Why is sd=3000 used in many places in DAPPER?
+    Coz I like the number. Example use: &#34;André 3000&#34;, &#34;I love you 3000&#34;.
+
+    Examples
+    --------
+    As mentioned,`set_seed` works essentially just like `rnd.seed`:
+    &gt;&gt;&gt; _ = set_seed(3); x =  rnd.randint(999)
+    &gt;&gt;&gt; _ = rnd.seed(3); x == rnd.randint(999)
+    True
+
+    But this would not be possible with the standard method:
+    &gt;&gt;&gt; sd = set_seed()  # Set by clock
+    &gt;&gt;&gt; y =  rnd.randint(999)
+    &gt;&gt;&gt; sd = set_seed(sd)  # Use the same seed as previously
+    &gt;&gt;&gt; y == rnd.randint(999)
+    True
+
+    Using the clock method again, later, we get a different outcome.
+    &gt;&gt;&gt; a = set_seed(3); x == rnd.randint(999)
+    True
+    &gt;&gt;&gt; b = set_seed();  y == rnd.randint(999)
+    False
     &#34;&#34;&#34;
     if (sd is not False) and sd == 0:
         msg = (&#34;Seeding with 0 is not a good idea, because\n&#34;
@@ -191,7 +226,7 @@ And we're not not worried about thread safety.</p>
         sd = microsec % MAXSEED
 
     if sd:
-        np.random.seed(sd)
+        rnd.seed(sd)
 
     return sd</code></pre>
 </details>
