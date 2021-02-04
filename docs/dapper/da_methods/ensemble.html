@@ -40,11 +40,12 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L0-L982" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L0-L983" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The EnKF and other ensemble-based methods.&#34;&#34;&#34;
 
 import numpy as np
+import numpy.random as rnd
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
 
@@ -206,10 +207,10 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(np.random.rand()-0.5)  # Random sign
+                    Zj *= np.sign(rnd.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(np.random.randn(N))  # Un-coloured noise
+                    Zj = mean0(rnd.randn(N))  # Un-coloured noise
                     if &#39;Var1&#39; in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -363,7 +364,7 @@ def add_noise(E, dt, noise, method):
         E, _, Qa12 = sqrt_core()
         if N &lt;= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@np.random.randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@rnd.randn(Z.shape[1], N)).T
 
     elif method == &#39;Sqrt-Dep&#39;:
         E, T, Qa12 = sqrt_core()
@@ -378,7 +379,7 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@np.random.randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@rnd.randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -516,7 +517,7 @@ def serial_inds(upd_a, y, cvR, A):
             dC = np.sum(A*A, 0)/(N-1)
         inds = np.argsort(dC)
     else:  # Default: random ordering
-        inds = np.random.permutation(len(y))
+        inds = rnd.permutation(len(y))
     return inds
 
 
@@ -1046,7 +1047,7 @@ specified by <code>upd_a</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L58-L224" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L59-L225" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
     &#34;&#34;&#34;Perform the EnKF analysis update.
@@ -1155,10 +1156,10 @@ specified by <code>upd_a</code>.</p>
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(np.random.rand()-0.5)  # Random sign
+                    Zj *= np.sign(rnd.rand()-0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(np.random.randn(N))  # Un-coloured noise
+                    Zj = mean0(rnd.randn(N))  # Un-coloured noise
                     if &#39;Var1&#39; in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -1232,7 +1233,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L227-L252" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L228-L253" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def post_process(E, infl, rot):
     &#34;&#34;&#34;Inflate, Rotate.
@@ -1271,7 +1272,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L255-L344" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L256-L345" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_noise(E, dt, noise, method):
     &#34;&#34;&#34;Treatment of additive noise for ensembles.
@@ -1340,7 +1341,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
         E, _, Qa12 = sqrt_core()
         if N &lt;= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@np.random.randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@rnd.randn(Z.shape[1], N)).T
 
     elif method == &#39;Sqrt-Dep&#39;:
         E, T, Qa12 = sqrt_core()
@@ -1355,7 +1356,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@np.random.randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@rnd.randn(rQ, N)
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -1378,7 +1379,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L457-L476" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L458-L477" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def serial_inds(upd_a, y, cvR, A):
     &#34;&#34;&#34;Get the indices used for serial updating.
@@ -1398,7 +1399,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
             dC = np.sum(A*A, 0)/(N-1)
         inds = np.argsort(dC)
     else:  # Default: random ordering
-        inds = np.random.permutation(len(y))
+        inds = rnd.permutation(len(y))
     return inds</code></pre>
 </details>
 </dd>
@@ -1411,7 +1412,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L662-L704" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L663-L705" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def effective_N(YR, dyR, xN, g):
     &#34;&#34;&#34;Effective ensemble size N.
@@ -1467,7 +1468,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L732-L751" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L733-L752" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Newton_m(fun, deriv, x0, is_inverted=False,
              conf=1.0, xtol=1e-4, ytol=1e-7, itermax=10**2):
@@ -1539,7 +1540,7 @@ as if N were smaller than it truly is.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L754-L814" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L755-L815" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def hyperprior_coeffs(s, N, xN=1, g=0):
     r&#34;&#34;&#34;Set EnKF-N inflation hyperparams.
@@ -1616,7 +1617,7 @@ the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L817-L829" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L818-L830" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def zeta_a(eN, cL, w):
     &#34;&#34;&#34;EnKF-N inflation estimation via w.
@@ -1648,10 +1649,9 @@ the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L25-L55" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L27-L56" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@ens_method
-class EnKF:
+<pre><code class="python">class EnKF:
     &#34;&#34;&#34;The ensemble Kalman filter.
 
     Refs: `bib.evensen2009ensemble`.
@@ -1719,7 +1719,7 @@ class EnKF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L35-L55" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L36-L56" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1758,10 +1758,9 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L347-L405" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L349-L406" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@ens_method
-class EnKS:
+<pre><code class="python">class EnKS:
     &#34;&#34;&#34;The ensemble Kalman smoother.
 
     Refs: `bib.evensen2009ensemble`
@@ -1861,7 +1860,7 @@ class EnKS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L363-L365" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L364-L366" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reshape_to(self, E):
     K, N, Nx = E.shape
@@ -1876,7 +1875,7 @@ class EnKS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L367-L370" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L368-L371" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reshape_fr(self, E, Nx):
     N, Km = E.shape
@@ -1892,7 +1891,7 @@ class EnKS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L372-L405" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L373-L406" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -1942,10 +1941,9 @@ class EnKS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L408-L454" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L410-L455" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@ens_method
-class EnRTS:
+<pre><code class="python">class EnRTS:
     &#34;&#34;&#34;EnRTS (Rauch-Tung-Striebel) smoother.
 
     Refs: `bib.raanes2016thesis`
@@ -2033,7 +2031,7 @@ class EnRTS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L419-L454" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L420-L455" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = \
@@ -2087,10 +2085,9 @@ to the <code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_methods
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L479-L552" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L481-L553" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@ens_method
-class SL_EAKF:
+<pre><code class="python">class SL_EAKF:
     &#34;&#34;&#34;Serial, covariance-localized EAKF.
 
     Refs: `bib.karspeck2007experimental`.
@@ -2209,7 +2206,7 @@ class SL_EAKF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L494-L552" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L495-L553" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -2288,10 +2285,9 @@ even with <code>batch_size=(1,)</code>. But for <code><a title="dapper.mods.QG" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L555-L659" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L557-L660" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@ens_method
-class LETKF:
+<pre><code class="python">class LETKF:
     &#34;&#34;&#34;Same as EnKF (sqrt), but with localization.
 
     Refs: `bib.hunt2007efficient`.
@@ -2449,7 +2445,7 @@ class LETKF:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L575-L659" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L576-L660" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -2566,10 +2562,9 @@ Further description in hyperprior_coeffs().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L832-L983" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L834-L984" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@ens_method
-class EnKF_N:
+<pre><code class="python">class EnKF_N:
     &#34;&#34;&#34;Finite-size EnKF (EnKF-N).
 
     Refs: `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
@@ -2770,7 +2765,7 @@ class EnKF_N:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L866-L983" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L867-L984" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     # Unpack

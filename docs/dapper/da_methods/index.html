@@ -48,7 +48,7 @@ The simplest example is perhaps
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L0-L128" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L0-L123" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Contains the data assimilation methods included with DAPPER.
 
@@ -90,15 +90,15 @@ def da_method(*default_dataclasses):
 
     Example:
     &gt;&gt;&gt; @da_method()
-    &gt;&gt;&gt; class Sleeper():
-    &gt;&gt;&gt;     &#34;Do nothing.&#34;
-    &gt;&gt;&gt;     seconds : int  = 10
-    &gt;&gt;&gt;     success : bool = True
-    &gt;&gt;&gt;     def assimilate(self,*args,**kwargs):
-    &gt;&gt;&gt;         for k in range(self.seconds):
-    &gt;&gt;&gt;             time.sleep(1)
-    &gt;&gt;&gt;         if not self.success:
-    &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
+    ... class Sleeper():
+    ...     &#34;Do nothing.&#34;
+    ...     seconds : int  = 10
+    ...     success : bool = True
+    ...     def assimilate(self,*args,**kwargs):
+    ...         for k in range(self.seconds):
+    ...             time.sleep(1)
+    ...         if not self.success:
+    ...             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
 
     Note that `da_method` is actually a &#34;decorator factory&#34;, or
     a &#34;two-level decorator&#34;, which is why the empty parenthesis were used above.
@@ -107,22 +107,17 @@ def da_method(*default_dataclasses):
 
     Example:
     &gt;&gt;&gt; @dataclass
-    &gt;&gt;&gt; class ens_defaults:
-    &gt;&gt;&gt;   infl : float = 1.0
-    &gt;&gt;&gt;   rot  : bool  = False
-    &gt;&gt;&gt;
+    ... class ens_defaults:
+    ...   infl : float = 1.0
+    ...   rot  : bool  = False
+
     &gt;&gt;&gt; @da_method(ens_defaults)
-    &gt;&gt;&gt; class EnKF:
-    &gt;&gt;&gt;     N     : int
-    &gt;&gt;&gt;     upd_a : str = &#34;Sqrt&#34;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
-    &gt;&gt;&gt;         ...
-    &gt;&gt;&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; @da_method(ens_defaults)
-    &gt;&gt;&gt; class LETKF:
-    &gt;&gt;&gt;     ...
+    ... class EnKF:
+    ...     N     : int
+    ...     upd_a : str = &#34;Sqrt&#34;
+    ...
+    ...     def assimilate(self, HMM, xx, yy):
+    ...         ...
     &#34;&#34;&#34;
 
     def dataclass_with_defaults(cls):
@@ -246,15 +241,15 @@ which gets slightly enhanced by this wrapper which provides:</p>
 I.e. <code>xp</code>s are essentially just a <code>dataclass</code> with some particular attributes.</p>
 <p>Example:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; @da_method()
-&gt;&gt;&gt; class Sleeper():
-&gt;&gt;&gt;     &quot;Do nothing.&quot;
-&gt;&gt;&gt;     seconds : int  = 10
-&gt;&gt;&gt;     success : bool = True
-&gt;&gt;&gt;     def assimilate(self,*args,**kwargs):
-&gt;&gt;&gt;         for k in range(self.seconds):
-&gt;&gt;&gt;             time.sleep(1)
-&gt;&gt;&gt;         if not self.success:
-&gt;&gt;&gt;             raise RuntimeError(&quot;Sleep over. Failing as intended.&quot;)
+... class Sleeper():
+...     &quot;Do nothing.&quot;
+...     seconds : int  = 10
+...     success : bool = True
+...     def assimilate(self,*args,**kwargs):
+...         for k in range(self.seconds):
+...             time.sleep(1)
+...         if not self.success:
+...             raise RuntimeError(&quot;Sleep over. Failing as intended.&quot;)
 </code></pre>
 <p>Note that <code><a title="dapper.da_methods.da_method" href="#dapper.da_methods.da_method">da_method()</a></code> is actually a "decorator factory", or
 a "two-level decorator", which is why the empty parenthesis were used above.
@@ -262,27 +257,22 @@ The outer level can be used to define defaults that are "inherited"
 by similar DA methods:</p>
 <p>Example:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; @dataclass
-&gt;&gt;&gt; class ens_defaults:
-&gt;&gt;&gt;   infl : float = 1.0
-&gt;&gt;&gt;   rot  : bool  = False
-&gt;&gt;&gt;
-&gt;&gt;&gt; @da_method(ens_defaults)
-&gt;&gt;&gt; class EnKF:
-&gt;&gt;&gt;     N     : int
-&gt;&gt;&gt;     upd_a : str = &quot;Sqrt&quot;
-&gt;&gt;&gt;
-&gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
-&gt;&gt;&gt;         ...
-&gt;&gt;&gt;
-&gt;&gt;&gt;
-&gt;&gt;&gt; @da_method(ens_defaults)
-&gt;&gt;&gt; class LETKF:
-&gt;&gt;&gt;     ...
+... class ens_defaults:
+...   infl : float = 1.0
+...   rot  : bool  = False
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; @da_method(ens_defaults)
+... class EnKF:
+...     N     : int
+...     upd_a : str = &quot;Sqrt&quot;
+...
+...     def assimilate(self, HMM, xx, yy):
+...         ...
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L23-L121" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L23-L116" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def da_method(*default_dataclasses):
     &#34;&#34;&#34;Decorate classes that define DA methods.
@@ -302,15 +292,15 @@ by similar DA methods:</p>
 
     Example:
     &gt;&gt;&gt; @da_method()
-    &gt;&gt;&gt; class Sleeper():
-    &gt;&gt;&gt;     &#34;Do nothing.&#34;
-    &gt;&gt;&gt;     seconds : int  = 10
-    &gt;&gt;&gt;     success : bool = True
-    &gt;&gt;&gt;     def assimilate(self,*args,**kwargs):
-    &gt;&gt;&gt;         for k in range(self.seconds):
-    &gt;&gt;&gt;             time.sleep(1)
-    &gt;&gt;&gt;         if not self.success:
-    &gt;&gt;&gt;             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
+    ... class Sleeper():
+    ...     &#34;Do nothing.&#34;
+    ...     seconds : int  = 10
+    ...     success : bool = True
+    ...     def assimilate(self,*args,**kwargs):
+    ...         for k in range(self.seconds):
+    ...             time.sleep(1)
+    ...         if not self.success:
+    ...             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
 
     Note that `da_method` is actually a &#34;decorator factory&#34;, or
     a &#34;two-level decorator&#34;, which is why the empty parenthesis were used above.
@@ -319,22 +309,17 @@ by similar DA methods:</p>
 
     Example:
     &gt;&gt;&gt; @dataclass
-    &gt;&gt;&gt; class ens_defaults:
-    &gt;&gt;&gt;   infl : float = 1.0
-    &gt;&gt;&gt;   rot  : bool  = False
-    &gt;&gt;&gt;
+    ... class ens_defaults:
+    ...   infl : float = 1.0
+    ...   rot  : bool  = False
+
     &gt;&gt;&gt; @da_method(ens_defaults)
-    &gt;&gt;&gt; class EnKF:
-    &gt;&gt;&gt;     N     : int
-    &gt;&gt;&gt;     upd_a : str = &#34;Sqrt&#34;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt;     def assimilate(self,HMM,xx,yy):
-    &gt;&gt;&gt;         ...
-    &gt;&gt;&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; @da_method(ens_defaults)
-    &gt;&gt;&gt; class LETKF:
-    &gt;&gt;&gt;     ...
+    ... class EnKF:
+    ...     N     : int
+    ...     upd_a : str = &#34;Sqrt&#34;
+    ...
+    ...     def assimilate(self, HMM, xx, yy):
+    ...         ...
     &#34;&#34;&#34;
 
     def dataclass_with_defaults(cls):

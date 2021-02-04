@@ -314,7 +314,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L39-L58" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L39-L50" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def progbar(iterable, desc=None, leave=1, **kwargs):
     &#34;&#34;&#34;Prints a nice progress bar in the terminal&#34;&#34;&#34;
@@ -327,15 +327,7 @@ def read1():
         # return tqdm.tqdm_notebook(iterable,desc=desc,leave=leave)
         # else:
         return tqdm.tqdm(iterable, desc=desc, leave=leave,
-                         smoothing=0.3, dynamic_ncols=True, **kwargs)
-        # Printing during the progbar loop (may occur with error printing)
-        # can cause tqdm to freeze the entire execution.
-        # Seemingly, this is caused by their multiprocessing-safe stuff.
-        # Disable this, as per github.com/tqdm/tqdm/issues/461#issuecomment-334343230
-        # pb = tqdm.tqdm(...)
-        # try: pb.get_lock().locks = []
-        # except AttributeError: pass
-        # return pb</code></pre>
+                         smoothing=0.3, dynamic_ncols=True, **kwargs)</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.progressbar.read1"><code class="name flex">

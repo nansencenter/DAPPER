@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L0-L345" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L0-L346" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Variational DA methods (iEnKS, 4D-Var, etc).&#34;&#34;&#34;
 
@@ -103,6 +103,7 @@ class iEnKS:
               Recommended: 1e-5.
 
       MDA   : Use iterations of the &#34;multiple data assimlation&#34; type.
+              Ref `bib.emerick2012history`
 
       bundle: Use finite-diff. linearization instead of of least-squares regression.
               Makes the iEnKS very much alike the iterative, extended KF (IEKS).
@@ -436,7 +437,8 @@ Supporting nIter==0 requires more code than it's worth.</p>
 Default: 0 =&gt; always do nIter iterations.
 Recommended: 1e-5.</p>
 <p>MDA
-: Use iterations of the "multiple data assimlation" type.</p>
+: Use iterations of the "multiple data assimlation" type.
+Ref <code><a title="bib.emerick2012history" href="../../bib.html#bib.emerick2012history">emerick2012history</a></code></p>
 <dl>
 <dt><strong><code>bundle</code></strong></dt>
 <dd>Use finite-diff. linearization instead of of least-squares regression.
@@ -451,10 +453,9 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L26-L236" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L27-L237" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@var_method
-class iEnKS:
+<pre><code class="python">class iEnKS:
     &#34;&#34;&#34;Iterative EnKS.
 
     Special cases: EnRML, ES-MDA, iEnKF, EnKF `bib.raanes2019revising`.
@@ -489,6 +490,7 @@ class iEnKS:
               Recommended: 1e-5.
 
       MDA   : Use iterations of the &#34;multiple data assimlation&#34; type.
+              Ref `bib.emerick2012history`
 
       bundle: Use finite-diff. linearization instead of of least-squares regression.
               Makes the iEnKS very much alike the iterative, extended KF (IEKS).
@@ -726,7 +728,7 @@ class iEnKS:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L95-L236" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L96-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -876,7 +878,7 @@ class iEnKS:
 </dd>
 <dt id="dapper.da_methods.variational.Var4D"><code class="flex name class">
 <span>class <span class="ident">Var4D</span></span>
-<span>(</span><span>B: Optional[numpy.ndarray] = None, xB: float = 1.0, Lag: int = 1, nIter: int = 10, wtol: float = 0)</span>
+<span>(</span><span>B: Union[numpy.ndarray, NoneType] = None, xB: float = 1.0, Lag: int = 1, nIter: int = 10, wtol: float = 0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>4D-Var.</p>
@@ -892,10 +894,9 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L239-L346" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L241-L347" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@var_method
-class Var4D:
+<pre><code class="python">class Var4D:
     &#34;&#34;&#34;4D-Var.
 
     Cycling scheme is same as in iEnKS (i.e. the shift is always 1*kObs).
@@ -1005,7 +1006,7 @@ class Var4D:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="dapper.da_methods.variational.Var4D.B"><code class="name">var <span class="ident">B</span> : Optional[numpy.ndarray]</code></dt>
+<dt id="dapper.da_methods.variational.Var4D.B"><code class="name">var <span class="ident">B</span> : Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1040,7 +1041,7 @@ class Var4D:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L259-L346" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L260-L347" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats

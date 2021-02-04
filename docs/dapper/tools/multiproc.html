@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L0-L86" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L0-L83" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Paralellisation via multiprocessing. Wraps pool.map for convenience.&#34;&#34;&#34;
 
@@ -90,25 +90,22 @@ threadpoolctl.threadpool_limits(1)
 def map(func, xx, **kwargs):  # noqa
     &#34;&#34;&#34;A parallelized version of map.
 
-    Similar to:
+    Similar to `result = [func(x, **kwargs) for x in xx]`, but also deals with:
 
-    &gt;&gt;&gt; result = [func(x, **kwargs) for x in xx]
-
-    Also deals with:
-
-     - passing kwargs
-     - join(), close()
+    - passing kwargs
+    - join(), close()
+    - KeyboardInterrupt (not any more)
 
     Note: in contrast to reading operations, writing &#34;in-place&#34;
     does not work with multiprocessing. This changes with
     &#34;shared&#34; arrays, but this has not been tried out here.
-    Multithreading shares memory,
+    By contrast, multithreading shares the memory,
     but was significantly slower in the tested (pertinent) cases.
 
     NB: multiprocessing does not mix with matplotlib,
-        so ensure ``func`` does not reference ``self.stats.LP_instance``,
-        where ``self`` is a ``@da_method`` object.
-        In fact, ``func`` should not reference ``self`` at all,
+        so ensure `func` does not reference `self.stats.LP_instance`,
+        where `self` is a `@da_method` object.
+        In fact, `func` should not reference `self` at all,
         because its serialization is rather slow.
 
     See example use in `dapper.mods.QG`
@@ -143,18 +140,16 @@ def map(func, xx, **kwargs):  # noqa
 </code></dt>
 <dd>
 <div class="desc"><p>A parallelized version of map.</p>
-<p>Similar to:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; result = [func(x, **kwargs) for x in xx]
-</code></pre>
-<p>Also deals with:</p>
+<p>Similar to <code>result = [func(x, **kwargs) for x in xx]</code>, but also deals with:</p>
 <ul>
 <li>passing kwargs</li>
 <li>join(), close()</li>
+<li>KeyboardInterrupt (not any more)</li>
 </ul>
 <p>Note: in contrast to reading operations, writing "in-place"
 does not work with multiprocessing. This changes with
 "shared" arrays, but this has not been tried out here.
-Multithreading shares memory,
+By contrast, multithreading shares the memory,
 but was significantly slower in the tested (pertinent) cases.</p>
 <p>NB: multiprocessing does not mix with matplotlib,
 so ensure <code>func</code> does not reference <code>self.stats.LP_instance</code>,
@@ -165,30 +160,27 @@ because its serialization is rather slow.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L46-L87" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L46-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def map(func, xx, **kwargs):  # noqa
     &#34;&#34;&#34;A parallelized version of map.
 
-    Similar to:
+    Similar to `result = [func(x, **kwargs) for x in xx]`, but also deals with:
 
-    &gt;&gt;&gt; result = [func(x, **kwargs) for x in xx]
-
-    Also deals with:
-
-     - passing kwargs
-     - join(), close()
+    - passing kwargs
+    - join(), close()
+    - KeyboardInterrupt (not any more)
 
     Note: in contrast to reading operations, writing &#34;in-place&#34;
     does not work with multiprocessing. This changes with
     &#34;shared&#34; arrays, but this has not been tried out here.
-    Multithreading shares memory,
+    By contrast, multithreading shares the memory,
     but was significantly slower in the tested (pertinent) cases.
 
     NB: multiprocessing does not mix with matplotlib,
-        so ensure ``func`` does not reference ``self.stats.LP_instance``,
-        where ``self`` is a ``@da_method`` object.
-        In fact, ``func`` should not reference ``self`` at all,
+        so ensure `func` does not reference `self.stats.LP_instance`,
+        where `self` is a `@da_method` object.
+        In fact, `func` should not reference `self` at all,
         because its serialization is rather slow.
 
     See example use in `dapper.mods.QG`

@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L0-L162" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L0-L167" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Dirty magic. Should never be used. Ever.&#34;&#34;&#34;
 
@@ -134,8 +134,9 @@ def magic_naming(*args, **kwargs):
     &#34;&#34;&#34;Convert args (by their names in the call) to kwargs.
 
     Example:
-    &gt;&gt;&gt; a,b,c = 1,2,3
-    &gt;&gt;&gt; dct = magic_naming(a,b,c,d=e)
+    &gt;&gt;&gt; a, b = 1, 2
+    &gt;&gt;&gt; magic_naming(a, b, c=3)
+    {&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3}
     &#34;&#34;&#34;
     call, argnames, locvars = get_call()
     assert len(args) == len(argnames), &#34;Something&#39;s gone wrong.&#34;
@@ -162,10 +163,11 @@ def magic_naming(*args, **kwargs):
 def spell_out(*args):
     &#34;&#34;&#34;Print (args) including variable names.
 
-    Example:
+    Example
+    -------
     &gt;&gt;&gt; spell_out(3*2)
-    &gt;&gt;&gt; 3*2:
-    &gt;&gt;&gt; 6
+    3*2:
+    6
     &#34;&#34;&#34;
     call, _, loc = get_call()
 
@@ -174,8 +176,11 @@ def spell_out(*args):
     right = call.rfind(&#34;)&#34;)
 
     # Print header
-    with coloring():
+    import sys
+    c = None if &#34;pytest&#34; in sys.modules else &#34;blue&#34;
+    with coloring(c):
         print(call[left+1:right] + &#34;:&#34;)
+
     # Print (normal)
     print(*args)
 
@@ -316,20 +321,22 @@ we get actual argnames and dont need to resort to regex.</p></div>
 <dd>
 <div class="desc"><p>Convert args (by their names in the call) to kwargs.</p>
 <p>Example:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; a,b,c = 1,2,3
-&gt;&gt;&gt; dct = magic_naming(a,b,c,d=e)
+<pre><code class="language-python-repl">&gt;&gt;&gt; a, b = 1, 2
+&gt;&gt;&gt; magic_naming(a, b, c=3)
+{'a': 1, 'b': 2, 'c': 3}
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L89-L115" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L89-L116" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def magic_naming(*args, **kwargs):
     &#34;&#34;&#34;Convert args (by their names in the call) to kwargs.
 
     Example:
-    &gt;&gt;&gt; a,b,c = 1,2,3
-    &gt;&gt;&gt; dct = magic_naming(a,b,c,d=e)
+    &gt;&gt;&gt; a, b = 1, 2
+    &gt;&gt;&gt; magic_naming(a, b, c=3)
+    {&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3}
     &#34;&#34;&#34;
     call, argnames, locvars = get_call()
     assert len(args) == len(argnames), &#34;Something&#39;s gone wrong.&#34;
@@ -358,23 +365,24 @@ we get actual argnames and dont need to resort to regex.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Print (args) including variable names.</p>
-<p>Example:</p>
+<h2 id="example">Example</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; spell_out(3*2)
-&gt;&gt;&gt; 3*2:
-&gt;&gt;&gt; 6
+3*2:
+6
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L118-L136" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L119-L141" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spell_out(*args):
     &#34;&#34;&#34;Print (args) including variable names.
 
-    Example:
+    Example
+    -------
     &gt;&gt;&gt; spell_out(3*2)
-    &gt;&gt;&gt; 3*2:
-    &gt;&gt;&gt; 6
+    3*2:
+    6
     &#34;&#34;&#34;
     call, _, loc = get_call()
 
@@ -383,8 +391,11 @@ we get actual argnames and dont need to resort to regex.</p></div>
     right = call.rfind(&#34;)&#34;)
 
     # Print header
-    with coloring():
+    import sys
+    c = None if &#34;pytest&#34; in sys.modules else &#34;blue&#34;
+    with coloring(c):
         print(call[left+1:right] + &#34;:&#34;)
+
     # Print (normal)
     print(*args)</code></pre>
 </details>

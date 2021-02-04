@@ -34,6 +34,12 @@ and set the source to the docs folder.
   The documentation uses pdoc3 to auto-generate API reference,
   so improving function and class docstrings is very helpful.
 
+- Make iEnKS code more modular.
+  In particular, the analysis should be separated
+  from the time stepping mechanisms.
+
+- Make iEnKS code support MDA as in `bib.bocquet2014iterative`
+
 - Consider this code:
 
         from dapper.mods.Lorenz63.sakov2012 import HMM1

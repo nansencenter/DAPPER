@@ -105,6 +105,14 @@ particle filtering and smoothing: Fifteen years later. *Handbook
 of Nonlinear Filtering*, 656–704.
 """
 
+emerick2012history = None
+"""
+**Emerick**, **A A** and **Reynolds**, **A C** 2012 History
+matching time-lapse seismic data using the ensemble Kalman filter
+with multiple data assimilations. *Computational Geosciences*,
+16(3): 639–659.
+"""
+
 evensen2009ensemble = None
 """
 **Evensen**, **G** 2009 The ensemble Kalman filter for combined

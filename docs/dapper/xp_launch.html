@@ -41,7 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L587" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L586" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably `xpList`) for setup and running of experiments (known as `xp`s).
 
@@ -218,43 +218,42 @@ def collapse_str(string, length=6):
 class xpList(list):
     &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
-    Main use: administrate experiment **launches**.
+    Main use: administrate experiment launches.
 
     Modifications to `list`:
 
-    - `__iadd__` (append) also for single items;
+    - `xpList.append` supports `unique` to enable lazy `xp` declaration.
+    - `__iadd__` (`+=`) supports adding single `xp`s.
       this is hackey, but convenience is king.
-    - `append()` supports `unique` to enable lazy xp declaration.
-    - `__getitem__` supports lists.
-    - pretty printing (using common/distinct attrs).
+    - `__getitem__` supports lists, similar to `np.ndarray`
+    - `__repr__`: prints the list as rows of a table,
+      where the columns represent attributes whose value is not shared among all `xp`s.
+      Refer to `xpList.split_attrs` for more information.
 
     Add-ons:
 
-    - `launch()`
-    - `print_averages()`
-    - `gen_names()`
-    - `inds()` to search by kw-attrs.
+    - `xpList.launch`
+    - `xpList.print_averages`
+    - `xpList.gen_names`
+    - `xpList.inds` to search by kw-attrs.
+
+    Parameters
+    ----------
+    args: entries
+        Nothing, or a list of `xp`s.
+
+    unique: bool
+        Duplicates won&#39;t get appended. Makes `append` (and `__iadd__`) relatively slow.
+        Use `extend` or `__add__` or `get_param_setter` to bypass this validation.
 
     Also see
     --------
     - Examples: `examples/basic_2`, `examples/basic_3`
-    - Experiment **presentation**: `dapper.xp_process.xpSpace`
+    - `dapper.xp_process.xpSpace`, which is used for experient result **presentation**,
+      as opposed to this class (`xpList`), which handles **launching** experiments.
     &#34;&#34;&#34;
 
     def __init__(self, *args, unique=False):
-        &#34;&#34;&#34;Construct as follows.
-
-        Parameters
-        ----------
-        args: entries
-            Nothing, or a list of `xp`s.
-
-        unique: bool
-            Duplicates won&#39;t get appended.
-            This makes `append` (and `__iadd__`) relatively slow.
-            Use `extend` or `__add__` or `get_param_setter`
-            to bypass this validation.
-        &#34;&#34;&#34;
         self.unique = unique
         super().__init__(*args)
 
@@ -303,7 +302,7 @@ class xpList(list):
 
         Insert `None` if an attribute is distinct but not in `xp`.
 
-        Used by `repr(xpList)` to make a nice table of the list,
+        Used by `repr` on `xpList` to make a nice table of the list,
         in which only the attributes that differ among the `xp`s
         need be included.
 
@@ -860,7 +859,7 @@ then you'll create many more than you intend.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L563-L588" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L562-L587" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_param_setter(param_dict, **glob_dict):
     &#34;&#34;&#34;Mass creation of `xp`&#39;s by combining the value lists in the parameter dicts.
@@ -901,83 +900,82 @@ then you'll create many more than you intend.</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Subclass of <code>list</code> specialized for experiment ("xp") objects.</p>
-<p>Main use: administrate experiment <strong>launches</strong>.</p>
+<p>Main use: administrate experiment launches.</p>
 <p>Modifications to <code>list</code>:</p>
 <ul>
-<li><code>__iadd__</code> (append) also for single items;
+<li><code><a title="dapper.xp_launch.xpList.append" href="#dapper.xp_launch.xpList.append">xpList.append()</a></code> supports <code>unique</code> to enable lazy <code>xp</code> declaration.</li>
+<li><code>__iadd__</code> (<code>+=</code>) supports adding single <code>xp</code>s.
 this is hackey, but convenience is king.</li>
-<li><code>append()</code> supports <code>unique</code> to enable lazy xp declaration.</li>
-<li><code>__getitem__</code> supports lists.</li>
-<li>pretty printing (using common/distinct attrs).</li>
+<li><code>__getitem__</code> supports lists, similar to <code>np.ndarray</code></li>
+<li><code>__repr__</code>: prints the list as rows of a table,
+where the columns represent attributes whose value is not shared among all <code>xp</code>s.
+Refer to <code><a title="dapper.xp_launch.xpList.split_attrs" href="#dapper.xp_launch.xpList.split_attrs">xpList.split_attrs()</a></code> for more information.</li>
 </ul>
 <p>Add-ons:</p>
 <ul>
-<li><code>launch()</code></li>
-<li><code>print_averages()</code></li>
-<li><code>gen_names()</code></li>
-<li><code>inds()</code> to search by kw-attrs.</li>
+<li><code><a title="dapper.xp_launch.xpList.launch" href="#dapper.xp_launch.xpList.launch">xpList.launch()</a></code></li>
+<li><code>xpList.print_averages</code></li>
+<li><code><a title="dapper.xp_launch.xpList.gen_names" href="#dapper.xp_launch.xpList.gen_names">xpList.gen_names()</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.inds" href="#dapper.xp_launch.xpList.inds">xpList.inds()</a></code> to search by kw-attrs.</li>
 </ul>
-<h2 id="also-see">Also See</h2>
-<ul>
-<li>Examples: <code>examples/basic_2</code>, <code>examples/basic_3</code></li>
-<li>Experiment <strong>presentation</strong>: <code><a title="dapper.xp_process.xpSpace" href="xp_process.html#dapper.xp_process.xpSpace">xpSpace</a></code></li>
-</ul>
-<p>Construct as follows.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>args</code></strong> :&ensp;<code>entries</code></dt>
 <dd>Nothing, or a list of <code>xp</code>s.</dd>
 <dt><strong><code>unique</code></strong> :&ensp;<code>bool</code></dt>
-<dd>Duplicates won't get appended.
-This makes <code>append</code> (and <code>__iadd__</code>) relatively slow.
-Use <code>extend</code> or <code>__add__</code> or <code><a title="dapper.xp_launch.get_param_setter" href="#dapper.xp_launch.get_param_setter">get_param_setter()</a></code>
-to bypass this validation.</dd>
-</dl></div>
+<dd>Duplicates won't get appended. Makes <code>append</code> (and <code>__iadd__</code>) relatively slow.
+Use <code>extend</code> or <code>__add__</code> or <code><a title="dapper.xp_launch.get_param_setter" href="#dapper.xp_launch.get_param_setter">get_param_setter()</a></code> to bypass this validation.</dd>
+</dl>
+<h2 id="also-see">Also See</h2>
+<ul>
+<li>Examples: <code>examples/basic_2</code>, <code>examples/basic_3</code></li>
+<li><code><a title="dapper.xp_process.xpSpace" href="xp_process.html#dapper.xp_process.xpSpace">xpSpace</a></code>, which is used for experient result <strong>presentation</strong>,
+as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper.xp_launch.xpList">xpList</a></code>), which handles <strong>launching</strong> experiments.</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L173-L560" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L173-L559" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpList(list):
     &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
-    Main use: administrate experiment **launches**.
+    Main use: administrate experiment launches.
 
     Modifications to `list`:
 
-    - `__iadd__` (append) also for single items;
+    - `xpList.append` supports `unique` to enable lazy `xp` declaration.
+    - `__iadd__` (`+=`) supports adding single `xp`s.
       this is hackey, but convenience is king.
-    - `append()` supports `unique` to enable lazy xp declaration.
-    - `__getitem__` supports lists.
-    - pretty printing (using common/distinct attrs).
+    - `__getitem__` supports lists, similar to `np.ndarray`
+    - `__repr__`: prints the list as rows of a table,
+      where the columns represent attributes whose value is not shared among all `xp`s.
+      Refer to `xpList.split_attrs` for more information.
 
     Add-ons:
 
-    - `launch()`
-    - `print_averages()`
-    - `gen_names()`
-    - `inds()` to search by kw-attrs.
+    - `xpList.launch`
+    - `xpList.print_averages`
+    - `xpList.gen_names`
+    - `xpList.inds` to search by kw-attrs.
+
+    Parameters
+    ----------
+    args: entries
+        Nothing, or a list of `xp`s.
+
+    unique: bool
+        Duplicates won&#39;t get appended. Makes `append` (and `__iadd__`) relatively slow.
+        Use `extend` or `__add__` or `get_param_setter` to bypass this validation.
 
     Also see
     --------
     - Examples: `examples/basic_2`, `examples/basic_3`
-    - Experiment **presentation**: `dapper.xp_process.xpSpace`
+    - `dapper.xp_process.xpSpace`, which is used for experient result **presentation**,
+      as opposed to this class (`xpList`), which handles **launching** experiments.
     &#34;&#34;&#34;
 
     def __init__(self, *args, unique=False):
-        &#34;&#34;&#34;Construct as follows.
-
-        Parameters
-        ----------
-        args: entries
-            Nothing, or a list of `xp`s.
-
-        unique: bool
-            Duplicates won&#39;t get appended.
-            This makes `append` (and `__iadd__`) relatively slow.
-            Use `extend` or `__add__` or `get_param_setter`
-            to bypass this validation.
-        &#34;&#34;&#34;
         self.unique = unique
         super().__init__(*args)
 
@@ -1026,7 +1024,7 @@ to bypass this validation.</dd>
 
         Insert `None` if an attribute is distinct but not in `xp`.
 
-        Used by `repr(xpList)` to make a nice table of the list,
+        Used by `repr` on `xpList` to make a nice table of the list,
         in which only the attributes that differ among the `xp`s
         need be included.
 
@@ -1339,7 +1337,7 @@ to bypass this validation.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L251-L254" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L250-L253" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def da_methods(self):
@@ -1358,7 +1356,7 @@ def da_methods(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L223-L226" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L222-L225" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def append(self, xp):
     &#34;&#34;&#34;Append **if** not `self.unique` &amp; present.&#34;&#34;&#34;
@@ -1376,7 +1374,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L238-L249" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L237-L248" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
     &#34;&#34;&#34;Find (all) indices of `xps` whose attributes match kws.
@@ -1398,7 +1396,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
 <dd>
 <div class="desc"><p>Classify each/every attribute of the <code>xp</code>s into: distinct, redundant, common.</p>
 <p>Insert <code>None</code> if an attribute is distinct but not in <code>xp</code>.</p>
-<p>Used by <code>repr(<a title="dapper.xp_launch.xpList" href="#dapper.xp_launch.xpList">xpList</a>)</code> to make a nice table of the list,
+<p>Used by <code>repr</code> on <code><a title="dapper.xp_launch.xpList" href="#dapper.xp_launch.xpList">xpList</a></code> to make a nice table of the list,
 in which only the attributes that differ among the <code>xp</code>s
 need be included.</p>
 <h2 id="parameters">Parameters</h2>
@@ -1409,14 +1407,14 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L256-L345" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L255-L344" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def split_attrs(self, nomerge=()):
     &#34;&#34;&#34;Classify each/every attribute of the `xp`s into: distinct, redundant, common.
 
     Insert `None` if an attribute is distinct but not in `xp`.
 
-    Used by `repr(xpList)` to make a nice table of the list,
+    Used by `repr` on `xpList` to make a nice table of the list,
     in which only the attributes that differ among the `xp`s
     need be included.
 
@@ -1516,7 +1514,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L355-L393" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L354-L392" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_names(self, abbrev=6, tab=False):
     &#34;&#34;&#34;Similiar to `self.__repr__()`, but:
@@ -1568,7 +1566,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L395-L403" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L394-L402" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(self, *args, **kwargs):
     &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
@@ -1615,7 +1613,7 @@ of that <code>xp</code>).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L405-L560" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L404-L559" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
            setup=seed_and_simulate, fail_gently=None, **kwargs):
