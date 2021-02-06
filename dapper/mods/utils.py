@@ -124,9 +124,9 @@ def direct_obs_matrix(Nx, obs_inds):
     Parameters
     ----------
     Nx: int
-        Number of total length of state vector
+        Length of state vector
     obs_inds: ndarray
-        The observed indices.
+        Indices of elements of the state vector that are (directly) observed.
 
     Returns
     -------
@@ -145,12 +145,13 @@ def direct_obs_matrix(Nx, obs_inds):
 
 def partial_Id_Obs(Nx, obs_inds):
     """Specify identity observations of a subset of obs. indices.
+    
     It is not a function of time.
 
     Parameters
     ----------
     Nx: int
-        Number of total length of state vector
+        Length of state vector
     obs_inds: ndarray
         The observed indices.
 
@@ -175,12 +176,13 @@ def partial_Id_Obs(Nx, obs_inds):
 
 def Id_Obs(Nx):
     """Specify identity observations of entire state.
+
     It is not a function of time.
 
     Parameters
     ----------
     Nx: int
-        Number of total length of state vector
+        Length of state vector
 
     Returns
     -------
@@ -193,6 +195,7 @@ def Id_Obs(Nx):
 
 def linspace_int(Nx, Ny, periodic=True):
     """Provide a range of `Ny` equispaced integers between `0` and `Nx-1`.
+
     Parameters
     ----------
     Nx: int
@@ -201,13 +204,13 @@ def linspace_int(Nx, Ny, periodic=True):
         Number of integers
     periodic: bool, optional
         Whether the vector is periodic.
-        Determines if the Nx == 0.
+        Determines if `Nx == 0`.
         Default: True
 
     Returns
     -------
-    vector
-        Generated vectors.
+    integers: ndarray
+        The list of integers.
 
     Examples
     --------

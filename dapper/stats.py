@@ -664,28 +664,7 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    r"""`center`, but only return the anomalies (not the mean).
-
-    Parameters
-    ----------
-    E: ndarray
-        Ensemble which going to be inflated
-
-    axis: int, optional
-        The axis to be centered. Default: 0
-
-    rescale: bool, optional
-        If True, inflate to compensate for reduction in the expected variance.
-        The inflation factor is \(\sqrt{\frac{N}{N - 1}}\). Act as a way for
-        unbiased variance estimation?
-        where N is the ensemble size. Default: True
-
-
-    Returns
-    -------
-    ndarray
-        Ensemble anomalies
-    """
+    """Like `center`, but only return the anomalies (not the mean)."""
     return center(E, axis=axis, rescale=rescale)[0]
 
 
@@ -721,7 +700,7 @@ def weight_degeneracy(w, prec=1e-10):
     Parameters
     ----------
     w: ndarray
-        Weight of something. Sum(w) = 1
+        Importance weights. Must sum to 1.
 
     prec: float, optional
         Tolerance of the distance between w and one. Default:1e-10
@@ -740,12 +719,13 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     Parameters
     ----------
     w: ndarray, optional
-        Weight of something. Sum(w) = 1.
+        Importance weights. Must sum to 1.
         Only one of w and N_eff can be None. Default: None
 
     N_eff: float, optional
-        Tolerance of the distance between w and one.
-        Only one of w and N_eff can be None.  Default: None
+        The "effective" size of the weighted ensemble.
+        If not provided, it is computed from the weights.
+        The unbiasing factor is $$ N_{eff} / (N_{eff} - 1) $$.
 
     avoid_pathological: bool, optional
         Avoid weight collapse. Default: False
@@ -755,7 +735,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     ub: float
         factor used to unbiasing variance
 
-    See Also
+    Reference
     --------
     [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
     """
