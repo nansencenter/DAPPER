@@ -220,7 +220,6 @@ def linspace_int(Nx, Ny, periodic=True):
     array([0, 2, 5, 7])
     >>> linspace_int(10, 5)
     array([0, 2, 4, 6, 8])
-    >>>
     """
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
