@@ -18,7 +18,7 @@ def rk4(f, x, t, dt, order=4):
     Parameters
     ----------
     f : function
-        The forcing of the ODE must a function of the form f(t, x)
+        The time derivative of the dynamical system. Must be of the form `f(t, x)`
 
     x : ndarray or float
         State vector of the forcing term
