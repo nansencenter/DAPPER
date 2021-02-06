@@ -54,8 +54,6 @@ def d2x_dtdx(x):
     return F
 
 # dstep_dx = FD_Jac(step)
-
-
 def dstep_dx(x, t, dt):
     # For L96, method='analytic' >> 'approx'
     return integrate_TLM(d2x_dtdx(x), dt, method='analytic')

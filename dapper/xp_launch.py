@@ -175,7 +175,7 @@ class xpList(list):
 
     Main use: administrate experiment launches.
 
-    Modifications to `list`:
+    Modifications to ``list``:
 
     - `xpList.append` supports `unique` to enable lazy `xp` declaration.
     - `__iadd__` (`+=`) supports adding single `xp`s.
@@ -464,7 +464,7 @@ class xpList(list):
             def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
+            save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
             os.makedirs(save_as)
             print(f"Experiment stored at {save_as}")
 
