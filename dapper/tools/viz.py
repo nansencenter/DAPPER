@@ -23,8 +23,22 @@ def setup_wrapping(M, periodicity=None):
     More accurately: Wrap the state indices and create a function that
     does the same for state vectors (or and ensemble thereof).
 
-    - 'periodicity' defines the mode of the wrapping.
-      Default: "+1", meaning that the first element is appended after the last.
+    Parameters
+    ----------
+    M: int
+        Length of the periodic domain
+    periodicity: bool, optional
+        The mode of the wrapping.
+        "+1": the first element is appended after the last.
+        "+/-05": adding the midpoint of the first and last elements.
+        Default: "+1"
+
+    Returns
+    -------
+    ii: ndarray
+        indices of periodic domain
+    wrap: func
+        transform non-periodic data into periodic data
     """
     if periodicity in (None, True):
         periodicity = "+1"
@@ -52,6 +66,31 @@ def setup_wrapping(M, periodicity=None):
 def amplitude_animation(EE, dt=None, interval=1,
                         periodicity=None, blit=True,
                         fignum=None, repeat=False):
+    """Animation of line chart with an ensemble of
+    the shape (time, ensemble size, state vector length).
+
+    Parameters
+    ----------
+    EE: ndarray
+        Ensemble arry of the shape (K, N, Nx).
+        K is the length of time, N is the ensemble size, and
+        Nx is the length of state vector.
+    dt: float
+        Time interval of each frame.
+    interval: float, optional
+        Delay between frames in milliseconds. Defaults to 200.
+    periodicity: bool, optional
+        The mode of the wrapping.
+        "+1": the first element is appended after the last.
+        "+/-05": adding the midpoint of the first and last elements.
+        Default: "+1"
+    blit: bool, optional
+        Controls whether blitting is used to optimize drawing. Default: True
+    fignum: int, optional
+        Figure index. Default: None
+    repeat: bool, optional
+        If True, repeat the animation. Default: False
+    """
     fig, ax = freshfig(fignum)
     ax.set_xlabel('State index')
     ax.set_ylabel('Amplitue')
@@ -84,9 +123,18 @@ def amplitude_animation(EE, dt=None, interval=1,
 
 
 def adjust_position(ax, adjust_extent=False, **kwargs):
-    """Adjust values (add) to get_position().
+    """Adjust (add) values of plot bounding box
+    using get_position().
 
-    `kwarg` must be one of `x0`, `y0`, `width`, `height`.
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    adjust_extent: bool, optional
+        If true, do not adjust the coordinate of the bounding box.
+        Defaults: False
+    kwargs: dict
+        the keys must be `x0`, `y0`, `width`, `height`;
+        the values are length changes.
     """
     # Load get_position into d
     pos = ax.get_position()
@@ -106,6 +154,21 @@ def adjust_position(ax, adjust_extent=False, **kwargs):
 
 
 def xtrema(xx, axis=None):
+    """Get minimum and maximum of a sequence.
+
+    Parameters
+    ----------
+    xx: ndarray
+    axis: int, optional
+        Specific axis for min and max. Defaults: None
+
+    Returns
+    -------
+    a: float
+        min value
+    b: float
+        max value
+    """
     a = np.nanmin(xx, axis)
     b = np.nanmax(xx, axis)
     return a, b
@@ -114,8 +177,24 @@ def xtrema(xx, axis=None):
 def stretch(a, b, factor=1, int_=False):
     """Stretch distance `a-b` by factor.
 
-    Return a, b.
-    If int_: `floor(a)` and `ceil(b)`
+    Parameters
+    ----------
+    a: float
+        Lower bound of domain.
+    b: float
+        Upper bound of domain.
+    factor: float, optional
+        Streching factor. Defaults: 1
+    int_: bool, optional
+        If True, the domain bounds are integer.
+        Defaults: False
+
+    Returns
+    -------
+    a: float
+        Lower bound of domain.
+    b: float
+        Upper bound of domain.
     """
     c = (a+b)/2
     a = c + factor*(a-c)
@@ -127,7 +206,18 @@ def stretch(a, b, factor=1, int_=False):
 
 
 def set_ilim(ax, i, Min=None, Max=None):
-    """Set bounds on axis i."""
+    """Set bounds on axis i.
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    i: int
+        1: x-axis; 2: y-axis; 3: z-axis
+    Min: float, optional
+        Lower bound limit. Defaults: None
+    Max: float, optional
+        Upper bound limit. Defaults: None
+    """
     if i == 0:
         ax.set_xlim(Min, Max)
     if i == 1:
@@ -137,10 +227,24 @@ def set_ilim(ax, i, Min=None, Max=None):
 
 
 def estimate_good_plot_length(xx, chrono=None, mult=100):
-    """Estimate good length for plotting stuff.
-
-    Tries to estimate the time scale of the system.
+    """Estimate the range of the xx slices for plotting.
+    The length is based on the estimated time scale (wavelength)
+    of the system.
     Provide sensible fall-backs (better if chrono is supplied).
+
+    Parameters
+    ----------
+    xx: ndarray
+        Plotted array
+    chrono: `dapper.tools.chronos.Chronology`, optional
+        object with property dkObS. Defaults: None
+    mult: int, optional
+        Number of waves for plotting. Defaults: 100
+
+    Returns
+    -------
+    K: int
+        length for plotting
 
     Example
     -------
@@ -217,7 +321,15 @@ def plot_pause(interval):
 
 
 def plot_hovmoller(xx, chrono=None, **kwargs):
-    """Plot Hovmöller diagram."""
+    """Plot Hovmöller diagram.
+
+    Parameters
+    ----------
+    xx: ndarray
+        Plotted array
+    chrono: `dapper.tools.chronos.Chronology`, optional
+        object with property dkObS. Defaults: None
+    """
     fig, ax = freshfig(26, figsize=(4, 3.5))
 
     if chrono is not None:
@@ -242,7 +354,21 @@ def plot_hovmoller(xx, chrono=None, **kwargs):
 
 
 def integer_hist(E, N, centrd=False, weights=None, **kwargs):
-    """Histogram for integers."""
+    """Histogram for integers.
+
+    Parameters
+    ----------
+    E: ndarray
+        Ensemble array.
+    N: int
+        Number of histogram bins.
+    centrd: bool, optional
+        If True, each bin is centered in the midpoint. Default: False
+    weights: float, optional
+        Weights for histogram. Default: None
+    kwargs: dict
+        keyword arguments for matplotlib.hist
+    """
     ax = plt.gca()
     rnge = (-0.5, N+0.5) if centrd else (0, N+1)
     ax.hist(E, bins=N+1, range=rnge, density=True, weights=weights, **kwargs)
@@ -250,6 +376,16 @@ def integer_hist(E, N, centrd=False, weights=None, **kwargs):
 
 
 def not_available_text(ax, txt=None, fs=20):
+    """Plot given text on the figure
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    txt: str, optional
+        Printed text. Defaults: '[Not available]'
+    fs: float, optional
+        Font size. Defaults: 20.
+    """
     if txt is None:
         txt = '[Not available]'
     else:
@@ -263,6 +399,10 @@ def not_available_text(ax, txt=None, fs=20):
 
 def plot_err_components(stats):
     """Plot components of the error.
+
+    Parameters
+    ----------
+    stats: `dapper.stats.Stats`
 
     .. note::
       it was chosen to plot(ii, mean_in_time(abs(err_i))),
@@ -322,6 +462,12 @@ def plot_err_components(stats):
 
 
 def plot_rank_histogram(stats):
+    """Plot rank histogram of ensemble.
+
+    Parameters
+    ----------
+    stats: `dapper.stats.Stats`
+    """
     chrono = stats.HMM.t
 
     has_been_computed = \
@@ -372,6 +518,16 @@ def axis_scale_by_array(ax, arr, axis='y', nbins=3):
     """Scale axis so that the arr entries appear equidistant.
 
     The full transformation is piecewise-linear.
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    arr: ndarray
+        Array for plotting
+    axis: str, optional
+        Scaled axis, which can be 'x', 'y' or 'z'. Defaults: 'y'
+    nbins: int, optional
+        Number of major ticks. Defaults: 3
     """
     yy = array([y for y in arr if y is not None], dtype=float)  # rm None
 
