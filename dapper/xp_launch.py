@@ -279,10 +279,10 @@ class xpList(list):
 
                 # Get dataclass fields
                 try:
-                    dc_fields = dcs.fields(xp.__class__)
-                    dc_names = [F.name for F in dc_fields]
+                    # dc_fields = dcs.fields(xp.__class__)
+                    dc_names = xp.Get_fields() # [F.name for F in dc_fields]
                     keys = xp.__dict__.keys()
-                except TypeError:
+                except AttributeError:
                     # Assume namedtuple
                     dc_names = []
                     keys = xp._fields
@@ -294,14 +294,14 @@ class xpList(list):
 
                         # If dataclass, check repr:
                         if k in dc_names:
-                            if dc_fields[dc_names.index(k)].repr:
+                            if k not in xp.no_repr:
                                 aggregate.append(k)
                         # Else, just append
                         else:
                             aggregate.append(k)
 
             # Remove unwanted
-            excluded  = [re.compile('^_'), 'avrgs', 'stats', 'HMM', 'duration']
+            excluded  = [re.compile('^_'), 'avrgs', 'stats', 'HMM', 'duration', 'assimilate']
             aggregate = struct_tools.complement(aggregate, excluded)
             return aggregate
 
@@ -572,7 +572,7 @@ def get_param_setter(param_dict, **glob_dict):
         then you'll create many more than you intend.
     """
     def for_params(method, **fixed_params):
-        dc_fields = [f.name for f in dcs.fields(method)]
+        dc_fields = [name for name in method.Get_fields()]
         params = struct_tools.intersect(param_dict, dc_fields)
         params = struct_tools.complement(params, fixed_params)
         params = {**glob_dict, **params}  # glob_dict 1st
