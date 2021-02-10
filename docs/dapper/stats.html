@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L682" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L747" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Stats computation for the assessment of DA methods.&#34;&#34;&#34;
 
@@ -670,18 +670,30 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
 
 
 def center(E, axis=0, rescale=False):
-    &#34;&#34;&#34;Center ensemble.
+    r&#34;&#34;&#34;Center ensemble.
 
     Makes use of `np` features: keepdims and broadcasting.
 
     Parameters
     ----------
-    rescale: bool
-        Whether to inflate to compensate for reduction in the expected variance.
+    E: ndarray
+        Ensemble which going to be inflated
+
+    axis: int, optional
+        The axis to be centered. Default: 0
+
+    rescale: bool, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is \(\sqrt{\frac{N}{N - 1}}\)
+        where N is the ensemble size. Default: False
 
     Returns
     -------
-    Centered ensemble, and its mean.
+    X: ndarray
+        Ensemble anomaly
+
+    x: ndarray
+        Mean of the ensemble
     &#34;&#34;&#34;
     x = np.mean(E, axis=axis, keepdims=True)
     X = E - x
@@ -696,12 +708,27 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    &#34;&#34;&#34;Center, but only return the anomalies (not the mean).&#34;&#34;&#34;
+    &#34;&#34;&#34;Like `center`, but only return the anomalies (not the mean).&#34;&#34;&#34;
     return center(E, axis=axis, rescale=rescale)[0]
 
 
 def inflate_ens(E, factor):
-    &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).&#34;&#34;&#34;
+    &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).
+
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
+
+    factor: `float`
+        Inflation factor
+
+
+    Returns
+    -------
+    ndarray
+        Inflated ensemble
+    &#34;&#34;&#34;
     if factor == 1:
         return E
     X, x = center(E)
@@ -709,13 +736,51 @@ def inflate_ens(E, factor):
 
 
 def weight_degeneracy(w, prec=1e-10):
-    &#34;&#34;&#34;Check if the weights are degenerate.&#34;&#34;&#34;
+    &#34;&#34;&#34;Check if the weights are degenerate.
+
+    If it is degenerate, the maximum weight
+    should be nearly one since sum(w) = 1
+
+    Parameters
+    ----------
+    w: ndarray
+        Importance weights. Must sum to 1.
+
+    prec: float, optional
+        Tolerance of the distance between w and one. Default:1e-10
+
+    Returns
+    -------
+    bool
+        If weight is degenerate True, else False
+    &#34;&#34;&#34;
     return (1-w.max()) &lt; prec
 
 
 def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
 
+    Parameters
+    ----------
+    w: ndarray, optional
+        Importance weights. Must sum to 1.
+        Only one of w and N_eff can be None. Default: None
+
+    N_eff: float, optional
+        The &#34;effective&#34; size of the weighted ensemble.
+        If not provided, it is computed from the weights.
+        The unbiasing factor is $$ N_{eff} / (N_{eff} - 1) $$.
+
+    avoid_pathological: bool, optional
+        Avoid weight collapse. Default: False
+
+    Returns
+    -------
+    ub: float
+        factor used to unbiasing variance
+
+    Reference
+    --------
     [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
     &#34;&#34;&#34;
     if N_eff is None:
@@ -921,29 +986,52 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <p>Makes use of <code>np</code> features: keepdims and broadcasting.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>rescale</code></strong> :&ensp;<code>bool</code></dt>
-<dd>Whether to inflate to compensate for reduction in the expected variance.</dd>
+<dt><strong><code>E</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble which going to be inflated</dd>
+<dt><strong><code>axis</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The axis to be centered. Default: 0</dd>
+<dt><strong><code>rescale</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If True, inflate to compensate for reduction in the expected variance.
+The inflation factor is <span><span class="MathJax_Preview">\sqrt{\frac{N}{N - 1}}</span><script type="math/tex">\sqrt{\frac{N}{N - 1}}</script></span>
+where N is the ensemble size. Default: False</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>Centered ensemble, and its mean.</p></div>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble anomaly</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Mean of the ensemble</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L628-L651" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L628-L663" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def center(E, axis=0, rescale=False):
-    &#34;&#34;&#34;Center ensemble.
+    r&#34;&#34;&#34;Center ensemble.
 
     Makes use of `np` features: keepdims and broadcasting.
 
     Parameters
     ----------
-    rescale: bool
-        Whether to inflate to compensate for reduction in the expected variance.
+    E: ndarray
+        Ensemble which going to be inflated
+
+    axis: int, optional
+        The axis to be centered. Default: 0
+
+    rescale: bool, optional
+        If True, inflate to compensate for reduction in the expected variance.
+        The inflation factor is \(\sqrt{\frac{N}{N - 1}}\)
+        where N is the ensemble size. Default: False
 
     Returns
     -------
-    Centered ensemble, and its mean.
+    X: ndarray
+        Ensemble anomaly
+
+    x: ndarray
+        Mean of the ensemble
     &#34;&#34;&#34;
     x = np.mean(E, axis=axis, keepdims=True)
     X = E - x
@@ -961,14 +1049,14 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <span>def <span class="ident">mean0</span></span>(<span>E, axis=0, rescale=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Center, but only return the anomalies (not the mean).</p></div>
+<div class="desc"><p>Like <code><a title="dapper.stats.center" href="#dapper.stats.center">center()</a></code>, but only return the anomalies (not the mean).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L654-L656" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L666-L668" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean0(E, axis=0, rescale=True):
-    &#34;&#34;&#34;Center, but only return the anomalies (not the mean).&#34;&#34;&#34;
+    &#34;&#34;&#34;Like `center`, but only return the anomalies (not the mean).&#34;&#34;&#34;
     return center(E, axis=axis, rescale=rescale)[0]</code></pre>
 </details>
 </dd>
@@ -976,14 +1064,41 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <span>def <span class="ident">inflate_ens</span></span>(<span>E, factor)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Inflate the ensemble (center, inflate, re-combine).</p></div>
+<div class="desc"><p>Inflate the ensemble (center, inflate, re-combine).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>E</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble which going to be inflated</dd>
+<dt><strong><code>factor</code></strong> :&ensp;<code>float</code></dt>
+<dd>Inflation factor</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>ndarray</code></dt>
+<dd>Inflated ensemble</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L659-L664" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L671-L691" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inflate_ens(E, factor):
-    &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).&#34;&#34;&#34;
+    &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).
+
+    Parameters
+    ----------
+    E : ndarray
+        Ensemble which going to be inflated
+
+    factor: `float`
+        Inflation factor
+
+
+    Returns
+    -------
+    ndarray
+        Inflated ensemble
+    &#34;&#34;&#34;
     if factor == 1:
         return E
     X, x = center(E)
@@ -994,14 +1109,45 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <span>def <span class="ident">weight_degeneracy</span></span>(<span>w, prec=1e-10)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Check if the weights are degenerate.</p></div>
+<div class="desc"><p>Check if the weights are degenerate.</p>
+<p>If it is degenerate, the maximum weight
+should be nearly one since sum(w) = 1</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>w</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Importance weights. Must sum to 1.</dd>
+<dt><strong><code>prec</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Tolerance of the distance between w and one. Default:1e-10</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>If weight is degenerate True, else False</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L667-L669" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L694-L713" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def weight_degeneracy(w, prec=1e-10):
-    &#34;&#34;&#34;Check if the weights are degenerate.&#34;&#34;&#34;
+    &#34;&#34;&#34;Check if the weights are degenerate.
+
+    If it is degenerate, the maximum weight
+    should be nearly one since sum(w) = 1
+
+    Parameters
+    ----------
+    w: ndarray
+        Importance weights. Must sum to 1.
+
+    prec: float, optional
+        Tolerance of the distance between w and one. Default:1e-10
+
+    Returns
+    -------
+    bool
+        If weight is degenerate True, else False
+    &#34;&#34;&#34;
     return (1-w.max()) &lt; prec</code></pre>
 </details>
 </dd>
@@ -1010,15 +1156,54 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 </code></dt>
 <dd>
 <div class="desc"><p>Compute unbias-ing factor for variance estimation.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>w</code></strong> :&ensp;<code>ndarray</code>, optional</dt>
+<dd>Importance weights. Must sum to 1.
+Only one of w and N_eff can be None. Default: None</dd>
+<dt><strong><code>N_eff</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>The "effective" size of the weighted ensemble.
+If not provided, it is computed from the weights.
+The unbiasing factor is <span><span class="MathJax_Preview"> N_{eff} / (N_{eff} - 1) </span><script type="math/tex; mode=display"> N_{eff} / (N_{eff} - 1) </script></span>.</dd>
+<dt><strong><code>avoid_pathological</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Avoid weight collapse. Default: False</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>ub</code></strong> :&ensp;<code>float</code></dt>
+<dd>factor used to unbiasing variance</dd>
+</dl>
+<h2 id="reference">Reference</h2>
 <p><a href="https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights">Wikipedia</a></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L672-L683" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L716-L748" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
 
+    Parameters
+    ----------
+    w: ndarray, optional
+        Importance weights. Must sum to 1.
+        Only one of w and N_eff can be None. Default: None
+
+    N_eff: float, optional
+        The &#34;effective&#34; size of the weighted ensemble.
+        If not provided, it is computed from the weights.
+        The unbiasing factor is $$ N_{eff} / (N_{eff} - 1) $$.
+
+    avoid_pathological: bool, optional
+        Avoid weight collapse. Default: False
+
+    Returns
+    -------
+    ub: float
+        factor used to unbiasing variance
+
+    Reference
+    --------
     [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
     &#34;&#34;&#34;
     if N_eff is None:
