@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L0-L245" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L0-L255" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Functions for rounding numbers.&#34;&#34;&#34;
 
@@ -232,7 +232,7 @@ def round2(x, prec=1.0):
 
     See Also
     --------
-    round2sigfig
+    `round2sigfig`
 
     Examples
     --------
@@ -267,7 +267,7 @@ def round2sigfig(x, sigfig=1):
     See Also
     --------
     np.round : rounds to a given number of *decimals*.
-    round2 : rounds to a given *precision*.
+    `round2` : rounds to a given *precision*.
 
     Examples
     --------
@@ -286,6 +286,16 @@ def is_whole(x, **kwargs):
     &#34;&#34;&#34;Check if a number is a whole/natural number to precision given by `np.isclose`.
 
     For actual type checking, use `isinstance(x, (int, np.integer))`.
+
+    Parameters
+    ----------
+    x: float or ndarray
+        Values to be checked
+
+    Returns
+    -------
+    l: bool
+        True if rounded x is close to x, otherwise False
     &#34;&#34;&#34;
     return np.isclose(x, round(x), **kwargs)</code></pre>
 </details>
@@ -442,7 +452,7 @@ def round2(x, prec=1.0):
 
     See Also
     --------
-    round2sigfig
+    `round2sigfig`
 
     Examples
     --------
@@ -476,9 +486,8 @@ def round2(x, prec=1.0):
 <h2 id="see-also">See Also</h2>
 <dl>
 <dt><code>np.round</code></dt>
-<dd>rounds to a given number of <em>decimals</em>.</dd>
-<dt><code><a title="dapper.tools.rounding.round2" href="#dapper.tools.rounding.round2">round2()</a></code></dt>
-<dd>rounds to a given <em>precision</em>.</dd>
+<dd>rounds to a given number of <em>decimals</em>.
+<code><code>&lt;a title="dapper.tools.rounding.round2" href="#dapper.tools.rounding.round2"&gt;round2()&lt;/a&gt;&lt;/code&gt; : rounds to a given *precision*.</code></dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; round2sigfig(1234.5678, 1)
@@ -511,7 +520,7 @@ def round2sigfig(x, sigfig=1):
     See Also
     --------
     np.round : rounds to a given number of *decimals*.
-    round2 : rounds to a given *precision*.
+    `round2` : rounds to a given *precision*.
 
     Examples
     --------
@@ -531,16 +540,36 @@ def round2sigfig(x, sigfig=1):
 </code></dt>
 <dd>
 <div class="desc"><p>Check if a number is a whole/natural number to precision given by <code>np.isclose</code>.</p>
-<p>For actual type checking, use <code>isinstance(x, (int, np.integer))</code>.</p></div>
+<p>For actual type checking, use <code>isinstance(x, (int, np.integer))</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>float</code> or <code>ndarray</code></dt>
+<dd>Values to be checked</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>l</code></strong> :&ensp;<code>bool</code></dt>
+<dd>True if rounded x is close to x, otherwise False</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L241-L246" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L241-L256" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is_whole(x, **kwargs):
     &#34;&#34;&#34;Check if a number is a whole/natural number to precision given by `np.isclose`.
 
     For actual type checking, use `isinstance(x, (int, np.integer))`.
+
+    Parameters
+    ----------
+    x: float or ndarray
+        Values to be checked
+
+    Returns
+    -------
+    l: bool
+        True if rounded x is close to x, otherwise False
     &#34;&#34;&#34;
     return np.isclose(x, round(x), **kwargs)</code></pre>
 </details>

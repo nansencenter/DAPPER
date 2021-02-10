@@ -220,7 +220,7 @@ class xpList(list):
 
     Main use: administrate experiment launches.
 
-    Modifications to `list`:
+    Modifications to ``list``:
 
     - `xpList.append` supports `unique` to enable lazy `xp` declaration.
     - `__iadd__` (`+=`) supports adding single `xp`s.
@@ -509,7 +509,7 @@ class xpList(list):
             def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H:%M:%S&#34;)
+            save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H-%M-%S&#34;)
             os.makedirs(save_as)
             print(f&#34;Experiment stored at {save_as}&#34;)
 
@@ -942,7 +942,7 @@ as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper
 
     Main use: administrate experiment launches.
 
-    Modifications to `list`:
+    Modifications to ``list``:
 
     - `xpList.append` supports `unique` to enable lazy `xp` declaration.
     - `__iadd__` (`+=`) supports adding single `xp`s.
@@ -1231,7 +1231,7 @@ as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper
             def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H:%M:%S&#34;)
+            save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H-%M-%S&#34;)
             os.makedirs(save_as)
             print(f&#34;Experiment stored at {save_as}&#34;)
 
@@ -1678,7 +1678,7 @@ of that <code>xp</code>).</p>
         def xpi_dir(*args): return None
     else:
         save_as = rc.dirs.data / Path(save_as).stem
-        save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H:%M:%S&#34;)
+        save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H-%M-%S&#34;)
         os.makedirs(save_as)
         print(f&#34;Experiment stored at {save_as}&#34;)
 

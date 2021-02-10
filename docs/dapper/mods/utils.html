@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L0-L157" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L0-L228" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Utilities to help define hidden Markov models.&#34;&#34;&#34;
 
@@ -92,7 +92,9 @@ def ens_compatible(func):
 
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    .. note:: this is not the_way™ -- other tricks are sometimes more practical.
+    Note
+    ----
+    this is not the_way™ -- other tricks are sometimes more practical.
 
     Examples
     --------
@@ -161,7 +163,20 @@ def linear_model_setup(ModelMatrix, dt0):
 
 
 def direct_obs_matrix(Nx, obs_inds):
-    &#34;&#34;&#34;Generate matrix that &#34;picks&#34; state elements `obs_inds` out of `range(Nx)`.&#34;&#34;&#34;
+    &#34;&#34;&#34;Generate matrix that &#34;picks&#34; state elements `obs_inds` out of `range(Nx)`.
+
+    Parameters
+    ----------
+    Nx: int
+        Length of state vector
+    obs_inds: ndarray
+        Indices of elements of the state vector that are (directly) observed.
+
+    Returns
+    -------
+    H: ndarray
+        The observation matrix for direct partial observations.
+    &#34;&#34;&#34;
     Ny = len(obs_inds)
     H = np.zeros((Ny, Nx))
     H[range(Ny), obs_inds] = 1
@@ -173,7 +188,23 @@ def direct_obs_matrix(Nx, obs_inds):
 
 
 def partial_Id_Obs(Nx, obs_inds):
-    &#34;&#34;&#34;Specify identity observations of a subset of obs. indices.&#34;&#34;&#34;
+    &#34;&#34;&#34;Specify identity observations of a subset of obs. indices.
+    
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx: int
+        Length of state vector
+    obs_inds: ndarray
+        The observed indices.
+
+    Returns
+    -------
+    Obs: dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    &#34;&#34;&#34;
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
@@ -188,12 +219,52 @@ def partial_Id_Obs(Nx, obs_inds):
 
 
 def Id_Obs(Nx):
-    &#34;&#34;&#34;Specify identity observations of entire state.&#34;&#34;&#34;
+    &#34;&#34;&#34;Specify identity observations of entire state.
+
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx: int
+        Length of state vector
+
+    Returns
+    -------
+    Obs: dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    &#34;&#34;&#34;
     return partial_Id_Obs(Nx, np.arange(Nx))
 
 
 def linspace_int(Nx, Ny, periodic=True):
-    &#34;&#34;&#34;Provide a range of `Ny` equispaced integers between `0` and `Nx-1`.&#34;&#34;&#34;
+    &#34;&#34;&#34;Provide a range of `Ny` equispaced integers between `0` and `Nx-1`.
+
+    Parameters
+    ----------
+    Nx: int
+        Range of integers
+    Ny: int
+        Number of integers
+    periodic: bool, optional
+        Whether the vector is periodic.
+        Determines if `Nx == 0`.
+        Default: True
+
+    Returns
+    -------
+    integers: ndarray
+        The list of integers.
+
+    Examples
+    --------
+    &gt;&gt;&gt; linspace_int(10, 10)
+    array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    &gt;&gt;&gt; linspace_int(10, 4)
+    array([0, 2, 5, 7])
+    &gt;&gt;&gt; linspace_int(10, 5)
+    array([0, 2, 4, 6, 8])
+    &#34;&#34;&#34;
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
     else:
@@ -248,9 +319,8 @@ def linspace_int(Nx, Ny, periodic=True):
 <dd>
 <div class="desc"><p>Decorate to transpose before and after, i.e. <code>func(input.T).T</code>.</p>
 <p>This is helpful to make functions compatible with both 1d and 2d ndarrays.</p>
-<div class="admonition note">
-<p class="admonition-title">Note:&ensp;this is not the_way™ &ndash; other tricks are sometimes more practical.</p>
-</div>
+<h2 id="note">Note</h2>
+<p>this is not the_way™ &ndash; other tricks are sometimes more practical.</p>
 <h2 id="examples">Examples</h2>
 <p><code><a title="dapper.mods.Lorenz63.dxdt" href="Lorenz63/index.html#dapper.mods.Lorenz63.dxdt">dxdt()</a></code>, <code><a title="dapper.mods.DoublePendulum.dxdt" href="DoublePendulum/index.html#dapper.mods.DoublePendulum.dxdt">dxdt()</a></code></p>
 <h2 id="see-also">See Also</h2>
@@ -258,14 +328,16 @@ def linspace_int(Nx, Ny, periodic=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L46-L64" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L46-L66" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def ens_compatible(func):
     &#34;&#34;&#34;Decorate to transpose before and after, i.e. `func(input.T).T`.
 
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    .. note:: this is not the_way™ -- other tricks are sometimes more practical.
+    Note
+    ----
+    this is not the_way™ -- other tricks are sometimes more practical.
 
     Examples
     --------
@@ -289,7 +361,7 @@ def linspace_int(Nx, Ny, periodic=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L67-L69" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L69-L71" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_op():
     &#34;&#34;&#34;Id operator.&#34;&#34;&#34;
@@ -304,7 +376,7 @@ def linspace_int(Nx, Ny, periodic=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L72-L75" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L74-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_mat(M):
     &#34;&#34;&#34;Id matrix.&#34;&#34;&#34;
@@ -328,7 +400,7 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L78-L116" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L80-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linear_model_setup(ModelMatrix, dt0):
     r&#34;&#34;&#34;Make the Dyn/Obs field of a HMM representing a linear model.
@@ -375,14 +447,39 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <span>def <span class="ident">direct_obs_matrix</span></span>(<span>Nx, obs_inds)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Generate matrix that "picks" state elements <code>obs_inds</code> out of <code>range(Nx)</code>.</p></div>
+<div class="desc"><p>Generate matrix that "picks" state elements <code>obs_inds</code> out of <code>range(Nx)</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Nx</code></strong> :&ensp;<code>int</code></dt>
+<dd>Length of state vector</dd>
+<dt><strong><code>obs_inds</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Indices of elements of the state vector that are (directly) observed.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>H</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>The observation matrix for direct partial observations.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L119-L128" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L121-L143" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def direct_obs_matrix(Nx, obs_inds):
-    &#34;&#34;&#34;Generate matrix that &#34;picks&#34; state elements `obs_inds` out of `range(Nx)`.&#34;&#34;&#34;
+    &#34;&#34;&#34;Generate matrix that &#34;picks&#34; state elements `obs_inds` out of `range(Nx)`.
+
+    Parameters
+    ----------
+    Nx: int
+        Length of state vector
+    obs_inds: ndarray
+        Indices of elements of the state vector that are (directly) observed.
+
+    Returns
+    -------
+    H: ndarray
+        The observation matrix for direct partial observations.
+    &#34;&#34;&#34;
     Ny = len(obs_inds)
     H = np.zeros((Ny, Nx))
     H[range(Ny), obs_inds] = 1
@@ -397,14 +494,44 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <span>def <span class="ident">partial_Id_Obs</span></span>(<span>Nx, obs_inds)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Specify identity observations of a subset of obs. indices.</p></div>
+<div class="desc"><p>Specify identity observations of a subset of obs. indices.</p>
+<p>It is not a function of time.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Nx</code></strong> :&ensp;<code>int</code></dt>
+<dd>Length of state vector</dd>
+<dt><strong><code>obs_inds</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>The observed indices.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Obs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Observation operator including size of the observation space,
+observation operator/model and tangent linear observation operator</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L131-L143" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L146-L174" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def partial_Id_Obs(Nx, obs_inds):
-    &#34;&#34;&#34;Specify identity observations of a subset of obs. indices.&#34;&#34;&#34;
+    &#34;&#34;&#34;Specify identity observations of a subset of obs. indices.
+    
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx: int
+        Length of state vector
+    obs_inds: ndarray
+        The observed indices.
+
+    Returns
+    -------
+    Obs: dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    &#34;&#34;&#34;
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
     @ens_compatible
@@ -422,14 +549,40 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <span>def <span class="ident">Id_Obs</span></span>(<span>Nx)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Specify identity observations of entire state.</p></div>
+<div class="desc"><p>Specify identity observations of entire state.</p>
+<p>It is not a function of time.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Nx</code></strong> :&ensp;<code>int</code></dt>
+<dd>Length of state vector</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Obs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Observation operator including size of the observation space,
+observation operator/model and tangent linear observation operator</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L146-L148" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L177-L193" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Id_Obs(Nx):
-    &#34;&#34;&#34;Specify identity observations of entire state.&#34;&#34;&#34;
+    &#34;&#34;&#34;Specify identity observations of entire state.
+
+    It is not a function of time.
+
+    Parameters
+    ----------
+    Nx: int
+        Length of state vector
+
+    Returns
+    -------
+    Obs: dict
+        Observation operator including size of the observation space,
+        observation operator/model and tangent linear observation operator
+    &#34;&#34;&#34;
     return partial_Id_Obs(Nx, np.arange(Nx))</code></pre>
 </details>
 </dd>
@@ -437,14 +590,64 @@ Anyways, <code>dt</code> must be an integer multiple of <code>dt0</code>.</p>
 <span>def <span class="ident">linspace_int</span></span>(<span>Nx, Ny, periodic=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Provide a range of <code>Ny</code> equispaced integers between <code>0</code> and <code>Nx-1</code>.</p></div>
+<div class="desc"><p>Provide a range of <code>Ny</code> equispaced integers between <code>0</code> and <code>Nx-1</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Nx</code></strong> :&ensp;<code>int</code></dt>
+<dd>Range of integers</dd>
+<dt><strong><code>Ny</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of integers</dd>
+<dt><strong><code>periodic</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether the vector is periodic.
+Determines if <code>Nx == 0</code>.
+Default: True</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>integers</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>The list of integers.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; linspace_int(10, 10)
+array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+&gt;&gt;&gt; linspace_int(10, 4)
+array([0, 2, 5, 7])
+&gt;&gt;&gt; linspace_int(10, 5)
+array([0, 2, 4, 6, 8])
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L151-L158" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/utils.py#L196-L229" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linspace_int(Nx, Ny, periodic=True):
-    &#34;&#34;&#34;Provide a range of `Ny` equispaced integers between `0` and `Nx-1`.&#34;&#34;&#34;
+    &#34;&#34;&#34;Provide a range of `Ny` equispaced integers between `0` and `Nx-1`.
+
+    Parameters
+    ----------
+    Nx: int
+        Range of integers
+    Ny: int
+        Number of integers
+    periodic: bool, optional
+        Whether the vector is periodic.
+        Determines if `Nx == 0`.
+        Default: True
+
+    Returns
+    -------
+    integers: ndarray
+        The list of integers.
+
+    Examples
+    --------
+    &gt;&gt;&gt; linspace_int(10, 10)
+    array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    &gt;&gt;&gt; linspace_int(10, 4)
+    array([0, 2, 5, 7])
+    &gt;&gt;&gt; linspace_int(10, 5)
+    array([0, 2, 4, 6, 8])
+    &#34;&#34;&#34;
     if periodic:
         jj = np.linspace(0, Nx, Ny+1)[:-1]
     else:

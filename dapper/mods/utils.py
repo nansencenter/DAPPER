@@ -145,7 +145,7 @@ def direct_obs_matrix(Nx, obs_inds):
 
 def partial_Id_Obs(Nx, obs_inds):
     """Specify identity observations of a subset of obs. indices.
-    
+
     It is not a function of time.
 
     Parameters

@@ -48,7 +48,7 @@ The simplest example is perhaps
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L0-L123" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L0-L137" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Contains the data assimilation methods included with DAPPER.
 
@@ -73,20 +73,24 @@ import dapper.stats
 
 
 def da_method(*default_dataclasses):
-    &#34;&#34;&#34;Decorate classes that define DA methods.
+    &#34;&#34;&#34;Turn a dataclass-style style into a DA method (`xp`).
 
-    These classes must be defined like a `dataclass`,
-    except decorated by `@da_method()` instead of `@dataclass`.
-    They must also define a method called `assimilate`
-    which gets slightly enhanced by this wrapper which provides:
+    This decorator applies to classes that define DA methods.
+    An instances of the resulting class is referred to (in DAPPER)
+    as an `xp` (short for experiment).
 
-    - Initialisation of the `Stats` object
-    - `fail_gently` functionality.
-    - Duration timing
-    - Progressbar naming magic.
+    The decorated classes are defined like a `dataclass`,
+    but are decorated by `@da_method()` instead of `@dataclass`.
 
-    Instances of these classes are what is referred to as `xp`s.
-    I.e. `xp`s are essentially just a `dataclass` with some particular attributes.
+    .. note::
+      The classes must define a method called `assimilate`.
+      This method gets slightly enhanced by this wrapper which provides:
+
+        - Initialisation of the `Stats` object,
+          accessible by `self.stats`.
+        - `fail_gently` functionality.
+        - Duration timing
+        - Progressbar naming magic.
 
     Example:
     &gt;&gt;&gt; @da_method()
@@ -94,22 +98,22 @@ def da_method(*default_dataclasses):
     ...     &#34;Do nothing.&#34;
     ...     seconds : int  = 10
     ...     success : bool = True
-    ...     def assimilate(self,*args,**kwargs):
+    ...     def assimilate(self, *args, **kwargs):
     ...         for k in range(self.seconds):
     ...             time.sleep(1)
     ...         if not self.success:
     ...             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
 
-    Note that `da_method` is actually a &#34;decorator factory&#34;, or
-    a &#34;two-level decorator&#34;, which is why the empty parenthesis were used above.
-    The outer level can be used to define defaults that are &#34;inherited&#34;
-    by similar DA methods:
+    Internally, `da_method` is just like `dataclass`,
+    except that adds an outer layer
+    (hence the empty parantheses in the above)
+    which enables defining default parameters which can be inherited,
+    similar to subclassing.
 
     Example:
-    &gt;&gt;&gt; @dataclass
-    ... class ens_defaults:
-    ...   infl : float = 1.0
-    ...   rot  : bool  = False
+    &gt;&gt;&gt; class ens_defaults:
+    ...     infl : float = 1.0
+    ...     rot  : bool  = False
 
     &gt;&gt;&gt; @da_method(ens_defaults)
     ... class EnKF:
@@ -121,36 +125,35 @@ def da_method(*default_dataclasses):
     &#34;&#34;&#34;
 
     def dataclass_with_defaults(cls):
-        &#34;&#34;&#34;Decorate a class like dataclasses, and add some DAPPER-specific things.
+        &#34;&#34;&#34;Like `dataclass`, but add some DAPPER-specific things.
 
         This adds `__init__`, `__repr__`, `__eq__`, ...,
         but also includes inherited defaults,
-        cf. https://stackoverflow.com/a/58130805,
+        ref https://stackoverflow.com/a/58130805,
         and enhances the `assimilate` method.
         &#34;&#34;&#34;
-        # Default fields invovle: (1) annotations and (2) attributes.
+
         def set_field(name, type_, val):
-            if not hasattr(cls, &#39;__annotations__&#39;):
-                cls.__annotations__ = {}
+            &#34;&#34;&#34;Set the inherited (i.e. default, i.e. has value) field.&#34;&#34;&#34;
+            # Ensure annotations
+            cls.__annotations__ = getattr(cls, &#39;__annotations__&#39;, {})
+            # Set annotation
             cls.__annotations__[name] = type_
-            if not isinstance(val, dataclasses.Field):
-                val = dataclasses.field(default=val)
+            # Set value
             setattr(cls, name, val)
 
         # APPend default fields without overwriting.
-        # Don&#39;t implement (by PREpending?) non-default args -- to messy!
-        for D in default_dataclasses:
-            # NB: Calling dataclass twice always makes repr=True, so avoid this.
-            for F in dataclasses.fields(dataclass(D)):
-                if F.name not in cls.__annotations__:
-                    set_field(F.name, F.type, F)
+        # NB: Don&#39;t implement (by PREpending?) non-default args -- to messy!
+        for default_params in default_dataclasses:
+            # NB: Calling dataclass twice always makes repr=True
+            for field in dataclasses.fields(dataclass(default_params)):
+                if field.name not in cls.__annotations__:
+                    set_field(field.name, field.type, field)
 
         # Create new class (NB: old/new classes have same id)
         cls = dataclass(cls)
 
-        # Shortcut for self.__class__.__name__
-        cls.da_method = cls.__name__
-
+        # The new assimilate method
         def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
             # Progressbar name
             pb_name_hook = self.da_method if desc is None else desc # noqa
@@ -159,10 +162,21 @@ def da_method(*default_dataclasses):
             # Assimilate
             time_start = time.time()
             _assimilate(self, HMM, xx, yy)
-            dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
+            dapper.stats.register_stat(
+                self.stats, &#34;duration&#34;, time.time()-time_start)
 
-        _assimilate = cls.assimilate
+        # Overwrite the assimilate method with the new one
+        try:
+            _assimilate = cls.assimilate
+        except AttributeError as error:
+            raise AttributeError(
+                &#34;Classes decorated by da_method()&#34;
+                &#34; must define a method called &#39;assimilate&#39;.&#34;) from error
         cls.assimilate = functools.wraps(_assimilate)(assimilate)
+
+        # Make self.__class__.__name__ an attrib.
+        # Used by xpList.split_attrs().
+        cls.da_method = cls.__name__
 
         return cls
     return dataclass_with_defaults
@@ -226,40 +240,45 @@ from .variational import Var4D, iEnKS</code></pre>
 <span>def <span class="ident">da_method</span></span>(<span>*default_dataclasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Decorate classes that define DA methods.</p>
-<p>These classes must be defined like a <code>dataclass</code>,
-except decorated by <code>@da_method()</code> instead of <code>@dataclass</code>.
-They must also define a method called <code>assimilate</code>
-which gets slightly enhanced by this wrapper which provides:</p>
+<div class="desc"><p>Turn a dataclass-style style into a DA method (<code>xp</code>).</p>
+<p>This decorator applies to classes that define DA methods.
+An instances of the resulting class is referred to (in DAPPER)
+as an <code>xp</code> (short for experiment).</p>
+<p>The decorated classes are defined like a <code>dataclass</code>,
+but are decorated by <code>@da_method()</code> instead of <code>@dataclass</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The classes must define a method called <code>assimilate</code>.
+This method gets slightly enhanced by this wrapper which provides:</p>
 <ul>
-<li>Initialisation of the <code>Stats</code> object</li>
+<li>Initialisation of the <code>Stats</code> object,
+accessible by <code>self.stats</code>.</li>
 <li><code>fail_gently</code> functionality.</li>
 <li>Duration timing</li>
 <li>Progressbar naming magic.</li>
 </ul>
-<p>Instances of these classes are what is referred to as <code>xp</code>s.
-I.e. <code>xp</code>s are essentially just a <code>dataclass</code> with some particular attributes.</p>
+</div>
 <p>Example:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; @da_method()
 ... class Sleeper():
 ...     &quot;Do nothing.&quot;
 ...     seconds : int  = 10
 ...     success : bool = True
-...     def assimilate(self,*args,**kwargs):
+...     def assimilate(self, *args, **kwargs):
 ...         for k in range(self.seconds):
 ...             time.sleep(1)
 ...         if not self.success:
 ...             raise RuntimeError(&quot;Sleep over. Failing as intended.&quot;)
 </code></pre>
-<p>Note that <code><a title="dapper.da_methods.da_method" href="#dapper.da_methods.da_method">da_method()</a></code> is actually a "decorator factory", or
-a "two-level decorator", which is why the empty parenthesis were used above.
-The outer level can be used to define defaults that are "inherited"
-by similar DA methods:</p>
+<p>Internally, <code><a title="dapper.da_methods.da_method" href="#dapper.da_methods.da_method">da_method()</a></code> is just like <code>dataclass</code>,
+except that adds an outer layer
+(hence the empty parantheses in the above)
+which enables defining default parameters which can be inherited,
+similar to subclassing.</p>
 <p>Example:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; @dataclass
-... class ens_defaults:
-...   infl : float = 1.0
-...   rot  : bool  = False
+<pre><code class="language-python-repl">&gt;&gt;&gt; class ens_defaults:
+...     infl : float = 1.0
+...     rot  : bool  = False
 </code></pre>
 <pre><code class="language-python-repl">&gt;&gt;&gt; @da_method(ens_defaults)
 ... class EnKF:
@@ -272,23 +291,27 @@ by similar DA methods:</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L23-L116" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L23-L130" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def da_method(*default_dataclasses):
-    &#34;&#34;&#34;Decorate classes that define DA methods.
+    &#34;&#34;&#34;Turn a dataclass-style style into a DA method (`xp`).
 
-    These classes must be defined like a `dataclass`,
-    except decorated by `@da_method()` instead of `@dataclass`.
-    They must also define a method called `assimilate`
-    which gets slightly enhanced by this wrapper which provides:
+    This decorator applies to classes that define DA methods.
+    An instances of the resulting class is referred to (in DAPPER)
+    as an `xp` (short for experiment).
 
-    - Initialisation of the `Stats` object
-    - `fail_gently` functionality.
-    - Duration timing
-    - Progressbar naming magic.
+    The decorated classes are defined like a `dataclass`,
+    but are decorated by `@da_method()` instead of `@dataclass`.
 
-    Instances of these classes are what is referred to as `xp`s.
-    I.e. `xp`s are essentially just a `dataclass` with some particular attributes.
+    .. note::
+      The classes must define a method called `assimilate`.
+      This method gets slightly enhanced by this wrapper which provides:
+
+        - Initialisation of the `Stats` object,
+          accessible by `self.stats`.
+        - `fail_gently` functionality.
+        - Duration timing
+        - Progressbar naming magic.
 
     Example:
     &gt;&gt;&gt; @da_method()
@@ -296,22 +319,22 @@ by similar DA methods:</p>
     ...     &#34;Do nothing.&#34;
     ...     seconds : int  = 10
     ...     success : bool = True
-    ...     def assimilate(self,*args,**kwargs):
+    ...     def assimilate(self, *args, **kwargs):
     ...         for k in range(self.seconds):
     ...             time.sleep(1)
     ...         if not self.success:
     ...             raise RuntimeError(&#34;Sleep over. Failing as intended.&#34;)
 
-    Note that `da_method` is actually a &#34;decorator factory&#34;, or
-    a &#34;two-level decorator&#34;, which is why the empty parenthesis were used above.
-    The outer level can be used to define defaults that are &#34;inherited&#34;
-    by similar DA methods:
+    Internally, `da_method` is just like `dataclass`,
+    except that adds an outer layer
+    (hence the empty parantheses in the above)
+    which enables defining default parameters which can be inherited,
+    similar to subclassing.
 
     Example:
-    &gt;&gt;&gt; @dataclass
-    ... class ens_defaults:
-    ...   infl : float = 1.0
-    ...   rot  : bool  = False
+    &gt;&gt;&gt; class ens_defaults:
+    ...     infl : float = 1.0
+    ...     rot  : bool  = False
 
     &gt;&gt;&gt; @da_method(ens_defaults)
     ... class EnKF:
@@ -323,36 +346,35 @@ by similar DA methods:</p>
     &#34;&#34;&#34;
 
     def dataclass_with_defaults(cls):
-        &#34;&#34;&#34;Decorate a class like dataclasses, and add some DAPPER-specific things.
+        &#34;&#34;&#34;Like `dataclass`, but add some DAPPER-specific things.
 
         This adds `__init__`, `__repr__`, `__eq__`, ...,
         but also includes inherited defaults,
-        cf. https://stackoverflow.com/a/58130805,
+        ref https://stackoverflow.com/a/58130805,
         and enhances the `assimilate` method.
         &#34;&#34;&#34;
-        # Default fields invovle: (1) annotations and (2) attributes.
+
         def set_field(name, type_, val):
-            if not hasattr(cls, &#39;__annotations__&#39;):
-                cls.__annotations__ = {}
+            &#34;&#34;&#34;Set the inherited (i.e. default, i.e. has value) field.&#34;&#34;&#34;
+            # Ensure annotations
+            cls.__annotations__ = getattr(cls, &#39;__annotations__&#39;, {})
+            # Set annotation
             cls.__annotations__[name] = type_
-            if not isinstance(val, dataclasses.Field):
-                val = dataclasses.field(default=val)
+            # Set value
             setattr(cls, name, val)
 
         # APPend default fields without overwriting.
-        # Don&#39;t implement (by PREpending?) non-default args -- to messy!
-        for D in default_dataclasses:
-            # NB: Calling dataclass twice always makes repr=True, so avoid this.
-            for F in dataclasses.fields(dataclass(D)):
-                if F.name not in cls.__annotations__:
-                    set_field(F.name, F.type, F)
+        # NB: Don&#39;t implement (by PREpending?) non-default args -- to messy!
+        for default_params in default_dataclasses:
+            # NB: Calling dataclass twice always makes repr=True
+            for field in dataclasses.fields(dataclass(default_params)):
+                if field.name not in cls.__annotations__:
+                    set_field(field.name, field.type, field)
 
         # Create new class (NB: old/new classes have same id)
         cls = dataclass(cls)
 
-        # Shortcut for self.__class__.__name__
-        cls.da_method = cls.__name__
-
+        # The new assimilate method
         def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
             # Progressbar name
             pb_name_hook = self.da_method if desc is None else desc # noqa
@@ -361,10 +383,21 @@ by similar DA methods:</p>
             # Assimilate
             time_start = time.time()
             _assimilate(self, HMM, xx, yy)
-            dapper.stats.register_stat(self.stats, &#34;duration&#34;, time.time()-time_start)
+            dapper.stats.register_stat(
+                self.stats, &#34;duration&#34;, time.time()-time_start)
 
-        _assimilate = cls.assimilate
+        # Overwrite the assimilate method with the new one
+        try:
+            _assimilate = cls.assimilate
+        except AttributeError as error:
+            raise AttributeError(
+                &#34;Classes decorated by da_method()&#34;
+                &#34; must define a method called &#39;assimilate&#39;.&#34;) from error
         cls.assimilate = functools.wraps(_assimilate)(assimilate)
+
+        # Make self.__class__.__name__ an attrib.
+        # Used by xpList.split_attrs().
+        cls.da_method = cls.__name__
 
         return cls
     return dataclass_with_defaults</code></pre>
