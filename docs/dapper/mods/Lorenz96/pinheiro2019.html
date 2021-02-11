@@ -40,14 +40,13 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/pinheiro2019.py#L0-L43" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/pinheiro2019.py#L0-L50" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Settings from `bib.pinheiro2019efficient`.&#34;&#34;&#34;
 import dapper.mods as modelling
-
-from dapper.mods.utils import linspace_int
 import dapper.mods.Lorenz96 as model
 from dapper.mods.Lorenz96 import LPs, step, x0
+from dapper.mods.utils import linspace_int
 from dapper.tools.localization import nd_Id_localization
 
 model.Force = 8.17
@@ -58,7 +57,10 @@ Nx = 1000
 Dyn = {
     &#39;M&#39;: Nx,
     &#39;model&#39;: step,
-    &#39;noise&#39;: 0,  # not stated
+    # It&#39;s not clear from the paper whether Q=0.5 or 0.25.
+    # But I&#39;m pretty sure it&#39;s applied each dtObs (not dt).
+    &#39;noise&#39;: 0.25 / t.dtObs,
+    # &#39;noise&#39;: 0.5 / t.dtObs,
 }
 
 X0 = modelling.GaussRV(mu=x0(Nx), C=0.001)
@@ -66,23 +68,28 @@ X0 = modelling.GaussRV(mu=x0(Nx), C=0.001)
 jj = linspace_int(Nx, Nx//4, periodic=True)
 Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs[&#39;noise&#39;] = 0.1**2
-Obs[&#39;localizer&#39;] = nd_Id_localization((Nx,), (2,), jj, periodic=True)
+Obs[&#39;localizer&#39;] = nd_Id_localization((Nx,), (1,), jj, periodic=True)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 
 HMM.liveplotters = LPs(jj)
 
 
-# They use
-# - N = 30, though this is only really stated for their PF.
-# - loc_rad = 4, but don&#39;t state its definition, nor the exact tapering function.
-# - infl factor 1.05 (don&#39;t state whether it&#39;s squared)
-# Anyway this seem to be pretty good tuning factors.
-# They find RMSE&#39;s (figure 8) hovering around 0.8 for the LETKF.
-# I.e. that &#34;the new filter consistency outperforms the LETKF&#34;.
-# In DAPPER, however, the LETKF scores around 0.07 with these settings:
+# Pinheiro et al. use
+# - N = 30, but this is only really stated for their PF.
+# - loc-rad = 4, but don&#39;t state its definition, nor the exact tapering function.
+# - infl-factor 1.05, but I&#39;m not sure if it&#39;s squared or not.
+#
+# They find RMSE (figure 8) hovering around 0.8 for the LETKF,
+# and conclude that &#34;the new filter consistency outperforms the LETKF&#34;.
+# I cannot get the LETKF to work well with so much noise,
+# but we note that optimal interpolation (a relatively unsophisticated method)
+# scores around 0.56:
 #                                                   # Expected rmse.a:
-# xps += da.OptInterp()                                        # 0.04
+# xps += da.OptInterp()                                        # 0.56
+#
+# The following scores were obtained WITHOUT model noise.
+# They can be used as an indication of how much noise there is in the system.
 # xps += da.EnKF(&#39;Sqrt&#39;, N=500, infl=1.04)                     # 0.06
 # xps += da.LETKF(N=10, loc_rad=4, infl=1.05, rot=False)       # 0.07
 # xps += da.LETKF(N=30, loc_rad=4, infl=1.05, rot=False)       # 0.07</code></pre>
