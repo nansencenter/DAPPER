@@ -172,21 +172,21 @@ grep -r "iEnKS.*("
 
 ## Test cases (models)
 
-Model                | Lin? | TLM+? | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer
------------          | ---- | ----- | ----  | --------- | --------- | ------ | ----------
-Linear Advect. (LA)  | Yes  | Yes   | Yes   | 1d        | 1000 *    | 51     | Evensen/Raanes
-DoublePendulum       | No   | Yes   | No    | 0d        | 4         | 2      | Matplotlib/Raanes
-Ikeda                | No   | Yes   | No    | 0d        | 2         | 1      | Raanes
-LotkaVolterra        | No   | Yes   | No    | 0d        | 5 *       | 1      | Wikipedia/Raanes
-Lorenz63             | No   | Yes   | "Yes" | 0d        | 3         | 2      | Sakov
-Lorenz84             | No   | Yes   | No    | 0d        | 3         | 2      | Raanes
-Lorenz96             | No   | Yes   | No    | 1d        | 40 *      | 13     | Raanes
-LorenzUV             | No   | Yes   | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
-Kuramoto-Sivashinsky | No   | Yes   | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
-Quasi-Geost (QG)     | No   | No    | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov
+Model                | Lin | TLM** | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer
+-----------          | --- | ----- | ----  | --------- | --------- | ------ | ----------
+Linear Advect. (LA)  | Yes | Yes   | Yes   | 1d        | 1000 *    | 51     | Evensen/Raanes
+DoublePendulum       | No  | Yes   | No    | 0d        | 4         | 2      | Matplotlib/Raanes
+Ikeda                | No  | Yes   | No    | 0d        | 2         | 1      | Raanes
+LotkaVolterra        | No  | Yes   | No    | 0d        | 5 *       | 1      | Wikipedia/Raanes
+Lorenz63             | No  | Yes   | "Yes" | 0d        | 3         | 2      | Sakov
+Lorenz84             | No  | Yes   | No    | 0d        | 3         | 2      | Raanes
+Lorenz96             | No  | Yes   | No    | 1d        | 40 *      | 13     | Raanes
+LorenzUV             | No  | Yes   | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
+Kuramoto-Sivashinsky | No  | Yes   | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
+Quasi-Geost (QG)     | No  | No    | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov
 
 - `*`: Flexible; set as necessary
-- `+`: Tangent Linear Model included?
+- `**`: Tangent Linear Model included?
 
 The models are found as subdirectories within `dapper/mods`.
 A model should be defined in a file named `__init__.py`,
