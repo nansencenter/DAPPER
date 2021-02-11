@@ -229,6 +229,14 @@ with noisy measurements. *Physica D: Nonlinear Phenomena*, 241(7):
 775–788.
 """
 
+pinheiro2019efficient = None
+"""
+**Pinheiro**, **F R**, **Leeuwen**, **P J** **van**, and
+**Geppert**, **G** 2019 Efficient nonlinear data assimilation
+using synchronization in a particle filter. *Quarterly Journal of
+the Royal Meteorological Society*, 145(723): 2510–2523.
+"""
+
 raanes2016thesis = None
 """
 **Raanes**, **Patrick N** 2016 Improvements to ensemble methods
