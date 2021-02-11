@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L0-L83" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L0-L84" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Paralellisation via multiprocessing. Wraps pool.map for convenience.&#34;&#34;&#34;
 
@@ -110,7 +110,8 @@ def map(func, xx, **kwargs):  # noqa
 
     See example use in `dapper.mods.QG`
     &#34;&#34;&#34;
-    NPROC = None  # None =&gt; multiprocessing.cpu_count()
+    NMAX = mpd.cpu_count() - 1  # Be nice
+    NPROC = kwargs.pop(&#34;NPROC&#34;, NMAX)
     pool = mpd.Pool(NPROC)
 
     try:
@@ -160,7 +161,7 @@ because its serialization is rather slow.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L46-L84" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/multiproc.py#L46-L85" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def map(func, xx, **kwargs):  # noqa
     &#34;&#34;&#34;A parallelized version of map.
@@ -185,7 +186,8 @@ because its serialization is rather slow.</p>
 
     See example use in `dapper.mods.QG`
     &#34;&#34;&#34;
-    NPROC = None  # None =&gt; multiprocessing.cpu_count()
+    NMAX = mpd.cpu_count() - 1  # Be nice
+    NPROC = kwargs.pop(&#34;NPROC&#34;, NMAX)
     pool = mpd.Pool(NPROC)
 
     try:
