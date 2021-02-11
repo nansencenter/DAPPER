@@ -66,7 +66,8 @@ def map(func, xx, **kwargs):  # noqa
 
     See example use in `dapper.mods.QG`
     """
-    NPROC = None  # None => multiprocessing.cpu_count()
+    NMAX = mpd.cpu_count() - 1  # Be nice
+    NPROC = kwargs.pop("NPROC", NMAX)
     pool = mpd.Pool(NPROC)
 
     try:
