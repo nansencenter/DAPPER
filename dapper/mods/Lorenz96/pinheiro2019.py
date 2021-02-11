@@ -28,13 +28,13 @@ HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 HMM.liveplotters = LPs(jj)
 
 
-# They use
+# Pinheiro et al. use
 # - N = 30, though this is only really stated for their PF.
 # - loc_rad = 4, but don't state its definition, nor the exact tapering function.
 # - infl factor 1.05 (don't state whether it's squared)
-# Anyway this seem to be pretty good tuning factors.
-# They find RMSE's (figure 8) hovering around 0.8 for the LETKF.
-# I.e. that "the new filter consistency outperforms the LETKF".
+# Anyway this seem to be pretty good tuning settings.
+# They find RMSE (figure 8) hovering around 0.8 for the LETKF,
+# and conclude that "the new filter consistency outperforms the LETKF".
 # In DAPPER, however, the LETKF scores around 0.07 with these settings:
 #                                                   # Expected rmse.a:
 # xps += da.OptInterp()                                        # 0.04
