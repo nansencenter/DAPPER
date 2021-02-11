@@ -4,14 +4,17 @@ Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail.
 
 Possible reasons for failing:
 - Random number generation might change on different versions/platforms.
+- pytest imports dapper/mods/Lorenz96/pinheiro2019.py which modifies the Forcing param.
 - pytest --doctest-modules will import dapper/mods/Lorenz63/wiljes2017.py,
   for example, which modifies HMM.t
 """
 
+import numpy as np
 import pytest
 
 import dapper as dpr
 import dapper.da_methods as da
+import dapper.mods as modelling
 
 statkeys = ["err.rms.a", "err.rms.f", "err.rms.u"]
 
@@ -27,8 +30,26 @@ def L63_table():
 
 
 def L63_gen():
-    from dapper.mods.Lorenz63.sakov2012 import HMM
-
+    # Copy-paste from dapper.mods.Lorenz63.sakov2012
+    # Necessary coz pytest will import other modules which might
+    # "inherit" (import) from dapper.mods.Lorenz63.sakov2012
+    # and then change some values. Example: wiljes2017.
+    # As such, this test is quite brittle (exposed to bugs).
+    from dapper.mods.Lorenz63 import LPs, Tplot, dstep_dx, step, x0
+    t = modelling.Chronology(0.01, dkObs=25, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
+    Nx = len(x0)
+    Dyn = {
+        'M': Nx,
+        'model': step,
+        'linear': dstep_dx,
+        'noise': 0,
+    }
+    X0 = modelling.GaussRV(C=2, mu=x0)
+    jj = np.arange(Nx)
+    Obs = modelling.partial_Id_Obs(Nx, jj)
+    Obs['noise'] = 2
+    HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
+    HMM.liveplotters = LPs(jj)
     HMM.t.BurnIn = 0
     HMM.t.KObs = 10
 
@@ -94,7 +115,26 @@ def test_tables_L63(L63_table, lineno):
 ##############################
 @pytest.fixture(scope="module")
 def L96_table():
-    from dapper.mods.Lorenz96.sakov2008 import HMM
+    # Copy-paste from dapper.mods.Lorenz96.sakov2008
+    from dapper.mods.Lorenz96 import Tplot, dstep_dx, step, x0
+    from dapper.tools.localization import nd_Id_localization
+    t = modelling.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
+    Nx = 40
+    x0 = x0(Nx)
+    Dyn = {
+        'M': Nx,
+        'model': step,
+        'linear': dstep_dx,
+        'noise': 0,
+    }
+    X0 = modelling.GaussRV(mu=x0, C=0.001)
+    jj = np.arange(Nx)
+    Obs = modelling.partial_Id_Obs(Nx, jj)
+    Obs['noise'] = 1
+    Obs['localizer'] = nd_Id_localization((Nx,), (2,))
+    HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
+    import dapper.mods.Lorenz96 as model
+    model.Force = 8.0  # undo pinheiro2019
 
     HMM.t.BurnIn = 0
     HMM.t.KObs = 10
