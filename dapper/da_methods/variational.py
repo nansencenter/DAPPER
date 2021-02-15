@@ -14,7 +14,8 @@ from dapper.tools.progressbar import progbar
 from . import da_method
 
 
-class var_method(da_method):
+@da_method
+class var_method:
     """Declare default variational arguments."""
 
     Lag: int    = 1
@@ -22,7 +23,8 @@ class var_method(da_method):
     wtol: float = 0
 
 
-class iEnKS(var_method):
+@var_method
+class iEnKS:
     """Iterative EnKS.
 
     Special cases: EnRML, ES-MDA, iEnKF, EnKF `bib.raanes2019revising`.
@@ -235,7 +237,8 @@ class iEnKS(var_method):
         stats.assess(k, KObs, 'us', E=E)
 
 
-class Var4D(var_method):
+@var_method
+class Var4D:
     """4D-Var.
 
     Cycling scheme is same as in iEnKS (i.e. the shift is always 1*kObs).

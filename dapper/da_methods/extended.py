@@ -8,7 +8,8 @@ from dapper.tools.progressbar import progbar
 from . import da_method
 
 
-class ExtKF(da_method):
+@da_method()
+class ExtKF:
     """The extended Kalman filter.
 
     If everything is linear-Gaussian, this provides the exact solution
@@ -58,7 +59,8 @@ class ExtKF(da_method):
 
 
 # TODO 5: Clean up
-class ExtRTS(da_method):
+@da_method()
+class ExtRTS:
     """The extended Rauch-Tung-Striebel (or "two-pass") smoother."""
 
     infl: float = 1.0

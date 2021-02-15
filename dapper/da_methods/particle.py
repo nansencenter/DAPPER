@@ -11,14 +11,16 @@ from dapper.tools.progressbar import progbar
 from . import da_method
 
 
-class particle_method(da_method):
+@da_method
+class particle_method:
     """Declare default particle arguments."""
 
     NER: float = 1.0
     resampl: str = 'Sys'
 
 
-class PartFilt(particle_method):
+@particle_method
+class PartFilt:
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
     Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
@@ -87,7 +89,8 @@ class PartFilt(particle_method):
             stats.assess(k, kObs, 'u', E=E, w=w)
 
 
-class OptPF(particle_method):
+@particle_method
+class OptPF:
     """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
     Ref: `bib.bocquet2010beyond`.
@@ -150,7 +153,8 @@ class OptPF(particle_method):
             stats.assess(k, kObs, 'u', E=E, w=w)
 
 
-class PFa(particle_method):
+@particle_method
+class PFa:
     """PF with weight adjustment withOUT compensating for the bias it introduces.
 
     'alpha' sets wroot before resampling such that N_effective becomes >alpha*N.
@@ -226,7 +230,8 @@ class PFa(particle_method):
             stats.assess(k, kObs, 'u', E=E, w=w)
 
 
-class PFxN_EnKF(particle_method):
+@particle_method
+class PFxN_EnKF:
     """Particle filter with EnKF-based proposal, q.
 
     Also employs xN duplication, as in PFxN.
@@ -348,7 +353,8 @@ class PFxN_EnKF(particle_method):
             stats.assess(k, kObs, 'u', E=E, w=w)
 
 
-class PFxN(particle_method):
+@particle_method
+class PFxN:
     """Particle filter with buckshot duplication during analysis.
 
     Idea: sample xN duplicates from each of the N kernels.

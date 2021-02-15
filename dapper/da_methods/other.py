@@ -11,7 +11,8 @@ from dapper.tools.progressbar import progbar
 from .ensemble import ens_method
 
 
-class RHF(ens_method):
+@ens_method
+class RHF:
     """Rank histogram filter.
 
     Refs: `bib.anderson2010non`.
@@ -76,7 +77,8 @@ class RHF(ens_method):
             stats.assess(k, kObs, E=E)
 
 
-class LNETF(ens_method):
+@ens_method
+class LNETF:
     """The Nonlinear-Ensemble-Transform-Filter (localized).
 
     Refs: `bib.wiljes2016second`, `bib.todter2015second`.

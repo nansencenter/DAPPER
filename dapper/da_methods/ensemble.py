@@ -14,7 +14,8 @@ from dapper.tools.progressbar import progbar
 from . import da_method
 
 
-class ens_method(da_method):
+@da_method
+class ens_method:
     """Declare default ensemble arguments."""
 
     infl: float        = 1.0
@@ -22,7 +23,8 @@ class ens_method(da_method):
     fnoise_treatm: str = 'Stoch'
 
 
-class EnKF(ens_method):
+@ens_method
+class EnKF:
     """The ensemble Kalman filter.
 
     Refs: `bib.evensen2009ensemble`.
@@ -343,7 +345,8 @@ def add_noise(E, dt, noise, method):
     return E
 
 
-class EnKS(ens_method):
+@ens_method
+class EnKS:
     """The ensemble Kalman smoother.
 
     Refs: `bib.evensen2009ensemble`
@@ -403,7 +406,8 @@ class EnKS(ens_method):
                 stats.assess(k, kObs, 's', E=E[k])
 
 
-class EnRTS(ens_method):
+@ens_method
+class EnRTS:
     """EnRTS (Rauch-Tung-Striebel) smoother.
 
     Refs: `bib.raanes2016thesis`
@@ -473,7 +477,8 @@ def serial_inds(upd_a, y, cvR, A):
     return inds
 
 
-class SL_EAKF(ens_method):
+@ens_method
+class SL_EAKF:
     """Serial, covariance-localized EAKF.
 
     Refs: `bib.karspeck2007experimental`.
@@ -548,7 +553,8 @@ class SL_EAKF(ens_method):
             stats.assess(k, kObs, E=E)
 
 
-class LETKF(ens_method):
+@ens_method
+class LETKF:
     """Same as EnKF (sqrt), but with localization.
 
     Refs: `bib.hunt2007efficient`.
@@ -824,7 +830,8 @@ def zeta_a(eN, cL, w):
     return za
 
 
-class EnKF_N(ens_method):
+@ens_method
+class EnKF_N:
     """Finite-size EnKF (EnKF-N).
 
     Refs: `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`

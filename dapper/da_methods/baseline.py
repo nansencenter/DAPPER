@@ -15,7 +15,8 @@ from dapper.tools.progressbar import progbar
 from . import da_method
 
 
-class Climatology(da_method):
+@da_method()
+class Climatology:
     """A baseline/reference method.
 
     Note that the "climatology" is computed from truth, which might be
@@ -37,7 +38,8 @@ class Climatology(da_method):
             stats.assess(k, kObs, fau, mu=muC, Cov=PC)
 
 
-class OptInterp(da_method):
+@da_method()
+class OptInterp:
     """Optimal Interpolation -- a baseline/reference method.
 
     Uses the Kalman filter equations,
@@ -78,7 +80,8 @@ class OptInterp(da_method):
             stats.assess(k, kObs, mu=mu, Cov=2*PC*SM(k))
 
 
-class Var3D(da_method):
+@da_method()
+class Var3D:
     """3D-Var -- a baseline/reference method.
 
     This implementation is not "Var"-ish: there is no *iterative* optimzt.
@@ -160,7 +163,8 @@ def fit_sigmoid(Sb, L, kb):
     return S
 
 
-class EnCheat(da_method):
+@da_method()
+class EnCheat:
     """A baseline/reference method.
 
     Should be implemented as part of Stats instead.
