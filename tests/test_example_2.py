@@ -96,8 +96,8 @@ def test_tables_L63(L63_table, lineno):
 ##############################
 @pytest.fixture(scope="module")
 def L96_table():
-    from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
     import dapper.mods.Lorenz96 as model
+    from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
     model.Force = 8.0  # undo pinheiro2019
     HMM = _HMM.copy()

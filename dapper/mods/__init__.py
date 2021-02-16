@@ -54,9 +54,9 @@ To make sure this is working, we suggest the following structure:
 
 __pdoc__ = {"explore_props": False}
 
+import copy as cp
 import inspect
 from pathlib import Path
-import copy as cp
 
 import numpy as np
 import struct_tools
