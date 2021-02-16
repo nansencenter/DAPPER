@@ -66,7 +66,9 @@ def setup_wrapping(M, periodicity=None):
 def amplitude_animation(EE, dt=None, interval=1,
                         periodicity=None, blit=True,
                         fignum=None, repeat=False):
-    """Animation of line chart with an ensemble of
+    """Animation of line chart.
+
+    Using an ensemble of
     the shape (time, ensemble size, state vector length).
 
     Parameters
@@ -123,8 +125,7 @@ def amplitude_animation(EE, dt=None, interval=1,
 
 
 def adjust_position(ax, adjust_extent=False, **kwargs):
-    """Adjust (add) values of plot bounding box
-    using get_position().
+    """Adjust (add) values of plot bounding box using get_position().
 
     Parameters
     ----------
@@ -228,6 +229,7 @@ def set_ilim(ax, i, Min=None, Max=None):
 
 def estimate_good_plot_length(xx, chrono=None, mult=100):
     """Estimate the range of the xx slices for plotting.
+
     The length is based on the estimated time scale (wavelength)
     of the system.
     Provide sensible fall-backs (better if chrono is supplied).
