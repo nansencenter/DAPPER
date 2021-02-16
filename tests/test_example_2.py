@@ -27,8 +27,9 @@ def L63_table():
 
 
 def L63_gen():
-    from dapper.mods.Lorenz63.sakov2012 import HMM
+    from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
+    HMM = _HMM.copy()
     HMM.t.BurnIn = 0
     HMM.t.KObs = 10
 
@@ -94,8 +95,9 @@ def test_tables_L63(L63_table, lineno):
 ##############################
 @pytest.fixture(scope="module")
 def L96_table():
-    from dapper.mods.Lorenz96.sakov2008 import HMM
+    from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
+    HMM = _HMM.copy()
     HMM.t.BurnIn = 0
     HMM.t.KObs = 10
 

@@ -2,8 +2,9 @@
 
 import dapper.mods as modelling
 from dapper.mods.QG import model_config
-from dapper.mods.QG.sakov2008 import HMM
+from dapper.mods.QG.sakov2008 import HMM as _HMM
 
+HMM = _HMM.copy()
 dt = 1.25 * 10  # 10 steps between obs (also requires dkObs=1)
 HMM.t = modelling.Chronology(dt=dt, dkObs=1, T=1000*dt, BurnIn=10*dt)
 

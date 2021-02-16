@@ -9,7 +9,6 @@ addopts = """tests --cov dapper
     --ignore=tests/test_demos.py
     --ignore=dapper/mods/QG
 --doctest-modules dapper
-    --ignore-glob=dapper/mods/Lorenz*
     --ignore-glob=**/autoscaler.py
     --ignore-glob=**/demo.py
     --ignore-glob=**/illust_*.py

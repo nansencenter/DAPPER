@@ -56,6 +56,7 @@ __pdoc__ = {"explore_props": False}
 
 import inspect
 from pathlib import Path
+import copy as cp
 
 import numpy as np
 import struct_tools
@@ -139,6 +140,8 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
         return xx, yy
 
+    def copy(self):
+        return cp.deepcopy(self)
 
 class Operator(struct_tools.NicePrint):
     """Container for operators (models)."""

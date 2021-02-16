@@ -1,8 +1,9 @@
 """From `dapper.mods.Lorenz96.todter2015` again, but with Gaussian likelihood."""
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz96.todter2015 import HMM
+from dapper.mods.Lorenz96.todter2015 import HMM as _HMM
 
+HMM = _HMM.copy()
 HMM.Obs.noise = modelling.GaussRV(C=HMM.Obs.noise.C)
 
 ####################

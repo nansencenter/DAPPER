@@ -33,7 +33,7 @@ import dapper.da_methods as da
 ##############################
 # Hidden Markov Model
 ##############################
-from dapper.mods.Lorenz96.bocquet2015loc import HMM  # isort:skip
+from dapper.mods.Lorenz96.bocquet2015loc import HMM as _HMM  # isort:skip
 
 
 def setup(hmm, xp):
@@ -44,6 +44,7 @@ def setup(hmm, xp):
     return dpr.seed_and_simulate(hmm, xp)
 
 
+HMM = _HMM.copy()
 # This is shorter than Ref[1], but we also use repetitions (a seed list).
 HMM.t.KObs = 10**4
 

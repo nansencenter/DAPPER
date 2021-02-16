@@ -1,8 +1,9 @@
 """Settings from `bib.mandel2016hybrid`."""
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz63.sakov2012 import HMM
+from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
+HMM = _HMM.copy()
 # HMM.t = modelling.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
 # But it's pretty safe to shorten the BurnIn and KObs.
 
