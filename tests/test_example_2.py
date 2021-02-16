@@ -98,7 +98,7 @@ def test_tables_L63(L63_table, lineno):
 def L96_table():
     from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
     import dapper.mods.Lorenz96 as model
-    
+
     model.Force = 8.0  # undo pinheiro2019
     HMM = _HMM.copy()
     HMM.t.BurnIn = 0

@@ -143,6 +143,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     def copy(self):
         return cp.deepcopy(self)
 
+
 class Operator(struct_tools.NicePrint):
     """Container for operators (models)."""
 
