@@ -4,6 +4,7 @@ Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail.
 
 Possible reasons for failing:
 - Random number generation might change on different versions/platforms.
+- pytest imports dapper/mods/Lorenz96/pinheiro2019.py which modifies the Forcing param.
 - pytest --doctest-modules will import dapper/mods/Lorenz63/wiljes2017.py,
   for example, which modifies HMM.t
 """
@@ -96,7 +97,9 @@ def test_tables_L63(L63_table, lineno):
 @pytest.fixture(scope="module")
 def L96_table():
     from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
-
+    import dapper.mods.Lorenz96 as model
+    
+    model.Force = 8.0  # undo pinheiro2019
     HMM = _HMM.copy()
     HMM.t.BurnIn = 0
     HMM.t.KObs = 10

@@ -47,7 +47,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L0-L70" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L0-L71" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;A 1D emulator of chaotic atmospheric behaviour.
 
@@ -103,6 +103,7 @@ def d2x_dtdx(x):
         F[i   , i-1]  = x[md(i+1)]-x[i-2]
 
     return F
+
 
 # dstep_dx = FD_Jac(step)
 def dstep_dx(x, t, dt):
@@ -166,6 +167,12 @@ def LPs(jj=None): return [
 <dt><code class="name"><a title="dapper.mods.Lorenz96.miyoshi2011" href="miyoshi2011.html">miyoshi2011</a></code></dt>
 <dd>
 <div class="desc"><p>A land-ocean setup …</p></div>
+</dd>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.mods.Lorenz96.pinheiro2019" href="pinheiro2019.html">pinheiro2019</a></code></dt>
+<dd>
+<div class="desc"><p>Settings from <code><a title="bib.pinheiro2019efficient" href="../../../bib.html#bib.pinheiro2019efficient">pinheiro2019efficient</a></code>.</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -303,7 +310,7 @@ def LPs(jj=None): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L57-L59" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L58-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def dstep_dx(x, t, dt):
     # For L96, method=&#39;analytic&#39; &gt;&gt; &#39;approx&#39;
@@ -318,7 +325,7 @@ def LPs(jj=None): return [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L65-L71" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L66-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None): return [
     (11, 1, LP.spatial1d(jj)),
@@ -378,6 +385,9 @@ data-gaCategoryParameter="dapper.mods.Lorenz96">
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz96.miyoshi2011" href="miyoshi2011.html">miyoshi2011</a></code></li>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.mods.Lorenz96.pinheiro2019" href="pinheiro2019.html">pinheiro2019</a></code></li>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <li><code><a title="dapper.mods.Lorenz96.raanes2016" href="raanes2016.html">raanes2016</a></code></li>

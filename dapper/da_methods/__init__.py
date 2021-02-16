@@ -21,7 +21,7 @@ import dapper.stats
 
 
 def da_method(*default_dataclasses):
-    """Turn a dataclass-style style into a DA method (`xp`).
+    """Turn a dataclass-style class into a DA method for DAPPER (`xp`).
 
     This decorator applies to classes that define DA methods.
     An instances of the resulting class is referred to (in DAPPER)
