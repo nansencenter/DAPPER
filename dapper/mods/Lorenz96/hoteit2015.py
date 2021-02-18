@@ -1,7 +1,8 @@
 """Reproduce results from `bib.hoteit2015mitigating`."""
 
-from dapper.mods.Lorenz96.sakov2008 import HMM
+from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
+HMM = _HMM.copy()
 HMM.t.T = 365
 HMM.t.BurnIn = 4
 # Further settings used in paper:

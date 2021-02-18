@@ -54,6 +54,7 @@ To make sure this is working, we suggest the following structure:
 
 __pdoc__ = {"explore_props": False}
 
+import copy as cp
 import inspect
 from pathlib import Path
 
@@ -138,6 +139,9 @@ class HiddenMarkovModel(struct_tools.NicePrint):
                 yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
 
         return xx, yy
+
+    def copy(self):
+        return cp.deepcopy(self)
 
 
 class Operator(struct_tools.NicePrint):

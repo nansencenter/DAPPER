@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from dapper.mods.Lorenz96.sakov2008 import HMM
+from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
 
 # Shift localization indices to adjust for time (i.e. in smoothing)
@@ -15,6 +15,7 @@ def loc_shift(ii, dt):
     return ii_new
 
 
+HMM = _HMM.copy()
 HMM.Obs.loc_shift = loc_shift
 
 

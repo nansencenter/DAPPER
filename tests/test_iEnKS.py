@@ -16,8 +16,9 @@ import dapper.da_methods as da
 
 @pytest.fixture(scope="module")
 def data():
-    from dapper.mods.LA.small import HMM
+    from dapper.mods.LA.small import HMM as _HMM
 
+    HMM = _HMM.copy()
     HMM.t.BurnIn = 0
     HMM.t.KObs = 10
 

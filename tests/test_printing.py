@@ -9,7 +9,7 @@ pb.disable_user_interaction = True
 
 
 def test_L63():
-    from dapper.mods.Lorenz63.sakov2012 import HMM
+    from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
     xps = dpr.xpList()
     xps += da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
@@ -17,6 +17,7 @@ def test_L63():
     xps += da.OptInterp()
     # xps += da.iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)
 
+    HMM = _HMM.copy()
     HMM.t.BurnIn = HMM.t.dtObs
     HMM.t.KObs = 1
 
@@ -43,7 +44,7 @@ def test_L63():
 def test_L96():
     xps = dpr.xpList()
 
-    from dapper.mods.Lorenz96.sakov2008 import HMM
+    from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
     xps += da.EnKF("PertObs", N=40, infl=1.06)
     xps += da.EnKF("Serial", N=28, infl=1.02, rot=True)
@@ -57,6 +58,7 @@ def test_L96():
     # xps += da.PartFilt(N=3000,NER=0.20,reg=1.2)
     # xps += da.PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)
 
+    HMM = _HMM.copy()
     # HMM.t.BurnIn = 10*HMM.t.dtObs
     # HMM.t.KObs = 30
     HMM.t.BurnIn = HMM.t.dtObs
