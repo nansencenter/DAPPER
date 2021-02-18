@@ -34,6 +34,20 @@ and set the source to the docs folder.
   The documentation uses pdoc3 to auto-generate API reference,
   so improving function and class docstrings is very helpful.
 
+- Move documentation from L63 and L96, which is in the form of code comments,
+  into its own doc page (maybe `mods/__init__.py`).
+    - Expand upon these comments. For example:
+    - Note that OOP (exemplifed with QG, LUV, etc) is more flexible & robust,
+      and therefore better suited when different parameter settings are to be
+      investigated. Caution: for parameter-estimation, the parameters are input
+      variables to the "forward model", which does not necessarily require OOP.
+    - Note that the mod settings files do not keep a very high programming
+      standard.
+    - Note that HMMs can be copied to create new settings.
+    - Note pitfalls (eg changing Force)
+    - To simplify L63 even more for beginners, move `d2x_dtdx`, `dstep_dx`, and
+      `LPs` from `mods/L63/__init__.py` into `mods/L63/extras.py` ?
+
 - Make iEnKS code more modular.
   In particular, the analysis should be separated
   from the time stepping mechanisms.
