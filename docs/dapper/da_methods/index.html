@@ -48,7 +48,7 @@ The simplest example is perhaps
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L0-L137" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L0-L135" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Contains the data assimilation methods included with DAPPER.
 
@@ -63,7 +63,6 @@ sub-directories/packages.
 The simplest example is perhaps
 `dapper.da_methods.ensemble.EnKF`.
 &#34;&#34;&#34;
-
 import dataclasses
 import functools
 import time
@@ -83,11 +82,10 @@ def da_method(*default_dataclasses):
     but are decorated by `@da_method()` instead of `@dataclass`.
 
     .. note::
-      The classes must define a method called `assimilate`.
-      This method gets slightly enhanced by this wrapper which provides:
+        The classes must define a method called `assimilate`.
+        This method gets slightly enhanced by this wrapper which provides:
 
-        - Initialisation of the `Stats` object,
-          accessible by `self.stats`.
+        - Initialisation of the `Stats` object, accessible by `self.stats`.
         - `fail_gently` functionality.
         - Duration timing
         - Progressbar naming magic.
@@ -251,8 +249,7 @@ but are decorated by <code>@da_method()</code> instead of <code>@dataclass</code
 <p>The classes must define a method called <code>assimilate</code>.
 This method gets slightly enhanced by this wrapper which provides:</p>
 <ul>
-<li>Initialisation of the <code>Stats</code> object,
-accessible by <code>self.stats</code>.</li>
+<li>Initialisation of the <code>Stats</code> object, accessible by <code>self.stats</code>.</li>
 <li><code>fail_gently</code> functionality.</li>
 <li>Duration timing</li>
 <li>Progressbar naming magic.</li>
@@ -291,7 +288,7 @@ similar to subclassing.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L23-L130" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/__init__.py#L22-L128" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def da_method(*default_dataclasses):
     &#34;&#34;&#34;Turn a dataclass-style class into a DA method for DAPPER (`xp`).
@@ -304,11 +301,10 @@ similar to subclassing.</p>
     but are decorated by `@da_method()` instead of `@dataclass`.
 
     .. note::
-      The classes must define a method called `assimilate`.
-      This method gets slightly enhanced by this wrapper which provides:
+        The classes must define a method called `assimilate`.
+        This method gets slightly enhanced by this wrapper which provides:
 
-        - Initialisation of the `Stats` object,
-          accessible by `self.stats`.
+        - Initialisation of the `Stats` object, accessible by `self.stats`.
         - `fail_gently` functionality.
         - Duration timing
         - Progressbar naming magic.

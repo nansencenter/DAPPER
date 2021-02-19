@@ -40,13 +40,14 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/mandel2016.py#L0-L55" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/mandel2016.py#L0-L56" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Settings from `bib.mandel2016hybrid`.&#34;&#34;&#34;
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz63.sakov2012 import HMM
+from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
+HMM = _HMM.copy()
 # HMM.t = modelling.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
 # But it&#39;s pretty safe to shorten the BurnIn and KObs.
 
@@ -115,7 +116,7 @@ def Q(dkObs): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/mandel2016.py#L19-L19" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/mandel2016.py#L20-L20" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Q(dkObs): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))</code></pre>
 </details>

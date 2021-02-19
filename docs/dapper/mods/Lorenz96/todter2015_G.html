@@ -40,13 +40,14 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/todter2015_G.py#L0-L16" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/todter2015_G.py#L0-L17" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;From `dapper.mods.Lorenz96.todter2015` again, but with Gaussian likelihood.&#34;&#34;&#34;
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz96.todter2015 import HMM
+from dapper.mods.Lorenz96.todter2015 import HMM as _HMM
 
+HMM = _HMM.copy()
 HMM.Obs.noise = modelling.GaussRV(C=HMM.Obs.noise.C)
 
 ####################
