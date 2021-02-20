@@ -8,7 +8,6 @@ from matplotlib import pyplot as plt
 import dapper.mods as modelling
 from dapper.mods.VL20 import model_instance
 
-
 VL20 = model_instance(nX=36, F=10, G=0)
 step = modelling.with_rk4(VL20.dxdt, autonom=True)
 simulator = modelling.with_recursion(step, prog="Simulating")
