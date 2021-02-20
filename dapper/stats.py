@@ -603,7 +603,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
         Names of columns to extract.
     """
     def pad0(s):
-        """pad zeros up to the required number of decimals."""
+        """Pad zeros up to the required number of decimals."""
         # no need to pad inf or nan or integers
         if s == 'nan' or s == 'inf' or decimals <= 0:
             return s
