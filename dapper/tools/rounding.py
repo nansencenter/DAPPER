@@ -74,7 +74,8 @@ class UncertainQtty():
     def __str__(self):
         """Returns 'val ±prec'.
 
-        The value string contains the number of decimals required by the confidence.
+        The value string contains the number of decimals required
+        by the confidence.
 
         Note: the special cases require processing on top of `round`.
         """
@@ -83,8 +84,10 @@ class UncertainQtty():
             # Rounding to fallback (rc.sigfig) already took place
             return f"{v} ±{c}"
         if c == 0:
-            # 0 (i.e. not 1e-300) never arises "naturally" => Treat it "magically"
-            # by truncating to a default. Also see https://stackoverflow.com/a/25899600
+            # 0 (i.e. not 1e-300) never arises "naturally"
+            # => Treat it "magically"
+            # by truncating to a default.
+            # Also see https://stackoverflow.com/a/25899600
             n = -10
         else:
             # Normal/general case.
@@ -93,6 +96,10 @@ class UncertainQtty():
         if n < 0:
             # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
             frmt = "%%0.%df" % -n
+
+        if n >= 0 and not np.isnan(c) and not np.isinf(c):
+            # turn float point value to integer for |c| >= 1.0
+            c = int(c)
         v = frmt % v
         return f"{v} ±{c}"
 
