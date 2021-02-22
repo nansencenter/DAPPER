@@ -1,5 +1,5 @@
 """
-One scale modified model of Lorenz96 with an added thermodynamic variable.
+Single-scale Lorenz-96 with an added thermodynamic component.
 
 Refs: `bib.vissio2020mechanics`
 """
