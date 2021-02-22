@@ -40,13 +40,14 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/raanes2016.py#L0-L11" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/raanes2016.py#L0-L12" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Reproduce `bib.raanes2015rts`.&#34;&#34;&#34;
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz96.sakov2008 import HMM
+from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
+HMM = _HMM.copy()
 HMM.t = modelling.Chronology(0.01, dkObs=15, T=4**5, BurnIn=20)
 
 # from dapper.mods.Lorenz96.raanes2016 import HMM

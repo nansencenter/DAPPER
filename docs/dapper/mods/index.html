@@ -88,7 +88,7 @@ Hidden Markov Model ready for a synthetic experiment
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L0-L172" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L0-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Models included with DAPPER.
 
@@ -146,6 +146,7 @@ To make sure this is working, we suggest the following structure:
 
 __pdoc__ = {&#34;explore_props&#34;: False}
 
+import copy as cp
 import inspect
 from pathlib import Path
 
@@ -230,6 +231,9 @@ class HiddenMarkovModel(struct_tools.NicePrint):
                 yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
 
         return xx, yy
+
+    def copy(self):
+        return cp.deepcopy(self)
 
 
 class Operator(struct_tools.NicePrint):
@@ -366,7 +370,7 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L77-L140" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L78-L144" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HiddenMarkovModel(struct_tools.NicePrint):
     &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
@@ -431,7 +435,10 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
             if kObs is not None:
                 yy[kObs] = Obs(xx[k], t) + Obs.noise.sample(1)
 
-        return xx, yy</code></pre>
+        return xx, yy
+
+    def copy(self):
+        return cp.deepcopy(self)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -452,7 +459,7 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L117-L118" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L118-L119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Nx(self): return self.Dyn.M</code></pre>
@@ -464,7 +471,7 @@ def Nx(self): return self.Dyn.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L119-L120" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L120-L121" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Ny(self): return self.Obs.M</code></pre>
@@ -481,7 +488,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L124-L140" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L125-L141" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
     &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
@@ -502,6 +509,20 @@ def Ny(self): return self.Obs.M</code></pre>
     return xx, yy</code></pre>
 </details>
 </dd>
+<dt id="dapper.mods.HiddenMarkovModel.copy"><code class="name flex">
+<span>def <span class="ident">copy</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L143-L144" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def copy(self):
+    return cp.deepcopy(self)</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 <dt id="dapper.mods.Operator"><code class="flex name class">
@@ -513,7 +534,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L143-L173" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L147-L177" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Operator(struct_tools.NicePrint):
     &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;
@@ -634,6 +655,7 @@ data-gaCategoryParameter="dapper.mods">
 <h4><code><a title="dapper.mods.HiddenMarkovModel" href="#dapper.mods.HiddenMarkovModel">HiddenMarkovModel</a></code></h4>
 <ul class="">
 <li><code><a title="dapper.mods.HiddenMarkovModel.simulate" href="#dapper.mods.HiddenMarkovModel.simulate">simulate</a></code></li>
+<li><code><a title="dapper.mods.HiddenMarkovModel.copy" href="#dapper.mods.HiddenMarkovModel.copy">copy</a></code></li>
 <li><code><a title="dapper.mods.HiddenMarkovModel.Nx" href="#dapper.mods.HiddenMarkovModel.Nx">Nx</a></code></li>
 <li><code><a title="dapper.mods.HiddenMarkovModel.Ny" href="#dapper.mods.HiddenMarkovModel.Ny">Ny</a></code></li>
 <li><code><a title="dapper.mods.HiddenMarkovModel.printopts" href="#dapper.mods.HiddenMarkovModel.printopts">printopts</a></code></li>

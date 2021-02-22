@@ -40,13 +40,13 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/bocquet2015loc.py#L0-L31" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/bocquet2015loc.py#L0-L32" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Settings as in `bib.bocquet2016localization`.&#34;&#34;&#34;
 
 import numpy as np
 
-from dapper.mods.Lorenz96.sakov2008 import HMM
+from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
 
 # Shift localization indices to adjust for time (i.e. in smoothing)
@@ -59,6 +59,7 @@ def loc_shift(ii, dt):
     return ii_new
 
 
+HMM = _HMM.copy()
 HMM.Obs.loc_shift = loc_shift
 
 

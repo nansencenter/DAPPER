@@ -11,7 +11,6 @@ sub-directories/packages.
 The simplest example is perhaps
 `dapper.da_methods.ensemble.EnKF`.
 """
-
 import dataclasses
 import functools
 import time
@@ -31,11 +30,10 @@ def da_method(*default_dataclasses):
     but are decorated by `@da_method()` instead of `@dataclass`.
 
     .. note::
-      The classes must define a method called `assimilate`.
-      This method gets slightly enhanced by this wrapper which provides:
+        The classes must define a method called `assimilate`.
+        This method gets slightly enhanced by this wrapper which provides:
 
-        - Initialisation of the `Stats` object,
-          accessible by `self.stats`.
+        - Initialisation of the `Stats` object, accessible by `self.stats`.
         - `fail_gently` functionality.
         - Duration timing
         - Progressbar naming magic.
