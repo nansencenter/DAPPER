@@ -4,9 +4,8 @@ Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail.
 
 Possible reasons for failing:
 - Random number generation might change on different versions/platforms.
-- pytest imports dapper/mods/Lorenz96/pinheiro2019.py which modifies the Forcing param.
-- pytest --doctest-modules will import dapper/mods/Lorenz63/wiljes2017.py,
-  for example, which modifies HMM.t
+- pytest imports some other Lorenz63/module, which modifies the Forcing param,
+  or the HMM.t params, or something else.
 """
 
 import pytest
