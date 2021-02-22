@@ -15,9 +15,6 @@ Some notes:
 - Capturing stdout -- `xpSpace.print` only called once for each `old`
   (unlike a pytest fixture with capsys) `=>` fast.
 - To better understand failing tests, use `pytest -vv` with pytest-clarity installed.
-- To debug, insert a breakpoint above the desired call to `gen_test_set`.
-  Once within the debugging session, set another one within `cap_stdout`,
-  and step-in from there.
 """
 
 import inspect
@@ -31,6 +28,9 @@ import dapper as dpr
 
 __pdoc__ = {}
 
+# Enable breakpoints
+DEBUG = False
+
 if "--replace" in sys.argv:
     replacements = []
 
@@ -40,7 +40,7 @@ if "--replace" in sys.argv:
         nOpen: int
         nClose: int
 
-else:  # Test -- insert test_funcs in locals().
+else:  # Insert tests in namespace
     test_register = locals()
 
 
@@ -57,9 +57,12 @@ orig_code = open(__file__, "r").readlines()
 # https://stackoverflow.com/a/22434594
 def cap_stdout(fun, *args, **kwargs):
     """Capture stdout."""
-    with io.StringIO() as stringbuf, redirect_stdout(stringbuf):
+    if DEBUG:
         fun(*args, **kwargs)
-        return stringbuf.getvalue()
+    else:
+        with io.StringIO() as stringbuf, redirect_stdout(stringbuf):
+            fun(*args, **kwargs)
+            return stringbuf.getvalue()
 
 
 def gen_test_set(xp_dict, *args, **kwargs):
@@ -79,7 +82,7 @@ def gen_test_set(xp_dict, *args, **kwargs):
     if "--replace" in sys.argv:
         replacements.append(_Replacement(output.splitlines(True), nOpen, nClose))
 
-    else:  # Generate & register tests
+    elif not DEBUG:  # Generate & register tests
 
         # Split string into tables
         lineno = nOpen + 1
