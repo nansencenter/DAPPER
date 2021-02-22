@@ -518,7 +518,8 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
     - Use tabulate() to get decimal point alignment.
     - Inf and nan are handled individually so that they don't
       align left of the decimal point (makes too wide columns).
-      Custom ``frmt`` also supported.
+      Custom ``frmt`` also supported, which must support formatting
+      for strings as well.
     - Pad (on the right) each row so that the widths are equal.
     """
     def preprocess(x):
@@ -526,6 +527,11 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
             # Custom frmt supplied
             if frmt is not None:
                 return frmt(x)
+
+            if isinstance(x, str):
+                x = x.replace("nan", "NAX")
+                x = x.replace("inf", "INX")
+                return x
 
             # Standard formatting
             if x is None:
@@ -546,13 +552,26 @@ def align_col(col, header, pad='␣', missingval='', frmt=None):
         s = s.replace("INX", "inf")
         return s
 
-    # Make text column, aligned
+    # Make text column, align numbers by decimal point
+    # tabulate turn string type numbers into float
+    # and lose the 0 paddings.
+    col_uq = [str(preprocess(x)) for x in col]
     col = [[preprocess(x)] for x in col]
     col = tabulate(col, [header], 'plain')
     col = col.split("\n")  # NOTE: dont use splitlines (removes empty lines)
 
     # Undo nan/inf treatment
+    col_uq = [postprocess(s) for s in col]
     col = [postprocess(s) for s in col]
+
+    # restore 0 paddings
+    for s, s_uq in zip(col[len([header]):], col_uq):
+        if s.replace(" ", "") != s_uq.replace(" ", ""):
+            # str/values that do not need padding
+            # will not change in tabulate
+            if "." not in s:
+                s += "."
+            s = s.split(".")[0] + "." + s_uq.split(".")[-1]
 
     # Pad on the right, for equal widths
     mxW = max(len(s) for s in col)
@@ -582,15 +601,30 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
     cols: tuple[str]
         Names of columns to extract.
     """
+    def pad0(s):
+        """Pad zeros up to the required number of decimals."""
+        # no need to pad inf or nan or integers
+        if s == 'nan' or s == 'inf' or decimals <= 0:
+            return s
+        # add point if s is an integer
+        if "." not in s:
+            s += "."
+        # pad zeros
+        return s + "0"*(decimals - len(s.split(".")[-1]))
+
     def unpack1(arr, i, uq):
         if uq is None:
             return
         # Columns: val/prec
         if decimals is None:
-            v, c = uq.round()
+            # v, c = uq.round()
+            v, c = str(uq).split("±")
         else:
             v, c = np.round([uq.val, uq.prec], decimals)
-        arr["val"][i], arr["prec"][i] = v, c
+            v = pad0(str(v))
+            c = pad0(str(c))
+
+        arr["val"][i], arr["prec"][i] = v.replace(" ", ""), c.replace(" ", "")
         # Columns: others
         for col in struct_tools.complement(cols, ["val", "prec"]):
             try:

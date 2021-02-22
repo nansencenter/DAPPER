@@ -1,10 +1,12 @@
 """
-One scale modified model of Lorenz96 which added one thermodynamic variable.
+Single-scale Lorenz-96 with an added thermodynamic component.
+
+Refs: `bib.vissio2020mechanics`
 """
 import numpy as np
 
 
-class model():
+class model_instance():
     """
     Use OOP to facilitate having multiple parameter settings simultaneously.
     """
@@ -26,6 +28,7 @@ class model():
         return np.roll(x, -n, axis=-1)
 
     def unpack(self, x):
+        """Unpack model input to model parameters and state vector"""
         X = x[..., :self.nX]
         theta = x[..., self.nX:]
         return self.nX, self.F, self.G, self.alpha, self.gamma, X, theta
@@ -45,6 +48,7 @@ class model():
         return d
 
     def d2x_dtdx(self, x):
+        """Tangent linear model"""
         nX, F, G, alpha, gamma, X, theta = self.unpack(x)
         def md(i): np.mod(i, nX)  # modulo
 
@@ -66,9 +70,3 @@ class model():
             F[k + nX, md(k-2) + nX] = -X[k-1]
 
         return F
-
-    # def dstep_dx(self,x,t,dt):
-    #   return integrate_TLM(self.d2x_dtdx_auto(x),dt,method='analytic')
-
-    # def LPs(self,jj):
-    #   return [ ( 11, 1, LP.spatial1d(jj,dims=list(range(self.nU))) ) ]
