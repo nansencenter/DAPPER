@@ -74,7 +74,8 @@ class UncertainQtty():
     def __str__(self):
         """Returns 'val ±prec'.
 
-        The value is formatted with the appropriate number of decimals, considering the precision.
+        The value is formatted with the appropriate number of decimals,
+        considering the precision.
 
         Note: the special cases require processing on top of `round`.
         """
