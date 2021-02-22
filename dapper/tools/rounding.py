@@ -83,10 +83,8 @@ class UncertainQtty():
             # Rounding to fallback (rc.sigfig) already took place
             return f"{v} ±{c}"
         if c == 0:
-            # 0 (i.e. not 1e-300) never arises "naturally"
-            # => Treat it "magically"
-            # by truncating to a default.
-            # Also see https://stackoverflow.com/a/25899600
+            # 0 (i.e. not 1e-300) never arises "naturally" => Treat it "magically"
+            # by truncating to a default. Also see https://stackoverflow.com/a/25899600
             n = -10
         else:
             # Normal/general case.
