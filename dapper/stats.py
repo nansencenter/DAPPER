@@ -596,8 +596,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
     decimals: int
         Desired number of decimals.
         Used for the columns "val" and "prec", and only these.
-        If `None`, it is left to the
-        `dapper.tools.rounding.UncertainQtty` objects.
+        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
 
     cols: tuple[str]
         Names of columns to extract.
