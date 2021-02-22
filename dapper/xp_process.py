@@ -827,22 +827,16 @@ class xpSpace(SparseSpace):
                     # Tabulate subcolumns
                     subheaders = []
                     for key, header, frmt, _, align in zip(*subc.values()):
-                        column[key] = align_col(
-                            column[key], header, frmt=frmt)[1:]
-                        L = len(column[-1][key])
-                        if align == '<':
-                            subheaders += [str(header).ljust(L)]
-                        else:
-                            subheaders += [str(header).rjust(L)]
-                    # Join subcolumns:
-                    matter = [
-                        template.format(*[row[k] for k in subc['keys']])
-                        for row in column
-                    ]
+                        sc = align_col([header] + column[key], frmt=frmt, just=align)
+                        column[key] = sc[1:]
+                        subheaders += [sc[0]]
+                    # Join, using `spaces`:
                     header = template.format(*subheaders)
+                    matter = [template.format(*row.values())
+                              for row in struct_tools.transps(column)]
                 else:
                     column = unpack_uqs(column, decimals)["val"]
-                    column = align_col(column, statkey)
+                    column = align_col([statkey] + column)
                     header, matter = column[0], column[1:]
 
                 if h2:  # Do super_header
@@ -911,7 +905,8 @@ class xpSpace(SparseSpace):
                 table_title = "Table for " + repr(table_coord)
                 print(color_text(table_title, colorama.Back.YELLOW))
             headers, *rows = rows
-            print(tabulate(rows, headers).replace('␣', ' '))
+            t = tabulate(rows, headers).replace('␣', ' ')
+            print(t)
 
     def plot(self, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,

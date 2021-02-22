@@ -512,119 +512,94 @@ def warn_zero_variance(err, flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def align_col(col, header, pad='␣', missingval='', frmt=None):
-    """Format a single column, return as list.
+def align_col(col, pad='␣', missingval='', frmt=None, just=">"):
+    r"""Align column.
 
-    - Use tabulate() to get decimal point alignment.
-    - Inf and nan are handled individually so that they don't
-      align left of the decimal point (makes too wide columns).
-      Custom ``frmt`` also supported, which must support formatting
-      for strings as well.
-    - Pad (on the right) each row so that the widths are equal.
+    Treats fixed-point strings especially, aligning them on the point.
+
+    Example:
+    >>> xx = [1.234, 12.34, 123.4, "1.2e-3", None, np.nan, "inf", (1, 2)]
+    >>> print(*align_col(xx), sep="\n")
+    ␣␣1.234
+    ␣12.34␣
+    123.4␣␣
+    ␣1.2e-3
+    ␣␣␣␣␣␣␣
+    ␣␣␣␣nan
+    ␣␣␣␣inf
+    ␣(1, 2)
     """
-    def preprocess(x):
-        try:
-            # Custom frmt supplied
-            if frmt is not None:
-                return frmt(x)
+    if not frmt:
+        def is_fixed_pt(x):
+            return np.isfinite(float(x)) and ("e" not in x.lower())
 
-            if isinstance(x, str):
-                x = x.replace("nan", "NAX")
-                x = x.replace("inf", "INX")
-                return x
+        # Find max len(a) and len(b),
+        # where str(x) == f"{a}.{b}", for x in col
+        A = B = 0
+        for x in col:
+            x = str(x)
+            try:
+                if is_fixed_pt(x):
+                    a, b = str(x).split(".")
+                    A, B = max(A, len(a)), max(B, len(b))
+            except ValueError:
+                pass
 
-            # Standard formatting
+        # Format entries. Floats get aligned on point.
+        def frmt(x):
             if x is None:
                 return missingval
-            elif np.isnan(x):
-                return "NAX"
-            elif x == -np.inf:
-                return "-INX"
-            elif x == np.inf:
-                return "INX"
-            return x  # leave formatting to tabulate()
+            x = str(x)
+            try:
+                if is_fixed_pt(x):
+                    a, b = str(x).split(".")
+                    a, b = a.rjust(A, pad), b.ljust(B, pad)
+                    x = f"{a}.{b}"
+            except ValueError:
+                pass
+            return x
 
-        except TypeError:
-            return missingval
-
-    def postprocess(s):
-        s = s.replace("NAX", "nan")
-        s = s.replace("INX", "inf")
-        return s
-
-    # Make text column, align numbers by decimal point
-    # tabulate turn string type numbers into float
-    # and lose the 0 paddings.
-    col_uq = [str(preprocess(x)) for x in col]
-    col = [[preprocess(x)] for x in col]
-    col = tabulate(col, [header], 'plain')
-    col = col.split("\n")  # NOTE: dont use splitlines (removes empty lines)
-
-    # Undo nan/inf treatment
-    col_uq = [postprocess(s) for s in col]
-    col = [postprocess(s) for s in col]
-
-    # restore 0 paddings
-    for s, s_uq in zip(col[len([header]):], col_uq):
-        if s.replace(" ", "") != s_uq.replace(" ", ""):
-            # str/values that do not need padding
-            # will not change in tabulate
-            if "." not in s:
-                s += "."
-            s = s.split(".")[0] + "." + s_uq.split(".")[-1]
-
-    # Pad on the right, for equal widths
-    mxW = max(len(s) for s in col)
-    col = [s.ljust(mxW) for s in col]
-
-    # Use pad char. on BOTH left/right, to prevent trunc. by later tabulate().
-    col = [s.replace(" ", pad) for s in col]
-
+    # Format
+    col = [str(frmt(x)) for x in col]
+    # Find max width
+    Max = max(len(x) for x in col)
+    # Right-justify
+    shift = str.rjust if just == ">" else str.ljust
+    col = [shift(x, Max, pad) for x in col]
     return col
 
 
 def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
-    """Make `uq_list` into array with named columns of attributes.
+    """Convert list of `uq`s into array with (named) columns `cols` of attributes.
 
-    None is inserted (in each col) if `uq` itself is None.
+    If `uq` is `None`, then `None` is inserted in each column of that "row".
+    Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
 
     Parameters
     ----------
-    uqlist: list
-        List of objects.
+    uq_list: list
+        List of `uq`s.
 
     decimals: int
         Desired number of decimals.
         Used for the columns "val" and "prec", and only these.
-        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
+        Default: `None`. In this case, the formatting is left to the `uq`s.
 
     cols: tuple[str]
-        Names of columns to extract.
+        Attributes to extract from each `uq`. Must contain "val" and "prec".
     """
-    def pad0(s):
-        """Pad zeros up to the required number of decimals."""
-        # no need to pad inf or nan or integers
-        if s == 'nan' or s == 'inf' or decimals <= 0:
-            return s
-        # add point if s is an integer
-        if "." not in s:
-            s += "."
-        # pad zeros
-        return s + "0"*(decimals - len(s.split(".")[-1]))
-
     def unpack1(arr, i, uq):
         if uq is None:
             return
+
         # Columns: val/prec
         if decimals is None:
-            # v, c = uq.round()
             v, c = str(uq).split("±")
+            v = v.strip()
         else:
             v, c = np.round([uq.val, uq.prec], decimals)
-            v = pad0(str(v))
-            c = pad0(str(c))
+        arr["val"][i], arr["prec"][i] = v, c
 
-        arr["val"][i], arr["prec"][i] = v.replace(" ", ""), c.replace(" ", "")
         # Columns: others
         for col in struct_tools.complement(cols, ["val", "prec"]):
             try:
@@ -632,9 +607,7 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
             except AttributeError:
                 pass
 
-    # np.array with named columns. "O" => allow storing None's.
-    dtypes = np.dtype([(c, "O") for c in cols])
-    arr = np.full_like(uq_list, dtype=dtypes, fill_value=None)
+    arr = {c: [None]*len(uq_list) for c in cols}
     for i, uq in enumerate(uq_list):
         unpack1(arr, i, uq)
 
@@ -648,12 +621,11 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
 
     columns = {}
     for stat in statkeys:
-        column = unpack_uqs(
-            [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals  = align_col(column["val"], stat)
-        confs = align_col(column["prec"], '1σ')
-        headr = vals[0]+'  1σ'
-        mattr = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
+        column = unpack_uqs([getattr(a, stat, None) for a in avrgs_list], decimals)
+        vals  = align_col([stat] + column["val"])
+        precs = align_col(['1σ'] + column["prec"], just="<")
+        headr = vals[0]+'  '+precs[0]
+        mattr = [f"{v} ±{c}" for v, c in zip(vals, precs)][1:]
         columns[headr] = mattr
 
     return columns
