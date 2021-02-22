@@ -3,7 +3,7 @@
 ## Run tests
 See `tests`.
 
-## Documentation gen.
+## Documentation
 
 ### Update bib
 Copy new bibtex items into `docs/bib/refs.bib`,
@@ -24,85 +24,6 @@ Push updated docs to github.
 In the main github settings of the repo,
 go to the "GitHub Pages" section,
 and set the source to the docs folder.
-
-## TODOs
-
-- There are also TODO labels scattered in the code,
-  including a priority number (1-9, lower is more important).
-
-- The documentation always needs improvement.
-  The documentation uses pdoc3 to auto-generate API reference,
-  so improving function and class docstrings is very helpful.
-
-- Make iEnKS code more modular.
-  In particular, the analysis should be separated
-  from the time stepping mechanisms.
-
-- Make iEnKS code support MDA as in `bib.bocquet2014iterative`
-
-- Consider this code:
-
-        from dapper.mods.Lorenz63.sakov2012 import HMM1
-        from dapper.mods.Lorenz63.wiljes2017 import HMM as HMM2
-
-  Document (somewhere) that `HMM1.t` is changed by the second import,
-  because it itself imports and changes `HMM1`.
-  This became a bug in `test_example_2` when `pytest` was run with
-  `--doctest-modules` because `--doctest-modules` goes through all of the modules.
-
-- Make Colab work for notebooks in examples.
-  This requires that Colab upgrades to python 3.7,
-  which I don't know when will happen.
-
-- Write an example script (and/or make changes to DAPPER) to show how to:
-    - do parameter estimation.
-    - use different models for Truth and DA-methods.
-    - work with real data.
-    - pretend variable-length state or obs are fixed-length.
-
-- Right now each column in `tabulate_avrgs` and `xpSpace.print`
-  is treated independently, so that they may be aligned on the decimal point.
-  But ideally the number of decimals printed in uq.val is determined by uq.prec.
-  This is already the case, *somewhat*, since `unpack_uqs` uses `uq.round`
-  But, trailing zeros will still get truncated. I.e. 0.3023 +/- 0.01
-  gets tabulate-printed as 0.3 instead of 0.30. Should be fixed.
-
-- Merge UncertainQtty with the ca class, including its __eq__ ?
-  Rename Ca ?
-
-- Simplify, improve and generalize (total rewrite?) time sequence management.
-    - At the moment, `t` (absolute time) is "too important" in the code,
-     compared to `k` (the time index). For example,
-
-        - `dxdt` have signature `dxdt(x,t,dt)` instead of `dxdt(x,k,dt)`.
-          But a common situation is that `dxdt` needs to look-up some
-          property (e.g. parmeter value) from a pre-defined table.
-          For that purpose, `k` is better suited that `t` because it is
-          and integer, not a fload.
-        - If models simply have the signature `HMM.dyn(x,k)`
-          (i.e. `ticker` would only yield `k` and `kObs`)
-          then variable dt is effectively supported.
-
-    - Change KObs to KObs-1 ?
-    - Highlight the fact that `t=0` is special
-        - There shoult not be any obs then
-        - Some of the plotting functionality are maybe
-          assuming that `tt[0] == 0`.
-
-- Simplify and/or improve (total rewrite?) the CovMat class.
-
-- Make superclasses for the filter, smoother, and iterative smoother.
-
-- Pause after Enter doesn't work on Ubuntu?
-
-- For xpList, could also subclass collections.UserList,
-  although I don't know if it would be any better
-  <https://stackoverflow.com/q/25464647>
-
-- Make autoscaler.py work also for other users
-  (I dont know if it's condor_- that outputs user-specific numbers,
-  or glcoud resize command that is user-specific, or what.)
-
 
 ## Profiling
 

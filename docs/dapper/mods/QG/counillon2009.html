@@ -40,14 +40,15 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/counillon2009.py#L0-L33" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/QG/counillon2009.py#L0-L34" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Reproduce experiments from `bib.counillon2009application`.&#34;&#34;&#34;
 
 import dapper.mods as modelling
 from dapper.mods.QG import model_config
-from dapper.mods.QG.sakov2008 import HMM
+from dapper.mods.QG.sakov2008 import HMM as _HMM
 
+HMM = _HMM.copy()
 dt = 1.25 * 10  # 10 steps between obs (also requires dkObs=1)
 HMM.t = modelling.Chronology(dt=dt, dkObs=1, T=1000*dt, BurnIn=10*dt)
 

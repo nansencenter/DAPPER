@@ -43,7 +43,7 @@ the average val. of <code>trHK</code> is 0.013.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/harder.py#L0-L22" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz84/harder.py#L0-L23" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Harder settings than in `dapper.mods.Lorenz84.pajonk2012`.
 
@@ -54,8 +54,9 @@ Here we increase `dkObs` to make the DA problem more difficult.
 &#34;&#34;&#34;
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz84.pajonk2012 import HMM
+from dapper.mods.Lorenz84.pajonk2012 import HMM as _HMM
 
+HMM = _HMM.copy()
 HMM.t = modelling.Chronology(0.05, dkObs=10, T=4**5, BurnIn=20)
 
 

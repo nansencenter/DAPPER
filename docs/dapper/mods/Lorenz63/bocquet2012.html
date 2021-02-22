@@ -40,15 +40,16 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/bocquet2012.py#L0-L30" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/bocquet2012.py#L0-L31" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Reproduce results from Fig 11 of `bib.bocquet2012combining`.&#34;&#34;&#34;
 
 import numpy as np
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz63.sakov2012 import HMM
+from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
+HMM = _HMM.copy()
 # The only diff to sakov2012 is R:
 # bocquet2012 uses 1 and 8, sakov2012 uses 2 (and 8)
 

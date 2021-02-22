@@ -40,15 +40,17 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/wiljes2017.py#L0-L39" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/wiljes2017.py#L0-L41" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Settings from `bib.wiljes2016second`.&#34;&#34;&#34;
 
 import numpy as np
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz63.sakov2012 import HMM, Nx
+from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
+from dapper.mods.Lorenz63.sakov2012 import Nx
 
+HMM = _HMM.copy()
 HMM.t = modelling.Chronology(0.01, dkObs=12, T=4**5, BurnIn=4)
 
 jj = np.array([0])

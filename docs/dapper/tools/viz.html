@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L0-L390" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L0-L548" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools for plotting.&#34;&#34;&#34;
 
@@ -67,8 +67,22 @@ def setup_wrapping(M, periodicity=None):
     More accurately: Wrap the state indices and create a function that
     does the same for state vectors (or and ensemble thereof).
 
-    - &#39;periodicity&#39; defines the mode of the wrapping.
-      Default: &#34;+1&#34;, meaning that the first element is appended after the last.
+    Parameters
+    ----------
+    M: int
+        Length of the periodic domain
+    periodicity: bool, optional
+        The mode of the wrapping.
+        &#34;+1&#34;: the first element is appended after the last.
+        &#34;+/-05&#34;: adding the midpoint of the first and last elements.
+        Default: &#34;+1&#34;
+
+    Returns
+    -------
+    ii: ndarray
+        indices of periodic domain
+    wrap: func
+        transform non-periodic data into periodic data
     &#34;&#34;&#34;
     if periodicity in (None, True):
         periodicity = &#34;+1&#34;
@@ -96,6 +110,33 @@ def setup_wrapping(M, periodicity=None):
 def amplitude_animation(EE, dt=None, interval=1,
                         periodicity=None, blit=True,
                         fignum=None, repeat=False):
+    &#34;&#34;&#34;Animation of line chart.
+
+    Using an ensemble of
+    the shape (time, ensemble size, state vector length).
+
+    Parameters
+    ----------
+    EE: ndarray
+        Ensemble arry of the shape (K, N, Nx).
+        K is the length of time, N is the ensemble size, and
+        Nx is the length of state vector.
+    dt: float
+        Time interval of each frame.
+    interval: float, optional
+        Delay between frames in milliseconds. Defaults to 200.
+    periodicity: bool, optional
+        The mode of the wrapping.
+        &#34;+1&#34;: the first element is appended after the last.
+        &#34;+/-05&#34;: adding the midpoint of the first and last elements.
+        Default: &#34;+1&#34;
+    blit: bool, optional
+        Controls whether blitting is used to optimize drawing. Default: True
+    fignum: int, optional
+        Figure index. Default: None
+    repeat: bool, optional
+        If True, repeat the animation. Default: False
+    &#34;&#34;&#34;
     fig, ax = freshfig(fignum)
     ax.set_xlabel(&#39;State index&#39;)
     ax.set_ylabel(&#39;Amplitue&#39;)
@@ -128,9 +169,17 @@ def amplitude_animation(EE, dt=None, interval=1,
 
 
 def adjust_position(ax, adjust_extent=False, **kwargs):
-    &#34;&#34;&#34;Adjust values (add) to get_position().
+    &#34;&#34;&#34;Adjust (add) values of plot bounding box using get_position().
 
-    `kwarg` must be one of `x0`, `y0`, `width`, `height`.
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    adjust_extent: bool, optional
+        If true, do not adjust the coordinate of the bounding box.
+        Defaults: False
+    kwargs: dict
+        the keys must be `x0`, `y0`, `width`, `height`;
+        the values are length changes.
     &#34;&#34;&#34;
     # Load get_position into d
     pos = ax.get_position()
@@ -150,6 +199,21 @@ def adjust_position(ax, adjust_extent=False, **kwargs):
 
 
 def xtrema(xx, axis=None):
+    &#34;&#34;&#34;Get minimum and maximum of a sequence.
+
+    Parameters
+    ----------
+    xx: ndarray
+    axis: int, optional
+        Specific axis for min and max. Defaults: None
+
+    Returns
+    -------
+    a: float
+        min value
+    b: float
+        max value
+    &#34;&#34;&#34;
     a = np.nanmin(xx, axis)
     b = np.nanmax(xx, axis)
     return a, b
@@ -158,8 +222,24 @@ def xtrema(xx, axis=None):
 def stretch(a, b, factor=1, int_=False):
     &#34;&#34;&#34;Stretch distance `a-b` by factor.
 
-    Return a, b.
-    If int_: `floor(a)` and `ceil(b)`
+    Parameters
+    ----------
+    a: float
+        Lower bound of domain.
+    b: float
+        Upper bound of domain.
+    factor: float, optional
+        Streching factor. Defaults: 1
+    int_: bool, optional
+        If True, the domain bounds are integer.
+        Defaults: False
+
+    Returns
+    -------
+    a: float
+        Lower bound of domain.
+    b: float
+        Upper bound of domain.
     &#34;&#34;&#34;
     c = (a+b)/2
     a = c + factor*(a-c)
@@ -171,7 +251,18 @@ def stretch(a, b, factor=1, int_=False):
 
 
 def set_ilim(ax, i, Min=None, Max=None):
-    &#34;&#34;&#34;Set bounds on axis i.&#34;&#34;&#34;
+    &#34;&#34;&#34;Set bounds on axis i.
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    i: int
+        1: x-axis; 2: y-axis; 3: z-axis
+    Min: float, optional
+        Lower bound limit. Defaults: None
+    Max: float, optional
+        Upper bound limit. Defaults: None
+    &#34;&#34;&#34;
     if i == 0:
         ax.set_xlim(Min, Max)
     if i == 1:
@@ -181,10 +272,25 @@ def set_ilim(ax, i, Min=None, Max=None):
 
 
 def estimate_good_plot_length(xx, chrono=None, mult=100):
-    &#34;&#34;&#34;Estimate good length for plotting stuff.
+    &#34;&#34;&#34;Estimate the range of the xx slices for plotting.
 
-    Tries to estimate the time scale of the system.
+    The length is based on the estimated time scale (wavelength)
+    of the system.
     Provide sensible fall-backs (better if chrono is supplied).
+
+    Parameters
+    ----------
+    xx: ndarray
+        Plotted array
+    chrono: `dapper.tools.chronos.Chronology`, optional
+        object with property dkObS. Defaults: None
+    mult: int, optional
+        Number of waves for plotting. Defaults: 100
+
+    Returns
+    -------
+    K: int
+        length for plotting
 
     Example
     -------
@@ -261,7 +367,15 @@ def plot_pause(interval):
 
 
 def plot_hovmoller(xx, chrono=None, **kwargs):
-    &#34;&#34;&#34;Plot Hovmöller diagram.&#34;&#34;&#34;
+    &#34;&#34;&#34;Plot Hovmöller diagram.
+
+    Parameters
+    ----------
+    xx: ndarray
+        Plotted array
+    chrono: `dapper.tools.chronos.Chronology`, optional
+        object with property dkObS. Defaults: None
+    &#34;&#34;&#34;
     fig, ax = freshfig(26, figsize=(4, 3.5))
 
     if chrono is not None:
@@ -286,7 +400,21 @@ def plot_hovmoller(xx, chrono=None, **kwargs):
 
 
 def integer_hist(E, N, centrd=False, weights=None, **kwargs):
-    &#34;&#34;&#34;Histogram for integers.&#34;&#34;&#34;
+    &#34;&#34;&#34;Histogram for integers.
+
+    Parameters
+    ----------
+    E: ndarray
+        Ensemble array.
+    N: int
+        Number of histogram bins.
+    centrd: bool, optional
+        If True, each bin is centered in the midpoint. Default: False
+    weights: float, optional
+        Weights for histogram. Default: None
+    kwargs: dict
+        keyword arguments for matplotlib.hist
+    &#34;&#34;&#34;
     ax = plt.gca()
     rnge = (-0.5, N+0.5) if centrd else (0, N+1)
     ax.hist(E, bins=N+1, range=rnge, density=True, weights=weights, **kwargs)
@@ -294,6 +422,16 @@ def integer_hist(E, N, centrd=False, weights=None, **kwargs):
 
 
 def not_available_text(ax, txt=None, fs=20):
+    &#34;&#34;&#34;Plot given text on the figure
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    txt: str, optional
+        Printed text. Defaults: &#39;[Not available]&#39;
+    fs: float, optional
+        Font size. Defaults: 20.
+    &#34;&#34;&#34;
     if txt is None:
         txt = &#39;[Not available]&#39;
     else:
@@ -307,6 +445,10 @@ def not_available_text(ax, txt=None, fs=20):
 
 def plot_err_components(stats):
     &#34;&#34;&#34;Plot components of the error.
+
+    Parameters
+    ----------
+    stats: `dapper.stats.Stats`
 
     .. note::
       it was chosen to plot(ii, mean_in_time(abs(err_i))),
@@ -366,6 +508,12 @@ def plot_err_components(stats):
 
 
 def plot_rank_histogram(stats):
+    &#34;&#34;&#34;Plot rank histogram of ensemble.
+
+    Parameters
+    ----------
+    stats: `dapper.stats.Stats`
+    &#34;&#34;&#34;
     chrono = stats.HMM.t
 
     has_been_computed = \
@@ -416,6 +564,16 @@ def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
     &#34;&#34;&#34;Scale axis so that the arr entries appear equidistant.
 
     The full transformation is piecewise-linear.
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    arr: ndarray
+        Array for plotting
+    axis: str, optional
+        Scaled axis, which can be &#39;x&#39;, &#39;y&#39; or &#39;z&#39;. Defaults: &#39;y&#39;
+    nbins: int, optional
+        Number of major ticks. Defaults: 3
     &#34;&#34;&#34;
     yy = array([y for y in arr if y is not None], dtype=float)  # rm None
 
@@ -449,14 +607,27 @@ def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
 <div class="desc"><p>Make state indices representative for periodic system.</p>
 <p>More accurately: Wrap the state indices and create a function that
 does the same for state vectors (or and ensemble thereof).</p>
-<ul>
-<li>'periodicity' defines the mode of the wrapping.
-Default: "+1", meaning that the first element is appended after the last.</li>
-</ul></div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>M</code></strong> :&ensp;<code>int</code></dt>
+<dd>Length of the periodic domain</dd>
+<dt><strong><code>periodicity</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>The mode of the wrapping.
+"+1": the first element is appended after the last.
+"+/-05": adding the midpoint of the first and last elements.
+Default: "+1"</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>ii</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>indices of periodic domain</dd>
+<dt><strong><code>wrap</code></strong> :&ensp;<code>func</code></dt>
+<dd>transform non-periodic data into periodic data</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L20-L49" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L20-L63" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def setup_wrapping(M, periodicity=None):
     &#34;&#34;&#34;Make state indices representative for periodic system.
@@ -464,8 +635,22 @@ Default: "+1", meaning that the first element is appended after the last.</li>
     More accurately: Wrap the state indices and create a function that
     does the same for state vectors (or and ensemble thereof).
 
-    - &#39;periodicity&#39; defines the mode of the wrapping.
-      Default: &#34;+1&#34;, meaning that the first element is appended after the last.
+    Parameters
+    ----------
+    M: int
+        Length of the periodic domain
+    periodicity: bool, optional
+        The mode of the wrapping.
+        &#34;+1&#34;: the first element is appended after the last.
+        &#34;+/-05&#34;: adding the midpoint of the first and last elements.
+        Default: &#34;+1&#34;
+
+    Returns
+    -------
+    ii: ndarray
+        indices of periodic domain
+    wrap: func
+        transform non-periodic data into periodic data
     &#34;&#34;&#34;
     if periodicity in (None, True):
         periodicity = &#34;+1&#34;
@@ -494,15 +679,66 @@ Default: "+1", meaning that the first element is appended after the last.</li>
 <span>def <span class="ident">amplitude_animation</span></span>(<span>EE, dt=None, interval=1, periodicity=None, blit=True, fignum=None, repeat=False)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Animation of line chart.</p>
+<p>Using an ensemble of
+the shape (time, ensemble size, state vector length).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>EE</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble arry of the shape (K, N, Nx).
+K is the length of time, N is the ensemble size, and
+Nx is the length of state vector.</dd>
+<dt><strong><code>dt</code></strong> :&ensp;<code>float</code></dt>
+<dd>Time interval of each frame.</dd>
+<dt><strong><code>interval</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Delay between frames in milliseconds. Defaults to 200.</dd>
+<dt><strong><code>periodicity</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>The mode of the wrapping.
+"+1": the first element is appended after the last.
+"+/-05": adding the midpoint of the first and last elements.
+Default: "+1"</dd>
+<dt><strong><code>blit</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Controls whether blitting is used to optimize drawing. Default: True</dd>
+<dt><strong><code>fignum</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Figure index. Default: None</dd>
+<dt><strong><code>repeat</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If True, repeat the animation. Default: False</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L52-L83" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L66-L124" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def amplitude_animation(EE, dt=None, interval=1,
                         periodicity=None, blit=True,
                         fignum=None, repeat=False):
+    &#34;&#34;&#34;Animation of line chart.
+
+    Using an ensemble of
+    the shape (time, ensemble size, state vector length).
+
+    Parameters
+    ----------
+    EE: ndarray
+        Ensemble arry of the shape (K, N, Nx).
+        K is the length of time, N is the ensemble size, and
+        Nx is the length of state vector.
+    dt: float
+        Time interval of each frame.
+    interval: float, optional
+        Delay between frames in milliseconds. Defaults to 200.
+    periodicity: bool, optional
+        The mode of the wrapping.
+        &#34;+1&#34;: the first element is appended after the last.
+        &#34;+/-05&#34;: adding the midpoint of the first and last elements.
+        Default: &#34;+1&#34;
+    blit: bool, optional
+        Controls whether blitting is used to optimize drawing. Default: True
+    fignum: int, optional
+        Figure index. Default: None
+    repeat: bool, optional
+        If True, repeat the animation. Default: False
+    &#34;&#34;&#34;
     fig, ax = freshfig(fignum)
     ax.set_xlabel(&#39;State index&#39;)
     ax.set_ylabel(&#39;Amplitue&#39;)
@@ -538,17 +774,35 @@ Default: "+1", meaning that the first element is appended after the last.</li>
 <span>def <span class="ident">adjust_position</span></span>(<span>ax, adjust_extent=False, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Adjust values (add) to get_position().</p>
-<p><code>kwarg</code> must be one of <code>x0</code>, <code>y0</code>, <code>width</code>, <code>height</code>.</p></div>
+<div class="desc"><p>Adjust (add) values of plot bounding box using get_position().</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib.axes</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>adjust_extent</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If true, do not adjust the coordinate of the bounding box.
+Defaults: False</dd>
+<dt><strong><code>kwargs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>the keys must be <code>x0</code>, <code>y0</code>, <code>width</code>, <code>height</code>;
+the values are length changes.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L86-L105" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L127-L154" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def adjust_position(ax, adjust_extent=False, **kwargs):
-    &#34;&#34;&#34;Adjust values (add) to get_position().
+    &#34;&#34;&#34;Adjust (add) values of plot bounding box using get_position().
 
-    `kwarg` must be one of `x0`, `y0`, `width`, `height`.
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    adjust_extent: bool, optional
+        If true, do not adjust the coordinate of the bounding box.
+        Defaults: False
+    kwargs: dict
+        the keys must be `x0`, `y0`, `width`, `height`;
+        the values are length changes.
     &#34;&#34;&#34;
     # Load get_position into d
     pos = ax.get_position()
@@ -571,13 +825,42 @@ Default: "+1", meaning that the first element is appended after the last.</li>
 <span>def <span class="ident">xtrema</span></span>(<span>xx, axis=None)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get minimum and maximum of a sequence.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>xx</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>axis</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Specific axis for min and max. Defaults: None</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>min value</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dd>max value</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L108-L111" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L157-L175" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def xtrema(xx, axis=None):
+    &#34;&#34;&#34;Get minimum and maximum of a sequence.
+
+    Parameters
+    ----------
+    xx: ndarray
+    axis: int, optional
+        Specific axis for min and max. Defaults: None
+
+    Returns
+    -------
+    a: float
+        min value
+    b: float
+        max value
+    &#34;&#34;&#34;
     a = np.nanmin(xx, axis)
     b = np.nanmax(xx, axis)
     return a, b</code></pre>
@@ -588,18 +871,51 @@ Default: "+1", meaning that the first element is appended after the last.</li>
 </code></dt>
 <dd>
 <div class="desc"><p>Stretch distance <code>a-b</code> by factor.</p>
-<p>Return a, b.
-If int_: <code>floor(a)</code> and <code>ceil(b)</code></p></div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>Lower bound of domain.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dd>Upper bound of domain.</dd>
+<dt><strong><code>factor</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Streching factor. Defaults: 1</dd>
+<dt><strong><code>int_</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If True, the domain bounds are integer.
+Defaults: False</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>Lower bound of domain.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dd>Upper bound of domain.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L114-L126" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L178-L206" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def stretch(a, b, factor=1, int_=False):
     &#34;&#34;&#34;Stretch distance `a-b` by factor.
 
-    Return a, b.
-    If int_: `floor(a)` and `ceil(b)`
+    Parameters
+    ----------
+    a: float
+        Lower bound of domain.
+    b: float
+        Upper bound of domain.
+    factor: float, optional
+        Streching factor. Defaults: 1
+    int_: bool, optional
+        If True, the domain bounds are integer.
+        Defaults: False
+
+    Returns
+    -------
+    a: float
+        Lower bound of domain.
+    b: float
+        Upper bound of domain.
     &#34;&#34;&#34;
     c = (a+b)/2
     a = c + factor*(a-c)
@@ -614,14 +930,36 @@ If int_: <code>floor(a)</code> and <code>ceil(b)</code></p></div>
 <span>def <span class="ident">set_ilim</span></span>(<span>ax, i, Min=None, Max=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Set bounds on axis i.</p></div>
+<div class="desc"><p>Set bounds on axis i.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib.axes</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>i</code></strong> :&ensp;<code>int</code></dt>
+<dd>1: x-axis; 2: y-axis; 3: z-axis</dd>
+<dt><strong><code>Min</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Lower bound limit. Defaults: None</dd>
+<dt><strong><code>Max</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Upper bound limit. Defaults: None</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L129-L136" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L209-L227" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def set_ilim(ax, i, Min=None, Max=None):
-    &#34;&#34;&#34;Set bounds on axis i.&#34;&#34;&#34;
+    &#34;&#34;&#34;Set bounds on axis i.
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    i: int
+        1: x-axis; 2: y-axis; 3: z-axis
+    Min: float, optional
+        Lower bound limit. Defaults: None
+    Max: float, optional
+        Upper bound limit. Defaults: None
+    &#34;&#34;&#34;
     if i == 0:
         ax.set_xlim(Min, Max)
     if i == 1:
@@ -634,22 +972,52 @@ If int_: <code>floor(a)</code> and <code>ceil(b)</code></p></div>
 <span>def <span class="ident">estimate_good_plot_length</span></span>(<span>xx, chrono=None, mult=100)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Estimate good length for plotting stuff.</p>
-<p>Tries to estimate the time scale of the system.
+<div class="desc"><p>Estimate the range of the xx slices for plotting.</p>
+<p>The length is based on the estimated time scale (wavelength)
+of the system.
 Provide sensible fall-backs (better if chrono is supplied).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>xx</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Plotted array</dd>
+<dt><strong><code>chrono</code></strong> :&ensp;<code><a title="dapper.tools.chronos.Chronology" href="chronos.html#dapper.tools.chronos.Chronology">Chronology</a></code>, optional</dt>
+<dd>object with property dkObS. Defaults: None</dd>
+<dt><strong><code>mult</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of waves for plotting. Defaults: 100</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>K</code></strong> :&ensp;<code>int</code></dt>
+<dd>length for plotting</dd>
+</dl>
 <h2 id="example">Example</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; K_lag = estimate_good_plot_length(stats.xx, chrono, mult=80) # doctest: +SKIP
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L139-L173" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L230-L279" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def estimate_good_plot_length(xx, chrono=None, mult=100):
-    &#34;&#34;&#34;Estimate good length for plotting stuff.
+    &#34;&#34;&#34;Estimate the range of the xx slices for plotting.
 
-    Tries to estimate the time scale of the system.
+    The length is based on the estimated time scale (wavelength)
+    of the system.
     Provide sensible fall-backs (better if chrono is supplied).
+
+    Parameters
+    ----------
+    xx: ndarray
+        Plotted array
+    chrono: `dapper.tools.chronos.Chronology`, optional
+        object with property dkObS. Defaults: None
+    mult: int, optional
+        Number of waves for plotting. Defaults: 100
+
+    Returns
+    -------
+    K: int
+        length for plotting
 
     Example
     -------
@@ -692,7 +1060,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L176-L216" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L282-L322" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_pause(interval):
     &#34;&#34;&#34;Similar to `plt.pause`, but doesn&#39;t focus window.
@@ -741,14 +1109,29 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <span>def <span class="ident">plot_hovmoller</span></span>(<span>xx, chrono=None, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Plot Hovmöller diagram.</p></div>
+<div class="desc"><p>Plot Hovmöller diagram.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>xx</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Plotted array</dd>
+<dt><strong><code>chrono</code></strong> :&ensp;<code><a title="dapper.tools.chronos.Chronology" href="chronos.html#dapper.tools.chronos.Chronology">Chronology</a></code>, optional</dt>
+<dd>object with property dkObS. Defaults: None</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L219-L241" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L325-L355" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_hovmoller(xx, chrono=None, **kwargs):
-    &#34;&#34;&#34;Plot Hovmöller diagram.&#34;&#34;&#34;
+    &#34;&#34;&#34;Plot Hovmöller diagram.
+
+    Parameters
+    ----------
+    xx: ndarray
+        Plotted array
+    chrono: `dapper.tools.chronos.Chronology`, optional
+        object with property dkObS. Defaults: None
+    &#34;&#34;&#34;
     fig, ax = freshfig(26, figsize=(4, 3.5))
 
     if chrono is not None:
@@ -776,14 +1159,41 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <span>def <span class="ident">integer_hist</span></span>(<span>E, N, centrd=False, weights=None, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Histogram for integers.</p></div>
+<div class="desc"><p>Histogram for integers.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>E</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Ensemble array.</dd>
+<dt><strong><code>N</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of histogram bins.</dd>
+<dt><strong><code>centrd</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If True, each bin is centered in the midpoint. Default: False</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Weights for histogram. Default: None</dd>
+<dt><strong><code>kwargs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>keyword arguments for matplotlib.hist</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L244-L249" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L358-L377" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def integer_hist(E, N, centrd=False, weights=None, **kwargs):
-    &#34;&#34;&#34;Histogram for integers.&#34;&#34;&#34;
+    &#34;&#34;&#34;Histogram for integers.
+
+    Parameters
+    ----------
+    E: ndarray
+        Ensemble array.
+    N: int
+        Number of histogram bins.
+    centrd: bool, optional
+        If True, each bin is centered in the midpoint. Default: False
+    weights: float, optional
+        Weights for histogram. Default: None
+    kwargs: dict
+        keyword arguments for matplotlib.hist
+    &#34;&#34;&#34;
     ax = plt.gca()
     rnge = (-0.5, N+0.5) if centrd else (0, N+1)
     ax.hist(E, bins=N+1, range=rnge, density=True, weights=weights, **kwargs)
@@ -794,13 +1204,32 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <span>def <span class="ident">not_available_text</span></span>(<span>ax, txt=None, fs=20)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Plot given text on the figure</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib.axes</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>txt</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Printed text. Defaults: '[Not available]'</dd>
+<dt><strong><code>fs</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Font size. Defaults: 20.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L252-L261" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L380-L399" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def not_available_text(ax, txt=None, fs=20):
+    &#34;&#34;&#34;Plot given text on the figure
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    txt: str, optional
+        Printed text. Defaults: &#39;[Not available]&#39;
+    fs: float, optional
+        Font size. Defaults: 20.
+    &#34;&#34;&#34;
     if txt is None:
         txt = &#39;[Not available]&#39;
     else:
@@ -817,6 +1246,11 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot components of the error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>stats</code></strong> :&ensp;<code><a title="dapper.stats.Stats" href="../stats.html#dapper.stats.Stats">Stats</a></code></dt>
+<dd>&nbsp;</dd>
+</dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>it was chosen to plot(ii, mean_in_time(abs(err_i))),
@@ -830,10 +1264,14 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L264-L321" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L402-L463" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_err_components(stats):
     &#34;&#34;&#34;Plot components of the error.
+
+    Parameters
+    ----------
+    stats: `dapper.stats.Stats`
 
     .. note::
       it was chosen to plot(ii, mean_in_time(abs(err_i))),
@@ -896,13 +1334,24 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <span>def <span class="ident">plot_rank_histogram</span></span>(<span>stats)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Plot rank histogram of ensemble.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>stats</code></strong> :&ensp;<code><a title="dapper.stats.Stats" href="../stats.html#dapper.stats.Stats">Stats</a></code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L324-L361" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L466-L509" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_rank_histogram(stats):
+    &#34;&#34;&#34;Plot rank histogram of ensemble.
+
+    Parameters
+    ----------
+    stats: `dapper.stats.Stats`
+    &#34;&#34;&#34;
     chrono = stats.HMM.t
 
     has_been_computed = \
@@ -950,7 +1399,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L365-L368" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L513-L516" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def adjustable_box_or_forced():
     &#34;&#34;&#34;For set_aspect(), adjustable=&#39;box-forced&#39; replaced by &#39;box&#39; since mpl 2.2.0.&#34;&#34;&#34;
@@ -963,16 +1412,37 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Scale axis so that the arr entries appear equidistant.</p>
-<p>The full transformation is piecewise-linear.</p></div>
+<p>The full transformation is piecewise-linear.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib.axes</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>arr</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Array for plotting</dd>
+<dt><strong><code>axis</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Scaled axis, which can be 'x', 'y' or 'z'. Defaults: 'y'</dd>
+<dt><strong><code>nbins</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of major ticks. Defaults: 3</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L371-L391" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L519-L549" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
     &#34;&#34;&#34;Scale axis so that the arr entries appear equidistant.
 
     The full transformation is piecewise-linear.
+
+    Parameters
+    ----------
+    ax: matplotlib.axes
+    arr: ndarray
+        Array for plotting
+    axis: str, optional
+        Scaled axis, which can be &#39;x&#39;, &#39;y&#39; or &#39;z&#39;. Defaults: &#39;y&#39;
+    nbins: int, optional
+        Number of major ticks. Defaults: 3
     &#34;&#34;&#34;
     yy = array([y for y in arr if y is not None], dtype=float)  # rm None
 
