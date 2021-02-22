@@ -10,7 +10,7 @@ class model_instance():
     """
     Use OOP to facilitate having multiple parameter settings simultaneously.
     """
-    def __init__(self, nX, F, G, alpha=1, gamma=1):
+    def __init__(self, nX=18, F=10, G=10, alpha=1, gamma=1):
         # System size
         self.nX = nX       # num of gridpoints
         self.M = 2*nX     # => Total state length
@@ -22,7 +22,7 @@ class model_instance():
         self.gamma = gamma  # dissipation coefficient
 
         # Init with perturbation
-        self.x0 = np.zeros(self.M)
+        self.x0 = np.eye(self.M)[0]
 
     def shift(self, x, n):
         return np.roll(x, -n, axis=-1)
@@ -50,7 +50,7 @@ class model_instance():
     def d2x_dtdx(self, x):
         """Tangent linear model"""
         nX, F, G, alpha, gamma, X, theta = self.unpack(x)
-        def md(i): np.mod(i, nX)  # modulo
+        def md(i): return np.mod(i, nX)  # modulo
 
         F = np.eye(self.M)
         F = F*(-gamma)
