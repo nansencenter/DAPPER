@@ -74,8 +74,7 @@ class UncertainQtty():
     def __str__(self):
         """Returns 'val ±prec'.
 
-        The value string contains the number of decimals required
-        by the confidence.
+        The value is formatted with the appropriate number of decimals, considering the precision.
 
         Note: the special cases require processing on top of `round`.
         """
@@ -97,7 +96,7 @@ class UncertainQtty():
             # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
             frmt = "%%0.%df" % -n
 
-        if n >= 0 and not np.isnan(c) and not np.isinf(c):
+        elif np.isfinite(c):
             # turn float point value to integer for |c| >= 1.0
             c = int(c)
         v = frmt % v
