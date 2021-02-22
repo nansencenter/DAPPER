@@ -95,7 +95,7 @@ class UncertainQtty():
             frmt = "%%0.%df" % -n
 
         elif np.isfinite(c):
-            # turn float point value to integer for |c| >= 1.0
+            # if c >= 1.0
             c = int(c)
         v = frmt % v
         return f"{v} ±{c}"
