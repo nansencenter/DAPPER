@@ -761,13 +761,14 @@ class xpSpace(SparseSpace):
             1σ confidence interval, and potentially some other stuff.
         axes: dict
             Allots (maps) each role to a set of axis of the `xpSpace`.
+            Example:
 
             >>> dict(outer='da_method', inner='N', mean='seed',  # doctest: +SKIP
             ...      optim=('infl','loc_rad'))
 
             - Herein, the "role" `outer` should list the axes/attributes
             used to define the splitting of the results into *separate tables*:
-            one table for each distinct (combination) of attributes.
+            one table for each distinct combination of attributes.
             - Similarly , the role `inner` determines which attributes
             split a table into its columns.
             - `mean` lists the attributes used over which the mean is taken.

@@ -516,7 +516,7 @@ def warn_zero_variance(err, flag):
 def align_col(col, pad='␣', missingval='', just=">"):
     r"""Align column.
 
-    Treats `int`s and fixed-point strings especially, aligning on the point.
+    Treats `int`s and fixed-point `float`/`str` especially, aligning on the point.
 
     Example:
     >>> xx = [1, 1., 1.234, 12.34, 123.4, "1.2e-3", None, np.nan, "inf", (1, 2)]
@@ -585,6 +585,8 @@ def align_col(col, pad='␣', missingval='', just=">"):
 def unpack_uqs(uq_list, decimals=None):
     """Convert list of `uq`s into dict of lists (of equal-length) of attributes.
 
+    The attributes are obtained by `vars(uq)`.
+
     If `uq` is `None`, then `None` is inserted in each list.
     Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
 
@@ -595,7 +597,7 @@ def unpack_uqs(uq_list, decimals=None):
 
     decimals: int
         Desired number of decimals.
-        Used for the columns "val" and "prec", and only these.
+        Used for (only) the columns "val" and "prec".
         Default: `None`. In this case, the formatting is left to the `uq`s.
     """
     def format_attrs(uq):
