@@ -1,6 +1,7 @@
 """Stats computation for the assessment of DA methods."""
 
 import warnings
+from copy import deepcopy
 
 import numpy as np
 import scipy.linalg as sla
@@ -569,10 +570,10 @@ def align_col(col, pad='␣', missingval='', frmt=None, just=">"):
     return col
 
 
-def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
-    """Convert list of `uq`s into array with (named) columns `cols` of attributes.
+def unpack_uqs(uq_list, decimals=None):
+    """Convert list of `uq`s into dict of lists (of equal-length) of attributes.
 
-    If `uq` is `None`, then `None` is inserted in each column of that "row".
+    If `uq` is `None`, then `None` is inserted in each list.
     Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
 
     Parameters
@@ -584,36 +585,36 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
         Desired number of decimals.
         Used for the columns "val" and "prec", and only these.
         Default: `None`. In this case, the formatting is left to the `uq`s.
-
-    cols: tuple[str]
-        Attributes to extract from each `uq`. Must contain "val" and "prec".
     """
-    def unpack1(arr, i, uq):
-        if uq is None:
-            return
-
-        # Columns: val/prec
+    def frmt(uq):
+        """Format (possibly convert to str) attrs of uq."""
+        # val/prec: round
         if decimals is None:
-            v, c = str(uq).split("±")
-            v = v.strip()
+            v, p = str(uq).split(" ±")
         else:
-            v, c = np.round([uq.val, uq.prec], decimals)
-        arr["val"][i], arr["prec"][i] = v, c
+            v, p = np.round([uq.val, uq.prec], decimals)
+        uq.val, uq.prec = v, p
+        # tuned_coord: convert to tuple
+        try:
+            uq.tuned_coord = tuple(a for a in uq.tuned_coord)
+        except AttributeError:
+            pass
+        return uq
 
-        # Column: tuned_coord: convert to tuple
-        if "tuned_coord" in cols:
-            arr["tuned_coord"][i] = tuple(a for a in uq.tuned_coord)
+    # Allocate
+    try:
+        keys = vars(next(uq for uq in uq_list if uq is not None))
+    except StopIteration:
+        keys = ["val"]  # TODO 3: validate
+    arr = {c: [None]*len(uq_list) for c in keys}
 
-        # Columns: others
-        for col in struct_tools.complement(cols, ["val", "prec", "tuned_coord"]):
-            try:
-                arr[col][i] = getattr(uq, col)
-            except AttributeError:
-                pass
-
-    arr = {c: [None]*len(uq_list) for c in cols}
+    # Fill
     for i, uq in enumerate(uq_list):
-        unpack1(arr, i, uq)
+        if uq is None:
+            continue
+        uq = frmt(deepcopy(uq))
+        for col in arr:
+            arr[col][i] = getattr(uq, col)
 
     return arr
 

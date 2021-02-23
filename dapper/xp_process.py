@@ -794,58 +794,51 @@ class xpSpace(SparseSpace):
         def align_subcols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
             # Define subcol formats
-            subc = dict()
-            subc['keys']     = ["val", "prec"]
-            subc['headers']  = [statkey, '1σ']
-            subc['spaces']   = [' ±']  # last one gets appended below.
-            subc['aligns']   = ['>', '<']  # 4 header -- matter gets decimal-aligned.
-            if axes['optim'] is not None:
-                subc['keys']    += ["tuned_coord"]
-                subc['headers'] += [axes['optim']]
-                subc['spaces']  += [' *']
-                subc['aligns']  += ['<']
-            elif axes['mean'] is not None:
-                subc['keys']    += ["nFail", "nSuccess"]
-                subc['headers'] += ['☠', '✓']  # use width-1 symbols!
-                subc['spaces']  += [' ', ' ']
-                subc['aligns']  += ['>', '>']
-            subc['spaces'].append('')  # no space after last subcol
-            template = '{}' + '{}'.join(subc['spaces'])
+            if subcols:
+                templ = "{val} ±{prec}"
+                if axes['optim'] is not None:
+                    templ += " *{tuned_coord}"
+                elif axes['mean'] is not None:
+                    templ += " {nFail} {nSuccess}"
+                aligns = dict(prec="<", tuned_coord="<")
+                labels = dict(val=statkey, prec="1σ",
+                              tuned_coord=axes["optim"], nFail="☠", nSuccess="✓")
+
+            def format_(column):
+                col = unpack_uqs(column, decimals)
+                if subcols:
+                    for key in list(col):
+                        if key in templ:
+                            subcolmn = [labels.get(key, key)] + col[key]
+                            col[key] = align_col(subcolmn, just=aligns.get(key, ">"))
+                        else:
+                            del col[key]
+                    col = [templ.format(**row) for row in struct_tools.transps(col)]
+                else:
+                    col = align_col([statkey] + col["val"])
+                return col
+
+            def super_header(col_coord, idx, col):
+                header, matter = col[0], col[1:]
+                if idx:
+                    super_header = str(col_coord)
+                else:
+                    super_header = repr(col_coord)
+                width = len(header)  # += 1 if using unicode chars like ✔️
+                super_header = super_header.center(width, "_")
+                header = super_header + "\n" + header
+                return [header] + matter
 
             # Transpose
             columns = [list(x) for x in zip(*rows)]
 
-            # Iterate over columns.
+            # Format column
             for j, (col_coord, column) in enumerate(zip(cc, columns)):
+                col = format_(column)
+                if h2:
+                    col = super_header(col_coord, j, col)
+                columns[j] = col
 
-                # Tabulate columns
-                if subcols:
-                    column = unpack_uqs(column, decimals, subc["keys"])
-                    # Tabulate subcolumns
-                    subheaders = []
-                    for key, header, _, align in zip(*subc.values()):
-                        sc = align_col([header] + column[key], just=align)
-                        column[key] = sc[1:]
-                        subheaders += [sc[0]]
-                    # Join, using `spaces`:
-                    header = template.format(*subheaders)
-                    matter = [template.format(*row.values())
-                              for row in struct_tools.transps(column)]
-                else:
-                    column = unpack_uqs(column, decimals)["val"]
-                    column = align_col([statkey] + column)
-                    header, matter = column[0], column[1:]
-
-                if h2:  # Do super_header
-                    if j:
-                        super_header = str(col_coord)
-                    else:
-                        super_header = repr(col_coord)
-                    width = len(header)  # += 1 if using unicode chars like ✔️
-                    super_header = super_header.center(width, "_")
-                    header = super_header + "\n" + header
-
-                columns[j] = [header]+matter
             # Un-transpose
             rows = [list(x) for x in zip(*columns)]
 
@@ -872,7 +865,7 @@ class xpSpace(SparseSpace):
             if False:  # ****************** Simple (for debugging) table
                 for i, (row_coord, row) in enumerate(zip(table, rows)):
                     row_key = ", ".join(str(v) for v in row_coord)
-                    rows[i] = [row_key]         + row
+                    rows[i] = [row_key] + row
                 rows.insert(0, [f"{table.axes}"] + [repr(c) for c in cc])
             else:  # ********************** Elegant table.
                 h2 = "\n" if len(cc) > 1 else ""  # do column-super-header
