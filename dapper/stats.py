@@ -513,14 +513,16 @@ def warn_zero_variance(err, flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def align_col(col, pad='␣', missingval='', frmt=None, just=">"):
+def align_col(col, pad='␣', missingval='', just=">"):
     r"""Align column.
 
-    Treats fixed-point strings especially, aligning them on the point.
+    Treats `int`s and fixed-point strings especially, aligning on the point.
 
     Example:
-    >>> xx = [1.234, 12.34, 123.4, "1.2e-3", None, np.nan, "inf", (1, 2)]
+    >>> xx = [1, 1., 1.234, 12.34, 123.4, "1.2e-3", None, np.nan, "inf", (1, 2)]
     >>> print(*align_col(xx), sep="\n")
+    ␣␣1␣␣␣␣
+    ␣␣1.0␣␣
     ␣␣1.234
     ␣12.34␣
     123.4␣␣
@@ -530,38 +532,48 @@ def align_col(col, pad='␣', missingval='', frmt=None, just=">"):
     ␣␣␣␣inf
     ␣(1, 2)
     """
-    if not frmt:
-        def is_fixed_pt(x):
-            return np.isfinite(float(x)) and ("e" not in x.lower())
+    def split_decimal(x):
+        x = str(x)
+        try:
+            y = float(x)
+        except ValueError:
+            pass
+        else:
+            if np.isfinite(y) and ("e" not in x.lower()):
+                a, *b = x.split(".")
+                if b == []:
+                    b = "int"
+                else:
+                    b = b[0]
+                return a, b
+        return x, False
 
-        # Find max len(a) and len(b),
-        # where str(x) == f"{a}.{b}", for x in col
-        A = B = 0
-        for x in col:
-            x = str(x)
-            try:
-                if is_fixed_pt(x):
-                    a, b = str(x).split(".")
-                    A, B = max(A, len(a)), max(B, len(b))
-            except ValueError:
-                pass
+    # Find max nInt, nDec
+    nInt = nDec = -1
+    for x in col:
+        ints, decs = split_decimal(x)
+        if decs:
+            nInt = max(nInt, len(ints))
+            if decs != "int":
+                nDec = max(nDec, len(decs))
 
-        # Format entries. Floats get aligned on point.
-        def frmt(x):
-            if x is None:
-                return missingval
-            x = str(x)
-            try:
-                if is_fixed_pt(x):
-                    a, b = str(x).split(".")
-                    a, b = a.rjust(A, pad), b.ljust(B, pad)
-                    x = f"{a}.{b}"
-            except ValueError:
-                pass
-            return x
+    # Format entries. Floats get aligned on point.
+    def frmt(x):
+        if x is None:
+            return missingval
+        ints, decs = split_decimal(x)
+        x = f"{ints.rjust(nInt, pad)}"
+        if decs == "int":
+            if nDec >= 0:
+                x += pad + pad*nDec
+        elif decs:
+            x += "." + f"{decs.ljust(nDec, pad)}"
+        else:
+            x = ints
+        return x
 
     # Format
-    col = [str(frmt(x)) for x in col]
+    col = [frmt(x) for x in col]
     # Find max width
     Max = max(len(x) for x in col)
     # Right-justify
