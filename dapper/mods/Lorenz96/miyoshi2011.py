@@ -34,10 +34,10 @@ HMM = modelling.HiddenMarkovModel(
 # Suggested tuning
 ####################
 
-# Reproduce Miyoshi Figure 5               # rmse.a  rmse.land.a  rmse.ocean.a
-# ------------------------------------------------------------------------------
-# xps += LETKF(N=10,rot=False,
-#              infl=sqrt(1.015),loc_rad=3) # 2.1     0.38         2.9
+# Reproduce Miyoshi Figure 5
+# --------------------------------------------------------------------------
+# print(xps.tabulate_avrgs(["rmse.a", "rmse.land.a", "rmse.ocean.a"]))
+# xps += LETKF(N=10,rot=False, infl=sqrt(1.015),loc_rad=3) # 2.1 , 0.38, 2.9
 
 # It can be seen that Miyoshi's "Global RMSE"
 # is just the average of the land and ocean RMSE's,
