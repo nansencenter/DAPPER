@@ -53,3 +53,9 @@ def test_KS():
 def test_LV():
     from dapper.mods.LotkaVolterra import d2x_dtdx, dxdt, x0
     assert _allclose(dxdt, d2x_dtdx, x0)
+
+
+def test_VL20():
+    from dapper.mods.VL20 import model_instance
+    VL20 = model_instance(nX=18, F=10, G=10)
+    assert _allclose(VL20.dxdt, VL20.d2x_dtdx, VL20.x0)
