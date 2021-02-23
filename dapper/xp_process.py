@@ -791,20 +791,19 @@ class xpSpace(SparseSpace):
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
         """
-        def align_subcols(rows, cc, subcols, h2):
+        def make_cols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
             # Define subcol formats
             if subcols:
                 templ = "{val} ±{prec}"
-                if axes['optim'] is not None:
-                    templ += " *{tuned_coord}"
-                elif axes['mean'] is not None:
-                    templ += " {nFail} {nSuccess}"
+                templ += "" if axes['optim'] is None else " *{tuned_coord}"
+                templ += "" if  axes['mean'] is None else " {nFail} {nSuccess}"  # noqa
                 aligns = dict(prec="<", tuned_coord="<")
                 labels = dict(val=statkey, prec="1σ",
-                              tuned_coord=axes["optim"], nFail="☠", nSuccess="✓")
+                              tuned_coord=axes["optim"],
+                              nFail="☠", nSuccess="✓")
 
-            def format_(column):
+            def align(column):
                 col = unpack_uqs(column, decimals)
                 if subcols:
                     for key in list(col):
@@ -834,7 +833,7 @@ class xpSpace(SparseSpace):
 
             # Format column
             for j, (col_coord, column) in enumerate(zip(cc, columns)):
-                col = format_(column)
+                col = align(column)
                 if h2:
                     col = super_header(col_coord, j, col)
                 columns[j] = col
@@ -869,7 +868,7 @@ class xpSpace(SparseSpace):
                 rows.insert(0, [f"{table.axes}"] + [repr(c) for c in cc])
             else:  # ********************** Elegant table.
                 h2 = "\n" if len(cc) > 1 else ""  # do column-super-header
-                rows = align_subcols(rows, cc, subcols, h2)
+                rows = make_cols(rows, cc, subcols, h2)
 
                 # Make and prepend left-side table
                 # - It's prettier if row_keys don't have unnecessary cols.
