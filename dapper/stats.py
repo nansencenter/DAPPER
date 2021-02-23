@@ -586,8 +586,7 @@ def unpack_uqs(uq_list, decimals=None):
         Used for the columns "val" and "prec", and only these.
         Default: `None`. In this case, the formatting is left to the `uq`s.
     """
-    def frmt(uq):
-        """Format (possibly convert to str) attrs of uq."""
+    def format_attrs(uq):
         # val/prec: round
         if decimals is None:
             v, p = str(uq).split(" ±")
@@ -606,17 +605,17 @@ def unpack_uqs(uq_list, decimals=None):
         keys = vars(next(uq for uq in uq_list if uq is not None))
     except StopIteration:
         keys = ["val"]  # TODO 3: validate
-    arr = {c: [None]*len(uq_list) for c in keys}
+    cols = {c: [None]*len(uq_list) for c in keys}
 
     # Fill
     for i, uq in enumerate(uq_list):
         if uq is None:
             continue
-        uq = frmt(deepcopy(uq))
-        for col in arr:
-            arr[col][i] = getattr(uq, col)
+        uq = format_attrs(deepcopy(uq))
+        for c in cols:
+            cols[c][i] = getattr(uq, c)
 
-    return arr
+    return cols
 
 
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
