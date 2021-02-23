@@ -28,9 +28,6 @@ import dapper as dpr
 
 __pdoc__ = {}
 
-# Enable breakpoints
-DEBUG = False
-
 if "--replace" in sys.argv:
     replacements = []
 
@@ -53,11 +50,14 @@ def backtrack_until_finding(substr, lineno):
 
 orig_code = open(__file__, "r").readlines()
 
+# Enable breakpoints
+_debug = "pytest" not in sys.modules and "--replace" not in sys.argv
+
 
 # https://stackoverflow.com/a/22434594
 def cap_stdout(fun, *args, **kwargs):
     """Capture stdout."""
-    if DEBUG:
+    if _debug:
         fun(*args, **kwargs)
     else:
         with io.StringIO() as stringbuf, redirect_stdout(stringbuf):
@@ -82,7 +82,7 @@ def gen_test_set(xp_dict, *args, **kwargs):
     if "--replace" in sys.argv:
         replacements.append(_Replacement(output.splitlines(True), nOpen, nClose))
 
-    elif not DEBUG:  # Generate & register tests
+    elif not _debug:  # Generate & register tests
 
         # Split string into tables
         lineno = nOpen + 1
