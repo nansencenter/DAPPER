@@ -476,7 +476,7 @@ def plot_rank_histogram(stats):
         hasattr(stats, 'rh') and \
         not all(stats.rh.a[-1] == array(np.nan).astype(int))
 
-    fig, ax = freshfig(24, (6, 3), loc="3313")
+    fig, ax = freshfig(24, figsize=(6, 3))
     ax.set_title('(Mean of marginal) rank histogram (_a)')
     ax.set_ylabel('Freq. of occurence\n (of truth in interval n)')
     ax.set_xlabel('ensemble member index (n)')

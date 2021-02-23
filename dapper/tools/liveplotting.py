@@ -257,7 +257,8 @@ class sliding_diagnostics:
 
         nAx = len(styles)
         GS = {'left': 0.125, 'right': 0.76}
-        fig, axs = freshfig(fignum, (5, 1+nAx), nrows=nAx, sharex=True, gridspec_kw=GS)
+        fig, axs = freshfig(fignum, figsize=(5, 1+nAx),
+                            nrows=nAx, sharex=True, gridspec_kw=GS)
 
         axs[0].set_title("Diagnostics")
         for style, ax in zip(styles, axs):
@@ -445,7 +446,7 @@ class weight_histogram:
         if not hasattr(stats, 'w'):
             self.is_active = False
             return
-        fig, ax = freshfig(fignum, (7, 3), gridspec_kw={'bottom': .15})
+        fig, ax = freshfig(fignum, figsize=(7, 3), gridspec_kw={'bottom': .15})
 
         ax.set_xscale('log')
         ax.set_xlabel('Weigth')
@@ -481,7 +482,7 @@ class spectral_errors:
     """Plots the (spatial-RMS) error as a functional of the SVD index."""
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
-        fig, ax = freshfig(fignum, (6, 3))
+        fig, ax = freshfig(fignum, figsize=(6, 3))
         ax.set_xlabel('Sing. value index')
         ax.set_yscale('log')
         self.init_incomplete = True
@@ -533,7 +534,7 @@ class correlations:
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {'height_ratios': [4, 1], 'hspace': 0.09, 'top': 0.95}
-        fig, (ax, ax2) = freshfig(fignum, (5, 6), nrows=2, gridspec_kw=GS)
+        fig, (ax, ax2) = freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
 
         if E is None and np.isnan(
                 P.diag if isinstance(P, CovMat) else P).all():
@@ -689,7 +690,7 @@ def sliding_marginals(
         Ny    = len(iiY)
 
         # Set up figure, axes
-        fig, axs = freshfig(fignum, (5, 7), nrows=Nx, sharex=True)
+        fig, axs = freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
         if Nx == 1:
             axs = [axs]
 
