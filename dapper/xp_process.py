@@ -797,19 +797,16 @@ class xpSpace(SparseSpace):
             subc = dict()
             subc['keys']     = ["val", "prec"]
             subc['headers']  = [statkey, '1σ']
-            subc['frmts']    = [None, None]
             subc['spaces']   = [' ±']  # last one gets appended below.
             subc['aligns']   = ['>', '<']  # 4 header -- matter gets decimal-aligned.
             if axes['optim'] is not None:
                 subc['keys']    += ["tuned_coord"]
                 subc['headers'] += [axes['optim']]
-                subc['frmts']   += [lambda x: tuple(a for a in x)]
                 subc['spaces']  += [' *']
                 subc['aligns']  += ['<']
             elif axes['mean'] is not None:
                 subc['keys']    += ["nFail", "nSuccess"]
                 subc['headers'] += ['☠', '✓']  # use width-1 symbols!
-                subc['frmts']   += [None, None]
                 subc['spaces']  += [' ', ' ']
                 subc['aligns']  += ['>', '>']
             subc['spaces'].append('')  # no space after last subcol
@@ -826,8 +823,8 @@ class xpSpace(SparseSpace):
                     column = unpack_uqs(column, decimals, subc["keys"])
                     # Tabulate subcolumns
                     subheaders = []
-                    for key, header, frmt, _, align in zip(*subc.values()):
-                        sc = align_col([header] + column[key], frmt=frmt, just=align)
+                    for key, header, _, align in zip(*subc.values()):
+                        sc = align_col([header] + column[key], just=align)
                         column[key] = sc[1:]
                         subheaders += [sc[0]]
                     # Join, using `spaces`:

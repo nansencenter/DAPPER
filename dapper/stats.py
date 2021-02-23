@@ -600,8 +600,12 @@ def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
             v, c = np.round([uq.val, uq.prec], decimals)
         arr["val"][i], arr["prec"][i] = v, c
 
+        # Column: tuned_coord: convert to tuple
+        if "tuned_coord" in cols:
+            arr["tuned_coord"][i] = tuple(a for a in uq.tuned_coord)
+
         # Columns: others
-        for col in struct_tools.complement(cols, ["val", "prec"]):
+        for col in struct_tools.complement(cols, ["val", "prec", "tuned_coord"]):
             try:
                 arr[col][i] = getattr(uq, col)
             except AttributeError:
