@@ -1,7 +1,6 @@
 """Stats computation for the assessment of DA methods."""
 
 import warnings
-from copy import deepcopy
 
 import numpy as np
 import scipy.linalg as sla
@@ -585,7 +584,8 @@ def align_col(col, pad='␣', missingval='', just=">"):
 def unpack_uqs(uq_list, decimals=None):
     """Convert list of `uq`s into dict of lists (of equal-length) of attributes.
 
-    The attributes are obtained by `vars(uq)`.
+    The attributes are obtained by `vars(uq)`,
+    and may get formatted somehow (e.g. cast to strings) in the output.
 
     If `uq` is `None`, then `None` is inserted in each list.
     Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
@@ -600,34 +600,36 @@ def unpack_uqs(uq_list, decimals=None):
         Used for (only) the columns "val" and "prec".
         Default: `None`. In this case, the formatting is left to the `uq`s.
     """
-    def format_attrs(uq):
+    def frmt(uq):
+        attrs = vars(uq).copy()
+
         # val/prec: round
         if decimals is None:
             v, p = str(uq).split(" ±")
         else:
-            v, p = np.round([uq.val, uq.prec], decimals)
-        uq.val, uq.prec = v, p
+            frmt = "%%.%df" % decimals
+            v, p = frmt % uq.val, frmt % uq.prec
+        attrs["val"], attrs["prec"] = v, p
+
         # tuned_coord: convert to tuple
         try:
-            uq.tuned_coord = tuple(a for a in uq.tuned_coord)
+            attrs["tuned_coord"] = tuple(a for a in uq.tuned_coord)
         except AttributeError:
             pass
-        return uq
+        return attrs
 
-    # Allocate
-    try:
-        keys = vars(next(uq for uq in uq_list if uq is not None))
-    except StopIteration:
-        keys = ["val"]  # TODO 3: validate
-    cols = {c: [None]*len(uq_list) for c in keys}
-
-    # Fill
+    cols = {}
     for i, uq in enumerate(uq_list):
-        if uq is None:
-            continue
-        uq = format_attrs(deepcopy(uq))
-        for c in cols:
-            cols[c][i] = getattr(uq, c)
+        if uq is not None:
+            # Format
+            attrs = frmt(uq)
+            # Insert attrs as a "row" in the `cols`:
+            for k in attrs:
+                # Init column
+                if k not in cols:
+                    cols[k] = [None]*len(uq_list)
+                # Insert element
+                cols[k][i] = attrs[k]
 
     return cols
 
