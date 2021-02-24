@@ -1102,7 +1102,7 @@ def spatial1d(
         ii, wrap = viz.setup_wrapping(M, p.periodicity)
 
         # Set up figure, axes
-        fig, ax = freshfig(fignum, (8, 5))
+        fig, ax = freshfig(fignum, figsize=(8, 5))
         fig.suptitle("1d amplitude plot")
 
         # Nans
@@ -1191,7 +1191,7 @@ def spatial2d(
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {'left': 0.125-0.04, 'right': 0.9-0.04}
-        fig, axs = freshfig(fignum, (6, 6),
+        fig, axs = freshfig(fignum, figsize=(6, 6),
                             nrows=2, ncols=2, sharex=True, sharey=True, gridspec_kw=GS)
 
         for ax in axs.flatten():
