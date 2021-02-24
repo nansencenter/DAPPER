@@ -697,7 +697,7 @@ def sliding_marginals(
         # Tune plots
         axs[0].set_title("Marginal time series")
         for ix, (m, ax) in enumerate(zip(DimsX, axs)):
-            ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:, m]), 1/p.zoomy))
+            # ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:, m]), 1/p.zoomy))
             if not p.labels:
                 ax.set_ylabel("$x_{%d}$" % m)
             else:
@@ -768,9 +768,9 @@ def sliding_marginals(
             for ix, (_m, iy, ax) in enumerate(zip(DimsX, DimsY, axs)):
                 sliding_xlim(ax, d.t, T_lag, True)
                 if True:
-                    h.x[ix]   .set_data(d.t, d.x[:, ix])
+                    h.x[ix]    .set_data(d.t, d.x[:, ix])
                 if iy != None:
-                    h.y[iy]   .set_data(d.t, d.y[:, iy])
+                    h.y[iy]    .set_data(d.t, d.y[:, iy])
                 if 'mu' in d:
                     h.mu[ix]   .set_data(d.t, d.mu[:, ix])
                 if 's' in d:
@@ -779,6 +779,19 @@ def sliding_marginals(
                     [h.E[ix][n].set_data(d.t, d.E[:, n, ix]) for n in range(len(E))]
                 if 'E' in d:
                     update_alpha(key, stats, h.E[ix])
+
+                # TODO 3: fixup. This might be slow?
+                # In any case, it is very far from tested.
+                # Also, relim'iting all of the time is distracting.
+                # Use d_ylim?
+                if 'E' in d:
+                    lims = d.E
+                elif 'mu' in d:
+                    lims = d.mu
+                lims = np.array(viz.xtrema(lims[..., ix]))
+                if lims[0] == lims[1]:
+                    lims += [-.5, +.5]
+                ax.set_ylim(*viz.stretch(*lims, 1/p.zoomy))
 
             return
         return update
