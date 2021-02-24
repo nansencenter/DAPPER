@@ -119,8 +119,9 @@ def run_experiment(xp, label, savedir, HMM,
         else:
             raise ERR
 
-    # Clear any references to mpl (for pickling) within stats
-    delattr(xp.stats, "LP_instance")
+    # Clear references to mpl (for pickling purposes)
+    if hasattr(xp.stats, "LP_instance"):
+        del xp.stats.LP_instance
 
     # AVERAGE
     xp.stats.average_in_time(free=free)
