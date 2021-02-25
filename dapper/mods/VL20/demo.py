@@ -15,7 +15,7 @@ simulator = modelling.with_recursion(step, prog="Simulating")
 x0 = np.random.rand(72)
 
 dt = 0.05
-xx = simulator(x0, k=22000, t0=0, dt=dt)
+xx = simulator(x0, k=2200, t0=0, dt=dt)
 
 plt.figure(1)
 plt.clf()

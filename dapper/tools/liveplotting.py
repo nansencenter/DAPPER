@@ -257,7 +257,8 @@ class sliding_diagnostics:
 
         nAx = len(styles)
         GS = {'left': 0.125, 'right': 0.76}
-        fig, axs = freshfig(fignum, (5, 1+nAx), nrows=nAx, sharex=True, gridspec_kw=GS)
+        fig, axs = freshfig(fignum, figsize=(5, 1+nAx),
+                            nrows=nAx, sharex=True, gridspec_kw=GS)
 
         axs[0].set_title("Diagnostics")
         for style, ax in zip(styles, axs):
@@ -445,7 +446,7 @@ class weight_histogram:
         if not hasattr(stats, 'w'):
             self.is_active = False
             return
-        fig, ax = freshfig(fignum, (7, 3), gridspec_kw={'bottom': .15})
+        fig, ax = freshfig(fignum, figsize=(7, 3), gridspec_kw={'bottom': .15})
 
         ax.set_xscale('log')
         ax.set_xlabel('Weigth')
@@ -481,7 +482,7 @@ class spectral_errors:
     """Plots the (spatial-RMS) error as a functional of the SVD index."""
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
-        fig, ax = freshfig(fignum, (6, 3))
+        fig, ax = freshfig(fignum, figsize=(6, 3))
         ax.set_xlabel('Sing. value index')
         ax.set_yscale('log')
         self.init_incomplete = True
@@ -533,7 +534,7 @@ class correlations:
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {'height_ratios': [4, 1], 'hspace': 0.09, 'top': 0.95}
-        fig, (ax, ax2) = freshfig(fignum, (5, 6), nrows=2, gridspec_kw=GS)
+        fig, (ax, ax2) = freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
 
         if E is None and np.isnan(
                 P.diag if isinstance(P, CovMat) else P).all():
@@ -689,14 +690,14 @@ def sliding_marginals(
         Ny    = len(iiY)
 
         # Set up figure, axes
-        fig, axs = freshfig(fignum, (5, 7), nrows=Nx, sharex=True)
+        fig, axs = freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
         if Nx == 1:
             axs = [axs]
 
         # Tune plots
         axs[0].set_title("Marginal time series")
         for ix, (m, ax) in enumerate(zip(DimsX, axs)):
-            ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:, m]), 1/p.zoomy))
+            # ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:, m]), 1/p.zoomy))
             if not p.labels:
                 ax.set_ylabel("$x_{%d}$" % m)
             else:
@@ -767,9 +768,9 @@ def sliding_marginals(
             for ix, (_m, iy, ax) in enumerate(zip(DimsX, DimsY, axs)):
                 sliding_xlim(ax, d.t, T_lag, True)
                 if True:
-                    h.x[ix]   .set_data(d.t, d.x[:, ix])
+                    h.x[ix]    .set_data(d.t, d.x[:, ix])
                 if iy != None:
-                    h.y[iy]   .set_data(d.t, d.y[:, iy])
+                    h.y[iy]    .set_data(d.t, d.y[:, iy])
                 if 'mu' in d:
                     h.mu[ix]   .set_data(d.t, d.mu[:, ix])
                 if 's' in d:
@@ -778,6 +779,19 @@ def sliding_marginals(
                     [h.E[ix][n].set_data(d.t, d.E[:, n, ix]) for n in range(len(E))]
                 if 'E' in d:
                     update_alpha(key, stats, h.E[ix])
+
+                # TODO 3: fixup. This might be slow?
+                # In any case, it is very far from tested.
+                # Also, relim'iting all of the time is distracting.
+                # Use d_ylim?
+                if 'E' in d:
+                    lims = d.E
+                elif 'mu' in d:
+                    lims = d.mu
+                lims = np.array(viz.xtrema(lims[..., ix]))
+                if lims[0] == lims[1]:
+                    lims += [-.5, +.5]
+                ax.set_ylim(*viz.stretch(*lims, 1/p.zoomy))
 
             return
         return update
@@ -1101,7 +1115,7 @@ def spatial1d(
         ii, wrap = viz.setup_wrapping(M, p.periodicity)
 
         # Set up figure, axes
-        fig, ax = freshfig(fignum, (8, 5))
+        fig, ax = freshfig(fignum, figsize=(8, 5))
         fig.suptitle("1d amplitude plot")
 
         # Nans
@@ -1190,7 +1204,7 @@ def spatial2d(
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {'left': 0.125-0.04, 'right': 0.9-0.04}
-        fig, axs = freshfig(fignum, (6, 6),
+        fig, axs = freshfig(fignum, figsize=(6, 6),
                             nrows=2, ncols=2, sharex=True, sharey=True, gridspec_kw=GS)
 
         for ax in axs.flatten():

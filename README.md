@@ -181,10 +181,10 @@ LotkaVolterra        | No  | Yes   | No    | 0d        | 5 *       | 1      | Wi
 Lorenz63             | No  | Yes   | "Yes" | 0d        | 3         | 2      | Sakov
 Lorenz84             | No  | Yes   | No    | 0d        | 3         | 2      | Raanes
 Lorenz96             | No  | Yes   | No    | 1d        | 40 *      | 13     | Raanes
+Vissio-Lucarino 20   | No  | Yes   | No    | 1d        | 36 *      | 10     | Yumeng
 LorenzUV             | No  | Yes   | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
 Kuramoto-Sivashinsky | No  | Yes   | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
 Quasi-Geost (QG)     | No  | No    | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov
-Vissio-Lucarino 20   | No  | Yes   | No    | 1d        | 36 *      | 10     | Yumeng
 
 - `*`: Flexible; set as necessary
 - `**`: Tangent Linear Model included?
@@ -282,10 +282,10 @@ in the development of DAPPER.
 ## Contributors
 
 Patrick N. Raanes,
+Yumeng Chen,
 Colin Grudzien,
 Maxime Tondeur,
-Remy Dubois,
-Yumeng Chen
+Remy Dubois
 
 If you use this software in a publication, please cite as follows.
 
@@ -304,8 +304,9 @@ If you use this software in a publication, please cite as follows.
 
 DAPPER is developed and maintained at
 NORCE (Norwegian Research Institute)
-and the Nansen Environmental and Remote Sensing Center in collaboration with University of Reading and 
-UK National Centre for Earth Observation (NCEO)
+and the Nansen Environmental and Remote Sensing Center (NERSC),
+in collaboration with the University of Reading
+and the UK National Centre for Earth Observation (NCEO)
 
 ![NORCE](./docs/imgs/norce-logo.png)
 ![NERSC](./docs/imgs/nansen-logo.png)
