@@ -19,8 +19,7 @@ https://github.com/nansencenter/DAPPER#highlights
 
 [1]: Asch, Bocquet, Nodet:
      "Data Assimilation: Methods, Algorithms, and Applications",
-     https://books.google.no/books?id=FtDZDQAAQBAJ&q=figure+6.6 .
-     Alternatively, see figure 5.7 of
+     Figure 6.6. Alternatively, see figure 5.7 of
      http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf .
 """
 
