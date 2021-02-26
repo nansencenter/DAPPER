@@ -520,7 +520,7 @@ def plot_rank_histogram(stats):
         hasattr(stats, &#39;rh&#39;) and \
         not all(stats.rh.a[-1] == array(np.nan).astype(int))
 
-    fig, ax = freshfig(24, (6, 3), loc=&#34;3313&#34;)
+    fig, ax = freshfig(24, figsize=(6, 3))
     ax.set_title(&#39;(Mean of marginal) rank histogram (_a)&#39;)
     ax.set_ylabel(&#39;Freq. of occurence\n (of truth in interval n)&#39;)
     ax.set_xlabel(&#39;ensemble member index (n)&#39;)
@@ -1358,7 +1358,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
         hasattr(stats, &#39;rh&#39;) and \
         not all(stats.rh.a[-1] == array(np.nan).astype(int))
 
-    fig, ax = freshfig(24, (6, 3), loc=&#34;3313&#34;)
+    fig, ax = freshfig(24, figsize=(6, 3))
     ax.set_title(&#39;(Mean of marginal) rank histogram (_a)&#39;)
     ax.set_ylabel(&#39;Freq. of occurence\n (of truth in interval n)&#39;)
     ax.set_xlabel(&#39;ensemble member index (n)&#39;)

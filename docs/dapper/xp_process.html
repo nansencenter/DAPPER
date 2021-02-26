@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L0-L1067" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L0-L1052" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably `xpSpace`) for processing and presenting experiment data.&#34;&#34;&#34;
 
@@ -805,13 +805,14 @@ class xpSpace(SparseSpace):
             1σ confidence interval, and potentially some other stuff.
         axes: dict
             Allots (maps) each role to a set of axis of the `xpSpace`.
+            Example:
 
             &gt;&gt;&gt; dict(outer=&#39;da_method&#39;, inner=&#39;N&#39;, mean=&#39;seed&#39;,  # doctest: +SKIP
             ...      optim=(&#39;infl&#39;,&#39;loc_rad&#39;))
 
             - Herein, the &#34;role&#34; `outer` should list the axes/attributes
             used to define the splitting of the results into *separate tables*:
-            one table for each distinct (combination) of attributes.
+            one table for each distinct combination of attributes.
             - Similarly , the role `inner` determines which attributes
             split a table into its columns.
             - `mean` lists the attributes used over which the mean is taken.
@@ -835,70 +836,53 @@ class xpSpace(SparseSpace):
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
         &#34;&#34;&#34;
-        def align_subcols(rows, cc, subcols, h2):
+        def make_cols(rows, cc, subcols, h2):
             &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
             # Define subcol formats
-            subc = dict()
-            subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;prec&#34;]
-            subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
-            subc[&#39;frmts&#39;]    = [None, None]
-            subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
-            subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
-            if axes[&#39;optim&#39;] is not None:
-                subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
-                subc[&#39;headers&#39;] += [axes[&#39;optim&#39;]]
-                subc[&#39;frmts&#39;]   += [lambda x: tuple(a for a in x)]
-                subc[&#39;spaces&#39;]  += [&#39; *&#39;]
-                subc[&#39;aligns&#39;]  += [&#39;&lt;&#39;]
-            elif axes[&#39;mean&#39;] is not None:
-                subc[&#39;keys&#39;]    += [&#34;nFail&#34;, &#34;nSuccess&#34;]
-                subc[&#39;headers&#39;] += [&#39;☠&#39;, &#39;✓&#39;]  # use width-1 symbols!
-                subc[&#39;frmts&#39;]   += [None, None]
-                subc[&#39;spaces&#39;]  += [&#39; &#39;, &#39; &#39;]
-                subc[&#39;aligns&#39;]  += [&#39;&gt;&#39;, &#39;&gt;&#39;]
-            subc[&#39;spaces&#39;].append(&#39;&#39;)  # no space after last subcol
-            template = &#39;{}&#39; + &#39;{}&#39;.join(subc[&#39;spaces&#39;])
+            if subcols:
+                templ = &#34;{val} ±{prec}&#34;
+                templ += &#34;&#34; if axes[&#39;optim&#39;] is None else &#34; *{tuned_coord}&#34;
+                templ += &#34;&#34; if  axes[&#39;mean&#39;] is None else &#34; {nFail} {nSuccess}&#34;  # noqa
+                aligns = dict(prec=&#34;&lt;&#34;, tuned_coord=&#34;&lt;&#34;)
+                labels = dict(val=statkey, prec=&#34;1σ&#34;,
+                              tuned_coord=axes[&#34;optim&#34;],
+                              nFail=&#34;☠&#34;, nSuccess=&#34;✓&#34;)
+
+            def align(column):
+                col = unpack_uqs(column, decimals)
+                if subcols:
+                    for key in list(col):
+                        if key in templ:
+                            subcolmn = [labels.get(key, key)] + col[key]
+                            col[key] = align_col(subcolmn, just=aligns.get(key, &#34;&gt;&#34;))
+                        else:
+                            del col[key]
+                    col = [templ.format(**row) for row in struct_tools.transps(col)]
+                else:
+                    col = align_col([statkey] + col[&#34;val&#34;])
+                return col
+
+            def super_header(col_coord, idx, col):
+                header, matter = col[0], col[1:]
+                if idx:
+                    super_header = str(col_coord)
+                else:
+                    super_header = repr(col_coord)
+                width = len(header)  # += 1 if using unicode chars like ✔️
+                super_header = super_header.center(width, &#34;_&#34;)
+                header = super_header + &#34;\n&#34; + header
+                return [header] + matter
 
             # Transpose
             columns = [list(x) for x in zip(*rows)]
 
-            # Iterate over columns.
+            # Format column
             for j, (col_coord, column) in enumerate(zip(cc, columns)):
+                col = align(column)
+                if h2:
+                    col = super_header(col_coord, j, col)
+                columns[j] = col
 
-                # Tabulate columns
-                if subcols:
-                    column = unpack_uqs(column, decimals, subc[&#34;keys&#34;])
-                    # Tabulate subcolumns
-                    subheaders = []
-                    for key, header, frmt, _, align in zip(*subc.values()):
-                        column[key] = align_col(
-                            column[key], header, frmt=frmt)[1:]
-                        L = len(column[-1][key])
-                        if align == &#39;&lt;&#39;:
-                            subheaders += [str(header).ljust(L)]
-                        else:
-                            subheaders += [str(header).rjust(L)]
-                    # Join subcolumns:
-                    matter = [
-                        template.format(*[row[k] for k in subc[&#39;keys&#39;]])
-                        for row in column
-                    ]
-                    header = template.format(*subheaders)
-                else:
-                    column = unpack_uqs(column, decimals)[&#34;val&#34;]
-                    column = align_col(column, statkey)
-                    header, matter = column[0], column[1:]
-
-                if h2:  # Do super_header
-                    if j:
-                        super_header = str(col_coord)
-                    else:
-                        super_header = repr(col_coord)
-                    width = len(header)  # += 1 if using unicode chars like ✔️
-                    super_header = super_header.center(width, &#34;_&#34;)
-                    header = super_header + &#34;\n&#34; + header
-
-                columns[j] = [header]+matter
             # Un-transpose
             rows = [list(x) for x in zip(*columns)]
 
@@ -925,11 +909,11 @@ class xpSpace(SparseSpace):
             if False:  # ****************** Simple (for debugging) table
                 for i, (row_coord, row) in enumerate(zip(table, rows)):
                     row_key = &#34;, &#34;.join(str(v) for v in row_coord)
-                    rows[i] = [row_key]         + row
+                    rows[i] = [row_key] + row
                 rows.insert(0, [f&#34;{table.axes}&#34;] + [repr(c) for c in cc])
             else:  # ********************** Elegant table.
                 h2 = &#34;\n&#34; if len(cc) &gt; 1 else &#34;&#34;  # do column-super-header
-                rows = align_subcols(rows, cc, subcols, h2)
+                rows = make_cols(rows, cc, subcols, h2)
 
                 # Make and prepend left-side table
                 # - It&#39;s prettier if row_keys don&#39;t have unnecessary cols.
@@ -955,7 +939,8 @@ class xpSpace(SparseSpace):
                 table_title = &#34;Table for &#34; + repr(table_coord)
                 print(color_text(table_title, colorama.Back.YELLOW))
             headers, *rows = rows
-            print(tabulate(rows, headers).replace(&#39;␣&#39;, &#39; &#39;))
+            t = tabulate(rows, headers).replace(&#39;␣&#39;, &#39; &#39;)
+            print(t)
 
     def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,
@@ -1480,7 +1465,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L1034-L1068" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L1019-L1053" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def default_fig_adjustments(tables):
     &#34;&#34;&#34;Beautify. These settings do not generalize well.&#34;&#34;&#34;
@@ -2107,7 +2092,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L511-L1031" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L511-L1016" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpSpace(SparseSpace):
     &#34;&#34;&#34;Functionality to facilitate working with `xps` and their results.
@@ -2362,13 +2347,14 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
             1σ confidence interval, and potentially some other stuff.
         axes: dict
             Allots (maps) each role to a set of axis of the `xpSpace`.
+            Example:
 
             &gt;&gt;&gt; dict(outer=&#39;da_method&#39;, inner=&#39;N&#39;, mean=&#39;seed&#39;,  # doctest: +SKIP
             ...      optim=(&#39;infl&#39;,&#39;loc_rad&#39;))
 
             - Herein, the &#34;role&#34; `outer` should list the axes/attributes
             used to define the splitting of the results into *separate tables*:
-            one table for each distinct (combination) of attributes.
+            one table for each distinct combination of attributes.
             - Similarly , the role `inner` determines which attributes
             split a table into its columns.
             - `mean` lists the attributes used over which the mean is taken.
@@ -2392,70 +2378,53 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
         &#34;&#34;&#34;
-        def align_subcols(rows, cc, subcols, h2):
+        def make_cols(rows, cc, subcols, h2):
             &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
             # Define subcol formats
-            subc = dict()
-            subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;prec&#34;]
-            subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
-            subc[&#39;frmts&#39;]    = [None, None]
-            subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
-            subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
-            if axes[&#39;optim&#39;] is not None:
-                subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
-                subc[&#39;headers&#39;] += [axes[&#39;optim&#39;]]
-                subc[&#39;frmts&#39;]   += [lambda x: tuple(a for a in x)]
-                subc[&#39;spaces&#39;]  += [&#39; *&#39;]
-                subc[&#39;aligns&#39;]  += [&#39;&lt;&#39;]
-            elif axes[&#39;mean&#39;] is not None:
-                subc[&#39;keys&#39;]    += [&#34;nFail&#34;, &#34;nSuccess&#34;]
-                subc[&#39;headers&#39;] += [&#39;☠&#39;, &#39;✓&#39;]  # use width-1 symbols!
-                subc[&#39;frmts&#39;]   += [None, None]
-                subc[&#39;spaces&#39;]  += [&#39; &#39;, &#39; &#39;]
-                subc[&#39;aligns&#39;]  += [&#39;&gt;&#39;, &#39;&gt;&#39;]
-            subc[&#39;spaces&#39;].append(&#39;&#39;)  # no space after last subcol
-            template = &#39;{}&#39; + &#39;{}&#39;.join(subc[&#39;spaces&#39;])
+            if subcols:
+                templ = &#34;{val} ±{prec}&#34;
+                templ += &#34;&#34; if axes[&#39;optim&#39;] is None else &#34; *{tuned_coord}&#34;
+                templ += &#34;&#34; if  axes[&#39;mean&#39;] is None else &#34; {nFail} {nSuccess}&#34;  # noqa
+                aligns = dict(prec=&#34;&lt;&#34;, tuned_coord=&#34;&lt;&#34;)
+                labels = dict(val=statkey, prec=&#34;1σ&#34;,
+                              tuned_coord=axes[&#34;optim&#34;],
+                              nFail=&#34;☠&#34;, nSuccess=&#34;✓&#34;)
+
+            def align(column):
+                col = unpack_uqs(column, decimals)
+                if subcols:
+                    for key in list(col):
+                        if key in templ:
+                            subcolmn = [labels.get(key, key)] + col[key]
+                            col[key] = align_col(subcolmn, just=aligns.get(key, &#34;&gt;&#34;))
+                        else:
+                            del col[key]
+                    col = [templ.format(**row) for row in struct_tools.transps(col)]
+                else:
+                    col = align_col([statkey] + col[&#34;val&#34;])
+                return col
+
+            def super_header(col_coord, idx, col):
+                header, matter = col[0], col[1:]
+                if idx:
+                    super_header = str(col_coord)
+                else:
+                    super_header = repr(col_coord)
+                width = len(header)  # += 1 if using unicode chars like ✔️
+                super_header = super_header.center(width, &#34;_&#34;)
+                header = super_header + &#34;\n&#34; + header
+                return [header] + matter
 
             # Transpose
             columns = [list(x) for x in zip(*rows)]
 
-            # Iterate over columns.
+            # Format column
             for j, (col_coord, column) in enumerate(zip(cc, columns)):
+                col = align(column)
+                if h2:
+                    col = super_header(col_coord, j, col)
+                columns[j] = col
 
-                # Tabulate columns
-                if subcols:
-                    column = unpack_uqs(column, decimals, subc[&#34;keys&#34;])
-                    # Tabulate subcolumns
-                    subheaders = []
-                    for key, header, frmt, _, align in zip(*subc.values()):
-                        column[key] = align_col(
-                            column[key], header, frmt=frmt)[1:]
-                        L = len(column[-1][key])
-                        if align == &#39;&lt;&#39;:
-                            subheaders += [str(header).ljust(L)]
-                        else:
-                            subheaders += [str(header).rjust(L)]
-                    # Join subcolumns:
-                    matter = [
-                        template.format(*[row[k] for k in subc[&#39;keys&#39;]])
-                        for row in column
-                    ]
-                    header = template.format(*subheaders)
-                else:
-                    column = unpack_uqs(column, decimals)[&#34;val&#34;]
-                    column = align_col(column, statkey)
-                    header, matter = column[0], column[1:]
-
-                if h2:  # Do super_header
-                    if j:
-                        super_header = str(col_coord)
-                    else:
-                        super_header = repr(col_coord)
-                    width = len(header)  # += 1 if using unicode chars like ✔️
-                    super_header = super_header.center(width, &#34;_&#34;)
-                    header = super_header + &#34;\n&#34; + header
-
-                columns[j] = [header]+matter
             # Un-transpose
             rows = [list(x) for x in zip(*columns)]
 
@@ -2482,11 +2451,11 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
             if False:  # ****************** Simple (for debugging) table
                 for i, (row_coord, row) in enumerate(zip(table, rows)):
                     row_key = &#34;, &#34;.join(str(v) for v in row_coord)
-                    rows[i] = [row_key]         + row
+                    rows[i] = [row_key] + row
                 rows.insert(0, [f&#34;{table.axes}&#34;] + [repr(c) for c in cc])
             else:  # ********************** Elegant table.
                 h2 = &#34;\n&#34; if len(cc) &gt; 1 else &#34;&#34;  # do column-super-header
-                rows = align_subcols(rows, cc, subcols, h2)
+                rows = make_cols(rows, cc, subcols, h2)
 
                 # Make and prepend left-side table
                 # - It&#39;s prettier if row_keys don&#39;t have unnecessary cols.
@@ -2512,7 +2481,8 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
                 table_title = &#34;Table for &#34; + repr(table_coord)
                 print(color_text(table_title, colorama.Back.YELLOW))
             headers, *rows = rows
-            print(tabulate(rows, headers).replace(&#39;␣&#39;, &#39; &#39;))
+            t = tabulate(rows, headers).replace(&#39;␣&#39;, &#39; &#39;)
+            print(t)
 
     def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,
@@ -2974,7 +2944,8 @@ when optimizing over tuning_axes.</p></div>
 1σ confidence interval, and potentially some other stuff.</dd>
 <dt><strong><code>axes</code></strong> :&ensp;<code>dict</code></dt>
 <dd>
-<p>Allots (maps) each role to a set of axis of the <code><a title="dapper.xp_process.xpSpace" href="#dapper.xp_process.xpSpace">xpSpace</a></code>.</p>
+<p>Allots (maps) each role to a set of axis of the <code><a title="dapper.xp_process.xpSpace" href="#dapper.xp_process.xpSpace">xpSpace</a></code>.
+Example:</p>
 <blockquote>
 <blockquote>
 <blockquote>
@@ -2988,7 +2959,7 @@ optim=('infl','loc_rad'))</p>
 <ul>
 <li>Herein, the "role" <code>outer</code> should list the axes/attributes
 used to define the splitting of the results into <em>separate tables</em>:
-one table for each distinct (combination) of attributes.</li>
+one table for each distinct combination of attributes.</li>
 <li>Similarly , the role <code>inner</code> determines which attributes
 split a table into its columns.</li>
 <li><code>mean</code> lists the attributes used over which the mean is taken.</li>
@@ -3023,7 +2994,7 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L751-L914" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L751-L899" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,  # noqa
           subcols=True, decimals=None):
@@ -3038,13 +3009,14 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
         1σ confidence interval, and potentially some other stuff.
     axes: dict
         Allots (maps) each role to a set of axis of the `xpSpace`.
+        Example:
 
         &gt;&gt;&gt; dict(outer=&#39;da_method&#39;, inner=&#39;N&#39;, mean=&#39;seed&#39;,  # doctest: +SKIP
         ...      optim=(&#39;infl&#39;,&#39;loc_rad&#39;))
 
         - Herein, the &#34;role&#34; `outer` should list the axes/attributes
         used to define the splitting of the results into *separate tables*:
-        one table for each distinct (combination) of attributes.
+        one table for each distinct combination of attributes.
         - Similarly , the role `inner` determines which attributes
         split a table into its columns.
         - `mean` lists the attributes used over which the mean is taken.
@@ -3068,70 +3040,53 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
         Number of decimals to print.
         If `None`, this is determined for each statistic by its uncertainty.
     &#34;&#34;&#34;
-    def align_subcols(rows, cc, subcols, h2):
+    def make_cols(rows, cc, subcols, h2):
         &#34;&#34;&#34;Subcolumns: align, justify, join.&#34;&#34;&#34;
         # Define subcol formats
-        subc = dict()
-        subc[&#39;keys&#39;]     = [&#34;val&#34;, &#34;prec&#34;]
-        subc[&#39;headers&#39;]  = [statkey, &#39;1σ&#39;]
-        subc[&#39;frmts&#39;]    = [None, None]
-        subc[&#39;spaces&#39;]   = [&#39; ±&#39;]  # last one gets appended below.
-        subc[&#39;aligns&#39;]   = [&#39;&gt;&#39;, &#39;&lt;&#39;]  # 4 header -- matter gets decimal-aligned.
-        if axes[&#39;optim&#39;] is not None:
-            subc[&#39;keys&#39;]    += [&#34;tuned_coord&#34;]
-            subc[&#39;headers&#39;] += [axes[&#39;optim&#39;]]
-            subc[&#39;frmts&#39;]   += [lambda x: tuple(a for a in x)]
-            subc[&#39;spaces&#39;]  += [&#39; *&#39;]
-            subc[&#39;aligns&#39;]  += [&#39;&lt;&#39;]
-        elif axes[&#39;mean&#39;] is not None:
-            subc[&#39;keys&#39;]    += [&#34;nFail&#34;, &#34;nSuccess&#34;]
-            subc[&#39;headers&#39;] += [&#39;☠&#39;, &#39;✓&#39;]  # use width-1 symbols!
-            subc[&#39;frmts&#39;]   += [None, None]
-            subc[&#39;spaces&#39;]  += [&#39; &#39;, &#39; &#39;]
-            subc[&#39;aligns&#39;]  += [&#39;&gt;&#39;, &#39;&gt;&#39;]
-        subc[&#39;spaces&#39;].append(&#39;&#39;)  # no space after last subcol
-        template = &#39;{}&#39; + &#39;{}&#39;.join(subc[&#39;spaces&#39;])
+        if subcols:
+            templ = &#34;{val} ±{prec}&#34;
+            templ += &#34;&#34; if axes[&#39;optim&#39;] is None else &#34; *{tuned_coord}&#34;
+            templ += &#34;&#34; if  axes[&#39;mean&#39;] is None else &#34; {nFail} {nSuccess}&#34;  # noqa
+            aligns = dict(prec=&#34;&lt;&#34;, tuned_coord=&#34;&lt;&#34;)
+            labels = dict(val=statkey, prec=&#34;1σ&#34;,
+                          tuned_coord=axes[&#34;optim&#34;],
+                          nFail=&#34;☠&#34;, nSuccess=&#34;✓&#34;)
+
+        def align(column):
+            col = unpack_uqs(column, decimals)
+            if subcols:
+                for key in list(col):
+                    if key in templ:
+                        subcolmn = [labels.get(key, key)] + col[key]
+                        col[key] = align_col(subcolmn, just=aligns.get(key, &#34;&gt;&#34;))
+                    else:
+                        del col[key]
+                col = [templ.format(**row) for row in struct_tools.transps(col)]
+            else:
+                col = align_col([statkey] + col[&#34;val&#34;])
+            return col
+
+        def super_header(col_coord, idx, col):
+            header, matter = col[0], col[1:]
+            if idx:
+                super_header = str(col_coord)
+            else:
+                super_header = repr(col_coord)
+            width = len(header)  # += 1 if using unicode chars like ✔️
+            super_header = super_header.center(width, &#34;_&#34;)
+            header = super_header + &#34;\n&#34; + header
+            return [header] + matter
 
         # Transpose
         columns = [list(x) for x in zip(*rows)]
 
-        # Iterate over columns.
+        # Format column
         for j, (col_coord, column) in enumerate(zip(cc, columns)):
+            col = align(column)
+            if h2:
+                col = super_header(col_coord, j, col)
+            columns[j] = col
 
-            # Tabulate columns
-            if subcols:
-                column = unpack_uqs(column, decimals, subc[&#34;keys&#34;])
-                # Tabulate subcolumns
-                subheaders = []
-                for key, header, frmt, _, align in zip(*subc.values()):
-                    column[key] = align_col(
-                        column[key], header, frmt=frmt)[1:]
-                    L = len(column[-1][key])
-                    if align == &#39;&lt;&#39;:
-                        subheaders += [str(header).ljust(L)]
-                    else:
-                        subheaders += [str(header).rjust(L)]
-                # Join subcolumns:
-                matter = [
-                    template.format(*[row[k] for k in subc[&#39;keys&#39;]])
-                    for row in column
-                ]
-                header = template.format(*subheaders)
-            else:
-                column = unpack_uqs(column, decimals)[&#34;val&#34;]
-                column = align_col(column, statkey)
-                header, matter = column[0], column[1:]
-
-            if h2:  # Do super_header
-                if j:
-                    super_header = str(col_coord)
-                else:
-                    super_header = repr(col_coord)
-                width = len(header)  # += 1 if using unicode chars like ✔️
-                super_header = super_header.center(width, &#34;_&#34;)
-                header = super_header + &#34;\n&#34; + header
-
-            columns[j] = [header]+matter
         # Un-transpose
         rows = [list(x) for x in zip(*columns)]
 
@@ -3158,11 +3113,11 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
         if False:  # ****************** Simple (for debugging) table
             for i, (row_coord, row) in enumerate(zip(table, rows)):
                 row_key = &#34;, &#34;.join(str(v) for v in row_coord)
-                rows[i] = [row_key]         + row
+                rows[i] = [row_key] + row
             rows.insert(0, [f&#34;{table.axes}&#34;] + [repr(c) for c in cc])
         else:  # ********************** Elegant table.
             h2 = &#34;\n&#34; if len(cc) &gt; 1 else &#34;&#34;  # do column-super-header
-            rows = align_subcols(rows, cc, subcols, h2)
+            rows = make_cols(rows, cc, subcols, h2)
 
             # Make and prepend left-side table
             # - It&#39;s prettier if row_keys don&#39;t have unnecessary cols.
@@ -3188,7 +3143,8 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
             table_title = &#34;Table for &#34; + repr(table_coord)
             print(color_text(table_title, colorama.Back.YELLOW))
         headers, *rows = rows
-        print(tabulate(rows, headers).replace(&#39;␣&#39;, &#39; &#39;))</code></pre>
+        t = tabulate(rows, headers).replace(&#39;␣&#39;, &#39; &#39;)
+        print(t)</code></pre>
 </details>
 </dd>
 <dt id="dapper.xp_process.xpSpace.plot"><code class="name flex">
@@ -3207,7 +3163,7 @@ This can be prevented by providing the figure axes through the <code>panels</cod
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L916-L1031" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L901-L1016" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
          fignum=None, figsize=None, panels=None,

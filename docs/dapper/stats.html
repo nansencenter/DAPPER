@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L747" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L777" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Stats computation for the assessment of DA methods.&#34;&#34;&#34;
 
@@ -556,99 +556,126 @@ def warn_zero_variance(err, flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using &#39;|&#39;) of attr and stats
 #  - ...
-def align_col(col, header, pad=&#39;␣&#39;, missingval=&#39;&#39;, frmt=None):
-    &#34;&#34;&#34;Format a single column, return as list.
+def align_col(col, pad=&#39;␣&#39;, missingval=&#39;&#39;, just=&#34;&gt;&#34;):
+    r&#34;&#34;&#34;Align column.
 
-    - Use tabulate() to get decimal point alignment.
-    - Inf and nan are handled individually so that they don&#39;t
-      align left of the decimal point (makes too wide columns).
-      Custom ``frmt`` also supported.
-    - Pad (on the right) each row so that the widths are equal.
+    Treats `int`s and fixed-point `float`/`str` especially, aligning on the point.
+
+    Example:
+    &gt;&gt;&gt; xx = [1, 1., 1.234, 12.34, 123.4, &#34;1.2e-3&#34;, None, np.nan, &#34;inf&#34;, (1, 2)]
+    &gt;&gt;&gt; print(*align_col(xx), sep=&#34;\n&#34;)
+    ␣␣1␣␣␣␣
+    ␣␣1.0␣␣
+    ␣␣1.234
+    ␣12.34␣
+    123.4␣␣
+    ␣1.2e-3
+    ␣␣␣␣␣␣␣
+    ␣␣␣␣nan
+    ␣␣␣␣inf
+    ␣(1, 2)
     &#34;&#34;&#34;
-    def preprocess(x):
+    def split_decimal(x):
+        x = str(x)
         try:
-            # Custom frmt supplied
-            if frmt is not None:
-                return frmt(x)
+            y = float(x)
+        except ValueError:
+            pass
+        else:
+            if np.isfinite(y) and (&#34;e&#34; not in x.lower()):
+                a, *b = x.split(&#34;.&#34;)
+                if b == []:
+                    b = &#34;int&#34;
+                else:
+                    b = b[0]
+                return a, b
+        return x, False
 
-            # Standard formatting
-            if x is None:
-                return missingval
-            elif np.isnan(x):
-                return &#34;NAX&#34;
-            elif x == -np.inf:
-                return &#34;-INX&#34;
-            elif x == np.inf:
-                return &#34;INX&#34;
-            return x  # leave formatting to tabulate()
+    # Find max nInt, nDec
+    nInt = nDec = -1
+    for x in col:
+        ints, decs = split_decimal(x)
+        if decs:
+            nInt = max(nInt, len(ints))
+            if decs != &#34;int&#34;:
+                nDec = max(nDec, len(decs))
 
-        except TypeError:
+    # Format entries. Floats get aligned on point.
+    def frmt(x):
+        if x is None:
             return missingval
+        ints, decs = split_decimal(x)
+        x = f&#34;{ints.rjust(nInt, pad)}&#34;
+        if decs == &#34;int&#34;:
+            if nDec &gt;= 0:
+                x += pad + pad*nDec
+        elif decs:
+            x += &#34;.&#34; + f&#34;{decs.ljust(nDec, pad)}&#34;
+        else:
+            x = ints
+        return x
 
-    def postprocess(s):
-        s = s.replace(&#34;NAX&#34;, &#34;nan&#34;)
-        s = s.replace(&#34;INX&#34;, &#34;inf&#34;)
-        return s
-
-    # Make text column, aligned
-    col = [[preprocess(x)] for x in col]
-    col = tabulate(col, [header], &#39;plain&#39;)
-    col = col.split(&#34;\n&#34;)  # NOTE: dont use splitlines (removes empty lines)
-
-    # Undo nan/inf treatment
-    col = [postprocess(s) for s in col]
-
-    # Pad on the right, for equal widths
-    mxW = max(len(s) for s in col)
-    col = [s.ljust(mxW) for s in col]
-
-    # Use pad char. on BOTH left/right, to prevent trunc. by later tabulate().
-    col = [s.replace(&#34; &#34;, pad) for s in col]
-
+    # Format
+    col = [frmt(x) for x in col]
+    # Find max width
+    Max = max(len(x) for x in col)
+    # Right-justify
+    shift = str.rjust if just == &#34;&gt;&#34; else str.ljust
+    col = [shift(x, Max, pad) for x in col]
     return col
 
 
-def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;prec&#34;)):
-    &#34;&#34;&#34;Make `uq_list` into array with named columns of attributes.
+def unpack_uqs(uq_list, decimals=None):
+    &#34;&#34;&#34;Convert list of `uq`s into dict of lists (of equal-length) of attributes.
 
-    None is inserted (in each col) if `uq` itself is None.
+    The attributes are obtained by `vars(uq)`,
+    and may get formatted somehow (e.g. cast to strings) in the output.
+
+    If `uq` is `None`, then `None` is inserted in each list.
+    Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
 
     Parameters
     ----------
-    uqlist: list
-        List of objects.
+    uq_list: list
+        List of `uq`s.
 
     decimals: int
         Desired number of decimals.
-        Used for the columns &#34;val&#34; and &#34;prec&#34;, and only these.
-        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
-
-    cols: tuple[str]
-        Names of columns to extract.
+        Used for (only) the columns &#34;val&#34; and &#34;prec&#34;.
+        Default: `None`. In this case, the formatting is left to the `uq`s.
     &#34;&#34;&#34;
-    def unpack1(arr, i, uq):
-        if uq is None:
-            return
-        # Columns: val/prec
+    def frmt(uq):
+        attrs = vars(uq).copy()
+
+        # val/prec: round
         if decimals is None:
-            v, c = uq.round()
+            v, p = str(uq).split(&#34; ±&#34;)
         else:
-            v, c = np.round([uq.val, uq.prec], decimals)
-        arr[&#34;val&#34;][i], arr[&#34;prec&#34;][i] = v, c
-        # Columns: others
-        for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;prec&#34;]):
-            try:
-                arr[col][i] = getattr(uq, col)
-            except AttributeError:
-                pass
+            frmt = &#34;%%.%df&#34; % decimals
+            v, p = frmt % uq.val, frmt % uq.prec
+        attrs[&#34;val&#34;], attrs[&#34;prec&#34;] = v, p
 
-    # np.array with named columns. &#34;O&#34; =&gt; allow storing None&#39;s.
-    dtypes = np.dtype([(c, &#34;O&#34;) for c in cols])
-    arr = np.full_like(uq_list, dtype=dtypes, fill_value=None)
+        # tuned_coord: convert to tuple
+        try:
+            attrs[&#34;tuned_coord&#34;] = tuple(a for a in uq.tuned_coord)
+        except AttributeError:
+            pass
+        return attrs
+
+    cols = {}
     for i, uq in enumerate(uq_list):
-        unpack1(arr, i, uq)
+        if uq is not None:
+            # Format
+            attrs = frmt(uq)
+            # Insert attrs as a &#34;row&#34; in the `cols`:
+            for k in attrs:
+                # Init column
+                if k not in cols:
+                    cols[k] = [None]*len(uq_list)
+                # Insert element
+                cols[k][i] = attrs[k]
 
-    return arr
+    return cols
 
 
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
@@ -658,12 +685,15 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
 
     columns = {}
     for stat in statkeys:
-        column = unpack_uqs(
-            [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals  = align_col(column[&#34;val&#34;], stat)
-        confs = align_col(column[&#34;prec&#34;], &#39;1σ&#39;)
-        headr = vals[0]+&#39;  1σ&#39;
-        mattr = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
+        column = [getattr(a, stat, None) for a in avrgs_list]
+        column = unpack_uqs(column, decimals)
+        if not column:
+            raise ValueError(f&#34;The stat. key &#39;{stat}&#39; was not&#34;
+                             &#34; found among any of the averages.&#34;)
+        vals  = align_col([stat] + column[&#34;val&#34;])
+        precs = align_col([&#39;1σ&#39;] + column[&#34;prec&#34;], just=&#34;&lt;&#34;)
+        headr = vals[0]+&#39;  &#39;+precs[0]
+        mattr = [f&#34;{v} ±{c}&#34; for v, c in zip(vals, precs)][1:]
         columns[headr] = mattr
 
     return columns
@@ -817,137 +847,173 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 </details>
 </dd>
 <dt id="dapper.stats.align_col"><code class="name flex">
-<span>def <span class="ident">align_col</span></span>(<span>col, header, pad='␣', missingval='', frmt=None)</span>
+<span>def <span class="ident">align_col</span></span>(<span>col, pad='␣', missingval='', just=&#x27;&gt;&#x27;)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Format a single column, return as list.</p>
-<ul>
-<li>Use tabulate() to get decimal point alignment.</li>
-<li>Inf and nan are handled individually so that they don't
-align left of the decimal point (makes too wide columns).
-Custom <code>frmt</code> also supported.</li>
-<li>Pad (on the right) each row so that the widths are equal.</li>
-</ul></div>
+<div class="desc"><p>Align column.</p>
+<p>Treats <code>int</code>s and fixed-point <code>float</code>/<code>str</code> especially, aligning on the point.</p>
+<p>Example:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; xx = [1, 1., 1.234, 12.34, 123.4, &quot;1.2e-3&quot;, None, np.nan, &quot;inf&quot;, (1, 2)]
+&gt;&gt;&gt; print(*align_col(xx), sep=&quot;\n&quot;)
+␣␣1␣␣␣␣
+␣␣1.0␣␣
+␣␣1.234
+␣12.34␣
+123.4␣␣
+␣1.2e-3
+␣␣␣␣␣␣␣
+␣␣␣␣nan
+␣␣␣␣inf
+␣(1, 2)
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L515-L564" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L515-L581" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def align_col(col, header, pad=&#39;␣&#39;, missingval=&#39;&#39;, frmt=None):
-    &#34;&#34;&#34;Format a single column, return as list.
+<pre><code class="python">def align_col(col, pad=&#39;␣&#39;, missingval=&#39;&#39;, just=&#34;&gt;&#34;):
+    r&#34;&#34;&#34;Align column.
 
-    - Use tabulate() to get decimal point alignment.
-    - Inf and nan are handled individually so that they don&#39;t
-      align left of the decimal point (makes too wide columns).
-      Custom ``frmt`` also supported.
-    - Pad (on the right) each row so that the widths are equal.
+    Treats `int`s and fixed-point `float`/`str` especially, aligning on the point.
+
+    Example:
+    &gt;&gt;&gt; xx = [1, 1., 1.234, 12.34, 123.4, &#34;1.2e-3&#34;, None, np.nan, &#34;inf&#34;, (1, 2)]
+    &gt;&gt;&gt; print(*align_col(xx), sep=&#34;\n&#34;)
+    ␣␣1␣␣␣␣
+    ␣␣1.0␣␣
+    ␣␣1.234
+    ␣12.34␣
+    123.4␣␣
+    ␣1.2e-3
+    ␣␣␣␣␣␣␣
+    ␣␣␣␣nan
+    ␣␣␣␣inf
+    ␣(1, 2)
     &#34;&#34;&#34;
-    def preprocess(x):
+    def split_decimal(x):
+        x = str(x)
         try:
-            # Custom frmt supplied
-            if frmt is not None:
-                return frmt(x)
+            y = float(x)
+        except ValueError:
+            pass
+        else:
+            if np.isfinite(y) and (&#34;e&#34; not in x.lower()):
+                a, *b = x.split(&#34;.&#34;)
+                if b == []:
+                    b = &#34;int&#34;
+                else:
+                    b = b[0]
+                return a, b
+        return x, False
 
-            # Standard formatting
-            if x is None:
-                return missingval
-            elif np.isnan(x):
-                return &#34;NAX&#34;
-            elif x == -np.inf:
-                return &#34;-INX&#34;
-            elif x == np.inf:
-                return &#34;INX&#34;
-            return x  # leave formatting to tabulate()
+    # Find max nInt, nDec
+    nInt = nDec = -1
+    for x in col:
+        ints, decs = split_decimal(x)
+        if decs:
+            nInt = max(nInt, len(ints))
+            if decs != &#34;int&#34;:
+                nDec = max(nDec, len(decs))
 
-        except TypeError:
+    # Format entries. Floats get aligned on point.
+    def frmt(x):
+        if x is None:
             return missingval
+        ints, decs = split_decimal(x)
+        x = f&#34;{ints.rjust(nInt, pad)}&#34;
+        if decs == &#34;int&#34;:
+            if nDec &gt;= 0:
+                x += pad + pad*nDec
+        elif decs:
+            x += &#34;.&#34; + f&#34;{decs.ljust(nDec, pad)}&#34;
+        else:
+            x = ints
+        return x
 
-    def postprocess(s):
-        s = s.replace(&#34;NAX&#34;, &#34;nan&#34;)
-        s = s.replace(&#34;INX&#34;, &#34;inf&#34;)
-        return s
-
-    # Make text column, aligned
-    col = [[preprocess(x)] for x in col]
-    col = tabulate(col, [header], &#39;plain&#39;)
-    col = col.split(&#34;\n&#34;)  # NOTE: dont use splitlines (removes empty lines)
-
-    # Undo nan/inf treatment
-    col = [postprocess(s) for s in col]
-
-    # Pad on the right, for equal widths
-    mxW = max(len(s) for s in col)
-    col = [s.ljust(mxW) for s in col]
-
-    # Use pad char. on BOTH left/right, to prevent trunc. by later tabulate().
-    col = [s.replace(&#34; &#34;, pad) for s in col]
-
+    # Format
+    col = [frmt(x) for x in col]
+    # Find max width
+    Max = max(len(x) for x in col)
+    # Right-justify
+    shift = str.rjust if just == &#34;&gt;&#34; else str.ljust
+    col = [shift(x, Max, pad) for x in col]
     return col</code></pre>
 </details>
 </dd>
 <dt id="dapper.stats.unpack_uqs"><code class="name flex">
-<span>def <span class="ident">unpack_uqs</span></span>(<span>uq_list, decimals=None, cols=('val', 'prec'))</span>
+<span>def <span class="ident">unpack_uqs</span></span>(<span>uq_list, decimals=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Make <code>uq_list</code> into array with named columns of attributes.</p>
-<p>None is inserted (in each col) if <code>uq</code> itself is None.</p>
+<div class="desc"><p>Convert list of <code>uq</code>s into dict of lists (of equal-length) of attributes.</p>
+<p>The attributes are obtained by <code>vars(uq)</code>,
+and may get formatted somehow (e.g. cast to strings) in the output.</p>
+<p>If <code>uq</code> is <code>None</code>, then <code>None</code> is inserted in each list.
+Else, <code>uq</code> must be an instance of <code><a title="dapper.tools.rounding.UncertainQtty" href="tools/rounding.html#dapper.tools.rounding.UncertainQtty">UncertainQtty</a></code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>uqlist</code></strong> :&ensp;<code>list</code></dt>
-<dd>List of objects.</dd>
+<dt><strong><code>uq_list</code></strong> :&ensp;<code>list</code></dt>
+<dd>List of <code>uq</code>s.</dd>
 <dt><strong><code>decimals</code></strong> :&ensp;<code>int</code></dt>
 <dd>Desired number of decimals.
-Used for the columns "val" and "prec", and only these.
-If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.UncertainQtty" href="tools/rounding.html#dapper.tools.rounding.UncertainQtty">UncertainQtty</a></code> objects.</dd>
-<dt><strong><code>cols</code></strong> :&ensp;<code>tuple[str]</code></dt>
-<dd>Names of columns to extract.</dd>
+Used for (only) the columns "val" and "prec".
+Default: <code>None</code>. In this case, the formatting is left to the <code>uq</code>s.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L567-L607" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L584-L634" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def unpack_uqs(uq_list, decimals=None, cols=(&#34;val&#34;, &#34;prec&#34;)):
-    &#34;&#34;&#34;Make `uq_list` into array with named columns of attributes.
+<pre><code class="python">def unpack_uqs(uq_list, decimals=None):
+    &#34;&#34;&#34;Convert list of `uq`s into dict of lists (of equal-length) of attributes.
 
-    None is inserted (in each col) if `uq` itself is None.
+    The attributes are obtained by `vars(uq)`,
+    and may get formatted somehow (e.g. cast to strings) in the output.
+
+    If `uq` is `None`, then `None` is inserted in each list.
+    Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
 
     Parameters
     ----------
-    uqlist: list
-        List of objects.
+    uq_list: list
+        List of `uq`s.
 
     decimals: int
         Desired number of decimals.
-        Used for the columns &#34;val&#34; and &#34;prec&#34;, and only these.
-        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
-
-    cols: tuple[str]
-        Names of columns to extract.
+        Used for (only) the columns &#34;val&#34; and &#34;prec&#34;.
+        Default: `None`. In this case, the formatting is left to the `uq`s.
     &#34;&#34;&#34;
-    def unpack1(arr, i, uq):
-        if uq is None:
-            return
-        # Columns: val/prec
+    def frmt(uq):
+        attrs = vars(uq).copy()
+
+        # val/prec: round
         if decimals is None:
-            v, c = uq.round()
+            v, p = str(uq).split(&#34; ±&#34;)
         else:
-            v, c = np.round([uq.val, uq.prec], decimals)
-        arr[&#34;val&#34;][i], arr[&#34;prec&#34;][i] = v, c
-        # Columns: others
-        for col in struct_tools.complement(cols, [&#34;val&#34;, &#34;prec&#34;]):
-            try:
-                arr[col][i] = getattr(uq, col)
-            except AttributeError:
-                pass
+            frmt = &#34;%%.%df&#34; % decimals
+            v, p = frmt % uq.val, frmt % uq.prec
+        attrs[&#34;val&#34;], attrs[&#34;prec&#34;] = v, p
 
-    # np.array with named columns. &#34;O&#34; =&gt; allow storing None&#39;s.
-    dtypes = np.dtype([(c, &#34;O&#34;) for c in cols])
-    arr = np.full_like(uq_list, dtype=dtypes, fill_value=None)
+        # tuned_coord: convert to tuple
+        try:
+            attrs[&#34;tuned_coord&#34;] = tuple(a for a in uq.tuned_coord)
+        except AttributeError:
+            pass
+        return attrs
+
+    cols = {}
     for i, uq in enumerate(uq_list):
-        unpack1(arr, i, uq)
+        if uq is not None:
+            # Format
+            attrs = frmt(uq)
+            # Insert attrs as a &#34;row&#34; in the `cols`:
+            for k in attrs:
+                # Init column
+                if k not in cols:
+                    cols[k] = [None]*len(uq_list)
+                # Insert element
+                cols[k][i] = attrs[k]
 
-    return arr</code></pre>
+    return cols</code></pre>
 </details>
 </dd>
 <dt id="dapper.stats.tabulate_avrgs"><code class="name flex">
@@ -958,7 +1024,7 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L610-L625" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L637-L655" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     &#34;&#34;&#34;Tabulate avrgs (val±prec).&#34;&#34;&#34;
@@ -967,12 +1033,15 @@ If <code>None</code>, it is left to the <code><a title="dapper.tools.rounding.Un
 
     columns = {}
     for stat in statkeys:
-        column = unpack_uqs(
-            [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals  = align_col(column[&#34;val&#34;], stat)
-        confs = align_col(column[&#34;prec&#34;], &#39;1σ&#39;)
-        headr = vals[0]+&#39;  1σ&#39;
-        mattr = [v + &#39; ±&#39;+c for v, c in zip(vals, confs)][1:]
+        column = [getattr(a, stat, None) for a in avrgs_list]
+        column = unpack_uqs(column, decimals)
+        if not column:
+            raise ValueError(f&#34;The stat. key &#39;{stat}&#39; was not&#34;
+                             &#34; found among any of the averages.&#34;)
+        vals  = align_col([stat] + column[&#34;val&#34;])
+        precs = align_col([&#39;1σ&#39;] + column[&#34;prec&#34;], just=&#34;&lt;&#34;)
+        headr = vals[0]+&#39;  &#39;+precs[0]
+        mattr = [f&#34;{v} ±{c}&#34; for v, c in zip(vals, precs)][1:]
         columns[headr] = mattr
 
     return columns</code></pre>
@@ -1005,7 +1074,7 @@ where N is the ensemble size. Default: False</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L628-L663" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L658-L693" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def center(E, axis=0, rescale=False):
     r&#34;&#34;&#34;Center ensemble.
@@ -1053,7 +1122,7 @@ where N is the ensemble size. Default: False</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L666-L668" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L696-L698" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean0(E, axis=0, rescale=True):
     &#34;&#34;&#34;Like `center`, but only return the anomalies (not the mean).&#34;&#34;&#34;
@@ -1080,7 +1149,7 @@ where N is the ensemble size. Default: False</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L671-L691" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L701-L721" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inflate_ens(E, factor):
     &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).
@@ -1127,7 +1196,7 @@ should be nearly one since sum(w) = 1</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L694-L713" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L724-L743" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def weight_degeneracy(w, prec=1e-10):
     &#34;&#34;&#34;Check if the weights are degenerate.
@@ -1178,7 +1247,7 @@ The unbiasing factor is <span><span class="MathJax_Preview"> N_{eff} / (N_{eff} 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L716-L748" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L746-L778" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.

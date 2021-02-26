@@ -41,7 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L589" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L593" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably `xpList`) for setup and running of experiments (known as `xp`s).
 
@@ -164,8 +164,9 @@ def run_experiment(xp, label, savedir, HMM,
         else:
             raise ERR
 
-    # Clear any references to mpl (for pickling) within stats
-    delattr(xp.stats, &#34;LP_instance&#34;)
+    # Clear references to mpl (for pickling purposes)
+    if hasattr(xp.stats, &#34;LP_instance&#34;):
+        del xp.stats.LP_instance
 
     # AVERAGE
     xp.stats.average_in_time(free=free)
@@ -223,7 +224,7 @@ class xpList(list):
 
     Main use: administrate experiment launches.
 
-    Modifications to ``list``:
+    Modifications to `list`:
 
     - `xpList.append` supports `unique` to enable lazy `xp` declaration.
     - `__iadd__` (`+=`) supports adding single `xp`s.
@@ -235,9 +236,12 @@ class xpList(list):
 
     Add-ons:
 
-    - `xpList.launch`
-    - `xpList.print_averages`
-    - `xpList.gen_names`
+    - `xpList.launch`: run the experiments in current list.
+    - `xpList.split_attrs`: find all attributes of the `xp`s in the list;
+      classify as distinct, redundant, or common.
+    - `xpList.gen_names`: use `xpList.split_attrs` to generate
+      a short &amp; unique name for each `xp` in the list.
+    - `xpList.tabulate_avrgs`: tabulate time-averaged results.
     - `xpList.inds` to search by kw-attrs.
 
     Parameters
@@ -755,7 +759,7 @@ this xp.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L66-L136" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L66-L137" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
@@ -813,8 +817,9 @@ this xp.</dd>
         else:
             raise ERR
 
-    # Clear any references to mpl (for pickling) within stats
-    delattr(xp.stats, &#34;LP_instance&#34;)
+    # Clear references to mpl (for pickling purposes)
+    if hasattr(xp.stats, &#34;LP_instance&#34;):
+        del xp.stats.LP_instance
 
     # AVERAGE
     xp.stats.average_in_time(free=free)
@@ -838,7 +843,7 @@ this xp.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L168-L173" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L169-L174" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def collapse_str(string, length=6):
     &#34;&#34;&#34;Truncate a string (in the middle) to the given `length`&#34;&#34;&#34;
@@ -865,7 +870,7 @@ then you'll create many more than you intend.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L565-L590" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L569-L594" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_param_setter(param_dict, **glob_dict):
     &#34;&#34;&#34;Mass creation of `xp`&#39;s by combining the value lists in the parameter dicts.
@@ -919,9 +924,12 @@ Refer to <code><a title="dapper.xp_launch.xpList.split_attrs" href="#dapper.xp_l
 </ul>
 <p>Add-ons:</p>
 <ul>
-<li><code><a title="dapper.xp_launch.xpList.launch" href="#dapper.xp_launch.xpList.launch">xpList.launch()</a></code></li>
-<li><code>xpList.print_averages</code></li>
-<li><code><a title="dapper.xp_launch.xpList.gen_names" href="#dapper.xp_launch.xpList.gen_names">xpList.gen_names()</a></code></li>
+<li><code><a title="dapper.xp_launch.xpList.launch" href="#dapper.xp_launch.xpList.launch">xpList.launch()</a></code>: run the experiments in current list.</li>
+<li><code><a title="dapper.xp_launch.xpList.split_attrs" href="#dapper.xp_launch.xpList.split_attrs">xpList.split_attrs()</a></code>: find all attributes of the <code>xp</code>s in the list;
+classify as distinct, redundant, or common.</li>
+<li><code><a title="dapper.xp_launch.xpList.gen_names" href="#dapper.xp_launch.xpList.gen_names">xpList.gen_names()</a></code>: use <code><a title="dapper.xp_launch.xpList.split_attrs" href="#dapper.xp_launch.xpList.split_attrs">xpList.split_attrs()</a></code> to generate
+a short &amp; unique name for each <code>xp</code> in the list.</li>
+<li><code><a title="dapper.xp_launch.xpList.tabulate_avrgs" href="#dapper.xp_launch.xpList.tabulate_avrgs">xpList.tabulate_avrgs()</a></code>: tabulate time-averaged results.</li>
 <li><code><a title="dapper.xp_launch.xpList.inds" href="#dapper.xp_launch.xpList.inds">xpList.inds()</a></code> to search by kw-attrs.</li>
 </ul>
 <h2 id="parameters">Parameters</h2>
@@ -941,14 +949,14 @@ as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L176-L562" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L177-L566" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpList(list):
     &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
 
     Main use: administrate experiment launches.
 
-    Modifications to ``list``:
+    Modifications to `list`:
 
     - `xpList.append` supports `unique` to enable lazy `xp` declaration.
     - `__iadd__` (`+=`) supports adding single `xp`s.
@@ -960,9 +968,12 @@ as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper
 
     Add-ons:
 
-    - `xpList.launch`
-    - `xpList.print_averages`
-    - `xpList.gen_names`
+    - `xpList.launch`: run the experiments in current list.
+    - `xpList.split_attrs`: find all attributes of the `xp`s in the list;
+      classify as distinct, redundant, or common.
+    - `xpList.gen_names`: use `xpList.split_attrs` to generate
+      a short &amp; unique name for each `xp` in the list.
+    - `xpList.tabulate_avrgs`: tabulate time-averaged results.
     - `xpList.inds` to search by kw-attrs.
 
     Parameters
@@ -1343,7 +1354,7 @@ as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L253-L256" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L257-L260" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def da_methods(self):
@@ -1362,7 +1373,7 @@ def da_methods(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L225-L228" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L229-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def append(self, xp):
     &#34;&#34;&#34;Append **if** not `self.unique` &amp; present.&#34;&#34;&#34;
@@ -1380,7 +1391,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L240-L251" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L244-L255" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
     &#34;&#34;&#34;Find (all) indices of `xps` whose attributes match kws.
@@ -1413,7 +1424,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L258-L347" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L262-L351" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def split_attrs(self, nomerge=()):
     &#34;&#34;&#34;Classify each/every attribute of the `xp`s into: distinct, redundant, common.
@@ -1520,7 +1531,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L357-L395" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L361-L399" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_names(self, abbrev=6, tab=False):
     &#34;&#34;&#34;Similiar to `self.__repr__()`, but:
@@ -1572,7 +1583,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L397-L405" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L401-L409" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(self, *args, **kwargs):
     &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
@@ -1619,7 +1630,7 @@ of that <code>xp</code>).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L407-L562" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L411-L566" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
            setup=seed_and_simulate, fail_gently=None, **kwargs):

@@ -38,7 +38,12 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <section id="section-intro">
 <h1 id="developer-guide">Developer guide</h1>
 <h2 id="run-tests">Run tests</h2>
-<p>See <code>tests</code>.</p>
+<p>By default, only doctests are run when executing <code>pytest</code>.
+To run the main tests, do this:</p>
+<pre><code class="language-sh">pytest tests
+</code></pre>
+<p>You can also append <code>test_plotting.py</code> for example,
+which is otherwise ignored for being slow.</p>
 <h2 id="documentation">Documentation</h2>
 <h3 id="update-bib">Update bib</h3>
 <p>Copy new bibtex items into <code>docs/bib/refs.bib</code>,
@@ -131,12 +136,19 @@ password: mypass
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/docs/dev_guide.py#L0-L135" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/docs/dev_guide.py#L0-L142" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;# Developer guide
 
 ## Run tests
-See `tests`.
+By default, only doctests are run when executing `pytest`.
+To run the main tests, do this:
+```sh
+pytest tests
+```
+
+You can also append `test_plotting.py` for example,
+which is otherwise ignored for being slow.
 
 ## Documentation
 
