@@ -50,8 +50,11 @@ for d in rc.dirs:
 
 
 ##################################
-# Disable rc.liveplotting ?
+# Disable rc.liveplotting in case of non-interactive backends
 ##################################
+# Otherwise, warnings are thrown on every occurence of plt.pause
+# (though not plot_pause), and (who knows) maybe errors too.
+# Also, the assimilation slows down, even though nothing is shown.
 LP = rc.liveplotting
 if LP:
     backend = mpl.get_backend().lower()
