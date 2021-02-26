@@ -55,9 +55,7 @@ travis-cleanup() {
 
 # For all
 pip install -U pip setuptools
-#pip install tox
-pip install pytest
 
-#if [[ "$COVERAGE" == "true" ]]; then
-    pip install -U pytest-cov pytest-virtualenv coverage coveralls pre-commit
-#fi
+if [[ "$COVERAGE" == "true" ]]; then
+    pip install -U coverage coveralls
+fi
