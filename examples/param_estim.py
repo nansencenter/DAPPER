@@ -30,20 +30,9 @@ import dapper.tools.liveplotting as LP
 Nx = 40
 Np = 1
 
-# Labels for sectors of state vector.
-# DAPPER will compute diagnostic statistics for the full state vector,
-# but also for each sector of it (averaged in space according to the
-# methods specified in your .dpr_config.yaml:field_summaries key).
-# The name "sector" comes from its typical usage to distinguish
-# "ocean" and "land" parts of the state vector.
-# Here we use it to get individual statistics of the parameter and state.
-parts = dict(state=np.arange(Nx),
-             param=np.arange(Np)+Nx)
-
 
 # Wraps core.dxdt so as to process an "augmented" state vector
 # that also contains parameter values.
-# dynamics so as to accept a longer state
 @modelling.ens_compatible
 def dxdt_augmented(x):
     d = np.full_like(x, np.nan)     # Allocate. Use nan's to detect bugs.
@@ -70,6 +59,7 @@ def dxdt_augmented(x):
 #   (input vector/ensemble --> output vector/ensemble) is very high.
 #   It is not immediately clear if OOP is then more convenient.
 # - There are also some intriguing possibilities relating to namedtuples.
+# TODO 4: revise the above text.
 
 
 # Turn dxdt into `step` such that `x_{k+1} = step(x_k, t, dt)`
@@ -109,6 +99,16 @@ LP = [
      ),
 ]
 
+# Labels for sectors of state vector.
+# DAPPER will compute diagnostic statistics for the full state vector,
+# but also for each sector of it (averaged in space according to the
+# methods specified in your .dpr_config.yaml:field_summaries key).
+# The name "sector" comes from its typical usage to distinguish
+# "ocean" and "land" parts of the state vector.
+# Here we use it to get individual statistics of the parameter and state.
+parts = dict(state=np.arange(Nx),
+             param=np.arange(Np)+Nx)
+
 # Wrap-up model specification
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, sectors=parts, LP=LP)
 
@@ -118,15 +118,20 @@ HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, sectors=parts, LP=LP)
 
 # Bocquet et al. do not sample the true parameter value from the
 # Bayesian (random) prior / initial cond's (ICs), given to the DA methods.
-# Instead it is simply set to 8. This constitutes an "assumption error"
-# (some might call it model error). It is not a feature required for
-# an interesting experiment. However, our goal here is to reproduce
-# the results of Bocquet et al., so we will follow suit.
+# Instead it is simply set to 8.
+TRUTH = 8
+GUESS = 7
+
+# This constitutes an "assumption error" (some might call it model error).
+# It is not a feature required for an interesting experiment.
+# However, our goal here is to reproduce the results of Bocquet et al.,
+# so we will follow suit.
 
 # PS: It often doesn't matter (for the time-averaged statistics)
 # what exact ICs are in play as long as the BurnIn is sufficiently large.
 # However, the setup defined here does make for pretty plots
 # at the beginning of the experiment.
+
 
 # Let's define the prior/ICs as a Gaussian with diagonal covariance,
 # where the last part of the diagonal (corresponding to the parm.
@@ -149,10 +154,6 @@ def set_X0_and_simulate(hmm, xp):
     xx, yy = hmm.simulate()
     hmm.X0 = X0(GUESS, 0.1**2)
     return xx, yy
-
-
-TRUTH = 8
-GUESS = 7
 
 # Note: An alternative approach might be to simply
 # write our own simulate() which merely sets the Force parameter,
