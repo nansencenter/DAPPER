@@ -6,12 +6,11 @@ language: python
 virtualenv:
   system_site_packages: false
 env:
-  # Does not increase build matrix
   global:
-    - IS_TRAVIS="true"
-    - DISTRIB="included" # the python distribution
-    - COVERAGE="false"
-  # Increases the build matrix (multiplies it by the number of jobs)
+    - IS_TRAVIS="true"   # turns off some tests on travis
+    - DISTRIB="included" # controls the python env used.
+    - JOBTYPE="testing"  # testing/lint/coverage
+  # Increases the build matrix (multiplies it by the number of jobs):
   # jobs:
   #   - COVERAGE="true"
 python:
@@ -19,12 +18,10 @@ python:
 - 3.8
 jobs:
   fast_finish: true
-  # Special cases
-  # NB: inherits the "top" python version (and os version?) above.
-  #     However, the DISTRIB=conda downloads conda on top of it.
   include:
-    - env: COVERAGE="true"
-    #- env: TOX_PYTHON_VERSION="py39" COVERAGE="true" # similar to pyscaffold
+    - env: JOBTYPE="lint"
+    - env: JOBTYPE="coverage"
+    #- env: TOX_PYTHON_VERSION="py39"
     - env: DISTRIB="conda" PYTHON_VERSION="3.8"
     # Use conda with osx coz otherwise it's difficult to get a recent version
     # https://docs.travis-ci.com/user/languages/python/#python-37-and-higher
@@ -35,22 +32,25 @@ jobs:
 #   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update ; fi
 install:
   - source tests/travis_install.sh
-script:
   #- python setup.py develop
   - pip install -e .[dev]
-  # Run flake8 via pre-commit instead.
-  #- flake8 . # Use --exit-zero to ignore failure
+script:
   - |
-    if [[ "$COVERAGE" == "true" ]]; then
+    if [[ "$JOBTYPE" == "lint" ]]; then
+      # Run flake8 via pre-commit instead.
+      #- flake8 . # Use --exit-zero to ignore failure
       pre-commit install
       pre-commit run --all-files
-      pytest --cov=dapper --cov-report term-missing
+    elif [[ "$JOBTYPE" == "coverage" ]]; then
+      pytest tests \
+      --cov=dapper --cov-report term-missing \
+      --ignore=dapper/mods/QG
     else
       pytest
     fi
 after_success:
   - |
-    if [[ "$COVERAGE" == "true" ]]; then
+    if [[ "$JOBTYPE" == "coverage" ]]; then
        coveralls || echo "failed"
     fi
 after_script:

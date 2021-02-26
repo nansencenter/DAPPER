@@ -1,9 +1,6 @@
 #!/bin/bash
-# This script is meant to be called by the "install" step defined in
+# This script is to be called by the "install" step defined in
 # .travis.yml. See http://docs.travis-ci.com/ for more details.
-# The behavior of the script is controlled by environment variabled defined
-# in the .travis.yml in the top level folder of the project.
-#
 # This script is inspired by Scikit-Learn (http://scikit-learn.org/)
 
 set -e
@@ -45,16 +42,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
     source activate ./venv
 fi
 
-# for all
-pip install -U pip setuptools
-#pip install tox
-pip install pytest
-
-if [[ "$COVERAGE" == "true" ]]; then
-    pip install -U pytest-cov pytest-virtualenv coverage coveralls pre-commit
-fi
-
-
 travis-cleanup() {
     printf "Cleaning up environments ... "  # printf avoids new lines
     if [[ "$DISTRIB" == "conda" ]]; then
@@ -65,3 +52,12 @@ travis-cleanup() {
     fi
     echo "DONE"
 }
+
+# For all
+pip install -U pip setuptools
+#pip install tox
+pip install pytest
+
+#if [[ "$COVERAGE" == "true" ]]; then
+    pip install -U pytest-cov pytest-virtualenv coverage coveralls pre-commit
+#fi
