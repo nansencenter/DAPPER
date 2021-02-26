@@ -312,6 +312,13 @@ low-dimensional Lotka–Volterra models of competition.
 *Nonlinearity*, 19(10): 2391.
 """
 
+vissio2020mechanics = None
+"""
+**Vissio**, **G** and **Lucarini**, **V** 2020 Mechanics and
+thermodynamics of a new minimal model of the atmosphere. *The
+European Physical Journal Plus*, 135(10): 1–21.
+"""
+
 wikle2007bayesian = None
 """
 **Wikle**, **C K** and **Berliner**, **L M** 2007 A Bayesian
