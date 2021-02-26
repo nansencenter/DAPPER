@@ -34,7 +34,9 @@ xp.stats.average_in_time()
 print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 
 # Replay liveplotters
-xp.stats.replay(speed=100)
+xp.stats.replay(
+    # speed=.6
+)
 
 # #### Further diagnostic plots
 
