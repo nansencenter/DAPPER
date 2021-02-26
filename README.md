@@ -233,7 +233,7 @@ Name               | Developers            | Purpose (approximately)
 ------------------ | --------------------- | -----------------------------
 [DART][1]          | NCAR                  | Operational, general
 [PDAF][7]          | AWI                   | Operational, general
-[JEDI][22]         | JCSDA (NOAA, NASA, ++)| Operational, general (in develpmt?)
+[JEDI][21]         | JCSDA (NOAA, NASA, ++)| Operational, general (in develpmt?)
 [ERT][2]           | Statoil               | Operational, history matching (Petroleum)
 [OpenDA][3]        | TU Delft              | Operational, general
 [Verdandi][6]      | INRIA                 | Biophysical DA
@@ -250,6 +250,8 @@ Name               | Developers            | Purpose (approximately)
 [EnKF-Matlab][15]  | Sakov                 | Matlab, personal publications and intro
 [EnKF-C][17]       | Sakov                 | C, light-weight EnKF, off-line
 [pyda][16]         | Hickman               | Python, personal publications
+[PyDA][19]         | Shady-Ahmed           | Python, Academic, research
+[DasPy][20]        | Xujun Han             | Python, Land applications
 Datum              | Raanes                | Matlab, personal publications
 IEnKS code         | Bocquet               | Python, personal publications
 
@@ -259,8 +261,7 @@ in the development of DAPPER.
 *: AWI/Liege/CNRS/NERSC/Reading/Delft
 
 [1]:  http://www.image.ucar.edu/DAReS/DART/
-[2]:  http://ert.nr.no/ert/index.php/Main_Page
-[22]: https://www.jcsda.noaa.gov/index.php
+[2]:  https://github.com/equinor/ert
 [3]:  http://www.openda.org/
 [4]:  http://www.met.reading.ac.uk/~darc/empire/index.php
 [5]:  http://www.data-assimilation.net/
@@ -268,7 +269,7 @@ in the development of DAPPER.
 [7]:  http://pdaf.awi.de/trac/wiki
 [8]:  http://www.geos.ed.ac.uk/~lfeng/
 [9]:  http://www.dhigroup.com/
-[10]: http://modb.oce.ulg.ac.be/mediawiki/index.php/Ocean_Assimilation_Kit
+[10]: https://github.com/gher-ulg/OAK
 [11]: https://www5.obs-mip.fr/sirocco/assimilation-tools/sequoia-data-assimilation-platform/
 [12]: https://github.com/rlabbe/filterpy
 [13]: https://github.com/judithyueli/DASoftware
@@ -277,6 +278,9 @@ in the development of DAPPER.
 [16]: http://hickmank.github.io/pyda/
 [17]: https://github.com/sakov/enkf-c
 [18]: https://github.com/kingaa/pomp
+[19]: https://github.com/Shady-Ahmed/PyDA
+[20]: https://github.com/daspy/daspy
+[21]: https://www.jcsda.noaa.gov/index.php
 
 
 ## Contributors
