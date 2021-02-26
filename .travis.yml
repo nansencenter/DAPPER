@@ -42,11 +42,10 @@ script:
       pre-commit install
       pre-commit run --all-files
     elif [[ "$JOBTYPE" == "coverage" ]]; then
-      pytest tests \
-      --cov=dapper --cov-report term-missing \
-      --ignore=dapper/mods/QG
+      pytest tests --ignore=dapper/mods/QG \
+      --cov=dapper --cov-report term-missing
     else
-      pytest
+      pytest tests --ignore=dapper/mods/QG
     fi
 after_success:
   - |
