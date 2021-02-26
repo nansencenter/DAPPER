@@ -28,7 +28,7 @@ class Stats(StatPrint):
 
         Note: Python allows dynamically creating attributes, so you can easily
         add custom stat. series to a Stat instance within a particular method,
-        for example. Use ``new_series`` to get automatic averaging too.
+        for example. Use `new_series` to get automatic averaging too.
         """
         ######################################
         # Preamble
@@ -124,9 +124,9 @@ class Stats(StatPrint):
         Create ndarray of length KObs+1 for inflation time series:
         >>> self.new_series('infl', 1, KObs+1)  # doctest: +SKIP
 
-        NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``'s
+        NB: The `sliding_diagnostics` liveplotting relies on detecting `nan`'s
             to avoid plotting stats that are not being used.
-            => Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
+            => Cannot use `dtype=bool` or `int` for stats that get plotted.
         """
         # Convert int shape to tuple
         if not hasattr(shape, '__len__'):
@@ -346,8 +346,8 @@ class Stats(StatPrint):
     def average_in_time(self, kk=None, kkObs=None, free=False):
         """Avarage all univariate (scalar) time series.
 
-        - ``kk``    time inds for averaging
-        - ``kkObs`` time inds for averaging obs
+        - `kk`    time inds for averaging
+        - `kkObs` time inds for averaging obs
         """
         chrono = self.HMM.t
         if kk is None:
@@ -411,8 +411,8 @@ class Stats(StatPrint):
         - t1, t2: time window to plot.
         - 'figlist' and 'speed': See LivePlot's doc.
 
-        .. note:: ``store_u`` (whether to store non-obs-time stats) must
-        have been ``True`` to have smooth graphs as in the actual LivePlot.
+        .. note:: `store_u` (whether to store non-obs-time stats) must
+        have been `True` to have smooth graphs as in the actual LivePlot.
 
         .. note:: Ensembles are generally not stored in the stats
         and so cannot be replayed.

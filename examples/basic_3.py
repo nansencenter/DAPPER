@@ -12,8 +12,8 @@ The code also demonstrates:
 - Data management with xpSpace: load, sub-select, print, plot.
 
 NB: unless you have access to the DAPPER cluster, you probably want to reduce
-the number of experiments by shortening the list of ``seed``
-(and maybe those of some tuning parameters) and/or reducing ``KObs``.
+the number of experiments by shortening the list of `seed`
+(and maybe those of some tuning parameters) and/or reducing `KObs`.
 Also, the resulting output can be previewed at
 https://github.com/nansencenter/DAPPER#highlights
 
