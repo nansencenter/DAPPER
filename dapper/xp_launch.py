@@ -19,7 +19,7 @@ import dill
 import struct_tools
 import tabulate as _tabulate
 from tabulate import tabulate
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 import dapper.stats
 import dapper.tools.progressbar as pb
