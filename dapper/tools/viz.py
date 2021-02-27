@@ -280,8 +280,11 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
 
 
 def plot_pause(interval):
-    """Similar to `plt.pause`, but doesn't focus window.
+    """Like `plt.pause`, but better.
 
+    Actually works in Jupyter notebooks, unlike `plt.pause`.
+
+    In regular mpl (interactive) backends: doesn't focus window.
     NB: doesn't create windows either.
     For that, use `plt.pause` or `plt.show` instead.
     """
@@ -289,7 +292,27 @@ def plot_pause(interval):
     if interval == 0:
         return
 
-    try:
+    if mpl.get_backend() == "nbAgg":  # ie. %matplotlib notebook
+        # https://stackoverflow.com/q/34486642
+        plt.gcf().canvas.draw()
+        time.sleep(interval)
+
+        # About the "small" figures: https://stackoverflow.com/a/66399257
+        # It seems to me that it's using the "inline" backend until
+        # the liveplotting finishes. Unfortunately the "inline"
+        # backend is incompatible with "stop/pause" buttons.
+
+    elif "inline" in mpl.get_backend():  # ie. %matplotlib inline
+        # https://stackoverflow.com/a/29675706/38281
+        # NB: Not working, but could possibly be made to work,
+        # except that it won't support a "pause/stop" button.
+        from IPython import display
+        display.display(plt.gcf())
+        display.clear_output(wait=True)
+        time.sleep(interval)
+
+    else:  # for non-notebook interactive backends
+
         # Implement plt.pause() that doesn't focus window, c.f.
         # https://github.com/matplotlib/matplotlib/issues/11131
         # https://stackoverflow.com/q/45729092
@@ -314,12 +337,6 @@ def plot_pause(interval):
             else:
                 time.sleep(interval)
         _plot_pause(interval, focus_figure=False)
-
-    except: # noqa
-        # Jupyter notebook support: https://stackoverflow.com/q/34486642
-        # Note: no longer needed with the above _plot_pause()?
-        plt.gcf().canvas.draw()
-        time.sleep(0.1)
 
 
 def plot_hovmoller(xx, chrono=None, **kwargs):

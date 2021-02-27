@@ -9,6 +9,7 @@ from pathlib import Path
 
 import matplotlib as mpl
 import yaml
+from mpl_tools import is_using_interactive_backend
 from struct_tools import DotDict
 
 ##################################
@@ -56,18 +57,13 @@ for d in rc.dirs:
 # (though not plot_pause), and (who knows) maybe errors too.
 # Also, the assimilation slows down, even though nothing is shown.
 LP = rc.liveplotting
-if LP:
-    backend = mpl.get_backend().lower()
-    non_interactive = ['agg', 'ps', 'pdf', 'svg', 'cairo', 'gdk']
-    LP &= not any(backend == x for x in non_interactive)
-    # Also disable for inline backends, which are buggy with liveplotting
-    LP &= 'inline' not in backend
-    LP &= 'nbagg' not in backend
-    if not LP:
-        print("\nWarning: You have not disableed interactive/live plotting"
-              " in your dpr_config.py,"
-              " but this is not supported by current backend:"
-              f" {mpl.get_backend()}."
-              " To enable it, try using another backend,"
-              " e.g., mpl.use('Qt5Agg').\n")
+if LP and not is_using_interactive_backend():
+    # Note: plot_pause could maybe be adapted to also work for
+    # "inline" backend (which is not striclty interactive), but I think
+    # this would be buggy, and is incompatible with a "stop" button.
+    print("\nWarning: You have not disableed interactive/live plotting"
+          " in your dpr_config.py,"
+          " but this is not supported by the current matplotlib backend:"
+          f" {mpl.get_backend()}. To enable it, try using another backend.\n")
+    LP = False
 rc.liveplotting = LP
