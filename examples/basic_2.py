@@ -16,7 +16,7 @@ dpr.set_seed(3000)
 
 xps = dpr.xpList()
 
-from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM  # Expected rmse.a:
+from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
 
 xps += da.Climatology()                                      # 7.6
 xps += da.OptInterp()                                        # 1.25
@@ -55,7 +55,6 @@ xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 ###############################################################################
 # ### Run experiment
 # Adjust experiment duration
-HMM = _HMM.copy()
 HMM.t.BurnIn = 2
 HMM.t.T = 50
 

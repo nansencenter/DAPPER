@@ -7,12 +7,11 @@ import dapper as dpr
 import dapper.da_methods as da
 
 # Load experiment setup: the hidden Markov model (HMM)
-from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM  # isort:skip
+from dapper.mods.Lorenz63.sakov2012 import HMM  # isort:skip
 
 # Generate the same random numbers every time
 dpr.set_seed(3000)
 
-HMM = _HMM.copy()
 HMM.t.T = 30  # shorten experiment
 
 # Simulate synthetic truth (xx) and noisy obs (yy)
