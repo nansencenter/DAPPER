@@ -1,21 +1,24 @@
-"""Illustrate usage of DAPPER to do parameter estimation.
+# # Illustrate usage of DAPPER to do parameter estimation.
+#
+# In DA terminology, "parameters" (in contrast to "state") are
+# (unknown) variables that (generally) do not change in time.
+# Our approach (to parameter estimation) is the typical one in DA of augmenting
+# (concatenating) the state vector with the parameter (vector).
+#
+# This particular experiment is a reproduction of section 3.3 of
+# `bib.bocquet2013joint`. Briefly: the unknown parameter is the forcing used in
+# Lorenz-96; only the state is observed; both parameter and state get estimated.
+#
+# This example builds mostly on `examples/basic_2.py`. For brevity, it does not
+# contain some of the facilities of `examples/basic_3.py` to run and analyse a
+# larger numbers of experiments.
+#
 
-In DA terminology, "parameters" (in contrast to "state") are
-(unknown) variables that (generally) do not change in time.
-Our approach (to parameter estimation) is the typical one in DA of augmenting
-(concatenating) the state vector with the parameter (vector).
+# #### Imports
 
-This particular experiment is a reproduction of section 3.3 of
-`bib.bocquet2013joint`. Briefly: the unknown parameter is the forcing used in
-Lorenz-96; only the state is observed; both parameter and state get estimated.
-
-This example builds mostly on `examples/basic_2.py`. For brevity, it does not
-contain some of the facilities of `examples/basic_3.py` to run and analyse a
-larger numbers of experiments.
-"""
-
-
+# %matplotlib notebook
 import numpy as np
+from mpl_tools import is_notebook_or_qt as nb
 
 import dapper as dpr
 import dapper.da_methods as da
@@ -23,15 +26,14 @@ import dapper.mods as modelling
 import dapper.mods.Lorenz96 as core
 import dapper.tools.liveplotting as LP
 
-######################################
-# Augmented dynamics
+# #### Augmented dynamics
 
 # Dims of state and parameter
 Nx = 40
 Np = 1
 
 
-# Wraps core.dxdt so as to process an "augmented" state vector
+# Wrap core.dxdt so as to process an "augmented" state vector
 # that also contains parameter values.
 @modelling.ens_compatible
 def dxdt_augmented(x):
@@ -66,8 +68,7 @@ def dxdt_augmented(x):
 step = modelling.with_rk4(dxdt_augmented, autonom=True)
 
 
-################################################
-# HMM
+# #### HMM
 
 # Define the sequence of the experiment
 # See `modelling.Chronology` for more details.
@@ -113,20 +114,21 @@ parts = dict(state=np.arange(Nx),
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, sectors=parts, LP=LP)
 
 
-################################################
-# Treat truth and DA methods differently
+# #### Treat truth and DA methods differently
 
 # Bocquet et al. do not sample the true parameter value from the
 # Bayesian (random) prior / initial cond's (ICs), given to the DA methods.
 # Instead it is simply set to 8.
+
 TRUTH = 8
 GUESS = 7
 
-# This constitutes an "assumption error" (some might call it model error).
-# It is not a feature required for an interesting experiment.
+# Seeing how far off the intial guess (and its uncertainty, defined below)
+# is from the truth, this constitutes a kind of  model error.
+# It is not a feature required to make this experiment interesting.
 # However, our goal here is to reproduce the results of Bocquet et al.,
 # so we will follow suit.
-
+#
 # PS: It often doesn't matter (for the time-averaged statistics)
 # what exact ICs are in play as long as the BurnIn is sufficiently large.
 # However, the setup defined here does make for pretty plots
@@ -156,12 +158,12 @@ def set_X0_and_simulate(hmm, xp):
     return xx, yy
 
 # Note: An alternative approach might be to simply
-# write our own simulate() which merely sets the Force parameter,
+# write our own `simulate()` which merely sets the `Force` parameter,
 # rather than sampling it.
 
 
-###############################################################################
-# DA methods configurations
+# #### DA methods configurations
+
 xps = dpr.xpList()
 # xps += da.PartFilt(N=1000, reg=1)  # works OK with Nx=6
 for N in [20, 50]:
@@ -169,13 +171,14 @@ for N in [20, 50]:
     xps += da.EnKF_N(N, xN=2)
     for Lag in [1, 4, 20]:
         xps += da.iEnKS("Sqrt", N, Lag=Lag, xN=2, wtol=1e-5)
-# TODO: Add 3D- and 4D-Var
+# TODO 4: Add 3D- and 4D-Var
 
 
-###############################################################################
-# Launch experiments
+# #### Launch experiments
+
+scriptname = "basic_3" if nb else __file__
 save_as = xps.launch(
-    HMM, __file__, setup=set_X0_and_simulate,
+    HMM, scriptname, setup=set_X0_and_simulate,
     mp=False,           # Multiprocessing
     fail_gently=False,  # Facilitate debugging
     liveplots=False,    # NB: Turn off if running iEnKS
@@ -183,11 +186,10 @@ save_as = xps.launch(
 )
 
 
-###############################################################################
-# Show results
+# #### Show results
 
 # Load data
-# xps = dpr.xpList(dpr.load_xps(save_as))
+xps = dpr.xpList(dpr.load_xps(save_as))
 
 
 # These scores may be validated by cross-checking with those
@@ -197,18 +199,19 @@ print(xps.tabulate_avrgs([
     "rmse.param.a", "rmv.param.a",  # ... figure 7.
 ]))
 
-# Note that only the data points at Lag (data assimilation window length) 0 and
+# Note that only the data points at `Lag` (data assimilation window length) 0 and
 # 1 are reproduced by DAPPER, because the IEnKS in DAPPER does not have MDA
-# (in the same sense as bib.bocquet2013joint), which applies for Lag>=2.
+# (in the same sense as bib.bocquet2013joint), which applies for `Lag>=2`.
 # Nevertheless, DAPPER's IEnKS accuracy also improves (both for state and param)
-# with increasing Lag. However, Lag=100 is too much (causes divergence)
+# with increasing Lag. However, `Lag=100` is too much (causes divergence)
 # without the MDA component of by Bocquet et al.
 
 # Plots
-xps[-1].stats.replay(speed=100,
-                     # t1=0,
-                     # t2=np.inf,
-                     )
+xps[-1].stats.replay(
+    # t1=0,
+    # t2=np.inf,
+)
 
-# #### Excercise: Change this script so as to use Np == Nx parameters
+# #### Excercise:
+# Change this script so as to use Np == Nx parameters
 # (one for each state variable).

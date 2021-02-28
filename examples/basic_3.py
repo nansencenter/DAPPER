@@ -1,38 +1,41 @@
-"""Illustrate usage of DAPPER to run MANY benchmark experiments.
+# ## Illustrate usage of DAPPER to run MANY benchmark experiments.
+#
+# Launch many experiments (to explore a bunch of control variables),
+# and plot the compiled results as in a variety of ways.
+#
+# As an example, we will reproduce Figure 6.6 from reference [1].
+# The figure reveals the (relative) importance (in the EnKF) of
+# localization and inflation.
+#
+# The code also demonstrates:
+# - Parallelization (accross independent experiments) with mp=True/Google.
+# - Data management with xpSpace: load, sub-select, print, plot.
+#
+# NB: unless you have access to the DAPPER cluster, you probably want to reduce
+# the number of experiments by shortening the list of `seed`
+# (and maybe those of some tuning parameters) and/or reducing `KObs`.
+# Also, the resulting output can be previewed at
+# https://github.com/nansencenter/DAPPER#highlights
+#
+# [1]: Asch, Bocquet, Nodet:
+#      "Data Assimilation: Methods, Algorithms, and Applications",
+#      Figure 6.6. Alternatively, see figure 5.7 of
+#      http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf .
+#
 
-Launch many experiments (to explore a bunch of control variables),
-and plot the compiled results as in a variety of ways.
+# #### Imports
 
-As an example, we will reproduce Figure 6.6 from reference [1].
-The figure reveals the (relative) importance (in the EnKF) of
-localization and inflation.
-
-The code also demonstrates:
-- Parallelization (accross independent experiments) with mp=True/Google.
-- Data management with xpSpace: load, sub-select, print, plot.
-
-NB: unless you have access to the DAPPER cluster, you probably want to reduce
-the number of experiments by shortening the list of `seed`
-(and maybe those of some tuning parameters) and/or reducing `KObs`.
-Also, the resulting output can be previewed at
-https://github.com/nansencenter/DAPPER#highlights
-
-[1]: Asch, Bocquet, Nodet:
-     "Data Assimilation: Methods, Algorithms, and Applications",
-     Figure 6.6. Alternatively, see figure 5.7 of
-     http://cerea.enpc.fr/HomePages/bocquet/teaching/assim-mb-en.pdf .
-"""
-
+# %matplotlib notebook
 import numpy as np
 from matplotlib import pyplot as plt
+from mpl_tools import is_notebook_or_qt as nb
 
 import dapper as dpr
 import dapper.da_methods as da
 
-##############################
-# Hidden Markov Model
-##############################
-from dapper.mods.Lorenz96.bocquet2015loc import HMM as _HMM  # isort:skip
+# #### Hidden Markov Model
+
+from dapper.mods.Lorenz96.bocquet2015loc import HMM  # isort:skip
 
 
 def setup(hmm, xp):
@@ -43,14 +46,11 @@ def setup(hmm, xp):
     return dpr.seed_and_simulate(hmm, xp)
 
 
-HMM = _HMM.copy()
 # This is shorter than Ref[1], but we also use repetitions (a seed list).
 HMM.t.KObs = 10**4
 
+# #### DA method configurations
 
-##############################
-# DA Configurations
-##############################
 # Param ranges
 params = dict(
     xB       = [.1, .2, .4, 1],
@@ -72,9 +72,7 @@ xps += for_params(da.EnKF_N, infl=1.0)
 xps += for_params(da.LETKF)
 
 
-##############################
-# Run experiments
-##############################
+# #### Run experiments
 
 # Paralellize/distribute experiments across CPUs.
 mp = False     # 1 CPU only
@@ -82,21 +80,22 @@ mp = False     # 1 CPU only
 # mp = True      # All CPUs
 # mp = "Google"  # Requires access to DAPPER cluster
 
-save_as = xps.launch(HMM, __file__, mp, setup)
+scriptname = "basic_3" if nb else __file__
+save_as = xps.launch(HMM, scriptname, mp, setup)
 
-
-##############################
-# Present results
-##############################
+# #### Present results
 # The following "section" **only** uses saved data.
-# => Can run as a separate script, by setting save_as manually, e.g.
-# save_as = dpr.rc.dirs.data / "basic_3" / ""run_2020-11-11__20:36:36"
+# I.e. we can run as a separate script, by setting `save_as`, e.g.
+#
+#     save_as = dpr.rc.dirs.data / "basic_3" / "run_2020-11-11__20:36:36"
 
+# +
 # Load
 xps = dpr.load_xps(save_as)
 
 # Prints all
-# xpList(xps).print_avrgs(statkeys=["rmse.a","rmv.a"])
+# dpr.xpList(xps).print_avrgs(statkeys=["rmse.a","rmv.a"])
+# -
 
 # Associate each control variable with a coordinate/dimension
 xp_dict = dpr.xpSpace.from_list(xps)
@@ -138,12 +137,10 @@ def get_style(coord):
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style, title2=save_as)
 dpr.default_fig_adjustments(tables)
-plt.pause(1)
+plt.pause(.1)
 
+# #### Plot with color gradient
 
-##############################
-#  Plot with color gradient  #
-##############################
 # Remove experiments we don't want to plot here
 xps = [xp for xp in xps if getattr(xp, "Const", None) == None]
 xp_dict = dpr.xpSpace.from_list(xps)
@@ -166,6 +163,7 @@ def get_style_with_gradient(coord):
     return S
 
 
+# +
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
 dpr.default_fig_adjustments(tables)
@@ -175,7 +173,8 @@ cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0], label=graded)
 cb.set_ticks(np.arange(len(grades)))
 cb.set_ticklabels(grades)
 
-plt.pause(1)
+plt.pause(.1)
+# -
 
-# Excercise:
-# Make a get_style() that works well with graded = "infl".
+# #### Excercise:
+# Make a `get_style()` that works well with `graded = "infl"`.

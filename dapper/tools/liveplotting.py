@@ -6,6 +6,7 @@ import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
+from mpl_tools import is_notebook_or_qt
 from mpl_tools.fig_layout import freshfig
 from numpy import arange, nan, ones
 from struct_tools import DotDict, deep_getattr
@@ -70,8 +71,8 @@ class LivePlot:
             'pause_s': 0.05,
             'pause_u': 0.001,
         }
-        for pause in ["pause_"+x for x in "fau"]:
-            # If speed>100: set to inf. Coz pause=1e-99 causes hangup.
+        # If speed>100: set to inf. Coz pause=1e-99 causes hangup.
+        for pause in ["pause_"+x for x in "faus"]:
             speed = speed if speed < 100 else np.inf
             self.params[pause] /= speed
 
@@ -122,10 +123,21 @@ class LivePlot:
 
                 # Startup message
                 if not self.any_figs:
-                    print('Initializing liveplots...')
-                    print('Hit <Space> to pause/step.')
-                    print('Hit <Enter> to resume/skip.')
-                    print('Hit <i> to enter debug mode.')
+                    if is_notebook_or_qt:
+                        pauses = [self.params["pause_" + x] for x in "faus"]
+                        if any((p > 0) for p in pauses):
+                            print("Note: liveplotting does not work very well"
+                                  " inside Jupyter notebooks. In particular,"
+                                  " there is no way to stop/skip them except"
+                                  " to interrupt the kernel (the stop button"
+                                  " in the toolbar). Consider using instead"
+                                  " only the replay functionality (with infinite"
+                                  " playback speed).")
+                    else:
+                        print('Initializing liveplots...')
+                        print('Hit <Space> to pause/step.')
+                        print('Hit <Enter> to resume/skip.')
+                        print('Hit <i> to enter debug mode.')
                     self.paused = False
                     self.run_ipdb = False
                     self.skipping = False

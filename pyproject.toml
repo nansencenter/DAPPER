@@ -123,4 +123,4 @@ pycodestyle = ["-E501"]
 
 [tool.flakehell.exceptions."examples/"]
 pycodestyle = ["-E201", "-E402"]
-flake8-docstrings = ["-D200"]
+flake8-docstrings = ["-D100", "-D200"]

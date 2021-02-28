@@ -23,7 +23,7 @@ INSTALL_REQUIRES = [
     'jedi<0.18',  # ipython/issues/12740
     'jupyter',
     'matplotlib~=3.1',  # >=3.1 to avoid Mac's framework-build issues
-    'mpl_tools==0.2.26',
+    'mpl-tools==0.2.28',
     'tqdm~=4.31',
     'pyyaml',
     'ipdb',
