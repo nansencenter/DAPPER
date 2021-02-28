@@ -19,14 +19,27 @@ To make sure this is working, we suggest the following structure:
 - Make a file: `my_model/__init__.py` where you define the core
   workings of the model.
   Typically, this culminates in a `step(x, t, dt)` function.
+
     - The model step operator (and the obs operator) must support
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
-      See `dapper.mods.Lorenz63` and `dapper.mods.Lorenz96`
-      for typical implementations,
-      and `dapper.mods.QG` for how to parallelize the ensemble simulations.
+      See
+
+          - `dapper.mods.Lorenz63`: use of `ens_compatible`.
+          - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
+          - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
+            Consider pre-defining the slices like so:
+
+                iiX = (..., slice(None, Nx))
+                iiP = (..., slice(Nx, None))
+
+            to abbreviate the indexing elsewhere.
+
+          - `dapper.mods.QG`: use of parallelized for loop (map).
+
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).
+
 - Make a file: `my_model/demo.py` to visually showcase
   a simulation of the model.
 - Ideally, both `my_model/__init__.py` and `my_model/demo.py`
