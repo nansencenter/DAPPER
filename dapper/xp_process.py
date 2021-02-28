@@ -16,7 +16,7 @@ import struct_tools
 from matplotlib import cm, ticker
 from patlib.std import set_tmp
 from tabulate import tabulate
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 import dapper.tools.remote.uplink as uplink
 from dapper.stats import align_col, unpack_uqs
