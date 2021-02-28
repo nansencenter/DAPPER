@@ -437,8 +437,8 @@ def plot_err_components(stats):
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
 
-    err   = np.mean(np.abs(stats.err  .a), 0)
-    sprd  = np.mean(stats.mad  .a, 0)
+    err   = np.mean(np.abs(stats.err.a), 0)
+    sprd  = np.mean(stats.std.a, 0)
     umsft = np.mean(np.abs(stats.umisf.a), 0)
     usprd = np.mean(stats.svals.a, 0)
 
@@ -469,7 +469,7 @@ def plot_err_components(stats):
     else:
         not_available_text(ax1)
 
-    rmse = stats.err_rms.a[chrono.maskObs_BI]
+    rmse = stats.err.rms.a[chrono.maskObs_BI]
     ax2.hist(rmse, bins=30, density=False)
     ax2.set_ylabel('Num. of occurence (_a)')
     ax2.set_xlabel('RMSE')
