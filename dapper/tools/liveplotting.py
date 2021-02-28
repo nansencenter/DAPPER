@@ -127,7 +127,7 @@ class LivePlot:
                         pauses = [self.params["pause_" + x] for x in "faus"]
                         if any((p > 0) for p in pauses):
                             print("Note: liveplotting does not work very well"
-                                  " in Jupyter notebooks. In particular,"
+                                  " inside Jupyter notebooks. In particular,"
                                   " there is no way to stop/skip them except"
                                   " to interrupt the kernel (the stop button"
                                   " in the toolbar). Consider using instead"
