@@ -368,7 +368,7 @@ def plot_hovmoller(xx, chrono=None, **kwargs):
     ax.set_title("Hovmoller diagram (of 'Truth')")
     ax.set_xlabel('Dimension index (i)')
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()
 
 
@@ -476,7 +476,7 @@ def plot_err_components(stats):
     ax2.set_title('Histogram of RMSE values')
     ax2.set_xlim(left=0)
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()
 
 
@@ -522,7 +522,7 @@ def plot_rank_histogram(stats):
     else:
         not_available_text(ax)
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()
 
 
