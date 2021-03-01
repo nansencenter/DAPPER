@@ -50,21 +50,42 @@ Essentially, you just need to define all of the attributes of a
 To make sure this is working, we suggest the following structure:</p>
 <ul>
 <li>Make a dir: <code>my_model</code></li>
-<li>Make a file: <code>my_model/__init__.py</code> where you define the core
+<li>
+<p>Make a file: <code>my_model/__init__.py</code> where you define the core
 workings of the model.
-Typically, this culminates in a <code>step(x, t, dt)</code> function.<ul>
-<li>The model step operator (and the obs operator) must support
+Typically, this culminates in a <code>step(x, t, dt)</code> function.</p>
+<ul>
+<li>
+<p>The model step operator (and the obs operator) must support
 2D-array (i.e. ensemble) and 1D-array (single realization) input.
-See <code><a title="dapper.mods.Lorenz63" href="Lorenz63/index.html">dapper.mods.Lorenz63</a></code> and <code><a title="dapper.mods.Lorenz96" href="Lorenz96/index.html">dapper.mods.Lorenz96</a></code>
-for typical implementations,
-and <code><a title="dapper.mods.QG" href="QG/index.html">dapper.mods.QG</a></code> for how to parallelize the ensemble simulations.</li>
-<li>Optional: To use the (extended) Kalman filter, or 4D-Var,
-you will need to define the model linearization.
-Note: this only needs to support 1D input (single realization).</li>
+See</p>
+<ul>
+<li><code><a title="dapper.mods.Lorenz63" href="Lorenz63/index.html">dapper.mods.Lorenz63</a></code>: use of <code>ens_compatible</code>.</li>
+<li><code><a title="dapper.mods.Lorenz96" href="Lorenz96/index.html">dapper.mods.Lorenz96</a></code>: use of relatively clever slice notation.</li>
+<li>
+<p><code><a title="dapper.mods.LorenzUV" href="LorenzUV/index.html">dapper.mods.LorenzUV</a></code>: use of cleverer slice notation: <code>&hellip;</code> (ellipsis).
+Consider pre-defining the slices like so:</p>
+<pre><code>iiX = (..., slice(None, Nx))
+iiP = (..., slice(Nx, None))
+</code></pre>
+<p>to abbreviate the indexing elsewhere.</p>
+</li>
+<li>
+<p><code><a title="dapper.mods.QG" href="QG/index.html">dapper.mods.QG</a></code>: use of parallelized for loop (map).</p>
+</li>
 </ul>
 </li>
-<li>Make a file: <code>my_model/demo.py</code> to visually showcase
-a simulation of the model.</li>
+<li>
+<p>Optional: To use the (extended) Kalman filter, or 4D-Var,
+you will need to define the model linearization.
+Note: this only needs to support 1D input (single realization).</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Make a file: <code>my_model/demo.py</code> to visually showcase
+a simulation of the model.</p>
+</li>
 <li>Ideally, both <code>my_model/__init__.py</code> and <code>my_model/demo.py</code>
 do not rely on the rest of DAPPER.</li>
 <li>Make a file: <code>my_model/my_settings_1.py</code> that define a complete
@@ -88,7 +109,7 @@ Hidden Markov Model ready for a synthetic experiment
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L0-L206" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L0-L219" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Models included with DAPPER.
 
@@ -111,14 +132,27 @@ To make sure this is working, we suggest the following structure:
 - Make a file: `my_model/__init__.py` where you define the core
   workings of the model.
   Typically, this culminates in a `step(x, t, dt)` function.
+
     - The model step operator (and the obs operator) must support
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
-      See `dapper.mods.Lorenz63` and `dapper.mods.Lorenz96`
-      for typical implementations,
-      and `dapper.mods.QG` for how to parallelize the ensemble simulations.
+      See
+
+          - `dapper.mods.Lorenz63`: use of `ens_compatible`.
+          - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
+          - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
+            Consider pre-defining the slices like so:
+
+                iiX = (..., slice(None, Nx))
+                iiP = (..., slice(Nx, None))
+
+            to abbreviate the indexing elsewhere.
+
+          - `dapper.mods.QG`: use of parallelized for loop (map).
+
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).
+
 - Make a file: `my_model/demo.py` to visually showcase
   a simulation of the model.
 - Ideally, both `my_model/__init__.py` and `my_model/demo.py`
@@ -402,7 +436,7 @@ The synthetic truth and observations may then be obtained by running
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L78-L174" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L91-L187" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HiddenMarkovModel(struct_tools.NicePrint):
     &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
@@ -521,7 +555,7 @@ The synthetic truth and observations may then be obtained by running
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L139-L140" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L152-L153" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Nx(self): return self.Dyn.M</code></pre>
@@ -533,7 +567,7 @@ def Nx(self): return self.Dyn.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L141-L142" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L154-L155" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Ny(self): return self.Obs.M</code></pre>
@@ -550,7 +584,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L146-L162" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L159-L175" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
     &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
@@ -579,7 +613,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L164-L165" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L177-L178" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def copy(self):
     return cp.deepcopy(self)</code></pre>
@@ -596,7 +630,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L177-L207" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L190-L220" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Operator(struct_tools.NicePrint):
     &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;

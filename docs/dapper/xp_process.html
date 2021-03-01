@@ -60,7 +60,7 @@ import struct_tools
 from matplotlib import cm, ticker
 from patlib.std import set_tmp
 from tabulate import tabulate
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 import dapper.tools.remote.uplink as uplink
 from dapper.stats import align_col, unpack_uqs
@@ -1902,7 +1902,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L381-L393" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L381-L401" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def coords(self, **kwargs):
     &#34;&#34;&#34;Get all `coord`s matching kwargs.
@@ -1916,7 +1916,15 @@ for the internal list.</p></div>
     `SparseSpace.label_xSection`.
     &#34;&#34;&#34;
     def embed(coord): return {**kwargs, **coord._asdict()}
-    return [self.Coord(**embed(x)) for x in self[kwargs]]</code></pre>
+    return [self.Coord(**embed(x)) for x in self[kwargs]]
+
+    # Old implementation.
+    # - I prefer the new version for its re-use of __getitem__&#39;s
+    #   nesting, evidencing their mutual relationship)
+    # - Note that unlike xpList.inds(): missingval shenanigans
+    #   are here unnecessary coz each coordinate is complete.
+    # match  = lambda x: all(getattr(x,k)==kwargs[k] for k in kwargs)
+    # return [x for x in self if match(x)]</code></pre>
 </details>
 </dd>
 <dt id="dapper.xp_process.SparseSpace.nest"><code class="name flex">

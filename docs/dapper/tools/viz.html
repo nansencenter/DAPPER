@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L0-L548" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L0-L565" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools for plotting.&#34;&#34;&#34;
 
@@ -324,8 +324,11 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
 
 
 def plot_pause(interval):
-    &#34;&#34;&#34;Similar to `plt.pause`, but doesn&#39;t focus window.
+    &#34;&#34;&#34;Like `plt.pause`, but better.
 
+    Actually works in Jupyter notebooks, unlike `plt.pause`.
+
+    In regular mpl (interactive) backends: doesn&#39;t focus window.
     NB: doesn&#39;t create windows either.
     For that, use `plt.pause` or `plt.show` instead.
     &#34;&#34;&#34;
@@ -333,7 +336,27 @@ def plot_pause(interval):
     if interval == 0:
         return
 
-    try:
+    if mpl.get_backend() == &#34;nbAgg&#34;:  # ie. %matplotlib notebook
+        # https://stackoverflow.com/q/34486642
+        plt.gcf().canvas.draw()
+        time.sleep(interval)
+
+        # About the &#34;small&#34; figures: https://stackoverflow.com/a/66399257
+        # It seems to me that it&#39;s using the &#34;inline&#34; backend until
+        # the liveplotting finishes. Unfortunately the &#34;inline&#34;
+        # backend is incompatible with &#34;stop/pause&#34; buttons.
+
+    elif &#34;inline&#34; in mpl.get_backend():  # ie. %matplotlib inline
+        # https://stackoverflow.com/a/29675706/38281
+        # NB: Not working, but could possibly be made to work,
+        # except that it won&#39;t support a &#34;pause/stop&#34; button.
+        from IPython import display
+        display.display(plt.gcf())
+        display.clear_output(wait=True)
+        time.sleep(interval)
+
+    else:  # for non-notebook interactive backends
+
         # Implement plt.pause() that doesn&#39;t focus window, c.f.
         # https://github.com/matplotlib/matplotlib/issues/11131
         # https://stackoverflow.com/q/45729092
@@ -358,12 +381,6 @@ def plot_pause(interval):
             else:
                 time.sleep(interval)
         _plot_pause(interval, focus_figure=False)
-
-    except: # noqa
-        # Jupyter notebook support: https://stackoverflow.com/q/34486642
-        # Note: no longer needed with the above _plot_pause()?
-        plt.gcf().canvas.draw()
-        time.sleep(0.1)
 
 
 def plot_hovmoller(xx, chrono=None, **kwargs):
@@ -395,7 +412,7 @@ def plot_hovmoller(xx, chrono=None, **kwargs):
     ax.set_title(&#34;Hovmoller diagram (of &#39;Truth&#39;)&#34;)
     ax.set_xlabel(&#39;Dimension index (i)&#39;)
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()
 
 
@@ -464,8 +481,8 @@ def plot_err_components(stats):
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
 
-    err   = np.mean(np.abs(stats.err  .a), 0)
-    sprd  = np.mean(stats.mad  .a, 0)
+    err   = np.mean(np.abs(stats.err.a), 0)
+    sprd  = np.mean(stats.std.a, 0)
     umsft = np.mean(np.abs(stats.umisf.a), 0)
     usprd = np.mean(stats.svals.a, 0)
 
@@ -496,14 +513,14 @@ def plot_err_components(stats):
     else:
         not_available_text(ax1)
 
-    rmse = stats.err_rms.a[chrono.maskObs_BI]
+    rmse = stats.err.rms.a[chrono.maskObs_BI]
     ax2.hist(rmse, bins=30, density=False)
     ax2.set_ylabel(&#39;Num. of occurence (_a)&#39;)
     ax2.set_xlabel(&#39;RMSE&#39;)
     ax2.set_title(&#39;Histogram of RMSE values&#39;)
     ax2.set_xlim(left=0)
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()
 
 
@@ -549,7 +566,7 @@ def plot_rank_histogram(stats):
     else:
         not_available_text(ax)
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()
 
 
@@ -1054,17 +1071,22 @@ Provide sensible fall-backs (better if chrono is supplied).</p>
 <span>def <span class="ident">plot_pause</span></span>(<span>interval)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Similar to <code>plt.pause</code>, but doesn't focus window.</p>
-<p>NB: doesn't create windows either.
+<div class="desc"><p>Like <code>plt.pause</code>, but better.</p>
+<p>Actually works in Jupyter notebooks, unlike <code>plt.pause</code>.</p>
+<p>In regular mpl (interactive) backends: doesn't focus window.
+NB: doesn't create windows either.
 For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L282-L322" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L282-L339" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_pause(interval):
-    &#34;&#34;&#34;Similar to `plt.pause`, but doesn&#39;t focus window.
+    &#34;&#34;&#34;Like `plt.pause`, but better.
 
+    Actually works in Jupyter notebooks, unlike `plt.pause`.
+
+    In regular mpl (interactive) backends: doesn&#39;t focus window.
     NB: doesn&#39;t create windows either.
     For that, use `plt.pause` or `plt.show` instead.
     &#34;&#34;&#34;
@@ -1072,7 +1094,27 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
     if interval == 0:
         return
 
-    try:
+    if mpl.get_backend() == &#34;nbAgg&#34;:  # ie. %matplotlib notebook
+        # https://stackoverflow.com/q/34486642
+        plt.gcf().canvas.draw()
+        time.sleep(interval)
+
+        # About the &#34;small&#34; figures: https://stackoverflow.com/a/66399257
+        # It seems to me that it&#39;s using the &#34;inline&#34; backend until
+        # the liveplotting finishes. Unfortunately the &#34;inline&#34;
+        # backend is incompatible with &#34;stop/pause&#34; buttons.
+
+    elif &#34;inline&#34; in mpl.get_backend():  # ie. %matplotlib inline
+        # https://stackoverflow.com/a/29675706/38281
+        # NB: Not working, but could possibly be made to work,
+        # except that it won&#39;t support a &#34;pause/stop&#34; button.
+        from IPython import display
+        display.display(plt.gcf())
+        display.clear_output(wait=True)
+        time.sleep(interval)
+
+    else:  # for non-notebook interactive backends
+
         # Implement plt.pause() that doesn&#39;t focus window, c.f.
         # https://github.com/matplotlib/matplotlib/issues/11131
         # https://stackoverflow.com/q/45729092
@@ -1096,13 +1138,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
                     canvas.start_event_loop(interval)
             else:
                 time.sleep(interval)
-        _plot_pause(interval, focus_figure=False)
-
-    except: # noqa
-        # Jupyter notebook support: https://stackoverflow.com/q/34486642
-        # Note: no longer needed with the above _plot_pause()?
-        plt.gcf().canvas.draw()
-        time.sleep(0.1)</code></pre>
+        _plot_pause(interval, focus_figure=False)</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.viz.plot_hovmoller"><code class="name flex">
@@ -1120,7 +1156,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L325-L355" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L342-L372" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_hovmoller(xx, chrono=None, **kwargs):
     &#34;&#34;&#34;Plot Hovmöller diagram.
@@ -1151,7 +1187,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
     ax.set_title(&#34;Hovmoller diagram (of &#39;Truth&#39;)&#34;)
     ax.set_xlabel(&#39;Dimension index (i)&#39;)
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()</code></pre>
 </details>
 </dd>
@@ -1176,7 +1212,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L358-L377" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L375-L394" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def integer_hist(E, N, centrd=False, weights=None, **kwargs):
     &#34;&#34;&#34;Histogram for integers.
@@ -1217,7 +1253,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L380-L399" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L397-L416" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def not_available_text(ax, txt=None, fs=20):
     &#34;&#34;&#34;Plot given text on the figure
@@ -1264,7 +1300,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L402-L463" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L419-L480" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_err_components(stats):
     &#34;&#34;&#34;Plot components of the error.
@@ -1287,8 +1323,8 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
 
-    err   = np.mean(np.abs(stats.err  .a), 0)
-    sprd  = np.mean(stats.mad  .a, 0)
+    err   = np.mean(np.abs(stats.err.a), 0)
+    sprd  = np.mean(stats.std.a, 0)
     umsft = np.mean(np.abs(stats.umisf.a), 0)
     usprd = np.mean(stats.svals.a, 0)
 
@@ -1319,14 +1355,14 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
     else:
         not_available_text(ax1)
 
-    rmse = stats.err_rms.a[chrono.maskObs_BI]
+    rmse = stats.err.rms.a[chrono.maskObs_BI]
     ax2.hist(rmse, bins=30, density=False)
     ax2.set_ylabel(&#39;Num. of occurence (_a)&#39;)
     ax2.set_xlabel(&#39;RMSE&#39;)
     ax2.set_title(&#39;Histogram of RMSE values&#39;)
     ax2.set_xlim(left=0)
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()</code></pre>
 </details>
 </dd>
@@ -1343,7 +1379,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L466-L509" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L483-L526" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_rank_histogram(stats):
     &#34;&#34;&#34;Plot rank histogram of ensemble.
@@ -1387,7 +1423,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
     else:
         not_available_text(ax)
 
-    plot_pause(0.1)
+    plt.pause(0.1)
     plt.tight_layout()</code></pre>
 </details>
 </dd>
@@ -1399,7 +1435,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L513-L516" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L530-L533" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def adjustable_box_or_forced():
     &#34;&#34;&#34;For set_aspect(), adjustable=&#39;box-forced&#39; replaced by &#39;box&#39; since mpl 2.2.0.&#34;&#34;&#34;
@@ -1427,7 +1463,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L519-L549" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L536-L566" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
     &#34;&#34;&#34;Scale axis so that the arr entries appear equidistant.

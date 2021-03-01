@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L0-L1313" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L0-L1325" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;On-line (live) plots of the DA process for various models and methods.&#34;&#34;&#34;
 
@@ -50,6 +50,7 @@ import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
+from mpl_tools import is_notebook_or_qt
 from mpl_tools.fig_layout import freshfig
 from numpy import arange, nan, ones
 from struct_tools import DotDict, deep_getattr
@@ -114,8 +115,8 @@ class LivePlot:
             &#39;pause_s&#39;: 0.05,
             &#39;pause_u&#39;: 0.001,
         }
-        for pause in [&#34;pause_&#34;+x for x in &#34;fau&#34;]:
-            # If speed&gt;100: set to inf. Coz pause=1e-99 causes hangup.
+        # If speed&gt;100: set to inf. Coz pause=1e-99 causes hangup.
+        for pause in [&#34;pause_&#34;+x for x in &#34;faus&#34;]:
             speed = speed if speed &lt; 100 else np.inf
             self.params[pause] /= speed
 
@@ -166,10 +167,21 @@ class LivePlot:
 
                 # Startup message
                 if not self.any_figs:
-                    print(&#39;Initializing liveplots...&#39;)
-                    print(&#39;Hit &lt;Space&gt; to pause/step.&#39;)
-                    print(&#39;Hit &lt;Enter&gt; to resume/skip.&#39;)
-                    print(&#39;Hit &lt;i&gt; to enter debug mode.&#39;)
+                    if is_notebook_or_qt:
+                        pauses = [self.params[&#34;pause_&#34; + x] for x in &#34;faus&#34;]
+                        if any((p &gt; 0) for p in pauses):
+                            print(&#34;Note: liveplotting does not work very well&#34;
+                                  &#34; inside Jupyter notebooks. In particular,&#34;
+                                  &#34; there is no way to stop/skip them except&#34;
+                                  &#34; to interrupt the kernel (the stop button&#34;
+                                  &#34; in the toolbar). Consider using instead&#34;
+                                  &#34; only the replay functionality (with infinite&#34;
+                                  &#34; playback speed).&#34;)
+                    else:
+                        print(&#39;Initializing liveplots...&#39;)
+                        print(&#39;Hit &lt;Space&gt; to pause/step.&#39;)
+                        print(&#39;Hit &lt;Enter&gt; to resume/skip.&#39;)
+                        print(&#39;Hit &lt;i&gt; to enter debug mode.&#39;)
                     self.paused = False
                     self.run_ipdb = False
                     self.skipping = False
@@ -1373,7 +1385,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L420-L439" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L432-L451" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_xlim(ax, tt, lag, margin=False):
     dt = lag/20 if margin else 0
@@ -1406,7 +1418,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L630-L645" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L642-L657" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def circulant_ACF(C, do_abs=False):
     &#34;&#34;&#34;Compute the auto-covariance-function corresponding to `C`.
@@ -1434,7 +1446,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L648-L798" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L660-L810" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_marginals(
     obs_inds     = (),
@@ -1597,7 +1609,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L801-L934" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L813-L946" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def phase_particles(
     is_3d        = True,
@@ -1748,7 +1760,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L937-L962" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L949-L974" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_lag(Tplot, chrono):
     &#34;&#34;&#34;Return validated `T_lag` such that is is:
@@ -1786,7 +1798,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L965-L969" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L977-L981" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def comp_K_plot(K_lag, a_lag, plot_u):
     K_plot = 2*a_lag     # Sum of lags of {f,a} series.
@@ -1803,7 +1815,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L972-L995" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L984-L1007" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update_alpha(key, stats, lines, scatters=None):
     &#34;&#34;&#34;Adjust color alpha (for particle filters).&#34;&#34;&#34;
@@ -1839,7 +1851,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L998-L1018" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1010-L1030" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
     &#34;&#34;&#34;Particle filter: insert breaks for resampled particles.&#34;&#34;&#34;
@@ -1895,7 +1907,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1024-L1087" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1036-L1099" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
     &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
@@ -1971,7 +1983,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1090-L1193" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1102-L1205" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial1d(
     obs_inds     = None,
@@ -2087,7 +2099,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1196-L1303" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1208-L1315" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial2d(
     square,
@@ -2243,7 +2255,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L23-L225" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L24-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LivePlot:
     &#34;&#34;&#34;Live plotting manager.
@@ -2295,8 +2307,8 @@ plt.draw() to work on a moderately fast computer.</li>
             &#39;pause_s&#39;: 0.05,
             &#39;pause_u&#39;: 0.001,
         }
-        for pause in [&#34;pause_&#34;+x for x in &#34;fau&#34;]:
-            # If speed&gt;100: set to inf. Coz pause=1e-99 causes hangup.
+        # If speed&gt;100: set to inf. Coz pause=1e-99 causes hangup.
+        for pause in [&#34;pause_&#34;+x for x in &#34;faus&#34;]:
             speed = speed if speed &lt; 100 else np.inf
             self.params[pause] /= speed
 
@@ -2347,10 +2359,21 @@ plt.draw() to work on a moderately fast computer.</li>
 
                 # Startup message
                 if not self.any_figs:
-                    print(&#39;Initializing liveplots...&#39;)
-                    print(&#39;Hit &lt;Space&gt; to pause/step.&#39;)
-                    print(&#39;Hit &lt;Enter&gt; to resume/skip.&#39;)
-                    print(&#39;Hit &lt;i&gt; to enter debug mode.&#39;)
+                    if is_notebook_or_qt:
+                        pauses = [self.params[&#34;pause_&#34; + x] for x in &#34;faus&#34;]
+                        if any((p &gt; 0) for p in pauses):
+                            print(&#34;Note: liveplotting does not work very well&#34;
+                                  &#34; inside Jupyter notebooks. In particular,&#34;
+                                  &#34; there is no way to stop/skip them except&#34;
+                                  &#34; to interrupt the kernel (the stop button&#34;
+                                  &#34; in the toolbar). Consider using instead&#34;
+                                  &#34; only the replay functionality (with infinite&#34;
+                                  &#34; playback speed).&#34;)
+                    else:
+                        print(&#39;Initializing liveplots...&#39;)
+                        print(&#39;Hit &lt;Space&gt; to pause/step.&#39;)
+                        print(&#39;Hit &lt;Enter&gt; to resume/skip.&#39;)
+                        print(&#39;Hit &lt;i&gt; to enter debug mode.&#39;)
                     self.paused = False
                     self.run_ipdb = False
                     self.skipping = False
@@ -2459,7 +2482,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L147-L225" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L159-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, key, E, P):
     &#34;&#34;&#34;Update liveplots&#34;&#34;&#34;
@@ -2553,7 +2576,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L233-L417" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L245-L429" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class sliding_diagnostics:
     &#34;&#34;&#34;Plots a sliding window (like a heart rate monitor) of certain diagnostics.&#34;&#34;&#34;
@@ -2751,7 +2774,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L442-L478" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L454-L490" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class weight_histogram:
     &#34;&#34;&#34;Plots histogram of weights. Refreshed each analysis.&#34;&#34;&#34;
@@ -2801,7 +2824,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L481-L526" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L493-L538" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class spectral_errors:
     &#34;&#34;&#34;Plots the (spatial-RMS) error as a functional of the SVD index.&#34;&#34;&#34;
@@ -2860,7 +2883,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L529-L627" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L541-L639" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class correlations:
     &#34;&#34;&#34;Plots the state (auto-)correlation matrix.&#34;&#34;&#34;

@@ -41,7 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/dpr_config.py#L0-L69" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/dpr_config.py#L0-L68" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Load default and user configurations into the rc dict.
 
@@ -54,6 +54,7 @@ from pathlib import Path
 
 import matplotlib as mpl
 import yaml
+from mpl_tools import is_using_interactive_backend
 from struct_tools import DotDict
 
 ##################################
@@ -95,23 +96,21 @@ for d in rc.dirs:
 
 
 ##################################
-# Disable rc.liveplotting ?
+# Disable rc.liveplotting in case of non-interactive backends
 ##################################
+# Otherwise, warnings are thrown on every occurence of plt.pause
+# (though not plot_pause), and (who knows) maybe errors too.
+# Also, the assimilation slows down, even though nothing is shown.
 LP = rc.liveplotting
-if LP:
-    backend = mpl.get_backend().lower()
-    non_interactive = [&#39;agg&#39;, &#39;ps&#39;, &#39;pdf&#39;, &#39;svg&#39;, &#39;cairo&#39;, &#39;gdk&#39;]
-    LP &amp;= not any(backend == x for x in non_interactive)
-    # Also disable for inline backends, which are buggy with liveplotting
-    LP &amp;= &#39;inline&#39; not in backend
-    LP &amp;= &#39;nbagg&#39; not in backend
-    if not LP:
-        print(&#34;\nWarning: You have not disableed interactive/live plotting&#34;
-              &#34; in your dpr_config.py,&#34;
-              &#34; but this is not supported by current backend:&#34;
-              f&#34; {mpl.get_backend()}.&#34;
-              &#34; To enable it, try using another backend,&#34;
-              &#34; e.g., mpl.use(&#39;Qt5Agg&#39;).\n&#34;)
+if LP and not is_using_interactive_backend():
+    # Note: plot_pause could maybe be adapted to also work for
+    # &#34;inline&#34; backend (which is not striclty interactive), but I think
+    # this would be buggy, and is incompatible with a &#34;stop&#34; button.
+    print(&#34;\nWarning: You have not disableed interactive/live plotting&#34;
+          &#34; in your dpr_config.py,&#34;
+          &#34; but this is not supported by the current matplotlib backend:&#34;
+          f&#34; {mpl.get_backend()}. To enable it, try using another backend.\n&#34;)
+    LP = False
 rc.liveplotting = LP</code></pre>
 </details>
 </section>
