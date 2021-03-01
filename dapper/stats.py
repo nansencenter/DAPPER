@@ -28,7 +28,7 @@ class Stats(StatPrint):
 
         Note: Python allows dynamically creating attributes, so you can easily
         add custom stat. series to a Stat instance within a particular method,
-        for example. Use ``new_series`` to get automatic averaging too.
+        for example. Use `new_series` to get automatic averaging too.
         """
         ######################################
         # Preamble
@@ -124,9 +124,9 @@ class Stats(StatPrint):
         Create ndarray of length KObs+1 for inflation time series:
         >>> self.new_series('infl', 1, KObs+1)  # doctest: +SKIP
 
-        NB: The ``sliding_diagnostics`` liveplotting relies on detecting ``nan``'s
+        NB: The `sliding_diagnostics` liveplotting relies on detecting `nan`'s
             to avoid plotting stats that are not being used.
-            => Cannot use ``dtype=bool`` or ``int`` for stats that get plotted.
+            => Cannot use `dtype=bool` or `int` for stats that get plotted.
         """
         # Convert int shape to tuple
         if not hasattr(shape, '__len__'):
@@ -346,8 +346,8 @@ class Stats(StatPrint):
     def average_in_time(self, kk=None, kkObs=None, free=False):
         """Avarage all univariate (scalar) time series.
 
-        - ``kk``    time inds for averaging
-        - ``kkObs`` time inds for averaging obs
+        - `kk`    time inds for averaging
+        - `kkObs` time inds for averaging obs
         """
         chrono = self.HMM.t
         if kk is None:
@@ -411,8 +411,8 @@ class Stats(StatPrint):
         - t1, t2: time window to plot.
         - 'figlist' and 'speed': See LivePlot's doc.
 
-        .. note:: ``store_u`` (whether to store non-obs-time stats) must
-        have been ``True`` to have smooth graphs as in the actual LivePlot.
+        .. note:: `store_u` (whether to store non-obs-time stats) must
+        have been `True` to have smooth graphs as in the actual LivePlot.
 
         .. note:: Ensembles are generally not stored in the stats
         and so cannot be replayed.
@@ -512,133 +512,126 @@ def warn_zero_variance(err, flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def align_col(col, header, pad='␣', missingval='', frmt=None):
-    """Format a single column, return as list.
+def align_col(col, pad='␣', missingval='', just=">"):
+    r"""Align column.
 
-    - Use tabulate() to get decimal point alignment.
-    - Inf and nan are handled individually so that they don't
-      align left of the decimal point (makes too wide columns).
-      Custom ``frmt`` also supported, which must support formatting
-      for strings as well.
-    - Pad (on the right) each row so that the widths are equal.
+    Treats `int`s and fixed-point `float`/`str` especially, aligning on the point.
+
+    Example:
+    >>> xx = [1, 1., 1.234, 12.34, 123.4, "1.2e-3", None, np.nan, "inf", (1, 2)]
+    >>> print(*align_col(xx), sep="\n")
+    ␣␣1␣␣␣␣
+    ␣␣1.0␣␣
+    ␣␣1.234
+    ␣12.34␣
+    123.4␣␣
+    ␣1.2e-3
+    ␣␣␣␣␣␣␣
+    ␣␣␣␣nan
+    ␣␣␣␣inf
+    ␣(1, 2)
     """
-    def preprocess(x):
+    def split_decimal(x):
+        x = str(x)
         try:
-            # Custom frmt supplied
-            if frmt is not None:
-                return frmt(x)
+            y = float(x)
+        except ValueError:
+            pass
+        else:
+            if np.isfinite(y) and ("e" not in x.lower()):
+                a, *b = x.split(".")
+                if b == []:
+                    b = "int"
+                else:
+                    b = b[0]
+                return a, b
+        return x, False
 
-            if isinstance(x, str):
-                x = x.replace("nan", "NAX")
-                x = x.replace("inf", "INX")
-                return x
+    # Find max nInt, nDec
+    nInt = nDec = -1
+    for x in col:
+        ints, decs = split_decimal(x)
+        if decs:
+            nInt = max(nInt, len(ints))
+            if decs != "int":
+                nDec = max(nDec, len(decs))
 
-            # Standard formatting
-            if x is None:
-                return missingval
-            elif np.isnan(x):
-                return "NAX"
-            elif x == -np.inf:
-                return "-INX"
-            elif x == np.inf:
-                return "INX"
-            return x  # leave formatting to tabulate()
-
-        except TypeError:
+    # Format entries. Floats get aligned on point.
+    def frmt(x):
+        if x is None:
             return missingval
+        ints, decs = split_decimal(x)
+        x = f"{ints.rjust(nInt, pad)}"
+        if decs == "int":
+            if nDec >= 0:
+                x += pad + pad*nDec
+        elif decs:
+            x += "." + f"{decs.ljust(nDec, pad)}"
+        else:
+            x = ints
+        return x
 
-    def postprocess(s):
-        s = s.replace("NAX", "nan")
-        s = s.replace("INX", "inf")
-        return s
-
-    # Make text column, align numbers by decimal point
-    # tabulate turn string type numbers into float
-    # and lose the 0 paddings.
-    col_uq = [str(preprocess(x)) for x in col]
-    col = [[preprocess(x)] for x in col]
-    col = tabulate(col, [header], 'plain')
-    col = col.split("\n")  # NOTE: dont use splitlines (removes empty lines)
-
-    # Undo nan/inf treatment
-    col_uq = [postprocess(s) for s in col]
-    col = [postprocess(s) for s in col]
-
-    # restore 0 paddings
-    for s, s_uq in zip(col[len([header]):], col_uq):
-        if s.replace(" ", "") != s_uq.replace(" ", ""):
-            # str/values that do not need padding
-            # will not change in tabulate
-            if "." not in s:
-                s += "."
-            s = s.split(".")[0] + "." + s_uq.split(".")[-1]
-
-    # Pad on the right, for equal widths
-    mxW = max(len(s) for s in col)
-    col = [s.ljust(mxW) for s in col]
-
-    # Use pad char. on BOTH left/right, to prevent trunc. by later tabulate().
-    col = [s.replace(" ", pad) for s in col]
-
+    # Format
+    col = [frmt(x) for x in col]
+    # Find max width
+    Max = max(len(x) for x in col)
+    # Right-justify
+    shift = str.rjust if just == ">" else str.ljust
+    col = [shift(x, Max, pad) for x in col]
     return col
 
 
-def unpack_uqs(uq_list, decimals=None, cols=("val", "prec")):
-    """Make `uq_list` into array with named columns of attributes.
+def unpack_uqs(uq_list, decimals=None):
+    """Convert list of `uq`s into dict of lists (of equal-length) of attributes.
 
-    None is inserted (in each col) if `uq` itself is None.
+    The attributes are obtained by `vars(uq)`,
+    and may get formatted somehow (e.g. cast to strings) in the output.
+
+    If `uq` is `None`, then `None` is inserted in each list.
+    Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
 
     Parameters
     ----------
-    uqlist: list
-        List of objects.
+    uq_list: list
+        List of `uq`s.
 
     decimals: int
         Desired number of decimals.
-        Used for the columns "val" and "prec", and only these.
-        If `None`, it is left to the `dapper.tools.rounding.UncertainQtty` objects.
-
-    cols: tuple[str]
-        Names of columns to extract.
+        Used for (only) the columns "val" and "prec".
+        Default: `None`. In this case, the formatting is left to the `uq`s.
     """
-    def pad0(s):
-        """Pad zeros up to the required number of decimals."""
-        # no need to pad inf or nan or integers
-        if s == 'nan' or s == 'inf' or decimals <= 0:
-            return s
-        # add point if s is an integer
-        if "." not in s:
-            s += "."
-        # pad zeros
-        return s + "0"*(decimals - len(s.split(".")[-1]))
+    def frmt(uq):
+        attrs = vars(uq).copy()
 
-    def unpack1(arr, i, uq):
-        if uq is None:
-            return
-        # Columns: val/prec
+        # val/prec: round
         if decimals is None:
-            # v, c = uq.round()
-            v, c = str(uq).split("±")
+            v, p = str(uq).split(" ±")
         else:
-            v, c = np.round([uq.val, uq.prec], decimals)
-            v = pad0(str(v))
-            c = pad0(str(c))
+            frmt = "%%.%df" % decimals
+            v, p = frmt % uq.val, frmt % uq.prec
+        attrs["val"], attrs["prec"] = v, p
 
-        arr["val"][i], arr["prec"][i] = v.replace(" ", ""), c.replace(" ", "")
-        # Columns: others
-        for col in struct_tools.complement(cols, ["val", "prec"]):
-            try:
-                arr[col][i] = getattr(uq, col)
-            except AttributeError:
-                pass
+        # tuned_coord: convert to tuple
+        try:
+            attrs["tuned_coord"] = tuple(a for a in uq.tuned_coord)
+        except AttributeError:
+            pass
+        return attrs
 
-    # np.array with named columns. "O" => allow storing None's.
-    dtypes = np.dtype([(c, "O") for c in cols])
-    arr = np.full_like(uq_list, dtype=dtypes, fill_value=None)
+    cols = {}
     for i, uq in enumerate(uq_list):
-        unpack1(arr, i, uq)
+        if uq is not None:
+            # Format
+            attrs = frmt(uq)
+            # Insert attrs as a "row" in the `cols`:
+            for k in attrs:
+                # Init column
+                if k not in cols:
+                    cols[k] = [None]*len(uq_list)
+                # Insert element
+                cols[k][i] = attrs[k]
 
-    return arr
+    return cols
 
 
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
@@ -648,12 +641,15 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
 
     columns = {}
     for stat in statkeys:
-        column = unpack_uqs(
-            [getattr(a, stat, None) for a in avrgs_list], decimals)
-        vals  = align_col(column["val"], stat)
-        confs = align_col(column["prec"], '1σ')
-        headr = vals[0]+'  1σ'
-        mattr = [v + ' ±'+c for v, c in zip(vals, confs)][1:]
+        column = [getattr(a, stat, None) for a in avrgs_list]
+        column = unpack_uqs(column, decimals)
+        if not column:
+            raise ValueError(f"The stat. key '{stat}' was not"
+                             " found among any of the averages.")
+        vals  = align_col([stat] + column["val"])
+        precs = align_col(['1σ'] + column["prec"], just="<")
+        headr = vals[0]+'  '+precs[0]
+        mattr = [f"{v} ±{c}" for v, c in zip(vals, precs)][1:]
         columns[headr] = mattr
 
     return columns

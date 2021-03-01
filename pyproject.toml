@@ -3,11 +3,12 @@
 ##################
 [tool.pytest.ini_options]
 minversion = "6.0"
-#addopts = "--cov --cov-report term-missing"
-addopts = """tests --cov dapper
+# Since `--doctest-modules` requires specifying `dapper`,
+# it means pytest won't discover `test` dir on its own.
+# So to run all tests, do `pytest tests`.
+addopts = """
     --ignore=tests/test_plotting.py
     --ignore=tests/test_demos.py
-    --ignore=dapper/mods/QG
 --doctest-modules dapper
     --ignore-glob=**/autoscaler.py
     --ignore-glob=**/demo.py
@@ -122,4 +123,4 @@ pycodestyle = ["-E501"]
 
 [tool.flakehell.exceptions."examples/"]
 pycodestyle = ["-E201", "-E402"]
-flake8-docstrings = ["-D200"]
+flake8-docstrings = ["-D100", "-D200"]

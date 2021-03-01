@@ -1,61 +1,72 @@
-"""
-Illustrate usage of DAPPER to (interactively) run a synthetic ("twin") experiment.
-"""
+# ## Illustrate usage of DAPPER to (interactively) run a synthetic ("twin") experiment.
 
-# !pip install git+https://github.com/nansencenter/DAPPER.git
+# #### Imports
+
+# %matplotlib notebook
+from mpl_tools import is_notebook_or_qt as nb
 
 import dapper as dpr
 import dapper.da_methods as da
 
-# Load experiment setup: the hidden Markov model (HMM)
-from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM  # isort:skip
+# #### Load experiment setup: the hidden Markov model (HMM)
 
-# Generate the same random numbers every time
-dpr.set_seed(3000)
+from dapper.mods.Lorenz63.sakov2012 import HMM  # isort:skip
 
-HMM = _HMM.copy()
+# #### Generate the same random numbers every time
+
+seed = dpr.set_seed(3000)
+
+# #### Simulate synthetic truth (xx) and noisy obs (yy)
+
 HMM.t.T = 30  # shorten experiment
-
-# Simulate synthetic truth (xx) and noisy obs (yy)
 xx, yy = HMM.simulate()
 
-# Specify a DA method configuration ("xp" for "experiment")
+# #### Specify a DA method configuration ("xp" for "experiment")
+
 xp = da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
 # xp = da.Var3D()
-# xp = da.PartFilt(N=100,reg=2.4,NER=0.3)
+# xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
 
-# Assimilate yy, knowing the HMM; xx is used to assess the performance
-xp.assimilate(HMM, xx, yy, liveplots=True)
+# #### Assimilate yy, knowing the HMM; xx is used to assess the performance
 
-# Average the time series of various statistics
+xp.assimilate(HMM, xx, yy, liveplots=not nb)
+
+# #### Average the time series of various statistics
+
 xp.stats.average_in_time()
 
-# Print some averages
+# #### Print some averages
+
 print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 
-# Replay liveplotters
-xp.stats.replay(speed=100)
+# #### Replay liveplotters
+
+xp.stats.replay(
+    # speed=.6
+)
 
 # #### Further diagnostic plots
 
-# +
-# import dapper.tools.viz as viz
-# viz.plot_rank_histogram(xp.stats)
-# viz.plot_err_components(xp.stats)
-# viz.plot_hovmoller(xx)
-# -
+if nb:
+    import dapper.tools.viz as viz
+    viz.plot_rank_histogram(xp.stats)
+    viz.plot_err_components(xp.stats)
+    viz.plot_hovmoller(xx)
 
 # #### Explore objects
 
-# +
-# print(HMM)
-# print(xp)
-# print(xp.stats)
-# print(xp.avrgs)
-# -
+if nb:
+    print(xp)
+
+if nb:
+    print(HMM)
+
+if nb:
+    # print(xp.stats) # quite long printout
+    print(xp.avrgs)
 
 # #### Excercise: Why does the replay look jagged?
-# Hint: provide the keyword store_u=True to assimilate() to avoid this.
+# Hint: provide the keyword `store_u=True` to `assimilate()` to avoid this.
 
 # #### Excercise: Why does the replay only contain the blue lines?
 
@@ -64,7 +75,8 @@ xp.stats.replay(speed=100)
 # - The (extended) Kalman filter
 # - The iterative EnKS
 #
-# Hint: suggested DA xp's are listed in the HMM file
+# Hint: suggested DA method settings are listed in the HMM files,
+# like `dapper.mods.Lorenz63.sakov2012`.
 
 # #### Excercise: Run an experiment for each of these models
 # - LotkaVolterra
