@@ -14,6 +14,11 @@ class UncertainQtty():
 
     Includes intelligent rounding and printing functionality.
 
+    Usually, the precision parameter will be set to the (potentially estimated)
+    standard deviation of an uncertain quantity.
+    However, this class in itself does not define the `prec` attribute
+    by anything else than what it does: impact the rounding & printing of `val`.
+
     Examples:
     >>> for c in [.01, .1, .2, .9, 1]:
     ...    print(UncertainQtty(1.2345, c))
@@ -53,13 +58,11 @@ class UncertainQtty():
     val: float
     prec: float
 
-    def round(self, mult=1.0):  # noqa
+    def round(self=1.0):  # noqa
         """Round intelligently.
 
-        - `prec` to 1 sig. fig.
-        - `val`:
-            - to precision: `mult*prec`
-            - fallback: `rc.sigfig`
+        - `prec` to 1 sig.fig.
+        - `val` to `round2(val, prec)`.
         """
         if np.isnan(self.prec):
             # Fallback to rc.sigfig
@@ -68,37 +71,33 @@ class UncertainQtty():
         else:
             # Normal/general case
             c = round2sigfig(self.prec, 1)
-            v = round2(self.val, mult*self.prec)
+            v = round2(self.val, self.prec)
         return v, c
 
     def __str__(self):
-        """Returns 'val ±prec'.
-
-        The value is formatted with the appropriate number of decimals,
-        considering the precision.
-
-        Note: the special cases require processing on top of `round`.
-        """
+        """Returns 'val ±prec', using `UncertainQtty.round` and some finesse."""
         v, c = self.round()
+
         if np.isnan(c):
             # Rounding to fallback (rc.sigfig) already took place
             return f"{v} ±{c}"
-        if c == 0:
+        elif c == 0:
             # 0 (i.e. not 1e-300) never arises "naturally" => Treat it "magically"
             # by truncating to a default. Also see https://stackoverflow.com/a/25899600
             n = -10
         else:
             # Normal/general case.
             n = log10int(c)
+
         frmt = "%.f"
         if n < 0:
             # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
             frmt = "%%0.%df" % -n
-
         elif np.isfinite(c):
             # if c >= 1.0
             c = int(c)
         v = frmt % v
+
         return f"{v} ±{c}"
 
     def __repr__(self):
@@ -177,12 +176,12 @@ def log10int(x):
 
 @np_vectorize
 def round2(x, prec=1.0):
-    r"""Round to a nice precision.
+    r"""Round x to the decimal order appropriate for the precision.
 
     Parameters
     ----------
     x : array_like
-          Value to be rounded.
+        Value to be rounded.
     prec: float
         Precision, before prettify, which is given by
         $$ \text{prec} = 10^{\text{floor}(-\log_{10}|\text{prec}|)} $$

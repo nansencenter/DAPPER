@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L0-L255" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L0-L259" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Functions for rounding numbers.&#34;&#34;&#34;
 
@@ -57,6 +57,11 @@ class UncertainQtty():
     &#34;&#34;&#34;Data container associating uncertainty (confidence) to a quantity.
 
     Includes intelligent rounding and printing functionality.
+
+    Usually, the precision parameter will be set to the (potentially estimated)
+    standard deviation of an uncertain quantity.
+    However, this class in itself does not define the `prec` attribute
+    by anything else than what it does: impact the rounding &amp; printing of `val`.
 
     Examples:
     &gt;&gt;&gt; for c in [.01, .1, .2, .9, 1]:
@@ -97,13 +102,11 @@ class UncertainQtty():
     val: float
     prec: float
 
-    def round(self, mult=1.0):  # noqa
+    def round(self=1.0):  # noqa
         &#34;&#34;&#34;Round intelligently.
 
-        - `prec` to 1 sig. fig.
-        - `val`:
-            - to precision: `mult*prec`
-            - fallback: `rc.sigfig`
+        - `prec` to 1 sig.fig.
+        - `val` to `round2(val, prec)`.
         &#34;&#34;&#34;
         if np.isnan(self.prec):
             # Fallback to rc.sigfig
@@ -112,32 +115,33 @@ class UncertainQtty():
         else:
             # Normal/general case
             c = round2sigfig(self.prec, 1)
-            v = round2(self.val, mult*self.prec)
+            v = round2(self.val, self.prec)
         return v, c
 
     def __str__(self):
-        &#34;&#34;&#34;Returns &#39;val ±prec&#39;.
-
-        The value string contains the number of decimals required by the confidence.
-
-        Note: the special cases require processing on top of `round`.
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Returns &#39;val ±prec&#39;, using `UncertainQtty.round` and some finesse.&#34;&#34;&#34;
         v, c = self.round()
+
         if np.isnan(c):
             # Rounding to fallback (rc.sigfig) already took place
             return f&#34;{v} ±{c}&#34;
-        if c == 0:
+        elif c == 0:
             # 0 (i.e. not 1e-300) never arises &#34;naturally&#34; =&gt; Treat it &#34;magically&#34;
             # by truncating to a default. Also see https://stackoverflow.com/a/25899600
             n = -10
         else:
             # Normal/general case.
             n = log10int(c)
+
         frmt = &#34;%.f&#34;
         if n &lt; 0:
             # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
             frmt = &#34;%%0.%df&#34; % -n
+        elif np.isfinite(c):
+            # if c &gt;= 1.0
+            c = int(c)
         v = frmt % v
+
         return f&#34;{v} ±{c}&#34;
 
     def __repr__(self):
@@ -216,12 +220,12 @@ def log10int(x):
 
 @np_vectorize
 def round2(x, prec=1.0):
-    r&#34;&#34;&#34;Round to a nice precision.
+    r&#34;&#34;&#34;Round x to the decimal order appropriate for the precision.
 
     Parameters
     ----------
     x : array_like
-          Value to be rounded.
+        Value to be rounded.
     prec: float
         Precision, before prettify, which is given by
         $$ \text{prec} = 10^{\text{floor}(-\log_{10}|\text{prec}|)} $$
@@ -329,7 +333,7 @@ def is_whole(x, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L105-L130" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L109-L134" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def np_vectorize(f):
     &#34;&#34;&#34;Like `np.vectorize`, but with some embellishments.
@@ -375,7 +379,7 @@ array([  -1,   -2,    0,    0,    1,  300, -300, -300])
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L146-L170" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L150-L174" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def log10int(x):
@@ -408,7 +412,7 @@ def log10int(x):
 <span>def <span class="ident">round2</span></span>(<span>x, prec=1.0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Round to a nice precision.</p>
+<div class="desc"><p>Round x to the decimal order appropriate for the precision.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>x</code></strong> :&ensp;<code>array_like</code></dt>
@@ -432,16 +436,16 @@ def log10int(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L173-L205" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L177-L209" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def round2(x, prec=1.0):
-    r&#34;&#34;&#34;Round to a nice precision.
+    r&#34;&#34;&#34;Round x to the decimal order appropriate for the precision.
 
     Parameters
     ----------
     x : array_like
-          Value to be rounded.
+        Value to be rounded.
     prec: float
         Precision, before prettify, which is given by
         $$ \text{prec} = 10^{\text{floor}(-\log_{10}|\text{prec}|)} $$
@@ -500,7 +504,7 @@ def round2(x, prec=1.0):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L208-L238" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L212-L242" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def round2sigfig(x, sigfig=1):
@@ -554,7 +558,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L241-L256" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L245-L260" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is_whole(x, **kwargs):
     &#34;&#34;&#34;Check if a number is a whole/natural number to precision given by `np.isclose`.
@@ -586,6 +590,10 @@ def round2sigfig(x, sigfig=1):
 <dd>
 <div class="desc"><p>Data container associating uncertainty (confidence) to a quantity.</p>
 <p>Includes intelligent rounding and printing functionality.</p>
+<p>Usually, the precision parameter will be set to the (potentially estimated)
+standard deviation of an uncertain quantity.
+However, this class in itself does not define the <code>prec</code> attribute
+by anything else than what it does: impact the rounding &amp; printing of <code>val</code>.</p>
 <p>Examples:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; for c in [.01, .1, .2, .9, 1]:
 ...    print(UncertainQtty(1.2345, c))
@@ -622,12 +630,17 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L12-L102" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L12-L106" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UncertainQtty():
     &#34;&#34;&#34;Data container associating uncertainty (confidence) to a quantity.
 
     Includes intelligent rounding and printing functionality.
+
+    Usually, the precision parameter will be set to the (potentially estimated)
+    standard deviation of an uncertain quantity.
+    However, this class in itself does not define the `prec` attribute
+    by anything else than what it does: impact the rounding &amp; printing of `val`.
 
     Examples:
     &gt;&gt;&gt; for c in [.01, .1, .2, .9, 1]:
@@ -668,13 +681,11 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
     val: float
     prec: float
 
-    def round(self, mult=1.0):  # noqa
+    def round(self=1.0):  # noqa
         &#34;&#34;&#34;Round intelligently.
 
-        - `prec` to 1 sig. fig.
-        - `val`:
-            - to precision: `mult*prec`
-            - fallback: `rc.sigfig`
+        - `prec` to 1 sig.fig.
+        - `val` to `round2(val, prec)`.
         &#34;&#34;&#34;
         if np.isnan(self.prec):
             # Fallback to rc.sigfig
@@ -683,32 +694,33 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
         else:
             # Normal/general case
             c = round2sigfig(self.prec, 1)
-            v = round2(self.val, mult*self.prec)
+            v = round2(self.val, self.prec)
         return v, c
 
     def __str__(self):
-        &#34;&#34;&#34;Returns &#39;val ±prec&#39;.
-
-        The value string contains the number of decimals required by the confidence.
-
-        Note: the special cases require processing on top of `round`.
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Returns &#39;val ±prec&#39;, using `UncertainQtty.round` and some finesse.&#34;&#34;&#34;
         v, c = self.round()
+
         if np.isnan(c):
             # Rounding to fallback (rc.sigfig) already took place
             return f&#34;{v} ±{c}&#34;
-        if c == 0:
+        elif c == 0:
             # 0 (i.e. not 1e-300) never arises &#34;naturally&#34; =&gt; Treat it &#34;magically&#34;
             # by truncating to a default. Also see https://stackoverflow.com/a/25899600
             n = -10
         else:
             # Normal/general case.
             n = log10int(c)
+
         frmt = &#34;%.f&#34;
         if n &lt; 0:
             # Ensure we get 1.30 ±0.01, NOT 1.3 ±0.01:
             frmt = &#34;%%0.%df&#34; % -n
+        elif np.isfinite(c):
+            # if c &gt;= 1.0
+            c = int(c)
         v = frmt % v
+
         return f&#34;{v} ±{c}&#34;
 
     def __repr__(self):
@@ -730,30 +742,24 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
 <h3>Methods</h3>
 <dl>
 <dt id="dapper.tools.rounding.UncertainQtty.round"><code class="name flex">
-<span>def <span class="ident">round</span></span>(<span>self, mult=1.0)</span>
+<span>def <span class="ident">round</span></span>(<span>self=1.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Round intelligently.</p>
 <ul>
-<li><code>prec</code> to 1 sig. fig.</li>
-<li><code>val</code>:<ul>
-<li>to precision: <code>mult*prec</code></li>
-<li>fallback: <code>rc.sigfig</code></li>
-</ul>
-</li>
+<li><code>prec</code> to 1 sig.fig.</li>
+<li><code>val</code> to <code><a title="dapper.tools.rounding.round2" href="#dapper.tools.rounding.round2">round2()</a>(val, prec)</code>.</li>
 </ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L56-L72" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L61-L75" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def round(self, mult=1.0):  # noqa
+<pre><code class="python">def round(self=1.0):  # noqa
     &#34;&#34;&#34;Round intelligently.
 
-    - `prec` to 1 sig. fig.
-    - `val`:
-        - to precision: `mult*prec`
-        - fallback: `rc.sigfig`
+    - `prec` to 1 sig.fig.
+    - `val` to `round2(val, prec)`.
     &#34;&#34;&#34;
     if np.isnan(self.prec):
         # Fallback to rc.sigfig
@@ -762,7 +768,7 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
     else:
         # Normal/general case
         c = round2sigfig(self.prec, 1)
-        v = round2(self.val, mult*self.prec)
+        v = round2(self.val, self.prec)
     return v, c</code></pre>
 </details>
 </dd>

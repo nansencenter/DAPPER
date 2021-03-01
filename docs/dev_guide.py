@@ -1,7 +1,14 @@
 """# Developer guide
 
 ## Run tests
-See `tests`.
+By default, only doctests are run when executing `pytest`.
+To run the main tests, do this:
+```sh
+pytest tests
+```
+
+You can also append `test_plotting.py` for example,
+which is otherwise ignored for being slow.
 
 ## Documentation
 

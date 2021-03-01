@@ -19,14 +19,27 @@ To make sure this is working, we suggest the following structure:
 - Make a file: `my_model/__init__.py` where you define the core
   workings of the model.
   Typically, this culminates in a `step(x, t, dt)` function.
+
     - The model step operator (and the obs operator) must support
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
-      See `dapper.mods.Lorenz63` and `dapper.mods.Lorenz96`
-      for typical implementations,
-      and `dapper.mods.QG` for how to parallelize the ensemble simulations.
+      See
+
+          - `dapper.mods.Lorenz63`: use of `ens_compatible`.
+          - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
+          - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
+            Consider pre-defining the slices like so:
+
+                iiX = (..., slice(None, Nx))
+                iiP = (..., slice(Nx, None))
+
+            to abbreviate the indexing elsewhere.
+
+          - `dapper.mods.QG`: use of parallelized for loop (map).
+
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).
+
 - Make a file: `my_model/demo.py` to visually showcase
   a simulation of the model.
 - Ideally, both `my_model/__init__.py` and `my_model/demo.py`
@@ -78,37 +91,58 @@ from .utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
 class HiddenMarkovModel(struct_tools.NicePrint):
     """Container for a Hidden Markov Model (HMM).
 
-    This container contains the specification of a "twin experiment",
-    i.e. an "OSSE (observing system simulation experiment)".
+    This should contain the details necessary to run synthetic DA experiments,
+    also known as "twin experiment", or OSSE (observing system simulation experiment).
+    The synthetic truth and observations may then be obtained by running
+    `HiddenMarkovModel.simulate`.
     """
 
-    def __init__(self, Dyn, Obs, t, X0, **kwargs):
-        # fmt: off
-        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
-        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
-        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
-        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
-        # fmt: on
+    def __init__(self, *args, **kwargs):
+        # Valid args/kwargs, along with type and default.
+        # Note: it's still ok to write attributes to the HMM following the init.
+        attrs = dict(Dyn=(Operator, None),
+                     Obs=(Operator, None),
+                     t=(Chronology, None),
+                     X0=(RV, None),
+                     liveplotters=(list, []),
+                     sectors=(dict, {}),
+                     name=(str, HiddenMarkovModel._default_name))
 
-        # Name
-        self.name = kwargs.pop("name", "")
-        if not self.name:
-            name = inspect.getfile(inspect.stack()[1][0])
+        # Transfer args to kwargs
+        for arg, kw in zip(args, attrs):
+            assert (kw not in kwargs), "Could not sort out arguments."
+            kwargs[kw] = arg
+
+        # Un-abbreviate
+        abbrevs = {"LP": "liveplotters", "loc": "localizer"}
+        for k in list(kwargs):
             try:
-                self.name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
-            except ValueError:
-                self.name = str(Path(name))
+                full = abbrevs[k]
+            except KeyError:
+                pass
+            else:
+                assert (full not in kwargs), "Could not sort out arguments."
+                kwargs[full] = kwargs.pop(k)
 
-        # Kwargs
-        abbrevs = {'LP': 'liveplotters'}
-        for key in kwargs:
-            setattr(self, abbrevs.get(key, key), kwargs[key])
+        # Transfer kwargs to self
+        for k, (type_, default) in attrs.items():
+            # Get kwargs[k] or default
+            if k in kwargs:
+                v = kwargs.pop(k)
+            elif callable(default):
+                v = default()
+            else:
+                v = default
+            # Convert dict to type
+            if not isinstance(v, (type_, type(None))):
+                v = type_(**v)
+            # Write
+            setattr(self, k, v)
+        assert kwargs == {}, f"Arguments {list(kwargs)} is/are invalid."
 
-        # Defaults
+        # Further defaults
         if not hasattr(self.Obs, "localizer"):
             self.Obs.localizer = no_localization(self.Nx, self.Ny)
-        if not hasattr(self, "sectors"):
-            self.sectors = {}
 
         # Validation
         if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
@@ -142,6 +176,15 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
     def copy(self):
         return cp.deepcopy(self)
+
+    @staticmethod
+    def _default_name():
+        name = inspect.getfile(inspect.stack()[2][0])
+        try:
+            name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
+        except ValueError:
+            name = str(Path(name))
+        return name
 
 
 class Operator(struct_tools.NicePrint):

@@ -95,8 +95,8 @@ class OptPF:
 
     Ref: `bib.bocquet2010beyond`.
 
-    .. note:: Regularization (``Qs``) is here added BEFORE Bayes' rule.
-              If ``Qs==0``: OptPF should be equal to
+    .. note:: Regularization (`Qs`) is here added BEFORE Bayes' rule.
+              If `Qs==0`: OptPF should be equal to
               the bootstrap filter :func:`PartFilt`.
     """
 
@@ -642,7 +642,7 @@ def _resample(w, kind, N_o, N):
 def sample_quickly_with(C12, N=None):
     """Gaussian sampling in the quickest fashion.
 
-    Method depends on the size of the colouring matrix ``C12``.
+    Method depends on the size of the colouring matrix `C12`.
     """
     (N_, M) = C12.shape
     if N is None:

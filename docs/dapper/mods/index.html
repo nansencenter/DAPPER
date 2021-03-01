@@ -88,7 +88,7 @@ Hidden Markov Model ready for a synthetic experiment
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L0-L176" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L0-L206" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Models included with DAPPER.
 
@@ -170,37 +170,58 @@ from .utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
 class HiddenMarkovModel(struct_tools.NicePrint):
     &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
 
-    This container contains the specification of a &#34;twin experiment&#34;,
-    i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
+    This should contain the details necessary to run synthetic DA experiments,
+    also known as &#34;twin experiment&#34;, or OSSE (observing system simulation experiment).
+    The synthetic truth and observations may then be obtained by running
+    `HiddenMarkovModel.simulate`.
     &#34;&#34;&#34;
 
-    def __init__(self, Dyn, Obs, t, X0, **kwargs):
-        # fmt: off
-        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
-        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
-        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
-        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
-        # fmt: on
+    def __init__(self, *args, **kwargs):
+        # Valid args/kwargs, along with type and default.
+        # Note: it&#39;s still ok to write attributes to the HMM following the init.
+        attrs = dict(Dyn=(Operator, None),
+                     Obs=(Operator, None),
+                     t=(Chronology, None),
+                     X0=(RV, None),
+                     liveplotters=(list, []),
+                     sectors=(dict, {}),
+                     name=(str, HiddenMarkovModel._default_name))
 
-        # Name
-        self.name = kwargs.pop(&#34;name&#34;, &#34;&#34;)
-        if not self.name:
-            name = inspect.getfile(inspect.stack()[1][0])
+        # Transfer args to kwargs
+        for arg, kw in zip(args, attrs):
+            assert (kw not in kwargs), &#34;Could not sort out arguments.&#34;
+            kwargs[kw] = arg
+
+        # Un-abbreviate
+        abbrevs = {&#34;LP&#34;: &#34;liveplotters&#34;, &#34;loc&#34;: &#34;localizer&#34;}
+        for k in list(kwargs):
             try:
-                self.name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
-            except ValueError:
-                self.name = str(Path(name))
+                full = abbrevs[k]
+            except KeyError:
+                pass
+            else:
+                assert (full not in kwargs), &#34;Could not sort out arguments.&#34;
+                kwargs[full] = kwargs.pop(k)
 
-        # Kwargs
-        abbrevs = {&#39;LP&#39;: &#39;liveplotters&#39;}
-        for key in kwargs:
-            setattr(self, abbrevs.get(key, key), kwargs[key])
+        # Transfer kwargs to self
+        for k, (type_, default) in attrs.items():
+            # Get kwargs[k] or default
+            if k in kwargs:
+                v = kwargs.pop(k)
+            elif callable(default):
+                v = default()
+            else:
+                v = default
+            # Convert dict to type
+            if not isinstance(v, (type_, type(None))):
+                v = type_(**v)
+            # Write
+            setattr(self, k, v)
+        assert kwargs == {}, f&#34;Arguments {list(kwargs)} is/are invalid.&#34;
 
-        # Defaults
+        # Further defaults
         if not hasattr(self.Obs, &#34;localizer&#34;):
             self.Obs.localizer = no_localization(self.Nx, self.Ny)
-        if not hasattr(self, &#34;sectors&#34;):
-            self.sectors = {}
 
         # Validation
         if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
@@ -234,6 +255,15 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
     def copy(self):
         return cp.deepcopy(self)
+
+    @staticmethod
+    def _default_name():
+        name = inspect.getfile(inspect.stack()[2][0])
+        try:
+            name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
+        except ValueError:
+            name = str(Path(name))
+        return name
 
 
 class Operator(struct_tools.NicePrint):
@@ -336,7 +366,7 @@ class Operator(struct_tools.NicePrint):
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
 <dt><code class="name"><a title="dapper.mods.VL20" href="VL20/index.html">VL20</a></code></dt>
 <dd>
-<div class="desc"><p>One scale modified model of Lorenz96 which added one thermodynamic variable.</p></div>
+<div class="desc"><p>Single-scale Lorenz-96 with an added thermodynamic component …</p></div>
 </dd>
 <!-- CHANGE: Short submodule name -->
 <!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
@@ -361,51 +391,74 @@ class Operator(struct_tools.NicePrint):
 <dl>
 <dt id="dapper.mods.HiddenMarkovModel"><code class="flex name class">
 <span>class <span class="ident">HiddenMarkovModel</span></span>
-<span>(</span><span>Dyn, Obs, t, X0, **kwargs)</span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Container for a Hidden Markov Model (HMM).</p>
-<p>This container contains the specification of a "twin experiment",
-i.e. an "OSSE (observing system simulation experiment)".</p></div>
+<p>This should contain the details necessary to run synthetic DA experiments,
+also known as "twin experiment", or OSSE (observing system simulation experiment).
+The synthetic truth and observations may then be obtained by running
+<code><a title="dapper.mods.HiddenMarkovModel.simulate" href="#dapper.mods.HiddenMarkovModel.simulate">HiddenMarkovModel.simulate()</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L78-L144" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L78-L174" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HiddenMarkovModel(struct_tools.NicePrint):
     &#34;&#34;&#34;Container for a Hidden Markov Model (HMM).
 
-    This container contains the specification of a &#34;twin experiment&#34;,
-    i.e. an &#34;OSSE (observing system simulation experiment)&#34;.
+    This should contain the details necessary to run synthetic DA experiments,
+    also known as &#34;twin experiment&#34;, or OSSE (observing system simulation experiment).
+    The synthetic truth and observations may then be obtained by running
+    `HiddenMarkovModel.simulate`.
     &#34;&#34;&#34;
 
-    def __init__(self, Dyn, Obs, t, X0, **kwargs):
-        # fmt: off
-        self.Dyn = Dyn if isinstance(Dyn, Operator)   else Operator  (**Dyn) # noqa
-        self.Obs = Obs if isinstance(Obs, Operator)   else Operator  (**Obs) # noqa
-        self.t   = t   if isinstance(t  , Chronology) else Chronology(**t)   # noqa
-        self.X0  = X0  if isinstance(X0 , RV)         else RV        (**X0)  # noqa
-        # fmt: on
+    def __init__(self, *args, **kwargs):
+        # Valid args/kwargs, along with type and default.
+        # Note: it&#39;s still ok to write attributes to the HMM following the init.
+        attrs = dict(Dyn=(Operator, None),
+                     Obs=(Operator, None),
+                     t=(Chronology, None),
+                     X0=(RV, None),
+                     liveplotters=(list, []),
+                     sectors=(dict, {}),
+                     name=(str, HiddenMarkovModel._default_name))
 
-        # Name
-        self.name = kwargs.pop(&#34;name&#34;, &#34;&#34;)
-        if not self.name:
-            name = inspect.getfile(inspect.stack()[1][0])
+        # Transfer args to kwargs
+        for arg, kw in zip(args, attrs):
+            assert (kw not in kwargs), &#34;Could not sort out arguments.&#34;
+            kwargs[kw] = arg
+
+        # Un-abbreviate
+        abbrevs = {&#34;LP&#34;: &#34;liveplotters&#34;, &#34;loc&#34;: &#34;localizer&#34;}
+        for k in list(kwargs):
             try:
-                self.name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
-            except ValueError:
-                self.name = str(Path(name))
+                full = abbrevs[k]
+            except KeyError:
+                pass
+            else:
+                assert (full not in kwargs), &#34;Could not sort out arguments.&#34;
+                kwargs[full] = kwargs.pop(k)
 
-        # Kwargs
-        abbrevs = {&#39;LP&#39;: &#39;liveplotters&#39;}
-        for key in kwargs:
-            setattr(self, abbrevs.get(key, key), kwargs[key])
+        # Transfer kwargs to self
+        for k, (type_, default) in attrs.items():
+            # Get kwargs[k] or default
+            if k in kwargs:
+                v = kwargs.pop(k)
+            elif callable(default):
+                v = default()
+            else:
+                v = default
+            # Convert dict to type
+            if not isinstance(v, (type_, type(None))):
+                v = type_(**v)
+            # Write
+            setattr(self, k, v)
+        assert kwargs == {}, f&#34;Arguments {list(kwargs)} is/are invalid.&#34;
 
-        # Defaults
+        # Further defaults
         if not hasattr(self.Obs, &#34;localizer&#34;):
             self.Obs.localizer = no_localization(self.Nx, self.Ny)
-        if not hasattr(self, &#34;sectors&#34;):
-            self.sectors = {}
 
         # Validation
         if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
@@ -438,7 +491,16 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
         return xx, yy
 
     def copy(self):
-        return cp.deepcopy(self)</code></pre>
+        return cp.deepcopy(self)
+
+    @staticmethod
+    def _default_name():
+        name = inspect.getfile(inspect.stack()[2][0])
+        try:
+            name = str(Path(name).relative_to(rc.dirs.dapper/&#39;mods&#39;))
+        except ValueError:
+            name = str(Path(name))
+        return name</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -459,7 +521,7 @@ i.e. an "OSSE (observing system simulation experiment)".</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L118-L119" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L139-L140" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Nx(self): return self.Dyn.M</code></pre>
@@ -471,7 +533,7 @@ def Nx(self): return self.Dyn.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L120-L121" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L141-L142" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def Ny(self): return self.Obs.M</code></pre>
@@ -488,7 +550,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L125-L141" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L146-L162" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def simulate(self, desc=&#39;Truth &amp; Obs&#39;):
     &#34;&#34;&#34;Generate synthetic truth and observations.&#34;&#34;&#34;
@@ -517,7 +579,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L143-L144" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L164-L165" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def copy(self):
     return cp.deepcopy(self)</code></pre>
@@ -534,7 +596,7 @@ def Ny(self): return self.Obs.M</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L147-L177" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/__init__.py#L177-L207" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Operator(struct_tools.NicePrint):
     &#34;&#34;&#34;Container for operators (models).&#34;&#34;&#34;

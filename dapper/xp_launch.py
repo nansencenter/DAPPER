@@ -19,7 +19,7 @@ import dill
 import struct_tools
 import tabulate as _tabulate
 from tabulate import tabulate
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 import dapper.stats
 import dapper.tools.progressbar as pb
@@ -119,8 +119,9 @@ def run_experiment(xp, label, savedir, HMM,
         else:
             raise ERR
 
-    # Clear any references to mpl (for pickling) within stats
-    delattr(xp.stats, "LP_instance")
+    # Clear references to mpl (for pickling purposes)
+    if hasattr(xp.stats, "LP_instance"):
+        del xp.stats.LP_instance
 
     # AVERAGE
     xp.stats.average_in_time(free=free)
@@ -178,7 +179,7 @@ class xpList(list):
 
     Main use: administrate experiment launches.
 
-    Modifications to ``list``:
+    Modifications to `list`:
 
     - `xpList.append` supports `unique` to enable lazy `xp` declaration.
     - `__iadd__` (`+=`) supports adding single `xp`s.
@@ -190,9 +191,12 @@ class xpList(list):
 
     Add-ons:
 
-    - `xpList.launch`
-    - `xpList.print_averages`
-    - `xpList.gen_names`
+    - `xpList.launch`: run the experiments in current list.
+    - `xpList.split_attrs`: find all attributes of the `xp`s in the list;
+      classify as distinct, redundant, or common.
+    - `xpList.gen_names`: use `xpList.split_attrs` to generate
+      a short & unique name for each `xp` in the list.
+    - `xpList.tabulate_avrgs`: tabulate time-averaged results.
     - `xpList.inds` to search by kw-attrs.
 
     Parameters
