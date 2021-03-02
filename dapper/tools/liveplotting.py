@@ -11,6 +11,7 @@ from mpl_tools.fig_layout import freshfig
 from numpy import arange, nan, ones
 from struct_tools import DotDict, deep_getattr
 
+import dapper.tools.progressbar as pb
 import dapper.tools.viz as viz
 from dapper.dpr_config import rc
 from dapper.mods.utils import linspace_int
@@ -123,7 +124,10 @@ class LivePlot:
 
                 # Startup message
                 if not self.any_figs:
-                    if is_notebook_or_qt:
+                    if pb.disable_user_interaction:
+                        print('Initializing liveplots...')
+                        print('User interaction with liveplots is disabled.')
+                    elif is_notebook_or_qt:
                         pauses = [self.params["pause_" + x] for x in "faus"]
                         if any((p > 0) for p in pauses):
                             print("Note: liveplotting does not work very well"

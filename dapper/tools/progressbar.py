@@ -2,6 +2,7 @@
 
 import inspect
 import os
+import select
 import sys
 
 from tqdm.auto import tqdm
@@ -84,10 +85,6 @@ try:
         # Make tty non-echo.
         TS_new[3] = TS_new[3] & ~(termios.ECHO | termios.ICANON)
 
-        # Make tty non-blocking.
-        TS_new[6][termios.VMIN] = 0
-        TS_new[6][termios.VTIME] = 0
-
         set_term_settings(TS_new)
         return TS_old
 
@@ -117,7 +114,10 @@ try:
                 set_term_settings(TS_old)
 
         def _read1():
-            return os.read(sys.stdin.fileno(), 1)
+            if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
+                return os.read(sys.stdin.fileno(), 1)
+            else:
+                return None
 
     except:  # noqa
         # Fails in non-terminal environments
