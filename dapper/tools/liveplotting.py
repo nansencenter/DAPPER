@@ -124,10 +124,8 @@ class LivePlot:
 
                 # Startup message
                 if not self.any_figs:
-                    if pb.disable_user_interaction:
-                        print('Initializing liveplots...')
-                        print('User interaction with liveplots is disabled.')
-                    elif is_notebook_or_qt:
+                    print('Initializing liveplots...')
+                    if is_notebook_or_qt:
                         pauses = [self.params["pause_" + x] for x in "faus"]
                         if any((p > 0) for p in pauses):
                             print("Note: liveplotting does not work very well"
@@ -137,8 +135,7 @@ class LivePlot:
                                   " in the toolbar). Consider using instead"
                                   " only the replay functionality (with infinite"
                                   " playback speed).")
-                    else:
-                        print('Initializing liveplots...')
+                    elif not pb.disable_user_interaction:
                         print('Hit <Space> to pause/step.')
                         print('Hit <Enter> to resume/skip.')
                         print('Hit <i> to enter debug mode.')

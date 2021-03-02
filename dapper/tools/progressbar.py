@@ -4,6 +4,7 @@ import inspect
 import os
 import select
 import sys
+import warnings
 
 from tqdm.auto import tqdm
 
@@ -66,6 +67,15 @@ def progbar(iterable, desc=None, leave=1, **kwargs):
 # Btw, multiprocessing also doesn't like tqdm itself.
 disable_user_interaction = False
 
+
+def warn_interaction_impossible():
+    warnings.warn((
+        "Keyboard interaction (to skip/stop/pause the liveplotting)"
+        " does not work in the current terminal."
+        " Remember that you may also turn off liveplotting altogether."),
+        stacklevel=2)
+
+
 try:
     # Linux. See Misc/read1_trials.py
     import termios
@@ -121,6 +131,7 @@ try:
 
     except:  # noqa
         # Fails in non-terminal environments
+        warn_interaction_impossible()
         disable_user_interaction = True
 
 except ImportError:
@@ -135,6 +146,7 @@ except ImportError:
                 return None
 
     except ImportError:
+        warn_interaction_impossible()
         disable_user_interaction = True
 
 
