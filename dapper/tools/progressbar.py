@@ -123,9 +123,17 @@ try:
             if not disable_user_interaction:
                 set_term_settings(TS_old)
 
+        def kbhit():
+            a = select.select([sys.stdin], [], [], 0)
+            b = ([sys.stdin], [], [])
+            return a == b
+
+        def getch():
+            return os.read(sys.stdin.fileno(), 1)
+
         def _read1():
-            if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
-                return os.read(sys.stdin.fileno(), 1)
+            if kbhit():
+                return getch()
             else:
                 return None
 
