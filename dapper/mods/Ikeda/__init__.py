@@ -59,7 +59,7 @@ params = dict(labels='xy')
 
 
 def LPs(jj=None, params=params): return [
-    (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
-    (13, 1, LP.phase_particles(
+    (1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
+    (1, LP.phase_particles(
         is_3d=False, obs_inds=jj, zoom=0.8, Tplot=0, **params)),
 ]

@@ -113,4 +113,4 @@ class model_instance():
         return integrate_TLM(self.d2x_dtdx_auto(x), dt, method='analytic')
 
     def LPs(self, jj):
-        return [(11, 1, LP.spatial1d(jj, dims=list(range(self.nU))))]
+        return [(1, LP.spatial1d(jj, dims=list(range(self.nU))))]

@@ -95,6 +95,33 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     also known as "twin experiment", or OSSE (observing system simulation experiment).
     The synthetic truth and observations may then be obtained by running
     `HiddenMarkovModel.simulate`.
+
+    See scripts in examples for more details.
+
+    Parameters
+    ----------
+    Dyn: `Operator` or dict
+        Operator for the dynamical model, contains model stepping ('model'),
+        model size ('M') and model noise ('noise'), etc.
+    Obs: `Operator` or dict
+        Operator for the dynamical model, contains model stepping ('model'),
+        model size ('M') and model noise ('noise'), etc.
+    t: `dapper.tools.chronos.Chronology`
+        Time schedules of the HMM.
+    X0: `dapper.tools.randvars.RV`
+        Random distribution as initial condition
+    liveplotters: `list`, optional
+        A list of tuples. See example use in function `LPs` of `dapper.mods.Lorenz63`.
+        - The first element of the tuple determines whether the liveplotter is shown if
+        the names of liveplotters are not given by `liveplots` argument in
+        `assimilate`.
+        - The second element in the tuple gives the corresponding liveplotter
+        function/class.
+    sectors: `dict`, optional
+        The sectors divide each state vectors into different sectors.
+        See example in `param_estim.py` in the examples directory.
+    name: str, optional
+        Specify a name for the instantiated `HMM`.
     """
 
     def __init__(self, *args, **kwargs):

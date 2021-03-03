@@ -450,9 +450,9 @@ class Stats(StatPrint):
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
         if LP.any_figs:
-            for _name, (num, updater) in LP.figures.items():
-                if plt.fignum_exists(num) and getattr(updater, 'is_active', 1):
-                    plt.figure(num)
+            for _name, (updater) in LP.figures.items():
+                if plt.fignum_exists(_name) and getattr(updater, 'is_active', 1):
+                    plt.figure(_name)
                     plt.pause(0.01)
 
 
