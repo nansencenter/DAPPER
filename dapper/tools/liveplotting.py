@@ -180,7 +180,7 @@ class LivePlot:
         """Update liveplots"""
         # Check if there are still open figures
         if self.any_figs:
-            open_figns = [plt.figure(i).get_label() for i in plt.get_fignums()]
+            open_figns = plt.get_figlabels()
             live_figns = set(self.figures.keys())
             self.any_figs = bool(live_figns.intersection(open_figns))
         else:
