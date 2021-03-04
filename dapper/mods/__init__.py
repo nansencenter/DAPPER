@@ -215,7 +215,20 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
 
 class Operator(struct_tools.NicePrint):
-    """Container for operators (models)."""
+    """Container for the dynamical and the observational maps.
+
+    Parameters
+    ----------
+    M: int
+        Length of output vectors.
+    model: function
+        The actual operator.
+    noise: RV, optional
+        The associated additive noise. The noise can also be a scalar or an
+        array, producing `GaussRV(C=noise)`.
+
+    Any remaining keyword arguments are written to the object as attributes.
+    """
 
     def __init__(self, M, model=None, noise=None, **kwargs):
         self.M = M
