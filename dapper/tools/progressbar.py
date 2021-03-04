@@ -69,11 +69,12 @@ disable_user_interaction = False
 
 
 def warn_interaction_impossible():
-    warnings.warn((
-        "Keyboard interaction (to skip/stop/pause the liveplotting)"
-        " does not work in the current terminal."
-        " Remember that you may also turn off liveplotting altogether."),
-        stacklevel=2)
+    if "pytest" not in sys.modules:
+        warnings.warn((
+            "Keyboard interaction (to skip/stop/pause the liveplotting)"
+            " does not work in the current terminal."
+            " Remember that you may also turn off liveplotting altogether."),
+            stacklevel=2)
 
 
 try:
