@@ -110,14 +110,16 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         Random distribution of initial condition
     liveplotters: `list`, optional
         A list of tuples. See example use in function `LPs` of `dapper.mods.Lorenz63`.
-        - The first element of the tuple determines if the liveplotter is shown by default.
-        If `False`, the liveplotter is only shown when included among the `liveplots` argument of `assimilate`
+        - The first element of the tuple determines if the liveplotter
+        is shown by default. If `False`, the liveplotter is only shown when
+        included among the `liveplots` argument of `assimilate`
         - The second element in the tuple gives the corresponding liveplotter
         function/class.
     sectors: `dict`, optional
         Labelled indices referring to parts of the state vector.
         When defined, field-mean statistics are computed for each sector.
-        Example use can be found in  `examples/param_estim.py` and `dapper/mods/Lorenz96/miyoshi2011.py`
+        Example use can be found in  `examples/param_estim.py`
+        and `dapper/mods/Lorenz96/miyoshi2011.py`
     name: str, optional
         Label for the `HMM`.
     """
