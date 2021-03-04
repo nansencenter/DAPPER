@@ -72,7 +72,7 @@ params = dict(labels='xyz', Tplot=1)
 
 
 def LPs(jj=None, params=params): return [
-    (12, 1, LP.correlations),
-    (14, 1, LP.sliding_marginals(jj, zoomy=0.8, **params)),
-    (13, 1, LP.phase_particles(is_3d=True, obs_inds=jj, **params)),
+    (1, LP.correlations),
+    (1, LP.sliding_marginals(jj, zoomy=0.8, **params)),
+    (1, LP.phase_particles(is_3d=True, obs_inds=jj, **params)),
 ]

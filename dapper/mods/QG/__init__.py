@@ -177,7 +177,7 @@ cntr = nx*int(ny/2) + int(0.5*nx)
 
 
 def LP_setup(jj=None): return [
-    (11, 1, LP.spatial2d(square, ind2sub, jj, cm)),
-    (15, 0, LP.spectral_errors),
-    (14, 0, LP.sliding_marginals(dims=cntr+np.arange(4))),
+    (1, LP.spatial2d(square, ind2sub, jj, cm)),
+    (0, LP.spectral_errors),
+    (0, LP.sliding_marginals(dims=cntr+np.arange(4))),
 ]
