@@ -8,7 +8,21 @@ import warnings
 
 from tqdm.auto import tqdm
 
-disable_progbar = False
+# In case stdin or term settings isn't supported, for ex. when
+# running pytest or multiprocessing.
+# Btw, multiprocessing also doesn't like tqdm itself.
+disable_user_interaction = disable_progbar = "pytest" in sys.modules
+
+
+def _interaction_impossible():
+    global disable_user_interaction
+    disable_user_interaction = True
+    if "pytest" not in sys.modules:
+        warnings.warn((
+            "Keyboard interaction (to skip/stop/pause the liveplotting)"
+            " does not work in the current terminal."
+            " Remember that you may also turn off liveplotting altogether."),
+            stacklevel=2)
 
 
 def pdesc(desc):
@@ -60,23 +74,6 @@ def progbar(iterable, desc=None, leave=1, **kwargs):
 # Make read1()
 #########################################
 # Non-blocking, non-echo read1 from stdin.
-
-# Set to True when stdin or term settings isn't supported, for example when:
-#  - running via py.test
-#  - multiprocessing
-# Btw, multiprocessing also doesn't like tqdm itself.
-disable_user_interaction = False
-
-
-def warn_interaction_impossible():
-    if "pytest" not in sys.modules:
-        warnings.warn((
-            "Keyboard interaction (to skip/stop/pause the liveplotting)"
-            " does not work in the current terminal."
-            " Remember that you may also turn off liveplotting altogether."),
-            stacklevel=2)
-
-
 try:
     # Linux. See Misc/read1_trials.py
     import termios
@@ -139,9 +136,7 @@ try:
                 return None
 
     except:  # noqa
-        # Fails in non-terminal environments
-        warn_interaction_impossible()
-        disable_user_interaction = True
+        _interaction_impossible()
 
 except ImportError:
     # Windows
@@ -155,8 +150,7 @@ except ImportError:
                 return None
 
     except ImportError:
-        warn_interaction_impossible()
-        disable_user_interaction = True
+        _interaction_impossible()
 
 
 def read1():

@@ -2,10 +2,7 @@
 
 import dapper as dpr
 import dapper.da_methods as da
-import dapper.tools.progressbar as pb
 from dapper.tools.magic import spell_out
-
-pb.disable_user_interaction = True
 
 
 def test_L63():

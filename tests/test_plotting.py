@@ -8,9 +8,6 @@ import numpy as np
 
 import dapper as dpr
 import dapper.da_methods as da
-import dapper.tools.progressbar as pb
-
-pb.disable_user_interaction = True  # NB remember to set to True
 
 
 def test_L63():

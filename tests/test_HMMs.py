@@ -5,11 +5,8 @@ from importlib import import_module
 
 import pytest
 
-import dapper.tools.progressbar
 from dapper.dpr_config import rc
 from dapper.mods import HiddenMarkovModel
-
-dapper.tools.progressbar.disable_progbar = True
 
 
 def _defines_HMM(path):
