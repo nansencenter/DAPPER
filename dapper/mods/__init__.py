@@ -101,27 +101,25 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     Parameters
     ----------
     Dyn: `Operator` or dict
-        Operator for the dynamical model, contains model stepping ('model'),
-        model size ('M') and model noise ('noise'), etc.
+        Operator for the dynamics.
     Obs: `Operator` or dict
-        Operator for the dynamical model, contains model stepping ('model'),
-        model size ('M') and model noise ('noise'), etc.
+        Operator for the observations
     t: `dapper.tools.chronos.Chronology`
-        Time schedules of the HMM.
+        Time sequence of the HMM process.
     X0: `dapper.tools.randvars.RV`
-        Random distribution as initial condition
+        Random distribution of initial condition
     liveplotters: `list`, optional
         A list of tuples. See example use in function `LPs` of `dapper.mods.Lorenz63`.
-        - The first element of the tuple determines whether the liveplotter is shown if
-        the names of liveplotters are not given by `liveplots` argument in
-        `assimilate`.
+        - The first element of the tuple determines if the liveplotter is shown by default.
+        If `False`, the liveplotter is only shown when included among the `liveplots` argument of `assimilate`
         - The second element in the tuple gives the corresponding liveplotter
         function/class.
     sectors: `dict`, optional
-        The sectors divide each state vectors into different sectors.
-        See example in `param_estim.py` in the examples directory.
+        Labelled indices referring to parts of the state vector.
+        When defined, field-mean statistics are computed for each sector.
+        Example use can be found in  `examples/param_estim.py` and `dapper/mods/Lorenz96/miyoshi2011.py`
     name: str, optional
-        Specify a name for the instantiated `HMM`.
+        Label for the `HMM`.
     """
 
     def __init__(self, *args, **kwargs):
