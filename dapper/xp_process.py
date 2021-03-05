@@ -243,14 +243,17 @@ def reduce_inodes(save_as, nDir=100):
 
 
 class SparseSpace(dict):
-    """Subclass of `dict` that enforces key conformity to a `namedtuple`.
+    """Subclass of `dict` that enforces key conformity to a given `namedtuple`.
 
     Like a normal `dict`, it can hold any type of objects.
-    But, since keys must conform, this effectively defines a coordinate system,
+    But, since the keys must conform, they effectively follow a coordinate system,
     i.e. vector **space**.
+    Indeed, when seen as an data format for nd-arrays, it may be called
+    "coordinate list representation", used e.g. by `scipy.sparse.coo_matrix`.
 
-    The coordinate system is specified by its "axes",
-    which is used to produce `self.Coord` (a `namedtuple` class).
+    The coordinate system is specified by its "axes":
+    a list of attributes defining the `namedtuple` `self.Coord`,
+    whose instances are the coordinates of the data.
 
     In normal use, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
@@ -261,8 +264,7 @@ class SparseSpace(dict):
     -- not over the axes -- but over the the list of items.
 
     The most important method is `nest`,
-    which is used (by `xpSpace.table_tree`) to separate tables/columns,
-    and also to carry out the mean/optim operations.
+    which is used (by `xpSpace.table_tree`) to print and plot results.
 
     In addition, `__getitem__` is very flexible, allowing accessing by:
 
