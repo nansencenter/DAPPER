@@ -68,7 +68,7 @@ Works on Linux/Windows/Mac.
 
 ### Prerequisite: Python>=3.8
 
-If you're not an admin or expert:  
+If you're not admin and expert:
 
 - Install [Anaconda](https://www.anaconda.com/download).
 - Open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
