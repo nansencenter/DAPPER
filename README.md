@@ -94,7 +94,7 @@ If you're not an admin or expert:
 
 #### *Or*: Install for development
 
-*Do you want the DAPPER code available play around with?* Then
+*Do you want the DAPPER code available to play around with?* Then
 
 - Download and unzip (or `git clone`) DAPPER.
 - Move the resulting folder wherever you like,  
@@ -111,10 +111,8 @@ For example, if you are in the DAPPER dir,
 
     python examples/basic_1.py
 
-If you've closed the terminal (or shut down your computer),
-you first need to open the (anaconda) terminal and run this:
-
-    conda activate my-env
+**PS**: If you closed the terminal (or shut down your computer),
+you'll first need to run `conda activate my-env`
 
 ## Quickstart
 
