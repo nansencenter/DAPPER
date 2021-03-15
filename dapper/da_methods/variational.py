@@ -264,13 +264,16 @@ class Var4D:
         Nx = Dyn.M
 
         # Set background covariance. Note that it is static (compare to iEnKS).
-        if self.B in (None, 'clim'):
-            # Use climatological cov, ...
-            B = np.cov(xx.T)  # ... estimated from truth
+        if isinstance(self.B, np.ndarray):
+            # compare ndarray 1st to avoid == error for ndarray
+            B = self.B.astype(float)
+        elif self.B in (None, 'clim'):
+            # Use climatological cov, estimated from truth
+            B = np.cov(xx.T)
         elif self.B == 'eye':
             B = np.eye(Nx)
         else:
-            B = self.B
+            raise ValueError("Bad input B.")
         B *= self.xB
         B12 = CovMat(B).sym_sqrt
 

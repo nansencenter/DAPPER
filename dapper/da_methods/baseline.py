@@ -95,13 +95,16 @@ class Var3D:
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-        if self.B in (None, 'clim'):
-            # Use climatological cov, ...
-            B = np.cov(xx.T)  # ... estimated from truth
+        if isinstance(self.B, np.ndarray):
+            # compare ndarray 1st to avoid == error for ndarray
+            B = self.B.astype(float)
+        elif self.B in (None, 'clim'):
+            # Use climatological cov, estimated from truth
+            B = np.cov(xx.T)
         elif self.B == 'eye':
             B = np.eye(HMM.Nx)
         else:
-            B = self.B
+            raise ValueError("Bad input B.")
         B *= self.xB
 
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
