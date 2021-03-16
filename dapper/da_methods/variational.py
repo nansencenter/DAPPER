@@ -94,12 +94,11 @@ class iEnKS:
     #   * Trouble playing nice with '-N' inflation estimation.
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats, N = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
-        R, KObs, N1 = HMM.Obs.noise.C, HMM.t.KObs, N-1
+        chrono, X0, stats = HMM.t, HMM.X0, self.stats
+        R, KObs  = HMM.Obs.noise.C, HMM.t.KObs
         Rm12 = R.sym_sqrt_inv
 
-        assert Dyn.noise.C == 0, (
+        assert HMM.Dyn.noise.C == 0, (
             "Q>0 not yet supported."
             " See Sakov et al 2017: 'An iEnKF with mod. error'")
 
@@ -109,132 +108,159 @@ class iEnKS:
             EPS = 1.0  # ... prefer using  T=EPS*T, yielding a conditional cloud shape
 
         # Initial ensemble
-        E = X0.sample(N)
+        E = X0.sample(self.N)
+
+        # Forward ensemble to kObs = 0 if Lag = 0
+        t = 0
+        k = 0
+        if self.Lag == 0:
+            for k, t, dt in chrono.cycle(kObs=0):
+                stats.assess(k-1, None, 'u', E=E)
+                E = HMM.Dyn(E, t-dt, dt)
 
         # Loop over DA windows (DAW).
-        for kObs in progbar(np.arange(-1, KObs+self.Lag+1)):
+        for kObs in progbar(range(0, KObs+self.Lag+1)):
             kLag = kObs-self.Lag
             DAW  = range(max(0, kLag+1), min(kObs, KObs) + 1)
 
             # Assimilation (if ∃ "not-fully-assimlated" obs).
-            if 0 <= kObs <= KObs:
-
-                # Init iterations.
-                X0, x0 = center(E)    # Decompose ensemble.
-                w      = np.zeros(N)  # Control vector for the mean state.
-                T      = np.eye(N)    # Anomalies transform matrix.
-                Tinv   = np.eye(N)
-                # Explicit Tinv [instead of tinv(T)] allows for merging MDA code
-                # with iEnKS/EnRML code, and flop savings in 'Sqrt' case.
-
-                for iteration in np.arange(self.nIter):
-                    # Reconstruct smoothed ensemble.
-                    E = x0 + (w + EPS*T)@X0
-                    # Forecast.
-                    for kCycle in DAW:
-                        for k, t, dt in chrono.cycle(kCycle):  # noqa
-                            E = Dyn(E, t-dt, dt)
-                    # Observe.
-                    Eo = Obs(E, t)
-
-                    # Undo the bundle scaling of ensemble.
-                    if EPS != 1.0:
-                        E  = inflate_ens(E, 1/EPS)
-                        Eo = inflate_ens(Eo, 1/EPS)
-
-                    # Assess forecast stats; store {Xf, T_old} for analysis assessment.
-                    if iteration == 0:
-                        stats.assess(k, kObs, 'f', E=E)
-                        Xf, xf = center(E)
-                    T_old = T
-
-                    # Prepare analysis.
-                    y      = yy[kObs]           # Get current obs.
-                    Y, xo  = center(Eo)         # Get obs {anomalies, mean}.
-                    dy     = (y - xo) @ Rm12.T  # Transform obs space.
-                    Y      = Y        @ Rm12.T  # Transform obs space.
-                    Y0     = Tinv @ Y           # "De-condition" the obs anomalies.
-                    V, s, UT = svd0(Y0)         # Decompose Y0.
-
-                    # Set "cov normlzt fctr" za ("effective ensemble size")
-                    # => pre_infl^2 = (N-1)/za.
-                    if self.xN is None:
-                        za  = N1
-                    else:
-                        za  = zeta_a(*hyperprior_coeffs(s, N, self.xN), w)
-                    if self.MDA:
-                        # inflation (factor: nIter) of the ObsErrCov.
-                        za *= self.nIter
-
-                    # Post. cov (approx) of w,
-                    # estimated at current iteration, raised to power.
-                    def Cowp(expo): return (V * (pad0(s**2, N) + za)**-expo) @ V.T
-                    Cow1 = Cowp(1.0)
-
-                    if self.MDA:  # View update as annealing (progressive assimilation).
-                        Cow1 = Cow1 @ T  # apply previous update
-                        dw = dy @ Y.T @ Cow1
-                        if 'PertObs' in self.upd_a:   # == "ES-MDA". By Emerick/Reynolds
-                            D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(self.nIter)
-                            T  -= (Y + D) @ Y.T @ Cow1
-                        elif 'Sqrt' in self.upd_a:    # == "ETKF-ish". By Raanes
-                            T   = Cowp(0.5) * np.sqrt(za) @ T
-                        elif 'Order1' in self.upd_a:  # == "DEnKF-ish". By Emerick
-                            T  -= 0.5 * Y @ Y.T @ Cow1
-                        # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
-
-                    else:  # View update as Gauss-Newton optimzt. of log-posterior.
-                        grad  = Y0@dy - w*za                  # Cost function gradient
-                        dw    = grad@Cow1                     # Gauss-Newton step
-                        # ETKF-ish". By Bocquet/Sakov.
-                        if 'Sqrt' in self.upd_a:
-                            # Sqrt-transforms
-                            T     = Cowp(0.5) * np.sqrt(N1)
-                            Tinv  = Cowp(-.5) / np.sqrt(N1)
-                            # Tinv saves time [vs tinv(T)] when Nx<N
-                        # "EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
-                        elif 'PertObs' in self.upd_a:
-                            D     = mean0(np.random.randn(*Y.shape)) \
-                                if iteration == 0 else D
-                            gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
-                            T     = T + gradT@Cow1
-                            # Tinv= tinv(T, threshold=N1)  # unstable
-                            Tinv  = sla.inv(T+1)           # the +1 is for stability.
-                        # "DEnKF-ish". By Raanes.
-                        elif 'Order1' in self.upd_a:
-                            # Included for completeness; does not make much sense.
-                            gradT = -0.5*Y@Y0.T + N1*(np.eye(N) - T)
-                            T     = T + gradT@Cow1
-                            Tinv  = tinv(T, threshold=N1)
-
-                    w += dw
-                    if dw@dw < self.wtol*N:
-                        break
-
-                # Assess (analysis) stats.
-                # The final_increment is a linearization to
-                # (i) avoid re-running the model and
-                # (ii) reproduce EnKF in case nIter==1.
-                final_increment = (dw+T-T_old)@Xf
-                # See docs/snippets/iEnKS_Ea.jpg.
-                stats.assess(k, kObs, 'a', E=E+final_increment)
-                stats.iters[kObs] = iteration+1
-                if self.xN:
-                    stats.infl[kObs] = np.sqrt(N1/za)
-
-                # Final (smoothed) estimate of E at [kLag].
-                E = x0 + (w+T)@X0
+            if kObs <= KObs:
+                E = iEnKS_smoother(self.upd_a, E, DAW, HMM, stats,
+                                   EPS, yy[kObs], (k, kObs, t), Rm12,
+                                   self.xN, self.MDA, (self.nIter, self.wtol))
                 E = post_process(E, self.infl, self.rot)
 
             # Slide/shift DAW by propagating smoothed ('s') ensemble from [kLag].
-            if -1 <= kLag < KObs:
-                if kLag >= 0:
-                    stats.assess(chrono.kkObs[kLag], kLag, 's', E=E)
-                for k, t, dt in chrono.cycle(kLag+1):
+            if kLag >= 0:
+                stats.assess(chrono.kkObs[kLag], kLag, 's', E=E)
+            cycle_window = range(max(kLag+1, 0), min(max(kLag+1+1, 0), KObs+1))
+
+            for kCycle in cycle_window:
+                for k, t, dt in chrono.cycle(kCycle):
                     stats.assess(k-1, None, 'u', E=E)
-                    E = Dyn(E, t-dt, dt)
+                    E = HMM.Dyn(E, t-dt, dt)
 
         stats.assess(k, KObs, 'us', E=E)
+
+
+def iEnKS_smoother(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, threshold):
+    """Perform the iEnKS update.
+
+    This implementation includes several flavours and forms,
+    specified by `upd_a` (See `iEnKS`)
+    """
+    # distribute variable
+    k, kObs, t = time
+    nIter, wtol = threshold
+    N, Nx = E.shape
+
+    # Init iterations.
+    N1 = N-1
+    X0, x0 = center(E)    # Decompose ensemble.
+    w      = np.zeros(N)  # Control vector for the mean state.
+    T      = np.eye(N)    # Anomalies transform matrix.
+    Tinv   = np.eye(N)
+    # Explicit Tinv [instead of tinv(T)] allows for merging MDA code
+    # with iEnKS/EnRML code, and flop savings in 'Sqrt' case.
+
+    for iteration in np.arange(nIter):
+        # Reconstruct smoothed ensemble.
+        E = x0 + (w + EPS*T)@X0
+        # Forecast.
+        for kCycle in DAW:
+            for k, t, dt in HMM.t.cycle(kCycle):  # noqa
+                E = HMM.Dyn(E, t-dt, dt)
+        # Observe.
+        Eo = HMM.Obs(E, t)
+
+        # Undo the bundle scaling of ensemble.
+        if EPS != 1.0:
+            E  = inflate_ens(E, 1/EPS)
+            Eo = inflate_ens(Eo, 1/EPS)
+
+        # Assess forecast stats; store {Xf, T_old} for analysis assessment.
+        if iteration == 0:
+            stats.assess(k, kObs, 'f', E=E)
+            Xf, xf = center(E)
+        T_old = T
+
+        # Prepare analysis.
+        Y, xo  = center(Eo)         # Get obs {anomalies, mean}.
+        dy     = (y - xo) @ Rm12.T  # Transform obs space.
+        Y      = Y        @ Rm12.T  # Transform obs space.
+        Y0     = Tinv @ Y           # "De-condition" the obs anomalies.
+        V, s, UT = svd0(Y0)         # Decompose Y0.
+
+        # Set "cov normlzt fctr" za ("effective ensemble size")
+        # => pre_infl^2 = (N-1)/za.
+        if xN is None:
+            za  = N1
+        else:
+            za  = zeta_a(*hyperprior_coeffs(s, N, xN), w)
+        if MDA:
+            # inflation (factor: nIter) of the ObsErrCov.
+            za *= nIter
+
+        # Post. cov (approx) of w,
+        # estimated at current iteration, raised to power.
+        def Cowp(expo): return (V * (pad0(s**2, N) + za)**-expo) @ V.T
+        Cow1 = Cowp(1.0)
+
+        if MDA:  # View update as annealing (progressive assimilation).
+            Cow1 = Cow1 @ T  # apply previous update
+            dw = dy @ Y.T @ Cow1
+            if 'PertObs' in upd_a:   # == "ES-MDA". By Emerick/Reynolds
+                D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(nIter)
+                T  -= (Y + D) @ Y.T @ Cow1
+            elif 'Sqrt' in upd_a:    # == "ETKF-ish". By Raanes
+                T   = Cowp(0.5) * np.sqrt(za) @ T
+            elif 'Order1' in upd_a:  # == "DEnKF-ish". By Emerick
+                T  -= 0.5 * Y @ Y.T @ Cow1
+            # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
+
+        else:  # View update as Gauss-Newton optimzt. of log-posterior.
+            grad  = Y0@dy - w*za                  # Cost function gradient
+            dw    = grad@Cow1                     # Gauss-Newton step
+            # ETKF-ish". By Bocquet/Sakov.
+            if 'Sqrt' in upd_a:
+                # Sqrt-transforms
+                T     = Cowp(0.5) * np.sqrt(N1)
+                Tinv  = Cowp(-.5) / np.sqrt(N1)
+                # Tinv saves time [vs tinv(T)] when Nx<N
+            # "EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
+            elif 'PertObs' in upd_a:
+                D     = mean0(np.random.randn(*Y.shape)) \
+                    if iteration == 0 else D
+                gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
+                T     = T + gradT@Cow1
+                # Tinv= tinv(T, threshold=N1)  # unstable
+                Tinv  = sla.inv(T+1)           # the +1 is for stability.
+            # "DEnKF-ish". By Raanes.
+            elif 'Order1' in upd_a:
+                # Included for completeness; does not make much sense.
+                gradT = -0.5*Y@Y0.T + N1*(np.eye(N) - T)
+                T     = T + gradT@Cow1
+                Tinv  = tinv(T, threshold=N1)
+
+        w += dw
+        if dw@dw < wtol*N:
+            break
+
+    # Assess (analysis) stats.
+    # The final_increment is a linearization to
+    # (i) avoid re-running the model and
+    # (ii) reproduce EnKF in case nIter==1.
+    final_increment = (dw+T-T_old)@Xf
+    # See docs/snippets/iEnKS_Ea.jpg.
+    stats.assess(k, kObs, 'a', E=E+final_increment)
+    stats.iters[kObs] = iteration+1
+    if xN:
+        stats.infl[kObs] = np.sqrt(N1/za)
+
+    # Final (smoothed) estimate of E at [kLag].
+    E = x0 + (w+T)@X0
+
+    return E
 
 
 @var_method
