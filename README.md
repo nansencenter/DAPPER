@@ -221,6 +221,14 @@ Example of limitations:
   (although the Dyn and Obs models may otherwise be time-dependent).
 - Non-uniform time sequences not fully supported.
 
+The scope of DAPPER is restricted because
+$$ \lim_{\text{flexibility} \rightarrow \infty} \text{framework}
+= \text{prog. language} .$$
+Moreover, even straying beyond basic configurability appears [unrewarding](https://en.wikipedia.org/wiki/Flexibility%E2%80%93usability_tradeoff)
+when already building on a high-level language such as Python.
+Indeed, you may freely fork and modify the code of DAPPER,
+which should be seen as a set of templates, and not a framework.
+
 Also, DAPPER comes with no guarantees/support.
 Therefore, if you have an *operational* (real-world) application,
 such as WRF,
