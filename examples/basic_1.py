@@ -12,7 +12,7 @@ import dapper.da_methods as da
 
 from dapper.mods.Lorenz63.sakov2012 import HMM  # isort:skip
 
-# #### Generate the same random numbers every time
+# #### Generate the same random numbers each time this script is run
 
 seed = dpr.set_seed(3000)
 
