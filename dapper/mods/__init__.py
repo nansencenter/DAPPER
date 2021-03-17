@@ -181,7 +181,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     @property
     def Ny(self): return self.Obs.M
 
-    printopts = {'ordering': ['Dyn', 'Obs', 't', 'X0'], "indent": 0}
+    printopts = {'ordering': ['Dyn', 'Obs', 't', 'X0'], "indent": 4}
 
     def simulate(self, desc='Truth & Obs'):
         """Generate synthetic truth and observations."""
@@ -257,4 +257,4 @@ class Operator(struct_tools.NicePrint):
     def __call__(self, *args, **kwargs):
         return self.model(*args, **kwargs)
 
-    printopts = {'ordering': ['M', 'model', 'noise']}
+    printopts = {'ordering': ['M', 'model', 'noise'], "indent": 4}

@@ -31,7 +31,7 @@ INSTALL_REQUIRES = [
     'tabulate~=0.8.3',
     'dill==0.3.2',  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
     'patlib==0.2.1',
-    'struct-tools==0.2.1',
+    'struct-tools==0.2.3',
     'multiprocessing-on-dill==3.5.0a4',
     'threadpoolctl==1.0.0',
 ]
