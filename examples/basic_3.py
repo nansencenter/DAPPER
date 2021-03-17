@@ -27,7 +27,6 @@
 # %matplotlib notebook
 import numpy as np
 from matplotlib import pyplot as plt
-from mpl_tools import is_notebook_or_qt as nb
 
 import dapper as dpr
 import dapper.da_methods as da
@@ -79,7 +78,7 @@ mp = False     # 1 CPU only
 # mp = True      # All CPUs
 # mp = "Google"  # Requires access to DAPPER cluster
 
-scriptname = "basic_3" if nb else __file__
+scriptname = "basic_3"  # since __file__ does not work in Jupyter
 save_as = xps.launch(HMM, scriptname, mp, setup)
 
 # #### Present results
