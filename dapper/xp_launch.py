@@ -207,7 +207,7 @@ class xpList(list):
 
     unique: bool
         Duplicates won't get appended. Makes `append` (and `__iadd__`) relatively slow.
-        Use `extend` or `__add__` or `get_param_setter` to bypass this validation.
+        Use `extend` or `__add__` or `combinator` to bypass this validation.
 
     Also see
     --------
@@ -589,7 +589,7 @@ class xpList(list):
         return save_as
 
 
-def get_param_setter(param_dict, **glob_dict):
+def combinator(param_dict, **glob_dict):
     """Mass creation of `xp`'s by combining the value lists in the parameter dicts.
 
     The parameters are trimmed to the ones available for the given method.
