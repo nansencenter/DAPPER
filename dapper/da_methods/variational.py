@@ -125,9 +125,9 @@ class iEnKS:
 
             # Assimilation (if ∃ "not-fully-assimlated" obs).
             if kObs <= KObs:
-                E = iEnKS_smoother(self.upd_a, E, DAW, HMM, stats,
-                                   EPS, yy[kObs], (k, kObs, t), Rm12,
-                                   self.xN, self.MDA, (self.nIter, self.wtol))
+                E = iEnKS_update(self.upd_a, E, DAW, HMM, stats,
+                                 EPS, yy[kObs], (k, kObs, t), Rm12,
+                                 self.xN, self.MDA, (self.nIter, self.wtol))
                 E = post_process(E, self.infl, self.rot)
 
             # Slide/shift DAW by propagating smoothed ('s') ensemble from [kLag].
@@ -143,7 +143,7 @@ class iEnKS:
         stats.assess(k, KObs, 'us', E=E)
 
 
-def iEnKS_smoother(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, threshold):
+def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, threshold):
     """Perform the iEnKS update.
 
     This implementation includes several flavours and forms,
