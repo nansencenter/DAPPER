@@ -329,8 +329,8 @@ and the UK National Centre for Earth Observation (NCEO)
 - <https://www.geosci-model-dev-discuss.net/gmd-2019-136/>
 - <https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.3386>
 - <https://www.nonlin-processes-geophys-discuss.net/npg-2019-10>
-- Stein
-- EmblAUS/Springer chapter
+- <https://link.springer.com/article/10.1007/s11004-021-09937-x>
+- <https://arxiv.org/abs/2010.07063>
 
 
 <!-- markdownlint-configure-file
