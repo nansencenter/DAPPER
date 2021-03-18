@@ -321,8 +321,8 @@ and the UK National Centre for Earth Observation (NCEO)
 
 ![NORCE](./docs/imgs/norce-logo.png)
 ![NERSC](./docs/imgs/nansen-logo.png)
-<img src="https://github.com/yumengch/DAPPER/blob/dev1/docs/imgs/UoR-logo.png?raw=true" height="140" />
-<img src="https://nerc.ukri.org/nerc/assets/images/logos/nceo/nceologo1000.png" width="400">
+<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UoR-logo.png?raw=true" height="140" />
+<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/nceologo1000.png?raw=true" width="400">
 
 ## Publication list
 
