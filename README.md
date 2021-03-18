@@ -222,8 +222,9 @@ Example of limitations:
 - Non-uniform time sequences not fully supported.
 
 The scope of DAPPER is restricted because
-$$ \lim_{\text{flexibility} \rightarrow \infty} \text{framework}
-= \text{prog. language} .$$
+
+![framework_to_language](https://latex.codecogs.com/gif.latex?%5Clim_%7B%5Ctext%7Bflexibility%7D%20%5Crightarrow%20%5Cinfty%7D%20%5Ctext%7Bframework%7D%20%3D%20%5Ctext%7Bprog.%20language%7D)
+
 Moreover, even straying beyond basic configurability appears [unrewarding](https://en.wikipedia.org/wiki/Flexibility%E2%80%93usability_tradeoff)
 when already building on a high-level language such as Python.
 Indeed, you may freely fork and modify the code of DAPPER,
