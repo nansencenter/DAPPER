@@ -222,6 +222,7 @@ Example of limitations:
 - Non-uniform time sequences not fully supported.
 
 The scope of DAPPER is restricted because
+<img src="https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1">
 $$ \lim_{\text{flexibility} \rightarrow \infty} \text{framework}
 = \text{prog. language} .$$
 Moreover, even straying beyond basic configurability appears [unrewarding](https://en.wikipedia.org/wiki/Flexibility%E2%80%93usability_tradeoff)
