@@ -24,9 +24,9 @@ To make sure this is working, we suggest the following structure:
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
       See
 
-          - `dapper.mods.Lorenz63`: use of `ens_compatible`.
-          - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
-          - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
+        - `dapper.mods.Lorenz63`: use of `ens_compatible`.
+        - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
+        - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
             Consider pre-defining the slices like so:
 
                 iiX = (..., slice(None, Nx))
@@ -34,7 +34,7 @@ To make sure this is working, we suggest the following structure:
 
             to abbreviate the indexing elsewhere.
 
-          - `dapper.mods.QG`: use of parallelized for loop (map).
+        - `dapper.mods.QG`: use of parallelized for loop (map).
 
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
@@ -47,7 +47,27 @@ To make sure this is working, we suggest the following structure:
 - Make a file: `my_model/my_settings_1.py` that define a complete
   Hidden Markov Model ready for a synthetic experiment
   (also called "twin experiment" or OSSE).
+- Most model defines `step` function in `my_model/__init__.py`. However,
+  `dapper.mods.LorenzUV` and `dapper.mods.QG` use an OOP style, which is 
+  more flexible & robust, and therefore better suited when different 
+  parameter settings are to be investigated.
 
+.. note:: 
+    For parameter-estimation, the parameters are input variables
+    to the "forward model", which does not necessarily require OOP. 
+    See `examples/param_estim.py`.
+
+- Each existing model comes with several examples of model settings 
+  based on literature. These examples do not keep a very high programming
+  standard.
+- `dapper.mods.HiddenMarkovModel` instances (`HMM`) can be directly used
+  for DA experiments or be used via modifications.
+
+.. warning:: 
+  Variables (e.g. `HMM`, `Force`) are imported by reference in
+  Python. `HMM` provides a `copy` method to create new instance. Modiying 
+  `dapper.mods.Lorenz96.Force` requies to import the module `dapper.mods.Lorenz96`.
+  See `examples/basic_3.py`.
 
 <!--
 * To begin with, test whether the model works
