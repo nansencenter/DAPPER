@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L0-L1052" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L0-L1054" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably `xpSpace`) for processing and presenting experiment data.&#34;&#34;&#34;
 
@@ -287,14 +287,17 @@ def reduce_inodes(save_as, nDir=100):
 
 
 class SparseSpace(dict):
-    &#34;&#34;&#34;Subclass of `dict` that enforces key conformity to a `namedtuple`.
+    &#34;&#34;&#34;Subclass of `dict` that enforces key conformity to a given `namedtuple`.
 
     Like a normal `dict`, it can hold any type of objects.
-    But, since keys must conform, this effectively defines a coordinate system,
+    But, since the keys must conform, they effectively follow a coordinate system,
     i.e. vector **space**.
+    Indeed, when seen as an data format for nd-arrays, it may be called
+    &#34;coordinate list representation&#34;, used e.g. by `scipy.sparse.coo_matrix`.
 
-    The coordinate system is specified by its &#34;axes&#34;,
-    which is used to produce `self.Coord` (a `namedtuple` class).
+    The coordinate system is specified by its &#34;axes&#34;:
+    a list of attributes defining the `namedtuple` `self.Coord`,
+    whose instances are the coordinates of the data.
 
     In normal use, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
@@ -305,8 +308,7 @@ class SparseSpace(dict):
     -- not over the axes -- but over the the list of items.
 
     The most important method is `nest`,
-    which is used (by `xpSpace.table_tree`) to separate tables/columns,
-    and also to carry out the mean/optim operations.
+    which is used (by `xpSpace.table_tree`) to print and plot results.
 
     In addition, `__getitem__` is very flexible, allowing accessing by:
 
@@ -1465,7 +1467,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L1019-L1053" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L1021-L1055" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def default_fig_adjustments(tables):
     &#34;&#34;&#34;Beautify. These settings do not generalize well.&#34;&#34;&#34;
@@ -1514,12 +1516,15 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <span>(</span><span>axes, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Subclass of <code>dict</code> that enforces key conformity to a <code>namedtuple</code>.</p>
+<div class="desc"><p>Subclass of <code>dict</code> that enforces key conformity to a given <code>namedtuple</code>.</p>
 <p>Like a normal <code>dict</code>, it can hold any type of objects.
-But, since keys must conform, this effectively defines a coordinate system,
-i.e. vector <strong>space</strong>.</p>
-<p>The coordinate system is specified by its "axes",
-which is used to produce <code>self.Coord</code> (a <code>namedtuple</code> class).</p>
+But, since the keys must conform, they effectively follow a coordinate system,
+i.e. vector <strong>space</strong>.
+Indeed, when seen as an data format for nd-arrays, it may be called
+"coordinate list representation", used e.g. by <code>scipy.sparse.coo_matrix</code>.</p>
+<p>The coordinate system is specified by its "axes":
+a list of attributes defining the <code>namedtuple</code> <code>self.Coord</code>,
+whose instances are the coordinates of the data.</p>
 <p>In normal use, this space is highly sparse,
 coz there are many coordinates with no matching experiment,
 eg. <code>coord(da_method=Climatology, rot=True, ...)</code>.</p>
@@ -1527,8 +1532,7 @@ eg. <code>coord(da_method=Climatology, rot=True, ...)</code>.</p>
 such as optimization or averaging, should be carried out by iterating
 &ndash; not over the axes &ndash; but over the the list of items.</p>
 <p>The most important method is <code>nest</code>,
-which is used (by <code><a title="dapper.xp_process.xpSpace.table_tree" href="#dapper.xp_process.xpSpace.table_tree">xpSpace.table_tree()</a></code>) to separate tables/columns,
-and also to carry out the mean/optim operations.</p>
+which is used (by <code><a title="dapper.xp_process.xpSpace.table_tree" href="#dapper.xp_process.xpSpace.table_tree">xpSpace.table_tree()</a></code>) to print and plot results.</p>
 <p>In addition, <code>__getitem__</code> is very flexible, allowing accessing by:</p>
 <ul>
 <li>The actual key, a <code>self.Coord</code> object. Returns single item.</li>
@@ -1555,17 +1559,20 @@ for further convenience.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L245-L505" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L245-L507" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SparseSpace(dict):
-    &#34;&#34;&#34;Subclass of `dict` that enforces key conformity to a `namedtuple`.
+    &#34;&#34;&#34;Subclass of `dict` that enforces key conformity to a given `namedtuple`.
 
     Like a normal `dict`, it can hold any type of objects.
-    But, since keys must conform, this effectively defines a coordinate system,
+    But, since the keys must conform, they effectively follow a coordinate system,
     i.e. vector **space**.
+    Indeed, when seen as an data format for nd-arrays, it may be called
+    &#34;coordinate list representation&#34;, used e.g. by `scipy.sparse.coo_matrix`.
 
-    The coordinate system is specified by its &#34;axes&#34;,
-    which is used to produce `self.Coord` (a `namedtuple` class).
+    The coordinate system is specified by its &#34;axes&#34;:
+    a list of attributes defining the `namedtuple` `self.Coord`,
+    whose instances are the coordinates of the data.
 
     In normal use, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
@@ -1576,8 +1583,7 @@ for further convenience.</p>
     -- not over the axes -- but over the the list of items.
 
     The most important method is `nest`,
-    which is used (by `xpSpace.table_tree`) to separate tables/columns,
-    and also to carry out the mean/optim operations.
+    which is used (by `xpSpace.table_tree`) to print and plot results.
 
     In addition, `__getitem__` is very flexible, allowing accessing by:
 
@@ -1835,7 +1841,7 @@ for further convenience.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L284-L286" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L286-L288" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def axes(self):
@@ -1853,7 +1859,7 @@ def axes(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L308-L313" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L310-L315" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, *args, **kwargs):
     &#34;&#34;&#34;Update using custom `__setitem__`.&#34;&#34;&#34;
@@ -1874,7 +1880,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L370-L379" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L372-L381" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_for(self, ticks, default=None):
     &#34;&#34;&#34;Almost `[self.get(Coord(x)) for x in ticks]`.
@@ -1902,7 +1908,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L381-L401" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L383-L403" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def coords(self, **kwargs):
     &#34;&#34;&#34;Get all `coord`s matching kwargs.
@@ -1940,7 +1946,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L421-L455" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L423-L457" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def nest(self, inner_axes=None, outer_axes=None):
     &#34;&#34;&#34;Return a new xpSpace with axes `outer_axes`,
@@ -1987,7 +1993,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L457-L461" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L459-L463" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_axis(self, axis):
     self.__init__(self.axes+(axis,))
@@ -2005,7 +2011,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L463-L482" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L465-L484" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def intersect_axes(self, attrs):
     &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
@@ -2045,7 +2051,7 @@ preventing them from getting plotted in tuning panels.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L484-L505" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L486-L507" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def label_xSection(self, label, *NoneAttrs, **sub_coord):
     &#34;&#34;&#34;Insert duplicate entries for the cross section
@@ -2100,7 +2106,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L511-L1016" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L513-L1018" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpSpace(SparseSpace):
     &#34;&#34;&#34;Functionality to facilitate working with `xps` and their results.
@@ -2624,7 +2630,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L528-L569" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L530-L571" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def from_list(cls, xps):
@@ -2681,7 +2687,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L571-L587" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L573-L589" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def field(self, statkey=&#34;rmse.a&#34;):
     &#34;&#34;&#34;Extract `statkey` for each item in `self`.&#34;&#34;&#34;
@@ -2710,7 +2716,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L589-L616" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L591-L618" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean(self, axes=None):
     # Note: The case `axes=()` should work w/o special treatment.
@@ -2750,7 +2756,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L618-L647" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L620-L649" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tune(self, axes=None, costfun=None):
     &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
@@ -2795,7 +2801,7 @@ Use <code>axis or ()</code> wherever tuples are required.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L649-L680" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L651-L682" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_axes(self, axes):
     &#34;&#34;&#34;Validate axes.
@@ -2855,7 +2861,7 @@ when optimizing over tuning_axes.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L682-L745" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L684-L747" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def table_tree(self, statkey, axes):
     &#34;&#34;&#34;Hierarchical nest(): xp_dict&gt;outer&gt;inner&gt;mean&gt;optim.
@@ -2931,7 +2937,7 @@ when optimizing over tuning_axes.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L747-L749" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L749-L751" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tickz(self, axis_name):
     &#34;&#34;&#34;Axis ticks without None&#34;&#34;&#34;
@@ -3002,7 +3008,7 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L751-L899" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L753-L901" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,  # noqa
           subcols=True, decimals=None):
@@ -3171,7 +3177,7 @@ This can be prevented by providing the figure axes through the <code>panels</cod
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L901-L1016" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L903-L1018" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
          fignum=None, figsize=None, panels=None,

@@ -41,7 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L0-L172" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L0-L175" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Unsophisticated&#34; but robust (widely applicable) DA methods.
 
@@ -140,13 +140,16 @@ class Var3D:
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-        if self.B in (None, &#39;clim&#39;):
-            # Use climatological cov, ...
-            B = np.cov(xx.T)  # ... estimated from truth
+        if isinstance(self.B, np.ndarray):
+            # compare ndarray 1st to avoid == error for ndarray
+            B = self.B.astype(float)
+        elif self.B in (None, &#39;clim&#39;):
+            # Use climatological cov, estimated from truth
+            B = np.cov(xx.T)
         elif self.B == &#39;eye&#39;:
             B = np.eye(HMM.Nx)
         else:
-            B = self.B
+            raise ValueError(&#34;Bad input B.&#34;)
         B *= self.xB
 
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
@@ -244,7 +247,7 @@ and reduces to the above ODE when there's no model error (ODE source term).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L137-L163" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L140-L166" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def fit_sigmoid(Sb, L, kb):
     &#34;&#34;&#34;Return a sigmoid [function S(k)] for approximating error dynamics.
@@ -468,7 +471,7 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L84-L134" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L84-L137" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Var3D:
     &#34;&#34;&#34;3D-Var -- a baseline/reference method.
@@ -484,13 +487,16 @@ with the background covariance being user specified, through B and xB.</p></div>
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-        if self.B in (None, &#39;clim&#39;):
-            # Use climatological cov, ...
-            B = np.cov(xx.T)  # ... estimated from truth
+        if isinstance(self.B, np.ndarray):
+            # compare ndarray 1st to avoid == error for ndarray
+            B = self.B.astype(float)
+        elif self.B in (None, &#39;clim&#39;):
+            # Use climatological cov, estimated from truth
+            B = np.cov(xx.T)
         elif self.B == &#39;eye&#39;:
             B = np.eye(HMM.Nx)
         else:
-            B = self.B
+            raise ValueError(&#34;Bad input B.&#34;)
         B *= self.xB
 
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
@@ -547,18 +553,21 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L95-L134" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L95-L137" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
 
-    if self.B in (None, &#39;clim&#39;):
-        # Use climatological cov, ...
-        B = np.cov(xx.T)  # ... estimated from truth
+    if isinstance(self.B, np.ndarray):
+        # compare ndarray 1st to avoid == error for ndarray
+        B = self.B.astype(float)
+    elif self.B in (None, &#39;clim&#39;):
+        # Use climatological cov, estimated from truth
+        B = np.cov(xx.T)
     elif self.B == &#39;eye&#39;:
         B = np.eye(HMM.Nx)
     else:
-        B = self.B
+        raise ValueError(&#34;Bad input B.&#34;)
     B *= self.xB
 
     # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
@@ -602,7 +611,7 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L167-L173" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L170-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EnCheat:
     &#34;&#34;&#34;A baseline/reference method.
@@ -629,7 +638,7 @@ with the background covariance being user specified, through B and xB.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L173-L173" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/baseline.py#L176-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy): pass</code></pre>
 </details>

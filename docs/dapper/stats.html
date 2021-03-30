@@ -494,9 +494,9 @@ class Stats(StatPrint):
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
         if LP.any_figs:
-            for _name, (num, updater) in LP.figures.items():
-                if plt.fignum_exists(num) and getattr(updater, &#39;is_active&#39;, 1):
-                    plt.figure(num)
+            for _name, updater in LP.figures.items():
+                if plt.fignum_exists(_name) and getattr(updater, &#39;is_active&#39;, 1):
+                    plt.figure(_name)
                     plt.pause(0.01)
 
 
@@ -1738,9 +1738,9 @@ for example. Use <code>new_series</code> to get automatic averaging too.</p></di
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
         if LP.any_figs:
-            for _name, (num, updater) in LP.figures.items():
-                if plt.fignum_exists(num) and getattr(updater, &#39;is_active&#39;, 1):
-                    plt.figure(num)
+            for _name, updater in LP.figures.items():
+                if plt.fignum_exists(_name) and getattr(updater, &#39;is_active&#39;, 1):
+                    plt.figure(_name)
                     plt.pause(0.01)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2216,9 +2216,9 @@ time inds for averaging</li>
     # Pause required when speed=inf.
     # On Mac, it was also necessary to do it for each fig.
     if LP.any_figs:
-        for _name, (num, updater) in LP.figures.items():
-            if plt.fignum_exists(num) and getattr(updater, &#39;is_active&#39;, 1):
-                plt.figure(num)
+        for _name, updater in LP.figures.items():
+            if plt.fignum_exists(_name) and getattr(updater, &#39;is_active&#39;, 1):
+                plt.figure(_name)
                 plt.pause(0.01)</code></pre>
 </details>
 </dd>

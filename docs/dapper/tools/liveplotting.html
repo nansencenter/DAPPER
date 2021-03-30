@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
 <title>dapper.tools.liveplotting API documentation</title>
-<meta name="description" content="On-line (live) plots of the DA process for various models and methods." />
+<meta name="description" content="On-line (live) plots of the DA process for various models and methods …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -37,12 +37,59 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </header>
 <section id="section-intro">
 <p>On-line (live) plots of the DA process for various models and methods.</p>
+<p>Liveplotters are given by a list of tuples as property or arguments in
+<code><a title="dapper.mods.HiddenMarkovModel" href="../mods/index.html#dapper.mods.HiddenMarkovModel">HiddenMarkovModel</a></code>.</p>
+<ul>
+<li>
+<p>The first element of the tuple determines whether the liveplotter is shown if
+the names of liveplotters are not given by <code>liveplots</code> argument in
+<code>assimilate</code>.</p>
+</li>
+<li>
+<p>The second element in the tuple gives the corresponding liveplotter
+function/class. See example of function <code>LPs</code> in <code><a title="dapper.mods.Lorenz63" href="../mods/Lorenz63/index.html">dapper.mods.Lorenz63</a></code>.</p>
+</li>
+</ul>
+<p>The liveplotters can be fine-tuned by each DA experiments via argument of
+<code>liveplots</code> when calling <code>assimilate</code>.</p>
+<ul>
+<li>
+<p><code>liveplots = True</code> turns on liveplotters set to default in the first
+argument of the <code>HMM.liveplotter</code> and default liveplotters defined in this module
+(<code><a title="dapper.tools.liveplotting.sliding_diagnostics" href="#dapper.tools.liveplotting.sliding_diagnostics">sliding_diagnostics</a></code> and <code><a title="dapper.tools.liveplotting.weight_histogram" href="#dapper.tools.liveplotting.weight_histogram">weight_histogram</a></code>).</p>
+</li>
+<li>
+<p><code>liveplots</code> can also be a list of specified names of liveplotter, which
+is the name of the corresponding liveplotting classes/functions.</p>
+</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L0-L1325" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L0-L1345" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;On-line (live) plots of the DA process for various models and methods.&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34;On-line (live) plots of the DA process for various models and methods.
+
+Liveplotters are given by a list of tuples as property or arguments in
+`dapper.mods.HiddenMarkovModel`.
+
+- The first element of the tuple determines whether the liveplotter is shown if
+the names of liveplotters are not given by `liveplots` argument in
+`assimilate`.
+
+- The second element in the tuple gives the corresponding liveplotter
+function/class. See example of function `LPs` in `dapper.mods.Lorenz63`.
+
+The liveplotters can be fine-tuned by each DA experiments via argument of
+`liveplots` when calling `assimilate`.
+
+- `liveplots = True` turns on liveplotters set to default in the first
+argument of the `HMM.liveplotter` and default liveplotters defined in this module
+(`sliding_diagnostics` and `weight_histogram`).
+
+- `liveplots` can also be a list of specified names of liveplotter, which
+is the name of the corresponding liveplotting classes/functions.
+&#34;&#34;&#34;
 
 import matplotlib as mpl
 import numpy as np
@@ -55,6 +102,7 @@ from mpl_tools.fig_layout import freshfig
 from numpy import arange, nan, ones
 from struct_tools import DotDict, deep_getattr
 
+import dapper.tools.progressbar as pb
 import dapper.tools.viz as viz
 from dapper.dpr_config import rc
 from dapper.mods.utils import linspace_int
@@ -133,26 +181,24 @@ class LivePlot:
 
         # Set up dict of liveplotters
         potential_LPs = {}
-        for num, show, init in default_liveplotters:
-            potential_LPs[get_name(init)] = num, show, init
+        for show, init in default_liveplotters:
+            potential_LPs[get_name(init)] = show, init
         # Add HMM-specific liveplotters
-        for num, show, init in getattr(stats.HMM, &#39;liveplotters&#39;, {}):
-            assert num &gt; 10, (&#34;Liveplotters specified in the HMM&#34;
-                              &#34; should have fignum&gt;10.&#34;)
-            potential_LPs[get_name(init)] = num, show, init
+        for show, init in getattr(stats.HMM, &#39;liveplotters&#39;, {}):
+            potential_LPs[get_name(init)] = show, init
 
         def parse_figlist(lst):
             &#34;&#34;&#34;Figures requested for this xp. Convert to list.&#34;&#34;&#34;
             if isinstance(lst, str):
                 fn = lst.lower()
                 if &#34;all&#34; == fn:
-                    lst = range(99)  # All potential_LPs
+                    lst = [&#34;all&#34;]  # All potential_LPs
                 elif &#34;default&#34; in fn:
-                    lst = []         # All show_by_default
+                    lst = [&#34;default&#34;]         # All show_by_default
             elif hasattr(lst, &#39;__len__&#39;):
                 lst = lst            # This list (only)
             elif lst:
-                lst = []             # All show_by_default
+                lst = [&#34;default&#34;]             # All show_by_default
             else:
                 lst = [None]         # None
             return lst
@@ -160,13 +206,14 @@ class LivePlot:
 
         # Loop over requeted figures
         self.figures = {}
-        for name, (num, show_by_default, init) in potential_LPs.items():
-            if (num in figlist) or \
+        for name, (show_by_default, init) in potential_LPs.items():
+            if (figlist == [&#34;all&#34;]) or \
                     (name in figlist) or \
-                    (figlist == [] and show_by_default):
+                    (figlist == [&#34;default&#34;] and show_by_default):
 
                 # Startup message
                 if not self.any_figs:
+                    print(&#39;Initializing liveplots...&#39;)
                     if is_notebook_or_qt:
                         pauses = [self.params[&#34;pause_&#34; + x] for x in &#34;faus&#34;]
                         if any((p &gt; 0) for p in pauses):
@@ -177,8 +224,7 @@ class LivePlot:
                                   &#34; in the toolbar). Consider using instead&#34;
                                   &#34; only the replay functionality (with infinite&#34;
                                   &#34; playback speed).&#34;)
-                    else:
-                        print(&#39;Initializing liveplots...&#39;)
+                    elif not pb.disable_user_interaction:
                         print(&#39;Hit &lt;Space&gt; to pause/step.&#39;)
                         print(&#39;Hit &lt;Enter&gt; to resume/skip.&#39;)
                         print(&#39;Hit &lt;i&gt; to enter debug mode.&#39;)
@@ -189,13 +235,13 @@ class LivePlot:
 
                 # Init figure
                 post_title = &#34;&#34; if self.plot_u else &#34;\n(obs times only)&#34;
-                updater = init(num, stats, key0, self.plot_u, E, P, **kwargs)
-                if plt.fignum_exists(num) and getattr(updater, &#39;is_active&#39;, 1):
-                    self.figures[name] = (num, updater)
-                    fig = plt.figure(num)
+                updater = init(name, stats, key0, self.plot_u, E, P, **kwargs)
+                if plt.fignum_exists(name) and getattr(updater, &#39;is_active&#39;, 1):
+                    self.figures[name] = updater
+                    fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.set_window_title(&#34;%s [%d]&#34; % (name, num))
+                    win.set_window_title(&#34;%s&#34; % name)
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     plt.pause(0.01)          # Draw
@@ -204,8 +250,8 @@ class LivePlot:
         &#34;&#34;&#34;Update liveplots&#34;&#34;&#34;
         # Check if there are still open figures
         if self.any_figs:
-            open_figns = plt.get_fignums()
-            live_figns = {num for (num, updater) in self.figures.values()}
+            open_figns = plt.get_figlabels()
+            live_figns = set(self.figures.keys())
             self.any_figs = bool(live_figns.intersection(open_figns))
         else:
             return
@@ -263,10 +309,10 @@ class LivePlot:
         if not self.skipping:
             faus = key[-1]
             if faus != &#39;u&#39; or self.plot_u:
-                for _name, (num, updater) in self.figures.items():
-                    if plt.fignum_exists(num) and \
+                for _name, (updater) in self.figures.items():
+                    if plt.fignum_exists(_name) and \
                             getattr(updater, &#39;is_active&#39;, 1):
-                        _ = plt.figure(num)
+                        _ = plt.figure(_name)
                         updater(key, E, P)
                         plot_pause(self.params[&#39;pause_&#39;+faus])
 
@@ -1365,8 +1411,8 @@ def spatial2d(
 # - show_by_default
 # - function/class
 default_liveplotters = [
-    (1, 1, sliding_diagnostics),
-    (4, 1, weight_histogram),
+    (1, sliding_diagnostics),
+    (1, weight_histogram),
 ]</code></pre>
 </details>
 </section>
@@ -1385,7 +1431,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L432-L451" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L452-L471" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_xlim(ax, tt, lag, margin=False):
     dt = lag/20 if margin else 0
@@ -1418,7 +1464,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L642-L657" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L662-L677" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def circulant_ACF(C, do_abs=False):
     &#34;&#34;&#34;Compute the auto-covariance-function corresponding to `C`.
@@ -1446,7 +1492,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L660-L810" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L680-L830" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_marginals(
     obs_inds     = (),
@@ -1609,7 +1655,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L813-L946" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L833-L966" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def phase_particles(
     is_3d        = True,
@@ -1760,7 +1806,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L949-L974" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L969-L994" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_lag(Tplot, chrono):
     &#34;&#34;&#34;Return validated `T_lag` such that is is:
@@ -1798,7 +1844,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L977-L981" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L997-L1001" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def comp_K_plot(K_lag, a_lag, plot_u):
     K_plot = 2*a_lag     # Sum of lags of {f,a} series.
@@ -1815,7 +1861,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L984-L1007" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1004-L1027" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update_alpha(key, stats, lines, scatters=None):
     &#34;&#34;&#34;Adjust color alpha (for particle filters).&#34;&#34;&#34;
@@ -1851,7 +1897,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1010-L1030" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1030-L1050" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
     &#34;&#34;&#34;Particle filter: insert breaks for resampled particles.&#34;&#34;&#34;
@@ -1907,7 +1953,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1036-L1099" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1056-L1119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
     &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
@@ -1983,7 +2029,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1102-L1205" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1122-L1225" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial1d(
     obs_inds     = None,
@@ -2099,7 +2145,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1208-L1315" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1228-L1335" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial2d(
     square,
@@ -2255,7 +2301,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L24-L237" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L46-L257" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LivePlot:
     &#34;&#34;&#34;Live plotting manager.
@@ -2325,26 +2371,24 @@ plt.draw() to work on a moderately fast computer.</li>
 
         # Set up dict of liveplotters
         potential_LPs = {}
-        for num, show, init in default_liveplotters:
-            potential_LPs[get_name(init)] = num, show, init
+        for show, init in default_liveplotters:
+            potential_LPs[get_name(init)] = show, init
         # Add HMM-specific liveplotters
-        for num, show, init in getattr(stats.HMM, &#39;liveplotters&#39;, {}):
-            assert num &gt; 10, (&#34;Liveplotters specified in the HMM&#34;
-                              &#34; should have fignum&gt;10.&#34;)
-            potential_LPs[get_name(init)] = num, show, init
+        for show, init in getattr(stats.HMM, &#39;liveplotters&#39;, {}):
+            potential_LPs[get_name(init)] = show, init
 
         def parse_figlist(lst):
             &#34;&#34;&#34;Figures requested for this xp. Convert to list.&#34;&#34;&#34;
             if isinstance(lst, str):
                 fn = lst.lower()
                 if &#34;all&#34; == fn:
-                    lst = range(99)  # All potential_LPs
+                    lst = [&#34;all&#34;]  # All potential_LPs
                 elif &#34;default&#34; in fn:
-                    lst = []         # All show_by_default
+                    lst = [&#34;default&#34;]         # All show_by_default
             elif hasattr(lst, &#39;__len__&#39;):
                 lst = lst            # This list (only)
             elif lst:
-                lst = []             # All show_by_default
+                lst = [&#34;default&#34;]             # All show_by_default
             else:
                 lst = [None]         # None
             return lst
@@ -2352,13 +2396,14 @@ plt.draw() to work on a moderately fast computer.</li>
 
         # Loop over requeted figures
         self.figures = {}
-        for name, (num, show_by_default, init) in potential_LPs.items():
-            if (num in figlist) or \
+        for name, (show_by_default, init) in potential_LPs.items():
+            if (figlist == [&#34;all&#34;]) or \
                     (name in figlist) or \
-                    (figlist == [] and show_by_default):
+                    (figlist == [&#34;default&#34;] and show_by_default):
 
                 # Startup message
                 if not self.any_figs:
+                    print(&#39;Initializing liveplots...&#39;)
                     if is_notebook_or_qt:
                         pauses = [self.params[&#34;pause_&#34; + x] for x in &#34;faus&#34;]
                         if any((p &gt; 0) for p in pauses):
@@ -2369,8 +2414,7 @@ plt.draw() to work on a moderately fast computer.</li>
                                   &#34; in the toolbar). Consider using instead&#34;
                                   &#34; only the replay functionality (with infinite&#34;
                                   &#34; playback speed).&#34;)
-                    else:
-                        print(&#39;Initializing liveplots...&#39;)
+                    elif not pb.disable_user_interaction:
                         print(&#39;Hit &lt;Space&gt; to pause/step.&#39;)
                         print(&#39;Hit &lt;Enter&gt; to resume/skip.&#39;)
                         print(&#39;Hit &lt;i&gt; to enter debug mode.&#39;)
@@ -2381,13 +2425,13 @@ plt.draw() to work on a moderately fast computer.</li>
 
                 # Init figure
                 post_title = &#34;&#34; if self.plot_u else &#34;\n(obs times only)&#34;
-                updater = init(num, stats, key0, self.plot_u, E, P, **kwargs)
-                if plt.fignum_exists(num) and getattr(updater, &#39;is_active&#39;, 1):
-                    self.figures[name] = (num, updater)
-                    fig = plt.figure(num)
+                updater = init(name, stats, key0, self.plot_u, E, P, **kwargs)
+                if plt.fignum_exists(name) and getattr(updater, &#39;is_active&#39;, 1):
+                    self.figures[name] = updater
+                    fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.set_window_title(&#34;%s [%d]&#34; % (name, num))
+                    win.set_window_title(&#34;%s&#34; % name)
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     plt.pause(0.01)          # Draw
@@ -2396,8 +2440,8 @@ plt.draw() to work on a moderately fast computer.</li>
         &#34;&#34;&#34;Update liveplots&#34;&#34;&#34;
         # Check if there are still open figures
         if self.any_figs:
-            open_figns = plt.get_fignums()
-            live_figns = {num for (num, updater) in self.figures.values()}
+            open_figns = plt.get_figlabels()
+            live_figns = set(self.figures.keys())
             self.any_figs = bool(live_figns.intersection(open_figns))
         else:
             return
@@ -2455,10 +2499,10 @@ plt.draw() to work on a moderately fast computer.</li>
         if not self.skipping:
             faus = key[-1]
             if faus != &#39;u&#39; or self.plot_u:
-                for _name, (num, updater) in self.figures.items():
-                    if plt.fignum_exists(num) and \
+                for _name, (updater) in self.figures.items():
+                    if plt.fignum_exists(_name) and \
                             getattr(updater, &#39;is_active&#39;, 1):
-                        _ = plt.figure(num)
+                        _ = plt.figure(_name)
                         updater(key, E, P)
                         plot_pause(self.params[&#39;pause_&#39;+faus])
 
@@ -2482,14 +2526,14 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L159-L237" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L179-L257" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, key, E, P):
     &#34;&#34;&#34;Update liveplots&#34;&#34;&#34;
     # Check if there are still open figures
     if self.any_figs:
-        open_figns = plt.get_fignums()
-        live_figns = {num for (num, updater) in self.figures.values()}
+        open_figns = plt.get_figlabels()
+        live_figns = set(self.figures.keys())
         self.any_figs = bool(live_figns.intersection(open_figns))
     else:
         return
@@ -2547,10 +2591,10 @@ plt.draw() to work on a moderately fast computer.</li>
     if not self.skipping:
         faus = key[-1]
         if faus != &#39;u&#39; or self.plot_u:
-            for _name, (num, updater) in self.figures.items():
-                if plt.fignum_exists(num) and \
+            for _name, (updater) in self.figures.items():
+                if plt.fignum_exists(_name) and \
                         getattr(updater, &#39;is_active&#39;, 1):
-                    _ = plt.figure(num)
+                    _ = plt.figure(_name)
                     updater(key, E, P)
                     plot_pause(self.params[&#39;pause_&#39;+faus])
 
@@ -2576,7 +2620,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L245-L429" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L265-L449" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class sliding_diagnostics:
     &#34;&#34;&#34;Plots a sliding window (like a heart rate monitor) of certain diagnostics.&#34;&#34;&#34;
@@ -2774,7 +2818,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L454-L490" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L474-L510" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class weight_histogram:
     &#34;&#34;&#34;Plots histogram of weights. Refreshed each analysis.&#34;&#34;&#34;
@@ -2824,7 +2868,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L493-L538" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L513-L558" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class spectral_errors:
     &#34;&#34;&#34;Plots the (spatial-RMS) error as a functional of the SVD index.&#34;&#34;&#34;
@@ -2883,7 +2927,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L541-L639" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L561-L659" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class correlations:
     &#34;&#34;&#34;Plots the state (auto-)correlation matrix.&#34;&#34;&#34;

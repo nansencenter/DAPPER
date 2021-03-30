@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L0-L983" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L0-L980" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;The EnKF and other ensemble-based methods.&#34;&#34;&#34;
 
@@ -573,23 +573,20 @@ class SL_EAKF:
                     if sig2_j &lt; 1e-9:
                         continue
                     # Update (below, we drop the locality subscript: _j)
-                    sig2_u = 1/(1/sig2_j + 1/N1)      # KG * N1
+                    sig2_u = 1/(1/sig2_j + 1/N1)      # Postr. var * N1
                     alpha  = (N1/(N1+sig2_j))**(0.5)  # Update contraction factor
                     dy2    = sig2_u * dy_j/N1         # Mean update
                     Y2     = alpha*Y_j                # Anomaly update
                     # Update state (regress update from obs space, using localization)
                     # ------------------------------------------------------
                     ii, tapering = state_taperer(j)
+                    # ii, tapering = ..., 1  # cancel localization
                     if len(ii) == 0:
                         continue
-                    Regression = (A[:, ii]*tapering).T @ Y_j/np.sum(Y_j**2)
-                    mu[ii]   += Regression*dy2
-                    A[:, ii]   += np.outer(Y2 - Y_j, Regression)
-                    # Without localization:
-                    # Regression = A.T @ Y_j/np.sum(Y_j**2)
-                    # mu        += Regression*dy2
-                    # A         += np.outer(Y2 - Y_j, Regression)
-
+                    Xi = A[:, ii]*tapering
+                    Regression = Xi.T @ Y_j/np.sum(Y_j**2)
+                    mu[ii] += Regression*dy2
+                    A[:, ii] += np.outer(Y2 - Y_j, Regression)
                     E = mu + A
 
                 E = post_process(E, self.infl, self.rot)
@@ -1412,7 +1409,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L663-L705" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L660-L702" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def effective_N(YR, dyR, xN, g):
     &#34;&#34;&#34;Effective ensemble size N.
@@ -1468,7 +1465,7 @@ this should have been inside :func:<code><a title="dapper.da_methods.ensemble.En
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L733-L752" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L730-L749" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Newton_m(fun, deriv, x0, is_inverted=False,
              conf=1.0, xtol=1e-4, ytol=1e-7, itermax=10**2):
@@ -1540,7 +1537,7 @@ as if N were smaller than it truly is.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L755-L815" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L752-L812" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def hyperprior_coeffs(s, N, xN=1, g=0):
     r&#34;&#34;&#34;Set EnKF-N inflation hyperparams.
@@ -1617,7 +1614,7 @@ the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L818-L830" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L815-L827" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def zeta_a(eN, cL, w):
     &#34;&#34;&#34;EnKF-N inflation estimation via w.
@@ -2085,7 +2082,7 @@ to the <code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_methods
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L481-L553" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L481-L550" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SL_EAKF:
     &#34;&#34;&#34;Serial, covariance-localized EAKF.
@@ -2138,23 +2135,20 @@ to the <code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_methods
                     if sig2_j &lt; 1e-9:
                         continue
                     # Update (below, we drop the locality subscript: _j)
-                    sig2_u = 1/(1/sig2_j + 1/N1)      # KG * N1
+                    sig2_u = 1/(1/sig2_j + 1/N1)      # Postr. var * N1
                     alpha  = (N1/(N1+sig2_j))**(0.5)  # Update contraction factor
                     dy2    = sig2_u * dy_j/N1         # Mean update
                     Y2     = alpha*Y_j                # Anomaly update
                     # Update state (regress update from obs space, using localization)
                     # ------------------------------------------------------
                     ii, tapering = state_taperer(j)
+                    # ii, tapering = ..., 1  # cancel localization
                     if len(ii) == 0:
                         continue
-                    Regression = (A[:, ii]*tapering).T @ Y_j/np.sum(Y_j**2)
-                    mu[ii]   += Regression*dy2
-                    A[:, ii]   += np.outer(Y2 - Y_j, Regression)
-                    # Without localization:
-                    # Regression = A.T @ Y_j/np.sum(Y_j**2)
-                    # mu        += Regression*dy2
-                    # A         += np.outer(Y2 - Y_j, Regression)
-
+                    Xi = A[:, ii]*tapering
+                    Regression = Xi.T @ Y_j/np.sum(Y_j**2)
+                    mu[ii] += Regression*dy2
+                    A[:, ii] += np.outer(Y2 - Y_j, Regression)
                     E = mu + A
 
                 E = post_process(E, self.infl, self.rot)
@@ -2206,7 +2200,7 @@ to the <code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_methods
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L495-L553" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L495-L550" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
@@ -2245,23 +2239,20 @@ to the <code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_methods
                 if sig2_j &lt; 1e-9:
                     continue
                 # Update (below, we drop the locality subscript: _j)
-                sig2_u = 1/(1/sig2_j + 1/N1)      # KG * N1
+                sig2_u = 1/(1/sig2_j + 1/N1)      # Postr. var * N1
                 alpha  = (N1/(N1+sig2_j))**(0.5)  # Update contraction factor
                 dy2    = sig2_u * dy_j/N1         # Mean update
                 Y2     = alpha*Y_j                # Anomaly update
                 # Update state (regress update from obs space, using localization)
                 # ------------------------------------------------------
                 ii, tapering = state_taperer(j)
+                # ii, tapering = ..., 1  # cancel localization
                 if len(ii) == 0:
                     continue
-                Regression = (A[:, ii]*tapering).T @ Y_j/np.sum(Y_j**2)
-                mu[ii]   += Regression*dy2
-                A[:, ii]   += np.outer(Y2 - Y_j, Regression)
-                # Without localization:
-                # Regression = A.T @ Y_j/np.sum(Y_j**2)
-                # mu        += Regression*dy2
-                # A         += np.outer(Y2 - Y_j, Regression)
-
+                Xi = A[:, ii]*tapering
+                Regression = Xi.T @ Y_j/np.sum(Y_j**2)
+                mu[ii] += Regression*dy2
+                A[:, ii] += np.outer(Y2 - Y_j, Regression)
                 E = mu + A
 
             E = post_process(E, self.infl, self.rot)
@@ -2285,7 +2276,7 @@ even with <code>batch_size=(1,)</code>. But for <code><a title="dapper.mods.QG" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L557-L660" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L554-L657" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LETKF:
     &#34;&#34;&#34;Same as EnKF (sqrt), but with localization.
@@ -2445,7 +2436,7 @@ even with <code>batch_size=(1,)</code>. But for <code><a title="dapper.mods.QG" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L576-L660" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L573-L657" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     Dyn, Obs, chrono, X0, stats, N = \
@@ -2562,7 +2553,7 @@ Further description in hyperprior_coeffs().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L834-L984" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L831-L981" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EnKF_N:
     &#34;&#34;&#34;Finite-size EnKF (EnKF-N).
@@ -2765,7 +2756,7 @@ Further description in hyperprior_coeffs().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L867-L984" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L864-L981" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assimilate(self, HMM, xx, yy):
     # Unpack

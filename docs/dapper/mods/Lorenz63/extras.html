@@ -5,8 +5,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>dapper.mods.Lorenz63 API documentation</title>
-<meta name="description" content="The classic exhibitor of chaos, consisting of 3 coupled ODEs …" />
+<title>dapper.mods.Lorenz63.extras API documentation</title>
+<meta name="description" content="Extra functionality (not necessary for the EnKF or the particle filter)." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -33,127 +33,109 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>dapper.mods.Lorenz63</code></h1>
+<h1 class="title">Module <code>dapper.mods.Lorenz63.extras</code></h1>
 </header>
 <section id="section-intro">
-<p>The classic exhibitor of chaos, consisting of 3 coupled ODEs.</p>
-<p>The ODEs are derived by modelling, with many simplifications,
-the fluid convection between horizontal plates with different temperatures.</p>
-<p>Its phase-plot (with typical param settings) looks like a butterfly.</p>
-<p>See demo.py for more info.</p>
+<p>Extra functionality (not necessary for the EnKF or the particle filter).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L0-L40" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/extras.py#L0-L33" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;The classic exhibitor of chaos, consisting of 3 coupled ODEs.
-
-The ODEs are derived by modelling, with many simplifications,
-the fluid convection between horizontal plates with different temperatures.
-
-Its phase-plot (with typical param settings) looks like a butterfly.
-
-See demo.py for more info.
-&#34;&#34;&#34;
-
+<pre><code class="python">&#34;&#34;&#34;Extra functionality (not necessary for the EnKF or the particle filter).&#34;&#34;&#34;
 
 import numpy as np
 
-import dapper.mods as modelling
-
-from .extras import LPs, d2x_dtdx, dstep_dx
-
-__pdoc__ = {&#34;demo&#34;: False}
-
-# Constants
-sig = 10.0
-rho = 28.0
-beta = 8.0/3
+import dapper.mods.Lorenz63 as core
+import dapper.tools.liveplotting as LP
+from dapper.mods.integration import integrate_TLM
 
 
-@modelling.ens_compatible
-def dxdt(x):
-    &#34;&#34;&#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;&#34;&#34;
-    d     = np.zeros_like(x)
+def d2x_dtdx(x):
+    &#34;&#34;&#34;Tangent linear model (TLM). I.e. the Jacobian of dxdt(x).&#34;&#34;&#34;
     x, y, z = x
-    d[0]  = sig*(y - x)
-    d[1]  = rho*x - y - x*z
-    d[2]  = x*y - beta*z
-    return d
+    sig, rho, beta = core.sig, core.rho, core.beta
+    A = np.array(
+        [[-sig, sig, 0],
+         [rho-z, -1, -x],
+         [y, x, -beta]])
+    return A
 
 
-step = modelling.with_rk4(dxdt, autonom=True)
+def dstep_dx(x, t, dt):
+    &#34;&#34;&#34;Compute resolvent (propagator) of the TLM. I.e. the Jacobian of `step(x)`.&#34;&#34;&#34;
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)
 
-Tplot = 4.0
 
-x0 = np.array([1.509, -1.531, 25.46])</code></pre>
+# Add some non-default liveplotters
+params = dict(labels=&#39;xyz&#39;, Tplot=1)
+
+
+def LPs(jj=None, params=params): return [
+    (1, LP.correlations),
+    (1, LP.sliding_marginals(jj, zoomy=0.8, **params)),
+    (1, LP.phase_particles(is_3d=True, obs_inds=jj, **params)),
+]</code></pre>
 </details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.Lorenz63.anderson2010rhf" href="anderson2010rhf.html">anderson2010rhf</a></code></dt>
-<dd>
-<div class="desc"><p>Settings from <code><a title="bib.anderson2010non" href="../../../bib.html#bib.anderson2010non">anderson2010non</a></code>.</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.Lorenz63.bocquet2012" href="bocquet2012.html">bocquet2012</a></code></dt>
-<dd>
-<div class="desc"><p>Reproduce results from Fig 11 of <code><a title="bib.bocquet2012combining" href="../../../bib.html#bib.bocquet2012combining">bocquet2012combining</a></code>.</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.Lorenz63.extras" href="extras.html">extras</a></code></dt>
-<dd>
-<div class="desc"><p>Extra functionality (not necessary for the EnKF or the particle filter).</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.Lorenz63.mandel2016" href="mandel2016.html">mandel2016</a></code></dt>
-<dd>
-<div class="desc"><p>Settings from <code><a title="bib.mandel2016hybrid" href="../../../bib.html#bib.mandel2016hybrid">mandel2016hybrid</a></code>.</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.Lorenz63.sakov2012" href="sakov2012.html">sakov2012</a></code></dt>
-<dd>
-<div class="desc"><p>Reproduce results from Table 1 <code><a title="bib.sakov2012iterative" href="../../../bib.html#bib.sakov2012iterative">sakov2012iterative</a></code>.</p></div>
-</dd>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<dt><code class="name"><a title="dapper.mods.Lorenz63.wiljes2017" href="wiljes2017.html">wiljes2017</a></code></dt>
-<dd>
-<div class="desc"><p>Settings from <code><a title="bib.wiljes2016second" href="../../../bib.html#bib.wiljes2016second">wiljes2016second</a></code>.</p></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="dapper.mods.Lorenz63.dxdt"><code class="name flex">
-<span>def <span class="ident">dxdt</span></span>(<span>x)</span>
+<dt id="dapper.mods.Lorenz63.extras.d2x_dtdx"><code class="name flex">
+<span>def <span class="ident">d2x_dtdx</span></span>(<span>x)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Evolution equation (coupled ODEs) specifying the dynamics.</p></div>
+<div class="desc"><p>Tangent linear model (TLM). I.e. the Jacobian of dxdt(x).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/__init__.py#L26-L34" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/extras.py#L10-L18" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@modelling.ens_compatible
-def dxdt(x):
-    &#34;&#34;&#34;Evolution equation (coupled ODEs) specifying the dynamics.&#34;&#34;&#34;
-    d     = np.zeros_like(x)
+<pre><code class="python">def d2x_dtdx(x):
+    &#34;&#34;&#34;Tangent linear model (TLM). I.e. the Jacobian of dxdt(x).&#34;&#34;&#34;
     x, y, z = x
-    d[0]  = sig*(y - x)
-    d[1]  = rho*x - y - x*z
-    d[2]  = x*y - beta*z
-    return d</code></pre>
+    sig, rho, beta = core.sig, core.rho, core.beta
+    A = np.array(
+        [[-sig, sig, 0],
+         [rho-z, -1, -x],
+         [y, x, -beta]])
+    return A</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz63.extras.dstep_dx"><code class="name flex">
+<span>def <span class="ident">dstep_dx</span></span>(<span>x, t, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute resolvent (propagator) of the TLM. I.e. the Jacobian of <code>step(x)</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/extras.py#L21-L23" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def dstep_dx(x, t, dt):
+    &#34;&#34;&#34;Compute resolvent (propagator) of the TLM. I.e. the Jacobian of `step(x)`.&#34;&#34;&#34;
+    return integrate_TLM(d2x_dtdx(x), dt, method=&#39;approx&#39;)</code></pre>
+</details>
+</dd>
+<dt id="dapper.mods.Lorenz63.extras.LPs"><code class="name flex">
+<span>def <span class="ident">LPs</span></span>(<span>jj=None, params={'labels': 'xyz', 'Tplot': 1})</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz63/extras.py#L30-L34" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def LPs(jj=None, params=params): return [
+    (1, LP.correlations),
+    (1, LP.sliding_marginals(jj, zoomy=0.8, **params)),
+    (1, LP.phase_particles(is_3d=True, obs_inds=jj, **params)),
+]</code></pre>
 </details>
 </dd>
 </dl>
@@ -170,7 +152,7 @@ def dxdt(x):
 </header>
 <div class="gcse-search" style="height: 70px"
 data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
-data-gaCategoryParameter="dapper.mods.Lorenz63">
+data-gaCategoryParameter="dapper.mods.Lorenz63.extras">
 </div>
 <h1>Index</h1>
 <div class="toc">
@@ -179,34 +161,14 @@ data-gaCategoryParameter="dapper.mods.Lorenz63">
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="dapper.mods" href="../index.html">dapper.mods</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.Lorenz63.anderson2010rhf" href="anderson2010rhf.html">anderson2010rhf</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.Lorenz63.bocquet2012" href="bocquet2012.html">bocquet2012</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.Lorenz63.extras" href="extras.html">extras</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.Lorenz63.mandel2016" href="mandel2016.html">mandel2016</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.Lorenz63.sakov2012" href="sakov2012.html">sakov2012</a></code></li>
-<!-- CHANGE: Short submodule name -->
-<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
-<li><code><a title="dapper.mods.Lorenz63.wiljes2017" href="wiljes2017.html">wiljes2017</a></code></li>
+<li><code><a title="dapper.mods.Lorenz63" href="index.html">dapper.mods.Lorenz63</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="dapper.mods.Lorenz63.dxdt" href="#dapper.mods.Lorenz63.dxdt">dxdt</a></code></li>
+<li><code><a title="dapper.mods.Lorenz63.extras.d2x_dtdx" href="#dapper.mods.Lorenz63.extras.d2x_dtdx">d2x_dtdx</a></code></li>
+<li><code><a title="dapper.mods.Lorenz63.extras.dstep_dx" href="#dapper.mods.Lorenz63.extras.dstep_dx">dstep_dx</a></code></li>
+<li><code><a title="dapper.mods.Lorenz63.extras.LPs" href="#dapper.mods.Lorenz63.extras.LPs">LPs</a></code></li>
 </ul>
 </li>
 </ul>
