@@ -16,6 +16,7 @@ Essentially, you just need to define all of the attributes of a
 To make sure this is working, we suggest the following structure:
 
 - Make a dir: `my_model`
+
 - Make a file: `my_model/__init__.py` where you define the core
   workings of the model.
   Typically, this culminates in a `step(x, t, dt)` function.
@@ -24,45 +25,66 @@ To make sure this is working, we suggest the following structure:
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
       See
 
-          - `dapper.mods.Lorenz63`: use of `ens_compatible`.
-          - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
-          - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
-            Consider pre-defining the slices like so:
+        - `dapper.mods.Lorenz63`: use of `ens_compatible`.
+        - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
+        - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
+          Consider pre-defining the slices like so:
 
                 iiX = (..., slice(None, Nx))
                 iiP = (..., slice(Nx, None))
 
             to abbreviate the indexing elsewhere.
 
-          - `dapper.mods.QG`: use of parallelized for loop (map).
+        - `dapper.mods.QG`: use of parallelized for loop (map).
 
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
       you will need to define the model linearization.
       Note: this only needs to support 1D input (single realization).
 
+- Most models are defined using a procedural and function-based style.
+  However, `dapper.mods.LorenzUV` and `dapper.mods.QG` use OOP.
+  This is more flexible & robust, and better suited when different
+  control-variable settings are to be investigated.
+
+    .. note::
+        In parameter estimation problems, the parameters are treated as input
+        variables to the "forward model". This does not necessarily require
+        OOP. See `examples/param_estim.py`.
+
 - Make a file: `my_model/demo.py` to visually showcase
-  a simulation of the model.
+  a simulation of the model, and verify it's working.
+
+    .. hint::
+        To begin with, test whether the model works on 1 realization,
+        before running it with several (simultaneously).
+        Also, start with a small integration time step,
+        before using more efficient/adventurous time steps.
+        Note that the time step might need to be shorter in assimilation,
+        because it may cause instabilities.
+
 - Ideally, both `my_model/__init__.py` and `my_model/demo.py`
-  do not rely on the rest of DAPPER.
-- Make a file: `my_model/my_settings_1.py` that define a complete
-  Hidden Markov Model ready for a synthetic experiment
+  do not rely on components of DAPPER outside of `dapper.mods`.
+
+- Make a file: `my_model/my_settings_1.py` that defines
+  (or "configures", since there is usually little actual programming taking place)
+  a complete Hidden Markov Model ready for a synthetic experiment
   (also called "twin experiment" or OSSE).
+  Each existing model comes with several examples of model settings from the literature.
+  See, for example, `dapper.mods.Lorenz63.sakov2012`.
 
+    .. warning::
+      These configurations do not necessarily hold a very high programming standard,
+      as they may have been whipped up at short notice to replicate some experiments,
+      and are not intended for re-use.
 
-<!--
-* To begin with, test whether the model works
-    * on 1 realization
-    * on several realizations (simultaneously)
-* Thereafter, try assimilating using
-    * a big ensemble
-    * a safe (e.g. 1.2) inflation value
-    * small initial perturbations
-      (big/sharp noises might cause model blow up)
-    * small(er) integrational time step
-      (assimilation might create instabilities)
-    * very large observation noise (free run)
-    * or very small observation noise (perfectly observed system)
--->
+      Nevertheless, sometimes they are re-used by another configuration script,
+      leading to a major gotcha/pitfall: changes made to the imported `HMM` (or
+      the model's module itself) also impact the original object (since they
+      are mutable and thereby referenced).  This usually isn't an issue, since
+      one rarely imports two/more separate configurations. However, the test suite
+      imports all configurations, which might then unintentionally interact.
+      To avoid this, you should use the `copy` method of the `HMM`
+      before making any changes to it.
 """
 
 __pdoc__ = {"explore_props": False}
