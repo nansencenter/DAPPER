@@ -19,9 +19,10 @@ To make sure this is working, we suggest the following structure:
 
 - Make a file: `my_model/__init__.py` where you define the core
   workings of the model.
-  Typically, this culminates in a `step(x, t, dt)` function.
-
-    - The model step operator (and the obs operator) must support
+    - Typically, this culminates in a `step(x, t, dt)` function,
+      which defines the dynamical model/system mapping the state `x`
+      from one time `t` to another `t + dt`.
+      This model "operator" must support
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
       See
 
@@ -37,8 +38,22 @@ To make sure this is working, we suggest the following structure:
 
         - `dapper.mods.QG`: use of parallelized for loop (map).
 
+     - You should also define an example initial state, `x0`.  This facililates
+       the specification of initial conditions for different synthetic
+       experiments, as random variables centered on `x0`.  It is also a
+       convenient way just to specify the system size as `len(x0)`.  In many
+       experiments, the specific value of `x0` does not matter, because most
+       systems are chaotic, and the average of the stats are computed only for
+       `time > BurnIn > 0`, which will not depend on `x0` if the experiment is
+       long enough.  Nevertheless, it's often convenient to pre-define a point
+       on the attractor, or basin, or at least ensure "physicality", for
+       quicker spin-up (burn-in).
+
+    - Optional: define a number called `Tplot` which defines
+      the (sliding) time window used by the liveplotting of diagnostics.
+
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
-      you will need to define the model linearization.
+      you will need to define the model linearization, typically called `dstep_dx`.
       Note: this only needs to support 1D input (single realization).
 
 - Most models are defined using a procedural and function-based style.
@@ -69,6 +84,7 @@ To make sure this is working, we suggest the following structure:
   (or "configures", since there is usually little actual programming taking place)
   a complete Hidden Markov Model ready for a synthetic experiment
   (also called "twin experiment" or OSSE).
+  See `dapper.mods.HiddenMarkovModel` for details on what this requires.
   Each existing model comes with several examples of model settings from the literature.
   See, for example, `dapper.mods.Lorenz63.sakov2012`.
 
@@ -85,6 +101,14 @@ To make sure this is working, we suggest the following structure:
       imports all configurations, which might then unintentionally interact.
       To avoid this, you should use the `copy` method of the `HMM`
       before making any changes to it.
+
+    Once you've made some experiments you believe are noteworthy you should add a
+    "suggested settings/tunings" section in comments at the bottom of
+    `my_model/my_settings_1.py`, listing some of the relevant DA method
+    configurations that you tested, along with the RMSE (or other stats) that
+    you obtained for those methods.  You will find plenty of examples already in DAPPER,
+    used for cross-referenced with literature to verify the workings of DAPPER
+    (and the reproducibility of publications).
 """
 
 __pdoc__ = {"explore_props": False}
