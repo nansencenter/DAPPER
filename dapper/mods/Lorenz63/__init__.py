@@ -13,7 +13,7 @@ import numpy as np
 
 import dapper.mods as modelling
 
-from .extras import LPs, dstep_dx
+from .extras import LPs, d2x_dtdx, dstep_dx
 
 __pdoc__ = {"demo": False}
 

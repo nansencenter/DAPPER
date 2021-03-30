@@ -14,7 +14,7 @@ import numpy as np
 
 from dapper.mods.integration import rk4
 
-from .extras import LPs, dstep_dx
+from .extras import LPs, d2x_dtdx, dstep_dx
 
 __pdoc__ = {"demo": False}
 
