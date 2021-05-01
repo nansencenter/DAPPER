@@ -265,7 +265,7 @@ IEnKS code         | Bocquet               | Python, personal publications
 The `EnKF-Matlab` and `IEnKS` codes have been inspirational
 in the development of DAPPER.
 
-*: AWI/Liege/CNRS/NERSC/Reading/Delft
+`*`: AWI/Liege/CNRS/NERSC/Reading/Delft
 
 [1]:  http://www.image.ucar.edu/DAReS/DART/
 [2]:  https://github.com/equinor/ert
