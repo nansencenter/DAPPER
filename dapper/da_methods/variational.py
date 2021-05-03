@@ -317,7 +317,7 @@ class Var4D:
 
                 # Init iterations.
                 w   = np.zeros(Nx)  # Control vector for the mean state.
-                x0  = x.copy()     # Increment reference.
+                x0  = x.copy()      # Increment reference.
 
                 for iteration in np.arange(self.nIter):
                     # Reconstruct smoothed state.
@@ -341,7 +341,7 @@ class Var4D:
                     y      = yy[kObs]          # Get current obs.
                     dy     = Rm12 @ (y - xo)   # Transform obs space.
                     Y      = Rm12 @ Y          # Transform obs space.
-                    V, s, UT = svd0(Y.T)         # Decomp for lin-alg update comps.
+                    V, s, UT = svd0(Y.T)       # Decomp for lin-alg update comps.
 
                     # Post. cov (approx) of w,
                     # estimated at current iteration, raised to power.
