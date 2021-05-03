@@ -68,18 +68,18 @@ Works on Linux/Windows/Mac.
 
 ### Prerequisite: Python>=3.8
 
-If you're not admin and expert:
+If you're an expert, setup a python environment however you like.
+Otherwise:
+Install [Anaconda](https://www.anaconda.com/download), then
+open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
+and run the following commands:
 
-- Install [Anaconda](https://www.anaconda.com/download).
-- Open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
-  and run the following commands:
+    conda create --yes --name my-env python=3.8
+    conda activate my-env
+    python -c 'import sys; print("Version:", sys.version.split()[0])'
 
-      conda create --yes --name my-env python=3.8
-      conda activate my-env
-      python -c 'import sys; print("Version:", sys.version.split()[0])'
-
-  Ensure the output at the end gives a version bigger than 3.8.  
-  Keep using the same terminal for the commands below.
+Ensure the output at the end gives a version bigger than 3.8.  
+*Keep using the same terminal for the commands below.*
 
 ### Install
 
