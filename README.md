@@ -83,16 +83,7 @@ If you're not admin and expert:
 
 ### Install
 
-#### *Either*: Install as library
-
-*Do you just want to run a script that requires DAPPER?* Then
-
-- If the script comes with a `requirements.txt` file, then do  
-  `pip install -r path/to/requirements.txt`.
-- If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install DA-DAPPER==1.0.0` to get version `1.0.0` (as an example).
-
-#### *Or*: Install for development
+#### *Either*: Install for development (recommended)
 
 *Do you want the DAPPER code available to play around with?* Then
 
@@ -102,6 +93,15 @@ If you're not admin and expert:
   *(ensure you're in the folder with a `setup.py` file)*.
 - `pip install -e .[dev]`  
   You can omit `[dev]` if you don't need to do serious development.
+
+#### *Or*: Install as library
+
+*Do you just want to run a script that requires DAPPER?* Then
+
+- If the script comes with a `requirements.txt` file, then do  
+  `pip install -r path/to/requirements.txt`.
+- If not, hopefully you know the version of DAPPER needed. Run  
+  `pip install DA-DAPPER==1.0.0` to get version `1.0.0` (as an example).
 
 #### *Finally*: Test the installation
 
