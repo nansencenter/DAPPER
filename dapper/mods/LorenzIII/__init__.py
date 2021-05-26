@@ -1,16 +1,14 @@
-"""Multi-scale, smoothed version of the classic Lorenz-96 model.
+"""A multi-scale, smooth version of the classic Lorenz-96.
 
 This is an implementation of "Model III" of `bib.lorenz2005designing`.
 
 Similar to `dapper.mods.LorenzUV` this model is designed
-to contain two different scales. However, this "Model III" is quite
-different because the two scales are not kept separate in different sets of variables,
-but instead they are superimposed, and must be pried apart by a weighted moving-average.
-This "Model III" is also different from `dapper.mods.LorenzUV` in that
-it has much more spatial continuity.
+to contain two different scales. However, in "Model III"
+the two scales are not kept separate, but superimposed.
+Moreover, the large scale variables here have much spatial smoothness.
 
-This model is known as "Lorenz 04" in DART, where it was implemented
-by Hansen (collegue of Lorenz) in 2004 (i.e. before publication).
+Interestingly, the model is known as "Lorenz 04" in DART, where it was
+coded by Hansen (colleague of Lorenz) in 2004 (prior to publication).
 
 Special cases of this model are:
 
@@ -18,7 +16,7 @@ Special cases of this model are:
 - Set `K=1` (and `J=1`) to get "Model I",
   which is the same as the Lorenz-96 model.
 
-Note: An implementation using explicit for-loops can be found at 6193532b .
+An implementation using explicit for-loops can be found at 6193532b .
 It uses numba (pip install required) for speed gain, but is still very slow.
 
 With default/classic parameter settings, rk4 was stable for `dt<=0.004`
@@ -26,6 +24,8 @@ With default/classic parameter settings, rk4 was stable for `dt<=0.004`
 This makes sense considering that Lorenz96 seems stable around `dt<=0.05`,
 and that relative time scale of the small scale is `b=10`.
 """
+from dataclasses import dataclass
+
 import numpy as np
 from scipy.ndimage import convolve1d
 
@@ -33,22 +33,62 @@ from dapper.mods.integration import rk4
 
 __pdoc__ = {"demo": False}
 
-M = 960     # state vector length
-J = 12      # decomposition kernel radius (width/2)
-K = 32      # smoothing kernel width (longer => smoother)
-b = 10      # scaling of small-scale variability
-c = 2.5     # coupling strength
-Force = 15  # forcing
 
-Tplot = 10
+@dataclass
+class ModelConfig:
+    """The model configuration.
 
-# Heuristic
-x0 = 2.8*np.ones(M)
-x0[0] += 0.1*Force
+    Functionality that does not directly depend on the model parameters
+    has been left outside of this class.
 
+    Using OOP (rather than module-level encapsulation) facilitates
+    working with multiple parameter settings simultaneously.
+    """
+    M    : int   = 960  # state vector length
+    J    : int   = 12   # decomposition kernel radius (width/2)
+    K    : int   = 32   # smoothing kernel width (longer => smoother)
+    b    : float = 10   # scaling of small-scale variability
+    c    : float = 2.5  # coupling strength
+    Force: float = 15   # forcing
 
-alpha = (3*J**2 + 3) / (2*J**3 + 4*J)
-beta  = (2*J**2 + 1) / (J**4 + 2*J**2)
+    Tplot: float = 10
+
+    def __post_init__(self):
+        J = self.J
+        self.alpha = (3*J**2 + 3) / (2*J**3 + 4*J)
+        self.beta  = (2*J**2 + 1) / (J**4 + 2*J**2)
+
+        # Heuristic
+        self.x0 = 2.8*np.ones(self.M)
+        self.x0[0] += 0.1*self.Force
+
+    def decompose(self, z):
+        """Split `z` into `x` and `y` fields, where `x` is the large-scale component."""
+        width = 2*self.J  # not +1 coz the sum in Lorenz eqn 13a is never ordinary
+        _, weights, inds0 = summation_kernel(width)
+        weights *= self.alpha - self.beta*abs(inds0)
+        x = convolve1d(z, weights, mode="wrap")
+        # Manual implementation:
+        # x = np.zeros_like(z)
+        # for m in range(M):
+        #     for i, w in zip(inds0, weights):
+        #         x[..., m] += w * z[..., mod(m + i)]
+        y = z - x
+        return x, y
+
+    def dxdt(self, z):
+        x, y = self.decompose(z)
+
+        return (
+            + prodsum_self(x, self.K)       # "convection" of x
+            + prodsum_K1(y, y) * self.b**2  # "convection" of y
+            + prodsum_K1(y, x) * self.c     # coupling
+            + -x - y*self.b                 # damping
+            + self.Force
+        )
+
+    def step(self, x0, t, dt):
+        return rk4(lambda t, x: self.dxdt(x), x0, np.nan, dt)
 
 
 def summation_kernel(width):
@@ -64,22 +104,6 @@ def summation_kernel(width):
         weights[0] = weights[-1] = .5
     inds0 = np.arange(-r, r+1)
     return r, weights, inds0
-
-
-def decompose(z):
-    """Split `z` into `x` and `y` fields, where `x` is the large-scale component."""
-    width = 2*J  # not +1 coz lorenz2005designing eqn 13a never uses ordinary sum
-    _, weights, inds0 = summation_kernel(width)
-    kernel = alpha - beta*abs(inds0)
-    kernel *= weights
-    x = convolve1d(z, kernel, mode="wrap")
-    # Manual implementation:
-    # x = np.zeros_like(z)
-    # for m in range(M):
-    #     for i, w in zip(inds0, weights):
-    #         x[..., m] += (alpha - beta*abs(i)) * z[..., mod(m + i)] * w
-    y = z - x
-    return x, y
 
 
 def boxcar(x, n, method="direct"):
@@ -119,6 +143,7 @@ def boxcar(x, n, method="direct"):
     array([4., 3., 2., 3., 4., 5., 6., 7., 6., 5.])
     """
     r, weights, inds0 = summation_kernel(n)
+    M = x.shape[-1]
 
     if method == "manual":
         def mod(ind):
@@ -177,19 +202,3 @@ def prodsum_self(x, k):
 def prodsum_K1(x, y):
     """Compute `prodsum(x, y, 1)` efficiently."""
     return -shift(x, -2) * shift(y, -1) + shift(x, -1) * shift(y, +1)
-
-
-def dxdt(z):
-    x, y = decompose(z)
-
-    return (
-        + prodsum_self(x, K)       # "convection" of x
-        + prodsum_K1(y, y) * b**2  # "convection" of y
-        + prodsum_K1(y, x) * c     # coupling
-        + -x - y*b                 # damping
-        + Force
-    )
-
-
-def step(x0, t, dt):
-    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)
