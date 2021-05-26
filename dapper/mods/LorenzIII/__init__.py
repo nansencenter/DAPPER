@@ -149,14 +149,18 @@ def boxcar(x, n, method="direct"):
 
 
 def shift(x, k):
-    """Rolls `x` leftwards. I.e. `output[i] = input[i+k]`."""
-    # return x[..., np.mod(ii + k, M)]  # this is slower
+    """Rolls `x` leftwards. I.e. `output[i] = input[i+k]`.
+
+    Notes about speed that usually hold when testing with ensemble DA:
+    - This implementation is somewhat faster than `x[..., np.mod(ii + k, M)]`.
+    - Computational savings of re-using already shifted vectors (or matrices)
+      compared to just calling this function again are negligible.
+    """
     return np.roll(x, -k, axis=-1)
 
 
 def prodsum_self(x, k):
     """Compute `prodsum(x, x, k)` efficiently: eqn 10 of `bib.lorenz2005designing`."""
-    # TODO re-use shifted
     W = boxcar(x, k)
     WW = shift(W, -2*k) * shift(W, -k)
     WX = shift(W, -k) * shift(x, k)
