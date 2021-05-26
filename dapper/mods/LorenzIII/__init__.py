@@ -14,12 +14,17 @@ by Hansen (collegue of Lorenz) in 2004 (i.e. before publication).
 
 Special cases of this model are:
 
-- Set J=1 to get "Model II".
-- Set K=1 (and J=1) to get "Model I",
+- Set `J=1` to get "Model II".
+- Set `K=1` (and `J=1`) to get "Model I",
   which is the same as the Lorenz-96 model.
 
 Note: An implementation using explicit for-loops can be found at 6193532b .
 It uses numba (pip install required) for speed gain, but is still very slow.
+
+With default/classic parameter settings, rk4 was stable for `dt<=0.004`
+(in free run; ensemble members in DA typically require lower `dt`).
+This makes sense considering that Lorenz96 seems stable around `dt<=0.05`,
+and that relative time scale of the small scale is `b=10`.
 """
 import numpy as np
 from scipy.ndimage import convolve1d
@@ -37,7 +42,8 @@ Force = 15  # forcing
 
 Tplot = 10
 
-x0 = Force/2*np.ones(M)
+# Heuristic
+x0 = 2.8*np.ones(M)
 x0[0] += 0.1*Force
 
 
@@ -187,25 +193,3 @@ def dxdt(z):
 
 def step(x0, t, dt):
     return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)
-
-
-if __name__ == "__main__":
-
-    from matplotlib import pyplot as plt
-    from numpy import eye
-
-    import dapper.mods as modelling
-    # from dapper.mods.LorenzIII import step, x0
-    from dapper.tools.viz import amplitude_animation
-
-    simulator = modelling.with_recursion(step, prog="Simulating")
-
-    N = 50
-    M = len(x0)
-    E0 = x0 + 1e-2*eye(M)[:N]
-
-    dt = 0.004
-    xx = simulator(E0, k=200, t=0, dt=dt)
-
-    ani = amplitude_animation(xx, dt=dt, interval=10)
-    plt.show()
