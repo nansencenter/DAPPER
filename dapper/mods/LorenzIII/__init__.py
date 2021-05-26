@@ -18,16 +18,13 @@ Special cases of this model are:
 - Set K=1 (and J=1) to get "Model I",
   which is the same as the Lorenz-96 model.
 
+Note: An implementation using explicit for-loops can be found at 6193532b .
+It uses numba (pip install required) for speed gain, but is still very slow.
 """
 import numpy as np
 from scipy.ndimage import convolve1d
 
 from dapper.mods.integration import rk4
-
-try:
-    from numba import njit
-except ImportError:
-    def njit(f): return f
 
 __pdoc__ = {"demo": False}
 
@@ -48,16 +45,12 @@ alpha = (3*J**2 + 3) / (2*J**3 + 4*J)
 beta  = (2*J**2 + 1) / (J**4 + 2*J**2)
 
 
-@njit
 def summation_kernel(width):
     """Prepare computation of the modified sum in `bib.lorenz2005designing`.
 
-    Notes:
-    - This gets repeatedly called, but actually the input is only ever
-      `width = K` or `2*J`, so we should really cache or pre-compute.
-      But with default system parameters and N=50, the savings are negligible.
-    - The `njit` decorator is there not for speed, but simply because other,
-      dependant functions are `jit`ed, and so require it here too.
+    Note: This gets repeatedly called, but actually the input is only ever
+    `width = K` or `2*J`, so we should really cache or pre-compute.
+    But with default system parameters and N=50, the savings are negligible.
     """
     r = width // 2  # "radius"
     weights = np.ones(2*r + 1)
@@ -176,45 +169,6 @@ def prodsum_K1(x, y):
     return -shift(x, -2) * shift(y, -1) + shift(x, -1) * shift(y, +1)
 
 
-@njit
-def prodsum(x, y, k):
-    """Compute the sum of products used by Lorenz model III."""
-    _, weights, inds0 = summation_kernel(k)
-
-    def mod(ind):
-        return np.mod(ind, M)
-
-    a = np.zeros_like(x)
-    for m in range(M):
-        for i, wi in zip(inds0, weights):
-            for j, wj in zip(inds0, weights):
-                a[..., m] += (
-                    - x[..., mod(m - 2 * k - i)] * y[..., mod(m - k - j)] * wi * wj
-                    + x[..., mod(m - k - i + j)] * y[..., mod(m + k + j)] * wi * wj
-                )
-    a = a / k**2
-    return a
-
-
-def dxdt_slow(z):
-    """Non-vectorized version.
-
-    Despite using numba's jit compilation (which yields 80x speed-up)
-    this is still 80x times slower than a successfully vectorized version
-    (speed gains reported for default system params).
-    """
-    x, y = decompose(z)
-
-    return (
-        + prodsum(x, x, K)         # "convection" of x
-        + prodsum(y, y, 1) * b**2  # "convection" of y
-        + prodsum(y, x, 1) * c     # coupling
-        + -x - y*b                 # damping
-        + Force
-    )
-
-
-# @profile
 def dxdt(z):
     x, y = decompose(z)
 
@@ -232,10 +186,6 @@ def step(x0, t, dt):
 
 
 if __name__ == "__main__":
-
-    # Test
-    z = np.random.randn(2, M)
-    assert np.allclose(dxdt_slow(z), dxdt(z), rtol=1e-5)
 
     from matplotlib import pyplot as plt
     from numpy import eye
