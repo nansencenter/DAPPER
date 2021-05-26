@@ -12,8 +12,11 @@ from dapper.tools.viz import amplitude_animation
 
 simulator = modelling.with_recursion(step, prog="Simulating")
 
-x0 = x0(40)
-E0 = x0 + 1e-3*eye(len(x0))[:3]
+M = 40
+N = 3
+
+x0 = x0(M)
+E0 = x0 + 1e-3*eye(M)[:N]
 
 dt = 0.05
 xx = simulator(E0, k=500, t=0, dt=dt)
