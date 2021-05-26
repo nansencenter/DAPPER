@@ -19,19 +19,23 @@ from .extras import LPs, d2x_dtdx, dstep_dx
 __pdoc__ = {"demo": False}
 
 Force = 8.0
-
 Tplot = 10
 
 
-def x0(M): return np.eye(M)[0]
+def x0(M):
+    return np.eye(M)[0]
 
 
 def shift(x, n):
     return np.roll(x, -n, axis=-1)
 
 
-def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x
-def dxdt(x): return dxdt_autonomous(x) + Force
+def dxdt_autonomous(x):
+    return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x
+
+
+def dxdt(x):
+    return dxdt_autonomous(x) + Force
 
 
 def step(x0, t, dt):
