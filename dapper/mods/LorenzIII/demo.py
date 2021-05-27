@@ -4,10 +4,10 @@ from matplotlib import pyplot as plt
 from numpy import eye
 
 import dapper.mods as modelling
-from dapper.mods.LorenzIII import ModelConfig
+from dapper.mods.LorenzIII import Model
 from dapper.tools.viz import amplitude_animation
 
-model = ModelConfig()
+model = Model()
 simulator = modelling.with_recursion(model.step, prog="Simulating")
 
 N = 3

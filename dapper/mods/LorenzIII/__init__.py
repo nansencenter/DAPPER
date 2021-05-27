@@ -35,7 +35,7 @@ __pdoc__ = {"demo": False}
 
 
 @dataclass
-class ModelConfig:
+class Model:
     """The model configuration.
 
     Functionality that does not directly depend on the model parameters
