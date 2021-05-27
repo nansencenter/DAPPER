@@ -4,8 +4,8 @@ This is an implementation of "Model III" of `bib.lorenz2005designing`.
 
 Similar to `dapper.mods.LorenzUV` this model is designed
 to contain two different scales. However, in "Model III"
-the two scales are not kept separate, but superimposed.
-Moreover, the large scale variables here have much spatial smoothness.
+the two scales are not kept separate, but superimposed,
+and the large scale variables are (adjustably) spatially smooth.
 
 Interestingly, the model is known as "Lorenz 04" in DART, where it was
 coded by Hansen (colleague of Lorenz) in 2004 (prior to publication).
@@ -16,7 +16,7 @@ Special cases of this model are:
 - Set `K=1` (and `J=1`) to get "Model I",
   which is the same as the Lorenz-96 model.
 
-An implementation using explicit for-loops can be found at 6193532b .
+An implementation using explicit for-loops can be found in commit 6193532b .
 It uses numba (pip install required) for speed gain, but is still very slow.
 
 With default/classic parameter settings, rk4 was stable for `dt<=0.004`
@@ -46,7 +46,7 @@ class Model:
     """
     M    : int   = 960  # state vector length
     J    : int   = 12   # decomposition kernel radius (width/2)
-    K    : int   = 32   # smoothing kernel width (longer => smoother)
+    K    : int   = 32   # smoothing kernel width (increase for +smooth and -waves)
     b    : float = 10   # scaling of small-scale variability
     c    : float = 2.5  # coupling strength
     Force: float = 15   # forcing
@@ -112,12 +112,16 @@ def boxcar(x, n, method="direct"):
     For symmetry, if `n` is pair, the actual number of elements used is `n+1`,
     and the outer elements weighted by 0.5 to compensate for the `+1`.
 
-    This function computes the modified sum of `bib.lorenz2005designing`, used
-    e.g. in eqn. 9.  Although not mentioned in the paper, it is merely a boxcar
-    filter.  This function contains several well-known implementations.  The
-    computational suggestion suggested by Lorenz below eqn 10 could maybe be
-    implemented (with vectorisation) using `cumsum`, but this seems tricky due
-    to weighting and periodicity.
+    This is the modified sum of `bib.lorenz2005designing`, used e.g. in eqn. 9.
+    For intuition: this type of summation (and the associated Sigma prime notation)
+    may also be found for the "Trapezoidal rule" and in the inverse DFT used in
+    spectral methods on a periodic domain.
+
+    Apart from this weighting, this constitutes merely a boxcar filter.
+    There are of course several well-known implementations.  The computational
+    suggestion suggested by Lorenz below eqn 10 could maybe be implemented
+    (with vectorisation) using `cumsum`, but this seems tricky due to weighting
+    and periodicity.
 
     [1](https://stackoverflow.com/q/14313510)
     [2](https://stackoverflow.com/q/13728392)
