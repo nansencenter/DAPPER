@@ -15,7 +15,6 @@ unless its temporal auto-corr is taken into account (as AR(1))
 (but spatial auto-corr can be neglected).
 But AR(1) noise is technically difficult because DAPPER
 is built around the Markov assumption.
-
 """
 import numpy as np
 

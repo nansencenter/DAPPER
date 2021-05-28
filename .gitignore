@@ -96,3 +96,5 @@ docs/imgs/NORCE-logo-blue.png
 pyrightconfig.json
 
 .fig_layout.P2721L
+
+.vscode/settings.json
