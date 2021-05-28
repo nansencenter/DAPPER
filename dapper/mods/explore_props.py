@@ -198,10 +198,11 @@ print('mean: ', np.mean(xx))
 
 fig, ax = freshfig(1)
 ax.plot(tt, running_LS, lw=1.2, alpha=0.7)
+ax.axhline(0, c="k")
 ax.set_title('Lyapunov Exponent estimates')
 ax.set_xlabel('Time')
 ax.set_ylabel('Exponent value')
 # Annotate values
-# for L in LS: ax.text(0.7*T,L+0.01, '$\lambda = {:.5g}$'.format(L) ,size=12)
-
+# for L in LS:
+#     ax.text(0.7*T,L+0.01, '$\lambda = {:.5g}$'.format(L) ,size=12)
 plt.show()
