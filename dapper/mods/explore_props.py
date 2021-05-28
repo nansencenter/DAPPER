@@ -92,7 +92,7 @@ if mod == "LUV":
     eps   = 0.001
     N     = 66  # Don't need all Nx for a good approximation of upper spectrum.
 
-# Lyapunov exponents:
+# Lyapunov exponents: [8.36, 7.58, 7.20, 6.91, ..., -4.18, -4.22, -4.19] => n0≈164
 if mod == "L05":
     from dapper.mods.LorenzIII import Model
     model = Model()
@@ -100,8 +100,8 @@ if mod == "L05":
     x0    = model.x0
     dt    = 0.05/12
     Nx    = len(x0)
-    N     = 200
-    T     = 1e1
+    N     = 400
+    T     = 1e2
     eps   = 0.0002
 
 # Lyapunov exponents: [  0.08   0.07   0.06 ... -37.9  -39.09 -41.55]
