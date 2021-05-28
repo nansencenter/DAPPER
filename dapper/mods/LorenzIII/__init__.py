@@ -19,10 +19,8 @@ Special cases of this model are:
 An implementation using explicit for-loops can be found in commit 6193532b .
 It uses numba (pip install required) for speed gain, but is still very slow.
 
-With default/classic parameter settings, rk4 was stable for `dt<=0.004`
-(in free run; ensemble members in DA typically require lower `dt`).
-This makes sense considering that Lorenz96 seems stable around `dt<=0.05`,
-and that relative time scale of the small scale is `b=10`.
+With rk4 the largest stable time step (for free run) seems to be
+somewhere around what Lorenz used, namely `dt=0.05/12`.
 """
 from dataclasses import dataclass
 

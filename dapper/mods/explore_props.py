@@ -98,7 +98,7 @@ if mod == "L05":
     model = Model()
     step  = model.step
     x0    = model.x0
-    dt    = 0.002
+    dt    = 0.05/12
     Nx    = len(x0)
     N     = 200
     T     = 1e1
