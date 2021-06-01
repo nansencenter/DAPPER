@@ -88,7 +88,6 @@ setup(
     # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
     # ==3.8 for:
     #   - dapper/tools/magic.py
-    #   - struct-tools
     #   - the DAPPER/GCP cluster, since dill isn't compat. across versions.
     python_requires='>=3.8',
     install_requires=INSTALL_REQUIRES,
