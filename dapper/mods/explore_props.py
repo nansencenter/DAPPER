@@ -18,7 +18,7 @@ set_seed(3000)
 ########################
 # Model selection
 ########################
-mod = "L63"
+mod = "L05"
 
 # Lyapunov exponents: [ 1.05  0.   -0.01 -1.05]
 if mod == "DP":
@@ -92,6 +92,17 @@ if mod == "LUV":
     eps   = 0.001
     N     = 66  # Don't need all Nx for a good approximation of upper spectrum.
 
+# Lyapunov exponents: [8.36, 7.58, 7.20, 6.91, ..., -4.18, -4.22, -4.19] => n0≈164
+if mod == "L05":
+    from dapper.mods.LorenzIII import Model
+    model = Model()
+    step  = model.step
+    x0    = model.x0
+    dt    = 0.05/12
+    Nx    = len(x0)
+    N     = 400
+    T     = 1e2
+    eps   = 0.0002
 
 # Lyapunov exponents: [  0.08   0.07   0.06 ... -37.9  -39.09 -41.55]
 if mod == "KS":
@@ -112,7 +123,7 @@ if mod == "QG":
 
     # NB: There may arise an ipython/multiprocessing bug/issue.
     # Ref https://stackoverflow.com/a/45720872 . If so, set mp=False,
-    # or run outside of ipython. However, I did not encounter lately.
+    # or run outside of ipython. However, I did not encounter it lately.
     model = model_config("sakov2008", {}, mp=True)
     step  = model.step
     Nx    = np.prod(shape)
@@ -187,10 +198,11 @@ print('mean: ', np.mean(xx))
 
 fig, ax = freshfig(1)
 ax.plot(tt, running_LS, lw=1.2, alpha=0.7)
+ax.axhline(0, c="k")
 ax.set_title('Lyapunov Exponent estimates')
 ax.set_xlabel('Time')
 ax.set_ylabel('Exponent value')
 # Annotate values
-# for L in LS: ax.text(0.7*T,L+0.01, '$\lambda = {:.5g}$'.format(L) ,size=12)
-
+# for L in LS:
+#     ax.text(0.7*T,L+0.01, '$\lambda = {:.5g}$'.format(L) ,size=12)
 plt.show()
