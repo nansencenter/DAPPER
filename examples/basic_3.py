@@ -101,9 +101,9 @@ xp_dict = dpr.xpSpace.from_list(xps)
 # Single out (highlight) particular settings.
 # Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
 #       as well as rot=True (better scores can be obtained without rot).
-point_out = xp_dict.label_xSection
-point_out('NO-infl', ('infl'), da_method='LETKF', infl=1.01, rot=True)
-point_out('NO-infl/loc', ('infl'), da_method='EnKF', infl=1.01, rot=True)
+highlight = xp_dict.label_xSection
+highlight('NO-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
+highlight('NO-infl/loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
 
 # Print, with columns: `inner`. Also try setting `outer=None`.
 tunable = {'loc_rad', 'infl', 'xB', 'rot'}
