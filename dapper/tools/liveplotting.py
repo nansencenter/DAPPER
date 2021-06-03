@@ -171,7 +171,7 @@ class LivePlot:
                     fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.set_window_title("%s" % name)
+                    win.manager.set_window_title("%s" % name)
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     plt.pause(0.01)          # Draw
