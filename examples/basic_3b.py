@@ -5,7 +5,9 @@ import numpy as np
 
 import dapper as dpr
 
-save_as = dpr.rc.dirs.data / "basic_3" / "run_2020-11-11__20:36:36"
+save_as = dpr.rc.dirs.data / "basic_3"
+# save_as /= "run_2020-11-11__20-36-36"
+save_as /= dpr.find_latest(save_as)
 
 # +
 # Load

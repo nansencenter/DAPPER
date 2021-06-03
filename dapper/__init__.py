@@ -110,5 +110,5 @@ from .tools.rounding import round2, round2sigfig
 from .tools.seeding import set_seed
 from .xp_launch import combinator, seed_and_simulate, xpList
 from .xp_process import (default_fig_adjustments, default_styles,
-                         discretize_cmap, load_xps, make_label, rel_index,
-                         xpSpace)
+                         discretize_cmap, find_latest, load_xps, make_label,
+                         rel_index, xpSpace)

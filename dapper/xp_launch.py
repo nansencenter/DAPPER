@@ -29,6 +29,7 @@ from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
 
 _tabulate.MIN_PADDING = 0
+XP_TIMESTAMP_TEMPLATE = "run_%Y-%m-%d__%H-%M-%S"
 
 
 def seed_and_simulate(HMM, xp):
@@ -494,7 +495,7 @@ class xpList(list):
             def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
+            save_as /= datetime.now().strftime(XP_TIMESTAMP_TEMPLATE)
             os.makedirs(save_as)
             print(f"Experiment stored at {save_as}")
 

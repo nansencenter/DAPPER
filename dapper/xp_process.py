@@ -6,6 +6,7 @@ import logging
 import os
 import shutil
 import warnings
+from datetime import datetime
 from pathlib import Path
 
 import colorama
@@ -23,7 +24,7 @@ from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import axis_scale_by_array, freshfig
-from dapper.xp_launch import collapse_str, xpList
+from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
 
 mpl_logger = logging.getLogger('matplotlib')
 
@@ -138,6 +139,19 @@ def in_idx(coord, indices, xp_dict, axis):
         return getattr(coord, axis) in ticks
     else:
         return True
+
+
+def find_latest(root: Path):
+    """Find the latest experiment (dir containing many)"""
+    def parse(d):
+        try:
+            return datetime.strptime(d.name, XP_TIMESTAMP_TEMPLATE)
+        except ValueError:
+            return None
+    dd = [e for e in (parse(d) for d in root.iterdir()) if e is not None]
+    d = max(dd)
+    d = datetime.strftime(d, XP_TIMESTAMP_TEMPLATE)
+    return d
 
 
 def load_HMM(save_as):
