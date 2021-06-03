@@ -14,17 +14,11 @@ DAPPER is a set of templates for benchmarking the performance of
 data assimilation (DA) methods.
 The tests provide experimental support and guidance for
 new developments in DA.
-
 The typical set-up is a **synthetic (twin) experiment**, where you
-
-- specify a
-  - dynamic model`*`
-  - observational model`*`
-- use these to generate a synthetic
-  - "truth"
-  - and observations thereof`*`
-- assess how different DA methods perform in estimating the truth,
-  given the above starred (`*`) items.
+specify a dynamic model`*` and an observational model`*`,
+and use these to generate a synthetic "truth" and observations thereof`*`,
+and then assess how different DA methods perform in estimating the truth,
+given the starred (`*`) items.
 
 [![Docs](https://img.shields.io/badge/Documentation%3F-yes-brightgreen.svg?style=for-the-badge&logo=github)](https://nansencenter.github.io/DAPPER)
 [![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci&logoColor=white)](https://travis-ci.com/nansencenter/DAPPER)
