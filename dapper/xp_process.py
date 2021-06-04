@@ -141,7 +141,7 @@ def in_idx(coord, indices, xp_dict, axis):
         return True
 
 
-def find_latest(root: Path):
+def find_latest_run(root: Path):
     """Find the latest experiment (dir containing many)"""
     def parse(d):
         try:
