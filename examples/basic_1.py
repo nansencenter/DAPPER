@@ -88,3 +88,14 @@ if nb:
 # - Lorenz96
 # - LA
 # - QG
+
+# #### Excercise: Printing other diagnostics.
+# - Create a new code cell, and copy-paste the above `print(...tabulate)`
+#   command into it. Then, replace `rmse` by `err.rms`. This should yield
+#   the same printout, as is merely an abbreviation of the latter.
+# - Next, figure out how to print the time average *forecast (i.e. prior)* error
+#   (and `rmv`) instead. Explain why the values are larger than
+#   for the *analysis* values.
+# - Finally, instead of the `rms` spatial/field averages,
+#   print the regular mean (`.m`) averages. Explain why `err.m` is nearly zero,
+#   in contrast to `err.rms`.
