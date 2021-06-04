@@ -1,11 +1,10 @@
 # ## Illustrate usage of DAPPER to (interactively) run a synthetic ("twin") experiment.
 
-# NB: This notebook has been adapted for Google Colab.
-# In particular, running on Colab first requires installing DAPPER.
-
-# !python -m pip install git+https://github.com/nansencenter/DAPPER.git
-
 # #### Imports
+# <mark><b>NB:</b> If you're on <b>Gooble Colab</b></mark>,
+# then you must initially execute (in a regular code cell) this:
+# `!python -m pip install git+https://github.com/nansencenter/DAPPER.git`,
+# and remove `%matplotlib notebook` from below.
 
 # %matplotlib notebook
 from mpl_tools import is_notebook_or_qt as nb
@@ -45,6 +44,7 @@ xp.stats.average_in_time()
 print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 
 # #### Replay liveplotters
+# (Does not work on Colab).
 
 xp.stats.replay(
     # speed=.6
