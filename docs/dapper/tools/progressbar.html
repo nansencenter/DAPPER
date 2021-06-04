@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L0-L159" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L0-L160" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Make `progbar` (wrapper around `tqdm`) and `read1`.&#34;&#34;&#34;
 
@@ -64,8 +64,9 @@ def _interaction_impossible():
     if &#34;pytest&#34; not in sys.modules:
         warnings.warn((
             &#34;Keyboard interaction (to skip/stop/pause the liveplotting)&#34;
-            &#34; does not work in the current terminal.&#34;
-            &#34; Remember that you may also turn off liveplotting altogether.&#34;),
+            &#34; does not work in the current python frontend.&#34;
+            &#34; If you wish, you can use dpr_config.yaml to disable the &#34;
+            &#34; liveplotting altogether, which will silence this message.&#34;),
             stacklevel=2)
 
 
@@ -219,7 +220,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L28-L52" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L29-L53" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def pdesc(desc):
     &#34;&#34;&#34;Get progbar description by introspection.&#34;&#34;&#34;
@@ -256,7 +257,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L110-L122" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L111-L123" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def progbar(iterable, desc=None, leave=1, **kwargs):
     if not disable_user_interaction:
@@ -281,7 +282,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L81-L82" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L82-L83" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def set_term_settings(TS):
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, TS)</code></pre>
@@ -295,7 +296,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L84-L97" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L85-L98" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def new_term_settings():
     &#34;&#34;&#34;Make stdin.read non-echo and non-block&#34;&#34;&#34;
@@ -321,7 +322,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L55-L70" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L56-L63" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def progbar(iterable, desc=None, leave=1, **kwargs):
     &#34;&#34;&#34;Prints a nice progress bar in the terminal&#34;&#34;&#34;
@@ -330,15 +331,7 @@ def read1():
     else:
         desc = pdesc(desc)
         return tqdm(iterable, desc=desc, leave=leave,
-                    smoothing=0.3, dynamic_ncols=True, **kwargs)
-        # Printing during the progbar loop (may occur with error printing)
-        # can cause tqdm to freeze the entire execution.
-        # Seemingly, this is caused by their multiprocessing-safe stuff.
-        # Disable this, as per github.com/tqdm/tqdm/issues/461#issuecomment-334343230
-        # pb = tqdm.tqdm(...)
-        # try: pb.get_lock().locks = []
-        # except AttributeError: pass
-        # return pb</code></pre>
+                    smoothing=0.3, dynamic_ncols=True, **kwargs)</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.progressbar.kbhit"><code class="name flex">
@@ -349,7 +342,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L124-L127" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L125-L128" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def kbhit():
     a = select.select([sys.stdin], [], [], 0)
@@ -365,7 +358,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L129-L130" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L130-L131" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def getch():
     return os.read(sys.stdin.fileno(), 1)</code></pre>
@@ -379,7 +372,7 @@ def read1():
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L156-L160" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/progressbar.py#L157-L161" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def read1():
     &#34;&#34;&#34;Get 1 character. Non-blocking, non-echoing.&#34;&#34;&#34;

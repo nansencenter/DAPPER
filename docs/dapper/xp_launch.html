@@ -41,7 +41,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L616" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L0-L617" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably `xpList`) for setup and running of experiments (known as `xp`s).
 
@@ -74,6 +74,7 @@ from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
 
 _tabulate.MIN_PADDING = 0
+XP_TIMESTAMP_TEMPLATE = &#34;run_%Y-%m-%d__%H-%M-%S&#34;
 
 
 def seed_and_simulate(HMM, xp):
@@ -539,7 +540,7 @@ class xpList(list):
             def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H-%M-%S&#34;)
+            save_as /= datetime.now().strftime(XP_TIMESTAMP_TEMPLATE)
             os.makedirs(save_as)
             print(f&#34;Experiment stored at {save_as}&#34;)
 
@@ -703,7 +704,7 @@ which would not provide exact reproducibility.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L34-L64" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L35-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def seed_and_simulate(HMM, xp):
     &#34;&#34;&#34;Default experiment setup (sets seed and simulates truth and obs).
@@ -782,7 +783,7 @@ this xp.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L67-L138" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L68-L139" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def run_experiment(xp, label, savedir, HMM,
                    setup=None, free=True, statkeys=False, fail_gently=False,
@@ -866,7 +867,7 @@ this xp.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L170-L175" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L171-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def collapse_str(string, length=6):
     &#34;&#34;&#34;Truncate a string (in the middle) to the given `length`&#34;&#34;&#34;
@@ -893,7 +894,7 @@ then you'll create many more than you intend.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L592-L617" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L593-L618" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def combinator(param_dict, **glob_dict):
     &#34;&#34;&#34;Mass creation of `xp`&#39;s by combining the value lists in the parameter dicts.
@@ -972,7 +973,7 @@ as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L178-L589" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L179-L590" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpList(list):
     &#34;&#34;&#34;Subclass of `list` specialized for experiment (&#34;xp&#34;) objects.
@@ -1293,7 +1294,7 @@ as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper
             def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H-%M-%S&#34;)
+            save_as /= datetime.now().strftime(XP_TIMESTAMP_TEMPLATE)
             os.makedirs(save_as)
             print(f&#34;Experiment stored at {save_as}&#34;)
 
@@ -1399,7 +1400,7 @@ as opposed to this class (<code><a title="dapper.xp_launch.xpList" href="#dapper
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L258-L261" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L259-L262" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def da_methods(self):
@@ -1418,7 +1419,7 @@ def da_methods(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L230-L233" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L231-L234" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def append(self, xp):
     &#34;&#34;&#34;Append **if** not `self.unique` &amp; present.&#34;&#34;&#34;
@@ -1436,7 +1437,7 @@ unless the missingval (e.g. <code>None</code>) matches the required value.</p></
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L245-L256" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L246-L257" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inds(self, strict=True, missingval=&#34;NONSENSE&#34;, **kws):
     &#34;&#34;&#34;Find (all) indices of `xps` whose attributes match kws.
@@ -1469,7 +1470,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L263-L374" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L264-L375" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def split_attrs(self, nomerge=()):
     &#34;&#34;&#34;Classify each/every attribute of the `xp`s into: distinct, redundant, common.
@@ -1598,7 +1599,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L384-L422" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L385-L423" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def gen_names(self, abbrev=6, tab=False):
     &#34;&#34;&#34;Similiar to `self.__repr__()`, but:
@@ -1650,7 +1651,7 @@ need be included.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L424-L432" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L425-L433" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tabulate_avrgs(self, *args, **kwargs):
     &#34;&#34;&#34;Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
@@ -1697,7 +1698,7 @@ of that <code>xp</code>).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L434-L589" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_launch.py#L435-L590" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def launch(self, HMM, save_as=&#34;noname&#34;, mp=False,
            setup=seed_and_simulate, fail_gently=None, **kwargs):
@@ -1762,7 +1763,7 @@ of that <code>xp</code>).</p>
         def xpi_dir(*args): return None
     else:
         save_as = rc.dirs.data / Path(save_as).stem
-        save_as /= &#34;run_&#34; + datetime.now().strftime(&#34;%Y-%m-%d__%H-%M-%S&#34;)
+        save_as /= datetime.now().strftime(XP_TIMESTAMP_TEMPLATE)
         os.makedirs(save_as)
         print(f&#34;Experiment stored at {save_as}&#34;)
 

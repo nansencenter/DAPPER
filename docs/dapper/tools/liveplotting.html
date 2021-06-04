@@ -241,7 +241,7 @@ class LivePlot:
                     fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.set_window_title(&#34;%s&#34; % name)
+                    win.manager.set_window_title(&#34;%s&#34; % name)
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     plt.pause(0.01)          # Draw
@@ -2431,7 +2431,7 @@ plt.draw() to work on a moderately fast computer.</li>
                     fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.set_window_title(&#34;%s&#34; % name)
+                    win.manager.set_window_title(&#34;%s&#34; % name)
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     plt.pause(0.01)          # Draw

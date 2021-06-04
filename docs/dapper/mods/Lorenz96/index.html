@@ -47,7 +47,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L0-L37" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L0-L41" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;A 1D emulator of chaotic atmospheric behaviour.
 
@@ -70,19 +70,23 @@ from .extras import LPs, d2x_dtdx, dstep_dx
 __pdoc__ = {&#34;demo&#34;: False}
 
 Force = 8.0
-
 Tplot = 10
 
 
-def x0(M): return np.eye(M)[0]
+def x0(M):
+    return np.eye(M)[0]
 
 
 def shift(x, n):
     return np.roll(x, -n, axis=-1)
 
 
-def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x
-def dxdt(x): return dxdt_autonomous(x) + Force
+def dxdt_autonomous(x):
+    return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x
+
+
+def dxdt(x):
+    return dxdt_autonomous(x) + Force
 
 
 def step(x0, t, dt):
@@ -191,9 +195,10 @@ def step(x0, t, dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L26-L26" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L25-L26" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def x0(M): return np.eye(M)[0]</code></pre>
+<pre><code class="python">def x0(M):
+    return np.eye(M)[0]</code></pre>
 </details>
 </dd>
 <dt id="dapper.mods.Lorenz96.shift"><code class="name flex">
@@ -218,9 +223,10 @@ def step(x0, t, dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L33-L33" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L33-L34" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def dxdt_autonomous(x): return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x</code></pre>
+<pre><code class="python">def dxdt_autonomous(x):
+    return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x</code></pre>
 </details>
 </dd>
 <dt id="dapper.mods.Lorenz96.dxdt"><code class="name flex">
@@ -231,9 +237,10 @@ def step(x0, t, dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L34-L34" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L37-L38" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def dxdt(x): return dxdt_autonomous(x) + Force</code></pre>
+<pre><code class="python">def dxdt(x):
+    return dxdt_autonomous(x) + Force</code></pre>
 </details>
 </dd>
 <dt id="dapper.mods.Lorenz96.step"><code class="name flex">
@@ -244,7 +251,7 @@ def step(x0, t, dt):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L37-L38" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Lorenz96/__init__.py#L41-L42" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def step(x0, t, dt):
     return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)</code></pre>
