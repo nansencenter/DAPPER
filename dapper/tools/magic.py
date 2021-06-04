@@ -86,6 +86,9 @@ def get_call():
     return call_text, info.get("argnames", None), f2.f_locals
 
 
+# TODO 4: fails on python 3.7 and older.
+# I believe there is a version in the git history that works with py <= 3.7.
+# But maybe we should not use magic any more?
 def magic_naming(*args, **kwargs):
     """Convert args (by their names in the call) to kwargs.
 

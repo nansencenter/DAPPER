@@ -60,7 +60,7 @@ Also see its [drawbacks](#similar-projects).
 
 Works on Linux/Windows/Mac.
 
-### Prerequisite: Python>=3.8
+### Prerequisite: Python>=3.7
 
 If you're an expert, setup a python environment however you like.
 Otherwise:
@@ -68,11 +68,13 @@ Install [Anaconda](https://www.anaconda.com/download), then
 open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
 and run the following commands:
 
-    conda create --yes --name my-env python=3.8
-    conda activate my-env
-    python -c 'import sys; print("Version:", sys.version.split()[0])'
+```sh
+conda create --yes --name dapper-env python=3.8
+conda activate dapper-env
+python -c 'import sys; print("Version:", sys.version.split()[0])'
+```
 
-Ensure the output at the end gives a version bigger than 3.8.  
+Ensure the output at the end gives a version bigger than 3.7.  
 *Keep using the same terminal for the commands below.*
 
 ### Install
@@ -106,7 +108,7 @@ For example, if you are in the DAPPER dir,
     python examples/basic_1.py
 
 **PS**: If you closed the terminal (or shut down your computer),
-you'll first need to run `conda activate my-env`
+you'll first need to run `conda activate dapper-env`
 
 ## Quickstart
 
