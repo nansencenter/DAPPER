@@ -23,7 +23,9 @@ INSTALL_REQUIRES = [
     'jedi<0.18',  # ipython/issues/12740
     'jupyter',
     'jupytext',
-    'matplotlib~=3.4.1',  # >=3.1 to avoid Mac's framework-build issues
+    'matplotlib~=3.2.2',
+    #    >=3.1 to avoid Mac's framework-build issues.
+    #    But 3.4 does not work on Colab.
     'mpl-tools==0.2.36',
     'tqdm~=4.31',
     'pyyaml',
@@ -31,7 +33,7 @@ INSTALL_REQUIRES = [
     'colorama~=0.4.1',
     'tabulate~=0.8.3',
     'dill==0.3.2',  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
-    'patlib==0.3.3',
+    'patlib==0.3.5',
     'struct-tools==0.2.5',
     'multiprocessing-on-dill==3.5.0a4',
     'threadpoolctl==1.0.0',
