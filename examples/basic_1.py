@@ -1,5 +1,9 @@
 # ## Illustrate usage of DAPPER to (interactively) run a synthetic ("twin") experiment.
 
+# First we need to install DAPPER. This is only necessary on Google Colab.
+
+# !python -m pip install git+https://github.com/nansencenter/DAPPER.git
+
 # #### Imports
 
 # %matplotlib notebook
