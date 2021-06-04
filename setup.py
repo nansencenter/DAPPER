@@ -24,7 +24,7 @@ INSTALL_REQUIRES = [
     'jupyter',
     'jupytext',
     'matplotlib~=3.4.1',  # >=3.1 to avoid Mac's framework-build issues
-    'mpl-tools==0.2.29',
+    'mpl-tools==0.2.36',
     'tqdm~=4.31',
     'pyyaml',
     'ipdb',
