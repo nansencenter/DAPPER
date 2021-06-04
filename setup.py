@@ -22,6 +22,7 @@ INSTALL_REQUIRES = [
     'ipython>=5.1',
     'jedi<0.18',  # ipython/issues/12740
     'jupyter',
+    'jupytext',
     'matplotlib~=3.4.1',  # >=3.1 to avoid Mac's framework-build issues
     'mpl-tools==0.2.29',
     'tqdm~=4.31',
@@ -38,7 +39,7 @@ INSTALL_REQUIRES = [
 
 EXTRAS = {
     'Qt': ['PyQt5', 'qtpy'],
-    'dev': ['line_profiler', 'pre-commit', 'jupytext'],
+    'dev': ['line_profiler', 'pre-commit'],
     'test': ['tox', 'coverage', 'pytest',
              'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
