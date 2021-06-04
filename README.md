@@ -29,6 +29,10 @@ given the starred (`*`) items.
 <!-- Inspiration: https://github.com/Naereen/badges
 It seems hits.dwyl.com is overloaded at the moment -->
 
+You can try out DAPPER without installation here
+(requires Google login):
+
+[![Open In Colab](https://img.shields.io/badge/Open-in%20Colab-blue?style=for-the-badge&logo=Google-Colab&logoColor=#F9AB00)](http://colab.research.google.com/github/nansencenter/DAPPER)
 
 ## Highlights
 
