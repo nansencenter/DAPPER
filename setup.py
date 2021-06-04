@@ -22,7 +22,6 @@ INSTALL_REQUIRES = [
     'ipython>=5.1',
     'jedi<0.18',  # ipython/issues/12740
     'jupyter',
-    'jupytext',
     'matplotlib~=3.2.2',
     #    >=3.1 to avoid Mac's framework-build issues.
     #    But 3.4 does not work on Colab.
@@ -47,7 +46,7 @@ EXTRAS = {
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
     'lint': ['flake8', 'flakehell'],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
-    'build': ['twine', 'pdoc3'],
+    'build': ['twine', 'pdoc3', 'jupytext'],
 }
 EXTRAS['dev'] += EXTRAS['test'] + EXTRAS['lint'] + EXTRAS['build']
 

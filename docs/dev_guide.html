@@ -44,6 +44,15 @@ To run the main tests, do this:</p>
 </code></pre>
 <p>You can also append <code>test_plotting.py</code> for example,
 which is otherwise ignored for being slow.</p>
+<h2 id="adding-to-the-examples">Adding to the examples</h2>
+<p>Example scripts are very useful, and contributions are very desirable.
+As well
+as showcasing some feature, new examples should make sure to reproduce some
+published literature results.
+After making the example, consider converting
+the script to the Jupyter notebook format, or vice versa. This should be done
+using the <code>jupytext</code> plug-in (with the lightscript format), so that the paired
+files can be kept in synch.</p>
 <h2 id="documentation">Documentation</h2>
 <h3 id="update-bib">Update bib</h3>
 <p>Copy new bibtex items into <code>docs/bib/refs.bib</code>,
@@ -136,7 +145,7 @@ password: mypass
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/docs/dev_guide.py#L0-L142" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/docs/dev_guide.py#L0-L150" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;# Developer guide
 
@@ -149,6 +158,14 @@ pytest tests
 
 You can also append `test_plotting.py` for example,
 which is otherwise ignored for being slow.
+
+## Adding to the examples
+Example scripts are very useful, and contributions are very desirable.  As well
+as showcasing some feature, new examples should make sure to reproduce some
+published literature results.  After making the example, consider converting
+the script to the Jupyter notebook format, or vice versa. This should be done
+using the `jupytext` plug-in (with the lightscript format), so that the paired
+files can be kept in synch.
 
 ## Documentation
 
@@ -308,6 +325,7 @@ data-gaCategoryParameter="dev_guide">
 <ul>
 <li><a href="#developer-guide">Developer guide</a><ul>
 <li><a href="#run-tests">Run tests</a></li>
+<li><a href="#adding-to-the-examples">Adding to the examples</a></li>
 <li><a href="#documentation">Documentation</a><ul>
 <li><a href="#update-bib">Update bib</a></li>
 <li><a href="#run-pdoc">Run pdoc</a></li>

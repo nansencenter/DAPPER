@@ -10,6 +10,14 @@ pytest tests
 You can also append `test_plotting.py` for example,
 which is otherwise ignored for being slow.
 
+## Adding to the examples
+Example scripts are very useful, and contributions are very desirable.  As well
+as showcasing some feature, new examples should make sure to reproduce some
+published literature results.  After making the example, consider converting
+the script to the Jupyter notebook format, or vice versa. This should be done
+using the `jupytext` plug-in (with the lightscript format), so that the paired
+files can be kept in synch.
+
 ## Documentation
 
 ### Update bib
