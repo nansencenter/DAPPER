@@ -1,11 +1,8 @@
 """(Data Assimilation with Python: a Package for Experimental Research)
 
-## In the README
+## Installation
 
-Make sure you've browsed these sections in the README:
-
-- [Installation](https://github.com/nansencenter/DAPPER#Installation)
-- [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
+See the [README](https://github.com/nansencenter/DAPPER#Installation)
 
 ## Usage
 **Adapt one of the examples scripts to your needs.**

@@ -26,13 +26,20 @@ given the starred (`*`) items.
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge&logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
-<!-- Inspiration: https://github.com/Naereen/badges
-It seems hits.dwyl.com is overloaded at the moment -->
 
-You can try out DAPPER without installation here
-(requires Google login):
+To get started, read, run, and understand `examples/basic_{1,2,3}.py`.
+Some of the examples can be opened in Jupyter, and you can run them in the cloud
+without installation here:
 
 [![Open In Colab](https://img.shields.io/badge/Open-in%20Colab-blue?style=for-the-badge&logo=Google-Colab&logoColor=#F9AB00)](http://colab.research.google.com/github/nansencenter/DAPPER)
+(requires Google login)
+
+However, some features do not work in Jupyter,
+and for any serious use, you will want to [install DAPPER locally](#Install),
+so that you can get familiar with the code, and adapt it to your needs.
+Lastly, for a python-based introduction to DA theory,
+see these [tutorials](https://github.com/nansencenter/DA-tutorials).
+
 
 ## Highlights
 
@@ -113,17 +120,6 @@ For example, if you are in the DAPPER dir,
 
 **PS**: If you closed the terminal (or shut down your computer),
 you'll first need to run `conda activate dapper-env`
-
-## Quickstart
-
-Read, run, and understand the scripts `examples/basic_{1,2,3}.py`.
-Then, get familiar with the code.
-
-The [documentation](https://nansencenter.github.io/DAPPER)
-provides more information, and the API reference.
-
-Alternatively, [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
-provides a python-based introduction to DA.
 
 
 ## DA methods
