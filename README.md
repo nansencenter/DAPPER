@@ -15,10 +15,10 @@ data assimilation (DA) methods.
 The tests provide experimental support and guidance for
 new developments in DA.
 The typical set-up is a **synthetic (twin) experiment**, where you
-specify a dynamic model`*` and an observational model`*`,
-and use these to generate a synthetic "truth" and observations thereof`*`,
+specify a dynamic model and an observational model,
+and use these to generate a synthetic "truth" and observations thereof,
 and then assess how different DA methods perform in estimating the truth,
-given the starred (`*`) items.
+given the other items.
 
 [![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci&logoColor=white)](https://travis-ci.com/nansencenter/DAPPER)
 [![Coveralls](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
@@ -27,16 +27,16 @@ given the starred (`*`) items.
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
 
 To get started, read, run, and understand `examples/basic_{1,2,3}.py`.
-Some examples can be opened in Jupyter, and/or run in the cloud
-*without installation*: [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER) (requires Google login).
-Some features do not work in Jupyter,
-and for any serious use, you will want to [install DAPPER locally](#Install),
+Some examples can be opened in Jupyter, and/or run in the cloud:
+[![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER)
+(no installation, but requires Google login, and some features do not work).
+For further use, you will want to [install locally](#Install),
 so that you can get familiar with the code, and adapt it to your needs.
-Also see the docs: [![Docs](https://shields.io/badge/-documentation-555555?style=plastic&logo=github)](https://nansencenter.github.io/DAPPER)
-If you use it in a publication, please consider citing DAPPER as in
-"The experiments used (inspiration from) DAPPER [ref], version 1.2.0",
-where [ref] points to: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296).
-Lastly, for a python-based introduction to DA theory,
+Also see the [![Docs](https://shields.io/badge/-documentation-555555?style=plastic&logo=github)](https://nansencenter.github.io/DAPPER).
+If you use it in a publication, please consider citing DAPPER by, e.g.,
+*The experiments used (inspiration from) DAPPER [ref], version 1.2.0*,
+where [ref] points to [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296).
+Lastly, for an introduction to DA theory using python,
 see these [tutorials](https://github.com/nansencenter/DA-tutorials).
 
 
