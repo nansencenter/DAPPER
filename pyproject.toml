@@ -38,7 +38,7 @@ exclude_lines = [
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py3{8,9}
+envlist = py3{7,8,9}
 toxworkdir={homedir}/.tox
 
 [testenv]

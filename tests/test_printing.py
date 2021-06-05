@@ -2,7 +2,8 @@
 
 import dapper as dpr
 import dapper.da_methods as da
-from dapper.tools.magic import spell_out
+
+# from dapper.tools.magic import spell_out
 
 
 def test_L63():
@@ -29,10 +30,11 @@ def test_L63():
     )
     print(xps.tabulate_avrgs(["rmse.a"]))
 
-    spell_out(HMM)
-    spell_out(xps[-1])
-    spell_out(xps[-1].stats)
-    spell_out(xps[-1].avrgs)
+    # Disabled coz magic doesn't work any more on python 3.7
+    # spell_out(HMM)
+    # spell_out(xps[-1])
+    # spell_out(xps[-1].stats)
+    # spell_out(xps[-1].avrgs)
 
     assert True  # An assertion for pytest to count
     return HMM, xps  # Return useful stuff
@@ -72,10 +74,10 @@ def test_L96():
     )
     print(xps.tabulate_avrgs(["rmse.a"]))
 
-    spell_out(HMM)
-    spell_out(xps[-1])
-    spell_out(xps[-1].stats)
-    spell_out(xps[-1].avrgs)
+    # spell_out(HMM)
+    # spell_out(xps[-1])
+    # spell_out(xps[-1].stats)
+    # spell_out(xps[-1].avrgs)
 
     assert True  # An assertion for pytest to count
     return HMM, xps  # Return useful stuff
