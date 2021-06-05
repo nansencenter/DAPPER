@@ -20,7 +20,6 @@ and use these to generate a synthetic "truth" and observations thereof`*`,
 and then assess how different DA methods perform in estimating the truth,
 given the starred (`*`) items.
 
-[![Docs](https://img.shields.io/badge/Documentation%3F-yes-brightgreen.svg?style=for-the-badge&logo=github)](https://nansencenter.github.io/DAPPER)
 [![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci&logoColor=white)](https://travis-ci.com/nansencenter/DAPPER)
 [![Coveralls](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge&logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
@@ -28,15 +27,15 @@ given the starred (`*`) items.
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
 
 To get started, read, run, and understand `examples/basic_{1,2,3}.py`.
-Some of the examples can be opened in Jupyter, and you can run them in the cloud
-without installation here:
-
-[![Open In Colab](https://img.shields.io/badge/Open-in%20Colab-blue?style=for-the-badge&logo=Google-Colab&logoColor=#F9AB00)](http://colab.research.google.com/github/nansencenter/DAPPER)
-(requires Google login)
-
-However, some features do not work in Jupyter,
+Some examples can be opened in Jupyter, and/or run in the cloud
+*without installation*: [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER) (requires Google login).
+Some features do not work in Jupyter,
 and for any serious use, you will want to [install DAPPER locally](#Install),
 so that you can get familiar with the code, and adapt it to your needs.
+Also see the docs: [![Docs](https://shields.io/badge/-documentation-555555?style=plastic&logo=github)](https://nansencenter.github.io/DAPPER)
+If you use it in a publication, please consider citing DAPPER as in
+"The experiments used (inspiration from) DAPPER [ref], version 1.2.0",
+where [ref] points to: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296).
 Lastly, for a python-based introduction to DA theory,
 see these [tutorials](https://github.com/nansencenter/DA-tutorials).
 
@@ -294,21 +293,6 @@ Yumeng Chen,
 Colin Grudzien,
 Maxime Tondeur,
 Remy Dubois
-
-If you use this software in a publication, please cite as follows.
-
-```bibtex
-@misc{raanes2018dapper,
-  author = {Patrick N. Raanes and others},
-  title  = {nansencenter/DAPPER: Version 0.8},
-  month  = December,
-  year   = 2018,
-  doi    = {10.5281/zenodo.2029296},
-  url    = {https://doi.org/10.5281/zenodo.2029296}
-}
-```
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296)
 
 DAPPER is developed and maintained at
 NORCE (Norwegian Research Institute)
