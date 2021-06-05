@@ -16,6 +16,7 @@ env:
 python:
 - 3.9
 - 3.8
+- 3.7
 jobs:
   fast_finish: true
   include:
