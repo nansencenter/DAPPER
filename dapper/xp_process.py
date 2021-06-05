@@ -1016,14 +1016,14 @@ class xpSpace(SparseSpace):
             # Beautify
             panel0 = table.panels[0]
             panel0.set_title(title)
-            if panel0.get_subplotspec().is_first_col():
+            if panel0.is_first_col():
                 panel0.set_ylabel(statkey)
             with set_tmp(mpl_logger, 'level', 99):  # silence "no label" msg
                 panel0.legend()
             table.panels[-1].set_xlabel(axes["inner"][0])
             # Tuning panels:
             for a, panel in zip(axes["optim"] or (), table.panels[1:]):
-                if panel.get_subplotspec().is_first_col():
+                if panel.is_first_col():
                     panel.set_ylabel(f"Optim.\n{a}")
 
         tables.fig = fig
