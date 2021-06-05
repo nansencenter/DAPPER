@@ -10,8 +10,8 @@
 
 <img src="/docs/imgs/logo_wtxt.png" align="left" width="250"/>
 
-DAPPER is a set of templates for benchmarking the performance of
-data assimilation (DA) methods.
+DAPPER is a set of templates for **benchmarking** the performance of
+**data assimilation** (DA) methods.
 The tests provide experimental support and guidance for
 new developments in DA.
 The typical set-up is a **synthetic (twin) experiment**, where you
@@ -26,7 +26,7 @@ given the other items.
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
 
-To get started, read, run, and understand `examples/basic_{1,2,3}.py`.
+To get started, read and run `examples/basic_{1,2,3}.py`.
 Some examples can be opened in Jupyter, and/or run in the cloud:
 [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER)
 (no installation, but requires Google login, and some features do not work).
