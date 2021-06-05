@@ -17,7 +17,7 @@ new developments in DA.
 The typical set-up is a **synthetic (twin) experiment**, where you
 specify a dynamic model and an observational model,
 and use these to generate a synthetic truth (multivariate time series),
-and then estimate that truth conditional on the models and noisy observations.
+and then estimate that truth given the models and noisy observations.
 
 [![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci&logoColor=white)](https://travis-ci.com/nansencenter/DAPPER)
 [![Coveralls](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
