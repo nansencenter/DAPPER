@@ -2,10 +2,9 @@
 
 # #### Imports
 # <b>NB:</b> If you're on <mark><b>Gooble Colab</b></mark>,
-# then you must first execute (in a code cell) this:
-# `!python -m pip install git+https://github.com/nansencenter/DAPPER.git`,
-# and remove `%matplotlib notebook` from below. Also note that liveplotting
-# does not work on Colab.
+# then replace `%matplotlib notebook` below by
+# `!python -m pip install git+https://github.com/nansencenter/DAPPER.git` .
+# Also note that liveplotting does not work on Colab.
 
 # %matplotlib notebook
 from mpl_tools import is_notebook_or_qt as nb
