@@ -25,15 +25,14 @@ and then estimate that truth given the models and noisy observations.
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
 
-To get started, read and run `examples/basic_{1,2,3}.py`.
-Some examples can also be opened in Jupyter, and/or run in the cloud:
-[![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER)
-(no installation, but requires Google login, and some features do not work).
-For further use, you will want to [install locally](#Install),
-so that you can get familiar with the code, and adapt it to your needs.
-Also see the [![Docs](https://shields.io/badge/-documentation-555555?style=plastic&logo=github)](https://nansencenter.github.io/DAPPER).
-If you use it in a publication, please consider citing DAPPER by, e.g.,
-*The experiments used (inspiration from) DAPPER [ref], version 1.2.0*,
+Following [installation](#Install),
+read, run and try to understand `examples/basic_{1,2,3}.py`.
+Some of the examples can also be opened in Jupyter, and thereby run in the cloud
+(i.e. *without installation*, but requiring Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER)
+The API and some general guidelines are included in the [documentation](https://nansencenter.github.io/DAPPER),
+but for any serious use you will want to read and adapt the code yourself.
+If you use it in a publication, please cite, e.g.,
+*The experiments used (inspiration from) DAPPER [ref], version 1.2.1*,
 where [ref] points to [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296).
 Lastly, for an introduction to DA theory using python,
 see these [tutorials](https://github.com/nansencenter/DA-tutorials).
