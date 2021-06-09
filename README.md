@@ -189,18 +189,16 @@ are usually named `authorYEAR.py` and define a `HMM` object,
 which holds the settings of a specific twin experiment,
 using that model,
 as detailed in the corresponding author/year's paper.
-At the bottom of each such file should be (in comments)
-a list of suitable, tuned settings for various DA methods,
-along with their expected, average rmse.a score for that experiment.
-The complete list of included experiment files can be obtained with
-gnu's `find`:
+A list of these files can be obtained using
 
 ```sh
-cd dapper/mods
-find . -iname '[a-z]*[0-9]*.py'
+find dapper/mods -iname '[a-z]*[0-9]*.py'
 ```
 
-Some of these files contain settings that have been used in several papers.
+Some files contain settings used by several papers.
+Moreover, at the bottom of each such file should be (in comments)
+a list of suitable, tuned settings for various DA methods,
+along with their expected, average `rmse.a` score for that experiment.
 As mentioned [above](#DA-methods), DAPPER reproduces literature results.
 You will also find results that were not reproduced by DAPPER.
 
