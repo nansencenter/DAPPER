@@ -225,50 +225,56 @@ Indeed, you may freely fork and modify the code of DAPPER,
 which should be seen as a set of templates, and not a framework.
 
 Also, DAPPER comes with no guarantees/support.
-Therefore, if you have an *operational* (real-world) application,
-such as WRF,
-you should look into one of the alternatives,
+Therefore, if you have an *operational* or real-world application,
+such as WRF, you should look into one of the alternatives,
 sorted by approximate project size.
 
 Name               | Developers            | Purpose (approximately)
 ------------------ | --------------------- | -----------------------------
-[DART][1]          | NCAR                  | Operational, general
-[PDAF][7]          | AWI                   | Operational, general
-[JEDI][21]         | JCSDA (NOAA, NASA, ++)| Operational, general (in develpmt?)
-[ERT][2]           | Statoil               | Operational, history matching (Petroleum)
-[OpenDA][3]        | TU Delft              | Operational, general
+[DART][1]          | NCAR                  | General
+[PDAF][7]          | AWI                   | General
+[JEDI][21]         | JCSDA (NOAA, NASA, ++)| General
+[OpenDA][3]        | TU Delft              | General
+[EMPIRE][4]        | Reading (Met)         | General
+[ERT][2]           | Statoil               | History matching (Petroleum DA)
+[PIPT][14]         | CIPR                  | History matching (Petroleum DA)
+[MIKE][9]          | DHI                   | Oceanographic
+[OAK][10]          | Liège                 | Oceanographic
+[Siroco][11]       | OMP                   | Oceanographic
 [Verdandi][6]      | INRIA                 | Biophysical DA
 [PyOSSE][8]        | Edinburgh, Reading    | Earth-observation DA
-[SANGOMA][5]       | Conglomerate*         | Unify DA research
-[EMPIRE][4]        | Reading (Met)         | Research (high-dim)
-[MIKE][9]          | DHI                   | Oceanographic. Commercial?
-[OAK][10]          | Liège                 | Oceaonagraphic
-[Siroco][11]       | OMP                   | Oceaonagraphic
-[FilterPy][12]     | R. Labbe              | Engineering, general intro to Kalman filter
-[DASoftware][13]   | Yue Li, Stanford      | Matlab, large-scale
-[Pomp][18]         | U of Michigan         | R, general state-estimation
-[PyIT][14]         | CIPR                  | Real-world petroleum DA (?)
-[EnKF-Matlab][15]  | Sakov                 | Matlab, personal publications and intro
-[EnKF-C][17]       | Sakov                 | C, light-weight EnKF, off-line
-[pyda][16]         | Hickman               | Python, personal publications
-[PyDA][19]         | Shady-Ahmed           | Python, Academic, research
-[DasPy][20]        | Xujun Han             | Python, Land applications
-Datum              | Raanes                | Matlab, personal publications
-IEnKS code         | Bocquet               | Python, personal publications
+
+Below is a list of projects with a purpose more similar to DAPPER's
+(research *in* DA, and not so much *using* DA):
+
+Name               | Developers             | Notes
+------------------ | ---------------------- | -----------------------------
+[DAPPER][22]       | Raanes, Chen, Grudzien | Python
+[SANGOMA][5]       | Conglomerate*          | Fortran, Matlab
+[FilterPy][12]     | R. Labbe               | Python. Engineering oriented.
+[DASoftware][13]   | Yue Li, Stanford       | Matlab. Large inverse probs.
+[Pomp][18]         | U of Michigan          | R
+[EnKF-Matlab][15]  | Sakov                  | Matlab
+[EnKF-C][17]       | Sakov                  | C. Light-weight, off-line DA
+[pyda][16]         | Hickman                | Python
+[PyDA][19]         | Shady-Ahmed            | Python
+[DasPy][20]        | Xujun Han              | Python
+Datum              | Raanes                 | Matlab
+IEnKS code         | Bocquet                | Python
 
 The `EnKF-Matlab` and `IEnKS` codes have been inspirational
 in the development of DAPPER.
 
 `*`: AWI/Liege/CNRS/NERSC/Reading/Delft
 
-[1]:  http://www.image.ucar.edu/DAReS/DART/
+[1]:  https://www.image.ucar.edu/DAReS/DART/
 [2]:  https://github.com/equinor/ert
-[3]:  http://www.openda.org/
-[4]:  http://www.met.reading.ac.uk/~darc/empire/index.php
-[5]:  http://www.data-assimilation.net/
+[3]:  https://www.openda.org/
+[4]:  https://www.met.reading.ac.uk/~darc/empire/index.php
+[5]:  https://www.data-assimilation.net/
 [6]:  http://verdandi.sourceforge.net/
-[7]:  http://pdaf.awi.de/trac/wiki
-[8]:  http://www.geos.ed.ac.uk/~lfeng/
+[7]:  https://pdaf.awi.de/trac/wiki
+[8]:  https://www.geos.ed.ac.uk/~lfeng/
 [9]:  http://www.dhigroup.com/
 [10]: https://github.com/gher-ulg/OAK
 [11]: https://www5.obs-mip.fr/sirocco/assimilation-tools/sequoia-data-assimilation-platform/
@@ -282,6 +288,7 @@ in the development of DAPPER.
 [19]: https://github.com/Shady-Ahmed/PyDA
 [20]: https://github.com/daspy/daspy
 [21]: https://www.jcsda.noaa.gov/index.php
+[22]: https://github.com/nansencenter/DAPPER
 
 
 ## Contributors
