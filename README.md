@@ -153,11 +153,10 @@ The particle filter is tuned with "effective-N monitoring",
 "regularization/jittering" strength, and more.
 
 For a list of ready-made experiments with suitable,
-tuned settings for a given method (e.g. the `iEnKS`), use gnu's grep:
+tuned settings for a given method (e.g. the `iEnKS`), use:
 
 ```sh
-cd dapper/mods
-grep -r "iEnKS.*("
+grep -r "xp.*iEnKS" dapper/mods
 ```
 
 
