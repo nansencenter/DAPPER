@@ -29,7 +29,10 @@ To get started, [install](#Install),
 then read, run and try to understand `examples/basic_{1,2,3}.py`.
 Some of the examples can also be opened in Jupyter, and thereby run in the cloud
 (i.e. *without installation*, but requiring Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
-The API is included, along with general guidelines, in the [documentation](https://nansencenter.github.io/DAPPER),
+This [screencast](https://www.youtube.com/watch?v=YtalK0Zkzvg&t=6475s)
+provides an introduction.
+The [documentation](https://nansencenter.github.io/DAPPER)
+includes general guidelines and the API,
 but for any serious use you will want to read and adapt the code yourself.
 If you use it in a publication, please cite, e.g.,
 *The experiments used (inspiration from) DAPPER [ref], version 1.2.1*,
