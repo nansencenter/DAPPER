@@ -12,9 +12,14 @@ from .utils import NamedFunc
 
 
 # fmt: off
-def rk4(f, x, t, dt, order=4):
-    """Runge-Kutta (explicit, non-adaptive) numerical ODE solvers.
+def rk4(f, x, t, dt, stages=4, s=0.0):
+    """Runge-Kutta (explicit, non-adaptive) numerical (S)ODE solvers.
 
+    The rule has strong / weak convergence order 1.0 for generic SDEs and order 4.0 
+    convergence for ODEs when stages=4.  For stages=1, this becomes the Euler-Maruyama scheme
+    for SDEs (s > 0.0) with strong / weak convergence order 1.0 for SDEs with additive noise
+    as defined in the below. See `bib.grudzien2020numerical`.
+    
     Parameters
     ----------
     f : function
@@ -29,38 +34,68 @@ def rk4(f, x, t, dt, order=4):
     dt : float
         Integration time step.
 
-    order : int, optional
-        The order of RK method. Default: 4
+    stages : int, optional
+        The number of stages of the RK method. Default: 4.  When stages=1, this becomes
+        Euler / Euler-Maruyama.
+
+    s : float
+        The diffusion coeffient for models with additive noise. Default: 0 for
+        deterministic integration.
 
     Returns
     -------
     ndarray
         State vector at the new time, `t+dt`
     """
-    if order >=1: k1 = dt * f(t     , x)                        # noqa
-    if order >=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
-    if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
-    if order ==4:                                               # noqa
-                  k3 = dt * f(t+dt/2, x+k2/2)                   # noqa
-                  k4 = dt * f(t+dt  , x+k3)                     # noqa
-    if    order ==1: return x + k1                              # noqa
-    elif  order ==2: return x + k2                              # noqa
-    elif  order ==3: return x + (k1 + 4*k2 + k3)/6              # noqa
-    elif  order ==4: return x + (k1 + 2*(k2 + k3) + k4)/6       # noqa
-    else: raise NotImplementedError                             # noqa
+    
+    if s > 0.0:
+        # non-trivial diffusion, this defines the SDE integration with additive noise
+        # generate perturbation for brownian motion
+        state_dim = len(x)
+        xi = np.random.multivariate_normal(np.zeros(state_dim), np.eye(state_dim))
+
+        # rescale the standard normal perturbation to variance h
+        W = xi * np.sqrt(h)
+
+        if stages >=1: k1 = dt * f(t       , x) + s * W             # noqa
+        if stages >=2: k2 = dt * f(t+dt/2.0, x+k1/2.0) + s * W      # noqa
+        if stages ==3: k3 = dt * f(t+dt    , x+k2*2.0-k1) + s * W   # noqa
+        if stages ==4:                                              # noqa
+                      k3 = dt * f(t+dt/2.0, x+k2/2.0) + s * W       # noqa
+                      k4 = dt * f(t+dt    , x+k3) + s * W           # noqa
+        if    stages ==1: return x + k1                             # noqa
+        elif  stages ==2: return x + k2                             # noqa
+        elif  stages ==3: return x + (k1 + 4.0*k2 + k3)/6.0         # noqa
+        elif  stages ==4: return x + (k1 + 2.0*(k2 + k3) + k4)/6.0  # noqa
+        else: raise NotImplementedError                             # noqa
+
+    else:
+        # deterministic integration
+
+        if stages >=1: k1 = dt * f(t       , x)                     # noqa
+        if stages >=2: k2 = dt * f(t+dt/2.0, x+k1/2.0)              # noqa
+        if stages ==3: k3 = dt * f(t+dt    , x+k2*2.0-k1)           # noqa
+        if stages ==4:                                              # noqa
+                      k3 = dt * f(t+dt/2.0, x+k2/2.0)               # noqa
+                      k4 = dt * f(t+dt    , x+k3)                   # noqa
+        if    stages ==1: return x + k1                             # noqa
+        elif  stages ==2: return x + k2                             # noqa
+        elif  stages ==3: return x + (k1 + 4.0*k2 + k3)/6.0         # noqa
+        elif  stages ==4: return x + (k1 + 2.0*(k2 + k3) + k4)/6.0  # noqa
+        else: raise NotImplementedError                             # noqa
 # fmt: on
 
 
-def with_rk4(dxdt, autonom=False, order=4):
+def with_rk4(dxdt, autonom=False, stages=4, s=0.0):
     """Wrap `dxdt` in `rk4`."""
-    integrator = functools.partial(rk4, order=order)
+    integrator = functools.partial(rk4, stages=stages, s=s)
     if autonom:
         def step(x0, t0, dt):
             return integrator(lambda t, x: dxdt(x), x0, np.nan, dt)
     else:
         def step(x0, t0, dt):
             return integrator(dxdt, x0, t0, dt)
-    name = "rk"+str(order)+" integration of "+pretty_repr(dxdt)
+    name = "rk"+str(stages)+" integration of "+pretty_repr(dxdt)
     step = NamedFunc(step, name)
     return step
 
