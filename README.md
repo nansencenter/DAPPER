@@ -25,7 +25,7 @@ and then estimate that truth given the models and noisy observations.
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
 
-To get started, [install](#Install),
+To get started, [install](#Installation),
 then read, run and try to understand `examples/basic_{1,2,3}.py`.
 Some of the examples can also be opened in Jupyter, and thereby run in the cloud
 (i.e. *without installation*, but requiring Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
