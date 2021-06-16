@@ -1,8 +1,38 @@
 """# Developer guide
 
+## Install for development
+
+Make sure you included the dev tools as part of the installation
+(detailed in the README):
+
+```sh
+pip install -e .[dev]
+```
+
+## Pre-commit and linting
+
+Pull requests (PR) to DAPPER are checked with continuous integration (CI),
+which runs the tests, and also linting, plus some `pre-commit` hooks.
+To avoid having to wait for the CI server to run all of this,
+you'll want to run them on your own computer:
+
+```sh
+pre-commit install
+pre-commit run --all-files
+```
+
+Now every time you commit, these tests will run on the staged files.
+For detailed linting messages, run
+
+```sh
+flakehell lint
+```
+
 ## Run tests
+
 By default, only doctests are run when executing `pytest`.
 To run the main tests, do this:
+
 ```sh
 pytest tests
 ```
@@ -10,7 +40,12 @@ pytest tests
 You can also append `test_plotting.py` for example,
 which is otherwise ignored for being slow.
 
+If the test with the `QG` model in `test_HMM.py` fails
+(simply because you have not compiled it) that is fine
+(that test does not run in CI either).
+
 ## Adding to the examples
+
 Example scripts are very useful, and contributions are very desirable.  As well
 as showcasing some feature, new examples should make sure to reproduce some
 published literature results.  After making the example, consider converting
@@ -21,13 +56,16 @@ files can be kept in synch.
 ## Documentation
 
 ### Update bib
+
 Copy new bibtex items into `docs/bib/refs.bib`,
-then convert to bib.py using
+then convert to `bib.py` using
+
 ```sh
 docs/bib/make_bib.py
 ```
 
 ### Run pdoc
+
 ```sh
 pdoc --force --html --template-dir docs/templates -o ./docs \
 docs/bib/bib.py docs/dev_guide.py dapper
@@ -35,6 +73,7 @@ open docs/index.html # preview
 ```
 
 ### Hosting
+
 Push updated docs to github.
 In the main github settings of the repo,
 go to the "GitHub Pages" section,
@@ -123,7 +162,8 @@ Upload to `Test.PyPI`
 git checkout dev1
 ```
 
-#### Test installation
+### Test installation
+
 
 Install from `Test.PyPI`
 
@@ -137,11 +177,11 @@ Install from `PyPI`
 pip install DA-DAPPER
 ```
 
-  - Install into specific dir (includes all of the dependencies)  
-    `pip install DA-DAPPER -t MyDir`
+- Install into specific dir (includes all of the dependencies)  
+  `pip install DA-DAPPER -t MyDir`
 
-  - Install with options  
-    `pip install DA-DAPPER[Qt,MP]`
+- Install with options  
+  `pip install DA-DAPPER[Qt,MP]`
 
 Install from local (makes installation accessible from everywhere)
 
@@ -149,3 +189,4 @@ Install from local (makes installation accessible from everywhere)
 pip install -e .
 ```
 """
+# vim: ft=markdown
