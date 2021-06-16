@@ -67,7 +67,7 @@ format = "grouped" # also try "stat"
 show_source = false
 #whitelist = "../../allowlist.txt" # Used by flake8-spellcheck.
 
-# Tmp fix for flakehell crashing on python3.9
+# Tmp fix for flakehell crashing with flake>=3.9.1
 # https://github.com/flakehell/flakehell/issues/10
 extended_default_ignore=[]
 
