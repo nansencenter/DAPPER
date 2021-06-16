@@ -9,6 +9,22 @@ Make sure you included the dev tools as part of the installation
 pip install -e .[dev]
 ```
 
+## Run tests
+
+By default, only doctests are run when executing `pytest`.
+To run the main tests, do this:
+
+```sh
+pytest tests
+```
+
+You can also append `test_plotting.py` for example,
+which is otherwise ignored for being slow.
+
+If the test with the `QG` model in `test_HMM.py` fails
+(simply because you have not compiled it) that is fine
+(that test does not run in CI either).
+
 ## Pre-commit and linting
 
 Pull requests (PR) to DAPPER are checked with continuous integration (CI),
@@ -27,22 +43,6 @@ For detailed linting messages, run
 ```sh
 flakehell lint
 ```
-
-## Run tests
-
-By default, only doctests are run when executing `pytest`.
-To run the main tests, do this:
-
-```sh
-pytest tests
-```
-
-You can also append `test_plotting.py` for example,
-which is otherwise ignored for being slow.
-
-If the test with the `QG` model in `test_HMM.py` fails
-(simply because you have not compiled it) that is fine
-(that test does not run in CI either).
 
 ## Adding to the examples
 
