@@ -10,6 +10,7 @@ addopts = """
     --ignore=tests/test_plotting.py
     --ignore=tests/test_demos.py
 --doctest-modules dapper
+    --ignore-glob=**/QG/*
     --ignore-glob=**/magic.py
     --ignore-glob=**/autoscaler.py
     --ignore-glob=**/demo.py
