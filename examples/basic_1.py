@@ -25,10 +25,12 @@ seed = dpr.set_seed(3000)
 HMM.t.T = 30  # shorten experiment
 xx, yy = HMM.simulate()
 
-# #### Specify a DA method configuration ("xp" for "experiment")
+# #### Specify a DA method configuration ("xp" is short for "experiment")
 
-xp = da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
+# xp = da.OptInterp()
 # xp = da.Var3D()
+# xp = da.ExtKF(infl=90)
+xp = da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
 # xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
 
 # #### Assimilate yy, knowing the HMM; xx is used to assess the performance
@@ -69,18 +71,23 @@ if nb:
     # print(xp.stats) # quite long printout
     print(xp.avrgs)
 
-# #### Excercise: Why does the replay look jagged?
-# Hint: provide the keyword `store_u=True` to `assimilate()` to avoid this.
+# #### Excercise: Why are the replay plots not as smooth as the liveplot?
+# *Hint*: provide the keyword `store_u=True` to `assimilate()` to avoid this.
 
 # #### Excercise: Why does the replay only contain the blue lines?
 
-# #### Excercise: Try using
-# - Optimal interpolation
-# - The (extended) Kalman filter
-# - The iterative EnKS
+# #### Excercise: Try out each of the above DA methods (currently commented out).
+# Next, remove the call to `replay`, and set `liveplots=False` above.
+# Now, use the iterative EnKS (`iEnKS`), and try to find a parameter combination
+# for it so that you achieve a lower `rmse.a` than with the `PartFilt`.
 #
-# Hint: suggested DA method settings are listed in the HMM files,
-# like `dapper.mods.Lorenz63.sakov2012`.
+# *Hint*: In general, there is no free lunch. Similarly, not all methods work
+# for all problems; additionally, methods often have parameters that require
+# tuning. Luckily, in DAPPER, you should be able to find suitably tuned
+# configuration settings for various DA methods *in the files that define the
+# HMM*. If you do not find a suggested configuration for a given method, you
+# will have to tune it yourself. The example script `basic_2` shows how DAPPER
+# facilitates the tuning process, and `basic_3` takes this further.
 
 # #### Excercise: Run an experiment for each of these models
 # - LotkaVolterra
@@ -93,7 +100,7 @@ if nb:
 #   command into it. Then, replace `rmse` by `err.rms`. This should yield
 #   the same printout, as is merely an abbreviation of the latter.
 # - Next, figure out how to print the time average *forecast (i.e. prior)* error
-#   (and `rmv`) instead. Explain why the values are larger than
+#   (and `rmv`) instead. Explain (in broad terms) why the values are larger than
 #   for the *analysis* values.
 # - Finally, instead of the `rms` spatial/field averages,
 #   print the regular mean (`.m`) averages. Explain why `err.m` is nearly zero,
