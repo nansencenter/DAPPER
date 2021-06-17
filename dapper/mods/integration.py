@@ -50,12 +50,16 @@ def rk4(f, x, t, dt, stages=4, s=0.0):
     
     if s > 0.0:
         # non-trivial diffusion, this defines the SDE integration with additive noise
-        # generate perturbation for brownian motion
-        state_dim = len(x)
-        xi = np.random.multivariate_normal(np.zeros(state_dim), np.eye(state_dim))
+        # generate perturbation for Brownian motion
+        dims = np.shape(x)
 
-        # rescale the standard normal perturbation to variance h
-        W = xi * np.sqrt(h)
+        if len(dims) > 1:
+            N_e, N_x = dims
+            W = np.sqrt(dt) * np.random.standard_normal(N_e, N_x)
+
+        else:
+            N_x ,= dims
+            W = np.sqrt(dt) * np.random.standard_normal(N_x)
 
         if stages >=1: k1 = dt * f(t       , x) + s * W             # noqa
         if stages >=2: k2 = dt * f(t+dt/2.0, x+k1/2.0) + s * W      # noqa
