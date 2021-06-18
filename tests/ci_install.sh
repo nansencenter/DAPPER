@@ -9,11 +9,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
     if [[ -f "$HOME/miniconda/bin/conda" ]]; then
         echo "Skip install conda [cached]"
     else
-        # By default, travis caching mechanism creates an empty dir in the
-        # beginning of the build, but conda installer aborts if it finds an
-        # existing folder, so let's just remove it:
-        rm -rf "$HOME/miniconda"
-
         # Use the miniconda installer for faster download / install of conda
         # itself
         if [ "$RUNNER_OS" != "macOS" ]; then
