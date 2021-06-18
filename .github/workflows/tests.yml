@@ -1,0 +1,84 @@
+---
+name: Run unit tests and publish coverage
+on: push
+env:
+  IS_TRAVIS: 'true'
+  PYTHON_VERSION: '3.8'
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'macos-latest']
+        python-version: ['3.7', '3.8', '3.9']
+        jobtype: ['testing']
+        distrib: ['included']
+        include:
+          - os: 'ubuntu-latest'
+            python-version: '3.9'
+            jobtype: 'lint'
+
+          - os: 'ubuntu-latest'
+            python-version: '3.9'
+            jobtype: 'coverage'
+
+          - os: 'ubuntu-latest'
+            python-version: '3.8'
+            distrib: 'conda'
+            jobtype: 'testing'
+
+          - os: 'macos-latest'
+            python-version: '3.8'
+            distrib: 'conda'
+            jobtype: 'testing'
+    env:
+      DISTRIB: ${{ matrix.distrib }}
+      JOBTYPE: ${{ matrix.jobtype }}
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache miniconda
+        uses: actions/cache@v2
+        if: ${{ env.DISTRIB == 'conda' }}
+        with:
+          path: ${{ env.HOME }}/miniconda
+          key: ${{ runner.os }}-miniconda-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-miniconda-
+
+      - name: Install dependencies
+        run: |
+          source tests/travis_install.sh
+          pip install -e .[dev]
+
+      - name: Run tests
+        run: |
+          if [[ "$JOBTYPE" == "lint" ]]; then
+            # Run flake8 via pre-commit instead.
+            #- flake8 . # Use --exit-zero to ignore failure
+            pre-commit install
+            pre-commit run --all-files
+          elif [[ "$JOBTYPE" == "coverage" ]]; then
+            pytest tests --ignore=dapper/mods/QG \
+            --cov=dapper --cov-report term-missing
+          else
+            pytest tests --ignore=dapper/mods/QG
+          fi
+
+      - name: Publish coverage to coveralls.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "$JOBTYPE" == "coverage" ]]; then
+            coveralls || echo "failed"
+          fi
+
+      - name: Cleanup
+        run: travis-cleanup
+...
