@@ -72,12 +72,10 @@ jobs:
           fi
 
       - name: Publish coverage to coveralls.io
+        if: ${{ env.JOBTYPE == 'coverage' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [[ "$JOBTYPE" == "coverage" ]]; then
-            coveralls || echo "failed"
-          fi
+        run: coveralls
 
       - name: Cleanup
         run: travis-cleanup
