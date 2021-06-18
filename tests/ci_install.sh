@@ -1,6 +1,7 @@
 #!/bin/bash
-# This script is to be called by the "install" step defined in
-# .travis.yml. See http://docs.travis-ci.com/ for more details.
+# This script is to be called by the "Install dependencies" step defined in
+# .github/workflows/tests.yml. See https://docs.github.com/en/actions for more
+# details.
 # This script is inspired by Scikit-Learn (http://scikit-learn.org/)
 
 set -e
