@@ -2,7 +2,7 @@
 name: Run unit tests and publish coverage
 on: push
 env:
-  IS_TRAVIS: 'true'
+  IS_CI: 'true'
   PYTHON_VERSION: '3.8'
 jobs:
   tests:
@@ -54,7 +54,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          source tests/travis_install.sh
+          /bin/bash tests/ci_install.sh
           pip install -e .[dev]
 
       - name: Run tests
@@ -78,5 +78,5 @@ jobs:
         run: coveralls
 
       - name: Cleanup
-        run: travis-cleanup
+        run: /bin/bash tests/ci_cleanup.sh
 ...
