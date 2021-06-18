@@ -8,7 +8,7 @@ set -e
 if [[ "$DISTRIB" == "conda" ]]; then
     # Deactivate the travis-provided virtual environment and setup a
     # conda-based environment instead
-    if [ "$TRAVIS_OS_NAME" != "osx" ]; then
+    if [ "$RUNNER_OS" != "macOS" ]; then
         deactivate
     fi
 
@@ -22,7 +22,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
         # Use the miniconda installer for faster download / install of conda
         # itself
-        if [ "$TRAVIS_OS_NAME" != "osx" ]; then
+        if [ "$RUNNER_OS" != "macOS" ]; then
             wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
                 -O miniconda.sh
         else
