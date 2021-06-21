@@ -11,9 +11,9 @@ from dapper.mods import HiddenMarkovModel
 
 def _defines_HMM(path):
 
-    # Don't run QG on Travis-CI or Tox
+    # Don't run QG on CI or Tox
     if "QG" in path.parts and (
-            os.environ.get("IS_TRAVIS", False) or
+            os.environ.get("IS_CI", False) or
             os.environ.get("IS_TOX", False)):
         return False
 
