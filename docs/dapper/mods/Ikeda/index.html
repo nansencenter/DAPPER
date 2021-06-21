@@ -105,8 +105,8 @@ params = dict(labels=&#39;xy&#39;)
 
 
 def LPs(jj=None, params=params): return [
-    (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
-    (13, 1, LP.phase_particles(
+    (1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
+    (1, LP.phase_particles(
         is_3d=False, obs_inds=jj, zoom=0.8, Tplot=0, **params)),
 ]</code></pre>
 </details>
@@ -199,8 +199,8 @@ def step(x, _t, _dt):
 <a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/Ikeda/__init__.py#L61-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def LPs(jj=None, params=params): return [
-    (14, 1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
-    (13, 1, LP.phase_particles(
+    (1, LP.sliding_marginals(obs_inds=jj, zoomy=0.8, **params)),
+    (1, LP.phase_particles(
         is_3d=False, obs_inds=jj, zoom=0.8, Tplot=0, **params)),
 ]</code></pre>
 </details>

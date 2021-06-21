@@ -16,6 +16,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import dill
+import numpy as np
 import struct_tools
 import tabulate as _tabulate
 from tabulate import tabulate
@@ -28,6 +29,7 @@ from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
 
 _tabulate.MIN_PADDING = 0
+XP_TIMESTAMP_TEMPLATE = "run_%Y-%m-%d__%H-%M-%S"
 
 
 def seed_and_simulate(HMM, xp):
@@ -206,7 +208,7 @@ class xpList(list):
 
     unique: bool
         Duplicates won't get appended. Makes `append` (and `__iadd__`) relatively slow.
-        Use `extend` or `__add__` or `get_param_setter` to bypass this validation.
+        Use `extend` or `__add__` or `combinator` to bypass this validation.
 
     Also see
     --------
@@ -316,9 +318,31 @@ class xpList(list):
 
         for key in _aggregate_keys():
 
-            # Want to distinguish actual None's from empty ("N/A").
-            # => Don't use getattr(obj,key,None)
-            vals = [getattr(xp, key, "N/A") for xp in self]
+            def _getattr(xp, key):
+                # Don't use None, to avoid mixing with actual None's
+                # TODO 4: use an object yet more likely to be unique.
+                missing = "N/A"
+                a = getattr(xp, key, missing)
+
+                # Replace ndarray by its id, since o/w it will
+                # complain that you must use all().
+                # Alternative: replace all == (and !=) below by "is".
+                #     Tabulation with multi-line params actually works,
+                #     (though it's still likely to take up too much space,
+                #     unless we set np.printoptions...).
+                #     However, then python (since 3.8) will complain about
+                #     comparison to literal.
+                if isinstance(a, np.ndarray):
+                    shorten = 6
+                    a = f"arr(<id {id(a)//10**shorten}>)"
+                # TODO 3: leave formatting to sub() below?
+                # TODO 4: do similar formatting for other non-trivial params?
+                # TODO 4: document alternative way to specify non-trivial params:
+                #         use key to be looked up in some globally accessible dct.
+                #         Advantage: names are meaningful, rather than ids.
+                return a
+
+            vals = [_getattr(xp, key) for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
             if struct_tools.flexcomp(key, *nomerge):
@@ -471,7 +495,7 @@ class xpList(list):
             def xpi_dir(*args): return None
         else:
             save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= "run_" + datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
+            save_as /= datetime.now().strftime(XP_TIMESTAMP_TEMPLATE)
             os.makedirs(save_as)
             print(f"Experiment stored at {save_as}")
 
@@ -566,7 +590,7 @@ class xpList(list):
         return save_as
 
 
-def get_param_setter(param_dict, **glob_dict):
+def combinator(param_dict, **glob_dict):
     """Mass creation of `xp`'s by combining the value lists in the parameter dicts.
 
     The parameters are trimmed to the ones available for the given method.

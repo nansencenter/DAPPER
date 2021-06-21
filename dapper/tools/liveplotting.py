@@ -1,4 +1,25 @@
-"""On-line (live) plots of the DA process for various models and methods."""
+"""On-line (live) plots of the DA process for various models and methods.
+
+Liveplotters are given by a list of tuples as property or arguments in
+`dapper.mods.HiddenMarkovModel`.
+
+- The first element of the tuple determines whether the liveplotter is shown if
+the names of liveplotters are not given by `liveplots` argument in
+`assimilate`.
+
+- The second element in the tuple gives the corresponding liveplotter
+function/class. See example of function `LPs` in `dapper.mods.Lorenz63`.
+
+The liveplotters can be fine-tuned by each DA experiments via argument of
+`liveplots` when calling `assimilate`.
+
+- `liveplots = True` turns on liveplotters set to default in the first
+argument of the `HMM.liveplotter` and default liveplotters defined in this module
+(`sliding_diagnostics` and `weight_histogram`).
+
+- `liveplots` can also be a list of specified names of liveplotter, which
+is the name of the corresponding liveplotting classes/functions.
+"""
 
 import matplotlib as mpl
 import numpy as np
@@ -90,26 +111,24 @@ class LivePlot:
 
         # Set up dict of liveplotters
         potential_LPs = {}
-        for num, show, init in default_liveplotters:
-            potential_LPs[get_name(init)] = num, show, init
+        for show, init in default_liveplotters:
+            potential_LPs[get_name(init)] = show, init
         # Add HMM-specific liveplotters
-        for num, show, init in getattr(stats.HMM, 'liveplotters', {}):
-            assert num > 10, ("Liveplotters specified in the HMM"
-                              " should have fignum>10.")
-            potential_LPs[get_name(init)] = num, show, init
+        for show, init in getattr(stats.HMM, 'liveplotters', {}):
+            potential_LPs[get_name(init)] = show, init
 
         def parse_figlist(lst):
             """Figures requested for this xp. Convert to list."""
             if isinstance(lst, str):
                 fn = lst.lower()
                 if "all" == fn:
-                    lst = range(99)  # All potential_LPs
+                    lst = ["all"]  # All potential_LPs
                 elif "default" in fn:
-                    lst = []         # All show_by_default
+                    lst = ["default"]         # All show_by_default
             elif hasattr(lst, '__len__'):
                 lst = lst            # This list (only)
             elif lst:
-                lst = []             # All show_by_default
+                lst = ["default"]             # All show_by_default
             else:
                 lst = [None]         # None
             return lst
@@ -117,17 +136,15 @@ class LivePlot:
 
         # Loop over requeted figures
         self.figures = {}
-        for name, (num, show_by_default, init) in potential_LPs.items():
-            if (num in figlist) or \
+        for name, (show_by_default, init) in potential_LPs.items():
+            if (figlist == ["all"]) or \
                     (name in figlist) or \
-                    (figlist == [] and show_by_default):
+                    (figlist == ["default"] and show_by_default):
 
                 # Startup message
                 if not self.any_figs:
-                    if pb.disable_user_interaction:
-                        print('Initializing liveplots...')
-                        print('User interaction with liveplots is disabled.')
-                    elif is_notebook_or_qt:
+                    print('Initializing liveplots...')
+                    if is_notebook_or_qt:
                         pauses = [self.params["pause_" + x] for x in "faus"]
                         if any((p > 0) for p in pauses):
                             print("Note: liveplotting does not work very well"
@@ -137,8 +154,7 @@ class LivePlot:
                                   " in the toolbar). Consider using instead"
                                   " only the replay functionality (with infinite"
                                   " playback speed).")
-                    else:
-                        print('Initializing liveplots...')
+                    elif not pb.disable_user_interaction:
                         print('Hit <Space> to pause/step.')
                         print('Hit <Enter> to resume/skip.')
                         print('Hit <i> to enter debug mode.')
@@ -149,13 +165,13 @@ class LivePlot:
 
                 # Init figure
                 post_title = "" if self.plot_u else "\n(obs times only)"
-                updater = init(num, stats, key0, self.plot_u, E, P, **kwargs)
-                if plt.fignum_exists(num) and getattr(updater, 'is_active', 1):
-                    self.figures[name] = (num, updater)
-                    fig = plt.figure(num)
+                updater = init(name, stats, key0, self.plot_u, E, P, **kwargs)
+                if plt.fignum_exists(name) and getattr(updater, 'is_active', 1):
+                    self.figures[name] = updater
+                    fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.set_window_title("%s [%d]" % (name, num))
+                    win.manager.set_window_title("%s" % name)
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     plt.pause(0.01)          # Draw
@@ -164,8 +180,8 @@ class LivePlot:
         """Update liveplots"""
         # Check if there are still open figures
         if self.any_figs:
-            open_figns = plt.get_fignums()
-            live_figns = {num for (num, updater) in self.figures.values()}
+            open_figns = plt.get_figlabels()
+            live_figns = set(self.figures.keys())
             self.any_figs = bool(live_figns.intersection(open_figns))
         else:
             return
@@ -223,10 +239,10 @@ class LivePlot:
         if not self.skipping:
             faus = key[-1]
             if faus != 'u' or self.plot_u:
-                for _name, (num, updater) in self.figures.items():
-                    if plt.fignum_exists(num) and \
+                for _name, (updater) in self.figures.items():
+                    if plt.fignum_exists(_name) and \
                             getattr(updater, 'is_active', 1):
-                        _ = plt.figure(num)
+                        _ = plt.figure(_name)
                         updater(key, E, P)
                         plot_pause(self.params['pause_'+faus])
 
@@ -1325,6 +1341,6 @@ def spatial2d(
 # - show_by_default
 # - function/class
 default_liveplotters = [
-    (1, 1, sliding_diagnostics),
-    (4, 1, weight_histogram),
+    (1, sliding_diagnostics),
+    (1, weight_histogram),
 ]

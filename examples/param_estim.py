@@ -94,8 +94,8 @@ Obs['noise'] = 1
 
 # Specify liveplotting (and replay) functionality.
 LP = [
-    (11, 1, LP.spatial1d(jj)),
-    (14, 1, LP.sliding_marginals(
+    (1, LP.spatial1d(jj)),
+    (1, LP.sliding_marginals(
         jj, zoomy=0.8, dims=[0, Nx], labels=["$x_0$", "Force"]),
      ),
 ]

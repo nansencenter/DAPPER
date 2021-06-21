@@ -1,11 +1,8 @@
 """(Data Assimilation with Python: a Package for Experimental Research)
 
-## In the README
+## Installation
 
-Make sure you've browsed these sections in the README:
-
-- [Installation](https://github.com/nansencenter/DAPPER#Installation)
-- [Quickstart](https://github.com/nansencenter/DAPPER#Quickstart)
+See the [README](https://github.com/nansencenter/DAPPER#Installation)
 
 ## Usage
 **Adapt one of the examples scripts to your needs.**
@@ -99,7 +96,7 @@ The rendered docstrings can be browsed
 through the following links, which are also available in the left sidebar.
 """
 
-__version__ = "1.1.0"
+__version__ = "1.2.2"
 
 import sys
 
@@ -108,7 +105,7 @@ from .dpr_config import rc
 from .tools.magic import magic_naming, spell_out
 from .tools.rounding import round2, round2sigfig
 from .tools.seeding import set_seed
-from .xp_launch import get_param_setter, seed_and_simulate, xpList
+from .xp_launch import combinator, seed_and_simulate, xpList
 from .xp_process import (default_fig_adjustments, default_styles,
-                         discretize_cmap, load_xps, make_label, rel_index,
-                         xpSpace)
+                         discretize_cmap, find_latest_run, load_xps,
+                         make_label, rel_index, xpSpace)

@@ -529,23 +529,20 @@ class SL_EAKF:
                     if sig2_j < 1e-9:
                         continue
                     # Update (below, we drop the locality subscript: _j)
-                    sig2_u = 1/(1/sig2_j + 1/N1)      # KG * N1
+                    sig2_u = 1/(1/sig2_j + 1/N1)      # Postr. var * N1
                     alpha  = (N1/(N1+sig2_j))**(0.5)  # Update contraction factor
                     dy2    = sig2_u * dy_j/N1         # Mean update
                     Y2     = alpha*Y_j                # Anomaly update
                     # Update state (regress update from obs space, using localization)
                     # ------------------------------------------------------
                     ii, tapering = state_taperer(j)
+                    # ii, tapering = ..., 1  # cancel localization
                     if len(ii) == 0:
                         continue
-                    Regression = (A[:, ii]*tapering).T @ Y_j/np.sum(Y_j**2)
-                    mu[ii]   += Regression*dy2
-                    A[:, ii]   += np.outer(Y2 - Y_j, Regression)
-                    # Without localization:
-                    # Regression = A.T @ Y_j/np.sum(Y_j**2)
-                    # mu        += Regression*dy2
-                    # A         += np.outer(Y2 - Y_j, Regression)
-
+                    Xi = A[:, ii]*tapering
+                    Regression = Xi.T @ Y_j/np.sum(Y_j**2)
+                    mu[ii] += Regression*dy2
+                    A[:, ii] += np.outer(Y2 - Y_j, Regression)
                     E = mu + A
 
                 E = post_process(E, self.infl, self.rot)

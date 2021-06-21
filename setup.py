@@ -22,29 +22,31 @@ INSTALL_REQUIRES = [
     'ipython>=5.1',
     'jedi<0.18',  # ipython/issues/12740
     'jupyter',
-    'matplotlib~=3.1',  # >=3.1 to avoid Mac's framework-build issues
-    'mpl-tools==0.2.28',
+    'matplotlib~=3.2.2',
+    #    >=3.1 to avoid Mac's framework-build issues.
+    #    But 3.4 does not work on Colab.
+    'mpl-tools==0.2.38',
     'tqdm~=4.31',
     'pyyaml',
     'ipdb',
     'colorama~=0.4.1',
     'tabulate~=0.8.3',
     'dill==0.3.2',  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
-    'patlib==0.2.1',
-    'struct-tools==0.2.1',
+    'patlib==0.3.5',
+    'struct-tools==0.2.5',
     'multiprocessing-on-dill==3.5.0a4',
     'threadpoolctl==1.0.0',
 ]
 
 EXTRAS = {
     'Qt': ['PyQt5', 'qtpy'],
-    'dev': ['line_profiler', 'pdbpp', 'pre-commit', 'jupytext'],
+    'dev': ['line_profiler', 'pre-commit'],
     'test': ['tox', 'coverage', 'pytest',
              'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
     'lint': ['flake8', 'flakehell'],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
-    'build': ['twine', 'pdoc3'],
+    'build': ['twine', 'pdoc3', 'jupytext'],
 }
 EXTRAS['dev'] += EXTRAS['test'] + EXTRAS['lint'] + EXTRAS['build']
 
@@ -86,11 +88,9 @@ setup(
     # >=3.5 for @.
     # >=3.6 for mpl>=3.1.
     # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
-    # ==3.8 for:
-    #   - dapper/tools/magic.py
-    #   - struct-tools
-    #   - the DAPPER/GCP cluster, since dill isn't compat. across versions.
-    python_requires='>=3.8',
+    # ==3.7 for Colab
+    # ==3.8 for the DAPPER/GCP cluster, since dill isn't compat. across versions.
+    python_requires='>=3.7',
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS,
 

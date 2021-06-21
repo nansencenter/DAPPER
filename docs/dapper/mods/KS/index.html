@@ -47,7 +47,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L0-L143" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L0-L153" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Kuramoto-Sivashinsky (KS) system: the simplest (?) PDE admitting chaos.
 
@@ -65,7 +65,6 @@ import numpy as np
 
 from dapper.dpr_config import DotDict
 from dapper.mods.integration import integrate_TLM, with_rk4
-from dapper.tools.magic import magic_naming
 
 __pdoc__ = {mod: False for mod in [&#34;demo&#34;, &#34;compare_schemes&#34;]}
 
@@ -185,10 +184,21 @@ def Model(dt=0.25, DL=32, Nx=128):
         x0 = step(x0, np.nan, h)
 
     # Return dict
-    dd = DotDict(**magic_naming(
-        dt, DL, Nx, x0, x0_Kassam, grid, step,
-        step_ETD_RK4, step_SI_RK3, step_RK4, step_RK1,
-        dxdt, d2x_dtdx, dstep_dx))
+    dd = DotDict(dt=dt,
+                 DL=DL,
+                 Nx=Nx,
+                 x0=x0,
+                 x0_Kassam=x0_Kassam,
+                 grid=grid,
+                 step=step,
+                 step_ETD_RK4=step_ETD_RK4,
+                 step_SI_RK3=step_SI_RK3,
+                 step_RK4=step_RK4,
+                 step_RK1=step_RK1,
+                 dxdt=dxdt,
+                 d2x_dtdx=d2x_dtdx,
+                 dstep_dx=dstep_dx,
+                 )
     return dd
 
 
@@ -219,7 +229,7 @@ Tplot = 10</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L23-L23" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L22-L22" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def fft(u): return np. fft. rfft(u, axis=-1)  # F</code></pre>
 </details>
@@ -232,7 +242,7 @@ Tplot = 10</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L24-L24" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L23-L23" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def ifft(v): return np.fft.irfft(v, axis=-1)  # F^{-1}</code></pre>
 </details>
@@ -245,7 +255,7 @@ Tplot = 10</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L28-L32" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L27-L31" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def byFourier(func):
     @functools.wraps(func)
@@ -262,7 +272,7 @@ Tplot = 10</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L35-L141" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/KS/__init__.py#L34-L151" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Model(dt=0.25, DL=32, Nx=128):
     &#34;&#34;&#34;Define `step`, `x0`, `etc`. Alternative schemes (`step_XXX`) also implemented.&#34;&#34;&#34;
@@ -366,10 +376,21 @@ Tplot = 10</code></pre>
         x0 = step(x0, np.nan, h)
 
     # Return dict
-    dd = DotDict(**magic_naming(
-        dt, DL, Nx, x0, x0_Kassam, grid, step,
-        step_ETD_RK4, step_SI_RK3, step_RK4, step_RK1,
-        dxdt, d2x_dtdx, dstep_dx))
+    dd = DotDict(dt=dt,
+                 DL=DL,
+                 Nx=Nx,
+                 x0=x0,
+                 x0_Kassam=x0_Kassam,
+                 grid=grid,
+                 step=step,
+                 step_ETD_RK4=step_ETD_RK4,
+                 step_SI_RK3=step_SI_RK3,
+                 step_RK4=step_RK4,
+                 step_RK1=step_RK1,
+                 dxdt=dxdt,
+                 d2x_dtdx=d2x_dtdx,
+                 dstep_dx=dstep_dx,
+                 )
     return dd</code></pre>
 </details>
 </dd>

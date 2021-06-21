@@ -16,53 +16,99 @@ Essentially, you just need to define all of the attributes of a
 To make sure this is working, we suggest the following structure:
 
 - Make a dir: `my_model`
+
 - Make a file: `my_model/__init__.py` where you define the core
   workings of the model.
-  Typically, this culminates in a `step(x, t, dt)` function.
-
-    - The model step operator (and the obs operator) must support
+    - Typically, this culminates in a `step(x, t, dt)` function,
+      which defines the dynamical model/system mapping the state `x`
+      from one time `t` to another `t + dt`.
+      This model "operator" must support
       2D-array (i.e. ensemble) and 1D-array (single realization) input.
       See
 
-          - `dapper.mods.Lorenz63`: use of `ens_compatible`.
-          - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
-          - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
-            Consider pre-defining the slices like so:
+        - `dapper.mods.Lorenz63`: use of `ens_compatible`.
+        - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
+        - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
+          Consider pre-defining the slices like so:
 
                 iiX = (..., slice(None, Nx))
                 iiP = (..., slice(Nx, None))
 
             to abbreviate the indexing elsewhere.
 
-          - `dapper.mods.QG`: use of parallelized for loop (map).
+        - `dapper.mods.QG`: use of parallelized for loop (map).
+
+     - You should also define an example initial state, `x0`.  This facililates
+       the specification of initial conditions for different synthetic
+       experiments, as random variables centered on `x0`.  It is also a
+       convenient way just to specify the system size as `len(x0)`.  In many
+       experiments, the specific value of `x0` does not matter, because most
+       systems are chaotic, and the average of the stats are computed only for
+       `time > BurnIn > 0`, which will not depend on `x0` if the experiment is
+       long enough.  Nevertheless, it's often convenient to pre-define a point
+       on the attractor, or basin, or at least ensure "physicality", for
+       quicker spin-up (burn-in).
+
+    - Optional: define a number called `Tplot` which defines
+      the (sliding) time window used by the liveplotting of diagnostics.
 
     - Optional: To use the (extended) Kalman filter, or 4D-Var,
-      you will need to define the model linearization.
+      you will need to define the model linearization, typically called `dstep_dx`.
       Note: this only needs to support 1D input (single realization).
 
+- Most models are defined using a procedural and function-based style.
+  However, `dapper.mods.LorenzUV` and `dapper.mods.QG` use OOP.
+  This is more flexible & robust, and better suited when different
+  control-variable settings are to be investigated.
+
+    .. note::
+        In parameter estimation problems, the parameters are treated as input
+        variables to the "forward model". This does not necessarily require
+        OOP. See `examples/param_estim.py`.
+
 - Make a file: `my_model/demo.py` to visually showcase
-  a simulation of the model.
+  a simulation of the model, and verify it's working.
+
+    .. hint::
+        To begin with, test whether the model works on 1 realization,
+        before running it with several (simultaneously).
+        Also, start with a small integration time step,
+        before using more efficient/adventurous time steps.
+        Note that the time step might need to be shorter in assimilation,
+        because it may cause instabilities.
+
 - Ideally, both `my_model/__init__.py` and `my_model/demo.py`
-  do not rely on the rest of DAPPER.
-- Make a file: `my_model/my_settings_1.py` that define a complete
-  Hidden Markov Model ready for a synthetic experiment
+  do not rely on components of DAPPER outside of `dapper.mods`.
+
+- Make a file: `my_model/my_settings_1.py` that defines
+  (or "configures", since there is usually little actual programming taking place)
+  a complete Hidden Markov Model ready for a synthetic experiment
   (also called "twin experiment" or OSSE).
+  See `dapper.mods.HiddenMarkovModel` for details on what this requires.
+  Each existing model comes with several examples of model settings from the literature.
+  See, for example, `dapper.mods.Lorenz63.sakov2012`.
 
+    .. warning::
+      These configurations do not necessarily hold a very high programming standard,
+      as they may have been whipped up at short notice to replicate some experiments,
+      and are not intended for re-use.
 
-<!--
-* To begin with, test whether the model works
-    * on 1 realization
-    * on several realizations (simultaneously)
-* Thereafter, try assimilating using
-    * a big ensemble
-    * a safe (e.g. 1.2) inflation value
-    * small initial perturbations
-      (big/sharp noises might cause model blow up)
-    * small(er) integrational time step
-      (assimilation might create instabilities)
-    * very large observation noise (free run)
-    * or very small observation noise (perfectly observed system)
--->
+      Nevertheless, sometimes they are re-used by another configuration script,
+      leading to a major gotcha/pitfall: changes made to the imported `HMM` (or
+      the model's module itself) also impact the original object (since they
+      are mutable and thereby referenced).  This usually isn't an issue, since
+      one rarely imports two/more separate configurations. However, the test suite
+      imports all configurations, which might then unintentionally interact.
+      To avoid this, you should use the `copy` method of the `HMM`
+      before making any changes to it.
+
+    Once you've made some experiments you believe are noteworthy you should add a
+    "suggested settings/tunings" section in comments at the bottom of
+    `my_model/my_settings_1.py`, listing some of the relevant DA method
+    configurations that you tested, along with the RMSE (or other stats) that
+    you obtained for those methods.  You will find plenty of examples already in DAPPER,
+    used for cross-referenced with literature to verify the workings of DAPPER
+    (and the reproducibility of publications).
 """
 
 __pdoc__ = {"explore_props": False}
@@ -95,6 +141,33 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     also known as "twin experiment", or OSSE (observing system simulation experiment).
     The synthetic truth and observations may then be obtained by running
     `HiddenMarkovModel.simulate`.
+
+    See scripts in examples for more details.
+
+    Parameters
+    ----------
+    Dyn: `Operator` or dict
+        Operator for the dynamics.
+    Obs: `Operator` or dict
+        Operator for the observations
+    t: `dapper.tools.chronos.Chronology`
+        Time sequence of the HMM process.
+    X0: `dapper.tools.randvars.RV`
+        Random distribution of initial condition
+    liveplotters: `list`, optional
+        A list of tuples. See example use in function `LPs` of `dapper.mods.Lorenz63`.
+        - The first element of the tuple determines if the liveplotter
+        is shown by default. If `False`, the liveplotter is only shown when
+        included among the `liveplots` argument of `assimilate`
+        - The second element in the tuple gives the corresponding liveplotter
+        function/class.
+    sectors: `dict`, optional
+        Labelled indices referring to parts of the state vector.
+        When defined, field-mean statistics are computed for each sector.
+        Example use can be found in  `examples/param_estim.py`
+        and `dapper/mods/Lorenz96/miyoshi2011.py`
+    name: str, optional
+        Label for the `HMM`.
     """
 
     def __init__(self, *args, **kwargs):
@@ -154,7 +227,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     @property
     def Ny(self): return self.Obs.M
 
-    printopts = {'ordering': ['Dyn', 'Obs', 't', 'X0']}
+    printopts = {'ordering': ['Dyn', 'Obs', 't', 'X0'], "indent": 4}
 
     def simulate(self, desc='Truth & Obs'):
         """Generate synthetic truth and observations."""
@@ -188,7 +261,20 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
 
 class Operator(struct_tools.NicePrint):
-    """Container for operators (models)."""
+    """Container for the dynamical and the observational maps.
+
+    Parameters
+    ----------
+    M: int
+        Length of output vectors.
+    model: function
+        The actual operator.
+    noise: RV, optional
+        The associated additive noise. The noise can also be a scalar or an
+        array, producing `GaussRV(C=noise)`.
+
+    Any remaining keyword arguments are written to the object as attributes.
+    """
 
     def __init__(self, M, model=None, noise=None, **kwargs):
         self.M = M
@@ -217,4 +303,4 @@ class Operator(struct_tools.NicePrint):
     def __call__(self, *args, **kwargs):
         return self.model(*args, **kwargs)
 
-    printopts = {'ordering': ['M', 'model', 'noise']}
+    printopts = {'ordering': ['M', 'model', 'noise'], "indent": 4}

@@ -1,6 +1,10 @@
 # ## Illustrate usage of DAPPER to benchmark multiple DA methods.
 
 # #### Imports
+# <b>NB:</b> If you're on <mark><b>Gooble Colab</b></mark>,
+# then replace `%matplotlib notebook` below by
+# `!python -m pip install git+https://github.com/nansencenter/DAPPER.git` .
+# Also note that liveplotting does not work on Colab.
 
 # %matplotlib notebook
 import dapper as dpr

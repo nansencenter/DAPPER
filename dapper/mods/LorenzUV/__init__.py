@@ -15,7 +15,6 @@ unless its temporal auto-corr is taken into account (as AR(1))
 (but spatial auto-corr can be neglected).
 But AR(1) noise is technically difficult because DAPPER
 is built around the Markov assumption.
-
 """
 import numpy as np
 
@@ -113,4 +112,4 @@ class model_instance():
         return integrate_TLM(self.d2x_dtdx_auto(x), dt, method='analytic')
 
     def LPs(self, jj):
-        return [(11, 1, LP.spatial1d(jj, dims=list(range(self.nU))))]
+        return [(1, LP.spatial1d(jj, dims=list(range(self.nU))))]

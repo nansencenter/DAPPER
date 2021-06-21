@@ -10,6 +10,8 @@ addopts = """
     --ignore=tests/test_plotting.py
     --ignore=tests/test_demos.py
 --doctest-modules dapper
+    --ignore-glob=**/QG/*
+    --ignore-glob=**/magic.py
     --ignore-glob=**/autoscaler.py
     --ignore-glob=**/demo.py
     --ignore-glob=**/illust_*.py
@@ -37,7 +39,7 @@ exclude_lines = [
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py3{8,9}
+envlist = py3{7,8,9}
 toxworkdir={homedir}/.tox
 
 [testenv]
@@ -66,6 +68,10 @@ format = "grouped" # also try "stat"
 show_source = false
 #whitelist = "../../allowlist.txt" # Used by flake8-spellcheck.
 
+# Tmp fix for flakehell crashing with flake>=3.9.1
+# https://github.com/flakehell/flakehell/issues/10
+extended_default_ignore=[]
+
 [tool.flakehell.plugins]
 pyflakes = ["+*"]
 pycodestyle = ["+*",
@@ -76,10 +82,10 @@ pycodestyle = ["+*",
     "-E251", # Allow operator alignment for dicts
     "-E266", # Allow ## block comments
     "-C408", # Prefer {} to dict()
-    # "E271", "E701", and more... # if-list alignment
-    # "-E201", "-E202", "-E203", "-E241", "E231", # leave arrays as printed
+    # "-E271", "-E701", and more... # if-list alignment
+    # "-E201", "-E202", "-E203", "-E241", "-E231", # leave arrays as printed
     "-E202", "-E203",
-    # "E301", "E302", # dont put spaces between functions
+    # "-E301", "-E302", # dont put spaces between functions
 ]
 #mccabe = ["+*"]
 #pylint = ["+*"]

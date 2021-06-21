@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L0-L167" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L0-L170" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Dirty magic. Should never be used. Ever.&#34;&#34;&#34;
 
@@ -130,6 +130,9 @@ def get_call():
     return call_text, info.get(&#34;argnames&#34;, None), f2.f_locals
 
 
+# TODO 4: fails on python 3.7 and older.
+# I believe there is a version in the git history that works with py &lt;= 3.7.
+# But maybe we should not use magic any more?
 def magic_naming(*args, **kwargs):
     &#34;&#34;&#34;Convert args (by their names in the call) to kwargs.
 
@@ -328,7 +331,7 @@ we get actual argnames and dont need to resort to regex.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L89-L116" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L92-L119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def magic_naming(*args, **kwargs):
     &#34;&#34;&#34;Convert args (by their names in the call) to kwargs.
@@ -373,7 +376,7 @@ we get actual argnames and dont need to resort to regex.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L119-L141" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/magic.py#L122-L144" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spell_out(*args):
     &#34;&#34;&#34;Print (args) including variable names.

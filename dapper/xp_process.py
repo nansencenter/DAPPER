@@ -6,6 +6,7 @@ import logging
 import os
 import shutil
 import warnings
+from datetime import datetime
 from pathlib import Path
 
 import colorama
@@ -23,7 +24,7 @@ from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import axis_scale_by_array, freshfig
-from dapper.xp_launch import collapse_str, xpList
+from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
 
 mpl_logger = logging.getLogger('matplotlib')
 
@@ -140,6 +141,19 @@ def in_idx(coord, indices, xp_dict, axis):
         return True
 
 
+def find_latest_run(root: Path):
+    """Find the latest experiment (dir containing many)"""
+    def parse(d):
+        try:
+            return datetime.strptime(d.name, XP_TIMESTAMP_TEMPLATE)
+        except ValueError:
+            return None
+    dd = [e for e in (parse(d) for d in root.iterdir()) if e is not None]
+    d = max(dd)
+    d = datetime.strftime(d, XP_TIMESTAMP_TEMPLATE)
+    return d
+
+
 def load_HMM(save_as):
     save_as = Path(save_as).expanduser()
     HMM = dill.load(open(save_as/"xp.com", "rb"))["HMM"]
@@ -243,14 +257,17 @@ def reduce_inodes(save_as, nDir=100):
 
 
 class SparseSpace(dict):
-    """Subclass of `dict` that enforces key conformity to a `namedtuple`.
+    """Subclass of `dict` that enforces key conformity to a given `namedtuple`.
 
     Like a normal `dict`, it can hold any type of objects.
-    But, since keys must conform, this effectively defines a coordinate system,
+    But, since the keys must conform, they effectively follow a coordinate system,
     i.e. vector **space**.
+    Indeed, when seen as an data format for nd-arrays, it may be called
+    "coordinate list representation", used e.g. by `scipy.sparse.coo_matrix`.
 
-    The coordinate system is specified by its "axes",
-    which is used to produce `self.Coord` (a `namedtuple` class).
+    The coordinate system is specified by its "axes":
+    a list of attributes defining the `namedtuple` `self.Coord`,
+    whose instances are the coordinates of the data.
 
     In normal use, this space is highly sparse,
     coz there are many coordinates with no matching experiment,
@@ -261,8 +278,7 @@ class SparseSpace(dict):
     -- not over the axes -- but over the the list of items.
 
     The most important method is `nest`,
-    which is used (by `xpSpace.table_tree`) to separate tables/columns,
-    and also to carry out the mean/optim operations.
+    which is used (by `xpSpace.table_tree`) to print and plot results.
 
     In addition, `__getitem__` is very flexible, allowing accessing by:
 

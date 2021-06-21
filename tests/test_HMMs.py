@@ -5,18 +5,15 @@ from importlib import import_module
 
 import pytest
 
-import dapper.tools.progressbar
 from dapper.dpr_config import rc
 from dapper.mods import HiddenMarkovModel
-
-dapper.tools.progressbar.disable_progbar = True
 
 
 def _defines_HMM(path):
 
-    # Don't run QG on Travis-CI or Tox
+    # Don't run QG on CI or Tox
     if "QG" in path.parts and (
-            os.environ.get("IS_TRAVIS", False) or
+            os.environ.get("IS_CI", False) or
             os.environ.get("IS_TOX", False)):
         return False
 

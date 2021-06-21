@@ -10,30 +10,35 @@
 
 <img src="/docs/imgs/logo_wtxt.png" align="left" width="250"/>
 
-DAPPER is a set of templates for benchmarking the performance of
-data assimilation (DA) methods.
+DAPPER is a set of templates for **benchmarking** the performance of
+**data assimilation** (DA) methods.
 The tests provide experimental support and guidance for
 new developments in DA.
-
 The typical set-up is a **synthetic (twin) experiment**, where you
+specify a dynamic model and an observational model,
+and use these to generate a synthetic truth (multivariate time series),
+and then estimate that truth given the models and noisy observations.
 
-- specify a
-  - dynamic model`*`
-  - observational model`*`
-- use these to generate a synthetic
-  - "truth"
-  - and observations thereof`*`
-- assess how different DA methods perform in estimating the truth,
-  given the above starred (`*`) items.
-
-[![Docs](https://img.shields.io/badge/Documentation%3F-yes-brightgreen.svg?style=for-the-badge&logo=github)](https://nansencenter.github.io/DAPPER)
-[![Travis](https://img.shields.io/travis/nansencenter/DAPPER/master?style=for-the-badge&logo=travis-ci&logoColor=white)](https://travis-ci.com/nansencenter/DAPPER)
+[![Github Actions](https://github.com/nansencenter/DAPPER/actions/workflows/tests.yml/badge.svg)](https://github.com/nansencenter/DAPPER/actions/workflows/tests.yml)
 [![Coveralls](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge&logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
-<!-- Inspiration: https://github.com/Naereen/badges
-It seems hits.dwyl.com is overloaded at the moment -->
+
+To get started, [install](#Installation),
+then read, run and try to understand `examples/basic_{1,2,3}.py`.
+Some of the examples can also be opened in Jupyter, and thereby run in the cloud
+(i.e. *without installation*, but requiring Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
+This [screencast](https://www.youtube.com/watch?v=YtalK0Zkzvg&t=6475s)
+provides an introduction.
+The [documentation](https://nansencenter.github.io/DAPPER)
+includes general guidelines and the API,
+but for any serious use you will want to read and adapt the code yourself.
+If you use it in a publication, please cite, e.g.,
+*The experiments used (inspiration from) DAPPER [ref], version 1.2.1*,
+where [ref] points to [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296).
+Lastly, for an introduction to DA theory also using Python,
+see these [tutorials](https://github.com/nansencenter/DA-tutorials).
 
 
 ## Highlights
@@ -66,35 +71,28 @@ Also see its [drawbacks](#similar-projects).
 
 Works on Linux/Windows/Mac.
 
-### Prerequisite: Python>=3.8
+### Prerequisite: Python>=3.7
 
-If you're not an admin or expert:  
+If you're an expert, setup a python environment however you like.
+Otherwise:
+Install [Anaconda](https://www.anaconda.com/download), then
+open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
+and run the following commands:
 
-- Install [Anaconda](https://www.anaconda.com/download).
-- Open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#starting-conda)
-  and run the following commands:
+```sh
+conda create --yes --name dapper-env python=3.8
+conda activate dapper-env
+python -c 'import sys; print("Version:", sys.version.split()[0])'
+```
 
-      conda create --yes --name my-env python=3.8
-      conda activate my-env
-      python -c 'import sys; print("Version:", sys.version.split()[0])'
-
-  Ensure the output at the end gives a version bigger than 3.8.  
-  Keep using the same terminal for the commands below.
+Ensure the output at the end gives a version bigger than 3.7.  
+*Keep using the same terminal for the commands below.*
 
 ### Install
 
-#### *Either*: Install as library
+#### *Either*: Install for development (recommended)
 
-*Do you just want to run a script that requires DAPPER?* Then
-
-- If the script comes with a `requirements.txt` file, then do  
-  `pip install -r path/to/requirements.txt`.
-- If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install DA-DAPPER==1.0.0` to get version `1.0.0` (as an example).
-
-#### *Or*: Install for development
-
-*Do you want the DAPPER code available play around with?* Then
+*Do you want the DAPPER code available to play around with?* Then
 
 - Download and unzip (or `git clone`) DAPPER.
 - Move the resulting folder wherever you like,  
@@ -102,6 +100,15 @@ If you're not an admin or expert:
   *(ensure you're in the folder with a `setup.py` file)*.
 - `pip install -e .[dev]`  
   You can omit `[dev]` if you don't need to do serious development.
+
+#### *Or*: Install as library
+
+*Do you just want to run a script that requires DAPPER?* Then
+
+- If the script comes with a `requirements.txt` file, then do  
+  `pip install -r path/to/requirements.txt`.
+- If not, hopefully you know the version of DAPPER needed. Run  
+  `pip install DA-DAPPER==1.0.0` to get version `1.0.0` (as an example).
 
 #### *Finally*: Test the installation
 
@@ -111,21 +118,8 @@ For example, if you are in the DAPPER dir,
 
     python examples/basic_1.py
 
-If you've closed the terminal (or shut down your computer),
-you first need to open the (anaconda) terminal and run this:
-
-    conda activate my-env
-
-## Quickstart
-
-Read, run, and understand the scripts `examples/basic_{1,2,3}.py`.
-Then, get familiar with the code.
-
-The [documentation](https://nansencenter.github.io/DAPPER)
-provides more information, and the API reference.
-
-Alternatively, [DA-tutorials](https://github.com/nansencenter/DA-tutorials)
-provides a python-based introduction to DA.
+**PS**: If you closed the terminal (or shut down your computer),
+you'll first need to run `conda activate dapper-env`
 
 
 ## DA methods
@@ -162,11 +156,10 @@ The particle filter is tuned with "effective-N monitoring",
 "regularization/jittering" strength, and more.
 
 For a list of ready-made experiments with suitable,
-tuned settings for a given method (e.g. the `iEnKS`), use gnu's grep:
+tuned settings for a given method (e.g. the `iEnKS`), use:
 
 ```sh
-cd dapper/mods
-grep -r "iEnKS.*("
+grep -r "xp.*iEnKS" dapper/mods
 ```
 
 
@@ -181,8 +174,9 @@ LotkaVolterra        | No  | Yes   | No    | 0d        | 5 *       | 1      | Wi
 Lorenz63             | No  | Yes   | "Yes" | 0d        | 3         | 2      | Sakov
 Lorenz84             | No  | Yes   | No    | 0d        | 3         | 2      | Raanes
 Lorenz96             | No  | Yes   | No    | 1d        | 40 *      | 13     | Raanes
-Vissio-Lucarino 20   | No  | Yes   | No    | 1d        | 36 *      | 10     | Yumeng
 LorenzUV             | No  | Yes   | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
+LorenzIII            | No  | No    | No    | 1d        | 960 *     | ≈164   | Raanes
+Vissio-Lucarino 20   | No  | Yes   | No    | 1d        | 36 *      | 10     | Yumeng
 Kuramoto-Sivashinsky | No  | Yes   | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
 Quasi-Geost (QG)     | No  | No    | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov
 
@@ -197,18 +191,16 @@ are usually named `authorYEAR.py` and define a `HMM` object,
 which holds the settings of a specific twin experiment,
 using that model,
 as detailed in the corresponding author/year's paper.
-At the bottom of each such file should be (in comments)
-a list of suitable, tuned settings for various DA methods,
-along with their expected, average rmse.a score for that experiment.
-The complete list of included experiment files can be obtained with
-gnu's `find`:
+A list of these files can be obtained using
 
 ```sh
-cd dapper/mods
-find . -iname '[a-z]*[0-9]*.py'
+find dapper/mods -iname '[a-z]*[0-9]*.py'
 ```
 
-Some of these files contain settings that have been used in several papers.
+Some files contain settings used by several papers.
+Moreover, at the bottom of each such file should be (in comments)
+a list of suitable, tuned settings for various DA methods,
+along with their expected, average `rmse.a` score for that experiment.
 As mentioned [above](#DA-methods), DAPPER reproduces literature results.
 You will also find results that were not reproduced by DAPPER.
 
@@ -223,51 +215,66 @@ Example of limitations:
   (although the Dyn and Obs models may otherwise be time-dependent).
 - Non-uniform time sequences not fully supported.
 
+The scope of DAPPER is restricted because
+
+![framework_to_language](https://latex.codecogs.com/gif.latex?%5Clim_%7B%5Ctext%7Bflexibility%7D%20%5Crightarrow%20%5Cinfty%7D%20%5Ctext%7Bframework%7D%20%3D%20%5Ctext%7Bprog.%20language%7D)
+
+Moreover, even straying beyond basic configurability appears [unrewarding](https://en.wikipedia.org/wiki/Flexibility%E2%80%93usability_tradeoff)
+when already building on a high-level language such as Python.
+Indeed, you may freely fork and modify the code of DAPPER,
+which should be seen as a set of templates, and not a framework.
+
 Also, DAPPER comes with no guarantees/support.
-Therefore, if you have an *operational* (real-world) application,
-such as WRF,
-you should look into one of the alternatives,
+Therefore, if you have an *operational* or real-world application,
+such as WRF, you should look into one of the alternatives,
 sorted by approximate project size.
 
 Name               | Developers            | Purpose (approximately)
 ------------------ | --------------------- | -----------------------------
-[DART][1]          | NCAR                  | Operational, general
-[PDAF][7]          | AWI                   | Operational, general
-[JEDI][21]         | JCSDA (NOAA, NASA, ++)| Operational, general (in develpmt?)
-[ERT][2]           | Statoil               | Operational, history matching (Petroleum)
-[OpenDA][3]        | TU Delft              | Operational, general
+[DART][1]          | NCAR                  | General
+[PDAF][7]          | AWI                   | General
+[JEDI][21]         | JCSDA (NOAA, NASA, ++)| General
+[OpenDA][3]        | TU Delft              | General
+[EMPIRE][4]        | Reading (Met)         | General
+[ERT][2]           | Statoil               | History matching (Petroleum DA)
+[PIPT][14]         | CIPR                  | History matching (Petroleum DA)
+[MIKE][9]          | DHI                   | Oceanographic
+[OAK][10]          | Liège                 | Oceanographic
+[Siroco][11]       | OMP                   | Oceanographic
 [Verdandi][6]      | INRIA                 | Biophysical DA
 [PyOSSE][8]        | Edinburgh, Reading    | Earth-observation DA
-[SANGOMA][5]       | Conglomerate*         | Unify DA research
-[EMPIRE][4]        | Reading (Met)         | Research (high-dim)
-[MIKE][9]          | DHI                   | Oceanographic. Commercial?
-[OAK][10]          | Liège                 | Oceaonagraphic
-[Siroco][11]       | OMP                   | Oceaonagraphic
-[FilterPy][12]     | R. Labbe              | Engineering, general intro to Kalman filter
-[DASoftware][13]   | Yue Li, Stanford      | Matlab, large-scale
-[Pomp][18]         | U of Michigan         | R, general state-estimation
-[PyIT][14]         | CIPR                  | Real-world petroleum DA (?)
-[EnKF-Matlab][15]  | Sakov                 | Matlab, personal publications and intro
-[EnKF-C][17]       | Sakov                 | C, light-weight EnKF, off-line
-[pyda][16]         | Hickman               | Python, personal publications
-[PyDA][19]         | Shady-Ahmed           | Python, Academic, research
-[DasPy][20]        | Xujun Han             | Python, Land applications
-Datum              | Raanes                | Matlab, personal publications
-IEnKS code         | Bocquet               | Python, personal publications
+
+Below is a list of projects with a purpose more similar to DAPPER's
+(research *in* DA, and not so much *using* DA):
+
+Name               | Developers             | Notes
+------------------ | ---------------------- | -----------------------------
+[DAPPER][22]       | Raanes, Chen, Grudzien | Python
+[SANGOMA][5]       | Conglomerate*          | Fortran, Matlab
+[FilterPy][12]     | R. Labbe               | Python. Engineering oriented.
+[DASoftware][13]   | Yue Li, Stanford       | Matlab. Large inverse probs.
+[Pomp][18]         | U of Michigan          | R
+[EnKF-Matlab][15]  | Sakov                  | Matlab
+[EnKF-C][17]       | Sakov                  | C. Light-weight, off-line DA
+[pyda][16]         | Hickman                | Python
+[PyDA][19]         | Shady-Ahmed            | Python
+[DasPy][20]        | Xujun Han              | Python
+Datum              | Raanes                 | Matlab
+IEnKS code         | Bocquet                | Python
 
 The `EnKF-Matlab` and `IEnKS` codes have been inspirational
 in the development of DAPPER.
 
-*: AWI/Liege/CNRS/NERSC/Reading/Delft
+`*`: AWI/Liege/CNRS/NERSC/Reading/Delft
 
-[1]:  http://www.image.ucar.edu/DAReS/DART/
+[1]:  https://www.image.ucar.edu/DAReS/DART/
 [2]:  https://github.com/equinor/ert
-[3]:  http://www.openda.org/
-[4]:  http://www.met.reading.ac.uk/~darc/empire/index.php
-[5]:  http://www.data-assimilation.net/
+[3]:  https://www.openda.org/
+[4]:  https://www.met.reading.ac.uk/~darc/empire/index.php
+[5]:  https://www.data-assimilation.net/
 [6]:  http://verdandi.sourceforge.net/
-[7]:  http://pdaf.awi.de/trac/wiki
-[8]:  http://www.geos.ed.ac.uk/~lfeng/
+[7]:  https://pdaf.awi.de/trac/wiki
+[8]:  https://www.geos.ed.ac.uk/~lfeng/
 [9]:  http://www.dhigroup.com/
 [10]: https://github.com/gher-ulg/OAK
 [11]: https://www5.obs-mip.fr/sirocco/assimilation-tools/sequoia-data-assimilation-platform/
@@ -281,6 +288,7 @@ in the development of DAPPER.
 [19]: https://github.com/Shady-Ahmed/PyDA
 [20]: https://github.com/daspy/daspy
 [21]: https://www.jcsda.noaa.gov/index.php
+[22]: https://github.com/nansencenter/DAPPER
 
 
 ## Contributors
@@ -291,21 +299,6 @@ Colin Grudzien,
 Maxime Tondeur,
 Remy Dubois
 
-If you use this software in a publication, please cite as follows.
-
-```bibtex
-@misc{raanes2018dapper,
-  author = {Patrick N. Raanes and others},
-  title  = {nansencenter/DAPPER: Version 0.8},
-  month  = December,
-  year   = 2018,
-  doi    = {10.5281/zenodo.2029296},
-  url    = {https://doi.org/10.5281/zenodo.2029296}
-}
-```
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296)
-
 DAPPER is developed and maintained at
 NORCE (Norwegian Research Institute)
 and the Nansen Environmental and Remote Sensing Center (NERSC),
@@ -314,16 +307,16 @@ and the UK National Centre for Earth Observation (NCEO)
 
 ![NORCE](./docs/imgs/norce-logo.png)
 ![NERSC](./docs/imgs/nansen-logo.png)
-<img src="https://github.com/yumengch/DAPPER/blob/dev1/docs/imgs/UoR-logo.png?raw=true" height="140" />
-<img src="https://nerc.ukri.org/nerc/assets/images/logos/nceo/nceologo1000.png" width="400">
+<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UoR-logo.png?raw=true" height="140" />
+<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/nceologo1000.png?raw=true" width="400">
 
 ## Publication list
 
 - <https://www.geosci-model-dev-discuss.net/gmd-2019-136/>
 - <https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.3386>
 - <https://www.nonlin-processes-geophys-discuss.net/npg-2019-10>
-- Stein
-- EmblAUS/Springer chapter
+- <https://link.springer.com/article/10.1007/s11004-021-09937-x>
+- <https://arxiv.org/abs/2010.07063>
 
 
 <!-- markdownlint-configure-file
