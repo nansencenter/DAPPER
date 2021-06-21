@@ -47,7 +47,7 @@ jobs:
         uses: actions/cache@v2
         if: ${{ env.DISTRIB == 'conda' }}
         with:
-          path: ${{ env.HOME }}/miniconda
+          path: ~/miniconda
           key: ${{ runner.os }}-miniconda-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-miniconda-
