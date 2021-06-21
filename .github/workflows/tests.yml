@@ -76,7 +76,7 @@ jobs:
         if: ${{ env.JOBTYPE == 'coverage' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: coveralls
+        run: coveralls --service=github
 
       - name: Cleanup
         run: /bin/bash tests/ci_cleanup.sh
