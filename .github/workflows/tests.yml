@@ -1,5 +1,5 @@
 ---
-name: Run unit tests and publish coverage
+name: superintendent
 on: push
 env:
   IS_CI: 'true'
