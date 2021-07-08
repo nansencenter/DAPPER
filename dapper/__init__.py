@@ -2,11 +2,12 @@
 
 ## Installation
 
-See the [README](https://github.com/nansencenter/DAPPER#Installation)
+See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
 
 ## Usage
-**Adapt one of the examples scripts to your needs.**
+See [README/Getting-started](https://github.com/nansencenter/DAPPER#Getting-started)
 
+Then, adapt one of the examples scripts to your needs.
 Fork DAPPER and make changes to its code if you need to
 (which is quite likely because the generality of DAPPER is limited)
 
@@ -96,7 +97,7 @@ The rendered docstrings can be browsed
 through the following links, which are also available in the left sidebar.
 """
 
-__version__ = "1.2.2"
+__version__ = "1.2.3"
 
 import sys
 

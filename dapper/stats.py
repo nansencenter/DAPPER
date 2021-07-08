@@ -694,7 +694,11 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    """Like `center`, but only return the anomalies (not the mean)."""
+    """Like `center`, but only return the anomalies (not the mean).
+
+    Uses `rescale=True` by default, which is beneficial
+    when used to center observation perturbations.
+    """
     return center(E, axis=axis, rescale=rescale)[0]
 
 

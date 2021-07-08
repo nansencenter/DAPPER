@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L0-L565" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L0-L528" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools for plotting.&#34;&#34;&#34;
 
@@ -52,7 +52,7 @@ from matplotlib import pyplot as plt
 from matplotlib import ticker
 from matplotlib.animation import FuncAnimation
 from matplotlib.ticker import MaxNLocator
-from mpl_tools.fig_layout import freshfig
+from mpl_tools import place
 from numpy import arange, array
 from patlib.std import find_1st_ind
 from scipy.interpolate import interp1d
@@ -137,7 +137,7 @@ def amplitude_animation(EE, dt=None, interval=1,
     repeat: bool, optional
         If True, repeat the animation. Default: False
     &#34;&#34;&#34;
-    fig, ax = freshfig(fignum)
+    fig, ax = place.freshfig(fignum or &#34;Amplitude animation&#34;)
     ax.set_xlabel(&#39;State index&#39;)
     ax.set_ylabel(&#39;Amplitue&#39;)
     ax.set_ylim(*stretch(*xtrema(EE), 1.1))
@@ -166,36 +166,6 @@ def amplitude_animation(EE, dt=None, interval=1,
     return FuncAnimation(fig, anim, range(K),
                          interval=interval, blit=blit,
                          repeat=repeat)
-
-
-def adjust_position(ax, adjust_extent=False, **kwargs):
-    &#34;&#34;&#34;Adjust (add) values of plot bounding box using get_position().
-
-    Parameters
-    ----------
-    ax: matplotlib.axes
-    adjust_extent: bool, optional
-        If true, do not adjust the coordinate of the bounding box.
-        Defaults: False
-    kwargs: dict
-        the keys must be `x0`, `y0`, `width`, `height`;
-        the values are length changes.
-    &#34;&#34;&#34;
-    # Load get_position into d
-    pos = ax.get_position()
-    d = {}
-    for key in [&#39;x0&#39;, &#39;y0&#39;, &#39;width&#39;, &#39;height&#39;]:
-        d[key] = getattr(pos, key)
-    # Make adjustments
-    for key, item in kwargs.items():
-        d[key] += item
-        if adjust_extent:
-            if key == &#39;x0&#39;:
-                d[&#39;width&#39;]  -= item
-            if key == &#39;y0&#39;:
-                d[&#39;height&#39;] -= item
-    # Set
-    ax.set_position(d.values())
 
 
 def xtrema(xx, axis=None):
@@ -393,7 +363,7 @@ def plot_hovmoller(xx, chrono=None, **kwargs):
     chrono: `dapper.tools.chronos.Chronology`, optional
         object with property dkObS. Defaults: None
     &#34;&#34;&#34;
-    fig, ax = freshfig(26, figsize=(4, 3.5))
+    fig, ax = place.freshfig(&#34;Hovmoller&#34;, figsize=(4, 3.5))
 
     if chrono is not None:
         mask = chrono.tt &lt;= chrono.Tplot*2
@@ -476,7 +446,7 @@ def plot_err_components(stats):
       the singular values (svals) correspond to rotated MADs,
       and because rms(umisf) seems to convoluted for interpretation.
     &#34;&#34;&#34;
-    fig, (ax0, ax1, ax2) = freshfig(25, figsize=(6, 6), nrows=3)
+    fig, (ax0, ax1, ax2) = place.freshfig(&#34;Error components&#34;, figsize=(6, 6), nrows=3)
 
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
@@ -537,7 +507,7 @@ def plot_rank_histogram(stats):
         hasattr(stats, &#39;rh&#39;) and \
         not all(stats.rh.a[-1] == array(np.nan).astype(int))
 
-    fig, ax = freshfig(24, figsize=(6, 3))
+    fig, ax = place.freshfig(&#34;Rank histogram&#34;, figsize=(6, 3))
     ax.set_title(&#39;(Mean of marginal) rank histogram (_a)&#39;)
     ax.set_ylabel(&#39;Freq. of occurence\n (of truth in interval n)&#39;)
     ax.set_xlabel(&#39;ensemble member index (n)&#39;)
@@ -568,13 +538,6 @@ def plot_rank_histogram(stats):
 
     plt.pause(0.1)
     plt.tight_layout()
-
-
-# TODO: rm
-def adjustable_box_or_forced():
-    &#34;&#34;&#34;For set_aspect(), adjustable=&#39;box-forced&#39; replaced by &#39;box&#39; since mpl 2.2.0.&#34;&#34;&#34;
-    from pkg_resources import parse_version as pv
-    return &#39;box-forced&#39; if pv(mpl.__version__) &lt; pv(&#34;2.2.0&#34;) else &#39;box&#39;
 
 
 def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
@@ -756,7 +719,7 @@ Default: "+1"</dd>
     repeat: bool, optional
         If True, repeat the animation. Default: False
     &#34;&#34;&#34;
-    fig, ax = freshfig(fignum)
+    fig, ax = place.freshfig(fignum or &#34;Amplitude animation&#34;)
     ax.set_xlabel(&#39;State index&#39;)
     ax.set_ylabel(&#39;Amplitue&#39;)
     ax.set_ylim(*stretch(*xtrema(EE), 1.1))
@@ -787,57 +750,6 @@ Default: "+1"</dd>
                          repeat=repeat)</code></pre>
 </details>
 </dd>
-<dt id="dapper.tools.viz.adjust_position"><code class="name flex">
-<span>def <span class="ident">adjust_position</span></span>(<span>ax, adjust_extent=False, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Adjust (add) values of plot bounding box using get_position().</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib.axes</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>adjust_extent</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>If true, do not adjust the coordinate of the bounding box.
-Defaults: False</dd>
-<dt><strong><code>kwargs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>the keys must be <code>x0</code>, <code>y0</code>, <code>width</code>, <code>height</code>;
-the values are length changes.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L127-L154" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def adjust_position(ax, adjust_extent=False, **kwargs):
-    &#34;&#34;&#34;Adjust (add) values of plot bounding box using get_position().
-
-    Parameters
-    ----------
-    ax: matplotlib.axes
-    adjust_extent: bool, optional
-        If true, do not adjust the coordinate of the bounding box.
-        Defaults: False
-    kwargs: dict
-        the keys must be `x0`, `y0`, `width`, `height`;
-        the values are length changes.
-    &#34;&#34;&#34;
-    # Load get_position into d
-    pos = ax.get_position()
-    d = {}
-    for key in [&#39;x0&#39;, &#39;y0&#39;, &#39;width&#39;, &#39;height&#39;]:
-        d[key] = getattr(pos, key)
-    # Make adjustments
-    for key, item in kwargs.items():
-        d[key] += item
-        if adjust_extent:
-            if key == &#39;x0&#39;:
-                d[&#39;width&#39;]  -= item
-            if key == &#39;y0&#39;:
-                d[&#39;height&#39;] -= item
-    # Set
-    ax.set_position(d.values())</code></pre>
-</details>
-</dd>
 <dt id="dapper.tools.viz.xtrema"><code class="name flex">
 <span>def <span class="ident">xtrema</span></span>(<span>xx, axis=None)</span>
 </code></dt>
@@ -860,7 +772,7 @@ the values are length changes.</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L157-L175" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L127-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def xtrema(xx, axis=None):
     &#34;&#34;&#34;Get minimum and maximum of a sequence.
@@ -910,7 +822,7 @@ Defaults: False</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L178-L206" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L148-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def stretch(a, b, factor=1, int_=False):
     &#34;&#34;&#34;Stretch distance `a-b` by factor.
@@ -962,7 +874,7 @@ Defaults: False</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L209-L227" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L179-L197" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def set_ilim(ax, i, Min=None, Max=None):
     &#34;&#34;&#34;Set bounds on axis i.
@@ -1013,7 +925,7 @@ Provide sensible fall-backs (better if chrono is supplied).</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L230-L279" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L200-L249" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def estimate_good_plot_length(xx, chrono=None, mult=100):
     &#34;&#34;&#34;Estimate the range of the xx slices for plotting.
@@ -1079,7 +991,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L282-L339" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L252-L309" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_pause(interval):
     &#34;&#34;&#34;Like `plt.pause`, but better.
@@ -1156,7 +1068,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L342-L372" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L312-L342" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_hovmoller(xx, chrono=None, **kwargs):
     &#34;&#34;&#34;Plot Hovmöller diagram.
@@ -1168,7 +1080,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
     chrono: `dapper.tools.chronos.Chronology`, optional
         object with property dkObS. Defaults: None
     &#34;&#34;&#34;
-    fig, ax = freshfig(26, figsize=(4, 3.5))
+    fig, ax = place.freshfig(&#34;Hovmoller&#34;, figsize=(4, 3.5))
 
     if chrono is not None:
         mask = chrono.tt &lt;= chrono.Tplot*2
@@ -1212,7 +1124,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L375-L394" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L345-L364" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def integer_hist(E, N, centrd=False, weights=None, **kwargs):
     &#34;&#34;&#34;Histogram for integers.
@@ -1253,7 +1165,7 @@ For that, use <code>plt.pause</code> or <code>plt.show</code> instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L397-L416" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L367-L386" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def not_available_text(ax, txt=None, fs=20):
     &#34;&#34;&#34;Plot given text on the figure
@@ -1300,7 +1212,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L419-L480" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L389-L450" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_err_components(stats):
     &#34;&#34;&#34;Plot components of the error.
@@ -1318,7 +1230,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
       the singular values (svals) correspond to rotated MADs,
       and because rms(umisf) seems to convoluted for interpretation.
     &#34;&#34;&#34;
-    fig, (ax0, ax1, ax2) = freshfig(25, figsize=(6, 6), nrows=3)
+    fig, (ax0, ax1, ax2) = place.freshfig(&#34;Error components&#34;, figsize=(6, 6), nrows=3)
 
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
@@ -1379,7 +1291,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L483-L526" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L453-L496" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot_rank_histogram(stats):
     &#34;&#34;&#34;Plot rank histogram of ensemble.
@@ -1394,7 +1306,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
         hasattr(stats, &#39;rh&#39;) and \
         not all(stats.rh.a[-1] == array(np.nan).astype(int))
 
-    fig, ax = freshfig(24, figsize=(6, 3))
+    fig, ax = place.freshfig(&#34;Rank histogram&#34;, figsize=(6, 3))
     ax.set_title(&#39;(Mean of marginal) rank histogram (_a)&#39;)
     ax.set_ylabel(&#39;Freq. of occurence\n (of truth in interval n)&#39;)
     ax.set_xlabel(&#39;ensemble member index (n)&#39;)
@@ -1427,22 +1339,6 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
     plt.tight_layout()</code></pre>
 </details>
 </dd>
-<dt id="dapper.tools.viz.adjustable_box_or_forced"><code class="name flex">
-<span>def <span class="ident">adjustable_box_or_forced</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>For set_aspect(), adjustable='box-forced' replaced by 'box' since mpl 2.2.0.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L530-L533" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def adjustable_box_or_forced():
-    &#34;&#34;&#34;For set_aspect(), adjustable=&#39;box-forced&#39; replaced by &#39;box&#39; since mpl 2.2.0.&#34;&#34;&#34;
-    from pkg_resources import parse_version as pv
-    return &#39;box-forced&#39; if pv(mpl.__version__) &lt; pv(&#34;2.2.0&#34;) else &#39;box&#39;</code></pre>
-</details>
-</dd>
 <dt id="dapper.tools.viz.axis_scale_by_array"><code class="name flex">
 <span>def <span class="ident">axis_scale_by_array</span></span>(<span>ax, arr, axis='y', nbins=3)</span>
 </code></dt>
@@ -1463,7 +1359,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L536-L566" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/viz.py#L499-L529" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def axis_scale_by_array(ax, arr, axis=&#39;y&#39;, nbins=3):
     &#34;&#34;&#34;Scale axis so that the arr entries appear equidistant.
@@ -1511,7 +1407,7 @@ and because rms(umisf) seems to convoluted for interpretation.</p>
 </a>
 </header>
 <div class="gcse-search" style="height: 70px"
-data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-as_oq="inurl:https://nansencenter.github.io/DAPPER"
 data-gaCategoryParameter="dapper.tools.viz">
 </div>
 <h1>Index</h1>
@@ -1528,7 +1424,6 @@ data-gaCategoryParameter="dapper.tools.viz">
 <ul class="">
 <li><code><a title="dapper.tools.viz.setup_wrapping" href="#dapper.tools.viz.setup_wrapping">setup_wrapping</a></code></li>
 <li><code><a title="dapper.tools.viz.amplitude_animation" href="#dapper.tools.viz.amplitude_animation">amplitude_animation</a></code></li>
-<li><code><a title="dapper.tools.viz.adjust_position" href="#dapper.tools.viz.adjust_position">adjust_position</a></code></li>
 <li><code><a title="dapper.tools.viz.xtrema" href="#dapper.tools.viz.xtrema">xtrema</a></code></li>
 <li><code><a title="dapper.tools.viz.stretch" href="#dapper.tools.viz.stretch">stretch</a></code></li>
 <li><code><a title="dapper.tools.viz.set_ilim" href="#dapper.tools.viz.set_ilim">set_ilim</a></code></li>
@@ -1539,7 +1434,6 @@ data-gaCategoryParameter="dapper.tools.viz">
 <li><code><a title="dapper.tools.viz.not_available_text" href="#dapper.tools.viz.not_available_text">not_available_text</a></code></li>
 <li><code><a title="dapper.tools.viz.plot_err_components" href="#dapper.tools.viz.plot_err_components">plot_err_components</a></code></li>
 <li><code><a title="dapper.tools.viz.plot_rank_histogram" href="#dapper.tools.viz.plot_rank_histogram">plot_rank_histogram</a></code></li>
-<li><code><a title="dapper.tools.viz.adjustable_box_or_forced" href="#dapper.tools.viz.adjustable_box_or_forced">adjustable_box_or_forced</a></code></li>
 <li><code><a title="dapper.tools.viz.axis_scale_by_array" href="#dapper.tools.viz.axis_scale_by_array">axis_scale_by_array</a></code></li>
 </ul>
 </li>

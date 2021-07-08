@@ -1,6 +1,6 @@
 ---
 name: superintendent
-on: push
+on: [push, pull_request]
 env:
   IS_CI: 'true'
   PYTHON_VERSION: '3.8'

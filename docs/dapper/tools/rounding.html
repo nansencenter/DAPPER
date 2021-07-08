@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L0-L259" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L0-L271" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Functions for rounding numbers.&#34;&#34;&#34;
 
@@ -102,6 +102,9 @@ class UncertainQtty():
     val: float
     prec: float
 
+    def __post_init__(self):
+        assert self.prec &gt;= 0. or np.isnan(self.prec), &#34;&#39;prec&#39; must be non-negative.&#34;
+
     def round(self=1.0):  # noqa
         &#34;&#34;&#34;Round intelligently.
 
@@ -148,6 +151,15 @@ class UncertainQtty():
         &#34;&#34;&#34;Essentially the same as `__str__`.&#34;&#34;&#34;
         v, c = str(self).split(&#34; ±&#34;)
         return self.__class__.__name__ + f&#34;(val={v}, prec={c})&#34;
+
+    @property
+    def prec(self):
+        return self._prec
+
+    @prec.setter
+    def prec(self, prec):
+        assert prec &gt;= 0. or np.isnan(prec), &#34;&#39;prec&#39; must be non-negative.&#34;
+        self._prec = prec
 
 
 def np_vectorize(f):
@@ -333,7 +345,7 @@ def is_whole(x, **kwargs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L109-L134" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L121-L146" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def np_vectorize(f):
     &#34;&#34;&#34;Like `np.vectorize`, but with some embellishments.
@@ -379,7 +391,7 @@ array([  -1,   -2,    0,    0,    1,  300, -300, -300])
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L150-L174" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L162-L186" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def log10int(x):
@@ -436,7 +448,7 @@ def log10int(x):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L177-L209" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L189-L221" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def round2(x, prec=1.0):
@@ -504,7 +516,7 @@ def round2(x, prec=1.0):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L212-L242" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L224-L254" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@np_vectorize
 def round2sigfig(x, sigfig=1):
@@ -558,7 +570,7 @@ def round2sigfig(x, sigfig=1):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L245-L260" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L257-L272" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def is_whole(x, **kwargs):
     &#34;&#34;&#34;Check if a number is a whole/natural number to precision given by `np.isclose`.
@@ -585,7 +597,7 @@ def round2sigfig(x, sigfig=1):
 <dl>
 <dt id="dapper.tools.rounding.UncertainQtty"><code class="flex name class">
 <span>class <span class="ident">UncertainQtty</span></span>
-<span>(</span><span>val: float, prec: float)</span>
+<span>(</span><span>val: float, prec: float = &lt;property object&gt;)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Data container associating uncertainty (confidence) to a quantity.</p>
@@ -630,7 +642,7 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L12-L106" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L12-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class UncertainQtty():
     &#34;&#34;&#34;Data container associating uncertainty (confidence) to a quantity.
@@ -681,6 +693,9 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
     val: float
     prec: float
 
+    def __post_init__(self):
+        assert self.prec &gt;= 0. or np.isnan(self.prec), &#34;&#39;prec&#39; must be non-negative.&#34;
+
     def round(self=1.0):  # noqa
         &#34;&#34;&#34;Round intelligently.
 
@@ -726,7 +741,16 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
     def __repr__(self):
         &#34;&#34;&#34;Essentially the same as `__str__`.&#34;&#34;&#34;
         v, c = str(self).split(&#34; ±&#34;)
-        return self.__class__.__name__ + f&#34;(val={v}, prec={c})&#34;</code></pre>
+        return self.__class__.__name__ + f&#34;(val={v}, prec={c})&#34;
+
+    @property
+    def prec(self):
+        return self._prec
+
+    @prec.setter
+    def prec(self, prec):
+        assert prec &gt;= 0. or np.isnan(prec), &#34;&#39;prec&#39; must be non-negative.&#34;
+        self._prec = prec</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -734,9 +758,21 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
 <dd>
 <div class="desc"></div>
 </dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
 <dt id="dapper.tools.rounding.UncertainQtty.prec"><code class="name">var <span class="ident">prec</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L111-L113" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@property
+def prec(self):
+    return self._prec</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -753,7 +789,7 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L61-L75" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L64-L78" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def round(self=1.0):  # noqa
     &#34;&#34;&#34;Round intelligently.
@@ -785,7 +821,7 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
 </a>
 </header>
 <div class="gcse-search" style="height: 70px"
-data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-as_oq="site:nansencenter.github.io/DAPPER"
 data-gaCategoryParameter="dapper.tools.rounding">
 </div>
 <h1>Index</h1>
@@ -813,8 +849,8 @@ data-gaCategoryParameter="dapper.tools.rounding">
 <h4><code><a title="dapper.tools.rounding.UncertainQtty" href="#dapper.tools.rounding.UncertainQtty">UncertainQtty</a></code></h4>
 <ul class="">
 <li><code><a title="dapper.tools.rounding.UncertainQtty.round" href="#dapper.tools.rounding.UncertainQtty.round">round</a></code></li>
-<li><code><a title="dapper.tools.rounding.UncertainQtty.val" href="#dapper.tools.rounding.UncertainQtty.val">val</a></code></li>
 <li><code><a title="dapper.tools.rounding.UncertainQtty.prec" href="#dapper.tools.rounding.UncertainQtty.prec">prec</a></code></li>
+<li><code><a title="dapper.tools.rounding.UncertainQtty.val" href="#dapper.tools.rounding.UncertainQtty.val">val</a></code></li>
 </ul>
 </li>
 </ul>

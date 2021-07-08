@@ -49,16 +49,17 @@ flakehell lint
 Example scripts are very useful, and contributions are very desirable.  As well
 as showcasing some feature, new examples should make sure to reproduce some
 published literature results.  After making the example, consider converting
-the script to the Jupyter notebook format, or vice versa. This should be done
-using the `jupytext` plug-in (with the lightscript format), so that the paired
-files can be kept in synch.
+the script to the Jupyter notebook format (or vice versa) so that the example
+can be run on Colab without users needing to install anything (see
+`examples/README.md`). This should be done using the `jupytext` plug-in (with
+the "lightscript" format), so that the paired files can be kept in synch.
 
 ## Documentation
 
 ### Update bib
 
 Copy new bibtex items into `docs/bib/refs.bib`,
-then convert to `bib.py` using
+then add it to `docs/bib/bib.py` using
 
 ```sh
 docs/bib/make_bib.py
@@ -168,20 +169,20 @@ git checkout dev1
 Install from `Test.PyPI`
 
 ```sh
-pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER
+pip install --extra-index-url https://test.pypi.org/simple/ dapper
 ```
 
 Install from `PyPI`
 
 ```sh
-pip install DA-DAPPER
+pip install dapper
 ```
 
 - Install into specific dir (includes all of the dependencies)  
-  `pip install DA-DAPPER -t MyDir`
+  `pip install dapper -t MyDir`
 
 - Install with options  
-  `pip install DA-DAPPER[Qt,MP]`
+  `pip install dapper[dev,Qt]`
 
 Install from local (makes installation accessible from everywhere)
 

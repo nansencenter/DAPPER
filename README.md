@@ -23,11 +23,13 @@ and then estimate that truth given the models and noisy observations.
 [![Github CI](https://img.shields.io/github/workflow/status/nansencenter/DAPPER/superintendent?logo=github&style=for-the-badge)](https://github.com/nansencenter/DAPPER/actions)
 [![Coveralls](https://img.shields.io/coveralls/github/nansencenter/DAPPER?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nansencenter/DAPPER?branch=master)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge&logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-[![PyPI - Version](https://img.shields.io/pypi/v/da-dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/da-dapper/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dw/da-dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/DA-DAPPER)
+[![PyPI - Version](https://img.shields.io/pypi/v/dapper.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.python.org/pypi/dapper/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dw/dapper?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/dapper)
 
-To get started, [install](#Installation),
-then read, run and try to understand `examples/basic_{1,2,3}.py`.
+## Getting started
+
+[Install](#Installation), then
+read, run and try to understand `examples/basic_{1,2,3}.py`.
 Some of the examples can also be opened in Jupyter, and thereby run in the cloud
 (i.e. *without installation*, but requiring Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
 This [screencast](https://www.youtube.com/watch?v=YtalK0Zkzvg&t=6475s)
@@ -109,7 +111,7 @@ Ensure the output at the end gives a version bigger than 3.7.
 - If the script comes with a `requirements.txt` file, then do  
   `pip install -r path/to/requirements.txt`.
 - If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install DA-DAPPER==1.0.0` to get version `1.0.0` (as an example).
+  `pip install dapper==1.0.0` to get version `1.2.3` (as an example).
 
 #### *Finally*: Test the installation
 
