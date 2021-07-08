@@ -27,7 +27,7 @@ import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
-from mpl_tools import is_notebook_or_qt, place
+from mpl_tools import is_notebook_or_qt, place, place_ax
 from numpy import arange, nan, ones
 from struct_tools import DotDict, deep_getattr
 
@@ -295,7 +295,7 @@ class sliding_diagnostics:
         for style, ax in zip(styles, axs):
             ax.set_ylabel(style)
         ax.set_xlabel('Time (t)')
-        viz.adjust_position(ax, y0=0.03)
+        place_ax.adjust_position(ax, y0=0.03)
 
         self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
 

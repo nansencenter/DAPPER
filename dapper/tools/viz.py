@@ -124,36 +124,6 @@ def amplitude_animation(EE, dt=None, interval=1,
                          repeat=repeat)
 
 
-def adjust_position(ax, adjust_extent=False, **kwargs):
-    """Adjust (add) values of plot bounding box using get_position().
-
-    Parameters
-    ----------
-    ax: matplotlib.axes
-    adjust_extent: bool, optional
-        If true, do not adjust the coordinate of the bounding box.
-        Defaults: False
-    kwargs: dict
-        the keys must be `x0`, `y0`, `width`, `height`;
-        the values are length changes.
-    """
-    # Load get_position into d
-    pos = ax.get_position()
-    d = {}
-    for key in ['x0', 'y0', 'width', 'height']:
-        d[key] = getattr(pos, key)
-    # Make adjustments
-    for key, item in kwargs.items():
-        d[key] += item
-        if adjust_extent:
-            if key == 'x0':
-                d['width']  -= item
-            if key == 'y0':
-                d['height'] -= item
-    # Set
-    ax.set_position(d.values())
-
-
 def xtrema(xx, axis=None):
     """Get minimum and maximum of a sequence.
 
