@@ -59,7 +59,7 @@ the "lightscript" format), so that the paired files can be kept in synch.
 ### Update bib
 
 Copy new bibtex items into `docs/bib/refs.bib`,
-then convert to `bib.py` using
+then add it to `docs/bib/bib.py` using
 
 ```sh
 docs/bib/make_bib.py
