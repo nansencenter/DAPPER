@@ -5,7 +5,7 @@
 import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
-from mpl_tools.fig_layout import freshfig
+from mpl_tools import place
 from numpy.random import randn
 
 import dapper.tools.series as series
@@ -150,7 +150,7 @@ xx = with_recursion(step, prog="Reference")(x, K, t0, dt)
 # ACF
 ########################
 # NB: Won't work with QG (too big, and BCs==0).
-fig, ax = freshfig("ACF")
+fig, ax = place.freshfig("ACF")
 if "ii" not in locals():
     ii = np.arange(min(100, Nx))
 if "nlags" not in locals():
@@ -196,7 +196,7 @@ print('mean: ', np.mean(xx))
 
 ##
 
-fig, ax = freshfig("Lyapunov exponents")
+fig, ax = place.freshfig("Lyapunov exponents")
 ax.plot(tt, running_LS, lw=1.2, alpha=0.7)
 ax.axhline(0, c="k")
 ax.set_title('Lyapunov Exponent estimates')
