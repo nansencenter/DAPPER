@@ -8,5 +8,5 @@
     # show_type_annotations = True
     # show_source_code = False
     latex_math = True
-    google_search_query = 'inurl:github.com/nansencenter/DAPPER  site:DAPPER.github.io'
+    google_search_query = 'inurl:https://nansencenter.github.io/DAPPER'
 %>
