@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DAPPER benchmarks the performance of data assimilation (DA) methods.
 
-It is best to install from source,
+It is usually best to install from source (github),
 so that you the code is readily available to play with.
 See full README on [github](https://github.com/nansencenter/DAPPER).
 """
