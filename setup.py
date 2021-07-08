@@ -78,7 +78,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     # Basic meta
-    name="DA-DAPPER",
+    name="dapper",
     version=find_version("dapper", "__init__.py"),
     author="Patrick N. Raanes",
     author_email="patrick.n.raanes@gmail.com",

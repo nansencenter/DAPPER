@@ -169,20 +169,20 @@ git checkout dev1
 Install from `Test.PyPI`
 
 ```sh
-pip install --extra-index-url https://test.pypi.org/simple/ DA-DAPPER
+pip install --extra-index-url https://test.pypi.org/simple/ dapper
 ```
 
 Install from `PyPI`
 
 ```sh
-pip install DA-DAPPER
+pip install dapper
 ```
 
 - Install into specific dir (includes all of the dependencies)  
-  `pip install DA-DAPPER -t MyDir`
+  `pip install dapper -t MyDir`
 
 - Install with options  
-  `pip install DA-DAPPER[Qt,MP]`
+  `pip install dapper[dev,Qt]`
 
 Install from local (makes installation accessible from everywhere)
 
