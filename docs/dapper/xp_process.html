@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L0-L1068" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L0-L1069" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Tools (notably `xpSpace`) for processing and presenting experiment data.&#34;&#34;&#34;
 
@@ -59,6 +59,7 @@ import matplotlib as mpl
 import numpy as np
 import struct_tools
 from matplotlib import cm, ticker
+from mpl_tools import place
 from patlib.std import set_tmp
 from tabulate import tabulate
 from tqdm.auto import tqdm
@@ -67,7 +68,7 @@ import dapper.tools.remote.uplink as uplink
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.rounding import UncertainQtty
-from dapper.tools.viz import axis_scale_by_array, freshfig
+from dapper.tools.viz import axis_scale_by_array
 from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
 
 mpl_logger = logging.getLogger(&#39;matplotlib&#39;)
@@ -1020,10 +1021,10 @@ class xpSpace(SparseSpace):
                 left=0.15/(1+np.log(ncols)),
                 right=0.97, bottom=0.06, top=0.9)
             # Create
-            _, panels = freshfig(num=fignum, figsize=figsize,
-                                 nrows=nrows, sharex=True,
-                                 ncols=ncols, sharey=&#39;row&#39;,
-                                 gridspec_kw=gs)
+            _, panels = place.freshfig(num=fignum, figsize=figsize,
+                                       nrows=nrows, sharex=True,
+                                       ncols=ncols, sharey=&#39;row&#39;,
+                                       gridspec_kw=gs)
             panels = np.ravel(panels).reshape((-1, ncols))
         else:
             panels = np.atleast_2d(panels)
@@ -1128,7 +1129,7 @@ def default_fig_adjustments(tables):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L34-L43" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L35-L44" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def make_label(coord, no_key=NO_KEY, exclude=()):
     dct = {a: v for a, v in coord._asdict().items() if v != None}
@@ -1150,7 +1151,7 @@ def default_fig_adjustments(tables):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L46-L86" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L47-L87" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def default_styles(coord, baseline_legends=False):
     &#34;&#34;&#34;Quick and dirty (but somewhat robust) styling.&#34;&#34;&#34;
@@ -1203,7 +1204,7 @@ def default_fig_adjustments(tables):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L89-L96" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L90-L97" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rel_index(elem, lst, default=None):
     &#34;&#34;&#34;`lst.index(elem) / len(lst)` with fallback.&#34;&#34;&#34;
@@ -1229,7 +1230,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L99-L117" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L100-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
     &#34;&#34;&#34;Discretize `cmap` so that it partitions `[0, 1]` into `N` segments.
@@ -1260,7 +1261,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L120-L132" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L121-L133" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
     &#34;&#34;&#34;Map cmap for `coord.axis ∈ [0, len(ticks)]`.&#34;&#34;&#34;
@@ -1285,7 +1286,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L135-L141" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L136-L142" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def in_idx(coord, indices, xp_dict, axis):
     &#34;&#34;&#34;Essentially: `coord.axis in ticks[indices]`.&#34;&#34;&#34;
@@ -1304,7 +1305,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L144-L154" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L145-L155" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def find_latest_run(root: Path):
     &#34;&#34;&#34;Find the latest experiment (dir containing many)&#34;&#34;&#34;
@@ -1327,7 +1328,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L157-L160" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L158-L161" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def load_HMM(save_as):
     save_as = Path(save_as).expanduser()
@@ -1343,7 +1344,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L163-L190" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L164-L191" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def load_xps(save_as):
     &#34;&#34;&#34;Load `xps` (as a simple list) from dir.&#34;&#34;&#34;
@@ -1402,7 +1403,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L193-L225" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L194-L226" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save_xps(xps, save_as, nDir=100):
     &#34;&#34;&#34;Split xps and save in save_as/i for i in range(nDir).
@@ -1447,7 +1448,7 @@ You can then re-label the ticks using
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L228-L241" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L229-L242" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def overwrite_xps(xps, save_as, nDir=100):
     &#34;&#34;&#34;Save xps in save_as, but safely (by first saving to tmp).&#34;&#34;&#34;
@@ -1479,7 +1480,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L244-L256" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L245-L257" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def reduce_inodes(save_as, nDir=100):
     &#34;&#34;&#34;Reduce the number of `xp` dirs
@@ -1504,7 +1505,7 @@ This is probably also the reason that the loading time is sometimes reduced.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L1035-L1069" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L1036-L1070" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def default_fig_adjustments(tables):
     &#34;&#34;&#34;Beautify. These settings do not generalize well.&#34;&#34;&#34;
@@ -1596,7 +1597,7 @@ for further convenience.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L259-L521" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L260-L522" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SparseSpace(dict):
     &#34;&#34;&#34;Subclass of `dict` that enforces key conformity to a given `namedtuple`.
@@ -1878,7 +1879,7 @@ for further convenience.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L300-L302" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L301-L303" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def axes(self):
@@ -1896,7 +1897,7 @@ def axes(self):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L324-L329" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L325-L330" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, *args, **kwargs):
     &#34;&#34;&#34;Update using custom `__setitem__`.&#34;&#34;&#34;
@@ -1917,7 +1918,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L386-L395" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L387-L396" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_for(self, ticks, default=None):
     &#34;&#34;&#34;Almost `[self.get(Coord(x)) for x in ticks]`.
@@ -1945,7 +1946,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L397-L417" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L398-L418" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def coords(self, **kwargs):
     &#34;&#34;&#34;Get all `coord`s matching kwargs.
@@ -1983,7 +1984,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L437-L471" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L438-L472" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def nest(self, inner_axes=None, outer_axes=None):
     &#34;&#34;&#34;Return a new xpSpace with axes `outer_axes`,
@@ -2030,7 +2031,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L473-L477" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L474-L478" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_axis(self, axis):
     self.__init__(self.axes+(axis,))
@@ -2048,7 +2049,7 @@ each one regrouping the entries with the same (projected) coordinate.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L479-L498" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L480-L499" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def intersect_axes(self, attrs):
     &#34;&#34;&#34;Rm those a in attrs that are not in self.axes.
@@ -2088,7 +2089,7 @@ preventing them from getting plotted in tuning panels.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L500-L521" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L501-L522" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def label_xSection(self, label, *NoneAttrs, **sub_coord):
     &#34;&#34;&#34;Insert duplicate entries for the cross section
@@ -2143,7 +2144,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L527-L1032" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L528-L1033" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class xpSpace(SparseSpace):
     &#34;&#34;&#34;Functionality to facilitate working with `xps` and their results.
@@ -2597,10 +2598,10 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
                 left=0.15/(1+np.log(ncols)),
                 right=0.97, bottom=0.06, top=0.9)
             # Create
-            _, panels = freshfig(num=fignum, figsize=figsize,
-                                 nrows=nrows, sharex=True,
-                                 ncols=ncols, sharey=&#39;row&#39;,
-                                 gridspec_kw=gs)
+            _, panels = place.freshfig(num=fignum, figsize=figsize,
+                                       nrows=nrows, sharex=True,
+                                       ncols=ncols, sharey=&#39;row&#39;,
+                                       gridspec_kw=gs)
             panels = np.ravel(panels).reshape((-1, ncols))
         else:
             panels = np.atleast_2d(panels)
@@ -2667,7 +2668,7 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L544-L585" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L545-L586" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def from_list(cls, xps):
@@ -2724,7 +2725,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L587-L603" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L588-L604" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def field(self, statkey=&#34;rmse.a&#34;):
     &#34;&#34;&#34;Extract `statkey` for each item in `self`.&#34;&#34;&#34;
@@ -2753,7 +2754,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L605-L632" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L606-L633" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean(self, axes=None):
     # Note: The case `axes=()` should work w/o special treatment.
@@ -2793,7 +2794,7 @@ def from_list(cls, xps):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L634-L663" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L635-L664" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tune(self, axes=None, costfun=None):
     &#34;&#34;&#34;Get (compile/tabulate) a stat field optimised wrt. tuning params.&#34;&#34;&#34;
@@ -2838,7 +2839,7 @@ Use <code>axis or ()</code> wherever tuples are required.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L665-L696" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L666-L697" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_axes(self, axes):
     &#34;&#34;&#34;Validate axes.
@@ -2898,7 +2899,7 @@ when optimizing over tuning_axes.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L698-L761" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L699-L762" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def table_tree(self, statkey, axes):
     &#34;&#34;&#34;Hierarchical nest(): xp_dict&gt;outer&gt;inner&gt;mean&gt;optim.
@@ -2974,7 +2975,7 @@ when optimizing over tuning_axes.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L763-L765" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L764-L766" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def tickz(self, axis_name):
     &#34;&#34;&#34;Axis ticks without None&#34;&#34;&#34;
@@ -3045,7 +3046,7 @@ If <code>None</code>, this is determined for each statistic by its uncertainty.<
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L767-L915" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L768-L916" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def print(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES,  # noqa
           subcols=True, decimals=None):
@@ -3214,7 +3215,7 @@ This can be prevented by providing the figure axes through the <code>panels</cod
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L917-L1032" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L918-L1033" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def plot(self, statkey=&#34;rmse.a&#34;, axes=AXES_ROLES, get_style=default_styles,
          fignum=None, figsize=None, panels=None,
@@ -3278,10 +3279,10 @@ This can be prevented by providing the figure axes through the <code>panels</cod
             left=0.15/(1+np.log(ncols)),
             right=0.97, bottom=0.06, top=0.9)
         # Create
-        _, panels = freshfig(num=fignum, figsize=figsize,
-                             nrows=nrows, sharex=True,
-                             ncols=ncols, sharey=&#39;row&#39;,
-                             gridspec_kw=gs)
+        _, panels = place.freshfig(num=fignum, figsize=figsize,
+                                   nrows=nrows, sharex=True,
+                                   ncols=ncols, sharey=&#39;row&#39;,
+                                   gridspec_kw=gs)
         panels = np.ravel(panels).reshape((-1, ncols))
     else:
         panels = np.atleast_2d(panels)
