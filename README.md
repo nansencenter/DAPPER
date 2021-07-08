@@ -111,7 +111,7 @@ Ensure the output at the end gives a version bigger than 3.7.
 - If the script comes with a `requirements.txt` file, then do  
   `pip install -r path/to/requirements.txt`.
 - If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install dapper==1.0.0` to get version `1.0.0` (as an example).
+  `pip install dapper==1.0.0` to get version `1.2.3` (as an example).
 
 #### *Finally*: Test the installation
 
