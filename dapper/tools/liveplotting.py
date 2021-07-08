@@ -1240,7 +1240,7 @@ def spatial2d(
                                   gridspec_kw=GS)
 
         for ax in axs.flatten():
-            ax.set_aspect('equal', viz.adjustable_box_or_forced())
+            ax.set_aspect('equal', 'box')
 
         ((ax_11, ax_12), (ax_21, ax_22)) = axs
 

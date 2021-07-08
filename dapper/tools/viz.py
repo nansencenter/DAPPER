@@ -496,13 +496,6 @@ def plot_rank_histogram(stats):
     plt.tight_layout()
 
 
-# TODO: rm
-def adjustable_box_or_forced():
-    """For set_aspect(), adjustable='box-forced' replaced by 'box' since mpl 2.2.0."""
-    from pkg_resources import parse_version as pv
-    return 'box-forced' if pv(mpl.__version__) < pv("2.2.0") else 'box'
-
-
 def axis_scale_by_array(ax, arr, axis='y', nbins=3):
     """Scale axis so that the arr entries appear equidistant.
 
