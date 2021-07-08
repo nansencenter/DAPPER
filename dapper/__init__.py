@@ -2,11 +2,12 @@
 
 ## Installation
 
-See the [README](https://github.com/nansencenter/DAPPER#Installation)
+See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
 
 ## Usage
-**Adapt one of the examples scripts to your needs.**
+See [README/Getting-started](https://github.com/nansencenter/DAPPER#Getting-started)
 
+Then, adapt one of the examples scripts to your needs.
 Fork DAPPER and make changes to its code if you need to
 (which is quite likely because the generality of DAPPER is limited)
 
