@@ -239,10 +239,10 @@ class LivePlot:
         if not self.skipping:
             faus = key[-1]
             if faus != 'u' or self.plot_u:
-                for _name, (updater) in self.figures.items():
-                    if plt.fignum_exists(_name) and \
+                for name, (updater) in self.figures.items():
+                    if plt.fignum_exists(name) and \
                             getattr(updater, 'is_active', 1):
-                        _ = plt.figure(_name)
+                        _ = plt.figure(name)
                         updater(key, E, P)
                         plot_pause(self.params['pause_'+faus])
 
