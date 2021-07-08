@@ -150,7 +150,7 @@ xx = with_recursion(step, prog="Reference")(x, K, t0, dt)
 # ACF
 ########################
 # NB: Won't work with QG (too big, and BCs==0).
-fig, ax = freshfig(4)
+fig, ax = freshfig("ACF")
 if "ii" not in locals():
     ii = np.arange(min(100, Nx))
 if "nlags" not in locals():
@@ -196,7 +196,7 @@ print('mean: ', np.mean(xx))
 
 ##
 
-fig, ax = freshfig(1)
+fig, ax = freshfig("Lyapunov exponents")
 ax.plot(tt, running_LS, lw=1.2, alpha=0.7)
 ax.axhline(0, c="k")
 ax.set_title('Lyapunov Exponent estimates')
