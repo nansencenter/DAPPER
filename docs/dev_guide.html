@@ -70,13 +70,14 @@ As well
 as showcasing some feature, new examples should make sure to reproduce some
 published literature results.
 After making the example, consider converting
-the script to the Jupyter notebook format, or vice versa. This should be done
-using the <code>jupytext</code> plug-in (with the lightscript format), so that the paired
-files can be kept in synch.</p>
+the script to the Jupyter notebook format (or vice versa) so that the example
+can be run on Colab without users needing to install anything (see
+<code>examples/README.md</code>). This should be done using the <code>jupytext</code> plug-in (with
+the "lightscript" format), so that the paired files can be kept in synch.</p>
 <h2 id="documentation">Documentation</h2>
 <h3 id="update-bib">Update bib</h3>
 <p>Copy new bibtex items into <code>docs/bib/refs.bib</code>,
-then convert to <code>bib.py</code> using</p>
+then add it to <code>docs/bib/bib.py</code> using</p>
 <pre><code class="language-sh">docs/bib/make_bib.py
 </code></pre>
 <h3 id="run-pdoc">Run pdoc</h3>
@@ -165,7 +166,7 @@ password: mypass
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/docs/dev_guide.py#L0-L191" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/docs/dev_guide.py#L0-L192" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;# Developer guide
 
@@ -218,16 +219,17 @@ flakehell lint
 Example scripts are very useful, and contributions are very desirable.  As well
 as showcasing some feature, new examples should make sure to reproduce some
 published literature results.  After making the example, consider converting
-the script to the Jupyter notebook format, or vice versa. This should be done
-using the `jupytext` plug-in (with the lightscript format), so that the paired
-files can be kept in synch.
+the script to the Jupyter notebook format (or vice versa) so that the example
+can be run on Colab without users needing to install anything (see
+`examples/README.md`). This should be done using the `jupytext` plug-in (with
+the &#34;lightscript&#34; format), so that the paired files can be kept in synch.
 
 ## Documentation
 
 ### Update bib
 
 Copy new bibtex items into `docs/bib/refs.bib`,
-then convert to `bib.py` using
+then add it to `docs/bib/bib.py` using
 
 ```sh
 docs/bib/make_bib.py
@@ -378,7 +380,7 @@ pip install -e .
 </a>
 </header>
 <div class="gcse-search" style="height: 70px"
-data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-as_oq="inurl:https://nansencenter.github.io/DAPPER"
 data-gaCategoryParameter="dev_guide">
 </div>
 <h1>Index</h1>

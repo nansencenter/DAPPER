@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L777" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L0-L781" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Stats computation for the assessment of DA methods.&#34;&#34;&#34;
 
@@ -738,7 +738,11 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    &#34;&#34;&#34;Like `center`, but only return the anomalies (not the mean).&#34;&#34;&#34;
+    &#34;&#34;&#34;Like `center`, but only return the anomalies (not the mean).
+
+    Uses `rescale=True` by default, which is beneficial
+    when used to center observation perturbations.
+    &#34;&#34;&#34;
     return center(E, axis=axis, rescale=rescale)[0]
 
 
@@ -1118,14 +1122,20 @@ where N is the ensemble size. Default: False</dd>
 <span>def <span class="ident">mean0</span></span>(<span>E, axis=0, rescale=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Like <code><a title="dapper.stats.center" href="#dapper.stats.center">center()</a></code>, but only return the anomalies (not the mean).</p></div>
+<div class="desc"><p>Like <code><a title="dapper.stats.center" href="#dapper.stats.center">center()</a></code>, but only return the anomalies (not the mean).</p>
+<p>Uses <code>rescale=True</code> by default, which is beneficial
+when used to center observation perturbations.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L696-L698" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L696-L702" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def mean0(E, axis=0, rescale=True):
-    &#34;&#34;&#34;Like `center`, but only return the anomalies (not the mean).&#34;&#34;&#34;
+    &#34;&#34;&#34;Like `center`, but only return the anomalies (not the mean).
+
+    Uses `rescale=True` by default, which is beneficial
+    when used to center observation perturbations.
+    &#34;&#34;&#34;
     return center(E, axis=axis, rescale=rescale)[0]</code></pre>
 </details>
 </dd>
@@ -1149,7 +1159,7 @@ where N is the ensemble size. Default: False</dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L701-L721" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L705-L725" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def inflate_ens(E, factor):
     &#34;&#34;&#34;Inflate the ensemble (center, inflate, re-combine).
@@ -1196,7 +1206,7 @@ should be nearly one since sum(w) = 1</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L724-L743" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L728-L747" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def weight_degeneracy(w, prec=1e-10):
     &#34;&#34;&#34;Check if the weights are degenerate.
@@ -1247,7 +1257,7 @@ The unbiasing factor is <span><span class="MathJax_Preview"> N_{eff} / (N_{eff} 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L746-L778" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/stats.py#L750-L782" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     &#34;&#34;&#34;Compute unbias-ing factor for variance estimation.
@@ -2311,7 +2321,7 @@ time inds for averaging</li>
 </a>
 </header>
 <div class="gcse-search" style="height: 70px"
-data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-as_oq="inurl:https://nansencenter.github.io/DAPPER"
 data-gaCategoryParameter="dapper.stats">
 </div>
 <h1>Index</h1>
