@@ -25,7 +25,7 @@ INSTALL_REQUIRES = [
     'matplotlib~=3.2.2',
     #    >=3.1 to avoid Mac's framework-build issues.
     #    But 3.4 does not work on Colab.
-    'mpl-tools==0.2.45',
+    'mpl-tools==0.2.46',
     'tqdm~=4.31',
     'pyyaml',
     'ipdb',
