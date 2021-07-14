@@ -29,11 +29,12 @@ __pdoc__ = {"demo": False}
 #########################
 try:
     from dapper.mods.QG.f90.py_mod import interface_mod as fortran
-except ImportError as err:
-    raise Exception(
-        "Have you compiled the (Fortran) model? "
-        f"See README in folder {modelling.rc.dirs.dapper}/mods/QG/f90"
-        "") from err
+except ImportError as error:
+    msg = error.args[0] + (
+        "\nHave you compiled the (Fortran) model? "
+        f"See README in {modelling.rc.dirs.dapper}/mods/QG/f90"
+        "")
+    raise ImportError(msg) from error
 
 default_prms = dict(
     # These parameters may be interesting to change.

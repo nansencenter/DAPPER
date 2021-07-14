@@ -58,6 +58,9 @@ class UncertainQtty():
     val: float
     prec: float
 
+    def __post_init__(self):
+        assert self.prec >= 0. or np.isnan(self.prec), "'prec' must be non-negative."
+
     def round(self=1.0):  # noqa
         """Round intelligently.
 
@@ -104,6 +107,15 @@ class UncertainQtty():
         """Essentially the same as `__str__`."""
         v, c = str(self).split(" ±")
         return self.__class__.__name__ + f"(val={v}, prec={c})"
+
+    @property
+    def prec(self):
+        return self._prec
+
+    @prec.setter
+    def prec(self, prec):
+        assert prec >= 0. or np.isnan(prec), "'prec' must be non-negative."
+        self._prec = prec
 
 
 def np_vectorize(f):

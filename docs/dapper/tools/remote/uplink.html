@@ -516,7 +516,7 @@ and that you've already logged into the instance once using (eg)
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L315-L329" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/remote/uplink.py#L315-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_ip(instance):
     &#34;&#34;&#34;Get ip-address of instance.
@@ -532,7 +532,19 @@ and that you've already logged into the instance once using (eg)
     getip = &#39;get(networkInterfaces[0].accessConfigs[0].natIP)&#39;
     ip = sub_run((f&#34;gcloud compute instances describe {instance}&#34;
                  f&#34; --format={getip}&#34;).split())
-    return ip.strip()</code></pre>
+    return ip.strip()
+
+    # # Parse ssh/config for the &#34;Host&#34; of condor-submit.
+    # # Q: how reliable/portable is it?
+    # from pathlib import Path
+    # with open(Path(&#34;~&#34;).expanduser()/&#34;.ssh&#34;/&#34;config&#34;) as ssh_config:
+    #     for ln in ssh_config:
+    #         if ln.startswith(&#34;Host condor-submit&#34;):
+    #             break
+    #     else:
+    #         raise RuntimeError(
+    #             &#34;Did not find condor-submit Host in .ssh/config.&#34;)
+    #     return ln[ln.index(&#34;condor&#34;):].strip()</code></pre>
 </details>
 </dd>
 <dt id="dapper.tools.remote.uplink.sub_run"><code class="name flex">
@@ -767,7 +779,7 @@ and that you've already logged into the instance once using (eg)
 </a>
 </header>
 <div class="gcse-search" style="height: 70px"
-data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-as_oq="inurl:github.com/nansencenter/DAPPER site:nansencenter.github.io/DAPPER"
 data-gaCategoryParameter="dapper.tools.remote.uplink">
 </div>
 <h1>Index</h1>

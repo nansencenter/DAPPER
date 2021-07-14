@@ -70,7 +70,8 @@ Path("bib.md").unlink()
 
 # Write bib.py
 with open("bib.py", "w") as bibfile:
-    def _print(*a,**b): print(*a, **b, file=bibfile)
+    def _print(*a, **b):
+        print(*a, **b, file=bibfile)
     _print('"""Bibliography/references."""')
     for key, block in ref_dict.items():
         _print("")

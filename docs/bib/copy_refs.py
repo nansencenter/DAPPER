@@ -3,32 +3,33 @@
 """
 Search DAPPER for `bib.someRef` and copy the entry from `references.bib`.
 
-Copies into `ref.bib` which can then be processed with `make_bib.py`.
+Copies into `refs.bib` which can then be processed with `make_bib.py`.
 
 Note: We don't want to merge these scripts
-because `ref.bib` can also be edited manually,
+because `refs.bib` can also be edited manually,
 and `references.bib` is my own centralized database.
 """
 
 import re
 from pathlib import Path
-from subprocess import run
-from textwrap import dedent
+# from subprocess import run
+# from textwrap import dedent
 import os
 from dapper.dpr_config import rc
 from dapper.tools.colors import coloring
 from colorama import Fore as CF
 from patlib.std import sub_run
 
+
 def parse_bib(bibfile):
-    "Parse .bib file into dict."
+    """Parse .bib file into dict."""
     bibfile = open(bibfile).readlines()
     refs = {}
     name = None
     for line in bibfile:
 
         if name:
-            # Append to current reference block  
+            # Append to current reference block
             refs[name].append(line)
 
             if line.lstrip().startswith("}"):
@@ -68,9 +69,7 @@ def parse_citations(file_list):
     # Strip `bib.`
     citations = {c.strip("`")[4:] for c in citations}
 
-
     return citations
-
 
 
 # Get list of files to search for references
@@ -85,15 +84,13 @@ refs_bib       = rc.dirs.DAPPER / "docs" / "bib" / "refs.bib"
 references = parse_bib(references_bib)
 refs       = parse_bib(refs_bib)
 
-
 # print(*gitfiles, sep="\n")
 # print(citations)
 # for k in references:
 #     print(k)
 #     print(*references[k])
 
-
-with open(refs_bib,"a") as out:
+with open(refs_bib, "a") as out:
     for c in citations:
 
         if c in refs:

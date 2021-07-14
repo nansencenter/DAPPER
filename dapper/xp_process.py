@@ -15,6 +15,7 @@ import matplotlib as mpl
 import numpy as np
 import struct_tools
 from matplotlib import cm, ticker
+from mpl_tools import place
 from patlib.std import set_tmp
 from tabulate import tabulate
 from tqdm.auto import tqdm
@@ -23,7 +24,7 @@ import dapper.tools.remote.uplink as uplink
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.rounding import UncertainQtty
-from dapper.tools.viz import axis_scale_by_array, freshfig
+from dapper.tools.viz import axis_scale_by_array
 from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
 
 mpl_logger = logging.getLogger('matplotlib')
@@ -976,10 +977,10 @@ class xpSpace(SparseSpace):
                 left=0.15/(1+np.log(ncols)),
                 right=0.97, bottom=0.06, top=0.9)
             # Create
-            _, panels = freshfig(num=fignum, figsize=figsize,
-                                 nrows=nrows, sharex=True,
-                                 ncols=ncols, sharey='row',
-                                 gridspec_kw=gs)
+            _, panels = place.freshfig(num=fignum, figsize=figsize,
+                                       nrows=nrows, sharex=True,
+                                       ncols=ncols, sharey='row',
+                                       gridspec_kw=gs)
             panels = np.ravel(panels).reshape((-1, ncols))
         else:
             panels = np.atleast_2d(panels)

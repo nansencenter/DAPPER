@@ -27,8 +27,7 @@ import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
-from mpl_tools import is_notebook_or_qt
-from mpl_tools.fig_layout import freshfig
+from mpl_tools import is_notebook_or_qt, place, place_ax
 from numpy import arange, nan, ones
 from struct_tools import DotDict, deep_getattr
 
@@ -239,10 +238,10 @@ class LivePlot:
         if not self.skipping:
             faus = key[-1]
             if faus != 'u' or self.plot_u:
-                for _name, (updater) in self.figures.items():
-                    if plt.fignum_exists(_name) and \
+                for name, (updater) in self.figures.items():
+                    if plt.fignum_exists(name) and \
                             getattr(updater, 'is_active', 1):
-                        _ = plt.figure(_name)
+                        _ = plt.figure(name)
                         updater(key, E, P)
                         plot_pause(self.params['pause_'+faus])
 
@@ -289,14 +288,14 @@ class sliding_diagnostics:
 
         nAx = len(styles)
         GS = {'left': 0.125, 'right': 0.76}
-        fig, axs = freshfig(fignum, figsize=(5, 1+nAx),
-                            nrows=nAx, sharex=True, gridspec_kw=GS)
+        fig, axs = place.freshfig(fignum, figsize=(5, 1+nAx),
+                                  nrows=nAx, sharex=True, gridspec_kw=GS)
 
         axs[0].set_title("Diagnostics")
         for style, ax in zip(styles, axs):
             ax.set_ylabel(style)
         ax.set_xlabel('Time (t)')
-        viz.adjust_position(ax, y0=0.03)
+        place_ax.adjust_position(ax, y0=0.03)
 
         self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
 
@@ -478,7 +477,7 @@ class weight_histogram:
         if not hasattr(stats, 'w'):
             self.is_active = False
             return
-        fig, ax = freshfig(fignum, figsize=(7, 3), gridspec_kw={'bottom': .15})
+        fig, ax = place.freshfig(fignum, figsize=(7, 3), gridspec_kw={'bottom': .15})
 
         ax.set_xscale('log')
         ax.set_xlabel('Weigth')
@@ -514,7 +513,7 @@ class spectral_errors:
     """Plots the (spatial-RMS) error as a functional of the SVD index."""
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
-        fig, ax = freshfig(fignum, figsize=(6, 3))
+        fig, ax = place.freshfig(fignum, figsize=(6, 3))
         ax.set_xlabel('Sing. value index')
         ax.set_yscale('log')
         self.init_incomplete = True
@@ -566,7 +565,7 @@ class correlations:
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {'height_ratios': [4, 1], 'hspace': 0.09, 'top': 0.95}
-        fig, (ax, ax2) = freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
+        fig, (ax, ax2) = place.freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
 
         if E is None and np.isnan(
                 P.diag if isinstance(P, CovMat) else P).all():
@@ -722,7 +721,7 @@ def sliding_marginals(
         Ny    = len(iiY)
 
         # Set up figure, axes
-        fig, axs = freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
+        fig, axs = place.freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
         if Nx == 1:
             axs = [axs]
 
@@ -872,7 +871,7 @@ def phase_particles(
         assert len(p.dims) == M
 
         # Set up figure, axes
-        fig, _ = freshfig(fignum, figsize=(5, 5))
+        fig, _ = place.freshfig(fignum, figsize=(5, 5))
         ax = plt.subplot(111, projection='3d' if is_3d else None)
         ax.set_facecolor('w')
         ax.set_title("Phase space trajectories")
@@ -1147,7 +1146,7 @@ def spatial1d(
         ii, wrap = viz.setup_wrapping(M, p.periodicity)
 
         # Set up figure, axes
-        fig, ax = freshfig(fignum, figsize=(8, 5))
+        fig, ax = place.freshfig(fignum, figsize=(8, 5))
         fig.suptitle("1d amplitude plot")
 
         # Nans
@@ -1236,11 +1235,12 @@ def spatial2d(
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {'left': 0.125-0.04, 'right': 0.9-0.04}
-        fig, axs = freshfig(fignum, figsize=(6, 6),
-                            nrows=2, ncols=2, sharex=True, sharey=True, gridspec_kw=GS)
+        fig, axs = place.freshfig(fignum, figsize=(6, 6),
+                                  nrows=2, ncols=2, sharex=True, sharey=True,
+                                  gridspec_kw=GS)
 
         for ax in axs.flatten():
-            ax.set_aspect('equal', viz.adjustable_box_or_forced())
+            ax.set_aspect('equal', 'box')
 
         ((ax_11, ax_12), (ax_21, ax_22)) = axs
 

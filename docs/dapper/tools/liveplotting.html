@@ -97,8 +97,7 @@ import scipy.linalg as sla
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.mplot3d.art3d import juggle_axes
-from mpl_tools import is_notebook_or_qt
-from mpl_tools.fig_layout import freshfig
+from mpl_tools import is_notebook_or_qt, place, place_ax
 from numpy import arange, nan, ones
 from struct_tools import DotDict, deep_getattr
 
@@ -309,10 +308,10 @@ class LivePlot:
         if not self.skipping:
             faus = key[-1]
             if faus != &#39;u&#39; or self.plot_u:
-                for _name, (updater) in self.figures.items():
-                    if plt.fignum_exists(_name) and \
+                for name, (updater) in self.figures.items():
+                    if plt.fignum_exists(name) and \
                             getattr(updater, &#39;is_active&#39;, 1):
-                        _ = plt.figure(_name)
+                        _ = plt.figure(name)
                         updater(key, E, P)
                         plot_pause(self.params[&#39;pause_&#39;+faus])
 
@@ -359,14 +358,14 @@ class sliding_diagnostics:
 
         nAx = len(styles)
         GS = {&#39;left&#39;: 0.125, &#39;right&#39;: 0.76}
-        fig, axs = freshfig(fignum, figsize=(5, 1+nAx),
-                            nrows=nAx, sharex=True, gridspec_kw=GS)
+        fig, axs = place.freshfig(fignum, figsize=(5, 1+nAx),
+                                  nrows=nAx, sharex=True, gridspec_kw=GS)
 
         axs[0].set_title(&#34;Diagnostics&#34;)
         for style, ax in zip(styles, axs):
             ax.set_ylabel(style)
         ax.set_xlabel(&#39;Time (t)&#39;)
-        viz.adjust_position(ax, y0=0.03)
+        place_ax.adjust_position(ax, y0=0.03)
 
         self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
 
@@ -548,7 +547,7 @@ class weight_histogram:
         if not hasattr(stats, &#39;w&#39;):
             self.is_active = False
             return
-        fig, ax = freshfig(fignum, figsize=(7, 3), gridspec_kw={&#39;bottom&#39;: .15})
+        fig, ax = place.freshfig(fignum, figsize=(7, 3), gridspec_kw={&#39;bottom&#39;: .15})
 
         ax.set_xscale(&#39;log&#39;)
         ax.set_xlabel(&#39;Weigth&#39;)
@@ -584,7 +583,7 @@ class spectral_errors:
     &#34;&#34;&#34;Plots the (spatial-RMS) error as a functional of the SVD index.&#34;&#34;&#34;
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
-        fig, ax = freshfig(fignum, figsize=(6, 3))
+        fig, ax = place.freshfig(fignum, figsize=(6, 3))
         ax.set_xlabel(&#39;Sing. value index&#39;)
         ax.set_yscale(&#39;log&#39;)
         self.init_incomplete = True
@@ -636,7 +635,7 @@ class correlations:
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {&#39;height_ratios&#39;: [4, 1], &#39;hspace&#39;: 0.09, &#39;top&#39;: 0.95}
-        fig, (ax, ax2) = freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
+        fig, (ax, ax2) = place.freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
 
         if E is None and np.isnan(
                 P.diag if isinstance(P, CovMat) else P).all():
@@ -792,7 +791,7 @@ def sliding_marginals(
         Ny    = len(iiY)
 
         # Set up figure, axes
-        fig, axs = freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
+        fig, axs = place.freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
         if Nx == 1:
             axs = [axs]
 
@@ -942,7 +941,7 @@ def phase_particles(
         assert len(p.dims) == M
 
         # Set up figure, axes
-        fig, _ = freshfig(fignum, figsize=(5, 5))
+        fig, _ = place.freshfig(fignum, figsize=(5, 5))
         ax = plt.subplot(111, projection=&#39;3d&#39; if is_3d else None)
         ax.set_facecolor(&#39;w&#39;)
         ax.set_title(&#34;Phase space trajectories&#34;)
@@ -1217,7 +1216,7 @@ def spatial1d(
         ii, wrap = viz.setup_wrapping(M, p.periodicity)
 
         # Set up figure, axes
-        fig, ax = freshfig(fignum, figsize=(8, 5))
+        fig, ax = place.freshfig(fignum, figsize=(8, 5))
         fig.suptitle(&#34;1d amplitude plot&#34;)
 
         # Nans
@@ -1306,11 +1305,12 @@ def spatial2d(
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {&#39;left&#39;: 0.125-0.04, &#39;right&#39;: 0.9-0.04}
-        fig, axs = freshfig(fignum, figsize=(6, 6),
-                            nrows=2, ncols=2, sharex=True, sharey=True, gridspec_kw=GS)
+        fig, axs = place.freshfig(fignum, figsize=(6, 6),
+                                  nrows=2, ncols=2, sharex=True, sharey=True,
+                                  gridspec_kw=GS)
 
         for ax in axs.flatten():
-            ax.set_aspect(&#39;equal&#39;, viz.adjustable_box_or_forced())
+            ax.set_aspect(&#39;equal&#39;, &#39;box&#39;)
 
         ((ax_11, ax_12), (ax_21, ax_22)) = axs
 
@@ -1431,7 +1431,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L452-L471" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L451-L470" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_xlim(ax, tt, lag, margin=False):
     dt = lag/20 if margin else 0
@@ -1464,7 +1464,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L662-L677" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L661-L676" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def circulant_ACF(C, do_abs=False):
     &#34;&#34;&#34;Compute the auto-covariance-function corresponding to `C`.
@@ -1492,7 +1492,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L680-L830" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L679-L829" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sliding_marginals(
     obs_inds     = (),
@@ -1539,7 +1539,7 @@ default_liveplotters = [
         Ny    = len(iiY)
 
         # Set up figure, axes
-        fig, axs = freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
+        fig, axs = place.freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
         if Nx == 1:
             axs = [axs]
 
@@ -1655,7 +1655,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L833-L966" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L832-L965" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def phase_particles(
     is_3d        = True,
@@ -1699,7 +1699,7 @@ default_liveplotters = [
         assert len(p.dims) == M
 
         # Set up figure, axes
-        fig, _ = freshfig(fignum, figsize=(5, 5))
+        fig, _ = place.freshfig(fignum, figsize=(5, 5))
         ax = plt.subplot(111, projection=&#39;3d&#39; if is_3d else None)
         ax.set_facecolor(&#39;w&#39;)
         ax.set_title(&#34;Phase space trajectories&#34;)
@@ -1806,7 +1806,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L969-L994" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L968-L993" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def validate_lag(Tplot, chrono):
     &#34;&#34;&#34;Return validated `T_lag` such that is is:
@@ -1844,7 +1844,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L997-L1001" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L996-L1000" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def comp_K_plot(K_lag, a_lag, plot_u):
     K_plot = 2*a_lag     # Sum of lags of {f,a} series.
@@ -1861,7 +1861,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1004-L1027" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1003-L1026" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update_alpha(key, stats, lines, scatters=None):
     &#34;&#34;&#34;Adjust color alpha (for particle filters).&#34;&#34;&#34;
@@ -1897,7 +1897,7 @@ default_liveplotters = [
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1030-L1050" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1029-L1049" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
     &#34;&#34;&#34;Particle filter: insert breaks for resampled particles.&#34;&#34;&#34;
@@ -1953,7 +1953,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1056-L1119" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1055-L1118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
     &#34;&#34;&#34;Provide new ylim&#39;s intelligently, from percentiles of the data.
@@ -2029,7 +2029,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1122-L1225" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1121-L1224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial1d(
     obs_inds     = None,
@@ -2059,7 +2059,7 @@ because there's usually not that much data to sort through.</p></div>
         ii, wrap = viz.setup_wrapping(M, p.periodicity)
 
         # Set up figure, axes
-        fig, ax = freshfig(fignum, figsize=(8, 5))
+        fig, ax = place.freshfig(fignum, figsize=(8, 5))
         fig.suptitle(&#34;1d amplitude plot&#34;)
 
         # Nans
@@ -2145,7 +2145,7 @@ because there's usually not that much data to sort through.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1228-L1335" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L1227-L1335" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial2d(
     square,
@@ -2158,11 +2158,12 @@ because there's usually not that much data to sort through.</p></div>
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {&#39;left&#39;: 0.125-0.04, &#39;right&#39;: 0.9-0.04}
-        fig, axs = freshfig(fignum, figsize=(6, 6),
-                            nrows=2, ncols=2, sharex=True, sharey=True, gridspec_kw=GS)
+        fig, axs = place.freshfig(fignum, figsize=(6, 6),
+                                  nrows=2, ncols=2, sharex=True, sharey=True,
+                                  gridspec_kw=GS)
 
         for ax in axs.flatten():
-            ax.set_aspect(&#39;equal&#39;, viz.adjustable_box_or_forced())
+            ax.set_aspect(&#39;equal&#39;, &#39;box&#39;)
 
         ((ax_11, ax_12), (ax_21, ax_22)) = axs
 
@@ -2301,7 +2302,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L46-L257" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L45-L256" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class LivePlot:
     &#34;&#34;&#34;Live plotting manager.
@@ -2499,10 +2500,10 @@ plt.draw() to work on a moderately fast computer.</li>
         if not self.skipping:
             faus = key[-1]
             if faus != &#39;u&#39; or self.plot_u:
-                for _name, (updater) in self.figures.items():
-                    if plt.fignum_exists(_name) and \
+                for name, (updater) in self.figures.items():
+                    if plt.fignum_exists(name) and \
                             getattr(updater, &#39;is_active&#39;, 1):
-                        _ = plt.figure(_name)
+                        _ = plt.figure(name)
                         updater(key, E, P)
                         plot_pause(self.params[&#39;pause_&#39;+faus])
 
@@ -2526,7 +2527,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L179-L257" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L178-L256" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update(self, key, E, P):
     &#34;&#34;&#34;Update liveplots&#34;&#34;&#34;
@@ -2591,10 +2592,10 @@ plt.draw() to work on a moderately fast computer.</li>
     if not self.skipping:
         faus = key[-1]
         if faus != &#39;u&#39; or self.plot_u:
-            for _name, (updater) in self.figures.items():
-                if plt.fignum_exists(_name) and \
+            for name, (updater) in self.figures.items():
+                if plt.fignum_exists(name) and \
                         getattr(updater, &#39;is_active&#39;, 1):
-                    _ = plt.figure(_name)
+                    _ = plt.figure(name)
                     updater(key, E, P)
                     plot_pause(self.params[&#39;pause_&#39;+faus])
 
@@ -2620,7 +2621,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L265-L449" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L264-L448" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class sliding_diagnostics:
     &#34;&#34;&#34;Plots a sliding window (like a heart rate monitor) of certain diagnostics.&#34;&#34;&#34;
@@ -2649,14 +2650,14 @@ plt.draw() to work on a moderately fast computer.</li>
 
         nAx = len(styles)
         GS = {&#39;left&#39;: 0.125, &#39;right&#39;: 0.76}
-        fig, axs = freshfig(fignum, figsize=(5, 1+nAx),
-                            nrows=nAx, sharex=True, gridspec_kw=GS)
+        fig, axs = place.freshfig(fignum, figsize=(5, 1+nAx),
+                                  nrows=nAx, sharex=True, gridspec_kw=GS)
 
         axs[0].set_title(&#34;Diagnostics&#34;)
         for style, ax in zip(styles, axs):
             ax.set_ylabel(style)
         ax.set_xlabel(&#39;Time (t)&#39;)
-        viz.adjust_position(ax, y0=0.03)
+        place_ax.adjust_position(ax, y0=0.03)
 
         self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
 
@@ -2818,7 +2819,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L474-L510" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L473-L509" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class weight_histogram:
     &#34;&#34;&#34;Plots histogram of weights. Refreshed each analysis.&#34;&#34;&#34;
@@ -2827,7 +2828,7 @@ plt.draw() to work on a moderately fast computer.</li>
         if not hasattr(stats, &#39;w&#39;):
             self.is_active = False
             return
-        fig, ax = freshfig(fignum, figsize=(7, 3), gridspec_kw={&#39;bottom&#39;: .15})
+        fig, ax = place.freshfig(fignum, figsize=(7, 3), gridspec_kw={&#39;bottom&#39;: .15})
 
         ax.set_xscale(&#39;log&#39;)
         ax.set_xlabel(&#39;Weigth&#39;)
@@ -2868,13 +2869,13 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L513-L558" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L512-L557" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class spectral_errors:
     &#34;&#34;&#34;Plots the (spatial-RMS) error as a functional of the SVD index.&#34;&#34;&#34;
 
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
-        fig, ax = freshfig(fignum, figsize=(6, 3))
+        fig, ax = place.freshfig(fignum, figsize=(6, 3))
         ax.set_xlabel(&#39;Sing. value index&#39;)
         ax.set_yscale(&#39;log&#39;)
         self.init_incomplete = True
@@ -2927,7 +2928,7 @@ plt.draw() to work on a moderately fast computer.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L561-L659" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/liveplotting.py#L560-L658" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class correlations:
     &#34;&#34;&#34;Plots the state (auto-)correlation matrix.&#34;&#34;&#34;
@@ -2937,7 +2938,7 @@ plt.draw() to work on a moderately fast computer.</li>
     def __init__(self, fignum, stats, key0, plot_u, E, P, **kwargs):
 
         GS = {&#39;height_ratios&#39;: [4, 1], &#39;hspace&#39;: 0.09, &#39;top&#39;: 0.95}
-        fig, (ax, ax2) = freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
+        fig, (ax, ax2) = place.freshfig(fignum, figsize=(5, 6), nrows=2, gridspec_kw=GS)
 
         if E is None and np.isnan(
                 P.diag if isinstance(P, CovMat) else P).all():
@@ -3048,7 +3049,7 @@ plt.draw() to work on a moderately fast computer.</li>
 </a>
 </header>
 <div class="gcse-search" style="height: 70px"
-data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-as_oq="inurl:github.com/nansencenter/DAPPER site:nansencenter.github.io/DAPPER"
 data-gaCategoryParameter="dapper.tools.liveplotting">
 </div>
 <h1>Index</h1>
