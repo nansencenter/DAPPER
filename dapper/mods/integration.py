@@ -15,11 +15,11 @@ from .utils import NamedFunc
 def rk4(f, x, t, dt, stages=4, s=0.0):
     """Runge-Kutta (explicit, non-adaptive) numerical (S)ODE solvers.
 
-    The rule has strong / weak convergence order 1.0 for generic SDEs and order 4.0 
-    convergence for ODEs when stages=4.  For stages=1, this becomes the Euler-Maruyama scheme
-    for SDEs (s > 0.0) with strong / weak convergence order 1.0 for SDEs with additive noise
-    as defined in the below. See `bib.grudzien2020numerical`.
-    
+    The rule has strong / weak convergence order 1.0 for generic SDEs and order 4.0
+    convergence for ODEs when stages=4.  For stages=1, this becomes the Euler-Maruyama
+    schemefor SDEs (s > 0.0) with strong / weak convergence order 1.0 for SDEs with
+    additive noise as defined in the below. See `bib.grudzien2020numerical`.
+
     Parameters
     ----------
     f : function
@@ -47,18 +47,18 @@ def rk4(f, x, t, dt, stages=4, s=0.0):
     ndarray
         State vector at the new time, `t+dt`
     """
-    
+
     if s > 0.0:
         # non-trivial diffusion, this defines the SDE integration with additive noise
         # generate perturbation for Brownian motion
         dims = np.shape(x)
 
         if len(dims) > 1:
-            N_e, N_x = dims
+            N_e, N_x , = dims
             W = np.sqrt(dt) * np.random.standard_normal(N_e, N_x)
 
         else:
-            N_x ,= dims
+            N_x , = dims
             W = np.sqrt(dt) * np.random.standard_normal(N_x)
 
         if stages >=1: k1 = dt * f(t       , x) + s * W             # noqa
