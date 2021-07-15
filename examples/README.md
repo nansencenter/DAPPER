@@ -7,7 +7,8 @@ Run them using `python examples/the_script.py`,
 or with the `%run` command inside `ipython`.
 Some of the scripts have also been converted to Jupyter notebooks (`.ipynb`).
 You can try them out without installing anything
-by pressing this button (but note that some plotting features won't work, and that ir requires a Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER) 
+by pressing this button (but note that some plotting features won't work,
+and that it requires a Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER)
 
 ## Description
 

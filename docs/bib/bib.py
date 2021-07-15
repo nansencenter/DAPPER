@@ -212,6 +212,12 @@ for supplementary weather observations: Simulation with a small
 model. *Journal of the Atmospheric Sciences*, 55(3): 399–414.
 """
 
+lorenz2005designing = None
+"""
+**Lorenz**, **Edward N** 2005 Designing chaotic models. *Journal
+of the Atmospheric Sciences*, 62(5): 1574–1587.
+"""
+
 mandel2016hybrid = None
 """
 **Mandel**, **J**, **Bergou**, **E**, **Gürol**, **S**,

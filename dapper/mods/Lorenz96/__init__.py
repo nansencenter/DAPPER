@@ -7,7 +7,7 @@ For a short introduction, see
 - `demo` and
 - "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials
 
-Note: the implementation is `ndim`-agnostic.
+Note: the implementation is `len(x)`-agnostic.
 """
 
 import numpy as np

@@ -4,7 +4,6 @@ import numpy as np
 import scipy.ndimage.filters as filters
 from matplotlib import pyplot as plt
 
-import dapper.tools.viz as viz
 from dapper.mods.QG import default_prms, nx, sample_filename, square
 from dapper.tools.progressbar import progbar
 
@@ -45,7 +44,7 @@ def compute_q(psi):
 ###########
 fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(8, 4))
 for ax in (ax1, ax2):
-    ax.set_aspect('equal', viz.adjustable_box_or_forced())
+    ax.set_aspect('equal', 'box')
 ax1.set_title(r'$\psi$')
 ax2.set_title('$q$')
 

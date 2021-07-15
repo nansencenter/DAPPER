@@ -35,12 +35,13 @@ def rk4(f, x, t, dt, stages=4, s=0):
         Integration time step.
 
     stages : int, optional
-        The number of stages of the RK method. Default: 4.  When stages=1, this becomes
-        Euler / Euler-Maruyama.
+        The number of stages of the RK method.
+        When stages=1, this becomes the Euler (-Maruyama) scheme.
+        Default: 4.
 
     s : float
-        The diffusion coeffient for models with additive noise. Default: 0 for
-        deterministic integration.
+        The diffusion coeffient (std. dev) for models with additive noise.
+        Default: 0, yielding deterministic integration.
 
     Returns
     -------

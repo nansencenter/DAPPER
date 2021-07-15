@@ -37,7 +37,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </header>
 <section id="section-intro">
 <p>A multi-scale, smooth version of the classic Lorenz-96.</p>
-<p>This is an implementation of "Model III" of <code>bib.lorenz2005designing</code>.</p>
+<p>This is an implementation of "Model III" of <code><a title="bib.lorenz2005designing" href="../../../bib.html#bib.lorenz2005designing">lorenz2005designing</a></code>.</p>
 <p>Similar to <code><a title="dapper.mods.LorenzUV" href="../LorenzUV/index.html">dapper.mods.LorenzUV</a></code> this model is designed
 to contain two different scales. However, in "Model III"
 the two scales are not kept separate, but superimposed,
@@ -278,7 +278,7 @@ def prodsum_K1(x, y):
 <span>def <span class="ident">summation_kernel</span></span>(<span>width)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Prepare computation of the modified sum in <code>bib.lorenz2005designing</code>.</p>
+<div class="desc"><p>Prepare computation of the modified sum in <code><a title="bib.lorenz2005designing" href="../../../bib.html#bib.lorenz2005designing">lorenz2005designing</a></code>.</p>
 <p>Note: This gets repeatedly called, but actually the input is only ever
 <code>width = K</code> or <code>2*J</code>, so we should really cache or pre-compute.
 But with default system parameters and N=50, the savings are negligible.</p></div>
@@ -309,7 +309,7 @@ But with default system parameters and N=50, the savings are negligible.</p></di
 <div class="desc"><p>Moving average (boxcar filter) on <code>x</code> using <code>n</code> nearest (periodically) elements.</p>
 <p>For symmetry, if <code>n</code> is pair, the actual number of elements used is <code>n+1</code>,
 and the outer elements weighted by 0.5 to compensate for the <code>+1</code>.</p>
-<p>This is the modified sum of <code>bib.lorenz2005designing</code>, used e.g. in eqn. 9.
+<p>This is the modified sum of <code><a title="bib.lorenz2005designing" href="../../../bib.html#bib.lorenz2005designing">lorenz2005designing</a></code>, used e.g. in eqn. 9.
 For intuition: this type of summation (and the associated Sigma prime notation)
 may also be found for the "Trapezoidal rule" and in the inverse DFT used in
 spectral methods on a periodic domain.</p>
@@ -451,7 +451,7 @@ compared to just calling this function again are negligible.</p></div>
 <span>def <span class="ident">prodsum_self</span></span>(<span>x, k)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute <code>prodsum(x, x, k)</code> efficiently: eqn 10 of <code>bib.lorenz2005designing</code>.</p></div>
+<div class="desc"><p>Compute <code>prodsum(x, x, k)</code> efficiently: eqn 10 of <code><a title="bib.lorenz2005designing" href="../../../bib.html#bib.lorenz2005designing">lorenz2005designing</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -664,7 +664,7 @@ class Model:
 </a>
 </header>
 <div class="gcse-search" style="height: 70px"
-data-as_oq="inurl:github.com/nansencenter/DAPPER site:DAPPER.github.io"
+data-as_oq="inurl:github.com/nansencenter/DAPPER site:nansencenter.github.io/DAPPER"
 data-gaCategoryParameter="dapper.mods.LorenzIII">
 </div>
 <h1>Index</h1>

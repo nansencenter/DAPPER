@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from matplotlib import ticker
 from matplotlib.animation import FuncAnimation
 from matplotlib.ticker import MaxNLocator
-from mpl_tools.fig_layout import freshfig
+from mpl_tools import place
 from numpy import arange, array
 from patlib.std import find_1st_ind
 from scipy.interpolate import interp1d
@@ -93,7 +93,7 @@ def amplitude_animation(EE, dt=None, interval=1,
     repeat: bool, optional
         If True, repeat the animation. Default: False
     """
-    fig, ax = freshfig(fignum)
+    fig, ax = place.freshfig(fignum or "Amplitude animation")
     ax.set_xlabel('State index')
     ax.set_ylabel('Amplitue')
     ax.set_ylim(*stretch(*xtrema(EE), 1.1))
@@ -122,36 +122,6 @@ def amplitude_animation(EE, dt=None, interval=1,
     return FuncAnimation(fig, anim, range(K),
                          interval=interval, blit=blit,
                          repeat=repeat)
-
-
-def adjust_position(ax, adjust_extent=False, **kwargs):
-    """Adjust (add) values of plot bounding box using get_position().
-
-    Parameters
-    ----------
-    ax: matplotlib.axes
-    adjust_extent: bool, optional
-        If true, do not adjust the coordinate of the bounding box.
-        Defaults: False
-    kwargs: dict
-        the keys must be `x0`, `y0`, `width`, `height`;
-        the values are length changes.
-    """
-    # Load get_position into d
-    pos = ax.get_position()
-    d = {}
-    for key in ['x0', 'y0', 'width', 'height']:
-        d[key] = getattr(pos, key)
-    # Make adjustments
-    for key, item in kwargs.items():
-        d[key] += item
-        if adjust_extent:
-            if key == 'x0':
-                d['width']  -= item
-            if key == 'y0':
-                d['height'] -= item
-    # Set
-    ax.set_position(d.values())
 
 
 def xtrema(xx, axis=None):
@@ -349,7 +319,7 @@ def plot_hovmoller(xx, chrono=None, **kwargs):
     chrono: `dapper.tools.chronos.Chronology`, optional
         object with property dkObS. Defaults: None
     """
-    fig, ax = freshfig(26, figsize=(4, 3.5))
+    fig, ax = place.freshfig("Hovmoller", figsize=(4, 3.5))
 
     if chrono is not None:
         mask = chrono.tt <= chrono.Tplot*2
@@ -432,7 +402,7 @@ def plot_err_components(stats):
       the singular values (svals) correspond to rotated MADs,
       and because rms(umisf) seems to convoluted for interpretation.
     """
-    fig, (ax0, ax1, ax2) = freshfig(25, figsize=(6, 6), nrows=3)
+    fig, (ax0, ax1, ax2) = place.freshfig("Error components", figsize=(6, 6), nrows=3)
 
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
@@ -493,7 +463,7 @@ def plot_rank_histogram(stats):
         hasattr(stats, 'rh') and \
         not all(stats.rh.a[-1] == array(np.nan).astype(int))
 
-    fig, ax = freshfig(24, figsize=(6, 3))
+    fig, ax = place.freshfig("Rank histogram", figsize=(6, 3))
     ax.set_title('(Mean of marginal) rank histogram (_a)')
     ax.set_ylabel('Freq. of occurence\n (of truth in interval n)')
     ax.set_xlabel('ensemble member index (n)')
@@ -524,13 +494,6 @@ def plot_rank_histogram(stats):
 
     plt.pause(0.1)
     plt.tight_layout()
-
-
-# TODO: rm
-def adjustable_box_or_forced():
-    """For set_aspect(), adjustable='box-forced' replaced by 'box' since mpl 2.2.0."""
-    from pkg_resources import parse_version as pv
-    return 'box-forced' if pv(mpl.__version__) < pv("2.2.0") else 'box'
 
 
 def axis_scale_by_array(ax, arr, axis='y', nbins=3):

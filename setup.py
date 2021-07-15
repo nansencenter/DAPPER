@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DAPPER benchmarks the performance of data assimilation (DA) methods.
 
-It is best to install from source,
+It is usually best to install from source (github),
 so that you the code is readily available to play with.
 See full README on [github](https://github.com/nansencenter/DAPPER).
 """
@@ -25,7 +25,7 @@ INSTALL_REQUIRES = [
     'matplotlib~=3.2.2',
     #    >=3.1 to avoid Mac's framework-build issues.
     #    But 3.4 does not work on Colab.
-    'mpl-tools==0.2.38',
+    'mpl-tools==0.2.46',
     'tqdm~=4.31',
     'pyyaml',
     'ipdb',
@@ -34,6 +34,7 @@ INSTALL_REQUIRES = [
     'dill==0.3.2',  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
     'patlib==0.3.5',
     'struct-tools==0.2.5',
+    # TODO 5: replace by p-tqdm?
     'multiprocessing-on-dill==3.5.0a4',
     'threadpoolctl==1.0.0',
 ]
@@ -77,7 +78,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     # Basic meta
-    name="DA-DAPPER",
+    name="dapper",
     version=find_version("dapper", "__init__.py"),
     author="Patrick N. Raanes",
     author_email="patrick.n.raanes@gmail.com",
