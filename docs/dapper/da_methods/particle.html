@@ -1084,9 +1084,10 @@ See <code><a title="bib.chen2003bayesian" href="../../bib.html#bib.chen2003bayes
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L23-L89" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L22-L89" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class PartFilt:
+<pre><code class="python">@particle_method
+class PartFilt:
     r&#34;&#34;&#34;Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
     Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
@@ -1257,9 +1258,10 @@ the bootstrap filter :func:<code><a title="dapper.da_methods.particle.PartFilt" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L93-L153" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L92-L153" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class OptPF:
+<pre><code class="python">@particle_method
+class OptPF:
     &#34;&#34;&#34;&#39;Optimal proposal&#39; particle filter, also known as &#39;Implicit particle filter&#39;.
 
     Ref: `bib.bocquet2010beyond`.
@@ -1436,9 +1438,10 @@ Similarly, by adjusting the weights we play on the bias-variance spectrum.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L157-L230" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L156-L230" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class PFa:
+<pre><code class="python">@particle_method
+class PFa:
     &#34;&#34;&#34;PF with weight adjustment withOUT compensating for the bias it introduces.
 
     &#39;alpha&#39; sets wroot before resampling such that N_effective becomes &gt;alpha*N.
@@ -1633,9 +1636,10 @@ Or maybe we should use x_a^n distributed according to a sqrt update?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L234-L353" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L233-L353" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class PFxN_EnKF:
+<pre><code class="python">@particle_method
+class PFxN_EnKF:
     &#34;&#34;&#34;Particle filter with EnKF-based proposal, q.
 
     Also employs xN duplication, as in PFxN.
@@ -1919,9 +1923,10 @@ without jittering.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L357-L425" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/particle.py#L356-L425" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class PFxN:
+<pre><code class="python">@particle_method
+class PFxN:
     &#34;&#34;&#34;Particle filter with buckshot duplication during analysis.
 
     Idea: sample xN duplicates from each of the N kernels.

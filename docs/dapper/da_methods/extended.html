@@ -186,9 +186,10 @@ Specifying it this way (per unit time) means less tuning.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L12-L58" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L11-L58" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class ExtKF:
+<pre><code class="python">@da_method()
+class ExtKF:
     &#34;&#34;&#34;The extended Kalman filter.
 
     If everything is linear-Gaussian, this provides the exact solution
@@ -304,9 +305,10 @@ Specifying it this way (per unit time) means less tuning.</li>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L63-L115" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/extended.py#L62-L115" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class ExtRTS:
+<pre><code class="python">@da_method()
+class ExtRTS:
     &#34;&#34;&#34;The extended Rauch-Tung-Striebel (or &#34;two-pass&#34;) smoother.&#34;&#34;&#34;
 
     infl: float = 1.0

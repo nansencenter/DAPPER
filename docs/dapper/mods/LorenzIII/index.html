@@ -499,9 +499,10 @@ working with multiple parameter settings simultaneously.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LorenzIII/__init__.py#L36-L89" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/LorenzIII/__init__.py#L35-L89" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class Model:
+<pre><code class="python">@dataclass
+class Model:
     &#34;&#34;&#34;The model configuration.
 
     Functionality that does not directly depend on the model parameters

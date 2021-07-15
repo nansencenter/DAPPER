@@ -40,7 +40,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L0-L197" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L0-L236" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Time stepping (integration) tools.&#34;&#34;&#34;
 
@@ -56,8 +56,13 @@ from .utils import NamedFunc
 
 
 # fmt: off
-def rk4(f, x, t, dt, order=4):
-    &#34;&#34;&#34;Runge-Kutta (explicit, non-adaptive) numerical ODE solvers.
+def rk4(f, x, t, dt, stages=4, s=0.0):
+    &#34;&#34;&#34;Runge-Kutta (explicit, non-adaptive) numerical (S)ODE solvers.
+
+    The rule has strong / weak convergence order 1.0 for generic SDEs and order 4.0
+    convergence for ODEs when stages=4.  For stages=1, this becomes the Euler-Maruyama
+    schemefor SDEs (s &gt; 0.0) with strong / weak convergence order 1.0 for SDEs with
+    additive noise as defined in the below. See `bib.grudzien2020numerical`.
 
     Parameters
     ----------
@@ -73,38 +78,72 @@ def rk4(f, x, t, dt, order=4):
     dt : float
         Integration time step.
 
-    order : int, optional
-        The order of RK method. Default: 4
+    stages : int, optional
+        The number of stages of the RK method. Default: 4.  When stages=1, this becomes
+        Euler / Euler-Maruyama.
+
+    s : float
+        The diffusion coeffient for models with additive noise. Default: 0 for
+        deterministic integration.
 
     Returns
     -------
     ndarray
         State vector at the new time, `t+dt`
     &#34;&#34;&#34;
-    if order &gt;=1: k1 = dt * f(t     , x)                        # noqa
-    if order &gt;=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
-    if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
-    if order ==4:                                               # noqa
-                  k3 = dt * f(t+dt/2, x+k2/2)                   # noqa
-                  k4 = dt * f(t+dt  , x+k3)                     # noqa
-    if    order ==1: return x + k1                              # noqa
-    elif  order ==2: return x + k2                              # noqa
-    elif  order ==3: return x + (k1 + 4*k2 + k3)/6              # noqa
-    elif  order ==4: return x + (k1 + 2*(k2 + k3) + k4)/6       # noqa
-    else: raise NotImplementedError                             # noqa
+
+    if s &gt; 0.0:
+        # non-trivial diffusion, this defines the SDE integration with additive noise
+        # generate perturbation for Brownian motion
+        dims = np.shape(x)
+
+        if len(dims) &gt; 1:
+            N_e, N_x , = dims
+            W = np.sqrt(dt) * np.random.standard_normal(N_e, N_x)
+
+        else:
+            N_x , = dims
+            W = np.sqrt(dt) * np.random.standard_normal(N_x)
+
+        if stages &gt;=1: k1 = dt * f(t       , x) + s * W             # noqa
+        if stages &gt;=2: k2 = dt * f(t+dt/2.0, x+k1/2.0) + s * W      # noqa
+        if stages ==3: k3 = dt * f(t+dt    , x+k2*2.0-k1) + s * W   # noqa
+        if stages ==4:                                              # noqa
+                      k3 = dt * f(t+dt/2.0, x+k2/2.0) + s * W       # noqa
+                      k4 = dt * f(t+dt    , x+k3) + s * W           # noqa
+        if    stages ==1: return x + k1                             # noqa
+        elif  stages ==2: return x + k2                             # noqa
+        elif  stages ==3: return x + (k1 + 4.0*k2 + k3)/6.0         # noqa
+        elif  stages ==4: return x + (k1 + 2.0*(k2 + k3) + k4)/6.0  # noqa
+        else: raise NotImplementedError                             # noqa
+
+    else:
+        # deterministic integration
+
+        if stages &gt;=1: k1 = dt * f(t       , x)                     # noqa
+        if stages &gt;=2: k2 = dt * f(t+dt/2.0, x+k1/2.0)              # noqa
+        if stages ==3: k3 = dt * f(t+dt    , x+k2*2.0-k1)           # noqa
+        if stages ==4:                                              # noqa
+                      k3 = dt * f(t+dt/2.0, x+k2/2.0)               # noqa
+                      k4 = dt * f(t+dt    , x+k3)                   # noqa
+        if    stages ==1: return x + k1                             # noqa
+        elif  stages ==2: return x + k2                             # noqa
+        elif  stages ==3: return x + (k1 + 4.0*k2 + k3)/6.0         # noqa
+        elif  stages ==4: return x + (k1 + 2.0*(k2 + k3) + k4)/6.0  # noqa
+        else: raise NotImplementedError                             # noqa
 # fmt: on
 
 
-def with_rk4(dxdt, autonom=False, order=4):
+def with_rk4(dxdt, autonom=False, stages=4, s=0.0):
     &#34;&#34;&#34;Wrap `dxdt` in `rk4`.&#34;&#34;&#34;
-    integrator = functools.partial(rk4, order=order)
+    integrator = functools.partial(rk4, stages=stages, s=s)
     if autonom:
         def step(x0, t0, dt):
             return integrator(lambda t, x: dxdt(x), x0, np.nan, dt)
     else:
         def step(x0, t0, dt):
             return integrator(dxdt, x0, t0, dt)
-    name = &#34;rk&#34;+str(order)+&#34; integration of &#34;+pretty_repr(dxdt)
+    name = &#34;rk&#34;+str(stages)+&#34; integration of &#34;+pretty_repr(dxdt)
     step = NamedFunc(step, name)
     return step
 
@@ -250,10 +289,15 @@ def FD_Jac(func, eps=1e-7):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="dapper.mods.integration.rk4"><code class="name flex">
-<span>def <span class="ident">rk4</span></span>(<span>f, x, t, dt, order=4)</span>
+<span>def <span class="ident">rk4</span></span>(<span>f, x, t, dt, stages=4, s=0.0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Runge-Kutta (explicit, non-adaptive) numerical ODE solvers.</p>
+<div class="desc"><p>Runge-Kutta (explicit, non-adaptive) numerical (S)ODE solvers.</p>
+<p>The rule has strong / weak convergence order 1.0 for generic SDEs and order 4.0
+convergence for ODEs when stages=4.
+For stages=1, this becomes the Euler-Maruyama
+schemefor SDEs (s &gt; 0.0) with strong / weak convergence order 1.0 for SDEs with
+additive noise as defined in the below. See <code><a title="bib.grudzien2020numerical" href="../../bib.html#bib.grudzien2020numerical">grudzien2020numerical</a></code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>f</code></strong> :&ensp;<code>function</code></dt>
@@ -264,8 +308,13 @@ def FD_Jac(func, eps=1e-7):
 <dd>Starting time of the integration</dd>
 <dt><strong><code>dt</code></strong> :&ensp;<code>float</code></dt>
 <dd>Integration time step.</dd>
-<dt><strong><code>order</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>The order of RK method. Default: 4</dd>
+<dt><strong><code>stages</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of stages of the RK method. Default: 4.
+When stages=1, this becomes
+Euler / Euler-Maruyama.</dd>
+<dt><strong><code>s</code></strong> :&ensp;<code>float</code></dt>
+<dd>The diffusion coeffient for models with additive noise. Default: 0 for
+deterministic integration.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -275,10 +324,15 @@ def FD_Jac(func, eps=1e-7):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L15-L50" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L15-L89" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def rk4(f, x, t, dt, order=4):
-    &#34;&#34;&#34;Runge-Kutta (explicit, non-adaptive) numerical ODE solvers.
+<pre><code class="python">def rk4(f, x, t, dt, stages=4, s=0.0):
+    &#34;&#34;&#34;Runge-Kutta (explicit, non-adaptive) numerical (S)ODE solvers.
+
+    The rule has strong / weak convergence order 1.0 for generic SDEs and order 4.0
+    convergence for ODEs when stages=4.  For stages=1, this becomes the Euler-Maruyama
+    schemefor SDEs (s &gt; 0.0) with strong / weak convergence order 1.0 for SDEs with
+    additive noise as defined in the below. See `bib.grudzien2020numerical`.
 
     Parameters
     ----------
@@ -294,47 +348,81 @@ def FD_Jac(func, eps=1e-7):
     dt : float
         Integration time step.
 
-    order : int, optional
-        The order of RK method. Default: 4
+    stages : int, optional
+        The number of stages of the RK method. Default: 4.  When stages=1, this becomes
+        Euler / Euler-Maruyama.
+
+    s : float
+        The diffusion coeffient for models with additive noise. Default: 0 for
+        deterministic integration.
 
     Returns
     -------
     ndarray
         State vector at the new time, `t+dt`
     &#34;&#34;&#34;
-    if order &gt;=1: k1 = dt * f(t     , x)                        # noqa
-    if order &gt;=2: k2 = dt * f(t+dt/2, x+k1/2)                   # noqa
-    if order ==3: k3 = dt * f(t+dt  , x+k2*2-k1)                # noqa
-    if order ==4:                                               # noqa
-                  k3 = dt * f(t+dt/2, x+k2/2)                   # noqa
-                  k4 = dt * f(t+dt  , x+k3)                     # noqa
-    if    order ==1: return x + k1                              # noqa
-    elif  order ==2: return x + k2                              # noqa
-    elif  order ==3: return x + (k1 + 4*k2 + k3)/6              # noqa
-    elif  order ==4: return x + (k1 + 2*(k2 + k3) + k4)/6       # noqa
-    else: raise NotImplementedError                             # noqa</code></pre>
+
+    if s &gt; 0.0:
+        # non-trivial diffusion, this defines the SDE integration with additive noise
+        # generate perturbation for Brownian motion
+        dims = np.shape(x)
+
+        if len(dims) &gt; 1:
+            N_e, N_x , = dims
+            W = np.sqrt(dt) * np.random.standard_normal(N_e, N_x)
+
+        else:
+            N_x , = dims
+            W = np.sqrt(dt) * np.random.standard_normal(N_x)
+
+        if stages &gt;=1: k1 = dt * f(t       , x) + s * W             # noqa
+        if stages &gt;=2: k2 = dt * f(t+dt/2.0, x+k1/2.0) + s * W      # noqa
+        if stages ==3: k3 = dt * f(t+dt    , x+k2*2.0-k1) + s * W   # noqa
+        if stages ==4:                                              # noqa
+                      k3 = dt * f(t+dt/2.0, x+k2/2.0) + s * W       # noqa
+                      k4 = dt * f(t+dt    , x+k3) + s * W           # noqa
+        if    stages ==1: return x + k1                             # noqa
+        elif  stages ==2: return x + k2                             # noqa
+        elif  stages ==3: return x + (k1 + 4.0*k2 + k3)/6.0         # noqa
+        elif  stages ==4: return x + (k1 + 2.0*(k2 + k3) + k4)/6.0  # noqa
+        else: raise NotImplementedError                             # noqa
+
+    else:
+        # deterministic integration
+
+        if stages &gt;=1: k1 = dt * f(t       , x)                     # noqa
+        if stages &gt;=2: k2 = dt * f(t+dt/2.0, x+k1/2.0)              # noqa
+        if stages ==3: k3 = dt * f(t+dt    , x+k2*2.0-k1)           # noqa
+        if stages ==4:                                              # noqa
+                      k3 = dt * f(t+dt/2.0, x+k2/2.0)               # noqa
+                      k4 = dt * f(t+dt    , x+k3)                   # noqa
+        if    stages ==1: return x + k1                             # noqa
+        elif  stages ==2: return x + k2                             # noqa
+        elif  stages ==3: return x + (k1 + 4.0*k2 + k3)/6.0         # noqa
+        elif  stages ==4: return x + (k1 + 2.0*(k2 + k3) + k4)/6.0  # noqa
+        else: raise NotImplementedError                             # noqa</code></pre>
 </details>
 </dd>
 <dt id="dapper.mods.integration.with_rk4"><code class="name flex">
-<span>def <span class="ident">with_rk4</span></span>(<span>dxdt, autonom=False, order=4)</span>
+<span>def <span class="ident">with_rk4</span></span>(<span>dxdt, autonom=False, stages=4, s=0.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Wrap <code>dxdt</code> in <code><a title="dapper.mods.integration.rk4" href="#dapper.mods.integration.rk4">rk4()</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L54-L65" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L93-L104" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def with_rk4(dxdt, autonom=False, order=4):
+<pre><code class="python">def with_rk4(dxdt, autonom=False, stages=4, s=0.0):
     &#34;&#34;&#34;Wrap `dxdt` in `rk4`.&#34;&#34;&#34;
-    integrator = functools.partial(rk4, order=order)
+    integrator = functools.partial(rk4, stages=stages, s=s)
     if autonom:
         def step(x0, t0, dt):
             return integrator(lambda t, x: dxdt(x), x0, np.nan, dt)
     else:
         def step(x0, t0, dt):
             return integrator(dxdt, x0, t0, dt)
-    name = &#34;rk&#34;+str(order)+&#34; integration of &#34;+pretty_repr(dxdt)
+    name = &#34;rk&#34;+str(stages)+&#34; integration of &#34;+pretty_repr(dxdt)
     step = NamedFunc(step, name)
     return step</code></pre>
 </details>
@@ -378,7 +466,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L68-L118" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L107-L157" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def with_recursion(func, prog=False):
     &#34;&#34;&#34;Make function recursive in its 1st arg.
@@ -469,7 +557,7 @@ True
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L121-L158" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L160-L197" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def integrate_TLM(TLM, dt, method=&#39;approx&#39;):
     r&#34;&#34;&#34;Compute the resolvent.
@@ -529,7 +617,7 @@ where, in the 2D case, each row is seen as one function input.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L161-L183" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/integration.py#L200-L222" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def FD_Jac(func, eps=1e-7):
     &#34;&#34;&#34;Finite-diff approx. of Jacobian of `func`.

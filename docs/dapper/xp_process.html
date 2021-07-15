@@ -1060,14 +1060,14 @@ class xpSpace(SparseSpace):
             # Beautify
             panel0 = table.panels[0]
             panel0.set_title(title)
-            if panel0.get_subplotspec().is_first_col():
+            if panel0.is_first_col():
                 panel0.set_ylabel(statkey)
             with set_tmp(mpl_logger, &#39;level&#39;, 99):  # silence &#34;no label&#34; msg
                 panel0.legend()
             table.panels[-1].set_xlabel(axes[&#34;inner&#34;][0])
             # Tuning panels:
             for a, panel in zip(axes[&#34;optim&#34;] or (), table.panels[1:]):
-                if panel.get_subplotspec().is_first_col():
+                if panel.is_first_col():
                     panel.set_ylabel(f&#34;Optim.\n{a}&#34;)
 
         tables.fig = fig
@@ -1945,7 +1945,7 @@ for the internal list.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L397-L409" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/xp_process.py#L397-L417" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def coords(self, **kwargs):
     &#34;&#34;&#34;Get all `coord`s matching kwargs.
@@ -1959,7 +1959,15 @@ for the internal list.</p></div>
     `SparseSpace.label_xSection`.
     &#34;&#34;&#34;
     def embed(coord): return {**kwargs, **coord._asdict()}
-    return [self.Coord(**embed(x)) for x in self[kwargs]]</code></pre>
+    return [self.Coord(**embed(x)) for x in self[kwargs]]
+
+    # Old implementation.
+    # - I prefer the new version for its re-use of __getitem__&#39;s
+    #   nesting, evidencing their mutual relationship)
+    # - Note that unlike xpList.inds(): missingval shenanigans
+    #   are here unnecessary coz each coordinate is complete.
+    # match  = lambda x: all(getattr(x,k)==kwargs[k] for k in kwargs)
+    # return [x for x in self if match(x)]</code></pre>
 </details>
 </dd>
 <dt id="dapper.xp_process.SparseSpace.nest"><code class="name flex">
@@ -2629,14 +2637,14 @@ both of which call <code><a title="dapper.xp_process.xpSpace.table_tree" href="#
             # Beautify
             panel0 = table.panels[0]
             panel0.set_title(title)
-            if panel0.get_subplotspec().is_first_col():
+            if panel0.is_first_col():
                 panel0.set_ylabel(statkey)
             with set_tmp(mpl_logger, &#39;level&#39;, 99):  # silence &#34;no label&#34; msg
                 panel0.legend()
             table.panels[-1].set_xlabel(axes[&#34;inner&#34;][0])
             # Tuning panels:
             for a, panel in zip(axes[&#34;optim&#34;] or (), table.panels[1:]):
-                if panel.get_subplotspec().is_first_col():
+                if panel.is_first_col():
                     panel.set_ylabel(f&#34;Optim.\n{a}&#34;)
 
         tables.fig = fig
@@ -3310,14 +3318,14 @@ This can be prevented by providing the figure axes through the <code>panels</cod
         # Beautify
         panel0 = table.panels[0]
         panel0.set_title(title)
-        if panel0.get_subplotspec().is_first_col():
+        if panel0.is_first_col():
             panel0.set_ylabel(statkey)
         with set_tmp(mpl_logger, &#39;level&#39;, 99):  # silence &#34;no label&#34; msg
             panel0.legend()
         table.panels[-1].set_xlabel(axes[&#34;inner&#34;][0])
         # Tuning panels:
         for a, panel in zip(axes[&#34;optim&#34;] or (), table.panels[1:]):
-            if panel.get_subplotspec().is_first_col():
+            if panel.is_first_col():
                 panel.set_ylabel(f&#34;Optim.\n{a}&#34;)
 
     tables.fig = fig

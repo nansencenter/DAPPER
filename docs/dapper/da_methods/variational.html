@@ -617,9 +617,10 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L27-L143" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L26-L143" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class iEnKS:
+<pre><code class="python">@var_method
+class iEnKS:
     &#34;&#34;&#34;Iterative EnKS.
 
     Special cases: EnRML, ES-MDA, iEnKF, EnKF `bib.raanes2019revising`.
@@ -854,7 +855,7 @@ Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
 </dd>
 <dt id="dapper.da_methods.variational.Var4D"><code class="flex name class">
 <span>class <span class="ident">Var4D</span></span>
-<span>(</span><span>B: Union[numpy.ndarray, NoneType] = None, xB: float = 1.0, Lag: int = 1, nIter: int = 10, wtol: float = 0)</span>
+<span>(</span><span>B: Optional[numpy.ndarray] = None, xB: float = 1.0, Lag: int = 1, nIter: int = 10, wtol: float = 0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>4D-Var.</p>
@@ -870,9 +871,10 @@ there is no benefit to the adjoint trick (back-propagation).
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L267-L376" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/variational.py#L266-L376" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class Var4D:
+<pre><code class="python">@var_method
+class Var4D:
     &#34;&#34;&#34;4D-Var.
 
     Cycling scheme is same as in iEnKS (i.e. the shift is always 1*kObs).
@@ -985,7 +987,7 @@ there is no benefit to the adjoint trick (back-propagation).
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="dapper.da_methods.variational.Var4D.B"><code class="name">var <span class="ident">B</span> : Union[numpy.ndarray, NoneType]</code></dt>
+<dt id="dapper.da_methods.variational.Var4D.B"><code class="name">var <span class="ident">B</span> : Optional[numpy.ndarray]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

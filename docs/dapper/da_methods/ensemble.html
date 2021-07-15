@@ -1646,9 +1646,10 @@ the distinction between the primal and dual EnKF-N.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L27-L56" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L26-L56" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnKF:
+<pre><code class="python">@ens_method
+class EnKF:
     &#34;&#34;&#34;The ensemble Kalman filter.
 
     Refs: `bib.evensen2009ensemble`.
@@ -1755,9 +1756,10 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L349-L406" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L348-L406" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnKS:
+<pre><code class="python">@ens_method
+class EnKS:
     &#34;&#34;&#34;The ensemble Kalman smoother.
 
     Refs: `bib.evensen2009ensemble`
@@ -1938,9 +1940,10 @@ is the management of the lag and the reshapings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L410-L455" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L409-L455" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnRTS:
+<pre><code class="python">@ens_method
+class EnRTS:
     &#34;&#34;&#34;EnRTS (Rauch-Tung-Striebel) smoother.
 
     Refs: `bib.raanes2016thesis`
@@ -2082,9 +2085,10 @@ to the <code><a title="dapper.da_methods.ensemble.EnKF" href="#dapper.da_methods
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L481-L550" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L480-L550" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class SL_EAKF:
+<pre><code class="python">@ens_method
+class SL_EAKF:
     &#34;&#34;&#34;Serial, covariance-localized EAKF.
 
     Refs: `bib.karspeck2007experimental`.
@@ -2276,9 +2280,10 @@ even with <code>batch_size=(1,)</code>. But for <code><a title="dapper.mods.QG" 
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L554-L657" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L553-L657" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class LETKF:
+<pre><code class="python">@ens_method
+class LETKF:
     &#34;&#34;&#34;Same as EnKF (sqrt), but with localization.
 
     Refs: `bib.hunt2007efficient`.
@@ -2553,9 +2558,10 @@ Further description in hyperprior_coeffs().</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L831-L981" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/da_methods/ensemble.py#L830-L981" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class EnKF_N:
+<pre><code class="python">@ens_method
+class EnKF_N:
     &#34;&#34;&#34;Finite-size EnKF (EnKF-N).
 
     Refs: `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`

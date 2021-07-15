@@ -630,9 +630,10 @@ Meanwhile, a NaN confidence yields printing using <code>rc.sigfig</code>:</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L12-L106" class="git-link">Browse git</a>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/tools/rounding.py#L11-L106" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class UncertainQtty():
+<pre><code class="python">@dataclass
+class UncertainQtty():
     &#34;&#34;&#34;Data container associating uncertainty (confidence) to a quantity.
 
     Includes intelligent rounding and printing functionality.
