@@ -27,9 +27,6 @@ __pdoc__ = {"demo": False}
 # energy injected into the system
 Force = 8.0
 
-# diffusion in the SDE process
-s = 0.05
-
 # ?
 Tplot = 10
 
@@ -50,14 +47,10 @@ def dxdt(x):
     return dxdt_autonomous(x) + Force
 
 
-def step(x0, t, dt):
-    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)
-
-
 ########################################################################################
 # 2nd order strong taylor SDE step
 
-def l96s_tay2_step(x, t, dt):
+def l96s_tay2_step(x, t, dt, s):
     """Steps forward state of L96s model by order 2.0 Taylor scheme
 
     This is the basic formulation which makes a Fourier truncation at p=1 for the simple
@@ -77,14 +70,14 @@ def l96s_tay2_step(x, t, dt):
 
     # draw standard normal sample to define the
     # recursive Stratonovich integral coefficients
-    rndm = np.random.standard_normal([sys_dim, 5])
-    xi = rndm[:, 0]
+    rndm = np.random.standard_normal([5, sys_dim])
+    xi = rndm[0, :]
 
-    mu = rndm[:, 1]
-    phi = rndm[:, 2]
+    mu = rndm[1, :]
+    phi = rndm[2, :]
 
-    zeta = rndm[:, 3]
-    eta = rndm[:, 4]
+    zeta = rndm[3, :]
+    eta = rndm[4, :]
 
     # define the auxiliary functions of random Fourier coefficients, a and b
     a = -2.0 * np.sqrt(dt * rho) * mu - np.sqrt(2.0*dt) * zeta  / np.pi
