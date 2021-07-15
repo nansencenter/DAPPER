@@ -12,7 +12,7 @@ from .utils import NamedFunc
 
 
 # fmt: off
-def rk4(f, x, t, dt, stages=4, s=0.0):
+def rk4(f, x, t, dt, stages=4, s=0):
     """Runge-Kutta (explicit, non-adaptive) numerical (S)ODE solvers.
 
     The rule has strong / weak convergence order 1.0 for generic SDEs and order 4.0
@@ -48,14 +48,14 @@ def rk4(f, x, t, dt, stages=4, s=0.0):
         State vector at the new time, `t+dt`
     """
 
-    if s > 0.0:
+    if s > 0:
         # non-trivial diffusion, this defines the SDE integration with additive noise
         # generate perturbation for Brownian motion
         dims = np.shape(x)
 
         if len(dims) > 1:
             N_e, N_x , = dims
-            W = np.sqrt(dt) * np.random.standard_normal(N_e, N_x)
+            W = np.sqrt(dt) * np.random.standard_normal([N_e, N_x])
 
         else:
             N_x , = dims
