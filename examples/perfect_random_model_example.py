@@ -26,7 +26,7 @@ xx, yy = HMM_truth.simulate()
 
 # note - the truth twin takes twice the number of the integration steps
 # as the model twin in this configuration
-xx = xx[0::2, :]
+xx = xx[::2]
 
 # #### Specify a DA method configuration ("xp" for "experiment")
 
