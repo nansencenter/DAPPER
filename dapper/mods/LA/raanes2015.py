@@ -39,7 +39,7 @@ except FileNotFoundError:
     A         = sinusoidal_sample(Nx, wnumQ, NQ)
     A         = 1/10 * (A - A.mean(0)) / np.sqrt(NQ)
     Q         = A.T @ A
-    U, s, _     = tsvd(Q)
+    U, s, _   = tsvd(Q)
     L         = U*np.sqrt(s)
     np.savez(sample_filename, Left=L)
 

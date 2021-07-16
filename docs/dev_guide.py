@@ -1,5 +1,36 @@
 """# Developer guide
 
+## Conventions
+
+- Python version `>=3.7` for `dict`'s to maintain ordering.
+- Ensemble (data) matrices are `np.ndarrays` with shape `N-by-Nx`.
+  This shape (orientation) is contrary to the EnKF literature,
+  but has the following advantages:
+    - Improves speed in row-by-row accessing,
+      since that's `np`'s default orientation.
+    - Facilitates broadcasting for, e.g. centring the matrix.
+    - Fewer indices: `[n,:]` yields same as `[n]`
+    - Beneficial operator precedence without `()`.
+      E.g. `dy @ Rinv @ Y.T @ Pw` (where `dy` is a vector)
+    - Less transposing for for ensemble space formulae.
+    - It's the standard for data matrices in the broader statistical literature.
+- Naming:
+    - `E`: ensemble matrix
+    - `w`: ensemble weights or coefficients
+    - `X`: centred ensemble
+    - `N`: ensemble size
+    - `Nx`: state size
+    - `Ny`: observation size
+    - *Double letters* means a sequence of something.
+      For example:
+        - `xx`: Time series of truth; shape `(K+1, Nx)`
+        - `yy`: Time series of observations; shape `(KObs+1, Nx)`
+        - `EE`: Time series of ensemble matrices
+        - `ii`, `jj`: Sequences of indices (integers)
+    - `xps`: an `xpList` or `xpDict`,
+      where `xp` abbreviates "experiment".
+
+
 ## Install for development
 
 Make sure you included the dev tools as part of the installation
@@ -11,7 +42,7 @@ pip install -e .[dev]
 
 ## Run tests
 
-By default, only doctests are run when executing `pytest`.
+By default, only `doctests` are run when executing `pytest`.
 To run the main tests, do this:
 
 ```sh
@@ -52,20 +83,11 @@ published literature results.  After making the example, consider converting
 the script to the Jupyter notebook format (or vice versa) so that the example
 can be run on Colab without users needing to install anything (see
 `examples/README.md`). This should be done using the `jupytext` plug-in (with
-the "lightscript" format), so that the paired files can be kept in synch.
+the `lightscript` format), so that the paired files can be kept in synch.
 
 ## Documentation
 
-### Update bib
-
-Copy new bibtex items into `docs/bib/refs.bib`,
-then add it to `docs/bib/bib.py` using
-
-```sh
-docs/bib/make_bib.py
-```
-
-### Run pdoc
+The documentation may be generated with `pdoc3`, e.g.
 
 ```sh
 pdoc --force --html --template-dir docs/templates -o ./docs \
@@ -73,12 +95,16 @@ docs/bib/bib.py docs/dev_guide.py dapper
 open docs/index.html # preview
 ```
 
-### Hosting
+This is done automatically by a GitHub workflow whenever
+the `master` branch gets updated,
+and the generated docs are pushed into the `gh-pages` branch,
+to which the Github `Pages` settings of points to,
+which hosts the website.
 
-Push updated docs to github.
-In the main github settings of the repo,
-go to the "GitHub Pages" section,
-and set the source to the docs folder.
+In order to add new references,
+insert their bibtex into `docs/bib/refs.bib`,
+then run `docs/bib/make_bib.py`,
+which will format and add entries to `docs/bib/bib.py`.
 
 ## Profiling
 
@@ -88,7 +114,7 @@ and set the source to the docs folder.
   present in the `builtins.` Instead of deleting your decorations,
   you could also define a pass-through fallback.
 
-## Making a release
+## Publishing a release on PyPI
 
 `cd DAPPER`
 

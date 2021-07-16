@@ -8,7 +8,7 @@ See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
 See [README/Getting-started](https://github.com/nansencenter/DAPPER#Getting-started)
 
 Then, adapt one of the examples scripts to your needs.
-Fork DAPPER and make changes to its code if you need to
+Fork DAPPER, and make changes to its code if you need to
 (which is quite likely because the generality of DAPPER is limited)
 
 If, in particular, you wish to illustrate and run benchmarks with
@@ -16,12 +16,18 @@ your own **model** or **method**, then
 
 - If it is a complex one, you may be better off using DAPPER
   merely as *inspiration* (but you can still
-  [cite it](https://github.com/nansencenter/DAPPER#Contributors))
+  [cite it](https://github.com/nansencenter/DAPPER#getting-started))
   rather than trying to squeeze everything into its templates.
 - If it is relatively simple, however, you may well want to use DAPPER.
   In that case, read this:
     - `mods`
     - `da_methods`
+
+### Developer guide
+If you are making a pull request, please read the `dev_guide`.
+
+## Bibliography/references
+See `bib`.
 
 ## Features
 
@@ -53,44 +59,6 @@ Additionally, there is:
         - significant digits printing
     - Automatic averaging of several types for sub-domains
       (e.g. "ocean", "land", etc.)
-
-
-## Conventions
-
-- Python version `>=3.7` for dicts to maintain ordering.
-- Ensemble (data) matrices are np.ndarrays with shape `N-by-Nx`.
-  This shape (orientation) is contrary to the EnKF literature,
-  but has the following advantages:
-    - Improves speed in row-by-row accessing,
-      since that's `np`'s default orientation.
-    - Facilitates broadcasting for, e.g. centering the matrix.
-    - Fewer indices: `[n,:]` yields same as `[n]`
-    - Beneficial operator precedence without `()`.
-      E.g. `dy @ Rinv @ Y.T @ Pw` (where `dy` is a vector)
-    - Less transposing for for ens-space formulae.
-    - It's the standard for data matrices in
-      statistical regression literature.
-- Naming:
-    - `E`: ensemble matrix
-    - `w`: ensemble weights or coefficients
-    - `X`: centered ensemble
-    - `N`: ensemble size
-    - `Nx`: state size
-    - `Ny`: obs size
-    - *Double letters* means a sequence of something.
-      For example:
-        - `xx`: Time series of truth; shape (K+1, Nx)
-        - `yy`: Time series of obs; shape (KObs+1, Nx)
-        - `EE`: Time series of ensemble matrices
-        - `ii`, `jj`: Sequences of indices (integers)
-    - `xps`: an `xpList` or `xpDict`,
-      where `xp` abbreviates "experiment".
-
-## Dev guide
-If you are going to contribute to DAPPER, please read `dev_guide`.
-
-## Bibliography/references
-See `bib`.
 
 ## API reference
 The rendered docstrings can be browsed

@@ -1,6 +1,12 @@
 ---
-name: superintendent
-on: [push, pull_request]
+name: Test
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - "!gh-pages"
+
 env:
   IS_CI: 'true'
   PYTHON_VERSION: '3.8'
