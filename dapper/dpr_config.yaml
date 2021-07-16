@@ -5,7 +5,7 @@
 
 # Where to store the experimental settings and results.
 # For example, you don't want this to be in your Dropbox.
-# Use "$cwd" for cwd, "$dapper" for where the DAPPER dir is.
+# Use "$cwd" for PWD, "$dapper" for where the DAPPER dir is.
 data_root: "~"
 
 # Methods used to average multivariate ("field") stats
