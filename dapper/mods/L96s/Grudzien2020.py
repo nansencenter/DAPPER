@@ -11,7 +11,7 @@ for accuracy with respect to convergence in the strong sense.
 """
 
 #######################
-# imports and exports #
+# imports #
 #######################
 
 import numpy as np
