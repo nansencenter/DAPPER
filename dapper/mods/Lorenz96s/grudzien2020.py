@@ -18,8 +18,8 @@ import numpy as np
 
 import dapper.mods as modelling
 from dapper.mods.integration import rk4
-from dapper.mods.L96s import l96s_tay2_step
 from dapper.mods.Lorenz96 import Tplot, dstep_dx, dxdt, x0
+from dapper.mods.Lorenz96s import l96s_tay2_step
 
 ####################
 # Main definitions #

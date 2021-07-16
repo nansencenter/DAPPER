@@ -11,8 +11,8 @@ from mpl_tools import is_notebook_or_qt as nb
 
 import dapper as dpr
 import dapper.da_methods as da
-from dapper.mods.L96s.Grudzien2020 import (HMM_em_ensemble, HMM_rk_ensemble,
-                                           HMM_truth)
+from dapper.mods.Lorenz96s.grudzien2020 import (HMM_em_ensemble, HMM_rk_ensemble,
+                                                HMM_truth)
 
 # #### Load experiment setup: the hidden Markov model (HMM)
 

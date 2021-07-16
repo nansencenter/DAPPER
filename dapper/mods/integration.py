@@ -54,7 +54,7 @@ def rk4(f, x, t, dt, stages=4, s=0):
 
         if len(dims) > 1:
             N, Nx = dims
-            W = np.sqrt(dt) * np.random.standard_normal([N_e, N_x])
+            W = np.sqrt(dt) * np.random.standard_normal([N, Nx])
 
         else:
             N_x , = dims
