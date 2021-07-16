@@ -62,27 +62,14 @@ def truth_step(x0, t, dt):
 
 
 # we define the model configurations for the two ensemble runs and the truth twin
-EMDyn = {
+Dyn = {
     'M': Nx,
-    'model': em_ensemble_step,
     'linear': dstep_dx,
     'noise': 0,
 }
-
-RKDyn = {
-    'M': Nx,
-    'model': rk_ensemble_step,
-    'linear': dstep_dx,
-    'noise': 0,
-}
-
-TruthDyn = {
-    'M': Nx,
-    'model': truth_step,
-    'linear': dstep_dx,
-    'noise': 0,
-}
-
+EMDyn =  dict(Dyn, model=em_ensemble_step)
+RKDyn = dict(Dyn, model=rk_ensemble_step)
+TruthDyn = dict(Dyn, model=truth_step)
 
 # ensemble initial condition is shared between the EM and RK ensembles
 X0 = modelling.GaussRV(mu=x0, C=0.001)
