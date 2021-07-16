@@ -13,6 +13,7 @@ More info:
   See example in `counillon2009`.
 """
 
+import sys
 from pathlib import Path
 
 import matplotlib as mpl
@@ -27,15 +28,6 @@ __pdoc__ = {"demo": False}
 #########################
 # Model
 #########################
-try:
-    from dapper.mods.QG.f90.py_mod import interface_mod as fortran
-except ImportError as error:
-    msg = error.args[0] + (
-        "\nHave you compiled the (Fortran) model? "
-        f"See README in {modelling.rc.dirs.dapper}/mods/QG/f90"
-        "")
-    raise ImportError(msg) from error
-
 default_prms = dict(
     # These parameters may be interesting to change.
     dtout        = 5.0,      # dt for output to DAPPER.
@@ -88,6 +80,18 @@ class model_config:
         with open(self.fname, 'w') as f:
             f.write(text)
 
+        # Import fortran
+        if "pdoc" not in sys.modules:
+            try:
+                from .f90.py_mod import interface_mod
+                self.f90 = interface_mod
+            except ImportError as error:
+                error.msg = error.msg + (
+                    "\nHave you compiled the (Fortran) model?\n"
+                    f"See README in {__name__.replace('.', '/')}/f90"
+                )
+                raise
+
     def step_1(self, x0, t, dt):
         """Step a single state vector."""
         # Coz fortran.step() reads dt (dtout) from prms file:
@@ -99,7 +103,7 @@ class model_config:
         # Copy coz Fortran will modify in-place.
         psi = py2f(x0.copy())
         # Call Fortran model.
-        fortran.step(t, psi, self.fname)
+        self.f90.step(t, psi, self.fname)
         # Flattening
         x = f2py(psi)
         return x
