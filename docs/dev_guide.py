@@ -42,7 +42,7 @@ pip install -e .[dev]
 
 ## Run tests
 
-By default, only doctests are run when executing `pytest`.
+By default, only `doctests` are run when executing `pytest`.
 To run the main tests, do this:
 
 ```sh
@@ -83,7 +83,7 @@ published literature results.  After making the example, consider converting
 the script to the Jupyter notebook format (or vice versa) so that the example
 can be run on Colab without users needing to install anything (see
 `examples/README.md`). This should be done using the `jupytext` plug-in (with
-the "lightscript" format), so that the paired files can be kept in synch.
+the `lightscript` format), so that the paired files can be kept in synch.
 
 ## Documentation
 

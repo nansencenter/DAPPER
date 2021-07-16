@@ -8,7 +8,7 @@ See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
 See [README/Getting-started](https://github.com/nansencenter/DAPPER#Getting-started)
 
 Then, adapt one of the examples scripts to your needs.
-Fork DAPPER and make changes to its code if you need to
+Fork DAPPER, and make changes to its code if you need to
 (which is quite likely because the generality of DAPPER is limited)
 
 If, in particular, you wish to illustrate and run benchmarks with
@@ -22,6 +22,11 @@ your own **model** or **method**, then
   In that case, read this:
     - `mods`
     - `da_methods`
+
+If you are making a pull request, please read the `dev_guide`.
+
+## Bibliography/references
+See `bib`.
 
 ## Features
 
@@ -53,13 +58,6 @@ Additionally, there is:
         - significant digits printing
     - Automatic averaging of several types for sub-domains
       (e.g. "ocean", "land", etc.)
-
-
-## Dev guide
-If you are going to contribute to DAPPER, please read `dev_guide`.
-
-## Bibliography/references
-See `bib`.
 
 ## API reference
 The rendered docstrings can be browsed
