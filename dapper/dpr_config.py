@@ -35,7 +35,7 @@ rc.dirs.dapper = dapper_dir
 rc.dirs.DAPPER = rc.dirs.dapper.parent
 # Data path
 x = rc.pop("data_root")
-if x.lower() == "$cwd":
+if x.lower() in ["$cwd", "$pwd"]:
     x = Path.cwd()
 elif x.lower() == "$dapper":
     x = rc.dirs.DAPPER
