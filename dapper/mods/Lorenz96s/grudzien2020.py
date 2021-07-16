@@ -67,7 +67,7 @@ Dyn = {
     'linear': dstep_dx,
     'noise': 0,
 }
-EMDyn =  dict(Dyn, model=em_ensemble_step)
+EMDyn = dict(Dyn, model=em_ensemble_step)
 RKDyn = dict(Dyn, model=rk_ensemble_step)
 TruthDyn = dict(Dyn, model=truth_step)
 

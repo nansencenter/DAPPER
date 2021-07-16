@@ -1,7 +1,5 @@
 """Time stepping (integration) tools."""
 
-import functools
-
 import numpy as np
 import scipy.linalg as sla
 from IPython.lib.pretty import pretty as pretty_repr
@@ -93,13 +91,15 @@ def rk4(f, x, t, dt, stages=4, s=0):
 
 def with_rk4(dxdt, autonom=False, stages=4, s=0):
     """Wrap `dxdt` in `rk4`."""
-    integrator = functools.partial(rk4, stages=stages, s=s)
-    if autonom:
-        def step(x0, t0, dt):
-            return integrator(lambda t, x: dxdt(x), x0, np.nan, dt)
-    else:
-        def step(x0, t0, dt):
-            return integrator(dxdt, x0, t0, dt)
+    def tendency(t, x):
+        if autonom:
+            return dxdt(x)
+        else:
+            return dxdt(t, x)
+
+    def step(x0, t0, dt):
+        return rk4(tendency, x0, t0, dt, stages=stages)
+
     name = "rk"+str(stages)+" integration of "+pretty_repr(dxdt)
     step = NamedFunc(step, name)
     return step
