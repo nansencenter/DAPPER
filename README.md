@@ -46,8 +46,8 @@ see these [tutorials](https://github.com/nansencenter/DA-tutorials).
 
 ## Highlights
 
-DAPPER enables the numerical investigation of DA methods
-through a variety of typical test cases and statistics. It
+DAPPER enables the numerical investigation of [DA methods](#DA-methods)
+through a variety of typical [test cases](#Test-cases-models) and statistics. It
 (a) reproduces numerical benchmarks results reported in the literature, and
 (b) facilitates comparative studies, thus promoting the
 (a) reliability and
