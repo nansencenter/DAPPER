@@ -91,7 +91,7 @@ def rk4(f, x, t, dt, stages=4, s=0):
 # fmt: on
 
 
-def with_rk4(dxdt, autonom=False, stages=4, s=0.0):
+def with_rk4(dxdt, autonom=False, stages=4, s=0):
     """Wrap `dxdt` in `rk4`."""
     integrator = functools.partial(rk4, stages=stages, s=s)
     if autonom:
