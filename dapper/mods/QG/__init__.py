@@ -80,17 +80,17 @@ class model_config:
         with open(self.fname, 'w') as f:
             f.write(text)
 
-        # Import fortran
-        if "pdoc" not in sys.modules:
-            try:
-                from .f90.py_mod import interface_mod
-                self.f90 = interface_mod
-            except ImportError as error:
-                error.msg = error.msg + (
-                    "\nHave you compiled the (Fortran) model?\n"
-                    f"See README in {__name__.replace('.', '/')}/f90"
-                )
-                raise
+    @property
+    def f90(self):
+        try:
+            from .f90.py_mod import interface_mod
+            return interface_mod
+        except ImportError as error:
+            error.msg = error.msg + (
+                "\nHave you compiled the (Fortran) model?\n"
+                f"See README in {__name__.replace('.', '/')}/f90"
+            )
+            raise
 
     def step_1(self, x0, t, dt):
         """Step a single state vector."""
