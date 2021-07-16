@@ -36,7 +36,7 @@ def rk4(f, x, t, dt, stages=4, s=0):
 
     stages : int, optional
         The number of stages of the RK method.
-        When stages=1, this becomes the Euler (-Maruyama) scheme.
+        When `stages=1`, this becomes the Euler (-Maruyama) scheme.
         Default: 4.
 
     s : float
