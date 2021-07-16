@@ -23,6 +23,7 @@ your own **model** or **method**, then
     - `mods`
     - `da_methods`
 
+### Developer guide
 If you are making a pull request, please read the `dev_guide`.
 
 ## Bibliography/references
