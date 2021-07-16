@@ -15,12 +15,6 @@ sitemap() {
 
 head=$(git rev-parse HEAD)
 
-echo "=============="
-echo $PWD
-echo "=============="
-ls
-echo "=============="
-
 git clone -b gh-pages "https://patricknraanes:$GH_PASSWORD@github.com/$GITHUB_REPOSITORY.git" gh-pages
 cp -R docs/* gh-pages/docs/
 cd gh-pages
