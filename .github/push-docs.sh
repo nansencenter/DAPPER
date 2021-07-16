@@ -17,7 +17,7 @@ sitemap() {
 git clone -b gh-pages "https://patricknraanes:$GH_PASSWORD@github.com/$GITHUB_REPOSITORY.git" gh-pages
 cp -R docs/* gh-pages/docs/
 cd gh-pages
-# sitemap
+sitemap
 git add *
 if git diff --staged --quiet; then
   echo "$0: No changes to commit."
