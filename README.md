@@ -305,13 +305,15 @@ Remy Dubois
 DAPPER is developed and maintained at
 NORCE (Norwegian Research Institute)
 and the Nansen Environmental and Remote Sensing Center (NERSC),
-in collaboration with the University of Reading
-and the UK National Centre for Earth Observation (NCEO)
+in collaboration with the University of Reading,
+the UK National Centre for Earth Observation (NCEO),
+and the University of Nevada, Reno.
 
 ![NORCE](./docs/imgs/norce-logo.png)
 ![NERSC](./docs/imgs/nansen-logo.png)
 <img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UoR-logo.png?raw=true" height="140" />
 <img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/nceologo1000.png?raw=true" width="400">
+<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UNR_logo.png?raw=true" width="400">
 
 ## Publication list
 
