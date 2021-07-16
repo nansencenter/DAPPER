@@ -1,5 +1,5 @@
 ---
-name: superintendent
+name: Test
 on:
   pull_request:
   push:
