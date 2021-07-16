@@ -1,0 +1,45 @@
+name: Deploy docs
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - uses: actions/cache@v2
+        name: Set up caches
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}
+
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 3
+
+      - name: Install dependencies
+        run: |
+          pip install -U pip setuptools wheel
+          pip install -e .[dev]
+
+      - name: Build docs
+        run: |
+          pdoc3 --force --html --template-dir docs/templates -o ./docs \
+          docs/bib/bib.py docs/dev_guide.py dapper
+
+      - name: Deploy docs
+        env:
+          GH_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/push-docs.sh
