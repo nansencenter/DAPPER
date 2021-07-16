@@ -1,7 +1,5 @@
 """Reproduce results from Fig. 2 of `bib.raanes2014ext`."""
 
-import sys
-
 import numpy as np
 
 import dapper.mods as modelling
@@ -35,16 +33,15 @@ try:
     L = np.load(sample_filename)['Left']
 except FileNotFoundError:
     # First-time use
-    if "pdoc" not in sys.modules:
-        print('Did not find sample file', sample_filename,
-              'for experiment initialization. Generating...')
-        NQ        = 20000  # Must have NQ > (2*wnumQ+1)
-        A         = sinusoidal_sample(Nx, wnumQ, NQ)
-        A         = 1/10 * (A - A.mean(0)) / np.sqrt(NQ)
-        Q         = A.T @ A
-        U, s, _     = tsvd(Q)
-        L         = U*np.sqrt(s)
-        np.savez(sample_filename, Left=L)
+    print('Did not find sample file', sample_filename,
+          'for experiment initialization. Generating...')
+    NQ        = 20000  # Must have NQ > (2*wnumQ+1)
+    A         = sinusoidal_sample(Nx, wnumQ, NQ)
+    A         = 1/10 * (A - A.mean(0)) / np.sqrt(NQ)
+    Q         = A.T @ A
+    U, s, _   = tsvd(Q)
+    L         = U*np.sqrt(s)
+    np.savez(sample_filename, Left=L)
 
 X0 = modelling.GaussRV(C=modelling.CovMat(np.sqrt(5)*L, 'Left'))
 
