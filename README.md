@@ -313,7 +313,7 @@ and the University of Nevada, Reno.
 ![NERSC](./docs/imgs/nansen-logo.png)
 <img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UoR-logo.png?raw=true" height="140" />
 <img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/nceologo1000.png?raw=true" width="400">
-<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UNR_logo.png?raw=true" width="400">
+<img src="./docs/imgs/UNR_logo.png?raw=true" width="400">
 
 ## Publication list
 
