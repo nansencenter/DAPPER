@@ -1,5 +1,36 @@
 """# Developer guide
 
+## Conventions
+
+- Python version `>=3.7` for `dict`'s to maintain ordering.
+- Ensemble (data) matrices are `np.ndarrays` with shape `N-by-Nx`.
+  This shape (orientation) is contrary to the EnKF literature,
+  but has the following advantages:
+    - Improves speed in row-by-row accessing,
+      since that's `np`'s default orientation.
+    - Facilitates broadcasting for, e.g. centring the matrix.
+    - Fewer indices: `[n,:]` yields same as `[n]`
+    - Beneficial operator precedence without `()`.
+      E.g. `dy @ Rinv @ Y.T @ Pw` (where `dy` is a vector)
+    - Less transposing for for ensemble space formulae.
+    - It's the standard for data matrices in the broader statistical literature.
+- Naming:
+    - `E`: ensemble matrix
+    - `w`: ensemble weights or coefficients
+    - `X`: centred ensemble
+    - `N`: ensemble size
+    - `Nx`: state size
+    - `Ny`: observation size
+    - *Double letters* means a sequence of something.
+      For example:
+        - `xx`: Time series of truth; shape `(K+1, Nx)`
+        - `yy`: Time series of observations; shape `(KObs+1, Nx)`
+        - `EE`: Time series of ensemble matrices
+        - `ii`, `jj`: Sequences of indices (integers)
+    - `xps`: an `xpList` or `xpDict`,
+      where `xp` abbreviates "experiment".
+
+
 ## Install for development
 
 Make sure you included the dev tools as part of the installation
