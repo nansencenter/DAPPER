@@ -1122,7 +1122,7 @@ def spatial1d(
     obs_inds     = None,
     periodicity  = None,
     dims         = (),
-    ens_props    = {'color': 'k', 'alpha': 0.1},  # noqa
+    ens_props    = {'color': 'b', 'alpha': 0.1},  # noqa
     conf_mult    = None,
 ):
 
