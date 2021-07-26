@@ -13,10 +13,26 @@ from .utils import NamedFunc
 def rk4(f, x, t, dt, stages=4, s=0):
     """Runge-Kutta (explicit, non-adaptive) numerical (S)ODE solvers.
 
-    The rule has strong / weak convergence order 1.0 for generic SDEs and order 4.0
-    convergence for ODEs when stages=4.  For stages=1, this becomes the Euler-Maruyama
-    schemefor SDEs (s > 0.0) with strong / weak convergence order 1.0 for SDEs with
-    additive noise as defined in the below. See `bib.grudzien2020numerical`.
+    This is a routine describing the standard 1-4 stage Runge-Kutta scheme with
+    uniform time steps.  The solver has the following number of stages / order
+    of convergence in deterministic / stochastic configurations.
+
+    | Stages | ODE Convergence | SDE Weak Convergence | SDE Strong Convergence |
+    ----------------------------------------------------------------------------
+    |      1 |            1.0  |                  1.0 |                    1.0 |
+    ----------------------------------------------------------------------------
+    |      2 |            2.0  |                  N/A |                    N/A |
+    ----------------------------------------------------------------------------
+    |      3 |            3.0  |                  N/A |                    N/A |
+    ----------------------------------------------------------------------------
+    |      4 |            4.0  |                  1.0 |                    1.0 |
+    ----------------------------------------------------------------------------
+
+    For stages=1, this becomes the Euler(-Maruyama) schemefor SDEs (s > 0.0)
+    with strong / weak convergence order 1.0 for SDEs with additive noise, see
+    `bib.grudzien2020numerical` and references therein for a general discussion
+    of numerical integegration schemes and discretization error analysis in the
+    DA cycle.
 
     Parameters
     ----------

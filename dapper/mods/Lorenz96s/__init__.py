@@ -9,9 +9,9 @@
     differential equations between observation times defines random diffeomorphisms
     that are statistically equivalent.  Inflation / Gaussian mixture models and other
     techiques may be used with this model configuration to handle sampling error,
-    to perform regularization due to rank deficience, etc. but there is no need to
-    generate a 'model error covariance Q', as this is already encapsulated in the
-    ensemble spread under the random diffeomorphisms. The Dyn model noise should
+    to perform regularization due to rank deficience, etc. but there is no default
+    need to generate a 'model error covariance Q', as this is already encapsulated in
+    the ensemble spread under the random diffeomorphisms. The Dyn model noise should
     *probably* always be specified as
 
     HMM = modelling.HiddenMarkovModel(Dyn={..., 'noise': 0}, ...)
@@ -78,13 +78,7 @@ def l96s_tay2_step(x, t, dt, s):
     # draw standard normal sample to define the
     # recursive Stratonovich integral coefficients
     rndm = np.random.standard_normal([5, sys_dim])
-    xi = rndm[0, :]
-
-    mu = rndm[1, :]
-    phi = rndm[2, :]
-
-    zeta = rndm[3, :]
-    eta = rndm[4, :]
+    xi, mu, phi, zeta, eta = rndm
 
     # define the auxiliary functions of random Fourier coefficients, a and b
     a = -2.0 * np.sqrt(dt * rho) * mu - np.sqrt(2.0*dt) * zeta  / np.pi

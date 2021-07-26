@@ -35,7 +35,7 @@ ttruth = modelling.Chronology(dt=0.005, dtObs=0.1, T=30, Tplot=Tplot, BurnIn=10)
 tmodel = modelling.Chronology(dt=0.01, dtObs=0.1, T=30, Tplot=Tplot, BurnIn=10)
 
 # set the system diffusion coefficient
-diff = 0.10
+diffusion = 0.10
 
 # set the model state vector dimension
 Nx = 10
@@ -47,18 +47,18 @@ x0 = x0(Nx)
 # define different numerical step models for the ensemble, to vary the precision
 def em_ensemble_step(x0, t, dt):
     # Euler-Maruyama (order 1.0 Weak / Strong)
-    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt, s=diff, stages=1)
+    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt, s=diffusion, stages=1)
 
 
 def rk_ensemble_step(x0, t, dt):
     # 4-stage Runge-Kutta (order 1.0 Weak / Strong)
-    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt, s=diff, stages=4)
+    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt, s=diffusion, stages=4)
 
 
 # define the numerical step model for the truth twin
 def truth_step(x0, t, dt):
     # Taylor-Stratonovich (order 2.0 Weak / Strong)
-    return l96s_tay2_step(x0, np.nan, dt, diff)
+    return l96s_tay2_step(x0, np.nan, dt, diffusion)
 
 
 # we define the model configurations for the two ensemble runs and the truth twin
