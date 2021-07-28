@@ -16,7 +16,7 @@
 - Naming:
     - `E`: ensemble matrix
     - `w`: ensemble weights or coefficients
-    - `X`: centred ensemble
+    - `X`: centred ensemble ("anomalies")
     - `N`: ensemble size
     - `Nx`: state size
     - `Ny`: observation size
