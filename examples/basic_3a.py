@@ -78,4 +78,4 @@ mp = False     # 1 CPU only
 # mp = "Google"  # Requires access to DAPPER cluster
 
 scriptname = "basic_3"  # since __file__ does not work in Jupyter
-save_as = xps.launch(HMM, scriptname, mp, setup)
+save_as = xps.launch(HMM, scriptname, mp, setup=setup)
