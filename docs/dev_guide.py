@@ -105,6 +105,14 @@ insert their bibtex into `docs/bib/refs.bib`,
 then run `docs/bib/make_bib.py`,
 which will format and add entries to `docs/bib/bib.py`.
 
+A live preview of the documentation (that updates whenever you save
+the python source file) can be had with
+
+```sh
+cd docs
+pdoc --http : dapper dev_guide.py
+```
+
 ## Profiling
 
 - Launch your python script using `kernprof -l -v my_script.py`
