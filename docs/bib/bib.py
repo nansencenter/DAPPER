@@ -133,6 +133,13 @@ frei2013bridging = None
 ensemble Kalman and particle filters. *Biometrika*, ast020.
 """
 
+harty2021eigenvector = None
+"""
+**Harty**, **T**, **Morzfeld**, **M**, and **Snyder**, **C** 2021
+Eigenvector-spatial localisation. *Tellus A: Dynamic Meteorology
+and Oceanography*, 73(1): 1–18.
+"""
+
 hoteit2015mitigating = None
 """
 **Hoteit**, **I**, **Pham**, **D-T**, **Gharamti**, **M E**, and
@@ -280,6 +287,13 @@ raanes2019revising = None
 **Raanes**, **Patrick Nima**, **Stordal**, **A S**, and
 **Evensen**, **G** 2019 Revising the stochastic iterative ensemble
 smoother. *Nonlinear Processes in Geophysics*, 26(3): 325–338.
+"""
+
+rainwater2013mixed = None
+"""
+**Rainwater**, **S** and **Hunt**, **B** 2013 Mixed-resolution
+ensemble data assimilation. *Monthly weather review*, 141(9):
+3007–3021.
 """
 
 sakov2008implications = None
