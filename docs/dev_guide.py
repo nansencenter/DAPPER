@@ -2,7 +2,6 @@
 
 ## Conventions
 
-- Python version `>=3.7` for `dict`'s to maintain ordering.
 - Ensemble (data) matrices are `np.ndarrays` with shape `N-by-Nx`.
   This shape (orientation) is contrary to the EnKF literature,
   but has the following advantages:
