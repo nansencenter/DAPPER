@@ -180,7 +180,7 @@ Lorenz96             | No  | Yes   | No    | 1d        | 40 *      | 13     | Ra
 Lorenz96s            | No  | Yes   | No    | 1d        | 10 *      |  4     | Grudzien
 LorenzUV             | No  | Yes   | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
 LorenzIII            | No  | No    | No    | 1d        | 960 *     | ≈164   | Raanes
-Vissio-Lucarino 20   | No  | Yes   | No    | 1d        | 36 *      | 10     | Yumeng
+Vissio-Lucarini 20   | No  | Yes   | No    | 1d        | 36 *      | 10     | Yumeng
 Kuramoto-Sivashinsky | No  | Yes   | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
 Quasi-Geost (QG)     | No  | No    | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov
 
