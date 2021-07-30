@@ -39,6 +39,7 @@ jobs:
           docs/bib/bib.py docs/dev_guide.py dapper
 
       - name: Deploy
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           GH_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: .github/push-docs.sh

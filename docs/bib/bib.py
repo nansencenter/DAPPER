@@ -133,12 +133,11 @@ frei2013bridging = None
 ensemble Kalman and particle filters. *Biometrika*, ast020.
 """
 
-grudzien2020numerical = None
+harty2021eigenvector = None
 """
-**Grudzien**, **C**, **Bocquet**, **M**, and **Carrassi**, **A**
-2020 On the numerical integration of the lorenz-96 model, with
-scalar additive noise, for benchmark twin experiments.
-*Geoscientific Model Development*, 13(4): 1903–1924.
+**Harty**, **T**, **Morzfeld**, **M**, and **Snyder**, **C** 2021
+Eigenvector-spatial localisation. *Tellus A: Dynamic Meteorology
+and Oceanography*, 73(1): 1–18.
 """
 
 hoteit2015mitigating = None
@@ -288,6 +287,13 @@ raanes2019revising = None
 **Raanes**, **Patrick Nima**, **Stordal**, **A S**, and
 **Evensen**, **G** 2019 Revising the stochastic iterative ensemble
 smoother. *Nonlinear Processes in Geophysics*, 26(3): 325–338.
+"""
+
+rainwater2013mixed = None
+"""
+**Rainwater**, **S** and **Hunt**, **B** 2013 Mixed-resolution
+ensemble data assimilation. *Monthly weather review*, 141(9):
+3007–3021.
 """
 
 sakov2008implications = None

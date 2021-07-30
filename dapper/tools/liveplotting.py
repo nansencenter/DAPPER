@@ -1122,7 +1122,7 @@ def spatial1d(
     obs_inds     = None,
     periodicity  = None,
     dims         = (),
-    ens_props    = {'color': 'k', 'alpha': 0.1},  # noqa
+    ens_props    = {'color': 'b', 'alpha': 0.1},  # noqa
     conf_mult    = None,
 ):
 
@@ -1168,6 +1168,7 @@ def spatial1d(
         # Truth, Obs
         (line_x, )   = ax.plot(ii, nan1, 'k-', lw=3, label='Truth')
         if p.obs_inds is not None:
+            p.obs_inds = np.asarray(p.obs_inds)
             (line_y, ) = ax.plot(p.obs_inds, nan*p.obs_inds, 'g*', ms=5, label='Obs')
 
         # Tune plot

@@ -94,6 +94,14 @@ def da_method(*default_dataclasses):
     ...
     ...     def assimilate(self, HMM, xx, yy):
     ...         ...
+
+    .. hint::
+        Apart from what's listed in the above `Note`, there is nothing special to the
+        resulting `xp`.  That is, just like any Python object, it can serve as a data
+        container, and you can write any number of attributes to it (at creation-time,
+        or later).  For example, you can set attributes that are not used by the
+        `assimilate` method, but are instead used to customize other aspects of the
+        experiments (see `dapper.xp_launch.run_experiment`).
     """
 
     def dataclass_with_defaults(cls):

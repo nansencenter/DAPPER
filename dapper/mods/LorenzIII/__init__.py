@@ -49,7 +49,7 @@ class Model:
     c    : float = 2.5  # coupling strength
     Force: float = 15   # forcing
 
-    Tplot: float = 10
+    mp   : bool  = False
 
     def __post_init__(self):
         J = self.J
@@ -85,8 +85,31 @@ class Model:
             + self.Force
         )
 
-    def step(self, x0, t, dt):
+    def step1(self, x0, t, dt):
         return rk4(lambda t, x: self.dxdt(x), x0, np.nan, dt)
+    # Note: step1 is already ensemble compatible.
+    # However, it is a bit slow, so we can gain in speed by using multiprocessing.
+
+    # TODO 4: the same pattern is used for the QG model. Merge, and  it a decorator?
+    def step(self, E, t, dt):
+        if E.ndim == 1:
+            return self.step1(E, t, dt)
+        if E.ndim == 2:
+            if self.mp and E.size > 1e5:
+                # TODO 4: using dapper.tools.multiproc.Pool yielded
+                # "Too many files open" error. Fixed it as described here:
+                # https://stackoverflow.com/q/45665991
+                import multiprocessing_on_dill as mpd
+
+                def f(E):
+                    return self.step1(E, t=t, dt=dt)
+                with mpd.Pool() as pool:
+                    E = pool.map(f, E)
+                E = np.array(E)
+            else:
+                for n, x in enumerate(E):
+                    E[n] = self.step1(x, t, dt)
+            return E
 
 
 def summation_kernel(width):

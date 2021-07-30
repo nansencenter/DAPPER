@@ -2,7 +2,6 @@
 
 ## Conventions
 
-- Python version `>=3.7` for `dict`'s to maintain ordering.
 - Ensemble (data) matrices are `np.ndarrays` with shape `N-by-Nx`.
   This shape (orientation) is contrary to the EnKF literature,
   but has the following advantages:
@@ -17,7 +16,7 @@
 - Naming:
     - `E`: ensemble matrix
     - `w`: ensemble weights or coefficients
-    - `X`: centred ensemble
+    - `X`: centred ensemble ("anomalies")
     - `N`: ensemble size
     - `Nx`: state size
     - `Ny`: observation size
@@ -105,6 +104,14 @@ In order to add new references,
 insert their bibtex into `docs/bib/refs.bib`,
 then run `docs/bib/make_bib.py`,
 which will format and add entries to `docs/bib/bib.py`.
+
+A live preview of the documentation (that updates whenever you save
+the python source file) can be had with
+
+```sh
+cd docs
+pdoc --http : dapper dev_guide.py
+```
 
 ## Profiling
 

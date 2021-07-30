@@ -35,7 +35,7 @@ XP_TIMESTAMP_TEMPLATE = "run_%Y-%m-%d__%H-%M-%S"
 def seed_and_simulate(HMM, xp):
     """Default experiment setup (sets seed and simulates truth and obs).
 
-    Used by `xpList.launch`.
+    Used by `xpList.launch` via `run_experiment`.
 
     Parameters
     ----------
@@ -60,15 +60,13 @@ def seed_and_simulate(HMM, xp):
         The simulated truth and observations.
     """
     set_seed(getattr(xp, 'seed', False))
-
     xx, yy = HMM.simulate()
     return xx, yy
 
 
-def run_experiment(xp, label, savedir, HMM,
-                   setup=None, free=True, statkeys=False, fail_gently=False,
-                   **stat_kwargs):
-    """Used by `xpList.launch` to run each single (DA) experiment.
+def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
+                   statkeys=False, fail_gently=False, **stat_kwargs):
+    """Used by `xpList.launch` to run each single (DA) experiment ("xp").
 
     This involves steps similar to `examples/basic_1.py`, i.e.:
 
@@ -89,8 +87,27 @@ def run_experiment(xp, label, savedir, HMM,
     HMM: HiddenMarkovModel
         Container defining the system.
     setup: function
-        Should set params, eg `HMM.Force`, seed, and return (simulated/loaded)
-        truth and obs series. Example: `seed_and_simulate`.
+        This function must take two arguments: `HMM` and `xp`,
+        and return the (typically synthetic) truth and obs time series.
+        The default (`seed_and_simulate`) also sets the seed.
+
+        Note that this gives you the ability to customize almost any aspect of the
+        experiments. Typically you will grab one or more parameter values
+        stored in the `xp` (see `dapper.da_methods.da_method`) and act on them,
+        or set them in some other object that impacts the experiment.
+        Thus, by generating a new `xp` for each such parameter value you can
+        investigate the impact/sensitivity of the results to this parameter.
+        Examples include:
+
+        - Setting some aspect of the `HMM` such as the observation noise,
+          or the interval between observations.
+        - Setting some parameter of the model (not otherwise detailed in the `HMM`).
+          For example, the `Force` parameter of `dapper.mods.Lorenz96`, as done in
+          see `examples/basic_3`.
+        - Using a different `HMM` entirely for the truth/obs (`xx`/`yy`) generation,
+          than the one that will be used by the DA. Or loading the truth/obs
+          time series from file. In both cases, you might also have to do some
+          cropping or slicing of `xx` and `yy` before returning them.
     free: bool
         Whether (or not) to `del xp.stats` after the experiment is done,
         so as to free up memory and/or not save this data
@@ -432,11 +449,12 @@ class xpList(list):
         columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
         return tabulate(columns, headers="keys", showindex=True).replace('␣', ' ')
 
-    def launch(self, HMM, save_as="noname", mp=False,
-               setup=seed_and_simulate, fail_gently=None, **kwargs):
+    def launch(self, HMM, save_as="noname", mp=False, fail_gently=None, **kwargs):
         """Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
-        The results are saved in `rc.dirs['data']/save_as`,
+        See `run_experiment` for documentation on the `kwargs` and `fail_gently`.
+
+        The results are saved in `rc.dirs.data / save_as`,
         unless `save_as` is `False`/`None`.
 
         Depending on `mp`, `run_experiment` is delegated as follows:
@@ -454,19 +472,8 @@ class xpList(list):
             - If this dict field is empty, then all python files
               in `sys.path[0]` are uploaded.
 
-        If `setup == None`: use `seed_and_simulate`.
-        Specify your own setup function
-        (possibly calling `seed_and_simulate`)
-        in order to set (general) experiment parameters that are not
-        (i.e. those that are not inherently used by the da_method
-        of that `xp`).
-
         See `examples/basic_2.py` and `examples/basic_3.py` for example use.
         """
-        # Collect common args forwarded to run_experiment
-        kwargs['HMM'] = HMM
-        kwargs["setup"] = setup
-
         # Parse mp option
         if not mp:
             mp = dict()
@@ -486,6 +493,9 @@ class xpList(list):
                 fail_gently = True
                 # True unless otherwise requested
         kwargs["fail_gently"] = fail_gently
+
+        # Bundle HMM with kwargs
+        kwargs['HMM'] = HMM
 
         # Parse save_as
         if save_as in [None, False]:
