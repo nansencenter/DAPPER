@@ -119,8 +119,3 @@ Obs['noise'] = 1
 # configurations, such as those with high model uncertainty, the differences between
 # ensembles with low discretization error (those using the Runge-Kutta scheme) and
 # high discretization error (those using the Euler-Maruyama scheme) tend to be relaxed.
-# Note, this only partially reproduces the results of `bib.grudzien2020numerical` where
-# in this simulation, Euler-Maruyama performs more poorly with respect to the
-# low-accuracy simulation than in the reference.  In particular, this seems to face
-# a total filter divergence in this reproduction, which is a more pessimistic view on
-# the performance of Euler-Maruyama (which discouraged for use in the reference).

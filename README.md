@@ -131,7 +131,7 @@ you'll first need to run `conda activate dapper-env`
 <!-- markdownlint-disable line-length -->
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ------------------------
-EnKF <sup>1</sup>                                      | [Sakov08](https://nansencenter.github.io/DAPPER/bib.html#bib.sakov2008deterministic), [Hoteit15](https://nansencenter.github.io/DAPPER/bib.html#bib.hoteit2015mitigating)
+EnKF <sup>1</sup>                                      | [Sakov08](https://nansencenter.github.io/DAPPER/bib.html#bib.sakov2008deterministic), [Hoteit15](https://nansencenter.github.io/DAPPER/bib.html#bib.hoteit2015mitigating), [Grudzien2020](https://nansencenter.github.io/DAPPER/bib.html#bib.grudzien2020numerical)
 EnKF-N                                                 | [Bocquet12](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2012combining), [Bocquet15](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2015expanding)
 EnKS, EnRTS                                            | [Raanes2016](https://nansencenter.github.io/DAPPER/bib.html#bib.raanes2016thesis)
 iEnKS / iEnKF / EnRML / ES-MDA <sup>2</sup>            | [Sakov12](https://nansencenter.github.io/DAPPER/bib.html#bib.sakov2012iterative), [Bocquet12](https://nansencenter.github.io/DAPPER/bib.html#bib.Bocquet12), [Bocquet14](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2014iterative)
@@ -177,6 +177,7 @@ LotkaVolterra        | No  | Yes   | No    | 0d        | 5 *       | 1      | Wi
 Lorenz63             | No  | Yes   | "Yes" | 0d        | 3         | 2      | Sakov
 Lorenz84             | No  | Yes   | No    | 0d        | 3         | 2      | Raanes
 Lorenz96             | No  | Yes   | No    | 1d        | 40 *      | 13     | Raanes
+Lorenz96s            | No  | Yes   | No    | 1d        | 10 *      |  4     | Grudzien
 LorenzUV             | No  | Yes   | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
 LorenzIII            | No  | No    | No    | 1d        | 960 *     | ≈164   | Raanes
 Vissio-Lucarino 20   | No  | Yes   | No    | 1d        | 36 *      | 10     | Yumeng
@@ -250,20 +251,23 @@ Name               | Developers            | Purpose (approximately)
 Below is a list of projects with a purpose more similar to DAPPER's
 (research *in* DA, and not so much *using* DA):
 
-Name               | Developers             | Notes
------------------- | ---------------------- | -----------------------------
-[DAPPER][22]       | Raanes, Chen, Grudzien | Python
-[SANGOMA][5]       | Conglomerate*          | Fortran, Matlab
-[FilterPy][12]     | R. Labbe               | Python. Engineering oriented.
-[DASoftware][13]   | Yue Li, Stanford       | Matlab. Large inverse probs.
-[Pomp][18]         | U of Michigan          | R
-[EnKF-Matlab][15]  | Sakov                  | Matlab
-[EnKF-C][17]       | Sakov                  | C. Light-weight, off-line DA
-[pyda][16]         | Hickman                | Python
-[PyDA][19]         | Shady-Ahmed            | Python
-[DasPy][20]        | Xujun Han              | Python
-Datum              | Raanes                 | Matlab
-IEnKS code         | Bocquet                | Python
+Name                                 | Developers             | Notes
+------------------------------------ | ---------------------- | ---------------------------------
+[DAPPER][22]                         | Raanes, Chen, Grudzien | Python
+[SANGOMA][5]                         | Conglomerate*          | Fortran, Matlab
+[hIPPYlib][25]                       | Villa, Petra, Ghattas  | Python, adjoint-based PDE methods
+[FilterPy][12]                       | R. Labbe               | Python. Engineering oriented.
+[DASoftware][13]                     | Yue Li, Stanford       | Matlab. Large inverse probs.
+[Pomp][18]                           | U of Michigan          | R
+[EnKF-Matlab][15]                    | Sakov                  | Matlab
+[EnKF-C][17]                         | Sakov                  | C. Light-weight, off-line DA
+[pyda][16]                           | Hickman                | Python
+[PyDA][19]                           | Shady-Ahmed            | Python
+[DasPy][20]                          | Xujun Han              | Python
+[DataAssim.jl][23]                   | Alexander-Barth        | Julia
+[DataAssimilationBenchmarks.jl][24]  | Grudzien               | Julia, Python 
+Datum                                | Raanes                 | Matlab
+IEnKS code                           | Bocquet                | Python
 
 The `EnKF-Matlab` and `IEnKS` codes have been inspirational
 in the development of DAPPER.
@@ -292,6 +296,9 @@ in the development of DAPPER.
 [20]: https://github.com/daspy/daspy
 [21]: https://www.jcsda.noaa.gov/index.php
 [22]: https://github.com/nansencenter/DAPPER
+[23]: https://juliahub.com/docs/DataAssim/qCDwD/0.3.2/ 
+[24]: https://github.com/cgrudz/DataAssimilationBenchmarks.jl
+[25]: https://hippylib.github.io/ 
 
 
 ## Contributors

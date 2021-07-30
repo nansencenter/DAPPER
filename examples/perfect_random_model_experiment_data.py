@@ -24,7 +24,6 @@ from dapper.mods.Lorenz96s.grudzien2020 import (EMDyn, RKDyn, TruthDyn, X0, Obs,
 # we define a hook function to reset experimental parameters
 def setup_low_precision(hmm, xp):
     """Experiment init.: Set Lorenz96s diffusion, and observation uncertainty."""
-    import dapper as dpr
     import dapper.mods.Lorenz96s as core
 
     # reset the operator attribute to the current parameter configuration
@@ -32,7 +31,6 @@ def setup_low_precision(hmm, xp):
 
     # reconstruct the observation operator for each setting of obseravation precision
     Obs['noise'] = xp.ObsNoise
-    dpr.set_seed(getattr(xp, 'seed', False))
 
     # generate the truth simulation
     HMM_truth = modelling.HiddenMarkovModel(TruthDyn, Obs, ttruth_low_precision, X0)
@@ -46,7 +44,6 @@ def setup_low_precision(hmm, xp):
 
 def setup_high_precision(hmm, xp):
     """Experiment init.: Set Lorenz96s diffusion, and observation uncertainty."""
-    import dapper as dpr
     import dapper.mods.Lorenz96s as core
 
     # reset the operator attribute to the current parameter configuration
@@ -54,7 +51,6 @@ def setup_high_precision(hmm, xp):
 
     # reconstruct the observation operator for each setting of obseravation precision
     Obs['noise'] = xp.ObsNoise
-    dpr.set_seed(getattr(xp, 'seed', False))
 
     # generate the truth simulation
     HMM_truth = modelling.HiddenMarkovModel(TruthDyn, Obs, ttruth_high_precision, X0)
@@ -69,23 +65,19 @@ seed = dpr.set_seed(3000)
 # #### DA method configurations
 # Param ranges
 params = dict(
-        # NOTE: WHY SHOULD THESE NOT BE LOADED HERE?
-        # Diffusion = Diffusions,
-        # ObsNoise = SigmasR,
         N = [100],
         rot = [False],
         infl = [1.0],
-        seed = [seed],
 )
 
 # Combines all the params suitable for a method. Faster than "manual" for-loops.
 xps = dpr.xpList()
-for_params = dpr.combinator(params, Diffusion = Diffusions, ObsNoise= SigmasR)
+for_params = dpr.combinator(params, seed=[seed],
+                            Diffusion = Diffusions, ObsNoise = SigmasR)
 xps += for_params(da.EnKF, upd_a='PertObs')
 
-# #### Run experiments
 
-### NOTE: Do we need to reset the random seed for each of the following experiments?
+# #### Run experiments
 
 # define the separate ensemble simulations
 mp = False     # 1 CPU only
@@ -100,12 +92,12 @@ HMM_rk_low_precision_ensemble = modelling.HiddenMarkovModel(RKDyn, Obs,
 
 # run the Runge-Kutta ensemble and print results
 save_as = xps.launch(HMM_rk_low_precision_ensemble,
-                     scriptname + "_rk", mp, setup_low_precision)
+                     scriptname + "_rk", mp, setup=setup_low_precision)
 print(xps.tabulate_avrgs())
 
 # run the Euler-Maruyama ensemble and print results
 save_as = xps.launch(HMM_em_low_precision_ensemble,
-                     scriptname + "_em", mp, setup_low_precision)
+                     scriptname + "_em", mp, setup=setup_low_precision)
 print(xps.tabulate_avrgs())
 
 
@@ -121,10 +113,10 @@ HMM_rk_high_precision_ensemble = modelling.HiddenMarkovModel(RKDyn, Obs,
 
 # run the Runge-Kutta ensemble and print results
 save_as = xps.launch(HMM_rk_high_precision_ensemble,
-                     scriptname + "_rk", mp, setup_high_precision)
+                     scriptname + "_rk", mp, setup=setup_high_precision)
 print(xps.tabulate_avrgs())
 
 # run the Euler-Maruyama ensemble and print results
 save_as = xps.launch(HMM_em_high_precision_ensemble,
-                     scriptname + "_em", mp, setup_high_precision)
+                     scriptname + "_em", mp, setup=setup_high_precision)
 print(xps.tabulate_avrgs())
