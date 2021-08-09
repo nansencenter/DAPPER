@@ -15,9 +15,11 @@ def rk4(f, x, t, dt, stages=4, s=0):
 
     For ODEs, the order of convergence equals the number of `stages`.
     For SDEs with additive noise (`s>0`), the order of convergence
-    (both weak and strong) is 1 for any number of `stages`.
-    See `bib.grudzien2020numerical` for a DA-specific discussion on
-    integration schemes and their discretization errors.
+    (both weak and strong) is 1 for `stages` equal to one or four.
+    These correspond to the classic Euler-Maruyama scheme and the Runge-Kutta
+    scheme for SODEs respectively, see `bib.grudzien2020numerical`
+    for a DA-specific discussion on integration schemes and their
+    discretization errors.
 
     Parameters
     ----------
