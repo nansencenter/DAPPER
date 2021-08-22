@@ -1,6 +1,6 @@
 """The "Ikeda map" is a discrete-time dynamical system of size 2.
 
-Source: [Wiki](https://en.wikipedia.org/wiki/Ikeda_map) and Colin Grudzen.
+Source: [Wiki](https://en.wikipedia.org/wiki/Ikeda_map) and Colin Grudzien.
 
 See `demo` for more info.
 """
