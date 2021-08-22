@@ -68,7 +68,7 @@ def Model(dt=0.25, DL=32, Nx=128):
     # Runge-Kutta -- Requries dt<1e-2:
     # ------------------------------------------------
     step_RK4 = with_rk4(dxdt, autonom=True)           # Bad, not recommended.
-    step_RK1 = with_rk4(dxdt, autonom=True, order=1)  # Truly terrible.
+    step_RK1 = with_rk4(dxdt, autonom=True, stages=1)  # Truly terrible.
 
     # "Semi-implicit RK3": explicit RK3 for nonlinear term,
     # ------------------------------------------------

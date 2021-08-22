@@ -1,0 +1,319 @@
+<!-- Search file for "CHANGE" for my own changes -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>dapper.mods.L96s API documentation</title>
+<meta name="description" content="This defines a perfect-random map with discrete observation times …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<link rel="preconnect" href="https://www.google.com">
+<script async src="https://cse.google.com/cse.js?cx=017837193012385208679:pey8ky8gdqw"></script>
+<style>
+.gsc-control-cse {padding:0 !important;margin-top:1em}
+body.gsc-overflow-hidden #sidebar {overflow: visible;}
+</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<link rel="icon" href="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo.png">
+<!-- Dont work coz pdoc already defines these:
+<title>DAPPER doc</title>
+<meta name="description" content="Data Assimilation with Python: a Package for Experimental Research" />
+-->
+<a href="https://github.com/nansencenter/DAPPER" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>dapper.mods.L96s</code></h1>
+</header>
+<section id="section-intro">
+<p>This defines a perfect-random map with discrete observation times.</p>
+<p>Both the model and truth twin will be generated by the same <em>random</em> model with
+almost surely different outcomes. The time-evolution under the stochastic
+differential equations between observation times defines random diffeomorphisms
+that are statistically equivalent.
+Inflation / Gaussian mixture models and other
+techiques may be used with this model configuration to handle sampling error,
+to perform regularization due to rank deficience, etc. but there is no need to
+generate a 'model error covariance Q', as this is already encapsulated in the
+ensemble spread under the random diffeomorphisms. The Dyn model noise should
+<em>probably</em> always be specified as</p>
+<p>HMM = modelling.HiddenMarkovModel(Dyn={&hellip;, 'noise': 0}, &hellip;)</p>
+<p>as the usual noise perturbation would simply add artificial sampling noise in this
+model, deteriorating performance.
+The truth twin should be generated by the order
+2.0 Taylor scheme below, for the accuracy with respect to convergence in the strong
+sense.See <code><a title="bib.grudzien2020numerical" href="../../../bib.html#bib.grudzien2020numerical">grudzien2020numerical</a></code> for a full discussion of benchmarks on this
+model and statistically robust configurations.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/L96s/__init__.py#L0-L115" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">###############
+# Description #
+###############
+
+&#34;&#34;&#34; This defines a perfect-random map with discrete observation times.
+
+    Both the model and truth twin will be generated by the same *random* model with
+    almost surely different outcomes. The time-evolution under the stochastic
+    differential equations between observation times defines random diffeomorphisms
+    that are statistically equivalent.  Inflation / Gaussian mixture models and other
+    techiques may be used with this model configuration to handle sampling error,
+    to perform regularization due to rank deficience, etc. but there is no need to
+    generate a &#39;model error covariance Q&#39;, as this is already encapsulated in the
+    ensemble spread under the random diffeomorphisms. The Dyn model noise should
+    *probably* always be specified as
+
+    HMM = modelling.HiddenMarkovModel(Dyn={..., &#39;noise&#39;: 0}, ...)
+
+    as the usual noise perturbation would simply add artificial sampling noise in this
+    model, deteriorating performance.  The truth twin should be generated by the order
+    2.0 Taylor scheme below, for the accuracy with respect to convergence in the strong
+    sense.See `bib.grudzien2020numerical` for a full discussion of benchmarks on this
+    model and statistically robust configurations.
+&#34;&#34;&#34;
+
+###########
+# Imports #
+###########
+
+import numpy as np
+
+from dapper.mods.Lorenz96 import dxdt, dxdt_autonomous, shift, x0
+from dapper.mods.Lorenz96.extras import LPs, d2x_dtdx, dstep_dx
+
+######################
+# Method definitions #
+######################
+
+# ----------------------------- #
+# Global parameter definitions  #
+# ----------------------------- #
+
+# ?
+__pdoc__ = {&#34;demo&#34;: False}
+
+# energy injected into the system
+Force = 8.0
+
+# recommended time series plot length
+Tplot = 10
+
+# -------------------------------- #
+# 2nd order strong taylor SDE step #
+# -------------------------------- #
+
+
+def l96s_tay2_step(x, t, dt, s):
+    &#34;&#34;&#34;Steps forward state of L96s model by order 2.0 Taylor scheme
+
+    This is the method that must be used to generate the truth twin for this model due
+    to the high-accuracy with respect to convergence in the strong sense. The ensemble
+    model twin will be generated by the general integration functionality, with the
+    diffusion set appropriately. This is the basic formulation which makes a Fourier
+    truncation at p=1 for the simple form of the order 2.0 method. See
+    `bib.grudzien2020numerical` for full details of the scheme and other versions.&#34;&#34;&#34;
+
+    # Infer system dimension
+    sys_dim = len(x)
+
+    # Compute the deterministic dxdt and the jacobian equations
+    dx = dxdt(x)
+    dxF = d2x_dtdx(x)
+
+    # coefficients defined based on the p=1 Fourier truncation
+    rho = 1.0/12.0 - 0.5 * np.pi**(-2)
+    alpha = np.pi**2 / 180.0 - 0.5 * np.pi**(-2)
+
+    # draw standard normal sample to define the
+    # recursive Stratonovich integral coefficients
+    rndm = np.random.standard_normal([5, sys_dim])
+    xi = rndm[0, :]
+
+    mu = rndm[1, :]
+    phi = rndm[2, :]
+
+    zeta = rndm[3, :]
+    eta = rndm[4, :]
+
+    # define the auxiliary functions of random Fourier coefficients, a and b
+    a = -2.0 * np.sqrt(dt * rho) * mu - np.sqrt(2.0*dt) * zeta  / np.pi
+    b = np.sqrt(dt * alpha) * phi + np.sqrt(dt / (2.0 * np.pi**2) ) * eta
+
+    # vector of first order Stratonovich integrals
+    J_pdelta = (dt/2.0) * (np.sqrt(dt) * xi + a)
+
+    def Psi(l1, l2):
+        # psi will be a generic function of the indicies l1 and l2, we will define
+        # psi plus and psi minus via this
+        psi = dt**2 * xi[l1] * xi[l2] / 3.0 + dt * a[l1] * a[l2] / 2.0 \
+              + dt**(1.5) * (xi[l1] * a[l2] + xi[l2] * a[l1]) / 4.0 \
+              - dt**(1.5) * (xi[l1] * b[l2] + xi[l2] * b[l1]) / (2.0 * np.pi)
+        return psi
+
+    # we define the approximations of the second order Stratonovich integral
+    psi_plus = np.array([Psi((i-1) % sys_dim, (i+1) % sys_dim)
+                         for i in range(sys_dim)])
+    psi_minus = np.array([Psi((i-2) % sys_dim, (i-1) % sys_dim)
+                         for i in range(sys_dim)])
+
+    # the final vectorized step forward is given as
+    x  = x + dx * dt + dt**2 * 0.5 * dxF @ dx  # deterministic taylor step
+    x += s * np.sqrt(dt) * xi                  # stochastic euler step
+    x += s * dxF @ J_pdelta                    # stochastic first order taylor step
+    x += s**2 * (psi_plus - psi_minus)         # stochastic second order taylor step
+
+    return x</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<dt><code class="name"><a title="dapper.mods.L96s.Grudzien2020" href="Grudzien2020.html">Grudzien2020</a></code></dt>
+<dd>
+<div class="desc"><p>Settings as in <code><a title="bib.grudzien2020numerical" href="../../../bib.html#bib.grudzien2020numerical">grudzien2020numerical</a></code> …</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="dapper.mods.L96s.l96s_tay2_step"><code class="name flex">
+<span>def <span class="ident">l96s_tay2_step</span></span>(<span>x, t, dt, s)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Steps forward state of L96s model by order 2.0 Taylor scheme</p>
+<p>This is the method that must be used to generate the truth twin for this model due
+to the high-accuracy with respect to convergence in the strong sense. The ensemble
+model twin will be generated by the general integration functionality, with the
+diffusion set appropriately. This is the basic formulation which makes a Fourier
+truncation at p=1 for the simple form of the order 2.0 method. See
+<code><a title="bib.grudzien2020numerical" href="../../../bib.html#bib.grudzien2020numerical">grudzien2020numerical</a></code> for full details of the scheme and other versions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/nansencenter/DAPPER/blob/master/dapper/mods/L96s/__init__.py#L57-L116" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def l96s_tay2_step(x, t, dt, s):
+    &#34;&#34;&#34;Steps forward state of L96s model by order 2.0 Taylor scheme
+
+    This is the method that must be used to generate the truth twin for this model due
+    to the high-accuracy with respect to convergence in the strong sense. The ensemble
+    model twin will be generated by the general integration functionality, with the
+    diffusion set appropriately. This is the basic formulation which makes a Fourier
+    truncation at p=1 for the simple form of the order 2.0 method. See
+    `bib.grudzien2020numerical` for full details of the scheme and other versions.&#34;&#34;&#34;
+
+    # Infer system dimension
+    sys_dim = len(x)
+
+    # Compute the deterministic dxdt and the jacobian equations
+    dx = dxdt(x)
+    dxF = d2x_dtdx(x)
+
+    # coefficients defined based on the p=1 Fourier truncation
+    rho = 1.0/12.0 - 0.5 * np.pi**(-2)
+    alpha = np.pi**2 / 180.0 - 0.5 * np.pi**(-2)
+
+    # draw standard normal sample to define the
+    # recursive Stratonovich integral coefficients
+    rndm = np.random.standard_normal([5, sys_dim])
+    xi = rndm[0, :]
+
+    mu = rndm[1, :]
+    phi = rndm[2, :]
+
+    zeta = rndm[3, :]
+    eta = rndm[4, :]
+
+    # define the auxiliary functions of random Fourier coefficients, a and b
+    a = -2.0 * np.sqrt(dt * rho) * mu - np.sqrt(2.0*dt) * zeta  / np.pi
+    b = np.sqrt(dt * alpha) * phi + np.sqrt(dt / (2.0 * np.pi**2) ) * eta
+
+    # vector of first order Stratonovich integrals
+    J_pdelta = (dt/2.0) * (np.sqrt(dt) * xi + a)
+
+    def Psi(l1, l2):
+        # psi will be a generic function of the indicies l1 and l2, we will define
+        # psi plus and psi minus via this
+        psi = dt**2 * xi[l1] * xi[l2] / 3.0 + dt * a[l1] * a[l2] / 2.0 \
+              + dt**(1.5) * (xi[l1] * a[l2] + xi[l2] * a[l1]) / 4.0 \
+              - dt**(1.5) * (xi[l1] * b[l2] + xi[l2] * b[l1]) / (2.0 * np.pi)
+        return psi
+
+    # we define the approximations of the second order Stratonovich integral
+    psi_plus = np.array([Psi((i-1) % sys_dim, (i+1) % sys_dim)
+                         for i in range(sys_dim)])
+    psi_minus = np.array([Psi((i-2) % sys_dim, (i-1) % sys_dim)
+                         for i in range(sys_dim)])
+
+    # the final vectorized step forward is given as
+    x  = x + dx * dt + dt**2 * 0.5 * dxF @ dx  # deterministic taylor step
+    x += s * np.sqrt(dt) * xi                  # stochastic euler step
+    x += s * dxF @ J_pdelta                    # stochastic first order taylor step
+    x += s**2 * (psi_plus - psi_minus)         # stochastic second order taylor step
+
+    return x</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="DAPPER" href="https://nansencenter.github.io/DAPPER">
+<img src="https://raw.githubusercontent.com/nansencenter/DAPPER/master/docs/imgs/logo_wtxt.png" alt="">
+<!-- can add style="width:200px;" to img -->
+</a>
+</header>
+<div class="gcse-search" style="height: 70px"
+data-as_oq="inurl:github.com/nansencenter/DAPPER site:nansencenter.github.io/DAPPER"
+data-gaCategoryParameter="dapper.mods.L96s">
+</div>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="dapper.mods" href="../index.html">dapper.mods</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<!-- CHANGE: Short submodule name -->
+<!-- https://github.com/pdoc3/pdoc/issues/265#issuecomment-702426471 -->
+<li><code><a title="dapper.mods.L96s.Grudzien2020" href="Grudzien2020.html">Grudzien2020</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="dapper.mods.L96s.l96s_tay2_step" href="#dapper.mods.L96s.l96s_tay2_step">l96s_tay2_step</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
