@@ -8,7 +8,7 @@ See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
 See [README/Getting-started](https://github.com/nansencenter/DAPPER#Getting-started)
 
 Then, adapt one of the
-[examples scripts](https://github.com/nansencenter/DAPPER/tree/master/examples)
+[example scripts](https://github.com/nansencenter/DAPPER/tree/master/examples)
 to your needs. Make sure you have a working adaptation `examples/basic_1.py`
 before adapting `basic_2` and `basic_3`.
 Note: since the generality of DAPPER is
