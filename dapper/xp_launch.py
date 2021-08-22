@@ -61,7 +61,7 @@ def seed_and_simulate(HMM, xp):
     """
     set_seed(getattr(xp, 'seed', False))
     xx, yy = HMM.simulate()
-    return xx, yy
+    return HMM, xx, yy
 
 
 def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
@@ -88,10 +88,13 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
         Container defining the system.
     setup: function
         This function must take two arguments: `HMM` and `xp`,
-        and return the (typically synthetic) truth and obs time series.
+        and return the `HMM` to be used by the DA methods
+        (typically the same as the input `HMM`, but could be modified),
+        and the (typically synthetic) truth and obs time series.
 
         This gives you the ability to customize almost any aspect of the
-        experiments. Typically you will grab one or more parameter values
+        individual experiments within a batch launch of experiments.
+        Typically you will grab one or more parameter values
         stored in the `xp` (see `dapper.da_methods.da_method`) and act on them,
         or set them in some other object that impacts the experiment.
         Thus, by generating a new `xp` for each such parameter value you can
@@ -126,7 +129,7 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
     hmm = copy.deepcopy(HMM)
 
     # GENERATE TRUTH/OBS
-    xx, yy = setup(hmm, xp)
+    hmm, xx, yy = setup(hmm, xp)
 
     # ASSIMILATE
     try:

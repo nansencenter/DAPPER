@@ -155,7 +155,7 @@ def set_X0_and_simulate(hmm, xp):
     hmm.X0 = X0(TRUTH, 0)
     xx, yy = hmm.simulate()
     hmm.X0 = X0(GUESS, 0.1**2)
-    return xx, yy
+    return hmm, xx, yy
 
 # Note: An alternative approach might be to simply
 # write our own `simulate()` which merely sets the `Force` parameter,
