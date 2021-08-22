@@ -1,7 +1,10 @@
 """Time sequence management, notably Chronology and Ticker."""
 
+import colorama
 import numpy as np
 from struct_tools import AlignedDict
+
+from dapper.tools.colors import color_text
 
 
 class Chronology():
@@ -78,7 +81,11 @@ class Chronology():
         self._K       = K
 
         # BurnIn, Tplot
-        assert self.T >= BurnIn, "Experiment duration < BurnIn time"
+        if self.T <= BurnIn:
+            BurnIn = self.T / 2
+            warning = "Warning: experiment duration < BurnIn time." \
+                      "\nReducing BurnIn value."
+            print(color_text(warning, colorama.Fore.RED))
         self.BurnIn = BurnIn
         if Tplot is None:
             Tplot = BurnIn
