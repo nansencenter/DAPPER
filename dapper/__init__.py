@@ -7,9 +7,13 @@ See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
 ## Usage
 See [README/Getting-started](https://github.com/nansencenter/DAPPER#Getting-started)
 
-Then, adapt one of the examples scripts to your needs.
-Fork DAPPER, and make changes to its code if you need to
-(which is quite likely because the generality of DAPPER is limited)
+Then, adapt one of the
+[examples scripts](https://github.com/nansencenter/DAPPER/tree/master/examples)
+to your needs. Make sure you have a working adaptation `examples/basic_1.py`
+before adapting `basic_2` and `basic_3`.
+Note: since the generality of DAPPER is
+[limited](https://github.com/nansencenter/DAPPER#similar-projects)
+it is quite likely you will also need to make changes to the DAPPER code itself.
 
 If, in particular, you wish to illustrate and run benchmarks with
 your own **model** or **method**, then

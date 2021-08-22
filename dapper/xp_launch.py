@@ -89,9 +89,8 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
     setup: function
         This function must take two arguments: `HMM` and `xp`,
         and return the (typically synthetic) truth and obs time series.
-        The default (`seed_and_simulate`) also sets the seed.
 
-        Note that this gives you the ability to customize almost any aspect of the
+        This gives you the ability to customize almost any aspect of the
         experiments. Typically you will grab one or more parameter values
         stored in the `xp` (see `dapper.da_methods.da_method`) and act on them,
         or set them in some other object that impacts the experiment.
@@ -99,6 +98,8 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
         investigate the impact/sensitivity of the results to this parameter.
         Examples include:
 
+        - Setting the seed. See the default `setup`, namely `seed_and_simulate`,
+          for how this is done.
         - Setting some aspect of the `HMM` such as the observation noise,
           or the interval between observations.
         - Setting some parameter of the model (not otherwise detailed in the `HMM`).
