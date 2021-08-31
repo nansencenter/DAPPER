@@ -50,46 +50,29 @@ def rk4(f, x, t, dt, stages=4, s=0):
         State vector at the new time, `t+dt`
     """
 
+    # Draw noise
     if s > 0:
-        # non-trivial diffusion, this defines the SDE integration with additive noise
-        # generate perturbation for Brownian motion
-        dims = np.shape(x)
-
-        if len(dims) > 1:
-            N, Nx = dims
-            W = np.sqrt(dt) * np.random.standard_normal([N, Nx])
-
-        else:
-            N_x , = dims
-            W = np.sqrt(dt) * np.random.standard_normal(N_x)
-
-        if stages >=1: k1 = dt * f(t       , x) + s * W             # noqa
-        if stages >=2: k2 = dt * f(t+dt/2.0, x+k1/2.0) + s * W      # noqa
-        if stages ==3: k3 = dt * f(t+dt    , x+k2*2.0-k1) + s * W   # noqa
-        if stages ==4:                                              # noqa
-                      k3 = dt * f(t+dt/2.0, x+k2/2.0) + s * W       # noqa
-                      k4 = dt * f(t+dt    , x+k3) + s * W           # noqa
-        if    stages ==1: return x + k1                             # noqa
-        elif  stages ==2: return x + k2                             # noqa
-        elif  stages ==3: return x + (k1 + 4.0*k2 + k3)/6.0         # noqa
-        elif  stages ==4: return x + (k1 + 2.0*(k2 + k3) + k4)/6.0  # noqa
-        else: raise NotImplementedError                             # noqa
-
+        W = s * np.sqrt(dt) * np.random.randn(*x.shape)
     else:
-        # deterministic integration
+        W = 0
 
-        if stages >=1: k1 = dt * f(t       , x)                     # noqa
-        if stages >=2: k2 = dt * f(t+dt/2.0, x+k1/2.0)              # noqa
-        if stages ==3: k3 = dt * f(t+dt    , x+k2*2.0-k1)           # noqa
-        if stages ==4:                                              # noqa
-                      k3 = dt * f(t+dt/2.0, x+k2/2.0)               # noqa
-                      k4 = dt * f(t+dt    , x+k3)                   # noqa
-        if    stages ==1: return x + k1                             # noqa
-        elif  stages ==2: return x + k2                             # noqa
-        elif  stages ==3: return x + (k1 + 4.0*k2 + k3)/6.0         # noqa
-        elif  stages ==4: return x + (k1 + 2.0*(k2 + k3) + k4)/6.0  # noqa
-        else: raise NotImplementedError                             # noqa
-# fmt: on
+    # Approximations to Delta x
+    if stages >= 1: k1 = dt * f(t       , x)           + W   # noqa
+    if stages >= 2: k2 = dt * f(t+dt/2.0, x+k1/2.0)    + W   # noqa
+    if stages == 3: k3 = dt * f(t+dt    , x+k2*2.0-k1) + W   # noqa
+    if stages == 4:
+                    k3 = dt * f(t+dt/2.0, x+k2/2.0)    + W   # noqa
+                    k4 = dt * f(t+dt    , x+k3)        + W   # noqa
+
+    # Mix proxies
+    if    stages == 1: y = x + k1                            # noqa
+    elif  stages == 2: y = x + k2                            # noqa
+    elif  stages == 3: y = x + (k1 + 4.0*k2 + k3)/6.0        # noqa
+    elif  stages == 4: y = x + (k1 + 2.0*(k2 + k3) + k4)/6.0 # noqa
+    else:
+        raise NotImplementedError
+
+    return y
 
 
 def with_rk4(dxdt, autonom=False, stages=4, s=0):
