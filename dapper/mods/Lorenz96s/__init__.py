@@ -144,10 +144,10 @@ def steppers(kind):
     def step(x0, t, dt):
         if kind == "EM":
             # Euler-Maruyama (order 1.0 Weak / Strong) integration
-            return rk4(lambda t, x: dxdt(x), x0, np.nan, dt, s=diffusion, stages=1)
+            return rk4(lambda x, t: dxdt(x), x0, np.nan, dt, s=diffusion, stages=1)
         elif kind == "RK4":
             # 4-stage Runge-Kutta (order 1.0 Weak / Strong) integration
-            return rk4(lambda t, x: dxdt(x), x0, np.nan, dt, s=diffusion, stages=4)
+            return rk4(lambda x, t: dxdt(x), x0, np.nan, dt, s=diffusion, stages=4)
         elif kind == "Tay2":
             # Taylor-Stratonovich (order 2.0 Weak / Strong) integration.
             return l96s_tay2_step(x0, np.nan, dt, diffusion)
