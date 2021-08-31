@@ -26,12 +26,11 @@ beta = 8.0/3
 @modelling.ens_compatible
 def dxdt(x):
     """Evolution equation (coupled ODEs) specifying the dynamics."""
-    d     = np.zeros_like(x)
     x, y, z = x
-    d[0]  = sig*(y - x)
-    d[1]  = rho*x - y - x*z
-    d[2]  = x*y - beta*z
-    return d
+    dx = sig*(y - x)
+    dy = rho*x - y - x*z
+    dz = x*y - beta*z
+    return np.array([dx, dy, dz])
 
 
 step = modelling.with_rk4(dxdt, autonom=True)
