@@ -87,7 +87,7 @@ class Model:
         )
 
     def step1(self, x0, t, dt):
-        return rk4(lambda t, x: self.dxdt(x), x0, np.nan, dt)
+        return rk4(lambda x, t: self.dxdt(x), x0, np.nan, dt)
     # Note: step1 is already ensemble compatible.
     # However, it is a bit slow, so we can gain in speed by using multiprocessing.
 

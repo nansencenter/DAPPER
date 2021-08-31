@@ -78,10 +78,10 @@ class model_instance():
         assert x.shape[-1] == self.nU
         return dxdt_auto(x) + self.F
 
-    def dxdt_parameterized(self, t, x):
+    def dxdt_parameterized(self, x, t):
         """Compute truncated `dxdt` with parameterization of fast variables (`V`)."""
         d  = self.dxdt_trunc(x)
-        d -= self.prmzt(t, x)  # must (of course) be set first
+        d -= self.prmzt(x, t)  # must (of course) be set first
         return d
 
     def dxdt(self, x):

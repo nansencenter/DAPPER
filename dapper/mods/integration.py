@@ -57,18 +57,18 @@ def rk4(f, x, t, dt, stages=4, s=0):
         W = 0
 
     # Approximations to Delta x
-    if stages >= 1: k1 = dt * f(t       , x)           + W   # noqa
-    if stages >= 2: k2 = dt * f(t+dt/2.0, x+k1/2.0)    + W   # noqa
-    if stages == 3: k3 = dt * f(t+dt    , x+k2*2.0-k1) + W   # noqa
+    if stages >= 1: k1 = dt * f(x,           t)         + W    # noqa
+    if stages >= 2: k2 = dt * f(x+k1/2.0,    t+dt/2.0)  + W    # noqa
+    if stages == 3: k3 = dt * f(x+k2*2.0-k1, t+dt)      + W    # noqa
     if stages == 4:
-                    k3 = dt * f(t+dt/2.0, x+k2/2.0)    + W   # noqa
-                    k4 = dt * f(t+dt    , x+k3)        + W   # noqa
+                    k3 = dt * f(x+k2/2.0,    t+dt/2.0)  + W    # noqa
+                    k4 = dt * f(x+k3,        t+dt)      + W    # noqa
 
     # Mix proxies
-    if    stages == 1: y = x + k1                            # noqa
-    elif  stages == 2: y = x + k2                            # noqa
-    elif  stages == 3: y = x + (k1 + 4.0*k2 + k3)/6.0        # noqa
-    elif  stages == 4: y = x + (k1 + 2.0*(k2 + k3) + k4)/6.0 # noqa
+    if    stages == 1: y = x + k1                              # noqa
+    elif  stages == 2: y = x + k2                              # noqa
+    elif  stages == 3: y = x + (k1 + 4.0*k2 + k3)/6.0          # noqa
+    elif  stages == 4: y = x + (k1 + 2.0*(k2 + k3) + k4)/6.0   # noqa
     else:
         raise NotImplementedError
 
@@ -77,11 +77,11 @@ def rk4(f, x, t, dt, stages=4, s=0):
 
 def with_rk4(dxdt, autonom=False, stages=4, s=0):
     """Wrap `dxdt` in `rk4`."""
-    def tendency(t, x):
+    def tendency(x, t):
         if autonom:
             return dxdt(x)
         else:
-            return dxdt(t, x)
+            return dxdt(x, t)
 
     def step(x0, t0, dt):
         return rk4(tendency, x0, t0, dt, stages=stages)
@@ -176,7 +176,7 @@ def integrate_TLM(TLM, dt, method='approx'):
     else:
         Id = np.eye(TLM.shape[0])
         if method == 'rk4':
-            resolvent = rk4(lambda t, U: TLM@U, Id, np.nan, dt)
+            resolvent = rk4(lambda U, t: TLM@U, Id, np.nan, dt)
         elif method.lower().startswith('approx'):
             resolvent = Id + dt*TLM
         else:
