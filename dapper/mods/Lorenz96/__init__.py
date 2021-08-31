@@ -39,4 +39,4 @@ def dxdt(x):
 
 
 def step(x0, t, dt):
-    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt)
+    return rk4(lambda x, t: dxdt(x), x0, np.nan, dt)

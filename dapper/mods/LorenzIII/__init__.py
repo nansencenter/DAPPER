@@ -18,6 +18,7 @@ Special cases of this model are:
 
 An implementation using explicit for-loops can be found in commit 6193532b .
 It uses numba (pip install required) for speed gain, but is still very slow.
+The implementation hereunder uses efficient numpy vectorization => much faster.
 
 With rk4 the largest stable time step (for free run) seems to be
 somewhere around what Lorenz used, namely `dt=0.05/12`.
@@ -86,7 +87,7 @@ class Model:
         )
 
     def step1(self, x0, t, dt):
-        return rk4(lambda t, x: self.dxdt(x), x0, np.nan, dt)
+        return rk4(lambda x, t: self.dxdt(x), x0, np.nan, dt)
     # Note: step1 is already ensemble compatible.
     # However, it is a bit slow, so we can gain in speed by using multiprocessing.
 
