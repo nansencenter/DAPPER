@@ -66,10 +66,10 @@ Obs['noise'] = R
 other = {'name': rel2mods(__file__)+'_trunc'}
 HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LUV.LPs(jj), **other)
 
-LUV.prmzt = lambda t, x: polynom_prmzt(t, x, 1)
+LUV.prmzt = lambda x, t: polynom_prmzt(x, t, 1)
 
 
-def polynom_prmzt(t, x, order):
+def polynom_prmzt(x, t, order):
     """
     Polynomial (deterministic) parameterization of fast variables (Y).
 

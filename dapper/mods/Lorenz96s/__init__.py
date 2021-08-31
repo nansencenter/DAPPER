@@ -131,13 +131,13 @@ def l96s_tay2_step(x, t, dt, s):
 def em_ensemble_step(x0, t, dt):
     """Euler-Maruyama (order 1.0 Weak / Strong) model step wrapper"""
 
-    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt, s=diffusion, stages=1)
+    return rk4(lambda x, t: dxdt(x), x0, np.nan, dt, s=diffusion, stages=1)
 
 
 def rk_ensemble_step(x0, t, dt):
     """4-stage Runge-Kutta (order 1.0 Weak / Strong) model step wrapper"""
 
-    return rk4(lambda t, x: dxdt(x), x0, np.nan, dt, s=diffusion, stages=4)
+    return rk4(lambda x, t: dxdt(x), x0, np.nan, dt, s=diffusion, stages=4)
 
 
 # define the numerical step model for the truth twin
