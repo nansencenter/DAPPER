@@ -19,16 +19,36 @@ from dapper.tools.progressbar import progbar
 class Stats(series.StatPrint):
     """Contains and computes statistics of the DA methods.
 
-    Use new_series() to register your own stat time series.
+    Use `new_series` to register your own time series of statistics,
+    for example inside of your new `da_method`.
+    Or, if you do not want to conform to one of the built-in time series formats
+    (then you won't get automatic time averaging and liveplotting capabilities)
+    then you can simply do
+    ```py
+    stat.my_custom_stat = value
+    ```
+    But, by default (unless `free=False`), DAPPER will delete the `xp.stat` attribute,
+    only keeping the `xp.avrgs` (which contain only the time averages of `xp.stat`).
+    In order to have `my_custom_stat` be available among `xp.avrgs`,
+    it must be "registered". I.e. you will also need to do
+    ```py
+    stat.stat_register.append("my_custom_stat").
+    ```
+    Alternatively, you can do both at once:
+    ```py
+    dpr.stats.register_stat(self.stats, "my_custom_stat", value)
+    ```
+
+    You can also overwrite pre-defined stats fields,
+    which will then be automatically averaged and written to `.avrgs`.
+    For example, you can remove all calls to `stats.assess`, and simply do
+    ```py
+    stats.err.rms.a = np.sqrt(np.mean(error_time_series**2, axis=-1))
+    ```
     """
 
     def __init__(self, xp, HMM, xx, yy, liveplots=False, store_u=rc.store_u):
-        """Init the default statistics.
-
-        Note: Python allows dynamically creating attributes, so you can easily
-        add custom stat. series to a Stat instance within a particular method,
-        for example. Use `new_series` to get automatic averaging too.
-        """
+        """Init the default statistics."""
         ######################################
         # Preamble
         ######################################
@@ -117,6 +137,9 @@ class Stats(series.StatPrint):
         """Create (and register) a statistics time series.
 
         Series are initialized with nan's.
+
+        If `length` is an integer, a `DataSeries` (a trivial subclass of
+        `numpy.ndarray`) is made. By default, though, a `series.FAUSt` is created.
 
         Example
         -------

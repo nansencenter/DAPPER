@@ -11,18 +11,6 @@ sub-directories/packages.
 The simplest example is perhaps
 `dapper.da_methods.ensemble.EnKF`.
 
-## Defining your own statistics
-
-By default (unless `free=False`), DAPPER will delete the `xp.stat` object,
-only keeping the `xp.avrgs` (which contain only the time averages of `xp.stat`).
-In order to have your custom statistic be available among `xp.avrgs`,
-it must be "registered". I.e., in addition to doing
-`stat.my_custom_stat = value`
-you need to do
-`stat.stat_register.append("my_custom_stat").
-Alternatively, you can do both at once:
-`dpr.stats.register_stat(self.stats, "my_custom_stat", value)`
-
 ## General advice for programming/debugging scientific experiments
 
 - Start with something simple.
