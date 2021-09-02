@@ -600,6 +600,10 @@ def unpack_uqs(uq_list, decimals=None):
         Default: `None`. In this case, the formatting is left to the `uq`s.
     """
     def frmt(uq):
+        if not isinstance(uq, series.UncertainQtty):
+            # Presumably uq is just a number
+            uq = series.UncertainQtty(uq)
+
         attrs = vars(uq).copy()
 
         # val/prec: round
