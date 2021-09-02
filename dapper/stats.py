@@ -27,14 +27,15 @@ class Stats(series.StatPrint):
     ```py
     stat.my_custom_stat = value
     ```
-    But, by default (unless `free=False`), DAPPER will delete the `xp.stat` attribute,
+    But, by default, when using `xp.launch` (unless `free=False`),
+    the `xp.stat` attribute gets deleted (for memory purposes),
     only keeping the `xp.avrgs` (which contain only the time averages of `xp.stat`).
     In order to have `my_custom_stat` be available among `xp.avrgs`,
     it must be "registered". I.e. you will also need to do
     ```py
-    stat.stat_register.append("my_custom_stat").
+    stat.stat_register.append("my_custom_stat")
     ```
-    Alternatively, you can do both at once:
+    Alternatively, you can do both at once
     ```py
     dpr.stats.register_stat(self.stats, "my_custom_stat", value)
     ```
@@ -43,6 +44,8 @@ class Stats(series.StatPrint):
     which will then be automatically averaged and written to `.avrgs`.
     For example, you can remove all calls to `stats.assess`, and simply do
     ```py
+    ...
+    error_time_series = xx - ensemble_time_series.mean(axis=1)
     stats.err.rms.a = np.sqrt(np.mean(error_time_series**2, axis=-1))
     ```
     """
