@@ -687,7 +687,7 @@ def center(E, axis=0, rescale=False):
         N = E.shape[axis]
         X *= np.sqrt(N/(N-1))
 
-    x = x.squeeze()
+    x = x.squeeze(axis=axis)
 
     return X, x
 
