@@ -187,7 +187,8 @@ class Stats(series.StatPrint):
 
     @property
     def data_series(self):
-        return [k for k in vars(self) if isinstance(getattr(self, k), series.DataSeries)]
+        return [k for k in vars(self)
+                if isinstance(getattr(self, k), series.DataSeries)]
 
     def assess(self, k, kObs=None, faus=None,
                E=None, w=None, mu=None, Cov=None):
