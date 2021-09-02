@@ -471,8 +471,8 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
     - getattr that supports abbreviations.
     """
 
-    def tabulate(self, statkeys=()):
-        columns = tabulate_avrgs([self], statkeys, decimals=None)
+    def tabulate(self, statkeys=(), decimals=None):
+        columns = tabulate_avrgs([self], statkeys, decimals=decimals)
         return tabulate(columns, headers="keys").replace('␣', ' ')
 
     abbrevs = {'rmse': 'err.rms', 'rmss': 'std.rms', 'rmv': 'std.rms'}
