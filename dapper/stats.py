@@ -14,10 +14,9 @@ import dapper.tools.series as series
 from dapper.dpr_config import rc
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
-from dapper.tools.series import DataSeries, StatPrint
 
 
-class Stats(StatPrint):
+class Stats(series.StatPrint):
     """Contains and computes statistics of the DA methods.
 
     Use new_series() to register your own stat time series.
@@ -142,7 +141,7 @@ class Stats(StatPrint):
                 tseries = series.FAUSt(*total_shape, *store_opts, **kws)
             else:
                 total_shape = (length,)+shape
-                tseries = DataSeries(total_shape, *kws)
+                tseries = series.DataSeries(total_shape, *kws)
             register_stat(parent, name, tseries)
 
         # Principal series
@@ -162,7 +161,7 @@ class Stats(StatPrint):
 
     @property
     def data_series(self):
-        return [k for k in vars(self) if isinstance(getattr(self, k), DataSeries)]
+        return [k for k in vars(self) if isinstance(getattr(self, k), series.DataSeries)]
 
     def assess(self, k, kObs=None, faus=None,
                E=None, w=None, mu=None, Cov=None):
@@ -371,7 +370,7 @@ class Stats(StatPrint):
                 if tseries.store_u:
                     avrgs['u'] = series.mean_with_conf(tseries[kk, 'u'])
 
-            elif isinstance(tseries, DataSeries):
+            elif isinstance(tseries, series.DataSeries):
                 if tseries.array.shape[1:] != ():
                     return average_multivariate()
                 elif len(tseries.array) == self.KObs+1:
@@ -463,11 +462,11 @@ def register_stat(self, name, value):
     self.stat_register.append(name)
 
 
-class Avrgs(StatPrint, struct_tools.DotDict):
+class Avrgs(series.StatPrint, struct_tools.DotDict):
     """A DotDict specialized for stat. averages.
 
     Embellishments:
-    - StatPrint
+    - series.StatPrint
     - tabulate
     - getattr that supports abbreviations.
     """
