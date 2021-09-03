@@ -19,35 +19,31 @@ from dapper.tools.progressbar import progbar
 class Stats(series.StatPrint):
     """Contains and computes statistics of the DA methods.
 
-    Use `new_series` to register your own time series of statistics,
-    for example inside of your new `da_method`.
-    Or, if you do not want to conform to one of the built-in time series formats
-    (then you won't get automatic time averaging and liveplotting capabilities)
-    then you can simply do
-    ```py
-    stat.my_custom_stat = value
-    ```
-    But, by default, when using `xp.launch` (unless `free=False`),
-    the `xp.stat` attribute gets deleted (for memory purposes),
-    only keeping the `xp.avrgs` (which contain only the time averages of `xp.stat`).
-    In order to have `my_custom_stat` be available among `xp.avrgs`,
-    it must be "registered". I.e. you will also need to do
-    ```py
-    stat.stat_register.append("my_custom_stat")
-    ```
+    Use `Stats.new_series` to register your own time series of statistics.
+    For example, create `ndarray` of length `KObs+1` to hold the time series
+    of estimated inflation values
+    >>> self.stats.new_series('infl', 1, KObs+1)  # doctest: +SKIP
+
+    Of course, you could just do this
+    >>> self.stats.my_custom_stat = value  # doctest: +SKIP
+
+    However, `Stats.average_in_time` will not operate on it,
+    because it is not in the standard format created by `Stats.new_series`.
+    Moreover, recall that `xp.launch` (without `free=False`) will delete
+    the `Stats` object from `xp` after the assimilation, in order to save memory.
+    Therefore, in order to have `my_custom_stat` be available among `xp.avrgs`,
+    it must be "registered":
+    >>> self.stats.stat_register.append("my_custom_stat")  # doctest: +SKIP
+
     Alternatively, you can do both at once
-    ```py
-    dpr.stats.register_stat(self.stats, "my_custom_stat", value)
-    ```
+    >>> self.stat("my_custom_stat", value)  # doctest: +SKIP
 
     You can also overwrite pre-defined stats fields,
     which will then be automatically averaged and written to `.avrgs`.
     For example, you can remove all calls to `stats.assess`, and simply do
-    ```py
-    ...
-    error_time_series = xx - ensemble_time_series.mean(axis=1)
-    stats.err.rms.a = np.sqrt(np.mean(error_time_series**2, axis=-1))
-    ```
+    >>> ...  # doctest: +SKIP
+    ... error_time_series = xx - ensemble_time_series.mean(axis=1)
+    ... stats.err.rms.a = np.sqrt(np.mean(error_time_series**2, axis=-1))
     """
 
     def __init__(self, xp, HMM, xx, yy, liveplots=False, store_u=rc.store_u):
@@ -137,21 +133,14 @@ class Stats(series.StatPrint):
         self.new_series('resmpl', 1, KObs+1)
 
     def new_series(self, name, shape, length='FAUSt', MS=False, **kws):
-        """Create (and register) a statistics time series.
-
-        Series are initialized with nan's.
+        """Create (and register) a statistics time series, initialized with `nan`s.
 
         If `length` is an integer, a `DataSeries` (a trivial subclass of
         `numpy.ndarray`) is made. By default, though, a `series.FAUSt` is created.
 
-        Example
-        -------
-        Create ndarray of length KObs+1 for inflation time series:
-        >>> self.new_series('infl', 1, KObs+1)  # doctest: +SKIP
-
         NB: The `sliding_diagnostics` liveplotting relies on detecting `nan`'s
             to avoid plotting stats that are not being used.
-            => Cannot use `dtype=bool` or `int` for stats that get plotted.
+            Thus, you cannot use `dtype=bool` or `int` for stats that get plotted.
         """
         # Convert int shape to tuple
         if not hasattr(shape, '__len__'):
@@ -483,6 +472,10 @@ class Stats(series.StatPrint):
 
 
 def register_stat(self, name, value):
+    """Do `self.name = value` and register `name` as in self's `stat_register`.
+
+    Note: `self` is not always a `Stats` object, but could be a "child" of it.
+    """
     setattr(self, name, value)
     if not hasattr(self, "stat_register"):
         self.stat_register = []
