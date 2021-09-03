@@ -153,6 +153,11 @@ def da_method(*default_dataclasses):
                 " must define a method called 'assimilate'.") from error
         cls.assimilate = functools.wraps(_assimilate)(assimilate)
 
+        # Shortcut for register_stat
+        def stat(self, name, value):
+            dapper.stats.register_stat(self.stats, name, value)
+        cls.stat = stat
+
         # Make self.__class__.__name__ an attrib.
         # Used by xpList.split_attrs().
         cls.da_method = cls.__name__
