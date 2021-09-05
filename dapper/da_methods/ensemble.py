@@ -56,7 +56,7 @@ class EnKF:
             stats.assess(k, kObs, E=E)
 
 
-def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
+def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, kObs=None):
     """Perform the EnKF analysis update.
 
     This implementation includes several flavours and forms,
@@ -217,10 +217,11 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats, kObs):
         raise KeyError("No analysis update method found: '" + upd_a + "'.")
 
     # Diagnostic: relative influence of observations
-    if 'trHK' in locals():
-        stats.trHK[kObs] = trHK      / hnoise.M
-    elif 'HK' in locals():
-        stats.trHK[kObs] = HK.trace()/hnoise.M
+    if stats is not None:
+        if 'trHK' in locals():
+            stats.trHK[kObs] = trHK      / hnoise.M
+        elif 'HK' in locals():
+            stats.trHK[kObs] = HK.trace()/hnoise.M
 
     return E
 

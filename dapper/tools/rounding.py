@@ -1,14 +1,12 @@
 """Functions for rounding numbers."""
 
 import functools
-from dataclasses import dataclass
 
 import numpy as np
 
 from dapper.dpr_config import rc
 
 
-@dataclass
 class UncertainQtty():
     """Data container associating uncertainty (confidence) to a quantity.
 
@@ -55,11 +53,9 @@ class UncertainQtty():
     0 ±inf
     """
 
-    val: float
-    prec: float
-
-    def __post_init__(self):
-        assert self.prec >= 0. or np.isnan(self.prec), "'prec' must be non-negative."
+    def __init__(self, val, prec=np.nan):
+        self.val = val
+        self.prec = prec
 
     def round(self=1.0):  # noqa
         """Round intelligently.

@@ -14,22 +14,40 @@ import dapper.tools.series as series
 from dapper.dpr_config import rc
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
-from dapper.tools.series import DataSeries, StatPrint
 
 
-class Stats(StatPrint):
+class Stats(series.StatPrint):
     """Contains and computes statistics of the DA methods.
 
-    Use new_series() to register your own stat time series.
+    Use `Stats.new_series` to register your own time series of statistics.
+    For example, create `ndarray` of length `KObs+1` to hold the time series
+    of estimated inflation values
+    >>> self.stats.new_series('infl', 1, KObs+1)  # doctest: +SKIP
+
+    Of course, you could just do this
+    >>> self.stats.my_custom_stat = value  # doctest: +SKIP
+
+    However, `Stats.average_in_time` will not operate on it,
+    because it is not in the standard format created by `Stats.new_series`.
+    Moreover, recall that `xp.launch` (without `free=False`) will delete
+    the `Stats` object from `xp` after the assimilation, in order to save memory.
+    Therefore, in order to have `my_custom_stat` be available among `xp.avrgs`,
+    it must be "registered":
+    >>> self.stats.stat_register.append("my_custom_stat")  # doctest: +SKIP
+
+    Alternatively, you can do both at once
+    >>> self.stat("my_custom_stat", value)  # doctest: +SKIP
+
+    You can also overwrite pre-defined stats fields,
+    which will then be automatically averaged and written to `.avrgs`.
+    For example, you can remove all calls to `stats.assess`, and simply do
+    >>> ...  # doctest: +SKIP
+    ... error_time_series = xx - ensemble_time_series.mean(axis=1)
+    ... stats.err.rms.a = np.sqrt(np.mean(error_time_series**2, axis=-1))
     """
 
     def __init__(self, xp, HMM, xx, yy, liveplots=False, store_u=rc.store_u):
-        """Init the default statistics.
-
-        Note: Python allows dynamically creating attributes, so you can easily
-        add custom stat. series to a Stat instance within a particular method,
-        for example. Use `new_series` to get automatic averaging too.
-        """
+        """Init the default statistics."""
         ######################################
         # Preamble
         ######################################
@@ -115,18 +133,14 @@ class Stats(StatPrint):
         self.new_series('resmpl', 1, KObs+1)
 
     def new_series(self, name, shape, length='FAUSt', MS=False, **kws):
-        """Create (and register) a statistics time series.
+        """Create (and register) a statistics time series, initialized with `nan`s.
 
-        Series are initialized with nan's.
-
-        Example
-        -------
-        Create ndarray of length KObs+1 for inflation time series:
-        >>> self.new_series('infl', 1, KObs+1)  # doctest: +SKIP
+        If `length` is an integer, a `DataSeries` (a trivial subclass of
+        `numpy.ndarray`) is made. By default, though, a `series.FAUSt` is created.
 
         NB: The `sliding_diagnostics` liveplotting relies on detecting `nan`'s
             to avoid plotting stats that are not being used.
-            => Cannot use `dtype=bool` or `int` for stats that get plotted.
+            Thus, you cannot use `dtype=bool` or `int` for stats that get plotted.
         """
         # Convert int shape to tuple
         if not hasattr(shape, '__len__'):
@@ -142,7 +156,7 @@ class Stats(StatPrint):
                 tseries = series.FAUSt(*total_shape, *store_opts, **kws)
             else:
                 total_shape = (length,)+shape
-                tseries = DataSeries(total_shape, *kws)
+                tseries = series.DataSeries(total_shape, *kws)
             register_stat(parent, name, tseries)
 
         # Principal series
@@ -162,7 +176,8 @@ class Stats(StatPrint):
 
     @property
     def data_series(self):
-        return [k for k in vars(self) if isinstance(getattr(self, k), DataSeries)]
+        return [k for k in vars(self)
+                if isinstance(getattr(self, k), series.DataSeries)]
 
     def assess(self, k, kObs=None, faus=None,
                E=None, w=None, mu=None, Cov=None):
@@ -371,7 +386,7 @@ class Stats(StatPrint):
                 if tseries.store_u:
                     avrgs['u'] = series.mean_with_conf(tseries[kk, 'u'])
 
-            elif isinstance(tseries, DataSeries):
+            elif isinstance(tseries, series.DataSeries):
                 if tseries.array.shape[1:] != ():
                     return average_multivariate()
                 elif len(tseries.array) == self.KObs+1:
@@ -457,23 +472,27 @@ class Stats(StatPrint):
 
 
 def register_stat(self, name, value):
+    """Do `self.name = value` and register `name` as in self's `stat_register`.
+
+    Note: `self` is not always a `Stats` object, but could be a "child" of it.
+    """
     setattr(self, name, value)
     if not hasattr(self, "stat_register"):
         self.stat_register = []
     self.stat_register.append(name)
 
 
-class Avrgs(StatPrint, struct_tools.DotDict):
+class Avrgs(series.StatPrint, struct_tools.DotDict):
     """A DotDict specialized for stat. averages.
 
     Embellishments:
-    - StatPrint
+    - series.StatPrint
     - tabulate
     - getattr that supports abbreviations.
     """
 
-    def tabulate(self, statkeys=()):
-        columns = tabulate_avrgs([self], statkeys, decimals=None)
+    def tabulate(self, statkeys=(), decimals=None):
+        columns = tabulate_avrgs([self], statkeys, decimals=decimals)
         return tabulate(columns, headers="keys").replace('␣', ' ')
 
     abbrevs = {'rmse': 'err.rms', 'rmss': 'std.rms', 'rmv': 'std.rms'}
@@ -601,6 +620,10 @@ def unpack_uqs(uq_list, decimals=None):
         Default: `None`. In this case, the formatting is left to the `uq`s.
     """
     def frmt(uq):
+        if not isinstance(uq, series.UncertainQtty):
+            # Presumably uq is just a number
+            uq = series.UncertainQtty(uq)
+
         attrs = vars(uq).copy()
 
         # val/prec: round
@@ -688,7 +711,7 @@ def center(E, axis=0, rescale=False):
         N = E.shape[axis]
         X *= np.sqrt(N/(N-1))
 
-    x = x.squeeze()
+    x = x.squeeze(axis=axis)
 
     return X, x
 
