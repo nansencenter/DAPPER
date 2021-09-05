@@ -22,7 +22,7 @@ def setup(hmm, xp):
     """Set attrs. of `hmm` as specified by `xp`, run truth simulation."""
     # TODO: Should do seed management?
     import dapper.mods.Lorenz96s as core
-    core.Diffusion = xp.Diffus1
+    core.diffusion = xp.Diffus1
     xx, yy = HMMs("Tay2", xp.resoltn, R=xp.ObsErr2).simulate()
     if xp.resoltn == "Low":
         xx = xx[::2]
