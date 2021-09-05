@@ -70,7 +70,11 @@ Force = 8.0
 Tplot = 10
 
 # set the model state vector dimension
-Nx = 10
+# Note: the second order Taylor-Stratonovich scheme can be
+# fairly expensive to run, and a reduced order model with
+# Nx=10 is a suggested setting for a robust twin experiment
+# on a lower-power machine
+Nx = 40
 
 # set the diffusion parameter, defining the intensity of the
 # stochasticity / model uncertainty
