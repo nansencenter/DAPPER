@@ -1,5 +1,22 @@
-# ## Similar to examples/stoch_model1.py,
-# TODO: how does it differ from it?
+# ## Similar to examples/stoch_model1.py.
+# This experiment instead runs a full range of observation error
+# and diffusion settings for the model uncertainty, in order to
+# demonstrate the effects of low-precision numerics, and when
+# these can be used in a perfect random model.  Particularly,
+# when the system is perturbed by a small noise process (low diffusion
+# coeffient), the low-precision Euler-Maruyama scheme diverges, while
+# the Runge-Kutta scheme maintains good filter performance with the same
+# step size.  This is contrasted with the scenario in which low-precision
+# numerics are used with a model high-uncertainty, in a noise driven model.
+# When the diffusion coefficient is large, the difference between the DA with
+# the two schemes is negligible. Furthermore, we find that when both
+# schemes are in the high-precision configuration both have adedquate filter
+# performance.  However, this is only for
+# demonstration, as a step size on order 10^{-3} must be used in order to
+# have the Euler-Maruyama scheme produce an adequate forecast across regimes.
+# This level of precision is impractical for most realistic twin experiments,
+# emphasizing the fact that the Runge-Kutta scheme is statistically
+# robust even for step sizes of 10^{-2}.
 
 # #### Imports
 # <b>NB:</b> If you're on <mark><b>Gooble Colab</b></mark>,
@@ -51,12 +68,12 @@ save_as = xps.launch(HMMs(), __file__, setup=setup)
 # save_as /= dpr.find_latest_run(save_as)
 # xps = dpr.load_xps(save_as)
 
-# print(dpr.xpList(xps).tabulate_avrgs())  # flat/long/list print
+print(dpr.xpList(xps).tabulate_avrgs())  # flat/long/list print
 
 # #### Print in wide form
 xp_dict = dpr.xpSpace.from_list(xps)
-axes = dict(outer="resoltn", inner="ObsErr2", mean="seed", optim={'Diffus1'})
-xp_dict.print("rmse.a", axes, subcols=False)
+axes = dict(outer="resoltn", inner="ObsErr2")
+xp_dict.print("rmse.a", axes)
 
 # #### Plot
 tables = xp_dict.plot('rmse.a', axes, title2=save_as)

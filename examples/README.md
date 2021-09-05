@@ -16,5 +16,5 @@ and that it requires a Google login): [![Open In Collab](https://colab.research.
 - `basic_2.py`: Comparison of several DA methods.
 - `basic_3.py`: Comparison of *many* DA methods and other experiment settings.
 - `param_estim.py`: Similar to `basic_2`, but with parameter estimation.
-- `stoch_model1.py`: A study with a perfect-yet-random model.
-- `stoch_models.py`: As above, but ... TODO
+- `stoch_model1.py`: A simple visualization with a perfect-yet-random model, demonstrating differences in integration schemes.
+- `stoch_models.py`: As above, but studies the relationship between model uncertainty (represented by the magnitude of the diffusion coefficient) and numerical discretization error.
