@@ -5,6 +5,7 @@ They all consist of one (or more) synthetic experiments.
 
 Run them using `python examples/the_script.py`,
 or with the `%run` command inside `ipython`.
+
 Some of the scripts have also been converted to Jupyter notebooks (`.ipynb`).
 You can try them out without installing anything
 by pressing this button (but note that some plotting features won't work,
@@ -16,5 +17,6 @@ and that it requires a Google login): [![Open In Collab](https://colab.research.
 - `basic_2.py`: Comparison of several DA methods.
 - `basic_3.py`: Comparison of *many* DA methods and other experiment settings.
 - `param_estim.py`: Similar to `basic_2`, but with parameter estimation.
-- `stoch_model1.py`: A simple visualization with a perfect-yet-random model, demonstrating differences in integration schemes.
-- `stoch_models.py`: As above, but studies the relationship between model uncertainty (represented by the magnitude of the diffusion coefficient) and numerical discretization error.
+- `stoch_model1.py`: A perfect-yet-random model, with various integration schemes.
+- `stoch_models.py`: As above, but studies the relationship between
+  model uncertainty and numerical discretization error.
