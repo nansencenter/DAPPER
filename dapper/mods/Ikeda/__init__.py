@@ -12,10 +12,11 @@ from numpy import cos, sin
 import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
 
-__pdoc__ = {"demo": False}
-
 # Constant 0.6 <= u <= 1.
 u = 0.9
+
+x0 = np.zeros(2)
+Tplot = 10.0
 
 
 @modelling.ens_compatible
@@ -32,11 +33,6 @@ def aux(x, y):
     x1 = x*cos(t) - y*sin(t)
     y1 = x*sin(t) + y*cos(t)
     return s, t, x1, y1
-
-
-Tplot = 10.0
-
-x0 = np.zeros(2)
 
 
 def dstep_dx(x, _t, _dt):

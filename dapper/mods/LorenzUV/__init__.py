@@ -22,9 +22,6 @@ import dapper.mods.Lorenz96 as L96
 import dapper.tools.liveplotting as LP
 from dapper.mods.integration import integrate_TLM
 
-__pdoc__ = {mod: False for mod in [
-    "demo", "illust_LorenzUV", "illust_parameterizations"]}
-
 
 def reversible(fun):
     """Reverse input/output (instead of manipulating indices)."""

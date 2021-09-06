@@ -5,8 +5,6 @@ Refs: `bib.vissio2020mechanics`
 """
 import numpy as np
 
-__pdoc__ = {"demo": False}
-
 
 class model_instance():
     """

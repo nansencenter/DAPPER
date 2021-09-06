@@ -16,15 +16,13 @@ import numpy as np
 import scipy.linalg as sla
 from scipy import sparse
 
-__pdoc__ = {"demo": False}
-
 
 def Fmat(Nx, c, dx, dt):
     """Generate transition matrix.
 
     - `Nx` - System size
     - `c`  - Velocity of wave. Wave travels to the rigth for `c>0`.
-    - `dx` - Grid spacing
+   - `dx` - Grid spacing
     - `dt` - Time step
 
     Note that the 1st-order upwind scheme used here is exact

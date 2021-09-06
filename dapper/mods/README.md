@@ -36,8 +36,8 @@ To make sure this is working, we suggest the following structure:
 
         - `dapper.mods.QG`: use of parallelized for loop (map).
 
-    - You should also define an example initial state, `x0`.  This facilitates
-      the specification of initial conditions for different synthetic
+    - Optional: define a suggested/example initial state, `x0`.
+      This facilitates the specification of initial conditions for different synthetic
       experiments, as random variables centred on `x0`.  It is also a
       convenient way just to specify the system size as `len(x0)`.  In many
       experiments, the specific value of `x0` does not matter, because most

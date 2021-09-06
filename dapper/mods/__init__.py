@@ -3,8 +3,6 @@
 .. include:: ./README.md
 """
 
-__pdoc__ = {"explore_props": False}
-
 import copy as cp
 import inspect
 from pathlib import Path

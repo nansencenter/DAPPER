@@ -16,14 +16,14 @@ from dapper.mods.integration import rk4
 
 from .extras import LPs, d2x_dtdx, dstep_dx
 
-__pdoc__ = {"demo": False}
-
 Force = 8.0
 Tplot = 10
 
 
 def x0(M):
-    return np.eye(M)[0]
+    x = np.zeros(M)
+    x[0] = 1
+    return x
 
 
 def shift(x, n):

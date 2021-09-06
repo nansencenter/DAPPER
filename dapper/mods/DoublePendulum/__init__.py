@@ -15,8 +15,6 @@ import dapper.mods as modelling
 from dapper.mods.integration import FD_Jac
 from dapper.mods.Lorenz63 import LPs
 
-__pdoc__ = {"demo": False}
-
 G  = 9.8  # acceleration due to gravity, in m/s^2
 L1 = 1.0  # length of pendulum 1 in m
 L2 = 1.0  # length of pendulum 2 in m

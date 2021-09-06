@@ -8,8 +8,6 @@ import numpy as np
 import dapper.mods as modelling
 from dapper.mods.integration import integrate_TLM
 
-__pdoc__ = {"demo": False}
-
 # Constants
 a = 0.25
 b = 4

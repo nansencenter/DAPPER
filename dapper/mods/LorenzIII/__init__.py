@@ -30,8 +30,6 @@ from scipy.ndimage import convolve1d
 
 from dapper.mods.integration import rk4
 
-__pdoc__ = {"demo": False}
-
 
 @dataclass
 class Model:

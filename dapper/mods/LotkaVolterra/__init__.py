@@ -11,8 +11,6 @@ import dapper.mods as modelling
 from dapper.mods.integration import integrate_TLM
 from dapper.mods.Lorenz63 import LPs
 
-__pdoc__ = {"demo": False}
-
 Nx = 4
 
 # "growth" coefficients
@@ -27,6 +25,7 @@ A = np.array(
      [1.21, 0.51, 0.35, 1.  ]])
 
 x0 = 0.25*np.ones(Nx)
+Tplot = 100
 
 
 def dxdt(x):
@@ -34,8 +33,6 @@ def dxdt(x):
 
 
 step = modelling.with_rk4(dxdt, autonom=True)
-
-Tplot = 100
 
 
 def d2x_dtdx(x):

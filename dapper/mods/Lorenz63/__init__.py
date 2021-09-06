@@ -15,12 +15,14 @@ import dapper.mods as modelling
 
 from .extras import LPs, d2x_dtdx, dstep_dx
 
-__pdoc__ = {"demo": False}
-
 # Constants
 sig = 10.0
 rho = 28.0
 beta = 8.0/3
+
+# Suggested values
+x0 = np.array([1.509, -1.531, 25.46])
+Tplot = 4.0
 
 
 @modelling.ens_compatible
@@ -34,7 +36,3 @@ def dxdt(x):
 
 
 step = modelling.with_rk4(dxdt, autonom=True)
-
-Tplot = 4.0
-
-x0 = np.array([1.509, -1.531, 25.46])
