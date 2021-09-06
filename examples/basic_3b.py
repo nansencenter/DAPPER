@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import dapper as dpr
+from dapper.xp_process import (default_fig_adjustments, default_styles,
+                               discretize_cmap, make_label, rel_index)
 
 save_as = dpr.rc.dirs.data / "basic_3"
 # save_as /= "run_2020-11-11__20-36-36"
@@ -35,7 +37,7 @@ xp_dict.print("rmse.a", axes, subcols=False)
 
 def get_style(coord):
     """Quick and dirty styling."""
-    S = dpr.default_styles(coord, True)
+    S = default_styles(coord, True)
     if coord.da_method == "EnKF":
         upd_a = getattr(coord, "upd_a", None)
         if upd_a == "PertObs":
@@ -56,7 +58,7 @@ def get_style(coord):
 
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style, title2=save_as)
-dpr.default_fig_adjustments(tables)
+default_fig_adjustments(tables)
 plt.pause(.1)
 
 # #### Plot with color gradient
@@ -69,24 +71,24 @@ xp_dict = dpr.xpSpace.from_list(xps)
 graded = "loc_rad"
 axes["optim"] -= {graded}
 grades = xp_dict.tickz(graded)
-# cmap, sm = dpr.discretize_cmap(cm.Reds, len(grades), .2)
-cmap, sm = dpr.discretize_cmap(plt.cm.rainbow, len(grades))
+# cmap, sm = discretize_cmap(cm.Reds, len(grades), .2)
+cmap, sm = discretize_cmap(plt.cm.rainbow, len(grades))
 
 
 def get_style_with_gradient(coord):
     S = get_style(coord)
     if coord.da_method == "LETKF":
-        grade = dpr.rel_index(getattr(coord, graded), grades, 1)
+        grade = rel_index(getattr(coord, graded), grades, 1)
         S.c = cmap(grade)
         S.marker = None
-        S.label = dpr.make_label(coord, exclude=[graded])
+        S.label = make_label(coord, exclude=[graded])
     return S
 
 
 # +
 # Plot
 tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
-dpr.default_fig_adjustments(tables)
+default_fig_adjustments(tables)
 
 # Colorbar
 cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0], label=graded)
