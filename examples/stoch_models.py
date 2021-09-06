@@ -30,6 +30,7 @@ import dapper as dpr
 import dapper.da_methods as da
 
 # #### Load experiment setup: the hidden Markov model (HMM)
+
 from dapper.mods.Lorenz96s.grudzien2020 import HMMs
 
 # set global pseudo-random seed for all experiments
@@ -48,6 +49,7 @@ def setup(hmm, xp):
 
 
 # #### DA method and experiment listing
+
 xps = dpr.xpList()
 for resolution in ["Low", "High"]:
     for step_kind in ["RK4", "EM"]:
@@ -61,22 +63,30 @@ for resolution in ["Low", "High"]:
                 xps.append(xp)
 
 # #### Run experiments
+
 save_as = xps.launch(HMMs(), __file__, setup=setup)
 
 # #### Load data
 # This block is redundant if running in the same script
 # as generates the data and not using multiprocessing.
+
+# +
 # save_as = dpr.rc.dirs.data / "stoch_models"
 # save_as /= dpr.find_latest_run(save_as)
 # xps = dpr.load_xps(save_as)
 
-# print(dpr.xpList(xps).tabulate_avrgs())  # flat/long/list print
+# flat/long/list print
+# print(dpr.xpList(xps).tabulate_avrgs())
+# -
+
 
 # #### Print in wide form
+
 xp_dict = dpr.xpSpace.from_list(xps)
 axes = dict(outer="resoltn", inner="ObsErr2", optim={})
 xp_dict.print("rmse.a", axes)
 
 # #### Plot
+
 tables = xp_dict.plot('rmse.a', axes, title2=save_as)
 plt.pause(.1)
