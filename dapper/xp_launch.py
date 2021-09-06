@@ -460,6 +460,7 @@ class xpList(list):
 
         The results are saved in `rc.dirs.data / save_as`,
         unless `save_as` is `False`/`None`.
+        Note: multiprocessing (locally or in the cloud) requires saving/loading data.
 
         Depending on `mp`, `run_experiment` is delegated as follows:
 

@@ -63,7 +63,9 @@ for resolution in ["Low", "High"]:
 # #### Run experiments
 save_as = xps.launch(HMMs(), __file__, setup=setup)
 
-# #### Load -- this block is redundant if in the same script as generates the data
+# #### Load data
+# This block is redundant if running in the same script
+# as generates the data and not using multiprocessing.
 # save_as = dpr.rc.dirs.data / "stoch_models"
 # save_as /= dpr.find_latest_run(save_as)
 # xps = dpr.load_xps(save_as)
