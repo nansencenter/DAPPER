@@ -1,6 +1,6 @@
 """A perfect-random version of Lorenz-96.
 
-Used by `bib.grudzien2020numerical` to study the impact of numerical precision on
+Used by `bib.grudzien2020numerical` to study the precision of
 stochastic integration schemes.
 
 Both the model and truth are to be integrated by the same *random* model (with almost
