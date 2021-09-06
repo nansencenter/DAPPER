@@ -265,7 +265,7 @@ Name                                 | Developers             | Notes
 [PyDA][19]                           | Shady-Ahmed            | Python
 [DasPy][20]                          | Xujun Han              | Python
 [DataAssim.jl][23]                   | Alexander-Barth        | Julia
-[DataAssimilationBenchmarks.jl][24]  | Grudzien               | Julia, Python 
+[DataAssimilationBenchmarks.jl][24]  | Grudzien               | Julia, Python
 Datum                                | Raanes                 | Matlab
 IEnKS code                           | Bocquet                | Python
 
@@ -296,9 +296,9 @@ in the development of DAPPER.
 [20]: https://github.com/daspy/daspy
 [21]: https://www.jcsda.noaa.gov/index.php
 [22]: https://github.com/nansencenter/DAPPER
-[23]: https://juliahub.com/docs/DataAssim/qCDwD/0.3.2/ 
+[23]: https://juliahub.com/docs/DataAssim/qCDwD/0.3.2/
 [24]: https://github.com/cgrudz/DataAssimilationBenchmarks.jl
-[25]: https://hippylib.github.io/ 
+[25]: https://hippylib.github.io/
 
 
 ## Contributors
@@ -316,11 +316,14 @@ in collaboration with the University of Reading,
 the UK National Centre for Earth Observation (NCEO),
 and the University of Nevada, Reno.
 
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable line-length -->
 ![NORCE](./docs/imgs/norce-logo.png)
 ![NERSC](./docs/imgs/nansen-logo.png)
 <img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UoR-logo.png?raw=true" height="140" />
 <img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/nceologo1000.png?raw=true" width="400">
 <img src="./docs/imgs/UNR_logo.png?raw=true" width="400">
+<!-- markdownlint-restore -->
 
 ## Publication list
 
