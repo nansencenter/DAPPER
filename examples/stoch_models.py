@@ -75,8 +75,8 @@ save_as = xps.launch(HMMs(), __file__, setup=setup)
 # save_as /= dpr.find_latest_run(save_as)
 # xps = dpr.load_xps(save_as)
 
-# flat/long/list print
 # print(dpr.xpList(xps).tabulate_avrgs())
+# Flat/long/list print
 # -
 
 
@@ -84,7 +84,7 @@ save_as = xps.launch(HMMs(), __file__, setup=setup)
 
 xp_dict = dpr.xpSpace.from_list(xps)
 axes = dict(outer="resoltn", inner="ObsErr2", optim={})
-xp_dict.print("rmse.a", axes)
+xp_dict.print("rmse.a", axes, subcols=False)
 
 # #### Plot
 
