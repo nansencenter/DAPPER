@@ -133,6 +133,14 @@ frei2013bridging = None
 ensemble Kalman and particle filters. *Biometrika*, ast020.
 """
 
+grudzien2020numerical = None
+"""
+**Grudzien**, **C**, **Bocquet**, **M**, and **Carrassi**, **A**
+2020 On the numerical integration of the lorenz-96 model, with
+scalar additive noise, for benchmark twin experiments.
+*Geoscientific Model Development*, 13(4): 1903–1924.
+"""
+
 harty2021eigenvector = None
 """
 **Harty**, **T**, **Morzfeld**, **M**, and **Snyder**, **C** 2021
