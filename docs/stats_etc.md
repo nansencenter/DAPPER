@@ -21,10 +21,11 @@ The statistics are also averaged in space.
 This is done according to the methods listed in `dpr.rc.field_summaries`.
 
 .. note::
-    Although sometimes pretty close, `rmv` (a.k.a. `spread.rms`) is not (supposed
-    to be) an un-biased estimator of `rmse` (a.k.a. `err.rms`).  This is because
-    of the square roots involved in the field summary.  Instead, `spread.ms` (i.e.
-    the mean variance) is the unbiased estimator of `err.ms`.
+    `rmv` (a.k.a. `spread.rms`) is not (supposed to be) an unbiased estimator
+    of `rmse` (a.k.a. `err.rms`).  When the `spread` and `err` are relatively
+    homogeneous, the difference is slight, otherwise a bias is introduced via
+    the square root in the field summary.  Instead, `spread.ms` (i.e.  the mean
+    variance) is the unbiased estimator of `err.ms`.
 
 ### Regional field summaries
 
