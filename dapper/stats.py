@@ -73,11 +73,13 @@ class Stats(series.StatPrint):
 
         # Methods for summarizing multivariate stats ("fields") as scalars
         # Don't use nanmean here; nan's should get propagated!
+        en_mean = lambda x: np.mean(x, axis=0)  # noqa
         self.field_summaries = dict(
             m   = lambda x: np.mean(x),                  # mean-field
             rms = lambda x: np.sqrt(np.mean(x**2)),      # root-mean-square
             ma  = lambda x: np.mean(np.abs(x)),          # mean-absolute
             gm  = lambda x: np.exp(np.mean(np.log(x))),  # geometric mean
+            ms  = lambda x: en_mean(x**2),               # root-mean-square
         )
         # Only keep the methods listed in rc
         self.field_summaries = struct_tools.intersect(self.field_summaries,
