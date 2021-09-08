@@ -18,11 +18,13 @@ from struct_tools import DotDict
 dapper_dir = Path(__file__).absolute().parent
 rc = DotDict()
 for d in [dapper_dir, "~", sys.path[0]]:
+rc.loaded_from = []
     d = Path(d).expanduser()
     for prefix in [".", ""]:
         f = d / (prefix+"dpr_config.yaml")
         if f.is_file():
             dct = yaml.load(open(f), Loader=yaml.SafeLoader)
+            rc.loaded_from.append(str(f))
             if dct:
                 rc.update(dct)
 
