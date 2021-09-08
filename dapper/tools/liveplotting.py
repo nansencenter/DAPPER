@@ -273,8 +273,8 @@ class sliding_diagnostics:
         divN = 1/getattr(stats.xp, 'N', 99)
         # Columns: transf, shape, plt kwargs
         styles['RMS'] = {
-            'err.rms': [None, None, dict(c='k', label='Error')],
-            'std.rms': [None, None, dict(c='b', label='Spread', alpha=0.6)],
+            'err.rms'   : [None, None, dict(c='k', label='Error')],
+            'spread.rms': [None, None, dict(c='b', label='Spread', alpha=0.6)],
         }
         styles['Values'] = {
             'skew': [None, None, dict(c='g', label=star+r'Skew/$\sigma^3$')],
@@ -689,8 +689,8 @@ def sliding_marginals(
     params_orig = DotDict(**locals())
 
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
-        xx, yy, mu, std, chrono = \
-            stats.xx, stats.yy, stats.mu, stats.std, stats.HMM.t
+        xx, yy, mu, spread, chrono = \
+            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.t
 
         # Set parameters (kwargs takes precedence over params_orig)
         p = DotDict(**{
@@ -786,7 +786,7 @@ def sliding_marginals(
                 if 'mu' in d:
                     d.mu.insert(ind, mu[key][DimsX])
                 if 's' in d:
-                    d.s .insert(ind, mu[key][DimsX] + [[1], [-1]]*std[key][DimsX])
+                    d.s .insert(ind, mu[key][DimsX] + [[1], [-1]]*spread[key][DimsX])
                 if True:
                     d.t .insert(ind, chrono.tt[k])
                 if True:
@@ -846,7 +846,7 @@ def phase_particles(
 
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
         xx, yy, mu, _, chrono = \
-            stats.xx, stats.yy, stats.mu, stats.std, stats.HMM.t
+            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.t
 
         # Set parameters (kwargs takes precedence over params_orig)
         p = DotDict(**{
@@ -1197,7 +1197,7 @@ def spatial1d(
             k, kObs, faus = key
 
             if p.conf_mult:
-                sigma = mu[key] + p.conf_mult * stats.std[key] * [[1], [-1]]
+                sigma = mu[key] + p.conf_mult * stats.spread[key] * [[1], [-1]]
                 lines_s[0].set_ydata(wrap(sigma[0, p.dims]))
                 lines_s[1].set_ydata(wrap(sigma[1, p.dims]))
                 line_mu   .set_ydata(wrap(mu[key][p.dims]))
@@ -1260,7 +1260,7 @@ def spatial2d(
         ax_23 = fig.add_axes([bb.x1+0.03, bb.y0 + dy, 0.04, bb.height - 2*dy])
 
         # Extract data arrays
-        xx, _, mu, std, err = stats.xx, stats.yy, stats.mu, stats.std, stats.err
+        xx, _, mu, spread, err = stats.xx, stats.yy, stats.mu, stats.spread, stats.err
         k = key0[0]
         tt = stats.HMM.t.tt
 
@@ -1269,17 +1269,17 @@ def spatial2d(
         im_11 = ax_11.imshow(square(mu[key0]), cmap=cm)
         im_12 = ax_12.imshow(square(xx[k]), cmap=cm)
         # hot is better, but needs +1 colorbar
-        im_21 = ax_21.imshow(square(std[key0]), cmap=plt.cm.bwr)
+        im_21 = ax_21.imshow(square(spread[key0]), cmap=plt.cm.bwr)
         im_22 = ax_22.imshow(square(err[key0]), cmap=plt.cm.bwr)
         ims = (im_11, im_12, im_21, im_22)
         # Obs init -- a list where item 0 is the handle of something invisible.
         lh = list(ax_12.plot(0, 0)[0:1])
 
         sx = '$\\psi$'
-        ax_11.set_title('mean '+sx)
-        ax_12.set_title('true '+sx)
-        ax_21.set_title('std. '+sx)
-        ax_22.set_title('err. '+sx)
+        ax_11.set_title('mean '    + sx)
+        ax_12.set_title('true '    + sx)
+        ax_21.set_title('spread. ' + sx)
+        ax_22.set_title('err. '    + sx)
 
         # TODO 7
         # for ax in axs.flatten():
@@ -1315,7 +1315,7 @@ def spatial2d(
 
             im_11.set_data(square(mu[key]))
             im_12.set_data(square(xx[k]))
-            im_21.set_data(square(std[key]))
+            im_21.set_data(square(spread[key]))
             im_22.set_data(square(err[key]))
 
             # Remove previous obs

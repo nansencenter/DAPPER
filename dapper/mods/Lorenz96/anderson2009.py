@@ -45,7 +45,7 @@ HMM = modelling.HiddenMarkovModel(
 # Reproduce Anderson Figure 2
 # -----------------------------------------------------------------------------------
 # xp = SL_EAKF(N=6, infl=sqrt(1.1), loc_rad=0.2/1.82*40)
-# for lbl in ['err','std']:
+# for lbl in ['err', 'spread']:
 #     stat = getattr(xp.stats,lbl).f[HMM.t.maskObs_BI]
 #     plt.plot(sqrt(np.mean(stat**2, axis=0)),label=lbl)
 #

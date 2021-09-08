@@ -394,23 +394,24 @@ def plot_err_components(stats):
     stats: `dapper.stats.Stats`
 
     .. note::
-      it was chosen to plot(ii, mean_in_time(abs(err_i))),
+      it was chosen to `plot(ii, mean_in_time(abs(err_i)))`,
       and thus the corresponding spread measure is MAD.
-      If one chose instead: plot(ii, std_in_time(err_i)),
-      then the corresponding measure of spread would have been std.
+      If one chose instead: `plot(ii, std_spread_in_time(err_i))`,
+      then the corresponding measure of spread would have been `spread`.
       This choice was made in part because (wrt. subplot 2)
-      the singular values (svals) correspond to rotated MADs,
-      and because rms(umisf) seems to convoluted for interpretation.
+      the singular values (`svals`) correspond to rotated MADs,
+      and because `rms(umisf)` seems too convoluted for interpretation.
     """
     fig, (ax0, ax1, ax2) = place.freshfig("Error components", figsize=(6, 6), nrows=3)
 
     chrono = stats.HMM.t
     Nx     = stats.xx.shape[1]
 
-    err   = np.mean(np.abs(stats.err.a), 0)
-    sprd  = np.mean(stats.std.a, 0)
-    umsft = np.mean(np.abs(stats.umisf.a), 0)
-    usprd = np.mean(stats.svals.a, 0)
+    en_mean = lambda x: np.mean(x, axis=0)  # noqa
+    err   = en_mean(abs(stats.err.a))
+    sprd  = en_mean(stats.spread.a)
+    umsft = en_mean(abs(stats.umisf.a))
+    usprd = en_mean(stats.svals.a)
 
     ax0.plot(arange(Nx), err, 'k', lw=2, label='Error')
     if Nx < 10**3:

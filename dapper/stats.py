@@ -78,7 +78,7 @@ class Stats(series.StatPrint):
         # Allocate time series of various stats
         ######################################
         self.new_series('mu'    , Nx, MS='sec')  # Mean
-        self.new_series('std'   , Nx, MS='sec')  # Std. dev. ("spread")
+        self.new_series('spread', Nx, MS='sec')  # Std. dev. ("spread")
         self.new_series('err'   , Nx, MS='sec')  # Error (mu - truth)
         self.new_series('gscore', Nx, MS='sec')  # Gaussian (log) score
 
@@ -103,7 +103,7 @@ class Stats(series.StatPrint):
         if do_spectral:
             # Note: the mean-field and RMS time-series of
             # (i) svals and (ii) umisf should match the corresponding series of
-            # (i) std and (ii) err.
+            # (i) spread and (ii) err.
             self.new_series('svals', minN)  # Principal component (SVD) scores
             self.new_series('umisf', minN)  # Error in component directions
 
@@ -256,7 +256,7 @@ class Stats(series.StatPrint):
 
     def derivative_stats(self, now):
         """Stats that derive from others (=> not specific for _ens or _ext)."""
-        now.gscore = 2*np.log(now.std) + (now.err/now.std)**2
+        now.gscore = 2*np.log(now.spread) + (now.err/now.spread)**2
 
     def assess_ens(self, now, x, E, w):
         """Ensemble and Particle filter (weighted/importance) assessment."""
@@ -291,14 +291,14 @@ class Stats(series.StatPrint):
         var *= ub
 
         # Compute standard deviation ("Spread")
-        std = np.sqrt(var)  # NB: biased (even though var is unbiased)
-        now.std = std
+        s = np.sqrt(var)  # NB: biased (even though var is unbiased)
+        now.spread = s
 
         # For simplicity, use naive (biased) formulae, derived
         # from "empirical measure". See doc/unbiased_skew_kurt.jpg.
         # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
         A_pow *= A
-        now.skew = np.nanmean(w @ A_pow / (std*std*std))
+        now.skew = np.nanmean(w @ A_pow / (s*s*s))
         A_pow *= A
         now.kurt = np.nanmean(w @ A_pow / var**2 - 3)
 
@@ -334,10 +334,10 @@ class Stats(series.StatPrint):
         now.err = now.mu - x
 
         var = P.diag if isinstance(P, CovMat) else np.diag(P)
-        now.std = np.sqrt(var)
+        now.spread = np.sqrt(var)
 
-        # Here, sqrt(2/pi) is the ratio, of MAD/STD for Gaussians
-        now.mad = np.nanmean(now.std) * np.sqrt(2/np.pi)
+        # Here, sqrt(2/pi) is the ratio, of MAD/Spread for Gaussians
+        now.mad = np.nanmean(now.spread) * np.sqrt(2/np.pi)
 
         if hasattr(self, 'svals'):
             P         = P.full if isinstance(P, CovMat) else P
@@ -483,7 +483,7 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
         columns = tabulate_avrgs([self], statkeys, decimals=decimals)
         return tabulate(columns, headers="keys").replace('␣', ' ')
 
-    abbrevs = {'rmse': 'err.rms', 'rmss': 'std.rms', 'rmv': 'std.rms'}
+    abbrevs = {'rmse': 'err.rms', 'rmss': 'spread.rms', 'rmv': 'spread.rms'}
 
     # Use getattribute coz it gets called before getattr.
     def __getattribute__(self, key):
