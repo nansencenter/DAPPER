@@ -1,6 +1,7 @@
 # DAPPER configuration file. DO NOT MODIFY.
 # Instead, overrule it by putting a copy of this file
 # in your $HOME/, or $HOME/.config/ or $PWD/.
+# The order of precendence is (the reverse of) the above.
 
 # Where to store the experimental settings and results.
 # For example, you don't want this to be in your Dropbox.
@@ -23,4 +24,4 @@ comp_threshold_c: -1
 sigfig: 4             # Default significant figures
 store_u: no           # Store stats between analysis times?
 liveplotting: yes     # Enable liveplotting?
-place_figs: False     # Place (certain) figures automatically (buggy) ?
+place_figs: False     # Place (certain) figures automatically (experimental)?
