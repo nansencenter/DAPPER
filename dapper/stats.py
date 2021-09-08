@@ -1,4 +1,35 @@
-"""Stats computation for the assessment of DA methods."""
+"""Statistics for the assessment of DA methods.
+
+`Stats` is a data container with associated methods to compute the default
+battery of **time series** of statistics.
+
+`Avrgs` is a data container for the same statistics,
+but after they have been averaged in time (after the assimilation has finished).
+
+Instances of these objects are created by `dapper.da_methods.da_method` objects
+and written to their `.stats` and `.avrgs` attributes.
+
+Only the time series created with `Stats.new_series` will be in the format
+operated on by `Stats.average_in_time`.  For example, create `ndarray` of
+length `KObs+1` to hold the time series of estimated inflation values:
+>>> self.stats.new_series('infl', 1, KObs+1)  # doctest: +SKIP
+
+Alternatively you can overwrite a default statistic; for example:
+>>> error_time_series = xx - ensemble_time_series.mean(axis=1)  # doctest: +SKIP
+... self.stats.err.rms.a = np.sqrt(np.mean(error_time_series**2, axis=-1))
+
+Of course, you could just do this
+>>> self.stats.my_custom_stat = value  # doctest: +SKIP
+
+Moreover, recall that `xp.launch` (without `free=False`) will delete
+the `Stats` object from `xp` after the assimilation, in order to save memory.
+Therefore, in order to have `my_custom_stat` be available among `xp.avrgs`,
+it must be "registered":
+>>> self.stats.stat_register.append("my_custom_stat")  # doctest: +SKIP
+
+Alternatively, you can do both at once
+>>> self.stat("my_custom_stat", value)  # doctest: +SKIP
+"""
 
 import warnings
 
@@ -17,34 +48,7 @@ from dapper.tools.progressbar import progbar
 
 
 class Stats(series.StatPrint):
-    """Contains and computes statistics of the DA methods.
-
-    Use `Stats.new_series` to register your own time series of statistics.
-    For example, create `ndarray` of length `KObs+1` to hold the time series
-    of estimated inflation values
-    >>> self.stats.new_series('infl', 1, KObs+1)  # doctest: +SKIP
-
-    Of course, you could just do this
-    >>> self.stats.my_custom_stat = value  # doctest: +SKIP
-
-    However, `Stats.average_in_time` will not operate on it,
-    because it is not in the standard format created by `Stats.new_series`.
-    Moreover, recall that `xp.launch` (without `free=False`) will delete
-    the `Stats` object from `xp` after the assimilation, in order to save memory.
-    Therefore, in order to have `my_custom_stat` be available among `xp.avrgs`,
-    it must be "registered":
-    >>> self.stats.stat_register.append("my_custom_stat")  # doctest: +SKIP
-
-    Alternatively, you can do both at once
-    >>> self.stat("my_custom_stat", value)  # doctest: +SKIP
-
-    You can also overwrite pre-defined stats fields,
-    which will then be automatically averaged and written to `.avrgs`.
-    For example, you can remove all calls to `stats.assess`, and simply do
-    >>> ...  # doctest: +SKIP
-    ... error_time_series = xx - ensemble_time_series.mean(axis=1)
-    ... stats.err.rms.a = np.sqrt(np.mean(error_time_series**2, axis=-1))
-    """
+    """Contains and computes statistics of the DA methods."""
 
     def __init__(self, xp, HMM, xx, yy, liveplots=False, store_u=rc.store_u):
         """Init the default statistics."""
@@ -483,12 +487,13 @@ def register_stat(self, name, value):
 
 
 class Avrgs(series.StatPrint, struct_tools.DotDict):
-    """A DotDict specialized for stat. averages.
+    """A `dict` specialized for the averages of statistics.
 
     Embellishments:
-    - series.StatPrint
-    - tabulate
-    - getattr that supports abbreviations.
+
+    - `dapper.series.StatPrint`
+    - `Avrgs.tabulate`
+    - `getattr` that supports abbreviations.
     """
 
     def tabulate(self, statkeys=(), decimals=None):
