@@ -19,3 +19,11 @@ it must be "registered":
 Alternatively, you can do both at once
 >>> self.stat("my_custom_stat", value)
 
+The statistics are also averaged in space.
+This is done according to the field summary methods in listed in `dpr.rc`.
+
+.. note::
+    `rmv` (un-abbreviated `std.rms`) is not an un-biased estimator of `rmse`
+    (un-abbreviated name `err.rms`).  This is because of the square roots
+    involved.  Instead, `std.ms` (i.e. the mean variance) is the unbiased
+    estimator of `err.ms`.
