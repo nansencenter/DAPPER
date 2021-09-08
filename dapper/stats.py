@@ -6,8 +6,8 @@ It comes with a battery of methods to compute the default statistics.
 `Avrgs` is a data container *for the same statistics*,
 but after they have been averaged in time (after the assimilation has finished).
 
-Instances of these objects are created by `dapper.da_methods.da_method` objects
-and written to their `.stats` and `.avrgs` attributes.
+Instances of these objects are created by `dapper.da_methods.da_method`
+(i.e. "`xp`") objects and written to their `.stats` and `.avrgs` attributes.
 
 .. include:: ../docs/stats_etc.md
 """
@@ -170,15 +170,15 @@ class Stats(series.StatPrint):
 
     def assess(self, k, kObs=None, faus=None,
                E=None, w=None, mu=None, Cov=None):
-        """Common interface for both assess_ens and _ext.
+        """Common interface for both `Stats.assess_ens` and `Stats.assess_ext`.
 
-        The _ens assessment function gets called if E is not None,
-        and _ext if mu is not None.
+        The `_ens` assessment function gets called if `E is not None`,
+        and `_ext` if `mu is not None`.
 
-        faus: One or more of ['f',' a', 'u'], indicating
+        faus: One or more of `['f',' a', 'u', 's']`, indicating
               that the result should be stored in (respectively)
               the forecast/analysis/universal attribute.
-              Default: 'u' if kObs is None else 'au' ('a' and 'u').
+              Default: `'u' if kObs is None else 'au' ('a' and 'u')`.
         """
         # Initial consistency checks.
         if k == 0:
@@ -476,7 +476,7 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 
     Embellishments:
 
-    - `dapper.series.StatPrint`
+    - `dapper.tools.StatPrint`
     - `Avrgs.tabulate`
     - `getattr` that supports abbreviations.
     """

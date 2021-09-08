@@ -1,4 +1,4 @@
-"""Load default and user configurations into the rc dict.
+"""Load default and user configurations into the `rc` dict.
 
 This includes disabling liveplotting if necessary.
 """
