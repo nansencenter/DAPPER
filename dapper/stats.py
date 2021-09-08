@@ -77,10 +77,10 @@ class Stats(series.StatPrint):
         ######################################
         # Allocate time series of various stats
         ######################################
-        self.new_series('mu'    , Nx, MS='sec')  # Mean
-        self.new_series('spread', Nx, MS='sec')  # Std. dev. ("spread")
-        self.new_series('err'   , Nx, MS='sec')  # Error (mu - truth)
-        self.new_series('gscore', Nx, MS='sec')  # Gaussian (log) score
+        self.new_series('mu'    , Nx, field_mean='sectors')  # Mean
+        self.new_series('spread', Nx, field_mean='sectors')  # Std. dev. ("spread")
+        self.new_series('err'   , Nx, field_mean='sectors')  # Error (mu - truth)
+        self.new_series('gscore', Nx, field_mean='sectors')  # Gaussian (log) score
 
         # To save memory, we only store these field means:
         self.new_series('mad' , 1)  # Mean abs deviations
@@ -89,7 +89,7 @@ class Stats(series.StatPrint):
 
         if hasattr(xp, 'N'):
             N            = xp.N
-            self.new_series('w', N, MS=True)    # Importance weights
+            self.new_series('w', N, field_mean=True)  # Importance weights
             self.new_series('rh', Nx, dtype=int)  # Rank histogram
 
             self._is_ens = True
@@ -119,7 +119,7 @@ class Stats(series.StatPrint):
         self.new_series('wroot' , 1, KObs+1)
         self.new_series('resmpl', 1, KObs+1)
 
-    def new_series(self, name, shape, length='FAUSt', MS=False, **kws):
+    def new_series(self, name, shape, length='FAUSt', field_mean=False, **kws):
         """Create (and register) a statistics time series, initialized with `nan`s.
 
         If `length` is an integer, a `DataSeries` (a trivial subclass of
@@ -151,11 +151,11 @@ class Stats(series.StatPrint):
 
         # Summary (scalar) series:
         if shape != ():
-            if MS:
+            if field_mean:
                 for suffix in self.field_summaries:
                     make_series(getattr(self, name), suffix, ())
             # Make a nested level for sectors
-            if MS == 'sec':
+            if field_mean == 'sectors':
                 for ss in self.sector_summaries:
                     suffix, sector = ss.split('.')
                     make_series(struct_tools.deep_getattr(
