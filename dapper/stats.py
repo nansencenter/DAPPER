@@ -296,8 +296,8 @@ class Stats(series.StatPrint):
 
         now.mu  = w @ E
         now.err = now.mu - x
-        A = E - now.mu
 
+        A = E - now.mu
         # While A**2 is approx as fast as A*A,
         # A**3 is 10x slower than A**2 (or A**2.0).
         # => Use A2 = A**2, A3 = A*A2, A4=A*A3.
@@ -360,7 +360,7 @@ class Stats(series.StatPrint):
 
         if hasattr(self, 'svals'):
             P         = P.full if isinstance(P, CovMat) else P
-            s2, U      = sla.eigh(P)
+            s2, U     = sla.eigh(P)
             now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
             now.umisf = (U.T @ now.err)[::-1]
 
@@ -792,7 +792,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
         The unbiasing factor is $$ N_{eff} / (N_{eff} - 1) $$.
 
     avoid_pathological: bool, optional
-        Avoid weight collapse. Default: False
+        Avoid weight collapse. Default: `False`
 
     Returns
     -------
@@ -805,6 +805,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     """
     if N_eff is None:
         N_eff = 1/(w@w)
+
     if avoid_pathological and weight_degeneracy(w):
         ub = 1  # Don't do in case of weights collapse
     else:
