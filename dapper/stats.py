@@ -1,9 +1,9 @@
 """Statistics for the assessment of DA methods.
 
-`Stats` is a data container with associated methods to compute the default
-battery of **time series** of statistics.
+`Stats` is a data container for ([mostly] time series of) statistics.
+It comes with a battery of methods to compute the default statistics.
 
-`Avrgs` is a data container for the same statistics,
+`Avrgs` is a data container *for the same statistics*,
 but after they have been averaged in time (after the assimilation has finished).
 
 Instances of these objects are created by `dapper.da_methods.da_method` objects
