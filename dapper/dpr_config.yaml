@@ -1,7 +1,6 @@
 # DAPPER configuration file. DO NOT MODIFY.
 # Instead, overrule it by putting a copy of this file
-# in your home folder or working directory.
-
+# in your $HOME/, or $HOME/.config/ or $PWD/.
 
 # Where to store the experimental settings and results.
 # For example, you don't want this to be in your Dropbox.
