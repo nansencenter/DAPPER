@@ -784,7 +784,7 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     ----------
     w: ndarray, optional
         Importance weights. Must sum to 1.
-        Only one of w and N_eff can be None. Default: None
+        Only one of `w` and `N_eff` can be `None`. Default: `None`
 
     N_eff: float, optional
         The "effective" size of the weighted ensemble.
