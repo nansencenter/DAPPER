@@ -9,7 +9,7 @@ but after they have been averaged in time (after the assimilation has finished).
 Instances of these objects are created by `dapper.da_methods.da_method` objects
 and written to their `.stats` and `.avrgs` attributes.
 
-.. include:: ../docs/stats.md
+.. include:: ../docs/stats_etc.md
 """
 
 import warnings
