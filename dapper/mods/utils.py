@@ -22,7 +22,6 @@ class NamedFunc():
 
     def __init__(self, func, name):
         self._function = func
-        self._old_name = func.__name__
         self._new_name = name
         functools.update_wrapper(self, func)
 
@@ -30,10 +29,10 @@ class NamedFunc():
         return self._function(*args, **kwargs)
 
     def __str__(self):
-        return self._new_name + "()"
+        return self._new_name
 
     def __repr__(self):
-        return str(self) + f" <NamedFunc of {self._old_name}>"
+        return str(self) + "\n" + repr(self._function)
 
 
 def name_func(name):
@@ -67,7 +66,7 @@ def ens_compatible(func):
 
 
 def Id_op():
-    """Id operator."""
+    """Id operator for first argument."""
     return NamedFunc(lambda *args: args[0], "Id operator")
 
 
@@ -163,8 +162,11 @@ def partial_Id_Obs(Nx, obs_inds):
     """
     Ny = len(obs_inds)
     H = direct_obs_matrix(Nx, obs_inds)
+
+    @name_func(f"Direct obs. at {obs_inds}")
     @ens_compatible
     def model(x, t): return x[obs_inds]
+    @name_func("Matrix of ones and zeros")
     def linear(x, t): return H
     Obs = {
         'M': Ny,
