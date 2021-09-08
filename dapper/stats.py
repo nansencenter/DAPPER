@@ -75,11 +75,11 @@ class Stats(series.StatPrint):
         # Don't use nanmean here; nan's should get propagated!
         en_mean = lambda x: np.mean(x, axis=0)  # noqa
         self.field_summaries = dict(
-            m   = lambda x: np.mean(x),                  # mean-field
-            rms = lambda x: np.sqrt(np.mean(x**2)),      # root-mean-square
-            ma  = lambda x: np.mean(np.abs(x)),          # mean-absolute
-            gm  = lambda x: np.exp(np.mean(np.log(x))),  # geometric mean
+            m   = lambda x: en_mean(x),                  # mean-field
             ms  = lambda x: en_mean(x**2),               # root-mean-square
+            rms = lambda x: np.sqrt(en_mean(x**2)),      # root-mean-square
+            ma  = lambda x: en_mean(np.abs(x)),          # mean-absolute
+            gm  = lambda x: np.exp(en_mean(np.log(x))),  # geometric mean
         )
         # Only keep the methods listed in rc
         self.field_summaries = struct_tools.intersect(self.field_summaries,
