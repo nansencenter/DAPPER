@@ -197,18 +197,18 @@ def set_ilim(ax, i, Min=None, Max=None):
         ax.set_zlim(Min, Max)
 
 
-def estimate_good_plot_length(xx, chrono=None, mult=100):
+def estimate_good_plot_length(xx, tseq=None, mult=100):
     """Estimate the range of the xx slices for plotting.
 
     The length is based on the estimated time scale (wavelength)
     of the system.
-    Provide sensible fall-backs (better if chrono is supplied).
+    Provide sensible fall-backs (better if tseq is supplied).
 
     Parameters
     ----------
     xx: ndarray
         Plotted array
-    chrono: `dapper.tools.chronos.Chronology`, optional
+    tseq: `dapper.tools.chronos.Chronology`, optional
         object with property dkObS. Defaults: None
     mult: int, optional
         Number of waves for plotting. Defaults: 100
@@ -220,7 +220,7 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
 
     Example
     -------
-    >>> K_lag = estimate_good_plot_length(stats.xx, chrono, mult=80) # doctest: +SKIP
+    >>> K_lag = estimate_good_plot_length(stats.xx, tseq, mult=80) # doctest: +SKIP
     """
     if xx.ndim == 2:
         # If mult-dim, then average over dims (by ravel)....
@@ -234,15 +234,15 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
     except ValueError:
         K = 0
 
-    if chrono is not None:
-        t = chrono
-        K = int(min(max(K, t.dkObs), t.K))
-        T = round2sigfig(t.tt[K], 2)  # Could return T; T>tt[-1]
-        K = find_1st_ind(t.tt >= T)
+    if tseq is not None:
+        tseq = tseq
+        K = int(min(max(K, tseq.dkObs), tseq.K))
+        T = round2sigfig(tseq.tt[K], 2)  # Could return T; T>tt[-1]
+        K = find_1st_ind(tseq.tt >= T)
         if K:
             return K
         else:
-            return t.K
+            return tseq.K
     else:
         K = int(min(max(K, 1), len(xx)))
         T = round2sigfig(K, 2)
@@ -309,22 +309,22 @@ def plot_pause(interval):
         _plot_pause(interval, focus_figure=False)
 
 
-def plot_hovmoller(xx, chrono=None, **kwargs):
+def plot_hovmoller(xx, tseq=None, **kwargs):
     """Plot Hovmöller diagram.
 
     Parameters
     ----------
     xx: ndarray
         Plotted array
-    chrono: `dapper.tools.chronos.Chronology`, optional
+    tseq: `dapper.tools.chronos.Chronology`, optional
         object with property dkObS. Defaults: None
     """
     fig, ax = place.freshfig("Hovmoller", figsize=(4, 3.5))
 
-    if chrono is not None:
-        mask = chrono.tt <= chrono.Tplot*2
-        kk   = chrono.kk[mask]
-        tt   = chrono.tt[mask]
+    if tseq is not None:
+        mask = tseq.tt <= tseq.Tplot*2
+        kk   = tseq.kk[mask]
+        tt   = tseq.tt[mask]
         ax.set_ylabel('Time (t)')
     else:
         K    = estimate_good_plot_length(xx, mult=20)
@@ -404,7 +404,7 @@ def plot_err_components(stats):
     """
     fig, (ax0, ax1, ax2) = place.freshfig("Error components", figsize=(6, 6), nrows=3)
 
-    chrono = stats.HMM.t
+    tseq = stats.HMM.tseq
     Nx     = stats.xx.shape[1]
 
     en_mean = lambda x: np.mean(x, axis=0)  # noqa
@@ -440,7 +440,7 @@ def plot_err_components(stats):
     else:
         not_available_text(ax1)
 
-    rmse = stats.err.rms.a[chrono.maskObs_BI]
+    rmse = stats.err.rms.a[tseq.maskObs_BI]
     ax2.hist(rmse, bins=30, density=False)
     ax2.set_ylabel('Num. of occurence (_a)')
     ax2.set_xlabel('RMSE')
@@ -458,7 +458,7 @@ def plot_rank_histogram(stats):
     ----------
     stats: `dapper.stats.Stats`
     """
-    chrono = stats.HMM.t
+    tseq = stats.HMM.tseq
 
     has_been_computed = \
         hasattr(stats, 'rh') and \
@@ -470,7 +470,7 @@ def plot_rank_histogram(stats):
     ax.set_xlabel('ensemble member index (n)')
 
     if has_been_computed:
-        ranks = stats.rh.a[chrono.maskObs_BI]
+        ranks = stats.rh.a[tseq.maskObs_BI]
         Nx    = ranks.shape[1]
         N     = stats.xp.N
         if not hasattr(stats, 'w'):
@@ -481,7 +481,7 @@ def plot_rank_histogram(stats):
             # Weight ranks by inverse of particle weight. Why? Coz, with correct
             # importance weights, the "expected value" histogram is then flat.
             # Potential improvement: interpolate weights between particles.
-            w  = stats.w.a[chrono.maskObs_BI]
+            w  = stats.w.a[tseq.maskObs_BI]
             K  = len(w)
             w  = np.hstack([w, np.ones((K, 1))/N])  # define weights for rank N+1
             w  = array([w[arange(K), ranks[arange(K), i]] for i in range(Nx)])

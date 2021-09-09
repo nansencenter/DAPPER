@@ -34,26 +34,23 @@ class EnKF:
     N: int
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-
         # Init
-        E = X0.sample(self.N)
-        stats.assess(0, E=E)
+        E = HMM.X0.sample(self.N)
+        self.stats.assess(0, E=E)
 
-        # Loop
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
+        # Cycle
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+            E = HMM.Dyn(E, t-dt, dt)
+            E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
 
             # Analysis update
             if kObs is not None:
-                stats.assess(k, kObs, 'f', E=E)
-                E = EnKF_analysis(E, Obs(E, t), Obs.noise,
-                                  yy[kObs], self.upd_a, stats, kObs)
+                self.stats.assess(k, kObs, 'f', E=E)
+                E = EnKF_analysis(E, HMM.Obs(E, t), HMM.Obs.noise, yy[kObs],
+                                  self.upd_a, self.stats, kObs)
                 E = post_process(E, self.infl, self.rot)
 
-            stats.assess(k, kObs, E=E)
+            self.stats.assess(k, kObs, E=E)
 
 
 def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, kObs=None):
@@ -372,39 +369,37 @@ class EnKS:
         return E.reshape((N, K, Nx)).transpose([1, 0, 2])
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-
         # Inefficient version, storing full time series ensemble.
         # See iEnKS for a "rolling" version.
-        E    = zeros((chrono.K+1, self.N, Dyn.M))
-        E[0] = X0.sample(self.N)
+        E    = zeros((HMM.tseq.K+1, self.N, HMM.Dyn.M))
+        E[0] = HMM.X0.sample(self.N)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E[k] = Dyn(E[k-1], t-dt, dt)
-            E[k] = add_noise(E[k], dt, Dyn.noise, self.fnoise_treatm)
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+            E[k] = HMM.Dyn(E[k-1], t-dt, dt)
+            E[k] = add_noise(E[k], dt, HMM.Dyn.noise, self.fnoise_treatm)
 
             if kObs is not None:
-                stats.assess(k, kObs, 'f', E=E[k])
+                self.stats.assess(k, kObs, 'f', E=E[k])
 
-                Eo    = Obs(E[k], t)
+                Eo    = HMM.Obs(E[k], t)
                 y     = yy[kObs]
 
                 # Inds within Lag
-                kk    = range(max(0, k-self.Lag*chrono.dkObs), k+1)
+                kk    = range(max(0, k-self.Lag*HMM.tseq.dkObs), k+1)
 
                 EE    = E[kk]
 
                 EE    = self.reshape_to(EE)
-                EE    = EnKF_analysis(EE, Eo, Obs.noise, y, self.upd_a, stats, kObs)
-                E[kk] = self.reshape_fr(EE, Dyn.M)
+                EE    = EnKF_analysis(EE, Eo, HMM.Obs.noise, y,
+                                      self.upd_a, self.stats, kObs)
+                E[kk] = self.reshape_fr(EE, HMM.Dyn.M)
                 E[k]  = post_process(E[k], self.infl, self.rot)
-                stats.assess(k, kObs, 'a', E=E[k])
+                self.stats.assess(k, kObs, 'a', E=E[k])
 
-        for k, kObs, _, _ in progbar(chrono.ticker, desc='Assessing'):
-            stats.assess(k, kObs, 'u', E=E[k])
+        for k, kObs, _, _ in progbar(HMM.tseq.ticker, desc='Assessing'):
+            self.stats.assess(k, kObs, 'u', E=E[k])
             if kObs is not None:
-                stats.assess(k, kObs, 's', E=E[k])
+                self.stats.assess(k, kObs, 's', E=E[k])
 
 
 @ens_method
@@ -419,29 +414,27 @@ class EnRTS:
     cntr: float
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-
-        E    = zeros((chrono.K+1, self.N, Dyn.M))
+        E    = zeros((HMM.tseq.K+1, self.N, HMM.Dyn.M))
         Ef   = E.copy()
-        E[0] = X0.sample(self.N)
+        E[0] = HMM.X0.sample(self.N)
 
         # Forward pass
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E[k]  = Dyn(E[k-1], t-dt, dt)
-            E[k]  = add_noise(E[k], dt, Dyn.noise, self.fnoise_treatm)
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+            E[k]  = HMM.Dyn(E[k-1], t-dt, dt)
+            E[k]  = add_noise(E[k], dt, HMM.Dyn.noise, self.fnoise_treatm)
             Ef[k] = E[k]
 
             if kObs is not None:
-                stats.assess(k, kObs, 'f', E=E[k])
-                Eo   = Obs(E[k], t)
+                self.stats.assess(k, kObs, 'f', E=E[k])
+                Eo   = HMM.Obs(E[k], t)
                 y    = yy[kObs]
-                E[k] = EnKF_analysis(E[k], Eo, Obs.noise, y, self.upd_a, stats, kObs)
+                E[k] = EnKF_analysis(E[k], Eo, HMM.Obs.noise, y,
+                                     self.upd_a, self.stats, kObs)
                 E[k] = post_process(E[k], self.infl, self.rot)
-                stats.assess(k, kObs, 'a', E=E[k])
+                self.stats.assess(k, kObs, 'a', E=E[k])
 
         # Backward pass
-        for k in progbar(range(chrono.K)[::-1]):
+        for k in progbar(range(HMM.tseq.K)[::-1]):
             A  = center(E[k])[0]
             Af = center(Ef[k+1])[0]
 
@@ -450,10 +443,10 @@ class EnRTS:
 
             E[k] += (E[k+1] - Ef[k+1]) @ J
 
-        for k, kObs, _, _ in progbar(chrono.ticker, desc='Assessing'):
-            stats.assess(k, kObs, 'u', E=E[k])
+        for k, kObs, _, _ in progbar(HMM.tseq.ticker, desc='Assessing'):
+            self.stats.assess(k, kObs, 'u', E=E[k])
             if kObs is not None:
-                stats.assess(k, kObs, 's', E=E[k])
+                self.stats.assess(k, kObs, 's', E=E[k])
 
 
 def serial_inds(upd_a, y, cvR, A):
@@ -494,29 +487,27 @@ class SL_EAKF:
     ordr: str   = 'rand'
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-
         N1   = self.N-1
-        R    = Obs.noise
-        Rm12 = Obs.noise.C.sym_sqrt_inv
+        R    = HMM.Obs.noise
+        Rm12 = HMM.Obs.noise.C.sym_sqrt_inv
 
-        E = X0.sample(self.N)
-        stats.assess(0, E=E)
+        E = HMM.X0.sample(self.N)
+        self.stats.assess(0, E=E)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
-            E = Dyn(E, t-dt, dt)
-            E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+            E = HMM.Dyn(E, t-dt, dt)
+            E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
 
             if kObs is not None:
-                stats.assess(k, kObs, 'f', E=E)
+                self.stats.assess(k, kObs, 'f', E=E)
                 y    = yy[kObs]
                 inds = serial_inds(self.ordr, y, R, center(E)[0])
 
-                state_taperer = Obs.localizer(self.loc_rad, 'y2x', t, self.taper)
+                state_taperer = HMM.Obs.localizer(self.loc_rad, 'y2x', t, self.taper)
                 for j in inds:
                     # Prep:
                     # ------------------------------------------------------
-                    Eo = Obs(E, t)
+                    Eo = HMM.Obs(E, t)
                     xo = np.mean(Eo, 0)
                     Y  = Eo - xo
                     mu = np.mean(E, 0)
@@ -548,7 +539,7 @@ class SL_EAKF:
 
                 E = post_process(E, self.infl, self.rot)
 
-            stats.assess(k, kObs, E=E)
+            self.stats.assess(k, kObs, E=E)
 
 
 @ens_method
@@ -572,29 +563,28 @@ class LETKF:
     mp: bool   = False
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats, N = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
+        N = self.N
         R, N1 = HMM.Obs.noise.C, N-1
 
         _map = mp.map if self.mp else map
 
-        E = X0.sample(N)
-        stats.assess(0, E=E)
+        E = HMM.X0.sample(N)
+        self.stats.assess(0, E=E)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             # Forecast
-            E = Dyn(E, t-dt, dt)
-            E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
+            E = HMM.Dyn(E, t-dt, dt)
+            E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
 
             if kObs is not None:
-                stats.assess(k, kObs, 'f', E=E)
+                self.stats.assess(k, kObs, 'f', E=E)
 
                 # Decompose ensmeble
                 mu = np.mean(E, 0)
                 A  = E - mu
                 # Obs space variables
                 y     = yy[kObs]
-                Y, xo = center(Obs(E, t))
+                Y, xo = center(HMM.Obs(E, t))
                 # Transform obs space
                 Y  = Y        @ R.sym_sqrt_inv.T
                 dy = (y - xo) @ R.sym_sqrt_inv.T
@@ -602,7 +592,7 @@ class LETKF:
                 # Local analyses
                 # Get localization configuration
                 state_batches, obs_taperer = \
-                    Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
+                    HMM.Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
                 # Avoid pickling self
                 xN, g, infl = self.xN, self.g, self.infl
 
@@ -611,8 +601,8 @@ class LETKF:
 
                     Notation:
 
-                    - ii: inds for the state batch defining the locality
-                    - jj: inds for the associated obs
+                    - `ii`: inds. for the state batch defining the locality
+                    - `jj`: inds. for the associated obs
                     """
                     # Locate local obs
                     jj, tapering = obs_taperer(ii)
@@ -653,9 +643,9 @@ class LETKF:
                 # Global post-processing
                 E = post_process(E, self.infl, self.rot)
 
-                stats.infl[kObs] = sqrt(N1/np.mean(za))
+                self.stats.infl[kObs] = sqrt(N1/np.mean(za))
 
-            stats.assess(k, kObs, E=E)
+            self.stats.assess(k, kObs, E=E)
 
 
 def effective_N(YR, dyR, xN, g):
@@ -755,8 +745,8 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
 
     The EnKF-N prior may be specified by the constants:
 
-    - eN: Effect of unknown mean
-    - cL: Coeff in front of log term
+    - `eN`: Effect of unknown mean
+    - `cL`: Coeff in front of log term
 
     These are trivial constants in the original EnKF-N,
     but are further adjusted (corrected and tuned) for the following reasons.
@@ -863,25 +853,22 @@ class EnKF_N:
     g: int     = 0
 
     def assimilate(self, HMM, xx, yy):
-        # Unpack
-        Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
         R, N, N1 = HMM.Obs.noise.C, self.N, self.N-1
 
         # Init
-        E = X0.sample(N)
-        stats.assess(0, E=E)
+        E = HMM.X0.sample(N)
+        self.stats.assess(0, E=E)
 
-        # Loop
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        # Cycle
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             # Forecast
-            E = Dyn(E, t-dt, dt)
-            E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
+            E = HMM.Dyn(E, t-dt, dt)
+            E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
 
             # Analysis
             if kObs is not None:
-                stats.assess(k, kObs, 'f', E=E)
-                Eo = Obs(E, t)
+                self.stats.assess(k, kObs, 'f', E=E)
+                Eo = HMM.Obs(E, t)
                 y  = yy[kObs]
 
                 mu = np.mean(E, 0)
@@ -896,13 +883,13 @@ class EnKF_N:
                 def dgn_N(l1): return pad0((l1*s)**2, N) + N1
 
                 # Adjust hyper-prior
-                # xN_ = noise_level(self.xN,stats,chrono,N1,kObs,A,
-                #                   locals().get('A_old',None))
+                # xN_ = noise_level(self.xN, self.stats, HMM.tseq, N1, kObs, A,
+                #                   locals().get('A_old', None))
                 eN, cL = hyperprior_coeffs(s, N, self.xN, self.g)
 
                 if self.dual:
                     # Make dual cost function (in terms of l1)
-                    def pad_rk(arr): return pad0(arr, min(N, Obs.M))
+                    def pad_rk(arr): return pad0(arr, min(N, HMM.Obs.M))
                     def dgn_rk(l1): return pad_rk((l1*s)**2) + N1
 
                     def J(l1):
@@ -976,7 +963,7 @@ class EnKF_N:
                 E = mu + w@A + T@A
                 E = post_process(E, self.infl, self.rot)
 
-                stats.infl[kObs] = l1
-                stats.trHK[kObs] = (((l1*s)**2 + N1)**(-1.0)*s**2).sum()/HMM.Ny
+                self.stats.infl[kObs] = l1
+                self.stats.trHK[kObs] = (((l1*s)**2 + N1)**(-1.0)*s**2).sum()/HMM.Ny
 
-            stats.assess(k, kObs, E=E)
+            self.stats.assess(k, kObs, E=E)

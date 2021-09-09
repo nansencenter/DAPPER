@@ -4,7 +4,7 @@ import dapper.mods as modelling
 from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
 HMM = _HMM.copy()
-# HMM.t = modelling.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
+# HMM.tseq = modelling.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
 # But it's pretty safe to shorten the BurnIn and KObs.
 
 HMM.Obs = modelling.Operator(**{
@@ -17,7 +17,7 @@ HMM.Obs = modelling.Operator(**{
 # just for the DA method, or also for the truth.
 
 
-def Q(dkObs): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.t.dt))
+def Q(dkObs): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.tseq.dt))
 
 
 ####################

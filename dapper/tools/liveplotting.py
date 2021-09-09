@@ -297,7 +297,7 @@ class sliding_diagnostics:
         ax.set_xlabel('Time (t)')
         place_ax.adjust_position(ax, y0=0.03)
 
-        self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
+        self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.tseq)
 
         def init_ax(ax, style_table):
             lines = {}
@@ -357,13 +357,13 @@ class sliding_diagnostics:
         k, kObs, faus = key
 
         stats  = self.stats
-        chrono = stats.HMM.t
+        tseq = stats.HMM.tseq
         ax0, ax1 = self.axs
 
         def update_arrays(lines):
             for name, ln in lines.items():
                 stat = deep_getattr(stats, name)
-                t    = chrono.tt[k]  # == chrono.ttObs[kObs]
+                t    = tseq.tt[k]  # == tseq.ttObs[kObs]
                 if isinstance(stat, FAUSt):
                     # ln['data'] will contain duplicates for f/a times.
                     if ln['plot_u']:
@@ -689,15 +689,15 @@ def sliding_marginals(
     params_orig = DotDict(**locals())
 
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
-        xx, yy, mu, spread, chrono = \
-            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.t
+        xx, yy, mu, spread, tseq = \
+            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.tseq
 
         # Set parameters (kwargs takes precedence over params_orig)
         p = DotDict(**{
             kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
 
         # Lag settings:
-        T_lag, K_lag, a_lag = validate_lag(p.Tplot, chrono)
+        T_lag, K_lag, a_lag = validate_lag(p.Tplot, tseq)
         K_plot = comp_K_plot(K_lag, a_lag, plot_u)
         # Extend K_plot forther for adding blanks in resampling (PartFilt):
         has_w = hasattr(stats, 'w')
@@ -788,7 +788,7 @@ def sliding_marginals(
                 if 's' in d:
                     d.s .insert(ind, mu[key][DimsX] + [[1], [-1]]*spread[key][DimsX])
                 if True:
-                    d.t .insert(ind, chrono.tt[k])
+                    d.t .insert(ind, tseq.tt[k])
                 if True:
                     d.y .insert(ind, yy[kObs, iiY]
                                 if kObs is not None else nan*ones(Ny))
@@ -845,8 +845,8 @@ def phase_particles(
     M = 3 if is_3d else 2
 
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
-        xx, yy, mu, _, chrono = \
-            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.t
+        xx, yy, mu, _, tseq = \
+            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.tseq
 
         # Set parameters (kwargs takes precedence over params_orig)
         p = DotDict(**{
@@ -857,7 +857,7 @@ def phase_particles(
         if p.Tplot == 0:
             K_plot = 1
         else:
-            T_lag, K_lag, a_lag = validate_lag(p.Tplot, chrono)
+            T_lag, K_lag, a_lag = validate_lag(p.Tplot, tseq)
             K_plot = comp_K_plot(K_lag, a_lag, plot_u)
             # Extend K_plot forther for adding blanks in resampling (PartFilt):
             if has_w:
@@ -965,17 +965,17 @@ def phase_particles(
     return init
 
 
-def validate_lag(Tplot, chrono):
+def validate_lag(Tplot, tseq):
     """Return validated `T_lag` such that is is:
 
-    - equal to `Tplot` with fallback: `HMM.t.Tplot`.
-    - no longer than `HMM.t.T`.
+    - equal to `Tplot` with fallback: `HMM.tseq.Tplot`.
+    - no longer than `HMM.tseq.T`.
 
     Also return corresponding `K_lag`, `a_lag`.
     """
     # Defaults
     if Tplot is None:
-        Tplot = chrono.Tplot
+        Tplot = tseq.Tplot
 
     # Rename
     T_lag = Tplot
@@ -983,12 +983,12 @@ def validate_lag(Tplot, chrono):
     assert T_lag >= 0
 
     # Validate T_lag
-    t2 = chrono.tt[-1]
-    t1 = max(chrono.tt[0], t2-T_lag)
+    t2 = tseq.tt[-1]
+    t1 = max(tseq.tt[0], t2-T_lag)
     T_lag = t2-t1
 
-    K_lag = int(T_lag / chrono.dt) + 1  # Lag in indices
-    a_lag = K_lag//chrono.dkObs + 1     # Lag in obs indices
+    K_lag = int(T_lag / tseq.dt) + 1  # Lag in indices
+    a_lag = K_lag//tseq.dkObs + 1     # Lag in obs indices
 
     return T_lag, K_lag, a_lag
 
@@ -1208,7 +1208,7 @@ def spatial1d(
 
             line_x.set_ydata(wrap(xx[k, p.dims]))
 
-            text_t.set_text(format_time(k, kObs, stats.HMM.t.tt[k]))
+            text_t.set_text(format_time(k, kObs, stats.HMM.tseq.tt[k]))
 
             if 'f' in faus:
                 if p.obs_inds is not None:
@@ -1262,7 +1262,7 @@ def spatial2d(
         # Extract data arrays
         xx, _, mu, spread, err = stats.xx, stats.yy, stats.mu, stats.spread, stats.err
         k = key0[0]
-        tt = stats.HMM.t.tt
+        tt = stats.HMM.tseq.tt
 
         # Plot
         # - origin='lower' might get overturned by set_ylim() below.

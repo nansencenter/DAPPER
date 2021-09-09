@@ -7,7 +7,7 @@ from dapper.mods.Lorenz96.sakov2008 import X0, Dyn, LPs, Nx, Tplot
 from dapper.tools.localization import localization_setup, pairwise_distances
 from dapper.tools.viz import xtrema
 
-t = modelling.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
+tseq = modelling.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
 
 # Define obs sites
 obs_sites = 0.395 + 0.01*np.arange(1, 21)
@@ -35,7 +35,7 @@ Obs = {
 }
 
 HMM = modelling.HiddenMarkovModel(
-    Dyn, Obs, t, X0, LP=LPs(),
+    Dyn, Obs, tseq, X0, LP=LPs(),
     sectors={'land': np.arange(*xtrema(obs_sites)).astype(int)})
 
 ####################
@@ -46,7 +46,7 @@ HMM = modelling.HiddenMarkovModel(
 # -----------------------------------------------------------------------------------
 # xp = SL_EAKF(N=6, infl=sqrt(1.1), loc_rad=0.2/1.82*40)
 # for lbl in ['err', 'spread']:
-#     stat = getattr(xp.stats,lbl).f[HMM.t.maskObs_BI]
+#     stat = getattr(xp.stats,lbl).f[HMM.tseq.maskObs_BI]
 #     plt.plot(sqrt(np.mean(stat**2, axis=0)),label=lbl)
 #
 # Note: for this xp, one must to be lucky with the random seed to avoid

@@ -44,7 +44,7 @@ def setup(hmm, xp):
 
 
 # This is shorter than Ref[1], but we also use repetitions (a seed list).
-HMM.t.KObs = 10**4
+HMM.tseq.KObs = 10**4
 
 # #### DA method configurations
 

@@ -16,8 +16,8 @@ def test_L63():
     # xps += da.iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)
 
     HMM = _HMM.copy()
-    HMM.t.BurnIn = HMM.t.dtObs
-    HMM.t.KObs = 1
+    HMM.tseq.BurnIn = HMM.tseq.dtObs
+    HMM.tseq.KObs = 1
 
     xps.launch(
         HMM,
@@ -58,10 +58,10 @@ def test_L96():
     # xps += da.PFxN(    N=1000,xN=100, NER=0.9,Qs=0.6)
 
     HMM = _HMM.copy()
-    # HMM.t.BurnIn = 10*HMM.t.dtObs
-    # HMM.t.KObs = 30
-    HMM.t.BurnIn = HMM.t.dtObs
-    HMM.t.KObs = 2
+    # HMM.tseq.BurnIn = 10*HMM.tseq.dtObs
+    # HMM.tseq.KObs = 30
+    HMM.tseq.BurnIn = HMM.tseq.dtObs
+    HMM.tseq.KObs = 2
 
     xps.launch(
         HMM,

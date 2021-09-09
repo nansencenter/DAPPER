@@ -3,8 +3,8 @@
 from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
 HMM = _HMM.copy()
-HMM.t.T = 365
-HMM.t.BurnIn = 4
+HMM.tseq.T = 365
+HMM.tseq.BurnIn = 4
 # Further settings used in paper:
 # Experiments repeated 10 times.
 # Sometimes used: dkObs=4.

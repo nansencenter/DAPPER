@@ -5,7 +5,7 @@ Use `pytest -vv tests/test_example_2.py` for a better diff when tests fail.
 Possible reasons for failing:
 - Random number generation might change on different versions/platforms.
 - pytest imports some other Lorenz63/module, which modifies the Forcing param,
-  or the HMM.t params, or something else.
+  or the HMM.tseq params, or something else.
 """
 
 import pytest
@@ -30,8 +30,8 @@ def L63_gen():
     from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
     HMM = _HMM.copy()
-    HMM.t.BurnIn = 0
-    HMM.t.KObs = 10
+    HMM.tseq.BurnIn = 0
+    HMM.tseq.KObs = 10
 
     dpr.set_seed(3000)
 
@@ -100,8 +100,8 @@ def L96_table():
 
     model.Force = 8.0  # undo pinheiro2019
     HMM = _HMM.copy()
-    HMM.t.BurnIn = 0
-    HMM.t.KObs = 10
+    HMM.tseq.BurnIn = 0
+    HMM.tseq.KObs = 10
 
     dpr.set_seed(3000)
 

@@ -62,8 +62,8 @@ xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # #### Run experiment
 
 # Adjust experiment duration
-HMM.t.BurnIn = 2
-HMM.t.T = 50
+HMM.tseq.BurnIn = 2
+HMM.tseq.T = 50
 
 # Assimilate (for each xp in xps)
 save_as = xps.launch(HMM, liveplots=False)
