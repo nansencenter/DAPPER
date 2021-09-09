@@ -3,14 +3,14 @@
 This was adjudged by noting that with their settings,
 the average val. of `trHK` is 0.013.
 
-Here we increase `dkObs` to make the DA problem more difficult.
+Here we increase `dko` to make the DA problem more difficult.
 """
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz84.pajonk2012 import HMM as _HMM
 
 HMM = _HMM.copy()
-HMM.tseq = modelling.Chronology(0.05, dkObs=10, T=4**5, BurnIn=20)
+HMM.tseq = modelling.Chronology(0.05, dko=10, T=4**5, BurnIn=20)
 
 
 ####################

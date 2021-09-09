@@ -14,7 +14,7 @@ Nx = len(x0)
 Ny = Nx
 
 day = 0.05/6 * 24  # coz dt=0.05 <--> 6h in "model time scale"
-t = modelling.Chronology(0.05, dkObs=1, T=200*day, BurnIn=10*day)
+t = modelling.Chronology(0.05, dko=1, T=200*day, BurnIn=10*day)
 
 Dyn = {
     'M': Nx,

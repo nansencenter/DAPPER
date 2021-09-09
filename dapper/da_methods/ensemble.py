@@ -385,7 +385,7 @@ class EnKS:
                 y     = yy[kObs]
 
                 # Inds within Lag
-                kk    = range(max(0, k-self.Lag*HMM.tseq.dkObs), k+1)
+                kk    = range(max(0, k-self.Lag*HMM.tseq.dko), k+1)
 
                 EE    = E[kk]
 

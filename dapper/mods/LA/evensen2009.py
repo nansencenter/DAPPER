@@ -19,7 +19,7 @@ Nx = 1000
 Ny = 4
 jj = modelling.linspace_int(Nx, Ny)
 
-tseq = modelling.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)
+tseq = modelling.Chronology(dt=1, dko=5, T=300, BurnIn=-1, Tplot=100)
 
 # WITHOUT explicit matrix (assumes dt == dx/c):
 # step = lambda x,t,dt: np.roll(x,1,axis=x.ndim-1)

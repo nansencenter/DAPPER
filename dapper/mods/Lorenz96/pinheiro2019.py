@@ -6,7 +6,7 @@ from dapper.mods.utils import linspace_int
 from dapper.tools.localization import nd_Id_localization
 
 model.Force = 8.17
-tseq = modelling.Chronology(0.01, dkObs=10, K=4000, Tplot=10, BurnIn=10)
+tseq = modelling.Chronology(0.01, dko=10, K=4000, Tplot=10, BurnIn=10)
 
 Nx = 1000
 

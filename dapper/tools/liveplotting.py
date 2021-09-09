@@ -988,7 +988,7 @@ def validate_lag(Tplot, tseq):
     T_lag = t2-t1
 
     K_lag = int(T_lag / tseq.dt) + 1  # Lag in indices
-    a_lag = K_lag//tseq.dkObs + 1     # Lag in obs indices
+    a_lag = K_lag//tseq.dko + 1     # Lag in obs indices
 
     return T_lag, K_lag, a_lag
 

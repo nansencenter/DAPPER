@@ -209,7 +209,7 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
     xx: ndarray
         Plotted array
     tseq: `dapper.tools.chronos.Chronology`, optional
-        object with property dkObS. Defaults: None
+        object with property dko. Defaults: None
     mult: int, optional
         Number of waves for plotting. Defaults: 100
 
@@ -236,7 +236,7 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
 
     if tseq is not None:
         tseq = tseq
-        K = int(min(max(K, tseq.dkObs), tseq.K))
+        K = int(min(max(K, tseq.dko), tseq.K))
         T = round2sigfig(tseq.tt[K], 2)  # Could return T; T>tt[-1]
         K = find_1st_ind(tseq.tt >= T)
         if K:
@@ -317,7 +317,7 @@ def plot_hovmoller(xx, tseq=None, **kwargs):
     xx: ndarray
         Plotted array
     tseq: `dapper.tools.chronos.Chronology`, optional
-        object with property dkObS. Defaults: None
+        object with property dko. Defaults: None
     """
     fig, ax = place.freshfig("Hovmoller", figsize=(4, 3.5))
 

@@ -22,7 +22,7 @@ class Chronology():
                |------|------|------|------|------|------|
         kObs:  None   None   0      None   1      None   KObs
         kkObs:               2             4             6
-                             <----dkObs---->
+                             <----dko---->
 
     .. warning:: By convention, there is no obs at 0.
                  This is hardcorded in DAPPER,
@@ -33,51 +33,51 @@ class Chronology():
         len(kk)    == len(tt)    == K   +1
         len(kkObs) == len(ttObs) == KObs+1
 
-        kkObs[0]   == dkObs      == dtObs/dt == K/(KObs+1)
+        kkObs[0]   == dko      == dtObs/dt == K/(KObs+1)
         kkObs[-1]  == K          == T/dt
         KObs       == T/dtObs-1
 
-    These attributes may be set (altered) after init: `dt, dkObs, K, T`.
+    These attributes may be set (altered) after init: `dt, dko, K, T`.
     Other attributes may not, due to ambiguity
     (e.g. should `dtObs*=2` yield a doubling of `T` too?)
     """
 
     def __init__(self, dt=None, dtObs=None, T=None, BurnIn=-1,
-                 dkObs=None, KObs=None, K=None, Tplot=None):
+                 dko=None, KObs=None, K=None, Tplot=None):
 
-        assert 3 == [dt, dtObs, T, dkObs, KObs, K].count(None), \
+        assert 3 == [dt, dtObs, T, dko, KObs, K].count(None), \
             'Chronology is specified using exactly 3 parameters.'
 
-        # Reduce all to "state vars" dt,dkObs,K
+        # Reduce all to "state vars" dt,dko,K
         if not dt:
             if T and K:
                 dt = T/K
-            elif dkObs and dtObs:
-                dt = dtObs/dkObs
-            elif T and dkObs and KObs:
-                dt = T/(KObs+1)/dkObs
+            elif dko and dtObs:
+                dt = dtObs/dko
+            elif T and dko and KObs:
+                dt = T/(KObs+1)/dko
             else:
                 raise TypeError('Unable to interpret time setup')
-        if not dkObs:
+        if not dko:
             if dtObs:
-                dkObs = round(dtObs/dt)
-                assert abs(dtObs - dkObs*dt) < dt*1e-9
+                dko = round(dtObs/dt)
+                assert abs(dtObs - dko*dt) < dt*1e-9
             else:
                 raise TypeError('Unable to interpret time setup')
-        assert isinstance(dkObs, int)
+        assert isinstance(dko, int)
         if not K:
             if T:
                 K = round(T/dt)
                 assert abs(T - K*dt) < dt*1e-9
             elif KObs:
-                K = dkObs*(KObs+1)
+                K = dko*(KObs+1)
             else:
                 raise TypeError('Unable to interpret time setup')
-        K = int(np.ceil(K/dkObs)*dkObs)
+        K = int(np.ceil(K/dko)*dko)
 
         # "State vars"
         self._dt      = dt
-        self._dkObs   = dkObs
+        self._dko   = dko
         self._K       = K
 
         # BurnIn, Tplot
@@ -103,21 +103,21 @@ class Chronology():
 
     @dt.setter
     def dt(self, value):
-        dkObs_new = self.dkObs * self.dt/value
-        if not np.isclose(int(dkObs_new), dkObs_new):
-            raise ValueError('New value is amgiguous with respect to dkObs')
-        dkObs_new = int(dkObs_new)
-        self.__init__(dt=value, dkObs=dkObs_new, T=self.T,
+        dko_new = self.dko * self.dt/value
+        if not np.isclose(int(dko_new), dko_new):
+            raise ValueError('New value is amgiguous with respect to dko')
+        dko_new = int(dko_new)
+        self.__init__(dt=value, dko=dko_new, T=self.T,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     @property
-    def dkObs(self):
-        return self._dkObs
+    def dko(self):
+      return self._dko
 
-    @dkObs.setter
-    def dkObs(self, value):
-        ratio = value/self.dkObs
-        self.__init__(dt=self.dt, dkObs=value, T=ratio*self.T,
+    @dko.setter
+    def dko(self, value):
+        ratio = value/self.dko
+        self.__init__(dt=self.dt, dko=value, T=ratio*self.T,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     @property
@@ -126,7 +126,7 @@ class Chronology():
 
     @K.setter
     def K(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, K=value,
+        self.__init__(dt=self.dt, dko=self.dko, K=value,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     ######################################
@@ -138,16 +138,16 @@ class Chronology():
 
     @T.setter
     def T(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, T=value,
+        self.__init__(dt=self.dt, dko=self.dko, T=value,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     @property
     def KObs(self):
-        return int(self.K/self.dkObs)-1
+        return int(self.K/self.dko)-1
 
     @KObs.setter
     def KObs(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, KObs=value,
+        self.__init__(dt=self.dt, dko=self.dko, KObs=value,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     ######################################
@@ -155,7 +155,7 @@ class Chronology():
     ######################################
     @property
     def dtObs(self):
-        return self.dkObs*self.dt
+        return self.dko*self.dt
 
     @property
     def kk(self):
@@ -163,7 +163,7 @@ class Chronology():
 
     @property
     def kkObs(self):
-        return self.kk[self.dkObs::self.dkObs]
+        return self.kk[self.dko::self.dko]
 
     @property
     def tt(self):
@@ -202,7 +202,7 @@ class Chronology():
 
         Also yields `t` and `dt`.
         """
-        for k in kObs * self.dkObs + np.arange(1, self.dkObs+1):
+        for k in kObs * self.dko + np.arange(1, self.dko+1):
             t  = self.tt[k]
             dt = t - self.tt[k-1]
             yield k, t, dt
@@ -219,7 +219,7 @@ class Chronology():
     ######################################
     def copy(self):
         """Copy via state vars."""
-        return Chronology(dt=self.dt, dkObs=self.dkObs, K=self.K, BurnIn=self.BurnIn)
+        return Chronology(dt=self.dt, dko=self.dko, K=self.K, BurnIn=self.BurnIn)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
