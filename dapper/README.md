@@ -10,7 +10,8 @@ Then, adapt one of the
 [example scripts](https://github.com/nansencenter/DAPPER/tree/master/examples)
 to your needs. Make sure you have a working adaptation `examples/basic_1.py`
 before adapting `basic_2` and `basic_3`.
-Note: since the generality of DAPPER is
+
+Since the generality of DAPPER is
 [limited](https://github.com/nansencenter/DAPPER#similar-projects)
 it is quite likely you will also need to make changes to the DAPPER code itself.
 
