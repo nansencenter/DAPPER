@@ -15,7 +15,7 @@ Dyn = {
     'model': step,
     # It's not clear from the paper whether Q=0.5 or 0.25.
     # But I'm pretty sure it's applied each dtObs (not dt).
-    'noise': 0.25 / t.dtObs,
+    'noise': 0.25 / tseq.dtObs,
     # 'noise': 0.5 / t.dtObs,
 }
 

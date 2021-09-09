@@ -40,7 +40,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         Operator for the dynamics.
     Obs: `Operator` or dict
         Operator for the observations
-    t: `dapper.tools.chronos.Chronology`
+    tseq: `dapper.tools.chronos.Chronology`
         Time sequence of the HMM process.
     X0: `dapper.tools.randvars.RV`
         Random distribution of initial condition
@@ -65,7 +65,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         # Note: it's still ok to write attributes to the HMM following the init.
         attrs = dict(Dyn=(Operator, None),
                      Obs=(Operator, None),
-                     t=(Chronology, None),
+                     tseq=(Chronology, None),
                      X0=(RV, None),
                      liveplotters=(list, []),
                      sectors=(dict, {}),
@@ -117,11 +117,11 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     @property
     def Ny(self): return self.Obs.M
 
-    printopts = {'ordering': ['Dyn', 'Obs', 't', 'X0'], "indent": 4}
+    printopts = {'ordering': ['Dyn', 'Obs', 'tseq', 'X0'], "indent": 4}
 
     def simulate(self, desc='Truth & Obs'):
         """Generate synthetic truth and observations."""
-        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.t, self.X0
+        Dyn, Obs, chrono, X0 = self.Dyn, self.Obs, self.tseq, self.X0
 
         # Init
         xx    = np.zeros((chrono.K   + 1, Dyn.M))
