@@ -14,9 +14,9 @@ Dyn = {
     'M': Nx,
     'model': step,
     # It's not clear from the paper whether Q=0.5 or 0.25.
-    # But I'm pretty sure it's applied each dtObs (not dt).
-    'noise': 0.25 / tseq.dtObs,
-    # 'noise': 0.5 / t.dtObs,
+    # But I'm pretty sure it's applied each dto (not dt).
+    'noise': 0.25 / tseq.dto,
+    # 'noise': 0.5 / t.dto,
 }
 
 X0 = modelling.GaussRV(mu=x0(Nx), C=0.001)

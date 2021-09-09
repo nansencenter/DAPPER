@@ -86,7 +86,7 @@ HMM.liveplotters = LPs(jj)
 # # Also try quasi-linear regime:
 # tseq = Chronology(0.01,dko=1,...)
 
-# Reproduce Bocquet/Sakov'2013 "Joint...", Fig 4, i.e. dtObs=0.2:
+# Reproduce Bocquet/Sakov'2013 "Joint...", Fig 4, i.e. dto=0.2:
 # xps += iEnKS('Sqrt', N=20, Lag=4, xN=2) # 0.31
 # xps += Var4D(Lag=1,xB=0.2)              # 0.46
 # xps += Var4D(Lag=2,xB=0.1)              # 0.39

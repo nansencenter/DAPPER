@@ -12,7 +12,7 @@ def HMMs(stepper="Tay2", resolution="Low", R=1):
 
     # Time sequence
     # Grudzien'2020 uses the below chronology with KObs=25000, BurnIn=5000.
-    t = modelling.Chronology(dt=0.005, dtObs=.1, T=30, Tplot=Tplot, BurnIn=10)
+    t = modelling.Chronology(dt=0.005, dto=.1, T=30, Tplot=Tplot, BurnIn=10)
     if resolution == "High":
         t.dt = 0.001
     elif stepper != "Tay2":

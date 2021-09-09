@@ -22,8 +22,8 @@ nU = LUV.nU
 # Full
 ################
 
-# tseq = modelling.Chronology(dt=0.001,dtObs=0.05,T=4**3,BurnIn=6) # allows using rk2
-tseq = modelling.Chronology(dt=0.005, dtObs=0.05, T=4**3, BurnIn=6)  # requires rk4
+# tseq = modelling.Chronology(dt=0.001,dto=0.05,T=4**3,BurnIn=6) # allows using rk2
+tseq = modelling.Chronology(dt=0.005, dto=0.05, T=4**3, BurnIn=6)  # requires rk4
 
 
 Dyn = {
@@ -49,7 +49,7 @@ HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **oth
 ################
 
 # Just change dt from 005 to 05
-tseq = modelling.Chronology(dt=0.05, dtObs=0.05, T=4**3, BurnIn=6)
+tseq = modelling.Chronology(dt=0.05, dto=0.05, T=4**3, BurnIn=6)
 
 Dyn = {
     'M': nU,

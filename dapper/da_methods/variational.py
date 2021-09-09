@@ -66,7 +66,7 @@ class iEnKS:
 
       xN    : If set, use EnKF_N() pre-inflation. See further documentation there.
 
-    Total number of model simulations (of duration dtObs): N * (nIter*Lag + 1).
+    Total number of model simulations (of duration dto): N * (nIter*Lag + 1).
     (due to boundary cases: only asymptotically valid)
 
     Refs: `bib.bocquet2012combining`, `bib.bocquet2013joint`,

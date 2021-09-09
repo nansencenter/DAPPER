@@ -15,7 +15,7 @@ class Chronology():
 
     Example illustration:
 
-                             <----dtObs---->
+                             <----dto---->
                       <--dt-->
         tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
         kk:    0      1      2      3      4      5      K
@@ -33,35 +33,35 @@ class Chronology():
         len(kk)    == len(tt)    == K   +1
         len(kkObs) == len(ttObs) == KObs+1
 
-        kkObs[0]   == dko      == dtObs/dt == K/(KObs+1)
+        kkObs[0]   == dko      == dto/dt == K/(KObs+1)
         kkObs[-1]  == K          == T/dt
-        KObs       == T/dtObs-1
+        KObs       == T/dto-1
 
     These attributes may be set (altered) after init: `dt, dko, K, T`.
     Other attributes may not, due to ambiguity
-    (e.g. should `dtObs*=2` yield a doubling of `T` too?)
+    (e.g. should `dto*=2` yield a doubling of `T` too?)
     """
 
-    def __init__(self, dt=None, dtObs=None, T=None, BurnIn=-1,
+    def __init__(self, dt=None, dto=None, T=None, BurnIn=-1,
                  dko=None, KObs=None, K=None, Tplot=None):
 
-        assert 3 == [dt, dtObs, T, dko, KObs, K].count(None), \
+        assert 3 == [dt, dto, T, dko, KObs, K].count(None), \
             'Chronology is specified using exactly 3 parameters.'
 
         # Reduce all to "state vars" dt,dko,K
         if not dt:
             if T and K:
                 dt = T/K
-            elif dko and dtObs:
-                dt = dtObs/dko
+            elif dko and dto:
+                dt = dto/dko
             elif T and dko and KObs:
                 dt = T/(KObs+1)/dko
             else:
                 raise TypeError('Unable to interpret time setup')
         if not dko:
-            if dtObs:
-                dko = round(dtObs/dt)
-                assert abs(dtObs - dko*dt) < dt*1e-9
+            if dto:
+                dko = round(dto/dt)
+                assert abs(dto - dko*dt) < dt*1e-9
             else:
                 raise TypeError('Unable to interpret time setup')
         assert isinstance(dko, int)
@@ -154,7 +154,7 @@ class Chronology():
     # Read-only
     ######################################
     @property
-    def dtObs(self):
+    def dto(self):
         return self.dko*self.dt
 
     @property
@@ -208,7 +208,7 @@ class Chronology():
             yield k, t, dt
 
     def __str__(self):
-        printable = ['K', 'KObs', 'T', 'BurnIn', 'dtObs', 'dt']
+        printable = ['K', 'KObs', 'T', 'BurnIn', 'dto', 'dt']
         return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):

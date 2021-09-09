@@ -4,7 +4,7 @@ Lorenz-96 is highly sensitive to large gradients.
 Therefore, if we only observe every 4th (e.g.) state component,
 the members might "blow up" during the forecast,
 because the assimilation created large gradients.
-(Of course, this will depend on R and dtObs).
+(Of course, this will depend on R and dto).
 Therefore, the HMM below instead uses "global obs",
 where each observation captures information about the entire state vector.
 The idea is that we can then remove observations, (rows of H)
