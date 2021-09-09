@@ -24,18 +24,16 @@ class Climatology:
     """
 
     def assimilate(self, HMM, xx, yy):
-        tseq, stats = HMM.tseq, self.stats
-
         muC = np.mean(xx, 0)
         AC  = xx - muC
         PC  = CovMat(AC, 'A')
 
-        stats.assess(0, mu=muC, Cov=PC)
-        stats.trHK[:] = 0
+        self.stats.assess(0, mu=muC, Cov=PC)
+        self.stats.trHK[:] = 0
 
-        for k, kObs, _, _ in progbar(tseq.ticker):
+        for k, kObs, _, _ in progbar(HMM.tseq.ticker):
             fau = 'u' if kObs is None else 'fau'
-            stats.assess(k, kObs, fau, mu=muC, Cov=PC)
+            self.stats.assess(k, kObs, fau, mu=muC, Cov=PC)
 
 
 @da_method()
@@ -47,8 +45,6 @@ class OptInterp:
     """
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, tseq, stats = HMM.Dyn, HMM.Obs, HMM.tseq, self.stats
-
         # Compute "climatological" Kalman gain
         muC = np.mean(xx, 0)
         AC  = xx - muC
@@ -61,23 +57,23 @@ class OptInterp:
 
         # Init
         mu = muC
-        stats.assess(0, mu=mu, Cov=PC)
+        self.stats.assess(0, mu=mu, Cov=PC)
 
-        for k, kObs, t, dt in progbar(tseq.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             # Forecast
-            mu = Dyn(mu, t-dt, dt)
+            mu = HMM.Dyn(mu, t-dt, dt)
             if kObs is not None:
-                stats.assess(k, kObs, 'f', mu=muC, Cov=PC)
+                self.stats.assess(k, kObs, 'f', mu=muC, Cov=PC)
 
                 # Analysis
-                H  = Obs.linear(muC, t)
-                KG  = mrdiv(PC@H.T, H@PC@H.T + Obs.noise.C.full)
-                mu = muC + KG@(yy[kObs] - Obs(muC, t))
+                H  = HMM.Obs.linear(muC, t)
+                KG  = mrdiv(PC@H.T, H@PC@H.T + HMM.Obs.noise.C.full)
+                mu = muC + KG@(yy[kObs] - HMM.Obs(muC, t))
 
-                P  = (np.eye(Dyn.M) - KG@H) @ PC
+                P  = (np.eye(HMM.Dyn.M) - KG@H) @ PC
                 SM = fit_sigmoid(P.trace()/PC.trace(), L, k)
 
-            stats.assess(k, kObs, mu=mu, Cov=2*PC*SM(k))
+            self.stats.assess(k, kObs, mu=mu, Cov=2*PC*SM(k))
 
 
 @da_method()
@@ -93,8 +89,6 @@ class Var3D:
     xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
-
         if isinstance(self.B, np.ndarray):
             # compare ndarray 1st to avoid == error for ndarray
             B = self.B.astype(float)
@@ -110,31 +104,31 @@ class Var3D:
         # ONLY USED FOR DIAGNOSTICS, not to change the Kalman gain.
         CC = 2*np.cov(xx.T)
         L  = series.estimate_corr_length(center(xx)[0].ravel(order='F'))
-        P  = X0.C.full
+        P  = HMM.X0.C.full
         SM = fit_sigmoid(P.trace()/CC.trace(), L, 0)
 
         # Init
-        mu = X0.mu
-        stats.assess(0, mu=mu, Cov=P)
+        mu = HMM.X0.mu
+        self.stats.assess(0, mu=mu, Cov=P)
 
-        for k, kObs, t, dt in progbar(tseq.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             # Forecast
-            mu = Dyn(mu, t-dt, dt)
+            mu = HMM.Dyn(mu, t-dt, dt)
             P  = CC*SM(k)
 
             if kObs is not None:
-                stats.assess(k, kObs, 'f', mu=mu, Cov=P)
+                self.stats.assess(k, kObs, 'f', mu=mu, Cov=P)
 
                 # Analysis
-                H  = Obs.linear(mu, t)
-                KG = mrdiv(B@H.T, H@B@H.T + Obs.noise.C.full)
-                mu = mu + KG@(yy[kObs] - Obs(mu, t))
+                H  = HMM.Obs.linear(mu, t)
+                KG = mrdiv(B@H.T, H@B@H.T + HMM.Obs.noise.C.full)
+                mu = mu + KG@(yy[kObs] - HMM.Obs(mu, t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
-                P = (np.eye(Dyn.M) - KG@H) @ B
+                P = (np.eye(HMM.Dyn.M) - KG@H) @ B
                 SM = fit_sigmoid(P.trace()/CC.trace(), L, k)
 
-            stats.assess(k, kObs, mu=mu, Cov=P)
+            self.stats.assess(k, kObs, mu=mu, Cov=P)
 
 
 def fit_sigmoid(Sb, L, kb):

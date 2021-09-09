@@ -25,37 +25,35 @@ class ExtKF:
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
+        R  = HMM.Obs.noise.C.full
+        Q  = 0 if HMM.Dyn.noise.C == 0 else HMM.Dyn.noise.C.full
 
-        R  = Obs.noise.C.full
-        Q  = 0 if Dyn.noise.C == 0 else Dyn.noise.C.full
+        mu = HMM.X0.mu
+        P  = HMM.X0.C.full
 
-        mu = X0.mu
-        P  = X0.C.full
+        self.stats.assess(0, mu=mu, Cov=P)
 
-        stats.assess(0, mu=mu, Cov=P)
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
 
-        for k, kObs, t, dt in progbar(tseq.ticker):
-
-            mu = Dyn(mu, t-dt, dt)
-            F  = Dyn.linear(mu, t-dt, dt)
+            mu = HMM.Dyn(mu, t-dt, dt)
+            F  = HMM.Dyn.linear(mu, t-dt, dt)
             P  = self.infl**(dt)*(F@P@F.T) + dt*Q
 
             # Of academic interest? Higher-order linearization:
             # mu_i += 0.5 * (Hessian[f_i] * P).sum()
 
             if kObs is not None:
-                stats.assess(k, kObs, 'f', mu=mu, Cov=P)
-                H  = Obs.linear(mu, t)
+                self.stats.assess(k, kObs, 'f', mu=mu, Cov=P)
+                H  = HMM.Obs.linear(mu, t)
                 KG = mrdiv(P @ H.T, H@P@H.T + R)
                 y  = yy[kObs]
-                mu = mu + KG@(y - Obs(mu, t))
+                mu = mu + KG@(y - HMM.Obs(mu, t))
                 KH = KG@H
-                P  = (np.eye(Dyn.M) - KH) @ P
+                P  = (np.eye(HMM.Dyn.M) - KH) @ P
 
-                stats.trHK[kObs] = KH.trace()/Dyn.M
+                self.stats.trHK[kObs] = KH.trace()/HMM.Dyn.M
 
-            stats.assess(k, kObs, mu=mu, Cov=P)
+            self.stats.assess(k, kObs, mu=mu, Cov=P)
 
 
 # TODO 5: Clean up
@@ -66,29 +64,28 @@ class ExtRTS:
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
-        Nx = Dyn.M
+        Nx = HMM.Dyn.M
 
-        R  = Obs.noise.C.full
-        Q  = 0 if Dyn.noise.C == 0 else Dyn.noise.C.full
+        R  = HMM.Obs.noise.C.full
+        Q  = 0 if HMM.Dyn.noise.C == 0 else HMM.Dyn.noise.C.full
 
-        mu    = np.zeros((tseq.K+1, Nx))
-        P     = np.zeros((tseq.K+1, Nx, Nx))
+        mu    = np.zeros((HMM.tseq.K+1, Nx))
+        P     = np.zeros((HMM.tseq.K+1, Nx, Nx))
 
         # Forecasted values
-        muf   = np.zeros((tseq.K+1, Nx))
-        Pf    = np.zeros((tseq.K+1, Nx, Nx))
-        Ff    = np.zeros((tseq.K+1, Nx, Nx))
+        muf   = np.zeros((HMM.tseq.K+1, Nx))
+        Pf    = np.zeros((HMM.tseq.K+1, Nx, Nx))
+        Ff    = np.zeros((HMM.tseq.K+1, Nx, Nx))
 
-        mu[0] = X0.mu
-        P[0] = X0.C.full
+        mu[0] = HMM.X0.mu
+        P[0] = HMM.X0.C.full
 
-        stats.assess(0, mu=mu[0], Cov=P[0])
+        self.stats.assess(0, mu=mu[0], Cov=P[0])
 
         # Forward pass
-        for k, kObs, t, dt in progbar(tseq.ticker, 'ExtRTS->'):
-            mu[k]  = Dyn(mu[k-1], t-dt, dt)
-            F      = Dyn.linear(mu[k-1], t-dt, dt)
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker, 'ExtRTS->'):
+            mu[k]  = HMM.Dyn(mu[k-1], t-dt, dt)
+            F      = HMM.Dyn.linear(mu[k-1], t-dt, dt)
             P[k]   = self.infl**(dt)*(F@P[k-1]@F.T) + dt*Q
 
             # Store forecast and Jacobian
@@ -97,19 +94,19 @@ class ExtRTS:
             Ff[k]  = F
 
             if kObs is not None:
-                stats.assess(k, kObs, 'f', mu=mu[k], Cov=P[k])
-                H     = Obs.linear(mu[k], t)
+                self.stats.assess(k, kObs, 'f', mu=mu[k], Cov=P[k])
+                H     = HMM.Obs.linear(mu[k], t)
                 KG    = mrdiv(P[k] @ H.T, H@P[k]@H.T + R)
                 y     = yy[kObs]
-                mu[k] = mu[k] + KG@(y - Obs(mu[k], t))
+                mu[k] = mu[k] + KG@(y - HMM.Obs(mu[k], t))
                 KH    = KG@H
                 P[k]  = (np.eye(Nx) - KH) @ P[k]
-                stats.assess(k, kObs, 'a', mu=mu[k], Cov=P[k])
+                self.stats.assess(k, kObs, 'a', mu=mu[k], Cov=P[k])
 
         # Backward pass
-        for k in progbar(range(tseq.K)[::-1], 'ExtRTS<-'):
+        for k in progbar(range(HMM.tseq.K)[::-1], 'ExtRTS<-'):
             J     = mrdiv(P[k]@Ff[k+1].T, Pf[k+1])
             mu[k] = mu[k]  + J @ (mu[k+1]  - muf[k+1])
             P[k]  = P[k] + J @ (P[k+1] - Pf[k+1]) @ J.T
-        for k in progbar(range(tseq.K+1), desc='Assess'):
-            stats.assess(k, mu=mu[k], Cov=P[k])
+        for k in progbar(range(HMM.tseq.K+1), desc='Assess'):
+            self.stats.assess(k, mu=mu[k], Cov=P[k])
