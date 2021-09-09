@@ -235,14 +235,14 @@ def estimate_good_plot_length(xx, chrono=None, mult=100):
         K = 0
 
     if chrono is not None:
-        t = chrono
-        K = int(min(max(K, t.dkObs), t.K))
-        T = round2sigfig(t.tt[K], 2)  # Could return T; T>tt[-1]
-        K = find_1st_ind(t.tt >= T)
+        tseq = chrono
+        K = int(min(max(K, tseq.dkObs), tseq.K))
+        T = round2sigfig(tseq.tt[K], 2)  # Could return T; T>tt[-1]
+        K = find_1st_ind(tseq.tt >= T)
         if K:
             return K
         else:
-            return t.K
+            return tseq.K
     else:
         K = int(min(max(K, 1), len(xx)))
         T = round2sigfig(K, 2)

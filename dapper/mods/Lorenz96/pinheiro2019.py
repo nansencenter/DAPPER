@@ -6,7 +6,7 @@ from dapper.mods.utils import linspace_int
 from dapper.tools.localization import nd_Id_localization
 
 model.Force = 8.17
-t = modelling.Chronology(0.01, dkObs=10, K=4000, Tplot=10, BurnIn=10)
+tseq = modelling.Chronology(0.01, dkObs=10, K=4000, Tplot=10, BurnIn=10)
 
 Nx = 1000
 
@@ -26,7 +26,7 @@ Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 0.1**2
 Obs['localizer'] = nd_Id_localization((Nx,), (1,), jj, periodic=True)
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 HMM.liveplotters = LPs(jj)
 

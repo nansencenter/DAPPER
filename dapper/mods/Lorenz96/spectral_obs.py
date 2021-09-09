@@ -72,7 +72,7 @@ Am I missing something?
 import numpy as np
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz96.sakov2008 import Dyn, Nx, t
+from dapper.mods.Lorenz96.sakov2008 import Dyn, Nx, tseq
 
 # The (Nx-Ny) highest frequency observation modes are left out of H below.
 # If Ny>Nx, then H no longer has independent (let alone orthogonal) columns,
@@ -103,7 +103,7 @@ Obs = {
     'noise': modelling.GaussRV(C=0.01*np.eye(Ny)),
 }
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 ####################
 # Obs plotting -- needs updating

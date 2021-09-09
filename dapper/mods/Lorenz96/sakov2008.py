@@ -13,7 +13,7 @@ from dapper.mods.Lorenz96 import LPs, Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
-t = modelling.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
+tseq = modelling.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
 
 Nx = 40
 x0 = x0(Nx)
@@ -32,7 +32,7 @@ Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization((Nx,), (2,))
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 HMM.liveplotters = LPs(jj)
 
@@ -84,7 +84,7 @@ HMM.liveplotters = LPs(jj)
 # xps += EnKF_N(N=20)                                          # 0.24
 # xps += EnKF_N(N=20,xN=2)                                     # 0.19
 # # Also try quasi-linear regime:
-# t = Chronology(0.01,dkObs=1,...)
+# tseq = Chronology(0.01,dkObs=1,...)
 
 # Reproduce Bocquet/Sakov'2013 "Joint...", Fig 4, i.e. dtObs=0.2:
 # xps += iEnKS('Sqrt', N=20, Lag=4, xN=2) # 0.31

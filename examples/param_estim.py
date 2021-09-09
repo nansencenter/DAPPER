@@ -72,7 +72,7 @@ step = modelling.with_rk4(dxdt_augmented, autonom=True)
 
 # Define the sequence of the experiment
 # See `modelling.Chronology` for more details.
-t = modelling.Chronology(
+tseq = modelling.Chronology(
     dt=0.05,     # Integrational time step
     dkObs=1,     # Steps of duration dt between obs
     KObs=10**3,  # Total number of obs in experiment
@@ -111,7 +111,7 @@ parts = dict(state=np.arange(Nx),
              param=np.arange(Np)+Nx)
 
 # Wrap-up model specification
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, sectors=parts, LP=LP)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, sectors=parts, LP=LP)
 
 
 # #### Treat truth and DA methods differently

@@ -5,7 +5,7 @@ import numpy as np
 import dapper.mods as modelling
 from dapper.mods.Lorenz63 import Tplot, dstep_dx, step, x0
 
-t = modelling.Chronology(0.01, dkObs=12, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
+tseq = modelling.Chronology(0.01, dkObs=12, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
 Nx = len(x0)
 
@@ -21,7 +21,7 @@ X0 = modelling.GaussRV(C=2, mu=x0)
 Obs = modelling.partial_Id_Obs(Nx, np.arange(Nx))
 Obs['noise'] = 8.0
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 
 ####################

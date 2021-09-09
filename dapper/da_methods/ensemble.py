@@ -883,8 +883,8 @@ class EnKF_N:
                 def dgn_N(l1): return pad0((l1*s)**2, N) + N1
 
                 # Adjust hyper-prior
-                # xN_ = noise_level(self.xN,self.stats,HMM.tseq,N1,kObs,A,
-                #                   locals().get('A_old',None))
+                # xN_ = noise_level(self.xN, self.stats, HMM.tseq, N1, kObs, A,
+                #                   locals().get('A_old', None))
                 eN, cL = hyperprior_coeffs(s, N, self.xN, self.g)
 
                 if self.dual:

@@ -10,7 +10,7 @@ KS = Model(dt=0.5)
 Nx = KS.Nx
 
 # nRepeat=10
-t = modelling.Chronology(KS.dt, dkObs=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
+tseq = modelling.Chronology(KS.dt, dkObs=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
 
 Dyn = {
     'M': Nx,
@@ -25,7 +25,7 @@ Obs = modelling.Id_Obs(Nx)
 Obs['noise'] = 1
 Obs['localizer'] = nd_Id_localization((Nx,), (4,))
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 HMM.liveplotters = LPs(np.arange(Nx))
 

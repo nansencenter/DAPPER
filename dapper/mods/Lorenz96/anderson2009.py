@@ -7,7 +7,7 @@ from dapper.mods.Lorenz96.sakov2008 import X0, Dyn, LPs, Nx, Tplot
 from dapper.tools.localization import localization_setup, pairwise_distances
 from dapper.tools.viz import xtrema
 
-t = modelling.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
+tseq = modelling.Chronology(0.05, dtObs=0.05, KObs=4000, Tplot=Tplot, BurnIn=2000*0.05)
 
 # Define obs sites
 obs_sites = 0.395 + 0.01*np.arange(1, 21)
@@ -35,7 +35,7 @@ Obs = {
 }
 
 HMM = modelling.HiddenMarkovModel(
-    Dyn, Obs, t, X0, LP=LPs(),
+    Dyn, Obs, tseq, X0, LP=LPs(),
     sectors={'land': np.arange(*xtrema(obs_sites)).astype(int)})
 
 ####################

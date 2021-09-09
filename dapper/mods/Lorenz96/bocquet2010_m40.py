@@ -2,7 +2,7 @@
 import numpy as np
 
 import dapper.mods as modelling
-from dapper.mods.Lorenz96.bocquet2010 import Dyn, t
+from dapper.mods.Lorenz96.bocquet2010 import Dyn, tseq
 
 Nx = 40
 Dyn['M'] = Nx
@@ -13,7 +13,7 @@ jj = np.arange(0, Nx, 2)
 Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 1.5
 
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 ####################
 # Suggested tuning
