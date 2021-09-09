@@ -25,7 +25,7 @@ class ExtKF:
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
 
         R  = Obs.noise.C.full
         Q  = 0 if Dyn.noise.C == 0 else Dyn.noise.C.full
@@ -66,7 +66,7 @@ class ExtRTS:
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         Nx = Dyn.M
 
         R  = Obs.noise.C.full

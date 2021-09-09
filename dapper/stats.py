@@ -353,7 +353,7 @@ class Stats(series.StatPrint):
         - `kk`    time inds for averaging
         - `kkObs` time inds for averaging obs
         """
-        chrono = self.HMM.t
+        chrono = self.HMM.tseq
         if kk is None:
             kk     = chrono.mask_BI
         if kkObs is None:
@@ -422,7 +422,7 @@ class Stats(series.StatPrint):
         and so cannot be replayed.
         """
         # Time settings
-        chrono = self.HMM.t
+        chrono = self.HMM.tseq
         if t2 is None:
             t2 = t1 + chrono.Tplot
 

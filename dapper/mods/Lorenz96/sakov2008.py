@@ -72,7 +72,7 @@ HMM.liveplotters = LPs(jj)
 
 # Reproduce Table 3 (IEnKF) from sakov2012iterative
 # --------------------------------------------------------------------------------
-# HMM.t.dkObs = 12
+# HMM.tseq.dkObs = 12
 # xps += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,infl=1.2,rot=1)     # 0.46
 # xps += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,xN=2.0  ,rot=1)     # 0.46
 

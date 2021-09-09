@@ -22,7 +22,7 @@ seed = dpr.set_seed(3000)
 
 # #### Simulate synthetic truth (xx) and noisy obs (yy)
 
-HMM.t.T = 30  # shorten experiment
+HMM.tseq.T = 30  # shorten experiment
 xx, yy = HMM.simulate()
 
 # #### Specify a DA method configuration ("xp" is short for "experiment")

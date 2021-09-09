@@ -94,8 +94,8 @@ class iEnKS:
     #   * Trouble playing nice with '-N' inflation estimation.
 
     def assimilate(self, HMM, xx, yy):
-        chrono, X0, stats = HMM.t, HMM.X0, self.stats
-        R, KObs  = HMM.Obs.noise.C, HMM.t.KObs
+        chrono, X0, stats = HMM.tseq, HMM.X0, self.stats
+        R, KObs  = HMM.Obs.noise.C, HMM.tseq.KObs
         Rm12 = R.sym_sqrt_inv
 
         assert HMM.Dyn.noise.C == 0, (
@@ -168,7 +168,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
         E = x0 + (w + EPS*T)@X0
         # Forecast.
         for kCycle in DAW:
-            for k, t, dt in HMM.t.cycle(kCycle):  # noqa
+            for k, t, dt in HMM.tseq.cycle(kCycle):  # noqa
                 E = HMM.Dyn(E, t-dt, dt)
         # Observe.
         Eo = HMM.Obs(E, t)
@@ -284,8 +284,8 @@ class Var4D:
     xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
-        R, KObs = HMM.Obs.noise.C, HMM.t.KObs
+        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
+        R, KObs = HMM.Obs.noise.C, HMM.tseq.KObs
         Rm12 = R.sym_sqrt_inv
         Nx = Dyn.M
 

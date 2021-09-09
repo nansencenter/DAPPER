@@ -23,7 +23,7 @@ HMM.Obs.loc_shift = loc_shift
 # Suggested tuning
 ####################
 # Reproduce data point dt=0.4 from figure 5                               # rmse.a:
-# HMM.t.dkObs = 8
+# HMM.tseq.dkObs = 8
 # xps += iEnKS('-N'  , N=20)                                              # 0.40
 # xps += iLEnKS('Sqrt',N=10,loc_rad=12/1.82,infl=1.07)                    # 0.42
 # xps += iLEnKS('-N' , N=10,loc_rad=12/1.82)                              # 0.45

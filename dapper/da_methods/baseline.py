@@ -24,7 +24,7 @@ class Climatology:
     """
 
     def assimilate(self, HMM, xx, yy):
-        chrono, stats = HMM.t, self.stats
+        chrono, stats = HMM.tseq, self.stats
 
         muC = np.mean(xx, 0)
         AC  = xx - muC
@@ -47,7 +47,7 @@ class OptInterp:
     """
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.t, self.stats
+        Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.tseq, self.stats
 
         # Compute "climatological" Kalman gain
         muC = np.mean(xx, 0)
@@ -93,7 +93,7 @@ class Var3D:
     xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
 
         if isinstance(self.B, np.ndarray):
             # compare ndarray 1st to avoid == error for ndarray

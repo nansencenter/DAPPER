@@ -297,7 +297,7 @@ class sliding_diagnostics:
         ax.set_xlabel('Time (t)')
         place_ax.adjust_position(ax, y0=0.03)
 
-        self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.t)
+        self.T_lag, K_lag, a_lag = validate_lag(Tplot, stats.HMM.tseq)
 
         def init_ax(ax, style_table):
             lines = {}
@@ -357,7 +357,7 @@ class sliding_diagnostics:
         k, kObs, faus = key
 
         stats  = self.stats
-        chrono = stats.HMM.t
+        chrono = stats.HMM.tseq
         ax0, ax1 = self.axs
 
         def update_arrays(lines):
@@ -690,7 +690,7 @@ def sliding_marginals(
 
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
         xx, yy, mu, spread, chrono = \
-            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.t
+            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.tseq
 
         # Set parameters (kwargs takes precedence over params_orig)
         p = DotDict(**{
@@ -846,7 +846,7 @@ def phase_particles(
 
     def init(fignum, stats, key0, plot_u, E, P, **kwargs):
         xx, yy, mu, _, chrono = \
-            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.t
+            stats.xx, stats.yy, stats.mu, stats.spread, stats.HMM.tseq
 
         # Set parameters (kwargs takes precedence over params_orig)
         p = DotDict(**{
@@ -968,8 +968,8 @@ def phase_particles(
 def validate_lag(Tplot, chrono):
     """Return validated `T_lag` such that is is:
 
-    - equal to `Tplot` with fallback: `HMM.t.Tplot`.
-    - no longer than `HMM.t.T`.
+    - equal to `Tplot` with fallback: `HMM.tseq.Tplot`.
+    - no longer than `HMM.tseq.T`.
 
     Also return corresponding `K_lag`, `a_lag`.
     """
@@ -1208,7 +1208,7 @@ def spatial1d(
 
             line_x.set_ydata(wrap(xx[k, p.dims]))
 
-            text_t.set_text(format_time(k, kObs, stats.HMM.t.tt[k]))
+            text_t.set_text(format_time(k, kObs, stats.HMM.tseq.tt[k]))
 
             if 'f' in faus:
                 if p.obs_inds is not None:
@@ -1262,7 +1262,7 @@ def spatial2d(
         # Extract data arrays
         xx, _, mu, spread, err = stats.xx, stats.yy, stats.mu, stats.spread, stats.err
         k = key0[0]
-        tt = stats.HMM.t.tt
+        tt = stats.HMM.tseq.tt
 
         # Plot
         # - origin='lower' might get overturned by set_ylim() below.

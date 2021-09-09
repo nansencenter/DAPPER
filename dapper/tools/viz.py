@@ -404,7 +404,7 @@ def plot_err_components(stats):
     """
     fig, (ax0, ax1, ax2) = place.freshfig("Error components", figsize=(6, 6), nrows=3)
 
-    chrono = stats.HMM.t
+    chrono = stats.HMM.tseq
     Nx     = stats.xx.shape[1]
 
     en_mean = lambda x: np.mean(x, axis=0)  # noqa
@@ -458,7 +458,7 @@ def plot_rank_histogram(stats):
     ----------
     stats: `dapper.stats.Stats`
     """
-    chrono = stats.HMM.t
+    chrono = stats.HMM.tseq
 
     has_been_computed = \
         hasattr(stats, 'rh') and \

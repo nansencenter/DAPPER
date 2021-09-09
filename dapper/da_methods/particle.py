@@ -52,7 +52,7 @@ class PartFilt:
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+            HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
         E = X0.sample(N)
@@ -108,7 +108,7 @@ class OptPF:
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+            HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, Nx, R = self.N, Dyn.M, Obs.noise.C.full
 
         E = X0.sample(N)
@@ -181,7 +181,7 @@ class PFa:
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+            HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
         E = X0.sample(N)
@@ -254,7 +254,7 @@ class PFxN_EnKF:
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+            HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, xN, Nx, Rm12, Ri = \
             self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
 
@@ -372,7 +372,7 @@ class PFxN:
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+            HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, xN, Nx, Rm12 = self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
         DD = None

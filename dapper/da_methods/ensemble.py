@@ -39,7 +39,7 @@ class EnKF:
         self.stats.assess(0, E=E)
 
         # Cycle
-        for k, kObs, t, dt in progbar(HMM.t.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
 
@@ -371,10 +371,10 @@ class EnKS:
     def assimilate(self, HMM, xx, yy):
         # Inefficient version, storing full time series ensemble.
         # See iEnKS for a "rolling" version.
-        E    = zeros((HMM.t.K+1, self.N, HMM.Dyn.M))
+        E    = zeros((HMM.tseq.K+1, self.N, HMM.Dyn.M))
         E[0] = HMM.X0.sample(self.N)
 
-        for k, kObs, t, dt in progbar(HMM.t.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             E[k] = HMM.Dyn(E[k-1], t-dt, dt)
             E[k] = add_noise(E[k], dt, HMM.Dyn.noise, self.fnoise_treatm)
 
@@ -385,7 +385,7 @@ class EnKS:
                 y     = yy[kObs]
 
                 # Inds within Lag
-                kk    = range(max(0, k-self.Lag*HMM.t.dkObs), k+1)
+                kk    = range(max(0, k-self.Lag*HMM.tseq.dkObs), k+1)
 
                 EE    = E[kk]
 
@@ -396,7 +396,7 @@ class EnKS:
                 E[k]  = post_process(E[k], self.infl, self.rot)
                 self.stats.assess(k, kObs, 'a', E=E[k])
 
-        for k, kObs, _, _ in progbar(HMM.t.ticker, desc='Assessing'):
+        for k, kObs, _, _ in progbar(HMM.tseq.ticker, desc='Assessing'):
             self.stats.assess(k, kObs, 'u', E=E[k])
             if kObs is not None:
                 self.stats.assess(k, kObs, 's', E=E[k])
@@ -414,12 +414,12 @@ class EnRTS:
     cntr: float
 
     def assimilate(self, HMM, xx, yy):
-        E    = zeros((HMM.t.K+1, self.N, HMM.Dyn.M))
+        E    = zeros((HMM.tseq.K+1, self.N, HMM.Dyn.M))
         Ef   = E.copy()
         E[0] = HMM.X0.sample(self.N)
 
         # Forward pass
-        for k, kObs, t, dt in progbar(HMM.t.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             E[k]  = HMM.Dyn(E[k-1], t-dt, dt)
             E[k]  = add_noise(E[k], dt, HMM.Dyn.noise, self.fnoise_treatm)
             Ef[k] = E[k]
@@ -434,7 +434,7 @@ class EnRTS:
                 self.stats.assess(k, kObs, 'a', E=E[k])
 
         # Backward pass
-        for k in progbar(range(HMM.t.K)[::-1]):
+        for k in progbar(range(HMM.tseq.K)[::-1]):
             A  = center(E[k])[0]
             Af = center(Ef[k+1])[0]
 
@@ -443,7 +443,7 @@ class EnRTS:
 
             E[k] += (E[k+1] - Ef[k+1]) @ J
 
-        for k, kObs, _, _ in progbar(HMM.t.ticker, desc='Assessing'):
+        for k, kObs, _, _ in progbar(HMM.tseq.ticker, desc='Assessing'):
             self.stats.assess(k, kObs, 'u', E=E[k])
             if kObs is not None:
                 self.stats.assess(k, kObs, 's', E=E[k])
@@ -494,7 +494,7 @@ class SL_EAKF:
         E = HMM.X0.sample(self.N)
         self.stats.assess(0, E=E)
 
-        for k, kObs, t, dt in progbar(HMM.t.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
 
@@ -571,7 +571,7 @@ class LETKF:
         E = HMM.X0.sample(N)
         self.stats.assess(0, E=E)
 
-        for k, kObs, t, dt in progbar(HMM.t.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             # Forecast
             E = HMM.Dyn(E, t-dt, dt)
             E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
@@ -860,7 +860,7 @@ class EnKF_N:
         self.stats.assess(0, E=E)
 
         # Cycle
-        for k, kObs, t, dt in progbar(HMM.t.ticker):
+        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
             # Forecast
             E = HMM.Dyn(E, t-dt, dt)
             E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
@@ -883,7 +883,7 @@ class EnKF_N:
                 def dgn_N(l1): return pad0((l1*s)**2, N) + N1
 
                 # Adjust hyper-prior
-                # xN_ = noise_level(self.xN,self.stats,HMM.t,N1,kObs,A,
+                # xN_ = noise_level(self.xN,self.stats,HMM.tseq,N1,kObs,A,
                 #                   locals().get('A_old',None))
                 eN, cL = hyperprior_coeffs(s, N, self.xN, self.g)
 

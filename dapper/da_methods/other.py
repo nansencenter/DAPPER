@@ -25,7 +25,7 @@ class RHF:
 
     def assimilate(self, HMM, xx, yy):
         Dyn, Obs, chrono, X0, stats, N = \
-            HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats, self.N
+            HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats, self.N
 
         N1       = N-1
         step     = 1/N
@@ -92,7 +92,7 @@ class LNETF:
     Rs: float  = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.t, HMM.X0, self.stats
+        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         Rm12 = Obs.noise.C.sym_sqrt_inv
 
         E = X0.sample(self.N)
