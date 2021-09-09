@@ -24,7 +24,7 @@ class Climatology:
     """
 
     def assimilate(self, HMM, xx, yy):
-        chrono, stats = HMM.tseq, self.stats
+        tseq, stats = HMM.tseq, self.stats
 
         muC = np.mean(xx, 0)
         AC  = xx - muC
@@ -33,7 +33,7 @@ class Climatology:
         stats.assess(0, mu=muC, Cov=PC)
         stats.trHK[:] = 0
 
-        for k, kObs, _, _ in progbar(chrono.ticker):
+        for k, kObs, _, _ in progbar(tseq.ticker):
             fau = 'u' if kObs is None else 'fau'
             stats.assess(k, kObs, fau, mu=muC, Cov=PC)
 
@@ -47,7 +47,7 @@ class OptInterp:
     """
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, stats = HMM.Dyn, HMM.Obs, HMM.tseq, self.stats
+        Dyn, Obs, tseq, stats = HMM.Dyn, HMM.Obs, HMM.tseq, self.stats
 
         # Compute "climatological" Kalman gain
         muC = np.mean(xx, 0)
@@ -63,7 +63,7 @@ class OptInterp:
         mu = muC
         stats.assess(0, mu=mu, Cov=PC)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             # Forecast
             mu = Dyn(mu, t-dt, dt)
             if kObs is not None:
@@ -93,7 +93,7 @@ class Var3D:
     xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
+        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
 
         if isinstance(self.B, np.ndarray):
             # compare ndarray 1st to avoid == error for ndarray
@@ -117,7 +117,7 @@ class Var3D:
         mu = X0.mu
         stats.assess(0, mu=mu, Cov=P)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             # Forecast
             mu = Dyn(mu, t-dt, dt)
             P  = CC*SM(k)

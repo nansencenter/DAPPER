@@ -353,11 +353,11 @@ class Stats(series.StatPrint):
         - `kk`    time inds for averaging
         - `kkObs` time inds for averaging obs
         """
-        chrono = self.HMM.tseq
+        tseq = self.HMM.tseq
         if kk is None:
-            kk     = chrono.mask_BI
+            kk     = tseq.mask_BI
         if kkObs is None:
-            kkObs  = chrono.maskObs_BI
+            kkObs  = tseq.maskObs_BI
 
         def average1(tseries):
             avrgs = Avrgs()
@@ -422,9 +422,9 @@ class Stats(series.StatPrint):
         and so cannot be replayed.
         """
         # Time settings
-        chrono = self.HMM.tseq
+        tseq = self.HMM.tseq
         if t2 is None:
-            t2 = t1 + chrono.Tplot
+            t2 = t1 + tseq.Tplot
 
         # Ens does not get stored in stats, so we cannot replay that.
         # If the LPs are initialized with P0!=None, then they will avoid ens plotting.
@@ -444,7 +444,7 @@ class Stats(series.StatPrint):
         desc = self.xp.da_method + " (replay)"
 
         # Play through assimilation cycles
-        for k, kObs, t, _dt in progbar(chrono.ticker, desc):
+        for k, kObs, t, _dt in progbar(tseq.ticker, desc):
             if t1 <= t <= t2:
                 if kObs is not None:
                     LP.update((k, kObs, 'f'), None, None)

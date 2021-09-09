@@ -24,7 +24,7 @@ class RHF:
     ordr: str = 'rand'
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats, N = \
+        Dyn, Obs, tseq, X0, stats, N = \
             HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats, self.N
 
         N1       = N-1
@@ -37,7 +37,7 @@ class RHF:
         E = X0.sample(N)
         stats.assess(0, E=E)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
@@ -92,13 +92,13 @@ class LNETF:
     Rs: float  = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
+        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         Rm12 = Obs.noise.C.sym_sqrt_inv
 
         E = X0.sample(self.N)
         stats.assess(0, E=E)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 

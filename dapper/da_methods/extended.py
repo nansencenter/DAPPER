@@ -25,7 +25,7 @@ class ExtKF:
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
+        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
 
         R  = Obs.noise.C.full
         Q  = 0 if Dyn.noise.C == 0 else Dyn.noise.C.full
@@ -35,7 +35,7 @@ class ExtKF:
 
         stats.assess(0, mu=mu, Cov=P)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
 
             mu = Dyn(mu, t-dt, dt)
             F  = Dyn.linear(mu, t-dt, dt)
@@ -66,19 +66,19 @@ class ExtRTS:
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
+        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         Nx = Dyn.M
 
         R  = Obs.noise.C.full
         Q  = 0 if Dyn.noise.C == 0 else Dyn.noise.C.full
 
-        mu    = np.zeros((chrono.K+1, Nx))
-        P     = np.zeros((chrono.K+1, Nx, Nx))
+        mu    = np.zeros((tseq.K+1, Nx))
+        P     = np.zeros((tseq.K+1, Nx, Nx))
 
         # Forecasted values
-        muf   = np.zeros((chrono.K+1, Nx))
-        Pf    = np.zeros((chrono.K+1, Nx, Nx))
-        Ff    = np.zeros((chrono.K+1, Nx, Nx))
+        muf   = np.zeros((tseq.K+1, Nx))
+        Pf    = np.zeros((tseq.K+1, Nx, Nx))
+        Ff    = np.zeros((tseq.K+1, Nx, Nx))
 
         mu[0] = X0.mu
         P[0] = X0.C.full
@@ -86,7 +86,7 @@ class ExtRTS:
         stats.assess(0, mu=mu[0], Cov=P[0])
 
         # Forward pass
-        for k, kObs, t, dt in progbar(chrono.ticker, 'ExtRTS->'):
+        for k, kObs, t, dt in progbar(tseq.ticker, 'ExtRTS->'):
             mu[k]  = Dyn(mu[k-1], t-dt, dt)
             F      = Dyn.linear(mu[k-1], t-dt, dt)
             P[k]   = self.infl**(dt)*(F@P[k-1]@F.T) + dt*Q
@@ -107,9 +107,9 @@ class ExtRTS:
                 stats.assess(k, kObs, 'a', mu=mu[k], Cov=P[k])
 
         # Backward pass
-        for k in progbar(range(chrono.K)[::-1], 'ExtRTS<-'):
+        for k in progbar(range(tseq.K)[::-1], 'ExtRTS<-'):
             J     = mrdiv(P[k]@Ff[k+1].T, Pf[k+1])
             mu[k] = mu[k]  + J @ (mu[k+1]  - muf[k+1])
             P[k]  = P[k] + J @ (P[k+1] - Pf[k+1]) @ J.T
-        for k in progbar(range(chrono.K+1), desc='Assess'):
+        for k in progbar(range(tseq.K+1), desc='Assess'):
             stats.assess(k, mu=mu[k], Cov=P[k])

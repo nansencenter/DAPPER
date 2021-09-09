@@ -94,7 +94,7 @@ class iEnKS:
     #   * Trouble playing nice with '-N' inflation estimation.
 
     def assimilate(self, HMM, xx, yy):
-        chrono, X0, stats = HMM.tseq, HMM.X0, self.stats
+        tseq, X0, stats = HMM.tseq, HMM.X0, self.stats
         R, KObs  = HMM.Obs.noise.C, HMM.tseq.KObs
         Rm12 = R.sym_sqrt_inv
 
@@ -114,7 +114,7 @@ class iEnKS:
         t = 0
         k = 0
         if self.Lag == 0:
-            for k, t, dt in chrono.cycle(kObs=0):
+            for k, t, dt in tseq.cycle(kObs=0):
                 stats.assess(k-1, None, 'u', E=E)
                 E = HMM.Dyn(E, t-dt, dt)
 
@@ -132,11 +132,11 @@ class iEnKS:
 
             # Slide/shift DAW by propagating smoothed ('s') ensemble from [kLag].
             if kLag >= 0:
-                stats.assess(chrono.kkObs[kLag], kLag, 's', E=E)
+                stats.assess(tseq.kkObs[kLag], kLag, 's', E=E)
             cycle_window = range(max(kLag+1, 0), min(max(kLag+1+1, 0), KObs+1))
 
             for kCycle in cycle_window:
-                for k, t, dt in chrono.cycle(kCycle):
+                for k, t, dt in tseq.cycle(kCycle):
                     stats.assess(k-1, None, 'u', E=E)
                     E = HMM.Dyn(E, t-dt, dt)
 
@@ -284,7 +284,7 @@ class Var4D:
     xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
+        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         R, KObs = HMM.Obs.noise.C, HMM.tseq.KObs
         Rm12 = R.sym_sqrt_inv
         Nx = Dyn.M
@@ -325,7 +325,7 @@ class Var4D:
                     X = B12  # Aggregate composite TLMs onto B12
                     # Forecast.
                     for kCycle in DAW:
-                        for k, t, dt in chrono.cycle(kCycle):  # noqa
+                        for k, t, dt in tseq.cycle(kCycle):  # noqa
                             X = Dyn.linear(x, t-dt, dt) @ X
                             x = Dyn(x, t-dt, dt)
 
@@ -367,8 +367,8 @@ class Var4D:
             # Slide/shift DAW by propagating smoothed ('s') state from [kLag].
             if -1 <= kLag < KObs:
                 if kLag >= 0:
-                    stats.assess(chrono.kkObs[kLag], kLag, 's', mu=x, Cov=X@Cow1@X.T)
-                for k, t, dt in chrono.cycle(kLag+1):
+                    stats.assess(tseq.kkObs[kLag], kLag, 's', mu=x, Cov=X@Cow1@X.T)
+                for k, t, dt in tseq.cycle(kLag+1):
                     stats.assess(k-1, None, 'u', mu=x, Cov=Y@Y.T)
                     X = Dyn.linear(x, t-dt, dt) @ X
                     x = Dyn(x, t-dt, dt)

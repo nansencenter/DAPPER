@@ -51,7 +51,7 @@ class PartFilt:
     # miN = N*miN
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
+        Dyn, Obs, tseq, X0, stats = \
             HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
@@ -60,7 +60,7 @@ class PartFilt:
 
         stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
                 D  = rnd.randn(N, Nx)
@@ -107,7 +107,7 @@ class OptPF:
     wroot: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
+        Dyn, Obs, tseq, X0, stats = \
             HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, Nx, R = self.N, Dyn.M, Obs.noise.C.full
 
@@ -116,7 +116,7 @@ class OptPF:
 
         stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
                 E += np.sqrt(dt)*(rnd.randn(N, Nx)@Dyn.noise.C.Right)
@@ -180,7 +180,7 @@ class PFa:
     qroot: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
+        Dyn, Obs, tseq, X0, stats = \
             HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, Nx, Rm12 = self.N, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
@@ -189,7 +189,7 @@ class PFa:
 
         stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
                 D  = rnd.randn(N, Nx)
@@ -253,7 +253,7 @@ class PFxN_EnKF:
     wroot_max: float = 5.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
+        Dyn, Obs, tseq, X0, stats = \
             HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, xN, Nx, Rm12, Ri = \
             self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
@@ -265,7 +265,7 @@ class PFxN_EnKF:
 
         stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
                 E += np.sqrt(dt)*(rnd.randn(N, Nx)@Dyn.noise.C.Right)
@@ -371,7 +371,7 @@ class PFxN:
     wroot_max: float = 5.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, chrono, X0, stats = \
+        Dyn, Obs, tseq, X0, stats = \
             HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
         N, xN, Nx, Rm12 = self.N, self.xN, Dyn.M, Obs.noise.C.sym_sqrt_inv
 
@@ -381,7 +381,7 @@ class PFxN:
 
         stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(chrono.ticker):
+        for k, kObs, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             if Dyn.noise.C != 0:
                 E += np.sqrt(dt)*(rnd.randn(N, Nx)@Dyn.noise.C.Right)
