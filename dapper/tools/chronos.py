@@ -10,19 +10,19 @@ from dapper.tools.colors import color_text
 class Chronology():
     """Time schedules with consistency checks.
 
-    - Uses int records => `tt[k] == k*dt`.
-    - Uses generators  => time series may be arbitrarily long.
+    - Uses int records, so `tt[k] == k*dt`.
+    - Uses generators, so time series may be arbitrarily long.
 
     Example illustration:
 
-                             <----dto---->
-                      <--dt-->
+                             [----dto------]
+                      [--dt--]
         tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
         kk:    0      1      2      3      4      5      K
                |------|------|------|------|------|------|
-        ko:  None   None   0      None   1      None   KO
-        kko:               2             4             6
-                             <----dko---->
+        ko:    None   None   0      None   1      None   KO
+        kko:                 2             4             6
+                             [----dko------]
 
     .. warning:: By convention, there is no obs at 0.
                  This is hardcorded in DAPPER,
@@ -30,16 +30,17 @@ class Chronology():
 
     Identities (subject to precision):
 
-        len(kk)    == len(tt)    == K   +1
+        len(kk)  == len(tt)  == K   +1
         len(kko) == len(tto) == KO+1
 
         kko[0]   == dko      == dto/dt == K/(KO+1)
-        kko[-1]  == K          == T/dt
+        kko[-1]  == K        == T/dt
         KO       == T/dto-1
 
     These attributes may be set (altered) after init: `dt, dko, K, T`.
-    Other attributes may not, due to ambiguity
-    (e.g. should `dto*=2` yield a doubling of `T` too?)
+    Setting other attributes (alone) is ambiguous
+    (e.g. should `dto*=2` yield a doubling of `T` too?),
+    and so should/will raise an exception.
     """
 
     def __init__(self, dt=None, dto=None, T=None, BurnIn=-1,
