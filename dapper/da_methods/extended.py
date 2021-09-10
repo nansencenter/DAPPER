@@ -62,6 +62,7 @@ class ExtRTS:
     """The extended Rauch-Tung-Striebel (or "two-pass") smoother."""
 
     infl: float = 1.0
+    DeCorr: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
         Nx = HMM.Dyn.M
@@ -106,6 +107,7 @@ class ExtRTS:
         # Backward pass
         for k in progbar(range(HMM.tseq.K)[::-1], 'ExtRTS<-'):
             J     = mrdiv(P[k]@Ff[k+1].T, Pf[k+1])
+            J    *= self.DeCorr
             mu[k] = mu[k]  + J @ (mu[k+1]  - muf[k+1])
             P[k]  = P[k] + J @ (P[k+1] - Pf[k+1]) @ J.T
         for k in progbar(range(HMM.tseq.K+1), desc='Assess'):
