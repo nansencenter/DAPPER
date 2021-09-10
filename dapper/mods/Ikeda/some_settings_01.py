@@ -5,7 +5,7 @@ import dapper.mods as modelling
 
 from dapper.mods.Ikeda import step, x0, Tplot, LPs
 
-tseq = modelling.Chronology(1, dko=1, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
+tseq = modelling.Chronology(1, dko=1, KO=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
 Nx = len(x0)
 

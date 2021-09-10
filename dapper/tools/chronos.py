@@ -20,7 +20,7 @@ class Chronology():
         tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
         kk:    0      1      2      3      4      5      K
                |------|------|------|------|------|------|
-        kObs:  None   None   0      None   1      None   KObs
+        kObs:  None   None   0      None   1      None   KO
         kko:               2             4             6
                              <----dko---->
 
@@ -31,11 +31,11 @@ class Chronology():
     Identities (subject to precision):
 
         len(kk)    == len(tt)    == K   +1
-        len(kko) == len(tto) == KObs+1
+        len(kko) == len(tto) == KO+1
 
-        kko[0]   == dko      == dto/dt == K/(KObs+1)
+        kko[0]   == dko      == dto/dt == K/(KO+1)
         kko[-1]  == K          == T/dt
-        KObs       == T/dto-1
+        KO       == T/dto-1
 
     These attributes may be set (altered) after init: `dt, dko, K, T`.
     Other attributes may not, due to ambiguity
@@ -43,9 +43,9 @@ class Chronology():
     """
 
     def __init__(self, dt=None, dto=None, T=None, BurnIn=-1,
-                 dko=None, KObs=None, K=None, Tplot=None):
+                 dko=None, KO=None, K=None, Tplot=None):
 
-        assert 3 == [dt, dto, T, dko, KObs, K].count(None), \
+        assert 3 == [dt, dto, T, dko, KO, K].count(None), \
             'Chronology is specified using exactly 3 parameters.'
 
         # Reduce all to "state vars" dt,dko,K
@@ -54,8 +54,8 @@ class Chronology():
                 dt = T/K
             elif dko and dto:
                 dt = dto/dko
-            elif T and dko and KObs:
-                dt = T/(KObs+1)/dko
+            elif T and dko and KO:
+                dt = T/(KO+1)/dko
             else:
                 raise TypeError('Unable to interpret time setup')
         if not dko:
@@ -69,8 +69,8 @@ class Chronology():
             if T:
                 K = round(T/dt)
                 assert abs(T - K*dt) < dt*1e-9
-            elif KObs:
-                K = dko*(KObs+1)
+            elif KO:
+                K = dko*(KO+1)
             else:
                 raise TypeError('Unable to interpret time setup')
         K = int(np.ceil(K/dko)*dko)
@@ -91,7 +91,7 @@ class Chronology():
             Tplot = BurnIn
         self.Tplot = Tplot  # don't enforce <T here
 
-        assert len(self.kko) == self.KObs+1
+        assert len(self.kko) == self.KO+1
 
     ######################################
     # "State vars". Can be set (changed).
@@ -142,12 +142,12 @@ class Chronology():
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     @property
-    def KObs(self):
+    def KO(self):
         return int(self.K/self.dko)-1
 
-    @KObs.setter
-    def KObs(self, value):
-        self.__init__(dt=self.dt, dko=self.dko, KObs=value,
+    @KO.setter
+    def KO(self, value):
+        self.__init__(dt=self.dt, dko=self.dko, KO=value,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     ######################################
@@ -208,7 +208,7 @@ class Chronology():
             yield k, t, dt
 
     def __str__(self):
-        printable = ['K', 'KObs', 'T', 'BurnIn', 'dto', 'dt']
+        printable = ['K', 'KO', 'T', 'BurnIn', 'dto', 'dt']
         return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):

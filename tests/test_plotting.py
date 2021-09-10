@@ -21,7 +21,7 @@ def test_L63():
 
     HMM = _HMM.copy()
     HMM.tseq.BurnIn = HMM.tseq.dto
-    HMM.tseq.KObs = 1
+    HMM.tseq.KO = 1
 
     xps.launch(HMM,
                free=False,
@@ -63,9 +63,9 @@ def test_L96():
 
     HMM = _HMM.copy()
     # HMM.tseq.BurnIn = 10*HMM.tseq.dto
-    # HMM.tseq.KObs = 30
+    # HMM.tseq.KO = 30
     HMM.tseq.BurnIn = HMM.tseq.dto
-    HMM.tseq.KObs = 2
+    HMM.tseq.KO = 2
 
     xps.launch(HMM,
                free=False,

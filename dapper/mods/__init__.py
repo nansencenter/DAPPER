@@ -125,7 +125,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
         # Init
         xx    = np.zeros((tseq.K   + 1, Dyn.M))
-        yy    = np.zeros((tseq.KObs+1, Obs.M))
+        yy    = np.zeros((tseq.KO+1, Obs.M))
 
         xx[0] = X0.sample(1)
 

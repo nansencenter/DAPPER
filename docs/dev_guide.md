@@ -23,7 +23,7 @@
     - *Double letters* means a sequence of something.
       For example:
         - `xx`: Time series of truth; shape `(K+1, Nx)`
-        - `yy`: Time series of observations; shape `(KObs+1, Nx)`
+        - `yy`: Time series of observations; shape `(KO+1, Nx)`
         - `EE`: Time series of ensemble matrices
         - `ii`, `jj`: Sequences of indices (integers)
     - `xps`: an `xpList` or `xpDict`,

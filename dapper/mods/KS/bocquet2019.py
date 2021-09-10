@@ -10,7 +10,7 @@ KS = Model(dt=0.5)
 Nx = KS.Nx
 
 # nRepeat=10
-tseq = modelling.Chronology(KS.dt, dko=2, KObs=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
+tseq = modelling.Chronology(KS.dt, dko=2, KO=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
 
 Dyn = {
     'M': Nx,

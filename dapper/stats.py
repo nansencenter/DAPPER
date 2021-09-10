@@ -50,10 +50,10 @@ class Stats(series.StatPrint):
         # Shapes
         K    = xx.shape[0]-1
         Nx   = xx.shape[1]
-        KObs = yy.shape[0]-1
+        KO = yy.shape[0]-1
         Ny   = yy.shape[1]
         self.K   , self.Nx = K, Nx
-        self.KObs, self.Ny = KObs, Ny
+        self.KO, self.Ny = KO, Ny
 
         # Methods for summarizing multivariate stats ("fields") as scalars
         # Don't use nanmean here; nan's should get propagated!
@@ -113,14 +113,14 @@ class Stats(series.StatPrint):
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series('trHK' , 1, KObs+1)
-        self.new_series('infl' , 1, KObs+1)
-        self.new_series('iters', 1, KObs+1)
+        self.new_series('trHK' , 1, KO+1)
+        self.new_series('infl' , 1, KO+1)
+        self.new_series('iters', 1, KO+1)
 
         # Weight-related
-        self.new_series('N_eff' , 1, KObs+1)
-        self.new_series('wroot' , 1, KObs+1)
-        self.new_series('resmpl', 1, KObs+1)
+        self.new_series('N_eff' , 1, KO+1)
+        self.new_series('wroot' , 1, KO+1)
+        self.new_series('resmpl', 1, KO+1)
 
     def new_series(self, name, shape, length='FAUSt', field_mean=False, **kws):
         """Create (and register) a statistics time series, initialized with `nan`s.
@@ -141,7 +141,7 @@ class Stats(series.StatPrint):
 
         def make_series(parent, name, shape):
             if length == 'FAUSt':
-                total_shape = self.K, self.KObs, shape
+                total_shape = self.K, self.KO, shape
                 store_opts = self.store_u, self.store_s
                 tseries = series.FAUSt(*total_shape, *store_opts, **kws)
             else:
@@ -368,7 +368,7 @@ class Stats(series.StatPrint):
             elif isinstance(tseries, series.DataSeries):
                 if tseries.array.shape[1:] != ():
                     return average_multivariate()
-                elif len(tseries.array) == self.KObs+1:
+                elif len(tseries.array) == self.KO+1:
                     avrgs = series.mean_with_conf(tseries[kko])
                 elif len(tseries.array) == self.K+1:
                     avrgs = series.mean_with_conf(tseries[kk])
