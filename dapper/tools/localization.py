@@ -173,8 +173,8 @@ def localization_setup(y2x_distances, batches):
             return batches, obs_taperer
 
         elif direction == 'y2x':
-            def state_taperer(iObs):
-                return inds_and_coeffs(y2x[iObs], radius, tag=tag)
+            def state_taperer(obs_idx):
+                return inds_and_coeffs(y2x[obs_idx], radius, tag=tag)
             return state_taperer
 
     return localization_now
@@ -185,7 +185,7 @@ def no_localization(Nx, Ny):
     def obs_taperer(batch):
         return np.arange(Ny), np.ones(Ny)
 
-    def state_taperer(iObs):
+    def state_taperer(obs_idx):
         return np.arange(Nx), np.ones(Nx)
 
     def localization_now(radius, direction, t, tag=None):
