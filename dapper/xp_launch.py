@@ -162,30 +162,36 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
 
 def _print_cropped_traceback(ERR):
 
-    def crop_traceback(ERR, lvl):
+    # A more "standard" (robust) way:
+    # https://stackoverflow.com/a/32999522
+    def crop_traceback(ERR):
         msg = "Traceback (most recent call last):\n"
         try:
             # If in IPython, use its coloring functionality
             __IPYTHON__  # type: ignore
+        except (NameError, ImportError):
+            msg += "".join(traceback.format_tb(ERR.__traceback__))
+        else:
             from IPython.core.debugger import Pdb
             pdb_instance = Pdb()
             pdb_instance.curframe = inspect.currentframe()
 
-            for i, frame in enumerate(traceback.walk_tb(ERR.__traceback__)):
-                if i < lvl:
-                    continue  # skip frames
-                if i == lvl:
+            import dapper.da_methods
+            keep = False
+            for frame in traceback.walk_tb(ERR.__traceback__):
+                if keep:
+                    msg += pdb_instance.format_stack_entry(frame, context=3)
+                elif frame[0].f_code.co_filename == dapper.da_methods.__file__:
+                    keep = True
                     msg += "   ⋮ [cropped] \n"
-                msg += pdb_instance.format_stack_entry(frame, context=3)
-
-        except (NameError, ImportError):
-            msg += "".join(traceback.format_tb(ERR.__traceback__))
 
         return msg
 
-    msg = crop_traceback(ERR, 1) + "\nError message: " + str(ERR)
-    msg += "\n\nResuming execution. " \
-        "Use `fail_gently=False` to raise exception & halt execution.\n"
+    msg = crop_traceback(ERR) + "\nError message: " + str(ERR)
+    msg += ("\n\nResuming execution."
+            "\nIf instead you wish to raise the exceptions as usual,"
+            "\nwhich will halt the execution (and enable post-mortem debug),"
+            "\nthen use `fail_gently=False`")
     print(msg, file=sys.stderr)
 
 
