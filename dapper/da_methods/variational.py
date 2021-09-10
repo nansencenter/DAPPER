@@ -94,7 +94,7 @@ class iEnKS:
     #   * Trouble playing nice with '-N' inflation estimation.
 
     def assimilate(self, HMM, xx, yy):
-        R, KO  = HMM.Obs.noise.C, HMM.tseq.KO
+        R, Ko  = HMM.Obs.noise.C, HMM.tseq.Ko
         Rm12 = R.sym_sqrt_inv
 
         assert HMM.Dyn.noise.C == 0, (
@@ -118,12 +118,12 @@ class iEnKS:
                 E = HMM.Dyn(E, t-dt, dt)
 
         # Loop over DA windows (DAW).
-        for ko in progbar(range(0, KO+self.Lag+1)):
+        for ko in progbar(range(0, Ko+self.Lag+1)):
             kLag = ko-self.Lag
-            DAW  = range(max(0, kLag+1), min(ko, KO) + 1)
+            DAW  = range(max(0, kLag+1), min(ko, Ko) + 1)
 
             # Assimilation (if ∃ "not-fully-assimlated" Obs).
-            if ko <= KO:
+            if ko <= Ko:
                 E = iEnKS_update(self.upd_a, E, DAW, HMM, self.stats,
                                  EPS, yy[ko], (k, ko, t), Rm12,
                                  self.xN, self.MDA, (self.nIter, self.wtol))
@@ -132,14 +132,14 @@ class iEnKS:
             # Slide/shift DAW by propagating smoothed ('s') ensemble from [kLag].
             if kLag >= 0:
                 self.stats.assess(HMM.tseq.kko[kLag], kLag, 's', E=E)
-            cycle_window = range(max(kLag+1, 0), min(max(kLag+1+1, 0), KO+1))
+            cycle_window = range(max(kLag+1, 0), min(max(kLag+1+1, 0), Ko+1))
 
             for kCycle in cycle_window:
                 for k, t, dt in HMM.tseq.cycle(kCycle):
                     self.stats.assess(k-1, None, 'u', E=E)
                     E = HMM.Dyn(E, t-dt, dt)
 
-        self.stats.assess(k, KO, 'us', E=E)
+        self.stats.assess(k, Ko, 'us', E=E)
 
 
 def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, threshold):
@@ -283,7 +283,7 @@ class Var4D:
     xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        R, KO = HMM.Obs.noise.C, HMM.tseq.KO
+        R, Ko = HMM.Obs.noise.C, HMM.tseq.Ko
         Rm12 = R.sym_sqrt_inv
         Nx = HMM.Dyn.M
 
@@ -306,12 +306,12 @@ class Var4D:
         self.stats.assess(0, mu=x, Cov=B)
 
         # Loop over DA windows (DAW).
-        for ko in progbar(np.arange(-1, KO+self.Lag+1)):
+        for ko in progbar(np.arange(-1, Ko+self.Lag+1)):
             kLag = ko-self.Lag
-            DAW = range(max(0, kLag+1), min(ko, KO) + 1)
+            DAW = range(max(0, kLag+1), min(ko, Ko) + 1)
 
             # Assimilation (if ∃ "not-fully-assimlated" Obs).
-            if 0 <= ko <= KO:
+            if 0 <= ko <= Ko:
 
                 # Init iterations.
                 w   = np.zeros(Nx)  # Control vector for the mean state.
@@ -363,7 +363,7 @@ class Var4D:
                 X = B12
 
             # Slide/shift DAW by propagating smoothed ('s') state from [kLag].
-            if -1 <= kLag < KO:
+            if -1 <= kLag < Ko:
                 if kLag >= 0:
                     self.stats.assess(HMM.tseq.kko[kLag], kLag, 's',
                                       mu=x, Cov=X@Cow1@X.T)
@@ -372,4 +372,4 @@ class Var4D:
                     X = HMM.Dyn.linear(x, t-dt, dt) @ X
                     x = HMM.Dyn(x, t-dt, dt)
 
-        self.stats.assess(k, KO, 'us', mu=x, Cov=X@Cow1@X.T)
+        self.stats.assess(k, Ko, 'us', mu=x, Cov=X@Cow1@X.T)

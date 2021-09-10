@@ -20,7 +20,7 @@ def data():
 
     HMM = _HMM.copy()
     HMM.tseq.BurnIn = 0
-    HMM.tseq.KO = 10
+    HMM.tseq.Ko = 10
 
     xps = dpr.xpList(unique=True)
 
@@ -194,4 +194,4 @@ def test_Order1_nIter1_Lag3_u(data):
 # However, the 'u' stats of the non-iterative EnKS(Lag>0) are not reproduced.
 # Re-use xps and test with:
 # from dapper.mods.Lorenz96.sakov2008 import HMM
-# HMM.tseq.KO=100 # Here, must use >100 to avoid indistinguishable rmse stats.
+# HMM.tseq.Ko=100 # Here, must use >100 to avoid indistinguishable rmse stats.

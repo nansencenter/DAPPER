@@ -14,7 +14,7 @@
 #
 # NB: unless you have access to the DAPPER cluster, you probably want to reduce
 # the number of experiments by shortening the list of `seed`
-# (and maybe those of some tuning parameters) and/or reducing `KO`.
+# (and maybe those of some tuning parameters) and/or reducing `Ko`.
 #
 # [1]: Asch, Bocquet, Nodet:
 #      "Data Assimilation: Methods, Algorithms, and Applications",
@@ -44,7 +44,7 @@ def setup(hmm, xp):
 
 
 # This is shorter than Ref[1], but we also use repetitions (a seed list).
-HMM.tseq.KO = 10**4
+HMM.tseq.Ko = 10**4
 
 # #### DA method configurations
 

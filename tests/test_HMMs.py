@@ -47,6 +47,6 @@ def test_HMM(path):
     for key, HMM in vars(module).items():
         if isinstance(HMM, HiddenMarkovModel) and not exclude(key, HMM):
             HMM.tseq.BurnIn = 0
-            HMM.tseq.KO = 1
+            HMM.tseq.Ko = 1
             xx, yy = HMM.simulate()
             assert True

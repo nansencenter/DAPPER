@@ -75,7 +75,7 @@ step = modelling.with_rk4(dxdt_augmented, autonom=True)
 tseq = modelling.Chronology(
     dt=0.05,     # Integrational time step
     dko=1,     # Steps of duration dt between obs
-    KO=10**3,  # Total number of obs in experiment
+    Ko=10**3,  # Total number of obs in experiment
     BurnIn=5,    # Omit from averages the period t=0 --> BurnIn
     Tplot=7)     # Default plot length
 

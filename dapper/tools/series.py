@@ -188,9 +188,9 @@ class FAUSt(DataSeries, StatPrint):
 
     Four attributes, each of which is an ndarray:
 
-    - `.f` for forecast      , `(KO+1,)+item_shape`
-    - `.a` for analysis      , `(KO+1,)+item_shape`
-    - `.s` for smoothed      , `(KO+1,)+item_shape`
+    - `.f` for forecast      , `(Ko+1,)+item_shape`
+    - `.a` for analysis      , `(Ko+1,)+item_shape`
+    - `.s` for smoothed      , `(Ko+1,)+item_shape`
     - `.u` for universial/all, `(K   +1,)+item_shape`
 
     If `store_u=False`, then `.u` series has shape `(1,)+item_shape`,
@@ -208,17 +208,17 @@ class FAUSt(DataSeries, StatPrint):
               then you should use a plain np.array instead.
     """
 
-    def __init__(self, K, KO, item_shape, store_u, store_s, **kwargs):
+    def __init__(self, K, Ko, item_shape, store_u, store_s, **kwargs):
         """Construct object.
 
         - `item_shape` : shape of an item in the series.
         - `store_u`    : if False: only the current value is stored.
         - `kwargs`     : passed on to ndarrays.
         """
-        self.f     = np.full((KO+1,)+item_shape, nan, **kwargs)
-        self.a     = np.full((KO+1,)+item_shape, nan, **kwargs)
+        self.f     = np.full((Ko+1,)+item_shape, nan, **kwargs)
+        self.a     = np.full((Ko+1,)+item_shape, nan, **kwargs)
         if store_s:
-            self.s = np.full((KO+1,)+item_shape, nan, **kwargs)
+            self.s = np.full((Ko+1,)+item_shape, nan, **kwargs)
         if store_u:
             self.u = np.full((K   + 1,)+item_shape, nan, **kwargs)
         else:

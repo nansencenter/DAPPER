@@ -20,7 +20,7 @@ HMM.Obs = modelling.Operator(**Obs)
 # Reproduce benchmarks for NETF and ESRF (here EnKF-N) from left pane of Fig 1.
 # from dapper.mods.Lorenz63.wiljes2017 import HMM # rmse.a reported by DAPPER / PAPER:
 # ------------------------------------------------------------------------------
-# HMM.tseq.KO = 10**2
+# HMM.tseq.Ko = 10**2
 # xps += OptInterp()                                                # 5.4    / N/A
 # xps += Var3D(xB=0.3)                                              # 3.0    / N/A
 # xps += EnKF_N(N=5)                                                # 2.68   / N/A

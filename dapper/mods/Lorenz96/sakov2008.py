@@ -13,7 +13,7 @@ from dapper.mods.Lorenz96 import LPs, Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
-tseq = modelling.Chronology(0.05, dko=1, KO=1000, Tplot=Tplot, BurnIn=2*Tplot)
+tseq = modelling.Chronology(0.05, dko=1, Ko=1000, Tplot=Tplot, BurnIn=2*Tplot)
 
 Nx = 40
 x0 = x0(Nx)
@@ -94,7 +94,7 @@ HMM.liveplotters = LPs(jj)
 # Cannot reproduce Fig4's reported 4D-Var scores for L>4. Example:
 # xps += Var4D(Lag=6,xB=0.015)            # 0.385 Boc13 reports 0.33
 
-# Tests with the Particle filter, with N=3000, KO=10'000.
+# Tests with the Particle filter, with N=3000, Ko=10'000.
 # da_method  NER  reg  |  rmse.a   rmv.a
 # --------- ----  ---  -  ------  ------
 # PartFilt  0.05  1.2  |  0.35    0.40

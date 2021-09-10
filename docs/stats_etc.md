@@ -43,9 +43,9 @@ This also goes for any other (than `rms`) type of field summary method.
 
 Only the time series created with `Stats.new_series` will be in the format
 operated on by `Stats.average_in_time`.  For example, create `ndarray` of
-length `KO+1` to hold the time series of estimated inflation values:
+length `Ko+1` to hold the time series of estimated inflation values:
 
->>> self.stats.new_series('infl', 1, KO+1)
+>>> self.stats.new_series('infl', 1, Ko+1)
 
 Alternatively you can overwrite a default statistic; for example:
 

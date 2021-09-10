@@ -31,7 +31,7 @@ def L63_gen():
 
     HMM = _HMM.copy()
     HMM.tseq.BurnIn = 0
-    HMM.tseq.KO = 10
+    HMM.tseq.Ko = 10
 
     dpr.set_seed(3000)
 
@@ -108,7 +108,7 @@ def L96_table():
     model.Force = 8.0  # undo pinheiro2019
     HMM = _HMM.copy()
     HMM.tseq.BurnIn = 0
-    HMM.tseq.KO = 10
+    HMM.tseq.Ko = 10
 
     dpr.set_seed(3000)
 

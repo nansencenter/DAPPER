@@ -4,8 +4,8 @@ import dapper.mods as modelling
 from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
 HMM = _HMM.copy()
-# HMM.tseq = modelling.Chronology(0.01,KO=10**5,BurnIn=500), with dko in [5:55].
-# But it's pretty safe to shorten the BurnIn and KO.
+# HMM.tseq = modelling.Chronology(0.01,Ko=10**5,BurnIn=500), with dko in [5:55].
+# But it's pretty safe to shorten the BurnIn and Ko.
 
 HMM.Obs = modelling.Operator(**{
     'M': 3,
