@@ -241,7 +241,7 @@ class Ticker:
 
     def __init__(self, tt, kkObs):
         self.tt  = tt
-        self.kkO = kkObs
+        self.kko = kkObs
         self.reset()
 
     def reset(self):
@@ -261,7 +261,7 @@ class Ticker:
         dt   = t - self.tt[self.k-1] if self.k > 0 else np.NaN
         item = (self.k, self.ko, t, dt)
         self.k += 1
-        if self._ko < len(self.kkO) and self.k == self.kkO[self._ko]:
+        if self._ko < len(self.kko) and self.k == self.kko[self._ko]:
             self.ko = self._ko
             self._ko += 1
         else:
