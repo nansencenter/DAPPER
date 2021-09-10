@@ -345,7 +345,7 @@ class Stats(series.StatPrint):
         """
         tseq = self.HMM.tseq
         if kk is None:
-            kk     = tseq.mask_BI
+            kk     = tseq.mask
         if kko is None:
             kko  = tseq.masko
 

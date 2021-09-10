@@ -176,8 +176,8 @@ class Chronology():
 
     # Burn In. NB: uses > (strict inequality)
     @property
-    def mask_BI(self):
-        """Example use: `kk_BI = kk[mask_BI]`"""
+    def mask(self):
+        """Example use: `kk_BI = kk[mask]`"""
         return self.tt > self.BurnIn
 
     @property
