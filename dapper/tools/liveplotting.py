@@ -363,7 +363,7 @@ class sliding_diagnostics:
         def update_arrays(lines):
             for name, ln in lines.items():
                 stat = deep_getattr(stats, name)
-                t    = tseq.tt[k]  # == tseq.ttObs[kObs]
+                t    = tseq.tt[k]  # == tseq.tto[kObs]
                 if isinstance(stat, FAUSt):
                     # ln['data'] will contain duplicates for f/a times.
                     if ln['plot_u']:

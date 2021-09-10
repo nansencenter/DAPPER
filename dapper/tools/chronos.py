@@ -31,7 +31,7 @@ class Chronology():
     Identities (subject to precision):
 
         len(kk)    == len(tt)    == K   +1
-        len(kko) == len(ttObs) == KObs+1
+        len(kko) == len(tto) == KObs+1
 
         kko[0]   == dko      == dto/dt == K/(KObs+1)
         kko[-1]  == K          == T/dt
@@ -170,7 +170,7 @@ class Chronology():
         return self.kk * self.dt
 
     @property
-    def ttObs(self):
+    def tto(self):
         return self.kko * self.dt
 
     # Burn In. NB: uses > (strict inequality)
@@ -182,7 +182,7 @@ class Chronology():
     @property
     def maskObs_BI(self):
         """Example use: `kko_BI = kko[maskObs_BI]`"""
-        return self.ttObs > self.BurnIn
+        return self.tto > self.BurnIn
 
     ######################################
     # Other
