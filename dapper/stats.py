@@ -347,17 +347,17 @@ class Stats(series.StatPrint):
             now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
             now.umisf = (U.T @ now.err)[::-1]
 
-    def average_in_time(self, kk=None, kkObs=None, free=False):
+    def average_in_time(self, kk=None, kko=None, free=False):
         """Avarage all univariate (scalar) time series.
 
         - `kk`    time inds for averaging
-        - `kkObs` time inds for averaging obs
+        - `kko` time inds for averaging obs
         """
         tseq = self.HMM.tseq
         if kk is None:
             kk     = tseq.mask_BI
-        if kkObs is None:
-            kkObs  = tseq.maskObs_BI
+        if kko is None:
+            kko  = tseq.maskObs_BI
 
         def average1(tseries):
             avrgs = Avrgs()
@@ -371,7 +371,7 @@ class Stats(series.StatPrint):
                 if tseries.item_shape != ():
                     return average_multivariate()
                 for sub in [ch for ch in 'fas' if hasattr(tseries, ch)]:
-                    avrgs[sub] = series.mean_with_conf(tseries[kkObs, sub])
+                    avrgs[sub] = series.mean_with_conf(tseries[kko, sub])
                 if tseries.store_u:
                     avrgs['u'] = series.mean_with_conf(tseries[kk, 'u'])
 
@@ -379,7 +379,7 @@ class Stats(series.StatPrint):
                 if tseries.array.shape[1:] != ():
                     return average_multivariate()
                 elif len(tseries.array) == self.KObs+1:
-                    avrgs = series.mean_with_conf(tseries[kkObs])
+                    avrgs = series.mean_with_conf(tseries[kko])
                 elif len(tseries.array) == self.K+1:
                     avrgs = series.mean_with_conf(tseries[kk])
                 else:

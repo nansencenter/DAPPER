@@ -131,7 +131,7 @@ class iEnKS:
 
             # Slide/shift DAW by propagating smoothed ('s') ensemble from [kLag].
             if kLag >= 0:
-                self.stats.assess(HMM.tseq.kkObs[kLag], kLag, 's', E=E)
+                self.stats.assess(HMM.tseq.kko[kLag], kLag, 's', E=E)
             cycle_window = range(max(kLag+1, 0), min(max(kLag+1+1, 0), KObs+1))
 
             for kCycle in cycle_window:
@@ -365,7 +365,7 @@ class Var4D:
             # Slide/shift DAW by propagating smoothed ('s') state from [kLag].
             if -1 <= kLag < KObs:
                 if kLag >= 0:
-                    self.stats.assess(HMM.tseq.kkObs[kLag], kLag, 's',
+                    self.stats.assess(HMM.tseq.kko[kLag], kLag, 's',
                                       mu=x, Cov=X@Cow1@X.T)
                 for k, t, dt in HMM.tseq.cycle(kLag+1):
                     self.stats.assess(k-1, None, 'u', mu=x, Cov=Y@Y.T)

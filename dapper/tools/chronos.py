@@ -21,7 +21,7 @@ class Chronology():
         kk:    0      1      2      3      4      5      K
                |------|------|------|------|------|------|
         kObs:  None   None   0      None   1      None   KObs
-        kkObs:               2             4             6
+        kko:               2             4             6
                              <----dko---->
 
     .. warning:: By convention, there is no obs at 0.
@@ -31,10 +31,10 @@ class Chronology():
     Identities (subject to precision):
 
         len(kk)    == len(tt)    == K   +1
-        len(kkObs) == len(ttObs) == KObs+1
+        len(kko) == len(ttObs) == KObs+1
 
-        kkObs[0]   == dko      == dto/dt == K/(KObs+1)
-        kkObs[-1]  == K          == T/dt
+        kko[0]   == dko      == dto/dt == K/(KObs+1)
+        kko[-1]  == K          == T/dt
         KObs       == T/dto-1
 
     These attributes may be set (altered) after init: `dt, dko, K, T`.
@@ -91,7 +91,7 @@ class Chronology():
             Tplot = BurnIn
         self.Tplot = Tplot  # don't enforce <T here
 
-        assert len(self.kkObs) == self.KObs+1
+        assert len(self.kko) == self.KObs+1
 
     ######################################
     # "State vars". Can be set (changed).
@@ -162,7 +162,7 @@ class Chronology():
         return np.arange(self.K+1)
 
     @property
-    def kkObs(self):
+    def kko(self):
         return self.kk[self.dko::self.dko]
 
     @property
@@ -171,7 +171,7 @@ class Chronology():
 
     @property
     def ttObs(self):
-        return self.kkObs * self.dt
+        return self.kko * self.dt
 
     # Burn In. NB: uses > (strict inequality)
     @property
@@ -181,7 +181,7 @@ class Chronology():
 
     @property
     def maskObs_BI(self):
-        """Example use: `kkObs_BI = kkObs[maskObs_BI]`"""
+        """Example use: `kko_BI = kko[maskObs_BI]`"""
         return self.ttObs > self.BurnIn
 
     ######################################
@@ -193,7 +193,7 @@ class Chronology():
 
         Also yields `t`, `dt`, and `kObs`.
         """
-        tckr = Ticker(self.tt, self.kkObs)
+        tckr = Ticker(self.tt, self.kko)
         next(tckr)
         return tckr
 
@@ -231,17 +231,17 @@ class Chronology():
 
 
 class Ticker:
-    """Iterator over kk and `kkObs`, yielding `(k,kObs,t,dt)`.
+    """Iterator over kk and `kko`, yielding `(k,kObs,t,dt)`.
 
     Includes `__len__` for progressbar usage.
 
-    `kObs = kkObs.index(k)`, or `None` otherwise,
+    `kObs = kko.index(k)`, or `None` otherwise,
     but computed without this repeated look-up operation.
     """
 
-    def __init__(self, tt, kkObs):
+    def __init__(self, tt, kko):
         self.tt  = tt
-        self.kko = kkObs
+        self.kko = kko
         self.reset()
 
     def reset(self):
