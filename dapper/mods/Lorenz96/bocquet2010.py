@@ -5,7 +5,7 @@ import numpy as np
 import dapper.mods as modelling
 from dapper.mods.Lorenz96 import step
 
-tseq = modelling.Chronology(0.05, dkObs=1, T=4**3, BurnIn=20)
+tseq = modelling.Chronology(0.05, dko=1, T=4**3, BurnIn=20)
 
 Nx = 10
 Dyn = {

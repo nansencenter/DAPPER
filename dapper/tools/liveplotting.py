@@ -304,7 +304,7 @@ class sliding_diagnostics:
             for name in style_table:
 
                 # SKIP -- if stats[name] is not in existence
-                # Note: The nan check/deletion comes after the first kObs.
+                # Note: The nan check/deletion comes after the first ko.
                 try:
                     stat = deep_getattr(stats, name)
                 except AttributeError:
@@ -354,7 +354,7 @@ class sliding_diagnostics:
 
     # Update plot
     def __call__(self, key, E, P):
-        k, kObs, faus = key
+        k, ko, faus = key
 
         stats  = self.stats
         tseq = stats.HMM.tseq
@@ -363,7 +363,7 @@ class sliding_diagnostics:
         def update_arrays(lines):
             for name, ln in lines.items():
                 stat = deep_getattr(stats, name)
-                t    = tseq.tt[k]  # == tseq.ttObs[kObs]
+                t    = tseq.tt[k]  # == tseq.tto[ko]
                 if isinstance(stat, FAUSt):
                     # ln['data'] will contain duplicates for f/a times.
                     if ln['plot_u']:
@@ -372,14 +372,14 @@ class sliding_diagnostics:
                         ln['data'].insert(k, ln['transf'](val))
                     elif 'u' not in faus:
                         val = stat[key]
-                        ln['tt']  .insert(kObs, t)
-                        ln['data'].insert(kObs, ln['transf'](val))
+                        ln['tt']  .insert(ko, t)
+                        ln['data'].insert(ko, ln['transf'](val))
                 else:
                     # ln['data'] will not contain duplicates, coz only 'a' is input.
                     if 'a' in faus:
-                        val = stat[kObs]
-                        ln['tt']  .insert(kObs, t)
-                        ln['data'].insert(kObs, ln['transf'](val))
+                        val = stat[ko]
+                        ln['tt']  .insert(ko, t)
+                        ln['data'].insert(ko, ln['transf'](val))
                     elif 'f' in faus:
                         pass
 
@@ -488,7 +488,7 @@ class weight_histogram:
         self.bins  = np.exp(np.linspace(np.log(1e-10), np.log(1), 31))
 
     def __call__(self, key, E, P):
-        k, kObs, faus = key
+        k, ko, faus = key
         if 'a' == faus:
             w  = self.stats.w[key]
             N  = len(w)
@@ -529,7 +529,7 @@ class spectral_errors:
 
     # Update plot
     def __call__(self, key, E, P):
-        k, kObs, faus = key
+        k, ko, faus = key
         ax = self.ax
         if self.init_incomplete:
             if self.plot_u or 'f' == faus:
@@ -774,12 +774,12 @@ def sliding_marginals(
                 h.s  += [ax.plot(d.t, d.s[:, :, ix], 'b--', lw=1)]
 
         def update(key, E, P):
-            k, kObs, faus = key
+            k, ko, faus = key
 
             EE = duplicate_with_blanks_for_resampled(E, DimsX, key, has_w)
 
             # Roll data array
-            ind = k if plot_u else kObs
+            ind = k if plot_u else ko
             for Ens in EE:  # If E is duplicated, so must the others be.
                 if 'E' in d:
                     d.E .insert(ind, Ens)
@@ -790,8 +790,8 @@ def sliding_marginals(
                 if True:
                     d.t .insert(ind, tseq.tt[k])
                 if True:
-                    d.y .insert(ind, yy[kObs, iiY]
-                                if kObs is not None else nan*ones(Ny))
+                    d.y .insert(ind, yy[ko, iiY]
+                                if ko is not None else nan*ones(Ny))
                 if True:
                     d.x .insert(ind, xx[k, DimsX])
 
@@ -918,8 +918,8 @@ def phase_particles(
                               c=[h.x.get_color()], marker=(5, 1), zorder=99)
 
         def update(key, E, P):
-            k, kObs, faus = key
-            show_y = 'y' in d and kObs is not None
+            k, ko, faus = key
+            show_y = 'y' in d and ko is not None
 
             def update_tail(handle, newdata):
                 handle.set_data(newdata[:, 0], newdata[:, 1])
@@ -935,14 +935,14 @@ def phase_particles(
             EE = duplicate_with_blanks_for_resampled(E, p.dims, key, has_w)
 
             # Roll data array
-            ind = k if plot_u else kObs
+            ind = k if plot_u else ko
             for Ens in EE:  # If E is duplicated, so must the others be.
                 if 'E' in d:
                     d.E .insert(ind, Ens)
                 if True:
                     d.x .insert(ind, xx[k, p.dims])
                 if 'y' in d:
-                    d.y .insert(ind, yy[kObs, :] if show_y else nan*ones(M))
+                    d.y .insert(ind, yy[ko, :] if show_y else nan*ones(M))
                 if 'mu' in d:
                     d.mu.insert(ind, mu[key][p.dims])
 
@@ -988,7 +988,7 @@ def validate_lag(Tplot, tseq):
     T_lag = t2-t1
 
     K_lag = int(T_lag / tseq.dt) + 1  # Lag in indices
-    a_lag = K_lag//tseq.dkObs + 1     # Lag in obs indices
+    a_lag = K_lag//tseq.dko + 1     # Lag in obs indices
 
     return T_lag, K_lag, a_lag
 
@@ -1002,8 +1002,8 @@ def comp_K_plot(K_lag, a_lag, plot_u):
 
 def update_alpha(key, stats, lines, scatters=None):
     """Adjust color alpha (for particle filters)."""
-    k, kObs, faus = key
-    if kObs is None:
+    k, ko, faus = key
+    if ko is None:
         return
     if faus == 'f':
         return
@@ -1033,12 +1033,12 @@ def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
     EE = []
     E  = E[:, dims]
     if has_w:
-        k, kObs, faus = key
+        k, ko, faus = key
         if faus == 'f':
             pass
         elif faus == 'a':
             _Ea[0] = E[:, 0]  # Store (1st dim of) ens.
-        elif faus == 'u' and kObs is not None:
+        elif faus == 'u' and ko is not None:
             # Find resampled particles. Insert duplicate ensemble. Write nans (breaks).
             resampled = _Ea[0] != E[:, 0]  # Mark as resampled if ens changed.
             # Insert current ensemble (copy to avoid overwriting).
@@ -1194,7 +1194,7 @@ def spatial1d(
             line_y.set_visible(False)
 
         def update(key, E, P):
-            k, kObs, faus = key
+            k, ko, faus = key
 
             if p.conf_mult:
                 sigma = mu[key] + p.conf_mult * stats.spread[key] * [[1], [-1]]
@@ -1208,11 +1208,11 @@ def spatial1d(
 
             line_x.set_ydata(wrap(xx[k, p.dims]))
 
-            text_t.set_text(format_time(k, kObs, stats.HMM.tseq.tt[k]))
+            text_t.set_text(format_time(k, ko, stats.HMM.tseq.tt[k]))
 
             if 'f' in faus:
                 if p.obs_inds is not None:
-                    line_y.set_ydata(yy[kObs])
+                    line_y.set_ydata(yy[ko])
                     line_y.set_zorder(5)
                     line_y.set_visible(True)
 
@@ -1310,7 +1310,7 @@ def spatial2d(
                             transform=ax_12.transAxes, family='monospace', ha='left')
 
         def update(key, E, P):
-            k, kObs, faus = key
+            k, ko, faus = key
             t = tt[k]
 
             im_11.set_data(square(mu[key]))
@@ -1326,10 +1326,10 @@ def spatial2d(
             # Plot current obs.
             #  - plot() automatically adjusts to direction of y-axis in use.
             #  - ind2sub returns (iy,ix), while plot takes (ix,iy) => reverse.
-            if kObs is not None and obs_inds is not None:
+            if ko is not None and obs_inds is not None:
                 lh[0] = ax_12.plot(*ind2sub(obs_inds(t))[::-1], 'k.', ms=1, zorder=5)[0]
 
-            text_t.set_text(format_time(k, kObs, t))
+            text_t.set_text(format_time(k, ko, t))
 
             return
         return update

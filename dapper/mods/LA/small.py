@@ -10,7 +10,7 @@ import dapper.mods as modelling
 from dapper.mods.LA import Fmat, homogeneous_1D_cov
 from dapper.mods.Lorenz96 import LPs
 
-tseq = modelling.Chronology(dt=1, dkObs=5, T=300, BurnIn=-1, Tplot=100)
+tseq = modelling.Chronology(dt=1, dko=5, T=300, BurnIn=-1, Tplot=100)
 
 Nx = 100
 

@@ -7,7 +7,7 @@ from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 from dapper.mods.Lorenz63.sakov2012 import Nx
 
 HMM = _HMM.copy()
-HMM.tseq = modelling.Chronology(0.01, dkObs=12, T=4**5, BurnIn=4)
+HMM.tseq = modelling.Chronology(0.01, dko=12, T=4**5, BurnIn=4)
 
 jj = np.array([0])
 Obs = modelling.partial_Id_Obs(Nx, jj)
@@ -20,7 +20,7 @@ HMM.Obs = modelling.Operator(**Obs)
 # Reproduce benchmarks for NETF and ESRF (here EnKF-N) from left pane of Fig 1.
 # from dapper.mods.Lorenz63.wiljes2017 import HMM # rmse.a reported by DAPPER / PAPER:
 # ------------------------------------------------------------------------------
-# HMM.tseq.KObs = 10**2
+# HMM.tseq.KO = 10**2
 # xps += OptInterp()                                                # 5.4    / N/A
 # xps += Var3D(xB=0.3)                                              # 3.0    / N/A
 # xps += EnKF_N(N=5)                                                # 2.68   / N/A

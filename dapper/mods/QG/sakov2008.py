@@ -20,7 +20,7 @@ Dyn = {
 # Considering that I have 8GB mem on the Mac, and the estimate:
 # ≈ (8 bytes/float)*(129² float/stat)*(7 stat/k) * K,
 # it should be possible to run experiments of length (K) < 8000.
-t = modelling.Chronology(dt=model.prms['dtout'], dkObs=1, T=1500, BurnIn=250)
+t = modelling.Chronology(dt=model.prms['dtout'], dko=1, T=1500, BurnIn=250)
 # In my opinion the burn in should be 400.
 # Sakov also used 10 repetitions.
 

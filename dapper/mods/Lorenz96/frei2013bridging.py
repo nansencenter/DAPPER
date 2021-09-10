@@ -11,7 +11,7 @@ import dapper.mods as modelling
 from dapper.mods.Lorenz96 import dstep_dx, step
 from dapper.tools.localization import nd_Id_localization
 
-t = modelling.Chronology(0.05, dtObs=0.4, T=4**5, BurnIn=20)
+t = modelling.Chronology(0.05, dto=0.4, T=4**5, BurnIn=20)
 
 Nx = 40
 Dyn = {

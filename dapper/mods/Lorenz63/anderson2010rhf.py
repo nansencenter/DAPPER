@@ -5,7 +5,7 @@ import numpy as np
 import dapper.mods as modelling
 from dapper.mods.Lorenz63 import Tplot, dstep_dx, step, x0
 
-tseq = modelling.Chronology(0.01, dkObs=12, KObs=1000, Tplot=Tplot, BurnIn=4*Tplot)
+tseq = modelling.Chronology(0.01, dko=12, KO=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
 Nx = len(x0)
 
@@ -28,7 +28,7 @@ HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 # Suggested tuning
 ####################
 # Compare with Anderson's figure 10.
-# Benchmarks are fairly reliable (KObs=2000):
+# Benchmarks are fairly reliable (KO=2000):
 # from dapper.mods.Lorenz63.anderson2010rhf import HMM   # rmse.a
 # xps += SL_EAKF(N=20,infl=1.01,rot=True,loc_rad=np.inf) # 0.87
 # xps += EnKF_N (N=20,rot=True)                          # 0.87

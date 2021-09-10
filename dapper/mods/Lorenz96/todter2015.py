@@ -7,7 +7,7 @@ import dapper.tools.randvars as RVs
 from dapper.mods.Lorenz96 import step
 from dapper.tools.localization import nd_Id_localization
 
-t = modelling.Chronology(0.05, dkObs=2, T=4**5, BurnIn=20)
+t = modelling.Chronology(0.05, dko=2, T=4**5, BurnIn=20)
 
 Nx = 80
 Dyn = {

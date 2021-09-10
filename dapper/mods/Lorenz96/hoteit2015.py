@@ -7,7 +7,7 @@ HMM.tseq.T = 365
 HMM.tseq.BurnIn = 4
 # Further settings used in paper:
 # Experiments repeated 10 times.
-# Sometimes used: dkObs=4.
+# Sometimes used: dko=4.
 # Sometimes used: obs_inds = arange(Nx)[::2].
 # Used localization: as in Whitaker/Hamill'2002: GC.
 

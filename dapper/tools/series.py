@@ -188,9 +188,9 @@ class FAUSt(DataSeries, StatPrint):
 
     Four attributes, each of which is an ndarray:
 
-    - `.f` for forecast      , `(KObs+1,)+item_shape`
-    - `.a` for analysis      , `(KObs+1,)+item_shape`
-    - `.s` for smoothed      , `(KObs+1,)+item_shape`
+    - `.f` for forecast      , `(KO+1,)+item_shape`
+    - `.a` for analysis      , `(KO+1,)+item_shape`
+    - `.s` for smoothed      , `(KO+1,)+item_shape`
     - `.u` for universial/all, `(K   +1,)+item_shape`
 
     If `store_u=False`, then `.u` series has shape `(1,)+item_shape`,
@@ -198,8 +198,8 @@ class FAUSt(DataSeries, StatPrint):
 
     Series can also be indexed as in
 
-        self[kObs,'a']
-        self[whatever,kObs,'a']
+        self[ko,'a']
+        self[whatever,ko,'a']
         # ... and likewise for 'f' and 's'. For 'u', can use:
         self[k,'u']
         self[k,whatever,'u']
@@ -208,17 +208,17 @@ class FAUSt(DataSeries, StatPrint):
               then you should use a plain np.array instead.
     """
 
-    def __init__(self, K, KObs, item_shape, store_u, store_s, **kwargs):
+    def __init__(self, K, KO, item_shape, store_u, store_s, **kwargs):
         """Construct object.
 
         - `item_shape` : shape of an item in the series.
         - `store_u`    : if False: only the current value is stored.
         - `kwargs`     : passed on to ndarrays.
         """
-        self.f     = np.full((KObs+1,)+item_shape, nan, **kwargs)
-        self.a     = np.full((KObs+1,)+item_shape, nan, **kwargs)
+        self.f     = np.full((KO+1,)+item_shape, nan, **kwargs)
+        self.a     = np.full((KO+1,)+item_shape, nan, **kwargs)
         if store_s:
-            self.s = np.full((KObs+1,)+item_shape, nan, **kwargs)
+            self.s = np.full((KO+1,)+item_shape, nan, **kwargs)
         if store_u:
             self.u = np.full((K   + 1,)+item_shape, nan, **kwargs)
         else:
@@ -230,7 +230,7 @@ class FAUSt(DataSeries, StatPrint):
     store_u    = property(lambda self: len(self.u) > 1)
 
     def _ind(self, key):
-        """Aux function to unpack `key` (`k,kObs,faus`)"""
+        """Aux function to unpack `key` (`k,ko,faus`)"""
         if key[-1] == 'u':
             return key[0] if self.store_u else 0
         else:

@@ -10,19 +10,19 @@ from dapper.tools.colors import color_text
 class Chronology():
     """Time schedules with consistency checks.
 
-    - Uses int records => `tt[k] == k*dt`.
-    - Uses generators  => time series may be arbitrarily long.
+    - Uses int records, so `tt[k] == k*dt`.
+    - Uses generators, so time series may be arbitrarily long.
 
     Example illustration:
 
-                             <----dtObs---->
-                      <--dt-->
+                             [----dto------]
+                      [--dt--]
         tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
         kk:    0      1      2      3      4      5      K
                |------|------|------|------|------|------|
-        kObs:  None   None   0      None   1      None   KObs
-        kkObs:               2             4             6
-                             <----dkObs---->
+        ko:    None   None   0      None   1      None   KO
+        kko:                 2             4             6
+                             [----dko------]
 
     .. warning:: By convention, there is no obs at 0.
                  This is hardcorded in DAPPER,
@@ -30,54 +30,55 @@ class Chronology():
 
     Identities (subject to precision):
 
-        len(kk)    == len(tt)    == K   +1
-        len(kkObs) == len(ttObs) == KObs+1
+        len(kk)  == len(tt)  == K   +1
+        len(kko) == len(tto) == KO+1
 
-        kkObs[0]   == dkObs      == dtObs/dt == K/(KObs+1)
-        kkObs[-1]  == K          == T/dt
-        KObs       == T/dtObs-1
+        kko[0]   == dko      == dto/dt == K/(KO+1)
+        kko[-1]  == K        == T/dt
+        KO       == T/dto-1
 
-    These attributes may be set (altered) after init: `dt, dkObs, K, T`.
-    Other attributes may not, due to ambiguity
-    (e.g. should `dtObs*=2` yield a doubling of `T` too?)
+    These attributes may be set (altered) after init: `dt, dko, K, T`.
+    Setting other attributes (alone) is ambiguous
+    (e.g. should `dto*=2` yield a doubling of `T` too?),
+    and so should/will raise an exception.
     """
 
-    def __init__(self, dt=None, dtObs=None, T=None, BurnIn=-1,
-                 dkObs=None, KObs=None, K=None, Tplot=None):
+    def __init__(self, dt=None, dto=None, T=None, BurnIn=-1,
+                 dko=None, KO=None, K=None, Tplot=None):
 
-        assert 3 == [dt, dtObs, T, dkObs, KObs, K].count(None), \
+        assert 3 == [dt, dto, T, dko, KO, K].count(None), \
             'Chronology is specified using exactly 3 parameters.'
 
-        # Reduce all to "state vars" dt,dkObs,K
+        # Reduce all to "state vars" dt,dko,K
         if not dt:
             if T and K:
                 dt = T/K
-            elif dkObs and dtObs:
-                dt = dtObs/dkObs
-            elif T and dkObs and KObs:
-                dt = T/(KObs+1)/dkObs
+            elif dko and dto:
+                dt = dto/dko
+            elif T and dko and KO:
+                dt = T/(KO+1)/dko
             else:
                 raise TypeError('Unable to interpret time setup')
-        if not dkObs:
-            if dtObs:
-                dkObs = round(dtObs/dt)
-                assert abs(dtObs - dkObs*dt) < dt*1e-9
+        if not dko:
+            if dto:
+                dko = round(dto/dt)
+                assert abs(dto - dko*dt) < dt*1e-9
             else:
                 raise TypeError('Unable to interpret time setup')
-        assert isinstance(dkObs, int)
+        assert isinstance(dko, int)
         if not K:
             if T:
                 K = round(T/dt)
                 assert abs(T - K*dt) < dt*1e-9
-            elif KObs:
-                K = dkObs*(KObs+1)
+            elif KO:
+                K = dko*(KO+1)
             else:
                 raise TypeError('Unable to interpret time setup')
-        K = int(np.ceil(K/dkObs)*dkObs)
+        K = int(np.ceil(K/dko)*dko)
 
         # "State vars"
         self._dt      = dt
-        self._dkObs   = dkObs
+        self._dko   = dko
         self._K       = K
 
         # BurnIn, Tplot
@@ -91,7 +92,7 @@ class Chronology():
             Tplot = BurnIn
         self.Tplot = Tplot  # don't enforce <T here
 
-        assert len(self.kkObs) == self.KObs+1
+        assert len(self.kko) == self.KO+1
 
     ######################################
     # "State vars". Can be set (changed).
@@ -103,21 +104,21 @@ class Chronology():
 
     @dt.setter
     def dt(self, value):
-        dkObs_new = self.dkObs * self.dt/value
-        if not np.isclose(int(dkObs_new), dkObs_new):
-            raise ValueError('New value is amgiguous with respect to dkObs')
-        dkObs_new = int(dkObs_new)
-        self.__init__(dt=value, dkObs=dkObs_new, T=self.T,
+        dko_new = self.dko * self.dt/value
+        if not np.isclose(int(dko_new), dko_new):
+            raise ValueError('New value is amgiguous with respect to dko')
+        dko_new = int(dko_new)
+        self.__init__(dt=value, dko=dko_new, T=self.T,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     @property
-    def dkObs(self):
-        return self._dkObs
+    def dko(self):
+        return self._dko
 
-    @dkObs.setter
-    def dkObs(self, value):
-        ratio = value/self.dkObs
-        self.__init__(dt=self.dt, dkObs=value, T=ratio*self.T,
+    @dko.setter
+    def dko(self, value):
+        ratio = value/self.dko
+        self.__init__(dt=self.dt, dko=value, T=ratio*self.T,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     @property
@@ -126,7 +127,7 @@ class Chronology():
 
     @K.setter
     def K(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, K=value,
+        self.__init__(dt=self.dt, dko=self.dko, K=value,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     ######################################
@@ -138,51 +139,51 @@ class Chronology():
 
     @T.setter
     def T(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, T=value,
+        self.__init__(dt=self.dt, dko=self.dko, T=value,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     @property
-    def KObs(self):
-        return int(self.K/self.dkObs)-1
+    def KO(self):
+        return int(self.K/self.dko)-1
 
-    @KObs.setter
-    def KObs(self, value):
-        self.__init__(dt=self.dt, dkObs=self.dkObs, KObs=value,
+    @KO.setter
+    def KO(self, value):
+        self.__init__(dt=self.dt, dko=self.dko, KO=value,
                       BurnIn=self.BurnIn, Tplot=self.Tplot)
 
     ######################################
     # Read-only
     ######################################
     @property
-    def dtObs(self):
-        return self.dkObs*self.dt
+    def dto(self):
+        return self.dko*self.dt
 
     @property
     def kk(self):
         return np.arange(self.K+1)
 
     @property
-    def kkObs(self):
-        return self.kk[self.dkObs::self.dkObs]
+    def kko(self):
+        return self.kk[self.dko::self.dko]
 
     @property
     def tt(self):
         return self.kk * self.dt
 
     @property
-    def ttObs(self):
-        return self.kkObs * self.dt
+    def tto(self):
+        return self.kko * self.dt
 
     # Burn In. NB: uses > (strict inequality)
     @property
-    def mask_BI(self):
-        """Example use: `kk_BI = kk[mask_BI]`"""
+    def mask(self):
+        """Example use: `kk_BI = kk[mask]`"""
         return self.tt > self.BurnIn
 
     @property
-    def maskObs_BI(self):
-        """Example use: `kkObs_BI = kkObs[maskObs_BI]`"""
-        return self.ttObs > self.BurnIn
+    def masko(self):
+        """Example use: `kko_BI = kko[masko]`"""
+        return self.tto > self.BurnIn
 
     ######################################
     # Other
@@ -191,24 +192,24 @@ class Chronology():
     def ticker(self):
         """Fancy version of `range(1,K+1)`.
 
-        Also yields `t`, `dt`, and `kObs`.
+        Also yields `t`, `dt`, and `ko`.
         """
-        tckr = Ticker(self.tt, self.kkObs)
+        tckr = Ticker(self.tt, self.kko)
         next(tckr)
         return tckr
 
-    def cycle(self, kObs):
-        """The range (in `kk`) between observation `kObs-1` and `kObs`.
+    def cycle(self, ko):
+        """The range (in `kk`) between observation `ko-1` and `ko`.
 
         Also yields `t` and `dt`.
         """
-        for k in kObs * self.dkObs + np.arange(1, self.dkObs+1):
+        for k in ko * self.dko + np.arange(1, self.dko+1):
             t  = self.tt[k]
             dt = t - self.tt[k-1]
             yield k, t, dt
 
     def __str__(self):
-        printable = ['K', 'KObs', 'T', 'BurnIn', 'dtObs', 'dt']
+        printable = ['K', 'KO', 'T', 'BurnIn', 'dto', 'dt']
         return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):
@@ -219,7 +220,7 @@ class Chronology():
     ######################################
     def copy(self):
         """Copy via state vars."""
-        return Chronology(dt=self.dt, dkObs=self.dkObs, K=self.K, BurnIn=self.BurnIn)
+        return Chronology(dt=self.dt, dko=self.dko, K=self.K, BurnIn=self.BurnIn)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -231,23 +232,23 @@ class Chronology():
 
 
 class Ticker:
-    """Iterator over kk and `kkObs`, yielding `(k,kObs,t,dt)`.
+    """Iterator over kk and `kko`, yielding `(k,ko,t,dt)`.
 
     Includes `__len__` for progressbar usage.
 
-    `kObs = kkObs.index(k)`, or `None` otherwise,
+    `ko = kko.index(k)`, or `None` otherwise,
     but computed without this repeated look-up operation.
     """
 
-    def __init__(self, tt, kkObs):
+    def __init__(self, tt, kko):
         self.tt  = tt
-        self.kkO = kkObs
+        self.kko = kko
         self.reset()
 
     def reset(self):
         self.k   = 0
-        self._kO = 0
-        self.kO  = None
+        self._ko = 0
+        self.ko  = None
 
     def __len__(self):
         return len(self.tt) - self.k
@@ -259,24 +260,24 @@ class Ticker:
             raise StopIteration
         t    = self.tt[self.k]
         dt   = t - self.tt[self.k-1] if self.k > 0 else np.NaN
-        tple = (self.k, self.kO, t, dt)
+        item = (self.k, self.ko, t, dt)
         self.k += 1
-        if self._kO < len(self.kkO) and self.k == self.kkO[self._kO]:
-            self.kO = self._kO
-            self._kO += 1
+        if self._ko < len(self.kko) and self.k == self.kko[self._ko]:
+            self.ko = self._ko
+            self._ko += 1
         else:
-            self.kO = None
-        return tple
+            self.ko = None
+        return item
 
 
-def format_time(k, kObs, t):
+def format_time(k, ko, t):
     if k is None:
         k    = "init"
         t    = "init"
-        kObs = "N/A"
+        ko = "N/A"
     else:
         t    = "   t=%g" % t
         k    = "   k=%d" % k
-        kObs = "kObs=%s" % kObs
-    s = "\n".join([t, k, kObs])
+        ko = "ko=%s" % ko
+    s = "\n".join([t, k, ko])
     return s

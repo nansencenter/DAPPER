@@ -31,9 +31,9 @@ class Climatology:
         self.stats.assess(0, mu=muC, Cov=PC)
         self.stats.trHK[:] = 0
 
-        for k, kObs, _, _ in progbar(HMM.tseq.ticker):
-            fau = 'u' if kObs is None else 'fau'
-            self.stats.assess(k, kObs, fau, mu=muC, Cov=PC)
+        for k, ko, _, _ in progbar(HMM.tseq.ticker):
+            fau = 'u' if ko is None else 'fau'
+            self.stats.assess(k, ko, fau, mu=muC, Cov=PC)
 
 
 @da_method()
@@ -59,21 +59,21 @@ class OptInterp:
         mu = muC
         self.stats.assess(0, mu=mu, Cov=PC)
 
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker):
             # Forecast
             mu = HMM.Dyn(mu, t-dt, dt)
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', mu=muC, Cov=PC)
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', mu=muC, Cov=PC)
 
                 # Analysis
                 H  = HMM.Obs.linear(muC, t)
                 KG  = mrdiv(PC@H.T, H@PC@H.T + HMM.Obs.noise.C.full)
-                mu = muC + KG@(yy[kObs] - HMM.Obs(muC, t))
+                mu = muC + KG@(yy[ko] - HMM.Obs(muC, t))
 
                 P  = (np.eye(HMM.Dyn.M) - KG@H) @ PC
                 SM = fit_sigmoid(P.trace()/PC.trace(), L, k)
 
-            self.stats.assess(k, kObs, mu=mu, Cov=2*PC*SM(k))
+            self.stats.assess(k, ko, mu=mu, Cov=2*PC*SM(k))
 
 
 @da_method()
@@ -111,24 +111,24 @@ class Var3D:
         mu = HMM.X0.mu
         self.stats.assess(0, mu=mu, Cov=P)
 
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker):
             # Forecast
             mu = HMM.Dyn(mu, t-dt, dt)
             P  = CC*SM(k)
 
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', mu=mu, Cov=P)
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', mu=mu, Cov=P)
 
                 # Analysis
                 H  = HMM.Obs.linear(mu, t)
                 KG = mrdiv(B@H.T, H@B@H.T + HMM.Obs.noise.C.full)
-                mu = mu + KG@(yy[kObs] - HMM.Obs(mu, t))
+                mu = mu + KG@(yy[ko] - HMM.Obs(mu, t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
                 P = (np.eye(HMM.Dyn.M) - KG@H) @ B
                 SM = fit_sigmoid(P.trace()/CC.trace(), L, k)
 
-            self.stats.assess(k, kObs, mu=mu, Cov=P)
+            self.stats.assess(k, ko, mu=mu, Cov=P)
 
 
 def fit_sigmoid(Sb, L, kb):

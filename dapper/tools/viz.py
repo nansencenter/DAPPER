@@ -209,7 +209,7 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
     xx: ndarray
         Plotted array
     tseq: `dapper.tools.chronos.Chronology`, optional
-        object with property dkObS. Defaults: None
+        object with property dko. Defaults: None
     mult: int, optional
         Number of waves for plotting. Defaults: 100
 
@@ -236,7 +236,7 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
 
     if tseq is not None:
         tseq = tseq
-        K = int(min(max(K, tseq.dkObs), tseq.K))
+        K = int(min(max(K, tseq.dko), tseq.K))
         T = round2sigfig(tseq.tt[K], 2)  # Could return T; T>tt[-1]
         K = find_1st_ind(tseq.tt >= T)
         if K:
@@ -317,7 +317,7 @@ def plot_hovmoller(xx, tseq=None, **kwargs):
     xx: ndarray
         Plotted array
     tseq: `dapper.tools.chronos.Chronology`, optional
-        object with property dkObS. Defaults: None
+        object with property dko. Defaults: None
     """
     fig, ax = place.freshfig("Hovmoller", figsize=(4, 3.5))
 
@@ -440,7 +440,7 @@ def plot_err_components(stats):
     else:
         not_available_text(ax1)
 
-    rmse = stats.err.rms.a[tseq.maskObs_BI]
+    rmse = stats.err.rms.a[tseq.masko]
     ax2.hist(rmse, bins=30, density=False)
     ax2.set_ylabel('Num. of occurence (_a)')
     ax2.set_xlabel('RMSE')
@@ -470,7 +470,7 @@ def plot_rank_histogram(stats):
     ax.set_xlabel('ensemble member index (n)')
 
     if has_been_computed:
-        ranks = stats.rh.a[tseq.maskObs_BI]
+        ranks = stats.rh.a[tseq.masko]
         Nx    = ranks.shape[1]
         N     = stats.xp.N
         if not hasattr(stats, 'w'):
@@ -481,7 +481,7 @@ def plot_rank_histogram(stats):
             # Weight ranks by inverse of particle weight. Why? Coz, with correct
             # importance weights, the "expected value" histogram is then flat.
             # Potential improvement: interpolate weights between particles.
-            w  = stats.w.a[tseq.maskObs_BI]
+            w  = stats.w.a[tseq.masko]
             K  = len(w)
             w  = np.hstack([w, np.ones((K, 1))/N])  # define weights for rank N+1
             w  = array([w[arange(K), ranks[arange(K), i]] for i in range(Nx)])

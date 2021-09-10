@@ -13,7 +13,7 @@ from dapper.mods.Lorenz96 import LPs, Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
-tseq = modelling.Chronology(0.05, dkObs=1, KObs=1000, Tplot=Tplot, BurnIn=2*Tplot)
+tseq = modelling.Chronology(0.05, dko=1, KO=1000, Tplot=Tplot, BurnIn=2*Tplot)
 
 Nx = 40
 x0 = x0(Nx)
@@ -72,21 +72,21 @@ HMM.liveplotters = LPs(jj)
 
 # Reproduce Table 3 (IEnKF) from sakov2012iterative
 # --------------------------------------------------------------------------------
-# HMM.tseq.dkObs = 12
+# HMM.tseq.dko = 12
 # xps += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,infl=1.2,rot=1)     # 0.46
 # xps += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,xN=2.0  ,rot=1)     # 0.46
 
 # Reproduce Fig 3 of Bocquet'2015 "expanding"
 # --------------------------------------------------------------------------------
 # xps += EnKF('Sqrt',N=20,rot=True,infl=1.04)                  # 0.20
-# # use infl=1.10 with dkObs=3
-# # use infl=1.40 with dkObs=5
+# # use infl=1.10 with dko=3
+# # use infl=1.40 with dko=5
 # xps += EnKF_N(N=20)                                          # 0.24
 # xps += EnKF_N(N=20,xN=2)                                     # 0.19
 # # Also try quasi-linear regime:
-# tseq = Chronology(0.01,dkObs=1,...)
+# tseq = Chronology(0.01,dko=1,...)
 
-# Reproduce Bocquet/Sakov'2013 "Joint...", Fig 4, i.e. dtObs=0.2:
+# Reproduce Bocquet/Sakov'2013 "Joint...", Fig 4, i.e. dto=0.2:
 # xps += iEnKS('Sqrt', N=20, Lag=4, xN=2) # 0.31
 # xps += Var4D(Lag=1,xB=0.2)              # 0.46
 # xps += Var4D(Lag=2,xB=0.1)              # 0.39
@@ -94,7 +94,7 @@ HMM.liveplotters = LPs(jj)
 # Cannot reproduce Fig4's reported 4D-Var scores for L>4. Example:
 # xps += Var4D(Lag=6,xB=0.015)            # 0.385 Boc13 reports 0.33
 
-# Tests with the Particle filter, with N=3000, KObs=10'000.
+# Tests with the Particle filter, with N=3000, KO=10'000.
 # da_method  NER  reg  |  rmse.a   rmv.a
 # --------- ----  ---  -  ------  ------
 # PartFilt  0.05  1.2  |  0.35    0.40

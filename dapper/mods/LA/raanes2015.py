@@ -8,7 +8,7 @@ from dapper.mods.Lorenz96 import LPs
 from dapper.tools.linalg import tsvd
 
 # Burn-in allows damp*x and x+noise balance out
-tseq = modelling.Chronology(dt=1, dkObs=5, T=500, BurnIn=60, Tplot=100)
+tseq = modelling.Chronology(dt=1, dko=5, T=500, BurnIn=60, Tplot=100)
 
 Nx = 1000
 Ny = 40

@@ -4,8 +4,8 @@ import dapper.mods as modelling
 from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
 HMM = _HMM.copy()
-# HMM.tseq = modelling.Chronology(0.01,KObs=10**5,BurnIn=500), with dkObs in [5:55].
-# But it's pretty safe to shorten the BurnIn and KObs.
+# HMM.tseq = modelling.Chronology(0.01,KO=10**5,BurnIn=500), with dko in [5:55].
+# But it's pretty safe to shorten the BurnIn and KO.
 
 HMM.Obs = modelling.Operator(**{
     'M': 3,
@@ -17,7 +17,7 @@ HMM.Obs = modelling.Operator(**{
 # just for the DA method, or also for the truth.
 
 
-def Q(dkObs): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.tseq.dt))
+def Q(dko): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dko*HMM.tseq.dt))
 
 
 ####################
@@ -31,18 +31,18 @@ def Q(dkObs): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dkObs*HMM.tseq.dt))
 # --------------------------------------------------------------------------
 # from dapper.mods.Lorenz63.mandel2016 import HMM, Q
 #
-# t.dkObs = 55
-# HMM.Dyn.noise = Q(t.dkObs)
+# t.dko = 55
+# HMM.Dyn.noise = Q(t.dko)
 # xps += EnKF  ('PertObs', N=100, infl=1.05)                # 0.20    [not tested]
 # xps += EnKF  ('PertObs', N=10 , infl=1.30)                # nan     3.4
 
-# t.dkObs = 35
-# HMM.Dyn.noise = Q(t.dkObs)
+# t.dko = 35
+# HMM.Dyn.noise = Q(t.dko)
 # xps += EnKF  ('PertObs', N=100, infl=1.03)                # 0.20    [not tested]
 # xps += EnKF  ('PertObs', N=10 , infl=1.20)                # 0.64    3.6
 
-# t.dkObs = 5
-# HMM.Dyn.noise = Q(t.dkObs)
+# t.dko = 5
+# HMM.Dyn.noise = Q(t.dko)
 # xps += EnKF  ('PertObs', N=100, infl=1.03)                # 0.05    [not tested]
 # xps += EnKF  ('PertObs', N=10 , infl=1.20)                # 0.09    0.3
 

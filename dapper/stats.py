@@ -44,15 +44,16 @@ class Stats(series.StatPrint):
         self.yy        = yy
         self.liveplots = liveplots
         self.store_u   = store_u
-        self.store_s   = hasattr(xp, 'Lag')
+        self.store_s   = any(key in xp.__dict__ for key in
+                             ["Lag", "DeCorr"])  # prms used by smoothers
 
         # Shapes
         K    = xx.shape[0]-1
         Nx   = xx.shape[1]
-        KObs = yy.shape[0]-1
+        KO = yy.shape[0]-1
         Ny   = yy.shape[1]
         self.K   , self.Nx = K, Nx
-        self.KObs, self.Ny = KObs, Ny
+        self.KO, self.Ny = KO, Ny
 
         # Methods for summarizing multivariate stats ("fields") as scalars
         # Don't use nanmean here; nan's should get propagated!
@@ -112,14 +113,14 @@ class Stats(series.StatPrint):
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series('trHK' , 1, KObs+1)
-        self.new_series('infl' , 1, KObs+1)
-        self.new_series('iters', 1, KObs+1)
+        self.new_series('trHK' , 1, KO+1)
+        self.new_series('infl' , 1, KO+1)
+        self.new_series('iters', 1, KO+1)
 
         # Weight-related
-        self.new_series('N_eff' , 1, KObs+1)
-        self.new_series('wroot' , 1, KObs+1)
-        self.new_series('resmpl', 1, KObs+1)
+        self.new_series('N_eff' , 1, KO+1)
+        self.new_series('wroot' , 1, KO+1)
+        self.new_series('resmpl', 1, KO+1)
 
     def new_series(self, name, shape, length='FAUSt', field_mean=False, **kws):
         """Create (and register) a statistics time series, initialized with `nan`s.
@@ -140,7 +141,7 @@ class Stats(series.StatPrint):
 
         def make_series(parent, name, shape):
             if length == 'FAUSt':
-                total_shape = self.K, self.KObs, shape
+                total_shape = self.K, self.KO, shape
                 store_opts = self.store_u, self.store_s
                 tseries = series.FAUSt(*total_shape, *store_opts, **kws)
             else:
@@ -168,7 +169,7 @@ class Stats(series.StatPrint):
         return [k for k in vars(self)
                 if isinstance(getattr(self, k), series.DataSeries)]
 
-    def assess(self, k, kObs=None, faus=None,
+    def assess(self, k, ko=None, faus=None,
                E=None, w=None, mu=None, Cov=None):
         """Common interface for both `Stats.assess_ens` and `Stats.assess_ext`.
 
@@ -178,46 +179,32 @@ class Stats(series.StatPrint):
         faus: One or more of `['f',' a', 'u', 's']`, indicating
               that the result should be stored in (respectively)
               the forecast/analysis/universal attribute.
-              Default: `'u' if kObs is None else 'au' ('a' and 'u')`.
+              Default: `'u' if ko is None else 'au' ('a' and 'u')`.
         """
         # Initial consistency checks.
         if k == 0:
-            if kObs is not None:
-                raise KeyError("DAPPER convention: no obs at t=0."
-                               " Helps avoid bugs.")
-            if faus is None:
-                faus = 'u'
+            if ko is not None:
+                raise KeyError("DAPPER convention: no obs at t=0. Helps avoid bugs.")
             if self._is_ens == True:
                 if E is None:
-                    raise TypeError(
-                        "Expected ensemble input but E is None")
+                    raise TypeError("Expected ensemble input but E is None")
                 if mu is not None:
-                    raise TypeError(
-                        "Expected ensemble input but mu/Cov is not None")
+                    raise TypeError("Expected ensemble input but mu/Cov is not None")
             else:
                 if E is not None:
-                    raise TypeError(
-                        "Expected mu/Cov input but E is not None")
+                    raise TypeError("Expected mu/Cov input but E is not None")
                 if mu is None:
-                    raise TypeError(
-                        "Expected mu/Cov input but mu is None")
+                    raise TypeError("Expected mu/Cov input but mu is None")
 
         # Default. Don't add more defaults. It just gets confusing.
         if faus is None:
-            faus = 'u' if kObs is None else 'au'
+            faus = 'u' if ko is None else 'au'
 
-        # Select assessment call and arguments
-        if self._is_ens:
-            _assess = self.assess_ens
-            _prms   = {'E': E, 'w': w}
-        else:
-            _assess = self.assess_ext
-            _prms   = {'mu': mu, 'P': Cov}
-
+        # TODO 4: don't need to re-compute stats?
         for sub in faus:
 
             # Skip assessment if ('u' and stats not stored or plotted)
-            if k != 0 and kObs == None:
+            if k != 0 and ko == None:
                 if not (self.store_u or self.LP_instance.any_figs):
                     continue
 
@@ -227,7 +214,10 @@ class Stats(series.StatPrint):
 
                 # Assess
                 stats_now = Avrgs()
-                _assess(stats_now, self.xx[k], **_prms)
+                if self._is_ens:
+                    self.assess_ens(stats_now, self.xx[k], E, w)
+                else:
+                    self.assess_ext(stats_now, self.xx[k], mu, Cov)
                 self.derivative_stats(stats_now)
                 self.summarize_marginals(stats_now)
 
@@ -235,14 +225,14 @@ class Stats(series.StatPrint):
             for name, val in stats_now.items():
                 stat = struct_tools.deep_getattr(self, name)
                 isFaust = isinstance(stat, series.FAUSt)
-                stat[(k, kObs, sub) if isFaust else kObs] = val
+                stat[(k, ko, sub) if isFaust else ko] = val
 
             # LivePlot -- Both init and update must come after the assessment.
             try:
-                self.LP_instance.update((k, kObs, sub), E, Cov)
+                self.LP_instance.update((k, ko, sub), E, Cov)
             except AttributeError:
                 self.LP_instance = liveplotting.LivePlot(
-                    self, self.liveplots, (k, kObs, sub), E, Cov)
+                    self, self.liveplots, (k, ko, sub), E, Cov)
 
     def summarize_marginals(self, now):
         """Compute Mean-field and RMS values"""
@@ -257,7 +247,7 @@ class Stats(series.StatPrint):
                         now[statpath] = formula(field)
 
     def derivative_stats(self, now):
-        """Stats that derive from others (=> not specific for _ens or _ext)."""
+        """Stats that derive from others, and are not specific for `_ens` or `_ext`)."""
         now.gscore = 2*np.log(now.spread) + (now.err/now.spread)**2
 
     def assess_ens(self, now, x, E, w):
@@ -347,17 +337,17 @@ class Stats(series.StatPrint):
             now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
             now.umisf = (U.T @ now.err)[::-1]
 
-    def average_in_time(self, kk=None, kkObs=None, free=False):
+    def average_in_time(self, kk=None, kko=None, free=False):
         """Avarage all univariate (scalar) time series.
 
         - `kk`    time inds for averaging
-        - `kkObs` time inds for averaging obs
+        - `kko` time inds for averaging obs
         """
         tseq = self.HMM.tseq
         if kk is None:
-            kk     = tseq.mask_BI
-        if kkObs is None:
-            kkObs  = tseq.maskObs_BI
+            kk     = tseq.mask
+        if kko is None:
+            kko  = tseq.masko
 
         def average1(tseries):
             avrgs = Avrgs()
@@ -371,15 +361,15 @@ class Stats(series.StatPrint):
                 if tseries.item_shape != ():
                     return average_multivariate()
                 for sub in [ch for ch in 'fas' if hasattr(tseries, ch)]:
-                    avrgs[sub] = series.mean_with_conf(tseries[kkObs, sub])
+                    avrgs[sub] = series.mean_with_conf(tseries[kko, sub])
                 if tseries.store_u:
                     avrgs['u'] = series.mean_with_conf(tseries[kk, 'u'])
 
             elif isinstance(tseries, series.DataSeries):
                 if tseries.array.shape[1:] != ():
                     return average_multivariate()
-                elif len(tseries.array) == self.KObs+1:
-                    avrgs = series.mean_with_conf(tseries[kkObs])
+                elif len(tseries.array) == self.KO+1:
+                    avrgs = series.mean_with_conf(tseries[kko])
                 elif len(tseries.array) == self.K+1:
                     avrgs = series.mean_with_conf(tseries[kk])
                 else:
@@ -444,12 +434,12 @@ class Stats(series.StatPrint):
         desc = self.xp.da_method + " (replay)"
 
         # Play through assimilation cycles
-        for k, kObs, t, _dt in progbar(tseq.ticker, desc):
+        for k, ko, t, _dt in progbar(tseq.ticker, desc):
             if t1 <= t <= t2:
-                if kObs is not None:
-                    LP.update((k, kObs, 'f'), None, None)
-                    LP.update((k, kObs, 'a'), None, None)
-                LP.update((k, kObs, 'u'), None, None)
+                if ko is not None:
+                    LP.update((k, ko, 'f'), None, None)
+                    LP.update((k, ko, 'a'), None, None)
+                LP.update((k, ko, 'u'), None, None)
 
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
