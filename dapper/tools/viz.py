@@ -440,7 +440,7 @@ def plot_err_components(stats):
     else:
         not_available_text(ax1)
 
-    rmse = stats.err.rms.a[tseq.maskObs_BI]
+    rmse = stats.err.rms.a[tseq.masko]
     ax2.hist(rmse, bins=30, density=False)
     ax2.set_ylabel('Num. of occurence (_a)')
     ax2.set_xlabel('RMSE')
@@ -470,7 +470,7 @@ def plot_rank_histogram(stats):
     ax.set_xlabel('ensemble member index (n)')
 
     if has_been_computed:
-        ranks = stats.rh.a[tseq.maskObs_BI]
+        ranks = stats.rh.a[tseq.masko]
         Nx    = ranks.shape[1]
         N     = stats.xp.N
         if not hasattr(stats, 'w'):
@@ -481,7 +481,7 @@ def plot_rank_histogram(stats):
             # Weight ranks by inverse of particle weight. Why? Coz, with correct
             # importance weights, the "expected value" histogram is then flat.
             # Potential improvement: interpolate weights between particles.
-            w  = stats.w.a[tseq.maskObs_BI]
+            w  = stats.w.a[tseq.masko]
             K  = len(w)
             w  = np.hstack([w, np.ones((K, 1))/N])  # define weights for rank N+1
             w  = array([w[arange(K), ranks[arange(K), i]] for i in range(Nx)])

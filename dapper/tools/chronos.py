@@ -181,8 +181,8 @@ class Chronology():
         return self.tt > self.BurnIn
 
     @property
-    def maskObs_BI(self):
-        """Example use: `kko_BI = kko[maskObs_BI]`"""
+    def masko(self):
+        """Example use: `kko_BI = kko[masko]`"""
         return self.tto > self.BurnIn
 
     ######################################

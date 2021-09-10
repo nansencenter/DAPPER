@@ -347,7 +347,7 @@ class Stats(series.StatPrint):
         if kk is None:
             kk     = tseq.mask_BI
         if kko is None:
-            kko  = tseq.maskObs_BI
+            kko  = tseq.masko
 
         def average1(tseries):
             avrgs = Avrgs()
