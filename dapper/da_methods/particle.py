@@ -58,7 +58,7 @@ class PartFilt:
 
         self.stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
                 D  = rnd.randn(N, Nx)
@@ -69,13 +69,13 @@ class PartFilt:
                     w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
                     w /= w.sum()
 
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', E=E, w=w)
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', E=E, w=w)
 
-                innovs = (yy[kObs] - HMM.Obs(E, t)) @ Rm12.T
+                innovs = (yy[ko] - HMM.Obs(E, t)) @ Rm12.T
                 w      = reweight(w, innovs=innovs)
 
-                if trigger_resampling(w, self.NER, [self.stats, E, k, kObs]):
+                if trigger_resampling(w, self.NER, [self.stats, E, k, ko]):
                     C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
                     # C12  *= np.sqrt(rroot) # Re-include?
                     idx, w  = resample(w, self.resampl, wroot=self.wroot)
@@ -84,7 +84,7 @@ class PartFilt:
                     #     # Compensate for rroot
                     #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
                     #     w /= w.sum()
-            self.stats.assess(k, kObs, 'u', E=E, w=w)
+            self.stats.assess(k, ko, 'u', E=E, w=w)
 
 
 @particle_method
@@ -112,14 +112,14 @@ class OptPF:
 
         self.stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
                 E += np.sqrt(dt)*(rnd.randn(N, Nx)@HMM.Dyn.noise.C.Right)
 
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', E=E, w=w)
-                y = yy[kObs]
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', E=E, w=w)
+                y = yy[ko]
 
                 Eo = HMM.Obs(E, t)
                 innovs = y - Eo
@@ -141,12 +141,12 @@ class OptPF:
                 w      = reweight(w, logL=logL)
 
                 # Resampling
-                if trigger_resampling(w, self.NER, [self.stats, E, k, kObs]):
+                if trigger_resampling(w, self.NER, [self.stats, E, k, ko]):
                     C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
                     idx, w  = resample(w, self.resampl, wroot=self.wroot)
                     E, _    = regularize(C12, E, idx, self.nuj)
 
-            self.stats.assess(k, kObs, 'u', E=E, w=w)
+            self.stats.assess(k, ko, 'u', E=E, w=w)
 
 
 @particle_method
@@ -183,7 +183,7 @@ class PFa:
 
         self.stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
                 D  = rnd.randn(N, Nx)
@@ -194,13 +194,13 @@ class PFa:
                     w *= np.exp(-0.5*np.sum(D**2, axis=1) * (1 - 1/self.qroot))
                     w /= w.sum()
 
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', E=E, w=w)
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', E=E, w=w)
 
-                innovs = (yy[kObs] - HMM.Obs(E, t)) @ Rm12.T
+                innovs = (yy[ko] - HMM.Obs(E, t)) @ Rm12.T
                 w      = reweight(w, innovs=innovs)
 
-                if trigger_resampling(w, self.NER, [self.stats, E, k, kObs]):
+                if trigger_resampling(w, self.NER, [self.stats, E, k, ko]):
                     C12    = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
                     # C12  *= np.sqrt(rroot) # Re-include?
 
@@ -212,7 +212,7 @@ class PFa:
                         if 1/(sw@sw) < N*self.alpha:
                             wroot += 0.2
                         else:
-                            self.stats.wroot[kObs] = wroot
+                            self.stats.wroot[ko] = wroot
                             break
                     idx, w  = resample(sw, self.resampl, wroot=1)
 
@@ -221,7 +221,7 @@ class PFa:
                     #     Compensate for rroot
                     #     w *= np.exp(-0.5*chi2*(1 - 1/rroot))
                     #     w /= w.sum()
-            self.stats.assess(k, kObs, 'u', E=E, w=w)
+            self.stats.assess(k, ko, 'u', E=E, w=w)
 
 
 @particle_method
@@ -257,14 +257,14 @@ class PFxN_EnKF:
 
         self.stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
                 E += np.sqrt(dt)*(rnd.randn(N, Nx)@HMM.Dyn.noise.C.Right)
 
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', E=E, w=w)
-                y  = yy[kObs]
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', E=E, w=w)
+                y  = yy[ko]
                 Eo = HMM.Obs(E, t)
                 wD = w.copy()
 
@@ -273,7 +273,7 @@ class PFxN_EnKF:
                 w      = reweight(w, innovs=innovs)
 
                 # Resampling
-                if trigger_resampling(w, self.NER, [self.stats, E, k, kObs]):
+                if trigger_resampling(w, self.NER, [self.stats, E, k, ko]):
                     # Weighted covariance factors
                     Aw = raw_C12(E, wD)
                     Yw = raw_C12(Eo, wD)
@@ -342,7 +342,7 @@ class PFxN_EnKF:
                             break
                         else:
                             wroot += 0.1
-            self.stats.assess(k, kObs, 'u', E=E, w=w)
+            self.stats.assess(k, ko, 'u', E=E, w=w)
 
 
 @particle_method
@@ -371,20 +371,20 @@ class PFxN:
 
         self.stats.assess(0, E=E, w=w)
 
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
                 E += np.sqrt(dt)*(rnd.randn(N, Nx)@HMM.Dyn.noise.C.Right)
 
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', E=E, w=w)
-                y  = yy[kObs]
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', E=E, w=w)
+                y  = yy[ko]
                 wD = w.copy()
 
                 innovs = (y - HMM.Obs(E, t)) @ Rm12.T
                 w      = reweight(w, innovs=innovs)
 
-                if trigger_resampling(w, self.NER, [self.stats, E, k, kObs]):
+                if trigger_resampling(w, self.NER, [self.stats, E, k, ko]):
                     # Compute kernel colouring matrix
                     cholR = self.Qs*auto_bandw(N, Nx)*raw_C12(E, wD)
                     cholR = chol_reduce(cholR)
@@ -412,7 +412,7 @@ class PFxN:
                             break
                         else:
                             wroot += 0.1
-            self.stats.assess(k, kObs, 'u', E=E, w=w)
+            self.stats.assess(k, ko, 'u', E=E, w=w)
 
 
 def trigger_resampling(w, NER, stat_args):
@@ -421,16 +421,16 @@ def trigger_resampling(w, NER, stat_args):
     do_resample = N_eff <= len(w)*NER
 
     # Unpack stat args
-    stats, E, k, kObs = stat_args
+    stats, E, k, ko = stat_args
 
-    stats.N_eff[kObs]  = N_eff
-    stats.resmpl[kObs] = 1 if do_resample else 0
+    stats.N_eff[ko]  = N_eff
+    stats.resmpl[ko] = 1 if do_resample else 0
 
     # Why have we put self.stats.assess() here?
     # Because we need to write self.stats.N_eff and self.stats.resmpl before calling
     # assess() so that these curves (in sliding_diagnostics liveplotting
     # are not eliminated (as inactive).
-    stats.assess(k, kObs, 'a', E=E, w=w)
+    stats.assess(k, ko, 'a', E=E, w=w)
 
     return do_resample
 

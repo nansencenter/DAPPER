@@ -37,13 +37,13 @@ class RHF:
         E = X0.sample(N)
         stats.assess(0, E=E)
 
-        for k, kObs, t, dt in progbar(tseq.ticker):
+        for k, ko, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
-            if kObs is not None:
-                stats.assess(k, kObs, 'f', E=E)
-                y    = yy[kObs]
+            if ko is not None:
+                stats.assess(k, ko, 'f', E=E)
+                y    = yy[ko]
                 inds = serial_inds(self.ordr, y, R, center(E)[0])
 
                 for _, j in enumerate(inds):
@@ -74,7 +74,7 @@ class RHF:
 
                 E = post_process(E, self.infl, self.rot)
 
-            stats.assess(k, kObs, E=E)
+            stats.assess(k, ko, E=E)
 
 
 @ens_method
@@ -98,19 +98,19 @@ class LNETF:
         E = X0.sample(self.N)
         stats.assess(0, E=E)
 
-        for k, kObs, t, dt in progbar(tseq.ticker):
+        for k, ko, t, dt in progbar(tseq.ticker):
             E = Dyn(E, t-dt, dt)
             E = add_noise(E, dt, Dyn.noise, self.fnoise_treatm)
 
-            if kObs is not None:
-                stats.assess(k, kObs, 'f', E=E)
+            if ko is not None:
+                stats.assess(k, ko, 'f', E=E)
                 mu = np.mean(E, 0)
                 A  = E - mu
 
                 Eo = Obs(E, t)
                 xo = np.mean(Eo, 0)
                 YR = (Eo-xo)  @ Rm12.T
-                yR = (yy[kObs] - xo) @ Rm12.T
+                yR = (yy[ko] - xo) @ Rm12.T
 
                 state_batches, obs_taperer = Obs.localizer(
                     self.loc_rad, 'x2y', t, self.taper)
@@ -137,7 +137,7 @@ class LNETF:
                     E[:, ii] = mu[ii] + dmu + AT
 
                 E = post_process(E, self.infl, self.rot)
-            stats.assess(k, kObs, E=E)
+            stats.assess(k, ko, E=E)
 
 
 def laplace_lklhd(xx):

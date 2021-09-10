@@ -169,7 +169,7 @@ class Stats(series.StatPrint):
         return [k for k in vars(self)
                 if isinstance(getattr(self, k), series.DataSeries)]
 
-    def assess(self, k, kObs=None, faus=None,
+    def assess(self, k, ko=None, faus=None,
                E=None, w=None, mu=None, Cov=None):
         """Common interface for both `Stats.assess_ens` and `Stats.assess_ext`.
 
@@ -179,11 +179,11 @@ class Stats(series.StatPrint):
         faus: One or more of `['f',' a', 'u', 's']`, indicating
               that the result should be stored in (respectively)
               the forecast/analysis/universal attribute.
-              Default: `'u' if kObs is None else 'au' ('a' and 'u')`.
+              Default: `'u' if ko is None else 'au' ('a' and 'u')`.
         """
         # Initial consistency checks.
         if k == 0:
-            if kObs is not None:
+            if ko is not None:
                 raise KeyError("DAPPER convention: no obs at t=0. Helps avoid bugs.")
             if self._is_ens == True:
                 if E is None:
@@ -198,13 +198,13 @@ class Stats(series.StatPrint):
 
         # Default. Don't add more defaults. It just gets confusing.
         if faus is None:
-            faus = 'u' if kObs is None else 'au'
+            faus = 'u' if ko is None else 'au'
 
         # TODO 4: don't need to re-compute stats?
         for sub in faus:
 
             # Skip assessment if ('u' and stats not stored or plotted)
-            if k != 0 and kObs == None:
+            if k != 0 and ko == None:
                 if not (self.store_u or self.LP_instance.any_figs):
                     continue
 
@@ -225,14 +225,14 @@ class Stats(series.StatPrint):
             for name, val in stats_now.items():
                 stat = struct_tools.deep_getattr(self, name)
                 isFaust = isinstance(stat, series.FAUSt)
-                stat[(k, kObs, sub) if isFaust else kObs] = val
+                stat[(k, ko, sub) if isFaust else ko] = val
 
             # LivePlot -- Both init and update must come after the assessment.
             try:
-                self.LP_instance.update((k, kObs, sub), E, Cov)
+                self.LP_instance.update((k, ko, sub), E, Cov)
             except AttributeError:
                 self.LP_instance = liveplotting.LivePlot(
-                    self, self.liveplots, (k, kObs, sub), E, Cov)
+                    self, self.liveplots, (k, ko, sub), E, Cov)
 
     def summarize_marginals(self, now):
         """Compute Mean-field and RMS values"""
@@ -434,12 +434,12 @@ class Stats(series.StatPrint):
         desc = self.xp.da_method + " (replay)"
 
         # Play through assimilation cycles
-        for k, kObs, t, _dt in progbar(tseq.ticker, desc):
+        for k, ko, t, _dt in progbar(tseq.ticker, desc):
             if t1 <= t <= t2:
-                if kObs is not None:
-                    LP.update((k, kObs, 'f'), None, None)
-                    LP.update((k, kObs, 'a'), None, None)
-                LP.update((k, kObs, 'u'), None, None)
+                if ko is not None:
+                    LP.update((k, ko, 'f'), None, None)
+                    LP.update((k, ko, 'a'), None, None)
+                LP.update((k, ko, 'u'), None, None)
 
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.

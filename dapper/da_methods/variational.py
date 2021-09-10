@@ -109,23 +109,23 @@ class iEnKS:
         # Initial ensemble
         E = HMM.X0.sample(self.N)
 
-        # Forward ensemble to kObs = 0 if Lag = 0
+        # Forward ensemble to ko = 0 if Lag = 0
         t = 0
         k = 0
         if self.Lag == 0:
-            for k, t, dt in HMM.tseq.cycle(kObs=0):
+            for k, t, dt in HMM.tseq.cycle(ko=0):
                 self.stats.assess(k-1, None, 'u', E=E)
                 E = HMM.Dyn(E, t-dt, dt)
 
         # Loop over DA windows (DAW).
-        for kObs in progbar(range(0, KO+self.Lag+1)):
-            kLag = kObs-self.Lag
-            DAW  = range(max(0, kLag+1), min(kObs, KO) + 1)
+        for ko in progbar(range(0, KO+self.Lag+1)):
+            kLag = ko-self.Lag
+            DAW  = range(max(0, kLag+1), min(ko, KO) + 1)
 
             # Assimilation (if ∃ "not-fully-assimlated" Obs).
-            if kObs <= KO:
+            if ko <= KO:
                 E = iEnKS_update(self.upd_a, E, DAW, HMM, self.stats,
-                                 EPS, yy[kObs], (k, kObs, t), Rm12,
+                                 EPS, yy[ko], (k, ko, t), Rm12,
                                  self.xN, self.MDA, (self.nIter, self.wtol))
                 E = post_process(E, self.infl, self.rot)
 
@@ -149,7 +149,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     specified by `upd_a` (See `iEnKS`)
     """
     # distribute variable
-    k, kObs, t = time
+    k, ko, t = time
     nIter, wtol = threshold
     N, Nx = E.shape
 
@@ -179,7 +179,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
 
         # Assess forecast stats; store {Xf, T_old} for analysis assessment.
         if iteration == 0:
-            stats.assess(k, kObs, 'f', E=E)
+            stats.assess(k, ko, 'f', E=E)
             Xf, xf = center(E)
         T_old = T
 
@@ -251,10 +251,10 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     # (ii) reproduce EnKF in case nIter==1.
     final_increment = (dw+T-T_old)@Xf
     # See docs/snippets/iEnKS_Ea.jpg.
-    stats.assess(k, kObs, 'a', E=E+final_increment)
-    stats.iters[kObs] = iteration+1
+    stats.assess(k, ko, 'a', E=E+final_increment)
+    stats.iters[ko] = iteration+1
     if xN:
-        stats.infl[kObs] = np.sqrt(N1/za)
+        stats.infl[ko] = np.sqrt(N1/za)
 
     # Final (smoothed) estimate of E at [kLag].
     E = x0 + (w+T)@HMM.X0
@@ -266,7 +266,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
 class Var4D:
     """4D-Var.
 
-    Cycling scheme is same as in iEnKS (i.e. the shift is always 1*kObs).
+    Cycling scheme is same as in iEnKS (i.e. the shift is always 1*ko).
 
     This implementation does NOT do gradient decent (nor quasi-Newton)
     in an inner loop, with simplified models.
@@ -306,12 +306,12 @@ class Var4D:
         self.stats.assess(0, mu=x, Cov=B)
 
         # Loop over DA windows (DAW).
-        for kObs in progbar(np.arange(-1, KO+self.Lag+1)):
-            kLag = kObs-self.Lag
-            DAW = range(max(0, kLag+1), min(kObs, KO) + 1)
+        for ko in progbar(np.arange(-1, KO+self.Lag+1)):
+            kLag = ko-self.Lag
+            DAW = range(max(0, kLag+1), min(ko, KO) + 1)
 
             # Assimilation (if ∃ "not-fully-assimlated" Obs).
-            if 0 <= kObs <= KO:
+            if 0 <= ko <= KO:
 
                 # Init iterations.
                 w   = np.zeros(Nx)  # Control vector for the mean state.
@@ -329,14 +329,14 @@ class Var4D:
 
                     # Assess forecast self.stats
                     if iteration == 0:
-                        self.stats.assess(k, kObs, 'f', mu=x, Cov=X@X.T)
+                        self.stats.assess(k, ko, 'f', mu=x, Cov=X@X.T)
 
                     # Observe.
                     Y  = HMM.Obs.linear(x, t) @ X
                     xo = HMM.Obs(x, t)
 
                     # Analysis prep.
-                    y      = yy[kObs]          # Get current HMM.Obs.
+                    y      = yy[ko]          # Get current HMM.Obs.
                     dy     = Rm12 @ (y - xo)   # Transform HMM.Obs space.
                     Y      = Rm12 @ Y          # Transform HMM.Obs space.
                     V, s, UT = svd0(Y.T)       # Decomp for lin-alg update comps.
@@ -355,8 +355,8 @@ class Var4D:
 
                 # Assess (analysis) self.stats.
                 final_increment = X@dw
-                self.stats.assess(k, kObs, 'a', mu=x+final_increment, Cov=X@Cow1@X.T)
-                self.stats.iters[kObs] = iteration+1
+                self.stats.assess(k, ko, 'a', mu=x+final_increment, Cov=X@Cow1@X.T)
+                self.stats.iters[ko] = iteration+1
 
                 # Final (smoothed) estimate at [kLag].
                 x = x0 + B12@w

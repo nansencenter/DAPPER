@@ -33,7 +33,7 @@ class ExtKF:
 
         self.stats.assess(0, mu=mu, Cov=P)
 
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker):
 
             mu = HMM.Dyn(mu, t-dt, dt)
             F  = HMM.Dyn.linear(mu, t-dt, dt)
@@ -42,18 +42,18 @@ class ExtKF:
             # Of academic interest? Higher-order linearization:
             # mu_i += 0.5 * (Hessian[f_i] * P).sum()
 
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', mu=mu, Cov=P)
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', mu=mu, Cov=P)
                 H  = HMM.Obs.linear(mu, t)
                 KG = mrdiv(P @ H.T, H@P@H.T + R)
-                y  = yy[kObs]
+                y  = yy[ko]
                 mu = mu + KG@(y - HMM.Obs(mu, t))
                 KH = KG@H
                 P  = (np.eye(HMM.Dyn.M) - KH) @ P
 
-                self.stats.trHK[kObs] = KH.trace()/HMM.Dyn.M
+                self.stats.trHK[ko] = KH.trace()/HMM.Dyn.M
 
-            self.stats.assess(k, kObs, mu=mu, Cov=P)
+            self.stats.assess(k, ko, mu=mu, Cov=P)
 
 
 # TODO 5: Clean up
@@ -84,7 +84,7 @@ class ExtRTS:
         self.stats.assess(0, mu=mu[0], Cov=P[0])
 
         # Forward pass
-        for k, kObs, t, dt in progbar(HMM.tseq.ticker, 'ExtRTS->'):
+        for k, ko, t, dt in progbar(HMM.tseq.ticker, 'ExtRTS->'):
             mu[k]  = HMM.Dyn(mu[k-1], t-dt, dt)
             F      = HMM.Dyn.linear(mu[k-1], t-dt, dt)
             P[k]   = self.infl**(dt)*(F@P[k-1]@F.T) + dt*Q
@@ -94,15 +94,15 @@ class ExtRTS:
             Pf[k]  = P[k]
             Ff[k]  = F
 
-            if kObs is not None:
-                self.stats.assess(k, kObs, 'f', mu=mu[k], Cov=P[k])
+            if ko is not None:
+                self.stats.assess(k, ko, 'f', mu=mu[k], Cov=P[k])
                 H     = HMM.Obs.linear(mu[k], t)
                 KG    = mrdiv(P[k] @ H.T, H@P[k]@H.T + R)
-                y     = yy[kObs]
+                y     = yy[ko]
                 mu[k] = mu[k] + KG@(y - HMM.Obs(mu[k], t))
                 KH    = KG@H
                 P[k]  = (np.eye(Nx) - KH) @ P[k]
-                self.stats.assess(k, kObs, 'a', mu=mu[k], Cov=P[k])
+                self.stats.assess(k, ko, 'a', mu=mu[k], Cov=P[k])
 
         # Backward pass
         for k in progbar(range(HMM.tseq.K)[::-1], 'ExtRTS<-'):

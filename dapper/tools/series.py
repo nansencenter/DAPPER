@@ -198,8 +198,8 @@ class FAUSt(DataSeries, StatPrint):
 
     Series can also be indexed as in
 
-        self[kObs,'a']
-        self[whatever,kObs,'a']
+        self[ko,'a']
+        self[whatever,ko,'a']
         # ... and likewise for 'f' and 's'. For 'u', can use:
         self[k,'u']
         self[k,whatever,'u']
@@ -230,7 +230,7 @@ class FAUSt(DataSeries, StatPrint):
     store_u    = property(lambda self: len(self.u) > 1)
 
     def _ind(self, key):
-        """Aux function to unpack `key` (`k,kObs,faus`)"""
+        """Aux function to unpack `key` (`k,ko,faus`)"""
         if key[-1] == 'u':
             return key[0] if self.store_u else 0
         else:

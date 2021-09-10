@@ -20,7 +20,7 @@ class Chronology():
         tt:    0.0    0.2    0.4    0.6    0.8    1.0    T
         kk:    0      1      2      3      4      5      K
                |------|------|------|------|------|------|
-        kObs:  None   None   0      None   1      None   KO
+        ko:  None   None   0      None   1      None   KO
         kko:               2             4             6
                              <----dko---->
 
@@ -191,18 +191,18 @@ class Chronology():
     def ticker(self):
         """Fancy version of `range(1,K+1)`.
 
-        Also yields `t`, `dt`, and `kObs`.
+        Also yields `t`, `dt`, and `ko`.
         """
         tckr = Ticker(self.tt, self.kko)
         next(tckr)
         return tckr
 
-    def cycle(self, kObs):
-        """The range (in `kk`) between observation `kObs-1` and `kObs`.
+    def cycle(self, ko):
+        """The range (in `kk`) between observation `ko-1` and `ko`.
 
         Also yields `t` and `dt`.
         """
-        for k in kObs * self.dko + np.arange(1, self.dko+1):
+        for k in ko * self.dko + np.arange(1, self.dko+1):
             t  = self.tt[k]
             dt = t - self.tt[k-1]
             yield k, t, dt
@@ -231,11 +231,11 @@ class Chronology():
 
 
 class Ticker:
-    """Iterator over kk and `kko`, yielding `(k,kObs,t,dt)`.
+    """Iterator over kk and `kko`, yielding `(k,ko,t,dt)`.
 
     Includes `__len__` for progressbar usage.
 
-    `kObs = kko.index(k)`, or `None` otherwise,
+    `ko = kko.index(k)`, or `None` otherwise,
     but computed without this repeated look-up operation.
     """
 
@@ -269,14 +269,14 @@ class Ticker:
         return item
 
 
-def format_time(k, kObs, t):
+def format_time(k, ko, t):
     if k is None:
         k    = "init"
         t    = "init"
-        kObs = "N/A"
+        ko = "N/A"
     else:
         t    = "   t=%g" % t
         k    = "   k=%d" % k
-        kObs = "kObs=%s" % kObs
-    s = "\n".join([t, k, kObs])
+        ko = "ko=%s" % ko
+    s = "\n".join([t, k, ko])
     return s
