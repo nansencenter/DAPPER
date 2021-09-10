@@ -183,37 +183,23 @@ class Stats(series.StatPrint):
         # Initial consistency checks.
         if k == 0:
             if kObs is not None:
-                raise KeyError("DAPPER convention: no obs at t=0."
-                               " Helps avoid bugs.")
-            if faus is None:
-                faus = 'u'
+                raise KeyError("DAPPER convention: no obs at t=0. Helps avoid bugs.")
             if self._is_ens == True:
                 if E is None:
-                    raise TypeError(
-                        "Expected ensemble input but E is None")
+                    raise TypeError("Expected ensemble input but E is None")
                 if mu is not None:
-                    raise TypeError(
-                        "Expected ensemble input but mu/Cov is not None")
+                    raise TypeError("Expected ensemble input but mu/Cov is not None")
             else:
                 if E is not None:
-                    raise TypeError(
-                        "Expected mu/Cov input but E is not None")
+                    raise TypeError("Expected mu/Cov input but E is not None")
                 if mu is None:
-                    raise TypeError(
-                        "Expected mu/Cov input but mu is None")
+                    raise TypeError("Expected mu/Cov input but mu is None")
 
         # Default. Don't add more defaults. It just gets confusing.
         if faus is None:
             faus = 'u' if kObs is None else 'au'
 
-        # Select assessment call and arguments
-        if self._is_ens:
-            _assess = self.assess_ens
-            _prms   = {'E': E, 'w': w}
-        else:
-            _assess = self.assess_ext
-            _prms   = {'mu': mu, 'P': Cov}
-
+        # TODO 4: don't need to re-compute stats?
         for sub in faus:
 
             # Skip assessment if ('u' and stats not stored or plotted)
@@ -227,7 +213,10 @@ class Stats(series.StatPrint):
 
                 # Assess
                 stats_now = Avrgs()
-                _assess(stats_now, self.xx[k], **_prms)
+                if self._is_ens:
+                    self.assess_ens(stats_now, self.xx[k], E, w)
+                else:
+                    self.assess_ext(stats_now, self.xx[k], mu, Cov)
                 self.derivative_stats(stats_now)
                 self.summarize_marginals(stats_now)
 
@@ -257,7 +246,7 @@ class Stats(series.StatPrint):
                         now[statpath] = formula(field)
 
     def derivative_stats(self, now):
-        """Stats that derive from others (=> not specific for _ens or _ext)."""
+        """Stats that derive from others, and are not specific for `_ens` or `_ext`)."""
         now.gscore = 2*np.log(now.spread) + (now.err/now.spread)**2
 
     def assess_ens(self, now, x, E, w):
