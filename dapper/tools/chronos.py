@@ -246,8 +246,8 @@ class Ticker:
 
     def reset(self):
         self.k   = 0
-        self._kO = 0
-        self.kO  = None
+        self._ko = 0
+        self.ko  = None
 
     def __len__(self):
         return len(self.tt) - self.k
@@ -259,14 +259,14 @@ class Ticker:
             raise StopIteration
         t    = self.tt[self.k]
         dt   = t - self.tt[self.k-1] if self.k > 0 else np.NaN
-        tple = (self.k, self.kO, t, dt)
+        item = (self.k, self.ko, t, dt)
         self.k += 1
-        if self._kO < len(self.kkO) and self.k == self.kkO[self._kO]:
-            self.kO = self._kO
-            self._kO += 1
+        if self._ko < len(self.kkO) and self.k == self.kkO[self._ko]:
+            self.ko = self._ko
+            self._ko += 1
         else:
-            self.kO = None
-        return tple
+            self.ko = None
+        return item
 
 
 def format_time(k, kObs, t):
