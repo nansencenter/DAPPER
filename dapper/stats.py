@@ -44,7 +44,8 @@ class Stats(series.StatPrint):
         self.yy        = yy
         self.liveplots = liveplots
         self.store_u   = store_u
-        self.store_s   = hasattr(xp, 'Lag')
+        self.store_s   = any(key in xp.__dict__ for key in
+                             ["Lag", "DeCorr"])  # prms used by smoothers
 
         # Shapes
         K    = xx.shape[0]-1

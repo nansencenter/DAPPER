@@ -51,6 +51,10 @@ def L63_gen():
     xps += da.PartFilt(N=4000, reg=0.7, NER=0.05)
     xps += da.PFxN(xN=1000, N=30, Qs=2, NER=0.2)
 
+    xps += da.OptPF(N=100, Qs=2, reg=0.7, NER=0.3)
+    xps += da.EnKS("Serial", N=30, Lag=1)
+    xps += da.EnRTS("Serial", N=30, DeCorr=0.99)
+
     # Run
     xps.launch(HMM, False, store_u=True)
     return xps
@@ -72,6 +76,9 @@ L63_old = """
 10  PartFilt                      800               0.9  0.2   |     0.5229 ±0.0832     1.3370 ±0.4291     0.8152 ±0.2085
 11  PartFilt                     4000               0.7  0.05  |     0.2481 ±0.0474     0.6470 ±0.2298     0.3855 ±0.1051
 12  PFxN                           30         1000       0.2   |     0.5848 ±0.0926     0.9573 ±0.2248     0.7203 ±0.1870
+13  OptPF                         100               0.7  0.3   |     0.6577 ±0.1388     1.4330 ±0.4286     0.8705 ±0.2341
+14  EnKS          1     Serial     30  False                   |     0.6586 ±0.1577     1.1681 ±0.3682     0.5304 ±0.1671
+15  EnRTS         1     Serial     30  False                   |     0.9215 ±0.3187     2.3817 ±0.9076     0.7596 ±0.4891
 """[1:-1].splitlines(True)
 
 # Example use of pytest-benchmark

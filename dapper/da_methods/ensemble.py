@@ -411,7 +411,7 @@ class EnRTS:
 
     upd_a: str
     N: int
-    cntr: float
+    DeCorr: float
 
     def assimilate(self, HMM, xx, yy):
         E    = zeros((HMM.tseq.K+1, self.N, HMM.Dyn.M))
@@ -439,7 +439,7 @@ class EnRTS:
             Af = center(Ef[k+1])[0]
 
             J = tinv(Af) @ A
-            J *= self.cntr
+            J *= self.DeCorr
 
             E[k] += (E[k+1] - Ef[k+1]) @ J
 
