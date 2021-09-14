@@ -5,12 +5,10 @@ See `dapper.da_methods.da_method` for the strict definition of `xp`s.
 
 import copy
 import dataclasses as dcs
-import inspect
 import os
 import re
 import shutil
 import sys
-import traceback
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
@@ -132,15 +130,7 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
     hmm, xx, yy = setup(hmm, xp)
 
     # ASSIMILATE
-    try:
-        xp.assimilate(hmm, xx, yy, label, **stat_kwargs)
-    except Exception as ERR:
-        if fail_gently:
-            xp.crashed = True
-            if fail_gently not in ["silent", "quiet"]:
-                _print_cropped_traceback(ERR)
-        else:
-            raise ERR
+    xp.assimilate(hmm, xx, yy, label, fail_gently=fail_gently, **stat_kwargs)
 
     # Clear references to mpl (for pickling purposes)
     if hasattr(xp.stats, "LP_instance"):
@@ -158,41 +148,6 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
     if savedir:
         with open(Path(savedir)/"xp", "wb") as FILE:
             dill.dump({'xp': xp}, FILE)
-
-
-def _print_cropped_traceback(ERR):
-
-    # A more "standard" (robust) way:
-    # https://stackoverflow.com/a/32999522
-    def crop_traceback(ERR):
-        msg = "Traceback (most recent call last):\n"
-        try:
-            # If in IPython, use its coloring functionality
-            __IPYTHON__  # type: ignore
-        except (NameError, ImportError):
-            msg += "".join(traceback.format_tb(ERR.__traceback__))
-        else:
-            from IPython.core.debugger import Pdb
-            pdb_instance = Pdb()
-            pdb_instance.curframe = inspect.currentframe()
-
-            import dapper.da_methods
-            keep = False
-            for frame in traceback.walk_tb(ERR.__traceback__):
-                if keep:
-                    msg += pdb_instance.format_stack_entry(frame, context=3)
-                elif frame[0].f_code.co_filename == dapper.da_methods.__file__:
-                    keep = True
-                    msg += "   ⋮ [cropped] \n"
-
-        return msg
-
-    msg = crop_traceback(ERR) + "\nError message: " + str(ERR)
-    msg += ("\n\nResuming execution."
-            "\nIf instead you wish to raise the exceptions as usual,"
-            "\nwhich will halt the execution (and enable post-mortem debug),"
-            "\nthen use `fail_gently=False`")
-    print(msg, file=sys.stderr)
 
 
 def collapse_str(string, length=6):

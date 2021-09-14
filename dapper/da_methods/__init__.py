@@ -4,7 +4,10 @@
 """
 import dataclasses
 import functools
+import inspect
+import sys
 import time
+import traceback
 from dataclasses import dataclass
 
 import dapper.stats
@@ -98,17 +101,28 @@ def da_method(*default_dataclasses):
         # Create new class (NB: old/new classes have same id)
         cls = dataclass(cls)
 
-        # The new assimilate method
-        def assimilate(self, HMM, xx, yy, desc=None, **stat_kwargs):
+        # Define the new assimilate method (has bells and whistles)
+        def assimilate(self, HMM, xx, yy, desc=None, fail_gently=False, **stat_kwargs):
             # Progressbar name
             pb_name_hook = self.da_method if desc is None else desc # noqa
+
             # Init stats
             self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
+
             # Assimilate
-            time_start = time.time()
-            _assimilate(self, HMM, xx, yy)
-            dapper.stats.register_stat(
-                self.stats, "duration", time.time()-time_start)
+            time0 = time.time()
+            try:
+                _assimilate(self, HMM, xx, yy)
+            except Exception as ERR:
+                if fail_gently:
+                    self.crashed = True
+                    if fail_gently not in ["silent", "quiet"]:
+                        _print_cropped_traceback(ERR)
+                else:
+                    # Don't use _print_cropped_traceback here -- It would
+                    # crop out errors in the DAPPER infrastructure itself.
+                    raise ERR
+            self.stat("duration", time.time()-time0)
 
         # Overwrite the assimilate method with the new one
         try:
@@ -130,6 +144,41 @@ def da_method(*default_dataclasses):
 
         return cls
     return dataclass_with_defaults
+
+
+def _print_cropped_traceback(ERR):
+
+    # A more "standard" (robust) way:
+    # https://stackoverflow.com/a/32999522
+    def crop_traceback(ERR):
+        msg = "Traceback (most recent call last):\n"
+        try:
+            # If in IPython, use its coloring functionality
+            __IPYTHON__  # type: ignore
+        except (NameError, ImportError):
+            msg += "".join(traceback.format_tb(ERR.__traceback__))
+        else:
+            from IPython.core.debugger import Pdb
+            pdb_instance = Pdb()
+            pdb_instance.curframe = inspect.currentframe()
+
+            import dapper.da_methods
+            keep = False
+            for frame in traceback.walk_tb(ERR.__traceback__):
+                if keep:
+                    msg += pdb_instance.format_stack_entry(frame, context=3)
+                elif frame[0].f_code.co_filename == dapper.da_methods.__file__:
+                    keep = True
+                    msg += "   ⋮ [cropped] \n"
+
+        return msg
+
+    msg = crop_traceback(ERR) + "\nError message: " + str(ERR)
+    msg += ("\n\nResuming execution."
+            "\nIf instead you wish to raise the exceptions as usual,"
+            "\nwhich will halt the execution (and enable post-mortem debug),"
+            "\nthen use `fail_gently=False`")
+    print(msg, file=sys.stderr)
 
 
 from .baseline import Climatology, OptInterp, Var3D
