@@ -127,13 +127,16 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         xx    = np.zeros((tseq.K   + 1, Dyn.M))
         yy    = np.zeros((tseq.Ko+1, Obs.M))
 
-        xx[0] = X0.sample(1)
+        x = X0.sample(1)
+        xx[0] = x
 
         # Loop
         for k, ko, t, dt in pb.progbar(tseq.ticker, desc):
-            xx[k] = Dyn(xx[k-1], t-dt, dt) + np.sqrt(dt)*Dyn.noise.sample(1)
+            x = Dyn(x, t-dt, dt)
+            x = x + np.sqrt(dt)*Dyn.noise.sample(1)
             if ko is not None:
-                yy[ko] = Obs(xx[k], t) + Obs.noise.sample(1)
+                yy[ko] = Obs(x, t) + Obs.noise.sample(1)
+            xx[k] = x
 
         return xx, yy
 
