@@ -9,6 +9,9 @@
 data_root: "~"
 
 # Methods used to average multivariate ("field") stats
+# PS: If the model is computationally trivial, the stats
+# computations take up most time. Therefore, not all of
+# these are activated by default.
 field_summaries:
   - m    # plain mean
   #- ms   # mean-square
