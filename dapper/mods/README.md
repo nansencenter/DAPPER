@@ -20,8 +20,9 @@ To make sure this is working, we suggest the following structure:
     - Typically, this culminates in a `step(x, t, dt)` function,
       which defines the dynamical model/system mapping the state `x`
       from one time `t` to another `t + dt`.
-      This model "operator" must support
-      2D-array (i.e. ensemble) and 1D-array (single realization) input.
+      This model "operator" must support 2D-array (i.e. ensemble)
+      and 1D-array (single realization) input, and return output of the same
+      number of dimensions (as the input).
       See
 
         - `dapper.mods.Lorenz63`: use of `ens_compatible`.
