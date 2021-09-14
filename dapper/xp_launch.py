@@ -5,6 +5,7 @@ See `dapper.da_methods.da_method` for the strict definition of `xp`s.
 
 import copy
 import dataclasses as dcs
+from functools import wraps
 import os
 import re
 import shutil
@@ -404,11 +405,8 @@ class xpList(list):
 
         return table.splitlines()
 
+    @wraps(dapper.stats.tabulate_avrgs)
     def tabulate_avrgs(self, *args, **kwargs):
-        """Pretty (tabulated) `repr` of `xps` **and** their `avrgs.`
-
-        Similar to `stats.tabulate_avrgs`, but for the entire list of `xps`.
-        """
         distinct, redundant, common = self.split_attrs()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
