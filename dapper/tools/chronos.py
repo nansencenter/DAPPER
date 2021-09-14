@@ -185,6 +185,14 @@ class Chronology():
         """Example use: `kko_BI = kko[masko]`"""
         return self.tto > self.BurnIn
 
+    @property
+    def iBurnIn(self):
+        return self.mask.nonzero()[0][0]
+
+    @property
+    def ioBurnIn(self):
+        return self.masko.nonzero()[0][0]
+
     ######################################
     # Other
     ######################################
