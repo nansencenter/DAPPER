@@ -1,6 +1,8 @@
 """Load default and user configurations into the `rc` dict.
 
-This includes disabling liveplotting if necessary.
+The `rc` dict can be updated (after startup) as any normal dict. See the
+[source](https://github.com/nansencenter/DAPPER/blob/master/dapper/dpr_config.yaml)
+for the default configuration.
 """
 
 import os
