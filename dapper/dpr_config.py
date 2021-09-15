@@ -20,14 +20,21 @@ dapper_dir = Path(__file__).absolute().parent
 rc = DotDict()
 rc.loaded_from = []
 for d in [dapper_dir, "~", "~/.config", "."]:
-    d = Path(d).expanduser()
+    d = Path(d).expanduser().absolute()
     for prefix in [".", ""]:
         f = d / (prefix+"dpr_config.yaml")
         if f.is_file():
             dct = yaml.load(open(f), Loader=yaml.SafeLoader)
             rc.loaded_from.append(str(f))
             if dct:
-                rc.update(dct)
+                if d == dapper_dir:
+                    rc.update(dct)
+                else:
+                    for k in dct:
+                        if k in rc:
+                            rc[k] = dct[k]
+                        else:
+                            print(f"Warning: invalid key '{k}' in '{f}'")
 
 
 ##################################
