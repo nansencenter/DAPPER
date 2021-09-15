@@ -20,9 +20,9 @@ field_summaries:
   #- gm   # geometric mean
 
 # Curtail heavy computations
-comp_threshold_a: -1
-comp_threshold_b: 51
-comp_threshold_c: -1
+comps:
+  error_only: False
+  max_spectral: 51
 
 sigfig: 4             # Default significant figures
 store_u: no           # Store stats between analysis times?

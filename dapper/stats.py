@@ -97,11 +97,11 @@ class Stats(series.StatPrint):
 
             self._is_ens = True
             minN = min(Nx, N)
-            self.do_spectral  = np.sqrt(Nx*N) <= rc.comp_threshold_b
+            self.do_spectral  = np.sqrt(Nx*N) <= rc.comps["max_spectral"]
         else:
             self._is_ens = False
             minN = Nx
-            self.do_spectral = Nx <= rc.comp_threshold_b
+            self.do_spectral = Nx <= rc.comps["max_spectral"]
 
         if self.do_spectral:
             # Note: the mean-field and RMS time-series of
@@ -249,7 +249,11 @@ class Stats(series.StatPrint):
 
     def derivative_stats(self, now):
         """Stats that derive from others, and are not specific for `_ens` or `_ext`)."""
-        now.gscore = 2*np.log(now.spread) + (now.err/now.spread)**2
+        try:
+            now.gscore = 2*np.log(now.spread) + (now.err/now.spread)**2
+        except AttributeError:
+            # happens in case rc.comps['error_only']
+            pass
 
     def assess_ens(self, now, x, E, w):
         """Ensemble and Particle filter (weighted/importance) assessment."""
@@ -260,18 +264,25 @@ class Stats(series.StatPrint):
             w = np.ones(N)/N  # All equal. Also, rm attr from stats:
             if hasattr(self, 'w'):
                 delattr(self, 'w')
+            # Use non-weight formula (since w=None) for mu computations.
+            # The savings are noticeable when rc.comps['error_only'] is noticeable.
+            now.mu = E.mean(0)
         else:
             now.w = w
             if abs(w.sum()-1) > 1e-5:
                 raise RuntimeError("Weights did not sum to one.")
+            now.mu = w @ E
+
         # Crash checks
         if not np.all(np.isfinite(E)):
             raise RuntimeError("Ensemble not finite.")
         if not np.all(np.isreal(E)):
             raise RuntimeError("Ensemble not Real.")
 
-        now.mu  = w @ E
+        # Compute errors
         now.err = now.mu - x
+        if rc.comps['error_only']:
+            return
 
         A = E - now.mu
         # While A**2 is approx as fast as A*A,
@@ -325,9 +336,13 @@ class Stats(series.StatPrint):
             raise RuntimeError("Estimates not Real.")
         # Don't check the cov (might not be explicitly availble)
 
+        # Compute errors
         now.mu  = mu
         now.err = now.mu - x
+        if rc.comps['error_only']:
+            return
 
+        # Compute standard deviation ("Spread")
         var = P.diag if isinstance(P, CovMat) else np.diag(P)
         now.spread = np.sqrt(var)
 
