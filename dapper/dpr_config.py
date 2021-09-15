@@ -4,7 +4,6 @@ This includes disabling liveplotting if necessary.
 """
 
 import os
-import sys
 from pathlib import Path
 
 import matplotlib as mpl
@@ -18,7 +17,7 @@ from struct_tools import DotDict
 dapper_dir = Path(__file__).absolute().parent
 rc = DotDict()
 rc.loaded_from = []
-for d in [dapper_dir, "~", "~/.config", sys.path[0]]:
+for d in [dapper_dir, "~", "~/.config", "."]:
     d = Path(d).expanduser()
     for prefix in [".", ""]:
         f = d / (prefix+"dpr_config.yaml")
