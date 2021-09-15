@@ -200,7 +200,8 @@ class Stats(series.StatPrint):
         if faus is None:
             faus = 'u' if ko is None else 'au'
 
-        # TODO 4: don't need to re-compute stats?
+        # TODO 4: for faus="au" (e.g.) we don't need to re-**compute** stats,
+        #         merely re-write them?
         for sub in faus:
 
             # Skip assessment if ('u' and stats not stored or plotted)
@@ -254,6 +255,7 @@ class Stats(series.StatPrint):
         """Ensemble and Particle filter (weighted/importance) assessment."""
         N, Nx = E.shape
 
+        # weights
         if w is None:
             w = np.ones(N)/N  # All equal. Also, rm attr from stats:
             if hasattr(self, 'w'):
@@ -262,6 +264,7 @@ class Stats(series.StatPrint):
             now.w = w
             if abs(w.sum()-1) > 1e-5:
                 raise RuntimeError("Weights did not sum to one.")
+        # Crash checks
         if not np.all(np.isfinite(E)):
             raise RuntimeError("Ensemble not finite.")
         if not np.all(np.isreal(E)):
