@@ -91,19 +91,19 @@ class Stats(series.StatPrint):
         self.new_series('kurt', 1)  # Kurtosis
 
         if hasattr(xp, 'N'):
-            N            = xp.N
+            N = xp.N
             self.new_series('w', N, field_mean=True)  # Importance weights
             self.new_series('rh', Nx, dtype=int)  # Rank histogram
 
             self._is_ens = True
-            minN         = min(Nx, N)
-            do_spectral  = np.sqrt(Nx*N) <= rc.comp_threshold_b
+            minN = min(Nx, N)
+            self.do_spectral  = np.sqrt(Nx*N) <= rc.comp_threshold_b
         else:
             self._is_ens = False
-            minN         = Nx
-            do_spectral  = Nx <= rc.comp_threshold_b
+            minN = Nx
+            self.do_spectral = Nx <= rc.comp_threshold_b
 
-        if do_spectral:
+        if self.do_spectral:
             # Note: the mean-field and RMS time-series of
             # (i) svals and (ii) umisf should match the corresponding series of
             # (i) spread and (ii) err.
@@ -296,7 +296,7 @@ class Stats(series.StatPrint):
 
         now.mad  = np.nanmean(w @ abs(A))
 
-        if hasattr(self, 'svals'):
+        if self.do_spectral:
             if N <= Nx:
                 _, s, UT  = sla.svd((np.sqrt(w)*A.T).T, full_matrices=False)
                 s        *= np.sqrt(ub)  # Makes s^2 unbiased
@@ -331,7 +331,7 @@ class Stats(series.StatPrint):
         # Here, sqrt(2/pi) is the ratio, of MAD/Spread for Gaussians
         now.mad = np.nanmean(now.spread) * np.sqrt(2/np.pi)
 
-        if hasattr(self, 'svals'):
+        if self.do_spectral:
             P         = P.full if isinstance(P, CovMat) else P
             s2, U     = sla.eigh(P)
             now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
