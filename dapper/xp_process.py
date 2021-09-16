@@ -16,11 +16,12 @@ import numpy as np
 import struct_tools
 from matplotlib import cm, ticker
 from mpl_tools import place
-from patlib.std import set_tmp
+from patlib.std import nonchalance, set_tmp
 from tabulate import tabulate
 from tqdm.auto import tqdm
 
 import dapper.tools.remote.uplink as uplink
+from dapper.dpr_config import rc
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.rounding import UncertainQtty
@@ -987,10 +988,12 @@ class xpSpace(SparseSpace):
 
         # Title
         fig = panels[0, 0].figure
-        fig_title = "Average wrt. time"
+        fig_title = "Averages wrt. time"
         if axes["mean"] is not None:
             fig_title += f" and {axes['mean']}"
         if title2 is not None:
+            with nonchalance():
+                title2 = title2.relative_to(rc.dirs["data"])
             fig_title += "\n" + str(title2)
         fig.suptitle(fig_title)
 
