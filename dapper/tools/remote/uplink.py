@@ -12,6 +12,7 @@ import time
 from datetime import timedelta, timezone
 
 from dateutil.parser import parse as datetime_parse
+from patlib.std import sorted_human
 from tqdm import tqdm
 
 from dapper.dpr_config import rc
@@ -308,8 +309,10 @@ def _monitor_progress(self):
 
 
 def list_job_dirs(xps_path):
-    dirs = [xps_path/d for d in sorted(os.listdir(xps_path))]
-    return [d for d in dirs if d.is_dir() and d.stem.isnumeric()]
+    dirs = sorted_human(os.listdir(xps_path))
+    dirs = [xps_path/d for d in dirs]
+    dirs = [d for d in dirs if d.is_dir() and d.stem.isnumeric()]
+    return dirs
 
 
 def get_ip(instance):
