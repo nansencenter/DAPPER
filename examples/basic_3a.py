@@ -56,7 +56,7 @@ params = dict(
     rot      = [True, False],
     loc_rad  = dpr.round2sigfig([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]], 2),
 )
-# Combines all the params suitable for a method. Faster than "manual" for-loops.
+# Combines all the params suitable for a method. See doc for dpr.combinator.
 for_params = dpr.combinator(params, seed=3000+np.arange(10), F=[8, 10])
 
 xps = dpr.xpList()

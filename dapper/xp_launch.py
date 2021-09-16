@@ -565,15 +565,21 @@ class xpList(list):
 
 
 def combinator(param_dict, **glob_dict):
-    """Mass creation of `xp`'s by combining the value lists in the parameter dicts.
+    """Mass creation of `xp`'s by combining the value lists in the `param_dict`.
 
-    The parameters are trimmed to the ones available for the given method.
-    This is a good deal more efficient than relying on `xpList`'s `unique=True`.
+    Returns a function (`for_params`) that creates all possible combinations
+    of parameters (from their value list) for a given `dapper.da_methods.da_method`.
+    This is a good deal more efficient than relying on `xpList`'s `unique`. Parameters
+
+    - not found among the args of the given DA method are ignored by `for_params`.
+    - specified as keywords to the `for_params` fix the value
+      preventing using the corresponding (if any) value list in the `param_dict`.
+
 
     .. caution::
-        Beware! If, eg., `infl` or `rot` are in the param_dict, aimed at the EnKF,
+        Beware! If, eg., `infl` or `rot` are in `param_dict`, aimed at the `EnKF`,
         but you forget that they are also attributes some method where you don't
-        actually want to use them (eg. SVGDF),
+        actually want to use them (eg. `SVGDF`),
         then you'll create many more than you intend.
     """
     def for_params(method, **fixed_params):
