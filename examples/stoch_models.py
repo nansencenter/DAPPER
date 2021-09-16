@@ -75,8 +75,8 @@ save_as = xps.launch(HMMs(), __file__, setup=setup)
 # save_as /= dpr.find_latest_run(save_as)
 # xps = dpr.load_xps(save_as)
 
-# print(dpr.xpList(xps).tabulate_avrgs())
 # Flat/long/list print
+# print(dpr.xpList(xps).tabulate_avrgs())
 # -
 
 
