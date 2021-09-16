@@ -89,7 +89,7 @@ if mp:
 # Print as a flat list (as in basic_2.py)
 # print(dpr.xpList(xps).tabulate_avrgs(statkeys=["rmse.a","rmv.a"]))
 
-# Associate each control variable with a coordinate/dimension
+# Associate each control variable with a "coordinate"
 xp_dict = dpr.xpSpace.from_list(xps)
 
 # Print, split into tables by `outer` (also try None), and columns by `inner`.

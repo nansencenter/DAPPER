@@ -15,7 +15,7 @@ save_as /= dpr.find_latest_run(save_as)
 xps = dpr.load_xps(save_as)
 xp_dict = dpr.xpSpace.from_list(xps)
 
-# Single out (highlight) particular settings, to add to the plot.
+# Single out (highlight) particular settings, to add as a line to the plot.
 # Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
 #       as well as rot=True (better scores can be obtained without rot).
 highlight = xp_dict.label_xSection
