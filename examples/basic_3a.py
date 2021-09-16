@@ -79,3 +79,20 @@ mp = False     # 1 CPU only
 
 scriptname = "basic_3"  # since __file__ does not work in Jupyter
 save_as = xps.launch(HMM, scriptname, mp, setup=setup)
+
+
+# #### Print results
+
+# Load data
+if mp:
+    xps = dpr.load_xps(save_as)
+# Print as a flat list (as in basic_2.py)
+# print(dpr.xpList(xps).tabulate_avrgs(statkeys=["rmse.a","rmv.a"]))
+
+# Associate each control variable with a coordinate/dimension
+xp_dict = dpr.xpSpace.from_list(xps)
+
+# Print, split into tables by `outer` (also try None), and columns by `inner`.
+tunable = {'loc_rad', 'infl', 'xB', 'rot'}
+axes = dict(outer="F", inner="N", mean="seed", optim=tunable)
+xp_dict.print("rmse.a", axes, subcols=False)

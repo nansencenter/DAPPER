@@ -1,4 +1,4 @@
-# ## Present the results generated in example basic_3a
+# ## Plot the results generated in example basic_3a
 #
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,41 +11,34 @@ save_as = dpr.rc.dirs.data / "basic_3"
 # save_as /= "run_2020-11-11__20-36-36"
 save_as /= dpr.find_latest_run(save_as)
 
-# +
 # Load
 xps = dpr.load_xps(save_as)
-
-# Prints all
-# print(dpr.xpList(xps).tabulate_avrgs(statkeys=["rmse.a","rmv.a"]))
-# -
-
-# Associate each control variable with a coordinate/dimension
 xp_dict = dpr.xpSpace.from_list(xps)
 
-# Single out (highlight) particular settings.
+# Single out (highlight) particular settings, to add to the plot.
 # Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
 #       as well as rot=True (better scores can be obtained without rot).
 highlight = xp_dict.label_xSection
 highlight('NO-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
 highlight('NO-infl/loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
 
-# Print, with columns: `inner`. Also try setting `outer=None`.
+# Print as in basic_3a.py
 tunable = {'loc_rad', 'infl', 'xB', 'rot'}
 axes = dict(outer="F", inner="N", mean="seed", optim=tunable)
-xp_dict.print("rmse.a", axes, subcols=False)
+# xp_dict.print("rmse.a", axes, subcols=False)
 
 
 def get_style(coord):
-    """Quick and dirty styling."""
+    """Define linestyle rules."""
     S = default_styles(coord, True)
     if coord.da_method == "EnKF":
         upd_a = getattr(coord, "upd_a", None)
         if upd_a == "PertObs":
-            S.c = "C2"
+            S.color = "C2"
         elif upd_a == "Sqrt":
-            S.c = "C1"
+            S.color = "C1"
     elif coord.da_method == "LETKF":
-        S.c = "C3"
+        S.color = "C3"
     if getattr(coord, "rot", False):
         S.marker = "+"
     Const = getattr(coord, "Const", False)
