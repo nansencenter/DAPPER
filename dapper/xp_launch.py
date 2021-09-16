@@ -575,7 +575,6 @@ def combinator(param_dict, **glob_dict):
     - specified as keywords to the `for_params` fix the value
       preventing using the corresponding (if any) value list in the `param_dict`.
 
-
     .. caution::
         Beware! If, eg., `infl` or `rot` are in `param_dict`, aimed at the `EnKF`,
         but you forget that they are also attributes some method where you don't
