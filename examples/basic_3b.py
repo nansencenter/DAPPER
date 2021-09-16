@@ -16,7 +16,7 @@ save_as /= dpr.find_latest_run(save_as)
 xps = dpr.load_xps(save_as)
 
 # Prints all
-# dpr.xpList(xps).print_avrgs(statkeys=["rmse.a","rmv.a"])
+# print(dpr.xpList(xps).tabulate_avrgs(statkeys=["rmse.a","rmv.a"]))
 # -
 
 # Associate each control variable with a coordinate/dimension
