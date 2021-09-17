@@ -17,24 +17,32 @@ import struct_tools
 from matplotlib import cm, ticker
 from mpl_tools import place
 from patlib.std import nonchalance, set_tmp
+from struct_tools import DotDict
 from tabulate import tabulate
 from tqdm.auto import tqdm
 
 import dapper.tools.remote.uplink as uplink
-from dapper.dpr_config import rc
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import axis_scale_by_array
 from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
+from dapper.dpr_config import rc
 
 mpl_logger = logging.getLogger('matplotlib')
 
+
+class NoneDict(DotDict):
+    """DotDict with getattr fallback (None)."""
+
+    def __getattr__(self, name):
+        return None
+
+
 NO_KEY = ("da_method", "Const", "upd_a")
-
-
-def make_label(coord, no_key=NO_KEY, exclude=()):
-    dct = {a: v for a, v in coord._asdict().items() if v != None}
+def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
+    """Make label from coord."""
+    dct = {a: v for a, v in coord.items() if v != None}
     lbl = ''
     for k, v in dct.items():
         if k not in exclude:
@@ -47,43 +55,39 @@ def make_label(coord, no_key=NO_KEY, exclude=()):
 
 def default_styles(coord, baseline_legends=False):
     """Quick and dirty (but somewhat robust) styling."""
-    style = struct_tools.DotDict(ms=8)
+    style = DotDict(ms=8)
     style.label = make_label(coord)
 
-    try:
-        if coord.da_method == "Climatology":
-            style.ls = ":"
-            style.c = "k"
-            if not baseline_legends:
-                style.label = None
+    if coord.da_method == "Climatology":
+        style.ls = ":"
+        style.c = "k"
+        if not baseline_legends:
+            style.label = None
 
-        elif coord.da_method == "OptInterp":
-            style.ls = ":"
-            style.c = .7*np.ones(3)
-            style.label = "Opt. Interp."
-            if not baseline_legends:
-                style.label = None
+    elif coord.da_method == "OptInterp":
+        style.ls = ":"
+        style.c = .7*np.ones(3)
+        style.label = "Opt. Interp."
+        if not baseline_legends:
+            style.label = None
 
-        elif coord.da_method == "Var3D":
-            style.ls = ":"
-            style.c = .5*np.ones(3)
-            style.label = "3D-Var"
-            if not baseline_legends:
-                style.label = None
+    elif coord.da_method == "Var3D":
+        style.ls = ":"
+        style.c = .5*np.ones(3)
+        style.label = "3D-Var"
+        if not baseline_legends:
+            style.label = None
 
-        elif coord.da_method == "EnKF":
-            style.marker = "*"
-            style.c = "C1"
+    elif coord.da_method == "EnKF":
+        style.marker = "*"
+        style.c = "C1"
 
-        elif coord.da_method == "PartFilt":
-            style.marker = "X"
-            style.c = "C2"
+    elif coord.da_method == "PartFilt":
+        style.marker = "X"
+        style.c = "C2"
 
-        else:
-            style.marker = "."
-
-    except AttributeError:
-        pass
+    else:
+        style.marker = "."
 
     return style
 
@@ -263,19 +267,17 @@ class SparseSpace(dict):
 
     Like a normal `dict`, it can hold any type of objects.
     But, since the keys must conform, they effectively follow a coordinate system,
-    i.e. vector **space**.
-    Indeed, when seen as an data format for nd-arrays, it may be called
+    so that the `dict` becomes a vector **space**.
+
+    The coordinate system is specified by the `axes`:
+    a list of keys defining the `namedtuple` of `self.Coord`.
+
+    In intended usage, this space is highly sparse,
+    meaning there are many coordinates with no entry.
+    Indeed, as a data format for nd-arrays, it may be called
     "coordinate list representation", used e.g. by `scipy.sparse.coo_matrix`.
 
-    The coordinate system is specified by its "axes":
-    a list of attributes defining the `namedtuple` `self.Coord`,
-    whose instances are the coordinates of the data.
-
-    In normal use, this space is highly sparse,
-    coz there are many coordinates with no matching experiment,
-    eg. `coord(da_method=Climatology, rot=True, ...)`.
-
-    Indeed, operations across (potentially multiple) axes,
+    Thus, operations across (potentially multiple) axes,
     such as optimization or averaging, should be carried out by iterating
     -- not over the axes -- but over the the list of items.
 
@@ -303,7 +305,7 @@ class SparseSpace(dict):
     def axes(self):
         return self.Coord._fields
 
-    def __init__(self, axes, *args, **kwargs):
+    def __init__(self, axes):
         """Usually initialized through `xpSpace`.
 
         Parameters
@@ -317,11 +319,13 @@ class SparseSpace(dict):
         # Define coordinate system
         self.Coord = collections.namedtuple('Coord', axes)
         # Write dict
-        self.update(*args, **kwargs)
+        # self.update(*args, **kwargs)
+
         # Add repr/str
-        self.Coord.__repr__ = lambda c: ",".join(
-            f"{k}={v!r}" for k, v in zip(c._fields, c))
-        self.Coord.__str__  = lambda c: ",".join(str(v) for v in c)
+        self.Coord.__repr__ = lambda c: \
+            "(" + ", ".join(f"{k}={v!r}" for k, v in zip(c._fields, c)) + ")"
+        self.Coord.__str__  = lambda c: \
+            "(" + ", ".join(str(v) for v in c) + ")"
 
     def update(self, *args, **kwargs):
         """Update using custom `__setitem__`."""
@@ -422,19 +426,19 @@ class SparseSpace(dict):
         # Note: print(xpList(self)) produces more human-readable key listing,
         # but we don't want to implement it here, coz it requires split_attrs(),
         # which we don't really want to call again.
+        txt  = f"<{self.__class__.__name__}>"
+        txt += " with Coord/axes: "
+        try:
+            txt += "(and ticks): " + str(struct_tools.AlignedDict(self.ticks))
+        except AttributeError:
+            txt += str(self.axes) + "\n"
+
         L = 2
         keys = [str(k) for k in self]
         if 2*L < len(keys):
             keys = keys[:L] + ["..."] + keys[-L:]
         keys = "[\n  " + ",\n  ".join(keys) + "\n]"
-        txt = f"<{self.__class__.__name__}> with {len(self)} keys: {keys}"
-        # txt += " befitting the coord. sys. with axes "
-        txt += "\nplaced in a coord-sys with axes "
-        try:
-            txt += "(and ticks):" + str(struct_tools.AlignedDict(self.ticks))
-        except AttributeError:
-            txt += ":\n" + str(self.axes)
-        return txt
+        return txt + f"populated by {len(self)} keys: {keys}"
 
     def nest(self, inner_axes=None, outer_axes=None):
         """Return a new xpSpace with axes `outer_axes`,
@@ -531,8 +535,10 @@ class xpSpace(SparseSpace):
 
     `xpSpace.from_list` initializes a `SparseSpace` from a list
     of objects, typically experiments referred to as `xp`s, by
-    (1) computing the relevant axes from the attributes, and
-    (2) filling the dict by `xp`s.
+
+    - computing the relevant `axes` from the attributes, and
+    - filling the dict by `xp`s.
+    - computing and writing the attribute `ticks`.
 
     Using `xpSpace.from_list(xps)` creates a SparseSpace holding `xp`s.
     However, the nested `xpSpace`s output by `xpSpace.table_tree` will hold
@@ -839,13 +845,12 @@ class xpSpace(SparseSpace):
             def super_header(col_coord, idx, col):
                 header, matter = col[0], col[1:]
                 if idx:
-                    super_header = str(col_coord)
+                    cc = str(col_coord)
                 else:
-                    super_header = repr(col_coord)
-                width = len(header)  # += 1 if using unicode chars like ✔️
-                super_header = super_header.center(width, "_")
-                header = super_header + "\n" + header
-                return [header] + matter
+                    cc = repr(col_coord)
+                cc = cc.lstrip("(").rstrip(")").replace(", ", ",")
+                cc = cc.center(len(header), "_")  # +1 width for wide chars like ✔️
+                return [cc + "\n" + header] + matter
 
             # Transpose
             columns = [list(x) for x in zip(*rows)]
@@ -873,8 +878,8 @@ class xpSpace(SparseSpace):
         for table_coord, table in tables.items():
 
             # Get this table's column coords (cc). Use dict for sorted&unique.
-            # cc = xp_dict.ticks[axes["inner"]] # May be larger than needed.
-            # cc = table[0].keys()              # May be too small a set.
+            # cc = self.ticks[axes["inner"]]  # may be > needed
+            # cc = table[0].keys()            # may be < needed
             cc = {c: None for row in table.values() for c in row}
 
             # Convert table (rows) into rows (lists) of equal length
@@ -889,22 +894,20 @@ class xpSpace(SparseSpace):
                 h2 = "\n" if len(cc) > 1 else ""  # do column-super-header
                 rows = make_cols(rows, cc, subcols, h2)
 
-                # Make and prepend left-side table
                 # - It's prettier if row_keys don't have unnecessary cols.
                 #   For example, the table of Climatology should not have an
-                #   entire column repeatedly displaying "infl=None".
-                #   => split_attrs().
+                #   entire column repeatedly displaying "infl=None". => split_attrs().
                 # - Why didn't we do this for the column attrs?
-                #   Coz there we have no ambition to split the attrs,
-                #   which would also require excessive processing:
-                #   nesting the table as cols, and then split_attrs() on cols.
+                #   Coz there we have no ambition to split the attrs.
+                #   Also requires transposing to access the column keys.
                 row_keys = xpList(table.keys()).split_attrs()[0]
+                # Prepend left-side table
                 if len(row_keys):
                     # Header
                     rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
                     # Matter
-                    for i, (row, key) in enumerate(zip(
-                            rows[1:], struct_tools.transps(row_keys))):
+                    row_keys = struct_tools.transps(row_keys)
+                    for i, (row, key) in enumerate(zip(rows[1:], row_keys)):
                         rows[i+1] = [*key.values()] + ['|'] + row
 
             # Print
@@ -918,7 +921,8 @@ class xpSpace(SparseSpace):
 
     def plot(self, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,
-             title2=None, costfun=None, unique_labels=True):
+             title2=None, costfun=None, unique_labels=True,
+             squeeze_labels=True):
         """Plot the avrgs of `statkey` as a function of `axis["inner"]`.
 
         Optionally, the experiments can be grouped by `axis["outer"]`,
@@ -931,6 +935,27 @@ class xpSpace(SparseSpace):
 
         The optimal parameters are plotted in smaller panels below the main plot.
         This can be prevented by providing the figure axes through the `panels` arg.
+
+        Parameters
+        ----------
+        statkey: str
+            The statistic to plot.
+        axes: dict
+            See `xpSpace.print`
+        get_style: function
+            A function that accepts some object, and returns a dict of line styles,
+            usually as a function of the object's attributes.
+        panels:
+            Plot axes to use (optional).
+        title2:
+            Figure title
+        costfun: function
+            Forwarded to `xpSpace.tune`
+        unique_labels: bool
+            Only show a given label once.
+        squeeze_labels: bool
+            Don't include redundant attributes in the line labels.
+            Caution: `get_style` will not be able to access the eliminated attrs.
         """
         def plot1(panelcol, row, style):
             """Plot a given line (row) in the main panel and the optim panels.
@@ -965,7 +990,7 @@ class xpSpace(SparseSpace):
         axes, tables = self.table_tree(statkey, axes)
         xticks = self.tickz(axes["inner"][0])
 
-        # Figure panels
+        # Create figure panels
         if panels is None:
             nrows   = len(axes['optim'] or ()) + 1
             ncols   = len(tables)
@@ -981,12 +1006,11 @@ class xpSpace(SparseSpace):
             _, panels = place.freshfig(num=fignum, figsize=figsize,
                                        nrows=nrows, sharex=True,
                                        ncols=ncols, sharey='row',
-                                       gridspec_kw=gs)
-            panels = np.ravel(panels).reshape((-1, ncols))
+                                       gridspec_kw=gs, squeeze=False)
         else:
             panels = np.atleast_2d(panels)
 
-        # Title
+        # Fig. Title
         fig = panels[0, 0].figure
         fig_title = "Averages wrt. time"
         if axes["mean"] is not None:
@@ -1001,14 +1025,25 @@ class xpSpace(SparseSpace):
         label_register = set()  # mv inside loop to get legend on each panel
         for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
             table.panels = table_panels
-            title = '' if axes["outer"] is None else repr(table_coord)
+            # table/panel title
+            if axes["outer"] is None:
+                title = ""
+            else:
+                title = repr(table_coord).lstrip("(").rstrip(")")
+
+            if squeeze_labels:
+                distinct = xpList(table.keys()).split_attrs()[0]
+                # distinct = xpList(table.keys()).squeeze()[0]
+            else:
+                distinct = table.axes
 
             # Plot
             for coord, row in table.items():
+
+                coord = NoneDict(struct_tools.intersect(coord._asdict(), distinct))
                 style = get_style(coord)
 
-                # Rm duplicate labels (contrary to coords, labels can
-                # be "tampered" with, and so can be duplicate)
+                # Rm duplicate labels
                 if unique_labels:
                     if style.get("label", None) in label_register:
                         del style["label"]
@@ -1019,7 +1054,13 @@ class xpSpace(SparseSpace):
 
             # Beautify
             panel0 = table.panels[0]
-            panel0.set_title(title)
+            # panel0.set_title(title)
+            panel0.text(.5, 1, title, fontsize=12, ha="center", va="bottom",
+                        transform=panel0.transAxes, bbox=dict(
+                            facecolor='lightyellow', edgecolor='k',
+                            alpha=0.99, boxstyle="round,pad=0.25",
+                            # NB: padding makes label spill into axes
+                        ))
             if panel0.is_first_col():
                 panel0.set_ylabel(statkey)
             with set_tmp(mpl_logger, 'level', 99):  # silence "no label" msg
@@ -1036,7 +1077,7 @@ class xpSpace(SparseSpace):
         return tables
 
 
-def default_fig_adjustments(tables):
+def default_fig_adjustments(tables, xticks_from_data=False):
     """Beautify. These settings do not generalize well."""
     # Get axs as 2d-array
     axs = np.array([table.panels for table in tables.values()]).T
@@ -1044,11 +1085,19 @@ def default_fig_adjustments(tables):
     # Main panels (top row) only:
     sensible_f = ticker.FormatStrFormatter('%g')
     for ax in axs[0, :]:  # noqa
-        for direction, nPanel in zip(['y', 'x'], axs.shape):
-            if nPanel < 6:
+        for direction in ['y', 'x']:
+            if axs.shape[1] < 6:
                 eval(f"ax.set_{direction}scale('log')")
                 eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
             eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
+
+    # Set xticks
+    if xticks_from_data:
+        ax = tables[1].panels[0]
+        # Log-scale overrules any custom ticks. Restore control
+        ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
+        ax.xaxis.set_minor_formatter(ticker.NullFormatter())
+        ax.set_xticks(tables.xp_dict.tickz(tables.axes_roles["inner"][0]))
 
     # Tuning panels only
     table = tables[0]
@@ -1062,8 +1111,8 @@ def default_fig_adjustments(tables):
 
     # All panels
     for ax in axs.ravel():
-        for direction, nPanel in zip(['y', 'x'], axs.shape):
-            if nPanel < 6:
+        for direction in ['y', 'x']:
+            if axs.shape[1] < 6:
                 ax.grid(True, which="minor", axis=direction)
 
     # Not strictly compatible with gridspec height_ratios,
