@@ -261,6 +261,7 @@ class xpList(list):
         attributes that) uniquely identify each `xp` in the list (the `redundant` and
         `common` can be "squeezed" out).  Thus, the `repr` (which is a table of the
         `xp`s and their attributes) does not need to print all of the attributes.
+        This function also does the heavy lifting for `xpSpace.squeeze`.
 
         Parameters
         ----------

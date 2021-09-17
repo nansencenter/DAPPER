@@ -625,6 +625,12 @@ class xpSpace(SparseSpace):
         """Mass insertion."""
         self.update([(self.__getkey__(xp), xp) for xp in xps])
 
+    def squeeze(self):
+        """Eliminate unnecessary axes/dimensions."""
+        squeezed = xpSpace(xpList(self).squeeze()[0])
+        squeezed.fill(self)
+        return squeezed
+
     def field(self, statkey="rmse.a"):
         """Extract `statkey` for each item in `self`."""
         # Init a new xpDict to hold field
@@ -912,10 +918,12 @@ class xpSpace(SparseSpace):
 
         for table_coord, table in tables.items():
 
-            # Get this table's column coords (cc). Use dict for sorted&unique.
+            # Get table's column coords
+            # It's supposed to be a set, but we use a dict to keep ordering.
             # cc = self.ticks[axes["inner"]]  # may be > needed
             # cc = table[0].keys()            # may be < needed
             cc = {c: None for row in table.values() for c in row}
+            # Could also do cc = table.squeeze() but is it worth it?
 
             # Convert table (rows) into rows (lists) of equal length
             rows = [[row.get(c, None) for c in cc] for row in table.values()]
@@ -924,9 +932,7 @@ class xpSpace(SparseSpace):
             rows = make_cols(rows, cc, subcols, h2)
 
             if squeeze_labels:
-                squeezed = xpSpace(xpList(table).squeeze()[0])
-                squeezed.fill(table)
-                table = squeezed
+                table = table.squeeze()
 
             # Prepend left-side (attr) table
             # Header
