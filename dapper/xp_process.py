@@ -921,7 +921,8 @@ class xpSpace(SparseSpace):
 
     def plot(self, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,
-             title2=None, costfun=None, unique_labels=True):
+             title2=None, costfun=None, unique_labels=True,
+             squeeze_labels=True):
         """Plot the avrgs of `statkey` as a function of `axis["inner"]`.
 
         Optionally, the experiments can be grouped by `axis["outer"]`,
@@ -1025,6 +1026,11 @@ class xpSpace(SparseSpace):
         for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
             table.panels = table_panels
             title = '' if axes["outer"] is None else repr(table_coord)
+            if squeeze_labels:
+                distinct = xpList(table.keys()).split_attrs()[0]
+                # distinct = xpList(table.keys()).squeeze()[0]
+            else:
+                distinct = table.axes
 
             # Plot
             for coord, row in table.items():
