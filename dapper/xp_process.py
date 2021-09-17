@@ -423,7 +423,7 @@ class SparseSpace(dict):
 
     def __repr__(self):
         # Note: print(xpList(self)) produces more human-readable key listing,
-        # but we don't want to implement it here, coz it requires split_attrs(),
+        # but we don't want to implement it here, coz it requires squeeze(),
         # which we don't really want to call again.
         txt  = f"<{self.__class__.__name__}>"
         txt += " with Coord/axes: "
@@ -587,7 +587,7 @@ class xpSpace(SparseSpace):
 
         # Define axes
         xp_list = xpList(xps)
-        axes = xp_list.split_attrs(nomerge=['Const'])[0]
+        axes = xp_list.squeeze(nomerge=['Const'])[0]
         make_ticks(axes)
         self = cls(axes.keys())
 
@@ -905,11 +905,12 @@ class xpSpace(SparseSpace):
 
                 # - It's prettier if row_keys don't have unnecessary cols.
                 #   For example, the table of Climatology should not have an
-                #   entire column repeatedly displaying "infl=None". => split_attrs().
+                #   entire column repeatedly displaying "infl=None". => squeeze().
                 # - Why didn't we do this for the column attrs?
                 #   Coz there we have no ambition to split the attrs.
                 #   Also requires transposing to access the column keys.
-                row_keys = xpList(table.keys()).split_attrs()[0]
+                #   TODO 5: could we just use cc?
+                row_keys = xpList(table.keys()).squeeze()[0]
                 # Prepend left-side table
                 if len(row_keys):
                     # Header
@@ -1037,8 +1038,7 @@ class xpSpace(SparseSpace):
             title = "" if axes["outer"] is None else table_coord.repr2()
 
             if squeeze_labels:
-                distinct = xpList(table.keys()).split_attrs()[0]
-                # distinct = xpList(table.keys()).squeeze()[0]
+                distinct = xpList(table.keys()).squeeze()[0]
             else:
                 distinct = table.axes
 

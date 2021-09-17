@@ -172,14 +172,14 @@ class xpList(list):
     - `__getitem__` supports lists, similar to `np.ndarray`
     - `__repr__`: prints the list as rows of a table,
       where the columns represent attributes whose value is not shared among all `xp`s.
-      Refer to `xpList.split_attrs` for more information.
+      Refer to `xpList.squeeze` for more information.
 
     Add-ons:
 
     - `xpList.launch`: run the experiments in current list.
-    - `xpList.split_attrs`: find all attributes of the `xp`s in the list;
+    - `xpList.squeeze`: find all attributes of the `xp`s in the list;
       classify as distinct, redundant, or common.
-    - `xpList.gen_names`: use `xpList.split_attrs` to generate
+    - `xpList.gen_names`: use `xpList.squeeze` to generate
       a short & unique name for each `xp` in the list.
     - `xpList.tabulate_avrgs`: tabulate time-averaged results.
     - `xpList.inds` to search by kw-attrs.
@@ -244,7 +244,7 @@ class xpList(list):
         """List `da_method` attributes in this list."""
         return [xp.da_method for xp in self]
 
-    def split_attrs(self, nomerge=()):
+    def squeeze(self, nomerge=()):
         """Classify all attrs. of all `xp`s as `distinct`, `redundant`, or `common`.
 
         An attribute of the `xp`s is inserted in one of the 3 dicts as follows:
@@ -256,8 +256,11 @@ class xpList(list):
         with **its full list of values** (filling with `None` where the attribute
         was missing in the corresponding `xp`).
 
-        Used by `repr` on `xpList` to make a nice table of the list, in which only the
-        attributes that differ among the `xp`s need be included.
+        The function gets its name from the fact that the attrs in `distinct` are
+        sufficient to (but not generally necessary, since there might exist a subset of
+        attributes that) uniquely identify each `xp` in the list (the `redundant` and
+        `common` can be "squeezed" out).  Thus, the `repr` (which is a table of the
+        `xp`s and their attributes) does not need to print all of the attributes.
 
         Parameters
         ----------
@@ -365,7 +368,7 @@ class xpList(list):
         return distinct, redundant, common
 
     def __repr__(self):
-        distinct, redundant, common = self.split_attrs()
+        distinct, redundant, common = self.squeeze()
         s = '<xpList> of length %d with attributes:\n' % len(self)
         s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
@@ -379,7 +382,7 @@ class xpList(list):
         - tabulation is optional
         - attaches (abbreviated) labels to each attribute
         """
-        distinct, redundant, common = self.split_attrs(nomerge=["da_method"])
+        distinct, redundant, common = self.squeeze(nomerge=["da_method"])
         labels = distinct.keys()
         values = distinct.values()
 
@@ -414,7 +417,7 @@ class xpList(list):
 
     @wraps(dapper.stats.tabulate_avrgs)
     def tabulate_avrgs(self, *args, **kwargs):
-        distinct, redundant, common = self.split_attrs()
+        distinct, redundant, common = self.squeeze()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
         return tabulate(columns, headers="keys", showindex=True).replace('␣', ' ')

@@ -139,7 +139,7 @@ def da_method(*default_dataclasses):
         cls.stat = stat
 
         # Make self.__class__.__name__ an attrib.
-        # Used by xpList.split_attrs().
+        # Used by xpList.squeeze().
         cls.da_method = cls.__name__
 
         return cls
