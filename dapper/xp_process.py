@@ -1071,7 +1071,7 @@ class xpSpace(SparseSpace):
         return tables
 
 
-def default_fig_adjustments(tables):
+def default_fig_adjustments(tables, xticks_from_data=False):
     """Beautify. These settings do not generalize well."""
     # Get axs as 2d-array
     axs = np.array([table.panels for table in tables.values()]).T
@@ -1084,6 +1084,14 @@ def default_fig_adjustments(tables):
                 eval(f"ax.set_{direction}scale('log')")
                 eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
             eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
+
+    # Set xticks
+    if xticks_from_data:
+        ax = tables[1].panels[0]
+        # Log-scale overrules any custom ticks. Restore control
+        ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
+        ax.xaxis.set_minor_formatter(ticker.NullFormatter())
+        ax.set_xticks(tables.xp_dict.tickz(tables.axes_roles["inner"][0]))
 
     # Tuning panels only
     table = tables[0]
