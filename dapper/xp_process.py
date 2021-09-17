@@ -610,7 +610,7 @@ class xpSpace(SparseSpace):
         # Define and fill SparseSpace
         xp_list = xpList(xps)
         axes = xp_list.squeeze(nomerge=['xSect'])[0]
-        self = cls(axes.keys())
+        self = cls(axes)
         self.fill(xps)
 
         make_ticks(axes)
