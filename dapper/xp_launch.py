@@ -245,13 +245,19 @@ class xpList(list):
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
-        """Classify each/every attribute of the `xp`s into: distinct, redundant, common.
+        """Classify all attrs. of all `xp`s as `distinct`, `redundant`, or `common`.
 
-        Insert `None` if an attribute is distinct but not in `xp`.
+        An attribute of the `xp`s is inserted in one of the 3 dicts as follows:
+        The attribute names become dict keys. If the values of an attribute
+        (collected from all of the `xp`s) are all __equal__, then the attribute
+        is inserted in `common`, but only with **a single value**.
+        If they are all the same **or missing**, then it is inserted in `redundant`
+        **with a single value**. Otherwise, it is inserted in `distinct`,
+        with **its full list of values** (filling with `None` where the attribute
+        was missing in the corresponding `xp`).
 
-        Used by `repr` on `xpList` to make a nice table of the list,
-        in which only the attributes that differ among the `xp`s
-        need be included.
+        Used by `repr` on `xpList` to make a nice table of the list, in which only the
+        attributes that differ among the `xp`s need be included.
 
         Parameters
         ----------
