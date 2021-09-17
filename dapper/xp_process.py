@@ -299,6 +299,21 @@ class SparseSpace(dict):
 
     - https://stackoverflow.com/a/7728830
     - https://stackoverflow.com/q/3387691
+
+    Example:
+    >>> dct = xpSpace(["x", "y", "z"])
+    >>> dct[(1, 2, 3)] = "point 1"
+    >>> dct[1, 2, 3] == dct[(1, 2, 3)] == dct[dct.Coord(1, 2, 3)] == "point 1"
+    True
+
+    This dict only has three dimensions/axes, so this fails:
+    >>> dct[(1, 2, 3, 4)]
+    Traceback (most recent call last):
+    ...
+    KeyError: (1, 2, 3, 4)
+
+    Individual coordinates can be anything. For examle `None`:
+    >>> dct[(1, 2, None)] = "point 2"
     """
 
     @property
