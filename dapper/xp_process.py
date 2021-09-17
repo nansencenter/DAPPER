@@ -1023,7 +1023,7 @@ class xpSpace(SparseSpace):
         fig = panels[0, 0].figure
         fig_title = "Averages wrt. time"
         if axes["mean"] is not None:
-            fig_title += f" and {axes['mean']}"
+            fig_title += " and " + ", ".join([repr(c) for c in axes['mean']])
         if title2 is not None:
             with nonchalance():
                 title2 = title2.relative_to(rc.dirs["data"])
