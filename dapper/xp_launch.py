@@ -346,19 +346,18 @@ class xpList(list):
         for key in _aggregate_keys():
             vals = [_getattr_safe(xp, key) for xp in self]
 
-            # Sort (assign dct) into distinct, redundant, common
             if struct_tools.flexcomp(key, *nomerge):
-                # nomerge => Distinct
                 dct, vals = distinct, vals
+
             elif all(vals[0] == v for v in vals):
-                # all values equal => common
                 dct, vals = common, vals[0]
+
             else:
                 nonNA = next(v for v in vals if "N/A" != v)
                 if all(v == "N/A" or v == nonNA for v in vals):
                     dct, vals = redundant, nonNA
+
                 else:
-                    # otherwise => distinct
                     dct, vals = distinct, vals
 
             dct[key] = replace_NA_by_None(vals)
