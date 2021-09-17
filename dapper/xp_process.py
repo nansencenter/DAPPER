@@ -534,8 +534,10 @@ class xpSpace(SparseSpace):
 
     `xpSpace.from_list` initializes a `SparseSpace` from a list
     of objects, typically experiments referred to as `xp`s, by
-    (1) computing the relevant axes from the attributes, and
-    (2) filling the dict by `xp`s.
+
+    - computing the relevant `axes` from the attributes, and
+    - filling the dict by `xp`s.
+    - computing and writing the attribute `ticks`.
 
     Using `xpSpace.from_list(xps)` creates a SparseSpace holding `xp`s.
     However, the nested `xpSpace`s output by `xpSpace.table_tree` will hold
