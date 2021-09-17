@@ -984,8 +984,7 @@ class xpSpace(SparseSpace):
             _, panels = place.freshfig(num=fignum, figsize=figsize,
                                        nrows=nrows, sharex=True,
                                        ncols=ncols, sharey='row',
-                                       gridspec_kw=gs)
-            panels = np.ravel(panels).reshape((-1, ncols))
+                                       gridspec_kw=gs, squeeze=False)
         else:
             panels = np.atleast_2d(panels)
 
