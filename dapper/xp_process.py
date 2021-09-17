@@ -906,8 +906,8 @@ class xpSpace(SparseSpace):
                     # Header
                     rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
                     # Matter
-                    for i, (row, key) in enumerate(zip(
-                            rows[1:], struct_tools.transps(row_keys))):
+                    row_keys = struct_tools.transps(row_keys)
+                    for i, (row, key) in enumerate(zip(rows[1:], row_keys)):
                         rows[i+1] = [*key.values()] + ['|'] + row
 
             # Print
