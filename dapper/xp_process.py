@@ -1054,7 +1054,13 @@ class xpSpace(SparseSpace):
 
             # Beautify
             panel0 = table.panels[0]
-            panel0.set_title(title)
+            # panel0.set_title(title)
+            panel0.text(.5, 1, title, fontsize=12, ha="center", va="bottom",
+                        transform=panel0.transAxes, bbox=dict(
+                            facecolor='lightyellow', edgecolor='k',
+                            alpha=0.99, boxstyle="round,pad=0.25",
+                            # NB: padding makes label spill into axes
+                        ))
             if panel0.is_first_col():
                 panel0.set_ylabel(statkey)
             with set_tmp(mpl_logger, 'level', 99):  # silence "no label" msg
