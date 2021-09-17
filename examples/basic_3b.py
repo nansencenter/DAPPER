@@ -1,5 +1,7 @@
-# ## Plot the results generated in example basic_3a
-#
+# ## Plot the results generated in example `basic_3a`
+
+# #### Imports
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -7,6 +9,9 @@ import dapper as dpr
 from dapper.xp_process import (default_fig_adjustments, default_styles,
                                discretize_cmap, make_label, rel_index)
 
+# #### Load
+
+# Paths
 save_as = dpr.rc.dirs.data / "basic_3"
 # save_as /= "run_2020-11-11__20-36-36"
 save_as /= dpr.find_latest_run(save_as)
@@ -15,30 +20,37 @@ save_as /= dpr.find_latest_run(save_as)
 xps = dpr.load_xps(save_as)
 xp_dict = dpr.xpSpace.from_list(xps)
 
+
+# #### Plot
+
 # Single out (highlight) particular settings, to add as a line to the plot.
-# Note: Must use infl=1.01 (not 1) to reproduce "no infl" scores in Ref[1],
-#       as well as rot=True (better scores can be obtained without rot).
+#
+# Note: Must use `infl=1.01` (not 1) to reproduce "no infl" scores in Ref[1],
+# as well as rot=True (better scores can be obtained without rot).
+
 highlight = xp_dict.label_xSection
 highlight('NO-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
 highlight('NO-infl/loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
 
-# Print as in basic_3a.py
+# Choose attribute roles for plot
+
 tunable = {'loc_rad', 'infl', 'xB', 'rot'}
 axes = dict(outer="F", inner="N", mean="seed", optim=tunable)
-# xp_dict.print("rmse.a", axes, subcols=False)
+# xp_dict.print("rmse.a", axes, subcols=False)  # as in basic_3a.py
 
+
+# Define linestyle rules
 
 def get_style(coord):
-    """Define linestyle rules."""
     S = default_styles(coord, True)
     if coord.da_method == "EnKF":
         upd_a = getattr(coord, "upd_a", None)
         if upd_a == "PertObs":
-            S.color = "C2"
+            S.c = "C2"
         elif upd_a == "Sqrt":
-            S.color = "C1"
+            S.c = "C1"
     elif coord.da_method == "LETKF":
-        S.color = "C3"
+        S.c = "C3"
     if getattr(coord, "rot", False):
         S.marker = "+"
     Const = getattr(coord, "Const", False)
@@ -50,17 +62,21 @@ def get_style(coord):
 
 
 # Plot
+
 tables = xp_dict.plot('rmse.a', axes, get_style, title2=save_as)
 default_fig_adjustments(tables)
 plt.pause(.1)
 
+
 # #### Plot with color gradient
 
 # Remove experiments we don't want to plot here
+
 xps = [xp for xp in xps if getattr(xp, "Const", None) == None]
 xp_dict = dpr.xpSpace.from_list(xps)
 
-# Setup mapping: loc_rad --> color gradient
+# Setup mapping: `loc_rad --> color gradient`
+
 graded = "loc_rad"
 axes["optim"] -= {graded}
 grades = xp_dict.tickz(graded)
@@ -78,8 +94,9 @@ def get_style_with_gradient(coord):
     return S
 
 
-# +
 # Plot
+
+# +
 tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
 default_fig_adjustments(tables)
 
