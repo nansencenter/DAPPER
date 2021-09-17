@@ -39,7 +39,7 @@ class NoneDict(DotDict):
         return None
 
 
-NO_KEY = ("da_method", "Const", "upd_a")
+NO_KEY = ("da_method", "xSect", "upd_a")
 def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
     """Make label from coord."""
     dct = {a: v for a, v in coord.items() if v != None}
@@ -503,25 +503,24 @@ class SparseSpace(dict):
         return attrs
 
     def label_xSection(self, label, *NoneAttrs, **sub_coord):
-        """Insert duplicate entries for the cross section
+        """Insert duplicate entries for the given cross-section.
 
-        whose `coord`s match `sub_coord`,
-        adding the attr `Const=label` to their `coord`,
+        Works by adding the attr. `xSection` to the `SparseSpace.Coord`,
+        and setting it to `label` for entries matching `sub_coord`,
         reflecting the "constance/constraint/fixation" this represents.
-
         This distinguishes the entries in this fixed-affine subspace,
-        preventing them from being gobbled up in `nest`.
+        preventing them from being gobbled up by the operations of `nest`.
 
         If you wish, you can specify the `NoneAttrs`,
         which are consequently set to None for the duplicated entries,
-        preventing them from getting plotted in tuning panels.
+        preventing them from being shown in plot labels and tuning panels.
         """
-        if "Const" not in self.axes:
-            self.add_axis('Const')
+        if "xSect" not in self.axes:
+            self.add_axis('xSect')
 
         for coord in self.coords(**self.intersect_axes(sub_coord)):
             entry = copy.deepcopy(self[coord])
-            coord = coord._replace(Const=label)
+            coord = coord._replace(xSect=label)
             coord = coord._replace(**{a: None for a in NoneAttrs})
             self[coord] = entry
 
@@ -587,7 +586,7 @@ class xpSpace(SparseSpace):
 
         # Define axes
         xp_list = xpList(xps)
-        axes = xp_list.squeeze(nomerge=['Const'])[0]
+        axes = xp_list.squeeze(nomerge=['xSect'])[0]
         make_ticks(axes)
         self = cls(axes.keys())
 

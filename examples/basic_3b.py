@@ -53,11 +53,11 @@ def get_style(coord):
         S.c = "C3"
     if getattr(coord, "rot", False):
         S.marker = "+"
-    Const = getattr(coord, "Const", False)
-    if str(Const).startswith("NO-"):
+    xSect = getattr(coord, "xSect", False)
+    if str(xSect).startswith("NO-"):
         S.ls = "--"
         S.marker = None
-        S.label = Const
+        S.label = xSect
     return S
 
 
@@ -72,7 +72,7 @@ plt.pause(.1)
 
 # Remove experiments we don't want to plot here
 
-xps = [xp for xp in xps if getattr(xp, "Const", None) == None]
+xps = [xp for xp in xps if getattr(xp, "xSect", None) == None]
 xp_dict = dpr.xpSpace.from_list(xps)
 
 # Setup mapping: `loc_rad --> color gradient`
