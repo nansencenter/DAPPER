@@ -845,13 +845,12 @@ class xpSpace(SparseSpace):
             def super_header(col_coord, idx, col):
                 header, matter = col[0], col[1:]
                 if idx:
-                    super_header = str(col_coord)
+                    cc = str(col_coord)
                 else:
-                    super_header = repr(col_coord)
-                width = len(header)  # += 1 if using unicode chars like ✔️
-                super_header = super_header.center(width, "_")
-                header = super_header + "\n" + header
-                return [header] + matter
+                    cc = repr(col_coord)
+                cc = cc.lstrip("(").rstrip(")").replace(", ", ",")
+                cc = cc.center(len(header), "_")  # +1 width for wide chars like ✔️
+                return [cc + "\n" + header] + matter
 
             # Transpose
             columns = [list(x) for x in zip(*rows)]
@@ -1026,7 +1025,12 @@ class xpSpace(SparseSpace):
         label_register = set()  # mv inside loop to get legend on each panel
         for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
             table.panels = table_panels
-            title = '' if axes["outer"] is None else repr(table_coord)
+            # table/panel title
+            if axes["outer"] is None:
+                title = ""
+            else:
+                title = repr(table_coord).lstrip("(").rstrip(")")
+
             if squeeze_labels:
                 distinct = xpList(table.keys()).split_attrs()[0]
                 # distinct = xpList(table.keys()).squeeze()[0]
