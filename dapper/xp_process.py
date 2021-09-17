@@ -322,9 +322,10 @@ class SparseSpace(dict):
         # self.update(*args, **kwargs)
 
         # Add repr/str
-        self.Coord.__repr__ = lambda c: ",".join(
-            f"{k}={v!r}" for k, v in zip(c._fields, c))
-        self.Coord.__str__  = lambda c: ",".join(str(v) for v in c)
+        self.Coord.__repr__ = lambda c: \
+            "(" + ", ".join(f"{k}={v!r}" for k, v in zip(c._fields, c)) + ")"
+        self.Coord.__str__  = lambda c: \
+            "(" + ", ".join(str(v) for v in c) + ")"
 
     def update(self, *args, **kwargs):
         """Update using custom `__setitem__`."""
