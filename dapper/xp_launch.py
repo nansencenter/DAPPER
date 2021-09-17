@@ -303,7 +303,6 @@ class xpList(list):
             aggregate = struct_tools.complement(aggregate, excluded)
             return aggregate
 
-        distinct, redundant, common = {}, {}, {}
         def _getattr_safe(xp, key):
             # Don't use None, to avoid mixing with actual None's
             # TODO 4: use an object yet more likely to be unique.
@@ -328,7 +327,6 @@ class xpList(list):
             #         Advantage: names are meaningful, rather than ids.
             return a
 
-        for key in _aggregate_keys():
         def replace_NA_by_None(vals):
             """Supports different types of `vals`."""
             def sub(v):
@@ -343,6 +341,9 @@ class xpList(list):
                     vals = sub(vals)
             return vals
 
+        # Main
+        distinct, redundant, common = {}, {}, {}
+        for key in _aggregate_keys():
             vals = [_getattr_safe(xp, key) for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
