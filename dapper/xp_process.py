@@ -648,7 +648,7 @@ class xpSpace(SparseSpace):
         return nested
 
     def tune(self, axes=None, costfun=None):
-        """Get (compile/tabulate) a stat field optimised wrt. tuning params."""
+        """Get (compile/tabulate) a stat. field optimised wrt. tuning params."""
         # Define cost-function
         costfun = (costfun or 'increasing').lower()
         if 'increas' in costfun:
@@ -711,7 +711,7 @@ class xpSpace(SparseSpace):
             axes[role] = aa
         return axes
 
-    def table_tree(self, statkey, axes):
+    def table_tree(self, statkey, axes, *, costfun=None):
         """Hierarchical nest(): xp_dict>outer>inner>mean>optim.
 
         as specified by `axes`. Returns this new xpSpace.
@@ -740,7 +740,7 @@ class xpSpace(SparseSpace):
             """
             uq_dict = xp_dict.field(statkey)
             uq_dict = uq_dict.mean(axes['mean'])
-            uq_dict = uq_dict.tune(axes['optim'])
+            uq_dict = uq_dict.tune(axes['optim'], costfun)
             return uq_dict
 
         self = mean_tune(self)
@@ -781,7 +781,7 @@ class xpSpace(SparseSpace):
         return [x for x in self.ticks[axis_name] if x is not None]
 
     def print(self, statkey="rmse.a", axes=AXES_ROLES,  # noqa
-              subcols=True, decimals=None):
+              subcols=True, decimals=None, costfun=None):
         """Print tables of results.
 
         Parameters
@@ -882,7 +882,7 @@ class xpSpace(SparseSpace):
             print("Averages in time only"
                   " (=> the 1σ estimates may be unreliable).")
 
-        axes, tables = self.table_tree(statkey, axes)
+        axes, tables = self.table_tree(statkey, axes, costfun=costfun)
         for table_coord, table in tables.items():
 
             # Get this table's column coords (cc). Use dict for sorted&unique.
@@ -936,7 +936,7 @@ class xpSpace(SparseSpace):
 
         Optionally, the experiments can be grouped by `axis["outer"]`,
         producing a figure with columns of panels.
-        Firs of all, though, mean and optimum computations are done for
+        First of all, though, mean and optimum computations are done for
         `axis["mean"]` and `axis["optim"]`, where the optimization can
         be controlled through `costfun` (see `xpSpace.tune`)
 
@@ -996,7 +996,7 @@ class xpSpace(SparseSpace):
 
         # Nest axes through table_tree()
         assert len(axes["inner"]) == 1, "You must chose the abscissa."
-        axes, tables = self.table_tree(statkey, axes)
+        axes, tables = self.table_tree(statkey, axes, costfun=costfun)
         xticks = self.tickz(axes["inner"][0])
 
         # Create figure panels
