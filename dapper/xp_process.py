@@ -424,19 +424,19 @@ class SparseSpace(dict):
         # Note: print(xpList(self)) produces more human-readable key listing,
         # but we don't want to implement it here, coz it requires split_attrs(),
         # which we don't really want to call again.
+        txt  = f"<{self.__class__.__name__}>"
+        txt += " with Coord/axes: "
+        try:
+            txt += "(and ticks): " + str(struct_tools.AlignedDict(self.ticks))
+        except AttributeError:
+            txt += str(self.axes) + "\n"
+
         L = 2
         keys = [str(k) for k in self]
         if 2*L < len(keys):
             keys = keys[:L] + ["..."] + keys[-L:]
         keys = "[\n  " + ",\n  ".join(keys) + "\n]"
-        txt = f"<{self.__class__.__name__}> with {len(self)} keys: {keys}"
-        # txt += " befitting the coord. sys. with axes "
-        txt += "\nplaced in a coord-sys with axes "
-        try:
-            txt += "(and ticks):" + str(struct_tools.AlignedDict(self.ticks))
-        except AttributeError:
-            txt += ":\n" + str(self.axes)
-        return txt
+        return txt + f"populated by {len(self)} keys: {keys}"
 
     def nest(self, inner_axes=None, outer_axes=None):
         """Return a new xpSpace with axes `outer_axes`,
