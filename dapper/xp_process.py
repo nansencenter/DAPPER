@@ -327,7 +327,7 @@ class SparseSpace(dict):
         self.Coord.repr2 = lambda c: repr(c).replace("Coord", "").strip("()")
 
     def update(self, *args, **kwargs):
-        """Update using custom `__setitem__`."""
+        """Make update use custom `__setitem__`."""
         # See https://stackoverflow.com/a/2588648
         # and https://stackoverflow.com/a/2390997
         for k, v in dict(*args, **kwargs).items():
@@ -584,7 +584,7 @@ class xpSpace(SparseSpace):
                 # Assign
                 axes[ax_name] = ticks
 
-        # Define axes
+        # Define and fill SparseSpace
         xp_list = xpList(xps)
         axes = xp_list.squeeze(nomerge=['xSect'])[0]
         make_ticks(axes)
