@@ -305,7 +305,7 @@ class SparseSpace(dict):
     def axes(self):
         return self.Coord._fields
 
-    def __init__(self, axes, *args, **kwargs):
+    def __init__(self, axes):
         """Usually initialized through `xpSpace`.
 
         Parameters
@@ -319,7 +319,8 @@ class SparseSpace(dict):
         # Define coordinate system
         self.Coord = collections.namedtuple('Coord', axes)
         # Write dict
-        self.update(*args, **kwargs)
+        # self.update(*args, **kwargs)
+
         # Add repr/str
         self.Coord.__repr__ = lambda c: ",".join(
             f"{k}={v!r}" for k, v in zip(c._fields, c))
