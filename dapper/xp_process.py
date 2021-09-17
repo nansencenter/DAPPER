@@ -1079,8 +1079,8 @@ def default_fig_adjustments(tables):
     # Main panels (top row) only:
     sensible_f = ticker.FormatStrFormatter('%g')
     for ax in axs[0, :]:  # noqa
-        for direction, nPanel in zip(['y', 'x'], axs.shape):
-            if nPanel < 6:
+        for direction in ['y', 'x']:
+            if axs.shape[1] < 6:
                 eval(f"ax.set_{direction}scale('log')")
                 eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
             eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
@@ -1097,8 +1097,8 @@ def default_fig_adjustments(tables):
 
     # All panels
     for ax in axs.ravel():
-        for direction, nPanel in zip(['y', 'x'], axs.shape):
-            if nPanel < 6:
+        for direction in ['y', 'x']:
+            if axs.shape[1] < 6:
                 ax.grid(True, which="minor", axis=direction)
 
     # Not strictly compatible with gridspec height_ratios,
