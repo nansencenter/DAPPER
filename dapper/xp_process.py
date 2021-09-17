@@ -564,7 +564,7 @@ class xpSpace(SparseSpace):
     Using `xpSpace.from_list(xps)` creates a SparseSpace holding `xp`s.
     However, the nested `xpSpace`s output by `xpSpace.table_tree` will hold
     objects of type `UncertainQtty`,
-    coz `xpSpace.table_tree` calls `mean` calls `field(statkey)`.
+    coz `xpSpace.table_tree` calls `mean` calls `get_stat(statkey)`.
 
     The main use of `xpSpace` is through `xpSpace.print` & `xpSpace.plot`,
     both of which call `xpSpace.table_tree` to nest the axes of the `SparseSpace`.
@@ -631,9 +631,9 @@ class xpSpace(SparseSpace):
         squeezed.fill(self)
         return squeezed
 
-    def field(self, statkey="rmse.a"):
-        """Extract `statkey` for each item in `self`."""
-        # Init a new xpDict to hold field
+    def get_stat(self, statkey="rmse.a"):
+        """Make `xpSpace` with identical `keys`, but values `xp.avrgs.statkey`."""
+        # Init a new xpDict to hold stat
         avrgs = self.__class__(self.axes)
 
         found_anything = False
@@ -644,8 +644,7 @@ class xpSpace(SparseSpace):
 
         if not found_anything:
             raise AttributeError(
-                f"The stat. field '{statkey}' was not found"
-                " among any of the xp's.")
+                f"The stat.'{statkey}' was not found among any of the xp's.")
 
         return avrgs
 
@@ -679,7 +678,7 @@ class xpSpace(SparseSpace):
         return nested
 
     def tune(self, axes=None, costfun=None):
-        """Get (compile/tabulate) a stat. field optimised wrt. tuning params."""
+        """Get (compile/tabulate) a stat. optimised wrt. tuning params."""
         # Define cost-function
         costfun = (costfun or 'increasing').lower()
         if 'increas' in costfun:
@@ -769,7 +768,7 @@ class xpSpace(SparseSpace):
             the `nest()`ing of `outer` or `inner`.
             These possibile call locations are commented in the code.
             """
-            uq_dict = xp_dict.field(statkey)
+            uq_dict = xp_dict.get_stat(statkey)
             uq_dict = uq_dict.mean(axes['mean'])
             uq_dict = uq_dict.tune(axes['optim'], costfun)
             return uq_dict
@@ -819,7 +818,7 @@ class xpSpace(SparseSpace):
         Parameters
         ----------
         statkey: str
-            The statistical field from the experiments to report.
+            The statistic from the experiments to report.
         subcols: bool
             If `True`, then subcolumns are added to indicate the
             1σ confidence interval, and potentially some other stuff.
