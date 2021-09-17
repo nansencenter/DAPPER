@@ -30,11 +30,12 @@ from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
 
 mpl_logger = logging.getLogger('matplotlib')
 
-NO_KEY = ("da_method", "Const", "upd_a")
 
 
-def make_label(coord, no_key=NO_KEY, exclude=()):
     dct = {a: v for a, v in coord._asdict().items() if v != None}
+NO_KEY = ("da_method", "Const", "upd_a")
+def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
+    """Make label from coord."""
     lbl = ''
     for k, v in dct.items():
         if k not in exclude:
