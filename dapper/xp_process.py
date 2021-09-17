@@ -824,6 +824,15 @@ class xpSpace(SparseSpace):
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
         """
+        # Inform axes["mean"]
+        if axes.get('mean', None):
+            print(f"Averages (in time and) over {axes['mean']}.")
+        else:
+            print("Averages in time only"
+                  " (=> the 1σ estimates may be unreliable).")
+
+        axes, tables = self.table_tree(statkey, axes, costfun=costfun)
+
         def make_cols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
             # Define subcol formats
@@ -875,14 +884,6 @@ class xpSpace(SparseSpace):
 
             return rows
 
-        # Inform axes["mean"]
-        if axes.get('mean', None):
-            print(f"Averages (in time and) over {axes['mean']}.")
-        else:
-            print("Averages in time only"
-                  " (=> the 1σ estimates may be unreliable).")
-
-        axes, tables = self.table_tree(statkey, axes, costfun=costfun)
         for table_coord, table in tables.items():
 
             # Get this table's column coords (cc). Use dict for sorted&unique.
