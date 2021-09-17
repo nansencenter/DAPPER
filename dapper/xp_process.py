@@ -928,7 +928,7 @@ class xpSpace(SparseSpace):
             # Convert table (rows) into rows (lists) of equal length
             rows = [[row.get(c, None) for c in cc] for row in table.values()]
 
-            h2 = "\n" if len(cc) > 1 else ""  # do column-super-header
+            h2 = "\n" if len(cc) > 1 else ""  # super-header?
             rows = make_cols(rows, cc, subcols, h2)
 
             if squeeze_labels:
