@@ -304,34 +304,34 @@ class xpList(list):
             return aggregate
 
         distinct, redundant, common = {}, {}, {}
+        def _getattr_safe(xp, key):
+            # Don't use None, to avoid mixing with actual None's
+            # TODO 4: use an object yet more likely to be unique.
+            missing = "N/A"
+            a = getattr(xp, key, missing)
+
+            # Replace ndarray by its id, since o/w it will
+            # complain that you must use all().
+            # Alternative: replace all == (and !=) below by "is".
+            #     Tabulation with multi-line params actually works,
+            #     (though it's still likely to take up too much space,
+            #     unless we set np.printoptions...).
+            #     However, then python (since 3.8) will complain about
+            #     comparison to literal.
+            if isinstance(a, np.ndarray):
+                shorten = 6
+                a = f"arr(<id {id(a)//10**shorten}>)"
+            # TODO 3: leave formatting to sub() below?
+            # TODO 4: do similar formatting for other non-trivial params?
+            # TODO 4: document alternative way to specify non-trivial params:
+            #         use key to be looked up in some globally accessible dct.
+            #         Advantage: names are meaningful, rather than ids.
+            return a
 
         for key in _aggregate_keys():
 
-            def _getattr(xp, key):
-                # Don't use None, to avoid mixing with actual None's
-                # TODO 4: use an object yet more likely to be unique.
-                missing = "N/A"
-                a = getattr(xp, key, missing)
 
-                # Replace ndarray by its id, since o/w it will
-                # complain that you must use all().
-                # Alternative: replace all == (and !=) below by "is".
-                #     Tabulation with multi-line params actually works,
-                #     (though it's still likely to take up too much space,
-                #     unless we set np.printoptions...).
-                #     However, then python (since 3.8) will complain about
-                #     comparison to literal.
-                if isinstance(a, np.ndarray):
-                    shorten = 6
-                    a = f"arr(<id {id(a)//10**shorten}>)"
-                # TODO 3: leave formatting to sub() below?
-                # TODO 4: do similar formatting for other non-trivial params?
-                # TODO 4: document alternative way to specify non-trivial params:
-                #         use key to be looked up in some globally accessible dct.
-                #         Advantage: names are meaningful, rather than ids.
-                return a
-
-            vals = [_getattr(xp, key) for xp in self]
+            vals = [_getattr_safe(xp, key) for xp in self]
 
             # Sort (assign dct) into distinct, redundant, common
             if struct_tools.flexcomp(key, *nomerge):
