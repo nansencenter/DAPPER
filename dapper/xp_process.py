@@ -267,19 +267,17 @@ class SparseSpace(dict):
 
     Like a normal `dict`, it can hold any type of objects.
     But, since the keys must conform, they effectively follow a coordinate system,
-    i.e. vector **space**.
-    Indeed, when seen as an data format for nd-arrays, it may be called
+    so that the `dict` becomes a vector **space**.
+
+    The coordinate system is specified by the `axes`:
+    a list of keys defining the `namedtuple` of `self.Coord`.
+
+    In intended usage, this space is highly sparse,
+    meaning there are many coordinates with no entry.
+    Indeed, as a data format for nd-arrays, it may be called
     "coordinate list representation", used e.g. by `scipy.sparse.coo_matrix`.
 
-    The coordinate system is specified by its "axes":
-    a list of attributes defining the `namedtuple` `self.Coord`,
-    whose instances are the coordinates of the data.
-
-    In normal use, this space is highly sparse,
-    coz there are many coordinates with no matching experiment,
-    eg. `coord(da_method=Climatology, rot=True, ...)`.
-
-    Indeed, operations across (potentially multiple) axes,
+    Thus, operations across (potentially multiple) axes,
     such as optimization or averaging, should be carried out by iterating
     -- not over the axes -- but over the the list of items.
 
