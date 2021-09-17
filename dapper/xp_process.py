@@ -894,16 +894,14 @@ class xpSpace(SparseSpace):
                 h2 = "\n" if len(cc) > 1 else ""  # do column-super-header
                 rows = make_cols(rows, cc, subcols, h2)
 
-                # Make and prepend left-side table
                 # - It's prettier if row_keys don't have unnecessary cols.
                 #   For example, the table of Climatology should not have an
-                #   entire column repeatedly displaying "infl=None".
-                #   => split_attrs().
+                #   entire column repeatedly displaying "infl=None". => split_attrs().
                 # - Why didn't we do this for the column attrs?
-                #   Coz there we have no ambition to split the attrs,
-                #   which would also require excessive processing:
-                #   nesting the table as cols, and then split_attrs() on cols.
+                #   Coz there we have no ambition to split the attrs.
+                #   Also requires transposing to access the column keys.
                 row_keys = xpList(table.keys()).split_attrs()[0]
+                # Prepend left-side table
                 if len(row_keys):
                     # Header
                     rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
