@@ -17,6 +17,7 @@ import struct_tools
 from matplotlib import cm, ticker
 from mpl_tools import place
 from patlib.std import nonchalance, set_tmp
+from struct_tools import DotDict
 from tabulate import tabulate
 from tqdm.auto import tqdm
 
@@ -31,11 +32,17 @@ from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
 mpl_logger = logging.getLogger('matplotlib')
 
 
+class NoneDict(DotDict):
+    """DotDict with getattr fallback (None)."""
 
-    dct = {a: v for a, v in coord._asdict().items() if v != None}
+    def __getattr__(self, name):
+        return None
+
+
 NO_KEY = ("da_method", "Const", "upd_a")
 def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
     """Make label from coord."""
+    dct = {a: v for a, v in coord.items() if v != None}
     lbl = ''
     for k, v in dct.items():
         if k not in exclude:
@@ -48,7 +55,7 @@ def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
 
 def default_styles(coord, baseline_legends=False):
     """Quick and dirty (but somewhat robust) styling."""
-    style = struct_tools.DotDict(ms=8)
+    style = DotDict(ms=8)
     style.label = make_label(coord)
 
     try:
@@ -1006,6 +1013,8 @@ class xpSpace(SparseSpace):
 
             # Plot
             for coord, row in table.items():
+
+                coord = NoneDict(struct_tools.intersect(coord._asdict(), distinct))
                 style = get_style(coord)
 
                 # Rm duplicate labels
