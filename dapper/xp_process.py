@@ -333,19 +333,25 @@ class SparseSpace(dict):
         """
         # Define coordinate system
         self.Coord = collections.namedtuple('Coord', axes)
-        # Write dict
-        # self.update(*args, **kwargs)
 
         # Dont print keys in str
         self.Coord.__str__  = lambda c: "(" + ", ".join(str(v) for v in c) + ")"
         # Only show ... of Coord(...)
         self.Coord.repr2 = lambda c: repr(c).replace("Coord", "").strip("()")
 
-    def update(self, *args, **kwargs):
-        """Make update use custom `__setitem__`."""
+    def update(self, items):
+        """Make update use custom `__setitem__`.
+
+        The `kwargs` syntax is not supported because it only works for keys that consist
+        of (a single) string, which is not very interesting for SparseSpace.
+        """
         # See https://stackoverflow.com/a/2588648
         # and https://stackoverflow.com/a/2390997
-        for k, v in dict(*args, **kwargs).items():
+        try:
+            items = items.items()
+        except AttributeError:
+            pass
+        for k, v in items:
             self[k] = v
 
     def __setitem__(self, key, val):
@@ -617,7 +623,7 @@ class xpSpace(SparseSpace):
 
     def fill(self, xps):
         """Mass insertion."""
-        self.update({self.__getkey__(xp): xp for xp in xps})
+        self.update([(self.__getkey__(xp), xp) for xp in xps])
 
     def field(self, statkey="rmse.a"):
         """Extract `statkey` for each item in `self`."""
