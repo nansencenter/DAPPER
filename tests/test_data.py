@@ -1255,31 +1255,31 @@ gen_test_set(xps_shorter,
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
 
-[43mTable for da_method='Climatology',seed=3000[0m
+[43mTable for da_method='Climatology', seed=3000[0m
  F  ⑊  rmse.a
 --  -  ------
  8  |     0.8
 10  |     1.0
 
-[43mTable for da_method='Climatology',seed=3001[0m
+[43mTable for da_method='Climatology', seed=3001[0m
  F  ⑊  rmse.a
 --  -  ------
  8  |     0.8
 10  |     1.0
 
-[43mTable for da_method='OptInterp',seed=3000[0m
+[43mTable for da_method='OptInterp', seed=3000[0m
  F  ⑊  rmse.a
 --  -  ------
  8  |    0.09
 10  |    0.10
 
-[43mTable for da_method='OptInterp',seed=3001[0m
+[43mTable for da_method='OptInterp', seed=3001[0m
  F  ⑊  rmse.a
 --  -  ------
  8  |    0.19
 10  |    0.20
 
-[43mTable for da_method='Var3D',seed=3000[0m
+[43mTable for da_method='Var3D', seed=3000[0m
  F   xB  ⑊  rmse.a
 --  ---  -  ------
  8  0.1  |    0.18
@@ -1289,7 +1289,7 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
 10  0.2  |    0.29
 10  0.4  |    0.40
 
-[43mTable for da_method='Var3D',seed=3001[0m
+[43mTable for da_method='Var3D', seed=3001[0m
  F   xB  ⑊  rmse.a
 --  ---  -  ------
  8  0.1  |    0.17
@@ -1299,7 +1299,7 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
 10  0.2  |    0.27
 10  0.4  |    0.39
 
-[43mTable for da_method='EnKF',seed=3000[0m
+[43mTable for da_method='EnKF', seed=3000[0m
                       _N=10_  __20__  __50__
  F  upd_a    infl  ⑊  rmse.a  rmse.a  rmse.a
 --  -------  ----  -  ------  ------  ------
@@ -1316,7 +1316,7 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
 10  Sqrt     1.1   |  0.041   0.038   0.037 
 10  Sqrt     2     |  0.2     0.3     0.3   
 
-[43mTable for da_method='EnKF',seed=3001[0m
+[43mTable for da_method='EnKF', seed=3001[0m
                       _N=10_  __20__  __50__
  F  upd_a    infl  ⑊  rmse.a  rmse.a  rmse.a
 --  -------  ----  -  ------  ------  ------
@@ -1333,14 +1333,14 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
 10  Sqrt     1.1   |  0.030   0.028   0.027 
 10  Sqrt     2     |  0.20    0.3     0.3   
 
-[43mTable for da_method='EnKF_N',seed=3000[0m
+[43mTable for da_method='EnKF_N', seed=3000[0m
        _N=10_  __20__  __50__
  F  ⑊  rmse.a  rmse.a  rmse.a
 --  -  ------  ------  ------
  8  |  0.0371  0.0360  0.0352
 10  |  0.039   0.038   0.037 
 
-[43mTable for da_method='EnKF_N',seed=3001[0m
+[43mTable for da_method='EnKF_N', seed=3001[0m
        _N=10_  __20__  __50__
  F  ⑊  rmse.a  rmse.a  rmse.a
 --  -  ------  ------  ------

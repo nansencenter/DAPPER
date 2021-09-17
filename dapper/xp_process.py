@@ -321,11 +321,10 @@ class SparseSpace(dict):
         # Write dict
         # self.update(*args, **kwargs)
 
-        # Add repr/str
-        self.Coord.__repr__ = lambda c: \
-            "(" + ", ".join(f"{k}={v!r}" for k, v in zip(c._fields, c)) + ")"
-        self.Coord.__str__  = lambda c: \
-            "(" + ", ".join(str(v) for v in c) + ")"
+        # Dont print keys in str
+        self.Coord.__str__  = lambda c: "(" + ", ".join(str(v) for v in c) + ")"
+        # Only show ... of Coord(...)
+        self.Coord.repr2 = lambda c: repr(c).replace("Coord", "").strip("()")
 
     def update(self, *args, **kwargs):
         """Update using custom `__setitem__`."""
@@ -855,10 +854,10 @@ class xpSpace(SparseSpace):
             def super_header(col_coord, idx, col):
                 header, matter = col[0], col[1:]
                 if idx:
-                    cc = str(col_coord)
+                    cc = str(col_coord).strip("()")
                 else:
-                    cc = repr(col_coord)
-                cc = cc.lstrip("(").rstrip(")").replace(", ", ",")
+                    cc = col_coord.repr2()
+                cc = cc.replace(", ", ",")
                 cc = cc.center(len(header), "_")  # +1 width for wide chars like ✔️
                 return [cc + "\n" + header] + matter
 
@@ -923,7 +922,7 @@ class xpSpace(SparseSpace):
             # Print
             print("\n", end="")
             if axes['outer']:
-                table_title = "Table for " + repr(table_coord)
+                table_title = "Table for " + table_coord.repr2()
                 print(color_text(table_title, colorama.Back.YELLOW))
             headers, *rows = rows
             t = tabulate(rows, headers).replace('␣', ' ')
@@ -1035,11 +1034,7 @@ class xpSpace(SparseSpace):
         label_register = set()  # mv inside loop to get legend on each panel
         for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
             table.panels = table_panels
-            # table/panel title
-            if axes["outer"] is None:
-                title = ""
-            else:
-                title = repr(table_coord).lstrip("(").rstrip(")")
+            title = "" if axes["outer"] is None else table_coord.repr2()
 
             if squeeze_labels:
                 distinct = xpList(table.keys()).split_attrs()[0]
