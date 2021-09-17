@@ -354,10 +354,9 @@ class xpList(list):
                 # all values equal => common
                 dct, vals = common, vals[0]
             else:
-                v0 = next(v for v in vals if "N/A" != v)
-                if all(v == "N/A" or v == v0 for v in vals):
-                    # all values equal or "N/A" => redundant
-                    dct, vals = redundant, v0
+                nonNA = next(v for v in vals if "N/A" != v)
+                if all(v == "N/A" or v == nonNA for v in vals):
+                    dct, vals = redundant, nonNA
                 else:
                     # otherwise => distinct
                     dct, vals = distinct, vals
