@@ -440,11 +440,9 @@ class SparseSpace(dict):
         return txt + f"populated by {len(self)} keys: {keys}"
 
     def nest(self, inner_axes=None, outer_axes=None):
-        """Return a new xpSpace with axes `outer_axes`,
+        """Project along `inner_acces` to yield a new `xpSpace` with axes `outer_axes`
 
-        obtained by projecting along the `inner_axes`.
-        The entries of this `xpSpace` are themselves `xpSpace`s,
-        with axes `inner_axes`,
+        The entries of this `xpSpace` are themselves `xpSpace`s, with axes `inner_axes`,
         each one regrouping the entries with the same (projected) coordinate.
 
         Note: is also called by `__getitem__(key)` if `key` is dict.
@@ -465,12 +463,16 @@ class SparseSpace(dict):
         # Fill spaces
         outer_space = self.__class__(outer_axes)
         for coord, entry in self.items():
+            # Lookup subspace coord
             outer_coord = outer_space.__getkey__(coord)
             try:
+                # Get subspace
                 inner_space = outer_space[outer_coord]
             except KeyError:
+                # Create subspace, embed
                 inner_space = self.__class__(inner_axes)
                 outer_space[outer_coord] = inner_space
+            # Add entry to subspace, similar to .fill()
             inner_space[inner_space.__getkey__(coord)] = entry
 
         return outer_space
