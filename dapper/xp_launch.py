@@ -245,13 +245,19 @@ class xpList(list):
         return [xp.da_method for xp in self]
 
     def split_attrs(self, nomerge=()):
-        """Classify each/every attribute of the `xp`s into: distinct, redundant, common.
+        """Classify all attrs. of all `xp`s as `distinct`, `redundant`, or `common`.
 
-        Insert `None` if an attribute is distinct but not in `xp`.
+        An attribute of the `xp`s is inserted in one of the 3 dicts as follows:
+        The attribute names become dict keys. If the values of an attribute
+        (collected from all of the `xp`s) are all __equal__, then the attribute
+        is inserted in `common`, but only with **a single value**.
+        If they are all the same **or missing**, then it is inserted in `redundant`
+        **with a single value**. Otherwise, it is inserted in `distinct`,
+        with **its full list of values** (filling with `None` where the attribute
+        was missing in the corresponding `xp`).
 
-        Used by `repr` on `xpList` to make a nice table of the list,
-        in which only the attributes that differ among the `xp`s
-        need be included.
+        Used by `repr` on `xpList` to make a nice table of the list, in which only the
+        attributes that differ among the `xp`s need be included.
 
         Parameters
         ----------
@@ -297,54 +303,35 @@ class xpList(list):
             aggregate = struct_tools.complement(aggregate, excluded)
             return aggregate
 
-        distinct, redundant, common = {}, {}, {}
+        def _getattr_safe(xp, key):
+            # Don't use None, to avoid mixing with actual None's
+            # TODO 4: use an object yet more likely to be unique.
+            missing = "N/A"
+            a = getattr(xp, key, missing)
 
-        for key in _aggregate_keys():
+            # Replace ndarray by its id, since o/w it will
+            # complain that you must use all().
+            # Alternative: replace all == (and !=) below by "is".
+            #     Tabulation with multi-line params actually works,
+            #     (though it's still likely to take up too much space,
+            #     unless we set np.printoptions...).
+            #     However, then python (since 3.8) will complain about
+            #     comparison to literal.
+            if isinstance(a, np.ndarray):
+                shorten = 6
+                a = f"arr(<id {id(a)//10**shorten}>)"
+            # TODO 3: leave formatting to sub() below?
+            # TODO 4: do similar formatting for other non-trivial params?
+            # TODO 4: document alternative way to specify non-trivial params:
+            #         use key to be looked up in some globally accessible dct.
+            #         Advantage: names are meaningful, rather than ids.
+            return a
 
-            def _getattr(xp, key):
-                # Don't use None, to avoid mixing with actual None's
-                # TODO 4: use an object yet more likely to be unique.
-                missing = "N/A"
-                a = getattr(xp, key, missing)
+        def replace_NA_by_None(vals):
+            """Supports different types of `vals`."""
+            def sub(v):
+                return None if v == "N/A" else v
 
-                # Replace ndarray by its id, since o/w it will
-                # complain that you must use all().
-                # Alternative: replace all == (and !=) below by "is".
-                #     Tabulation with multi-line params actually works,
-                #     (though it's still likely to take up too much space,
-                #     unless we set np.printoptions...).
-                #     However, then python (since 3.8) will complain about
-                #     comparison to literal.
-                if isinstance(a, np.ndarray):
-                    shorten = 6
-                    a = f"arr(<id {id(a)//10**shorten}>)"
-                # TODO 3: leave formatting to sub() below?
-                # TODO 4: do similar formatting for other non-trivial params?
-                # TODO 4: document alternative way to specify non-trivial params:
-                #         use key to be looked up in some globally accessible dct.
-                #         Advantage: names are meaningful, rather than ids.
-                return a
-
-            vals = [_getattr(xp, key) for xp in self]
-
-            # Sort (assign dct) into distinct, redundant, common
-            if struct_tools.flexcomp(key, *nomerge):
-                # nomerge => Distinct
-                dct, vals = distinct, vals
-            elif all(vals[0] == v for v in vals):
-                # all values equal => common
-                dct, vals = common, vals[0]
-            else:
-                v0 = next(v for v in vals if "N/A" != v)
-                if all(v == "N/A" or v == v0 for v in vals):
-                    # all values equal or "N/A" => redundant
-                    dct, vals = redundant, v0
-                else:
-                    # otherwise => distinct
-                    dct, vals = distinct, vals
-
-            # Replace "N/A" by None
-            def sub(v): return None if v == "N/A" else v
             if isinstance(vals, str):
                 vals = sub(vals)
             else:
@@ -352,8 +339,28 @@ class xpList(list):
                     vals = [sub(v) for v in vals]
                 except TypeError:
                     vals = sub(vals)
+            return vals
 
-            dct[key] = vals
+        # Main
+        distinct, redundant, common = {}, {}, {}
+        for key in _aggregate_keys():
+            vals = [_getattr_safe(xp, key) for xp in self]
+
+            if struct_tools.flexcomp(key, *nomerge):
+                dct, vals = distinct, vals
+
+            elif all(vals[0] == v for v in vals):
+                dct, vals = common, vals[0]
+
+            else:
+                nonNA = next(v for v in vals if "N/A" != v)
+                if all(v == "N/A" or v == nonNA for v in vals):
+                    dct, vals = redundant, nonNA
+
+                else:
+                    dct, vals = distinct, vals
+
+            dct[key] = replace_NA_by_None(vals)
 
         return distinct, redundant, common
 
