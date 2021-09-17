@@ -329,7 +329,19 @@ class xpList(list):
             return a
 
         for key in _aggregate_keys():
+        def replace_NA_by_None(vals):
+            """Supports different types of `vals`."""
+            def sub(v):
+                return None if v == "N/A" else v
 
+            if isinstance(vals, str):
+                vals = sub(vals)
+            else:
+                try:
+                    vals = [sub(v) for v in vals]
+                except TypeError:
+                    vals = sub(vals)
+            return vals
 
             vals = [_getattr_safe(xp, key) for xp in self]
 
@@ -349,17 +361,7 @@ class xpList(list):
                     # otherwise => distinct
                     dct, vals = distinct, vals
 
-            # Replace "N/A" by None
-            def sub(v): return None if v == "N/A" else v
-            if isinstance(vals, str):
-                vals = sub(vals)
-            else:
-                try:
-                    vals = [sub(v) for v in vals]
-                except TypeError:
-                    vals = sub(vals)
-
-            dct[key] = vals
+            dct[key] = replace_NA_by_None(vals)
 
         return distinct, redundant, common
 
