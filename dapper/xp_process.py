@@ -878,8 +878,8 @@ class xpSpace(SparseSpace):
         for table_coord, table in tables.items():
 
             # Get this table's column coords (cc). Use dict for sorted&unique.
-            # cc = xp_dict.ticks[axes["inner"]] # May be larger than needed.
-            # cc = table[0].keys()              # May be too small a set.
+            # cc = self.ticks[axes["inner"]]  # may be > needed
+            # cc = table[0].keys()            # may be < needed
             cc = {c: None for row in table.values() for c in row}
 
             # Convert table (rows) into rows (lists) of equal length
