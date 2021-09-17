@@ -312,7 +312,7 @@ class SparseSpace(dict):
     ...
     KeyError: (1, 2, 3, 4)
 
-    Individual coordinates can be anything. For examle `None`:
+    Individual coordinates can be anything. For example `None`:
     >>> dct[(1, 2, None)] = "point 2"
     """
 
