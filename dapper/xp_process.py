@@ -934,6 +934,27 @@ class xpSpace(SparseSpace):
 
         The optimal parameters are plotted in smaller panels below the main plot.
         This can be prevented by providing the figure axes through the `panels` arg.
+
+        Parameters
+        ----------
+        statkey: str
+            The statistic to plot.
+        axes: dict
+            See `xpSpace.print`
+        get_style: function
+            A function that accepts some object, and returns a dict of line styles,
+            usually as a function of the object's attributes.
+        panels:
+            Plot axes to use (optional).
+        title2:
+            Figure title
+        costfun: function
+            Forwarded to `xpSpace.tune`
+        unique_labels: bool
+            Only show a given label once.
+        squeeze_labels: bool
+            Don't include redundant attributes in the line labels.
+            Caution: `get_style` will not be able to access the eliminated attrs.
         """
         def plot1(panelcol, row, style):
             """Plot a given line (row) in the main panel and the optim panels.
