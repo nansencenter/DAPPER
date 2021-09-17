@@ -989,7 +989,7 @@ class xpSpace(SparseSpace):
         axes, tables = self.table_tree(statkey, axes)
         xticks = self.tickz(axes["inner"][0])
 
-        # Figure panels
+        # Create figure panels
         if panels is None:
             nrows   = len(axes['optim'] or ()) + 1
             ncols   = len(tables)
