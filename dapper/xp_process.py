@@ -783,7 +783,8 @@ class xpSpace(SparseSpace):
         return [x for x in self.ticks[axis_name] if x is not None]
 
     def print(self, statkey="rmse.a", axes=AXES_ROLES,  # noqa
-              subcols=True, decimals=None, costfun=None):
+              subcols=True, decimals=None, costfun=None,
+              squeeze_labels=True):
         """Print tables of results.
 
         Parameters
@@ -896,31 +897,20 @@ class xpSpace(SparseSpace):
             # Convert table (rows) into rows (lists) of equal length
             rows = [[row.get(c, None) for c in cc] for row in table.values()]
 
-            if False:  # ****************** Simple (for debugging) table
-                for i, (row_coord, row) in enumerate(zip(table, rows)):
-                    row_key = ", ".join(str(v) for v in row_coord)
-                    rows[i] = [row_key] + row
-                rows.insert(0, [f"{table.axes}"] + [repr(c) for c in cc])
-            else:  # ********************** Elegant table.
-                h2 = "\n" if len(cc) > 1 else ""  # do column-super-header
-                rows = make_cols(rows, cc, subcols, h2)
+            h2 = "\n" if len(cc) > 1 else ""  # do column-super-header
+            rows = make_cols(rows, cc, subcols, h2)
 
-                # - It's prettier if row_keys don't have unnecessary cols.
-                #   For example, the table of Climatology should not have an
-                #   entire column repeatedly displaying "infl=None". => squeeze().
-                # - Why didn't we do this for the column attrs?
-                #   Coz there we have no ambition to split the attrs.
-                #   Also requires transposing to access the column keys.
-                #   TODO 5: could we just use cc?
-                row_keys = xpList(table.keys()).squeeze()[0]
-                # Prepend left-side table
-                if len(row_keys):
-                    # Header
-                    rows[0] = [h2+k for k in row_keys] + [h2+'⑊'] + rows[0]
-                    # Matter
-                    row_keys = struct_tools.transps(row_keys)
-                    for i, (row, key) in enumerate(zip(rows[1:], row_keys)):
-                        rows[i+1] = [*key.values()] + ['|'] + row
+            if squeeze_labels:
+                squeezed = xpSpace(xpList(table).squeeze()[0])
+                squeezed.fill(table)
+                table = squeezed
+
+            # Prepend left-side (attr) table
+            # Header
+            rows[0] = [h2+k for k in table.axes] + [h2+'⑊'] + rows[0]
+            # Matter
+            for i, (key, row) in enumerate(zip(table, rows[1:])):
+                rows[i+1] = [*key] + ['|'] + row
 
             # Print
             print("\n", end="")
