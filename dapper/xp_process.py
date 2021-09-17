@@ -587,18 +587,20 @@ class xpSpace(SparseSpace):
         # Define and fill SparseSpace
         xp_list = xpList(xps)
         axes = xp_list.squeeze(nomerge=['xSect'])[0]
-        make_ticks(axes)
         self = cls(axes.keys())
+        self.fill(xps)
 
+        make_ticks(axes)
         # Note: this attr (ticks) will not be propagated through nest().
         # That is fine. Otherwise we should have to prune the ticks
         # (if they are to be useful), which we don't want to do.
         self.ticks = axes
 
-        # Fill
-        self.update({self.__getkey__(xp): xp for xp in xps})
-
         return self
+
+    def fill(self, xps):
+        """Mass insertion."""
+        self.update({self.__getkey__(xp): xp for xp in xps})
 
     def field(self, statkey="rmse.a"):
         """Extract `statkey` for each item in `self`."""
