@@ -986,7 +986,7 @@ class xpSpace(SparseSpace):
         else:
             panels = np.atleast_2d(panels)
 
-        # Title
+        # Fig. Title
         fig = panels[0, 0].figure
         fig_title = "Averages wrt. time"
         if axes["mean"] is not None:
@@ -1007,8 +1007,7 @@ class xpSpace(SparseSpace):
             for coord, row in table.items():
                 style = get_style(coord)
 
-                # Rm duplicate labels (contrary to coords, labels can
-                # be "tampered" with, and so can be duplicate)
+                # Rm duplicate labels
                 if unique_labels:
                     if style.get("label", None) in label_register:
                         del style["label"]
