@@ -58,40 +58,36 @@ def default_styles(coord, baseline_legends=False):
     style = DotDict(ms=8)
     style.label = make_label(coord)
 
-    try:
-        if coord.da_method == "Climatology":
-            style.ls = ":"
-            style.c = "k"
-            if not baseline_legends:
-                style.label = None
+    if coord.da_method == "Climatology":
+        style.ls = ":"
+        style.c = "k"
+        if not baseline_legends:
+            style.label = None
 
-        elif coord.da_method == "OptInterp":
-            style.ls = ":"
-            style.c = .7*np.ones(3)
-            style.label = "Opt. Interp."
-            if not baseline_legends:
-                style.label = None
+    elif coord.da_method == "OptInterp":
+        style.ls = ":"
+        style.c = .7*np.ones(3)
+        style.label = "Opt. Interp."
+        if not baseline_legends:
+            style.label = None
 
-        elif coord.da_method == "Var3D":
-            style.ls = ":"
-            style.c = .5*np.ones(3)
-            style.label = "3D-Var"
-            if not baseline_legends:
-                style.label = None
+    elif coord.da_method == "Var3D":
+        style.ls = ":"
+        style.c = .5*np.ones(3)
+        style.label = "3D-Var"
+        if not baseline_legends:
+            style.label = None
 
-        elif coord.da_method == "EnKF":
-            style.marker = "*"
-            style.c = "C1"
+    elif coord.da_method == "EnKF":
+        style.marker = "*"
+        style.c = "C1"
 
-        elif coord.da_method == "PartFilt":
-            style.marker = "X"
-            style.c = "C2"
+    elif coord.da_method == "PartFilt":
+        style.marker = "X"
+        style.c = "C2"
 
-        else:
-            style.marker = "."
-
-    except AttributeError:
-        pass
+    else:
+        style.marker = "."
 
     return style
 
