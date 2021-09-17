@@ -22,12 +22,12 @@ from tabulate import tabulate
 from tqdm.auto import tqdm
 
 import dapper.tools.remote.uplink as uplink
-from dapper.dpr_config import rc
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import axis_scale_by_array
 from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
+from dapper.dpr_config import rc
 
 mpl_logger = logging.getLogger('matplotlib')
 
