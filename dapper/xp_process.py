@@ -22,12 +22,12 @@ from tabulate import tabulate
 from tqdm.auto import tqdm
 
 import dapper.tools.remote.uplink as uplink
+from dapper.dpr_config import rc
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import axis_scale_by_array
 from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
-from dapper.dpr_config import rc
 
 mpl_logger = logging.getLogger('matplotlib')
 
@@ -549,31 +549,41 @@ class xpSpace(SparseSpace):
     both of which call `xpSpace.table_tree` to nest the axes of the `SparseSpace`.
     """
 
+    _ordering = dict(
+        rot       = 'as_found',
+        da_method = 'as_found',
+    )
+
     @classmethod
-    def from_list(cls, xps):
+    def from_list(cls, xps, ordering=None):
         """Init xpSpace from xpList."""
-        def make_ticks(axes, ordering=dict(  # noqa TODO 5
-                    N         = 'default',
-                    seed      = 'default',
-                    infl      = 'default',
-                    loc_rad   = 'default',
-                    rot       = 'as_found',
-                    da_method = 'as_found',
-                    )):
+
+        def make_ticks(axes):
             """Unique & sort, for each axis (individually) in axes."""
             for ax_name, arr in axes.items():
                 ticks = set(arr)  # unique (jumbles order)
+                order = {**cls._ordering, **(ordering or {})}
+                order = order.get(ax_name, 'default').lower()
+
+                # Sort key
+                if callable(order):
+                    key = order
+                elif 'as_found' in order:
+                    key = arr.index
+                else:
+                    def key(x):
+                        return x
+
+                # Place None's at the end
+                def key_safe(x):
+                    return (x is None), key(x)
 
                 # Sort
-                order = ordering.get(ax_name, 'default').lower()
-                if callable(order):  # eg. mylist.index
-                    ticks = sorted(ticks, key=order)
-                elif 'as_found' in order:
-                    ticks = sorted(ticks, key=arr.index)
-                else:  # default sorting, with None placed at the end
-                    ticks = sorted(ticks, key= lambda x: (x is None, x))
-                if any(x in order for x in ['rev', 'inv']):
+                ticks = sorted(ticks, key=key_safe)
+                # Reverse
+                if isinstance(order, str) and "rev" in order:
                     ticks = ticks[::-1]
+                # Assign
                 axes[ax_name] = ticks
 
         # Define axes
