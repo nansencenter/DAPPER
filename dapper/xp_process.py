@@ -500,12 +500,6 @@ class SparseSpace(dict):
 
         return outer_space
 
-    def add_axis(self, axis):
-        self.__init__(self.axes+(axis,))
-        for coord in list(self):
-            entry = self.pop(coord)
-            self[coord + (None,)] = entry
-
     def intersect_axes(self, attrs):
         """Rm those a in attrs that are not in self.axes.
 
@@ -527,6 +521,12 @@ class SparseSpace(dict):
             attrs = struct_tools.complement(attrs, absent)
         return attrs
 
+    def append_axis(self, axis):
+        self.__init__(self.axes+(axis,))
+        for coord in list(self):
+            entry = self.pop(coord)
+            self[coord + (None,)] = entry
+
     def label_xSection(self, label, *NoneAttrs, **sub_coord):
         """Insert duplicate entries for the given cross-section.
 
@@ -541,7 +541,7 @@ class SparseSpace(dict):
         preventing them from being shown in plot labels and tuning panels.
         """
         if "xSect" not in self.axes:
-            self.add_axis('xSect')
+            self.append_axis('xSect')
 
         for coord in self.coords(**self.intersect_axes(sub_coord)):
             entry = copy.deepcopy(self[coord])
