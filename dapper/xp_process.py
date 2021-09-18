@@ -442,9 +442,6 @@ class SparseSpace(dict):
         # return [x for x in self if match(x)]
 
     def __repr__(self):
-        # Note: print(xpList(self)) produces more human-readable key listing,
-        # but we don't want to implement it here, coz it requires squeeze(),
-        # which we don't really want to call again.
         txt  = f"<{self.__class__.__name__}>"
         txt += " with Coord/axes: "
         try:
@@ -452,6 +449,9 @@ class SparseSpace(dict):
         except AttributeError:
             txt += str(self.axes) + "\n"
 
+        # Note: print(xpList(self)) produces a more human-readable table,
+        # but requires prep_table(), which we don't really want to call again
+        # (it's only called in from_list, not (necessarily) in any nested spaces)
         L = 2
         keys = [str(k) for k in self]
         if 2*L < len(keys):
@@ -608,7 +608,7 @@ class xpSpace(SparseSpace):
 
         # Define and fill SparseSpace
         xp_list = xpList(xps)
-        axes = xp_list.squeeze(nomerge=['xSect'])[0]
+        axes = xp_list.prep_table(nomerge=['xSect'])[0]
         self = cls(axes)
         self.fill(xps)
 
@@ -626,7 +626,7 @@ class xpSpace(SparseSpace):
 
     def squeeze(self):
         """Eliminate unnecessary axes/dimensions."""
-        squeezed = xpSpace(xpList(self).squeeze()[0])
+        squeezed = xpSpace(xpList(self).prep_table()[0])
         squeezed.fill(self)
         return squeezed
 
