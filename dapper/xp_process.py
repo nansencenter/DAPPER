@@ -392,14 +392,6 @@ class SparseSpace(dict):
             # Also see bugs.python.org/issue7796
             return super().__getitem__(key)
 
-    def __getkey__(self, entry):
-        """Inverse of `dict.__getitem__`, but also works on coords.
-
-        Note: This dunder method is not a "builtin" naming convention.
-        """
-        coord = (getattr(entry, a, None) for a in self.axes)
-        return self.Coord(*coord)
-
     def __call__(self, **kwargs):
         """Convenience.
 
@@ -421,6 +413,16 @@ class SparseSpace(dict):
         return [self.get(coord(x), default) for x in ticks]
 
     def coords(self, **kwargs):
+    def coord_from_attrs(self, entry):
+        """Form a `coord` for this `xpSpace` by extracting attrs. from `obj`.
+
+        **If** the entries of `self` have attributes matching their `coord`s,
+        then this can be seen as the inverse of `__getitem__`. I.e.
+        >>> self.coord_from_attrs(self[coord]) == coord  # doctest: +SKIP
+        """
+        coord = (getattr(entry, a, None) for a in self.axes)
+        return self.Coord(*coord)
+
         """Get all `coord`s matching kwargs.
 
         Unlike `__getitem__(kwargs)`,
@@ -485,7 +487,7 @@ class SparseSpace(dict):
         outer_space = self.__class__(outer_axes)
         for coord, entry in self.items():
             # Lookup subspace coord
-            outer_coord = outer_space.__getkey__(coord)
+            outer_coord = outer_space.coord_from_attrs(coord)
             try:
                 # Get subspace
                 inner_space = outer_space[outer_coord]
@@ -494,7 +496,7 @@ class SparseSpace(dict):
                 inner_space = self.__class__(inner_axes)
                 outer_space[outer_coord] = inner_space
             # Add entry to subspace, similar to .fill()
-            inner_space[inner_space.__getkey__(coord)] = entry
+            inner_space[inner_space.coord_from_attrs(coord)] = entry
 
         return outer_space
 
@@ -623,7 +625,7 @@ class xpSpace(SparseSpace):
 
     def fill(self, xps):
         """Mass insertion."""
-        self.update([(self.__getkey__(xp), xp) for xp in xps])
+        self.update([(self.coord_from_attrs(xp), xp) for xp in xps])
 
     def squeeze(self):
         """Eliminate unnecessary axes/dimensions."""
@@ -778,7 +780,7 @@ class xpSpace(SparseSpace):
         # before doing outer/inner nesting. This is because then the axes of
         # a row (xpSpace) should not include mean&optim, and thus:
         #  - Column header/coords may be had directly as row.keys(),
-        #    without extraction by __getkey__() from (e.g.) row[0].
+        #    without extraction by coord_from_attrs() from (e.g.) row[0].
         #  - Don't need to propagate mean&optim axes down to the row level.
         #    which would require defining rows by the nesting:
         #    rows = table.nest(outer_axes=struct_tools.complement(table.axes,
