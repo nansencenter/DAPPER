@@ -326,9 +326,6 @@ class SparseSpace(dict):
         ----------
         axes: list
             The attributes defining the coordinate system.
-
-        args: entries
-            Nothing, or a list of `xp`s.
         """
         # Define coordinate system
         self.Coord = collections.namedtuple('Coord', axes)
@@ -339,10 +336,10 @@ class SparseSpace(dict):
         self.Coord.repr2 = lambda c: repr(c).replace("Coord", "").strip("()")
 
     def update(self, items):
-        """Make update use custom `__setitem__`.
+        """Update dict, using the custom `__setitem__` to ensure key conformity.
 
-        The `kwargs` syntax is not supported because it only works for keys that consist
-        of (a single) string, which is not very interesting for SparseSpace.
+        NB: the `kwargs` syntax is not supported because it only works for keys that
+        consist of (a single) string, which is not very interesting for SparseSpace.
         """
         # See https://stackoverflow.com/a/2588648
         # and https://stackoverflow.com/a/2390997
@@ -378,8 +375,8 @@ class SparseSpace(dict):
         # Subspace (by dict, ie. an informal, partial coordinate)
         elif isinstance(key, dict):
             outer = self.nest(outer_axes=list(key))  # nest
-            coord = outer.Coord(*key.values())      # create coord
-            inner = outer[coord]                    # chose subspace
+            coord = outer.Coord(*key.values())       # create coord
+            inner = outer[coord]                     # chose subspace
             return inner
 
         # Single item (by Coord object, coz an integer (eg)
@@ -392,7 +389,7 @@ class SparseSpace(dict):
             return super().__getitem__(key)
 
     def __call__(self, **kwargs):
-        """Convenience.
+        """Convenient syntax to get/access items.
 
         Example
         -------
@@ -404,14 +401,13 @@ class SparseSpace(dict):
         """Almost `[self.get(Coord(x)) for x in ticks]`.
 
         NB: using the "naive" thing: `[self[x] for x in ticks]`
-        would probably be a BUG coz x gets interpreted as indices
+        would probably be a BUG coz integer `x` gets interpreted as indices
         for the internal list.
         """
         singleton = not hasattr(ticks[0], "__iter__")
         def coord(xyz): return self.Coord(xyz if singleton else xyz)
         return [self.get(coord(x), default) for x in ticks]
 
-    def coords(self, **kwargs):
     def coord_from_attrs(self, entry):
         """Form a `coord` for this `xpSpace` by extracting attrs. from `obj`.
 
@@ -425,15 +421,16 @@ class SparseSpace(dict):
     def coords_matching(self, **kwargs):
         """Get all `coord`s matching kwargs.
 
-        Unlike `__getitem__(kwargs)`,
+        Unlike `__getitem__(**kwargs)`,
+
         - A list is returned, not a subspace.
         - This list constains keys (coords), not values.
         - The coords refer to the original space, not the subspace.
 
-        The last point is especially useful for
-        `SparseSpace.label_xSection`.
+        The last point is especially useful for `SparseSpace.label_xSection`.
         """
-        def embed(coord): return {**kwargs, **coord._asdict()}
+        def embed(coord):
+            return {**kwargs, **coord._asdict()}
         return [self.Coord(**embed(x)) for x in self[kwargs]]
 
         # Old implementation.
@@ -501,7 +498,7 @@ class SparseSpace(dict):
         return outer_space
 
     def intersect_axes(self, attrs):
-        """Rm those a in attrs that are not in self.axes.
+        """Rm those `a` in `attrs` that are not in `self.axes`.
 
         This allows errors in the axes allotment, for ease-of-use.
         """
