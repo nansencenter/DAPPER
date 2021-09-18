@@ -292,8 +292,7 @@ class SparseSpace(dict):
     - A list of any of the above. Returns list.
 
     This flexibility can cause bugs, but it's probably still worth it.
-    Also see `__call__`, `get_for`, and `coords`,
-    for further convenience.
+    Also see `__call__`, `get_for`, and `coords_matching`, for further convenience.
 
     Inspired by
 
@@ -423,6 +422,7 @@ class SparseSpace(dict):
         coord = (getattr(entry, a, None) for a in self.axes)
         return self.Coord(*coord)
 
+    def coords_matching(self, **kwargs):
         """Get all `coord`s matching kwargs.
 
         Unlike `__getitem__(kwargs)`,
@@ -543,7 +543,7 @@ class SparseSpace(dict):
         if "xSect" not in self.axes:
             self.append_axis('xSect')
 
-        for coord in self.coords(**self.intersect_axes(sub_coord)):
+        for coord in self.coords_matching(**self.intersect_axes(sub_coord)):
             entry = copy.deepcopy(self[coord])
             coord = coord._replace(xSect=label)
             coord = coord._replace(**{a: None for a in NoneAttrs})
