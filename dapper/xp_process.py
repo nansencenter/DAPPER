@@ -925,8 +925,8 @@ class xpSpace(SparseSpace):
 
         for table_coord, table in tables.items():
 
-            # Get table's column coords
-            # It's supposed to be a set, but we use a dict to keep ordering.
+            # Get table's column coords/ticks (cc).
+            # cc is really a set, but we use dict for ordering.
             # cc = self.ticks[axes["inner"]]  # may be > needed
             # cc = table[0].keys()            # may be < needed
             cc = {c: None for row in table.values() for c in row}
@@ -1063,7 +1063,7 @@ class xpSpace(SparseSpace):
             title = "" if axes["outer"] is None else table_coord.repr2()
 
             if squeeze_labels:
-                distinct = xpList(table.keys()).squeeze()[0]
+                distinct = xpList(table.keys()).prep_table()[0]
             else:
                 distinct = table.axes
 
