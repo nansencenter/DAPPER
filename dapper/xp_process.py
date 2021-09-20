@@ -24,7 +24,7 @@ from tqdm.auto import tqdm
 import dapper.tools.remote.uplink as uplink
 from dapper.dpr_config import rc
 from dapper.stats import align_col, unpack_uqs
-from dapper.tools.colors import color_text
+from dapper.tools.colors import color_text, stripe
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import axis_scale_by_array
 from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
@@ -812,7 +812,7 @@ class xpSpace(SparseSpace):
 
     def print(self, statkey="rmse.a", axes=AXES_ROLES,  # noqa
               subcols=True, decimals=None, costfun=None,
-              squeeze_labels=True):
+              squeeze_labels=True, colorize=True):
         """Print tables of results.
 
         Parameters
@@ -860,6 +860,8 @@ class xpSpace(SparseSpace):
         squeeze_labels: bool
             Don't include redundant attributes in the line labels.
             Caution: `get_style` will not be able to access the eliminated attrs.
+        colorize: bool
+            Add color to tables for readability.
         """
         # Inform axes["mean"]
         if axes.get('mean', None):
@@ -950,9 +952,14 @@ class xpSpace(SparseSpace):
             print("\n", end="")
             if axes['outer']:
                 table_title = "Table for " + table_coord.repr2()
-                print(color_text(table_title, colorama.Back.YELLOW))
+                if colorize:
+                    clrs = colorama.Back.YELLOW, colorama.Fore.BLACK
+                    table_title = color_text(table_title, *clrs)
+                print(table_title)
             headers, *rows = rows
             t = tabulate(rows, headers).replace('␣', ' ')
+            if colorize:
+                t = stripe(t, slice(2, None))
             print(t)
 
     def plot(self, statkey="rmse.a", axes=AXES_ROLES, get_style=default_styles,

@@ -58,6 +58,17 @@ def coloring(*color_codes):
         builtins.print = orig_print
 
 
+def stripe(rows, inds=...):
+    if not isinstance(rows, list):
+        rows = rows.splitlines()
+    inds = np.arange(len(rows))[inds]
+    for i, row in enumerate(rows):
+        if i in inds and i % 2:
+            rows[i] = color_text(row, colorama.Fore.BLACK, colorama.Back.WHITE)
+    rows = "\n".join(rows)
+    return rows
+
+
 #########################################
 # Colouring for matplotlib
 #########################################
