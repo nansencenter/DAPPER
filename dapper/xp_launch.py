@@ -26,6 +26,7 @@ import dapper.tools.progressbar as pb
 from dapper.dpr_config import rc
 from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
+from dapper.tools.viz import collapse_str
 
 _tabulate.MIN_PADDING = 0
 XP_TIMESTAMP_TEMPLATE = "run_%Y-%m-%d__%H-%M-%S"
@@ -149,14 +150,6 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
     if savedir:
         with open(Path(savedir)/"xp", "wb") as FILE:
             dill.dump({'xp': xp}, FILE)
-
-
-def collapse_str(string, length=6):
-    """Truncate a string (in the middle) to the given `length`"""
-    if len(string) <= length:
-        return string
-    else:
-        return string[:length-2]+'~'+string[-1]
 
 
 class xpList(list):

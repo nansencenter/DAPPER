@@ -11,13 +11,10 @@ from pathlib import Path
 
 import colorama
 import dill
-import matplotlib as mpl
 import numpy as np
 import struct_tools
-from matplotlib import cm, ticker
 from mpl_tools import place
 from patlib.std import nonchalance, set_tmp
-from struct_tools import DotDict
 from tabulate import tabulate
 from tqdm.auto import tqdm
 
@@ -26,125 +23,10 @@ from dapper.dpr_config import rc
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text, stripe
 from dapper.tools.rounding import UncertainQtty
-from dapper.tools.viz import axis_scale_by_array
-from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, collapse_str, xpList
+from dapper.tools.viz import NoneDict, default_styles
+from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, xpList
 
 mpl_logger = logging.getLogger('matplotlib')
-
-
-class NoneDict(DotDict):
-    """DotDict with getattr fallback (None)."""
-
-    def __getattr__(self, name):
-        return None
-
-
-NO_KEY = ("da_method", "xSect", "upd_a")
-def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
-    """Make label from coord."""
-    dct = {a: v for a, v in coord.items() if v != None}
-    lbl = ''
-    for k, v in dct.items():
-        if k not in exclude:
-            if any(x in k for x in no_key):
-                lbl = lbl + f' {v}'
-            else:
-                lbl = lbl + f' {collapse_str(k,7)}:{v}'
-    return lbl[1:]
-
-
-def default_styles(coord, baseline_legends=False):
-    """Quick and dirty (but somewhat robust) styling."""
-    style = DotDict(ms=8)
-    style.label = make_label(coord)
-
-    if coord.da_method == "Climatology":
-        style.ls = ":"
-        style.c = "k"
-        if not baseline_legends:
-            style.label = None
-
-    elif coord.da_method == "OptInterp":
-        style.ls = ":"
-        style.c = .7*np.ones(3)
-        style.label = "Opt. Interp."
-        if not baseline_legends:
-            style.label = None
-
-    elif coord.da_method == "Var3D":
-        style.ls = ":"
-        style.c = .5*np.ones(3)
-        style.label = "3D-Var"
-        if not baseline_legends:
-            style.label = None
-
-    elif coord.da_method == "EnKF":
-        style.marker = "*"
-        style.c = "C1"
-
-    elif coord.da_method == "PartFilt":
-        style.marker = "X"
-        style.c = "C2"
-
-    else:
-        style.marker = "."
-
-    return style
-
-
-def rel_index(elem, lst, default=None):
-    """`lst.index(elem) / len(lst)` with fallback."""
-    try:
-        return lst.index(elem) / len(lst)
-    except ValueError:
-        if default == None:
-            raise
-        return default
-
-
-def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
-    """Discretize `cmap` so that it partitions `[0, 1]` into `N` segments.
-
-    I.e. `cmap(k/N) == cmap(k/N + eps)`.
-
-    Also provide the ScalarMappable `sm`
-    that maps range(N) to the segment centers,
-    as will be reflected by `cb = fig.colorbar(sm)`.
-    You can then re-label the ticks using
-    `cb.set_ticks(np.arange(N)); cb.set_ticklabels(["A","B","C",...])`.
-    """
-    # cmap(k/N)
-    from_list = mpl.colors.LinearSegmentedColormap.from_list
-    colors = cmap(np.linspace(val0, val1, N))
-    cmap = from_list(name, colors, N)
-    # sm
-    cNorm = mpl.colors.Normalize(-.5, -.5+N)
-    sm = mpl.cm.ScalarMappable(cNorm, cmap)
-    return cmap, sm
-
-
-def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
-    """Map cmap for `coord.axis ∈ [0, len(ticks)]`."""
-    def link(coord):
-        """Essentially: `cmap(ticks.index(coord.axis))`"""
-        if hasattr(coord, axis):
-            ticks = xp_dict.ticks[axis]
-            cNorm = mpl.colors.Normalize(vmin, vmax + len(ticks))
-            ScMap = cm.ScalarMappable(cNorm, cmap).to_rgba
-            index = ticks.index(getattr(coord, axis))
-            return ScMap(index)
-        else:
-            return cmap(0.5)
-    return link
-
-
-def in_idx(coord, indices, xp_dict, axis):
-    """Essentially: `coord.axis in ticks[indices]`."""
-    if hasattr(coord, axis):
-        ticks = np.array(xp_dict.ticks[axis])[indices]
-        return getattr(coord, axis) in ticks
-    else:
-        return True
 
 
 def find_latest_run(root: Path):
@@ -161,13 +43,14 @@ def find_latest_run(root: Path):
 
 
 def load_HMM(save_as):
+    """Load HMM from `xp.com` from given dir."""
     save_as = Path(save_as).expanduser()
     HMM = dill.load(open(save_as/"xp.com", "rb"))["HMM"]
     return HMM
 
 
 def load_xps(save_as):
-    """Load `xps` (as a simple list) from dir."""
+    """Load `xps` (as a `list`) from given dir."""
     save_as = Path(save_as).expanduser()
     files = [d/"xp" for d in uplink.list_job_dirs(save_as)]
 
@@ -255,9 +138,9 @@ def reduce_inodes(save_as, nDir=100):
     This reduces the **number** of files (inodes) on the system,
     which limits storage capacity (along with **size**).
 
-    It also deletes files "xp.var" and "out"
-    (which tends to be relatively large coz of the progbar).
-    This is probably also the reason that the loading time is sometimes reduced.
+    It also deletes files "xp.var" and "out",
+    whose main content tends to be the printed progbar.
+    This probably leads to reduced loading time is sometimes reduced.
     """
     overwrite_xps(load_xps(save_as), save_as, nDir)
 
@@ -1105,48 +988,3 @@ class xpSpace(SparseSpace):
         tables.xp_dict = self
         tables.axes_roles = axes
         return tables
-
-
-def default_fig_adjustments(tables, xticks_from_data=False):
-    """Beautify. These settings do not generalize well."""
-    # Get axs as 2d-array
-    axs = np.array([table.panels for table in tables.values()]).T
-
-    # Main panels (top row) only:
-    sensible_f = ticker.FormatStrFormatter('%g')
-    for ax in axs[0, :]:  # noqa
-        for direction in ['y', 'x']:
-            if axs.shape[1] < 6:
-                eval(f"ax.set_{direction}scale('log')")
-                eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
-            eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
-
-    # Set xticks
-    if xticks_from_data:
-        ax = tables[1].panels[0]
-        # Log-scale overrules any custom ticks. Restore control
-        ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
-        ax.xaxis.set_minor_formatter(ticker.NullFormatter())
-        ax.set_xticks(tables.xp_dict.tickz(tables.axes_roles["inner"][0]))
-
-    # Tuning panels only
-    table = tables[0]
-    for a, panel in zip(tables.axes_roles["optim"] or (), table.panels[1:]):
-        yy = tables.xp_dict.tickz(a)
-        axis_scale_by_array(panel, yy, "y")
-        # set_ymargin doesn't work for wonky scales. Do so manually:
-        alpha = len(yy)/10
-        y0, y1, y2, y3 = yy[0], yy[1], yy[-2], yy[-1]
-        panel.set_ylim(y0-alpha*(y1-y0), y3+alpha*(y3-y2))
-
-    # All panels
-    for ax in axs.ravel():
-        for direction in ['y', 'x']:
-            if axs.shape[1] < 6:
-                ax.grid(True, which="minor", axis=direction)
-
-    # Not strictly compatible with gridspec height_ratios,
-    # (throws warning), but still works ok.
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=UserWarning)
-        axs[0, 0].figure.tight_layout()

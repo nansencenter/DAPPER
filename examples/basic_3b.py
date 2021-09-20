@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import dapper as dpr
-from dapper.xp_process import (default_fig_adjustments, default_styles,
-                               discretize_cmap, make_label, rel_index)
+from dapper.tools.viz import (default_fig_adjustments, default_styles,
+                              discretize_cmap, make_label, rel_index)
 
 # #### Load
 
