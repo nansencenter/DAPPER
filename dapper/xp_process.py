@@ -413,7 +413,8 @@ class SparseSpace(dict):
 
         **If** the entries of `self` have attributes matching their `coord`s,
         then this can be seen as the inverse of `__getitem__`. I.e.
-        >>> self.coord_from_attrs(self[coord]) == coord  # doctest: +SKIP
+
+            self.coord_from_attrs(self[coord]) == coord
         """
         coord = (getattr(entry, a, None) for a in self.axes)
         return self.Coord(*coord)
@@ -527,7 +528,7 @@ class SparseSpace(dict):
     def label_xSection(self, label, *NoneAttrs, **sub_coord):
         """Insert duplicate entries for the given cross-section.
 
-        Works by adding the attr. `xSection` to the `SparseSpace.Coord`,
+        Works by adding the attr. `xSection` to the axes of `SparseSpace`,
         and setting it to `label` for entries matching `sub_coord`,
         reflecting the "constance/constraint/fixation" this represents.
         This distinguishes the entries in this fixed-affine subspace,
@@ -817,42 +818,48 @@ class xpSpace(SparseSpace):
         Parameters
         ----------
         statkey: str
-            The statistic from the experiments to report.
-        subcols: bool
-            If `True`, then subcolumns are added to indicate the
-            1σ confidence interval, and potentially some other stuff.
+            The statistic to extract from the `xp.avrgs` for each `xp`.
         axes: dict
-            Allots (maps) each role to a set of axis of the `xpSpace`.
-            Example:
-
-            >>> dict(outer='da_method', inner='N', mean='seed',  # doctest: +SKIP
-            ...      optim=('infl','loc_rad'))
+            Allots (maps) the axes/dimensions of `xpSpace` to different
+            roles in the printing of the table.
 
             - Herein, the "role" `outer` should list the axes/attributes
-            used to define the splitting of the results into *separate tables*:
-            one table for each distinct combination of attributes.
+              used to define the splitting of the results into *separate tables*:
+              one table for each distinct combination of attributes.
             - Similarly , the role `inner` determines which attributes
-            split a table into its columns.
-            - `mean` lists the attributes used over which the mean is taken.
-            - `optim` lists the attributes used over which the optimum result
-               is searched for.
+              split a table into its columns.
+            - `mean` lists the attributes over which the mean is taken
+              (for that row & column)
+            - `optim` lists the attributes used over which the optimum
+               is searched for (after taking the mean).
 
-            Example: If `mean` is assigned to:
+            Example:
 
-            - `("seed",)`: Experiments are averaged accross seeds,
-                           and the 1σ (sub)col is computed as sqrt(var(xps)/N),
-                           where xps is a set of experiments.
+                dict(outer='da_method', inner='N', mean='seed',
+                     optim=('infl','loc_rad'))
 
-            - `()`       : Experiments are averaged across nothing
-                           (i.e. this is an edge case).
+            Equivalently, use `mean=("seed",)`.
+            It is acceptible to not specify anything, e.g. `mean=()` or `mean=None`.
+        subcols: bool
+            If `True`, then subcolumns are added to indicate
 
-            - `None`     : Experiments are not averaged
-                           (i.e. the values are the same as above),
-                           and the 1σ (sub)col is computed from
-                           the time series of that single experiment.
+            - `1σ`: the confidence interval. If `mean=None` is used, this simply reports
+              the value `.prec` of the `statkey`, providing this is an `UncertainQtty`.
+              Otherwise, it is computed as `sqrt(var(xps)/N)`,
+              where `xps` is the set of statistic gathered over the `mean` axis.
+            - `*(optim)`: the optimal point (among all `optim` attributes),
+              as defined by `costfun`.
+            - `☠`: the number of failures (non-finite values) at that point.
+            - `✓`: the number of successes that go into the value
         decimals: int
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
+        costfun: str or function
+            Use `'increasing'` (default) or `'decreasing'` to indicate that the optimum
+            is defined as the lowest or highest value of the `statkey` found.
+        squeeze_labels: bool
+            Don't include redundant attributes in the line labels.
+            Caution: `get_style` will not be able to access the eliminated attrs.
         """
         # Inform axes["mean"]
         if axes.get('mean', None):
@@ -952,39 +959,31 @@ class xpSpace(SparseSpace):
              fignum=None, figsize=None, panels=None,
              title2=None, costfun=None, unique_labels=True,
              squeeze_labels=True):
-        """Plot the avrgs of `statkey` as a function of `axis["inner"]`.
+        """Plot (tables of) results.
 
-        Optionally, the experiments can be grouped by `axis["outer"]`,
-        producing a figure with columns of panels.
-        First of all, though, mean and optimum computations are done for
-        `axis["mean"]` and `axis["optim"]`, where the optimization can
-        be controlled through `costfun` (see `xpSpace.tune`)
+        Analagously to `xpSpace.print`,
+        the averages are grouped by `axis["inner"]`,
+        which here plays the role of the x-axis.
 
-        This is entirely analogous to the roles of `axis` in `xpSpace.print`.
+        The averages can also be grouped by `axis["outer"]`,
+        producing a figure with multiple (columns of) panels.
 
-        The optimal parameters are plotted in smaller panels below the main plot.
-        This can be prevented by providing the figure axes through the `panels` arg.
+        The optimal points/parameters/attributes are plotted in smaller panels
+        below the main plot. This can be turned off by providing the figure
+        axes through the `panels` argument.
+
+        The parameters `statkey`, `axes`, `costfun`, `sqeeze_labels`
+        are documented in `xpSpace.print`.
 
         Parameters
         ----------
-        statkey: str
-            The statistic to plot.
-        axes: dict
-            See `xpSpace.print`
         get_style: function
-            A function that accepts some object, and returns a dict of line styles,
+            A function that takes an object, and returns a dict of line styles,
             usually as a function of the object's attributes.
-        panels:
-            Plot axes to use (optional).
-        title2:
-            Figure title
-        costfun: function
-            Forwarded to `xpSpace.tune`
+        title2: str
+            Figure title (in addition to the defaults).
         unique_labels: bool
             Only show a given label once.
-        squeeze_labels: bool
-            Don't include redundant attributes in the line labels.
-            Caution: `get_style` will not be able to access the eliminated attrs.
         """
         def plot1(panelcol, row, style):
             """Plot a given line (row) in the main panel and the optim panels.
