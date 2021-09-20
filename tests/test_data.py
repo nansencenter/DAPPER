@@ -68,7 +68,7 @@ def cap_stdout(fun, *args, **kwargs):
 def gen_test_set(xp_dict, *args, **kwargs):
     """Capture printout of `dapper.xp_process.xpSpace.print`, gen tests."""
     # Get stdout of xpSpace.print()
-    output = cap_stdout(xp_dict.print, *args, **kwargs)
+    output = cap_stdout(xp_dict.print, *args, **kwargs, colorize=False)
 
     # introspection
     caller_lineno = inspect.currentframe().f_back.f_lineno
@@ -109,19 +109,19 @@ xps_shorter = dpr.xpSpace.from_list(
 ##
 old = """Averages (in time and) over seed.
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
  F  ⑊  rmse.a ±1σ     ☠ ✓
 --  -  ------------------
  8  |  0.7775 ±0.0005 0 2
 10  |  0.9728 ±0.0005 0 2
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
  F  ⑊  rmse.a ±1σ   ☠ ✓
 --  -  ----------------
  8  |    0.14 ±0.05 0 2
 10  |    0.15 ±0.05 0 2
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
  F   xB  ⑊  rmse.a ±1σ    ☠ ✓
 --  ---  -  -----------------
  8  0.1  |   0.175 ±0.004 0 2
@@ -131,7 +131,7 @@ old = """Averages (in time and) over seed.
 10  0.2  |   0.282 ±0.008 0 2
 10  0.4  |   0.398 ±0.007 0 2
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
                       _______N=10_______  ________20_______  ________50_______
  F  upd_a    infl  ⑊  rmse.a ±1σ     ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  -------  ----  -  ------------------  -----------------  -----------------
@@ -148,14 +148,14 @@ old = """Averages (in time and) over seed.
 10  Sqrt     1.1   |  0.036  ±0.006  0 2   0.033 ±0.005 0 2   0.032 ±0.005 0 2
 10  Sqrt     2     |  0.22   ±0.01   0 2   0.268 ±0.008 0 2   0.33  ±0.01  0 2
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
        _______N=10______  ________20_______  ________50_______
  F  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  -  -----------------  -----------------  -----------------
  8  |   0.032 ±0.005 0 2   0.031 ±0.005 0 2   0.030 ±0.005 0 2
 10  |   0.034 ±0.005 0 2   0.033 ±0.005 0 2   0.032 ±0.005 0 2
 
-[43mTable for da_method='LETKF'[0m
+Table for da_method='LETKF'
                       _______N=10______  ________20_______  ________50_______
  F  infl  loc_rad  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  ----  -------  -  -----------------  -----------------  -----------------
@@ -197,19 +197,19 @@ gen_test_set(
 ##
 old = """Averages (in time and) over seed.
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
  F  ⑊  rmse.a ±1σ     *('infl',) ☠ ✓
 --  -  -----------------------------
  8  |  0.7775 ±0.0005 *(None,)   0 2
 10  |  0.9728 ±0.0005 *(None,)   0 2
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
  F  ⑊  rmse.a ±1σ   *('infl',) ☠ ✓
 --  -  ---------------------------
  8  |    0.14 ±0.05 *(None,)   0 2
 10  |    0.15 ±0.05 *(None,)   0 2
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
  F   xB  ⑊  rmse.a ±1σ    *('infl',) ☠ ✓
 --  ---  -  ----------------------------
  8  0.1  |   0.175 ±0.004 *(None,)   0 2
@@ -219,7 +219,7 @@ old = """Averages (in time and) over seed.
 10  0.2  |   0.282 ±0.008 *(None,)   0 2
 10  0.4  |   0.398 ±0.007 *(None,)   0 2
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
                 ____________N=10____________  _____________20_____________  _____________50_____________
  F  upd_a    ⑊  rmse.a ±1σ    *('infl',) ☠ ✓  rmse.a ±1σ    *('infl',) ☠ ✓  rmse.a ±1σ    *('infl',) ☠ ✓
 --  -------  -  ----------------------------  ----------------------------  ----------------------------
@@ -228,14 +228,14 @@ old = """Averages (in time and) over seed.
  8  Sqrt     |   0.032 ±0.005 *(1.01,)   0 2   0.031 ±0.005 *(1.01,)   0 2   0.030 ±0.005 *(1.1,)    0 2
 10  Sqrt     |   0.034 ±0.005 *(1.01,)   0 2   0.033 ±0.005 *(1.01,)   0 2   0.032 ±0.005 *(1.1,)    0 2
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
        ____________N=10____________  _____________20_____________  _____________50_____________
  F  ⑊  rmse.a ±1σ    *('infl',) ☠ ✓  rmse.a ±1σ    *('infl',) ☠ ✓  rmse.a ±1σ    *('infl',) ☠ ✓
 --  -  ----------------------------  ----------------------------  ----------------------------
  8  |   0.032 ±0.005 *(1.0,)    0 2   0.031 ±0.005 *(1.0,)    0 2   0.030 ±0.005 *(1.0,)    0 2
 10  |   0.034 ±0.005 *(1.0,)    0 2   0.033 ±0.005 *(1.0,)    0 2   0.032 ±0.005 *(1.0,)    0 2
 
-[43mTable for da_method='LETKF'[0m
+Table for da_method='LETKF'
                 ____________N=10____________  _____________20_____________  _____________50_____________
  F  loc_rad  ⑊  rmse.a ±1σ    *('infl',) ☠ ✓  rmse.a ±1σ    *('infl',) ☠ ✓  rmse.a ±1σ    *('infl',) ☠ ✓
 --  -------  -  ----------------------------  ----------------------------  ----------------------------
@@ -254,19 +254,19 @@ gen_test_set(xps, "rmse.a",
 ##
 old = """Averages (in time and) over seed.
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
  F  ⑊  kurt.f ±1σ  ☠ ✓
 --  -  ---------------
  8  |     nan ±nan 2 0
 10  |     nan ±nan 2 0
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
  F  ⑊  kurt.f ±1σ  ☠ ✓
 --  -  ---------------
  8  |     nan ±nan 2 0
 10  |     nan ±nan 2 0
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
  F   xB  ⑊  kurt.f ±1σ  ☠ ✓
 --  ---  -  ---------------
  8  0.1  |     nan ±nan 2 0
@@ -276,7 +276,7 @@ old = """Averages (in time and) over seed.
 10  0.2  |     nan ±nan 2 0
 10  0.4  |     nan ±nan 2 0
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
                       ________N=10_______  _________20________  ________50_______
  F  upd_a    infl  ⑊   kurt.f ±1σ     ☠ ✓   kurt.f ±1σ     ☠ ✓  kurt.f ±1σ    ☠ ✓
 --  -------  ----  -  -------------------  -------------------  -----------------
@@ -293,14 +293,14 @@ old = """Averages (in time and) over seed.
 10  Sqrt     1.1   |  -1.05   ±0.02   0 2  -0.634  ±0.001  0 2  -0.19  ±0.02  0 2
 10  Sqrt     2     |  -1.07   ±0.02   0 2  -0.645  ±0.009  0 2  -0.208 ±0.005 0 2
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
        ______N=10______  _________20________  _______50_______
  F  ⑊  kurt.f ±1σ   ☠ ✓   kurt.f ±1σ     ☠ ✓  kurt.f ±1σ   ☠ ✓
 --  -  ----------------  -------------------  ----------------
  8  |   -1.05 ±0.02 0 2  -0.6415 ±0.0005 0 2   -0.20 ±0.02 0 2
 10  |   -1.05 ±0.02 0 2  -0.634  ±0.001  0 2   -0.19 ±0.03 0 2
 
-[43mTable for da_method='LETKF'[0m
+Table for da_method='LETKF'
                       ______N=10______  _________20________  ________50_______
  F  infl  loc_rad  ⑊  kurt.f ±1σ   ☠ ✓   kurt.f ±1σ     ☠ ✓  kurt.f ±1σ    ☠ ✓
 --  ----  -------  -  ----------------  -------------------  -----------------
@@ -342,19 +342,19 @@ gen_test_set(
 ##
 old = """Averages (in time and) over seed.
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
  F  ⑊  rmse.a ±1σ     ☠ ✓
 --  -  ------------------
  8  |  0.7775 ±0.0005 0 2
 10  |  0.9728 ±0.0005 0 2
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
  F  ⑊  rmse.a ±1σ   ☠ ✓
 --  -  ----------------
  8  |    0.14 ±0.05 0 2
 10  |    0.15 ±0.05 0 2
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
  F   xB  ⑊  rmse.a ±1σ    ☠ ✓
 --  ---  -  -----------------
  8  0.1  |   0.175 ±0.004 0 2
@@ -364,7 +364,7 @@ old = """Averages (in time and) over seed.
 10  0.2  |   0.282 ±0.008 0 2
 10  0.4  |   0.398 ±0.007 0 2
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
                     ____infl=1.01____  _______1.1_______  _______2.0________
  F  upd_a     N  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ     ☠ ✓
 --  -------  --  -  -----------------  -----------------  ------------------
@@ -381,7 +381,7 @@ old = """Averages (in time and) over seed.
 10  Sqrt     20  |   0.033 ±0.005 0 2   0.033 ±0.005 0 2  0.268  ±0.008  0 2
 10  Sqrt     50  |   0.032 ±0.005 0 2   0.032 ±0.005 0 2  0.33   ±0.01   0 2
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
  F   N  ⑊  rmse.a ±1σ    ☠ ✓
 --  --  -  -----------------
  8  10  |   0.032 ±0.005 0 2
@@ -391,7 +391,7 @@ old = """Averages (in time and) over seed.
 10  20  |   0.033 ±0.005 0 2
 10  50  |   0.032 ±0.005 0 2
 
-[43mTable for da_method='LETKF'[0m
+Table for da_method='LETKF'
                     ____infl=1.01____  _______1.1_______  _______2.0_______
  F   N  loc_rad  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  --  -------  -  -----------------  -----------------  -----------------
@@ -433,7 +433,7 @@ gen_test_set(
 ##
 old = """Averages (in time and) over seed.
 
-[43mTable for N=None[0m
+Table for N=None
 da_method     F   xB  ⑊  rmse.a ±1σ     ☠ ✓
 -----------  --  ---  -  ------------------
 Climatology   8       |  0.7775 ±0.0005 0 2
@@ -447,7 +447,7 @@ Var3D        10  0.1  |  0.182  ±0.006  0 2
 Var3D        10  0.2  |  0.282  ±0.008  0 2
 Var3D        10  0.4  |  0.398  ±0.007  0 2
 
-[43mTable for N=10[0m
+Table for N=10
                                     ____infl=1.01____  _______1.1_______  _______2.0________  _______1.0_______
 da_method   F  upd_a    loc_rad  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ     ☠ ✓  rmse.a ±1σ    ☠ ✓
 ---------  --  -------  -------  -  -----------------  -----------------  ------------------  -----------------
@@ -466,7 +466,7 @@ LETKF      10                 4  |   0.034 ±0.005 0 2   0.034 ±0.005 0 2  0.29
 LETKF      10                10  |   0.034 ±0.005 0 2   0.035 ±0.005 0 2  0.233  ±0.006  0 2         ±         
 LETKF      10                40  |   0.034 ±0.005 0 2   0.035 ±0.006 0 2  0.22   ±0.01   0 2         ±         
 
-[43mTable for N=20[0m
+Table for N=20
                                     ____infl=1.01____  _______1.1_______  _______2.0_______  _______1.0_______
 da_method   F  upd_a    loc_rad  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 ---------  --  -------  -------  -  -----------------  -----------------  -----------------  -----------------
@@ -485,7 +485,7 @@ LETKF      10                 4  |   0.033 ±0.005 0 2   0.032 ±0.005 0 2   0.3
 LETKF      10                10  |   0.033 ±0.005 0 2   0.032 ±0.005 0 2   0.281 ±0.003 0 2         ±         
 LETKF      10                40  |   0.033 ±0.005 0 2   0.033 ±0.005 0 2   0.268 ±0.008 0 2         ±         
 
-[43mTable for N=50[0m
+Table for N=50
                                     ____infl=1.01____  _______1.1_______  _______2.0_______  _______1.0_______
 da_method   F  upd_a    loc_rad  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 ---------  --  -------  -------  -  -----------------  -----------------  -----------------  -----------------
@@ -517,7 +517,7 @@ gen_test_set(
 ##
 old = """Averages (in time and) over seed.
 
-[43mTable for N=None[0m
+Table for N=None
             da_method='Climatology'  ___OptInterp____  ______Var3D______
  F   xB  ⑊  rmse.a ±1σ     ☠ ✓       rmse.a ±1σ   ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  ---  -  -----------------------  ----------------  -----------------
@@ -530,7 +530,7 @@ old = """Averages (in time and) over seed.
 10  0.2  |         ±                        ±           0.282 ±0.008 0 2
 10  0.4  |         ±                        ±           0.398 ±0.007 0 2
 
-[43mTable for N=10[0m
+Table for N=10
                                _da_method='EnKF'_  ______EnKF_N_____  ______LETKF______
  F  upd_a    infl  loc_rad  ⑊  rmse.a ±1σ     ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  -------  ----  -------  -  ------------------  -----------------  -----------------
@@ -573,7 +573,7 @@ old = """Averages (in time and) over seed.
 10           2          10  |         ±                   ±            0.233 ±0.006 0 2
 10           2          40  |         ±                   ±            0.22  ±0.01  0 2
 
-[43mTable for N=20[0m
+Table for N=20
                                _da_method='EnKF'  ______EnKF_N_____  ______LETKF______
  F  upd_a    infl  loc_rad  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  -------  ----  -------  -  -----------------  -----------------  -----------------
@@ -616,7 +616,7 @@ old = """Averages (in time and) over seed.
 10           2          10  |         ±                  ±            0.281 ±0.003 0 2
 10           2          40  |         ±                  ±            0.268 ±0.008 0 2
 
-[43mTable for N=50[0m
+Table for N=50
                                _da_method='EnKF'  ______EnKF_N_____  ______LETKF______
  F  upd_a    infl  loc_rad  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  -------  ----  -------  -  -----------------  -----------------  -----------------
@@ -672,7 +672,7 @@ gen_test_set(
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
 
-[43mTable for N=None[0m
+Table for N=None
                          _seed=3000__  ____3001____
 da_method     F   xB  ⑊  rmse.a ±1σ    rmse.a ±1σ  
 -----------  --  ---  -  ------------  ------------
@@ -687,7 +687,7 @@ Var3D        10  0.1  |    0.19 ±0.03    0.18 ±0.02
 Var3D        10  0.2  |    0.29 ±0.03    0.27 ±0.02
 Var3D        10  0.4  |    0.40 ±0.02    0.39 ±0.01
 
-[43mTable for N=10[0m
+Table for N=10
                                           __seed=3000___  _____3001_____
 da_method   F  upd_a    infl  loc_rad  ⑊  rmse.a ±1σ      rmse.a ±1σ    
 ---------  --  -------  ----  -------  -  --------------  --------------
@@ -730,7 +730,7 @@ LETKF      10           2           4  |  0.3    ±0.1     0.3    ±0.1
 LETKF      10           2          10  |  0.2    ±0.1     0.2    ±0.1   
 LETKF      10           2          40  |  0.2    ±0.1     0.20   ±0.08  
 
-[43mTable for N=20[0m
+Table for N=20
                                           __seed=3000___  _____3001_____
 da_method   F  upd_a    infl  loc_rad  ⑊  rmse.a ±1σ      rmse.a ±1σ    
 ---------  --  -------  ----  -------  -  --------------  --------------
@@ -773,7 +773,7 @@ LETKF      10           2           4  |  0.3    ±0.1     0.3    ±0.2
 LETKF      10           2          10  |  0.3    ±0.1     0.3    ±0.1   
 LETKF      10           2          40  |  0.3    ±0.1     0.3    ±0.1   
 
-[43mTable for N=50[0m
+Table for N=50
                                           __seed=3000___  _____3001_____
 da_method   F  upd_a    infl  loc_rad  ⑊  rmse.a ±1σ      rmse.a ±1σ    
 ---------  --  -------  ----  -------  -  --------------  --------------
@@ -821,7 +821,7 @@ gen_test_set(xps, "rmse.a", dict(outer="N", inner="seed"))
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
 seed   F  ⑊  rmse.a ±1σ 
 ----  --  -  -----------
 3000   8  |     0.8 ±0.2
@@ -829,7 +829,7 @@ seed   F  ⑊  rmse.a ±1σ
 3001   8  |     0.8 ±0.2
 3001  10  |     1.0 ±0.3
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
 seed   F  ⑊  rmse.a ±1σ  
 ----  --  -  ------------
 3000   8  |    0.09 ±0.03
@@ -837,7 +837,7 @@ seed   F  ⑊  rmse.a ±1σ
 3001   8  |    0.19 ±0.03
 3001  10  |    0.20 ±0.03
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
 seed   F   xB  ⑊  rmse.a ±1σ  
 ----  --  ---  -  ------------
 3000   8  0.1  |    0.18 ±0.02
@@ -853,7 +853,7 @@ seed   F   xB  ⑊  rmse.a ±1σ
 3001  10  0.2  |    0.27 ±0.02
 3001  10  0.4  |    0.39 ±0.01
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
                             _____N=10_____  ______20______  ______50______
 seed   F  upd_a    infl  ⑊  rmse.a ±1σ      rmse.a ±1σ      rmse.a ±1σ    
 ----  --  -------  ----  -  --------------  --------------  --------------
@@ -882,7 +882,7 @@ seed   F  upd_a    infl  ⑊  rmse.a ±1σ      rmse.a ±1σ      rmse.a ±1σ
 3001  10  Sqrt     1.1   |  0.030  ±0.002   0.028  ±0.001   0.027  ±0.001 
 3001  10  Sqrt     2     |  0.20   ±0.08    0.3    ±0.1     0.3    ±0.2   
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
              _____N=10_____  ______20______  ______50______
 seed   F  ⑊  rmse.a ±1σ      rmse.a ±1σ      rmse.a ±1σ    
 ----  --  -  --------------  --------------  --------------
@@ -896,7 +896,7 @@ gen_test_set(xps_shorter, "rmse.a", dict(outer="da_method", inner="N"))
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
 seed   F  ⑊  rmse.a ±1σ  ☠ ✓
 ----  --  -  ---------------
 3000   8  |  0.777  ±nan 0 1
@@ -904,7 +904,7 @@ seed   F  ⑊  rmse.a ±1σ  ☠ ✓
 3001   8  |  0.778  ±nan 0 1
 3001  10  |  0.9734 ±nan 0 1
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
 seed   F  ⑊   rmse.a ±1σ  ☠ ✓
 ----  --  -  ----------------
 3000   8  |  0.09469 ±nan 0 1
@@ -912,7 +912,7 @@ seed   F  ⑊   rmse.a ±1σ  ☠ ✓
 3001   8  |  0.1924  ±nan 0 1
 3001  10  |  0.1954  ±nan 0 1
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
 seed   F   xB  ⑊  rmse.a ±1σ  ☠ ✓
 ----  --  ---  -  ---------------
 3000   8  0.1  |  0.1794 ±nan 0 1
@@ -928,7 +928,7 @@ seed   F   xB  ⑊  rmse.a ±1σ  ☠ ✓
 3001  10  0.2  |  0.2737 ±nan 0 1
 3001  10  0.4  |  0.3902 ±nan 0 1
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
                             ______N=10______  _______20_______  _______50_______
 seed   F  upd_a    infl  ⑊   rmse.a ±1σ  ☠ ✓   rmse.a ±1σ  ☠ ✓   rmse.a ±1σ  ☠ ✓
 ----  --  -------  ----  -  ----------------  ----------------  ----------------
@@ -957,7 +957,7 @@ seed   F  upd_a    infl  ⑊   rmse.a ±1σ  ☠ ✓   rmse.a ±1σ  ☠ ✓   r
 3001  10  Sqrt     1.1   |  0.03004 ±nan 0 1  0.02766 ±nan 0 1  0.02685 ±nan 0 1
 3001  10  Sqrt     2     |  0.2043  ±nan 0 1  0.2599  ±nan 0 1  0.343   ±nan 0 1
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
              ______N=10______  _______20_______  _______50_______
 seed   F  ⑊   rmse.a ±1σ  ☠ ✓   rmse.a ±1σ  ☠ ✓   rmse.a ±1σ  ☠ ✓
 ----  --  -  ----------------  ----------------  ----------------
@@ -971,19 +971,19 @@ gen_test_set(xps_shorter, "rmse.a", dict(outer="da_method", inner="N", mean=()))
 ##
 old = """Averages (in time and) over ('seed', 'infl').
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
  F  ⑊  rmse.a ±1σ     ☠ ✓
 --  -  ------------------
  8  |  0.7775 ±0.0005 0 2
 10  |  0.9728 ±0.0005 0 2
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
  F  ⑊  rmse.a ±1σ   ☠ ✓
 --  -  ----------------
  8  |    0.14 ±0.05 0 2
 10  |    0.15 ±0.05 0 2
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
  F   xB  ⑊  rmse.a ±1σ    ☠ ✓
 --  ---  -  -----------------
  8  0.1  |   0.175 ±0.004 0 2
@@ -993,7 +993,7 @@ old = """Averages (in time and) over ('seed', 'infl').
 10  0.2  |   0.282 ±0.008 0 2
 10  0.4  |   0.398 ±0.007 0 2
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
                 ______N=10______  _______20_______  _______50_______
  F  upd_a    ⑊  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓  rmse.a ±1σ   ☠ ✓
 --  -------  -  ----------------  ----------------  ----------------
@@ -1002,7 +1002,7 @@ old = """Averages (in time and) over ('seed', 'infl').
  8  Sqrt     |    0.09 ±0.04 0 6    0.11 ±0.05 0 6    0.13 ±0.06 0 6
 10  Sqrt     |    0.10 ±0.04 0 6    0.11 ±0.05 0 6    0.13 ±0.06 0 6
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
        _______N=10______  ________20_______  ________50_______
  F  ⑊  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓  rmse.a ±1σ    ☠ ✓
 --  -  -----------------  -----------------  -----------------
@@ -1015,19 +1015,19 @@ gen_test_set(xps_shorter, "rmse.a",
 ##
 old = """Averages (in time and) over seed.
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
  F  ⑊  rmse.a ±1σ     ☠ ✓
 --  -  ------------------
  8  |  0.7775 ±0.0005 0 2
 10  |  0.9728 ±0.0005 0 2
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
  F  ⑊  rmse.a ±1σ   ☠ ✓
 --  -  ----------------
  8  |    0.14 ±0.05 0 2
 10  |    0.15 ±0.05 0 2
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
  F   xB  ⑊  rmse.a ±1σ    ☠ ✓
 --  ---  -  -----------------
  8  0.1  |   0.175 ±0.004 0 2
@@ -1037,7 +1037,7 @@ old = """Averages (in time and) over seed.
 10  0.2  |   0.282 ±0.008 0 2
 10  0.4  |   0.398 ±0.007 0 2
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
  F  upd_a     N  infl  ⑊  rmse.a ±1σ     ☠ ✓
 --  -------  --  ----  -  ------------------
  8  PertObs  10  1.01  |  0.032  ±0.005  0 2
@@ -1077,7 +1077,7 @@ old = """Averages (in time and) over seed.
 10  Sqrt     50  1.1   |  0.032  ±0.005  0 2
 10  Sqrt     50  2     |  0.33   ±0.01   0 2
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
  F   N  ⑊  rmse.a ±1σ    ☠ ✓
 --  --  -  -----------------
  8  10  |   0.032 ±0.005 0 2
@@ -1092,7 +1092,7 @@ gen_test_set(xps_shorter, "rmse.a", dict(outer="da_method", mean=("seed")))
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
 
-[43mTable for da_method='Climatology'[0m
+Table for da_method='Climatology'
 seed   F  ⑊  rmse.a ±1σ 
 ----  --  -  -----------
 3000   8  |     0.8 ±0.2
@@ -1100,7 +1100,7 @@ seed   F  ⑊  rmse.a ±1σ
 3001   8  |     0.8 ±0.2
 3001  10  |     1.0 ±0.3
 
-[43mTable for da_method='OptInterp'[0m
+Table for da_method='OptInterp'
 seed   F  ⑊  rmse.a ±1σ  
 ----  --  -  ------------
 3000   8  |    0.09 ±0.03
@@ -1108,7 +1108,7 @@ seed   F  ⑊  rmse.a ±1σ
 3001   8  |    0.19 ±0.03
 3001  10  |    0.20 ±0.03
 
-[43mTable for da_method='Var3D'[0m
+Table for da_method='Var3D'
 seed   F   xB  ⑊  rmse.a ±1σ  
 ----  --  ---  -  ------------
 3000   8  0.1  |    0.18 ±0.02
@@ -1124,7 +1124,7 @@ seed   F   xB  ⑊  rmse.a ±1σ
 3001  10  0.2  |    0.27 ±0.02
 3001  10  0.4  |    0.39 ±0.01
 
-[43mTable for da_method='EnKF'[0m
+Table for da_method='EnKF'
 seed   F  upd_a     N  infl  ⑊  rmse.a ±1σ    
 ----  --  -------  --  ----  -  --------------
 3000   8  PertObs  10  1.01  |  0.0370 ±0.0009
@@ -1200,7 +1200,7 @@ seed   F  upd_a     N  infl  ⑊  rmse.a ±1σ
 3001  10  Sqrt     50  1.1   |  0.027  ±0.001 
 3001  10  Sqrt     50  2     |  0.3    ±0.2   
 
-[43mTable for da_method='EnKF_N'[0m
+Table for da_method='EnKF_N'
 seed   F   N  ⑊  rmse.a ±1σ    
 ----  --  --  -  --------------
 3000   8  10  |  0.0371 ±0.0009
@@ -1255,31 +1255,31 @@ gen_test_set(xps_shorter,
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
 
-[43mTable for da_method='Climatology', seed=3000[0m
+Table for da_method='Climatology', seed=3000
  F  ⑊  rmse.a
 --  -  ------
  8  |     0.8
 10  |     1.0
 
-[43mTable for da_method='Climatology', seed=3001[0m
+Table for da_method='Climatology', seed=3001
  F  ⑊  rmse.a
 --  -  ------
  8  |     0.8
 10  |     1.0
 
-[43mTable for da_method='OptInterp', seed=3000[0m
+Table for da_method='OptInterp', seed=3000
  F  ⑊  rmse.a
 --  -  ------
  8  |    0.09
 10  |    0.10
 
-[43mTable for da_method='OptInterp', seed=3001[0m
+Table for da_method='OptInterp', seed=3001
  F  ⑊  rmse.a
 --  -  ------
  8  |    0.19
 10  |    0.20
 
-[43mTable for da_method='Var3D', seed=3000[0m
+Table for da_method='Var3D', seed=3000
  F   xB  ⑊  rmse.a
 --  ---  -  ------
  8  0.1  |    0.18
@@ -1289,7 +1289,7 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
 10  0.2  |    0.29
 10  0.4  |    0.40
 
-[43mTable for da_method='Var3D', seed=3001[0m
+Table for da_method='Var3D', seed=3001
  F   xB  ⑊  rmse.a
 --  ---  -  ------
  8  0.1  |    0.17
@@ -1299,7 +1299,7 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
 10  0.2  |    0.27
 10  0.4  |    0.39
 
-[43mTable for da_method='EnKF', seed=3000[0m
+Table for da_method='EnKF', seed=3000
                       _N=10_  __20__  __50__
  F  upd_a    infl  ⑊  rmse.a  rmse.a  rmse.a
 --  -------  ----  -  ------  ------  ------
@@ -1316,7 +1316,7 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
 10  Sqrt     1.1   |  0.041   0.038   0.037 
 10  Sqrt     2     |  0.2     0.3     0.3   
 
-[43mTable for da_method='EnKF', seed=3001[0m
+Table for da_method='EnKF', seed=3001
                       _N=10_  __20__  __50__
  F  upd_a    infl  ⑊  rmse.a  rmse.a  rmse.a
 --  -------  ----  -  ------  ------  ------
@@ -1333,14 +1333,14 @@ old = """Averages in time only (=> the 1σ estimates may be unreliable).
 10  Sqrt     1.1   |  0.030   0.028   0.027 
 10  Sqrt     2     |  0.20    0.3     0.3   
 
-[43mTable for da_method='EnKF_N', seed=3000[0m
+Table for da_method='EnKF_N', seed=3000
        _N=10_  __20__  __50__
  F  ⑊  rmse.a  rmse.a  rmse.a
 --  -  ------  ------  ------
  8  |  0.0371  0.0360  0.0352
 10  |  0.039   0.038   0.037 
 
-[43mTable for da_method='EnKF_N', seed=3001[0m
+Table for da_method='EnKF_N', seed=3001
        _N=10_  __20__  __50__
  F  ⑊  rmse.a  rmse.a  rmse.a
 --  -  ------  ------  ------
