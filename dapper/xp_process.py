@@ -3,146 +3,23 @@
 import collections
 import copy
 import logging
-import os
-import shutil
 import warnings
-from datetime import datetime
-from pathlib import Path
 
 import colorama
-import dill
 import numpy as np
 import struct_tools
 from mpl_tools import place
 from patlib.std import nonchalance, set_tmp
 from tabulate import tabulate
-from tqdm.auto import tqdm
 
-import dapper.tools.remote.uplink as uplink
 from dapper.dpr_config import rc
 from dapper.stats import align_col, unpack_uqs
 from dapper.tools.colors import color_text, stripe
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import NoneDict, default_styles
-from dapper.xp_launch import XP_TIMESTAMP_TEMPLATE, xpList
+from dapper.xp_launch import xpList
 
 mpl_logger = logging.getLogger('matplotlib')
-
-
-def find_latest_run(root: Path):
-    """Find the latest experiment (dir containing many)"""
-    def parse(d):
-        try:
-            return datetime.strptime(d.name, XP_TIMESTAMP_TEMPLATE)
-        except ValueError:
-            return None
-    dd = [e for e in (parse(d) for d in root.iterdir()) if e is not None]
-    d = max(dd)
-    d = datetime.strftime(d, XP_TIMESTAMP_TEMPLATE)
-    return d
-
-
-def load_HMM(save_as):
-    """Load HMM from `xp.com` from given dir."""
-    save_as = Path(save_as).expanduser()
-    HMM = dill.load(open(save_as/"xp.com", "rb"))["HMM"]
-    return HMM
-
-
-def load_xps(save_as):
-    """Load `xps` (as a `list`) from given dir."""
-    save_as = Path(save_as).expanduser()
-    files = [d/"xp" for d in uplink.list_job_dirs(save_as)]
-
-    def load_any(filepath):
-        """Load any/all `xp's` from `filepath`."""
-        with open(filepath, "rb") as F:
-            # If experiment crashed, then xp will be empty
-            try:
-                data = dill.load(F)
-            except EOFError:
-                return []
-            # Always return list
-            try:
-                return data["xps"]
-            except KeyError:
-                return [data["xp"]]
-
-    print("Loading %d files from %s" % (len(files), save_as))
-    xps = []  # NB: progbar wont clean up properly w/ list compr.
-    for f in tqdm(files, desc="Loading"):
-        xps.extend(load_any(f))
-
-    if len(xps) < len(files):
-        print(f"{len(files)-len(xps)} files could not be loaded.")
-
-    return xps
-
-
-def save_xps(xps, save_as, nDir=100):
-    """Split xps and save in save_as/i for i in range(nDir).
-
-    Example
-    -------
-    Rename attr n_iter to nIter:
-    >>> proj_name = "Stein"
-    >>> dd = rc.dirs.data / proj_name
-    >>> save_as = dd / "run_2020-09-22__19:36:13"
-
-    >>> for save_as in dd.iterdir():  # doctest: +SKIP
-    ...     save_as = dd / save_as
-    ...
-    ...     xps = load_xps(save_as)
-    ...     HMM = load_HMM(save_as)
-    ...
-    ...     for xp in xps:
-    ...         if hasattr(xp,"n_iter"):
-    ...             xp.nIter = xp.n_iter
-    ...             del xp.n_iter
-    ...
-    ...     overwrite_xps(xps, save_as)
-    """
-    save_as = Path(save_as).expanduser()
-    save_as.mkdir(parents=False, exist_ok=False)
-
-    splitting = np.array_split(xps, nDir)
-    for i, sub_xps in enumerate(tqdm(splitting, desc="Saving")):
-        if len(sub_xps):
-            iDir = save_as / str(i)
-            os.mkdir(iDir)
-            with open(iDir/"xp", "wb") as F:
-                dill.dump({'xps': sub_xps}, F)
-
-
-def overwrite_xps(xps, save_as, nDir=100):
-    """Save xps in save_as, but safely (by first saving to tmp)."""
-    save_xps(xps, save_as/"tmp", nDir)
-
-    # Delete
-    for d in tqdm(uplink.list_job_dirs(save_as),
-                  desc="Deleting old"):
-        shutil.rmtree(d)
-
-    # Mv up from tmp/ -- goes quick, coz there are not many.
-    for d in os.listdir(save_as/"tmp"):
-        shutil.move(save_as/"tmp"/d, save_as/d)
-
-    shutil.rmtree(save_as/"tmp")
-
-
-def reduce_inodes(save_as, nDir=100):
-    """Reduce the number of `xp` dirs
-
-    by packing multiple `xp`s into lists (`xps`).
-
-    This reduces the **number** of files (inodes) on the system,
-    which limits storage capacity (along with **size**).
-
-    It also deletes files "xp.var" and "out",
-    whose main content tends to be the printed progbar.
-    This probably leads to reduced loading time is sometimes reduced.
-    """
-    overwrite_xps(load_xps(save_as), save_as, nDir)
 
 
 class SparseSpace(dict):

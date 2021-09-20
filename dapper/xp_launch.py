@@ -9,7 +9,6 @@ import os
 import re
 import shutil
 import sys
-from datetime import datetime
 from functools import wraps
 from pathlib import Path
 from textwrap import dedent
@@ -23,13 +22,12 @@ from tqdm.auto import tqdm
 
 import dapper.stats
 import dapper.tools.progressbar as pb
-from dapper.dpr_config import rc
+from dapper.tools.datafiles import create_run_dir
 from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
 from dapper.tools.viz import collapse_str
 
 _tabulate.MIN_PADDING = 0
-XP_TIMESTAMP_TEMPLATE = "run_%Y-%m-%d__%H-%M-%S"
 
 
 def seed_and_simulate(HMM, xp):
@@ -419,10 +417,7 @@ class xpList(list):
         """Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
         See `run_experiment` for documentation on the `kwargs` and `fail_gently`.
-
-        The results are saved in `rc.dirs.data / save_as`,
-        unless `save_as` is `False`/`None`.
-        Note: multiprocessing (locally or in the cloud) requires saving/loading data.
+        See `dapper.tools.datafiles.create_run_dir` for documentation `save_as`.
 
         Depending on `mp`, `run_experiment` is delegated as follows:
 
@@ -464,22 +459,8 @@ class xpList(list):
         # Bundle HMM with kwargs
         kwargs['HMM'] = HMM
 
-        # Parse save_as
-        if save_as in [None, False]:
-            assert not mp, "Multiprocessing requires saving data."
-            # Parallelization w/o storing is possible, especially w/ threads.
-            # But it involves more complicated communication set-up.
-            def xpi_dir(*args): return None
-        else:
-            save_as = rc.dirs.data / Path(save_as).stem
-            save_as /= datetime.now().strftime(XP_TIMESTAMP_TEMPLATE)
-            os.makedirs(save_as)
-            print(f"Experiment stored at {save_as}")
-
-            def xpi_dir(i):
-                path = save_as / str(i)
-                os.mkdir(path)
-                return path
+        # Data path
+        save_as, xpi_dir = create_run_dir(save_as, mp)
 
         # No parallelization
         if not mp:
