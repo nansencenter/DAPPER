@@ -451,15 +451,21 @@ class xpSpace(SparseSpace):
 
         nested = self.nest(axes)
         for coord, space in nested.items():
-
-            # Find optimal value and coord within space
+            # Find optimal value (and coord) within space
             MIN = np.inf
+            found_any = False
             for inner_coord, uq in space.items():
                 cost = costfun(uq.val)
                 if cost <= MIN:
+                    found_any          = True
                     MIN                = cost
                     uq_opt             = uq
                     uq_opt.tuned_coord = inner_coord
+
+            if not found_any:
+                uq_opt = uq  # one is as good as another
+                nDim = range(len(space.Coord._fields))
+                uq_opt.tuned_coord = space.Coord(*(None for _ in nDim))
 
             nested[coord] = uq_opt
 
