@@ -600,16 +600,6 @@ def default_styles(coord, baseline_legends=False):
     return style
 
 
-def rel_index(elem, lst, default=None):
-    """`lst.index(elem) / len(lst)` with fallback."""
-    try:
-        return lst.index(elem) / len(lst)
-    except ValueError:
-        if default == None:
-            raise
-        return default
-
-
 def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
     """Discretize `cmap` to partition `[0, 1]` into `N` segments. Useful for colorbars.
 
