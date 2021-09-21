@@ -22,6 +22,7 @@ from tqdm.auto import tqdm
 
 import dapper.stats
 import dapper.tools.progressbar as pb
+from dapper.tools.colors import stripe
 from dapper.tools.datafiles import create_run_dir
 from dapper.tools.remote.uplink import submit_job_GCP
 from dapper.tools.seeding import set_seed
@@ -407,11 +408,14 @@ class xpList(list):
         return table.splitlines()
 
     @wraps(dapper.stats.tabulate_avrgs)
-    def tabulate_avrgs(self, *args, **kwargs):
+    def tabulate_avrgs(self, *args, colorize=True, **kwargs):
         distinct, redundant, common = self.prep_table()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
         columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
-        return tabulate(columns, headers="keys", showindex=True).replace('␣', ' ')
+        table = tabulate(columns, headers="keys", showindex=True).replace('␣', ' ')
+        if colorize:
+            table = stripe(table)
+        return table
 
     def launch(self, HMM, save_as="noname", mp=False, fail_gently=None, **kwargs):
         """Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
