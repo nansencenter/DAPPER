@@ -619,21 +619,6 @@ def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
     return cmap, sm
 
 
-def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
-    """Map cmap for `coord.axis ∈ [0, len(ticks)]`."""
-    def link(coord):
-        """Essentially: `cmap(ticks.index(coord.axis))`"""
-        if hasattr(coord, axis):
-            ticks = xp_dict.ticks[axis]
-            cNorm = mpl.colors.Normalize(vmin, vmax + len(ticks))
-            ScMap = cm.ScalarMappable(cNorm, cmap).to_rgba
-            index = ticks.index(getattr(coord, axis))
-            return ScMap(index)
-        else:
-            return cmap(0.5)
-    return link
-
-
 
 def default_fig_adjustments(tables, xticks_from_data=False):
     """Beautify. These settings do not generalize well."""
