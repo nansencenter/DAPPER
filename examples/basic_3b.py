@@ -3,7 +3,6 @@
 # #### Imports
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import dapper as dpr
 import dapper.tools.viz as viz
@@ -75,20 +74,19 @@ plt.pause(.1)
 xps = [xp for xp in xps if getattr(xp, "xSect", None) == None]
 xp_dict = dpr.xpSpace.from_list(xps)
 
-# Setup mapping: `loc_rad --> color gradient`
+# Get gradation/cmap for loc_rad
 
 graded = "loc_rad"
 axes["optim"] -= {graded}
 grades = xp_dict.tickz(graded)
-# cmap, sm = viz.discretize_cmap(cm.Reds, len(grades), .2)
-cmap, sm = viz.discretize_cmap(plt.cm.rainbow, len(grades))
+cmap, cbar = viz.discretize_cmap(plt.cm.rainbow, len(grades), val1=.9)
 
 
 def get_style_with_gradient(coord):
     S = get_style(coord)
     if coord.da_method == "LETKF":
-        grade = viz.rel_index(getattr(coord, graded), grades, 1)
-        S.c = cmap(grade)
+        g = grades.index(getattr(coord, graded))
+        S.c = cmap(g)
         S.marker = None
         S.label = viz.make_label(coord, exclude=[graded])
     return S
@@ -96,17 +94,10 @@ def get_style_with_gradient(coord):
 
 # Plot
 
-# +
 tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
+cb = cbar(tables[-1].panels[0], grades, label=graded)
 viz.default_fig_adjustments(tables)
-
-# Colorbar
-cb = tables.fig.colorbar(sm, ax=tables[-1].panels[0], label=graded)
-cb.set_ticks(np.arange(len(grades)))
-cb.set_ticklabels(grades)
-
 plt.pause(.1)
-# -
 
 # #### Excercise:
 # Make a `get_style()` that works well with `graded = "infl"`.
