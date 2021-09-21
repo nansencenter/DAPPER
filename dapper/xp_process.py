@@ -2,14 +2,13 @@
 
 import collections
 import copy
-import logging
 import warnings
 
 import colorama
 import numpy as np
 import struct_tools
 from mpl_tools import place
-from patlib.std import nonchalance, set_tmp
+from patlib.std import nonchalance
 from tabulate import tabulate
 
 from dapper.dpr_config import rc
@@ -18,8 +17,6 @@ from dapper.tools.colors import color_text, stripe
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import NoneDict, default_styles
 from dapper.xp_launch import xpList
-
-mpl_logger = logging.getLogger('matplotlib')
 
 
 class SparseSpace(dict):
@@ -599,7 +596,7 @@ class xpSpace(SparseSpace):
                      optim=('infl','loc_rad'))
 
             Equivalently, use `mean=("seed",)`.
-            It is acceptible to not specify anything, e.g. `mean=()` or `mean=None`.
+            It is acceptible to leave this empty, `mean=()` or `mean=None`.
         subcols: bool
             If `True`, then subcolumns are added to indicate
 
@@ -780,6 +777,40 @@ class xpSpace(SparseSpace):
                 if not all(y == None for y in yy):
                     row.handles[a] = panel.plot(xticks, yy, **style)
 
+        def label_management():
+            def manager(style):
+                label = style.get("label", None)
+                if unique_labels:
+                    if label in register:
+                        del style["label"]
+                    else:
+                        register.add(style["label"])
+                        manager.has_labels = True
+                elif label:
+                    manager.has_labels = True
+            manager.has_labels = False
+            return manager
+        register = set()  # mv inside to get legend on each panel
+
+        def beautify(panels, title, has_labels):
+            panel0 = panels[0]
+            # panel0.set_title(title)
+            panel0.text(.5, 1, title, fontsize=12, ha="center", va="bottom",
+                        transform=panel0.transAxes, bbox=dict(
+                            facecolor='lightyellow', edgecolor='k',
+                            alpha=0.99, boxstyle="round,pad=0.25",
+                            # NB: padding makes label spill into axes
+                        ))
+            if has_labels:
+                panel0.legend()
+            if panel0.is_first_col():
+                panel0.set_ylabel(statkey)
+            panels[-1].set_xlabel(axes["inner"][0])
+            # Tuning panels:
+            for a, panel in zip(axes["optim"] or (), panels[1:]):
+                if panel.is_first_col():
+                    panel.set_ylabel(f"Optim.\n{a}")
+
         # Nest axes through table_tree()
         assert len(axes["inner"]) == 1, "You must chose the abscissa."
         axes, tables = self.table_tree(statkey, axes, costfun=costfun)
@@ -817,49 +848,22 @@ class xpSpace(SparseSpace):
         fig.suptitle(fig_title)
 
         # Loop outer
-        label_register = set()  # mv inside loop to get legend on each panel
         for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
             table.panels = table_panels
-            title = "" if axes["outer"] is None else table_coord.repr2()
 
-            if squeeze_labels:
-                distinct = xpList(table.keys()).prep_table()[0]
-            else:
-                distinct = table.axes
+            label_manager = label_management()
+            aa = xpList(table.keys()).prep_table()[0] if squeeze_labels else table.axes
 
             # Plot
             for coord, row in table.items():
-
-                coord = NoneDict(struct_tools.intersect(coord._asdict(), distinct))
+                coord = NoneDict(struct_tools.intersect(coord._asdict(), aa))
                 style = get_style(coord)
-
-                # Rm duplicate labels
-                if unique_labels:
-                    if style.get("label", None) in label_register:
-                        del style["label"]
-                    else:
-                        label_register.add(style["label"])
-
+                label_manager(style)
                 plot1(table.panels, row, style)
 
-            # Beautify
-            panel0 = table.panels[0]
-            # panel0.set_title(title)
-            panel0.text(.5, 1, title, fontsize=12, ha="center", va="bottom",
-                        transform=panel0.transAxes, bbox=dict(
-                            facecolor='lightyellow', edgecolor='k',
-                            alpha=0.99, boxstyle="round,pad=0.25",
-                            # NB: padding makes label spill into axes
-                        ))
-            if panel0.is_first_col():
-                panel0.set_ylabel(statkey)
-            with set_tmp(mpl_logger, 'level', 99):  # silence "no label" msg
-                panel0.legend()
-            table.panels[-1].set_xlabel(axes["inner"][0])
-            # Tuning panels:
-            for a, panel in zip(axes["optim"] or (), table.panels[1:]):
-                if panel.is_first_col():
-                    panel.set_ylabel(f"Optim.\n{a}")
+            beautify(table.panels,
+                     title="" if axes["outer"] is None else table_coord.repr2(),
+                     has_labels=label_manager.has_labels)
 
         tables.fig = fig
         tables.xp_dict = self
