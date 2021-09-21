@@ -310,7 +310,7 @@ def plot_pause(interval):
         _plot_pause(interval, focus_figure=False)
 
 
-def plot_hovmoller(xx, tseq=None, **kwargs):
+def plot_hovmoller(xx, tseq=None):
     """Plot Hovmöller diagram.
 
     Parameters
