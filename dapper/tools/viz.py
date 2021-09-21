@@ -608,9 +608,8 @@ def default_fig_adjustments(tables, xticks_from_data=False):
     sensible_f = ticker.FormatStrFormatter('%g')
     for ax in axs[0, :]:  # noqa
         for direction in ['y', 'x']:
-            if axs.shape[1] < 6:
-                eval(f"ax.set_{direction}scale('log')")
-                eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
+            eval(f"ax.set_{direction}scale('log')")
+            eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
             eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
 
     # Set xticks
