@@ -634,14 +634,6 @@ def cm_bond(cmap, xp_dict, axis, vmin=0, vmax=0):
     return link
 
 
-def in_idx(coord, indices, xp_dict, axis):
-    """Essentially: `coord.axis in ticks[indices]`."""
-    if hasattr(coord, axis):
-        ticks = np.array(xp_dict.ticks[axis])[indices]
-        return getattr(coord, axis) in ticks
-    else:
-        return True
-
 
 def default_fig_adjustments(tables, xticks_from_data=False):
     """Beautify. These settings do not generalize well."""
