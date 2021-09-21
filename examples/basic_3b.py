@@ -79,7 +79,7 @@ xp_dict = dpr.xpSpace.from_list(xps)
 graded = "loc_rad"
 axes["optim"] -= {graded}
 grades = xp_dict.tickz(graded)
-cmap, cbar = viz.discretize_cmap(plt.cm.rainbow, len(grades), val1=.9)
+cmap, cbar = viz.discretize_cmap(plt.cm.rainbow, len(grades))
 
 
 def get_style_with_gradient(coord):
