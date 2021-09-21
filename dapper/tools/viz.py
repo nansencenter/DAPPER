@@ -611,14 +611,12 @@ def rel_index(elem, lst, default=None):
 
 
 def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
-    """Discretize `cmap` so that it partitions `[0, 1]` into `N` segments.
+    """Discretize `cmap` to partition `[0, 1]` into `N` segments. Useful for colorbars.
 
     I.e. `cmap(k/N) == cmap(k/N + eps)`.
 
-    Also provide the ScalarMappable `sm`
-    that maps range(N) to the segment centers,
-    as will be reflected by `cb = fig.colorbar(sm)`.
-    You can then re-label the ticks using
+    Also provide the ScalarMappable `sm` that maps `range(N)` to the segment centers,
+    as reflected by `cb = fig.colorbar(sm)`. You can then re-label the ticks using
     `cb.set_ticks(np.arange(N)); cb.set_ticklabels(["A","B","C",...])`.
     """
     # cmap(k/N)
