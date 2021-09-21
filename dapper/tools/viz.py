@@ -599,35 +599,6 @@ def default_styles(coord, baseline_legends=False):
     return style
 
 
-def discretize_cmap(cmap, N, val0=0, val1=1, name=None):
-    """Discretize `cmap` into `N` segments.
-
-    The segments delimiters are `[k/N for k in range(N)]`.
-    Alternatively, for **integer** `k in range(N)`: `cmap(k) == cmap(k/N)`.
-    Useful for applying colormaps to a set of line plots, especially since it also
-    returns a function to create an accompanying colorbar, given `N` tick labels.
-    """
-    # LinearSegmentedColormap
-    from_list = mpl.colors.LinearSegmentedColormap.from_list
-    colors = cmap(np.linspace(val0, val1, N))
-    cmap = from_list(name, colors, N)
-    # Scalar mappable.
-    # A cmap in itself is not sufficient to create a colorbar. It must have cbounds.
-    # A ScalarMappable combines cmap and bounds, and is usually implicitly created
-    # by or `matshow` or `coutourf`, getting the bounds from the data.
-    cNorm = mpl.colors.Normalize(-.5, -.5+N)
-    sm = mpl.cm.ScalarMappable(cNorm, cmap)
-
-    # Set-up convenvience function to label cbar ticks
-    def create_cbar(ax, ticklabels=None, **kwargs):
-        cb = ax.figure.colorbar(sm, ax=ax, **kwargs)
-        if ticklabels:
-            cb.set_ticks(np.arange(len(ticklabels)))
-            cb.set_ticklabels(ticklabels)
-        return cb
-    return sm.cmap, create_cbar
-
-
 def default_fig_adjustments(tables, xticks_from_data=False):
     """Beautify. These settings do not generalize well."""
     # Get axs as 2d-array
@@ -671,3 +642,7 @@ def default_fig_adjustments(tables, xticks_from_data=False):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)
         axs[0, 0].figure.tight_layout()
+
+
+# Shortcut (via this module) for import
+from mpl_tools.sci import discretize_cmap  # noqa
