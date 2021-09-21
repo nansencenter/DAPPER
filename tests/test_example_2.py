@@ -22,7 +22,7 @@ statkeys = ["err.rms.a", "err.rms.f", "err.rms.u"]
 @pytest.fixture(scope="module")
 def L63_table():
     xps = L63_gen()
-    table = xps.tabulate_avrgs(statkeys, decimals=4)
+    table = xps.tabulate_avrgs(statkeys, decimals=4, colorize=False)
     return table.splitlines(True)
 
 
@@ -130,7 +130,7 @@ def L96_table():
 
     xps.launch(HMM, store_u=True)
 
-    table = xps.tabulate_avrgs(statkeys, decimals=4)
+    table = xps.tabulate_avrgs(statkeys, decimals=4, colorize=False)
     return table.splitlines(True)
 
 
