@@ -671,7 +671,7 @@ class xpSpace(SparseSpace):
             # cc = self.ticks[dims["inner"]]  # may be > needed
             # cc = table[0].keys()            # may be < needed
             cc = {c: None for row in table.values() for c in row}
-            # Could also do cc = table.squeeze() but is it worth it?
+            # Could additionally do cc = table.squeeze() but is it worth it?
 
             # Convert table (rows) into rows (lists) of equal length
             rows = [[row.get(c, None) for c in cc] for row in table.values()]
@@ -800,6 +800,20 @@ class xpSpace(SparseSpace):
         # Nest dims through table_tree()
         assert len(dims["inner"]) == 1, "You must chose the abscissa."
         dims, tables = self.table_tree(statkey, dims, costfun=costfun)
+
+        if not hasattr(self, "ticks"):
+            # TODO 6: this is probationary.
+            # In case self is actually a subspace, it may be that it does not contain
+            # all of the ticks of the original xpSpace. This may be fine,
+            # and we generate the ticks here again. However, this is costly-ish, so you
+            # should maybe simply (manually) assign them from the original xpSpace.
+            # And maybe you actually want the plotted lines to have holes where self
+            # has no values. Changes in the ticks are not obvious to the naked eye,
+            # unlike the case for printed tables (where column changes are quite clear).
+            print(color_text("Warning:", colorama.Fore.RED), "Making new x-ticks."
+                  "\nConsider assigning them yourself from the original"
+                  " xpSpace to this subspace.")
+            self.make_ticks(xpList(self).prep_table()[0])
         xticks = self.tickz(dims["inner"][0])
 
         # Create figure panels
