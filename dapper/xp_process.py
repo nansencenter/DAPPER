@@ -217,7 +217,7 @@ class SparseSpace(dict):
         if 2*L < len(keys):
             keys = keys[:L] + ["..."] + keys[-L:]
         keys = "[\n  " + ",\n  ".join(keys) + "\n]"
-        return txt + f"populated by {len(self)} keys: {keys}"
+        return txt + f"populated by {len(self)} items with keys: {keys}"
 
     def nest(self, inner_dims=None, outer_dims=None):
         """Project along `inner_acces` to yield a new `xpSpace` with dims `outer_dims`
