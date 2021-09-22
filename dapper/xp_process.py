@@ -534,7 +534,7 @@ class xpSpace(SparseSpace):
             uq_dict = uq_dict.tune(dims['optim'], costfun)
             return uq_dict
 
-        self = mean_tune(self)
+        self2 = mean_tune(self)
         # Prefer calling mean_tune() [also see its docstring]
         # before doing outer/inner nesting. This is because then the dims of
         # a row (xpSpace) should not include mean&optim, and thus:
@@ -549,7 +549,7 @@ class xpSpace(SparseSpace):
         #  - Each level of the output from table_tree
         #    is a smaller (and more manageable) dict.
 
-        tables = self.nest(outer_dims=dims['outer'])
+        tables = self2.nest(outer_dims=dims['outer'])
         for table_coord, table in tables.items():
             # table = mean_tune(table)
 
