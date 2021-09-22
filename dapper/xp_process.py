@@ -319,19 +319,14 @@ class xpSpace(SparseSpace):
     both of which call `xpSpace.table_tree` to nest the dims of the `SparseSpace`.
     """
 
-    _ordering = dict(
-        rot       = 'as_found',
-        da_method = 'as_found',
-    )
-
     @classmethod
-    def from_list(cls, xps, ordering=None):
+    def from_list(cls, xps, tick_ordering=None):
         """Init xpSpace from xpList."""
         # Define and fill SparseSpace
         dct = xpList(xps).prep_table(nomerge=['xSect'])[0]
         self = cls(dct.keys())
         self.fill(xps)
-        self.make_ticks(dct, ordering)
+        self.make_ticks(dct, tick_ordering)
         return self
 
     def make_ticks(self, dct, ordering=None):
@@ -340,17 +335,17 @@ class xpSpace(SparseSpace):
         NB: `self.ticks` will not "propagate" through `SparseSpace.nest` or the like.
         """
         self.ticks = dct
+        ordering = ordering or {}
         for name, values in dct.items():
             ticks = set(values)  # unique (jumbles order)
-            order = {**self._ordering, **(ordering or {})}
-            order = order.get(name, 'default').lower()
+            order = ordering.get(name, 'as-found')
 
             # Sort key
             if callable(order):
                 key = order
-            elif 'as_found' in order:
+            elif 'as-found' in order:
                 key = values.index
-            else:
+            else:  # "natural"
                 def key(x):
                     return x
 
