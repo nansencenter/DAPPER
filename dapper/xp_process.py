@@ -9,6 +9,7 @@ import numpy as np
 import struct_tools
 from mpl_tools import place
 from patlib.std import nonchalance
+from struct_tools import complement as complm
 from tabulate import tabulate
 
 from dapper.dpr_config import rc
@@ -155,7 +156,7 @@ class SparseSpace(dict):
         # inner = outer[outer.Coord(**kwargs)]        # discard all but 1
 
         coords = self.coords_matching(**kwargs)
-        inner = self.__class__(struct_tools.complement(self.dims, kwargs))
+        inner = self.__class__(complm(self.dims, kwargs))
         for coord in coords:
             inner[inner.coord_from_attrs(coord)] = self[coord]
 
@@ -231,10 +232,10 @@ class SparseSpace(dict):
         # Validate dims
         if inner_dims is None:
             assert outer_dims is not None
-            inner_dims = struct_tools.complement(self.dims, outer_dims)
+            inner_dims = complm(self.dims, outer_dims)
         else:
             assert outer_dims is None
-            outer_dims = struct_tools.complement(self.dims, inner_dims)
+            outer_dims = complm(self.dims, inner_dims)
 
         # Fill spaces
         outer_space = self.__class__(outer_dims)
@@ -258,7 +259,7 @@ class SparseSpace(dict):
 
         This allows errors in the dims allotment, for ease-of-use.
         """
-        absent = struct_tools.complement(attrs, self.dims)
+        absent = complm(attrs, self.dims)
         if absent:
             print(color_text("Warning:", colorama.Fore.RED),
                   "The requested attributes",
@@ -271,7 +272,7 @@ class SparseSpace(dict):
                    " However, if it is caused by confusion or mis-spelling,"
                    " then it is likely to cause mis-interpretation"
                    " of the shown results."))
-            attrs = struct_tools.complement(attrs, absent)
+            attrs = complm(attrs, absent)
         return attrs
 
     def append_dim(self, dims):
@@ -540,7 +541,7 @@ class xpSpace(SparseSpace):
         #    without extraction by coord_from_attrs() from (e.g.) row[0].
         #  - Don't need to propagate mean&optim dims down to the row level.
         #    which would require defining rows by the nesting:
-        #    rows = table.nest(outer_dims=struct_tools.complement(table.dims,
+        #    rows = table.nest(outer_dims=complm(table.dims,
         #        *(dims['inner'] or ()),
         #        *(dims['mean']  or ()),
         #        *(dims['optim'] or ()) ))
