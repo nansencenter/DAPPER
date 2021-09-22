@@ -140,7 +140,7 @@ class SparseSpace(dict):
             return super().__getitem__(key)
 
     def __call__(self, **kwargs):
-        """Sugar for `SparseSpace.subspace`."""
+        """Shortcut (syntactic sugar) for `SparseSpace.subspace`."""
         return self.subspace(**kwargs)
 
     def subspace(self, **kwargs):
@@ -191,7 +191,7 @@ class SparseSpace(dict):
         return self.Coord(*coord)
 
     def get_for(self, ticks, default=None):
-        """Almost `[self.get(Coord(x)) for x in ticks]`.
+        """Almost `[self.get(Coord(x), default) for x in ticks]`.
 
         NB: using the "naive" thing: `[self[x] for x in ticks]`
         would probably be a BUG coz integer `x` gets interpreted as indices
@@ -338,6 +338,7 @@ class xpSpace(SparseSpace):
     def from_list(cls, xps, ordering=None):
         """Init xpSpace from xpList."""
 
+        # TODO 5: factor-out
         def make_ticks(dims):
             """Unique & sort, for each dim (individually) in dims."""
             for name, values in dims.items():
