@@ -87,10 +87,14 @@ class SparseSpace(dict):
         # Define coordinate system
         self.Coord = collections.namedtuple('Coord', dims)
 
-        # Dont print keys in str
-        self.Coord.__str__  = lambda c: "(" + ", ".join(str(v) for v in c) + ")"
-        # Only show ... of Coord(...)
-        self.Coord.repr2 = lambda c: repr(c).replace("Coord", "").strip("()")
+        def repr2(c, keys=False, str_or_repr=repr):
+            if keys:
+                lst = [f"{k}={str_or_repr(v)}" for k, v in c._asdict().items()]
+            else:
+                lst = [str_or_repr(v) for v in c]
+            return "(" + ", ".join(lst) + ")"
+
+        self.Coord.repr2 = repr2
 
     def update(self, items):
         """Update dict, using the custom `__setitem__` to ensure key conformity.
@@ -211,7 +215,7 @@ class SparseSpace(dict):
         # but requires prep_table(), which we don't really want to call again
         # (it's only called in from_list, not (necessarily) in any nested spaces)
         L = 2
-        keys = [str(k) for k in self]
+        keys = [k.repr2() for k in self]
         if 2*L < len(keys):
             keys = keys[:L] + ["..."] + keys[-L:]
         keys = "[\n  " + ",\n  ".join(keys) + "\n]"
@@ -660,11 +664,7 @@ class xpSpace(SparseSpace):
 
             def super_header(col_coord, idx, col):
                 header, matter = col[0], col[1:]
-                if idx:
-                    cc = str(col_coord).strip("()")
-                else:
-                    cc = col_coord.repr2()
-                cc = cc.replace(", ", ",")
+                cc = col_coord.repr2(not idx, str).strip("()").replace(", ", ",")
                 cc = cc.center(len(header), "_")  # +1 width for wide chars like ✔️
                 return [cc + "\n" + header] + matter
 
@@ -684,6 +684,7 @@ class xpSpace(SparseSpace):
             return rows
 
         dims, tables = self.table_tree(statkey, dims, costfun=costfun)
+
         for table_coord, table in tables.items():
 
             # Get table's column coords/ticks (cc).
@@ -865,7 +866,8 @@ class xpSpace(SparseSpace):
                 plot1(table.panels, row, style)
 
             beautify(table.panels,
-                     title="" if dims["outer"] is None else table_coord.repr2(),
+                     title=("" if dims["outer"] is None else
+                            table_coord.repr2(True).strip("()")),
                      has_labels=label_manager.has_labels)
 
         tables.fig = fig  # add reference to fig
