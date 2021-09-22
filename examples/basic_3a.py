@@ -94,5 +94,5 @@ xp_dict = dpr.xpSpace.from_list(xps)
 
 # Print, split into tables by `outer` (also try None), and columns by `inner`.
 tunable = {'loc_rad', 'infl', 'xB', 'rot'}
-axes = dict(outer="F", inner="N", mean="seed", optim=tunable)
-xp_dict.print("rmse.a", axes, subcols=False)
+dims = dict(outer="F", inner="N", mean="seed", optim=tunable)
+xp_dict.print("rmse.a", dims, subcols=False)
