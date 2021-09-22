@@ -49,8 +49,12 @@ class SparseSpace(dict):
       Can be used to get first item as in `dct[:1][0]`.
     - A list of any of the above. Returns list.
 
-    This flexibility can cause bugs, but it's probably still worth it.
-    Also see `__call__`, `get_for`, and `coords_matching`, for further convenience.
+    Of course, indexing by slice or list assumes that the dict is ordered,
+    which we inherit from the builtin `dict` since Python 3.7.
+    Moreover, it is a reflection of the fact that the internals of this class
+    work by looping over items.
+
+    Other convenience functions: `.subspace` (alias `.__call__`) and `.coords_matching`.
 
     Inspired by
 
@@ -186,17 +190,6 @@ class SparseSpace(dict):
         """
         coord = (getattr(entry, a, None) for a in self.dims)
         return self.Coord(*coord)
-
-    def get_for(self, ticks, default=None):
-        """Almost `[self.get(Coord(x), default) for x in ticks]`.
-
-        NB: using the "naive" thing: `[self[x] for x in ticks]`
-        would probably be a BUG coz integer `x` gets interpreted as indices
-        for the internal list.
-        """
-        singleton = not hasattr(ticks[0], "__iter__")
-        def coord(xyz): return self.Coord(xyz if singleton else xyz)
-        return [self.get(coord(x), default) for x in ticks]
 
     def __repr__(self):
         txt  = f"<{self.__class__.__name__}>"
@@ -756,7 +749,10 @@ class xpSpace(SparseSpace):
             # Make a full row (yy) of vals, whether is_constant or not.
             # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
             row.is_constant = all(x == row.Coord(None) for x in row)
-            yy = [row[None, ] if row.is_constant else y for y in row.get_for(xticks)]
+            if row.is_constant:
+                yy = [row[None, ] for x in xticks]
+            else:
+                yy = [row.get(row.Coord(x), None) for x in xticks]
 
             # Plot main
             row.vals = [getattr(y, 'val', None) for y in yy]
