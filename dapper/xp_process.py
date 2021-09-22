@@ -487,19 +487,16 @@ class xpSpace(SparseSpace):
         return dims
 
     def table_tree(self, statkey, dims, *, costfun=None):
-        """Hierarchical nest(): xp_dict>outer>inner>mean>optim.
+        """Make hierarchy `outer > inner > mean > optim` using `SparseSpace.nest`.
 
-        as specified by `dims`. Returns this new xpSpace.
+        The dimension passed to `nest` (at each level) is specified by `dims`.
+        The dimensions of `dims['mean']` and `dims['optim']` get eliminated
+        by the mean/tune operations. The `dims['outer']` and `dims['inner']
+        become the keys for the output hierarchy.
 
-        - `print()` / `plot()` (respectively) separate
-          tables    / panel(row)s for `dims['outer']`, and
-          columns   / x-axis      for `dims['inner']`.
-
-        - The `dims['mean']` and `dims['optim']` get eliminated
-          by the mean/tune operations.
-
-        Note: cannot support multiple statkeys because it's not (obviously) meaningful
-              when optimizing over `dims['optim']`.
+        .. note::
+            cannot support multiple `statkey`s because it's not (obviously) meaningful
+            when optimizing over `dims['optim']`.
         """
         dims = self.validate_dims(dims)
 
