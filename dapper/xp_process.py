@@ -44,8 +44,8 @@ class SparseSpace(dict):
     In addition, `__getitem__` is quite flexible, allowing accessing by:
 
     - The actual key, a `self.Coord` object. Returns single item.
-    - A `dict` to match against (part of) the coordinates. Returns subspace.
-    - An `range` or `slice`. Returns list.
+    - A `slice` or `list`. Returns list.
+      Can be used to get first item as in `dct[:1][0]`.
     - A list of any of the above. Returns list.
 
     This flexibility can cause bugs, but it's probably still worth it.
@@ -122,24 +122,16 @@ class SparseSpace(dict):
         super().__setitem__(key, val)
 
     def __getitem__(self, key):
-        """Flexible indexing."""
+        """Also allows list-indexing by `list` and `slice`."""
         # List of items (from list of indices)
         if isinstance(key, list):
             return [self[k] for k in key]
 
-        # List of items (from slice/range)
-        elif isinstance(key, range) or isinstance(key, slice):
+        # List of items (from slice)
+        elif isinstance(key, slice):
             return [*self.values()][key]
 
-        # Subspace (by dict, ie. an informal, partial coordinate)
-        elif isinstance(key, dict):
-            outer = self.nest(outer_dims=list(key))  # nest
-            coord = outer.Coord(*key.values())       # create coord
-            inner = outer[coord]                     # chose subspace
-            return inner
-
-        # Single item (by Coord object, coz an integer (eg)
-        # gets interpreted (above) as a list index)
+        # Single item (by Coord object, or tuple)
         else:
             # NB: Dont't use isinstance(key, self.Coord)
             # coz it fails when the namedtuple (Coord) has been
@@ -148,42 +140,28 @@ class SparseSpace(dict):
             return super().__getitem__(key)
 
     def __call__(self, **kwargs):
-        """Convenient syntax to get/access items.
+        """Sugar for `SparseSpace.subspace`."""
+        return self.subspace(**kwargs)
+
+    def subspace(self, **kwargs):
+        """Get an affine subspace.
 
         Example
         -------
-        >>> xp_dict(da_method="EnKF", infl=1, seed=3)  # doctest: +SKIP
+            xp_dict.subspace(da_method="EnKF", infl=1, seed=3)
         """
-        return self.__getitem__(kwargs)
-
-    def get_for(self, ticks, default=None):
-        """Almost `[self.get(Coord(x)) for x in ticks]`.
-
-        NB: using the "naive" thing: `[self[x] for x in ticks]`
-        would probably be a BUG coz integer `x` gets interpreted as indices
-        for the internal list.
-        """
-        singleton = not hasattr(ticks[0], "__iter__")
-        def coord(xyz): return self.Coord(xyz if singleton else xyz)
-        return [self.get(coord(x), default) for x in ticks]
-
-    def coord_from_attrs(self, entry):
-        """Form a `coord` for this `xpSpace` by extracting attrs. from `obj`.
-
-        **If** the entries of `self` have attributes matching their `coord`s,
-        then this can be seen as the inverse of `__getitem__`. I.e.
-
-            self.coord_from_attrs(self[coord]) == coord
-        """
-        coord = (getattr(entry, a, None) for a in self.dims)
-        return self.Coord(*coord)
+        # TODO 6: make more efficient (this uses nest, then discards other subspaces)
+        outer = self.nest(outer_dims=list(kwargs))
+        coord = outer.Coord(*kwargs.values())
+        inner = outer[coord]
+        return inner
 
     def coords_matching(self, **kwargs):
         """Get all `coord`s matching kwargs.
 
-        Unlike `__getitem__(**kwargs)`,
+        Unlike `subspace`,
 
-        - A list is returned, not a subspace.
+        - A list is returned
         - This list constains keys (coords), not values.
         - The coords refer to the original space, not the subspace.
 
@@ -200,6 +178,28 @@ class SparseSpace(dict):
         #   are here unnecessary coz each coordinate is complete.
         # match  = lambda x: all(getattr(x,k)==kwargs[k] for k in kwargs)
         # return [x for x in self if match(x)]
+
+    def coord_from_attrs(self, entry):
+        """Form a `coord` for this `xpSpace` by extracting attrs. from `obj`.
+
+        **If** the entries of `self` have attributes matching their `coord`s,
+        then this can be seen as the inverse of `__getitem__`. I.e.
+
+            self.coord_from_attrs(self[coord]) == coord
+        """
+        coord = (getattr(entry, a, None) for a in self.dims)
+        return self.Coord(*coord)
+
+    def get_for(self, ticks, default=None):
+        """Almost `[self.get(Coord(x)) for x in ticks]`.
+
+        NB: using the "naive" thing: `[self[x] for x in ticks]`
+        would probably be a BUG coz integer `x` gets interpreted as indices
+        for the internal list.
+        """
+        singleton = not hasattr(ticks[0], "__iter__")
+        def coord(xyz): return self.Coord(xyz if singleton else xyz)
+        return [self.get(coord(x), default) for x in ticks]
 
     def __repr__(self):
         txt  = f"<{self.__class__.__name__}>"
