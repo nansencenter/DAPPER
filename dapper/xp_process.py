@@ -158,7 +158,7 @@ class SparseSpace(dict):
         coords = self.coords_matching(**kwargs)
         inner = self.__class__(complm(self.dims, kwargs))
         for coord in coords:
-            inner[inner.coord_from_attrs(coord)] = self[coord]
+            inner[inner.getattrs(coord)] = self[coord]
 
         return inner
 
@@ -176,13 +176,13 @@ class SparseSpace(dict):
 
         return [c for c in self if match(c)]
 
-    def coord_from_attrs(self, entry):
+    def getattrs(self, entry):
         """Form a `coord` for this `xpSpace` by extracting attrs. from `obj`.
 
         **If** the entries of `self` have attributes matching their `coord`s,
         then this can be seen as the inverse of `__getitem__`. I.e.
 
-            self.coord_from_attrs(self[coord]) == coord
+            self.getattrs(self[coord]) == coord
         """
         coord = (getattr(entry, a, None) for a in self.dims)
         return self.Coord(*coord)
@@ -241,7 +241,7 @@ class SparseSpace(dict):
         outer_space = self.__class__(outer_dims)
         for coord, entry in self.items():
             # Lookup subspace coord
-            outer_coord = outer_space.coord_from_attrs(coord)
+            outer_coord = outer_space.getattrs(coord)
             try:
                 # Get subspace
                 inner_space = outer_space[outer_coord]
@@ -250,7 +250,7 @@ class SparseSpace(dict):
                 inner_space = self.__class__(inner_dims)
                 outer_space[outer_coord] = inner_space
             # Add entry to subspace, similar to .fill()
-            inner_space[inner_space.coord_from_attrs(coord)] = entry
+            inner_space[inner_space.getattrs(coord)] = entry
 
         return outer_space
 
@@ -379,7 +379,7 @@ class xpSpace(SparseSpace):
 
     def fill(self, xps):
         """Mass insertion."""
-        self.update([(self.coord_from_attrs(xp), xp) for xp in xps])
+        self.update([(self.getattrs(xp), xp) for xp in xps])
 
     def squeeze(self):
         """Eliminate unnecessary dimensions."""
@@ -538,7 +538,7 @@ class xpSpace(SparseSpace):
         # before doing outer/inner nesting. This is because then the dims of
         # a row (xpSpace) should not include mean&optim, and thus:
         #  - Column header/coords may be had directly as row.keys(),
-        #    without extraction by coord_from_attrs() from (e.g.) row[0].
+        #    without extraction by getattrs() from (e.g.) row[0].
         #  - Don't need to propagate mean&optim dims down to the row level.
         #    which would require defining rows by the nesting:
         #    rows = table.nest(outer_dims=complm(table.dims,
