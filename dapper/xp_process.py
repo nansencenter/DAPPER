@@ -696,32 +696,29 @@ class xpSpace(SparseSpace):
             # Convert table (rows) into rows (lists) of equal length
             rows = [[row.get(c, None) for c in cc] for row in table.values()]
 
+            # Align cols
             h2 = "\n" if len(cc) > 1 else ""  # super-header?
-            rows = make_cols(rows, cc, subcols, h2)
-
-            if squeeze_labels:
-                table = table.squeeze()
+            headers, *rows = make_cols(rows, cc, subcols, h2)
 
             # Prepend left-side (attr) table
-            # Header
-            rows[0] = [h2+k for k in table.dims] + [h2+'⑊'] + rows[0]
-            # Matter
-            for i, (key, row) in enumerate(zip(table, rows[1:])):
-                rows[i+1] = [*key] + ['|'] + row
+            if squeeze_labels:
+                table = table.squeeze()
+            headers = [h2+k for k in table.dims] + [h2+'⑊'] + headers
+            for i, (key, row) in enumerate(zip(table, rows)):
+                rows[i] = [*key] + ['|'] + row
 
-            # Print
-            print("\n", end="")
+            print()
             if dims['outer']:
-                table_title = "Table for " + table_coord.repr2()
+                # Title
+                table_title = "Table for " + table_coord.repr2(True).strip("()")
                 if colorize:
                     clrs = colorama.Back.YELLOW, colorama.Fore.BLACK
                     table_title = color_text(table_title, *clrs)
                 print(table_title)
-            headers, *rows = rows
-            t = tabulate(rows, headers).replace('␣', ' ')
+            table = tabulate(rows, headers).replace('␣', ' ')
             if colorize:
-                t = stripe(t, slice(2, None))
-            print(t)
+                table = stripe(table, slice(2, None))
+            print(table)
 
         return tables
 
