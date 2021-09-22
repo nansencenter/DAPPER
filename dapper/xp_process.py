@@ -41,11 +41,11 @@ class SparseSpace(dict):
     The most important method is `nest`,
     which is used (by `xpSpace.table_tree`) to print and plot results.
 
-    In addition, `__getitem__` is very flexible, allowing accessing by:
+    In addition, `__getitem__` is quite flexible, allowing accessing by:
 
     - The actual key, a `self.Coord` object. Returns single item.
     - A `dict` to match against (part of) the coordinates. Returns subspace.
-    - An `int`. Returns `list(self)[key]`.
+    - An `range` or `slice`. Returns list.
     - A list of any of the above. Returns list.
 
     This flexibility can cause bugs, but it's probably still worth it.
@@ -123,14 +123,12 @@ class SparseSpace(dict):
 
     def __getitem__(self, key):
         """Flexible indexing."""
-        # List of items (by a list of indices).
-        # Also see get_for().
+        # List of items (from list of indices)
         if isinstance(key, list):
             return [self[k] for k in key]
 
-        # Single (by integer) or list (by Slice)
-        # Note: NOT validating np.int64 here catches quite a few bugs.
-        elif isinstance(key, int) or isinstance(key, slice):
+        # List of items (from slice/range)
+        elif isinstance(key, range) or isinstance(key, slice):
             return [*self.values()][key]
 
         # Subspace (by dict, ie. an informal, partial coordinate)
@@ -761,7 +759,7 @@ class xpSpace(SparseSpace):
             # Make a full row (yy) of vals, whether is_constant or not.
             # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
             row.is_constant = all(x == row.Coord(None) for x in row)
-            yy = [row[0] if row.is_constant else y for y in row.get_for(xticks)]
+            yy = [row[None, ] if row.is_constant else y for y in row.get_for(xticks)]
 
             # Plot main
             row.vals = [getattr(y, 'val', None) for y in yy]

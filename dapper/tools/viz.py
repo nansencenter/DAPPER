@@ -613,8 +613,9 @@ def default_fig_adjustments(tables, xticks_from_data=False):
             eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
 
     # Set xticks
+    table0 = tables[:1][0]
     if xticks_from_data:
-        ax = tables[1].panels[0]
+        ax = table0.panels[0]
         # Log-scale overrules any custom ticks. Restore control
         ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
         ax.xaxis.set_minor_formatter(ticker.NullFormatter())
@@ -624,8 +625,7 @@ def default_fig_adjustments(tables, xticks_from_data=False):
         ax.set_xticks(xp_dict.tickz(xdim[0]))
 
     # Tuning panels only
-    table = tables[0]
-    for a, panel in zip(tables.created_with["dims"]["optim"] or (), table.panels[1:]):
+    for a, panel in zip(tables.created_with["dims"]["optim"] or (), table0.panels[1:]):
         yy = tables.created_with["xp_dict"].tickz(a)
         axis_scale_by_array(panel, yy, "y")
         # set_ymargin doesn't work for wonky scales. Do so manually:
