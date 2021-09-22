@@ -159,25 +159,16 @@ class SparseSpace(dict):
     def coords_matching(self, **kwargs):
         """Get all `coord`s matching kwargs.
 
-        Unlike `subspace`,
+        Used by `SparseSpace.label_xSection` and `SparseSpace.subspace`. Unlike the
+        latter, this function returns a *list* of *keys* of the *original subspace*.
 
-        - A list is returned
-        - This list constains keys (coords), not values.
-        - The coords refer to the original space, not the subspace.
-
-        The last point is especially useful for `SparseSpace.label_xSection`.
+        Note that the `missingval` shenanigans of `xpList.inds` are here unnecessary
+        since each coordinate is complete.
         """
-        def embed(coord):
-            return {**kwargs, **coord._asdict()}
-        return [self.Coord(**embed(x)) for x in self[kwargs]]
+        def match(coord):
+            return all(getattr(coord, k) == kwargs[k] for k in kwargs)
 
-        # Old implementation.
-        # - I prefer the new version for its re-use of __getitem__'s
-        #   nesting, evidencing their mutual relationship)
-        # - Note that unlike xpList.inds(): missingval shenanigans
-        #   are here unnecessary coz each coordinate is complete.
-        # match  = lambda x: all(getattr(x,k)==kwargs[k] for k in kwargs)
-        # return [x for x in self if match(x)]
+        return [c for c in self if match(c)]
 
     def coord_from_attrs(self, entry):
         """Form a `coord` for this `xpSpace` by extracting attrs. from `obj`.
@@ -337,7 +328,6 @@ class xpSpace(SparseSpace):
     @classmethod
     def from_list(cls, xps, ordering=None):
         """Init xpSpace from xpList."""
-
         # TODO 5: factor-out
         def make_ticks(dims):
             """Unique & sort, for each dim (individually) in dims."""
