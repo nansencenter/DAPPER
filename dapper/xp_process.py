@@ -150,10 +150,15 @@ class SparseSpace(dict):
         -------
             xp_dict.subspace(da_method="EnKF", infl=1, seed=3)
         """
-        # TODO 6: make more efficient (this uses nest, then discards other subspaces)
-        outer = self.nest(outer_dims=list(kwargs))
-        coord = outer.Coord(*kwargs.values())
-        inner = outer[coord]
+        # Slow version
+        # outer = self.nest(outer_dims=list(kwargs))  # make subspaceS
+        # inner = outer[outer.Coord(**kwargs)]        # discard all but 1
+
+        coords = self.coords_matching(**kwargs)
+        inner = self.__class__(struct_tools.complement(self.dims, kwargs))
+        for coord in coords:
+            inner[inner.coord_from_attrs(coord)] = self[coord]
+
         return inner
 
     def coords_matching(self, **kwargs):
