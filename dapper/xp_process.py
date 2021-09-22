@@ -565,6 +565,8 @@ class xpSpace(SparseSpace):
             # for row_coord, row in rows.items():
             # rows[row_coord] = mean_tune(row)
 
+        args = dict(statkey=statkey, xp_dict=self, dims=dims)
+        tables.created_with = args
         return dims, tables
 
     def tickz(self, dim_name):
@@ -722,6 +724,8 @@ class xpSpace(SparseSpace):
                 t = stripe(t, slice(2, None))
             print(t)
 
+        return tables
+
     def plot(self, statkey="rmse.a", dims=DIM_ROLES, get_style=default_styles,
              fignum=None, figsize=None, panels=None,
              title2=None, costfun=None, unique_labels=True,
@@ -868,7 +872,5 @@ class xpSpace(SparseSpace):
                      title="" if dims["outer"] is None else table_coord.repr2(),
                      has_labels=label_manager.has_labels)
 
-        tables.fig = fig
-        tables.xp_dict = self
-        tables.DIM_ROLES = dims
+        tables.fig = fig  # add reference to fig
         return tables

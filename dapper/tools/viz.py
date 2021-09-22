@@ -618,12 +618,15 @@ def default_fig_adjustments(tables, xticks_from_data=False):
         # Log-scale overrules any custom ticks. Restore control
         ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
         ax.xaxis.set_minor_formatter(ticker.NullFormatter())
-        ax.set_xticks(tables.xp_dict.tickz(tables.axes_roles["inner"][0]))
+        xp_dict = tables.created_with["xp_dict"]
+        xdim = tables.created_with["dims"]["inner"]
+        assert len(xdim) == 1, "Only 1-dimensional ticks are supported."
+        ax.set_xticks(xp_dict.tickz(xdim[0]))
 
     # Tuning panels only
     table = tables[0]
-    for a, panel in zip(tables.axes_roles["optim"] or (), table.panels[1:]):
-        yy = tables.xp_dict.tickz(a)
+    for a, panel in zip(tables.created_with["dims"]["optim"] or (), table.panels[1:]):
+        yy = tables.created_with["xp_dict"].tickz(a)
         axis_scale_by_array(panel, yy, "y")
         # set_ymargin doesn't work for wonky scales. Do so manually:
         alpha = len(yy)/10
