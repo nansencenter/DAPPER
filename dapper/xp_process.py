@@ -327,48 +327,44 @@ class xpSpace(SparseSpace):
     @classmethod
     def from_list(cls, xps, ordering=None):
         """Init xpSpace from xpList."""
-        # TODO 5: factor-out
-        def make_ticks(dims):
-            """Unique & sort, for each dim (individually) in dims."""
-            for name, values in dims.items():
-                ticks = set(values)  # unique (jumbles order)
-                order = {**cls._ordering, **(ordering or {})}
-                order = order.get(name, 'default').lower()
-
-                # Sort key
-                if callable(order):
-                    key = order
-                elif 'as_found' in order:
-                    key = values.index
-                else:
-                    def key(x):
-                        return x
-
-                # Place None's at the end
-                def key_safe(x):
-                    return (x is None), key(x)
-
-                # Sort
-                ticks = sorted(ticks, key=key_safe)
-                # Reverse
-                if isinstance(order, str) and "rev" in order:
-                    ticks = ticks[::-1]
-                # Assign
-                dims[name] = ticks
-
         # Define and fill SparseSpace
-        xp_list = xpList(xps)
-        dims = xp_list.prep_table(nomerge=['xSect'])[0]
-        self = cls(dims)
+        dct = xpList(xps).prep_table(nomerge=['xSect'])[0]
+        self = cls(dct.keys())
         self.fill(xps)
-
-        make_ticks(dims)
-        # Note: this attr (ticks) will not be propagated through nest().
-        # That is fine. Otherwise we should have to prune the ticks
-        # (if they are to be useful), which we don't want to do.
-        self.ticks = dims
-
+        self.make_ticks(dct, ordering)
         return self
+
+    def make_ticks(self, dct, ordering=None):
+        """Unique & sort, for each individual "dim" in `dct`. Assign to `self.ticks`.
+
+        NB: `self.ticks` will not "propagate" through `SparseSpace.nest` or the like.
+        """
+        self.ticks = dct
+        for name, values in dct.items():
+            ticks = set(values)  # unique (jumbles order)
+            order = {**self._ordering, **(ordering or {})}
+            order = order.get(name, 'default').lower()
+
+            # Sort key
+            if callable(order):
+                key = order
+            elif 'as_found' in order:
+                key = values.index
+            else:
+                def key(x):
+                    return x
+
+            # Place None's at the end
+            def key_safe(x):
+                return (x is None), key(x)
+
+            # Sort
+            ticks = sorted(ticks, key=key_safe)
+            # Reverse
+            if isinstance(order, str) and "rev" in order:
+                ticks = ticks[::-1]
+            # Assign
+            dct[name] = ticks
 
     def fill(self, xps):
         """Mass insertion."""
