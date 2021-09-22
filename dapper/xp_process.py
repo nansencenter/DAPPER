@@ -632,8 +632,6 @@ class xpSpace(SparseSpace):
             print("Averages in time only"
                   " (=> the 1σ estimates may be unreliable).")
 
-        dims, tables = self.table_tree(statkey, dims, costfun=costfun)
-
         def make_cols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
             # Define subcol formats
@@ -685,6 +683,7 @@ class xpSpace(SparseSpace):
 
             return rows
 
+        dims, tables = self.table_tree(statkey, dims, costfun=costfun)
         for table_coord, table in tables.items():
 
             # Get table's column coords/ticks (cc).
