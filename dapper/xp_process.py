@@ -769,7 +769,7 @@ class xpSpace(SparseSpace):
                 if unique_labels:
                     if label in register:
                         del style["label"]
-                    else:
+                    elif label:
                         register.add(style["label"])
                         manager.has_labels = True
                 elif label:
