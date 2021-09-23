@@ -479,7 +479,7 @@ class xpSpace(SparseSpace):
                     # Ensure unique
                     if dim in roles:
                         raise TypeError(
-                            f"An dim (here {dim!r}) cannot be assigned to 2"
+                            f"A dim (here {dim!r}) cannot be assigned to 2"
                             f" roles (here {role!r} and {roles[dim]!r}).")
                     else:
                         roles[dim] = role
@@ -553,7 +553,7 @@ class xpSpace(SparseSpace):
         """Dimension (axis) ticks without None"""
         return [x for x in self.ticks[dim_name] if x is not None]
 
-    def print(self, statkey="rmse.a", dims=DIM_ROLES,  # noqa
+    def print(self, statkey, dims,  # noqa (shadowing builtin)
               subcols=True, decimals=None, costfun=None,
               squeeze_labels=True, colorize=True):
         """Print tables of results.
@@ -581,7 +581,7 @@ class xpSpace(SparseSpace):
                      optim=('infl','loc_rad'))
 
             Equivalently, use `mean=("seed",)`.
-            It is acceptible to leave this empty, `mean=()` or `mean=None`.
+            It is acceptible to leave this empty: `mean=()` or `mean=None`.
         subcols: bool
             If `True`, then subcolumns are added to indicate
 
@@ -699,7 +699,7 @@ class xpSpace(SparseSpace):
 
         return tables
 
-    def plot(self, statkey="rmse.a", dims=DIM_ROLES, get_style=default_styles,
+    def plot(self, statkey, dims, get_style=default_styles,
              fignum=None, figsize=None, panels=None, costfun=None,
              title1=None, title2=None, unique_labels=True, squeeze_labels=True):
         """Plot (tables of) results.
@@ -741,7 +741,7 @@ class xpSpace(SparseSpace):
             # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
             row.is_constant = all(x == row.Coord(None) for x in row)
             if row.is_constant:
-                yy = [row[None, ] for x in xticks]
+                yy = [row[None, ] for _ in xticks]
             else:
                 yy = [row.get(row.Coord(x), None) for x in xticks]
 
