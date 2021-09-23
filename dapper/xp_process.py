@@ -151,6 +151,9 @@ class SparseSpace(dict):
     def subspace(self, **kwargs):
         """Get an affine subspace.
 
+        NB: If you're calling this repeatedly (for all values of the same `kwargs`)
+        then you should consider using `SparseSpace.nest` instead.
+
         Example
         -------
             xp_dict.subspace(da_method="EnKF", infl=1, seed=3)
@@ -700,9 +703,8 @@ class xpSpace(SparseSpace):
         return tables
 
     def plot(self, statkey="rmse.a", dims=DIM_ROLES, get_style=default_styles,
-             fignum=None, figsize=None, panels=None,
-             title2=None, costfun=None, unique_labels=True,
-             squeeze_labels=True):
+             fignum=None, figsize=None, panels=None, costfun=None,
+             title1=None, title2=None, unique_labels=True, squeeze_labels=True):
         """Plot (tables of) results.
 
         Analagously to `xpSpace.print`,
@@ -724,10 +726,14 @@ class xpSpace(SparseSpace):
         get_style: function
             A function that takes an object, and returns a dict of line styles,
             usually as a function of the object's attributes.
-        title2: str
-            Figure title (in addition to the defaults).
+        title1:
+            Figure title (in addition to the the defaults).
+        title2:
+            Figure title (in addition to the defaults). Goes on a new line.
         unique_labels: bool
-            Only show a given label once.
+            Only show a given line label once, even if it appears in several panels.
+        squeeze_labels:
+            Don't include redundant attributes in the labels.
         """
         def plot1(panelcol, row, style):
             """Plot a given line (row) in the main panel and the optim panels.
@@ -773,7 +779,7 @@ class xpSpace(SparseSpace):
                     manager.has_labels = True
             manager.has_labels = False
             return manager
-        register = set()  # mv inside to get legend on each panel
+        register = set()
 
         def beautify(panels, title, has_labels):
             panel0 = panels[0]
@@ -838,6 +844,8 @@ class xpSpace(SparseSpace):
         fig_title = "Averages wrt. time"
         if dims["mean"] is not None:
             fig_title += " and " + ", ".join([repr(c) for c in dims['mean']])
+        if title1 is not None:
+            fig_title += ". " + title1
         if title2 is not None:
             with nonchalance():
                 title2 = title2.relative_to(rc.dirs["data"])
