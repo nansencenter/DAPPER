@@ -46,7 +46,7 @@ class SparseSpace(dict):
 
     - The actual key, a `self.Coord` object. Returns single item.
     - A `slice` or `list`. Returns list.
-      Can be used to get first item as in `dct[:1][0]`.
+      Can be used to get item as in `dct[[idx]][0]`.
     - A list of any of the above. Returns list.
 
     Of course, indexing by slice or list assumes that the dict is ordered,
@@ -130,7 +130,8 @@ class SparseSpace(dict):
         """Also allows list-indexing by `list` and `slice`."""
         # List of items (from list of indices)
         if isinstance(key, list):
-            return [self[k] for k in key]
+            lst = list(self.values())
+            return [lst[k] for k in key]
 
         # List of items (from slice)
         elif isinstance(key, slice):

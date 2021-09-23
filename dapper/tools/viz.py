@@ -613,7 +613,7 @@ def default_fig_adjustments(tables, xticks_from_data=False):
             eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
 
     # Set xticks
-    table0 = tables[:1][0]  # get first table
+    (table0, ) = tables[[0]]
     if xticks_from_data:
         ax = table0.panels[0]
         # Log-scale overrules any custom ticks. Restore control
