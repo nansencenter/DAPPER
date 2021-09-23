@@ -221,8 +221,8 @@ class xpList(list):
     def inds(self, strict=True, missingval="NONSENSE", **kws):
         """Find (all) indices of `xps` whose attributes match kws.
 
-        If strict, then `xp`s lacking a requested attr will not match,
-        unless the missingval (e.g. `None`) matches the required value.
+        If strict, then `xp`s lacking a requested attr. will not match,
+        unless the `missingval` matches the required value.
         """
         def match(xp):
             def missing(v): return missingval if strict else v

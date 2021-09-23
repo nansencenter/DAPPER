@@ -34,8 +34,8 @@ highlight('NO-infl/loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
 # Choose attribute roles for plot
 
 tunable = {'loc_rad', 'infl', 'xB', 'rot'}
-axes = dict(outer="F", inner="N", mean="seed", optim=tunable)
-# xp_dict.print("rmse.a", axes, subcols=False)  # as in basic_3a.py
+dims = dict(outer="F", inner="N", mean="seed", optim=tunable)
+# xp_dict.print("rmse.a", dims, subcols=False)  # as in basic_3a.py
 
 
 # Define linestyle rules
@@ -62,7 +62,7 @@ def get_style(coord):
 
 # Plot
 
-tables = xp_dict.plot('rmse.a', axes, get_style, title2=save_as)
+tables = xp_dict.plot('rmse.a', dims, get_style, title2=save_as)
 viz.default_fig_adjustments(tables)
 plt.pause(.1)
 
@@ -77,7 +77,7 @@ xp_dict = dpr.xpSpace.from_list(xps)
 # Get gradation/cmap for loc_rad
 
 graded = "loc_rad"
-axes["optim"] -= {graded}
+dims["optim"] -= {graded}
 grades = xp_dict.tickz(graded)
 cmap, cbar = viz.discretize_cmap(plt.cm.rainbow, len(grades))
 
@@ -94,7 +94,7 @@ def get_style_with_gradient(coord):
 
 # Plot
 
-tables = xp_dict.plot('rmse.a', axes, get_style_with_gradient, title2=save_as)
+tables = xp_dict.plot('rmse.a', dims, get_style_with_gradient, title2=save_as)
 cb = cbar(tables[-1].panels[0], grades, label=graded)
 viz.default_fig_adjustments(tables)
 plt.pause(.1)

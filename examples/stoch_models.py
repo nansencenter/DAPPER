@@ -83,10 +83,10 @@ save_as = xps.launch(HMMs(), __file__, setup=setup)
 # #### Print in wide form
 
 xp_dict = dpr.xpSpace.from_list(xps)
-axes = dict(outer="resoltn", inner="ObsErr2", optim={})
-xp_dict.print("rmse.a", axes, subcols=False)
+dims = dict(outer="resoltn", inner="ObsErr2", optim={})
+xp_dict.print("rmse.a", dims, subcols=False)
 
 # #### Plot
 
-tables = xp_dict.plot('rmse.a', axes, title2=save_as)
+tables = xp_dict.plot('rmse.a', dims, title2=save_as)
 plt.pause(.1)
