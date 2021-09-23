@@ -6,10 +6,9 @@ import warnings
 
 import colorama
 import numpy as np
-import struct_tools
 from mpl_tools import place
 from patlib.std import nonchalance
-from struct_tools import complement as complm
+from struct_tools import AlignedDict, complement, intersect, transps
 from tabulate import tabulate
 
 from dapper.dpr_config import rc
@@ -163,7 +162,7 @@ class SparseSpace(dict):
         # inner = outer[outer.Coord(**kwargs)]        # discard all but 1
 
         coords = self.coords_matching(**kwargs)
-        inner = self.__class__(complm(self.dims, kwargs))
+        inner = self.__class__(complement(self.dims, kwargs))
         for coord in coords:
             inner[inner.coord_from_attrs(coord)] = self[coord]
 
@@ -199,7 +198,7 @@ class SparseSpace(dict):
         txt  = f"<{self.__class__.__name__}>"
         txt += " with Coord/dims: "
         try:
-            txt += "(and ticks): " + str(struct_tools.AlignedDict(self.ticks))
+            txt += "(and ticks): " + str(AlignedDict(self.ticks))
         except AttributeError:
             txt += str(self.dims) + "\n"
 
@@ -229,10 +228,10 @@ class SparseSpace(dict):
         # Validate dims
         if inner_dims is None:
             assert outer_dims is not None
-            inner_dims = complm(self.dims, outer_dims)
+            inner_dims = complement(self.dims, outer_dims)
         else:
             assert outer_dims is None
-            outer_dims = complm(self.dims, inner_dims)
+            outer_dims = complement(self.dims, inner_dims)
 
         # Fill spaces
         outer_space = self.__class__(outer_dims)
@@ -256,7 +255,7 @@ class SparseSpace(dict):
 
         This enables sloppy `dims` allotment, for ease-of-use.
         """
-        absent = complm(attrs, self.dims)
+        absent = complement(attrs, self.dims)
         if absent:
             print(color_text("Warning:", colorama.Fore.RED),
                   "The requested attributes",
@@ -269,7 +268,7 @@ class SparseSpace(dict):
                    " However, if it is caused by confusion or mis-spelling,"
                    " then it is likely to cause mis-interpretation"
                    " of the shown results."))
-            attrs = complm(attrs, absent)
+            attrs = complement(attrs, absent)
         return attrs
 
     def append_dim(self, dim):
@@ -522,7 +521,7 @@ class xpSpace(SparseSpace):
         #    without extraction by coord_from_attrs() from (e.g.) row[0].
         #  - Don't need to propagate mean&optim dims down to the row level.
         #    which would require defining rows by the nesting:
-        #    rows = table.nest(outer_dims=complm(table.dims,
+        #    rows = table.nest(outer_dims=complement(table.dims,
         #        *(dims['inner'] or ()),
         #        *(dims['mean']  or ()),
         #        *(dims['optim'] or ()) ))
@@ -633,7 +632,7 @@ class xpSpace(SparseSpace):
                             col[key] = align_col(subcolmn, just=aligns.get(key, ">"))
                         else:
                             del col[key]
-                    col = [templ.format(**row) for row in struct_tools.transps(col)]
+                    col = [templ.format(**row) for row in transps(col)]
                 else:
                     col = align_col([statkey] + col["val"])
                 return col
@@ -763,19 +762,27 @@ class xpSpace(SparseSpace):
                 if not all(y == None for y in yy):
                     row.handles[a] = panel.plot(xticks, yy, **style)
 
-        def label_management():
-            def manager(style):
+        def label_management(table):
+            def pruner(style):
                 label = style.get("label", None)
                 if unique_labels:
                     if label in register:
                         del style["label"]
                     elif label:
                         register.add(style["label"])
-                        manager.has_labels = True
+                        pruner.has_labels = True
                 elif label:
-                    manager.has_labels = True
-            manager.has_labels = False
-            return manager
+                    pruner.has_labels = True
+            pruner.has_labels = False
+
+            def squeezer(coord):
+                return intersect(coord._asdict(), label_attrs)
+            if squeeze_labels:
+                label_attrs = xpList(table.keys()).prep_table()[0]
+            else:
+                label_attrs = table.dims
+
+            return pruner, squeezer
         register = set()
 
         def beautify(panels, title, has_labels):
@@ -816,7 +823,7 @@ class xpSpace(SparseSpace):
             self.make_ticks(xpList(self).prep_table()[0])
         xticks = self.tickz(dims["inner"][0])
 
-        # Create figure panels
+        # Create figure axes
         if panels is None:
             nrows   = len(dims['optim'] or ()) + 1
             ncols   = len(tables)
@@ -850,23 +857,18 @@ class xpSpace(SparseSpace):
         fig.suptitle(fig_title)
 
         # Loop outer
-        for table_panels, (table_coord, table) in zip(panels.T, tables.items()):
-            table.panels = table_panels
-
-            label_manager = label_management()
-            aa = xpList(table.keys()).prep_table()[0] if squeeze_labels else table.dims
-
-            # Plot
+        for ax_column, (table_coord, table) in zip(panels.T, tables.items()):
+            table.panels = ax_column
+            label_prune, label_squeeze = label_management(table)
             for coord, row in table.items():
-                coord = NoneDict(struct_tools.intersect(coord._asdict(), aa))
-                style = get_style(coord)
-                label_manager(style)
+                style = get_style(NoneDict(label_squeeze(coord)))
+                label_prune(style)
                 plot1(table.panels, row, style)
 
             beautify(table.panels,
                      title=("" if dims["outer"] is None else
                             table_coord.repr2(True).strip("()")),
-                     has_labels=label_manager.has_labels)
+                     has_labels=label_prune.has_labels)
 
         tables.fig = fig  # add reference to fig
         return tables
