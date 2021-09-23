@@ -44,10 +44,9 @@ class SparseSpace(dict):
 
     In addition, `__getitem__` is quite flexible, allowing accessing by:
 
-    - The actual key, a `self.Coord` object. Returns single item.
+    - The actual key, a `self.Coord` object, or a standard tuple. Returns single item.
     - A `slice` or `list`. Returns list.
-      Can be used to get item as in `dct[[idx]][0]`.
-    - A list of any of the above. Returns list.
+      Can be used to get single item with `dct[[idx]][0]`.
 
     Of course, indexing by slice or list assumes that the dict is ordered,
     which we inherit from the builtin `dict` since Python 3.7.
@@ -82,7 +81,7 @@ class SparseSpace(dict):
         return self.Coord._fields
 
     def __init__(self, dims):
-        """Usually initialized through `xpSpace`.
+        """Usually initialized through `xpSpace.from_list`.
 
         Parameters
         ----------
@@ -184,15 +183,16 @@ class SparseSpace(dict):
 
         return [c for c in self if match(c)]
 
-    def getattrs(self, entry):
+    def getattrs(self, obj):
         """Form a `coord` for this `xpSpace` by extracting attrs. from `obj`.
 
-        **If** the entries of `self` have attributes matching their `coord`s,
-        then this can be seen as the inverse of `__getitem__`. I.e.
+        For instances of `self.Coord`, this is the identity opeartor.
 
-            self.getattrs(self[coord]) == coord
+        ```py
+        self.getattrs(coord) == coord
+        ```
         """
-        coord = (getattr(entry, a, None) for a in self.dims)
+        coord = (getattr(obj, a, None) for a in self.dims)
         return self.Coord(*coord)
 
     def __repr__(self):
@@ -254,7 +254,7 @@ class SparseSpace(dict):
     def intersect_dims(self, attrs):
         """Rm those `a` in `attrs` that are not in `self.dims`.
 
-        This allows errors in the dims allotment, for ease-of-use.
+        This enables sloppy `dims` allotment, for ease-of-use.
         """
         absent = complm(attrs, self.dims)
         if absent:
@@ -272,8 +272,9 @@ class SparseSpace(dict):
             attrs = complm(attrs, absent)
         return attrs
 
-    def append_dim(self, dims):
-        self.__init__(self.dims+(dims,))
+    def append_dim(self, dim):
+        """Expand `self.Coord` by `dim`. For each item, insert `None` in new dim."""
+        self.__init__(self.dims+(dim,))
         for coord in list(self):
             entry = self.pop(coord)
             self[coord + (None,)] = entry
@@ -305,27 +306,20 @@ DIM_ROLES = dict(outer=None, inner=None, mean=None, optim=None)
 
 
 class xpSpace(SparseSpace):
-    """Functionality to facilitate working with `xps` and their results.
-
-    `xpSpace.from_list` initializes a `SparseSpace` from a list
-    of objects, typically experiments referred to as `xp`s, by
-
-    - computing the relevant `dims` from the attributes, and
-    - filling the dict by `xp`s.
-    - computing and writing the attribute `ticks`.
-
-    Using `xpSpace.from_list(xps)` creates a SparseSpace holding `xp`s.
-    However, the nested `xpSpace`s output by `xpSpace.table_tree` will hold
-    objects of type `UncertainQtty`,
-    coz `xpSpace.table_tree` calls `mean` calls `get_stat(statkey)`.
-
-    The main use of `xpSpace` is through `xpSpace.print` & `xpSpace.plot`,
-    both of which call `xpSpace.table_tree` to nest the dims of the `SparseSpace`.
-    """
+    """Functionality to facilitate working with `xps` and their results."""
 
     @classmethod
     def from_list(cls, xps, tick_ordering=None):
-        """Init xpSpace from xpList."""
+        """Init. from a list of objects, typically experiments referred to as `xp`s.
+
+        - Computes the relevant `dims` from the attributes, and
+        - Fills the dict by `xp`s.
+        - Computes and writes the attribute `ticks`.
+
+        This creates a `SparseSpace` of `xp`s. However, the nested subspaces generated
+        by `xpSpace.table_tree` (for printing and plotting) will hold objects of type
+        `UncertainQtty`, because it calls `mean` which calls `get_stat(statkey)`.
+        """
         # Define and fill SparseSpace
         dct = xpList(xps).prep_table(nomerge=['xSect'])[0]
         self = cls(dct.keys())
@@ -376,7 +370,7 @@ class xpSpace(SparseSpace):
         return squeezed
 
     def get_stat(self, statkey="rmse.a"):
-        """Make `xpSpace` with identical `keys`, but values `xp.avrgs.statkey`."""
+        """Make `xpSpace` with same `Coord` as `self`, but values `xp.avrgs.statkey`."""
         # Init a new xpDict to hold stat
         avrgs = self.__class__(self.dims)
 
@@ -393,6 +387,7 @@ class xpSpace(SparseSpace):
         return avrgs
 
     def mean(self, dims=None):
+        """Compute mean over `dims` (a list). Returns `xpSpace` without those `dims`."""
         # Note: The case `dims=()` should work w/o special treatment.
         if dims is None:
             return self
@@ -400,7 +395,8 @@ class xpSpace(SparseSpace):
         nested = self.nest(dims)
         for coord, space in nested.items():
 
-            def getval(uq): return uq.val if isinstance(uq, UncertainQtty) else uq
+            def getval(uq):
+                return uq.val if isinstance(uq, UncertainQtty) else uq
             vals = [getval(uq) for uq in space.values()]
 
             # Don't use nanmean! It would give false impressions.
@@ -422,7 +418,7 @@ class xpSpace(SparseSpace):
         return nested
 
     def tune(self, dims=None, costfun=None):
-        """Get (compile/tabulate) a stat. optimised wrt. tuning params."""
+        """Get (compile/tabulate) a stat. optimised wrt. tuning params (`dims`)."""
         # Define cost-function
         costfun = (costfun or 'increasing').lower()
         if 'increas' in costfun:
@@ -727,9 +723,9 @@ class xpSpace(SparseSpace):
         get_style: function
             A function that takes an object, and returns a dict of line styles,
             usually as a function of the object's attributes.
-        title1:
+        title1: anything
             Figure title (in addition to the the defaults).
-        title2:
+        title2: anything
             Figure title (in addition to the defaults). Goes on a new line.
         unique_labels: bool
             Only show a given line label once, even if it appears in several panels.
