@@ -95,7 +95,7 @@ def get_style_with_gradient(coord):
 # Plot
 
 tables = xp_dict.plot('rmse.a', dims, get_style_with_gradient, title2=save_as)
-cb = cbar(tables[-1].panels[0], grades, label=graded)
+cb = cbar(tables[[-1]][0].panels[0], grades, label=graded)
 viz.default_fig_adjustments(tables)
 plt.pause(.1)
 
