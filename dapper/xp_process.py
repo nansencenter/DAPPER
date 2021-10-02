@@ -737,10 +737,11 @@ class xpSpace(SparseSpace):
             Involves: Sort, insert None's, handle constant lines.
             """
             # Make a full row (yy) of vals, whether is_constant or not.
-            # row.is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
-            row.is_constant = all(x == row.Coord(None) for x in row)
-            if row.is_constant:
+            # is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
+            is_constant = all(x == row.Coord(None) for x in row)
+            if is_constant:
                 yy = [row[None, ] for _ in xticks]
+                style.marker = None
             else:
                 yy = [row.get(row.Coord(x), None) for x in xticks]
 
