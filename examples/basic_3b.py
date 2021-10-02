@@ -42,21 +42,18 @@ dims = dict(outer="F", inner="N", mean="seed", optim=tunable)
 
 def get_style(coord):
     S = viz.default_styles(coord, True)
-    if coord.da_method == "EnKF":
-        upd_a = getattr(coord, "upd_a", None)
-        if upd_a == "PertObs":
-            S.c = "C2"
-        elif upd_a == "Sqrt":
-            S.c = "C1"
+    if coord.upd_a == "PertObs":
+        S.c = "C2"
+    elif coord.upd_a == "Sqrt":
+        S.c = "C1"
     elif coord.da_method == "LETKF":
         S.c = "C3"
-    if getattr(coord, "rot", False):
+    if coord.rot:
         S.marker = "+"
-    xSect = getattr(coord, "xSect", False)
-    if str(xSect).startswith("NO-"):
+    if str(coord.xSect).startswith("NO-"):
         S.ls = "--"
         S.marker = None
-        S.label = xSect
+        S.label = coord.xSect
     return S
 
 
