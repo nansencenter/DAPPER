@@ -56,8 +56,8 @@ class Model:
         self.beta  = (2*J**2 + 1) / (J**4 + 2*J**2)
 
         # Heuristic
-        self.x0 = 2.8*np.ones(self.M)
-        self.x0[0] += 0.1*self.Force
+        self.x0 = 3 + 4*np.ones(self.M)
+        self.x0[0] += 1  # perturb from stable point
 
     def decompose(self, z):
         """Split `z` into `x` and `y` fields, where `x` is the large-scale component."""
@@ -130,7 +130,7 @@ def boxcar(x, n, method="direct"):
     """Moving average (boxcar filter) on `x` using `n` nearest (periodically) elements.
 
     For symmetry, if `n` is pair, the actual number of elements used is `n+1`,
-    and the outer elements weighted by 0.5 to compensate for the `+1`.
+    and the outer elements weighted by `0.5` to compensate for the `+1`.
 
     This is the modified sum of `bib.lorenz2005designing`, used e.g. in eqn. 9.
     For intuition: this type of summation (and the associated Sigma prime notation)
