@@ -450,38 +450,6 @@ class xpSpace(SparseSpace):
 
         return nested
 
-    def validate_dims(self, dims):
-        """Validate dims.
-
-        Note: This does not convert `None` to `()`, allowing `None` to remain special.
-        """
-        role_register = {}
-        for role in set(dims) | set(DIM_ROLES):
-            assert role in DIM_ROLES, f"Invalid role {role!r}"
-            dd = dims.get(role, DIM_ROLES[role])
-
-            if dd is None:
-                pass  # Purposely special
-
-            else:
-                # Ensure iterable
-                if isinstance(dd, str) or not hasattr(dd, "__iter__"):
-                    dd = (dd,)
-
-                # Keep relevant only
-                dd = self.intersect_dims(dd)
-
-                # Ensure each dim plays a single-role
-                for dim in dd:
-                    if dim in role_register:
-                        raise TypeError(
-                            f"A dim (here {dim!r}) cannot be assigned to 2"
-                            f" roles (here {role!r} and {role_register[dim]!r}).")
-                    else:
-                        role_register[dim] = role
-            dims[role] = dd
-        return dims
-
     def table_tree(self, statkey, dims, *, costfun=None):
         """Make hierarchy `outer > inner > mean > optim` using `SparseSpace.nest`.
 
@@ -494,7 +462,35 @@ class xpSpace(SparseSpace):
             cannot support multiple `statkey`s because it's not (obviously) meaningful
             when optimizing over `dims['optim']`.
         """
-        dims = self.validate_dims(dims)
+        def validate_dims(dims):
+            """Validate dims."""
+            role_register = {}
+            for role in set(dims) | set(DIM_ROLES):
+                assert role in DIM_ROLES, f"Invalid role {role!r}"
+                dd = dims.get(role, DIM_ROLES[role])
+
+                if dd is None:
+                    # Don't convert None to (), allowing None to remain special.
+                    pass
+
+                else:
+                    # Ensure iterable
+                    if isinstance(dd, str) or not hasattr(dd, "__iter__"):
+                        dd = (dd,)
+
+                    # Keep relevant only
+                    dd = self.intersect_dims(dd)
+
+                    # Ensure each dim plays a single-role
+                    for dim in dd:
+                        if dim in role_register:
+                            raise TypeError(
+                                f"A dim (here {dim!r}) cannot be assigned to 2"
+                                f" roles (here {role!r} and {role_register[dim]!r}).")
+                        else:
+                            role_register[dim] = role
+                dims[role] = dd
+            return dims
 
         def mean_tune(xp_dict):
             """Take mean, then tune.
@@ -510,6 +506,7 @@ class xpSpace(SparseSpace):
             uq_dict = uq_dict.tune(dims['optim'], costfun)
             return uq_dict
 
+        dims = validate_dims(dims)
         self2 = mean_tune(self)
         # Prefer calling mean_tune() [also see its docstring]
         # before doing outer/inner nesting. This is because then the dims of
