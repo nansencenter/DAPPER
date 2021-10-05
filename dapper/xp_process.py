@@ -453,32 +453,32 @@ class xpSpace(SparseSpace):
     def validate_dims(self, dims):
         """Validate dims.
 
-        Note: This does not convert None to (), allowing None to remain special.
-              Use `()` if tuples are required.
+        Note: This does not convert `None` to `()`, allowing `None` to remain special.
         """
-        roles = {}  # "inv"
+        role_register = {}
         for role in set(dims) | set(DIM_ROLES):
             assert role in DIM_ROLES, f"Invalid role {role!r}"
             dd = dims.get(role, DIM_ROLES[role])
 
             if dd is None:
                 pass  # Purposely special
+
             else:
                 # Ensure iterable
                 if isinstance(dd, str) or not hasattr(dd, "__iter__"):
                     dd = (dd,)
 
+                # Keep relevant only
                 dd = self.intersect_dims(dd)
 
+                # Ensure each dim plays a single-role
                 for dim in dd:
-
-                    # Ensure unique
-                    if dim in roles:
+                    if dim in role_register:
                         raise TypeError(
                             f"A dim (here {dim!r}) cannot be assigned to 2"
-                            f" roles (here {role!r} and {roles[dim]!r}).")
+                            f" roles (here {role!r} and {role_register[dim]!r}).")
                     else:
-                        roles[dim] = role
+                        role_register[dim] = role
             dims[role] = dd
         return dims
 
