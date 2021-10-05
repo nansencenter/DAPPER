@@ -5,7 +5,7 @@ from dapper.mods.LorenzIII import Model
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
-tseq = modelling.Chronology(0.002, dto=0.05, Ko=100, Tplot=2, BurnIn=2)
+tseq = modelling.Chronology(0.002, dto=0.05, Ko=400, Tplot=2, BurnIn=5)
 
 model = Model(b=8)
 
