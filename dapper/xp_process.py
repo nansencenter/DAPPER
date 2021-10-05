@@ -365,7 +365,7 @@ class xpSpace(SparseSpace):
         squeezed.fill(self)
         return squeezed
 
-    def get_stat(self, statkey="rmse.a"):
+    def get_stat(self, statkey):
         """Make `xpSpace` with same `Coord` as `self`, but values `xp.avrgs.statkey`."""
         # Init a new xpDict to hold stat
         avrgs = self.__class__(self.dims)
@@ -558,6 +558,7 @@ class xpSpace(SparseSpace):
         ----------
         statkey: str
             The statistic to extract from the `xp.avrgs` for each `xp`.
+            Examples: `"rmse.a"` (i.e. `"err.rms.a"`), `"rmse.ocean.a"`, `"duration"`.
         dims: dict
             Allots (maps) the dims of `xpSpace` to different roles in the tables.
 
