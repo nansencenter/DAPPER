@@ -260,14 +260,11 @@ class SparseSpace(dict):
             print(color_text("Warning:", colorama.Fore.RED),
                   "The requested attributes",
                   color_text(str(absent), colorama.Fore.RED),
-                  ("were not found among the"
-                   " xpSpace dims (attrs. used as coordinates"
-                   " for the set of experiments)."
-                   " This may be no problem if the attr. is redundant"
-                   " for the coord-sys."
-                   " However, if it is caused by confusion or mis-spelling,"
-                   " then it is likely to cause mis-interpretation"
-                   " of the shown results."))
+                  ("were not found among the xpSpace dims"
+                   " (attrs. used as coordinates for the set of experiments)."
+                   " This may be no prob. if the attrs are redundant for the coord-sys."
+                   " However, if due to confusion or mis-spelling, then it is likely"
+                   " to cause mis-interpretation of the shown results."))
             attrs = complement(attrs, absent)
         return attrs
 
