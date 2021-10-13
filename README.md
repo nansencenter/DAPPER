@@ -85,10 +85,10 @@ and run the following commands:
 ```sh
 conda create --yes --name dapper-env python=3.8
 conda activate dapper-env
-python -c 'import sys; print("Version:", sys.version.split()[0])'
+python --version
 ```
 
-Ensure the output at the end gives a version bigger than 3.7.  
+Ensure the printed version is 3.7 or more.  
 *Keep using the same terminal for the commands below.*
 
 ### Install
