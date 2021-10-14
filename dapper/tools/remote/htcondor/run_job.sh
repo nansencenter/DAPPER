@@ -31,7 +31,7 @@ echo ""
 echo "Activating conda"
 __conda_setup=$(/opt/anaconda/bin/conda shell.bash hook)
 eval "$__conda_setup"
-conda activate base
+conda activate py3.9.6-2021-10-14
 
 echo "Python version:"
 python3 -c "import sys; print(sys.version,'\n')"
