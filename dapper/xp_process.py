@@ -40,6 +40,8 @@ class SparseSpace(dict):
 
     The most important method is `nest`,
     which is used (by `xpSpace.table_tree`) to print and plot results.
+    This is essentially a "groupby" operation, and indeed the case could
+    be made that this class should be replaced by `pandas.DataFrame`.
 
     In addition, `__getitem__` is quite flexible, allowing accessing by:
 
@@ -218,7 +220,8 @@ class SparseSpace(dict):
         The entries of this `xpSpace` are themselves `xpSpace`s, with dims `inner_dims`,
         each one regrouping the entries with the same (projected) coordinate.
 
-        Note: is also called by `__getitem__(key)` if `key` is dict.
+        Note: this method could also be called `groupby`.
+        Note: this method is also called by `__getitem__(key)` if `key` is dict.
         """
         # Default: a singleton outer space,
         # with everything contained in the inner (projection) space.
