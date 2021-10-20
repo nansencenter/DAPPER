@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 
-# NB: Stuff subject to variation (as the cluster may be updated):
-# - anaconda path (typically /opt/anaconda{,3}/...
-# - conda environment name
-# - python{3,}
-
 # Args
 index=$1
 rundir=$2
 
-# NB: USER $(whoami) is "nobody" (ref `UID_DOMAIN` and `SOFT_UID_DOMAIN)
-# export HOME=`pwd` # scratch dir, eg /var/lib/condor/execute/dir_2083
+# Stuff that's likely to change when updating cluster/deployment images
+__conda_root="/opt/anaconda"
+__conda_env="py3.9.6-2021-10-14"
+__py_cmd="python3"
+
 # HTCondor (ref `UID_DOMAIN` and `SOFT_UID_DOMAIN) will set
 # USER i.e. $(whoami) to "nobody".
 # HOME will be unset.
@@ -21,10 +19,9 @@ export HOME=`pwd`
 
 # NB: Careful so you don't start the path with :,
 # which would entail adding PWD to sys.path,
-# even when python is launched w/ a script.
+# even when python is launched with a script.
 export PYTHONPATH="$PWD/DAPPER"
 export PYTHONPATH="$PYTHONPATH:$PWD/extra_files"
-
 
 # Debug info
 echo "pwd (scratch dir):" $(pwd)
@@ -37,12 +34,12 @@ find . -type f -maxdepth 3
 echo ""
 
 echo "Activating conda"
-__conda_setup=$(/opt/anaconda/bin/conda shell.bash hook)
+__conda_setup=$($__conda_root/bin/conda shell.bash hook)
 eval "$__conda_setup"
-conda activate py3.9.6-2021-10-14
+conda activate $__conda_env
 
 echo "Python version:"
-python3 -c "import sys; print(sys.version,'\n')"
+$__py_cmd -c "import sys; print(sys.version,'\n')"
 
 echo "Running experiment"
-python3 $PWD/extra_files/load_and_run.py 2>&1
+$__py_cmd $PWD/extra_files/load_and_run.py 2>&1
