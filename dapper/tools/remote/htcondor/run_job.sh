@@ -11,6 +11,13 @@ rundir=$2
 
 # NB: USER $(whoami) is "nobody" (ref `UID_DOMAIN` and `SOFT_UID_DOMAIN)
 # export HOME=`pwd` # scratch dir, eg /var/lib/condor/execute/dir_2083
+# HTCondor (ref `UID_DOMAIN` and `SOFT_UID_DOMAIN) will set
+# USER i.e. $(whoami) to "nobody".
+# HOME will be unset.
+# But matplotlib will try to write to $HOME/.config/matplotlib
+# so we need to set it to somewhere `nobody` has permissions.
+# The scratch dir (eg /var/lib/condor/execute/dir_2083) seems a safe bet:
+export HOME=`pwd`
 
 # NB: Careful so you don't start the path with :,
 # which would entail adding PWD to sys.path,
@@ -22,6 +29,7 @@ export PYTHONPATH="$PYTHONPATH:$PWD/extra_files"
 # Debug info
 echo "pwd (scratch dir):" $(pwd)
 echo "whoami:" $(whoami)
+echo "HOME:" $HOME
 echo "PYTHONPATH:" $PYTHONPATH
 echo ""
 echo "find . -type f -maxdepth 3:"
