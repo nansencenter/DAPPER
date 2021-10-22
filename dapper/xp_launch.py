@@ -43,15 +43,14 @@ def seed_and_simulate(HMM, xp):
     xp: object
         Type: a `dapper.da_methods.da_method`-decorated class.
 
-        .. note:: `xp.seed` should be an integer. Otherwise:
-            If there is no `xp.seed` then then the seed is not set.
-            Although different `xp`s will then use different seeds
-            (unless you do some funky hacking),
-            reproducibility for your script as a whole would still be obtained
-            by setting the seed at the outset (i.e. in the script).
-            On the other hand, if `xp.seed in [None, "clock"]`
-            then the seed is from the clock (for each xp),
-            which would not provide exact reproducibility.
+        .. caution:: `xp.seed` should be set (and `int`).
+
+            Without `xp.seed` the seed does not get set,
+            and different `xp`s will use different seeds
+            (unless you do some funky hacking).
+            Reproducibility for a script as a whole can still be achieved
+            by setting the seed at the outset of the script.
+            To avoid even that, set `xp.seed to `None` or `"clock"`.
 
     Returns
     -------
