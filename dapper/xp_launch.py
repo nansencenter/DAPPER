@@ -539,7 +539,13 @@ class xpList(list):
                 %s
 
                 # Run
-                result = run_experiment(var['xp'], None, ".", **com)
+                try:
+                    result = run_experiment(var['xp'], None, ".", **com)
+                except SystemError as err:
+                    if err.args and "opcode" in err.args[0]:
+                        err.args += ("It seems your local python version"
+                                     " is incompatible with that of the cluster.",)
+                    raise
                 """) % dedent(mp["code"]))
 
             with open(extra_files/"dpr_config.yaml", "w") as f:
