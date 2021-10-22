@@ -139,6 +139,19 @@ def submit_job_GCP(xps_path, **kwargs):
                   "gcloud compute instance-groups managed "
                   "resize condor-compute-pvm-igm --size 0")
 
+        # Check for errors among jobs
+        nHeld = _get_job_status(sc)["held"]
+        if nHeld:
+            if nHeld == sc.nJobs:
+                print("NB: All jobs failed")
+            else:
+                print("NB: There were %d failed jobs" % nHeld)
+            # Print path of error messages for a (the first found) failed job
+            for d in list_job_dirs(sc.xps_path):
+                if (d / "xp").stat().st_size == 0:
+                    print(f"View error message at {d / 'out'}")
+                    break
+
 
 def _detect_autoscaler(self, minutes=10):
     """Grep syslog for autoscaler.
@@ -293,13 +306,8 @@ def _monitor_progress(self):
         print("Some kind of exception occured,"
               " while %d jobs have not even run." % unfinished)
         raise
-    else:
-        print("All jobs finished without failure.")
     finally:
         pbar.close()
-        if job_status["held"]:
-            print("NB: There were %d failed jobs" % job_status["held"])
-            print(f"View errors at {self.xps_path}/JOBNUMBER/out")
 
 
 def list_job_dirs(xps_path):
