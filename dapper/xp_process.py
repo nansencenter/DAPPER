@@ -381,7 +381,7 @@ class xpSpace(SparseSpace):
 
         if not found_anything:
             raise AttributeError(
-                f"The stat.'{statkey}' was not found among any of the xp's.")
+                f"The stat. '{statkey}' was not found among any of the xp's.")
 
         return avrgs
 
