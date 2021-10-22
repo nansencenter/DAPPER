@@ -504,11 +504,12 @@ class xpList(list):
             # mkdir extra_files
             extra_files = save_as / "extra_files"
             os.mkdir(extra_files)
-            # Default files: .py files in sys.path[0] (main script's path)
+            # Default extra_files: .py files in sys.path[0] (main script's path)
             if not mp.get("files", []):
                 ff = os.listdir(sys.path[0])
                 mp["files"] = [f for f in ff if f.endswith(".py")]
-            # Copy files into extra_files
+
+            # Copy into extra_files
             for f in mp["files"]:
                 if isinstance(f, (str, Path)):
                     # Example: f = "A.py"
