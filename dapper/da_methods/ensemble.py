@@ -627,7 +627,7 @@ class LETKF:
                         T      = (V * d**(-0.5)) @ V.T * sqrt(za)
                     else:
                         # EVD version
-                        d, V   = sla.eigh(Y_jj@Y_jj.T + za*eye(N))
+                        d, V  = sla.eigh(Y_jj@Y_jj.T + za*eye(N))
                         T     = V@diag(d**(-0.5))@V.T * sqrt(za)
                         Pw    = V@diag(d**(-1.0))@V.T
                     AT  = T @ A[:, ii]
