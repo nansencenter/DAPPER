@@ -108,7 +108,6 @@ def submit_job_GCP(xps_path, **kwargs):
     """GCP/HTCondor launcher"""
     sc = SubmissionConnection(xps_path, **kwargs)
     _sync_job(sc)
-
     _submit_job(sc)
 
     # Prepare download command
@@ -197,10 +196,7 @@ def _sync_job(self):
 
 
 def _sync_DAPPER(self):
-    """Sync DAPPER (as it currently exists, not a specific version)
-
-    to compute-nodes, which don't have external IP addresses.
-    """
+    """Sync DAPPER (as on work-tree, not a specific version) to GCP."""
     # Get list of files: whatever mentioned by .git
     repo  = f"--git-dir={rc.dirs.DAPPER}/.git"
     files = sub_run(f"git {repo} ls-tree -r --name-only HEAD", shell=True).split()
@@ -224,7 +220,7 @@ def _sync_DAPPER(self):
 
 
 def print_condor_status(self):
-    status = """condor_status -total"""
+    status = """`condor_status` -total"""
     status = self.remote_cmd(status)
     if status:
         print(status, ":")
@@ -235,7 +231,7 @@ def print_condor_status(self):
 
 
 def _clear_queue(self):
-    """Use condor_rm to clear the job queue of the submission."""
+    """Use `condor_rm` to clear the job queue of the submission."""
     try:
         batch = f"""-constraint 'JobBatchName == "{self.xps_path.name}"'"""
         self.remote_cmd(f"""condor_rm {batch}""")
@@ -250,7 +246,7 @@ def _clear_queue(self):
 
 
 def _get_job_status(self):
-    """Parse condor_q to get number idle, held, etc, jobs"""
+    """Parse `condor_q` to get number idle, held, etc, jobs"""
     # The autoscaler.py script from Google uses
     # 'condor_q -totals -format "%d " Jobs -format "%d " Idle -format "%d " Held'
     # But in both condor versions I've tried, -totals does not mix well with -format,
@@ -295,7 +291,7 @@ def _monitor_progress(self):
             time.sleep(1)  # dont clog the ssh connection
     except (KeyboardInterrupt, Exception):
         print("Some kind of exception occured,"
-              " while %d jobs did not run at all." % unfinished)
+              " while %d jobs have not even run." % unfinished)
         raise
     else:
         print("All jobs finished without failure.")
@@ -343,14 +339,11 @@ def get_ip(instance):
 
 
 def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
-    r"""Run `subprocess.run`, with other defaults, and return stdout.
+    r"""Do `subprocess.run`, with responsive defaults.
 
-    Example:
-    >>> gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])
-    >>> # Alternatively:
+    Examples:
+    >>> gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])  # or:
     >>> # gitfiles = sub_run("git ls-tree -r --name-only HEAD", shell=True)
-    >>> # Only .py files:
-    >>> gitfiles = [f for f in gitfiles.split("\n") if f.endswith(".py")]
     """
     try:
         x = subprocess.run(
