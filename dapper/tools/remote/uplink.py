@@ -219,10 +219,8 @@ def _sync_DAPPER(self):
             f"~/{self.xps_path.name}/DAPPER",
             "--files-from="+synclist.name)
     except subprocess.SubprocessError as error:
-        # Suggest common source of error in the message.
-        msg = error.args[0] + \
-            "\nDid you mv/rm files (and not registering it with .git)?"
-        raise subprocess.SubprocessError(msg) from error
+        error.args += ("Did you mv/rm files (and not registering it with .git)?",)
+        raise
 
 
 def print_condor_status(self):
@@ -360,11 +358,8 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
             check=check, capture_output=capture_output, text=text)
 
     except subprocess.CalledProcessError as error:
-        # CalledProcessError doesnt print its .stderr,
-        # so we raise it this way:
-        raise subprocess.SubprocessError(
-            f"Command {error.cmd} returned non-zero exit status, "
-            f"with stderr:\n{error.stderr}") from error
+        error.args += (f"The stderr is: \n\n{error.stderr}",)
+        raise
 
     if capture_output:
         return x.stdout
