@@ -13,3 +13,7 @@ log                     = runlog
 #queue xp from experiment_list.txt
 #queue xp matching files *.dat
 queue rundir matching [0-9]*
+
+# https://htcondor.readthedocs.io/en/latest/users-manual/automatic-job-management.html
+# Release jobs that have been running > x hours
+periodic_remove = (JobStatus == 2) && (time() - EnteredCurrentStatus) > (24 * 3600)
