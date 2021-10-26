@@ -45,6 +45,8 @@ class OptInterp:
     """
 
     def assimilate(self, HMM, xx, yy):
+        Id = np.eye(HMM.Nx)
+
         # Compute "climatological" Kalman gain
         muC = np.mean(xx, 0)
         AC  = xx - muC
@@ -70,7 +72,7 @@ class OptInterp:
                 KG  = mrdiv(PC@H.T, H@PC@H.T + HMM.Obs.noise.C.full)
                 mu = muC + KG@(yy[ko] - HMM.Obs(muC, t))
 
-                P  = (np.eye(HMM.Dyn.M) - KG@H) @ PC
+                P  = (Id - KG@H) @ PC
                 SM = fit_sigmoid(P.trace()/PC.trace(), L, k)
 
             self.stats.assess(k, ko, mu=mu, Cov=2*PC*SM(k))
@@ -89,6 +91,7 @@ class Var3D:
     xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
+        Id = np.eye(HMM.Nx)
         if isinstance(self.B, np.ndarray):
             # compare ndarray 1st to avoid == error for ndarray
             B = self.B.astype(float)
@@ -96,7 +99,7 @@ class Var3D:
             # Use climatological cov, estimated from truth
             B = np.cov(xx.T)
         elif self.B == 'eye':
-            B = np.eye(HMM.Nx)
+            B = Id
         else:
             raise ValueError("Bad input B.")
         B *= self.xB
@@ -125,7 +128,7 @@ class Var3D:
                 mu = mu + KG@(yy[ko] - HMM.Obs(mu, t))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
-                P = (np.eye(HMM.Dyn.M) - KG@H) @ B
+                P = (Id - KG@H) @ B
                 SM = fit_sigmoid(P.trace()/CC.trace(), L, k)
 
             self.stats.assess(k, ko, mu=mu, Cov=P)
