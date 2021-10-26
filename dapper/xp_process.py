@@ -472,6 +472,7 @@ class xpSpace(SparseSpace):
         def validate_dims(dims):
             """Validate dims."""
             role_register = {}
+            new = {}
             for role in set(dims) | set(DIM_ROLES):
                 assert role in DIM_ROLES, f"Invalid role {role!r}"
                 dd = dims.get(role, DIM_ROLES[role])
@@ -496,8 +497,8 @@ class xpSpace(SparseSpace):
                                 f" roles (here {role!r} and {role_register[dim]!r}).")
                         else:
                             role_register[dim] = role
-                dims[role] = dd
-            return dims
+                new[role] = dd
+            return new
 
         def mean_tune(xp_dict):
             """Take mean, then tune.
