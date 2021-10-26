@@ -2,8 +2,8 @@
 executable              = run_job.sh
 arguments               = $(Process) $(rundir)
 transfer_input_files    = xp.var,../xp.com,../extra_files,../DAPPER
-should_transfer_files   = IF_NEEDED
-when_to_transfer_output = ON_EXIT
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
 initialdir              = $(rundir)
 transfer_output_files   = xp
 output                  = out
