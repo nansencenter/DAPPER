@@ -741,6 +741,7 @@ def Newton_m(fun, deriv, x0, is_inverted=False,
         dx *= conf
         x0 -= dx
         Jx  = fun(x0)
+        itr += 1
     return x0
 
 
