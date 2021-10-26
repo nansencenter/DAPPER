@@ -373,15 +373,19 @@ class xpSpace(SparseSpace):
         # Init a new xpDict to hold stat
         avrgs = self.__class__(self.dims)
 
-        found_anything = False
+        not_found = set()
         for coord, xp in self.items():
-            val = getattr(xp.avrgs, statkey, None)
-            avrgs[coord] = val
-            found_anything = found_anything or (val is not None)
+            try:
+                avrgs[coord] = getattr(xp.avrgs, statkey)
+            except AttributeError:
+                not_found.add(coord)
 
-        if not found_anything:
+        if len(not_found) == len(self):
             raise AttributeError(
-                f"The stat. '{statkey}' was not found among any of the xp's.")
+                f"The stat. '{statkey}' was not found among **any** of the xp's.")
+        elif not_found:
+            print(color_text("Warning:", "RED"), f"no stat. '{statkey}' found for")
+            print(*not_found, sep="\n")
 
         return avrgs
 
