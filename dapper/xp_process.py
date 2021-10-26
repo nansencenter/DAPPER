@@ -751,7 +751,7 @@ class xpSpace(SparseSpace):
             # Plot tuning params
             row.tuned_coords = {}  # Store ordered, "transposed" argmins
             argmins = [getattr(y, 'tuned_coord', None) for y in yy]
-            for a, panel in zip(dims["optim"], panelcol[1:]):
+            for a, panel in zip(dims["optim"] or (), panelcol[1:]):
                 yy = [getattr(coord, a, None) for coord in argmins]
                 row.tuned_coords[a] = yy
 
