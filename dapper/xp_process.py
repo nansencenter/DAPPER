@@ -813,8 +813,8 @@ class xpSpace(SparseSpace):
                     panel.set_ylabel(f"Optim.\n{a}")
 
         # Nest dims through table_tree()
-        assert len(dims["inner"]) == 1, "You must chose the abscissa."
         dims, tables = self.table_tree(statkey, dims, costfun=costfun)
+        assert len(dims["inner"]) == 1, "You must chose a valid attr. for the abscissa."
 
         if not hasattr(self, "ticks"):
             # TODO 6: this is probationary.
