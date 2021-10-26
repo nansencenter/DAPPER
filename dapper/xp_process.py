@@ -615,7 +615,7 @@ class xpSpace(SparseSpace):
             if subcols:
                 templ = "{val} ±{prec}"
                 templ += "" if dims['optim'] is None else " *{tuned_coord}"
-                templ += "" if  dims['mean'] is None else " {nFail} {nSuccess}"  # noqa
+                templ += "" if dims['mean' ] is None else " {nFail} {nSuccess}"
                 aligns = dict(prec="<", tuned_coord="<")
                 labels = dict(val=statkey, prec="1σ",
                               tuned_coord=dims["optim"],
