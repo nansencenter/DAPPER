@@ -88,7 +88,8 @@ def load_xps(save_as):
         xps.extend(load_any(f))
 
     if len(xps) < len(files):
-        print(f"{len(files)-len(xps)} files could not be loaded.")
+        print(len(files)-len(xps), "files could not be loaded,",
+              "presumably because their respective jobs crashed.")
 
     return xps
 
