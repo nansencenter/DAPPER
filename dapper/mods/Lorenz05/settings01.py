@@ -1,7 +1,7 @@
 import numpy as np
 
 import dapper.mods as modelling
-from dapper.mods.LorenzIII import Model
+from dapper.mods.Lorenz05 import Model
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
