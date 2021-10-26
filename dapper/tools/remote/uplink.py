@@ -228,7 +228,8 @@ def _sync_DAPPER(self):
             f"~/{self.xps_path.name}/DAPPER",
             "--files-from="+synclist.name)
     except subprocess.SubprocessError as error:
-        error.args += ("Did you mv/rm files (and not registering it with .git)?",)
+        print(error.stderr)
+        print("Did you mv/rm files (and not register it with `git`)?")
         raise
 
 
@@ -359,7 +360,13 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
             check=check, capture_output=capture_output, text=text)
 
     except subprocess.CalledProcessError as error:
-        error.args += (f"The stderr is: \n\n{error.stderr}",)
+        if capture_output:
+            # error.args += (f"The stderr is: \n\n{error.stderr}",)
+            # The above won't get printed because CalledProcessError.__str__
+            # is non-standard. Instead, print stdout (on top of stack trace):
+            print(error.stderr)
+        else:
+            pass  # w/o capture_output, error is automatically printed.
         raise
 
     if capture_output:
