@@ -617,22 +617,26 @@ class xpSpace(SparseSpace):
                 templ += "" if dims['optim'] is None else " *{tuned_coord}"
                 templ += "" if dims['mean' ] is None else " {nFail} {nSuccess}"
                 aligns = dict(prec="<", tuned_coord="<")
-                labels = dict(val=statkey, prec="1σ",
-                              tuned_coord=dims["optim"],
-                              nFail="☠", nSuccess="✓")
 
-            def align(column):
+            def align(column, idx):
+                if idx == 0:
+                    headers = dict(val=statkey, prec="1σ", tuned_coord=dims["optim"])
+                else:
+                    headers = dict(val="", prec="1σ", tuned_coord="")
+                headers.update(nFail="☠", nSuccess="✓")
+
                 col = unpack_uqs(column, decimals)
+
                 if subcols:
                     for key in list(col):
                         if key in templ:
-                            subcolmn = [labels.get(key, key)] + col[key]
+                            subcolmn = [headers.get(key, key)] + col[key]
                             col[key] = align_col(subcolmn, just=aligns.get(key, ">"))
                         else:
                             del col[key]
                     col = [templ.format(**row) for row in transps(col)]
                 else:
-                    col = align_col([statkey] + col["val"])
+                    col = align_col([headers["val"]] + col["val"])
                 return col
 
             def super_header(col_coord, idx, col):
@@ -646,7 +650,7 @@ class xpSpace(SparseSpace):
 
             # Format column
             for j, (col_coord, column) in enumerate(zip(cc, columns)):
-                col = align(column)
+                col = align(column, j)
                 if h2:
                     col = super_header(col_coord, j, col)
                 columns[j] = col
