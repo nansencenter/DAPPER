@@ -724,8 +724,12 @@ def Newton_m(fun, deriv, x0, is_inverted=False,
 
     This is a simple (and pretty fast) implementation of Newton's method.
     """
-    itr, dx, Jx = 0, np.inf, fun(x0)
-    def norm(x): return sqrt(np.sum(x**2))
+    itr = 0
+    dx = np.inf
+    Jx = fun(x0)
+
+    def norm(x):
+        return sqrt(np.sum(x**2))
     while ytol < norm(Jx) and xtol < norm(dx) and itr < itermax:
         Dx  = deriv(x0)
         if is_inverted:
