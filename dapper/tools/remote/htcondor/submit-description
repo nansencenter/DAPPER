@@ -14,6 +14,11 @@ log                     = runlog
 #queue xp matching files *.dat
 queue rundir matching [0-9]*
 
+# Probably not a good idea when there are very many jobs.
+# Use `condor_tail -f <job-id>` instead
+# stream_out = True
+# stream_error = True
+
 # https://htcondor.readthedocs.io/en/latest/users-manual/automatic-job-management.html
 # Release jobs that have been running > x hours
 periodic_remove = (JobStatus == 2) && (time() - EnteredCurrentStatus) > (24 * 3600)
