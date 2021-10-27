@@ -29,8 +29,11 @@ repos:
     -   id: mixed-line-ending
         args: ['--fix=no']
 
--   repo: https://github.com/life4/flakehell
-    rev: v.0.7.1
+# -   repo: https://github.com/flakehell/flakehell
+#     rev: v.0.8.0
+# Until this gets merged: https://github.com/flakehell/flakehell/pull/20
+-   repo: https://github.com/KPLauritzen/flakehell
+    rev: d644612
     hooks:
     -   id: flakehell
         additional_dependencies: [
