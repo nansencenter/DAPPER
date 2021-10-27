@@ -1,10 +1,10 @@
-"""Demonstrate the Lorenz-III model."""
+"""Demonstrate the Lorenz-05 model."""
 
 from matplotlib import pyplot as plt
 from numpy import eye
 
 import dapper.mods as modelling
-from dapper.mods.LorenzIII import Model
+from dapper.mods.Lorenz05 import Model
 from dapper.tools.viz import amplitude_animation
 
 model = Model()

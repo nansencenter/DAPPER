@@ -26,6 +26,7 @@ def color_text(text, *color_codes):
     if (not color_codes) or color_codes == ("default",):
         cc = [colorama.Style.BRIGHT, colorama.Fore.BLUE]
     else:
+        # Foreground colors can be specified as strings
         cc = [getattr(colorama.Fore, c.upper(), c) for c in color_codes if c]
 
     if not cc:

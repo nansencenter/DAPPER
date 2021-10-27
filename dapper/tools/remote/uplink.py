@@ -108,7 +108,6 @@ def submit_job_GCP(xps_path, **kwargs):
     """GCP/HTCondor launcher"""
     sc = SubmissionConnection(xps_path, **kwargs)
     _sync_job(sc)
-
     _submit_job(sc)
 
     # Prepare download command
@@ -139,6 +138,19 @@ def submit_job_GCP(xps_path, **kwargs):
                   "Shut down the compute nodes yourself using:\n    "
                   "gcloud compute instance-groups managed "
                   "resize condor-compute-pvm-igm --size 0")
+
+        # Check for errors among jobs
+        nHeld = _get_job_status(sc)["held"]
+        if nHeld:
+            if nHeld == sc.nJobs:
+                print("NB: All jobs failed")
+            else:
+                print("NB: There were %d failed jobs" % nHeld)
+            # Print path of error messages for a (the first found) failed job
+            for d in list_job_dirs(sc.xps_path):
+                if (d / "xp").stat().st_size == 0:
+                    print(f"View error message at {d / 'out'}")
+                    break
 
 
 def _detect_autoscaler(self, minutes=10):
@@ -197,10 +209,7 @@ def _sync_job(self):
 
 
 def _sync_DAPPER(self):
-    """Sync DAPPER (as it currently exists, not a specific version)
-
-    to compute-nodes, which don't have external IP addresses.
-    """
+    """Sync DAPPER (as on work-tree, not a specific version) to GCP."""
     # Get list of files: whatever mentioned by .git
     repo  = f"--git-dir={rc.dirs.DAPPER}/.git"
     files = sub_run(f"git {repo} ls-tree -r --name-only HEAD", shell=True).split()
@@ -219,14 +228,13 @@ def _sync_DAPPER(self):
             f"~/{self.xps_path.name}/DAPPER",
             "--files-from="+synclist.name)
     except subprocess.SubprocessError as error:
-        # Suggest common source of error in the message.
-        msg = error.args[0] + \
-            "\nDid you mv/rm files (and not registering it with .git)?"
-        raise subprocess.SubprocessError(msg) from error
+        print(error.stderr)
+        print("Did you mv/rm files (and not register it with `git`)?")
+        raise
 
 
 def print_condor_status(self):
-    status = """condor_status -total"""
+    status = """`condor_status` -total"""
     status = self.remote_cmd(status)
     if status:
         print(status, ":")
@@ -237,7 +245,7 @@ def print_condor_status(self):
 
 
 def _clear_queue(self):
-    """Use condor_rm to clear the job queue of the submission."""
+    """Use `condor_rm` to clear the job queue of the submission."""
     try:
         batch = f"""-constraint 'JobBatchName == "{self.xps_path.name}"'"""
         self.remote_cmd(f"""condor_rm {batch}""")
@@ -252,7 +260,7 @@ def _clear_queue(self):
 
 
 def _get_job_status(self):
-    """Parse condor_q to get number idle, held, etc, jobs"""
+    """Parse `condor_q` to get number idle, held, etc, jobs"""
     # The autoscaler.py script from Google uses
     # 'condor_q -totals -format "%d " Jobs -format "%d " Idle -format "%d " Held'
     # But in both condor versions I've tried, -totals does not mix well with -format,
@@ -297,15 +305,10 @@ def _monitor_progress(self):
             time.sleep(1)  # dont clog the ssh connection
     except (KeyboardInterrupt, Exception):
         print("Some kind of exception occured,"
-              " while %d jobs did not run at all." % unfinished)
+              " while %d jobs have not even run." % unfinished)
         raise
-    else:
-        print("All jobs finished without failure.")
     finally:
         pbar.close()
-        if job_status["held"]:
-            print("NB: There were %d failed jobs" % job_status["held"])
-            print(f"View errors at {self.xps_path}/JOBNUMBER/out")
 
 
 def list_job_dirs(xps_path):
@@ -345,14 +348,11 @@ def get_ip(instance):
 
 
 def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
-    r"""Run `subprocess.run`, with other defaults, and return stdout.
+    r"""Do `subprocess.run`, with responsive defaults.
 
-    Example:
-    >>> gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])
-    >>> # Alternatively:
+    Examples:
+    >>> gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])  # or:
     >>> # gitfiles = sub_run("git ls-tree -r --name-only HEAD", shell=True)
-    >>> # Only .py files:
-    >>> gitfiles = [f for f in gitfiles.split("\n") if f.endswith(".py")]
     """
     try:
         x = subprocess.run(
@@ -360,11 +360,14 @@ def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
             check=check, capture_output=capture_output, text=text)
 
     except subprocess.CalledProcessError as error:
-        # CalledProcessError doesnt print its .stderr,
-        # so we raise it this way:
-        raise subprocess.SubprocessError(
-            f"Command {error.cmd} returned non-zero exit status, "
-            f"with stderr:\n{error.stderr}") from error
+        if capture_output:
+            # error.args += (f"The stderr is: \n\n{error.stderr}",)
+            # The above won't get printed because CalledProcessError.__str__
+            # is non-standard. Instead, print stdout (on top of stack trace):
+            print(error.stderr)
+        else:
+            pass  # w/o capture_output, error is automatically printed.
+        raise
 
     if capture_output:
         return x.stdout

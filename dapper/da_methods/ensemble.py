@@ -627,7 +627,7 @@ class LETKF:
                         T      = (V * d**(-0.5)) @ V.T * sqrt(za)
                     else:
                         # EVD version
-                        d, V   = sla.eigh(Y_jj@Y_jj.T + za*eye(N))
+                        d, V  = sla.eigh(Y_jj@Y_jj.T + za*eye(N))
                         T     = V@diag(d**(-0.5))@V.T * sqrt(za)
                         Pw    = V@diag(d**(-1.0))@V.T
                     AT  = T @ A[:, ii]
@@ -724,8 +724,12 @@ def Newton_m(fun, deriv, x0, is_inverted=False,
 
     This is a simple (and pretty fast) implementation of Newton's method.
     """
-    itr, dx, Jx = 0, np.inf, fun(x0)
-    def norm(x): return sqrt(np.sum(x**2))
+    itr = 0
+    dx = np.inf
+    Jx = fun(x0)
+
+    def norm(x):
+        return sqrt(np.sum(x**2))
     while ytol < norm(Jx) and xtol < norm(dx) and itr < itermax:
         Dx  = deriv(x0)
         if is_inverted:
@@ -737,6 +741,7 @@ def Newton_m(fun, deriv, x0, is_inverted=False,
         dx *= conf
         x0 -= dx
         Jx  = fun(x0)
+        itr += 1
     return x0
 
 

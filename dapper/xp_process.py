@@ -40,6 +40,8 @@ class SparseSpace(dict):
 
     The most important method is `nest`,
     which is used (by `xpSpace.table_tree`) to print and plot results.
+    This is essentially a "groupby" operation, and indeed the case could
+    be made that this class should be replaced by `pandas.DataFrame`.
 
     In addition, `__getitem__` is quite flexible, allowing accessing by:
 
@@ -218,7 +220,8 @@ class SparseSpace(dict):
         The entries of this `xpSpace` are themselves `xpSpace`s, with dims `inner_dims`,
         each one regrouping the entries with the same (projected) coordinate.
 
-        Note: is also called by `__getitem__(key)` if `key` is dict.
+        Note: this method could also be called `groupby`.
+        Note: this method is also called by `__getitem__(key)` if `key` is dict.
         """
         # Default: a singleton outer space,
         # with everything contained in the inner (projection) space.
@@ -260,14 +263,11 @@ class SparseSpace(dict):
             print(color_text("Warning:", colorama.Fore.RED),
                   "The requested attributes",
                   color_text(str(absent), colorama.Fore.RED),
-                  ("were not found among the"
-                   " xpSpace dims (attrs. used as coordinates"
-                   " for the set of experiments)."
-                   " This may be no problem if the attr. is redundant"
-                   " for the coord-sys."
-                   " However, if it is caused by confusion or mis-spelling,"
-                   " then it is likely to cause mis-interpretation"
-                   " of the shown results."))
+                  ("were not found among the xpSpace dims"
+                   " (attrs. used as coordinates for the set of experiments)."
+                   " This may be no prob. if the attrs are redundant for the coord-sys."
+                   " However, if due to confusion or mis-spelling, then it is likely"
+                   " to cause mis-interpretation of the shown results."))
             attrs = complement(attrs, absent)
         return attrs
 
@@ -368,20 +368,24 @@ class xpSpace(SparseSpace):
         squeezed.fill(self)
         return squeezed
 
-    def get_stat(self, statkey="rmse.a"):
+    def get_stat(self, statkey):
         """Make `xpSpace` with same `Coord` as `self`, but values `xp.avrgs.statkey`."""
         # Init a new xpDict to hold stat
         avrgs = self.__class__(self.dims)
 
-        found_anything = False
+        not_found = set()
         for coord, xp in self.items():
-            val = getattr(xp.avrgs, statkey, None)
-            avrgs[coord] = val
-            found_anything = found_anything or (val is not None)
+            try:
+                avrgs[coord] = getattr(xp.avrgs, statkey)
+            except AttributeError:
+                not_found.add(coord)
 
-        if not found_anything:
+        if len(not_found) == len(self):
             raise AttributeError(
-                f"The stat.'{statkey}' was not found among any of the xp's.")
+                f"The stat. '{statkey}' was not found among **any** of the xp's.")
+        elif not_found:
+            print(color_text("Warning:", "RED"), f"no stat. '{statkey}' found for")
+            print(*not_found, sep="\n")
 
         return avrgs
 
@@ -453,38 +457,6 @@ class xpSpace(SparseSpace):
 
         return nested
 
-    def validate_dims(self, dims):
-        """Validate dims.
-
-        Note: This does not convert None to (), allowing None to remain special.
-              Use `()` if tuples are required.
-        """
-        roles = {}  # "inv"
-        for role in set(dims) | set(DIM_ROLES):
-            assert role in DIM_ROLES, f"Invalid role {role!r}"
-            dd = dims.get(role, DIM_ROLES[role])
-
-            if dd is None:
-                pass  # Purposely special
-            else:
-                # Ensure iterable
-                if isinstance(dd, str) or not hasattr(dd, "__iter__"):
-                    dd = (dd,)
-
-                dd = self.intersect_dims(dd)
-
-                for dim in dd:
-
-                    # Ensure unique
-                    if dim in roles:
-                        raise TypeError(
-                            f"A dim (here {dim!r}) cannot be assigned to 2"
-                            f" roles (here {role!r} and {roles[dim]!r}).")
-                    else:
-                        roles[dim] = role
-            dims[role] = dd
-        return dims
-
     def table_tree(self, statkey, dims, *, costfun=None):
         """Make hierarchy `outer > inner > mean > optim` using `SparseSpace.nest`.
 
@@ -497,7 +469,36 @@ class xpSpace(SparseSpace):
             cannot support multiple `statkey`s because it's not (obviously) meaningful
             when optimizing over `dims['optim']`.
         """
-        dims = self.validate_dims(dims)
+        def validate_dims(dims):
+            """Validate dims."""
+            role_register = {}
+            new = {}
+            for role in set(dims) | set(DIM_ROLES):
+                assert role in DIM_ROLES, f"Invalid role {role!r}"
+                dd = dims.get(role, DIM_ROLES[role])
+
+                if dd is None:
+                    # Don't convert None to (), allowing None to remain special.
+                    pass
+
+                else:
+                    # Ensure iterable
+                    if isinstance(dd, str) or not hasattr(dd, "__iter__"):
+                        dd = (dd,)
+
+                    # Keep relevant only
+                    dd = self.intersect_dims(dd)
+
+                    # Ensure each dim plays a single-role
+                    for dim in dd:
+                        if dim in role_register:
+                            raise TypeError(
+                                f"A dim (here {dim!r}) cannot be assigned to 2"
+                                f" roles (here {role!r} and {role_register[dim]!r}).")
+                        else:
+                            role_register[dim] = role
+                new[role] = dd
+            return new
 
         def mean_tune(xp_dict):
             """Take mean, then tune.
@@ -513,6 +514,7 @@ class xpSpace(SparseSpace):
             uq_dict = uq_dict.tune(dims['optim'], costfun)
             return uq_dict
 
+        dims = validate_dims(dims)
         self2 = mean_tune(self)
         # Prefer calling mean_tune() [also see its docstring]
         # before doing outer/inner nesting. This is because then the dims of
@@ -561,6 +563,7 @@ class xpSpace(SparseSpace):
         ----------
         statkey: str
             The statistic to extract from the `xp.avrgs` for each `xp`.
+            Examples: `"rmse.a"` (i.e. `"err.rms.a"`), `"rmse.ocean.a"`, `"duration"`.
         dims: dict
             Allots (maps) the dims of `xpSpace` to different roles in the tables.
 
@@ -617,24 +620,28 @@ class xpSpace(SparseSpace):
             if subcols:
                 templ = "{val} ±{prec}"
                 templ += "" if dims['optim'] is None else " *{tuned_coord}"
-                templ += "" if  dims['mean'] is None else " {nFail} {nSuccess}"  # noqa
+                templ += "" if dims['mean' ] is None else " {nFail} {nSuccess}"
                 aligns = dict(prec="<", tuned_coord="<")
-                labels = dict(val=statkey, prec="1σ",
-                              tuned_coord=dims["optim"],
-                              nFail="☠", nSuccess="✓")
 
-            def align(column):
+            def align(column, idx):
+                if idx == 0:
+                    headers = dict(val=statkey, prec="1σ", tuned_coord=dims["optim"])
+                else:
+                    headers = dict(val="", prec="1σ", tuned_coord="")
+                headers.update(nFail="☠", nSuccess="✓")
+
                 col = unpack_uqs(column, decimals)
+
                 if subcols:
                     for key in list(col):
                         if key in templ:
-                            subcolmn = [labels.get(key, key)] + col[key]
+                            subcolmn = [headers.get(key, key)] + col[key]
                             col[key] = align_col(subcolmn, just=aligns.get(key, ">"))
                         else:
                             del col[key]
                     col = [templ.format(**row) for row in transps(col)]
                 else:
-                    col = align_col([statkey] + col["val"])
+                    col = align_col([headers["val"]] + col["val"])
                 return col
 
             def super_header(col_coord, idx, col):
@@ -648,7 +655,7 @@ class xpSpace(SparseSpace):
 
             # Format column
             for j, (col_coord, column) in enumerate(zip(cc, columns)):
-                col = align(column)
+                col = align(column, j)
                 if h2:
                     col = super_header(col_coord, j, col)
                 columns[j] = col
@@ -753,7 +760,7 @@ class xpSpace(SparseSpace):
             # Plot tuning params
             row.tuned_coords = {}  # Store ordered, "transposed" argmins
             argmins = [getattr(y, 'tuned_coord', None) for y in yy]
-            for a, panel in zip(dims["optim"], panelcol[1:]):
+            for a, panel in zip(dims["optim"] or (), panelcol[1:]):
                 yy = [getattr(coord, a, None) for coord in argmins]
                 row.tuned_coords[a] = yy
 
@@ -806,8 +813,8 @@ class xpSpace(SparseSpace):
                     panel.set_ylabel(f"Optim.\n{a}")
 
         # Nest dims through table_tree()
-        assert len(dims["inner"]) == 1, "You must chose the abscissa."
         dims, tables = self.table_tree(statkey, dims, costfun=costfun)
+        assert len(dims["inner"]) == 1, "You must chose a valid attr. for the abscissa."
 
         if not hasattr(self, "ticks"):
             # TODO 6: this is probationary.

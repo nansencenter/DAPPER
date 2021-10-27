@@ -65,6 +65,8 @@ def load_xps(save_as):
     """Load `xps` (as a `list`) from given dir."""
     save_as = Path(save_as).expanduser()
     files = [d/"xp" for d in uplink.list_job_dirs(save_as)]
+    if not files:
+        raise FileNotFoundError(f"No results found at {save_as}.")
 
     def load_any(filepath):
         """Load any/all `xp's` from `filepath`."""
@@ -86,7 +88,8 @@ def load_xps(save_as):
         xps.extend(load_any(f))
 
     if len(xps) < len(files):
-        print(f"{len(files)-len(xps)} files could not be loaded.")
+        print(len(files)-len(xps), "files could not be loaded,",
+              "presumably because their respective jobs crashed.")
 
     return xps
 

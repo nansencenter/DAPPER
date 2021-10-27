@@ -43,15 +43,14 @@ def seed_and_simulate(HMM, xp):
     xp: object
         Type: a `dapper.da_methods.da_method`-decorated class.
 
-        .. note:: `xp.seed` should be an integer. Otherwise:
-            If there is no `xp.seed` then then the seed is not set.
-            Although different `xp`s will then use different seeds
-            (unless you do some funky hacking),
-            reproducibility for your script as a whole would still be obtained
-            by setting the seed at the outset (i.e. in the script).
-            On the other hand, if `xp.seed in [None, "clock"]`
-            then the seed is from the clock (for each xp),
-            which would not provide exact reproducibility.
+        .. caution:: `xp.seed` should be set (and `int`).
+
+            Without `xp.seed` the seed does not get set,
+            and different `xp`s will use different seeds
+            (unless you do some funky hacking).
+            Reproducibility for a script as a whole can still be achieved
+            by setting the seed at the outset of the script.
+            To avoid even that, set `xp.seed to `None` or `"clock"`.
 
     Returns
     -------
@@ -504,11 +503,12 @@ class xpList(list):
             # mkdir extra_files
             extra_files = save_as / "extra_files"
             os.mkdir(extra_files)
-            # Default files: .py files in sys.path[0] (main script's path)
+            # Default extra_files: .py files in sys.path[0] (main script's path)
             if not mp.get("files", []):
                 ff = os.listdir(sys.path[0])
                 mp["files"] = [f for f in ff if f.endswith(".py")]
-            # Copy files into extra_files
+
+            # Copy into extra_files
             for f in mp["files"]:
                 if isinstance(f, (str, Path)):
                     # Example: f = "A.py"
@@ -539,7 +539,13 @@ class xpList(list):
                 %s
 
                 # Run
-                result = run_experiment(var['xp'], None, ".", **com)
+                try:
+                    result = run_experiment(var['xp'], None, ".", **com)
+                except SystemError as err:
+                    if err.args and "opcode" in err.args[0]:
+                        err.args += ("It seems your local python version"
+                                     " is incompatible with that of the cluster.",)
+                    raise
                 """) % dedent(mp["code"]))
 
             with open(extra_files/"dpr_config.yaml", "w") as f:

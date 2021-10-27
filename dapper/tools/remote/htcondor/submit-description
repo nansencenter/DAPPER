@@ -2,8 +2,8 @@
 executable              = run_job.sh
 arguments               = $(Process) $(rundir)
 transfer_input_files    = xp.var,../xp.com,../extra_files,../DAPPER
-should_transfer_files   = IF_NEEDED
-when_to_transfer_output = ON_EXIT
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
 initialdir              = $(rundir)
 transfer_output_files   = xp
 output                  = out
@@ -13,3 +13,12 @@ log                     = runlog
 #queue xp from experiment_list.txt
 #queue xp matching files *.dat
 queue rundir matching [0-9]*
+
+# Probably not a good idea when there are very many jobs.
+# Use `condor_tail -f <job-id>` instead
+# stream_out = True
+# stream_error = True
+
+# https://htcondor.readthedocs.io/en/latest/users-manual/automatic-job-management.html
+# Release jobs that have been running > x hours
+periodic_remove = (JobStatus == 2) && (time() - EnteredCurrentStatus) > (1 * 3600)

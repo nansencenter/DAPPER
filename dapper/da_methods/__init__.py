@@ -121,7 +121,7 @@ def da_method(*default_dataclasses):
                 else:
                     # Don't use _print_cropped_traceback here -- It would
                     # crop out errors in the DAPPER infrastructure itself.
-                    raise ERR
+                    raise
             self.stat("duration", time.time()-time0)
 
         # Overwrite the assimilate method with the new one

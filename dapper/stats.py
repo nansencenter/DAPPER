@@ -222,11 +222,7 @@ class Stats(series.StatPrint):
                 self.derivative_stats(stats_now)
                 self.summarize_marginals(stats_now)
 
-            # Write current stats to series
-            for name, val in stats_now.items():
-                stat = struct_tools.deep_getattr(self, name)
-                isFaust = isinstance(stat, series.FAUSt)
-                stat[(k, ko, sub) if isFaust else ko] = val
+            self.write(stats_now, k, ko, sub)
 
             # LivePlot -- Both init and update must come after the assessment.
             try:
@@ -235,8 +231,15 @@ class Stats(series.StatPrint):
                 self.LP_instance = liveplotting.LivePlot(
                     self, self.liveplots, (k, ko, sub), E, Cov)
 
+    def write(self, stat_dict, k, ko, sub):
+        """Write `stat_dict` to series at `(k, ko, sub)`."""
+        for name, val in stat_dict.items():
+            stat = struct_tools.deep_getattr(self, name)
+            isFaust = isinstance(stat, series.FAUSt)
+            stat[(k, ko, sub) if isFaust else ko] = val
+
     def summarize_marginals(self, now):
-        """Compute Mean-field and RMS values"""
+        """Compute Mean-field and RMS values."""
         formulae = {**self.field_summaries, **self.sector_summaries}
 
         with np.errstate(divide='ignore', invalid='ignore'):
