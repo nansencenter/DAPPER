@@ -3,7 +3,7 @@
 .. include:: ./README.md
 """
 
-__version__ = "1.2.3"
+__version__ = "1.3.0"
 
 # A parsimonious list of imports used in the examples
 from .dpr_config import rc
