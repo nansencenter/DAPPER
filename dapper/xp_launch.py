@@ -472,7 +472,7 @@ class xpList(list):
 
         # Local multiprocessing
         elif mp["server"].lower() == "local":
-            def run_with_fixed_args(arg):
+            def run_with_kwargs(arg):
                 xp, ixp = arg
                 run_experiment(xp, None, xpi_dir(ixp), **kwargs)
             args = zip(self, range(len(self)))
@@ -484,7 +484,7 @@ class xpList(list):
             with mpd.Pool(NPROC) as pool:
                 list(tqdm(
                     pool.imap(
-                        run_with_fixed_args, args),
+                        run_with_kwargs, args),
                     total=len(self),
                     desc="Parallel experim's",
                     smoothing=0.1))
