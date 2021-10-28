@@ -84,32 +84,6 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
         Path of folder wherein to store the experiment data.
     HMM: HiddenMarkovModel
         Container defining the system.
-    setup: function
-        This function must take two arguments: `HMM` and `xp`,
-        and return the `HMM` to be used by the DA methods
-        (typically the same as the input `HMM`, but could be modified),
-        and the (typically synthetic) truth and obs time series.
-
-        This gives you the ability to customize almost any aspect of the
-        individual experiments within a batch launch of experiments.
-        Typically you will grab one or more parameter values
-        stored in the `xp` (see `dapper.da_methods.da_method`) and act on them,
-        or set them in some other object that impacts the experiment.
-        Thus, by generating a new `xp` for each such parameter value you can
-        investigate the impact/sensitivity of the results to this parameter.
-        Examples include:
-
-        - Setting the seed. See the default `setup`, namely `seed_and_simulate`,
-          for how this is done.
-        - Setting some aspect of the `HMM` such as the observation noise,
-          or the interval between observations.
-        - Setting some parameter of the model (not otherwise detailed in the `HMM`).
-          For example, the `Force` parameter of `dapper.mods.Lorenz96`, as done in
-          see `examples/basic_3`.
-        - Using a different `HMM` entirely for the truth/obs (`xx`/`yy`) generation,
-          than the one that will be used by the DA. Or loading the truth/obs
-          time series from file. In both cases, you might also have to do some
-          cropping or slicing of `xx` and `yy` before returning them.
     free: bool
         Whether (or not) to `del xp.stats` after the experiment is done,
         so as to free up memory and/or not save this data
@@ -120,11 +94,68 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
         this xp.
     fail_gently: bool
         Whether (or not) to propagate exceptions.
+    setup: function
+        This function must take two arguments: `HMM` and `xp`, and return the `HMM` to
+        be used by the DA methods (typically the same as the input `HMM`, but could be
+        modified), and the (typically synthetic) truth and obs time series.
+
+        This gives you the ability to customize almost any aspect of the individual
+        experiments within a batch launch of experiments (i.e. not just the parameters
+        of the DA. method).  Typically you will grab one or more parameter values stored
+        in the `xp` (see `dapper.da_methods.da_method`) and act on them, usually by
+        assigning them to some object that impacts the experiment.  Thus, by generating
+        a new `xp` for each such parameter value you can investigate the
+        impact/sensitivity of the results to this parameter.  Examples include:
+
+        - Setting the seed. See the default `setup`, namely `seed_and_simulate`,
+          for how this is, or should be, done.
+        - Setting some aspect of the `HMM` such as the observation noise,
+            or the interval between observations. This could be achieved for example by:
+
+                def setup(hmm, xp):
+                    hmm.Obs.noise = GaussRV(M=hmm.Nx, C=xp.obs_noise)
+                    hmm.tseq.dkObs = xp.time_between_obs
+                    import dapper as dpr
+                    return dpr.seed_and_simulate(hmm, xp)
+
+            This process could involve more steps, for example loading a full covariance
+            matrix from a data file, as specified by the `obs_noise` parameter, before
+            assigning it to `C`. Also note that the import statement is not strictly
+            necessary (assuming `dapper` was already imported in the outer scope,
+            typically the main script), **except** when running the experiments on a
+            remote server.
+
+            Sometimes, the parameter you want to set is not accessible as one of the
+            conventional attributes of the `HMM`. For example, the `Force` in the
+            Lorenz-96 model. In that case you can add these lines to the setup function:
+
+                import dapper.mods.Lorenz96 as core
+                core.Force = xp.the_force_parameter
+
+            However, if your model is an OOP instance, the import approach will not work
+            because it will serve you the original model instance, while `setup()` deals
+            with a copy of it. Instead, you could re-initialize the entire model in
+            `setup()` and overwrite `HMM.Dyn`. However, it is probably easier to just
+            assign the instance to some custom attribute before launching the
+            experiments, e.g. `HMM.Dyn.object = the_model_instance`, enabling you to set
+            parameters on `HMM.Dyn.object` in `setup()`. Note that this approach won't
+            work for modules (for ex., combining the above examples, `HMM.Dyn.object =
+            core`) because modules are not serializable.
+
+        - Using a different `HMM` entirely for the truth/obs (`xx`/`yy`) generation,
+          than the one that will be used by the DA. Or loading the truth/obs
+          time series from file. In both cases, you might also have to do some
+          cropping or slicing of `xx` and `yy` before returning them.
     """
-    # We should copy HMM so as not to cause any nasty surprises such as
-    # expecting param=1 when param=2 (coz it's not been reset).
-    # NB: won't copy implicitly ref'd obj's (like L96's core). => bug w/ MP?
+    # Copy HMM to avoid changes made by setup affect subsequent experiments.
+    # Thus, experiments run in sequence behave the same as experiments run via
+    # multiprocessing (which serialize (i.e. copy) the HMM) or on a cluster.
     hmm = copy.deepcopy(HMM)
+    # Note that "implicitly referenced" objects do not get copied. For example,
+    # if the model `step` function uses parameters defined in its module or object,
+    # these will be obtained by re-importing that model, unless it has been serialized.
+    # Serialization happens if the model instance (does not work for modules)
+    # is expliclity referenced, e.g. if you've done `HMM.Dyn.underlying_model = model`.
 
     # GENERATE TRUTH/OBS
     hmm, xx, yy = setup(hmm, xp)
