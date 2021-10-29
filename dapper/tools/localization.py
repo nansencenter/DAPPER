@@ -193,7 +193,7 @@ def no_localization(Nx, Ny):
 
         Used to validate local DA methods, eg. `LETKF<==>EnKF('Sqrt')`.
         """
-        assert radius == np.inf, "Localization functions not specified"
+        assert radius in [None, np.inf], "Localizer not specified, but radius < infty."
 
         if direction == 'x2y':
             return [np.arange(Nx)], obs_taperer
