@@ -29,8 +29,8 @@ echo "whoami:" $(whoami)
 echo "HOME:" $HOME
 echo "PYTHONPATH:" $PYTHONPATH
 echo ""
-echo "find . -type f -maxdepth 5:"
-find . -type f -maxdepth 5
+echo "find . -type f -maxdepth 3:"
+find . -type f -maxdepth 3
 echo ""
 
 echo "Activating conda"
