@@ -21,7 +21,7 @@ def _interaction_impossible():
         warnings.warn((
             "Keyboard interaction (to skip/stop/pause the liveplotting)"
             " does not work in the current python frontend."
-            " If you wish, you can use dpr_config.yaml to disable the "
+            " If you wish, you can use dpr_config.yaml to disable the"
             " liveplotting altogether, which will silence this message."),
             stacklevel=2)
 
