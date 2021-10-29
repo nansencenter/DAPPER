@@ -556,7 +556,7 @@ class xpSpace(SparseSpace):
 
     def print(self, statkey, dims,  # noqa (shadowing builtin)
               subcols=True, decimals=None, costfun=None,
-              squeeze_labels=True, colorize=True):
+              squeeze_labels=True, colorize=True, title=None):
         """Print tables of results.
 
         Parameters
@@ -607,6 +607,12 @@ class xpSpace(SparseSpace):
         colorize: bool
             Add color to tables for readability.
         """
+        # Title
+        if colorize:
+            clrs = colorama.Back.LIGHTBLUE_EX, colorama.Fore.BLACK
+            title = color_text(str(title), *clrs)
+        print("\n" + title)
+
         # Inform dims["mean"]
         if dims.get('mean', None):
             print(f"Averages (in time and) over {dims['mean']}.")
