@@ -41,5 +41,8 @@ conda activate $__conda_env
 echo "Python version:"
 $__py_cmd -c "import sys; print(sys.version,'\n')"
 
+echo "Mv dpr_config.yaml to PWD"
+mv $PWD/extra_files/dpr_config.yaml $PWD
+
 echo "Running experiment"
 $__py_cmd $PWD/extra_files/load_and_run.py 2>&1
