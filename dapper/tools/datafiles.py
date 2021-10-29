@@ -87,7 +87,9 @@ def load_xps(save_as):
     for f in tqdm(files, desc="Loading"):
         xps.extend(load_any(f))
 
-    if len(xps) < len(files):
+    if len(xps) == 0:
+        raise RuntimeError("No completed experiments found.")
+    elif len(xps) < len(files):
         print(len(files)-len(xps), "files could not be loaded,",
               "presumably because their respective jobs crashed.")
 
