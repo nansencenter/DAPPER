@@ -37,7 +37,7 @@ from dapper.mods.Lorenz96.bocquet2015loc import HMM  # isort:skip
 
 def setup(hmm, xp):
     """Experiment init.: Set Lorenz-96 forcing. Seed. Simulate truth/obs."""
-    import dapper as dpr
+    import dapper as dpr  # req. on clusters
     import dapper.mods.Lorenz96 as core
     core.Force = xp.F
     return dpr.seed_and_simulate(hmm, xp)

@@ -50,7 +50,7 @@ def seed_and_simulate(HMM, xp):
             (unless you do some funky hacking).
             Reproducibility for a script as a whole can still be achieved
             by setting the seed at the outset of the script.
-            To avoid even that, set `xp.seed to `None` or `"clock"`.
+            To avoid even that, set `xp.seed` to `None` or `"clock"`.
 
     Returns
     -------
