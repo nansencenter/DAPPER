@@ -606,10 +606,11 @@ class xpSpace(SparseSpace):
             Add color to tables for readability.
         """
         # Title
-        if colorize:
-            clrs = colorama.Back.LIGHTBLUE_EX, colorama.Fore.BLACK
-            title = color_text(str(title), *clrs)
-        print("\n" + title)
+        if title is not None:
+            if colorize:
+                clrs = colorama.Back.LIGHTBLUE_EX, colorama.Fore.BLACK
+                title = color_text(str(title), *clrs)
+            print(title)
 
         # Inform dims["mean"]
         if dims.get('mean', None):
