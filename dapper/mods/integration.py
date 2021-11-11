@@ -130,13 +130,15 @@ def with_recursion(func, prog=False):
         xx = np.zeros((k+1,)+x0.shape)
         xx[0] = x0
 
-        rg = range(k)
-        if isinstance(prog, str):
-            rg = progbar(rg, prog)
-        elif prog:
-            rg = progbar(rg, 'Recurs.')
+        # Prog. bar name
+        if prog == False:
+            desc = None
+        elif prog == None:
+            desc = "Recurs."
+        else:
+            desc = prog
 
-        for i in rg:
+        for i in progbar(range(k), desc):
             xx[i+1] = func(xx[i], *args, **kwargs)
 
         return xx
