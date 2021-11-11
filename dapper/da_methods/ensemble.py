@@ -227,12 +227,12 @@ def post_process(E, infl, rot):
     """Inflate, Rotate.
 
     To avoid recomputing/recombining anomalies,
-    this should have been inside :func:`EnKF_analysis`
+    this should have been inside `EnKF_analysis`
 
     But it is kept as a separate function
 
     - for readability;
-    - to avoid inflating/rotationg smoothed states (for the :func:`EnKS`).
+    - to avoid inflating/rotationg smoothed states (for the `EnKS`).
     """
     do_infl = infl != 1.0 and infl != '-N'
 

@@ -187,11 +187,9 @@ class SparseSpace(dict):
     def coord_from_attrs(self, obj):
         """Form a `coord` for this `xpSpace` by extracting attrs. from `obj`.
 
-        For instances of `self.Coord`, this is the identity opeartor.
+        For instances of `self.Coord`, this is the identity opeartor, i.e.
 
-        ```py
-        self.coord_from_attrs(coord) == coord
-        ```
+            self.coord_from_attrs(coord) == coord
         """
         coord = (getattr(obj, a, None) for a in self.dims)
         return self.Coord(*coord)

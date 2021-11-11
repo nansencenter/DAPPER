@@ -95,7 +95,7 @@ class OptPF:
 
     .. note:: Regularization (`Qs`) is here added BEFORE Bayes' rule.
               If `Qs==0`: OptPF should be equal to
-              the bootstrap filter :func:`PartFilt`.
+              the bootstrap filter `PartFilt`.
     """
 
     N: int
@@ -597,7 +597,7 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
 
 
 def _resample(w, kind, N_o, N):
-    """Core functionality for :func:`resample`."""
+    """Core functionality for `resample`."""
     if kind in ['Stochastic', 'Stoch']:
         # van Leeuwen [2] also calls this "probabilistic" resampling
         idx = rnd.choice(N_o, N, replace=True, p=w)

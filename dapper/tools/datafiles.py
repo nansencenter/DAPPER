@@ -152,15 +152,16 @@ def overwrite_xps(xps, save_as, nDir=100):
 
 
 def reduce_inodes(save_as, nDir=100):
-    """Reduce the number of `xp` dirs
+    """Reduce the number of `xp` dirs.
 
-    by packing multiple `xp`s into lists (`xps`).
-
-    This reduces the **number** of files (inodes) on the system,
-    which limits storage capacity (along with **size**).
+    Done by packing multiple `xp`s into lists (`xps`).
+    This reduces the **number** of files (inodes) on the system, which is limited.
 
     It also deletes files "xp.var" and "out",
     whose main content tends to be the printed progbar.
-    This probably leads to reduced loading time is sometimes reduced.
+    This probably leads to some reduced loading time.
+
+    FAQ: Why isn't the default for `nDir` simply 1?
+    So that we can get a progressbar when loading.
     """
     overwrite_xps(load_xps(save_as), save_as, nDir)
