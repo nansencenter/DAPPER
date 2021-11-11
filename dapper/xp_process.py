@@ -772,6 +772,7 @@ class xpSpace(SparseSpace):
                 # which can cause trouble if the axes units were actually supposed
                 # to be categorical (eg upd_a), but this is only revealed later.
                 if not all(y == None for y in yy):
+                    style["alpha"] = 0.2
                     row.handles[a] = panel.plot(xticks, yy, **style)
 
         def label_management(table):
