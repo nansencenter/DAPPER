@@ -536,8 +536,15 @@ class xpList(list):
             os.mkdir(extra_files)
             # Default extra_files: .py files in sys.path[0] (main script's path)
             if not mp.get("files", []):
-                ff = os.listdir(sys.path[0])
-                mp["files"] = [f for f in ff if f.endswith(".py")]
+                mp["files"] = [f.relative_to(sys.path[0]) for f in
+                               Path(sys.path[0]).glob("**/*.py")]
+                assert len(mp["files"]) < 1000, (
+                    "Too many files staged for upload to server."
+                    " This is the result of trying to include all files"
+                    f" under {sys.path[0]=}."
+                    " Consider moving your script to a project directory,"
+                    " or expliclity listing the files to be uploaded."
+                )
 
             # Copy into extra_files
             for f in mp["files"]:
