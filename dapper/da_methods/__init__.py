@@ -2,15 +2,6 @@
 
 .. include:: ./README.md
 """
-import dataclasses
-import functools
-import inspect
-import sys
-import time
-import traceback
-from dataclasses import dataclass
-
-import dapper.stats
 
 
 def da_method(*default_dataclasses):
@@ -71,6 +62,12 @@ def da_method(*default_dataclasses):
         `assimilate` method, but are instead used to customize other aspects of the
         experiments (see `dapper.xp_launch.run_experiment`).
     """
+    import dataclasses
+    import functools
+    import time
+    from dataclasses import dataclass
+
+    import dapper.stats
 
     def dataclass_with_defaults(cls):
         """Like `dataclass`, but add some DAPPER-specific things.
@@ -147,6 +144,9 @@ def da_method(*default_dataclasses):
 
 
 def _print_cropped_traceback(ERR):
+    import inspect
+    import sys
+    import traceback
 
     # A more "standard" (robust) way:
     # https://stackoverflow.com/a/32999522
