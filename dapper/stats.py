@@ -737,7 +737,6 @@ def inflate_ens(E, factor):
     factor: `float`
         Inflation factor
 
-
     Returns
     -------
     ndarray
