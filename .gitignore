@@ -156,3 +156,5 @@ dpr_data/
 
 # Generated when running QG model
 dapper/mods/QG/f90/prms_*\.txt
+
+.pdb-pyhist
