@@ -41,7 +41,7 @@ INSTALL_REQUIRES = [
 
 EXTRAS = {
     'Qt': ['PyQt5', 'qtpy'],
-    'dev': ['line_profiler', 'pre-commit'],
+    'dev': ['line_profiler', 'pre-commit', 'pdbpp>=0.10.3'],
     'test': ['tox', 'coverage>=5.1', 'pytest',
              'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
