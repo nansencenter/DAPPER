@@ -541,7 +541,7 @@ class xpList(list):
                 assert len(mp["files"]) < 1000, (
                     "Too many files staged for upload to server."
                     " This is the result of trying to include all files"
-                    f" under {sys.path[0]=}."
+                    f" under sys.path[0]: ({sys.path[0]})."
                     " Consider moving your script to a project directory,"
                     " or expliclity listing the files to be uploaded."
                 )
