@@ -1,21 +1,19 @@
-"""Paralellisation via multiprocessing. Wraps pool.map for convenience."""
+"""Paralellisation via multiprocessing. Limit num. of CPUs used by `numpy` to 1."""
 
-import functools
-
-# Multiprocessing requries pickling. The package 'dill' is able to
-# pickle much more than basic pickle (e.g. nested functions),
-# and is being used by 'multiprocessing_on_dill',
-# and the better-maintained pathos
+# To facilitate debugging, import mp here (where it's used).
+# For example, `matplotlib` (its event loop) might clash (however mysteriously)
+# with mp, so it's nice to be able to be sure that no mp is "in the mix".
 import multiprocessing_on_dill as mpd
 # Enforcing individual core usage.
-# ---------
 # Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
-#   This may yield some performance gain, but typically not much
-#   compared to manual parallelization over independent experiments,
-#   ensemble forecasts simulations, or local analyses.
-# Therefore: force numpy to only use a single core.
-#
-# Ref https://stackoverflow.com/a/53224849
+#     This may yield some performance gain, but typically not much
+#     compared to "manual" parallelization over
+#     experiments, ensemble members, or local analyses.
+#     Therefore: force numpy to only use a single core.
+import threadpoolctl
+
+threadpoolctl.threadpool_limits(1)
+# Alternative: ref https://stackoverflow.com/a/53224849
 # for envar in [
 #     "OMP_NUM_THREADS",        # openmp
 #     "OPENBLAS_NUM_THREADS",   # openblas
@@ -24,62 +22,52 @@ import multiprocessing_on_dill as mpd
 #     "NUMEXPR_NUM_THREADS"]:   # numexpr
 #     os.environ[envar] = "1"
 # The above may be the safest way to limit thread use on all systems,
-# but requires importing before np. => Instead, use threadpoolctl!
+# but must be imported ahead of numpy, which is clumsy.
 #
+# Test case:
 # >>> import numpy as np
-# >>> from threadpoolctl import threadpool_limits
-# >>> N  = 4*10**3
-# >>> a  = np.random.randn(N, N)
-# >>> # Now start monitoring CPU usage (with e.g. htop).
-# >>> with threadpool_limits(limits=1, user_api='blas'):
-# >>>   a2 = a @ a
-import threadpoolctl
-
-# Deciding on core numbers
-# ---------
-# Unnecessary. Just use NPROC=None.
-# from psutil import cpu_percent, cpu_count
-
-threadpoolctl.threadpool_limits(1)
+# ... from threadpoolctl import threadpool_limits
+# ... N  = 4*10**3
+# ... a  = np.random.randn(N, N)
+# ... # Now start monitoring CPU usage (with e.g. htop).
+# ... with threadpool_limits(limits=1, user_api='blas'):
+# ...     a2 = a @ a
 
 
-def map(func, xx, **kwargs):  # noqa
-    """A parallelized version of map.
+def Pool(NPROC=None):
+    """Initialize a multiprocessing `Pool`.
 
-    Similar to `result = [func(x, **kwargs) for x in xx]`, but also deals with:
+    - Uses `pathos/dill` for serialisation.
+    - Provides unified interface for multiprocessing on/off (as a function of NPROC).
 
-    - passing kwargs
-    - join(), close()
-    - KeyboardInterrupt (not any more)
+    There is some overhead associated with the pool creation,
+    so you likely want to re-use a pool rather than repeatedly creating one.
+    Consider using `functools.partial` to fix kwargs.
 
-    Note: in contrast to reading operations, writing "in-place"
-    does not work with multiprocessing. This changes with
-    "shared" arrays, but this has not been tried out here.
-    By contrast, multithreading shares the memory,
-    but was significantly slower in the tested (pertinent) cases.
+    .. note::
+        In contrast to *reading*, in-place writing does not work with multiprocessing.
+        This changes with "shared" arrays, but that has not been tested here.
+        By contrast, multi*threading* shares the process memory,
+        but was significantly slower in the tested (pertinent) cases.
 
-    NB: multiprocessing does not mix with matplotlib,
-        so ensure `func` does not reference `self.stats.LP_instance`,
-        where `self` is a `@da_method` object.
-        In fact, `func` should not reference `self` at all,
-        because its serialization is rather slow.
+    .. caution::
+        `multiprocessing` does not mix with `matplotlib`, so ensure `func` does not
+        reference `xp.stats.LP_instance`. In fact, `func` should not reference `xp`
+        at all, because it takes time to serialize.
 
-    See example use in `dapper.mods.QG`
+    See example use in `dapper.mods.QG` and `dapper.da_methods.LETKF`.
     """
-    NMAX = mpd.cpu_count() - 1  # Be nice
-    NPROC = kwargs.pop("NPROC", NMAX)
-    pool = mpd.Pool(NPROC)
+    if NPROC == False:
+        # Yield plain old map
+        class NoPool:
+            def __enter__(self): return builtins
+            def __exit__(self, *args): pass
+        import builtins
+        return NoPool()
 
-    try:
-        f = functools.partial(func, **kwargs)  # Fix kwargs
+    else:
+        # from psutil import cpu_percent, cpu_count
+        if NPROC in [True, None]:
+            NPROC = mpd.cpu_count() - 1  # be nice
 
-        # map vs imap: https://stackoverflow.com/a/26521507
-        result = pool.map(f, xx)
-
-    except Exception:
-        pool.terminate()
-        pool.close()
-        pool.join()
-        raise
-
-    return result
+        return mpd.Pool(NPROC)

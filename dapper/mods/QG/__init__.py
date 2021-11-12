@@ -21,7 +21,6 @@ import numpy as np
 
 import dapper.mods as modelling
 import dapper.tools.liveplotting as LP
-import dapper.tools.multiproc as mp
 
 #########################
 # Model
@@ -115,7 +114,10 @@ class model_config:
                 # Note: the relative overhead for parallelization decreases
                 # as the ratio dtout/dt increases.
                 # But the overhead is already negligible with a ratio of 4.
-                E = np.array(mp.map(self.step_1, E, t=t, dt=dt))
+                import dapper.tools.multiproc as multiproc
+                with multiproc.Pool(self.mp) as pool:
+                    E = pool.map(lambda x: self.step_1(x, t=t, dt=dt), E)
+                E = np.array(E)
             else:  # NON-PARALLELIZED:
                 for n, x in enumerate(E):
                     E[n] = self.step_1(x, t, dt)

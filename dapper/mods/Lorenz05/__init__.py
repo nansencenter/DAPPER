@@ -95,15 +95,9 @@ class Model:
             return self.step1(E, t, dt)
         if E.ndim == 2:
             if self.mp and E.size > 1e5:
-                # TODO 4: using dapper.tools.multiproc.Pool yielded
-                # "Too many files open" error. Fixed it as described here:
-                # https://stackoverflow.com/q/45665991
-                import multiprocessing_on_dill as mpd
-
-                def f(E):
-                    return self.step1(E, t=t, dt=dt)
-                with mpd.Pool() as pool:
-                    E = pool.map(f, E)
+                import dapper.tools.multiproc as multiproc
+                with multiproc.Pool(self.mp) as pool:
+                    E = pool.map(lambda x: self.step1(x, t=t, dt=dt), E)
                 E = np.array(E)
             else:
                 for n, x in enumerate(E):
