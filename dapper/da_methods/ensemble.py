@@ -5,11 +5,12 @@ import numpy.random as rnd
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
 
-import dapper.tools.multiproc as mp
-from dapper.stats import center, mean0
+import dapper.tools.multiproc as multiproc
+from dapper.stats import center, inflate_ens, mean0
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, svdi, tinv, tsvd
 from dapper.tools.matrices import funm_psd, genOG_1
 from dapper.tools.progressbar import progbar
+from dapper.tools.randvars import GaussRV
 
 from . import da_method
 
@@ -477,6 +478,9 @@ class SL_EAKF:
 
     Refs: `bib.karspeck2007experimental`.
 
+    In contrast with LETKF, this iterates over the observations rather
+    than over the state (batches).
+
     Used without localization, this should be equivalent (full ensemble equality)
     to the `EnKF` with `upd_a='Serial'`.
     """
@@ -542,9 +546,62 @@ class SL_EAKF:
             self.stats.assess(k, ko, E=E)
 
 
+def local_analyses(E, Eo, R, y, state_batches, obs_taperer, mp=map, xN=None, g=0):
+    """Perform local analysis update for the LETKF."""
+    def local_analysis(ii):
+        """Perform analysis, for state index batch `ii`."""
+        # Locate local obs
+        oBatch, tapering = obs_taperer(ii)
+        Eii = E[:, ii]
+
+        # No update
+        if len(oBatch) == 0:
+            return Eii, 1
+
+        # Localize
+        Yl  = Y[:, oBatch]
+        dyl = dy[oBatch]
+        tpr = sqrt(tapering)
+
+        # Adaptive inflation estimation.
+        # NB: Localisation is not 100% compatible with the EnKF-N, since
+        # - After localisation there is much less need for inflation.
+        # - Tapered values (Y, dy) are too neat
+        #   (the EnKF-N expects a normal amount of sampling error).
+        # One fix is to tune xN (maybe set it to 2 or 3). Thanks to adaptivity,
+        # this should still be easier than tuning the inflation factor.
+        infl1 = 1 if xN is None else sqrt(N1/effective_N(Yl, dyl, xN, g))
+        Eii, Yl = inflate_ens(Eii, infl1), Yl * infl1
+        # Since R^{-1/2} was already applied (necesry for effective_N), now use R=Id.
+        # TODO 4: the cost of re-init this R might not always be insignificant.
+        R = GaussRV(C=1, M=len(dyl))
+
+        # Update
+        Eii = EnKF_analysis(Eii, Yl*tpr, R, dyl*tpr, "Sqrt")
+
+        return Eii, infl1
+
+    # Prepare analysis
+    N1 = len(E) - 1
+    Y, xo = center(Eo)
+    # Transform obs space
+    Y  = Y        @ R.sym_sqrt_inv.T
+    dy = (y - xo) @ R.sym_sqrt_inv.T
+
+    # Run
+    result = mp(local_analysis, state_batches)
+
+    # Assign
+    E_batches, infl1 = zip(*result)
+    for ii, Eii in zip(state_batches, E_batches):
+        E[:, ii] = Eii
+
+    return E, dict(ad_inf=sqrt(np.mean(np.array(infl1)**2)))
+
+
 @ens_method
 class LETKF:
-    """Same as EnKF (sqrt), but with localization.
+    """Same as EnKF (Sqrt), but with localization.
 
     Refs: `bib.hunt2007efficient`.
 
@@ -558,94 +615,29 @@ class LETKF:
     N: int
     loc_rad: float
     taper: str = 'GC'
-    xN: float  = 1.0
+    xN: float  = None
     g: int     = 0
     mp: bool   = False
 
     def assimilate(self, HMM, xx, yy):
-        N = self.N
-        R, N1 = HMM.Obs.noise.C, N-1
-
-        _map = mp.map if self.mp else map
-
-        E = HMM.X0.sample(N)
+        E = HMM.X0.sample(self.N)
         self.stats.assess(0, E=E)
+        self.stats.new_series("ad_inf", 1, HMM.tseq.Ko+1)
 
-        for k, ko, t, dt in progbar(HMM.tseq.ticker):
-            # Forecast
-            E = HMM.Dyn(E, t-dt, dt)
-            E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
+        with multiproc.Pool(self.mp) as pool:
+            for k, ko, t, dt in progbar(HMM.tseq.ticker):
+                E = HMM.Dyn(E, t-dt, dt)
+                E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
 
-            if ko is not None:
-                self.stats.assess(k, ko, 'f', E=E)
+                if ko is not None:
+                    self.stats.assess(k, ko, 'f', E=E)
+                    batch, taper = HMM.Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
+                    E, stats = local_analyses(E, HMM.Obs(E, t), HMM.Obs.noise.C, yy[ko],
+                                              batch, taper, pool.map, self.xN, self.g)
+                    self.stats.write(stats, k, ko, "a")
+                    E = post_process(E, self.infl, self.rot)
 
-                # Decompose ensmeble
-                mu = np.mean(E, 0)
-                A  = E - mu
-                # Obs space variables
-                y     = yy[ko]
-                Y, xo = center(HMM.Obs(E, t))
-                # Transform obs space
-                Y  = Y        @ R.sym_sqrt_inv.T
-                dy = (y - xo) @ R.sym_sqrt_inv.T
-
-                # Local analyses
-                # Get localization configuration
-                state_batches, obs_taperer = \
-                    HMM.Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
-                # Avoid pickling self
-                xN, g, infl = self.xN, self.g, self.infl
-
-                def local_analysis(ii):
-                    """Do the local analysis.
-
-                    Notation:
-
-                    - `ii`: inds. for the state batch defining the locality
-                    - `jj`: inds. for the associated obs
-                    """
-                    # Locate local obs
-                    jj, tapering = obs_taperer(ii)
-                    if len(jj) == 0:
-                        return E[:, ii], N1  # no update
-                    Y_jj   = Y[:, jj]
-                    dy_jj  = dy[jj]
-
-                    # Adaptive inflation
-                    za = effective_N(Y_jj, dy_jj, xN, g) if infl == '-N' else N1
-
-                    # Taper
-                    Y_jj  *= sqrt(tapering)
-                    dy_jj *= sqrt(tapering)
-
-                    # Compute ETKF update
-                    if len(jj) < N:
-                        # SVD version
-                        V, sd, _ = svd0(Y_jj)
-                        d      = pad0(sd**2, N) + za
-                        Pw     = (V * d**(-1.0)) @ V.T
-                        T      = (V * d**(-0.5)) @ V.T * sqrt(za)
-                    else:
-                        # EVD version
-                        d, V  = sla.eigh(Y_jj@Y_jj.T + za*eye(N))
-                        T     = V@diag(d**(-0.5))@V.T * sqrt(za)
-                        Pw    = V@diag(d**(-1.0))@V.T
-                    AT  = T @ A[:, ii]
-                    dmu = dy_jj @ Y_jj.T @ Pw @ A[:, ii]
-                    Eii = mu[ii] + dmu + AT
-                    return Eii, za
-
-                # Run local analyses
-                EE, za = zip(*_map(local_analysis, state_batches))
-                for ii, Eii in zip(state_batches, EE):
-                    E[:, ii] = Eii
-
-                # Global post-processing
-                E = post_process(E, self.infl, self.rot)
-
-                self.stats.infl[ko] = sqrt(N1/np.mean(za))
-
-            self.stats.assess(k, ko, E=E)
+                self.stats.assess(k, ko, E=E)
 
 
 def effective_N(YR, dyR, xN, g):
