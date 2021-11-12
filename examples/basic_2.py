@@ -14,10 +14,8 @@ seed = dpr.set_seed(3000)
 
 # #### DA method configurations
 
-xps = dpr.xpList()
-
 from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
-
+xps = dpr.xpList()
 xps += da.Climatology()                                      # 7.6
 xps += da.OptInterp()                                        # 1.25
 xps += da.Var3D(xB=0.1)                                      # 1.03
@@ -36,19 +34,20 @@ xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 
 # +
 # from dapper.mods.Lorenz96.sakov2008 import HMM   # Expected rmse.a:
+# xps = dpr.xpList()
 # xps += da.Climatology()                                     # 3.6
 # xps += da.OptInterp()                                       # 0.95
 # xps += da.Var3D(xB=0.02)                                    # 0.41
 # xps += da.ExtKF(infl=6)                                     # 0.24
 # xps += da.EnKF('PertObs', N=40, infl=1.06)                  # 0.22
-# xps += da.EnKF('Sqrt',    N=28, infl=1.02, rot=True)        # 0.18
-#
+# xps += da.EnKF('Sqrt'   , N=28, infl=1.02, rot=True)        # 0.18
+# # More sophisticated:
 # xps += da.EnKF_N(         N=24, rot=True)                   # 0.21
 # xps += da.EnKF_N(         N=24, rot=True, xN=2)             # 0.18
-# xps += da.iEnKS('Sqrt',   N=40, infl=1.01, rot=True)        # 0.17
-#
-# xps += da.LETKF(          N=7,  infl=1.04, rot=True, loc_rad=4)  # 0.22
-# xps += da.SL_EAKF(        N=7,  infl=1.07, rot=True, loc_rad=6)  # 0.23
+# xps += da.iEnKS('Sqrt'  , N=40, infl=1.01, rot=True)        # 0.17
+# # With localisation:
+# xps += da.LETKF(          N=7 , infl=1.04, rot=True, loc_rad=4)  # 0.22
+# xps += da.SL_EAKF(        N=7 , infl=1.07, rot=True, loc_rad=6)  # 0.23
 # -
 
 # #### Other models (suitable xp's listed in HMM files):
@@ -59,13 +58,14 @@ xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # from dapper.mods.LotkaVolterra.settings101 import HMM
 # -
 
-# #### Run experiment
+# #### Launch
 
 # Adjust experiment duration
-HMM.tseq.BurnIn = 2
+
 HMM.tseq.T = 50
 
-# Assimilate (for each xp in xps)
+# Run/assimilate (for each `xp` in `xps`)
+
 save_as = xps.launch(HMM, liveplots=False)
 
 # #### Print results
