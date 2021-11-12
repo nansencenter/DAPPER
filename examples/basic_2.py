@@ -10,8 +10,6 @@
 import dapper as dpr
 import dapper.da_methods as da
 
-seed = dpr.set_seed(3000)
-
 # #### DA method configurations
 
 from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
@@ -59,6 +57,12 @@ xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # -
 
 # #### Launch
+
+# Write some more non-arg parameters to the `xps`. In this case we set the seed,
+# so that repeat experiments produce exactly the same result.
+
+for xp in xps:
+    xp.seed = 3000
 
 # Adjust experiment duration
 
