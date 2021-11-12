@@ -183,9 +183,17 @@ def _print_cropped_traceback(ERR):
 
 
 # Import all da_methods
-for _mod in Path(__file__).parent.glob("*.py"):
-    if _mod != Path(__file__) and not _mod.stem.startswith("_"):
-        _mod = __import__(__package__ + "." + _mod.stem, fromlist=['*'])
-        del globals()[_mod.__name__.split(".")[-1]]  # rm module itself
-        globals().update({k: v for k, v in vars(_mod).items()
-                          if isinstance(v, type) and hasattr(v, "da_method")})
+# for _mod in Path(__file__).parent.glob("*.py"):
+#     if _mod != Path(__file__) and not _mod.stem.startswith("_"):
+#         _mod = __import__(__package__ + "." + _mod.stem, fromlist=['*'])
+#         del globals()[_mod.__name__.split(".")[-1]]  # rm module itself
+#         globals().update({k: v for k, v in vars(_mod).items()
+#                           if isinstance(v, type) and hasattr(v, "da_method")})
+
+# The above does not allow for go-to-definition, so
+from .baseline import Climatology, OptInterp, Var3D
+from .ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
+from .extended import ExtKF, ExtRTS
+from .other import LNETF, RHF
+from .particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
+from .variational import Var4D, iEnKS
