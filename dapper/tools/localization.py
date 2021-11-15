@@ -5,6 +5,13 @@ Sakov (2011), Computational Geosciences:
 'Relation between two common localisation methods for the EnKF'.
 """
 
+# NB: Why is the 'order' argument not supported by this module? Because:
+#  1) Assuming only order (orientation) 'C' simplifies the module's code.
+#  2) It's not necessary, because the module only communicates to *exterior* via indices
+#     [of what assumes to be X.flatten(order='C')], and not coordinates!
+#     Thus, the only adaptation necessary if the order is 'F' is to reverse
+#     the shape parameter passed to these functions (example: mods/QG/sakov2008).
+
 
 import numpy as np
 
@@ -263,14 +270,6 @@ def safe_eval(fun, t):
         return fun(t)
     except TypeError:
         return fun
-
-
-# NB: Why is the 'order' argument not supported by this module? Because:
-#  1) Assuming only order (orientation) 'C' simplifies the module's code.
-#  2) It's not necessary, because the module only communicates to *exterior* via indices
-#     [of what assumes to be X.flatten(order='C')], and not coordinates!
-#     Thus, the only adaptation necessary if the order is 'F' is to reverse
-#     the shape parameter passed to these functions (example: mods/QG/sakov2008).
 
 
 def nd_Id_localization(shape,
