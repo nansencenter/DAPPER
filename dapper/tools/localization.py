@@ -224,16 +224,14 @@ def rectangular_partitioning(shape, steps, do_ind=True):
 
     Example
     -------
-    >>> shape    = [4, 13]
-    >>> steps    = [2, 4]
-    >>> batches  = rectangular_partitioning(shape, steps, do_ind=False)
-    >>> M        = np.prod(shape)
-    >>> nB       = len(batches)
-    >>> values   = np.random.choice(np.arange(nB), nB, 0)
-    >>> Z        = np.zeros(shape)
-    >>> for ib, b in enumerate(batches):
+    >>> shape   = [4, 13]
+    ... batches = rectangular_partitioning(shape, [2, 4], do_ind=False)
+    ... nB      = len(batches)
+    ... values  = np.random.choice(np.arange(nB), nB, 0)
+    ... Z       = np.zeros(shape)
+    ... for ib, b in enumerate(batches):
     ...     Z[tuple(b)] = values[ib]
-    >>> plt.imshow(Z)  # doctest: +SKIP
+    ... plt.imshow(Z)  # doctest: +SKIP
     """
     import itertools
     assert len(shape) == len(steps)
