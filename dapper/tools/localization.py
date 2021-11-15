@@ -5,7 +5,6 @@ Sakov (2011), Computational Geosciences:
 'Relation between two common localisation methods for the EnKF'.
 """
 
-import itertools
 
 import numpy as np
 
@@ -229,6 +228,7 @@ def rectangular_partitioning(shape, steps, do_ind=True):
     ...     Z[tuple(b)] = values[ib]
     >>> plt.imshow(Z)  # doctest: +SKIP
     """
+    import itertools
     assert len(shape) == len(steps)
     # ndim = len(steps)
 
