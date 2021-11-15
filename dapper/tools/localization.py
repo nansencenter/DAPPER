@@ -21,11 +21,11 @@ def pairwise_distances(A, B=None, domain=None):
 
     Parameters
     ----------
-    A: array of shape (nPoints, nDims).
-        A collection a points.
+    A: array of shape `(nPoints, nDims)`.
+        A collection of points.
 
     B:
-        Same as `A`, but nPoints can differ.
+        Same as `A`, but `nPoints` can differ.
 
     domain: tuple
         Assume the domain is a **periodic** hyper-rectangle whose
