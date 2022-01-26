@@ -101,7 +101,7 @@ Ensure the printed version is 3.7 or more.
 - Move the resulting folder wherever you like,  
   and `cd` into it
   *(ensure you're in the folder with a `setup.py` file)*.
-- `pip install -e .[dev]`  
+- `pip install -e '.[dev]'`  
   You can omit `[dev]` if you don't need to do serious development.
 
 #### *Or*: Install as library
