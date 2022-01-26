@@ -36,7 +36,7 @@ INSTALL_REQUIRES = [
     'struct-tools==0.2.5',
     # TODO 5: replace by p-tqdm?
     'multiprocessing-on-dill==3.5.0a4',
-    'threadpoolctl==1.0.0',
+    'threadpoolctl>=3.0.0,<4.0.0',
 ]
 
 EXTRAS = {
