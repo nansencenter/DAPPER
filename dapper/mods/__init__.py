@@ -13,7 +13,7 @@ import struct_tools
 # Imports used to set up HMMs
 import dapper.tools.progressbar as pb
 from dapper.dpr_config import rc
-from dapper.mods.utils import Id_mat, Id_op
+from dapper.mods.utils import Id_op
 from dapper.tools.chronos import Chronology
 from dapper.tools.localization import no_localization
 from dapper.tools.matrices import CovMat
@@ -172,10 +172,11 @@ class Operator(struct_tools.NicePrint):
     def __init__(self, M, model=None, noise=None, **kwargs):
         self.M = M
 
-        # None => Identity model
+        # Default to the Identity operator
         if model is None:
             model = Id_op()
-            kwargs['linear'] = lambda x, t, dt: Id_mat(M)
+            kwargs['linear'] = lambda *args: np.eye(M)
+        # Assign
         self.model = model
 
         # None/0 => No noise

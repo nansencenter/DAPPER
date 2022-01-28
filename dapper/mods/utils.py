@@ -66,14 +66,8 @@ def ens_compatible(func):
 
 
 def Id_op():
-    """Id operator for first argument."""
+    """Id operator (named). Returns first argument."""
     return NamedFunc(lambda *args: args[0], "Id operator")
-
-
-def Id_mat(M):
-    """Id matrix."""
-    Id = np.eye(M)
-    return NamedFunc(lambda x, t: Id, "Id("+str(M)+") matrix")
 
 
 def linear_model_setup(ModelMatrix, dt0):
