@@ -52,7 +52,7 @@ class Stats(series.StatPrint):
         Nx = xx.shape[1]
         Ko = yy.shape[0] - 1
         Ny = yy.shape[1]
-        self.K   , self.Nx = K, Nx
+        self.K , self.Nx = K, Nx
         self.Ko, self.Ny = Ko, Ny
 
         # Methods for summarizing multivariate stats ("fields") as scalars
