@@ -550,7 +550,7 @@ def local_analyses(E, Eo, R, y, state_batches, obs_taperer, mp=map, xN=None, g=0
     """Perform local analysis update for the LETKF."""
     def local_analysis(ii):
         """Perform analysis, for state index batch `ii`."""
-        # Locate local obs
+        # Locate local domain
         oBatch, tapering = obs_taperer(ii)
         Eii = E[:, ii]
 
@@ -593,6 +593,7 @@ def local_analyses(E, Eo, R, y, state_batches, obs_taperer, mp=map, xN=None, g=0
 
     # Assign
     E_batches, infl1 = zip(*result)
+    # TODO: this overwrites E, possibly unbeknownst to caller
     for ii, Eii in zip(state_batches, E_batches):
         E[:, ii] = Eii
 
