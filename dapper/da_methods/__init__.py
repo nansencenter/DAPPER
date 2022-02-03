@@ -191,7 +191,7 @@ def _print_cropped_traceback(ERR):
 #                           if isinstance(v, type) and hasattr(v, "da_method")})
 
 # The above does not allow for go-to-definition, so
-from .baseline import Climatology, OptInterp, Var3D
+from .baseline import Climatology, OptInterp, Persistence, Var3D
 from .ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
 from .extended import ExtKF, ExtRTS
 from .other import LNETF, RHF

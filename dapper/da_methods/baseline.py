@@ -164,10 +164,21 @@ def fit_sigmoid(Sb, L, kb):
 
 
 @da_method()
-class EnCheat:
-    """A baseline/reference method.
+class Persistence:
+    """Sets estimate to the **true state** at the previous time index.
 
-    Should be implemented as part of Stats instead.
+    The analysis (.a) stat uses the previous obs. time.
+    The forecast and universal (.f and .u) stats use previous integration time index.
     """
 
-    def assimilate(self, HMM, xx, yy): pass
+    def assimilate(self, HMM, xx, yy):
+        prev = xx[0]
+        self.stats.assess(0, mu=prev)
+        for k, ko, _t, _dt in progbar(HMM.tseq.ticker):
+            self.stats.assess(k, ko, 'fu', mu=xx[k-1])
+            if ko is not None:
+                self.stats.assess(k, ko, 'a', mu=prev)
+                prev = xx[k]
+
+    """
+
