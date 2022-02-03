@@ -33,12 +33,12 @@ def L63_gen():
     HMM.tseq.BurnIn = 0
     HMM.tseq.Ko = 10
 
-    dpr.set_seed(3000)
-
     # xps
     xps = dpr.xpList()
     xps += da.Climatology()
     xps += da.OptInterp()
+    xps += da.Persistence()
+    xps += da.PreProg(lambda k, xx, yy: xx[k])
     xps += da.Var3D(xB=0.1)
     xps += da.ExtKF(infl=90)
     xps += da.EnKF("Sqrt", N=3, infl=1.30)
@@ -55,6 +55,9 @@ def L63_gen():
     xps += da.EnKS("Serial", N=30, Lag=1)
     xps += da.EnRTS("Serial", N=30, DeCorr=0.99)
 
+    for xp in xps:
+        xp.seed = 3000
+
     # Run
     xps.launch(HMM, False, store_u=True)
     return xps
@@ -64,21 +67,23 @@ L63_old = """
     da_method     infl  upd_a       N  rot      xN  reg   NER  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
 --  -----------  -----  -------  ----  -----  ----  ---  ----  -  -----------------  -----------------  -----------------
  0  Climatology                                                |     7.7676 ±1.2464     7.7676 ±1.2464     7.2044 ±2.4251
- 1  OptInterp                                                  |     1.1648 ±0.1744     7.1198 ±1.1388     1.8578 ±0.4848
- 2  Var3D                                                      |     1.0719 ±0.1192     1.7856 ±0.3686     1.2522 ±0.1616
- 3  ExtKF        90                                            |     1.1932 ±0.4338     3.0113 ±1.1553     2.0016 ±0.8629
- 4  EnKF          1.3   Sqrt        3  False                   |     0.5003 ±0.1105     1.1807 ±0.2613     0.8284 ±0.2526
- 5  EnKF          1.02  Sqrt       10  True                    |     0.5773 ±0.0715     1.6134 ±0.4584     0.8839 ±0.1746
- 6  EnKF          0.95  PertObs   500  False                   |     0.7422 ±0.3080     2.0616 ±1.0183     1.3171 ±0.4809
- 7  EnKF_N        1                10  True      1             |     1.6050 ±0.5066     3.6838 ±0.7965     2.3756 ±0.4367
- 8  iEnKS         1.02  Sqrt       10  True                    |     0.3927 ±0.2562     1.9267 ±0.7922     0.3172 ±0.1362
- 9  PartFilt                      100               2.4  0.3   |     0.3574 ±0.1387     2.2799 ±1.5794     1.0327 ±0.7116
-10  PartFilt                      800               0.9  0.2   |     0.5229 ±0.0832     1.3370 ±0.4291     0.8152 ±0.2085
-11  PartFilt                     4000               0.7  0.05  |     0.2481 ±0.0474     0.6470 ±0.2298     0.3855 ±0.1051
-12  PFxN                           30         1000       0.2   |     0.5848 ±0.0926     0.9573 ±0.2248     0.7203 ±0.1870
-13  OptPF                         100               0.7  0.3   |     0.6577 ±0.1388     1.4330 ±0.4286     0.8705 ±0.2341
-14  EnKS          1     Serial     30  False                   |     0.6586 ±0.1577     1.1681 ±0.3682     0.5304 ±0.1671
-15  EnRTS         1     Serial     30  False                   |     0.9215 ±0.3187     2.3817 ±0.9076     0.7596 ±0.4891
+ 1  OptInterp                                                  |     1.5874 ±0.2144     7.7676 ±1.2464     1.8993 ±0.3675
+ 2  Persistence                                                |    11.1180 ±0.8537     0.7996 ±0.0050     0.5859 ±0.2071
+ 3  PreProg                                                    |     0.0000 ±0.0000     0.0000 ±0.0000     0.0000 ±0.0000
+ 4  Var3D                                                      |     1.0662 ±0.2455     2.3099 ±0.7535     1.4907 ±0.3301
+ 5  ExtKF        90                                            |     1.3417 ±0.2388     2.8749 ±0.6220     1.9105 ±0.3725
+ 6  EnKF          1.3   Sqrt        3  False                   |     0.8437 ±0.2573     1.8524 ±0.7625     1.2694 ±0.3529
+ 7  EnKF          1.02  Sqrt       10  True                    |     0.7360 ±0.3135     1.5493 ±0.7115     1.0552 ±0.3468
+ 8  EnKF          0.95  PertObs   500  False                   |     0.7228 ±0.3170     1.6368 ±0.8696     1.1128 ±0.3766
+ 9  EnKF_N        1                10  True      1             |     0.8022 ±0.3193     1.6628 ±0.7943     1.1370 ±0.3693
+10  iEnKS         1.02  Sqrt       10  True                    |     0.6630 ±0.2186     1.6572 ±0.4497     0.5732 ±0.2182
+11  PartFilt                      100               2.4  0.3   |     0.8288 ±0.2360     2.2418 ±0.7123     1.4374 ±0.4028
+12  PartFilt                      800               0.9  0.2   |     0.6818 ±0.2207     1.8165 ±0.5496     1.1754 ±0.3406
+13  PartFilt                     4000               0.7  0.05  |     0.6613 ±0.2559     1.7120 ±0.5482     1.1145 ±0.3160
+14  PFxN                           30         1000       0.2   |     1.1707 ±0.1514     2.6352 ±0.5854     1.7737 ±0.3561
+15  OptPF                         100               0.7  0.3   |     0.9487 ±0.2281     2.1878 ±1.0231     1.4356 ±0.3715
+16  EnKS          1     Serial     30  False                   |     0.8004 ±0.2781     1.7502 ±0.7593     0.6460 ±0.1874
+17  EnRTS         1     Serial     30  False                   |     0.8004 ±0.2781     1.7502 ±0.7593     0.5406 ±0.1810
 """[1:-1].splitlines(True)
 
 # Example use of pytest-benchmark
@@ -102,6 +107,12 @@ def test_tables_L63(L63_table, lineno):
 ##############################
 @pytest.fixture(scope="module")
 def L96_table():
+    xps = L96_gen()
+    table = xps.tabulate_avrgs(statkeys, decimals=4, colorize=False)
+    return table.splitlines(True)
+
+
+def L96_gen():
     import dapper.mods.Lorenz96 as model
     from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 
@@ -110,12 +121,12 @@ def L96_table():
     HMM.tseq.BurnIn = 0
     HMM.tseq.Ko = 10
 
-    dpr.set_seed(3000)
-
     # xps
     xps = dpr.xpList()
     xps += da.Climatology()
     xps += da.OptInterp()
+    xps += da.Persistence()
+    xps += da.PreProg(lambda k, xx, yy: xx[k])
     xps += da.Var3D(xB=0.02)
     xps += da.ExtKF(infl=6)
     xps += da.EnKF("PertObs", N=40, infl=1.06)
@@ -128,26 +139,29 @@ def L96_table():
     xps += da.LETKF(N=7, rot=True, infl=1.04, loc_rad=4)
     xps += da.SL_EAKF(N=7, rot=True, infl=1.07, loc_rad=6)
 
-    xps.launch(HMM, store_u=True)
+    for xp in xps:
+        xp.seed = 3000
 
-    table = xps.tabulate_avrgs(statkeys, decimals=4, colorize=False)
-    return table.splitlines(True)
+    xps.launch(HMM, store_u=True)
+    return xps
 
 
 L96_old = """
     da_method    infl  upd_a     N  rot    xN  loc_rad  |  err.rms.a  1σ      err.rms.f  1σ      err.rms.u  1σ
 --  -----------  ----  -------  --  -----  --  -------  -  -----------------  -----------------  -----------------
  0  Climatology                                         |     0.8334 ±0.2326     0.8334 ±0.2326     0.8334 ±0.2326
- 1  OptInterp                                           |     0.1328 ±0.0271     0.8345 ±0.2330     0.1328 ±0.0271
- 2  Var3D                                               |     0.1009 ±0.0080     0.0874 ±0.0085     0.1009 ±0.0080
- 3  ExtKF        6                                      |     0.0269 ±0.0010     0.0269 ±0.0012     0.0269 ±0.0010
- 4  EnKF         1.06  PertObs  40  False               |     0.0318 ±0.0018     0.0317 ±0.0016     0.0318 ±0.0018
- 5  EnKF         1.02  Sqrt     28  True                |     0.0375 ±0.0018     0.0375 ±0.0019     0.0375 ±0.0018
- 6  EnKF_N       1              24  True    1           |     0.0311 ±0.0009     0.0310 ±0.0010     0.0311 ±0.0009
- 7  EnKF_N       1              24  True    2           |     0.0304 ±0.0012     0.0304 ±0.0013     0.0304 ±0.0012
- 8  iEnKS        1.01  Sqrt     40  True                |     0.0254 ±0.0009     0.0255 ±0.0009     0.0254 ±0.0008
- 9  LETKF        1.04            7  True             4  |     0.0319 ±0.0013     0.0317 ±0.0013     0.0319 ±0.0013
-10  SL_EAKF      1.07            7  True             6  |     0.0260 ±0.0017     0.0256 ±0.0014     0.0260 ±0.0017
+ 1  OptInterp                                           |     0.0949 ±0.0292     0.8334 ±0.2326     0.0949 ±0.0292
+ 2  Persistence                                         |     0.3071 ±0.0284     0.3071 ±0.0284     0.3071 ±0.0284
+ 3  PreProg                                             |     0.0000 ±0.0000     0.0000 ±0.0000     0.0000 ±0.0000
+ 4  Var3D                                               |     0.0593 ±0.0057     0.0575 ±0.0055     0.0593 ±0.0057
+ 5  ExtKF        6                                      |     0.0350 ±0.0010     0.0352 ±0.0011     0.0350 ±0.0010
+ 6  EnKF         1.06  PertObs  40  False               |     0.0355 ±0.0011     0.0356 ±0.0011     0.0355 ±0.0011
+ 7  EnKF         1.02  Sqrt     28  True                |     0.0352 ±0.0010     0.0352 ±0.0011     0.0352 ±0.0010
+ 8  EnKF_N       1              24  True    1           |     0.0360 ±0.0011     0.0360 ±0.0012     0.0360 ±0.0011
+ 9  EnKF_N       1              24  True    2           |     0.0360 ±0.0011     0.0360 ±0.0012     0.0360 ±0.0011
+10  iEnKS        1.01  Sqrt     40  True                |     0.0356 ±0.0011     0.0357 ±0.0012     0.0356 ±0.0011
+11  LETKF        1.04            7  True             4  |     0.0356 ±0.0010     0.0358 ±0.0012     0.0356 ±0.0010
+12  SL_EAKF      1.07            7  True             6  |     0.0354 ±0.0010     0.0357 ±0.0012     0.0354 ±0.0010
 """[1:-1].splitlines(True)
 
 

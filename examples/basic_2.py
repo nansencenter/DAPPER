@@ -16,6 +16,8 @@ from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
 xps = dpr.xpList()
 xps += da.Climatology()                                      # 7.6
 xps += da.OptInterp()                                        # 1.25
+xps += da.Persistence()                                      # 10.7
+xps += da.PreProg(lambda k, xx, yy: xx[k])                   # 0
 xps += da.Var3D(xB=0.1)                                      # 1.03
 xps += da.ExtKF(infl=90)                                     # 0.87
 xps += da.EnKF('Sqrt'   , N=3   , infl=1.30)                 # 0.82

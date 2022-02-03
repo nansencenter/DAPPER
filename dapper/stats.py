@@ -345,18 +345,27 @@ class Stats(series.StatPrint):
         if rc.comps['error_only']:
             return
 
-        # Compute standard deviation ("Spread")
-        var = P.diag if isinstance(P, CovMat) else np.diag(P)
-        now.spread = np.sqrt(var)
+        # Get diag(P)
+        if P is None:
+            var = np.zeros_like(mu)
+        elif np.isscalar(P):
+            var = np.ones_like(mu) * P
+        else:
+            if isinstance(P, CovMat):
+                var = P.diag
+                P   = P.full
+            else:
+                var = np.diag(P)
 
+            if self.do_spectral:
+                s2, U     = sla.eigh(P)
+                now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
+                now.umisf = (U.T @ now.err)[::-1]
+
+        # Compute stddev
+        now.spread = np.sqrt(var)
         # Here, sqrt(2/pi) is the ratio, of MAD/Spread for Gaussians
         now.mad = np.nanmean(now.spread) * np.sqrt(2/np.pi)
-
-        if self.do_spectral:
-            P         = P.full if isinstance(P, CovMat) else P
-            s2, U     = sla.eigh(P)
-            now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
-            now.umisf = (U.T @ now.err)[::-1]
 
     def average_in_time(self, kk=None, kko=None, free=False):
         """Avarage all univariate (scalar) time series.
