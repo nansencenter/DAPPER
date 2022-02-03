@@ -2,7 +2,7 @@
 
 Many are based on `bib.raanes2016thesis`.
 """
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -180,5 +180,21 @@ class Persistence:
                 self.stats.assess(k, ko, 'a', mu=prev)
                 prev = xx[k]
 
+
+@da_method()
+class PreProg:
+    """Simply look-up the estimates in user-specified function (`schedule`).
+
+    For example, with `schedule` given by `lambda k, xx, yy: xx[k]`
+    the error (err.rms, err.ma, ...) should be 0.
     """
 
+    schedule: Callable
+    tag: str = None
+
+    def assimilate(self, HMM, xx, yy):
+        self.stats.assess(0, mu=self.schedule(0, xx, yy))
+        for k, ko, _t, _dt in progbar(HMM.tseq.ticker):
+            self.stats.assess(k, ko, 'fu', mu=self.schedule(k, xx, yy))
+            if ko is not None:
+                self.stats.assess(k, ko, 'a', mu=self.schedule(k, xx, yy))
