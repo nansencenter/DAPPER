@@ -22,7 +22,7 @@ def Fmat(Nx, c, dx, dt):
 
     - `Nx` - System size
     - `c`  - Velocity of wave. Wave travels to the rigth for `c>0`.
-   - `dx` - Grid spacing
+    - `dx` - Grid spacing
     - `dt` - Time step
 
     Note that the 1st-order upwind scheme used here is exact
