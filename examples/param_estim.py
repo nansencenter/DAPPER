@@ -80,17 +80,15 @@ tseq = modelling.Chronology(
     Tplot=7)     # Default plot length
 
 # Define dynamical model
-Dyn = {
-    'M': Nx+Np,     # Length of (total/augmented) state vector
-    'model': step,  # Actual model
-    'noise': 0,     # Additive noise (variance)
-    # 'noise': GaussRV(C=.1*np.eye(Nx+Np)),
-}
+Dyn = modelling.Operator(M=Nx+Np, # Length of (total/augmented) state vector
+    model=step, # Actual model
+    noise=0 # Additive noise (variance)
+)
 
 # Define observation model using convenience function partial_Id_Obs
 jj = np.arange(Nx)  # obs indices (y = x[jj])
 Obs = modelling.partial_Id_Obs(Nx+Np, jj)
-Obs['noise'] = 1
+Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=1)
 
 # Specify liveplotting (and replay) functionality.
 LP = [

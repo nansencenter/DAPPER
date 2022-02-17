@@ -15,11 +15,12 @@ Dyn = {
     'linear': dstep_dx,
     'noise': 0,
 }
+Dyn = modelling.Operator(M=Nx, model=step, linear=dstep_dx, noise=0)
 
 X0 = modelling.GaussRV(C=2, mu=x0)
 
 Obs = modelling.partial_Id_Obs(Nx, np.arange(Nx))
-Obs['noise'] = 8.0
+Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=8.0)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

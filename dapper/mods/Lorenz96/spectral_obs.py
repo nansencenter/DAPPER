@@ -97,11 +97,7 @@ H = make_H(Ny, Nx)
 # plt.figure(1).gca().matshow(H)
 # plt.figure(2).gca().matshow(H @ H.T)
 
-Obs = {
-    'M': Ny,
-    'model': lambda x, t: x @ H.T,
-    'noise': modelling.GaussRV(C=0.01*np.eye(Ny)),
-}
+Obs = modelling.Operator(M=Ny, model=lambda x, t: x @ H.T, noise=modelling.GaussRV(C=0.01*np.eye(Ny)))
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
