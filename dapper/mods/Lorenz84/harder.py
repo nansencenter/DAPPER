@@ -10,7 +10,7 @@ import dapper.mods as modelling
 from dapper.mods.Lorenz84.pajonk2012 import HMM as _HMM
 
 HMM = _HMM.copy()
-HMM.tseq = modelling.Chronology(0.05, dko=10, T=4**5, BurnIn=20)
+HMM.tseq = modelling.Chronology(0.05, dko=10, T=4 ** 5, BurnIn=20)
 
 
 ####################

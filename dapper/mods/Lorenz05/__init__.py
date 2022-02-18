@@ -41,29 +41,30 @@ class Model:
     Using OOP (rather than module-level encapsulation) facilitates
     working with multiple parameter settings simultaneously.
     """
-    M    : int   = 960  # state vector length
-    J    : int   = 12   # decomposition kernel radius (width/2)
-    K    : int   = 32   # smoothing kernel width (increase for +smooth and -waves)
-    b    : float = 10   # scaling of small-scale variability
-    c    : float = 2.5  # coupling strength
-    Force: float = 15   # forcing
 
-    mp   : bool  = False
+    M: int = 960  # state vector length
+    J: int = 12  # decomposition kernel radius (width/2)
+    K: int = 32  # smoothing kernel width (increase for +smooth and -waves)
+    b: float = 10  # scaling of small-scale variability
+    c: float = 2.5  # coupling strength
+    Force: float = 15  # forcing
+
+    mp: bool = False
 
     def __post_init__(self):
         J = self.J
-        self.alpha = (3*J**2 + 3) / (2*J**3 + 4*J)
-        self.beta  = (2*J**2 + 1) / (J**4 + 2*J**2)
+        self.alpha = (3 * J ** 2 + 3) / (2 * J ** 3 + 4 * J)
+        self.beta = (2 * J ** 2 + 1) / (J ** 4 + 2 * J ** 2)
 
         # Heuristic
-        self.x0 = 3 + 4*np.ones(self.M)
+        self.x0 = 3 + 4 * np.ones(self.M)
         self.x0[0] += 1  # perturb from stable point
 
     def decompose(self, z):
         """Split `z` into `x` and `y` fields, where `x` is the large-scale component."""
-        width = 2*self.J  # not +1 coz the sum in Lorenz eqn 13a is never ordinary
+        width = 2 * self.J  # not +1 coz the sum in Lorenz eqn 13a is never ordinary
         _, weights, inds0 = summation_kernel(width)
-        weights *= self.alpha - self.beta*abs(inds0)
+        weights *= self.alpha - self.beta * abs(inds0)
         x = convolve1d(z, weights, mode="wrap")
         # Manual implementation:
         # x = np.zeros_like(z)
@@ -77,15 +78,17 @@ class Model:
         x, y = self.decompose(z)
 
         return (
-            + prodsum_self(x, self.K)       # "convection" of x
-            + prodsum_K1(y, y) * self.b**2  # "convection" of y
-            + prodsum_K1(y, x) * self.c     # coupling
-            + -x - y*self.b                 # damping
+            +prodsum_self(x, self.K)  # "convection" of x
+            + prodsum_K1(y, y) * self.b ** 2  # "convection" of y
+            + prodsum_K1(y, x) * self.c  # coupling
+            + -x
+            - y * self.b  # damping
             + self.Force
         )
 
     def step1(self, x0, t, dt):
         return rk4(lambda x, t: self.dxdt(x), x0, np.nan, dt)
+
     # Note: step1 is already ensemble compatible.
     # However, it is a bit slow, so we can gain in speed by using multiprocessing.
 
@@ -96,6 +99,7 @@ class Model:
         if E.ndim == 2:
             if self.mp and E.size > 1e5:
                 import dapper.tools.multiproc as multiproc
+
                 with multiproc.Pool(self.mp) as pool:
                     E = pool.map(lambda x: self.step1(x, t=t, dt=dt), E)
                 E = np.array(E)
@@ -113,10 +117,10 @@ def summation_kernel(width):
     But with default system parameters and N=50, the savings are negligible.
     """
     r = width // 2  # "radius"
-    weights = np.ones(2*r + 1)
+    weights = np.ones(2 * r + 1)
     if width != len(weights):
-        weights[0] = weights[-1] = .5
-    inds0 = np.arange(-r, r+1)
+        weights[0] = weights[-1] = 0.5
+    inds0 = np.arange(-r, r + 1)
     return r, weights, inds0
 
 
@@ -164,8 +168,10 @@ def boxcar(x, n, method="direct"):
     M = x.shape[-1]
 
     if method == "manual":
+
         def mod(ind):
             return np.mod(ind, M)
+
         a = np.zeros_like(x)
         for m in range(M):
             a[..., m] = x[..., mod(m + inds0)] @ weights
@@ -187,7 +193,7 @@ def boxcar(x, n, method="direct"):
         weights = weights[... if x.ndim == 1 else None]  # dim compatibility
         xxx = np.hstack([x[..., -r:], x, x[..., :r]])  # wrap
         a = convolver(xxx, weights, axes=-1)
-        a = a[..., 2*r:-2*r]  # Trim (rm wrapped edges)
+        a = a[..., 2 * r : -2 * r]  # Trim (rm wrapped edges)
 
     else:  # method == "direct":
         # AFAICT, this uses "direct" computations.
@@ -211,10 +217,10 @@ def shift(x, k):
 def prodsum_self(x, k):
     """Compute `prodsum(x, x, k)` efficiently: eqn 10 of `bib.lorenz2005designing`."""
     W = boxcar(x, k)
-    WW = shift(W, -2*k) * shift(W, -k)
+    WW = shift(W, -2 * k) * shift(W, -k)
     WX = shift(W, -k) * shift(x, k)
     WX = boxcar(WX, k)
-    return - WW + WX
+    return -WW + WX
 
 
 def prodsum_K1(x, y):

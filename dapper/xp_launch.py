@@ -57,13 +57,22 @@ def seed_and_simulate(HMM, xp):
     tuple (xx, yy)
         The simulated truth and observations.
     """
-    set_seed(getattr(xp, 'seed', False))
+    set_seed(getattr(xp, "seed", False))
     xx, yy = HMM.simulate()
     return HMM, xx, yy
 
 
-def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
-                   statkeys=False, fail_gently=False, **stat_kwargs):
+def run_experiment(
+    xp,
+    label,
+    savedir,
+    HMM,
+    setup=seed_and_simulate,
+    free=True,
+    statkeys=False,
+    fail_gently=False,
+    **stat_kwargs,
+):
     """Used by `xpList.launch` to run each single (DA) experiment ("xp").
 
     This involves steps similar to `examples/basic_1.py`, i.e.:
@@ -177,8 +186,8 @@ def run_experiment(xp, label, savedir, HMM, setup=seed_and_simulate, free=True,
 
     # SAVE
     if savedir:
-        with open(Path(savedir)/"xp", "wb") as FILE:
-            dill.dump({'xp': xp}, FILE)
+        with open(Path(savedir) / "xp", "wb") as FILE:
+            dill.dump({"xp": xp}, FILE)
 
 
 class xpList(list):
@@ -227,7 +236,7 @@ class xpList(list):
         super().__init__(*args)
 
     def __iadd__(self, xp):
-        if not hasattr(xp, '__iter__'):
+        if not hasattr(xp, "__iter__"):
             xp = [xp]
         for item in xp:
             self.append(item)
@@ -241,11 +250,11 @@ class xpList(list):
     def __getitem__(self, keys):
         """Indexing, also by a list"""
         try:
-            B = [self[k] for k in keys]    # if keys is list
+            B = [self[k] for k in keys]  # if keys is list
         except TypeError:
             B = super().__getitem__(keys)  # if keys is int, slice
-        if hasattr(B, '__len__'):
-            B = xpList(B)                  # Cast
+        if hasattr(B, "__len__"):
+            B = xpList(B)  # Cast
         return B
 
     def inds(self, strict=True, missingval="NONSENSE", **kws):
@@ -254,8 +263,11 @@ class xpList(list):
         If strict, then `xp`s lacking a requested attr. will not match,
         unless the `missingval` matches the required value.
         """
+
         def match(xp):
-            def missing(v): return missingval if strict else v
+            def missing(v):
+                return missingval if strict else v
+
             matches = [getattr(xp, k, missing(v)) == v for k, v in kws.items()]
             return all(matches)
 
@@ -289,13 +301,14 @@ class xpList(list):
         nomerge: list
             Attributes that should always be seen as distinct.
         """
+
         def _aggregate_keys():
             """Aggregate keys from all `xp`"""
             if len(self) == 0:
                 return []
 
             # Start with da_method
-            aggregate = ['da_method']
+            aggregate = ["da_method"]
 
             # Aggregate all other keys
             for xp in self:
@@ -324,7 +337,7 @@ class xpList(list):
                             aggregate.append(k)
 
             # Remove unwanted
-            excluded  = [re.compile('^_'), 'avrgs', 'stats', 'HMM', 'duration']
+            excluded = [re.compile("^_"), "avrgs", "stats", "HMM", "duration"]
             aggregate = struct_tools.complement(aggregate, excluded)
             return aggregate
 
@@ -354,6 +367,7 @@ class xpList(list):
 
         def replace_NA_by_None(vals):
             """Supports different types of `vals`."""
+
             def sub(v):
                 return None if v == "N/A" else v
 
@@ -391,7 +405,7 @@ class xpList(list):
 
     def __repr__(self):
         distinct, redundant, common = self.prep_table()
-        s = '<xpList> of length %d with attributes:\n' % len(self)
+        s = "<xpList> of length %d with attributes:\n" % len(self)
         s += tabulate(distinct, headers="keys", showindex=True)
         s += "\nOther attributes:\n"
         s += str(struct_tools.AlignedDict({**redundant, **common}))
@@ -413,7 +427,8 @@ class xpList(list):
 
         # Make label columns: insert None or lbl+":", depending on value
         def column(lbl, vals):
-            return [None if v is None else lbl+":" for v in vals]
+            return [None if v is None else lbl + ":" for v in vals]
+
         labels = [column(lbl, vals) for lbl, vals in zip(labels, values)]
 
         # Interlace labels and values
@@ -429,11 +444,11 @@ class xpList(list):
         table = tabulate(table, tablefmt="plain")
 
         # Rm space between lbls/vals
-        table = re.sub(':  +', ':', table)
+        table = re.sub(":  +", ":", table)
 
         # Rm alignment
         if not tab:
-            table = re.sub(r' +', r' ', table)
+            table = re.sub(r" +", r" ", table)
 
         return table.splitlines()
 
@@ -441,8 +456,8 @@ class xpList(list):
     def tabulate_avrgs(self, *args, colorize=True, **kwargs):
         distinct, redundant, common = self.prep_table()
         averages = dapper.stats.tabulate_avrgs([C.avrgs for C in self], *args, **kwargs)
-        columns = {**distinct, '|': ['|']*len(self), **averages}  # merge
-        table = tabulate(columns, headers="keys", showindex=True).replace('␣', ' ')
+        columns = {**distinct, "|": ["|"] * len(self), **averages}  # merge
+        table = tabulate(columns, headers="keys", showindex=True).replace("␣", " ")
         if colorize:
             table = stripe(table)
         return table
@@ -491,7 +506,7 @@ class xpList(list):
         kwargs["fail_gently"] = fail_gently
 
         # Bundle HMM with kwargs
-        kwargs['HMM'] = HMM
+        kwargs["HMM"] = HMM
 
         # Data path
         save_as, xpi_dir = create_run_dir(save_as, mp)
@@ -503,32 +518,37 @@ class xpList(list):
 
         # Local multiprocessing
         elif mp["server"].lower() == "local":
+
             def run_with_kwargs(arg):
                 xp, ixp = arg
                 run_experiment(xp, None, xpi_dir(ixp), **kwargs)
+
             args = zip(self, range(len(self)))
 
-            pb.disable_progbar          = True
+            pb.disable_progbar = True
             pb.disable_user_interaction = True
             NPROC = mp.get("NPROC", None)  # None => mp.cpu_count()
             from dapper.tools.multiproc import mpd  # will fail on GCP
+
             with mpd.Pool(NPROC) as pool:
-                list(tqdm(
-                    pool.imap(
-                        run_with_kwargs, args),
-                    total=len(self),
-                    desc="Parallel experim's",
-                    smoothing=0.1))
-            pb.disable_progbar          = False
+                list(
+                    tqdm(
+                        pool.imap(run_with_kwargs, args),
+                        total=len(self),
+                        desc="Parallel experim's",
+                        smoothing=0.1,
+                    )
+                )
+            pb.disable_progbar = False
             pb.disable_user_interaction = False
 
         # Google cloud platform, multiprocessing
         elif mp["server"] == "GCP":
             for ixp, xp in enumerate(self):
-                with open(xpi_dir(ixp)/"xp.var", "wb") as f:
+                with open(xpi_dir(ixp) / "xp.var", "wb") as f:
                     dill.dump(dict(xp=xp), f)
 
-            with open(save_as/"xp.com", "wb") as f:
+            with open(save_as / "xp.com", "wb") as f:
                 dill.dump(kwargs, f)
 
             # mkdir extra_files
@@ -536,8 +556,10 @@ class xpList(list):
             os.mkdir(extra_files)
             # Default extra_files: .py files in sys.path[0] (main script's path)
             if not mp.get("files", []):
-                mp["files"] = [f.relative_to(sys.path[0]) for f in
-                               Path(sys.path[0]).glob("**/*.py")]
+                mp["files"] = [
+                    f.relative_to(sys.path[0])
+                    for f in Path(sys.path[0]).glob("**/*.py")
+                ]
                 assert len(mp["files"]) < 1000, (
                     "Too many files staged for upload to server."
                     " This is the result of trying to include all files"
@@ -563,15 +585,18 @@ class xpList(list):
                 except OSError:
                     shutil.copy2(path, dst)  # file
 
-            with open(extra_files/"dpr_config.yaml", "w") as f:
-                f.write("\n".join([
-                    "data_root: '$cwd'",
-                    "liveplotting: no",
-                    "welcome_message: no"]))
+            with open(extra_files / "dpr_config.yaml", "w") as f:
+                f.write(
+                    "\n".join(
+                        ["data_root: '$cwd'", "liveplotting: no", "welcome_message: no"]
+                    )
+                )
 
             # Loads PWD/xp_{var,com} and calls run_experiment()
-            with open(extra_files/"load_and_run.py", "w") as f:
-                f.write(dedent("""\
+            with open(extra_files / "load_and_run.py", "w") as f:
+                f.write(
+                    dedent(
+                        """\
                 import dill
                 from dapper.xp_launch import run_experiment
 
@@ -590,7 +615,10 @@ class xpList(list):
                         err.args += ("It seems your local python version"
                                      " is incompatible with that of the cluster.",)
                     raise
-                """) % dedent(mp["code"]))
+                """
+                    )
+                    % dedent(mp["code"])
+                )
 
             submit_job_GCP(save_as)
 
@@ -614,6 +642,7 @@ def combinator(param_dict, **glob_dict):
         actually want to use them (eg. `SVGDF`),
         then you'll create many more than you intend.
     """
+
     def for_params(method, **fixed_params):
         dc_fields = [f.name for f in dcs.fields(method)]
         params = struct_tools.intersect(param_dict, dc_fields)
@@ -627,4 +656,5 @@ def combinator(param_dict, **glob_dict):
             return xp
 
         return [xp1(dct) for dct in struct_tools.prodct(params)]
+
     return for_params

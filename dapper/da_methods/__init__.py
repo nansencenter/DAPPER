@@ -82,7 +82,7 @@ def da_method(*default_dataclasses):
         def set_field(name, type_, val):
             """Set the inherited (i.e. default, i.e. has value) field."""
             # Ensure annotations
-            cls.__annotations__ = getattr(cls, '__annotations__', {})
+            cls.__annotations__ = getattr(cls, "__annotations__", {})
             # Set annotation
             cls.__annotations__[name] = type_
             # Set value
@@ -102,7 +102,7 @@ def da_method(*default_dataclasses):
         # Define the new assimilate method (has bells and whistles)
         def assimilate(self, HMM, xx, yy, desc=None, fail_gently=False, **stat_kwargs):
             # Progressbar name
-            pb_name_hook = self.da_method if desc is None else desc # noqa
+            pb_name_hook = self.da_method if desc is None else desc  # noqa
 
             # Init stats
             self.stats = dapper.stats.Stats(self, HMM, xx, yy, **stat_kwargs)
@@ -120,7 +120,7 @@ def da_method(*default_dataclasses):
                     # Don't use _print_cropped_traceback here -- It would
                     # crop out errors in the DAPPER infrastructure itself.
                     raise
-            self.stat("duration", time.time()-time0)
+            self.stat("duration", time.time() - time0)
 
         # Overwrite the assimilate method with the new one
         try:
@@ -128,12 +128,14 @@ def da_method(*default_dataclasses):
         except AttributeError as error:
             raise AttributeError(
                 "Classes decorated by da_method()"
-                " must define a method called 'assimilate'.") from error
+                " must define a method called 'assimilate'."
+            ) from error
         cls.assimilate = functools.wraps(_assimilate)(assimilate)
 
         # Shortcut for register_stat
         def stat(self, name, value):
             dapper.stats.register_stat(self.stats, name, value)
+
         cls.stat = stat
 
         # Make self.__class__.__name__ an attrib.
@@ -141,6 +143,7 @@ def da_method(*default_dataclasses):
         cls.da_method = cls.__name__
 
         return cls
+
     return dataclass_with_defaults
 
 
@@ -160,10 +163,12 @@ def _print_cropped_traceback(ERR):
             msg += "".join(traceback.format_tb(ERR.__traceback__))
         else:
             from IPython.core.debugger import Pdb
+
             pdb_instance = Pdb()
             pdb_instance.curframe = inspect.currentframe()
 
             import dapper.da_methods
+
             keep = False
             for frame in traceback.walk_tb(ERR.__traceback__):
                 if keep:
@@ -175,10 +180,12 @@ def _print_cropped_traceback(ERR):
         return msg
 
     msg = crop_traceback(ERR) + "\nError message: " + str(ERR)
-    msg += ("\n\nResuming execution."
-            "\nIf instead you wish to raise the exceptions as usual,"
-            "\nwhich will halt the execution (and enable post-mortem debug),"
-            "\nthen use `fail_gently=False`")
+    msg += (
+        "\n\nResuming execution."
+        "\nIf instead you wish to raise the exceptions as usual,"
+        "\nwhich will halt the execution (and enable post-mortem debug),"
+        "\nthen use `fail_gently=False`"
+    )
     print(msg, file=sys.stderr)
 
 

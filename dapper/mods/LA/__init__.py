@@ -31,15 +31,15 @@ def Fmat(Nx, c, dx, dt):
     in which case it corresponds to
     `np.roll(x,1,axis=x.ndim-1)`, i.e. circshift in Matlab.
     """
-    assert np.abs(c*dt/dx) <= 1, "Must satisfy CFL condition"
+    assert np.abs(c * dt / dx) <= 1, "Must satisfy CFL condition"
     # 1st order explicit upwind scheme
-    row1     = np.zeros(Nx)
-    row1[-1] = +(np.sign(c)+1)/2
-    row1[+1] = -(np.sign(c)-1)/2
-    row1[0]  = -1
-    L        = sla.circulant(row1)
-    F        = np.eye(Nx) + (dt/dx*np.abs(c))*L
-    F        = sparse.dia_matrix(F)
+    row1 = np.zeros(Nx)
+    row1[-1] = +(np.sign(c) + 1) / 2
+    row1[+1] = -(np.sign(c) - 1) / 2
+    row1[0] = -1
+    L = sla.circulant(row1)
+    F = np.eye(Nx) + (dt / dx * np.abs(c)) * L
+    F = sparse.dia_matrix(F)
     return F
 
 
@@ -49,21 +49,22 @@ def basis_vector(Nx: int, k: int) -> npt.NDArray[np.float_]:
     - Nx - state vector length
     - k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     """
-    mm = np.arange(1, Nx+1) / Nx
-    kk = np.arange(k+1)[:, None]       # Wavenumbers
-    aa = np.random.rand(k+1)           # Amplitudes
-    pp = np.random.rand(k+1)[:, None]  # Phases
+    mm = np.arange(1, Nx + 1) / Nx
+    kk = np.arange(k + 1)[:, None]  # Wavenumbers
+    aa = np.random.rand(k + 1)  # Amplitudes
+    pp = np.random.rand(k + 1)[:, None]  # Phases
 
-    s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
+    s = aa @ np.sin(2 * np.pi * (kk * mm + pp))
 
     # % Normalise
     sd = np.std(s, ddof=1)
     # if Nx >= (2*k + 1)
     # % See analytic_normzt.m
     # sd = np.sqrt(sum(aa(2:end).^2)*(Nx/2)/(Nx-1));
-    s  = s/sd
+    s = s / sd
 
     return s
+
 
 # Initialization as suggested by sakov'2008 "implications of...",
 # (but with some minor differences).
@@ -96,7 +97,7 @@ def periodic_distance_range(M: int) -> npt.NDArray[np.float_]:
 
 
 # Initialization as suggested by evensen2009
-def homogeneous_1D_cov(M, d, kind='Expo'):
+def homogeneous_1D_cov(M, d, kind="Expo"):
     """Generate a covariance matrix for a 1D homogenous random field.
 
     Generate initial correlations for Linear Advection experiment.
@@ -119,15 +120,15 @@ def homogeneous_1D_cov(M, d, kind='Expo'):
     # the area under the curve equals sqrt(pi*a^2)/2.
     # Thus we should set a^2 = 4/pi*d^2 ~= d^2.
 
-    if kind == 'Gauss':
+    if kind == "Gauss":
         # Gaussian covariance
         nugget = 1e-5
-        a = 2/np.sqrt(np.pi)*d
-        C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/a)**2)
-    elif kind == 'Expo':
+        a = 2 / np.sqrt(np.pi) * d
+        C = nugget * np.eye(M) + (1 - nugget) * np.exp(-sla.toeplitz(row1 / a) ** 2)
+    elif kind == "Expo":
         # Exponential covariance
         nugget = 1e-2
-        C = nugget*np.eye(M) + (1-nugget)*np.exp(-sla.toeplitz(row1/d))
+        C = nugget * np.eye(M) + (1 - nugget) * np.exp(-sla.toeplitz(row1 / d))
     else:
         raise KeyError
 

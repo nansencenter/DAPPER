@@ -40,6 +40,7 @@ seed = dpr.set_seed(3000)
 def setup(hmm, xp):
     """Set attrs. of `hmm` as specified by `xp`, run truth simulation."""
     import dapper.mods.Lorenz96s as core
+
     core.diffusion = xp.Diffus1
     xx, yy = HMMs("Tay2", xp.resoltn, R=xp.ObsErr2).simulate()
     if xp.resoltn == "Low":
@@ -55,7 +56,7 @@ for resolution in ["Low", "High"]:
     for step_kind in ["RK4", "EM"]:
         for diffusion_stddev in [0.1, 0.25, 0.5, 0.75, 1.0]:
             for obs_noise_variance in [0.1, 0.25, 0.5, 0.75, 1.0]:
-                xp = da.EnKF('PertObs', N=100)
+                xp = da.EnKF("PertObs", N=100)
                 xp.resoltn = resolution
                 xp.stepper = step_kind
                 xp.Diffus1 = diffusion_stddev
@@ -88,5 +89,5 @@ xp_dict.print("rmse.a", dims, subcols=False)
 
 # #### Plot
 
-tables = xp_dict.plot('rmse.a', dims, title2=save_as)
-plt.pause(.1)
+tables = xp_dict.plot("rmse.a", dims, title2=save_as)
+plt.pause(0.1)

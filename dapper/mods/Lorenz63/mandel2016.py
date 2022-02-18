@@ -7,13 +7,14 @@ HMM = _HMM.copy()
 # HMM.tseq = modelling.Chronology(0.01,Ko=10**5,BurnIn=500), with dko in [5:55].
 # But it's pretty safe to shorten the BurnIn and Ko.
 
-HMM.Obs = modelling.Operator(M=3, model=lambda x, t: x**3, noise=8)
+HMM.Obs = modelling.Operator(M=3, model=lambda x, t: x ** 3, noise=8)
 
 # It is unclear whether the model error (cov Q) is used
 # just for the DA method, or also for the truth.
 
 
-def Q(dko): return modelling.GaussRV(M=HMM.Nx, C=0.01/(dko*HMM.tseq.dt))
+def Q(dko):
+    return modelling.GaussRV(M=HMM.Nx, C=0.01 / (dko * HMM.tseq.dt))
 
 
 ####################

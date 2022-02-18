@@ -15,7 +15,9 @@ Ny = 40
 
 jj = modelling.linspace_int(Nx, Ny)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=0.01)
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=0.01
+)
 
 #################
 #  Noise setup  #
@@ -25,24 +27,27 @@ Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get(
 # But, for strict equivalence, one would have to use
 # uniform (i.e. not Gaussian) random numbers.
 wnumQ = 25
-sample_filename = modelling.rc.dirs.samples/('LA_Q_wnum%d.npz' % wnumQ)
+sample_filename = modelling.rc.dirs.samples / ("LA_Q_wnum%d.npz" % wnumQ)
 
 try:
     # Load pre-generated
-    L = np.load(sample_filename)['Left']
+    L = np.load(sample_filename)["Left"]
 except FileNotFoundError:
     # First-time use
-    print('Did not find sample file', sample_filename,
-          'for experiment initialization. Generating...')
-    NQ        = 20000  # Must have NQ > (2*wnumQ+1)
-    A         = sinusoidal_sample(Nx, wnumQ, NQ)
-    A         = 1/10 * (A - A.mean(0)) / np.sqrt(NQ)
-    Q         = A.T @ A
-    U, s, _   = tsvd(Q)
-    L         = U*np.sqrt(s)
+    print(
+        "Did not find sample file",
+        sample_filename,
+        "for experiment initialization. Generating...",
+    )
+    NQ = 20000  # Must have NQ > (2*wnumQ+1)
+    A = sinusoidal_sample(Nx, wnumQ, NQ)
+    A = 1 / 10 * (A - A.mean(0)) / np.sqrt(NQ)
+    Q = A.T @ A
+    U, s, _ = tsvd(Q)
+    L = U * np.sqrt(s)
     np.savez(sample_filename, Left=L)
 
-X0 = modelling.GaussRV(C=modelling.CovMat(np.sqrt(5)*L, 'Left'))
+X0 = modelling.GaussRV(C=modelling.CovMat(np.sqrt(5) * L, "Left"))
 
 
 ###################
@@ -57,7 +62,12 @@ def step(x, t, dt):
     return x @ Fm.T
 
 
-Dyn = modelling.Operator(M=Nx, model=lambda x, t, dt: damp * step(x, t, dt), linear=lambda x, t, dt: damp * Fm, noise=modelling.GaussRV(C=modelling.CovMat(L, 'Left')))
+Dyn = modelling.Operator(
+    M=Nx,
+    model=lambda x, t, dt: damp * step(x, t, dt),
+    linear=lambda x, t, dt: damp * Fm,
+    noise=modelling.GaussRV(C=modelling.CovMat(L, "Left")),
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LPs(jj))
 

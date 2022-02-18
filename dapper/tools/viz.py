@@ -45,28 +45,30 @@ def setup_wrapping(M, periodicity=None):
         periodicity = "+1"
 
     if periodicity == "+1":
-        ii = arange(M+1)
+        ii = arange(M + 1)
 
         def wrap(E):
-            return E[..., list(range(M))+[0]]
+            return E[..., list(range(M)) + [0]]
 
     elif periodicity == "+/-05":
-        ii = np.hstack([-0.5, arange(M), M-0.5])
+        ii = np.hstack([-0.5, arange(M), M - 0.5])
 
         def wrap(E):
-            midpoint = (E[..., [0]] + E[..., [-1]])/2
+            midpoint = (E[..., [0]] + E[..., [-1]]) / 2
             return np.concatenate([midpoint, E, midpoint], axis=-1)
 
     else:
         ii = arange(M)
-        def wrap(x): return x
+
+        def wrap(x):
+            return x
 
     return ii, wrap
 
 
-def amplitude_animation(EE, dt=None, interval=1,
-                        periodicity=None, blit=True,
-                        fignum=None, repeat=False):
+def amplitude_animation(
+    EE, dt=None, interval=1, periodicity=None, blit=True, fignum=None, repeat=False
+):
     """Animation of line chart.
 
     Using an ensemble of
@@ -95,8 +97,8 @@ def amplitude_animation(EE, dt=None, interval=1,
         If True, repeat the animation. Default: False
     """
     fig, ax = place.freshfig(fignum or "Amplitude animation")
-    ax.set_xlabel('State index')
-    ax.set_ylabel('Amplitue')
+    ax.set_xlabel("State index")
+    ax.set_ylabel("Amplitue")
     ax.set_ylim(*stretch(*xtrema(EE), 1.1))
 
     if EE.ndim == 2:
@@ -109,20 +111,20 @@ def amplitude_animation(EE, dt=None, interval=1,
     ax.set_xlim(*xtrema(ii))
 
     if dt is not None:
-        times = 'time = %.1f'
-        lines += [ax.text(0.05, 0.9, '', transform=ax.transAxes)]
+        times = "time = %.1f"
+        lines += [ax.text(0.05, 0.9, "", transform=ax.transAxes)]
 
     def anim(k):
         Ek = wrap(EE[k])
         for n in range(N):
             lines[n].set_ydata(Ek[n])
         if len(lines) > N:
-            lines[-1].set_text(times % (dt*k))
+            lines[-1].set_text(times % (dt * k))
         return lines
 
-    return FuncAnimation(fig, anim, range(K),
-                         interval=interval, blit=blit,
-                         repeat=repeat)
+    return FuncAnimation(
+        fig, anim, range(K), interval=interval, blit=blit, repeat=repeat
+    )
 
 
 def xtrema(xx, axis=None):
@@ -168,9 +170,9 @@ def stretch(a, b, factor=1, int_=False):
     b: float
         Upper bound of domain.
     """
-    c = (a+b)/2
-    a = c + factor*(a-c)
-    b = c + factor*(b-c)
+    c = (a + b) / 2
+    a = c + factor * (a - c)
+    b = c + factor * (b - c)
     if int_:
         a = np.floor(a)
         b = np.ceil(b)
@@ -228,7 +230,7 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
         # But for inhomogeneous variables, it is important
         # to subtract the mean first!
         xx = xx - np.mean(xx, axis=0)
-        xx = xx.ravel(order='F')
+        xx = xx.ravel(order="F")
 
     try:
         K = mult * series.estimate_corr_length(xx)
@@ -278,6 +280,7 @@ def plot_pause(interval):
         # NB: Not working, but could possibly be made to work,
         # except that it won't support a "pause/stop" button.
         from IPython import display
+
         display.display(plt.gcf())
         display.clear_output(wait=True)
         time.sleep(interval)
@@ -307,6 +310,7 @@ def plot_pause(interval):
                     canvas.start_event_loop(interval)
             else:
                 time.sleep(interval)
+
         _plot_pause(interval, focus_figure=False)
 
 
@@ -323,21 +327,21 @@ def plot_hovmoller(xx, tseq=None):
     fig, ax = place.freshfig("Hovmoller", figsize=(4, 3.5))
 
     if tseq is not None:
-        mask = tseq.tt <= tseq.Tplot*2
-        kk   = tseq.kk[mask]
-        tt   = tseq.tt[mask]
-        ax.set_ylabel('Time (t)')
+        mask = tseq.tt <= tseq.Tplot * 2
+        kk = tseq.kk[mask]
+        tt = tseq.tt[mask]
+        ax.set_ylabel("Time (t)")
     else:
-        K    = estimate_good_plot_length(xx, mult=20)
-        kk   = arange(K)
-        tt   = kk
-        ax.set_ylabel('Time indices (k)')
+        K = estimate_good_plot_length(xx, mult=20)
+        kk = arange(K)
+        tt = kk
+        ax.set_ylabel("Time indices (k)")
 
     plt.contourf(arange(xx.shape[1]), tt, xx[kk], 25)
     plt.colorbar()
     ax.get_xaxis().set_major_locator(MaxNLocator(integer=True))
     ax.set_title("Hovmoller diagram (of 'Truth')")
-    ax.set_xlabel('Dimension index (i)')
+    ax.set_xlabel("Dimension index (i)")
 
     plt.pause(0.1)
     plt.tight_layout()
@@ -360,8 +364,8 @@ def integer_hist(E, N, centrd=False, weights=None, **kwargs):
         keyword arguments for matplotlib.hist
     """
     ax = plt.gca()
-    rnge = (-0.5, N+0.5) if centrd else (0, N+1)
-    ax.hist(E, bins=N+1, range=rnge, density=True, weights=weights, **kwargs)
+    rnge = (-0.5, N + 0.5) if centrd else (0, N + 1)
+    ax.hist(E, bins=N + 1, range=rnge, density=True, weights=weights, **kwargs)
     ax.set_xlim(rnge)
 
 
@@ -377,14 +381,19 @@ def not_available_text(ax, txt=None, fs=20):
         Font size. Defaults: 20.
     """
     if txt is None:
-        txt = '[Not available]'
+        txt = "[Not available]"
     else:
-        txt = '[' + txt + ']'
-    ax.text(0.5, 0.5, txt,
-            fontsize=fs,
-            transform=ax.transAxes,
-            va='center', ha='center',
-            wrap=True)
+        txt = "[" + txt + "]"
+    ax.text(
+        0.5,
+        0.5,
+        txt,
+        fontsize=fs,
+        transform=ax.transAxes,
+        va="center",
+        ha="center",
+        wrap=True,
+    )
 
 
 def plot_err_components(stats):
@@ -406,46 +415,46 @@ def plot_err_components(stats):
     fig, (ax0, ax1, ax2) = place.freshfig("Error components", figsize=(6, 6), nrows=3)
 
     tseq = stats.HMM.tseq
-    Nx     = stats.xx.shape[1]
+    Nx = stats.xx.shape[1]
 
     en_mean = lambda x: np.mean(x, axis=0)  # noqa
-    err   = en_mean(abs(stats.err.a))
-    sprd  = en_mean(stats.spread.a)
+    err = en_mean(abs(stats.err.a))
+    sprd = en_mean(stats.spread.a)
     umsft = en_mean(abs(stats.umisf.a))
     usprd = en_mean(stats.svals.a)
 
-    ax0.plot(arange(Nx), err, 'k', lw=2, label='Error')
-    if Nx < 10**3:
-        ax0.fill_between(arange(Nx), [0]*len(sprd), sprd, alpha=0.7, label='Spread')
+    ax0.plot(arange(Nx), err, "k", lw=2, label="Error")
+    if Nx < 10 ** 3:
+        ax0.fill_between(arange(Nx), [0] * len(sprd), sprd, alpha=0.7, label="Spread")
     else:
-        ax0.plot(arange(Nx), sprd, alpha=0.7, label='Spread')
+        ax0.plot(arange(Nx), sprd, alpha=0.7, label="Spread")
     # ax0.set_yscale('log')
-    ax0.set_title('Element-wise error comparison')
-    ax0.set_xlabel('Dimension index (i)')
-    ax0.set_ylabel('Time-average (_a) magnitude')
-    ax0.set_xlim(0, Nx-1)
+    ax0.set_title("Element-wise error comparison")
+    ax0.set_xlabel("Dimension index (i)")
+    ax0.set_ylabel("Time-average (_a) magnitude")
+    ax0.set_xlim(0, Nx - 1)
     ax0.get_xaxis().set_major_locator(MaxNLocator(integer=True))
-    ax0.legend(loc='upper right')
+    ax0.legend(loc="upper right")
 
-    ax1.set_xlim(0, Nx-1)
-    ax1.set_xlabel('Principal component index')
-    ax1.set_ylabel('Time-average (_a) magnitude')
-    ax1.set_title('Spectral error comparison')
+    ax1.set_xlim(0, Nx - 1)
+    ax1.set_xlabel("Principal component index")
+    ax1.set_ylabel("Time-average (_a) magnitude")
+    ax1.set_title("Spectral error comparison")
     has_been_computed = np.any(np.isfinite(umsft))
     if has_been_computed:
         L = len(umsft)
-        ax1.plot(arange(L), umsft, 'k', lw=2, label='Error')
-        ax1.fill_between(arange(L), [0]*L, usprd, alpha=0.7, label='Spread')
-        ax1.set_yscale('log')
+        ax1.plot(arange(L), umsft, "k", lw=2, label="Error")
+        ax1.fill_between(arange(L), [0] * L, usprd, alpha=0.7, label="Spread")
+        ax1.set_yscale("log")
         ax1.get_xaxis().set_major_locator(MaxNLocator(integer=True))
     else:
         not_available_text(ax1)
 
     rmse = stats.err.rms.a[tseq.masko]
     ax2.hist(rmse, bins=30, density=False)
-    ax2.set_ylabel('Num. of occurence (_a)')
-    ax2.set_xlabel('RMSE')
-    ax2.set_title('Histogram of RMSE values')
+    ax2.set_ylabel("Num. of occurence (_a)")
+    ax2.set_xlabel("RMSE")
+    ax2.set_title("Histogram of RMSE values")
     ax2.set_xlim(left=0)
 
     plt.pause(0.1)
@@ -461,20 +470,20 @@ def plot_rank_histogram(stats):
     """
     tseq = stats.HMM.tseq
 
-    has_been_computed = \
-        hasattr(stats, 'rh') and \
-        not all(stats.rh.a[-1] == array(np.nan).astype(int))
+    has_been_computed = hasattr(stats, "rh") and not all(
+        stats.rh.a[-1] == array(np.nan).astype(int)
+    )
 
     fig, ax = place.freshfig("Rank histogram", figsize=(6, 3))
-    ax.set_title('(Mean of marginal) rank histogram (_a)')
-    ax.set_ylabel('Freq. of occurence\n (of truth in interval n)')
-    ax.set_xlabel('ensemble member index (n)')
+    ax.set_title("(Mean of marginal) rank histogram (_a)")
+    ax.set_ylabel("Freq. of occurence\n (of truth in interval n)")
+    ax.set_xlabel("ensemble member index (n)")
 
     if has_been_computed:
         ranks = stats.rh.a[tseq.masko]
-        Nx    = ranks.shape[1]
-        N     = stats.xp.N
-        if not hasattr(stats, 'w'):
+        Nx = ranks.shape[1]
+        N = stats.xp.N
+        if not hasattr(stats, "w"):
             # Ensemble rank histogram
             integer_hist(ranks.ravel(), N)
         else:
@@ -482,14 +491,14 @@ def plot_rank_histogram(stats):
             # Weight ranks by inverse of particle weight. Why? Coz, with correct
             # importance weights, the "expected value" histogram is then flat.
             # Potential improvement: interpolate weights between particles.
-            w  = stats.w.a[tseq.masko]
-            K  = len(w)
-            w  = np.hstack([w, np.ones((K, 1))/N])  # define weights for rank N+1
-            w  = array([w[arange(K), ranks[arange(K), i]] for i in range(Nx)])
-            w  = w.T.ravel()
+            w = stats.w.a[tseq.masko]
+            K = len(w)
+            w = np.hstack([w, np.ones((K, 1)) / N])  # define weights for rank N+1
+            w = array([w[arange(K), ranks[arange(K), i]] for i in range(Nx)])
+            w = w.T.ravel()
             # Artificial cap. Reduces variance, but introduces bias.
-            w  = np.maximum(w, 1/N/100)
-            w  = 1/w
+            w = np.maximum(w, 1 / N / 100)
+            w = 1 / w
             integer_hist(ranks.ravel(), N, weights=w)
     else:
         not_available_text(ax)
@@ -498,7 +507,7 @@ def plot_rank_histogram(stats):
     plt.tight_layout()
 
 
-def axis_scale_by_array(ax, arr, axis='y', nbins=3):
+def axis_scale_by_array(ax, arr, axis="y", nbins=3):
     """Scale axis so that the arr entries appear equidistant.
 
     The full transformation is piecewise-linear.
@@ -522,10 +531,10 @@ def axis_scale_by_array(ax, arr, axis='y', nbins=3):
 
     # Set transformation
     set_scale = eval(f"ax.set_{axis}scale")
-    set_scale('function', functions=(invf, func))
+    set_scale("function", functions=(invf, func))
 
     # Adjust axis ticks
-    _axis = getattr(ax, axis+"axis")
+    _axis = getattr(ax, axis + "axis")
     _axis.set_major_locator(ticker.FixedLocator(yy, nbins=nbins))
     _axis.set_minor_locator(ticker.FixedLocator(yy))
     _axis.set_minor_formatter(ticker.NullFormatter())
@@ -536,20 +545,22 @@ def collapse_str(string, length=6):
     if len(string) <= length:
         return string
     else:
-        return string[:length-2]+'~'+string[-1]
+        return string[: length - 2] + "~" + string[-1]
 
 
 NO_KEY = ("da_method", "xSect", "upd_a")
+
+
 def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
     """Make label from coord."""
     dct = {a: v for a, v in coord.items() if v != None}
-    lbl = ''
+    lbl = ""
     for k, v in dct.items():
         if k not in exclude:
             if any(x in k for x in no_key):
-                lbl = lbl + f' {v}'
+                lbl = lbl + f" {v}"
             else:
-                lbl = lbl + f' {collapse_str(k,7)}:{v}'
+                lbl = lbl + f" {collapse_str(k,7)}:{v}"
     return lbl[1:]
 
 
@@ -573,14 +584,14 @@ def default_styles(coord, baseline_legends=False):
 
     elif coord.da_method == "OptInterp":
         style.ls = ":"
-        style.c = .7*np.ones(3)
+        style.c = 0.7 * np.ones(3)
         style.label = "Opt. Interp."
         if not baseline_legends:
             style.label = None
 
     elif coord.da_method == "Var3D":
         style.ls = ":"
-        style.c = .5*np.ones(3)
+        style.c = 0.5 * np.ones(3)
         style.label = "3D-Var"
         if not baseline_legends:
             style.label = None
@@ -605,15 +616,15 @@ def default_fig_adjustments(tables, xticks_from_data=False):
     axs = np.array([table.panels for table in tables.values()]).T
 
     # Main panels (top row) only:
-    sensible_f = ticker.FormatStrFormatter('%g')
+    sensible_f = ticker.FormatStrFormatter("%g")
     for ax in axs[0, :]:  # noqa
-        for direction in ['y', 'x']:
+        for direction in ["y", "x"]:
             eval(f"ax.set_{direction}scale('log')")
             eval(f"ax.{direction}axis").set_minor_formatter(sensible_f)
             eval(f"ax.{direction}axis").set_major_formatter(sensible_f)
 
     # Set xticks
-    (table0, ) = tables[[0]]
+    (table0,) = tables[[0]]
     if xticks_from_data:
         ax = table0.panels[0]
         # Log-scale overrules any custom ticks. Restore control
@@ -629,13 +640,13 @@ def default_fig_adjustments(tables, xticks_from_data=False):
         yy = tables.created_with["xp_dict"].tickz(a)
         axis_scale_by_array(panel, yy, "y")
         # set_ymargin doesn't work for wonky scales. Do so manually:
-        alpha = len(yy)/10
+        alpha = len(yy) / 10
         y0, y1, y2, y3 = yy[0], yy[1], yy[-2], yy[-1]
-        panel.set_ylim(y0-alpha*(y1-y0), y3+alpha*(y3-y2))
+        panel.set_ylim(y0 - alpha * (y1 - y0), y3 + alpha * (y3 - y2))
 
     # All panels
     for ax in axs.ravel():
-        for direction in ['y', 'x']:
+        for direction in ["y", "x"]:
             if axs.shape[1] < 6:
                 ax.grid(True, which="minor", axis=direction)
 

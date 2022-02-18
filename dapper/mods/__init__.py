@@ -28,13 +28,15 @@ from dapper.tools.seeding import set_seed
 from .integration import with_recursion, with_rk4
 from .utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
 
+
 def _default_name() -> str:
     name = inspect.getfile(inspect.stack()[2][0])
     try:
-        name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
+        name = str(Path(name).relative_to(rc.dirs.dapper / "mods"))
     except ValueError:
         name = str(Path(name))
     return name
+
 
 class Operator(struct_tools.NicePrint):
     """Container for the dynamical and the observational maps.
@@ -45,7 +47,7 @@ class Operator(struct_tools.NicePrint):
         Length of output vectors.
     model: function
         The actual operator.
-    linear: 
+    linear:
     noise: RV, optional
         The associated additive noise. The noise can also be a scalar or an
         array, producing `GaussRV(C=noise)`.
@@ -56,14 +58,17 @@ class Operator(struct_tools.NicePrint):
     Any remaining keyword arguments are written to the object as attributes.
     """
 
-    def __init__(self, M: int, model: Optional[Callable] = None, 
-        linear: Optional[Callable] = None, 
-        noise: Optional[Union[RV, float]] = None, 
-        localizer: Any = None, # TODO: Add proper type hints
-        object: Any = None, # TODO: Add proper type hints
-        loc_shift: Any = None # TODO: Add proper type hints
-        ):
-        
+    def __init__(
+        self,
+        M: int,
+        model: Optional[Callable] = None,
+        linear: Optional[Callable] = None,
+        noise: Optional[Union[RV, float]] = None,
+        localizer: Any = None,  # TODO: Add proper type hints
+        object: Any = None,  # TODO: Add proper type hints
+        loc_shift: Any = None,  # TODO: Add proper type hints
+    ):
+
         self.M = M
         self.model = model
         self.linear = linear
@@ -71,7 +76,7 @@ class Operator(struct_tools.NicePrint):
         self.localizer = localizer
         self.object = object
         self.loc_shift = loc_shift
-        
+
         # Default to the Identity operator
         if model is None:
             self.model = Id_op()
@@ -94,7 +99,7 @@ class Operator(struct_tools.NicePrint):
     def __call__(self, *args, **kwargs):
         return self.model(*args, **kwargs)
 
-    printopts = {'ordering': ['M', 'model', 'noise'], "indent": 4}
+    printopts = {"ordering": ["M", "model", "noise"], "indent": 4}
 
 
 class HiddenMarkovModel(struct_tools.NicePrint):
@@ -133,14 +138,16 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         Label for the `HMM`.
     """
 
-    def __init__(self, 
-        Dyn: Optional[Operator] = None, 
+    def __init__(
+        self,
+        Dyn: Optional[Operator] = None,
         Obs: Optional[Operator] = None,
         tseq: Optional[Chronology] = None,
         X0: Optional[RV] = None,
         liveplotters: Optional[List[Callable]] = None,
         sectors: Optional[Dict[str, np.array]] = None,
-        name: Optional[str] = _default_name()):
+        name: Optional[str] = _default_name(),
+    ):
 
         self.Dyn = Dyn
         self.Obs = Obs
@@ -152,27 +159,30 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
     # ndim shortcuts
     @property
-    def Nx(self): return self.Dyn.M
+    def Nx(self):
+        return self.Dyn.M
+
     @property
-    def Ny(self): return self.Obs.M
+    def Ny(self):
+        return self.Obs.M
 
-    printopts = {'ordering': ['Dyn', 'Obs', 'tseq', 'X0'], "indent": 4}
+    printopts = {"ordering": ["Dyn", "Obs", "tseq", "X0"], "indent": 4}
 
-    def simulate(self, desc='Truth & Obs'):
+    def simulate(self, desc="Truth & Obs"):
         """Generate synthetic truth and observations."""
         Dyn, Obs, tseq, X0 = self.Dyn, self.Obs, self.tseq, self.X0
 
         # Init
-        xx    = np.zeros((tseq.K   + 1, Dyn.M))
-        yy    = np.zeros((tseq.Ko+1, Obs.M))
+        xx = np.zeros((tseq.K + 1, Dyn.M))
+        yy = np.zeros((tseq.Ko + 1, Obs.M))
 
         x = X0.sample(1)
         xx[0] = x
 
         # Loop
         for k, ko, t, dt in pb.progbar(tseq.ticker, desc):
-            x = Dyn(x, t-dt, dt)
-            x = x + np.sqrt(dt)*Dyn.noise.sample(1)
+            x = Dyn(x, t - dt, dt)
+            x = x + np.sqrt(dt) * Dyn.noise.sample(1)
             if ko is not None:
                 yy[ko] = Obs(x, t) + Obs.noise.sample(1)
             xx[k] = x

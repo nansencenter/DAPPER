@@ -15,19 +15,26 @@ nU = LUV.nU
 # Full
 ################
 
-tseq = modelling.Chronology(dt=0.005, dto=0.05, T=4**3, BurnIn=6)
+tseq = modelling.Chronology(dt=0.005, dto=0.05, T=4 ** 3, BurnIn=6)
 
 
-Dyn = modelling.Operator(M=LUV.M, model=modelling.with_rk4(LUV.dxdt, autonom=True), linear=LUV.dstep_dx, noise=0)
+Dyn = modelling.Operator(
+    M=LUV.M,
+    model=modelling.with_rk4(LUV.dxdt, autonom=True),
+    linear=LUV.dstep_dx,
+    noise=0,
+)
 
 X0 = modelling.GaussRV(mu=LUV.x0, C=0.01)
 
 R = 1.0
 jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(LUV.M, jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R)
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R
+)
 
-other = {'name': rel2mods(__file__)+'_full'}
+other = {"name": rel2mods(__file__) + "_full"}
 HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, **other)
 
 
@@ -36,17 +43,21 @@ HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, **other)
 ################
 
 # Just change dt from 005 to 05
-tseq = modelling.Chronology(dt=0.05, dto=0.05, T=4**3, BurnIn=6)
+tseq = modelling.Chronology(dt=0.05, dto=0.05, T=4 ** 3, BurnIn=6)
 
-Dyn = modelling.Operator(M=LUV.M, model=modelling.with_rk4(LUV.dxdt_parameterized), noise=0)
+Dyn = modelling.Operator(
+    M=LUV.M, model=modelling.with_rk4(LUV.dxdt_parameterized), noise=0
+)
 
 X0 = modelling.GaussRV(mu=LUV.x0[:nU], C=0.01)
 
 jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(nU, jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R)
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R
+)
 
-other = {'name': rel2mods(__file__)+'_trunc'}
+other = {"name": rel2mods(__file__) + "_trunc"}
 HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, **other)
 
 ####################

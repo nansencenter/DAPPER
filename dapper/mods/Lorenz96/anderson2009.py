@@ -7,10 +7,10 @@ from dapper.mods.Lorenz96.sakov2008 import X0, Dyn, LPs, Nx, Tplot
 from dapper.tools.localization import localization_setup, pairwise_distances
 from dapper.tools.viz import xtrema
 
-tseq = modelling.Chronology(0.05, dto=0.05, Ko=4000, Tplot=Tplot, BurnIn=2000*0.05)
+tseq = modelling.Chronology(0.05, dto=0.05, Ko=4000, Tplot=Tplot, BurnIn=2000 * 0.05)
 
 # Define obs sites
-obs_sites = 0.395 + 0.01*np.arange(1, 21)
+obs_sites = 0.395 + 0.01 * np.arange(1, 21)
 obs_sites *= 40
 # Surrounding inds
 ii_below = obs_sites.astype(int)
@@ -27,11 +27,22 @@ y2x_dists = pairwise_distances(obs_sites[:, None], np.arange(Nx)[:, None], domai
 batches = np.arange(40)[:, None]
 # Define operator
 
-Obs = modelling.Operator(M=len(H), model=lambda E, t: E @ H.T, linear=lambda E, t: H, noise=1, localizer=localization_setup(lambda t: y2x_dists, batches))
+Obs = modelling.Operator(
+    M=len(H),
+    model=lambda E, t: E @ H.T,
+    linear=lambda E, t: H,
+    noise=1,
+    localizer=localization_setup(lambda t: y2x_dists, batches),
+)
 
 HMM = modelling.HiddenMarkovModel(
-    Dyn, Obs, tseq, X0, liveplotters=LPs(),
-    sectors={'land': np.arange(*xtrema(obs_sites)).astype(int)})
+    Dyn,
+    Obs,
+    tseq,
+    X0,
+    liveplotters=LPs(),
+    sectors={"land": np.arange(*xtrema(obs_sites)).astype(int)},
+)
 
 ####################
 # Suggested tuning

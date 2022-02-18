@@ -28,17 +28,18 @@ xp_dict = dpr.xpSpace.from_list(xps)
 # as well as rot=True (better scores can be obtained without rot).
 
 highlight = xp_dict.label_xSection
-highlight('NO-infl'    , ('infl'), da_method='LETKF', infl=1.01, rot=True)
-highlight('NO-infl/loc', ('infl'), da_method='EnKF' , infl=1.01, rot=True)
+highlight("NO-infl", ("infl"), da_method="LETKF", infl=1.01, rot=True)
+highlight("NO-infl/loc", ("infl"), da_method="EnKF", infl=1.01, rot=True)
 
 # Choose attribute roles for plot
 
-tunable = {'loc_rad', 'infl', 'xB', 'rot'}
+tunable = {"loc_rad", "infl", "xB", "rot"}
 dims = dict(outer="F", inner="N", mean="seed", optim=tunable)
 # xp_dict.print("rmse.a", dims, subcols=False)  # as in basic_3a.py
 
 
 # Define linestyle rules
+
 
 def get_style(coord):
     S = viz.default_styles(coord, True)
@@ -59,9 +60,9 @@ def get_style(coord):
 
 # Plot
 
-tables = xp_dict.plot('rmse.a', dims, get_style, title2=save_as)
+tables = xp_dict.plot("rmse.a", dims, get_style, title2=save_as)
 viz.default_fig_adjustments(tables)
-plt.pause(.1)
+plt.pause(0.1)
 
 
 # #### Plot with color gradient
@@ -91,10 +92,10 @@ def get_style_with_gradient(coord):
 
 # Plot
 
-tables = xp_dict.plot('rmse.a', dims, get_style_with_gradient, title2=save_as)
+tables = xp_dict.plot("rmse.a", dims, get_style_with_gradient, title2=save_as)
 cb = cbar(tables[[-1]][0].panels[0], grades, label=graded)
 viz.default_fig_adjustments(tables)
-plt.pause(.1)
+plt.pause(0.1)
 
 # #### Excercise:
 # Make a `get_style()` that works well with `graded = "infl"`.

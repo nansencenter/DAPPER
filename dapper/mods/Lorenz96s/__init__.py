@@ -102,8 +102,8 @@ def l96s_tay2_step(x, t, dt, s):
     dxF = d2x_dtdx(x)
 
     # coefficients defined based on the p=1 Fourier truncation
-    rho = 1.0/12.0 - 0.5 * np.pi**(-2)
-    alpha = np.pi**2 / 180.0 - 0.5 * np.pi**(-2)
+    rho = 1.0 / 12.0 - 0.5 * np.pi ** (-2)
+    alpha = np.pi ** 2 / 180.0 - 0.5 * np.pi ** (-2)
 
     # draw standard normal sample to define the
     # recursive Stratonovich integral coefficients
@@ -111,31 +111,36 @@ def l96s_tay2_step(x, t, dt, s):
     xi, mu, phi, zeta, eta = rndm
 
     # define the auxiliary functions of random Fourier coefficients, a and b
-    a = -2.0 * np.sqrt(dt * rho) * mu - np.sqrt(2.0*dt) * zeta  / np.pi
-    b = np.sqrt(dt * alpha) * phi + np.sqrt(dt / (2.0 * np.pi**2) ) * eta
+    a = -2.0 * np.sqrt(dt * rho) * mu - np.sqrt(2.0 * dt) * zeta / np.pi
+    b = np.sqrt(dt * alpha) * phi + np.sqrt(dt / (2.0 * np.pi ** 2)) * eta
 
     # vector of first order Stratonovich integrals
-    J_pdelta = (dt/2.0) * (np.sqrt(dt) * xi + a)
+    J_pdelta = (dt / 2.0) * (np.sqrt(dt) * xi + a)
 
     def Psi(l1, l2):
         # psi will be a generic function of the indicies l1 and l2, we will define
         # psi plus and psi minus via this
-        psi = dt**2 * xi[l1] * xi[l2] / 3.0 + dt * a[l1] * a[l2] / 2.0 \
-              + dt**(1.5) * (xi[l1] * a[l2] + xi[l2] * a[l1]) / 4.0 \
-              - dt**(1.5) * (xi[l1] * b[l2] + xi[l2] * b[l1]) / (2.0 * np.pi)
+        psi = (
+            dt ** 2 * xi[l1] * xi[l2] / 3.0
+            + dt * a[l1] * a[l2] / 2.0
+            + dt ** (1.5) * (xi[l1] * a[l2] + xi[l2] * a[l1]) / 4.0
+            - dt ** (1.5) * (xi[l1] * b[l2] + xi[l2] * b[l1]) / (2.0 * np.pi)
+        )
         return psi
 
     # we define the approximations of the second order Stratonovich integral
-    psi_plus = np.array([Psi((i-1) % sys_dim, (i+1) % sys_dim)
-                         for i in range(sys_dim)])
-    psi_minus = np.array([Psi((i-2) % sys_dim, (i-1) % sys_dim)
-                         for i in range(sys_dim)])
+    psi_plus = np.array(
+        [Psi((i - 1) % sys_dim, (i + 1) % sys_dim) for i in range(sys_dim)]
+    )
+    psi_minus = np.array(
+        [Psi((i - 2) % sys_dim, (i - 1) % sys_dim) for i in range(sys_dim)]
+    )
 
     # the final vectorized step forward is given as
-    x  = x + dx * dt + dt**2 * 0.5 * dxF @ dx  # deterministic taylor step
-    x += s * np.sqrt(dt) * xi                  # stochastic euler step
-    x += s * dxF @ J_pdelta                    # stochastic first order taylor step
-    x += s**2 * (psi_plus - psi_minus)         # stochastic second order taylor step
+    x = x + dx * dt + dt ** 2 * 0.5 * dxF @ dx  # deterministic taylor step
+    x += s * np.sqrt(dt) * xi  # stochastic euler step
+    x += s * dxF @ J_pdelta  # stochastic first order taylor step
+    x += s ** 2 * (psi_plus - psi_minus)  # stochastic second order taylor step
 
     return x
 
@@ -145,6 +150,7 @@ def steppers(kind):
 
     Note that they all forward (i.e. use) the diffusion parameter.
     """
+
     def step(x0, t, dt):
         if kind == "EM":
             # Euler-Maruyama (order 1.0 Weak / Strong) integration
@@ -157,4 +163,5 @@ def steppers(kind):
             return l96s_tay2_step(x0, np.nan, dt, diffusion)
         else:
             raise ValueError
+
     return step

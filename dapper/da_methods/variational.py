@@ -18,8 +18,8 @@ from . import da_method
 class var_method:
     """Declare default variational arguments."""
 
-    Lag: int    = 1
-    nIter: int  = 10
+    Lag: int = 1
+    nIter: int = 10
     wtol: float = 0
 
 
@@ -75,12 +75,12 @@ class iEnKS:
 
     upd_a: str
     N: int
-    MDA: bool    = False
-    step: bool   = False
+    MDA: bool = False
+    step: bool = False
     bundle: bool = False
-    xN: float    = None
-    infl: float  = 1.0
-    rot: bool    = False
+    xN: float = None
+    infl: float = 1.0
+    rot: bool = False
 
     # NB It's very difficult to preview what should happen to
     # all of the time indices in all cases of nIter and Lag.
@@ -94,12 +94,12 @@ class iEnKS:
     #   * Trouble playing nice with '-N' inflation estimation.
 
     def assimilate(self, HMM, xx, yy):
-        R, Ko  = HMM.Obs.noise.C, HMM.tseq.Ko
+        R, Ko = HMM.Obs.noise.C, HMM.tseq.Ko
         Rm12 = R.sym_sqrt_inv
 
         assert HMM.Dyn.noise.C == 0, (
-            "Q>0 not yet supported."
-            " See Sakov et al 2017: 'An iEnKF with mod. error'")
+            "Q>0 not yet supported." " See Sakov et al 2017: 'An iEnKF with mod. error'"
+        )
 
         if self.bundle:
             EPS = 1e-4  # Sakov/Boc use T=EPS*eye(N), with EPS=1e-4, but I ...
@@ -114,32 +114,43 @@ class iEnKS:
         k = 0
         if self.Lag == 0:
             for k, t, dt in HMM.tseq.cycle(ko=0):
-                self.stats.assess(k-1, None, 'u', E=E)
-                E = HMM.Dyn(E, t-dt, dt)
+                self.stats.assess(k - 1, None, "u", E=E)
+                E = HMM.Dyn(E, t - dt, dt)
 
         # Loop over DA windows (DAW).
-        for ko in progbar(range(0, Ko+self.Lag+1)):
-            kLag = ko-self.Lag
-            DAW  = range(max(0, kLag+1), min(ko, Ko) + 1)
+        for ko in progbar(range(0, Ko + self.Lag + 1)):
+            kLag = ko - self.Lag
+            DAW = range(max(0, kLag + 1), min(ko, Ko) + 1)
 
             # Assimilation (if ∃ "not-fully-assimlated" Obs).
             if ko <= Ko:
-                E = iEnKS_update(self.upd_a, E, DAW, HMM, self.stats,
-                                 EPS, yy[ko], (k, ko, t), Rm12,
-                                 self.xN, self.MDA, (self.nIter, self.wtol))
+                E = iEnKS_update(
+                    self.upd_a,
+                    E,
+                    DAW,
+                    HMM,
+                    self.stats,
+                    EPS,
+                    yy[ko],
+                    (k, ko, t),
+                    Rm12,
+                    self.xN,
+                    self.MDA,
+                    (self.nIter, self.wtol),
+                )
                 E = post_process(E, self.infl, self.rot)
 
             # Slide/shift DAW by propagating smoothed ('s') ensemble from [kLag].
             if kLag >= 0:
-                self.stats.assess(HMM.tseq.kko[kLag], kLag, 's', E=E)
-            cycle_window = range(max(kLag+1, 0), min(max(kLag+1+1, 0), Ko+1))
+                self.stats.assess(HMM.tseq.kko[kLag], kLag, "s", E=E)
+            cycle_window = range(max(kLag + 1, 0), min(max(kLag + 1 + 1, 0), Ko + 1))
 
             for kCycle in cycle_window:
                 for k, t, dt in HMM.tseq.cycle(kCycle):
-                    self.stats.assess(k-1, None, 'u', E=E)
-                    E = HMM.Dyn(E, t-dt, dt)
+                    self.stats.assess(k - 1, None, "u", E=E)
+                    E = HMM.Dyn(E, t - dt, dt)
 
-        self.stats.assess(k, Ko, 'us', E=E)
+        self.stats.assess(k, Ko, "us", E=E)
 
 
 def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, threshold):
@@ -154,110 +165,111 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     N, Nx = E.shape
 
     # Init iterations.
-    N1 = N-1
-    HMM.X0, x0 = center(E)    # Decompose ensemble.
-    w      = np.zeros(N)  # Control vector for the mean state.
-    T      = np.eye(N)    # Anomalies transform matrix.
-    Tinv   = np.eye(N)
+    N1 = N - 1
+    HMM.X0, x0 = center(E)  # Decompose ensemble.
+    w = np.zeros(N)  # Control vector for the mean state.
+    T = np.eye(N)  # Anomalies transform matrix.
+    Tinv = np.eye(N)
     # Explicit Tinv [instead of tinv(T)] allows for merging MDA code
     # with iEnKS/EnRML code, and flop savings in 'Sqrt' case.
 
     for iteration in np.arange(nIter):
         # Reconstruct smoothed ensemble.
-        E = x0 + (w + EPS*T)@HMM.X0
+        E = x0 + (w + EPS * T) @ HMM.X0
         # Forecast.
         for kCycle in DAW:
             for k, t, dt in HMM.tseq.cycle(kCycle):  # noqa
-                E = HMM.Dyn(E, t-dt, dt)
+                E = HMM.Dyn(E, t - dt, dt)
         # Observe.
         Eo = HMM.Obs(E, t)
 
         # Undo the bundle scaling of ensemble.
         if EPS != 1.0:
-            E  = inflate_ens(E, 1/EPS)
-            Eo = inflate_ens(Eo, 1/EPS)
+            E = inflate_ens(E, 1 / EPS)
+            Eo = inflate_ens(Eo, 1 / EPS)
 
         # Assess forecast stats; store {Xf, T_old} for analysis assessment.
         if iteration == 0:
-            stats.assess(k, ko, 'f', E=E)
+            stats.assess(k, ko, "f", E=E)
             Xf, xf = center(E)
         T_old = T
 
         # Prepare analysis.
-        Y, xo  = center(Eo)         # Get HMM.Obs {anomalies, mean}.
-        dy     = (y - xo) @ Rm12.T  # Transform HMM.Obs space.
-        Y      = Y        @ Rm12.T  # Transform HMM.Obs space.
-        Y0     = Tinv @ Y           # "De-condition" the HMM.Obs anomalies.
-        V, s, UT = svd0(Y0)         # Decompose Y0.
+        Y, xo = center(Eo)  # Get HMM.Obs {anomalies, mean}.
+        dy = (y - xo) @ Rm12.T  # Transform HMM.Obs space.
+        Y = Y @ Rm12.T  # Transform HMM.Obs space.
+        Y0 = Tinv @ Y  # "De-condition" the HMM.Obs anomalies.
+        V, s, UT = svd0(Y0)  # Decompose Y0.
 
         # Set "cov normlzt fctr" za ("effective ensemble size")
         # => pre_infl^2 = (N-1)/za.
         if xN is None:
-            za  = N1
+            za = N1
         else:
-            za  = zeta_a(*hyperprior_coeffs(s, N, xN), w)
+            za = zeta_a(*hyperprior_coeffs(s, N, xN), w)
         if MDA:
             # inflation (factor: nIter) of the ObsErrCov.
             za *= nIter
 
         # Post. cov (approx) of w,
         # estimated at current iteration, raised to power.
-        def Cowp(expo): return (V * (pad0(s**2, N) + za)**-expo) @ V.T
+        def Cowp(expo):
+            return (V * (pad0(s ** 2, N) + za) ** -expo) @ V.T
+
         Cow1 = Cowp(1.0)
 
         if MDA:  # View update as annealing (progressive assimilation).
             Cow1 = Cow1 @ T  # apply previous update
             dw = dy @ Y.T @ Cow1
-            if 'PertObs' in upd_a:   # == "ES-MDA". By Emerick/Reynolds
-                D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(nIter)
-                T  -= (Y + D) @ Y.T @ Cow1
-            elif 'Sqrt' in upd_a:    # == "ETKF-ish". By Raanes
-                T   = Cowp(0.5) * np.sqrt(za) @ T
-            elif 'Order1' in upd_a:  # == "DEnKF-ish". By Emerick
-                T  -= 0.5 * Y @ Y.T @ Cow1
+            if "PertObs" in upd_a:  # == "ES-MDA". By Emerick/Reynolds
+                D = mean0(np.random.randn(*Y.shape)) * np.sqrt(nIter)
+                T -= (Y + D) @ Y.T @ Cow1
+            elif "Sqrt" in upd_a:  # == "ETKF-ish". By Raanes
+                T = Cowp(0.5) * np.sqrt(za) @ T
+            elif "Order1" in upd_a:  # == "DEnKF-ish". By Emerick
+                T -= 0.5 * Y @ Y.T @ Cow1
             # Tinv = eye(N) [as initialized] coz MDA does not de-condition.
 
         else:  # View update as Gauss-Newton optimzt. of log-posterior.
-            grad  = Y0@dy - w*za                  # Cost function gradient
-            dw    = grad@Cow1                     # Gauss-Newton step
+            grad = Y0 @ dy - w * za  # Cost function gradient
+            dw = grad @ Cow1  # Gauss-Newton step
             # ETKF-ish". By Bocquet/Sakov.
-            if 'Sqrt' in upd_a:
+            if "Sqrt" in upd_a:
                 # Sqrt-transforms
-                T     = Cowp(0.5) * np.sqrt(N1)
-                Tinv  = Cowp(-.5) / np.sqrt(N1)
+                T = Cowp(0.5) * np.sqrt(N1)
+                Tinv = Cowp(-0.5) / np.sqrt(N1)
                 # Tinv saves time [vs tinv(T)] when Nx<N
             # "EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
-            elif 'PertObs' in upd_a:
-                D     = mean0(np.random.randn(*Y.shape)) \
-                    if iteration == 0 else D
-                gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
-                T     = T + gradT@Cow1
+            elif "PertObs" in upd_a:
+                D = mean0(np.random.randn(*Y.shape)) if iteration == 0 else D
+                gradT = -(Y + D) @ Y0.T + N1 * (np.eye(N) - T)
+                T = T + gradT @ Cow1
                 # Tinv= tinv(T, threshold=N1)  # unstable
-                Tinv  = sla.inv(T+1)           # the +1 is for stability.
+                Tinv = sla.inv(T + 1)  # the +1 is for stability.
             # "DEnKF-ish". By Raanes.
-            elif 'Order1' in upd_a:
+            elif "Order1" in upd_a:
                 # Included for completeness; does not make much sense.
-                gradT = -0.5*Y@Y0.T + N1*(np.eye(N) - T)
-                T     = T + gradT@Cow1
-                Tinv  = tinv(T, threshold=N1)
+                gradT = -0.5 * Y @ Y0.T + N1 * (np.eye(N) - T)
+                T = T + gradT @ Cow1
+                Tinv = tinv(T, threshold=N1)
 
         w += dw
-        if dw@dw < wtol*N:
+        if dw @ dw < wtol * N:
             break
 
     # Assess (analysis) stats.
     # The final_increment is a linearization to
     # (i) avoid re-running the model and
     # (ii) reproduce EnKF in case nIter==1.
-    final_increment = (dw+T-T_old)@Xf
+    final_increment = (dw + T - T_old) @ Xf
     # See docs/snippets/iEnKS_Ea.jpg.
-    stats.assess(k, ko, 'a', E=E+final_increment)
-    stats.iters[ko] = iteration+1
+    stats.assess(k, ko, "a", E=E + final_increment)
+    stats.iters[ko] = iteration + 1
     if xN:
-        stats.infl[ko] = np.sqrt(N1/za)
+        stats.infl[ko] = np.sqrt(N1 / za)
 
     # Final (smoothed) estimate of E at [kLag].
-    E = x0 + (w+T)@HMM.X0
+    E = x0 + (w + T) @ HMM.X0
 
     return E
 
@@ -280,7 +292,7 @@ class Var4D:
     """
 
     B: Optional[np.ndarray] = None
-    xB: float               = 1.0
+    xB: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
         R, Ko = HMM.Obs.noise.C, HMM.tseq.Ko
@@ -291,10 +303,10 @@ class Var4D:
         if isinstance(self.B, np.ndarray):
             # compare ndarray 1st to avoid == error for ndarray
             B = self.B.astype(float)
-        elif self.B in (None, 'clim'):
+        elif self.B in (None, "clim"):
             # Use climatological cov, estimated from truth
             B = np.cov(xx.T)
-        elif self.B == 'eye':
+        elif self.B == "eye":
             B = np.eye(Nx)
         else:
             raise ValueError("Bad input B.")
@@ -306,70 +318,73 @@ class Var4D:
         self.stats.assess(0, mu=x, Cov=B)
 
         # Loop over DA windows (DAW).
-        for ko in progbar(np.arange(-1, Ko+self.Lag+1)):
-            kLag = ko-self.Lag
-            DAW = range(max(0, kLag+1), min(ko, Ko) + 1)
+        for ko in progbar(np.arange(-1, Ko + self.Lag + 1)):
+            kLag = ko - self.Lag
+            DAW = range(max(0, kLag + 1), min(ko, Ko) + 1)
 
             # Assimilation (if ∃ "not-fully-assimlated" Obs).
             if 0 <= ko <= Ko:
 
                 # Init iterations.
-                w   = np.zeros(Nx)  # Control vector for the mean state.
-                x0  = x.copy()      # Increment reference.
+                w = np.zeros(Nx)  # Control vector for the mean state.
+                x0 = x.copy()  # Increment reference.
 
                 for iteration in np.arange(self.nIter):
                     # Reconstruct smoothed state.
-                    x = x0 + B12@w
+                    x = x0 + B12 @ w
                     X = B12  # Aggregate composite TLMs onto B12
                     # Forecast.
                     for kCycle in DAW:
                         for k, t, dt in HMM.tseq.cycle(kCycle):  # noqa
-                            X = HMM.Dyn.linear(x, t-dt, dt) @ X
-                            x = HMM.Dyn(x, t-dt, dt)
+                            X = HMM.Dyn.linear(x, t - dt, dt) @ X
+                            x = HMM.Dyn(x, t - dt, dt)
 
                     # Assess forecast self.stats
                     if iteration == 0:
-                        self.stats.assess(k, ko, 'f', mu=x, Cov=X@X.T)
+                        self.stats.assess(k, ko, "f", mu=x, Cov=X @ X.T)
 
                     # Observe.
-                    Y  = HMM.Obs.linear(x, t) @ X
+                    Y = HMM.Obs.linear(x, t) @ X
                     xo = HMM.Obs(x, t)
 
                     # Analysis prep.
-                    y      = yy[ko]          # Get current HMM.Obs.
-                    dy     = Rm12 @ (y - xo)   # Transform HMM.Obs space.
-                    Y      = Rm12 @ Y          # Transform HMM.Obs space.
-                    V, s, UT = svd0(Y.T)       # Decomp for lin-alg update comps.
+                    y = yy[ko]  # Get current HMM.Obs.
+                    dy = Rm12 @ (y - xo)  # Transform HMM.Obs space.
+                    Y = Rm12 @ Y  # Transform HMM.Obs space.
+                    V, s, UT = svd0(Y.T)  # Decomp for lin-alg update comps.
 
                     # Post. cov (approx) of w,
                     # estimated at current iteration, raised to power.
-                    Cow1 = (V * (pad0(s**2, Nx) + 1)**-1.0) @ V.T
+                    Cow1 = (V * (pad0(s ** 2, Nx) + 1) ** -1.0) @ V.T
 
                     # Compute analysis update.
-                    grad = Y.T@dy - w          # Cost function gradient
-                    dw   = Cow1@grad           # Gauss-Newton step
-                    w   += dw                  # Step
+                    grad = Y.T @ dy - w  # Cost function gradient
+                    dw = Cow1 @ grad  # Gauss-Newton step
+                    w += dw  # Step
 
-                    if dw@dw < self.wtol*Nx:
+                    if dw @ dw < self.wtol * Nx:
                         break
 
                 # Assess (analysis) self.stats.
-                final_increment = X@dw
-                self.stats.assess(k, ko, 'a', mu=x+final_increment, Cov=X@Cow1@X.T)
-                self.stats.iters[ko] = iteration+1
+                final_increment = X @ dw
+                self.stats.assess(
+                    k, ko, "a", mu=x + final_increment, Cov=X @ Cow1 @ X.T
+                )
+                self.stats.iters[ko] = iteration + 1
 
                 # Final (smoothed) estimate at [kLag].
-                x = x0 + B12@w
+                x = x0 + B12 @ w
                 X = B12
 
             # Slide/shift DAW by propagating smoothed ('s') state from [kLag].
             if -1 <= kLag < Ko:
                 if kLag >= 0:
-                    self.stats.assess(HMM.tseq.kko[kLag], kLag, 's',
-                                      mu=x, Cov=X@Cow1@X.T)
-                for k, t, dt in HMM.tseq.cycle(kLag+1):
-                    self.stats.assess(k-1, None, 'u', mu=x, Cov=Y@Y.T)
-                    X = HMM.Dyn.linear(x, t-dt, dt) @ X
-                    x = HMM.Dyn(x, t-dt, dt)
+                    self.stats.assess(
+                        HMM.tseq.kko[kLag], kLag, "s", mu=x, Cov=X @ Cow1 @ X.T
+                    )
+                for k, t, dt in HMM.tseq.cycle(kLag + 1):
+                    self.stats.assess(k - 1, None, "u", mu=x, Cov=Y @ Y.T)
+                    X = HMM.Dyn.linear(x, t - dt, dt) @ X
+                    x = HMM.Dyn(x, t - dt, dt)
 
-        self.stats.assess(k, Ko, 'us', mu=x, Cov=X@Cow1@X.T)
+        self.stats.assess(k, Ko, "us", mu=x, Cov=X @ Cow1 @ X.T)

@@ -5,7 +5,7 @@ import numpy as np
 import dapper.mods as modelling
 from dapper.mods.Lorenz63 import LPs, Tplot, dstep_dx, step, x0
 
-tseq = modelling.Chronology(0.01, dko=25, Ko=1000, Tplot=Tplot, BurnIn=4*Tplot)
+tseq = modelling.Chronology(0.01, dko=25, Ko=1000, Tplot=Tplot, BurnIn=4 * Tplot)
 
 Nx = len(x0)
 
@@ -14,9 +14,15 @@ X0 = modelling.GaussRV(C=2, mu=x0)
 
 jj = np.arange(Nx)  # obs_inds
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 2  # modelling.GaussRV(C=CovMat(2*eye(Nx)))
+Obs["noise"] = 2  # modelling.GaussRV(C=CovMat(2*eye(Nx)))
 
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=Obs.get("noise"), localizer=Obs.get("localizer"))
+Obs = modelling.Operator(
+    M=Obs.get("M"),
+    model=Obs.get("model"),
+    linear=Obs.get("linear"),
+    noise=Obs.get("noise"),
+    localizer=Obs.get("localizer"),
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

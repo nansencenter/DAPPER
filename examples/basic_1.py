@@ -30,7 +30,7 @@ xx, yy = HMM.simulate()
 # xp = da.OptInterp()
 # xp = da.Var3D()
 # xp = da.ExtKF(infl=90)
-xp = da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
+xp = da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
 # xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
 
 # #### Assimilate yy, knowing the HMM; xx is used to assess the performance
@@ -43,7 +43,7 @@ xp.stats.average_in_time()
 
 # #### Print some averages
 
-print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
+print(xp.avrgs.tabulate(["rmse.a", "rmv.a"]))
 
 # #### Replay liveplotters
 
@@ -55,6 +55,7 @@ xp.stats.replay(
 
 if nb:
     import dapper.tools.viz as viz
+
     viz.plot_rank_histogram(xp.stats)
     viz.plot_err_components(xp.stats)
     viz.plot_hovmoller(xx)

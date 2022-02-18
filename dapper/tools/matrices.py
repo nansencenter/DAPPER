@@ -31,7 +31,7 @@ class lazy_property:
 # Test matrices
 def randcov(M):
     """(Makeshift) random cov mat."""
-    N = int(np.ceil(2+M**1.2))
+    N = int(np.ceil(2 + M ** 1.2))
     E = np.random.randn(N, M)
     return E.T @ E
 
@@ -39,8 +39,8 @@ def randcov(M):
 def randcorr(M):
     """(Makeshift) random corr mat."""
     Cov = randcov(M)
-    Dm12 = np.diag(np.diag(Cov)**(-0.5))
-    return Dm12@Cov@Dm12
+    Dm12 = np.diag(np.diag(Cov) ** (-0.5))
+    return Dm12 @ Cov @ Dm12
 
 
 def genOG(M):
@@ -77,7 +77,7 @@ def genOG_modified(M, opts=(0, 1.0)):
 
     if ver == 1:
         # Only rotate "once in a while"
-        dc = 1/degree  # = "while"
+        dc = 1 / degree  # = "while"
         # Retrieve/store persistent variable
         counter = getattr(genOG_modified, "counter", 0) + 1
         genOG_modified.counter = counter
@@ -92,7 +92,7 @@ def genOG_modified(M, opts=(0, 1.0)):
         # https://en.wikipedia.org/wiki/Orthogonal_matrix
         Q = genOG(M)
         s, U = sla.eig(Q)
-        s2 = np.exp(1j*np.angle(s)*degree)  # reduce angles
+        s2 = np.exp(1j * np.angle(s) * degree)  # reduce angles
         Q = mrdiv(U * s2, U)
         Q = Q.real
     elif ver == 3:
@@ -125,9 +125,9 @@ def genOG_1(N, opts=()):
     """
     V = basis_beginning_with_ones(N)
     if opts == ():
-        Q = genOG(N-1)
+        Q = genOG(N - 1)
     else:
-        Q = genOG_modified(N-1, opts)
+        Q = genOG_modified(N - 1, opts)
     return V @ sla.block_diag(1, Q) @ V.T
 
 
@@ -161,7 +161,7 @@ def chol_reduce(Right):
     True
     """
     _, sig, UT = sla.svd(Right, full_matrices=False)
-    R = sig[:, None]*UT
+    R = sig[:, None] * UT
 
     # The below is DEPRECATED, coz it fails e.g. with Q from dapper.mods.LA.raanes2015.
     # from scipy.linalg.lapack import get_lapack_funcs
@@ -175,7 +175,7 @@ def chol_reduce(Right):
     return R
 
 
-class CovMat():
+class CovMat:
     """Covariance matrix class.
 
     Main tasks:
@@ -190,7 +190,7 @@ class CovMat():
     ##################################
     # Init
     ##################################
-    def __init__(self, data, kind='full_or_diag', trunc=1.0):
+    def __init__(self, data, kind="full_or_diag", trunc=1.0):
         """Construct object.
 
         The covariance (say P) can be input (specified in the following ways):
@@ -205,61 +205,61 @@ class CovMat():
             'Left'  | any L such that P = L@L.T
         """
         # Cascade if's down to 'Right'
-        if kind == 'E':
-            mu      = np.mean(data, 0)
-            data    = data - mu
-            kind    = 'A'
-        if kind == 'A':
-            N       = len(data)
-            data    = data / sqrt(N-1)
-            kind    = 'Right'
-        if kind == 'Left':
-            data    = data.T
-            kind    = 'Right'
-        if kind == 'Right':
+        if kind == "E":
+            mu = np.mean(data, 0)
+            data = data - mu
+            kind = "A"
+        if kind == "A":
+            N = len(data)
+            data = data / sqrt(N - 1)
+            kind = "Right"
+        if kind == "Left":
+            data = data.T
+            kind = "Right"
+        if kind == "Right":
             # If a cholesky factor has been input, we will not
             # automatically go for the EVD, seeing as e.g. the
             # diagonal can be computed without it.
-            R       = np.atleast_2d(data)
+            R = np.atleast_2d(data)
             assert R.ndim == 2
             self._R = R
             self._m = R.shape[1]
         else:
-            if kind == 'full_or_diag':
+            if kind == "full_or_diag":
                 data = np.atleast_1d(data)
                 if data.ndim == 1 and len(data) > 1:
-                    kind = 'diag'
+                    kind = "diag"
                 else:
-                    kind = 'full'
-            if kind == 'full':
+                    kind = "full"
+            if kind == "full":
                 # If full has been imput, then we have memory for an EVD,
                 # which will probably be put to use in the DA.
-                C           = np.atleast_2d(data)
+                C = np.atleast_2d(data)
                 assert C.ndim == 2
-                self._C     = C
-                M           = len(C)
-                d, V        = sla.eigh(C)
-                d           = CovMat._clip(d)
-                rk          = (d > 0).sum()
-                d           = d[-rk:][::-1]
-                V           = (V.T[-rk:][::-1]).T
+                self._C = C
+                M = len(C)
+                d, V = sla.eigh(C)
+                d = CovMat._clip(d)
+                rk = (d > 0).sum()
+                d = d[-rk:][::-1]
+                V = (V.T[-rk:][::-1]).T
                 self._assign_EVD(M, rk, d, V)
-            elif kind == 'diag':
+            elif kind == "diag":
                 # With diagonal input, it would be great to use a sparse
                 # (or non-existant) representation of V,
                 # but that would require so much other adaption of other code.
-                d         = np.atleast_1d(data)
+                d = np.atleast_1d(data)
                 assert d.ndim == 1
                 self.diag = d
-                M         = len(d)
+                M = len(d)
                 if np.all(d == d[0]):
-                    V   = np.eye(M)
-                    rk  = M
+                    V = np.eye(M)
+                    rk = M
                 else:
                     # Clip and sort diag
-                    d   = CovMat._clip(d)
+                    d = CovMat._clip(d)
                     idx = np.argsort(d)[::-1]
-                    rk  = (d > 0).sum()
+                    rk = (d > 0).sum()
                     # Sort d
                     d = d[idx][:rk]
                     # Make rectangular V that un-sorts d
@@ -269,7 +269,7 @@ class CovMat():
             else:
                 raise KeyError
 
-        self._kind  = kind
+        self._kind = kind
         self._trunc = trunc
 
     ##################################
@@ -297,7 +297,7 @@ class CovMat():
     @property
     def full(self):
         """Full covariance matrix"""
-        if hasattr(self, '_C'):
+        if hasattr(self, "_C"):
             return self._C
         else:
             C = self.Left @ self.Left.T
@@ -307,10 +307,10 @@ class CovMat():
     @lazy_property
     def diag(self):
         """Diagonal of covariance matrix"""
-        if hasattr(self, '_C'):
+        if hasattr(self, "_C"):
             return np.diag(self._C)
         else:
-            return (self.Left**2).sum(axis=1)
+            return (self.Left ** 2).sum(axis=1)
 
     @property
     def Left(self):
@@ -321,7 +321,7 @@ class CovMat():
         Note that `L` is typically rectangular, but not triangular,
         and that its width is somewhere betwen the rank and `M`.
         """
-        if hasattr(self, '_R'):
+        if hasattr(self, "_R"):
             return self._R.T
         else:
             return self.V * sqrt(self.ews)
@@ -329,7 +329,7 @@ class CovMat():
     @property
     def Right(self):
         """Right sqrt. Ref `CovMat.Left`."""
-        if hasattr(self, '_R'):
+        if hasattr(self, "_R"):
             return self._R
         else:
             return self.Left.T
@@ -338,29 +338,29 @@ class CovMat():
     # EVD stuff
     ##################################
     def _assign_EVD(self, M, rk, d, V):
-        self._m   = M
-        self._d   = d
-        self._V   = V
-        self._rk  = rk
+        self._m = M
+        self._d = d
+        self._V = V
+        self._rk = rk
 
     @staticmethod
     def _clip(d):
-        return np.where(d < 1e-8*d.max(), 0, d)
+        return np.where(d < 1e-8 * d.max(), 0, d)
 
     def _do_EVD(self):
         if not self.has_done_EVD():
             V, s, UT = svd0(self._R)
-            M        = UT.shape[1]
-            d        = s**2
-            d        = CovMat._clip(d)
-            rk       = (d > 0).sum()
-            d        = d[:rk]
-            V        = UT[:rk].T
+            M = UT.shape[1]
+            d = s ** 2
+            d = CovMat._clip(d)
+            rk = (d > 0).sum()
+            d = d[:rk]
+            V = UT[:rk].T
             self._assign_EVD(M, rk, d, V)
 
     def has_done_EVD(self):
         """Whether or not eigenvalue decomposition has been done for matrix."""
-        return all(key in vars(self) for key in ['_V', '_d', '_rk'])
+        return all(key in vars(self) for key in ["_V", "_d", "_rk"])
 
     @property
     def ews(self):
@@ -399,12 +399,12 @@ class CovMat():
     @lazy_property
     def sym_sqrt_inv(self):
         """S such that C^{-1} = S@S (and i.e. S is square). Uses trunc-level."""
-        return self.transform_by(lambda x: 1/sqrt(x))
+        return self.transform_by(lambda x: 1 / sqrt(x))
 
     @lazy_property
     def pinv(self):
         """Pseudo-inverse. Uses trunc-level."""
-        return self.transform_by(lambda x: 1/x)
+        return self.transform_by(lambda x: 1 / x)
 
     @lazy_property
     def inv(self):
@@ -412,7 +412,8 @@ class CovMat():
             raise RuntimeError(
                 "Matrix is rank deficient, "
                 "and cannot be inverted. "
-                "Use .tinv() instead?")
+                "Use .tinv() instead?"
+            )
         # Temporarily remove any truncation
         tmp = self.trunc
         self._trunc = 1.0
@@ -425,7 +426,7 @@ class CovMat():
     # __repr__
     ##################################
     def __repr__(self):
-        s  = "\n    M: " + str(self.M)
+        s = "\n    M: " + str(self.M)
         s += "\n kind: " + repr(self.kind)
         s += "\ntrunc: " + str(self.trunc)
 
@@ -438,14 +439,14 @@ class CovMat():
 
         # Full (as affordable)
         s += "\n full:"
-        if hasattr(self, '_C') or np.get_printoptions()['threshold'] > self.M**2:
+        if hasattr(self, "_C") or np.get_printoptions()["threshold"] > self.M ** 2:
             # We can afford to compute full matrix
             t = "\n" + str(self.full)
         else:
             # Only compute corners of full matrix
-            K  = np.get_printoptions()['edgeitems']
+            K = np.get_printoptions()["edgeitems"]
             s += " (only computing/printing corners)"
-            if hasattr(self, '_R'):
+            if hasattr(self, "_R"):
                 U = self.Left[:K, :]  # Upper
                 L = self.Left[-K:, :]  # Lower
             else:
@@ -453,15 +454,15 @@ class CovMat():
                 L = self.V[-K:, :] * sqrt(self.ews)
 
             # Corners
-            NW = U@U.T
-            NE = U@L.T
-            SW = L@U.T
-            SE = L@L.T
+            NW = U @ U.T
+            NE = U @ L.T
+            SW = L @ U.T
+            SE = L @ L.T
 
             # Concatenate corners. Fill "cross" between them with nan's
-            N  = np.hstack([NW, np.nan*ones((K, 1)), NE])
-            S  = np.hstack([SW, np.nan*ones((K, 1)), SE])
-            All = np.vstack([N, np.nan*ones(2*K+1), S])
+            N = np.hstack([NW, np.nan * ones((K, 1)), NE])
+            S = np.hstack([SW, np.nan * ones((K, 1)), SE])
+            All = np.vstack([N, np.nan * ones(2 * K + 1), S])
 
             with np.printoptions(threshold=0):
                 t = "\n" + str(All)
@@ -473,8 +474,9 @@ class CovMat():
         with np.printoptions(threshold=0):
             s += "\n diag:\n   " + " " + str(self.diag)
 
-        s = "<" + type(self).__name__ + '>' + s.replace("\n", "\n  ")
+        s = "<" + type(self).__name__ + ">" + s.replace("\n", "\n  ")
         return s
+
 
 # Note: The diagonal representation is NOT memory-efficient.
 #

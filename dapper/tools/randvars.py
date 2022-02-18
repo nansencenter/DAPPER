@@ -40,44 +40,45 @@ class RV(NicePrint):
             setattr(self, key, value)
 
     def sample(self, N):
-        if getattr(self, 'is0', False):
+        if getattr(self, "is0", False):
             # Identically 0
             E = np.zeros((N, self.M))
-        elif hasattr(self, 'func'):
+        elif hasattr(self, "func"):
             # Provided by function
             E = self.func(N)
-        elif hasattr(self, 'file'):
+        elif hasattr(self, "file"):
             # Provided by numpy file with sample
-            data   = np.load(self.file)
-            sample = data['sample']
-            N0     = len(sample)
-            if 'w' in data:
-                w = data['w']
+            data = np.load(self.file)
+            sample = data["sample"]
+            N0 = len(sample)
+            if "w" in data:
+                w = data["w"]
             else:
-                w = np.ones(N0)/N0
+                w = np.ones(N0) / N0
             idx = rnd.choice(N0, N, replace=True, p=w)
-            E   = sample[idx]
-        elif hasattr(self, 'icdf'):
+            E = sample[idx]
+        elif hasattr(self, "icdf"):
             # Independent "inverse transform" sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rnd.rand(N, self.M)
-            E    = icdf(uu)
-        elif hasattr(self, 'cdf'):
+            uu = rnd.rand(N, self.M)
+            E = icdf(uu)
+        elif hasattr(self, "cdf"):
             # Like above, but with inv-cdf approximate, from interpolation
-            if not hasattr(self, 'icdf_interp'):
+            if not hasattr(self, "icdf_interp"):
                 # Define inverse-cdf
                 from scipy.interpolate import interp1d
                 from scipy.optimize import fsolve
-                cdf    = self.cdf
-                Left,  = fsolve(lambda x: cdf(x) - 1e-9, 0.1)  # noqa
-                Right, = fsolve(lambda x: cdf(x) - (1-1e-9), 0.1)  # noqa
-                xx     = np.linspace(Left, Right, 1001)
-                uu     = np.vectorize(cdf)(xx)
-                icdf   = interp1d(uu, xx)
+
+                cdf = self.cdf
+                (Left,) = fsolve(lambda x: cdf(x) - 1e-9, 0.1)  # noqa
+                (Right,) = fsolve(lambda x: cdf(x) - (1 - 1e-9), 0.1)  # noqa
+                xx = np.linspace(Left, Right, 1001)
+                uu = np.vectorize(cdf)(xx)
+                icdf = interp1d(uu, xx)
                 self.icdf_interp = np.vectorize(icdf)
             uu = rnd.rand(N, self.M)
-            E  = self.icdf_interp(uu)
-        elif hasattr(self, 'pdf'):
+            E = self.icdf_interp(uu)
+        elif hasattr(self, "pdf"):
             # "acceptance-rejection" sampling
             raise NotImplementedError
         else:
@@ -97,8 +98,9 @@ class RV_with_mean_and_cov(RV):
     def __init__(self, mu=0, C=0, M=None):
         """Init allowing for shortcut notation."""
         if isinstance(mu, CovMat):
-            raise TypeError("Got a covariance paramter as mu. "
-                            + "Use kword syntax (C=...) ?")
+            raise TypeError(
+                "Got a covariance paramter as mu. " + "Use kword syntax (C=...) ?"
+            )
 
         # Set mu
         mu = np.atleast_1d(mu)
@@ -110,7 +112,7 @@ class RV_with_mean_and_cov(RV):
                 assert len(mu) == M
         else:
             if M is not None:
-                mu = np.ones(M)*mu
+                mu = np.ones(M) * mu
 
         # Set C
         if isinstance(C, CovMat):
@@ -122,7 +124,7 @@ class RV_with_mean_and_cov(RV):
             else:
                 if np.isscalar(C):
                     M = len(mu)
-                    C = CovMat(C*np.ones(M), 'diag')
+                    C = CovMat(C * np.ones(M), "diag")
                 else:
                     C = CovMat(C)
                     if M is None:
@@ -140,9 +142,9 @@ class RV_with_mean_and_cov(RV):
             pass
 
         # Assign
-        self.M  = M
+        self.M = M
         self.mu = mu
-        self.C  = C
+        self.C = C
 
     def sample(self, N):
         """Sample N realizations. Returns N-by-M (ndim) sample matrix.
@@ -181,7 +183,7 @@ class LaplaceRV(RV_with_mean_and_cov):
         R = self.C.Right
         z = rnd.exponential(1, N)
         D = rnd.randn(N, len(R))
-        D = z[:, None]*D
+        D = z[:, None] * D
         return D @ R / sqrt(2)
 
 
@@ -211,9 +213,9 @@ class StudRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         nu = self.dof
-        r = nu/np.sum(rnd.randn(N, nu)**2, axis=1)  # InvChi2
-        D = sqrt(r)[:, None]*rnd.randn(N, len(R))
-        return D @ R * sqrt((nu-2)/nu)
+        r = nu / np.sum(rnd.randn(N, nu) ** 2, axis=1)  # InvChi2
+        D = sqrt(r)[:, None] * rnd.randn(N, len(R))
+        return D @ R * sqrt((nu - 2) / nu)
 
 
 class UniRV(RV_with_mean_and_cov):
@@ -227,8 +229,8 @@ class UniRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         D = rnd.randn(N, len(R))
-        r = rnd.rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
-        D = r[:, None]*D
+        r = rnd.rand(N) ** (1 / len(R)) / np.sqrt(np.sum(D ** 2, axis=1))
+        D = r[:, None] * D
         return D @ R * 2
 
 
@@ -241,5 +243,5 @@ class UniParallelRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = rnd.rand(N, len(R))-0.5
+        D = rnd.rand(N, len(R)) - 0.5
         return D @ R * sqrt(12)

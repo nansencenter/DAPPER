@@ -8,11 +8,13 @@ t = modelling.Chronology(0.01, dko=100, T=30, BurnIn=10)
 
 Dyn = modelling.Operator(M=len(x0), model=step, linear=dstep_dx, noise=0)
 
-X0 = modelling.GaussRV(mu=x0, C=0.01**2)
+X0 = modelling.GaussRV(mu=x0, C=0.01 ** 2)
 
 jj = [0, 2]
 Obs = modelling.partial_Id_Obs(len(x0), jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=0.1**2)
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=0.1 ** 2
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, liveplotters=LP_setup(jj))
 

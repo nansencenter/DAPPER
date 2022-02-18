@@ -8,9 +8,9 @@ import dapper.mods as modelling
 
 tseq = modelling.Chronology(1, dko=1, Ko=2000, Tplot=10, BurnIn=0)
 M = 4
-Obs = {'noise': 2, 'M': M}
-Obs = modelling.Operator(M=M, noise=0.1**2)
-Dyn = {'noise': 1, 'M': M}
+Obs = {"noise": 2, "M": M}
+Obs = modelling.Operator(M=M, noise=0.1 ** 2)
+Dyn = {"noise": 1, "M": M}
 Dyn = modelling.Operator(M=M, noise=1)
 X0 = modelling.GaussRV(C=1, M=M)
 

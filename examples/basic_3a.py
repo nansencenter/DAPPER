@@ -39,25 +39,26 @@ def setup(hmm, xp):
     """Experiment init.: Set Lorenz-96 forcing. Seed. Simulate truth/obs."""
     import dapper as dpr  # req. on clusters
     import dapper.mods.Lorenz96 as core
+
     core.Force = xp.F
     return dpr.seed_and_simulate(hmm, xp)
 
 
 # This is shorter than Ref[1], but we also use repetitions (a seed list).
-HMM.tseq.Ko = 10**4
+HMM.tseq.Ko = 10 ** 4
 
 # #### DA method configurations
 
 # Param ranges
 params = dict(
-    xB       = [.1, .2, .4, 1],
-    N        = [5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50],
-    infl     = 1+np.array([0, .01, .02, .04, .07, .1, .2, .4, .7, 1]),
-    rot      = [True, False],
-    loc_rad  = dpr.round2sigfig([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]], 2),
+    xB=[0.1, 0.2, 0.4, 1],
+    N=[5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50],
+    infl=1 + np.array([0, 0.01, 0.02, 0.04, 0.07, 0.1, 0.2, 0.4, 0.7, 1]),
+    rot=[True, False],
+    loc_rad=dpr.round2sigfig([a * b for b in [0.1, 1, 10] for a in [1, 2, 4, 7]], 2),
 )
 # Combines all the params suitable for a method. See doc for dpr.combinator.
-for_params = dpr.combinator(params, seed=3000+np.arange(10), F=[8, 10])
+for_params = dpr.combinator(params, seed=3000 + np.arange(10), F=[8, 10])
 
 xps = dpr.xpList()
 xps += for_params(da.Climatology)
@@ -72,7 +73,7 @@ xps += for_params(da.LETKF)
 # #### Run experiments
 
 # Paralellize/distribute experiments across CPUs.
-mp = False     # 1 CPU only
+mp = False  # 1 CPU only
 # mp = 7         # 7 CPUs (requires that you pip-installed DAPPER with [MP])
 # mp = True      # All CPUs
 # mp = "Google"  # Requires access to DAPPER cluster
@@ -93,6 +94,6 @@ if mp:
 xp_dict = dpr.xpSpace.from_list(xps)
 
 # Print, split into tables by `outer` (also try None), and columns by `inner`.
-tunable = {'loc_rad', 'infl', 'xB', 'rot'}
+tunable = {"loc_rad", "infl", "xB", "rot"}
 dims = dict(outer="F", inner="N", mean="seed", optim=tunable)
 xp_dict.print("rmse.a", dims, subcols=False)

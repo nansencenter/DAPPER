@@ -4,6 +4,7 @@
 # For example, `matplotlib` (its event loop) might clash (however mysteriously)
 # with mp, so it's nice to be able to be sure that no mp is "in the mix".
 import multiprocessing_on_dill as mpd
+
 # Enforcing individual core usage.
 # Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
 #     This may yield some performance gain, but typically not much
@@ -60,9 +61,14 @@ def Pool(NPROC=None):
     if NPROC == False:
         # Yield plain old map
         class NoPool:
-            def __enter__(self): return builtins
-            def __exit__(self, *args): pass
+            def __enter__(self):
+                return builtins
+
+            def __exit__(self, *args):
+                pass
+
         import builtins
+
         return NoPool()
 
     else:

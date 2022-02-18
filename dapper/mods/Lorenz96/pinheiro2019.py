@@ -16,9 +16,15 @@ Dyn = modelling.Operator(M=Nx, model=step, noise=0.25 / tseq.dto)
 
 X0 = modelling.GaussRV(mu=x0(Nx), C=0.001)
 
-jj = linspace_int(Nx, Nx//4, periodic=True)
+jj = linspace_int(Nx, Nx // 4, periodic=True)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=0.1**2, localizer=nd_Id_localization((Nx,), (1,), jj, periodic=True))
+Obs = modelling.Operator(
+    M=Obs.get("M"),
+    model=Obs.get("model"),
+    linear=Obs.get("linear"),
+    noise=0.1 ** 2,
+    localizer=nd_Id_localization((Nx,), (1,), jj, periodic=True),
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

@@ -18,12 +18,15 @@ def _interaction_impossible():
     global disable_user_interaction
     disable_user_interaction = True
     if "pytest" not in sys.modules:
-        warnings.warn((
-            "Keyboard interaction (to skip/stop/pause the liveplotting)"
-            " does not work in the current python frontend."
-            " If you wish, you can use dpr_config.yaml to disable the"
-            " liveplotting altogether, which will silence this message."),
-            stacklevel=2)
+        warnings.warn(
+            (
+                "Keyboard interaction (to skip/stop/pause the liveplotting)"
+                " does not work in the current python frontend."
+                " If you wish, you can use dpr_config.yaml to disable the"
+                " liveplotting altogether, which will silence this message."
+            ),
+            stacklevel=2,
+        )
 
 
 def pdesc(desc):
@@ -42,8 +45,8 @@ def pdesc(desc):
         except IndexError:
             pass
         else:
-            if 'pb_name_hook' in locals_:
-                name = locals_['pb_name_hook']
+            if "pb_name_hook" in locals_:
+                name = locals_["pb_name_hook"]
                 break
     else:
         # Otherwise: just get name of what's
@@ -59,8 +62,14 @@ def progbar(iterable, desc=None, leave=1, **kwargs):
         return iterable
     else:
         desc = pdesc(desc)
-        return tqdm(iterable, desc=desc, leave=leave,
-                    smoothing=0.3, dynamic_ncols=True, **kwargs)
+        return tqdm(
+            iterable,
+            desc=desc,
+            leave=leave,
+            smoothing=0.3,
+            dynamic_ncols=True,
+            **kwargs
+        )
         # Printing during the progbar loop (may occur with error printing)
         # can cause tqdm to freeze the entire execution.
         # Seemingly, this is caused by their multiprocessing-safe stuff.

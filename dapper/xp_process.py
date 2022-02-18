@@ -90,7 +90,7 @@ class SparseSpace(dict):
             The attributes defining the coordinate system.
         """
         # Define coordinate system
-        self.Coord = collections.namedtuple('Coord', dims)
+        self.Coord = collections.namedtuple("Coord", dims)
 
         def repr2(c, keys=False, str_or_repr=repr):
             if keys:
@@ -123,7 +123,8 @@ class SparseSpace(dict):
         except TypeError:
             raise TypeError(
                 f"The key {key!r} did not fit the coord. system "
-                f"which has dims {self.dims}")
+                f"which has dims {self.dims}"
+            )
         super().__setitem__(key, val)
 
     def __getitem__(self, key):
@@ -179,6 +180,7 @@ class SparseSpace(dict):
         Note that the `missingval` shenanigans of `xpList.inds` are here unnecessary
         since each coordinate is complete.
         """
+
         def match(coord):
             return all(getattr(coord, k) == kwargs[k] for k in kwargs)
 
@@ -195,7 +197,7 @@ class SparseSpace(dict):
         return self.Coord(*coord)
 
     def __repr__(self):
-        txt  = f"<{self.__class__.__name__}>"
+        txt = f"<{self.__class__.__name__}>"
         txt += " with Coord/dims: "
         try:
             txt += "(and ticks): " + str(AlignedDict(self.ticks))
@@ -207,7 +209,7 @@ class SparseSpace(dict):
         # (it's only called in from_list, not (necessarily) in any nested spaces)
         L = 2
         keys = [k.repr2() for k in self]
-        if 2*L < len(keys):
+        if 2 * L < len(keys):
             keys = keys[:L] + ["..."] + keys[-L:]
         keys = "[\n  " + ",\n  ".join(keys) + "\n]"
         return txt + f"populated by {len(self)} items with keys: {keys}"
@@ -258,20 +260,24 @@ class SparseSpace(dict):
         """
         absent = complement(attrs, self.dims)
         if absent:
-            print(color_text("Warning:", colorama.Fore.RED),
-                  "The requested attributes",
-                  color_text(str(absent), colorama.Fore.RED),
-                  ("were not found among the xpSpace dims"
-                   " (attrs. used as coordinates for the set of experiments)."
-                   " This may be no prob. if the attrs are redundant for the coord-sys."
-                   " However, if due to confusion or mis-spelling, then it is likely"
-                   " to cause mis-interpretation of the shown results."))
+            print(
+                color_text("Warning:", colorama.Fore.RED),
+                "The requested attributes",
+                color_text(str(absent), colorama.Fore.RED),
+                (
+                    "were not found among the xpSpace dims"
+                    " (attrs. used as coordinates for the set of experiments)."
+                    " This may be no prob. if the attrs are redundant for the coord-sys."
+                    " However, if due to confusion or mis-spelling, then it is likely"
+                    " to cause mis-interpretation of the shown results."
+                ),
+            )
             attrs = complement(attrs, absent)
         return attrs
 
     def append_dim(self, dim):
         """Expand `self.Coord` by `dim`. For each item, insert `None` in new dim."""
-        self.__init__(self.dims+(dim,))
+        self.__init__(self.dims + (dim,))
         for coord in list(self):
             entry = self.pop(coord)
             self[coord + (None,)] = entry
@@ -290,7 +296,7 @@ class SparseSpace(dict):
         preventing them from being shown in plot labels and tuning panels.
         """
         if "xSect" not in self.dims:
-            self.append_dim('xSect')
+            self.append_dim("xSect")
 
         for coord in self.coords_matching(**self.intersect_dims(sub_coord)):
             entry = copy.deepcopy(self[coord])
@@ -318,7 +324,7 @@ class xpSpace(SparseSpace):
         `UncertainQtty`, because it calls `mean` which calls `get_stat(statkey)`.
         """
         # Define and fill SparseSpace
-        dct = xpList(xps).prep_table(nomerge=['xSect'])[0]
+        dct = xpList(xps).prep_table(nomerge=["xSect"])[0]
         self = cls(dct.keys())
         self.fill(xps)
         self.make_ticks(dct, tick_ordering)
@@ -333,14 +339,15 @@ class xpSpace(SparseSpace):
         ordering = ordering or {}
         for name, values in dct.items():
             ticks = set(values)  # unique (jumbles order)
-            order = ordering.get(name, 'as-found')
+            order = ordering.get(name, "as-found")
 
             # Sort key
             if callable(order):
                 key = order
-            elif 'as-found' in order:
+            elif "as-found" in order:
                 key = values.index
             else:  # "natural"
+
                 def key(x):
                     return x
 
@@ -380,7 +387,8 @@ class xpSpace(SparseSpace):
 
         if len(not_found) == len(self):
             raise AttributeError(
-                f"The stat. '{statkey}' was not found among **any** of the xp's.")
+                f"The stat. '{statkey}' was not found among **any** of the xp's."
+            )
         elif not_found:
             print(color_text("Warning:", "RED"), f"no stat. '{statkey}' found for")
             print(*not_found, sep="\n")
@@ -398,6 +406,7 @@ class xpSpace(SparseSpace):
 
             def getval(uq):
                 return uq.val if isinstance(uq, UncertainQtty) else uq
+
             vals = [getval(uq) for uq in space.values()]
 
             # Don't use nanmean! It would give false impressions.
@@ -410,9 +419,9 @@ class xpSpace(SparseSpace):
                 var = np.var(vals, ddof=1)
 
             N = len(vals)
-            uq = UncertainQtty(mu, np.sqrt(var/N))
-            uq.nTotal   = N
-            uq.nFail    = N - np.isfinite(vals).sum()
+            uq = UncertainQtty(mu, np.sqrt(var / N))
+            uq.nTotal = N
+            uq.nFail = N - np.isfinite(vals).sum()
             uq.nSuccess = N - uq.nFail
 
             nested[coord] = uq
@@ -421,11 +430,11 @@ class xpSpace(SparseSpace):
     def tune(self, dims=None, costfun=None):
         """Get (compile/tabulate) a stat. optimised wrt. tuning params (`dims`)."""
         # Define cost-function
-        costfun = (costfun or 'increasing').lower()
-        if 'increas' in costfun:
-            costfun = (lambda x: +x)
-        elif 'decreas' in costfun:
-            costfun = (lambda x: -x)
+        costfun = (costfun or "increasing").lower()
+        if "increas" in costfun:
+            costfun = lambda x: +x
+        elif "decreas" in costfun:
+            costfun = lambda x: -x
         else:
             assert callable(costfun)  # custom
 
@@ -441,9 +450,9 @@ class xpSpace(SparseSpace):
             for inner_coord, uq in space.items():
                 cost = costfun(uq.val)
                 if cost <= MIN:
-                    found_any          = True
-                    MIN                = cost
-                    uq_opt             = uq
+                    found_any = True
+                    MIN = cost
+                    uq_opt = uq
                     uq_opt.tuned_coord = inner_coord
 
             if not found_any:
@@ -467,6 +476,7 @@ class xpSpace(SparseSpace):
             cannot support multiple `statkey`s because it's not (obviously) meaningful
             when optimizing over `dims['optim']`.
         """
+
         def validate_dims(dims):
             """Validate dims."""
             role_register = {}
@@ -492,7 +502,8 @@ class xpSpace(SparseSpace):
                         if dim in role_register:
                             raise TypeError(
                                 f"A dim (here {dim!r}) cannot be assigned to 2"
-                                f" roles (here {role!r} and {role_register[dim]!r}).")
+                                f" roles (here {role!r} and {role_register[dim]!r})."
+                            )
                         else:
                             role_register[dim] = role
                 new[role] = dd
@@ -508,8 +519,8 @@ class xpSpace(SparseSpace):
             These possibile call locations are commented in the code.
             """
             uq_dict = xp_dict.get_stat(statkey)
-            uq_dict = uq_dict.mean(dims['mean'])
-            uq_dict = uq_dict.tune(dims['optim'], costfun)
+            uq_dict = uq_dict.mean(dims["mean"])
+            uq_dict = uq_dict.tune(dims["optim"], costfun)
             return uq_dict
 
         dims = validate_dims(dims)
@@ -528,7 +539,7 @@ class xpSpace(SparseSpace):
         #  - Each level of the output from table_tree
         #    is a smaller (and more manageable) dict.
 
-        tables = self2.nest(outer_dims=dims['outer'])
+        tables = self2.nest(outer_dims=dims["outer"])
         for table_coord, table in tables.items():
             # table = mean_tune(table)
 
@@ -536,7 +547,7 @@ class xpSpace(SparseSpace):
             # and is required for getting distinct/row_keys).
             # cols = table.nest(outer_dims=dims['inner'])
 
-            rows = table.nest(inner_dims=dims['inner'] or ())
+            rows = table.nest(inner_dims=dims["inner"] or ())
 
             # Overwrite table by its nesting as rows
             tables[table_coord] = rows
@@ -552,9 +563,17 @@ class xpSpace(SparseSpace):
         """Dimension (axis) ticks without None"""
         return [x for x in self.ticks[dim_name] if x is not None]
 
-    def print(self, statkey, dims,  # noqa (shadowing builtin)
-              subcols=True, decimals=None, costfun=None,
-              squeeze_labels=True, colorize=True, title=None):
+    def print(
+        self,
+        statkey,
+        dims,  # noqa (shadowing builtin)
+        subcols=True,
+        decimals=None,
+        costfun=None,
+        squeeze_labels=True,
+        colorize=True,
+        title=None,
+    ):
         """Print tables of results.
 
         Parameters
@@ -613,19 +632,18 @@ class xpSpace(SparseSpace):
             print(title)
 
         # Inform dims["mean"]
-        if dims.get('mean', None):
+        if dims.get("mean", None):
             print(f"Averages (in time and) over {dims['mean']}.")
         else:
-            print("Averages in time only"
-                  " (=> the 1σ estimates may be unreliable).")
+            print("Averages in time only" " (=> the 1σ estimates may be unreliable).")
 
         def make_cols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
             # Define subcol formats
             if subcols:
                 templ = "{val} ±{prec}"
-                templ += "" if dims['optim'] is None else " *{tuned_coord}"
-                templ += "" if dims['mean' ] is None else " {nFail} {nSuccess}"
+                templ += "" if dims["optim"] is None else " *{tuned_coord}"
+                templ += "" if dims["mean"] is None else " {nFail} {nSuccess}"
                 aligns = dict(prec="<", tuned_coord="<")
 
             def align(column, idx):
@@ -691,28 +709,39 @@ class xpSpace(SparseSpace):
             # Prepend left-side (attr) table
             if squeeze_labels:
                 table = table.squeeze()
-            headers = [h2+k for k in table.dims] + [h2+'⑊'] + headers
+            headers = [h2 + k for k in table.dims] + [h2 + "⑊"] + headers
             for i, (key, row) in enumerate(zip(table, rows)):
-                rows[i] = [*key] + ['|'] + row
+                rows[i] = [*key] + ["|"] + row
 
             print()
-            if dims['outer']:
+            if dims["outer"]:
                 # Title
                 table_title = "Table for " + table_coord.repr2(True).strip("()")
                 if colorize:
                     clrs = colorama.Back.YELLOW, colorama.Fore.BLACK
                     table_title = color_text(table_title, *clrs)
                 print(table_title)
-            table = tabulate(rows, headers).replace('␣', ' ')
+            table = tabulate(rows, headers).replace("␣", " ")
             if colorize:
                 table = stripe(table, slice(2, None))
             print(table)
 
         return tables
 
-    def plot(self, statkey, dims, get_style=default_styles,
-             fignum=None, figsize=None, panels=None, costfun=None,
-             title1=None, title2=None, unique_labels=True, squeeze_labels=True):
+    def plot(
+        self,
+        statkey,
+        dims,
+        get_style=default_styles,
+        fignum=None,
+        figsize=None,
+        panels=None,
+        costfun=None,
+        title1=None,
+        title2=None,
+        unique_labels=True,
+        squeeze_labels=True,
+    ):
         """Plot (tables of) results.
 
         Analagously to `xpSpace.print`,
@@ -743,6 +772,7 @@ class xpSpace(SparseSpace):
         squeeze_labels:
             Don't include redundant attributes in the labels.
         """
+
         def plot1(panelcol, row, style):
             """Plot a given line (row) in the main panel and the optim panels.
 
@@ -752,19 +782,24 @@ class xpSpace(SparseSpace):
             # is_constant = (len(row)==1 and next(iter(row))==row.Coord(None))
             is_constant = all(x == row.Coord(None) for x in row)
             if is_constant:
-                yy = [row[None, ] for _ in xticks]
+                yy = [
+                    row[
+                        None,
+                    ]
+                    for _ in xticks
+                ]
                 style.marker = None
             else:
                 yy = [row.get(row.Coord(x), None) for x in xticks]
 
             # Plot main
-            row.vals = [getattr(y, 'val', None) for y in yy]
+            row.vals = [getattr(y, "val", None) for y in yy]
             row.handles = {}
             row.handles["main_panel"] = panelcol[0].plot(xticks, row.vals, **style)[0]
 
             # Plot tuning params
             row.tuned_coords = {}  # Store ordered, "transposed" argmins
-            argmins = [getattr(y, 'tuned_coord', None) for y in yy]
+            argmins = [getattr(y, "tuned_coord", None) for y in yy]
             for a, panel in zip(dims["optim"] or (), panelcol[1:]):
                 yy = [getattr(coord, a, None) for coord in argmins]
                 row.tuned_coords[a] = yy
@@ -787,27 +822,40 @@ class xpSpace(SparseSpace):
                         pruner.has_labels = True
                 elif label:
                     pruner.has_labels = True
+
             pruner.has_labels = False
 
             def squeezer(coord):
                 return intersect(coord._asdict(), label_attrs)
+
             if squeeze_labels:
                 label_attrs = xpList(table.keys()).prep_table()[0]
             else:
                 label_attrs = table.dims
 
             return pruner, squeezer
+
         register = set()
 
         def beautify(panels, title, has_labels):
             panel0 = panels[0]
             # panel0.set_title(title)
-            panel0.text(.5, 1, title, fontsize=12, ha="center", va="bottom",
-                        transform=panel0.transAxes, bbox=dict(
-                            facecolor='lightyellow', edgecolor='k',
-                            alpha=0.99, boxstyle="round,pad=0.25",
-                            # NB: padding makes label spill into axes
-                        ))
+            panel0.text(
+                0.5,
+                1,
+                title,
+                fontsize=12,
+                ha="center",
+                va="bottom",
+                transform=panel0.transAxes,
+                bbox=dict(
+                    facecolor="lightyellow",
+                    edgecolor="k",
+                    alpha=0.99,
+                    boxstyle="round,pad=0.25",
+                    # NB: padding makes label spill into axes
+                ),
+            )
             if has_labels:
                 panel0.legend()
             if panel0.is_first_col():
@@ -831,29 +879,42 @@ class xpSpace(SparseSpace):
             # And maybe you actually want the plotted lines to have holes where self
             # has no values. Changes in the ticks are not obvious to the naked eye,
             # unlike the case for printed tables (where column changes are quite clear).
-            print(color_text("Warning:", colorama.Fore.RED), "Making new x-ticks."
-                  "\nConsider assigning them yourself from the original"
-                  " xpSpace to this subspace.")
+            print(
+                color_text("Warning:", colorama.Fore.RED),
+                "Making new x-ticks."
+                "\nConsider assigning them yourself from the original"
+                " xpSpace to this subspace.",
+            )
             self.make_ticks(xpList(self).prep_table()[0])
         xticks = self.tickz(dims["inner"][0])
 
         # Create figure axes
         if panels is None:
-            nrows   = len(dims['optim'] or ()) + 1
-            ncols   = len(tables)
-            maxW    = 12.7  # my mac screen
-            figsize = figsize or (min(5*ncols, maxW), 7)
-            gs      = dict(
-                height_ratios=[6]+[1]*(nrows-1),
-                hspace=0.05, wspace=0.05,
+            nrows = len(dims["optim"] or ()) + 1
+            ncols = len(tables)
+            maxW = 12.7  # my mac screen
+            figsize = figsize or (min(5 * ncols, maxW), 7)
+            gs = dict(
+                height_ratios=[6] + [1] * (nrows - 1),
+                hspace=0.05,
+                wspace=0.05,
                 # eyeballed:
-                left=0.15/(1+np.log(ncols)),
-                right=0.97, bottom=0.06, top=0.9)
+                left=0.15 / (1 + np.log(ncols)),
+                right=0.97,
+                bottom=0.06,
+                top=0.9,
+            )
             # Create
-            _, panels = place.freshfig(num=fignum, figsize=figsize,
-                                       nrows=nrows, sharex=True,
-                                       ncols=ncols, sharey='row',
-                                       gridspec_kw=gs, squeeze=False)
+            _, panels = place.freshfig(
+                num=fignum,
+                figsize=figsize,
+                nrows=nrows,
+                sharex=True,
+                ncols=ncols,
+                sharey="row",
+                gridspec_kw=gs,
+                squeeze=False,
+            )
         else:
             panels = np.atleast_2d(panels)
 
@@ -861,7 +922,7 @@ class xpSpace(SparseSpace):
         fig = panels[0, 0].figure
         fig_title = "Averages wrt. time"
         if dims["mean"] is not None:
-            fig_title += " and " + ", ".join([repr(c) for c in dims['mean']])
+            fig_title += " and " + ", ".join([repr(c) for c in dims["mean"]])
         if title1 is not None:
             fig_title += ". " + title1
         if title2 is not None:
@@ -879,10 +940,13 @@ class xpSpace(SparseSpace):
                 label_prune(style)
                 plot1(table.panels, row, style)
 
-            beautify(table.panels,
-                     title=("" if dims["outer"] is None else
-                            table_coord.repr2(True).strip("()")),
-                     has_labels=label_prune.has_labels)
+            beautify(
+                table.panels,
+                title=(
+                    "" if dims["outer"] is None else table_coord.repr2(True).strip("()")
+                ),
+                has_labels=label_prune.has_labels,
+            )
 
         tables.fig = fig  # add reference to fig
         return tables

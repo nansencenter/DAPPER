@@ -7,7 +7,7 @@ from struct_tools import AlignedDict
 from dapper.tools.colors import color_text
 
 
-class Chronology():
+class Chronology:
     """Time schedules with consistency checks.
 
     - Uses int records, so `tt[k] == k*dt`.
@@ -43,56 +43,67 @@ class Chronology():
     and so should/will raise an exception.
     """
 
-    def __init__(self, dt=None, dto=None, T=None, BurnIn=-1,
-                 dko=None, Ko=None, K=None, Tplot=None):
+    def __init__(
+        self,
+        dt=None,
+        dto=None,
+        T=None,
+        BurnIn=-1,
+        dko=None,
+        Ko=None,
+        K=None,
+        Tplot=None,
+    ):
 
-        assert 3 == [dt, dto, T, dko, Ko, K].count(None), \
-            'Chronology is specified using exactly 3 parameters.'
+        assert 3 == [dt, dto, T, dko, Ko, K].count(
+            None
+        ), "Chronology is specified using exactly 3 parameters."
 
         # Reduce all to "state vars" dt,dko,K
         if not dt:
             if T and K:
-                dt = T/K
+                dt = T / K
             elif dko and dto:
-                dt = dto/dko
+                dt = dto / dko
             elif T and dko and Ko:
-                dt = T/(Ko+1)/dko
+                dt = T / (Ko + 1) / dko
             else:
-                raise TypeError('Unable to interpret time setup')
+                raise TypeError("Unable to interpret time setup")
         if not dko:
             if dto:
-                dko = round(dto/dt)
-                assert abs(dto - dko*dt) < dt*1e-9
+                dko = round(dto / dt)
+                assert abs(dto - dko * dt) < dt * 1e-9
             else:
-                raise TypeError('Unable to interpret time setup')
+                raise TypeError("Unable to interpret time setup")
         assert isinstance(dko, int)
         if not K:
             if T:
-                K = round(T/dt)
-                assert abs(T - K*dt) < dt*1e-9
+                K = round(T / dt)
+                assert abs(T - K * dt) < dt * 1e-9
             elif Ko:
-                K = dko*(Ko+1)
+                K = dko * (Ko + 1)
             else:
-                raise TypeError('Unable to interpret time setup')
-        K = int(np.ceil(K/dko)*dko)
+                raise TypeError("Unable to interpret time setup")
+        K = int(np.ceil(K / dko) * dko)
 
         # "State vars"
-        self._dt      = dt
-        self._dko   = dko
-        self._K       = K
+        self._dt = dt
+        self._dko = dko
+        self._K = K
 
         # BurnIn, Tplot
         if self.T <= BurnIn:
             BurnIn = self.T / 2
-            warning = "Warning: experiment duration < BurnIn time." \
-                      "\nReducing BurnIn value."
+            warning = (
+                "Warning: experiment duration < BurnIn time." "\nReducing BurnIn value."
+            )
             print(color_text(warning, colorama.Fore.RED))
         self.BurnIn = BurnIn
         if Tplot is None:
             Tplot = BurnIn
         self.Tplot = Tplot  # don't enforce <T here
 
-        assert len(self.kko) == self.Ko+1
+        assert len(self.kko) == self.Ko + 1
 
     ######################################
     # "State vars". Can be set (changed).
@@ -104,12 +115,13 @@ class Chronology():
 
     @dt.setter
     def dt(self, value):
-        dko_new = self.dko * self.dt/value
+        dko_new = self.dko * self.dt / value
         if not np.isclose(int(dko_new), dko_new):
-            raise ValueError('New value is amgiguous with respect to dko')
+            raise ValueError("New value is amgiguous with respect to dko")
         dko_new = int(dko_new)
-        self.__init__(dt=value, dko=dko_new, T=self.T,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
+        self.__init__(
+            dt=value, dko=dko_new, T=self.T, BurnIn=self.BurnIn, Tplot=self.Tplot
+        )
 
     @property
     def dko(self):
@@ -117,9 +129,14 @@ class Chronology():
 
     @dko.setter
     def dko(self, value):
-        ratio = value/self.dko
-        self.__init__(dt=self.dt, dko=value, T=ratio*self.T,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
+        ratio = value / self.dko
+        self.__init__(
+            dt=self.dt,
+            dko=value,
+            T=ratio * self.T,
+            BurnIn=self.BurnIn,
+            Tplot=self.Tplot,
+        )
 
     @property
     def K(self):
@@ -127,44 +144,47 @@ class Chronology():
 
     @K.setter
     def K(self, value):
-        self.__init__(dt=self.dt, dko=self.dko, K=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
+        self.__init__(
+            dt=self.dt, dko=self.dko, K=value, BurnIn=self.BurnIn, Tplot=self.Tplot
+        )
 
     ######################################
     # Read/write (though not state var)
     ######################################
     @property
     def T(self):
-        return self.dt*self.K
+        return self.dt * self.K
 
     @T.setter
     def T(self, value):
-        self.__init__(dt=self.dt, dko=self.dko, T=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
+        self.__init__(
+            dt=self.dt, dko=self.dko, T=value, BurnIn=self.BurnIn, Tplot=self.Tplot
+        )
 
     @property
     def Ko(self):
-        return int(self.K/self.dko)-1
+        return int(self.K / self.dko) - 1
 
     @Ko.setter
     def Ko(self, value):
-        self.__init__(dt=self.dt, dko=self.dko, Ko=value,
-                      BurnIn=self.BurnIn, Tplot=self.Tplot)
+        self.__init__(
+            dt=self.dt, dko=self.dko, Ko=value, BurnIn=self.BurnIn, Tplot=self.Tplot
+        )
 
     ######################################
     # Read-only
     ######################################
     @property
     def dto(self):
-        return self.dko*self.dt
+        return self.dko * self.dt
 
     @property
     def kk(self):
-        return np.arange(self.K+1)
+        return np.arange(self.K + 1)
 
     @property
     def kko(self):
-        return self.kk[self.dko::self.dko]
+        return self.kk[self.dko :: self.dko]
 
     @property
     def tt(self):
@@ -211,17 +231,17 @@ class Chronology():
 
         Also yields `t` and `dt`.
         """
-        for k in ko * self.dko + np.arange(1, self.dko+1):
-            t  = self.tt[k]
-            dt = t - self.tt[k-1]
+        for k in ko * self.dko + np.arange(1, self.dko + 1):
+            t = self.tt[k]
+            dt = t - self.tt[k - 1]
             yield k, t, dt
 
     def __str__(self):
-        printable = ['K', 'Ko', 'T', 'BurnIn', 'dto', 'dt']
+        printable = ["K", "Ko", "T", "BurnIn", "dto", "dt"]
         return str(AlignedDict([(k, getattr(self, k)) for k in printable]))
 
     def __repr__(self):
-        return "<" + type(self).__name__ + '>' + "\n" + str(self)
+        return "<" + type(self).__name__ + ">" + "\n" + str(self)
 
     ######################################
     # Utilities
@@ -249,25 +269,26 @@ class Ticker:
     """
 
     def __init__(self, tt, kko):
-        self.tt  = tt
+        self.tt = tt
         self.kko = kko
         self.reset()
 
     def reset(self):
-        self.k   = 0
+        self.k = 0
         self._ko = 0
-        self.ko  = None
+        self.ko = None
 
     def __len__(self):
         return len(self.tt) - self.k
 
-    def __iter__(self): return self
+    def __iter__(self):
+        return self
 
     def __next__(self):
         if self.k >= len(self.tt):
             raise StopIteration
-        t    = self.tt[self.k]
-        dt   = t - self.tt[self.k-1] if self.k > 0 else np.NaN
+        t = self.tt[self.k]
+        dt = t - self.tt[self.k - 1] if self.k > 0 else np.NaN
         item = (self.k, self.ko, t, dt)
         self.k += 1
         if self._ko < len(self.kko) and self.k == self.kko[self._ko]:
@@ -280,12 +301,12 @@ class Ticker:
 
 def format_time(k, ko, t):
     if k is None:
-        k    = "init"
-        t    = "init"
+        k = "init"
+        t = "init"
         ko = "N/A"
     else:
-        t    = "   t=%g" % t
-        k    = "   k=%d" % k
+        t = "   t=%g" % t
+        k = "   k=%d" % k
         ko = "ko=%s" % ko
     s = "\n".join([t, k, ko])
     return s

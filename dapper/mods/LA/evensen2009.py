@@ -31,19 +31,22 @@ def step(x, t, dt):
     assert dt == tseq.dt
     return x @ Fm.T
 
+
 Dyn = modelling.Operator(M=Nx, model=step, linear=lambda x, t, dt: Fm, noise=0)
 
 # In the animation, it can sometimes/somewhat occur
 # that the truth is outside 3*sigma !!!
 # Yet this is not so implausible because sinusoidal_sample()
 # yields (multivariate) uniform (random numbers) -- not Gaussian.
-wnum  = 25
-a = np.sqrt(5)/10
-X0 = modelling.RV(M=Nx, func = lambda N: a*sinusoidal_sample(Nx, wnum, N))
+wnum = 25
+a = np.sqrt(5) / 10
+X0 = modelling.RV(M=Nx, func=lambda N: a * sinusoidal_sample(Nx, wnum, N))
 
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 0.01
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=0.01)
+Obs["noise"] = 0.01
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=0.01
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LPs(jj))
 

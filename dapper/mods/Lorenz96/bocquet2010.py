@@ -5,7 +5,7 @@ import numpy as np
 import dapper.mods as modelling
 from dapper.mods.Lorenz96 import step
 
-tseq = modelling.Chronology(0.05, dko=1, T=4**3, BurnIn=20)
+tseq = modelling.Chronology(0.05, dko=1, T=4 ** 3, BurnIn=20)
 
 Nx = 10
 Dyn = modelling.Operator(M=Nx, model=step, noise=0)
@@ -14,7 +14,9 @@ X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0, Nx, 2)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=1.5)
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=1.5
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

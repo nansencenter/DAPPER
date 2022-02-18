@@ -22,7 +22,7 @@ rc.loaded_from = []
 for d in [dapper_dir, "~", "~/.config", "."]:
     d = Path(d).expanduser().absolute()
     for prefix in [".", ""]:
-        f = d / (prefix+"dpr_config.yaml")
+        f = d / (prefix + "dpr_config.yaml")
         if f.is_file():
             dct = yaml.load(open(f), Loader=yaml.SafeLoader)
             rc.loaded_from.append(str(f))
@@ -71,9 +71,11 @@ if LP and not is_using_interactive_backend():
     # Note: plot_pause could maybe be adapted to also work for
     # "inline" backend (which is not striclty interactive), but I think
     # this would be buggy, and is incompatible with a "stop" button.
-    print("\nWarning: You have not disableed interactive/live plotting",
-          "in your dpr_config.yaml,",
-          "but this is not supported by the current matplotlib backend:",
-          f"{mpl.get_backend()}. To enable it, try using another backend.\n")
+    print(
+        "\nWarning: You have not disableed interactive/live plotting",
+        "in your dpr_config.yaml,",
+        "but this is not supported by the current matplotlib backend:",
+        f"{mpl.get_backend()}. To enable it, try using another backend.\n",
+    )
     LP = False
 rc.liveplotting = LP

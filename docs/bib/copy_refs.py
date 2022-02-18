@@ -12,6 +12,7 @@ and `references.bib` is my own centralized database.
 
 import re
 from pathlib import Path
+
 # from subprocess import run
 # from textwrap import dedent
 import os
@@ -41,7 +42,7 @@ def parse_bib(bibfile):
         elif line.lstrip().startswith("@"):
             try:
                 # Start block
-                name = line[line.index("{")+1:].strip(" \n,")
+                name = line[line.index("{") + 1 :].strip(" \n,")
             except IndexError:
                 continue
             refs[name] = [line]
@@ -50,7 +51,7 @@ def parse_bib(bibfile):
 
 def parse_citations(file_list):
     "Extract references in use."
-    PATTERN = r'`bib\.\w{0,30}`'
+    PATTERN = r"`bib\.\w{0,30}`"
     citations = []
     for f in file_list:
         f = open(f).read()
@@ -80,9 +81,9 @@ gitfiles = [f for f in gitfiles.split("\n") if f.endswith(".py")]
 citations = parse_citations(gitfiles)
 
 references_bib = Path("~/P/Refs/references.bib").expanduser()
-refs_bib       = rc.dirs.DAPPER / "docs" / "bib" / "refs.bib"
+refs_bib = rc.dirs.DAPPER / "docs" / "bib" / "refs.bib"
 references = parse_bib(references_bib)
-refs       = parse_bib(refs_bib)
+refs = parse_bib(refs_bib)
 
 # print(*gitfiles, sep="\n")
 # print(citations)

@@ -20,8 +20,8 @@ from .xp_process import xpSpace
 def _find_demos(as_path=False):
     """Discover all model demo.py scripts."""
     lst = []
-    for d in (rc.dirs.dapper/"mods").iterdir():
-        x = d/"demo.py"
+    for d in (rc.dirs.dapper / "mods").iterdir():
+        x = d / "demo.py"
         if x.is_file():
             x = x.relative_to(rc.dirs.DAPPER)
             if not as_path:

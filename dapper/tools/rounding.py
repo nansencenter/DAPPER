@@ -7,7 +7,7 @@ import numpy as np
 from dapper.dpr_config import rc
 
 
-class UncertainQtty():
+class UncertainQtty:
     """Data container associating uncertainty (confidence) to a quantity.
 
     Includes intelligent rounding and printing functionality.
@@ -110,7 +110,7 @@ class UncertainQtty():
 
     @prec.setter
     def prec(self, prec):
-        assert prec >= 0. or np.isnan(prec), "'prec' must be non-negative."
+        assert prec >= 0.0 or np.isnan(prec), "'prec' must be non-negative."
         self._prec = prec
 
 
@@ -174,7 +174,7 @@ def log10int(x):
         y = -300
     elif x < 1e-300:
         y = -300
-    elif x > 1e+300:
+    elif x > 1e300:
         y = +300
     # Normal case
     else:

@@ -11,23 +11,32 @@ from dapper.tools.localization import nd_Id_localization
 
 # Use small dt to "cope with" ocean sector blow up
 # (due to spatially-constant infl)
-OneYear = 0.05 * (24/6) * 365
-t = modelling.Chronology(0.005, dto=0.05, T=110*OneYear,
-                         Tplot=Tplot, BurnIn=10*OneYear)
+OneYear = 0.05 * (24 / 6) * 365
+t = modelling.Chronology(
+    0.005, dto=0.05, T=110 * OneYear, Tplot=Tplot, BurnIn=10 * OneYear
+)
 
-land_sites  = np.arange(Nx//2)
-ocean_sites = np.arange(Nx//2, Nx)
+land_sites = np.arange(Nx // 2)
+ocean_sites = np.arange(Nx // 2, Nx)
 
 jj = land_sites
 Obs = modelling.partial_Id_Obs(Nx, jj)
 
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=1, localizer=nd_Id_localization((Nx,), (1,), jj))
+Obs = modelling.Operator(
+    M=Obs.get("M"),
+    model=Obs.get("model"),
+    linear=Obs.get("linear"),
+    noise=1,
+    localizer=nd_Id_localization((Nx,), (1,), jj),
+)
 
 HMM = modelling.HiddenMarkovModel(
-    Dyn, Obs, t, X0,
+    Dyn,
+    Obs,
+    t,
+    X0,
     liveplotters=LPs(jj),
-    sectors={'land': land_sites,
-             'ocean': ocean_sites},
+    sectors={"land": land_sites, "ocean": ocean_sites},
 )
 
 ####################

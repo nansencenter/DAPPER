@@ -21,14 +21,16 @@ os.chdir(Path(__file__).parent)
 
 
 # Create .md doc with \notice{*}
-open("bib.md", "w").write(r"""
+open("bib.md", "w").write(
+    r"""
 ---
 bibliography: refs.bib
 nocite: '@*'
 ...
 
 # Bibliography
-""")
+"""
+)
 
 
 # Convert to .rst (to process the references)
@@ -36,8 +38,18 @@ nocite: '@*'
 # NB: Unfortunately, converting directly to .md
 #     outputs in a verbose "list-ish" format.
 # Note: for CSL styles see https://editor.citationstyles.org/about/
-run(["pandoc", "--citeproc", "--csl=data-science-journal.csl",
-     "-s", "bib.md", "-o", "bib.rst"], check=True)
+run(
+    [
+        "pandoc",
+        "--citeproc",
+        "--csl=data-science-journal.csl",
+        "-s",
+        "bib.md",
+        "-o",
+        "bib.rst",
+    ],
+    check=True,
+)
 
 
 # Parse rst
@@ -47,16 +59,16 @@ REF_START = "      :name: ref-"
 # Get ref names and line numbers
 for lineno, ln in enumerate(rst):
     if REF_START in ln:
-        name = ln[len(REF_START):].strip()
+        name = ln[len(REF_START) :].strip()
         linenumbers.append((name, lineno))
 # Get ref blocks
 ref_dict = {}
 for i, (name, lineno1) in enumerate(linenumbers):
     try:
-        lineno2 = linenumbers[i+1][1] - 1
+        lineno2 = linenumbers[i + 1][1] - 1
     except IndexError:
         lineno2 = len(rst)
-    block = rst[lineno1+2:lineno2]
+    block = rst[lineno1 + 2 : lineno2]
     block = dedent("".join(block)).strip()
     ref_dict[name] = block
 
@@ -70,8 +82,10 @@ Path("bib.md").unlink()
 
 # Write bib.py
 with open("bib.py", "w") as bibfile:
+
     def _print(*a, **b):
         print(*a, **b, file=bibfile)
+
     _print('"""Bibliography/references."""')
     for key, block in ref_dict.items():
         _print("")

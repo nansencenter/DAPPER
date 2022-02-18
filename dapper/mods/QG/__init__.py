@@ -27,20 +27,20 @@ import dapper.tools.liveplotting as LP
 #########################
 default_prms = dict(
     # These parameters may be interesting to change.
-    dtout        = 5.0,      # dt for output to DAPPER.
-    dt           = 1.25,     # dt used internally by Fortran. CFL = 2.0
-    RKB          = 0,        # bottom     friction
-    RKH          = 0,        # horizontal friction
-    RKH2         = 2.0e-12,  # horizontal friction, biharmonic
-    F            = 1600,     # Froud number
-    R            = 1.0e-5,   # ≈ Rossby number
-    scheme       = "'rk4'",  # One of (2ndorder, rk4, dp5)
+    dtout=5.0,  # dt for output to DAPPER.
+    dt=1.25,  # dt used internally by Fortran. CFL = 2.0
+    RKB=0,  # bottom     friction
+    RKH=0,  # horizontal friction
+    RKH2=2.0e-12,  # horizontal friction, biharmonic
+    F=1600,  # Froud number
+    R=1.0e-5,  # ≈ Rossby number
+    scheme="'rk4'",  # One of (2ndorder, rk4, dp5)
     # Do not change the following:
-    tend         = 0,        # Only used by standalone QG
-    verbose      = 0,        # Turn off
-    rstart       = 0,        # Restart: switch
-    restartfname = "''",     # Restart: read file
-    outfname     = "''",     # Restart: write file
+    tend=0,  # Only used by standalone QG
+    verbose=0,  # Turn off
+    rstart=0,  # Restart: switch
+    restartfname="''",  # Restart: read file
+    outfname="''",  # Restart: write file
 )
 
 
@@ -61,26 +61,32 @@ class model_config:
 
         # Fortran code does not adjust its dt to divide dtout.
         # Nor is it worth implementing -- just assert:
-        assert D['dtout'] % D['dt'] == 0, "Must be integer multiple"
+        assert D["dtout"] % D["dt"] == 0, "Must be integer multiple"
 
-        self.prms  = D
-        self.mp    = mp
-        self.name  = name
-        self.fname = Path(__file__).parent / 'f90' / f'prms_{name}.txt'
+        self.prms = D
+        self.mp = mp
+        self.name = name
+        self.fname = Path(__file__).parent / "f90" / f"prms_{name}.txt"
 
         # Create string
         text = ["  %s = %s" % (key.ljust(20), str(D[key])) for key in D]
-        text = """! Parameter namelist ("%s") generated via Python
-        &parameters\n""" % name + "\n".join(text) + """\n/\n"""
+        text = (
+            """! Parameter namelist ("%s") generated via Python
+        &parameters\n"""
+            % name
+            + "\n".join(text)
+            + """\n/\n"""
+        )
 
         # Write string to file
-        with open(self.fname, 'w') as f:
+        with open(self.fname, "w") as f:
             f.write(text)
 
     @property
     def f90(self):
         try:
             from .f90.py_mod import interface_mod
+
             return interface_mod
         except ImportError as error:
             error.msg = error.msg + (
@@ -115,6 +121,7 @@ class model_config:
                 # as the ratio dtout/dt increases.
                 # But the overhead is already negligible with a ratio of 4.
                 import dapper.tools.multiproc as multiproc
+
                 with multiproc.Pool(self.mp) as pool:
                     E = pool.map(lambda x: self.step_1(x, t=t, dt=dt), E)
                 E = np.array(E)
@@ -146,13 +153,25 @@ ny = NY1 * 2 ** (res - 1) + 1  # (axis=0)
 # Fortran model (e.g. f90/interface.f90) requires orientation: X[ix,iy].
 shape = (nx, ny)
 # Passing arrays to/from Fortran requries that flags['F_CONTIGUOUS']==True.
-order = 'F'
-def py2f(x): return x.reshape(shape, order=order)
-def f2py(X): return X.flatten(order=order)
+order = "F"
+
+
+def py2f(x):
+    return x.reshape(shape, order=order)
+
+
+def f2py(X):
+    return X.flatten(order=order)
+
+
 # However, FOR PRINTING/PLOTTING PURPOSES, the y-axis should be vertical
 # [imshow(mat) uses the same orientation as print(mat)].
-def square(x): return x.reshape(shape[::-1])
-def ind2sub(ind): return np.unravel_index(ind, shape[::-1])
+def square(x):
+    return x.reshape(shape[::-1])
+
+
+def ind2sub(ind):
+    return np.unravel_index(ind, shape[::-1])
 
 
 #########################
@@ -160,16 +179,19 @@ def ind2sub(ind): return np.unravel_index(ind, shape[::-1])
 #########################
 def gen_sample(model, nSamples, SpinUp, Spacing):
     simulator = modelling.with_recursion(model.step, prog="Simulating")
-    K         = SpinUp + nSamples*Spacing
-    Nx        = np.prod(shape)  # total state length
-    sample    = simulator(np.zeros(Nx), K, 0.0, model.prms["dtout"])
+    K = SpinUp + nSamples * Spacing
+    Nx = np.prod(shape)  # total state length
+    sample = simulator(np.zeros(Nx), K, 0.0, model.prms["dtout"])
     return sample[SpinUp::Spacing]
 
 
-sample_filename = modelling.rc.dirs.samples/'QG_samples.npz'
+sample_filename = modelling.rc.dirs.samples / "QG_samples.npz"
 if (not sample_filename.is_file()) and ("pdoc" not in sys.modules):
-    print('Did not find sample file', sample_filename,
-          'for experiment initialization. Generating...')
+    print(
+        "Did not find sample file",
+        sample_filename,
+        "for experiment initialization. Generating...",
+    )
     sample = gen_sample(model_config("sample_generation", {}), 400, 700, 10)
     np.savez(sample_filename, sample=sample)
 
@@ -177,12 +199,13 @@ if (not sample_filename.is_file()) and ("pdoc" not in sys.modules):
 #########################
 # Liveplotting
 #########################
-cm = mpl.colors.ListedColormap(0.85*mpl.cm.jet(np.arange(256)))
-center = nx*int(ny/2) + int(0.5*nx)
+cm = mpl.colors.ListedColormap(0.85 * mpl.cm.jet(np.arange(256)))
+center = nx * int(ny / 2) + int(0.5 * nx)
 
 
-def LP_setup(jj=None): return [
-    (1, LP.spatial2d(square, ind2sub, jj, cm)),
-    (0, LP.spectral_errors),
-    (0, LP.sliding_marginals(dims=center+np.arange(4))),
-]
+def LP_setup(jj=None):
+    return [
+        (1, LP.spatial2d(square, ind2sub, jj, cm)),
+        (0, LP.spectral_errors),
+        (0, LP.sliding_marginals(dims=center + np.arange(4))),
+    ]

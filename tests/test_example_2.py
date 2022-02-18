@@ -84,7 +84,11 @@ L63_old = """
 15  OptPF                         100               0.7  0.3   |     0.9487 ±0.2281     2.1878 ±1.0231     1.4356 ±0.3715
 16  EnKS          1     Serial     30  False                   |     0.8004 ±0.2781     1.7502 ±0.7593     0.6460 ±0.1874
 17  EnRTS         1     Serial     30  False                   |     0.8004 ±0.2781     1.7502 ±0.7593     0.5406 ±0.1810
-"""[1:-1].splitlines(True)
+"""[
+    1:-1
+].splitlines(
+    True
+)
 
 # Example use of pytest-benchmark
 # def test_duration(benchmark):
@@ -98,7 +102,7 @@ def test_len63(L63_table):
 @pytest.mark.parametrize(("lineno"), range(len(L63_old)))
 def test_tables_L63(L63_table, lineno):
     expected = L63_old[lineno].rstrip()
-    new      = L63_table[lineno].rstrip()
+    new = L63_table[lineno].rstrip()
     assert new == expected
 
 
@@ -162,7 +166,11 @@ L96_old = """
 10  iEnKS        1.01  Sqrt     40  True                |     0.0356 ±0.0011     0.0357 ±0.0012     0.0356 ±0.0011
 11  LETKF        1.04            7  True             4  |     0.0356 ±0.0010     0.0358 ±0.0012     0.0356 ±0.0010
 12  SL_EAKF      1.07            7  True             6  |     0.0354 ±0.0010     0.0357 ±0.0012     0.0354 ±0.0010
-"""[1:-1].splitlines(True)
+"""[
+    1:-1
+].splitlines(
+    True
+)
 
 
 def test_len96(L96_table):
@@ -172,5 +180,5 @@ def test_len96(L96_table):
 @pytest.mark.parametrize(("lineno"), range(len(L96_old)))
 def test_tables_L96(L96_table, lineno):
     expected = L96_old[lineno].rstrip()
-    new      = L96_table[lineno].rstrip()
+    new = L96_table[lineno].rstrip()
     assert new == expected

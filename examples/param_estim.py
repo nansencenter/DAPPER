@@ -37,10 +37,10 @@ Np = 1
 # that also contains parameter values.
 @modelling.ens_compatible
 def dxdt_augmented(x):
-    d = np.full_like(x, np.nan)     # Allocate. Use nan's to detect bugs.
-    core.Force = x[Nx:].T           # Set param
+    d = np.full_like(x, np.nan)  # Allocate. Use nan's to detect bugs.
+    core.Force = x[Nx:].T  # Set param
     d[:Nx] = core.dxdt(x[:Nx].T).T  # Dynamics
-    d[Nx:] = 0                      # No dynamics ("persistence") for param.
+    d[Nx:] = 0  # No dynamics ("persistence") for param.
     return d
 
 
@@ -73,29 +73,34 @@ step = modelling.with_rk4(dxdt_augmented, autonom=True)
 # Define the sequence of the experiment
 # See `modelling.Chronology` for more details.
 tseq = modelling.Chronology(
-    dt=0.05,     # Integrational time step
-    dko=1,     # Steps of duration dt between obs
-    Ko=10**3,  # Total number of obs in experiment
-    BurnIn=5,    # Omit from averages the period t=0 --> BurnIn
-    Tplot=7)     # Default plot length
+    dt=0.05,  # Integrational time step
+    dko=1,  # Steps of duration dt between obs
+    Ko=10 ** 3,  # Total number of obs in experiment
+    BurnIn=5,  # Omit from averages the period t=0 --> BurnIn
+    Tplot=7,
+)  # Default plot length
 
 # Define dynamical model
-Dyn = modelling.Operator(M=Nx+Np, # Length of (total/augmented) state vector
-    model=step, # Actual model
-    noise=0 # Additive noise (variance)
+Dyn = modelling.Operator(
+    M=Nx + Np,  # Length of (total/augmented) state vector
+    model=step,  # Actual model
+    noise=0,  # Additive noise (variance)
 )
 
 # Define observation model using convenience function partial_Id_Obs
 jj = np.arange(Nx)  # obs indices (y = x[jj])
-Obs = modelling.partial_Id_Obs(Nx+Np, jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=1)
+Obs = modelling.partial_Id_Obs(Nx + Np, jj)
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=1
+)
 
 # Specify liveplotting (and replay) functionality.
 LP = [
     (1, LP.spatial1d(jj)),
-    (1, LP.sliding_marginals(
-        jj, zoomy=0.8, dims=[0, Nx], labels=["$x_0$", "Force"]),
-     ),
+    (
+        1,
+        LP.sliding_marginals(jj, zoomy=0.8, dims=[0, Nx], labels=["$x_0$", "Force"]),
+    ),
 ]
 
 # Labels for sectors of state vector.
@@ -105,8 +110,7 @@ LP = [
 # The name "sector" comes from its typical usage to distinguish
 # "ocean" and "land" parts of the state vector.
 # Here we use it to get individual statistics of the parameter and state.
-parts = dict(state=np.arange(Nx),
-             param=np.arange(Np)+Nx)
+parts = dict(state=np.arange(Nx), param=np.arange(Np) + Nx)
 
 # Wrap-up model specification
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, sectors=parts, LP=LP)
@@ -139,10 +143,10 @@ GUESS = 7
 def X0(param_mean, param_var):
     # State
     x0 = np.zeros(Nx)
-    C0 = .01*np.ones(Nx)
+    C0 = 0.01 * np.ones(Nx)
     # Append param params
-    x0 = np.hstack([x0, param_mean*np.ones(Np)])
-    C0 = np.hstack([C0, param_var*np.ones(Np)])
+    x0 = np.hstack([x0, param_mean * np.ones(Np)])
+    C0 = np.hstack([C0, param_var * np.ones(Np)])
     return modelling.GaussRV(x0, C0)
 
 
@@ -152,8 +156,9 @@ def set_X0_and_simulate(hmm, xp):
     dpr.set_seed(3000)
     hmm.X0 = X0(TRUTH, 0)
     xx, yy = hmm.simulate()
-    hmm.X0 = X0(GUESS, 0.1**2)
+    hmm.X0 = X0(GUESS, 0.1 ** 2)
     return hmm, xx, yy
+
 
 # Note: An alternative approach might be to simply
 # write our own `simulate()` which merely sets the `Force` parameter,
@@ -176,11 +181,13 @@ for N in [20, 50]:
 
 scriptname = "basic_3" if nb else __file__
 save_as = xps.launch(
-    HMM, scriptname, setup=set_X0_and_simulate,
-    mp=False,           # Multiprocessing
+    HMM,
+    scriptname,
+    setup=set_X0_and_simulate,
+    mp=False,  # Multiprocessing
     fail_gently=False,  # Facilitate debugging
-    liveplots=False,    # NB: Turn off if running iEnKS
-    free=False,         # Don't delete time series (enables replay)
+    liveplots=False,  # NB: Turn off if running iEnKS
+    free=False,  # Don't delete time series (enables replay)
 )
 
 
@@ -192,10 +199,16 @@ xps = dpr.xpList(dpr.load_xps(save_as))
 
 # These scores may be validated by cross-checking with those
 # reported by bib.bocquet2013joint in their ...
-print(xps.tabulate_avrgs([
-    "rmse.state.a", "rmv.state.a",  # ... figure 6, and
-    "rmse.param.a", "rmv.param.a",  # ... figure 7.
-]))
+print(
+    xps.tabulate_avrgs(
+        [
+            "rmse.state.a",
+            "rmv.state.a",  # ... figure 6, and
+            "rmse.param.a",
+            "rmv.param.a",  # ... figure 7.
+        ]
+    )
+)
 
 # Note that only the data points at `Lag` (data assimilation window length) 0 and
 # 1 are reproduced by DAPPER, because the IEnKS in DAPPER does not have MDA

@@ -25,7 +25,8 @@ def create_run_dir(save_as, mp):
         assert not mp, "Multiprocessing requires saving data."
         # Parallelization w/o storing is possible, especially w/ threads.
         # But it involves more complicated communication set-up.
-        def xpi_dir(*args): return None
+        def xpi_dir(*args):
+            return None
 
     else:
         save_as = rc.dirs.data / Path(save_as).stem
@@ -43,11 +44,13 @@ def create_run_dir(save_as, mp):
 
 def find_latest_run(root: Path):
     """Find the latest experiment (dir containing many)"""
+
     def parse(d):
         try:
             return datetime.strptime(d.name, XP_TIMESTAMP_TEMPLATE)
         except ValueError:
             return None
+
     dd = [e for e in (parse(d) for d in root.iterdir()) if e is not None]
     d = max(dd)
     d = datetime.strftime(d, XP_TIMESTAMP_TEMPLATE)
@@ -57,14 +60,14 @@ def find_latest_run(root: Path):
 def load_HMM(save_as):
     """Load HMM from `xp.com` from given dir."""
     save_as = Path(save_as).expanduser()
-    HMM = dill.load(open(save_as/"xp.com", "rb"))["HMM"]
+    HMM = dill.load(open(save_as / "xp.com", "rb"))["HMM"]
     return HMM
 
 
 def load_xps(save_as):
     """Load `xps` (as a `list`) from given dir."""
     save_as = Path(save_as).expanduser()
-    files = [d/"xp" for d in uplink.list_job_dirs(save_as)]
+    files = [d / "xp" for d in uplink.list_job_dirs(save_as)]
     if not files:
         raise FileNotFoundError(f"No results found at {save_as}.")
 
@@ -90,8 +93,11 @@ def load_xps(save_as):
     if len(xps) == 0:
         raise RuntimeError("No completed experiments found.")
     elif len(xps) < len(files):
-        print(len(files)-len(xps), "files could not be loaded,",
-              "presumably because their respective jobs crashed.")
+        print(
+            len(files) - len(xps),
+            "files could not be loaded,",
+            "presumably because their respective jobs crashed.",
+        )
 
     return xps
 
@@ -126,29 +132,28 @@ def save_xps(xps, save_as, nDir=100):
     save_as.mkdir(parents=False, exist_ok=False)
 
     n = int(len(xps) // nDir) + 1
-    splitting = [xps[i:i + n] for i in range(0, len(xps), n)]
+    splitting = [xps[i : i + n] for i in range(0, len(xps), n)]
     for i, sub_xps in enumerate(tqdm(splitting, desc="Saving")):
         if len(sub_xps):
             iDir = save_as / str(i)
             os.mkdir(iDir)
-            with open(iDir/"xp", "wb") as F:
-                dill.dump({'xps': sub_xps}, F)
+            with open(iDir / "xp", "wb") as F:
+                dill.dump({"xps": sub_xps}, F)
 
 
 def overwrite_xps(xps, save_as, nDir=100):
     """Save xps in save_as, but safely (by first saving to tmp)."""
-    save_xps(xps, save_as/"tmp", nDir)
+    save_xps(xps, save_as / "tmp", nDir)
 
     # Delete
-    for d in tqdm(uplink.list_job_dirs(save_as),
-                  desc="Deleting old"):
+    for d in tqdm(uplink.list_job_dirs(save_as), desc="Deleting old"):
         shutil.rmtree(d)
 
     # Mv up from tmp/ -- goes quick, coz there are not many.
-    for d in os.listdir(save_as/"tmp"):
-        shutil.move(save_as/"tmp"/d, save_as/d)
+    for d in os.listdir(save_as / "tmp"):
+        shutil.move(save_as / "tmp" / d, save_as / d)
 
-    shutil.rmtree(save_as/"tmp")
+    shutil.rmtree(save_as / "tmp")
 
 
 def reduce_inodes(save_as, nDir=100):

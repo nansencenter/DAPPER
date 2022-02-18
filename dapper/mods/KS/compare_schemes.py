@@ -22,22 +22,22 @@ if __name__ == "__main__":
 
     # Experiment range
     minexpo = -8  # use -11 to observe saturation due to num. prec.
-    hh = 2.0**np.arange(minexpo, 0)  # list of dt
+    hh = 2.0 ** np.arange(minexpo, 0)  # list of dt
 
     # Params
     T = 30
     N = 4
 
     # IC -- NB: integration accuracy depends on noise level
-    E0 = model.x0_Kassam + 1e-3*np.random.randn(N, model.Nx)
+    E0 = model.x0_Kassam + 1e-3 * np.random.randn(N, model.Nx)
 
     # Allocate stats
-    mref        = 'step_ETD_RK4'
-    methods     = [mref]
-    methods    += [key for key in model if key.startswith("step_") and key != mref]
+    mref = "step_ETD_RK4"
+    methods = [mref]
+    methods += [key for key in model if key.startswith("step_") and key != mref]
     NamedFloats = np.dtype([(m, float) for m in methods])
-    errors      = np.zeros(len(hh), dtype=NamedFloats)
-    durations   = np.zeros(len(hh), dtype=NamedFloats)
+    errors = np.zeros(len(hh), dtype=NamedFloats)
+    durations = np.zeros(len(hh), dtype=NamedFloats)
 
     for i, dt in enumerate(hh):
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
             E = E0.copy()
             t0 = time.time()
             # Integration
-            for _ in 1+np.arange(int(round(T/dt))):
+            for _ in 1 + np.arange(int(round(T / dt))):
                 E = model[m](E, np.nan, dt)
             durations[m][i] = time.time() - t0
 
@@ -61,14 +61,14 @@ if __name__ == "__main__":
     # Plot stats
     plt.figure()
     for m in methods:
-        plt.loglog(durations[m], errors[m], '-o', label=m)
-        plt.text(durations[m][0], errors[m][0], 'dt min')
+        plt.loglog(durations[m], errors[m], "-o", label=m)
+        plt.text(durations[m][0], errors[m][0], "dt min")
         # plt.text  (durations[m][-1], errors[m][-1], 'dt max')
     plt.legend()
-    plt.xlabel('Total computation time (s)')
-    plt.ylabel('Max err (vs ref) at T=%d' % T)
-    plt.grid(True, 'minor')
-    plt.title('Ens size: %d' % N)
+    plt.xlabel("Total computation time (s)")
+    plt.ylabel("Max err (vs ref) at T=%d" % T)
+    plt.grid(True, "minor")
+    plt.title("Ens size: %d" % N)
     plt.show()
 
     # Plot ultimate states -- Not interesting, except for debugging

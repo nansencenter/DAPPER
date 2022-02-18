@@ -86,7 +86,7 @@ def pairwise_distances(A, B=None, domain=None):
     if domain:
         domain = np.reshape(domain, (1, 1, -1))  # for broadcasting
         d = abs(d)
-        d = np.minimum(d, domain-d)
+        d = np.minimum(d, domain - d)
 
     distances = np.sqrt((d * d).sum(axis=-1))  # == sla.norm(d, axis=-1)
 
@@ -106,42 +106,48 @@ def dist2coeff(dists, radius, tag=None):
     coeffs = np.zeros(dists.shape)
 
     if tag is None:
-        tag = 'GC'
+        tag = "GC"
 
-    if tag == 'Gauss':
+    if tag == "Gauss":
         R = radius
-        coeffs = np.exp(-0.5 * (dists/R)**2)
-    elif tag == 'Exp':
+        coeffs = np.exp(-0.5 * (dists / R) ** 2)
+    elif tag == "Exp":
         R = radius
-        coeffs = np.exp(-0.5 * (dists/R)**3)
-    elif tag == 'Cubic':
-        R            = radius * 1.87  # Sakov: 1.8676
-        inds         = dists <= R
+        coeffs = np.exp(-0.5 * (dists / R) ** 3)
+    elif tag == "Cubic":
+        R = radius * 1.87  # Sakov: 1.8676
+        inds = dists <= R
         coeffs[inds] = (1 - (dists[inds] / R) ** 3) ** 3
-    elif tag == 'Quadro':
-        R            = radius * 1.64  # Sakov: 1.7080
-        inds         = dists <= R
+    elif tag == "Quadro":
+        R = radius * 1.64  # Sakov: 1.7080
+        inds = dists <= R
         coeffs[inds] = (1 - (dists[inds] / R) ** 4) ** 4
-    elif tag == 'GC':  # eqn 4.10 of Gaspari-Cohn'99, or eqn 25 of Sakov2011relation
+    elif tag == "GC":  # eqn 4.10 of Gaspari-Cohn'99, or eqn 25 of Sakov2011relation
         R = radius * 1.82  # =np.sqrt(10/3). Sakov: 1.7386
         # 1st segment
-        ind1         = dists <= R
-        r2           = (dists[ind1] / R) ** 2
-        r3           = (dists[ind1] / R) ** 3
-        coeffs[ind1] = 1 + r2 * (- r3 / 4 + r2 / 2) + r3 * (5 / 8) - r2 * (5 / 3)
+        ind1 = dists <= R
+        r2 = (dists[ind1] / R) ** 2
+        r3 = (dists[ind1] / R) ** 3
+        coeffs[ind1] = 1 + r2 * (-r3 / 4 + r2 / 2) + r3 * (5 / 8) - r2 * (5 / 3)
         # 2nd segment
-        ind2         = np.logical_and(R < dists, dists <= 2*R)
-        r1           = (dists[ind2] / R)
-        r2           = (dists[ind2] / R) ** 2
-        r3           = (dists[ind2] / R) ** 3
-        coeffs[ind2] = r2 * (r3 / 12 - r2 / 2) + r3 * (5 / 8) \
-            + r2 * (5 / 3) - r1 * 5 + 4 - (2 / 3) / r1
-    elif tag == 'Step':
-        R            = radius
-        inds         = dists <= R
+        ind2 = np.logical_and(R < dists, dists <= 2 * R)
+        r1 = dists[ind2] / R
+        r2 = (dists[ind2] / R) ** 2
+        r3 = (dists[ind2] / R) ** 3
+        coeffs[ind2] = (
+            r2 * (r3 / 12 - r2 / 2)
+            + r3 * (5 / 8)
+            + r2 * (5 / 3)
+            - r1 * 5
+            + 4
+            - (2 / 3) / r1
+        )
+    elif tag == "Step":
+        R = radius
+        inds = dists <= R
         coeffs[inds] = 1
     else:
-        raise KeyError('No such coeff function.')
+        raise KeyError("No such coeff function.")
 
     return coeffs
 
@@ -155,19 +161,19 @@ def inds_and_coeffs(dists, radius, cutoff=1e-3, tag=None):
     coeffs = dist2coeff(dists, radius, tag)
 
     # Truncate using cut-off
-    inds   = np.arange(len(dists))[coeffs > cutoff]
+    inds = np.arange(len(dists))[coeffs > cutoff]
     coeffs = coeffs[inds]
 
     return inds, coeffs
 
 
 def localization_setup(y2x_distances, batches):
-
     def localization_now(radius, direction, t, tag=None):
         """Provide localization setup for time t."""
         y2x = y2x_distances(t)
 
-        if direction == 'x2y':
+        if direction == "x2y":
+
             def obs_taperer(batch):
                 # Don't use `batch = batches[iBatch]`
                 # (with iBatch as this function's input).
@@ -176,18 +182,20 @@ def localization_setup(y2x_distances, batches):
                 x2y = y2x.T
                 dists = x2y[batch].mean(axis=0)
                 return inds_and_coeffs(dists, radius, tag=tag)
+
             return batches, obs_taperer
 
-        elif direction == 'y2x':
+        elif direction == "y2x":
+
             def state_taperer(obs_idx):
                 return inds_and_coeffs(y2x[obs_idx], radius, tag=tag)
+
             return state_taperer
 
     return localization_now
 
 
 def no_localization(Nx, Ny):
-
     def obs_taperer(batch):
         return np.arange(Ny), np.ones(Ny)
 
@@ -201,9 +209,9 @@ def no_localization(Nx, Ny):
         """
         assert radius in [None, np.inf], "Localizer not specified, but radius < infty."
 
-        if direction == 'x2y':
+        if direction == "x2y":
             return [np.arange(Nx)], obs_taperer
-        elif direction == 'y2x':
+        elif direction == "y2x":
             return state_taperer
 
     return localization_now
@@ -234,27 +242,31 @@ def rectangular_partitioning(shape, steps, do_ind=True):
     ... plt.imshow(Z)  # doctest: +SKIP
     """
     import itertools
+
     assert len(shape) == len(steps)
     # ndim = len(steps)
 
     # An ndim list of (average) local grid lengths:
-    nLocs = [round(n/d) for n, d in zip(shape, steps)]
+    nLocs = [round(n / d) for n, d in zip(shape, steps)]
     # An ndim list of (marginal) grid partitions
     # [array_split() handles non-divisibility]:
-    edge_partitions = [np.array_split(np.arange(n), nLoc)
-                       for n, nLoc in zip(shape, nLocs)]
+    edge_partitions = [
+        np.array_split(np.arange(n), nLoc) for n, nLoc in zip(shape, nLocs)
+    ]
 
     batches = []
     for batch_edges in itertools.product(*edge_partitions):
         # The 'indexing' argument below is actually inconsequential:
         # it merely changes batch's internal ordering.
-        batch_rect  = np.meshgrid(*batch_edges, indexing='ij')
-        coords      = [ii.flatten() for ii in batch_rect]
-        batches    += [coords]
+        batch_rect = np.meshgrid(*batch_edges, indexing="ij")
+        coords = [ii.flatten() for ii in batch_rect]
+        batches += [coords]
 
     if do_ind:
+
         def sub2ind(sub):
             return np.ravel_multi_index(sub, shape)
+
         batches = [sub2ind(b) for b in batches]
 
     return batches
@@ -270,15 +282,12 @@ def safe_eval(fun, t):
         return fun
 
 
-def nd_Id_localization(shape,
-                       batch_shape=None,
-                       obs_inds=None,
-                       periodic=True):
+def nd_Id_localization(shape, batch_shape=None, obs_inds=None, periodic=True):
     """Localize Id (direct) point obs of an N-D, homogeneous, rectangular domain."""
     M = np.prod(shape)
 
     if batch_shape is None:
-        batch_shape = (1,)*len(shape)
+        batch_shape = (1,) * len(shape)
     if obs_inds is None:
         obs_inds = np.arange(M)
 

@@ -14,7 +14,7 @@ def test_L63():
     from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
 
     xps = dpr.xpList()
-    xps += da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
+    xps += da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
     xps += da.PartFilt(N=20, reg=2.4, NER=0.3)
     xps += da.OptInterp()
     # xps += da.iEnKS('Sqrt',  N=10,  infl=1.02,rot=True)
@@ -23,11 +23,7 @@ def test_L63():
     HMM.tseq.BurnIn = HMM.tseq.dto
     HMM.tseq.Ko = 1
 
-    xps.launch(HMM,
-               free=False,
-               liveplots="all",
-               store_u=False,
-               fail_gently=False)
+    xps.launch(HMM, free=False, liveplots="all", store_u=False, fail_gently=False)
 
     for xp in xps:
         xp.stats.replay("all")
@@ -49,12 +45,13 @@ def test_L96():
     xps = dpr.xpList()
 
     from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
-    xps += da.EnKF('PertObs', N=40, infl=1.06)
-    xps += da.EnKF('Serial', N=28, infl=1.02, rot=True)
+
+    xps += da.EnKF("PertObs", N=40, infl=1.06)
+    xps += da.EnKF("Serial", N=28, infl=1.02, rot=True)
     xps += da.OptInterp()
     xps += da.Var3D(xB=0.02)
     xps += da.ExtKF(infl=10)
-    xps += da.LETKF(N=6, rot=True, infl=1.05, loc_rad=4, taper='Step')
+    xps += da.LETKF(N=6, rot=True, infl=1.05, loc_rad=4, taper="Step")
 
     # from dapper.mods.Lorenz96.bocquet2015loc import HMM
     # xps += da.EnKF_N(  N=24, rot=True ,infl=1.01)
@@ -67,12 +64,14 @@ def test_L96():
     HMM.tseq.BurnIn = HMM.tseq.dto
     HMM.tseq.Ko = 2
 
-    xps.launch(HMM,
-               free=False,
-               liveplots="all",
-               store_u=False,
-               fail_gently=False,
-               save_as=False)
+    xps.launch(
+        HMM,
+        free=False,
+        liveplots="all",
+        store_u=False,
+        fail_gently=False,
+        save_as=False,
+    )
 
     for xp in xps:
         xp.stats.replay("all")

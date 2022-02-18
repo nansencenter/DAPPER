@@ -16,7 +16,7 @@ Dyn = modelling.Operator(M=np.prod(shape), model=model.step, noise=0)
 # Considering that I have 8GB mem on the Mac, and the estimate:
 # ≈ (8 bytes/float)*(129² float/stat)*(7 stat/k) * K,
 # it should be possible to run experiments of length (K) < 8000.
-t = modelling.Chronology(dt=model.prms['dtout'], dko=1, T=1500, BurnIn=250)
+t = modelling.Chronology(dt=model.prms["dtout"], dko=1, T=1500, BurnIn=250)
 # In my opinion the burn in should be 400.
 # Sakov also used 10 repetitions.
 
@@ -36,11 +36,11 @@ jj = modelling.linspace_int(Dyn.M, Ny)
 # Either way, use a local random stream to avoid interfering with global stream
 # (and e.g. ensure equal outcomes for 1st and 2nd run of the python session).
 rstream = np.random.RandomState()
-max_offset = jj[1]-jj[0]
+max_offset = jj[1] - jj[0]
 
 
 def random_offset(t):
-    rstream.seed(int(t/model.prms['dtout']*100))
+    rstream.seed(int(t / model.prms["dtout"] * 100))
     u = rstream.rand()
     return int(np.floor(max_offset * u))
 
@@ -62,7 +62,13 @@ batch_shape = [2, 2]  # width (in grid points) of each state batch.
 #     if inflation is applied locally, then rmse might actually improve.
 localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], obs_inds, periodic=False)
 
-Obs = modelling.Operator(M=Ny, model=hmod, noise=modelling.GaussRV(C=4*np.eye(Ny)), localizer=localizer, loc_shift=lambda ii, dt: ii)
+Obs = modelling.Operator(
+    M=Ny,
+    model=hmod,
+    noise=modelling.GaussRV(C=4 * np.eye(Ny)),
+    localizer=localizer,
+    loc_shift=lambda ii, dt: ii,
+)
 
 # Jacobian left unspecified coz it's (usually) employed by methods that
 # compute full cov, which in this case is too big.

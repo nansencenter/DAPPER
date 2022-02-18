@@ -23,19 +23,28 @@ nU = LUV.nU
 ################
 
 # tseq = modelling.Chronology(dt=0.001,dto=0.05,T=4**3,BurnIn=6) # allows using rk2
-tseq = modelling.Chronology(dt=0.005, dto=0.05, T=4**3, BurnIn=6)  # requires rk4
+tseq = modelling.Chronology(dt=0.005, dto=0.05, T=4 ** 3, BurnIn=6)  # requires rk4
 
 
-Dyn = modelling.Operator(M=LUV.M, model=modelling.with_rk4(LUV.dxdt, autonom=True), linear=LUV.dstep_dx, noise=0)
+Dyn = modelling.Operator(
+    M=LUV.M,
+    model=modelling.with_rk4(LUV.dxdt, autonom=True),
+    linear=LUV.dstep_dx,
+    noise=0,
+)
 
 X0 = modelling.GaussRV(mu=LUV.x0, C=0.01)
 
 R = 0.1
 jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(LUV.M, jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R)
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R
+)
 
-HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(jj), name=rel2mods(__file__)+'_full')
+HMM_full = modelling.HiddenMarkovModel(
+    Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(jj), name=rel2mods(__file__) + "_full"
+)
 
 
 ################
@@ -43,17 +52,23 @@ HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(
 ################
 
 # Just change dt from 005 to 05
-tseq = modelling.Chronology(dt=0.05, dto=0.05, T=4**3, BurnIn=6)
+tseq = modelling.Chronology(dt=0.05, dto=0.05, T=4 ** 3, BurnIn=6)
 
-Dyn = modelling.Operator(M=nU, model=modelling.with_rk4(LUV.dxdt_parameterized), noise=0)
+Dyn = modelling.Operator(
+    M=nU, model=modelling.with_rk4(LUV.dxdt_parameterized), noise=0
+)
 
 X0 = modelling.GaussRV(mu=LUV.x0[:nU], C=0.01)
 
 jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(nU, jj)
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R)
+Obs = modelling.Operator(
+    M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R
+)
 
-HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(jj), name=rel2mods(__file__)+'_trunc')
+HMM_trunc = modelling.HiddenMarkovModel(
+    Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(jj), name=rel2mods(__file__) + "_trunc"
+)
 
 LUV.prmzt = lambda x, t: polynom_prmzt(x, t, 1)
 
@@ -70,13 +85,13 @@ def polynom_prmzt(x, t, order):
     """
     if order == 4:
         # From Wilks
-        d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
+        d = 0.262 + 1.45 * x - 0.0121 * x ** 2 - 0.00713 * x ** 3 + 0.000296 * x ** 4
     elif order == 3:
         # From Arnold
-        d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
+        d = 0.341 + 1.30 * x - 0.0136 * x ** 2 - 0.00235 * x ** 3
     elif order == 1:
         # From me -- see AdInf/illust_parameterizations.py
-        d = 0.74 + 0.82*x
+        d = 0.74 + 0.82 * x
     elif order == 0:
         # From me -- see AdInf/illust_parameterizations.py
         d = 3.82

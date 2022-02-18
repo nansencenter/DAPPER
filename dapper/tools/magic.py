@@ -23,11 +23,11 @@ def get_call():
     we get actual argnames and dont need to resort to regex.
     """
     # Introspection
-    f0         = inspect.currentframe()  # this frame
-    f1         = f0.f_back  # frame of the function whose call we want to get
-    f2         = f1.f_back  # frame of the calling
+    f0 = inspect.currentframe()  # this frame
+    f1 = f0.f_back  # frame of the function whose call we want to get
+    f2 = f1.f_back  # frame of the calling
     code, shift = inspect.getsourcelines(f2)
-    func_name  = f1.f_code.co_name
+    func_name = f1.f_code.co_name
 
     # Using stack instead
     # iFrame = 2
@@ -45,7 +45,7 @@ def get_call():
     # Need a large battery of tests to really decide what's best.
 
     # Get call's line number
-    n1  = f2.f_lineno
+    n1 = f2.f_lineno
     n1 -= shift
     # I really don't know why these become necessary
     fix01 = 0 if shift else 1
@@ -80,7 +80,7 @@ def get_call():
     Visitor().visit(ast.parse("".join(code)))
     assert "n2" in info, "Failed to find caller in its file."
 
-    call_text = "".join(code[n1-fix01: info["n2"]])
+    call_text = "".join(code[n1 - fix01 : info["n2"]])
     call_text = call_text.rstrip()  # rm trailing newline
 
     return call_text, info.get("argnames", None), f2.f_locals
@@ -131,29 +131,28 @@ def spell_out(*args):
     call, _, loc = get_call()
 
     # Find opening/closing brackets
-    left  = call. find("(")
+    left = call.find("(")
     right = call.rfind(")")
 
     # Print header
     import sys
+
     c = None if "pytest" in sys.modules else "blue"
     with coloring(c):
-        print(call[left+1:right] + ":")
+        print(call[left + 1 : right] + ":")
 
     # Print (normal)
     print(*args)
 
 
 if __name__ == "__main__":
-    lst = [chr(97+i) for i in range(7)]
+    lst = [chr(97 + i) for i in range(7)]
     dct2 = {c: c for c in lst}
     a, b, c, d, e, f, g = lst
 
-    print(magic_naming(a, b,
-                       c, d,  # fawef
-                       e, f, g))
+    print(magic_naming(a, b, c, d, e, f, g))  # fawef
 
-    spell_out(a, b*2, 3*4)
+    spell_out(a, b * 2, 3 * 4)
 
     ###########
     #  tests  #
@@ -165,7 +164,7 @@ if __name__ == "__main__":
     assert d2 == dct2
 
     # Ugly call
-    assert \
-        {"b": "b", "a": 3} == \
-        magic_naming(b, a=3,
-                     )
+    assert {"b": "b", "a": 3} == magic_naming(
+        b,
+        a=3,
+    )

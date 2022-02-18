@@ -10,16 +10,24 @@ KS = Model(dt=0.5)
 Nx = KS.Nx
 
 # nRepeat=10
-tseq = modelling.Chronology(KS.dt, dko=2, Ko=2*10**4, BurnIn=2*10**3, Tplot=Tplot)
+tseq = modelling.Chronology(
+    KS.dt, dko=2, Ko=2 * 10 ** 4, BurnIn=2 * 10 ** 3, Tplot=Tplot
+)
 
 Dyn = modelling.Operator(M=Nx, model=KS.step, linear=KS.dstep_dx, noise=0)
 X0 = modelling.GaussRV(mu=KS.x0, C=0.001)
 
 Obs = modelling.Id_Obs(Nx)
-Obs['noise'] = 1
-Obs['localizer'] = nd_Id_localization((Nx,), (4,))
+Obs["noise"] = 1
+Obs["localizer"] = nd_Id_localization((Nx,), (4,))
 
-Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=Obs.get("noise"), localizer=Obs.get("localizer"))
+Obs = modelling.Operator(
+    M=Obs.get("M"),
+    model=Obs.get("model"),
+    linear=Obs.get("linear"),
+    noise=Obs.get("noise"),
+    localizer=Obs.get("localizer"),
+)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
