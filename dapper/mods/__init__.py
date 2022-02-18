@@ -15,9 +15,6 @@ from webbrowser import Opera
 import numpy as np
 import struct_tools
 
-if TYPE_CHECKING:  # Only imports the below statements during type checking
-    from dapper.mods import Operator
-
 # Imports used to set up HMMs
 import dapper.tools.progressbar as pb
 from dapper.dpr_config import rc
@@ -38,6 +35,67 @@ def _default_name() -> str:
     except ValueError:
         name = str(Path(name))
     return name
+
+class Operator(struct_tools.NicePrint):
+    """Container for the dynamical and the observational maps.
+
+    Parameters
+    ----------
+    M: int
+        Length of output vectors.
+    model: function
+        The actual operator.
+    linear: 
+    noise: RV, optional
+        The associated additive noise. The noise can also be a scalar or an
+        array, producing `GaussRV(C=noise)`.
+    localizer: TODO: Describe
+    object : TODO: Describe
+    loc_shift : TODO: Describe
+
+    Any remaining keyword arguments are written to the object as attributes.
+    """
+
+    def __init__(self, M: int, model: Optional[Callable] = None, 
+        linear: Optional[Callable] = None, 
+        noise: Optional[Union[RV, float]] = None, 
+        localizer: Any = None, # TODO: Add proper type hints
+        object: Any = None, # TODO: Add proper type hints
+        loc_shift: Any = None # TODO: Add proper type hints
+        ):
+        
+        self.M = M
+        self.model = model
+        self.linear = linear
+        self.noise = noise
+        self.localizer = localizer
+        self.object = object
+        self.loc_shift = loc_shift
+        
+        # Default to the Identity operator
+        if model is None:
+            self.model = Id_op()
+
+        if linear is None:
+            self.linear = lambda *args: np.eye(M)
+
+        # None/0 => No noise
+        if isinstance(noise, RV):
+            self.noise = noise
+        else:
+            if noise is None:
+                noise = 0
+            if np.isscalar(noise):
+                self.noise = GaussRV(C=noise, M=M)
+            else:
+                self.noise = GaussRV(C=noise)
+
+    # TODO: Probably good to remove this and force users to call Dyn.model(...) - explicit is better
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+    printopts = {'ordering': ['M', 'model', 'noise'], "indent": 4}
+
 
 class HiddenMarkovModel(struct_tools.NicePrint):
     """Container for a Hidden Markov Model (HMM).
@@ -123,63 +181,3 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
     def copy(self):
         return cp.deepcopy(self)
-
-class Operator(struct_tools.NicePrint):
-    """Container for the dynamical and the observational maps.
-
-    Parameters
-    ----------
-    M: int
-        Length of output vectors.
-    model: function
-        The actual operator.
-    linear: 
-    noise: RV, optional
-        The associated additive noise. The noise can also be a scalar or an
-        array, producing `GaussRV(C=noise)`.
-    localizer: TODO: Describe
-    object : TODO: Describe
-    loc_shift : TODO: Describe
-
-    Any remaining keyword arguments are written to the object as attributes.
-    """
-
-    def __init__(self, M: int, model: Optional[Callable] = None, 
-        linear: Optional[Callable] = None, 
-        noise: Optional[Union[RV, float]] = None, 
-        localizer: Any = None, # TODO: Add proper type hints
-        object: Any = None, # TODO: Add proper type hints
-        loc_shift: Any = None # TODO: Add proper type hints
-        ):
-        
-        self.M = M
-        self.model = model
-        self.linear = linear
-        self.noise = noise
-        self.localizer = localizer
-        self.object = object
-        self.loc_shift = loc_shift
-        
-        # Default to the Identity operator
-        if model is None:
-            self.model = Id_op()
-
-        if linear is None:
-            self.linear = lambda *args: np.eye(M)
-
-        # None/0 => No noise
-        if isinstance(noise, RV):
-            self.noise = noise
-        else:
-            if noise is None:
-                noise = 0
-            if np.isscalar(noise):
-                self.noise = GaussRV(C=noise, M=M)
-            else:
-                self.noise = GaussRV(C=noise)
-
-    # TODO: Probably good to remove this and force users to call Dyn.model(...) - explicit is better
-    def __call__(self, *args, **kwargs):
-        return self.model(*args, **kwargs)
-
-    printopts = {'ordering': ['M', 'model', 'noise'], "indent": 4}

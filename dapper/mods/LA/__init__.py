@@ -13,6 +13,7 @@ ora.ox.ac.uk/objects/uuid:9f9961f0-6906-4147-a8a9-ca9f2d0e4a12
 """
 
 import numpy as np
+import numpy.typing as npt
 import scipy.linalg as sla
 from scipy import sparse
 
@@ -42,7 +43,7 @@ def Fmat(Nx, c, dx, dt):
     return F
 
 
-def basis_vector(Nx, k):
+def basis_vector(Nx: int, k: int) -> npt.NDArray[np.float_]:
     """Generate basis vectors.
 
     - Nx - state vector length
@@ -63,7 +64,6 @@ def basis_vector(Nx, k):
     s  = s/sd
 
     return s
-
 
 # Initialization as suggested by sakov'2008 "implications of...",
 # (but with some minor differences).
@@ -89,7 +89,7 @@ def sinusoidal_sample(Nx, k, N):
     return sample
 
 
-def periodic_distance_range(M):
+def periodic_distance_range(M: int) -> npt.NDArray[np.float_]:
     return np.minimum(np.arange(M), np.arange(M, 0, -1))
     # return np.roll(np.abs(np.arange(M) - M//2), (M+1)//2)
     # return np.concatenate((range((M+1)//2), range(M//2,0,-1)))
