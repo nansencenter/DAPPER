@@ -3,9 +3,14 @@
 .. include:: ./README.md
 """
 
+from __future__ import annotations
+
 import copy as cp
 import inspect
+from optparse import Option
 from pathlib import Path
+from typing import Optional, List, Dict, TYPE_CHECKING, Callable, Union, Any
+from webbrowser import Opera
 
 import numpy as np
 import struct_tools
@@ -22,6 +27,74 @@ from dapper.tools.seeding import set_seed
 
 from .integration import with_recursion, with_rk4
 from .utils import Id_Obs, ens_compatible, linspace_int, partial_Id_Obs
+
+def _default_name() -> str:
+    name = inspect.getfile(inspect.stack()[2][0])
+    try:
+        name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
+    except ValueError:
+        name = str(Path(name))
+    return name
+
+class Operator(struct_tools.NicePrint):
+    """Container for the dynamical and the observational maps.
+
+    Parameters
+    ----------
+    M: int
+        Length of output vectors.
+    model: function
+        The actual operator.
+    linear: 
+    noise: RV, optional
+        The associated additive noise. The noise can also be a scalar or an
+        array, producing `GaussRV(C=noise)`.
+    localizer: TODO: Describe
+    object : TODO: Describe
+    loc_shift : TODO: Describe
+
+    Any remaining keyword arguments are written to the object as attributes.
+    """
+
+    def __init__(self, M: int, model: Optional[Callable] = None, 
+        linear: Optional[Callable] = None, 
+        noise: Optional[Union[RV, float]] = None, 
+        localizer: Any = None, # TODO: Add proper type hints
+        object: Any = None, # TODO: Add proper type hints
+        loc_shift: Any = None # TODO: Add proper type hints
+        ):
+        
+        self.M = M
+        self.model = model
+        self.linear = linear
+        self.noise = noise
+        self.localizer = localizer
+        self.object = object
+        self.loc_shift = loc_shift
+        
+        # Default to the Identity operator
+        if model is None:
+            self.model = Id_op()
+
+        if linear is None:
+            self.linear = lambda *args: np.eye(M)
+
+        # None/0 => No noise
+        if isinstance(noise, RV):
+            self.noise = noise
+        else:
+            if noise is None:
+                noise = 0
+            if np.isscalar(noise):
+                self.noise = GaussRV(C=noise, M=M)
+            else:
+                self.noise = GaussRV(C=noise)
+
+    # TODO: Probably good to remove this and force users to call Dyn.model(...) - explicit is better
+    def __call__(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+    printopts = {'ordering': ['M', 'model', 'noise'], "indent": 4}
 
 
 class HiddenMarkovModel(struct_tools.NicePrint):
@@ -60,56 +133,22 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         Label for the `HMM`.
     """
 
-    def __init__(self, *args, **kwargs):
-        # Valid args/kwargs, along with type and default.
-        # Note: it's still ok to write attributes to the HMM following the init.
-        attrs = dict(Dyn=(Operator, None),
-                     Obs=(Operator, None),
-                     tseq=(Chronology, None),
-                     X0=(RV, None),
-                     liveplotters=(list, []),
-                     sectors=(dict, {}),
-                     name=(str, HiddenMarkovModel._default_name))
+    def __init__(self, 
+        Dyn: Optional[Operator] = None, 
+        Obs: Optional[Operator] = None,
+        tseq: Optional[Chronology] = None,
+        X0: Optional[RV] = None,
+        liveplotters: Optional[List[Callable]] = None,
+        sectors: Optional[Dict[str, np.array]] = None,
+        name: Optional[str] = _default_name()):
 
-        # Transfer args to kwargs
-        for arg, kw in zip(args, attrs):
-            assert (kw not in kwargs), "Could not sort out arguments."
-            kwargs[kw] = arg
-
-        # Un-abbreviate
-        abbrevs = {"LP": "liveplotters", "loc": "localizer"}
-        for k in list(kwargs):
-            try:
-                full = abbrevs[k]
-            except KeyError:
-                pass
-            else:
-                assert (full not in kwargs), "Could not sort out arguments."
-                kwargs[full] = kwargs.pop(k)
-
-        # Transfer kwargs to self
-        for k, (type_, default) in attrs.items():
-            # Get kwargs[k] or default
-            if k in kwargs:
-                v = kwargs.pop(k)
-            elif callable(default):
-                v = default()
-            else:
-                v = default
-            # Convert dict to type
-            if not isinstance(v, (type_, type(None))):
-                v = type_(**v)
-            # Write
-            setattr(self, k, v)
-        assert kwargs == {}, f"Arguments {list(kwargs)} is/are invalid."
-
-        # Further defaults
-        if not hasattr(self.Obs, "localizer"):
-            self.Obs.localizer = no_localization(self.Nx, self.Ny)
-
-        # Validation
-        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
-            raise ValueError("Rank-deficient R not supported.")
+        self.Dyn = Dyn
+        self.Obs = Obs
+        self.tseq = tseq
+        self.X0 = X0
+        self.liveplotters = [] if liveplotters is None else liveplotters
+        self.sectors = {} if sectors is None else sectors
+        self.name = name
 
     # ndim shortcuts
     @property
@@ -142,59 +181,3 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
     def copy(self):
         return cp.deepcopy(self)
-
-    @staticmethod
-    def _default_name():
-        name = inspect.getfile(inspect.stack()[2][0])
-        try:
-            name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
-        except ValueError:
-            name = str(Path(name))
-        return name
-
-
-class Operator(struct_tools.NicePrint):
-    """Container for the dynamical and the observational maps.
-
-    Parameters
-    ----------
-    M: int
-        Length of output vectors.
-    model: function
-        The actual operator.
-    noise: RV, optional
-        The associated additive noise. The noise can also be a scalar or an
-        array, producing `GaussRV(C=noise)`.
-
-    Any remaining keyword arguments are written to the object as attributes.
-    """
-
-    def __init__(self, M, model=None, noise=None, **kwargs):
-        self.M = M
-
-        # Default to the Identity operator
-        if model is None:
-            model = Id_op()
-            kwargs['linear'] = lambda *args: np.eye(M)
-        # Assign
-        self.model = model
-
-        # None/0 => No noise
-        if isinstance(noise, RV):
-            self.noise = noise
-        else:
-            if noise is None:
-                noise = 0
-            if np.isscalar(noise):
-                self.noise = GaussRV(C=noise, M=M)
-            else:
-                self.noise = GaussRV(C=noise)
-
-        # Write attributes
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-    def __call__(self, *args, **kwargs):
-        return self.model(*args, **kwargs)
-
-    printopts = {'ordering': ['M', 'model', 'noise'], "indent": 4}

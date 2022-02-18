@@ -26,16 +26,11 @@ H[np.arange(20), ii_above] = w_above
 y2x_dists = pairwise_distances(obs_sites[:, None], np.arange(Nx)[:, None], domain=(Nx,))
 batches = np.arange(40)[:, None]
 # Define operator
-Obs = {
-    'M': len(H),
-    'model': lambda E, t: E @ H.T,
-    'linear': lambda E, t: H,
-    'noise': 1,
-    'localizer': localization_setup(lambda t: y2x_dists, batches),
-}
+
+Obs = modelling.Operator(M=len(H), model=lambda E, t: E @ H.T, linear=lambda E, t: H, noise=1, localizer=localization_setup(lambda t: y2x_dists, batches))
 
 HMM = modelling.HiddenMarkovModel(
-    Dyn, Obs, tseq, X0, LP=LPs(),
+    Dyn, Obs, tseq, X0, liveplotters=LPs(),
     sectors={'land': np.arange(*xtrema(obs_sites)).astype(int)})
 
 ####################

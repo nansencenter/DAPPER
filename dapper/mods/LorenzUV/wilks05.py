@@ -26,22 +26,16 @@ nU = LUV.nU
 tseq = modelling.Chronology(dt=0.005, dto=0.05, T=4**3, BurnIn=6)  # requires rk4
 
 
-Dyn = {
-    'M': LUV.M,
-    'model': modelling.with_rk4(LUV.dxdt, autonom=True),
-    'noise': 0,
-    'linear': LUV.dstep_dx,
-}
+Dyn = modelling.Operator(M=LUV.M, model=modelling.with_rk4(LUV.dxdt, autonom=True), linear=LUV.dstep_dx, noise=0)
 
 X0 = modelling.GaussRV(mu=LUV.x0, C=0.01)
 
 R = 0.1
 jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(LUV.M, jj)
-Obs['noise'] = R
+Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R)
 
-other = {'name': rel2mods(__file__)+'_full'}
-HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **other)
+HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(jj), name=rel2mods(__file__)+'_full')
 
 
 ################
@@ -51,20 +45,15 @@ HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **oth
 # Just change dt from 005 to 05
 tseq = modelling.Chronology(dt=0.05, dto=0.05, T=4**3, BurnIn=6)
 
-Dyn = {
-    'M': nU,
-    'model': modelling.with_rk4(LUV.dxdt_parameterized),
-    'noise': 0,
-}
+Dyn = modelling.Operator(M=nU, model=modelling.with_rk4(LUV.dxdt_parameterized), noise=0)
 
 X0 = modelling.GaussRV(mu=LUV.x0[:nU], C=0.01)
 
 jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(nU, jj)
-Obs['noise'] = R
+Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=R)
 
-other = {'name': rel2mods(__file__)+'_trunc'}
-HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **other)
+HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, liveplotters=LUV.LPs(jj), name=rel2mods(__file__)+'_trunc')
 
 LUV.prmzt = lambda x, t: polynom_prmzt(x, t, 1)
 

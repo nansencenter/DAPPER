@@ -10,19 +10,15 @@ from dapper.tools.localization import nd_Id_localization
 t = modelling.Chronology(0.05, dko=2, T=4**5, BurnIn=20)
 
 Nx = 80
-Dyn = {
-    'M': Nx,
-    'model': step,
-    'noise': 0,
-}
+
+Dyn = modelling.Operator(M=Nx, model=step, noise=0)
 
 X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0, Nx, 2)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['localizer'] = nd_Id_localization((Nx,), (1,), jj)
-# Obs['noise'] = RVs.LaplaceRV(C=1,M=len(jj))
-Obs['noise'] = RVs.LaplaceParallelRV(C=1, M=len(jj))
+
+Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=RVs.LaplaceParallelRV(C=1, M=len(jj)), localizer=nd_Id_localization((Nx,), (1,), jj))
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 

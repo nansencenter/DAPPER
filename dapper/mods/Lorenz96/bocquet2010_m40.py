@@ -5,13 +5,13 @@ import dapper.mods as modelling
 from dapper.mods.Lorenz96.bocquet2010 import Dyn, tseq
 
 Nx = 40
-Dyn['M'] = Nx
+Dyn = modelling.Operator(M=Nx)
 
 X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0, Nx, 2)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 1.5
+Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=1.5)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

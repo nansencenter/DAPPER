@@ -14,12 +14,13 @@ Dyn = {
     'model': step,
     'noise': 0,
 }
+Dyn = modelling.Operator(M=Nx, model=step, noise=0)
 
 X0 = modelling.GaussRV(C=.1, mu=x0)
 
 jj = np.arange(Nx)  # obs_inds
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = .1  # modelling.GaussRV(C=CovMat(1*eye(Nx)))
+Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=.1)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

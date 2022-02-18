@@ -18,7 +18,8 @@ DOCLINES = __doc__.split('\n')
 
 # Dependencies
 INSTALL_REQUIRES = [
-    'scipy>=1.1',
+    'scipy',
+    "numpy >= 1.20.0"
     'ipython>=5.1',
     'jedi<0.18',  # ipython/issues/12740
     'jupyter',

@@ -8,7 +8,7 @@ from dapper.mods.LA import Fmat
 
 def test_operator_defaults():
     M = 3
-    op = modelling.Operator(**{"M": M})
+    op = modelling.Operator(M=3)
     assert (op.linear() == np.identity(M)).all()
     assert op.model(3) == 3
     assert op.model(3, 2, 1) == 3

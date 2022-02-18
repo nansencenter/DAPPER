@@ -9,18 +9,14 @@ tseq = modelling.Chronology(0.01, dko=25, Ko=1000, Tplot=Tplot, BurnIn=4*Tplot)
 
 Nx = len(x0)
 
-Dyn = {
-    'M': Nx,
-    'model': step,
-    'linear': dstep_dx,
-    'noise': 0,
-}
-
+Dyn = modelling.Operator(M=Nx, model=step, linear=dstep_dx, noise=0)
 X0 = modelling.GaussRV(C=2, mu=x0)
 
 jj = np.arange(Nx)  # obs_inds
 Obs = modelling.partial_Id_Obs(Nx, jj)
 Obs['noise'] = 2  # modelling.GaussRV(C=CovMat(2*eye(Nx)))
+
+Obs = modelling.Operator(M=Obs.get("M"), model=Obs.get("model"), linear=Obs.get("linear"), noise=Obs.get("noise"), localizer=Obs.get("localizer"))
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
