@@ -315,7 +315,7 @@ NORCE (Norwegian Research Institute)
 and the Nansen Environmental and Remote Sensing Center (NERSC),
 in collaboration with the University of Reading,
 the UK National Centre for Earth Observation (NCEO),
-and the University of Nevada, Reno.
+and the Center for Western Weather and Water Extremes (CW3E). 
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable line-length -->
