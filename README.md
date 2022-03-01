@@ -295,7 +295,7 @@ in the development of DAPPER.
 [18]: https://github.com/kingaa/pomp
 [19]: https://github.com/Shady-Ahmed/PyDA
 [20]: https://github.com/daspy/daspy
-[21]: https://www.jcsda.noaa.gov/index.php
+[21]: https://jointcenterforsatellitedataassimilation-jedi-docs.readthedocs-hosted.com/en/latest/
 [22]: https://github.com/nansencenter/DAPPER
 [23]: https://juliahub.com/docs/DataAssim/qCDwD/0.3.2/
 [24]: https://github.com/cgrudz/DataAssimilationBenchmarks.jl
@@ -315,7 +315,7 @@ NORCE (Norwegian Research Institute)
 and the Nansen Environmental and Remote Sensing Center (NERSC),
 in collaboration with the University of Reading,
 the UK National Centre for Earth Observation (NCEO),
-and the University of Nevada, Reno.
+and the Center for Western Weather and Water Extremes (CW3E). 
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable line-length -->
@@ -323,7 +323,7 @@ and the University of Nevada, Reno.
 ![NERSC](./docs/imgs/nansen-logo.png)
 <img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UoR-logo.png?raw=true" height="140" />
 <img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/nceologo1000.png?raw=true" width="400">
-<img src="./docs/imgs/UNR_logo.png?raw=true" width="400">
+<img src="./docs/imgs/CW3E-Logo-Horizontal-FullColor.png?raw=true" width="400">
 <!-- markdownlint-restore -->
 
 ## Publication list
