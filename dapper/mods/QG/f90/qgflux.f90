@@ -44,8 +44,12 @@ contains
     real(8), dimension(:, :), intent(in) :: Q, PSIGUESS
     real(8), dimension(:, :), intent(out) :: PSI, QFLUX
 
-    real(8), dimension(N, M) :: JACOBIAN
-    real(8), dimension(N, M) :: ZETA, ZETA2, ZETA4
+    real(8), allocatable, dimension(:, :) :: JACOBIAN
+    real(8), allocatable, dimension(:, :) :: ZETA, ZETA2, ZETA4
+    allocate(JACOBIAN(N, M))
+    allocate(ZETA(N, M))
+    allocate(ZETA2(N, M))
+    allocate(ZETA4(N, M))
 
     call calc_psi(PSIGUESS, Q, PSI)
     call arakawa(PSI, Q, dx, dy, JACOBIAN)
@@ -68,8 +72,13 @@ contains
     real(8), dimension(:, :), intent(in) :: Q0, PSI0
     real(8), dimension(:, :), intent(out) :: PSI, QFLUX
 
-    real(8), dimension(N, M) :: J1, J2
-    real(8), dimension(N, M) :: ZETA, ZETA2, ZETA4
+    real(8), allocatable, dimension(:, :) :: J1, J2
+    real(8), allocatable, dimension(:, :) :: ZETA, ZETA2, ZETA4
+    allocate(J1(N, M))
+    allocate(J2(N, M))
+    allocate(ZETA(N, M))
+    allocate(ZETA2(N, M))
+    allocate(ZETA4(N, M))
 
     call calc_psi(PSIGUESS, Q, PSI)
     call arakawa(PSI0, Q, dx, dy, J1)
