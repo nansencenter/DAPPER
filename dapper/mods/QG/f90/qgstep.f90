@@ -28,8 +28,10 @@ contains
   subroutine qg_step_1storder(t, PSI, Q)
     real(8), intent(inout) :: t
     real(8), dimension(N, M), intent(inout) :: Q, PSI
-    real(8), dimension(N, M) :: QFLUX
-    real(8), dimension(N, M) :: PSI1
+    real(8), allocatable, dimension(:, :) :: QFLUX
+    real(8), allocatable, dimension(:, :) :: PSI1
+    allocate(QFLUX(N, M))
+    allocate(PSI1(N, M))
 
     call qg_flux(t, Q, PSI, PSI1, QFLUX)
     PSI = PSI1
@@ -40,10 +42,14 @@ contains
     real(8), intent(inout) :: t
     real(8), dimension(N, M), intent(inout) :: Q0, PSI0
     real(8), dimension(N, M), intent(inout) :: Q, PSI
-    real(8), dimension(N, M) :: QFLUX0
-    real(8), dimension(N, M) :: QFLUX
-    real(8), dimension(N, M) :: PSI01
-    real(8), dimension(N, M) :: PSI1
+    real(8), allocatable, dimension(:, :) :: QFLUX0
+    real(8), allocatable, dimension(:, :) :: QFLUX
+    real(8), allocatable, dimension(:, :) :: PSI01
+    real(8), allocatable, dimension(:, :) :: PSI1
+    allocate(QFLUX0(N, M))
+    allocate(QFLUX(N, M))
+    allocate(PSI01(N, M))
+    allocate(PSI1(N, M))
 
     call qg_flux(t, Q0, PSI0, PSI01, QFLUX0)
     call qg_flux_tl(t, Q0, PSI0, Q, PSI, PSI1, QFLUX)
@@ -56,9 +62,13 @@ contains
   subroutine qg_step_2ndorder(t, PSI, Q)
     real(8), intent(inout) :: t
     real(8), dimension(N, M), intent(inout) :: Q, PSI
-    real(8), dimension(N, M) :: QFLUX
-    real(8), dimension(N, M) :: PSI1
-    real(8), dimension(N, M) :: Q2, Q3
+    real(8), allocatable, dimension(:, :) :: QFLUX
+    real(8), allocatable, dimension(:, :) :: PSI1
+    real(8), allocatable, dimension(:, :) :: Q2, Q3
+    allocate(QFLUX(N, M))
+    allocate(PSI1(N, M))
+    allocate(Q2(N, M))
+    allocate(Q3(N, M))
 
     call qg_flux(t, Q, PSI, PSI1, QFLUX)
     Q2 = Q + (0.5d0 * dt) * QFLUX
@@ -74,12 +84,20 @@ contains
     real(8), intent(inout) :: t
     real(8), dimension(N, M), intent(inout) :: Q0, PSI0
     real(8), dimension(N, M), intent(inout) :: Q, PSI
-    real(8), dimension(N, M) :: QFLUX0
-    real(8), dimension(N, M) :: QFLUX
-    real(8), dimension(N, M) :: PSI01
-    real(8), dimension(N, M) :: PSI1
-    real(8), dimension(N, M) :: Q02, Q03
-    real(8), dimension(N, M) :: Q2, Q3
+    real(8), allocatable, dimension(:, :) :: QFLUX0
+    real(8), allocatable, dimension(:, :) :: QFLUX
+    real(8), allocatable, dimension(:, :) :: PSI01
+    real(8), allocatable, dimension(:, :) :: PSI1
+    real(8), allocatable, dimension(:, :) :: Q02, Q03
+    real(8), allocatable, dimension(:, :) :: Q2, Q3
+    allocate(QFLUX0(N, M))
+    allocate(QFLUX(N, M))
+    allocate(PSI01(N, M))
+    allocate(PSI1(N, M))
+    allocate(Q02(N, M))
+    allocate(Q03(N, M))
+    allocate(Q2(N, M))
+    allocate(Q3(N, M))
 
     call qg_flux(t, Q0, PSI0, PSI01, QFLUX0)
     call qg_flux_tl(t, Q0, PSI0, Q, PSI, PSI1, QFLUX)
@@ -100,10 +118,18 @@ contains
   subroutine qg_step_rk4(t, PSI, Q)
     real(8), intent(inout) :: t
     real(8), dimension(N, M), intent(inout) :: Q, PSI
-    real(8), dimension(N, M) :: QFLUX1, QFLUX2, QFLUX3, QFLUX4
-    real(8), dimension(N, M) :: PP
-    real(8), dimension(N, M) :: Q2, Q3, Q4
+    real(8), allocatable, dimension(:, :) :: QFLUX1, QFLUX2, QFLUX3, QFLUX4
+    real(8), allocatable, dimension(:, :) :: PP
+    real(8), allocatable, dimension(:, :) :: Q2, Q3, Q4
     real(8) :: tt
+    allocate(QFLUX1(N, M))
+    allocate(QFLUX2(N, M))
+    allocate(QFLUX3(N, M))
+    allocate(QFLUX4(N, M))
+    allocate(PP(N, M))
+    allocate(Q2(N, M))
+    allocate(Q3(N, M))
+    allocate(Q4(N, M))
 
     ! Given vorticity Q, this call calculates its flux QFLUX1. 
     ! Solves for PSI1 as a by-product, using PSI as the first guess
@@ -126,13 +152,29 @@ contains
     real(8), intent(inout) :: t
     real(8), dimension(N, M), intent(inout) :: Q0, PSI0
     real(8), dimension(N, M), intent(inout) :: Q, PSI
-    real(8), dimension(N, M) :: QFLUX01, QFLUX02, QFLUX03, QFLUX04
-    real(8), dimension(N, M) :: QFLUX1, QFLUX2, QFLUX3, QFLUX4
-    real(8), dimension(N, M) :: PP0
-    real(8), dimension(N, M) :: PP
-    real(8), dimension(N, M) :: Q02, Q03, Q04
-    real(8), dimension(N, M) :: Q2, Q3, Q4
+    real(8), allocatable, dimension(:, :) :: QFLUX01, QFLUX02, QFLUX03, QFLUX04
+    real(8), allocatable, dimension(:, :) :: QFLUX1, QFLUX2, QFLUX3, QFLUX4
+    real(8), allocatable, dimension(:, :) :: PP0
+    real(8), allocatable, dimension(:, :) :: PP
+    real(8), allocatable, dimension(:, :) :: Q02, Q03, Q04
+    real(8), allocatable, dimension(:, :) :: Q2, Q3, Q4
     real(8) :: tt
+    allocate(QFLUX01(N, M))
+    allocate(QFLUX02(N, M))
+    allocate(QFLUX03(N, M))
+    allocate(QFLUX04(N, M))
+    allocate(QFLUX1(N, M))
+    allocate(QFLUX2(N, M))
+    allocate(QFLUX3(N, M))
+    allocate(QFLUX4(N, M))
+    allocate(PP0(N, M))
+    allocate(PP(N, M))
+    allocate(Q02(N, M))
+    allocate(Q03(N, M))
+    allocate(Q04(N, M))
+    allocate(Q2(N, M))
+    allocate(Q3(N, M))
+    allocate(Q4(N, M))
 
     ! Given vorticity Q, this call calculates its flux QFLUX1. 
     ! Solves for PSI1 as a by-product, using PSI as the first guess
@@ -162,9 +204,16 @@ contains
   subroutine qg_step_dp5(t, PSI, Q)
     real(8), intent(inout) :: t
     real(8), dimension(N, M), intent(inout) :: Q, PSI
-    real(8), dimension(N, M) :: QFLUX1, QFLUX2, QFLUX3, QFLUX4, QFLUX5
-    real(8), dimension(N, M) :: QQ, PP
+    real(8), allocatable, dimension(:, :) :: QFLUX1, QFLUX2, QFLUX3, QFLUX4, QFLUX5
+    real(8), allocatable, dimension(:, :) :: QQ, PP
     real(8) :: tt
+    allocate(QFLUX1(N, M))
+    allocate(QFLUX2(N, M))
+    allocate(QFLUX3(N, M))
+    allocate(QFLUX4(N, M))
+    allocate(QFLUX5(N, M))
+    allocate(QQ(N, M))
+    allocate(PP(N, M))
 
     call qg_flux(t, Q, PSI, PP, QFLUX1)
     tt = t + 0.2d0 * dt
@@ -204,8 +253,11 @@ contains
   subroutine qg_step_lf(t, PSIGUESS, QOLD, Q)
     real(8), intent(inout) :: t
     real(8), dimension(N, M), intent(inout) :: PSIGUESS, QOLD, Q
-    real(8), dimension(N, M) :: PSI
-    real(8), dimension(N, M) :: QNEW, QFLUX
+    real(8), allocatable, dimension(:, :) :: PSI
+    real(8), allocatable, dimension(:, :) :: QNEW, QFLUX
+    allocate(PSI(N, M))
+    allocate(QNEW(N, M))
+    allocate(QFLUX(N, M))
 
     call qg_flux(t, Q, PSIGUESS, PSI, QFLUX)
     QNEW = QOLD + (2.0d0 * dt) * QFLUX

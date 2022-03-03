@@ -17,8 +17,9 @@ contains
 
     ! 1st axis (len N) is the x-axis
     ! 2nd axis (len M) is the y-axis (curl = sin(...y))
-    real(8), dimension(N, M) :: Q
+    real(8), allocatable, dimension(:, :) :: Q
     real(8) :: tstop
+    allocate(Q(N, M))
 
     call parameters_read(prmfname)
   
