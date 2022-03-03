@@ -37,8 +37,7 @@ In addition  `py_mod` requires `f2py`, while `qg` requires `netcdf` libraries.
 
 
 ### For DAPPER,
-To build `py_mod` with tested implementation with stand-alone DAPPER / Miniconda
-environment, ensure that both gcc and gfortran are installed, i.e., install with conda:
+To build `py_mod`, ensure that both `gcc` and `gfortran` are installed. For example, with `conda`:
     
     $ conda install -c conda-forge gcc
     $ conda install -c conda-forge gfortran
