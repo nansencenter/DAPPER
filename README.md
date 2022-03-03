@@ -321,8 +321,8 @@ and the Center for Western Weather and Water Extremes (CW3E).
 <!-- markdownlint-disable line-length -->
 ![NORCE](./docs/imgs/norce-logo.png)
 ![NERSC](./docs/imgs/nansen-logo.png)
-<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UoR-logo.png?raw=true" height="140" />
-<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/nceologo1000.png?raw=true" width="400">
+<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/UoR-logo.png?raw=true" height="120" />
+<img src="https://github.com/nansencenter/DAPPER/blob/master/docs/imgs/nceologo1000.png?raw=true" height="100">
 <img src="./docs/imgs/CW3E-Logo-Horizontal-FullColor.png?raw=true" width="400">
 <!-- markdownlint-restore -->
 
