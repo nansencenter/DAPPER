@@ -14,7 +14,8 @@ import dapper.da_methods as da
 
 # #### Load experiment setup: the hidden Markov model (HMM)
 
-from dapper.mods.Lorenz63.sakov2012 import HMM
+#from dapper.mods.Lorenz63.sakov2012 import HMM
+from dapper.mods.QG.sakov2008 import HMM
 
 # #### Generate the same random numbers each time this script is run
 
