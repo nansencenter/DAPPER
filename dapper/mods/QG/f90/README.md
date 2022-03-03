@@ -37,7 +37,13 @@ In addition  `py_mod` requires `f2py`, while `qg` requires `netcdf` libraries.
 
 
 ### For DAPPER,
-To build `py_mod`, run:
+To build `py_mod` with tested implementation with stand-alone DAPPER / Miniconda
+environment, ensure that both gcc and gfortran are installed, i.e., install with conda:
+    
+    $ conda install -c conda-forge gcc
+    $ conda install -c conda-forge gfortran
+    
+Then run:
 
     $ cd dapper/mods/QG/f90
     $ rm -rf py_mod.cpython-* __pycache__
@@ -68,4 +74,5 @@ Example: here's how I compiled the standalone on my Mac:
 - In parameters.f90:
     - Capitalized m,n
     - Swapped NY1 and NX1 in definitions of M,N
+    - Changed typing of arrays in interface.f90, qgflux.f90, qgstep.f90 to allocatable.
 - Made `interface.f90` for Python.
