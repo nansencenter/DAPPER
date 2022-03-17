@@ -28,10 +28,9 @@ def show(x0, ax=None):
 ###########
 # Generate/load time-series data
 try:
-    tmp = np.load("QG_truth_obs_time_series.npz")
-    xx = tmp['xx'][1:]
-    yy = tmp['yy']
-    tmp.close()
+    with np.load("QG_truth_obs_time_series.npz") as data:
+        xx = data['xx'][1:]
+        yy = data['yy']
 except FileNotFoundError:
     # else, generate stream funciton and observation time series as per standard
     # configuration  of Sakov2008, save the double time series
