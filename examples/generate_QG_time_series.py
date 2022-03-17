@@ -1,11 +1,13 @@
 """Stream function and observation time series for QG (quasi-geostrophic) model."""
 
-import numpy as np
 from matplotlib import pyplot as plt
+import numpy as np
+
+import dapper as dpr
 from dapper.mods.QG import square
-import dapper.tools.progressbar as pb
 from dapper.mods.QG.sakov2008 import HMM
 from dapper.mods.QG.sakov2008 import obs_inds
+import dapper.tools.progressbar as pb
 
 
 ###########
@@ -27,15 +29,16 @@ def show(x0, ax=None):
 # Main
 ###########
 # Generate/load time-series data
+fname = dpr.rc.dirs.data / "QG-ts.npz"
 try:
-    with np.load("QG_truth_obs_time_series.npz") as data:
+    with np.load(fname) as data:
         xx = data['xx'][1:]
         yy = data['yy']
 except FileNotFoundError:
     # else, generate stream funciton and observation time series as per standard
     # configuration  of Sakov2008, save the double time series
     xx, yy = HMM.simulate()
-    np.savez("QG_truth_obs_time_series.npz", xx=xx, yy=yy)
+    np.savez(fname, xx=xx, yy=yy)
 
 # generate observations on the same gridding as the state vector
 # initialize the storage on the parent state dimension
