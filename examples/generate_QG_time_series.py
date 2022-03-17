@@ -18,7 +18,7 @@ def show(x0, ax=None):
 
     im = ax.imshow(square(x0))
     im.set_clim(-30, 30)
-    
+
     def update(x):
         im.set_data(square(x))
     return update
@@ -27,7 +27,7 @@ def show(x0, ax=None):
 # Main
 ###########
 
-# try to load saved data 
+# try to load saved data
 try:
     tmp = np.load("QG_truth_obs_time_series.npz")
     xx = tmp['xx'][1:]
