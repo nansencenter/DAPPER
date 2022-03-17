@@ -41,9 +41,7 @@ except FileNotFoundError:
 # Insert obs on the same "grid" as the state vector
 # Allocate the storage on the parent state dimension
 yy_xx = np.full_like(xx, np.NaN)
-
-tseq = HMM.tseq
-for k, ko, t, dt in pb.progbar(tseq.ticker, "Truth & Obs"):
+for k, ko, t, dt in pb.progbar(HMM.tseq.ticker, "Truth & Obs"):
     if ko is not None:
         indx = obs_inds(t)
         yy_xx[ko, indx] = yy[ko, :]
