@@ -28,20 +28,18 @@ def show(x0, ax=None):
 ###########
 # Main
 ###########
-# Generate/load time-series data
+# Load or generate time-series data of a simulated state and obs:
 fname = dpr.rc.dirs.data / "QG-ts.npz"
 try:
     with np.load(fname) as data:
         xx = data['xx'][1:]
         yy = data['yy']
 except FileNotFoundError:
-    # else, generate stream funciton and observation time series as per standard
-    # configuration  of Sakov2008, save the double time series
     xx, yy = HMM.simulate()
     np.savez(fname, xx=xx, yy=yy)
 
-# generate observations on the same gridding as the state vector
-# initialize the storage on the parent state dimension
+# Insert obs on the same "grid" as the state vector
+# Allocate the storage on the parent state dimension
 yy_xx = np.empty_like(xx)
 yy_xx[:] = np.NaN
 
@@ -51,20 +49,21 @@ for k, ko, t, dt in pb.progbar(tseq.ticker, "Truth & Obs"):
         indx = obs_inds(t)
         yy_xx[ko, indx] = yy[ko, :]
 
-# create figure
+# Create figure
 fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(12, 6))
 for ax in (ax1, ax2):
     ax.set_aspect('equal', 'box')
 ax1.set_title(r'Stream function: $\psi$')
 ax2.set_title(r'Noisy observations: $\mathcal{H}(\psi) + \epsilon$')
 
+# Define plot updating functions
 setter1 = show(xx[0], ax=ax1)
 setter2 = show(yy_xx[0], ax=ax2)
 
-# create dual iterable for the animated plot of stream function / obs
+# Create double iterable for the animation
 ts = zip(xx, yy_xx)
 
-# run over the dual time series
+# Animate
 for k, (xx, yy_xx) in pb.progbar(list(enumerate(ts)), "Animating"):
     if k % 2 == 0:
         fig.suptitle("k: "+str(k))
