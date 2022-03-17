@@ -5,8 +5,7 @@ import numpy as np
 
 import dapper as dpr
 from dapper.mods.QG import square
-from dapper.mods.QG.sakov2008 import HMM
-from dapper.mods.QG.sakov2008 import obs_inds
+from dapper.mods.QG.sakov2008 import HMM, obs_inds
 import dapper.tools.progressbar as pb
 
 
