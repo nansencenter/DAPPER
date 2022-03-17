@@ -1,17 +1,16 @@
 """Stream function and observation time series for QG (quasi-geostrophic) model."""
 
 import numpy as np
-import scipy.ndimage.filters as filters
 from matplotlib import pyplot as plt
 from dapper.mods.QG import square
 import dapper.tools.progressbar as pb
 from dapper.mods.QG.sakov2008 import HMM
 from dapper.mods.QG.sakov2008 import obs_inds
 
+
 ###########
 # Auxiliary plotting function
 ###########
-
 def show(x0, ax=None):
     if ax == None:
         fig, ax = plt.subplots()
@@ -23,17 +22,17 @@ def show(x0, ax=None):
         im.set_data(square(x))
     return update
 
+
 ###########
 # Main
 ###########
-
-# try to load saved data
+# Generate/load time-series data
 try:
     tmp = np.load("QG_truth_obs_time_series.npz")
     xx = tmp['xx'][1:]
     yy = tmp['yy']
     tmp.close()
-except:
+except FileNotFoundError:
     # else, generate stream funciton and observation time series as per standard
     # configuration  of Sakov2008, save the double time series
     xx, yy = HMM.simulate()
