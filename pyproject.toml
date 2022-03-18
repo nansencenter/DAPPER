@@ -97,7 +97,8 @@ flake8-builtins = ["+*"]
 flake8-comprehensions = ["+*", "-C408"]
 #flake8-darglint = ["+*"]
 flake8-commas = ["+*"]
-flake8-docstrings = ["+*", "-D105",
+flake8-docstrings = ["+*",
+    "-D105",
     "-D401", # issues/68
     "-D102", "-D103", "-D107", "-D400", # TODO 4: enable these
     ]
@@ -124,8 +125,10 @@ flake8-docstrings = [
 ]
 
 [tool.flakehell.exceptions."tests/test_data.py"]
-pycodestyle = ["-W291", # "trailing whitespace"
-    "-E501"] # "line too long"
+pycodestyle = [
+    "-W291", # "trailing whitespace"
+    "-E501", # "line too long"
+]
 
 [tool.flakehell.exceptions."tests/test_example_2.py"]
 pycodestyle = ["-E501"]
