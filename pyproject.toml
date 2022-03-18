@@ -118,7 +118,10 @@ pyflakes = ["-F811"]
 
 [tool.flakehell.exceptions."dapper/mods/*.py"]
 # Model configs are supposed to allow a little sloppiness.
-flake8-docstrings = ["-D*"] # "missing docstring in ..."
+flake8-docstrings = [
+    "-D*", # "missing docstring in ..."
+    "-B007", # Loop var unused
+]
 
 [tool.flakehell.exceptions."tests/test_data.py"]
 pycodestyle = ["-W291", # "trailing whitespace"
