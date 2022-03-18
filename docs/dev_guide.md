@@ -74,6 +74,27 @@ For detailed linting messages, run
 flakeheaven lint
 ```
 
+You may also want to display linting issues in your editor as you code.
+Below is a suggested configuration of VS-Code with the pylance plug-in
+or Vim (with the coc.nvim plug-in with the pyright extension)
+
+```jsonc
+// Put this in settings.json (VS-Code) or ~/.vim/coc-settings.json (For Vim)
+{
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.extraPaths": ["scripts"],
+    "python.formatting.provider": "autopep8",
+    "python.formatting.autopep8Path":  "~/.local/bin/autopep8",
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": ["lint"],
+    "python.linting.flake8Path": "${env:CONDA_PREFIX}/bin/flakeheaven",
+    // Without VENV (requires `pip3 install --user flakeheaven flake8-docstrings flake8-bugbear ...`)
+    // "python.linting.flake8Path": "[USE PATH PRINTED BY PIP ABOVE]/Python/3.8/bin/flakeheaven",
+}
+```
+
 ## Adding to the examples
 
 Example scripts are very useful, and contributions are very desirable.  As well
