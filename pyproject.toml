@@ -97,7 +97,8 @@ flake8-builtins = ["+*"]
 flake8-comprehensions = ["+*", "-C408"]
 #flake8-darglint = ["+*"]
 flake8-commas = ["+*"]
-flake8-docstrings = ["+*", "-D105",
+flake8-docstrings = ["+*",
+    "-D105",
     "-D401", # issues/68
     "-D102", "-D103", "-D107", "-D400", # TODO 4: enable these
     ]
@@ -118,11 +119,16 @@ pyflakes = ["-F811"]
 
 [tool.flakehell.exceptions."dapper/mods/*.py"]
 # Model configs are supposed to allow a little sloppiness.
-flake8-docstrings = ["-D*"] # "missing docstring in ..."
+flake8-docstrings = [
+    "-D*", # "missing docstring in ..."
+    "-B007", # Loop var unused
+]
 
 [tool.flakehell.exceptions."tests/test_data.py"]
-pycodestyle = ["-W291", # "trailing whitespace"
-    "-E501"] # "line too long"
+pycodestyle = [
+    "-W291", # "trailing whitespace"
+    "-E501", # "line too long"
+]
 
 [tool.flakehell.exceptions."tests/test_example_2.py"]
 pycodestyle = ["-E501"]
