@@ -71,7 +71,7 @@ Now every time you commit, these tests will run on the staged files.
 For detailed linting messages, run
 
 ```sh
-flakehell lint
+flakeheaven lint
 ```
 
 ## Adding to the examples

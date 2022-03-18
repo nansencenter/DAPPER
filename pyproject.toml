@@ -61,18 +61,14 @@ commands =
 max_line_length = 88
 ignore = "W6"
 
-[tool.flakehell]
+[tool.flakeheaven]
 exclude = [".*", "README.*", "examples/*.ipynb", "autoscaler.py"]
 max_line_length = 88
 format = "grouped" # also try "stat"
 show_source = false
 #whitelist = "../../allowlist.txt" # Used by flake8-spellcheck.
 
-# Tmp fix for flakehell crashing with flake>=3.9.1
-# https://github.com/flakehell/flakehell/issues/10
-extended_default_ignore=[]
-
-[tool.flakehell.plugins]
+[tool.flakeheaven.plugins]
 pyflakes = ["+*"]
 pycodestyle = ["+*",
     # flake8 defaults:
@@ -107,32 +103,32 @@ flake8-docstrings = ["+*",
 #flake8-pytest-style = ["+*"]
 #flake8-spellcheck = ["+*"]
 
-[tool.flakehell.exceptions."**/__init__.py"]
+[tool.flakeheaven.exceptions."**/__init__.py"]
 pyflakes = ["-F401"] # "imported but unused"
 pycodestyle = ["-E402"] # "module level import not at top of file"
 
-[tool.flakehell.exceptions."dapper/da_methods/"]
+[tool.flakeheaven.exceptions."dapper/da_methods/"]
 "flake8-*" = ["-D102"]
 
-[tool.flakehell.exceptions."dapper/mods/explore_props.py"]
+[tool.flakeheaven.exceptions."dapper/mods/explore_props.py"]
 pyflakes = ["-F811"]
 
-[tool.flakehell.exceptions."dapper/mods/*.py"]
+[tool.flakeheaven.exceptions."dapper/mods/*.py"]
 # Model configs are supposed to allow a little sloppiness.
 flake8-docstrings = [
     "-D*", # "missing docstring in ..."
     "-B007", # Loop var unused
 ]
 
-[tool.flakehell.exceptions."tests/test_data.py"]
+[tool.flakeheaven.exceptions."tests/test_data.py"]
 pycodestyle = [
     "-W291", # "trailing whitespace"
     "-E501", # "line too long"
 ]
 
-[tool.flakehell.exceptions."tests/test_example_2.py"]
+[tool.flakeheaven.exceptions."tests/test_example_2.py"]
 pycodestyle = ["-E501"]
 
-[tool.flakehell.exceptions."examples/"]
+[tool.flakeheaven.exceptions."examples/"]
 pycodestyle = ["-E201", "-E402"]
 flake8-docstrings = ["-D100", "-D200"]

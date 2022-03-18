@@ -29,13 +29,10 @@ repos:
     -   id: mixed-line-ending
         args: ['--fix=no']
 
-# -   repo: https://github.com/flakehell/flakehell
-#     rev: v.0.8.0
-# Until this gets merged: https://github.com/flakehell/flakehell/pull/20
--   repo: https://github.com/KPLauritzen/flakehell
-    rev: d644612
+-   repo: https://github.com/flakeheaven/flakeheaven
+    rev: 0.11.0
     hooks:
-    -   id: flakehell
+    -   id: flakeheaven
         additional_dependencies: [
           flake8-docstrings,
           flake8-bugbear,
