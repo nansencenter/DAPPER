@@ -14,7 +14,7 @@ sitemap() {
 }
 
 # The docs were generated from master, but here we need the gh-pages branch
-git clone -b gh-pages "https://patricknraanes:$GH_PASSWORD@github.com/$GITHUB_REPOSITORY.git" gh-pages
+git clone -b gh-pages "https://patnr:$GH_PASSWORD@github.com/$GITHUB_REPOSITORY.git" gh-pages
 cp -R docs/* gh-pages/docs/
 cd gh-pages
 sitemap
