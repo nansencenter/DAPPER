@@ -110,9 +110,9 @@ the `lightscript` format), so that the paired files can be kept in synch.
 The documentation may be generated with `pdoc3`, e.g.
 
 ```sh
-pdoc --force --html --template-dir docs/templates -o ./docs \
+pdoc --force --html --template-dir docs/templates -o ./doc-build \
 docs/bib/bib.py docs/dev_guide.py dapper
-open docs/index.html # preview
+# Open (in your browser) the file doc-build/dapper/index.html
 ```
 
 This is done automatically by a GitHub workflow whenever

@@ -154,6 +154,9 @@ cython_debug/
 # Don't commit results
 dpr_data/
 
+# Don't include local builds of docs
+doc-build
+
 # Generated when running QG model
 dapper/mods/QG/f90/prms_*\.txt
 
