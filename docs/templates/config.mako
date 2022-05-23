@@ -8,5 +8,6 @@
     # show_type_annotations = True
     # show_source_code = False
     latex_math = True
-    google_search_query = 'site:nansencenter.github.io/DAPPER'
+    # Use lunr.js while waiting for fix https://github.com/pdoc3/pdoc/issues/328
+    lunr_search = {'fuzziness': 1, 'index_docstrings': True}
 %>
