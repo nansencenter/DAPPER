@@ -39,10 +39,12 @@ xp.assimilate(HMM, xx, yy, liveplots=not nb)
 
 # #### Average the time series of various statistics
 
+# print(xp.stats)  # ⇒ long printout
 xp.stats.average_in_time()
 
-# #### Print some averages
+# #### Print some of these time-averages
 
+# print(xp.avrgs)  # ⇒ long printout
 print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 
 # #### Replay liveplotters
@@ -66,10 +68,6 @@ if nb:
 
 if nb:
     print(HMM)
-
-if nb:
-    # print(xp.stats) # quite long printout
-    print(xp.avrgs)
 
 # #### Excercise: Why are the replay plots not as smooth as the liveplot?
 # *Hint*: provide the keyword `store_u=True` to `assimilate()` to avoid this.
