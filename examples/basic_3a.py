@@ -43,7 +43,7 @@ def setup(hmm, xp):
     return dpr.seed_and_simulate(hmm, xp)
 
 
-# This is shorter than Ref[1], but we also use repetitions (a seed list).
+# This is shorter than ref. [1], but we also use repetitions (a seed list).
 HMM.tseq.Ko = 10**4
 
 # #### DA method configurations
