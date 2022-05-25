@@ -39,7 +39,7 @@ def setup(hmm, xp):
     """Experiment init.: Set Lorenz-96 forcing. Seed. Simulate truth/obs."""
     import dapper as dpr  # req. on clusters
     import dapper.mods.Lorenz96 as core
-    core.Force = xp.F
+    core.Force = xp.Force
     return dpr.seed_and_simulate(hmm, xp)
 
 
@@ -57,7 +57,7 @@ params = dict(
     loc_rad  = dpr.round2sigfig([a*b for b in [.1, 1, 10] for a in [1, 2, 4, 7]], 2),
 )
 # Combines all the params suitable for a method. See doc for dpr.combinator.
-for_params = dpr.combinator(params, seed=3000+np.arange(10), F=[8, 10])
+for_params = dpr.combinator(params, seed=3000+np.arange(10), Force=[8, 10])
 
 xps = dpr.xpList()
 xps += for_params(da.Climatology)
@@ -94,5 +94,5 @@ xp_dict = dpr.xpSpace.from_list(xps)
 
 # Print, split into tables by `outer` (also try None), and columns by `inner`.
 tunable = {'loc_rad', 'infl', 'xB', 'rot'}
-dims = dict(outer="F", inner="N", mean="seed", optim=tunable)
+dims = dict(outer="Force", inner="N", mean="seed", optim=tunable)
 xp_dict.print("rmse.a", dims, subcols=False)
