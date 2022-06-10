@@ -24,10 +24,21 @@ class SparseSpace(dict):
 
     Like a normal `dict`, it can hold any type of objects.
     But, since the keys must conform, they effectively follow a coordinate system,
-    so that the `dict` becomes a vector **space**.
+    so that the `dict` becomes a vector **space**. Example:
+    >>> dct = xpSpace(["x", "y", "z"])
+    >>> dct[(1, 2, 3)] = "pointA"
 
     The coordinate system is specified by the `dims`:
     a list of keys defining the `namedtuple` of `self.Coord`.
+    The above dict only has three `dims`, so this fails:
+    >>> dct[(1, 2, 3, 4)] = "pointB"  # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+    ...
+    TypeError: The key (1, 2, 3, 4) did not fit the coord.  system
+    which has dims ('x', 'y', 'z')
+
+    Coordinates can contain any value, including `None`:
+    >>> dct[(1, 2, None)] = "pointB"
 
     In intended usage, this space is highly sparse,
     meaning there are many coordinates with no entry.
@@ -43,13 +54,14 @@ class SparseSpace(dict):
     This is essentially a "groupby" operation, and indeed the case could
     be made that this class should be replaced by `pandas.DataFrame`.
 
-    The convenience method `.subspace` (aliased to `.__call__`),
-    which makes use of `.coords_matching`,
-    can be used to select items by their attribute values.
-    In addition, `__getitem__` is quite flexible, allowing accessing by:
+    The `__getitem__` is quite flexible, allowing accessing by:
 
     - The actual key, a `self.Coord` object, or a standard tuple.<br>
-      Returns single item.
+      Returns single item. Example:
+
+            >>> dct[1, 2, 3] == dct[(1, 2, 3)] == dct[dct.Coord(1, 2, 3)] == "pointA"
+            True
+
     - A `slice` or `list`.<br>
       Returns list.<br>
       *PS: indexing by slice or list assumes that the dict is ordered,
@@ -57,23 +69,10 @@ class SparseSpace(dict):
       Moreover, it is a reflection of the fact that the internals of this class
       work by looping over items.*
 
-    Example:
-    >>> dct = xpSpace(["x", "y", "z"])
-    >>> dct[(1, 2, 3)] = "point 1"
-    >>> dct[1, 2, 3] == dct[(1, 2, 3)] == dct[dct.Coord(1, 2, 3)] == "point 1"
-    True
-
-    Notice the different ways to access *a single* `xp`.
-    Another way, combining `.subspace` and list accessing: e.g. `dct[[0]][0]`.
-    The reason why nothing less clunky is implemented for getting only 1 item
-    is that Coordinates can have any value. For example `None`:
-    >>> dct[(1, 2, None)] = "point 2"
-
-    This dict only has three `dims`, so this fails:
-    >>> dct[(1, 2, 3, 4)]
-    Traceback (most recent call last):
-    ...
-    KeyError: (1, 2, 3, 4)
+    In addition, the `subspace` method (also aliased to `__call__`, and is implemented
+    via `coords_matching`) can be used to select items by the values of a *subset*
+    of their attributes. It returns a `SparseSpace`.
+    If there is only a single item it can be accessed as in `dct[()]`.
 
     Inspired by
 
