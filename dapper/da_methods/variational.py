@@ -51,7 +51,7 @@ class iEnKS:
       Shift : How far (in cycles) to slide the DAW.
               Fixed at 1 for code simplicity.
 
-      nIter : Maximal num. of iterations used (>=1).
+      nIter : Maximal num. of iterations used (>=1). Default: 10.
               Supporting nIter==0 requires more code than it's worth.
 
       wtol  : Rel. tolerance defining convergence.
