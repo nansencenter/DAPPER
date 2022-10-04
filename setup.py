@@ -22,9 +22,7 @@ INSTALL_REQUIRES = [
     'ipython>=5.1',
     'jedi<0.18',  # ipython/issues/12740
     'jupyter',
-    'matplotlib~=3.2.2',
-    #    >=3.1 to avoid Mac's framework-build issues.
-    #    But 3.4 does not work on Colab.
+    'matplotlib~=3.2.2',  # use Colab's version (newer wont work there)
     'mpl-tools==0.2.50',
     'tqdm~=4.31',
     'pyyaml',
