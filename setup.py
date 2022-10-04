@@ -45,7 +45,8 @@ EXTRAS = {
     'test': ['tox', 'coverage>=5.1', 'pytest',
              'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
-    'lint': ['flake8', 'flakeheaven'],
+    'lint': ['flake8<5',  # https://github.com/flakeheaven/flakeheaven/issues/132
+             'flakeheaven'],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
     'build': ['twine', 'pdoc3', 'jupytext'],
 }
