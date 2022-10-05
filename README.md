@@ -345,7 +345,7 @@ and the Center for Western Weather and Water Extremes (CW3E).
 
 ## Publication list
 
-- [Combining data assimilation and machine learning to emulate a dynamical model from sparse and noisy observations: A case study with the Lorenz 96 model](https://doi.org/10.1016/j.jocs.2020.10117)
+- [Combining data assimilation and machine learning to emulate a dynamical model from sparse and noisy observations: A case study with the Lorenz 96 model](https://doi.org/10.1016/j.jocs.2020.101171)
 - [Adaptive covariance inflation in the ensemble Kalman filter by Gaussian scale mixtures](https://doi.org/10.1002/qj.3386)
 - [Revising the stochastic iterative ensemble smoother](https://doi.org/10.5194/npg-26-325-2019)
 - [p-Kernel Stein Variational Gradient Descent for Data Assimilation and History Matching](https://doi.org/10.1007/s11004-021-09937-x)
