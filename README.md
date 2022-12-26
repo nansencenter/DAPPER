@@ -28,7 +28,7 @@ and then estimate that truth given the models and noisy observations.
 
 ## Getting started
 
-[Install](#Installation), then
+[Install](#installation), then
 read, run and try to understand `examples/basic_{1,2,3}.py`.
 Some of the examples can also be opened in Jupyter, and thereby run in the cloud
 (i.e. *without installation*, but requiring Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
@@ -46,8 +46,8 @@ see these [tutorials](https://github.com/nansencenter/DA-tutorials).
 
 ## Highlights
 
-DAPPER enables the numerical investigation of [DA methods](#DA-methods)
-through a variety of typical [test cases](#Test-cases-models) and statistics. It
+DAPPER enables the numerical investigation of [DA methods](#da-methods)
+through a variety of typical [test cases](#test-cases-models) and statistics. It
 (a) reproduces numerical benchmarks results reported in the literature, and
 (b) facilitates comparative studies, thus promoting the
 (a) reliability and
@@ -223,7 +223,7 @@ Some files contain settings used by several papers.
 Moreover, at the bottom of each such file should be (in comments)
 a list of suitable, tuned settings for various DA methods,
 along with their expected, average `rmse.a` score for that experiment.
-As mentioned [above](#DA-methods), DAPPER reproduces literature results.
+As mentioned [above](#da-methods), DAPPER reproduces literature results.
 You will also find results that were not reproduced by DAPPER.
 
 
