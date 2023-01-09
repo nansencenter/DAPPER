@@ -36,8 +36,7 @@ def test_L63():
     # spell_out(xps[-1].stats)
     # spell_out(xps[-1].avrgs)
 
-    assert True  # An assertion for pytest to count
-    return HMM, xps  # Return useful stuff
+    assert True  # run pytest
 
 
 def test_L96():
@@ -79,8 +78,7 @@ def test_L96():
     # spell_out(xps[-1].stats)
     # spell_out(xps[-1].avrgs)
 
-    assert True  # An assertion for pytest to count
-    return HMM, xps  # Return useful stuff
+    assert True  # run pytest
 
 
 # Non py.test runs:
