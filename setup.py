@@ -46,7 +46,7 @@ EXTRAS = {
     'lint': ['flake8<5',  # https://github.com/flakeheaven/flakeheaven/issues/132
              'flakeheaven', 'autopep8'],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
-    'build': ['twine', 'pdoc3', 'jupytext'],
+    'build': ['twine', 'pdoc', 'jupytext'],
 }
 EXTRAS['dev'] += EXTRAS['test'] + EXTRAS['lint'] + EXTRAS['build']
 
