@@ -5,11 +5,11 @@ on:
   push:
     branches:
       - master
+      - dev1
       - "!gh-pages"
 
 env:
   IS_CI: 'true'
-  PYTHON_VERSION: '3.8'
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
@@ -18,7 +18,6 @@ jobs:
         os: ['ubuntu-latest', 'macos-latest']
         python-version: ['3.7', '3.8', '3.9', '3.10']
         jobtype: ['testing']
-        distrib: ['included']
         include:
           - os: 'ubuntu-latest'
             python-version: '3.9'
@@ -30,37 +29,24 @@ jobs:
 
           - os: 'ubuntu-latest'
             python-version: '3.8'
-            distrib: 'conda'
             jobtype: 'testing'
 
           - os: 'macos-latest'
             python-version: '3.8'
-            distrib: 'conda'
             jobtype: 'testing'
     env:
-      DISTRIB: ${{ matrix.distrib }}
       JOBTYPE: ${{ matrix.jobtype }}
-    steps:
-      - name: 'Checkout repository'
-        uses: actions/checkout@v2
 
+    steps:
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache miniconda
-        uses: actions/cache@v2
-        if: ${{ env.DISTRIB == 'conda' }}
-        with:
-          path: ~/miniconda
-          key: ${{ runner.os }}-miniconda-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-miniconda-
-
       - name: Install dependencies
         run: |
-          /bin/bash tests/ci_install.sh
+          python -m pip install --upgrade pip
           pip install -e .[dev]
           pip install coveralls
 
@@ -75,7 +61,7 @@ jobs:
             pytest tests --ignore=dapper/mods/QG \
             --cov=dapper --cov-report term-missing
           else
-            pytest tests --ignore=dapper/mods/QG
+            pytest tests
           fi
 
       - name: Publish coverage to coveralls.io
@@ -83,7 +69,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: coveralls --service=github
-
-      - name: Cleanup
-        run: /bin/bash tests/ci_cleanup.sh
-...
