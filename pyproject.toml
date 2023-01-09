@@ -18,6 +18,12 @@ addopts = """
     --ignore-glob=dapper/mods/KS/compare_schemes.py
     --ignore=dapper/mods/explore_props.py
 """
+# mpl uses distutils (deprecated in python>=3.10).
+# The warning only prints via pytest.
+# Silence until mpl is upgraded (when Colab does so).
+filterwarnings = [
+    'ignore:distutils:DeprecationWarning',
+]
 
 [tool.coverage.run]
 branch = true # stricter
