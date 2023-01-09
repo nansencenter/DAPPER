@@ -42,6 +42,13 @@ def test_HMM(path):
         """Exclude certain, untestable HMMs"""
         if key == "HMM_trunc":
             return True
+        if "QG" in HMM.name:
+            try:
+                HMM.Dyn.model.__self__.f90
+            except ModuleNotFoundError as err:
+                import warnings
+                warnings.warn(str(err))
+                return True
         return False
 
     for key, HMM in vars(module).items():
