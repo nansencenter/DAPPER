@@ -40,8 +40,8 @@ def coloring(*color_codes):
     """Color printing using 'with'.
 
     Example:
-        with coloring(colorama.Fore.GREEN):
-           print("--- This is in color ---")
+    >>> with coloring(colorama.Fore.GREEN):
+    ...    print("--- This is in color ---")  # doctest: +SKIP
     """
     orig_print = builtins.print
 

@@ -45,9 +45,9 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
 
     threshold: float or int
 
-    - if float, < 1.0 then "rank" = lowest number
-      such that the "energy" retained >= threshold
-    - if int,  >= 1   then "rank" = threshold
+        - if `float`, `< 1.0` then "rank" = lowest number
+          such that the "energy" retained >= threshold
+        - if `int`,  `>= 1`   then "rank" = threshold
     """
     M, N = A.shape
     full_matrices = False

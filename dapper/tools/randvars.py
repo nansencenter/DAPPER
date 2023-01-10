@@ -18,22 +18,22 @@ class RV(NicePrint):
     def __init__(self, M, **kwargs):
         """Initalization arguments:
 
-        - M    <int>     : ndim
-        - is0  <bool>    : if True, the random variable is identically 0
-        - func <func(N)> : use this sampling function. Example:
+        - `M    <int>    ` : ndim
+        - `is0  <bool>   ` : if `True`, the random variable is identically 0
+        - `func <func(N)>` : use this sampling function. Example:
                            `RV(M=4,func=lambda N: rand(N,4)`
-        - file <str>     : draw from file. Example:
+        - `file <str>    ` : draw from file. Example:
                            `RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')`
 
         The following kwords (versions) are available,
         but should not be used for anything serious
         (use instead subclasses, like `GaussRV`).
 
-        - icdf <func(x)> : marginal/independent  "inverse transform" sampling.
+        - `icdf <func(x)>` : marginal/independent  "inverse transform" sampling.<br>
                            Example: `RV(M=4,icdf = scipy.stats.norm.ppf)`
-        - cdf <func(x)>  : as icdf, but with approximate icdf, from interpolation.
+        - `cdf <func(x)>`  : as icdf, but with approximate icdf, from interpolation.<br>
                            Example: `RV(M=4,cdf = scipy.stats.norm.cdf)`
-        - pdf  <func(x)> : "acceptance-rejection" sampling. Not implemented.
+        - `pdf  <func(x)>` : "acceptance-rejection" sampling. Not implemented.
         """
         self.M = M
         for key, value in kwargs.items():
@@ -199,7 +199,7 @@ class StudRV(RV_with_mean_and_cov):
     """Student-t multivariate random variable.
 
     Assumes the covariance exists,
-    which requires degreee-of-freedom (dof) > 1+ndim.
+    which requires `degreee-of-freedom (dof) > 1+ndim`.
     Also requires that dof be integer,
     since chi2 is sampled via Gaussians.
     """
