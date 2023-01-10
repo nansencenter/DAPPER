@@ -26,8 +26,6 @@ from dataclasses import dataclass
 
 import dapper as dpr
 
-__pdoc__ = {}
-
 if "--replace" in sys.argv:
     replacements = []
 
@@ -93,7 +91,6 @@ def gen_test_set(xp_dict, *args, **kwargs):
 
             name = f"test_table_starting_on_line_{lineno}"
             test_register[name] = compare
-            __pdoc__[name] = False
 
             lineno += table_old.count("\n") + 2
 

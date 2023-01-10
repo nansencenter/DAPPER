@@ -27,8 +27,6 @@ from dapper.dpr_config import rc
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
 
-__pdoc__ = {"align_col": False}
-
 
 class Stats(series.StatPrint):
     """Contains and computes statistics of the DA methods."""
