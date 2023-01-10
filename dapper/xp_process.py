@@ -158,9 +158,8 @@ class SparseSpace(dict):
         NB: If you're calling this repeatedly (for all values of the same `kwargs`)
         then you should consider using `SparseSpace.nest` instead.
 
-        Example
-        -------
-            xp_dict.subspace(da_method="EnKF", infl=1, seed=3)
+        Example:
+        >>> xp_dict.subspace(da_method="EnKF", infl=1, seed=3) # doctest: +SKIP
         """
         # Slow version
         # outer = self.nest(outer_dims=list(kwargs))  # make subspaceS
