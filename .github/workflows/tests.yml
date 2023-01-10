@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'macos-latest']
+        python-source: ['bundled']
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
         jobtype: ['testing']
         include:
@@ -26,20 +27,41 @@ jobs:
           - os: 'ubuntu-latest'
             python-version: '3.10'
             jobtype: 'coverage'
+
+          - os: 'ubuntu-latest'
+            python-source: 'conda'
+            jobtype: 'testing'
     env:
       JOBTYPE: ${{ matrix.jobtype }}
+      PYTHON_SOURCE: ${{ matrix.python-source }}
 
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python ${{ matrix.python-version }}
+        if: ${{ matrix.python-source == 'bundled' }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
           cache-dependency-path: 'setup.py'
 
+      - uses: conda-incubator/setup-miniconda@v2
+        if: ${{ matrix.python-source == 'conda' }}
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+
       - name: Install dependencies
         run: |
+          # The official way (`shell: bash -el {0}`) ruins bundled python
+          # and "yaml" if/else still imposes duplication of the step's codes.
+          if [[ "$PYTHON_SOURCE" == "conda" ]]; then
+            # Alternatively: `shell: bash -el {0}`
+            # But this does not work for built-in python.
+            source ~/.profile
+            conda activate test
+          fi
           python -m pip install --upgrade pip
           pip install -e .[dev]
           pip install coveralls
@@ -52,9 +74,12 @@ jobs:
             pre-commit install
             pre-commit run --all-files
           elif [[ "$JOBTYPE" == "coverage" ]]; then
-            pytest tests --ignore=dapper/mods/QG \
-            --cov=dapper --cov-report term-missing
+            pytest tests --ignore=dapper/mods/QG --cov=dapper --cov-report term-missing
           else
+            if [[ "$PYTHON_SOURCE" == "conda" ]]; then
+              source ~/.profile
+              conda activate test
+            fi
             pytest tests
           fi
 
