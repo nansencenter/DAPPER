@@ -46,7 +46,7 @@ def set_seed(sd="clock"):
     True
 
     *Later*, of course, we get a different outcome.
-    >>> time.sleep(1e-3)
+    >>> time.sleep(.1)
     >>> b = set_seed();  y == rnd.randint(999)
     False
     """
