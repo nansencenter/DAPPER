@@ -1,4 +1,5 @@
-"""Data Assimilation with Python: a Package for Experimental Research
+"""Root package of **DAPPER**
+(Data Assimilation with Python: a Package for Experimental Research)
 
 .. include:: ./README.md
 """
