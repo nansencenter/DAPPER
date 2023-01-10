@@ -138,17 +138,17 @@ def fit_sigmoid(Sb, L, kb):
     """Return a sigmoid [function S(k)] for approximating error dynamics.
 
     We use the logistic function for the sigmoid; it's the solution of the
-    "population growth" ODE: dS/dt = a*S*(1-S/S(∞)).
+    "population growth" ODE: `dS/dt = a*S*(1-S/S(∞))`.
     NB: It might be better to use the "error growth ODE" of Lorenz/Dalcher/Kalnay,
     but this has a significantly more complicated closed-form solution,
     and reduces to the above ODE when there's no model error (ODE source term).
 
-    The "normalized" sigmoid, S1, is symmetric around 0, and S1(-∞)=0 and S1(∞)=1.
+    The "normalized" sigmoid, `S1`, is symmetric around 0, and `S1(-∞)=0` and `S1(∞)=1`.
 
-    The sigmoid S(k) = S1(a*(k-kb) + b) is fitted (see docs/snippets/sigmoid.jpg) with
+    The sigmoid `S(k) = S1(a*(k-kb) + b)` is fitted (see docs/snippets/sigmoid.jpg) with
 
-    - a corresponding to a given corr. length L.
-    - b to match values of S(kb) and Sb
+    - `a` corresponding to a given corr. length `L`.
+    - `b` to match values of `S(kb)` and `Sb`
     """
 
     def sigmoid(k): return 1/(1+np.exp(-k))  # normalized sigmoid
@@ -167,8 +167,9 @@ def fit_sigmoid(Sb, L, kb):
 class Persistence:
     """Sets estimate to the **true state** at the previous time index.
 
-    The analysis (.a) stat uses the previous obs. time.
-    The forecast and universal (.f and .u) stats use previous integration time index.
+    The analysis (`.a`) stat uses the previous obs. time.
+    The forecast and universal (`.f` and `.u`) stats use previous integration time
+    index.
     """
 
     def assimilate(self, HMM, xx, yy):
@@ -186,7 +187,7 @@ class PreProg:
     """Simply look-up the estimates in user-specified function (`schedule`).
 
     For example, with `schedule` given by `lambda k, xx, yy: xx[k]`
-    the error (err.rms, err.ma, ...) should be 0.
+    the error (`err.rms, err.ma, ...`) should be 0.
     """
 
     schedule: Callable
