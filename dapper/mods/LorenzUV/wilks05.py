@@ -3,13 +3,14 @@
 Obs settings taken from different places (=> quasi-linear regime).
 """
 
+from pathlib import Path
+
 import numpy as np
 
 import dapper.mods as modelling
 from dapper.mods.LorenzUV import model_instance
 
-from ..utils import rel2mods
-
+name = "LorenzUV/" + Path(__file__).stem
 LUV = model_instance()
 nU = LUV.nU
 
@@ -40,7 +41,7 @@ jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(LUV.M, jj)
 Obs['noise'] = R
 
-other = {'name': rel2mods(__file__)+'_full'}
+other = {'name': name + '_full'}
 HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **other)
 
 
@@ -63,7 +64,7 @@ jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(nU, jj)
 Obs['noise'] = R
 
-other = {'name': rel2mods(__file__)+'_trunc'}
+other = {'name': name + '_trunc'}
 HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **other)
 
 LUV.prmzt = lambda x, t: polynom_prmzt(x, t, 1)

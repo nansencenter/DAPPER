@@ -91,6 +91,8 @@ L63_old = """
 #     benchmark(L63_gen)
 
 
+# Ignore stats.py:warn_zero_variance() due to PreProg having var 0
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_len63(L63_table):
     assert len(L63_old) == len(L63_table)
 

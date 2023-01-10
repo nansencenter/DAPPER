@@ -1,18 +1,11 @@
 """Utilities to help define hidden Markov models."""
 
 import functools
-from pathlib import Path
 
 import numpy as np
 import scipy.linalg as sla
 
 from dapper.tools.rounding import is_whole
-
-
-def rel2mods(path):
-    mods = Path(__file__).parent
-    path = Path(path).relative_to(mods).with_suffix("")
-    return str(path)
 
 
 # https://stackoverflow.com/q/22797580
