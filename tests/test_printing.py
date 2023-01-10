@@ -3,8 +3,6 @@
 import dapper as dpr
 import dapper.da_methods as da
 
-# from dapper.tools.magic import spell_out
-
 
 def test_L63():
     from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM
@@ -29,12 +27,6 @@ def test_L63():
         save_as=False,
     )
     print(xps.tabulate_avrgs(["rmse.a"]))
-
-    # Disabled coz magic doesn't work any more on python 3.7
-    # spell_out(HMM)
-    # spell_out(xps[-1])
-    # spell_out(xps[-1].stats)
-    # spell_out(xps[-1].avrgs)
 
     assert True  # run pytest
 
@@ -73,14 +65,4 @@ def test_L96():
     )
     print(xps.tabulate_avrgs(["rmse.a"]))
 
-    # spell_out(HMM)
-    # spell_out(xps[-1])
-    # spell_out(xps[-1].stats)
-    # spell_out(xps[-1].avrgs)
-
     assert True  # run pytest
-
-
-# Non py.test runs:
-# HMM, xx, yy, xps = test_L63()
-# HMM, xx, yy, xps = test_L96()
