@@ -89,9 +89,9 @@ Also see its [drawbacks](#similar-projects).
 
 ## Installation
 
-Works on Linux/Windows/Mac.
+Successfully tested on Linux/Mac/Windows.
 
-### Prerequisite: Python>=3.7
+### Prerequisite: Python>=3.7 (3.9 on Windows)
 
 If you're an expert, setup a python environment however you like.
 Otherwise:
@@ -100,7 +100,7 @@ open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user
 and run the following commands:
 
 ```sh
-conda create --yes --name dapper-env python=3.8
+conda create --yes --name dapper-env python=3.9
 conda activate dapper-env
 python --version
 ```
