@@ -5,7 +5,7 @@ if __name__ == "__main__":  # dont run if pdoc (sample may not be avail/generate
     from matplotlib import pyplot as plt
 
     import dapper as dpr
-    from dapper.mods.QG._demo import show
+    from dapper.mods.QG.demo import show
     from dapper.mods.QG.sakov2008 import HMM, obs_inds
     from dapper.tools.progressbar import progbar
 

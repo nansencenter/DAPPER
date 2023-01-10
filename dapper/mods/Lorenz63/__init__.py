@@ -5,7 +5,7 @@ the fluid convection between horizontal plates with different temperatures.
 
 Its phase-plot (with typical param settings) looks like a butterfly.
 
-See `_demo.py` for more info.
+See demo.py for more info.
 """
 
 

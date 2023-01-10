@@ -65,7 +65,7 @@ To make sure this is working, we suggest the following structure:
         variables to the "forward model". This does not necessarily require
         OOP. See `examples/param_estim.py`.
 
-- Make a file: `my_model/_demo.py` to visually showcase
+- Make a file: `my_model/demo.py` to visually showcase
   a simulation of the model, and verify it's working.
 
     .. note::
@@ -76,7 +76,7 @@ To make sure this is working, we suggest the following structure:
         Note that the time step might need to be shorter in assimilation,
         because it may cause instabilities.
 
-- Ideally, both `my_model/__init__.py` and `my_model/_demo.py`
+- Ideally, both `my_model/__init__.py` and `my_model/demo.py`
   do not rely on components of DAPPER outside of `dapper.mods`.
 
 - Make a file: `my_model/my_settings_1.py` that defines

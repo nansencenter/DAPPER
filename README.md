@@ -207,7 +207,7 @@ Quasi-Geost (QG)     | No  | No    | Yes   | 2d        | 129²≈17k  | ≈140  
 
 The models are found as subdirectories within `dapper/mods`.
 A model should be defined in a file named `__init__.py`,
-and illustrated by a file named `_demo.py`.
+and illustrated by a file named `demo.py`.
 Most other files within a model subdirectory
 are usually named `authorYEAR.py` and define a `HMM` object,
 which holds the settings of a specific twin experiment,

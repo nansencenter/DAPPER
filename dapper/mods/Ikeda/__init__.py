@@ -2,7 +2,7 @@
 
 Source: [Wiki](https://en.wikipedia.org/wiki/Ikeda_map) and Colin Grudzien.
 
-See `_demo.py` for more info.
+See `demo` for more info.
 """
 
 

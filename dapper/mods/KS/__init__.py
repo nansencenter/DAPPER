@@ -4,8 +4,8 @@ Defined by:
 
     u_t = -u*u_x - u_xx - u_xxxx
 
-- See `compare_schemes.py` for a comparison of time-step integration schemes.
-- See `_demo.py` for further description.
+- See compare_schemes.py for a comparison of time-step integration schemes.
+- See demo.py for further description.
 """
 
 import functools
