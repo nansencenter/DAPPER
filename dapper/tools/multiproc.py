@@ -50,7 +50,7 @@ def Pool(NPROC=None):
         By contrast, multi*threading* shares the process memory,
         but was significantly slower in the tested (pertinent) cases.
 
-    .. caution::
+    .. warning::
         `multiprocessing` does not mix with `matplotlib`, so ensure `func` does not
         reference `xp.stats.LP_instance`. In fact, `func` should not reference `xp`
         at all, because it takes time to serialize.

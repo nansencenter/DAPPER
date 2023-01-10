@@ -40,9 +40,8 @@ def ens_compatible(func):
 
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    Note
-    ----
-    this is not the_way™ -- other tricks are sometimes more practical.
+    .. note:: This is not `the_way™` -- other tricks (ref `dapper.mods`)
+        are sometimes more practical.
 
     Examples
     --------

@@ -55,7 +55,7 @@ def da_method(*default_dataclasses):
     ...     def assimilate(self, HMM, xx, yy):
     ...         ...
 
-    .. hint::
+    .. note::
         Apart from what's listed in the above `Note`, there is nothing special to the
         resulting `xp`.  That is, just like any Python object, it can serve as a data
         container, and you can write any number of attributes to it (at creation-time,
