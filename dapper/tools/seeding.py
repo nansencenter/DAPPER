@@ -28,7 +28,7 @@ def set_seed(sd="clock"):
     Because that's what we were used to.
     And we're not not worried about thread safety.
 
-    Why is sd=3000 used in many places in DAPPER?
+    Why is `sd=3000` used in many places in DAPPER?
     Coz I like the number. Example use: "André 3000", "I love you 3000".
 
     Examples
@@ -38,10 +38,10 @@ def set_seed(sd="clock"):
     >>> _ = rnd.seed(3); x == rnd.randint(999)
     True
 
-    But this would not be possible with the standard method:
-    >>> sd = set_seed()  # Set by clock
+    But since it return the seed, we can do this:
+    >>> sd = set_seed()    # Set by clock
     >>> y =  rnd.randint(999)
-    >>> sd = set_seed(sd)  # Use the same seed as previously
+    >>> sd = set_seed(sd)  # Re-use seed
     >>> y == rnd.randint(999)
     True
 
