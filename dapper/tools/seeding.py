@@ -45,9 +45,8 @@ def set_seed(sd="clock"):
     >>> y == rnd.randint(999)
     True
 
-    Using the clock method again, later, we get a different outcome.
-    >>> a = set_seed(3); x == rnd.randint(999)
-    True
+    *Later*, of course, we get a different outcome.
+    >>> time.sleep(1e-3)
     >>> b = set_seed();  y == rnd.randint(999)
     False
     """
