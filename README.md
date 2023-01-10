@@ -269,23 +269,24 @@ Name               | Developers            | Purpose (approximately)
 Below is a list of projects with a purpose more similar to DAPPER's
 (research *in* DA, and not so much *using* DA):
 
-Name                                 | Developers             | Notes
------------------------------------- | ---------------------- | ---------------------------------
-[DAPPER][22]                         | Raanes, Chen, Grudzien | Python
-[SANGOMA][5]                         | Conglomerate*          | Fortran, Matlab
-[hIPPYlib][25]                       | Villa, Petra, Ghattas  | Python, adjoint-based PDE methods
-[FilterPy][12]                       | R. Labbe               | Python. Engineering oriented.
-[DASoftware][13]                     | Yue Li, Stanford       | Matlab. Large inverse probs.
-[Pomp][18]                           | U of Michigan          | R
-[EnKF-Matlab][15]                    | Sakov                  | Matlab
-[EnKF-C][17]                         | Sakov                  | C. Light-weight, off-line DA
-[pyda][16]                           | Hickman                | Python
-[PyDA][19]                           | Shady-Ahmed            | Python
-[DasPy][20]                          | Xujun Han              | Python
-[DataAssim.jl][23]                   | Alexander-Barth        | Julia
-[DataAssimilationBenchmarks.jl][24]  | Grudzien               | Julia, Python
-Datum                                | Raanes                 | Matlab
-IEnKS code                           | Bocquet                | Python
+Name                                 | Developers                | Notes
+------------------------------------ | ----------------------    | ---------------------------------
+[DAPPER][22]                         | Raanes, Chen, Grudzien    | Python
+[SANGOMA][5]                         | Conglomerate*             | Fortran, Matlab
+[hIPPYlib][25]                       | Villa, Petra, Ghattas     | Python, adjoint-based PDE methods
+[FilterPy][12]                       | R. Labbe                  | Python. Engineering oriented.
+[DASoftware][13]                     | Yue Li, Stanford          | Matlab. Large inverse probs.
+[Pomp][18]                           | U of Michigan             | R
+[EnKF-Matlab][15]                    | Sakov                     | Matlab
+[EnKF-C][17]                         | Sakov                     | C. Light-weight, off-line DA
+[pyda][16]                           | Hickman                   | Python
+[PyDA][19]                           | Shady-Ahmed               | Python
+[DasPy][20]                          | Xujun Han                 | Python
+[DataAssim.jl][23]                   | Alexander-Barth           | Julia
+[DataAssimilationBenchmarks.jl][24]  | Grudzien                  | Julia, Python
+[EnsembleKalmanProcesses.jl][26]     | Clim. Modl. Alliance      | Julia, EKI (optim)
+Datum                                | Raanes                    | Matlab
+IEnKS code                           | Bocquet                   | Python
 
 The `EnKF-Matlab` and `IEnKS` codes have been inspirational
 in the development of DAPPER.
@@ -317,6 +318,7 @@ in the development of DAPPER.
 [23]: https://juliahub.com/docs/DataAssim/qCDwD/0.3.2/
 [24]: https://github.com/cgrudz/DataAssimilationBenchmarks.jl
 [25]: https://hippylib.github.io/
+[26]: https://github.com/CliMA/EnsembleKalmanProcesses.jl
 
 
 ## Contributors
