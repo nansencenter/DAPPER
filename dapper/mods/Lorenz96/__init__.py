@@ -4,7 +4,7 @@
 
 For a short introduction, see
 
-- `demo` and
+- `_demo.py` and
 - "Dynamical systems, chaos, Lorenz.ipynb" from the DA-tutorials
 
 Note: the implementation is `len(x)`-agnostic.

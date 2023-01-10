@@ -5,7 +5,7 @@ Adapted from Pavel Sakov's enkf-matlab package.
 More info:
 
 - `governing_eqn.png`
-- `demo.py`
+- `_demo.py`
 - ψ (psi) is the stream function (i.e. surface elevation)
 - Doubling time "between 25 and 50"
 - Note Sakov's trick of increasing RKH2 from 2.0e-12 to 2.0e-11 to stabilize
