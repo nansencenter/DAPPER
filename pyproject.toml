@@ -115,6 +115,9 @@ flake8-docstrings = ["+*",
 pyflakes = ["-F401"] # "imported but unused"
 pycodestyle = ["-E402"] # "module level import not at top of file"
 
+[tool.flakeheaven.exceptions."dapper/__init__.py"]
+flake8-docstrings = ["-D205"]
+
 [tool.flakeheaven.exceptions."dapper/da_methods/"]
 "flake8-*" = ["-D102"]
 
