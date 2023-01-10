@@ -107,32 +107,26 @@ the `lightscript` format), so that the paired files can be kept in synch.
 
 ## Documentation
 
-The documentation may be generated with `pdoc3`, e.g.
+The documentation is built with `pdoc`, e.g.
 
 ```sh
-pdoc --force --html --template-dir docs/templates -o ./doc-build \
-docs/bib/bib.py docs/dev_guide.py dapper
-# Open (in your browser) the file doc-build/dapper/index.html
+pdoc -t docs/templates --math docs/bib/bib.py docs/dev_guide.py ./dapper
 ```
 
-This is done automatically by a GitHub workflow whenever
-the `master` branch gets updated,
-and the generated docs are pushed into the `gh-pages` branch,
-to which the Github `Pages` settings of points to,
-which hosts the website.
+##### Hosting
+
+The above command is run by a GitHub Actions workflow whenever
+the `master` branch gets updated.
+The `gh-pages` branch is no longer being used.
+Instead [actions/deploy-pages](https://github.com/actions/deploy-pages)
+creates an artefact that is deployed to Github Pages.
+
+##### Bibliography
 
 In order to add new references,
 insert their bibtex into `docs/bib/refs.bib`,
 then run `docs/bib/make_bib.py`,
 which will format and add entries to `docs/bib/bib.py`.
-
-A live preview of the documentation (that updates whenever you save
-the python source file) can be had with
-
-```sh
-cd docs
-pdoc --http : dapper dev_guide.py
-```
 
 ## Profiling
 

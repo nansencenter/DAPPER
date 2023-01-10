@@ -1,4 +1,4 @@
-"""Time sequence management, notably Chronology and Ticker."""
+"""Time sequence management, notably `Chronology` and `Ticker`."""
 
 import colorama
 import numpy as np

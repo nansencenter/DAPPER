@@ -68,7 +68,7 @@ To make sure this is working, we suggest the following structure:
 - Make a file: `my_model/demo.py` to visually showcase
   a simulation of the model, and verify it's working.
 
-    .. hint::
+    .. note::
         To begin with, test whether the model works on 1 realization,
         before running it with several (simultaneously).
         Also, start with a small integration time step,

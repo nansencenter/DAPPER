@@ -43,7 +43,7 @@ def seed_and_simulate(HMM, xp):
     xp: object
         Type: a `dapper.da_methods.da_method`-decorated class.
 
-        .. caution:: `xp.seed` should be set (and `int`).
+        .. warning:: `xp.seed` should be set (and `int`).
 
             Without `xp.seed` the seed does not get set,
             and different `xp`s will use different seeds
@@ -608,7 +608,7 @@ def combinator(param_dict, **glob_dict):
     - specified as keywords to the `for_params` fix the value
       preventing using the corresponding (if any) value list in the `param_dict`.
 
-    .. caution::
+    .. warning::
         Beware! If, eg., `infl` or `rot` are in `param_dict`, aimed at the `EnKF`,
         but you forget that they are also attributes some method where you don't
         actually want to use them (eg. `SVGDF`),

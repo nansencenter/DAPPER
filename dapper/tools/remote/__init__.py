@@ -3,4 +3,4 @@
 Requires rsync, gcloud and ssh access to the DAPPER cluster.
 """
 
-__pdoc__ = {"autoscaler": False}
+__all__ = ["uplink"]

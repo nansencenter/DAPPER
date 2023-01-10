@@ -1,3 +1,8 @@
+## API reference
+
+Click the links in the navigation menu to view
+the docs for the various modules.
+
 ## Installation
 
 See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
@@ -6,12 +11,13 @@ See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
 
 See [README/Getting-started](https://github.com/nansencenter/DAPPER#Getting-started)
 
-Then, adapt one of the
-[example scripts](https://github.com/nansencenter/DAPPER/tree/master/examples)
-to your needs. Make sure you have a working adaptation of `examples/basic_1.py`
-before adapting `basic_2` and `basic_3`.
+##### Examples
 
-If, in particular, you wish to illustrate and run benchmarks with
+See [examples/README](https://github.com/nansencenter/DAPPER/tree/master/examples)
+
+##### Adding your own model/method
+
+If you wish to illustrate and run benchmarks with
 your own **model** or **method**, then
 
 - If it is a complex one, you may be better off using DAPPER
@@ -27,17 +33,11 @@ Since the generality of DAPPER is
 [limited](https://github.com/nansencenter/DAPPER#similar-projects)
 it is quite likely you will also need to make changes to the DAPPER code itself.
 
-
 ## Developer guide
 
-If you are making a pull request, please read the `dev_guide`.
+If you are making a pull request, please read the [developer guide](dev_guide).
 
 ## Bibliography
 
 Click the various citations/references (e.g. `bib.anderson2010non`)
-to access the bibliography.
-
-## API reference
-
-This documentation also pulls and renders the docstrings from the code,
-mirroring its structure.
+to access the [bibliography](bib).

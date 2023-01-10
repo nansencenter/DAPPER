@@ -97,7 +97,7 @@ def with_recursion(func, prog=False):
     Return a version of `func` whose 2nd argument (`k`)
     specifies the number of times to times apply func on its output.
 
-    .. caution:: Only the first argument to `func` will change,
+    .. warning:: Only the first argument to `func` will change,
         so, for example, if `func` is `step(x, t, dt)`,
         it will get fed the same `t` and `dt` at each iteration.
 
@@ -161,11 +161,11 @@ def integrate_TLM(TLM, dt, method='approx'):
     Parameters
     ----------
     method : str
-        - `'analytic'`: exact.
+
         - `'approx'`  : derived from the forward-euler scheme.
         - `'rk4'`     : higher-precision approx.
-
-    .. caution:: 'analytic' typically requries higher inflation in the ExtKF.
+        - `'analytic'`: exact.
+        .. warning:: 'analytic' typically requries higher inflation in the ExtKF.
 
     See Also
     --------
