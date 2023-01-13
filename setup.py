@@ -40,7 +40,7 @@ INSTALL_REQUIRES = [
 
 EXTRAS = {
     'Qt': ['PyQt5', 'qtpy'],
-    'dev': ['line_profiler', 'pre-commit', 'pdbpp>=0.10.3'],
+    'debug': ['line_profiler', 'pre-commit', 'pdbpp>=0.10.3'],
     'test': ['tox', 'coverage>=5.1', 'pytest',
              'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
@@ -49,7 +49,7 @@ EXTRAS = {
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
     'build': ['twine', 'pdoc', 'jupytext'],
 }
-EXTRAS['dev'] += EXTRAS['test'] + EXTRAS['lint'] + EXTRAS['build']
+EXTRAS['dev'] = EXTRAS['debug'] + EXTRAS['test'] + EXTRAS['lint'] + EXTRAS['build']
 
 
 def find_version(*file_paths):
