@@ -20,14 +20,14 @@ DOCLINES = __doc__.split('\n')
 # Why pin?: https://github.com/nansencenter/DAPPER/issues/41#issuecomment-1381616971
 INSTALL_REQUIRES = [
     'scipy>=1.1',
+    'jupyter',
+    'ipdb',
     'ipython>=5.1',
     'jedi<0.18',  # ipython/issues/12740
-    'jupyter',
     'matplotlib~=3.2.2',  # use Colab's version (newer wont work there)
     'mpl-tools==0.2.50',
     'tqdm~=4.31',
     'pyyaml',
-    'ipdb',
     'colorama~=0.4.1',
     'tabulate~=0.8.3',
     'dill==0.3.2',  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
