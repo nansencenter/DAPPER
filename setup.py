@@ -17,6 +17,7 @@ from setuptools import find_packages, setup
 DOCLINES = __doc__.split('\n')
 
 # Dependencies
+# Why pin?: https://github.com/nansencenter/DAPPER/issues/41#issuecomment-1381616971
 INSTALL_REQUIRES = [
     'scipy>=1.1',
     'ipython>=5.1',
