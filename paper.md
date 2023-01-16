@@ -16,10 +16,10 @@ authors:
     affiliation: "1, 2"
   - name: Yumeng Chen
     orcid: 0000-0002-2319-6937
-    affiliation: "3, 4"
+    affiliation: "3"
   - name: Colin Grudzien
     orcid: 0000-0002-3084-3178
-    affiliation: "5, 6"
+    affiliation: "4, 5"
 affiliations:
  - name: NORCE, Bergen, Norway
    index: 1
@@ -27,12 +27,10 @@ affiliations:
    index: 2
  - name: Department of Meteorology and NCEO, University of Reading, Reading, UK
    index: 3
- - name: Centre for the Mathematics of Planet Earth, University of Reading, Reading, UK
-   index: 4
  - name: CW3E - Scripps Institution of Oceanography, University of California, San Diego, USA
-   index: 5
+   index: 4
  - name: Department of Mathematics and Statistics, University of Nevada, Reno, USA
-   index: 6
+   index: 5
 date: 10 January 2023
 bibliography: paper.bib
 ---
