@@ -24,6 +24,7 @@ INSTALL_REQUIRES = [
     'ipdb',
     'ipython>=5.1',
     # 'jedi<0.18',  # ipython/issues/12740
+    'tornado==6.1',  # 6.2 breaks Jupyter plots (tested on Mac, Linux)
     'matplotlib~=3.7',
     'mpl-tools==0.2.50',
     'tqdm~=4.31',
