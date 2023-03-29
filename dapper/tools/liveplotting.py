@@ -21,7 +21,6 @@ argument of the `HMM.liveplotter` and default liveplotters defined in this modul
 is the name of the corresponding liveplotting classes/functions.
 """
 
-import matplotlib as mpl
 import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
@@ -579,17 +578,9 @@ class correlations:
         if Nx <= 1003:
             C = np.eye(Nx)
             # Mask half
-            mask = np.zeros_like(C, dtype=np.bool)
+            mask = np.zeros_like(C, dtype=bool)
             mask[np.tril_indices_from(mask)] = True
-            # Make colormap. Log-transform cmap,
-            # but not internally in matplotlib,
-            # so as to avoid transforming the colorbar too.
             cmap = plt.get_cmap('RdBu_r')
-            trfm = mpl.colors.SymLogNorm(linthresh=0.2, linscale=0.2,
-                                         base=np.e, vmin=-1, vmax=1)
-            cmap = cmap(trfm(np.linspace(-0.6, 0.6, cmap.N)))
-            cmap = mpl.colors.ListedColormap(cmap)
-            #
             VM   = 1.0  # abs(np.percentile(C,[1,99])).max()
             im   = ax.imshow(C, cmap=cmap, vmin=-VM, vmax=VM)
             # Colorbar

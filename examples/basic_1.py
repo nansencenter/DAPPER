@@ -49,6 +49,7 @@ print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 
 # #### Replay liveplotters
 
+# Does not work on Colab
 xp.stats.replay(
     # speed=.6
 )
