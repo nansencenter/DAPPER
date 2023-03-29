@@ -579,7 +579,7 @@ class correlations:
         if Nx <= 1003:
             C = np.eye(Nx)
             # Mask half
-            mask = np.zeros_like(C, dtype=np.bool)
+            mask = np.zeros_like(C, dtype=bool)
             mask[np.tril_indices_from(mask)] = True
             # Make colormap. Log-transform cmap,
             # but not internally in matplotlib,

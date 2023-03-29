@@ -91,7 +91,7 @@ Also see its [drawbacks](#similar-projects).
 
 Successfully tested on Linux/Mac/Windows.
 
-### Prerequisite: Python>=3.7 (3.9 on Windows)
+### Prerequisite: Python>=3.9
 
 If you're an expert, setup a python environment however you like.
 Otherwise:
@@ -105,7 +105,7 @@ conda activate dapper-env
 python --version
 ```
 
-Ensure the printed version is 3.7 or more.  
+Ensure the printed version is 3.9 or more.  
 *Keep using the same terminal for the commands below.*
 
 ### Install

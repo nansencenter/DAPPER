@@ -19,12 +19,12 @@ DOCLINES = __doc__.split('\n')
 # Dependencies
 # Why pin?: https://github.com/nansencenter/DAPPER/issues/41#issuecomment-1381616971
 INSTALL_REQUIRES = [
-    'scipy>=1.1',
+    'scipy>=1.10',
     'jupyter',
     'ipdb',
     'ipython>=5.1',
-    'jedi<0.18',  # ipython/issues/12740
-    'matplotlib~=3.2.2',  # use Colab's version (newer wont work there)
+    # 'jedi<0.18',  # ipython/issues/12740
+    'matplotlib~=3.7',
     'mpl-tools==0.2.50',
     'tqdm~=4.31',
     'pyyaml',
