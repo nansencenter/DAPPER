@@ -463,7 +463,7 @@ def plot_rank_histogram(stats):
 
     has_been_computed = \
         hasattr(stats, 'rh') and \
-        not all(stats.rh.a[-1] == array(np.nan).astype(int))
+        not all(stats.rh.a[-1] == array(-99))
 
     fig, ax = place.freshfig("Rank histogram", figsize=(6, 3))
     ax.set_title('(Mean of marginal) rank histogram (_a)')
