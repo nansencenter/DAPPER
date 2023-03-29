@@ -47,7 +47,7 @@ def test_HMM(path):
                 HMM.Dyn.model.__self__.f90
             except ModuleNotFoundError as err:
                 import warnings
-                warnings.warn(str(err))
+                warnings.warn(str(err), stacklevel=2)
                 return True
         return False
 

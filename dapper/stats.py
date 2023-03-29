@@ -532,7 +532,7 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 def warn_zero_variance(err, flag):
     msg = "\n".join(["Numerical error in stat comps.",
                      "Probably caused by a sample variance of 0."])
-    warnings.warn(msg)
+    warnings.warn(msg, stacklevel=2)
 
 
 # Why not do all columns at once using the tabulate module? Coz
