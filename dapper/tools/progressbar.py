@@ -8,22 +8,22 @@ import warnings
 
 from tqdm.auto import tqdm
 
-# In case stdin or term settings isn't supported, for ex. when
-# running pytest or multiprocessing.
-# Btw, multiprocessing also doesn't like tqdm itself.
-disable_user_interaction = disable_progbar = "pytest" in sys.modules
+# In case stdin or term settings isn't supported, for ex. w/ pytest or multiprocessing.
+disable_progbar          = "pytest" in sys.modules
+disable_user_interaction = "pytest" in sys.modules
 
 
 def _interaction_impossible():
-    global disable_user_interaction
-    disable_user_interaction = True
-    if "pytest" not in sys.modules:
+    from dapper.dpr_config import rc
+    if rc.liveplotting and "pytest" not in sys.modules:
         warnings.warn((
             "Keyboard interaction (to skip/stop/pause the liveplotting)"
             " does not work in the current python frontend."
             " If you wish, you can use dpr_config.yaml to disable the"
             " liveplotting altogether, which will silence this message."),
             stacklevel=2)
+    global disable_user_interaction
+    disable_user_interaction = True
 
 
 def pdesc(desc):

@@ -78,7 +78,11 @@ class LivePlot:
         """
         # Disable if not rc.liveplotting
         self.any_figs = False
-        if not rc.liveplotting:
+        if rc.liveplotting:
+            pass
+        elif replay and np.isinf(speed):
+            pass
+        else:
             return
 
         # Determine whether all/universal/intermediate stats are plotted
@@ -172,7 +176,8 @@ class LivePlot:
                     win.manager.set_window_title("%s" % name)
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
-                    plt.pause(0.01)          # Draw
+                    if not (replay and np.isinf(speed)):
+                        plt.pause(0.01)  # Draw
 
     def update(self, key, E, P):
         """Update liveplots"""
