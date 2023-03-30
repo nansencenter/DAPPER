@@ -1,10 +1,9 @@
 # ## Illustrate usage of DAPPER to (interactively) run a synthetic ("twin") experiment.
 
 # #### Imports
-# <b>NB:</b> If you're on <mark><b>Gooble Colab</b></mark>,
-# then replace `%matplotlib notebook` below by
+# <b>NB:</b> On <mark><b>Gooble Colab</b></mark>,
+# *replace* `%matplotlib notebook` (right below) by\
 # `!python -m pip install git+https://github.com/nansencenter/DAPPER.git` .
-# Also note that liveplotting does not work on Colab.
 
 # %matplotlib notebook
 from mpl_tools import is_notebook_or_qt as nb
@@ -49,9 +48,8 @@ print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 
 # #### Replay liveplotters
 
-# Does not work on Colab
 xp.stats.replay(
-    # speed=.6
+    # speed=.6  # `speed` does not work in notebooks
 )
 
 # #### Further diagnostic plots

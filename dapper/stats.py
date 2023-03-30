@@ -455,7 +455,6 @@ class Stats(series.StatPrint):
 
         LP = liveplotting.LivePlot(self, figlist, P=P0, speed=speed,
                                    Tplot=t2-t1, replay=True, **kwargs)
-        plt.pause(.01)  # required when speed=inf
 
         # Remember: must use progbar to unblock read1.
         # Let's also make a proper description.
