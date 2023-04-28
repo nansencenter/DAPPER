@@ -43,7 +43,7 @@ class iEnKS:
         - "Order1" : as in DEnKF of `bib.sakov2008deterministic`.
 
       Lag:
-        Length of the DA window (DAW), in multiples of dko (i.e. cycles).
+        Length of the DA window (DAW, multiples of dko, i.e. cycles).
 
         - Lag=1 (default) => iterative "filter" iEnKF `bib.sakov2012iterative`.
         - Lag=0           => maximum-likelihood filter `bib.zupanski2005maximum`.
