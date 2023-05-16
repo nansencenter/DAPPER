@@ -49,9 +49,7 @@ class Stats(series.StatPrint):
         K  = xx.shape[0] - 1
         Nx = xx.shape[1]
         Ko = yy.shape[0] - 1
-        Ny = yy.shape[1]
-        self.K , self.Nx = K, Nx
-        self.Ko, self.Ny = Ko, Ny
+        self.K, self.Ko, self.Nx = K, Ko, Nx
 
         # Methods for summarizing multivariate stats ("fields") as scalars
         # Don't use nanmean here; nan's should get propagated!

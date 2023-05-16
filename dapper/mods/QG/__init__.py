@@ -181,7 +181,7 @@ cm = mpl.colors.ListedColormap(0.85*mpl.cm.jet(np.arange(256)))
 center = nx*int(ny/2) + int(0.5*nx)
 
 
-def LP_setup(jj=None): return [
+def LP_setup(jj): return [
     (1, LP.spatial2d(square, ind2sub, jj, cm)),
     (0, LP.spectral_errors),
     (0, LP.sliding_marginals(dims=center+np.arange(4))),

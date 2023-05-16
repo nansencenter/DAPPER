@@ -28,10 +28,10 @@ batches = np.arange(40)[:, None]
 # Define operator
 Obs = {
     'M': len(H),
-    'model': lambda E, t: E @ H.T,
-    'linear': lambda E, t: H,
+    'model': lambda E: E @ H.T,
+    'linear': lambda E: H,
     'noise': 1,
-    'localizer': localization_setup(lambda t: y2x_dists, batches),
+    'localizer': localization_setup(lambda: y2x_dists, batches),
 }
 
 HMM = modelling.HiddenMarkovModel(

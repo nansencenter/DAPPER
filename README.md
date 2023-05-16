@@ -233,8 +233,7 @@ DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:
 
 - It is not suited for very big models (>60k unknowns).
-- Time-dependent error covariances and changes in lengths of state/obs
-  (although the `Dyn` and `Obs` models may otherwise be time-dependent).
+- Time-dependent changes in lengths of state vector.
 - Non-uniform time sequences not fully supported.
 
 The scope of DAPPER is restricted because

@@ -51,7 +51,7 @@ class PartFilt:
     # miN = N*miN
 
     def assimilate(self, HMM, xx, yy):
-        N, Nx, Rm12 = self.N, HMM.Dyn.M, HMM.Obs.noise.C.sym_sqrt_inv
+        N, Nx = self.N, HMM.Dyn.M
 
         E = HMM.X0.sample(N)
         w = 1/N*np.ones(N)
@@ -71,8 +71,9 @@ class PartFilt:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E, w=w)
+                Rm12 = HMM.Obs(ko).noise.C.sym_sqrt_inv
 
-                innovs = (yy[ko] - HMM.Obs(E, t)) @ Rm12.T
+                innovs = (yy[ko] - HMM.Obs(ko)(E)) @ Rm12.T
                 w      = reweight(w, innovs=innovs)
 
                 if trigger_resampling(w, self.NER, [self.stats, E, k, ko]):
@@ -105,7 +106,7 @@ class OptPF:
     wroot: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        N, Nx, R = self.N, HMM.Dyn.M, HMM.Obs.noise.C.full
+        N, Nx = self.N, HMM.Dyn.M
 
         E = HMM.X0.sample(N)
         w = 1/N*np.ones(N)
@@ -119,20 +120,21 @@ class OptPF:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E, w=w)
+                Obs = HMM.Obs(ko)
                 y = yy[ko]
 
-                Eo = HMM.Obs(E, t)
+                Eo = Obs(E)
                 innovs = y - Eo
 
                 # EnKF-ish update
                 s   = self.Qs*auto_bandw(N, Nx)
                 As  = s*raw_C12(E, w)
                 Ys  = s*raw_C12(Eo, w)
-                C   = Ys.T@Ys + R
+                C   = Ys.T@Ys + Obs.noise.C.full
                 KG  = As.T@mrdiv(Ys, C)
                 E  += sample_quickly_with(As)[0]
-                D   = HMM.Obs.noise.sample(N)
-                dE  = KG @ (y-HMM.Obs(E, t)-D).T
+                D   = Obs.noise.sample(N)
+                dE  = KG @ (y-Obs(E)-D).T
                 E   = E + dE.T
 
                 # Importance weighting
@@ -176,7 +178,7 @@ class PFa:
     qroot: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        N, Nx, Rm12 = self.N, HMM.Dyn.M, HMM.Obs.noise.C.sym_sqrt_inv
+        N, Nx = self.N, HMM.Dyn.M
 
         E = HMM.X0.sample(N)
         w = 1/N*np.ones(N)
@@ -196,8 +198,9 @@ class PFa:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E, w=w)
+                Obs = HMM.Obs(ko)
 
-                innovs = (yy[ko] - HMM.Obs(E, t)) @ Rm12.T
+                innovs = (yy[ko] - Obs(E)) @ Obs.noise.C.sym_sqrt_inv.T
                 w      = reweight(w, innovs=innovs)
 
                 if trigger_resampling(w, self.NER, [self.stats, E, k, ko]):
@@ -248,7 +251,6 @@ class PFxN_EnKF:
 
     def assimilate(self, HMM, xx, yy):
         N, xN, Nx  = self.N, self.xN, HMM.Dyn.M
-        Rm12, Ri = HMM.Obs.noise.C.sym_sqrt_inv, HMM.Obs.noise.C.inv
 
         E = HMM.X0.sample(N)
         w = 1/N*np.ones(N)
@@ -264,8 +266,10 @@ class PFxN_EnKF:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E, w=w)
+                Obs = HMM.Obs(ko)
+                Rm12, Ri = Obs.noise.C.sym_sqrt_inv, Obs.noise.C.inv
+                Eo = Obs(E)
                 y  = yy[ko]
-                Eo = HMM.Obs(E, t)
                 wD = w.copy()
 
                 # Importance weighting
@@ -280,7 +284,7 @@ class PFxN_EnKF:
 
                     # EnKF-without-pertubations update
                     if N > Nx:
-                        C       = Yw.T @ Yw + HMM.Obs.noise.C.full
+                        C       = Yw.T @ Yw + Obs.noise.C.full
                         KG      = mrdiv(Aw.T@Yw, C)
                         cntrs   = E + (y-Eo)@KG.T
                         Pa      = Aw.T@Aw - KG@Yw.T@Aw
@@ -325,7 +329,7 @@ class PFxN_EnKF:
                     log_pf    = -0.5 * np.sum(innovs_pf**2, axis=1)
 
                     # log(likelihood(x))
-                    innovs = (y - HMM.Obs(ED, t)) @ Rm12.T
+                    innovs = (y - Obs(ED)) @ Rm12.T
                     log_L  = -0.5 * np.sum(innovs**2, axis=1)
 
                     # Update weights
@@ -363,7 +367,7 @@ class PFxN:
     wroot_max: float = 5.0
 
     def assimilate(self, HMM, xx, yy):
-        N, xN, Nx, Rm12 = self.N, self.xN, HMM.Dyn.M, HMM.Obs.noise.C.sym_sqrt_inv
+        N, xN, Nx = self.N, self.xN, HMM.Dyn.M
 
         DD = None
         E  = HMM.X0.sample(N)
@@ -378,10 +382,12 @@ class PFxN:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E, w=w)
+                Obs = HMM.Obs(ko)
+                Rm12 = Obs.noise.C.sym_sqrt_inv
                 y  = yy[ko]
                 wD = w.copy()
 
-                innovs = (y - HMM.Obs(E, t)) @ Rm12.T
+                innovs = (y - Obs(E)) @ Rm12.T
                 w      = reweight(w, innovs=innovs)
 
                 if trigger_resampling(w, self.NER, [self.stats, E, k, ko]):
@@ -399,7 +405,7 @@ class PFxN:
                     ED += DD[:, :len(cholR)]@cholR
 
                     # Update weights
-                    innovs = (y - HMM.Obs(ED, t)) @ Rm12.T
+                    innovs = (y - Obs(ED)) @ Rm12.T
                     wD     = reweight(wD, innovs=innovs)
 
                     # Resample and reduce

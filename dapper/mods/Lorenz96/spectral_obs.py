@@ -99,7 +99,7 @@ H = make_H(Ny, Nx)
 
 Obs = {
     'M': Ny,
-    'model': lambda x, t: x @ H.T,
+    'model': lambda x: x @ H.T,
     'noise': modelling.GaussRV(C=0.01*np.eye(Ny)),
 }
 

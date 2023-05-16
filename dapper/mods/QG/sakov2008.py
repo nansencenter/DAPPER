@@ -20,7 +20,7 @@ Dyn = {
 # Considering that I have 8GB mem on the Mac, and the estimate:
 # ≈ (8 bytes/float)*(129² float/stat)*(7 stat/k) * K,
 # it should be possible to run experiments of length (K) < 8000.
-t = modelling.Chronology(dt=model.prms['dtout'], dko=1, T=1500, BurnIn=250)
+tseq = modelling.Chronology(dt=model.prms['dtout'], dko=1, T=1500, BurnIn=250)
 # In my opinion the burn in should be 400.
 # Sakov also used 10 repetitions.
 
@@ -43,47 +43,53 @@ rstream = np.random.RandomState()
 max_offset = jj[1]-jj[0]
 
 
-def random_offset(t):
-    rstream.seed(int(t/model.prms['dtout']*100))
-    u = rstream.rand()
-    return int(np.floor(max_offset * u))
+def obs_inds(ko):
+    def random_offset():
+        rstream.seed(ko)
+        u = rstream.rand()
+        return int(np.floor(max_offset * u))
+
+    return jj + random_offset()
 
 
-def obs_inds(t):
-    return jj + random_offset(t)
+def obs_now(ko):
+    jj = obs_inds(ko)
+
+    @modelling.ens_compatible
+    def hmod(E):
+        return E[jj]
+
+    # Localization.
+    batch_shape = [2, 2]  # width (in grid points) of each state batch.
+    # Increasing the width
+    #  => quicker analysis (but less rel. speed-up by parallelzt., depending on NPROC)
+    #  => worse (increased) rmse (but width 4 is only slightly worse than 1);
+    #     if inflation is applied locally, then rmse might actually improve.
+    localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], jj, periodic=False)
+
+    Obs = {
+        'M': Ny,
+        'model': hmod,
+        'noise': modelling.GaussRV(C=4*np.eye(Ny)),
+        'localizer': localizer,
+    }
+
+    # Moving localization mask for smoothers:
+    Obs['loc_shift'] = lambda ii, dt: ii  # no movement (suboptimal, but easy)
+
+    # Jacobian left unspecified coz it's (usually) employed by methods that
+    # compute full cov, which in this case is too big.
+
+    return modelling.Operator(**Obs)
 
 
-@modelling.ens_compatible
-def hmod(E, t):
-    return E[obs_inds(t)]
-
-
-# Localization.
-batch_shape = [2, 2]  # width (in grid points) of each state batch.
-# Increasing the width
-#  => quicker analysis (but less rel. speed-up by parallelzt., depending on NPROC)
-#  => worse (increased) rmse (but width 4 is only slightly worse than 1);
-#     if inflation is applied locally, then rmse might actually improve.
-localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], obs_inds, periodic=False)
-
-Obs = {
-    'M': Ny,
-    'model': hmod,
-    'noise': modelling.GaussRV(C=4*np.eye(Ny)),
-    'localizer': localizer,
-}
-
-# Moving localization mask for smoothers:
-Obs['loc_shift'] = lambda ii, dt: ii  # no movement (suboptimal, but easy)
-
-# Jacobian left unspecified coz it's (usually) employed by methods that
-# compute full cov, which in this case is too big.
+Obs = dict(time_dependent=lambda ko: obs_now(ko))
 
 
 ############################
 # Other
 ############################
-HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0, LP=LP_setup(obs_inds))
+HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LP_setup(obs_inds))
 
 
 ####################

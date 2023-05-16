@@ -701,6 +701,7 @@ def sliding_marginals(
             K_plot += a_lag
 
         # Chose marginal dims to plot
+        p.dims = list(p.dims)  # no ndarray
         if not p.dims:
             Nx      = min(10, xx.shape[-1])
             DimsX   = linspace_int(xx.shape[-1], Nx)
@@ -786,7 +787,7 @@ def sliding_marginals(
                 if True:
                     d.t .insert(ind, tseq.tt[k])
                 if True:
-                    d.y .insert(ind, yy[ko, iiY]
+                    d.y .insert(ind, yy[ko][iiY]
                                 if ko is not None else nan*ones(Ny))
                 if True:
                     d.x .insert(ind, xx[k, DimsX])
@@ -1322,8 +1323,9 @@ def spatial2d(
             # Plot current obs.
             #  - plot() automatically adjusts to direction of y-axis in use.
             #  - ind2sub returns (iy,ix), while plot takes (ix,iy) => reverse.
+
             if ko is not None and obs_inds is not None:
-                lh[0] = ax_12.plot(*ind2sub(obs_inds(t))[::-1], 'k.', ms=1, zorder=5)[0]
+                lh[0] = ax_12.plot(*ind2sub(obs_inds(ko))[::-1], 'k.', ms=1, zorder=5)[0]
 
             text_t.set_text(format_time(k, ko, t))
 
