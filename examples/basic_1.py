@@ -28,13 +28,13 @@ xx, yy = HMM.simulate()
 
 # xp = da.OptInterp()
 # xp = da.Var3D()
-xp = da.ExtKF(infl=90)
-# xp = da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
+# xp = da.ExtKF(infl=90)
+xp = da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
 # xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
 
 # #### Assimilate yy, knowing the HMM; xx is used to assess the performance
 
-xp.assimilate(HMM, xx, yy, liveplots=['sliding_diagnostics'])
+xp.assimilate(HMM, xx, yy, liveplots=not nb)
 
 # #### Average the time series of various statistics
 
@@ -49,7 +49,6 @@ print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
 # #### Replay liveplotters
 
 xp.stats.replay(
-    figlist=['sliding_diagnostics']
     # speed=.6  # `speed` does not work in notebooks
 )
 
