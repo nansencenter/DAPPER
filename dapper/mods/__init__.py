@@ -156,12 +156,14 @@ class TimeDependentOperator:
 
     The time instance should be specified by `ko`,
     i.e. the index of an observation time.
+
+    Examples: `examples/time-dep-obs-operator.py` and `dapper/mods/QG/sakov2008.py`.
     """
     def __init__(self, **kwargs):
         """Can be initialized like `Operator`, in which case the resulting
         object will always return the same `Operator` nomatter the input time.
 
-        If initialized with argument: `dict(time_dependent=func)`
+        If initialized with 1 argument: `dict(time_dependent=func)`
         then `func` must return an `Operator` object.
         """
         try:
