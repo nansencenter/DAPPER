@@ -128,7 +128,7 @@ Ensure the printed version is 3.9 or more.
 - If the script comes with a `requirements.txt` file, then do  
   `pip install -r path/to/requirements.txt`.
 - If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install dapper==1.0.0` to get version `1.2.3` (as an example).
+  `pip install dapper==1.5.1` to get version `1.5.1` (as an example).
 
 #### *Finally*: Test the installation
 
@@ -233,8 +233,8 @@ DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:
 
 - It is not suited for very big models (>60k unknowns).
-- Time-dependent changes in lengths of state vector.
-- Non-uniform time sequences not fully supported.
+- Time-dependent length of state vector (but this can be emulated).
+- Non-uniform time sequences (TODO).
 
 The scope of DAPPER is restricted because
 
