@@ -692,11 +692,8 @@ def sliding_marginals(
         p = DotDict(**{
             kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
 
-        # No ndarray
-        p.dims = list(p.dims)
-
         # Chose marginal dims to plot
-        if not p.dims:
+        if not len(p.dims):
             p.dims = linspace_int(xx.shape[-1], min(10, xx.shape[-1]))
 
         # Lag settings:
@@ -734,7 +731,7 @@ def sliding_marginals(
         if True:
             d.x  = RollingArray((K_plot, len(p.dims)))
             h.x  = []
-        if p.obs_inds:
+        if not_empty(p.obs_inds):
             d.y  = RollingArray((K_plot, len(p.dims)))
             h.y  = []
         if E is not None:
@@ -751,7 +748,7 @@ def sliding_marginals(
         for ix, ax in zip(p.dims, axs):
             if True:
                 h.x  += ax.plot(d.t, d.x[:, ix], 'k')
-            if p.obs_inds:
+            if not_empty(p.obs_inds):
                 h.y  += ax.plot(d.t, d.y[:, ix], 'g*', ms=10)
             if 'E' in d:
                 h.E  += [ax.plot(d.t, d.E[:, :, ix], **p.ens_props)]
@@ -776,7 +773,7 @@ def sliding_marginals(
                     d.s .insert(ind, mu[key][p.dims] + [[1], [-1]]*spread[key][p.dims])
                 if True:
                     d.t .insert(ind, tseq.tt[k])
-                if p.obs_inds:
+                if not_empty(p.obs_inds):
                     xy = nan*ones(len(p.dims))
                     if ko is not None:
                         jj = p.obs_inds(ko) if callable(p.obs_inds) else p.obs_inds
@@ -790,7 +787,7 @@ def sliding_marginals(
                 sliding_xlim(ax, d.t, T_lag, True)
                 if True:
                     h.x[ix]    .set_data(d.t, d.x[:, ix])
-                if p.obs_inds:
+                if not_empty(p.obs_inds):
                     h.y[ix]    .set_data(d.t, d.y[:, ix])
                 if 'mu' in d:
                     h.mu[ix]   .set_data(d.t, d.mu[:, ix])
@@ -881,7 +878,7 @@ def phase_particles(
             d.mu = RollingArray((K_plot, M))
         if True:
             d.x  = RollingArray((K_plot, M))
-        if p.obs_inds:
+        if not_empty(p.obs_inds):
             d.y  = RollingArray((K_plot, M))
 
         # Plot tails (invisible coz everything here is nan, for the moment).
@@ -1026,6 +1023,14 @@ def update_alpha(key, stats, lines, scatters=None):
         scatters.set_color(np.hstack([colors, alpha[:, None]]))
 
 
+def not_empty(xx):
+    """Works for non-iterable and iterables (including ndarrays)."""
+    try:
+        return len(xx) > 0
+    except TypeError:
+        return bool(xx)
+
+
 def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
     """Particle filter: insert breaks for resampled particles."""
     if E is None:
@@ -1119,7 +1124,7 @@ def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
 
 
 def spatial1d(
-    obs_inds     = None,
+    obs_inds     = (),
     periodicity  = None,
     dims         = (),
     ens_props    = {'color': 'b', 'alpha': 0.1},  # noqa
@@ -1167,7 +1172,7 @@ def spatial1d(
             lines_E += ax.plot(ii, wrap(nanE[1:]).T, **p.ens_props, lw=1)
         # Truth, Obs
         (line_x, )   = ax.plot(ii, nan1, 'k-', lw=3, label='Truth')
-        if p.obs_inds is not None:
+        if not_empty(p.obs_inds):
             (line_y, ) = ax.plot(ii, nan1, 'g*', ms=5, label='Obs')
 
         # Tune plot
@@ -1206,7 +1211,7 @@ def spatial1d(
             text_t.set_text(format_time(k, ko, stats.HMM.tseq.tt[k]))
 
             if 'f' in faus:
-                if p.obs_inds is not None:
+                if not_empty(p.obs_inds):
                     xy = nan*ones(len(xx[0]))
                     jj = p.obs_inds(ko) if callable(p.obs_inds) else p.obs_inds
                     xy[jj] = yy[ko]
@@ -1215,7 +1220,7 @@ def spatial1d(
                     line_y.set_visible(True)
 
             if 'u' in faus:
-                if p.obs_inds is not None:
+                if not_empty(p.obs_inds):
                     line_y.set_visible(False)
 
             return
@@ -1226,7 +1231,7 @@ def spatial1d(
 def spatial2d(
     square,
     ind2sub,
-    obs_inds = None,
+    obs_inds = (),
     cm       = plt.cm.jet,
     clims    = ((-40, 40), (-40, 40), (-10, 10), (-10, 10)),
 ):
@@ -1325,7 +1330,7 @@ def spatial2d(
             #  - plot() automatically adjusts to direction of y-axis in use.
             #  - ind2sub returns (iy,ix), while plot takes (ix,iy) => reverse.
 
-            if ko is not None and obs_inds is not None:
+            if ko is not None and not_empty(obs_inds):
                 lh[0] = ax_12.plot(*ind2sub(obs_inds(ko))[::-1],
                                    'k.', ms=1, zorder=5)[0]
 
