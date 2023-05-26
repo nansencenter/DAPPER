@@ -3,7 +3,7 @@
 # #### Imports
 # <b>NB:</b> On <mark><b>Gooble Colab</b></mark>,
 # *replace* `%matplotlib notebook` (right below) by\
-# `!python -m pip install git+https://github.com/nansencenter/DAPPER.git` .
+# `!python -m pip install git+https://github.com/nansencenter/DAPPER.git`
 
 # %matplotlib notebook
 from mpl_tools import is_notebook_or_qt as nb
