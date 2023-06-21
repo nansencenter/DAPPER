@@ -233,8 +233,7 @@ DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:
 
 - It is not suited for very big models (>60k unknowns).
-- Time-dependent length of state vector (but this can be emulated).
-- Non-uniform time sequences (TODO).
+- Non-uniform time sequences.
 
 The scope of DAPPER is restricted because
 
