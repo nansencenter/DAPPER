@@ -17,17 +17,20 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest']
-        python-version: ['3.9', '3.10', '3.11']
+        # Temporarily include 'patch' version due to issues/106
+        # Can hopefully remove once locally run tests produce same values
+        # (i.e. when local platforms have caught up with CI)
+        python-version: ['3.9.16', '3.10.11', '3.11.3']
         jobtype: ['test']
         include:
           - os: 'ubuntu-latest'
-            python-version: '3.10'
+            python-version: '3.10.11'
             jobtype: 'lint'
           - os: 'ubuntu-latest'
-            python-version: '3.10'
+            python-version: '3.10.11'
             jobtype: 'coverage'
           - os: 'macos-latest'
-            python-version: '3.10'
+            python-version: '3.10.11'
             jobtype: 'test'
     env:
       JOBTYPE: ${{ matrix.jobtype }}
