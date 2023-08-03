@@ -1,12 +1,12 @@
 """Weight- & resampling-based DA methods."""
 
 import numpy as np
-import numpy.random as rnd
 
 from dapper.stats import unbias_var, weight_degeneracy
 from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, tinv
 from dapper.tools.matrices import chol_reduce, funm_psd
 from dapper.tools.progressbar import progbar
+from dapper.tools.seeding import rng
 
 from . import da_method
 
@@ -61,7 +61,7 @@ class PartFilt:
         for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
-                D  = rnd.randn(N, Nx)
+                D  = rng.standard_normal((N, Nx))
                 E += np.sqrt(dt*self.qroot)*(D@HMM.Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -116,7 +116,7 @@ class OptPF:
         for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(rnd.randn(N, Nx)@HMM.Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(rng.standard_normal((N, Nx))@HMM.Dyn.noise.C.Right)
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E, w=w)
@@ -188,7 +188,7 @@ class PFa:
         for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
-                D  = rnd.randn(N, Nx)
+                D  = rng.standard_normal((N, Nx))
                 E += np.sqrt(dt*self.qroot)*(D@HMM.Dyn.noise.C.Right)
 
                 if self.qroot != 1.0:
@@ -262,7 +262,7 @@ class PFxN_EnKF:
         for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(rnd.randn(N, Nx)@HMM.Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(rng.standard_normal((N, Nx))@HMM.Dyn.noise.C.Right)
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E, w=w)
@@ -290,7 +290,7 @@ class PFxN_EnKF:
                         Pa      = Aw.T@Aw - KG@Yw.T@Aw
                         P_cholU = funm_psd(Pa, np.sqrt)
                         if DD is None or not self.re_use:
-                            DD    = rnd.randn(N*xN, Nx)
+                            DD    = rng.standard_normal((N*xN, Nx))
                             chi2  = np.sum(DD**2, axis=1) * Nx/N
                             log_q = -0.5 * chi2
                     else:
@@ -303,7 +303,7 @@ class PFxN_EnKF:
                         # and compute log(q(x))
                         if DD is None or not self.re_use:
                             rnk   = min(Nx, N-1)
-                            DD    = rnd.randn(N*xN, N)
+                            DD    = rng.standard_normal((N*xN, N))
                             chi2  = np.sum(DD**2, axis=1) * rnk/N
                             log_q = -0.5 * chi2
                         # NB: the DoF_linalg/DoF_stoch correction
@@ -378,7 +378,7 @@ class PFxN:
         for k, ko, t, dt in progbar(HMM.tseq.ticker):
             E = HMM.Dyn(E, t-dt, dt)
             if HMM.Dyn.noise.C != 0:
-                E += np.sqrt(dt)*(rnd.randn(N, Nx)@HMM.Dyn.noise.C.Right)
+                E += np.sqrt(dt)*(rng.standard_normal((N, Nx))@HMM.Dyn.noise.C.Right)
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E, w=w)
@@ -397,7 +397,7 @@ class PFxN:
 
                     # Generate N·xN random numbers from NormDist(0,1)
                     if DD is None or not self.re_use:
-                        DD = rnd.randn(N*xN, Nx)
+                        DD = rng.standard_normal((N*xN, Nx))
 
                     # Duplicate and jitter
                     ED  = E.repeat(xN, 0)
@@ -551,7 +551,7 @@ def resample(w, kind='Systematic', N=None, wroot=1.0):
     Refs: `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
-      'Stochastic' corresponds to `rnd.choice` or `rnd.multinomial`.
+      'Stochastic' corresponds to `rng.choice` or `rng.multinomial`.
       'Systematic' and 'Residual' are more systematic (less stochastic)
       varaitions of 'Stochastic' sampling.
       Among the three, 'Systematic' is fastest, introduces the least noise,
@@ -606,8 +606,8 @@ def _resample(w, kind, N_o, N):
     """Core functionality for `resample`."""
     if kind in ['Stochastic', 'Stoch']:
         # van Leeuwen [2] also calls this "probabilistic" resampling
-        idx = rnd.choice(N_o, N, replace=True, p=w)
-        # rnd.multinomial is faster (slightly different usage) ?
+        idx = rng.choice(N_o, N, replace=True, p=w)
+        # rng.multinomial is faster (slightly different usage) ?
     elif kind in ['Residual', 'Res']:
         # Doucet [1] also calls this "stratified" resampling.
         w_N   = w*N              # upscale
@@ -619,12 +619,12 @@ def _resample(w, kind, N_o, N):
         # Multinomial sampling of decimal parts
         N_I   = w_I.sum()  # == len(idx_I)
         N_D   = N - N_I
-        idx_D = rnd.choice(N_o, N_D, replace=True, p=w_D/w_D.sum())
+        idx_D = rng.choice(N_o, N_D, replace=True, p=w_D/w_D.sum())
         # Concatenate
         idx   = np.hstack((idx_I, idx_D))
     elif kind in ['Systematic', 'Sys']:
         # van Leeuwen [2] also calls this "stochastic universal" resampling
-        U     = rnd.rand(1) / N
+        U     = rng.random() / N
         CDF_a = U + np.arange(N)/N
         CDF_o = np.cumsum(w)
         # idx = CDF_a <= CDF_o[:,None]
@@ -645,12 +645,12 @@ def sample_quickly_with(C12, N=None):
         N = N_
     if N_ > 2*M:
         cholR  = chol_reduce(C12)
-        D      = rnd.randn(N, cholR.shape[0])
+        D      = rng.standard_normal((N, cholR.shape[0]))
         chi2   = np.sum(D**2, axis=1)
         sample = D@cholR
     else:
         chi2_compensate_for_rank = min(M/N_, 1.0)
-        D      = rnd.randn(N, N_)
+        D      = rng.standard_normal((N, N_))
         chi2   = np.sum(D**2, axis=1) * chi2_compensate_for_rank
         sample = D@C12
     return sample, chi2

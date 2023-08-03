@@ -39,6 +39,7 @@ jj = modelling.linspace_int(Dyn['M'], Ny)
 # Solutions: (1) use caching (ensure maxsize=inf) or (2) stream seeding.
 # Either way, use a local random stream to avoid interfering with global stream
 # (and e.g. ensure equal outcomes for 1st and 2nd run of the python session).
+# TODO 5: upgrade to `default_rng()`
 rstream = np.random.RandomState()
 max_offset = jj[1]-jj[0]
 

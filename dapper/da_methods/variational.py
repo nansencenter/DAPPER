@@ -10,6 +10,7 @@ from dapper.stats import center, inflate_ens, mean0
 from dapper.tools.linalg import pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
+from dapper.tools.seeding import rng
 
 from . import da_method
 
@@ -210,7 +211,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
             Cow1 = Cow1 @ T  # apply previous update
             dw = dy @ Y.T @ Cow1
             if 'PertObs' in upd_a:   # == "ES-MDA". By Emerick/Reynolds
-                D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(nIter)
+                D   = mean0(rng.standard_normal(Y.shape)) * np.sqrt(nIter)
                 T  -= (Y + D) @ Y.T @ Cow1
             elif 'Sqrt' in upd_a:    # == "ETKF-ish". By Raanes
                 T   = Cowp(0.5) * np.sqrt(za) @ T
@@ -229,7 +230,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
                 # Tinv saves time [vs tinv(T)] when Nx<N
             # "EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
             elif 'PertObs' in upd_a:
-                D     = mean0(np.random.randn(*Y.shape)) \
+                D     = mean0(rng.standard_normal(Y.shape)) \
                     if iteration == 0 else D
                 gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                 T     = T + gradT@Cow1

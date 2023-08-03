@@ -13,5 +13,4 @@ def add_sci(doctest_namespace):
     doctest_namespace["np"] = numpy
     doctest_namespace["mpl"] = mpl
     doctest_namespace["plt"] = plt
-    doctest_namespace["rnd"] = numpy.random
     doctest_namespace["rc"] = rc

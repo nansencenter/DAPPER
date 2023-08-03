@@ -16,6 +16,8 @@ import numpy as np
 import scipy.linalg as sla
 from scipy import sparse
 
+from dapper.tools.seeding import rng
+
 
 def Fmat(Nx, c, dx, dt):
     """Generate transition matrix.
@@ -49,9 +51,9 @@ def basis_vector(Nx, k):
     - k  - max wavenumber (wavelengths to fit into interval 1:Nx)
     """
     mm = np.arange(1, Nx+1) / Nx
-    kk = np.arange(k+1)[:, None]       # Wavenumbers
-    aa = np.random.rand(k+1)           # Amplitudes
-    pp = np.random.rand(k+1)[:, None]  # Phases
+    kk = np.arange(k+1)[:, None]            # Wavenumbers
+    aa = rng.standard_normal(k+1)           # Amplitudes
+    pp = rng.standard_normal(k+1)[:, None]  # Phases
 
     s  = aa @ np.sin(2*np.pi*(kk * mm + pp))
 

@@ -5,6 +5,7 @@ import scipy.linalg as sla
 from IPython.lib.pretty import pretty as pretty_repr
 
 from dapper.tools.progressbar import progbar
+from dapper.tools.seeding import rng
 
 from .utils import NamedFunc
 
@@ -52,7 +53,7 @@ def rk4(f, x, t, dt, stages=4, s=0):
 
     # Draw noise
     if s > 0:
-        W = s * np.sqrt(dt) * np.random.randn(*x.shape)
+        W = s * np.sqrt(dt) * rng.standard_normal(x.shape)
     else:
         W = 0
 
