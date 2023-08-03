@@ -2,54 +2,13 @@
 
 import time
 
-import numpy.random as rnd
+import numpy.random as _rnd
+
+rng = _rnd.default_rng()
 
 
 def set_seed(sd="clock"):
-    """Essentially `rnd.seed(sd)`, but also returning `sd`.
-
-    The disadvantage of `rnd.seed()` is that it produces a
-    RandomState that cannot be represented by a simple seed
-    (the mapping seed-->state being non-surjective).
-    By contrast, when `sd in [None, "clock"]`, `set_seed` generates
-    a seed from the time (in microseconds), which can then be returned.
-
-    If `sd==False`: do nothing.
-
-    Why seed management?
-    It enables reproducibility of random experiments.
-    Moreover, using the same seed for each method in a comparative experiment
-    may yield a form of "Variance reduction", eg. CRN, ref Wikipedia.
-    This CRN trick is often handy for speeding-up comparisons
-    but should not be relied upon in publications,
-    which should simply use converged statistics.
-
-    Why are we using global generator?
-    Because that's what we were used to.
-    And we're not not worried about thread safety.
-
-    Why is `sd=3000` used in many places in DAPPER?
-    Coz I like the number. Example use: "André 3000", "I love you 3000".
-
-    Examples
-    --------
-    As mentioned,`set_seed` works essentially just like `rnd.seed`:
-    >>> _ = set_seed(3); x =  rnd.randint(999)
-    >>> _ = rnd.seed(3); x == rnd.randint(999)
-    True
-
-    But since it return the seed, we can do this:
-    >>> sd = set_seed()    # Set by clock
-    >>> y =  rnd.randint(999)
-    >>> sd = set_seed(sd)  # Re-use seed
-    >>> y == rnd.randint(999)
-    True
-
-    *Later*, of course, we get a different outcome.
-    >>> time.sleep(.1)
-    >>> b = set_seed();  y == rnd.randint(999)
-    False
-    """
+    """Set state of DAPPER random number generator."""
     if (sd is not False) and sd == 0:
         msg = ("Seeding with 0 is not a good idea, because\n"
                "- Might be confused with [None, False].\n"
@@ -62,7 +21,9 @@ def set_seed(sd="clock"):
         MAXSEED = 2**32
         sd = microsec % MAXSEED
 
+    # Don't set seed if sd==False
+    # (but None has already been converted to "clock")
     if sd:
-        rnd.seed(sd)
+        rng.bit_generator.state = _rnd.default_rng(sd).bit_generator.state
 
-    return sd
+    return rng

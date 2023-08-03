@@ -7,6 +7,7 @@ import scipy.linalg as sla
 from numpy import ones, sqrt, zeros
 
 from dapper.tools.linalg import mrdiv, svd0, truncate_rank
+from dapper.tools.seeding import rng
 
 
 class lazy_property:
@@ -32,7 +33,7 @@ class lazy_property:
 def randcov(M):
     """(Makeshift) random cov mat."""
     N = int(np.ceil(2+M**1.2))
-    E = np.random.randn(N, M)
+    E = rng.standard_normal((N, M))
     return E.T @ E
 
 
@@ -47,7 +48,7 @@ def genOG(M):
     """Generate random orthonormal matrix."""
     # TODO 5: This (using Householder) is (slightly?) wrong,
     # as per section 4 of mezzadri2006generate.
-    Q, R = sla.qr(np.random.randn(M, M))
+    Q, R = sla.qr(rng.standard_normal((M, M)))
     for i in range(M):
         if R[i, i] < 0:
             Q[:, i] = -Q[:, i]
@@ -161,6 +162,14 @@ def chol_reduce(Right):
     True
     """
     _, sig, UT = sla.svd(Right, full_matrices=False)
+
+    # Pick orientation (which otherwise can depend on scipy version... breaking tests)
+    # This is similar to ensuring the Cholesky decomposition is unique by making its
+    # diagonals positive (the signs doesn matter for computational efficiency,
+    # but does have an impact on R, and thus random numbers colored by it).
+    signs_in_first_column = np.sign(UT[:, [0]])
+    UT = signs_in_first_column * UT
+
     R = sig[:, None]*UT
 
     # The below is DEPRECATED, coz it fails e.g. with Q from dapper.mods.LA.raanes2015.

@@ -57,7 +57,7 @@ HMM.liveplotters = LPs(jj=lambda ko: jj1 if ko % 2 else jj2, params=dict())
 
 # #### Run experiment
 
-seed = dpr.set_seed(3000)
+dpr.set_seed(3000)
 xx, yy = HMM.simulate()
 
 xp = da.EnKF('Sqrt', N=20, infl=1.02, rot=True)

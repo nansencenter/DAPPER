@@ -1,11 +1,11 @@
 """Classes of random variables."""
 
 import numpy as np
-import numpy.random as rnd
 from numpy import sqrt
 from struct_tools import NicePrint
 
 from dapper.tools.matrices import CovMat
+from dapper.tools.seeding import rng
 
 
 class RV(NicePrint):
@@ -21,7 +21,7 @@ class RV(NicePrint):
         - `M    <int>    ` : ndim
         - `is0  <bool>   ` : if `True`, the random variable is identically 0
         - `func <func(N)>` : use this sampling function. Example:
-                           `RV(M=4,func=lambda N: rand(N,4)`
+                           `RV(M=4,func=lambda N: rng.random((N,4))`
         - `file <str>    ` : draw from file. Example:
                            `RV(M=4,file=dpr.rc.dirs.data/'tmp.npz')`
 
@@ -55,12 +55,12 @@ class RV(NicePrint):
                 w = data['w']
             else:
                 w = np.ones(N0)/N0
-            idx = rnd.choice(N0, N, replace=True, p=w)
+            idx = rng.choice(N0, N, replace=True, p=w)
             E   = sample[idx]
         elif hasattr(self, 'icdf'):
             # Independent "inverse transform" sampling
             icdf = np.vectorize(self.icdf)
-            uu   = rnd.rand(N, self.M)
+            uu   = rng.random((N, self.M))
             E    = icdf(uu)
         elif hasattr(self, 'cdf'):
             # Like above, but with inv-cdf approximate, from interpolation
@@ -75,7 +75,7 @@ class RV(NicePrint):
                 uu     = np.vectorize(cdf)(xx)
                 icdf   = interp1d(uu, xx)
                 self.icdf_interp = np.vectorize(icdf)
-            uu = rnd.rand(N, self.M)
+            uu = rng.random((N, self.M))
             E  = self.icdf_interp(uu)
         elif hasattr(self, 'pdf'):
             # "acceptance-rejection" sampling
@@ -166,7 +166,7 @@ class GaussRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = rnd.randn(N, len(R)) @ R
+        D = rng.standard_normal((N, len(R))) @ R
         return D
 
 
@@ -179,8 +179,8 @@ class LaplaceRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        z = rnd.exponential(1, N)
-        D = rnd.randn(N, len(R))
+        z = rng.exponential(1, N)
+        D = rng.standard_normal((N, len(R)))
         D = z[:, None]*D
         return D @ R / sqrt(2)
 
@@ -191,7 +191,7 @@ class LaplaceParallelRV(RV_with_mean_and_cov):
     def _sample(self, N):
         # R = self.C.Right   # contour: sheared rectangle
         R = self.C.sym_sqrt  # contour: rotated rectangle
-        D = rnd.laplace(0, 1, (N, len(R)))
+        D = rng.laplace(0, 1, (N, len(R)))
         return D @ R / sqrt(2)
 
 
@@ -211,8 +211,8 @@ class StudRV(RV_with_mean_and_cov):
     def _sample(self, N):
         R = self.C.Right
         nu = self.dof
-        r = nu/np.sum(rnd.randn(N, nu)**2, axis=1)  # InvChi2
-        D = sqrt(r)[:, None]*rnd.randn(N, len(R))
+        r = nu/np.sum(rng.standard_normal((N, nu))**2, axis=1)  # InvChi2
+        D = sqrt(r)[:, None]*rng.standard_normal((N, len(R)))
         return D @ R * sqrt((nu-2)/nu)
 
 
@@ -226,8 +226,8 @@ class UniRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = rnd.randn(N, len(R))
-        r = rnd.rand(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
+        D = rng.standard_normal((N, len(R)))
+        r = rng.random(N)**(1/len(R)) / np.sqrt(np.sum(D**2, axis=1))
         D = r[:, None]*D
         return D @ R * 2
 
@@ -241,5 +241,5 @@ class UniParallelRV(RV_with_mean_and_cov):
 
     def _sample(self, N):
         R = self.C.Right
-        D = rnd.rand(N, len(R))-0.5
+        D = rng.random((N, len(R)))-0.5
         return D @ R * sqrt(12)
