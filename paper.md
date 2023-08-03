@@ -58,9 +58,17 @@ DAPPER is open source, written in Python, and focuses on readability;
 this promotes the reproduction and dissemination of the underlying
 science, and makes it easy to adapt and extend.
 
-The README contains a comprehensive list of related projects,
-a list of 5 publications (to date) that used DAPPER,
-and a long list of results published in the literature that have been reproduced with DAPPER,
+The README contains a comprehensive list of related projects.
+Among projects aimed at research and teaching,
+DAPPER is probably the most mature,
+while it is small is size and complexity
+compared to those targeting real-world applications, such as
+[DART](https://dart.ucar.edu/),
+[PDAF](https://pdaf.awi.de/trac/wiki),
+[JEDI](https://www.jcsda.org/jcsda-project-jedi), and
+[OpenDA](https://openda.org/).
+The README also lists 5 publications (to date) that used DAPPER,
+and those results published in the literature that have been reproduced with DAPPER,
 of which we mention [@asch2016data; @bocquet2014iterative; @anderson2010non].
 
 # Outlook
