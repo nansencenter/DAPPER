@@ -51,11 +51,11 @@ DAPPER is a set of templates for benchmarking the performance of DA methods.
 
 DAPPER provides experimental support and guidance for new developments in DA
 by facilitating numerical investigations through a variety of
-typical test cases and statistics. It (a) reproduces numerical benchmarks
-results reported in the literature and (b) facilitates comparative studies,
-thus promoting the (a) reliability and (b) relevance of the results.
-DAPPER is (c) open source, written in Python, and (d) focuses on readability;
-this promotes the (c) reproduction and (d) dissemination of the underlying
+typical test cases and statistics. It reproduces numerical benchmarks
+results reported in the literature and facilitates comparative studies,
+thus promoting the reliability and relevance of the results.
+DAPPER is open source, written in Python, and focuses on readability;
+this promotes the reproduction and dissemination of the underlying
 science, and makes it easy to adapt and extend.
 
 The README contains a comprehensive list of related projects,
