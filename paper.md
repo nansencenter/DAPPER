@@ -86,4 +86,4 @@ under the `v2` milestone.
 
 We acknowledge support from Alberto Carrassi and Laurent Bertino of NERSC
 in the genesis of this project, continued financial backing from NORCE,
-and contributions from Maxime Tondeur, and Remy Dubois,
+and contributions from Maxime Tondeur, and Remy Dubois.
