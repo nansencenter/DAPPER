@@ -319,7 +319,24 @@ in the development of DAPPER.
 [26]: https://github.com/CliMA/EnsembleKalmanProcesses.jl
 
 
-## Contributors
+## Contributing
+
+### Issues and Pull requests
+
+Do not hesitate to open an issue, whether to report a problem or ask a question.
+It may take some time for us to get back to you,
+since DAPPER is primarily a volunteer effort.
+Please start by perusing the [documentation](https://nansencenter.github.io/DAPPER/dapper.html)
+and searching the issue tracker for similar items.
+
+Pull requests are very welcome.
+Examples: adding a new DA method, dynamical models,
+experimental configuration reproducing literature results,
+or improving the features and capabilities of DAPPER.
+Please keep in mind the intentional [limitations](https://github.com/nansencenter/DAPPER#similar-projects)
+and read the [developers guidelines](https://nansencenter.github.io/DAPPER/dev_guide).
+
+### Contributors
 
 Patrick N. Raanes,
 Yumeng Chen,
@@ -343,7 +360,7 @@ and the Center for Western Weather and Water Extremes (CW3E).
 <img src="./docs/imgs/CW3E-Logo-Horizontal-FullColor.png?raw=true" width="400">
 <!-- markdownlint-restore -->
 
-## Publication list
+## Publications
 
 - [Combining data assimilation and machine learning to emulate a dynamical model from sparse and noisy observations: A case study with the Lorenz 96 model](https://doi.org/10.1016/j.jocs.2020.101171)
 - [Adaptive covariance inflation in the ensemble Kalman filter by Gaussian scale mixtures](https://doi.org/10.1002/qj.3386)
