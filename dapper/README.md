@@ -5,11 +5,11 @@ the docs for the various modules.
 
 ## Installation
 
-See [README/Installation](https://github.com/nansencenter/DAPPER#Installation)
+See [README/Installation](https://github.com/nansencenter/DAPPER#installation)
 
 ## Usage
 
-See [README/Getting-started](https://github.com/nansencenter/DAPPER#Getting-started)
+See [README/Getting-started](https://github.com/nansencenter/DAPPER#getting-started)
 
 ##### Examples
 
