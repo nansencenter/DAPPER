@@ -162,6 +162,14 @@ def chol_reduce(Right):
     True
     """
     _, sig, UT = sla.svd(Right, full_matrices=False)
+
+    # Pick orientation (which otherwise can depend on scipy version... breaking tests)
+    # This is similar to ensuring the Cholesky decomposition is unique by making its
+    # diagonals positive (the signs doesn matter for computational efficiency,
+    # but does have an impact on R, and thus random numbers colored by it).
+    signs_in_first_column = np.sign(UT[:, [0]])
+    UT = signs_in_first_column * UT
+
     R = sig[:, None]*UT
 
     # The below is DEPRECATED, coz it fails e.g. with Q from dapper.mods.LA.raanes2015.
