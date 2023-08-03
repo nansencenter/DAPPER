@@ -55,7 +55,8 @@ class PartFilt:
 
         E = HMM.X0.sample(N)
         w = 1/N*np.ones(N)
-
+        with open("init.txt", "a") as f:
+            f.write(f"""\n\nIn PartFilt: Init ensemble\n{E}""")
         self.stats.assess(0, E=E, w=w)
 
         for k, ko, t, dt in progbar(HMM.tseq.ticker):
@@ -80,6 +81,10 @@ class PartFilt:
                     C12     = self.reg*auto_bandw(N, Nx)*raw_C12(E, w)
                     # C12  *= np.sqrt(rroot) # Re-include?
                     idx, w  = resample(w, self.resampl, wroot=self.wroot)
+                    with open("resample.txt", "a") as f:
+                        f.write(f"""\nIn PartFilt of size {N}
+resampled at time {k}
+and got {idx}""")
                     E, chi2 = regularize(C12, E, idx, self.nuj)
                     # if rroot != 1.0:
                     #     # Compensate for rroot

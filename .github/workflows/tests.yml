@@ -61,6 +61,20 @@ jobs:
             pytest tests
           fi
 
+      - name: Export debug info init
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: init.txt
+
+      - name: Export debug info resample
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: resample.txt
+
       - name: Publish coverage to coveralls.io
         if: ${{ env.JOBTYPE == 'coverage' }}
         env:
