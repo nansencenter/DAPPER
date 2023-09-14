@@ -30,7 +30,7 @@ from dapper.mods.Lorenz96s.grudzien2020 import HMMs
 
 # #### Generate the same random numbers each time this script is run
 
-seed = dpr.set_seed(3000)
+dpr.set_seed(3000)
 
 # #### Simulate synthetic truth (xx) and noisy obs (yy)
 

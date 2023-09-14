@@ -58,6 +58,7 @@ import numpy as np
 from dapper.mods.integration import rk4
 from dapper.mods.Lorenz96 import dxdt, dxdt_autonomous, shift
 from dapper.mods.Lorenz96.extras import LPs, d2x_dtdx, dstep_dx
+from dapper.tools.seeding import rng
 
 ################################
 # Global parameter definitions #
@@ -107,7 +108,7 @@ def l96s_tay2_step(x, t, dt, s):
 
     # draw standard normal sample to define the
     # recursive Stratonovich integral coefficients
-    rndm = np.random.standard_normal([5, sys_dim])
+    rndm = rng.standard_normal([5, sys_dim])
     xi, mu, phi, zeta, eta = rndm
 
     # define the auxiliary functions of random Fourier coefficients, a and b

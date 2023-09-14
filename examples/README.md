@@ -20,6 +20,8 @@ before incorporating the aspects of `basic_2` and `basic_3`.
 - `basic_1.py`: A single experiment, with Liveplotting.
 - `basic_2.py`: Comparison of several DA methods.
 - `basic_3.py`: Comparison of *many* DA methods and other experiment settings.
+- `time-dep-obs-operator.py`: Similar to `basic_1`, but with "double" Lorenz-63 systems
+  evolving independently, and observations of each "half" at alternating times.
 - `param_estim.py`: Similar to `basic_2`, but with parameter estimation.
 - `stoch_model1.py`: A perfect-yet-random model, with various integration schemes.
 - `stoch_models.py`: As above, but studies the relationship between

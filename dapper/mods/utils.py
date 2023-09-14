@@ -151,9 +151,9 @@ def partial_Id_Obs(Nx, obs_inds):
 
     @name_func(f"Direct obs. at {obs_inds}")
     @ens_compatible
-    def model(x, t): return x[obs_inds]
+    def model(x): return x[obs_inds]
     @name_func(f"Constant matrix\n{H}")
-    def linear(x, t): return H
+    def linear(x): return H
     Obs = {
         'M': Ny,
         'model': model,

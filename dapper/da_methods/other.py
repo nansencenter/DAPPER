@@ -31,9 +31,6 @@ class RHF:
         step     = 1/N
         cdf_grid = np.linspace(step/2, 1-step/2, N)
 
-        R    = Obs.noise
-        Rm12 = Obs.noise.C.sym_sqrt_inv
-
         E = X0.sample(N)
         stats.assess(0, E=E)
 
@@ -43,11 +40,13 @@ class RHF:
 
             if ko is not None:
                 stats.assess(k, ko, 'f', E=E)
+                Obs  = HMM.Obs(ko)
+                Rm12 = Obs.noise.C.sym_sqrt_inv
                 y    = yy[ko]
-                inds = serial_inds(self.ordr, y, R, center(E)[0])
+                inds = serial_inds(self.ordr, y, Obs.noise.C, center(E)[0])
 
                 for _, j in enumerate(inds):
-                    Eo = Obs(E, t)
+                    Eo = Obs(E)
                     xo = np.mean(Eo, 0)
                     Y  = Eo - xo
                     mu = np.mean(E, 0)
@@ -92,8 +91,7 @@ class LNETF:
     Rs: float  = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        Dyn, Obs, tseq, X0, stats = HMM.Dyn, HMM.Obs, HMM.tseq, HMM.X0, self.stats
-        Rm12 = Obs.noise.C.sym_sqrt_inv
+        Dyn, tseq, X0, stats = HMM.Dyn, HMM.tseq, HMM.X0, self.stats
 
         E = X0.sample(self.N)
         stats.assess(0, E=E)
@@ -107,10 +105,11 @@ class LNETF:
                 mu = np.mean(E, 0)
                 A  = E - mu
 
-                Eo = Obs(E, t)
+                Obs = HMM.Obs(ko)
+                Eo = Obs(E)
                 xo = np.mean(Eo, 0)
-                YR = (Eo-xo)  @ Rm12.T
-                yR = (yy[ko] - xo) @ Rm12.T
+                YR = (Eo-xo)  @ Obs.noise.C.sym_sqrt_inv.T
+                yR = (yy[ko] - xo) @ Obs.noise.C.sym_sqrt_inv.T
 
                 state_batches, obs_taperer = Obs.localizer(
                     self.loc_rad, 'x2y', t, self.taper)

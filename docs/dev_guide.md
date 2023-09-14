@@ -152,7 +152,6 @@ git merge --no-commit --no-ff dev1
 git commit
 ```
 
-Make docs (including bib)
 Tag
 
 ```sh

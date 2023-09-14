@@ -49,9 +49,7 @@ class Stats(series.StatPrint):
         K  = xx.shape[0] - 1
         Nx = xx.shape[1]
         Ko = yy.shape[0] - 1
-        Ny = yy.shape[1]
-        self.K , self.Nx = K, Nx
-        self.Ko, self.Ny = Ko, Ny
+        self.K, self.Ko, self.Nx = K, Ko, Nx
 
         # Methods for summarizing multivariate stats ("fields") as scalars
         # Don't use nanmean here; nan's should get propagated!
@@ -455,7 +453,6 @@ class Stats(series.StatPrint):
 
         LP = liveplotting.LivePlot(self, figlist, P=P0, speed=speed,
                                    Tplot=t2-t1, replay=True, **kwargs)
-        plt.pause(.01)  # required when speed=inf
 
         # Remember: must use progbar to unblock read1.
         # Let's also make a proper description.
@@ -532,7 +529,7 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 def warn_zero_variance(err, flag):
     msg = "\n".join(["Numerical error in stat comps.",
                      "Probably caused by a sample variance of 0."])
-    warnings.warn(msg)
+    warnings.warn(msg, stacklevel=2)
 
 
 # Why not do all columns at once using the tabulate module? Coz

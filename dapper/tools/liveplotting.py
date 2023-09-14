@@ -21,7 +21,6 @@ argument of the `HMM.liveplotter` and default liveplotters defined in this modul
 is the name of the corresponding liveplotting classes/functions.
 """
 
-import matplotlib as mpl
 import numpy as np
 import scipy.linalg as sla
 from matplotlib import pyplot as plt
@@ -79,7 +78,11 @@ class LivePlot:
         """
         # Disable if not rc.liveplotting
         self.any_figs = False
-        if not rc.liveplotting:
+        if rc.liveplotting:
+            pass
+        elif replay and np.isinf(speed):
+            pass
+        else:
             return
 
         # Determine whether all/universal/intermediate stats are plotted
@@ -173,7 +176,8 @@ class LivePlot:
                     win.manager.set_window_title("%s" % name)
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
-                    plt.pause(0.01)          # Draw
+                    if not (replay and np.isinf(speed)):
+                        plt.pause(0.01)  # Draw
 
     def update(self, key, E, P):
         """Update liveplots"""
@@ -579,17 +583,9 @@ class correlations:
         if Nx <= 1003:
             C = np.eye(Nx)
             # Mask half
-            mask = np.zeros_like(C, dtype=np.bool)
+            mask = np.zeros_like(C, dtype=bool)
             mask[np.tril_indices_from(mask)] = True
-            # Make colormap. Log-transform cmap,
-            # but not internally in matplotlib,
-            # so as to avoid transforming the colorbar too.
             cmap = plt.get_cmap('RdBu_r')
-            trfm = mpl.colors.SymLogNorm(linthresh=0.2, linscale=0.2,
-                                         base=np.e, vmin=-1, vmax=1)
-            cmap = cmap(trfm(np.linspace(-0.6, 0.6, cmap.N)))
-            cmap = mpl.colors.ListedColormap(cmap)
-            #
             VM   = 1.0  # abs(np.percentile(C,[1,99])).max()
             im   = ax.imshow(C, cmap=cmap, vmin=-VM, vmax=VM)
             # Colorbar
@@ -696,6 +692,10 @@ def sliding_marginals(
         p = DotDict(**{
             kw: kwargs.get(kw, val) for kw, val in params_orig.items()})
 
+        # Chose marginal dims to plot
+        if not len(p.dims):
+            p.dims = linspace_int(xx.shape[-1], min(10, xx.shape[-1]))
+
         # Lag settings:
         T_lag, K_lag, a_lag = validate_lag(p.Tplot, tseq)
         K_plot = comp_K_plot(K_lag, a_lag, plot_u)
@@ -704,30 +704,14 @@ def sliding_marginals(
         if has_w:
             K_plot += a_lag
 
-        # Chose marginal dims to plot
-        if not p.dims:
-            Nx      = min(10, xx.shape[-1])
-            DimsX   = linspace_int(xx.shape[-1], Nx)
-        else:
-            Nx      = len(p.dims)
-            DimsX   = p.dims
-        # Pre-process obs dimensions
-        # Rm inds of obs if not in DimsX
-        iiY   = [i for i, m in enumerate(p.obs_inds) if m in DimsX]
-        # Rm obs_inds    if not in DimsX
-        DimsY = [m for i, m in enumerate(p.obs_inds) if m in DimsX]
-        # Get dim (within y) of each x
-        DimsY = [DimsY.index(m) if m in DimsY else None for m in DimsX]
-        Ny    = len(iiY)
-
         # Set up figure, axes
-        fig, axs = place.freshfig(fignum, figsize=(5, 7), nrows=Nx, sharex=True)
-        if Nx == 1:
-            axs = [axs]
+        fig, axs = place.freshfig(fignum, figsize=(5, 7), squeeze=False,
+                                  nrows=len(p.dims), sharex=True)
+        axs = axs.reshape(len(p.dims))
 
         # Tune plots
         axs[0].set_title("Marginal time series")
-        for ix, (m, ax) in enumerate(zip(DimsX, axs)):
+        for ix, (m, ax) in enumerate(zip(p.dims, axs)):
             # ax.set_ylim(*viz.stretch(*viz.xtrema(xx[:, m]), 1/p.zoomy))
             if not p.labels:
                 ax.set_ylabel("$x_{%d}$" % m)
@@ -745,27 +729,27 @@ def sliding_marginals(
         if True:
             d.t  = RollingArray((K_plot,))
         if True:
-            d.x  = RollingArray((K_plot, Nx))
+            d.x  = RollingArray((K_plot, len(p.dims)))
             h.x  = []
-        if True:
-            d.y  = RollingArray((K_plot, Ny))
+        if not_empty(p.obs_inds):
+            d.y  = RollingArray((K_plot, len(p.dims)))
             h.y  = []
         if E is not None:
-            d.E  = RollingArray((K_plot, len(E), Nx))
+            d.E  = RollingArray((K_plot, len(E), len(p.dims)))
             h.E  = []
         if P is not None:
-            d.mu = RollingArray((K_plot, Nx))
+            d.mu = RollingArray((K_plot, len(p.dims)))
             h.mu = []
         if P is not None:
-            d.s  = RollingArray((K_plot, 2, Nx))
+            d.s  = RollingArray((K_plot, 2, len(p.dims)))
             h.s  = []
 
         # Plot (invisible coz everything here is nan, for the moment).
-        for ix, (_m, iy, ax) in enumerate(zip(DimsX, DimsY, axs)):
+        for ix, ax in zip(p.dims, axs):
             if True:
                 h.x  += ax.plot(d.t, d.x[:, ix], 'k')
-            if iy != None:
-                h.y  += ax.plot(d.t, d.y[:, iy], 'g*', ms=10)
+            if not_empty(p.obs_inds):
+                h.y  += ax.plot(d.t, d.y[:, ix], 'g*', ms=10)
             if 'E' in d:
                 h.E  += [ax.plot(d.t, d.E[:, :, ix], **p.ens_props)]
             if 'mu' in d:
@@ -776,7 +760,7 @@ def sliding_marginals(
         def update(key, E, P):
             k, ko, faus = key
 
-            EE = duplicate_with_blanks_for_resampled(E, DimsX, key, has_w)
+            EE = duplicate_with_blanks_for_resampled(E, p.dims, key, has_w)
 
             # Roll data array
             ind = k if plot_u else ko
@@ -784,24 +768,27 @@ def sliding_marginals(
                 if 'E' in d:
                     d.E .insert(ind, Ens)
                 if 'mu' in d:
-                    d.mu.insert(ind, mu[key][DimsX])
+                    d.mu.insert(ind, mu[key][p.dims])
                 if 's' in d:
-                    d.s .insert(ind, mu[key][DimsX] + [[1], [-1]]*spread[key][DimsX])
+                    d.s .insert(ind, mu[key][p.dims] + [[1], [-1]]*spread[key][p.dims])
                 if True:
                     d.t .insert(ind, tseq.tt[k])
+                if not_empty(p.obs_inds):
+                    xy = nan*ones(len(p.dims))
+                    if ko is not None:
+                        jj = p.obs_inds(ko) if callable(p.obs_inds) else p.obs_inds
+                        xy[jj] = yy[ko]
+                    d.y .insert(ind, xy)
                 if True:
-                    d.y .insert(ind, yy[ko, iiY]
-                                if ko is not None else nan*ones(Ny))
-                if True:
-                    d.x .insert(ind, xx[k, DimsX])
+                    d.x .insert(ind, xx[k, p.dims])
 
             # Update graphs
-            for ix, (_m, iy, ax) in enumerate(zip(DimsX, DimsY, axs)):
+            for ix, ax in zip(p.dims, axs):
                 sliding_xlim(ax, d.t, T_lag, True)
                 if True:
                     h.x[ix]    .set_data(d.t, d.x[:, ix])
-                if iy != None:
-                    h.y[iy]    .set_data(d.t, d.y[:, iy])
+                if not_empty(p.obs_inds):
+                    h.y[ix]    .set_data(d.t, d.y[:, ix])
                 if 'mu' in d:
                     h.mu[ix]   .set_data(d.t, d.mu[:, ix])
                 if 's' in d:
@@ -891,7 +878,7 @@ def phase_particles(
             d.mu = RollingArray((K_plot, M))
         if True:
             d.x  = RollingArray((K_plot, M))
-        if list(p.obs_inds) == list(p.dims):
+        if not_empty(p.obs_inds):
             d.y  = RollingArray((K_plot, M))
 
         # Plot tails (invisible coz everything here is nan, for the moment).
@@ -919,7 +906,6 @@ def phase_particles(
 
         def update(key, E, P):
             k, ko, faus = key
-            show_y = 'y' in d and ko is not None
 
             def update_tail(handle, newdata):
                 handle.set_data(newdata[:, 0], newdata[:, 1])
@@ -942,7 +928,18 @@ def phase_particles(
                 if True:
                     d.x .insert(ind, xx[k, p.dims])
                 if 'y' in d:
-                    d.y .insert(ind, yy[ko, :] if show_y else nan*ones(M))
+                    xy = nan*ones(len(p.dims))
+                    if ko is not None:
+                        jj = p.obs_inds(ko) if callable(p.obs_inds) else p.obs_inds
+                        jj = list(jj)
+                        for i, dim in enumerate(p.dims):
+                            try:
+                                iobs = jj.index(dim)
+                            except ValueError:
+                                pass
+                            else:
+                                xy[i] = yy[ko][iobs]
+                    d.y .insert(ind, xy)
                 if 'mu' in d:
                     d.mu.insert(ind, mu[key][p.dims])
 
@@ -1024,6 +1021,14 @@ def update_alpha(key, stats, lines, scatters=None):
         if len(colors) == 1:
             colors = colors.repeat(len(w), axis=0)
         scatters.set_color(np.hstack([colors, alpha[:, None]]))
+
+
+def not_empty(xx):
+    """Works for non-iterable and iterables (including ndarrays)."""
+    try:
+        return len(xx) > 0
+    except TypeError:
+        return bool(xx)
 
 
 def duplicate_with_blanks_for_resampled(E, dims, key, has_w):
@@ -1119,7 +1124,7 @@ def d_ylim(data, ax=None, cC=0, cE=1, pp=(1, 99), Min=-1e20, Max=+1e20):
 
 
 def spatial1d(
-    obs_inds     = None,
+    obs_inds     = (),
     periodicity  = None,
     dims         = (),
     ens_props    = {'color': 'b', 'alpha': 0.1},  # noqa
@@ -1167,9 +1172,8 @@ def spatial1d(
             lines_E += ax.plot(ii, wrap(nanE[1:]).T, **p.ens_props, lw=1)
         # Truth, Obs
         (line_x, )   = ax.plot(ii, nan1, 'k-', lw=3, label='Truth')
-        if p.obs_inds is not None:
-            p.obs_inds = np.asarray(p.obs_inds)
-            (line_y, ) = ax.plot(p.obs_inds, nan*p.obs_inds, 'g*', ms=5, label='Obs')
+        if not_empty(p.obs_inds):
+            (line_y, ) = ax.plot(ii, nan1, 'g*', ms=5, label='Obs')
 
         # Tune plot
         ax.set_ylim(*viz.xtrema(xx))
@@ -1189,10 +1193,6 @@ def spatial1d(
         text_t = ax.text(0.01, 0.01, format_time(None, None, None),
                          transform=ax.transAxes, family='monospace', ha='left')
 
-        # Init visibility (must come after legend):
-        if p.obs_inds is not None:
-            line_y.set_visible(False)
-
         def update(key, E, P):
             k, ko, faus = key
 
@@ -1211,13 +1211,16 @@ def spatial1d(
             text_t.set_text(format_time(k, ko, stats.HMM.tseq.tt[k]))
 
             if 'f' in faus:
-                if p.obs_inds is not None:
-                    line_y.set_ydata(yy[ko])
+                if not_empty(p.obs_inds):
+                    xy = nan*ones(len(xx[0]))
+                    jj = p.obs_inds(ko) if callable(p.obs_inds) else p.obs_inds
+                    xy[jj] = yy[ko]
+                    line_y.set_ydata(wrap(xy[p.dims]))
                     line_y.set_zorder(5)
                     line_y.set_visible(True)
 
             if 'u' in faus:
-                if p.obs_inds is not None:
+                if not_empty(p.obs_inds):
                     line_y.set_visible(False)
 
             return
@@ -1228,7 +1231,7 @@ def spatial1d(
 def spatial2d(
     square,
     ind2sub,
-    obs_inds = None,
+    obs_inds = (),
     cm       = plt.cm.jet,
     clims    = ((-40, 40), (-40, 40), (-10, 10), (-10, 10)),
 ):
@@ -1326,8 +1329,10 @@ def spatial2d(
             # Plot current obs.
             #  - plot() automatically adjusts to direction of y-axis in use.
             #  - ind2sub returns (iy,ix), while plot takes (ix,iy) => reverse.
-            if ko is not None and obs_inds is not None:
-                lh[0] = ax_12.plot(*ind2sub(obs_inds(t))[::-1], 'k.', ms=1, zorder=5)[0]
+
+            if ko is not None and not_empty(obs_inds):
+                lh[0] = ax_12.plot(*ind2sub(obs_inds(ko))[::-1],
+                                   'k.', ms=1, zorder=5)[0]
 
             text_t.set_text(format_time(k, ko, t))
 

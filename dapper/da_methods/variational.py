@@ -10,6 +10,7 @@ from dapper.stats import center, inflate_ens, mean0
 from dapper.tools.linalg import pad0, svd0, tinv
 from dapper.tools.matrices import CovMat
 from dapper.tools.progressbar import progbar
+from dapper.tools.seeding import rng
 
 from . import da_method
 
@@ -43,7 +44,7 @@ class iEnKS:
         - "Order1" : as in DEnKF of `bib.sakov2008deterministic`.
 
       Lag:
-        Length of the DA window (DAW), in multiples of dko (i.e. cycles).
+        Length of the DA window (DAW, multiples of dko, i.e. cycles).
 
         - Lag=1 (default) => iterative "filter" iEnKF `bib.sakov2012iterative`.
         - Lag=0           => maximum-likelihood filter `bib.zupanski2005maximum`.
@@ -94,8 +95,7 @@ class iEnKS:
     #   * Trouble playing nice with '-N' inflation estimation.
 
     def assimilate(self, HMM, xx, yy):
-        R, Ko  = HMM.Obs.noise.C, HMM.tseq.Ko
-        Rm12 = R.sym_sqrt_inv
+        Ko = HMM.tseq.Ko
 
         assert HMM.Dyn.noise.C == 0, (
             "Q>0 not yet supported."
@@ -121,6 +121,8 @@ class iEnKS:
         for ko in progbar(range(0, Ko+self.Lag+1)):
             kLag = ko-self.Lag
             DAW  = range(max(0, kLag+1), min(ko, Ko) + 1)
+            Obs = HMM.Obs(ko)
+            Rm12 = Obs.noise.C.sym_sqrt_inv
 
             # Assimilation (if ∃ "not-fully-assimlated" Obs).
             if ko <= Ko:
@@ -155,7 +157,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
 
     # Init iterations.
     N1 = N-1
-    HMM.X0, x0 = center(E)    # Decompose ensemble.
+    X0, x0 = center(E)    # Decompose ensemble.
     w      = np.zeros(N)  # Control vector for the mean state.
     T      = np.eye(N)    # Anomalies transform matrix.
     Tinv   = np.eye(N)
@@ -164,13 +166,13 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
 
     for iteration in np.arange(nIter):
         # Reconstruct smoothed ensemble.
-        E = x0 + (w + EPS*T)@HMM.X0
+        E = x0 + (w + EPS*T)@X0
         # Forecast.
         for kCycle in DAW:
             for k, t, dt in HMM.tseq.cycle(kCycle):  # noqa
                 E = HMM.Dyn(E, t-dt, dt)
         # Observe.
-        Eo = HMM.Obs(E, t)
+        Eo = HMM.Obs(ko)(E)
 
         # Undo the bundle scaling of ensemble.
         if EPS != 1.0:
@@ -184,10 +186,10 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
         T_old = T
 
         # Prepare analysis.
-        Y, xo  = center(Eo)         # Get HMM.Obs {anomalies, mean}.
-        dy     = (y - xo) @ Rm12.T  # Transform HMM.Obs space.
-        Y      = Y        @ Rm12.T  # Transform HMM.Obs space.
-        Y0     = Tinv @ Y           # "De-condition" the HMM.Obs anomalies.
+        Y, xo  = center(Eo)         # Get obs {anomalies, mean}.
+        dy     = (y - xo) @ Rm12.T  # Transform obs space.
+        Y      = Y        @ Rm12.T  # Transform obs space.
+        Y0     = Tinv @ Y           # "De-condition" the obs anomalies.
         V, s, UT = svd0(Y0)         # Decompose Y0.
 
         # Set "cov normlzt fctr" za ("effective ensemble size")
@@ -209,7 +211,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
             Cow1 = Cow1 @ T  # apply previous update
             dw = dy @ Y.T @ Cow1
             if 'PertObs' in upd_a:   # == "ES-MDA". By Emerick/Reynolds
-                D   = mean0(np.random.randn(*Y.shape)) * np.sqrt(nIter)
+                D   = mean0(rng.standard_normal(Y.shape)) * np.sqrt(nIter)
                 T  -= (Y + D) @ Y.T @ Cow1
             elif 'Sqrt' in upd_a:    # == "ETKF-ish". By Raanes
                 T   = Cowp(0.5) * np.sqrt(za) @ T
@@ -228,7 +230,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
                 # Tinv saves time [vs tinv(T)] when Nx<N
             # "EnRML". By Oliver/Chen/Raanes/Evensen/Stordal.
             elif 'PertObs' in upd_a:
-                D     = mean0(np.random.randn(*Y.shape)) \
+                D     = mean0(rng.standard_normal(Y.shape)) \
                     if iteration == 0 else D
                 gradT = -(Y+D)@Y0.T + N1*(np.eye(N) - T)
                 T     = T + gradT@Cow1
@@ -257,7 +259,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
         stats.infl[ko] = np.sqrt(N1/za)
 
     # Final (smoothed) estimate of E at [kLag].
-    E = x0 + (w+T)@HMM.X0
+    E = x0 + (w+T)@X0
 
     return E
 
@@ -283,8 +285,7 @@ class Var4D:
     xB: float               = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        R, Ko = HMM.Obs.noise.C, HMM.tseq.Ko
-        Rm12 = R.sym_sqrt_inv
+        Ko = HMM.tseq.Ko
         Nx = HMM.Dyn.M
 
         # Set background covariance. Note that it is static (compare to iEnKS).
@@ -332,13 +333,15 @@ class Var4D:
                         self.stats.assess(k, ko, 'f', mu=x, Cov=X@X.T)
 
                     # Observe.
-                    Y  = HMM.Obs.linear(x, t) @ X
-                    xo = HMM.Obs(x, t)
+                    Obs = HMM.Obs(ko)
+                    Rm12 = Obs.noise.C.sym_sqrt_inv
+                    Y  = Obs(ko).linear(x) @ X
+                    xo = Obs(ko)(x)
 
                     # Analysis prep.
-                    y      = yy[ko]          # Get current HMM.Obs.
-                    dy     = Rm12 @ (y - xo)   # Transform HMM.Obs space.
-                    Y      = Rm12 @ Y          # Transform HMM.Obs space.
+                    y      = yy[ko]            # Get current obs
+                    dy     = Rm12 @ (y - xo)   # Transform obs space.
+                    Y      = Rm12 @ Y          # Transform obs space.
                     V, s, UT = svd0(Y.T)       # Decomp for lin-alg update comps.
 
                     # Post. cov (approx) of w,

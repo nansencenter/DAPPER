@@ -34,7 +34,7 @@ import dapper.da_methods as da
 from dapper.mods.Lorenz96s.grudzien2020 import HMMs
 
 # set global pseudo-random seed for all experiments
-seed = dpr.set_seed(3000)
+dpr.set_seed(3000)
 
 
 def setup(hmm, xp):

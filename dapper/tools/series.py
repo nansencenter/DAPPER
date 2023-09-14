@@ -215,14 +215,15 @@ class FAUSt(DataSeries, StatPrint):
         - `store_u`    : if False: only the current value is stored.
         - `kwargs`     : passed on to ndarrays.
         """
-        self.f     = np.full((Ko+1,)+item_shape, nan, **kwargs)
-        self.a     = np.full((Ko+1,)+item_shape, nan, **kwargs)
+        fill_value = -99 if kwargs.get("dtype", None) is int else nan
+        self.f     = np.full((Ko+1,)+item_shape, fill_value, **kwargs)
+        self.a     = np.full((Ko+1,)+item_shape, fill_value, **kwargs)
         if store_s:
-            self.s = np.full((Ko+1,)+item_shape, nan, **kwargs)
+            self.s = np.full((Ko+1,)+item_shape, fill_value, **kwargs)
         if store_u:
-            self.u = np.full((K   + 1,)+item_shape, nan, **kwargs)
+            self.u = np.full((K   + 1,)+item_shape, fill_value, **kwargs)
         else:
-            self.u = np.full((1,)+item_shape, nan, **kwargs)
+            self.u = np.full((1,)+item_shape, fill_value, **kwargs)
 
     # We could just store the input values for these attrs, but using
     # property => Won't be listed in vars(self), and un-writeable.

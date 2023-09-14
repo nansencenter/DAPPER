@@ -1,7 +1,6 @@
 """The EnKF and other ensemble-based methods."""
 
 import numpy as np
-import numpy.random as rnd
 import scipy.linalg as sla
 from numpy import diag, eye, sqrt, zeros
 
@@ -11,6 +10,7 @@ from dapper.tools.linalg import mldiv, mrdiv, pad0, svd0, svdi, tinv, tsvd
 from dapper.tools.matrices import funm_psd, genOG_1
 from dapper.tools.progressbar import progbar
 from dapper.tools.randvars import GaussRV
+from dapper.tools.seeding import rng
 
 from . import da_method
 
@@ -47,7 +47,7 @@ class EnKF:
             # Analysis update
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E)
-                E = EnKF_analysis(E, HMM.Obs(E, t), HMM.Obs.noise, yy[ko],
+                E = EnKF_analysis(E, HMM.Obs(ko)(E), HMM.Obs(ko).noise, yy[ko],
                                   self.upd_a, self.stats, ko)
                 E = post_process(E, self.infl, self.rot)
 
@@ -161,10 +161,10 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
                         v     = v - mult[0]*Yj # noqa
                         v    /= sqrt(v@v)
                     Zj  = v*sqrt(N1)  # Standardized perturbation along v
-                    Zj *= np.sign(rnd.rand()-0.5)  # Random sign
+                    Zj *= np.sign(rng.standard_normal() - 0.5)  # Random sign
                 else:
                     # The usual stochastic perturbations.
-                    Zj = mean0(rnd.randn(N))  # Un-coloured noise
+                    Zj = mean0(rng.standard_normal(N))  # Un-coloured noise
                     if 'Var1' in upd_a:
                         Zj *= sqrt(N/(Zj@Zj))
 
@@ -319,7 +319,7 @@ def add_noise(E, dt, noise, method):
         E, _, Qa12 = sqrt_core()
         if N <= Nx:
             Z  = Q12 - A.T@Qa12
-            E += sqrt(dt)*(Z@rnd.randn(Z.shape[1], N)).T
+            E += sqrt(dt)*(Z@rng.standard_normal((Z.shape[1], N))).T
 
     elif method == 'Sqrt-Dep':
         E, T, Qa12 = sqrt_core()
@@ -334,7 +334,7 @@ def add_noise(E, dt, noise, method):
             Z      = Q12 - Q_hat12
             D_hat  = A.T@(T-eye(N))
             Xi_hat = Q_hat12_inv @ D_hat
-            Xi_til = (eye(rQ) - Q_hat12_proj)@rnd.randn(rQ, N)
+            Xi_til = (eye(rQ) - Q_hat12_proj)@rng.standard_normal((rQ, N))
             D_til  = Z@(Xi_hat + sqrt(dt)*Xi_til)
             E     += D_til.T
 
@@ -382,7 +382,7 @@ class EnKS:
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E[k])
 
-                Eo    = HMM.Obs(E[k], t)
+                Eo    = HMM.Obs(ko)(E[k])
                 y     = yy[ko]
 
                 # Inds within Lag
@@ -391,7 +391,7 @@ class EnKS:
                 EE    = E[kk]
 
                 EE    = self.reshape_to(EE)
-                EE    = EnKF_analysis(EE, Eo, HMM.Obs.noise, y,
+                EE    = EnKF_analysis(EE, Eo, HMM.Obs(ko).noise, y,
                                       self.upd_a, self.stats, ko)
                 E[kk] = self.reshape_fr(EE, HMM.Dyn.M)
                 E[k]  = post_process(E[k], self.infl, self.rot)
@@ -427,9 +427,9 @@ class EnRTS:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E[k])
-                Eo   = HMM.Obs(E[k], t)
+                Eo   = HMM.Obs(ko)(E[k])
                 y    = yy[ko]
-                E[k] = EnKF_analysis(E[k], Eo, HMM.Obs.noise, y,
+                E[k] = EnKF_analysis(E[k], Eo, HMM.Obs(ko).noise, y,
                                      self.upd_a, self.stats, ko)
                 E[k] = post_process(E[k], self.infl, self.rot)
                 self.stats.assess(k, ko, 'a', E=E[k])
@@ -468,7 +468,7 @@ def serial_inds(upd_a, y, cvR, A):
             dC = np.sum(A*A, 0)/(N-1)
         inds = np.argsort(dC)
     else:  # Default: random ordering
-        inds = rnd.permutation(len(y))
+        inds = rng.permutation(len(y))
     return inds
 
 
@@ -492,8 +492,6 @@ class SL_EAKF:
 
     def assimilate(self, HMM, xx, yy):
         N1   = self.N-1
-        R    = HMM.Obs.noise
-        Rm12 = HMM.Obs.noise.C.sym_sqrt_inv
 
         E = HMM.X0.sample(self.N)
         self.stats.assess(0, E=E)
@@ -504,14 +502,17 @@ class SL_EAKF:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E)
+                Obs  = HMM.Obs(ko)
+                R    = Obs.noise
                 y    = yy[ko]
                 inds = serial_inds(self.ordr, y, R, center(E)[0])
+                Rm12 = Obs.noise.C.sym_sqrt_inv
 
-                state_taperer = HMM.Obs.localizer(self.loc_rad, 'y2x', t, self.taper)
+                state_taperer = Obs.localizer(self.loc_rad, 'y2x', self.taper)
                 for j in inds:
                     # Prep:
                     # ------------------------------------------------------
-                    Eo = HMM.Obs(E, t)
+                    Eo = Obs(E)
                     xo = np.mean(Eo, 0)
                     Y  = Eo - xo
                     mu = np.mean(E, 0)
@@ -632,8 +633,9 @@ class LETKF:
 
                 if ko is not None:
                     self.stats.assess(k, ko, 'f', E=E)
-                    batch, taper = HMM.Obs.localizer(self.loc_rad, 'x2y', t, self.taper)
-                    E, stats = local_analyses(E, HMM.Obs(E, t), HMM.Obs.noise.C, yy[ko],
+                    Obs = HMM.Obs(ko)
+                    batch, taper = Obs.localizer(self.loc_rad, 'x2y', self.taper)
+                    E, stats = local_analyses(E, Obs(E), Obs.noise.C, yy[ko],
                                               batch, taper, pool.map, self.xN, self.g)
                     self.stats.write(stats, k, ko, "a")
                     E = post_process(E, self.infl, self.rot)
@@ -851,7 +853,7 @@ class EnKF_N:
     g: int     = 0
 
     def assimilate(self, HMM, xx, yy):
-        R, N, N1 = HMM.Obs.noise.C, self.N, self.N-1
+        N, N1 = self.N, self.N-1
 
         # Init
         E = HMM.X0.sample(N)
@@ -866,7 +868,7 @@ class EnKF_N:
             # Analysis
             if ko is not None:
                 self.stats.assess(k, ko, 'f', E=E)
-                Eo = HMM.Obs(E, t)
+                Eo = HMM.Obs(ko)(E)
                 y  = yy[ko]
 
                 mu = np.mean(E, 0)
@@ -876,6 +878,7 @@ class EnKF_N:
                 Y  = Eo-xo
                 dy = y - xo
 
+                R = HMM.Obs(ko).noise.C
                 V, s, UT = svd0(Y @ R.sym_sqrt_inv.T)
                 du       = UT @ (dy @ R.sym_sqrt_inv.T)
                 def dgn_N(l1): return pad0((l1*s)**2, N) + N1
@@ -887,7 +890,7 @@ class EnKF_N:
 
                 if self.dual:
                     # Make dual cost function (in terms of l1)
-                    def pad_rk(arr): return pad0(arr, min(N, HMM.Obs.M))
+                    def pad_rk(arr): return pad0(arr, min(N, len(y)))
                     def dgn_rk(l1): return pad_rk((l1*s)**2) + N1
 
                     def J(l1):
@@ -962,6 +965,6 @@ class EnKF_N:
                 E = post_process(E, self.infl, self.rot)
 
                 self.stats.infl[ko] = l1
-                self.stats.trHK[ko] = (((l1*s)**2 + N1)**(-1.0)*s**2).sum()/HMM.Ny
+                self.stats.trHK[ko] = (((l1*s)**2 + N1)**(-1.0)*s**2).sum()/len(y)
 
             self.stats.assess(k, ko, E=E)

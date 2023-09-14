@@ -40,6 +40,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         Operator for the dynamics.
     Obs: `Operator` or dict
         Operator for the observations
+        Can also be time-dependent, ref `TimeDependentOperator`.
     tseq: `dapper.tools.chronos.Chronology`
         Time sequence of the HMM process.
     X0: `dapper.tools.randvars.RV`
@@ -61,15 +62,14 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     """
 
     def __init__(self, *args, **kwargs):
-        # Valid args/kwargs, along with type and default.
-        # Note: it's still ok to write attributes to the HMM following the init.
+        # Expected args/kwargs, along with type and default.
         attrs = dict(Dyn=(Operator, None),
-                     Obs=(Operator, None),
+                     Obs=(TimeDependentOperator, None),
                      tseq=(Chronology, None),
                      X0=(RV, None),
                      liveplotters=(list, []),
                      sectors=(dict, {}),
-                     name=(str, HiddenMarkovModel._default_name))
+                     name=(str, self._default_name()))
 
         # Transfer args to kwargs
         for arg, kw in zip(args, attrs):
@@ -77,45 +77,43 @@ class HiddenMarkovModel(struct_tools.NicePrint):
             kwargs[kw] = arg
 
         # Un-abbreviate
-        abbrevs = {"LP": "liveplotters", "loc": "localizer"}
-        for k in list(kwargs):
+        abbrevs = {"LP": "liveplotters",
+                   "loc": "localizer"}
+        for key in list(kwargs):
             try:
-                full = abbrevs[k]
+                full = abbrevs[key]
             except KeyError:
                 pass
             else:
                 assert (full not in kwargs), "Could not sort out arguments."
-                kwargs[full] = kwargs.pop(k)
+                kwargs[full] = kwargs.pop(key)
+
+        # Convert dict to object
+        for key, (type_, default) in attrs.items():
+            val = kwargs.get(key, default)
+            if not isinstance(val, type_) and val is not None:
+                val = type_(**val)
+            kwargs[key] = val
 
         # Transfer kwargs to self
-        for k, (type_, default) in attrs.items():
-            # Get kwargs[k] or default
-            if k in kwargs:
-                v = kwargs.pop(k)
-            elif callable(default):
-                v = default()
-            else:
-                v = default
-            # Convert dict to type
-            if not isinstance(v, (type_, type(None))):
-                v = type_(**v)
-            # Write
-            setattr(self, k, v)
-        assert kwargs == {}, f"Arguments {list(kwargs)} is/are invalid."
+        for key in attrs:
+            setattr(self, key, kwargs.pop(key))
+        assert not kwargs, (
+            f"Arguments {list(kwargs)} not recognized. "
+            "If you want, you can still write them to the HMM, "
+            "but this must be done after initialisation.")
 
         # Further defaults
-        if not hasattr(self.Obs, "localizer"):
-            self.Obs.localizer = no_localization(self.Nx, self.Ny)
+        # if not hasattr(self.Obs, "localizer"):
+        #     self.Obs.localizer = no_localization(self.Nx, self.Ny)
 
         # Validation
-        if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
-            raise ValueError("Rank-deficient R not supported.")
+        # if self.Obs.noise.C == 0 or self.Obs.noise.C.rk != self.Obs.noise.C.M:
+        #     raise ValueError("Rank-deficient R not supported.")
 
     # ndim shortcuts
     @property
     def Nx(self): return self.Dyn.M
-    @property
-    def Ny(self): return self.Obs.M
 
     printopts = {'ordering': ['Dyn', 'Obs', 'tseq', 'X0'], "indent": 4}
 
@@ -124,18 +122,18 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         Dyn, Obs, tseq, X0 = self.Dyn, self.Obs, self.tseq, self.X0
 
         # Init
-        xx    = np.zeros((tseq.K   + 1, Dyn.M))
-        yy    = np.zeros((tseq.Ko+1, Obs.M))
+        xx = np.zeros((tseq.K + 1, Dyn.M))
+        yy = np.empty(tseq.Ko + 1, dtype=object)
 
-        x = X0.sample(1)
+        x = X0.sample(1).squeeze()
         xx[0] = x
 
         # Loop
         for k, ko, t, dt in pb.progbar(tseq.ticker, desc):
             x = Dyn(x, t-dt, dt)
-            x = x + np.sqrt(dt)*Dyn.noise.sample(1)
+            x = x + np.sqrt(dt)*Dyn.noise.sample(1).squeeze()
             if ko is not None:
-                yy[ko] = Obs(x, t) + Obs.noise.sample(1)
+                yy[ko] = Obs(ko)(x) + Obs(ko).noise.sample(1).squeeze()
             xx[k] = x
 
         return xx, yy
@@ -151,6 +149,45 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         except ValueError:
             name = str(Path(name))
         return name
+
+
+class TimeDependentOperator:
+    """Wrapper for `Operator` that enables time dependence.
+
+    The time instance should be specified by `ko`,
+    i.e. the index of an observation time.
+
+    Examples: `examples/time-dep-obs-operator.py` and `dapper/mods/QG/sakov2008.py`.
+    """
+    def __init__(self, **kwargs):
+        """Can be initialized like `Operator`, in which case the resulting
+        object will always return the same `Operator` nomatter the input time.
+
+        If initialized with 1 argument: `dict(time_dependent=func)`
+        then `func` must return an `Operator` object.
+        """
+        try:
+            fun = kwargs['time_dependent']
+            assert len(kwargs) == 1
+            assert callable(fun)
+            self.Ops = fun
+        except KeyError:
+            self.Op1 = Operator(**kwargs)
+
+    def __repr__(self):
+        return "<" + type(self).__name__ + '> ' + str(self)
+
+    def __str__(self):
+        if hasattr(self, 'Op1'):
+            return 'CONSTANT operator sepcified by .Op1:\n' + repr(self.Op1)
+        else:
+            return '.Ops: ' + repr(self.Ops)
+
+    def __call__(self, ko):
+        try:
+            return self.Ops(ko)
+        except AttributeError:
+            return self.Op1
 
 
 class Operator(struct_tools.NicePrint):

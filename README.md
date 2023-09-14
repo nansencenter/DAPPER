@@ -91,7 +91,7 @@ Also see its [drawbacks](#similar-projects).
 
 Successfully tested on Linux/Mac/Windows.
 
-### Prerequisite: Python>=3.7 (3.9 on Windows)
+### Prerequisite: Python>=3.9
 
 If you're an expert, setup a python environment however you like.
 Otherwise:
@@ -105,7 +105,7 @@ conda activate dapper-env
 python --version
 ```
 
-Ensure the printed version is 3.7 or more.  
+Ensure the printed version is 3.9 or more.  
 *Keep using the same terminal for the commands below.*
 
 ### Install
@@ -128,7 +128,7 @@ Ensure the printed version is 3.7 or more.
 - If the script comes with a `requirements.txt` file, then do  
   `pip install -r path/to/requirements.txt`.
 - If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install dapper==1.0.0` to get version `1.2.3` (as an example).
+  `pip install dapper==1.5.1` to get version `1.5.1` (as an example).
 
 #### *Finally*: Test the installation
 
@@ -233,9 +233,7 @@ DAPPER is aimed at research and teaching (see discussion up top).
 Example of limitations:
 
 - It is not suited for very big models (>60k unknowns).
-- Time-dependent error covariances and changes in lengths of state/obs
-  (although the `Dyn` and `Obs` models may otherwise be time-dependent).
-- Non-uniform time sequences not fully supported.
+- Non-uniform time sequences.
 
 The scope of DAPPER is restricted because
 
@@ -321,7 +319,24 @@ in the development of DAPPER.
 [26]: https://github.com/CliMA/EnsembleKalmanProcesses.jl
 
 
-## Contributors
+## Contributing
+
+### Issues and Pull requests
+
+Do not hesitate to open an issue, whether to report a problem or ask a question.
+It may take some time for us to get back to you,
+since DAPPER is primarily a volunteer effort.
+Please start by perusing the [documentation](https://nansencenter.github.io/DAPPER/dapper.html)
+and searching the issue tracker for similar items.
+
+Pull requests are very welcome.
+Examples: adding a new DA method, dynamical models,
+experimental configuration reproducing literature results,
+or improving the features and capabilities of DAPPER.
+Please keep in mind the intentional [limitations](https://github.com/nansencenter/DAPPER#similar-projects)
+and read the [developers guidelines](https://nansencenter.github.io/DAPPER/dev_guide).
+
+### Contributors
 
 Patrick N. Raanes,
 Yumeng Chen,
@@ -345,7 +360,7 @@ and the Center for Western Weather and Water Extremes (CW3E).
 <img src="./docs/imgs/CW3E-Logo-Horizontal-FullColor.png?raw=true" width="400">
 <!-- markdownlint-restore -->
 
-## Publication list
+## Publications
 
 - [Combining data assimilation and machine learning to emulate a dynamical model from sparse and noisy observations: A case study with the Lorenz 96 model](https://doi.org/10.1016/j.jocs.2020.101171)
 - [Adaptive covariance inflation in the ensemble Kalman filter by Gaussian scale mixtures](https://doi.org/10.1002/qj.3386)

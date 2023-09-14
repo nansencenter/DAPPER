@@ -52,7 +52,8 @@ class SparseSpace(dict):
     The most important method is `nest`,
     which is used (by `xpSpace.table_tree`) to print and plot results.
     This is essentially a "groupby" operation, and indeed the case could
-    be made that this class should be replaced by `pandas.DataFrame`.
+    be made that this class should be replaced by `pandas.DataFrame`,
+    or better yet: <https://github.com/pydata/xarray>.
 
     The `__getitem__` is quite flexible, allowing accessing by:
 

@@ -25,7 +25,6 @@ class ExtKF:
     infl: float = 1.0
 
     def assimilate(self, HMM, xx, yy):
-        R  = HMM.Obs.noise.C.full
         Q  = 0 if HMM.Dyn.noise.C == 0 else HMM.Dyn.noise.C.full
 
         mu = HMM.X0.mu
@@ -44,10 +43,11 @@ class ExtKF:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', mu=mu, Cov=P)
-                H  = HMM.Obs.linear(mu, t)
-                KG = mrdiv(P @ H.T, H@P@H.T + R)
+                Obs = HMM.Obs(ko)
+                H  = Obs.linear(mu)
+                KG = mrdiv(P @ H.T, H@P@H.T + Obs.noise.C.full)
                 y  = yy[ko]
-                mu = mu + KG@(y - HMM.Obs(mu, t))
+                mu = mu + KG@(y - Obs(mu))
                 KH = KG@H
                 P  = (np.eye(HMM.Dyn.M) - KH) @ P
 
@@ -67,7 +67,6 @@ class ExtRTS:
     def assimilate(self, HMM, xx, yy):
         Nx = HMM.Dyn.M
 
-        R  = HMM.Obs.noise.C.full
         Q  = 0 if HMM.Dyn.noise.C == 0 else HMM.Dyn.noise.C.full
 
         mu    = np.zeros((HMM.tseq.K+1, Nx))
@@ -96,10 +95,11 @@ class ExtRTS:
 
             if ko is not None:
                 self.stats.assess(k, ko, 'f', mu=mu[k], Cov=P[k])
-                H     = HMM.Obs.linear(mu[k], t)
-                KG    = mrdiv(P[k] @ H.T, H@P[k]@H.T + R)
+                Obs   = HMM.Obs(ko)
+                H     = Obs.linear(mu[k])
+                KG    = mrdiv(P[k] @ H.T, H@P[k]@H.T + Obs.noise.C.full)
                 y     = yy[ko]
-                mu[k] = mu[k] + KG@(y - HMM.Obs(mu[k], t))
+                mu[k] = mu[k] + KG@(y - Obs(mu[k]))
                 KH    = KG@H
                 P[k]  = (np.eye(Nx) - KH) @ P[k]
                 self.stats.assess(k, ko, 'a', mu=mu[k], Cov=P[k])

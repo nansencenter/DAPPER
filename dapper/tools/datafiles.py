@@ -31,7 +31,7 @@ def create_run_dir(save_as, mp):
         save_as = rc.dirs.data / Path(save_as).stem
         save_as /= datetime.now().strftime(XP_TIMESTAMP_TEMPLATE)
         os.makedirs(save_as)
-        print(f"Experiment stored at {save_as}")
+        print(f"Experiment gets stored at {save_as}")
 
         def xpi_dir(i):
             path = save_as / str(i)

@@ -68,9 +68,9 @@ class OptInterp:
                 self.stats.assess(k, ko, 'f', mu=muC, Cov=PC)
 
                 # Analysis
-                H  = HMM.Obs.linear(muC, t)
-                KG  = mrdiv(PC@H.T, H@PC@H.T + HMM.Obs.noise.C.full)
-                mu = muC + KG@(yy[ko] - HMM.Obs(muC, t))
+                H  = HMM.Obs(ko).linear(muC)
+                KG  = mrdiv(PC@H.T, H@PC@H.T + HMM.Obs(ko).noise.C.full)
+                mu = muC + KG@(yy[ko] - HMM.Obs(ko)(muC))
 
                 P  = (Id - KG@H) @ PC
                 SM = fit_sigmoid(P.trace()/PC.trace(), L, k)
@@ -123,9 +123,9 @@ class Var3D:
                 self.stats.assess(k, ko, 'f', mu=mu, Cov=P)
 
                 # Analysis
-                H  = HMM.Obs.linear(mu, t)
-                KG = mrdiv(B@H.T, H@B@H.T + HMM.Obs.noise.C.full)
-                mu = mu + KG@(yy[ko] - HMM.Obs(mu, t))
+                H  = HMM.Obs(ko).linear(mu)
+                KG = mrdiv(B@H.T, H@B@H.T + HMM.Obs(ko).noise.C.full)
+                mu = mu + KG@(yy[ko] - HMM.Obs(ko)(mu))
 
                 # Re-calibrate fit_sigmoid with new W0 = Pa/B
                 P = (Id - KG@H) @ B

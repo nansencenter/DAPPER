@@ -17,16 +17,18 @@ from setuptools import find_packages, setup
 DOCLINES = __doc__.split('\n')
 
 # Dependencies
+# Why pin?: https://github.com/nansencenter/DAPPER/issues/41#issuecomment-1381616971
 INSTALL_REQUIRES = [
-    'scipy>=1.1',
-    'ipython>=5.1',
-    'jedi<0.18',  # ipython/issues/12740
+    'scipy>=1.10',
     'jupyter',
-    'matplotlib~=3.2.2',  # use Colab's version (newer wont work there)
+    'ipdb',
+    'ipython>=5.1',
+    # 'jedi<0.18',  # ipython/issues/12740
+    'tornado~=6.3.2',  # 6.2 breaks Jupyter plots (tested on local Mac, Linux)
+    'matplotlib~=3.7',
     'mpl-tools==0.2.50',
     'tqdm~=4.31',
     'pyyaml',
-    'ipdb',
     'colorama~=0.4.1',
     'tabulate~=0.8.3',
     'dill==0.3.2',  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
@@ -39,7 +41,7 @@ INSTALL_REQUIRES = [
 
 EXTRAS = {
     'Qt': ['PyQt5', 'qtpy'],
-    'dev': ['line_profiler', 'pre-commit', 'pdbpp>=0.10.3'],
+    'debug': ['line_profiler', 'pre-commit', 'pdbpp>=0.10.3'],
     'test': ['tox', 'coverage>=5.1', 'pytest',
              'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
@@ -48,7 +50,7 @@ EXTRAS = {
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
     'build': ['twine', 'pdoc', 'jupytext'],
 }
-EXTRAS['dev'] += EXTRAS['test'] + EXTRAS['lint'] + EXTRAS['build']
+EXTRAS['dev'] = EXTRAS['debug'] + EXTRAS['test'] + EXTRAS['lint'] + EXTRAS['build']
 
 
 def find_version(*file_paths):
@@ -90,7 +92,7 @@ setup(
     # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
     # ==3.7 for Colab
     # ==3.9 for the DAPPER/GCP cluster, since dill isn't compat. across versions.
-    python_requires='>=3.7',
+    python_requires='>=3.9',
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS,
 
