@@ -58,6 +58,8 @@ DAPPER is open source, written in Python, and focuses on readability;
 this promotes the reproduction and dissemination of the underlying
 science, and makes it easy to adapt and extend.
 
+# State of the field
+
 The README contains a comprehensive list of related projects.
 Among projects aimed at research and teaching,
 DAPPER is probably the most mature,
