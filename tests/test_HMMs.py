@@ -35,7 +35,7 @@ HMMs = [p.relative_to(root) for p in mods.glob("**/*.py") if _defines_HMM(p)]
 @pytest.mark.parametrize(("path"), HMMs, ids=str)
 def test_HMM(path):
     """Test that any HMM in module can be simulated."""
-    p = "." + str(path.with_suffix("")).replace("/", ".")
+    p = "." + str(path.with_suffix("")).replace(os.sep, ".")
     module = import_module(p, root.stem)
 
     def exclude(key, HMM):
