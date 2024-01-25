@@ -10,10 +10,8 @@
 
 <img src="/docs/imgs/logo_wtxt.png" align="left" width="250"/>
 
-DAPPER is a set of templates for **benchmarking** the performance of
-**data assimilation** (DA) methods.
-The tests provide experimental support and guidance for
-new developments in DA.
+DAPPER is a set of templates for **benchmarking** the performance of **data assimilation** (DA) methods.
+The numerical experiments provide support and guidance for new developments in DA.
 The typical set-up is a **synthetic (twin) experiment**, where you
 specify a dynamic model and an observational model,
 and use these to generate a synthetic truth (multivariate time series),
