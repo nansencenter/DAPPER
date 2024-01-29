@@ -27,7 +27,7 @@ jobs:
           python-version: '3.10'
 
       - run: pip install -e .[build]
-      - run: pdoc -o docs-generated/ -t docs/templates --math docs/bib/bib.py docs/dev_guide.py ./dapper
+      - run: pdoc -o docs-generated/ -t docs/templates --math --docformat=numpy docs/bib/bib.py docs/dev_guide.py ./dapper
 
       - uses: actions/upload-pages-artifact@v1
         with:
