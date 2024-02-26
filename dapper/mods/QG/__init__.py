@@ -95,7 +95,7 @@ class model_config:
         assert self.prms["dtout"] == dt
         # Coz Fortran is typed.
         assert isinstance(t, float)
-        # QG is autonomous, but Fortran doesn't like nan/inf.
+        # QG is autonomous (⇒ t should not matter), but Fortran doesn't like nan/inf.
         assert np.isfinite(t)
         # Copy coz Fortran will modify in-place.
         psi = py2f(x0.copy())
