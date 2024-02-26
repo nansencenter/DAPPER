@@ -36,8 +36,8 @@ The [documentation](https://nansencenter.github.io/DAPPER)
 includes general guidelines and the API,
 but for any serious use you will want to read and adapt the code yourself.
 If you use it in a publication, please cite, e.g.,
-*The experiments used (inspiration from) DAPPER [ref], version 1.2.1*,
-where [ref] points to [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2029296.svg)](https://doi.org/10.5281/zenodo.2029296).
+*The experiments used (inspiration from) DAPPER [ref], version 1.6.0*,
+where [ref] points to [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10710355.svg)](https://doi.org/10.5281/zenodo.10710355).
 Lastly, for an introduction to DA theory also using Python,
 see these [tutorials](https://github.com/nansencenter/DA-tutorials).
 
