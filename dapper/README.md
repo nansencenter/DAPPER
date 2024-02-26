@@ -26,8 +26,8 @@ your own **model** or **method**, then
   rather than trying to squeeze everything into its templates.
 - If it is relatively simple, however, you may well want to use DAPPER.
   In that case, read this:
-    - `mods`
-    - `da_methods`
+    - `dapper.mods`
+    - `dapper.da_methods`
 
 Since the generality of DAPPER is
 [limited](https://github.com/nansencenter/DAPPER#similar-projects)

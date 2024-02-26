@@ -110,7 +110,7 @@ the `lightscript` format), so that the paired files can be kept in synch.
 The documentation is built with `pdoc`, e.g.
 
 ```sh
-pdoc -t docs/templates --math docs/bib/bib.py docs/dev_guide.py ./dapper
+pdoc -t docs/templates --math --docformat=numpy docs/bib/bib.py docs/dev_guide.py ./dapper
 ```
 
 ##### Hosting

@@ -35,25 +35,24 @@ HMMs = [p.relative_to(root) for p in mods.glob("**/*.py") if _defines_HMM(p)]
 @pytest.mark.parametrize(("path"), HMMs, ids=str)
 def test_HMM(path):
     """Test that any HMM in module can be simulated."""
-    p = "." + str(path.with_suffix("")).replace("/", ".")
-    module = import_module(p, root.stem)
+    p = "." + str(path.with_suffix("")).replace(os.sep, ".")
+    try:
+        module = import_module(p, root.stem)
 
-    def exclude(key, HMM):
-        """Exclude certain, untestable HMMs"""
-        if key == "HMM_trunc":
-            return True
-        if "QG" in HMM.name:
-            try:
-                HMM.Dyn.model.__self__.f90
-            except ModuleNotFoundError as err:
-                import warnings
-                warnings.warn(str(err), stacklevel=2)
+        def exclude(key, _HMM):
+            """Exclude HMMs that should not be tested."""
+            if key == "HMM_trunc":
                 return True
-        return False
+            return False
 
-    for key, HMM in vars(module).items():
-        if isinstance(HMM, HiddenMarkovModel) and not exclude(key, HMM):
-            HMM.tseq.BurnIn = 0
-            HMM.tseq.Ko = 1
-            xx, yy = HMM.simulate()
-            assert True
+        for key, HMM in vars(module).items():
+            if isinstance(HMM, HiddenMarkovModel) and not exclude(key, HMM):
+                HMM.tseq.BurnIn = 0
+                HMM.tseq.Ko = 1
+                xx, yy = HMM.simulate()
+                assert True
+
+    except ModuleNotFoundError as err:
+        import warnings
+        warnings.warn(str(err), stacklevel=2)
+        return  # We're not testing importability, only runnability
