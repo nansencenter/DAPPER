@@ -658,6 +658,9 @@ def circulant_ACF(C, do_abs=False):
     """Compute the auto-covariance-function corresponding to `C`.
 
     This assumes it is the cov/corr matrix of a 1D periodic domain.
+
+    Vectorized or FFT implementations are
+    [possible](https://stackoverflow.com/questions/20360675).
     """
     M = len(C)
     # cols = np.flipud(sla.circulant(np.arange(M)[::-1]))
