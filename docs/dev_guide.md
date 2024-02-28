@@ -32,16 +32,15 @@
 
 ## Install for development
 
-Make sure you included the dev tools as part of the installation
-(detailed in the README):
+Include the dev tools as part of the installation (detailed in the README):
 
 ```sh
-pip install -e .[dev]
+pip install -e '.[dev]'
 ```
 
-*If* you want to be able to use static analysis tools (`pyright`)
-all the while use dapper from another directory, you should also **append**
-`--config-settings editable_mode=compat` to the above command.
+PS: *If* you want to be able to use static analysis tools (`pyright`) with dapper
+all the while working *from outside its directory*,
+you should also **append** `--config-settings editable_mode=compat` to the above command.
 Ref [pyright doc](https://github.com/microsoft/pyright/blob/main/docs/import-resolution.md#editable-installs)
 and [pyright issue](https://github.com/microsoft/pylance-release/issues/78).
 Alternatively, there is the `extraPaths` setting.

@@ -114,19 +114,17 @@ Ensure the printed version is 3.9 or more.
 
 - Download and unzip (or `git clone`) DAPPER.
 - Move the resulting folder wherever you like,  
-  and `cd` into it
-  *(ensure you're in the folder with a `setup.py` file)*.
-- `pip install -e '.[dev]'`  
-  You can omit `[dev]` if you don't need to do serious development.
+  and `cd` into it *(ensure you're in the folder with a `setup.py` file)*.
+- `pip install -e '.'`  
 
 #### *Or*: Install as library
 
 *Do you just want to run a script that requires DAPPER?* Then
 
-- If the script comes with a `requirements.txt` file, then do  
+- If the script comes with a `requirements.txt` file that lists DAPPER, then do  
   `pip install -r path/to/requirements.txt`.
 - If not, hopefully you know the version of DAPPER needed. Run  
-  `pip install dapper==1.5.1` to get version `1.5.1` (as an example).
+  `pip install dapper==1.6.0` to get version `1.6.0` (as an example).
 
 #### *Finally*: Test the installation
 
