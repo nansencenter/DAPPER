@@ -181,6 +181,9 @@ grep -r "xp.*iEnKS" dapper/mods
 
 ## Test cases (models)
 
+Simple models facilitate the reliability, reproducibility,
+and interpretability of experiment results.
+
 Model                | Lin | TLM** | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer
 -----------          | --- | ----- | ----  | --------- | --------- | ------ | ----------
 Id                   | Yes | Yes   | No    | N/A       | *         | 0      | Raanes

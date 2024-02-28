@@ -1,16 +1,14 @@
 See the README section on
 [test cases (models)](https://github.com/nansencenter/DAPPER#Test-cases-models)
-for an overview of the models included with DAPPER.
-
-The models are all simple;
-this facilitates the reliability, reproducibility, and attributability
-of the experiment results.
+for a table overview of the included models.
 
 ## Defining your own model
 
-Essentially, you just need to define all of the attributes of a
-`dapper.mods.HiddenMarkovModel`.
-Below is a sugested structure you can use to define it.
+Below is a sugested structuring followed by most models already within DAPPER.
+However, you are free to organize your model as you see fit,
+as long as it culminates in the definition of one or more `dapper.mods.HiddenMarkovModel`.
+For the sake of modularity,
+try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
 
 - Make a directory: `my_model`. It does not have to reside within the `dapper/mods` folder,
   but make sure to look into some of the other dirs thereunder as examples,
@@ -26,33 +24,11 @@ Below is a sugested structure you can use to define it.
 - Make a file: `my_model/demo.py` to run `step` and visually showcase
   a simulation of the model, and verify it's working.
 
-  .. note::
-    For the sake of modularity,
-    both `my_model/__init__.py` and `my_model/demo.py`
-    should ideally not rely on components of DAPPER outside of `dapper.mods`.
-
 - Make a file: `my_model/my_settings_1.py` that defines
     (or "configures", since there is usually little programming logic and flow taking place)
     a complete `dapper.mods.HiddenMarkovModel` ready for a synthetic experiment
     (also called "twin experiment" or OSSE).
-    Each existing model comes with several examples of model settings from the literature.
-    See, for example, `dapper.mods.Lorenz63.sakov2012`.
-
-    .. warning::
-      These configurations do not necessarily hold a very high programming standard,
-      as they may have been whipped up at short notice to replicate some experiments,
-      and are not intended for re-use.
-
-      Nevertheless, sometimes they are re-used by another configuration script,
-      leading to a major gotcha/pitfall: changes made to the imported `HMM` (or
-      the model's module itself) also impact the original object (since they
-      are mutable and thereby referenced).  This *usually* isn't an issue, since
-      one rarely imports two/more separate configurations. However, the test suite
-      imports all configurations, which might then unintentionally interact.
-      To avoid this, you should use the `copy` method of the `HMM`
-      before making any changes to it.
-
-    Once you've made some experiments you believe are noteworthy you should add a
+-   Once you've made some experiments you believe are noteworthy you should add a
     "suggested settings/tunings" section in comments at the bottom of
     `my_model/my_settings_1.py`, listing some of the relevant DA method
     configurations that you tested, along with the RMSE (or other stats) that
@@ -89,10 +65,11 @@ Below is a sugested structure you can use to define it.
         because it may cause instabilities.
 
     .. note::
-        Most models are defined using a procedural and function-based style.
+        Most models are defined using simple procedural style.
         However, `dapper.mods.LorenzUV` and `dapper.mods.QG` use OOP,
         which is perhaps more robust when different
         control-variable settings are to be investigated.
+        The choice is yours.
 
         In parameter estimation problems, the parameters are treated as input
         variables to the "forward model". This does not *necessarily* require OOP.
