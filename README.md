@@ -31,15 +31,15 @@ read, run and try to understand `examples/basic_{1,2,3}.py`.
 Some of the examples also exist as Jupyter notebooks, and can be run in the cloud
 *without installation* (but requiring Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
 This [screencast](https://www.youtube.com/watch?v=YtalK0Zkzvg&t=6475s)
-provides an introduction.
+provides an overview to DAPPER.
 The [documentation](https://nansencenter.github.io/DAPPER)
-includes general guidelines as well as the API reference,
-but for extensive use you must expect you read the code as well.
-If used for a publication, please cite, e.g.,
+includes general guidelines and the API reference,
+but most users must expect to read the code as well.
+If used towards a publication, please cite as
 *The experiments used (inspiration from) DAPPER [ref], version 1.6.0*,
-where [ref] points to [![DOI](https://joss.theoj.org/papers/10.21105/joss.05150/status.svg)](https://doi.org/10.21105/joss.05150).
-Lastly, for an introduction to DA *theory* also using Python,
-see these [tutorials](https://github.com/nansencenter/DA-tutorials).
+or similar, where [ref] points to [![DOI](https://joss.theoj.org/papers/10.21105/joss.05150/status.svg)](https://doi.org/10.21105/joss.05150).
+Also see the interactive [tutorials on DA theory](https://github.com/nansencenter/DA-tutorials)
+with Python.
 
 ## Highlights
 
