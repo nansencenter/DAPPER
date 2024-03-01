@@ -22,7 +22,7 @@ try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
   from one time `t` to another `t + dt`.
 
 - Make a file: `my_model/demo.py` to run `step` and visually showcase
-  a simulation of the model, and verify it's working.
+  a simulation of the model without any DA, and verify it's working.
 
 - Make a file: `my_model/my_settings_1.py` that defines
     (or "configures", since there is usually little programming logic and flow taking place)
