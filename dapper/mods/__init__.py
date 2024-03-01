@@ -32,14 +32,15 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     The synthetic truth and observations may then be obtained by running
     `HiddenMarkovModel.simulate`.
 
-    .. warning::
+    .. note::
       Each model included with DAPPER comes with several examples
       of model settings from the literature.
       See, for example, `dapper.mods.Lorenz63.sakov2012`.
-      These configurations do not necessarily hold a very high programming standard,
+
+    .. warning::
+      These example configurations do not necessarily hold a high programming standard,
       as they may have been whipped up at short notice to replicate some experiments,
       and are not intended for re-use.
-
       Nevertheless, sometimes they are re-used by another configuration script,
       leading to a major gotcha/pitfall: changes made to the imported `HMM` (or
       the model's module itself) also impact the original object (since they
