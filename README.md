@@ -29,7 +29,7 @@ and then estimate that truth given the models and noisy observations.
 [Install](#installation), then
 read, run and try to understand `examples/basic_{1,2,3}.py`.
 Some of the examples also exist as Jupyter notebooks, and can be run in the cloud
-*without installation* (but requiring Google login): [![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
+*without installation* (but requiring Google login): [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
 This [screencast](https://www.youtube.com/watch?v=YtalK0Zkzvg&t=6475s)
 provides an overview to DAPPER.
 The [documentation](https://nansencenter.github.io/DAPPER)
