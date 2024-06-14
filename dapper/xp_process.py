@@ -859,12 +859,12 @@ class xpSpace(SparseSpace):
             )
             if has_labels:
                 panel0.legend()
-            if panel0.is_first_col():
+            if panel0.get_subplotspec().is_first_col():
                 panel0.set_ylabel(statkey)
             panels[-1].set_xlabel(dims["inner"][0])
             # Tuning panels:
             for a, panel in zip(dims["optim"] or (), panels[1:]):
-                if panel.is_first_col():
+                if panel.get_subplotspec().is_first_col():
                     panel.set_ylabel(f"Optim.\n{a}")
 
         # Nest dims through table_tree()

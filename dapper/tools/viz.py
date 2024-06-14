@@ -635,7 +635,7 @@ def default_fig_adjustments(tables, xticks_from_data=False):
 
     # Tuning panels only
     for a, panel in zip(tables.created_with["dims"]["optim"] or (), table0.panels[1:]):
-        yy = tables.created_with["xp_dict"].tickz(a)
+        yy = sorted(tables.created_with["xp_dict"].tickz(a))
         axis_scale_by_array(panel, yy, "y")
         # set_ymargin doesn't work for wonky scales. Do so manually:
         alpha = len(yy) / 10
