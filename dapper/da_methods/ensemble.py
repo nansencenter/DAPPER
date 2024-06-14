@@ -653,8 +653,7 @@ class LETKF_thresh:
 
     def assimilate(self, HMM, xx, yy):
         N1 = self.N-1
-        if self.thresh is None:
-            self.thresh = 3 / sqrt(self.N-3)
+        thresh = self.thresh or 3 / sqrt(self.N-3)
 
         E = HMM.X0.sample(self.N)
         self.stats.assess(0, E=E)
@@ -677,7 +676,7 @@ class LETKF_thresh:
                     stdY = sqrt(np.sum(Y * Y, 0) / N1)
                     Pxy = X.T @ Y / N1 # cov
                     Cxy = Pxy / stdX[:, None] / stdY # corr
-                    thresholded = np.abs(Cxy) > self.thresh
+                    thresholded = np.abs(Cxy) > thresh
 
                     def obs_taperer(batch):
                         active_obs = thresholded[batch].max(axis=0)
