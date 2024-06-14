@@ -5,9 +5,11 @@
 
 # %matplotlib notebook
 import numpy as np
+import matplotlib.pyplot as plt
 
 import dapper as dpr
 import dapper.da_methods as da
+import dapper.tools.viz as viz
 
 # #### Hidden Markov Model
 
@@ -58,22 +60,19 @@ xps += for_params(da.LETKF_thresh)
 # xps += da.SL_EAKF(        N=7 , infl=1.07, rot=True, loc_rad=6)  # 0.23
 
 # #### Run experiments
-
 # Paralellize/distribute experiments across CPUs.
-mp = True     # 1 CPU only
-# mp = 7         # 7 CPUs (requires that you pip-installed DAPPER with [MP])
-# mp = True      # All CPUs
-# mp = "Google"  # Requires access to DAPPER cluster
 
-scriptname = "loc_by_corr_thresh_3"  # since __file__ does not work in Jupyter
-save_as = xps.launch(HMM, scriptname, mp, setup=setup)
+save_as = xps.launch(HMM, __file__, mp=True, setup=setup)
 
 
 # #### Print results
 
+# save_as = dpr.rc.dirs.data / "loc_by_corr_thresh"
+# # save_as /= "run_2024-06-14__17-23-09"
+# save_as /= dpr.find_latest_run(save_as)
+
 # Load data
-if mp:
-    xps = dpr.load_xps(save_as)
+xps = dpr.load_xps(save_as)
 
 # Print as a flat list (as in basic_2.py)
 # print(dpr.xpList(xps).tabulate_avrgs(statkeys=["rmse.a","rmv.a"]))
@@ -81,7 +80,28 @@ if mp:
 # Associate each control variable with a "coordinate"
 xp_dict = dpr.xpSpace.from_list(xps)
 
-# Print, split into tables by `outer` (also try None), and columns by `inner`.
-tunable = {'loc_rad', 'infl', 'xB', 'rot', 'thresh'}
-dims = dict(outer="Force", inner="N", mean="seed", optim=tunable)
-xp_dict.print("rmse.a", dims, subcols=False)
+# Choose attribute roles for plot
+
+tunable = {'loc_rad', 'infl', 'thresh'}
+dims = dict(inner="N", mean="seed", optim=tunable)
+# xp_dict.print("rmse.a", dims, subcols=True)
+
+# Define linestyle rules
+
+def get_style(coord):
+    S = viz.default_styles(coord, True)
+    if coord.da_method == "EnKF":
+        S.c = "k"
+    elif coord.da_method == "LETKF":
+        S.c = "C1"
+    elif coord.da_method == "LETKF_thresh":
+        S.c = "C0"
+    return S
+
+
+# Plot
+
+plt.ion()
+tables = xp_dict.plot('rmse.a', dims, get_style, title2=save_as)
+viz.default_fig_adjustments(tables)
+plt.pause(.1)
