@@ -46,7 +46,10 @@ EXTRAS = {
              'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
     'lint': ['flake8<5',  # https://github.com/flakeheaven/flakeheaven/issues/132
-             'flakeheaven', 'autopep8'],
+             'flakeheaven', 'autopep8',
+             'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions',
+             'flake8-isort', 'flake8-builtins', 'pep8-naming', 'flake8-commas',
+             ],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
     'build': ['twine', 'pdoc', 'jupytext'],
 }
@@ -92,7 +95,8 @@ setup(
     # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
     # ==3.7 for Colab
     # ==3.9 for the DAPPER/GCP cluster, since dill isn't compat. across versions.
-    python_requires='>=3.9',
+    # <3.11 because it failed with multiprocessing
+    python_requires='>=3.9,<3.11',
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS,
 

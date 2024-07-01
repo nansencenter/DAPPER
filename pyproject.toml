@@ -68,7 +68,7 @@ max_line_length = 88
 ignore = "W6"
 
 [tool.flakeheaven]
-exclude = [".*", "README.*", "examples/*.ipynb", "autoscaler.py"]
+exclude = [".*", "README.*", "examples/*.ipynb", "autoscaler.py", "build"]
 max_line_length = 88
 format = "grouped" # also try "stat"
 show_source = false

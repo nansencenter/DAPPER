@@ -298,7 +298,7 @@ class SparseSpace(dict):
         for coord in self.coords_matching(**self.intersect_dims(sub_coord)):
             entry = copy.deepcopy(self[coord])
             coord = coord._replace(xSect=label)
-            coord = coord._replace(**{a: None for a in NoneAttrs})
+            coord = coord._replace(**{a: None for a in NoneAttrs})  # noqa
             self[coord] = entry
 
 
