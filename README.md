@@ -98,12 +98,12 @@ open the [Anaconda terminal](https://docs.conda.io/projects/conda/en/latest/user
 and run the following commands:
 
 ```sh
-conda create --yes --name dapper-env python=3.9
+conda create --yes --name dapper-env python=3.12
 conda activate dapper-env
 python --version
 ```
 
-Ensure the printed version is 3.9 or more.  
+Ensure the printed version is as desired.
 *Keep using the same terminal for the commands below.*
 
 ### Install
