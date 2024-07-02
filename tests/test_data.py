@@ -18,6 +18,7 @@ Some notes:
 """
 
 import inspect
+
 # Capture stdout
 import io
 import sys

@@ -10,16 +10,17 @@ because `refs.bib` can also be edited manually,
 and `references.bib` is my own centralized database.
 """
 
-import re
-from pathlib import Path
-
 # from subprocess import run
 # from textwrap import dedent
 import os
-from dapper.dpr_config import rc
-from dapper.tools.colors import coloring
+import re
+from pathlib import Path
+
 from colorama import Fore as CF
 from patlib.std import sub_run
+
+from dapper.dpr_config import rc
+from dapper.tools.colors import coloring
 
 
 def parse_bib(bibfile):

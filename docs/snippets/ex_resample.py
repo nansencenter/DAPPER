@@ -3,9 +3,9 @@
 import numpy as np
 import scipy as sp
 from matplotlib import pyplot as plt
-from dapper.da_methods.particle import resample
-
 from statsmodels.nonparametric.kernel_density import KDEMultivariate as kde  # noqa
+
+from dapper.da_methods.particle import resample
 
 f, axs = plt.subplots(7, 1, sharex=True, sharey=True)
 

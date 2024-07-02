@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import dapper as dpr
 import dapper.tools.viz as viz
 
-
 # #### Load
 
 # Paths

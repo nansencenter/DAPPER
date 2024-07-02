@@ -11,9 +11,9 @@ import dapper as dpr
 import dapper.da_methods as da
 
 # #### DA method configurations
-
 # fmt: off
 from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
+
 xps = dpr.xpList()
 xps += da.Climatology()                                      # 7.6
 xps += da.OptInterp()                                        # 1.25

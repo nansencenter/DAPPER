@@ -12,10 +12,10 @@ Usage:
 Note: requires pandoc, and presumably latex too.
 """
 
+import os
 from pathlib import Path
 from subprocess import run
 from textwrap import dedent
-import os
 
 os.chdir(Path(__file__).parent)
 

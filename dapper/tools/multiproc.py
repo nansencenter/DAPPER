@@ -4,6 +4,7 @@
 # For example, `matplotlib` (its event loop) might clash (however mysteriously)
 # with mp, so it's nice to be able to be sure that no mp is "in the mix".
 import multiprocessing_on_dill as mpd
+
 # Enforcing individual core usage.
 # Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
 #     This may yield some performance gain, but typically not much

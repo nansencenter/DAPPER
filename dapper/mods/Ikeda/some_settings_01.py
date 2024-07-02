@@ -1,9 +1,9 @@
 """Settings that produce somewhat interesting/challenging DA problems."""
 
 import numpy as np
-import dapper.mods as modelling
 
-from dapper.mods.Ikeda import step, x0, Tplot, LPs
+import dapper.mods as modelling
+from dapper.mods.Ikeda import LPs, Tplot, step, x0
 
 tseq = modelling.Chronology(1, dko=1, Ko=1000, Tplot=Tplot, BurnIn=4 * Tplot)
 

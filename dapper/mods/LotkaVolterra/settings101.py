@@ -6,8 +6,7 @@ as adjudged with eye-ball and Lyapunov measures.
 """
 
 import dapper.mods as modelling
-
-from dapper.mods.LotkaVolterra import step, dstep_dx, x0, LP_setup, Tplot
+from dapper.mods.LotkaVolterra import LP_setup, Tplot, dstep_dx, step, x0
 
 t = modelling.Chronology(0.5, dto=10, T=1000, BurnIn=Tplot, Tplot=Tplot)
 
