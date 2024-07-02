@@ -68,7 +68,6 @@ even though the rmse is a lot lower with spectral H.
 Am I missing something?
 """
 
-
 import numpy as np
 
 import dapper.mods as modelling
@@ -83,13 +82,13 @@ X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 
 def make_H(Ny, Nx):
-    xx   = np.linspace(-1, 1, Nx+1)[1:]
-    H    = np.zeros((Ny, Nx))
-    H[0] = 1/np.sqrt(2)
-    for k in range(-(Ny//2), (Ny+1)//2):
-        ind    = 2*abs(k) - (k < 0)
-        H[ind] = np.sin(np.pi*k*xx + np.pi/4)
-    H /= np.sqrt(Nx/2)
+    xx = np.linspace(-1, 1, Nx + 1)[1:]
+    H = np.zeros((Ny, Nx))
+    H[0] = 1 / np.sqrt(2)
+    for k in range(-(Ny // 2), (Ny + 1) // 2):
+        ind = 2 * abs(k) - (k < 0)
+        H[ind] = np.sin(np.pi * k * xx + np.pi / 4)
+    H /= np.sqrt(Nx / 2)
     return H
 
 
@@ -98,9 +97,9 @@ H = make_H(Ny, Nx)
 # plt.figure(2).gca().matshow(H @ H.T)
 
 Obs = {
-    'M': Ny,
-    'model': lambda x: x @ H.T,
-    'noise': modelling.GaussRV(C=0.01*np.eye(Ny)),
+    "M": Ny,
+    "model": lambda x: x @ H.T,
+    "noise": modelling.GaussRV(C=0.01 * np.eye(Ny)),
 }
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)

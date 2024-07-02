@@ -8,7 +8,6 @@ Its phase-plot (with typical param settings) looks like a butterfly.
 See demo.py for more info.
 """
 
-
 import numpy as np
 
 import dapper.mods as modelling
@@ -18,7 +17,7 @@ from .extras import LPs, d2x_dtdx, dstep_dx
 # Constants
 sig = 10.0
 rho = 28.0
-beta = 8.0/3
+beta = 8.0 / 3
 
 # Suggested values
 x0 = np.array([1.509, -1.531, 25.46])
@@ -29,9 +28,9 @@ Tplot = 4.0
 def dxdt(x):
     """Evolution equation (coupled ODEs) specifying the dynamics."""
     x, y, z = x
-    dx = sig*(y - x)
-    dy = rho*x - y - x*z
-    dz = x*y - beta*z
+    dx = sig * (y - x)
+    dy = rho * x - y - x * z
+    dz = x * y - beta * z
     return np.array([dx, dy, dz])
 
 

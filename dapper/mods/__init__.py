@@ -80,29 +80,30 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
     def __init__(self, *args, **kwargs):
         # Expected args/kwargs, along with type and default.
-        attrs = dict(Dyn=(Operator, None),
-                     Obs=(TimeDependentOperator, None),
-                     tseq=(Chronology, None),
-                     X0=(RV, None),
-                     liveplotters=(list, []),
-                     sectors=(dict, {}),
-                     name=(str, self._default_name()))
+        attrs = dict(
+            Dyn=(Operator, None),
+            Obs=(TimeDependentOperator, None),
+            tseq=(Chronology, None),
+            X0=(RV, None),
+            liveplotters=(list, []),
+            sectors=(dict, {}),
+            name=(str, self._default_name()),
+        )
 
         # Transfer args to kwargs
         for arg, kw in zip(args, attrs):
-            assert (kw not in kwargs), "Could not sort out arguments."
+            assert kw not in kwargs, "Could not sort out arguments."
             kwargs[kw] = arg
 
         # Un-abbreviate
-        abbrevs = {"LP": "liveplotters",
-                   "loc": "localizer"}
+        abbrevs = {"LP": "liveplotters", "loc": "localizer"}
         for key in list(kwargs):
             try:
                 full = abbrevs[key]
             except KeyError:
                 pass
             else:
-                assert (full not in kwargs), "Could not sort out arguments."
+                assert full not in kwargs, "Could not sort out arguments."
                 kwargs[full] = kwargs.pop(key)
 
         # Convert dict to object
@@ -118,7 +119,8 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         assert not kwargs, (
             f"Arguments {list(kwargs)} not recognized. "
             "If you want, you can still write them to the HMM, "
-            "but this must be done after initialisation.")
+            "but this must be done after initialisation."
+        )
 
         # Further defaults
         # if not hasattr(self.Obs, "localizer"):
@@ -130,11 +132,12 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
     # ndim shortcuts
     @property
-    def Nx(self): return self.Dyn.M
+    def Nx(self):
+        return self.Dyn.M
 
-    printopts = {'ordering': ['Dyn', 'Obs', 'tseq', 'X0'], "indent": 4}
+    printopts = {"ordering": ["Dyn", "Obs", "tseq", "X0"], "indent": 4}
 
-    def simulate(self, desc='Truth & Obs'):
+    def simulate(self, desc="Truth & Obs"):
         """Generate synthetic truth and observations."""
         Dyn, Obs, tseq, X0 = self.Dyn, self.Obs, self.tseq, self.X0
 
@@ -147,8 +150,8 @@ class HiddenMarkovModel(struct_tools.NicePrint):
 
         # Loop
         for k, ko, t, dt in pb.progbar(tseq.ticker, desc):
-            x = Dyn(x, t-dt, dt)
-            x = x + np.sqrt(dt)*Dyn.noise.sample(1).squeeze()
+            x = Dyn(x, t - dt, dt)
+            x = x + np.sqrt(dt) * Dyn.noise.sample(1).squeeze()
             if ko is not None:
                 yy[ko] = Obs(ko)(x) + Obs(ko).noise.sample(1).squeeze()
             xx[k] = x
@@ -162,7 +165,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     def _default_name():
         name = inspect.getfile(inspect.stack()[2][0])
         try:
-            name = str(Path(name).relative_to(rc.dirs.dapper/'mods'))
+            name = str(Path(name).relative_to(rc.dirs.dapper / "mods"))
         except ValueError:
             name = str(Path(name))
         return name
@@ -176,6 +179,7 @@ class TimeDependentOperator:
 
     Examples: `examples/time-dep-obs-operator.py` and `dapper/mods/QG/sakov2008.py`.
     """
+
     def __init__(self, **kwargs):
         """Can be initialized like `Operator`, in which case the resulting
         object will always return the same `Operator` nomatter the input time.
@@ -184,7 +188,7 @@ class TimeDependentOperator:
         then `func` must return an `Operator` object.
         """
         try:
-            fun = kwargs['time_dependent']
+            fun = kwargs["time_dependent"]
             assert len(kwargs) == 1
             assert callable(fun)
             self.Ops = fun
@@ -192,13 +196,13 @@ class TimeDependentOperator:
             self.Op1 = Operator(**kwargs)
 
     def __repr__(self):
-        return "<" + type(self).__name__ + '> ' + str(self)
+        return "<" + type(self).__name__ + "> " + str(self)
 
     def __str__(self):
-        if hasattr(self, 'Op1'):
-            return 'CONSTANT operator sepcified by .Op1:\n' + repr(self.Op1)
+        if hasattr(self, "Op1"):
+            return "CONSTANT operator sepcified by .Op1:\n" + repr(self.Op1)
         else:
-            return '.Ops: ' + repr(self.Ops)
+            return ".Ops: " + repr(self.Ops)
 
     def __call__(self, ko):
         try:
@@ -229,7 +233,7 @@ class Operator(struct_tools.NicePrint):
         # Default to the Identity operator
         if model is None:
             model = Id_op()
-            kwargs['linear'] = lambda *args: np.eye(M)
+            kwargs["linear"] = lambda *args: np.eye(M)
         # Assign
         self.model = model
 
@@ -251,4 +255,4 @@ class Operator(struct_tools.NicePrint):
     def __call__(self, *args, **kwargs):
         return self.model(*args, **kwargs)
 
-    printopts = {'ordering': ['M', 'model', 'noise'], "indent": 4}
+    printopts = {"ordering": ["M", "model", "noise"], "indent": 4}

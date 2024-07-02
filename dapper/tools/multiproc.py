@@ -60,9 +60,14 @@ def Pool(NPROC=None):
     if NPROC == False:  # noqa: E712
         # Yield plain old map
         class NoPool:
-            def __enter__(self): return builtins
-            def __exit__(self, *args): pass
+            def __enter__(self):
+                return builtins
+
+            def __exit__(self, *args):
+                pass
+
         import builtins
+
         return NoPool()
 
     else:

@@ -4,12 +4,13 @@ This means that the state dynamics are just Brownian motion.
 
 Next to setting the state to a constant, this is the simplest model you can think of.
 """
+
 import dapper.mods as modelling
 
 tseq = modelling.Chronology(1, dko=1, Ko=2000, Tplot=10, BurnIn=0)
 M = 4
-Obs = {'noise': 2, 'M': M}
-Dyn = {'noise': 1, 'M': M}
+Obs = {"noise": 2, "M": M}
+Dyn = {"noise": 1, "M": M}
 X0 = modelling.GaussRV(C=1, M=M)
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)

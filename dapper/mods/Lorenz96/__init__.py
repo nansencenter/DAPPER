@@ -31,7 +31,7 @@ def shift(x, n):
 
 
 def dxdt_autonomous(x):
-    return (shift(x, 1)-shift(x, -2))*shift(x, -1) - x
+    return (shift(x, 1) - shift(x, -2)) * shift(x, -1) - x
 
 
 def dxdt(x):

@@ -25,18 +25,18 @@ def step(x, t, dt):
 
 
 Dyn = {
-    'M': Nx,
-    'model': step,
-    'linear': lambda x, t, dt: Fm,
-    'noise': 0,
+    "M": Nx,
+    "model": step,
+    "linear": lambda x, t, dt: Fm,
+    "noise": 0,
 }
 
-X0 = modelling.GaussRV(mu=np.zeros(Nx), C=homogeneous_1D_cov(Nx, Nx/8, kind='Gauss'))
+X0 = modelling.GaussRV(mu=np.zeros(Nx), C=homogeneous_1D_cov(Nx, Nx / 8, kind="Gauss"))
 
-Ny  = 4
-jj  = modelling.linspace_int(Nx, Ny)
+Ny = 4
+jj = modelling.linspace_int(Nx, Ny)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 0.01
+Obs["noise"] = 0.01
 
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LPs(jj))

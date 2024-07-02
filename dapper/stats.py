@@ -36,17 +36,18 @@ class Stats(series.StatPrint):
         ######################################
         # Preamble
         ######################################
-        self.xp        = xp
-        self.HMM       = HMM
-        self.xx        = xx
-        self.yy        = yy
+        self.xp = xp
+        self.HMM = HMM
+        self.xx = xx
+        self.yy = yy
         self.liveplots = liveplots
-        self.store_u   = store_u
-        self.store_s   = any(key in xp.__dict__ for key in
-                             ["Lag", "DeCorr"])  # prms used by smoothers
+        self.store_u = store_u
+        self.store_s = any(
+            key in xp.__dict__ for key in ["Lag", "DeCorr"]
+        )  # prms used by smoothers
 
         # Shapes
-        K  = xx.shape[0] - 1
+        K = xx.shape[0] - 1
         Nx = xx.shape[1]
         Ko = yy.shape[0] - 1
         self.K, self.Ko, self.Nx = K, Ko, Nx
@@ -55,19 +56,23 @@ class Stats(series.StatPrint):
         # Don't use nanmean here; nan's should get propagated!
         en_mean = lambda x: np.mean(x, axis=0)  # noqa
         self.field_summaries = dict(
-            m   = lambda x: en_mean(x),                  # mean-field
-            ms  = lambda x: en_mean(x**2),               # root-mean-square
-            rms = lambda x: np.sqrt(en_mean(x**2)),      # root-mean-square
-            ma  = lambda x: en_mean(np.abs(x)),          # mean-absolute
-            gm  = lambda x: np.exp(en_mean(np.log(x))),  # geometric mean
+            m=lambda x: en_mean(x),  # mean-field
+            ms=lambda x: en_mean(x**2),  # root-mean-square
+            rms=lambda x: np.sqrt(en_mean(x**2)),  # root-mean-square
+            ma=lambda x: en_mean(np.abs(x)),  # mean-absolute
+            gm=lambda x: np.exp(en_mean(np.log(x))),  # geometric mean
         )
         # Only keep the methods listed in rc
-        self.field_summaries = struct_tools.intersect(self.field_summaries,
-                                                      rc.field_summaries)
+        self.field_summaries = struct_tools.intersect(
+            self.field_summaries, rc.field_summaries
+        )
 
         # Define similar methods, but restricted to sectors
         self.sector_summaries = {}
-        def restrict(fun, inds): return (lambda x: fun(x[inds]))
+
+        def restrict(fun, inds):
+            return lambda x: fun(x[inds])
+
         for suffix, formula in self.field_summaries.items():
             for sector, inds in HMM.sectors.items():
                 f = restrict(formula, inds)
@@ -76,24 +81,24 @@ class Stats(series.StatPrint):
         ######################################
         # Allocate time series of various stats
         ######################################
-        self.new_series('mu'    , Nx, field_mean='sectors')  # Mean
-        self.new_series('spread', Nx, field_mean='sectors')  # Std. dev. ("spread")
-        self.new_series('err'   , Nx, field_mean='sectors')  # Error (mu - truth)
-        self.new_series('gscore', Nx, field_mean='sectors')  # Gaussian (log) score
+        self.new_series("mu", Nx, field_mean="sectors")  # Mean
+        self.new_series("spread", Nx, field_mean="sectors")  # Std. dev. ("spread")
+        self.new_series("err", Nx, field_mean="sectors")  # Error (mu - truth)
+        self.new_series("gscore", Nx, field_mean="sectors")  # Gaussian (log) score
 
         # To save memory, we only store these field means:
-        self.new_series('mad' , 1)  # Mean abs deviations
-        self.new_series('skew', 1)  # Skewness
-        self.new_series('kurt', 1)  # Kurtosis
+        self.new_series("mad", 1)  # Mean abs deviations
+        self.new_series("skew", 1)  # Skewness
+        self.new_series("kurt", 1)  # Kurtosis
 
-        if hasattr(xp, 'N'):
+        if hasattr(xp, "N"):
             N = xp.N
-            self.new_series('w', N, field_mean=True)  # Importance weights
-            self.new_series('rh', Nx, dtype=int)  # Rank histogram
+            self.new_series("w", N, field_mean=True)  # Importance weights
+            self.new_series("rh", Nx, dtype=int)  # Rank histogram
 
             self._is_ens = True
             minN = min(Nx, N)
-            self.do_spectral  = np.sqrt(Nx*N) <= rc.comps["max_spectral"]
+            self.do_spectral = np.sqrt(Nx * N) <= rc.comps["max_spectral"]
         else:
             self._is_ens = False
             minN = Nx
@@ -103,22 +108,22 @@ class Stats(series.StatPrint):
             # Note: the mean-field and RMS time-series of
             # (i) svals and (ii) umisf should match the corresponding series of
             # (i) spread and (ii) err.
-            self.new_series('svals', minN)  # Principal component (SVD) scores
-            self.new_series('umisf', minN)  # Error in component directions
+            self.new_series("svals", minN)  # Principal component (SVD) scores
+            self.new_series("umisf", minN)  # Error in component directions
 
         ######################################
         # Allocate a few series for outside use
         ######################################
-        self.new_series('trHK' , 1, Ko+1)
-        self.new_series('infl' , 1, Ko+1)
-        self.new_series('iters', 1, Ko+1)
+        self.new_series("trHK", 1, Ko + 1)
+        self.new_series("infl", 1, Ko + 1)
+        self.new_series("iters", 1, Ko + 1)
 
         # Weight-related
-        self.new_series('N_eff' , 1, Ko+1)
-        self.new_series('wroot' , 1, Ko+1)
-        self.new_series('resmpl', 1, Ko+1)
+        self.new_series("N_eff", 1, Ko + 1)
+        self.new_series("wroot", 1, Ko + 1)
+        self.new_series("resmpl", 1, Ko + 1)
 
-    def new_series(self, name, shape, length='FAUSt', field_mean=False, **kws):
+    def new_series(self, name, shape, length="FAUSt", field_mean=False, **kws):
         """Create (and register) a statistics time series, initialized with `nan`s.
 
         If `length` is an integer, a `DataSeries` (a trivial subclass of
@@ -129,19 +134,19 @@ class Stats(series.StatPrint):
             Thus, you cannot use `dtype=bool` or `int` for stats that get plotted.
         """
         # Convert int shape to tuple
-        if not hasattr(shape, '__len__'):
+        if not hasattr(shape, "__len__"):
             if shape == 1:
                 shape = ()
             else:
                 shape = (shape,)
 
         def make_series(parent, name, shape):
-            if length == 'FAUSt':
+            if length == "FAUSt":
                 total_shape = self.K, self.Ko, shape
                 store_opts = self.store_u, self.store_s
                 tseries = series.FAUSt(*total_shape, *store_opts, **kws)
             else:
-                total_shape = (length,)+shape
+                total_shape = (length,) + shape
                 tseries = series.DataSeries(total_shape, *kws)
             register_stat(parent, name, tseries)
 
@@ -154,19 +159,20 @@ class Stats(series.StatPrint):
                 for suffix in self.field_summaries:
                     make_series(getattr(self, name), suffix, ())
             # Make a nested level for sectors
-            if field_mean == 'sectors':
+            if field_mean == "sectors":
                 for ss in self.sector_summaries:
-                    suffix, sector = ss.split('.')
-                    make_series(struct_tools.deep_getattr(
-                        self, f"{name}.{suffix}"), sector, ())
+                    suffix, sector = ss.split(".")
+                    make_series(
+                        struct_tools.deep_getattr(self, f"{name}.{suffix}"), sector, ()
+                    )
 
     @property
     def data_series(self):
-        return [k for k in vars(self)
-                if isinstance(getattr(self, k), series.DataSeries)]
+        return [
+            k for k in vars(self) if isinstance(getattr(self, k), series.DataSeries)
+        ]
 
-    def assess(self, k, ko=None, faus=None,
-               E=None, w=None, mu=None, Cov=None):
+    def assess(self, k, ko=None, faus=None, E=None, w=None, mu=None, Cov=None):
         """Common interface for both `Stats.assess_ens` and `Stats.assess_ext`.
 
         The `_ens` assessment function gets called if `E is not None`,
@@ -194,19 +200,18 @@ class Stats(series.StatPrint):
 
         # Default. Don't add more defaults. It just gets confusing.
         if faus is None:
-            faus = 'u' if ko is None else 'au'
+            faus = "u" if ko is None else "au"
 
         # TODO 4: for faus="au" (e.g.) we don't need to re-**compute** stats,
         #         merely re-write them?
         for sub in faus:
-
             # Skip assessment if ('u' and stats not stored or plotted)
             if k != 0 and ko is None:
                 if not (self.store_u or self.LP_instance.any_figs):
                     continue
 
             # Silence repeat warnings caused by zero variance
-            with np.errstate(divide='call', invalid='call'):
+            with np.errstate(divide="call", invalid="call"):
                 np.seterrcall(warn_zero_variance)
 
                 # Assess
@@ -225,7 +230,8 @@ class Stats(series.StatPrint):
                 self.LP_instance.update((k, ko, sub), E, Cov)
             except AttributeError:
                 self.LP_instance = liveplotting.LivePlot(
-                    self, self.liveplots, (k, ko, sub), E, Cov)
+                    self, self.liveplots, (k, ko, sub), E, Cov
+                )
 
     def write(self, stat_dict, k, ko, sub):
         """Write `stat_dict` to series at `(k, ko, sub)`."""
@@ -238,18 +244,18 @@ class Stats(series.StatPrint):
         """Compute Mean-field and RMS values."""
         formulae = {**self.field_summaries, **self.sector_summaries}
 
-        with np.errstate(divide='ignore', invalid='ignore'):
+        with np.errstate(divide="ignore", invalid="ignore"):
             for stat in list(now):
                 field = now[stat]
                 for suffix, formula in formulae.items():
-                    statpath = stat+'.'+suffix
+                    statpath = stat + "." + suffix
                     if struct_tools.deep_hasattr(self, statpath):
                         now[statpath] = formula(field)
 
     def derivative_stats(self, now):
         """Stats that derive from others, and are not specific for `_ens` or `_ext`)."""
         try:
-            now.gscore = 2*np.log(now.spread) + (now.err/now.spread)**2
+            now.gscore = 2 * np.log(now.spread) + (now.err / now.spread) ** 2
         except AttributeError:
             # happens in case rc.comps['error_only']
             pass
@@ -260,15 +266,15 @@ class Stats(series.StatPrint):
 
         # weights
         if w is None:
-            w = np.ones(N)/N  # All equal. Also, rm attr from stats:
-            if hasattr(self, 'w'):
-                delattr(self, 'w')
+            w = np.ones(N) / N  # All equal. Also, rm attr from stats:
+            if hasattr(self, "w"):
+                delattr(self, "w")
             # Use non-weight formula (since w=None) for mu computations.
             # The savings are noticeable when rc.comps['error_only'] is noticeable.
             now.mu = E.mean(0)
         else:
             now.w = w
-            if abs(w.sum()-1) > 1e-5:
+            if abs(w.sum() - 1) > 1e-5:
                 raise RuntimeError("Weights did not sum to one.")
             now.mu = w @ E
 
@@ -280,7 +286,7 @@ class Stats(series.StatPrint):
 
         # Compute errors
         now.err = now.mu - x
-        if rc.comps['error_only']:
+        if rc.comps["error_only"]:
             return
 
         A = E - now.mu
@@ -291,8 +297,8 @@ class Stats(series.StatPrint):
         A_pow = A**2
 
         # Compute variances
-        var  = w @ A_pow
-        ub   = unbias_var(w, avoid_pathological=True)
+        var = w @ A_pow
+        ub = unbias_var(w, avoid_pathological=True)
         var *= ub
 
         # Compute standard deviation ("Spread")
@@ -303,29 +309,28 @@ class Stats(series.StatPrint):
         # from "empirical measure". See doc/unbiased_skew_kurt.jpg.
         # Normalize by var. Compute "excess" kurt, which is 0 for Gaussians.
         A_pow *= A
-        now.skew = np.nanmean(w @ A_pow / (s*s*s))
+        now.skew = np.nanmean(w @ A_pow / (s * s * s))
         A_pow *= A
         now.kurt = np.nanmean(w @ A_pow / var**2 - 3)
 
-        now.mad  = np.nanmean(w @ abs(A))
+        now.mad = np.nanmean(w @ abs(A))
 
         if self.do_spectral:
             if N <= Nx:
-                _, s, UT  = sla.svd((np.sqrt(w)*A.T).T, full_matrices=False)
-                s        *= np.sqrt(ub)  # Makes s^2 unbiased
+                _, s, UT = sla.svd((np.sqrt(w) * A.T).T, full_matrices=False)
+                s *= np.sqrt(ub)  # Makes s^2 unbiased
                 now.svals = s
                 now.umisf = UT @ now.err
             else:
-                P         = (A.T * w) @ A
-                s2, U     = sla.eigh(P)
-                s2       *= ub
+                P = (A.T * w) @ A
+                s2, U = sla.eigh(P)
+                s2 *= ub
                 now.svals = np.sqrt(s2.clip(0))[::-1]
                 now.umisf = U.T[::-1] @ now.err
 
             # For each state dim [i], compute rank of truth (x) among the ensemble (E)
-            E_x = np.sort(np.vstack((E, x)), axis=0, kind='heapsort')
-            now.rh = np.asarray(
-                [np.where(E_x[:, i] == x[i])[0][0] for i in range(Nx)])
+            E_x = np.sort(np.vstack((E, x)), axis=0, kind="heapsort")
+            now.rh = np.asarray([np.where(E_x[:, i] == x[i])[0][0] for i in range(Nx)])
 
     def assess_ext(self, now, x, mu, P):
         """Kalman filter (Gaussian) assessment."""
@@ -336,9 +341,9 @@ class Stats(series.StatPrint):
         # Don't check the cov (might not be explicitly availble)
 
         # Compute errors
-        now.mu  = mu
+        now.mu = mu
         now.err = now.mu - x
-        if rc.comps['error_only']:
+        if rc.comps["error_only"]:
             return
 
         # Get diag(P)
@@ -349,19 +354,19 @@ class Stats(series.StatPrint):
         else:
             if isinstance(P, CovMat):
                 var = P.diag
-                P   = P.full
+                P = P.full
             else:
                 var = np.diag(P)
 
             if self.do_spectral:
-                s2, U     = sla.eigh(P)
+                s2, U = sla.eigh(P)
                 now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
                 now.umisf = (U.T @ now.err)[::-1]
 
         # Compute stddev
         now.spread = np.sqrt(var)
         # Here, sqrt(2/pi) is the ratio, of MAD/Spread for Gaussians
-        now.mad = np.nanmean(now.spread) * np.sqrt(2/np.pi)
+        now.mad = np.nanmean(now.spread) * np.sqrt(2 / np.pi)
 
     def average_in_time(self, kk=None, kko=None, free=False):
         """Avarage all univariate (scalar) time series.
@@ -371,14 +376,16 @@ class Stats(series.StatPrint):
         """
         tseq = self.HMM.tseq
         if kk is None:
-            kk     = tseq.mask
+            kk = tseq.mask
         if kko is None:
-            kko  = tseq.masko
+            kko = tseq.masko
 
         def average1(tseries):
             avrgs = Avrgs()
 
-            def average_multivariate(): return avrgs
+            def average_multivariate():
+                return avrgs
+
             # Plain averages of nd-series are rarely interesting.
             # => Shortcircuit => Leave for manual computations
 
@@ -386,17 +393,17 @@ class Stats(series.StatPrint):
                 # Average series for each subscript
                 if tseries.item_shape != ():
                     return average_multivariate()
-                for sub in [ch for ch in 'fas' if hasattr(tseries, ch)]:
+                for sub in [ch for ch in "fas" if hasattr(tseries, ch)]:
                     avrgs[sub] = series.mean_with_conf(tseries[kko, sub])
                 if tseries.store_u:
-                    avrgs['u'] = series.mean_with_conf(tseries[kk, 'u'])
+                    avrgs["u"] = series.mean_with_conf(tseries[kk, "u"])
 
             elif isinstance(tseries, series.DataSeries):
                 if tseries.array.shape[1:] != ():
                     return average_multivariate()
-                elif len(tseries.array) == self.Ko+1:
+                elif len(tseries.array) == self.Ko + 1:
                     avrgs = series.mean_with_conf(tseries[kko])
-                elif len(tseries.array) == self.K+1:
+                elif len(tseries.array) == self.K + 1:
                     avrgs = series.mean_with_conf(tseries[kk])
                 else:
                     raise ValueError
@@ -423,7 +430,7 @@ class Stats(series.StatPrint):
         recurse_average(self, avrgs)
         self.xp.avrgs = avrgs
         if free:
-            delattr(self.xp, 'stats')
+            delattr(self.xp, "stats")
 
     def replay(self, figlist="default", speed=np.inf, t1=0, t2=None, **kwargs):
         """Replay LivePlot with what's been stored in 'self'.
@@ -451,8 +458,9 @@ class Stats(series.StatPrint):
         except AttributeError:  # e.g. if X0 is defined via sampling func
             P0 = np.eye(self.HMM.Nx)
 
-        LP = liveplotting.LivePlot(self, figlist, P=P0, speed=speed,
-                                   Tplot=t2-t1, replay=True, **kwargs)
+        LP = liveplotting.LivePlot(
+            self, figlist, P=P0, speed=speed, Tplot=t2 - t1, replay=True, **kwargs
+        )
 
         # Remember: must use progbar to unblock read1.
         # Let's also make a proper description.
@@ -462,15 +470,15 @@ class Stats(series.StatPrint):
         for k, ko, t, _dt in progbar(tseq.ticker, desc):
             if t1 <= t <= t2:
                 if ko is not None:
-                    LP.update((k, ko, 'f'), None, None)
-                    LP.update((k, ko, 'a'), None, None)
-                LP.update((k, ko, 'u'), None, None)
+                    LP.update((k, ko, "f"), None, None)
+                    LP.update((k, ko, "a"), None, None)
+                LP.update((k, ko, "u"), None, None)
 
         # Pause required when speed=inf.
         # On Mac, it was also necessary to do it for each fig.
         if LP.any_figs:
             for _name, updater in LP.figures.items():
-                if plt.fignum_exists(_name) and getattr(updater, 'is_active', 1):
+                if plt.fignum_exists(_name) and getattr(updater, "is_active", 1):
                     plt.figure(_name)
                     plt.pause(0.01)
 
@@ -498,20 +506,21 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 
     def tabulate(self, statkeys=(), decimals=None):
         columns = tabulate_avrgs([self], statkeys, decimals=decimals)
-        return tabulate(columns, headers="keys").replace('␣', ' ')
+        return tabulate(columns, headers="keys").replace("␣", " ")
 
-    abbrevs = {'rmse': 'err.rms', 'rmss': 'spread.rms', 'rmv': 'spread.rms'}
+    abbrevs = {"rmse": "err.rms", "rmss": "spread.rms", "rmv": "spread.rms"}
 
     # Use getattribute coz it gets called before getattr.
     def __getattribute__(self, key):
         """Support deep and abbreviated lookup."""
         # key = abbrevs[key] # Instead of this, also support rmse.a:
-        key = '.'.join(Avrgs.abbrevs.get(seg, seg) for seg in key.split('.'))
+        key = ".".join(Avrgs.abbrevs.get(seg, seg) for seg in key.split("."))
 
         if "." in key:
             return struct_tools.deep_getattr(self, key)
         else:
             return super().__getattribute__(key)
+
 
 # In case of degeneracy, variance might be 0, causing warnings
 # in computing skew/kurt/MGLS (which all normalize by variance).
@@ -527,8 +536,9 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 
 @do_once
 def warn_zero_variance(err, flag):
-    msg = "\n".join(["Numerical error in stat comps.",
-                     "Probably caused by a sample variance of 0."])
+    msg = "\n".join(
+        ["Numerical error in stat comps.", "Probably caused by a sample variance of 0."]
+    )
     warnings.warn(msg, stacklevel=2)
 
 
@@ -536,7 +546,7 @@ def warn_zero_variance(err, flag):
 #  - Want subcolumns, including fancy formatting (e.g. +/-)
 #  - Want separation (using '|') of attr and stats
 #  - ...
-def align_col(col, pad='␣', missingval='', just=">"):
+def align_col(col, pad="␣", missingval="", just=">"):
     r"""Align column.
 
     Treats `int`s and fixed-point `float`/`str` especially, aligning on the point.
@@ -555,6 +565,7 @@ def align_col(col, pad='␣', missingval='', just=">"):
     ␣␣␣␣inf
     ␣(1, 2)
     """
+
     def split_decimal(x):
         x = str(x)
         try:
@@ -588,7 +599,7 @@ def align_col(col, pad='␣', missingval='', just=">"):
         x = f"{ints.rjust(nInt, pad)}"
         if decs == "int":
             if nDec >= 0:
-                x += pad + pad*nDec
+                x += pad + pad * nDec
         elif decs:
             x += "." + f"{decs.ljust(nDec, pad)}"
         else:
@@ -624,6 +635,7 @@ def unpack_uqs(uq_list, decimals=None):
         Used for (only) the columns "val" and "prec".
         Default: `None`. In this case, the formatting is left to the `uq`s.
     """
+
     def frmt(uq):
         if not isinstance(uq, series.UncertainQtty):
             # Presumably uq is just a number
@@ -655,7 +667,7 @@ def unpack_uqs(uq_list, decimals=None):
             for k in attrs:
                 # Init column
                 if k not in cols:
-                    cols[k] = [None]*len(uq_list)
+                    cols[k] = [None] * len(uq_list)
                 # Insert element
                 cols[k][i] = attrs[k]
 
@@ -665,18 +677,19 @@ def unpack_uqs(uq_list, decimals=None):
 def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
     """Tabulate avrgs (val±prec)."""
     if not statkeys:
-        statkeys = ['rmse.a', 'rmv.a', 'rmse.f']
+        statkeys = ["rmse.a", "rmv.a", "rmse.f"]
 
     columns = {}
     for stat in statkeys:
         column = [getattr(a, stat, None) for a in avrgs_list]
         column = unpack_uqs(column, decimals)
         if not column:
-            raise ValueError(f"The stat. key '{stat}' was not"
-                             " found among any of the averages.")
-        vals  = align_col([stat] + column["val"])
-        precs = align_col(['1σ'] + column["prec"], just="<")
-        headr = vals[0]+'  '+precs[0]
+            raise ValueError(
+                f"The stat. key '{stat}' was not" " found among any of the averages."
+            )
+        vals = align_col([stat] + column["val"])
+        precs = align_col(["1σ"] + column["prec"], just="<")
+        headr = vals[0] + "  " + precs[0]
         mattr = [f"{v} ±{c}" for v, c in zip(vals, precs)][1:]
         columns[headr] = mattr
 
@@ -714,7 +727,7 @@ def center(E, axis=0, rescale=False):
 
     if rescale:
         N = E.shape[axis]
-        X *= np.sqrt(N/(N-1))
+        X *= np.sqrt(N / (N - 1))
 
     x = x.squeeze(axis=axis)
 
@@ -749,7 +762,7 @@ def inflate_ens(E, factor):
     if factor == 1:
         return E
     X, x = center(E)
-    return x + X*factor
+    return x + X * factor
 
 
 def weight_degeneracy(w, prec=1e-10):
@@ -771,7 +784,7 @@ def weight_degeneracy(w, prec=1e-10):
     bool
         If weight is degenerate True, else False
     """
-    return (1-w.max()) < prec
+    return (1 - w.max()) < prec
 
 
 def unbias_var(w=None, N_eff=None, avoid_pathological=False):
@@ -801,10 +814,10 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     [Wikipedia](https://wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights)
     """
     if N_eff is None:
-        N_eff = 1/(w@w)
+        N_eff = 1 / (w @ w)
 
     if avoid_pathological and weight_degeneracy(w):
         ub = 1  # Don't do in case of weights collapse
     else:
-        ub = 1/(1 - 1/N_eff)  # =N/(N-1) if w==ones(N)/N.
+        ub = 1 / (1 - 1 / N_eff)  # =N/(N-1) if w==ones(N)/N.
     return ub

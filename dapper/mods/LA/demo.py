@@ -1,4 +1,5 @@
 """Demonstrate the Linear Advection (LA) model."""
+
 from matplotlib import pyplot as plt
 
 import dapper.mods as modelling

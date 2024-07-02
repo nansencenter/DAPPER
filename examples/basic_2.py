@@ -12,6 +12,7 @@ import dapper.da_methods as da
 
 # #### DA method configurations
 
+# fmt: off
 from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
 xps = dpr.xpList()
 xps += da.Climatology()                                      # 7.6
@@ -29,6 +30,7 @@ xps += da.PartFilt(       N=100 , reg=2.4  , NER=0.3)        # 0.38
 xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # xps += da.PartFilt(       N=4000, reg=0.7  , NER=0.05)       # 0.27
 # xps += da.PFxN(xN=1000,   N=30  , Qs=2     , NER=0.2)        # 0.56
+# # fmt: on
 
 # #### With Lorenz-96 instead
 
