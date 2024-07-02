@@ -25,7 +25,7 @@ INSTALL_REQUIRES = [
     "ipdb",
     "ipython>=5.1",
     "tornado~=6.3",  # 6.2 breaks Jupyter plots (tested on local Mac, Linux)
-    "matplotlib~=3.7",
+    "matplotlib~=3.7,<3.9",  # 3.9 breaks plt.ion (tested on M1 Sonoma)
     "mpl-tools==0.2.50",
     "tqdm~=4.31",
     "pyyaml",
