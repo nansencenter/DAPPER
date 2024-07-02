@@ -20,11 +20,11 @@ DOCLINES = __doc__.split("\n")
 # Why pin?: https://github.com/nansencenter/DAPPER/issues/41#issuecomment-1381616971
 INSTALL_REQUIRES = [
     "scipy>=1.10",
+    "numpy~=1.20",
     "jupyter",
     "ipdb",
     "ipython>=5.1",
-    # 'jedi<0.18',  # ipython/issues/12740
-    "tornado~=6.3.2",  # 6.2 breaks Jupyter plots (tested on local Mac, Linux)
+    "tornado~=6.3",  # 6.2 breaks Jupyter plots (tested on local Mac, Linux)
     "matplotlib~=3.7",
     "mpl-tools==0.2.50",
     "tqdm~=4.31",
@@ -40,7 +40,7 @@ INSTALL_REQUIRES = [
 
 EXTRAS = {
     "Qt": ["PyQt5", "qtpy"],
-    "debug": ["line_profiler", "pre-commit", "pdbpp>=0.10.3"],
+    "debug": ["line_profiler", "pre-commit"],
     "test": [
         "tox",
         "coverage>=5.1",
