@@ -122,7 +122,7 @@ try:
             if not disable_user_interaction:
                 TS_old = new_term_settings()
             try:
-                yield from orig_progbar(iterable, pdesc(desc), leave, **kwargs)
+                yield from orig_progbar(iterable, desc, leave, **kwargs)
             except GeneratorExit:
                 # Allows code below to run even if caller raised exception
                 # NB: Fails if caller is in a list-comprehesion! Why?
