@@ -68,11 +68,6 @@ if nb:
 if nb:
     print(HMM)
 
-# #### Excercise: Why are the replay plots not as smooth as the liveplot?
-# *Hint*: provide the keyword `store_u=True` to `assimilate()` to avoid this.
-
-# #### Excercise: Why does the replay only contain the blue lines?
-
 # #### Excercise: Try out each of the above DA methods (currently commented out).
 # Next, remove the call to `replay`, and set `liveplots=False` above.
 # Now, use the iterative EnKS (`iEnKS`), and try to find a parameter combination
@@ -102,3 +97,6 @@ if nb:
 # - Finally, instead of the `rms` spatial/field averages,
 #   print the regular mean (`.m`) averages. Explain why `err.m` is nearly zero,
 #   in contrast to `err.rms`.
+
+# #### Excercise: Why are the replay plots not as smooth as the liveplot?
+# *Hint*: provide the keyword `store_u=True` to `assimilate()` to avoid this.
