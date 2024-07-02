@@ -69,9 +69,9 @@ class model_config:
         self.fname = Path(__file__).parent / 'f90' / f'prms_{name}.txt'
 
         # Create string
-        text = ["  %s = %s" % (key.ljust(20), str(D[key])) for key in D]
-        text = """! Parameter namelist ("%s") generated via Python
-        &parameters\n""" % name + "\n".join(text) + """\n/\n"""
+        text = [f"  {key.ljust(20)!s} = {D[key]!s}" for key in D]
+        text = f"""! Parameter namelist ("{name}") generated via Python
+        &parameters\n""" + "\n".join(text) + """\n/\n"""
 
         # Write string to file
         with open(self.fname, 'w') as f:

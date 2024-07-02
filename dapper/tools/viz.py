@@ -542,7 +542,7 @@ def collapse_str(string, length=6):
 NO_KEY = ("da_method", "xSect", "upd_a")
 def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
     """Make label from coord."""
-    dct = {a: v for a, v in coord.items() if v != None}
+    dct = {a: v for a, v in coord.items() if v is not None}
     lbl = ''
     for k, v in dct.items():
         if k not in exclude:

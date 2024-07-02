@@ -20,8 +20,7 @@ for n in range(N):
 
 fig.suptitle('Phase space evolution')
 ax.set_facecolor('w')
-[eval("ax.set_%slabel('%s')" % (s, s)) for s in "xyz"]
-
+[eval(f"ax.set_{s}label('{s}')") for s in "xyz"]
 ax.view_init(0, 0)
 
 plt.show()

@@ -57,7 +57,7 @@ def Pool(NPROC=None):
 
     See example use in `dapper.mods.QG` and `dapper.da_methods.ensemble.LETKF`.
     """
-    if NPROC == False:
+    if NPROC == False:  # noqa: E712
         # Yield plain old map
         class NoPool:
             def __enter__(self): return builtins

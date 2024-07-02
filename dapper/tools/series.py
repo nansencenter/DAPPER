@@ -287,7 +287,7 @@ class RollingArray:
 
     def __array__(self, _dtype=None): return self.array
     def __len__(self): return len(self.array)
-    def __repr__(self): return 'RollingArray:\n%s' % str(self.array)
+    def __repr__(self): return f'RollingArray:\n{self.array!s}'
     def __getitem__(self, key): return self.array[key]
 
     def __setitem__(self, key, val):

@@ -6,7 +6,7 @@ Refs: `bib.vissio2020mechanics`
 import numpy as np
 
 
-class model_instance():
+class model_instance:
     """
     Use OOP to facilitate having multiple parameter settings simultaneously.
     """

@@ -155,7 +155,7 @@ def _print_cropped_traceback(ERR):
         msg = "Traceback (most recent call last):\n"
         try:
             # If in IPython, use its coloring functionality
-            __IPYTHON__  # type: ignore
+            __IPYTHON__  # type: ignore # noqa: B018
         except (NameError, ImportError):
             msg += "".join(traceback.format_tb(ERR.__traceback__))
         else:

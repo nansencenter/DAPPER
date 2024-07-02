@@ -7,7 +7,7 @@ from struct_tools import AlignedDict
 from dapper.tools.colors import color_text
 
 
-class Chronology():
+class Chronology:
     """Time schedules with consistency checks.
 
     - Uses int records, so `tt[k] == k*dt`.
@@ -284,8 +284,8 @@ def format_time(k, ko, t):
         t    = "init"
         ko = "N/A"
     else:
-        t    = "   t=%g" % t
-        k    = "   k=%d" % k
-        ko = "ko=%s" % ko
+        t  = f"t={t:g}"
+        k  = f"k={k}"
+        ko = f"ko={ko}"
     s = "\n".join([t, k, ko])
     return s

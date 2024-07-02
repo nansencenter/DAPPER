@@ -59,16 +59,16 @@ if __name__ == "__main__":
     lU = np.array([str(i+1) for i in range(nU)])
     tU = np.concatenate([[tU[0]], tU[dY-1::dY]])
     lU = np.concatenate([[lU[0]], lU[dY-1::dY]])
-    for t, l in zip(tU, lU):
-        ax.text(t, ym-.6, l,
+    for t, lbl in zip(tU, lU):
+        ax.text(t, ym-.6, lbl,
                 fontsize=mpl.rcParams['xtick.labelsize'], horizontalalignment='center')
         ax.vlines(t, ym, -3.78, 'k', lw=mpl.rcParams['xtick.major.width'])
     # V-vars: minor
     tV = np.arange(nU+1)
     lV = ['1'] + [str((i+1)*J) for i in circU]
-    for i, (t, l) in enumerate(zip(tV, lV)):
+    for i, (t, lbl) in enumerate(zip(tV, lV)):
         if i % dY == 0:
-            ax.text(t, -5.0, l, fontsize=9, horizontalalignment='center')
+            ax.text(t, -5.0, lbl, fontsize=9, horizontalalignment='center')
             ax.vlines(t, ym, yM, lw=0.3)
         ax.vlines(t, ym, -3.9, 'k', lw=mpl.rcParams['xtick.minor.width'])
     ax.grid(color='k', alpha=0.6, lw=0.4, axis='y', which='major')

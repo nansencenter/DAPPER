@@ -141,3 +141,83 @@ pycodestyle = ["-E501"]
 [tool.flakeheaven.exceptions."examples/"]
 pycodestyle = ["-E201", "-E402"]
 flake8-docstrings = ["-D100", "-D200"]
+
+
+
+
+
+# ╔══════╗
+# ║ ruff ║
+# ╚══════╝
+# TODO: isort
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    "scripts",
+    ".git",
+    ".ipynb_checkpoints",
+    ".pyenv",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "build",
+    "dist",
+    "site-packages",
+    "venv",
+    ".*", "README.*", "examples/*.ipynb", "autoscaler.py",
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+# Assume Python 3.10
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    # "SIM",
+    # isort
+    # "I",
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"dapper/da_methods/{ensemble,variational}.py" = [
+"B023" # Function definition does not bind loop variable
+]
+"tests/test_{example_2,data}.py" = [
+  "E501", # "line too long"
+  "W291", # "trailing whitespace"
+]
+"**/__init__.py" = [
+  "F401", # "imported but unused"
+  "E402", # "module level import not at top of file"
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"

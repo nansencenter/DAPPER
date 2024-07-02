@@ -7,7 +7,7 @@ import numpy as np
 from dapper.dpr_config import rc
 
 
-class UncertainQtty():
+class UncertainQtty:
     """Data container associating uncertainty (confidence) to a quantity.
 
     Includes intelligent rounding and printing functionality.

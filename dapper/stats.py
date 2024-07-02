@@ -71,7 +71,7 @@ class Stats(series.StatPrint):
         for suffix, formula in self.field_summaries.items():
             for sector, inds in HMM.sectors.items():
                 f = restrict(formula, inds)
-                self.sector_summaries['%s.%s' % (suffix, sector)] = f
+                self.sector_summaries[f"{suffix}.{sector}"] = f
 
         ######################################
         # Allocate time series of various stats
@@ -181,7 +181,7 @@ class Stats(series.StatPrint):
         if k == 0:
             if ko is not None:
                 raise KeyError("DAPPER convention: no obs at t=0. Helps avoid bugs.")
-            if self._is_ens == True:
+            if self._is_ens:
                 if E is None:
                     raise TypeError("Expected ensemble input but E is None")
                 if mu is not None:
@@ -201,7 +201,7 @@ class Stats(series.StatPrint):
         for sub in faus:
 
             # Skip assessment if ('u' and stats not stored or plotted)
-            if k != 0 and ko == None:
+            if k != 0 and ko is None:
                 if not (self.store_u or self.LP_instance.any_figs):
                     continue
 

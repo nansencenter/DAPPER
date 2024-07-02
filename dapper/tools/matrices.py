@@ -184,7 +184,7 @@ def chol_reduce(Right):
     return R
 
 
-class CovMat():
+class CovMat:
     """Covariance matrix class.
 
     Main tasks:

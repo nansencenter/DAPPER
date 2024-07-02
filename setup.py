@@ -45,11 +45,7 @@ EXTRAS = {
     'test': ['tox', 'coverage>=5.1', 'pytest',
              'pytest-cov', 'pytest-sugar', 'pytest-benchmark',
              'pytest-clarity', 'pytest-xdist', 'pytest-timeout'],
-    'lint': ['flake8<5',  # https://github.com/flakeheaven/flakeheaven/issues/132
-             'flakeheaven', 'autopep8',
-             'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions',
-             'flake8-isort', 'flake8-builtins', 'pep8-naming', 'flake8-commas',
-             ],
+    'lint': ['ruff'],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
     'build': ['twine', 'pdoc', 'jupytext'],
 }
@@ -62,7 +58,7 @@ def find_version(*file_paths):
 
     def read(*parts):
         here = os.path.abspath(os.path.dirname(__file__))
-        with open(os.path.join(here, *parts), 'r') as fp:
+        with open(os.path.join(here, *parts)) as fp:
             return fp.read()
 
     version_file = read(*file_paths)

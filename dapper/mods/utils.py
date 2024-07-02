@@ -10,7 +10,7 @@ from dapper.tools.rounding import is_whole
 
 # https://stackoverflow.com/q/22797580
 # https://stackoverflow.com/q/10875442
-class NamedFunc():
+class NamedFunc:
     "Provides custom repr for functions."
 
     def __init__(self, func, name):

@@ -127,7 +127,7 @@ class SparseSpace(dict):
         except TypeError:
             raise TypeError(
                 f"The key {key!r} did not fit the coord. system "
-                f"which has dims {self.dims}")
+                f"which has dims {self.dims}") from None
         super().__setitem__(key, val)
 
     def __getitem__(self, key):
@@ -348,7 +348,7 @@ class xpSpace(SparseSpace):
                     return x
 
             # Place None's at the end
-            def key_safe(x):
+            def key_safe(x, key=key):
                 return (x is None), key(x)
 
             # Sort
@@ -426,9 +426,9 @@ class xpSpace(SparseSpace):
         # Define cost-function
         costfun = (costfun or 'increasing').lower()
         if 'increas' in costfun:
-            costfun = (lambda x: +x)
+            def costfun(x): return x
         elif 'decreas' in costfun:
-            costfun = (lambda x: -x)
+            def costfun(x): return -x
         else:
             assert callable(costfun)  # custom
 
@@ -775,7 +775,7 @@ class xpSpace(SparseSpace):
                 # Plotting all None's sets axes units (like any plotting call)
                 # which can cause trouble if the axes units were actually supposed
                 # to be categorical (eg upd_a), but this is only revealed later.
-                if not all(y == None for y in yy):
+                if not all(y is None for y in yy):
                     style["alpha"] = 0.2
                     row.handles[a] = panel.plot(xticks, yy, **style)
 

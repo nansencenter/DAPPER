@@ -173,7 +173,7 @@ class LivePlot:
                     fig = plt.figure(name)
                     win = fig.canvas
                     ax0 = fig.axes[0]
-                    win.manager.set_window_title("%s" % name)
+                    win.manager.set_window_title(str(name))
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     if not (replay and np.isinf(speed)):
@@ -509,8 +509,8 @@ class weight_histogram:
                 w[counted], bins=self.bins, color='b')
             ax.set_ylim(top=max(nn))
 
-            ax.set_title('N: {:d}.   N_eff: {:.4g}.   Not shown: {:d}. '.
-                         format(N, 1/(w@w), N-np.sum(counted)))
+            ax.set_title(f'N: {N:d}.   N_eff: {1/(w@w):.4g}.'
+                '   Not shown: {N-np.sum(counted):d}. ')
 
 
 class spectral_errors:
@@ -868,7 +868,7 @@ def phase_particles(
         # Tune plot
         for ind, (s, i, t) in enumerate(zip(p.labels, p.dims, "xyz")):
             viz.set_ilim(ax, ind, *viz.stretch(*viz.xtrema(xx[:, i]), 1/p.zoom))
-            eval("ax.set_%slabel('%s')" % (t, s))
+            eval(f"ax.set_{t}label('{s!s}')")
 
         # Allocate
         d = DotDict()  # data arrays

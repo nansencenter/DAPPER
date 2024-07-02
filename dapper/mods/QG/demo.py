@@ -13,7 +13,7 @@ def show(x0, psi=True, ax=None):
     def psi_or_q(x):
         return x if psi else compute_q(x)
     # Create fig if necessary
-    if ax == None:
+    if ax is None:
         fig, ax = plt.subplots()
     # Init ax
     im = ax.imshow(psi_or_q(square(x0)))

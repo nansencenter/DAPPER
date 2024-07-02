@@ -68,7 +68,7 @@ plt.pause(.1)
 
 # Remove experiments we don't want to plot here
 
-xps = [xp for xp in xps if getattr(xp, "xSect", None) == None]
+xps = [xp for xp in xps if getattr(xp, "xSect", None) is None]
 xp_dict = dpr.xpSpace.from_list(xps)
 
 # Get gradation/cmap for loc_rad

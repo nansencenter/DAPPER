@@ -46,7 +46,7 @@ def backtrack_until_finding(substr, lineno):
             return lineno
 
 
-orig_code = open(__file__, "r").readlines()
+orig_code = open(__file__).readlines()
 
 # Enable breakpoints and post-mortem debugging
 _debug = "pytest" not in sys.modules and "--replace" not in sys.argv

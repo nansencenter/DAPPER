@@ -39,7 +39,7 @@ dxdt_auto     = reversible(L96.dxdt_autonomous)
 d2x_dtdx_auto = reversible(L96.d2x_dtdx)
 
 
-class model_instance():
+class model_instance:
     """Use OOP to facilitate having multiple parameter settings simultaneously.
 
     Default parameters from `bib.wilks2005effects`.
