@@ -62,7 +62,6 @@ commands =
 # ╔══════╗
 # ║ ruff ║
 # ╚══════╝
-# TODO: isort
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [
