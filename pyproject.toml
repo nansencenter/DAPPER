@@ -1,6 +1,6 @@
-##################
-#  Config tests  #
-##################
+# ╔═══════╗
+# ║ tests ║
+# ╚═══════╝
 [tool.pytest.ini_options]
 minversion = "6.0"
 # Since `--doctest-modules` requires specifying `dapper`,
@@ -59,93 +59,6 @@ commands =
 """
 
 
-####################
-#  Config linting  #
-####################
-
-[tool.autopep8]
-max_line_length = 88
-ignore = "W6"
-
-[tool.flakeheaven]
-exclude = [".*", "README.*", "examples/*.ipynb", "autoscaler.py", "build"]
-max_line_length = 88
-format = "grouped" # also try "stat"
-show_source = false
-#whitelist = "../../allowlist.txt" # Used by flake8-spellcheck.
-
-[tool.flakeheaven.plugins]
-pyflakes = ["+*"]
-pycodestyle = ["+*",
-    # flake8 defaults:
-    "-E24", "-W503", "-E123", "-E226", "-E704", "-E121", "-W504", "-E126",
-    "-E711", "-E712", # "Comparison to True/None should be with 'is'"
-    "-E221", # Allow operator alignment
-    "-E251", # Allow operator alignment for dicts
-    "-E266", # Allow ## block comments
-    "-C408", # Prefer {} to dict()
-    # "-E271", "-E701", and more... # if-list alignment
-    # "-E201", "-E202", "-E203", "-E241", "-E231", # leave arrays as printed
-    "-E202", "-E203",
-    # "-E301", "-E302", # dont put spaces between functions
-]
-#mccabe = ["+*"]
-#pylint = ["+*"]
-pep8-naming = ["+*", # disable almost all
-    "-N80[1-3]", "-N806", "-N81[1-7]"]
-#flake8-bandit = ["-*"]
-flake8-bugbear = ["+*",
-    "-B023", # TODO 4: enable
-]
-flake8-builtins = ["+*"]
-flake8-comprehensions = ["+*", "-C408"]
-#flake8-darglint = ["+*"]
-flake8-commas = ["+*"]
-flake8-docstrings = ["+*",
-    "-D105",
-    "-D401", # issues/68
-    "-D102", "-D103", "-D107", "-D400", # TODO 4: enable these
-    ]
-#flake8-eradicate = ["+*"]
-#flake8-isort = ["+*"]
-#flake8-pytest-style = ["+*"]
-#flake8-spellcheck = ["+*"]
-
-[tool.flakeheaven.exceptions."**/__init__.py"]
-pyflakes = ["-F401"] # "imported but unused"
-pycodestyle = ["-E402"] # "module level import not at top of file"
-
-[tool.flakeheaven.exceptions."dapper/__init__.py"]
-flake8-docstrings = ["-D205"]
-
-[tool.flakeheaven.exceptions."dapper/da_methods/"]
-"flake8-*" = ["-D102"]
-
-[tool.flakeheaven.exceptions."dapper/mods/explore_props.py"]
-pyflakes = ["-F811"]
-
-[tool.flakeheaven.exceptions."dapper/mods/*.py"]
-# Model configs are supposed to allow a little sloppiness.
-flake8-docstrings = ["-D*"] # "missing docstring"
-flake8-bugbear = ["-B007"] # "loop var not used
-
-[tool.flakeheaven.exceptions."tests/test_data.py"]
-pycodestyle = [
-    "-W291", # "trailing whitespace"
-    "-E501", # "line too long"
-]
-
-[tool.flakeheaven.exceptions."tests/test_example_2.py"]
-pycodestyle = ["-E501"]
-
-[tool.flakeheaven.exceptions."examples/"]
-pycodestyle = ["-E201", "-E402"]
-flake8-docstrings = ["-D100", "-D200"]
-
-
-
-
-
 # ╔══════╗
 # ║ ruff ║
 # ╚══════╝
@@ -175,7 +88,7 @@ exclude = [
 line-length = 88
 indent-width = 4
 
-# Assume Python 3.10
+# Assume Python 3.9
 target-version = "py39"
 
 [tool.ruff.lint]
