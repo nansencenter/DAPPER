@@ -59,7 +59,7 @@ def _allsame(xx):
 def _rmse(xps, sub, indices):
     def get_val(i):
         try:
-            return deep_getattr(xps[i].avrgs, 'err.rms.' + sub).val
+            return deep_getattr(xps[i].avrgs, "err.rms." + sub).val
         except AttributeError:
             return np.nan
 
@@ -80,113 +80,117 @@ def _rmse(xps, sub, indices):
 # All filter/analysis (f/a) stats should be equal
 # for all EnKF/EnKS/iEnKS(nIter/Lag/MDA).
 def test_Sqrt(data):
-    ii = data.inds(strict=1, upd_a='Sqrt')
-    assert _allsame(_rmse(data, 'a', ii))
-    assert _allsame(_rmse(data, 'f', ii))
+    ii = data.inds(strict=1, upd_a="Sqrt")
+    assert _allsame(_rmse(data, "a", ii))
+    assert _allsame(_rmse(data, "f", ii))
 
 
 # However, the u stats depend on the Lag, of course.
 # Test together with non-iter filters:
 def test_Sqrt_u(data):
-    ii = data.inds(strict=0, upd_a='Sqrt', Lag=0)
-    assert _allsame(_rmse(data, 'u', ii))
+    ii = data.inds(strict=0, upd_a="Sqrt", Lag=0)
+    assert _allsame(_rmse(data, "u", ii))
 
 
 # Idem for s stats (not def'd for filters)
 def test_Sqrt_Lag1_u(data):
-    ii = data.inds(strict=1, upd_a='Sqrt', Lag=1)
-    assert _allsame(_rmse(data, 'u', ii))
-    assert _allsame(_rmse(data, 's', ii))
+    ii = data.inds(strict=1, upd_a="Sqrt", Lag=1)
+    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "s", ii))
 
 
 def test_Sqrt_Lag3_u(data):
-    ii = data.inds(strict=1, upd_a='Sqrt', Lag=3)
-    assert _allsame(_rmse(data, 'u', ii))
-    assert _allsame(_rmse(data, 's', ii))
+    ii = data.inds(strict=1, upd_a="Sqrt", Lag=3)
+    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "s", ii))
 
 
 # For PertObs flavour::
 # - f/a stats all equal except for MDA with nIter>1.
 def test_PertObs(data):
-    ii = (data.inds(strict=0, upd_a='PertObs', MDA=0) +
-          data.inds(strict=1, upd_a='PertObs', MDA=1, nIter=1))
-    assert _allsame(_rmse(data, 'a', ii))
-    assert _allsame(_rmse(data, 'f', ii))
+    ii = data.inds(strict=0, upd_a="PertObs", MDA=0) + data.inds(
+        strict=1, upd_a="PertObs", MDA=1, nIter=1
+    )
+    assert _allsame(_rmse(data, "a", ii))
+    assert _allsame(_rmse(data, "f", ii))
 
 
 # - Still with nIter=4, f/a stats of MDA does not depend on Lag.
 def test_PertObs_nIter4(data):
-    ii = data.inds(strict=1, upd_a='PertObs', nIter=4, MDA=1)
-    assert _allsame(_rmse(data, 'a', ii))
-    assert _allsame(_rmse(data, 'f', ii))
+    ii = data.inds(strict=1, upd_a="PertObs", nIter=4, MDA=1)
+    assert _allsame(_rmse(data, "a", ii))
+    assert _allsame(_rmse(data, "f", ii))
 
 
 # - u stats equal for filter and (iter/non-iter) smoothers with Lag=0,
 #   except MDA with nIter>1:
 def test_PertObs_u(data):
-    ii = (data.inds(strict=0, upd_a='PertObs', MDA=0, Lag=0) +
-          data.inds(strict=1, upd_a='PertObs', MDA=1, Lag=0, nIter=1))
-    assert _allsame(_rmse(data, 'u', ii))
+    ii = data.inds(strict=0, upd_a="PertObs", MDA=0, Lag=0) + data.inds(
+        strict=1, upd_a="PertObs", MDA=1, Lag=0, nIter=1
+    )
+    assert _allsame(_rmse(data, "u", ii))
 
 
 # - u stats equal for            (iter/non-iter) smoothers with Lag=1,
 #   except MDA with nIter>1:
 def test_PertObs_Lag1_u(data):
-    ii = data.inds(upd_a='PertObs', Lag=1)
-    ii.remove(data.inds(upd_a='PertObs', Lag=1, MDA=1, nIter=4)[0])
-    assert _allsame(_rmse(data, 'u', ii))
-    assert _allsame(_rmse(data, 's', ii))
+    ii = data.inds(upd_a="PertObs", Lag=1)
+    ii.remove(data.inds(upd_a="PertObs", Lag=1, MDA=1, nIter=4)[0])
+    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "s", ii))
 
 
 # - u stats equal for            (iter/non-iter) smoothers with Lag=3,
 #   except MDA with nIter>1:
 def test_PertObs_Lag3_u(data):
-    ii = data.inds(upd_a='PertObs', Lag=3)
-    ii.remove(data.inds(upd_a='PertObs', Lag=3, MDA=1, nIter=4)[0])
-    assert _allsame(_rmse(data, 'u', ii))
-    assert _allsame(_rmse(data, 's', ii))
+    ii = data.inds(upd_a="PertObs", Lag=3)
+    ii.remove(data.inds(upd_a="PertObs", Lag=3, MDA=1, nIter=4)[0])
+    assert _allsame(_rmse(data, "u", ii))
+    assert _allsame(_rmse(data, "s", ii))
 
 
 # For Order1 (DEnKF) flavour:
 # f/a stats all equal except for nIter>1:
 def test_Order1(data):
-    ii = data.inds(upd_a='DEnKF') +\
-         data.inds(upd_a='Order1', nIter=1)
-    assert _allsame(_rmse(data, 'a', ii))
-    assert _allsame(_rmse(data, 'f', ii))
+    ii = data.inds(upd_a="DEnKF") + data.inds(upd_a="Order1", nIter=1)
+    assert _allsame(_rmse(data, "a", ii))
+    assert _allsame(_rmse(data, "f", ii))
 
 
 # f/a stats independent of Lag for non-MDA and a given nIter:
 def test_Order1_nIter4_MDA0(data):
-    ii = data.inds(upd_a='Order1', nIter=4, MDA=0)
-    assert _allsame(_rmse(data, 'a', ii))
-    assert _allsame(_rmse(data, 'f', ii))
+    ii = data.inds(upd_a="Order1", nIter=4, MDA=0)
+    assert _allsame(_rmse(data, "a", ii))
+    assert _allsame(_rmse(data, "f", ii))
 
 
 # f/a stats independent of Lag for     MDA and a given nIter:
 def test_Order1_nIter4_MDA1(data):
-    ii = data.inds(upd_a='Order1', nIter=4, MDA=1)
-    assert _allsame(_rmse(data, 'a', ii))
-    assert _allsame(_rmse(data, 'f', ii))
+    ii = data.inds(upd_a="Order1", nIter=4, MDA=1)
+    assert _allsame(_rmse(data, "a", ii))
+    assert _allsame(_rmse(data, "f", ii))
 
 
 # u   stats equal for EnKS/iEnKS(nIter=1) for a given Lag:
 def test_Order1_nIter1_Lag0_u(data):
-    ii = data.inds(strict=0, upd_a='DEnKF', Lag=0) +\
-         data.inds(upd_a='Order1', Lag=0, nIter=1)
-    assert _allsame(_rmse(data, 'u', ii))
+    ii = data.inds(strict=0, upd_a="DEnKF", Lag=0) + data.inds(
+        upd_a="Order1", Lag=0, nIter=1
+    )
+    assert _allsame(_rmse(data, "u", ii))
 
 
 def test_Order1_nIter1_Lag1_u(data):
-    ii = data.inds(da=da.EnKS, upd_a='DEnKF', Lag=1) +\
-         data.inds(upd_a='Order1', Lag=1, nIter=1)
-    assert _allsame(_rmse(data, 'u', ii))
+    ii = data.inds(da=da.EnKS, upd_a="DEnKF", Lag=1) + data.inds(
+        upd_a="Order1", Lag=1, nIter=1
+    )
+    assert _allsame(_rmse(data, "u", ii))
 
 
 def test_Order1_nIter1_Lag3_u(data):
-    ii = data.inds(da=da.EnKS, upd_a='DEnKF', Lag=3) +\
-         data.inds(upd_a='Order1', Lag=3, nIter=1)
-    assert _allsame(_rmse(data, 'u', ii))
+    ii = data.inds(da=da.EnKS, upd_a="DEnKF", Lag=3) + data.inds(
+        upd_a="Order1", Lag=3, nIter=1
+    )
+    assert _allsame(_rmse(data, "u", ii))
 
 
 # For nonlinear dynamics, the (non-iterative) EnKF (f/a/u stats)

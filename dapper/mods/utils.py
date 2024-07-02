@@ -10,7 +10,7 @@ from dapper.tools.rounding import is_whole
 
 # https://stackoverflow.com/q/22797580
 # https://stackoverflow.com/q/10875442
-class NamedFunc():
+class NamedFunc:
     "Provides custom repr for functions."
 
     def __init__(self, func, name):
@@ -30,8 +30,10 @@ class NamedFunc():
 
 def name_func(name):
     """Decorator for creating NamedFunc."""
+
     def namer(func):
         return NamedFunc(func, name)
+
     return namer
 
 
@@ -51,9 +53,11 @@ def ens_compatible(func):
     --------
     np.atleast_2d, np.squeeze, np.vectorize
     """
+
     @functools.wraps(func)
     def wrapr(x, *args, **kwargs):
         return np.asarray(func(x.T, *args, **kwargs)).T
+
     return wrapr
 
 
@@ -88,17 +92,20 @@ def linear_model_setup(ModelMatrix, dt0):
     # Compute and cache ModelMatrix^(dt/dt0).
     @functools.lru_cache(maxsize=1)
     def MatPow(dt):
-        assert is_whole(dt/dt0), "Mat. exponentiation unique only for integer powers."
-        return sla.fractional_matrix_power(Mat, int(round(dt/dt0)))
+        assert is_whole(dt / dt0), "Mat. exponentiation unique only for integer powers."
+        return sla.fractional_matrix_power(Mat, int(round(dt / dt0)))
 
     @ens_compatible
-    def mod(x, t, dt): return MatPow(dt) @ x
-    def lin(x, t, dt): return MatPow(dt)
+    def mod(x, t, dt):
+        return MatPow(dt) @ x
+
+    def lin(x, t, dt):
+        return MatPow(dt)
 
     Dyn = {
-        'M': len(Mat),
-        'model': mod,
-        'linear': lin,
+        "M": len(Mat),
+        "model": mod,
+        "linear": lin,
     }
     return Dyn
 
@@ -151,13 +158,17 @@ def partial_Id_Obs(Nx, obs_inds):
 
     @name_func(f"Direct obs. at {obs_inds}")
     @ens_compatible
-    def model(x): return x[obs_inds]
+    def model(x):
+        return x[obs_inds]
+
     @name_func(f"Constant matrix\n{H}")
-    def linear(x): return H
+    def linear(x):
+        return H
+
     Obs = {
-        'M': Ny,
-        'model': model,
-        'linear': linear,
+        "M": Ny,
+        "model": model,
+        "linear": linear,
     }
     return Obs
 
@@ -210,8 +221,8 @@ def linspace_int(Nx, Ny, periodic=True):
     array([0, 2, 4, 6, 8])
     """
     if periodic:
-        jj = np.linspace(0, Nx, Ny+1)[:-1]
+        jj = np.linspace(0, Nx, Ny + 1)[:-1]
     else:
-        jj = np.linspace(0, Nx-1, Ny)
+        jj = np.linspace(0, Nx - 1, Ny)
     jj = jj.astype(int)
     return jj

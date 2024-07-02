@@ -1,17 +1,18 @@
 """From `bib.bocquet2010beyond` (again), but `ndim=40` (i.e. Fig. 5 of paper)."""
+
 import numpy as np
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz96.bocquet2010 import Dyn, tseq
 
 Nx = 40
-Dyn['M'] = Nx
+Dyn["M"] = Nx
 
 X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0, Nx, 2)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 1.5
+Obs["noise"] = 1.5
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

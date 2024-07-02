@@ -12,7 +12,7 @@ simulator = modelling.with_recursion(model.step, prog="Simulating")
 
 N = 3
 M = len(model.x0)
-E0 = model.x0 + 1e-2*eye(M)[:N]
+E0 = model.x0 + 1e-2 * eye(M)[:N]
 
 dt = 0.004
 xx = simulator(E0, k=2000, t=0, dt=dt)

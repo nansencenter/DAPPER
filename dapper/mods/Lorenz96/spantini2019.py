@@ -6,20 +6,20 @@ import dapper.mods as modelling
 from dapper.mods.Lorenz96 import Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
-tseq = modelling.Chronology(0.02, dto=.4, Ko=2000, Tplot=Tplot, BurnIn=2*Tplot)
+tseq = modelling.Chronology(0.02, dto=0.4, Ko=2000, Tplot=Tplot, BurnIn=2 * Tplot)
 Nx = 40
 x0 = x0(Nx)
 Dyn = {
-    'M': Nx,
-    'model': step,
-    'linear': dstep_dx,
-    'noise': 0,
+    "M": Nx,
+    "model": step,
+    "linear": dstep_dx,
+    "noise": 0,
 }
-X0 = modelling.GaussRV(mu=x0, C=.1)
+X0 = modelling.GaussRV(mu=x0, C=0.1)
 jj = np.arange(0, Nx, 2)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = .5
-Obs['localizer'] = nd_Id_localization((Nx,), (2,), jj)
+Obs["noise"] = 0.5
+Obs["localizer"] = nd_Id_localization((Nx,), (2,), jj)
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 ####################

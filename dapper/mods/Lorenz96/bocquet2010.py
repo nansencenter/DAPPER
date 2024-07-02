@@ -9,16 +9,16 @@ tseq = modelling.Chronology(0.05, dko=1, T=4**3, BurnIn=20)
 
 Nx = 10
 Dyn = {
-    'M': Nx,
-    'model': step,
-    'noise': 0,
+    "M": Nx,
+    "model": step,
+    "noise": 0,
 }
 
 X0 = modelling.GaussRV(M=Nx, C=0.001)
 
 jj = np.arange(0, Nx, 2)
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 1.5
+Obs["noise"] = 1.5
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

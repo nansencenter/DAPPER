@@ -13,24 +13,24 @@ from dapper.mods.Lorenz96 import LPs, Tplot, dstep_dx, step, x0
 from dapper.tools.localization import nd_Id_localization
 
 # Sakov uses K=300000, BurnIn=1000*0.05
-tseq = modelling.Chronology(0.05, dko=1, Ko=1000, Tplot=Tplot, BurnIn=2*Tplot)
+tseq = modelling.Chronology(0.05, dko=1, Ko=1000, Tplot=Tplot, BurnIn=2 * Tplot)
 
 Nx = 40
 x0 = x0(Nx)
 
 Dyn = {
-    'M': Nx,
-    'model': step,
-    'linear': dstep_dx,
-    'noise': 0,
+    "M": Nx,
+    "model": step,
+    "linear": dstep_dx,
+    "noise": 0,
 }
 
 X0 = modelling.GaussRV(mu=x0, C=0.001)
 
 jj = np.arange(Nx)  # obs_inds
 Obs = modelling.partial_Id_Obs(Nx, jj)
-Obs['noise'] = 1
-Obs['localizer'] = nd_Id_localization((Nx,), (2,))
+Obs["noise"] = 1
+Obs["localizer"] = nd_Id_localization((Nx,), (2,))
 
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 

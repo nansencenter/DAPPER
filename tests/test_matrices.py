@@ -6,7 +6,7 @@ from dapper.mods import CovMat
 
 
 def test_1():
-    d = np.array([.3, 1, 2, 1])
+    d = np.array([0.3, 1, 2, 1])
     C = CovMat(d)
     assert np.allclose(np.diag(C.full), d)
 

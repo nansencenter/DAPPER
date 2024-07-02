@@ -10,11 +10,10 @@ from dapper.mods import HiddenMarkovModel
 
 
 def _defines_HMM(path):
-
     # Don't run QG on CI or Tox
     if "QG" in path.parts and (
-            os.environ.get("IS_CI", False) or
-            os.environ.get("IS_TOX", False)):
+        os.environ.get("IS_CI", False) or os.environ.get("IS_TOX", False)
+    ):
         return False
 
     if (
@@ -54,5 +53,6 @@ def test_HMM(path):
 
     except ModuleNotFoundError as err:
         import warnings
+
         warnings.warn(str(err), stacklevel=2)
         return  # We're not testing importability, only runnability

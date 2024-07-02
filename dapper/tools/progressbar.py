@@ -9,19 +9,23 @@ import warnings
 from tqdm.auto import tqdm
 
 # In case stdin or term settings isn't supported, for ex. w/ pytest or multiprocessing.
-disable_progbar          = "pytest" in sys.modules
+disable_progbar = "pytest" in sys.modules
 disable_user_interaction = "pytest" in sys.modules
 
 
 def _interaction_impossible():
     from dapper.dpr_config import rc
+
     if rc.liveplotting and "pytest" not in sys.modules:
-        warnings.warn((
-            "Keyboard interaction (to skip/stop/pause the liveplotting)"
-            " does not work in the current python frontend."
-            " If you wish, you can use dpr_config.yaml to disable the"
-            " liveplotting altogether, which will silence this message."),
-            stacklevel=2)
+        warnings.warn(
+            (
+                "Keyboard interaction (to skip/stop/pause the liveplotting)"
+                " does not work in the current python frontend."
+                " If you wish, you can use dpr_config.yaml to disable the"
+                " liveplotting altogether, which will silence this message."
+            ),
+            stacklevel=2,
+        )
     global disable_user_interaction
     disable_user_interaction = True
 
@@ -42,8 +46,8 @@ def pdesc(desc):
         except IndexError:
             pass
         else:
-            if 'pb_name_hook' in locals_:
-                name = locals_['pb_name_hook']
+            if "pb_name_hook" in locals_:
+                name = locals_["pb_name_hook"]
                 break
     else:
         # Otherwise: just get name of what's
@@ -59,8 +63,14 @@ def progbar(iterable, desc=None, leave=1, **kwargs):
         return iterable
     else:
         desc = pdesc(desc)
-        return tqdm(iterable, desc=desc, leave=leave,
-                    smoothing=0.3, dynamic_ncols=True, **kwargs)
+        return tqdm(
+            iterable,
+            desc=desc,
+            leave=leave,
+            smoothing=0.3,
+            dynamic_ncols=True,
+            **kwargs,
+        )
         # Printing during the progbar loop (may occur with error printing)
         # can cause tqdm to freeze the entire execution.
         # Seemingly, this is caused by their multiprocessing-safe stuff.
@@ -112,8 +122,7 @@ try:
             if not disable_user_interaction:
                 TS_old = new_term_settings()
             try:
-                for i in orig_progbar(iterable, pdesc(desc), leave, **kwargs):
-                    yield i
+                yield from orig_progbar(iterable, pdesc(desc), leave, **kwargs)
             except GeneratorExit:
                 # Allows code below to run even if caller raised exception
                 # NB: Fails if caller is in a list-comprehesion! Why?

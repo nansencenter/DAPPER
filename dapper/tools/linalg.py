@@ -20,13 +20,13 @@ def truncate_rank(s, threshold, avoid_pathological):
     if threshold == 1.0:
         r = len(s)
     elif threshold < 1.0:
-        r = np.sum(np.cumsum(s)/np.sum(s) < threshold)
+        r = np.sum(np.cumsum(s) / np.sum(s) < threshold)
         r += 1  # Hence the strict inequality above
         if avoid_pathological:
             # If not avoid_pathological, then the last 4 diag. entries of
             # svdi( *tsvd(np.eye(400),0.99) )
             # will be zero. This is probably not intended.
-            r += np.sum(np.isclose(s[r-1], s[r:]))
+            r += np.sum(np.isclose(s[r - 1], s[r:]))
     else:
         raise ValueError
     return r
@@ -100,7 +100,7 @@ def svd0(A):
 def pad0(x, N):
     """Pad `x` with zeros so that `len(x)==N`."""
     out = np.zeros(N)
-    out[:len(x)] = x
+    out[: len(x)] = x
     return out
 
 
@@ -118,7 +118,7 @@ def svdi(U, s, VT):
     --------
     sla.diagsvd
     """
-    return (U[:, :len(s)] * s) @ VT
+    return (U[:, : len(s)] * s) @ VT
 
 
 def tinv(A, *kargs, **kwargs):
@@ -129,7 +129,7 @@ def tinv(A, *kargs, **kwargs):
     sla.pinv2.
     """
     U, s, VT = tsvd(A, *kargs, **kwargs)
-    return (VT.T * s**(-1.0)) @ U.T
+    return (VT.T * s ** (-1.0)) @ U.T
 
 
 def trank(A, *kargs, **kwargs):

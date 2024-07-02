@@ -10,11 +10,10 @@ import dapper as dpr
 import dapper.da_methods as da
 
 # #### Setup
-
 import dapper.mods as modelling
 from dapper.mods.Lorenz63 import LPs, Tplot, dxdt
 
-tseq = modelling.Chronology(0.01, dko=25, Ko=1000, Tplot=Tplot, BurnIn=4*Tplot)
+tseq = modelling.Chronology(0.01, dko=25, Ko=1000, Tplot=Tplot, BurnIn=4 * Tplot)
 
 
 # Define a "double" Lorenz-63 system where each "half" evolves independently.
@@ -28,9 +27,9 @@ def dxdt_double(x):
 
 Nx = 6
 Dyn = {
-    'M': Nx,
-    'model': modelling.with_rk4(dxdt_double, autonom=True),
-    'noise': 0,
+    "M": Nx,
+    "model": modelling.with_rk4(dxdt_double, autonom=True),
+    "noise": 0,
 }
 
 X0 = modelling.GaussRV(C=2, mu=np.ones(Nx))
@@ -49,8 +48,9 @@ jj2 = 3 + np.arange(3)
 obs1 = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj1), noise=1)
 obs2 = modelling.Operator(**modelling.partial_Id_Obs(Nx, jj2), noise=1)
 
-HMM = modelling.HiddenMarkovModel(Dyn, dict(time_dependent=Obs), tseq, X0,
-                                  sectors={'slow': jj1, 'fast': jj2})
+HMM = modelling.HiddenMarkovModel(
+    Dyn, dict(time_dependent=Obs), tseq, X0, sectors={"slow": jj1, "fast": jj2}
+)
 
 HMM.liveplotters = LPs(jj=lambda ko: jj1 if ko % 2 else jj2, params=dict())
 
@@ -60,7 +60,7 @@ HMM.liveplotters = LPs(jj=lambda ko: jj1 if ko % 2 else jj2, params=dict())
 dpr.set_seed(3000)
 xx, yy = HMM.simulate()
 
-xp = da.EnKF('Sqrt', N=20, infl=1.02, rot=True)
+xp = da.EnKF("Sqrt", N=20, infl=1.02, rot=True)
 # xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
 
 xp.assimilate(HMM, xx, yy, liveplots=True)

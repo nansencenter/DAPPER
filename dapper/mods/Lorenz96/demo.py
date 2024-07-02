@@ -16,7 +16,7 @@ M = 40
 N = 3
 
 x0 = x0(M)
-E0 = x0 + 1e-3*eye(M)[:N]
+E0 = x0 + 1e-3 * eye(M)[:N]
 
 dt = 0.05
 xx = simulator(E0, k=500, t=0, dt=dt)

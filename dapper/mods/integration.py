@@ -132,9 +132,9 @@ def with_recursion(func, prog=False):
         xx[0] = x0
 
         # Prog. bar name
-        if prog == False:
+        if prog == False:  # noqa: E712
             desc = None
-        elif prog == None:
+        elif prog is None:
             desc = "Recurs."
         else:
             desc = prog

@@ -6,10 +6,10 @@ from dapper.mods.QG.sakov2008 import HMM as _HMM
 
 HMM = _HMM.copy()
 dt = 1.25 * 10  # 10 steps between obs (also requires dko=1)
-HMM.tseq = modelling.Chronology(dt=dt, dko=1, T=1000*dt, BurnIn=10*dt)
+HMM.tseq = modelling.Chronology(dt=dt, dko=1, T=1000 * dt, BurnIn=10 * dt)
 
-HMM.Dyn.model = model_config("counillon2009_ens"  , {"dtout": dt, 'RKH2': 2.0e-11}).step
-truth_model   = model_config("counillon2009_truth", {"dtout": dt}).step
+HMM.Dyn.model = model_config("counillon2009_ens", {"dtout": dt, "RKH2": 2.0e-11}).step
+truth_model = model_config("counillon2009_truth", {"dtout": dt}).step
 
 ####################
 # Suggested tuning

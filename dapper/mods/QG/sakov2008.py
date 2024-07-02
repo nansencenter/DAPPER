@@ -12,19 +12,19 @@ from dapper.tools.localization import nd_Id_localization
 
 model = model_config("sakov2008", {})
 Dyn = {
-    'M': np.prod(shape),
-    'model': model.step,
-    'noise': 0,
+    "M": np.prod(shape),
+    "model": model.step,
+    "noise": 0,
 }
 
 # Considering that I have 8GB mem on the Mac, and the estimate:
 # ≈ (8 bytes/float)*(129² float/stat)*(7 stat/k) * K,
 # it should be possible to run experiments of length (K) < 8000.
-tseq = modelling.Chronology(dt=model.prms['dtout'], dko=1, T=1500, BurnIn=250)
+tseq = modelling.Chronology(dt=model.prms["dtout"], dko=1, T=1500, BurnIn=250)
 # In my opinion the burn in should be 400.
 # Sakov also used 10 repetitions.
 
-X0 = modelling.RV(M=Dyn['M'], file=sample_filename)
+X0 = modelling.RV(M=Dyn["M"], file=sample_filename)
 
 
 ############################
@@ -33,7 +33,7 @@ X0 = modelling.RV(M=Dyn['M'], file=sample_filename)
 
 # This will look like satellite tracks when plotted in 2D
 Ny = 300
-jj = modelling.linspace_int(Dyn['M'], Ny)
+jj = modelling.linspace_int(Dyn["M"], Ny)
 
 # Want: random_offset(t1)==random_offset(t2) if t1==t2.
 # Solutions: (1) use caching (ensure maxsize=inf) or (2) stream seeding.
@@ -41,7 +41,7 @@ jj = modelling.linspace_int(Dyn['M'], Ny)
 # (and e.g. ensure equal outcomes for 1st and 2nd run of the python session).
 # TODO 5: upgrade to `default_rng()`
 rstream = np.random.RandomState()
-max_offset = jj[1]-jj[0]
+max_offset = jj[1] - jj[0]
 
 
 def obs_inds(ko):
@@ -69,14 +69,14 @@ def obs_now(ko):
     localizer = nd_Id_localization(shape[::-1], batch_shape[::-1], jj, periodic=False)
 
     Obs = {
-        'M': Ny,
-        'model': hmod,
-        'noise': modelling.GaussRV(C=4*np.eye(Ny)),
-        'localizer': localizer,
+        "M": Ny,
+        "model": hmod,
+        "noise": modelling.GaussRV(C=4 * np.eye(Ny)),
+        "localizer": localizer,
     }
 
     # Moving localization mask for smoothers:
-    Obs['loc_shift'] = lambda ii, dt: ii  # no movement (suboptimal, but easy)
+    Obs["loc_shift"] = lambda ii, dt: ii  # no movement (suboptimal, but easy)
 
     # Jacobian left unspecified coz it's (usually) employed by methods that
     # compute full cov, which in this case is too big.
