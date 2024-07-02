@@ -593,7 +593,8 @@ class xpList(list):
             # Loads PWD/xp_{var,com} and calls run_experiment()
             with open(extra_files / "load_and_run.py", "w") as f:
                 f.write(
-                    dedent("""\
+                    dedent(
+                        """\
                 import dill
                 from dapper.xp_launch import run_experiment
 
@@ -612,7 +613,8 @@ class xpList(list):
                         err.args += ("It seems your local python version"
                                      " is incompatible with that of the cluster.",)
                     raise
-                """)
+                """
+                    )
                     % dedent(mp["code"])
                 )
 
