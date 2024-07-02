@@ -31,11 +31,10 @@ INSTALL_REQUIRES = [
     "pyyaml",
     "colorama~=0.4.1",
     "tabulate~=0.8.3",
-    "dill==0.3.2",  # >=0.3.1.1 for dataclass. Pin vers. to equal GCP.
+    "pathos~=0.3",
+    "dill==0.3.8",  # Pin vers. to equal GCP.
     "patlib==0.3.5",
     "struct-tools==0.2.5",
-    # TODO 5: replace by p-tqdm?
-    "multiprocessing-on-dill==3.5.0a4",
     "threadpoolctl>=3.0.0,<4.0.0",
 ]
 

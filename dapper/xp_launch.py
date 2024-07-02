@@ -526,9 +526,9 @@ class xpList(list):
             pb.disable_progbar = True
             pb.disable_user_interaction = True
             NPROC = mp.get("NPROC", None)  # None => mp.cpu_count()
-            from dapper.tools.multiproc import mpd  # will fail on GCP
+            from dapper.tools.multiproc import Pool  # will fail on GCP
 
-            with mpd.Pool(NPROC) as pool:
+            with Pool(NPROC) as pool:
                 list(
                     tqdm(
                         pool.imap(run_with_kwargs, args),
