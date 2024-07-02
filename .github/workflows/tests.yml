@@ -49,12 +49,12 @@ jobs:
 
       - name: Run tests
         run: |
-          if [[ '$JOBTYPE' == 'lint' ]]; then
+          if [[ "$JOBTYPE" == "lint" ]]; then
             # Run flake8 via pre-commit instead.
             #- flake8 . # Use --exit-zero to ignore failure
             pre-commit install
             pre-commit run --all-files
-          elif [[ '$JOBTYPE' == 'coverage' ]]; then
+          elif [[ "$JOBTYPE" == "coverage" ]]; then
             pytest tests --ignore=dapper/mods/QG --cov=dapper --cov-report term-missing
           else
             pytest tests
