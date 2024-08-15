@@ -661,6 +661,59 @@ class LETKF:
                 self.stats.assess(k, ko, E=E)
 
 
+@ens_method
+class LETKF_thresh:
+    """LETKF using correlation thresholding instead of distances."""
+
+    N: int
+    mp: bool = False
+    thresh: float = None
+
+    def assimilate(self, HMM, xx, yy):
+        N1 = self.N - 1
+        thresh = self.thresh or min(1, 3 / sqrt(self.N - 3))
+
+        E = HMM.X0.sample(self.N)
+        self.stats.assess(0, E=E)
+        self.stats.new_series("ad_inf", 1, HMM.tseq.Ko + 1)
+
+        with multiproc.Pool(self.mp) as pool:
+            for k, ko, t, dt in progbar(HMM.tseq.ticker):
+                E = HMM.Dyn(E, t - dt, dt)
+                E = add_noise(E, dt, HMM.Dyn.noise, self.fnoise_treatm)
+
+                if ko is not None:
+                    self.stats.assess(k, ko, "f", E=E)
+                    Obs = HMM.Obs(ko)
+
+                    # Correlation thresholding
+                    Eo = Obs(E)
+                    Y, _ = center(Eo)
+                    X, _ = center(E)
+                    stdX = sqrt(np.sum(X * X, 0) / N1)
+                    stdY = sqrt(np.sum(Y * Y, 0) / N1)
+                    Pxy = X.T @ Y / N1  # cov
+                    Cxy = Pxy / stdX[:, None] / stdY  # corr
+                    thresholded = np.abs(Cxy) >= thresh
+
+                    def obs_taperer(batch):
+                        active_obs = thresholded[batch][0]
+                        indices = np.nonzero(active_obs)[0]
+                        return indices, 1
+
+                    # One state at a time (no regions, for simplicity)
+                    state_batches = np.arange(Obs.M).reshape(-1, 1)
+
+                    E, stats = local_analyses(
+                        E, Eo, Obs.noise.C, yy[ko], state_batches, obs_taperer, pool.map
+                    )
+
+                    self.stats.write(stats, k, ko, "a")
+                    E = post_process(E, self.infl, self.rot)
+
+                self.stats.assess(k, ko, E=E)
+
+
 def effective_N(YR, dyR, xN, g):
     """Effective ensemble size N.
 

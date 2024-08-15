@@ -200,7 +200,7 @@ def _print_cropped_traceback(ERR):
 
 # The above does not allow for go-to-definition, so
 from .baseline import Climatology, OptInterp, Persistence, PreProg, Var3D
-from .ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS
+from .ensemble import LETKF, SL_EAKF, EnKF, EnKF_N, EnKS, EnRTS, LETKF_thresh
 from .extended import ExtKF, ExtRTS
 from .other import LNETF, RHF
 from .particle import OptPF, PartFilt, PFa, PFxN, PFxN_EnKF
