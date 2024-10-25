@@ -12,7 +12,6 @@ import dapper as dpr
 import dapper.da_methods as da
 
 # #### Load experiment setup: the hidden Markov model (HMM)
-
 from dapper.mods.Lorenz63.sakov2012 import HMM
 
 # #### Generate the same random numbers each time this script is run
@@ -29,7 +28,7 @@ xx, yy = HMM.simulate()
 # xp = da.OptInterp()
 # xp = da.Var3D()
 # xp = da.ExtKF(infl=90)
-xp = da.EnKF('Sqrt', N=10, infl=1.02, rot=True)
+xp = da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
 # xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
 
 # #### Assimilate yy, knowing the HMM; xx is used to assess the performance
@@ -44,7 +43,7 @@ xp.stats.average_in_time()
 # #### Print some of these time-averages
 
 # print(xp.avrgs)  # ⇒ long printout
-print(xp.avrgs.tabulate(['rmse.a', 'rmv.a']))
+print(xp.avrgs.tabulate(["rmse.a", "rmv.a"]))
 
 # #### Replay liveplotters
 
@@ -56,6 +55,7 @@ xp.stats.replay(
 
 if nb:
     import dapper.tools.viz as viz
+
     viz.plot_rank_histogram(xp.stats)
     viz.plot_err_components(xp.stats)
     viz.plot_hovmoller(xx)
@@ -67,11 +67,6 @@ if nb:
 
 if nb:
     print(HMM)
-
-# #### Excercise: Why are the replay plots not as smooth as the liveplot?
-# *Hint*: provide the keyword `store_u=True` to `assimilate()` to avoid this.
-
-# #### Excercise: Why does the replay only contain the blue lines?
 
 # #### Excercise: Try out each of the above DA methods (currently commented out).
 # Next, remove the call to `replay`, and set `liveplots=False` above.
@@ -102,3 +97,6 @@ if nb:
 # - Finally, instead of the `rms` spatial/field averages,
 #   print the regular mean (`.m`) averages. Explain why `err.m` is nearly zero,
 #   in contrast to `err.rms`.
+
+# #### Excercise: Why are the replay plots not as smooth as the liveplot?
+# *Hint*: provide the keyword `store_u=True` to `assimilate()` to avoid this.

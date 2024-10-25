@@ -18,6 +18,7 @@ Some notes:
 """
 
 import inspect
+
 # Capture stdout
 import io
 import sys
@@ -46,7 +47,7 @@ def backtrack_until_finding(substr, lineno):
             return lineno
 
 
-orig_code = open(__file__, "r").readlines()
+orig_code = open(__file__).readlines()
 
 # Enable breakpoints and post-mortem debugging
 _debug = "pytest" not in sys.modules and "--replace" not in sys.argv
@@ -81,7 +82,6 @@ def gen_test_set(xp_dict, *args, **kwargs):
         replacements.append(_Replacement(output.splitlines(True), nOpen, nClose))
 
     elif not _debug:  # Generate & register tests
-
         # Split string into tables
         lineno = nOpen + 1
         for table_old, table_new in zip(old.split("\n\n"), output.split("\n\n")):
@@ -101,7 +101,8 @@ xps = dpr.load_xps(save_as)
 xps = dpr.xpSpace.from_list(xps)
 
 xps_shorter = dpr.xpSpace.from_list(
-    [xp for xp in xps.values() if getattr(xp, "da_method") != "LETKF"])  # noqa
+    [xp for xp in xps.values() if getattr(xp, "da_method") != "LETKF"]  # noqa
+)
 
 ##
 old = """Averages (in time and) over seed.
@@ -245,8 +246,9 @@ Table for da_method='LETKF'
 10       10  |   0.034 ±0.005 *(1.01,)   0 2  0.032 ±0.005 *(1.1,)  0 2  0.032 ±0.005 *(1.1,) 0 2
 10       40  |   0.034 ±0.005 *(1.01,)   0 2  0.033 ±0.005 *(1.01,) 0 2  0.032 ±0.005 *(1.1,) 0 2
 """
-gen_test_set(xps, "rmse.a",
-             dict(outer="da_method", inner="N", mean="seed", optim="infl"))
+gen_test_set(
+    xps, "rmse.a", dict(outer="da_method", inner="N", mean="seed", optim="infl")
+)
 
 ##
 old = """Averages (in time and) over seed.
@@ -1006,8 +1008,9 @@ Table for da_method='EnKF_N'
  8  |   0.032 ±0.005 0 2  0.031 ±0.005 0 2  0.030 ±0.005 0 2
 10  |   0.034 ±0.005 0 2  0.033 ±0.005 0 2  0.032 ±0.005 0 2
 """
-gen_test_set(xps_shorter, "rmse.a",
-             dict(outer="da_method", inner="N", mean=("seed", "infl")))
+gen_test_set(
+    xps_shorter, "rmse.a", dict(outer="da_method", inner="N", mean=("seed", "infl"))
+)
 
 ##
 old = """Averages (in time and) over seed.
@@ -1244,10 +1247,9 @@ old = """Averages (in time and) over seed.
  8                1     |                                                                                       0.032      0.031      0.030
 10                1     |                                                                                       0.034      0.033      0.032
 """
-gen_test_set(xps_shorter,
-             "rmse.a",
-             dict(inner=("da_method", "N"), mean="seed"),
-             subcols=False)
+gen_test_set(
+    xps_shorter, "rmse.a", dict(inner=("da_method", "N"), mean="seed"), subcols=False
+)
 
 ##
 old = """Averages in time only (=> the 1σ estimates may be unreliable).
@@ -1344,17 +1346,15 @@ Table for da_method='EnKF_N', seed=3001
  8  |  0.028   0.0261  0.0253
 10  |  0.0290  0.0275  0.0266
 """
-gen_test_set(xps_shorter,
-             "rmse.a",
-             dict(outer=("da_method", "seed"), inner="N"),
-             subcols=False)
+gen_test_set(
+    xps_shorter, "rmse.a", dict(outer=("da_method", "seed"), inner="N"), subcols=False
+)
 
 
 if "--replace" in sys.argv:
-    new_code = orig_code[0:replacements[0].nOpen]
+    new_code = orig_code[0 : replacements[0].nOpen]
 
     for i, replacement in enumerate(replacements):
-
         replacement.lines[0] = 'old = """' + replacement.lines[0]
         new_code += replacement.lines
 
@@ -1362,7 +1362,7 @@ if "--replace" in sys.argv:
             nEnd = replacements[i + 1].nOpen
         except IndexError:
             nEnd = len(orig_code)
-        new_code += orig_code[replacement.nClose:nEnd]
+        new_code += orig_code[replacement.nClose : nEnd]
 
     # Write new .new file. Use diff'ing to inspect!
     with open(__file__ + ".new", "w") as F:

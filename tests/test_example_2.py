@@ -100,7 +100,7 @@ def test_len63(L63_table):
 @pytest.mark.parametrize(("lineno"), range(len(L63_old)))
 def test_tables_L63(L63_table, lineno):
     expected = L63_old[lineno].rstrip()
-    new      = L63_table[lineno].rstrip()
+    new = L63_table[lineno].rstrip()
     assert new == expected
 
 
@@ -174,7 +174,7 @@ def test_len96(L96_table):
 @pytest.mark.parametrize(("lineno"), range(len(L96_old)))
 def test_tables_L96(L96_table, lineno):
     expected = L96_old[lineno].rstrip()
-    new      = L96_table[lineno].rstrip()
+    new = L96_table[lineno].rstrip()
     assert new == expected
 
 

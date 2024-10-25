@@ -77,8 +77,11 @@ Now every time you commit, these tests will run on the staged files.
 For detailed linting messages, run
 
 ```sh
-flakeheaven lint
+ruff check --output-format=concise
 ```
+
+.. warning:: Obsolete
+    Kept for reference.
 
 You may also want to display linting issues in your editor as you code.
 Below is a suggested configuration of VS-Code with the pylance plug-in

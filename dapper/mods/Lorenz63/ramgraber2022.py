@@ -5,17 +5,17 @@ import numpy as np
 import dapper.mods as modelling
 from dapper.mods.Lorenz63 import Tplot, dstep_dx, step, x0
 
-tseq = modelling.Chronology(0.05, dto=.1, Ko=1000, Tplot=Tplot, BurnIn=4*Tplot)
+tseq = modelling.Chronology(0.05, dto=0.1, Ko=1000, Tplot=Tplot, BurnIn=4 * Tplot)
 Nx = len(x0)
 Dyn = {
-    'M': Nx,
-    'model': step,
-    'linear': dstep_dx,
-    'noise': 0,
+    "M": Nx,
+    "model": step,
+    "linear": dstep_dx,
+    "noise": 0,
 }
 X0 = modelling.GaussRV(C=1, M=Nx)
 Obs = modelling.partial_Id_Obs(Nx, np.arange(Nx))
-Obs['noise'] = 4
+Obs["noise"] = 4
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0)
 
 

@@ -3,7 +3,8 @@
 # To facilitate debugging, import mp here (where it's used).
 # For example, `matplotlib` (its event loop) might clash (however mysteriously)
 # with mp, so it's nice to be able to be sure that no mp is "in the mix".
-import multiprocessing_on_dill as mpd
+import multiprocessing
+
 # Enforcing individual core usage.
 # Issue: numpy uses multiple cores (github.com/numpy/numpy/issues/11826).
 #     This may yield some performance gain, but typically not much
@@ -11,6 +12,9 @@ import multiprocessing_on_dill as mpd
 #     experiments, ensemble members, or local analyses.
 #     Therefore: force numpy to only use a single core.
 import threadpoolctl
+
+# Similar to built-in multiprocessing, but with improved pickle (dill)
+from pathos.multiprocessing import ProcessPool
 
 threadpoolctl.threadpool_limits(1)
 # Alternative: ref https://stackoverflow.com/a/53224849
@@ -57,17 +61,22 @@ def Pool(NPROC=None):
 
     See example use in `dapper.mods.QG` and `dapper.da_methods.ensemble.LETKF`.
     """
-    if NPROC == False:
+    if NPROC == False:  # noqa: E712
         # Yield plain old map
         class NoPool:
-            def __enter__(self): return builtins
-            def __exit__(self, *args): pass
+            def __enter__(self):
+                return builtins
+
+            def __exit__(self, *args):
+                pass
+
         import builtins
+
         return NoPool()
 
     else:
         # from psutil import cpu_percent, cpu_count
         if NPROC in [True, None]:
-            NPROC = mpd.cpu_count() - 1  # be nice
+            NPROC = multiprocessing.cpu_count() - 1  # be nice
 
-        return mpd.Pool(NPROC)
+        return ProcessPool(NPROC)

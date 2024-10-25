@@ -1,4 +1,5 @@
 """Configures pytest (beyond the ini file)."""
+
 import matplotlib as mpl
 import numpy
 import pytest

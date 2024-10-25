@@ -10,10 +10,12 @@ rng = _rnd.default_rng()
 def set_seed(sd="clock"):
     """Set state of DAPPER random number generator."""
     if (sd is not False) and sd == 0:
-        msg = ("Seeding with 0 is not a good idea, because\n"
-               "- Might be confused with [None, False].\n"
-               "- Sometimes people seed experiment k with seed(k*sd),\n"
-               "  which is intended to vary with k, but is 0 ∀k.")
+        msg = (
+            "Seeding with 0 is not a good idea, because\n"
+            "- Might be confused with [None, False].\n"
+            "- Sometimes people seed experiment k with seed(k*sd),\n"
+            "  which is intended to vary with k, but is 0 ∀k."
+        )
         raise RuntimeError(msg)
 
     if sd in [None, "clock"]:

@@ -44,19 +44,19 @@ model = Model()
 # Time settings
 T = 150
 dt = model.dt
-K = round(T/dt)
+K = round(T / dt)
 
 # IC
-N     = 3
-tt    = np.zeros((K+1,))
-EE    = np.zeros((K+1, N, model.Nx))
+N = 3
+tt = np.zeros((K + 1,))
+EE = np.zeros((K + 1, N, model.Nx))
 # x0    = x0_Kassam
-EE[0] = model.x0 + 1e-3*np.random.randn(N, model.Nx)
+EE[0] = model.x0 + 1e-3 * np.random.randn(N, model.Nx)
 
 # Integrate
-for k in range(1, K+1):
-    EE[k] = model.step(EE[k-1], np.nan, dt)
-    tt[k] = k*dt
+for k in range(1, K + 1):
+    EE[k] = model.step(EE[k - 1], np.nan, dt)
+    tt[k] = k * dt
 
 
 # Animate
@@ -67,9 +67,9 @@ plt.figure()
 n = 0
 plt.contourf(model.grid, tt, EE[:, n, :], 60)
 plt.colorbar()
-plt.set_cmap('seismic')
-plt.axis('tight')
-plt.title('Hovmoller for KS system, member %d' % n)
-plt.ylabel('Time (t)')
-plt.xlabel('Space (x)')
+plt.set_cmap("seismic")
+plt.axis("tight")
+plt.title("Hovmoller for KS system, member %d" % n)
+plt.ylabel("Time (t)")
+plt.xlabel("Space (x)")
 plt.show()

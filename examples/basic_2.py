@@ -7,12 +7,16 @@
 # Also note that liveplotting does not work on Colab.
 
 # %matplotlib notebook
-import dapper as dpr
+import dapper as dpr  # noqa: I001
 import dapper.da_methods as da
 
 # #### DA method configurations
 
+
+# +
+# fmt: off
 from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
+
 xps = dpr.xpList()
 xps += da.Climatology()                                      # 7.6
 xps += da.OptInterp()                                        # 1.25
@@ -29,10 +33,13 @@ xps += da.PartFilt(       N=100 , reg=2.4  , NER=0.3)        # 0.38
 xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # xps += da.PartFilt(       N=4000, reg=0.7  , NER=0.05)       # 0.27
 # xps += da.PFxN(xN=1000,   N=30  , Qs=2     , NER=0.2)        # 0.56
+# # fmt: on
+# -
 
 # #### With Lorenz-96 instead
 
 # +
+# fmt: off
 # from dapper.mods.Lorenz96.sakov2008 import HMM   # Expected rmse.a:
 # xps = dpr.xpList()
 # xps += da.Climatology()                                     # 3.6
@@ -48,6 +55,7 @@ xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # # With localisation:
 # xps += da.LETKF(          N=7 , infl=1.04, rot=True, loc_rad=4)  # 0.22
 # xps += da.SL_EAKF(        N=7 , infl=1.07, rot=True, loc_rad=6)  # 0.23
+# fmt: on
 # -
 
 # #### Other models (suitable xp's listed in HMM files):

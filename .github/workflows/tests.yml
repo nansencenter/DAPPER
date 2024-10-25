@@ -8,39 +8,38 @@ on:
       - dev1
       - "!gh-pages"
 env:
-  IS_CI: 'true'
+  IS_CI: "true"
 
 jobs:
-
   bundled:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-latest']
-        python-version: ['3.9', '3.10', '3.11']
-        jobtype: ['test']
+        os: ["ubuntu-latest"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"] # NB: also see versions for 'conda'
+        jobtype: ["test"]
         include:
-          - os: 'ubuntu-latest'
-            python-version: '3.10'
-            jobtype: 'lint'
-          - os: 'ubuntu-latest'
-            python-version: '3.10'
-            jobtype: 'coverage'
-          - os: 'macos-latest'
-            python-version: '3.10'
-            jobtype: 'test'
+          - os: "ubuntu-latest"
+            python-version: "3.10"
+            jobtype: "lint"
+          - os: "ubuntu-latest"
+            python-version: "3.10"
+            jobtype: "coverage"
+          - os: "macos-latest"
+            python-version: "3.10"
+            jobtype: "test"
     env:
       JOBTYPE: ${{ matrix.jobtype }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-          cache-dependency-path: 'setup.py'
+          cache: "pip"
+          cache-dependency-path: "setup.py"
 
       - name: Install dependencies
         run: |
@@ -69,22 +68,22 @@ jobs:
 
   conda:
     defaults:
-          run:
-            shell: bash -el {0}
+      run:
+        shell: bash -el {0}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-latest']
-        python-version: ['3.9', '3.10', '3.11']
+        os: ["ubuntu-latest"]
+        python-version: ["3.9", "3.12"]
         include:
-          - os: 'macos-latest'
-            python-version: '3.10'
-          - os: 'windows-latest'
-            python-version: '3.9'
+          - os: "macos-latest"
+            python-version: "3.12"
+          - os: "windows-latest"
+            python-version: "3.12"
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}

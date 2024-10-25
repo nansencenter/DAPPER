@@ -28,10 +28,10 @@ tseq = modelling.Chronology(dt=0.005, dto=0.05, T=4**3, BurnIn=6)  # requires rk
 
 
 Dyn = {
-    'M': LUV.M,
-    'model': modelling.with_rk4(LUV.dxdt, autonom=True),
-    'noise': 0,
-    'linear': LUV.dstep_dx,
+    "M": LUV.M,
+    "model": modelling.with_rk4(LUV.dxdt, autonom=True),
+    "noise": 0,
+    "linear": LUV.dstep_dx,
 }
 
 X0 = modelling.GaussRV(mu=LUV.x0, C=0.01)
@@ -39,9 +39,9 @@ X0 = modelling.GaussRV(mu=LUV.x0, C=0.01)
 R = 0.1
 jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(LUV.M, jj)
-Obs['noise'] = R
+Obs["noise"] = R
 
-other = {'name': name + '_full'}
+other = {"name": name + "_full"}
 HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **other)
 
 
@@ -53,18 +53,18 @@ HMM_full = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **oth
 tseq = modelling.Chronology(dt=0.05, dto=0.05, T=4**3, BurnIn=6)
 
 Dyn = {
-    'M': nU,
-    'model': modelling.with_rk4(LUV.dxdt_parameterized),
-    'noise': 0,
+    "M": nU,
+    "model": modelling.with_rk4(LUV.dxdt_parameterized),
+    "noise": 0,
 }
 
 X0 = modelling.GaussRV(mu=LUV.x0[:nU], C=0.01)
 
 jj = np.arange(nU)
 Obs = modelling.partial_Id_Obs(nU, jj)
-Obs['noise'] = R
+Obs["noise"] = R
 
-other = {'name': name + '_trunc'}
+other = {"name": name + "_trunc"}
 HMM_trunc = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LUV.LPs(jj), **other)
 
 LUV.prmzt = lambda x, t: polynom_prmzt(x, t, 1)
@@ -82,13 +82,13 @@ def polynom_prmzt(x, t, order):
     """
     if order == 4:
         # From Wilks
-        d = 0.262 + 1.45*x - 0.0121*x**2 - 0.00713*x**3 + 0.000296*x**4
+        d = 0.262 + 1.45 * x - 0.0121 * x**2 - 0.00713 * x**3 + 0.000296 * x**4
     elif order == 3:
         # From Arnold
-        d = 0.341 + 1.30*x - 0.0136*x**2 - 0.00235*x**3
+        d = 0.341 + 1.30 * x - 0.0136 * x**2 - 0.00235 * x**3
     elif order == 1:
         # From me -- see AdInf/illust_parameterizations.py
-        d = 0.74 + 0.82*x
+        d = 0.74 + 0.82 * x
     elif order == 0:
         # From me -- see AdInf/illust_parameterizations.py
         d = 3.82
