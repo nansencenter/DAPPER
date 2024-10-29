@@ -24,9 +24,9 @@ class Chronology:
         kko:                 2             4             6
                              [----dko------]
 
-    .. warning:: By convention, there is no obs at 0.
-                 This is hardcorded in DAPPER,
-                 whose cycling starts by the forecast.
+    !!! warning
+        By convention, there is no obs at 0.
+        This is hardcorded in DAPPER, whose cycling starts by the forecast.
 
     Identities (subject to precision):
 

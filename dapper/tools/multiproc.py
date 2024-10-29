@@ -48,13 +48,13 @@ def Pool(NPROC=None):
     so you likely want to re-use a pool rather than repeatedly creating one.
     Consider using `functools.partial` to fix kwargs.
 
-    .. note::
+    !!! note
         In contrast to *reading*, in-place writing does not work with multiprocessing.
         This changes with "shared" arrays, but that has not been tested here.
         By contrast, multi*threading* shares the process memory,
         but was significantly slower in the tested (pertinent) cases.
 
-    .. warning::
+    !!! warning
         `multiprocessing` does not mix with `matplotlib`, so ensure `func` does not
         reference `xp.stats.LP_instance`. In fact, `func` should not reference `xp`
         at all, because it takes time to serialize.

@@ -479,8 +479,8 @@ class xpSpace(SparseSpace):
         by the mean/tune operations. The `dims['outer']` and `dims['inner']
         become the keys for the output hierarchy.
 
-        .. note::
-            cannot support multiple `statkey`s because it's not (obviously) meaningful
+        !!! note
+            Cannot support multiple `statkey`s because it's not (obviously) meaningful
             when optimizing over `dims['optim']`.
         """
 

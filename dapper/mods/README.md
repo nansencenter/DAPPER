@@ -56,7 +56,7 @@ try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
 
     - `dapper.mods.QG`: use of parallelized for loop (map).
 
-    .. note::
+    !!! note
         To begin with, test whether the model works on 1 realization,
         before running it with several (simultaneously).
         Also, start with a small integration time step,
@@ -64,7 +64,7 @@ try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
         Note that the time step might need to be shorter in assimilation,
         because it may cause instabilities.
 
-    .. note::
+    !!! note
         Most models are defined using simple procedural style.
         However, `dapper.mods.LorenzUV` and `dapper.mods.QG` use OOP,
         which is perhaps more robust when different

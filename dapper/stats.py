@@ -439,11 +439,12 @@ class Stats(series.StatPrint):
         - t1, t2: time window to plot.
         - 'figlist' and 'speed': See LivePlot's doc.
 
-        .. note:: `store_u` (whether to store non-obs-time stats) must
-        have been `True` to have smooth graphs as in the actual LivePlot.
+        !!! note
+            `store_u` (whether to store non-obs-time stats) must
+            have been `True` to have smooth graphs as in the actual LivePlot.
 
-        .. note:: Ensembles are generally not stored in the stats
-        and so cannot be replayed.
+        !!! note
+            Ensembles are generally not stored in the stats and so cannot be replayed.
         """
         # Time settings
         tseq = self.HMM.tseq

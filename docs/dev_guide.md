@@ -85,7 +85,7 @@ For detailed linting messages, run
 ruff check --output-format=concise
 ```
 
-.. warning:: Obsolete
+!!! warning "Obsolete"
     Kept for reference.
 
 You may also want to display linting issues in your editor as you code.

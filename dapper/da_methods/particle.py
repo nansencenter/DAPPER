@@ -94,9 +94,8 @@ class OptPF:
 
     Ref: `bib.bocquet2010beyond`.
 
-    .. note:: Regularization (`Qs`) is here added BEFORE Bayes' rule.
-              If `Qs==0`: OptPF should be equal to
-              the bootstrap filter `PartFilt`.
+    !!! note Regularization (`Qs`) is here added BEFORE Bayes' rule.
+        If `Qs==0`: OptPF should be equal to the bootstrap filter `PartFilt`.
     """
 
     N: int

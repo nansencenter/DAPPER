@@ -32,23 +32,23 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     The synthetic truth and observations may then be obtained by running
     `HiddenMarkovModel.simulate`.
 
-    .. note::
-      Each model included with DAPPER comes with several examples
-      of model settings from the literature.
-      See, for example, `dapper.mods.Lorenz63.sakov2012`.
+    !!! note
+        Each model included with DAPPER comes with several examples
+        of model settings from the literature.
+        See, for example, `dapper.mods.Lorenz63.sakov2012`.
 
-    .. warning::
-      These example configurations do not necessarily hold a high programming standard,
-      as they may have been whipped up at short notice to replicate some experiments,
-      and are not intended for re-use.
-      Nevertheless, sometimes they are re-used by another configuration script,
-      leading to a major gotcha/pitfall: changes made to the imported `HMM` (or
-      the model's module itself) also impact the original object (since they
-      are mutable and thereby referenced).  This *usually* isn't an issue, since
-      one rarely imports two/more separate configurations. However, the test suite
-      imports all configurations, which might then unintentionally interact.
-      To avoid this, you should use the `copy` method of the `HMM`
-      before making any changes to it.
+    !!! warning
+        These example configs do not necessarily hold a high programming standard,
+        as they may have been whipped up at short notice to replicate some experiments,
+        and are not intended for re-use.
+        Nevertheless, sometimes they are re-used by another configuration script,
+        leading to a major gotcha/pitfall: changes made to the imported `HMM` (or
+        the model's module itself) also impact the original object (since they
+        are mutable and thereby referenced).  This *usually* isn't an issue, since
+        one rarely imports two/more separate configurations. However, the test suite
+        imports all configurations, which might then unintentionally interact.
+        To avoid this, you should use the `copy` method of the `HMM`
+        before making any changes to it.
 
 
     Parameters

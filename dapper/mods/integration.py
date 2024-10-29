@@ -98,7 +98,7 @@ def with_recursion(func, prog=False):
     Return a version of `func` whose 2nd argument (`k`)
     specifies the number of times to times apply func on its output.
 
-    .. warning:: Only the first argument to `func` will change,
+    !!! warning Only the first argument to `func` will change,
         so, for example, if `func` is `step(x, t, dt)`,
         it will get fed the same `t` and `dt` at each iteration.
 
@@ -154,10 +154,13 @@ def integrate_TLM(TLM, dt, method='approx'):
 
     - the Jacobian of the step func.
     - the integral of (with *M* as the TLM):
-      $$ \frac{d U}{d t} = M U, \quad U_0 = I .$$
 
-    .. note:: the tangent linear model (TLM)
-              is assumed constant (for each `method` below).
+    $$
+    \frac{d U}{d t} = M U, \quad U_0 = I .
+    $$
+
+    !!! tip "The tangent linear model (TLM)"
+        is assumed constant (for each `method` below).
 
     Parameters
     ----------
@@ -166,7 +169,9 @@ def integrate_TLM(TLM, dt, method='approx'):
         - `'approx'`  : derived from the forward-euler scheme.
         - `'rk4'`     : higher-precision approx.
         - `'analytic'`: exact.
-        .. warning:: 'analytic' typically requries higher inflation in the ExtKF.
+
+        !!! warning
+            "'analytic' typically requries higher inflation in the ExtKF."
 
     See Also
     --------

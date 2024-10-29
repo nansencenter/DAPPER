@@ -16,7 +16,7 @@ def da_method(*default_dataclasses):
     The decorated classes are defined like a `dataclass`,
     but are decorated by `@da_method()` instead of `@dataclass`.
 
-    .. note::
+    !!! note
         The classes must define a method called `assimilate`.
         This method gets slightly enhanced by this wrapper which provides:
 
@@ -56,7 +56,7 @@ def da_method(*default_dataclasses):
     ...     def assimilate(self, HMM, xx, yy):
     ...         ...
 
-    .. note::
+    !!! note
         Apart from what's listed in the above `Note`, there is nothing special to the
         resulting `xp`.  That is, just like any Python object, it can serve as a data
         container, and you can write any number of attributes to it (at creation-time,

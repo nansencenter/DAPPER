@@ -210,8 +210,9 @@ class FAUSt(DataSeries, StatPrint):
         self[k,'u']
         self[k,whatever,'u']
 
-    .. note:: If a data series only pertains to analysis times,
-              then you should use a plain np.array instead.
+    !!! note
+        If a data series only pertains to analysis times, then you should use a plain
+        np.array instead.
     """
 
     def __init__(self, K, Ko, item_shape, store_u, store_s, **kwargs):

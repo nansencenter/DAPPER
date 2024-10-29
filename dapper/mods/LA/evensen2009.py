@@ -1,6 +1,6 @@
 """A mix of `bib.evensen2009ensemble` and `bib.sakov2008implications`.
 
-.. note::
+!!! note
     Since there is no noise, and the system is stable,
     the rmse's from this HMM go to zero as `T` goes to infinity.
     Thus, benchmarks largely depend on the initial error,

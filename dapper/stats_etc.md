@@ -28,7 +28,8 @@ This is done according to the methods listed in `dpr.rc.field_summaries`.
     nulla. Curabitur feugiat, tortor non consequat finibus, justo purus auctor
     massa, nec semper lorem quam in massa.
 
-.. note::
+!!! note
+
     Although sometimes pretty close, `rmv` (a.k.a. `spread.rms`) is not (supposed
     to be) an un-biased estimator of `rmse` (a.k.a. `err.rms`).  This is because
     of the square roots involved in the field summary.  Instead, `spread.ms` (i.e.
