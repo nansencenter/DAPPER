@@ -90,7 +90,7 @@ class SparseSpace(dict):
 
         Parameters
         ----------
-        dims: list or tuple
+        dims : list or tuple
             The attributes defining the coordinate system.
         """
         # Define coordinate system
@@ -587,10 +587,10 @@ class xpSpace(SparseSpace):
 
         Parameters
         ----------
-        statkey: str
+        statkey : str
             The statistic to extract from the `xp.avrgs` for each `xp`.
             Examples: `"rmse.a"` (i.e. `"err.rms.a"`), `"rmse.ocean.a"`, `"duration"`.
-        dims: dict
+        dims : dict
             Allots (maps) the dims of `xpSpace` to different roles in the tables.
 
             - The "role" `outer` should list the dims/attributes
@@ -610,7 +610,7 @@ class xpSpace(SparseSpace):
 
             Equivalently, use `mean=("seed",)`.
             It is acceptible to leave this empty: `mean=()` or `mean=None`.
-        subcols: bool
+        subcols : bool
             If `True`, then subcolumns are added to indicate
 
             - `1σ`: the confidence interval. If `mean=None` is used, this simply reports
@@ -621,16 +621,16 @@ class xpSpace(SparseSpace):
               as defined by `costfun`.
             - `☠`: the number of failures (non-finite values) at that point.
             - `✓`: the number of successes that go into the value
-        decimals: int
+        decimals : int
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
-        costfun: str or function
+        costfun : str or function
             Use `'increasing'` (default) or `'decreasing'` to indicate that the optimum
             is defined as the lowest or highest value of the `statkey` found.
-        squeeze_labels: bool
+        squeeze_labels : bool
             Don't include redundant attributes in the line labels.
             Caution: `get_style` will not be able to access the eliminated attrs.
-        colorize: bool
+        colorize : bool
             Add color to tables for readability.
         """
         # Title
@@ -768,16 +768,16 @@ class xpSpace(SparseSpace):
 
         Parameters
         ----------
-        get_style: function
+        get_style : function
             A function that takes an object, and returns a dict of line styles,
             usually as a function of the object's attributes.
-        title1: anything
+        title1 : anything
             Figure title (in addition to the the defaults).
-        title2: anything
+        title2 : anything
             Figure title (in addition to the defaults). Goes on a new line.
-        unique_labels: bool
+        unique_labels : bool
             Only show a given line label once, even if it appears in several panels.
-        squeeze_labels:
+        squeeze_labels :
             Don't include redundant attributes in the labels.
         """
 

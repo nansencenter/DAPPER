@@ -124,12 +124,12 @@ def np_vectorize(f):
 
     Parameters
     ----------
-    f: callable
+    f : callable
         Your function.
 
     Returns
     -------
-    vectorized: callable
+    vectorized : callable
         Your function, now element-wise applicable to an iterable.
     """
     vectorized = np.vectorize(f)
@@ -192,7 +192,7 @@ def round2(x, prec=1.0):
     ----------
     x : array_like
         Value to be rounded.
-    prec: float
+    prec : float
         Precision, before prettify, which is given by
         $$ \text{prec} = 10^{\text{floor}(-\log_{10}|\text{prec}|)} $$
 
@@ -259,12 +259,12 @@ def is_whole(x, **kwargs):
 
     Parameters
     ----------
-    x: float or ndarray
+    x : float or ndarray
         Values to be checked
 
     Returns
     -------
-    l: bool
+    l : bool
         True if rounded x is close to x, otherwise False
     """
     return np.isclose(x, round(x), **kwargs)

@@ -49,36 +49,37 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         imports all configurations, which might then unintentionally interact.
         To avoid this, you should use the `copy` method of the `HMM`
         before making any changes to it.
-
-
-    Parameters
-    ----------
-    Dyn: `Operator` or dict
-        Operator for the dynamics.
-    Obs: `Operator` or dict
-        Operator for the observations
-        Can also be time-dependent, ref `TimeDependentOperator`.
-    tseq: [`tools.chronos.Chronology`][]
-        Time sequence of the HMM process.
-    X0: [`tools.randvars.RV`][]
-        Random distribution of initial condition
-    liveplotters: `list`, optional
-        A list of tuples. See example use in function `LPs` of [`mods.Lorenz63`][].
-        - The first element of the tuple determines if the liveplotter
-        is shown by default. If `False`, the liveplotter is only shown when
-        included among the `liveplots` argument of `assimilate`
-        - The second element in the tuple gives the corresponding liveplotter
-        function/class.
-    sectors: `dict`, optional
-        Labelled indices referring to parts of the state vector.
-        When defined, field-mean statistics are computed for each sector.
-        Example use can be found in  `examples/param_estim.py`
-        and `dapper/mods/Lorenz96/miyoshi2011.py`
-    name: str, optional
-        Label for the `HMM`.
     """
 
     def __init__(self, *args, **kwargs):
+        """Initialize.
+
+        Parameters
+        ----------
+        Dyn : Operator or dict
+            Operator for the dynamics.
+        Obs : Operator or dict
+            Operator for the observations
+            Can also be time-dependent, ref `TimeDependentOperator`.
+        tseq : tools.chronos.Chronology
+            Time sequence of the HMM process.
+        X0 : tools.randvars.RV
+            Random distribution of initial condition
+        liveplotters : list, optional
+            A list of tuples. See example use in function `LPs` of [`mods.Lorenz63`][].
+            - The first element of the tuple determines if the liveplotter
+            is shown by default. If `False`, the liveplotter is only shown when
+            included among the `liveplots` argument of `assimilate`
+            - The second element in the tuple gives the corresponding liveplotter
+            function/class.
+        sectors : dict, optional
+            Labelled indices referring to parts of the state vector.
+            When defined, field-mean statistics are computed for each sector.
+            Example use can be found in  `examples/param_estim.py`
+            and `dapper/mods/Lorenz96/miyoshi2011.py`
+        name : str, optional
+            Label for the `HMM`.
+        """
         # Expected args/kwargs, along with type and default.
         attrs = dict(
             Dyn=(Operator, None),
@@ -216,11 +217,11 @@ class Operator(struct_tools.NicePrint):
 
     Parameters
     ----------
-    M: int
+    M : int
         Length of output vectors.
-    model: function
+    model : function
         The actual operator.
-    noise: RV, optional
+    noise : RV, optional
         The associated additive noise. The noise can also be a scalar or an
         array, producing `GaussRV(C=noise)`.
 

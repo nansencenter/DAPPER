@@ -39,9 +39,9 @@ def seed_and_simulate(HMM, xp):
 
     Parameters
     ----------
-    HMM: HiddenMarkovModel
+    HMM : HiddenMarkovModel
         Container defining the system.
-    xp: object
+    xp : object
         Type: a [`da_methods.da_method`][]-decorated class.
 
         !!! warning "`xp.seed` should be set (and `int`)."
@@ -86,25 +86,25 @@ def run_experiment(
 
     Parameters
     ----------
-    xp: object
+    xp : object
         Type: a [`da_methods.da_method`][]-decorated class.
-    label: str
+    label : str
         Name attached to progressbar during assimilation.
-    savedir: str
+    savedir : str
         Path of folder wherein to store the experiment data.
-    HMM: HiddenMarkovModel
+    HMM : HiddenMarkovModel
         Container defining the system.
-    free: bool
+    free : bool
         Whether (or not) to `del xp.stats` after the experiment is done,
         so as to free up memory and/or not save this data
         (just keeping `xp.avrgs`).
-    statkeys: list
+    statkeys : list
         A list of names (possibly in the form of abbreviations) of the
         statistical averages that should be printed immediately afther
         this xp.
-    fail_gently: bool
+    fail_gently : bool
         Whether (or not) to propagate exceptions.
-    setup: function
+    setup : function
         This function must take two arguments: `HMM` and `xp`, and return the `HMM` to
         be used by the DA methods (typically the same as the input `HMM`, but could be
         modified), and the (typically synthetic) truth and obs time series.
@@ -218,10 +218,10 @@ class xpList(list):
 
     Parameters
     ----------
-    args: entries
+    args : entries
         Nothing, or a list of `xp`s.
 
-    unique: bool
+    unique : bool
         Duplicates won't get appended. Makes `append` (and `__iadd__`) relatively slow.
         Use `extend` or `__add__` or `combinator` to bypass this validation.
 
@@ -299,7 +299,7 @@ class xpList(list):
 
         Parameters
         ----------
-        nomerge: list
+        nomerge : list
             Attributes that should always be seen as distinct.
         """
 

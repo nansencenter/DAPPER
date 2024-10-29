@@ -631,10 +631,10 @@ def unpack_uqs(uq_list, decimals=None):
 
     Parameters
     ----------
-    uq_list: list
+    uq_list : list
         List of `uq`s.
 
-    decimals: int
+    decimals : int
         Desired number of decimals.
         Used for (only) the columns "val" and "prec".
         Default: `None`. In this case, the formatting is left to the `uq`s.
@@ -707,23 +707,23 @@ def center(E, axis=0, rescale=False):
 
     Parameters
     ----------
-    E: ndarray
+    E : ndarray
         Ensemble which going to be inflated
 
-    axis: int, optional
+    axis : int, optional
         The axis to be centered. Default: 0
 
-    rescale: bool, optional
+    rescale : bool, optional
         If True, inflate to compensate for reduction in the expected variance.
         The inflation factor is \(\sqrt{\frac{N}{N - 1}}\)
         where N is the ensemble size. Default: False
 
     Returns
     -------
-    X: ndarray
+    X : ndarray
         Ensemble anomaly
 
-    x: ndarray
+    x : ndarray
         Mean of the ensemble
     """
     x = np.mean(E, axis=axis, keepdims=True)
@@ -755,7 +755,7 @@ def inflate_ens(E, factor):
     E : ndarray
         Ensemble which going to be inflated
 
-    factor: `float`
+    factor : `float`
         Inflation factor
 
     Returns
@@ -777,10 +777,10 @@ def weight_degeneracy(w, prec=1e-10):
 
     Parameters
     ----------
-    w: ndarray
+    w : ndarray
         Importance weights. Must sum to 1.
 
-    prec: float, optional
+    prec : float, optional
         Tolerance of the distance between w and one. Default:1e-10
 
     Returns
@@ -796,21 +796,21 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 
     Parameters
     ----------
-    w: ndarray, optional
+    w : ndarray, optional
         Importance weights. Must sum to 1.
         Only one of `w` and `N_eff` can be `None`. Default: `None`
 
-    N_eff: float, optional
+    N_eff : float, optional
         The "effective" size of the weighted ensemble.
         If not provided, it is computed from the weights.
         The unbiasing factor is $$ N_{eff} / (N_{eff} - 1) $$.
 
-    avoid_pathological: bool, optional
+    avoid_pathological : bool, optional
         Avoid weight collapse. Default: `False`
 
     Returns
     -------
-    ub: float
+    ub : float
         factor used to unbiasing variance
 
     Reference

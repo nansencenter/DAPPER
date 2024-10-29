@@ -116,14 +116,14 @@ def direct_obs_matrix(Nx, obs_inds):
 
     Parameters
     ----------
-    Nx: int
+    Nx : int
         Length of state vector
-    obs_inds: ndarray
+    obs_inds : ndarray
         Indices of elements of the state vector that are (directly) observed.
 
     Returns
     -------
-    H: ndarray
+    H : ndarray
         The observation matrix for direct partial observations.
     """
     Ny = len(obs_inds)
@@ -143,14 +143,14 @@ def partial_Id_Obs(Nx, obs_inds):
 
     Parameters
     ----------
-    Nx: int
+    Nx : int
         Length of state vector
-    obs_inds: ndarray
+    obs_inds : ndarray
         The observed indices.
 
     Returns
     -------
-    Obs: dict
+    Obs : dict
         Observation operator including size of the observation space,
         observation operator/model and tangent linear observation operator
     """
@@ -181,12 +181,12 @@ def Id_Obs(Nx):
 
     Parameters
     ----------
-    Nx: int
+    Nx : int
         Length of state vector
 
     Returns
     -------
-    Obs: dict
+    Obs : dict
         Observation operator including size of the observation space,
         observation operator/model and tangent linear observation operator
     """
@@ -198,18 +198,18 @@ def linspace_int(Nx, Ny, periodic=True):
 
     Parameters
     ----------
-    Nx: int
+    Nx : int
         Range of integers
-    Ny: int
+    Ny : int
         Number of integers
-    periodic: bool, optional
+    periodic : bool, optional
         Whether the vector is periodic.
         Determines if `Nx == 0`.
         Default: True
 
     Returns
     -------
-    integers: ndarray
+    integers : ndarray
         The list of integers.
 
     Examples
