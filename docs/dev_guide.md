@@ -1,3 +1,8 @@
+---
+hide:
+- navigation
+---
+
 # Developer guide
 
 ## Conventions

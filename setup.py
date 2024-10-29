@@ -53,10 +53,22 @@ EXTRAS = {
         "pytest-timeout",
     ],
     "lint": ["ruff"],
+    "doc": [
+        "mkdocs-material",
+        "mkdocstrings",
+        "mkdocstrings-python",
+        "mkdocs-gen-files",
+        "mkdocs-literate-nav",
+        "mkdocs-section-index",
+        "mkdocs-glightbox",
+        "mkdocs-jupyter",
+    ],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
     "build": ["twine", "pdoc", "jupytext"],
 }
-EXTRAS["dev"] = EXTRAS["debug"] + EXTRAS["test"] + EXTRAS["lint"] + EXTRAS["build"]
+EXTRAS["dev"] = (
+    EXTRAS["debug"] + EXTRAS["test"] + EXTRAS["lint"] + EXTRAS["build"] + EXTRAS["doc"]
+)
 
 
 def find_version(*file_paths):

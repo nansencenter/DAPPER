@@ -1,6 +1,6 @@
 """Contains the data assimilation methods included with DAPPER.
 
-.. include:: ./README.md
+--8<-- "dapper/da_methods/README.md"
 """
 
 from pathlib import Path

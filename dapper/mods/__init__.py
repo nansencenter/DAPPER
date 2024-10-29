@@ -1,6 +1,6 @@
 """Contains models included with DAPPER.
 
-.. include:: ./README.md
+--8<-- "dapper/mods/README.md"
 """
 
 import copy as cp

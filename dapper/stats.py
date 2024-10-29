@@ -1,15 +1,15 @@
 """Statistics for the assessment of DA methods.
 
-`Stats` is a data container for ([mostly] time series of) statistics.
+[`Stats`][stats.Stats] is a data container for ([mostly] time series of) statistics.
 It comes with a battery of methods to compute the default statistics.
 
-`Avrgs` is a data container *for the same statistics*,
+[`Avrgs`][stats.Avrgs] is a data container *for the same statistics*,
 but after they have been averaged in time (after the assimilation has finished).
 
 Instances of these objects are created by `dapper.da_methods.da_method`
 (i.e. "`xp`") objects and written to their `.stats` and `.avrgs` attributes.
 
-.. include:: ../docs/stats_etc.md
+--8<-- "dapper/stats_etc.md"
 """
 
 import warnings
@@ -173,7 +173,8 @@ class Stats(series.StatPrint):
         ]
 
     def assess(self, k, ko=None, faus=None, E=None, w=None, mu=None, Cov=None):
-        """Common interface for both `Stats.assess_ens` and `Stats.assess_ext`.
+        """Common interface for both [`Stats`.assess_ens][stats.Stats.assess_ens]
+        and [`Stats`.assess_ext][stats.Stats.assess_ext].
 
         The `_ens` assessment function gets called if `E is not None`,
         and `_ext` if `mu is not None`.
@@ -499,12 +500,13 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 
     Embellishments:
 
-    - `dapper.tools.StatPrint`
-    - `Avrgs.tabulate`
+    - [`tools.series.StatPrint`][]
+    - [`Avrgs.tabulate`][stats.Avrgs.tabulate]
     - `getattr` that supports abbreviations.
     """
 
     def tabulate(self, statkeys=(), decimals=None):
+        """Tabulate using [`tabulate_avrgs`][stats.tabulate_avrgs]"""
         columns = tabulate_avrgs([self], statkeys, decimals=decimals)
         return tabulate(columns, headers="keys").replace("␣", " ")
 
@@ -735,7 +737,7 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    """Like `center`, but only return the anomalies (not the mean).
+    """Like [`center`][stats.center], but only return the anomalies (not the mean).
 
     Uses `rescale=True` by default, which is beneficial
     when used to center observation perturbations.

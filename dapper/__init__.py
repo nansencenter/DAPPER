@@ -1,7 +1,7 @@
 """Root package of **DAPPER**
 (Data Assimilation with Python: a Package for Experimental Research)
 
-.. include:: ./README.md
+--8<-- "dapper/README.md"
 """
 
 __version__ = "1.7.0"
