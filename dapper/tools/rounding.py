@@ -74,7 +74,9 @@ class UncertainQtty:
         return v, c
 
     def __str__(self):
-        """Returns 'val ±prec', using `UncertainQtty.round` and some finesse."""
+        """Returns 'val ±prec', using [tools.rounding.UncertainQtty.round][]
+
+        and some finesse."""
         v, c = self.round()
 
         if np.isnan(c):

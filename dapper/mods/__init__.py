@@ -30,7 +30,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     Should contain the details necessary to run synthetic DA experiments,
     also known as "twin experiment", or OSSE (observing system simulation experiment).
     The synthetic truth and observations may then be obtained by running
-    `HiddenMarkovModel.simulate`.
+    [`.simulate`][mods.HiddenMarkovModel.simulate].
 
     !!! note
         Each model included with DAPPER comes with several examples

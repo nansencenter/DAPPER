@@ -34,7 +34,8 @@ _tabulate.MIN_PADDING = 0
 def seed_and_simulate(HMM, xp):
     """Default experiment setup (sets seed and simulates truth and obs).
 
-    Used by `xpList.launch` via `run_experiment`.
+    Used by [xp_launch.xpList.launch][]
+    via [xp_launch.run_experiment][].
 
     Parameters
     ----------
@@ -73,7 +74,7 @@ def run_experiment(
     fail_gently=False,
     **stat_kwargs,
 ):
-    """Used by `xpList.launch` to run each single (DA) experiment ("xp").
+    """Used by [xp_launch.xpList.launch][] to run each single (DA) experiment ("xp").
 
     This involves steps similar to `examples/basic_1.py`, i.e.:
 
@@ -294,7 +295,7 @@ class xpList(list):
         since there might exist a subset of attributes that) uniquely identify each `xp`
         in the list (the `redundant` and `common` can be "squeezed" out).
         Thus, a table of the `xp`s does not need to list all of the attributes.
-        This function also does the heavy lifting for `xpSpace.squeeze`.
+        This function also does the heavy lifting for [xp_process.xpSpace.squeeze][].
 
         Parameters
         ----------

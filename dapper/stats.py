@@ -127,7 +127,8 @@ class Stats(series.StatPrint):
         """Create (and register) a statistics time series, initialized with `nan`s.
 
         If `length` is an integer, a `DataSeries` (a trivial subclass of
-        `numpy.ndarray`) is made. By default, though, a `series.FAUSt` is created.
+        `numpy.ndarray`) is made. By default, though, a [tools.series.FAUSt][]
+        is created.
 
         NB: The `sliding_diagnostics` liveplotting relies on detecting `nan`'s
             to avoid plotting stats that are not being used.

@@ -12,7 +12,7 @@ list(vars(xp.avrgs))
 The time series of statistics (the attributes of `.stats`) may have attributes
 `.f`, `.a`, `.s`, `.u`, referring to whether the statistic is for a "forecast",
 "analysis", or "smoothing" estimate (as is decided when the calls to
-`Stats.assess` is made), or a "universal" (forecast, but at intermediate
+[Stats.assess][stats.Stats.assess] is made), or a "universal" (forecast, but at intermediate
 [non-obs.-time]) estimate.
 
 The same applies for the time-averages of `.avrgs`.
@@ -52,8 +52,8 @@ This also goes for any other (than `rms`) type of field summary method.
 
 ## Declaring new, custom statistics
 
-Only the time series created with `Stats.new_series` will be in the format
-operated on by `Stats.average_in_time`.  For example, create `ndarray` of
+Only the time series created with [Stats.new_series][stats.Stats.new_series] will be in the format
+operated on by [Stats.average_in_time][stats.Stats.average_in_time].  For example, create `ndarray` of
 length `Ko+1` to hold the time series of estimated inflation values:
 
 ```python

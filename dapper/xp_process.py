@@ -109,7 +109,7 @@ class SparseSpace(dict):
         """Update dict, using the custom `__setitem__` to ensure key conformity.
 
         NB: the `kwargs` syntax is not supported because it only works for keys that
-        consist of (a single) string, which is not very interesting for SparseSpace.
+        consist of (a single) string, which is not very interesting for `SparseSpace`.
         """
         # See https://stackoverflow.com/a/2588648
         # and https://stackoverflow.com/a/2390997
@@ -151,14 +151,14 @@ class SparseSpace(dict):
             return super().__getitem__(key)
 
     def __call__(self, **kwargs):
-        """Shortcut (syntactic sugar) for `SparseSpace.subspace`."""
+        """Shortcut (syntactic sugar) for [xp_process.SparseSpace.subspace][]."""
         return self.subspace(**kwargs)
 
     def subspace(self, **kwargs):
         """Get an affine subspace.
 
         NB: If you're calling this repeatedly (for all values of the same `kwargs`)
-        then you should consider using `SparseSpace.nest` instead.
+        then you should consider using [xp_process.SparseSpace.nest][] instead.
 
         Example:
         >>> xp_dict.subspace(da_method="EnKF", infl=1, seed=3) # doctest: +SKIP
@@ -177,11 +177,13 @@ class SparseSpace(dict):
     def coords_matching(self, **kwargs):
         """Get all `coord`s matching kwargs.
 
-        Used by `SparseSpace.label_xSection` and `SparseSpace.subspace`. Unlike the
-        latter, this function returns a *list* of *keys* of the *original subspace*.
+        Used by [xp_process.SparseSpace.label_xSection][] and
+        [xp_process.SparseSpace.subspace][].
+        Unlike the latter, this function returns a *list* of *keys*
+        of the *original subspace*.
 
-        Note that the `missingval` shenanigans of `xpList.inds` are here unnecessary
-        since each coordinate is complete.
+        Note that the `missingval` shenanigans of [xp_launch.xpList.inds][]
+        are here unnecessary since each coordinate is complete.
         """
 
         def match(coord):
