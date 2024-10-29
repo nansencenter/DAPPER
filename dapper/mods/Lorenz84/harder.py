@@ -1,4 +1,4 @@
-"""Harder settings than in `dapper.mods.Lorenz84.pajonk2012`.
+"""Harder settings than in [`mods.Lorenz84.pajonk2012`][].
 
 This was adjudged by noting that with their settings,
 the average val. of `trHK` is 0.013.

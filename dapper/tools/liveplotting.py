@@ -1,14 +1,14 @@
 """On-line (live) plots of the DA process for various models and methods.
 
 Liveplotters are given by a list of tuples as property or arguments in
-`dapper.mods.HiddenMarkovModel`.
+[`mods.HiddenMarkovModel`][].
 
 - The first element of the tuple determines whether the liveplotter is shown if
 the names of liveplotters are not given by `liveplots` argument in
 `assimilate`.
 
 - The second element in the tuple gives the corresponding liveplotter
-function/class. See example of function `LPs` in `dapper.mods.Lorenz63`.
+function/class. See example of function `LPs` in [`mods.Lorenz63`][].
 
 The liveplotters can be fine-tuned by each DA experiments via argument of
 `liveplots` when calling `assimilate`.

@@ -212,7 +212,7 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
     ----------
     xx: ndarray
         Plotted array
-    tseq: `dapper.tools.chronos.Chronology`, optional
+    tseq: [`tools.chronos.Chronology`][], optional
         object with property dko. Defaults: None
     mult: int, optional
         Number of waves for plotting. Defaults: 100
@@ -321,7 +321,7 @@ def plot_hovmoller(xx, tseq=None):
     ----------
     xx: ndarray
         Plotted array
-    tseq: `dapper.tools.chronos.Chronology`, optional
+    tseq: [`tools.chronos.Chronology`][], optional
         object with property dko. Defaults: None
     """
     fig, ax = place.freshfig("Hovmoller", figsize=(4, 3.5))
@@ -401,16 +401,18 @@ def plot_err_components(stats):
 
     Parameters
     ----------
-    stats: `dapper.stats.Stats`
+    stats:
+        [`stats.Stats`][]
 
-    !!! note
-        It was chosen to `plot(ii, mean_in_time(abs(err_i)))`,
-        and thus the corresponding spread measure is MAD.
-        If one chose instead: `plot(ii, std_spread_in_time(err_i))`,
-        then the corresponding measure of spread would have been `spread`.
-        This choice was made in part because (wrt. subplot 2)
-        the singular values (`svals`) correspond to rotated MADs,
-        and because `rms(umisf)` seems too convoluted for interpretation.
+    Note
+    ----
+    It was chosen to `plot(ii, mean_in_time(abs(err_i)))`,
+    and thus the corresponding spread measure is MAD.
+    If one chose instead: `plot(ii, std_spread_in_time(err_i))`,
+    then the corresponding measure of spread would have been `spread`.
+    This choice was made in part because (wrt. subplot 2)
+    the singular values (`svals`) correspond to rotated MADs,
+    and because `rms(umisf)` seems too convoluted for interpretation.
     """
     fig, (ax0, ax1, ax2) = place.freshfig("Error components", figsize=(6, 6), nrows=3)
 
@@ -466,7 +468,7 @@ def plot_rank_histogram(stats):
 
     Parameters
     ----------
-    stats: `dapper.stats.Stats`
+    stats: [`stats.Stats`][]
     """
     tseq = stats.HMM.tseq
 

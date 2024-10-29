@@ -73,7 +73,7 @@ Of course, you could just do this
 self.stats.my_custom_stat = value
 ```
 
-However, `dapper.xp_launch.run_experiment` (without `free=False`) will delete
+However, [`xp_launch.run_experiment`][] (without `free=False`) will delete
 the `Stats` object from `xp` after the assimilation, in order to save memory.
 Therefore, in order to have `my_custom_stat` be available among `xp.avrgs`, it
 must be "registered":

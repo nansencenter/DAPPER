@@ -35,7 +35,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     !!! note
         Each model included with DAPPER comes with several examples
         of model settings from the literature.
-        See, for example, `dapper.mods.Lorenz63.sakov2012`.
+        See, for example, [`mods.Lorenz63.sakov2012`][].
 
     !!! warning
         These example configs do not necessarily hold a high programming standard,
@@ -58,12 +58,12 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     Obs: `Operator` or dict
         Operator for the observations
         Can also be time-dependent, ref `TimeDependentOperator`.
-    tseq: `dapper.tools.chronos.Chronology`
+    tseq: [`tools.chronos.Chronology`][]
         Time sequence of the HMM process.
-    X0: `dapper.tools.randvars.RV`
+    X0: [`tools.randvars.RV`][]
         Random distribution of initial condition
     liveplotters: `list`, optional
-        A list of tuples. See example use in function `LPs` of `dapper.mods.Lorenz63`.
+        A list of tuples. See example use in function `LPs` of [`mods.Lorenz63`][].
         - The first element of the tuple determines if the liveplotter
         is shown by default. If `False`, the liveplotter is only shown when
         included among the `liveplots` argument of `assimilate`

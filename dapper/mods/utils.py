@@ -43,11 +43,11 @@ def ens_compatible(func):
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
     !!! tip "This is not `the_way™`"
-        Other tricks (ref `dapper.mods`) are sometimes more practical.
+        Other tricks (ref [`mods`][]) are sometimes more practical.
 
     Examples
     --------
-    `dapper.mods.Lorenz63.dxdt`, `dapper.mods.DoublePendulum.dxdt`
+    [`mods.Lorenz63.dxdt`][], [`mods.DoublePendulum.dxdt`][]
 
     See Also
     --------

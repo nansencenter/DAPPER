@@ -62,7 +62,7 @@ def da_method(*default_dataclasses):
         container, and you can write any number of attributes to it (at creation-time,
         or later).  For example, you can set attributes that are not used by the
         `assimilate` method, but are instead used to customize other aspects of the
-        experiments (see `dapper.xp_launch.run_experiment`).
+        experiments (see [`xp_launch.run_experiment`][]).
     """
     import dataclasses
     import functools

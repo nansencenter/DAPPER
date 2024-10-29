@@ -2,7 +2,7 @@
 
 This is an implementation of "Model III" of `bib.lorenz2005designing`.
 
-Similar to `dapper.mods.LorenzUV` this model is designed
+Similar to [`mods.LorenzUV`][] this model is designed
 to contain two different scales. However, in "Model III"
 the two scales are not kept separate, but superimposed,
 and the large scale variables are (adjustably) spatially smooth.

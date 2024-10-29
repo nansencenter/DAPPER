@@ -65,7 +65,7 @@ def fit_acf_by_AR1(acf_empir, nlags=None):
 def estimate_corr_length(xx):
     r"""Estimate the correlation length of a time series.
 
-    For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
+    For explanation, see [`mods.LA.homogeneous_1D_cov`][].
     Also note that, for exponential corr function, as assumed here,
 
     $$\text{corr}(L) = \exp(-1) \approx 0.368$$

@@ -6,9 +6,9 @@ for a table overview of the included models.
 
 Below is a sugested structuring followed by most models already within DAPPER.
 However, you are free to organize your model as you see fit,
-as long as it culminates in the definition of one or more `dapper.mods.HiddenMarkovModel`.
+as long as it culminates in the definition of one or more [`mods.HiddenMarkovModel`][].
 For the sake of modularity,
-try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
+try not to import stuff from DAPPER outside of [`mods`][] and `liveplotting`.
 
 - Make a directory: `my_model`. It does not have to reside within the `dapper/mods` folder,
   but make sure to look into some of the other dirs thereunder as examples,
@@ -26,7 +26,7 @@ try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
 
 - Make a file: `my_model/my_settings_1.py` that defines
     (or "configures", since there is usually little programming logic and flow taking place)
-    a complete `dapper.mods.HiddenMarkovModel` ready for a synthetic experiment
+    a complete [`mods.HiddenMarkovModel`][] ready for a synthetic experiment
     (also called "twin experiment" or OSSE).
 -   Once you've made some experiments you believe are noteworthy you should add a
     "suggested settings/tunings" section in comments at the bottom of
@@ -44,9 +44,9 @@ try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
   number of dimensions (as the input).
   See
 
-    - `dapper.mods.Lorenz63`: use of `ens_compatible`.
-    - `dapper.mods.Lorenz96`: use of relatively clever slice notation.
-    - `dapper.mods.LorenzUV`: use of cleverer slice notation: `...` (ellipsis).
+    - [`mods.Lorenz63`][]: use of `ens_compatible`.
+    - [`mods.Lorenz96`][]: use of relatively clever slice notation.
+    - [`mods.LorenzUV`][]: use of cleverer slice notation: `...` (ellipsis).
       Consider pre-defining the slices like so:
 
             iiX = (..., slice(None, Nx))
@@ -54,7 +54,7 @@ try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
 
         to abbreviate the indexing elsewhere.
 
-    - `dapper.mods.QG`: use of parallelized for loop (map).
+    - [`mods.QG`][]: use of parallelized for loop (map).
 
     !!! note
         To begin with, test whether the model works on 1 realization,
@@ -66,7 +66,7 @@ try not to import stuff from DAPPER outside of `dapper.mods` and `liveplotting`.
 
     !!! note
         Most models are defined using simple procedural style.
-        However, `dapper.mods.LorenzUV` and `dapper.mods.QG` use OOP,
+        However, [`mods.LorenzUV`][] and [`mods.QG`][] use OOP,
         which is perhaps more robust when different
         control-variable settings are to be investigated.
         The choice is yours.

@@ -1,6 +1,6 @@
 """Tools (notably `xpList`) for setup and running of experiments (known as `xp`s).
 
-See `dapper.da_methods.da_method` for the strict definition of `xp`s.
+See [`da_methods.da_method`][] for the strict definition of `xp`s.
 """
 
 import copy
@@ -41,7 +41,7 @@ def seed_and_simulate(HMM, xp):
     HMM: HiddenMarkovModel
         Container defining the system.
     xp: object
-        Type: a `dapper.da_methods.da_method`-decorated class.
+        Type: a [`da_methods.da_method`][]-decorated class.
 
         !!! warning "`xp.seed` should be set (and `int`)."
 
@@ -86,7 +86,7 @@ def run_experiment(
     Parameters
     ----------
     xp: object
-        Type: a `dapper.da_methods.da_method`-decorated class.
+        Type: a [`da_methods.da_method`][]-decorated class.
     label: str
         Name attached to progressbar during assimilation.
     savedir: str
@@ -111,7 +111,7 @@ def run_experiment(
         This gives you the ability to customize almost any aspect of the individual
         experiments within a batch launch of experiments (i.e. not just the parameters
         of the DA. method).  Typically you will grab one or more parameter values stored
-        in the `xp` (see `dapper.da_methods.da_method`) and act on them, usually by
+        in the `xp` (see [`da_methods.da_method`][]) and act on them, usually by
         assigning them to some object that impacts the experiment.  Thus, by generating
         a new `xp` for each such parameter value you can investigate the
         impact/sensitivity of the results to this parameter.  Examples include:
@@ -227,7 +227,7 @@ class xpList(list):
     Also see
     --------
     - Examples: `examples/basic_2`, `examples/basic_3`
-    - `dapper.xp_process.xpSpace`, which is used for experient result **presentation**,
+    - [`xp_process.xpSpace`][], which is used for experient result **presentation**,
       as opposed to this class (`xpList`), which handles **launching** experiments.
     """
 
@@ -464,7 +464,7 @@ class xpList(list):
         """Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
         See `run_experiment` for documentation on the `kwargs` and `fail_gently`.
-        See `dapper.tools.datafiles.create_run_dir` for documentation `save_as`.
+        See [`tools.datafiles.create_run_dir`][] for documentation `save_as`.
 
         Depending on `mp`, `run_experiment` is delegated as follows:
 
@@ -627,7 +627,7 @@ def combinator(param_dict, **glob_dict):
     """Mass creation of `xp`'s by combining the value lists in the `param_dict`.
 
     Returns a function (`for_params`) that creates all possible combinations
-    of parameters (from their value list) for a given `dapper.da_methods.da_method`.
+    of parameters (from their value list) for a given [`da_methods.da_method`][].
     This is a good deal more efficient than relying on `xpList`'s `unique`. Parameters
 
     - not found among the args of the given DA method are ignored by `for_params`.

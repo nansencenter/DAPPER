@@ -6,7 +6,7 @@
     Thus, benchmarks largely depend on the initial error,
     and so these absolute rmse values are not so useful
     for quantatative evaluation of DA methods.
-    For that purpose, see `dapper.mods.LA.raanes2015` instead.
+    For that purpose, see [`mods.LA.raanes2015`][] instead.
 """
 
 import numpy as np

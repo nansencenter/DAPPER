@@ -6,7 +6,7 @@ It comes with a battery of methods to compute the default statistics.
 [`Avrgs`][stats.Avrgs] is a data container *for the same statistics*,
 but after they have been averaged in time (after the assimilation has finished).
 
-Instances of these objects are created by `dapper.da_methods.da_method`
+Instances of these objects are created by [`da_methods.da_method`][]
 (i.e. "`xp`") objects and written to their `.stats` and `.avrgs` attributes.
 
 --8<-- "dapper/stats_etc.md"
@@ -626,7 +626,7 @@ def unpack_uqs(uq_list, decimals=None):
     and may get formatted somehow (e.g. cast to strings) in the output.
 
     If `uq` is `None`, then `None` is inserted in each list.
-    Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
+    Else, `uq` must be an instance of [`tools.rounding.UncertainQtty`][].
 
     Parameters
     ----------

@@ -59,7 +59,7 @@ def Pool(NPROC=None):
         reference `xp.stats.LP_instance`. In fact, `func` should not reference `xp`
         at all, because it takes time to serialize.
 
-    See example use in `dapper.mods.QG` and `dapper.da_methods.ensemble.LETKF`.
+    See example use in [`mods.QG`][] and [`da_methods.ensemble.LETKF`][].
     """
     if NPROC == False:  # noqa: E712
         # Yield plain old map

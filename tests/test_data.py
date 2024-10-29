@@ -1,4 +1,4 @@
-"""Test data loading and `dapper.xp_process.xpSpace.print`.
+"""Test data loading and [`xp_process.xpSpace.print`][].
 
 If script is run with one of these command-line arguments,
 then there is no test generation, but rather:
@@ -65,7 +65,7 @@ def cap_stdout(fun, *args, **kwargs):
 
 
 def gen_test_set(xp_dict, *args, **kwargs):
-    """Capture printout of `dapper.xp_process.xpSpace.print`, gen tests."""
+    """Capture printout of [`xp_process.xpSpace.print`][], gen tests."""
     # Get stdout of xpSpace.print()
     output = cap_stdout(xp_dict.print, *args, **kwargs, colorize=False)
 

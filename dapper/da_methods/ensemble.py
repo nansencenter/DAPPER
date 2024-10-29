@@ -616,8 +616,8 @@ class LETKF:
 
     Refs: `bib.hunt2007efficient`.
 
-    NB: Multiproc. yields slow-down for `dapper.mods.Lorenz96`,
-    even with `batch_size=(1,)`. But for `dapper.mods.QG`
+    NB: Multiproc. yields slow-down for [`mods.Lorenz96`][],
+    even with `batch_size=(1,)`. But for [`mods.QG`][]
     (`batch_size=(2,2)` or less) it is quicker.
 
     NB: If `len(ii)` is small, analysis may be slowed-down with '-N' infl.
@@ -834,7 +834,7 @@ def zeta_a(eN, cL, w):
     Returns `zeta_a = (N-1)/pre-inflation^2`.
 
     Using this inside an iterative minimization as in the
-    `dapper.da_methods.variational.iEnKS` effectively blends
+    [`da_methods.variational.iEnKS`][] effectively blends
     the distinction between the primal and dual EnKF-N.
     """
     N = len(w)
@@ -852,7 +852,7 @@ class EnKF_N:
     This implementation is pedagogical, prioritizing the "dual" form.
     In consequence, the efficiency of the "primal" form suffers a bit.
     The primal form is included for completeness and to demonstrate equivalence.
-    In `dapper.da_methods.variational.iEnKS`, however,
+    In [`da_methods.variational.iEnKS`][], however,
     the primal form is preferred because it
     already does optimization for w (as treatment for nonlinear models).
 
