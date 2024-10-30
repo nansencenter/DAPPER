@@ -6,10 +6,11 @@ repo_url: https://github.com/nansencenter/DAPPER
 
 docs_dir: docs
 watch: [mkdocs.yml, README.md, dapper, scripts/gen_ref_pages.py]
-# nav:
-#   - Home: index.md
-#   # - Reference: reference/
-#   - dev_guide.md
+nav:
+  - Home: index.md
+  - Reference: reference/
+  - Examples: examples/
+  - dev_guide.md
 
 theme:
   name: material
@@ -49,7 +50,12 @@ plugins:
   - search
   - autorefs # enable anchor/heading links without specifying its page
   # - meta # [insiders only] enable front-matter defaults as in Jekyll
-  - mkdocs-jupyter
+  - mkdocs-jupyter:
+      include: ["*.ipynb"] # Default: ["*.py", "*.ipynb"]
+      ignore:
+        - ".ipynb_checkpoints/*"
+      execute: false
+
 
   # Autodoc from docstrings:
   - gen-files: # Genrate .md reflecting .py hierarchy:
