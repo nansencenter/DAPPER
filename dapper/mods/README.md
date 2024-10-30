@@ -73,7 +73,7 @@ try not to import stuff from DAPPER outside of [`mods`][] and `liveplotting`.
 
         In parameter estimation problems, the parameters are treated as input
         variables to the "forward model". This does not *necessarily* require OOP.
-        See `examples/param_estim.py`.
+        See `docs/examples/param_estim.py`.
 
 - Optional: define a suggested/example initial state, `x0`.
   This facilitates the specification of initial conditions for different synthetic

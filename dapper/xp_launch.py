@@ -76,7 +76,7 @@ def run_experiment(
 ):
     """Used by [xp_launch.xpList.launch][] to run each single (DA) experiment ("xp").
 
-    This involves steps similar to `examples/basic_1.py`, i.e.:
+    This involves steps similar to `docs/examples/basic_1.py`, i.e.:
 
     - `setup`                    : Initialize experiment.
     - `xp.assimilate`            : run DA, pass on exception if fail_gently
@@ -227,7 +227,7 @@ class xpList(list):
 
     Also see
     --------
-    - Examples: `examples/basic_2`, `examples/basic_3`
+    - Examples: `docs/examples/basic_2`, `docs/examples/basic_3`
     - [`xp_process.xpSpace`][], which is used for experient result **presentation**,
       as opposed to this class (`xpList`), which handles **launching** experiments.
     """
@@ -482,7 +482,7 @@ class xpList(list):
             - If this dict field is empty, then all python files
               in `sys.path[0]` are uploaded.
 
-        See `examples/basic_2.py` and `examples/basic_3.py` for example use.
+        See `docs/examples/basic_2.py` and `docs/examples/basic_3.py` for example use.
         """
         # Parse mp option
         if not mp:

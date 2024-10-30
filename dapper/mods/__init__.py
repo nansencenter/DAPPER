@@ -85,7 +85,7 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         sectors : dict, optional
             Labelled indices referring to parts of the state vector.
             When defined, field-mean statistics are computed for each sector.
-            Example use can be found in  `examples/param_estim.py`
+            Example use can be found in  `docs/examples/param_estim.py`
             and `dapper/mods/Lorenz96/miyoshi2011.py`
         name : str, optional
             Label for the `HMM`.
@@ -184,7 +184,8 @@ class TimeDependentOperator:
     The time instance should be specified by `ko`,
     i.e. the index of an observation time.
 
-    Examples: `examples/time-dep-obs-operator.py` and `dapper/mods/QG/sakov2008.py`.
+    Examples: `docs/examples/time-dep-obs-operator.py`
+    and `dapper/mods/QG/sakov2008.py`.
     """
 
     def __init__(self, **kwargs):
