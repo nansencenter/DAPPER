@@ -51,14 +51,24 @@ class HiddenMarkovModel(struct_tools.NicePrint):
         before making any changes to it.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        Dyn,
+        Obs,
+        tseq,
+        X0,
+        liveplotters=None,
+        sectors=None,
+        name=None,
+        **kwargs,
+    ):
         """Initialize.
 
         Parameters
         ----------
         Dyn : Operator or dict
             Operator for the dynamics.
-        Obs : Operator or dict
+        Obs : Operator or TimeDependentOperator or dict
             Operator for the observations
             Can also be time-dependent, ref `TimeDependentOperator`.
         tseq : tools.chronos.Chronology
@@ -91,11 +101,6 @@ class HiddenMarkovModel(struct_tools.NicePrint):
             name=(str, self._default_name()),
         )
 
-        # Transfer args to kwargs
-        for arg, kw in zip(args, attrs):
-            assert kw not in kwargs, "Could not sort out arguments."
-            kwargs[kw] = arg
-
         # Un-abbreviate
         abbrevs = {"LP": "liveplotters", "loc": "localizer"}
         for key in list(kwargs):
@@ -107,9 +112,10 @@ class HiddenMarkovModel(struct_tools.NicePrint):
                 assert full not in kwargs, "Could not sort out arguments."
                 kwargs[full] = kwargs.pop(key)
 
-        # Convert dict to object
+        # Collect args, kwargs.
         for key, (type_, default) in attrs.items():
-            val = kwargs.get(key, default)
+            val = locals()[key] or kwargs.get(key, default)
+            # Convert dict to object
             if not isinstance(val, type_) and val is not None:
                 val = type_(**val)
             kwargs[key] = val
@@ -225,6 +231,8 @@ class Operator(struct_tools.NicePrint):
         The associated additive noise. The noise can also be a scalar or an
         array, producing `GaussRV(C=noise)`.
 
+    Note
+    ----
     Any remaining keyword arguments are written to the object as attributes.
     """
 
