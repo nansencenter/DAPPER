@@ -85,29 +85,7 @@ For detailed linting messages, run
 ruff check --output-format=concise
 ```
 
-!!! warning "Obsolete"
-    Kept for reference.
-
 You may also want to display linting issues in your editor as you code.
-Below is a suggested configuration of VS-Code with the pylance plug-in
-or Vim (with the coc.nvim plug-in with the pyright extension)
-
-```jsonc
-// Put this in settings.json (VS-Code) or ~/.vim/coc-settings.json (For Vim)
-{
-    "python.analysis.typeCheckingMode": "off",
-    "python.analysis.useLibraryCodeForTypes": true,
-    "python.analysis.extraPaths": ["scripts"],
-    "python.formatting.provider": "autopep8",
-    "python.formatting.autopep8Path":  "~/.local/bin/autopep8",
-    "python.linting.enabled": true,
-    "python.linting.flake8Enabled": true,
-    "python.linting.flake8Args": ["lint"],
-    "python.linting.flake8Path": "${env:CONDA_PREFIX}/bin/flakeheaven",
-    // Without VENV (requires `pip3 install --user flakeheaven flake8-docstrings flake8-bugbear ...`)
-    // "python.linting.flake8Path": "[USE PATH PRINTED BY PIP ABOVE]/Python/3.8/bin/flakeheaven",
-}
-```
 
 ## Adding to the examples
 
@@ -116,7 +94,7 @@ as showcasing some feature, new examples should make sure to reproduce some
 published literature results.  After making the example, consider converting
 the script to the Jupyter notebook format (or vice versa) so that the example
 can be run on Colab without users needing to install anything (see
-`examples/README.md`). This should be done using the `jupytext` plug-in (with
+`docs/examples/README.md`). This should be done using the `jupytext` plug-in (with
 the `lightscript` format), so that the paired files can be kept in synch.
 
 ## Documentation
@@ -139,8 +117,9 @@ creates an artefact that is deployed to Github Pages.
 
 In order to add new references,
 insert their bibtex into `docs/bib/refs.bib`,
-then run `docs/bib/make_bib.py`,
-which will format and add entries to `docs/bib/bib.py`.
+then run `docs/bib/bib2md.py`
+which will format and add entries to `docs/references.md`
+that can be cited with regular cross-reference syntax, e.g. `[bocquet2010beyond][]`.
 
 ## Profiling
 
