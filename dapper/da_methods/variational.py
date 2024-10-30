@@ -264,7 +264,7 @@ def iEnKS_update(upd_a, E, DAW, HMM, stats, EPS, y, time, Rm12, xN, MDA, thresho
     # (i) avoid re-running the model and
     # (ii) reproduce EnKF in case nIter==1.
     final_increment = (dw + T - T_old) @ Xf
-    # See docs/snippets/iEnKS_Ea.jpg.
+    # See docs/images/snippets/iEnKS_Ea.jpg.
     stats.assess(k, ko, "a", E=E + final_increment)
     stats.iters[ko] = iteration + 1
     if xN:

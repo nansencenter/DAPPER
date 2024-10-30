@@ -563,7 +563,7 @@ def resample(w, kind="Systematic", N=None, wroot=1.0):
       Among the three, 'Systematic' is fastest, introduces the least noise,
       and brings continuity benefits for localized particle filters,
       and is therefore generally prefered.
-      Example: see docs/snippets/ex_resample.py.
+      Example: see `docs/images/snippets/ex_resample.py`.
 
     - N can be different from len(w)
       (e.g. in case some particles have been elimintated).

@@ -113,7 +113,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
             d = pad0(s**2, N) + N1
             Pw = (V * d ** (-1.0)) @ V.T
             T = (V * d ** (-0.5)) @ V.T * sqrt(N1)
-            # docs/snippets/trHK.jpg
+            # docs/images/snippets/trHK.jpg
             trHK = np.sum((s**2 + N1) ** (-1.0) * s**2)
         elif "sS" in upd_a:
             # Same as 'svd', but with slightly different notation
@@ -123,7 +123,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
             d = pad0(s**2, N) + 1
             Pw = (V * d ** (-1.0)) @ V.T / N1  # = G/(N1)
             T = (V * d ** (-0.5)) @ V.T
-            # docs/snippets/trHK.jpg
+            # docs/images/snippets/trHK.jpg
             trHK = np.sum((s**2 + 1) ** (-1.0) * s**2)
         else:  # 'eig' in upd_a:
             # Implementation using eig. val. decomp.
