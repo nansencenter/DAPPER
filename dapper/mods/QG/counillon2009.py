@@ -1,4 +1,4 @@
-"""Reproduce experiments from `bib.counillon2009application`."""
+"""Reproduce experiments from [counillon2009application][]."""
 
 import dapper.mods as modelling
 from dapper.mods.QG import model_config

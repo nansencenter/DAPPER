@@ -1,4 +1,4 @@
-"""Concerns figure 4 of `bib.todter2015second`."""
+"""Concerns figure 4 of [todter2015second][]."""
 
 import numpy as np
 

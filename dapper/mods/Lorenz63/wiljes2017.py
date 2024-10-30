@@ -1,4 +1,4 @@
-"""Settings from `bib.wiljes2016second`."""
+"""Settings from [wiljes2016second][]."""
 
 import numpy as np
 

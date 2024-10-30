@@ -1,4 +1,4 @@
-"""Settings as in `bib.bocquet2019consistency`."""
+"""Settings as in [bocquet2019consistency][]."""
 
 import numpy as np
 

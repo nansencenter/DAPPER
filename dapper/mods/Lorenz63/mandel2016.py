@@ -1,4 +1,4 @@
-"""Settings from `bib.mandel2016hybrid`."""
+"""Settings from [mandel2016hybrid][]."""
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz63.sakov2012 import HMM as _HMM

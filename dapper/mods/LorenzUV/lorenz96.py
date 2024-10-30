@@ -1,4 +1,4 @@
-"""As in `bib.lorenz1996predictability`."""
+"""As in [lorenz1996predictability][]."""
 
 from pathlib import Path
 

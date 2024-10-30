@@ -1,8 +1,8 @@
-"""Settings as in `bib.frei2013bridging`.
+"""Settings as in [frei2013bridging][].
 
 They also cite its use in the following:
 
-`bib.bengtsson2003toward`, `bib.lei2011moment`, `bib.frei2013mixture`.
+[bengtsson2003toward][], [lei2011moment][], [frei2013mixture][].
 """
 
 import numpy as np

@@ -1,4 +1,4 @@
-"""A mix of `bib.evensen2009ensemble` and `bib.sakov2008implications`.
+"""A mix of [evensen2009ensemble][] and [sakov2008implications][].
 
 !!! note
     Since there is no noise, and the system is stable,

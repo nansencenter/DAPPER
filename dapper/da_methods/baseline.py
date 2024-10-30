@@ -1,6 +1,6 @@
 """Unsophisticated" but robust (widely applicable) DA methods.
 
-Many are based on `bib.raanes2016thesis`.
+Many are based on [raanes2016thesis][].
 """
 
 from typing import Callable, Optional

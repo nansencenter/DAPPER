@@ -1,4 +1,4 @@
-"""A land-ocean setup from `bib.anderson2009spatially`."""
+"""A land-ocean setup from [anderson2009spatially][]."""
 
 import numpy as np
 

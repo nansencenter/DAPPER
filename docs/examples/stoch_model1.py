@@ -1,4 +1,4 @@
-# ## Reproduce basics of `bib.grudzien2020numerical`, and do live plotting.
+# ## Reproduce basics of [grudzien2020numerical][], and do live plotting.
 # This is a simple demonstration of the effect of using low-precision numerics
 # for a perfect-random model configuration in which the system is not dominated
 # by the noise.  In this case, we see a failure of the ensemble generated
