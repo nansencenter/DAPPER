@@ -11,6 +11,7 @@ nav:
   - Reference: reference/
   - Examples: examples/
   - dev_guide.md
+  - references.md
 
 theme:
   name: material
@@ -55,7 +56,12 @@ plugins:
       ignore:
         - ".ipynb_checkpoints/*"
       execute: false
-
+  # - bibtex:
+  #     # NB: does not work with mkdocstrings (https://github.com/shyamd/mkdocs-bibtex/issues/246)
+  #     # PS: requires pandoc installed on system and markdown_extensions: footnotes
+  #     bib_file: docs/bib/refs.bib
+  #     bib_by_default: true
+  #     csl_file: docs/bib/data-science-journal.csl
 
   # Autodoc from docstrings:
   - gen-files: # Genrate .md reflecting .py hierarchy:

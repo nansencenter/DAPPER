@@ -62,9 +62,10 @@ EXTRAS = {
         "mkdocs-section-index",
         "mkdocs-glightbox",
         "mkdocs-jupyter",
+        "pybtex",
     ],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
-    "build": ["twine", "pdoc", "jupytext"],
+    "build": ["twine", "jupytext"],
 }
 EXTRAS["dev"] = (
     EXTRAS["debug"] + EXTRAS["test"] + EXTRAS["lint"] + EXTRAS["build"] + EXTRAS["doc"]

@@ -121,10 +121,10 @@ the `lightscript` format), so that the paired files can be kept in synch.
 
 ## Documentation
 
-The documentation is built with `pdoc`, e.g.
+The documentation is built with `mkdocs`, e.g.
 
 ```sh
-pdoc -t docs/templates --math --docformat=numpy docs/bib/bib.py docs/dev_guide.py ./dapper
+mkdocs build # use `serve` instead for live preview with hot-reloading
 ```
 
 ##### Hosting
