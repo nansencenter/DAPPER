@@ -5,13 +5,13 @@ repo_url: https://github.com/nansencenter/DAPPER
 # edit_uri: edit/master/docs/
 
 docs_dir: docs
-watch: [mkdocs.yml, README.md, dapper, scripts/gen_ref_pages.py]
+watch: [mkdocs.yml, README.md, dapper]
 nav:
   - Home: index.md
   - Reference: reference/
   - Examples: examples/
   - dev_guide.md
-  - references.md
+  - Bibliography: references.md
 
 theme:
   name: material
@@ -66,7 +66,7 @@ plugins:
   # Autodoc from docstrings:
   - gen-files: # Genrate .md reflecting .py hierarchy:
       scripts:
-        - scripts/gen_ref_pages.py
+        - docs/gen_ref_pages.py
   - literate-nav: # Auto-generate nav
       nav_file: SUMMARY.md
   - section-index
