@@ -59,7 +59,7 @@ this promotes the
 (d) dissemination of the underlying science,
 and makes it easy to adapt and extend.
 
-![Comparative benchmarks with Lorenz-96 plotted as a function of the ensemble size (N)](https://github.com/nansencenter/DAPPER/raw/master/docs/imgs/ex3.svg)
+![Comparative benchmarks with Lorenz-96 plotted as a function of the ensemble size (N)](https://github.com/nansencenter/DAPPER/raw/master/docs/images/ex3.svg)
 
 DAPPER demonstrates how to parallelise ensemble forecasts (e.g., the QG model),
 local analyses (e.g., the LETKF), and independent experiments (e.g., `examples/basic_3.py`).
@@ -72,7 +72,7 @@ which may be paused for further interactive inspection.
 In summary, DAPPER is well suited for teaching and fundamental DA research.
 Also see its [drawbacks](#similar-projects).
 
-![EnKF - Lorenz-96](https://github.com/nansencenter/DAPPER/raw/master/docs/imgs/ex1.jpg)
+![EnKF - Lorenz-96](https://github.com/nansencenter/DAPPER/raw/master/docs/images/ex1.jpg)
 
 <!-- Non-highlighted features:
 - Time sequences use via `tools.chronos.Chronology` and `tools.chronos.Ticker`.
@@ -352,11 +352,11 @@ and the Center for Western Weather and Water Extremes (CW3E).
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable line-length -->
-![NORCE](https://github.com/nansencenter/DAPPER/raw/master/docs/imgs/norce-logo.png)
-![NERSC](https://github.com/nansencenter/DAPPER/raw/master/docs/imgs/nansen-logo.png)
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/imgs/UoR-logo.png?raw=true" height="120" />
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/imgs/nceologo1000.png?raw=true" height="100">
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/imgs/CW3E-Logo-Horizontal-FullColor.png?raw=true" width="400">
+![NORCE](https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/norce-logo.png)
+![NERSC](https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/nansen-logo.png)
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/UoR-logo.png?raw=true" height="120" />
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/nceologo1000.png?raw=true" height="100">
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/CW3E-Logo-Horizontal-FullColor.png?raw=true" width="400">
 <!-- markdownlint-restore -->
 
 ## Publications
