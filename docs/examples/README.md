@@ -14,7 +14,7 @@ and that it requires a Google login): [![Open In Collab](https://colab.research.
 ## Description
 
 When adapting the scripts to your needs,
-you should begin with `docs/examples/basic_1.py`
+you should begin with `basic_1.py`
 before incorporating the aspects of `basic_2` and `basic_3`.
 
 - `basic_1.py`: A single experiment, with Liveplotting.

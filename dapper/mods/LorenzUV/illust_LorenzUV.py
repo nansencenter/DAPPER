@@ -140,7 +140,10 @@ if __name__ == "__main__":
 
     if False:
         fig.savefig(
-            "docs/imgs/logo_wtxt.png", bbox_inches="tight", pad_inches=0, dpi=200
+            "docs/images/logos/logo_wtxt.png",
+            bbox_inches="tight",
+            pad_inches=0,
+            dpi=200,
         )
 
     plt.show()

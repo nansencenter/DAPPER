@@ -8,7 +8,7 @@
 !
 -->
 
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/imgs/logo_wtxt.png" align="left" width="250"/>
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/logo_wtxt.png" align="left" width="250"/>
 
 DAPPER is a set of templates for **benchmarking** the performance of **data assimilation** (DA) methods.
 The numerical experiments provide support and guidance for new developments in DA.

@@ -1,6 +1,4 @@
-Also see the section on
-[DA Methods](https://github.com/nansencenter/DAPPER#DA-Methods)
-in the main README
+Also see [this section on DA Methods](../../#da-methods)
 for an overview of the methods included with DAPPER.
 
 ## Defining your own method
