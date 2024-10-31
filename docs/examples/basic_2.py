@@ -1,6 +1,6 @@
-# ## Illustrate usage of DAPPER to benchmark multiple DA methods.
+# ## Multiple synthetic benchmark experiments
 
-# #### Imports
+# ### Imports
 # <b>NB:</b> If you're on <mark><b>Gooble Colab</b></mark>,
 # then replace `%matplotlib notebook` below by\
 # `!python -m pip install git+https://github.com/nansencenter/DAPPER.git`\
@@ -10,18 +10,17 @@
 import dapper as dpr  # noqa: I001
 import dapper.da_methods as da
 
-# #### DA method configurations
+# ### DA method configurations
 
 
 # +
-# fmt: off
 from dapper.mods.Lorenz63.sakov2012 import HMM  # Expected rmse.a:
 
 xps = dpr.xpList()
 xps += da.Climatology()                                      # 7.6
 xps += da.OptInterp()                                        # 1.25
-xps += da.Persistence()                                      # 10.7
-xps += da.PreProg(lambda k, xx, yy: xx[k])                   # 0
+#xps += da.Persistence()                                      # 10.7
+#xps += da.PreProg(lambda k, xx, yy: xx[k])                   # 0
 xps += da.Var3D(xB=0.1)                                      # 1.03
 xps += da.ExtKF(infl=90)                                     # 0.87
 xps += da.EnKF('Sqrt'   , N=3   , infl=1.30)                 # 0.82
@@ -33,13 +32,11 @@ xps += da.PartFilt(       N=100 , reg=2.4  , NER=0.3)        # 0.38
 xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # xps += da.PartFilt(       N=4000, reg=0.7  , NER=0.05)       # 0.27
 # xps += da.PFxN(xN=1000,   N=30  , Qs=2     , NER=0.2)        # 0.56
-# # fmt: on
 # -
 
 # #### With Lorenz-96 instead
 
 # +
-# fmt: off
 # from dapper.mods.Lorenz96.sakov2008 import HMM   # Expected rmse.a:
 # xps = dpr.xpList()
 # xps += da.Climatology()                                     # 3.6
@@ -55,7 +52,6 @@ xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # # With localisation:
 # xps += da.LETKF(          N=7 , infl=1.04, rot=True, loc_rad=4)  # 0.22
 # xps += da.SL_EAKF(        N=7 , infl=1.07, rot=True, loc_rad=6)  # 0.23
-# fmt: on
 # -
 
 # #### Other models (suitable xp's listed in HMM files):
@@ -66,7 +62,7 @@ xps += da.PartFilt(       N=800 , reg=0.9  , NER=0.2)        # 0.28
 # from dapper.mods.LotkaVolterra.settings101 import HMM
 # -
 
-# #### Launch
+# ### Launch
 
 # Write some more non-arg parameters to the `xps`. In this case we set the seed,
 # so that repeat experiments produce exactly the same result.
@@ -82,6 +78,6 @@ HMM.tseq.T = 50
 
 save_as = xps.launch(HMM, liveplots=False)
 
-# #### Print results
+# ### Print results
 
-print(xps.tabulate_avrgs())
+print(xps.tabulate_avrgs(statkeys=["rmse.a"]))
