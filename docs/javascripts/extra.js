@@ -7,3 +7,10 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.classList.add('document-is-notebook');
   }
 });
+
+// Hide "Home" h1
+document.querySelectorAll('h1').forEach(function(h1) {
+    if (h1.textContent.trim() === "Home") {
+        h1.style.display = 'none';
+    }
+});
