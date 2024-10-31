@@ -68,11 +68,11 @@ plugins:
   - search
   - autorefs # enable anchor/heading links without specifying its page
   # - meta # [insiders only] enable front-matter defaults as in Jekyll
-  # - mkdocs-jupyter:
-  #     include: ["*.ipynb"] # Default: ["*.py", "*.ipynb"]
-  #     ignore:
-  #       - ".ipynb_checkpoints/*"
-  #     execute: false
+  - mkdocs-jupyter:
+      include: ["*.ipynb"] # Default: ["*.py", "*.ipynb"]
+      ignore:
+        - ".ipynb_checkpoints/*"
+      execute: false
   # - bibtex:
   #     # NB: does not work with mkdocstrings (https://github.com/shyamd/mkdocs-bibtex/issues/246)
   #     # PS: requires pandoc installed on system and markdown_extensions: footnotes
