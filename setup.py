@@ -22,6 +22,7 @@ INSTALL_REQUIRES = [
     "scipy>=1.10",
     "numpy~=1.20",
     "jupyter",
+    "notebook<7",
     "ipdb",
     "ipython>=5.1",
     "tornado~=6.3",  # 6.2 breaks Jupyter plots (tested on local Mac, Linux)
