@@ -20,6 +20,12 @@ nav:
   - dev_guide.md
   - Bibliography: references.md
 
+validation:
+  # Disabled coz it complains about relative links that work just fine
+  # (and enable interlinking READMEs even on GitHub).
+  # Set to "warn" to help find non-working links.
+  unrecognized_links: ignore
+
 theme:
   name: material
   icon:
