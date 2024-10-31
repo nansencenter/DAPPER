@@ -28,6 +28,10 @@ validation:
 
 theme:
   name: material
+  logo: images/logos/logo.svg
+  favicon: images/logos/logo.svg
+  palette:
+    primary: teal
   icon:
     repo: fontawesome/brands/github
     edit: material/pencil 
@@ -46,7 +50,7 @@ theme:
     - navigation.path # breadcrumbs
     # - navigation.prune # for large projects
     - navigation.tracking # update URL to current section
-    - navigation.footer # "Next/Prev"
+    # - navigation.footer # "Next/Prev"
     - navigation.instant # SSA
     - navigation.instant.progress # Progbar on top
     - navigation.top # "back to top when scrolling up"
@@ -64,11 +68,11 @@ plugins:
   - search
   - autorefs # enable anchor/heading links without specifying its page
   # - meta # [insiders only] enable front-matter defaults as in Jekyll
-  - mkdocs-jupyter:
-      include: ["*.ipynb"] # Default: ["*.py", "*.ipynb"]
-      ignore:
-        - ".ipynb_checkpoints/*"
-      execute: false
+  # - mkdocs-jupyter:
+  #     include: ["*.ipynb"] # Default: ["*.py", "*.ipynb"]
+  #     ignore:
+  #       - ".ipynb_checkpoints/*"
+  #     execute: false
   # - bibtex:
   #     # NB: does not work with mkdocstrings (https://github.com/shyamd/mkdocs-bibtex/issues/246)
   #     # PS: requires pandoc installed on system and markdown_extensions: footnotes
