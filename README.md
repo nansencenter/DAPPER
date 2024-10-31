@@ -26,20 +26,18 @@ and then estimate that truth given the models and noisy observations.
 
 ## Getting started
 
-[Install](#installation), then
-read, run and try to understand `docs/examples/basic_{1,2,3}.py`.
-Some of the examples also exist as Jupyter notebooks, and can be run in the cloud
-*without installation* (but requiring Google login): [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER).
-This [screencast](https://www.youtube.com/watch?v=YtalK0Zkzvg&t=6475s)
-provides an overview to DAPPER.
-The [documentation](https://nansencenter.github.io/DAPPER)
-includes general guidelines and the API reference,
-but most users must expect to read the code as well.
-If used towards a publication, please cite as
-*The experiments used (inspiration from) DAPPER [ref], version 1.6.0*,
-or similar, where [ref] points to [![DOI](https://joss.theoj.org/papers/10.21105/joss.05150/status.svg)](https://doi.org/10.21105/joss.05150).
-Also see the interactive [tutorials on DA theory](https://github.com/nansencenter/DA-tutorials)
-with Python.
+- Read & run [examples](examples)/`basic_1.py` and `basic_2.py`,
+  or their corresponding notebooks [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/nansencenter/DAPPER)
+  (requires Google login).
+- This [screencast](https://www.youtube.com/watch?v=xlABhbnNrfI)
+  provides an overview to DAPPER.
+- The [documentation](https://nansencenter.github.io/DAPPER)
+  includes general guidelines and the API reference,
+  but most users must expect to read the code as well.
+- If used towards a publication, please cite as
+  *The experiments used (inspiration from) DAPPER [ref], version 1.6.0*,
+  or similar, where [ref] points to [![DOI](https://joss.theoj.org/papers/10.21105/joss.05150/status.svg)](https://doi.org/10.21105/joss.05150).
+- Also see the interactive [tutorials on DA theory](https://github.com/nansencenter/DA-tutorials) with Python.
 
 ## Highlights
 
