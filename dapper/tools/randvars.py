@@ -149,8 +149,8 @@ class RV_with_mean_and_cov(RV):
     def sample(self, N):
         """Sample N realizations. Returns N-by-M (ndim) sample matrix.
 
-        Example
-        -------
+        Examples
+        --------
         >>> plt.scatter(*(UniRV(C=randcov(2)).sample(10**4).T))  # doctest: +SKIP
         """
         if self.C == 0:

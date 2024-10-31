@@ -28,7 +28,7 @@ class ens_method:
 class EnKF:
     """The ensemble Kalman filter.
 
-    Refs: `bib.evensen2009ensemble`.
+    Refs: [evensen2009ensemble][].
     """
 
     upd_a: str
@@ -67,8 +67,8 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
     This implementation includes several flavours and forms,
     specified by `upd_a`.
 
-    Main references: `bib.sakov2008deterministic`,
-    `bib.sakov2008implications`, `bib.hoteit2015mitigating`
+    Main references: [sakov2008deterministic][],
+    [sakov2008implications][], [hoteit2015mitigating][]
     """
     R = hnoise.C  # Obs noise cov
     N, Nx = E.shape  # Dimensionality
@@ -113,7 +113,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
             d = pad0(s**2, N) + N1
             Pw = (V * d ** (-1.0)) @ V.T
             T = (V * d ** (-0.5)) @ V.T * sqrt(N1)
-            # docs/snippets/trHK.jpg
+            # docs/images/snippets/trHK.jpg
             trHK = np.sum((s**2 + N1) ** (-1.0) * s**2)
         elif "sS" in upd_a:
             # Same as 'svd', but with slightly different notation
@@ -123,7 +123,7 @@ def EnKF_analysis(E, Eo, hnoise, y, upd_a, stats=None, ko=None):
             d = pad0(s**2, N) + 1
             Pw = (V * d ** (-1.0)) @ V.T / N1  # = G/(N1)
             T = (V * d ** (-0.5)) @ V.T
-            # docs/snippets/trHK.jpg
+            # docs/images/snippets/trHK.jpg
             trHK = np.sum((s**2 + 1) ** (-1.0) * s**2)
         else:  # 'eig' in upd_a:
             # Implementation using eig. val. decomp.
@@ -261,7 +261,7 @@ def post_process(E, infl, rot):
 def add_noise(E, dt, noise, method):
     """Treatment of additive noise for ensembles.
 
-    Refs: `bib.raanes2014ext`
+    Refs: [raanes2014ext][]
     """
     if noise.C == 0:
         return E
@@ -354,7 +354,7 @@ def add_noise(E, dt, noise, method):
 class EnKS:
     """The ensemble Kalman smoother.
 
-    Refs: `bib.evensen2009ensemble`
+    Refs: [evensen2009ensemble][]
 
     The only difference to the EnKF
     is the management of the lag and the reshapings.
@@ -414,7 +414,7 @@ class EnKS:
 class EnRTS:
     """EnRTS (Rauch-Tung-Striebel) smoother.
 
-    Refs: `bib.raanes2016thesis`
+    Refs: [raanes2016thesis][]
     """
 
     upd_a: str
@@ -484,7 +484,7 @@ def serial_inds(upd_a, y, cvR, A):
 class SL_EAKF:
     """Serial, covariance-localized EAKF.
 
-    Refs: `bib.karspeck2007experimental`.
+    Refs: [karspeck2007experimental][].
 
     In contrast with LETKF, this iterates over the observations rather
     than over the state (batches).
@@ -614,10 +614,10 @@ def local_analyses(E, Eo, R, y, state_batches, obs_taperer, mp=map, xN=None, g=0
 class LETKF:
     """Same as EnKF (Sqrt), but with localization.
 
-    Refs: `bib.hunt2007efficient`.
+    Refs: [hunt2007efficient][].
 
-    NB: Multiproc. yields slow-down for `dapper.mods.Lorenz96`,
-    even with `batch_size=(1,)`. But for `dapper.mods.QG`
+    NB: Multiproc. yields slow-down for [`mods.Lorenz96`][],
+    even with `batch_size=(1,)`. But for [`mods.QG`][]
     (`batch_size=(2,2)` or less) it is quicker.
 
     NB: If `len(ii)` is small, analysis may be slowed-down with '-N' infl.
@@ -778,7 +778,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
 
     - Reason 1: mode correction.
       These parameters bridge the Jeffreys (`xN=1`) and Dirac (`xN=Inf`) hyperpriors
-      for the prior covariance, B, as discussed in `bib.bocquet2015expanding`.
+      for the prior covariance, B, as discussed in [bocquet2015expanding][].
       Indeed, mode correction becomes necessary when $$ R \rightarrow \infty $$
       because then there should be no ensemble update (and also no inflation!).
       More specifically, the mode of `l1`'s should be adjusted towards 1
@@ -790,7 +790,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
     - Reason 2: Boosting the inflation prior's certainty from N to xN*N.
       The aim is to take advantage of the fact that the ensemble may not
       have quite as much sampling error as a fully stochastic sample,
-      as illustrated in section 2.1 of `bib.raanes2019adaptive`.
+      as illustrated in section 2.1 of [raanes2019adaptive][].
 
     - Its damping effect is similar to work done by J. Anderson.
 
@@ -809,7 +809,7 @@ def hyperprior_coeffs(s, N, xN=1, g=0):
     eN = (N + 1) / N
     cL = (N + g) / N1
 
-    # Mode correction (almost) as in eqn 36 of `bib.bocquet2015expanding`
+    # Mode correction (almost) as in eqn 36 of [bocquet2015expanding][]
     prior_mode = eN / cL  # Mode of l1 (before correction)
     diagonal = pad0(s**2, N) + N1  # diag of Y@R.inv@Y + N1*I
     #                                           (Hessian of J)
@@ -834,7 +834,7 @@ def zeta_a(eN, cL, w):
     Returns `zeta_a = (N-1)/pre-inflation^2`.
 
     Using this inside an iterative minimization as in the
-    `dapper.da_methods.variational.iEnKS` effectively blends
+    [`da_methods.variational.iEnKS`][] effectively blends
     the distinction between the primal and dual EnKF-N.
     """
     N = len(w)
@@ -847,12 +847,12 @@ def zeta_a(eN, cL, w):
 class EnKF_N:
     """Finite-size EnKF (EnKF-N).
 
-    Refs: `bib.bocquet2011ensemble`, `bib.bocquet2015expanding`
+    Refs: [bocquet2011ensemble][], [bocquet2015expanding][]
 
     This implementation is pedagogical, prioritizing the "dual" form.
     In consequence, the efficiency of the "primal" form suffers a bit.
     The primal form is included for completeness and to demonstrate equivalence.
-    In `dapper.da_methods.variational.iEnKS`, however,
+    In [`da_methods.variational.iEnKS`][], however,
     the primal form is preferred because it
     already does optimization for w (as treatment for nonlinear models).
 
@@ -985,7 +985,7 @@ class EnKF_N:
                 # l1 = 1.0
 
                 # Explicitly inflate prior
-                # => formulae look different from `bib.bocquet2015expanding`.
+                # => formulae look different from [bocquet2015expanding][].
                 A *= l1
                 Y *= l1
 
@@ -1000,7 +1000,7 @@ class EnKF_N:
                 else:
                     # Also include angular-radial co-dependence.
                     # Note: denominator not squared coz
-                    # unlike `bib.bocquet2015expanding` we have inflated Y.
+                    # unlike [bocquet2015expanding][] we have inflated Y.
                     Hw = (
                         Y @ R.inv @ Y.T / N1
                         + eye(N)

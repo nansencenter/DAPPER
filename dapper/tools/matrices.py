@@ -137,8 +137,8 @@ def funm_psd(a, fun, check_finite=False):
 
     Adapted from `sla.funm` doc.
 
-    Example
-    -------
+    Examples
+    --------
     >>> def sqrtm_psd(A):
     ...     return funm_psd(A, sqrt)
     """
@@ -151,8 +151,8 @@ def funm_psd(a, fun, check_finite=False):
 def chol_reduce(Right):
     """Return rnk-by-ndim R such that `R.T@R - R.T@R ≈ 0`.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from dapper.stats import mean0
     >>> X = mean0(np.random.randn(20, 5), axis=1)
     >>> C = X.T @ X

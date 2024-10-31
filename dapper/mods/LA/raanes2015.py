@@ -1,4 +1,4 @@
-"""Reproduce results from Fig. 2 of `bib.raanes2014ext`."""
+"""Reproduce results from Fig. 2 of [raanes2014ext][]."""
 
 import numpy as np
 

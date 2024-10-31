@@ -39,11 +39,11 @@ def tsvd(A, threshold=0.99999, avoid_pathological=True):
 
     Parameters
     ----------
-    avoid_pathological: bool
+    avoid_pathological : bool
         Avoid truncating (e.g.) the identity matrix.
         NB: only applies for float threshold.
 
-    threshold: float or int
+    threshold : float or int
 
         - if `float`, `< 1.0` then "rank" = lowest number
           such that the "energy" retained >= threshold

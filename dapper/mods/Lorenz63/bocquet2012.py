@@ -1,4 +1,4 @@
-"""Reproduce results from Fig 11 of `bib.bocquet2012combining`."""
+"""Reproduce results from Fig 11 of [bocquet2012combining][]."""
 
 import numpy as np
 

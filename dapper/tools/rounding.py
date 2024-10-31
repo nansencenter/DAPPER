@@ -17,7 +17,8 @@ class UncertainQtty:
     However, this class in itself does not define the `prec` attribute
     by anything else than what it does: impact the rounding & printing of `val`.
 
-    Examples:
+    Examples
+    --------
     >>> for c in [.01, .1, .2, .9, 1]:
     ...    print(UncertainQtty(1.2345, c))
     1.23 ±0.01
@@ -74,7 +75,9 @@ class UncertainQtty:
         return v, c
 
     def __str__(self):
-        """Returns 'val ±prec', using `UncertainQtty.round` and some finesse."""
+        """Returns 'val ±prec', using [tools.rounding.UncertainQtty.round][]
+
+        and some finesse."""
         v, c = self.round()
 
         if np.isnan(c):
@@ -122,12 +125,12 @@ def np_vectorize(f):
 
     Parameters
     ----------
-    f: callable
+    f : callable
         Your function.
 
     Returns
     -------
-    vectorized: callable
+    vectorized : callable
         Your function, now element-wise applicable to an iterable.
     """
     vectorized = np.vectorize(f)
@@ -148,6 +151,8 @@ def _round2prec(num, prec):
 
     This function is left here just for reference. Use `round2` instead.
 
+    Examples
+    --------
     The issue is that:
     >>> _round2prec(0.7,.1)
     0.7000000000000001
@@ -190,7 +195,7 @@ def round2(x, prec=1.0):
     ----------
     x : array_like
         Value to be rounded.
-    prec: float
+    prec : float
         Precision, before prettify, which is given by
         $$ \text{prec} = 10^{\text{floor}(-\log_{10}|\text{prec}|)} $$
 
@@ -257,12 +262,12 @@ def is_whole(x, **kwargs):
 
     Parameters
     ----------
-    x: float or ndarray
+    x : float or ndarray
         Values to be checked
 
     Returns
     -------
-    l: bool
+    l : bool
         True if rounded x is close to x, otherwise False
     """
     return np.isclose(x, round(x), **kwargs)

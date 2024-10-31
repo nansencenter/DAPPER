@@ -1,4 +1,4 @@
-"""Settings as in `bib.grudzien2020numerical`."""
+"""Settings as in [grudzien2020numerical][]."""
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz96 import Tplot, x0

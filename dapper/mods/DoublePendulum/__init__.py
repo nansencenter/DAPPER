@@ -27,6 +27,7 @@ x0 = np.radians([130, 0, -10, 0])
 
 @modelling.ens_compatible
 def dxdt(x):
+    """Evolution equation (coupled ODEs) specifying the dynamics."""
     th1, w1, th2, w2 = x
 
     dydx = np.zeros_like(x)

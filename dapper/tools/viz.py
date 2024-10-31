@@ -27,9 +27,9 @@ def setup_wrapping(M, periodicity=None):
 
     Parameters
     ----------
-    M: int
+    M : int
         Length of the periodic domain
-    periodicity: bool, optional
+    periodicity : bool, optional
         The mode of the wrapping.
         "+1": the first element is appended after the last.
         "+/-05": adding the midpoint of the first and last elements.
@@ -37,9 +37,9 @@ def setup_wrapping(M, periodicity=None):
 
     Returns
     -------
-    ii: ndarray
+    ii : ndarray
         indices of periodic domain
-    wrap: func
+    wrap : func
         transform non-periodic data into periodic data
     """
     if periodicity in (None, True):
@@ -77,24 +77,24 @@ def amplitude_animation(
 
     Parameters
     ----------
-    EE: ndarray
+    EE : ndarray
         Ensemble arry of the shape (K, N, Nx).
         K is the length of time, N is the ensemble size, and
         Nx is the length of state vector.
-    dt: float
+    dt : float
         Time interval of each frame.
-    interval: float, optional
+    interval : float, optional
         Delay between frames in milliseconds. Defaults to 200.
-    periodicity: bool, optional
+    periodicity : bool, optional
         The mode of the wrapping.
         "+1": the first element is appended after the last.
         "+/-05": adding the midpoint of the first and last elements.
         Default: "+1"
-    blit: bool, optional
+    blit : bool, optional
         Controls whether blitting is used to optimize drawing. Default: True
-    fignum: int, optional
+    fignum : int, optional
         Figure index. Default: None
-    repeat: bool, optional
+    repeat : bool, optional
         If True, repeat the animation. Default: False
     """
     fig, ax = place.freshfig(fignum or "Amplitude animation")
@@ -133,15 +133,15 @@ def xtrema(xx, axis=None):
 
     Parameters
     ----------
-    xx: ndarray
-    axis: int, optional
+    xx : ndarray
+    axis : int, optional
         Specific axis for min and max. Defaults: None
 
     Returns
     -------
-    a: float
+    a : float
         min value
-    b: float
+    b : float
         max value
     """
     a = np.nanmin(xx, axis)
@@ -154,21 +154,21 @@ def stretch(a, b, factor=1, int_=False):
 
     Parameters
     ----------
-    a: float
+    a : float
         Lower bound of domain.
-    b: float
+    b : float
         Upper bound of domain.
-    factor: float, optional
+    factor : float, optional
         Streching factor. Defaults: 1
-    int_: bool, optional
+    int_ : bool, optional
         If True, the domain bounds are integer.
         Defaults: False
 
     Returns
     -------
-    a: float
+    a : float
         Lower bound of domain.
-    b: float
+    b : float
         Upper bound of domain.
     """
     c = (a + b) / 2
@@ -185,12 +185,12 @@ def set_ilim(ax, i, Min=None, Max=None):
 
     Parameters
     ----------
-    ax: matplotlib.axes
-    i: int
+    ax : matplotlib.axes
+    i : int
         1: x-axis; 2: y-axis; 3: z-axis
-    Min: float, optional
+    Min : float, optional
         Lower bound limit. Defaults: None
-    Max: float, optional
+    Max : float, optional
         Upper bound limit. Defaults: None
     """
     if i == 0:
@@ -210,20 +210,20 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
 
     Parameters
     ----------
-    xx: ndarray
+    xx : ndarray
         Plotted array
-    tseq: `dapper.tools.chronos.Chronology`, optional
+    tseq : [`tools.chronos.Chronology`][], optional
         object with property dko. Defaults: None
-    mult: int, optional
+    mult : int, optional
         Number of waves for plotting. Defaults: 100
 
     Returns
     -------
-    K: int
+    K : int
         length for plotting
 
-    Example
-    -------
+    Examples
+    --------
     >>> K_lag = estimate_good_plot_length(stats.xx, tseq, mult=80) # doctest: +SKIP
     """
     if xx.ndim == 2:
@@ -319,9 +319,9 @@ def plot_hovmoller(xx, tseq=None):
 
     Parameters
     ----------
-    xx: ndarray
+    xx : ndarray
         Plotted array
-    tseq: `dapper.tools.chronos.Chronology`, optional
+    tseq : [`tools.chronos.Chronology`][], optional
         object with property dko. Defaults: None
     """
     fig, ax = place.freshfig("Hovmoller", figsize=(4, 3.5))
@@ -352,15 +352,15 @@ def integer_hist(E, N, centrd=False, weights=None, **kwargs):
 
     Parameters
     ----------
-    E: ndarray
+    E : ndarray
         Ensemble array.
-    N: int
+    N : int
         Number of histogram bins.
-    centrd: bool, optional
+    centrd : bool, optional
         If True, each bin is centered in the midpoint. Default: False
-    weights: float, optional
+    weights : float, optional
         Weights for histogram. Default: None
-    kwargs: dict
+    kwargs : dict
         keyword arguments for matplotlib.hist
     """
     ax = plt.gca()
@@ -374,10 +374,10 @@ def not_available_text(ax, txt=None, fs=20):
 
     Parameters
     ----------
-    ax: matplotlib.axes
-    txt: str, optional
+    ax : matplotlib.axes
+    txt : str, optional
         Printed text. Defaults: '[Not available]'
-    fs: float, optional
+    fs : float, optional
         Font size. Defaults: 20.
     """
     if txt is None:
@@ -401,16 +401,17 @@ def plot_err_components(stats):
 
     Parameters
     ----------
-    stats: `dapper.stats.Stats`
+    stats : stats.Stats
 
-    .. note::
-      it was chosen to `plot(ii, mean_in_time(abs(err_i)))`,
-      and thus the corresponding spread measure is MAD.
-      If one chose instead: `plot(ii, std_spread_in_time(err_i))`,
-      then the corresponding measure of spread would have been `spread`.
-      This choice was made in part because (wrt. subplot 2)
-      the singular values (`svals`) correspond to rotated MADs,
-      and because `rms(umisf)` seems too convoluted for interpretation.
+    Note
+    ----
+    It was chosen to `plot(ii, mean_in_time(abs(err_i)))`,
+    and thus the corresponding spread measure is MAD.
+    If one chose instead: `plot(ii, std_spread_in_time(err_i))`,
+    then the corresponding measure of spread would have been `spread`.
+    This choice was made in part because (wrt. subplot 2)
+    the singular values (`svals`) correspond to rotated MADs,
+    and because `rms(umisf)` seems too convoluted for interpretation.
     """
     fig, (ax0, ax1, ax2) = place.freshfig("Error components", figsize=(6, 6), nrows=3)
 
@@ -466,7 +467,7 @@ def plot_rank_histogram(stats):
 
     Parameters
     ----------
-    stats: `dapper.stats.Stats`
+    stats: stats.Stats
     """
     tseq = stats.HMM.tseq
 
@@ -512,12 +513,12 @@ def axis_scale_by_array(ax, arr, axis="y", nbins=3):
 
     Parameters
     ----------
-    ax: matplotlib.axes
-    arr: ndarray
+    ax : matplotlib.axes
+    arr : ndarray
         Array for plotting
-    axis: str, optional
+    axis : str, optional
         Scaled axis, which can be 'x', 'y' or 'z'. Defaults: 'y'
-    nbins: int, optional
+    nbins : int, optional
         Number of major ticks. Defaults: 3
     """
     yy = array([y for y in arr if y is not None], dtype=float)  # rm None

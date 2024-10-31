@@ -1,6 +1,6 @@
 """Contains the data assimilation methods included with DAPPER.
 
-.. include:: ./README.md
+--8<-- "dapper/da_methods/README.md"
 """
 
 from pathlib import Path
@@ -16,7 +16,7 @@ def da_method(*default_dataclasses):
     The decorated classes are defined like a `dataclass`,
     but are decorated by `@da_method()` instead of `@dataclass`.
 
-    .. note::
+    !!! note
         The classes must define a method called `assimilate`.
         This method gets slightly enhanced by this wrapper which provides:
 
@@ -25,7 +25,8 @@ def da_method(*default_dataclasses):
         - Duration timing
         - Progressbar naming magic.
 
-    Example:
+    Examples
+    --------
     >>> @da_method()
     ... class Sleeper():
     ...     "Do nothing."
@@ -43,7 +44,6 @@ def da_method(*default_dataclasses):
     which enables defining default parameters which can be inherited,
     similar to subclassing.
 
-    Example:
     >>> class ens_defaults:
     ...     infl : float = 1.0
     ...     rot  : bool  = False
@@ -56,13 +56,13 @@ def da_method(*default_dataclasses):
     ...     def assimilate(self, HMM, xx, yy):
     ...         ...
 
-    .. note::
+    !!! note
         Apart from what's listed in the above `Note`, there is nothing special to the
         resulting `xp`.  That is, just like any Python object, it can serve as a data
         container, and you can write any number of attributes to it (at creation-time,
         or later).  For example, you can set attributes that are not used by the
         `assimilate` method, but are instead used to customize other aspects of the
-        experiments (see `dapper.xp_launch.run_experiment`).
+        experiments (see [`xp_launch.run_experiment`][]).
     """
     import dataclasses
     import functools

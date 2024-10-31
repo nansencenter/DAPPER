@@ -1,9 +1,9 @@
-"""Settings as in `bib.sakov2008deterministic`.
+"""Settings as in [sakov2008deterministic][].
 
 This HMM is used (with small variations) in many DA papers, for example
 
-`bib.bocquet2011ensemble`, `bib.sakov2012iterative`,
-`bib.bocquet2015expanding`, `bib.bocquet2013joint`.
+[bocquet2011ensemble][], [sakov2012iterative][],
+[bocquet2015expanding][], [bocquet2013joint][].
 """
 
 import numpy as np

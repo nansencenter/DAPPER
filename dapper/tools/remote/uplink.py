@@ -370,7 +370,8 @@ def get_ip(instance):
 def sub_run(*args, check=True, capture_output=True, text=True, **kwargs):
     r"""Do `subprocess.run`, with responsive defaults.
 
-    Examples:
+    Examples
+    --------
     >>> gitfiles = sub_run(["git", "ls-tree", "-r", "--name-only", "HEAD"])  # or:
     >>> # gitfiles = sub_run("git ls-tree -r --name-only HEAD", shell=True)
     """

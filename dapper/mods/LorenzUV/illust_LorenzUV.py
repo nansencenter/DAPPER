@@ -19,7 +19,7 @@ if __name__ == "__main__":
     K = int(10 / dt)
 
     step_1 = modelling.with_rk4(LUV.dxdt, autonom=True)
-    step_K = modelling.with_recursion(step_1, prog=1)
+    step_K = modelling.with_recursion(step_1)
 
     x0 = 0.01 * np.random.randn(LUV.M)
     x0 = step_K(x0, int(2 / dt), t0, dt)[-1]  # BurnIn
@@ -140,7 +140,11 @@ if __name__ == "__main__":
 
     if False:
         fig.savefig(
-            "docs/imgs/logo_wtxt.png", bbox_inches="tight", pad_inches=0, dpi=200
+            # "docs/images/logos/logo.svg", transparent=True,
+            "docs/images/logos/logo_wtxt.png",
+            bbox_inches="tight",
+            pad_inches=0,
+            dpi=200,
         )
 
     plt.show()

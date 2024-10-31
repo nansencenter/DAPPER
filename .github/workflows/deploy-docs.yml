@@ -1,8 +1,5 @@
-# From https://github.com/mitmproxy/pdoc/blob/main/.github/workflows/docs.yml
-# with minor adaptations
-
-name: Deploy docs
-
+# From https://github.com/mhausenblas/mkdocs-deploy-gh-pages
+name: Publish mkDocs via GitHub Pages
 # build the documentation whenever there are new commits on main
 on:
   push:
@@ -12,38 +9,18 @@ on:
     # tags:
     #   - '*'
 
-# security: restrict permissions for CI jobs.
-permissions:
-  contents: read
-
 jobs:
-  # Build the documentation and upload the static HTML files as an artifact.
   build:
+    name: Deploy MkDocs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+      - name: Checkout main
+        uses: actions/checkout@v2
 
-      - run: pip install -e .[build]
-      - run: pdoc -o docs-generated/ -t docs/templates --math --docformat=numpy docs/bib/bib.py docs/dev_guide.py ./dapper
-
-      - uses: actions/upload-pages-artifact@v1
-        with:
-          path: docs-generated/
-
-  # Deploy the artifact to GitHub pages.
-  # This is a separate job so that only actions/deploy-pages has the necessary permissions.
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v1
+      - name: Deploy docs
+        uses: mhausenblas/mkdocs-deploy-gh-pages@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONFIG_FILE: mkdocs.yml
+          REQUIREMENTS: requirements.txt
+          # CUSTOM_DOMAIN: optionaldomain.com

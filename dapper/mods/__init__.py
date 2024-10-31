@@ -1,6 +1,6 @@
 """Contains models included with DAPPER.
 
-.. include:: ./README.md
+--8<-- "dapper/mods/README.md"
 """
 
 import copy as cp
@@ -30,55 +30,66 @@ class HiddenMarkovModel(struct_tools.NicePrint):
     Should contain the details necessary to run synthetic DA experiments,
     also known as "twin experiment", or OSSE (observing system simulation experiment).
     The synthetic truth and observations may then be obtained by running
-    `HiddenMarkovModel.simulate`.
+    [`.simulate`][mods.HiddenMarkovModel.simulate].
 
-    .. note::
-      Each model included with DAPPER comes with several examples
-      of model settings from the literature.
-      See, for example, `dapper.mods.Lorenz63.sakov2012`.
+    !!! note
+        Each model included with DAPPER comes with several examples
+        of model settings from the literature.
+        See, for example, [`mods.Lorenz63.sakov2012`][].
 
-    .. warning::
-      These example configurations do not necessarily hold a high programming standard,
-      as they may have been whipped up at short notice to replicate some experiments,
-      and are not intended for re-use.
-      Nevertheless, sometimes they are re-used by another configuration script,
-      leading to a major gotcha/pitfall: changes made to the imported `HMM` (or
-      the model's module itself) also impact the original object (since they
-      are mutable and thereby referenced).  This *usually* isn't an issue, since
-      one rarely imports two/more separate configurations. However, the test suite
-      imports all configurations, which might then unintentionally interact.
-      To avoid this, you should use the `copy` method of the `HMM`
-      before making any changes to it.
-
-
-    Parameters
-    ----------
-    Dyn: `Operator` or dict
-        Operator for the dynamics.
-    Obs: `Operator` or dict
-        Operator for the observations
-        Can also be time-dependent, ref `TimeDependentOperator`.
-    tseq: `dapper.tools.chronos.Chronology`
-        Time sequence of the HMM process.
-    X0: `dapper.tools.randvars.RV`
-        Random distribution of initial condition
-    liveplotters: `list`, optional
-        A list of tuples. See example use in function `LPs` of `dapper.mods.Lorenz63`.
-        - The first element of the tuple determines if the liveplotter
-        is shown by default. If `False`, the liveplotter is only shown when
-        included among the `liveplots` argument of `assimilate`
-        - The second element in the tuple gives the corresponding liveplotter
-        function/class.
-    sectors: `dict`, optional
-        Labelled indices referring to parts of the state vector.
-        When defined, field-mean statistics are computed for each sector.
-        Example use can be found in  `examples/param_estim.py`
-        and `dapper/mods/Lorenz96/miyoshi2011.py`
-    name: str, optional
-        Label for the `HMM`.
+    !!! warning
+        These example configs do not necessarily hold a high programming standard,
+        as they may have been whipped up at short notice to replicate some experiments,
+        and are not intended for re-use.
+        Nevertheless, sometimes they are re-used by another configuration script,
+        leading to a major gotcha/pitfall: changes made to the imported `HMM` (or
+        the model's module itself) also impact the original object (since they
+        are mutable and thereby referenced).  This *usually* isn't an issue, since
+        one rarely imports two/more separate configurations. However, the test suite
+        imports all configurations, which might then unintentionally interact.
+        To avoid this, you should use the `copy` method of the `HMM`
+        before making any changes to it.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        Dyn,
+        Obs,
+        tseq,
+        X0,
+        liveplotters=None,
+        sectors=None,
+        name=None,
+        **kwargs,
+    ):
+        """Initialize.
+
+        Parameters
+        ----------
+        Dyn : Operator or dict
+            Operator for the dynamics.
+        Obs : Operator or TimeDependentOperator or dict
+            Operator for the observations
+            Can also be time-dependent, ref `TimeDependentOperator`.
+        tseq : tools.chronos.Chronology
+            Time sequence of the HMM process.
+        X0 : tools.randvars.RV
+            Random distribution of initial condition
+        liveplotters : list, optional
+            A list of tuples. See example use in function `LPs` of [`mods.Lorenz63`][].
+            - The first element of the tuple determines if the liveplotter
+            is shown by default. If `False`, the liveplotter is only shown when
+            included among the `liveplots` argument of `assimilate`
+            - The second element in the tuple gives the corresponding liveplotter
+            function/class.
+        sectors : dict, optional
+            Labelled indices referring to parts of the state vector.
+            When defined, field-mean statistics are computed for each sector.
+            Example use can be found in  `docs/examples/param_estim.py`
+            and `dapper/mods/Lorenz96/miyoshi2011.py`
+        name : str, optional
+            Label for the `HMM`.
+        """
         # Expected args/kwargs, along with type and default.
         attrs = dict(
             Dyn=(Operator, None),
@@ -89,11 +100,6 @@ class HiddenMarkovModel(struct_tools.NicePrint):
             sectors=(dict, {}),
             name=(str, self._default_name()),
         )
-
-        # Transfer args to kwargs
-        for arg, kw in zip(args, attrs):
-            assert kw not in kwargs, "Could not sort out arguments."
-            kwargs[kw] = arg
 
         # Un-abbreviate
         abbrevs = {"LP": "liveplotters", "loc": "localizer"}
@@ -106,9 +112,10 @@ class HiddenMarkovModel(struct_tools.NicePrint):
                 assert full not in kwargs, "Could not sort out arguments."
                 kwargs[full] = kwargs.pop(key)
 
-        # Convert dict to object
+        # Collect args, kwargs.
         for key, (type_, default) in attrs.items():
-            val = kwargs.get(key, default)
+            val = locals()[key] or kwargs.get(key, default)
+            # Convert dict to object
             if not isinstance(val, type_) and val is not None:
                 val = type_(**val)
             kwargs[key] = val
@@ -177,7 +184,8 @@ class TimeDependentOperator:
     The time instance should be specified by `ko`,
     i.e. the index of an observation time.
 
-    Examples: `examples/time-dep-obs-operator.py` and `dapper/mods/QG/sakov2008.py`.
+    Examples: `docs/examples/time-dep-obs-operator.py`
+    and `dapper/mods/QG/sakov2008.py`.
     """
 
     def __init__(self, **kwargs):
@@ -216,14 +224,16 @@ class Operator(struct_tools.NicePrint):
 
     Parameters
     ----------
-    M: int
+    M : int
         Length of output vectors.
-    model: function
+    model : function
         The actual operator.
-    noise: RV, optional
+    noise : RV, optional
         The associated additive noise. The noise can also be a scalar or an
         array, producing `GaussRV(C=noise)`.
 
+    Note
+    ----
     Any remaining keyword arguments are written to the object as attributes.
     """
 

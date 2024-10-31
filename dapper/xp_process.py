@@ -24,7 +24,10 @@ class SparseSpace(dict):
 
     Like a normal `dict`, it can hold any type of objects.
     But, since the keys must conform, they effectively follow a coordinate system,
-    so that the `dict` becomes a vector **space**. Example:
+    so that the `dict` becomes a vector **space**.
+
+    Examples
+    --------
     >>> dct = xpSpace(["x", "y", "z"])
     >>> dct[(1, 2, 3)] = "pointA"
 
@@ -90,7 +93,7 @@ class SparseSpace(dict):
 
         Parameters
         ----------
-        dims: list or tuple
+        dims : list or tuple
             The attributes defining the coordinate system.
         """
         # Define coordinate system
@@ -109,7 +112,7 @@ class SparseSpace(dict):
         """Update dict, using the custom `__setitem__` to ensure key conformity.
 
         NB: the `kwargs` syntax is not supported because it only works for keys that
-        consist of (a single) string, which is not very interesting for SparseSpace.
+        consist of (a single) string, which is not very interesting for `SparseSpace`.
         """
         # See https://stackoverflow.com/a/2588648
         # and https://stackoverflow.com/a/2390997
@@ -151,16 +154,17 @@ class SparseSpace(dict):
             return super().__getitem__(key)
 
     def __call__(self, **kwargs):
-        """Shortcut (syntactic sugar) for `SparseSpace.subspace`."""
+        """Shortcut (syntactic sugar) for [xp_process.SparseSpace.subspace][]."""
         return self.subspace(**kwargs)
 
     def subspace(self, **kwargs):
         """Get an affine subspace.
 
         NB: If you're calling this repeatedly (for all values of the same `kwargs`)
-        then you should consider using `SparseSpace.nest` instead.
+        then you should consider using [xp_process.SparseSpace.nest][] instead.
 
-        Example:
+        Examples
+        --------
         >>> xp_dict.subspace(da_method="EnKF", infl=1, seed=3) # doctest: +SKIP
         """
         # Slow version
@@ -177,11 +181,13 @@ class SparseSpace(dict):
     def coords_matching(self, **kwargs):
         """Get all `coord`s matching kwargs.
 
-        Used by `SparseSpace.label_xSection` and `SparseSpace.subspace`. Unlike the
-        latter, this function returns a *list* of *keys* of the *original subspace*.
+        Used by [xp_process.SparseSpace.label_xSection][] and
+        [xp_process.SparseSpace.subspace][].
+        Unlike the latter, this function returns a *list* of *keys*
+        of the *original subspace*.
 
-        Note that the `missingval` shenanigans of `xpList.inds` are here unnecessary
-        since each coordinate is complete.
+        Note that the `missingval` shenanigans of [xp_launch.xpList.inds][]
+        are here unnecessary since each coordinate is complete.
         """
 
         def match(coord):
@@ -479,8 +485,8 @@ class xpSpace(SparseSpace):
         by the mean/tune operations. The `dims['outer']` and `dims['inner']
         become the keys for the output hierarchy.
 
-        .. note::
-            cannot support multiple `statkey`s because it's not (obviously) meaningful
+        !!! note
+            Cannot support multiple `statkey`s because it's not (obviously) meaningful
             when optimizing over `dims['optim']`.
         """
 
@@ -585,10 +591,10 @@ class xpSpace(SparseSpace):
 
         Parameters
         ----------
-        statkey: str
+        statkey : str
             The statistic to extract from the `xp.avrgs` for each `xp`.
             Examples: `"rmse.a"` (i.e. `"err.rms.a"`), `"rmse.ocean.a"`, `"duration"`.
-        dims: dict
+        dims : dict
             Allots (maps) the dims of `xpSpace` to different roles in the tables.
 
             - The "role" `outer` should list the dims/attributes
@@ -608,7 +614,7 @@ class xpSpace(SparseSpace):
 
             Equivalently, use `mean=("seed",)`.
             It is acceptible to leave this empty: `mean=()` or `mean=None`.
-        subcols: bool
+        subcols : bool
             If `True`, then subcolumns are added to indicate
 
             - `1σ`: the confidence interval. If `mean=None` is used, this simply reports
@@ -619,16 +625,16 @@ class xpSpace(SparseSpace):
               as defined by `costfun`.
             - `☠`: the number of failures (non-finite values) at that point.
             - `✓`: the number of successes that go into the value
-        decimals: int
+        decimals : int
             Number of decimals to print.
             If `None`, this is determined for each statistic by its uncertainty.
-        costfun: str or function
+        costfun : str or function
             Use `'increasing'` (default) or `'decreasing'` to indicate that the optimum
             is defined as the lowest or highest value of the `statkey` found.
-        squeeze_labels: bool
+        squeeze_labels : bool
             Don't include redundant attributes in the line labels.
             Caution: `get_style` will not be able to access the eliminated attrs.
-        colorize: bool
+        colorize : bool
             Add color to tables for readability.
         """
         # Title
@@ -766,16 +772,16 @@ class xpSpace(SparseSpace):
 
         Parameters
         ----------
-        get_style: function
+        get_style : function
             A function that takes an object, and returns a dict of line styles,
             usually as a function of the object's attributes.
-        title1: anything
+        title1 : anything
             Figure title (in addition to the the defaults).
-        title2: anything
+        title2 : anything
             Figure title (in addition to the defaults). Goes on a new line.
-        unique_labels: bool
+        unique_labels : bool
             Only show a given line label once, even if it appears in several panels.
-        squeeze_labels:
+        squeeze_labels :
             Don't include redundant attributes in the labels.
         """
 

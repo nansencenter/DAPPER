@@ -1,7 +1,7 @@
 """
 Single-scale Lorenz-96 with an added thermodynamic component.
 
-Refs: `bib.vissio2020mechanics`
+Refs: [vissio2020mechanics][]
 """
 
 import numpy as np

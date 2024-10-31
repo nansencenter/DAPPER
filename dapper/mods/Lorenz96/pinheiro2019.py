@@ -1,4 +1,4 @@
-"""Settings from `bib.pinheiro2019efficient`."""
+"""Settings from [pinheiro2019efficient][]."""
 
 import dapper.mods as modelling
 import dapper.mods.Lorenz96 as model

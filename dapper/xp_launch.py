@@ -1,6 +1,6 @@
 """Tools (notably `xpList`) for setup and running of experiments (known as `xp`s).
 
-See `dapper.da_methods.da_method` for the strict definition of `xp`s.
+See [`da_methods.da_method`][] for the strict definition of `xp`s.
 """
 
 import copy
@@ -34,16 +34,17 @@ _tabulate.MIN_PADDING = 0
 def seed_and_simulate(HMM, xp):
     """Default experiment setup (sets seed and simulates truth and obs).
 
-    Used by `xpList.launch` via `run_experiment`.
+    Used by [xp_launch.xpList.launch][]
+    via [xp_launch.run_experiment][].
 
     Parameters
     ----------
-    HMM: HiddenMarkovModel
+    HMM : HiddenMarkovModel
         Container defining the system.
-    xp: object
-        Type: a `dapper.da_methods.da_method`-decorated class.
+    xp : object
+        Type: a [`da_methods.da_method`][]-decorated class.
 
-        .. warning:: `xp.seed` should be set (and `int`).
+        !!! warning "`xp.seed` should be set (and `int`)."
 
             Without `xp.seed` the seed does not get set,
             and different `xp`s will use different seeds
@@ -73,9 +74,9 @@ def run_experiment(
     fail_gently=False,
     **stat_kwargs,
 ):
-    """Used by `xpList.launch` to run each single (DA) experiment ("xp").
+    """Used by [xp_launch.xpList.launch][] to run each single (DA) experiment ("xp").
 
-    This involves steps similar to `examples/basic_1.py`, i.e.:
+    This involves steps similar to `docs/examples/basic_1.py`, i.e.:
 
     - `setup`                    : Initialize experiment.
     - `xp.assimilate`            : run DA, pass on exception if fail_gently
@@ -85,25 +86,25 @@ def run_experiment(
 
     Parameters
     ----------
-    xp: object
-        Type: a `dapper.da_methods.da_method`-decorated class.
-    label: str
+    xp : object
+        Type: a [`da_methods.da_method`][]-decorated class.
+    label : str
         Name attached to progressbar during assimilation.
-    savedir: str
+    savedir : str
         Path of folder wherein to store the experiment data.
-    HMM: HiddenMarkovModel
+    HMM : HiddenMarkovModel
         Container defining the system.
-    free: bool
+    free : bool
         Whether (or not) to `del xp.stats` after the experiment is done,
         so as to free up memory and/or not save this data
         (just keeping `xp.avrgs`).
-    statkeys: list
+    statkeys : list
         A list of names (possibly in the form of abbreviations) of the
         statistical averages that should be printed immediately afther
         this xp.
-    fail_gently: bool
+    fail_gently : bool
         Whether (or not) to propagate exceptions.
-    setup: function
+    setup : function
         This function must take two arguments: `HMM` and `xp`, and return the `HMM` to
         be used by the DA methods (typically the same as the input `HMM`, but could be
         modified), and the (typically synthetic) truth and obs time series.
@@ -111,7 +112,7 @@ def run_experiment(
         This gives you the ability to customize almost any aspect of the individual
         experiments within a batch launch of experiments (i.e. not just the parameters
         of the DA. method).  Typically you will grab one or more parameter values stored
-        in the `xp` (see `dapper.da_methods.da_method`) and act on them, usually by
+        in the `xp` (see [`da_methods.da_method`][]) and act on them, usually by
         assigning them to some object that impacts the experiment.  Thus, by generating
         a new `xp` for each such parameter value you can investigate the
         impact/sensitivity of the results to this parameter.  Examples include:
@@ -217,17 +218,17 @@ class xpList(list):
 
     Parameters
     ----------
-    args: entries
+    args : entries
         Nothing, or a list of `xp`s.
 
-    unique: bool
+    unique : bool
         Duplicates won't get appended. Makes `append` (and `__iadd__`) relatively slow.
         Use `extend` or `__add__` or `combinator` to bypass this validation.
 
     Also see
     --------
-    - Examples: `examples/basic_2`, `examples/basic_3`
-    - `dapper.xp_process.xpSpace`, which is used for experient result **presentation**,
+    - Examples: `docs/examples/basic_2`, `docs/examples/basic_3`
+    - [`xp_process.xpSpace`][], which is used for experient result **presentation**,
       as opposed to this class (`xpList`), which handles **launching** experiments.
     """
 
@@ -294,11 +295,11 @@ class xpList(list):
         since there might exist a subset of attributes that) uniquely identify each `xp`
         in the list (the `redundant` and `common` can be "squeezed" out).
         Thus, a table of the `xp`s does not need to list all of the attributes.
-        This function also does the heavy lifting for `xpSpace.squeeze`.
+        This function also does the heavy lifting for [xp_process.xpSpace.squeeze][].
 
         Parameters
         ----------
-        nomerge: list
+        nomerge : list
             Attributes that should always be seen as distinct.
         """
 
@@ -464,7 +465,7 @@ class xpList(list):
         """Essentially: `for xp in self: run_experiment(xp, ..., **kwargs)`.
 
         See `run_experiment` for documentation on the `kwargs` and `fail_gently`.
-        See `dapper.tools.datafiles.create_run_dir` for documentation `save_as`.
+        See [`tools.datafiles.create_run_dir`][] for documentation `save_as`.
 
         Depending on `mp`, `run_experiment` is delegated as follows:
 
@@ -481,7 +482,7 @@ class xpList(list):
             - If this dict field is empty, then all python files
               in `sys.path[0]` are uploaded.
 
-        See `examples/basic_2.py` and `examples/basic_3.py` for example use.
+        See `docs/examples/basic_2.py` and `docs/examples/basic_3.py` for example use.
         """
         # Parse mp option
         if not mp:
@@ -627,14 +628,14 @@ def combinator(param_dict, **glob_dict):
     """Mass creation of `xp`'s by combining the value lists in the `param_dict`.
 
     Returns a function (`for_params`) that creates all possible combinations
-    of parameters (from their value list) for a given `dapper.da_methods.da_method`.
+    of parameters (from their value list) for a given [`da_methods.da_method`][].
     This is a good deal more efficient than relying on `xpList`'s `unique`. Parameters
 
     - not found among the args of the given DA method are ignored by `for_params`.
     - specified as keywords to the `for_params` fix the value
       preventing using the corresponding (if any) value list in the `param_dict`.
 
-    .. warning::
+    !!! warning
         Beware! If, eg., `infl` or `rot` are in `param_dict`, aimed at the `EnKF`,
         but you forget that they are also attributes some method where you don't
         actually want to use them (eg. `SVGDF`),

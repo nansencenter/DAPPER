@@ -23,7 +23,7 @@ class particle_method:
 class PartFilt:
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
-    Refs: `bib.wikle2007bayesian`, `bib.van2009particle`, `bib.chen2003bayesian`
+    Refs: [wikle2007bayesian][], [van2009particle][], [chen2003bayesian][]
 
     This is the bootstrap version: the proposal density is just
 
@@ -37,7 +37,7 @@ class PartFilt:
      - qroot: "Inflate" (anneal) the proposal noise kernels
        by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
-       See `bib.chen2003bayesian`, section VI-M.2
+       See [chen2003bayesian][], section VI-M.2
     """
 
     N: int
@@ -92,11 +92,10 @@ class PartFilt:
 class OptPF:
     """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
-    Ref: `bib.bocquet2010beyond`.
+    Ref: [bocquet2010beyond][].
 
-    .. note:: Regularization (`Qs`) is here added BEFORE Bayes' rule.
-              If `Qs==0`: OptPF should be equal to
-              the bootstrap filter `PartFilt`.
+    !!! note Regularization (`Qs`) is here added BEFORE Bayes' rule.
+        If `Qs==0`: OptPF should be equal to the bootstrap filter `PartFilt`.
     """
 
     N: int
@@ -521,7 +520,7 @@ def mask_unique_of_sorted(idx):
 def auto_bandw(N, M):
     """Optimal bandwidth (not bandwidth^2), as per Scott's rule-of-thumb.
 
-    Refs: `bib.doucet2001sequential` section 12.2.2, [Wik17]_ section "Rule_of_thumb"
+    Refs: [doucet2001sequential][] section 12.2.2, [Wik17]_ section "Rule_of_thumb"
     """
     return N ** (-1 / (M + 4))
 
@@ -535,7 +534,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
     (so-named because Dirac-deltas are approximated  Gaussian kernels),
     which controls the strength of the jitter.
     This causes a bias. But, as N-->∞, the reg. bandwidth-->0, i.e. bias-->0.
-    Ref: `bib.doucet2001sequential`, section 12.2.2.
+    Ref: [doucet2001sequential][], section 12.2.2.
     """
     # Select
     E = E[idx]
@@ -555,7 +554,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
 def resample(w, kind="Systematic", N=None, wroot=1.0):
     """Multinomial resampling.
 
-    Refs: `bib.doucet2009tutorial`, `bib.van2009particle`, `bib.liu2001theoretical`.
+    Refs: [doucet2009tutorial][], [van2009particle][], [liu2001theoretical][].
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
       'Stochastic' corresponds to `rng.choice` or `rng.multinomial`.
@@ -564,7 +563,7 @@ def resample(w, kind="Systematic", N=None, wroot=1.0):
       Among the three, 'Systematic' is fastest, introduces the least noise,
       and brings continuity benefits for localized particle filters,
       and is therefore generally prefered.
-      Example: see docs/snippets/ex_resample.py.
+      Example: see `docs/images/snippets/ex_resample.py`.
 
     - N can be different from len(w)
       (e.g. in case some particles have been elimintated).
@@ -572,7 +571,7 @@ def resample(w, kind="Systematic", N=None, wroot=1.0):
     - wroot: Adjust weights before resampling by this root to
       promote particle diversity and mitigate thinning.
       The outcomes of the resampling are then weighted to maintain un-biased-ness.
-      Ref: `bib.liu2001theoretical`, section 3.1
+      Ref: [liu2001theoretical][], section 3.1
 
     Note: (a) resampling methods are beneficial because they discard
     low-weight ("doomed") particles and reduce the variance of the weights.

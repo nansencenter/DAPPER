@@ -22,6 +22,7 @@ INSTALL_REQUIRES = [
     "scipy>=1.10",
     "numpy~=1.20",
     "jupyter",
+    "notebook<7",
     "ipdb",
     "ipython>=5.1",
     "tornado~=6.3",  # 6.2 breaks Jupyter plots (tested on local Mac, Linux)
@@ -53,10 +54,23 @@ EXTRAS = {
         "pytest-timeout",
     ],
     "lint": ["ruff"],
+    "doc": [
+        "mkdocs-material",
+        "mkdocstrings",
+        "mkdocstrings-python",
+        "mkdocs-gen-files",
+        "mkdocs-literate-nav",
+        "mkdocs-section-index",
+        "mkdocs-glightbox",
+        "mkdocs-jupyter",
+        "pybtex",
+    ],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
-    "build": ["twine", "pdoc", "jupytext"],
+    "build": ["twine", "jupytext"],
 }
-EXTRAS["dev"] = EXTRAS["debug"] + EXTRAS["test"] + EXTRAS["lint"] + EXTRAS["build"]
+EXTRAS["dev"] = (
+    EXTRAS["debug"] + EXTRAS["test"] + EXTRAS["lint"] + EXTRAS["build"] + EXTRAS["doc"]
+)
 
 
 def find_version(*file_paths):
@@ -100,7 +114,7 @@ setup(
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS,
     packages=find_packages(),
-    py_modules=["examples.basic_1", "examples.basic_2", "examples.basic_3"],
+    # py_modules=["examples.basic_1", "examples.basic_2", "examples.basic_3"],
     package_data={
         "": ["*.txt", "*.md", "*.png", "*.yaml"],
         "dapper.mods.QG.f90": ["*.txt", "*.md", "*.png", "Makefile", "*.f90"],

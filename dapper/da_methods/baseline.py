@@ -1,6 +1,6 @@
 """Unsophisticated" but robust (widely applicable) DA methods.
 
-Many are based on `bib.raanes2016thesis`.
+Many are based on [raanes2016thesis][].
 """
 
 from typing import Callable, Optional
@@ -146,10 +146,15 @@ def fit_sigmoid(Sb, L, kb):
 
     The "normalized" sigmoid, `S1`, is symmetric around 0, and `S1(-∞)=0` and `S1(∞)=1`.
 
-    The sigmoid `S(k) = S1(a*(k-kb) + b)` is fitted (see docs/snippets/sigmoid.jpg) with
+    The sigmoid `S(k) = S1(a*(k-kb) + b)` is fitted with
 
     - `a` corresponding to a given corr. length `L`.
     - `b` to match values of `S(kb)` and `Sb`
+
+    <figure markdown="span">
+        ![](../../images/snippets/sigmoid.jpg){ width="300" }
+        <figcaption>Illustration</figcaption>
+    </figure>
     """
 
     def sigmoid(k):

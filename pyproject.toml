@@ -80,7 +80,7 @@ exclude = [
     "dist",
     "site-packages",
     "venv",
-    ".*", "README.*", "examples/*.ipynb", "autoscaler.py",
+    ".*", "README.*", "docs/examples/*", "autoscaler.py",
 ]
 
 # Same as Black.

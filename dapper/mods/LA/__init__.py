@@ -76,7 +76,8 @@ def sinusoidal_sample(Nx, k, N):
     but serves to avoid the initial transitory regime
     if the model is dissipative(, and more ?).
 
-    Example:
+    Examples
+    --------
     >>> E = sinusoidal_sample(100, 4, 5)
     >>> plt.plot(E.T)  # doctest: +SKIP
     """

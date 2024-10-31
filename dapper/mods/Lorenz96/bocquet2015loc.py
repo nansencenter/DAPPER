@@ -1,4 +1,4 @@
-"""Settings as in `bib.bocquet2016localization`."""
+"""Settings as in [bocquet2016localization][]."""
 
 import numpy as np
 

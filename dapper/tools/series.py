@@ -65,7 +65,7 @@ def fit_acf_by_AR1(acf_empir, nlags=None):
 def estimate_corr_length(xx):
     r"""Estimate the correlation length of a time series.
 
-    For explanation, see `dapper.mods.LA.homogeneous_1D_cov`.
+    For explanation, see [`mods.LA.homogeneous_1D_cov`][].
     Also note that, for exponential corr function, as assumed here,
 
     $$\text{corr}(L) = \exp(-1) \approx 0.368$$
@@ -210,8 +210,9 @@ class FAUSt(DataSeries, StatPrint):
         self[k,'u']
         self[k,whatever,'u']
 
-    .. note:: If a data series only pertains to analysis times,
-              then you should use a plain np.array instead.
+    !!! note
+        If a data series only pertains to analysis times, then you should use a plain
+        np.array instead.
     """
 
     def __init__(self, K, Ko, item_shape, store_u, store_s, **kwargs):

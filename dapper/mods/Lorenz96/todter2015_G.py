@@ -1,4 +1,4 @@
-"""From `dapper.mods.Lorenz96.todter2015` again, but with Gaussian likelihood."""
+"""From [`mods.Lorenz96.todter2015`][] again, but with Gaussian likelihood."""
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz96.todter2015 import HMM as _HMM

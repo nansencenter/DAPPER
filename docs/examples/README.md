@@ -3,7 +3,7 @@
 Here are some example scripts using DAPPER.
 They all consist of one (or more) synthetic experiments.
 
-Run them using `python examples/the_script.py`,
+Run them using `python docs/examples/the_script.py`,
 or with the `%run` command inside `ipython`.
 
 Some of the scripts have also been converted to Jupyter notebooks (`.ipynb`).
@@ -14,7 +14,7 @@ and that it requires a Google login): [![Open In Collab](https://colab.research.
 ## Description
 
 When adapting the scripts to your needs,
-you should begin with `examples/basic_1.py`
+you should begin with `basic_1.py`
 before incorporating the aspects of `basic_2` and `basic_3`.
 
 - `basic_1.py`: A single experiment, with Liveplotting.

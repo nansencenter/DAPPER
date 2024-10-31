@@ -1,15 +1,15 @@
 """Statistics for the assessment of DA methods.
 
-`Stats` is a data container for ([mostly] time series of) statistics.
+[`Stats`][stats.Stats] is a data container for ([mostly] time series of) statistics.
 It comes with a battery of methods to compute the default statistics.
 
-`Avrgs` is a data container *for the same statistics*,
+[`Avrgs`][stats.Avrgs] is a data container *for the same statistics*,
 but after they have been averaged in time (after the assimilation has finished).
 
-Instances of these objects are created by `dapper.da_methods.da_method`
+Instances of these objects are created by [`da_methods.da_method`][]
 (i.e. "`xp`") objects and written to their `.stats` and `.avrgs` attributes.
 
-.. include:: ../docs/stats_etc.md
+--8<-- "dapper/stats_etc.md"
 """
 
 import warnings
@@ -127,7 +127,8 @@ class Stats(series.StatPrint):
         """Create (and register) a statistics time series, initialized with `nan`s.
 
         If `length` is an integer, a `DataSeries` (a trivial subclass of
-        `numpy.ndarray`) is made. By default, though, a `series.FAUSt` is created.
+        `numpy.ndarray`) is made. By default, though, a [tools.series.FAUSt][]
+        is created.
 
         NB: The `sliding_diagnostics` liveplotting relies on detecting `nan`'s
             to avoid plotting stats that are not being used.
@@ -173,7 +174,8 @@ class Stats(series.StatPrint):
         ]
 
     def assess(self, k, ko=None, faus=None, E=None, w=None, mu=None, Cov=None):
-        """Common interface for both `Stats.assess_ens` and `Stats.assess_ext`.
+        """Common interface for both [`Stats`.assess_ens][stats.Stats.assess_ens]
+        and [`Stats`.assess_ext][stats.Stats.assess_ext].
 
         The `_ens` assessment function gets called if `E is not None`,
         and `_ext` if `mu is not None`.
@@ -438,11 +440,12 @@ class Stats(series.StatPrint):
         - t1, t2: time window to plot.
         - 'figlist' and 'speed': See LivePlot's doc.
 
-        .. note:: `store_u` (whether to store non-obs-time stats) must
-        have been `True` to have smooth graphs as in the actual LivePlot.
+        !!! note
+            `store_u` (whether to store non-obs-time stats) must
+            have been `True` to have smooth graphs as in the actual LivePlot.
 
-        .. note:: Ensembles are generally not stored in the stats
-        and so cannot be replayed.
+        !!! note
+            Ensembles are generally not stored in the stats and so cannot be replayed.
         """
         # Time settings
         tseq = self.HMM.tseq
@@ -499,12 +502,13 @@ class Avrgs(series.StatPrint, struct_tools.DotDict):
 
     Embellishments:
 
-    - `dapper.tools.StatPrint`
-    - `Avrgs.tabulate`
+    - [`tools.series.StatPrint`][]
+    - [`Avrgs.tabulate`][stats.Avrgs.tabulate]
     - `getattr` that supports abbreviations.
     """
 
     def tabulate(self, statkeys=(), decimals=None):
+        """Tabulate using [`tabulate_avrgs`][stats.tabulate_avrgs]"""
         columns = tabulate_avrgs([self], statkeys, decimals=decimals)
         return tabulate(columns, headers="keys").replace("␣", " ")
 
@@ -551,7 +555,8 @@ def align_col(col, pad="␣", missingval="", just=">"):
 
     Treats `int`s and fixed-point `float`/`str` especially, aligning on the point.
 
-    Example:
+    Examples
+    --------
     >>> xx = [1, 1., 1.234, 12.34, 123.4, "1.2e-3", None, np.nan, "inf", (1, 2)]
     >>> print(*align_col(xx), sep="\n")
     ␣␣1␣␣␣␣
@@ -623,14 +628,14 @@ def unpack_uqs(uq_list, decimals=None):
     and may get formatted somehow (e.g. cast to strings) in the output.
 
     If `uq` is `None`, then `None` is inserted in each list.
-    Else, `uq` must be an instance of `dapper.tools.rounding.UncertainQtty`.
+    Else, `uq` must be an instance of [`tools.rounding.UncertainQtty`][].
 
     Parameters
     ----------
-    uq_list: list
+    uq_list : list
         List of `uq`s.
 
-    decimals: int
+    decimals : int
         Desired number of decimals.
         Used for (only) the columns "val" and "prec".
         Default: `None`. In this case, the formatting is left to the `uq`s.
@@ -703,23 +708,23 @@ def center(E, axis=0, rescale=False):
 
     Parameters
     ----------
-    E: ndarray
+    E : ndarray
         Ensemble which going to be inflated
 
-    axis: int, optional
+    axis : int, optional
         The axis to be centered. Default: 0
 
-    rescale: bool, optional
+    rescale : bool, optional
         If True, inflate to compensate for reduction in the expected variance.
         The inflation factor is \(\sqrt{\frac{N}{N - 1}}\)
         where N is the ensemble size. Default: False
 
     Returns
     -------
-    X: ndarray
+    X : ndarray
         Ensemble anomaly
 
-    x: ndarray
+    x : ndarray
         Mean of the ensemble
     """
     x = np.mean(E, axis=axis, keepdims=True)
@@ -735,7 +740,7 @@ def center(E, axis=0, rescale=False):
 
 
 def mean0(E, axis=0, rescale=True):
-    """Like `center`, but only return the anomalies (not the mean).
+    """Like [`center`][stats.center], but only return the anomalies (not the mean).
 
     Uses `rescale=True` by default, which is beneficial
     when used to center observation perturbations.
@@ -751,7 +756,7 @@ def inflate_ens(E, factor):
     E : ndarray
         Ensemble which going to be inflated
 
-    factor: `float`
+    factor : `float`
         Inflation factor
 
     Returns
@@ -773,10 +778,10 @@ def weight_degeneracy(w, prec=1e-10):
 
     Parameters
     ----------
-    w: ndarray
+    w : ndarray
         Importance weights. Must sum to 1.
 
-    prec: float, optional
+    prec : float, optional
         Tolerance of the distance between w and one. Default:1e-10
 
     Returns
@@ -792,21 +797,21 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
 
     Parameters
     ----------
-    w: ndarray, optional
+    w : ndarray, optional
         Importance weights. Must sum to 1.
         Only one of `w` and `N_eff` can be `None`. Default: `None`
 
-    N_eff: float, optional
+    N_eff : float, optional
         The "effective" size of the weighted ensemble.
         If not provided, it is computed from the weights.
         The unbiasing factor is $$ N_{eff} / (N_{eff} - 1) $$.
 
-    avoid_pathological: bool, optional
+    avoid_pathological : bool, optional
         Avoid weight collapse. Default: `False`
 
     Returns
     -------
-    ub: float
+    ub : float
         factor used to unbiasing variance
 
     Reference

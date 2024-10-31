@@ -1,6 +1,6 @@
 """Demonstrate the Vissio-Lucarini-20 model.
 
-Reproduce Hovmoller diagram Fig 4. in `bib.vissio2020mechanics`.
+Reproduce Hovmoller diagram Fig 4. in [vissio2020mechanics][].
 """
 
 import numpy as np

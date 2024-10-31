@@ -42,12 +42,12 @@ def ens_compatible(func):
 
     This is helpful to make functions compatible with both 1d and 2d ndarrays.
 
-    .. note:: This is not `the_way™` -- other tricks (ref `dapper.mods`)
-        are sometimes more practical.
+    !!! tip "This is not `the_way™`"
+        Other tricks (ref [`mods`][]) are sometimes more practical.
 
     Examples
     --------
-    `dapper.mods.Lorenz63.dxdt`, `dapper.mods.DoublePendulum.dxdt`
+    [`mods.Lorenz63.dxdt`][], [`mods.DoublePendulum.dxdt`][]
 
     See Also
     --------
@@ -70,15 +70,16 @@ def linear_model_setup(ModelMatrix, dt0):
     r"""Make the Dyn/Obs field of a HMM representing a linear model.
 
     Let *M* be the model matrix. Then
-    .. math::
 
-      x(t+dt) = M^{dt/dt0} x(t),
+    $$
+        x(t+dt) = M^{dt/dt0} x(t),
+    $$
 
     i.e.
 
-    .. math::
-
-      \frac{dx}{dt} = \frac{\log(M)}{dt0} x(t).
+    $$
+    \frac{dx}{dt} = \frac{\log(M)}{dt0} x(t).
+    $$
 
     In typical use, `dt0==dt` (where `dt` is defined by the chronology).
     Anyways, `dt` must be an integer multiple of `dt0`.
@@ -115,14 +116,14 @@ def direct_obs_matrix(Nx, obs_inds):
 
     Parameters
     ----------
-    Nx: int
+    Nx : int
         Length of state vector
-    obs_inds: ndarray
+    obs_inds : ndarray
         Indices of elements of the state vector that are (directly) observed.
 
     Returns
     -------
-    H: ndarray
+    H : ndarray
         The observation matrix for direct partial observations.
     """
     Ny = len(obs_inds)
@@ -142,14 +143,14 @@ def partial_Id_Obs(Nx, obs_inds):
 
     Parameters
     ----------
-    Nx: int
+    Nx : int
         Length of state vector
-    obs_inds: ndarray
+    obs_inds : ndarray
         The observed indices.
 
     Returns
     -------
-    Obs: dict
+    Obs : dict
         Observation operator including size of the observation space,
         observation operator/model and tangent linear observation operator
     """
@@ -180,12 +181,12 @@ def Id_Obs(Nx):
 
     Parameters
     ----------
-    Nx: int
+    Nx : int
         Length of state vector
 
     Returns
     -------
-    Obs: dict
+    Obs : dict
         Observation operator including size of the observation space,
         observation operator/model and tangent linear observation operator
     """
@@ -197,18 +198,18 @@ def linspace_int(Nx, Ny, periodic=True):
 
     Parameters
     ----------
-    Nx: int
+    Nx : int
         Range of integers
-    Ny: int
+    Ny : int
         Number of integers
-    periodic: bool, optional
+    periodic : bool, optional
         Whether the vector is periodic.
         Determines if `Nx == 0`.
         Default: True
 
     Returns
     -------
-    integers: ndarray
+    integers : ndarray
         The list of integers.
 
     Examples

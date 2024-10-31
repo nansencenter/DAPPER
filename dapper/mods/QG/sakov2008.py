@@ -1,4 +1,4 @@
-"""Reproduce results from `bib.sakov2008deterministic`."""
+"""Reproduce results from [sakov2008deterministic][]."""
 
 import numpy as np
 

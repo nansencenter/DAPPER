@@ -1,4 +1,4 @@
-"""Quasi-geostraphic 2D flow. Described in detail by `bib.sakov2008deterministic`.
+"""Quasi-geostraphic 2D flow. Described in detail by [sakov2008deterministic][].
 
 Adapted from Pavel Sakov's enkf-matlab package.
 

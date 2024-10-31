@@ -1,8 +1,8 @@
 """A multi-scale, smooth version of the classic Lorenz-96.
 
-This is an implementation of "Model III" of `bib.lorenz2005designing`.
+This is an implementation of "Model III" of [lorenz2005designing][].
 
-Similar to `dapper.mods.LorenzUV` this model is designed
+Similar to [`mods.LorenzUV`][] this model is designed
 to contain two different scales. However, in "Model III"
 the two scales are not kept separate, but superimposed,
 and the large scale variables are (adjustably) spatially smooth.
@@ -111,7 +111,7 @@ class Model:
 
 
 def summation_kernel(width):
-    """Prepare computation of the modified sum in `bib.lorenz2005designing`.
+    """Prepare computation of the modified sum in [lorenz2005designing][].
 
     Note: This gets repeatedly called, but actually the input is only ever
     `width = K` or `2*J`, so we should really cache or pre-compute.
@@ -131,7 +131,7 @@ def boxcar(x, n, method="direct"):
     For symmetry, if `n` is pair, the actual number of elements used is `n+1`,
     and the outer elements weighted by `0.5` to compensate for the `+1`.
 
-    This is the modified sum of `bib.lorenz2005designing`, used e.g. in eqn. 9.
+    This is the modified sum of [lorenz2005designing][], used e.g. in eqn. 9.
     For intuition: this type of summation (and the associated Sigma prime notation)
     may also be found for the "Trapezoidal rule" and in the inverse DFT used in
     spectral methods on a periodic domain.
@@ -151,7 +151,8 @@ def boxcar(x, n, method="direct"):
     method is a little slower again. If `K` or `J` is increased, then the "fft"
     method becomes the fastest.
 
-    Examples:
+    Examples
+    --------
     >>> x = np.array([0, 1, 2], dtype=float)
     >>> np.allclose(boxcar(x, 1), x)
     True
@@ -216,7 +217,7 @@ def shift(x, k):
 
 
 def prodsum_self(x, k):
-    """Compute `prodsum(x, x, k)` efficiently: eqn 10 of `bib.lorenz2005designing`."""
+    """Compute `prodsum(x, x, k)` efficiently: eqn 10 of [lorenz2005designing][]."""
     W = boxcar(x, k)
     WW = shift(W, -2 * k) * shift(W, -k)
     WX = shift(W, -k) * shift(x, k)

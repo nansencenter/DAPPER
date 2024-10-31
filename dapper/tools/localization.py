@@ -20,13 +20,13 @@ def pairwise_distances(A, B=None, domain=None):
 
     Parameters
     ----------
-    A: array of shape `(nPoints, nDims)`.
+    A : array of shape `(nPoints, nDims)`.
         A collection of points.
 
-    B:
+    B :
         Same as `A`, but `nPoints` can differ.
 
-    domain: tuple
+    domain : tuple
         Assume the domain is a **periodic** hyper-rectangle whose
         edges along dimension `i` span from 0 to `domain[i]`.
         NB: Behaviour not defined if `any(A.max(0) > domain)`, and likewise for `B`.
@@ -221,8 +221,8 @@ def rectangular_partitioning(shape, steps, do_ind=True):
 
     Parameters
     ----------
-    shape: (len(grid[dim]) for dim in range(ndim))
-    steps: (step_len[dim]  for dim in range(ndim))
+    shape : (len(grid[dim]) for dim in range(ndim))
+    steps : (step_len[dim]  for dim in range(ndim))
 
     Returns
     -------

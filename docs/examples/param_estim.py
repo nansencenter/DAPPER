@@ -6,10 +6,10 @@
 # (concatenating) the state vector with the parameter (vector).
 #
 # This particular experiment is a reproduction of section 3.3 of
-# `bib.bocquet2013joint`. Briefly: the unknown parameter is the forcing used in
+# [bocquet2013joint][]. Briefly: the unknown parameter is the forcing used in
 # Lorenz-96; only the state is observed; both parameter and state get estimated.
 #
-# This example builds mostly on `examples/basic_2.py`. For brevity, it does not
+# This example builds mostly on `docs/examples/basic_2.py`. For brevity, it does not
 # contain some of the facilities of `examples/basic_3.py` to run and analyse a
 # larger numbers of experiments.
 #

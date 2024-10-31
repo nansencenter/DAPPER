@@ -1,4 +1,4 @@
-"""Settings from `bib.pajonk2012deterministic`.
+"""Settings from [pajonk2012deterministic][].
 
 There is nothing to reproduce from the paper as there are no
 statistically converged numbers.

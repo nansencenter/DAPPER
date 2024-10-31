@@ -1,6 +1,6 @@
 """A 1D emulator of chaotic atmospheric behaviour.
 
-`bib.lorenz1996predictability`
+[lorenz1996predictability][]
 
 For a short introduction, see
 
