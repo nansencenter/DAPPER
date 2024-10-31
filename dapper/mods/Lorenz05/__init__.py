@@ -151,7 +151,8 @@ def boxcar(x, n, method="direct"):
     method is a little slower again. If `K` or `J` is increased, then the "fft"
     method becomes the fastest.
 
-    Examples:
+    Examples
+    --------
     >>> x = np.array([0, 1, 2], dtype=float)
     >>> np.allclose(boxcar(x, 1), x)
     True

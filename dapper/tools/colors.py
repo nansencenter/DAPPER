@@ -39,7 +39,8 @@ def color_text(text, *color_codes):
 def coloring(*color_codes):
     """Color printing using 'with'.
 
-    Example:
+    Examples
+    --------
     >>> with coloring(colorama.Fore.GREEN):
     ...    print("--- This is in color ---")  # doctest: +SKIP
     """

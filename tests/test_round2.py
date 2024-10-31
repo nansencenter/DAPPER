@@ -9,7 +9,8 @@ from dapper.tools.rounding import round2, round2sigfig
 class ca(float):
     """Make `==` approximate.
 
-    Example:
+    Examples
+    --------
     >>> ca(1 + 1e-6) == 1
     True
 

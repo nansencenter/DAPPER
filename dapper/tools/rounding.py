@@ -17,7 +17,8 @@ class UncertainQtty:
     However, this class in itself does not define the `prec` attribute
     by anything else than what it does: impact the rounding & printing of `val`.
 
-    Examples:
+    Examples
+    --------
     >>> for c in [.01, .1, .2, .9, 1]:
     ...    print(UncertainQtty(1.2345, c))
     1.23 ±0.01
@@ -150,6 +151,8 @@ def _round2prec(num, prec):
 
     This function is left here just for reference. Use `round2` instead.
 
+    Examples
+    --------
     The issue is that:
     >>> _round2prec(0.7,.1)
     0.7000000000000001

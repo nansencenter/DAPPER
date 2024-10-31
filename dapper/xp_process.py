@@ -24,7 +24,10 @@ class SparseSpace(dict):
 
     Like a normal `dict`, it can hold any type of objects.
     But, since the keys must conform, they effectively follow a coordinate system,
-    so that the `dict` becomes a vector **space**. Example:
+    so that the `dict` becomes a vector **space**.
+
+    Examples
+    --------
     >>> dct = xpSpace(["x", "y", "z"])
     >>> dct[(1, 2, 3)] = "pointA"
 
@@ -160,7 +163,8 @@ class SparseSpace(dict):
         NB: If you're calling this repeatedly (for all values of the same `kwargs`)
         then you should consider using [xp_process.SparseSpace.nest][] instead.
 
-        Example:
+        Examples
+        --------
         >>> xp_dict.subspace(da_method="EnKF", infl=1, seed=3) # doctest: +SKIP
         """
         # Slow version

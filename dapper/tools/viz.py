@@ -222,8 +222,8 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
     K : int
         length for plotting
 
-    Example
-    -------
+    Examples
+    --------
     >>> K_lag = estimate_good_plot_length(stats.xx, tseq, mult=80) # doctest: +SKIP
     """
     if xx.ndim == 2:

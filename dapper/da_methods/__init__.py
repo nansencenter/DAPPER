@@ -25,7 +25,8 @@ def da_method(*default_dataclasses):
         - Duration timing
         - Progressbar naming magic.
 
-    Example:
+    Examples
+    --------
     >>> @da_method()
     ... class Sleeper():
     ...     "Do nothing."
@@ -43,7 +44,6 @@ def da_method(*default_dataclasses):
     which enables defining default parameters which can be inherited,
     similar to subclassing.
 
-    Example:
     >>> class ens_defaults:
     ...     infl : float = 1.0
     ...     rot  : bool  = False

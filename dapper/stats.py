@@ -555,7 +555,8 @@ def align_col(col, pad="␣", missingval="", just=">"):
 
     Treats `int`s and fixed-point `float`/`str` especially, aligning on the point.
 
-    Example:
+    Examples
+    --------
     >>> xx = [1, 1., 1.234, 12.34, 123.4, "1.2e-3", None, np.nan, "inf", (1, 2)]
     >>> print(*align_col(xx), sep="\n")
     ␣␣1␣␣␣␣
