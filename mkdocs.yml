@@ -9,7 +9,7 @@ site_name: DAPPER
 site_author: Patrick N. Raanes
 site_url: https://nansencenter.github.io/DAPPER
 repo_url: https://github.com/nansencenter/DAPPER
-# edit_uri: edit/master/docs/
+edit_uri: edit/master/docs/
 
 docs_dir: docs
 watch: [mkdocs.yml, README.md, dapper]
@@ -39,6 +39,7 @@ theme:
   features:
     - content.code.copy # copy button
     # - content.code.select # [insiders only]
+    - content.action.edit
     - content.code.annotate # clickable toggler for code comments
     - navigation.indexes # enable subdir/index.md
     - toc.follow # ?
