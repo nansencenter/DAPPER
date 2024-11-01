@@ -31,6 +31,7 @@ and then estimate that truth given the models and noisy observations.
   (requires Google login).
 - This [screencast](https://www.youtube.com/watch?v=YtalK0Zkzvg&t=6475s)
   provides an overview to DAPPER.
+- [Install](#installation).
 - The [documentation](https://nansencenter.github.io/DAPPER)
   includes general guidelines and the API reference,
   but most users must expect to read the code as well.
