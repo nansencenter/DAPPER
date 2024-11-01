@@ -103,7 +103,7 @@ mkdocs serve
 You should use relative page links, including the `.md` extension.
 For example, `[link label](sibling-page.md)`.
 
-This appears to work, but does not get validated! `[link label](../sibling-page)`
+The following works, but does not get validated! `[link label](../sibling-page)`
 
 !!! hint "Why not absolute links?"
 
@@ -135,9 +135,12 @@ Syntax: `[visible label][link]` i.e. double pairs of _brackets_. Shorthand: `[li
     - Clearly, non-unique headings risk being confused with others in this way.
     - The link (anchor) must be lowercase!
 
-This facilitates linking to **API (code reference)** items.
-For example, ``[`da_methods.ensemble`][]``,
-where the backticks are optional (makes the link _look_ like a code reference).
+This facilitates linking to
+
+- **API (code reference)** items.
+  For example, ``[`da_methods.ensemble`][]``,
+  where the backticks are optional (makes the link _look_ like a code reference).
+- **References**. For example ``[`bocquet2016`][]``,
 
 ### Docstring injection
 
@@ -146,6 +149,9 @@ Use the following syntax to inject the docstring of a code object.
 ```markdown
 ::: da_methods.ensemble
 ```
+
+But we generally don't do so manually.
+Instead it's taken care of by the reference generation via `docs/gen_ref_pages.py`.
 
 ### Including other files
 
