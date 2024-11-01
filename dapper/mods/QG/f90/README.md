@@ -27,10 +27,10 @@ Compile as follows...
 
 ### This `f90` directory
 
-contains Fortran-90 code for the QG model for building
+...contains Fortran-90 code for the QG model for building
 
-1. a python extension module `py_mod`
-2. a standalone program
+1. A python extension module `py_mod`
+2. A standalone program
 
 DAPPER only requires `py_mod` (also to generate initial sample).
 Both require an `f90` compiler (tested with `g95` and `gfortran`).  
@@ -70,7 +70,7 @@ Example: here's how I compiled the standalone on my Mac:
           q    = permute( netcdf.getVar(ncid, netcdf.inqVarID(ncid,'q'))  , [3 2 1]);
           t    = netcdf.getVar(ncid, netcdf.inqVarID(ncid,'t'));
 
-### Changelog since Sakov's enkf-matlab
+### Changelog since Sakov's `enkf-matlab`
 
     - Rm Matlab interface funcs: qgplay.m qgplot.m qgread.m mexcmd.m qgstep_mex.f90 mexf90.f90
     - Modified makefile, as described above.

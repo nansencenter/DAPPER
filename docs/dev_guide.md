@@ -243,8 +243,7 @@ Upload to Test.PyPI
 ```sh
 twine upload --repository testpypi dist/*
 ```
-
-where ~/.pypirc contains
+where `~/.pypirc` contains
 
 ```ini
 [distutils]
