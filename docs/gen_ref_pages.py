@@ -30,6 +30,10 @@ for path in sorted(src.rglob("*.py")):
     # PS: rm mkdocs_gen_files to get to inspect actual .md files
     # NB: will (over)write in docs/ folder.
     with mkdocs_gen_files.open(full_doc_path, "w") as fd:
+        # Explicitly set the title to avoid mkdocs capitalizing
+        # names and removing underscores (only applies to files)
+        print(f"# {parts[-1]}", file=fd)
+
         identifier = ".".join(parts)
         print("::: " + identifier, file=fd)
 
