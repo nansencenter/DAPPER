@@ -6,6 +6,12 @@
     <link rel="canonical" href=".">
 {% endblock %}
 
+{% block scripts %}
+  <!-- Add scripts that need to run before here -->
+  {{ super() }}
+  <!-- Add scripts that need to run afterwards here -->
+{% endblock %}
+
 {% block content %}
   {{ super() }}
 
