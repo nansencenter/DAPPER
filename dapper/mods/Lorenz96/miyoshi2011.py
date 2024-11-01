@@ -1,6 +1,6 @@
 """A land-ocean setup.
 
-Refs: [miyoshi2011gaussian][], which was inspired by [lorenz1998optimal][].
+Refs: [miyoshi2011a][], which was inspired by [lorenz1998][].
 """
 
 import numpy as np

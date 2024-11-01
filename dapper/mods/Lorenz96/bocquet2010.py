@@ -1,4 +1,4 @@
-"""From Fig. 1 of [bocquet2010beyond][]."""
+"""From Fig. 1 of [bocquet2010a][]."""
 
 import numpy as np
 

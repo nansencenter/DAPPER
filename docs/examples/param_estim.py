@@ -6,7 +6,7 @@
 # (concatenating) the state vector with the parameter (vector).
 #
 # This particular experiment is a reproduction of section 3.3 of
-# [bocquet2013joint][]. Briefly: the unknown parameter is the forcing used in
+# [bocquet2013][]. Briefly: the unknown parameter is the forcing used in
 # Lorenz-96; only the state is observed; both parameter and state get estimated.
 #
 # This example builds mostly on `docs/examples/basic_2.py`. For brevity, it does not
@@ -198,7 +198,7 @@ xps = dpr.xpList(dpr.load_xps(save_as))
 
 
 # These scores may be validated by cross-checking with those
-# reported by bib.bocquet2013joint in their ...
+# reported by bib.bocquet2013 in their ...
 print(
     xps.tabulate_avrgs(
         [
@@ -212,7 +212,7 @@ print(
 
 # Note that only the data points at `Lag` (data assimilation window length) 0 and
 # 1 are reproduced by DAPPER, because the IEnKS in DAPPER does not have MDA
-# (in the same sense as bib.bocquet2013joint), which applies for `Lag>=2`.
+# (in the same sense as bib.bocquet2013), which applies for `Lag>=2`.
 # Nevertheless, DAPPER's IEnKS accuracy also improves (both for state and param)
 # with increasing Lag. However, `Lag=100` is too much (causes divergence)
 # without the MDA component of by Bocquet et al.

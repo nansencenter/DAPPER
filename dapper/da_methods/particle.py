@@ -23,7 +23,7 @@ class particle_method:
 class PartFilt:
     r"""Particle filter ≡ Sequential importance (re)sampling SIS (SIR).
 
-    Refs: [wikle2007bayesian][], [van2009particle][], [chen2003bayesian][]
+    Refs: [wikle2007][], [van2009][], [chen2003][]
 
     This is the bootstrap version: the proposal density is just
 
@@ -37,7 +37,7 @@ class PartFilt:
      - qroot: "Inflate" (anneal) the proposal noise kernels
        by this root to increase diversity.
        The weights are updated to maintain un-biased-ness.
-       See [chen2003bayesian][], section VI-M.2
+       See [chen2003][], section VI-M.2
     """
 
     N: int
@@ -92,7 +92,7 @@ class PartFilt:
 class OptPF:
     """'Optimal proposal' particle filter, also known as 'Implicit particle filter'.
 
-    Ref: [bocquet2010beyond][].
+    Ref: [bocquet2010a][].
 
     !!! note Regularization (`Qs`) is here added BEFORE Bayes' rule.
         If `Qs==0`: OptPF should be equal to the bootstrap filter `PartFilt`.
@@ -554,7 +554,7 @@ def regularize(C12, E, idx, no_uniq_jitter):
 def resample(w, kind="Systematic", N=None, wroot=1.0):
     """Multinomial resampling.
 
-    Refs: [doucet2009tutorial][], [van2009particle][], [liu2001theoretical][].
+    Refs: [doucet2009][], [van2009][], [liu2001theoretical][].
 
     - kind: 'Systematic', 'Residual' or 'Stochastic'.
       'Stochastic' corresponds to `rng.choice` or `rng.multinomial`.

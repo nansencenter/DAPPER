@@ -1,8 +1,8 @@
-"""Settings as in [frei2013bridging][].
+"""Settings as in [frei2013a][].
 
 They also cite its use in the following:
 
-[bengtsson2003toward][], [lei2011moment][], [frei2013mixture][].
+[bengtsson2003][], [lei2011][], [frei2013][].
 """
 
 import numpy as np
@@ -34,12 +34,12 @@ HMM = modelling.HiddenMarkovModel(Dyn, Obs, t, X0)
 ####################
 # Suggested tuning
 ####################
-# Compare to Table 1 and 3 from frei2013bridging. Note:
+# Compare to Table 1 and 3 from frei2013a. Note:
 #  - N is too large to be very interesting.
 #  - We obtain better EnKF scores than they report,
 #    and use inflation and sqrt updating,
 #    and don't really need localization.
-# from dapper.mods.Lorenz96.frei2013bridging import HMM     # rmse.a
+# from dapper.mods.Lorenz96.frei2013a import HMM     # rmse.a
 # xps += EnKF_N(N=400,rot=1)                                # 0.80
 # xps += LETKF( N=400,rot=True,infl=1.01,loc_rad=10/1.82)   # 0.79 # short xp. only
 # xps += Var3D()                                            # 2.42 # short xp. only

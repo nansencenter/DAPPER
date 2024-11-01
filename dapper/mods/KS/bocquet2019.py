@@ -1,4 +1,4 @@
-"""Settings as in [bocquet2019consistency][]."""
+"""Settings as in [bocquet2019a][]."""
 
 import numpy as np
 
@@ -35,7 +35,7 @@ HMM.liveplotters = LPs(np.arange(Nx))
 # Suggested tuning
 ####################
 
-# Reproduce (top-right panel) of Fig. 4 of bocquet2019consistency    # Expected rmse.a:
+# Reproduce (top-right panel) of Fig. 4 of bocquet2019a    # Expected rmse.a:
 # --------------------------------------------------------------------------------
 # xps += LETKF(N=4 , loc_rad=15/1.82, infl=1.11,rot=True,taper='GC') # 0.18
 # xps += LETKF(N=6,  loc_rad=25/1.82, infl=1.06,rot=True,taper='GC') # 0.14

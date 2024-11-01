@@ -28,10 +28,10 @@ class var_method:
 class iEnKS:
     """Iterative EnKS.
 
-    Special cases: EnRML, ES-MDA, iEnKF, EnKF [raanes2019revising][].
+    Special cases: EnRML, ES-MDA, iEnKF, EnKF [raanes2019][].
 
-    As in [bocquet2014iterative][], optimization uses Gauss-Newton.
-    See [bocquet2012combining][] for Levenberg-Marquardt.
+    As in [bocquet2014][], optimization uses Gauss-Newton.
+    See [bocquet2012a][] for Levenberg-Marquardt.
     If MDA=True, then there's not really any optimization,
     but rather Gaussian annealing.
 
@@ -41,13 +41,13 @@ class iEnKS:
 
         - "Sqrt"   : as in ETKF  , using a deterministic matrix square root transform.
         - "PertObs": as in EnRML , using stochastic, perturbed-observations.
-        - "Order1" : as in DEnKF of [sakov2008deterministic][].
+        - "Order1" : as in DEnKF of [sakov2008b][].
 
       Lag:
         Length of the DA window (DAW, multiples of dko, i.e. cycles).
 
-        - Lag=1 (default) => iterative "filter" iEnKF [sakov2012iterative][].
-        - Lag=0           => maximum-likelihood filter [zupanski2005maximum][].
+        - Lag=1 (default) => iterative "filter" iEnKF [sakov2012a][].
+        - Lag=0           => maximum-likelihood filter [zupanski2005][].
 
       Shift : How far (in cycles) to slide the DAW.
               Fixed at 1 for code simplicity.
@@ -60,7 +60,7 @@ class iEnKS:
               Recommended: 1e-5.
 
       MDA   : Use iterations of the "multiple data assimlation" type.
-              Ref [emerick2012history][]
+              Ref [emerick2012][]
 
       bundle: Use finite-diff. linearization instead of of least-squares regression.
               Makes the iEnKS very much alike the iterative, extended KF (IEKS).
@@ -70,8 +70,8 @@ class iEnKS:
     Total number of model simulations (of duration dto): N * (nIter*Lag + 1).
     (due to boundary cases: only asymptotically valid)
 
-    Refs: [bocquet2012combining][], [bocquet2013joint][],
-    [bocquet2014iterative][].
+    Refs: [bocquet2012a][], [bocquet2013][],
+    [bocquet2014][].
     """
 
     upd_a: str

@@ -1,4 +1,4 @@
-"""Reproduce results from [hoteit2015mitigating][]."""
+"""Reproduce results from [hoteit2015a][]."""
 
 from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM
 

@@ -1,4 +1,4 @@
-"""Reproduce [raanes2015rts][]."""
+"""Reproduce [raanes2015a][]."""
 
 import dapper.mods as modelling
 from dapper.mods.Lorenz96.sakov2008 import HMM as _HMM

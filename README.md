@@ -143,16 +143,16 @@ you'll first need to run `conda activate dapper-env`
 <!-- markdownlint-disable line-length -->
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ------------------------
-EnKF <sup>1</sup>                                      | [Sakov08](https://nansencenter.github.io/DAPPER/references/#sakov2008deterministic), [Hoteit15](https://nansencenter.github.io/DAPPER/references/#hoteit2015mitigating), [Grudzien2020](https://nansencenter.github.io/DAPPER/references/#grudzien2020numerical)
-EnKF-N                                                 | [Bocquet12](https://nansencenter.github.io/DAPPER/references/#bocquet2012combining), [Bocquet15](https://nansencenter.github.io/DAPPER/references/#bocquet2015expanding)
+EnKF <sup>1</sup>                                      | [Sakov08](https://nansencenter.github.io/DAPPER/references/#sakov2008b), [Hoteit15](https://nansencenter.github.io/DAPPER/references/#hoteit2015a), [Grudzien2020](https://nansencenter.github.io/DAPPER/references/#grudzien2020a)
+EnKF-N                                                 | [Bocquet12](https://nansencenter.github.io/DAPPER/references/#bocquet2012a), [Bocquet15](https://nansencenter.github.io/DAPPER/references/#bocquet2015)
 EnKS, EnRTS                                            | [Raanes2016](https://nansencenter.github.io/DAPPER/references/#raanes2016thesis)
-iEnKS / iEnKF / EnRML / ES-MDA <sup>2</sup>            | [Sakov12](https://nansencenter.github.io/DAPPER/references/#sakov2012iterative), [Bocquet12](https://nansencenter.github.io/DAPPER/references/#Bocquet12), [Bocquet14](https://nansencenter.github.io/DAPPER/references/#bocquet2014iterative)
-LETKF, local & serial EAKF                             | [Bocquet11](https://nansencenter.github.io/DAPPER/references/#bocquet2011ensemble)
-Sqrt. model noise methods                              | [Raanes2014](https://nansencenter.github.io/DAPPER/references/#raanes2014ext)
-Particle filter (bootstrap) <sup>3</sup>               | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010beyond)
-Optimal/implicit Particle filter  <sup>3</sup>         | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010beyond)
-NETF                                                   | [Tödter15](https://nansencenter.github.io/DAPPER/references/#todter2015second), [Wiljes16](https://nansencenter.github.io/DAPPER/references/#wiljes2016second)
-Rank histogram filter (RHF)                            | [Anderson10](https://nansencenter.github.io/DAPPER/references/#anderson2010non)
+iEnKS / iEnKF / EnRML / ES-MDA <sup>2</sup>            | [Sakov12](https://nansencenter.github.io/DAPPER/references/#sakov2012a), [Bocquet12](https://nansencenter.github.io/DAPPER/references/#Bocquet12), [Bocquet14](https://nansencenter.github.io/DAPPER/references/#bocquet2014)
+LETKF, local & serial EAKF                             | [Bocquet11](https://nansencenter.github.io/DAPPER/references/#bocquet2011)
+Sqrt. model noise methods                              | [Raanes2014](https://nansencenter.github.io/DAPPER/references/#raanes2014)
+Particle filter (bootstrap) <sup>3</sup>               | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010a)
+Optimal/implicit Particle filter  <sup>3</sup>         | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010a)
+NETF                                                   | [Tödter15](https://nansencenter.github.io/DAPPER/references/#todter2015a), [Wiljes16](https://nansencenter.github.io/DAPPER/references/#wiljes2016)
+Rank histogram filter (RHF)                            | [Anderson10](https://nansencenter.github.io/DAPPER/references/#anderson2010)
 4D-Var                                                 |
 3D-Var                                                 |
 Extended KF                                            |

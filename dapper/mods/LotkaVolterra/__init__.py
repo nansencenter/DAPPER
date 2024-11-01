@@ -2,7 +2,7 @@
 
 Refs:
 [Wiki](https://en.wikipedia.org/wiki/Competitive_Lotka-Volterra_equations),
-[vano2006chaos][].
+[vano2006][].
 """
 
 import numpy as np

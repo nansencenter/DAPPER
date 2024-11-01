@@ -1,6 +1,6 @@
 """A chaotic system of size 3, like Lorenz-63, but with +complex geometry.
 
-Refs: [lorenz1984irregularity][], [lorenz2005look][]
+Refs: [lorenz1984][], [lorenz2005][]
 """
 
 import numpy as np

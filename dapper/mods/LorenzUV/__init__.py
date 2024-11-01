@@ -1,6 +1,6 @@
 """The 2-scale/layer/speed coupled version of Lorenz-96.
 
-See [wilks2005effects][]
+See [wilks2005][]
 - U:  large amp, low frequency vars: convective events
 - V:  small amp, high frequency vars: large-scale synoptic events
 
@@ -45,7 +45,7 @@ d2x_dtdx_auto = reversible(L96.d2x_dtdx)
 class model_instance:
     """Use OOP to facilitate having multiple parameter settings simultaneously.
 
-    Default parameters from [wilks2005effects][].
+    Default parameters from [wilks2005][].
     """
 
     def __init__(self, nU=8, J=32, F=20, h=1, b=10, c=10):

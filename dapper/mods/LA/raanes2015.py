@@ -1,4 +1,4 @@
-"""Reproduce results from Fig. 2 of [raanes2014ext][]."""
+"""Reproduce results from Fig. 2 of [raanes2014][]."""
 
 import numpy as np
 

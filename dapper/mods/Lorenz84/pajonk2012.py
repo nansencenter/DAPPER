@@ -1,4 +1,4 @@
-"""Settings from [pajonk2012deterministic][].
+"""Settings from [pajonk2012a][].
 
 There is nothing to reproduce from the paper as there are no
 statistically converged numbers.

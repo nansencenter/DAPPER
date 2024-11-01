@@ -1,4 +1,4 @@
-"""Uses `nU`, `J`, `F` as in [`mods.LorenzUV`][] ie. from [wilks2005effects][].
+"""Uses `nU`, `J`, `F` as in [`mods.LorenzUV`][] ie. from [wilks2005][].
 
 Obs settings taken from different places (=> quasi-linear regime).
 """

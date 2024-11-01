@@ -14,7 +14,7 @@
 #    - the hyper-diffusion term yields stability of the low-order modes.
 # - The nonlinear term induces mixing of the (Fourier) modes.
 #
-# bocquet2019consistency use it with DA because:
+# bocquet2019a use it with DA because:
 # "it is characterised by sharp density gradients
 # so that it may be expected that local EnKFs are prone to imbalance"
 #

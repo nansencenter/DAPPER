@@ -1,4 +1,4 @@
-"""From [bocquet2010beyond][] (again), but `ndim=40` (i.e. Fig. 5 of paper)."""
+"""From [bocquet2010a][] (again), but `ndim=40` (i.e. Fig. 5 of paper)."""
 
 import numpy as np
 

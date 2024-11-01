@@ -1,9 +1,9 @@
-"""Settings as in [sakov2008deterministic][].
+"""Settings as in [sakov2008b][].
 
 This HMM is used (with small variations) in many DA papers, for example
 
-[bocquet2011ensemble][], [sakov2012iterative][],
-[bocquet2015expanding][], [bocquet2013joint][].
+[bocquet2011][], [sakov2012a][],
+[bocquet2015][], [bocquet2013][].
 """
 
 import numpy as np
@@ -41,7 +41,7 @@ HMM.liveplotters = LPs(jj)
 # Suggested tuning
 ####################
 
-# Reproduce Table1 of sakov2008deterministic        # Expected rmse.a:
+# Reproduce Table1 of sakov2008b        # Expected rmse.a:
 # --------------------------------------------------------------------------------
 # xps += EnKF('PertObs'        ,N=40, infl=1.06)               # 0.22
 # xps += EnKF('DEnKF'          ,N=40, infl=1.01)               # 0.18
@@ -63,14 +63,14 @@ HMM.liveplotters = LPs(jj)
 # xps += Var3D(xB=0.02)                                        # 0.41
 # xps += ExtKF(infl=10)                                        # 0.24
 
-# Reproduce LETKF scores from bocquet2011ensemble fig 6:
+# Reproduce LETKF scores from bocquet2011 fig 6:
 # --------------------------------------------------------------------------------
 # xps += LETKF(N=6,rot=True,infl=1.05,loc_rad=4,taper='Step')  #
 # Other localized:
 # xps += LETKF(         N=7,rot=True,infl=1.04,loc_rad=4)      # 0.22
 # xps += SL_EAKF(       N=7,rot=True,infl=1.07,loc_rad=6)      # 0.23
 
-# Reproduce Table 3 (IEnKF) from sakov2012iterative
+# Reproduce Table 3 (IEnKF) from sakov2012a
 # --------------------------------------------------------------------------------
 # HMM.tseq.dko = 12
 # xps += iEnKS('Sqrt' ,N=25,Lag=1,nIter=10,infl=1.2,rot=1)     # 0.46

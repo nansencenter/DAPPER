@@ -1,4 +1,4 @@
-"""Settings from [anderson2010non][]."""
+"""Settings from [anderson2010][]."""
 
 import numpy as np
 

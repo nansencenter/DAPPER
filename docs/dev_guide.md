@@ -170,7 +170,7 @@ In order to add new references,
 insert their bibtex into `docs/bib/refs.bib`,
 then run `docs/bib/bib2md.py`
 which will format and add entries to `docs/references.md`
-that can be cited with regular cross-reference syntax, e.g. `[bocquet2010beyond][]`.
+that can be cited with regular cross-reference syntax, e.g. `[bocquet2010a][]`.
 
 ### Hosting
 

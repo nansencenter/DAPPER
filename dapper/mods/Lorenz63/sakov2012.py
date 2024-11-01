@@ -1,4 +1,4 @@
-"""Reproduce results from Table 1 [sakov2012iterative][]."""
+"""Reproduce results from Table 1 [sakov2012a][]."""
 
 import numpy as np
 
