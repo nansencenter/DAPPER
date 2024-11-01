@@ -1,8 +1,14 @@
 """Load default and user configurations into the `rc` dict.
 
-The `rc` dict can be updated (after startup) as any normal dict. See the
-[source](https://github.com/nansencenter/DAPPER/blob/master/dapper/dpr_config.yaml)
-for the default configuration.
+The `rc` dict can be updated (after startup) as any normal dict.
+
+The config file should reside in your `$HOME/`, or `$HOME/.config/` or `$PWD/`.
+If several exist, the last one found (from the above ordering) is used.
+The default configuration is given below.
+
+```yaml
+--8<-- "dapper/dpr_config.yaml"
+```
 """
 
 import os

@@ -10,8 +10,8 @@ nav:
   - Home: index.md
   - Reference: reference/
   - Examples: examples/
-  - dev_guide.md
   - Bibliography: references.md
+  - dev_guide.md
 
 validation:
   absolute_links: relative_to_docs

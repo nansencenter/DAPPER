@@ -1,4 +1,4 @@
-##### Adding your own model/method
+## Adding your own model/method
 
 If you wish to illustrate and run benchmarks with
 your own **model** or **method**, then

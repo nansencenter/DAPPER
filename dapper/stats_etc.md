@@ -20,13 +20,8 @@ The same applies for the time-averages of `.avrgs`.
 ### Field summaries
 
 The statistics are also averaged in space.
-This is done according to the methods listed in `dpr.rc.field_summaries`.
-
-!!! note
-
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla et euismod
-    nulla. Curabitur feugiat, tortor non consequat finibus, justo purus auctor
-    massa, nec semper lorem quam in massa.
+This is done according to the methods listed in
+`rc.field_summaries` of the [`dpr_config`][].
 
 !!! note
 
