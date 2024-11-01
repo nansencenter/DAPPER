@@ -87,17 +87,7 @@ ruff check --output-format=concise
 
 You may also want to display linting issues in your editor as you code.
 
-## Adding to the examples
-
-Example scripts are very useful, and contributions are very desirable.  As well
-as showcasing some feature, new examples should make sure to reproduce some
-published literature results.  After making the example, consider converting
-the script to the Jupyter notebook format (or vice versa) so that the example
-can be run on Colab without users needing to install anything (see
-`docs/examples/README.md`). This should be done using the `jupytext` plug-in (with
-the `lightscript` format), so that the paired files can be kept in synch.
-
-## Documentation
+## Writing documentation
 
 The documentation is built with `mkdocs`. Try it with
 
@@ -108,29 +98,87 @@ mkdocs serve
 - Temporarily disable `mkdocs-jupyter` in `mkdocs.yml` to speed up build reloads.
 - Set `validation: unrecognized_links: warn` to get warnings about linking issues.
 
-#### Linking
+### Linking to pages
 
-- Link to internal pages using syntax `[label](path)`
-  where the path is _relative_ to the current doc and does **not** include the `.md` extension.
-  For example, for a page at the same folder level as the current one, use a `path` like `../sibling`.
-- [label](/DAPPER/references/)
-- Link to 
+You should use relative page links, including the `.md` extension.
+For example, `[link label](sibling-page.md)`.
 
-#### Hosting
+This appears to work, but does not get validated! `[link label](../sibling-page)`
 
-The above command is run by a GitHub Actions workflow whenever
-the `master` branch gets updated.
-The `gh-pages` branch is no longer being used.
-Instead [actions/deploy-pages](https://github.com/actions/deploy-pages)
-creates an artefact that is deployed to Github Pages.
+!!! hint "Why not absolute links?"
 
-#### Bibliography
+    The downside of relative links is that if you move/rename source **or** destination,
+    then they will need to be changed, whereas only the destination needs be watched
+    when using absolute links.
+
+    Previously, absolute links were not officially supported by MkDocs, meaning "not modified at all".
+    Thus, if made like so `[label](/DAPPER/references)`,
+    i.e. without `.md` and including `/DAPPER`,
+    then they would **work** (locally with `mkdocs serve` and with GitHub hosting).
+    Since [#3485](https://github.com/mkdocs/mkdocs/pull/3485) you can instead use `[label](/references)`
+    i.e. omitting `DAPPER` (or whatever domain sub-dir is applied in `site_url`)
+    by setting `mkdocs.yml: validation: absolute_links: relative_to_docs`.
+    A different workaround is the [`mkdocs-site-url` plugin](https://github.com/OctoPrint/mkdocs-site-urls).
+
+    !!! tip "Either way"
+        It will not be link that your editor can follow to the relevant markdown file
+        (unless you create a symlink in your file system root?)
+        nor will GitHub's internal markdown rendering manage to make sense of it,
+        so my advise is not to use absolute links.
+
+### Linking to headers/anchors
+
+Thanks to the `autorefs` plugin,
+links to **headings** (including page titles) don't even require specifying the page path!
+Syntax: `[visible label][link]` i.e. double pairs of _brackets_. Shorthand: `[link][]`.
+!!! info
+    - Clearly, non-unique headings risk being confused with others in this way.
+    - The link (anchor) must be lowercase!
+
+This facilitates linking to **API (code reference)** items.
+For example, ``[`da_methods.ensemble`][]``,
+where the backticks are optional (makes the link _look_ like a code reference).
+
+### Docstring injection
+
+Use the following syntax to inject the docstring of a code object.
+
+```markdown
+::: da_methods.ensemble
+```
+
+### Including other files
+
+The `pymdown` extension ["snippets"](https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#snippets-notation)
+enables the following syntax to include text from other files.
+
+`--8<-- "/path/from/project/root/filename.ext"`
+
+### Adding to the examples
+
+Example scripts are very useful, and contributions are very desirable.  As well
+as showcasing some feature, new examples should make sure to reproduce some
+published literature results.  After making the example, consider converting
+the script to the Jupyter notebook format (or vice versa) so that the example
+can be run on Colab without users needing to install anything (see
+`docs/examples/README.md`). This should be done using the `jupytext` plug-in (with
+the `lightscript` format), so that the paired files can be kept in synch.
+
+### Bibliography
 
 In order to add new references,
 insert their bibtex into `docs/bib/refs.bib`,
 then run `docs/bib/bib2md.py`
 which will format and add entries to `docs/references.md`
 that can be cited with regular cross-reference syntax, e.g. `[bocquet2010beyond][]`.
+
+### Hosting
+
+The above command is run by a GitHub Actions workflow whenever
+the `master` branch gets updated.
+The `gh-pages` branch is no longer being used.
+Instead [actions/deploy-pages](https://github.com/actions/deploy-pages)
+creates an artefact that is deployed to Github Pages.
 
 ## Profiling
 

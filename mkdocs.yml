@@ -14,6 +14,7 @@ nav:
   - Bibliography: references.md
 
 validation:
+  absolute_links: relative_to_docs
   # Disabled coz it complains about relative links that work just fine
   # (and enable interlinking READMEs even on GitHub).
   # Set to "warn" to help find non-working links.
