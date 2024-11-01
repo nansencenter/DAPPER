@@ -143,16 +143,16 @@ you'll first need to run `conda activate dapper-env`
 <!-- markdownlint-disable line-length -->
 Method                                                 | Literature reproduced
 ------------------------------------------------------ | ------------------------
-EnKF <sup>1</sup>                                      | [Sakov08](https://nansencenter.github.io/DAPPER/bib.html#bib.sakov2008deterministic), [Hoteit15](https://nansencenter.github.io/DAPPER/bib.html#bib.hoteit2015mitigating), [Grudzien2020](https://nansencenter.github.io/DAPPER/bib.html#bib.grudzien2020numerical)
-EnKF-N                                                 | [Bocquet12](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2012combining), [Bocquet15](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2015expanding)
-EnKS, EnRTS                                            | [Raanes2016](https://nansencenter.github.io/DAPPER/bib.html#bib.raanes2016thesis)
-iEnKS / iEnKF / EnRML / ES-MDA <sup>2</sup>            | [Sakov12](https://nansencenter.github.io/DAPPER/bib.html#bib.sakov2012iterative), [Bocquet12](https://nansencenter.github.io/DAPPER/bib.html#bib.Bocquet12), [Bocquet14](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2014iterative)
-LETKF, local & serial EAKF                             | [Bocquet11](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2011ensemble)
-Sqrt. model noise methods                              | [Raanes2014](https://nansencenter.github.io/DAPPER/bib.html#bib.raanes2014ext)
-Particle filter (bootstrap) <sup>3</sup>               | [Bocquet10](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2010beyond)
-Optimal/implicit Particle filter  <sup>3</sup>         | [Bocquet10](https://nansencenter.github.io/DAPPER/bib.html#bib.bocquet2010beyond)
-NETF                                                   | [Tödter15](https://nansencenter.github.io/DAPPER/bib.html#bib.todter2015second), [Wiljes16](https://nansencenter.github.io/DAPPER/bib.html#bib.wiljes2016second)
-Rank histogram filter (RHF)                            | [Anderson10](https://nansencenter.github.io/DAPPER/bib.html#bib.anderson2010non)
+EnKF <sup>1</sup>                                      | [Sakov08](https://nansencenter.github.io/DAPPER/references/#sakov2008deterministic), [Hoteit15](https://nansencenter.github.io/DAPPER/references/#hoteit2015mitigating), [Grudzien2020](https://nansencenter.github.io/DAPPER/references/#grudzien2020numerical)
+EnKF-N                                                 | [Bocquet12](https://nansencenter.github.io/DAPPER/references/#bocquet2012combining), [Bocquet15](https://nansencenter.github.io/DAPPER/references/#bocquet2015expanding)
+EnKS, EnRTS                                            | [Raanes2016](https://nansencenter.github.io/DAPPER/references/#raanes2016thesis)
+iEnKS / iEnKF / EnRML / ES-MDA <sup>2</sup>            | [Sakov12](https://nansencenter.github.io/DAPPER/references/#sakov2012iterative), [Bocquet12](https://nansencenter.github.io/DAPPER/references/#Bocquet12), [Bocquet14](https://nansencenter.github.io/DAPPER/references/#bocquet2014iterative)
+LETKF, local & serial EAKF                             | [Bocquet11](https://nansencenter.github.io/DAPPER/references/#bocquet2011ensemble)
+Sqrt. model noise methods                              | [Raanes2014](https://nansencenter.github.io/DAPPER/references/#raanes2014ext)
+Particle filter (bootstrap) <sup>3</sup>               | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010beyond)
+Optimal/implicit Particle filter  <sup>3</sup>         | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010beyond)
+NETF                                                   | [Tödter15](https://nansencenter.github.io/DAPPER/references/#todter2015second), [Wiljes16](https://nansencenter.github.io/DAPPER/references/#wiljes2016second)
+Rank histogram filter (RHF)                            | [Anderson10](https://nansencenter.github.io/DAPPER/references/#anderson2010non)
 4D-Var                                                 |
 3D-Var                                                 |
 Extended KF                                            |
