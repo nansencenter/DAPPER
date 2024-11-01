@@ -2,10 +2,17 @@
 
 from pathlib import Path
 
+import pybtex.backends.markdown as fmt
 from pybtex.database import parse_string
 from pybtex.richtext import Tag, Text
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
 from pybtex.style.formatting.unsrt import field, sentence
+
+fmt.SPECIAL_CHARS.remove("[")
+fmt.SPECIAL_CHARS.remove("]")
+fmt.SPECIAL_CHARS.remove("(")
+fmt.SPECIAL_CHARS.remove(")")
+fmt.SPECIAL_CHARS.remove("-")
 
 HERE = Path(__file__).parent
 
