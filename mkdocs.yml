@@ -168,22 +168,3 @@ extra_css:
 
 extra:
   generator: false # "Made with Material for MkDocs"
-  footer:
-    logos:
-      row1:
-        - name: norce.svg
-          height: 50px
-          brightness: 50%
-        - name: nfr.svg
-          height: 80px
-          brightness: 50%
-      row2:
-        - name: akerbp.svg
-          height: 40px
-          brightness: 50%
-        - name: equinor.svg
-          height: 60px
-          brightness: 50%
-        - name: wintershall-dea.svg
-          height: 80px
-          brightness: 70%
