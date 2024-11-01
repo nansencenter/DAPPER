@@ -17,8 +17,8 @@ When adapting the scripts to your needs,
 you should begin with `basic_1.py`
 before incorporating the aspects of `basic_2` and `basic_3`.
 
-- `basic_1.py`: A single experiment, with Liveplotting.
-- `basic_2.py`: Comparison of several DA methods.
+- [`basic_1.py`](basic_1): A single experiment, with Liveplotting.
+- [`basic_2.py`](basic_2): Comparison of several DA methods.
 - `basic_3.py`: Comparison of *many* DA methods and other experiment settings.
 - `time-dep-obs-operator.py`: Similar to `basic_1`, but with "double" Lorenz-63 systems
   evolving independently, and observations of each "half" at alternating times.
