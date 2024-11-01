@@ -1,5 +1,10 @@
-"""Generate the code reference pages."""
-# Based on https://mkdocstrings.github.io/recipes/
+"""Generate reference pages (md) from code (py).
+
+Based on `https://mkdocstrings.github.io/recipes/`
+
+Note that the generated markdown files have almost no content,
+merely contain a reference to the corresponding `mkdocstring` identifier.
+"""
 
 from pathlib import Path
 
@@ -27,7 +32,7 @@ for path in sorted(src.rglob("*.py")):
     elif parts[-1] == "__main__":
         continue
 
-    # PS: rm mkdocs_gen_files to get to inspect actual .md files
+    # PS: rm `mkdocs_gen_files` to get to inspect actual .md files
     # NB: will (over)write in docs/ folder.
     with mkdocs_gen_files.open(full_doc_path, "w") as fd:
         # Explicitly set the title to avoid mkdocs capitalizing

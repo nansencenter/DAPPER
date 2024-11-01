@@ -99,13 +99,24 @@ the `lightscript` format), so that the paired files can be kept in synch.
 
 ## Documentation
 
-The documentation is built with `mkdocs`, e.g.
+The documentation is built with `mkdocs`. Try it with
 
 ```sh
-mkdocs build # use `serve` instead for live preview with hot-reloading
+mkdocs serve
 ```
 
-##### Hosting
+- Temporarily disable `mkdocs-jupyter` in `mkdocs.yml` to speed up build reloads.
+- Set `validation: unrecognized_links: warn` to get warnings about linking issues.
+
+#### Linking
+
+- Link to internal pages using syntax `[label](path)`
+  where the path is _relative_ to the current doc and does **not** include the `.md` extension.
+  For example, for a page at the same folder level as the current one, use a `path` like `../sibling`.
+- [label](/DAPPER/references/)
+- Link to 
+
+#### Hosting
 
 The above command is run by a GitHub Actions workflow whenever
 the `master` branch gets updated.
@@ -113,7 +124,7 @@ The `gh-pages` branch is no longer being used.
 Instead [actions/deploy-pages](https://github.com/actions/deploy-pages)
 creates an artefact that is deployed to Github Pages.
 
-##### Bibliography
+#### Bibliography
 
 In order to add new references,
 insert their bibtex into `docs/bib/refs.bib`,
