@@ -89,7 +89,8 @@ You may also want to display linting issues in your editor as you code.
 
 ## Writing documentation
 
-The documentation is built with `mkdocs`. Try it with
+The documentation is built with `mkdocs` and should be written in [markdown syntax](https://www.markdownguide.org/cheat-sheet/).
+You can preview the rendered html docs by running
 
 ```sh
 mkdocs serve
@@ -97,6 +98,9 @@ mkdocs serve
 
 - Temporarily disable `mkdocs-jupyter` in `mkdocs.yml` to speed up build reloads.
 - Set `validation: unrecognized_links: warn` to get warnings about linking issues.
+
+Docstrings should be written in the [style of numpy](https://mkdocstrings.github.io/griffe/reference/docstrings/#numpydoc-style).
+Additional details on the documentation system are collected in the following subsection.
 
 ### Linking to pages
 
