@@ -100,7 +100,11 @@ plugins:
             show_symbol_type_heading: true
             show_symbol_type_toc: true
             show_root_heading: false
-            summary: false # pretty cool actually
+            summary:
+                modules: true
+                classes: false
+                attributes: false
+                functions: false # class methods
             show_labels: false
 
 # Mostly from
