@@ -41,7 +41,7 @@ xp  # ⇒ printout (in notebooks)
 # Note that the assimilation "knows" the HMM,
 # but `xx` is only used for performance *assessment*.
 
-xp.assimilate(HMM, xx, yy)
+xp.assimilate(HMM, xx, yy, liveplots=True)
 
 # ### Average the time series
 # Computes a set of different statistics.
