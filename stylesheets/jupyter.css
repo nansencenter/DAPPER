@@ -1,0 +1,8 @@
+/* No need for these margins in the rendered jupyter notebooks */
+.document-is-notebook h1 { margin-bottom: 0; }
+.jp-Notebook h2:first-of-type { margin-top: 0; }
+
+/* stderr is used by tqdm progressbar so should not be red */
+.jupyter-wrapper .jp-RenderedText[data-mime-type="application/vnd.jupyter.stderr"] {
+  background-color: #cdd6d6ff !important;
+}

@@ -1,0 +1,26 @@
+<!-- Affects all pages -->
+{% extends "base.html" %}
+
+{% block extrahead %}
+    <!-- "navigation.instant" support -->
+    <link rel="canonical" href=".">
+{% endblock %}
+
+{% block scripts %}
+  <!-- Add scripts that need to run before here -->
+  {{ super() }}
+  <!-- Add scripts that need to run afterwards here -->
+{% endblock %}
+
+{% block content %}
+  {{ super() }}
+
+  {#
+    Hello World!
+    {{ page.url }}
+    {{ "relative/link" | url }}
+    {{ "/absolute/link" | url }}
+    {{ "https://www.google.com/" | url }}
+  #}
+
+{% endblock %}
