@@ -26,7 +26,7 @@ class ca(float):
 
     def __eq__(self, other):
         """Make equality comparison approximate."""
-        return np.isclose(self, other, self.tol)
+        return bool(np.isclose(float(self), other, self.tol))
 
 
 # Test cases for round2sigfig

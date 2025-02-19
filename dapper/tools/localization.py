@@ -47,7 +47,7 @@ def pairwise_distances(A, B=None, domain=None):
 
     The function matches `pdist(..., metric='euclidean')`, but is faster:
     >>> from scipy.spatial.distance import pdist, squareform
-    >>> (pairwise_distances(A) == squareform(pdist(A))).all()
+    >>> bool((pairwise_distances(A) == squareform(pdist(A))).all())
     True
 
     As opposed to `pdist`, it also allows comparing `A` to a different set of points,
