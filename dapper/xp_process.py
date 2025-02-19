@@ -12,7 +12,7 @@ from struct_tools import AlignedDict, complement, intersect, transps
 from tabulate import tabulate
 
 from dapper.dpr_config import rc
-from dapper.stats import align_col, unpack_uqs
+from dapper.stats import align_col, np2builtin, unpack_uqs
 from dapper.tools.colors import color_text, stripe
 from dapper.tools.rounding import UncertainQtty
 from dapper.tools.viz import NoneDict, default_styles
@@ -101,7 +101,9 @@ class SparseSpace(dict):
 
         def repr2(c, keys=False, str_or_repr=repr):
             if keys:
-                lst = [f"{k}={str_or_repr(v)}" for k, v in c._asdict().items()]
+                lst = [
+                    f"{k}={str_or_repr(np2builtin(v))}" for k, v in c._asdict().items()
+                ]
             else:
                 lst = [str_or_repr(v) for v in c]
             return "(" + ", ".join(lst) + ")"

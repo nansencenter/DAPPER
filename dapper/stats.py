@@ -600,6 +600,8 @@ def align_col(col, pad="␣", missingval="", just=">"):
     def frmt(x):
         if x is None:
             return missingval
+        if isinstance(x, tuple):
+            x = tuple(np2builtin(v) for v in x)
         ints, decs = split_decimal(x)
         x = f"{ints.rjust(nInt, pad)}"
         if decs == "int":
@@ -699,6 +701,11 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
         columns[headr] = mattr
 
     return columns
+
+
+def np2builtin(v):
+    "Sometimes necessary since NEP-50"
+    return v.item() if isinstance(v, np.generic) else v
 
 
 def center(E, axis=0, rescale=False):
