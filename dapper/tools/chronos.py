@@ -287,7 +287,7 @@ class Ticker:
         if self.k >= len(self.tt):
             raise StopIteration
         t = self.tt[self.k]
-        dt = t - self.tt[self.k - 1] if self.k > 0 else np.NaN
+        dt = t - self.tt[self.k - 1] if self.k > 0 else np.nan
         item = (self.k, self.ko, t, dt)
         self.k += 1
         if self._ko < len(self.kko) and self.k == self.kko[self._ko]:
