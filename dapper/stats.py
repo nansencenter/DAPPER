@@ -690,7 +690,7 @@ def tabulate_avrgs(avrgs_list, statkeys=(), decimals=None):
         column = unpack_uqs(column, decimals)
         if not column:
             raise ValueError(
-                f"The stat. key '{stat}' was not" " found among any of the averages."
+                f"The stat. key '{stat}' was not found among any of the averages."
             )
         vals = align_col([stat] + column["val"])
         precs = align_col(["1σ"] + column["prec"], just="<")

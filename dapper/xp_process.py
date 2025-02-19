@@ -648,7 +648,7 @@ class xpSpace(SparseSpace):
         if dims.get("mean", None):
             print(f"Averages (in time and) over {dims['mean']}.")
         else:
-            print("Averages in time only" " (=> the 1σ estimates may be unreliable).")
+            print("Averages in time only (=> the 1σ estimates may be unreliable).")
 
         def make_cols(rows, cc, subcols, h2):
             """Subcolumns: align, justify, join."""
