@@ -660,7 +660,7 @@ def unpack_uqs(uq_list, decimals=None):
         if decimals is None:
             v, p = str(uq).split(" ±")
         else:
-            frmt = "%%.%df" % decimals
+            frmt = f"%.{decimals:d}f"
             v, p = frmt % uq.val, frmt % uq.prec
         attrs["val"], attrs["prec"] = v, p
 
@@ -912,7 +912,7 @@ def crps_ens(x, ensemble, weights=None):
 
     # Add "ghost" (weight 0) member(s) to ensemble, which does not change its CDF,
     # but avoids having to compute partial quadrature bins around location(s) of x.
-    ens = np.concat([ensemble, x])
+    ens = np.concatenate([ensemble, x])
     w = np.pad(weights, (0, len(x)))
 
     # Construct empirical CDF
