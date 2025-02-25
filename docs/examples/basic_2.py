@@ -80,4 +80,4 @@ save_as = xps.launch(HMM, liveplots=False)
 
 # ### Print results
 
-print(xps.tabulate_avrgs(statkeys=["rmse.a"]))
+print(xps.tabulate_avrgs(statkeys=["err.rms.a", "crps.rms.a"]))

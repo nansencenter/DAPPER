@@ -19,6 +19,7 @@ import scipy.linalg as sla
 import struct_tools
 from matplotlib import pyplot as plt
 from patlib.std import do_once
+from scipy import special
 from tabulate import tabulate
 
 import dapper.tools.liveplotting as liveplotting
@@ -85,6 +86,7 @@ class Stats(series.StatPrint):
         self.new_series("spread", Nx, field_mean="sectors")  # Std. dev. ("spread")
         self.new_series("err", Nx, field_mean="sectors")  # Error (mu - truth)
         self.new_series("gscore", Nx, field_mean="sectors")  # Gaussian (log) score
+        self.new_series("crps", Nx, field_mean="sectors")  # Cont. ranked prob. score
 
         # To save memory, we only store these field means:
         self.new_series("mad", 1)  # Mean abs deviations
@@ -291,6 +293,8 @@ class Stats(series.StatPrint):
         if rc.comps["error_only"]:
             return
 
+        now.crps = crps_ens(x, E, w)
+
         A = E - now.mu
         # While A**2 is approx as fast as A*A,
         # A**3 is 10x slower than A**2 (or A**2.0).
@@ -364,6 +368,8 @@ class Stats(series.StatPrint):
                 s2, U = sla.eigh(P)
                 now.svals = np.sqrt(np.maximum(s2, 0.0))[::-1]
                 now.umisf = (U.T @ now.err)[::-1]
+
+        now.crps = crps_ext(x, mu, var)
 
         # Compute stddev
         now.spread = np.sqrt(var)
@@ -833,3 +839,113 @@ def unbias_var(w=None, N_eff=None, avoid_pathological=False):
     else:
         ub = 1 / (1 - 1 / N_eff)  # =N/(N-1) if w==ones(N)/N.
     return ub
+
+
+def crps_ens(x, ensemble, weights=None):
+    """Compute CRPS for `ensemble` given obs/truth `x`.
+
+    Tested to reproduce values from `properscoring.crps_ensemble()`.
+
+    The 0th axis of `ensemble` is taken to enumerate the members,
+    and must have same length as the 1d `weights` (if any)
+    If `x.ndim == ensemble.ndim`, the 0th axis of `x` is taken to enumerate multiple x.
+    The CRPS is computed independently (and efficiently) for any/all other dimensions.
+    Thus `ensemble.shape[1:]` must be matched by `x.shape[1:]` or `x.shape`,
+    and the output gets the shape of `x`.
+
+    Examples
+    --------
+
+    In 1D:
+
+    >>> ens = np.array([-1.5, -1.0, 1.0, 1.5])
+    >>> crps_ens(0, ens)
+    array(0.5625)
+
+    >>> crps_ens([0], ens)
+    array([0.5625])
+
+    >>> crps_ens([-2, -1.5, 0, 1, 1.5, 2], ens)
+    array([1.3125, 0.8125, 0.5625, 0.5625, 0.8125, 1.3125])
+
+    In 2D:
+
+    >>> ens2 = np.vstack([ens, ens]).T
+    >>> crps_ens([1, 2], ens2)
+    array([0.5625, 1.3125])
+
+    >>> crps_ens([[1, 2]], ens2)
+    array([[0.5625, 1.3125]])
+
+    >>> crps_ens([[1, 2], [-2, -1.5]], ens2)
+    array([[0.5625, 1.3125],
+           [1.3125, 0.8125]])
+
+    Try weighting:
+
+    >>> from scipy.stats import norm
+    >>> rng = np.random.default_rng(3000)
+    >>> ens = rng.standard_normal(10**3)
+    >>> grd = np.linspace(-5, 5, num=len(ens))
+    >>> a1 = crps_ens(0, ens)
+    >>> a2 = crps_ens(0, ens, weights=norm.pdf(grd))
+    >>> np.allclose(a1, a2, atol=1e-2)
+    True
+    """
+
+    # Setup weights
+    N = len(ensemble)
+    if weights is None:
+        weights = np.ones(N)
+    else:
+        weights = np.asarray(weights)
+        assert len(weights) == N and np.all(weights >= 0)
+    weights = weights / weights.sum()
+
+    # Setup ndim/shape of x, ensemble
+    ensemble = np.asarray(ensemble)
+    x = np.asarray(x)
+    shp = x.shape
+    if ensemble.ndim - x.ndim == 1:
+        x = np.expand_dims(x, axis=0)
+    assert ensemble.ndim == x.ndim, "Dimensions mismatch"
+
+    # Add "ghost" (weight 0) member(s) to ensemble, which does not change its CDF,
+    # but avoids having to compute partial quadrature bins around location(s) of x.
+    ens = np.concat([ensemble, x])
+    w = np.pad(weights, (0, len(x)))
+
+    # Construct empirical CDF
+    order = np.argsort(ens, axis=0)  # has (average) complexity O(N log N), per dim
+    w = w[order]
+    ens = np.take_along_axis(ens, order, axis=0)
+    cdf = np.cumsum(w, axis=0)
+
+    # Integrate
+    dxs = np.diff(ens, axis=0)
+    ens = ens[:-1]  # cdf[i] applies for "bin" from ens[i] to ens[i+1] ⇒ discard [-1]
+    cdf = cdf[:-1]
+
+    x = x[:, None]  # expand_dims
+    heaviside = np.where(x > ens, 0, 1)
+    integrand = (heaviside - cdf) ** 2
+    q = np.sum(dxs * integrand, axis=1).reshape(shp)
+    return q
+
+
+def crps_ext(x, mu, var):
+    """Adapted from `properscoring.crps_gaussian()`.
+
+    The shapes of `x`, `mu`, and `var` must match, but can be anything,
+    and yields output of same shape.
+
+    Ref `http://cran.nexr.com/web/packages/scoringRules/vignettes/crpsformulas.html`
+    """
+    x = np.asarray(x)
+    mu = np.asarray(mu)
+    s1 = np.sqrt(np.asarray(var))
+    z = (x - mu) / s1  # standardize
+    pdf = 1 / np.sqrt(2 * np.pi) * np.exp(-(z * z) / 2)
+    cdf = special.ndtr(z)
+    pi_inv = 1.0 / np.sqrt(np.pi)
+    return s1 * (z * (2 * cdf - 1) + 2 * pdf - pi_inv)
