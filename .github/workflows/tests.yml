@@ -16,17 +16,17 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.9", "3.10", "3.11", "3.12"] # NB: also see versions for 'conda'
+        python-version: ["3.11", "3.12"] # NB: also see versions for 'conda'
         jobtype: ["test"]
         include:
           - os: "ubuntu-latest"
-            python-version: "3.10"
+            python-version: "3.12"
             jobtype: "lint"
           - os: "ubuntu-latest"
-            python-version: "3.10"
+            python-version: "3.12"
             jobtype: "coverage"
           - os: "macos-latest"
-            python-version: "3.10"
+            python-version: "3.12"
             jobtype: "test"
     env:
       JOBTYPE: ${{ matrix.jobtype }}
@@ -74,7 +74,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.9", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
         include:
           - os: "macos-latest"
             python-version: "3.12"
