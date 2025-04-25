@@ -24,6 +24,7 @@ INSTALL_REQUIRES = [
     # Some are even pre-imported, and for these `!pip install` won't take effect
     # (restarting kernel is workaround but we want to be able to just "run all").
     # ⇒ try not to strictly pin.
+    # TODO 4: implement CI with colab environment: https://github.com/googlecolab/backend-info/blob/main/pip-freeze.txt
     "scipy>=1.14",
     "numpy~=2.0",
     "matplotlib>=3.10",
