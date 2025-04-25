@@ -183,7 +183,7 @@ class LivePlot:
                     ax0.set_title(ax0.get_title() + post_title)
                     self.update(key0, E, P)  # Call initial update
                     if not (replay and np.isinf(speed)):
-                        plt.pause(0.01)  # Draw
+                        plt.pause(0.01)  # Create and draw fig
 
     def update(self, key, E, P):
         """Update liveplots"""

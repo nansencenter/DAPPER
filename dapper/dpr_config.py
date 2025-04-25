@@ -69,13 +69,9 @@ for d in rc.dirs:
 ##################################
 # Disable rc.liveplotting in case of non-interactive backends
 ##################################
-# Otherwise, warnings are thrown on every occurence of plt.pause
-# (though not plot_pause), and (who knows) maybe errors too.
-# Also, the assimilation slows down, even though nothing is shown.
+# Otherwise, warnings are thrown on every occurence of plt.pause (not plot_pause),
+# and assimilate() slows down, even though nothing is shown.
 if rc.liveplotting and not is_using_interactive_backend():
-    # Note: plot_pause could maybe be adapted to also work for
-    # "inline" backend (which is not striclty interactive), but I think
-    # this would be buggy, and is incompatible with a "stop" button.
     print(
         "\nWarning: You have not disableed interactive/live plotting",
         "in your dpr_config.yaml,",

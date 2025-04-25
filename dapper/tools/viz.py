@@ -256,45 +256,59 @@ def estimate_good_plot_length(xx, tseq=None, mult=100):
 def plot_pause(interval):
     """Like `plt.pause`, but better.
 
-    Actually works in Jupyter notebooks, unlike `plt.pause`.
-
-    In regular mpl (interactive) backends: doesn't focus window.
-    NB: doesn't create windows either.
-    For that, use `plt.pause` or `plt.show` instead.
+    - Actually works in Jupyter notebooks.
+    - In GUI windows: don't focus window.
+      NB: doesn't create windows either.
+      For that, use `plt.pause` or `plt.show` instead.
     """
     # plt.pause(0) just seems to freeze execution.
     if interval == 0:
         return
 
-    if mpl.get_backend() == "nbAgg":  # ie. %matplotlib notebook
-        # https://stackoverflow.com/q/34486642
+    if mpl.get_backend() in ["nbAgg", "notebook"]:  # ie. %matplotlib notebook
+        # NOTE: Even though this work (yay!), the usefulness of animations is
+        # somewhat reduced by not being able to pause/skip it.
+
+        # From https://stackoverflow.com/q/34486642
         plt.gcf().canvas.draw()
         time.sleep(interval)
 
-        # About the "small" figures: https://stackoverflow.com/a/66399257
-        # It seems to me that it's using the "inline" backend until
-        # the liveplotting finishes. Unfortunately the "inline"
-        # backend is incompatible with "stop/pause" buttons.
+        # NB: on "small" figures issue/bug:
+        # https://stackoverflow.com/a/66399257
+
+    # ipympl NOT supported, coz requires splitting cells?
+    # elif `%matplotlib widget/ipympl` ('module://ipympl.backend_nbagg')
 
     elif "inline" in mpl.get_backend():  # ie. %matplotlib inline
-        # https://stackoverflow.com/a/29675706/38281
-        # NB: Not working, but could possibly be made to work,
-        # except that it won't support a "pause/stop" button.
+        # From https://stackoverflow.com/a/29675706/38281
         from IPython import display
 
-        display.display(plt.gcf())
         display.clear_output(wait=True)
+        plt.show()  # or display.display(plt.gcf())
         time.sleep(interval)
+        # NB: this does not work, and so has been disabled through dpr_config.
+        # Anyway, as of now, this code won't actually be reached, because checks using
+        # plt.get_figlabels() and plt.fignum_exists(name) fail in the inline case.
+        #
+        # Testing (outside of the structure of DAPPER) reveals additional annoyances,
+        # which is why we don't further pursue a fix.
+        # - flickering (can be addressed by updating handle from `display_id=True`,
+        #   ref https://stackoverflow.com/a/65400882, but that seems to require a code
+        #   structure of getting the handle while in the relevant cell.
+        # - output area being padded with empty divs (but not on Colab!)
+        #
+        # Another solution is clearing the axes,
+        # but that causes flickering and requires re-creating the entire plot,
+        # which is incompatible with liveplotting.py which relies on .update_data().
 
-    else:  # for non-notebook interactive backends
+    else:  # Assume non-notebook interactive backends (QT, TK, macOS, etc)
         # Implement plt.pause() that doesn't focus window, c.f.
-        # https://github.com/matplotlib/matplotlib/issues/11131
-        # https://stackoverflow.com/q/45729092
+        # - https://github.com/matplotlib/matplotlib/issues/11131
+        # - https://stackoverflow.com/q/45729092
         # Only necessary for some platforms (e.g. Windows) and mpl versions.
-        # Even then, mere figure creation may steal the focus.
-        # This was done deliberately:
-        # https://github.com/matplotlib/matplotlib/pull/6384#issue-69259165
-        # https://github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
+        # Even then, mere figure creation may steal the focus. This is deliberately:
+        # - https://github.com/matplotlib/matplotlib/pull/6384#issue-69259165
+        # - https://github.com/matplotlib/matplotlib/issues/8246#issuecomment-505460935
         # from matplotlib import _pylab_helpers
 
         def _plot_pause(interval, focus_figure=True):
@@ -559,7 +573,7 @@ def make_label(coord, no_key=NO_KEY, exclude=()):  # noqa
             if any(x in k for x in no_key):
                 lbl = lbl + f" {v}"
             else:
-                lbl = lbl + f" {collapse_str(k,7)}:{v}"
+                lbl = lbl + f" {collapse_str(k, 7)}:{v}"
     return lbl[1:]
 
 

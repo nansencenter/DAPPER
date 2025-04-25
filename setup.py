@@ -19,22 +19,26 @@ DOCLINES = __doc__.split("\n")
 # Dependencies
 # Why pin?: https://github.com/nansencenter/DAPPER/issues/41#issuecomment-1381616971
 INSTALL_REQUIRES = [
-    "scipy>=1.10",
-    "numpy~=1.20",
-    "jupyter",
-    "notebook<7",
+    # NB: Colab comes with several packages pre-installed, and we might want to avoid
+    # re-installing these (for compatibility, and startup time).
+    # Some are even pre-imported, and for these `!pip install` won't take effect
+    # (restarting kernel is workaround but we want to be able to just "run all").
+    # ⇒ try not to strictly pin.
+    "scipy>=1.14",
+    "numpy~=2.0",
+    "matplotlib>=3.10",
+    "pyyaml>=6.0.2",
+    "ipython>=7.34",
     "ipdb",
-    "ipython>=5.1",
-    "tornado~=6.3",  # 6.2 breaks Jupyter plots (tested on local Mac, Linux)
-    "matplotlib~=3.7,<3.9",  # 3.9 breaks plt.ion (tested on M1 Sonoma)
-    "mpl-tools==0.2.50",
-    "tqdm~=4.31",
-    "pyyaml",
+    "jupyter",
+    "notebook<7",  # only nbclassic supports nbAgg (liveplotting in Jupyter) backend
+    "mpl-tools==0.4.1",
+    "tqdm~=4.67",
     "colorama~=0.4.1",
     "tabulate~=0.8.3",
     "pathos~=0.3",
-    "dill==0.3.8",  # Pin vers. to equal GCP.
-    "patlib==0.3.5",
+    "dill==0.3.8",  # NB: must be same on remote computing servers
+    "patlib==0.3.7",
     "struct-tools==0.2.5",
     "threadpoolctl>=3.0.0,<4.0.0",
 ]
@@ -66,7 +70,10 @@ EXTRAS = {
         "pybtex",
     ],
     # 'flake8-docstrings', 'flake8-bugbear', 'flake8-comprehensions'],
-    "build": ["twine", "jupytext"],
+    "build": [
+        "twine",
+        "jupytext<=1.15",  # menu item disappeared for 1.16
+    ],
 }
 EXTRAS["dev"] = (
     EXTRAS["debug"] + EXTRAS["test"] + EXTRAS["lint"] + EXTRAS["build"] + EXTRAS["doc"]
