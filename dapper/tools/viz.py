@@ -283,8 +283,8 @@ def plot_pause(interval):
         # From https://stackoverflow.com/a/29675706/38281
         from IPython import display
 
+        display.display(plt.gcf())
         display.clear_output(wait=True)
-        plt.show()  # or display.display(plt.gcf())
         time.sleep(interval)
         # NB: this does not work, and so has been disabled through dpr_config.
         # Anyway, as of now, this code won't actually be reached, because checks using
