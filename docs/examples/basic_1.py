@@ -18,7 +18,7 @@ dpr.set_seed(3000);
 
 # ### Load experiment setup: the hidden Markov model (HMM)
 
-from dapper.mods.Lorenz63.sakov2012 import HMM
+from dapper.mods.NS2D.example_paper import HMM
 HMM  # ⇒ printout (in notebooks)
 
 # ### Simulate synthetic truth (xx) and noisy obs (yy)
