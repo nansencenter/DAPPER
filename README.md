@@ -8,7 +8,7 @@
 !
 -->
 
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/logo_wtxt.png" align="left" width="250"/>
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/logo_wtxt.png" alt="DAPPER logo" align="left" width="250"/>
 
 DAPPER is a set of templates for **benchmarking** the performance of **data assimilation** (DA) methods.
 The numerical experiments provide support and guidance for new developments in DA.
@@ -353,9 +353,9 @@ and the Center for Western Weather and Water Extremes (CW3E).
 <!-- markdownlint-disable line-length -->
 ![NORCE](https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/norce-logo.png)
 ![NERSC](https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/nansen-logo.png)
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/UoR-logo.png?raw=true" height="120" />
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/nceologo1000.png?raw=true" height="100">
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/CW3E-Logo-Horizontal-FullColor.png?raw=true" width="400">
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/UoR-logo.png?raw=true" alt="University of Reading logo" height="120" />
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/nceologo1000.png?raw=true" alt="NCEO logo" height="100">
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/CW3E-Logo-Horizontal-FullColor.png?raw=true" alt="CW3E logo" width="400">
 <!-- markdownlint-restore -->
 
 ## Publications
