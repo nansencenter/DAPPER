@@ -24,7 +24,7 @@ HMM  # ⇒ printout (in notebooks)
 # ### Simulate synthetic truth (xx) and noisy obs (yy)
 # A variable named `<char><char>` conventionally refers to a *time series* of `<char>`.
 
-HMM.tseq.T = 30  # shorten experiment
+HMM.tseq.T = 0.05 # shorten experiment
 xx, yy = HMM.simulate()
 
 # ### Specify a DA method
@@ -65,8 +65,8 @@ xp.stats.replay(
 import dapper.tools.viz as viz
 
 viz.plot_rank_histogram(xp.stats)
-viz.plot_err_components(xp.stats)
-viz.plot_hovmoller(xx)
+# viz.plot_err_components(xp.stats)
+# viz.plot_hovmoller(xx)
 
 # ### Excercise (methods)
 # - Try out each of the above DA methods (currently commented out).
