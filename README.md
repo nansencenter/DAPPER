@@ -88,7 +88,7 @@ Also see its [drawbacks](#similar-projects).
 
 Successfully tested on Linux/Mac/Windows.
 
-### Prerequisite: Python>=3.9
+### Prerequisite: Python>=3.12
 
 If you're an expert, setup a python environment however you like.
 Otherwise:

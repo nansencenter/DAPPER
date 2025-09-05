@@ -118,7 +118,7 @@ setup(
     # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
     # ==3.7 for Colab
     # ==3.9 for the DAPPER/GCP cluster, since dill isn't compat. across versions.
-    python_requires=">=3.9",
+    python_requires=">=3.12",
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS,
     packages=find_packages(),
