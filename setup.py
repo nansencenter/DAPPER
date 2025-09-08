@@ -116,6 +116,7 @@ setup(
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     long_description_content_type="text/markdown",
+    license="MIT",
     # >=3.5 for @.
     # >=3.6 for mpl>=3.1.
     # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
@@ -136,7 +137,6 @@ setup(
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     keywords=(
