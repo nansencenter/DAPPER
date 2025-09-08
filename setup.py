@@ -33,7 +33,7 @@ INSTALL_REQUIRES = [
     "ipdb",
     # Latest installs (Mac and Ubuntu) of notebook 6.5 fail
     # (Could not open static file ''), so downgrade:
-    "setuptools",
+    "setuptools",  # necessary when installing via uv
     "notebook<6.5",  # Colab will still use 6.5
     # "notebook<7",  # only nbclassic supports nbAgg (liveplotting in Jupyter) backend
     "mpl-tools==0.4.1",
