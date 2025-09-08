@@ -31,8 +31,11 @@ INSTALL_REQUIRES = [
     "pyyaml>=6.0.2",
     "ipython>=7.34",
     "ipdb",
-    "jupyter",
-    "notebook<7",  # only nbclassic supports nbAgg (liveplotting in Jupyter) backend
+    # Latest installs (Mac and Ubuntu) of notebook 6.5 fail
+    # (Could not open static file ''), so downgrade:
+    "setuptools",
+    "notebook<6.5",  # Colab will still use 6.5
+    # "notebook<7",  # only nbclassic supports nbAgg (liveplotting in Jupyter) backend
     "mpl-tools==0.4.1",
     "tqdm~=4.67",
     "colorama~=0.4.1",
