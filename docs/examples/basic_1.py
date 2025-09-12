@@ -24,7 +24,7 @@ HMM  # ⇒ printout (in notebooks)
 # ### Simulate synthetic truth (xx) and noisy obs (yy)
 # A variable named `<char><char>` conventionally refers to a *time series* of `<char>`.
 
-HMM.tseq.T = 0.05 # shorten experiment
+HMM.tseq.T = 10 # shorten experiment
 xx, yy = HMM.simulate()
 
 # ### Specify a DA method

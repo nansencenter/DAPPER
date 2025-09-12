@@ -12,7 +12,7 @@ Nx = System.Nx
 tseq = modelling.Chronology(System.dt, dko=1 , Ko=1 * 10**3, BurnIn=20, Tplot=0.1)
 
 Dyn = {
-    "M" : np.prod((128, 128)),
+    "M" : np.prod((Nx, Nx)),
     "model": System.step,
     "linear": System.dstep_dx,
     "noise": 0,
@@ -24,7 +24,7 @@ Obs["noise"] = 1
 Obs["localizer"] = nd_Id_localization((Nx,), (4, ))
 
 rstream = np.random.RandomState()
-jj = modelling.linspace_int(128, 128)
+jj = modelling.linspace_int(Nx, Nx)
 max_offset = jj[1] - jj[0]
 def obs_inds(ko):
     def random_offset():

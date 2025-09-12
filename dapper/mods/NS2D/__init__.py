@@ -9,8 +9,8 @@ from dapper.dpr_config import DotDict
 import dapper.tools.liveplotting as LP
 import matplotlib as mpl
 
-
-def Model(N=128, Lxy=2 * np.pi, dt=0.01, nu=0.5, T=1, mp = True):
+N = 32
+def Model(N=N, Lxy=2 * np.pi, dt=0.1, nu=1/1600, T=100, mp = True):
     def det_jacobian_equation_vec(psi_hat_batch):
         # psi_hat_batch: (N_ens, N, N)
         scale = 1 / (Lxy * Lxy)
@@ -171,7 +171,6 @@ def Model(N=128, Lxy=2 * np.pi, dt=0.01, nu=0.5, T=1, mp = True):
 
 ##Liveplotting mostly copied from QG model
 
-N = 128
 
 def square(x):
     return x.reshape(N, N)
@@ -181,10 +180,10 @@ def ind2sub(ind):
     return np.unravel_index(ind, (N, N))
 
 cm = mpl.cm.viridis
-center = 128 * 64 + 64
+center = N * int(N / 2) + int(0.5 * N)
 def LP_setup(jj):
     return [
-        (1, LP.spatial2d(square, ind2sub, jj, cm)),
+        (1, LP.spatial2d(square, ind2sub, jj, cm, clims=((-1, 1), (-1, 1), (-1, 1), (-1, 1)))),
         (0, LP.spectral_errors),
         (0, LP.sliding_marginals),
     ]
