@@ -31,8 +31,11 @@ INSTALL_REQUIRES = [
     "pyyaml>=6.0.2",
     "ipython>=7.34",
     "ipdb",
-    "jupyter",
-    "notebook<7",  # only nbclassic supports nbAgg (liveplotting in Jupyter) backend
+    # Latest installs (Mac and Ubuntu) of notebook 6.5 fail
+    # (Could not open static file ''), so downgrade:
+    "setuptools",  # necessary when installing via uv
+    "notebook<6.5",  # Colab will still use 6.5
+    # "notebook<7",  # only nbclassic supports nbAgg (liveplotting in Jupyter) backend
     "mpl-tools==0.4.1",
     "tqdm~=4.67",
     "colorama~=0.4.1",
@@ -113,12 +116,13 @@ setup(
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     long_description_content_type="text/markdown",
+    license="MIT",
     # >=3.5 for @.
     # >=3.6 for mpl>=3.1.
     # >=3.7 for dataclass, capture_output, dict ordering, np>=1.20.
     # ==3.7 for Colab
     # ==3.9 for the DAPPER/GCP cluster, since dill isn't compat. across versions.
-    python_requires=">=3.9",
+    python_requires=">=3.12",
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS,
     packages=find_packages(),
@@ -133,7 +137,6 @@ setup(
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     keywords=(
