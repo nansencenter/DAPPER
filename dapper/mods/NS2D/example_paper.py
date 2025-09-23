@@ -6,7 +6,8 @@ from dapper.mods.Lorenz96 import LPs
 from dapper.tools.localization import nd_Id_localization
 import numpy as np
 
-System = Model(T=3, nu = 0.1)
+TEST_NOISE_LEVEL = 0.02
+System = Model(T=3, nu=0.2)
 Nx = System.Nx
 
 tseq = modelling.Chronology(System.dt, dko=1 , Ko=1 * 10**3, BurnIn=20, Tplot=0.1)
@@ -17,7 +18,7 @@ Dyn = {
     "linear": System.dstep_dx,
     "noise": 0,
 }
-X0 = modelling.RV(M=Dyn["M"], func=lambda N: np.tile(System.x0.flatten() + 0 * np.random.randn(N, Dyn["M"]), (N, 1)))
+X0 = modelling.RV(M=Dyn["M"], func=lambda N: np.tile(System.x0.flatten() + TEST_NOISE_LEVEL * np.random.randn(N, Dyn["M"]), (N, 1)))
 #X0 = lambda N: np.tile(System.x0.flatten() + 0 * np.random.randn(N, Dyn["M"]), (N, 1))
 Obs = modelling.Id_Obs(Nx**2)
 Obs["noise"] = 1
@@ -34,5 +35,37 @@ def obs_inds(ko):
 
     return jj + random_offset()
 
+def obs_now(ko):
+    jj = obs_inds(ko)
+    shape = (Nx, Nx)
+    @modelling.ens_compatible
+    def hmod(E):
+        return E[jj]
+
+    # Localization.
+    batch_shape = [2, 2]  # width (in grid points) of each state batch.
+    # Increasing the width
+    #  => quicker analysis (but less rel. speed-up by parallelzt., depending on NPROC)
+    #  => worse (increased) rmse (but width 4 is only slightly worse than 1);
+    #     if inflation is applied locally, then rmse might actually improve.
+    localizer = nd_Id_localization((shape)[::-1], batch_shape[::-1], jj, periodic=False)
+
+    Obs = {
+        "M": Nx,
+        "model": hmod,
+        "noise": modelling.GaussRV(C=4 * np.eye(Nx)),
+        "localizer": localizer,
+    }
+
+    # Moving localization mask for smoothers:
+    Obs["loc_shift"] = lambda ii, dt: ii  # no movement (suboptimal, but easy)
+
+    # Jacobian left unspecified coz it's (usually) employed by methods that
+    # compute full cov, which in this case is too big.
+
+    return modelling.Operator(**Obs)
+
+
+Obs = dict(time_dependent=lambda ko: obs_now(ko))
 HMM = modelling.HiddenMarkovModel(Dyn, Obs, tseq, X0, LP=LP_setup(obs_inds))
 # HMM.liveplotters = LP_setup(obs_inds)

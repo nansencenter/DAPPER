@@ -10,7 +10,7 @@ import dapper.tools.liveplotting as LP
 import matplotlib as mpl
 
 N = 32
-def Model(N=N, Lxy=2 * np.pi, dt=0.1, nu=1/1600, T=100, mp = True):
+def Model(N=N, Lxy=2 * np.pi, dt=0.002, nu=1/1600, T=100, mp = True):
     def det_jacobian_equation_vec(psi_hat_batch):
         # psi_hat_batch: (N_ens, N, N)
         scale = 1 / (Lxy * Lxy)
@@ -154,7 +154,9 @@ def Model(N=N, Lxy=2 * np.pi, dt=0.1, nu=1/1600, T=100, mp = True):
         psi_hat_new = omega_hat_new / k2 #i^2 = -1; -1 / - 1 = 1.
         psi_hat_new[0, 0] = 0  # Enforce zero mean for
         psi_new = np.fft.ifft2(psi_hat_new).real
-        return psi_new.flatten()
+        assert abs(psi_new.mean()) < 1e-10, "Mean of psi_hat_new is not approximately zero"
+        assert abs(psi_hat_new[0,0]) < 1e-10, "Mean of psi_hat_new is not approximately zero"
+        return np.clip(psi_new.flatten(), -1, 1)
     step = step_ETD_RK4  # Single state step
     # for _ in range(num_steps):
     #     psi = step(psi, np.nan, h)
