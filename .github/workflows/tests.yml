@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.11", "3.12"] # NB: also see versions for 'conda'
+        python-version: ["3.12"] # NB: also see versions for 'conda'
         jobtype: ["test"]
         include:
           - os: "ubuntu-latest"
@@ -74,7 +74,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.12", "3.13"]
         include:
           - os: "macos-latest"
             python-version: "3.12"

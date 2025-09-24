@@ -8,7 +8,7 @@
 !
 -->
 
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/logo_wtxt.png" align="left" width="250"/>
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/logo_wtxt.png" alt="DAPPER logo" align="left" width="250"/>
 
 DAPPER is a set of templates for **benchmarking** the performance of **data assimilation** (DA) methods.
 The numerical experiments provide support and guidance for new developments in DA.
@@ -88,7 +88,7 @@ Also see its [drawbacks](#similar-projects).
 
 Successfully tested on Linux/Mac/Windows.
 
-### Prerequisite: Python>=3.9
+### Prerequisite: Python>=3.12
 
 If you're an expert, setup a python environment however you like.
 Otherwise:
@@ -141,23 +141,23 @@ you'll first need to run `conda activate dapper-env`
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable line-length -->
-Method                                                 | Literature reproduced
------------------------------------------------------- | ------------------------
-EnKF <sup>1</sup>                                      | [Sakov08](https://nansencenter.github.io/DAPPER/references/#sakov2008b), [Hoteit15](https://nansencenter.github.io/DAPPER/references/#hoteit2015a), [Grudzien2020](https://nansencenter.github.io/DAPPER/references/#grudzien2020a)
-EnKF-N                                                 | [Bocquet12](https://nansencenter.github.io/DAPPER/references/#bocquet2012a), [Bocquet15](https://nansencenter.github.io/DAPPER/references/#bocquet2015)
-EnKS, EnRTS                                            | [Raanes2016](https://nansencenter.github.io/DAPPER/references/#raanes2016thesis)
-iEnKS / iEnKF / EnRML / ES-MDA <sup>2</sup>            | [Sakov12](https://nansencenter.github.io/DAPPER/references/#sakov2012a), [Bocquet12](https://nansencenter.github.io/DAPPER/references/#Bocquet12), [Bocquet14](https://nansencenter.github.io/DAPPER/references/#bocquet2014)
-LETKF, local & serial EAKF                             | [Bocquet11](https://nansencenter.github.io/DAPPER/references/#bocquet2011)
-Sqrt. model noise methods                              | [Raanes2014](https://nansencenter.github.io/DAPPER/references/#raanes2014)
-Particle filter (bootstrap) <sup>3</sup>               | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010a)
-Optimal/implicit Particle filter  <sup>3</sup>         | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010a)
-NETF                                                   | [Tödter15](https://nansencenter.github.io/DAPPER/references/#todter2015a), [Wiljes16](https://nansencenter.github.io/DAPPER/references/#wiljes2016)
-Rank histogram filter (RHF)                            | [Anderson10](https://nansencenter.github.io/DAPPER/references/#anderson2010)
-4D-Var                                                 |
-3D-Var                                                 |
-Extended KF                                            |
-Optimal interpolation                                  |
-Climatology                                            |
+| Method                                               | Literature reproduced                                                                                                                        |
+|------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| EnKF <sup>1</sup>                                    | [Sakov08](https://nansencenter.github.io/DAPPER/references/#sakov2008b), [Hoteit15](https://nansencenter.github.io/DAPPER/references/#hoteit2015a), [Grudzien2020](https://nansencenter.github.io/DAPPER/references/#grudzien2020a) |
+| EnKF-N                                               | [Bocquet12](https://nansencenter.github.io/DAPPER/references/#bocquet2012a), [Bocquet15](https://nansencenter.github.io/DAPPER/references/#bocquet2015)                                 |
+| EnKS, EnRTS                                          | [Raanes2016](https://nansencenter.github.io/DAPPER/references/#raanes2016thesis)                                                              |
+| iEnKS / iEnKF / EnRML / ES-MDA <sup>2</sup>          | [Sakov12](https://nansencenter.github.io/DAPPER/references/#sakov2012a), [Bocquet12](https://nansencenter.github.io/DAPPER/references/#Bocquet12), [Bocquet14](https://nansencenter.github.io/DAPPER/references/#bocquet2014) |
+| LETKF, local & serial EAKF                           | [Bocquet11](https://nansencenter.github.io/DAPPER/references/#bocquet2011)                                                                   |
+| Sqrt. model noise methods                            | [Raanes2014](https://nansencenter.github.io/DAPPER/references/#raanes2014)                                                                   |
+| Particle filter (bootstrap) <sup>3</sup>             | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010a)                                                                  |
+| Optimal/implicit Particle filter  <sup>3</sup>       | [Bocquet10](https://nansencenter.github.io/DAPPER/references/#bocquet2010a)                                                                  |
+| NETF                                                 | [Tödter15](https://nansencenter.github.io/DAPPER/references/#todter2015a), [Wiljes16](https://nansencenter.github.io/DAPPER/references/#wiljes2016)                                 |
+| Rank histogram filter (RHF)                          | [Anderson10](https://nansencenter.github.io/DAPPER/references/#anderson2010)                                                                 |
+| 4D-Var                                               |                                                                                                                                              |
+| 3D-Var                                               |                                                                                                                                              |
+| Extended KF                                          |                                                                                                                                              |
+| Optimal interpolation                                |                                                                                                                                              |
+| Climatology                                          |                                                                                                                                              |
 <!-- markdownlint-restore -->
 
 <sup>1</sup>: Stochastic, DEnKF (i.e. half-update), ETKF (i.e. sym. sqrt.).
@@ -183,22 +183,22 @@ grep -r "xp.*iEnKS" dapper/mods
 Simple models facilitate the reliability, reproducibility,
 and interpretability of experiment results.
 
-Model                | Lin | TLM** | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer
------------          | --- | ----- | ----  | --------- | --------- | ------ | ----------
-Id                   | Yes | Yes   | No    | N/A       | *         | 0      | Raanes
-Linear Advect. (LA)  | Yes | Yes   | Yes   | 1d        | 1000 *    | 51     | Evensen/Raanes
-DoublePendulum       | No  | Yes   | No    | 0d        | 4         | 2      | Matplotlib/Raanes
-Ikeda                | No  | Yes   | No    | 0d        | 2         | 1      | Raanes
-LotkaVolterra        | No  | Yes   | No    | 0d        | 5 *       | 1      | Wikipedia/Raanes
-Lorenz63             | No  | Yes   | "Yes" | 0d        | 3         | 2      | Sakov
-Lorenz84             | No  | Yes   | No    | 0d        | 3         | 2      | Raanes
-Lorenz96             | No  | Yes   | No    | 1d        | 40 *      | 13     | Raanes
-Lorenz96s            | No  | Yes   | No    | 1d        | 10 *      |  4     | Grudzien
-LorenzUV             | No  | Yes   | No    | 2x 1d     | 256 + 8 * | ≈60    | Raanes
-LorenzIII            | No  | No    | No    | 1d        | 960 *     | ≈164   | Raanes
-Vissio-Lucarini 20   | No  | Yes   | No    | 1d        | 36 *      | 10     | Yumeng
-Kuramoto-Sivashinsky | No  | Yes   | Yes   | 1d        | 128 *     | 11     | Kassam/Raanes
-Quasi-Geost (QG)     | No  | No    | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov
+| Model                | Lin | TLM`**` | PDE?  | Phys.dim. | State len | Lyap≥0 | Implementer         |
+|----------------------|-----|-------|-------|-----------|-----------|--------|---------------------|
+| Id                   | Yes | Yes   | No    | N/A       | `*`         | 0      | Raanes              |
+| Linear Advect. (LA)  | Yes | Yes   | Yes   | 1d        | 1000 `*`    | 51     | Evensen/Raanes      |
+| DoublePendulum       | No  | Yes   | No    | 0d        | 4         | 2      | Matplotlib/Raanes   |
+| Ikeda                | No  | Yes   | No    | 0d        | 2         | 1      | Raanes              |
+| LotkaVolterra        | No  | Yes   | No    | 0d        | 5 `*`       | 1      | Wikipedia/Raanes    |
+| Lorenz63             | No  | Yes   | "Yes" | 0d        | 3         | 2      | Sakov               |
+| Lorenz84             | No  | Yes   | No    | 0d        | 3         | 2      | Raanes              |
+| Lorenz96             | No  | Yes   | No    | 1d        | 40 `*`      | 13     | Raanes              |
+| Lorenz96s            | No  | Yes   | No    | 1d        | 10 `*`      | 4      | Grudzien            |
+| LorenzUV             | No  | Yes   | No    | 2x 1d     | 256 + 8 `*` | ≈60    | Raanes              |
+| LorenzIII            | No  | No    | No    | 1d        | 960 `*`     | ≈164   | Raanes              |
+| Vissio-Lucarini 20   | No  | Yes   | No    | 1d        | 36 `*`      | 10     | Yumeng              |
+| Kuramoto-Sivashinsky | No  | Yes   | Yes   | 1d        | 128 `*`     | 11     | Kassam/Raanes       |
+| Quasi-Geost (QG)     | No  | No    | Yes   | 2d        | 129²≈17k  | ≈140   | Sakov               |
 
 - `*`: Flexible; set as necessary
 - `**`: Tangent Linear Model included?
@@ -247,42 +247,42 @@ Therefore, if you have an *operational* or real-world application,
 such as WRF, you should look into one of the alternatives,
 sorted by approximate project size.
 
-Name               | Developers            | Purpose (approximately)
------------------- | --------------------- | -----------------------------
-[DART][1]          | NCAR                  | General
-[PDAF][7]          | AWI                   | General
-[JEDI][21]         | JCSDA (NOAA, NASA, ++)| General
-[OpenDA][3]        | TU Delft              | General
-[EMPIRE][4]        | Reading (Met)         | General
-[ERT][2]           | Statoil               | History matching (Petroleum DA)
-[PIPT][14]         | CIPR                  | History matching (Petroleum DA)
-[MIKE][9]          | DHI                   | Oceanographic
-[OAK][10]          | Liège                 | Oceanographic
-[Siroco][11]       | OMP                   | Oceanographic
-[Verdandi][6]      | INRIA                 | Biophysical DA
-[PyOSSE][8]        | Edinburgh, Reading    | Earth-observation DA
+| Name               | Developers            | Purpose (approximately)           |
+|--------------------|----------------------|-----------------------------------|
+| [DART][1]          | NCAR                 | General                           |
+| [PDAF][7]          | AWI                  | General                           |
+| [JEDI][21]         | JCSDA (NOAA, NASA, ++)| General                          |
+| [OpenDA][3]        | TU Delft             | General                           |
+| [EMPIRE][4]        | Reading (Met)        | General                           |
+| [ERT][2]           | Statoil              | History matching (Petroleum DA)   |
+| [PIPT][14]         | CIPR                 | History matching (Petroleum DA)   |
+| [MIKE][9]          | DHI                  | Oceanographic                     |
+| [OAK][10]          | Liège                | Oceanographic                     |
+| [Siroco][11]       | OMP                  | Oceanographic                     |
+| [Verdandi][6]      | INRIA                | Biophysical DA                    |
+| [PyOSSE][8]        | Edinburgh, Reading   | Earth-observation DA              |
 
 Below is a list of projects with a purpose more similar to DAPPER's
 (research *in* DA, and not so much *using* DA):
 
-Name                                 | Developers                | Notes
------------------------------------- | ----------------------    | ---------------------------------
-[DAPPER][22]                         | Raanes, Chen, Grudzien    | Python
-[SANGOMA][5]                         | Conglomerate*             | Fortran, Matlab
-[hIPPYlib][25]                       | Villa, Petra, Ghattas     | Python, adjoint-based PDE methods
-[FilterPy][12]                       | R. Labbe                  | Python. Engineering oriented.
-[DASoftware][13]                     | Yue Li, Stanford          | Matlab. Large inverse probs.
-[Pomp][18]                           | U of Michigan             | R
-[EnKF-Matlab][15]                    | Sakov                     | Matlab
-[EnKF-C][17]                         | Sakov                     | C. Light-weight, off-line DA
-[pyda][16]                           | Hickman                   | Python
-[PyDA][19]                           | Shady-Ahmed               | Python
-[DasPy][20]                          | Xujun Han                 | Python
-[DataAssim.jl][23]                   | Alexander-Barth           | Julia
-[DataAssimilationBenchmarks.jl][24]  | Grudzien                  | Julia, Python
-[EnsembleKalmanProcesses.jl][26]     | Clim. Modl. Alliance      | Julia, EKI (optim)
-Datum                                | Raanes                    | Matlab
-IEnKS code                           | Bocquet                   | Python
+| Name                                 | Developers                | Notes                              |
+|--------------------------------------|---------------------------|------------------------------------|
+| [DAPPER][22]                         | Raanes, Chen, Grudzien    | Python                             |
+| [SANGOMA][5]                         | Conglomerate*             | Fortran, Matlab                    |
+| [hIPPYlib][25]                       | Villa, Petra, Ghattas     | Python, adjoint-based PDE methods  |
+| [FilterPy][12]                       | R. Labbe                  | Python. Engineering oriented.      |
+| [DASoftware][13]                     | Yue Li, Stanford          | Matlab. Large inverse probs.       |
+| [Pomp][18]                           | U of Michigan             | R                                  |
+| [EnKF-Matlab][15]                    | Sakov                     | Matlab                             |
+| [EnKF-C][17]                         | Sakov                     | C. Light-weight, off-line DA       |
+| [pyda][16]                           | Hickman                   | Python                             |
+| [PyDA][19]                           | Shady-Ahmed               | Python                             |
+| [DasPy][20]                          | Xujun Han                 | Python                             |
+| [DataAssim.jl][23]                   | Alexander-Barth           | Julia                              |
+| [DataAssimilationBenchmarks.jl][24]  | Grudzien                  | Julia, Python                      |
+| [EnsembleKalmanProcesses.jl][26]     | Clim. Modl. Alliance      | Julia, EKI (optim)                 |
+| Datum                                | Raanes                    | Matlab                             |
+| IEnKS code                           | Bocquet                   | Python                             |
 
 The `EnKF-Matlab` and `IEnKS` codes have been inspirational
 in the development of DAPPER.
@@ -353,9 +353,9 @@ and the Center for Western Weather and Water Extremes (CW3E).
 <!-- markdownlint-disable line-length -->
 ![NORCE](https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/norce-logo.png)
 ![NERSC](https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/nansen-logo.png)
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/UoR-logo.png?raw=true" height="120" />
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/nceologo1000.png?raw=true" height="100">
-<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/CW3E-Logo-Horizontal-FullColor.png?raw=true" width="400">
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/UoR-logo.png?raw=true" alt="University of Reading logo" height="120" />
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/nceologo1000.png?raw=true" alt="NCEO logo" height="100">
+<img src="https://github.com/nansencenter/DAPPER/raw/master/docs/images/logos/CW3E-Logo-Horizontal-FullColor.png?raw=true" alt="CW3E logo" width="400">
 <!-- markdownlint-restore -->
 
 ## Publications
