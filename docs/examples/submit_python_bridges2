@@ -9,7 +9,7 @@
 #SBATCH --mail-user=nchazma@gmail.com      # Destination email address
 #SBATCH --mail-type=ALL                       # Event(s) that triggers email notification
 #SBATCH --job-name=dapper
-#SBATCH --mem=16G
+#SBATCH --mem=2000M
 #SBATCH --output=dapper_output_%j
 export SLURM_EXPORT_ENV=ALL
 #export I_MPI_FABRICS=shm,tcp
