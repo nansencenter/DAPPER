@@ -24,7 +24,7 @@ HMM  # ⇒ printout (in notebooks)
 # ### Simulate synthetic truth (xx) and noisy obs (yy)
 # A variable named `<char><char>` conventionally refers to a *time series* of `<char>`.
 
-HMM.tseq.T = 0.8 # shorten experiment
+HMM.tseq.T = 10 # shorten experiment
 xx, yy = HMM.simulate()
 
 # ### Specify a DA method
@@ -33,16 +33,20 @@ xx, yy = HMM.simulate()
 # xp = da.OptInterp()
 # xp = da.Var3D()
 # xp = da.ExtKF(infl=90)
-# xp = da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
+xp = da.EnKF("Sqrt", N=10, infl=1.02, rot=True)
+xp = da.EnKF("Sqrt", N=20, infl=1.02, rot=True)
+xp = da.EnKF("Sqrt", N=50, infl=1.02, rot=True)
 # xp = da.PartFilt(N=100, reg=2.4, NER=0.3)
-xp = da.LETKF(mp=True, N=10, infl=1.02, loc_rad=10)
+xp += da.LETKF(mp=True, N=10, infl=1.02, loc_rad=10)
+xp += da.LETKF(mp=True, N=20, infl=1.02, loc_rad=10)
+xp += da.LETKF(mp=True, N=50, infl=1.02, loc_rad=10)
 xp  # ⇒ printout (in notebooks)
 
 # ### Assimilate yy
 # Note that the assimilation "knows" the HMM,
 # but `xx` is only used for performance *assessment*.
 
-xp.assimilate(HMM, xx, yy, liveplots=True)
+xp.assimilate(HMM, xx, yy, liveplots=False)
 
 # ### Average the time series
 # Computes a set of different statistics.
