@@ -21,6 +21,7 @@ mkdir -p "$WORKDIR" && cp -r *.py "$WORKDIR" && cp submit_python_bridges2 "$WORK
 # submit with base envs from local computer
 source ~/miniforge3/etc/profile.d/conda.sh
 conda activate dapper-env
+cd ~/DAPPER || exit -1
 pip3 install -e '.'
 cd docs/examples || exit -1
 python3 basic_1.py
