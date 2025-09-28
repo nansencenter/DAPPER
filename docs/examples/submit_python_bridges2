@@ -19,7 +19,7 @@ WORKDIR=/ocean/projects/phy240052p/chasmawa/dapper_$SLURM_JOB_ID
 mkdir -p "$WORKDIR" && cp -r *.py "$WORKDIR" && cp submit_python_bridges2 "$WORKDIR" && cd "$WORKDIR" || exit -1
 
 # submit with base envs from local computer
-source conda activate
+source ~/miniforge3/etc/profile.d/conda.sh
 conda activate dapper-env
 cd DAPPER || exit -1
 pip3 install -e '.'
