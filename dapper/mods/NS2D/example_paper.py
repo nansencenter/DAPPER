@@ -7,10 +7,10 @@ from dapper.tools.localization import nd_Id_localization
 import numpy as np
 
 TEST_NOISE_LEVEL = 0.02
-System = Model(T=3, nu=0.2)
+System = Model(T=100, nu=0.2)
 Nx = System.Nx
 
-tseq = modelling.Chronology(System.dt, dko=1 , Ko=1 * 10**3, BurnIn=20, Tplot=0.1)
+tseq = modelling.Chronology(System.dt, dko=1 , BurnIn=20, T=100)
 
 Dyn = {
     "M" : np.prod((Nx, Nx)),
